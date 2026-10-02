@@ -765,7 +765,7 @@ const pt: Record<string, string> = {
   "longest.markHint": "Toque nas linhas para marcar corridas — as marcadas sobem em todas as tabelas.",
   "longest.unmark": "Limpar seleção ({n})",
   "longest.link": "Comparar minhas corridas mais longas",
-  "longest.adminOnly": "Por enquanto só para admins.",
+  "longest.newHint": "NOVO: comparar as corridas mais longas",
   "foiler.chat": "Mensagem",
   "chat.sent": "Enviado",
   "chat.read": "Lido",

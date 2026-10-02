@@ -789,7 +789,7 @@ const nl: Record<string, string> = {
   "longest.markHint": "Tik op rijen om runs te markeren — gemarkeerde staan in elke tabel bovenaan.",
   "longest.unmark": "Selectie wissen ({n})",
   "longest.link": "Mijn langste runs vergelijken",
-  "longest.adminOnly": "Voorlopig alleen voor admins.",
+  "longest.newHint": "NIEUW: langste runs vergelijken",
   "foiler.chat": "Bericht",
   "chat.sent": "Verzonden",
   "chat.read": "Gelezen",

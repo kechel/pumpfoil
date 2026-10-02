@@ -772,7 +772,7 @@ const fi: Record<string, string> = {
   "longest.markHint": "Napauta rivejä merkitäksesi lenkkejä — merkityt nousevat kaikissa taulukoissa ylös.",
   "longest.unmark": "Poista valinta ({n})",
   "longest.link": "Vertaa pisimpiä lenkkejäni",
-  "longest.adminOnly": "Toistaiseksi vain ylläpitäjille.",
+  "longest.newHint": "UUTTA: vertaa pisimpiä lenkkejä",
   "foiler.chat": "Viesti",
   "chat.sent": "Lähetetty",
   "chat.read": "Luettu",

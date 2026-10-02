@@ -669,7 +669,7 @@ const fr: Record<string, string> = {
   "longest.markHint": "Touche des lignes pour marquer des runs — ils passent en haut de chaque tableau.",
   "longest.unmark": "Effacer la sélection ({n})",
   "longest.link": "Comparer mes plus longs runs",
-  "longest.adminOnly": "Réservé aux admins pour l'instant.",
+  "longest.newHint": "NOUVEAU : comparer les plus longs runs",
   "foiler.chat": "Message",
   "chat.sent": "Envoyé",
   "chat.read": "Lu",

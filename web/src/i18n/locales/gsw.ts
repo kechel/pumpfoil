@@ -609,7 +609,7 @@ const gsw: Record<string, string> = {
   "longest.markHint": "Tipp Ziile aa, zum Läuf markiere — markierti stönd i allne Tabälle obe.",
   "longest.unmark": "Uswahl ufhebe ({n})",
   "longest.link": "Mini längschte Läuf vergliiche",
-  "longest.adminOnly": "Vorerscht nur für Admins.",
+  "longest.newHint": "NEU: längschti Läuf vergliiche",
   "foiler.chat": "Nachricht",
   "chat.sent": "Gschickt",
   "chat.read": "Gläse",

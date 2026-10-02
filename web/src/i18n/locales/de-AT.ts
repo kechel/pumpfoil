@@ -570,7 +570,7 @@ const deAT: Record<string, string> = {
   "longest.markHint": "Tippe Zeilen an, um Läufe zu markieren — markierte stehen in allen Tabellen oben.",
   "longest.unmark": "Auswahl aufheben ({n})",
   "longest.link": "Meine längsten Läufe vergleichen",
-  "longest.adminOnly": "Vorerst nur für Admins.",
+  "longest.newHint": "NEU: längste Läufe vergleichen",
   "foiler.chat": "Nachricht",
   "chat.sent": "Gesendet",
   "chat.read": "Gelesen",

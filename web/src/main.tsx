@@ -171,7 +171,7 @@ const router = createBrowserRouter([
       // Oeffentliche Foiler-Seite. NOCH NICHT VERLINKT (Jan, 08.09.2026: erst ansehen,
       // dann entscheiden, wo sie erscheint) — nur direkt ueber /foiler/<id> erreichbar.
       { path: "foiler/:id", element: <Foiler /> },
-      // Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026) — vorerst nur Admins, Link ganz unten auf Home.
+      // Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026) — seit 02.10. fuer alle, Knopf ganz unten auf Home.
       { path: "laeufe", element: <LaengsteLaeufe /> },
       { path: "alle-sessions", element: <AllSessionsRedirect /> },
       { path: "spots", element: <Spots /> },

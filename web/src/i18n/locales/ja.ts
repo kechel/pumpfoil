@@ -765,7 +765,7 @@ const ja: Record<string, string> = {
   "longest.markHint": "行をタップしてランをマーク — マークしたランはすべての表で上に表示されます。",
   "longest.unmark": "選択を解除 ({n})",
   "longest.link": "最長ランを比較",
-  "longest.adminOnly": "現在は管理者のみ。",
+  "longest.newHint": "新機能：最長ランを比較",
   "foiler.chat": "メッセージ",
   "chat.sent": "送信済み",
   "chat.read": "既読",

@@ -779,7 +779,7 @@ const nb: Record<string, string> = {
   "longest.markHint": "Trykk på rader for å markere løp — markerte står øverst i alle tabeller.",
   "longest.unmark": "Fjern valg ({n})",
   "longest.link": "Sammenlign mine lengste løp",
-  "longest.adminOnly": "Foreløpig bare for admins.",
+  "longest.newHint": "NYTT: sammenlign lengste løp",
   "foiler.chat": "Melding",
   "chat.sent": "Sendt",
   "chat.read": "Lest",
