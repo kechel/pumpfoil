@@ -11092,11 +11092,8 @@ Offen daraus:
   erkannte Startversuch 16:20:34 (4–10 s) vor Lauf 1. Beim Training fuer `placement = board` als
   Positivbeispiele „Startversuch" verwenden.
 
-- **🔍 Erkennung v3: Kandidaten laufen noch durch das ALTE On-Foil-Modell (Befund 03.10.2026,
-  #12632 Bartosz u354, Apple Watch).** Nutzer meldet 2–3 Laeufe, die als Startversuch zaehlen.
-  Ursache: die „grosszuegigen" v3-Kandidaten (`TIEF_KW` in `v3/nachbearbeitung.py`) lockern nur die
-  Tempo-Grenzen; `detect_v2` nimmt mit Accel aber weiter `foil_rf.pkl` als Maske — wo das alte
-  Modell 0 % sagt, sieht v3 die Stelle nie (17:49/17:58: altes Modell 0 %, v3-p 0,79/0,71, GPS ≤ 8 m).
-  Probe nur auf dieser Session mit `use_model: False` in den TIEF-Kandidaten: 23 -> 34 Laeufe,
-  323 -> 454 s. Pipeline-Aenderung -> erst Jans OK, dann Regressionslauf ueber den Bestand
-  (Laufzahl, Foil-Zeit, Negativbeispiele `data/ml/v3/negativ_sessions`, Brett-Parallelfahrten).
+- **✅ Erkennung v3-r4-mild-2 LIVE (03.10.2026):** Kandidaten ohne altes On-Foil-Modell, von v3
+  gebildete Stuecke muessen die Grenzen der Profil-Empfindlichkeit erfuellen (Befund #12632 Bartosz).
+  Regression +2,0 % Laeufe / +0,4 % Foil-Zeit, 709 Sessions reanalysiert (708 exakt wie im Test,
+  #12588 hatte sich dazwischen geaendert). Sicherung `server/data/sicherung/vor-v3-mild2-20261003-0556.dump`.
+  Details docs/DETECTION-V3.md. Offen: Antwort an Bartosz (Entwurf bei Jan).
