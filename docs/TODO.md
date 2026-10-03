@@ -11129,4 +11129,4 @@ Offen daraus:
   Pumps, `seg.glides` = [Start-Index, End-Index, Dauer s, Start Session-ms]) + Liste unter der Karte
   (Lauf · Uhrzeit · Dauer, Wanduhr ueber `pause_windows`; Tipp waehlt den Lauf). Neuer Text
   `sd.boardGpsWarning` (Pumps werden am Brett jetzt gezaehlt) in Android `I18n.kt`/`I18nExtra.kt` und
-  iOS `Loc.swift`/`LocExtra.swift` uebernehmen.
+  iOS `Loc.swift`/`LocExtra.swift` — NEIN: Jan 03.10.: Hinweis bei „am Brett" ganz weglassen (Web erledigt).

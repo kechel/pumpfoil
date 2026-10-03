@@ -1834,13 +1834,11 @@ export default function SessionDetail() {
           </button>
         </div>
       )}
-      {m?.detection === "gps_only" && !zeigeEingefroren && session.status !== "live" && (
+      {/* Am Brett KEIN Hinweis (Jan, 03.10.2026: „einfach ganz weg bei Phone on Board") — dort ist
+          die GPS-Erkennung gewollt, und „Rate zu niedrig" waere bei 61 Hz ohnehin falsch. */}
+      {m?.detection === "gps_only" && m.model_skipped !== "board" && !zeigeEingefroren && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-          {/* Am Brett ist das Modell ABSICHTLICH aussen vor — dann waere „Rate zu niedrig"
-              eine falsche Erklaerung (die Aufnahme hat 61 Hz). */}
-          {m.model_skipped === "board"
-            ? t("sd.boardGpsWarning")
-            : m.accel_hz_effective != null && m.accel_hz_effective > 0
+          {m.accel_hz_effective != null && m.accel_hz_effective > 0
               ? t("sd.lowRateWarning", { hz: Math.round(m.accel_hz_effective) })
               : t("sd.gpsWarning")}
         </div>
