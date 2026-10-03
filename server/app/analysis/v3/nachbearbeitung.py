@@ -12,6 +12,13 @@ Sessions, Nerd-Analysen Teil 5):
    theta/tau/kurz je Profil-Empfindlichkeit — die Einstellung stellt jetzt die Modell-Schwellen.
 6. Ein Stueck, das sich mit einem v2-Lauf deckt, behaelt dessen Werte exakt; neue Stuecke bekommen
    ihre Felder wie v2 (`gps._seg_fields`) und dieselbe Plausibilitaets-Schranke.
+7. Ganz NEUE Stuecke (kein v2-Lauf beruehrt sie) muessen die Grenzen der Profil-Empfindlichkeit
+   erfuellen — Mindestdauer und Mindest-Schnitt, gemessen am Stueck NACH dem Modell (`nach_empfindlichkeit`).
+
+Kandidaten seit v3-r4-mild-2 (03.10.2026, Befund #12632): `tief` OHNE das alte On-Foil-Modell
+(`use_model=False`, reine GPS-Heuristik). Vorher lief auch `tief` durch `foil_rf.pkl` — wo das alte
+Modell nein sagte, sah das neue die Stelle nie (ein Lauf brauchte damit das Ja BEIDER Modelle).
+Regression ueber 2802 Sessions: scripts/v3/regression-kandidaten.py, docs/DETECTION-V3.md.
 
 Lauf-Status manuell/auto (Jan, 29.09.: „bei 'manuell' nicht wieder ueberschreiben"):
 - Vom Nutzer AUSSORTIERT (`excluded_ranges`): die GPS-Punkte fehlen schon vor jeder Rechnung.
@@ -36,14 +43,15 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
-VERSION = "v3-r4-mild-1"
+VERSION = "v3-r4-mild-2"
 # Die Live-Modelle liegen IM REPO neben dem Code (wie `foil_rf.pkl`), nicht unter data/ (Jan, 30.09.:
 # „bitte ins repo committen, nicht dass das verloren geht"). Sie enthalten nur Baeume und
 # Bin-Grenzen, keine Sessions. Neue Fassung: unter neuem Namen trainieren, pruefen, HIER ablegen,
 # VERSION hochzaehlen.
 MODELLE = Path(__file__).resolve().parent / "modelle"
 MODELL, REF = MODELLE / "stufe_a_r4.pkl", MODELLE / "stufe_a_r3.pkl"
-TIEF_KW = {"enter_speed": 1.4, "exit_speed": 1.1, "min_segment_s": 3, "min_seg_avg_speed": 1.4}
+TIEF_KW = {"enter_speed": 1.4, "exit_speed": 1.1, "min_segment_s": 3, "min_seg_avg_speed": 1.4,
+           "use_model": False}
 # (theta fuer `teil`, tau fuer das Veto) und die Schwelle fuer kurze Stuecke, je Empfindlichkeit
 TEIL = {"normal": (0.4, 0.5), "light": (0.3, 0.4), "attempts": (0.25, 0.3)}
 KURZ = {"normal": 0.8, "light": 0.7, "attempts": 0.6}
@@ -195,6 +203,24 @@ def _index_im_zuschnitt(session, seg):
     return max(a, 0), max(min(b, tt.size - 1), 0)
 
 
+def nach_empfindlichkeit(segs: list, v2_segmente: list, sens: str, geschuetzt=()) -> list:
+    """Rein: ganz neue Stuecke (keinen v2-Lauf beruehrend) unter den Grenzen der Empfindlichkeit
+    fallen weg. Gemessen wird das Stueck NACH dem Modell — kuerzer als die GPS-Linie des
+    Startversuchs (Jan, 03.10.2026). v2-Laeufe und vom Nutzer Zurueckgeholtes bleiben unangetastet."""
+    from ..gps import SENSITIVITY_PRESETS
+    g = SENSITIVITY_PRESETS.get(sens) or SENSITIVITY_PRESETS["normal"]
+    alt = [(float(s["t_start_session_ms"]), float(s["t_end_session_ms"])) for s in v2_segmente]
+    out = []
+    for x in segs:
+        a, b = float(x["t_start_session_ms"]), float(x["t_end_session_ms"])
+        if x in geschuetzt or not x.get("v3") or any(a < y and b > w for w, y in alt):
+            out.append(x)
+        elif (float(x.get("duration_s") or 0) >= g["min_segment_s"]
+              and float(x.get("avg_speed_mps") or 0) >= g["min_seg_avg_speed"]):
+            out.append(x)
+    return out
+
+
 def anwenden(res: dict, session, judge: bool, sens: str) -> dict:
     """v2-Ergebnis -> v3-Ergebnis (gleiches Format). Bei jedem Fehler: v2 unveraendert zurueck."""
     try:
@@ -228,7 +254,7 @@ def _anwenden(res, session, judge, sens):
         return res
     L, geschuetzt, (tp, p) = out
     off = (int(v2[0]["t_start_session_ms"]) - int(v2[0]["t_start_ms"])) if v2 else int(session.trim_start_ms or 0)
-    segs = _segmente(L, v2, session, off)
+    segs = nach_empfindlichkeit(_segmente(L, v2, session, off), v2, sens, geschuetzt)
     for g in geschuetzt:                       # vom Nutzer zurueckgeholt: unveraendert
         if g not in segs:
             segs.append(g)

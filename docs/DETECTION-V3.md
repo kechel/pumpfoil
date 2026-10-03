@@ -445,3 +445,24 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 - **Stufe B (Sportart je Session/Lauf)** ist trainiert (Wingfoil 20/24 statt 0/21), aber nicht live —
   heute ordnet `sportauto.einordnen` regelbasiert nach der finalen Analyse zu. Vor einem Einsatz ein
   eigener Regressionstest wie fuer die Laeufe.
+
+## v3-r4-mild-2: Kandidaten ohne altes Modell, Empfindlichkeit als harte Grenze (03.10.2026)
+
+Befund #12632 (Bartosz, Apple Watch): Laeufe als Startversuche gezaehlt. Die „grosszuegigen"
+`tief`-Kandidaten lockerten nur die Tempo-Grenzen; `detect_v2` nahm mit Accel weiter `foil_rf.pkl`
+als Maske. Ein Lauf brauchte damit das Ja BEIDER Modelle — genau das, wovor detector-v2.md warnt
+(„zwei Detektoren zu schneiden verliert jeden Lauf, ueber den sie uneins sind"). Beispiel 17:49 /
+17:58: altes Modell 0 %, Stufe A p 0,79 / 0,71, GPS-Genauigkeit ≤ 8 m.
+
+Aenderung (Jans OK 03.10.): `TIEF_KW["use_model"] = False`; dazu muessen alle von v3 SELBST
+gebildeten Stuecke (kein v2-Lauf beruehrt sie) die Grenzen der Profil-Empfindlichkeit erfuellen —
+Mindestdauer und Mindest-Schnitt (`avg_speed_mps`, wie bei v2), gemessen am Stueck NACH dem Modell
+(`nach_empfindlichkeit`). Vorher galten fuer diese Stuecke nur 3 s / ~5 km/h, auch bei „normal"
+(Jan: „das war vorher halt falsch").
+
+Regression (`scripts/v3/regression-kandidaten.py`, 2802 Sessions, Nachbau trifft alle gespeicherten
+Laufzahlen): Laeufe 20 969 -> 21 393 (+2,0 %), Foil-Zeit 264,9 -> 266,0 h (+0,4 %). Neu 886 Laeufe
+(normal +343, light +76, attempts +467; Dauer-Median 7 s, p-Median 0,75); weg 461 v3-Zusatzlaeufe
+unter den Grenzen (452 bei „normal": 118 unter 5 s, Rest zu langsam, die laengsten 68 s bei 5 km/h).
+Negativbeispiele 0 -> 0. Brett-Paare 77/81 -> 78/84 bestaetigt. Erste Probe ohne Grenzen: +6,8 %,
+55 % der neuen Laeufe unter 8 s — deshalb die Grenzen.

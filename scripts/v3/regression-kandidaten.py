@@ -70,7 +70,9 @@ def eine(sid: int) -> dict:
         fs = np.array([bool(x) for x in fs]) if fs and len(fs) == len(gps) and any(fs) else None
         out = {"id": sid, "user": s.user_id, "sens": sens, "t0": int(t0),
                "gespeichert": s.result.num_runs if s.result else None}
-        for name, kw in (("heute", N.TIEF_KW), ("neu", {**N.TIEF_KW, "use_model": False})):
+        # heute = Stand bis v3-r4-mild-1 (tief MIT altem Modell, keine Empfindlichkeits-Grenzen);
+        # neu = der Live-Code (TIEF_KW ohne altes Modell + nach_empfindlichkeit), sobald vorhanden.
+        for name, kw in (("heute", {**N.TIEF_KW, "use_model": True}), ("neu", N.TIEF_KW)):
             tief = analyze_session_v2(s, judge_fremdkraft=judge, **kw)["segments"]
             r = N.laeufe(tb, v2, tief, sens, keep)
             if r is None:
@@ -78,6 +80,8 @@ def eine(sid: int) -> dict:
                 continue
             L, geschuetzt, (tp, p) = r
             segs = N._segmente(L, v2, s, off)
+            if name == "neu" and hasattr(N, "nach_empfindlichkeit"):
+                segs = N.nach_empfindlichkeit(segs, v2, sens, geschuetzt)
             for g in geschuetzt:
                 if g not in segs:
                     segs.append(g)
@@ -197,12 +201,18 @@ if __name__ == "__main__":
     ap.add_argument("--aus")
     ap.add_argument("--nur")
     ap.add_argument("--bericht")
+    ap.add_argument("--mit-negativ", action="store_true", help="geloeschte Negativbeispiele mitrechnen")
     a = ap.parse_args()
     if a.bericht:
         bericht(a.bericht)
         sys.exit(0)
     ids = [int(x) for x in a.nur.split(",")] if a.nur else sessions_liste()
+    if a.mit_negativ:
+        ids += [i for i in (12568, 12574, 12575) if i not in ids]
     print(f"{len(ids)} Sessions", flush=True)
+    # Die DB-Verbindung des Hauptprozesses NICHT an die Kinder vererben (sonst SSL-Fehler beim Start).
+    from app.db import engine
+    engine.dispose()
     with open(a.aus, "w") as f, Pool(a.jobs, maxtasksperchild=50) as pool:
         for i, z in enumerate(pool.imap_unordered(eine, ids, chunksize=4), 1):
             f.write(json.dumps(z) + "\n")
