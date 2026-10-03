@@ -11110,5 +11110,13 @@ Offen daraus:
   332611-336030 P5, 11:27:51 2,7 s 714114-716843 P3 · #12608 02.10. 16:55:22 6,0 s 5677288-5683317, 16:47:42 1,6 s,
   16:29:35 1,8 s · #9534 21.09. 18:14:10 5,0 s 829839-834860, Mitte 18:21:14 3,2 s 1253380-1256533 P3 ·
   #9648 23.09. 10:24:30 2,7 s 732931-735645 P3, 10:30:59 2,9 s 1121795-1124698.
+  Dazu aus den UNGENAUER ausgerichteten Paaren (Zeitversatz ±1-2 s, Grenzen entsprechend weich):
+  #10250 (u13) 27.09. — u13 GLEITET auch mitten im Lauf: 09:48:56 1,7 s 116446-118104 P2, 09:49:05 2,0 s
+  125234-127191 P2, 09:56:36 2,1 s 576064-578187 P3, 09:56:38 1,8 s 578784-580541 P2, 10:02:52 1,7 s
+  952574-954298 P2, 10:12:50 2,2 s 1550220-1552376 P3, 10:13:04 2,7 s 1564779-1567432 P3, 10:13:14 2,8 s
+  1574397-1577149 P3, 10:14:05 2,8 s 1625237-1628056 P4, Ende 10:02:55 5,4 s 955260-960673 P6 ·
+  #10326 (u2) 27.09. Ende 17:03:18 **10,6 s** 588845-599470 P4, Ende 17:22:30 4,6 s 1740905-1745480 P4,
+  Mitte 17:33:43 1,6 s / 17:33:45 2,0 s · #10979 (u574, Wear, Ausrichtung schwach r ~0,1) Enden 30.09.
+  12:58:36 2,5 s P3, 13:34:37 2,0 s, 13:59:32 2,0 s, 14:10:07 1,7 s, 14:13:34 5,3 s 4598226-4603540 P5, 14:23:03 1,6 s.
   Neu erzeugen: `scripts/v3/gleiten_versatz.py` + paare.json (Versatz je Paar). Braucht dringend Paare
   von Fahrern, die wirklich gleiten (Bartosz/Guillaume mit Handy am Brett).
