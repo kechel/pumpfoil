@@ -1227,6 +1227,9 @@ export default function SessionDetail() {
         let color: string;
         if (dim) {
           color = "#64748b";
+        } else if (showGlides) {
+          // Wie bei den Carves (Jan, 03.10.2026): Track dezent grau, nur die Gleitphasen farbig.
+          color = "#334155";
         } else if (colorMode === "speed") {
           color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
         } else if (colorMode === "optimal") {
@@ -1300,14 +1303,14 @@ export default function SessionDetail() {
       });
     }
     // Gleitphasen (1,5-10 s ohne Pump, auch letzter Pump -> Laufende; server-seitig in `seg.glides`
-    // als [Start-Index, End-Index, Dauer s]) als breites Band UNTER den Pump-Markern.
+    // als [Start-Index, End-Index, Dauer s, Start]) in Marken-Cyan auf grauem Track, UNTER den Pump-Markern.
     if (showGlides) {
       segs.forEach((seg: any, idx: number) => {
         if (selectedRun != null && idx !== selectedRun) return;
         for (const [i0, i1, d] of (seg.glides ?? []) as number[][]) {
           const pts = coords.slice(i0, Math.max(i1, i0 + 1) + 1).filter(Boolean);
           if (pts.length < 2) continue;
-          L.polyline(pts, { color: "#e879f9", weight: 9, opacity: 0.6, lineCap: "round" })
+          L.polyline(pts, { color: "#22d3ee", weight: 6, opacity: 0.98, lineCap: "round" })
             .bindTooltip(`${t("sd.glide")} ${d.toFixed(1)} s`, { sticky: true })
             .addTo(lg);
         }
@@ -1939,7 +1942,7 @@ export default function SessionDetail() {
           {(session?.analysis?.segments ?? []).some((g: any) => g.glides?.length) && (
             <button
               onClick={() => setShowGlides((v) => !v)}
-              className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showGlides ? "bg-fuchsia-400 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
+              className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showGlides ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
             >
               <span className="inline-flex items-center gap-1">{t("sd.glides")} {showGlides ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
             </button>
@@ -2181,7 +2184,7 @@ export default function SessionDetail() {
               {liste.map((x, i) => (
                 <button key={i}
                   onClick={() => { setSelectedRun(x.lauf); setShowGlides(true); }}
-                  className="rounded-lg bg-fuchsia-500/15 px-2.5 py-1 text-xs tabular-nums text-slate-200 hover:bg-fuchsia-500/30">
+                  className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs tabular-nums text-slate-200 hover:bg-slate-700">
                   #{x.lauf + 1}
                   {x.t != null && <span className="opacity-70"> · {fmtTime(new Date(startMs + wanduhrMs(session!.pause_windows, x.t)).toISOString(), session!.tz,
                     { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>}
