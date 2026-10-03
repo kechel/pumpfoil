@@ -11097,3 +11097,18 @@ Offen daraus:
   Regression +2,0 % Laeufe / +0,4 % Foil-Zeit, 709 Sessions reanalysiert (708 exakt wie im Test,
   #12588 hatte sich dazwischen geaendert). Sicherung `server/data/sicherung/vor-v3-mild2-20261003-0556.dump`.
   Details docs/DETECTION-V3.md. Offen: Antwort an Bartosz (Entwurf bei Jan).
+- **🏷️ v4-Trainingsdaten: Gleiten mit Arm-Balance (Jan, 03.10.2026).** Befund aus
+  `scripts/v3/gleiten_versatz.py`: echtes Gleiten (laut Brett, Pump-Gipfel im Nicken) liegt vor allem
+  am Laufende, Median 3,4 s, bis 6 s. Die Uhr zaehlt darin teils weiter „Pumps" (Arm haelt das
+  Gleichgewicht), und das Laufende der Uhr liegt oft Sekunden VOR dem Brett-Ende. Jans Hypothese:
+  beim Ausbalancieren bewegt sich der Arm eher HORIZONTAL, beim Pumpen stark VERTIKAL — Merkmal fuer
+  v4: Verhaeltnis horizontaler zu vertikaler Beschleunigungs-Energie (gegen die Schwerkraft), und die
+  Wahrheit kommt vom Brett. Brett-bestaetigte Gleitphasen (Uhr-Session, Ortszeit, Dauer, Uhr-Session-ms;
+  „P" = von der Uhr dort gezaehlte Pumps):
+  #10194 26.09. 16:41:41 5,1 s 873611-878732 P3 · 16:49:37 5,1 s 1349668-1354729 · 17:03:27 4,7 s 2179946-2184693 P6 ·
+  #10873 29.09. 15:10:37 3,4 s 308161-311512 P3 · #10969 30.09. 11:27:56 3,1 s 719178-722323 P2, Mitte 11:21:29 3,4 s
+  332611-336030 P5, 11:27:51 2,7 s 714114-716843 P3 · #12608 02.10. 16:55:22 6,0 s 5677288-5683317, 16:47:42 1,6 s,
+  16:29:35 1,8 s · #9534 21.09. 18:14:10 5,0 s 829839-834860, Mitte 18:21:14 3,2 s 1253380-1256533 P3 ·
+  #9648 23.09. 10:24:30 2,7 s 732931-735645 P3, 10:30:59 2,9 s 1121795-1124698.
+  Neu erzeugen: `scripts/v3/gleiten_versatz.py` + paare.json (Versatz je Paar). Braucht dringend Paare
+  von Fahrern, die wirklich gleiten (Bartosz/Guillaume mit Handy am Brett).
