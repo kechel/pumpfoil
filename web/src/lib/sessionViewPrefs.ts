@@ -18,6 +18,7 @@ export type SessionView = {
   win: SmoothWin;
   showPumps: boolean;
   showAttempts: boolean;
+  showGlides: boolean;
 };
 
 const KEY = "foil_sd_view";
@@ -29,6 +30,7 @@ export const SESSION_VIEW_DEFAULT: SessionView = {
   win: "3",
   showPumps: false,
   showAttempts: true,
+  showGlides: false,
 };
 
 const MODES: ColorMode[] = ["speed", "hr", "pump", "optimal", "turns"];
@@ -45,6 +47,7 @@ export function ladeSessionView(): SessionView {
       win: WINS.includes(v.win as SmoothWin) ? (v.win as SmoothWin) : SESSION_VIEW_DEFAULT.win,
       showPumps: typeof v.showPumps === "boolean" ? v.showPumps : SESSION_VIEW_DEFAULT.showPumps,
       showAttempts: typeof v.showAttempts === "boolean" ? v.showAttempts : SESSION_VIEW_DEFAULT.showAttempts,
+      showGlides: typeof v.showGlides === "boolean" ? v.showGlides : SESSION_VIEW_DEFAULT.showGlides,
     };
   } catch {
     return SESSION_VIEW_DEFAULT;

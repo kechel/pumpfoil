@@ -329,6 +329,8 @@ const en: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling time",
   "stat.pumps": "Pumps",
+  "sd.glides": "Glides",
+  "sd.glide": "Glide",
   "sd.showAttempts": "Start attempts",
   "sd.showAttemptsHint": "The tries that did not become a run — dashed on the map.",
   "stat.topSpeed": "Top speed",

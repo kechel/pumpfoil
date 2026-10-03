@@ -50,6 +50,13 @@ GPS_ONLY_SPORTS = {
 MODEL_MIN_ACCEL_HZ = 8.0
 # Obergrenze fuer eine Gleitphase (Luecke zwischen zwei erkannten Pumps), s. Pump-Schleife.
 MAX_GLIDE_S = 15.0
+# Gleitphasen zum EINBLENDEN auf der Karte (nur Anzeige, keine Kennzahl; Jan, 03.10.2026): Luecke
+# zwischen zwei Pumps bzw. letzter Pump -> Laufende, 1,5-10 s. Gegen das Brett geprueft
+# (scripts/v3/gleiten_versatz.py): ab 1 s pumpte das Brett in ~90 % der Uhr-„Gleitphasen" weiter,
+# echtes Gleiten liegt vor allem am Laufende (Median 3,4 s); ueber 10 s ist es fast immer ein
+# Erkennungsfehler (verpasste Pumps, Beine pumpen bei ruhigem Arm).
+GLIDE_SHOW_MIN_S = 1.5
+GLIDE_SHOW_MAX_S = 10.0
 
 
 def _accel_spans_session(accel, scale) -> bool:
@@ -371,6 +378,28 @@ def attempt_distances(gps_samples, gps_hz) -> list:
         return []
 
 
+def gleit_anzeige(ps, ohne_luecke, ende_ms: float, gps_t) -> list:
+    """Gleitphasen eines Laufs zum Einblenden: [[Start-Index, End-Index, Dauer s], ...] im Track.
+
+    `ps` sortierte Pump-Zeiten (ms, Zuschnitt-Basis), `ohne_luecke[k]` = zwischen Pump k und k+1 lagen
+    durchgehend echte Messwerte, `ende_ms` = Laufende (bzw. Ende der Beschleunigungsdaten), `gps_t`
+    Zeit je Track-Punkt. Zwischen zwei Pumps und vom letzten Pump bis zum Ende, je
+    GLIDE_SHOW_MIN_S..GLIDE_SHOW_MAX_S. Der Anlauf vor dem ersten Pump ist der Start, kein Gleiten."""
+    if len(ps) == 0 or len(gps_t) == 0:
+        return []
+    zeige = []
+    for k in range(len(ps) - 1):
+        d = float(ps[k + 1] - ps[k]) / 1000.0
+        if GLIDE_SHOW_MIN_S <= d <= GLIDE_SHOW_MAX_S and ohne_luecke[k]:
+            zeige.append((float(ps[k]), float(ps[k + 1]), d))
+    d = (float(ende_ms) - float(ps[-1])) / 1000.0
+    if GLIDE_SHOW_MIN_S <= d <= GLIDE_SHOW_MAX_S:
+        zeige.append((float(ps[-1]), float(ende_ms), d))
+    n = len(gps_t)
+    return [[int(np.clip(np.searchsorted(gps_t, a), 0, n - 1)), int(np.clip(np.searchsorted(gps_t, b), 0, n - 1)),
+             round(d, 1)] for a, b, d in zeige]
+
+
 def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -> "models.AnalysisResult":
     """Lädt die Rohdaten der Session, rechnet die Analyse und persistiert das Ergebnis.
 
@@ -663,7 +692,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
                 seg.update({"pumps": None, "pump_idx": [], "avg_pump_hz": None, "max_pump_hz": None,
                             "min_pump_hz": None, "t_to_first_pump_s": None, "dist_per_pump_m": None,
                             "pumps_per_min": None, "num_glides": 0, "avg_glide_s": None,
-                            "longest_glide_s": None, "accel_fehlt": True})
+                            "longest_glide_s": None, "accel_fehlt": True, "glides": []})
                 continue
             local_idx = find_pumps_cadence(vsig[a_lo:a_hi], fs) if a_hi > a_lo else np.empty(0, dtype=int)
             # Nur Pumps an Stellen mit echten Messwerten (Nachschwinger im Luecken-Raster fallen weg)
@@ -722,6 +751,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
                 # kategorisch ausschliessen") — so eine Luecke ist ein Erkennungsfehler (verpasste
                 # Pumps, Accel-Luecke), keine Gleitphase. Sie faellt ganz weg, sie wird nicht gekappt.
                 glides = [g for g in ([lead] + gaps + [tail]) if 0 < g <= MAX_GLIDE_S]
+                # Zum Einblenden auf der Karte (s. gleit_anzeige).
+                ohne_luecke = [luecke[min(pi[k + 1], echt.size)] - luecke[min(pi[k], echt.size)] == 0
+                               for k in range(ps.size - 1)]
+                seg["glides"] = gleit_anzeige(ps, ohne_luecke, min(acc_end_ms, float(seg["t_end_ms"])), gps_t)
                 seg["num_glides"] = len(glides)
                 seg["avg_glide_s"] = round(float(np.mean(glides)), 2) if glides else 0.0
                 seg["longest_glide_s"] = round(float(max(glides)), 2) if glides else 0.0
@@ -729,6 +762,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
                 seg["num_glides"] = 0
                 seg["avg_glide_s"] = 0.0
                 seg["longest_glide_s"] = 0.0
+                seg["glides"] = []
         # Pump-Frequenz je Trackpunkt für den Karten-Farbmodus mitgeben.
         res["track_geojson"]["properties"]["pump_hz"] = pump_hz
         # Session-weite Pump-Frequenz-Kennzahlen (Ø = Gesamt-Pumps/Foiling-Zeit,

@@ -327,6 +327,8 @@ const ptPT: Record<string, string> = {
   "stat.foiling": "Foil",
   "stat.foilingTime": "Tempo de foil",
   "stat.pumps": "Pumps",
+  "sd.glides": "Planeios",
+  "sd.glide": "Planeio",
   "sd.showAttempts": "Tentativas",
   "sd.showAttemptsHint": "As tentativas que não deram um run — a tracejado no mapa.",
   "stat.topSpeed": "Vel. máxima",

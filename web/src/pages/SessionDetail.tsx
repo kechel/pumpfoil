@@ -482,6 +482,8 @@ export default function SessionDetail() {
   // stehen nicht in der Session-Antwort — Gespeichert sind nur ihre Distanzen; die Linien holt
   // ein eigener, rein lesender Endpunkt, und zwar erst beim ersten Einschalten.
   const [showAttempts, setShowAttempts] = useState(gemerkt.showAttempts);
+  // Gleitphasen einblenden (Jan, 03.10.2026) — wie die Pump-Marker, Daten aus `seg.glides`.
+  const [showGlides, setShowGlides] = useState(gemerkt.showGlides);
   // Startversuche gibt es NUR beim Pumpfoilen. Anlass: Feedback von u43 zu Session 5272
   // (08.09.2026, "Hi, this is wingfoiling, but still, my first long run is recognized as long
   // start attempt"). Beim Wingfoilen, Efoilen oder am Seil ist ein Start etwas voellig anderes —
@@ -691,8 +693,8 @@ export default function SessionDetail() {
   // Der automatische Rückfall auf "speed" (Modus in DIESER Session nicht verfügbar, s. unten)
   // schreibt bewusst mit: wer keine Puls-Daten hat, soll nicht bei jeder Session hängen bleiben.
   useEffect(() => {
-    merkeSessionView({ colorMode, win, showPumps, showAttempts });
-  }, [colorMode, win, showPumps, showAttempts]);
+    merkeSessionView({ colorMode, win, showPumps, showAttempts, showGlides });
+  }, [colorMode, win, showPumps, showAttempts, showGlides]);
 
   // Startversuche erst holen, wenn der Schalter das erste Mal angeht (die Rechnung laeuft
   // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
@@ -1297,6 +1299,20 @@ export default function SessionDetail() {
         }).addTo(lg);
       });
     }
+    // Gleitphasen (1,5-10 s ohne Pump, auch letzter Pump -> Laufende; server-seitig in `seg.glides`
+    // als [Start-Index, End-Index, Dauer s]) als breites Band UNTER den Pump-Markern.
+    if (showGlides) {
+      segs.forEach((seg: any, idx: number) => {
+        if (selectedRun != null && idx !== selectedRun) return;
+        for (const [i0, i1, d] of (seg.glides ?? []) as [number, number, number][]) {
+          const pts = coords.slice(i0, Math.max(i1, i0 + 1) + 1).filter(Boolean);
+          if (pts.length < 2) continue;
+          L.polyline(pts, { color: "#e879f9", weight: 9, opacity: 0.6, lineCap: "round" })
+            .bindTooltip(`${t("sd.glide")} ${d.toFixed(1)} s`, { sticky: true })
+            .addTo(lg);
+        }
+      });
+    }
     // Pump-Marker GANZ OBEN (nach den Carve-Bögen, sonst verdecken die Bögen sie). Bei
     // gedimmten Läufen weglassen. Bleiben weiß.
     if (showPumps) {
@@ -1319,7 +1335,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -1921,6 +1937,15 @@ export default function SessionDetail() {
           >
             <span className="inline-flex items-center gap-1">{t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
+          {/* Nur, wenn die Analyse Gleitphasen geliefert hat (ab der Fassung vom 03.10.2026). */}
+          {(session?.analysis?.segments ?? []).some((g: any) => g.glides?.length) && (
+            <button
+              onClick={() => setShowGlides((v) => !v)}
+              className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showGlides ? "bg-fuchsia-400 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
+            >
+              <span className="inline-flex items-center gap-1">{t("sd.glides")} {showGlides ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
+            </button>
+          )}
           {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
               dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
               Session-Antwort — kein zusätzlicher Aufruf nur für die Frage, ob der Schalter hin soll. */}

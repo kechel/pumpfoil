@@ -314,6 +314,8 @@ const fi: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-aika",
   "stat.pumps": "Pumps",
+  "sd.glides": "Liu'ut",
+  "sd.glide": "Liuku",
   "sd.showAttempts": "Lähtöyritykset",
   "sd.showAttemptsHint": "Yritykset, joista ei tullut vetoa — kartalla katkoviivalla.",
   "stat.topSpeed": "Huippunopeus",
