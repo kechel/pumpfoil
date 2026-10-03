@@ -11118,5 +11118,9 @@ Offen daraus:
   #10326 (u2) 27.09. Ende 17:03:18 **10,6 s** 588845-599470 P4, Ende 17:22:30 4,6 s 1740905-1745480 P4,
   Mitte 17:33:43 1,6 s / 17:33:45 2,0 s · #10979 (u574, Wear, Ausrichtung schwach r ~0,1) Enden 30.09.
   12:58:36 2,5 s P3, 13:34:37 2,0 s, 13:59:32 2,0 s, 14:10:07 1,7 s, 14:13:34 5,3 s 4598226-4603540 P5, 14:23:03 1,6 s.
+  **Laufende (gemessen 03.10., `scripts/v3/laufende_pruefen.py`):** das Uhr-Laufende liegt in 36 % der
+  Laeufe > 1,5 s VOR dem Brett-Ende — bei v2 genauso wie bei v3, also NICHT vom neuen Modell verursacht,
+  sondern vom alten On-Foil-Modell (Arm hoert auf zu pumpen -> Lauf zu Ende). Die End-Gleitphase faellt
+  dadurch aus dem Lauf heraus. Gehoert ebenfalls in v4 (Grenzen aus der Brett-Wahrheit).
   Neu erzeugen: `scripts/v3/gleiten_versatz.py` + paare.json (Versatz je Paar). Braucht dringend Paare
   von Fahrern, die wirklich gleiten (Bartosz/Guillaume mit Handy am Brett).
