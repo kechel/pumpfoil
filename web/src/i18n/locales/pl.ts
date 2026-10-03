@@ -334,6 +334,8 @@ const pl: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Czas na foilu",
   "stat.pumps": "Pompy",
+  "sd.glides": "Ślizgi",
+  "sd.glide": "Ślizg",
   "sd.showAttempts": "Próby startu",
   "sd.showAttemptsHint": "Próby, z których nie wyszedł przejazd — na mapie linią przerywaną.",
   "stat.topSpeed": "Prędkość maks.",

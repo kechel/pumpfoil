@@ -297,6 +297,8 @@ const es: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Tiempo de foiling",
   "stat.pumps": "Pumps",
+  "sd.glides": "Planeos",
+  "sd.glide": "Planeo",
   "sd.showAttempts": "Intentos",
   "sd.showAttemptsHint": "Los intentos que no llegaron a ser un run — a trazos en el mapa.",
   "stat.topSpeed": "Velocidad máx.",
