@@ -92,7 +92,10 @@ struct RecordView: View {
             autoStartToggle
             foilPickerBlock
             startButton
-            if rec.pendingCount > 0 { pendingRow }
+            // Dieselbe Leiste wie ueberall sonst in der App (s. `PhoneUploadBar`) statt einer
+            // kleinen grauen Textzeile ohne Zahlen — wie RecordScreen.kt. Noetig, weil dieser
+            // Bildschirm als fullScreenCover UEBER der Leiste in RootView liegt und sie verdeckt.
+            if rec.pendingCount > 0 || rec.uploading { PhoneUploadBar() }
             Spacer()
         }
     }
@@ -189,25 +192,6 @@ struct RecordView: View {
         .buttonStyle(.borderedProminent).controlSize(.large)
     }
 
-    // Offene Uploads + manueller „Jetzt hochladen"-Trigger (falls beim Beenden kein Netz da war).
-    @ViewBuilder private var pendingRow: some View {
-        HStack(spacing: 10) {
-            Text(pendingText)
-                .font(.footnote).foregroundStyle(.secondary)
-            if !rec.uploading {
-                Button(Loc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
-                    .font(.footnote.bold())
-            }
-        }
-    }
-
-    // Jede mehrteilige Interpolation und jedes Ternary im ViewBuilder zwingt den Checker durch
-    // alle Ueberladungen -> Text vorab typisiert.
-    private var pendingText: String {
-        if rec.uploading { return Loc.t("rec.upRunning", lang) }
-        return Loc.t("rec.pending", lang).replacingOccurrences(of: "{n}", with: "\(rec.pendingCount)")
-    }
-
     // MARK: - Aufnahme
 
     private var recordingBody: some View {
@@ -265,11 +249,10 @@ struct RecordView: View {
             Spacer().frame(height: 30)
             Text(savedTitleText)
                 .font(.title2).foregroundStyle(Color.accentColor)
+            // Upload mit Prozent, x/y Bloecken und Balken (Jan, 03.10.2026: „wie bei Android") —
+            // antippen = jetzt versuchen. Danach nur noch „hochgeladen".
+            PhoneUploadBar()
             savedInfoLine
-            if rec.pendingCount > 0 && !rec.uploading {
-                Button(Loc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
-                    .font(.footnote.bold())
-            }
             Spacer()
             Button { dismiss() } label: { Text(Loc.t("common.done", lang)).frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).controlSize(.large)
@@ -286,10 +269,10 @@ struct RecordView: View {
 
     // War eine dreifach verschachtelte Ternary-Kette samt `let` im ViewBuilder — der teuerste
     // Einzelposten der Datei. Gleiche Reihenfolge der Faelle, jetzt vorab typisiert.
+    // Laufender/offener/fehlgeschlagener Upload steht in der `PhoneUploadBar` darueber —
+    // hier nur noch der Abschluss.
     private var savedInfoText: String {
-        if rec.uploading { return Loc.t("rec.upRunning", lang) }
-        if rec.uploadError == "offline" { return Loc.t("rec.upLater", lang) }
-        if rec.pendingCount == 0 && rec.status == "saved" { return Loc.t("rec.upDone", lang) }
+        if !rec.uploading && rec.pendingCount == 0 && rec.status == "saved" { return Loc.t("rec.upDone", lang) }
         return ""
     }
 
