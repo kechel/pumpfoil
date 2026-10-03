@@ -11124,3 +11124,9 @@ Offen daraus:
   dadurch aus dem Lauf heraus. Gehoert ebenfalls in v4 (Grenzen aus der Brett-Wahrheit).
   Neu erzeugen: `scripts/v3/gleiten_versatz.py` + paare.json (Versatz je Paar). Braucht dringend Paare
   von Fahrern, die wirklich gleiten (Bartosz/Guillaume mit Handy am Brett).
+
+- **📱 Native nachziehen (03.10.2026, Web live):** Gleitphasen in der Session-Karte (Schalter neben
+  Pumps, `seg.glides` = [Start-Index, End-Index, Dauer s, Start Session-ms]) + Liste unter der Karte
+  (Lauf · Uhrzeit · Dauer, Wanduhr ueber `pause_windows`; Tipp waehlt den Lauf). Neuer Text
+  `sd.boardGpsWarning` (Pumps werden am Brett jetzt gezaehlt) in Android `I18n.kt`/`I18nExtra.kt` und
+  iOS `Loc.swift`/`LocExtra.swift` uebernehmen.
