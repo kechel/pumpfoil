@@ -88,7 +88,7 @@ const es: Record<string, string> = {
   "sd.attemptsLabel": "Intento:",
   "sd.boardAsk": "¿Llevabas el móvil fijado a la tabla?",
   "sd.boardAskYes": "Sí, iba en la tabla",
-  "sd.boardGpsWarning": "Esta grabación se hizo con el móvil en la tabla. Aquí la detección de runs se apoya solo en el GPS — el modelo de movimiento está entrenado con grabaciones de muñeca y no encaja en una tabla. Por eso pueden faltar runs o contarse de más.",
+  "sd.boardGpsWarning": "Grabado con el móvil en la tabla: aquí los runs se detectan por GPS, porque el modelo de movimiento está entrenado con grabaciones de muñeca — pueden faltar runs o contarse de más. Los pumps se cuentan a partir del movimiento de la tabla.",
   "sd.mergeShareGone": "Una de las grabaciones fusionadas estaba compartida por enlace — ese enlace ya no funciona. Comparte de nuevo la grabación fusionada si quieres.",
   "sd.mergeShareGoneN": "{n} de las grabaciones fusionadas estaban compartidas por enlace — esos enlaces ya no funcionan. Comparte de nuevo la grabación fusionada si quieres.",
   "sd.mergeShareGoneOk": "Entendido",

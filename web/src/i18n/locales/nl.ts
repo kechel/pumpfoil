@@ -90,7 +90,7 @@ const nl: Record<string, string> = {
   "sd.attemptsLabel": "Poging:",
   "sd.boardAsk": "Zat je telefoon vast op de board?",
   "sd.boardAskYes": "Ja, hij zat op de board",
-  "sd.boardGpsWarning": "Deze opname is gemaakt met de telefoon op de board. De runherkenning steunt hier alleen op GPS — het bewegingsmodel is getraind op opnames vanaf de pols en past niet op een board. Runs kunnen daardoor ontbreken of te veel zijn.",
+  "sd.boardGpsWarning": "Opgenomen met de telefoon op de board: runs worden hier via GPS herkend, omdat het bewegingsmodel getraind is op opnames vanaf de pols — runs kunnen ontbreken of te veel zijn. Pumps worden geteld uit de beweging van de board.",
   "sd.mergeShareGone": "Een van de samengevoegde opnames was via een link gedeeld — die link werkt niet meer. Deel de samengevoegde opname opnieuw als je dat wilt.",
   "sd.mergeShareGoneN": "{n} van de samengevoegde opnames waren via een link gedeeld — die links werken niet meer. Deel de samengevoegde opname opnieuw als je dat wilt.",
   "sd.mergeShareGoneOk": "Begrepen",

@@ -73,7 +73,7 @@ const deAT: Record<string, string> = {
   "sd.attemptsLabel": "Versuch:",
   "sd.boardAsk": "Is dei Handy am Brett montiert gwesn?",
   "sd.boardAskYes": "Ja, s war am Brett",
-  "sd.boardGpsWarning": "De Aufnahme is mit am Handy am Brett entstandn. D’Lauferkennung stützt si do nur aufs GPS — s Bewegungsmodell is auf Aufnahmen vom Handgelenk trainiert und passt am Brett net. Läuf kennan deswegn fehln oder z’vü sein.",
+  "sd.boardGpsWarning": "Aufnahme mit dem Handy am Brett: Die Läufe erkennt hier das GPS, denn das Bewegungsmodell ist auf Aufnahmen vom Handgelenk trainiert — Läufe können deshalb fehlen oder zu viel sein. Die Pumps werden aus der Bewegung vom Brett gezählt.",
   "sd.mergeShareGone": "Ane von de zsammgführten Aufnahmen war per Link teilt — der Link gilt nimma. Teil de zsammgführte Aufnahme nomoi, wennst mogst.",
   "sd.mergeShareGoneN": "{n} von de zsammgführten Aufnahmen warn per Link teilt — de Links gelten nimma. Teil de zsammgführte Aufnahme nomoi, wennst mogst.",
   "sd.mergeShareGoneOk": "Passt",

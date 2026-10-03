@@ -88,7 +88,7 @@ const pl: Record<string, string> = {
   "sd.attemptsLabel": "Próba:",
   "sd.boardAsk": "Czy telefon był przymocowany do deski?",
   "sd.boardAskYes": "Tak, był na desce",
-  "sd.boardGpsWarning": "To nagranie powstało z telefonem na desce. Wykrywanie przejazdów opiera się tu wyłącznie na GPS — model ruchu jest wytrenowany na nagraniach z nadgarstka i nie pasuje do deski. Przejazdów może więc brakować albo być za dużo.",
+  "sd.boardGpsWarning": "Nagrane z telefonem na desce: przejazdy rozpoznaje tu GPS, bo model ruchu jest wytrenowany na nagraniach z nadgarstka — przejazdów może brakować albo może ich być za dużo. Pompy są liczone z ruchu deski.",
   "sd.mergeShareGone": "Jedno ze scalonych nagrań było udostępnione linkiem — ten link już nie działa. Udostępnij scalone nagranie ponownie, jeśli chcesz.",
   "sd.mergeShareGoneN": "{n} ze scalonych nagrań było udostępnionych linkami — te linki już nie działają. Udostępnij scalone nagranie ponownie, jeśli chcesz.",
   "sd.mergeShareGoneOk": "Rozumiem",

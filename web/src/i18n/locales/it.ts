@@ -88,7 +88,7 @@ const it: Record<string, string> = {
   "sd.attemptsLabel": "Tentativo:",
   "sd.boardAsk": "Il tuo telefono era fissato sulla tavola?",
   "sd.boardAskYes": "Sì, era sulla tavola",
-  "sd.boardGpsWarning": "Questa registrazione è stata fatta con il telefono sulla tavola. Qui il riconoscimento dei run si basa solo sul GPS — il modello di movimento è addestrato su registrazioni al polso e non si adatta a una tavola. Alcuni run possono quindi mancare o essere contati in più.",
+  "sd.boardGpsWarning": "Registrato con il telefono sulla tavola: qui i run sono rilevati dal GPS, perché il modello di movimento è addestrato su registrazioni al polso — alcuni run possono mancare o essere contati in più. I pump sono contati dal movimento della tavola.",
   "sd.mergeShareGone": "Una delle registrazioni unite era condivisa tramite link — quel link non funziona più. Condividi di nuovo la registrazione unita, se vuoi.",
   "sd.mergeShareGoneN": "{n} delle registrazioni unite erano condivise tramite link — quei link non funzionano più. Condividi di nuovo la registrazione unita, se vuoi.",
   "sd.mergeShareGoneOk": "Ho capito",

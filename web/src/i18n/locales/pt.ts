@@ -88,7 +88,7 @@ const pt: Record<string, string> = {
   "sd.attemptsLabel": "Tentativa:",
   "sd.boardAsk": "Seu celular estava preso na prancha?",
   "sd.boardAskYes": "Sim, estava na prancha",
-  "sd.boardGpsWarning": "Esta gravação foi feita com o celular na prancha. Aqui a detecção de runs se apoia apenas no GPS — o modelo de movimento é treinado com gravações no pulso e não serve para uma prancha. Por isso podem faltar runs ou haver runs a mais.",
+  "sd.boardGpsWarning": "Gravado com o celular na prancha: aqui os runs são detectados pelo GPS, porque o modelo de movimento é treinado com gravações no pulso — podem faltar runs ou haver runs a mais. Os pumps são contados a partir do movimento da prancha.",
   "sd.mergeShareGone": "Uma das gravações mescladas estava compartilhada por link — esse link não funciona mais. Compartilhe a gravação mesclada de novo, se quiser.",
   "sd.mergeShareGoneN": "{n} das gravações mescladas estavam compartilhadas por links — esses links não funcionam mais. Compartilhe a gravação mesclada de novo, se quiser.",
   "sd.mergeShareGoneOk": "Entendi",

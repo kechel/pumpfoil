@@ -88,7 +88,7 @@ const nb: Record<string, string> = {
   "sd.attemptsLabel": "Forsøk:",
   "sd.boardAsk": "Var telefonen festet på brettet?",
   "sd.boardAskYes": "Ja, den satt på brettet",
-  "sd.boardGpsWarning": "Dette opptaket ble gjort med telefonen på brettet. Her hviler runregistreringen bare på GPS — bevegelsesmodellen er trent på opptak fra håndleddet og passer ikke på et brett. Derfor kan runs mangle eller bli talt for mange.",
+  "sd.boardGpsWarning": "Tatt opp med telefonen på brettet: runs gjenkjennes her med GPS, fordi bevegelsesmodellen er trent på opptak fra håndleddet — runs kan mangle eller bli talt for mange. Pumpene telles fra brettets bevegelse.",
   "sd.mergeShareGone": "Ett av de sammenslåtte opptakene var delt med en lenke — den lenken virker ikke lenger. Del det sammenslåtte opptaket på nytt hvis du vil.",
   "sd.mergeShareGoneN": "{n} av de sammenslåtte opptakene var delt med lenker — de lenkene virker ikke lenger. Del det sammenslåtte opptaket på nytt hvis du vil.",
   "sd.mergeShareGoneOk": "Forstått",

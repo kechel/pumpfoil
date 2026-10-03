@@ -90,7 +90,7 @@ const cs: Record<string, string> = {
   "sd.attemptsLabel": "Pokus:",
   "sd.boardAsk": "Měl jsi telefon připevněný na prkně?",
   "sd.boardAskYes": "Ano, byl na prkně",
-  "sd.boardGpsWarning": "Tato nahrávka vznikla s telefonem na prkně. Rozpoznávání jízd se tu opírá jen o GPS — pohybový model je natrénovaný na nahrávkách ze zápěstí a na prkno nesedí. Některé jízdy proto mohou chybět nebo jich může být víc.",
+  "sd.boardGpsWarning": "Nahráno s telefonem na prkně: jízdy tu rozpoznává GPS, protože pohybový model je natrénovaný na nahrávkách ze zápěstí — jízdy proto mohou chybět nebo jich může být víc. Pumpy se počítají z pohybu prkna.",
   "sd.mergeShareGone": "Jedna ze sloučených nahrávek byla sdílená odkazem — ten odkaz už nefunguje. Pokud chceš, sdílej sloučenou nahrávku znovu.",
   "sd.mergeShareGoneN": "{n} ze sloučených nahrávek bylo sdíleno odkazem — ty odkazy už nefungují. Pokud chceš, sdílej sloučenou nahrávku znovu.",
   "sd.mergeShareGoneOk": "Rozumím",

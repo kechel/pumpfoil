@@ -73,7 +73,7 @@ const gsw: Record<string, string> = {
   "sd.attemptsLabel": "Versuech:",
   "sd.boardAsk": "Isch dis Händy am Brätt bfestigt gsi?",
   "sd.boardAskYes": "Ja, s isch am Brätt gsi",
-  "sd.boardGpsWarning": "Die Ufnahm isch mit em Händy am Brätt entstande. D Lauferkennig stützt sich da nume uf GPS — s Bewegigsmodell isch uf Ufnahme vom Handglenk trainiert und passt am Brätt nid. Läuf chöi drum fähle oder z vil sii.",
+  "sd.boardGpsWarning": "Ufnahm mit em Händy am Brätt: D Läuf erkennt da s GPS, will s Bewegigsmodell uf Ufnahme vom Handglenk trainiert isch — Läuf chöi drum fähle oder z vil sii. D Pumps wärde us de Bewegig vom Brätt zellt.",
   "sd.mergeShareGone": "Eini vo de zämegleite Ufnahme isch per Link teilt gsi — de Link gilt nüme. Teil d zämegleiti Ufnahm nomal, wenn d wotsch.",
   "sd.mergeShareGoneN": "{n} vo de zämegleite Ufnahme sind per Link teilt gsi — d Links gälte nüme. Teil d zämegleiti Ufnahm nomal, wenn d wotsch.",
   "sd.mergeShareGoneOk": "Verstande",

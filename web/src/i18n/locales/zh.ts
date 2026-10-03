@@ -88,7 +88,7 @@ const zh: Record<string, string> = {
   "sd.attemptsLabel": "尝试：",
   "sd.boardAsk": "你的手机当时固定在板上吗？",
   "sd.boardAskYes": "是的，装在板上",
-  "sd.boardGpsWarning": "这次记录是把手机装在板上完成的。这里的航段识别只依靠 GPS — 运动模型是用手腕上的记录训练的，并不适合板上。因此航段可能会漏掉，也可能多算。",
+  "sd.boardGpsWarning": "手机装在板上记录：这里的航段由 GPS 识别，因为运动模型是用手腕记录训练的 — 航段可能会漏掉或多算。泵动次数根据板的运动计算。",
   "sd.mergeShareGone": "合并前的其中一次记录曾用链接分享过 — 那个链接已经失效。如果需要，请重新分享合并后的记录。",
   "sd.mergeShareGoneN": "合并前有 {n} 次记录曾用链接分享过 — 那些链接已经失效。如果需要，请重新分享合并后的记录。",
   "sd.mergeShareGoneOk": "知道了",
