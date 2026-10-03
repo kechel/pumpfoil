@@ -11083,3 +11083,20 @@ Offen daraus:
   gegen 17:25:27, 13-s-Aufnahme, 4 Bloecke, Luecken bei 3 und 8, kein `/complete`). Rein lesend
   pruefen, woher die beiden Zeiten kommen (meta `started_at` vs. Haenger-Abschluss) — kleiner
   Schoenheitsfehler, aber eine negative Dauer darf nirgends ankommen.
+
+- **🏷️ Labels fuer ein eigenes „Handy am Brett"-Modell (Jan, 03.10.2026):** Parallelfahrt 02.10.,
+  Illmensee — Uhr #12608 (fēnix 7X Pro), Pixel 7a am Brett #12610, iPhone am Brett #12611. Zwei
+  ECHTE, sehr kurze Startversuche um **16:44:12 (3 s) und 16:44:31 (6 s)** Ortszeit, die nur die Uhr
+  als Versuch gefunden hat. Jan: am Brett kurz beschleunigt, kein Pumpen, sofort abgesoffen — in der
+  Brett-Beschleunigung sollte es zu sehen sein, ist aber heute unerkannt. Ausserdem der gemeinsam
+  erkannte Startversuch 16:20:34 (4–10 s) vor Lauf 1. Beim Training fuer `placement = board` als
+  Positivbeispiele „Startversuch" verwenden.
+
+- **🔍 Erkennung v3: Kandidaten laufen noch durch das ALTE On-Foil-Modell (Befund 03.10.2026,
+  #12632 Bartosz u354, Apple Watch).** Nutzer meldet 2–3 Laeufe, die als Startversuch zaehlen.
+  Ursache: die „grosszuegigen" v3-Kandidaten (`TIEF_KW` in `v3/nachbearbeitung.py`) lockern nur die
+  Tempo-Grenzen; `detect_v2` nimmt mit Accel aber weiter `foil_rf.pkl` als Maske — wo das alte
+  Modell 0 % sagt, sieht v3 die Stelle nie (17:49/17:58: altes Modell 0 %, v3-p 0,79/0,71, GPS ≤ 8 m).
+  Probe nur auf dieser Session mit `use_model: False` in den TIEF-Kandidaten: 23 -> 34 Laeufe,
+  323 -> 454 s. Pipeline-Aenderung -> erst Jans OK, dann Regressionslauf ueber den Bestand
+  (Laufzahl, Foil-Zeit, Negativbeispiele `data/ml/v3/negativ_sessions`, Brett-Parallelfahrten).
