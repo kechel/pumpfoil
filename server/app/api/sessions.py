@@ -2783,6 +2783,7 @@ def set_meta(
         if not _handy_aufnahme(db, s):
             raise HTTPException(status.HTTP_400_BAD_REQUEST,
                                 "Nur bei Handy-Aufnahmen: ohne Kreisel gibt es keine Lage")
+    placement_vorher = s.placement
     if body.placement is not None:
         wert = body.placement.strip().lower()
         if wert not in ("", "board", "phone"):
@@ -2859,6 +2860,12 @@ def set_meta(
         v = body.shim_deg
         s.shim_deg = round(max(-5.0, min(5.0, float(v))), 1) if v is not None else None
     db.commit()
+    # „Am Brett" entscheidet den Erkennungsweg (am Brett kein Handgelenk-Modell, keine Pumps) —
+    # wer es NACH der Auswertung umstellt, braucht eine neue Auswertung. Ohne das blieb der alte
+    # Stand stehen, bis irgendeine Reanalyse kam (Befund 03.10.2026: #10968, #10993, #12610, #12611
+    # zeigten Pumps aus dem Handgelenk-Modell, obwohl sie als „am Brett" markiert waren).
+    if s.placement != placement_vorher and s.status == "analyzed":
+        run_analysis(db, s)
     db.refresh(s)
     out = _session_out(
         s, with_analysis=True,
