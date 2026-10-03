@@ -88,7 +88,7 @@ const id: Record<string, string> = {
   "sd.attemptsLabel": "Percobaan:",
   "sd.boardAsk": "Apakah ponselmu dipasang di papan?",
   "sd.boardAskYes": "Ya, ada di papan",
-  "sd.boardGpsWarning": "Rekaman ini dibuat dengan ponsel di papan. Deteksi run di sini hanya bersandar pada GPS — model gerakan dilatih dengan rekaman dari pergelangan tangan dan tidak cocok untuk papan. Karena itu run bisa hilang atau terhitung berlebih.",
+  "sd.boardGpsWarning": "Direkam dengan ponsel di papan: run di sini dideteksi lewat GPS, karena model gerakan dilatih dengan rekaman dari pergelangan tangan — run bisa hilang atau terhitung berlebih. Pump dihitung dari gerakan papan.",
   "sd.mergeShareGone": "Salah satu rekaman yang digabung pernah dibagikan lewat tautan — tautan itu tidak berlaku lagi. Bagikan lagi rekaman gabungannya kalau kamu mau.",
   "sd.mergeShareGoneN": "{n} rekaman yang digabung pernah dibagikan lewat tautan — tautan itu tidak berlaku lagi. Bagikan lagi rekaman gabungannya kalau kamu mau.",
   "sd.mergeShareGoneOk": "Mengerti",

@@ -664,8 +664,11 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     session.is_pumpfoil = bool(is_pumpfoil)  # als Spalte persistieren (Listen-Filter)
 
     # Accel-Analyse (Pump-Count nur innerhalb der Foiling-Segmente).
+    # AM BRETT ebenfalls (Jan, 03.10.2026): die Laeufe kommen dort aus dem GPS, aber derselbe
+    # Pump-Zaehler passt auf das Brett-Handy — gegen die Uhr am Handgelenk und die Nick-Gipfel des
+    # Bretts gemessen: 1069 / 1057 / 1036 Pumps in 22 Laeufen (10 Paare, ±3 %).
     accel_res = None
-    if accel_usable:
+    if accel_usable or (am_brett and accel.shape[0] > 0 and accel_hz >= MODEL_MIN_ACCEL_HZ):
         fs = accel_hz
         mask = _foiling_mask_for_accel(res["segments"], accel.shape[0], accel_hz)
         accel_res = analyze_accel(accel, session.accel_scale, fs, foiling_mask=mask)

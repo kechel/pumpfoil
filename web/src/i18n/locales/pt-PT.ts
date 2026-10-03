@@ -100,7 +100,7 @@ const ptPT: Record<string, string> = {
   "sd.attemptsLabel": "Tentativa:",
   "sd.boardAsk": "O teu telemóvel estava preso à prancha?",
   "sd.boardAskYes": "Sim, estava na prancha",
-  "sd.boardGpsWarning": "Esta gravação foi feita com o telemóvel na prancha. Aqui a deteção de runs apoia-se apenas no GPS — o modelo de movimento é treinado com gravações no pulso e não serve para uma prancha. Por isso podem faltar runs ou haver runs a mais.",
+  "sd.boardGpsWarning": "Gravado com o telemóvel na prancha: aqui os runs são detetados pelo GPS, porque o modelo de movimento é treinado com gravações no pulso — podem faltar runs ou haver runs a mais. Os pumps são contados a partir do movimento da prancha.",
   "sd.mergeShareGone": "Uma das gravações unidas estava partilhada por link — esse link já não funciona. Partilha a gravação unida outra vez, se quiseres.",
   "sd.mergeShareGoneN": "{n} das gravações unidas estavam partilhadas por links — esses links já não funcionam. Partilha a gravação unida outra vez, se quiseres.",
   "sd.mergeShareGoneOk": "Entendido",

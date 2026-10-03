@@ -88,7 +88,7 @@ const de: Record<string, string> = {
   "watchStats.title": "Uhren-Statistik",
   "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Hier zählt jede Aufnahme: alle Sportarten, mit und ohne Accel-Daten.",
   "watchStats.search": "Uhr suchen…",
-  "sd.boardGpsWarning": "Diese Aufnahme entstand mit dem Handy am Brett. Die Lauferkennung stützt sich hier nur auf GPS — das Bewegungsmodell ist auf Aufnahmen vom Handgelenk trainiert und passt am Brett nicht. Läufe können deshalb fehlen oder zu viel sein.",
+  "sd.boardGpsWarning": "Aufnahme mit dem Handy am Brett: Die Läufe erkennt hier das GPS, denn das Bewegungsmodell ist auf Aufnahmen vom Handgelenk trainiert — Läufe können deshalb fehlen oder zu viel sein. Die Pumps werden aus der Bewegung des Bretts gezählt.",
   "sd.attemptsLabel": "Versuch:",
   "board.mountAuto": "automatisch",
   "board.directionUnknown": "Vorn und hinten ließen sich bei dieser Aufnahme nicht aus den Daten bestimmen — Nicken und Rollen können hier umgekehrt sein.",

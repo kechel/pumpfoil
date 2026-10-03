@@ -88,7 +88,7 @@ const fi: Record<string, string> = {
   "sd.attemptsLabel": "Yritys:",
   "sd.boardAsk": "Oliko puhelin kiinnitettynä lautaan?",
   "sd.boardAskYes": "Kyllä, se oli laudassa",
-  "sd.boardGpsWarning": "Tämä tallennus tehtiin puhelin laudassa. Vetojen tunnistus nojaa tässä pelkkään GPS:ään — liikemalli on opetettu ranteesta tehdyillä tallennuksilla eikä sovi lautaan. Siksi vetoja voi puuttua tai niitä voi olla liikaa.",
+  "sd.boardGpsWarning": "Tallennettu puhelin laudassa: vedot tunnistetaan tässä GPS:llä, koska liikemalli on opetettu ranteesta tehdyillä tallennuksilla — vetoja voi puuttua tai niitä voi olla liikaa. Pumppaukset lasketaan laudan liikkeestä.",
   "sd.mergeShareGone": "Yksi yhdistetyistä tallennuksista oli jaettu linkillä — se linkki ei enää toimi. Jaa yhdistetty tallennus uudelleen, jos haluat.",
   "sd.mergeShareGoneN": "{n} yhdistetyistä tallennuksista oli jaettu linkeillä — ne linkit eivät enää toimi. Jaa yhdistetty tallennus uudelleen, jos haluat.",
   "sd.mergeShareGoneOk": "Selvä",

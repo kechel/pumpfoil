@@ -88,7 +88,7 @@ const fr: Record<string, string> = {
   "sd.attemptsLabel": "Tentative :",
   "sd.boardAsk": "Ton téléphone était-il fixé sur la planche ?",
   "sd.boardAskYes": "Oui, il était sur la planche",
-  "sd.boardGpsWarning": "Cet enregistrement a été fait avec le téléphone sur la planche. La détection des runs ne s'appuie ici que sur le GPS — le modèle de mouvement est entraîné sur des enregistrements au poignet et ne convient pas à une planche. Des runs peuvent donc manquer ou être comptés en trop.",
+  "sd.boardGpsWarning": "Enregistré avec le téléphone sur la planche : les runs sont détectés ici par le GPS, car le modèle de mouvement est entraîné sur des enregistrements au poignet — des runs peuvent manquer ou être comptés en trop. Les pumps sont comptés à partir du mouvement de la planche.",
   "sd.mergeShareGone": "L'un des enregistrements fusionnés était partagé par lien — ce lien ne fonctionne plus. Partage à nouveau l'enregistrement fusionné si tu le souhaites.",
   "sd.mergeShareGoneN": "{n} des enregistrements fusionnés étaient partagés par lien — ces liens ne fonctionnent plus. Partage à nouveau l'enregistrement fusionné si tu le souhaites.",
   "sd.mergeShareGoneOk": "Compris",

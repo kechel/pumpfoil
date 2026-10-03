@@ -87,7 +87,7 @@ const en: Record<string, string> = {
   "watchStats.title": "Watch stats",
   "watchStats.hint": "Which numbers are ridden with which watch — community aggregate per model. Everything counts here: every sport, with or without accel data.",
   "watchStats.search": "Search watch…",
-  "sd.boardGpsWarning": "This was recorded with the phone on the board. Run detection here relies on GPS alone — the motion model is trained on wrist recordings and does not fit a board. Runs may be missing or over-counted.",
+  "sd.boardGpsWarning": "Recorded with the phone on the board: runs are detected from GPS here, since the motion model is trained on wrist recordings — runs may be missing or over-counted. Pumps are counted from the board's motion.",
   "sd.attemptsLabel": "Attempt:",
   "board.mountAuto": "automatic",
   "board.directionUnknown": "Front and back could not be determined from the data for this recording — pitch and roll may be reversed here.",
