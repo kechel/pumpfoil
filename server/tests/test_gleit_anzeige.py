@@ -11,7 +11,7 @@ def test_luecken_zwischen_pumps_und_am_ende():
     ps = np.array([5000, 5700, 6400, 9000, 9700, 21_000, 21_700])
     g = gleit_anzeige(ps, [True] * 6, 25_000, GPS)
     # 6,4 -> 9,0 s (2,6 s) ja · 9,7 -> 21,0 s (11,3 s) zu lang · Ende 21,7 -> 25,0 s (3,3 s) ja
-    assert g == [[7, 9, 2.6], [22, 25, 3.3]]
+    assert g == [[7, 9, 2.6, 6400], [22, 25, 3.3, 21_700]]
 
 
 def test_unter_eineinhalb_sekunden_nicht():
@@ -26,3 +26,8 @@ def test_accel_luecke_ist_kein_gleiten():
 
 def test_ohne_pumps_nichts():
     assert gleit_anzeige(np.array([]), [], 10_000, GPS) == []
+
+
+def test_startzeit_in_session_ms():
+    g = gleit_anzeige(np.array([1000, 3000]), [True], 3500, GPS, versatz_ms=60_000)
+    assert g == [[1, 3, 2.0, 61_000]]
