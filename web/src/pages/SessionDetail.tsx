@@ -1304,7 +1304,7 @@ export default function SessionDetail() {
     if (showGlides) {
       segs.forEach((seg: any, idx: number) => {
         if (selectedRun != null && idx !== selectedRun) return;
-        for (const [i0, i1, d] of (seg.glides ?? []) as [number, number, number][]) {
+        for (const [i0, i1, d] of (seg.glides ?? []) as number[][]) {
           const pts = coords.slice(i0, Math.max(i1, i0 + 1) + 1).filter(Boolean);
           if (pts.length < 2) continue;
           L.polyline(pts, { color: "#e879f9", weight: 9, opacity: 0.6, lineCap: "round" })
@@ -2166,6 +2166,33 @@ export default function SessionDetail() {
             </span>
           )}
         </div>
+
+        {/* 2b. Gleitphasen als Liste (Jan, 03.10.2026: „jeden Glide mit Uhrzeit und Dauer unter der
+            Karte, auch wenn die Anzeige in der Karte nicht aktiviert ist"). Ein Tipp waehlt den Lauf
+            und blendet die Gleitphasen auf der Karte ein. Uhrzeit = Wanduhr (Pausen eingerechnet). */}
+        {!fullscreen && (() => {
+          const segsG: any[] = session?.analysis?.segments ?? [];
+          const alle = segsG.flatMap((g: any, ri: number) =>
+            ((g.glides ?? []) as number[][]).map((x) => ({ lauf: ri, d: x[2], t: x.length > 3 ? x[3] : null })));
+          const liste = selectedRun != null ? alle.filter((x) => x.lauf === selectedRun) : alle;
+          if (!alle.length) return null;
+          const startMs = new Date(session!.started_at).getTime();
+          return (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 px-1">
+              <span className="mr-1 text-xs text-slate-400">{t("sd.glides")} ({liste.length})</span>
+              {liste.map((x, i) => (
+                <button key={i}
+                  onClick={() => { setSelectedRun(x.lauf); setShowGlides(true); }}
+                  className="rounded-lg bg-fuchsia-500/15 px-2.5 py-1 text-xs tabular-nums text-slate-200 hover:bg-fuchsia-500/30">
+                  #{x.lauf + 1}
+                  {x.t != null && <span className="opacity-70"> · {fmtTime(new Date(startMs + wanduhrMs(session!.pause_windows, x.t)).toISOString(), session!.tz,
+                    { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>}
+                  <span className="font-semibold"> · {x.d.toFixed(1)} s</span>
+                </button>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* 3. Abspielen: Strecke über die Zeit aufzeichnen (gesamt oder gewählter Lauf). */}
         {playTimeline.length >= 2 && (

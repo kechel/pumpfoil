@@ -378,12 +378,13 @@ def attempt_distances(gps_samples, gps_hz) -> list:
         return []
 
 
-def gleit_anzeige(ps, ohne_luecke, ende_ms: float, gps_t) -> list:
-    """Gleitphasen eines Laufs zum Einblenden: [[Start-Index, End-Index, Dauer s], ...] im Track.
+def gleit_anzeige(ps, ohne_luecke, ende_ms: float, gps_t, versatz_ms: float = 0.0) -> list:
+    """Gleitphasen eines Laufs zum Einblenden: [[Start-Index, End-Index, Dauer s, Start Session-ms], ...].
 
     `ps` sortierte Pump-Zeiten (ms, Zuschnitt-Basis), `ohne_luecke[k]` = zwischen Pump k und k+1 lagen
     durchgehend echte Messwerte, `ende_ms` = Laufende (bzw. Ende der Beschleunigungsdaten), `gps_t`
-    Zeit je Track-Punkt. Zwischen zwei Pumps und vom letzten Pump bis zum Ende, je
+    Zeit je Track-Punkt, `versatz_ms` = Zuschnitt (Zuschnitt-Basis -> Session-ms, fuer die Uhrzeit
+    unter der Karte; Wanduhr daraus wie bei den Laeufen ueber die Pausen). Zwischen zwei Pumps und vom letzten Pump bis zum Ende, je
     GLIDE_SHOW_MIN_S..GLIDE_SHOW_MAX_S. Der Anlauf vor dem ersten Pump ist der Start, kein Gleiten."""
     if len(ps) == 0 or len(gps_t) == 0:
         return []
@@ -397,7 +398,7 @@ def gleit_anzeige(ps, ohne_luecke, ende_ms: float, gps_t) -> list:
         zeige.append((float(ps[-1]), float(ende_ms), d))
     n = len(gps_t)
     return [[int(np.clip(np.searchsorted(gps_t, a), 0, n - 1)), int(np.clip(np.searchsorted(gps_t, b), 0, n - 1)),
-             round(d, 1)] for a, b, d in zeige]
+             round(d, 1), int(round(a + versatz_ms))] for a, b, d in zeige]
 
 
 def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -> "models.AnalysisResult":
@@ -757,7 +758,8 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
                 # Zum Einblenden auf der Karte (s. gleit_anzeige).
                 ohne_luecke = [luecke[min(pi[k + 1], echt.size)] - luecke[min(pi[k], echt.size)] == 0
                                for k in range(ps.size - 1)]
-                seg["glides"] = gleit_anzeige(ps, ohne_luecke, min(acc_end_ms, float(seg["t_end_ms"])), gps_t)
+                seg["glides"] = gleit_anzeige(ps, ohne_luecke, min(acc_end_ms, float(seg["t_end_ms"])), gps_t,
+                                              float(lo))
                 seg["num_glides"] = len(glides)
                 seg["avg_glide_s"] = round(float(np.mean(glides)), 2) if glides else 0.0
                 seg["longest_glide_s"] = round(float(max(glides)), 2) if glides else 0.0
