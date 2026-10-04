@@ -855,6 +855,7 @@ const ptPT: Record<string, string> = {
   "adm.hint.suspect": "Sessões em que o filtro físico descartou voltas acima de 40 km/h (suspeita de motor/carro/kite) — revise e, então, oculte ou aprove. Aprovar (mod_ok) as remove desta lista.",
   "adm.gated": "Filtro: {n} voltas",
   "adm.sortOut": "Descartar",
+  "adm.checkedOk": "Verificado — OK",
   "adm.sortOutConfirm": "Descartar esta sessão (como se o detetor tivesse feito)? O dono a mantém na aba de filtradas dele; ela deixa de contar para comunidade/recordes. Sem shadow ban.",
   "adm.unsortOut": "Reincluir",
   "adm.sortedOutBadge": "descartada-por-admin",

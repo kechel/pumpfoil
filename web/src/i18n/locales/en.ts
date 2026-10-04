@@ -965,6 +965,7 @@ const en: Record<string, string> = {
   "adm.hint.suspect": "Sessions where the physics gate dropped runs above 40 km/h (motor/car/kite suspicion) — review, then hide or approve. Approving (mod_ok) removes them from this list.",
   "adm.gated": "Gate: {n} runs",
   "adm.sortOut": "Sort out",
+  "adm.checkedOk": "Checked — OK",
   "adm.sortOutConfirm": "Sort this session out (as if the detector did)? The owner keeps it in their filtered-out tab; it no longer counts for community/records. No shadow ban.",
   "adm.unsortOut": "Re-include",
   "adm.sortedOutBadge": "admin-sorted-out",

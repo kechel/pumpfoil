@@ -989,6 +989,7 @@ const de: Record<string, string> = {
   "adm.hint.suspect": "Sessions, bei denen das Physik-Gate Läufe über 40 km/h verworfen hat (Motor/Auto/Kite-Verdacht) — prüfen, dann verbergen oder freigeben. Freigeben (mod_ok) nimmt sie aus dieser Liste.",
   "adm.gated": "Gate: {n} Läufe",
   "adm.sortOut": "Aussortieren",
+  "adm.checkedOk": "Geprüft — ok",
   "adm.sortOutConfirm": "Session aussortieren (wie vom Detektor)? Der Besitzer sieht sie weiter in seinem Aussortiert-Tab; sie zählt nicht mehr für Community/Rekorde. Kein Shadow-Ban.",
   "adm.unsortOut": "Wieder einsortieren",
   "adm.sortedOutBadge": "admin-aussortiert",

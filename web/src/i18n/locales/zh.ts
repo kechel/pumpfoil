@@ -849,6 +849,7 @@ const zh: Record<string, string> = {
   "adm.hint.suspect": "物理门限剔除了 40 km/h 以上航段的记录（疑似摩托/汽车/风筝）—— 请审核后隐藏或批准。批准（mod_ok）后会从此列表移除。",
   "adm.gated": "门限：{n} 段",
   "adm.sortOut": "筛除",
+  "adm.checkedOk": "已检查 — 正常",
   "adm.sortOutConfirm": "把这条记录筛除（如同识别器所为）？所有者仍会在其“已筛除”标签中保留它；它将不再计入社区/纪录。不是影子封禁。",
   "adm.unsortOut": "重新纳入",
   "adm.sortedOutBadge": "管理员已筛除",

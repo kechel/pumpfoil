@@ -906,6 +906,7 @@ const nb: Record<string, string> = {
   "adm.hint.suspect": "Økter der fysikkfilteret forkastet runs over 40 km/h (mistanke om motor/bil/kite) — se gjennom, og skjul eller godkjenn. Godkjenning (mod_ok) fjerner dem fra denne listen.",
   "adm.gated": "Filter: {n} runs",
   "adm.sortOut": "Sorter ut",
+  "adm.checkedOk": "Sjekket — OK",
   "adm.sortOutConfirm": "Sortere ut denne økten (som om detektoren gjorde det)? Eieren har den fortsatt i fanen «sortert ut»; den teller ikke lenger for fellesskap/rekorder. Ingen shadow ban.",
   "adm.unsortOut": "Ta med igjen",
   "adm.sortedOutBadge": "admin-sortert-ut",

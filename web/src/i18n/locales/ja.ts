@@ -849,6 +849,7 @@ const ja: Record<string, string> = {
   "adm.hint.suspect": "物理ゲートが 40 km/h 超のランを除外したセッション（モーター／車／カイトの疑い）— 確認してから非表示または承認してください。承認（mod_ok）するとこの一覧から削除されます。",
   "adm.gated": "ゲート：{n} ラン",
   "adm.sortOut": "除外する",
+  "adm.checkedOk": "確認済み — OK",
   "adm.sortOutConfirm": "このセッションを（検出器がやったように）除外しますか？所有者は除外タブに保持しますが、コミュニティ／記録にはもう数えられません。シャドウバンではありません。",
   "adm.unsortOut": "再び含める",
   "adm.sortedOutBadge": "管理者が除外",

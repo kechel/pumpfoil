@@ -1224,6 +1224,11 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "suspect" | "all" 
                       ? <Act tone="green" onClick={() => api.adminApprove(s.session_id).then(() => upd(s.session_id, { flagged: false, mod_ok: true }))}>{t("adm.approve")}</Act>
                       : <Act tone="amber" confirm={t("adm.hideConfirm")} onClick={() => api.adminHideSession(s.session_id).then(() => upd(s.session_id, { flagged: true, mod_ok: false }))}>{t("adm.hide")}</Act>}
                     {s.fake > 0 && <Act tone="slate" onClick={() => api.adminDismiss(s.session_id, "fake").then(() => upd(s.session_id, { fake: 0 }))}>{t("adm.dismissFake")}</Act>}
+                    {/* Verdacht (Physik-Gate) geprueft und in Ordnung: nimmt sie aus der Liste, aendert sonst
+                        nichts (Jan, 04.10.2026 — den Knopf gab es bisher nur fuer versteckte Sessions). */}
+                    {!s.flagged && !s.mod_ok && (s.gated_runs ?? 0) > 0 && (
+                      <Act tone="green" onClick={() => api.adminApprove(s.session_id).then(() => upd(s.session_id, { mod_ok: true }))}>{t("adm.checkedOk")}</Act>
+                    )}
                     {/* Aussortieren „wie vom Detektor" (sanft, kein Shadow-Ban) bzw. rückgängig. */}
                     {s.pumpfoil_override === false
                       ? <Act tone="green" onClick={() => api.adminSortOut(s.session_id, true).then((r) => upd(s.session_id, { pumpfoil_override: null, is_pumpfoil: r.is_pumpfoil }))}>{t("adm.unsortOut")}</Act>
