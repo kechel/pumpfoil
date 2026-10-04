@@ -849,6 +849,7 @@ const id: Record<string, string> = {
   "adm.hint.suspect": "Sesi yang gerbang fisikanya membuang run di atas 40 km/h (dugaan motor/mobil/kite) — tinjau, lalu sembunyikan atau setujui. Menyetujui (mod_ok) menghapusnya dari daftar ini.",
   "adm.gated": "Gerbang: {n} run",
   "adm.sortOut": "Saring keluar",
+  "adm.checkedOk": "Diperiksa — OK",
   "adm.sortOutConfirm": "Saring sesi ini keluar (seolah detektor melakukannya)? Pemilik tetap punya di tab tersaring-keluar mereka; sesi tidak lagi dihitung untuk komunitas/rekor. Bukan shadow ban.",
   "adm.unsortOut": "Masukkan lagi",
   "adm.sortedOutBadge": "disaring-keluar-admin",

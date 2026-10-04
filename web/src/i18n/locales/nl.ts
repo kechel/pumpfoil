@@ -874,6 +874,7 @@ const nl: Record<string, string> = {
   "adm.hint.suspect": "Sessies waar de physics-gate runs boven 40 km/h heeft verworpen (motor/auto/kite-verdenking) — controleren, dan verbergen of goedkeuren.",
   "adm.gated": "Gate: {n} runs",
   "adm.sortOut": "Uitfilteren",
+  "adm.checkedOk": "Gecontroleerd — OK",
   "adm.sortOutConfirm": "Sessie uitfilteren (alsof de detector het deed)? De eigenaar houdt hem in zijn uitgefilterd-tab; telt niet meer mee voor community/records. Geen shadowban.",
   "adm.unsortOut": "Weer meenemen",
   "adm.sortedOutBadge": "admin-uitgefilterd",

@@ -944,6 +944,7 @@ const pl: Record<string, string> = {
   "adm.hint.suspect": "Sesje, w których filtr fizyczny odrzucił przejazdy powyżej 40 km/h (podejrzenie silnika/samochodu/kite) — sprawdź, potem ukryj albo zatwierdź. Zatwierdzenie (mod_ok) usuwa je z tej listy.",
   "adm.gated": "Filtr: {n} przejazdów",
   "adm.sortOut": "Odfiltruj",
+  "adm.checkedOk": "Sprawdzone — OK",
   "adm.sortOutConfirm": "Odfiltrować tę sesję (tak jak zrobiłby to detektor)? Właściciel zachowa ją w swojej zakładce odfiltrowanych; przestanie liczyć się do społeczności i rekordów. Bez shadow bana.",
   "adm.unsortOut": "Przywróć do oceny",
   "adm.sortedOutBadge": "odfiltrowane przez admina",

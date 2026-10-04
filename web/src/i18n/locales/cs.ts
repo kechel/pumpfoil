@@ -874,6 +874,7 @@ const cs: Record<string, string> = {
   "adm.hint.suspect": "Relace, u kterých fyzikální gate zahodil jízdy nad 40 km/h (podezření na motor/auto/kite) — zkontroluj, pak skryj nebo uvolni. Uvolnění (mod_ok) je vyjme z tohoto seznamu.",
   "adm.gated": "Gate: {n} jízd",
   "adm.sortOut": "Vyřadit",
+  "adm.checkedOk": "Zkontrolováno — OK",
   "adm.sortOutConfirm": "Vyřadit relaci (jako detektor)? Vlastník ji dál uvidí ve své záložce Vyřazené; nezapočítává se už do komunity/rekordů. Žádný shadow-ban.",
   "adm.unsortOut": "Znovu zařadit",
   "adm.sortedOutBadge": "vyřazeno adminem",
