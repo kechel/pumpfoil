@@ -1,30 +1,33 @@
 [
   {
     "brand": "Gong",
-    "model": "TRAIL",
+    "model": "TRAIL / TRAIL V3 ATMO PERF",
     "size": "L",
     "span_cm": 125,
     "area_cm2": 1660,
     "thickness_mm": 26.1,
-    "is_baseline": false
+    "is_baseline": false,
+    "aliases": "TRAIL V3 ATMO PERF|Trail Atmo Perf|Trail V3"
   },
   {
     "brand": "Gong",
-    "model": "TRAIL",
+    "model": "TRAIL / TRAIL V3 ATMO PERF",
     "size": "XL",
     "span_cm": 135,
     "area_cm2": 1940,
     "thickness_mm": 28.2,
-    "is_baseline": false
+    "is_baseline": false,
+    "aliases": "TRAIL V3 ATMO PERF|Trail Atmo Perf|Trail V3"
   },
   {
     "brand": "Gong",
-    "model": "TRAIL",
+    "model": "TRAIL / TRAIL V3 ATMO PERF",
     "size": "XXL",
     "span_cm": 145,
     "area_cm2": 2240,
     "thickness_mm": 30.3,
-    "is_baseline": true
+    "is_baseline": true,
+    "aliases": "TRAIL V3 ATMO PERF|Trail Atmo Perf|Trail V3"
   },
   {
     "brand": "Gong",
@@ -4520,30 +4523,6 @@
     "span_cm": 186.0,
     "area_cm2": 2313.0,
     "thickness_mm": 22.0
-  },
-  {
-    "brand": "Gong",
-    "model": "TRAIL V3 ATMO PERF",
-    "size": "L",
-    "span_cm": 125.0,
-    "area_cm2": 1660.0,
-    "thickness_mm": 26.1
-  },
-  {
-    "brand": "Gong",
-    "model": "TRAIL V3 ATMO PERF",
-    "size": "XL",
-    "span_cm": 135.0,
-    "area_cm2": 1940.0,
-    "thickness_mm": 28.2
-  },
-  {
-    "brand": "Gong",
-    "model": "TRAIL V3 ATMO PERF",
-    "size": "XXL",
-    "span_cm": 145.0,
-    "area_cm2": 2240.0,
-    "thickness_mm": 30.3
   },
   {
     "brand": "Gong",
