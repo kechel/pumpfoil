@@ -481,7 +481,8 @@ function HeuteNeu({ mine, spot, accelOnly, sport }: { mine: boolean; spot: strin
     return () => { aus = true; };
   }, [mine, spot, accelOnly, sport]);
   if (!n) return null;
-  return <span className="text-sm text-slate-400">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })}</span>;
+  // Fett und cyan (Jan): im Light-Mode das dunklere Cyan, wie die Links.
+  return <span className="text-sm font-bold text-brand-600 dark:text-brand-300">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })}</span>;
 }
 
 function MySessionsList({ myName, accelOnly, sport, onShowAll }:
