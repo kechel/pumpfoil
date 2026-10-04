@@ -1085,9 +1085,10 @@ export const api = {
   // Endpunkt verlangt den Token im Header, ein Link wuerde ihn in die URL zwingen (steht dann in
   // History/Server-Logs). Daher fetch + Blob; der Dateiname kommt vom Server (Content-Disposition),
   // damit Web und kuenftige Clients denselben Namen benutzen.
-  sessionExport: async (id: number, kind: "gpx" | "fit"): Promise<{ blob: Blob; name: string }> => {
+  // zip = alle Rohdaten als CSV (ganze Aufnahme), original = Originaldaten unveraendert (04.10.2026).
+  sessionExport: async (id: number, kind: "gpx" | "fit" | "zip" | "original"): Promise<{ blob: Blob; name: string }> => {
     const tok = getToken();
-    const res = await fetch(`/api/sessions/${id}/export.${kind}`, {
+    const res = await fetch(kind === "original" ? `/api/sessions/${id}/export-original` : `/api/sessions/${id}/export.${kind}`, {
       headers: tok ? { Authorization: `Bearer ${tok}` } : {},
     });
     if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);

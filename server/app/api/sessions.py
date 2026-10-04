@@ -2504,6 +2504,139 @@ def _export_punkte(s: models.Session):
     return pts
 
 
+def _export_sensoren(s: models.Session) -> dict:
+    """Bewegungssensoren fuer den FIT-Export, im selben Fenster wie die Trackpunkte (Zuschnitt +
+    aussortierte Bereiche), in FIT-Einheiten: Accel milli-g, Kreisel Grad/s, Magnetfeld Gauss.
+    Achsen wie in der Analyse bzw. im Rohdaten-Export (je Kanal aus den eigenen Blockzeiten)."""
+    from ..analysis.timebase import build_timebase_for_session
+    from .mcp_dateien import GYRO_SCALE, _achse
+
+    tb = build_timebase_for_session(s)
+    lo, hi = tb.window_start_ms, tb.window_end_ms
+    weg = list(tb.excluded_ranges or [])
+
+    def im_fenster(t: np.ndarray) -> np.ndarray:
+        m = (t >= lo) & (t <= hi)
+        for a, b in weg:
+            m &= ~((t >= a) & (t <= b))
+        return m
+
+    aus: dict = {}
+    if tb.has_accel:
+        aus["accel"] = (tb.t_accel_ms.astype(float),
+                        tb.accel.astype(float) / float(s.accel_scale or 2048) * 1000.0)
+    for art, laden, faktor in (("gyro", storage.load_gyro, 180.0 / np.pi / GYRO_SCALE),
+                               ("mag", storage.load_mag, 1.0 / storage.MAG_SCALE / 100.0)):
+        roh = laden(s.session_uuid)
+        if not roh.shape[0]:
+            continue
+        t = _achse(s, roh, art)
+        n = min(len(t), roh.shape[0])
+        t, w = t[:n], roh[:n].astype(float) * faktor
+        m = im_fenster(t)
+        if m.any():
+            aus[art] = (t[m], w[m])
+    return aus
+
+
+@router.get("/{session_id}/export.zip")
+def export_rohdaten(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """Alle Rohdaten der eigenen Session als CSV je Sensor (ZIP) — die GANZE Aufnahme, ohne
+    Zuschnitt. Wunsch eines Nutzers (03.10.2026): „export all data (including accelerometer)"."""
+    from . import mcp_dateien as md
+    from ..analysis.timebase import build_timebase_for_session
+
+    s = _owned(db, user, session_id)
+    d = storage.session_dir(s.session_uuid)
+    dateien: dict[str, bytes] = {}
+    if (d / "gps").is_dir() and any((d / "gps").glob("*.json")):
+        dateien["gps.csv"] = md._gps_csv(s, False)      # eigene Daten: echter Ort
+    for art in ("accel", "gyro", "mag"):
+        if (d / art).is_dir() and any((d / art).glob("*.bin")):
+            dateien[f"{art}.csv"] = md._sensor_csv(s, art)
+    if not dateien:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine Rohdaten vorhanden")
+    tb = build_timebase_for_session(s, accel=np.empty((0, 3), dtype=np.int16))
+    m = json.loads(s.result.metrics_json) if s.result and s.result.metrics_json else {}
+    meta = {
+        "session_id": s.id, "started_at_utc": s.started_at, "sport": s.sport,
+        "device_model": s.device_model, "app_version": s.app_version, "placement": s.placement,
+        "accel_hz_requested": s.accel_hz, "accel_hz_measured": m.get("accel_hz_measured"),
+        "time_base": m.get("time_base"), "accel_scale_per_g": s.accel_scale,
+        "trim_ms": [s.trim_start_ms, s.trim_end_ms],
+        "excluded_ranges_ms": [list(x) for x in (tb.excluded_ranges or [])],
+    }
+    daten = export_track.rohdaten_zip(s, dateien, meta)
+    return Response(
+        content=daten, media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{export_track.dateiname(s, "zip")}"',
+                 "Cache-Control": "private, no-store"},
+    )
+
+
+# Was aus dem Session-Ordner 1:1 als „Original" hinausgeht — nur diese bekannten Teile, damit
+# nie etwas Abgeleitetes oder Internes mitwandert, das spaeter dazukommt.
+_ORIGINAL_TEILE = ("meta.json", "gps", "accel", "gyro", "mag")
+
+
+@router.get("/{session_id}/export-original")
+def export_original(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """Die Originaldaten UNVERAENDERT (Jan, 04.10.2026): bei einem Import die hochgeladene Datei
+    Byte fuer Byte, bei einer Aufnahme unserer Apps die empfangenen Datenbloecke so, wie sie
+    ankamen (das IST dort das Original, s. storage.save_original_upload). Format der Bloecke:
+    docs/data-format.md im oeffentlichen Repo."""
+    import io
+    import zipfile
+
+    s = _owned(db, user, session_id)
+    d = storage.session_dir(s.session_uuid)
+    orig = sorted(d.glob("original.*")) if d.is_dir() else []
+    if orig:
+        name = export_track.dateiname(s, orig[0].suffix.lstrip(".") or "bin").replace(
+            f"-{s.id}.", f"-{s.id}-original.")
+        return Response(
+            content=orig[0].read_bytes(), media_type="application/octet-stream",
+            headers={"Content-Disposition": f'attachment; filename="{name}"',
+                     "Cache-Control": "private, no-store"},
+        )
+    puffer = io.BytesIO()
+    n = 0
+    with zipfile.ZipFile(puffer, "w", compression=zipfile.ZIP_DEFLATED) as z:
+        for teil in _ORIGINAL_TEILE:
+            p = d / teil
+            if p.is_file():
+                z.write(p, teil); n += 1
+            elif p.is_dir():
+                for f in sorted(p.iterdir()):
+                    if f.is_file():
+                        z.write(f, f"{teil}/{f.name}"); n += 1
+        z.writestr("README.txt", (
+            f"pumpfoil.org - original data of session {s.id}, unchanged.\n\n"
+            "For recordings made with the Pumpfoil apps, these are the data blocks exactly as the "
+            "watch or phone sent them. (For files imported before 7 August 2026 the uploaded file "
+            "was not kept - then these are the converted data.) Layout: gps/<n>.json "
+            "([t_ms, lat, lon, speed_mps, hr, h_acc_m] per fix), accel|gyro|mag/<n>.bin "
+            "(int16 little-endian x,y,z per sample) with <n>.t0 (block start time in ms).\n"
+            "Full format description: https://github.com/kechel/pumpfoil/blob/main/docs/data-format.md\n"
+            "For ready-to-use CSV files, use the raw data export instead.\n"))
+    if n == 0:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine Originaldaten vorhanden")
+    name = export_track.dateiname(s, "zip").replace(f"-{s.id}.", f"-{s.id}-original.")
+    return Response(
+        content=puffer.getvalue(), media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{name}"',
+                 "Cache-Control": "private, no-store"},
+    )
+
+
 @router.get("/{session_id}/export.gpx")
 def export_gpx(
     session_id: int,
@@ -2528,7 +2661,7 @@ def export_fit(
 ):
     """Eigene Session als FIT-Aktivitaet (Garmin Connect, Strava, jedes FIT-Werkzeug)."""
     s = _owned(db, user, session_id)
-    daten = export_track.fit_bytes(s, _export_punkte(s))
+    daten = export_track.fit_bytes(s, _export_punkte(s), _export_sensoren(s))
     return Response(
         content=daten, media_type="application/vnd.ant.fit",
         headers={"Content-Disposition": f'attachment; filename="{export_track.dateiname(s, "fit")}"',

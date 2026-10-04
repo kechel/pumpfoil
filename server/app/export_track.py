@@ -13,14 +13,23 @@ Was exportiert wird — bewusst DAS, WAS DIE SESSION ZEIGT:
   * Distanz laeuft NICHT ueber eine Luecke hinweg: nach einem Sprung > `_LUECKE_S` (Ausschluss oder
     GPS-Ausfall) beginnt ein neues Segment und die Strecke zaehlt weiter, ohne die Luftlinie
     dazwischen mitzurechnen. Sonst erfindet eine ausgeschnittene Heimfahrt Kilometer.
-  * KEIN Accel: GPX und FIT-`record` sind 1-Hz-Formate. Die rohe Beschleunigung ist unser
-    Eigenformat und gehoert nicht in eine Track-Datei.
+  * Bewegungssensoren NUR im FIT (seit 04.10.2026, Wunsch eines Nutzers: „export all data
+    including accelerometer"): FIT hat dafuer Standard-Messages — `accelerometer_data` (165, milli-g,
+    so wie Garmin es schreibt und unser Import es liest), `gyroscope_data` (164, Grad/s) und
+    `magnetometer_data` (208, Gauss), je Message bis zu `_SENSOR_JE_MSG` Proben mit Versatz in ms.
+    GPX hat keinen Platz dafuer (ein Punkt je GPS-Fix); eine Eigenerweiterung liest kein Programm.
+    Wer alles roh will, nimmt den ZIP-Export (`rohdaten_zip`): CSV je Sensor, ganze Aufnahme.
 """
 from __future__ import annotations
 
+import io
+import json
 import math
 import struct
+import zipfile
 from datetime import datetime, timedelta, timezone
+
+import numpy as np
 from xml.sax.saxutils import escape, quoteattr
 
 # Ab dieser Luecke zwischen zwei GPS-Punkten gilt der Track als unterbrochen: neues <trkseg>,
@@ -228,8 +237,53 @@ def _fit_ts(t: datetime) -> int:
     return int((t.astimezone(timezone.utc) - _FIT_EPOCH).total_seconds())
 
 
-def fit_bytes(session, pts: list[Punkt]) -> bytes:
+# Bewegungssensoren: Art -> (globale Message-Nummer, lokale Nummer). Lokale 0-4 belegen die
+# Pflicht-Messages oben.
+_SENSOR_MSG = {"accel": (165, 5), "gyro": (164, 6), "mag": (208, 7)}
+# Proben je Message: ein float32-Feld darf hoechstens 255 Bytes gross sein (63 Werte). 50 ist
+# eine Sekunde bei Garmin-25-Hz bzw. eine halbe bei Handy-100-Hz.
+_SENSOR_JE_MSG = 50
+
+
+def _sensor_msgs(art: str, t_start: datetime, t_ms: np.ndarray, werte: np.ndarray) -> bytes:
+    """Sensor-Proben (N, 3) in FIT-Einheit an Session-ms -> FIT-Messages.
+
+    Je Message: timestamp (s) + timestamp_ms der ERSTEN Probe, sample_time_offset (ms ab dieser),
+    calibrated_*_x/y/z als float32-Arrays. Aendert sich die Probenzahl (letzte Message), kommt
+    eine neue Definition — sonst muessten Fuellwerte hinein, die ein Leser als 0 g lesen koennte.
+    """
+    glob, lokal = _SENSOR_MSG[art]
+    t0 = t_start if t_start.tzinfo else t_start.replace(tzinfo=timezone.utc)
+    basis_ms = (t0 - _FIT_EPOCH).total_seconds() * 1000.0
+    out = bytearray()
+    zuletzt = None
+    for i in range(0, len(t_ms), _SENSOR_JE_MSG):
+        tt = np.asarray(t_ms[i:i + _SENSOR_JE_MSG], dtype=float)
+        ww = np.asarray(werte[i:i + _SENSOR_JE_MSG], dtype=float)
+        n = len(tt)
+        if n == 0:
+            continue
+        if n != zuletzt:
+            out += bytes([0x40 | lokal, 0x00, 0x00]) + struct.pack("<H", glob) + bytes([6])
+            out += bytes([253, 4, 0x86, 0, 2, 0x84, 1, 2 * n, 0x84,
+                          5, 4 * n, 0x88, 6, 4 * n, 0x88, 7, 4 * n, 0x88])
+            zuletzt = n
+        ab = basis_ms + tt[0]
+        sek = int(ab // 1000)
+        ms = int(round(ab - sek * 1000)) % 1000
+        versatz = np.clip(np.round(tt - tt[0]), 0, 0xFFFE).astype(int)
+        out.append(lokal)
+        out += struct.pack("<IH", sek, ms)
+        out += struct.pack(f"<{n}H", *versatz)
+        for k in range(3):
+            out += struct.pack(f"<{n}f", *np.nan_to_num(ww[:, k]).tolist())
+    return bytes(out)
+
+
+def fit_bytes(session, pts: list[Punkt], sensoren: dict | None = None) -> bytes:
     """Aktivitaets-FIT mit file_id + record + lap + session + activity.
+
+    `sensoren`: {"accel"|"gyro"|"mag": (t_ms, werte (N, 3) in FIT-Einheit)} — optional, s. oben.
 
     Genau diese fuenf Message-Typen sind das Minimum, das Garmin Connect und Strava als
     Aktivitaet (nicht als Rohdatei) annehmen. Hersteller-ID 255 = "development" — wir geben uns
@@ -262,6 +316,11 @@ def fit_bytes(session, pts: list[Punkt]) -> bytes:
             None if p.v is None else max(0, min(0xFFFE, int(round(p.v * 1000.0)))),
             p.hr,
         ])
+
+    t0_session = session.started_at or datetime.now(timezone.utc)
+    for art, (t_ms, werte) in (sensoren or {}).items():
+        if len(t_ms):
+            body += _sensor_msgs(art, t0_session, t_ms, werte)
 
     t_start = ganz[0].t if ganz else (session.started_at or datetime.now(timezone.utc))
     t_ende = ganz[-1].t if ganz else t_start
@@ -297,3 +356,33 @@ def fit_bytes(session, pts: list[Punkt]) -> bytes:
     kopf += struct.pack("<H", _crc16(bytes(kopf)))
     datei = bytes(kopf) + bytes(body)
     return datei + struct.pack("<H", _crc16(datei))
+
+
+# ---------------------------------------------------------------- Rohdaten (ZIP)
+
+_LIESMICH = """pumpfoil.org - raw data of session {sid}
+
+All files cover the WHOLE recording (no trim, excluded ranges included) - the session page and the
+GPX/FIT export apply trim and excluded ranges, this archive does not.
+t_ms = milliseconds since the start of the recording ({start} UTC, see meta.json).
+
+gps.csv    one row per GPS fix: t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m (empty = no value)
+accel.csv  acceleration in g per device axis: t_ms, ax_g, ay_g, az_g
+gyro.csv   rotation rate in rad/s (phone recordings only): t_ms, gx_rad_s, gy_rad_s, gz_rad_s
+mag.csv    magnetic field in microtesla (phone recordings only): t_ms, mx_ut, my_ut, mz_ut
+
+Sensor samples carry no timestamps of their own; t_ms is reconstructed from the upload blocks
+(meta.json: time_base, accel_hz_measured). Have fun, keep pumping!
+"""
+
+
+def rohdaten_zip(session, dateien: dict[str, bytes], meta: dict) -> bytes:
+    """ZIP mit den CSV-Dateien je Sensor, meta.json und einer kurzen Beschreibung."""
+    puffer = io.BytesIO()
+    with zipfile.ZipFile(puffer, "w", compression=zipfile.ZIP_DEFLATED) as z:
+        for name, inhalt in dateien.items():
+            z.writestr(name, inhalt)
+        z.writestr("meta.json", json.dumps(meta, indent=2, ensure_ascii=False, default=str))
+        start = session.started_at.astimezone(timezone.utc).isoformat() if session.started_at else "?"
+        z.writestr("README.txt", _LIESMICH.format(sid=session.id, start=start))
+    return puffer.getvalue()

@@ -146,10 +146,14 @@ def _achse(s: models.Session, werte: np.ndarray, kind: str) -> np.ndarray:
     """Zeitachse des Kanals wie in der Analyse (`timebase`), aber ohne Zuschnitt: Rohdaten sind
     die ganze Aufnahme. Blockzeiten und -laengen aus dem EIGENEN Verzeichnis des Kanals."""
     from ..analysis.timebase import build_timebase
-    t0 = storage.load_accel_t0(s.session_uuid) if kind == "accel" else storage.load_gyro_t0(s.session_uuid)
+    t0 = {"accel": storage.load_accel_t0, "gyro": storage.load_gyro_t0,
+          "mag": storage.load_mag_t0}[kind](s.session_uuid)
+    # Fenster nach hinten OFFEN: ohne Angabe endet es am letzten GPS-Punkt, und alles, was der
+    # Sensor danach noch lieferte (GPS-Ausfall vor dem Ende), fiele aus der „ganzen Aufnahme"
+    # heraus (Befund 04.10.2026 beim Rohdaten-Export).
     tb = build_timebase(storage.load_gps(s.session_uuid), werte, s.accel_scale or 1,
                         s.accel_hz, chunk_counts=storage.chunk_laengen(s.session_uuid, kind),
-                        t0_by_index=t0)
+                        t0_by_index=t0, trim_end_ms=2 ** 53)
     return tb.t_accel_ms.astype(float)
 
 
@@ -157,6 +161,10 @@ def _sensor_csv(s: models.Session, kind: str) -> bytes:
     if kind == "accel":
         roh = storage.load_accel(s.session_uuid)
         skala, kopf = float(s.accel_scale or 1), ["t_ms", "ax_g", "ay_g", "az_g"]
+    elif kind == "mag":
+        # Nur fuer den Rohdaten-Export der App (das MCP-Werkzeug bietet `mag` nicht an).
+        roh = storage.load_mag(s.session_uuid)
+        skala, kopf = float(storage.MAG_SCALE), ["t_ms", "mx_ut", "my_ut", "mz_ut"]
     else:
         roh = storage.load_gyro(s.session_uuid)
         skala, kopf = GYRO_SCALE, ["t_ms", "gx_rad_s", "gy_rad_s", "gz_rad_s"]
