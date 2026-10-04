@@ -482,7 +482,7 @@ function HeuteNeu({ mine, spot, accelOnly, sport }: { mine: boolean; spot: strin
   }, [mine, spot, accelOnly, sport]);
   if (!n) return null;
   // Fett und cyan (Jan): im Light-Mode das dunklere Cyan, wie die Links.
-  return <span className="text-sm font-bold text-brand-600 dark:text-brand-300">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })}</span>;
+  return <span className="text-sm font-bold text-brand-600 dark:text-brand-300">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })} — Have fun, keep pumping!</span>;
 }
 
 function MySessionsList({ myName, accelOnly, sport, onShowAll }:
