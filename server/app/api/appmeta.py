@@ -839,6 +839,11 @@ IDEEN: list[str] = [
     "Paddle-up starts: count the strokes it takes you to get up, and how fast you are when "
     "the board lifts.",
     "Pick the foil per run, not just per session — most of us swap gear during a session.",
+    # Vorschlag von Oerni im 1:1-Chat mit Jan (04.10.2026): wer in EINER Session pumpt und Boote
+    # (Wakethief) faehrt, will die Laeufe einzeln zuordnen; die zaehlen dann auch in der
+    # Spot-Statistik. Jan: „benoetigt den gleichen Umbau wie Foil je Lauf".
+    "Pick the sport per run as well, so one session can hold both pumpfoil and wake-thief "
+    "runs, each counted in its own statistics.",
     "See who is out on the water right now, for anyone who chooses to show it.",
     "Translate a comment into your language at the tap of a button.",
     "Measure how well pump detection really works, and build glide detection on top — right "
