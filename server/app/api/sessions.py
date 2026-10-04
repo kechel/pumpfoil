@@ -146,7 +146,8 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #       Link da, bei den eigenen (laengst geladenen) nicht — der Server schickte 304.
 #   5 = Uhrzeit je Lauf (`t_start_clock_ms`) + `duration_ms` + `pause_windows` (10.09.). Ohne
 #       Bump zeigten geladene Sessions weiter die zu frueh berechneten Lauf-Zeiten.
-_OUT_VERSION = 5
+#   6 = Gleitphasen je Lauf (`segments[].glides`) + Pumps bei Handy am Brett (03.10.2026).
+_OUT_VERSION = 6
 
 
 def _ort_verborgen(s: models.Session) -> bool:
@@ -2120,7 +2121,12 @@ def get_session(
     # oder die PWA aktualisiert. Genau das ist am 02.09. passiert: `start_attempts` steckte im
     # Server, im frischen Bundle und im Service Worker, aber die Detailseite zeigte weiter
     # „4 Laeufe" statt „4/4" — der Server antwortete auf das If-None-Match brav mit 304.
-    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}"'
+    # Foil/Setup gehoeren ebenfalls hinein: sie stehen in eigenen Tabellen, und eine Umbenennung
+    # im Katalog aendert die Session nicht. Ohne das zeigte die Detailseite nach der
+    # Zusammenfuehrung „Gong TRAIL V3 / V3 ATMO PERF" weiter den alten Namen (Jans Befund 04.10.).
+    import zlib as _zlib
+    _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s)], sort_keys=True, default=str)
+    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
