@@ -4183,6 +4183,15 @@
   },
   {
     "brand": "Sabfoil",
+    "model": "BLACKBIRD FREEMOVE BALZ MULLER",
+    "size": "1155",
+    "span_cm": 115.5,
+    "area_cm2": 1345.0,
+    "thickness_mm": 18.2,
+    "aliases": "Freemove 1155|Balz Pro 1155|Balz Müller Signature|Balz Mueller|WBZ1155/BB|WBZ1155-BB"
+  },
+  {
+    "brand": "Sabfoil",
     "model": "MEDUSA",
     "size": "699",
     "span_cm": 69.9,
