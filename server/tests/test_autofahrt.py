@@ -59,3 +59,14 @@ def test_zurueckgeholte_fahrt_wird_nicht_ausgeschlossen():
                         auto_fahrten=json.dumps([[5000, 9000, 90.0], [20000, 30000, 70.0]]),
                         fremdkraft_keep=json.dumps([[20000, 30000]]))
     assert analyse_ausschluss(s) == [(0, 1000), (5000, 9000)]
+
+
+def test_grenzen_je_sportart():
+    from app.analysis import gps as v1
+    assert v1.grenzen_fuer("pumpfoil") == (v1.MAX_FOIL_SPEED, v1.RUN_MAX_PLAUSIBLE_KMH)
+    assert v1.grenzen_fuer(None) == (v1.MAX_FOIL_SPEED, v1.RUN_MAX_PLAUSIBLE_KMH)
+    band, spitze = v1.grenzen_fuer("kitefoil")
+    assert round(band * 3.6, 6) == 60.0 and spitze == 70.0
+    seg_schnell = {"max_speed_mps": 45 / 3.6, "avg_speed_mps": 35 / 3.6}
+    assert v1._gate_implausible_runs([seg_schnell])[1] == 1                      # Pumpfoil: weg
+    assert v1._gate_implausible_runs([seg_schnell], spitze, band)[1] == 0        # Kite: bleibt
