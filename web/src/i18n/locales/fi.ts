@@ -242,6 +242,8 @@ const fi: Record<string, string> = {
   "side.pumps": "Pumps",
   "side.records": "Ennätykset",
   "side.onlyAccel": "vain kiihtyvyys",
+  "sessions.todayOne": "Tänään tähän mennessä 1 uusi sessio",
+  "sessions.todayN": "Tänään tähän mennessä {n} uutta sessiota",
   "side.all": "kaikki",
   "side.recordsHint": "Ennätykset vain kiihtyvyysdatan sisältävistä sessioista (tarkka) tai kaikista",
   "rec.spotTitle": "Ennätykset tällä spotilla",

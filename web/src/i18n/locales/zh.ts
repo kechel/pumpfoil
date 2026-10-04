@@ -249,6 +249,8 @@ const zh: Record<string, string> = {
   "side.pumps": "泵动次数",
   "side.records": "纪录",
   "side.onlyAccel": "仅加速度数据",
+  "sessions.todayOne": "今天到目前为止 1 个新记录",
+  "sessions.todayN": "今天到目前为止 {n} 个新记录",
   "side.all": "全部",
   "side.recordsHint": "来自含加速度数据（精确）的记录，或来自全部记录的纪录",
   "rec.spotTitle": "本地点的纪录",

@@ -261,6 +261,8 @@ const en: Record<string, string> = {
   "side.pumps": "Pumps",
   "side.records": "Records",
   "side.onlyAccel": "accel only",
+  "sessions.todayOne": "1 new session so far today",
+  "sessions.todayN": "{n} new sessions so far today",
   "side.all": "all",
   "side.recordsHint": "Records from sessions with acceleration data (precise) or from all",
   "rec.spotTitle": "Records at this spot",

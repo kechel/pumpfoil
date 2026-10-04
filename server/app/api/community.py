@@ -314,6 +314,24 @@ def community_sessions(
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=_verbergende_nutzer(db)) for r in rows]), request)
 
 
+@router.get("/sessions-today")
+def sessions_today(
+    since_ms: int, spot: str | None = Query(None), accel_only: bool = True, sport: str = "pumpfoil",
+    mine: bool = False,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Wie viele Sessions seit `since_ms` (Mitternacht beim BETRACHTER, vom Client geschickt) —
+    fuer „X new sessions so far today" auf der Sessions-Seite (Jan, 04.10.2026). Dieselben Regeln
+    wie die Liste darunter: `_community` (+ Spot), bei „Meine" nur die eigenen."""
+    seit = datetime.fromtimestamp(since_ms / 1000.0, tz=timezone.utc)
+    q = _community(db.query(func.count(S.id)), user.id, accel_only, sport).filter(S.started_at >= seit)
+    if mine:
+        q = q.filter(S.user_id == user.id)
+    if spot:
+        q = q.filter(_spot_cond(spot, db))
+    return {"n": int(q.scalar() or 0)}
+
+
 @spot_router.get("/spot-sessions")
 def spot_sessions(
     request: Request,

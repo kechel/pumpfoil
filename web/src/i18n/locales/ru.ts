@@ -249,6 +249,8 @@ const ru: Record<string, string> = {
   "side.pumps": "Помпинг",
   "side.records": "Рекорды",
   "side.onlyAccel": "только акселерометр",
+  "sessions.todayOne": "Сегодня пока 1 новая сессия",
+  "sessions.todayN": "Сегодня пока новых сессий: {n}",
   "side.all": "все",
   "side.recordsHint": "Рекорды из сессий с данными акселерометра (точные) или из всех",
   "rec.spotTitle": "Рекорды на этом споте",

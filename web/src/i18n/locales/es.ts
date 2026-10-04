@@ -229,6 +229,8 @@ const es: Record<string, string> = {
   "side.pumps": "Pumps",
   "side.records": "Récords",
   "side.onlyAccel": "solo accel.",
+  "sessions.todayOne": "Hoy, de momento, 1 sesión nueva",
+  "sessions.todayN": "Hoy, de momento, {n} sesiones nuevas",
   "side.all": "todos",
   "side.recordsHint": "Récords de sesiones con datos de aceleración (precisos) o de todas",
   "rec.spotTitle": "Récords en este spot",

@@ -417,6 +417,7 @@ export default function Sessions() {
         {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. */}
         <ListenAnsicht className={isMine ? "" : "ml-auto"} />
         <AccelToggle value={accelOnly} onChange={setAccelOnly} />
+        <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly} sport={sport} />
       </div>
 
 
@@ -466,6 +467,21 @@ export function ProcessingNote() {
       {t("session.loadingAccel")}
     </div>
   );
+}
+
+// „X new sessions so far today" neben dem Accel-Umschalter (Jan, 04.10.2026). Zaehlt mit denselben
+// Regeln wie die Liste darunter (Meine/Spot/Alle, Sportart, nur Accel); bei 0 steht nichts da.
+function HeuteNeu({ mine, spot, accelOnly, sport }: { mine: boolean; spot: string | null; accelOnly: boolean; sport: string }) {
+  const t = useT();
+  const [n, setN] = useState<number | null>(null);
+  useEffect(() => {
+    let aus = false;
+    api.sessionsToday({ mine, spot: spot || undefined, accelOnly, sport })
+      .then((r) => { if (!aus) setN(r.n); }).catch(() => { if (!aus) setN(null); });
+    return () => { aus = true; };
+  }, [mine, spot, accelOnly, sport]);
+  if (!n) return null;
+  return <span className="text-sm text-slate-400">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })}</span>;
 }
 
 function MySessionsList({ myName, accelOnly, sport, onShowAll }:
