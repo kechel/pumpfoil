@@ -11142,3 +11142,20 @@ Offen daraus:
   Wakethief-Laeufe zaehlen dann in den Wakethief-Statistiken (auch je Spot), die Pumpfoil-Laeufe in den
   Pumpfoil-Zahlen. Jan: „benoetigt den gleichen Umbau wie Foil je Lauf" (heute sind Sportart und Foil
   je Session). Steht auch unter „Ideas for future development" auf /changelog (`appmeta.IDEEN`).
+
+- **🔍 Erkennung: 40-km/h-Physik-Grenze gilt auch fuer Wing/Kite (Befund 04.10.2026, u758 Jhonny).**
+  `_gate_implausible_runs` verwirft Laeufe > 40 km/h unabhaengig von der Sportart. Bei Wing-/Kite-Sessions
+  sind solche Laeufe plausibel (u758: #12948, #12940, #12927, #12926 — als Wingfoil umsortiert, trotzdem
+  „verdaechtig", per „geprueft" aus der Liste genommen). Vorschlag: Grenze je `sport_class` (Pumpfoil 40,
+  Wing/Kite hoeher, Belege aus den eigenen Wing/Kite-Sessions); die Verdachtsliste (`_suspect_cond`) dann
+  ebenfalls je Sportart. Detektor-Aenderung -> Jans OK + Regressionstest.
+
+- **🔍 Erkennung: Autofahrten ZWISCHEN zwei Laeufen automatisch aussortieren (Befund 04.10.2026, u758).**
+  Der Auto-Zuschnitt schneidet nur vor dem ersten und nach dem letzten Lauf; eine Fahrt mitten in der
+  Aufnahme (zum naechsten Spot, Shuttle zum Steg) bleibt drin. Laeufe > 40 km/h fallen weg (daher
+  „verdaechtig"), aber Anfahren/Ortsverkehr (12-23 km/h) zaehlt bei GPS-only als Lauf. Von Hand
+  geloest an #12943/#12884/#12886/#12927. Erprobte Regel (`scratchpad`-Skript, an diesen vier gegen das
+  Tempoprofil geprueft): Stuecke mit 5-s-Mittel > 35 km/h, Luecken < 3 min zusammengefasst, beidseitig bis
+  zum naechsten echten Stopp (< 4 km/h fuer >= 20 s) erweitert -> automatisch aussortieren wie die
+  Fremdkraft (`metrics.fremdkraft_laeufe`, Ein-Tipp-Rueckholung). Vorsicht: ein echter letzter Lauf kurz
+  vor dem Wegfahren darf nicht mitgehen (#12886 Minute 82,8). Detektor-Aenderung -> Jans OK + Regression.
