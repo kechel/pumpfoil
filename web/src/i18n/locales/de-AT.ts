@@ -1748,6 +1748,7 @@ const deAT: Record<string, string> = {
   "sd.exportCsv": "Alle Rohdaten als CSV-Dateien in einem ZIP: GPS, Beschleunigung und bei Handy-Aufnahmen Kreisel und Magnetfeld — die ganze Aufnahme, ungeschnitten",
   "sd.exportOriginal": "Die Originaldaten unverändert herunterladen: die importierte Datei oder die Daten genau so, wie Uhr oder Handy sie geschickt haben",
   "sd.exportOriginalLabel": "Original",
+  "sd.download": "Herunterladen",
   "sd.exportGpx": "Als GPX-Datei runterladen (Track + Puls)",
   "sd.hotkeysTitle": "Tastatur: 1–9 Lauf wählen · 0 alle · ←/→ blättern · F Vollbild · Leertaste Play/Pause",
   "sd.includeRun": "wieder reinnehmen",

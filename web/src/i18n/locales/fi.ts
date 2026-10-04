@@ -1917,6 +1917,7 @@ const fi: Record<string, string> = {
   "sd.exportCsv": "Kaikki raakadata CSV-tiedostoina ZIP-paketissa: GPS, kiihtyvyys sekä puhelintallennuksissa gyroskooppi ja magnetometri — koko tallennus rajaamattomana",
   "sd.exportOriginal": "Lataa alkuperäinen data muuttamattomana: tuotu tiedosto tai data juuri sellaisena kuin kello tai puhelin sen lähetti",
   "sd.exportOriginalLabel": "Alkuperäinen",
+  "sd.download": "Lataa",
   "sd.exportGpx": "Lataa GPX-tiedostona (reitti + syke)",
   "sd.hotkeysTitle": "Näppäimistö: 1–9 valitse veto · 0 kaikki · ←/→ selaa · F koko näyttö · Väli toista/tauko",
   "sd.includeRun": "palauta",

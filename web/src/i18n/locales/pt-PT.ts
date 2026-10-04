@@ -1886,6 +1886,7 @@ const ptPT: Record<string, string> = {
   "sd.exportCsv": "Todos os dados em bruto como ficheiros CSV num ZIP: GPS, aceleração e, em gravações pelo telemóvel, giroscópio e magnetómetro — a gravação inteira, sem cortes",
   "sd.exportOriginal": "Descarregar os dados originais sem alterações: o ficheiro importado, ou os dados exatamente como o relógio ou o telemóvel os enviou",
   "sd.exportOriginalLabel": "Original",
+  "sd.download": "Descarregar",
   "sd.exportGpx": "Transferir como ficheiro GPX (trilho + frequência cardíaca)",
   "sd.includeRun": "trazer de volta",
   "sd.spotPage": "Sessões e descrição do spot",

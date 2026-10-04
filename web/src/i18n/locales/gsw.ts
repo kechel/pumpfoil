@@ -1742,6 +1742,7 @@ const gsw: Record<string, string> = {
   "sd.exportCsv": "Alli Rohdate als CSV-Dateie imne ZIP: GPS, Beschleunigung und bi Händy-Ufnahme Kreisel und Magnetfäld — di ganz Ufnahm, ungschnitte",
   "sd.exportOriginal": "D Originaldate unveränderet abelade: di importiert Datei oder d Date genau so, wie Uhr oder Händy si gschickt händ",
   "sd.exportOriginalLabel": "Original",
+  "sd.download": "Abelade",
   "sd.exportGpx": "Als GPX-Datei abelade (Track + Puls)",
   "sd.hotkeysTitle": "Taschtatur: 1–9 Lauf wähle · 0 alli · ←/→ blättere · F Vollbild · Leertaschte Play/Pause",
   "sd.includeRun": "wieder ufnäh",

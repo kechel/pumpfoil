@@ -1741,6 +1741,7 @@ const es: Record<string, string> = {
   "sd.exportCsv": "Todos los datos en bruto como archivos CSV en un ZIP: GPS, aceleración y, en grabaciones con móvil, giroscopio y magnetómetro — la grabación completa, sin recortar",
   "sd.exportOriginal": "Descargar los datos originales sin cambios: el archivo importado, o los datos tal como los envió el reloj o el móvil",
   "sd.exportOriginalLabel": "Original",
+  "sd.download": "Descargar",
   "sd.exportGpx": "Descargar como archivo GPX (track + frecuencia cardíaca)",
   "sd.hotkeysTitle": "Teclado: 1–9 elegir run · 0 todos · ←/→ navegar · F pantalla completa · Espacio reproducir/pausa",
   "sd.includeRun": "recuperar",

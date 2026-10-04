@@ -1948,6 +1948,7 @@ const cs: Record<string, string> = {
   "sd.exportCsv": "Všechna surová data jako soubory CSV v ZIPu: GPS, zrychlení a u nahrávek z telefonu gyroskop a magnetometr — celá nahrávka, neořezaná",
   "sd.exportOriginal": "Stáhnout původní data beze změny: importovaný soubor, nebo data přesně tak, jak je hodinky či telefon poslaly",
   "sd.exportOriginalLabel": "Originál",
+  "sd.download": "Stáhnout",
   "sd.exportGpx": "Stáhnout jako soubor GPX (trasa + tep)",
   "sd.includeRun": "vrátit zpět",
   "sd.spotPage": "Relace a popis spotu",

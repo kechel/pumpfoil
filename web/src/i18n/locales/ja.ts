@@ -1886,6 +1886,7 @@ const ja: Record<string, string> = {
   "sd.exportCsv": "すべての生データをZIP内のCSVファイルで：GPS、加速度、スマホ記録ではジャイロと磁気センサーも — 記録全体、トリミングなし",
   "sd.exportOriginal": "元データをそのままダウンロード：インポートしたファイル、または時計やスマホが送ったままのデータ",
   "sd.exportOriginalLabel": "オリジナル",
+  "sd.download": "ダウンロード",
   "sd.exportGpx": "GPX ファイルとしてダウンロード（トラック＋心拍）",
   "sd.includeRun": "元に戻す",
   "sd.spotPage": "スポットのセッションと説明",

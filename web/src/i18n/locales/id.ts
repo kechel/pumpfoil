@@ -1892,6 +1892,7 @@ const id: Record<string, string> = {
   "sd.exportCsv": "Semua data mentah sebagai file CSV dalam ZIP: GPS, akselerasi, dan untuk rekaman ponsel giroskop serta magnetometer — seluruh rekaman, tanpa dipotong",
   "sd.exportOriginal": "Unduh data asli tanpa diubah: file yang diimpor, atau data persis seperti dikirim jam atau ponsel",
   "sd.exportOriginalLabel": "Asli",
+  "sd.download": "Unduh",
   "sd.exportGpx": "Unduh sebagai berkas GPX (jalur + detak jantung)",
   "sd.includeRun": "kembalikan",
   "sd.spotPage": "Sesi & deskripsi spot",

@@ -676,6 +676,7 @@ const de: Record<string, string> = {
   "sd.photoDeleteConfirm": "Foto löschen?",
   "sd.addPhoto": "Foto",
   "sd.likes": "Likes",
+  "sd.download": "Herunterladen",
   "sd.exportGpx": "Als GPX-Datei herunterladen (Track + Puls)",
   "sd.exportFit": "Als FIT-Datei herunterladen (für Garmin Connect, Strava und andere) — mit den Bewegungssensoren",
   "sd.exportCsv": "Alle Rohdaten als CSV-Dateien in einem ZIP: GPS, Beschleunigung und bei Handy-Aufnahmen Kreisel und Magnetfeld — die ganze Aufnahme, ungeschnitten",

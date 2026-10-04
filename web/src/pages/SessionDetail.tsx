@@ -103,6 +103,18 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
   const [metaErr, setMetaErr] = useState<string | null>(null);
   const [dlBusy, setDlBusy] = useState<"gpx" | "fit" | "zip" | "original" | null>(null);
   const [dlErr, setDlErr] = useState<string | null>(null);
+  // Export-Formate in einem kleinen Menue hinter EINEM Knopf (Jan, 04.10.2026: „viel zu viel Platz
+  // fuer etwas, was nur selten benoetigt wird"). Schliesst bei Klick daneben und mit Escape.
+  const [dlOffen, setDlOffen] = useState(false);
+  const dlRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!dlOffen) return;
+    const zu = (e: MouseEvent | TouchEvent) => { if (dlRef.current && !dlRef.current.contains(e.target as Node)) setDlOffen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setDlOffen(false); };
+    document.addEventListener("mousedown", zu); document.addEventListener("touchstart", zu);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", zu); document.removeEventListener("touchstart", zu); document.removeEventListener("keydown", esc); };
+  }, [dlOffen]);
   // Session als Datei laden. Der Endpunkt braucht den Token, also fetch + Blob statt Link
   // (siehe api.sessionExport); den Dateinamen gibt der Server vor.
   const exportieren = async (kind: "gpx" | "fit" | "zip" | "original") => {
@@ -300,28 +312,52 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
             </button>
             {/* Datei-Export: Beschriftung ist das Format selbst (GPX/FIT braucht keine
                 Uebersetzung), die Erklaerung steckt im title/aria-label. */}
-            {/* CSV = alle Rohdaten (ZIP), Original = unveraendert wie empfangen (04.10.2026). */}
-            {(["gpx", "fit", "zip", "original"] as const).map((k) => {
-              const tip = t({ gpx: "sd.exportGpx", fit: "sd.exportFit", zip: "sd.exportCsv", original: "sd.exportOriginal" }[k]);
-              const name = k === "zip" ? "CSV" : k === "original" ? t("sd.exportOriginalLabel") : k.toUpperCase();
-              return (
-                <button
-                  key={k}
-                  onClick={() => exportieren(k)}
-                  disabled={dlBusy !== null}
-                  title={tip}
-                  aria-label={tip}
-                  className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
-                >
-                  <DownloadIcon className="h-4 w-4 text-brand-400" />
-                  {dlBusy === k ? t("common.loading") : name}
-                </button>
-              );
-            })}
-            {dlErr && <span className="text-xs text-red-400">{dlErr}</span>}
           </>
         )}
         <div className="ml-auto flex items-center gap-2">
+          {/* Download rechtsbuendig (Jan, 04.10.2026), nur fuer die eigene Session. */}
+          {owned && (
+            <>
+                {/* Datei-Export: EIN Knopf, die Formate im Menue. CSV = alle Rohdaten (ZIP), Original =
+                    unveraendert wie empfangen (04.10.2026). */}
+                <div ref={dlRef} className="relative">
+                  <button
+                    onClick={() => setDlOffen((v) => !v)}
+                    disabled={dlBusy !== null}
+                    title={t("sd.download")}
+                    aria-label={t("sd.download")}
+                    aria-expanded={dlOffen}
+                    className="flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50 sm:px-3"
+                  >
+                    {/* Auf dem Handy nur das Symbol, sonst mit Beschriftung (Jan, 04.10.2026). */}
+                    {dlBusy ? <span className="px-0.5">{t("common.loading")}</span> : (
+                      <>
+                        <DownloadIcon className="h-4 w-4 text-brand-400" />
+                        <span className="hidden sm:inline">{t("sd.download")}</span>
+                      </>
+                    )}
+                  </button>
+                  {dlOffen && (
+                    <div role="menu" className="absolute right-0 top-full z-[1000] mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-700 bg-slate-900 p-1 shadow-xl">
+                      {(["gpx", "fit", "zip", "original"] as const).map((k) => (
+                        <button key={k} role="menuitem"
+                          onClick={() => { setDlOffen(false); exportieren(k); }}
+                          className="flex w-full flex-col items-start rounded-lg px-3 py-2 text-left hover:bg-slate-800">
+                          <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
+                            <DownloadIcon className="h-4 w-4 text-brand-400" />
+                            {k === "zip" ? "CSV" : k === "original" ? t("sd.exportOriginalLabel") : k.toUpperCase()}
+                          </span>
+                          <span className="text-sm text-slate-400">
+                            {t({ gpx: "sd.exportGpx", fit: "sd.exportFit", zip: "sd.exportCsv", original: "sd.exportOriginal" }[k])}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {dlErr && <span className="text-xs text-red-400">{dlErr}</span>}
+            </>
+          )}
           {/* EIGENE Session: hier stehen die Klassifikations-Felder. „wirkt unecht" und
               „unangemessen" gibt es dafür nur bei FREMDEN Sessions — sich selbst zu melden ist
               sinnlos (Jan). Reihenfolge bei fremden = Schwere: „nicht Pumpfoil" ist die harmloseste

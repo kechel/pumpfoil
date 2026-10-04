@@ -1741,6 +1741,7 @@ const it: Record<string, string> = {
   "sd.exportCsv": "Tutti i dati grezzi come file CSV in uno ZIP: GPS, accelerazione e, per le registrazioni da telefono, giroscopio e magnetometro — l'intera registrazione, senza tagli",
   "sd.exportOriginal": "Scarica i dati originali invariati: il file importato, oppure i dati esattamente come li ha inviati l'orologio o il telefono",
   "sd.exportOriginalLabel": "Originale",
+  "sd.download": "Scarica",
   "sd.exportGpx": "Scarica come file GPX (traccia + frequenza cardiaca)",
   "sd.hotkeysTitle": "Tastiera: 1–9 scegli run · 0 tutti · ←/→ sfoglia · F schermo intero · Spazio riproduci/pausa",
   "sd.includeRun": "reinserisci",

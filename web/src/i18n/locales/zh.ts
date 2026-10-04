@@ -1889,6 +1889,7 @@ const zh: Record<string, string> = {
   "sd.exportCsv": "所有原始数据以 CSV 文件打包为 ZIP：GPS、加速度，手机记录还包括陀螺仪和磁力计 — 完整记录，未裁剪",
   "sd.exportOriginal": "原样下载原始数据：导入的文件，或手表/手机发送时的原始数据",
   "sd.exportOriginalLabel": "原始数据",
+  "sd.download": "下载",
   "sd.exportGpx": "下载为 GPX 文件（轨迹＋心率）",
   "sd.includeRun": "加回来",
   "sd.spotPage": "该点位的会话与说明",
