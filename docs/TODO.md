@@ -11159,3 +11159,10 @@ Offen daraus:
   zum naechsten echten Stopp (< 4 km/h fuer >= 20 s) erweitert -> automatisch aussortieren wie die
   Fremdkraft (`metrics.fremdkraft_laeufe`, Ein-Tipp-Rueckholung). Vorsicht: ein echter letzter Lauf kurz
   vor dem Wegfahren darf nicht mitgehen (#12886 Minute 82,8). Detektor-Aenderung -> Jans OK + Regression.
+
+- **💡 Insta360: Video automatisch mit Gyro/Accel der Kamera synchronisieren (Jan, 04.10.2026).** Wenn Jan die
+  Insta360 das naechste Mal an die VM anschliesst: nachsehen, was in den Dateien steckt (Insta360 schreibt
+  Gyro/Accel fuer die Stabilisierung mit — Format, Rate, Zeitstempel, ob GPS dabei ist). Idee: die
+  Bewegungsdaten der Kamera gegen Uhr bzw. Handy am Brett kreuzkorrelieren (wie `paare_ausrichten.py` fuer
+  Uhr/Brett) -> Video zeitgenau an die Session haengen, Laeufe/Pumps im Video springen lassen, ggf. auch
+  Pump-Wahrheit fuer das Training. Erst nur ansehen, nichts bauen.
