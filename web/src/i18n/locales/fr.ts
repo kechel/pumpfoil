@@ -1497,6 +1497,7 @@ const fr: Record<string, string> = {
   "v2.sepWhyPulse": "{dur} s d'affilée à {kmh} km/h de moyenne, réponse cardiaque de seulement {hr} bpm",
   "v2.sepWhy": "{dur} s d'affilée à {kmh} km/h de moyenne",
   "v3.sepWhy": "{dur} s à {kmh} km/h de moyenne — le modèle de détection ne voit pas de foil ici",
+  "fahrt.sepWhy": "Trajet en voiture — {min} min, jusqu'à {kmh} km/h",
   "v2.keep": "Ça compte — récupérer",
   "v2.keptLabel": "run récupéré",
   "v2.unkeep": "mettre de côté à nouveau",

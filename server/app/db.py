@@ -199,6 +199,8 @@ def _migrate_add_indexes() -> None:
         # Kam der Zuschnitt von der Automatik? Entscheidet, wo Startversuche gezaehlt werden
         # (app/analysis/__init__.py). NULL = unbekannt, wird per Heuristik nachgetragen.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS trim_auto BOOLEAN",
+        # Automatisch erkannte Autofahrten (analysis/autofahrt.py, 04.10.2026).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS auto_fahrten TEXT",
         # Polar: nicht bestaetigte Exercise-Transaktionen zaehlen (app/api/polar.py).
         "ALTER TABLE polar_links ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_time_s_personal",

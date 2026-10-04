@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
+import logging
+
 import numpy as np
 from sqlalchemy.orm import Session as DbSession
 
@@ -244,6 +246,39 @@ def excluded_windows(session: "models.Session") -> list[tuple[int, int]]:
     return sorted(out)
 
 
+def auto_fahrt_fenster(session: "models.Session") -> list[tuple[int, int, float]]:
+    """Automatisch erkannte Autofahrten, die NICHT zurueckgeholt wurden: [(start_ms, end_ms, kmh)]."""
+    try:
+        f = json.loads(getattr(session, "auto_fahrten", None) or "[]")
+        keep = [(int(x[0]), int(x[1])) for x in json.loads(getattr(session, "fremdkraft_keep", None) or "[]")]
+    except (ValueError, TypeError, IndexError):
+        return []
+    out = []
+    for x in f if isinstance(f, list) else []:
+        try:
+            a, b, p = int(x[0]), int(x[1]), float(x[2])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if b > a and not any(ka < b and kb > a for ka, kb in keep):
+            out.append((a, b, p))
+    return out
+
+
+def analyse_ausschluss(session: "models.Session") -> list[tuple[int, int]]:
+    """Alles, was die ANALYSE weglaesst: die vom Nutzer aussortierten Fenster plus die aktiven
+    Autofahrten. Fuer jede Rechnung, die Zeit und Track-Index ineinander umrechnet — alle muessen
+    dieselbe Menge nehmen, sonst sitzen Marker daneben. Die Liste mit den Knoepfen „wieder
+    aufnehmen" bleibt bei `excluded_windows` (nur die eigenen)."""
+    alle = sorted(excluded_windows(session) + [(a, b) for a, b, _ in auto_fahrt_fenster(session)])
+    out: list[tuple[int, int]] = []
+    for a, b in alle:
+        if out and a <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], b))
+        else:
+            out.append((a, b))
+    return out
+
+
 def dump_excluded_windows(wins: list[tuple[int, int]]) -> str | None:
     """Fensterliste -> JSON-Text für sessions.excluded_ranges (leer -> NULL)."""
     return json.dumps([[int(a), int(b)] for a, b in sorted(wins)]) if wins else None
@@ -410,6 +445,18 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     gps_samples = storage.load_gps(session.session_uuid)
     accel = storage.load_accel(session.session_uuid)
 
+    # Autofahrten aus den ROHEN Punkten (ganze Aufnahme), bevor irgendetwas zugeschnitten wird —
+    # sie wirken danach wie aussortierte Fenster (analyse_ausschluss). Je Sportart eigene Schwelle,
+    # bei „other" (Rad, Laufen) gar nicht. Eine Rechnung, die hier scheitert, darf die Analyse nie
+    # kosten.
+    try:
+        from .autofahrt import fahrten as _fahrten, spitze_fuer as _spitze_fuer
+        _sp = _spitze_fuer(session.sport_class)
+        _f = _fahrten(gps_samples, _sp) if _sp is not None else []
+        session.auto_fahrten = json.dumps([[int(a), int(b), float(p)] for a, b, p in _f]) if _f else None
+    except Exception:
+        logging.getLogger(__name__).exception("Autofahrt-Erkennung fehlgeschlagen fuer Session %s", session.id)
+
     # Effektive Accel-Rate GENERISCH aus den Daten bestimmen (quellen-unabhängig): die Accel läuft
     # während der Aufnahme mit dem GPS mit (beide ab Start-Druck), also ist samples/GPS-Dauer die
     # WAHRE Rate — und ihre Verwendung synchronisiert Accel↔GPS exakt (Accel-Ende = GPS-Ende), damit
@@ -503,7 +550,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # (GAP_SPLIT_S) die Läufe davor/danach sauber, statt sie zu verbinden. Accel bleibt
     # unangetastet: ihr Index IST die Zeit (index = t * accel_hz), sie bleibt also zu den
     # verbleibenden GPS-Punkten synchron. Kein Detektor-Parameter wird angefasst.
-    _excl = excluded_windows(session)
+    _excl = analyse_ausschluss(session)
     if _excl and gps_fuer_versuche:
         # Die Kopie ist NICHT re-based -> die Fenster gelten hier unveraendert (Session-ms).
         gps_fuer_versuche = [x for x in gps_fuer_versuche
@@ -625,6 +672,15 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # Vorschau); identisch zu den kanonischen Spalten oben.
     res_personal = res if _sens != "normal" else None
     res.setdefault("metrics", {})["detection"] = detection
+    # Autofahrten in dieselbe Liste wie die Fremdkraft-Vorschlaege: dort steht der Grund, und ein
+    # Tipp holt sie zurueck (`fremdkraft_keep`). Session-ms wie die anderen Eintraege.
+    _fahrt_eintraege = [{
+        "t_start_ms": a, "t_end_ms": b, "dauer_s": round((b - a) / 1000.0, 1), "kmh": round(p, 1),
+        "quelle": "fahrt", "grund": f"Autofahrt bis {p:.0f} km/h",
+    } for a, b, p in auto_fahrt_fenster(session)]
+    if _fahrt_eintraege:
+        m = res["metrics"]
+        m["fremdkraft_laeufe"] = list(m.get("fremdkraft_laeufe") or []) + _fahrt_eintraege
     # WARUM das Modell uebersprungen wurde. Ohne das laege der Grund nur an der Rate, und die
     # Oberflaeche wuerde bei einer Brett-Aufnahme „Accel-Rate zu niedrig" behaupten — bei 61 Hz
     # schlicht falsch.

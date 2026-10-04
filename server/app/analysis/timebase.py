@@ -233,7 +233,7 @@ def build_timebase_for_session(session, *, gps=None, accel=None) -> TimeBase:
     """Bequemer Weg von einer DB-Session zur Achse: lädt Rohdaten + Chunk-Startzeiten und
     nimmt Trim/Ausschluss aus der Session. Liest nur, schreibt nie."""
     from .. import storage
-    from . import excluded_windows
+    from . import analyse_ausschluss
 
     uuid = session.session_uuid
     gps = storage.load_gps(uuid) if gps is None else gps
@@ -243,7 +243,7 @@ def build_timebase_for_session(session, *, gps=None, accel=None) -> TimeBase:
         chunk_counts=_accel_chunk_counts(uuid),
         t0_by_index=storage.load_accel_t0(uuid),
         trim_start_ms=session.trim_start_ms, trim_end_ms=session.trim_end_ms,
-        excluded_ranges=excluded_windows(session),
+        excluded_ranges=analyse_ausschluss(session),
     )
 
 

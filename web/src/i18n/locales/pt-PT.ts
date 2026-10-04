@@ -1663,6 +1663,7 @@ const ptPT: Record<string, string> = {
   "v2.sepWhyPulse": "{dur} s seguidos a {kmh} km/h de média, resposta cardíaca de só {hr} bpm",
   "v2.sepWhy": "{dur} s seguidos a {kmh} km/h de média",
   "v3.sepWhy": "{dur} s a {kmh} km/h de média — o modelo de deteção não vê foil aqui",
+  "fahrt.sepWhy": "Viagem de carro — {min} min, até {kmh} km/h",
   "v2.keep": "Conta sim — recuperar",
   "v2.keptLabel": "run recuperado",
   "v2.unkeep": "separar de novo",
