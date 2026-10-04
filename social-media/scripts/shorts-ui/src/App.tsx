@@ -1245,13 +1245,41 @@ function Studio() {
 
   // ---- Rezepte: gesicherte Einstellungen eines frueheren Renders ----------
   const [rezepte, setRezepte] = useState<
-    { name: string; out_name: string; at: string; quellvideo: string; plattformen: string[] }[]
+    { name: string; out_name: string; at: string; entwurf?: boolean;
+      quellvideo: string; plattformen: string[] }[]
   >([]);
+  const [rezeptMsg, setRezeptMsg] = useState("");
   useEffect(() => {
     void fetch("/api/rezepte")
       .then(async (r) => setRezepte((await r.json()).rezepte ?? []))
       .catch(() => {});
   }, [state]);
+
+  // Den aktuellen Stand ablegen, OHNE zu rendern — zum Gegenlesen der Texte,
+  // bevor Zeit in einen Render fliesst (Jan, 04.10.). Entwuerfe koennen kein
+  // Render-Rezept ueberschreiben, sie heissen "<name>-entwurf.json".
+  const speichereRezept = useCallback(async () => {
+    if (!outName.trim()) {
+      setRezeptMsg("Erst einen Ausgabenamen eintragen");
+      return;
+    }
+    try {
+      const r = await api.post<{ ok?: boolean; name?: string; error?: string }>(
+        "/api/rezept_speichern", { studio: studioState });
+      if (r.error) { setRezeptMsg(`❌ ${r.error}`); return; }
+      setRezeptMsg(`✅ ${r.name}`);
+      const liste = await (await fetch("/api/rezepte")).json();
+      setRezepte(liste.rezepte ?? []);
+    } catch (e) {
+      setRezeptMsg(`❌ ${e}`);
+    }
+  }, [outName, studioState]);
+
+  useEffect(() => {
+    if (!rezeptMsg) return;
+    const id = window.setTimeout(() => setRezeptMsg(""), 4000);
+    return () => window.clearTimeout(id);
+  }, [rezeptMsg]);
 
   const ladeRezept = useCallback(async (name: string) => {
     if (!name) return;
@@ -1917,13 +1945,20 @@ function Studio() {
             </button>
           ))}
           <span className="trkname">{pvTrackName}</span>
-          <select className="mini rezept" style={{ marginLeft: "auto" }} value=""
+          {rezeptMsg && <span className="rezeptmsg">{rezeptMsg}</span>}
+          <button className="mini" style={{ marginLeft: "auto" }}
+                  title="Aktuellen Stand als Entwurf ablegen — ohne zu rendern. Ueberschreibt nie ein Rezept aus einem echten Render."
+                  onClick={() => void speichereRezept()}>
+            Rezept speichern
+          </button>
+          <select className="mini rezept" value=""
                   title="Einstellungen eines frueheren Renders laden — Texte, Stempel, Overlay, Endcard, Musik, Trim"
                   onChange={(e) => { void ladeRezept(e.target.value); e.target.value = ""; }}>
             <option value="">Rezept laden …</option>
             {rezepte.map((r) => (
               <option key={r.name} value={r.name}>
-                {r.at.slice(0, 10)} · {r.out_name.replace(/\.mp4$/, "").slice(0, 52)}
+                {r.at.slice(0, 10)}{r.entwurf ? " · Entwurf" : ""} ·{" "}
+                {r.out_name.replace(/\.mp4$/, "").slice(0, 46)}
               </option>
             ))}
           </select>
