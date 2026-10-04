@@ -11134,3 +11134,9 @@ Offen daraus:
   als CSV, ganze Aufnahme) und „Original" (`/export-original`, Import-Datei bzw. empfangene Bloecke
   unveraendert) erweitern — Android `SessionDetailScreen` (Menue neben GPX/FIT), iOS
   `SessionDetailView` (`exportiere`). FIT enthaelt jetzt die Bewegungssensoren (keine App-Aenderung noetig).
+
+- **💡 Sportart je Lauf (Vorschlag Oerni u97, 1:1-Chat mit Jan, 04.10.2026):** innerhalb EINER Session
+  einzelne Laeufe als Pumpfoil bzw. Wakethief markieren — er faehrt in derselben Session beides. Die
+  Wakethief-Laeufe zaehlen dann in den Wakethief-Statistiken (auch je Spot), die Pumpfoil-Laeufe in den
+  Pumpfoil-Zahlen. Jan: „benoetigt den gleichen Umbau wie Foil je Lauf" (heute sind Sportart und Foil
+  je Session). Steht auch unter „Ideas for future development" auf /changelog (`appmeta.IDEEN`).
