@@ -266,6 +266,8 @@ const de: Record<string, string> = {
   "side.pumps": "Pumps",
   "side.records": "Rekorde",
   "side.onlyAccel": "nur Accel",
+  "sessions.todayOne": "Heute bisher 1 neue Session",
+  "sessions.todayN": "Heute bisher {n} neue Sessions",
   "side.all": "alle",
   "side.recordsHint": "Rekorde nur aus Sessions mit Beschleunigungsdaten (präzise) oder aus allen",
   "rec.spotTitle": "Rekorde an diesem Spot",

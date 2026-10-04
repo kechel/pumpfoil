@@ -249,6 +249,8 @@ const ja: Record<string, string> = {
   "side.pumps": "ポンプ",
   "side.records": "記録",
   "side.onlyAccel": "加速度のみ",
+  "sessions.todayOne": "今日はこれまでに新しいセッション1件",
+  "sessions.todayN": "今日はこれまでに新しいセッション{n}件",
   "side.all": "すべて",
   "side.recordsHint": "加速度データありのセッション（高精度）からの記録、または全セッションから",
   "rec.spotTitle": "このスポットの記録",

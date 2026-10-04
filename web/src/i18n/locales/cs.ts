@@ -255,6 +255,8 @@ const cs: Record<string, string> = {
   "side.pumps": "Pumpnutí",
   "side.records": "Rekordy",
   "side.onlyAccel": "jen accel",
+  "sessions.todayOne": "Dnes zatím 1 nová session",
+  "sessions.todayN": "Dnes zatím {n} nových sessions",
   "side.all": "vše",
   "side.recordsHint": "Rekordy jen z relací s daty ze zrychlení (přesné), nebo ze všech",
   "rec.spotTitle": "Rekordy na tomto spotu",

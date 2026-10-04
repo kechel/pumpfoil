@@ -270,6 +270,8 @@ const nb: Record<string, string> = {
   "side.pumps": "Pumper",
   "side.records": "Rekorder",
   "side.onlyAccel": "kun accel",
+  "sessions.todayOne": "I dag så langt 1 ny økt",
+  "sessions.todayN": "I dag så langt {n} nye økter",
   "side.all": "alle",
   "side.recordsHint": "Rekorder fra økter med akselerasjonsdata (presise) eller fra alle",
   "rec.spotTitle": "Rekorder på denne spoten",

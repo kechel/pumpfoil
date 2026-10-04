@@ -1451,6 +1451,14 @@ export const api = {
     if (opts.sport) p.set("sport", opts.sport);
     return req<CommunitySession[]>(`/api/community/sessions?${p}`);
   },
+  // „X new sessions so far today" (04.10.2026): seit Mitternacht beim Betrachter, Regeln wie die Liste.
+  sessionsToday: (opts: { spot?: string; accelOnly?: boolean; sport?: string; mine?: boolean }) => {
+    const mitternacht = new Date(); mitternacht.setHours(0, 0, 0, 0);
+    const q = new URLSearchParams({ since_ms: String(mitternacht.getTime()), accel_only: String(opts.accelOnly ?? true),
+      sport: opts.sport ?? "pumpfoil", mine: String(!!opts.mine) });
+    if (opts.spot) q.set("spot", opts.spot);
+    return req<{ n: number }>(`/api/community/sessions-today?${q}`);
+  },
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
       sport?: string; fresh?: boolean } = {}) => {

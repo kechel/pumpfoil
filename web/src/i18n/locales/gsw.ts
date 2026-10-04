@@ -230,6 +230,8 @@ const gsw: Record<string, string> = {
   "side.pumps": "Pumps",
   "side.records": "Rekord",
   "side.onlyAccel": "nur Accel",
+  "sessions.todayOne": "Hüt bis jetzt 1 neui Session",
+  "sessions.todayN": "Hüt bis jetzt {n} neui Sessions",
   "side.all": "alli",
   "side.recordsHint": "Rekord nur us Sessions mit Beschleunigungsdate (gnau) oder us allne",
   "rec.spotTitle": "Rekord a däm Spot",
