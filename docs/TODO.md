@@ -11130,3 +11130,7 @@ Offen daraus:
   (Lauf · Uhrzeit · Dauer, Wanduhr ueber `pause_windows`; Tipp waehlt den Lauf). Den Hinweis
   `sd.boardGpsWarning` bei „am Brett" GANZ weglassen (Jan, 03.10.; im Web erledigt) — Android
   `SessionDetailScreen`, iOS entsprechend.
+- **📱 Native nachziehen (04.10.2026, Web live):** Session-Export um „CSV" (`/export.zip`, alle Rohdaten
+  als CSV, ganze Aufnahme) und „Original" (`/export-original`, Import-Datei bzw. empfangene Bloecke
+  unveraendert) erweitern — Android `SessionDetailScreen` (Menue neben GPX/FIT), iOS
+  `SessionDetailView` (`exportiere`). FIT enthaelt jetzt die Bewegungssensoren (keine App-Aenderung noetig).

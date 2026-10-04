@@ -101,11 +101,11 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
   const [ytOpen, setYtOpen] = useState(false);
   const [yt, setYt] = useState("");
   const [metaErr, setMetaErr] = useState<string | null>(null);
-  const [dlBusy, setDlBusy] = useState<"gpx" | "fit" | null>(null);
+  const [dlBusy, setDlBusy] = useState<"gpx" | "fit" | "zip" | "original" | null>(null);
   const [dlErr, setDlErr] = useState<string | null>(null);
   // Session als Datei laden. Der Endpunkt braucht den Token, also fetch + Blob statt Link
   // (siehe api.sessionExport); den Dateinamen gibt der Server vor.
-  const exportieren = async (kind: "gpx" | "fit") => {
+  const exportieren = async (kind: "gpx" | "fit" | "zip" | "original") => {
     setDlBusy(kind); setDlErr(null);
     try {
       const { blob, name } = await api.sessionExport(sessionId, kind);
@@ -300,19 +300,24 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
             </button>
             {/* Datei-Export: Beschriftung ist das Format selbst (GPX/FIT braucht keine
                 Uebersetzung), die Erklaerung steckt im title/aria-label. */}
-            {(["gpx", "fit"] as const).map((k) => (
-              <button
-                key={k}
-                onClick={() => exportieren(k)}
-                disabled={dlBusy !== null}
-                title={t(k === "gpx" ? "sd.exportGpx" : "sd.exportFit")}
-                aria-label={t(k === "gpx" ? "sd.exportGpx" : "sd.exportFit")}
-                className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
-              >
-                <DownloadIcon className="h-4 w-4 text-brand-400" />
-                {dlBusy === k ? t("common.loading") : k.toUpperCase()}
-              </button>
-            ))}
+            {/* CSV = alle Rohdaten (ZIP), Original = unveraendert wie empfangen (04.10.2026). */}
+            {(["gpx", "fit", "zip", "original"] as const).map((k) => {
+              const tip = t({ gpx: "sd.exportGpx", fit: "sd.exportFit", zip: "sd.exportCsv", original: "sd.exportOriginal" }[k]);
+              const name = k === "zip" ? "CSV" : k === "original" ? t("sd.exportOriginalLabel") : k.toUpperCase();
+              return (
+                <button
+                  key={k}
+                  onClick={() => exportieren(k)}
+                  disabled={dlBusy !== null}
+                  title={tip}
+                  aria-label={tip}
+                  className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+                >
+                  <DownloadIcon className="h-4 w-4 text-brand-400" />
+                  {dlBusy === k ? t("common.loading") : name}
+                </button>
+              );
+            })}
             {dlErr && <span className="text-xs text-red-400">{dlErr}</span>}
           </>
         )}
