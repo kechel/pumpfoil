@@ -37,3 +37,12 @@ def test_stueck_eines_v2_laufs_bleibt_auch_wenn_kurz():
 def test_zurueckgeholtes_bleibt():
     g = _seg(100, 102, 5)
     assert N.nach_empfindlichkeit([g], [], "normal", [g]) == [g]
+
+
+def test_stueck_im_aussortierten_fenster_faellt_weg():
+    # Kandidat 100-130 s ueberspannt das aussortierte Loch 110-118 s (Jans #12982)
+    assert N.ohne_ausschluss([(100_000, 130_000)], [(110_000, 118_000)]) == [(100_000, 110_000), (118_000, 130_000)]
+    # Stueck komplett im Loch -> weg
+    assert N.ohne_ausschluss([(111_000, 117_000)], [(110_000, 118_000)]) == []
+    # Rest kuerzer als MIN_S -> weg
+    assert N.ohne_ausschluss([(108_000, 120_000)], [(110_000, 118_000)]) == []
