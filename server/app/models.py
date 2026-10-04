@@ -519,6 +519,10 @@ class Session(Base):
     # Fremdkraft-Erkennung NICHT mehr — der Besitzer hat gesagt „der zählt doch". Bewusst dieselbe
     # Zeit-statt-Index-Mechanik wie oben (Läufe werden bei jeder Neuanalyse neu nummeriert).
     fremdkraft_keep: Mapped[str | None] = mapped_column(Text)
+    # Automatisch erkannte Autofahrten [[start_ms, end_ms, spitze_kmh], …] (Session-ms), von
+    # run_analysis aus den Roh-GPS-Punkten gesetzt (analysis/autofahrt.py). Wirken wie aussortierte
+    # Fenster, ausser der Nutzer hat sie per `fremdkraft_keep` zurueckgeholt (04.10.2026).
+    auto_fahrten: Mapped[str | None] = mapped_column(Text)
     # Bevorzugt ein Ufer-/Venue-Name (leisure=sports_centre/marina/beach…), sonst der Gewässername.
     place_name: Mapped[str | None] = mapped_column(String(120))
     # Gewässername als Zusatz-Label (immer mitgenommen, wenn gefunden) — z. B. wenn place_name

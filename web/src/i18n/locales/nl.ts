@@ -1727,6 +1727,7 @@ const nl: Record<string, string> = {
   "v2.sepWhyPulse": "{dur} s aan één stuk met gemiddeld {kmh} km/h, hartslagreactie van maar {hr} bpm",
   "v2.sepWhy": "{dur} s aan één stuk met gemiddeld {kmh} km/h",
   "v3.sepWhy": "{dur} s bij gem. {kmh} km/h — het detectiemodel ziet hier geen foilen",
+  "fahrt.sepWhy": "Autorit — {min} min, tot {kmh} km/u",
   "v2.keep": "Telt wél — terughalen",
   "v2.keptLabel": "teruggehaalde run",
   "v2.unkeep": "weer apart zetten",

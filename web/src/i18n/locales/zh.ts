@@ -1643,6 +1643,7 @@ const zh: Record<string, string> = {
   "v2.sepWhyPulse": "以平均 {kmh} km/h 连续 {dur} 秒，心率反应仅 {hr} bpm",
   "v2.sepWhy": "以平均 {kmh} km/h 连续 {dur} 秒",
   "v3.sepWhy": "{dur} 秒，平均 {kmh} km/h——检测模型在这里没有看到上翼",
+  "fahrt.sepWhy": "开车 — {min} 分钟，最高 {kmh} km/h",
   "v2.keep": "算数的 —— 恢复",
   "v2.keptLabel": "已恢复的段",
   "v2.unkeep": "重新分离",

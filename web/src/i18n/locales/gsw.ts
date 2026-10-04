@@ -1511,6 +1511,7 @@ const gsw: Record<string, string> = {
   "v2.sepWhyPulse": "{dur} s am Stuck bi Ø {kmh} km/h, Puls-Antwort nume {hr} bpm",
   "v2.sepWhy": "{dur} s am Stuck bi Ø {kmh} km/h",
   "v3.sepWhy": "{dur} s bi Ø {kmh} km/h — s Erkännigsmodäll gseht da kei Foile",
+  "fahrt.sepWhy": "Autofahrt — {min} min, bis {kmh} km/h",
   "v2.keep": "Zellt doch — zrugghole",
   "v2.keptLabel": "zrugggholte Lauf",
   "v2.unkeep": "wieder abtrenne",

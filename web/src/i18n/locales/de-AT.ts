@@ -1517,6 +1517,7 @@ const deAT: Record<string, string> = {
   "v2.sepWhyPulse": "{dur} s am Stück bei Ø {kmh} km/h, Puls-Antwort nur {hr} bpm",
   "v2.sepWhy": "{dur} s am Stück bei Ø {kmh} km/h",
   "v3.sepWhy": "{dur} s bei Ø {kmh} km/h — das Erkennungsmodell sieht da kein Foilen",
+  "fahrt.sepWhy": "Autofahrt — {min} min, bis {kmh} km/h",
   "v2.keep": "Zählt doch — zurückholen",
   "v2.keptLabel": "zurückgeholter Lauf",
   "v2.unkeep": "wieder abtrennen",

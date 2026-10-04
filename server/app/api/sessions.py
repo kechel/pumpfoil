@@ -3221,8 +3221,8 @@ def get_track_times(
         return {"t_ms": []}
     lo = int(s.trim_start_ms) if s.trim_start_ms is not None else 0
     hi = int(s.trim_end_ms) if s.trim_end_ms is not None else None
-    from ..analysis import excluded_windows
-    aus = excluded_windows(s)
+    from ..analysis import analyse_ausschluss
+    aus = analyse_ausschluss(s)
     t = [int(r[0]) for r in gps
          if r[0] >= lo and (hi is None or r[0] <= hi)
          and not any(a <= r[0] <= b for a, b in aus)]
@@ -3260,12 +3260,12 @@ def get_attempts(
     gps = storage.load_gps(s.session_uuid)
     if len(gps) < 3:
         return leer
-    from ..analysis import excluded_windows
+    from ..analysis import analyse_ausschluss
     from ..analysis.gps import SENSITIVITY_PRESETS, analyze_gps
 
     # Session-ms bleiben Session-ms: hier wird NICHT auf den Zuschnitt re-based (s. Docstring).
     punkte = [list(r) for r in gps]
-    for a, b in excluded_windows(s):
+    for a, b in analyse_ausschluss(s):
         punkte = [r for r in punkte if not (a <= r[0] <= b)]
     if len(punkte) < 3:
         return leer

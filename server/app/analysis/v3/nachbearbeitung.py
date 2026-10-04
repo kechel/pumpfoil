@@ -190,12 +190,12 @@ def _segmente(L, v2_segmente, session, off):
 def _index_im_zuschnitt(session, seg):
     """i_start/i_end wie v2 sie liefert: Index in den GPS-Punkten NACH Zuschnitt und Ausschluss."""
     from ... import storage
-    from .. import excluded_windows
+    from .. import analyse_ausschluss
     g = storage.load_gps(session.session_uuid)
     ts0, ts1 = session.trim_start_ms, session.trim_end_ms
     lo = ts0 if ts0 is not None else 0
     hi = ts1 if ts1 is not None else (g[-1][0] if g else 0)
-    excl = excluded_windows(session)
+    excl = analyse_ausschluss(session)
     tt = [x[0] for x in g if lo <= x[0] <= hi and not any(a <= x[0] <= b for a, b in excl)]
     tt = np.asarray(tt, float)
     a = int(np.searchsorted(tt, seg["t_start_session_ms"]))
