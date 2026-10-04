@@ -184,7 +184,8 @@ def _close_gaps(mask: np.ndarray, max_gap: int) -> np.ndarray:
 
 
 def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int,
-                    enter_speed: float = ENTER_SPEED, exit_speed: float = EXIT_SPEED) -> np.ndarray:
+                    enter_speed: float = ENTER_SPEED, exit_speed: float = EXIT_SPEED,
+                    max_foil: float = MAX_FOIL_SPEED) -> np.ndarray:
     """GPS-State-Machine (Hysterese + Dwell) als Fallback, wenn kein ML-Modell da ist."""
     n = speed_s.size
     enter_dwell = max(int(round(ENTER_DWELL_S * gps_hz)), 1)
@@ -195,14 +196,14 @@ def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int,
     noncand_streak = 0
     for i in range(n):
         if not foiling:
-            cand = enter_speed <= speed_s[i] <= MAX_FOIL_SPEED and cv[i] < MAX_CV and quality_ok[i]
+            cand = enter_speed <= speed_s[i] <= max_foil and cv[i] < MAX_CV and quality_ok[i]
             cand_streak = cand_streak + 1 if cand else 0
             if cand_streak >= enter_dwell:
                 foiling = True
                 noncand_streak = 0
                 mask[i - enter_dwell + 1 : i + 1] = True
         else:
-            hold = exit_speed <= speed_s[i] <= MAX_FOIL_SPEED and quality_ok[i]
+            hold = exit_speed <= speed_s[i] <= max_foil and quality_ok[i]
             noncand_streak = 0 if hold else noncand_streak + 1
             if noncand_streak >= exit_dwell:
                 foiling = False
@@ -593,15 +594,33 @@ def _classify_end(i_end: int, speed_s: np.ndarray, step: np.ndarray, gps_hz: int
 # Der schnellste ECHTE Lauf im Bestand hat 28,9 km/h, es bleiben also ~3 km/h Luft.
 RUN_MAX_PLAUSIBLE_KMH = 32.0
 
+# Grenzen JE SPORTART (04.10.2026, Befund u758): Band und Lauf-Grenze oben sind Pumpfoil-Werte. Ein
+# Wing- oder Kite-Lauf faehrt typisch 25-40 km/h und wurde ueberall dort zerschnitten, wo er
+# schneller als 25 war. Gemessen ueber den Bestand (scripts/autofahrt-regression.py, schnellste
+# 5-s-Werte ausserhalb erkannter Autofahrten): Wing bis 52, Kite bis 60 km/h. Fuer alle anderen
+# Sportarten bleibt es bei den Pumpfoil-Werten.
+#   Sportart -> (Bandgrenze m/s, Lauf-Spitze km/h)
+SPORT_GRENZEN: dict[str, tuple[float, float]] = {
+    "wingfoil": (50.0 / 3.6, 62.0),
+    "parawing": (50.0 / 3.6, 62.0),
+    "kitefoil": (60.0 / 3.6, 70.0),
+}
 
-def _gate_implausible_runs(segments: list[dict]) -> tuple[list[dict], int]:
+
+def grenzen_fuer(sport_class: str | None) -> tuple[float, float]:
+    """(Bandgrenze m/s, Lauf-Spitze km/h) der Sportart; Pumpfoil-Werte fuer alles andere."""
+    return SPORT_GRENZEN.get(sport_class or "pumpfoil", (MAX_FOIL_SPEED, RUN_MAX_PLAUSIBLE_KMH))
+
+
+def _gate_implausible_runs(segments: list[dict], run_max_kmh: float = RUN_MAX_PLAUSIBLE_KMH,
+                           max_foil: float = MAX_FOIL_SPEED) -> tuple[list[dict], int]:
     """Verwirft Läufe, die als ECHTE On-Foil-Läufe physikalisch unmöglich sind:
     Doppler-max-Speed über RUN_MAX_PLAUSIBLE_KMH (Motor/Auto/Kite). NUR der
     Doppler-Speed zählt — er ist robust gegen korrupte GPS-Positionen; Distanz-/
     Ø-Kriterien sind es nicht (#367: 5.000-km-Positions-Sprung blähte die Distanz
     eines ECHTEN Laufs auf -> so etwas darf das Gate nie treffen)."""
     def plausible(seg: dict) -> bool:
-        if (seg.get("max_speed_mps") or 0.0) * 3.6 > RUN_MAX_PLAUSIBLE_KMH:
+        if (seg.get("max_speed_mps") or 0.0) * 3.6 > run_max_kmh:
             return False
         # Obergrenze fuer den DURCHSCHNITT (2026-07-30). MAX_FOIL_SPEED ist die Bandgrenze, unter
         # der ein Sample ueberhaupt als Foil-Kandidat zugelassen wird (25 km/h). Ein Lauf, dessen
@@ -624,7 +643,7 @@ def _gate_implausible_runs(segments: list[dict]) -> tuple[list[dict], int]:
         # davon nur 2 rekord-relevant (genau die Autosegmente). Die 14 Laeufe mit Spitzen >= 30 km/h
         # bei Ø < 20 km/h bleiben erhalten — Spitzen um 30 km/h sind echt (Jan), ein MITTEL von 26
         # ueber Minuten ist es nicht. Deshalb Ø und nicht die Spitze.
-        return (seg.get("avg_speed_mps") or 0.0) <= MAX_FOIL_SPEED
+        return (seg.get("avg_speed_mps") or 0.0) <= max_foil
 
     kept = [s for s in segments if plausible(s)]
     return kept, len(segments) - len(kept)
@@ -871,7 +890,8 @@ def _extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed: floa
     return out
 
 
-def _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed: float = EXIT_SPEED) -> list[dict]:
+def _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed: float = EXIT_SPEED,
+                         max_foil: float = MAX_FOIL_SPEED) -> list[dict]:
     """Zieht das Lauf-Ende VORWÄRTS, solange der geglättete Speed im Foil-Band bleibt
     (EXIT_SPEED <= v <= MAX_FOIL_SPEED) und keine GPS-Zeitlücke (Dropout/Sturz) auftritt.
     Spiegelbild zu _extend_starts_back: fängt das ruhige On-Foil-Gleiten/-Pumpen NACH dem
@@ -884,7 +904,7 @@ def _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed: floa
     for k, seg in enumerate(segments):
         j = seg["i_end"]
         next_start = segments[k + 1]["i_start"] if k + 1 < len(segments) else n
-        while (j + 1 < next_start and exit_speed <= speed_s[j + 1] <= MAX_FOIL_SPEED
+        while (j + 1 < next_start and exit_speed <= speed_s[j + 1] <= max_foil
                and (t_ms[j + 1] - t_ms[j]) <= gap_ms):
             j += 1
         if j != seg["i_end"]:

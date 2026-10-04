@@ -91,7 +91,8 @@ def _clean_speed(speed: np.ndarray, gps_hz: int) -> np.ndarray:
 
 # --- Label je Fenster ------------------------------------------------------------------
 
-def label_windows(wins: list[dict], enter_speed: float, exit_speed: float, puls=None) -> list[dict]:
+def label_windows(wins: list[dict], enter_speed: float, exit_speed: float, puls=None,
+                  max_foil: float = v1.MAX_FOIL_SPEED) -> list[dict]:
     """Vergibt `label` je Fenster und schreibt in `why` mit, welche Signale es getragen haben.
 
     Physik als Schranke (Entwurf Abschnitt 3):
@@ -106,7 +107,7 @@ def label_windows(wins: list[dict], enter_speed: float, exit_speed: float, puls=
         if vd is None or vp is None:
             w["label"], w["why"] = RUHE, ["kein GPS"]
             continue
-        if vd > v1.MAX_FOIL_SPEED:
+        if vd > max_foil:
             w["label"], w["why"] = FREMDKRAFT, [f"v={vd * 3.6:.1f} km/h über der Bandgrenze"]
             continue
         # Genauigkeit: eine unbrauchbare Position ist kein Vortriebs-Beleg (v1: MAX_HACC).
@@ -470,6 +471,7 @@ def detect_v2(
     enter_speed: float = v1.ENTER_SPEED, exit_speed: float = v1.EXIT_SPEED,
     min_segment_s: float = v1.MIN_SEGMENT_S, min_seg_avg_speed: float = v1.MIN_SEG_AVG_SPEED,
     use_model: bool = True, keep_windows: list | None = None, judge_fremdkraft: bool = True,
+    max_foil_speed: float = v1.MAX_FOIL_SPEED, run_max_kmh: float = v1.RUN_MAX_PLAUSIBLE_KMH,
 ) -> dict:
     """Rechnet die Erkennung v2 auf einer fertigen Zeitachse. Alle Zeiten im Ergebnis sind
     SESSION-Millisekunden. Schreibt nichts, liest nichts nach."""
@@ -519,7 +521,7 @@ def detect_v2(
     # `sportauto`, auf derselben Achse — tb.gps traegt Session-ms, die Fenster ebenso.
     from .sportauto import puls_antwort
 
-    wins = label_windows(window_grid(tb), enter_speed, exit_speed,
+    wins = label_windows(window_grid(tb), enter_speed, exit_speed, max_foil=max_foil_speed,
                          puls=lambda a, b: puls_antwort(tb.gps, a, b))
 
     # Fenster-Label -> Sample-Maske. Ein Sample gehört zu einem Lauf, wenn es in mindestens
@@ -533,7 +535,7 @@ def detect_v2(
     # schlug ein ganzes 10-s-Fenster (plus Überlappung) heraus und zerlegte damit schnelle Sessions:
     # #1196 (Wing, bis 36 km/h) fiel so von 11 auf 89 Läufe, der längste von 1226 s auf 133 s.
     # v1 prüft dieselbe Grenze sample-weise; genau das tut v2 jetzt auch.
-    veto = speed_s > v1.MAX_FOIL_SPEED
+    veto = speed_s > max_foil_speed
     # Wo es Accel gibt, ist das trainierte On-Foil-Modell die QUELLE der Maske — die Fenster sind
     # nur die Schranke (Fremdkraft-Veto). Genau so steht es im Entwurf: „Physik als Schranke, nicht
     # als Detektor" (docs/detector-v2.md, Abschnitt 3). Der erste v2-Bau hat das Modell ganz
@@ -558,7 +560,7 @@ def detect_v2(
         # WIE on-foil erkannt wird, sondern nur, was danach als Fremdkraft abgetrennt wird — und
         # genau das war der Auftrag. Die Fenster bleiben als Merkmale und für das Veto erhalten.
         cv = v1._running_cv(speed_s, win)
-        mask = v1._heuristic_mask(speed_s, cv, quality_ok, gps_hz, enter_speed, exit_speed)
+        mask = v1._heuristic_mask(speed_s, cv, quality_ok, gps_hz, enter_speed, exit_speed, max_foil_speed)
     mask &= ~veto
     # Dieselben physischen Böden wie v1 (gps.py): unter EXIT_SPEED trägt kein Foil, eine
     # unbrauchbare Position ist wertlos, und ohne echte Positionsbewegung gibt es keinen Vortrieb.
@@ -574,11 +576,11 @@ def detect_v2(
     # der Bandgrenze und zerlegten schnelle Sessions noch weiter (#1196: 89 -> 207 Läufe).
     segments = v1._merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     segments = v1._extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed)
-    segments = v1._extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed)
+    segments = v1._extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed, max_foil_speed)
     segments = v1._merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     segments = v1._repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
     segments = v1._trim_fall_tail(segments, lat, lon, t_ms, step, speeds, gps_hz)
-    segments, n_gated = v1._gate_implausible_runs(segments)
+    segments, n_gated = v1._gate_implausible_runs(segments, run_max_kmh, max_foil_speed)
 
     # Fremdkraft-Entscheidung JE LAUF — erst hier, nicht im Fenster-Raster (Begründung in
     # `_fremdkraft_laeufe`). Vorgeschlagen, nicht verhängt: die betroffenen Läufe verlassen die
@@ -731,6 +733,10 @@ def analyze_session_v2(session, *, gps=None, accel=None, rebase: bool = True,
                 keep.append((a, b))
     except (ValueError, TypeError, IndexError):
         keep = []
+    # Band und Lauf-Grenze je Sportart (gps.grenzen_fuer) — ausser der Aufrufer gibt sie vor.
+    _band, _spitze = v1.grenzen_fuer(getattr(session, "sport_class", None))
+    preset.setdefault("max_foil_speed", _band)
+    preset.setdefault("run_max_kmh", _spitze)
     res = detect_v2(tb, gps_hz=session.gps_hz or 1, keep_windows=keep or None,
                     judge_fremdkraft=judge_fremdkraft, **preset)
     for seg in res["segments"]:

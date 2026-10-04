@@ -183,7 +183,7 @@ def _segmente(L, v2_segmente, session, off):
         seg["end_pt"] = [round(float(lon[i[-1]]), 6), round(float(lat[i[-1]]), 6)]
         seg["v3"] = VERSION
         neu.append(seg)
-    neu, _ = v1._gate_implausible_runs(neu)
+    neu, _ = v1._gate_implausible_runs(neu, *reversed(v1.grenzen_fuer(getattr(session, "sport_class", None))))
     return sorted(gleich + neu, key=lambda s: s["t_start_session_ms"])
 
 
