@@ -203,6 +203,31 @@ def _index_im_zuschnitt(session, seg):
     return max(a, 0), max(min(b, tt.size - 1), 0)
 
 
+def ohne_ausschluss(L: list, fenster: list) -> list:
+    """Rein: Lauf-Intervalle (Session-ms) um ausgeschlossene Fenster kuerzen; Reste unter MIN_S fallen weg.
+
+    Noetig, weil Stufe A auf der GANZEN Aufnahme rechnet (auch ueber aussortierte Punkte): ein
+    Kandidat, der ein aussortiertes Loch ueberspannt, wird dort zerlegt, und das Stueck IM Loch
+    ueberlebte — als Lauf ohne Track-Punkte, aber mit Start-/Endmarke an Land (Jans Befund 04.10.2026,
+    #12982: zu Fuss gegangenes Stueck, aussortiert, Marken blieben stehen)."""
+    out = []
+    for a, b in L:
+        stuecke = [(float(a), float(b))]
+        for x, y in fenster:
+            neu = []
+            for u, v in stuecke:
+                if y <= u or x >= v:
+                    neu.append((u, v))
+                    continue
+                if x > u:
+                    neu.append((u, float(x)))
+                if y < v:
+                    neu.append((float(y), v))
+            stuecke = neu
+        out += [(u, v) for u, v in stuecke if v - u >= MIN_S * 1000]
+    return out
+
+
 def nach_empfindlichkeit(segs: list, v2_segmente: list, sens: str, geschuetzt=()) -> list:
     """Rein: ganz neue Stuecke (keinen v2-Lauf beruehrend) unter den Grenzen der Empfindlichkeit
     fallen weg. Gemessen wird das Stueck NACH dem Modell — kuerzer als die GPS-Linie des
@@ -253,6 +278,8 @@ def _anwenden(res, session, judge, sens):
     if out is None:
         return res
     L, geschuetzt, (tp, p) = out
+    from .. import analyse_ausschluss
+    L = ohne_ausschluss(L, analyse_ausschluss(session))
     off = (int(v2[0]["t_start_session_ms"]) - int(v2[0]["t_start_ms"])) if v2 else int(session.trim_start_ms or 0)
     segs = nach_empfindlichkeit(_segmente(L, v2, session, off), v2, sens, geschuetzt)
     for g in geschuetzt:                       # vom Nutzer zurueckgeholt: unveraendert
