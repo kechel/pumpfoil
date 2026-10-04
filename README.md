@@ -1,3 +1,5 @@
+<p align="center"><strong>No pull requests please, pull requests are Stone Age, use ‘prompt suggestions only’ please!</strong></p>
+
 <div align="center">
 
 <img src="brand/logo/logo-stacked-light.png" alt="Pumpfoil — track every pump" width="480">
