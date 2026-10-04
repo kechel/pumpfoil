@@ -633,6 +633,7 @@ const pl: Record<string, string> = {
   "sd.photoDeleteConfirm": "Usunąć zdjęcie?",
   "sd.addPhoto": "Zdjęcie",
   "sd.likes": "Polubienia",
+  "sd.download": "Pobierz",
   "sd.exportGpx": "Pobierz jako plik GPX (ślad + tętno)",
   "sd.exportFit": "Pobierz jako plik FIT (do Garmin Connect, Stravy i innych) — z czujnikami ruchu",
   "sd.exportCsv": "Wszystkie surowe dane jako pliki CSV w ZIP-ie: GPS, przyspieszenie, a przy nagraniach z telefonu żyroskop i magnetometr — całe nagranie, bez przycinania",

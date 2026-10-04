@@ -1929,6 +1929,7 @@ const nb: Record<string, string> = {
   "sd.exportCsv": "Alle rådata som CSV-filer i en ZIP: GPS, akselerasjon og for telefonopptak gyroskop og magnetometer — hele opptaket, ubeskåret",
   "sd.exportOriginal": "Last ned originaldataene uendret: den importerte filen, eller dataene akkurat slik klokken eller telefonen sendte dem",
   "sd.exportOriginalLabel": "Original",
+  "sd.download": "Last ned",
   "sd.exportGpx": "Last ned som GPX-fil (spor + puls)",
   "sd.spotPage": "Økter og beskrivelse for stedet",
   "sessions.mySpots": "Mine steder",

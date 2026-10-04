@@ -63,9 +63,22 @@ def test_zip_mit_csv_und_original_unveraendert(client):
     assert "gps/0.json" in oz.namelist()
 
 
-def test_nur_der_besitzer(client):
+def test_nur_der_besitzer_auch_kein_admin(client):
+    """Alle Exporte NUR fuer die eigene Session — auch ein Admin bekommt fremde nicht (Jan)."""
     _, sid, _ = _anlegen(client, "exp3@b.de")
     r = client.post("/api/auth/register", json={"email": "exp4@b.de", "password": "supersecret"})
     fremd = {"Authorization": f"Bearer {r.json()['access_token']}"}
-    for pfad in ("export.zip", "export-original", "export.fit"):
-        assert client.get(f"/api/sessions/{sid}/{pfad}", headers=fremd).status_code in (403, 404)
+    pfade = ("export.gpx", "export.fit", "export.zip", "export-original")
+    for pfad in pfade:
+        assert client.get(f"/api/sessions/{sid}/{pfad}", headers=fremd).status_code == 404
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        db.query(models.User).filter_by(email="exp4@b.de").update({"is_admin": True}); db.commit()
+    finally:
+        db.close()
+    for pfad in pfade:
+        assert client.get(f"/api/sessions/{sid}/{pfad}", headers=fremd).status_code == 404
+    for pfad in pfade:                                   # ohne Anmeldung erst recht nicht
+        assert client.get(f"/api/sessions/{sid}/{pfad}").status_code in (401, 403)

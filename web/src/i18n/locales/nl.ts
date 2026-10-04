@@ -1949,6 +1949,7 @@ const nl: Record<string, string> = {
   "sd.exportCsv": "Alle ruwe data als CSV-bestanden in een ZIP: GPS, versnelling en bij telefoonopnames gyroscoop en magnetometer — de hele opname, ongeknipt",
   "sd.exportOriginal": "De originele data ongewijzigd downloaden: het geïmporteerde bestand, of de data precies zoals horloge of telefoon ze stuurde",
   "sd.exportOriginalLabel": "Origineel",
+  "sd.download": "Downloaden",
   "sd.exportGpx": "Downloaden als GPX-bestand (track + hartslag)",
   "sd.includeRun": "terughalen",
   "sd.spotPage": "Spot-sessies en beschrijving",
