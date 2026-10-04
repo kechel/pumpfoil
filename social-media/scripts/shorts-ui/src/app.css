@@ -161,6 +161,8 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 /* Sekunden zum Ablesen: nicht mitschrumpfen und markierbar bleiben. */
 /* Rezept-Auswahl: sieht aus wie die kleinen Knoepfe daneben, ist aber ein
    Menue — die Liste kann lang werden. */
+.pvbar .rezeptmsg { margin-left: auto; font-size: 11px; opacity: .8; white-space: nowrap; }
+.pvbar .rezeptmsg + button { margin-left: 0 !important; }
 .pvbar select.rezept { max-width: 240px; font-size: 11px; padding: 3px 4px;
   border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .pvbar .vsecs { flex: none; opacity: .7; white-space: nowrap; font-variant-numeric: tabular-nums; user-select: text; cursor: text; }

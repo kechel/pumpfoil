@@ -1946,14 +1946,43 @@ def cover_image(path: Path, t: float, mode: str = "blur") -> Path:
     return out
 
 
+def rezept_speichern(studio: dict) -> dict:
+    """Den aktuellen Studio-Zustand als ENTWURF ablegen, ohne zu rendern.
+
+    Zweck: eine Planung aus der Hand geben, bevor Zeit in einen Render fliesst —
+    Texte durchsehen, Zeiten pruefen, erst dann rendern (Jan, 04.10.).
+
+    Entwuerfe liegen im selben Ordner, heissen aber "<name>-entwurf.json" und
+    tragen `entwurf: true`. Sie koennen deshalb NIE ein Render-Rezept
+    ueberschreiben — das ist der Beleg, was tatsaechlich in einer fertigen Datei
+    steckt, und den darf ein Entwurf nicht anfassen.
+    """
+    name = str((studio or {}).get("outName") or "").strip()
+    name = re.sub(r"[/\\:\x00-\x1f]+", "-", name)
+    name = re.sub(r"\.mp4$", "", name, flags=re.I)
+    if not name:
+        raise ValueError("Kein Ausgabename gesetzt — ohne den weiss der Entwurf nicht, wie er heisst")
+    REZEPT_DIR.mkdir(parents=True, exist_ok=True)
+    datei = REZEPT_DIR / (name + "-entwurf.json")
+    datei.write_text(json.dumps(
+        {"entwurf": True,
+         "gespeichert_am": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+         "out_name": name + ".mp4",
+         "quellvideo": (studio or {}).get("curVideo") or "",
+         "studio": studio or {}},
+        ensure_ascii=False, indent=1))
+    return {"ok": True, "name": datei.name}
+
+
 def rezept_liste():
-    """Die gesicherten Render-Rezepte, neueste zuerst."""
+    """Die gesicherten Rezepte, neueste zuerst — Renders und Entwuerfe."""
     out = []
     for p in sorted(REZEPT_DIR.glob("*.json")) if REZEPT_DIR.is_dir() else []:
         r = _load_json(p, {})
         out.append({"name": p.name,
                     "out_name": r.get("out_name") or p.stem + ".mp4",
-                    "at": r.get("gerendert_am") or "",
+                    "at": r.get("gerendert_am") or r.get("gespeichert_am") or "",
+                    "entwurf": bool(r.get("entwurf")),
                     "quellvideo": r.get("quellvideo") or "",
                     "plattformen": sorted((r.get("ergebnisse") or {}).keys())})
     out.sort(key=lambda x: x["at"], reverse=True)
@@ -2283,6 +2312,11 @@ class Handler(BaseHTTPRequestHandler):
                                    f"({YT_CLIENT_SECRET_FILE})"}, 400)
             yt_login_start()
             return self._json({"ok": True})
+        if self.path == "/api/rezept_speichern":
+            try:
+                return self._json(rezept_speichern(req.get("studio") or {}))
+            except (ValueError, OSError) as e:
+                return self._json({"error": str(e)}, 400)
         if self.path == "/api/yt/localize":
             try:
                 return self._json(yt_localize(
