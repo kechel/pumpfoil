@@ -1,4 +1,4 @@
-<p align="center"><strong>No pull requests please, pull requests are Stone Age, use ‘prompt suggestions only’ please!</strong></p>
+<p align="center"><strong>No pull requests, please — they’re so Stone Age. Send us a prompt suggestion instead!</strong></p>
 
 <div align="center">
 
