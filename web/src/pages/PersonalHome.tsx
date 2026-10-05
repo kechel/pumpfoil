@@ -398,7 +398,9 @@ export default function PersonalHome() {
   return (
     <div className="w-full">
       <WelcomeBanner />
-      <div className="mb-5 flex items-center gap-2">
+      {/* flex-wrap: auf dem Handy rutscht der NEU-Hinweis unter die Begruessung, statt sie auf
+          null Breite zu quetschen (Jan, 05.10.2026). */}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
         <HomeIcon className="h-7 w-7 shrink-0 text-brand-400" />
         <h2 className="min-w-0 truncate text-2xl font-bold">
           {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
@@ -416,7 +418,7 @@ export default function PersonalHome() {
               k.classList.add("ring-4", "ring-brand-400/60");
               setTimeout(() => k.classList.remove("ring-4", "ring-brand-400/60"), 2500);
             }}
-            className="shrink-0 whitespace-nowrap rounded-full bg-brand-500/15 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-500/30 hover:bg-brand-500/25 dark:text-brand-300"
+            className="min-w-0 max-w-full rounded-2xl bg-brand-500/15 px-2.5 py-1 text-left text-xs font-semibold text-brand-600 ring-1 ring-brand-500/30 hover:bg-brand-500/25 dark:text-brand-300"
           >
             {t("longest.newHint")} ↓
           </button>
