@@ -32,7 +32,9 @@ PAARE = [(9528, 9529), (9535, 9534), (9650, 9648), (9650, 9649), (10195, 10194),
          # 30.09. u574 (Samsung am Brett + Wear OS), 02.10. u2 Illmensee (Pixel UND iPhone am Brett +
          # fenix 7X Pro). Zu 02.10.: zwei echte kurze Startversuche 16:44:12 / 16:44:31 Ortszeit,
          # nur von der Uhr gefunden — Labels fuer ein Brett-Modell, s. docs/TODO.md.
-         (10968, 10969), (10993, 10979), (12610, 12608), (12611, 12608)]
+         (10968, 10969), (10993, 10979), (12610, 12608), (12611, 12608),
+         # nachgetragen 06.10.2026: 03.10. u2 Illmensee (iPhone + fenix), 03./04.10. u574 Steinberger See
+         (12687, 12722), (12738, 12737), (13055, 13051)]
 
 
 def bandpass(x, lo=0.8, hi=2.5):
