@@ -1005,6 +1005,15 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # 12 wenn ich die Session oeffne". Nur ein Zeitstempel — an der Analyse selbst aendert er nichts.
     session.updated_at = datetime.now(timezone.utc)
     db.commit()
+    # Brett-Lage je Lauf gleich vorrechnen (analysis/lage_cache.py) — sonst rechnet die Startseite
+    # sie beim naechsten Oeffnen nach (11 s fuer 12 Sessions, 06.10.2026). Darf die Analyse nie brechen.
+    if final and session.placement == "board":
+        try:
+            from .lage_cache import laeufe_der_session
+            laeufe_der_session(db, session)
+        except Exception:  # noqa: BLE001
+            db.rollback()
+            logging.getLogger(__name__).exception("Brett-Lage vorrechnen fuer Session %s", session.id)
     if not final:
         # „live" NUR setzen, solange kein Abschluss erreicht ist. `synchronize_session=False`
         # ist hier richtig: das ORM-Objekt traegt `status` nicht als geaenderte Spalte, es gibt
