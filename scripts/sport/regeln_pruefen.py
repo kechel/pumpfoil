@@ -19,13 +19,15 @@ GRUPPE = {"wingfoil": "wind", "kitefoil": "wind", "parawing": "wind", "surf_wave
 
 
 def regel(r):
-    """v2: Wind = schnell UND lange Laeufe, oder viel Zeit auf dem Foil UEBER eine grosse Flaeche;
-    Welle = kurze schnelle Ritte bei wenig Foil-Zeit; sonst Pump."""
+    """v3: Wind = schnell UND lange Laeufe, oder viel Zeit auf dem Foil ueber eine grosse Flaeche bei
+    mindestens 15 km/h (darunter: Langstrecken-Pumper, Annecy/Prevessin/Spiez); Welle = kurze schnelle
+    Ritte bei wenig Foil-Zeit UND verteilten Startpunkten (Line-up) — alle Starts an einem Fleck ist
+    der Steg, das sind schnelle Pumper (Illmensee, Senden, Pasohlavky: 15-16 km/h); sonst Pump."""
     v = r.get("tempo_med", 0); d = r.get("dauer_med", 0)
     a = r.get("anteil_foil", 0); fl = r.get("flaeche_km", 0)
-    if (v >= 17 and d >= 60) or (a >= 0.3 and fl >= 0.4):
+    if (v >= 17 and d >= 60) or (a >= 0.3 and fl >= 0.4 and v >= 15):
         return "wind"
-    if v >= 15 and d <= 30 and a <= 0.2:
+    if v >= 15 and d <= 30 and a <= 0.2 and fl >= 0.05:
         return "welle"
     return "pump"
 
