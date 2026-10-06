@@ -110,7 +110,7 @@ def merkmale(s, ar):
     dauer_auf = ((s.ended_at - s.started_at).total_seconds() if s.ended_at else 0) or 1
     out = {"id": s.id, "nutzer": s.user_id, "sport_tag": s.sport, "klasse": s.sport_class, "quelle": s.sport_source,
            "qualitaet": s.data_quality, "pumpfoil": s.is_pumpfoil, "override": s.pumpfoil_override,
-           "geraet": s.device_model, "lage": s.placement, "ort": s.place_name, "laeufe": len(segs)}
+           "geraet": s.device_model, "lage": s.placement, "ort": s.place_name, "spot": s.spot_id, "laeufe": len(segs)}
     if segs:
         v = np.array([g["avg_speed_mps"] * 3.6 for g in segs]); d = np.array([g["duration_s"] for g in segs])
         out.update(tempo_med=round(float(np.median(v)), 1), tempo_p90=round(float(np.percentile(v, 90)), 1),

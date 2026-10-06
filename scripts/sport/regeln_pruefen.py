@@ -9,8 +9,8 @@ Standard. Gezaehlt wird JE FAHRER (jeder Fahrer gleich schwer), weil die Wind-/W
 sehr wenigen Fahrern stammen (06.10.: Wing 671 von 740 aus einem Konto, Welle 2 Fahrer). Dazu
 derselbe Lauf ohne den groessten Fahrer, damit keine Regel nur einen Menschen lernt.
 
-Stand 06.10.2026 — Regel v5 (mit Kuestenabstand): Pump je Fahrer 96,8 %, Wind 85,5 %, Welle 93 %
-(u741 90, u798 88, u692 100). Vorher, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions:
+Stand 06.10.2026 — Regel v6 (Kuestenabstand + Spot): Pump je Fahrer 97,2 %, Wind 85,5 %, Welle 92,4 %
+(u741 90, u798 88, u692 100). v5 ohne Spot: Pump 96,8 %. Vorher, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions:
 Pump je Fahrer 97,8 %, Wind 85,5 % (19 Fahrer), Welle 45,6 % (nur 2 Fahrer; trennt sich mit diesen
 Merkmalen nicht von langsamem Pumpen).
 Gemessen und VERWORFEN (06.10.): Tempoverlauf im Lauf — Wellenritte fallen nicht ab (abfall -0,02 gegen
@@ -31,7 +31,37 @@ import numpy as np
 GRUPPE = {"wingfoil": "wind", "kitefoil": "wind", "parawing": "wind", "surf_wave": "welle", "pumpfoil": "pump"}
 
 
+# Spot -> {fahrer: Mehrheitsgruppe seiner gelabelten Sessions dort}; von spot_stimmen() gefuellt.
+SPOT = {}
+
+
+def spot_stimmen(lab):
+    """Je Spot und Fahrer EINE Stimme (seine haeufigste Gruppe dort) — ein Vielfahrer ueberstimmt nicht
+    den ganzen Spot. Ausgewertet wird immer ohne den Fahrer der Session selbst (sonst entschiede die
+    Session ueber ihr eigenes Label)."""
+    st = collections.defaultdict(collections.Counter)
+    for r in lab:
+        if r.get("spot"):
+            st[(r["spot"], r["nutzer"])][GRUPPE[r["klasse"]]] += 1
+    SPOT.clear()
+    for (p, u), c in st.items():
+        SPOT.setdefault(p, {})[u] = c.most_common(1)[0][0]
+
+
 def regel(r):
+    """v6 (06.10.2026) = v5 + Spot: sagt v5 „Welle", aber mindestens 2 ANDERE Fahrer am selben Spot
+    und davon >= 80 % Pumper, ist es Pump (Hafenbecken: Barcelona Forum). NUR fuer Welle — fuer Wind
+    gemessen und verworfen: Wing und Pump teilen sich viele Seen, Wind fiel von 85,5 auf 78,8 %.
+    Der Rueckweg (Pump -> Wind/Welle an Wind-/Wellen-Spots) aendert nichts."""
+    g = regel_v5(r)
+    if g == "welle":
+        andere = [x for u, x in SPOT.get(r.get("spot"), {}).items() if u != r["nutzer"]]
+        if len(andere) >= 2 and andere.count("pump") / len(andere) >= 0.8:
+            return "pump"
+    return g
+
+
+def regel_v5(r):
     """v5 (06.10.2026): Wind wie v3. Welle = an der MEERESKUESTE (<= 2 km, Natural Earth; alle 357
     Wellen-Labels liegen dort, nur 13 % der Pump-Sessions) UND kurze Ritte (<= 60 s Median) bei
     >= 11 km/h, hoechstens 30 % Foil-Zeit, verteilte Starts (Line-up statt Steg) und zwischen den
@@ -71,6 +101,7 @@ def auswerten(rs, titel):
 if __name__ == "__main__":
     rows = [json.loads(l) for l in open(sys.argv[1], encoding="utf-8")]
     lab = labels(rows)
+    spot_stimmen(lab)
     auswerten(lab, "alle Labels")
     groesster = collections.Counter(r["nutzer"] for r in lab if GRUPPE[r["klasse"]] != "pump").most_common(1)[0][0]
     auswerten([r for r in lab if r["nutzer"] != groesster], "ohne den groessten Wind-/Wellen-Fahrer")
