@@ -124,7 +124,10 @@ def all_sessions(
         # Physik-Gate hat Läufe verworfen (>40 km/h) -> Kandidat für Moderation (NICHT auto-versteckt).
         # Nur was NOCH öffentlich als Pumpfoil zählt: bereits Aussortierte (is_pumpfoil=False),
         # Shadow-gebannte (flagged) und Geprüfte (mod_ok) sind erledigt -> raus aus der Liste.
+        # Nur PUMPFOIL: das Gate ist die Pumpfoil-Grenze. Andere Sportarten rechnen mit eigenen
+        # Grenzen (gps.grenzen_fuer) — wer umsortiert, ist damit von der Liste (Jan, 06.10.2026).
         query = query.filter(_suspect_cond(), models.Session.deleted.isnot(True),
+                             or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil"),
                              models.Session.is_pumpfoil.is_(True),
                              models.Session.flagged.isnot(True),
                              models.Session.mod_ok.isnot(True))
