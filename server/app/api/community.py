@@ -1234,29 +1234,15 @@ def _kappe_ausreisser(rows: list[dict], eigene: set | None = None) -> list[dict]
     return out
 
 
-@spot_router.get("/spot-map")
-def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
-             _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
-    """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte.
-
-    Gruppiert nach **spot_id**, nicht nach `place_name` (2026-08-20). Vorher lieferte die Karte
-    Namens-Gruppen und als Ziel `max(spot_id)` — Etikett und Klickziel meinten damit
-    verschiedene Mengen: gemessen gingen bei 19 von 174 Markern Tooltip-Zahl und Klick-Ergebnis
-    auseinander. Krassester Fall: eine einzelne Session, deren `place_name` nach einem Rename
-    "Kaukajärvi 3" hiess, erschien als EIGENER Marker (Tooltip 1), fuehrte beim Klick aber in den
-    Spot "Kaukajärvi" mit 52 Sessions. Der Name eines Spots ist jetzt der Name der Spot-Zeile,
-    und der Klick filtert auf dieselbe id.
-
-    Sessions ohne `spot_id` (Altbestand/nicht zugeordnet) behalten eine Namens-Gruppe; ihr Klick
-    filtert dann auf `place_name` — dafuer versteht `_spot_cond` beide Formen.
-    """
-    # `sport="all"` als Default (2026-08-20): alle drei Clients navigieren vom Marker in die
-    # Sessions-Liste mit sport=all, die Karte zaehlte aber nur Pumpfoil -> die Tooltip-Zahl war
-    # bei sechs Markern kleiner als das, was der Klick zeigte (Bönigen 7 gegen 13). Die Karte ist
-    # ausdruecklich Uebersicht ueber alle Aufnahmen, nicht nach Sportart getrennt.
+def _spot_eintraege(db: Session, viewer_id: int | None, accel_only: bool, sport: str) -> list[dict]:
+    """Die Spot-Eintraege der Karte — EINE Quelle fuer Karte UND Banner-Zahl (Jans Befund 06.10.2026:
+    Banner 546, Spots-Seite 514; schon am 26.08. einmal auseinandergelaufen). Der Banner rechnete
+    mit einer eigenen Abfrage und zaehlte drei Dinge anders: Spots, deren Aufnahmen alle „Ort
+    verbergen" haben, Namensgruppen ohne Spot-Zuordnung, die die Karte in den gleichnamigen Spot
+    einfaltet, und Spots ohne jeden Namen (die die Karte nicht zeigen kann)."""
     mit_id = (
         _community(db.query(S.spot_id, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
-                   _user.id, accel_only, sport)
+                   viewer_id, accel_only, sport)
         # ORT VERBERGEN: verborgene Aufnahmen zaehlen NICHT zu ihrem echten Spot — weder in der
         # Zahl am Marker noch im Mittelwert seiner Koordinaten (Jan, 25.09.2026). Auf der
         # Uebersichtskarte tauchen sie auch nicht als eigener Marker auf: ein Pin mitten im
@@ -1267,7 +1253,7 @@ def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
     )
     ohne_id = (
         _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
-                   _user.id, accel_only, sport)
+                   viewer_id, accel_only, sport)
         .filter(S.spot_id.is_(None), S.place_name.isnot(None), S.place_name != "",
                 S.place_lat.isnot(None), not_(_verborgen_cond(db)))
         .group_by(S.place_name).all()
@@ -1343,7 +1329,30 @@ def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
     if zusammengefaltet:
         log.info("spot-map: %d namenlose Gruppe(n) in den gleichnamigen Spot eingefaltet",
                  zusammengefaltet)
-    out = behalten
+    return behalten
+
+
+@spot_router.get("/spot-map")
+def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
+             _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte.
+
+    Gruppiert nach **spot_id**, nicht nach `place_name` (2026-08-20). Vorher lieferte die Karte
+    Namens-Gruppen und als Ziel `max(spot_id)` — Etikett und Klickziel meinten damit
+    verschiedene Mengen: gemessen gingen bei 19 von 174 Markern Tooltip-Zahl und Klick-Ergebnis
+    auseinander. Krassester Fall: eine einzelne Session, deren `place_name` nach einem Rename
+    "Kaukajärvi 3" hiess, erschien als EIGENER Marker (Tooltip 1), fuehrte beim Klick aber in den
+    Spot "Kaukajärvi" mit 52 Sessions. Der Name eines Spots ist jetzt der Name der Spot-Zeile,
+    und der Klick filtert auf dieselbe id.
+
+    Sessions ohne `spot_id` (Altbestand/nicht zugeordnet) behalten eine Namens-Gruppe; ihr Klick
+    filtert dann auf `place_name` — dafuer versteht `_spot_cond` beide Formen.
+    """
+    # `sport="all"` als Default (2026-08-20): alle drei Clients navigieren vom Marker in die
+    # Sessions-Liste mit sport=all, die Karte zaehlte aber nur Pumpfoil -> die Tooltip-Zahl war
+    # bei sechs Markern kleiner als das, was der Klick zeigte (Bönigen 7 gegen 13). Die Karte ist
+    # ausdruecklich Uebersicht ueber alle Aufnahmen, nicht nach Sportart getrennt.
+    out = _spot_eintraege(db, _user.id, accel_only, sport)
 
     # Anzahl der SICHTBAREN Spot-Beschreibungen je Spot mitgeben — daraus baut die Oberflaeche
     # den Filter „nur mit Beschreibung". Absichtlich hier und nicht als Extra-Abfrage je Marker:
@@ -1465,25 +1474,11 @@ _STATS_TTL = 300.0  # 5 min
 
 
 def _spot_anzahl(db: Session, accel_only: bool = False, sport: str = "all") -> int:
-    """Zahl der Spots — GENAU wie `spot_map` sie gruppiert, damit Banner und Spots-Seite nicht
-    zwei Zahlen zeigen (Jans Befund 26.08.: Banner 196/198, Seite 203).
-
-    Drei Dinge muessen dieselben sein wie dort, sonst laufen die Zahlen wieder auseinander:
-    Gruppierung nach `spot_id` (nicht nach `place_name` — ein umbenannter Spot zaehlte sonst
-    doppelt, ein noch namenloser fehlte ganz), eine vorhandene Koordinate, und dieselbe
-    Sportart-Basis: die Karte ist ausdruecklich die Uebersicht ueber ALLE Aufnahmen, nicht nur
-    Pumpfoil (`sport="all"`), weil man von jedem Marker in die Sessions-Liste springt.
-    Sessions ohne `spot_id` (Altbestand) behalten ihre Namensgruppe.
-
-    Bewusst OHNE `viewer_id`: der Banner ist fuer alle gleich, also zaehlt er nur oeffentlich
-    Sichtbares. Wer ein verstecktes Konto hat, sieht auf der Karte seinen eigenen Spot zusaetzlich.
-    """
-    mit_id = (_community(db.query(func.count(func.distinct(S.spot_id))), None, accel_only, sport)
-              .filter(S.spot_id.isnot(None), S.place_lat.isnot(None)).scalar() or 0)
-    ohne_id = (_community(db.query(func.count(func.distinct(S.place_name))), None, accel_only, sport)
-               .filter(S.spot_id.is_(None), S.place_name.isnot(None), S.place_name != "",
-                       S.place_lat.isnot(None)).scalar() or 0)
-    return int(mit_id) + int(ohne_id)
+    """Zahl der Spots fuer den Banner — GENAU die Eintraege der Karte (`_spot_eintraege`), damit Banner
+    und Spots-Seite nicht zwei Zahlen zeigen (26.08.: 196/198 gegen 203; 06.10.: 546 gegen 514).
+    Bewusst OHNE Betrachter: der Banner ist fuer alle gleich, also zaehlt er nur oeffentlich
+    Sichtbares. Wer ein verstecktes Konto hat, sieht auf der Karte seinen eigenen Spot zusaetzlich."""
+    return len(_spot_eintraege(db, None, accel_only, sport))
 
 
 # Sportarten, in denen wirklich GEPUMPT wird — sie zaehlen in die Community-Zahlen des Banners
