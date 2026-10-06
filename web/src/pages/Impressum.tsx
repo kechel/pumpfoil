@@ -145,6 +145,7 @@ export default function Impressum() {
             {li("imp.map1")}
             {li("imp.map2")}
             {li("imp.mapApple")}
+            {li("imp.mapSpots")}
           </ul>
         </section>
 

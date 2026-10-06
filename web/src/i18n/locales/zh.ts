@@ -1617,6 +1617,7 @@ const zh: Record<string, string> = {
   "imp.map1": "<b>街道地图</b>来自 <b>OpenStreetMap</b>。显示地图时，你的浏览器会直接从他们的服务器加载地图瓦片，这会传输你的 IP 地址和当前显示的范围。提供方：OpenStreetMap Foundation（英国）。",
   "imp.map2": "如果你用地图上的按钮切换到<b>卫星</b>视图，航拍影像来自 <b>Esri</b>（Esri、Maxar、Earthstar Geographics）——同样直接来自他们的服务器，同样会传输你的 IP 地址。这<b>仅</b>在你切换时才会发生；你的选择只保存在本机设备上。",
   "imp.mapApple": "在 <b>iPhone 和 Apple Watch 应用</b>中，地图和航拍影像都来自 <b>Apple 地图</b>，而不是 OpenStreetMap 或 Esri。显示地图会把当前范围发送给 Apple；对此由 Apple 依据其隐私政策负责。<b>Android 应用</b>与浏览器相同：街道地图来自 OpenStreetMap，航拍影像来自 Esri。",
+  "imp.mapSpots": "<b>浪点名称</b>：我们的服务器会用浪点的坐标在 OpenStreetMap 服务（Nominatim 和 Overpass，包括 VK/mail.ru 运营的 Overpass 镜像）查询地名和水域名。只发送浪点坐标，不发送任何账户数据。对于海上的浪点，我们使用保存在自己服务器上的 <b>GeoNames</b> 列表（geonames.org，CC BY 4.0）中最近的城镇。",
   "metric.metersPerPump": "米 / 泵动",
   "cls.autoAsk": "这次记录在我们看来不像是 pumpfoil，因此暂时不计入任何统计。可以帮忙正确归类吗？如果确实是 pumpfoil，选择“Pumpfoil”即可。",
   "cls.sport.surf_downwind": "冲浪 / 顺风",

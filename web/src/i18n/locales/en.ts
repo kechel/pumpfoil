@@ -1831,6 +1831,7 @@ const en: Record<string, string> = {
   "imp.map1": "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom.",
   "imp.map2": "If you switch to <b>Satellite</b> using the button on the map, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally on your device.",
   "imp.mapApple": "In the <b>iPhone and Apple Watch app</b>, both the map and the aerial imagery come from <b>Apple Maps</b>, not from OpenStreetMap or Esri. Showing a map sends the displayed area to Apple; Apple is responsible for that under their privacy policy. The <b>Android app</b> works like the browser: street map from OpenStreetMap, aerial imagery from Esri.",
+  "imp.mapSpots": "<b>Spot names</b>: our server looks up place and water names for a spot’s coordinates at OpenStreetMap services (Nominatim and Overpass, including the Overpass mirror run by VK/mail.ru). Only the spot’s coordinates are sent, no account data. For spots out at sea we take the nearest town from <b>GeoNames</b> (geonames.org, CC BY 4.0), a list kept on our own server.",
   "imp.ytTitle": "Embedded YouTube videos",
   "metric.metersPerPump": "meters / pump",
 

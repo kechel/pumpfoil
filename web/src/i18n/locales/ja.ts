@@ -1614,6 +1614,7 @@ const ja: Record<string, string> = {
   "imp.map1": "<b>道路地図</b>は <b>OpenStreetMap</b> から提供されています。地図を表示すると、ブラウザが地図タイルを同団体のサーバーから直接読み込むため、あなたの IP アドレスと表示中の範囲が送信されます。提供者：OpenStreetMap Foundation（英国）。",
   "imp.map2": "地図上のボタンで<b>衛星</b>に切り替えると、航空写真は <b>Esri</b>（Esri, Maxar, Earthstar Geographics）から提供されます。こちらも同社のサーバーから直接読み込まれ、同じくあなたの IP アドレスが送信されます。これは切り替えた<b>場合にのみ</b>起こり、選択内容はお使いの端末内にのみ保存されます。",
   "imp.mapApple": "<b>iPhone および Apple Watch アプリ</b>では、地図も航空写真も <b>Apple マップ</b>から提供され、OpenStreetMap や Esri は使用しません。地図を表示すると、端末が表示範囲を Apple に送信します。これについては Apple がそのプライバシーポリシーに基づいて責任を負います。<b>Android アプリ</b>はブラウザと同じで、道路地図は OpenStreetMap、航空写真は Esri から提供されます。",
+  "imp.mapSpots": "<b>スポット名</b>：サーバーはスポットの座標から地名や水域名を OpenStreetMap のサービス（Nominatim と Overpass。VK/mail.ru が運営する Overpass ミラーを含む）で調べます。送信するのはスポットの座標だけで、アカウント情報は送りません。海上のスポットには、当社サーバー上にある <b>GeoNames</b>（geonames.org、CC BY 4.0）の一覧から最寄りの町名を使います。",
   "metric.metersPerPump": "メートル / ポンプ",
   "cls.autoAsk": "このセッションはパンプフォイルには見えません。そのため当面はどの統計にも入りません。正しく分類してもらえますか？ 本当にパンプフォイルだった場合は「Pumpfoil」を選んでください。",
   "cls.sport.surf_downwind": "サーフ／ダウンウィンド",

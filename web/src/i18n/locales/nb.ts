@@ -1679,6 +1679,7 @@ const nb: Record<string, string> = {
   "imp.map1": "<b>Veikartet</b> kommer fra <b>OpenStreetMap</b>. Når et kart vises, laster nettleseren din kartrutene direkte fra deres servere, og da overføres IP-adressen din og utsnittet du ser. Leverandør: OpenStreetMap Foundation, Storbritannia.",
   "imp.map2": "Bytter du til <b>satellitt</b> med knappen på kartet, kommer flybildene fra <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — også direkte fra deres servere og også med IP-adressen din. Det skjer <b>bare</b> hvis du bytter; valget ditt huskes lokalt på enheten din.",
   "imp.mapApple": "I <b>iPhone- og Apple Watch-appen</b> kommer både kartet OG flybildene fra <b>Apple Kart</b>, ikke fra OpenStreetMap eller Esri. Når et kart vises, sender enheten din utsnittet til Apple; Apple er ansvarlig for det etter sin personvernerklæring. <b>Android-appen</b> fungerer som nettleseren: veikart fra OpenStreetMap, flybilder fra Esri.",
+  "imp.mapSpots": "<b>Spotnavn</b>: serveren vår slår opp steds- og vannavn for koordinatene til en spot hos OpenStreetMap-tjenester (Nominatim og Overpass, inkludert Overpass-speilet som drives av VK/mail.ru). Bare koordinatene til spoten sendes, ingen kontodata. For spots ute på havet bruker vi nærmeste sted fra <b>GeoNames</b> (geonames.org, CC BY 4.0), en liste som ligger på vår egen server.",
   "metric.metersPerPump": "meter / pumpe",
   "fw.1": "km/h (3s)",
   "fw.2": "bpm",

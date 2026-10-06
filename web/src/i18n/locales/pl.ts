@@ -1738,6 +1738,7 @@ const pl: Record<string, string> = {
   "imp.map1": "<b>Mapa drogowa</b> pochodzi z <b>OpenStreetMap</b>. Przy wyświetlaniu mapy twoja przeglądarka pobiera kafelki bezpośrednio z ich serwerów; przekazywane są przy tym twój adres IP i wyświetlany fragment. Dostawca: OpenStreetMap Foundation, Wielka Brytania.",
   "imp.map2": "Jeśli przyciskiem na mapie przełączysz się na <b>satelitę</b>, zdjęcia lotnicze pochodzą od <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — również bezpośrednio z ich serwerów i również z twoim adresem IP. Dzieje się tak <b>tylko</b> wtedy, gdy przełączysz; twój wybór jest zapamiętywany lokalnie na twoim urządzeniu.",
   "imp.mapApple": "W <b>aplikacji na iPhone'a i Apple Watch</b> zarówno mapa, JAK I zdjęcia lotnicze pochodzą z <b>Apple Maps</b>, a nie z OpenStreetMap ani Esri. Wyświetlenie mapy wysyła widoczny fragment do Apple; odpowiada za to Apple zgodnie ze swoją polityką prywatności. <b>Aplikacja na Androida</b> działa jak przeglądarka: mapa drogowa z OpenStreetMap, zdjęcia lotnicze z Esri.",
+  "imp.mapSpots": "<b>Nazwy spotów</b>: nasz serwer wyszukuje nazwy miejscowości i akwenów dla współrzędnych spotu w usługach OpenStreetMap (Nominatim i Overpass, w tym lustro Overpass prowadzone przez VK/mail.ru). Przesyłane są tylko współrzędne spotu, żadne dane konta. Dla spotów na morzu bierzemy najbliższą miejscowość z <b>GeoNames</b> (geonames.org, CC BY 4.0) — listy przechowywanej na naszym serwerze.",
   "metric.metersPerPump": "metry / pompa",
   "fw.1": "km/h (3s)",
   "fw.2": "bpm",

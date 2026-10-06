@@ -175,6 +175,13 @@ def name_for(lat, lon):
         return ort, "town", (nm_water or None)
     if nm_water:
         return nm_water, "water", nm_water
+    # Letzter Rueckfall OHNE Netz: naechste Ortschaft ab 1.000 Einwohnern bis 40 km (GeoNames,
+    # app/orte_offline.py). Fuer Spots auf dem Meer — dort liefert Nominatim nur das Land, und die
+    # Umkreissuche oben braucht Overpass (06.10.2026: 13 Spots namenlos, 49 Sessions unsichtbar).
+    from .orte_offline import naechster_ort
+    nah = naechster_ort(lat, lon, max_km=40.0)
+    if nah:
+        return nah[0], "geonames", None
     return None, None, None
 
 

@@ -1617,6 +1617,7 @@ const pt: Record<string, string> = {
   "imp.map1": "O <b>mapa de ruas</b> vem do <b>OpenStreetMap</b>. Ao exibir um mapa, o seu navegador carrega os blocos diretamente dos servidores deles, transmitindo o seu endereço IP e a área exibida. Fornecedor: OpenStreetMap Foundation, Reino Unido.",
   "imp.map2": "Se você mudar para <b>Satélite</b> com o botão no mapa, as imagens aéreas vêm da <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — também diretamente dos servidores deles e também com o seu endereço IP. Isso acontece <b>apenas</b> se você mudar; a sua escolha fica salva localmente no seu aparelho.",
   "imp.mapApple": "No <b>app para iPhone e Apple Watch</b>, tanto o mapa QUANTO as imagens aéreas vêm do <b>Apple Mapas</b>, não do OpenStreetMap nem da Esri. Exibir um mapa envia a área exibida à Apple; a Apple é responsável por isso conforme a política de privacidade dela. O <b>app Android</b> funciona como o navegador: mapa de ruas do OpenStreetMap, imagens aéreas da Esri.",
+  "imp.mapSpots": "<b>Nomes dos spots</b>: nosso servidor busca nomes de lugares e de águas para as coordenadas de um spot em serviços do OpenStreetMap (Nominatim e Overpass, incluindo o espelho do Overpass operado pela VK/mail.ru). Só as coordenadas do spot são enviadas, nenhum dado da conta. Para spots no mar usamos a cidade mais próxima do <b>GeoNames</b> (geonames.org, CC BY 4.0), uma lista guardada no nosso próprio servidor.",
   "metric.metersPerPump": "metros / pump",
 
   // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`

@@ -1055,6 +1055,7 @@ const cs: Record<string, string> = {
   "imp.map1": "<b>Silniční mapa</b> pochází z <b>OpenStreetMap</b>. Při zobrazení mapy načte tvůj prohlížeč mapové dlaždice přímo z jejich serverů; přitom se přenáší tvoje IP adresa a zobrazený výřez. Poskytovatel: OpenStreetMap Foundation, Spojené království.",
   "imp.map2": "Když tlačítkem na mapě přepneš na <b>satelit</b>, letecké snímky přicházejí od <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — rovněž přímo z jejich serverů a rovněž s tvojí IP adresou. Stane se to <b>jen</b> tehdy, když přepneš; tvoje volba se uloží lokálně ve tvém zařízení.",
   "imp.mapApple": "V <b>aplikaci pro iPhone a Apple Watch</b> pochází mapa I letecké snímky z <b>Apple Map</b>, nikoli z OpenStreetMap nebo Esri. Zobrazení mapy odešle zobrazený výřez Applu; odpovědnost za to nese Apple podle svých zásad ochrany soukromí. <b>Aplikace pro Android</b> funguje stejně jako prohlížeč: silniční mapa z OpenStreetMap, letecké snímky z Esri.",
+  "imp.mapSpots": "<b>Názvy spotů</b>: náš server vyhledává názvy míst a vodních ploch k souřadnicím spotu ve službách OpenStreetMap (Nominatim a Overpass, včetně zrcadla Overpass provozovaného VK/mail.ru). Odesílají se jen souřadnice spotu, žádné údaje o účtu. U spotů na moři bereme nejbližší obec z <b>GeoNames</b> (geonames.org, CC BY 4.0), seznamu uloženého na našem serveru.",
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "můj popis ve 2–3 slovech",
