@@ -9,7 +9,8 @@ Standard. Gezaehlt wird JE FAHRER (jeder Fahrer gleich schwer), weil die Wind-/W
 sehr wenigen Fahrern stammen (06.10.: Wing 671 von 740 aus einem Konto, Welle 2 Fahrer). Dazu
 derselbe Lauf ohne den groessten Fahrer, damit keine Regel nur einen Menschen lernt.
 
-Stand 06.10.2026, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions:
+Stand 06.10.2026 — Regel v5 (mit Kuestenabstand): Pump je Fahrer 96,8 %, Wind 85,5 %, Welle 93 %
+(u741 90, u798 88, u692 100). Vorher, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions:
 Pump je Fahrer 97,8 %, Wind 85,5 % (19 Fahrer), Welle 45,6 % (nur 2 Fahrer; trennt sich mit diesen
 Merkmalen nicht von langsamem Pumpen).
 Gemessen und VERWORFEN (06.10.): Tempoverlauf im Lauf — Wellenritte fallen nicht ab (abfall -0,02 gegen
@@ -31,15 +32,18 @@ GRUPPE = {"wingfoil": "wind", "kitefoil": "wind", "parawing": "wind", "surf_wave
 
 
 def regel(r):
-    """v3: Wind = schnell UND lange Laeufe, oder viel Zeit auf dem Foil ueber eine grosse Flaeche bei
-    mindestens 15 km/h (darunter: Langstrecken-Pumper, Annecy/Prevessin/Spiez); Welle = kurze schnelle
-    Ritte bei wenig Foil-Zeit UND verteilten Startpunkten (Line-up) — alle Starts an einem Fleck ist
-    der Steg, das sind schnelle Pumper (Illmensee, Senden, Pasohlavky: 15-16 km/h); sonst Pump."""
+    """v5 (06.10.2026): Wind wie v3. Welle = an der MEERESKUESTE (<= 2 km, Natural Earth; alle 357
+    Wellen-Labels liegen dort, nur 13 % der Pump-Sessions) UND kurze Ritte (<= 60 s Median) bei
+    >= 11 km/h, hoechstens 30 % Foil-Zeit, verteilte Starts (Line-up statt Steg) und zwischen den
+    Ritten >= 20 m bei >= 2,5 km/h zurueck (rauspaddeln statt zum Steg laufen). Sonst Pump.
+    Restfehler: Pumpen im HAFENBECKEN an der Kueste (Barcelona Forum, Doha, Vancouver)."""
     v = r.get("tempo_med", 0); d = r.get("dauer_med", 0)
     a = r.get("anteil_foil", 0); fl = r.get("flaeche_km", 0)
     if (v >= 17 and d >= 60) or (a >= 0.3 and fl >= 0.4 and v >= 15):
         return "wind"
-    if v >= 15 and d <= 30 and a <= 0.2 and fl >= 0.05:
+    kue = r.get("kueste_km")
+    if (kue is not None and kue <= 2.0 and v >= 11 and d <= 60 and a <= 0.3 and fl >= 0.05
+            and r.get("zw_weg_m", 0) >= 20 and r.get("zw_kmh", 0) >= 2.5):
         return "welle"
     return "pump"
 

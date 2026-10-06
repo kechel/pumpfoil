@@ -7,7 +7,8 @@ Je Session aus den gespeicherten Laeufen (Start-/Endpunkt, Tempo, Dauer) und den
   laeufe, tempo_med / tempo_p90 (km/h, Lauf-Schnitt), dauer_med / dauer_max (s), anteil_foil (Foil-Zeit / Aufnahme),
   richtung_einheit (0..1: wie einheitlich die Laufrichtungen sind — Welle ~1, Kite/Wing hin und her ~0),
   richtung_paare (Anteil der Laufrichtungen, die zu zwei GEGENlaeufigen Haeufungen gehoeren — Kreuzen am Wind),
-  puls_med, tempo_max_roh (km/h, 5-Punkt-Median aus Positionen), flaeche_km (Ausdehnung der Laufstarts).
+  puls_med, tempo_max_roh (km/h, 5-Punkt-Median aus Positionen), flaeche_km (Ausdehnung der Laufstarts),
+  kueste_km (Abstand zur Meereskueste; Wellen brauchen das Meer — Binnenseen zaehlen nicht).
 Aufruf (aus server/): .venv/bin/python ../scripts/sport/merkmale.py --nutzer 798 [--json]
 """
 import argparse, json, math, pathlib, sys
@@ -18,6 +19,42 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "server"))
 def kurs(a, b):
     dy = (b[1] - a[1]) * 111000; dx = (b[0] - a[0]) * 111000 * math.cos(math.radians(a[1]))
     return (math.degrees(math.atan2(dx, dy)) % 360, math.hypot(dx, dy))
+
+
+_KUESTE = None
+KUESTE_DATEI = pathlib.Path(__file__).resolve().parents[2] / "server/data/geo/ne_10m_coastline.geojson"
+
+
+def kueste_km(lat, lon):
+    """Abstand zur Meereskueste in km (Natural Earth 10m Coastline, Public Domain, liegt lokal in
+    server/data/geo/ — kein externer Dienst). Binnenseen sind KEINE Kueste. Punkte entlang der Linie
+    auf ~0,5 km verdichtet, Suche per KD-Baum auf der Einheitskugel. None, wenn die Datei fehlt."""
+    global _KUESTE
+    if _KUESTE is None:
+        if not KUESTE_DATEI.exists():
+            _KUESTE = False
+            return None
+        from scipy.spatial import cKDTree
+        pts = []
+        for f in json.load(open(KUESTE_DATEI))["features"]:
+            gm = f["geometry"]
+            linien = gm["coordinates"] if gm["type"] == "MultiLineString" else [gm["coordinates"]]
+            for ln in linien:
+                a = np.array(ln, float)
+                for (lo1, la1), (lo2, la2) in zip(a, a[1:]):
+                    km = math.hypot((la2 - la1) * 111, (lo2 - lo1) * 111 * math.cos(math.radians(la1)))
+                    n = max(1, int(km / 0.5))
+                    for k in range(n):
+                        pts.append((la1 + (la2 - la1) * k / n, lo1 + (lo2 - lo1) * k / n))
+                pts.append((a[-1][1], a[-1][0]))
+        p = np.radians(np.array(pts))
+        xyz = np.c_[np.cos(p[:, 0]) * np.cos(p[:, 1]), np.cos(p[:, 0]) * np.sin(p[:, 1]), np.sin(p[:, 0])]
+        _KUESTE = cKDTree(xyz)
+    if _KUESTE is False:
+        return None
+    la, lo = math.radians(lat), math.radians(lon)
+    d, _ = _KUESTE.query([math.cos(la) * math.cos(lo), math.cos(la) * math.sin(lo), math.sin(la)])
+    return round(2 * math.asin(min(1.0, d / 2)) * 6371.0, 1)
 
 
 def verlauf(g, segs):
@@ -87,6 +124,8 @@ def merkmale(s, ar):
             # Gegenlaeufige Paare: Richtungen verdoppelt -> zwei entgegengesetzte Haeufungen fallen zusammen
             out["richtung_paare"] = round(float(math.hypot(np.cos(2 * r).mean(), np.sin(2 * r).mean())), 2)
         starts = np.array([g["start_pt"] for g in segs if g.get("start_pt")])
+        if len(starts):  # start_pt = [lon, lat]
+            out["kueste_km"] = kueste_km(float(np.median(starts[:, 1])), float(np.median(starts[:, 0])))
         if len(starts) > 1:
             out["flaeche_km"] = round(float(np.hypot((starts[:, 1].max() - starts[:, 1].min()) * 111,
                                                       (starts[:, 0].max() - starts[:, 0].min()) * 111 * math.cos(math.radians(starts[0, 1])))), 2)
