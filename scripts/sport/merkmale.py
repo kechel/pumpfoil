@@ -24,8 +24,9 @@ def merkmale(s, ar):
     from app import storage
     segs = json.loads(ar.segments_json or "[]") if ar else []
     dauer_auf = ((s.ended_at - s.started_at).total_seconds() if s.ended_at else 0) or 1
-    out = {"id": s.id, "sport_tag": s.sport, "klasse": s.sport_class, "quelle": s.sport_source,
-           "ort": s.place_name, "laeufe": len(segs)}
+    out = {"id": s.id, "nutzer": s.user_id, "sport_tag": s.sport, "klasse": s.sport_class, "quelle": s.sport_source,
+           "qualitaet": s.data_quality, "pumpfoil": s.is_pumpfoil, "override": s.pumpfoil_override,
+           "geraet": s.device_model, "lage": s.placement, "ort": s.place_name, "laeufe": len(segs)}
     if segs:
         v = np.array([g["avg_speed_mps"] * 3.6 for g in segs]); d = np.array([g["duration_s"] for g in segs])
         out.update(tempo_med=round(float(np.median(v)), 1), tempo_p90=round(float(np.percentile(v, 90)), 1),
@@ -54,6 +55,7 @@ def merkmale(s, ar):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--nutzer", type=int); ap.add_argument("--ids"); ap.add_argument("--json", action="store_true")
+    ap.add_argument("--aus", help="JSONL-Datei (gehoert nach server/data/, gitignored — nie ins Repo)")
     a = ap.parse_args()
     from app.db import SessionLocal
     from app import models
@@ -61,10 +63,21 @@ if __name__ == "__main__":
     q = db.query(models.Session).filter(models.Session.deleted.isnot(True))
     if a.nutzer: q = q.filter(models.Session.user_id == a.nutzer)
     if a.ids: q = q.filter(models.Session.id.in_([int(x) for x in a.ids.split(",")]))
-    for s in q.order_by(models.Session.started_at):
-        m = merkmale(s, s.result)
+    aus = open(a.aus, "w", encoding="utf-8") if a.aus else None
+    n = 0
+    for s in q.order_by(models.Session.started_at).yield_per(200):
+        try:
+            m = merkmale(s, s.result)
+        except Exception as e:  # eine kaputte Session haelt den Lauf nicht an, wird aber gezaehlt
+            m = {"id": s.id, "fehler": repr(e)[:200]}
+        n += 1
+        if aus:
+            aus.write(json.dumps(m, ensure_ascii=False) + "\n")
+            if n % 500 == 0: print(n, flush=True)
+            continue
         print(json.dumps(m, ensure_ascii=False) if a.json else
               f"#{m['id']} {m['sport_tag'][:12]:12s} {m['klasse'][:9]:9s} {str(m.get('ort'))[:16]:16s} L{m['laeufe']:3d} "
               f"v {m.get('tempo_med','-')}/{m.get('tempo_p90','-')} d {m.get('dauer_med','-')}/{m.get('dauer_max','-')} foil {m.get('anteil_foil','-')} "
               f"einheit {m.get('richtung_einheit','-')} paare {m.get('richtung_paare','-')} puls {m.get('puls_med','-')} vmax {m.get('tempo_max_roh','-')} fl {m.get('flaeche_km','-')}")
+    if aus: aus.close(); print("fertig:", n)
     db.close()
