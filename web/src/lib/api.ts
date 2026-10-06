@@ -340,7 +340,7 @@ export interface SessionSummary {
   // Begründung der automatischen Erkennung (nur Besitzer/Admin, nur solange sie gilt). Der Text
   // wird HIER gebaut, nicht am Server: der Server schickt die Messwerte, die Sprache macht die App.
   sport_auto?: {
-    hinweis?: string;                  // auto.motor | auto.unklar
+    hinweis?: string;                  // auto.motor | auto.unklar | regel.wind | regel.welle | regel.pump
     grund?: string;                    // Klartext (deutsch) — nur für Admin/Support, nicht für die UI
     merkmale?: {
       laengster_lauf_s?: number;
@@ -348,6 +348,11 @@ export interface SessionSummary {
       spitze_kmh?: number;
       puls_antwort_bpm?: number | null;
       laeufe?: number;
+    };
+    // Sportart-Regel (server/app/analysis/sportregel.py), vom Admin angewandt
+    regel?: {
+      tempo_med?: number; dauer_med?: number; anteil_foil?: number; flaeche_km?: number;
+      kueste_km?: number | null; zw_weg_m?: number; zw_kmh?: number; laeufe?: number;
     };
   } | null;
   flag_count?: number;                 // nur Besitzer/Admin (Melder bleiben anonym)
@@ -1614,6 +1619,10 @@ export const api = {
   appealClassification: (id: number, text: string) =>
     req<{ ok: boolean }>(`/api/sessions/${id}/appeal`, { method: "POST", body: JSON.stringify({ text }) }),
   adminClassificationQueue: () => req<Record<string, any>[]>("/api/admin/classification-queue"),
+  adminSportregel: () => req<{ version: string; geprueft: number; abweichend: number; items: Record<string, any>[] }>("/api/admin/sportregel"),
+  adminSportregelApply: (id: number, sport: string) =>
+    req<{ ok: boolean; sport_class: string; sport_source: string }>(
+      `/api/admin/sportregel/${id}/anwenden`, { method: "POST", body: JSON.stringify({ sport }) }),
   adminSessionFlags: () => req<Record<string, any>[]>("/api/admin/session-flags"),
   adminFlagBlock: (uid: number, blocked: boolean) =>
     req<{ ok: boolean; flag_blocked: boolean }>(`/api/admin/users/${uid}/flag-block?blocked=${blocked}`, { method: "POST" }),

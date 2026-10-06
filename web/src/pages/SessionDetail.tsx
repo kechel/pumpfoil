@@ -3240,13 +3240,24 @@ function ClassificationPanel({ session, owned, onChange }: {
   const dateiUnklar = needs && !auto && ["stand_up_paddleboarding", "kitesurfing", "sailing",
     "windsurfing", "wakeboarding", "water_skiing"].includes((session.sport || "").toLowerCase());
   const m = auto?.merkmale;
-  const warum = !m ? null
+  // Urteil der Sportart-REGEL (Admin hat es angewandt, server/app/analysis/sportregel.py): eigene
+  // Begruendung je Muster. Kommt bewusst ohne `merkmale` — die Apps zeigen dann nur die Kopfzeile.
+  const rg = auto?.regel;
+  const regelWarum = !rg || !auto?.hinweis?.startsWith("regel.") ? null
+    : auto.hinweis === "regel.wind"
+      ? t("cls.ruleWhyWind", { dur: Math.round(rg.dauer_med ?? 0), kmh: (rg.tempo_med ?? 0).toFixed(1),
+                               foil: Math.round((rg.anteil_foil ?? 0) * 100), fl: (rg.flaeche_km ?? 0).toFixed(1) })
+      : auto.hinweis === "regel.welle"
+        ? t("cls.ruleWhyWave", { dur: Math.round(rg.dauer_med ?? 0), kmh: (rg.tempo_med ?? 0).toFixed(1),
+                                 zw: Math.round(rg.zw_weg_m ?? 0) })
+        : t("cls.ruleWhyPump", { dur: Math.round(rg.dauer_med ?? 0), kmh: (rg.tempo_med ?? 0).toFixed(1) });
+  const warum = regelWarum ?? (!m ? null
     : m.puls_antwort_bpm != null
       ? t("cls.autoWhyPulse", { dur: Math.round(m.laengster_lauf_s ?? 0),
                                 kmh: (m.tempo_median_kmh ?? 0).toFixed(1),
                                 hr: (m.puls_antwort_bpm > 0 ? "+" : "") + Math.round(m.puls_antwort_bpm) })
       : t("cls.autoWhy", { dur: Math.round(m.laengster_lauf_s ?? 0),
-                           kmh: (m.tempo_median_kmh ?? 0).toFixed(1) });
+                           kmh: (m.tempo_median_kmh ?? 0).toFixed(1) }));
 
   // Nichts offen und kein Maschinen-Urteil -> kein Kasten. Die Kategorie ändert man dann in der
   // Aktionszeile (ClassPickers).
