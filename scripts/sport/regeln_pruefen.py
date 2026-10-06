@@ -9,7 +9,9 @@ Standard. Gezaehlt wird JE FAHRER (jeder Fahrer gleich schwer), weil die Wind-/W
 sehr wenigen Fahrern stammen (06.10.: Wing 671 von 740 aus einem Konto, Welle 2 Fahrer). Dazu
 derselbe Lauf ohne den groessten Fahrer, damit keine Regel nur einen Menschen lernt.
 
-Stand 06.10.2026, Regel v2: Pump je Fahrer 94,9 %, Wind 84,9 %, Welle 45,6 % (nur 2 Fahrer).
+Stand 06.10.2026, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions:
+Pump je Fahrer 97,8 %, Wind 85,5 % (19 Fahrer), Welle 45,6 % (nur 2 Fahrer; trennt sich mit diesen
+Merkmalen nicht von langsamem Pumpen — naechstes Merkmal: Tempoverlauf im Lauf).
 Aufruf (aus server/): .venv/bin/python ../scripts/sport/regeln_pruefen.py data/ml/sport/merkmale-alle.jsonl
 """
 import collections, json, sys
