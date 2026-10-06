@@ -1302,7 +1302,10 @@ const ja: Record<string, string> = {
   "land.f10Body": "Pumpfoil はホーム画面で PWA として動作します — オフラインでも、最新のセッションとともに。",
 
   "profile.weight": "体重",
-  "profile.weightHint": "任意 — 後でパワー（ワット）推定に使われます。非公開。",
+  "profile.weightHint": "任意 — パワー（ワット）の計算に使います。新しいセッションはその日の体重を記録し、セッションごとに変更できます。下で非表示にしない限り、あなたのセッションで他の人にも表示されます。",
+  "profile.weightHide": "体重を他のライダーに表示しない",
+  "profile.weightHistory": "セッションから見た推移：",
+  "setup.weightTitle": "このセッションのライダー体重（kg）",
   "linked.title": "連携アカウント",
   "linked.connectOk": "アカウントを連携しました ✓",
   "linked.connectCancelled": "連携をキャンセルしました。",

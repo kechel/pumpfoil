@@ -306,13 +306,28 @@ def _flag_count(s: models.Session) -> int:
         return 0
 
 
-def _owner_weight_kg(s: models.Session) -> int | None:
-    """Fahrergewicht des Besitzers (kg) aus seinem Profil, oder None.
+def _gewicht_verborgen(s: models.Session) -> bool:
+    """Hat der Besitzer sein Gewicht fuer andere verborgen (Profil, Opt-out)?"""
+    u = getattr(s, "user", None)
+    try:
+        return bool((json.loads(u.settings_json) or {}).get("weight_hidden")) if u and u.settings_json else False
+    except ValueError:
+        return False
+
+
+def _owner_weight_kg(s: models.Session, owned: bool = True) -> int | None:
+    """Fahrergewicht dieser Session (kg): das der Session (Schnappschuss/je Session gesetzt), sonst
+    das Profil des Besitzers, sonst None. Hat der Besitzer es verborgen, bekommen ANDERE None —
+    ihre Leistungsanzeige rechnet dann mit dem Standardwert (Jan, 06.10.2026).
 
     Die theoretische Leistung haengt quadratisch davon ab. Ohne diese Zahl rechnet jeder
     Betrachter mit seinem EIGENEN Gewicht und der oeffentliche Teilen-Link (kein Login) mit dem
     Standardwert — dieselbe Session zeigte deshalb 227 W bzw. 243 W (Meldung 27.08.).
     """
+    if not owned and _gewicht_verborgen(s):
+        return None
+    if getattr(s, "rider_weight_kg", None):
+        return int(s.rider_weight_kg)
     u = getattr(s, "user", None)
     if u is None or not getattr(u, "settings_json", None):
         return None
@@ -337,7 +352,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         sport=s.sport,
         # Nur in der Einzelansicht (slim=True sind die Listen — dort gibt es keine
         # Leistungsanzeige, und ein Profil-Lookup je Zeile waere ein N+1).
-        owner_weight_kg=None if slim else _owner_weight_kg(s),
+        owner_weight_kg=None if slim else _owner_weight_kg(s, owned),
         # Menschliche Klassifikation — in JEDER Ausgabe dabei, damit die Session-Karten sie zeigen
         # können (Jan: „klassifikation dann auch in den session cards mit anzeigen"). `flag_count`
         # und `appeal_text` nur für Besitzer/Admin: die Melder bleiben für den Betroffenen anonym,
@@ -439,7 +454,7 @@ def _resolve_foil(db: Session, s: models.Session) -> dict | None:
     }
 
 
-def _resolve_setup(db: Session, s: models.Session) -> dict | None:
+def _resolve_setup(db: Session, s: models.Session, owned: bool = True) -> dict | None:
     """Restliches Setup für die Anzeige: Stab/Mast/Shim/Board der Session, sonst der Standard
     des Besitzers (settings_json). Je Komponente `*_is_default`, damit die UI „geerbt" zeigen
     kann. None, wenn nichts gesetzt ist (dann blendet die UI den Block aus).
@@ -479,6 +494,11 @@ def _resolve_setup(db: Session, s: models.Session) -> dict | None:
                 "id": b.id, "name": b.name, "volume_l": b.volume_l, "length_cm": b.length_cm,
                 "is_default": s.board_id is None,
             }
+    # Fahrergewicht (06.10.2026) — fuer andere nur, wenn der Besitzer es nicht verborgen hat.
+    w = _owner_weight_kg(s, owned)
+    if w:
+        out["weight_kg"] = w
+        out["weight_is_default"] = s.rider_weight_kg is None
     return out or None
 
 
@@ -2125,7 +2145,8 @@ def get_session(
     # im Katalog aendert die Session nicht. Ohne das zeigte die Detailseite nach der
     # Zusammenfuehrung „Gong TRAIL V3 / V3 ATMO PERF" weiter den alten Namen (Jans Befund 04.10.).
     import zlib as _zlib
-    _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s)], sort_keys=True, default=str)
+    _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id)],
+                       sort_keys=True, default=str)
     etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
@@ -2140,7 +2161,7 @@ def get_session(
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
-    out.setup = _resolve_setup(db, s)
+    out.setup = _resolve_setup(db, s, s.user_id == user.id)
     # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht — ein gezielter Lookup, kein N+1).
     if s.device_id:
         dev = db.get(models.DeviceToken, s.device_id)
@@ -2216,7 +2237,7 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
-    out.setup = _resolve_setup(db, s)
+    out.setup = _resolve_setup(db, s, False)   # Teilen-Link: nie der Besitzer
     if s.device_id:
         dev = db.get(models.DeviceToken, s.device_id)
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
@@ -2998,6 +3019,11 @@ def set_meta(
     if "shim_deg" in body.model_fields_set:
         v = body.shim_deg
         s.shim_deg = round(max(-5.0, min(5.0, float(v))), 1) if v is not None else None
+    if "rider_weight_kg" in body.model_fields_set:
+        v = body.rider_weight_kg
+        if v is not None and not 20 <= int(v) <= 300:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gewicht 20-300 kg")
+        s.rider_weight_kg = int(v) if v is not None else None
     db.commit()
     # „Am Brett" entscheidet den Erkennungsweg (am Brett kein Handgelenk-Modell, keine Pumps) —
     # wer es NACH der Auswertung umstellt, braucht eine neue Auswertung. Ohne das blieb der alte

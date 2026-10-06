@@ -539,6 +539,10 @@ class Session(Base):
     mast_len_cm: Mapped[int | None] = mapped_column(Integer)
     shim_deg: Mapped[float | None] = mapped_column(Float)
     board_id: Mapped[int | None] = mapped_column(ForeignKey("boards.id"))
+    # Fahrergewicht (kg) DIESER Session — Schnappschuss des Profilgewichts beim Anlegen, je Session
+    # aenderbar (Nutzerwunsch 06.10.2026: Gewicht aendert sich, gehoert zum Setup). NULL = Profil
+    # (Altbestand bewusst ohne Nachtrag, Jan). Rechnet die theoretische Leistung.
+    rider_weight_kg: Mapped[int | None] = mapped_column(Integer)
     # Eigene Beschriftung des Besitzers (frei, max 30 Zeichen) + optionale YouTube-URL.
     caption: Mapped[str | None] = mapped_column(String(40))
     # LEGACY-SPIEGEL: erstes (ältestes, nicht geblocktes) SessionVideo — Quelle der Wahrheit

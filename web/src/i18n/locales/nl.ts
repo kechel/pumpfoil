@@ -1417,7 +1417,10 @@ const nl: Record<string, string> = {
   "land.f10Body": "Pumpfoil draait als PWA op je startscherm — ook offline met je laatste sessies.",
 
   "profile.weight": "Gewicht",
-  "profile.weightHint": "Optioneel — wordt later gebruikt in de vermogensberekening (watt). Privé.",
+  "profile.weightHint": "Optioneel — we gebruiken het voor het vermogen (watt). Elke nieuwe sessie onthoudt het gewicht van die dag, en je kunt het per sessie aanpassen. Anderen zien het in je sessies, tenzij je het hieronder verbergt.",
+  "profile.weightHide": "Mijn gewicht verbergen voor andere riders",
+  "profile.weightHistory": "Verloop, uit je sessies:",
+  "setup.weightTitle": "Ridergewicht in deze sessie (kg)",
   "linked.title": "Gekoppelde accounts",
   "linked.connectOk": "Account gekoppeld ✓",
   "linked.connectCancelled": "Koppelen afgebroken.",

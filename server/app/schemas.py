@@ -356,6 +356,8 @@ class SessionMetaIn(BaseModel):
     mast_len_cm: int | None = None
     shim_deg: float | None = None
     board_id: int | None = None
+    # Fahrergewicht dieser Session (kg); null = zurueck auf das Profilgewicht.
+    rider_weight_kg: int | None = None
     # Wo das Geraet waehrend der Aufnahme war: "board" = Handy am Board befestigt, "phone" =
     # am Koerper (Tasche/Huefte/Arm). Nur "board" macht die Lage-Auswertung sinnvoll — am
     # Koerper misst das Handy den Fahrer, nicht das Brett. **Nur Admins duerfen das setzen**

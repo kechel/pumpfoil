@@ -266,6 +266,7 @@ export default function Settings() {
           />
           <span className="text-sm text-slate-400">kg</span>
         </div>
+        <GewichtExtras />
       </Card>
 
       {/* Puls-Zonen: eine Quelle für Uhr-Grafiken UND Web — die Uhren können sie nicht überall
@@ -689,5 +690,45 @@ function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
       <p className="mt-3 text-sm text-slate-400">{t("hideloc.scope")}</p>
       <p className="mt-1 text-sm text-slate-400">{t("hideloc.single")}</p>
     </Card>
+  );
+}
+
+// Opt-out „Gewicht vor anderen verbergen" + Verlauf aus den Session-Schnappschuessen (06.10.2026).
+function GewichtExtras() {
+  const t = useT();
+  const [versteckt, setVersteckt] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [verlauf, setVerlauf] = useState<{ ab: string; bis: string; kg: number }[]>([]);
+  useEffect(() => {
+    api.getSettings().then((s) => setVersteckt(!!s.weight_hidden)).catch(() => setVersteckt(false));
+    api.weightHistory().then(setVerlauf).catch(() => {});
+  }, []);
+  if (versteckt === null) return null;
+  const datum = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "2-digit" });
+  return (
+    <>
+      <label className="mt-3 inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={versteckt} disabled={busy}
+          onChange={(e) => {
+            const wert = e.target.checked;
+            setBusy(true);
+            api.saveSettings({ weight_hidden: wert }).then(() => setVersteckt(wert))
+              .catch(() => {}).finally(() => setBusy(false));
+          }}
+          className="h-4 w-4 rounded border-slate-600 bg-slate-800" />
+        {t("profile.weightHide")}
+      </label>
+      {verlauf.length > 0 && (
+        <p className="mt-3 text-sm text-slate-300">
+          {t("profile.weightHistory")}{" "}
+          {verlauf.map((p, i) => (
+            <span key={i} className="whitespace-nowrap">
+              {i > 0 && " → "}<span className="font-medium tabular-nums text-slate-100">{p.kg} kg</span>
+              {" "}<span className="text-slate-400">({datum(p.ab)}{p.bis !== p.ab ? `–${datum(p.bis)}` : ""})</span>
+            </span>
+          ))}
+        </p>
+      )}
+    </>
   );
 }

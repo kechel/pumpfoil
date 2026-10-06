@@ -1417,7 +1417,10 @@ const cs: Record<string, string> = {
   "land.f10Body": "Pumpfoil běží jako PWA na ploše — i offline s tvými posledními relacemi.",
 
   "profile.weight": "Váha",
-  "profile.weightHint": "Volitelné — později se promítne do výpočtu výkonu (watty). Soukromé.",
+  "profile.weightHint": "Volitelné — používáme ji pro výpočet výkonu (watty). Každá nová session si pamatuje tehdejší váhu a v session ji můžeš změnit. Ostatní ji vidí ve tvých sessions, pokud ji níže neskryješ.",
+  "profile.weightHide": "Skrýt mou váhu před ostatními",
+  "profile.weightHistory": "Vývoj podle tvých sessions:",
+  "setup.weightTitle": "Váha jezdce v této session (kg)",
   "linked.title": "Propojené účty",
   "linked.connectOk": "Účet propojen ✓",
   "linked.connectCancelled": "Propojení zrušeno.",

@@ -144,6 +144,9 @@ DEFAULTS = {
     # heute schon die Alarmgrenzen je Foil (`foil_physics.alarm_speeds`), und wer nichts angibt,
     # bekommt stillschweigend 95 kg vorgesetzt (s. `devices._foil_alarm_list`).
     "weight_kg": 0,
+    # Gewicht in den eigenen Sessions fuer ANDERE verbergen (Opt-out, Jan 06.10.2026: sichtbar ist
+    # der Standard, weil die Leistung es ohnehin schon verwendete). Der Besitzer sieht es immer.
+    "weight_hidden": False,
     # Einrichtungs-Assistent (/onboarding, noch nicht verlinkt): wann er durchlaufen wurde.
     # None = noch nie. Reiner MERKER, damit eine spätere Weiche neue Konten genau einmal
     # dorthin leiten kann — er schaltet von sich aus nichts. Form: {"done_at": ISO, "version": n};
@@ -536,6 +539,8 @@ def update_settings(
             current["public_profile"] = aktuell
     if "hide_location" in patch:
         current["hide_location"] = bool(patch["hide_location"])
+    if "weight_hidden" in patch:
+        current["weight_hidden"] = bool(patch["weight_hidden"])
     if "weight_kg" in patch:
         try:
             current["weight_kg"] = max(0, min(300, round(float(patch["weight_kg"]))))
@@ -748,4 +753,24 @@ def update_settings(
     if not out.get("speed_zones"):
         out["speed_zones"] = speed_zones_default(db, user)
         out["speed_zones_suggested"] = True
+    return out
+
+
+@router.get("/weight-history")
+def weight_history(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Gewicht ueber die Zeit — aus den Schnappschuessen der EIGENEN Sessions (rider_weight_kg), kein
+    eigenes Protokoll: jede Session haelt fest, was beim Anlegen im Profil stand oder was der Besitzer
+    je Session eingetragen hat. Nur Wechsel (gleiches Gewicht hintereinander zaehlt einmal)."""
+    rows = (db.query(models.Session.started_at, models.Session.rider_weight_kg)
+            .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                    models.Session.rider_weight_kg.isnot(None))
+            .order_by(models.Session.started_at).all())
+    out: list[dict] = []
+    for ts, kg in rows:
+        if ts is None:
+            continue
+        if out and out[-1]["kg"] == kg:
+            out[-1]["bis"] = ts.isoformat()
+            continue
+        out.append({"ab": ts.isoformat(), "bis": ts.isoformat(), "kg": int(kg)})
     return out

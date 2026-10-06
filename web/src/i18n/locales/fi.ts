@@ -1383,7 +1383,10 @@ const fi: Record<string, string> = {
   "land.f10Body": "Pumpfoil toimii PWA:na aloitusnäytöllä — myös offline viimeisten sessioidesi kanssa.",
 
   "profile.weight": "Paino",
-  "profile.weightHint": "Valinnainen — vaikuttaa myöhemmin tehonlaskentaan (wattia). Yksityinen.",
+  "profile.weightHint": "Valinnainen — käytämme sitä tehon (watit) laskemiseen. Jokainen uusi sessio muistaa sen päivän painon, ja voit muuttaa sitä sessiokohtaisesti. Muut näkevät sen sessioissasi, ellet piilota sitä alta.",
+  "profile.weightHide": "Piilota painoni muilta",
+  "profile.weightHistory": "Kehitys sessioidesi perusteella:",
+  "setup.weightTitle": "Ajajan paino tässä sessiossa (kg)",
   "linked.title": "Linkitetyt tilit",
   "linked.hint": "Tuo harjoitukset muista palveluista automaattisesti sessioiksi.",
   "linked.platformsTitle": "Mahdolliset laitteet ja linkitykset",
