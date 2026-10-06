@@ -11,7 +11,12 @@ derselbe Lauf ohne den groessten Fahrer, damit keine Regel nur einen Menschen le
 
 Stand 06.10.2026, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions:
 Pump je Fahrer 97,8 %, Wind 85,5 % (19 Fahrer), Welle 45,6 % (nur 2 Fahrer; trennt sich mit diesen
-Merkmalen nicht von langsamem Pumpen — naechstes Merkmal: Tempoverlauf im Lauf).
+Merkmalen nicht von langsamem Pumpen).
+Gemessen und VERWORFEN (06.10.): Tempoverlauf im Lauf — Wellenritte fallen nicht ab (abfall -0,02 gegen
+Pump +0,04). Zwischen den Laeufen trennt es besser (Welle 42 m / 3,3 km/h zurueck, Pump 18 m / 2,1 km/h),
+aber jede Variante, die u741s Wellen von 75 auf 85 % hebt, macht 50+ Pump-Sessions mehr zur Welle — bei
+302 Pump- gegen 2 Wellen-Fahrer nicht uebernommen. Durchschnittliche Pumpfrequenz trennt auch nicht
+(E-Foil 1,55 Hz, Pumpfoil 1,57 Hz, Wing 1,37 Hz). Alle Kite-/Wellen-Labels sind GPS-only-Importe.
 Aufruf (aus server/): .venv/bin/python ../scripts/sport/regeln_pruefen.py data/ml/sport/merkmale-alle.jsonl
 """
 import collections, json, sys
