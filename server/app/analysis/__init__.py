@@ -443,6 +443,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     (Session wächst noch, kann mehrfach neu gerechnet werden). final=True: abgeschlossen.
     """
     gps_samples = storage.load_gps(session.session_uuid)
+    gps_roh = gps_samples   # ungeschnitten, Session-ms — fuer die Sportart-Regel (sportregel.py)
     accel = storage.load_accel(session.session_uuid)
 
     # Autofahrten aus den ROHEN Punkten (ganze Aufnahme), bevor irgendetwas zugeschnitten wird —
@@ -907,6 +908,17 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         (res.get("track_geojson") or {}).get("geometry", {}).get("coordinates"), res["segments"]
     )
     metrics = res.get("metrics", {})
+    # Bewegungs-Merkmale der Sportart-Regel (sportregel.py) — die Spot-Gegenprobe rechnet erst die
+    # Admin-Liste, weil der Spot oft NACH der Analyse zugeordnet wird. Aendert hier nichts an der
+    # Einordnung; eine kaputte Merkmalsrechnung darf die Analyse nie brechen.
+    if final:
+        try:
+            from . import sportregel
+            dauer = ((session.ended_at - session.started_at).total_seconds()
+                     if session.ended_at and session.started_at else 0)
+            metrics["sportregel"] = sportregel.merkmale(res["segments"], gps_roh, dauer)
+        except Exception:  # noqa: BLE001
+            logging.getLogger(__name__).exception("sportregel-Merkmale fuer Session %s", session.id)
     result.metrics_json = json.dumps(metrics)
 
     # Denormalisierte Bestwerte je Kennzahl (Wert + Lauf-Index) für schnelle Aggregate.

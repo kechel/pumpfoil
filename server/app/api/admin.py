@@ -1654,3 +1654,128 @@ def set_all_sessions_sport(
     db.commit()
     return {"ok": True, "sport": sport, "changed": len(rows),
             "skipped": max(total - len(rows), 0), "sessions": total}
+
+
+# ------------------------------------------------------ Sportart-Regel (Gegenprobe) ----
+# Regel ohne KI (analysis/sportregel.py) gegen die aktuelle Einordnung. Die Liste AENDERT NICHTS.
+# Angewandt wird nur per Knopf, und dann ueber den Auto-Weg: sport_source „auto" + Begruendung,
+# damit der Besitzer in der Session sieht, dass automatisch eingeordnet wurde, und es mit einem
+# Klick ueberstimmt (Jan, 06.10.2026: „transparent den usern gegenueber … manuelles zuordnen soll
+# das automatisch immer ueberschreiben koennen und als manual markiert bleiben"). Ein Urteil des
+# Besitzers (owner) wird nie ueberschrieben.
+
+def _sportregel_stimmen(db: Session) -> dict:
+    """{spot_id: {user_id: gruppe}} aus label-tauglichen Urteilen — EIN Abfrage-Durchgang statt je
+    Session (Definition wie sportregel.spot_stimmen)."""
+    from sqlalchemy import text
+    from ..analysis.sportregel import GRUPPE
+    je: dict = {}
+    for sp, u, k, n in db.execute(text(
+            "SELECT spot_id, user_id, sport_class, count(*) FROM sessions "
+            "WHERE spot_id IS NOT NULL AND NOT coalesce(deleted, false) "
+            "AND coalesce(data_quality, 'ok') = 'ok' "
+            "AND (sport_source IN ('admin', 'owner') OR (sport_class = 'pumpfoil' AND sport_source = 'default')) "
+            "GROUP BY 1, 2, 3")).fetchall():
+        g = GRUPPE.get(k)
+        if g:
+            je.setdefault(sp, {}).setdefault(u, {}).setdefault(g, 0)
+            je[sp][u][g] += n
+    return {sp: {u: max(c, key=c.get) for u, c in us.items()} for sp, us in je.items()}
+
+
+def _sportregel_vorschlag(gruppe: str, datei_sport: str | None) -> str:
+    """Sportart zum Gruppen-Urteil. Kite gegen Wing trennt die Regel nicht -> Uhr-Tag als Vorschlag,
+    der Admin kann beim Anwenden umstellen."""
+    if gruppe == "welle":
+        return "surf_wave"
+    if gruppe == "wind":
+        return "kitefoil" if (datei_sport or "").lower() == "kitesurfing" else "wingfoil"
+    return "pumpfoil"
+
+
+@router.get("/sportregel")
+def sportregel_liste(
+    limit: int = Query(300, ge=1, le=2000),
+    admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """Sessions, bei denen die Regel eine andere GRUPPE (Pump/Wind/Welle) sieht als die aktuelle
+    Sportart. Besitzer-Urteile stehen mit drin (Information), sind aber nicht anwendbar."""
+    from sqlalchemy import text
+    from ..analysis.sportregel import GRUPPE, VERSION, regel
+    stimmen = _sportregel_stimmen(db)
+    rows = db.execute(text(
+        "SELECT s.id, s.user_id, s.spot_id, s.sport_class, s.sport_source, s.sport, s.place_name, "
+        "s.started_at, u.display_name, r.metrics_json::json -> 'sportregel' "
+        "FROM sessions s JOIN analysis_results r ON r.session_id = s.id "
+        "LEFT JOIN users u ON u.id = s.user_id "
+        "WHERE NOT coalesce(s.deleted, false) AND coalesce(s.data_quality, 'ok') = 'ok' "
+        "AND s.sport_class IN ('pumpfoil', 'wingfoil', 'kitefoil', 'parawing', 'surf_wave') "
+        "AND r.metrics_json LIKE '%\"sportregel\"%'")).fetchall()
+    geprueft, abw = 0, []
+    for sid, uid, spot, klasse, quelle, datei, ort, start, name, m in rows:
+        if not m or (m.get("laeufe") or 0) < 3:
+            continue
+        geprueft += 1
+        andere = [g for u, g in stimmen.get(spot, {}).items() if u != uid]
+        g = regel(m, andere)
+        if g == GRUPPE.get(klasse):
+            continue
+        abw.append({
+            "session_id": sid, "started_at": start.isoformat() if start else None, "name": name,
+            "ort": ort, "sport_class": klasse, "sport_source": quelle, "datei_sport": datei,
+            "urteil": g, "vorschlag": _sportregel_vorschlag(g, datei),
+            "anwendbar": quelle != "owner",
+            "merkmale": {k: m.get(k) for k in ("tempo_med", "dauer_med", "anteil_foil", "flaeche_km",
+                                                "kueste_km", "zw_weg_m", "zw_kmh", "laeufe")},
+            "spot_andere": len(andere), "spot_pump": andere.count("pump"),
+        })
+    # Zuerst, was niemand je angesehen hat (Standard), dann Automatik, dann Admin, Besitzer zuletzt.
+    rang = {"default": 0, "auto": 1, "admin": 2, "owner": 3}
+    abw.sort(key=lambda x: (rang.get(x["sport_source"] or "default", 0), -(x["session_id"])))
+    return {"version": VERSION, "geprueft": geprueft, "abweichend": len(abw), "items": abw[:limit]}
+
+
+@router.post("/sportregel/{sid}/anwenden")
+def sportregel_anwenden(
+    sid: int, body: dict = Body(...),
+    admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """Regel-Urteil anwenden — als AUTOMATISCHE Einordnung mit Begruendung, die der Besitzer sieht
+    und mit einem Klick ueberstimmt. Nie gegen ein Besitzer-Urteil."""
+    from ..analysis.sportregel import GRUPPE, VERSION, grund_text, regel
+    from .sessions import SPORTS, ClassifyIn, set_classification
+    s = db.get(models.Session, sid)
+    if s is None or s.deleted:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session nicht gefunden")
+    if s.sport_source == "owner":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Der Besitzer hat selbst eingeordnet")
+    sport = (body or {}).get("sport")
+    if sport not in SPORTS or sport not in GRUPPE:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Sportart fehlt oder passt nicht zur Regel")
+    r = db.query(models.AnalysisResult).filter_by(session_id=sid).first()
+    m = (json.loads(r.metrics_json or "{}") if r else {}).get("sportregel")
+    if not m:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Keine Regel-Merkmale — Session erst neu analysieren")
+    andere = [g for u, g in _sportregel_stimmen(db).get(s.spot_id, {}).items() if u != s.user_id]
+    gruppe = regel(m, andere)
+    if GRUPPE[sport] != gruppe:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Die Regel sagt {gruppe}, nicht {GRUPPE[sport]}")
+    vorher_override = s.pumpfoil_override
+    set_classification(sid, ClassifyIn(sport=sport), user=admin, db=db)
+    s = db.get(models.Session, sid)
+    # Auto-Weg: Besitzer sieht „automatisch eingeordnet als …" und ueberstimmt mit einem Klick.
+    # Bewusst KEIN Feld `merkmale`: die Apps bauen daraus die Begruendung der alten Langlauf-Erkennung
+    # („ein Pumplauf dauert 27 s"), die hier falsch waere — ohne das Feld zeigen sie nur die Kopfzeile.
+    s.sport_source = "auto"
+    s.needs_classification = False
+    s.pumpfoil_override = vorher_override   # ein Regel-Urteil ist keine Admin-Sperre gegen Meldungen
+    s.sport_auto_json = json.dumps({
+        "sport_class": sport, "hinweis": f"regel.{gruppe}", "grund": grund_text(gruppe, m),
+        "regel": {k: m.get(k) for k in ("tempo_med", "dauer_med", "anteil_foil", "flaeche_km",
+                                         "kueste_km", "zw_weg_m", "zw_kmh", "laeufe")},
+        "version": VERSION,
+    }, ensure_ascii=False)
+    s.updated_at = datetime.now(timezone.utc)
+    _log(db, admin, "sportregel_anwenden", "session", sid, f"{sport} ({gruppe}, {VERSION})")
+    db.commit()
+    return {"ok": True, "sport_class": s.sport_class, "sport_source": s.sport_source}

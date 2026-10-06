@@ -8,10 +8,11 @@ import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
-type Tab = "overview" | "classify" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks" | "social" | "system";
+type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
+  ["sportregel", "adm.tab.sportregel"],
   ["flagged", "adm.tab.flagged"],
   ["fake", "adm.tab.fake"],
   ["suspect", "adm.tab.suspect"],
@@ -71,6 +72,7 @@ export default function Admin() {
       <DemoModusZeile />
       {tab === "overview" && <OverviewTab />}
       {tab === "classify" && <><ClassifyTab /><FlagsTab /><UserSportTab /></>}
+      {tab === "sportregel" && <SportregelTab />}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
       {tab === "fake" && <SessionsTab scope="fake" />}
       {tab === "suspect" && <SessionsTab scope="suspect" />}
@@ -2085,5 +2087,83 @@ function Anhang({ a }: { a: { id: number; kind: string; filename: string | null;
       className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-brand-600 dark:text-brand-300 underline hover:bg-slate-700">
       {a.filename || "Datei"} · {groesse}
     </a>
+  );
+}
+
+
+// ---- Sportart-REGEL als Gegenprobe (server/app/analysis/sportregel.py) ----
+// Die Regel (ohne KI) gegen die aktuelle Einordnung. Die Liste aendert nichts; „Anwenden" ordnet ueber
+// den Auto-Weg ein, damit der Besitzer den Hinweis samt Begruendung sieht und ihn mit einem Klick
+// ueberstimmt (Jan, 06.10.2026). Besitzer-Urteile sind nicht anwendbar.
+const SR_WIND = ["wingfoil", "kitefoil", "parawing"];
+function SportregelTab() {
+  const t = useT();
+  const [data, setData] = useState<Awaited<ReturnType<typeof api.adminSportregel>> | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => { api.adminSportregel().then(setData).catch((e) => setErr(String(e))); }, []);
+  if (err) return <Card className="p-4 text-sm text-red-700 dark:text-red-300">{t("adm.error")}{err}</Card>;
+  if (!data) return <Spinner />;
+  return (
+    <div>
+      <p className="mb-2 text-sm text-slate-300">{t("adm.sr.hint")}</p>
+      <p className="mb-3 text-sm font-medium text-slate-200">
+        {t("adm.sr.summary", { n: data.abweichend, g: data.geprueft, v: data.version })}
+      </p>
+      {data.items.length === 0 ? <Card className="p-4 text-sm text-slate-300">{t("adm.sr.none")}</Card> : (
+        <div className="space-y-2">{data.items.map((r) => <SportregelRow key={r.session_id} r={r} />)}</div>
+      )}
+    </div>
+  );
+}
+
+function SportregelRow({ r }: { r: Record<string, any> }) {
+  const t = useT();
+  const [sport, setSport] = useState<string>(r.vorschlag);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const m = r.merkmale || {};
+  const wahl = r.urteil === "wind" ? SR_WIND : [r.vorschlag];
+  const apply = () => {
+    setBusy(true); setMsg(null);
+    api.adminSportregelApply(r.session_id, sport)
+      .then((x) => setMsg(t("adm.sr.applied", { sport: t(`cls.sport.${x.sport_class}`) })))
+      .catch((e) => setMsg(t("adm.error") + e))
+      .finally(() => setBusy(false));
+  };
+  return (
+    <Card className="p-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <Link to={`/session/${r.session_id}`} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">#{r.session_id}</Link>
+        <span className="text-slate-200">{r.name ?? "—"}</span>
+        <span className="text-slate-400">{r.ort ?? "—"} · {r.started_at?.slice(0, 10)}</span>
+        <span className="text-slate-300">{t("adm.sr.now", { sport: t(`cls.sport.${r.sport_class}`), src: r.sport_source })}</span>
+        {r.datei_sport && <span className="text-slate-400">{t("adm.sr.file", { sport: r.datei_sport })}</span>}
+        <span className="rounded bg-amber-500/15 px-2 py-0.5 font-medium text-amber-800 dark:text-amber-200">
+          {t("adm.sr.says", { g: t(`adm.sr.g.${r.urteil}`) })}
+        </span>
+      </div>
+      <div className="mt-1 text-slate-300 tabular-nums">
+        {m.laeufe} × {m.dauer_med} s · {m.tempo_med} km/h · Foil {Math.round((m.anteil_foil ?? 0) * 100)} % ·
+        {" "}{t("adm.sr.feat", { fl: m.flaeche_km ?? "—", zw: m.zw_weg_m ?? "—", zwk: m.zw_kmh ?? "—", kue: m.kueste_km ?? "—" })}
+        {r.spot_andere > 0 && <> · {t("adm.sr.spot", { p: r.spot_pump, n: r.spot_andere })}</>}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {r.anwendbar ? (
+          <>
+            {wahl.length > 1 && (
+              <select value={sport} onChange={(e) => setSport(e.target.value)} disabled={busy}
+                className="rounded-lg border border-slate-700 bg-white px-2 py-1.5 text-sm text-slate-100 dark:bg-slate-900">
+                {wahl.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+              </select>
+            )}
+            <button onClick={apply} disabled={busy || !!msg}
+              className="rounded-lg bg-brand-500 px-2.5 py-1.5 text-sm font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-40">
+              {t("adm.sr.apply")}{wahl.length === 1 ? ` (${t(`cls.sport.${sport}`)})` : ""}
+            </button>
+          </>
+        ) : <span className="text-slate-400">{t("adm.sr.owner")}</span>}
+        {msg && <span className="text-slate-200">{msg}</span>}
+      </div>
+    </Card>
   );
 }
