@@ -75,9 +75,20 @@ def regel_v5(r):
     return server_regel(r)
 
 
+LABEL_DATEI = pathlib.Path(__file__).resolve().parents[2] / "server/data/ml/sport/labels.jsonl"
+
+
 def labels(rows):
+    """Mensch (admin/owner), unbestrittenes Pumpfoil — und die Sessions aus der Label-Datei: die habe ich
+    beim Aufbau der Regel eingeordnet und sie stehen seit 06.10. als „auto" in der DB (der Besitzer soll
+    den Hinweis sehen), sind fuer die Messung aber weiter Labels."""
+    extra = set()
+    if LABEL_DATEI.exists():
+        extra = {json.loads(l)["id"] for l in open(LABEL_DATEI, encoding="utf-8")
+                 if json.loads(l).get("label_quelle") == "admin-claude-20261006"}
     return [r for r in rows if r.get("qualitaet") == "ok" and r.get("laeufe", 0) >= 3 and GRUPPE.get(r.get("klasse"))
-            and (r["quelle"] in ("admin", "owner") or (r["klasse"] == "pumpfoil" and r["quelle"] == "default"))]
+            and (r["quelle"] in ("admin", "owner") or r["id"] in extra
+                 or (r["klasse"] == "pumpfoil" and r["quelle"] == "default"))]
 
 
 def auswerten(rs, titel):
