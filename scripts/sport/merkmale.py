@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""Sportart-Merkmale je Session — Grundlage fuer spaetere REGELN ohne KI (Jan, 06.10.2026: „anhand der
+Klassifikation Regeln finden, z. B. Richtungsaenderungen, Geschwindigkeiten … automatisch ohne KI zuordnen,
+mit KI nur pruefen und den Algorithmus verbessern"). REIN LESEND.
+
+Je Session aus den gespeicherten Laeufen (Start-/Endpunkt, Tempo, Dauer) und den GPS-Rohpunkten:
+  laeufe, tempo_med / tempo_p90 (km/h, Lauf-Schnitt), dauer_med / dauer_max (s), anteil_foil (Foil-Zeit / Aufnahme),
+  richtung_einheit (0..1: wie einheitlich die Laufrichtungen sind — Welle ~1, Kite/Wing hin und her ~0),
+  richtung_paare (Anteil der Laufrichtungen, die zu zwei GEGENlaeufigen Haeufungen gehoeren — Kreuzen am Wind),
+  puls_med, tempo_max_roh (km/h, 5-Punkt-Median aus Positionen), flaeche_km (Ausdehnung der Laufstarts).
+Aufruf (aus server/): .venv/bin/python ../scripts/sport/merkmale.py --nutzer 798 [--json]
+"""
+import argparse, json, math, pathlib, sys
+import numpy as np
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "server"))
+
+
+def kurs(a, b):
+    dy = (b[1] - a[1]) * 111000; dx = (b[0] - a[0]) * 111000 * math.cos(math.radians(a[1]))
+    return (math.degrees(math.atan2(dx, dy)) % 360, math.hypot(dx, dy))
+
+
+def merkmale(s, ar):
+    from app import storage
+    segs = json.loads(ar.segments_json or "[]") if ar else []
+    dauer_auf = ((s.ended_at - s.started_at).total_seconds() if s.ended_at else 0) or 1
+    out = {"id": s.id, "sport_tag": s.sport, "klasse": s.sport_class, "quelle": s.sport_source,
+           "ort": s.place_name, "laeufe": len(segs)}
+    if segs:
+        v = np.array([g["avg_speed_mps"] * 3.6 for g in segs]); d = np.array([g["duration_s"] for g in segs])
+        out.update(tempo_med=round(float(np.median(v)), 1), tempo_p90=round(float(np.percentile(v, 90)), 1),
+                   dauer_med=round(float(np.median(d))), dauer_max=round(float(d.max())),
+                   anteil_foil=round(float(d.sum()) / dauer_auf, 2))
+        ks = [kurs(g["start_pt"], g["end_pt"]) for g in segs if g.get("start_pt") and g.get("end_pt")]
+        ks = [k for k, m in ks if m > 15]
+        if len(ks) >= 3:
+            r = np.radians(ks)
+            out["richtung_einheit"] = round(float(math.hypot(np.cos(r).mean(), np.sin(r).mean())), 2)
+            # Gegenlaeufige Paare: Richtungen verdoppelt -> zwei entgegengesetzte Haeufungen fallen zusammen
+            out["richtung_paare"] = round(float(math.hypot(np.cos(2 * r).mean(), np.sin(2 * r).mean())), 2)
+        starts = np.array([g["start_pt"] for g in segs if g.get("start_pt")])
+        if len(starts) > 1:
+            out["flaeche_km"] = round(float(np.hypot((starts[:, 1].max() - starts[:, 1].min()) * 111,
+                                                      (starts[:, 0].max() - starts[:, 0].min()) * 111 * math.cos(math.radians(starts[0, 1])))), 2)
+    g = storage.load_gps(s.session_uuid)
+    hr = [r[4] for r in g if len(r) > 4 and r[4]]
+    if hr: out["puls_med"] = int(np.median(hr))
+    if len(g) > 10:
+        from app.analysis import autofahrt as A
+        _, vv = A._tempo_kmh(g)
+        out["tempo_max_roh"] = round(float(vv.max()), 1)
+    return out
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser(); ap.add_argument("--nutzer", type=int); ap.add_argument("--ids"); ap.add_argument("--json", action="store_true")
+    a = ap.parse_args()
+    from app.db import SessionLocal
+    from app import models
+    db = SessionLocal()
+    q = db.query(models.Session).filter(models.Session.deleted.isnot(True))
+    if a.nutzer: q = q.filter(models.Session.user_id == a.nutzer)
+    if a.ids: q = q.filter(models.Session.id.in_([int(x) for x in a.ids.split(",")]))
+    for s in q.order_by(models.Session.started_at):
+        m = merkmale(s, s.result)
+        print(json.dumps(m, ensure_ascii=False) if a.json else
+              f"#{m['id']} {m['sport_tag'][:12]:12s} {m['klasse'][:9]:9s} {str(m.get('ort'))[:16]:16s} L{m['laeufe']:3d} "
+              f"v {m.get('tempo_med','-')}/{m.get('tempo_p90','-')} d {m.get('dauer_med','-')}/{m.get('dauer_max','-')} foil {m.get('anteil_foil','-')} "
+              f"einheit {m.get('richtung_einheit','-')} paare {m.get('richtung_paare','-')} puls {m.get('puls_med','-')} vmax {m.get('tempo_max_roh','-')} fl {m.get('flaeche_km','-')}")
+    db.close()
