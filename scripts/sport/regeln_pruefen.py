@@ -52,7 +52,12 @@ def regel(r):
     """v6 (06.10.2026) = v5 + Spot: sagt v5 „Welle", aber mindestens 2 ANDERE Fahrer am selben Spot
     und davon >= 80 % Pumper, ist es Pump (Hafenbecken: Barcelona Forum). NUR fuer Welle — fuer Wind
     gemessen und verworfen: Wing und Pump teilen sich viele Seen, Wind fiel von 85,5 auf 78,8 %.
-    Der Rueckweg (Pump -> Wind/Welle an Wind-/Wellen-Spots) aendert nichts."""
+    Der Rueckweg (Pump -> Wind/Welle an Wind-/Wellen-Spots) aendert nichts.
+    Ebenfalls gemessen, NICHT uebernommen: Wind-Zweig „weiter Weg zwischen den Laeufen" (zw_weg_m >= 50,
+    flaeche_km >= 0.4, tempo_med >= 13) — Wind 85,5 -> 91,9 %, Pump 97,2 -> 96,4 %; von 25 neuen
+    Pump->Wind-Treffern sind nur ~7 echte Wind-Sessions, der Rest Pumper mit langem Rueckweg am Ufer.
+    Leichtwind-Zweig (Foil-Anteil + Flaeche bei niedrigem Tempo) ebenso: Wind +2..5, Pump -0,4..1,4.
+    Ein Laufzeit-Deckel fuer Wellen (zw_weg_m <= 100) kostet Welle 92 -> 76 %."""
     g = regel_v5(r)
     if g == "welle":
         andere = [x for u, x in SPOT.get(r.get("spot"), {}).items() if u != r["nutzer"]]
