@@ -20,6 +20,53 @@ def kurs(a, b):
     return (math.degrees(math.atan2(dx, dy)) % 360, math.hypot(dx, dy))
 
 
+def verlauf(g, segs):
+    """Tempoverlauf IN den Laeufen und Bewegung ZWISCHEN ihnen (Session-ms auf beiden Seiten).
+    Idee (06.10.2026, noch Vermutung): Welle = schnell angeschoben, dann abfallend, danach weit
+    zurueckpaddeln; Pumpen = gleichmaessig, danach kurz zum Steg zurueck.
+      abfall      Median je Lauf: (Tempo erstes Drittel - letztes Drittel) / Lauf-Schnitt
+      spitze_pos  Median je Lauf: wo im Lauf (0..1) das hoechste Tempo liegt
+      tempo_cv    Median je Lauf: Streuung / Schnitt
+      zw_weg_m    Median Luftlinie Laufende -> naechster Laufstart
+      zw_kmh      Median Tempo dazwischen (Weg entlang der Punkte / Zeit)"""
+    t = np.array([r[0] for r in g if len(r) > 3 and r[3] is not None], float)
+    v = np.array([r[3] for r in g if len(r) > 3 and r[3] is not None], float) * 3.6
+    if len(t) < 10 or not segs:
+        return {}
+    ab, sp, cv = [], [], []
+    for x in segs:
+        a, b = x.get("t_start_session_ms", x["t_start_ms"]), x.get("t_end_session_ms", x["t_start_ms"] + x["duration_s"] * 1000)
+        m = (t >= a) & (t <= b)
+        vv = v[m]
+        if len(vv) < 6 or vv.mean() <= 0:
+            continue
+        d = max(1, len(vv) // 3)
+        ab.append((vv[:d].mean() - vv[-d:].mean()) / vv.mean())
+        sp.append(int(np.argmax(vv)) / (len(vv) - 1))
+        cv.append(vv.std() / vv.mean())
+    out = {}
+    if ab:
+        out.update(abfall=round(float(np.median(ab)), 2), spitze_pos=round(float(np.median(sp)), 2),
+                   tempo_cv=round(float(np.median(cv)), 2))
+    rows = [r for r in g if len(r) > 2 and r[1] is not None]
+    tt = np.array([r[0] for r in rows], float); la = np.array([r[1] for r in rows]); lo = np.array([r[2] for r in rows])
+    weg, kmh = [], []
+    for x, y in zip(segs, segs[1:]):
+        if x.get("end_pt") and y.get("start_pt"):
+            weg.append(kurs(x["end_pt"], y["start_pt"])[1])
+        a, b = x.get("t_end_session_ms"), y.get("t_start_session_ms")
+        if a is None or b is None or b - a < 5000:
+            continue
+        m = (tt >= a) & (tt <= b)
+        if m.sum() < 3:
+            continue
+        dy = np.diff(la[m]) * 111000; dx = np.diff(lo[m]) * 111000 * math.cos(math.radians(la[m][0]))
+        kmh.append(float(np.hypot(dx, dy).sum()) / ((b - a) / 1000) * 3.6)
+    if weg: out["zw_weg_m"] = round(float(np.median(weg)))
+    if kmh: out["zw_kmh"] = round(float(np.median(kmh)), 1)
+    return out
+
+
 def merkmale(s, ar):
     from app import storage
     segs = json.loads(ar.segments_json or "[]") if ar else []
@@ -46,6 +93,7 @@ def merkmale(s, ar):
     g = storage.load_gps(s.session_uuid)
     hr = [r[4] for r in g if len(r) > 4 and r[4]]
     if hr: out["puls_med"] = int(np.median(hr))
+    out.update(verlauf(g, segs))
     if len(g) > 10:
         from app.analysis import autofahrt as A
         _, vv = A._tempo_kmh(g)
