@@ -452,6 +452,8 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
         m = re.match(r"^(.+) ([2-9])$", (sp.name or "").strip())
         if not m or m.group(1) in taken:
             continue
+        if sp.name_source == "manual":
+            continue        # von Hand vergeben -> nie anfassen (Jan, 06.10.2026)
         base = m.group(1)
         rep.setdefault("renamed", []).append({"id": sp.id, "from": sp.name, "to": base,
                                               "sessions": _session_count(db, sp.id)})
@@ -568,6 +570,16 @@ def _merge_spot_rows(db, target, sources, lat0):
     # hiess "Gošići"). Erst danach die Sessions umhängen, sonst bekämen sie den fehlenden Namen
     # nicht mehr mit und der Spot hiesse anders als seine Sessions.
     uebernommen = False
+    # VON HAND vergebene Namen gewinnen IMMER (Jan, 06.10.2026: „bestehende Spotnamen, die wir
+    # manuell umbenannt haben, nicht wieder zurueck/anders benennen"). Ziel ist der Spot mit den
+    # meisten Sessions — ohne diese Regel ginge ein Umbenennen verloren, sobald der umbenannte Spot
+    # beim automatischen Zusammenfuehren (`_dedupe_hits`, bei JEDER neuen Session) die Quelle ist.
+    if target.name_source != "manual":
+        hand = next((sp for sp in sources if sp.name_source == "manual" and (sp.name or "").strip()), None)
+        if hand is not None:
+            target.name, target.name_source = hand.name, "manual"
+            hand.name = None        # sonst stuende der Name zweimal in der Tabelle
+            uebernommen = True
     for sp in sources:
         if not target.name and sp.name:
             target.name, target.name_source = sp.name, sp.name_source
