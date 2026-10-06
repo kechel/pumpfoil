@@ -17,6 +17,11 @@ Pump +0,04). Zwischen den Laeufen trennt es besser (Welle 42 m / 3,3 km/h zuruec
 aber jede Variante, die u741s Wellen von 75 auf 85 % hebt, macht 50+ Pump-Sessions mehr zur Welle — bei
 302 Pump- gegen 2 Wellen-Fahrer nicht uebernommen. Durchschnittliche Pumpfrequenz trennt auch nicht
 (E-Foil 1,55 Hz, Pumpfoil 1,57 Hz, Wing 1,37 Hz). Alle Kite-/Wellen-Labels sind GPS-only-Importe.
+Nach dem dritten Wellen-Fahrer (06.10.) gemessen, NICHT uebernommen — Variante v4 fuer Welle:
+  tempo_med >= 13, dauer_med <= 45, anteil_foil <= 0.2, flaeche_km >= 0.05, zw_weg_m >= 30, zw_kmh >= 2.5
+  -> Welle je Fahrer 35 -> 64 % (u741 76, u798 54, u692 61), Pump 97,8 -> 96,6 %: 55 Pump-Sessions von
+  32 Fahrern werden „Welle", fast alle auf BINNENSEEN (Annet, Senden, Thalwil, Pasohlavky). Welle braucht
+  das Meer — das fehlende Merkmal ist die Lage (Abstand zur Kueste), nicht die Bewegung.
 Aufruf (aus server/): .venv/bin/python ../scripts/sport/regeln_pruefen.py data/ml/sport/merkmale-alle.jsonl
 """
 import collections, json, sys
