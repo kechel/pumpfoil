@@ -658,6 +658,8 @@ class AnalysisResult(Base):
     start_attempts_json: Mapped[str | None] = mapped_column(Text)
     # Accel-Fenster (Pump/Glide/Idle) als JSON-Text (Phase 2).
     accel_windows_json: Mapped[str | None] = mapped_column(Text)
+    # Brett-Lage je Lauf (nur Handy am Brett), mit Fingerabdruck der Eingaben — s. analysis/lage_cache.py.
+    lage_json: Mapped[str | None] = mapped_column(Text)
     # Erweiterte Kennzahlen (Puls, Ø/Max/Min-Speed, Segment-Extreme …) als JSON.
     metrics_json: Mapped[str | None] = mapped_column(Text)
     # Kompakte Track-Vorschau: normalisierte Polylinien der Foiling-Läufe (ohne Karte),

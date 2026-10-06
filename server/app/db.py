@@ -185,6 +185,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS sensitivity_json TEXT",
         # Start-Erfolgsquote (nur Anzeige): attempts-Preset-Lauf-Distanzen; additiv, keine anderen Stats.
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS start_attempts_json TEXT",
+        # Brett-Lage je Lauf, einmal gerechnet (Startseite lud 11 s, 06.10.2026; analysis/lage_cache.py).
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS lage_json TEXT",
         # Sportart-Klassifikation durch Menschen (docs/sport-classification.md). Defaults so, dass
         # Altbestand unverändert als Pumpfoil zählt — die Migration darf nichts umklassifizieren.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS sport_class VARCHAR(16) DEFAULT 'pumpfoil'",

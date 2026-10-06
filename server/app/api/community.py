@@ -2359,11 +2359,6 @@ def board_attitude(user: models.User = Depends(current_user),
     Leere Antwort (`klassen: []`), wenn es keine gibt — die Startseite blendet den Abschnitt dann
     aus, statt eine Ueberschrift ohne Inhalt zu zeigen.
     """
-    import numpy as np
-
-    from .. import storage
-    from ..analysis import lage
-
     jetzt = time.monotonic()
     with _lage_lock:
         treffer = _lage_cache.get(user.id)
@@ -2384,40 +2379,15 @@ def board_attitude(user: models.User = Depends(current_user),
     ohne_kreisel = 0
     foil_namen: dict[int, str] = {}
 
+    # Die teure Rechnung je Session steht gespeichert (analysis/lage_cache.py, 06.10.2026: vorher
+    # 11 s fuer 12 Sessions bei JEDEM Aufruf). Hier wird nur noch zusammengefasst.
+    from ..analysis.lage_cache import laeufe_der_session
     for s in sessions:
-        uuid = s.session_uuid
-        acc = storage.load_accel(uuid)
-        if len(acc) < 4:
-            continue
-        t_acc = lage.zeitachse(storage.load_accel_t0(uuid), storage.chunk_laengen(uuid, "accel"))
-        if len(t_acc) != len(acc):
-            # Ohne `.t0`-Sidecars keine exakte Zeitachse — lieber auslassen als raten
-            # (dieselbe Regel wie im Lage-Endpunkt, s. docs/DATA-PIPELINE.md).
-            continue
-        gyr = storage.load_gyro(uuid)
-        t_gyr = lage.zeitachse(storage.load_gyro_t0(uuid), storage.chunk_laengen(uuid, "gyro"))
-        hat_kreisel = len(gyr) >= 4 and len(t_gyr) == len(gyr)
-        if not hat_kreisel:
-            gyr, t_gyr = np.empty((0, 3)), np.empty(0)
+        je = laeufe_der_session(db, s)
+        if je.get("ohne_kreisel"):
             ohne_kreisel += 1
-        try:
-            segmente = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
-        except (ValueError, AttributeError):
-            segmente = []
-        if not segmente:
+        if not je.get("gezaehlt"):
             continue
-        off = int(s.trim_start_ms or 0)
-        bereiche = lage.laufbereiche(segmente, off)
-        if not bereiche:
-            continue
-        starts = [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
-                  for g in segmente if g.get("t_start_ms") is not None]
-        kennzahlen = lage.kennzahlen_je_lauf(
-            acc, t_acc, gyr, t_gyr, bereiche, starts,
-            gps=storage.load_gps(uuid),
-            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None),
-            mag=lage.magnetfeld(storage.load_mag(uuid), lage.zeitachse(
-                storage.load_mag_t0(uuid), storage.chunk_laengen(uuid, "mag"))))
         sessions_gezaehlt += 1
 
         # Das Foil der AUFNAHME. Ein Foil je Lauf gibt es noch nicht (es steht als Idee auf
@@ -2428,34 +2398,16 @@ def board_attitude(user: models.User = Depends(current_user),
             if f is not None:
                 foil_namen[foil_id] = " ".join(x for x in (f.brand, f.model, f.size) if x)
 
-        for (a, b), k in zip(bereiche, kennzahlen):
-            if not k.get("ok"):
-                continue
-            dauer_s = (b - a) / 1000.0
-            eimer = next((name for name, u, o in _LAGE_KLASSEN if u <= dauer_s < o), None)
+        for k in je.get("laeufe", []):
+            # Gieren steht bewusst nicht in der Zusammenfassung (Jan, 24.09.2026: das ist die
+            # frei gewaehlte Route, keine Technikzahl). Takt und Hub nur, wenn die Rechnung sie
+            # selbst fuer belastbar haelt (`hub_sicher`, s. lage.py und lage_cache.py) — Anlass
+            # #9484: zwei Laeufe mit unerkanntem Takt zogen den Median einer Klasse nach unten.
+            eimer = next((name for name, u, o in _LAGE_KLASSEN if u <= k["dauer_s"] < o), None)
             if eimer is None:
                 continue
-            laeufe.append({
-                "klasse": eimer,
-                "foil_id": foil_id,
-                "pitch": k.get("pitch_amplitude_deg"),
-                "roll": k.get("roll_amplitude_deg"),
-                # Der Takt haengt am SELBEN Waechter wie der Hub. `hub_sicher` heisst
-                # `hub_hz >= 1.5 / Fenster` (lage.py), also „der Pumptakt lag klar im
-                # Auswertungsband" — ohne ihn ist die Taktzahl kein Takt, sondern ein NICHT
-                # erkannter Takt. Anlass: #9484, zwei Laeufe von 8 s, 0,53 und 0,61 Hz. Einmal
-                # eingerechnet zog das den Median einer ganzen Klasse nach unten.
-                "takt": k.get("pitch_hz") if k.get("hub_sicher") else None,
-                # GIEREN STEHT HIER BEWUSST NICHT (Jan, 24.09.2026): „das ist ja einfach die
-                # route die man frei waehlt und hat nichts mit effizienz, pumpen oder foil zu
-                # tun." Stimmt — Gier-RMS ueber einen Lauf misst, wie viel Kurve in der Strecke
-                # lag, und das entscheidet der See. Neben Nicken und Rollen haette es wie eine
-                # Technikzahl ausgesehen, die es nicht ist. Die Lage-ANSICHT einer einzelnen
-                # Session zeigt es weiter, dort ist es der Vergleich zum GPS-Kurs.
-                # Der Hub nur, wenn die Rechnung ihn selbst fuer belastbar haelt —
-                # `hub_sicher` faellt genau dann, wenn der Pumptakt nicht klar war (s. lage.py).
-                "hub": k.get("hub_pp_cm") if k.get("hub_sicher") else None,
-            })
+            laeufe.append({"klasse": eimer, "foil_id": foil_id, "pitch": k.get("pitch"),
+                           "roll": k.get("roll"), "takt": k.get("takt"), "hub": k.get("hub")})
 
     def _zusammenfassen(menge: list[dict]) -> list[dict]:
         """Die Lauflaengen-Klassen ueber EINE Teilmenge — einmal ueber alles, einmal je Foil."""
