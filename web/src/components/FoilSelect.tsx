@@ -52,6 +52,7 @@ export function FoilSelect({ session, owned, onMeta }: {
     if (setup?.mast_len_cm != null) out.push(chip(`${setup.mast_len_cm} cm`, "mast"));
     if (setup?.shim_deg != null) out.push(chip(fmtShim(setup.shim_deg), "shim"));
     if (setup?.board) out.push(chip(setup.board.name, "board"));
+    if (setup?.weight_kg) out.push(chip(`${setup.weight_kg} kg`, "weight"));
     return out;
   };
 
@@ -136,6 +137,9 @@ export function FoilSelect({ session, owned, onMeta }: {
         </select>
       )}
 
+      <WeightInput setup={setup} title={t("setup.weightTitle")}
+        onSave={(v) => patch({ rider_weight_kg: v })} />
+
       {boards.length > 0 && (
         <select value={explicitBoard} onChange={(e) => patch({ board_id: e.target.value === "" ? null : Number(e.target.value) })}
           className={sel} title={t("setup.boardTitle")}>
@@ -144,5 +148,30 @@ export function FoilSelect({ session, owned, onMeta }: {
         </select>
       )}
     </>
+  );
+}
+
+// Fahrergewicht dieser Session (Nutzerwunsch 06.10.2026). Leer = Profilgewicht (als Platzhalter
+// sichtbar); gespeichert wird beim Verlassen des Feldes, leeren setzt aufs Profil zurueck.
+function WeightInput({ setup, title, onSave }: {
+  setup: SessionSummary["setup"]; title: string; onSave: (v: number | null) => void;
+}) {
+  const explizit = setup?.weight_is_default === false ? String(setup.weight_kg ?? "") : "";
+  const [v, setV] = useState(explizit);
+  useEffect(() => setV(explizit), [explizit]);
+  const speichern = () => {
+    const n = v.trim() === "" ? null : Math.round(Number(v));
+    if (n !== null && (!Number.isFinite(n) || n < 20 || n > 300)) { setV(explizit); return; }
+    if (String(n ?? "") === explizit) return;
+    onSave(n);
+  };
+  return (
+    <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-200" title={title}>
+      <input type="number" min={20} max={300} value={v} onChange={(e) => setV(e.target.value)}
+        onBlur={speichern} onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+        placeholder={setup?.weight_kg ? String(setup.weight_kg) : "—"} aria-label={title}
+        className="w-12 bg-transparent text-right text-xs text-slate-200 outline-none placeholder:text-slate-400" />
+      kg
+    </span>
   );
 }

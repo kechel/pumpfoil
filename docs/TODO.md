@@ -1432,6 +1432,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 06.10. — Fahrergewicht je Session in die nativen Apps.** Web + Server live (Nutzerwunsch Roman
+  u244 im Community-Chat): `sessions.rider_weight_kg` = Schnappschuss des Profilgewichts beim Anlegen
+  (Bestand bewusst ohne Nachtrag, Jan), je Session per `PATCH /meta {rider_weight_kg}` aenderbar,
+  `setup.weight_kg`/`weight_is_default` in der Detailausgabe, Profil-Schalter `weight_hidden` (Opt-out:
+  andere bekommen dann weder Gewicht noch `owner_weight_kg`), Verlauf `GET /api/settings/weight-history`.
+  Die Apps rechnen die Leistung schon richtig (sie lesen `owner_weight_kg`, das jetzt das Session-Gewicht
+  ist). OFFEN dort: Gewicht-Chip in der Setup-Zeile, Eingabefeld je Session (Besitzer), Schalter
+  „Gewicht verbergen" + Verlauf im Profil, und der geaenderte Profil-Hinweistext (`profile.weightHint`
+  sagte „Privat" — stimmte schon vorher nicht).
+
+- **🔲 06.10. — Sportart-Regel (Admin „Sport-Check") offene Faelle.** 254 Abweichungen von 4824, davon 114 nie
+  von einem Menschen eingeordnet — im Admin anwendbar (nur ueber den Auto-Weg, Besitzer sieht den Hinweis).
+  Stand und Messwerte: Memory `sportart-regeln-ohne-ki`, `scripts/sport/regeln_pruefen.py`.
+
 - **🔲 02.10. — Negativbeispiele + Jans Ganztags-Test fuer die Erkennung.** (1) Sessions als Negative: `server/data/ml/v3/negativ_sessions/` (Rohdaten-Kopie + meta.json, s. LIESMICH.txt) — #12568/#12574/#12575, Jan, fēnix 7X Pro 1.0.91, Arbeit/Autofahrt, korrekt 0 Laeufe. Kopie, weil Loeschen nur `deleted` setzt und scripts/v3 geloeschte Sessions herausfiltern. Beim naechsten Training in `scripts/v3/datensatz.py` wie `NEG_FIT` einlesen. (2) Jan zeichnet die naechste Pumpfoil-Session von zu Hause bis zurueck durch (Autofahrt hin, Aufbau, Pumpen, Abbau, Rueckfahrt): pruefen, ob NUR die echten Laeufe erkannt werden (Autostrecken -> Physik-Gate/v3-Veto, Aufbau -> keine Laeufe), und Zuschnitt + Startversuche ansehen.
 
 - **✅ 02.10. — Chat-Bilder fuer alle: `CHAT_PHOTOS_ALL=1` GESETZT am 02.10. (Jan: „iOS ist raus, Google hat das Update verfuegbar … jetzt aktivieren“).** Urspruenglich geplant mit Phone 1.1.38 / iOS 1.1.42: Jan: „den Schalter, der erst beim Server fragt … raus, ab dann immer aktiviert". Die Apps zeigen den Kamera-Knopf ab diesen Versionen IMMER (Android ChatScreen.kt, iOS ChatView.swift); der Server prueft Uploads weiter mit `darf_chat_fotos` und antwortet ohne den Schalter 403. Also spaetestens bei der Freigabe: `CHAT_PHOTOS_ALL=1` in server/.env, dann Neustart (Web und aeltere Apps folgen automatisch ueber `chat_photos`).

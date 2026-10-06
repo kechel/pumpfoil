@@ -395,6 +395,8 @@ export interface SessionSummary {
     mast_len_cm?: number; mast_is_default?: boolean;
     shim_deg?: number; shim_is_default?: boolean;
     board?: { id: number; name: string; volume_l: number | null; length_cm: number | null; is_default?: boolean };
+    // Fahrergewicht dieser Session (kg); fehlt bei fremden Sessions, wenn der Besitzer es verbirgt.
+    weight_kg?: number; weight_is_default?: boolean;
   } | null;
   transfer_to?: string | null;   // offene Übertragung an diesen Empfänger (eigene Liste)
   analysis: Analysis | null;
@@ -1499,9 +1501,11 @@ export const api = {
   deleteSessionVideo: (id: number, videoId: number) =>
     req(`/api/sessions/${id}/videos/${videoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
+  weightHistory: () => req<{ ab: string; bis: string; kg: number }[]>("/api/settings/weight-history"),
   inProgress: () => req<InProgressSession[]>("/api/sessions/in-progress"),
   updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null;
     stab_id?: number | null; mast_len_cm?: number | null; shim_deg?: number | null; board_id?: number | null;
+    rider_weight_kg?: number | null;
     // "board" | "phone" | "" — nur Admins, der Server weist alle anderen mit 403 ab.
     placement?: string;
     // „Ort verbergen" fuer diese Aufnahme: "" = wie im Profil, "show", "hide".

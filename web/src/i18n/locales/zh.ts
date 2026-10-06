@@ -1302,7 +1302,10 @@ const zh: Record<string, string> = {
   "land.f10Body": "Pumpfoil 作为 PWA 运行在你的主屏幕上 —— 离线也能用，带上你最近的记录。",
 
   "profile.weight": "体重",
-  "profile.weightHint": "可选 —— 之后用于功率（瓦特）估算。私密。",
+  "profile.weightHint": "可选 — 用于计算功率（瓦）。每个新会话会记下当天的体重，你也可以在会话中单独修改。除非你在下方隐藏，其他人会在你的会话中看到它。",
+  "profile.weightHide": "对其他人隐藏我的体重",
+  "profile.weightHistory": "来自你会话的变化：",
+  "setup.weightTitle": "本次会话的骑手体重（kg）",
   "linked.title": "已关联账号",
   "linked.connectOk": "账号已关联 ✓",
   "linked.connectCancelled": "关联已取消。",

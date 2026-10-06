@@ -1061,7 +1061,10 @@ const it: Record<string, string> = {
   "land.f10Body": "Pumpfoil gira come PWA nella home — anche offline con le tue ultime sessioni.",
 
   "profile.weight": "Peso",
-  "profile.weightHint": "Opzionale — usato in seguito per la stima della potenza (watt). Privato.",
+  "profile.weightHint": "Facoltativo: serve per la potenza (watt). Ogni nuova sessione tiene il peso di quel giorno e puoi cambiarlo sessione per sessione. Gli altri lo vedono nelle tue sessioni, a meno che tu non lo nasconda qui sotto.",
+  "profile.weightHide": "Nascondi il mio peso agli altri rider",
+  "profile.weightHistory": "Andamento, dalle tue sessioni:",
+  "setup.weightTitle": "Peso del rider in questa sessione (kg)",
   "linked.title": "Account collegati",
   "linked.hint": "Importa automaticamente gli allenamenti da altri servizi come sessioni.",
   "linked.platformsTitle": "Dispositivi e collegamenti possibili",

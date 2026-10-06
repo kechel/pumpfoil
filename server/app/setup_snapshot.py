@@ -24,7 +24,7 @@ from . import models
 
 # Genau die Felder, die `_resolve_setup` sonst beim Lesen erbt. `foil_id` steht NICHT hier —
 # das setzen die Aufrufer selbst (die Uhr darf es je Session ueberschreiben).
-FELDER = ("stab_id", "board_id", "mast_len_cm", "shim_deg")
+FELDER = ("stab_id", "board_id", "mast_len_cm", "shim_deg", "rider_weight_kg")
 
 
 def standard_setup(db, user: models.User | None) -> dict:
@@ -60,6 +60,14 @@ def standard_setup(db, user: models.User | None) -> dict:
             out["shim_deg"] = float(shim)
         except (TypeError, ValueError):
             pass
+    # Gewicht (06.10.2026): sonst rechnete ein neues Profilgewicht die Leistung ALLER alten
+    # Sessions um — dieselbe Falle wie beim Standard-Stab. 0 = „nicht angegeben" -> NULL.
+    try:
+        w = int(round(float(st.get("weight_kg") or 0)))
+    except (TypeError, ValueError):
+        w = 0
+    if 20 <= w <= 300:
+        out["rider_weight_kg"] = w
     return out
 
 

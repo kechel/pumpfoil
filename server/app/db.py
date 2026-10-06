@@ -167,6 +167,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS mast_len_cm INTEGER",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS shim_deg DOUBLE PRECISION",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS board_id INTEGER REFERENCES boards(id)",
+        # Fahrergewicht je Session (Schnappschuss beim Anlegen, NULL = Profil; kein Nachtrag).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS rider_weight_kg INTEGER",
         # „ausgewertet"-Push genau EINMAL je Session (kein Re-Push bei /complete-Retries/Re-Analyse).
         # Altbestand (schon analysiert) als benachrichtigt markieren -> keine Nachhol-Pushes.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS analyzed_notified BOOLEAN",

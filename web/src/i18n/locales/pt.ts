@@ -1302,7 +1302,10 @@ const pt: Record<string, string> = {
   "land.f10Body": "O Pumpfoil roda como PWA na sua tela inicial — também offline, com suas sessões mais recentes.",
 
   "profile.weight": "Peso",
-  "profile.weightHint": "Opcional — usado depois para estimar potência (watts). Privado.",
+  "profile.weightHint": "Opcional — usamos para calcular a potência (watts). Cada nova sessão guarda o peso daquele dia, e você pode alterá-lo em cada sessão. Os outros veem nas suas sessões, a menos que você oculte abaixo.",
+  "profile.weightHide": "Ocultar meu peso dos outros riders",
+  "profile.weightHistory": "Evolução, a partir das suas sessões:",
+  "setup.weightTitle": "Peso do rider nesta sessão (kg)",
   "linked.title": "Contas vinculadas",
   "linked.connectOk": "Conta conectada ✓",
   "linked.connectCancelled": "Conexão cancelada.",

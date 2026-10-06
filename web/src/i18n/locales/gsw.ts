@@ -977,7 +977,10 @@ const gsw: Record<string, string> = {
   "land.f10Body": "Pumpfoil lauft als PWA ufem Homescreen — au offline mit dine letzte Sessions.",
 
   "profile.weight": "Gwicht",
-  "profile.weightHint": "Optional — flüsst spöter i d Leistigsberächnig (Watt) ii. Privat.",
+  "profile.weightHint": "Optional — demit rächned mir d Leistig (Watt). Jedi nöii Session merkt sich s Gwicht vo dazumal, und i de Session chasch es einzeln ändere. Anderi gsehnd s i dine Sessions, ussert du blendisch es une uus.",
+  "profile.weightHide": "Mis Gwicht vor andere verstecke",
+  "profile.weightHistory": "Verlauf us dine Sessions:",
+  "setup.weightTitle": "Fahrergwicht i dere Session (kg)",
   "linked.title": "Verknüpfti Konte",
   "linked.hint": "Importier Trainings vo andere Dienscht automatisch als Sessions.",
   "linked.platformsTitle": "Mögleschi Gerät & Verchnüpfige",

@@ -1302,7 +1302,10 @@ const id: Record<string, string> = {
   "land.f10Body": "Pumpfoil berjalan sebagai PWA di layar utamamu — offline juga, dengan sesi terbarumu.",
 
   "profile.weight": "Berat",
-  "profile.weightHint": "Opsional — dipakai nanti untuk estimasi daya (watt). Privat.",
+  "profile.weightHint": "Opsional — kami pakai untuk menghitung daya (watt). Setiap sesi baru menyimpan berat hari itu, dan kamu bisa mengubahnya per sesi. Orang lain melihatnya di sesimu, kecuali kamu menyembunyikannya di bawah.",
+  "profile.weightHide": "Sembunyikan berat badanku dari rider lain",
+  "profile.weightHistory": "Perkembangan dari sesimu:",
+  "setup.weightTitle": "Berat rider di sesi ini (kg)",
   "linked.title": "Akun tertaut",
   "linked.connectOk": "Akun terhubung ✓",
   "linked.connectCancelled": "Koneksi dibatalkan.",
