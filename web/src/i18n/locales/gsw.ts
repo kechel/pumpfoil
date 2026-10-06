@@ -1383,6 +1383,7 @@ const gsw: Record<string, string> = {
   "imp.map1": "D <b>Strassecharte</b> chunnt vo <b>OpenStreetMap</b>. Wenn e Charte azeigt wird, ladet din Browser d Charteuusschnitt direkt vo dene ihrne Server; debii wärded dini IP-Adrässe und de azeigt Uusschnitt übermittlet. Aabieter: OpenStreetMap Foundation, Vereinigts Königriich.",
   "imp.map2": "Wenn du mit em Chnopf uf de Charte uf <b>Satellit</b> umschaltisch, chömed d Luftbilder vo <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — au direkt vo dene ihrne Server und au mit dinere IP-Adrässe. Das passiert <b>nur</b>, wenn du umschaltisch; dini Wahl wird lokal uf dim Grät gmerkt.",
   "imp.mapApple": "I de <b>iPhone- und Apple-Watch-App</b> chömed Charte UND Luftbild vo <b>Apple Maps</b>, nöd vo OpenStreetMap oder Esri. Bim Azeige vonere Charte übermittlet din Grät de azeigt Uusschnitt a Apple; verantwortlich defür isch Apple nach ihrere Datenschutzrichtlinie. I de <b>Android-App</b> giltet s Gliiche wie im Browser: Strassecharte vo OpenStreetMap, Luftbild vo Esri.",
+  "imp.mapSpots": "<b>Spot-Näme</b> suecht öise Server zu de Koordinate vo me Spot bi OpenStreetMap-Dienscht (Nominatim und Overpass, drunter de Overpass-Spiegel vo VK/mail.ru). Übertreit werded nur d Koordinate vom Spot, kei Kontodate. Liit en Spot uf em Meer, nämed mir de nächst Ort us <b>GeoNames</b> (geonames.org, CC BY 4.0), ere Lischte, wo bi öis uf em Server liit.",
   "lab.chartAccel": "Beschlünigung — Pump-Band (g, bandpass)",
   "lab.chartSpeed": "Gschwindigkeit (m/s)",
   "lab.cvAccuracy": "CV-Accuracy:",

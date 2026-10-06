@@ -1055,6 +1055,7 @@ const nl: Record<string, string> = {
   "imp.map1": "De <b>stratenkaart</b> komt van <b>OpenStreetMap</b>. Bij het tonen van een kaart laadt je browser de kaarttegels rechtstreeks van hun servers; daarbij worden je IP-adres en het getoonde gebied doorgegeven. Aanbieder: OpenStreetMap Foundation, Verenigd Koninkrijk.",
   "imp.map2": "Schakel je met de knop op de kaart over naar <b>Satelliet</b>, dan komen de luchtfoto's van <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ook rechtstreeks van hun servers en ook met je IP-adres. Dat gebeurt <b>alleen</b> als je omschakelt; je keuze wordt lokaal op je apparaat onthouden.",
   "imp.mapApple": "In de <b>iPhone- en Apple Watch-app</b> komen zowel de kaart ALS de luchtfoto's van <b>Apple Kaarten</b>, niet van OpenStreetMap of Esri. Bij het tonen van een kaart stuurt je apparaat het getoonde gebied naar Apple; Apple is daarvoor verantwoordelijk volgens hun privacybeleid. De <b>Android-app</b> werkt zoals de browser: stratenkaart van OpenStreetMap, luchtfoto's van Esri.",
+  "imp.mapSpots": "<b>Spotnamen</b>: onze server zoekt plaats- en waternamen voor de coördinaten van een spot op bij OpenStreetMap-diensten (Nominatim en Overpass, waaronder de Overpass-mirror van VK/mail.ru). Alleen de coördinaten van de spot worden verstuurd, geen accountgegevens. Voor spots op zee nemen we de dichtstbijzijnde plaats uit <b>GeoNames</b> (geonames.org, CC BY 4.0), een lijst op onze eigen server.",
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "mijn 2–3 woorden als beschrijving",

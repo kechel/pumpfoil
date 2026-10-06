@@ -147,6 +147,19 @@ def main() -> int:
             except Exception:                                       # noqa: BLE001
                 pass
             print(f"   #{sid} (user {uid}): {alt_status} -> {s.status} (ohne Benachrichtigung)")
+        # Namenlose Spots erneut benennen (06.10.2026). Bis dahin lief das nur beim kompletten
+        # Spot-Neuaufbau — ein Spot, dessen Benennung beim Anlegen scheiterte (Overpass gesperrt,
+        # Meer), blieb fuer immer namenlos und damit unsichtbar auf der Karte. Hoechstens 10 je Lauf,
+        # damit der Spiegel nicht mit Anfragen geflutet wird (Sperre bei overpass-api.de!).
+        if not args.trocken:
+            try:
+                from app.spots import name_pending_spots
+                r = name_pending_spots(db, max_spots=10)
+                if r.get("named") or r.get("still_pending"):
+                    print(f"   Spots benannt: {r.get('named', 0)}, weiter offen: {r.get('still_pending', 0)}")
+            except Exception as e:                                  # noqa: BLE001
+                db.rollback()
+                print(f"   Spot-Benennung: FEHLER {e!r}")
     finally:
         db.close()
     return 0

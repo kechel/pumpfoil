@@ -22,9 +22,16 @@ from .config import get_settings
 # (URL, global?) — REGIONALE Instanzen sind gefaehrlich: overpass.osm.ch antwortet fuer Frankreich
 # brav mit "nichts gefunden" statt mit einem Fehler. Ein leeres Ergebnis von dort ist deshalb KEIN
 # Beweis, dass es kein Wasser gibt (siehe _overpass_empty_is_truth).
+# 06.10.2026: kumi.systems und private.coffee laufen von dieser VM aus in den Timeout, overpass-api.de
+# weist weiter sofort ab — seit Mitte September kamen dadurch praktisch KEINE Gewaesser-/Ufer-Namen
+# mehr an, und Spots auf dem Meer blieben ganz namenlos (13 Spots, 49 Sessions unsichtbar auf der
+# Karte). Der Spiegel von VK/mail.ru antwortet (~10 s). Mit Jans OK aufgenommen; uebertragen werden
+# nur Spot-Koordinaten, keine Nutzerdaten. overpass-api.de bleibt davor, weil es sofort scheitert
+# (kein Warten) und wir es zurueckhaben wollen, sobald die Sperre faellt.
 OVERPASS_URLS = [
-    ("https://overpass.kumi.systems/api/interpreter", True),
     ("https://overpass-api.de/api/interpreter", True),
+    ("https://maps.mail.ru/osm/tools/overpass/api/interpreter", True),
+    ("https://overpass.kumi.systems/api/interpreter", True),
     ("https://overpass.private.coffee/api/interpreter", True),
     ("https://overpass.osm.ch/api/interpreter", False),   # nur Schweiz + Grenzregion
 ]

@@ -1617,6 +1617,7 @@ const id: Record<string, string> = {
   "imp.map1": "<b>Peta jalan</b> berasal dari <b>OpenStreetMap</b>. Saat peta ditampilkan, peramban kamu memuat ubin peta langsung dari server mereka, sehingga alamat IP kamu dan area yang ditampilkan ikut terkirim. Penyedia: OpenStreetMap Foundation, Britania Raya.",
   "imp.map2": "Kalau kamu beralih ke <b>Satelit</b> lewat tombol di peta, citra udara datang dari <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — juga langsung dari server mereka dan juga dengan alamat IP kamu. Ini <b>hanya</b> terjadi kalau kamu beralih; pilihanmu diingat secara lokal di perangkatmu.",
   "imp.mapApple": "Di <b>aplikasi iPhone dan Apple Watch</b>, peta DAN citra udara sama-sama berasal dari <b>Apple Maps</b>, bukan dari OpenStreetMap atau Esri. Menampilkan peta mengirimkan area yang tampil ke Apple; Apple bertanggung jawab atas hal itu sesuai kebijakan privasi mereka. <b>Aplikasi Android</b> bekerja seperti peramban: peta jalan dari OpenStreetMap, citra udara dari Esri.",
+  "imp.mapSpots": "<b>Nama spot</b>: server kami mencari nama tempat dan perairan untuk koordinat spot di layanan OpenStreetMap (Nominatim dan Overpass, termasuk mirror Overpass yang dijalankan VK/mail.ru). Hanya koordinat spot yang dikirim, tanpa data akun. Untuk spot di laut kami memakai kota terdekat dari <b>GeoNames</b> (geonames.org, CC BY 4.0), daftar yang disimpan di server kami sendiri.",
   "metric.metersPerPump": "meter / pump",
 
   // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`

@@ -1024,6 +1024,7 @@ const fi: Record<string, string> = {
   "imp.map1": "<b>Katukartta</b> tulee <b>OpenStreetMapilta</b>. Kun kartta näytetään, selaimesi lataa karttaruudut suoraan heidän palvelimiltaan, jolloin välittyvät IP-osoitteesi ja näkyvä karttaosuus. Palveluntarjoaja: OpenStreetMap Foundation, Yhdistynyt kuningaskunta.",
   "imp.map2": "Jos vaihdat kartan painikkeella <b>satelliittinäkymään</b>, ilmakuvat tulevat <b>Esriltä</b> (Esri, Maxar, Earthstar Geographics) — sekin suoraan heidän palvelimiltaan ja sekin IP-osoitteesi kanssa. Näin käy <b>vain</b>, jos vaihdat näkymää; valintasi muistetaan paikallisesti laitteellasi.",
   "imp.mapApple": "<b>iPhone- ja Apple Watch -sovelluksessa</b> sekä kartta ETTÄ ilmakuvat tulevat <b>Apple Kartoista</b>, eivät OpenStreetMapilta tai Esriltä. Kartan näyttäminen lähettää näkyvän alueen Applelle; siitä vastaa Apple oman tietosuojakäytäntönsä mukaisesti. <b>Android-sovellus</b> toimii kuten selain: katukartta OpenStreetMapilta, ilmakuvat Esriltä.",
+  "imp.mapSpots": "<b>Spottien nimet</b>: palvelimemme hakee paikka- ja vesistönimet spotin koordinaateille OpenStreetMap-palveluista (Nominatim ja Overpass, mukaan lukien VK/mail.ru:n ylläpitämä Overpass-peili). Vain spotin koordinaatit lähetetään, ei tilin tietoja. Merellä oleville spoteille otamme lähimmän paikkakunnan <b>GeoNames</b>-luettelosta (geonames.org, CC BY 4.0), joka on omalla palvelimellamme.",
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "omat 2–3 sanaa kuvaukseksi",
