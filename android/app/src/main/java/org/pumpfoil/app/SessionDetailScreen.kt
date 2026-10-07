@@ -1463,8 +1463,13 @@ private fun PowerCard(a: Analysis, foil: Foil, weightKg: Double) {
     val avgKmh = if ((a.foilingTimeS ?: 0.0) > 0 && a.foilingDistanceM != null)
         a.foilingDistanceM / a.foilingTimeS!! * 3.6 else null
     val topKmh = a.maxSpeedMps?.let { it * 3.6 }
-    fun watt(kmh: Double?): String =
-        if (kmh == null) "–" else "%.0f W".format(FoilPhysics.computeFoilPowerAtSpeed(dims, kmh, rider, pump = pump).power)
+    // Tempo 0 (Session ohne Laeufe) ergibt NaN -> hier stand „NaN W"; iOS stuerzte daran sogar ab
+    // (Int(NaN), Peter3 07.10.2026). Nur positive, endliche Werte zeigen.
+    fun watt(kmh: Double?): String {
+        if (kmh == null || kmh <= 0) return "–"
+        val p = FoilPhysics.computeFoilPowerAtSpeed(dims, kmh, rider, pump = pump).power
+        return if (p.isFinite()) "%.0f W".format(p) else "–"
+    }
     // Erklaerung hinter einem (i) — wie die PWA seit 02.09. (dort dasselbe Popup wie bei
     // „Laeufe/Starts"). Ohne sie ist die Watt-Zahl eine Behauptung: es steht nirgends, mit welchem
     // Gewicht, welcher Geschwindigkeit und welchen Anteilen (Vortrieb + Pump-Traegheit) sie
