@@ -720,6 +720,48 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
+    # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
+    # Knopf „Nachricht", Profilbild fuehrt dorthin. Web ist live (c27b7aa5, 1d7ac4a0, 5272d67a,
+    # b89044e2). Phone 1.1.38 (52) + Wear 1.2.38 (1048, ohne eigene Aenderung mitgebumpt), iOS 1.1.42 (47).
+    # 07.10.2026 neu gebumpt (Jan: „Versionen pumpen, dann mache ich neue Releases fertig"):
+    # Phone 1.1.39 (53) + Wear 1.2.39 (1049), iOS 1.1.43 (48) — dazu Foil-Chips und Lesehaken.
+    # iOS Build 49 (07.10.): Handy-Recorder fasst alle 60 s nach, solange ein Upload offen ist.
+    # Kamera-Knopf ab hier IMMER (Jan, 02.10.); CHAT_PHOTOS_ALL=1 ist seit 02.10. gesetzt.
+    # EINGEREICHT 07.10.2026 ~08:35 (Jans Meldung, Play Console „Änderungen, die überprüft werden —
+    # Schnelle Vorabprüfungen", Produktion 53 (1.1.39), Produktion (Wear OS) 1049 (1.2.39)).
+    {"name": "Android phone + Wear OS", "version": "1.1.39 / 1.2.39",
+     "eingereicht": "2026-10-07",
+     "items": [
+         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
+         "In direct chats, two ticks show that your message has been read.",
+         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
+         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
+         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
+         # 01.10.2026: fafdd410.
+         "The longest-run record shows kilometres from 1,000 m on.",
+         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
+         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
+     ]},
+    # EINGEREICHT 07.10.2026 08:37 (Jans Meldung, ASC „Warten auf Prüfung", 1.1.43 (49), Kennung
+    # 96c09ad7-294a-46e1-b38b-d30d285d9d8e).
+    {"name": "iPhone + Apple Watch", "version": "1.1.43",
+     "eingereicht": "2026-10-07",
+     "items": [
+         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
+         "In direct chats, two ticks show that your message has been read.",
+         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
+         # 07.10.2026 (Feedback Mirza): 780a895c.
+         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
+         # 03.10.2026: 879500d4.
+         "The phone recorder shows the upload progress, as on Android.",
+         # 01.10.2026: fafdd410.
+         "The longest-run record shows kilometres from 1,000 m on.",
+         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
+         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
+     ]},
     # EINGEREICHT 01.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
     # Vor der Einreichung ungetestet (Testsession #12510 kam vom 1.0.12-Build, APP_VERSION vergessen,
     # 43bc9f02); DANACH auf Jans T-Rex 3 nachgetestet: #12511/#12512, Halten fuer Pause/Stopp ok.
@@ -778,42 +820,6 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
-    # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
-    # Knopf „Nachricht", Profilbild fuehrt dorthin. Web ist live (c27b7aa5, 1d7ac4a0, 5272d67a,
-    # b89044e2). Phone 1.1.38 (52) + Wear 1.2.38 (1048, ohne eigene Aenderung mitgebumpt), iOS 1.1.42 (47).
-    # 07.10.2026 neu gebumpt (Jan: „Versionen pumpen, dann mache ich neue Releases fertig"):
-    # Phone 1.1.39 (53) + Wear 1.2.39 (1049), iOS 1.1.43 (48) — dazu Foil-Chips und Lesehaken.
-    # iOS Build 49 (07.10.): Handy-Recorder fasst alle 60 s nach, solange ein Upload offen ist.
-    # Kamera-Knopf ab hier IMMER (Jan, 02.10.); CHAT_PHOTOS_ALL=1 ist seit 02.10. gesetzt.
-    {"name": "Android phone + Wear OS", "version": "1.1.39 / 1.2.39",
-     "items": [
-         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
-         "In direct chats, two ticks show that your message has been read.",
-         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
-         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
-         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
-         # 01.10.2026: fafdd410.
-         "The longest-run record shows kilometres from 1,000 m on.",
-         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
-     ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.43",
-     "items": [
-         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
-         "In direct chats, two ticks show that your message has been read.",
-         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
-         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         # 07.10.2026 (Feedback Mirza): 780a895c.
-         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
-         # 03.10.2026: 879500d4.
-         "The phone recorder shows the upload progress, as on Android.",
-         # 01.10.2026: fafdd410.
-         "The longest-run record shows kilometres from 1,000 m on.",
-         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
-     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
