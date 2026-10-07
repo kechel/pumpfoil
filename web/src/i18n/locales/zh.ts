@@ -483,6 +483,7 @@ const zh: Record<string, string> = {
   "account.recordMode": "记录模式",
   "account.recordModeFull": "完整 · 25 Hz",
   "account.recordModeLite": "精简 · 10 Hz",
+  "account.smallBuffer": "这款手表用于记录的存储空间非常小。Garmin 不允许在运动过程中传输数据，而且自 2026 年初起不再向新项目开放其直接数据接口——因此我们的应用必须把所有数据都存在手表上。在这款手表上，大约 30–40 分钟后存储就会满，之后记录的内容都会丢失。较长的训练：30–40 分钟后结束记录，等它上传完成，再开始新的记录。之后可以把这几段合并（“对比与合并”）。",
   "account.recordModeGps": "仅 GPS",
   "account.gnssMode": "卫星系统",
   "account.gnssModeBest": "全部（覆盖最佳）",

@@ -540,6 +540,7 @@ const de: Record<string, string> = {
   "account.recordMode": "Aufzeichnungsmodus",
   "account.recordModeFull": "Voll · 25 Hz",
   "account.recordModeLite": "Sparsam · 10 Hz",
+  "account.smallBuffer": "Diese Uhr hat nur sehr wenig Speicher für Aufnahmen. Garmin erlaubt während einer Aktivität keine Datenübertragung, und seine direkte Datenschnittstelle öffnet Garmin seit Anfang 2026 nicht mehr für neue Projekte — deshalb muss unsere App alles auf der Uhr selbst speichern. Auf dieser Uhr ist der Speicher nach etwa 30–40 Minuten voll, alles danach geht verloren. Für längere Sessions: die Aufnahme nach 30–40 Minuten beenden, hochladen lassen und neu starten. Die Teile kannst du danach zusammenführen („Vergleichen & Mergen“).",
   "account.recordModeGps": "Nur GPS",
   "account.gnssMode": "Satellitensysteme",
   "account.gnssModeBest": "Alle (beste Abdeckung)",

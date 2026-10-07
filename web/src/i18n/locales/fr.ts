@@ -1308,6 +1308,7 @@ const fr: Record<string, string> = {
   "account.activityPumpfoil": "Pumpfoil (générique)",
   "account.activityTypeHint": "Définit sous quelle activité l'enregistrement Garmin apparaît dans Garmin Connect.",
   "account.recordModeLite": "Économe · 10 Hz",
+  "account.smallBuffer": "Cette montre a très peu de mémoire pour les enregistrements. Garmin n’autorise aucun transfert de données pendant une activité et, depuis début 2026, n’ouvre plus son interface de données directe aux nouveaux projets — notre app doit donc tout stocker sur la montre. Sur cette montre, la mémoire est pleine après environ 30–40 minutes, et tout ce qui suit est perdu. Pour des sessions plus longues : arrête l’enregistrement après 30–40 minutes, laisse-le se transférer et relance-en un nouveau. Tu peux ensuite fusionner les parties (« Comparer et fusionner »).",
   "account.tabGuide": "Guide",
   "chat.kindSession": "Chat de session",
   "chat.kindSpot": "Chat de spot",

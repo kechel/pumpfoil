@@ -501,6 +501,7 @@ const pl: Record<string, string> = {
   "account.recordMode": "Tryb nagrywania",
   "account.recordModeFull": "Pełny · 25 Hz",
   "account.recordModeLite": "Oszczędny · 10 Hz",
+  "account.smallBuffer": "Ten zegarek ma bardzo mało pamięci na nagrania. Garmin nie pozwala przesyłać danych w trakcie aktywności, a od początku 2026 nie udostępnia już swojego bezpośredniego interfejsu danych nowym projektom — dlatego nasza aplikacja musi zapisywać wszystko na zegarku. Na tym zegarku pamięć zapełnia się po około 30–40 minutach, a wszystko nagrane później przepada. Przy dłuższych sesjach: zakończ nagrywanie po 30–40 minutach, poczekaj na wysłanie i zacznij nowe. Części możesz potem połączyć („Porównaj i połącz”).",
   "account.recordModeGps": "Tylko GPS",
   "account.gnssMode": "Systemy satelitarne",
   "account.gnssModeBest": "Wszystkie (najlepsze pokrycie)",

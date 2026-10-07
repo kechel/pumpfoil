@@ -488,6 +488,7 @@ const fi: Record<string, string> = {
   "account.recordMode": "Tallennustila",
   "account.recordModeFull": "Täysi · 25 Hz",
   "account.recordModeLite": "Säästö · 10 Hz",
+  "account.smallBuffer": "Tässä kellossa on hyvin vähän tallennustilaa tallenteille. Garmin ei salli tiedonsiirtoa harjoituksen aikana, eikä Garmin ole vuoden 2026 alusta lähtien enää avannut suoraa datarajapintaansa uusille projekteille — siksi sovelluksemme täytyy tallentaa kaikki kelloon itse. Tässä kellossa tila täyttyy noin 30–40 minuutissa, ja kaikki sen jälkeen tallennettu katoaa. Pidempiä sessioita varten: lopeta tallennus 30–40 minuutin jälkeen, anna sen siirtyä ja aloita uusi. Osat voit yhdistää jälkikäteen (”Vertaa ja yhdistä”).",
   "account.recordModeGps": "Vain GPS",
   "account.gnssMode": "Satelliittijärjestelmät",
   "account.gnssModeBest": "Kaikki (paras kattavuus)",

@@ -483,6 +483,7 @@ const pt: Record<string, string> = {
   "account.recordMode": "Modo de gravação",
   "account.recordModeFull": "Completo · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
+  "account.smallBuffer": "Este relógio tem pouquíssima memória para gravações. A Garmin não permite transferir dados durante uma atividade e, desde o início de 2026, não abre mais sua interface direta de dados para novos projetos — por isso nosso app precisa guardar tudo no próprio relógio. Neste relógio a memória enche depois de uns 30–40 minutos, e tudo o que for gravado depois se perde. Para sessões mais longas: encerre a gravação depois de 30–40 minutos, deixe enviar e comece uma nova. Depois você pode juntar as partes (“Comparar e juntar”).",
   "account.recordModeGps": "Só GPS",
   "account.gnssMode": "Sistemas de satélite",
   "account.gnssModeBest": "Todos (melhor cobertura)",

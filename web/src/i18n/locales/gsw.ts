@@ -1239,6 +1239,7 @@ const gsw: Record<string, string> = {
   "account.activityPumpfoil": "Pumpfoil (generisch)",
   "account.activityTypeHint": "Legt fescht, als weli Aktivität d Garmin-Ufnahm i Garmin Connect erschiint.",
   "account.recordModeLite": "Sparsam · 10 Hz",
+  "account.smallBuffer": "Die Uhr het nur sehr wenig Spiicher für Ufnahme. Garmin erlaubt während ere Aktivität kei Dateübertragig, und sini diräkti Dateschnittstell macht Garmin sit Afang 2026 für nöii Projekt nümme uf — drum mues öisi App alles uf de Uhr sälber spiichere. Uf dere Uhr isch de Spiicher nach öppe 30–40 Minute voll, alles drnah gaht verlore. Für längeri Sessions: d Ufnahm nach 30–40 Minute beände, ufelade lah und nöi starte. D Teil chasch drnah zämeführe („Verglyche & zämeführe“).",
   "account.sideStep1": "Uhr per USB an de Rechner aaschliesse.",
   "account.sideStep2post": " kopiere.",
   "account.sideStep2pre": "Die .prg uf ",

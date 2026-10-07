@@ -505,6 +505,7 @@ const cs: Record<string, string> = {
   "account.recordMode": "Režim nahrávání",
   "account.recordModeFull": "Plný · 25 Hz",
   "account.recordModeLite": "Úsporný · 10 Hz",
+  "account.smallBuffer": "Tyto hodinky mají na záznamy velmi málo paměti. Garmin během aktivity nepovoluje přenos dat a od začátku roku 2026 už své přímé datové rozhraní pro nové projekty neotevírá — naše aplikace proto musí vše ukládat přímo v hodinkách. Na těchto hodinkách je paměť plná asi po 30–40 minutách a vše zaznamenané potom se ztratí. Pro delší session: ukonči záznam po 30–40 minutách, nech ho nahrát a spusť nový. Části pak můžeš sloučit („Porovnat a sloučit“).",
   "account.recordModeGps": "Jen GPS",
   "account.gnssMode": "Satelitní systémy",
   "account.gnssModeBest": "Všechny (nejlepší pokrytí)",

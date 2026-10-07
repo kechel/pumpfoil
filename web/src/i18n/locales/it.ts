@@ -1391,6 +1391,7 @@ const it: Record<string, string> = {
   "imp.public2": "L'app web stessa e il download dell'app per l'orologio.",
   "compare.session": "Sessione",
   "account.recordModeLite": "Ridotta · 10 Hz",
+  "account.smallBuffer": "Questo orologio ha pochissima memoria per le registrazioni. Garmin non consente il trasferimento dati durante un’attività e dall’inizio del 2026 non apre più la sua interfaccia dati diretta ai nuovi progetti, quindi la nostra app deve salvare tutto sull’orologio. Su questo orologio la memoria si riempie dopo circa 30–40 minuti e tutto ciò che viene registrato dopo va perso. Per sessioni più lunghe: termina la registrazione dopo 30–40 minuti, lasciala caricare e avviane una nuova. Poi puoi unire le parti («Confronta e unisci»).",
   "compare.title": "Confronto",
   "meta.errYoutube": "Sono consentiti solo link YouTube, Instagram o TikTok.",
   "imp.community3": "<b>Record &amp; classifiche</b> (nome, valore, spot, numero di sessioni/run/spot).",
