@@ -75,5 +75,7 @@ struct PhoneUploadBar: View {
         // Antippen heisst „jetzt versuchen" — solange nichts laeuft. Waehrend des Uploads waere
         // ein zweiter Anstoss wirkungslos (`drain` haelt sich an `pendingCount` selbst ab).
         .onTapGesture { if !rec.uploading { Task { await rec.drain() } } }
+        // Solange die Leiste steht, ist etwas offen -> nachfassen (ein Task fuer die ganze App).
+        .onAppear { rec.nachfassen() }
     }
 }
