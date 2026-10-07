@@ -1456,6 +1456,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   3 Apps (`org.pumpfoil.app`, `org.pumpfoil.coolwatch`, `org.pumpfoil.huawei`), dann Console → App services
   → Development → Wear Engine → „Apply" (Einzelentwickler bekaemen nur Geraeteinfo + Benachrichtigung).
   Offen: ob AGC fuer lite/wearable je eine eigene App mit eigenem Bundle-Namen verlangt.
+  **Drei Linien statt zwei (Recherche 07.10.):** Watch 5 (global HarmonyOS 6) und Ultimate nehmen vermutlich
+  nur noch ArkTS/Stage — unser `wearable/` (JS-FA) deckt nur Watch 3/4 auf HarmonyOS ≤ 4. ArkTS-Linie =
+  dritte Codebasis (Seite + Geraete-Schicht; Uebertragung + Handy-Bruecken bleiben). Erst wenn Lite auf
+  echter Hardware haelt. Beleg: docs/HUAWEI.md „Drei Linien".
 
 - **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
   Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit
