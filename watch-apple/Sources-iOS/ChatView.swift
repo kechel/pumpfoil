@@ -818,18 +818,19 @@ struct ChatRoomView: View {
     @ViewBuilder private func lesehaken(_ m: ChatMsg) -> some View {
         if isDm && m.mine, let g = gelesenBis {
             if m.id <= g {
+                // Groesser und kraeftiger (Jan, 07.10.2026: „zu klein", das Cyan kam nicht an) — wie Web.
                 ZStack(alignment: .leading) {
                     Image(systemName: "checkmark")
-                    Image(systemName: "checkmark").offset(x: 5)
+                    Image(systemName: "checkmark").offset(x: 6)
                 }
-                .font(.caption2.weight(.semibold))
+                .font(.footnote.weight(.bold))
                 .foregroundStyle(Color.accentColor)
-                .padding(.trailing, 5)
+                .padding(.trailing, 6)
                 .accessibilityElement()
                 .accessibilityLabel(Loc.t("chat.read", lang))
             } else {
                 Image(systemName: "checkmark")
-                    .font(.caption2.weight(.semibold))
+                    .font(.footnote.weight(.bold))
                     .foregroundStyle(.secondary)
                     .accessibilityLabel(Loc.t("chat.sent", lang))
             }

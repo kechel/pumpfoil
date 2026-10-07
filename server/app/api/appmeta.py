@@ -782,8 +782,10 @@ NAECHSTES: list[dict] = [
     # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
     # Knopf „Nachricht", Profilbild fuehrt dorthin. Web ist live (c27b7aa5, 1d7ac4a0, 5272d67a,
     # b89044e2). Phone 1.1.38 (52) + Wear 1.2.38 (1048, ohne eigene Aenderung mitgebumpt), iOS 1.1.42 (47).
+    # 07.10.2026 neu gebumpt (Jan: „Versionen pumpen, dann mache ich neue Releases fertig"):
+    # Phone 1.1.39 (53) + Wear 1.2.39 (1049), iOS 1.1.43 (48) — dazu Foil-Chips und Lesehaken.
     # Kamera-Knopf ab hier IMMER (Jan, 02.10.); CHAT_PHOTOS_ALL=1 ist seit 02.10. gesetzt.
-    {"name": "Android phone + Wear OS", "version": "1.1.38 / 1.2.38",
+    {"name": "Android phone + Wear OS", "version": "1.1.39 / 1.2.39",
      "items": [
          "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
          "In direct chats, two ticks show that your message has been read.",
@@ -794,7 +796,7 @@ NAECHSTES: list[dict] = [
          # 01.10.2026: fafdd410.
          "The longest-run record shows kilometres from 1,000 m on.",
      ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.42",
+    {"name": "iPhone + Apple Watch", "version": "1.1.43",
      "items": [
          "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
          "In direct chats, two ticks show that your message has been read.",

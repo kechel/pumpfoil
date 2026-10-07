@@ -726,10 +726,11 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                             val gb = gelesenBis
                             if (isDm && m.mine && gb != null) {
                                 Spacer(Modifier.width(4.dp))
+                                // 18 dp statt 14 (Jan, 07.10.2026: „zu klein") — wie Web; Farbe = Marken-Cyan.
                                 if (m.id <= gb) Icon(Icons.Filled.DoneAll, contentDescription = I18n.t("chat.read"),
-                                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                                 else Icon(Icons.Filled.Done, contentDescription = I18n.t("chat.sent"),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                             }
                         }
                         // Reine Bild-Nachricht: kein leerer Textblock, nur die Bilder.
