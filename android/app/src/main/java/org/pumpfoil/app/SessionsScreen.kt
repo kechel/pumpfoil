@@ -794,7 +794,7 @@ private fun SessionChips(
  * auffallen, wie das Skateboard.
  */
 @Composable
-fun GeraeteAbzeichen(label: String, placement: String?) {
+fun GeraeteAbzeichen(label: String, placement: String?, schrift: androidx.compose.ui.text.TextStyle? = null) {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val brett = placement == "board"
     val fg = if (brett) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -807,7 +807,7 @@ fun GeraeteAbzeichen(label: String, placement: String?) {
         Icon(Icons.Filled.Watch, contentDescription = null, tint = fg, modifier = Modifier.size(13.dp))
         Spacer(Modifier.width(4.dp))
         Text(if (brett) "$label · ${I18n.t("session.onBoard")}" else label,
-            style = MaterialTheme.typography.labelSmall,
+            style = schrift ?: MaterialTheme.typography.labelSmall,
             fontWeight = if (brett) FontWeight.SemiBold else FontWeight.Normal,
             color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }

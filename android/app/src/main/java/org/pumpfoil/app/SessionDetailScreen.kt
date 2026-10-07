@@ -499,8 +499,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     LaunchedEffect(selectedRun) { onRunSelected(selectedRun) }   // hoch melden -> Teilen-Vorauswahl (#37)
     var weightKg by remember { mutableStateOf(0.0) }
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
-    var editCaption by remember(s.id) { mutableStateOf(false) }
-    var draftCaption by remember(s.id) { mutableStateOf("") }
     var allFoils by remember(s.id) { mutableStateOf<List<Foil>>(emptyList()) }
     var mineIds by remember(s.id) { mutableStateOf<Set<Int>>(emptySet()) }
     // Restliches Setup: Katalog/Listen fuer die Auswahlfelder. Mast und Shim sind reine Werte aus
@@ -532,26 +530,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 myBoards = try { Api.boards() } catch (_: Exception) { emptyList() }
             } catch (_: Exception) {}
         }
-    }
-    if (editCaption) {
-        AlertDialog(
-            onDismissRequest = { editCaption = false },
-            title = { Text(I18n.t("sd.caption")) },
-            text = {
-                OutlinedTextField(
-                    value = draftCaption, onValueChange = { if (it.length <= 30) draftCaption = it },
-                    singleLine = true, supportingText = { Text("${draftCaption.length}/30") },
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val c = draftCaption.trim(); editCaption = false
-                    caption = c
-                    scope.launch { try { Api.setCaption(s.id, c) } catch (_: Exception) {} }
-                }) { Text(I18n.t("common.save")) }
-            },
-            dismissButton = { TextButton(onClick = { editCaption = false }) { Text(I18n.t("common.cancel")) } },
-        )
     }
     Column(
         Modifier.verticalScroll(rememberScrollState()),
@@ -655,14 +633,17 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // eigenen Block mit 2 dp Abstand — als einzelne Kinder der Seiten-Column lagen 8 dp
         // zwischen jeder Textzeile, was oben wie eine halbe leere Seite wirkte (Jan, 17.09.).
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            // Alles in derselben normalen Schriftgroesse (Jan, 07.10.2026); Zeit + Uhr in EINER Zeile,
+            // solange es passt (FlowRow bricht sonst um), der Bildtext fett und nur, wenn es einen gibt.
+            val normal = MaterialTheme.typography.bodyLarge
             s.placeName?.takeIf { it.isNotBlank() }?.let {
-                Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(it, style = normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             s.placeWater?.takeIf { it.isNotBlank() && it != s.placeName }?.let {
-                Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(it, style = normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            // Start–End-Zeit + Dauer (wie Web); End-Zeit kommt vom Server (ggf. aus letztem GPS abgeleitet).
-            run {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                // Start–End-Zeit + Dauer (wie Web); End-Zeit kommt vom Server (ggf. aus letztem GPS abgeleitet).
                 val sMs = epochMs(s.startedAt); val eMs = epochMs(s.endedAt)
                 if (sMs != null && eMs != null && eMs > sMs) {
                     val secs = ((eMs - sMs) / 1000).toInt()
@@ -670,13 +651,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                               else "%d:%02d min".format(secs / 60, secs % 60)
                     val oc = I18n.t("sessions.oclock").let { if (it.isBlank()) "" else " $it" }
                     Text("${hhmmLoc(s.startedAt, s.tz)} – ${hhmmLoc(s.endedAt, s.tz)}$oc · ${I18n.t("sd.duration")} $dur",
-                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        style = normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                // Uhr-Badge: mit welcher Uhr aufgenommen — dasselbe Abzeichen wie auf den Karten, hier
+                // in normaler Groesse.
+                s.deviceLabel?.takeIf { it.isNotBlank() }?.let { GeraeteAbzeichen(it, s.placement, schrift = normal) }
             }
-            // Uhr-Badge: mit welcher Uhr aufgenommen.
-            // Dasselbe Abzeichen wie auf den Karten (SessionsScreen.GeraeteAbzeichen).
-            s.deviceLabel?.takeIf { it.isNotBlank() }?.let { GeraeteAbzeichen(it, s.placement) }
-            if (caption.isNotBlank()) Text(caption)
+            if (caption.isNotBlank()) Text(caption, style = normal, fontWeight = FontWeight.Bold)
         }
         // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
         // (mehrere, wie PWA). Tippen -> Vollbild/Video.
@@ -719,6 +700,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             SetupBearbeitenDialog(
                 s, foils = allFoils, meineFoils = mineIds, stabs = allStabs, meineStabs = myStabIds,
                 masten = myMasts, shims = myShims, boards = myBoards,
+                caption = caption, onCaption = { caption = it },
                 onDismiss = { setupDialog = false }, onGespeichert = { onReload() },
             )
         }
@@ -728,9 +710,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    TextButton(onClick = { draftCaption = caption; editCaption = true }) {
-                        Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
-                    }
                     OutlinedButton(onClick = {
                         picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     }) { Text(I18n.t("sd.addPhoto")) }

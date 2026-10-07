@@ -68,7 +68,7 @@ internal fun SetupZeile(s: SessionDetail, kannBearbeiten: Boolean, onEdit: () ->
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             if (teile.isEmpty()) I18n.t("setup.editTitle") else teile.joinToString(" · "),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f),
         )
@@ -110,6 +110,7 @@ internal fun SetupBearbeitenDialog(
     foils: List<Foil>, meineFoils: Set<Int>,
     stabs: List<StabBrief>, meineStabs: Set<Int>,
     masten: List<Int>, shims: List<Double>, boards: List<BoardBrief>,
+    caption: String, onCaption: (String) -> Unit,
     onDismiss: () -> Unit, onGespeichert: suspend () -> Unit,
 ) {
     val su = s.setup
@@ -126,6 +127,7 @@ internal fun SetupBearbeitenDialog(
     var shim by remember { mutableStateOf(startShim) }
     var boardId by remember { mutableStateOf(startBoard) }
     var gewicht by remember { mutableStateOf(startGewicht) }
+    var bildtext by remember { mutableStateOf(caption) }
     var busy by remember { mutableStateOf(false) }
     var fehler by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -142,10 +144,11 @@ internal fun SetupBearbeitenDialog(
             if (shim != startShim) shim?.let { put("shim_deg", it) } ?: put("shim_deg", JsonNull)
             if (boardId != startBoard) boardId?.let { put("board_id", it) } ?: put("board_id", JsonNull)
             if (g != startGewicht) kg?.let { put("rider_weight_kg", it) } ?: put("rider_weight_kg", JsonNull)
+            if (bildtext.trim() != caption.trim()) put("caption", bildtext.trim())
         }
         busy = true
         scope.launch {
-            try { Api.setSessionMeta(s.id, body); onGespeichert(); onDismiss() }
+            try { Api.setSessionMeta(s.id, body); onCaption(bildtext.trim()); onGespeichert(); onDismiss() }
             catch (e: Exception) { fehler = e.message ?: "Error" }
             finally { busy = false }
         }
@@ -156,6 +159,12 @@ internal fun SetupBearbeitenDialog(
         title = { Text(I18n.t("setup.editTitle")) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // Bildtext (vorher eigener Knopf + Dialog), max. 30 Zeichen wie bisher; leer = keiner.
+                OutlinedTextField(
+                    value = bildtext, onValueChange = { if (it.length <= 30) bildtext = it },
+                    label = { Text(I18n.t("sd.caption")) }, singleLine = true,
+                    supportingText = { Text("${bildtext.length}/30") }, modifier = Modifier.fillMaxWidth(),
+                )
                 // Das gewaehlte Foil/den gewaehlten Stab mit in die eigene Gruppe (sonst steht er nur
                 // tief im Katalog) — dieselbe Regel wie bisher im Dropdown.
                 val fSchnell = foils.filter { it.id in meineFoils || it.id == foilId }
