@@ -933,7 +933,7 @@ struct SessionDetailView: View {
         let v = trackVals(track)
         return AnyView(VStack(alignment: .leading, spacing: 16) {
             modeRow(s, v)
-            smoothingRow
+            smoothingRow(s)
             trackMap(track, segs, v, hoehe: 300)
                 .overlay(alignment: .topTrailing) { mapFullButton }
             legendRow(v)
@@ -988,20 +988,24 @@ struct SessionDetailView: View {
         return base + fromArcs
     }
 
-    // Farbmodus (Speed/Puls/Pump/Carves) + Marker-Umschalter in DERSELBEN Zeile.
+    // Farbmodus (Speed/Puls/Pump/Carves) ALLEIN in der ersten Zeile, damit die Beschriftungen
+    // lesbar bleiben — vorher teilten sie sich die Zeile mit zwei Schaltern und wurden zu „S… P…"
+    // (Jan, 07.10.2026). Die Schalter stehen jetzt rechtsbuendig in der Zeile darunter.
     @ViewBuilder private func modeRow(_ s: SessionDetail, _ v: TrackVals) -> some View {
         if v.hasHr || v.hasPump || v.hasCarves {
-            HStack(spacing: 12) {
-                colorModePicker(v)
-                if (s.analysis?.pump_count ?? 0) > 0 {
-                    Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
-                }
-                // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
-                // der Schalter stehen, sonst koennte man ihn nie einschalten), leer = keine.
-                if attempts == nil || !(attempts?.isEmpty ?? true) {
-                    Toggle(Loc.t("sd.showAttempts", lang), isOn: $showAttempts).font(.caption).fixedSize()
-                }
-            }
+            colorModePicker(v)
+        }
+    }
+
+    // Schalter fuer Pump-Marker und Startversuche (rechtsbuendig in der Glaettungs-Zeile).
+    @ViewBuilder private func kartenSchalter(_ s: SessionDetail) -> some View {
+        if (s.analysis?.pump_count ?? 0) > 0 {
+            Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
+        }
+        // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
+        // der Schalter stehen, sonst koennte man ihn nie einschalten), leer = keine.
+        if attempts == nil || !(attempts?.isEmpty ?? true) {
+            Toggle(Loc.t("sd.showAttempts", lang), isOn: $showAttempts).font(.caption).fixedSize()
         }
     }
 
@@ -1016,16 +1020,17 @@ struct SessionDetailView: View {
         .pickerStyle(.segmented)
     }
 
-    // Glättung (nur Speed) in eigener Zeile darunter.
-    @ViewBuilder private var smoothingRow: some View {
-        if colorMode == .speed {
-            HStack {
+    // Zweite Zeile: links die Glaettung (nur bei Speed), rechts die Schalter.
+    private func smoothingRow(_ s: SessionDetail) -> some View {
+        HStack(spacing: 12) {
+            if colorMode == .speed {
                 Picker("", selection: $win) {
                     Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
                 }
-                .pickerStyle(.segmented).frame(maxWidth: 200)
-                Spacer()
+                .pickerStyle(.segmented).frame(maxWidth: 160)
             }
+            Spacer(minLength: 0)
+            kartenSchalter(s)
         }
     }
 
@@ -1609,6 +1614,14 @@ struct SessionDetailView: View {
             let s: SessionDetail
             if let cached {
                 s = cached
+                // Trotzdem kurz nachfragen (07.10.2026): data_version kennt nur die Session selbst, nicht
+                // Profil-Standards wie das geerbte Gewicht. Der Server antwortet bei „unveraendert" mit 304
+                // (ETag, URLCache prueft nach) — das kostet fast nichts.
+                Task {
+                    if let fresh = try? await Api.session(sid), fresh.id == sid {
+                        session = fresh; SessionCache.store(fresh)
+                    }
+                }
             } else {
                 s = try await Api.session(sid)
                 SessionCache.store(s)

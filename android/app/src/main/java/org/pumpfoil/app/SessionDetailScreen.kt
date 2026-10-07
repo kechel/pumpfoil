@@ -205,9 +205,16 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
         val cached = if (session == null && reloadTick == 0) SessionCache.load(id, dataVersion) else null
         if (cached != null) {
             session = cached; error = null; loading = false
+            // Trotzdem kurz nachfragen (07.10.2026): data_version kennt nur die Session selbst, nicht
+            // Profil-Standards wie das geerbte Gewicht. Mit ETag kostet das bei „unveraendert" nur ein 304.
+            val (fresh, tag) = try { Api.sessionPruefen(id, SessionCache.etag(id)) } catch (_: Exception) { null to null }
+            if (fresh != null) { session = fresh; SessionCache.store(fresh, tag) }
         } else {
-            try { val s = Api.session(id); session = s; SessionCache.store(s); error = null }
-            catch (e: Exception) { error = e.message }
+            try {
+                val (s, tag) = Api.sessionPruefen(id, null)
+                if (s != null) { session = s; SessionCache.store(s, tag) }
+                error = null
+            } catch (e: Exception) { error = e.message }
             loading = false
         }
     }
@@ -886,43 +893,38 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         // Farbmodi (Puls/Pump/Carves), wo es keine Glättung gibt.
                         // Glaettung: nur im Speed-Modus — bei Puls/Pump/Carves gibt es nichts zu
                         // glaetten (die PWA macht es genauso). Eigene Zeile, links.
-                        if (colorMode == ColorMode.SPEED) {
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Text(I18n.t("sd.smoothing"), style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(end = 8.dp))
-                                listOf(1, 3, 5).forEach { w ->
-                                    FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
-                                        colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
-                                }
-                            }
-                        }
-                        // Die zwei Schalter in einer eigenen, UMBRECHENDEN Zeile (FlowRow), rechts.
-                        // Vorher stand „Marker" am Ende der oberen Zeile — und die scrollt waagerecht,
-                        // der Schalter hing also halb ausserhalb (Jans Screenshot 02.09.).
+                        // Glaettung (nur Speed, links) und die zwei Schalter (rechts) in EINER Zeile —
+                        // vorher drei Zeilen (Jan, 07.10.2026: „Platz sparen"). FlowRow bricht nur um,
+                        // wenn es wirklich nicht passt.
                         val pumpAnzahl = a?.pumpCount
                         val zeigeMarker = pumpAnzahl != null && pumpAnzahl > 0
                         // Startversuche nur anbieten, wenn es welche gibt (oder noch geladen wird).
                         // Bewusst NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den ausgewerteten
                         // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
                         val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
-                        if (zeigeMarker || zeigeVersuchsSchalter) {
+                        if (colorMode == ColorMode.SPEED || zeigeMarker || zeigeVersuchsSchalter) {
                             FlowRow(
                                 Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End,
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalArrangement = Arrangement.Center,
                             ) {
-                                if (zeigeMarker) {
-                                    Row(verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(end = 12.dp)) {
+                                if (colorMode == ColorMode.SPEED) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        listOf(1, 3, 5).forEach { w ->
+                                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
+                                                colors = cyanChipColors(), modifier = Modifier.padding(end = 6.dp))
+                                        }
+                                    }
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (zeigeMarker) {
                                         Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Spacer(Modifier.width(4.dp))
                                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
+                                        Spacer(Modifier.width(12.dp))
                                     }
-                                }
-                                if (zeigeVersuchsSchalter) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (zeigeVersuchsSchalter) {
                                         Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Spacer(Modifier.width(4.dp))
