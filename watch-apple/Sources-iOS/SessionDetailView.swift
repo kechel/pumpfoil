@@ -2070,9 +2070,14 @@ private struct PowerCard: View {
         let avgKmh: Double? = (analysis.foiling_time_s ?? 0) > 0 && analysis.foiling_distance_m != nil
             ? analysis.foiling_distance_m! / analysis.foiling_time_s! * 3.6 : nil
         let topKmh = analysis.max_speed_mps.map { $0 * 3.6 }
+        // Tempo 0 (Session ohne Laeufe, max_speed_mps = 0.0) ergibt in der Physik ∞·0 = NaN, und
+        // Int(NaN) beendet die App — so stuerzte jede aussortierte Session ab, sobald Gewicht und
+        // Foil-Masse bekannt waren (Peter3, 07.10.2026). Deshalb nur positive, endliche Werte.
         func watt(_ kmh: Double?) -> String {
-            guard let kmh else { return "–" }
-            return "\(Int(FoilPhysics.computeFoilPowerAtSpeed(foil: dims, speedKmh: kmh, rider: rider, pump: pump).power.rounded())) W"
+            guard let kmh, kmh > 0 else { return "–" }
+            let p: Double = FoilPhysics.computeFoilPowerAtSpeed(foil: dims, speedKmh: kmh, rider: rider, pump: pump).power
+            guard p.isFinite else { return "–" }
+            return "\(Int(p.rounded())) W"
         }
         return VStack(alignment: .leading, spacing: 6) {
             Text("\(Loc.t("sd.power", lang)) (\(foil.brand) \(foil.model) \(foil.size))")
