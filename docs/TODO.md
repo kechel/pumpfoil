@@ -1458,8 +1458,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Offen: ob AGC fuer lite/wearable je eine eigene App mit eigenem Bundle-Namen verlangt.
   **Drei Linien statt zwei (Recherche 07.10.):** Watch 5 (global HarmonyOS 6) und Ultimate nehmen vermutlich
   nur noch ArkTS/Stage — unser `wearable/` (JS-FA) deckt nur Watch 3/4 auf HarmonyOS ≤ 4. ArkTS-Linie =
-  dritte Codebasis (Seite + Geraete-Schicht; Uebertragung + Handy-Bruecken bleiben). Erst wenn Lite auf
-  echter Hardware haelt. Beleg: docs/HUAWEI.md „Drei Linien".
+  dritte Codebasis (Seite + Geraete-Schicht; Uebertragung + Handy-Bruecken bleiben). Beleg: docs/HUAWEI.md
+  „Drei Linien". **Gebaut 07.10. (Jan: „bauen wir gleich mit"): `watch-huawei/arkts/`**, Kern bytegleich gegen
+  kern.js getestet, Geraete-Schicht/Seite nie uebersetzt. Offen: Fingerabdruck der ArkTS-App auf der
+  Handy-Seite (Android kennt nur EINEN `HUAWEI_WATCH_FP` — hat die ArkTS-App einen anderen, braucht die
+  Bruecke eine Liste), `client_id` in module.json5, SENDE_OK-Code. Ultimate: Lite oder ArkTS unklar.
+  **iOS:** laut Huawei koennen iPhone-Nutzer keine Fremd-Apps auf die Uhr installieren -> iOS-Bruecke nicht bewerben.
 
 - **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
   Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit

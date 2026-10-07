@@ -12,8 +12,14 @@ common/      Quelle fuer beide Projekte (in Node getestet: node --test test/)
   konfig.js    Paketname + Fingerabdruck der Android-App, App-Version
 lite/        DevEco-Projekt fuer Lite Wearables: Watch GT 3/4/5/6 (+Pro), Fit 3/4, D2
 wearable/    DevEco-Projekt fuer Watch 3/4 (HarmonyOS 2-4, JS-FA) — Seite/Texte kommen per sync aus lite/
-             Watch 5 / Ultimate / HarmonyOS 5+ brauchen ArkTS (Stage) — FEHLT, s. docs/HUAWEI.md „Drei Linien"
-test/        Node-Tests
+arkts/       DevEco-Projekt fuer Watch 5 und jede Uhr mit HarmonyOS 5+ (ArkTS, Stage-Modell, API 20/21)
+               common/Kern.ets     derselbe Kern in ArkTS — test/arkts-kern.test.mjs prueft ihn BYTEGLEICH
+                                   gegen common/kern.js (tsc aus web/node_modules). Aenderung am Kern =
+                                   beide Dateien aendern, der Test faellt sonst.
+               common/Recorder.ets Geraete-Schicht (Kits: Sensor, Location, fileIo, WearEngine,
+                                   BackgroundTasks); liefert anders als Lite ein GPS-Tempo
+               pages/Index.ets     dieselbe Seite wie lite/ (Texte in resources/, 4 Sprachen wie lite/)
+test/        Node-Tests (kern.test.mjs = JS-Kern, arkts-kern.test.mjs = ArkTS-Kern gegen JS-Kern)
 sync-common.sh  kopiert common/ in die Projekte — nach JEDER Aenderung an common/ ausfuehren
 ```
 

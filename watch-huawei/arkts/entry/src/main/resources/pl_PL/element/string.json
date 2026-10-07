@@ -1,0 +1,72 @@
+{
+  "string": [
+    {
+      "name": "start",
+      "value": "Przytrzymaj: start"
+    },
+    {
+      "name": "pause",
+      "value": "Przytrzymaj: pauza"
+    },
+    {
+      "name": "resume",
+      "value": "Wznów"
+    },
+    {
+      "name": "stop",
+      "value": "Stop"
+    },
+    {
+      "name": "paused",
+      "value": "Pauza"
+    },
+    {
+      "name": "errors",
+      "value": "Błędy"
+    },
+    {
+      "name": "gpsWait",
+      "value": "Czekam na GPS"
+    },
+    {
+      "name": "toPhone",
+      "value": "Do telefonu:"
+    },
+    {
+      "name": "openPhone",
+      "value": "otwórz Pumpfoil w telefonie"
+    },
+    {
+      "name": "allSent",
+      "value": "Wszystko wysłane"
+    },
+    {
+      "name": "holdStart",
+      "value": "Trzymaj dalej: start"
+    },
+    {
+      "name": "holdPause",
+      "value": "Trzymaj dalej: pauza"
+    },
+    {
+      "name": "holdResume",
+      "value": "Trzymaj dalej: wznów"
+    },
+    {
+      "name": "holdStop",
+      "value": "Trzymaj dalej: stop"
+    },
+    {
+      "name": "stopFirst",
+      "value": "Najpierw zatrzymaj nagrywanie"
+    },
+    {
+      "name": "perm_reason",
+      "value": "Zapisuje prędkość, pozycję, tętno i ruch podczas sesji pumpfoil."
+    },
+    {
+      "name": "bg_reason",
+      "value": "Nagrywa dalej przy wyłączonym ekranie."
+    }
+  ]
+}

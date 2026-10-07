@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "1.0.1",
+  "description": "Pumpfoil recorder for HUAWEI watches with HarmonyOS 5+ (ArkTS)",
+  "main": "",
+  "author": "",
+  "license": "AGPL-3.0",
+  "dependencies": {}
+}

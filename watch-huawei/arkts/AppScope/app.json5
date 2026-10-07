@@ -1,0 +1,12 @@
+{
+  "app": {
+    // Gleicher Bundle-Name wie lite/ und wearable/ — ob AppGallery Connect je Uhren-Linie einen
+    // eigenen verlangt, ist offen (docs/TODO.md). Dann hier UND in den Handy-Bruecken aendern.
+    "bundleName": "org.pumpfoil.huawei",
+    "vendor": "pumpfoil",
+    "versionCode": 1000001,
+    "versionName": "1.0.1",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}
