@@ -679,6 +679,13 @@ enum Api {
         try await sendVoid("/api/sessions/\(id)/meta", method: "PUT", body: body)
     }
 
+    /// Mehrere Felder einer Session auf einmal setzen (Setup-Popup, 07.10.2026). `body` enthaelt
+    /// nur, was sich geaendert hat; NSNull heisst „zurueck auf den Standard des Profils".
+    static func setSessionMeta(_ id: Int, _ body: [String: Any]) async throws {
+        guard !body.isEmpty else { return }
+        try await sendVoid("/api/sessions/\(id)/meta", method: "PUT", body: body)
+    }
+
     static func flagNotPumpfoil(_ id: Int, note: String? = nil) async throws {
         var body: [String: Any] = [:]
         if let n = note, !n.isEmpty { body["note"] = n }

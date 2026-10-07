@@ -966,6 +966,9 @@ data class SessionSetup(
     @SerialName("shim_deg") val shimDeg: Double? = null,
     @SerialName("shim_is_default") val shimIsDefault: Boolean = true,
     val board: BoardBrief? = null,
+    // Fahrergewicht dieser Session (kg); fehlt bei fremden Sessions, wenn der Besitzer es verbirgt.
+    @SerialName("weight_kg") val weightKg: Int? = null,
+    @SerialName("weight_is_default") val weightIsDefault: Boolean = true,
 )
 
 @Serializable

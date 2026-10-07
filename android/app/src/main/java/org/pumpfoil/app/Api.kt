@@ -661,6 +661,13 @@ object Api {
         http("PUT", "/api/sessions/$id/meta", body.toString(), auth = true)
     }
 
+    // Mehrere Felder einer Session auf einmal (Setup-Popup, 07.10.2026). `body` enthaelt nur, was sich
+    // geaendert hat; JsonNull heisst „zurueck auf den Standard des Profils".
+    suspend fun setSessionMeta(id: Int, body: JsonObject): Unit = withContext(Dispatchers.IO) {
+        if (body.isEmpty()) return@withContext
+        http("PUT", "/api/sessions/$id/meta", body.toString(), auth = true)
+    }
+
     // „Sass das Handy am Brett?" — der Server entscheidet, ob gefragt wird.
     suspend fun boardHint(id: Int): BoardHint = withContext(Dispatchers.IO) {
         json.decodeFromString(BoardHint.serializer(), http("GET", "/api/sessions/$id/board-hint", null, auth = true))
