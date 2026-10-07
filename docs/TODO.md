@@ -1438,7 +1438,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit
   `scripts/messweg-pruefen.py --ab-version 1.2.40` pruefen (gps hs, Abdeckung, Luecken, Accel ~25 Hz); bei
   Problemen Notschalter `WEAR_GPS_HS=off` / `WEAR_ACCEL_BATCH=off` in server/.env + Neustart (global, greift beim
-  naechsten App-Oeffnen mit Netz). Play verlangt noch die „Erklaerung fuer Gesundheits-Apps" (App-Inhalte).
+  naechsten App-Oeffnen mit Netz). „Erklaerung fuer Gesundheits-Apps" hat Jan mit eingereicht (Pflicht dafuer).
+  Langer Lauf danach (Emulator, synthetische Route, #13905): 21,7 min mit 77 s Pause, gps hs, 1193 Punkte,
+  0 Doppelte, streng steigend, alle mit Tempo; Chunks 0-244 lueckenlos; Accel 124 Bloecke 25,0 Hz,
+  exact_chunks. Einzige Luecke 16 s direkt nach dem Fortsetzen (und 15 s bis zum ersten Punkt beim Start) =
+  Health Services startet die Uebung neu; auf echter Uhr beobachten, ob das kuerzer ist als im Emulator.
 - **🟡 07.10. — Wear 1.2.40 (1050) / Phone 1.1.40 (54) GEBAUT: Messweg nach Doku.** GPS aus der Health-Services-
   Uebung (`isGpsEnabled`, LOCATION+SPEED, Zeit je Punkt aus `timeDurationFromBoot`), Rueckfall auf
   LocationManager (Uhr-GNSS) bei Fehlschlag, Ende, Schweigen > 300 s oder „tethered" (Handy-GPS, Jans Regel);
