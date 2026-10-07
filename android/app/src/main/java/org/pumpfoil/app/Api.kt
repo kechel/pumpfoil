@@ -261,8 +261,35 @@ object Api {
         )
     }
 
-    suspend fun session(id: Int): SessionDetail = withContext(Dispatchers.IO) {
-        json.decodeFromString(SessionDetail.serializer(), http("GET", "/api/sessions/$id", null, auth = true))
+    suspend fun session(id: Int): SessionDetail = sessionPruefen(id, null).first
+        ?: throw RuntimeException("Serverfehler (304)")
+
+    /** Session-Detail mit ETag (07.10.2026): mit `etag` fragt die App nur nach, ob sich etwas
+     *  geaendert hat — der Server antwortet dann 304 ohne Inhalt (Rueckgabe `null to etag`). Der ETag
+     *  deckt auch aufgeloestes Foil/Setup ab (Profil-Standards wie das Gewicht), `data_version` nicht. */
+    suspend fun sessionPruefen(id: Int, etag: String?): Pair<SessionDetail?, String?> = withContext(Dispatchers.IO) {
+        val conn = (URL("$BASE/api/sessions/$id").openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"; connectTimeout = 15000; readTimeout = 30000
+            useCaches = false
+            setRequestProperty("X-Pumpfoil-Client", CLIENT_ID)
+            token?.let { setRequestProperty("Authorization", "Bearer $it") }
+            if (!OnlineStatus.vordergrund) setRequestProperty("X-Foil-Sichtbar", "0")
+            if (!etag.isNullOrBlank()) setRequestProperty("If-None-Match", etag)
+        }
+        val code = conn.responseCode
+        if (code == 304) return@withContext null to etag
+        if (code !in 200..299) {
+            conn.disconnect()
+            // Fehler/401 wie gewohnt ueber den normalen Weg (Abmelden usw.).
+            return@withContext json.decodeFromString(SessionDetail.serializer(),
+                http("GET", "/api/sessions/$id", null, auth = true)) to null
+        }
+        conn.getHeaderField("X-Refresh-Token")?.takeIf { it.isNotBlank() }?.let { rt ->
+            token = rt
+            appContext?.let { c -> prefs(c).edit().putString("token", rt).apply() }
+        }
+        val text = conn.inputStream.bufferedReader().readText()
+        json.decodeFromString(SessionDetail.serializer(), text) to conn.getHeaderField("ETag")
     }
 
     // Carve-Erkennung (nur Anzeige): Grad-Buckets + geglättete 25-Hz-Bögen mit Kurvenlage-g.

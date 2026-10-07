@@ -16,7 +16,11 @@ enum SessionCache {
 
     private static func file(_ id: Int) -> URL { dir.appendingPathComponent("\(id).json") }
 
-    private struct Entry: Codable { let version: Int; let detail: SessionDetail }
+    // `schema`: Stand des App-Datenmodells. Aendert sich SessionDetail (neues Feld wie das Gewicht je
+    // Session, 07.10.2026), gelten alte Eintraege nicht mehr — sie wurden OHNE das Feld gespeichert und
+    // wuerden es sonst verschweigen, bis sich die Session selbst aendert.
+    private struct Entry: Codable { let version: Int; let detail: SessionDetail; let schema: Int? }
+    private static let schema = 2
 
     // Cache-Treffer nur, wenn version == erwarteter data_version (aus der Liste). Aktualisiert
     // die mtime (LRU) und gibt das gecachte Detail zurück; sonst nil (-> laden).
@@ -24,14 +28,14 @@ enum SessionCache {
         guard let expectedVersion,
               let raw = try? Data(contentsOf: file(id)),
               let entry = try? JSONDecoder().decode(Entry.self, from: raw),
-              entry.version == expectedVersion else { return nil }
+              entry.version == expectedVersion, entry.schema == schema else { return nil }
         try? FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: file(id).path)
         return entry.detail
     }
 
     static func store(_ detail: SessionDetail) {
         guard let version = detail.data_version else { return }
-        let entry = Entry(version: version, detail: detail)
+        let entry = Entry(version: version, detail: detail, schema: schema)
         if let data = try? JSONEncoder().encode(entry) {
             try? data.write(to: file(detail.id), options: .atomic)
         }
