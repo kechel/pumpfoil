@@ -1451,6 +1451,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Server-Geraeteliste (Plattform „huawei" aus dem Token-Label?), ROADMAP/Coming-next, Beta-Aufruf-Entwurf.
   Jan liefert: Bundle-Name, SHA-256 Play-Key, Wear-Engine-App-ID, iOS Client-ID/Secrets (NICHT ins Repo),
   Signierzertifikate. Antrag „Apply for Wear Engine" ~2 Wochen — frueh starten. Memory: huawei-recorder-stand.
+  **07.10. abends:** HUAWEI-Developers-Konto als Enterprise (SmartKomm GmbH) zur Verifizierung eingereicht,
+  Ergebnis per Mail an huawei@pumpfoil.org in 1–2 Werktagen. Danach: HUAWEI-ID-Dienst, AGC-Projekt mit
+  3 Apps (`org.pumpfoil.app`, `org.pumpfoil.coolwatch`, `org.pumpfoil.huawei`), dann Console → App services
+  → Development → Wear Engine → „Apply" (Einzelentwickler bekaemen nur Geraeteinfo + Benachrichtigung).
+  Offen: ob AGC fuer lite/wearable je eine eigene App mit eigenem Bundle-Namen verlangt.
 
 - **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
   Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit
