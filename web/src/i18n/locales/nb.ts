@@ -500,6 +500,7 @@ const nb: Record<string, string> = {
   "account.recordMode": "Opptaksmodus",
   "account.recordModeFull": "Full · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
+  "account.smallBuffer": "Denne klokken har svært lite lagringsplass til opptak. Garmin tillater ikke dataoverføring under en aktivitet, og siden starten av 2026 åpner Garmin ikke lenger sitt direkte datagrensesnitt for nye prosjekter — derfor må appen vår lagre alt på selve klokken. På denne klokken er lageret fullt etter omtrent 30–40 minutter, og alt som tas opp etter det går tapt. For lengre økter: avslutt opptaket etter 30–40 minutter, la det lastes opp og start et nytt. Delene kan du slå sammen etterpå («Sammenlign og slå sammen»).",
   "account.recordModeGps": "Bare GPS",
   "account.gnssMode": "Satellittsystemer",
   "account.gnssModeBest": "Alle (best dekning)",

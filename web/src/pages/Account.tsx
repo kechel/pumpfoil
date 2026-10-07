@@ -308,6 +308,15 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     </button>
                   )
                 )}
+                {/* Speicherarme Garmin-Uhren (96-KB-Klasse, Instinct 2 & Co.): der Puffer reicht nur
+                    fuer ~30-40 min, weil Garmin waehrend der Aktivitaet kein Netz erlaubt — danach
+                    verwirft die App. IMMER zeigen, nicht nur nach einem Verlust (Jan, 07.10.2026;
+                    Anlass u460: zweimal nach 44 min abgeschnitten, Laeufe 4-6 fehlten). */}
+                {!d.revoked_at && d.platform === "garmin" && d.seiten_klasse === "lite" && (
+                  <p className="mt-2 rounded-lg border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
+                    {t("account.smallBuffer")}
+                  </p>
+                )}
                 {/* Aufzeichnungsmodus getrennt je Uhr (nur aktive Geräte). */}
                 {!d.revoked_at && (
                   <div className="mt-2">

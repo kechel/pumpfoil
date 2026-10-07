@@ -483,6 +483,7 @@ const ja: Record<string, string> = {
   "account.recordMode": "記録モード",
   "account.recordModeFull": "フル · 25 Hz",
   "account.recordModeLite": "ライト · 10 Hz",
+  "account.smallBuffer": "この時計は記録用のストレージがとても少なめです。Garmin はアクティビティ中のデータ転送を許可しておらず、2026 年初めからは新しいプロジェクトに直接のデータ連携も提供していません。そのため、アプリはすべてを時計本体に保存する必要があります。この時計では約 30〜40 分でストレージがいっぱいになり、それ以降の記録は失われます。長いセッションでは、30〜40 分で記録を終了してアップロードし、新しく開始してください。分けた記録はあとで統合できます（「比較して統合」）。",
   "account.recordModeGps": "GPS のみ",
   "account.gnssMode": "衛星システム",
   "account.gnssModeBest": "すべて（最良のカバー）",

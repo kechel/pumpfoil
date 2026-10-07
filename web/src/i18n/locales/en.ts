@@ -519,6 +519,7 @@ const en: Record<string, string> = {
   "account.recordMode": "Recording mode",
   "account.recordModeFull": "Full · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
+  "account.smallBuffer": "This watch has very little storage for recordings. Garmin doesn’t allow data transfer during an activity, and since early 2026 Garmin no longer opens its direct data interface to new projects — so our app has to store everything on the watch itself. On this watch that storage is full after about 30–40 minutes, and anything recorded after that is lost. For longer sessions: end the recording after 30–40 minutes, let it upload and start a new one. You can merge the parts afterwards (“Compare & merge”).",
   "account.recordModeGps": "GPS only",
   "account.gnssMode": "Satellite systems",
   "account.gnssModeBest": "All (best coverage)",

@@ -1113,6 +1113,7 @@ const deAT: Record<string, string> = {
   "account.activityPumpfoil": "Pumpfoil (generisch)",
   "account.activityTypeHint": "Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.",
   "account.recordModeLite": "Sparsam · 10 Hz",
+  "account.smallBuffer": "Diese Uhr hat nur sehr wenig Speicher für Aufnahmen. Garmin erlaubt während einer Aktivität keine Datenübertragung, und seine direkte Datenschnittstelle öffnet Garmin seit Anfang 2026 nicht mehr für neue Projekte — deshalb muss unsere App alles auf der Uhr selbst speichern. Auf dieser Uhr ist der Speicher nach etwa 30–40 Minuten voll, alles danach geht verloren. Für längere Sessions: die Aufnahme nach 30–40 Minuten beenden, hochladen lassen und neu starten. Die Teile kannst du danach zusammenführen („Vergleichen & Mergen“).",
   "account.sideStep1": "Uhr per USB an den Rechner anschließen.",
   "account.sideStep2post": " kopieren.",
   "account.sideStep2pre": "Die .prg nach ",

@@ -483,6 +483,7 @@ const id: Record<string, string> = {
   "account.recordMode": "Mode rekam",
   "account.recordModeFull": "Penuh · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
+  "account.smallBuffer": "Jam ini hanya punya sedikit sekali ruang untuk rekaman. Garmin tidak mengizinkan transfer data selama aktivitas, dan sejak awal 2026 Garmin tidak lagi membuka antarmuka data langsungnya untuk proyek baru — jadi aplikasi kami harus menyimpan semuanya di jam itu sendiri. Di jam ini penyimpanan penuh setelah sekitar 30–40 menit, dan semua yang direkam setelahnya hilang. Untuk sesi yang lebih panjang: akhiri rekaman setelah 30–40 menit, biarkan terunggah, lalu mulai yang baru. Bagian-bagiannya bisa kamu gabungkan sesudahnya (“Bandingkan & gabungkan”).",
   "account.recordModeGps": "Hanya GPS",
   "account.gnssMode": "Sistem satelit",
   "account.gnssModeBest": "Semua (cakupan terbaik)",

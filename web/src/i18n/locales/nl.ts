@@ -505,6 +505,7 @@ const nl: Record<string, string> = {
   "account.recordMode": "Opnamemodus",
   "account.recordModeFull": "Volledig · 25 Hz",
   "account.recordModeLite": "Zuinig · 10 Hz",
+  "account.smallBuffer": "Dit horloge heeft maar heel weinig opslag voor opnames. Garmin staat tijdens een activiteit geen gegevensoverdracht toe, en sinds begin 2026 stelt Garmin zijn directe gegevenskoppeling niet meer open voor nieuwe projecten — daarom moet onze app alles op het horloge zelf opslaan. Op dit horloge is die opslag na ongeveer 30–40 minuten vol, en alles daarna gaat verloren. Voor langere sessies: stop de opname na 30–40 minuten, laat hem uploaden en start een nieuwe. De delen kun je daarna samenvoegen (‘Vergelijken & samenvoegen’).",
   "account.recordModeGps": "Alleen GPS",
   "account.gnssMode": "Satellietsystemen",
   "account.gnssModeBest": "Alle (beste dekking)",

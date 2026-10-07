@@ -1289,6 +1289,7 @@ const es: Record<string, string> = {
   "imp.conn1": "Al vincular se te redirige al proveedor correspondiente y accedes allí (OAuth). Recibimos un token de acceso y los datos de entrenamiento/workout que compartes (entre otros traza GPS, tiempo, frecuencia cardíaca).",
   "compare.colRider": "Rider",
   "account.recordModeLite": "Ahorro · 10 Hz",
+  "account.smallBuffer": "Este reloj tiene muy poca memoria para grabaciones. Garmin no permite transferir datos durante una actividad y, desde principios de 2026, ya no abre su interfaz de datos directa a proyectos nuevos, así que nuestra app tiene que guardarlo todo en el propio reloj. En este reloj la memoria se llena tras unos 30–40 minutos y todo lo que se grabe después se pierde. Para sesiones más largas: termina la grabación a los 30–40 minutos, deja que se suba y empieza una nueva. Después puedes fusionar las partes («Comparar y fusionar»).",
   "field.15": "Run distancia (en vivo)",
   "compare.colorRider": "Por rider",
   "compare.full": "Comparación llena (máx. {n})",
