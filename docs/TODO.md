@@ -1434,6 +1434,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 07.10. — HUAWEI-Uhren (Anfrage aus Polen, Jan: „wir finden Tester in der Community").** Recherche in
+  docs/HUAWEI.md. Wear-Engine-Uhren-SDKs 5.0.2.306 (lite + wearable, je eine JS-Datei, Apache 2.0) liegen vor.
+  Reihenfolge: (1) Jan: Huawei-Entwicklerkonto SmartKomm, Projekt in AppGallery Connect, „Apply for Wear Engine"
+  (Paket org.pumpfoil.app + SHA-256 Play-Signierschluessel, ~2 Wochen); (2) Jan: leeres Lite-Wearable-JS-Projekt
+  aus DevEco als `watch-huawei/` committen; (3) Messprobe statt Recorder: Accel game/ui + GPS, auf der Uhr nur
+  Zaehler (Laufzeit, Samples/s, groesste Luecke, GPS-Punkte), 60 min Handgelenk unten — klaert das Hauptrisiko
+  ohne Wear-Engine-Freigabe; (4) danach Recorder + Wear-Engine-Bruecke in der Android-App. Offen: wie Tester eine
+  Lite-App ohne Entwicklermodus bekommen (AppGallery-Testspur fuer Uhren?).
+
 - **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
   Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit
   `scripts/messweg-pruefen.py --ab-version 1.2.40` pruefen (gps hs, Abdeckung, Luecken, Accel ~25 Hz); bei
