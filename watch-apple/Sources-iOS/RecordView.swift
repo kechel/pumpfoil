@@ -20,16 +20,30 @@ struct RecordView: View {
         return "\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces)
     }
     private func shortLabel(_ f: Foil) -> String { "\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces) }
+    // Chip-Titel ohne Marke (die steht klein darunter); leer -> doch die Marke.
+    private func chipTitle(_ f: Foil) -> String {
+        let t = "\(f.model) \(f.size)".trimmingCharacters(in: .whitespaces)
+        return t.isEmpty ? f.brand : t
+    }
     private func mmss(_ s: Int) -> String { String(format: "%d:%02d", s / 60, s % 60) }
     private func km(_ m: Double) -> String { m >= 1000 ? String(format: "%.2f km", m / 1000) : "\(Int(m)) m" }
 
     // Direkt antippbarer Foil-Chip (Favoriten + „Ohne Foil"); hervorgehoben, wenn ausgewählt.
-    private func foilChip(_ id: Int?, _ label: String) -> some View {
+    // Zwei Zeilen: oben Modell + Groesse (das, was die Foils UNTERSCHEIDET, darf umbrechen), darunter
+    // klein die Marke. Vorher eine Zeile in drei Spalten — bei mehreren Foils derselben Marke blieb
+    // nur „Code Foils R…" stehen (Feedback 06.10.2026, iOS).
+    private func foilChip(_ id: Int?, _ title: String, _ brand: String? = nil) -> some View {
         let sel = foilId == id
         return Button { foilId = id } label: {
-            Text(label).font(.subheadline).lineLimit(1).minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10).padding(.horizontal, 8)
+            VStack(spacing: 2) {
+                Text(title).font(.subheadline.weight(.semibold)).lineLimit(2)
+                    .multilineTextAlignment(.center)
+                if let brand, !brand.isEmpty {
+                    Text(brand).font(.caption).lineLimit(1).minimumScaleFactor(0.8).opacity(0.8)
+                }
+            }
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.vertical, 8).padding(.horizontal, 8)
                 .background(RoundedRectangle(cornerRadius: 10)
                     .fill(sel ? Color.accentColor : Color.secondary.opacity(0.15)))
                 .foregroundStyle(sel ? Color.white : Color.primary)
@@ -148,9 +162,10 @@ struct RecordView: View {
 
     // Favoriten (my_foils) direkt als Chips wählbar; Standard-Foil vorausgewählt.
     private var favFoilGrid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 8)], alignment: .leading, spacing: 8) {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
+                  alignment: .leading, spacing: 8) {
             foilChip(nil, Loc.t("rec.foilNone", lang))
-            ForEach(favFoils) { f in foilChip(f.id, shortLabel(f)) }
+            ForEach(favFoils) { f in foilChip(f.id, chipTitle(f), f.brand) }
         }
     }
 
