@@ -59,4 +59,19 @@ class HuaweiBrueckeTest {
         assertEquals(listOf("A"), HuaweiBruecke.fingerabdruecke("A"))
         assertEquals(listOf("A", "B"), HuaweiBruecke.fingerabdruecke(" A , B,A,"))
     }
+
+    /** Antwort an die Uhr: nur die Seiten-Schluessel, Teile im Uhren-Format, Nicht-ASCII maskiert. */
+    @Test fun konfigFuerDieUhr() {
+        val roh = """{"views":[[1,2,0]],"pages":[[1,4,[[3,500,500,2,0,0,"Läufe"]]]],"latestVersion":"9","foils":[1,2]}"""
+        val k = HuaweiBruecke.konfigFuerUhr(roh)
+        assertEquals(false, k.contains("latestVersion")); assertEquals(false, k.contains("foils"))
+        val teile = HuaweiBruecke.konfigTeile(k, 20)
+        assertEquals(true, teile.all { it.startsWith("PF1|k_konfig.json|") && it.all { c -> c.code < 128 } })
+        val n = teile.size
+        val ganz = teile.mapIndexed { i, t ->
+            val f = t.split('|', limit = 6); assertEquals("$i", f[2]); assertEquals("$n", f[3]); f[5]
+        }.joinToString("")
+        assertEquals("Läufe", org.json.JSONObject(ganz).getJSONArray("pages").getJSONArray(0).getJSONArray(2).getJSONArray(0).getString(6))
+        assertEquals(true, HuaweiBruecke.teilLesen("PF1|h_hallo.json|0|1|1|{}") != null)
+    }
 }

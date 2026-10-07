@@ -67,6 +67,82 @@
     {
       "name": "bg_reason",
       "value": "Nimmt weiter auf, wenn's Display aus ist."
+    },
+    {
+      "name": "f_kmh3s",
+      "value": "km/h (3s)"
+    },
+    {
+      "name": "f_kmhAvg",
+      "value": "km/h Ø"
+    },
+    {
+      "name": "f_kmhMax",
+      "value": "km/h max"
+    },
+    {
+      "name": "f_bpmAvg",
+      "value": "bpm Ø"
+    },
+    {
+      "name": "f_bpmMax",
+      "value": "bpm max"
+    },
+    {
+      "name": "f_time",
+      "value": "Zeit"
+    },
+    {
+      "name": "f_dist",
+      "value": "Distanz"
+    },
+    {
+      "name": "f_clock",
+      "value": "Uhr"
+    },
+    {
+      "name": "f_runActive",
+      "value": "Lauf läuft"
+    },
+    {
+      "name": "f_runTime",
+      "value": "Lauf-Zeit"
+    },
+    {
+      "name": "f_runDist",
+      "value": "Lauf-Dist"
+    },
+    {
+      "name": "f_lastRunTime",
+      "value": "letzte Zeit"
+    },
+    {
+      "name": "f_lastRunDist",
+      "value": "letzte Dist"
+    },
+    {
+      "name": "f_lastRunAvg",
+      "value": "letzter Ø"
+    },
+    {
+      "name": "f_lastRunMax",
+      "value": "letzter max"
+    },
+    {
+      "name": "f_runs",
+      "value": "Läufe"
+    },
+    {
+      "name": "f_lastRunMaxHr",
+      "value": "letzter max bpm"
+    },
+    {
+      "name": "f_allRunsDist",
+      "value": "olle Läufe Dist"
+    },
+    {
+      "name": "f_allRunsTime",
+      "value": "olle Läufe Zeit"
     }
   ]
 }

@@ -9,12 +9,18 @@ import com.huawei.wearengine.auth.Permission
 import com.huawei.wearengine.device.Device
 import com.huawei.wearengine.p2p.Message
 import com.huawei.wearengine.p2p.Receiver
+import com.huawei.wearengine.p2p.SendCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
@@ -75,6 +81,14 @@ object HuaweiBruecke {
     private val ablage = Mutex()
     private val empfang = Empfang()
     private var empfaenger: Receiver? = null
+    @Volatile private var geraete: List<Device> = emptyList()
+    /** Die Uhr meldet sich mit diesem Dateinamen (watch-huawei/common/recorder.js `senden`). */
+    internal const val HALLO = "h_hallo.json"
+    /** Die Antwort: Seiten-Konfiguration fuer die Uhr, in Teilen wie die Uhr-Dateien. */
+    internal const val KONFIG = "k_konfig.json"
+    /** Nur diese Schluessel braucht die Uhr fuer ihre Datenseiten (common/seiten.js `Konfig`). */
+    private val KONFIG_SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "pages", "offFoilPages",
+        "pausePages", "browseAll", "layoutsOn", "colorByValue", "hrZones", "speedZones")
     @Volatile private var hochladen = false
 
     /** HUAWEI_WATCH_FP, durch Komma getrennt (app/build.gradle.kts). */
@@ -142,6 +156,7 @@ object HuaweiBruecke {
             HiWear.getDeviceClient(app).bondedDevices
                 .addOnSuccessListener { liste: List<Device>? ->
                     val uhren = liste.orEmpty()
+                    geraete = uhren
                     // Je Fingerabdruck einmal anmelden (Lite/JS-FA und ArkTS koennen verschieden
                     // signiert sein). UNGEPRUEFT, ob das SDK den Fingerabdruck bei registerReceiver
                     // uebernimmt — bei EINEM Eintrag aendert sich gegenueber vorher nichts.
@@ -204,7 +219,7 @@ object HuaweiBruecke {
         val n = f[3].toIntOrNull() ?: return null
         val rest = f[4].toIntOrNull() ?: return null
         if (n !in 1..20000 || nr !in 0 until n || rest !in 1..1_000_000 || f[5].length > 1000) return null
-        if (zielName(f[1]) == null) return null
+        if (zielName(f[1]) == null && f[1] != HALLO) return null
         return Teil(f[1], nr, n, rest, f[5])
     }
 
@@ -237,12 +252,79 @@ object HuaweiBruecke {
             else (0 until t.anzahl).joinToString("") { File(dir, it.toString()).readText() }
                 .also { dir.deleteRecursively() }
         }
+        if (t.datei == HALLO) {   // kein Aufnahme-Teil: zaehlt nicht im Balken, wird beantwortet
+            if (ganz != null) hallo(app, ganz)
+            return false
+        }
         synchronized(empfang) {
             empfang.teil(t.nr, t.anzahl, t.rest, ganz != null, System.currentTimeMillis())
             setze { it.copy(empfFertig = empfang.fertig, empfGesamt = empfang.gesamt,
                 empfAnteil = empfang.anteil(), empfLetzteMs = empfang.letzteMs) }
         }
         return ganz != null && ablegen(app, t.datei, ganz)
+    }
+
+    /**
+     * Die Uhr hat sich gemeldet (Modell + Version): mit IHREM Token (dasselbe wie fuer ihre Uploads,
+     * Label = Modell) die Konfiguration holen und die Datenseiten zurueckschicken. Nebenbei landet so
+     * die App-Version der Uhr am Server (`/devices/config?v=`), wie bei den anderen Uhren.
+     */
+    private suspend fun hallo(app: Context, text: String) {
+        try {
+            val h = JSONObject(text)
+            val label = h.optString("device_model", "HUAWEI").ifBlank { "HUAWEI" }
+            val tok = token(app, label) ?: return
+            val v = java.net.URLEncoder.encode(h.optString("app_version", ""), "UTF-8")
+            val c = URL(Api.BASE + "/api/devices/config?p=huawei&v=" + v).openConnection() as HttpURLConnection
+            val roh = try {
+                c.connectTimeout = 15000; c.readTimeout = 30000
+                c.setRequestProperty("X-Device-Token", tok)
+                if (c.responseCode !in 200..299) { setze { it.copy(fehler = "konfig ${c.responseCode}") }; return }
+                c.inputStream.bufferedReader().use { it.readText() }
+            } finally { c.disconnect() }
+            konfigSenden(app, konfigTeile(konfigFuerUhr(roh)))
+        } catch (e: Exception) {
+            Log.e(TAG, "hallo", e)
+            setze { it.copy(fehler = "konfig: ${e.message ?: e.javaClass.simpleName}".take(120)) }
+        }
+    }
+
+    /** Nur die Schluessel der Datenseiten — der volle Config-Block waere ein Vielfaches an Teilen. */
+    internal fun konfigFuerUhr(roh: String): String {
+        val voll = JSONObject(roh)
+        val aus = JSONObject()
+        for (k in KONFIG_SCHLUESSEL) if (voll.has(k)) aus.put(k, voll.get(k))
+        return aus.toString()
+    }
+
+    /** Wie watch-huawei/common/kern.js `teile`: Nicht-ASCII als \uXXXX, <= 800 Zeichen je Teil. */
+    internal fun konfigTeile(text: String, max: Int = 800): List<String> {
+        val t = buildString { for (ch in text) if (ch.code < 128) append(ch) else append("\\u%04x".format(ch.code)) }
+        val n = maxOf(1, (t.length + max - 1) / max)
+        return (0 until n).map { i -> "PF1|$KONFIG|$i|$n|1|" + t.substring(i * max, minOf(t.length, (i + 1) * max)) }
+    }
+
+    /** Teile nacheinander an die Uhr; ein Fehlschlag bricht ab (die Uhr fragt halbstuendlich neu). */
+    private suspend fun konfigSenden(app: Context, teile: List<String>) {
+        val uhr = geraete.firstOrNull { it.isConnected } ?: return
+        val p2p = HiWear.getP2pClient(app)
+        p2p.setPeerPkgName(BuildConfig.HUAWEI_WATCH_PKG)
+        p2p.setPeerFingerPrint(fingerabdruecke().firstOrNull() ?: return)
+        for (teil in teile) {
+            val msg = Message.Builder().setPayload(teil.toByteArray(Charsets.US_ASCII)).build()
+            val code = withTimeoutOrNull(30_000) {
+                suspendCancellableCoroutine<Int> { weiter ->
+                    p2p.send(uhr, msg, object : SendCallback {
+                        override fun onSendResult(resultCode: Int) { if (weiter.isActive) weiter.resume(resultCode) }
+                        override fun onSendProgress(progress: Long) {}
+                    }).addOnFailureListener { if (weiter.isActive) weiter.resume(-1) }
+                }
+            }
+            if (code != 207) {
+                setze { it.copy(fehler = "konfig senden ${code ?: "timeout"}") }
+                return
+            }
+        }
     }
 
     /**

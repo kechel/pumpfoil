@@ -1,5 +1,8 @@
 <div class="seite" onswipe="wischen">
-    <text class="marke">PUMPFOIL</text>
+    <!-- Datenseiten (seiten.js): eine Canvas ueber das ganze Display, hoch/runter wischen blaettert
+         (rechts wischen beendet die App, das verlangt AppGallery). Seite 0 = Bedienung darunter. -->
+    <canvas ref="leinwand" class="leinwand" if="{{ datenseite }}"></canvas>
+    <text class="marke" if="{{ !datenseite }}">PUMPFOIL</text>
 
     <div class="block" if="{{ modus === 'bereit' }}">
         <div class="knopf start" ontouchstart="startHalten" ontouchend="loslassen">
@@ -9,7 +12,7 @@
         <text class="klein">{{ info }}</text>
     </div>
 
-    <div class="block" if="{{ modus === 'laeuft' }}">
+    <div class="block" if="{{ modus === 'laeuft' && !datenseite }}">
         <text class="zeit">{{ zeit }}</text>
         <div class="reihe">
             <text class="wert">{{ tempo }}</text>
@@ -26,7 +29,7 @@
         <text class="klein">{{ info }}</text>
     </div>
 
-    <div class="block" if="{{ modus === 'pause' }}">
+    <div class="block" if="{{ modus === 'pause' && !datenseite }}">
         <text class="zeit">{{ zeit }}</text>
         <text class="hinweis">{{ textPause }}</text>
         <div class="reihe">

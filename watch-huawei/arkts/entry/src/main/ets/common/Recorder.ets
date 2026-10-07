@@ -21,6 +21,10 @@ import { wearEngine } from '@kit.WearEngine';
 import { util } from '@kit.ArkTS';
 import * as K from './Kern';
 import { GEGENSTELLEN, APP_VERSION } from './Konfig';
+import { Stand, Konfig, KonfigDaten } from './Seiten';
+
+/** Seiten-Konfiguration halbstuendlich neu anfragen (Antwort des Handys auf das Hallo). */
+const HALLO_ALLE_MS: number = 30 * 60 * 1000;
 
 const ACCEL_NS: number = 20000000;   // 20 ms = 50 Hz
 
@@ -90,6 +94,21 @@ interface OffeneDatei {
   pfad: string;
   teile: string[];
   nr: number;
+  hallo: boolean;
+}
+
+interface Hallo {
+  device_model: string;
+  app_version: string;
+}
+
+/** Was die Datenseiten zum Zeichnen brauchen (Index.ets). */
+export interface SeitenDaten {
+  s: Stand;
+  k: Konfig;
+  el: number;
+  pausiert: boolean;
+  zustand: string;
 }
 
 function iso(ms: number): string {
@@ -125,6 +144,14 @@ export class Recorder {
   private offenDatei: OffeneDatei | null = null;
   private takt: number = -1;
   private wache: number = -1;
+  // Datenseiten (Seiten.ets): Lauf-Stand, Konfiguration vom Handy, frischer GPS-Punkt [lat, lon, m/s]
+  private stand: Stand = new Stand();
+  private konfig: Konfig = new Konfig(null);
+  private fixNeu: number[] | null = null;
+  private kTeile: string[] | null = null;
+  private halloOffen: boolean = false;
+  private halloZuletzt: number = 0;
+  private empfangAn: boolean = false;
 
   // --- Dateien --------------------------------------------------------------------------
 
@@ -245,6 +272,7 @@ export class Recorder {
     }
     this.gpsLetzt = jetzt;
     const v: number = g.speed >= 0 ? g.speed : -1;
+    this.fixNeu = [g.latitude, g.longitude, v];
     this.anzeige.fix(g.latitude, g.longitude, g.accuracy, t, v);
     const c: K.GpsChunk | null = this.sammler.gpsFix(g.latitude, g.longitude, g.accuracy, t, v);
     if (c !== null) {
@@ -345,6 +373,8 @@ export class Recorder {
     this.f = { speicher: 0, accel: 0, gps: 0, puls: 0 };
     this.letzterFehler = '';
     this.bg = 'aus';
+    this.stand = new Stand();
+    this.fixNeu = null;
     this.plan.neu(this.id);
     const meta: Meta = {
       session_uuid: this.id, started_at: iso(jetzt), sport: 'pumpfoil',
@@ -429,6 +459,21 @@ export class Recorder {
       this.teilSenden();
       return;
     }
+    if (!this.empfangAn) {
+      this.empfangen();
+    }
+    if (Date.now() - this.halloZuletzt > HALLO_ALLE_MS) {
+      this.halloOffen = true;
+    }
+    if (this.halloOffen) {
+      // Hallo zuerst: Modell + Version -> das Handy antwortet mit der Seiten-Konfiguration.
+      const h: Hallo = { device_model: this.modell, app_version: APP_VERSION };
+      this.offenDatei = {
+        d: { id: '', art: 'h', nr: -1 }, pfad: '', teile: K.teile('h_hallo.json', JSON.stringify(h), 1), nr: 0, hallo: true
+      };
+      this.teilSenden();
+      return;
+    }
     const d: K.Datei | null = this.plan.naechste();
     if (d === null) {
       return;
@@ -442,7 +487,7 @@ export class Recorder {
       this.planSichern();
       return;
     }
-    this.offenDatei = { d: d, pfad: name, teile: K.teile(name, text, this.plan.offen()), nr: 0 };
+    this.offenDatei = { d: d, pfad: name, teile: K.teile(name, text, this.plan.offen()), nr: 0, hallo: false };
     this.teilSenden();
   }
 
@@ -482,9 +527,14 @@ export class Recorder {
         this.schlange.laeuft = false;
         o.nr++;
         if (o.nr >= o.teile.length) {
-          this.plan.erledigt(o.d);
-          this.planSichern();
-          this.loesche(o.pfad);
+          if (o.hallo) {
+            this.halloOffen = false;
+            this.halloZuletzt = Date.now();
+          } else {
+            this.plan.erledigt(o.d);
+            this.planSichern();
+            this.loesche(o.pfad);
+          }
           this.offenDatei = null;
           this.schlange.ok();
         } else {
@@ -501,6 +551,56 @@ export class Recorder {
       clearTimeout(this.wache);
       this.fehlschlag(typeof e.code === 'number' ? e.code : 0);
     });
+  }
+
+  /** Rueckweg Handy -> Uhr: die Seiten-Konfiguration, in Teilen wie hin (PF1|k_konfig.json|…). */
+  private empfangen(): void {
+    if (this.ctx === null) {
+      return;
+    }
+    const ctx: common.UIAbilityContext = this.ctx;
+    const g: string[] = this.gegen.jetzt();
+    const app: wearEngine.P2pAppParam = { remoteApp: { bundleName: g[0], fingerprint: g[1] } };
+    this.empfangAn = true;
+    wearEngine.getDeviceClient(ctx).getConnectedDevices().then((geraete: wearEngine.Device[]) => {
+      if (geraete.length === 0) {
+        throw new Error('kein Handy');
+      }
+      return wearEngine.getP2pClient(ctx).registerMessageReceiver(geraete[0].randomId, app, (m: wearEngine.P2pMessage) => {
+        const opt: util.TextDecoderOptions = { fatal: false, ignoreBOM: true };
+        this.konfigTeil(util.TextDecoder.create('utf-8', opt).decodeToString(m.content));
+      });
+    }).catch((e: BusinessError) => {
+      this.empfangAn = false;   // beim naechsten Sendetakt noch einmal
+      console.error('Pumpfoil Empfang ' + e.code);
+    });
+  }
+
+  private konfigTeil(text: string): void {
+    const f: string[] = text.split('|');
+    if (f.length < 6 || f[0] !== 'PF1' || f[1] !== 'k_konfig.json') {
+      return;
+    }
+    const nr: number = parseInt(f[2], 10);
+    const n: number = parseInt(f[3], 10);
+    if (!(n >= 1 && n <= 200 && nr >= 0 && nr < n)) {
+      return;
+    }
+    if (this.kTeile === null || this.kTeile.length !== n) {
+      this.kTeile = new Array<string>(n).fill('\u0000');
+    }
+    this.kTeile[nr] = f.slice(5).join('|');
+    if (this.kTeile.indexOf('\u0000') >= 0) {
+      return;
+    }
+    const ganz: string = this.kTeile.join('');
+    this.kTeile = null;
+    try {
+      this.konfig = new Konfig(JSON.parse(ganz) as KonfigDaten);
+      this.schreibe('konfig.json', ganz);
+    } catch (e) {
+      this.fehler('speicher', 'Konfig kaputt');
+    }
   }
 
   private fehlschlag(code: number): void {
@@ -529,6 +629,14 @@ export class Recorder {
         this.gegen = new K.Gegenstelle(GEGENSTELLEN, (JSON.parse(gt) as GegenDatei).i);
       } catch (e) {
         // Standard
+      }
+    }
+    const kt: string | null = this.lies('konfig.json');
+    if (kt !== null) {
+      try {
+        this.konfig = new Konfig(JSON.parse(kt) as KonfigDaten);
+      } catch (e) {
+        // Standardseiten
       }
     }
     const pt: string | null = this.lies('plan.json');
@@ -561,6 +669,27 @@ export class Recorder {
     setTimeout(() => {
       this.takt = setInterval(() => this.senden(), 3000);
     }, 3000);
+  }
+
+  /** Einmal je Sekunde von der Seite (nur waehrend der Aufnahme). true = Lauf begonnen/beendet. */
+  taktSeiten(): boolean {
+    if (this.modus !== 'laeuft') {
+      return false;
+    }
+    const jetzt: number = Date.now();
+    const f: number[] | null = this.fixNeu;
+    this.fixNeu = null;
+    return this.stand.tick(this.achse.jetzt(jetzt), jetzt, f !== null, f !== null ? f[0] : 0,
+      f !== null ? f[1] : 0, f !== null ? f[2] : -1, this.sammler.hr);
+  }
+
+  seitenDaten(): SeitenDaten {
+    return {
+      s: this.stand, k: this.konfig,
+      el: this.modus === 'bereit' ? 0 : this.achse.jetzt(Date.now()) / 1000,
+      pausiert: this.modus === 'pause',
+      zustand: this.modus === 'pause' ? 'p' : (this.stand.foiling ? 'on' : 'off')
+    };
   }
 
   ende(): void {

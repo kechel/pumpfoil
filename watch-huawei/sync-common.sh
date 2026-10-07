@@ -9,7 +9,7 @@ for p in lite wearable; do
   z="$p/entry/src/main/js/MainAbility"
   [ -d "$p/entry" ] || continue
   mkdir -p "$z/common"
-  cp common/kern.js common/recorder.js common/konfig.js "$z/common/"
+  cp common/kern.js common/recorder.js common/konfig.js common/seiten.js "$z/common/"
 done
 q=lite/entry/src/main/js/MainAbility; z=wearable/entry/src/main/js/MainAbility
 mkdir -p "$z/pages/index" "$z/i18n"

@@ -99,3 +99,8 @@
     color: #22d3ee;
     stroke-width: 12px;
 }
+/* Datenseiten: randlos ueber das ganze Display (Promille-Koordinaten beziehen sich darauf). */
+.leinwand {
+    width: 466px;
+    height: 466px;
+}

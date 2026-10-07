@@ -67,6 +67,82 @@
     {
       "name": "bg_reason",
       "value": "Nagrywa dalej przy wyłączonym ekranie."
+    },
+    {
+      "name": "f_kmh3s",
+      "value": "km/h (3s)"
+    },
+    {
+      "name": "f_kmhAvg",
+      "value": "km/h śr."
+    },
+    {
+      "name": "f_kmhMax",
+      "value": "km/h maks."
+    },
+    {
+      "name": "f_bpmAvg",
+      "value": "bpm śr."
+    },
+    {
+      "name": "f_bpmMax",
+      "value": "bpm maks."
+    },
+    {
+      "name": "f_time",
+      "value": "Czas"
+    },
+    {
+      "name": "f_dist",
+      "value": "Dystans"
+    },
+    {
+      "name": "f_clock",
+      "value": "Godzina"
+    },
+    {
+      "name": "f_runActive",
+      "value": "przejazd trwa"
+    },
+    {
+      "name": "f_runTime",
+      "value": "Czas przejazdu"
+    },
+    {
+      "name": "f_runDist",
+      "value": "Dyst. przejazdu"
+    },
+    {
+      "name": "f_lastRunTime",
+      "value": "ost. czas"
+    },
+    {
+      "name": "f_lastRunDist",
+      "value": "ost. dyst."
+    },
+    {
+      "name": "f_lastRunAvg",
+      "value": "ost. śr."
+    },
+    {
+      "name": "f_lastRunMax",
+      "value": "ost. maks."
+    },
+    {
+      "name": "f_runs",
+      "value": "Przejazdy"
+    },
+    {
+      "name": "f_lastRunMaxHr",
+      "value": "ost. maks. bpm"
+    },
+    {
+      "name": "f_allRunsDist",
+      "value": "wsz. przejazdy dyst."
+    },
+    {
+      "name": "f_allRunsTime",
+      "value": "wsz. przejazdy czas"
     }
   ]
 }

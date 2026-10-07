@@ -14,6 +14,25 @@
     "holdPause": "Trzymaj dalej: pauza",
     "holdResume": "Trzymaj dalej: wznów",
     "holdStop": "Trzymaj dalej: stop",
-    "stopFirst": "Najpierw zatrzymaj nagrywanie"
+    "stopFirst": "Najpierw zatrzymaj nagrywanie",
+    "f_kmh3s": "km/h (3s)",
+    "f_kmhAvg": "km/h śr.",
+    "f_kmhMax": "km/h maks.",
+    "f_bpmAvg": "bpm śr.",
+    "f_bpmMax": "bpm maks.",
+    "f_time": "Czas",
+    "f_dist": "Dystans",
+    "f_clock": "Godzina",
+    "f_runActive": "przejazd trwa",
+    "f_runTime": "Czas przejazdu",
+    "f_runDist": "Dyst. przejazdu",
+    "f_lastRunTime": "ost. czas",
+    "f_lastRunDist": "ost. dyst.",
+    "f_lastRunAvg": "ost. śr.",
+    "f_lastRunMax": "ost. maks.",
+    "f_runs": "Przejazdy",
+    "f_lastRunMaxHr": "ost. maks. bpm",
+    "f_allRunsDist": "wsz. przejazdy dyst.",
+    "f_allRunsTime": "wsz. przejazdy czas"
   }
 }
