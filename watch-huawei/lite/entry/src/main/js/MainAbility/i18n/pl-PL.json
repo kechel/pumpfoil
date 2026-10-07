@@ -1,0 +1,19 @@
+{
+  "strings": {
+    "start": "Przytrzymaj: start",
+    "pause": "Przytrzymaj: pauza",
+    "resume": "Wznów",
+    "stop": "Stop",
+    "paused": "Pauza",
+    "errors": "Błędy",
+    "gpsWait": "Czekam na GPS",
+    "toPhone": "Do telefonu:",
+    "openPhone": "otwórz Pumpfoil w telefonie",
+    "allSent": "Wszystko wysłane",
+    "holdStart": "Trzymaj dalej: start",
+    "holdPause": "Trzymaj dalej: pauza",
+    "holdResume": "Trzymaj dalej: wznów",
+    "holdStop": "Trzymaj dalej: stop",
+    "stopFirst": "Najpierw zatrzymaj nagrywanie"
+  }
+}

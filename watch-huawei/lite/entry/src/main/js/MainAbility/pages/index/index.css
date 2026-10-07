@@ -1,0 +1,92 @@
+/* Lite Wearable: Schriften nur in den Systemgroessen (30/38), Farben wie die Marke (Cyan #22d3ee). */
+.seite {
+    width: 466px;
+    height: 466px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #000000;
+}
+.block {
+    width: 466px;
+    flex-direction: column;
+    align-items: center;
+}
+.marke {
+    width: 300px;
+    height: 40px;
+    font-size: 30px;
+    color: #22d3ee;
+    text-align: center;
+}
+.zeit {
+    width: 300px;
+    height: 50px;
+    font-size: 38px;
+    color: #ffffff;
+    text-align: center;
+}
+.reihe {
+    width: 360px;
+    flex-direction: row;
+    justify-content: space-around;
+}
+.wert {
+    width: 170px;
+    height: 46px;
+    font-size: 38px;
+    color: #ffffff;
+    text-align: center;
+}
+.einheit {
+    width: 170px;
+    height: 36px;
+    font-size: 30px;
+    color: #94a3b8;
+    text-align: center;
+}
+.hinweis {
+    width: 360px;
+    height: 46px;
+    font-size: 38px;
+    color: #fbbf24;
+    text-align: center;
+}
+.knopf {
+    width: 300px;
+    height: 80px;
+    margin-top: 12px;
+    border-radius: 40px;
+    justify-content: center;
+    align-items: center;
+}
+.halb {
+    width: 170px;
+}
+.start {
+    background-color: #0e7490;
+}
+.pause {
+    background-color: #334155;
+}
+.weiter {
+    background-color: #0e7490;
+}
+.stopp {
+    background-color: #b91c1c;
+}
+.knopftext {
+    width: 280px;
+    height: 46px;
+    font-size: 30px;
+    color: #ffffff;
+    text-align: center;
+}
+.klein {
+    width: 360px;
+    height: 76px;
+    margin-top: 8px;
+    font-size: 30px;
+    color: #94a3b8;
+    text-align: center;
+}

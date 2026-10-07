@@ -1,0 +1,19 @@
+{
+  "strings": {
+    "start": "Hold to start",
+    "pause": "Hold to pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "paused": "Paused",
+    "errors": "Errors",
+    "gpsWait": "Waiting for GPS",
+    "toPhone": "To phone:",
+    "openPhone": "open Pumpfoil on phone",
+    "allSent": "All sent",
+    "holdStart": "Keep holding: start",
+    "holdPause": "Keep holding: pause",
+    "holdResume": "Keep holding: resume",
+    "holdStop": "Keep holding: stop",
+    "stopFirst": "Stop the recording first"
+  }
+}
