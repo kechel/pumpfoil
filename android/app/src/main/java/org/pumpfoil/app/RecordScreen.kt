@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -244,9 +246,10 @@ fun RecordScreen(onBack: () -> Unit) {
                         }
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         chips.chunked(2).forEach { rowItems ->
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Beide Chips einer Reihe gleich hoch (wie iOS), auch wenn einer umbricht.
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 rowItems.forEach { (id, label, brand) ->
-                                    FoilChip(label, brand, foilId == id, Modifier.weight(1f)) { foilId = id }
+                                    FoilChip(label, brand, foilId == id, Modifier.weight(1f).fillMaxHeight()) { foilId = id }
                                 }
                                 if (rowItems.size == 1) Spacer(Modifier.weight(1f))
                             }
@@ -452,7 +455,7 @@ private fun FoilChip(label: String, brand: String?, selected: Boolean, modifier:
         shape = RoundedCornerShape(10.dp),
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
     ) {
-        Column(Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
+        Column(Modifier.fillMaxSize().padding(vertical = 8.dp, horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text(label, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold), color = farbe)
