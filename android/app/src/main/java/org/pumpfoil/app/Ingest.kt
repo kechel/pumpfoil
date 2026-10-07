@@ -50,13 +50,15 @@ object Ingest {
             JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks).toString()); Unit
     }
 
-    private fun post(path: String, body: String): String {
+    /** `token`: welches Geraet hochlaedt — Standard das Handy; Huawei-Uhren haben je ein eigenes
+     *  (HuaweiBruecke), damit ihre Sessions unter der Uhr erscheinen, nicht unter „Phone". */
+    fun post(path: String, body: String, token: String? = deviceToken): String {
         val c = URL(Api.BASE + path).openConnection() as HttpURLConnection
         try {
             c.requestMethod = "POST"
             c.connectTimeout = 15000; c.readTimeout = 30000
             c.setRequestProperty("Content-Type", "application/json")
-            deviceToken?.let { c.setRequestProperty("X-Device-Token", it) }
+            token?.let { c.setRequestProperty("X-Device-Token", it) }
             c.doOutput = true
             c.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             val code = c.responseCode

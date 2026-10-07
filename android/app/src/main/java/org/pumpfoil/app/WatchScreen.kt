@@ -80,6 +80,7 @@ fun WatchScreen(
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             WatchCard(ctx)
+            HuaweiKarte()
             Spacer(Modifier.height(8.dp))
             // Die vier Verweise auf die anderen Seiten stehen VOR der Uhren-Liste (Jan, 02.09.):
             // wer viele Uhren gepairt hat, musste vorher an allen vorbeiscrollen, um zur
@@ -455,4 +456,54 @@ private fun UhrAuswahl(
     rueck()
     Text(hinweis, style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+}
+
+
+// HUAWEI-Uhr (Beta, 07.10.2026): nur sichtbar, wenn Huawei Health auf dem Handy ist oder schon
+// verbunden wurde — alle anderen sehen nichts davon. Die Uhren-App schickt ihre Aufnahmen ueber
+// dieses Handy (HuaweiBruecke); hier verbindet man und sieht, ob etwas wartet oder klemmt.
+@Composable
+fun HuaweiKarte() {
+    val ctx = LocalContext.current
+    val st by HuaweiBruecke.stand.collectAsState()
+    LaunchedEffect(Unit) { HuaweiBruecke.start(ctx) }
+    if (!st.healthDa && !st.verbunden) return
+    Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            Text(I18n.t("huawei.title"), style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(I18n.t("huawei.body"), style = MaterialTheme.typography.bodyMedium)
+            if (st.verbunden && st.uhren.isNotEmpty()) {
+                Spacer(Modifier.height(6.dp))
+                Text(I18n.t("huawei.connected").replace("{uhren}", st.uhren.joinToString(", ")),
+                    style = MaterialTheme.typography.bodyMedium)
+            }
+            if (st.offen > 0) {
+                Spacer(Modifier.height(6.dp))
+                Text(I18n.t("huawei.pending").replace("{n}", st.offen.toString()),
+                    style = MaterialTheme.typography.bodyMedium)
+            }
+            // Fehler stehen sichtbar da, solange es sie gibt (Berechtigungen nie stumm scheitern).
+            val fehler = when {
+                st.fehler.isEmpty() -> ""
+                st.fehler == "health" -> I18n.t("huawei.errHealth")
+                st.fehler == "config" -> I18n.t("huawei.errConfig")
+                st.fehler == "keine-uhr" -> I18n.t("huawei.errNoWatch")
+                st.fehler == "abgelehnt" -> I18n.t("huawei.errDenied")
+                else -> I18n.t("huawei.errOther").replace("{f}", st.fehler)
+            }
+            if (fehler.isNotEmpty()) {
+                Spacer(Modifier.height(6.dp))
+                Text(fehler, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            }
+            Spacer(Modifier.height(8.dp))
+            if (st.verbunden) {
+                OutlinedButton(onClick = { HuaweiBruecke.trennen(ctx) }) { Text(I18n.t("huawei.disconnect")) }
+            } else {
+                Button(onClick = { (ctx as? android.app.Activity)?.let { HuaweiBruecke.verbinden(it) } }) {
+                    Text(I18n.t("huawei.connect"))
+                }
+            }
+        }
+    }
 }

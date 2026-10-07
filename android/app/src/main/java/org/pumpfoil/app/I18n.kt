@@ -1469,6 +1469,18 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "account.activitySurfing" to row("Surfen", "Surfe", "Surfen", "Surfing", "Surf", "Surf", "Surf"),
     "account.activityOpenWater" to row("Open Water (Freiwasser)", "Open Water (Freiwasser)", "Open Water (Freiwasser)", "Open water", "Eau libre", "Acque libere", "Aguas abiertas"),
     "account.activityTypeHint" to row("Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.", "Legt fescht, als weli Aktivität d Garmin-Ufnahm i Garmin Connect erschiint.", "Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.", "Sets which activity the Garmin recording appears as in Garmin Connect.", "Définit sous quelle activité l'enregistrement Garmin apparaît dans Garmin Connect.", "Imposta come quale attività appare la registrazione Garmin in Garmin Connect.", "Define como qué actividad aparece la grabación de Garmin en Garmin Connect."),
+    // HUAWEI-Uhren (07.10.2026)
+    "huawei.title" to row("HUAWEI-Uhr (Beta)", "HUAWEI-Uhr (Beta)", "HUAWEI-Uhr (Beta)", "HUAWEI watch (beta)", "Montre HUAWEI (bêta)", "Orologio HUAWEI (beta)", "Reloj HUAWEI (beta)"),
+    "huawei.body" to row("Die Pumpfoil-App auf deiner HUAWEI-Uhr schickt ihre Aufnahmen über dieses Handy. Lass Pumpfoil nach der Session am Handy offen, bis die Uhr „Alles übertragen“ zeigt.", "D Pumpfoil-App uf dinere HUAWEI-Uhr schickt iri Ufnahme über das Handy. Lass Pumpfoil nach de Session uf em Handy offe, bis d Uhr „Alles übertreit“ aazeigt.", "Die Pumpfoil-App auf deiner HUAWEI-Uhr schickt ihre Aufnahmen über dieses Handy. Lass Pumpfoil nach der Session am Handy offen, bis die Uhr „Alles drüben“ anzeigt.", "The Pumpfoil app on your HUAWEI watch sends its recordings through this phone. After a session, keep Pumpfoil open on the phone until the watch shows “All sent”.", "L’app Pumpfoil de ta montre HUAWEI envoie ses enregistrements via ce téléphone. Après une session, garde Pumpfoil ouvert sur le téléphone jusqu’à ce que la montre affiche « Tout envoyé ».", "L’app Pumpfoil sul tuo orologio HUAWEI invia le registrazioni tramite questo telefono. Dopo una sessione tieni aperto Pumpfoil sul telefono finché l’orologio mostra « Tutto inviato ».", "La app Pumpfoil de tu reloj HUAWEI envía sus grabaciones a través de este teléfono. Tras una sesión, deja Pumpfoil abierto en el teléfono hasta que el reloj muestre «Todo enviado»."),
+    "huawei.connect" to row("HUAWEI-Uhr verbinden", "HUAWEI-Uhr verbinde", "HUAWEI-Uhr verbinden", "Connect HUAWEI watch", "Connecter la montre HUAWEI", "Collega orologio HUAWEI", "Conectar reloj HUAWEI"),
+    "huawei.disconnect" to row("Trennen", "Trenne", "Trennen", "Disconnect", "Déconnecter", "Scollega", "Desconectar"),
+    "huawei.connected" to row("Verbunden: {uhren}", "Verbunde: {uhren}", "Verbunden: {uhren}", "Connected: {uhren}", "Connectée : {uhren}", "Collegato: {uhren}", "Conectado: {uhren}"),
+    "huawei.pending" to row("Warten auf Upload: {n}", "Wartet uf Upload: {n}", "Wartet auf Upload: {n}", "Waiting for upload: {n}", "En attente d’envoi : {n}", "In attesa di caricamento: {n}", "Esperando subida: {n}"),
+    "huawei.errHealth" to row("Huawei Health ist auf diesem Handy nicht installiert – nur darüber erreicht die Uhr Pumpfoil.", "Huawei Health isch uf dem Handy nöd installiert – nur dörtdur erreicht d Uhr Pumpfoil.", "Huawei Health ist auf dem Handy nicht installiert – nur darüber erreicht die Uhr Pumpfoil.", "Huawei Health is not installed on this phone – the watch can only reach Pumpfoil through it.", "Huawei Health n’est pas installé sur ce téléphone – la montre ne peut joindre Pumpfoil que par lui.", "Huawei Health non è installato su questo telefono – l’orologio raggiunge Pumpfoil solo tramite esso.", "Huawei Health no está instalado en este teléfono: el reloj solo llega a Pumpfoil a través de él."),
+    "huawei.errConfig" to row("Noch nicht verfügbar – die HUAWEI-Beta wird gerade eingerichtet.", "No nöd verfüegbar – d HUAWEI-Beta wird grad iigrichtet.", "Noch nicht verfügbar – die HUAWEI-Beta wird gerade eingerichtet.", "Not available yet – the HUAWEI beta is being set up.", "Pas encore disponible – la bêta HUAWEI est en préparation.", "Non ancora disponibile – la beta HUAWEI è in preparazione.", "Aún no disponible: la beta de HUAWEI se está preparando."),
+    "huawei.errNoWatch" to row("Keine gekoppelte HUAWEI-Uhr gefunden. Koppel sie zuerst in Huawei Health.", "Kei kopplete HUAWEI-Uhr gfunde. Kopple si zerscht in Huawei Health.", "Keine gekoppelte HUAWEI-Uhr gefunden. Koppel sie zuerst in Huawei Health.", "No paired HUAWEI watch found. Pair it in Huawei Health first.", "Aucune montre HUAWEI couplée. Couple-la d’abord dans Huawei Health.", "Nessun orologio HUAWEI associato. Associalo prima in Huawei Health.", "No se encontró ningún reloj HUAWEI emparejado. Empareja primero en Huawei Health."),
+    "huawei.errDenied" to row("Zugriff abgelehnt. Tippe auf Verbinden, um es noch einmal zu versuchen.", "Zuegriff abglehnt. Tipp uf Verbinde zum nomal probiere.", "Zugriff abgelehnt. Tipp auf Verbinden, dann probier ma's nochmal.", "Access was declined. Tap Connect to try again.", "Accès refusé. Touche Connecter pour réessayer.", "Accesso negato. Tocca Collega per riprovare.", "Acceso denegado. Toca Conectar para intentarlo de nuevo."),
+    "huawei.errOther" to row("Etwas ist schiefgegangen: {f}", "Öppis isch schiefgange: {f}", "Da ist was schiefgegangen: {f}", "Something went wrong: {f}", "Un problème est survenu : {f}", "Qualcosa è andato storto: {f}", "Algo salió mal: {f}"),
 )
 
 
@@ -2555,6 +2567,17 @@ private fun fiTabelle(): Map<String, String> = mapOf(
     "v2.keep" to "Kyllä se lasketaan — palauta",
     "v2.keptLabel" to "palautettu veto",
     "v2.unkeep" to "siirrä taas sivuun",
+    "huawei.title" to "HUAWEI-kello (beta)",
+    "huawei.body" to "HUAWEI-kellosi Pumpfoil-sovellus lähettää tallenteensa tämän puhelimen kautta. Pidä Pumpfoil auki puhelimessa session jälkeen, kunnes kello näyttää ”Kaikki lähetetty”.",
+    "huawei.connect" to "Yhdistä HUAWEI-kello",
+    "huawei.disconnect" to "Katkaise yhteys",
+    "huawei.connected" to "Yhdistetty: {uhren}",
+    "huawei.pending" to "Odottaa latausta: {n}",
+    "huawei.errHealth" to "Huawei Healthia ei ole asennettu tähän puhelimeen – kello tavoittaa Pumpfoilin vain sen kautta.",
+    "huawei.errConfig" to "Ei vielä saatavilla – HUAWEI-betaa valmistellaan.",
+    "huawei.errNoWatch" to "Pariliitettyä HUAWEI-kelloa ei löytynyt. Muodosta pariliitos ensin Huawei Healthissa.",
+    "huawei.errDenied" to "Pääsy evättiin. Yritä uudelleen napauttamalla Yhdistä.",
+    "huawei.errOther" to "Jokin meni pieleen: {f}",
 )
 
 // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
@@ -3638,6 +3661,17 @@ private fun nlTabelle(): Map<String, String> = mapOf(
     "v2.keep" to "Telt wél — terughalen",
     "v2.keptLabel" to "teruggehaalde run",
     "v2.unkeep" to "weer apart zetten",
+    "huawei.title" to "HUAWEI-horloge (bèta)",
+    "huawei.body" to "De Pumpfoil-app op je HUAWEI-horloge stuurt zijn opnames via deze telefoon. Laat Pumpfoil na een sessie open op de telefoon tot het horloge „Alles verzonden” toont.",
+    "huawei.connect" to "HUAWEI-horloge koppelen",
+    "huawei.disconnect" to "Ontkoppelen",
+    "huawei.connected" to "Gekoppeld: {uhren}",
+    "huawei.pending" to "Wacht op upload: {n}",
+    "huawei.errHealth" to "Huawei Health is niet geïnstalleerd op deze telefoon – alleen daarlangs bereikt het horloge Pumpfoil.",
+    "huawei.errConfig" to "Nog niet beschikbaar – de HUAWEI-bèta wordt voorbereid.",
+    "huawei.errNoWatch" to "Geen gekoppeld HUAWEI-horloge gevonden. Koppel het eerst in Huawei Health.",
+    "huawei.errDenied" to "Toegang geweigerd. Tik op Koppelen om het opnieuw te proberen.",
+    "huawei.errOther" to "Er ging iets mis: {f}",
 )
 
 // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
@@ -4721,4 +4755,15 @@ private fun csTabelle(): Map<String, String> = mapOf(
     "v2.keep" to "Počítá se — vrátit",
     "v2.keptLabel" to "vrácená jízda",
     "v2.unkeep" to "znovu odložit",
+    "huawei.title" to "Hodinky HUAWEI (beta)",
+    "huawei.body" to "Aplikace Pumpfoil v hodinkách HUAWEI posílá záznamy přes tento telefon. Po session nech Pumpfoil v telefonu otevřený, dokud hodinky neukážou „Vše odesláno“.",
+    "huawei.connect" to "Připojit hodinky HUAWEI",
+    "huawei.disconnect" to "Odpojit",
+    "huawei.connected" to "Připojeno: {uhren}",
+    "huawei.pending" to "Čeká na nahrání: {n}",
+    "huawei.errHealth" to "Huawei Health není v tomto telefonu nainstalováno – hodinky se k Pumpfoilu dostanou jen přes něj.",
+    "huawei.errConfig" to "Zatím nedostupné – beta pro HUAWEI se připravuje.",
+    "huawei.errNoWatch" to "Nenalezeny žádné spárované hodinky HUAWEI. Nejdřív je spáruj v Huawei Health.",
+    "huawei.errDenied" to "Přístup odmítnut. Klepni na Připojit a zkus to znovu.",
+    "huawei.errOther" to "Něco se pokazilo: {f}",
 )

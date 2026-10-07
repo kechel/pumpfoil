@@ -182,6 +182,9 @@ fun MainScaffold(onLogout: () -> Unit) {
                 // Aufnahme in wenigen Zeilen wieder draussen — der Aufruf kostet also nichts.
                 Recorder.refreshPending(ctx)
                 Recorder.drain(ctx)
+                // HUAWEI-Uhren: Empfaenger anmelden (nur wenn schon einmal verbunden) und
+                // vollstaendig angekommene Sessions hochladen.
+                HuaweiBruecke.start(ctx)
                 scope.launch {
                     try {
                         val p = Api.me()

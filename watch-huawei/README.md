@@ -35,6 +35,20 @@ Was die Uhr NICHT liefert und wie damit umgegangen wird:
 | Signier-Konfiguration (Zertifikat, Profil `.p7b`) | DevEco → Project Structure → Signing Configs (landet in `build-profile.json5`, Dateien NICHT committen) |
 | Wear-Engine-App-ID + Fingerabdruck der Uhren-App | Android-App (folgt im Android-Teil) |
 
+## SDK holen (nicht im Repo)
+
+Das Wear-Engine-SDK fuer die Uhr liegt **nicht** im Repo (die Wearable-Fassung ist „All rights
+reserved", siehe `.gitignore`). Herunterladen von
+https://developer.huawei.com/consumer/en/doc/connectivity-Library/litewearable-sdk-cn-0000001705004353
+und ablegen als:
+
+| Projekt | Datei | Pruefsumme |
+|---|---|---|
+| `lite/` | `lite/entry/src/main/js/MainAbility/wearengine/wearengine.js` (wearengine-litewearable 5.0.2.306) | `wearengine.js.sha256` daneben |
+| `wearable/` | `wearable/entry/src/main/js/MainAbility/wearengine/wearengine.js` (wearengine-wearable 5.0.2.306) | folgt |
+
+Pruefen: `sha256sum wearengine.js` muss zur `.sha256` passen.
+
 ## Bauen
 
 DevEco Studio 6.x (macOS/Windows) → `watch-huawei/lite` oeffnen → Build HAP(s). Danach im
@@ -43,7 +57,6 @@ Build-Log die Bundle-Groesse ansehen: laut einem Forumsbericht scheitern Lite-Bu
 
 ## Herkunft
 
-- `lite/entry/src/main/js/MainAbility/wearengine/wearengine.js` — HUAWEI Wear Engine SDK
-  (Lite Wearable 5.0.2.306), Apache License 2.0.
+- Wear Engine SDK: nicht im Repo, siehe „SDK holen".
 - Build-Dateien (`build-profile.json5`, `hvigor*`, `oh-package.json5`) nach dem Beispiel
   „sportwatch-wear-engine-lite-wearable-to-mobile" (Explore in HMOS Wearable, MIT).

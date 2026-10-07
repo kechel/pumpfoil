@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- HUAWEI-Uhren: Wear Engine (Dateien von der Uhr empfangen). -->
+    <uses-permission android:name="com.huawei.wearengine.permission.DEVICE_MANAGER" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Handy-Recorder (Beta „Record on Phone"): GPS + Accel im Hintergrund aufnehmen. -->
     <!-- FINE braucht ab Android 12 zwingend auch COARSE, sonst wird die Runtime-Anfrage abgelehnt. -->
@@ -50,6 +52,11 @@
         </activity>
 
         <!-- Teilt das generierte Share-PNG per System-Share-Sheet (content://-URI). -->
+        <!-- HUAWEI Wear Engine: App-ID aus AppGallery Connect (app/build.gradle.kts). -->
+        <meta-data
+            android:name="com.huawei.hms.client.appid"
+            android:value="${huaweiAppId}" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
