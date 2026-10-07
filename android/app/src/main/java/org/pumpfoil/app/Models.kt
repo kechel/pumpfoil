@@ -291,6 +291,9 @@ data class Metrics(
     // Rate; bei FR55 & Co. liegt sie unter der angeforderten und reicht dem Modell nicht.
     val detection: String? = null,
     @SerialName("accel_hz_effective") val accelHzEffective: Double? = null,
+    // "board" = Handy am Brett: Laeufe absichtlich per GPS, Pumps trotzdem aus dem Accel — dann
+    // ist „gps_only" KEIN Mangel und der Nur-GPS-Hinweis falsch (PWA seit 03.10.2026).
+    @SerialName("model_skipped") val modelSkipped: String? = null,
     // Das Geraet hat immer wieder dieselbe gespeicherte Position gemeldet statt neu zu messen.
     @SerialName("gps_frozen") val gpsFrozen: Boolean = false,
     @SerialName("avg_hr") val avgHr: Int? = null,

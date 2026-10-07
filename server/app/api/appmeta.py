@@ -827,6 +827,17 @@ IN_REVIEW: list[dict] = [
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
+    # 07.10.2026 (Roman, Handy am Brett, #13908): Android/iOS zeigten „nur ~47 Hz, braucht 15 Hz",
+    # obwohl der Accel ausgewertet war — die PWA blendet den Hinweis am Brett seit 03.10. aus, die
+    # Apps hatten das nie bekommen. Code fertig, wartet auf die naechste Runde (nicht gebumpt).
+    {"name": "Android phone + Wear OS", "version": "1.1.41 / 1.2.41",
+     "items": [
+         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.44",
+     "items": [
+         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

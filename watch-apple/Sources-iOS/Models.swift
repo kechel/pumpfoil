@@ -991,6 +991,9 @@ struct Metrics: Codable {
     // Rate; bei FR55 & Co. liegt sie unter der angeforderten und reicht dem Modell nicht.
     let detection: String?
     let accel_hz_effective: Double?
+    /// "board" = Handy am Brett: Laeufe absichtlich per GPS, Pumps trotzdem aus dem Accel — dann ist
+    /// „gps_only" KEIN Mangel und der Nur-GPS-Hinweis falsch (PWA seit 03.10.2026).
+    let model_skipped: String?
     /// Das Geraet hat immer wieder dieselbe gespeicherte Position gemeldet statt neu zu messen.
     let gps_frozen: Bool?
 }
