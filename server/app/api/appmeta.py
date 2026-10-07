@@ -730,9 +730,15 @@ IN_REVIEW: list[dict] = [
     # Kamera-Knopf ab hier IMMER (Jan, 02.10.); CHAT_PHOTOS_ALL=1 ist seit 02.10. gesetzt.
     # EINGEREICHT 07.10.2026 ~08:35 (Jans Meldung, Play Console „Änderungen, die überprüft werden —
     # Schnelle Vorabprüfungen", Produktion 53 (1.1.39), Produktion (Wear OS) 1049 (1.2.39)).
-    {"name": "Android phone + Wear OS", "version": "1.1.39 / 1.2.39",
+    # ERSETZT 07.10.2026 ~12:10 (Jans Meldung, Play Console: Produktion 54 (1.1.40), Produktion
+    # (Wear OS) 1050 (1.2.40), voller Roll-out, „Vorabprüfungen … noch maximal 14 Minuten"):
+    # 1.2.40 = Messweg nach Doku (GPS aus Health Services, Wake-up-Accel mit Batching, GPS-Waechter),
+    # neue Berechtigung ACTIVITY_RECOGNITION. Notschalter WEAR_GPS_HS / WEAR_ACCEL_BATCH (global).
+    {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
      "eingereicht": "2026-10-07",
      "items": [
+         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
+         "The watch asks once for physical activity access, which it only uses to measure your speed while you record.",
          "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
          "In direct chats, two ticks show that your message has been read.",
          "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
@@ -820,13 +826,7 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 07.10.2026 (Jan: „richtig machen, vernuenftig, so wie dokumentiert"): Messweg nach Doku auf Wear
-    # (Messweg.kt, RecorderService): GPS aus der Health-Services-Uebung, Wake-up-Accel MIT Batching,
-    # GPS-Waechter. Anlass u818/u574: GPS brach nach Minuten ab. Phone 1.1.40 nur mitgebumpt.
-    {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
-     "items": [
-         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
-     ]},
+    # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
