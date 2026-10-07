@@ -3,11 +3,9 @@
  * zu common/recorder.js (Lite + JS-FA): gleicher Ablauf, gleiche Dateien, gleiche Uebertragung —
  * nur die Geraete-APIs sind die von HarmonyOS (Kits statt @system-Module).
  *
- * NOCH NIE GEBAUT ODER AUF EINER UHR GELAUFEN (auf der VM gibt es kein DevEco). Gegen die
- * Huawei-Doku und ein offenes Projekt mit Geraetetest geschrieben. Als UNGEPRUEFT markiert sind:
- *  - der Erfolgscode von `P2pClient.sendMessage` (207 wie bei Lite/Android — siehe SENDE_OK),
- *  - ob die Continuous Task (Modus location) bei dunklem Display auch den Accel weiterlaufen laesst.
- * Beides zeigt die Uhr an bzw. geht im /complete als Diagnose mit (messweg), nie nur ins Log.
+ * Uebersetzt auf der VM mit den HarmonyOS Command Line Tools (SDK API 24, hvigor) — NOCH NIE
+ * AUF EINER UHR GELAUFEN. UNGEPRUEFT: ob die Continuous Task (Modus location) bei dunklem Display
+ * auch den Accel weiterlaufen laesst; das Ergebnis geht als messweg.bg im /complete mit.
  *
  * Was die ArkTS-Uhr mehr kann als Lite: GPS liefert Tempo (geht als `speed` mit), es gibt eine
  * Hintergrund-Aufgabe, und Dateien gehen synchron (fileIo).
@@ -24,8 +22,6 @@ import { util } from '@kit.ArkTS';
 import * as K from './Kern';
 import { GEGENSTELLEN, APP_VERSION } from './Konfig';
 
-/** Wear Engine meldet eine angekommene Nachricht mit 207 (Lite, Android). UNGEPRUEFT fuer ArkTS. */
-const SENDE_OK: number = 207;
 const ACCEL_NS: number = 20000000;   // 20 ms = 50 Hz
 
 interface Diagnose {
@@ -480,7 +476,8 @@ export class Recorder {
       }
       fertig = true;
       clearTimeout(this.wache);
-      if (r.code === SENDE_OK) {
+      const code: number = r.code !== undefined ? r.code : 0;
+      if (code === wearEngine.P2pResultCode.COMMUNICATION_SUCCESS) {
         this.gegen.ok();
         this.schlange.laeuft = false;
         o.nr++;
@@ -494,7 +491,7 @@ export class Recorder {
           this.teilSenden();   // gleich weiter, solange es laeuft
         }
       } else {
-        this.fehlschlag(r.code);
+        this.fehlschlag(code);
       }
     }).catch((e: BusinessError) => {
       if (fertig) {

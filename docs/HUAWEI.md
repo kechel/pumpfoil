@@ -37,8 +37,8 @@ decompress", die Lite-JS-App laeuft) [FORUM, mit Geraetebeleg]:
 - Bekommt die Watch 4 ihr Update auf 5/6, faellt sie vermutlich von `wearable/` auf die ArkTS-Linie.
 - **Watch Ultimate [UNKLAR]:** Huaweis eigener Forenartikel „Wearable Device Types" fuehrt sie unter Lite,
   das Home-Assistant-Projekt unter ArkTS. Erst ein Geraet entscheidet; bis dahin in keiner Liste versprechen.
-- **ArkTS-Seite, ungeprueft (Recorder.ets):** Erfolgscode von `P2pClient.sendMessage` (angenommen 207 wie
-  Lite/Android; die Uhr zeigt jeden anderen Code an), und ob die Continuous Task (Modus location) bei dunklem
+- **ArkTS-Seite (Recorder.ets):** Erfolgscode `P2pResultCode.COMMUNICATION_SUCCESS = 207` [DOK, SDK-Typen API 24].
+  Ungeprueft: ob die Continuous Task (Modus location) bei dunklem
   Display auch den Beschleunigungssensor weiterlaufen laesst (`messweg.bg` im /complete sagt, ob sie lief).
   Fingerabdruck-Form fuer die Handy-App: Huaweis Forum nennt `<Paketname>_<Base64-Public-Key>`.
 - Wear Engine gibt es auch auf der ArkTS-Seite (`@kit.WearEngine`, P2P-Nachrichten) — unser Uebertragungs-

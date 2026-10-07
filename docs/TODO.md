@@ -1460,9 +1460,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   nur noch ArkTS/Stage — unser `wearable/` (JS-FA) deckt nur Watch 3/4 auf HarmonyOS ≤ 4. ArkTS-Linie =
   dritte Codebasis (Seite + Geraete-Schicht; Uebertragung + Handy-Bruecken bleiben). Beleg: docs/HUAWEI.md
   „Drei Linien". **Gebaut 07.10. (Jan: „bauen wir gleich mit"): `watch-huawei/arkts/`**, Kern bytegleich gegen
-  kern.js getestet, Geraete-Schicht/Seite nie uebersetzt. Offen: Fingerabdruck der ArkTS-App auf der
+  kern.js getestet; **alle drei Linien bauen auf der VM** (`watch-huawei/build-all.sh`, CLT 6.1.1 unter ~/harmonyos — dabei 2 echte Fehler gefunden: Typfehler in Recorder.ets, fehlende Pflichtfelder in wearable/config.json). Erfolgscode 207 per SDK belegt. Offen: Fingerabdruck der ArkTS-App auf der
   Handy-Seite (Android kennt nur EINEN `HUAWEI_WATCH_FP` — hat die ArkTS-App einen anderen, braucht die
-  Bruecke eine Liste), `client_id` in module.json5, SENDE_OK-Code. Ultimate: Lite oder ArkTS unklar.
+  Bruecke eine Liste), `client_id` in module.json5. Ultimate: Lite oder ArkTS unklar.
   **iOS:** laut Huawei koennen iPhone-Nutzer keine Fremd-Apps auf die Uhr installieren -> iOS-Bruecke nicht bewerben.
 
 - **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
