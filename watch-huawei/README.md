@@ -95,6 +95,11 @@ iOS: `WearEngineSDK.framework`/`.bundle` ebenso nur lokal (`watch-apple/.gitigno
 
 ## Bauen
 
+**Auf der VM (seit 07.10.2026):** `./build-all.sh` — HarmonyOS Command Line Tools fuer Linux (6.1.1,
+SDK API 24) unter `~/harmonyos/command-line-tools` (ausserhalb des Repos, NIE committen; Pfad per
+`CLT_HOME`). Baut alle drei Linien unsigniert, vorher sync + Node-Tests. Die Lite-/JS-FA-Linien
+brauchen das lokale Wear-Engine-SDK (`wearengine.js`, s. „SDK holen"). Signieren bleibt DevEco.
+
 DevEco Studio 6.x (macOS/Windows) → `watch-huawei/lite` bzw. `watch-huawei/wearable` oeffnen → Build HAP(s).
 Die Watch-3/4-Linie (HarmonyOS 2-4) ist aelter; bietet DevEco beim Oeffnen eine Migration an,
 annehmen und nur `config.json`/Seiten behalten. Danach im

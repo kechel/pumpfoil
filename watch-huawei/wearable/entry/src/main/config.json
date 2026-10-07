@@ -9,11 +9,13 @@
   },
   "deviceConfig": {},
   "module": {
+    "package": "org.pumpfoil.huawei",
     "deviceType": [
       "wearable"
     ],
     "distro": {
       "deliveryWithInstall": true,
+      "installationFree": false,
       "moduleName": "entry",
       "moduleType": "entry"
     },

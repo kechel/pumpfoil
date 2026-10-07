@@ -3,3 +3,10 @@
 # ebenfalls draussen. Jeder laedt sie selbst (README „SDK holen"); die .sha256 daneben bleibt
 # im Repo, damit die richtige Fassung pruefbar ist.
 **/wearengine/wearengine.js
+
+# Build-Ausgaben (hvigor / Command Line Tools)
+**/.hvigor/
+**/build/
+**/oh_modules/
+**/.preview/
+local.properties
