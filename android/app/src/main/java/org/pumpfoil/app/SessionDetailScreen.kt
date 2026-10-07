@@ -581,7 +581,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         MergeLinkHinweis(s.id)
         // Handy am Brett? — nur wenn die Erkennung anschlaegt (s. LageAnsicht.kt).
         BrettFrage(s, onReload)
-        if (mdet?.detection == "gps_only" && !zeigeEingefroren && s.status != "live") {
+        // Am Brett KEIN Hinweis (Jan, 03.10.2026: „einfach ganz weg bei Phone on Board") — dort ist
+        // die GPS-Erkennung gewollt; „nur ~47 Hz, braucht 15 Hz" stand so bei Roman am 07.10.
+        if (mdet?.detection == "gps_only" && mdet.modelSkipped != "board" && !zeigeEingefroren && s.status != "live") {
             val hzEff = mdet.accelHzEffective
             val warnText = if (hzEff != null && hzEff > 0)
                 I18n.t("sd.lowRateWarning").replace("{hz}", Math.round(hzEff).toString())

@@ -572,7 +572,8 @@ struct SessionDetailView: View {
         // sauber misst.
         let ohneLaeufe = (s.analysis?.segments ?? []).isEmpty
         if let m = s.analysis?.metrics,
-           m.detection == "gps_only" || (m.gps_frozen == true && ohneLaeufe),
+           // Am Brett KEIN Nur-GPS-Hinweis (Jan, 03.10.2026) — dort ist die GPS-Erkennung gewollt.
+           (m.detection == "gps_only" && m.model_skipped != "board") || (m.gps_frozen == true && ohneLaeufe),
            s.status != "live" {
             Text(nurGpsText(m, ohneLaeufe: ohneLaeufe))
                 .font(.subheadline)

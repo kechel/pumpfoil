@@ -34,7 +34,10 @@ PAARE = [(9528, 9529), (9535, 9534), (9650, 9648), (9650, 9649), (10195, 10194),
          # nur von der Uhr gefunden — Labels fuer ein Brett-Modell, s. docs/TODO.md.
          (10968, 10969), (10993, 10979), (12610, 12608), (12611, 12608),
          # nachgetragen 06.10.2026: 03.10. u2 Illmensee (iPhone + fenix), 03./04.10. u574 Steinberger See
-         (12687, 12722), (12738, 12737), (13055, 13051)]
+         (12687, 12722), (12738, 12737), (13055, 13051),
+         # nachgetragen 07.10.2026: u244 (Samsung am Brett + Garmin), mit bewusst gefahrenen Gleitphasen
+         # mitten in und am Ende von Laeufen (Fahrer-Meldung im Chat) — Kandidat fuer Gleit-Labels.
+         (13908, 13909)]
 
 
 def bandpass(x, lo=0.8, hi=2.5):
