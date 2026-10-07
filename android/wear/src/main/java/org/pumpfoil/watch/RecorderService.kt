@@ -67,6 +67,8 @@ class RecorderService : Service(), SensorEventListener {
     @Volatile private var letzterOrtMs = 0L
     @Volatile private var ortSeitMs = 0L
     private val haupt by lazy { Handler(Looper.getMainLooper()) }
+    /** Stopp/Pause, die gerade auf den Health-Services-Puffer warten (s. hsLeerenDann). Nur Hauptthread. */
+    private val leertWartet = mutableListOf<() -> Unit>()
 
     /**
      * Hat DIESE Uhr einen eigenen GNSS-Empfaenger?
@@ -113,25 +115,31 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) { stopEverything(save = true); return START_NOT_STICKY }
-        if (intent?.action == ACTION_DISCARD) { stopEverything(save = false); return START_NOT_STICKY }
+        if (intent?.action == ACTION_STOP) { hsLeerenDann { stopEverything(save = true) }; return START_NOT_STICKY }
+        if (intent?.action == ACTION_DISCARD) { nachLeeren { stopEverything(save = false) }; return START_NOT_STICKY }
         // PAUSE: Sensoren und Ortung aus, Dienst und Session bleiben. Der Vordergrund-Dienst
         // laeuft weiter — er haelt die Aufnahme am Leben, und ohne ihn raeumt das System die
         // App weg, waehrend jemand am Steg steht.
         if (intent?.action == ACTION_PAUSE) {
-            sensors.unregisterListener(this)
-            stopHeartRate()           // beendet die Uebung — und damit auch das Health-Services-GPS
-            stopLocation()
-            Recorder.pause(applicationContext)
+            hsLeerenDann {
+                if (Recorder.state.value.recording && !Recorder.state.value.paused) {
+                    sensors.unregisterListener(this)
+                    stopHeartRate()   // beendet die Uebung — und damit auch das Health-Services-GPS
+                    stopLocation()
+                    Recorder.pause(applicationContext)
+                }
+            }
             return START_STICKY
         }
         if (intent?.action == ACTION_RESUME) {
-            Recorder.resume(applicationContext)
-            registerSensors()
-            ortSeitMs = SystemClock.elapsedRealtime(); letzterOrtMs = 0L
-            if (!gpsUeberHs) startLocation()
-            // Die Uebung braucht es fuer den Puls UND, wenn das GPS von dort kommt, fuer die Ortung.
-            if (Recorder.state.value.pulsMessung || gpsUeberHs) startHeartRate()
+            nachLeeren {
+                Recorder.resume(applicationContext)
+                registerSensors()
+                ortSeitMs = SystemClock.elapsedRealtime(); letzterOrtMs = 0L
+                if (!gpsUeberHs) startLocation()
+                // Die Uebung braucht es fuer den Puls UND, wenn das GPS von dort kommt, fuer die Ortung.
+                if (Recorder.state.value.pulsMessung || gpsUeberHs) startHeartRate()
+            }
             return START_STICKY
         }
         // Puls-Berechtigung wurde WAEHREND der Aufnahme erteilt -> Health Services jetzt anhaengen,
@@ -247,6 +255,9 @@ class RecorderService : Service(), SensorEventListener {
     private fun hsOrtMoeglich(): Boolean {
         if (imEmulator() || !eigenesGnss) return false
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return false
+        // Das Tempo (SPEED) liefert Health Services nur mit „Koerperliche Aktivitaet" — ohne es haetten
+        // die Punkte kein Doppler-Tempo, das der Server braucht. Dann lieber der LocationManager.
+        if (checkSelfPermission(android.Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) return false
         val prefs = getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
         return prefs.getString("hs_ort", "") == "ja" && prefs.getString("gps_hs", "on") != "off"
     }
@@ -316,7 +327,7 @@ class RecorderService : Service(), SensorEventListener {
      * echte Uhr meldet das nie. Auf ihr bleibt also alles wie es war.
      */
     private fun imEmulator(): Boolean =
-        Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish"
+        (Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish") && !hsImEmulatorErlaubt(this)
 
     private fun startHeartRate() {
         // START_STICKY: das System kann den Service mit leerem Intent neu starten. Dann laeuft die
@@ -370,7 +381,10 @@ class RecorderService : Service(), SensorEventListener {
                     // koennen wir nicht wissen — aber wir koennen es MERKEN und neu anfordern.
                     if (update.exerciseStateInfo.state.isEnded) {
                         android.util.Log.w("Pumpfoil",
-                            "Puls-Uebung beendet (${update.exerciseStateInfo.state}) — neu anfordern")
+                            "Uebung beendet (${update.exerciseStateInfo.state})")
+                        // Auch die letzte Lieferung traegt noch Positionen — mitnehmen, solange
+                        // die Aufnahme laeuft (danach verwirft addGps sie ohnehin).
+                        if (gpsUeberHs) hsOrteUebernehmen(update)
                         hsClient = null
                         Recorder.setPulsMessung(false)
                         // Endete sie WAEHREND der Aufnahme, geht das GPS an den LocationManager.
@@ -393,7 +407,10 @@ class RecorderService : Service(), SensorEventListener {
                     }
                 }
             })
-            val config = ExerciseConfig.builder(ExerciseType.WORKOUT)
+            // Uebungstyp: WORKOUT bietet Ortung, aber KEINE Geschwindigkeit (gemessen 07.10.2026 an
+            // den Faehigkeiten) — der Server braucht je Punkt das Doppler-Tempo. SURFING hat Ortung,
+            // Puls UND Tempo und passt ohnehin am besten (Garmin zeichnet bei uns auch „surfing" auf).
+            val config = ExerciseConfig.builder(UEBUNG_MIT_ORT.takeIf { gpsUeberHs } ?: ExerciseType.WORKOUT)
                 .setDataTypes(typen)
                 .setIsAutoPauseAndResumeEnabled(false)
                 .setIsGpsEnabled(gpsUeberHs)
@@ -517,6 +534,41 @@ class RecorderService : Service(), SensorEventListener {
             stopLocation()
             startLocation()
             ortSeitMs = jetzt; letzterOrtMs = 0L
+        }
+    }
+
+    /**
+     * Health Services haelt die Positionen bei dunklem Display bis ~150 s zurueck und liefert sie
+     * gebuendelt. Beendeten wir die Uebung sofort, fehlte bei jeder Pause und jedem Stopp das Ende
+     * des Laufs — der Puffer kaeme nach `Recorder.stop()` an oder gar nicht. Deshalb erst
+     * `flushAsync()`, eine Sekunde fuer die Zustellung warten, dann weiter; hoechstens
+     * [HS_LEEREN_MAX_MS]. Ohne HS-GPS geht es sofort weiter. Was waehrend des Wartens noch kommt
+     * (Stopp direkt nach Pause), haengt sich hinten an und laeuft danach in derselben Reihenfolge.
+     */
+    /** Ohne zu leeren, aber hinter allem, was gerade auf den Puffer wartet (Fortsetzen, Verwerfen). */
+    private fun nachLeeren(weiter: () -> Unit) {
+        if (leertWartet.isNotEmpty()) leertWartet.add(weiter) else weiter()
+    }
+
+    private fun hsLeerenDann(weiter: () -> Unit) {
+        val client = hsClient
+        if (leertWartet.isNotEmpty()) { leertWartet.add(weiter); return }
+        if (!gpsUeberHs || client == null) { weiter(); return }
+        leertWartet.add(weiter)
+        var erledigt = false
+        val fertig = Runnable {
+            if (!erledigt) {
+                erledigt = true
+                val alle = leertWartet.toList(); leertWartet.clear()
+                alle.forEach { it() }
+            }
+        }
+        haupt.postDelayed(fertig, HS_LEEREN_MAX_MS)
+        try {
+            val f = client.flushAsync()
+            f.addListener({ haupt.postDelayed(fertig, 1000L) }, { r -> haupt.post(r) })
+        } catch (_: Throwable) {
+            haupt.post(fertig)
         }
     }
 
@@ -645,20 +697,38 @@ class RecorderService : Service(), SensorEventListener {
         const val PULS_MAX_NEUSTARTS = 8
         /** Health Services darf bei dunklem Display gebuendelt liefern (Doku: bis ~150 s). */
         const val HS_STILL_MS = 300_000L
+        /** Laengstens so lange wartet Stopp/Pause auf den Health-Services-Puffer. */
+        const val HS_LEEREN_MAX_MS = 4_000L
         /** LocationManager liefert jede Sekunde; so lange Stille heisst „ausgefallen". */
         const val LM_STILL_MS = 60_000L
         const val LM_STILL_ERSTFIX_MS = 180_000L
         /** Hardware-Batching der Beschleunigung: hoechstens so lange sammelt der Sensor-FIFO. */
         const val ACCEL_LATENZ_US = 10_000_000
+        /** Uebungstyp, wenn das GPS aus Health Services kommt (s. startHeartRate). */
+        val UEBUNG_MIT_ORT: ExerciseType = ExerciseType.SURFING
         /** Kann Health Services auf dieser Uhr Ortung fuer Uebungen? Einmal beim App-Start pruefen,
          *  das Ergebnis liest der Dienst synchron beim Start der Aufnahme (`hs_ort`). */
+        /**
+         * Health Services IM EMULATOR erlauben — nur im DEBUG-Build und nur, wenn per adb
+         * `hs_emulator = ja` in die Einstellungen geschrieben wurde. Wear OS 4+ erzeugt dort
+         * synthetische Trainingsdaten inkl. GPS-Route (developer.android.com „Sensordaten mit
+         * Gesundheitsdiensten simulieren") — damit laesst sich der GPS-Weg aus Health Services
+         * pruefen, ohne echte Uhr. Release-Builds sind nie debuggable: dort bleibt alles wie oben.
+         */
+        fun hsImEmulatorErlaubt(ctx: Context): Boolean =
+            (ctx.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 &&
+            ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE).getString("hs_emulator", "") == "ja"
+
         fun pruefeHsOrt(ctx: Context) {
-            if (Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish") return
+            if ((Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish") && !hsImEmulatorErlaubt(ctx)) return
             try {
                 val f = HealthServices.getClient(ctx).exerciseClient.getCapabilitiesAsync()
                 f.addListener({
                     val ja = try {
-                        val typen = f.get().typeToCapabilities[ExerciseType.WORKOUT]?.supportedDataTypes ?: emptySet()
+                        val caps = f.get().typeToCapabilities
+                        val typen = caps[UEBUNG_MIT_ORT]?.supportedDataTypes ?: emptySet()
+                        // Ins Log, damit ein Feldbericht zeigt, was die Uhr kann (WORKOUT hat z. B. kein Tempo).
+                        android.util.Log.i("Pumpfoil", "HS ${UEBUNG_MIT_ORT.name} kann: ${typen.joinToString { it.name }}")
                         DataType.LOCATION in typen && DataType.SPEED in typen
                     } catch (_: Throwable) { false }
                     ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE).edit()
