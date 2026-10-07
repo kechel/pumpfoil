@@ -18,3 +18,11 @@ for p in lite wearable arkts; do
   (cd "$p" && hvigorw assembleHap --mode module -p product=default --no-daemon) | grep -E "ERROR|Error Message|At File|BUILD" 
   ls -la "$p/entry/build/default/outputs/default/"*.hap
 done
+# Lite: eine Seite ueber ~48 KB scheitert beim Installieren (Huawei-Forum, docs/HUAWEI.md). Der
+# Debug-Build ist unminifiziert und lag am 07.10. schon bei 47,9 KB — Release (minifiziert) bei 28,7 KB.
+# Deshalb Lite zusaetzlich als Release bauen und beide Groessen zeigen; Release ueber 44 KB bricht ab.
+(cd lite && hvigorw assembleHap --mode module -p product=default -p buildMode=release --no-daemon) | grep -E "ERROR|BUILD"
+SEITE=lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/pages/index/index.js
+REL=$(wc -c < "$SEITE")
+echo "Lite-Seite (Release): $REL Byte (Grenze ~49152; Debug-Build ist ~1,7x groesser)"
+[ "$REL" -le 45056 ] || { echo "FEHLER: Lite-Seite zu gross fuer GT/Fit — Code verkleinern"; exit 1; }

@@ -42,6 +42,8 @@ android {
         // Bruecke aus und meldet das sichtbar (HuaweiBruecke.bereit).
         manifestPlaceholders["huaweiAppId"] = "HUAWEI_APP_ID_EINTRAGEN"
         buildConfigField("String", "HUAWEI_WATCH_PKG", "\"org.pumpfoil.huawei\"")
+        // Mehrere durch Komma: die ArkTS-Linie (Watch 5, watch-huawei/arkts) kann anders signiert
+        // sein als Lite/JS-FA — dann beide eintragen, die Bruecke meldet sich fuer jeden an.
         buildConfigField("String", "HUAWEI_WATCH_FP", "\"HUAWEI_WATCH_FINGERPRINT_EINTRAGEN\"")
         versionCode = 54
         versionName = "1.1.40"
