@@ -1447,7 +1447,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   wearable = Watch 3/4, Kern in Node getestet), Android `HuaweiBruecke.kt` (+ Karte, 18 Sprachen),
   iOS `HuaweiBruecke.swift` (hinter `#if canImport(WearEngineSDK)`). Uebertragung als NACHRICHTEN in
   Teilen, weil das iOS-SDK keine Dateien kann. Teile-Empfang Android + iOS-Datei am 07.10. nachgeprueft:
-  Kern 19/19, Android compile + `HuaweiBrueckeTest` 3/3 gruen, Swift nur Parse (Xcode-Build steht aus). Danach:
+  Kern 19/19, Android compile + `HuaweiBrueckeTest` 3/3 gruen, iOS baut in Xcode ohne Framework (Jan, 07.10.). Danach:
   Server-Geraeteliste (Plattform „huawei" aus dem Token-Label?), ROADMAP/Coming-next, Beta-Aufruf-Entwurf.
   Jan liefert: Bundle-Name, SHA-256 Play-Key, Wear-Engine-App-ID, iOS Client-ID/Secrets (NICHT ins Repo),
   Signierzertifikate. Antrag „Apply for Wear Engine" ~2 Wochen — frueh starten. Memory: huawei-recorder-stand.
