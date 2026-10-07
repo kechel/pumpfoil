@@ -489,11 +489,34 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     // MARK: Upload
 
+    // Nachfassen, solange etwas offen ist (Jan, 07.10.2026: WLAN aus, Aufnahme, WLAN wieder an —
+    // der Upload lief erst nach einem Neustart). Angestossen wurde `drain()` nur beim Stoppen, beim
+    // App-Start, beim Zurueckkommen aus dem HINTERGRUND und per Tipp auf die Leiste; WLAN ueber das
+    // Kontrollzentrum zaehlt nicht als Hintergrund. Bewusst ein schlichter Takt statt NWPathMonitor
+    // (der lieferte auf der Uhr falsche „kein Netz"-Meldungen, [[apple-watch-upload-reachability]]).
+    // EIN Task fuer die ganze App — die Leiste steht oft zweimal (Tab-Leiste + Aufnahme-Bildschirm),
+    // zwei Takte duerften nie gleichzeitig hochladen. Im Hintergrund schlaeft er mit der App.
+    private var nachfassTask: Task<Void, Never>?
+    private static let nachfassSek: UInt64 = 60
+
+    func nachfassen() {
+        guard nachfassTask == nil, pendingCount > 0 else { return }
+        nachfassTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: PhoneRecorder.nachfassSek * 1_000_000_000)
+                guard let self else { return }
+                if self.pendingCount == 0 { break }
+                if !self.uploading && !self.recording { await self.drain() }
+            }
+            self?.nachfassTask = nil
+        }
+    }
+
     func drain() async {
         Store.recoverInterrupted(active: recording ? uuid : nil)
         pendingCount = Store.pendingCount()
         guard pendingCount > 0 else { return }
-        guard let _ = await PhoneIngest.ensureToken() else { uploadError = "offline"; return }
+        guard let _ = await PhoneIngest.ensureToken() else { uploadError = "offline"; nachfassen(); return }
         await PhoneIngest.reportVersion()   // Version/Plattform am Device-Token melden (einmal pro Lauf)
         uploadError = ""
         for dir in Store.completedSessions() {
@@ -505,6 +528,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         }
         uploading = false; status = ""; uploadSent = 0; uploadTotal = 0
         pendingCount = Store.pendingCount()
+        if pendingCount > 0 { nachfassen() }
     }
 
     private func uploadSession(_ dir: URL) async throws {

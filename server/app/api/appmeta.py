@@ -784,6 +784,7 @@ NAECHSTES: list[dict] = [
     # b89044e2). Phone 1.1.38 (52) + Wear 1.2.38 (1048, ohne eigene Aenderung mitgebumpt), iOS 1.1.42 (47).
     # 07.10.2026 neu gebumpt (Jan: „Versionen pumpen, dann mache ich neue Releases fertig"):
     # Phone 1.1.39 (53) + Wear 1.2.39 (1049), iOS 1.1.43 (48) — dazu Foil-Chips und Lesehaken.
+    # iOS Build 49 (07.10.): Handy-Recorder fasst alle 60 s nach, solange ein Upload offen ist.
     # Kamera-Knopf ab hier IMMER (Jan, 02.10.); CHAT_PHOTOS_ALL=1 ist seit 02.10. gesetzt.
     {"name": "Android phone + Wear OS", "version": "1.1.39 / 1.2.39",
      "items": [
