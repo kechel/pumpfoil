@@ -11,6 +11,9 @@ struct WatchStatsView: View {
     @State private var error: String?
     @State private var sortKey = "sessions"
     @State private var sortAsc = false
+    // Welche Haelfte: 0 = Nutzung (was wird womit gefahren), 1 = Aufnahmequalitaet. Vorher standen
+    // beide untereinander, die Qualitaet erst nach ~70 Modellen — Jan fand sie nicht (07.10.2026).
+    @State private var teil = 0
 
     private var sorted: [WatchStat] {
         if sortKey == "name" {
@@ -34,10 +37,14 @@ struct WatchStatsView: View {
     // Toolbar — das kostete den Type-Checker am meisten. Inhalt/Reihenfolge unverändert.
     var body: some View {
         List {
-            introSection
-            statusRows
-            statRows
-            qualiSection
+            teilWahl
+            if teil == 1 {
+                qualiSection
+            } else {
+                introSection
+                statusRows
+                statRows
+            }
         }
         .overlay { if loading { ProgressView() } }
         .navigationTitle(Loc.t("watchStats.title", lang))
@@ -98,6 +105,19 @@ struct WatchStatsView: View {
         }
         if m.nutzer <= 3 {
             Text(Loc.t("watchQuality.few", lang)).font(.footnote).foregroundStyle(.orange)
+        }
+    }
+
+    // Umschalter oben — nur, wenn es Qualitaets-Zahlen gibt (sonst gaebe es nur eine Haelfte).
+    @ViewBuilder private var teilWahl: some View {
+        if let q = quali, !q.modelle.isEmpty {
+            Section {
+                Picker("", selection: $teil) {
+                    Text(Loc.t("watchStats.tabUsage", lang)).tag(0)
+                    Text(Loc.t("watchStats.tabQuality", lang)).tag(1)
+                }
+                .pickerStyle(.segmented)
+            }
         }
     }
 

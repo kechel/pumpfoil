@@ -11,6 +11,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -426,7 +428,11 @@ private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: 
         ) {
             tabs.forEach { t ->
                 val sel = route == t.route
-                val c = if (sel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                // Nicht gewaehlt: mehr Kontrast als onSurfaceVariant (Jan, 07.10.2026) — hell slate-600,
+                // dunkel slate-300, wie Web und iOS.
+                val dunkel = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val c = if (sel) MaterialTheme.colorScheme.primary
+                        else if (dunkel) Color(0xFFCBD5E1) else Color(0xFF475569)
                 Column(
                     Modifier.weight(1f)
                         .clip(RoundedCornerShape(14.dp))
