@@ -1434,6 +1434,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 07.10. — Wear: Wake-up-Accel (`accel_wakeup = on`) laesst das GPS sterben.** Befund an Adams Frage
+  (u818, Galaxy Watch4 Classic SM-R880, #13822): GPS lief 7,75 min sauber, danach kein Punkt mehr, Accel
+  bis zum Ende — alle Chunks angekommen. Beide Sessions, die nachweislich MIT aktivem Wake-up liefen, verloren
+  das GPS: #13822 (17 %) und u574 OnePlus #13051 (3 %, 04.10.); u574 davor ohne Wake-up 3× 100 % GPS. Mit
+  Wake-up liefert die Uhr 118 bzw. 220 Hz statt der angeforderten 25 (Wake-up-Sensor ignoriert die Rate);
+  Accel- UND GPS-Listener laufen auf dem Main-Looper (RecorderService.registerSensors / startLocation) —
+  Vermutung: die Datenflut/Dauerwach-Schaltung verdraengt das GPS, NICHT belegt. Zweite Ursache existiert:
+  u114 (SM-R920, 1.2.31) und Eric F u55 (SM-L300) verloren GPS ohne Wake-up (4 von 80 langen Wear-Sessions in
+  3 Wochen). **Sofortmassnahme (Jans OK 07.10.):** `accel_wakeup` fuer Geraet 1005 (u574) und 1412 (u818)
+  auf `off`. Standard bleibt `off` — NICHT fuer alle einschalten. Noch `on`: u469 (Geraete 846/1267, App 1.2.29/
+  1.2.33, seit 24.09. keine Session). **Naechste Wear-Version (Aufnahme-Pfad, langer Test):** Accel auf eigenen
+  HandlerThread, Rate auf die angeforderte kappen; GPS-Waechter (30 s ohne Fix -> neu anfordern + Vorfall an den
+  Server melden); danach Wake-up erneut testen. Adam: Antwort-Entwurf liegt bei Jan, erst nach einer bestaetigten
+  Session mit vollem GPS „Ursache gefunden" schreiben.
+
 - **🟡 07.10. — Teil erledigt: Gewicht je Session + kompakte Setup-Zeile mit Popup (Android 1.1.39 / iOS
   1.1.43, Jan: „viel zu viel Platz"). OFFEN in den Apps: Schalter „Gewicht verbergen" und Verlauf im Profil.**
 - **🔲 06.10. — Fahrergewicht je Session in die nativen Apps.** Web + Server live (Nutzerwunsch Roman
