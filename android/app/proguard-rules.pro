@@ -19,3 +19,10 @@
 # nach Umschalten stand `<string name="sd_color_mode">HR</string>` in den Prefs und nach einem
 # Kaltstart war „Puls" wieder ausgewaehlt. Falls sich das mit einer kuenftigen R8-Version
 # aendert, ist die Regel:  -keepclassmembers enum org.pumpfoil.app.** { <fields>; }
+
+# HUAWEI Wear Engine (07.10.2026): die AAR bringt KEINE eigenen Regeln mit, spricht aber per
+# AIDL/Parcelable mit Huawei Health — umbenannte Klassen brechen erst im Release-Build (R8),
+# nie im Debug. Deshalb ganz behalten.
+-keep class com.huawei.wearengine.** { *; }
+-keep class com.huawei.hmf.** { *; }
+-dontwarn com.huawei.**

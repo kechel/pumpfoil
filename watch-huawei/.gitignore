@@ -1,0 +1,5 @@
+# HUAWEI Wear Engine SDK: NICHT ins (oeffentliche) Repo. Die Wearable-Fassung ist „All rights
+# reserved" ohne Lizenz; die Lite-Fassung waere Apache 2.0, bleibt der Einheitlichkeit halber
+# ebenfalls draussen. Jeder laedt sie selbst (README „SDK holen"); die .sha256 daneben bleibt
+# im Repo, damit die richtige Fassung pruefbar ist.
+**/wearengine/wearengine.js

@@ -36,6 +36,13 @@ android {
         // 9 Punkte). Der Sprung ueber die noch nicht freigegebene 1.1.21 ist Absicht — Play
         // hat sie schon, ein zweites Einreichen derselben Nummer geht nicht.
         // Nebeneffekt: das „x" stimmt damit wieder mit WEAR (1.2.22) zusammen.
+        // HUAWEI-Uhren (Wear Engine, 07.10.2026). Platzhalter, bis die Kennungen aus AppGallery
+        // Connect da sind (watch-huawei/README.md): App-ID der Android-App beim Wear-Engine-Antrag,
+        // Bundle-Name und Signatur-Fingerabdruck der Uhren-App. Ohne gueltige Werte bleibt die
+        // Bruecke aus und meldet das sichtbar (HuaweiBruecke.bereit).
+        manifestPlaceholders["huaweiAppId"] = "HUAWEI_APP_ID_EINTRAGEN"
+        buildConfigField("String", "HUAWEI_WATCH_PKG", "\"org.pumpfoil.huawei\"")
+        buildConfigField("String", "HUAWEI_WATCH_FP", "\"HUAWEI_WATCH_FINGERPRINT_EINTRAGEN\"")
         versionCode = 54
         versionName = "1.1.40"
     }
@@ -60,6 +67,9 @@ android {
 }
 
 dependencies {
+    // HUAWEI Wear Engine: Dateien von Huawei-Uhren empfangen. Ohne native Bibliotheken (geprueft
+    // 07.10.2026 — wichtig fuer Plays 16-KB-Seiten-Regel), zieht nur com.huawei.hmf:tasks nach.
+    implementation("com.huawei.hms:wearengine:5.0.3.304")
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.runtime:runtime")
     implementation("androidx.compose.foundation:foundation")
