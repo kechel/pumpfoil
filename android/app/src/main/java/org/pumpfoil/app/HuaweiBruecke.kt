@@ -77,6 +77,10 @@ object HuaweiBruecke {
     private var empfaenger: Receiver? = null
     @Volatile private var hochladen = false
 
+    /** HUAWEI_WATCH_FP, durch Komma getrennt (app/build.gradle.kts). */
+    internal fun fingerabdruecke(roh: String = BuildConfig.HUAWEI_WATCH_FP): List<String> =
+        roh.split(',').map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+
     /** Kennungen aus AppGallery Connect eingetragen? (app/build.gradle.kts) */
     fun konfiguriert(): Boolean = !BuildConfig.HUAWEI_WATCH_FP.contains("EINTRAGEN")
 
@@ -134,15 +138,20 @@ object HuaweiBruecke {
         try {
             val p2p = HiWear.getP2pClient(app)
             p2p.setPeerPkgName(BuildConfig.HUAWEI_WATCH_PKG)
-            p2p.setPeerFingerPrint(BuildConfig.HUAWEI_WATCH_FP)
             val r = empfaenger ?: Receiver { msg -> nachricht(app, msg) }.also { empfaenger = it }
             HiWear.getDeviceClient(app).bondedDevices
                 .addOnSuccessListener { liste: List<Device>? ->
                     val uhren = liste.orEmpty()
-                    for (d in uhren) {
-                        p2p.registerReceiver(d, r).addOnFailureListener { e ->
-                            Log.e(TAG, "registerReceiver ${d.name}", e)
-                            setze { it.copy(fehler = "empfang: ${e.message ?: ""}".take(120)) }
+                    // Je Fingerabdruck einmal anmelden (Lite/JS-FA und ArkTS koennen verschieden
+                    // signiert sein). UNGEPRUEFT, ob das SDK den Fingerabdruck bei registerReceiver
+                    // uebernimmt — bei EINEM Eintrag aendert sich gegenueber vorher nichts.
+                    for (fp in fingerabdruecke()) {
+                        p2p.setPeerFingerPrint(fp)
+                        for (d in uhren) {
+                            p2p.registerReceiver(d, r).addOnFailureListener { e ->
+                                Log.e(TAG, "registerReceiver ${d.name}", e)
+                                setze { it.copy(fehler = "empfang: ${e.message ?: ""}".take(120)) }
+                            }
                         }
                     }
                     setze { it.copy(verbunden = true, uhren = uhren.map { d -> d.name ?: "?" },

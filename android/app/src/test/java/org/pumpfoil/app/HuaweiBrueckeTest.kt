@@ -54,4 +54,9 @@ class HuaweiBrueckeTest {
         e.teil(0, 1, 4, dateiFertig = false, jetzt = 6)          // naechste Ladung
         assertEquals(0, e.fertig); assertEquals(4, e.gesamt); assertEquals(6L, e.letzteMs)
     }
+
+    @Test fun mehrereFingerabdruecke() {
+        assertEquals(listOf("A"), HuaweiBruecke.fingerabdruecke("A"))
+        assertEquals(listOf("A", "B"), HuaweiBruecke.fingerabdruecke(" A , B,A,"))
+    }
 }
