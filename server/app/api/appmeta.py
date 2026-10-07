@@ -796,7 +796,7 @@ NAECHSTES: list[dict] = [
          # 01.10.2026: fafdd410.
          "The longest-run record shows kilometres from 1,000 m on.",
          # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "Your session's setup now shows as one compact line; the edit button opens all settings, including your weight for that session, in one place.",
+         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.43",
      "items": [
@@ -811,7 +811,7 @@ NAECHSTES: list[dict] = [
          # 01.10.2026: fafdd410.
          "The longest-run record shows kilometres from 1,000 m on.",
          # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "Your session's setup now shows as one compact line; the edit button opens all settings, including your weight for that session, in one place.",
+         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.

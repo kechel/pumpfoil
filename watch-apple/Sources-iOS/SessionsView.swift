@@ -1212,11 +1212,11 @@ struct SessionChipItem: Identifiable {
 /// Geraete-Abzeichen: Uhr-Symbol + Bezeichnung, „Handy am Brett" in Marken-Cyan — dasselbe Bild wie
 /// die PWA (SessionCard.tsx), auf ALLEN Karten und in den Details (Jan, 25.09.2026: „diesen badge
 /// meinte ich ueberall"). `text` traegt den Zusatz „· am Brett" schon.
-func geraeteAbzeichen(_ text: String, amBrett: Bool) -> some View {
+func geraeteAbzeichen(_ text: String, amBrett: Bool, schrift: Font = .caption2) -> some View {
     let fg: Color = amBrett ? Color.accentColor : Color.secondary
     let bg: Color = amBrett ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.15)
     return Label(text, systemImage: "applewatch")
-        .font(.caption2.weight(amBrett ? .semibold : .regular))
+        .font(schrift.weight(amBrett ? .semibold : .regular))
         .labelStyle(.titleAndIcon)
         .lineLimit(1)
         .foregroundStyle(fg)

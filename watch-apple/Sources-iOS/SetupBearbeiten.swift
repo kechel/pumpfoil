@@ -16,7 +16,7 @@ struct SetupZeile: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(zeilenText)
-                .font(.subheadline)
+                .font(.body)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
@@ -70,6 +70,7 @@ struct SetupBearbeitenSheet: View {
     let masten: [Int]
     let shims: [Double]
     let boards: [BoardBrief]
+    let caption: String
     let onGespeichert: () async -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -79,6 +80,7 @@ struct SetupBearbeitenSheet: View {
     @State private var shim: String = ""
     @State private var boardId: Int = 0
     @State private var gewicht: String = ""
+    @State private var bildtext: String = ""
     @State private var start: [String: String] = [:]
     @State private var busy = false
     @State private var fehler: String?
@@ -86,6 +88,7 @@ struct SetupBearbeitenSheet: View {
     var body: some View {
         NavigationStack {
             Form {
+                bildtextAbschnitt
                 foilAbschnitt
                 stabAbschnitt
                 mastShimAbschnitt
@@ -110,6 +113,14 @@ struct SetupBearbeitenSheet: View {
     }
 
     // MARK: Abschnitte
+
+    // Bildtext der Session (max. 30 Zeichen, wie bisher); leer = keiner.
+    private var bildtextAbschnitt: some View {
+        Section(Loc.t("sd.caption", lang)) {
+            TextField(Loc.t("sd.caption", lang), text: $bildtext)
+                .onChange(of: bildtext) { v in if v.count > 30 { bildtext = String(v.prefix(30)) } }
+        }
+    }
 
     private var foilAbschnitt: some View {
         Section(Loc.t("sd.foilOfSession", lang)) {
@@ -224,12 +235,14 @@ struct SetupBearbeitenSheet: View {
         shim = (su?.shim_is_default == false) ? (su?.shim_deg.map { shimSchluessel($0) } ?? "") : ""
         boardId = (su?.board?.is_default == false) ? (su?.board?.id ?? 0) : 0
         gewicht = (su?.weight_is_default == false) ? (su?.weight_kg.map { String($0) } ?? "") : ""
+        bildtext = caption
         start = momentaufnahme()
     }
 
     private func momentaufnahme() -> [String: String] {
         ["foil": String(foilId), "stab": String(stabId), "mast": String(mast), "shim": shim,
-         "board": String(boardId), "gewicht": gewicht.trimmingCharacters(in: .whitespaces)]
+         "board": String(boardId), "gewicht": gewicht.trimmingCharacters(in: .whitespaces),
+         "bildtext": bildtext.trimmingCharacters(in: .whitespaces)]
     }
 
     private func zahlOderNull(_ v: Int) -> Any { v == 0 ? NSNull() : v }
@@ -242,6 +255,7 @@ struct SetupBearbeitenSheet: View {
         if jetzt["mast"] != start["mast"] { body["mast_len_cm"] = zahlOderNull(mast) }
         if jetzt["shim"] != start["shim"] { body["shim_deg"] = Double(shim).map { $0 as Any } ?? NSNull() }
         if jetzt["board"] != start["board"] { body["board_id"] = zahlOderNull(boardId) }
+        if jetzt["bildtext"] != start["bildtext"] { body["caption"] = jetzt["bildtext"] ?? "" }
         if jetzt["gewicht"] != start["gewicht"] {
             let roh: String = jetzt["gewicht"] ?? ""
             if roh.isEmpty {

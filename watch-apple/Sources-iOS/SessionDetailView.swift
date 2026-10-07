@@ -85,8 +85,6 @@ struct SessionDetailView: View {
     @State private var excludeErr: String?
     @State private var confirmDelete = false
     @State private var caption = ""
-    @State private var editingCaption = false
-    @State private var draftCaption = ""
     @State private var neighbors: Api.Neighbors?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var scheme
@@ -120,7 +118,6 @@ struct SessionDetailView: View {
             } message: {
                 Text(Loc.t("sd.excludeConfirm", lang))
             }
-            .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) { captionAlertActions }
             .task(id: sid) { await load() }
             // Versuche erst holen, wenn sie gebraucht werden — der Server rechnet sie frisch.
             .task(id: "\(sid)-\(showAttempts)") { await ladeVersuche() }
@@ -275,18 +272,6 @@ struct SessionDetailView: View {
             Task { try? await Api.deleteSession(sid); dismiss() }
         }
         Button(Loc.t("common.cancel", lang), role: .cancel) {}
-    }
-
-    @ViewBuilder private var captionAlertActions: some View {
-        TextField(Loc.t("sd.caption", lang), text: $draftCaption)
-        Button(Loc.t("common.save", lang)) { saveCaption() }
-        Button(Loc.t("common.cancel", lang), role: .cancel) {}
-    }
-
-    private func saveCaption() {
-        let c: String = String(draftCaption.prefix(30)).trimmingCharacters(in: .whitespaces)
-        caption = c
-        Task { try? await Api.setCaption(sid, caption: c) }
     }
 
     @ViewBuilder private var shareSheet: some View {
@@ -672,17 +657,24 @@ struct SessionDetailView: View {
         selectedRun = nil; lightbox = nil
         shareUrl = nil; linkCopied = false; showLink = false
         appealOpen = false; appealDraft = ""; classErr = nil
-        editingCaption = false
         error = nil; loading = true
         shownId = newId
     }
 
+    // Kopf PLATZSPAREND (Jan, 07.10.2026): neben dem Profilbild nur Datum, Besitzer, Spot; darunter
+    // ueber die VOLLE Breite (ab ganz links) Zeit + Dauer + Uhr in einer Zeile, solange es passt, und
+    // der Bildtext fett in einer eigenen Zeile — nur wenn es einen gibt. „Bildtext bearbeiten" ist in
+    // das Setup-Popup gewandert (SetupBearbeiten.swift).
     private func headerRow(_ s: SessionDetail) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            AvatarView(name: s.owner_name, url: Api.mediaURL(s.owner_avatar_url), size: 44, userId: s.owner_id)
-            headerMeta(s)
-            Spacer()
-            likeButton(s)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 10) {
+                AvatarView(name: s.owner_name, url: Api.mediaURL(s.owner_avatar_url), size: 44, userId: s.owner_id)
+                headerMeta(s)
+                Spacer()
+                likeButton(s)
+            }
+            zeitUndUhr(s)
+            if !caption.isEmpty { Text(caption).font(.body).bold() }
         }
     }
 
@@ -694,34 +686,38 @@ struct SessionDetailView: View {
             ownerLine(s)
             placeLine(s)
             waterLine(s)
-            timeLine(s)
-            deviceLine(s)
-            if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
-            captionButton(s)
+        }
+    }
+
+    // Zeit/Dauer und Uhr nebeneinander, solange es passt; sonst untereinander.
+    private func zeitUndUhr(_ s: SessionDetail) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) { timeLine(s); deviceLine(s) }
+            VStack(alignment: .leading, spacing: 4) { timeLine(s); deviceLine(s) }
         }
     }
 
     @ViewBuilder private func ownerLine(_ s: SessionDetail) -> some View {
         if s.owned != true, let on = s.owner_name, !on.isEmpty {
-            Text(on).font(.subheadline).foregroundStyle(Color.accentColor)
+            Text(on).font(.body).foregroundStyle(Color.accentColor)
         }
     }
 
     @ViewBuilder private func placeLine(_ s: SessionDetail) -> some View {
         if let p = s.place_name, !p.isEmpty {
-            Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
+            Label(p, systemImage: "mappin.and.ellipse").font(.body).foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder private func waterLine(_ s: SessionDetail) -> some View {
         if let w = s.place_water, !w.isEmpty, w != s.place_name {
-            Text(w).font(.caption).foregroundStyle(.secondary)
+            Text(w).font(.body).foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder private func timeLine(_ s: SessionDetail) -> some View {
         if let tr = timeRangeText(s) {
-            Text(tr).font(.caption).foregroundStyle(.secondary)
+            Text(tr).font(.body).foregroundStyle(.secondary)
         }
     }
 
@@ -730,19 +726,8 @@ struct SessionDetailView: View {
             // Am Brett sagt das Abzeichen es mit — wie die PWA (lib/deviceLabel.ts).
             let amBrett: Bool = s.placement == "board"
             // Dasselbe Abzeichen wie auf den Karten (SessionsView.geraeteAbzeichen).
-            geraeteAbzeichen(amBrett ? "\(dl) · \(Loc.t("session.onBoard", lang))" : dl, amBrett: amBrett)
+            geraeteAbzeichen(amBrett ? "\(dl) · \(Loc.t("session.onBoard", lang))" : dl, amBrett: amBrett, schrift: .body)
         }
-    }
-
-    @ViewBuilder private func captionButton(_ s: SessionDetail) -> some View {
-        if s.owned == true {
-            Button(captionButtonLabel) { draftCaption = caption; editingCaption = true }
-                .font(.caption).buttonStyle(.borderless)
-        }
-    }
-
-    private var captionButtonLabel: String {
-        caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)
     }
 
     private func likeButton(_ s: SessionDetail) -> some View {
@@ -1274,7 +1259,7 @@ struct SessionDetailView: View {
         if let s = session {
             SetupBearbeitenSheet(session: s, lang: lang, foils: allFoils, meineFoils: mineIds,
                                  stabs: allStabs, meineStabs: myStabIds, masten: myMasts,
-                                 shims: myShims, boards: myBoards) { await load() }
+                                 shims: myShims, boards: myBoards, caption: caption) { await load() }
         }
     }
 
