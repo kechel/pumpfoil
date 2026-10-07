@@ -7,7 +7,7 @@ Huawei-Doku ist fast nur per JavaScript lesbar; Zahlen vor einer Entscheidung im
 
 ## Zwei Welten
 
-| | **Watch GT 3/4/5/6, Fit, D2, Ultimate** („Lite Wearable") | **Watch 4 / 5** (volles HarmonyOS) |
+| | **Watch GT 3/4/5/6, Fit, D2** („Lite Wearable") | **Watch 3/4/5, Ultimate** (volles HarmonyOS, s. „Drei Linien") |
 |---|---|---|
 | App-Technik | Lite-JS (HML/CSS, JerryScript ES5.1, Heap 64-512 KB) | ArkTS/ArkUI (Stage-Modell, HAP) |
 | Beschleunigung | `@system.sensor.subscribeAccelerometer`, roh x/y/z, `game` = 20 ms (~50 Hz), `ui` = 60 ms (~16,7 Hz) [DOK]; **keine Zeitstempel**; GT 6 liefert laut Forum gar nichts [FORUM] | `@ohos.sensor`, Intervall in ns [DOK]; erreichbare Rate auf der Uhr [UNKLAR] |
@@ -18,6 +18,29 @@ Huawei-Doku ist fast nur per JavaScript lesbar; Zahlen vor einer Entscheidung im
 
 **Hauptrisiko auf BEIDEN:** 30-120 min Aufnahme bei dunklem Display ist nirgends belegt — genau die Stelle,
 die uns auf Wear OS Wochen gekostet hat. Erst ein langer Test auf echter Hardware entscheidet.
+
+## Drei Linien, nicht zwei (Recherche 07.10.2026)
+
+Belegt durch ein offenes Projekt mit Gerätetest (Home Assistant fuer Huawei-Uhren, `docs/platform-
+constraints.md` dort: signierte ArkTS-App auf GT 6, Firmware 6.0.0.188, scheitert mit „Failed to
+decompress", die Lite-JS-App laeuft) [FORUM, mit Geraetebeleg]:
+
+| Linie | Geraete | App-Modell | bei uns |
+|---|---|---|---|
+| Lite | Watch GT 3/4/5/6, Fit, D2 — auch mit „HarmonyOS 6" im Namen bleibt das LiteOS | FA, Lite-JS (ES5.1, JerryScript), `liteWearable` | `lite/` ✅ gebaut |
+| Wearable alt | Watch 3, Watch 4 / 4 Pro (global noch HarmonyOS 4.3, Sept. 2025) | FA, JS (`wearable`) | `wearable/` ✅ gebaut |
+| Wearable neu | **Watch 5** (global HarmonyOS 6.x), Watch Ultimate, kuenftig jede Watch nach dem Update | **nur Stage/ArkTS** (API 20/21, `module.json5`) | ❌ fehlt — dritte Codebasis |
+
+- Dass HarmonyOS 5/6 auf der Watch 5 KEINE FA-/JS-Apps mehr installiert, ist [UNKLAR, sehr wahrscheinlich]:
+  HarmonyOS NEXT fuehrt das FA-Modell als abgekuendigt, und das genannte Projekt baut fuer Watch 4/5/
+  Ultimate ausschliesslich ArkTS. Ein Test mit unserer `wearable/`-App auf einer Watch 5 klaert es.
+- Bekommt die Watch 4 ihr Update auf 5/6, faellt sie vermutlich von `wearable/` auf die ArkTS-Linie.
+- Wear Engine gibt es auch auf der ArkTS-Seite (`@kit.WearEngine`, P2P-Nachrichten) — unser Uebertragungs-
+  format (PF1-Teile) und die Handy-Bruecken bleiben gleich. Neu waeren nur Seite + Geraete-Schicht.
+- Ob ArkTS unseren ES5-Kern (`common/kern.js`) direkt importieren kann, ist [UNKLAR]; notfalls 1:1 nach
+  ArkTS portieren, die Node-Tests bleiben die Referenz.
+- Lite-Grenzen laut demselben Projekt: HAP ≤ 10 MB, Seite ≤ 48 KB, ~1 MB RAM, kein Hintergrund, Bilder
+  werden als Roh-RGBA abgelegt (Icons klein halten), Logs/Installation ueber die Handy-App „DevEco Assistant".
 
 ## Handy-Seite: Wear Engine
 - Android-SDK, Paketname + SHA-256 bei Huawei hinterlegt; **Antrag „Apply for Wear Engine" noetig** (Firmen
