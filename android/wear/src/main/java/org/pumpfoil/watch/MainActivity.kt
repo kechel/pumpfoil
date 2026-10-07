@@ -150,6 +150,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         val p = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             pulsRecht(),
+            // Fuer das Tempo aus Health Services (GPS nach Doku, 1.2.40) — s. RecorderService.hsOrtMoeglich.
+            Manifest.permission.ACTIVITY_RECOGNITION,
         )
         if (Build.VERSION.SDK_INT >= 33) p.add(Manifest.permission.POST_NOTIFICATIONS)
         // Merken, dass der Standort schon einmal abgefragt wurde: sagt shouldShowRequestPermission-

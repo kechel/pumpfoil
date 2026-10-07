@@ -1443,8 +1443,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   `accelBatch`/`gpsHs` in der Config (Standard on, Env WEAR_ACCEL_BATCH/WEAR_GPS_HS). **Getestet:** 23 Wear-
   JUnit (7 neu), 437 Server-Tests; Emulator 21 min (#13890: GPS 1172 Punkte ohne Luecke, Accel 127 Bloecke
   24,5-25,0 Hz streng steigend) und 6 min mit 150 s Ortung AUS (#13892: Waechter nach 90 s, GPS danach weiter,
-  messweg kam an). **NICHT getestet** (geht im Emulator nicht): der Health-Services-GPS-Weg und der
-  Wake-up-Batching-Weg — beides nur auf echter Uhr. Vor der Einreichung: Testaufnahmen aus Jans Community-
+  messweg kam an). **Nachgezogen + getestet (07.10. mittags):** Uebungstyp SURFING statt WORKOUT (WORKOUT hat
+  KEIN SPEED), dafuer braucht SPEED die Berechtigung ACTIVITY_RECOGNITION (neu im Manifest, neue Abfrage
+  „Koerperliche Aktivitaet" beim Start — ohne sie bleibt es beim LocationManager). Stopp/Pause leeren vorher
+  den HS-Puffer (`flushAsync`, sonst fehlte bei dunklem Display bis ~150 s Spur vor jeder Pause). HS-GPS im
+  Emulator mit synthetischen Daten ueber Debug-Schalter `hs_emulator=ja` (nur debuggable): #13895 hs 100 %,
+  Luecke 1 s; #13896 mit Pause/Fortsetzen hs, einzige Luecke = Pause. **NICHT getestet:** Wake-up-Batching
+  (Emulator hat keinen Wake-up-Sensor) und das Verhalten bei dunklem Display — nur auf echter Uhr. Vor der Einreichung: Testaufnahmen aus Jans Community-
   Aufruf (Display aus, >15 min) mit `messweg_json` pruefen, v. a. Samsung/OnePlus.
 
 - **🔴 07.10. — Wear: Wake-up-Accel (`accel_wakeup = on`) laesst das GPS sterben.** Befund an Adams Frage
