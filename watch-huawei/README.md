@@ -11,7 +11,7 @@ common/      Quelle fuer beide Projekte (in Node getestet: node --test test/)
   recorder.js  Sensoren, GPS, Dateien, Wear Engine (@system.* — auf beiden SDK-Linien vorhanden)
   konfig.js    Paketname + Fingerabdruck der Android-App, App-Version
 lite/        DevEco-Projekt fuer Lite Wearables: Watch GT 4/5 (+Pro), Fit 3/4, D2, Ultimate
-wearable/    (folgt) DevEco-Projekt fuer Watch 3/4 (HarmonyOS 2-4, JS-FA)
+wearable/    DevEco-Projekt fuer Watch 3/4 (HarmonyOS 2-4, JS-FA) — Seite/Texte kommen per sync aus lite/
 test/        Node-Tests
 sync-common.sh  kopiert common/ in die Projekte — nach JEDER Aenderung an common/ ausfuehren
 ```
@@ -30,10 +30,11 @@ Was die Uhr NICHT liefert und wie damit umgegangen wird:
 
 | Was | Wo |
 |---|---|
-| Bundle-Name der Uhren-App (Vorschlag `org.pumpfoil.huawei`) | `lite/entry/src/main/config.json` → `app.bundleName` |
+| Bundle-Name der Uhren-App (Vorschlag `org.pumpfoil.huawei`) | `config.json` beider Projekte → `app.bundleName`, dazu `HUAWEI_WATCH_PKG` in `android/app/build.gradle.kts` |
 | SHA-256 des Signierschluessels der Android-App (bei Play App Signing: Googles Schluessel) | `common/konfig.js` → `PHONE_FP` **und** `config.json` → `supportLists` (`org.pumpfoil.app:<fingerprint>`) |
 | Signier-Konfiguration (Zertifikat, Profil `.p7b`) | DevEco → Project Structure → Signing Configs (landet in `build-profile.json5`, Dateien NICHT committen) |
-| Wear-Engine-App-ID + Fingerabdruck der Uhren-App | Android-App (folgt im Android-Teil) |
+| Wear-Engine-App-ID der Android-App | `android/app/build.gradle.kts` → `huaweiAppId` (Format laut Wear-Engine-Anleitung, ggf. mit `appid=`-Praefix) |
+| Signatur-Fingerabdruck der Uhren-App | `android/app/build.gradle.kts` → `HUAWEI_WATCH_FP` |
 
 ## SDK holen (nicht im Repo)
 
@@ -45,13 +46,15 @@ und ablegen als:
 | Projekt | Datei | Pruefsumme |
 |---|---|---|
 | `lite/` | `lite/entry/src/main/js/MainAbility/wearengine/wearengine.js` (wearengine-litewearable 5.0.2.306) | `wearengine.js.sha256` daneben |
-| `wearable/` | `wearable/entry/src/main/js/MainAbility/wearengine/wearengine.js` (wearengine-wearable 5.0.2.306) | folgt |
+| `wearable/` | `wearable/entry/src/main/js/MainAbility/wearengine/wearengine.js` (wearengine-wearable 5.0.2.306) | `wearengine.js.sha256` daneben |
 
 Pruefen: `sha256sum wearengine.js` muss zur `.sha256` passen.
 
 ## Bauen
 
-DevEco Studio 6.x (macOS/Windows) → `watch-huawei/lite` oeffnen → Build HAP(s). Danach im
+DevEco Studio 6.x (macOS/Windows) → `watch-huawei/lite` bzw. `watch-huawei/wearable` oeffnen → Build HAP(s).
+Die Watch-3/4-Linie (HarmonyOS 2-4) ist aelter; bietet DevEco beim Oeffnen eine Migration an,
+annehmen und nur `config.json`/Seiten behalten. Danach im
 Build-Log die Bundle-Groesse ansehen: laut einem Forumsbericht scheitern Lite-Bundles ueber
 ~48 KB beim Installieren.
 

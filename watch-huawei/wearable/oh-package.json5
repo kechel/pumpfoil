@@ -1,0 +1,7 @@
+{
+  "modelVersion": "5.1.0",
+  "description": "Pumpfoil recorder for HUAWEI Lite Wearables",
+  "dependencies": {
+  },
+  "devDependencies": {}
+}

@@ -171,3 +171,20 @@ test("Projekt-Kopien von common/ sind aktuell (sonst ./sync-common.sh)", async (
     }
   }
 });
+
+test("Watch-3/4-Projekt hat dieselbe Seite und dieselben Texte wie lite (sonst ./sync-common.sh)", async () => {
+  const fs = await import("node:fs");
+  const url = (p) => new URL(p, import.meta.url);
+  const q = "../lite/entry/src/main/js/MainAbility/", z = "../wearable/entry/src/main/js/MainAbility/";
+  if (!fs.existsSync(url(z))) return;
+  const dateien = ["app.js", "pages/index/index.hml", "pages/index/index.css", "pages/index/index.js",
+    ...fs.readdirSync(url(q + "i18n/")).map((f) => "i18n/" + f)];
+  for (const f of dateien) assert.equal(fs.readFileSync(url(z + f), "utf8"), fs.readFileSync(url(q + f), "utf8"), f);
+});
+
+test("Sprachdateien: alle Schluessel in allen Sprachen", async () => {
+  const fs = await import("node:fs");
+  const d = new URL("../lite/entry/src/main/js/MainAbility/i18n/", import.meta.url);
+  const alle = fs.readdirSync(d).map((f) => [f, Object.keys(JSON.parse(fs.readFileSync(new URL(f, d), "utf8")).strings).sort()]);
+  for (const [f, k] of alle) assert.deepEqual(k, alle[0][1], f);
+});
