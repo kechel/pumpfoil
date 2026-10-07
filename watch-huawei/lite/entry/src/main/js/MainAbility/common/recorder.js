@@ -20,12 +20,15 @@ import file from "@system.file";
 import brightness from "@system.brightness";
 import device from "@system.device";
 import K from "./kern.js";
+import S from "./seiten.js";
 import C from "./konfig.js";
 import { P2pClient, Message, Builder } from "../wearengine/wearengine.js";
 
 var PLAN = "internal://app/plan.json";
 var GEGEN = "internal://app/gegenstelle.json";
 var LAUF = "internal://app/laufend.json";
+var KONFIG = "internal://app/konfig.json";
+var HALLO_ALLE_MS = 30 * 60 * 1000;   // Seiten-Konfiguration halbstuendlich neu anfragen
 
 var R = {
   modus: "bereit",            // bereit | laeuft | pause
@@ -38,7 +41,10 @@ var R = {
   // Diagnose — geht im /complete mit und steht auf der Uhr, nie nur im Log.
   f: { speicher: 0, accel: 0, gps: 0, puls: 0 },
   letzterFehler: "",
-  accelLetzt: 0, maxLuecke: 0, gpsLetzt: 0
+  accelLetzt: 0, maxLuecke: 0, gpsLetzt: 0,
+  // Datenseiten (seiten.js): Lauf-Stand, Seiten-Konfiguration vom Handy, frischer GPS-Punkt
+  stand: new S.Stand(), konfig: new S.Konfig(null), fixNeu: null,
+  kTeile: null, halloOffen: false, halloZuletzt: 0
 };
 
 function iso(ms) { return new Date(ms).toISOString(); }
@@ -95,6 +101,7 @@ function sensorenAn() {
       var t = R.achse.auf(g.time, jetzt);
       if (t < 0) t = R.achse.jetzt(jetzt);
       R.gpsLetzt = jetzt;
+      R.fixNeu = [g.latitude, g.longitude];
       R.anzeige.fix(g.latitude, g.longitude, g.accuracy, t);
       var c = R.sammler.gpsFix(g.latitude, g.longitude, g.accuracy, t);
       if (c) chunkSchreiben(c);
@@ -128,6 +135,7 @@ R.start = function () {
   R.anzeige = new K.Anzeige();
   R.maxLuecke = 0; R.accelLetzt = 0;
   R.f = { speicher: 0, accel: 0, gps: 0, puls: 0 }; R.letzterFehler = "";
+  R.stand.neu(); R.fixNeu = null;
   R.plan.neu(R.id);
   schreibe(K.dateiMeta(R.id), {
     session_uuid: R.id, started_at: iso(jetzt), sport: "pumpfoil",
@@ -211,13 +219,42 @@ function p2p() {
     R.p2p = new P2pClient();
     R.p2p.setPeerPkgName(g[0]);
     R.p2p.setPeerFingerPrint(g[1]);
+    // Rueckweg Handy -> Uhr: die Seiten-Konfiguration (Antwort auf das Hallo), in Teilen wie hin.
+    R.p2p.registerReceiver({
+      onSuccess: function () {},
+      onFailure: function () { fehler("speicher", "Empfang Handy"); },
+      onReceiveMessage: function (m) { if (typeof m === "string") konfigTeil(m); }
+    });
   }
   return R.p2p;
+}
+
+/** Ein Teil `PF1|k_konfig.json|nr|anzahl|rest|inhalt` vom Handy; vollstaendig -> speichern + anwenden. */
+function konfigTeil(text) {
+  var f = text.split("|");
+  if (f.length < 6 || f[0] !== "PF1" || f[1] !== "k_konfig.json") return;
+  var nr = parseInt(f[2], 10), n = parseInt(f[3], 10);
+  if (!(n >= 1 && n <= 200 && nr >= 0 && nr < n)) return;
+  if (!R.kTeile || R.kTeile.length !== n) R.kTeile = new Array(n);
+  R.kTeile[nr] = f.slice(5).join("|");
+  for (var i = 0; i < n; i++) if (typeof R.kTeile[i] !== "string") return;
+  var ganz = R.kTeile.join("");
+  R.kTeile = null;
+  try { R.konfig = new S.Konfig(JSON.parse(ganz)); } catch (e) { fehler("speicher", "Konfig kaputt"); return; }
+  file.writeText({ uri: KONFIG, text: ganz, fail: function (d, code) { fehler("speicher", "Speicher " + code + " Konfig"); } });
 }
 
 function senden() {
   if (!R.schlange.darf(Date.now())) return;
   if (offenDatei) { teilSenden(); return; }
+  if (Date.now() - R.halloZuletzt > HALLO_ALLE_MS) R.halloOffen = true;
+  if (R.halloOffen) {
+    // Hallo zuerst: Modell + Version -> das Handy antwortet mit der Seiten-Konfiguration vom Server.
+    offenDatei = { hallo: true, teile: K.teile("h_hallo.json",
+      JSON.stringify({ device_model: R.modell, app_version: C.APP_VERSION }), 1), nr: 0 };
+    teilSenden();
+    return;
+  }
   var d = R.plan.naechste();
   if (!d) return;
   var uri = K.dateiVon(d);
@@ -265,8 +302,8 @@ function teilSenden() {
         R.schlange.laeuft = false;
         o.nr++;
         if (o.nr >= o.teile.length) {
-          R.plan.erledigt(o.d); planSichern();
-          file.delete({ uri: o.uri });
+          if (o.hallo) { R.halloOffen = false; R.halloZuletzt = Date.now(); }
+          else { R.plan.erledigt(o.d); planSichern(); file.delete({ uri: o.uri }); }
           offenDatei = null;
           R.schlange.ok();
         } else {
@@ -302,6 +339,10 @@ R.init = function () {
     }
   });
   file.readText({
+    uri: KONFIG,
+    success: function (d) { try { R.konfig = new S.Konfig(JSON.parse(d.text)); } catch (e) { /* Standard */ } }
+  });
+  file.readText({
     uri: PLAN,
     success: function (d) { try { R.plan = new K.Sendeplan(JSON.parse(d.text)); } catch (e) { /* neu */ } },
     complete: function () {
@@ -320,6 +361,23 @@ R.init = function () {
     }
   });
   setTimeout(function () { setInterval(senden, 3000); }, 3000);
+};
+
+/**
+ * Einmal je Sekunde von der Seite: Lauf-Stand nachziehen (nur waehrend der Aufnahme, nicht in der
+ * Pause — wie Zepp). true = Lauf begonnen oder beendet (die Seite springt dann auf die erste Datenseite).
+ */
+R.takt = function () {
+  if (R.modus !== "laeuft") return false;
+  var jetzt = Date.now(), f = R.fixNeu;
+  R.fixNeu = null;
+  return R.stand.tick(R.achse.jetzt(jetzt), jetzt, !!f, f ? f[0] : 0, f ? f[1] : 0, -1, R.sammler.hr);
+};
+
+/** Was die Datenseiten zum Zeichnen brauchen. */
+R.seitenKontext = function () {
+  return { s: R.stand, k: R.konfig, el: R.modus === "bereit" ? 0 : R.achse.jetzt(Date.now()) / 1000,
+    pausiert: R.modus === "pause", zustand: R.modus === "pause" ? "p" : (R.stand.foiling ? "on" : "off") };
 };
 
 R.ende = function () { sensorenAus(); bildschirmAn(false); };

@@ -14,6 +14,25 @@
     "holdPause": "Keep holding: pause",
     "holdResume": "Keep holding: resume",
     "holdStop": "Keep holding: stop",
-    "stopFirst": "Stop the recording first"
+    "stopFirst": "Stop the recording first",
+    "f_kmh3s": "km/h (3s)",
+    "f_kmhAvg": "km/h avg",
+    "f_kmhMax": "km/h max",
+    "f_bpmAvg": "bpm avg",
+    "f_bpmMax": "bpm max",
+    "f_time": "Time",
+    "f_dist": "Distance",
+    "f_clock": "Clock",
+    "f_runActive": "run active",
+    "f_runTime": "Run time",
+    "f_runDist": "Run dist",
+    "f_lastRunTime": "last time",
+    "f_lastRunDist": "last dist",
+    "f_lastRunAvg": "last avg",
+    "f_lastRunMax": "last max",
+    "f_runs": "Runs",
+    "f_lastRunMaxHr": "last max bpm",
+    "f_allRunsDist": "all runs dist",
+    "f_allRunsTime": "all runs time"
   }
 }

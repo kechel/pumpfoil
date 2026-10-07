@@ -34,6 +34,22 @@ eigenes Netz (docs/HUAWEI.md).
 Die Uhr kennt beide Handy-Apps (`konfig.js GEGENSTELLEN`) und wechselt nach drei Fehlschlaegen in
 Folge; was zuletzt angenommen hat, bleibt gemerkt (`gegenstelle.json`).
 
+**Datenseiten (seit 07.10.2026, alle drei Linien).** Dieselben Seiten wie auf Garmin/Zepp: klassische
+3-Feld-Seiten und freie Layouts aus dem Profil, je Zustand (auf dem Foil / zwischen den Laeufen / Pause),
+„alle Seiten" haengt an. Logik in `common/seiten.js` (Lauf-Erkennung, Felder, Seiten-Ring, Layout ->
+Zeichenbefehle; portiert von Zepp, in Node getestet) und `arkts/…/Seiten.ets` (bytegleich dazu getestet).
+Die Uhr zeichnet die Befehle auf einer Canvas; **hoch/runter wischen blaettert** (rechts wischen beendet
+bei Lite die App), Seite 0 = Pause/Weiter/Stopp. Weg der Konfiguration: Uhr schickt beim Start und
+halbstuendlich ein Hallo (`h_hallo.json`: Modell + Version) -> Android holt mit dem Token DIESER Uhr
+`/api/devices/config?p=huawei` und schickt die Seiten-Schluessel als `k_konfig.json` in Teilen zurueck ->
+Uhr speichert `konfig.json`. Ohne Konfiguration: Standardseiten.
+Bewusste Abweichungen: Lite kennt nur die Schriftgroessen 30/38 px (Watch 3/4 und ArkTS zeichnen die
+echte Groesse); Alarme, Foil-Auswahl und Verwerfen-Seite gibt es auf Huawei (noch) nicht.
+**GT/Fit/D2 nur mit RELEASE-Builds testen:** die Seite ist minifiziert 44 KB (Grenze ~48 KB), ein
+Debug-Build waere ~75 KB und liesse sich nicht installieren. `build-all.sh` bricht ueber 44 KB ab.
+Ungeprueft auf Hardware: welche Canvas-Aufrufe Lite wirklich kann (Bogen, Linienbreite) und die
+Grundlinie von `fillText` (mittig angenommen).
+
 **Wer treibt, was wird angezeigt.** Die UHR treibt: solange die Uhren-App offen ist, schickt sie
 alle 3 s die naechste Datei (auch waehrend der Aufnahme). Eine Datei ist ein Chunk von ~5 s
 (2–3 KB, 3–4 Teile) und wird geloescht, sobald alle ihre Teile quittiert sind. Das Handy hoert nur

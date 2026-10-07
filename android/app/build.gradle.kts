@@ -102,4 +102,6 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     testImplementation("junit:junit:4.13.2")
+    // Echte org.json-Klassen fuer Unit-Tests (im Android-Stub sind sie nur Huellen ohne Inhalt).
+    testImplementation("org.json:json:20240303")
 }

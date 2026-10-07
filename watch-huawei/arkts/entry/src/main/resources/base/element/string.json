@@ -79,6 +79,82 @@
     {
       "name": "bg_reason",
       "value": "Keeps recording while the screen is off."
+    },
+    {
+      "name": "f_kmh3s",
+      "value": "km/h (3s)"
+    },
+    {
+      "name": "f_kmhAvg",
+      "value": "km/h avg"
+    },
+    {
+      "name": "f_kmhMax",
+      "value": "km/h max"
+    },
+    {
+      "name": "f_bpmAvg",
+      "value": "bpm avg"
+    },
+    {
+      "name": "f_bpmMax",
+      "value": "bpm max"
+    },
+    {
+      "name": "f_time",
+      "value": "Time"
+    },
+    {
+      "name": "f_dist",
+      "value": "Distance"
+    },
+    {
+      "name": "f_clock",
+      "value": "Clock"
+    },
+    {
+      "name": "f_runActive",
+      "value": "run active"
+    },
+    {
+      "name": "f_runTime",
+      "value": "Run time"
+    },
+    {
+      "name": "f_runDist",
+      "value": "Run dist"
+    },
+    {
+      "name": "f_lastRunTime",
+      "value": "last time"
+    },
+    {
+      "name": "f_lastRunDist",
+      "value": "last dist"
+    },
+    {
+      "name": "f_lastRunAvg",
+      "value": "last avg"
+    },
+    {
+      "name": "f_lastRunMax",
+      "value": "last max"
+    },
+    {
+      "name": "f_runs",
+      "value": "Runs"
+    },
+    {
+      "name": "f_lastRunMaxHr",
+      "value": "last max bpm"
+    },
+    {
+      "name": "f_allRunsDist",
+      "value": "all runs dist"
+    },
+    {
+      "name": "f_allRunsTime",
+      "value": "all runs time"
     }
   ]
 }

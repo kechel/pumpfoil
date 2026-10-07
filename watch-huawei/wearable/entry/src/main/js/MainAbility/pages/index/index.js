@@ -5,7 +5,14 @@
  */
 import app from "@system.app";
 import vibrator from "@system.vibrator";
+import device from "@system.device";
 import R from "../../common/recorder.js";
+import S from "../../common/seiten.js";
+
+// Feldbeschriftungen (Schluessel wie seiten.js feld) aus den i18n-Dateien.
+var FELDTEXTE = ["kmh3s", "kmhAvg", "kmhMax", "bpmAvg", "bpmMax", "time", "dist", "clock", "runActive",
+  "runTime", "runDist", "lastRunTime", "lastRunDist", "lastRunAvg", "lastRunMax", "runs", "lastRunMaxHr",
+  "allRunsDist", "allRunsTime", "paused"];
 
 var HALTEN_MS = 2000;
 
@@ -18,7 +25,7 @@ function zeitText(ms) {
 export default {
   data: {
     modus: "bereit", zeit: "0:00", tempo: "0.0", strecke: "0.00", puls: "--", info: "",
-    balken: 0, balkenZeigen: false,
+    balken: 0, balkenZeigen: false, datenseite: false,
     knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
   },
   onInit() {
@@ -27,6 +34,17 @@ export default {
     this.knopfWeiter = this.$t("strings.resume");
     this.knopfStopp = this.$t("strings.stop");
     this.textPause = this.$t("strings.paused");
+    // Texte einmal holen (jedes $t kostet auf der Uhr), Displaygroesse fuer die Promille-Koordinaten.
+    this.texte = {};
+    for (var i = 0; i < FELDTEXTE.length; i++) this.texte[FELDTEXTE[i]] = this.$t("strings.f_" + FELDTEXTE[i]);
+    this.texte.paused = this.textPause;
+    this.dw = 466; this.dh = 466; this.lite = true;
+    this.seite = 1; this.zustandVorher = "";
+    var that0 = this;
+    device.getInfo({ success: function (d) {
+      if (d.windowWidth > 0) { that0.dw = d.windowWidth; that0.dh = d.windowHeight; }
+      that0.lite = d.deviceType !== "wearable";
+    } });
     R.init();
     var that = this;
     this.takt = setInterval(function () { that.zeigen(); }, 1000);
@@ -37,6 +55,7 @@ export default {
     R.ende();
   },
   zeigen() {
+    if (R.takt()) this.seite = 1;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
     var z = R.zustand();
     this.modus = z.modus;
     this.zeit = zeitText(z.ms);
@@ -60,6 +79,48 @@ export default {
     // der Balken zappelte zwischen 1/2 und 2/2 — die Zahl in der Zeile reicht dort.
     this.balkenZeigen = z.modus === "bereit" && z.offen > 0 && z.plan.gesamt > 0;
     this.balken = z.plan.gesamt > 0 ? Math.floor(100 * z.plan.fertig / z.plan.gesamt) : 0;
+    this.datenseiten();
+  },
+  /** Seite 0 = Bedienung (Pause/Weiter/Stopp), 1 … n = Datenseiten des aktuellen Zustands. */
+  datenseiten() {
+    if (R.modus === "bereit") { this.datenseite = false; this.seite = 1; return; }
+    var c = R.seitenKontext();
+    if (c.zustand !== this.zustandVorher) { this.zustandVorher = c.zustand; this.seite = 1; }
+    var ring = S.ring(c.k, c.zustand);
+    if (this.seite > ring.length) this.seite = ring.length;
+    this.datenseite = this.seite > 0 && this.haltText === "";
+    if (!this.datenseite) return;
+    var that = this;
+    var ctx = { dw: this.dw, dh: this.dh, s: c.s, el: c.el, k: c.k, jetzt: new Date(), pausiert: c.pausiert,
+      idx: this.seite - 1, anzahl: ring.length, t: function (k) { return that.texte[k] || k; } };
+    this.malen(S.zeichne(ring[this.seite - 1], ctx));
+  },
+  /**
+   * Zeichenbefehle ausfuehren. Lite kennt laut Doku nur die System-Schriftgroessen 30/38 px; Watch 3/4
+   * (deviceType wearable) zeichnet die echte Groesse. UNGEPRUEFT auf Hardware: Grundlinie von fillText
+   * (hier mittig angenommen ueber +0,35 × Groesse) und welche Canvas-Aufrufe Lite wirklich kann.
+   */
+  malen(befehle) {
+    var el = this.$refs.leinwand;
+    if (!el) return;
+    var c = el.getContext("2d");
+    for (var i = 0; i < befehle.length; i++) {
+      var b = befehle[i];
+      try {
+        if (b.k === "r") { c.fillStyle = b.c; c.fillRect(b.x, b.y, b.w, b.h); }
+        else if (b.k === "t") {
+          var px = this.lite ? (b.s >= 34 ? 38 : 30) : b.s;
+          c.fillStyle = b.c; c.font = px + "px";
+          c.textAlign = b.a === "l" ? "left" : (b.a === "r" ? "right" : "center");
+          c.fillText(b.txt, b.x, b.y + Math.round(px * 0.35));
+        } else if (b.k === "l") {
+          c.strokeStyle = b.c; c.lineWidth = b.w; c.beginPath(); c.moveTo(b.x1, b.y1); c.lineTo(b.x2, b.y2); c.stroke();
+        } else if (b.k === "a") {
+          c.strokeStyle = b.c; c.lineWidth = b.w; c.beginPath();
+          c.arc(b.cx, b.cy, b.r, b.a0 * Math.PI / 180, b.a1 * Math.PI / 180); c.stroke();
+        }
+      } catch (e) { /* ein Befehl, den die Uhr nicht kann, darf die Seite nicht abbrechen */ }
+    }
   },
   halten(aktion, text) {
     var that = this;
@@ -83,6 +144,13 @@ export default {
     this.zeigen();
   },
   wischen(e) {
+    // Hoch/runter blaettert waehrend der Aufnahme durch Bedienseite (0) und Datenseiten.
+    if (R.modus !== "bereit" && (e.direction === "up" || e.direction === "down")) {
+      var n = S.ring(R.konfig, R.seitenKontext().zustand).length;
+      this.seite = e.direction === "up" ? Math.min(n, this.seite + 1) : Math.max(0, this.seite - 1);
+      this.datenseiten();
+      return;
+    }
     // Nach rechts wischen beendet die App (AppGallery verlangt das) — aber nie mitten in einer
     // Aufnahme: dann waere sie weg. Erst stoppen.
     if (e.direction !== "right") return;
