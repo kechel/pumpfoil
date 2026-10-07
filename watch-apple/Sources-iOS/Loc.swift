@@ -2878,6 +2878,46 @@ static let nlOverlay: [String: String] = {
         "id": "Setup sesi ini",
         "nb": "Oppsett for denne økten",
     ]
+    private static let _neu_watchStats_tabUsage: [String: String] = [
+        "de": "Nutzung",
+        "gsw": "Nutzig",
+        "de-AT": "Nutzung",
+        "en": "Usage",
+        "fr": "Utilisation",
+        "it": "Utilizzo",
+        "es": "Uso",
+        "fi": "Käyttö",
+        "nl": "Gebruik",
+        "cs": "Používání",
+        "pl": "Użycie",
+        "pt": "Uso",
+        "pt-PT": "Utilização",
+        "ja": "利用状況",
+        "zh": "使用情况",
+        "ru": "Использование",
+        "id": "Penggunaan",
+        "nb": "Bruk",
+    ]
+    private static let _neu_watchStats_tabQuality: [String: String] = [
+        "de": "Aufnahmequalität",
+        "gsw": "Ufnahmequalität",
+        "de-AT": "Aufnahmequalität",
+        "en": "Recording quality",
+        "fr": "Qualité d’enregistrement",
+        "it": "Qualità di registrazione",
+        "es": "Calidad de grabación",
+        "fi": "Tallennuksen laatu",
+        "nl": "Opnamekwaliteit",
+        "cs": "Kvalita záznamu",
+        "pl": "Jakość zapisu",
+        "pt": "Qualidade da gravação",
+        "pt-PT": "Qualidade da gravação",
+        "ja": "記録の品質",
+        "zh": "记录质量",
+        "ru": "Качество записи",
+        "id": "Kualitas rekaman",
+        "nb": "Opptakskvalitet",
+    ]
     static let neuTexte: [String: [String: String]] = [
         "list.cards": _neu_list_cards,
         "list.compact": _neu_list_compact,
@@ -2911,6 +2951,8 @@ static let nlOverlay: [String: String] = {
         "foiler.lastSessions": _neu_foiler_lastSessions,
         "setup.weightTitle": _neu_setup_weightTitle,
         "setup.editTitle": _neu_setup_editTitle,
+        "watchStats.tabUsage": _neu_watchStats_tabUsage,
+        "watchStats.tabQuality": _neu_watchStats_tabQuality,
     ]
 
     static func t(_ key: String, _ lang: String) -> String {

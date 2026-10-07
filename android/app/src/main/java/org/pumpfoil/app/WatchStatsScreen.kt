@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +46,9 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
     var error by remember { mutableStateOf<String?>(null) }
     var sortKey by remember { mutableStateOf("sessions") }
     var sortAsc by remember { mutableStateOf(false) }
+    // Welche Haelfte: 0 = Nutzung, 1 = Aufnahmequalitaet. Vorher untereinander, die Qualitaet erst
+    // nach allen Modellen — Jan fand sie nicht (07.10.2026). Gleich wie iOS.
+    var teil by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         try { rows = Api.watchStats() } catch (e: Exception) { error = e.message; rows = emptyList() }
@@ -85,7 +89,19 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
             }
         }
         fun sel(k: String) { if (sortKey == k) sortAsc = !sortAsc else { sortKey = k; sortAsc = (k == "name") } }
+        val hatQuali = quali?.modelle?.isNotEmpty() == true
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
+            if (hatQuali) {
+                item {
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = teil == 0, onClick = { teil = 0 },
+                            label = { Text(I18n.t("watchStats.tabUsage")) }, colors = cyanChipColors())
+                        FilterChip(selected = teil == 1, onClick = { teil = 1 },
+                            label = { Text(I18n.t("watchStats.tabQuality")) }, colors = cyanChipColors())
+                    }
+                }
+            }
+            if (teil == 0 || !hatQuali) {
             item {
                 Text(I18n.t("watchStats.hint"),
                     style = MaterialTheme.typography.bodyMedium,
@@ -109,10 +125,11 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
                 item { Text(I18n.t("watchStats.none"), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)) }
             }
             items(sorted, key = { it.watch }) { s -> watchCard(s) }
+            }
 
             // Uhren-Auswertung: was die Geraete wirklich abliefern. Bewusst OHNE Urteil —
             // das entscheiden Nutzer selbst (Jan, 05.09.); die Zahlen stehen dafuer da.
-            quali?.takeIf { it.modelle.isNotEmpty() }?.let { q ->
+            if (teil == 1) quali?.takeIf { it.modelle.isNotEmpty() }?.let { q ->
                 item {
                     Column(Modifier.padding(top = 18.dp, bottom = 6.dp)) {
                         Text(I18n.t("watchQuality.title"), fontWeight = FontWeight.Bold)

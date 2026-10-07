@@ -74,6 +74,14 @@ struct RootView: View {
 // Alle Ziele direkt erreichbar; erneutes Tippen auf den aktiven Tab setzt ihn auf die Wurzel
 // zurück (Remount via .id). Views bleiben pro Tab am Leben (ZStack + opacity) → Zustand erhalten.
 struct MainTabView: View {
+    // Nicht gewaehlte Tabs: dunkler als `.secondary` (Jan, 07.10.2026: zu wenig Kontrast auf der grauen
+    // Leiste). Hell slate-600, dunkel slate-300 — dieselben Stufen wie im Web.
+    static let inaktiv = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(red: 0xCB / 255.0, green: 0xD5 / 255.0, blue: 0xE1 / 255.0, alpha: 1)
+            : UIColor(red: 0x47 / 255.0, green: 0x55 / 255.0, blue: 0x69 / 255.0, alpha: 1)
+    })
+
     @AppStorage("appLang") private var lang = "de"
     @EnvironmentObject private var session: SessionStore
     @ObservedObject private var compare = CompareStore.shared
@@ -170,7 +178,7 @@ struct MainTabView: View {
             Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
         }
         .frame(maxWidth: .infinity)
-        .foregroundStyle(tab == i ? Color.accentColor : Color.secondary)
+        .foregroundStyle(tab == i ? Color.accentColor : MainTabView.inaktiv)
         .contentShape(Rectangle())
     }
 
