@@ -1446,8 +1446,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   messweg kam an). **Nachgezogen + getestet (07.10. mittags):** Uebungstyp SURFING statt WORKOUT (WORKOUT hat
   KEIN SPEED), dafuer braucht SPEED die Berechtigung ACTIVITY_RECOGNITION (neu im Manifest, neue Abfrage
   „Koerperliche Aktivitaet" beim Start — ohne sie bleibt es beim LocationManager). Stopp/Pause leeren vorher
-  den HS-Puffer (`flushAsync`, sonst fehlte bei dunklem Display bis ~150 s Spur vor jeder Pause). HS-GPS im
-  Emulator mit synthetischen Daten ueber Debug-Schalter `hs_emulator=ja` (nur debuggable): #13895 hs 100 %,
+  den HS-Puffer (`flushAsync`, sonst fehlte bei dunklem Display bis ~150 s Spur vor jeder Pause). Emulator-Sperre
+  fuer Health Services raus (Jan: kein Sonderweg, was im Emulator laeuft, wird ausgeliefert); synthetische
+  Daten im Emulator: #13899 hs ohne jeden Schalter, #13895 hs 100 %,
   Luecke 1 s; #13896 mit Pause/Fortsetzen hs, einzige Luecke = Pause. **NICHT getestet:** Wake-up-Batching
   (Emulator hat keinen Wake-up-Sensor) und das Verhalten bei dunklem Display — nur auf echter Uhr. Vor der Einreichung: Testaufnahmen aus Jans Community-
   Aufruf (Display aus, >15 min) mit `messweg_json` pruefen, v. a. Samsung/OnePlus.

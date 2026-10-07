@@ -247,13 +247,12 @@ class RecorderService : Service(), SensorEventListener {
     /**
      * GPS NACH DOKU aus der Health-Services-Uebung? Nur wenn alles stimmt — sonst bleibt es beim
      * LocationManager (Uhr-GNSS), der bisher auch lief:
-     *  - nicht im Emulator (Health Services reisst dort den Sensor-Dienst mit, s. imEmulator),
      *  - die Uhr hat einen eigenen GNSS-Empfaenger und die Standort-Berechtigung,
      *  - Health Services bietet LOCATION fuer Uebungen an (beim App-Start geprueft, `hs_ort`),
      *  - der Server hat es nicht abgeschaltet (`gpsHs` = "off").
      */
     private fun hsOrtMoeglich(): Boolean {
-        if (imEmulator() || !eigenesGnss) return false
+        if (!eigenesGnss) return false
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return false
         // Das Tempo (SPEED) liefert Health Services nur mit „Koerperliche Aktivitaet" — ohne es haetten
         // die Punkte kein Doppler-Tempo, das der Server braucht. Dann lieber der LocationManager.
@@ -315,29 +314,17 @@ class RecorderService : Service(), SensorEventListener {
      * Puls-Sensor), bleibt es beim rohen Sensor von oben — also nie schlechter als vorher.
      */
     /**
-     * IM EMULATOR NICHT: der Sensor-Treiber der Emulator-Images (`goldfish::MultihalSensors`)
-     * bricht mit `SIGABRT` ab, sobald ein Sensor aktiviert wird, den er nicht kennt —
-     * `activationOnChangeSensorEvent: unexpected sensor type: 26` (= WRIST_TILT_GESTURE). Health
-     * Services registriert beim Start einer Uebung genau solche Sensoren mit. Der Absturz trifft
-     * den SENSOR-DIENST des Systems, und der reisst jeden Prozess mit, der gerade Sensoren nutzt:
-     * unsere App war damit beim Druck auf START sofort weg, ohne eigene Exception (Jans
-     * Emulator-Befund 02.09., Tombstone eindeutig).
-     *
-     * `Build.HARDWARE` ist bei allen Android-Emulatoren `ranchu` (aeltere: `goldfish`) — eine
-     * echte Uhr meldet das nie. Auf ihr bleibt also alles wie es war.
+     * Emulator: laeuft wie jede Uhr (Jan, 07.10.2026 — was im Emulator laeuft, ist das, was
+     * ausgeliefert wird; kein Sonderweg). Bis dahin war Health Services dort gesperrt: am 02.09.
+     * brach der Sensor-Treiber eines Emulator-Images (`goldfish::MultihalSensors`, „unexpected
+     * sensor type: 26") beim Start einer Uebung mit SIGABRT ab und riss die App mit. Am 07.10. lief
+     * die Uebung auf dem Wear-OS-5-Image (x86_64) samt synthetischer GPS-Route ohne Absturz.
+     * Taucht es wieder auf: Tombstone ansehen, nicht wieder pauschal sperren.
      */
-    private fun imEmulator(): Boolean =
-        (Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish") && !hsImEmulatorErlaubt(this)
-
     private fun startHeartRate() {
         // START_STICKY: das System kann den Service mit leerem Intent neu starten. Dann laeuft die
         // Uebung schon — kein zweites Mal starten.
         if (hsClient != null) return
-        if (imEmulator()) {
-            // Kein Puls im Emulator — aber auch kein Absturz des Sensor-Dienstes (s. oben).
-            android.util.Log.i("Pumpfoil", "Health Services im Emulator uebersprungen (Sensor-HAL bricht sonst ab)")
-            return
-        }
         // Was die Uebung messen soll: Puls nur mit Berechtigung (sonst scheitert die ganze Uebung —
         // und mit ihr das GPS), Ortung + Tempo nur, wenn das GPS von hier kommt (s. hsOrtMoeglich).
         val typen = mutableSetOf<DataType<*, *>>()
@@ -708,19 +695,7 @@ class RecorderService : Service(), SensorEventListener {
         val UEBUNG_MIT_ORT: ExerciseType = ExerciseType.SURFING
         /** Kann Health Services auf dieser Uhr Ortung fuer Uebungen? Einmal beim App-Start pruefen,
          *  das Ergebnis liest der Dienst synchron beim Start der Aufnahme (`hs_ort`). */
-        /**
-         * Health Services IM EMULATOR erlauben — nur im DEBUG-Build und nur, wenn per adb
-         * `hs_emulator = ja` in die Einstellungen geschrieben wurde. Wear OS 4+ erzeugt dort
-         * synthetische Trainingsdaten inkl. GPS-Route (developer.android.com „Sensordaten mit
-         * Gesundheitsdiensten simulieren") — damit laesst sich der GPS-Weg aus Health Services
-         * pruefen, ohne echte Uhr. Release-Builds sind nie debuggable: dort bleibt alles wie oben.
-         */
-        fun hsImEmulatorErlaubt(ctx: Context): Boolean =
-            (ctx.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 &&
-            ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE).getString("hs_emulator", "") == "ja"
-
         fun pruefeHsOrt(ctx: Context) {
-            if ((Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish") && !hsImEmulatorErlaubt(ctx)) return
             try {
                 val f = HealthServices.getClient(ctx).exerciseClient.getCapabilitiesAsync()
                 f.addListener({
