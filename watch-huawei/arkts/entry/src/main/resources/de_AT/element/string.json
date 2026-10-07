@@ -1,0 +1,72 @@
+{
+  "string": [
+    {
+      "name": "start",
+      "value": "Halten: Start"
+    },
+    {
+      "name": "pause",
+      "value": "Halten: Pause"
+    },
+    {
+      "name": "resume",
+      "value": "Weiter"
+    },
+    {
+      "name": "stop",
+      "value": "Stopp"
+    },
+    {
+      "name": "paused",
+      "value": "Pause"
+    },
+    {
+      "name": "errors",
+      "value": "Fehler"
+    },
+    {
+      "name": "gpsWait",
+      "value": "Wart' auf GPS"
+    },
+    {
+      "name": "toPhone",
+      "value": "Aufs Handy:"
+    },
+    {
+      "name": "openPhone",
+      "value": "Pumpfoil am Handy aufmachen"
+    },
+    {
+      "name": "allSent",
+      "value": "Alles drüben"
+    },
+    {
+      "name": "holdStart",
+      "value": "Halt weiter: Start"
+    },
+    {
+      "name": "holdPause",
+      "value": "Halt weiter: Pause"
+    },
+    {
+      "name": "holdResume",
+      "value": "Halt weiter: weiter"
+    },
+    {
+      "name": "holdStop",
+      "value": "Halt weiter: Stopp"
+    },
+    {
+      "name": "stopFirst",
+      "value": "Zuerst die Aufnahme stoppen"
+    },
+    {
+      "name": "perm_reason",
+      "value": "Zeichnet Tempo, Position, Puls und Bewegung von deiner Pumpfoil-Session auf."
+    },
+    {
+      "name": "bg_reason",
+      "value": "Nimmt weiter auf, wenn's Display aus ist."
+    }
+  ]
+}

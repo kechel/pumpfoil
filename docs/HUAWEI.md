@@ -7,7 +7,7 @@ Huawei-Doku ist fast nur per JavaScript lesbar; Zahlen vor einer Entscheidung im
 
 ## Zwei Welten
 
-| | **Watch GT 3/4/5/6, Fit, D2** („Lite Wearable") | **Watch 3/4/5, Ultimate** (volles HarmonyOS, s. „Drei Linien") |
+| | **Watch GT 3/4/5/6, Fit, D2** („Lite Wearable") | **Watch 3/4/5** (volles HarmonyOS, s. „Drei Linien") |
 |---|---|---|
 | App-Technik | Lite-JS (HML/CSS, JerryScript ES5.1, Heap 64-512 KB) | ArkTS/ArkUI (Stage-Modell, HAP) |
 | Beschleunigung | `@system.sensor.subscribeAccelerometer`, roh x/y/z, `game` = 20 ms (~50 Hz), `ui` = 60 ms (~16,7 Hz) [DOK]; **keine Zeitstempel**; GT 6 liefert laut Forum gar nichts [FORUM] | `@ohos.sensor`, Intervall in ns [DOK]; erreichbare Rate auf der Uhr [UNKLAR] |
@@ -29,12 +29,18 @@ decompress", die Lite-JS-App laeuft) [FORUM, mit Geraetebeleg]:
 |---|---|---|---|
 | Lite | Watch GT 3/4/5/6, Fit, D2 — auch mit „HarmonyOS 6" im Namen bleibt das LiteOS | FA, Lite-JS (ES5.1, JerryScript), `liteWearable` | `lite/` ✅ gebaut |
 | Wearable alt | Watch 3, Watch 4 / 4 Pro (global noch HarmonyOS 4.3, Sept. 2025) | FA, JS (`wearable`) | `wearable/` ✅ gebaut |
-| Wearable neu | **Watch 5** (global HarmonyOS 6.x), Watch Ultimate, kuenftig jede Watch nach dem Update | **nur Stage/ArkTS** (API 20/21, `module.json5`) | ❌ fehlt — dritte Codebasis |
+| Wearable neu | **Watch 5** (global HarmonyOS 6.x), kuenftig jede Watch nach dem Update | **nur Stage/ArkTS** (API 20/21, `module.json5`) | `arkts/` gebaut 07.10. (nie auf Hardware) |
 
 - Dass HarmonyOS 5/6 auf der Watch 5 KEINE FA-/JS-Apps mehr installiert, ist [UNKLAR, sehr wahrscheinlich]:
   HarmonyOS NEXT fuehrt das FA-Modell als abgekuendigt, und das genannte Projekt baut fuer Watch 4/5/
   Ultimate ausschliesslich ArkTS. Ein Test mit unserer `wearable/`-App auf einer Watch 5 klaert es.
 - Bekommt die Watch 4 ihr Update auf 5/6, faellt sie vermutlich von `wearable/` auf die ArkTS-Linie.
+- **Watch Ultimate [UNKLAR]:** Huaweis eigener Forenartikel „Wearable Device Types" fuehrt sie unter Lite,
+  das Home-Assistant-Projekt unter ArkTS. Erst ein Geraet entscheidet; bis dahin in keiner Liste versprechen.
+- **ArkTS-Seite, ungeprueft (Recorder.ets):** Erfolgscode von `P2pClient.sendMessage` (angenommen 207 wie
+  Lite/Android; die Uhr zeigt jeden anderen Code an), und ob die Continuous Task (Modus location) bei dunklem
+  Display auch den Beschleunigungssensor weiterlaufen laesst (`messweg.bg` im /complete sagt, ob sie lief).
+  Fingerabdruck-Form fuer die Handy-App: Huaweis Forum nennt `<Paketname>_<Base64-Public-Key>`.
 - Wear Engine gibt es auch auf der ArkTS-Seite (`@kit.WearEngine`, P2P-Nachrichten) — unser Uebertragungs-
   format (PF1-Teile) und die Handy-Bruecken bleiben gleich. Neu waeren nur Seite + Geraete-Schicht.
 - Ob ArkTS unseren ES5-Kern (`common/kern.js`) direkt importieren kann, ist [UNKLAR]; notfalls 1:1 nach
@@ -56,6 +62,11 @@ decompress", die Lite-JS-App laeuft) [FORUM, mit Geraetebeleg]:
   Speicher eine Fremd-App auf einer Lite-Uhr bekommt, steht nirgends; ein `freeStorage` gibt es (wie bei
   Connect IQ) nicht. Pruefen in der Beta: lange Aufnahme OHNE Handy in Reichweite, dann ob/wann
   `file.writeText` scheitert (wird auf der Uhr gezaehlt und angezeigt). Gegenstueck: docs/WATCH-STORAGE.md.
+- **iOS [DOK-nah, Huawei-Forenartikel „Single and Dual Frame WearEngine"]:** „Huawei Health on iOS phones does
+  not have an app store, so apps cannot be installed on the sports watch. Currently, only pre-installed apps
+  can use iOS Wear Engine for sports watches." Heisst: wer seine Huawei-Uhr mit einem iPhone koppelt, bekommt
+  unsere Uhren-App gar nicht erst auf die Uhr — die iOS-Bruecke (`HuaweiBruecke.swift`) haette heute keine
+  Nutzer. Sie bleibt im Code (baut ohne Framework unveraendert), wird aber nicht beworben, bis sich das aendert.
 - iOS: ein `WESP2PClient` existiert in der Referenz [DOK], ob er mit Lite-Uhren Daten austauscht [UNKLAR].
   iPhone-gekoppelte Watch 3/4/5 teilen das Handy-Netz NICHT per Bluetooth [DOK, Huawei-Support].
 

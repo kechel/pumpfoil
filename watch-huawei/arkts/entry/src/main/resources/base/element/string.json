@@ -1,0 +1,84 @@
+{
+  "string": [
+    {
+      "name": "start",
+      "value": "Hold to start"
+    },
+    {
+      "name": "pause",
+      "value": "Hold to pause"
+    },
+    {
+      "name": "resume",
+      "value": "Resume"
+    },
+    {
+      "name": "stop",
+      "value": "Stop"
+    },
+    {
+      "name": "paused",
+      "value": "Paused"
+    },
+    {
+      "name": "errors",
+      "value": "Errors"
+    },
+    {
+      "name": "gpsWait",
+      "value": "Waiting for GPS"
+    },
+    {
+      "name": "toPhone",
+      "value": "To phone:"
+    },
+    {
+      "name": "openPhone",
+      "value": "open Pumpfoil on phone"
+    },
+    {
+      "name": "allSent",
+      "value": "All sent"
+    },
+    {
+      "name": "holdStart",
+      "value": "Keep holding: start"
+    },
+    {
+      "name": "holdPause",
+      "value": "Keep holding: pause"
+    },
+    {
+      "name": "holdResume",
+      "value": "Keep holding: resume"
+    },
+    {
+      "name": "holdStop",
+      "value": "Keep holding: stop"
+    },
+    {
+      "name": "stopFirst",
+      "value": "Stop the recording first"
+    },
+    {
+      "name": "module_desc",
+      "value": "Pumpfoil recorder"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Records pump foiling sessions for pumpfoil.org"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "Pumpfoil"
+    },
+    {
+      "name": "perm_reason",
+      "value": "Records speed, position, heart rate and motion of your pump foiling session."
+    },
+    {
+      "name": "bg_reason",
+      "value": "Keeps recording while the screen is off."
+    }
+  ]
+}

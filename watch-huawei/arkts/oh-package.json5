@@ -1,0 +1,6 @@
+{
+  "modelVersion": "5.1.0",
+  "description": "Pumpfoil recorder for HUAWEI watches with HarmonyOS 5+ (ArkTS)",
+  "dependencies": {},
+  "devDependencies": {}
+}

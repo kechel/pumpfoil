@@ -1,0 +1,69 @@
+{
+  "module": {
+    "name": "entry",
+    "type": "entry",
+    "description": "$string:module_desc",
+    "mainElement": "EntryAbility",
+    "deviceTypes": [
+      "wearable"
+    ],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "EntryAbility",
+        "srcEntry": "./ets/entryability/EntryAbility.ets",
+        "description": "$string:EntryAbility_desc",
+        "icon": "$media:icon",
+        "label": "$string:EntryAbility_label",
+        "startWindowIcon": "$media:icon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true,
+        // Aufnahme bei dunklem Display: Continuous Task im Modus „location" (Recorder.ets
+        // hintergrundAn). Ob eine Uhr damit auch den Beschleunigungssensor weiterliefert, ist
+        // UNBELEGT — die Diagnose im /complete (messweg.bg) und die Abdeckung am Server zeigen es.
+        "backgroundModes": [
+          "location"
+        ],
+        "skills": [
+          {
+            "entities": ["entity.system.home"],
+            "actions": ["ohos.want.action.home"]
+          }
+        ]
+      }
+    ],
+    "requestPermissions": [
+      { "name": "ohos.permission.ACCELEROMETER" },
+      { "name": "ohos.permission.KEEP_BACKGROUND_RUNNING" },
+      { "name": "ohos.permission.VIBRATE" },
+      {
+        "name": "ohos.permission.APPROXIMATELY_LOCATION",
+        "reason": "$string:perm_reason",
+        "usedScene": { "abilities": ["EntryAbility"], "when": "always" }
+      },
+      {
+        "name": "ohos.permission.LOCATION",
+        "reason": "$string:perm_reason",
+        "usedScene": { "abilities": ["EntryAbility"], "when": "always" }
+      },
+      {
+        "name": "ohos.permission.LOCATION_IN_BACKGROUND",
+        "reason": "$string:bg_reason",
+        "usedScene": { "abilities": ["EntryAbility"], "when": "always" }
+      },
+      {
+        "name": "ohos.permission.READ_HEALTH_DATA",
+        "reason": "$string:perm_reason",
+        "usedScene": { "abilities": ["EntryAbility"], "when": "always" }
+      }
+    ],
+    "metadata": [
+      // Wear Engine auf der Uhr (HarmonyOS): App-ID aus AppGallery Connect und die Handy-Apps, mit
+      // denen die Uhr reden darf. Platzhalter liefert Jan nach (watch-huawei/README.md).
+      { "name": "client_id", "value": "HUAWEI_ARKTS_CLIENT_ID_EINTRAGEN" },
+      { "name": "wearEngineRemoteAppNameList", "value": "org.pumpfoil.app" }
+    ]
+  }
+}
