@@ -281,6 +281,50 @@ function dateiVon(d) {
   return d.art === "m" ? dateiMeta(d.id) : (d.art === "e" ? dateiEnde(d.id) : dateiChunk(d.id, d.nr));
 }
 
+/**
+ * Uebertragung als NACHRICHTEN statt Dateien: das iOS-SDK von Wear Engine kann laut Huawei
+ * („App-to-App Message Communications", iOS) nur Nachrichten, keine Dateien — und eine Nachricht
+ * hoechstens 1 KB. Damit es EIN Weg fuer Android und iOS ist, geht jede Datei in Teilen:
+ *   PF1|<dateiname>|<teil>|<anzahl>|<inhalt>
+ * Das Handy setzt die Teile wieder zusammen. Alles ASCII (Nicht-ASCII als \uXXXX — in unseren
+ * JSON-Texten steht so etwas nur in Zeichenketten, dort ist das gueltiges JSON), damit die
+ * Laenge in Zeichen gleich der in Bytes ist.
+ */
+var TEIL_MAX = 800;
+function ascii(s) {
+  return s.replace(/[\u0080-\uffff]/g, function (c) {
+    return "\\u" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4);
+  });
+}
+function teile(name, text, max) {
+  var t = ascii(text), m = max || TEIL_MAX;
+  var n = Math.max(1, Math.ceil(t.length / m)), r = [];
+  for (var i = 0; i < n; i++) r.push("PF1|" + name + "|" + i + "|" + n + "|" + t.substring(i * m, (i + 1) * m));
+  return r;
+}
+
+/**
+ * Gegenstelle: an welche Handy-App die Uhr schickt. Android (org.pumpfoil.app) und iOS
+ * (org.pumpfoil.coolwatch) haben verschiedene Kennungen, und die Uhr weiss nicht, mit welchem
+ * Handy sie gekoppelt ist. Wer zuletzt angenommen hat, bleibt; nach 3 Fehlschlaegen in Folge
+ * wird gewechselt.
+ */
+function Gegenstelle(liste, aktiv) {
+  this.liste = liste;
+  this.i = aktiv > 0 && aktiv < liste.length ? aktiv : 0;
+  this.folge = 0;
+}
+Gegenstelle.prototype.jetzt = function () { return this.liste[this.i]; };
+Gegenstelle.prototype.ok = function () { this.folge = 0; };
+/** true = gewechselt (der Aufrufer muss die Verbindung neu einstellen). */
+Gegenstelle.prototype.fehler = function () {
+  this.folge++;
+  if (this.folge >= 3 && this.liste.length > 1) {
+    this.i = (this.i + 1) % this.liste.length; this.folge = 0; return true;
+  }
+  return false;
+};
+
 /** Strecke zwischen zwei Punkten in m (fuer die Anzeige; der Server rechnet selbst). */
 function meter(lat1, lon1, lat2, lon2) {
   var r = 6371000, k = Math.PI / 180;
@@ -318,7 +362,8 @@ export default {
   ACCEL_JE_BLOCK: ACCEL_JE_BLOCK, GPS_JE_BLOCK: GPS_JE_BLOCK,
   b64: b64, i16: i16, i16Bytes: i16Bytes,
   Zeitachse: Zeitachse, Sammler: Sammler, Warteschlange: Warteschlange, Anzeige: Anzeige,
-  Sendeplan: Sendeplan, dateiVon: dateiVon,
+  Sendeplan: Sendeplan, dateiVon: dateiVon, teile: teile, ascii: ascii, Gegenstelle: Gegenstelle,
+  TEIL_MAX: TEIL_MAX,
   neueId: neueId, dateiMeta: dateiMeta, dateiChunk: dateiChunk, dateiEnde: dateiEnde,
   sendeReihenfolge: sendeReihenfolge, meter: meter
 };

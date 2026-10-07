@@ -1442,6 +1442,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Zaehler (Laufzeit, Samples/s, groesste Luecke, GPS-Punkte), 60 min Handgelenk unten — klaert das Hauptrisiko
   ohne Wear-Engine-Freigabe; (4) danach Recorder + Wear-Engine-Bruecke in der Android-App. Offen: wie Tester eine
   Lite-App ohne Entwicklermodus bekommen (AppGallery-Testspur fuer Uhren?).
+  **Stand 07.10. abends (Jan: „Wir bauen, releasen und kuendigen es als Public Beta an"):** Messprobe
+  uebersprungen, gleich der Recorder. GEBAUT, NIE AUF HARDWARE: `watch-huawei/` (lite = GT/Fit/D2,
+  wearable = Watch 3/4, Kern in Node getestet), Android `HuaweiBruecke.kt` (+ Karte, 18 Sprachen),
+  iOS `HuaweiBruecke.swift` (hinter `#if canImport(WearEngineSDK)`). Uebertragung als NACHRICHTEN in
+  Teilen, weil das iOS-SDK keine Dateien kann. Teile-Empfang Android + iOS-Datei am 07.10. nachgeprueft:
+  Kern 19/19, Android compile + `HuaweiBrueckeTest` 3/3 gruen, Swift nur Parse (Xcode-Build steht aus). Danach:
+  Server-Geraeteliste (Plattform „huawei" aus dem Token-Label?), ROADMAP/Coming-next, Beta-Aufruf-Entwurf.
+  Jan liefert: Bundle-Name, SHA-256 Play-Key, Wear-Engine-App-ID, iOS Client-ID/Secrets (NICHT ins Repo),
+  Signierzertifikate. Antrag „Apply for Wear Engine" ~2 Wochen — frueh starten. Memory: huawei-recorder-stand.
 
 - **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
   Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit

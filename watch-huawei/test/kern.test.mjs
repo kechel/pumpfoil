@@ -188,3 +188,38 @@ test("Sprachdateien: alle Schluessel in allen Sprachen", async () => {
   const alle = fs.readdirSync(d).map((f) => [f, Object.keys(JSON.parse(fs.readFileSync(new URL(f, d), "utf8")).strings).sort()]);
   for (const [f, k] of alle) assert.deepEqual(k, alle[0][1], f);
 });
+
+test("Teile: jede Nachricht < 1 KB, ASCII, zusammengesetzt wieder gueltiges JSON", () => {
+  const s = new K.Sammler();
+  let c = null;
+  for (let n = 0; n < K.ACCEL_JE_BLOCK; n++) c = s.accelWert(Math.sin(n) * 20, n % 7, 9.8, n * 20) || c;
+  const meta = { session_uuid: "hw-x", device_model: "HUAWEI WATCH GT 5 · HarmonyOS", started_at: "2026-10-07T12:00:00Z" };
+  for (const obj of [c, meta]) {
+    const text = JSON.stringify(obj);
+    const t = K.teile("c_hw-x_000000.json", text);
+    for (const m of t) {
+      assert.ok(Buffer.byteLength(m, "utf8") < 1000, `Teil ${Buffer.byteLength(m)} Byte`);
+      assert.match(m, /^[\x20-\x7e]*$/, "nur ASCII");
+    }
+    // so setzt das Handy zusammen
+    const teile = t.map((m) => m.split("|")).map((f) => ({ i: +f[2], n: +f[3], inhalt: f.slice(4).join("|") }));
+    assert.ok(teile.every((x) => x.n === t.length));
+    const ganz = teile.sort((a, b) => a.i - b.i).map((x) => x.inhalt).join("");
+    assert.deepEqual(JSON.parse(ganz), obj);
+  }
+});
+
+test("Teile: Inhalt mit | geht nicht kaputt", () => {
+  const t = K.teile("m_a.json", JSON.stringify({ x: "a|b|c" }), 5);
+  const ganz = t.map((m) => m.split("|").slice(4).join("|")).join("");
+  assert.deepEqual(JSON.parse(ganz), { x: "a|b|c" });
+});
+
+test("Gegenstelle: bleibt beim Treffer, wechselt nach 3 Fehlern", () => {
+  const g = new K.Gegenstelle(["org.pumpfoil.app", "org.pumpfoil.coolwatch"], 0);
+  assert.equal(g.fehler(), false); assert.equal(g.fehler(), false);
+  g.ok(); assert.equal(g.fehler(), false); assert.equal(g.fehler(), false);
+  assert.equal(g.fehler(), true); assert.equal(g.jetzt(), "org.pumpfoil.coolwatch");
+  assert.equal(new K.Gegenstelle(["a", "b"], 1).jetzt(), "b");
+  assert.equal(new K.Gegenstelle(["a", "b"], 7).jetzt(), "a");
+});

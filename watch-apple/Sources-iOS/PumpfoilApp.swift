@@ -45,6 +45,10 @@ struct PumpfoilApp: App {
             RootView()
                 .environmentObject(session)
                 .environmentObject(sync)
+                // Rueckkehr aus Huawei Health nach der Wear-Engine-Freigabe (HUAWEI-Uhren, 07.10.2026).
+                // Fremde URLs (pumpfoil://auth …) laesst die Bruecke unberuehrt; die bestehenden
+                // onOpenURL-Stellen bekommen jede URL weiterhin.
+                .onOpenURL { url in _ = HuaweiBruecke.shared.urlEmpfangen(url) }
         }
     }
 }

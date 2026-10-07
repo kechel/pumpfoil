@@ -148,13 +148,24 @@ object HuaweiBruecke {
         }
     }
 
+    /**
+     * Die Uhr schickt NACHRICHTEN in Teilen (watch-huawei/common/kern.js `teile`): das iOS-SDK
+     * von Wear Engine kann keine Dateien, und so ist es fuer beide Handys derselbe Weg. Eine
+     * Datei (Wear-Engine-Dateiversand) wird trotzdem angenommen.
+     */
     private fun nachricht(app: Context, msg: Message) {
-        if (msg.type != Message.MESSAGE_TYPE_FILE) return
-        val f = msg.file ?: return
         scope.launch {
-            val fertig = try { ablegen(app, f.name, f) } catch (e: Exception) {
-                Log.e(TAG, "ablegen ${f.name}", e)
-                setze { it.copy(fehler = "datei: ${f.name}".take(120)) }
+            val fertig = try {
+                when (msg.type) {
+                    Message.MESSAGE_TYPE_DATA -> teilAnnehmen(app, String(msg.data ?: return@launch, Charsets.UTF_8))
+                    Message.MESSAGE_TYPE_FILE -> msg.file?.let { f ->
+                        if (f.length() in 1..MAX_DATEI) ablegen(app, f.name, f.readText()) else false
+                    } ?: false
+                    else -> false
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "nachricht", e)
+                setze { it.copy(fehler = "datei: ${e.message ?: ""}".take(120)) }
                 false
             }
             setze { it.copy(empfangen = it.empfangen + 1, offen = offen(app)) }
@@ -162,17 +173,43 @@ object HuaweiBruecke {
         }
     }
 
+    /** Ein Teil `PF1|<datei>|<nr>|<anzahl>|<inhalt>`. */
+    internal data class Teil(val datei: String, val nr: Int, val anzahl: Int, val inhalt: String)
+
+    /** Nur das erwartete Format, nur bekannte Dateinamen, vernuenftige Groessen — sonst null. */
+    internal fun teilLesen(text: String): Teil? {
+        if (!text.startsWith("PF1|")) return null
+        val f = text.split('|', limit = 5)
+        if (f.size < 5) return null
+        val nr = f[2].toIntOrNull() ?: return null
+        val n = f[3].toIntOrNull() ?: return null
+        if (n !in 1..20000 || nr !in 0 until n || f[4].length > 1000) return null
+        if (zielName(f[1]) == null) return null
+        return Teil(f[1], nr, n, f[4])
+    }
+
+    private suspend fun teilAnnehmen(app: Context, text: String): Boolean {
+        val t = teilLesen(text) ?: return false
+        val (ganz, name) = ablage.withLock {
+            val dir = File(File(app.filesDir, "huawei-teile").apply { mkdirs() }, t.datei).apply { mkdirs() }
+            File(dir, t.nr.toString()).writeText(t.inhalt)   // doppelt geschickt -> ueberschreibt nur
+            if ((dir.listFiles()?.size ?: 0) < t.anzahl) return false
+            val g = (0 until t.anzahl).joinToString("") { File(dir, it.toString()).readText() }
+            dir.deleteRecursively()
+            g to t.datei
+        }
+        return ablegen(app, name, ganz)
+    }
+
     /**
      * Eine Datei der Uhr ablegen. Rein nach Namen und Inhalt geprueft — nichts von der Uhr darf
      * ausserhalb des eigenen Ordners schreiben. true = eine Session ist vollstaendig.
      */
-    internal suspend fun ablegen(app: Context, name: String, f: File): Boolean = ablage.withLock {
-        if (f.length() <= 0 || f.length() > MAX_DATEI) return false
-        val text = f.readText()
+    internal suspend fun ablegen(app: Context, name: String, text: String): Boolean = ablage.withLock {
+        if (text.isEmpty() || text.length > MAX_DATEI) return false
         JSONObject(text)   // muss gueltiges JSON sein, sonst Exception
         val (id, ziel) = zielName(name) ?: return false
-        val dir = File(wurzel(app), id).apply { mkdirs() }
-        File(dir, ziel).writeText(text)
+        File(File(wurzel(app), id).apply { mkdirs() }, ziel).writeText(text)
         return ziel == "complete.json"
     }
 

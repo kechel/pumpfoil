@@ -5,8 +5,9 @@
  * verdrahtet. Was eine Seite anzeigen soll, steht in `R.zustand()`.
  *
  * Bekannte Fallen (docs/HUAWEI.md) und was hier dagegen getan wird:
- *  - Wear Engine schickt eine Datei gleichzeitig und meldet 206 u. a., wenn die App nicht im
- *    Vordergrund ist -> Warteschlange mit steigender Wartezeit, Fehler gezaehlt und angezeigt.
+ *  - Wear Engine meldet 206 u. a., wenn die App nicht im Vordergrund ist oder das Handy fehlt
+ *    -> Warteschlange mit steigender Wartezeit, Fehler gezaehlt und angezeigt.
+ *  - iOS-SDK nimmt nur Nachrichten (<= 1 KB), keine Dateien -> alles in Teilen (kern.teile).
  *  - P2P gleich auf der ersten Seite starten friert die Uhr ein -> erst beim ersten Senden,
  *    fruehestens 3 s nach dem Start.
  *  - 64 KB Heap -> keine Dateiliste, nur der Sendeplan; Bloecke klein; nichts Grosses im Speicher.
@@ -23,6 +24,7 @@ import C from "./konfig.js";
 import { P2pClient, Message, Builder } from "../wearengine/wearengine.js";
 
 var PLAN = "internal://app/plan.json";
+var GEGEN = "internal://app/gegenstelle.json";
 var LAUF = "internal://app/laufend.json";
 
 var R = {
@@ -30,6 +32,7 @@ var R = {
   id: "",
   achse: null, sammler: null, anzeige: null,
   plan: new K.Sendeplan(),
+  gegen: new K.Gegenstelle(C.GEGENSTELLEN, 0),
   schlange: new K.Warteschlange(),
   p2p: null, startWand: 0, modell: "HUAWEI",
   // Diagnose — geht im /complete mit und steht auf der Uhr, nie nur im Log.
@@ -192,27 +195,41 @@ R.zustand = function () {
 };
 
 // --- Uebertragung zum Handy -------------------------------------------------------------
+//
+// Als NACHRICHTEN in Teilen (kern.teile), nicht als Dateien: das iOS-SDK von Wear Engine nimmt
+// keine Dateien an, und so ist es fuer Android und iOS derselbe Weg. Eine Datei wird gelesen,
+// in Teile < 1 KB zerlegt, Teil fuer Teil geschickt; erst wenn alle quittiert sind, gilt sie
+// als erledigt und wird geloescht. Scheitert ein Teil, geht es nach der Wartezeit mit genau
+// diesem Teil weiter (das Handy nimmt doppelte Teile ohne Schaden an).
 
 var wache = 0;
+var offenDatei = null;    // { d, uri, teile, nr }
+
 function p2p() {
   if (!R.p2p) {
+    var g = R.gegen.jetzt();
     R.p2p = new P2pClient();
-    R.p2p.setPeerPkgName(C.PHONE_PKG);
-    R.p2p.setPeerFingerPrint(C.PHONE_FP);
+    R.p2p.setPeerPkgName(g[0]);
+    R.p2p.setPeerFingerPrint(g[1]);
   }
   return R.p2p;
 }
 
 function senden() {
-  var jetzt = Date.now();
-  if (!R.schlange.darf(jetzt)) return;
+  if (!R.schlange.darf(Date.now())) return;
+  if (offenDatei) { teilSenden(); return; }
   var d = R.plan.naechste();
   if (!d) return;
   var uri = K.dateiVon(d);
   R.schlange.start();
-  file.access({
+  file.readText({
     uri: uri,
-    success: function () { uebertragen(d, uri); },
+    success: function (r) {
+      var name = uri.substring(uri.lastIndexOf("/") + 1);
+      offenDatei = { d: d, uri: uri, teile: K.teile(name, r.text), nr: 0 };
+      R.schlange.laeuft = false;
+      teilSenden();
+    },
     fail: function () {
       // Datei fehlt (Schreiben scheiterte, App mitten im Schreiben beendet): ueberspringen,
       // gezaehlt — nie ewig darauf warten.
@@ -223,17 +240,18 @@ function senden() {
   });
 }
 
-function uebertragen(d, uri) {
+function teilSenden() {
+  var o = offenDatei;
+  if (!o || !R.schlange.darf(Date.now())) return;
   var b = new Builder();
-  b.setPayload({ name: uri, mode: "text", mode2: "R" });
+  b.setDescription(o.teile[o.nr]);
   var m = new Message();
   m.builder = b;
+  R.schlange.start();
   var fertig = false;
   // Kommt nie eine Antwort (Verbindung weg mitten im Senden), haengt die Schlange nicht fest.
   clearTimeout(wache);
-  wache = setTimeout(function () {
-    if (!fertig) { fertig = true; R.schlange.fehler(-1, Date.now()); }
-  }, 90000);
+  wache = setTimeout(function () { if (!fertig) { fertig = true; fehlschlag(-1); } }, 60000);
   p2p().send(m, {
     onSuccess: function () {},
     onFailure: function () {},
@@ -243,14 +261,31 @@ function uebertragen(d, uri) {
       fertig = true;
       clearTimeout(wache);
       if (r && r.code === 207) {
-        R.plan.erledigt(d); planSichern();
-        R.schlange.ok();
-        file.delete({ uri: uri });
+        R.gegen.ok();
+        R.schlange.laeuft = false;
+        o.nr++;
+        if (o.nr >= o.teile.length) {
+          R.plan.erledigt(o.d); planSichern();
+          file.delete({ uri: o.uri });
+          offenDatei = null;
+          R.schlange.ok();
+        } else {
+          teilSenden();   // gleich weiter, solange es laeuft
+        }
       } else {
-        R.schlange.fehler(r ? r.code : 0, Date.now());
+        fehlschlag(r ? r.code : 0);
       }
     }
   });
+}
+
+function fehlschlag(code) {
+  R.schlange.fehler(code, Date.now());
+  if (R.gegen.fehler()) {
+    // Andere Handy-App versuchen (Android <-> iOS); gemerkt wird, was zuletzt angenommen hat.
+    R.p2p = null;
+    schreibe(GEGEN, { i: R.gegen.i });
+  }
 }
 
 /** Einmal beim App-Start: Modell, Sendeplan laden, abgebrochene Aufnahme abschliessen. */
@@ -258,6 +293,12 @@ R.init = function () {
   device.getInfo({
     success: function (i) {
       R.modell = ("HUAWEI " + (i.model || i.product || "")).replace(/\s+$/, "") + " · HarmonyOS";
+    }
+  });
+  file.readText({
+    uri: GEGEN,
+    success: function (d) {
+      try { R.gegen = new K.Gegenstelle(C.GEGENSTELLEN, JSON.parse(d.text).i); } catch (e) { /* Standard */ }
     }
   });
   file.readText({

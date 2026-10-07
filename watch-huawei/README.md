@@ -17,8 +17,15 @@ sync-common.sh  kopiert common/ in die Projekte — nach JEDER Aenderung an comm
 ```
 
 Weg der Daten: Uhr nimmt auf → schreibt Chunk-Dateien im normalen Upload-Format
-(docs/ingest-contract.md) → schickt sie per Wear Engine ans Handy → die Pumpfoil-Android-App
-laedt sie hoch. Die Uhr hat fuer Fremd-Apps kein eigenes Netz (docs/HUAWEI.md).
+(docs/ingest-contract.md) → schickt sie per Wear Engine ans Handy → die Pumpfoil-App (Android
+`HuaweiBruecke.kt`, iOS `HuaweiBruecke.swift`) laedt sie hoch. Die Uhr hat fuer Fremd-Apps kein
+eigenes Netz (docs/HUAWEI.md).
+
+**Uebertragung als Nachrichten in Teilen, nicht als Dateien** (`PF1|<datei>|<nr>|<anzahl>|<inhalt>`,
+≤ 800 Zeichen ASCII, `common/kern.js teile`): Huaweis iOS-Guide sagt woertlich, das iOS-SDK koenne
+„only … message communications … not file transfers". So ist es fuer Android und iOS derselbe Weg.
+Die Uhr kennt beide Handy-Apps (`konfig.js GEGENSTELLEN`) und wechselt nach drei Fehlschlaegen in
+Folge; was zuletzt angenommen hat, bleibt gemerkt (`gegenstelle.json`).
 
 Was die Uhr NICHT liefert und wie damit umgegangen wird:
 - **kein Zeitstempel je Sensorwert** → `t0_ms` je Block = Ankunft; der Server misst die Rate.
@@ -34,7 +41,23 @@ Was die Uhr NICHT liefert und wie damit umgegangen wird:
 | SHA-256 des Signierschluessels der Android-App (bei Play App Signing: Googles Schluessel) | `common/konfig.js` → `PHONE_FP` **und** `config.json` → `supportLists` (`org.pumpfoil.app:<fingerprint>`) |
 | Signier-Konfiguration (Zertifikat, Profil `.p7b`) | DevEco → Project Structure → Signing Configs (landet in `build-profile.json5`, Dateien NICHT committen) |
 | Wear-Engine-App-ID der Android-App | `android/app/build.gradle.kts` → `huaweiAppId` (Format laut Wear-Engine-Anleitung, ggf. mit `appid=`-Praefix) |
-| Signatur-Fingerabdruck der Uhren-App | `android/app/build.gradle.kts` → `HUAWEI_WATCH_FP` |
+| Signatur-Fingerabdruck der Uhren-App | `android/app/build.gradle.kts` → `HUAWEI_WATCH_FP` **und** `watch-apple/Sources-iOS/HuaweiBruecke.swift` → `uhrFp` |
+| iOS: Client-ID, Client-Secret, Scheme-Secret (AppGallery Connect, HUAWEI-ID-Dienst + Wear-Engine-Antrag fuer die iOS-App `org.pumpfoil.coolwatch`) | `HuaweiBruecke.swift` → `clientId`, `clientSecret`, `schemeSecret`. **Secrets gehoeren nicht ins oeffentliche Repo** — vor dem Commit klaeren, ob sie als Build-Setting/xcconfig (gitignored) hineinkommen |
+| iOS: Rueck-Scheme `pumpfoil://huawei/zurueck` beim Wear-Engine-Antrag als Callback eintragen | AppGallery Connect |
+
+## iOS-App (`watch-apple/Sources-iOS/HuaweiBruecke.swift`)
+
+Noch nie gebaut (kein Xcode/SDK auf der VM). Baut OHNE Framework unveraendert (`#if canImport
+(WearEngineSDK)`), die Karte erscheint dann nicht. Einbau:
+1. Wear Engine SDK fuer iOS (1.0.0.304, Huawei Health ≥ 15.0.10.315) herunterladen, `WearEngineSDK.
+   framework` + `WearEngineSDK.bundle` nach `watch-apple/` legen (gitignored), in Xcode zum Target
+   `Pumpfoil` als „Embed & Sign" plus die zwei Abhaengigkeiten aus Huaweis „Integrating the SDK".
+2. `xcodegen generate` (neue Datei, LSApplicationQueriesSchemes).
+3. Erster Build zeigt, ob `geraeteLaden` (Methodenname aus dem Android-SDK uebernommen) zur
+   iOS-Signatur passt — EINZIGE als ungeprueft markierte Stelle. Doku-Seite: „Querying Available
+   Wearable Devices" (check-availabla-dev-ios-0000001921237861).
+4. Rueckweg aus Huawei Health: die Doku prueft im `onOpenURL` auf `wearenginesdk://`, nennt als
+   Scheme-Parameter aber ein eigenes Schema — `urlEmpfangen` nimmt beides. Auf echtem iPhone pruefen.
 
 ## SDK holen (nicht im Repo)
 
@@ -49,6 +72,8 @@ und ablegen als:
 | `wearable/` | `wearable/entry/src/main/js/MainAbility/wearengine/wearengine.js` (wearengine-wearable 5.0.2.306) | `wearengine.js.sha256` daneben |
 
 Pruefen: `sha256sum wearengine.js` muss zur `.sha256` passen.
+
+iOS: `WearEngineSDK.framework`/`.bundle` ebenso nur lokal (`watch-apple/.gitignore`), s. unten.
 
 ## Bauen
 

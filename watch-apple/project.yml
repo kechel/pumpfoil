@@ -76,6 +76,14 @@ targets:
           - CFBundleURLName: org.pumpfoil.coolwatch.auth
             CFBundleURLSchemes:
               - pumpfoil
+        # HUAWEI-Uhren (Wear Engine, 07.10.2026): die Freigabe laeuft ueber die Huawei-Health-App;
+        # dafuer muss unsere App deren Schemes oeffnen duerfen (Huawei-Doku „Integrating the SDK").
+        # Das Framework selbst (WearEngineSDK.framework/.bundle) liegt NICHT im Repo — Einbau in
+        # Xcode als „Embed & Sign", s. watch-huawei/README.md. Ohne Framework baut die App
+        # unveraendert (HuaweiBruecke.swift: #if canImport).
+        LSApplicationQueriesSchemes:
+          - huaweischeme
+          - huaweihealthwearengine
     entitlements:
       path: Sources-iOS/Pumpfoil.entitlements
       properties:
