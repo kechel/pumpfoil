@@ -321,8 +321,10 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
                 {istDm && m.mine && gelesenBis != null && (
                   m.id <= gelesenBis
-                    ? <span role="img" aria-label={t("chat.read")} title={t("chat.read")} className="text-brand-600 dark:text-brand-300"><DoubleCheckIcon className="h-3.5 w-3.5" /></span>
-                    : <span role="img" aria-label={t("chat.sent")} title={t("chat.sent")} className="text-slate-500"><CheckIcon className="h-3.5 w-3.5" /></span>
+                    // Mittig zum Namen statt auf der Grundlinie (sass sonst zu hoch), 18 px und kraeftiger
+                    // Strich, damit das Cyan auch wirklich als Cyan ankommt (Jan, 07.10.2026).
+                    ? <span role="img" aria-label={t("chat.read")} title={t("chat.read")} className="self-center text-brand-600 dark:text-brand-300"><DoubleCheckIcon className="h-[18px] w-[18px] [stroke-width:2.5]" /></span>
+                    : <span role="img" aria-label={t("chat.sent")} title={t("chat.sent")} className="self-center text-slate-500"><CheckIcon className="h-[18px] w-[18px] [stroke-width:2.5]" /></span>
                 )}
                 <span className="ml-auto flex items-center gap-2">
                   {isDesktop && canEdit(m) && (
