@@ -59,12 +59,21 @@ object HuaweiBruecke {
         val offen: Int = 0,
         val laedt: Boolean = false,
         val fehler: String = "",
+        // Fortschritt Uhr -> Handy (in Dateien, je ~5 s Aufnahme) und Handy -> Server (in Chunks).
+        // Beide laufen unabhaengig, auch gleichzeitig.
+        val empfFertig: Int = 0,
+        val empfGesamt: Int = 0,
+        val empfAnteil: Float = 0f,
+        val empfLetzteMs: Long = 0L,
+        val hochFertig: Int = 0,
+        val hochGesamt: Int = 0,
     )
     private val _stand = MutableStateFlow(Stand())
     val stand: StateFlow<Stand> = _stand
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val ablage = Mutex()
+    private val empfang = Empfang()
     private var empfaenger: Receiver? = null
     @Volatile private var hochladen = false
 
@@ -84,6 +93,7 @@ object HuaweiBruecke {
     fun start(ctx: Context) {
         val app = ctx.applicationContext
         setze { it.copy(konfiguriert = konfiguriert(), healthDa = healthInstalliert(app), offen = offen(app)) }
+        teileAufraeumen(app)
         if (prefs(app).getBoolean(PREF_AN, false)) empfangen(app)
         hochladen(app)
     }
@@ -173,32 +183,69 @@ object HuaweiBruecke {
         }
     }
 
-    /** Ein Teil `PF1|<datei>|<nr>|<anzahl>|<inhalt>`. */
-    internal data class Teil(val datei: String, val nr: Int, val anzahl: Int, val inhalt: String)
+    /** Ein Teil `PF1|<datei>|<nr>|<anzahl>|<rest>|<inhalt>` (rest: s. watch-huawei/common/kern.js `teile`). */
+    internal data class Teil(val datei: String, val nr: Int, val anzahl: Int, val rest: Int, val inhalt: String)
 
     /** Nur das erwartete Format, nur bekannte Dateinamen, vernuenftige Groessen — sonst null. */
     internal fun teilLesen(text: String): Teil? {
         if (!text.startsWith("PF1|")) return null
-        val f = text.split('|', limit = 5)
-        if (f.size < 5) return null
+        val f = text.split('|', limit = 6)
+        if (f.size < 6) return null
         val nr = f[2].toIntOrNull() ?: return null
         val n = f[3].toIntOrNull() ?: return null
-        if (n !in 1..20000 || nr !in 0 until n || f[4].length > 1000) return null
+        val rest = f[4].toIntOrNull() ?: return null
+        if (n !in 1..20000 || nr !in 0 until n || rest !in 1..1_000_000 || f[5].length > 1000) return null
         if (zielName(f[1]) == null) return null
-        return Teil(f[1], nr, n, f[4])
+        return Teil(f[1], nr, n, rest, f[5])
+    }
+
+    /**
+     * Fortschritt Uhr -> Handy aus dem `rest` der Teile. Eine „Ladung" beginnt, wenn nach einer
+     * leeren Uhr wieder etwas kommt, und endet, wenn die letzte Datei (rest 1) vollstaendig ist.
+     * Waehrend einer Aufnahme kommen die Chunks einzeln; dann zeigt der Balken kurz 0/1 -> 1/1.
+     */
+    internal class Empfang {
+        var fertig = 0; private set
+        var rest = 0; private set
+        private var teilAnteil = 0.0
+        var letzteMs = 0L; private set
+        val gesamt: Int get() = fertig + rest
+        fun teil(nr: Int, anzahl: Int, restUhr: Int, dateiFertig: Boolean, jetzt: Long) {
+            if (rest == 0) fertig = 0   // neue Ladung
+            letzteMs = jetzt
+            if (dateiFertig) { fertig++; rest = restUhr - 1; teilAnteil = 0.0 }
+            else { rest = restUhr; teilAnteil = (nr + 1).toDouble() / anzahl }
+        }
+        fun anteil(): Float = if (gesamt == 0) 0f else ((fertig + teilAnteil) / gesamt).toFloat().coerceIn(0f, 1f)
     }
 
     private suspend fun teilAnnehmen(app: Context, text: String): Boolean {
         val t = teilLesen(text) ?: return false
-        val (ganz, name) = ablage.withLock {
+        val ganz: String? = ablage.withLock {
             val dir = File(File(app.filesDir, "huawei-teile").apply { mkdirs() }, t.datei).apply { mkdirs() }
             File(dir, t.nr.toString()).writeText(t.inhalt)   // doppelt geschickt -> ueberschreibt nur
-            if ((dir.listFiles()?.size ?: 0) < t.anzahl) return false
-            val g = (0 until t.anzahl).joinToString("") { File(dir, it.toString()).readText() }
-            dir.deleteRecursively()
-            g to t.datei
+            if ((dir.listFiles()?.size ?: 0) < t.anzahl) null
+            else (0 until t.anzahl).joinToString("") { File(dir, it.toString()).readText() }
+                .also { dir.deleteRecursively() }
         }
-        return ablegen(app, name, ganz)
+        synchronized(empfang) {
+            empfang.teil(t.nr, t.anzahl, t.rest, ganz != null, System.currentTimeMillis())
+            setze { it.copy(empfFertig = empfang.fertig, empfGesamt = empfang.gesamt,
+                empfAnteil = empfang.anteil(), empfLetzteMs = empfang.letzteMs) }
+        }
+        return ganz != null && ablegen(app, t.datei, ganz)
+    }
+
+    /**
+     * Reste unvollstaendiger Dateien wegraeumen. Geht die Quittung eines LETZTEN Teils verloren,
+     * schickt die Uhr ihn noch einmal — die Datei ist dann laengst zusammengesetzt, und der
+     * einzelne Teil bliebe sonst fuer immer liegen. Eine Woche Ruhe reicht als Beleg.
+     */
+    private fun teileAufraeumen(app: Context) {
+        val grenze = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
+        File(app.filesDir, "huawei-teile").listFiles()?.forEach { d ->
+            if (d.isDirectory && d.lastModified() < grenze) d.deleteRecursively()
+        }
     }
 
     /**
@@ -242,12 +289,14 @@ object HuaweiBruecke {
         if (hochladen) return
         hochladen = true
         scope.launch {
-            setze { it.copy(laedt = true) }
             try {
                 val dirs = wurzel(app).listFiles()?.filter {
                     it.isDirectory && ID.matches(it.name) &&
                         File(it, "meta.json").exists() && File(it, "complete.json").exists()
                 }.orEmpty()
+                val gesamt = dirs.sumOf { d -> d.listFiles()?.count { it.name.startsWith("chunk-") } ?: 0 }
+                setze { it.copy(laedt = dirs.isNotEmpty(), hochFertig = 0, hochGesamt = gesamt,
+                    fehler = if (it.fehler.startsWith("upload")) "" else it.fehler) }
                 for (dir in dirs) {
                     try { session(app, dir) } catch (e: IngestException) {
                         Log.e(TAG, "upload ${dir.name}: ${e.status}", e)
@@ -281,12 +330,15 @@ object HuaweiBruecke {
         // GPS zuerst (wie der Handy-Recorder): bricht der Upload ab, ist die Spur schon vollstaendig.
         val offen = chunks.map { JSONObject(it.readText()) }.filter { it.optInt("index", -1) !in da }
             .sortedBy { if (it.optString("kind") == "gps") 0 else 1 }
+        // Was der Server schon hat (abgebrochener Upload), zaehlt gleich als erledigt.
+        setze { it.copy(hochFertig = it.hochFertig + (chunks.size - offen.size)) }
         for (paket in offen.chunked(30)) {
             val body = JSONObject().put("chunks", JSONArray(paket)).toString()
             val r = JSONObject(Ingest.post("/api/ingest/session/$id/chunks", body, tok))
             val ok = r.optJSONArray("received")
             val n = ok?.length() ?: 0
             if (n < paket.size) throw IngestException(500, "nur $n von ${paket.size} quittiert")
+            setze { it.copy(hochFertig = it.hochFertig + paket.size) }
         }
         val comp = JSONObject(File(dir, "complete.json").readText())
         Ingest.post("/api/ingest/session/$id/complete", comp.toString(), tok)

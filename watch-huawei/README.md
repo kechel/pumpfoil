@@ -21,11 +21,22 @@ Weg der Daten: Uhr nimmt auf → schreibt Chunk-Dateien im normalen Upload-Forma
 `HuaweiBruecke.kt`, iOS `HuaweiBruecke.swift`) laedt sie hoch. Die Uhr hat fuer Fremd-Apps kein
 eigenes Netz (docs/HUAWEI.md).
 
-**Uebertragung als Nachrichten in Teilen, nicht als Dateien** (`PF1|<datei>|<nr>|<anzahl>|<inhalt>`,
+**Uebertragung als Nachrichten in Teilen, nicht als Dateien** (`PF1|<datei>|<nr>|<anzahl>|<rest>|<inhalt>`,
 ≤ 800 Zeichen ASCII, `common/kern.js teile`): Huaweis iOS-Guide sagt woertlich, das iOS-SDK koenne
 „only … message communications … not file transfers". So ist es fuer Android und iOS derselbe Weg.
 Die Uhr kennt beide Handy-Apps (`konfig.js GEGENSTELLEN`) und wechselt nach drei Fehlschlaegen in
 Folge; was zuletzt angenommen hat, bleibt gemerkt (`gegenstelle.json`).
+
+**Wer treibt, was wird angezeigt.** Die UHR treibt: solange die Uhren-App offen ist, schickt sie
+alle 3 s die naechste Datei (auch waehrend der Aufnahme). Eine Datei ist ein Chunk von ~5 s
+(2–3 KB, 3–4 Teile) und wird geloescht, sobald alle ihre Teile quittiert sind. Das Handy hoert nur
+zu und laedt eine Session hoch, sobald ihr Abschluss (`e_…`) da ist.
+- Uhr: Zeile „Zum Handy: 34/120" (Dateien, `Sendeplan.stand`), im Bereit-Zustand dazu ein Balken.
+- Handy: zwei Balken, unabhaengig und auch gleichzeitig — „Von der Uhr: a von b" (aus `<rest>`,
+  den jeder Teil mitbringt) und „Zum Server: a von b" (Chunks). Kommt mitten in einer Ladung 30 s
+  nichts, steht dort „Pumpfoil auf der Uhr oeffnen". Knopf „Jetzt hochladen", wenn etwas wartet.
+- Weitermachen: Uhr setzt beim fehlgeschlagenen Teil wieder an (Sendeplan auf Flash), das Handy
+  nimmt doppelte Teile an; der Upload fragt `received_chunks` ab und schickt nur, was fehlt.
 
 Was die Uhr NICHT liefert und wie damit umgegangen wird:
 - **kein Zeitstempel je Sensorwert** → `t0_ms` je Block = Ankunft; der Server misst die Rate.

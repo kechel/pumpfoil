@@ -8,7 +8,7 @@ import WearEngineSDK
 //
 // Die Uhren haben fuer Fremd-Apps kein eigenes Netz. Die Uhren-App schreibt ihre Aufnahme als
 // Dateien im normalen Upload-Format (docs/ingest-contract.md) und schickt sie per Wear Engine
-// hierher — als NACHRICHTEN in Teilen (`PF1|<datei>|<nr>|<anzahl>|<inhalt>`, watch-huawei/common/
+// hierher — als NACHRICHTEN in Teilen (`PF1|<datei>|<nr>|<anzahl>|<rest>|<inhalt>`, watch-huawei/common/
 // kern.js), weil Huaweis iOS-SDK laut Doku „only supports P2P message communications … not file
 // transfers". Wir setzen die Teile zusammen, legen die Dateien ab und laden sie mit einem EIGENEN
 // Geraete-Token je Uhr hoch — so erscheint die Session unter der Uhr, nicht unter „Phone".
@@ -35,6 +35,14 @@ final class HuaweiBruecke: ObservableObject {
         var offen = 0
         var laedt = false
         var fehler = ""          // "" | "config" | "abgelehnt" | "keine-uhr" | Freitext
+        // Fortschritt Uhr -> iPhone (Dateien, je ~5 s Aufnahme) und iPhone -> Server (Chunks).
+        // Beide laufen unabhaengig, auch gleichzeitig.
+        var empfFertig = 0
+        var empfGesamt = 0
+        var empfAnteil = 0.0
+        var empfLetzte = Date.distantPast
+        var hochFertig = 0
+        var hochGesamt = 0
     }
     @Published var stand = Stand()
 
@@ -78,12 +86,14 @@ final class HuaweiBruecke: ObservableObject {
     }
 
     private var laedtGerade = false
+    private var empfang = Empfang()
 
     // MARK: - Lebenslauf
 
     /// Beim App-Start: nur wenn der Nutzer die Uhr schon einmal verbunden hat (kein Dialog).
     func start() {
         stand.offen = Self.offen()
+        Self.teileAufraeumen()
         if UserDefaults.standard.bool(forKey: Self.PREF_AN) { empfangen() }
         hochladen()
     }
@@ -184,33 +194,75 @@ final class HuaweiBruecke: ObservableObject {
 
     // MARK: - Teile zusammensetzen (Spiegel von HuaweiBruecke.kt)
 
-    struct Teil { let datei: String; let nr: Int; let anzahl: Int; let inhalt: String }
+    /// `PF1|<datei>|<nr>|<anzahl>|<rest>|<inhalt>` — rest: s. watch-huawei/common/kern.js `teile`.
+    struct Teil { let datei: String; let nr: Int; let anzahl: Int; let rest: Int; let inhalt: String }
 
     /// Nur das erwartete Format, nur bekannte Dateinamen, vernuenftige Groessen — sonst nil.
     static func teilLesen(_ text: String) -> Teil? {
         guard text.hasPrefix("PF1|") else { return nil }
-        let f = text.split(separator: "|", maxSplits: 4, omittingEmptySubsequences: false).map(String.init)
-        guard f.count == 5, let nr = Int(f[2]), let n = Int(f[3]) else { return nil }
-        guard (1...20000).contains(n), (0..<n).contains(nr), f[4].count <= 1000 else { return nil }
+        let f = text.split(separator: "|", maxSplits: 5, omittingEmptySubsequences: false).map(String.init)
+        guard f.count == 6, let nr = Int(f[2]), let n = Int(f[3]), let rest = Int(f[4]) else { return nil }
+        guard (1...20000).contains(n), (0..<n).contains(nr), (1...1_000_000).contains(rest),
+              f[5].count <= 1000 else { return nil }
         guard zielName(f[1]) != nil else { return nil }
-        return Teil(datei: f[1], nr: nr, anzahl: n, inhalt: f[4])
+        return Teil(datei: f[1], nr: nr, anzahl: n, rest: rest, inhalt: f[5])
+    }
+
+    /// Fortschritt Uhr -> iPhone aus dem `rest` der Teile (Spiegel von `HuaweiBruecke.Empfang`
+    /// in Android). Eine Ladung beginnt, wenn nach einer leeren Uhr wieder etwas kommt, und endet
+    /// mit der letzten Datei (rest 1).
+    struct Empfang {
+        private(set) var fertig = 0
+        private(set) var rest = 0
+        private var teilAnteil = 0.0
+        var gesamt: Int { fertig + rest }
+        mutating func teil(nr: Int, anzahl: Int, restUhr: Int, dateiFertig: Bool) {
+            if rest == 0 { fertig = 0 }   // neue Ladung
+            if dateiFertig { fertig += 1; rest = restUhr - 1; teilAnteil = 0 }
+            else { rest = restUhr; teilAnteil = Double(nr + 1) / Double(anzahl) }
+        }
+        var anteil: Double { gesamt == 0 ? 0 : min(1, max(0, (Double(fertig) + teilAnteil) / Double(gesamt))) }
     }
 
     /// true = eine Session ist vollstaendig angekommen.
     func teilAnnehmen(_ text: String) -> Bool {
         guard let t = Self.teilLesen(text) else { return false }
-        let dir = Self.teileWurzel.appendingPathComponent(t.datei)
+        let ganz = Self.teilAblegen(t)
+        empfang.teil(nr: t.nr, anzahl: t.anzahl, restUhr: t.rest, dateiFertig: ganz != nil)
+        stand.empfFertig = empfang.fertig
+        stand.empfGesamt = empfang.gesamt
+        stand.empfAnteil = empfang.anteil
+        stand.empfLetzte = Date()
+        guard let ganz else { return false }
+        return Self.ablegen(name: t.datei, text: ganz)
+    }
+
+    /// Teil ablegen; sind alle Teile der Datei da, kommt der zusammengesetzte Text zurueck.
+    private static func teilAblegen(_ t: Teil) -> String? {
+        let dir = teileWurzel.appendingPathComponent(t.datei)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try? t.inhalt.write(to: dir.appendingPathComponent(String(t.nr)), atomically: true, encoding: .utf8)
         let da = (try? FileManager.default.contentsOfDirectory(atPath: dir.path).count) ?? 0
-        if da < t.anzahl { return false }
+        if da < t.anzahl { return nil }
         var ganz = ""
         for i in 0..<t.anzahl {
-            guard let s = try? String(contentsOf: dir.appendingPathComponent(String(i)), encoding: .utf8) else { return false }
+            guard let s = try? String(contentsOf: dir.appendingPathComponent(String(i)), encoding: .utf8) else { return nil }
             ganz += s
         }
         try? FileManager.default.removeItem(at: dir)
-        return Self.ablegen(name: t.datei, text: ganz)
+        return ganz
+    }
+
+    /// Reste unvollstaendiger Dateien wegraeumen (verlorene Quittung eines LETZTEN Teils -> die
+    /// Uhr schickt ihn noch einmal, die Datei ist aber laengst zusammengesetzt). Eine Woche Ruhe.
+    private static func teileAufraeumen() {
+        let grenze = Date().addingTimeInterval(-7 * 24 * 3600)
+        let alle = (try? FileManager.default.contentsOfDirectory(
+            at: teileWurzel, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
+        for d in alle {
+            let t = (try? d.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+            if let t, t < grenze { try? FileManager.default.removeItem(at: d) }
+        }
     }
 
     /// Eine Datei der Uhr ablegen. Nur nach Name und Inhalt geprueft — nichts von der Uhr darf
@@ -268,9 +320,15 @@ final class HuaweiBruecke: ObservableObject {
     func hochladen() {
         if laedtGerade { return }
         laedtGerade = true
-        stand.laedt = true
+        let ordner = Self.sessionOrdner()
+        stand.laedt = !ordner.isEmpty
+        stand.hochFertig = 0
+        stand.hochGesamt = ordner.reduce(0) { n, d in
+            n + (((try? FileManager.default.contentsOfDirectory(atPath: d.path)) ?? []).filter { $0.hasPrefix("chunk-") }.count)
+        }
+        if stand.fehler.hasPrefix("upload") { stand.fehler = "" }
         Task {
-            for dir in Self.sessionOrdner() {
+            for dir in ordner {
                 do { try await session(dir) }
                 catch let e as PhoneIngest.IngestError {
                     if e.status == 401 {   // Token serverseitig ungueltig -> beim naechsten Mal neu minten
@@ -304,12 +362,15 @@ final class HuaweiBruecke: ObservableObject {
         let chunks = dateien.compactMap { Store.readJson($0) }
             .filter { !da.contains(($0["index"] as? Int) ?? -1) }
             .sorted { (($0["kind"] as? String) == "gps" ? 0 : 1) < (($1["kind"] as? String) == "gps" ? 0 : 1) }
+        // Was der Server schon hat (abgebrochener Upload), zaehlt gleich als erledigt.
+        stand.hochFertig += dateien.count - chunks.count
         var i = 0
         while i < chunks.count {
             let paket = Array(chunks[i..<min(i + 30, chunks.count)])
             let r = try await Self.post("/api/ingest/session/\(id)/chunks", ["chunks": paket], tok)
             let ok = (r["received"] as? [Int])?.count ?? 0
             if ok < paket.count { throw PhoneIngest.IngestError(status: 500) }
+            stand.hochFertig += paket.count
             i += 30
         }
         let comp = Store.readJson(dir.appendingPathComponent("complete.json")) ?? [:]
@@ -345,8 +406,10 @@ struct HuaweiKarte: View {
             Section(HuaweiTexte.t("huawei.title", lang)) {
                 Text(HuaweiTexte.t("huawei.body", lang)).font(.callout)
                 verbunden
+                empfangBalken
                 offen
                 fehler
+                nochmal
                 knopf
             }
             .task { b.start() }
@@ -360,8 +423,36 @@ struct HuaweiKarte: View {
                 .font(.callout)
         }
     }
+    // Uhr -> iPhone. Meldet sich die Uhr mitten in einer Ladung 30 s nicht, steht das da — sonst
+    // sieht ein abgebrochener Transfer aus wie ein langsamer (Regel 13.09.: nicht stumm).
+    @ViewBuilder private var empfangBalken: some View {
+        let s = b.stand
+        if s.empfGesamt > 0 && s.empfFertig < s.empfGesamt {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(HuaweiTexte.t("huawei.receiving", lang)
+                        .replacingOccurrences(of: "{a}", with: String(s.empfFertig))
+                        .replacingOccurrences(of: "{b}", with: String(s.empfGesamt)))
+                    .font(.callout)
+                ProgressView(value: s.empfAnteil)
+                TimelineView(.periodic(from: .now, by: 5)) { ctx in
+                    if ctx.date.timeIntervalSince(s.empfLetzte) > 30 {
+                        Text(HuaweiTexte.t("huawei.watchSilent", lang)).font(.callout).foregroundStyle(.red)
+                    }
+                }
+            }
+        }
+    }
     @ViewBuilder private var offen: some View {
-        if b.stand.offen > 0 {
+        let s = b.stand
+        if s.laedt && s.hochGesamt > 0 {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(HuaweiTexte.t("huawei.uploading", lang)
+                        .replacingOccurrences(of: "{a}", with: String(s.hochFertig))
+                        .replacingOccurrences(of: "{b}", with: String(s.hochGesamt)))
+                    .font(.callout)
+                ProgressView(value: min(1, Double(s.hochFertig) / Double(s.hochGesamt)))
+            }
+        } else if s.offen > 0 {
             Text(HuaweiTexte.t("huawei.pending", lang)
                     .replacingOccurrences(of: "{n}", with: String(b.stand.offen)))
                 .font(.callout)
@@ -381,6 +472,13 @@ struct HuaweiKarte: View {
         default: return HuaweiTexte.t("huawei.errOther", lang).replacingOccurrences(of: "{f}", with: f)
         }
     }
+    /// Upload haengt (Netz weg, Server-Fehler): von Hand neu anstossen. Was der Server schon hat,
+    /// fragt der Upload ab und schickt es nicht noch einmal.
+    @ViewBuilder private var nochmal: some View {
+        if b.stand.offen > 0 && !b.stand.laedt {
+            Button(HuaweiTexte.t("huawei.retry", lang)) { b.hochladen() }
+        }
+    }
     @ViewBuilder private var knopf: some View {
         if b.stand.verbunden {
             Button(HuaweiTexte.t("huawei.disconnect", lang)) { b.trennen() }
@@ -390,7 +488,7 @@ struct HuaweiKarte: View {
     }
 }
 
-// MARK: - Texte (eigene kleine Tabelle statt Loc.swift: 11 Schluessel, je Sprache ein Literal —
+// MARK: - Texte (eigene kleine Tabelle statt Loc.swift: 15 Schluessel, je Sprache ein Literal —
 // Loc.swift ist der Type-Checker-Engpass, s. Memory ios-swift-typecheck-hang)
 
 enum HuaweiTexte {
@@ -427,6 +525,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Trennen",
         "huawei.connected": "Verbunden: {uhren}",
         "huawei.pending": "Warten auf Upload: {n}",
+        "huawei.receiving": "Von der Uhr: {a} von {b}",
+        "huawei.uploading": "Zum Server: {a} von {b}",
+        "huawei.watchSilent": "Die Uhr sendet gerade nicht – öffne Pumpfoil auf der Uhr, dann geht es weiter.",
+        "huawei.retry": "Jetzt hochladen",
         "huawei.errConfig": "Noch nicht verfügbar – die HUAWEI-Beta wird gerade eingerichtet.",
         "huawei.errNoWatch": "Keine gekoppelte HUAWEI-Uhr gefunden. Koppel sie zuerst in Huawei Health.",
         "huawei.errDenied": "Zugriff abgelehnt. Tippe auf Verbinden, um es noch einmal zu versuchen.",
@@ -439,6 +541,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Trenne",
         "huawei.connected": "Verbunde: {uhren}",
         "huawei.pending": "Wartet uf Upload: {n}",
+        "huawei.receiving": "Vo de Uhr: {a} vo {b}",
+        "huawei.uploading": "Zum Server: {a} vo {b}",
+        "huawei.watchSilent": "D Uhr schickt grad nüt – mach Pumpfoil uf de Uhr uf, denn gahts wiiter.",
+        "huawei.retry": "Jetzt uelade",
         "huawei.errConfig": "No nöd verfüegbar – d HUAWEI-Beta wird grad iigrichtet.",
         "huawei.errNoWatch": "Kei kopplete HUAWEI-Uhr gfunde. Kopple si zerscht in Huawei Health.",
         "huawei.errDenied": "Zuegriff abglehnt. Tipp uf Verbinde zum nomal probiere.",
@@ -451,6 +557,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Trennen",
         "huawei.connected": "Verbunden: {uhren}",
         "huawei.pending": "Wartet auf Upload: {n}",
+        "huawei.receiving": "Von der Uhr: {a} von {b}",
+        "huawei.uploading": "Zum Server: {a} von {b}",
+        "huawei.watchSilent": "Die Uhr schickt grad nix – mach Pumpfoil auf der Uhr auf, dann geht's weiter.",
+        "huawei.retry": "Jetzt raufladen",
         "huawei.errConfig": "Noch nicht verfügbar – die HUAWEI-Beta wird gerade eingerichtet.",
         "huawei.errNoWatch": "Keine gekoppelte HUAWEI-Uhr gefunden. Koppel sie zuerst in Huawei Health.",
         "huawei.errDenied": "Zugriff abgelehnt. Tipp auf Verbinden, dann probier ma's nochmal.",
@@ -463,6 +573,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Disconnect",
         "huawei.connected": "Connected: {uhren}",
         "huawei.pending": "Waiting for upload: {n}",
+        "huawei.receiving": "From watch: {a} of {b}",
+        "huawei.uploading": "To server: {a} of {b}",
+        "huawei.watchSilent": "The watch has stopped sending – open Pumpfoil on the watch to continue.",
+        "huawei.retry": "Upload now",
         "huawei.errConfig": "Not available yet – the HUAWEI beta is being set up.",
         "huawei.errNoWatch": "No paired HUAWEI watch found. Pair it in Huawei Health first.",
         "huawei.errDenied": "Access was declined. Tap Connect to try again.",
@@ -475,6 +589,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Déconnecter",
         "huawei.connected": "Connectée : {uhren}",
         "huawei.pending": "En attente d’envoi : {n}",
+        "huawei.receiving": "Depuis la montre : {a} sur {b}",
+        "huawei.uploading": "Vers le serveur : {a} sur {b}",
+        "huawei.watchSilent": "La montre n’envoie plus rien – ouvre Pumpfoil sur la montre pour continuer.",
+        "huawei.retry": "Envoyer maintenant",
         "huawei.errConfig": "Pas encore disponible – la bêta HUAWEI est en préparation.",
         "huawei.errNoWatch": "Aucune montre HUAWEI couplée. Couple-la d’abord dans Huawei Health.",
         "huawei.errDenied": "Accès refusé. Touche Connecter pour réessayer.",
@@ -487,6 +605,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Scollega",
         "huawei.connected": "Collegato: {uhren}",
         "huawei.pending": "In attesa di caricamento: {n}",
+        "huawei.receiving": "Dall’orologio: {a} di {b}",
+        "huawei.uploading": "Al server: {a} di {b}",
+        "huawei.watchSilent": "L’orologio non sta inviando – apri Pumpfoil sull’orologio per continuare.",
+        "huawei.retry": "Carica ora",
         "huawei.errConfig": "Non ancora disponibile – la beta HUAWEI è in preparazione.",
         "huawei.errNoWatch": "Nessun orologio HUAWEI associato. Associalo prima in Huawei Health.",
         "huawei.errDenied": "Accesso negato. Tocca Collega per riprovare.",
@@ -499,6 +621,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Desconectar",
         "huawei.connected": "Conectado: {uhren}",
         "huawei.pending": "Esperando subida: {n}",
+        "huawei.receiving": "Desde el reloj: {a} de {b}",
+        "huawei.uploading": "Al servidor: {a} de {b}",
+        "huawei.watchSilent": "El reloj no está enviando: abre Pumpfoil en el reloj para continuar.",
+        "huawei.retry": "Subir ahora",
         "huawei.errConfig": "Aún no disponible: la beta de HUAWEI se está preparando.",
         "huawei.errNoWatch": "No se encontró ningún reloj HUAWEI emparejado. Empareja primero en Huawei Health.",
         "huawei.errDenied": "Acceso denegado. Toca Conectar para intentarlo de nuevo.",
@@ -511,6 +637,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Katkaise yhteys",
         "huawei.connected": "Yhdistetty: {uhren}",
         "huawei.pending": "Odottaa latausta: {n}",
+        "huawei.receiving": "Kellosta: {a}/{b}",
+        "huawei.uploading": "Palvelimelle: {a}/{b}",
+        "huawei.watchSilent": "Kello ei lähetä nyt – avaa Pumpfoil kellossa, niin siirto jatkuu.",
+        "huawei.retry": "Lataa nyt",
         "huawei.errConfig": "Ei vielä saatavilla – HUAWEI-betaa valmistellaan.",
         "huawei.errNoWatch": "Pariliitettyä HUAWEI-kelloa ei löytynyt. Muodosta pariliitos ensin Huawei Healthissa.",
         "huawei.errDenied": "Pääsy evättiin. Yritä uudelleen napauttamalla Yhdistä.",
@@ -523,6 +653,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Ontkoppelen",
         "huawei.connected": "Gekoppeld: {uhren}",
         "huawei.pending": "Wacht op upload: {n}",
+        "huawei.receiving": "Van horloge: {a} van {b}",
+        "huawei.uploading": "Naar server: {a} van {b}",
+        "huawei.watchSilent": "Het horloge verstuurt niets – open Pumpfoil op het horloge om verder te gaan.",
+        "huawei.retry": "Nu uploaden",
         "huawei.errConfig": "Nog niet beschikbaar – de HUAWEI-bèta wordt voorbereid.",
         "huawei.errNoWatch": "Geen gekoppeld HUAWEI-horloge gevonden. Koppel het eerst in Huawei Health.",
         "huawei.errDenied": "Toegang geweigerd. Tik op Koppelen om het opnieuw te proberen.",
@@ -535,6 +669,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Odpojit",
         "huawei.connected": "Připojeno: {uhren}",
         "huawei.pending": "Čeká na nahrání: {n}",
+        "huawei.receiving": "Z hodinek: {a} z {b}",
+        "huawei.uploading": "Na server: {a} z {b}",
+        "huawei.watchSilent": "Hodinky právě nic neposílají – otevři Pumpfoil na hodinkách a přenos bude pokračovat.",
+        "huawei.retry": "Nahrát teď",
         "huawei.errConfig": "Zatím nedostupné – beta pro HUAWEI se připravuje.",
         "huawei.errNoWatch": "Nenalezeny žádné spárované hodinky HUAWEI. Nejdřív je spáruj v Huawei Health.",
         "huawei.errDenied": "Přístup odmítnut. Klepni na Připojit a zkus to znovu.",
@@ -547,6 +685,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Rozłącz",
         "huawei.connected": "Połączono: {uhren}",
         "huawei.pending": "Czeka na wysłanie: {n}",
+        "huawei.receiving": "Z zegarka: {a} z {b}",
+        "huawei.uploading": "Na serwer: {a} z {b}",
+        "huawei.watchSilent": "Zegarek nic nie wysyła – otwórz Pumpfoil na zegarku, aby kontynuować.",
+        "huawei.retry": "Wyślij teraz",
         "huawei.errConfig": "Jeszcze niedostępne – beta dla HUAWEI jest w przygotowaniu.",
         "huawei.errNoWatch": "Nie znaleziono sparowanego zegarka HUAWEI. Najpierw sparuj go w Huawei Health.",
         "huawei.errDenied": "Odmowa dostępu. Stuknij Połącz, aby spróbować ponownie.",
@@ -559,6 +701,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Desconectar",
         "huawei.connected": "Conectado: {uhren}",
         "huawei.pending": "Aguardando envio: {n}",
+        "huawei.receiving": "Do relógio: {a} de {b}",
+        "huawei.uploading": "Para o servidor: {a} de {b}",
+        "huawei.watchSilent": "O relógio parou de enviar – abra o Pumpfoil no relógio para continuar.",
+        "huawei.retry": "Enviar agora",
         "huawei.errConfig": "Ainda não disponível – o beta da HUAWEI está sendo preparado.",
         "huawei.errNoWatch": "Nenhum relógio HUAWEI pareado encontrado. Pareie primeiro no Huawei Health.",
         "huawei.errDenied": "Acesso negado. Toque em Conectar para tentar de novo.",
@@ -571,6 +717,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Desligar",
         "huawei.connected": "Ligado: {uhren}",
         "huawei.pending": "A aguardar envio: {n}",
+        "huawei.receiving": "Do relógio: {a} de {b}",
+        "huawei.uploading": "Para o servidor: {a} de {b}",
+        "huawei.watchSilent": "O relógio deixou de enviar – abre o Pumpfoil no relógio para continuar.",
+        "huawei.retry": "Enviar agora",
         "huawei.errConfig": "Ainda não disponível – a beta da HUAWEI está a ser preparada.",
         "huawei.errNoWatch": "Nenhum relógio HUAWEI emparelhado. Emparelha-o primeiro no Huawei Health.",
         "huawei.errDenied": "Acesso recusado. Toca em Ligar para tentar de novo.",
@@ -583,6 +733,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "接続解除",
         "huawei.connected": "接続済み: {uhren}",
         "huawei.pending": "アップロード待ち: {n}",
+        "huawei.receiving": "時計から: {a} / {b}",
+        "huawei.uploading": "サーバーへ: {a} / {b}",
+        "huawei.watchSilent": "時計からの送信が止まっています。時計でPumpfoilを開くと再開します。",
+        "huawei.retry": "今すぐアップロード",
         "huawei.errConfig": "まだ利用できません。HUAWEIベータを準備中です。",
         "huawei.errNoWatch": "ペアリング済みのHUAWEIウォッチが見つかりません。先にHuawei Healthでペアリングしてください。",
         "huawei.errDenied": "アクセスが拒否されました。「接続」をタップしてもう一度お試しください。",
@@ -595,6 +749,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "断开连接",
         "huawei.connected": "已连接：{uhren}",
         "huawei.pending": "等待上传：{n}",
+        "huawei.receiving": "来自手表：{a} / {b}",
+        "huawei.uploading": "上传到服务器：{a} / {b}",
+        "huawei.watchSilent": "手表暂停发送 — 在手表上打开 Pumpfoil 即可继续。",
+        "huawei.retry": "立即上传",
         "huawei.errConfig": "暂不可用 —— HUAWEI 测试版正在准备中。",
         "huawei.errNoWatch": "未找到已配对的 HUAWEI 手表。请先在华为运动健康中配对。",
         "huawei.errDenied": "访问被拒绝。点击“连接”重试。",
@@ -607,6 +765,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Отключить",
         "huawei.connected": "Подключено: {uhren}",
         "huawei.pending": "Ожидает загрузки: {n}",
+        "huawei.receiving": "С часов: {a} из {b}",
+        "huawei.uploading": "На сервер: {a} из {b}",
+        "huawei.watchSilent": "Часы сейчас ничего не отправляют — открой Pumpfoil на часах, чтобы продолжить.",
+        "huawei.retry": "Загрузить сейчас",
         "huawei.errConfig": "Пока недоступно — бета для HUAWEI готовится.",
         "huawei.errNoWatch": "Сопряжённые часы HUAWEI не найдены. Сначала выполни сопряжение в Huawei Health.",
         "huawei.errDenied": "Доступ запрещён. Нажми «Подключить», чтобы попробовать снова.",
@@ -619,6 +781,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Putuskan",
         "huawei.connected": "Terhubung: {uhren}",
         "huawei.pending": "Menunggu unggahan: {n}",
+        "huawei.receiving": "Dari jam: {a} dari {b}",
+        "huawei.uploading": "Ke server: {a} dari {b}",
+        "huawei.watchSilent": "Jam tidak sedang mengirim – buka Pumpfoil di jam untuk melanjutkan.",
+        "huawei.retry": "Unggah sekarang",
         "huawei.errConfig": "Belum tersedia – beta HUAWEI sedang disiapkan.",
         "huawei.errNoWatch": "Tidak ada jam HUAWEI yang terpasangkan. Pasangkan dulu di Huawei Health.",
         "huawei.errDenied": "Akses ditolak. Ketuk Hubungkan untuk mencoba lagi.",
@@ -631,6 +797,10 @@ enum HuaweiTexte {
         "huawei.disconnect": "Koble fra",
         "huawei.connected": "Tilkoblet: {uhren}",
         "huawei.pending": "Venter på opplasting: {n}",
+        "huawei.receiving": "Fra klokken: {a} av {b}",
+        "huawei.uploading": "Til serveren: {a} av {b}",
+        "huawei.watchSilent": "Klokken sender ikke nå – åpne Pumpfoil på klokken for å fortsette.",
+        "huawei.retry": "Last opp nå",
         "huawei.errConfig": "Ikke tilgjengelig ennå – HUAWEI-betaen settes opp.",
         "huawei.errNoWatch": "Fant ingen sammenkoblet HUAWEI-klokke. Koble den sammen i Huawei Health først.",
         "huawei.errDenied": "Tilgang avslått. Trykk Koble til for å prøve igjen.",

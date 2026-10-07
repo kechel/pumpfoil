@@ -90,3 +90,12 @@
     color: #94a3b8;
     text-align: center;
 }
+/* Uebertragung zum Handy (nur im Bereit-Zustand). UNGEPRUEFT auf echter Uhr: <progress
+   type="horizontal"> steht in der Lite-Wearable-Komponentenliste. */
+.balken {
+    width: 300px;
+    height: 16px;
+    margin-top: 12px;
+    color: #22d3ee;
+    stroke-width: 12px;
+}

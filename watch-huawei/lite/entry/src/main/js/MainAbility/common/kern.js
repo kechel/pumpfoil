@@ -276,6 +276,20 @@ Sendeplan.prototype.offen = function () {
   }
   return n;
 };
+/**
+ * Fortschritt fuer die Anzeige auf der Uhr: {fertig, gesamt} ueber alle Sessions im Plan.
+ * Erledigte Sessions fallen aus dem Plan (naechste), damit zaehlt der Balken je „Ladung" neu.
+ * Waehrend einer Aufnahme waechst `gesamt` mit jedem Chunk mit.
+ */
+Sendeplan.prototype.stand = function () {
+  var f = 0, g = 0;
+  for (var i = 0; i < this.s.length; i++) {
+    var x = this.s[i];
+    g += 1 + x.n + (x.e ? 1 : 0);
+    f += (x.m ? 1 : 0) + x.g + (x.eg ? 1 : 0);
+  }
+  return { fertig: f, gesamt: g };
+};
 Sendeplan.prototype.daten = function () { return { s: this.s }; };
 function dateiVon(d) {
   return d.art === "m" ? dateiMeta(d.id) : (d.art === "e" ? dateiEnde(d.id) : dateiChunk(d.id, d.nr));
@@ -285,8 +299,10 @@ function dateiVon(d) {
  * Uebertragung als NACHRICHTEN statt Dateien: das iOS-SDK von Wear Engine kann laut Huawei
  * („App-to-App Message Communications", iOS) nur Nachrichten, keine Dateien — und eine Nachricht
  * hoechstens 1 KB. Damit es EIN Weg fuer Android und iOS ist, geht jede Datei in Teilen:
- *   PF1|<dateiname>|<teil>|<anzahl>|<inhalt>
- * Das Handy setzt die Teile wieder zusammen. Alles ASCII (Nicht-ASCII als \uXXXX — in unseren
+ *   PF1|<dateiname>|<teil>|<anzahl>|<rest>|<inhalt>
+ * Das Handy setzt die Teile wieder zusammen. <rest> = Dateien, die beim Lesen dieser Datei noch
+ * zum Handy mussten, sie selbst eingeschlossen (Sendeplan.offen) — daraus zeigt das Handy einen
+ * echten Fortschrittsbalken statt nur „empfaengt". Alles ASCII (Nicht-ASCII als \uXXXX — in unseren
  * JSON-Texten steht so etwas nur in Zeichenketten, dort ist das gueltiges JSON), damit die
  * Laenge in Zeichen gleich der in Bytes ist.
  */
@@ -296,10 +312,12 @@ function ascii(s) {
     return "\\u" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4);
   });
 }
-function teile(name, text, max) {
-  var t = ascii(text), m = max || TEIL_MAX;
+function teile(name, text, rest, max) {
+  var t = ascii(text), m = max || TEIL_MAX, z = Math.max(1, rest || 1);
   var n = Math.max(1, Math.ceil(t.length / m)), r = [];
-  for (var i = 0; i < n; i++) r.push("PF1|" + name + "|" + i + "|" + n + "|" + t.substring(i * m, (i + 1) * m));
+  for (var i = 0; i < n; i++) {
+    r.push("PF1|" + name + "|" + i + "|" + n + "|" + z + "|" + t.substring(i * m, (i + 1) * m));
+  }
   return r;
 }
 

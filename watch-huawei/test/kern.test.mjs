@@ -150,6 +150,26 @@ test("Sendeplan: ueberlebt Neustart (als JSON) und haelt zwei Sessions auseinand
   assert.deepEqual(q.naechste(), { id: "b", art: "e", nr: -1 });
 });
 
+test("Sendeplan: Stand fuer den Balken auf der Uhr", () => {
+  const p = new K.Sendeplan();
+  assert.deepEqual(p.stand(), { fertig: 0, gesamt: 0 });
+  p.neu("a"); p.chunk("a"); p.chunk("a"); p.ende("a");
+  assert.deepEqual(p.stand(), { fertig: 0, gesamt: 4 });
+  p.erledigt(p.naechste()); p.erledigt(p.naechste());
+  assert.deepEqual(p.stand(), { fertig: 2, gesamt: 4 });
+  assert.equal(p.stand().gesamt - p.stand().fertig, p.offen(), "Stand und offen passen zusammen");
+  p.neu("b"); p.chunk("b");
+  assert.deepEqual(p.stand(), { fertig: 2, gesamt: 6 });
+  p.erledigt(p.naechste()); p.erledigt(p.naechste());
+  p.naechste();   // a ist durch und faellt heraus
+  assert.deepEqual(p.stand(), { fertig: 0, gesamt: 2 });
+});
+
+test("Teile: Rest steht in jedem Teil, mindestens 1", () => {
+  assert.equal(K.teile("m_a.json", "{}", 0)[0].split("|")[4], "1");
+  assert.equal(K.teile("m_a.json", "{}", 17)[0].split("|")[4], "17");
+});
+
 test("Sendeplan: 2 h ohne Handy bleibt klein", () => {
   const p = new K.Sendeplan();
   p.neu("a");
@@ -196,22 +216,23 @@ test("Teile: jede Nachricht < 1 KB, ASCII, zusammengesetzt wieder gueltiges JSON
   const meta = { session_uuid: "hw-x", device_model: "HUAWEI WATCH GT 5 · HarmonyOS", started_at: "2026-10-07T12:00:00Z" };
   for (const obj of [c, meta]) {
     const text = JSON.stringify(obj);
-    const t = K.teile("c_hw-x_000000.json", text);
+    const t = K.teile("c_hw-x_000000.json", text, 42);
     for (const m of t) {
       assert.ok(Buffer.byteLength(m, "utf8") < 1000, `Teil ${Buffer.byteLength(m)} Byte`);
       assert.match(m, /^[\x20-\x7e]*$/, "nur ASCII");
     }
     // so setzt das Handy zusammen
-    const teile = t.map((m) => m.split("|")).map((f) => ({ i: +f[2], n: +f[3], inhalt: f.slice(4).join("|") }));
+    const teile = t.map((m) => m.split("|")).map((f) => ({ i: +f[2], n: +f[3], rest: +f[4], inhalt: f.slice(5).join("|") }));
     assert.ok(teile.every((x) => x.n === t.length));
+    assert.ok(teile.every((x) => x.rest === 42));
     const ganz = teile.sort((a, b) => a.i - b.i).map((x) => x.inhalt).join("");
     assert.deepEqual(JSON.parse(ganz), obj);
   }
 });
 
 test("Teile: Inhalt mit | geht nicht kaputt", () => {
-  const t = K.teile("m_a.json", JSON.stringify({ x: "a|b|c" }), 5);
-  const ganz = t.map((m) => m.split("|").slice(4).join("|")).join("");
+  const t = K.teile("m_a.json", JSON.stringify({ x: "a|b|c" }), 3, 5);
+  const ganz = t.map((m) => m.split("|").slice(5).join("|")).join("");
   assert.deepEqual(JSON.parse(ganz), { x: "a|b|c" });
 });
 
