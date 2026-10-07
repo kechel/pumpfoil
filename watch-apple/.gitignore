@@ -5,6 +5,11 @@ Sources/Pumpfoil.entitlements
 Sources-iOS/Info.plist
 Sources-iOS/Pumpfoil.entitlements
 
+# HUAWEI Wear Engine SDK (iOS): nicht im Repo, lokal einbauen (watch-huawei/README.md „SDK holen").
+WearEngineSDK.framework/
+WearEngineSDK.bundle/
+WearEngineSDK.xcframework/
+
 # Xcode
 build/
 DerivedData/

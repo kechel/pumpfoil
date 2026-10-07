@@ -61,6 +61,8 @@ struct WatchView: View {
     var body: some View {
         List {
             appleWatchSection
+            // HUAWEI-Uhr (Beta, 07.10.2026) — erscheint nur mit eingebautem Wear-Engine-SDK.
+            HuaweiKarte()
             // Die Verweise auf die anderen Seiten VOR der Uhren-Liste (Jan, 02.09., Android
             // genauso): wer viele Uhren gepairt hat, scrollte vorher an allen vorbei.
             navSection
