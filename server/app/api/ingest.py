@@ -559,6 +559,12 @@ def complete_session(
         s.hr_samples = body.hr_samples
     if body.hr_source:
         s.hr_source = body.hr_source[:16]
+    if body.messweg:
+        # Nur bekannte, kleine Felder — die Uhr schickt hier Diagnose, keinen Freitext.
+        mw = {k: body.messweg[k] for k in ("gps", "gps_neu", "gps_wechsel", "accel") if k in body.messweg}
+        if isinstance(mw.get("gps_wechsel"), str):
+            mw["gps_wechsel"] = mw["gps_wechsel"][:60]
+        s.messweg_json = _json_mod.dumps(mw)
     s.status = "complete"
     db.commit()
 

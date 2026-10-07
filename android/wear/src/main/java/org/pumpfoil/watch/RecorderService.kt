@@ -19,6 +19,8 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.health.services.client.ExerciseClient
@@ -30,6 +32,8 @@ import androidx.health.services.client.data.ExerciseConfig
 import androidx.health.services.client.data.ExerciseLapSummary
 import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseUpdate
+import androidx.health.services.client.data.LocationAccuracy
+import androidx.health.services.client.data.LocationAvailability
 import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.ongoing.Status
 
@@ -50,6 +54,19 @@ class RecorderService : Service(), SensorEventListener {
     private var hsNeustarts = 0
     private var waechter: java.util.concurrent.ScheduledExecutorService? = null
     private val locMgr by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
+
+    // --- Messweg nach Doku (Wear 1.2.40, 07.10.2026; s. Messweg.kt) ---------------------------
+    /** Eigener Thread fuer die Beschleunigung: vorher lief sie auf dem Main-Looper, auf dem auch
+     *  das GPS ankommt — mit der Wake-up-Variante waren das 118-220 Ereignisse je Sekunde. */
+    private var accelThread: HandlerThread? = null
+    @Volatile private var accelAusduenner = AccelAusduenner(40_000_000L)
+    /** GPS kommt aus der Health-Services-Uebung (true) oder vom LocationManager (false). */
+    @Volatile private var gpsUeberHs = false
+    @Volatile private var lmLaeuft = false
+    /** elapsedRealtime der letzten Position (beide Quellen) bzw. des Ortungs-Starts. */
+    @Volatile private var letzterOrtMs = 0L
+    @Volatile private var ortSeitMs = 0L
+    private val haupt by lazy { Handler(Looper.getMainLooper()) }
 
     /**
      * Hat DIESE Uhr einen eigenen GNSS-Empfaenger?
@@ -80,6 +97,7 @@ class RecorderService : Service(), SensorEventListener {
     private val gpsListener = LocationListener { loc: Location -> uebernehmen(loc) }
 
     private fun uebernehmen(it: Location) {
+        letzterOrtMs = SystemClock.elapsedRealtime()
         Recorder.addGps(it.latitude, it.longitude,
             // -1 = Geraet liefert KEINE Geschwindigkeit. Vorher stand hier 0.0 — das war von
             // einem echten Stillstand nicht zu unterscheiden.
@@ -102,16 +120,18 @@ class RecorderService : Service(), SensorEventListener {
         // App weg, waehrend jemand am Steg steht.
         if (intent?.action == ACTION_PAUSE) {
             sensors.unregisterListener(this)
-            stopHeartRate()
-            try { locMgr.removeUpdates(gpsListener) } catch (_: SecurityException) {}
+            stopHeartRate()           // beendet die Uebung — und damit auch das Health-Services-GPS
+            stopLocation()
             Recorder.pause(applicationContext)
             return START_STICKY
         }
         if (intent?.action == ACTION_RESUME) {
             Recorder.resume(applicationContext)
             registerSensors()
-            startLocation()
-            if (Recorder.state.value.pulsMessung) startHeartRate()
+            ortSeitMs = SystemClock.elapsedRealtime(); letzterOrtMs = 0L
+            if (!gpsUeberHs) startLocation()
+            // Die Uebung braucht es fuer den Puls UND, wenn das GPS von dort kommt, fuer die Ortung.
+            if (Recorder.state.value.pulsMessung || gpsUeberHs) startHeartRate()
             return START_STICKY
         }
         // Puls-Berechtigung wurde WAEHREND der Aufnahme erteilt -> Health Services jetzt anhaengen,
@@ -124,8 +144,14 @@ class RecorderService : Service(), SensorEventListener {
         starteVordergrund()
         Recorder.start(applicationContext)
         registerSensors()
-        startHeartRate()
-        startLocation()
+        // GPS nach Doku aus der Health-Services-Uebung, wenn die Uhr das kann (s. hsOrtMoeglich);
+        // sonst wie bisher vom LocationManager (nur Uhr-GNSS).
+        ortSeitMs = SystemClock.elapsedRealtime(); letzterOrtMs = 0L
+        gpsUeberHs = hsOrtMoeglich()
+        Recorder.messwegGps = if (gpsUeberHs) "hs" else "lm"
+        startHeartRate()             // startet die Uebung — mit Ortung, wenn gpsUeberHs
+        if (!gpsUeberHs) startLocation()
+        starteWaechter()             // Puls UND GPS, auch wenn Health Services fehlt
         return START_STICKY
     }
 
@@ -158,70 +184,105 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     /**
-     * WAKE-UP-VARIANTE DES BESCHLEUNIGUNGSSENSORS, wenn der Server sie zulaesst.
+     * BESCHLEUNIGUNG NACH DOKU (Wear 1.2.40, 07.10.2026): Wake-up-Sensor MIT Hardware-Batching.
      *
-     * WARUM (Befund 24.09.2026, ausgeloest von Foilberts Meldung „only 8hz"): in 7 von 121
-     * Wear-Sessions lag die gemessene Rate unter 15 Hz statt bei 25, die schlimmste bei 4,9 —
-     * und zwar PHASENWEISE, nicht gleichmaessig, und das GPS brach im selben Takt mit ein.
+     * Vorgeschichte: `getDefaultSensor(type)` ist die NON-WAKE-UP-Variante; deren FIFO ist laut
+     * Android-Sensor-Spezifikation ein Ringpuffer („When a non-wake-up FIFO fills up, it must wrap
+     * around … overwriting older events") — bei schlafendem Prozessor gingen Samples verloren
+     * (Befund 24.09.: 4,9-8 statt 25 Hz). 1.2.33 schaltete deshalb auf die Wake-up-Variante, aber
+     * OHNE Batching: dann muss der Treiber „hold a 'timeout wake lock' for 200 milliseconds each
+     * time an event is being reported" (source.android.com/docs/core/interaction/sensors/suspend-mode)
+     * — bei 118-220 Ereignissen je Sekunde auf dem Main-Looper, auf dem auch das GPS ankommt. Beide
+     * Sessions, die so liefen, verloren das GPS (u818 #13822, u574 #13051).
      *
-     * `getDefaultSensor(type)` liefert die NON-WAKE-UP-Variante. Deren Werte landen, waehrend der
-     * Prozessor schlaeft, in einem Hardware-FIFO — und der ist laut Android-Sensor-Spezifikation
-     * ein RINGPUFFER: „When a non-wake-up FIFO fills up, it must wrap around and behave like a
-     * circular buffer, overwriting older events" und „the older events are lost; the oldest data
-     * is dropped to accommodate the latest data". Die Aufnahme laeuft also weiter und verliert
-     * trotzdem Samples. Die Wake-up-Variante weckt den Prozessor stattdessen auf: „no event shall
-     * be dropped or lost".
-     * (source.android.com/docs/core/interaction/sensors/suspend-mode und /batching)
+     * Jetzt der vorgesehene Weg: Wake-up-Variante mit `maxReportLatencyUs` — die Hardware sammelt im
+     * eigenen FIFO und weckt den Prozessor nur zum Leeren, „no event shall be dropped or lost".
+     * Dazu (a) ein eigener Thread, (b) Zeit aus `SensorEvent.timestamp` statt aus der Ankunft
+     * (gebuendelte Werte kommen verspaetet), (c) Ausduennen auf die angeforderte Rate, weil die
+     * Wake-up-Variante ihre eigene liefert. Ohne Wake-up-Variante (`null`) die normale wie bisher.
      *
-     * WARUM KEIN WAKELOCK: das war der erste Gedanke und ist die grobe Variante — Prozessor
-     * stundenlang wach. Google verfolgt lange Wake Locks seit Maerz 2026 als
-     * Batterie-Qualitaetsproblem, und in Doze werden sie ohnehin ignoriert. Der Vordergrunddienst
-     * bleibt noetig (er verhindert, dass die App wegraeumt wird), reicht aber allein nicht: er
-     * sagt nichts darueber, ob der Prozessor laeuft.
-     *
-     * WARUM KEIN BATCHING (`maxReportLatencyUs`), obwohl es hier Strom sparen wuerde: unser
-     * Zeitstempel je Block ist die ANKUNFTSZEIT (`Recorder.addAccel` -> `accelT0 = elapsedMs()`).
-     * Kaeme ein ganzer Block auf einmal an, truegen alle seine Samples denselben falschen
-     * Zeitpunkt — und genau darauf steht die `exact_chunks`-Achse des Servers
-     * (docs/DATA-PIPELINE.md). Batching braucht zuerst `SensorEvent.timestamp` als Quelle; das
-     * ist ein eigener Eingriff in den Aufnahmeweg und gehoert nicht in dieselbe Aenderung.
-     *
-     * WARUM HEALTH SERVICES NICHT: `ExerciseClient` liefert abgeleitete Groessen (Puls, Distanz,
-     * Schritte), keinen rohen Beschleunigungssensor. Fuer den Puls nutzen wir es bereits.
-     *
-     * ABSCHALTBAR VOM SERVER (`accelWakeup`, s. api/devices.py), weil niemand vorher weiss, was
-     * es auf welcher Uhr an Akku kostet. Und mit RUECKFALL: nicht jede Uhr hat eine
-     * Wake-up-Variante, `getDefaultSensor(type, true)` gibt dann `null` — dann eben wie bisher.
-     *
-     * NUR AUF AUSDRUECKLICHES "on" (Jan, 25.09.2026): eingefuehrt wird bei ausgewaehlten Fahrern
-     * einzeln. Solange die Uhr noch keine Konfiguration geholt hat, fehlt der Wert — dann bleibt
-     * alles wie vor 1.2.33, auch bei der ersten Aufnahme direkt nach dem Update.
+     * Abschaltbar vom Server (`accelBatch` = "off", s. api/devices.py), falls eine Uhr damit Aerger
+     * macht — die normale Variante bleibt dann der Rueckfall.
      */
-    private fun accelSensor(): Sensor? {
-        val prefs = getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
-        if (prefs.getString("accel_wakeup", "off") == "on") {
-            sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true)?.let {
-                android.util.Log.i("Pumpfoil", "Accel: Wake-up-Variante (${it.name})")
-                return it
-            }
-            android.util.Log.i("Pumpfoil", "Accel: keine Wake-up-Variante vorhanden, Rueckfall")
-        } else {
-            android.util.Log.i("Pumpfoil", "Accel: Non-wake-up-Variante (Schalter aus)")
-        }
-        return sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    }
-
     private fun registerSensors() {
         // Modus "gps": kein Roh-Accel (minimaler Speicher); sonst Rate je Modus (full=25, lite=10).
         if (Recorder.recordMode != "gps") {
-            accelSensor()?.let {
-                sensors.registerListener(this, it, 1_000_000 / Recorder.accelHzActual) // µs period
+            val hz = Recorder.accelHzActual.coerceAtLeast(1)
+            accelAusduenner = AccelAusduenner(1_000_000_000L / hz)
+            val faden = accelThread ?: HandlerThread("pf-accel").also { it.start(); accelThread = it }
+            val h = Handler(faden.looper)
+            val prefs = getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            val batch = prefs.getString("accel_batch", "on") != "off"
+            val wake = if (batch) sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true) else null
+            if (wake != null) {
+                sensors.registerListener(this, wake, 1_000_000 / hz, ACCEL_LATENZ_US, h)
+                Recorder.messwegAccel = "batch"
+                android.util.Log.i("Pumpfoil", "Accel: Wake-up + Batching (${wake.name}), FIFO ${wake.fifoMaxEventCount}")
+            } else {
+                sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
+                    sensors.registerListener(this, it, 1_000_000 / hz, h)
+                }
+                Recorder.messwegAccel = "normal"
+                android.util.Log.i("Pumpfoil", "Accel: normale Variante (${if (batch) "keine Wake-up-Variante" else "vom Server abgeschaltet"})")
             }
         }
         // Roher Puls-Sensor: bleibt als Rueckfall registriert (s. startHeartRate), kostet nichts.
         sensors.getDefaultSensor(Sensor.TYPE_HEART_RATE)?.let {
             sensors.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
+    }
+
+    private fun hatPulsBerechtigung(): Boolean =
+        checkSelfPermission("android.permission.health.READ_HEART_RATE") == PackageManager.PERMISSION_GRANTED ||
+        checkSelfPermission(android.Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED
+
+    /**
+     * GPS NACH DOKU aus der Health-Services-Uebung? Nur wenn alles stimmt — sonst bleibt es beim
+     * LocationManager (Uhr-GNSS), der bisher auch lief:
+     *  - nicht im Emulator (Health Services reisst dort den Sensor-Dienst mit, s. imEmulator),
+     *  - die Uhr hat einen eigenen GNSS-Empfaenger und die Standort-Berechtigung,
+     *  - Health Services bietet LOCATION fuer Uebungen an (beim App-Start geprueft, `hs_ort`),
+     *  - der Server hat es nicht abgeschaltet (`gpsHs` = "off").
+     */
+    private fun hsOrtMoeglich(): Boolean {
+        if (imEmulator() || !eigenesGnss) return false
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return false
+        val prefs = getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+        return prefs.getString("hs_ort", "") == "ja" && prefs.getString("gps_hs", "on") != "off"
+    }
+
+    /**
+     * Health Services liefert keine brauchbare Ortung mehr -> fuer den Rest der Aufnahme der
+     * LocationManager (Uhr-GNSS). Gruende: Uebung scheitert/endet, sie nutzt das HANDY-GPS
+     * („tethered" — Jans Regel: nie die Position des Handys), oder sie schweigt zu lange.
+     * Der Grund geht im Messweg mit zum Server.
+     */
+    private fun hsOrtAufgeben(grund: String) {
+        if (!gpsUeberHs) return
+        gpsUeberHs = false
+        Recorder.messwegGps = "lm"
+        Recorder.messwegGpsWechsel = grund
+        android.util.Log.w("Pumpfoil", "GPS: Health Services aufgegeben ($grund) -> LocationManager")
+        ortSeitMs = SystemClock.elapsedRealtime()
+        startLocation()
+    }
+
+    /** Positionen aus einer Health-Services-Lieferung uebernehmen (gebuendelt, Zeit je Punkt). */
+    private fun hsOrteUebernehmen(update: ExerciseUpdate) {
+        val orte = update.latestMetrics.getData(DataType.LOCATION).map { dp ->
+            HsOrtPaar.Ort(dp.timeDurationFromBoot.toMillis(), dp.value.latitude, dp.value.longitude,
+                (dp.accuracy as? LocationAccuracy)?.horizontalPositionErrorMeters ?: -1.0)
+        }
+        if (orte.isEmpty()) return
+        val tempi = update.latestMetrics.getData(DataType.SPEED).map {
+            HsOrtPaar.Tempo(it.timeDurationFromBoot.toMillis(), it.value)
+        }
+        val jetzt = SystemClock.elapsedRealtime()
+        for (p in HsOrtPaar.paaren(orte, tempi)) {
+            val alter = MessZeit.alterMs(jetzt * 1_000_000L, p.bootMs * 1_000_000L)
+            Recorder.addGps(p.lat, p.lon, p.mps, p.genauigkeitM, alter)
+        }
+        letzterOrtMs = jetzt
     }
 
     /**
@@ -266,6 +327,12 @@ class RecorderService : Service(), SensorEventListener {
             android.util.Log.i("Pumpfoil", "Health Services im Emulator uebersprungen (Sensor-HAL bricht sonst ab)")
             return
         }
+        // Was die Uebung messen soll: Puls nur mit Berechtigung (sonst scheitert die ganze Uebung —
+        // und mit ihr das GPS), Ortung + Tempo nur, wenn das GPS von hier kommt (s. hsOrtMoeglich).
+        val typen = mutableSetOf<DataType<*, *>>()
+        if (hatPulsBerechtigung()) typen += DataType.HEART_RATE_BPM
+        if (gpsUeberHs) { typen += DataType.LOCATION; typen += DataType.SPEED }
+        if (typen.isEmpty()) return
         hsDelivered = false
         if (pulsSeitMs == 0L) pulsSeitMs = System.currentTimeMillis()
         try {
@@ -277,9 +344,22 @@ class RecorderService : Service(), SensorEventListener {
                     hsClient = null
                     Recorder.setPulsMessung(false)
                     android.util.Log.w("Pumpfoil", "Health Services lehnt ab", throwable)
+                    hsOrtAufgeben("registrierung")
                 }
                 override fun onLapSummaryReceived(lapSummary: ExerciseLapSummary) {}
-                override fun onAvailabilityChanged(dataType: DataType<*, *>, availability: Availability) {}
+                override fun onAvailabilityChanged(dataType: DataType<*, *>, availability: Availability) {
+                    // „Tethered" = die Uebung nimmt die Position des HANDYS. Jans Regel (08.09.2026):
+                    // „IMMER wenn statt der Uhr das GPS des Handys genommen wird, ist das ein FAIL von
+                    // uns." -> Ortung ab sofort vom Uhr-GNSS, die Uebung laeuft fuer den Puls ohne
+                    // Ortung neu (sonst haelt sie das GPS unnoetig an).
+                    if (dataType == DataType.LOCATION && availability == LocationAvailability.ACQUIRED_TETHERED && gpsUeberHs) {
+                        haupt.post {
+                            hsOrtAufgeben("tethered")
+                            stopHeartRate()
+                            startHeartRate()
+                        }
+                    }
+                }
                 override fun onExerciseUpdateReceived(update: ExerciseUpdate) {
                     // ZUSTAND ZUERST — bis 04.09. lasen wir nur die Messwerte. Endete die Uebung,
                     // lief die Aufnahme stumm weiter und der Puls kam nur noch aus dem passiven
@@ -293,8 +373,15 @@ class RecorderService : Service(), SensorEventListener {
                             "Puls-Uebung beendet (${update.exerciseStateInfo.state}) — neu anfordern")
                         hsClient = null
                         Recorder.setPulsMessung(false)
+                        // Endete sie WAEHREND der Aufnahme, geht das GPS an den LocationManager.
+                        // (Beim Pausieren/Beenden beenden WIR sie — dann ist gpsUeberHs egal, die
+                        // Ortung ist dort ohnehin aus bzw. wird beim Fortsetzen neu gestartet.)
+                        if (Recorder.state.value.recording && !Recorder.state.value.paused) {
+                            hsOrtAufgeben("beendet ${update.exerciseStateInfo.state}")
+                        }
                         return
                     }
+                    if (gpsUeberHs) hsOrteUebernehmen(update)
                     val points = update.latestMetrics.getData(DataType.HEART_RATE_BPM)
                     val bpm = points.lastOrNull()?.value?.toInt() ?: return
                     // 0 bedeutet bei Health Services "gerade kein Kontakt", kein Messwert.
@@ -307,9 +394,9 @@ class RecorderService : Service(), SensorEventListener {
                 }
             })
             val config = ExerciseConfig.builder(ExerciseType.WORKOUT)
-                .setDataTypes(setOf(DataType.HEART_RATE_BPM))
+                .setDataTypes(typen)
                 .setIsAutoPauseAndResumeEnabled(false)
-                .setIsGpsEnabled(false)
+                .setIsGpsEnabled(gpsUeberHs)
                 .build()
             // Das Ergebnis NICHT wegwerfen: scheitert der Start — haeufigster Fall ist, dass eine
             // andere App gerade eine Uebung haelt, denn Health Services erlaubt nur eine —, fielen
@@ -324,6 +411,7 @@ class RecorderService : Service(), SensorEventListener {
                     hsClient = null
                     Recorder.setPulsMessung(false)
                     android.util.Log.w("Pumpfoil", "Puls-Messung konnte nicht starten", t)
+                    hsOrtAufgeben("start")
                 }
             }, java.util.concurrent.Executors.newSingleThreadExecutor())
             starteWaechter()
@@ -332,6 +420,7 @@ class RecorderService : Service(), SensorEventListener {
             hsClient = null
             Recorder.setPulsMessung(false)
             android.util.Log.w("Pumpfoil", "Health Services nicht verfuegbar", t)
+            hsOrtAufgeben("nicht verfuegbar")
         }
     }
 
@@ -373,10 +462,18 @@ class RecorderService : Service(), SensorEventListener {
         ex.scheduleWithFixedDelay({
             try {
                 if (!Recorder.state.value.recording) return@scheduleWithFixedDelay
+                gpsPruefen()
+                // Puls nur pruefen, wenn er ueberhaupt gemessen werden darf — sonst stiesse der
+                // Waechter die Uebung alle zwei Minuten neu an und risse das GPS mit.
+                if (!hatPulsBerechtigung()) return@scheduleWithFixedDelay
                 // Nie ein Wert bekommen? Dann zaehlt die Stille ab dem Aufnahmestart.
                 val seit = if (letzterHsMs > 0) letzterHsMs else pulsSeitMs
                 val still = System.currentTimeMillis() - seit
-                if (seit > 0 && still > PULS_STILL_MS && hsNeustarts < PULS_MAX_NEUSTARTS) {
+                // Liefert die Uebung auch das GPS, darf sie laut Doku bei dunklem Display bis ~150 s
+                // gebuendelt schweigen — ein Neustart nach 120 s haette die Ortung jedes Mal mit
+                // abgerissen. Dann gilt die laengere Grenze.
+                val grenze = if (gpsUeberHs) HS_STILL_MS else PULS_STILL_MS
+                if (seit > 0 && still > grenze && hsNeustarts < PULS_MAX_NEUSTARTS) {
                     hsNeustarts++
                     android.util.Log.w("Pumpfoil",
                         "Puls seit ${still / 1000} s still — Uebung neu anfordern ($hsNeustarts)")
@@ -392,6 +489,35 @@ class RecorderService : Service(), SensorEventListener {
                 // Ein Waechter darf die Aufnahme nie stoppen.
             }
         }, 60, 60, java.util.concurrent.TimeUnit.SECONDS)
+    }
+
+    /**
+     * GPS-Waechter (Wear 1.2.40). Bis dahin gab es keinen: blieb die Ortung stehen, zeichnete die
+     * Uhr ohne GPS weiter, bis zum Ende (u818 #13822: GPS nach 7,75 von 47 min, Accel bis zum Schluss).
+     *  - Health Services: liefert bei dunklem Display gebuendelt (laut Doku bis ~150 s). Erst nach
+     *    [HS_STILL_MS] ohne eine einzige Position gilt sie als ausgefallen -> LocationManager.
+     *  - LocationManager: liefert jede Sekunde. Nach [LM_STILL_MS] Stille die Ortung neu anfordern
+     *    (vor dem ersten Fix grosszuegiger, der Kaltstart des Empfaengers dauert).
+     * Jeder Eingriff zaehlt im Messweg mit und geht zum Server.
+     */
+    private fun gpsPruefen() {
+        val st = Recorder.state.value
+        if (st.paused || st.gpsDenied || st.gpsOhneHardware || !eigenesGnss) return
+        val jetzt = SystemClock.elapsedRealtime()
+        val nieFix = letzterOrtMs == 0L
+        val still = jetzt - (if (nieFix) ortSeitMs else letzterOrtMs)
+        if (gpsUeberHs) {
+            if (still > HS_STILL_MS) hsOrtAufgeben("still ${still / 1000} s")
+            return
+        }
+        val grenze = if (nieFix) LM_STILL_ERSTFIX_MS else LM_STILL_MS
+        if (still > grenze) {
+            Recorder.messwegGpsNeu++
+            android.util.Log.w("Pumpfoil", "GPS seit ${still / 1000} s still — LocationManager neu anfordern (${Recorder.messwegGpsNeu})")
+            stopLocation()
+            startLocation()
+            ortSeitMs = jetzt; letzterOrtMs = 0L
+        }
     }
 
     private fun stopHeartRate() {
@@ -411,10 +537,12 @@ class RecorderService : Service(), SensorEventListener {
             Recorder.setGpsDenied(true)
             return
         }
+        if (lmLaeuft) return
         try {
             // 1 s Takt, 0 m Mindestdistanz — dieselbe Rate wie vorher beim Fused-Provider.
             locMgr.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener, Looper.getMainLooper())
+            lmLaeuft = true
             Recorder.setGpsDenied(false)
         } catch (_: SecurityException) {
             // Fehlende Standort-Berechtigung: NICHT stumm weiterlaufen. Feldbefund 05.08.:
@@ -429,12 +557,20 @@ class RecorderService : Service(), SensorEventListener {
         }
     }
 
+    private fun stopLocation() {
+        try { locMgr.removeUpdates(gpsListener) } catch (_: SecurityException) {}
+        lmLaeuft = false
+    }
+
     private fun stopEverything(save: Boolean = true) {
         sensors.unregisterListener(this)
+        accelThread?.quitSafely(); accelThread = null
+        accelAusduenner.reset()
         waechter?.shutdownNow(); waechter = null
         hsNeustarts = 0; letzterHsMs = 0L; pulsSeitMs = 0L
         stopHeartRate()
-        try { locMgr.removeUpdates(gpsListener) } catch (_: SecurityException) {}
+        stopLocation()
+        gpsUeberHs = false
         if (save) Recorder.stop() else Recorder.discard()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -442,7 +578,12 @@ class RecorderService : Service(), SensorEventListener {
 
     override fun onSensorChanged(e: SensorEvent) {
         when (e.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> Recorder.addAccel(e.values[0], e.values[1], e.values[2])
+            // Eigener Thread, gebuendelt: Zeit aus dem Sensor-Zeitstempel, auf die angeforderte Rate
+            // ausgeduennt (s. registerSensors / Messweg.kt).
+            Sensor.TYPE_ACCELEROMETER -> if (accelAusduenner.nehmen(e.timestamp)) {
+                Recorder.addAccel(e.values[0], e.values[1], e.values[2],
+                    MessZeit.alterMs(SystemClock.elapsedRealtimeNanos(), e.timestamp))
+            }
             // Nur solange Health Services nichts liefert — sonst wuerde ein alter, passiv
             // mitgelesener Wert den frisch gemessenen ueberschreiben.
             Sensor.TYPE_HEART_RATE -> if (!hsDelivered) Recorder.setHr(e.values[0].toInt())
@@ -502,6 +643,32 @@ class RecorderService : Service(), SensorEventListener {
         /** Solange darf die Puls-Messung stillstehen, bevor wir sie neu anfordern. */
         const val PULS_STILL_MS = 120_000L
         const val PULS_MAX_NEUSTARTS = 8
+        /** Health Services darf bei dunklem Display gebuendelt liefern (Doku: bis ~150 s). */
+        const val HS_STILL_MS = 300_000L
+        /** LocationManager liefert jede Sekunde; so lange Stille heisst „ausgefallen". */
+        const val LM_STILL_MS = 60_000L
+        const val LM_STILL_ERSTFIX_MS = 180_000L
+        /** Hardware-Batching der Beschleunigung: hoechstens so lange sammelt der Sensor-FIFO. */
+        const val ACCEL_LATENZ_US = 10_000_000
+        /** Kann Health Services auf dieser Uhr Ortung fuer Uebungen? Einmal beim App-Start pruefen,
+         *  das Ergebnis liest der Dienst synchron beim Start der Aufnahme (`hs_ort`). */
+        fun pruefeHsOrt(ctx: Context) {
+            if (Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish") return
+            try {
+                val f = HealthServices.getClient(ctx).exerciseClient.getCapabilitiesAsync()
+                f.addListener({
+                    val ja = try {
+                        val typen = f.get().typeToCapabilities[ExerciseType.WORKOUT]?.supportedDataTypes ?: emptySet()
+                        DataType.LOCATION in typen && DataType.SPEED in typen
+                    } catch (_: Throwable) { false }
+                    ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE).edit()
+                        .putString("hs_ort", if (ja) "ja" else "nein").apply()
+                    android.util.Log.i("Pumpfoil", "Health Services Ortung fuer Uebungen: $ja")
+                }, java.util.concurrent.Executors.newSingleThreadExecutor())
+            } catch (t: Throwable) {
+                android.util.Log.w("Pumpfoil", "Health-Services-Faehigkeiten nicht abfragbar", t)
+            }
+        }
         fun start(ctx: Context) = ctx.startForegroundService(Intent(ctx, RecorderService::class.java))
         /** Puls nachtraeglich anhaengen (Berechtigung waehrend der Aufnahme erteilt). */
         fun enableHeartRate(ctx: Context) = ctx.startService(

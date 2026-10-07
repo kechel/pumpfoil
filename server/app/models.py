@@ -462,6 +462,8 @@ class Session(Base):
     # `hr_source` = wie sie zustande kamen ("active" | "passive" | "none").
     hr_samples: Mapped[int | None] = mapped_column(Integer)
     hr_source: Mapped[str | None] = mapped_column(String(16))
+    # Messweg der Uhr (Wear ab 1.2.40): {"gps": "hs"|"lm", "gps_neu", "gps_wechsel", "accel"} als JSON.
+    messweg_json: Mapped[str | None] = mapped_column(Text)
     # Aufnahme-Gerät (Modell + OS), von der App gemeldet — z. B. "Pixel 7 · Android 14" oder
     # "iPhone15,2 · iOS 17.5". Rein zur gezielten Fehlersuche (welches Telefon/OS).
     device_model: Mapped[str | None] = mapped_column(String(80))

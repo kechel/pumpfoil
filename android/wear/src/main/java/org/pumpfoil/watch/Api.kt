@@ -131,7 +131,8 @@ object Api {
 
     suspend fun complete(uuid: String, endedAt: String, totalChunks: Int,
                          hrSamples: Int? = null, hrSource: String? = null,
-                         pauses: org.json.JSONArray? = null) = withContext(Dispatchers.IO) {
+                         pauses: org.json.JSONArray? = null,
+                         messweg: JSONObject? = null) = withContext(Dispatchers.IO) {
         val body = JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks)
         // Pausenfenster nur mitschicken, wenn es welche gibt — ein leeres Feld wuerde auf dem
         // Server `pause_windows` loeschen, falls ein Wiederholungsversuch ohne sie ankommt.
@@ -141,6 +142,8 @@ object Api {
         // ueberschreiben, wenn /complete ein zweites Mal laeuft (Retry/Watchdog).
         hrSamples?.let { body.put("hr_samples", it) }
         hrSource?.let { body.put("hr_source", it) }
+        // Messweg (GPS-Quelle, Neuanforderungen, Accel-Modus) — s. Recorder.messwegGps.
+        messweg?.let { body.put("messweg", it) }
         post("/api/ingest/session/$uuid/complete", body)
     }
 

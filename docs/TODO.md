@@ -1434,6 +1434,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 07.10. — Wear 1.2.40 (1050) / Phone 1.1.40 (54) GEBAUT: Messweg nach Doku.** GPS aus der Health-Services-
+  Uebung (`isGpsEnabled`, LOCATION+SPEED, Zeit je Punkt aus `timeDurationFromBoot`), Rueckfall auf
+  LocationManager (Uhr-GNSS) bei Fehlschlag, Ende, Schweigen > 300 s oder „tethered" (Handy-GPS, Jans Regel);
+  Accel als Wake-up-Sensor MIT `maxReportLatencyUs` (10 s) auf eigenem Thread, Zeit aus `SensorEvent.timestamp`,
+  auf die angeforderte Rate ausgeduennt; GPS-Waechter (LM: 60 s still -> neu anfordern); Puls-Waechter mit
+  Health-Services-GPS erst nach 300 s. Server: `messweg` im /complete -> `sessions.messweg_json`, Notschalter
+  `accelBatch`/`gpsHs` in der Config (Standard on, Env WEAR_ACCEL_BATCH/WEAR_GPS_HS). **Getestet:** 23 Wear-
+  JUnit (7 neu), 437 Server-Tests; Emulator 21 min (#13890: GPS 1172 Punkte ohne Luecke, Accel 127 Bloecke
+  24,5-25,0 Hz streng steigend) und 6 min mit 150 s Ortung AUS (#13892: Waechter nach 90 s, GPS danach weiter,
+  messweg kam an). **NICHT getestet** (geht im Emulator nicht): der Health-Services-GPS-Weg und der
+  Wake-up-Batching-Weg — beides nur auf echter Uhr. Vor der Einreichung: Testaufnahmen aus Jans Community-
+  Aufruf (Display aus, >15 min) mit `messweg_json` pruefen, v. a. Samsung/OnePlus.
+
 - **🔴 07.10. — Wear: Wake-up-Accel (`accel_wakeup = on`) laesst das GPS sterben.** Befund an Adams Frage
   (u818, Galaxy Watch4 Classic SM-R880, #13822): GPS lief 7,75 min sauber, danach kein Punkt mehr, Accel
   bis zum Ende — alle Chunks angekommen. Beide Sessions, die nachweislich MIT aktivem Wake-up liefen, verloren
