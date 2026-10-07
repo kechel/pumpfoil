@@ -1184,6 +1184,10 @@ struct SessionSetup: Codable {
     let shim_deg: Double?
     let shim_is_default: Bool?
     let board: BoardBrief?
+    // Fahrergewicht dieser Session (kg) — Schnappschuss/je Session gesetzt; fehlt bei fremden
+    // Sessions, wenn der Besitzer es verbirgt (Server, 06.10.2026).
+    let weight_kg: Int?
+    let weight_is_default: Bool?
 }
 
 // Kopf eines eigenen Uhr-Layouts (layouts.py:_out) — gestaltet wird nur in der PWA.

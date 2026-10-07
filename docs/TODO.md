@@ -1432,6 +1432,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 07.10. — Teil erledigt: Gewicht je Session + kompakte Setup-Zeile mit Popup (Android 1.1.39 / iOS
+  1.1.43, Jan: „viel zu viel Platz"). OFFEN in den Apps: Schalter „Gewicht verbergen" und Verlauf im Profil.**
 - **🔲 06.10. — Fahrergewicht je Session in die nativen Apps.** Web + Server live (Nutzerwunsch Roman
   u244 im Community-Chat): `sessions.rider_weight_kg` = Schnappschuss des Profilgewichts beim Anlegen
   (Bestand bewusst ohne Nachtrag, Jan), je Session per `PATCH /meta {rider_weight_kg}` aenderbar,

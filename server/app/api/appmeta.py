@@ -795,6 +795,8 @@ NAECHSTES: list[dict] = [
          "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
          # 01.10.2026: fafdd410.
          "The longest-run record shows kilometres from 1,000 m on.",
+         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
+         "Your session's setup now shows as one compact line; the edit button opens all settings, including your weight for that session, in one place.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.43",
      "items": [
@@ -808,6 +810,8 @@ NAECHSTES: list[dict] = [
          "The phone recorder shows the upload progress, as on Android.",
          # 01.10.2026: fafdd410.
          "The longest-run record shows kilometres from 1,000 m on.",
+         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
+         "Your session's setup now shows as one compact line; the edit button opens all settings, including your weight for that session, in one place.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.

@@ -711,13 +711,18 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // dafuer ueberhaupt ein Wert gesetzt ist (explizit fuer die Session ODER als Profil-Standard)
         // — der Platzhalter „Standard verwenden" faellt damit weg. Wer eine Kategorie ganz ohne Wert
         // fuellen will, setzt zuerst den Standard im Profil.
+        // Foil + Setup + Gewicht als EINE kompakte Zeile, Aendern im Popup (Jan, 07.10.2026;
+        // SetupBearbeiten.kt). Fuer alle sichtbar, der Stift nur beim Besitzer.
+        var setupDialog by remember(s.id) { mutableStateOf(false) }
+        SetupZeile(s, kannBearbeiten = s.owned) { setupDialog = true }
+        if (setupDialog) {
+            SetupBearbeitenDialog(
+                s, foils = allFoils, meineFoils = mineIds, stabs = allStabs, meineStabs = myStabIds,
+                masten = myMasts, shims = myShims, boards = myBoards,
+                onDismiss = { setupDialog = false }, onGespeichert = { onReload() },
+            )
+        }
         if (s.owned) {
-            val setup = s.setup
-            val stabTxt = setup?.stab?.let { "${it.brand} ${it.model} ${it.size}".trim() }
-            val mastTxt = setup?.mastLenCm?.let { "$it cm" }
-            val shimTxt = setup?.shimDeg?.let { fmtShim(it) }
-            val boardTxt = setup?.board?.name
-            val zeigeFoil = allFoils.isNotEmpty()
             Kompakt {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -725,63 +730,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 ) {
                     TextButton(onClick = { draftCaption = caption; editCaption = true }) {
                         Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
-                    }
-                    if (zeigeFoil) {
-                        FoilDropdown(
-                            all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
-                            onSelect = { id -> scope.launch { try { Api.setSessionFoil(s.id, id); onReload() } catch (_: Exception) {} } },
-                        )
-                    }
-                    if (allStabs.isNotEmpty() && stabTxt != null) {
-                        SetupDropdown(
-                            current = stabTxt,
-                            groups = listOf(
-                                I18n.t("setup.myStabs") to allStabs.filter { it.id in myStabIds },
-                                I18n.t("foils.allBrands") to allStabs.filter { it.id !in myStabIds },
-                            ),
-                            labelOf = { "${it.brand} ${it.model} ${it.size}".trim() },
-                            idOf = { it.id },
-                            onPick = { id ->
-                                scope.launch {
-                                    try { Api.setSessionSetup(s.id, stabId = id, setStab = true); onReload() } catch (_: Exception) {}
-                                }
-                            },
-                        )
-                    }
-                    if (myMasts.isNotEmpty() && mastTxt != null) {
-                        SetupValueDropdown(
-                            current = mastTxt,
-                            options = myMasts.map { it to "$it cm" },
-                            onPick = { v ->
-                                scope.launch {
-                                    try { Api.setSessionSetup(s.id, mastLenCm = v, setMast = true); onReload() } catch (_: Exception) {}
-                                }
-                            },
-                        )
-                    }
-                    if (myShims.isNotEmpty() && shimTxt != null) {
-                        SetupValueDropdown(
-                            current = shimTxt,
-                            options = myShims.map { it to fmtShim(it) },
-                            onPick = { v ->
-                                scope.launch {
-                                    try { Api.setSessionSetup(s.id, shimDeg = v, setShim = true); onReload() } catch (_: Exception) {}
-                                }
-                            },
-                        )
-                    }
-                    if (myBoards.isNotEmpty() && boardTxt != null) {
-                        SetupDropdown(
-                            current = boardTxt,
-                            groups = listOf("" to myBoards),
-                            labelOf = { it.name },
-                            idOf = { it.id },
-                            onPick = { id ->
-                                scope.launch {
-                                    try { Api.setSessionSetup(s.id, boardId = id, setBoard = true); onReload() } catch (_: Exception) {}
-                                }
-                            },
-                        )
                     }
                     OutlinedButton(onClick = {
                         picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -1522,41 +1470,6 @@ private fun TrackMap(
     }
 }
 
-// Foil-Auswahl als Dropdown (wie die PWA <select>): zeigt nur den gewählten Foil,
-// aufklappbar in „Standard-Foil" + „Meine Foils" + „Alle Marken".
-@Composable
-private fun FoilDropdown(all: List<Foil>, mineIds: Set<Int>, selectedId: Int?, onSelect: (Int?) -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    val sel = all.firstOrNull { it.id == selectedId }
-    val label = sel?.let { "${it.brand} ${it.model} ${it.size}" } ?: I18n.t("foil.useDefault")
-    val mine = all.filter { it.id in mineIds }
-    val others = all.filter { it.id !in mineIds }
-    Box {
-        OutlinedButton(onClick = { open = true }) {
-            Text(label, maxLines = 1)
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(text = { Text(I18n.t("foil.useDefault")) }, onClick = { open = false; onSelect(null) })
-            if (mine.isNotEmpty()) {
-                HorizontalDivider()
-                Text(I18n.t("foils.title"), Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                mine.forEach { f ->
-                    DropdownMenuItem(text = { Text("${f.brand} ${f.model} ${f.size}") }, onClick = { open = false; onSelect(f.id) })
-                }
-            }
-            if (others.isNotEmpty()) {
-                HorizontalDivider()
-                Text(I18n.t("foils.allBrands"), Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                others.forEach { f ->
-                    DropdownMenuItem(text = { Text("${f.brand} ${f.model} ${f.size}") }, onClick = { open = false; onSelect(f.id) })
-                }
-            }
-        }
-    }
-}
 
 // Leistungs-Karte: theoretische Pump-Leistung (Watt) bei Ø- und Top-Speed.
 @Composable
@@ -2497,71 +2410,6 @@ private fun ClassDropdown(options: List<String>, selected: String, keyPrefix: St
     }
 }
 
-// Shim-Anzeige: 0 bleibt "0°", sonst mit Vorzeichen und einer Dezimale nur wenn nötig
-// (1.0 -> "+1°", 0.5 -> "+0.5°"). Spiegelt fmtShim in web/src/components/FoilSelect.tsx.
-private fun fmtShim(v: Double?): String {
-    if (v == null) return "—"
-    val txt = if (v == v.toLong().toDouble()) "${v.toLong()}" else "$v"
-    return (if (v > 0) "+$txt" else txt) + "°"
-}
-
-// Auswahl aus Objekt-Listen (Stab, Board) mit optionalen Gruppen-Überschriften. Erster Eintrag ist
-// immer "Standard verwenden" = Override löschen (null an den Server).
-@Composable
-private fun <T> SetupDropdown(
-    current: String,
-    groups: List<Pair<String, List<T>>>,
-    labelOf: (T) -> String,
-    idOf: (T) -> Int,
-    onPick: (Int?) -> Unit,
-) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-            OutlinedButton(onClick = { open = true }) {
-                Text(current.ifBlank { I18n.t("setup.inherit") }, maxLines = 1)
-                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-            }
-            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                DropdownMenuItem(text = { Text(I18n.t("setup.inherit")) }, onClick = { open = false; onPick(null) })
-                groups.forEach { (header, items) ->
-                    if (items.isNotEmpty()) {
-                        HorizontalDivider()
-                        if (header.isNotBlank()) {
-                            Text(header, Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        items.forEach { it2 ->
-                            DropdownMenuItem(text = { Text(labelOf(it2)) }, onClick = { open = false; onPick(idOf(it2)) })
-                        }
-                    }
-                }
-            }
-        }
-}
-
-// Auswahl aus reinen Werten (Mastlänge in cm, Shim in Grad).
-@Composable
-private fun <V> SetupValueDropdown(
-    current: String,
-    options: List<Pair<V, String>>,
-    onPick: (V?) -> Unit,
-) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-            OutlinedButton(onClick = { open = true }) {
-                Text(current, maxLines = 1)
-                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-            }
-            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                DropdownMenuItem(text = { Text(I18n.t("setup.inherit")) }, onClick = { open = false; onPick(null) })
-                HorizontalDivider()
-                options.forEach { (v, lbl) ->
-                    DropdownMenuItem(text = { Text(lbl) }, onClick = { open = false; onPick(v) })
-                }
-            }
-        }
-}
 
 
 /** Dateiname wie server/app/export_track.py:dateiname — pumpfoil-<Datum>-<id>.<endung>.

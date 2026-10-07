@@ -2838,6 +2838,46 @@ static let nlOverlay: [String: String] = {
         "id": "5 sesi terakhir",
         "nb": "Siste 5 sessions",
     ]
+    private static let _neu_setup_weightTitle: [String: String] = [
+        "de": "Fahrergewicht in dieser Session (kg)",
+        "gsw": "Fahrergwicht i dere Session (kg)",
+        "de-AT": "Fahrergewicht in dieser Session (kg)",
+        "en": "Rider weight in this session (kg)",
+        "fr": "Poids du rider pour cette session (kg)",
+        "it": "Peso del rider in questa sessione (kg)",
+        "es": "Peso del rider en esta sesión (kg)",
+        "fi": "Ajajan paino tässä sessiossa (kg)",
+        "nl": "Ridergewicht in deze sessie (kg)",
+        "cs": "Váha jezdce v této session (kg)",
+        "pl": "Waga ridera w tej sesji (kg)",
+        "pt": "Peso do rider nesta sessão (kg)",
+        "pt-PT": "Peso do rider nesta sessão (kg)",
+        "ja": "このセッションのライダー体重（kg）",
+        "zh": "本次会话的骑手体重（kg）",
+        "ru": "Вес райдера в этой сессии (кг)",
+        "id": "Berat rider di sesi ini (kg)",
+        "nb": "Ryttervekt i denne økten (kg)",
+    ]
+    private static let _neu_setup_editTitle: [String: String] = [
+        "de": "Setup dieser Session",
+        "gsw": "Setup vo dere Session",
+        "de-AT": "Setup dieser Session",
+        "en": "Setup of this session",
+        "fr": "Setup de cette session",
+        "it": "Setup di questa sessione",
+        "es": "Equipo de esta sesión",
+        "fi": "Tämän session varusteet",
+        "nl": "Setup van deze sessie",
+        "cs": "Vybavení této session",
+        "pl": "Sprzęt w tej sesji",
+        "pt": "Setup desta sessão",
+        "pt-PT": "Setup desta sessão",
+        "ja": "このセッションのセットアップ",
+        "zh": "本次会话的装备",
+        "ru": "Снаряжение этой сессии",
+        "id": "Setup sesi ini",
+        "nb": "Oppsett for denne økten",
+    ]
     static let neuTexte: [String: [String: String]] = [
         "list.cards": _neu_list_cards,
         "list.compact": _neu_list_compact,
@@ -2869,6 +2909,8 @@ static let nlOverlay: [String: String] = {
         "foiler.media": _neu_foiler_media,
         "foiler.spotNotes": _neu_foiler_spotNotes,
         "foiler.lastSessions": _neu_foiler_lastSessions,
+        "setup.weightTitle": _neu_setup_weightTitle,
+        "setup.editTitle": _neu_setup_editTitle,
     ]
 
     static func t(_ key: String, _ lang: String) -> String {

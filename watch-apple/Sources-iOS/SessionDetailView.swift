@@ -64,7 +64,6 @@ struct SessionDetailView: View {
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
-    @State private var selectedFoilId = 0
     @State private var showTrim = false
     @State private var showShare = false
     // Datei-Export (GPX/FIT): laufende Anfrage + fertige Datei fuers System-Share-Sheet.
@@ -76,6 +75,7 @@ struct SessionDetailView: View {
     @State private var trimStart = 0.0
     @State private var trimEnd = 0.0
     @State private var weightKg = 0.0
+    @State private var showSetupEdit = false
     // Lauf/Zeitbereich aussortieren (POST /runs/exclude, umkehrbar): Bestätigung, Sperre während
     // des Serverlaufs (der rechnet die Session neu) und Fehlertext direkt bei der Lauf-Tabelle.
     @State private var pendingExcludeRun = -1
@@ -125,7 +125,7 @@ struct SessionDetailView: View {
             // Versuche erst holen, wenn sie gebraucht werden — der Server rechnet sie frisch.
             .task(id: "\(sid)-\(showAttempts)") { await ladeVersuche() }
             .task(id: session?.status) { await pollWhileLive() }
-            .onChange(of: selectedFoilId) { fid in onFoilPicked(fid) }
+            .sheet(isPresented: $showSetupEdit) { setupSheet }
             .sheet(isPresented: $showLink) { linkSheet }
             .sheet(isPresented: $showTrim) { trimSheet }
             .sheet(isPresented: $showShare) { shareSheet }
@@ -307,11 +307,6 @@ struct SessionDetailView: View {
         }
     }
 
-    private func onFoilPicked(_ fid: Int) {
-        let current: Int = session?.foil?.id ?? 0
-        guard fid != current else { return }
-        Task { try? await Api.setSessionFoil(sid, foilId: fid == 0 ? nil : fid); await load() }
-    }
 
     /// Hat der Katalog-Eintrag echte Herstellermaße? Einträge ohne stehen mit 0 in Fläche und
     /// Spannweite — die Leistungsrechnung teilt durch die Fläche, das ergäbe NaN-Zahlen. Dann
@@ -555,8 +550,9 @@ struct SessionDetailView: View {
             BrettFrageView(session: s, lang: lang) { await frischLaden() }
             neighborNav
             headerRow(s)
-            foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
-            if s.owned == true { setupPickers(s) }
+            // Foil + Setup + Gewicht als EINE kompakte Zeile, Aendern im Popup (Jan, 07.10.2026;
+            // SetupBearbeiten.swift). Ersetzt foilPicker/setupPickers, die viel Platz brauchten.
+            SetupZeile(session: s, lang: lang, kannBearbeiten: s.owned == true) { showSetupEdit = true }
             // Eigene Session: Klassifikation bleibt oben (man ordnet die eigene Fahrt gleich ein).
             // Fremde Session: die MELDE-Knöpfe stehen ganz unten, s. reportSection.
             if s.owned == true { classificationNotice(s) }
@@ -1147,136 +1143,6 @@ struct SessionDetailView: View {
             .foregroundStyle(n > 0 ? Color.primary : Color.secondary)
     }
 
-    // Restliches Setup je Session: Stab, Mastlaenge, Shim, Board. "Standard verwenden" = Override
-    // loeschen (der Server braucht dafuer ein explizit gesendetes null). Jedes Feld erscheint nur,
-    // wenn es etwas zu waehlen gibt. Bewusst vier kleine Teil-Views ([[ios-swift-typecheck-hang]]).
-    // Setup wie in der PWA (web/src/components/FoilSelect.tsx): KEINE Labels, alles hintereinander
-    // in einer umbrechenden Zeile — genauso wie der Foil-Picker darueber. Und: ein Eintrag erscheint
-    // nur, wenn dafuer ueberhaupt ein Wert gesetzt ist. Vorher stand dort der Platzhalter
-    // „Standard verwenden" bzw. — weil der Key in Loc.swift fehlte — der rohe Text „setup.inherit".
-    //
-    // Folge, bewusst: fuer eine Kategorie ohne jeden Wert (auch ohne Profil-Standard) gibt es hier
-    // keinen Knopf mehr. Den Standard setzt man im Profil; per Session aendert man, was schon da ist.
-    @ViewBuilder private func setupPickers(_ s: SessionDetail) -> some View {
-        let cols = [GridItem(.adaptive(minimum: 110), spacing: 12, alignment: .leading)]
-        LazyVGrid(columns: cols, alignment: .leading, spacing: 6) {
-            if !allStabs.isEmpty, let v = stabValue(s) { stabPicker(s, value: v) }
-            if !myMasts.isEmpty, let v = mastValue(s) { mastPicker(s, value: v) }
-            if !myShims.isEmpty, let v = shimValue(s) { shimPicker(s, value: v) }
-            if !myBoards.isEmpty, let v = boardValue(s) { boardPicker(s, value: v) }
-        }
-    }
-
-    // Anzeigewert je Kategorie — nil heisst „nichts gesetzt" und damit „nicht anzeigen". Dieselbe
-    // Bedingung wie in der PWA (`setup?.stab ? … : Titel`), nur ohne den Titel als Rueckfall.
-    private func stabValue(_ s: SessionDetail) -> String? {
-        guard let st = s.setup?.stab else { return nil }
-        return stabLabel(st)
-    }
-
-    private func mastValue(_ s: SessionDetail) -> String? {
-        guard let cm = s.setup?.mast_len_cm else { return nil }
-        return "\(cm) cm"
-    }
-
-    private func shimValue(_ s: SessionDetail) -> String? {
-        guard let d = s.setup?.shim_deg else { return nil }
-        return fmtShim(d)
-    }
-
-    private func boardValue(_ s: SessionDetail) -> String? {
-        guard let b = s.setup?.board else { return nil }
-        return b.name
-    }
-
-    @ViewBuilder private func stabPicker(_ s: SessionDetail, value: String) -> some View {
-        Menu {
-            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(stab: nil, setStab: true) } }
-            // Eigene zuerst, dann der Rest des Katalogs -- wie die Gruppen in FoilSelect.tsx.
-            ForEach(quickStabs(s)) { st in
-                Button(stabLabel(st)) { Task { await applySetup(stab: st.id, setStab: true) } }
-            }
-            Divider()
-            ForEach(otherStabs(s)) { st in
-                Button(stabLabel(st)) { Task { await applySetup(stab: st.id, setStab: true) } }
-            }
-        } label: { setupChip(value) }
-    }
-
-    // Gleiche Falle wie beim Foil: der fuer DIESE Session gesetzte Stab steht mit in der
-    // Favoriten-Gruppe (und nicht doppelt im Katalog), damit die Favoriten sichtbar bleiben.
-    // Ein geerbter Standard (is_default) ist ohnehin schon in „meine Stabs".
-    private func quickStabs(_ s: SessionDetail) -> [StabBrief] {
-        let sel: Int? = (s.setup?.stab?.is_default == false) ? s.setup?.stab?.id : nil
-        return allStabs.filter { myStabIds.contains($0.id) || $0.id == sel }
-    }
-
-    private func otherStabs(_ s: SessionDetail) -> [StabBrief] {
-        let ids: Set<Int> = Set(quickStabs(s).map(\.id))
-        return allStabs.filter { !ids.contains($0.id) }
-    }
-
-    @ViewBuilder private func mastPicker(_ s: SessionDetail, value: String) -> some View {
-        Menu {
-            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(mast: nil, setMast: true) } }
-            ForEach(myMasts, id: \.self) { m in
-                Button("\(m) cm") { Task { await applySetup(mast: m, setMast: true) } }
-            }
-        } label: { setupChip(value) }
-    }
-
-    @ViewBuilder private func shimPicker(_ s: SessionDetail, value: String) -> some View {
-        Menu {
-            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(shim: nil, setShim: true) } }
-            ForEach(myShims, id: \.self) { v in
-                Button(fmtShim(v)) { Task { await applySetup(shim: v, setShim: true) } }
-            }
-        } label: { setupChip(value) }
-    }
-
-    @ViewBuilder private func boardPicker(_ s: SessionDetail, value: String) -> some View {
-        Menu {
-            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(board: nil, setBoard: true) } }
-            ForEach(myBoards) { b in
-                Button(b.name) { Task { await applySetup(board: b.id, setBoard: true) } }
-            }
-        } label: { setupChip(value) }
-    }
-
-    // Sieht aus wie der Foil-Picker: nur der Wert plus Doppel-Chevron, in Akzentfarbe.
-    private func setupChip(_ value: String) -> some View {
-        HStack(spacing: 3) {
-            Text(value).font(.callout).lineLimit(1)
-            Image(systemName: "chevron.up.chevron.down").font(.caption2)
-        }
-        .foregroundStyle(Color.accentColor)
-    }
-
-    private func stabLabel(_ st: StabBrief?) -> String {
-        guard let st else { return "" }
-        return "\(st.brand) \(st.model) \(st.size)".trimmingCharacters(in: .whitespaces)
-    }
-
-    /// Shim-Anzeige: 0 bleibt "0 Grad", positive Werte mit Vorzeichen, Dezimale nur wenn noetig.
-    private func fmtShim(_ v: Double?) -> String {
-        guard let v else { return "—" }
-        let txt = v == v.rounded() ? String(Int(v)) : String(v)
-        // Ternary + zwei Verkettungen in einem Ausdruck -> in Schritte zerlegt (Type-Checker).
-        let vorzeichen: String = v > 0 ? "+" : ""
-        return vorzeichen + txt + "°"
-    }
-
-    private func applySetup(
-        stab: Int? = nil, setStab: Bool = false,
-        mast: Int? = nil, setMast: Bool = false,
-        shim: Double? = nil, setShim: Bool = false,
-        board: Int? = nil, setBoard: Bool = false
-    ) async {
-        try? await Api.setSessionSetup(sid, stabId: stab, setStab: setStab, mastLenCm: mast, setMast: setMast,
-                                      shimDeg: shim, setShim: setShim, boardId: board, setBoard: setBoard)
-        await load()
-    }
-
     // Sportart-Klassifikation, Besitzer-Sicht (docs/sport-classification.md). Aufbau wie in der PWA
     // (ClassificationPanel): amber Kasten, solange eine Bitte offen ist ODER die Maschine geurteilt
     // hat (sport_auto) — der Nutzer soll wissen, dass eine Maschine das war und dass er sie mit
@@ -1403,36 +1269,13 @@ struct SessionDetailView: View {
         } catch { classErr = Loc.t("cls.pickErr", lang) }
     }
 
-    @ViewBuilder private func foilPicker(_ s: SessionDetail) -> some View {
-        if s.owned == true && !allFoils.isEmpty {
-            // Dropdown wie die PWA (<select>): Standard-Foil + Meine Foils + Alle Marken;
-            // .menu zeigt nur den gewählten Foil (nicht alle auf einmal).
-            Picker(Loc.t("sd.foilOfSession", lang), selection: $selectedFoilId) {
-                Text(Loc.t("foil.useDefault", lang)).tag(0)
-                ForEach(quickFoils) { f in
-                    Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
-                }
-                ForEach(otherFoils) { f in
-                    Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
-                }
-            }
-            .pickerStyle(.menu)
+    // Popup „Setup dieser Session" (SetupBearbeiten.swift). Nur mit geladener Session.
+    @ViewBuilder private var setupSheet: some View {
+        if let s = session {
+            SetupBearbeitenSheet(session: s, lang: lang, foils: allFoils, meineFoils: mineIds,
+                                 stabs: allStabs, meineStabs: myStabIds, masten: myMasts,
+                                 shims: myShims, boards: myBoards) { await load() }
         }
-    }
-
-    // Nutzerbefund (PWA, FoilSelect.tsx): „Wechsel von Sirus XXL auf Sirus XL — man muss nach oben
-    // scrollen, obwohl der XL auch in den Favoriten ist." Ursache: die Auswahl klappt beim
-    // GEWÄHLTEN Eintrag auf; steht der im langen Katalog-Block, liegen die Favoriten außerhalb des
-    // Sichtfelds. Deshalb das gewählte Foil MIT in die Favoriten-Gruppe — und aus dem Katalog
-    // lassen, damit es nicht doppelt erscheint.
-    private var quickFoils: [Foil] {
-        let sel: Int = selectedFoilId
-        return allFoils.filter { mineIds.contains($0.id) || $0.id == sel }
-    }
-
-    private var otherFoils: [Foil] {
-        let ids: Set<Int> = Set(quickFoils.map(\.id))
-        return allFoils.filter { !ids.contains($0.id) }
     }
 
     @ViewBuilder private func statsSection(_ s: SessionDetail) -> some View {
@@ -1791,7 +1634,6 @@ struct SessionDetailView: View {
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
             caption = s.caption ?? ""
-            selectedFoilId = s.foil?.id ?? 0
             photos = (try? await Api.sessionPhotos(sid)) ?? []
             videos = await loadVideos(s)
             let settings = (try? await Api.settings()) ?? [:]
