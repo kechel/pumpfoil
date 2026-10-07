@@ -1,0 +1,173 @@
+// Kern des Huawei-Recorders in Node pruefen: node --test watch-huawei/test/
+// Was sich ohne Uhr pruefen laesst, wird hier geprueft (Regel 13.09.2026).
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import K from "../common/kern.js";
+
+test("base64 wie Node", () => {
+  for (const n of [0, 1, 2, 3, 4, 5, 6, 100, 1500]) {
+    const b = Array.from({ length: n }, (_, i) => (i * 37 + 11) & 0xff);
+    assert.equal(K.b64(b), Buffer.from(b).toString("base64"));
+  }
+});
+
+test("int16 little-endian rundlauf, Vorzeichen und Kappung", () => {
+  const g = 9.80665;
+  const roh = [0, g, -g, 2.5 * g, -100 * g, 100 * g];
+  const i = roh.map(K.i16);
+  assert.deepEqual(i, [0, 2048, -2048, 5120, -32768, 32767]);
+  const buf = Buffer.from(K.i16Bytes(i));
+  const zurueck = Array.from({ length: i.length }, (_, k) => buf.readInt16LE(k * 2));
+  assert.deepEqual(zurueck, i);
+});
+
+test("Accel-Block: Groesse, t0, Anzahl, Inhalt dekodierbar", () => {
+  const s = new K.Sammler();
+  let c = null;
+  for (let n = 0; n < K.ACCEL_JE_BLOCK; n++) c = s.accelWert(0, 0, 9.80665, 1000 + n * 20) || c;
+  assert.ok(c);
+  assert.equal(c.kind, "accel"); assert.equal(c.encoding, "int16-b64");
+  assert.equal(c.index, 0); assert.equal(c.t0_ms, 1000); assert.equal(c.count, K.ACCEL_JE_BLOCK);
+  const buf = Buffer.from(c.data, "base64");
+  assert.equal(buf.length, K.ACCEL_JE_BLOCK * 6);
+  assert.equal(buf.readInt16LE(4), 2048);   // z des ersten Werts = 1 g
+  // Naechster Block beginnt mit neuem t0 und Index 1
+  for (let n = 0; n < K.ACCEL_JE_BLOCK; n++) c = s.accelWert(1, 1, 1, 9000 + n) || null;
+  assert.equal(c.index, 1); assert.equal(c.t0_ms, 9000);
+});
+
+test("Lange Aufnahme: 2 h ohne Luecken, Indizes fortlaufend, t0 steigend (Lehre 13.09.: Fehler ab Block 2 / ab Block 142)", () => {
+  const s = new K.Sammler();
+  const chunks = [];
+  const ende = 2 * 3600 * 1000;
+  let gps = 0;
+  for (let t = 0; t < ende; t += 20) {
+    const c = s.accelWert(0.1, 0.2, 9.8, t); if (c) chunks.push(c);
+    if (t >= gps) { const g = s.gpsFix(47 + t / 1e9, 9, 5, t); if (g) chunks.push(g); gps += 1000; }
+  }
+  chunks.push(...s.rest());
+  const idx = chunks.map((c) => c.index);
+  assert.deepEqual(idx, idx.map((_, i) => i), "Indizes lueckenlos");
+  const acc = chunks.filter((c) => c.kind === "accel");
+  const samples = acc.reduce((n, c) => n + c.count, 0);
+  assert.equal(samples, ende / 20, "kein Accel-Wert verloren");
+  for (let i = 1; i < acc.length; i++) assert.ok(acc[i].t0_ms > acc[i - 1].t0_ms);
+  const g = chunks.filter((c) => c.kind === "gps");
+  assert.equal(g.reduce((n, c) => n + c.count, 0), ende / 1000, "kein GPS-Fix verloren");
+  assert.ok(acc.length > 142, "ueber die 142-Block-Grenze hinaus geprueft");
+});
+
+test("GPS: Format [t, lat, lon, -1, hr, gen], Zeit nie rueckwaerts, Nullpunkt verworfen", () => {
+  const s = new K.Sammler();
+  s.puls(123);
+  assert.equal(s.gpsFix(47.5, 9.1, 4, 1000), null);
+  assert.equal(s.gpsFix(47.6, 9.2, 4, 1000), null);   // gleiche Zeit -> verworfen
+  assert.equal(s.gpsFix(47.6, 9.2, 4, 500), null);    // rueckwaerts -> verworfen
+  assert.equal(s.gpsFix(0, 0, 4, 2000), null);        // Nullpunkt -> verworfen
+  const c = s.gpsBlock();
+  assert.equal(c.count, 1);
+  assert.deepEqual(c.data[0], [1000, 47.5, 9.1, -1, 123, 4]);
+});
+
+test("Zeitachse mit Pausen: aktive Zeit, Pausenliste wie Wear/Apple", () => {
+  const z = new K.Zeitachse(10000);
+  assert.equal(z.jetzt(15000), 5000);
+  z.pause(15000);
+  assert.equal(z.jetzt(40000), 5000, "steht waehrend der Pause");
+  z.weiter(45000);
+  assert.equal(z.jetzt(46000), 6000);
+  assert.deepEqual(z.pausen, [[5000, 30000]]);
+  // Fix-Zeit (Wanduhr) auf die aktive Achse
+  assert.equal(z.auf(46000, 46500), 6000);
+  assert.equal(z.auf(46000, 46000 + 11 * 60000), -1, "zu alt");
+  assert.equal(z.auf(0, 46000), -1);
+});
+
+test("Sendereihenfolge: Meta, Chunks nach Nummer, Ende zuletzt", () => {
+  const id = "hw-x";
+  const namen = [K.dateiEnde(id), K.dateiChunk(id, 10), K.dateiChunk(id, 2), K.dateiMeta(id),
+    "internal://app/fremd.txt"];
+  assert.deepEqual(K.sendeReihenfolge(namen),
+    [K.dateiMeta(id), K.dateiChunk(id, 2), K.dateiChunk(id, 10), K.dateiEnde(id)]);
+});
+
+test("Warteschlange: eine Datei gleichzeitig, steigende Wartezeit, Fehler gezaehlt", () => {
+  const w = new K.Warteschlange();
+  assert.ok(w.darf(0));
+  w.start(); assert.ok(!w.darf(0), "nie zwei gleichzeitig");
+  w.fehler(206, 1000); assert.ok(!w.darf(5999)); assert.ok(w.darf(6000));
+  w.start(); w.fehler(206, 6000); assert.ok(!w.darf(20999)); assert.ok(w.darf(21000));
+  w.start(); w.ok();
+  assert.equal(w.fehlerGesamt, 2); assert.equal(w.gesendet, 1); assert.ok(w.darf(21000));
+});
+
+test("Sitzungs-ID passt in den Upload-Vertrag", () => {
+  const id = K.neueId(1791368314000, 0.123456);
+  assert.match(id, /^[A-Za-z0-9_-]{1,80}$/);
+});
+
+test("Anzeige-Tempo aus Positionen, Spruenge verworfen", () => {
+  const a = new K.Anzeige();
+  // 5 m/s nach Norden: 1 s = 5 m = 0.0000449 Grad
+  for (let i = 0; i <= 6; i++) a.fix(47 + i * 0.0000449, 9, 5, i * 1000);
+  assert.ok(Math.abs(a.tempo - 5) < 0.1, `tempo ${a.tempo}`);
+  a.fix(47.01, 9, 5, 7000);   // Sprung > 1 km in 1 s
+  assert.ok(Math.abs(a.tempo - 5) < 0.1);
+  assert.ok(Math.abs(a.strecke - 30) < 0.5);
+});
+
+test("Sendeplan: Meta, Chunks, Ende — Ende erst nach Stopp, Chunks schon unterwegs", () => {
+  const p = new K.Sendeplan();
+  p.neu("a");
+  assert.deepEqual(p.naechste(), { id: "a", art: "m", nr: -1 });
+  p.erledigt(p.naechste());
+  assert.equal(p.naechste(), null, "laufend, noch kein Chunk");
+  p.chunk("a"); p.chunk("a");
+  assert.deepEqual(p.naechste(), { id: "a", art: "c", nr: 0 });
+  p.erledigt(p.naechste());
+  assert.equal(p.offen(), 1);
+  p.erledigt({ id: "a", art: "c", nr: 0 });   // doppelte Quittung zaehlt nicht doppelt
+  assert.deepEqual(p.naechste(), { id: "a", art: "c", nr: 1 });
+  p.erledigt(p.naechste());
+  assert.equal(p.naechste(), null);
+  p.ende("a");
+  assert.deepEqual(p.naechste(), { id: "a", art: "e", nr: -1 });
+  assert.equal(K.dateiVon(p.naechste()), K.dateiEnde("a"));
+  p.erledigt(p.naechste());
+  assert.equal(p.naechste(), null); assert.equal(p.s.length, 0, "erledigte Session raus");
+});
+
+test("Sendeplan: ueberlebt Neustart (als JSON) und haelt zwei Sessions auseinander", () => {
+  const p = new K.Sendeplan();
+  p.neu("a"); p.chunk("a"); p.ende("a");
+  p.neu("b"); p.chunk("b");
+  const q = new K.Sendeplan(JSON.parse(JSON.stringify(p.daten())));
+  const reihe = [];
+  for (let d = q.naechste(); d; d = q.naechste()) { reihe.push(d.id + d.art + d.nr); q.erledigt(d); }
+  assert.deepEqual(reihe, ["am-1", "ac0", "ae-1", "bm-1", "bc0"]);
+  assert.equal(q.offen(), 0);
+  q.ende("b");
+  assert.deepEqual(q.naechste(), { id: "b", art: "e", nr: -1 });
+});
+
+test("Sendeplan: 2 h ohne Handy bleibt klein", () => {
+  const p = new K.Sendeplan();
+  p.neu("a");
+  for (let i = 0; i < 1700; i++) p.chunk("a");
+  p.ende("a");
+  assert.ok(JSON.stringify(p.daten()).length < 100);
+  assert.equal(p.offen(), 1702);
+});
+
+test("Projekt-Kopien von common/ sind aktuell (sonst ./sync-common.sh)", async () => {
+  const fs = await import("node:fs");
+  const url = (p) => new URL(p, import.meta.url);
+  for (const proj of ["lite", "wearable"]) {
+    const ziel = url(`../${proj}/entry/src/main/js/MainAbility/common/`);
+    if (!fs.existsSync(ziel)) continue;
+    for (const f of ["kern.js", "recorder.js", "konfig.js"]) {
+      assert.equal(fs.readFileSync(new URL(f, ziel), "utf8"), fs.readFileSync(url(`../common/${f}`), "utf8"),
+        `${proj}/${f} weicht ab — ./sync-common.sh`);
+    }
+  }
+});
