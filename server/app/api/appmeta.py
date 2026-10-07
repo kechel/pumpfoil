@@ -789,6 +789,10 @@ NAECHSTES: list[dict] = [
          "In direct chats, two ticks show that your message has been read.",
          "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
          "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
+         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
+         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
+         # 01.10.2026: fafdd410.
+         "The longest-run record shows kilometres from 1,000 m on.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.42",
      "items": [
@@ -796,6 +800,12 @@ NAECHSTES: list[dict] = [
          "In direct chats, two ticks show that your message has been read.",
          "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
          "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
+         # 07.10.2026 (Feedback Mirza): 780a895c.
+         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
+         # 03.10.2026: 879500d4.
+         "The phone recorder shows the upload progress, as on Android.",
+         # 01.10.2026: fafdd410.
+         "The longest-run record shows kilometres from 1,000 m on.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
