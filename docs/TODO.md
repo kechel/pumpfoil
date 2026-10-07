@@ -1434,6 +1434,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
+  Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit
+  `scripts/messweg-pruefen.py --ab-version 1.2.40` pruefen (gps hs, Abdeckung, Luecken, Accel ~25 Hz); bei
+  Problemen Notschalter `WEAR_GPS_HS=off` / `WEAR_ACCEL_BATCH=off` in server/.env + Neustart (global, greift beim
+  naechsten App-Oeffnen mit Netz). Play verlangt noch die „Erklaerung fuer Gesundheits-Apps" (App-Inhalte).
 - **🟡 07.10. — Wear 1.2.40 (1050) / Phone 1.1.40 (54) GEBAUT: Messweg nach Doku.** GPS aus der Health-Services-
   Uebung (`isGpsEnabled`, LOCATION+SPEED, Zeit je Punkt aus `timeDurationFromBoot`), Rueckfall auf
   LocationManager (Uhr-GNSS) bei Fehlschlag, Ende, Schweigen > 300 s oder „tethered" (Handy-GPS, Jans Regel);
