@@ -188,7 +188,7 @@ R.zustand = function () {
     m: R.anzeige ? R.anzeige.strecke : 0,
     puls: R.sammler ? R.sammler.hr : 0,
     gpsOk: R.gpsLetzt > 0 && Date.now() - R.gpsLetzt < 5000,
-    offen: R.plan.offen(),
+    offen: R.plan.offen(), plan: R.plan.stand(),
     sendeFehler: R.schlange.fehlerGesamt, sendeCode: R.schlange.letzterCode,
     fehler: R.f.speicher + R.f.accel + R.f.gps, letzterFehler: R.letzterFehler
   };
@@ -226,7 +226,7 @@ function senden() {
     uri: uri,
     success: function (r) {
       var name = uri.substring(uri.lastIndexOf("/") + 1);
-      offenDatei = { d: d, uri: uri, teile: K.teile(name, r.text), nr: 0 };
+      offenDatei = { d: d, uri: uri, teile: K.teile(name, r.text, R.plan.offen()), nr: 0 };
       R.schlange.laeuft = false;
       teilSenden();
     },

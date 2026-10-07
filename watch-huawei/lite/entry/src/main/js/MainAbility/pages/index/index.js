@@ -18,6 +18,7 @@ function zeitText(ms) {
 export default {
   data: {
     modus: "bereit", zeit: "0:00", tempo: "0.0", strecke: "0.00", puls: "--", info: "",
+    balken: 0, balkenZeigen: false,
     knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
   },
   onInit() {
@@ -49,10 +50,16 @@ export default {
     else if (z.fehler > 0) info = this.$t("strings.errors") + " " + z.fehler + ": " + z.letzterFehler;
     else if (z.modus === "laeuft" && !z.gpsOk) info = this.$t("strings.gpsWait");
     else if (z.offen > 0) {
-      info = this.$t("strings.toPhone") + " " + z.offen;
+      // „Zum Handy: 34/120" — gezaehlt in Dateien (je ~5 s Aufnahme), dieselbe Zahl, die das
+      // Handy im Balken zeigt. Das Ziel ist das HANDY, nicht der Server.
+      info = this.$t("strings.toPhone") + " " + z.plan.fertig + "/" + z.plan.gesamt;
       if (z.sendeFehler > 0) info += " · " + this.$t("strings.openPhone") + " (" + z.sendeCode + ")";
     } else if (z.modus === "bereit") info = this.$t("strings.allSent");
     this.info = info;
+    // Balken nur ausserhalb der Aufnahme: waehrend der Fahrt gehen die Chunks laufend raus und
+    // der Balken zappelte zwischen 1/2 und 2/2 — die Zahl in der Zeile reicht dort.
+    this.balkenZeigen = z.modus === "bereit" && z.offen > 0 && z.plan.gesamt > 0;
+    this.balken = z.plan.gesamt > 0 ? Math.floor(100 * z.plan.fertig / z.plan.gesamt) : 0;
   },
   halten(aktion, text) {
     var that = this;

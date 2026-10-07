@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -42,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -478,7 +480,32 @@ fun HuaweiKarte() {
                 Text(I18n.t("huawei.connected").replace("{uhren}", st.uhren.joinToString(", ")),
                     style = MaterialTheme.typography.bodyMedium)
             }
-            if (st.offen > 0) {
+            // Zwei Balken, unabhaengig voneinander und auch gleichzeitig: Uhr -> Handy (Dateien,
+            // je ~5 s Aufnahme; die Uhr zeigt dieselbe Zahl) und Handy -> Server (Chunks).
+            if (st.empfGesamt > 0 && st.empfFertig < st.empfGesamt) {
+                // Meldet sich die Uhr mitten in einer Ladung nicht mehr, steht das da — sonst sieht
+                // ein abgebrochener Transfer aus wie ein langsamer (Regel 13.09.: nicht stumm).
+                var jetzt by remember { mutableLongStateOf(System.currentTimeMillis()) }
+                LaunchedEffect(st.empfLetzteMs) {
+                    while (true) { jetzt = System.currentTimeMillis(); kotlinx.coroutines.delay(5000) }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(I18n.t("huawei.receiving").replace("{a}", st.empfFertig.toString())
+                    .replace("{b}", st.empfGesamt.toString()), style = MaterialTheme.typography.bodyMedium)
+                LinearProgressIndicator(progress = { st.empfAnteil },
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                if (jetzt - st.empfLetzteMs > 30_000) {
+                    Text(I18n.t("huawei.watchSilent"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+            if (st.laedt && st.hochGesamt > 0) {
+                Spacer(Modifier.height(8.dp))
+                Text(I18n.t("huawei.uploading").replace("{a}", st.hochFertig.toString())
+                    .replace("{b}", st.hochGesamt.toString()), style = MaterialTheme.typography.bodyMedium)
+                LinearProgressIndicator(progress = { (st.hochFertig.toFloat() / st.hochGesamt).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+            } else if (st.offen > 0) {
                 Spacer(Modifier.height(6.dp))
                 Text(I18n.t("huawei.pending").replace("{n}", st.offen.toString()),
                     style = MaterialTheme.typography.bodyMedium)
@@ -497,6 +524,12 @@ fun HuaweiKarte() {
                 Text(fehler, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
             }
             Spacer(Modifier.height(8.dp))
+            // Upload haengt (Netz weg, Server-Fehler): von Hand neu anstossen. Bereits angekommene
+            // Chunks fragt der Upload beim Server ab und schickt sie nicht noch einmal.
+            if (st.offen > 0 && !st.laedt) {
+                OutlinedButton(onClick = { HuaweiBruecke.hochladen(ctx) }) { Text(I18n.t("huawei.retry")) }
+                Spacer(Modifier.height(4.dp))
+            }
             if (st.verbunden) {
                 OutlinedButton(onClick = { HuaweiBruecke.trennen(ctx) }) { Text(I18n.t("huawei.disconnect")) }
             } else {

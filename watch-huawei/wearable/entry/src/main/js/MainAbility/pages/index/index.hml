@@ -5,6 +5,7 @@
         <div class="knopf start" ontouchstart="startHalten" ontouchend="loslassen">
             <text class="knopftext">{{ knopfStart }}</text>
         </div>
+        <progress class="balken" type="horizontal" percent="{{ balken }}" if="{{ balkenZeigen }}"></progress>
         <text class="klein">{{ info }}</text>
     </div>
 

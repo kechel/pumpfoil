@@ -27,6 +27,12 @@ die uns auf Wear OS Wochen gekostet hat. Erst ein langer Test auf echter Hardwar
   die Uhr gar nicht koppeln.
 - Grenzen [DOK, Suchausschnitt]: Nachricht ≤ 1 KB, Datei Uhr→Handy **< 4 MB**, eine Datei gleichzeitig.
   Unsere Chunks passen.
+- **Speicher auf der Uhr [UNKLAR, Risiko]:** eine Stunde sind ~720 Accel-Dateien zu 2–3 KB plus GPS,
+  grob **2–2,5 MB**. Unterwegs gehen die Chunks laufend raus und werden geloescht — erreicht die Uhr das
+  Handy aber nicht (Handy ausser Reichweite, App zu, Fehler 206), sammelt sich alles auf der Uhr. Wie viel
+  Speicher eine Fremd-App auf einer Lite-Uhr bekommt, steht nirgends; ein `freeStorage` gibt es (wie bei
+  Connect IQ) nicht. Pruefen in der Beta: lange Aufnahme OHNE Handy in Reichweite, dann ob/wann
+  `file.writeText` scheitert (wird auf der Uhr gezaehlt und angezeigt). Gegenstueck: docs/WATCH-STORAGE.md.
 - iOS: ein `WESP2PClient` existiert in der Referenz [DOK], ob er mit Lite-Uhren Daten austauscht [UNKLAR].
   iPhone-gekoppelte Watch 3/4/5 teilen das Handy-Netz NICHT per Bluetooth [DOK, Huawei-Support].
 
