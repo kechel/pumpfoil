@@ -18,6 +18,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
@@ -231,13 +234,19 @@ fun RecordScreen(onBack: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(6.dp))
                     // Favoriten (my_foils) direkt als Chips; Standard-Foil vorausgewählt.
-                    val chips: List<Pair<Int?, String>> = listOf(null to I18n.t("rec.foilNone")) +
-                        favFoils.map { (it.id as Int?) to "${it.brand} ${it.model} ${it.size}".trim() }
+                    // Zwei Zeilen je Chip: oben Modell + Groesse (das Unterscheidende), klein darunter die
+                    // Marke — vorher eine Zeile, und bei mehreren Foils derselben Marke blieb nur der
+                    // Markenname sichtbar (Feedback 06.10.2026).
+                    val chips: List<Triple<Int?, String, String?>> = listOf(Triple(null, I18n.t("rec.foilNone"), null)) +
+                        favFoils.map {
+                            val t = "${it.model} ${it.size}".trim()
+                            Triple(it.id as Int?, t.ifEmpty { it.brand }, it.brand)
+                        }
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         chips.chunked(2).forEach { rowItems ->
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                rowItems.forEach { (id, label) ->
-                                    FoilChip(label, foilId == id, Modifier.weight(1f)) { foilId = id }
+                                rowItems.forEach { (id, label, brand) ->
+                                    FoilChip(label, brand, foilId == id, Modifier.weight(1f)) { foilId = id }
                                 }
                                 if (rowItems.size == 1) Spacer(Modifier.weight(1f))
                             }
@@ -436,14 +445,21 @@ private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Mod
 
 // Direkt antippbarer Foil-Chip (Favoriten + „Ohne Foil"); hervorgehoben, wenn ausgewählt.
 @Composable
-private fun FoilChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun FoilChip(label: String, brand: String?, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val farbe = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     Surface(
-        modifier = modifier.clickable { onClick() },
+        modifier = modifier.heightIn(min = 52.dp).clickable { onClick() },
         shape = RoundedCornerShape(10.dp),
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
     ) {
-        Text(label, Modifier.padding(vertical = 10.dp, horizontal = 8.dp), maxLines = 1,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface)
+        Column(Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Text(label, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold), color = farbe)
+            if (!brand.isNullOrBlank()) {
+                Text(brand, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall, color = farbe.copy(alpha = 0.8f))
+            }
+        }
     }
 }
