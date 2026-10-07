@@ -834,9 +834,11 @@ NAECHSTES: list[dict] = [
      "items": [
          "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
      ]},
+    # 07.10.2026 (Peter3, b44db846): aussortierte Session ohne Laeufe -> PowerCard Int(NaN) -> Absturz.
     {"name": "iPhone + Apple Watch", "version": "1.1.44",
      "items": [
          "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
+         "Opening a filtered-out session no longer closes the app.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
