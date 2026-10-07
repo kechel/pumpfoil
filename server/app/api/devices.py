@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -185,6 +186,14 @@ ACCEL_WAKEUP_MODES = ("on", "off")
 # Die Uhr nimmt die Wake-up-Variante NUR auf ausdrueckliches "on" (RecorderService.accelSensor);
 # ohne Abgleich bleibt sie bei der alten Variante.
 ACCEL_WAKEUP_DEFAULT = "off"
+
+# Messweg nach Doku ab Wear 1.2.40 (07.10.2026): Wake-up-Beschleunigung MIT Hardware-Batching und GPS
+# aus der Health-Services-Uebung. Beides ist der von Android/Google vorgesehene Weg, also Standard
+# "on"; die Schalter sind NOTBREMSEN, falls eine Uhr damit Aerger macht. Der alte `accelWakeup` gilt
+# fuer 1.2.40 nicht mehr (Wake-up OHNE Batching wuergte das GPS ab, u818/u574) und bleibt nur fuer
+# aeltere Apps stehen.
+ACCEL_BATCH_DEFAULT = os.environ.get("WEAR_ACCEL_BATCH", "on")
+GPS_HS_DEFAULT = os.environ.get("WEAR_GPS_HS", "on")
 
 
 def _accel_wakeup_standard(settings: dict) -> str:
@@ -515,6 +524,8 @@ def device_config(
         # Wake-up-Beschleunigungssensor (nur Wear OS): "on" | "off". Aeltere Uhr-Versionen
         # ignorieren den Schluessel und registrieren wie bisher die Non-wake-up-Variante.
         "accelWakeup": _effective_accel_wakeup(device, settings),
+        "accelBatch": ACCEL_BATCH_DEFAULT if ACCEL_BATCH_DEFAULT in ("on", "off") else "on",
+        "gpsHs": GPS_HS_DEFAULT if GPS_HS_DEFAULT in ("on", "off") else "on",
         "stopMode": settings.get("stop_mode", "hold"),
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
         "activityType": settings.get("activity_type", "pumpfoil"),   # Rückfall wie DEFAULTS in settings.py

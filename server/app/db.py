@@ -137,6 +137,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS accel_wakeup VARCHAR(8)",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_samples INTEGER",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_source VARCHAR(16)",
+        # Messweg der Uhr (Wear ab 1.2.40): GPS-Quelle, Neuanforderungen, Accel-Modus (JSON).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS messweg_json TEXT",
         # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).

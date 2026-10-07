@@ -820,6 +820,13 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 07.10.2026 (Jan: „richtig machen, vernuenftig, so wie dokumentiert"): Messweg nach Doku auf Wear
+    # (Messweg.kt, RecorderService): GPS aus der Health-Services-Uebung, Wake-up-Accel MIT Batching,
+    # GPS-Waechter. Anlass u818/u574: GPS brach nach Minuten ab. Phone 1.1.40 nur mitgebumpt.
+    {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
+     "items": [
+         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

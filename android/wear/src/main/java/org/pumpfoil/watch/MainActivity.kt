@@ -94,6 +94,9 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         lifecycle.addObserver(ambient)
         Api.load(applicationContext)
         I18n.load(applicationContext)   // gecachte Profil-Sprache (offline-tauglich)
+        // Kann Health Services hier Ortung fuer Uebungen? Ergebnis cachen, der Aufnahme-Dienst liest
+        // es beim Start (GPS nach Doku, Wear 1.2.40; s. RecorderService.hsOrtMoeglich).
+        RecorderService.pruefeHsOrt(applicationContext)
         requestPerms()
         setContent { AppUi() }
     }
@@ -404,10 +407,16 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             // unbekannter Wert wird nicht gespeichert, dann bleibt der letzte gueltige stehen.
             val rm = c.optString("recordMode", "full")
             Recorder.recordMode = rm
-            val aw = c.optString("accelWakeup", "")
+            // Ab 1.2.40 (Messweg nach Doku) zwei eigene Notschalter: `accelBatch` (Wake-up-Sensor MIT
+            // Hardware-Batching) und `gpsHs` (GPS aus Health Services). Standard an; der alte Schalter
+            // `accelWakeup` gilt nicht mehr — er stand fuer die Wake-up-Variante OHNE Batching, die das
+            // GPS abwuergen konnte (07.10.2026). Unbekannte Werte werden nicht gespeichert.
+            val ab = c.optString("accelBatch", "")
+            val gh = c.optString("gpsHs", "")
             ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE).edit().apply {
                 putString("record_mode", rm)
-                if (aw == "on" || aw == "off") putString("accel_wakeup", aw)
+                if (ab == "on" || ab == "off") putString("accel_batch", ab)
+                if (gh == "on" || gh == "off") putString("gps_hs", gh)
                 apply()
             }
         }

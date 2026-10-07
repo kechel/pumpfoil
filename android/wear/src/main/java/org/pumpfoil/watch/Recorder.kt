@@ -316,7 +316,8 @@ object Recorder {
     private var uuid = ""
     private var startMs = 0L
     private var chunkIndex = 0
-    private var running = false
+    // Volatile: der Beschleunigungssensor liefert seit 1.2.40 auf einem eigenen Thread.
+    @Volatile private var running = false
     private var appCtx: Context? = null
     private var draining = false
 
@@ -385,6 +386,7 @@ object Recorder {
         chunkIndex = 0
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0; letzteGpsT = -1; genauigkeit.reset()
+        messwegGps = "lm"; messwegGpsNeu = 0; messwegGpsWechsel = ""; messwegAccel = "normal"
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -497,6 +499,8 @@ object Recorder {
                 .put("ended_at", nowIso()).put("total_chunks", chunkIndex)
                 .apply { if (pausenJson.length() > 0) put("pauses", pausenJson) }
                 .put("hr_samples", hrCount)
+                .put("messweg", JSONObject().put("gps", messwegGps).put("gps_neu", messwegGpsNeu)
+                    .put("gps_wechsel", messwegGpsWechsel).put("accel", messwegAccel))
                 .put("hr_source", when {
                     hrCount == 0 -> "none"
                     _state.value.pulsMessung -> "active"
@@ -738,16 +742,21 @@ object Recorder {
                      // Pausenfenster aus complete.json — sie stehen dort seit 24.09. und
                      // muessen den Weg ueber die Warteschlange ueberstehen, weil zwischen Stop
                      // und Upload ein App-Neustart liegen kann.
-                     comp?.optJSONArray("pauses"))
+                     comp?.optJSONArray("pauses"),
+                     messweg = comp?.optJSONObject("messweg"))
         LocalStore.delete(ctx, sid)   // erst NACH /complete -> serverseitig sicher vorhanden
     }
 
     // --- Sensor-Eingang (vom Service aufgerufen) ---
 
-    fun addAccel(x: Float, y: Float, z: Float) {
+    /** @param alterMs Alter der MESSUNG (aus `SensorEvent.timestamp`), -1 = unbekannt. Mit
+     *  Hardware-Batching kommen die Werte gebuendelt und verspaetet an (Wear 1.2.40) — der Block
+     *  beginnt dann, wann sein erster Wert GEMESSEN wurde, nicht wann er ankam. */
+    fun addAccel(x: Float, y: Float, z: Float, alterMs: Long = -1L) {
         if (!running) return
         synchronized(lock) {
-            if (accel.isEmpty()) accelT0 = elapsedMs()
+            if (accel.isEmpty()) accelT0 = if (alterMs >= 0) (elapsedMs() - alterMs).toInt().coerceAtLeast(0)
+                                           else elapsedMs()
             accel.add(toI16(x / G * ACCEL_SCALE))
             accel.add(toI16(y / G * ACCEL_SCALE))
             accel.add(toI16(z / G * ACCEL_SCALE))
@@ -759,6 +768,14 @@ object Recorder {
     fun setGpsDenied(v: Boolean) {
         _state.value = _state.value.copy(gpsDenied = v)
     }
+
+    // Messweg-Diagnose fuer den Server (Wear 1.2.40): woher kam das GPS, wie oft musste es neu
+    // angefordert werden, lief die Beschleunigung gebuendelt. Ohne das waere ein GPS-Abbruch wie
+    // bei u818/u574 (07.10.2026) wieder nur aus den Daten zu erraten.
+    @Volatile var messwegGps = "lm"          // "hs" = Health Services, "lm" = LocationManager (Uhr-GNSS)
+    @Volatile var messwegGpsNeu = 0          // GPS neu angefordert (Waechter)
+    @Volatile var messwegGpsWechsel = ""     // Grund, falls von Health Services zurueckgefallen
+    @Volatile var messwegAccel = "normal"    // "batch" = Wake-up + Hardware-Batching, "normal"
 
     fun setGpsOhneHardware(v: Boolean) {
         _state.value = _state.value.copy(gpsOhneHardware = v)

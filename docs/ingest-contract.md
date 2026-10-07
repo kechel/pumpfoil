@@ -84,6 +84,26 @@ token on the device and reuse it for every upload.
    on the device that nobody can read. Omit the fields and the server leaves the stored values
    untouched, so a retried `/complete` from an older build never erases a reported diagnosis.
 
+   **`messweg` is an optional measurement-path diagnosis** (since 2026-10-07, Wear OS 1.2.40):
+   ```json
+   "messweg": { "gps": "hs", "gps_neu": 0, "gps_wechsel": "", "accel": "batch" }
+   ```
+   - `gps` — where the positions came from: `"hs"` = Health Services exercise (the documented
+     Wear OS way), `"lm"` = the platform `LocationManager` (watch GNSS only).
+   - `gps_neu` — how often the recorder had to re-request GPS because positions stopped.
+   - `gps_wechsel` — why it fell back from Health Services to `LocationManager` (e.g.
+     `"tethered"` = the exercise used the phone's GPS, which we never record), max. 60 chars.
+   - `accel` — `"batch"` = wake-up accelerometer with hardware batching and sensor timestamps,
+     `"normal"` = the non-wake-up sensor.
+   Stored as `sessions.messweg_json`; unknown keys are dropped. Why: on 2026-10-07 two watches
+   lost GPS after a few minutes while the accelerometer kept running — from the data alone the
+   cause could only be guessed.
+
+   **Timestamps with batching:** when samples or fixes arrive batched (hardware FIFO, Health
+   Services), the chunk's `t0_ms` must be when its first sample was **measured**, not when it
+   arrived — derive it from the event timestamp (`SensorEvent.timestamp`,
+   `DataPoint.timeDurationFromBoot`), otherwise the server's `exact_chunks` axis is shifted.
+
 ## Payload formats
 
 ### GPS chunk (`kind: "gps"`, `encoding: "json"`)
