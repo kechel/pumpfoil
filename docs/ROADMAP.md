@@ -52,6 +52,7 @@ Everything that can be shared **is** shared, so a new watch is a thin add-on:
 | Wear OS | ✓ | ✓ | ✓ | native recorder |
 | Amazfit / Zepp OS | ✓ | ✓ | ~ | native recorder (model-dependent) |
 | Polar | ✓ | ✓ | ~ | FIT/cloud import (+ BLE sensor for accel) |
+| HUAWEI (GT / Watch 4-5) | ~ | ~ | – | researched 2026-10-07, see docs/HUAWEI.md — screen-off recording unproven, needs a real watch |
 | Suunto | ✓ | ✓ | – | FIT/cloud import |
 | Xiaomi / Redmi | ✓ | ✓ | – | via Mi Fitness → Suunto app (official partnership, worldwide except China); no watch app possible. **Verified end to end on 04.09.2026** with a Redmi Watch: the GPS track survives the chain (88 points + heart rate). Needed a fix in our FIT parser — Mi Fitness writes multi-byte fields as `byte` arrays, see `fitimport._reparatur_prozessor()`. |
 | COROS | ✓ | ✓ | – | MCP server (OAuth, self-service since 2026-09-04) → FIT import |
