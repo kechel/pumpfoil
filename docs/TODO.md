@@ -1443,8 +1443,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Vermutung: die Datenflut/Dauerwach-Schaltung verdraengt das GPS, NICHT belegt. Zweite Ursache existiert:
   u114 (SM-R920, 1.2.31) und Eric F u55 (SM-L300) verloren GPS ohne Wake-up (4 von 80 langen Wear-Sessions in
   3 Wochen). **Sofortmassnahme (Jans OK 07.10.):** `accel_wakeup` fuer Geraet 1005 (u574) und 1412 (u818)
-  auf `off`. Standard bleibt `off` — NICHT fuer alle einschalten. Noch `on`: u469 (Geraete 846/1267, App 1.2.29/
-  1.2.33, seit 24.09. keine Session). **Naechste Wear-Version (Aufnahme-Pfad, langer Test):** Accel auf eigenen
+  auf `off`. Standard bleibt `off` — NICHT fuer alle einschalten. Am selben Tag auch u469 (Geraete 846/1267,
+  seit 24.09. keine Session) auf `off` — jetzt steht KEINE Uhr mehr auf `on`. **Naechste Wear-Version (Aufnahme-Pfad, langer Test):** Accel auf eigenen
   HandlerThread, Rate auf die angeforderte kappen; GPS-Waechter (30 s ohne Fix -> neu anfordern + Vorfall an den
   Server melden); danach Wake-up erneut testen. Adam: Antwort-Entwurf liegt bei Jan, erst nach einer bestaetigten
   Session mit vollem GPS „Ursache gefunden" schreiben.
