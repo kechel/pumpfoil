@@ -1,0 +1,19 @@
+{
+  "strings": {
+    "start": "Halten: Start",
+    "pause": "Halten: Pause",
+    "resume": "Weiter",
+    "stop": "Stopp",
+    "paused": "Pause",
+    "errors": "Fehler",
+    "gpsWait": "Warte auf GPS",
+    "toPhone": "Zum Handy:",
+    "openPhone": "Pumpfoil am Handy öffnen",
+    "allSent": "Alles übertragen",
+    "holdStart": "Weiter halten: Start",
+    "holdPause": "Weiter halten: Pause",
+    "holdResume": "Weiter halten: weiter",
+    "holdStop": "Weiter halten: Stopp",
+    "stopFirst": "Erst die Aufnahme stoppen"
+  }
+}

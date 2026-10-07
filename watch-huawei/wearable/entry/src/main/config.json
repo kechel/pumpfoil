@@ -1,0 +1,81 @@
+{
+  "app": {
+    "bundleName": "org.pumpfoil.huawei",
+    "vendor": "pumpfoil",
+    "version": {
+      "code": 1000001,
+      "name": "1.0.1"
+    }
+  },
+  "deviceConfig": {},
+  "module": {
+    "deviceType": [
+      "wearable"
+    ],
+    "distro": {
+      "deliveryWithInstall": true,
+      "moduleName": "entry",
+      "moduleType": "entry"
+    },
+    "reqPermissions": [
+      {
+        "name": "ohos.permission.ACCELEROMETER",
+        "reason": "$string:perm_reason",
+        "usedScene": {
+          "ability": [
+            ".MainAbility"
+          ],
+          "when": "inuse"
+        }
+      },
+      {
+        "name": "ohos.permission.LOCATION",
+        "reason": "$string:perm_reason",
+        "usedScene": {
+          "ability": [
+            ".MainAbility"
+          ],
+          "when": "inuse"
+        }
+      },
+      {
+        "name": "ohos.permission.READ_HEALTH_DATA",
+        "reason": "$string:perm_reason",
+        "usedScene": {
+          "ability": [
+            ".MainAbility"
+          ],
+          "when": "inuse"
+        }
+      }
+    ],
+    "abilities": [
+      {
+        "name": ".MainAbility",
+        "srcLanguage": "js",
+        "srcPath": "MainAbility",
+        "icon": "$media:icon",
+        "description": "$string:MainAbility_desc",
+        "label": "$string:MainAbility_label",
+        "type": "page"
+      }
+    ],
+    "metaData": {
+      "customizeData": [
+        {
+          "name": "supportLists",
+          "value": "org.pumpfoil.app:PHONE_FINGERPRINT_EINTRAGEN",
+          "extra": ""
+        }
+      ]
+    },
+    "js": [
+      {
+        "pages": [
+          "pages/index/index"
+        ],
+        "name": ".MainAbility"
+      }
+    ]
+  }
+}

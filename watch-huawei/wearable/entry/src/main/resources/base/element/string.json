@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "Pumpfoil recorder"
+    },
+    {
+      "name": "MainAbility_desc",
+      "value": "Records pump foiling sessions for pumpfoil.org"
+    },
+    {
+      "name": "MainAbility_label",
+      "value": "Pumpfoil"
+    },
+    {
+      "name": "perm_reason",
+      "value": "Records your pump foiling session (motion, GPS, heart rate)"
+    }
+  ]
+}

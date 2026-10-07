@@ -1,0 +1,41 @@
+<div class="seite" onswipe="wischen">
+    <text class="marke">PUMPFOIL</text>
+
+    <div class="block" if="{{ modus === 'bereit' }}">
+        <div class="knopf start" ontouchstart="startHalten" ontouchend="loslassen">
+            <text class="knopftext">{{ knopfStart }}</text>
+        </div>
+        <text class="klein">{{ info }}</text>
+    </div>
+
+    <div class="block" if="{{ modus === 'laeuft' }}">
+        <text class="zeit">{{ zeit }}</text>
+        <div class="reihe">
+            <text class="wert">{{ tempo }}</text>
+            <text class="wert">{{ strecke }}</text>
+        </div>
+        <div class="reihe">
+            <text class="einheit">km/h</text>
+            <text class="einheit">km</text>
+        </div>
+        <text class="wert">{{ puls }}</text>
+        <div class="knopf pause" ontouchstart="pauseHalten" ontouchend="loslassen">
+            <text class="knopftext">{{ knopfPause }}</text>
+        </div>
+        <text class="klein">{{ info }}</text>
+    </div>
+
+    <div class="block" if="{{ modus === 'pause' }}">
+        <text class="zeit">{{ zeit }}</text>
+        <text class="hinweis">{{ textPause }}</text>
+        <div class="reihe">
+            <div class="knopf halb weiter" ontouchstart="weiterHalten" ontouchend="loslassen">
+                <text class="knopftext">{{ knopfWeiter }}</text>
+            </div>
+            <div class="knopf halb stopp" ontouchstart="stoppHalten" ontouchend="loslassen">
+                <text class="knopftext">{{ knopfStopp }}</text>
+            </div>
+        </div>
+        <text class="klein">{{ info }}</text>
+    </div>
+</div>
