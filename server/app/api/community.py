@@ -2478,7 +2478,7 @@ def board_attitude(user: models.User = Depends(current_user),
             if not w:
                 continue
             zeile = {"laeufe": len(w), "zuege": int(sum(int(e["zuege"]) for e in w))}
-            for k in ("takt_hz", "nicken_deg", "hub_cm"):
+            for k in ("takt_hz", "nicken_deg", "hub_cm", "rollen_deg"):
                 v = [float(e[k]) for e in w if e.get(k) is not None]
                 zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
             aus[art] = zeile
