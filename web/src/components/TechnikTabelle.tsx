@@ -79,6 +79,9 @@ export function LaufLegende({ mitteText }: { mitteText?: string }) {
     [`${t("tech.sTurn")} · ${t("tech.sStraight")}`, t("tech.gTurnStraight")],
     [t("tech.sWhole"), t("tech.gWhole")],
   ];
+  // „Korrigiert: …" ist auch ein Begriff mit Beschreibung — mit ins Raster, damit es buendig steht.
+  const korr = t("tech.lCorrection").match(/^([^:：]{1,40})[:：]\s*(.*)$/s);
+  if (korr) zeilen.push([korr[1], korr[2]]);
   return (
     <div className="space-y-1 px-3 pb-3 pt-2 text-sm text-slate-400">
       <p>{t("tech.gColumns")}</p>
@@ -90,7 +93,7 @@ export function LaufLegende({ mitteText }: { mitteText?: string }) {
           </div>
         ))}
       </dl>
-      <p><MitLabel text={t("tech.lCorrection")} /></p>
+      {!korr && <p><MitLabel text={t("tech.lCorrection")} /></p>}
       {/* Keine Laufzahl mehr (Jan, 08.10.2026: „ganz weg") — die Zeilen der Tabelle zeigen sie schon. */}
       <p>{t("tech.gSpread")}{mitteText ? ` ${t(mitteText)}` : ""}</p>
       <p>{t("tech.gHeave")}</p>
