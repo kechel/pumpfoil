@@ -35,6 +35,14 @@
     "f_allRunsTime": "wsz. przejazdy czas",
     "done": "GOTOWE",
     "lock": "Blokada dotyku",
-    "lockHold": "przytrzymaj, aby odblokować"
+    "lockHold": "przytrzymaj, aby odblokować",
+    "alarm": "Alarm",
+    "thresholds": "Progi",
+    "autoFoil": "Auto (foil)",
+    "manual": "Ręcznie",
+    "layoutsShort": "Układy",
+    "on": "Wł.",
+    "off": "Wył.",
+    "auto": "Auto"
   }
 }

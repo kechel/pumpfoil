@@ -30,8 +30,9 @@ JB="$CLT/sdk/default/openharmony/js/build-tools/ace-loader/bin"
 BC=$(mktemp)
 for m in release debug; do
   (cd lite && hvigorw assembleHap --mode module -p product=default -p buildMode=$m --no-daemon) | grep -E "ERROR" || true
+  # app.js und JEDE Seite (jede Seite ist ein eigenes Buendel mit eigenen Grenzen)
   for f in lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/app.js \
-           lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/pages/index/index.js; do
+           lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/pages/*/*.js; do
     "$JB/jerry-snapshot" generate -o "$BC" "$f" >/dev/null 2>&1 \
       || { echo "FEHLER: lite ($m) $f laesst sich nicht als Snapshot bauen (Syntax wie Regex-Literal, oder Heap)"; rm -f "$BC"; exit 1; }
     H=$("$JB/jerry" --mem-stats --parse-only "$f" 2>&1 | sed -n 's/^  Peak allocated = \([0-9]*\) bytes/\1/p' | head -1)

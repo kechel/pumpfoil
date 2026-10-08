@@ -1,0 +1,10 @@
+<div class="seite" onswipe="wischen">
+    <!-- Einstellungen auf der Uhr wie Zepp-Seite 4/4 (Jan, 08.10.2026: „config fuer foil, on foil alarm
+         an/aus … aus dem startscreen hinsliden"). Jede Zeile tippen schaltet weiter. Eigene Seite =
+         eigenes Buendel: die Startseite liegt an der 48-KB-Grenze. Runter/rechts wischen = zurueck. -->
+    <div class="zeile" onclick="alarm"><text class="ztext">{{ zAlarm }}</text></div>
+    <div class="zeile" onclick="quelle"><text class="ztext">{{ zQuelle }}</text></div>
+    <div class="zeile" onclick="foil"><text class="ztext">{{ zFoil }}</text></div>
+    <div class="zeile" onclick="layouts"><text class="ztext">{{ zLayouts }}</text></div>
+    <div class="zeile" onclick="sperre"><text class="ztext">{{ zSperre }}</text></div>
+</div>

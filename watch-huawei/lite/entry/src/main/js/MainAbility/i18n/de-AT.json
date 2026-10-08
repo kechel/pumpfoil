@@ -35,6 +35,14 @@
     "f_allRunsTime": "olle Läufe Zeit",
     "done": "FERTIG",
     "lock": "Touch-Sperre",
-    "lockHold": "halten = entsperren"
+    "lockHold": "halten = entsperren",
+    "alarm": "Alarm",
+    "thresholds": "Schwellen",
+    "autoFoil": "Auto (Foil)",
+    "manual": "Manuell",
+    "layoutsShort": "Layouts",
+    "on": "An",
+    "off": "Aus",
+    "auto": "Auto"
   }
 }

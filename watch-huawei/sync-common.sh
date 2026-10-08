@@ -12,5 +12,5 @@ for p in lite wearable; do
   cp common/kern.js common/recorder.js common/konfig.js common/seiten.js common/lauf.js common/maler.js "$z/common/"
 done
 q=lite/entry/src/main/js/MainAbility; z=wearable/entry/src/main/js/MainAbility
-mkdir -p "$z/pages/index" "$z/i18n"
-cp $q/app.js "$z/"; cp $q/pages/index/* "$z/pages/index/"; cp $q/i18n/*.json "$z/i18n/"
+mkdir -p "$z/pages/index" "$z/pages/auswahl" "$z/i18n"
+cp $q/app.js "$z/"; cp $q/pages/index/* "$z/pages/index/"; cp $q/pages/auswahl/* "$z/pages/auswahl/"; cp $q/i18n/*.json "$z/i18n/"

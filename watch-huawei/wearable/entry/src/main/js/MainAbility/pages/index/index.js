@@ -4,6 +4,7 @@
  * STOPP 2 s halten (Profil stopMode „press": tippen); Verwerfen zweimal tippen.
  */
 import app from "@system.app";
+import router from "@system.router";
 import vibrator from "@system.vibrator";
 import device from "@system.device";
 import S from "../../common/seiten.js";
@@ -92,7 +93,7 @@ export default {
     if (R.takt()) this.seite = 2;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
     if (R.leerlauf()) {   // Auto-Start (Profil), wie Zepp
       this.seite = 2; this.zeigeFertig = false;
-      if (R.konfig.waterLock === "on") this.gesperrt = true;
+      if (R.sperreAn()) this.gesperrt = true;
     }
     var z = R.zustand(), tx = this.tx;
     var pausiert = z.modus === "pause";
@@ -158,7 +159,7 @@ export default {
   // Gesperrt tut Tippen/Wischen nichts ausser einem Hinweis; langes Halten (irgendwo) entsperrt.
   sperreTakt(modus) {
     if (modus === "bereit") { this.gesperrt = false; this.sperrHinweis = false; return; }
-    if (R.konfig.waterLock !== "on" || this.gesperrt) return;
+    if (!R.sperreAn() || this.gesperrt) return;
     if (Date.now() - (this.letzteBedienung || 0) > 10000) { this.gesperrt = true; console.info("Pumpfoil Touch-Sperre"); }
   },
   /** true = gesperrt, die Bedienung wird geschluckt (und erklaert). */
@@ -184,7 +185,7 @@ export default {
     this.zeigeFertig = false;
     this.seite = 2;
     this.ausfuehren("start");
-    if (R.konfig.waterLock === "on") this.gesperrt = true;   // wie Zepp: sperrt gleich beim Start
+    if (R.sperreAn()) this.gesperrt = true;   // wie Zepp: sperrt gleich beim Start
   },
   /** 2 s halten (Pause/Fortsetzen, STOPP). Der Knopf zeigt „Halten …", bis es ausloest. */
   halteStart(aktion) {
@@ -241,8 +242,9 @@ export default {
     console.info("Pumpfoil wischen " + d);
     if (R.modus === "bereit") {
       // Nach rechts wischen beendet die App (AppGallery verlangt das) — nur ausserhalb einer Aufnahme.
-      // Steht die Zusammenfassung, schliesst es erst diese.
+      // Steht die Zusammenfassung, schliesst es erst diese. Hoch = Einstellungen (wie Zepp-Seite 4/4).
       if (d === "right") { if (this.zeigeFertig) this.fertig(); else app.terminate(); }
+      else if (d === "up" && !this.zeigeFertig) router.replace({ uri: "pages/auswahl/auswahl" });
       return;
     }
     if (this.sperre()) return;

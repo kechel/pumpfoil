@@ -35,6 +35,14 @@
     "f_allRunsTime": "all runs time",
     "done": "DONE",
     "lock": "Touch lock",
-    "lockHold": "hold to unlock"
+    "lockHold": "hold to unlock",
+    "alarm": "Alarm",
+    "thresholds": "Thresholds",
+    "autoFoil": "Auto (foil)",
+    "manual": "Manual",
+    "layoutsShort": "Layouts",
+    "on": "On",
+    "off": "Off",
+    "auto": "Auto"
   }
 }

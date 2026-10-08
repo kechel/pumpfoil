@@ -19,6 +19,7 @@ import geolocation from "@system.geolocation";
 import file from "@system.file";
 import brightness from "@system.brightness";
 import device from "@system.device";
+import vibrator from "@system.vibrator";
 import K from "./kern.js";
 import M from "./maler.js";
 import S from "./lauf.js";   // nur Stand + Konfig — das Zeichnen gehoert ins Seiten-Buendel
@@ -31,6 +32,7 @@ var PLAN = "internal://app/plan.json";
 var GEGEN = "internal://app/gegenstelle.json";
 var LAUF = "internal://app/laufend.json";
 var KONFIG = "internal://app/konfig.json";
+var AUSWAHL = "internal://app/auswahl.json";   // Wahl auf der Uhr: Alarm, Foil, Layouts, Touch-Sperre
 var HALLO_ALLE_MS = 30 * 60 * 1000;   // Seiten-Konfiguration halbstuendlich neu anfragen
 
 var R = {
@@ -47,6 +49,7 @@ var R = {
   accelLetzt: 0, maxLuecke: 0, gpsLetzt: 0,
   // Datenseiten (seiten.js): Lauf-Stand, Seiten-Konfiguration vom Handy, frischer GPS-Punkt
   stand: new S.Stand(), konfig: new S.Konfig(null), fixNeu: null,
+  auswahl: new S.Auswahl(null), alarm: new S.Alarm(),
   kTeile: null, halloOffen: false, halloZuletzt: 0
 };
 
@@ -168,11 +171,15 @@ R.start = function () {
   R.ohneAccel = false;
   R.stand.neu(); R.fixNeu = null;
   R.plan.neu(R.id);
-  schreibe(K.dateiMeta(R.id), {
+  var meta = {
     session_uuid: R.id, started_at: iso(jetzt), sport: "pumpfoil",
     gps_hz: 1, accel_hz: 50, accel_scale: 2048,
     device_model: R.modell, app_version: C.APP_VERSION
-  }, planSichern);
+  };
+  // gewaehltes Foil wie Zepp (meta.foil_id, nur wenn gewaehlt); sonst setzt der Server den Profil-Standard
+  if (R.auswahl.foilId !== null) meta.foil_id = R.auswahl.foilId;
+  schreibe(K.dateiMeta(R.id), meta, planSichern);
+  R.alarm = new S.Alarm();
   R.modus = "laeuft";
   log("Start " + R.id);
   laufSichern();
@@ -332,12 +339,13 @@ function konfigTeil(text) {
   for (var i = 0; i < n; i++) if (typeof R.kTeile[i] !== "string") return;
   var ganz = R.kTeile.join("");
   R.kTeile = null;
-  try { R.konfig = new S.Konfig(JSON.parse(ganz)); } catch (e) { fehler("speicher", "Konfig kaputt"); return; }
+  try { R.konfigAnwenden(new S.Konfig(JSON.parse(ganz))); } catch (e) { fehler("speicher", "Konfig kaputt"); return; }
   log("Konfig vom Handy, " + n + " Teile");
   file.writeText({ uri: KONFIG, text: ganz, fail: function (d, code) { fehler("speicher", "Speicher " + code + " Konfig"); } });
 }
 
 function senden() {
+  if (!WE) return;   // zwischen zwei Seiten (Wechsel zur Einstellungsseite) gibt es keine Wear Engine
   if (!R.schlange.darf(Date.now())) return;
   if (offenDatei) { teilSenden(); return; }
   if (Date.now() - R.halloZuletzt > HALLO_ALLE_MS) R.halloOffen = true;
@@ -423,6 +431,10 @@ function fehlschlag(code) {
 /** Einmal beim App-Start: Modell, Sendeplan laden, abgebrochene Aufnahme abschliessen. */
 R.init = function (we) {
   WE = we;
+  // Die Seite wird beim Wechsel zur Einstellungsseite neu aufgebaut (Lite kennt nur router.replace) und
+  // ruft init erneut: dann nur die Wear Engine der neuen Seite uebernehmen, nicht alles doppelt starten.
+  if (R.initDone) { R.p2p = null; log("init: Wear Engine neu"); return; }
+  R.initDone = true;
   log("init " + C.APP_VERSION);
   device.getInfo({
     success: function (i) {
@@ -445,8 +457,14 @@ R.init = function (we) {
     }
   });
   file.readText({
-    uri: KONFIG,
-    success: function (d) { try { R.konfig = new S.Konfig(JSON.parse(d.text)); } catch (e) { /* Standard */ } }
+    uri: AUSWAHL,
+    success: function (d) { try { R.auswahl = new S.Auswahl(JSON.parse(d.text)); } catch (e) { /* neu */ } },
+    complete: function () {
+      file.readText({
+        uri: KONFIG,
+        success: function (d) { try { R.konfigAnwenden(new S.Konfig(JSON.parse(d.text))); } catch (e) { /* Standard */ } }
+      });
+    }
   });
   file.readText({
     uri: PLAN,
@@ -477,9 +495,47 @@ R.init = function (we) {
  */
 R.takt = function () {
   if (R.modus !== "laeuft") return false;
-  var jetzt = Date.now(), f = R.fixNeu;
+  var jetzt = Date.now(), f = R.fixNeu, el = R.achse.jetzt(jetzt);
   R.fixNeu = null;
-  return R.stand.tick(R.achse.jetzt(jetzt), jetzt, !!f, f ? f[0] : 0, f ? f[1] : 0, -1, R.sammler.hr);
+  var wechsel = R.stand.tick(el, jetzt, !!f, f ? f[0] : 0, f ? f[1] : 0, -1, R.sammler.hr);
+  var muster = R.alarm.pruefe(R.konfig, R.auswahl, R.stand.sp3 * 3.6, R.sammler.hr, R.stand, el / 1000, jetzt);
+  for (var i = 0; i < muster.length; i++) vibrieren(muster[i], i * 1500);
+  return wechsel;
+};
+
+/**
+ * Muster-ID -> Stoesse, IDs wie Web/Garmin/Wear/Zepp: short1 · short2 · long2 · lsl. Lite kennt nur
+ * „short" und „long" (@system.vibrator); was zaehlt, ist dass die Alarme unterscheidbar sind (wie Zepp).
+ */
+function vibrieren(muster, nach) {
+  var folge = muster === "short1" ? ["short"] : muster === "long2" ? ["long", "long"]
+    : muster === "lsl" ? ["long", "short", "long"] : ["short", "short"];
+  for (var i = 0; i < folge.length; i++) {
+    (function (m, t) {
+      setTimeout(function () { try { vibrator.vibrate({ mode: m }); } catch (e) { /* ohne Vibrator */ } }, t);
+    })(folge[i], nach + i * 600);
+  }
+}
+
+/** Neue Seiten-Konfiguration: Auswahl vorbelegen, Layouts-Wahl der Uhr darueberlegen, Auswahl sichern. */
+R.konfigAnwenden = function (k) {
+  R.konfig = k;
+  k.layoutsServer = k.layoutsOn;
+  R.auswahl.vorbelegen(k);
+  R.auswahlAnwenden();
+};
+/** Nach einer Aenderung auf der Einstellungsseite: Layouts-Wahl wirken lassen und speichern. */
+R.auswahlAnwenden = function () {
+  var k = R.konfig;
+  if (k.layoutsServer === undefined) k.layoutsServer = k.layoutsOn;
+  k.layoutsOn = R.auswahl.layouts === null ? k.layoutsServer : R.auswahl.layouts;
+  schreibe(AUSWAHL, R.auswahl.daten());
+};
+R.dreistufig = S.dreistufig;   // fuer die Einstellungsseite (eigenes Buendel ohne lauf.js)
+
+/** Touch-Sperre: Wahl auf der Uhr, sonst Profil (waterLock „on"). */
+R.sperreAn = function () {
+  return R.auswahl.sperre === null ? R.konfig.waterLock === "on" : R.auswahl.sperre;
 };
 
 /** Was die Datenseiten zum Zeichnen brauchen. */
@@ -510,6 +566,8 @@ R.verwerfen = function () {
 /** Zeichner fuer die Datenseiten (common/maler.js), hier, damit er im app.js-Buendel liegt. */
 R.malen = M.malen;
 
-R.ende = function () { sensorenAus(); bildschirmAn(false); };
+// Die Seite geht (App-Ende oder Wechsel zur Einstellungsseite): ihre Wear Engine gilt nicht mehr, bis die
+// naechste Seite init(we) ruft. Sensoren aus — gewechselt wird nur ausserhalb einer Aufnahme.
+R.ende = function () { WE = null; R.p2p = null; if (R.modus === "bereit") sensorenAus(); bildschirmAn(R.modus !== "bereit"); };
 
 export default R;
