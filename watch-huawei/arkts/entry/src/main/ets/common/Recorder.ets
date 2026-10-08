@@ -166,6 +166,7 @@ export class Recorder {
   private auto: K.AutoStart | null = null;
   private autoLos: boolean = false;
   private leerGpsAn: boolean = false;
+  private ohneAccel: boolean = false;   // Sensorliste ohne ACCELEROMETER -> messweg.accel „keine"
 
   // --- Dateien --------------------------------------------------------------------------
 
@@ -244,6 +245,30 @@ export class Recorder {
   }
 
   // --- Sensoren ---------------------------------------------------------------------------
+
+  /**
+   * Welche Sensoren die Uhr hat, einmal ins Log (Jan, 08.10.2026: Forenbeitrag „How to Obtain the List of
+   * Device Sensors"). Die erste Aufnahme auf einer Watch 5 zeigt damit, was es gibt und wie schnell
+   * (minSamplePeriod in ns). Fehlt der Beschleunigungssensor: Zustand, kein Fehler — wie Lite.
+   */
+  private sensorenAuflisten(): void {
+    try {
+      const liste: sensor.Sensor[] = sensor.getSensorListSync();
+      let accel: boolean = false;
+      let text: string = '';
+      for (let i = 0; i < liste.length; i++) {
+        const x: sensor.Sensor = liste[i];
+        if (x.sensorId === sensor.SensorId.ACCELEROMETER) {
+          accel = true;
+        }
+        text += (i > 0 ? ', ' : '') + x.sensorId + ':' + x.sensorName + '/' + x.minSamplePeriod;
+      }
+      this.ohneAccel = !accel;
+      console.info('Pumpfoil Sensoren (' + liste.length + '): ' + text);
+    } catch (e) {
+      console.error('Pumpfoil Sensorliste: ' + (e as BusinessError).code);
+    }
+  }
 
   private sensorenAn(): void {
     try {
@@ -464,7 +489,8 @@ export class Recorder {
     this.kurzVibrieren();
     this.bildschirmAn(false);
     this.hintergrundAus();
-    this.abschliessen(this.id, this.sammler.index, jetzt, this.achse.pausen, this.sammler.hrAnzahl, 'arkts');
+    this.abschliessen(this.id, this.sammler.index, jetzt, this.achse.pausen, this.sammler.hrAnzahl,
+      this.ohneAccel ? 'keine' : 'arkts');
   }
 
   /**
@@ -717,6 +743,7 @@ export class Recorder {
     }
     this.ctx = ctx;
     this.dir = ctx.filesDir;
+    this.sensorenAuflisten();
     const name: string = deviceInfo.marketName !== '' ? deviceInfo.marketName : deviceInfo.productModel;
     this.modell = ('HUAWEI ' + name).replace(new RegExp('^HUAWEI HUAWEI', 'i'), 'HUAWEI').trim() + ' · HarmonyOS';
     const gt: string | null = this.lies('gegenstelle.json');
