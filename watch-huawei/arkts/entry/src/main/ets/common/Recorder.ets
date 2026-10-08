@@ -150,6 +150,8 @@ export class Recorder {
   private f: Diagnose = { speicher: 0, accel: 0, gps: 0, puls: 0 };
   private letzterFehler: string = '';
   private gpsLetzt: number = 0;
+  private gpsAbonniert: boolean = false;
+  private gpsVersuch: number = 0;
   private bg: string = 'aus';
   private offenDatei: OffeneDatei | null = null;
   private takt: number = -1;
@@ -292,6 +294,16 @@ export class Recorder {
     } catch (e) {
       this.fehler('puls', 'Puls ' + (e as BusinessError).code);
     }
+    this.gpsAbonniert = false;
+    this.gpsAbo();
+  }
+
+  /**
+   * GPS abonnieren. Schlaegt es fehl (3301100 = Ortung in den Systemeinstellungen aus), versucht
+   * taktSeiten es alle 5 s erneut — schaltet der Fahrer die Ortung waehrend der Aufnahme ein, kommt
+   * GPS ohne Neustart dazu. Jeder Fehlversuch wird gezaehlt und geloggt (nicht nur der erste).
+   */
+  private gpsAbo(): void {
     try {
       const anfrage: geoLocationManager.LocationRequest = {
         priority: geoLocationManager.LocationRequestPriority.ACCURACY,
@@ -301,6 +313,10 @@ export class Recorder {
         maxAccuracy: 0
       };
       geoLocationManager.on('locationChange', anfrage, this.gpsRueckruf);
+      this.gpsAbonniert = true;
+      if (this.letzterFehler.indexOf('3301100') >= 0) {
+        this.letzterFehler = '';   // Ortung ist inzwischen an: der Hinweis darf weg (der Zaehler bleibt)
+      }
     } catch (e) {
       this.fehler('gps', 'GPS ' + (e as BusinessError).code);
     }
@@ -818,6 +834,10 @@ export class Recorder {
       return false;
     }
     const jetzt: number = Date.now();
+    if (!this.gpsAbonniert && jetzt - this.gpsVersuch >= 5000) {
+      this.gpsVersuch = jetzt;
+      this.gpsAbo();
+    }
     const f: number[] | null = this.fixNeu;
     this.fixNeu = null;
     const el: number = this.achse.jetzt(jetzt);

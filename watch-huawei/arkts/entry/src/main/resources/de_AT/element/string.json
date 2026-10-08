@@ -179,6 +179,10 @@
     {
       "name": "f_allRunsTime",
       "value": "olle Läufe Zeit"
+    },
+    {
+      "name": "gpsOff",
+      "value": "GPS aus:\nStandort einschalten"
     }
   ]
 }

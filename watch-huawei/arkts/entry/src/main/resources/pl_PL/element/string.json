@@ -179,6 +179,10 @@
     {
       "name": "f_allRunsTime",
       "value": "wsz. przejazdy czas"
+    },
+    {
+      "name": "gpsOff",
+      "value": "GPS wyłączony:\nwłącz lokalizację"
     }
   ]
 }
