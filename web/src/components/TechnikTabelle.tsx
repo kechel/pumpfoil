@@ -131,36 +131,7 @@ export function KurveGeradeTabelle({ kg }: { kg: KurveGerade }) {
   );
 }
 
-/** Mehrere Kennzahlen untereinander in EINER Zelle: Wert (korrigiert), unkorrigiert in Klammern,
- *  kleine Beschriftung dahinter. `grau` = Nebenzahl (z. B. „ganzer Lauf"). */
-export function Zeilen({ zeilen }: { zeilen: [string, number | null | undefined, number | null | undefined, string, boolean?][] }) {
-  return (
-    <div className="space-y-0.5 whitespace-nowrap">
-      {zeilen.map(([label, mit, ohne, vz, grau]) => (
-        // Beschriftung VORN: sie gilt fuer die ganze Zeile; die Klammer gehoert zum Wert davor
-        // (unkorrigiert). Stand die Beschriftung hinten, las sie sich wie die der Klammer (Jan, 08.10.2026).
-        <div key={label}>
-          <span className="mr-1">{label}</span>
-          <span className={grau ? "" : "font-semibold text-brand-700 dark:text-brand-300"}>{mit != null ? `${vz}${mit.toFixed(grau ? 0 : 1)}°` : "–"}</span>
-          {ohne != null && <span> ({vz}{ohne.toFixed(1)}°)</span>}
-        </div>
-      ))}
-    </div>
-  );
-}
 
-/** Eine Zeile „Wert Kurve · Wert gerade" unter der Hauptzahl einer Zelle (Lage je Lauf). Nichts,
- *  wenn der Lauf keine Kurve-/Gerade-Auswertung hat (unter 30 s oder zu wenige Pumpzuege). */
-export function KurveGeradeZeile({ kg, wert }: { kg?: KurveGerade | null; wert: (x: KurveGeradeSeite) => string | null }) {
-  const t = useT();
-  if (!kg || (!kg.kurve && !kg.gerade)) return null;
-  const k = kg.kurve ? wert(kg.kurve) : null, g = kg.gerade ? wert(kg.gerade) : null;
-  return (
-    <div className="whitespace-nowrap">
-      {t("tech.sTurn")} {k ?? "–"}{" · "}{t("tech.sStraight")} {g ?? "–"}
-    </div>
-  );
-}
 
 /**
  * Startseite (Jan, 08.10.2026: „noch die alte unuebersichtliche Darstellung"): EINE Tabelle wie
@@ -201,23 +172,26 @@ export function TechnikUebersicht({ zeilen, titel, mitteText, phase = "tech.sSta
                   <div className="tabular-nums">{t("home.baRuns", { n: String(n(z)) })}</div>
                 </td>
                 <td className="px-3 py-2 tabular-nums">
-                  <Zeilen zeilen={[[t(phase), m?.pump_nicken_deg, o?.pump_nicken_deg, "±"]]} />
-                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
+                  <Raster zeilen={[
+                    { label: t(phase), wert: grad(m?.pump_nicken_deg), klammer: grad(o?.pump_nicken_deg), haupt: true },
+                    ...kgZeilen(z.kg, (x) => grad(x.nicken_deg), t)]} />
                 </td>
                 <td className="px-3 py-2 tabular-nums">
-                  <Zeilen zeilen={[[t("tech.sPump"), m?.pump_rollen_deg, o?.pump_rollen_deg, "±"]]} />
-                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.rollen_deg != null ? `±${x.rollen_deg.toFixed(1)}°` : null} />
-                  <Zeilen zeilen={[
-                    [t("tech.sWobble"), m?.wackeln_deg, o?.wackeln_deg, "±"],
-                    [t("tech.sCurve"), m?.kurvenlage_deg, o?.kurvenlage_deg, ""]]} />
+                  <Raster zeilen={[
+                    { label: t("tech.sPump"), wert: grad(m?.pump_rollen_deg), klammer: grad(o?.pump_rollen_deg), haupt: true },
+                    ...kgZeilen(z.kg, (x) => grad(x.rollen_deg), t),
+                    { label: t("tech.sWobble"), wert: grad(m?.wackeln_deg), klammer: grad(o?.wackeln_deg), haupt: true },
+                    { label: t("tech.sCurve"), wert: grad(m?.kurvenlage_deg, ""), klammer: grad(o?.kurvenlage_deg, ""), haupt: true }]} />
                 </td>
                 <td className="px-3 py-2 tabular-nums">
-                  <span className="font-semibold text-brand-700 dark:text-brand-300">{m?.hub_cm != null ? `${m.hub_cm.toFixed(0)} cm` : "–"}</span>
-                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
+                  <Raster zeilen={[
+                    { label: t(phase), wert: m?.hub_cm != null ? `${m.hub_cm.toFixed(0)} cm` : null, haupt: true },
+                    ...kgZeilen(z.kg, (x) => (x.hub_cm != null ? `${x.hub_cm.toFixed(0)} cm` : null), t)]} />
                 </td>
                 <td className="px-3 py-2 tabular-nums">
-                  <span className="font-semibold text-brand-700 dark:text-brand-300">{m?.takt_hz != null ? pump.value(m.takt_hz) : "–"}</span>
-                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.takt_hz != null ? String(pump.value(x.takt_hz)) : null} />
+                  <Raster zeilen={[
+                    { label: t(phase), wert: m?.takt_hz != null ? String(pump.value(m.takt_hz)) : null, haupt: true },
+                    ...kgZeilen(z.kg, (x) => (x.takt_hz != null ? String(pump.value(x.takt_hz)) : null), t)]} />
                 </td>
               </tr>
             );
@@ -237,53 +211,76 @@ export function TechnikUebersicht({ zeilen, titel, mitteText, phase = "tech.sSta
  */
 export function LageZellen({ k }: { k: NonNullable<BoardAttitude["laeufe"]>[number] }) {
   const t = useT();
-  // Lauf mit stabiler Phase (ab lage.TECHNIK_MIN_S): dann kommen alle oberen Zahlen aus ihr.
+  // Lauf mit stabiler Phase (ab lage.TECHNIK_MIN_S): dann kommen alle oberen Zahlen aus ihr. Kurze Laeufe
+  // zeigen nur die bisherige Zahl ueber den ganzen Lauf. Korrigiert vorn, unkorrigiert in Klammern.
   const lang = !!(k.technik?.mit && k.technik.teil !== "ganz");
+  const m = k.technik?.mit, o = k.technik?.ohne, kg = lang ? k.technik?.kurve_gerade : null;
+  const ganz = (v: number | null | undefined): RasterZeile[] => [{ label: t("tech.sWhole"), wert: grad(v, "±", 0), haupt: true }];
   return (
     <>
-      {/* Technikzahlen ALS ZEILEN IN DEN ZELLEN (Jan, 08.10.2026: „ohne zusaetzliche
-          spalten"): korrigiert vorn, unkorrigiert grau in Klammern, Bedeutung in der
-          Legende darunter. Kurze Laeufe (unter lage.TECHNIK_MIN_S) haben keinen ruhigen Mittelteil — dort
-          bleibt nur die bisherige Zahl ueber den ganzen Lauf. */}
       <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.pitch_amplitude_deg?.toFixed(0)}°`}>
-        {lang
-          ? <>
-              <Zeilen zeilen={[[t("tech.sStable"), k.technik!.mit!.pump_nicken_deg, k.technik!.ohne?.pump_nicken_deg, "±"]]} />
-              <KurveGeradeZeile kg={k.technik!.kurve_gerade} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
-            </>
-          : <>{t("tech.sWhole")} <span className="font-semibold text-brand-700 dark:text-brand-300">±{k.pitch_amplitude_deg?.toFixed(0)}°</span></>}
+        <Raster zeilen={lang ? [
+          { label: t("tech.sStable"), wert: grad(m?.pump_nicken_deg), klammer: grad(o?.pump_nicken_deg), haupt: true },
+          ...kgZeilen(kg, (x) => grad(x.nicken_deg), t),
+        ] : ganz(k.pitch_amplitude_deg)} />
       </td>
       <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.roll_amplitude_deg?.toFixed(0)}°`}>
-        {lang
-          ? <>
-              <Zeilen zeilen={[[t("tech.sPump"), k.technik!.mit!.pump_rollen_deg, k.technik!.ohne?.pump_rollen_deg, "±"]]} />
-              <KurveGeradeZeile kg={k.technik!.kurve_gerade} wert={(x) => x.rollen_deg != null ? `±${x.rollen_deg.toFixed(1)}°` : null} />
-              <Zeilen zeilen={[
-                [t("tech.sWobble"), k.technik!.mit!.wackeln_deg, k.technik!.ohne?.wackeln_deg, "±"],
-                [t("tech.sCurve"), k.technik!.mit!.kurvenlage_deg, k.technik!.ohne?.kurvenlage_deg, ""]]} />
-            </>
-          : <>{t("tech.sWhole")} <span className="font-semibold text-brand-700 dark:text-brand-300">±{k.roll_amplitude_deg?.toFixed(0)}°</span></>}
+        <Raster zeilen={lang ? [
+          { label: t("tech.sPump"), wert: grad(m?.pump_rollen_deg), klammer: grad(o?.pump_rollen_deg), haupt: true },
+          ...kgZeilen(kg, (x) => grad(x.rollen_deg), t),
+          { label: t("tech.sWobble"), wert: grad(m?.wackeln_deg), klammer: grad(o?.wackeln_deg), haupt: true },
+          { label: t("tech.sCurve"), wert: grad(m?.kurvenlage_deg, ""), klammer: grad(o?.kurvenlage_deg, ""), haupt: true },
+        ] : ganz(k.roll_amplitude_deg)} />
       </td>
       <td className="px-3 py-2 align-top tabular-nums"><span className="font-semibold text-brand-700 dark:text-brand-300">{k.gier_rms_deg_s?.toFixed(0)}°/s</span></td>
       <td className="px-3 py-2 align-top tabular-nums">
-        {lang && k.technik!.mit!.takt_hz != null
-          ? <>{t("tech.sStable")} <span className="font-semibold text-brand-700 dark:text-brand-300">{k.technik!.mit!.takt_hz.toFixed(2)} Hz</span></>
-          : <span className="font-semibold text-brand-700 dark:text-brand-300">{k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}</span>}
-        <KurveGeradeZeile kg={lang ? k.technik!.kurve_gerade : null} wert={(x) => x.takt_hz != null ? `${x.takt_hz.toFixed(2)}` : null} />
+        <Raster zeilen={lang && m?.takt_hz != null ? [
+          { label: t("tech.sStable"), wert: `${m.takt_hz.toFixed(2)} Hz`, haupt: true },
+          ...kgZeilen(kg, (x) => (x.takt_hz != null ? `${x.takt_hz.toFixed(2)} Hz` : null), t),
+        ] : [{ label: "", wert: k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : null, haupt: true }]} />
       </td>
-      {/* Ein unsicherer Hub wird nicht verschwiegen und nicht kommentiert — er steht
-          in Klammern. Die Erklaerung dazu haengt an der Lage-Ansicht, wo man sie
-          braucht; hier wuerde sie die Zeile sprengen. */}
+      {/* Ein unsicherer Hub (nur bei kurzen Laeufen, ueber den ganzen Lauf) steht in Klammern und grau. */}
       <td className={`px-3 py-2 align-top tabular-nums ${lang || k.hub_sicher ? "" : "text-slate-500"}`}
         title={lang || k.hub_sicher ? undefined : t("board.heaveShaky", {
           s: (k.hub_fenster_s ?? 3).toFixed(1).replace(/\.0$/, "") })}>
-        {lang && k.technik!.mit!.hub_cm != null
-          ? <>{t("tech.sStable")} <span className="font-semibold text-brand-700 dark:text-brand-300">{k.technik!.mit!.hub_cm.toFixed(0)} cm</span></>
-          : <span className="font-semibold text-brand-700 dark:text-brand-300">{k.hub_pp_cm != null
-            ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
-            : "–"}</span>}
-        <KurveGeradeZeile kg={lang ? k.technik!.kurve_gerade : null} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
+        <Raster zeilen={lang && m?.hub_cm != null ? [
+          { label: t("tech.sStable"), wert: `${m.hub_cm.toFixed(0)} cm`, haupt: true },
+          ...kgZeilen(kg, (x) => (x.hub_cm != null ? `${x.hub_cm.toFixed(0)} cm` : null), t),
+        ] : [{ label: "", wert: k.hub_pp_cm != null ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`) : null, haupt: true }]} />
       </td>
     </>
   );
 }
+
+/** Eine Zeile im Zell-Raster: Beschriftung | Wert | Klammer (unkorrigiert). `haupt` = Hauptzahl (cyan, fett). */
+export type RasterZeile = { label: string; wert: string | null; klammer?: string | null; haupt?: boolean };
+
+/**
+ * Zell-Inhalt als Raster (Jan, 08.10.2026: „alignen, so dass die werte untereinander stehen"): drei
+ * Spalten, Werte rechtsbuendig untereinander, Kurve und gerade je eine eigene Zeile.
+ */
+export function Raster({ zeilen }: { zeilen: RasterZeile[] }) {
+  return (
+    <div className="inline-grid grid-cols-[auto_auto_auto] gap-x-2 whitespace-nowrap">
+      {zeilen.map((z) => (
+        <div key={z.label} className="contents">
+          <span>{z.label}</span>
+          <span className={`text-right ${z.haupt ? "font-semibold text-brand-700 dark:text-brand-300" : ""}`}>{z.wert ?? "–"}</span>
+          <span>{z.klammer ? `(${z.klammer})` : ""}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Zwei Raster-Zeilen „Kurve" und „gerade" aus einer Kurve/Gerade-Auswertung; leer, wenn es keine gibt. */
+export function kgZeilen(kg: KurveGerade | null | undefined, wert: (x: KurveGeradeSeite) => string | null,
+  t: (k: string) => string): RasterZeile[] {
+  if (!kg || (!kg.kurve && !kg.gerade)) return [];
+  return [
+    { label: t("tech.sTurn"), wert: kg.kurve ? wert(kg.kurve) : null },
+    { label: t("tech.sStraight"), wert: kg.gerade ? wert(kg.gerade) : null },
+  ];
+}
+
+const grad = (v: number | null | undefined, vz = "±", nk = 1) => (v != null ? `${vz}${v.toFixed(nk)}°` : null);
