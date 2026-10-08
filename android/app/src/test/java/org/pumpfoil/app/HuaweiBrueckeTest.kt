@@ -65,6 +65,11 @@ class HuaweiBrueckeTest {
         val roh = """{"views":[[1,2,0]],"pages":[[1,4,[[3,500,500,2,0,0,"Läufe"]]]],"latestVersion":"9","foils":[1,2]}"""
         val k = HuaweiBruecke.konfigFuerUhr(roh)
         assertEquals(false, k.contains("latestVersion")); assertEquals(false, k.contains("foils"))
+        // Ablauf-Einstellungen kommen mit (Zepp-Ablauf auf Huawei, 08.10.2026)
+        val kj = org.json.JSONObject(HuaweiBruecke.konfigFuerUhr(
+            """{"views":[[1,2,0]],"stopMode":"press","autoStart":true,"waterLock":"on","recordMode":"full"}"""))
+        assertEquals("press", kj.getString("stopMode")); assertEquals(true, kj.getBoolean("autoStart"))
+        assertEquals("on", kj.getString("waterLock")); assertEquals(false, kj.has("recordMode"))
         val teile = HuaweiBruecke.konfigTeile(k, 20)
         assertEquals(true, teile.all { it.startsWith("PF1|k_konfig.json|") && it.all { c -> c.code < 128 } })
         val n = teile.size
