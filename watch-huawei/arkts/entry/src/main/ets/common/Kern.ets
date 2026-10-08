@@ -590,3 +590,66 @@ export class Anzeige {
     }
   }
 }
+
+// --- Direkt-Upload (Uhr -> Server ohne Handy, nur ArkTS) ------------------------------------
+//
+// Gekoppelt laedt die Uhr eine Session erst hoch, wenn sie ABGESCHLOSSEN ist — mit allen Dateien
+// am Stueck, genau wie die Android-Bruecke (HuaweiBruecke.uploadVon/uploadReihenfolge): Meta mit
+// expected_chunks, GPS-Chunks zuerst in Paketen zu 30, dann /complete. Nur Sessions, von denen noch
+// NICHTS per Wear Engine ging; angefangene laufen ueber das Handy zu Ende.
+
+/** Erste Session, die fertig und noch unberuehrt ist, sonst null. */
+export function direktBereit(p: Sendeplan): PlanEintrag | null {
+  for (let i = 0; i < p.s.length; i++) {
+    const x: PlanEintrag = p.s[i];
+    if (x.e && !x.m && x.g === 0 && !x.eg) {
+      return x;
+    }
+  }
+  return null;
+}
+
+export interface ChunkPaket {
+  chunks: ChunkKopf[];
+}
+
+export interface ChunkKopf {
+  index: number;
+  kind: string;
+}
+
+export interface DirektUpload {
+  meta: string;        // Meta mit expected_chunks
+  pakete: string[];    // Bodies fuer /chunks: {"chunks":[…]}, GPS zuerst
+  anzahl: number;      // Chunks insgesamt
+}
+
+/**
+ * Bodies fuer den Upload. Die Chunk-Texte gehen UNVERAENDERT in die Pakete (keine zweite
+ * Serialisierung, die Zahlen anders schreiben koennte). `schonDa` = was der Server laut
+ * received_chunks schon hat (abgebrochener Upload): geht nicht noch einmal raus.
+ */
+export function direktUpload(metaText: string, chunkTexte: string[], schonDa: number[], groesse: number): DirektUpload {
+  const t: string = metaText.trim();
+  const meta: string = t.substring(0, t.length - 1) + ',"expected_chunks":' + chunkTexte.length + '}';
+  const gps: string[] = [];
+  const rest: string[] = [];
+  for (let i = 0; i < chunkTexte.length; i++) {
+    const k: ChunkKopf = JSON.parse(chunkTexte[i]) as ChunkKopf;
+    if (schonDa.indexOf(k.index) >= 0) {
+      continue;
+    }
+    if (k.kind === 'gps') {
+      gps.push(chunkTexte[i]);
+    } else {
+      rest.push(chunkTexte[i]);
+    }
+  }
+  const alle: string[] = gps.concat(rest);
+  const pakete: string[] = [];
+  for (let i = 0; i < alle.length; i += groesse) {
+    pakete.push('{"chunks":[' + alle.slice(i, i + groesse).join(',') + ']}');
+  }
+  const aus: DirektUpload = { meta: meta, pakete: pakete, anzahl: chunkTexte.length };
+  return aus;
+}

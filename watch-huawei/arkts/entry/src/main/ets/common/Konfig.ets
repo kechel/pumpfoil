@@ -14,3 +14,8 @@ export const IOS_FP: string = 'org.pumpfoil.coolwatch';
 /** Reihenfolge = Erstversuch; die Uhr merkt sich, welche zuletzt angenommen hat. */
 export const GEGENSTELLEN: string[][] = [[PHONE_PKG, PHONE_FP], [IOS_PKG, IOS_FP]];
 export const APP_VERSION: string = '1.0.2';
+/**
+ * Direkt-Upload ohne Handy (Jan, 08.10.2026: „dann gehts ohne app und auch fuer leute mit iphone"):
+ * die Uhr koppelt sich per Code wie Garmin (/api/devices/pair-init|pair-poll) und laedt selbst hoch.
+ */
+export const SERVER: string = 'https://pumpfoil.org';

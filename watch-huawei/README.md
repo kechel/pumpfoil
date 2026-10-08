@@ -74,6 +74,23 @@ Was die Uhr NICHT liefert und wie damit umgegangen wird:
 - **Display aus nicht beeinflussbar** → `setKeepScreenOn` waehrend der Aufnahme; ob es dunkel
   weiterlaeuft, zeigt die Abdeckung je Session am Server (`scripts/messweg-pruefen.py`).
 
+## Direkt zum Server ohne Handy (nur Watch 5 / ArkTS, ab 1.0.2)
+
+Jan, 08.10.2026: „dann gehts ohne app und auch fuer leute mit iphone". Einstellungen → **pumpfoil.org**
+→ die Uhr zeigt einen Code (`/api/devices/pair-init`, Plattform `huawei`), der Nutzer gibt ihn auf
+pumpfoil.org unter Konto ein, die Uhr holt per `/pair-poll` ihr Geraete-Token (`direkt.json`).
+Gekoppelt bleibt die Wear Engine still; die Uhr holt die Konfiguration selbst (`/api/devices/config`)
+und laedt jede ABGESCHLOSSENE Session wie die Android-Bruecke hoch (Meta mit `expected_chunks`,
+GPS-Chunks zuerst in Paketen zu 30, `/complete`, erst danach loeschen; Backoff 30 s … 5 min; 401 →
+entkoppelt). Logik in `Kern.ets` (`direktBereit`, `direktUpload`, getestet in
+`test/arkts-kern.test.mjs`), Netz in `Direkt.ets`, Server-Seite in `server/tests/test_huawei_e2e.py`.
+Lite (GT/Fit) hat kein Netz — dort bleibt nur die Wear Engine.
+**UNGEPRUEFT auf echter Uhr:** ob eine Watch 5 ohne Android-Handy ins Netz kommt (WLAN, eSIM, oder
+ueber die Health-App am iPhone).
+
+DevEco-Emulator: dessen GPS-Emulation kam nie bei der App an (System kannte nur 0,0). Heisst das
+Geraet „emulator", faehrt die App selbst eine Runde wie `common/sim-gps.js` (`Recorder.simAn`).
+
 ## Was Jan eintragen muss (Platzhalter `..._EINTRAGEN`)
 
 | Was | Wo |

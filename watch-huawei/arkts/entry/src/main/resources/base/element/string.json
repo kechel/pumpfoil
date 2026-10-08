@@ -195,6 +195,30 @@
     {
       "name": "gpsOff",
       "value": "GPS off:\nturn on location"
+    },
+    {
+      "name": "connect",
+      "value": "Connect"
+    },
+    {
+      "name": "connected",
+      "value": "Connected"
+    },
+    {
+      "name": "disconnect",
+      "value": "Disconnect"
+    },
+    {
+      "name": "pairHint",
+      "value": "Enter this code at Account"
+    },
+    {
+      "name": "pairNoNet",
+      "value": "No connection to pumpfoil.org"
+    },
+    {
+      "name": "noInternet",
+      "value": "no internet"
     }
   ]
 }
