@@ -3,6 +3,7 @@ import { Card } from "./ui";
 import { useT } from "../i18n";
 import { rampColor, hrColor, hrRange as hrRangeOf } from "../lib/trackColors";
 import type { SessionSummary } from "../lib/api";
+import { minMax } from "../lib/minmax";
 
 // Puls-Streifen je Lauf auf der Vergleichsseite (Jans Entwurf 19.08., ausgeloest durch
 // ThermikDrehers Frage, wie der Puls beim Pumpen steigt).
@@ -175,8 +176,9 @@ export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierun
   const dBereich = useMemo<[number, number]>(() => {
     const alle = zeilen.flatMap((z) => z.delta).filter((v): v is number => v != null);
     if (!alle.length) return [0, 10];
-    const min = Math.min(...alle, 0);
-    return [min, Math.max(Math.max(...alle), min + 10)];
+    const [lo, hi] = minMax(alle);   // ohne Spread (lange Aufnahmen, s. lib/minmax.ts)
+    const min = Math.min(lo, 0);
+    return [min, Math.max(hi, min + 10)];
   }, [zeilen]);
   const [dLo, dHi] = dBereich;
 

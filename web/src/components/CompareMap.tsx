@@ -10,6 +10,7 @@ import { usePumpFmt } from "../lib/pumpRate";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { syncPlan } from "../lib/syncPlayback";
 import { fmtTime } from "../lib/time";
+import { minMax } from "../lib/minmax";
 
 export interface CompareMapItem {
   key: string;
@@ -97,11 +98,12 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   const speedRange = useMemo<[number, number]>(() => {
     const vals = items.flatMap((it) => itemSpeeds(it, win));
     if (!vals.length) return [0, 40];
-    return [Math.max(0, Math.floor(Math.min(...vals))), Math.min(60, Math.ceil(Math.max(...vals)))];
+    const [lo, hi] = minMax(vals);
+    return [Math.max(0, Math.floor(lo)), Math.min(60, Math.ceil(hi))];
   }, [items, win]);
   const pumpRange = useMemo<[number, number]>(() => {
     const vals = items.flatMap((it) => (it.session.analysis?.track_geojson?.properties?.pump_hz ?? []).filter((v: number | null): v is number => v != null));
-    return vals.length ? [Math.min(...vals), Math.max(...vals)] : [0, 2];
+    return vals.length ? minMax(vals) : [0, 2];
   }, [items]);
   // Bereich ueber ALLE verglichenen Sessions zusammen (Jan: „min aller sessions bis max aller
   // sessions im vergleich") — zentral in lib/trackColors, damit Karte und Puls-Streifen dieselbe

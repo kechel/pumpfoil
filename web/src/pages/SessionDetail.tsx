@@ -56,6 +56,7 @@ function kmh(mps: number | null | undefined) {
 }
 
 import { ladeSessionView, merkeSessionView, type ColorMode } from "../lib/sessionViewPrefs";
+import { minMax } from "../lib/minmax";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 function ytId(url: string | null | undefined): string {
@@ -666,7 +667,8 @@ export default function SessionDetail() {
         if (v != null && isFinite(v)) vals.push(v * 3.6);
       }
     if (!vals.length) return null;
-    return [Math.max(0, Math.floor(Math.min(...vals))), Math.min(50, Math.ceil(Math.max(...vals)))];
+    const [lo, hi] = minMax(vals);
+    return [Math.max(0, Math.floor(lo)), Math.min(50, Math.ceil(hi))];
   }
 
   // Einstellungen laden: Auto-Modus + (bei manuell) gespeicherte Skala-Grenzen.
@@ -825,7 +827,7 @@ export default function SessionDetail() {
   const hasPump = pumpHz.some((v) => v != null);
   const pumpRange = useMemo<[number, number]>(() => {
     const vals = pumpHz.filter((v): v is number => v != null);
-    return vals.length ? [Math.min(...vals), Math.max(...vals)] : [0, 2];
+    return vals.length ? minMax(vals) : [0, 2];
   }, [session]);
 
   // Falls Pump-Modus aktiv, aber Session keine Pump-Daten hat -> zurück auf Speed.
