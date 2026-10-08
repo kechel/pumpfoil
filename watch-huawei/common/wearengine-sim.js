@@ -1,7 +1,7 @@
 /*
  * Attrappe der Wear Engine fuer den Simulator (Jan, 08.10.2026: Lite-Simulator blieb schwarz).
  * Im Simulator gibt es `@system.wearengine` nicht — schon der Import von wearengine.js scheitert,
- * bevor eine Zeile von uns laeuft. Mit `./sim.sh an` importiert recorder.js diese Datei statt
+ * bevor eine Zeile von uns laeuft. Mit `./sim.sh an` importiert die Seite diese Datei statt
  * der echten: Aufnahme und Datenseiten laufen, Senden scheitert sichtbar mit Code -2.
  * NIE fuer eine echte Uhr bauen — build-all.sh synct vorher und stellt den echten Import her.
  */

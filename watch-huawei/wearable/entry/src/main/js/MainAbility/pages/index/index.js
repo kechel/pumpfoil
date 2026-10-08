@@ -7,6 +7,9 @@ import app from "@system.app";
 import vibrator from "@system.vibrator";
 import device from "@system.device";
 import S from "../../common/seiten.js";
+// Wear Engine im Seiten-Buendel, an den Recorder durchgereicht (s. recorder.js WE). sim.sh tauscht diese
+// Zeile im Simulator gegen die Attrappe.
+import { P2pClient, Message, Builder } from "../../wearengine/wearengine.js";
 
 // Der Recorder steckt im app.js-Buendel (s. dort, Grund: 48 KB Uebersetzungs-Heap je Buendel).
 // Gesetzt in onInit (dann steht das App-Objekt sicher).
@@ -32,7 +35,7 @@ export default {
     knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
   },
   onInit() {
-    console.info("Pumpfoil Seite onInit");
+    console.info("Pumpfoil Seite onInit, Text start=" + this.$t("strings.start"));
     R = getApp().R;
     this.knopfStart = this.$t("strings.start");
     this.knopfPause = this.$t("strings.pause");
@@ -51,7 +54,7 @@ export default {
       that0.lite = d.deviceType !== "wearable";
     } });
     // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
-    try { R.init(); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
+    try { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
     var that = this;
     this.takt = setInterval(function () { that.zeigen(); }, 1000);
     this.zeigen();
@@ -60,7 +63,11 @@ export default {
     clearInterval(this.takt);
     R.ende();
   },
+  // Fehler beim Anzeigen sichtbar machen (Infozeile + Log), jede Sekunde neu — nie stumm.
   zeigen() {
+    try { this.zeigenRoh(); } catch (e) { console.error("Pumpfoil zeigen: " + e); this.info = "zeigen: " + e; }
+  },
+  zeigenRoh() {
     if (R.takt()) this.seite = 1;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
     var z = R.zustand();
     this.modus = z.modus;

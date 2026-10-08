@@ -35,7 +35,10 @@ for m in release debug; do
     "$JB/jerry-snapshot" generate -o "$BC" "$f" >/dev/null 2>&1 \
       || { echo "FEHLER: lite ($m) $f laesst sich nicht als Snapshot bauen (Syntax wie Regex-Literal, oder Heap)"; rm -f "$BC"; exit 1; }
     H=$("$JB/jerry" --mem-stats --parse-only "$f" 2>&1 | sed -n 's/^  Peak allocated = \([0-9]*\) bytes/\1/p' | head -1)
-    echo "  lite $m $(basename "$f"): $(wc -c < "$f") Byte, Heap-Spitze $H von 49144"
+    G=$(wc -c < "$f")
+    echo "  lite $m $(basename "$f"): $G Byte (Grenze 49152), Heap-Spitze $H von 49144"
+    # Zweite Grenze, vom Simulator gemeldet („app.js is bigger than 48 KB"): die Datei selbst.
+    [ "$G" -le 46000 ] || { echo "FEHLER: $f ist $G Byte — ueber 48 KB laedt die Uhr die Datei nicht (Grenze hier 46000)"; rm -f "$BC"; exit 1; }
     [ "${H:-99999}" -le 44000 ] || { echo "FEHLER: $f braucht beim Uebersetzen zu viel Heap (Grenze 44000 = 90 %) — verkleinern oder aufteilen"; rm -f "$BC"; exit 1; }
   done
 done

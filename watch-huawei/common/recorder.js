@@ -22,7 +22,9 @@ import device from "@system.device";
 import K from "./kern.js";
 import S from "./lauf.js";   // nur Stand + Konfig — das Zeichnen gehoert ins Seiten-Buendel
 import C from "./konfig.js";
-import { P2pClient, Message, Builder } from "../wearengine/wearengine.js";
+// Wear Engine kommt von der SEITE herein (R.init(we)), nicht per Import: das app.js-Buendel lag mit ihr
+// im Debug-Build ueber 48 KB Datei, die die Uhr nicht laedt („app.js is bigger than 48 KB", 08.10.2026).
+var WE = null;   // { P2pClient, Message, Builder }
 
 var PLAN = "internal://app/plan.json";
 var GEGEN = "internal://app/gegenstelle.json";
@@ -223,7 +225,7 @@ function p2p() {
   if (!R.p2p) {
     var g = R.gegen.jetzt();
     log("P2P an " + g[0]);
-    R.p2p = new P2pClient();
+    R.p2p = new WE.P2pClient();
     R.p2p.setPeerPkgName(g[0]);
     R.p2p.setPeerFingerPrint(g[1]);
     // Rueckweg Handy -> Uhr: die Seiten-Konfiguration (Antwort auf das Hallo), in Teilen wie hin.
@@ -288,9 +290,9 @@ function senden() {
 function teilSenden() {
   var o = offenDatei;
   if (!o || !R.schlange.darf(Date.now())) return;
-  var b = new Builder();
+  var b = new WE.Builder();
   b.setDescription(o.teile[o.nr]);
-  var m = new Message();
+  var m = new WE.Message();
   m.builder = b;
   R.schlange.start();
   var fertig = false;
@@ -336,7 +338,8 @@ function fehlschlag(code) {
 }
 
 /** Einmal beim App-Start: Modell, Sendeplan laden, abgebrochene Aufnahme abschliessen. */
-R.init = function () {
+R.init = function (we) {
+  WE = we;
   log("init " + C.APP_VERSION);
   device.getInfo({
     success: function (i) {
