@@ -120,7 +120,11 @@ export default {
       // Handy im Balken zeigt. Das Ziel ist das HANDY, nicht der Server.
       info = this.$t("strings.toPhone") + " " + z.plan.fertig + "/" + z.plan.gesamt;
       if (z.sendeFehler > 0) info += " · " + this.$t("strings.openPhone") + " (" + z.sendeCode + ")";
-    } else if (z.modus === "bereit") info = this.$t("strings.allSent");
+    } else if (z.modus === "bereit") {
+      // Nichts offen, aber das Handy antwortet nicht (Hallo scheitert): sagen statt „Alles uebertragen" —
+      // ueber das Hallo kommen auch die Datenseiten vom Server (Simulator-Log 08.10.2026).
+      info = z.sendeFehler > 0 ? this.$t("strings.openPhone") + " (" + z.sendeCode + ")" : this.$t("strings.allSent");
+    }
     this.info = info;
     // Balken nur ausserhalb der Aufnahme: waehrend der Fahrt gehen die Chunks laufend raus und
     // der Balken zappelte zwischen 1/2 und 2/2 — die Zahl in der Zeile reicht dort.

@@ -113,7 +113,9 @@ struct Index {
         info += ' · ' + this.t($r('app.string.openPhone')) + ' (' + z.sendeCode + ')';
       }
     } else if (z.modus === 'bereit') {
-      info = this.t($r('app.string.allSent'));
+      // Nichts offen, aber das Handy antwortet nicht: sagen statt „Alles uebertragen" (wie Lite).
+      info = z.sendeFehler > 0 ? this.t($r('app.string.openPhone')) + ' (' + z.sendeCode + ')'
+        : this.t($r('app.string.allSent'));
     }
     this.info = info;
     // Balken nur ausserhalb der Aufnahme (waehrend der Fahrt zappelte er zwischen 0/1 und 1/1).
