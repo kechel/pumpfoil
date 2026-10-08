@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-09-28-richtung-kompass"
+LAGE_VERSION = "2026-10-08-fliehkraft-technik"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -528,7 +528,7 @@ def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         return lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,
                               yaw_fenster_s=GIER_GPS_FENSTER_S,
                               t_von_ms=von, t_bis_ms=bis, ref_bereiche_ms=ref_bereiche_ms,
-                              rot_deg=rot, _roh=True)
+                              rot_deg=rot, _roh=True, fliehkraft=False)
 
     # Die Achse braucht keinen Durchgang: sie kommt direkt aus der Drehrate. Der Bezug ist
     # derselbe wie in `lage_berechnen`, damit „waagerecht" dasselbe heisst.
@@ -742,7 +742,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    hub_fenster_s: float | None = None, rot_deg: float | None = None,
                    lauf_starts_ms: list[float] | None = None,
                    gps: list | None = None, _roh: bool = False,
-                   mag: tuple[np.ndarray, np.ndarray] | None = None) -> dict:
+                   mag: tuple[np.ndarray, np.ndarray] | None = None,
+                   fliehkraft: bool = True) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
     `acc_raw`/`gyr_raw` sind die int16-Rohwerte, `t_*_ms` die zugehoerigen Zeitachsen. Das
@@ -843,6 +844,41 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Bias aus den Ruhephasen. Ohne ihn laeuft die Gier-Integration mit rund 1°/s weg.
     bias = gyr[still].mean(axis=0) if still.sum() > RUHE_MIN_S * rechen_hz else np.zeros(3)
     gyr = gyr - bias
+
+    # FLIEHKRAFT HERAUSRECHNEN (08.10.2026). In einer Kurve misst der Beschleunigungsmesser nicht
+    # nur die Schwerkraft, sondern auch die Zentripetalbeschleunigung a = ω × v quer zum Brett. Bei
+    # einer sauber gefahrenen Kurve zeigt die Summe genau senkrecht durchs Brett — der Messer meldet
+    # „waagerecht", und der Komplementaerfilter zieht das Rollen innerhalb von TAU_S auf null.
+    # Gefunden am Vergleich mit der Soll-Schraeglage tan φ = v·ω/g: Kreisel- und GPS-Drehrate
+    # stimmten ueberein (r 0,8–1,0), das gemessene langsame Rollen hatte mit beiden nichts zu tun.
+    # ω = Kreisel um die Senkrechte (zeitgleich, rauscharm), v = GPS-Tempo. Das Vorzeichen des
+    # Kreisels wird gegen den GPS-Kurs geprueft (zwei Laeufe zeigten es verdreht). Ohne GPS keine
+    # Korrektur — `fliehkraft_info` sagt, ob sie lief.
+    fliehkraft_info = {"an": False}
+    if fliehkraft and gps:
+        _gt, _kurs, _tempo = kurs_aus_gps(gps)
+        if len(_gt) >= 8:
+            _kern = np.ones(3) / 3.0
+            v_t = np.clip(np.interp(t, _gt, np.convolve(_tempo, _kern, mode="same")), 0.0, 12.0)
+            _g0 = _tiefpass(acc, t_s, TAU_S)
+            _g0 = _g0 / np.clip(np.linalg.norm(_g0, axis=1, keepdims=True), 1e-6, None)
+            w_oben = np.einsum("ij,ij->i", gyr, _g0)          # rad/s, positiv = gegen den Uhrzeigersinn
+            kurs_rate = np.interp(t, _gt, np.convolve(np.gradient(_kurs, _gt / 1000.0), _kern, mode="same"))
+            _m = v_t > 1.5
+            vz, r_gps = 1, None
+            # Geglaettet vergleichen: im Rohsignal steckt das Gier-Zittern jedes Pumpzugs, das mit dem
+            # Kurs nichts zu tun hat (ungeglaettet kam r nur auf 0,1–0,4, bei #12687 zu wenig).
+            _w_glatt = _tiefpass(w_oben[:, None], t_s, TAU_S)[:, 0]
+            if _m.sum() > 50 and np.std(kurs_rate[_m]) > 1.0 and np.std(_w_glatt[_m]) > 0.005:
+                # Kurs waechst im Uhrzeigersinn, w_oben gegen ihn -> gleichsinnig heisst negativ korreliert.
+                r_gps = float(np.corrcoef(_w_glatt[_m], -kurs_rate[_m])[0, 1])
+                vz = -1 if r_gps < -0.3 else 1
+            # Rechtshaendiges Brett-System nach `_dreh_auf_oben`: x vorn, z oben, also y links.
+            # ω (um oben) × v (nach vorn) zeigt nach +y — die Kurveninnenseite.
+            acc = acc.copy()
+            acc[:, 1] -= vz * w_oben * v_t / G_MS2
+            fliehkraft_info = {"an": True, "vz": vz,
+                               "r_gps": None if r_gps is None else round(r_gps, 2)}
 
     # Schwerkraftrichtung fuer die GIER-PROJEKTION: dort wird eine ruhige Achse gebraucht,
     # also geglaettet.
@@ -1014,6 +1050,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         "null_pitch_deg": round(null_p, 2),
         "null_roll_deg": round(null_r, 2),
         "hat_gyro": bool(hat_gyro),
+        "fliehkraft": fliehkraft_info,
         "t_ms": [round(float(x)) for x in t[aus]],
         "pitch_deg": [round(float(x), 2) for x in pitch[aus]],
         "roll_deg": [round(float(x), 2) for x in roll[aus]],
@@ -1232,6 +1269,66 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     return {"je_lauf": aus, "ganze": ganze, "gruppe_rot_deg": gruppe_rot}
 
 
+# TECHNIK-KENNZAHLEN (Jan, 08.10.2026). Die alten Lauf-Zahlen („Nicken ±X°") waren das 95. Perzentil
+# der Abweichung ueber den GANZEN Lauf und mischten drei Dinge: den Pumpzug, langsame Lagewechsel und
+# Start/Sturz an den Raendern. Hier getrennt nach Zeitskala, und nur aus dem STABILEN MITTELTEIL:
+# die ersten und letzten 10 s fallen weg, kuerzere Laeufe als 30 s bleiben leer (Jan: „bei kuerzeren
+# laeufen dann den teil leer lassen"). Nachgemessen an allen Brett-Laeufen, s. Commit.
+TECHNIK_RAND_S = 10.0
+TECHNIK_MIN_S = 30.0
+TECHNIK_PUMP_HZ = (0.6, 2.5)     # ein Pumpzug
+TECHNIK_WACKEL_HZ = (0.2, 0.6)   # ueber ein paar Pumpzyklen, 2-5 s
+TECHNIK_KURVE_HZ = 0.2           # langsamer: Kurvenlage
+
+
+def _fft_band(x: np.ndarray, hz: float, unten: float, oben: float) -> np.ndarray:
+    X = np.fft.rfft(x - np.mean(x))
+    f = np.fft.rfftfreq(len(x), 1.0 / hz)
+    X[(f < unten) | (f > oben)] = 0
+    return np.fft.irfft(X, len(x))
+
+
+def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float) -> dict | None:
+    """Technik-Kennzahlen eines Laufs aus dem Ergebnis von `lage_berechnen` (Raster `erg["t_ms"]`).
+
+    pump_nicken_deg / pump_rollen_deg  halbe Spanne (5./95. Perzentil) im Pumpband: ± Grad je Pumpzug
+    wackeln_deg                        dasselbe im Band 0,2-0,6 Hz: seitliches Hin und Her ueber 2-5 s
+    kurvenlage_deg                     95. Perzentil des Betrags unter 0,2 Hz: wie schraeg in Kurven
+    hub_cm                             Auf und Ab im Pumptakt (5./95. Perzentil), wie bisher
+    takt_hz                            staerkste Frequenz des Nickens im Pumpband
+    None, wenn der Lauf kuerzer als TECHNIK_MIN_S ist oder das Ergebnis nicht taugt.
+    """
+    if not erg.get("ok") or bis_ms - von_ms < TECHNIK_MIN_S * 1000.0:
+        return None
+    t = np.asarray(erg["t_ms"], dtype=float)
+    m = (t >= von_ms + TECHNIK_RAND_S * 1000.0) & (t <= bis_ms - TECHNIK_RAND_S * 1000.0)
+    hz = float(erg["hz"])
+    if m.sum() < 4 * hz:
+        return None
+    p = np.asarray(erg["pitch_deg"], dtype=float)[m]
+    r = np.asarray(erg["roll_deg"], dtype=float)[m]
+
+    def halb(x: np.ndarray) -> float:
+        return round(float((np.percentile(x, 95) - np.percentile(x, 5)) / 2.0), 1)
+
+    pp = _fft_band(p, hz, *TECHNIK_PUMP_HZ)
+    f = np.fft.rfftfreq(len(p), 1.0 / hz)
+    A = np.abs(np.fft.rfft(p - p.mean()))
+    band = (f >= TECHNIK_PUMP_HZ[0]) & (f <= TECHNIK_PUMP_HZ[1])
+    hub = erg.get("hub_cm")
+    hub_m = np.asarray(hub, dtype=float)[m] if hub is not None else None
+    return {
+        "mitte_s": round(float(m.sum() / hz), 1),
+        "pump_nicken_deg": halb(pp),
+        "pump_rollen_deg": halb(_fft_band(r, hz, *TECHNIK_PUMP_HZ)),
+        "wackeln_deg": halb(_fft_band(r, hz, *TECHNIK_WACKEL_HZ)),
+        "kurvenlage_deg": round(float(np.percentile(np.abs(_fft_band(r, hz, 0.0, TECHNIK_KURVE_HZ)), 95)), 1),
+        "hub_cm": (round(float(np.percentile(hub_m, 95) - np.percentile(hub_m, 5)), 1)
+                   if hub_m is not None and len(hub_m) else None),
+        "takt_hz": round(float(f[band][np.argmax(A[band])]), 2) if band.any() else None,
+    }
+
+
 def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                        gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
                        ref_bereiche_ms: list[tuple[float, float]],
@@ -1244,9 +1341,14 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                                lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe, mag=mag)["je_lauf"]
     aus: list[dict] = []
     for (a, b), m in zip(ref_bereiche_ms, montagen):
+        # Die bisherigen Zahlen bleiben die der UNKORRIGIERTEN Rechnung (Jan: die alte Fassung soll
+        # weiter zu sehen sein); die Technik-Kennzahlen kommen in beiden Fassungen.
         erg = lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,
                              t_von_ms=a, t_bis_ms=b, ref_bereiche_ms=[(a, b)],
-                             rot_deg=float(m["rot_deg"]), _roh=True)
+                             rot_deg=float(m["rot_deg"]), _roh=True, fliehkraft=False)
+        erg_k = lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,
+                               t_von_ms=a, t_bis_ms=b, ref_bereiche_ms=[(a, b)],
+                               rot_deg=float(m["rot_deg"]), _roh=True, gps=gps, fliehkraft=True)
         if not erg.get("ok"):
             aus.append({"lauf": m["lauf"], "ok": False})
             continue
@@ -1261,5 +1363,8 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "hub_pp_cm": k["hub_pp_cm"],
             "hub_hz": k["hub_hz"],
             "hub_sicher": k["hub_sicher"],
+            "technik": {"mit": technik_kennzahlen(erg_k, a, b) if erg_k.get("ok") else None,
+                        "ohne": technik_kennzahlen(erg, a, b),
+                        "fliehkraft": erg_k.get("fliehkraft")},
         })
     return aus

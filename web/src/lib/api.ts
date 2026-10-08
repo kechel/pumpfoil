@@ -190,6 +190,8 @@ export type BoardAttitude = {
   // wirklich anfaengt und aufhoert. null, wenn die ganze Aufnahme gezeigt wird.
   auswahl_von_ms?: number | null;
   auswahl_bis_ms?: number | null;
+  // Technik-Kennzahlen des gewaehlten Laufs (nur bei `run`), korrigiert und unkorrigiert.
+  technik?: (TechnikPaar & { min_s?: number; rand_s?: number }) | null;
   kennzahlen?: {
     pitch_amplitude_deg: number; roll_amplitude_deg: number; gier_rms_deg_s: number;
     pitch_hz: number | null; ruhe_anteil: number; bias_abgezogen: boolean;
@@ -906,6 +908,15 @@ export interface LabelItem {
 // `takt_hz` und `hub_cm` duerfen fehlen — beide brauchen einen erkannten Pumptakt; `hub_laeufe`
 // sagt, auf wie vielen Laeufen die Hub-Zahl steht. KEIN Gieren: das ist die gewaehlte Route,
 // keine Aussage ueber Technik oder Foil (Jan, 24.09.2026).
+/** Technik-Kennzahlen eines Laufs bzw. Median ueber Laeufe (lage.py `technik_kennzahlen`). */
+export type Technik = {
+  pump_nicken_deg: number | null; pump_rollen_deg: number | null; wackeln_deg: number | null;
+  kurvenlage_deg: number | null; hub_cm: number | null; takt_hz: number | null;
+  mitte_s?: number; laeufe?: number;
+};
+/** Mit und ohne Fliehkraft-Korrektur; null = Lauf zu kurz (unter 30 s) bzw. nichts auswertbar. */
+export type TechnikPaar = { mit: Technik | null; ohne: Technik | null };
+
 export type BoardKlasse = {
   klasse: string; laeufe: number; pitch_deg: number; roll_deg: number | null;
   takt_hz: number | null; takt_laeufe: number; hub_cm: number | null; hub_laeufe: number;
@@ -1419,8 +1430,9 @@ export const api = {
   }>(`/api/sessions/${id}/board-hint`),
   boardAttitudeStats: () => req<{
     gesamt: BoardKlasse[];
-    je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[] }[];
+    je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[]; technik?: TechnikPaar | null }[];
     sessions: number; laeufe: number; ohne_kreisel: number;
+    technik?: TechnikPaar | null;
   }>("/api/community/board-attitude"),
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),

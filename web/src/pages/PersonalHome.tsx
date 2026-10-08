@@ -1,3 +1,4 @@
+import { TechnikTabelle } from "../components/TechnikTabelle";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
@@ -199,6 +200,17 @@ function BoardAttitudeSection() {
           <WatchIcon className="h-3.5 w-3.5" /> {geraeteText("Phone", "board", t)}
         </span>
       </h2>
+      {/* Technik-Kennzahlen zuerst (08.10.2026): getrennt nach Zeitskala, mit Legende, korrigiert
+          und unkorrigiert. Die bisherige Tabelle je Lauflaenge bleibt darunter aufklappbar. */}
+      {data.technik && (data.technik.mit || data.technik.ohne) && <TechnikTabelle paar={data.technik} />}
+      {data.je_foil.length > 1 && data.je_foil.filter((f) => f.technik && (f.technik.mit || f.technik.ohne)).map((f) => (
+        <div key={`t${f.foil_id}`} className="mt-4">
+          <div className="mb-1 text-sm font-semibold text-slate-200">{f.foil}</div>
+          <TechnikTabelle paar={f.technik!} />
+        </div>
+      ))}
+      <details className="mt-4">
+        <summary className="cursor-pointer text-sm text-slate-400">{t("tech.oldTable")}</summary>
       <BoardKlassenTabelle klassen={data.gesamt} />
       {/* Je Foil nur, wenn es ueberhaupt mehr als eines gibt — bei einem einzigen stuende
           dieselbe Tabelle zweimal untereinander. */}
@@ -212,6 +224,7 @@ function BoardAttitudeSection() {
           <BoardKlassenTabelle klassen={f.klassen} />
         </div>
       ))}
+      </details>
     </div>
   );
 }
