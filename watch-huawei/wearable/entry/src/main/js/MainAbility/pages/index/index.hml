@@ -1,11 +1,11 @@
-<div class="seite" onswipe="wischen" onclick="seiteTippen">
+<div class="seite" onswipe="wischen">
     <!-- Datenseiten (seiten.js): eine Canvas ueber das ganze Display, hoch/runter wischen blaettert
          (rechts wischen beendet die App, das verlangt AppGallery). Seite 0 = Bedienung darunter. -->
     <canvas ref="leinwand" class="leinwand" if="{{ datenseite }}"></canvas>
     <text class="marke" if="{{ !datenseite }}">{{ marke }}</text>
 
     <div class="bbereit" if="{{ modus === 'bereit' }}">
-        <div class="kstart" ontouchstart="startHalten" ontouchend="loslassen" onclick="tippen" onlongpress="lang">
+        <div class="kstart" ontouchstart="startHalten" ontouchend="loslassen" onlongpress="startLang">
             <text class="knopftext">{{ knopfStart }}</text>
         </div>
         <progress class="balken" type="horizontal" percent="{{ balken }}" if="{{ balkenZeigen }}"></progress>
@@ -23,7 +23,7 @@
             <text class="einheit">km</text>
         </div>
         <text class="wert">{{ puls }}</text>
-        <div class="kpause" ontouchstart="pauseHalten" ontouchend="loslassen">
+        <div class="kpause" ontouchstart="pauseHalten" ontouchend="loslassen" onlongpress="pauseLang">
             <text class="knopftext">{{ knopfPause }}</text>
         </div>
         <text class="klein">{{ info }}</text>
@@ -33,10 +33,10 @@
         <text class="zeit">{{ zeit }}</text>
         <text class="hinweis">{{ textPause }}</text>
         <div class="rknopf">
-            <div class="kweiter" ontouchstart="weiterHalten" ontouchend="loslassen">
+            <div class="kweiter" ontouchstart="weiterHalten" ontouchend="loslassen" onlongpress="weiterLang">
                 <text class="knopftext">{{ knopfWeiter }}</text>
             </div>
-            <div class="kstopp" ontouchstart="stoppHalten" ontouchend="loslassen">
+            <div class="kstopp" ontouchstart="stoppHalten" ontouchend="loslassen" onlongpress="stoppLang">
                 <text class="knopftext">{{ knopfStopp }}</text>
             </div>
         </div>
