@@ -398,6 +398,7 @@ const en: Record<string, string> = {
   "tech.gPump": "high and low of each single pump stroke; shown is the median over all strokes – a typical stroke",
   "tech.gWobble": "slow side-to-side rocking over a few pump strokes (2–5 s)",
   "tech.gLean": "how far the board leans over in turns",
+  "tech.gYaw": "how fast the board turns (°/s, measured by the gyroscope, root mean square over the pump strokes); in “turn” always above, in “straight” always below 8°/s – there it tells how tight the turn was or how calmly the board ran straight",
   "tech.gTurnStraight": "the same value, but only from pump strokes while the board was turning (faster than 8°/s, measured by the gyroscope) or not turning",
   "tech.gWhole": "the same values over the complete run, including start and end – nothing trimmed",
   "tech.gMiddle": "All values except “whole run” come only from the steady middle: without the first and last 5 s; runs shorter than 20 s are not evaluated. {n} runs.",

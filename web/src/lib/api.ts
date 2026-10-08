@@ -914,11 +914,11 @@ export interface LabelItem {
 export type Technik = {
   pump_nicken_deg: number | null; pump_rollen_deg: number | null; wackeln_deg: number | null;
   kurvenlage_deg: number | null; hub_cm: number | null; takt_hz: number | null;
-  mitte_s?: number; laeufe?: number;
+  gier_deg_s?: number | null; mitte_s?: number; laeufe?: number;
 };
 /** Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`); zuege/laeufe = worauf es steht. */
 export type KurveGeradeSeite = { zuege: number; laeufe?: number; takt_hz: number | null; nicken_deg: number | null; hub_cm: number | null;
-  rollen_deg?: number | null; wackeln_deg?: number | null; kurvenlage_deg?: number | null };
+  rollen_deg?: number | null; wackeln_deg?: number | null; kurvenlage_deg?: number | null; gier_deg_s?: number | null };
 export type KurveGerade = { kurve: KurveGeradeSeite | null; gerade: KurveGeradeSeite | null };
 /** Mit und ohne Fliehkraft-Korrektur; null = Lauf zu kurz (unter 30 s) bzw. nichts auswertbar. */
 export type TechnikPaar = { mit: Technik | null; ohne: Technik | null; kurve_gerade?: KurveGerade | null;

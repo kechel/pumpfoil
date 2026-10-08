@@ -116,6 +116,7 @@ const fr: Record<string, string> = {
   "tech.gPump": "haut et bas de chaque pompe ; on montre la médiane sur toutes les pompes – une pompe typique",
   "tech.gWobble": "balancement latéral lent sur quelques pompes (2–5 s)",
   "tech.gLean": "de combien la planche se couche dans les virages",
+  "tech.gYaw": "vitesse de rotation de la planche (°/s, mesurée par le gyroscope, moyenne quadratique sur les coups de pump) ; en « virage » toujours au-dessus, en « ligne droite » toujours en dessous de 8 °/s – là, elle indique à quel point le virage était serré ou la ligne droite calme",
   "tech.gTurnStraight": "la même valeur, mais seulement sur les pompes où la planche tournait (plus de 8°/s, mesuré par le gyroscope) ou ne tournait pas",
   "tech.gWhole": "les mêmes valeurs sur tout le run, début et fin compris – rien de coupé",
   "tech.gMiddle": "Toutes les valeurs sauf « run entier » viennent seulement du milieu stable : sans les 10 premières et dernières secondes ; les runs de moins de 20 s ne sont pas évalués. {n} runs.",

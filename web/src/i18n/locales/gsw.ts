@@ -101,6 +101,7 @@ const gsw: Record<string, string> = {
   "tech.gPump": "Hoch und Tüüf vo jedem einzelne Pumpzug; zeigt wird de Median über alli Pumpzüg – en typische Pumpzug",
   "tech.gWobble": "langsams sitlichs Hin und Här über es paar Pumpzüg (2–5 s)",
   "tech.gLean": "wie wiit sich s Brätt i de Kurve uf d Siite leit",
+  "tech.gYaw": "wie schnäll sich s Brätt dräiht (°/s, vom Chreisel gmässe, quadratisch gmittlet über d Pumpzüüg); i „Kurve“ immer über, i „grad“ immer under 8 °/s – det heissts: wie äng dräiht bzw. wie ruehig gradus gfahre",
   "tech.gTurnStraight": "de glich Wärt, aber nume us Pumpzüg, wo s Brätt drüllt het (schnäller als 8 °/s, vom Kreisel gmässe) bzw. nöd drüllt het",
   "tech.gWhole": "di gliche Wärt über de ganz Lauf, mit Aafang und Änd – nüt gchürzt",
   "tech.gMiddle": "Alli Wärt usser „ganze Lauf“ chömed nume us em ruhige Mittelteil: ohni di erschte und letschte 5 s, Läuf under 20 s werded nöd usgwärtet. {n} Läuf.",

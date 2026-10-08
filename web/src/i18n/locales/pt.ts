@@ -116,6 +116,7 @@ const pt: Record<string, string> = {
   "tech.gPump": "alto e baixo de cada bombeada; mostra-se a mediana de todas as bombeadas – uma bombeada típica",
   "tech.gWobble": "balanço lateral lento ao longo de algumas bombeadas (2–5 s)",
   "tech.gLean": "quanto a prancha deita para o lado nas curvas",
+  "tech.gYaw": "a rapidez com que a prancha gira (°/s, medido pelo giroscópio, média quadrática sobre as bombadas); em “curva” sempre acima, em “reta” sempre abaixo de 8 °/s – ali indica o quão fechada foi a curva ou o quão calma foi a reta",
   "tech.gTurnStraight": "o mesmo valor, mas só das bombeadas em que a prancha estava girando (mais de 8°/s, medido pelo giroscópio) ou não",
   "tech.gWhole": "os mesmos valores no run inteiro, com início e fim – nada cortado",
   "tech.gMiddle": "Todos os valores exceto “run inteiro” vêm só do meio estável: sem os primeiros e últimos 5 s; runs com menos de 20 s não são avaliados. {n} runs.",

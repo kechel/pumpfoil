@@ -116,6 +116,7 @@ const es: Record<string, string> = {
   "tech.gPump": "alto y bajo de cada bombeo; se muestra la mediana de todos los bombeos: un bombeo típico",
   "tech.gWobble": "balanceo lateral lento a lo largo de unos pocos bombeos (2–5 s)",
   "tech.gLean": "cuánto se tumba la tabla hacia un lado en las curvas",
+  "tech.gYaw": "lo rápido que gira la tabla (°/s, medido por el giroscopio, media cuadrática sobre los bombeos); en «curva» siempre por encima, en «recta» siempre por debajo de 8 °/s – ahí indica lo cerrada que fue la curva o lo tranquila que fue la recta",
   "tech.gTurnStraight": "el mismo valor, pero solo de los bombeos en los que la tabla giraba (más de 8°/s, medido por el giroscopio) o no giraba",
   "tech.gWhole": "los mismos valores en todo el tramo, con inicio y final, sin recortar",
   "tech.gMiddle": "Todos los valores salvo «tramo completo» salen solo de la parte central estable: sin los primeros y últimos 5 s; los tramos de menos de 20 s no se evalúan. {n} tramos.",

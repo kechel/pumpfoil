@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-10-08-wackeln-zugmitte"
+LAGE_VERSION = "2026-10-08-gieren-je-phase"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -1340,7 +1340,20 @@ def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float,
                            else round(float(np.percentile(np.abs(_fft_band(r, hz, 0.0, TECHNIK_KURVE_HZ)), 95)), 1)),
         "hub_cm": med(3),
         "takt_hz": med(0, 2),
+        # Gieren je Phase (Jan, 08.10.2026: „warum geht gieren nicht je phase?"): RMS der Drehrate in den
+        # Zugmitten — dieselbe Groesse und dieselben Zuege wie bei Kurve/gerade, damit der Wert der Phase
+        # zwischen beiden Teilen liegt. Ohne genug Zuege RMS ueber das durchgehende Signal.
+        "gier_deg_s": _gier_rms(zuege, erg, m),
     }
+
+
+def _gier_rms(zuege: list[tuple], erg: dict, m: np.ndarray) -> float | None:
+    """RMS der Gierrate (°/s): aus den Zugmitten, ohne genug Zuege aus dem ganzen Abschnitt."""
+    if len(zuege) >= TECHNIK_MIN_ZUEGE:
+        w = np.asarray([z[4] for z in zuege], dtype=float)
+    else:
+        w = np.asarray(erg["gier_delta_deg"], dtype=float)[m] / float(erg.get("yaw_fenster_s") or 1.0)
+    return round(float(np.sqrt(np.mean(w ** 2))), 1) if len(w) else None
 
 
 def _pumpzuege(erg: dict, m: np.ndarray) -> list[tuple]:
@@ -1401,7 +1414,7 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
         return None
     seiten: dict[str, list] = {"kurve": [], "gerade": []}
     for z in _pumpzuege(erg, m):
-        seiten["kurve" if z[4] > TECHNIK_KURVE_GIER_DEG_S else "gerade"].append((z[0], z[1], z[3], z[2], z[5], z[6]))
+        seiten["kurve" if z[4] > TECHNIK_KURVE_GIER_DEG_S else "gerade"].append((z[0], z[1], z[3], z[2], z[5], z[6], z[4]))
     aus: dict = {}
     for art, z in seiten.items():
         if len(z) < TECHNIK_MIN_ZUEGE:
@@ -1419,7 +1432,10 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
                     # Schraeglage = 95. Perzentil des Betrags — nur ueber die Zuege dieser Seite.
                     "wackeln_deg": round(float((np.percentile([x[4] for x in z], 95)
                                                 - np.percentile([x[4] for x in z], 5)) / 2.0), 1),
-                    "kurvenlage_deg": round(float(np.percentile([x[5] for x in z], 95)), 1)}
+                    "kurvenlage_deg": round(float(np.percentile([x[5] for x in z], 95)), 1),
+                    # Kurve liegt per Definition ueber, gerade unter TECHNIK_KURVE_GIER_DEG_S — die Zahl sagt
+                    # dort, wie eng gedreht bzw. wie ruhig geradeaus gefahren wurde.
+                    "gier_deg_s": round(float(np.sqrt(np.mean(np.asarray([x[6] for x in z]) ** 2))), 1)}
     return aus if (aus.get("kurve") or aus.get("gerade")) else None
 
 

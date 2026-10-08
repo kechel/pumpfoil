@@ -118,6 +118,7 @@ const cs: Record<string, string> = {
   "tech.gPump": "horní a dolní bod každého pumpnutí; zobrazen je medián přes všechna pumpnutí – typické pumpnutí",
   "tech.gWobble": "pomalé kývání ze strany na stranu během několika pumpnutí (2–5 s)",
   "tech.gLean": "jak moc se prkno v zatáčkách položí na stranu",
+  "tech.gYaw": "jak rychle se prkno otáčí (°/s, měřeno gyroskopem, kvadratický průměr přes pumpovací tahy); v „zatáčce“ vždy nad, „na rovince“ vždy pod 8 °/s – tam říká, jak ostrá byla zatáčka nebo jak klidná rovinka",
   "tech.gTurnStraight": "stejná hodnota, ale jen z pumpnutí, během nichž se prkno točilo (rychleji než 8°/s, měřeno gyroskopem), resp. netočilo",
   "tech.gWhole": "stejné hodnoty přes celou jízdu, se začátkem i koncem – nic nezkráceno",
   "tech.gMiddle": "Všechny hodnoty kromě „celá jízda“ pocházejí jen z klidné střední části: bez prvních a posledních 5 s; jízdy kratší než 20 s se nevyhodnocují. Jízd: {n}.",
