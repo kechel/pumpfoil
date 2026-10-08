@@ -417,8 +417,6 @@ const de: Record<string, string> = {
   "tech.hShort": "Läufe unter 20 s – ganzer Lauf",
   "tech.lShort": "Läufe zwischen 5 und 20 s, jeweils über den ganzen Lauf: mit Anfang und Ende, nichts gekürzt. {n} Läufe.",
   "tech.sStable": "stabile Phase",
-  "tech.colPitchPump": "Nicken je Pumpzug",
-  "tech.colHeavePump": "Hub je Pumpzug",
   "tech.gStable": "der Lauf ohne seine ersten und letzten 5 s – Start und Ende stören nur die ersten und letzten 1–2 s; Läufe unter 20 s haben keine stabile Phase",
   "tech.gSpread": "Wackeln und Schräglage sind keine Werte je Pumpzug, sondern Spannen über die stabile Phase.",
   "tech.sStraight": "gerade",
