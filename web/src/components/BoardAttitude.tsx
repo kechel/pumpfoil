@@ -1,3 +1,4 @@
+import { TechnikTabelle } from "./TechnikTabelle";
 import { useEffect, useMemo, useState } from "react";
 import { api, BoardAttitude as Lage } from "../lib/api";
 import { Spinner } from "./ui";
@@ -458,6 +459,15 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
           {d.quelle_hz ? ` · ${d.quelle_hz.accel} / ${d.quelle_hz.gyro ?? "–"} Hz` : ""}
         </p>
       )}
+
+      {/* Technik-Kennzahlen des gewaehlten Laufs (08.10.2026): getrennt nach Zeitskala, korrigiert
+          und unkorrigiert, mit Legende. Nur bei einem gewaehlten Lauf — ein Lauf unter 30 s hat
+          keinen ruhigen Mittelteil, dann sagt es der Hinweis statt einer leeren Tabelle. */}
+      {d.technik && (d.technik.mit || d.technik.ohne)
+        ? <TechnikTabelle paar={d.technik} />
+        : run != null && d.technik !== undefined
+          ? <p className="text-sm text-slate-400">{t("tech.tooShort")}</p>
+          : null}
 
       {/* KEINE Ausruestungs-Zeile mehr (Jan, 22.09.2026): Foil, Stab, Mast und Brett stehen
           bereits ganz oben auf der Seite als Chips (`FoilSelect`) — hier standen sie ein zweites

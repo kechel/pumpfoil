@@ -80,6 +80,8 @@ def _rechnen(s, result) -> dict:
             # s. lage.py) — Begruendung im Kommentar an community.board_attitude.
             "takt": k.get("pitch_hz") if k.get("hub_sicher") else None,
             "hub": k.get("hub_pp_cm") if k.get("hub_sicher") else None,
+            # Technik-Kennzahlen aus dem Mittelteil, mit und ohne Fliehkraft-Korrektur (lage.py).
+            "technik": k.get("technik"),
         })
     return aus
 

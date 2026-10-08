@@ -2410,7 +2410,8 @@ def board_attitude(user: models.User = Depends(current_user),
             if eimer is None:
                 continue
             laeufe.append({"klasse": eimer, "foil_id": foil_id, "pitch": k.get("pitch"),
-                           "roll": k.get("roll"), "takt": k.get("takt"), "hub": k.get("hub")})
+                           "roll": k.get("roll"), "takt": k.get("takt"), "hub": k.get("hub"),
+                           "technik": k.get("technik")})
 
     def _zusammenfassen(menge: list[dict]) -> list[dict]:
         """Die Lauflaengen-Klassen ueber EINE Teilmenge — einmal ueber alles, einmal je Foil."""
@@ -2447,7 +2448,25 @@ def board_attitude(user: models.User = Depends(current_user),
                             "laeufe": len(menge), "klassen": klassen_f})
     je_foil.sort(key=lambda x: (-x["laeufe"], x["foil"]))
 
+    def _technik(menge: list[dict]) -> dict | None:
+        """Median der Technik-Kennzahlen (Mittelteil von Laeufen ab 30 s), beide Fassungen.
+        `laeufe` = wie viele Laeufe darin stecken — kuerzere zaehlen nicht mit."""
+        aus = {}
+        for fassung in ("mit", "ohne"):
+            werte = [x["technik"][fassung] for x in menge
+                     if x.get("technik") and x["technik"].get(fassung)]
+            if not werte:
+                continue
+            zeile = {"laeufe": len(werte)}
+            for k in ("pump_nicken_deg", "pump_rollen_deg", "wackeln_deg", "kurvenlage_deg", "hub_cm", "takt_hz"):
+                v = [float(w[k]) for w in werte if w.get(k) is not None]
+                zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
+            aus[fassung] = zeile
+        return aus or None
+    for f_ in je_foil:
+        f_["technik"] = _technik([x for x in laeufe if x["foil_id"] == f_["foil_id"]])
     out = {"gesamt": _zusammenfassen(laeufe), "je_foil": je_foil,
+           "technik": _technik(laeufe), "technik_min_s": 30, "technik_rand_s": 10,
            "sessions": sessions_gezaehlt, "laeufe": len(laeufe),
            "ohne_kreisel": ohne_kreisel}
 

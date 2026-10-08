@@ -4139,6 +4139,20 @@ def _lage_antwort(
                               # ECHTE Lauf-Anfaenge, nicht die an den Raendern gekuerzten aus
                               # `laufbereiche` — die Anfahrt lebt genau von diesen Sekunden.
                               lauf_starts_ms=starts, mag=mag)
+    # Technik-Kennzahlen des gewaehlten Laufs (Mittelteil, ab 30 s), mit und ohne Fliehkraft-
+    # Korrektur nebeneinander (Jan, 08.10.2026: die unkorrigierte Fassung bleibt sichtbar). Die
+    # Kurven oben sind die korrigierte Fassung; die zweite Rechnung kostet nur, wenn ein Lauf gewaehlt ist.
+    erg["technik"] = None
+    if run is not None and auswahl:
+        ohne = lage.lage_berechnen(acc, t_acc, gyr, t_gyr, ziel_hz=hz, yaw_fenster_s=yaw_window_s,
+                                   t_von_ms=von, t_bis_ms=bis, ref_bereiche_ms=bereiche,
+                                   hub_fenster_s=height_window_s, rot_deg=rot_fest,
+                                   gps=storage.load_gps(uuid), lauf_starts_ms=starts, mag=mag,
+                                   fliehkraft=False)
+        erg["technik"] = {"mit": lage.technik_kennzahlen(erg, *auswahl),
+                          "ohne": lage.technik_kennzahlen(ohne, *auswahl),
+                          "fliehkraft": erg.get("fliehkraft"),
+                          "min_s": lage.TECHNIK_MIN_S, "rand_s": lage.TECHNIK_RAND_S}
     # `lage_berechnen` meldet jede Vorgabe als „manuell" — hier weiss die Antwort es besser.
     if rot_quelle_fest:
         erg["rot_quelle"] = rot_quelle_fest
