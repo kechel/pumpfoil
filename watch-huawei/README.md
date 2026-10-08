@@ -45,13 +45,15 @@ halbstuendlich ein Hallo (`h_hallo.json`: Modell + Version) -> Android holt mit 
 Uhr speichert `konfig.json`. Ohne Konfiguration: Standardseiten.
 Bewusste Abweichungen: Lite kennt nur die Schriftgroessen 30/38 px (Watch 3/4 und ArkTS zeichnen die
 echte Groesse); Alarme, Foil-Auswahl und Verwerfen-Seite gibt es auf Huawei (noch) nicht.
-**Lite-Grenze ist der UEBERSETZUNGS-HEAP, nicht die Dateigroesse** (gemessen 08.10.2026): JerryScript
-uebersetzt jedes Buendel (app.js, pages/index) in 48 KB Heap und kennt keine Regex-Literale. Scheitert
-das, warnt hvigor nur („Failed to convert … to a snapshot") — die Seite bleibt SCHWARZ, ohne Log.
-Deshalb lebt der Recorder (kern, recorder, lauf, Wear Engine) im app.js-Buendel, die Seite holt ihn per
-`getApp().R`; Zeichnen (seiten.js) liegt im Seiten-Buendel. `build-all.sh` baut Release und Debug,
-erzeugt den Snapshot und bricht ueber 90 % Heap ab (Stand: app 36-38 KB, Seite 23 KB). Debug geht so
-auch im Simulator.
+**Lite hat ZWEI Grenzen je Buendel (app.js, pages/index), beide gemessen am 08.10.2026:** die Datei
+hoechstens 48 KB (Simulator: „app.js is bigger than 48 KB") UND hoechstens 48 KB Heap beim Uebersetzen
+(JerryScript, `jerry --mem-stats`). Dazu kennt JerryScript keine Regex-Literale. Scheitert das
+Uebersetzen, warnt hvigor nur („Failed to convert … to a snapshot") — die Seite bleibt SCHWARZ, ohne Log.
+Aufteilung deshalb: Recorder (kern, recorder, lauf) im app.js-Buendel, die Seite holt ihn per
+`getApp().R`; Seite, Zeichnen (seiten.js) und Wear Engine im Seiten-Buendel, die Seite reicht die Wear
+Engine per `R.init(we)` an den Recorder. `build-all.sh` baut Release und Debug, erzeugt den Snapshot und
+bricht ueber 46000 Byte Datei oder 44000 Byte Heap ab (Stand Debug: app 34,7 KB / 29,9 KB Heap,
+Seite 42,3 KB / 33,8 KB Heap).
 Ungeprueft auf Hardware: welche Canvas-Aufrufe Lite wirklich kann (Bogen, Linienbreite) und die
 Grundlinie von `fillText` (mittig angenommen).
 
@@ -122,7 +124,7 @@ SDK API 24) unter `~/harmonyos/command-line-tools` (ausserhalb des Repos, NIE co
 brauchen das lokale Wear-Engine-SDK (`wearengine.js`, s. „SDK holen"). Signieren bleibt DevEco.
 
 **Simulator (DevEco):** dort fehlt `@system.wearengine`, schon der Import scheitert und die Seite
-bleibt schwarz. `./sim.sh an` laesst recorder.js eine Attrappe laden (Senden scheitert sichtbar mit
+bleibt schwarz. `./sim.sh an` laesst die Seite eine Attrappe laden (Senden scheitert sichtbar mit
 Code -2), `./sim.sh aus` stellt die echte Wear Engine wieder her — NIE im Zustand „an" committen.
 Ablauf-Logs: DevEco > Log, Filter `Pumpfoil`.
 
