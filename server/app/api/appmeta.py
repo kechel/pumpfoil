@@ -832,7 +832,7 @@ NAECHSTES: list[dict] = [
     # 08.10.2026 (Jan: „Huawei im changelog unter coming next"): Recorder fuer alle drei Huawei-Linien
     # (Lite GT/Fit/D, Watch 3/4, Watch 5), Uebertragung ueber die Android-App. Im Simulator geprueft,
     # nie auf Hardware; Wear-Engine-Freigabe und Signierung stehen aus (docs/TODO.md).
-    {"name": "Huawei", "version": "1.0.1",
+    {"name": "Huawei", "version": "1.0.2",
      "items": [
          "New: Huawei watches (Watch GT, Watch Fit, Watch D and Watch 3, 4 and 5) record your sessions, and the Pumpfoil app on your Android phone uploads them. Starting as a public beta.",
          "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
