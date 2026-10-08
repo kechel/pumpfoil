@@ -151,7 +151,8 @@ export class Recorder {
   private letzterFehler: string = '';
   private gpsLetzt: number = 0;
   private gpsAbonniert: boolean = false;
-  private gpsFixe: number = 0;   // nur fuers Log: erster Fix und jeder 60.
+  private gpsFixe: number = 0;
+  private gpsNull: number = 0;   // verworfene 0,0-Fixe (nur fuers Log)   // nur fuers Log: erster Fix und jeder 60.
   private ortungGefragt: boolean = false;   // je Aufnahme hoechstens einmal fragen
   private gpsVersuch: number = 0;
   private bg: string = 'aus';
@@ -396,7 +397,10 @@ export class Recorder {
     if (g.latitude === 0 && g.longitude === 0) {
       // „Null Island": Platzhalter ohne echte Position (Emulator 08.10.2026: erster Fix 0,0 acc 6.5).
       // Nie aufzeichnen — sonst Sprung um Tausende km in Strecke und Spur.
-      console.info('Pumpfoil GPS Fix 0,0 verworfen');
+      this.gpsNull++;
+      if (this.gpsNull === 1 || this.gpsNull % 60 === 0) {
+        console.info('Pumpfoil GPS Fix 0,0 verworfen (' + this.gpsNull + ' bisher)');
+      }
       return;
     }
     let t: number = this.achse.auf(g.timeStamp, jetzt);
