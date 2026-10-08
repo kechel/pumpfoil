@@ -1321,7 +1321,7 @@ const cs: Record<string, string> = {
   "watches.nApple": "Surové zrychlení přes Core Motion.",
   "watches.nWear": "Běží na jakýchkoli hodinkách Wear OS 3+ — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Přístup k senzorům podle modelu.",
-  "watches.nHuawei": "Beta se připravuje: záznam na hodinkách, přenos přes aplikaci Pumpfoil na telefonu s Androidem – Watch 5 po spárování kódem nahrává i sama, takže funguje i s iPhonem. Které hodinky dodávají jaká data, je ještě třeba otestovat.",
+  "watches.nHuawei": "Beta se připravuje: záznam na hodinkách, přenos přes aplikaci Pumpfoil na telefonu s Androidem – Watch 3, 4 a 5 po spárování kódem nahrávají i samy. Které hodinky dodávají jaká data, je ještě třeba otestovat.",
   "watches.nPolar": "Propoj účet → importuj tréninky (GPS + tep). Vysokofrekvenční accel stream pro rozpoznání pumpnutí API export neposkytuje (jen přes samostatný BLE senzor).",
   "watches.nSuunto": "Propoj účet → importuj tréninky (GPS + tep). Vysokofrekvenční accel stream pro rozpoznání pumpnutí FIT export (zatím) neposkytuje.",
   "linked.xiaomi.title": "Hodinky Xiaomi a Redmi",

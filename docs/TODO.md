@@ -1497,6 +1497,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Handy-Seite (Android kennt nur EINEN `HUAWEI_WATCH_FP` — hat die ArkTS-App einen anderen, braucht die
   Bruecke eine Liste), `client_id` in module.json5. Ultimate: Lite oder ArkTS unklar.
   **iOS:** laut Huawei koennen iPhone-Nutzer keine Fremd-Apps auf die Uhr installieren -> iOS-Bruecke nicht bewerben.
+  **Direkt-Upload ohne Handy (08.10.):** Watch 5 (0a1b4d18, im Emulator belegt: Sessions 14044-14049) und
+  Watch 3/4 (24323c27, nur Node-Tests). Offen: (a) ob iPhone-Nutzer die Uhr-App ueberhaupt installieren
+  koennen (siehe oben) - erst dann mit iPhone werben; (b) Watch 3/4 auf echter Uhr: Huawei
+  Cloud-Debugging in AppGallery Connect, sobald Jans Identitaetspruefung durch ist (08.10.: in progress);
+  dort pruefen: Canvas-Schriftgroessen, Touch/Wischen, @system.fetch ins Netz, Accel-Rate.
   **Datenseiten (07.10., Jan: „bau das direkt mit ein"):** alle drei Linien, Konfiguration ueber Hallo ->
   Android -> Uhr (iOS-Bruecke antwortet NICHT auf das Hallo — keine Nutzer, s. oben). Lite-Seite jetzt 44 KB
   (Release) -> fuer weitere Lite-Funktionen erst Platz schaffen; GT nur mit Release-Builds testen. Offen:

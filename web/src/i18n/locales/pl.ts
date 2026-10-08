@@ -1301,7 +1301,7 @@ const pl: Record<string, string> = {
   "watches.nApple": "Surowe przyspieszenie przez Core Motion.",
   "watches.nWear": "Działa na każdym zegarku z Wear OS 3+ — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Dostęp do czujników zależy od modelu.",
-  "watches.nHuawei": "Beta w przygotowaniu: nagrywanie na zegarku, przesyłanie przez aplikację Pumpfoil na telefonie z Androidem – Watch 5 po połączeniu kodem wysyła też sam, więc działa także z iPhone'em. Który zegarek dostarcza jakie dane, trzeba jeszcze przetestować.",
+  "watches.nHuawei": "Beta w przygotowaniu: nagrywanie na zegarku, przesyłanie przez aplikację Pumpfoil na telefonie z Androidem – Watch 3, 4 i 5 po połączeniu kodem wysyłają też same. Który zegarek dostarcza jakie dane, trzeba jeszcze przetestować.",
   "watches.nPolar": "Połącz konto → importuj treningi (GPS + tętno). Eksport z API nie zawiera strumienia surowego przyspieszenia o wysokiej częstotliwości, potrzebnego do wykrywania pomp (tylko przez osobny czujnik BLE).",
   "watches.nSuunto": "Połącz konto → importuj treningi (GPS + tętno). Eksport FIT (jeszcze) nie zawiera strumienia surowego przyspieszenia o wysokiej częstotliwości, potrzebnego do wykrywania pomp.",
   "linked.xiaomi.title": "Zegarki Xiaomi i Redmi",
