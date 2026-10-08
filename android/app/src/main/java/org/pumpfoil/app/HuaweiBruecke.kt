@@ -90,7 +90,11 @@ object HuaweiBruecke {
     // Datenseiten + Ablauf wie die anderen Uhren (Halten/Tippen, Auto-Start, Touch-Sperre), 08.10.2026.
     private val KONFIG_SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "pages", "offFoilPages",
         "pausePages", "browseAll", "layoutsOn", "colorByValue", "hrZones", "speedZones",
-        "stopMode", "autoStart", "waterLock")
+        "stopMode", "autoStart", "waterLock",
+        // Foils + Alarme (Einstellungsseite und Vibrationsalarm auf der Uhr, 08.10.2026)
+        "foils", "alarmEnabled", "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh",
+        "alarmPatternLow", "alarmPatternHr", "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode",
+        "alarmPatternDist", "runTimeS", "runTimeMode", "alarmPatternTime")
     @Volatile private var hochladen = false
 
     /** HUAWEI_WATCH_FP, durch Komma getrennt (app/build.gradle.kts). */

@@ -64,12 +64,17 @@ class HuaweiBrueckeTest {
     @Test fun konfigFuerDieUhr() {
         val roh = """{"views":[[1,2,0]],"pages":[[1,4,[[3,500,500,2,0,0,"Läufe"]]]],"latestVersion":"9","foils":[1,2]}"""
         val k = HuaweiBruecke.konfigFuerUhr(roh)
-        assertEquals(false, k.contains("latestVersion")); assertEquals(false, k.contains("foils"))
+        // foils gehen seit 08.10.2026 mit (Foil-Auswahl + Alarm auf der Uhr), latestVersion weiter nicht
+        assertEquals(false, k.contains("latestVersion")); assertEquals(true, k.contains("foils"))
         // Ablauf-Einstellungen kommen mit (Zepp-Ablauf auf Huawei, 08.10.2026)
         val kj = org.json.JSONObject(HuaweiBruecke.konfigFuerUhr(
             """{"views":[[1,2,0]],"stopMode":"press","autoStart":true,"waterLock":"on","recordMode":"full"}"""))
         assertEquals("press", kj.getString("stopMode")); assertEquals(true, kj.getBoolean("autoStart"))
         assertEquals("on", kj.getString("waterLock")); assertEquals(false, kj.has("recordMode"))
+        val ka = org.json.JSONObject(HuaweiBruecke.konfigFuerUhr(
+            """{"foils":[{"id":7,"label":"A","min":12,"max":20}],"alarmEnabled":true,"hrHigh":150,"runDistM":100,"language":"de"}"""))
+        assertEquals(7, ka.getJSONArray("foils").getJSONObject(0).getInt("id")); assertEquals(true, ka.getBoolean("alarmEnabled"))
+        assertEquals(150, ka.getInt("hrHigh")); assertEquals(100, ka.getInt("runDistM")); assertEquals(false, ka.has("language"))
         val teile = HuaweiBruecke.konfigTeile(k, 20)
         assertEquals(true, teile.all { it.startsWith("PF1|k_konfig.json|") && it.all { c -> c.code < 128 } })
         val n = teile.size
