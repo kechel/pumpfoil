@@ -119,6 +119,7 @@ const pt: Record<string, string> = {
   "tech.gTurnStraight": "o mesmo valor, mas só das bombeadas em que a prancha estava girando (mais de 8°/s, medido pelo giroscópio) ou não",
   "tech.gWhole": "no run inteiro do início ao fim, com largada, curvas e queda, sem cortar os 10 s (o valor anterior)",
   "tech.gMiddle": "Todos os valores exceto “run inteiro” vêm só do meio estável: sem os primeiros e últimos 10 s; runs com menos de 30 s não são avaliados. {n} runs.",
+  "tech.gHeave": "A subida e descida é medida no celular: quanto mais longe do mastro, mais a arfagem se soma. Compare só entre gravações com o celular no mesmo lugar.",
   "tech.sStraight": "reta",
   "tech.kgTitle": "Nas curvas vs. em reta",
   "tech.strokes": "Bombeadas",

@@ -86,6 +86,9 @@ export function LaufLegende({ n, ganzerLauf = true }: { n: number; ganzerLauf?: 
       </dl>
       <p>{t(ganzerLauf ? "tech.gMiddle" : "tech.lMiddle", { n: String(n) })}</p>
       <p>{t("tech.lBrackets")}. {t("tech.lCorrection")}</p>
+      {/* Hub = Bewegung AM HANDY (Jan, 08.10.2026): weiter vorn/hinten am Brett kommt das Nicken als
+          Hebel dazu. Einen Abstand Handy–Mast erfassen wir bewusst nicht — also offen sagen. */}
+      <p>{t("tech.gHeave")}</p>
     </div>
   );
 }

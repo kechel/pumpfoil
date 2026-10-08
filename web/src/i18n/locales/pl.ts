@@ -119,6 +119,7 @@ const pl: Record<string, string> = {
   "tech.gTurnStraight": "ta sama wartość, ale tylko z pomp, podczas których deska skręcała (szybciej niż 8°/s, mierzone żyroskopem) albo nie skręcała",
   "tech.gWhole": "z całego przejazdu od początku do końca, ze startem, zakrętami i upadkiem, bez obcinania 10 s (dotychczasowa wartość)",
   "tech.gMiddle": "Wszystkie wartości poza „cały przejazd” pochodzą tylko ze spokojnego środka: bez pierwszych i ostatnich 10 s; przejazdy krótsze niż 30 s nie są oceniane. Przejazdy: {n}.",
+  "tech.gHeave": "Ruch w pionie jest mierzony przy telefonie: im dalej od masztu, tym więcej dochodzi z pochylenia. Porównuj go tylko między nagraniami z telefonem w tym samym miejscu.",
   "tech.sStraight": "prosto",
   "tech.kgTitle": "W zakrętach vs prosto",
   "tech.strokes": "Pompy",
