@@ -58,3 +58,31 @@ export function TechnikTabelle({ paar, laeufe }: { paar: TechnikPaar; laeufe?: n
     </div>
   );
 }
+
+/**
+ * Legende zur Tabelle „Lage je Lauf" (Session-Details): dort stehen die Technikzahlen als
+ * Zeilen IN den Zellen (Jan, 08.10.2026: „ohne zusaetzliche spalten"), korrigiert vorn,
+ * unkorrigiert in Klammern.
+ */
+export function LaufLegende({ n }: { n: number }) {
+  const t = useT();
+  const zeilen: [string, string][] = [
+    [`${t("board.pitch")} · ${t("tech.sPump")}`, t("tech.lPumpPitch")],
+    [`${t("board.pitch")} · ${t("tech.sWhole")}`, t("tech.lWhole")],
+    [`${t("board.roll")} · ${t("tech.sPump")}`, t("tech.lPumpRoll")],
+    [`${t("board.roll")} · ${t("tech.sWobble")}`, t("tech.lWobble")],
+    [`${t("board.roll")} · ${t("tech.sCurve")}`, t("tech.lCurve")],
+    [t("tech.heave"), t("tech.lHeave")],
+  ];
+  return (
+    <div className="space-y-1 px-3 pb-3 pt-2 text-sm text-slate-400">
+      <dl className="space-y-0.5">
+        {zeilen.map(([k, v]) => (
+          <div key={k}><dt className="inline font-semibold text-slate-300">{k}:</dt> <dd className="inline">{v}</dd></div>
+        ))}
+      </dl>
+      <p>{t("tech.lBrackets")}. {t("tech.lCorrection")}</p>
+      <p>{t("tech.lMiddle", { n: String(n) })}</p>
+    </div>
+  );
+}

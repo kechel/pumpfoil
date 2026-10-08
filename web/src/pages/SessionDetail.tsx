@@ -1,3 +1,4 @@
+import { LaufLegende } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -3135,9 +3136,26 @@ function RunsTable({
                     selected === k.lauf ? "bg-brand-500/20" : ""}`}
                 >
                   <td className="px-3 py-2 tabular-nums">{k.lauf + 1}</td>
-                  <td className="px-3 py-2 tabular-nums">±{k.pitch_amplitude_deg?.toFixed(0)}°</td>
-                  <td className="px-3 py-2 tabular-nums">±{k.roll_amplitude_deg?.toFixed(0)}°</td>
-                  <td className="px-3 py-2 tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
+                  {/* Technikzahlen ALS ZEILEN IN DEN ZELLEN (Jan, 08.10.2026: „ohne zusaetzliche
+                      spalten"): korrigiert vorn, unkorrigiert grau in Klammern, Bedeutung in der
+                      Legende darunter. Laeufe unter 30 s haben keinen ruhigen Mittelteil — dort
+                      bleibt nur die bisherige Zahl ueber den ganzen Lauf. */}
+                  <td className="px-3 py-2 align-top tabular-nums">
+                    {k.technik?.mit
+                      ? <Zeilen zeilen={[
+                          [t("tech.sPump"), k.technik.mit.pump_nicken_deg, k.technik.ohne?.pump_nicken_deg, "±"],
+                          [t("tech.sWhole"), k.pitch_amplitude_deg ?? null, undefined, "±", true]]} />
+                      : <>±{k.pitch_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
+                  </td>
+                  <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.roll_amplitude_deg?.toFixed(0)}°`}>
+                    {k.technik?.mit
+                      ? <Zeilen zeilen={[
+                          [t("tech.sPump"), k.technik.mit.pump_rollen_deg, k.technik.ohne?.pump_rollen_deg, "±"],
+                          [t("tech.sWobble"), k.technik.mit.wackeln_deg, k.technik.ohne?.wackeln_deg, "±"],
+                          [t("tech.sCurve"), k.technik.mit.kurvenlage_deg, k.technik.ohne?.kurvenlage_deg, ""]]} />
+                      : <>±{k.roll_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
+                  </td>
+                  <td className="px-3 py-2 align-top tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
                   <td className="px-3 py-2 tabular-nums">
                     {k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}
                   </td>
@@ -3175,6 +3193,7 @@ function RunsTable({
               ))}
             </tbody>
           </table>
+          <LaufLegende n={laufKennz.filter((k) => k.ok && k.technik?.mit).length} />
         </Card>
       )}
       {segments.length > 0 && (
@@ -3485,5 +3504,21 @@ function OrtSchalter({ session, onChange }: {
         <span className="font-semibold text-brand-700 dark:text-brand-300">{t("sd.ortAktiv")}</span>
       )}
     </label>
+  );
+}
+
+/** Mehrere Kennzahlen untereinander in EINER Zelle: Wert (korrigiert), unkorrigiert in Klammern,
+ *  kleine Beschriftung dahinter. `grau` = Nebenzahl (z. B. „ganzer Lauf"). */
+function Zeilen({ zeilen }: { zeilen: [string, number | null | undefined, number | null | undefined, string, boolean?][] }) {
+  return (
+    <div className="space-y-0.5 whitespace-nowrap">
+      {zeilen.map(([label, mit, ohne, vz, grau]) => (
+        <div key={label} className={grau ? "text-slate-500" : ""}>
+          {mit != null ? `${vz}${mit.toFixed(grau ? 0 : 1)}°` : "–"}
+          {ohne != null && <span className="text-slate-500"> ({vz}{ohne.toFixed(1)}°)</span>}
+          <span className="ml-1 text-xs text-slate-500">{label}</span>
+        </div>
+      ))}
+    </div>
   );
 }
