@@ -13,4 +13,4 @@ for p in lite wearable; do
 done
 q=lite/entry/src/main/js/MainAbility; z=wearable/entry/src/main/js/MainAbility
 mkdir -p "$z/pages/index" "$z/pages/auswahl" "$z/i18n"
-cp $q/app.js "$z/"; cp $q/pages/index/* "$z/pages/index/"; cp $q/pages/auswahl/* "$z/pages/auswahl/"; cp $q/i18n/*.json "$z/i18n/"
+cp common/app-wearable.js "$z/app.js"; cp common/direkt.js "$z/common/"; cp $q/pages/index/* "$z/pages/index/"; cp $q/pages/auswahl/* "$z/pages/auswahl/"; cp $q/i18n/*.json "$z/i18n/"

@@ -22,5 +22,9 @@
         <list-item class="eintrag" onclick="start">
             <div class="block"><text class="begriff">{{ bStart }}</text><text class="wert">{{ zStart }}</text></div>
         </list-item>
+        <!-- Nur Watch 3/4 (R.direkt aus common/direkt.js): mit pumpfoil.org koppeln, Upload ohne Handy -->
+        <list-item class="eintrag" if="{{ direktDa }}" onclick="direkt">
+            <div class="block"><text class="begriff">pumpfoil.org</text><text class="wert">{{ zDirekt }}</text></div>
+        </list-item>
     </list>
 </div>

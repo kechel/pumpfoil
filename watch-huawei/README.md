@@ -84,7 +84,15 @@ und laedt jede ABGESCHLOSSENE Session wie die Android-Bruecke hoch (Meta mit `ex
 GPS-Chunks zuerst in Paketen zu 30, `/complete`, erst danach loeschen; Backoff 30 s … 5 min; 401 →
 entkoppelt). Logik in `Kern.ets` (`direktBereit`, `direktUpload`, getestet in
 `test/arkts-kern.test.mjs`), Netz in `Direkt.ets`, Server-Seite in `server/tests/test_huawei_e2e.py`.
-Lite (GT/Fit) hat kein Netz — dort bleibt nur die Wear Engine.
+**Watch 3/4 (JS-FA)** kann dasselbe ueber `@system.fetch`: `common/direkt.js` (gleicher Ablauf, gleiche
+Pakete — Paritaetstest gegen Kern.ets), eingebunden NUR ueber `common/app-wearable.js` (sync-common.sh
+kopiert sie als wearable-app.js). Die Wear Engine haelt direkt.js still, indem es `Sendeplan.naechste`
+umhuellt — recorder.js bleibt unberuehrt. Zeile „pumpfoil.org" auf der Einstellungsseite nur, wo
+`R.direkt` existiert. Tests: `test/direkt.test.mjs` (Koppeln, Konfiguration, Upload, Abbruch +
+Wiederaufnahme ohne Doppelte, 401). UNGEPRUEFT: ob Watch 3/4 Dritt-Apps ins Netz laesst; keinen Simulator.
+Lite (GT/Fit) hat kein Netz — dort bleibt nur die Wear Engine. **Lite-app.js hat KEINEN Platz mehr:** der
+Snapshot-Bau (jerry-snapshot, rc 10) kippte am 08.10.2026 bei Release-Heap-Spitze 38864 und schon an
+einer einzelnen Pruefzeile; jede Aenderung an recorder.js/kern.js/lauf.js zuerst mit `./build-all.sh`.
 **UNGEPRUEFT auf echter Uhr:** ob eine Watch 5 ohne Android-Handy ins Netz kommt (WLAN, eSIM, oder
 ueber die Health-App am iPhone).
 

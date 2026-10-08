@@ -221,7 +221,11 @@ test("Watch-3/4-Projekt hat dieselbe Seite und dieselben Texte wie lite (sonst .
   const url = (p) => new URL(p, import.meta.url);
   const q = "../lite/entry/src/main/js/MainAbility/", z = "../wearable/entry/src/main/js/MainAbility/";
   if (!fs.existsSync(url(z))) return;
-  const dateien = ["app.js", "pages/index/index.hml", "pages/index/index.css", "pages/index/index.js",
+  // app.js: Watch 3/4 hat die eigene common/app-wearable.js (mit Direkt-Upload), Lite nicht.
+  assert.equal(fs.readFileSync(url(z + "app.js"), "utf8"), fs.readFileSync(url("../common/app-wearable.js"), "utf8"), "app.js");
+  assert.equal(fs.readFileSync(url(z + "common/direkt.js"), "utf8"), fs.readFileSync(url("../common/direkt.js"), "utf8"), "direkt.js");
+  assert.ok(!fs.existsSync(url(q + "common/direkt.js")), "Lite hat kein Netz: direkt.js gehoert nicht ins Lite-Projekt");
+  const dateien = ["pages/index/index.hml", "pages/index/index.css", "pages/index/index.js",
     "pages/auswahl/auswahl.hml", "pages/auswahl/auswahl.css", "pages/auswahl/auswahl.js",
     ...fs.readdirSync(url(q + "i18n/")).map((f) => "i18n/" + f)];
   for (const f of dateien) assert.equal(fs.readFileSync(url(z + f), "utf8"), fs.readFileSync(url(q + f), "utf8"), f);
