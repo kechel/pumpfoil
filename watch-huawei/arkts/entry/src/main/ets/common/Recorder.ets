@@ -87,6 +87,7 @@ export interface Zustand {
   sendeCode: number;
   fehler: number;
   letzterFehler: string;
+  verworfen: number;
 }
 
 interface OffeneDatei {
@@ -103,6 +104,14 @@ interface Hallo {
 }
 
 /** Was die Datenseiten zum Zeichnen brauchen (Index.ets). */
+/** Zusammenfassung nach dem Stopp (wie Zepp: Dauer, Strecke + Schnitt, Laeufe). */
+export interface Letzte {
+  ms: number;
+  m: number;
+  kmh: number;
+  laeufe: number;
+}
+
 export interface SeitenDaten {
   s: Stand;
   k: Konfig;
@@ -152,6 +161,11 @@ export class Recorder {
   private halloOffen: boolean = false;
   private halloZuletzt: number = 0;
   private empfangAn: boolean = false;
+  letzte: Letzte | null = null;
+  private verworfen: number = 0;
+  private auto: K.AutoStart | null = null;
+  private autoLos: boolean = false;
+  private leerGpsAn: boolean = false;
 
   // --- Dateien --------------------------------------------------------------------------
 
@@ -372,6 +386,7 @@ export class Recorder {
     this.anzeige = new K.Anzeige();
     this.f = { speicher: 0, accel: 0, gps: 0, puls: 0 };
     this.letzterFehler = '';
+    this.verworfen = 0;
     this.bg = 'aus';
     this.stand = new Stand();
     this.fixNeu = null;
@@ -442,11 +457,92 @@ export class Recorder {
     } else {
       this.achse.weiter(jetzt);   // Stopp aus der Pause: die Pause endet hier
     }
+    const aktiv: number = this.achse.jetzt(jetzt);
+    this.letzte = { ms: aktiv, m: this.anzeige.strecke, laeufe: this.stand.runCount,
+      kmh: aktiv > 0 ? this.anzeige.strecke / (aktiv / 1000) * 3.6 : 0 };
     this.modus = 'bereit';
     this.kurzVibrieren();
     this.bildschirmAn(false);
     this.hintergrundAus();
     this.abschliessen(this.id, this.sammler.index, jetzt, this.achse.pausen, this.sammler.hrAnzahl, 'arkts');
+  }
+
+  /**
+   * Aufnahme VERWERFEN (wie Zepp/Wear/Apple und Lite R.verwerfen): Sensoren aus, nichts mehr senden,
+   * ungesendete Dateien loeschen, kein Ende. Was schon beim Handy ist, bleibt dort unvollstaendig.
+   */
+  verwerfen(): void {
+    if (this.modus === 'bereit') {
+      return;
+    }
+    if (this.modus === 'laeuft') {
+      this.sensorenAus();
+    }
+    this.modus = 'bereit';
+    this.kurzVibrieren();
+    this.bildschirmAn(false);
+    this.hintergrundAus();
+    if (this.offenDatei !== null && !this.offenDatei.hallo && this.offenDatei.d.id === this.id) {
+      this.offenDatei = null;
+    }
+    const weg: string[] = this.plan.weg(this.id);
+    for (let i = 0; i < weg.length; i++) {
+      this.loesche(weg[i]);
+    }
+    this.planSichern();
+    this.loesche('laufend.json');
+    this.verworfen = Date.now();
+  }
+
+  /** Einmal je Sekunde im Bereit-Zustand: Auto-Start wie Zepp; GPS laeuft dafuer nur, wenn das Profil es will. */
+  leerlauf(): boolean {
+    if (this.modus !== 'bereit') {
+      return false;
+    }
+    if (!this.konfig.autoStart) {
+      if (this.leerGpsAn) {
+        try {
+          geoLocationManager.off('locationChange', this.leerGps);
+        } catch (e) {
+          // war nicht an
+        }
+        this.leerGpsAn = false;
+      }
+      return false;
+    }
+    if (!this.leerGpsAn) {
+      this.leerGpsAn = true;
+      this.auto = new K.AutoStart();
+      try {
+        const anfrage: geoLocationManager.LocationRequest = {
+          priority: geoLocationManager.LocationRequestPriority.ACCURACY,
+          scenario: geoLocationManager.LocationRequestScenario.UNSET,
+          timeInterval: 1, distanceInterval: 0, maxAccuracy: 0
+        };
+        geoLocationManager.on('locationChange', anfrage, this.leerGps);
+      } catch (e) {
+        this.fehler('gps', 'GPS Auto-Start ' + (e as BusinessError).code);
+      }
+    }
+    if (!this.autoLos) {
+      return false;
+    }
+    this.autoLos = false;
+    this.auto = null;
+    try {
+      geoLocationManager.off('locationChange', this.leerGps);
+    } catch (e) {
+      // gleich neu in sensorenAn
+    }
+    this.leerGpsAn = false;
+    this.start();
+    return true;
+  }
+
+  private leerGps = (g: geoLocationManager.Location): void => {
+    if (this.auto !== null && this.auto.fix(g.latitude, g.longitude, g.timeStamp > 0 ? g.timeStamp : Date.now())) {
+      this.autoLos = true;
+    }
   }
 
   // --- Uebertragung zum Handy (Nachrichten in Teilen, wie Lite) ---------------------------
@@ -693,6 +789,14 @@ export class Recorder {
   }
 
   ende(): void {
+    if (this.leerGpsAn) {
+      try {
+        geoLocationManager.off('locationChange', this.leerGps);
+      } catch (e) {
+        // war nicht an
+      }
+      this.leerGpsAn = false;
+    }
     this.sensorenAus();
     this.bildschirmAn(false);
     this.hintergrundAus();
@@ -708,7 +812,13 @@ export class Recorder {
       offen: this.plan.offen(), plan: this.plan.stand(),
       // Fehler IN FOLGE (nach einem Erfolg wieder 0), wie common/recorder.js.
       sendeFehler: this.schlange.fehlerFolge, sendeCode: this.schlange.letzterCode,
-      fehler: this.f.speicher + this.f.accel + this.f.gps, letzterFehler: this.letzterFehler
+      fehler: this.f.speicher + this.f.accel + this.f.gps, letzterFehler: this.letzterFehler,
+      verworfen: this.verworfen
     };
+  }
+
+  /** Seiten-Konfiguration samt Ablauf-Einstellungen (stopMode, autoStart, waterLock) fuer die Seite. */
+  konfigJetzt(): Konfig {
+    return this.konfig;
   }
 }

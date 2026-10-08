@@ -419,6 +419,29 @@ export class Sendeplan {
     return r;
   }
 
+  /** Session verwerfen: aus dem Plan nehmen, ungesendete Dateien nennen (wie kern.js Sendeplan.weg). */
+  weg(id: string): string[] {
+    const aus: string[] = [];
+    for (let i = 0; i < this.s.length; i++) {
+      const x: PlanEintrag = this.s[i];
+      if (x.id !== id) {
+        continue;
+      }
+      if (x.m === 0) {
+        aus.push(dateiMeta(id));
+      }
+      for (let k = x.g; k < x.n; k++) {
+        aus.push(dateiChunk(id, k));
+      }
+      if (x.e !== 0 && x.eg === 0) {
+        aus.push(dateiEnde(id));
+      }
+      this.s.splice(i, 1);
+      break;
+    }
+    return aus;
+  }
+
   daten(): PlanDaten {
     const d: PlanDaten = { s: this.s };
     return d;
@@ -506,6 +529,32 @@ export function meter(lat1: number, lon1: number, lat2: number, lon2: number): n
  * Anzeige: Strecke und Tempo. Liefert das GPS ein Tempo, wird es genommen; sonst Strecke der
  * letzten ~5 s durch die Zeit. Spruenge ueber 15 m/s und Fixe mit Genauigkeit > 30 m zaehlen nicht.
  */
+/** Auto-Start wie Zepp/kern.js: drei Fixe in Folge schneller als 7 km/h (aus Weg/Zeit). */
+const AUTOSTART_MPS: number = 7 / 3.6;
+const AUTOSTART_TICKS: number = 3;
+
+export class AutoStart {
+  private letzter: number[] | null = null;
+  ticks: number = 0;
+
+  /** true = jetzt starten. */
+  fix(lat: number, lon: number, tMs: number): boolean {
+    const p: number[] | null = this.letzter;
+    this.letzter = [lat, lon, tMs];
+    if (p === null) {
+      return false;
+    }
+    const dt: number = (tMs - p[2]) / 1000;
+    const v: number = dt > 0 ? meter(p[0], p[1], lat, lon) / dt : 0;
+    if (dt > 0 && dt <= 5 && v > AUTOSTART_MPS && v < 30) {
+      this.ticks++;
+      return this.ticks >= AUTOSTART_TICKS;
+    }
+    this.ticks = 0;
+    return false;
+  }
+}
+
 export class Anzeige {
   pkt: number[][] = [];
   strecke: number = 0;

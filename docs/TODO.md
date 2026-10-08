@@ -1509,10 +1509,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Benutzerfuehrung wie Zepp (Jan, 08.10.: „genauso … wie bei anderen uhren"), in Schritten:**
   (1) ✅ START tippen, Seitenfolge [Aktion][STOPP][Daten…][STOPP][Aktion] hoch/runter, Pause/Fortsetzen +
   STOPP 2 s halten (stopMode press: tippen), Verwerfen zweimal tippen — Lite/Watch 3/4; ArkTS noch NICHT.
-  (2) Zusammenfassung nach Stopp + „Fertig"; `stopMode`/`autoStart`/`waterLock` durch die Handy-Bruecken
-      (Android `HuaweiBruecke.kt` Whitelist, iOS) und auf der Uhr auswerten.
-  (3) Touch-Sperre (durchsichtige Flaeche wie Zepp, 2 s halten = frei, Auto-Sperre).
-  (4) ArkTS-Linie (Watch 5) auf denselben Ablauf bringen.
+  (2) ✅ Zusammenfassung nach Stopp + FERTIG; Auto-Start wie Zepp (3 Fixe > 7 km/h); `stopMode`/`autoStart`/
+      `waterLock` durch die Android-Bruecke (iOS-Bruecke beantwortet das Hallo nicht — keine iPhone-Nutzer).
+  (3) ✅ Touch-Sperre wie Zepp (waterLock „on": ab Start, nach 10 s wieder; halten = frei).
+  (4) ✅ ArkTS-Linie (Watch 5) auf denselben Ablauf (Index.ets neu, Recorder verwerfen/leerlauf/letzte,
+      Kern.ets weg/AutoStart mit Gleichstand-Test). Nur gebaut — im DevEco-Previewer/Emulator ungeprueft.
   **Simulator 08.10. abends:** eigene Layouts (Boegen, Linien, Farben nach Wert), klassische Seiten und Pause
   laufen auf Lite mit GPS-Fahrt-Attrappe (`./sim.sh an sim-konfig.json`); Textlage nachgemessen (Lite setzt
   Text mit der Oberkante). Ende-zu-Ende Uhr->Handy->Server + Rueckweg Konfig in Node/Kotlin/pytest gruen.

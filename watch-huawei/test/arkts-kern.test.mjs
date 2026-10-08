@@ -102,3 +102,23 @@ test("ArkTS-Kern: Zeitachse, Sendeplan, Teile und Gegenstelle wie kern.js", { sk
   for (const w of [wj, wt]) { w.start(); w.fehler(206, 1000); w.fehler(206, 2000); }
   assert.deepEqual([wt.naechsterVersuch, wt.fehlerGesamt, wt.letzterCode], [wj.naechsterVersuch, wj.fehlerGesamt, wj.letzterCode]);
 });
+
+test("ArkTS-Kern: Sendeplan.weg und AutoStart wie kern.js", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  const pj = new K.Sendeplan(), pt = new A.Sendeplan();
+  for (const p of [pj, pt]) {
+    p.neu("a"); p.erledigt({ id: "a", art: "m", nr: -1 });
+    p.neu("b"); for (let i = 0; i < 5; i++) p.chunk("b");
+    p.erledigt({ id: "b", art: "m", nr: -1 }); p.erledigt({ id: "b", art: "c", nr: 0 });
+  }
+  // ArkTS-Dateinamen ohne „internal://app/" (den Ordner haengt Recorder.ets an), sonst gleich
+  assert.deepEqual(pt.weg("b"), pj.weg("b").map((u) => u.substring(u.lastIndexOf("/") + 1)));
+  assert.deepEqual(pt.daten(), pj.daten());
+  const aj = new K.AutoStart(), at = new A.AutoStart();
+  let lat = 52.5, t = 0;
+  const schritte = [0, 1, 3, 3, 1, 3, 3, 3, 3, 30, 100];
+  for (let i = 0; i < schritte.length; i++) {
+    lat += schritte[i] / 111320; t += i === 9 ? 10000 : 1000;
+    assert.equal(at.fix(lat, 13.4, t), aj.fix(lat, 13.4, t), `Fix ${i}`);
+  }
+});
