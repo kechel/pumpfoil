@@ -70,6 +70,7 @@ export function LaufLegende({ n, ganzerLauf = true, mitteText = "tech.lMiddle" }
   // jeder Spalte dasselbe — einmal erklaeren, die Spalten selbst in einer Zeile.
   const t = useT();
   const zeilen: [string, string][] = [
+    [t("tech.sStable"), t("tech.gStable")],
     [t("tech.sPump"), t("tech.gPump")],
     [t("tech.sWobble"), t("tech.gWobble")],
     [t("tech.sCurve"), t("tech.gLean")],
@@ -84,7 +85,7 @@ export function LaufLegende({ n, ganzerLauf = true, mitteText = "tech.lMiddle" }
           <div key={k}><dt className="inline font-semibold text-slate-300">{k}:</dt> <dd className="inline">{v}</dd></div>
         ))}
       </dl>
-      <p>{t(ganzerLauf ? "tech.gMiddle" : mitteText, { n: String(n) })}</p>
+      <p>{t("tech.gSpread")} {t(ganzerLauf ? "tech.gMiddle" : mitteText, { n: String(n) })}</p>
       <p>{t("tech.lBrackets")}. {t("tech.lCorrection")}</p>
       {/* Hub = Bewegung AM HANDY (Jan, 08.10.2026): je nach Lage am Brett kommt das Nicken als Hebel
           dazu. Der Drehpunkt ist NICHT der Mast (Jan: „vorsicht") und nicht bekannt; einen Abstand
@@ -166,9 +167,9 @@ export function KurveGeradeZeile({ kg, wert }: { kg?: KurveGerade | null; wert: 
  * Zahlen untereinander in der Zelle, eine Legende darunter. Ersetzt die getrennten Technik- und
  * Kurve/Gerade-Tabellen samt der alten Tabelle je Lauflaenge.
  */
-export function TechnikUebersicht({ zeilen, titel, mitteText }: {
+export function TechnikUebersicht({ zeilen, titel, mitteText, phase = "tech.sStable" }: {
   zeilen: { label: string; technik?: TechnikPaar | null; kg?: KurveGerade | null }[];
-  titel?: string; mitteText?: string;
+  titel?: string; mitteText?: string; phase?: string;
 }) {
   const t = useT();
   const pump = usePumpFmt();
@@ -183,9 +184,9 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
         <thead>
           <tr className="border-b border-slate-800 bg-slate-900/60 text-left text-slate-400">
             <th className="px-3 py-2 font-medium"></th>
-            <th className="px-3 py-2 font-medium">{t("board.pitch")}</th>
+            <th className="px-3 py-2 font-medium">{t("tech.colPitchPump")}</th>
             <th className="px-3 py-2 font-medium">{t("board.roll")}</th>
-            <th className="px-3 py-2 font-medium">{t("tech.heave")}</th>
+            <th className="px-3 py-2 font-medium">{t("tech.colHeavePump")}</th>
             <th className="px-3 py-2 font-medium">{t("tech.cadence")} <span className="font-normal">{pump.suffix}</span></th>
           </tr>
         </thead>
@@ -199,7 +200,7 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
                   <div className="text-xs tabular-nums text-slate-400">{t("home.baRuns", { n: String(n(z)) })}</div>
                 </td>
                 <td className="px-3 py-2 tabular-nums">
-                  <Zeilen zeilen={[[t("tech.sPump"), m?.pump_nicken_deg, o?.pump_nicken_deg, "±"]]} />
+                  <Zeilen zeilen={[[t(phase), m?.pump_nicken_deg, o?.pump_nicken_deg, "±"]]} />
                   <KurveGeradeZeile kg={z.kg} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
                 </td>
                 <td className="px-3 py-2 tabular-nums">
@@ -234,44 +235,49 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
  */
 export function LageZellen({ k }: { k: NonNullable<BoardAttitude["laeufe"]>[number] }) {
   const t = useT();
+  // Lauf mit stabiler Phase (ab lage.TECHNIK_MIN_S): dann kommen alle oberen Zahlen aus ihr.
+  const lang = !!(k.technik?.mit && k.technik.teil !== "ganz");
   return (
     <>
       {/* Technikzahlen ALS ZEILEN IN DEN ZELLEN (Jan, 08.10.2026: „ohne zusaetzliche
           spalten"): korrigiert vorn, unkorrigiert grau in Klammern, Bedeutung in der
           Legende darunter. Kurze Laeufe (unter lage.TECHNIK_MIN_S) haben keinen ruhigen Mittelteil — dort
           bleibt nur die bisherige Zahl ueber den ganzen Lauf. */}
-      <td className="px-3 py-2 align-top tabular-nums">
-        {k.technik?.mit && k.technik.teil !== "ganz"
+      <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.pitch_amplitude_deg?.toFixed(0)}°`}>
+        {lang
           ? <>
-              <Zeilen zeilen={[[t("tech.sPump"), k.technik.mit.pump_nicken_deg, k.technik.ohne?.pump_nicken_deg, "±"]]} />
-              <KurveGeradeZeile kg={k.technik.kurve_gerade} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
-              <Zeilen zeilen={[[t("tech.sWhole"), k.pitch_amplitude_deg ?? null, undefined, "±", true]]} />
+              <Zeilen zeilen={[[t("tech.sStable"), k.technik!.mit!.pump_nicken_deg, k.technik!.ohne?.pump_nicken_deg, "±"]]} />
+              <KurveGeradeZeile kg={k.technik!.kurve_gerade} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
             </>
           : <>±{k.pitch_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
       </td>
       <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.roll_amplitude_deg?.toFixed(0)}°`}>
-        {k.technik?.mit && k.technik.teil !== "ganz"
+        {lang
           ? <Zeilen zeilen={[
-              [t("tech.sPump"), k.technik.mit.pump_rollen_deg, k.technik.ohne?.pump_rollen_deg, "±"],
-              [t("tech.sWobble"), k.technik.mit.wackeln_deg, k.technik.ohne?.wackeln_deg, "±"],
-              [t("tech.sCurve"), k.technik.mit.kurvenlage_deg, k.technik.ohne?.kurvenlage_deg, ""]]} />
+              [t("tech.sPump"), k.technik!.mit!.pump_rollen_deg, k.technik!.ohne?.pump_rollen_deg, "±"],
+              [t("tech.sWobble"), k.technik!.mit!.wackeln_deg, k.technik!.ohne?.wackeln_deg, "±"],
+              [t("tech.sCurve"), k.technik!.mit!.kurvenlage_deg, k.technik!.ohne?.kurvenlage_deg, ""]]} />
           : <>±{k.roll_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
       </td>
       <td className="px-3 py-2 align-top tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
       <td className="px-3 py-2 align-top tabular-nums">
-        {k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}
-        <KurveGeradeZeile kg={k.technik?.teil !== "ganz" ? k.technik?.kurve_gerade : null} wert={(x) => x.takt_hz != null ? `${x.takt_hz.toFixed(2)}` : null} />
+        {lang && k.technik!.mit!.takt_hz != null
+          ? <>{k.technik!.mit!.takt_hz.toFixed(2)} Hz <span className="text-xs text-slate-500">{t("tech.sStable")}</span></>
+          : k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}
+        <KurveGeradeZeile kg={lang ? k.technik!.kurve_gerade : null} wert={(x) => x.takt_hz != null ? `${x.takt_hz.toFixed(2)}` : null} />
       </td>
       {/* Ein unsicherer Hub wird nicht verschwiegen und nicht kommentiert — er steht
           in Klammern. Die Erklaerung dazu haengt an der Lage-Ansicht, wo man sie
           braucht; hier wuerde sie die Zeile sprengen. */}
-      <td className={`px-3 py-2 tabular-nums ${k.hub_sicher ? "" : "text-slate-500"}`}
-        title={k.hub_sicher ? undefined : t("board.heaveShaky", {
+      <td className={`px-3 py-2 align-top tabular-nums ${lang || k.hub_sicher ? "" : "text-slate-500"}`}
+        title={lang || k.hub_sicher ? undefined : t("board.heaveShaky", {
           s: (k.hub_fenster_s ?? 3).toFixed(1).replace(/\.0$/, "") })}>
-        {k.hub_pp_cm != null
-          ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
-          : "–"}
-        <KurveGeradeZeile kg={k.technik?.teil !== "ganz" ? k.technik?.kurve_gerade : null} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
+        {lang && k.technik!.mit!.hub_cm != null
+          ? <>{k.technik!.mit!.hub_cm.toFixed(0)} cm <span className="text-xs text-slate-500">{t("tech.sStable")}</span></>
+          : k.hub_pp_cm != null
+            ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
+            : "–"}
+        <KurveGeradeZeile kg={lang ? k.technik!.kurve_gerade : null} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
       </td>
     </>
   );

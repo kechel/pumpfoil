@@ -134,7 +134,7 @@ function BoardAttitudeSection() {
         { label: t("tech.allRuns"), technik: data.technik, kg: data.kurve_gerade },
         ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik, kg: f.kurve_gerade })) : []),
       ]} />
-      <TechnikUebersicht titel={t("tech.hShort")} mitteText="tech.lShort" zeilen={[
+      <TechnikUebersicht titel={t("tech.hShort")} mitteText="tech.lShort" phase="tech.sWhole" zeilen={[
         { label: t("tech.allRuns"), technik: data.technik_kurz, kg: data.kurve_gerade_kurz },
         ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik_kurz, kg: f.kurve_gerade_kurz })) : []),
       ]} />
