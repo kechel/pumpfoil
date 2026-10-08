@@ -87,8 +87,10 @@ object HuaweiBruecke {
     /** Die Antwort: Seiten-Konfiguration fuer die Uhr, in Teilen wie die Uhr-Dateien. */
     internal const val KONFIG = "k_konfig.json"
     /** Nur diese Schluessel braucht die Uhr fuer ihre Datenseiten (common/seiten.js `Konfig`). */
+    // Datenseiten + Ablauf wie die anderen Uhren (Halten/Tippen, Auto-Start, Touch-Sperre), 08.10.2026.
     private val KONFIG_SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "pages", "offFoilPages",
-        "pausePages", "browseAll", "layoutsOn", "colorByValue", "hrZones", "speedZones")
+        "pausePages", "browseAll", "layoutsOn", "colorByValue", "hrZones", "speedZones",
+        "stopMode", "autoStart", "waterLock")
     @Volatile private var hochladen = false
 
     /** HUAWEI_WATCH_FP, durch Komma getrennt (app/build.gradle.kts). */
