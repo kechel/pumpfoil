@@ -2473,16 +2473,16 @@ def board_attitude(user: models.User = Depends(current_user),
                 zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
             aus[fassung] = zeile
         return aus or None
-    def _kurve_gerade(menge: list[dict]) -> dict | None:
+    def _kurve_gerade(menge: list[dict], feld: str = "kurve_gerade") -> dict | None:
         """Median je Seite (Kurve/Gerade) ueber die Laeufe; `laeufe`/`zuege` sagen, worauf er steht."""
         aus = {}
         for art in ("kurve", "gerade"):
-            w = [x["technik"]["kurve_gerade"][art] for x in menge
-                 if x.get("technik") and x["technik"].get("kurve_gerade") and x["technik"]["kurve_gerade"].get(art)]
+            w = [x["technik"][feld][art] for x in menge
+                 if x.get("technik") and x["technik"].get(feld) and x["technik"][feld].get(art)]
             if not w:
                 continue
             zeile = {"laeufe": len(w), "zuege": int(sum(int(e["zuege"]) for e in w))}
-            for k in ("takt_hz", "nicken_deg", "hub_cm", "rollen_deg"):
+            for k in ("takt_hz", "nicken_deg", "hub_cm", "rollen_deg", "wackeln_deg", "kurvenlage_deg"):
                 v = [float(e[k]) for e in w if e.get(k) is not None]
                 zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
             aus[art] = zeile
@@ -2491,12 +2491,14 @@ def board_attitude(user: models.User = Depends(current_user),
         _f = [x for x in laeufe if x["foil_id"] == f_["foil_id"]]
         f_["technik"] = _technik(_teil(_f, "mitte"))
         f_["kurve_gerade"] = _kurve_gerade(_teil(_f, "mitte"))
+        f_["kurve_gerade_ohne"] = _kurve_gerade(_teil(_f, "mitte"), "kurve_gerade_ohne")
         f_["technik_kurz"] = _technik(_teil(_f, "ganz"))
         f_["technik_ganz"] = _technik(_ganz(_teil(_f, "mitte")))
         f_["kurve_gerade_kurz"] = _kurve_gerade(_teil(_f, "ganz"))
     out = {"gesamt": _zusammenfassen(laeufe), "je_foil": je_foil,
            "technik": _technik(_teil(laeufe, "mitte")), "technik_min_s": _lage.TECHNIK_MIN_S, "technik_rand_s": _lage.TECHNIK_RAND_S,
            "kurve_gerade": _kurve_gerade(_teil(laeufe, "mitte")),
+           "kurve_gerade_ohne": _kurve_gerade(_teil(laeufe, "mitte"), "kurve_gerade_ohne"),
            # Laeufe unter 30 s, ueber den ganzen Lauf (s. lage._technik_lauf) — getrennt ausgewiesen.
            "technik_kurz": _technik(_teil(laeufe, "ganz")),
            # Lange Laeufe, Phase „ganzer Lauf" (mit Anfang und Ende), s. lage._technik_lauf.

@@ -918,14 +918,16 @@ export type Technik = {
 };
 /** Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`); zuege/laeufe = worauf es steht. */
 export type KurveGeradeSeite = { zuege: number; laeufe?: number; takt_hz: number | null; nicken_deg: number | null; hub_cm: number | null;
-  rollen_deg?: number | null };
+  rollen_deg?: number | null; wackeln_deg?: number | null; kurvenlage_deg?: number | null };
 export type KurveGerade = { kurve: KurveGeradeSeite | null; gerade: KurveGeradeSeite | null };
 /** Mit und ohne Fliehkraft-Korrektur; null = Lauf zu kurz (unter 30 s) bzw. nichts auswertbar. */
 export type TechnikPaar = { mit: Technik | null; ohne: Technik | null; kurve_gerade?: KurveGerade | null;
   /** "mitte" = Lauf ab 30 s, ruhiger Mittelteil; "ganz" = Lauf unter 30 s, ueber den ganzen Lauf. */
   teil?: "mitte" | "ganz";
   /** Lange Laeufe: Phase „ganzer Lauf" — dieselbe Rechnung mit Anfang und Ende. */
-  ganz?: TechnikPaar | null };
+  ganz?: TechnikPaar | null;
+  /** Kurve/gerade aus der UNKORRIGIERTEN Rechnung (Umschalter korrigiert | unkorrigiert). */
+  kurve_gerade_ohne?: KurveGerade | null };
 
 export type BoardKlasse = {
   klasse: string; laeufe: number; pitch_deg: number; roll_deg: number | null;
@@ -1442,13 +1444,14 @@ export const api = {
     gesamt: BoardKlasse[];
     je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[]; technik?: TechnikPaar | null;
       kurve_gerade?: KurveGerade | null; technik_kurz?: TechnikPaar | null; kurve_gerade_kurz?: KurveGerade | null;
-      technik_ganz?: TechnikPaar | null }[];
+      technik_ganz?: TechnikPaar | null; kurve_gerade_ohne?: KurveGerade | null }[];
     sessions: number; laeufe: number; ohne_kreisel: number;
     technik?: TechnikPaar | null;
     kurve_gerade?: KurveGerade | null;
     technik_kurz?: TechnikPaar | null;
     kurve_gerade_kurz?: KurveGerade | null;
     technik_ganz?: TechnikPaar | null;
+    kurve_gerade_ohne?: KurveGerade | null;
   }>("/api/community/board-attitude"),
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),

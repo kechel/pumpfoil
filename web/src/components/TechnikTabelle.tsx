@@ -1,4 +1,5 @@
 import type React from "react";
+import { useState } from "react";
 import { useT } from "../i18n";
 import type { BoardAttitude, KurveGerade, KurveGeradeSeite, Technik, TechnikPaar } from "../lib/api";
 import { usePumpFmt } from "../lib/pumpRate";
@@ -85,7 +86,7 @@ export function LaufLegende({ n, mitteText = "tech.gMiddle" }: { n: number; mitt
           <div key={k}><dt className="inline font-semibold text-slate-300">{k}:</dt> <dd className="inline">{v}</dd></div>
         ))}
       </dl>
-      <p>{t("tech.lBrackets")}. {t("tech.lCorrection")}</p>
+      <p>{t("tech.lCorrection")}</p>
       <p>{t("tech.gSpread")} {t(mitteText, { n: String(n) })}</p>
       <p>{t("tech.gHeave")}</p>
     </div>
@@ -137,27 +138,37 @@ export function KurveGeradeTabelle({ kg }: { kg: KurveGerade }) {
  * Kurve/Gerade-Tabellen samt der alten Tabelle je Lauflaenge.
  */
 export function TechnikUebersicht({ zeilen, titel, mitteText }: {
-  zeilen: { label: string; technik?: TechnikPaar | null; kg?: KurveGerade | null; ganz?: TechnikPaar | null; nurGanz?: boolean }[];
+  zeilen: { label: string; technik?: TechnikPaar | null; kg?: KurveGerade | null; kgOhne?: KurveGerade | null;
+    ganz?: TechnikPaar | null; nurGanz?: boolean }[];
   titel?: string; mitteText?: string;
 }) {
   const t = useT();
   const pump = usePumpFmt();
+  const [korr, setKorr] = useState(true);
   const mitDaten = zeilen.filter((z) => z.technik?.mit || z.technik?.ohne);
   if (!mitDaten.length) return null;
   const n = (z: { technik?: TechnikPaar | null }) => z.technik?.mit?.laeufe ?? z.technik?.ohne?.laeufe ?? 0;
   const seite = (x: KurveGeradeSeite | null | undefined): Partial<Technik> | null => x
-    ? { pump_nicken_deg: x.nicken_deg, pump_rollen_deg: x.rollen_deg ?? null, takt_hz: x.takt_hz, hub_cm: x.hub_cm } : null;
-  const phasen = (z: typeof mitDaten[number]): PhaseZeile[] => z.nurGanz
-    ? [{ phase: t("tech.sWhole"), mit: z.technik?.mit, ohne: z.technik?.ohne, haupt: true }]
-    : [
-        { phase: t("tech.sStable"), mit: z.technik?.mit, ohne: z.technik?.ohne, haupt: true },
-        ...(z.kg ? [{ phase: t("tech.sTurn"), mit: seite(z.kg.kurve), haupt: false },
-                    { phase: t("tech.sStraight"), mit: seite(z.kg.gerade), haupt: false }] : []),
-        ...(z.ganz && (z.ganz.mit || z.ganz.ohne) ? [{ phase: t("tech.sWhole"), mit: z.ganz.mit, ohne: z.ganz.ohne, haupt: false }] : []),
-      ];
+    ? { pump_nicken_deg: x.nicken_deg, pump_rollen_deg: x.rollen_deg ?? null, takt_hz: x.takt_hz, hub_cm: x.hub_cm,
+      wackeln_deg: x.wackeln_deg ?? null, kurvenlage_deg: x.kurvenlage_deg ?? null } : null;
+  const f = (p: TechnikPaar | null | undefined) => (korr ? p?.mit : p?.ohne);
+  const phasen = (z: typeof mitDaten[number]): PhaseZeile[] => {
+    const kg = korr ? z.kg : z.kgOhne;
+    return z.nurGanz
+      ? [{ phase: t("tech.sWhole"), mit: f(z.technik), haupt: true }]
+      : [
+          { phase: t("tech.sStable"), mit: f(z.technik), haupt: true },
+          ...(kg ? [{ phase: t("tech.sTurn"), mit: seite(kg.kurve), haupt: false },
+                    { phase: t("tech.sStraight"), mit: seite(kg.gerade), haupt: false }] : []),
+          ...(z.ganz && (z.ganz.mit || z.ganz.ohne) ? [{ phase: t("tech.sWhole"), mit: f(z.ganz), haupt: false }] : []),
+        ];
+  };
   return (
     <div className="mt-3">
-    {titel && <div className="mb-1 text-sm font-semibold text-slate-200">{titel}</div>}
+    <div className="mb-1 flex flex-wrap items-center gap-2">
+      {titel && <div className="text-sm font-semibold text-slate-200">{titel}</div>}
+      <span className="ml-auto"><KorrekturUmschalter korr={korr} onChange={setKorr} /></span>
+    </div>
     <div className="overflow-x-auto rounded-xl border border-slate-800">
       <table className="w-full min-w-[640px] text-sm">
         <thead>
@@ -202,43 +213,44 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
  * die neue darstellung"), damit beide nie auseinanderlaufen.
  */
 /** Eine Phase in der Lage-Tabelle: Werte korrigiert (mit) und unkorrigiert (ohne, in Klammern). */
-type PhaseZeile = { phase: string; mit: Partial<Technik> | null | undefined; ohne?: Partial<Technik> | null; haupt: boolean };
+type PhaseZeile = { phase: string; mit: Partial<Technik> | null | undefined; haupt: boolean };
 
 /** Phasen eines Laufs (Jan, 08.10.2026: „4 zeilen je lauf mit einer neuen spalte phase"): stabile Phase,
  *  Kurve, gerade, ganzer Lauf. Kurze Laeufe (unter lage.TECHNIK_MIN_S) nur „ganzer Lauf". */
-function phasenDesLaufs(k: NonNullable<BoardAttitude["laeufe"]>[number], t: (k: string) => string): PhaseZeile[] {
+function phasenDesLaufs(k: NonNullable<BoardAttitude["laeufe"]>[number], t: (k: string) => string, korr: boolean): PhaseZeile[] {
   const x = k.technik;
   if (!x) return [{ phase: t("tech.sWhole"), mit: null, haupt: false }];
-  if (x.teil === "ganz") return [{ phase: t("tech.sWhole"), mit: x.mit, ohne: x.ohne, haupt: true }];
-  const kg = x.kurve_gerade;
+  const f = (p: TechnikPaar | null | undefined) => (korr ? p?.mit : p?.ohne);
+  if (x.teil === "ganz") return [{ phase: t("tech.sWhole"), mit: f(x), haupt: true }];
+  const kg = korr ? x.kurve_gerade : x.kurve_gerade_ohne;
   const seite = (z: KurveGeradeSeite | null | undefined): Partial<Technik> | null => z
-    ? { pump_nicken_deg: z.nicken_deg, pump_rollen_deg: z.rollen_deg ?? null, takt_hz: z.takt_hz, hub_cm: z.hub_cm } : null;
+    ? { pump_nicken_deg: z.nicken_deg, pump_rollen_deg: z.rollen_deg ?? null, takt_hz: z.takt_hz, hub_cm: z.hub_cm,
+      wackeln_deg: z.wackeln_deg ?? null, kurvenlage_deg: z.kurvenlage_deg ?? null } : null;
   return [
-    { phase: t("tech.sStable"), mit: x.mit, ohne: x.ohne, haupt: true },
+    { phase: t("tech.sStable"), mit: f(x), haupt: true },
     ...(kg ? [{ phase: t("tech.sTurn"), mit: seite(kg.kurve), haupt: false },
               { phase: t("tech.sStraight"), mit: seite(kg.gerade), haupt: false }] : []),
-    ...(x.ganz ? [{ phase: t("tech.sWhole"), mit: x.ganz.mit, ohne: x.ganz.ohne, haupt: false }] : []),
+    ...(x.ganz ? [{ phase: t("tech.sWhole"), mit: f(x.ganz), haupt: false }] : []),
   ];
 }
 
 /** Die Wert-Zellen EINER Phase: Nicken | Rollen | Wackeln | Schraeglage | Takt | Hub. */
 function PhasenWerte({ z, takt }: { z: PhaseZeile; takt?: (hz: number) => string }) {
-  const zelle = (v: number | null | undefined, o: number | null | undefined, f: (n: number) => string) => (
+  const zelle = (v: number | null | undefined, f: (n: number) => string) => (
     <td className="px-3 py-1.5 text-right tabular-nums whitespace-nowrap">
       <span className={z.haupt ? "font-semibold text-brand-700 dark:text-brand-300" : ""}>{v != null ? f(v) : "–"}</span>
-      {o != null && <span> ({f(o)})</span>}
     </td>
   );
   const g = (n: number) => `±${n.toFixed(1)}°`;
-  const m = z.mit, o = z.ohne;
+  const m = z.mit;
   return (
     <>
-      {zelle(m?.pump_nicken_deg, o?.pump_nicken_deg, g)}
-      {zelle(m?.pump_rollen_deg, o?.pump_rollen_deg, g)}
-      {zelle(m?.wackeln_deg, o?.wackeln_deg, g)}
-      {zelle(m?.kurvenlage_deg, o?.kurvenlage_deg, (n) => `${n.toFixed(1)}°`)}
-      {zelle(m?.takt_hz, null, takt ?? ((n) => `${n.toFixed(2)} Hz`))}
-      {zelle(m?.hub_cm, null, (n) => `${n.toFixed(0)} cm`)}
+      {zelle(m?.pump_nicken_deg, g)}
+      {zelle(m?.pump_rollen_deg, g)}
+      {zelle(m?.wackeln_deg, g)}
+      {zelle(m?.kurvenlage_deg, (n) => `${n.toFixed(1)}°`)}
+      {zelle(m?.takt_hz, takt ?? ((n) => `${n.toFixed(2)} Hz`))}
+      {zelle(m?.hub_cm, (n) => `${n.toFixed(0)} cm`)}
     </>
   );
 }
@@ -267,13 +279,13 @@ export function PhasenKopf({ sortierbar }: { sortierbar?: (key: string, label: s
  * stehen (Nummer, Datum, Montage …) — sie bekommen `rowSpan` = Anzahl Phasen. Gieren steht ebenfalls
  * einmal je Lauf (es ist keine Pumpzug-Groesse).
  */
-export function LaufPhasenZeilen({ k, vorne, hinten, onClick, className }: {
+export function LaufPhasenZeilen({ k, vorne, hinten, onClick, className, korr = true }: {
   k: NonNullable<BoardAttitude["laeufe"]>[number];
   vorne: (rowSpan: number) => React.ReactNode; hinten?: (rowSpan: number) => React.ReactNode;
-  onClick?: () => void; className?: string;
+  onClick?: () => void; className?: string; korr?: boolean;
 }) {
   const t = useT();
-  const zeilen = phasenDesLaufs(k, t);
+  const zeilen = phasenDesLaufs(k, t, korr);
   const n = zeilen.length;
   return (
     <>
@@ -326,3 +338,21 @@ export function kgZeilen(kg: KurveGerade | null | undefined, wert: (x: KurveGera
   ];
 }
 
+
+/** Umschalter fuer eine Lage-Tabelle (Jan, 08.10.2026: „die ganze tabelle umschaltbar mit default
+ *  korrigiert | ohne korrektur") — ersetzt die Klammerwerte. */
+export function KorrekturUmschalter({ korr, onChange }: { korr: boolean; onChange: (v: boolean) => void }) {
+  const t = useT();
+  const knopf = (an: boolean, label: string) => (
+    <button onClick={() => onChange(an)}
+      className={`px-2.5 py-0.5 ${korr === an ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+      {label}
+    </button>
+  );
+  return (
+    <div className="inline-flex overflow-hidden rounded-lg border border-slate-700 text-xs font-medium">
+      {knopf(true, t("tech.colWith"))}
+      {knopf(false, t("tech.colWithout"))}
+    </div>
+  );
+}
