@@ -1,4 +1,4 @@
-import { KurveGeradeZeile, LaufLegende, Zeilen } from "../components/TechnikTabelle";
+import { LageZellen, LaufLegende } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -3136,43 +3136,7 @@ function RunsTable({
                     selected === k.lauf ? "bg-brand-500/20" : ""}`}
                 >
                   <td className="px-3 py-2 tabular-nums">{k.lauf + 1}</td>
-                  {/* Technikzahlen ALS ZEILEN IN DEN ZELLEN (Jan, 08.10.2026: „ohne zusaetzliche
-                      spalten"): korrigiert vorn, unkorrigiert grau in Klammern, Bedeutung in der
-                      Legende darunter. Kurze Laeufe (unter lage.TECHNIK_MIN_S) haben keinen ruhigen Mittelteil — dort
-                      bleibt nur die bisherige Zahl ueber den ganzen Lauf. */}
-                  <td className="px-3 py-2 align-top tabular-nums">
-                    {k.technik?.mit && k.technik.teil !== "ganz"
-                      ? <>
-                          <Zeilen zeilen={[[t("tech.sPump"), k.technik.mit.pump_nicken_deg, k.technik.ohne?.pump_nicken_deg, "±"]]} />
-                          <KurveGeradeZeile kg={k.technik.kurve_gerade} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
-                          <Zeilen zeilen={[[t("tech.sWhole"), k.pitch_amplitude_deg ?? null, undefined, "±", true]]} />
-                        </>
-                      : <>±{k.pitch_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
-                  </td>
-                  <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.roll_amplitude_deg?.toFixed(0)}°`}>
-                    {k.technik?.mit && k.technik.teil !== "ganz"
-                      ? <Zeilen zeilen={[
-                          [t("tech.sPump"), k.technik.mit.pump_rollen_deg, k.technik.ohne?.pump_rollen_deg, "±"],
-                          [t("tech.sWobble"), k.technik.mit.wackeln_deg, k.technik.ohne?.wackeln_deg, "±"],
-                          [t("tech.sCurve"), k.technik.mit.kurvenlage_deg, k.technik.ohne?.kurvenlage_deg, ""]]} />
-                      : <>±{k.roll_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
-                  </td>
-                  <td className="px-3 py-2 align-top tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
-                  <td className="px-3 py-2 align-top tabular-nums">
-                    {k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}
-                    <KurveGeradeZeile kg={k.technik?.teil !== "ganz" ? k.technik?.kurve_gerade : null} wert={(x) => x.takt_hz != null ? `${x.takt_hz.toFixed(2)}` : null} />
-                  </td>
-                  {/* Ein unsicherer Hub wird nicht verschwiegen und nicht kommentiert — er steht
-                      in Klammern. Die Erklaerung dazu haengt an der Lage-Ansicht, wo man sie
-                      braucht; hier wuerde sie die Zeile sprengen. */}
-                  <td className={`px-3 py-2 tabular-nums ${k.hub_sicher ? "" : "text-slate-500"}`}
-                    title={k.hub_sicher ? undefined : t("board.heaveShaky", {
-                      s: (k.hub_fenster_s ?? 3).toFixed(1).replace(/\.0$/, "") })}>
-                    {k.hub_pp_cm != null
-                      ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
-                      : "–"}
-                    <KurveGeradeZeile kg={k.technik?.teil !== "ganz" ? k.technik?.kurve_gerade : null} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
-                  </td>
+                  <LageZellen k={k} />
                   {/* Die Montage je Lauf SICHTBAR machen (Jan, 22.09.): das Handy kann zwischen
                       zwei Laeufen verrutschen. Grau, wenn sie nicht aus diesem Lauf stammt,
                       sondern von der ganzen Aufnahme geerbt ist — dann war das Signal hier zu

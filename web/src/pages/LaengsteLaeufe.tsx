@@ -7,6 +7,7 @@
 // (GET /api/sessions/longest-runs). Die Kurven je Lauf brauchen die volle Session (Puls je
 // Trackpunkt) und bei „Handy am Brett" die Lage-Kennzahlen je Lauf — beides holt die Seite je
 // betroffener Session nach. Bei fuenf Laeufen sind das hoechstens fuenf Abrufe.
+import { LageZellen, LaufLegende } from "../components/TechnikTabelle";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
@@ -149,8 +150,10 @@ export default function LaengsteLaeufe() {
       case "pumps": return l.pumps ?? null;
       case "rate": return l.avg_pump_hz ?? null;
       case "glide": return l.longest_glide_s ?? null;
-      case "pitch": return lageVon(l)?.pitch_amplitude_deg ?? null;
-      case "roll": return lageVon(l)?.roll_amplitude_deg ?? null;
+      // Sortiert wird nach der Zahl, die oben in der Zelle steht: je Pumpzug (Mittelteil), bei kurzen
+      // Laeufen die bisherige ueber den ganzen Lauf.
+      case "pitch": { const x = lageVon(l); return (x?.technik?.teil !== "ganz" ? x?.technik?.mit?.pump_nicken_deg : null) ?? x?.pitch_amplitude_deg ?? null; }
+      case "roll": { const x = lageVon(l); return (x?.technik?.teil !== "ganz" ? x?.technik?.mit?.pump_rollen_deg : null) ?? x?.roll_amplitude_deg ?? null; }
       case "yaw": return lageVon(l)?.gier_rms_deg_s ?? null;
       case "pitchHz": return lageVon(l)?.pitch_hz ?? null;
       case "hub": return lageVon(l)?.hub_pp_cm ?? null;
@@ -339,21 +342,18 @@ export default function LaengsteLaeufe() {
                         <td className="px-3 py-2 tabular-nums">{l.distance_m != null ? `${Math.round(l.distance_m)} m` : "–"}</td>
                         {!lage[l.session_id] ? <td colSpan={5} className="px-3 py-2 text-slate-500">…</td>
                           : !k?.ok ? <td colSpan={5} className="px-3 py-2 text-slate-500">–</td> : (
-                          <>
-                            <td className="px-3 py-2 tabular-nums">±{k.pitch_amplitude_deg?.toFixed(0)}°</td>
-                            <td className="px-3 py-2 tabular-nums">±{k.roll_amplitude_deg?.toFixed(0)}°</td>
-                            <td className="px-3 py-2 tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
-                            <td className="px-3 py-2 tabular-nums">{k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}</td>
-                            <td className={`px-3 py-2 tabular-nums ${k.hub_sicher ? "" : "text-slate-500"}`}>
-                              {k.hub_pp_cm != null ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`) : "–"}
-                            </td>
-                          </>
+                          // Dieselben Zellen wie „Lage je Lauf" in den Session-Details (Jan, 08.10.2026).
+                          <LageZellen k={k} />
                         )}
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
+              <LaufLegende n={(brettLaeufe ?? []).filter((l) => {
+                const k = lage[l.session_id]?.find((x) => x.lauf === l.run_idx);
+                return !!(k?.ok && k.technik?.mit && k.technik.teil !== "ganz");
+              }).length} />
             </Card>
           )}
 
