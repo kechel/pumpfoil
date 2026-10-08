@@ -232,6 +232,7 @@ const deAT: Record<string, string> = {
   "sessions.todayOne": "Heute bisher 1 neue Session",
   "sessions.todayN": "Heute bisher {n} neue Sessions",
   "side.all": "olle",
+  "side.phoneOnBoard": "Handy aufm Brett",
   "side.recordsHint": "Rekorde nur aus Sessions mit Beschleunigungsdaten (genau) oder aus olle",
   "rec.spotTitle": "Rekorde an diesem Spot",
   "rec.farthestRun": "Weitester Lauf",

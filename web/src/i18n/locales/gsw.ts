@@ -233,6 +233,7 @@ const gsw: Record<string, string> = {
   "sessions.todayOne": "Hüt bis jetzt 1 neui Session",
   "sessions.todayN": "Hüt bis jetzt {n} neui Sessions",
   "side.all": "alli",
+  "side.phoneOnBoard": "Handy uf em Brett",
   "side.recordsHint": "Rekord nur us Sessions mit Beschleunigungsdate (gnau) oder us allne",
   "rec.spotTitle": "Rekord a däm Spot",
   "rec.farthestRun": "Wytischte Lauf",

@@ -232,6 +232,7 @@ const it: Record<string, string> = {
   "sessions.todayOne": "Finora oggi 1 nuova sessione",
   "sessions.todayN": "Finora oggi {n} nuove sessioni",
   "side.all": "tutti",
+  "side.phoneOnBoard": "telefono sulla tavola",
   "side.recordsHint": "Record dalle sessioni con dati di accelerazione (precisi) o da tutte",
   "rec.spotTitle": "Record in questo spot",
   "rec.farthestRun": "Run più lungo",

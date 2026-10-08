@@ -263,6 +263,7 @@ const ptPT: Record<string, string> = {
   "sessions.todayOne": "Hoje até agora 1 sessão nova",
   "sessions.todayN": "Hoje até agora {n} sessões novas",
   "side.all": "tudo",
+  "side.phoneOnBoard": "telefone na prancha",
   "side.recordsHint": "Recordes de sessões com dados de aceleração (preciso) ou de todas",
   "rec.spotTitle": "Recordes neste spot",
   "rec.farthestRun": "Volta mais longa",

@@ -252,6 +252,7 @@ const zh: Record<string, string> = {
   "sessions.todayOne": "今天到目前为止 1 个新记录",
   "sessions.todayN": "今天到目前为止 {n} 个新记录",
   "side.all": "全部",
+  "side.phoneOnBoard": "手机放在板上",
   "side.recordsHint": "来自含加速度数据（精确）的记录，或来自全部记录的纪录",
   "rec.spotTitle": "本地点的纪录",
   "rec.farthestRun": "最远航段",

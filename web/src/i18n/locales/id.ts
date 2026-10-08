@@ -252,6 +252,7 @@ const id: Record<string, string> = {
   "sessions.todayOne": "Hari ini sejauh ini 1 sesi baru",
   "sessions.todayN": "Hari ini sejauh ini {n} sesi baru",
   "side.all": "semua",
+  "side.phoneOnBoard": "ponsel di papan",
   "side.recordsHint": "Rekor dari sesi dengan data akselerasi (presisi) atau dari semua",
   "rec.spotTitle": "Rekor di spot ini",
   "rec.farthestRun": "Run terjauh",

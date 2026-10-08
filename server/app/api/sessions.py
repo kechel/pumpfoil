@@ -782,6 +782,7 @@ def list_sessions(
     accel_only: bool = False,
     foil_id: int | None = None,
     sport: str = "all",
+    board: bool = False,
 ) -> list[SessionOut]:
     """Ohne limit: alle (für Gesamt-Stats/Nachbarnavigation). Mit limit/offset:
     seitenweise (Infinite-Scroll). Optionaler Monatsfilter 'YYYY-MM'.
@@ -798,6 +799,9 @@ def list_sessions(
     # gefahren. Nutzer-Vorschlag 04.09. („make the foil model clickable").
     if foil_id:
         q = q.filter(models.Session.foil_id == foil_id)
+    # Nur Handy am Brett (Sessions-Seite, dritter Filter neben Accel/alle; s. community._brett).
+    if board:
+        q = q.filter(models.Session.placement == "board")
     if (sc := _sport_cond(sport)) is not None:
         q = q.filter(sc)
     # Persönliche Empfindlichkeit: für den Besitzer entscheidet sein Preset (gecacht in

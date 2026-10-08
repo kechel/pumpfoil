@@ -264,6 +264,7 @@ const en: Record<string, string> = {
   "sessions.todayOne": "1 new session so far today",
   "sessions.todayN": "{n} new sessions so far today",
   "side.all": "all",
+  "side.phoneOnBoard": "phone on board",
   "side.recordsHint": "Records from sessions with acceleration data (precise) or from all",
   "rec.spotTitle": "Records at this spot",
   "rec.farthestRun": "Farthest run",

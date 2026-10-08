@@ -258,6 +258,7 @@ const cs: Record<string, string> = {
   "sessions.todayOne": "Dnes zatím 1 nová session",
   "sessions.todayN": "Dnes zatím {n} nových sessions",
   "side.all": "vše",
+  "side.phoneOnBoard": "telefon na desce",
   "side.recordsHint": "Rekordy jen z relací s daty ze zrychlení (přesné), nebo ze všech",
   "rec.spotTitle": "Rekordy na tomto spotu",
   "rec.farthestRun": "Nejdelší jízda (vzdálenost)",
