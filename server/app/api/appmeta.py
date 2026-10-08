@@ -824,10 +824,12 @@ NAECHSTES: list[dict] = [
          "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
      ]},
     # 07.10.2026 (Peter3, b44db846): aussortierte Session ohne Laeufe -> PowerCard Int(NaN) -> Absturz.
+    # 08.10.2026 (PumpingCarbon, b3584e63): 6-h-Session #13763 fror die Karte ein (21.765 Overlays).
     {"name": "iPhone + Apple Watch", "version": "1.1.44",
      "items": [
          "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
          "Opening a filtered-out session no longer closes the app.",
+         "Very long sessions, such as a six-hour ride, open again instead of freezing the app.",
      ]},
     # 08.10.2026 (Jan: „Huawei im changelog unter coming next"): Recorder fuer alle drei Huawei-Linien
     # (Lite GT/Fit/D, Watch 3/4, Watch 5), Uebertragung ueber die Android-App. Im Simulator geprueft,
