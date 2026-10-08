@@ -4,7 +4,7 @@ import { geraeteText } from "../lib/deviceLabel";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
-import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
+import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData, SessionVideo, type KurveGerade, type KurveGeradeSeite } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf, SELECT_SCHRUMPFT } from "../components/ui";
@@ -3142,9 +3142,11 @@ function RunsTable({
                       bleibt nur die bisherige Zahl ueber den ganzen Lauf. */}
                   <td className="px-3 py-2 align-top tabular-nums">
                     {k.technik?.mit
-                      ? <Zeilen zeilen={[
-                          [t("tech.sPump"), k.technik.mit.pump_nicken_deg, k.technik.ohne?.pump_nicken_deg, "±"],
-                          [t("tech.sWhole"), k.pitch_amplitude_deg ?? null, undefined, "±", true]]} />
+                      ? <>
+                          <Zeilen zeilen={[[t("tech.sPump"), k.technik.mit.pump_nicken_deg, k.technik.ohne?.pump_nicken_deg, "±"]]} />
+                          <KurveGeradeZeile kg={k.technik.kurve_gerade} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
+                          <Zeilen zeilen={[[t("tech.sWhole"), k.pitch_amplitude_deg ?? null, undefined, "±", true]]} />
+                        </>
                       : <>±{k.pitch_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
                   </td>
                   <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.roll_amplitude_deg?.toFixed(0)}°`}>
@@ -3156,8 +3158,9 @@ function RunsTable({
                       : <>±{k.roll_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
                   </td>
                   <td className="px-3 py-2 align-top tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
-                  <td className="px-3 py-2 tabular-nums">
+                  <td className="px-3 py-2 align-top tabular-nums">
                     {k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}
+                    <KurveGeradeZeile kg={k.technik?.kurve_gerade} wert={(x) => x.takt_hz != null ? `${x.takt_hz.toFixed(2)}` : null} />
                   </td>
                   {/* Ein unsicherer Hub wird nicht verschwiegen und nicht kommentiert — er steht
                       in Klammern. Die Erklaerung dazu haengt an der Lage-Ansicht, wo man sie
@@ -3168,6 +3171,7 @@ function RunsTable({
                     {k.hub_pp_cm != null
                       ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
                       : "–"}
+                    <KurveGeradeZeile kg={k.technik?.kurve_gerade} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
                   </td>
                   {/* Die Montage je Lauf SICHTBAR machen (Jan, 22.09.): das Handy kann zwischen
                       zwei Laeufen verrutschen. Grau, wenn sie nicht aus diesem Lauf stammt,
@@ -3519,6 +3523,20 @@ function Zeilen({ zeilen }: { zeilen: [string, number | null | undefined, number
           <span className="ml-1 text-xs text-slate-500">{label}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Eine Zeile „Wert Kurve · Wert gerade" unter der Hauptzahl einer Zelle (Lage je Lauf). Nichts,
+ *  wenn der Lauf keine Kurve-/Gerade-Auswertung hat (unter 30 s oder zu wenige Pumpzuege). */
+function KurveGeradeZeile({ kg, wert }: { kg?: KurveGerade | null; wert: (x: KurveGeradeSeite) => string | null }) {
+  const t = useT();
+  if (!kg || (!kg.kurve && !kg.gerade)) return null;
+  const k = kg.kurve ? wert(kg.kurve) : null, g = kg.gerade ? wert(kg.gerade) : null;
+  return (
+    <div className="whitespace-nowrap text-xs text-slate-400">
+      {k ?? "–"} <span className="text-slate-500">{t("tech.sTurn")}</span>
+      {" · "}{g ?? "–"} <span className="text-slate-500">{t("tech.sStraight")}</span>
     </div>
   );
 }

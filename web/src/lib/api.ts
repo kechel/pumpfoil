@@ -916,8 +916,11 @@ export type Technik = {
   kurvenlage_deg: number | null; hub_cm: number | null; takt_hz: number | null;
   mitte_s?: number; laeufe?: number;
 };
+/** Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`); zuege/laeufe = worauf es steht. */
+export type KurveGeradeSeite = { zuege: number; laeufe?: number; takt_hz: number | null; nicken_deg: number | null; hub_cm: number | null };
+export type KurveGerade = { kurve: KurveGeradeSeite | null; gerade: KurveGeradeSeite | null };
 /** Mit und ohne Fliehkraft-Korrektur; null = Lauf zu kurz (unter 30 s) bzw. nichts auswertbar. */
-export type TechnikPaar = { mit: Technik | null; ohne: Technik | null };
+export type TechnikPaar = { mit: Technik | null; ohne: Technik | null; kurve_gerade?: KurveGerade | null };
 
 export type BoardKlasse = {
   klasse: string; laeufe: number; pitch_deg: number; roll_deg: number | null;
@@ -1432,9 +1435,11 @@ export const api = {
   }>(`/api/sessions/${id}/board-hint`),
   boardAttitudeStats: () => req<{
     gesamt: BoardKlasse[];
-    je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[]; technik?: TechnikPaar | null }[];
+    je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[]; technik?: TechnikPaar | null;
+      kurve_gerade?: KurveGerade | null }[];
     sessions: number; laeufe: number; ohne_kreisel: number;
     technik?: TechnikPaar | null;
+    kurve_gerade?: KurveGerade | null;
   }>("/api/community/board-attitude"),
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),
