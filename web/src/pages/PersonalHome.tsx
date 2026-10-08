@@ -1,12 +1,11 @@
-import { KurveGeradeTabelle, TechnikTabelle } from "../components/TechnikTabelle";
+import { TechnikUebersicht } from "../components/TechnikTabelle";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, BoardKlasse, FoilStatsGroup, OverallStats, Profile, SessionSummary } from "../lib/api";
-import { usePumpFmt } from "../lib/pumpRate";
+import { api, FoilStatsGroup, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { ListenAnsicht } from "../components/ListenAnsicht";
@@ -107,88 +106,12 @@ function ChangelogBadge() {
   );
 }
 
-// Lage des Bretts je Lauflaenge — NUR aus Aufnahmen mit dem Handy AM BRETT.
-//
-// Jan, 24.09.2026: „was wir jetzt direkt angehen koennten waere auf dem home-screen ganz unten
-// stats die sich nur aus dem phone-recorder ergeben wie avg. pitch/roll angles during runs
-// 30s/1min/5min/longer" — und kurz darauf: „die aufschluesselung auch einmal gesamt und einmal
-// je foil bitte". Deshalb dieselbe Tabelle zweimal: ueber alles, dann je Foil.
-//
-// Der Server liefert MEDIANE, keine Mittelwerte (s. community.board_attitude), und die Anzahl
-// der Laeufe je Zahl. Die steht hier mit dran: bei vier Laeufen ist ein Median keine Aussage,
-// und das soll man sehen statt es zu ahnen.
-//
-// KEIN GIEREN (Jan, 24.09.2026): „das ist ja einfach die route die man frei waehlt und hat
-// nichts mit effizienz, pumpen oder foil zu tun." An seiner Stelle steht der Pumptakt — der
-// gehoert zu den anderen drei, er sagt etwas ueber das Fahren.
-//
-// Hub und Takt koennen FEHLEN, auch wenn Nicken und Rollen dastehen: beide brauchen einen klar
-// erkannten Pumptakt. In dem Fall steht ein Strich, keine Null.
-function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
-  const t = useT();
-  // Der Takt folgt der EINGESTELLTEN Einheit aus dem Profil (Hz oder /min), wie jede andere
-  // Kadenz-Anzeige — es gibt dafuer einen Formatierer, und der ist die einzige Wahrheit
-  // (users.pump_unit, s. lib/pumpRate.ts). Eine zweite Stelle mit fest verdrahtetem „Hz"
-  // waere genau die Sorte Abweichung, die man erst merkt, wenn jemand umstellt.
-  const pump = usePumpFmt();
-  const label: Record<string, string> = {
-    bis30s: t("home.baUpTo30s"), "30bis60s": t("home.ba30to60s"),
-    "1bis5min": t("home.ba1to5min"), ueber5min: t("home.baOver5min"),
-  };
-  // Fehlt eine Zahl, steht dort NICHT ein Strich, sondern warum sie fehlt (Jan, 24.09.2026:
-  // „schreib dann ,nicht erkannt‘ rein statt der zahl"). Ein Strich liesse offen, ob nichts
-  // gemessen wurde oder ob das Ergebnis null war — und bei Hub und Takt ist beides verschieden.
-  const zelle = (v: number | null, einheit: string) => v == null
-    ? <span className="text-sm text-slate-400">{t("home.baNotDetected")}</span>
-    : <>{v}{einheit}</>;
-  return (
-    <div className="overflow-hidden rounded-xl border border-slate-800">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-slate-900/60 text-left text-slate-400">
-            <th className="px-3 py-2 font-medium">{t("home.baRunLength")}</th>
-            <th className="px-3 py-2 text-right font-medium">{t("home.baPitch")}</th>
-            <th className="px-3 py-2 text-right font-medium">{t("home.baRoll")}</th>
-            <th className="px-3 py-2 text-right font-medium">{t("home.baHeave")}</th>
-            <th className="px-3 py-2 text-right font-medium">{t("home.baCadence")} <span className="font-normal text-slate-400">{pump.suffix}</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {klassen.map((k) => (
-            <tr key={k.klasse} className="border-t border-slate-800/70">
-              <td className="px-3 py-2">
-                <div className="text-slate-200">{label[k.klasse] ?? k.klasse}</div>
-                <div className="text-sm tabular-nums text-slate-400">
-                  {t("home.baRuns", { n: String(k.laeufe) })}
-                </div>
-              </td>
-              <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-600 dark:text-brand-300">
-                {zelle(k.pitch_deg, "°")}
-              </td>
-              <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-600 dark:text-brand-300">
-                {zelle(k.roll_deg, "°")}
-              </td>
-              <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                {zelle(k.hub_cm, " cm")}
-              </td>
-              <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                {k.takt_hz == null
-                  ? <span className="text-sm text-slate-400">{t("home.baNotDetected")}</span>
-                  : pump.value(k.takt_hz)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 function BoardAttitudeSection() {
   const t = useT();
   const [data, setData] = useState<Awaited<ReturnType<typeof api.boardAttitudeStats>> | null>(null);
   useEffect(() => { api.boardAttitudeStats().then(setData).catch(() => {}); }, []);
-  if (!data || !data.gesamt.length) return null;   // keine Brett-Aufnahme: nichts zeigen
+  // Keine Brett-Aufnahme oder kein Lauf ab 30 s: nichts zeigen statt einer Ueberschrift ohne Inhalt.
+  if (!data || !data.technik || (!data.technik.mit && !data.technik.ohne)) return null;
   return (
     <div className="mt-8">
       {/* Statt eines erklaerenden Satzes (Jan, 24.09.2026: „ganz raus") steht neben der
@@ -200,33 +123,14 @@ function BoardAttitudeSection() {
           <WatchIcon className="h-3.5 w-3.5" /> {geraeteText("Phone", "board", t)}
         </span>
       </h2>
-      {/* Technik-Kennzahlen zuerst (08.10.2026): getrennt nach Zeitskala, mit Legende, korrigiert
-          und unkorrigiert. Die bisherige Tabelle je Lauflaenge bleibt darunter aufklappbar. */}
-      {data.technik && (data.technik.mit || data.technik.ohne) && <TechnikTabelle paar={data.technik} />}
-      {data.kurve_gerade && (data.kurve_gerade.kurve || data.kurve_gerade.gerade) && <KurveGeradeTabelle kg={data.kurve_gerade} />}
-      {data.je_foil.length > 1 && data.je_foil.filter((f) => f.technik && (f.technik.mit || f.technik.ohne)).map((f) => (
-        <div key={`t${f.foil_id}`} className="mt-4">
-          <div className="mb-1 text-sm font-semibold text-slate-200">{f.foil}</div>
-          <TechnikTabelle paar={f.technik!} />
-          {f.kurve_gerade && (f.kurve_gerade.kurve || f.kurve_gerade.gerade) && <KurveGeradeTabelle kg={f.kurve_gerade} />}
-        </div>
-      ))}
-      <details className="mt-4">
-        <summary className="cursor-pointer text-sm text-slate-400">{t("tech.oldTable")}</summary>
-      <BoardKlassenTabelle klassen={data.gesamt} />
-      {/* Je Foil nur, wenn es ueberhaupt mehr als eines gibt — bei einem einzigen stuende
-          dieselbe Tabelle zweimal untereinander. */}
-      {data.je_foil.length > 1 && data.je_foil.map((f) => (
-        <div key={f.foil_id} className="mt-4">
-          <div className="mb-1 text-sm font-semibold text-slate-200">
-            {f.foil} <span className="font-normal text-slate-400">
-              · {t("home.baRuns", { n: String(f.laeufe) })}
-            </span>
-          </div>
-          <BoardKlassenTabelle klassen={f.klassen} />
-        </div>
-      ))}
-      </details>
+      {/* EINE Tabelle (Jan, 08.10.2026): alle Laeufe und je Foil als Zeilen, die Zahlen
+          untereinander in den Zellen wie bei „Lage je Lauf", eine Legende. Die alte Tabelle je
+          Lauflaenge ist raus („alte unuebersichtliche Darstellung"); die unkorrigierten Werte
+          stehen in Klammern. Je Foil nur, wenn es mehr als eines gibt. */}
+      <TechnikUebersicht zeilen={[
+        { label: t("tech.allRuns"), technik: data.technik, kg: data.kurve_gerade },
+        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik, kg: f.kurve_gerade })) : []),
+      ]} />
     </div>
   );
 }

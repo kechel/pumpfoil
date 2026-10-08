@@ -111,6 +111,7 @@ const pl: Record<string, string> = {
   "tech.lWhole": "dotychczasowa wartość: największe odchylenie w całym przejeździe, ze startem, zakrętami i upadkiem",
   "tech.lBrackets": "w nawiasie: bez korekty",
   "tech.sTurn": "zakręty",
+  "tech.allRuns": "Wszystkie przejazdy",
   "tech.sStraight": "prosto",
   "tech.kgTitle": "W zakrętach vs prosto",
   "tech.strokes": "Pompy",

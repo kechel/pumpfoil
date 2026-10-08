@@ -113,6 +113,7 @@ const nl: Record<string, string> = {
   "tech.lWhole": "het eerdere getal: grootste afwijking over de hele run, inclusief start, bochten en val",
   "tech.lBrackets": "tussen haakjes: ongecorrigeerd",
   "tech.sTurn": "bochten",
+  "tech.allRuns": "Alle runs",
   "tech.sStraight": "rechtdoor",
   "tech.kgTitle": "In bochten vs. rechtdoor",
   "tech.strokes": "Pompslagen",

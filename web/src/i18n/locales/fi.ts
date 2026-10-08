@@ -111,6 +111,7 @@ const fi: Record<string, string> = {
   "tech.lWhole": "aiempi luku: suurin poikkeama koko ajon aikana, lähtö, käännökset ja kaatumiset mukaan lukien",
   "tech.lBrackets": "suluissa: korjaamaton",
   "tech.sTurn": "käännös",
+  "tech.allRuns": "Kaikki ajot",
   "tech.sStraight": "suora",
   "tech.kgTitle": "Käännöksissä vs. suoralla",
   "tech.strokes": "Pumppaukset",

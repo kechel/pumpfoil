@@ -1,5 +1,6 @@
 import { useT } from "../i18n";
-import type { KurveGerade, Technik, TechnikPaar } from "../lib/api";
+import type { KurveGerade, KurveGeradeSeite, Technik, TechnikPaar } from "../lib/api";
+import { usePumpFmt } from "../lib/pumpRate";
 
 // Technik-Kennzahlen des Bretts (Handy am Brett), korrigiert und unkorrigiert nebeneinander, mit
 // Legende unter der Tabelle (Jan, 08.10.2026: „vor allem soll es klar erkenntlich sein welche zahl
@@ -64,11 +65,11 @@ export function TechnikTabelle({ paar, laeufe }: { paar: TechnikPaar; laeufe?: n
  * Zeilen IN den Zellen (Jan, 08.10.2026: „ohne zusaetzliche spalten"), korrigiert vorn,
  * unkorrigiert in Klammern.
  */
-export function LaufLegende({ n }: { n: number }) {
+export function LaufLegende({ n, ganzerLauf = true }: { n: number; ganzerLauf?: boolean }) {
   const t = useT();
   const zeilen: [string, string][] = [
     [`${t("board.pitch")} · ${t("tech.sPump")}`, t("tech.lPumpPitch")],
-    [`${t("board.pitch")} · ${t("tech.sWhole")}`, t("tech.lWhole")],
+    ...(ganzerLauf ? [[`${t("board.pitch")} · ${t("tech.sWhole")}`, t("tech.lWhole")] as [string, string]] : []),
     [`${t("board.roll")} · ${t("tech.sPump")}`, t("tech.lPumpRoll")],
     [`${t("board.roll")} · ${t("tech.sWobble")}`, t("tech.lWobble")],
     [`${t("board.roll")} · ${t("tech.sCurve")}`, t("tech.lCurve")],
@@ -120,6 +121,99 @@ export function KurveGeradeTabelle({ kg }: { kg: KurveGerade }) {
         </table>
       </div>
       <p className="text-sm text-slate-400">{t("tech.lTurnStraight")}</p>
+    </div>
+  );
+}
+
+/** Mehrere Kennzahlen untereinander in EINER Zelle: Wert (korrigiert), unkorrigiert in Klammern,
+ *  kleine Beschriftung dahinter. `grau` = Nebenzahl (z. B. „ganzer Lauf"). */
+export function Zeilen({ zeilen }: { zeilen: [string, number | null | undefined, number | null | undefined, string, boolean?][] }) {
+  return (
+    <div className="space-y-0.5 whitespace-nowrap">
+      {zeilen.map(([label, mit, ohne, vz, grau]) => (
+        <div key={label} className={grau ? "text-slate-500" : ""}>
+          {mit != null ? `${vz}${mit.toFixed(grau ? 0 : 1)}°` : "–"}
+          {ohne != null && <span className="text-slate-500"> ({vz}{ohne.toFixed(1)}°)</span>}
+          <span className="ml-1 text-xs text-slate-500">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Eine Zeile „Wert Kurve · Wert gerade" unter der Hauptzahl einer Zelle (Lage je Lauf). Nichts,
+ *  wenn der Lauf keine Kurve-/Gerade-Auswertung hat (unter 30 s oder zu wenige Pumpzuege). */
+export function KurveGeradeZeile({ kg, wert }: { kg?: KurveGerade | null; wert: (x: KurveGeradeSeite) => string | null }) {
+  const t = useT();
+  if (!kg || (!kg.kurve && !kg.gerade)) return null;
+  const k = kg.kurve ? wert(kg.kurve) : null, g = kg.gerade ? wert(kg.gerade) : null;
+  return (
+    <div className="whitespace-nowrap text-xs text-slate-400">
+      {k ?? "–"} <span className="text-slate-500">{t("tech.sTurn")}</span>
+      {" · "}{g ?? "–"} <span className="text-slate-500">{t("tech.sStraight")}</span>
+    </div>
+  );
+}
+
+/**
+ * Startseite (Jan, 08.10.2026: „noch die alte unuebersichtliche Darstellung"): EINE Tabelle wie
+ * „Lage je Lauf" — Zeilen = alle Laeufe und je Foil, Spalten = Nicken / Rollen / Hub / Takt, mehrere
+ * Zahlen untereinander in der Zelle, eine Legende darunter. Ersetzt die getrennten Technik- und
+ * Kurve/Gerade-Tabellen samt der alten Tabelle je Lauflaenge.
+ */
+export function TechnikUebersicht({ zeilen }: {
+  zeilen: { label: string; technik?: TechnikPaar | null; kg?: KurveGerade | null }[];
+}) {
+  const t = useT();
+  const pump = usePumpFmt();
+  const mitDaten = zeilen.filter((z) => z.technik?.mit || z.technik?.ohne);
+  if (!mitDaten.length) return null;
+  const n = (z: { technik?: TechnikPaar | null }) => z.technik?.mit?.laeufe ?? z.technik?.ohne?.laeufe ?? 0;
+  return (
+    <div className="overflow-x-auto rounded-xl border border-slate-800">
+      <table className="w-full min-w-[560px] text-sm">
+        <thead>
+          <tr className="border-b border-slate-800 bg-slate-900/60 text-left text-slate-400">
+            <th className="px-3 py-2 font-medium"></th>
+            <th className="px-3 py-2 font-medium">{t("board.pitch")}</th>
+            <th className="px-3 py-2 font-medium">{t("board.roll")}</th>
+            <th className="px-3 py-2 font-medium">{t("tech.heave")}</th>
+            <th className="px-3 py-2 font-medium">{t("tech.cadence")} <span className="font-normal">{pump.suffix}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {mitDaten.map((z) => {
+            const m = z.technik?.mit, o = z.technik?.ohne;
+            return (
+              <tr key={z.label} className="border-b border-slate-800/50 align-top">
+                <td className="px-3 py-2">
+                  <div className="text-slate-200">{z.label}</div>
+                  <div className="text-xs tabular-nums text-slate-400">{t("home.baRuns", { n: String(n(z)) })}</div>
+                </td>
+                <td className="px-3 py-2 tabular-nums">
+                  <Zeilen zeilen={[[t("tech.sPump"), m?.pump_nicken_deg, o?.pump_nicken_deg, "±"]]} />
+                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
+                </td>
+                <td className="px-3 py-2 tabular-nums">
+                  <Zeilen zeilen={[
+                    [t("tech.sPump"), m?.pump_rollen_deg, o?.pump_rollen_deg, "±"],
+                    [t("tech.sWobble"), m?.wackeln_deg, o?.wackeln_deg, "±"],
+                    [t("tech.sCurve"), m?.kurvenlage_deg, o?.kurvenlage_deg, ""]]} />
+                </td>
+                <td className="px-3 py-2 tabular-nums">
+                  {m?.hub_cm != null ? `${m.hub_cm.toFixed(0)} cm` : "–"}
+                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
+                </td>
+                <td className="px-3 py-2 tabular-nums">
+                  {m?.takt_hz != null ? pump.value(m.takt_hz) : "–"}
+                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.takt_hz != null ? String(pump.value(x.takt_hz)) : null} />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <LaufLegende n={n(mitDaten[0])} ganzerLauf={false} />
     </div>
   );
 }

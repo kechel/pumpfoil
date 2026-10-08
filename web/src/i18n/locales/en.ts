@@ -393,6 +393,7 @@ const en: Record<string, string> = {
   "tech.lWhole": "the earlier number: largest deviation over the whole run, including start, turns and falls",
   "tech.lBrackets": "in brackets: uncorrected",
   "tech.sTurn": "turns",
+  "tech.allRuns": "All runs",
   "tech.sStraight": "straight",
   "tech.kgTitle": "In turns vs. straight",
   "tech.strokes": "Pump strokes",

@@ -111,6 +111,7 @@ const ru: Record<string, string> = {
   "tech.lWhole": "прежнее значение: наибольшее отклонение за весь заезд, включая старт, повороты и падение",
   "tech.lBrackets": "в скобках: без поправки",
   "tech.sTurn": "повороты",
+  "tech.allRuns": "Все заезды",
   "tech.sStraight": "прямо",
   "tech.kgTitle": "В поворотах и по прямой",
   "tech.strokes": "Качки",

@@ -96,6 +96,7 @@ const deAT: Record<string, string> = {
   "tech.lWhole": "die bisherige Zahl: größte Abweichung über den ganzen Lauf, mit Start, Kurven und Sturz",
   "tech.lBrackets": "in Klammern: unkorrigiert",
   "tech.sTurn": "Kurve",
+  "tech.allRuns": "Alle Läufe",
   "tech.sStraight": "gerade",
   "tech.kgTitle": "In Kurven gegen geradeaus",
   "tech.strokes": "Pumpzüge",

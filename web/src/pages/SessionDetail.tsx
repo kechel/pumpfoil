@@ -1,10 +1,10 @@
-import { LaufLegende } from "../components/TechnikTabelle";
+import { KurveGeradeZeile, LaufLegende, Zeilen } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
-import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData, SessionVideo, type KurveGerade, type KurveGeradeSeite } from "../lib/api";
+import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf, SELECT_SCHRUMPFT } from "../components/ui";
@@ -3508,35 +3508,5 @@ function OrtSchalter({ session, onChange }: {
         <span className="font-semibold text-brand-700 dark:text-brand-300">{t("sd.ortAktiv")}</span>
       )}
     </label>
-  );
-}
-
-/** Mehrere Kennzahlen untereinander in EINER Zelle: Wert (korrigiert), unkorrigiert in Klammern,
- *  kleine Beschriftung dahinter. `grau` = Nebenzahl (z. B. „ganzer Lauf"). */
-function Zeilen({ zeilen }: { zeilen: [string, number | null | undefined, number | null | undefined, string, boolean?][] }) {
-  return (
-    <div className="space-y-0.5 whitespace-nowrap">
-      {zeilen.map(([label, mit, ohne, vz, grau]) => (
-        <div key={label} className={grau ? "text-slate-500" : ""}>
-          {mit != null ? `${vz}${mit.toFixed(grau ? 0 : 1)}°` : "–"}
-          {ohne != null && <span className="text-slate-500"> ({vz}{ohne.toFixed(1)}°)</span>}
-          <span className="ml-1 text-xs text-slate-500">{label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Eine Zeile „Wert Kurve · Wert gerade" unter der Hauptzahl einer Zelle (Lage je Lauf). Nichts,
- *  wenn der Lauf keine Kurve-/Gerade-Auswertung hat (unter 30 s oder zu wenige Pumpzuege). */
-function KurveGeradeZeile({ kg, wert }: { kg?: KurveGerade | null; wert: (x: KurveGeradeSeite) => string | null }) {
-  const t = useT();
-  if (!kg || (!kg.kurve && !kg.gerade)) return null;
-  const k = kg.kurve ? wert(kg.kurve) : null, g = kg.gerade ? wert(kg.gerade) : null;
-  return (
-    <div className="whitespace-nowrap text-xs text-slate-400">
-      {k ?? "–"} <span className="text-slate-500">{t("tech.sTurn")}</span>
-      {" · "}{g ?? "–"} <span className="text-slate-500">{t("tech.sStraight")}</span>
-    </div>
   );
 }

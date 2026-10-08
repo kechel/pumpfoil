@@ -111,6 +111,7 @@ const nb: Record<string, string> = {
   "tech.lWhole": "det tidligere tallet: største avvik over hele runen, inkludert start, svinger og fall",
   "tech.lBrackets": "i parentes: ukorrigert",
   "tech.sTurn": "svinger",
+  "tech.allRuns": "Alle runs",
   "tech.sStraight": "rett frem",
   "tech.kgTitle": "I svinger mot rett frem",
   "tech.strokes": "Pumpetak",
