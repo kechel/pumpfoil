@@ -1435,6 +1435,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 08.10. — Hub je Handy-Position nachmessen (Jan macht die Aufnahmen).** Drei Handy-am-Brett-Aufnahmen
+  bei Gelegenheit: Handy ganz VORN am Brett, ganz HINTEN, direkt AM MAST — moeglichst gleiche Bedingungen
+  (Foil, Spot, Fahrweise). Danach gemeinsam ansehen: wie stark haengt der Hub (lage.py, am Handy gemessen) von
+  der Position ab, und was sagen Nicken/Rollen (muessten ortsunabhaengig gleich sein — Gegenprobe der Rechnung).
+  Achtung: der Mast ist NICHT der Drehpunkt (Jan), der Nick-Drehpunkt ist unbekannt — die drei Lagen koennten
+  ihn eingrenzen. Kein Setup-Feld fuer die Handy-Position (Jan: „wollen wir nicht"). Memory: hub-am-handy-kein-drehpunkt.
+
 - **🟡 07.10. — HUAWEI-Uhren (Anfrage aus Polen, Jan: „wir finden Tester in der Community").** Recherche in
   docs/HUAWEI.md. Wear-Engine-Uhren-SDKs 5.0.2.306 (lite + wearable, je eine JS-Datei, Apache 2.0) liegen vor.
   Reihenfolge: (1) Jan: Huawei-Entwicklerkonto SmartKomm, Projekt in AppGallery Connect, „Apply for Wear Engine"
