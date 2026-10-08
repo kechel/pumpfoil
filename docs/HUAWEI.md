@@ -96,6 +96,11 @@ Projekt meint mit „Ultimate" die Ultimate 2 (ArkTS).
 neuer, Band 6/7 und neuer (eingeschraenkt). GT 4/5/6 und Watch 5 stehen nicht namentlich drin —
 vermutlich ueber „und neuer" abgedeckt, NICHT bestaetigt.
 
+**Bestaetigt durch den Forenartikel „Wearable Device Types"** (11.12.2025, von Jan eingeloggt gelesen am
+08.10.2026, https://forums.developer.huawei.com/forumPortal/en/topic/0201200820081036043): Lite Wearables
+(LiteOS, HML/JS/CSS) = WATCH GT, WATCH FIT, WATCH D, WATCH Ultimate; Smart Wearables (HarmonyOS/NEXT, ArkTS
+empfohlen, Java/JS nur Altbestand) = WATCH 5 und neuer. Die Watch 3/4 (JS-FA) nennt der Artikel nicht.
+
 **Offen:** GT 2 / 2e ueberhaupt Fremd-Apps? Watch 6 / Ultimate 2 nur ArkTS oder auch JS-FA? Globale
 Watch-5-Firmware ArkTS-only (ein Test vom Dez. 2025 sagt „HarmonyOS Next", Watch-4-Apps laufen nicht)?
 Eine Huawei-Liste der liteWearable-Geraete fuer Entwickler fehlt (der Forenartikel „Wearable Device Types"
