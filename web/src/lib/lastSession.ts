@@ -54,3 +54,17 @@ export function setLastSessionsFilter(f: NachbarFilter) {
 export function getLastSessionsFilter(): NachbarFilter {
   return lastFilter;
 }
+
+// Umschalter accel | alle | Handy am Brett der Sessions-Liste — bleibt beim Seitenwechsel und beim
+// Zurueck aus dem Detail stehen (Jan, 08.10.2026: „handy am brett wird sich noch nicht genauso
+// gemerkt"). Nur im Speicher wie die Merker oben; ein echter Reload startet wieder mit „alle".
+export type ListenUmschalter = { accelOnly: boolean; brett: boolean };
+let lastToggle: ListenUmschalter | null = null;
+
+export function setLastListToggle(u: ListenUmschalter) {
+  lastToggle = u;
+}
+
+export function getLastListToggle(): ListenUmschalter | null {
+  return lastToggle;
+}

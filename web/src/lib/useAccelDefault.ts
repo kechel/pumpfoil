@@ -26,10 +26,11 @@ function loadHasAccel(): Promise<boolean> {
 // Vorgabe): dort ist die Liste eine Übersicht, und „nur präzise" verschweigt still die Sessions
 // der Mitfahrer, deren Uhr keine verwertbaren Beschleunigungsdaten liefert. Genau daran ist am
 // 29.08. ein Nutzer hängengeblieben („14 Sessions am Spot, nach dem Klick stehen drei da").
-export function useAccelDefault(smart = true): [boolean, (v: boolean) => void, (v: boolean) => void, () => void] {
-  const start = smart ? (cache ?? true) : false;
+// `gemerkt`: eine fruehere Wahl des Nutzers (z. B. beim Zurueck in die Liste) — gilt als angetippt.
+export function useAccelDefault(smart = true, gemerkt?: boolean): [boolean, (v: boolean) => void, (v: boolean) => void, () => void] {
+  const start = gemerkt ?? (smart ? (cache ?? true) : false);
   const [accelOnly, setAccelOnly] = useState<boolean>(start);
-  const [touched, setTouched] = useState(false);
+  const [touched, setTouched] = useState(gemerkt !== undefined);
   useEffect(() => {
     if (!smart || touched) return;
     loadHasAccel().then((hasAccel) => { if (!touched) setAccelOnly(hasAccel); });

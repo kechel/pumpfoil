@@ -21,7 +21,7 @@ import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
 import { SpotWeather } from "../components/SpotWeather";
 import { SpotNotes } from "../components/SpotNotes";
-import { getLastSession, setLastSessionsSearch, setLastSessionsFilter } from "../lib/lastSession";
+import { getLastSession, setLastSessionsSearch, setLastSessionsFilter, getLastListToggle, setLastListToggle } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
 import { ytId, videoPlatform } from "../components/VideoModal";
@@ -259,10 +259,12 @@ export default function Sessions() {
   // `false` = IMMER mit „alle" starten, auch wenn der Nutzer selbst Accel-Daten hat (Jan,
   // 31.08.). Die Liste ist eine Übersicht; „nur präzise" verschweigt sonst still die Sessions
   // der Mitfahrer, deren Uhr keine verwertbaren Beschleunigungsdaten liefert.
-  const [accelOnly, setAccelOnly, setAccelAuto, resetAccelAuto] = useAccelDefault(false);
+  const gemerkt = getLastListToggle();   // Wahl von vorhin (Seitenwechsel / Zurueck aus dem Detail)
+  const [accelOnly, setAccelOnly, setAccelAuto, resetAccelAuto] = useAccelDefault(false, gemerkt?.accelOnly);
   // Dritte Taste „Handy am Brett" (Jan, 08.10.2026): nur Aufnahmen mit placement = board. Schliesst
   // „nur Accel" aus (Brett-Sessions sollen alle erscheinen); die Listen laden bei jedem Wechsel neu.
-  const [brett, setBrett] = useState(false);
+  const [brett, setBrett] = useState(gemerkt?.brett ?? false);
+  useEffect(() => { setLastListToggle({ accelOnly, brett }); }, [accelOnly, brett]);
   // Spot gewechselt oder verlassen: eine vorherige Automatik ("Spot ohne Accel-Sessions")
   // wieder verwerfen, damit wieder der Default aus der eigenen Uhr gilt.
   useEffect(() => { resetAccelAuto(); }, [spot]);  // eslint-disable-line react-hooks/exhaustive-deps
