@@ -1321,7 +1321,7 @@ const nl: Record<string, string> = {
   "watches.nApple": "Ruwe versnelling via Core Motion.",
   "watches.nWear": "Draait op elk Wear OS 3+-horloge — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensortoegang afhankelijk van het model.",
-  "watches.nHuawei": "Bèta in de maak: opname op het horloge, overdracht via de Pumpfoil-app – alleen Android-telefoons. Welk horloge welke gegevens levert, moet nog getest worden.",
+  "watches.nHuawei": "Bèta in de maak: opname op het horloge, overdracht via de Pumpfoil-app op Android-telefoons – de Watch 5 uploadt na koppelen met een code ook zelf, dus ook met een iPhone. Welk horloge welke gegevens levert, moet nog getest worden.",
   "watches.nPolar": "Account koppelen → trainingen importeren (GPS + HR). De hoogfrequente accel-stream voor de pompdetectie levert de API-export niet (alleen via een aparte BLE-sensor).",
   "watches.nSuunto": "Account koppelen → trainingen importeren (GPS + HR). De hoogfrequente accel-stream voor de pompdetectie levert de FIT-export (nog) niet.",
   "linked.xiaomi.title": "Xiaomi- en Redmi-horloges",
