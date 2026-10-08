@@ -131,7 +131,7 @@ const ptPT: Record<string, string> = {
   "tech.gTurnStraight": "o mesmo valor, mas só das bombadas em que a prancha estava a rodar (mais de 8°/s, medido pelo giroscópio) ou não",
   "tech.gWhole": "no run inteiro do início ao fim, com arranque, curvas e queda, sem cortar os 10 s (o valor anterior)",
   "tech.gMiddle": "Todos os valores exceto “run inteiro” vêm só do meio estável: sem os primeiros e últimos 10 s; runs com menos de 30 s não são avaliados. {n} runs.",
-  "tech.gHeave": "A subida e descida é medida no telemóvel: quanto mais longe do mastro, mais a arfagem se soma. Compara só entre gravações com o telemóvel no mesmo sítio.",
+  "tech.gHeave": "A subida e descida é medida no telemóvel, não num ponto fixo da prancha: consoante onde está, a arfagem soma mais ou menos movimento, e não se sabe em torno de que ponto a prancha arfa. Compara só entre gravações com o telemóvel no mesmo sítio.",
   "tech.sStraight": "reta",
   "tech.kgTitle": "Nas curvas vs. em reta",
   "tech.strokes": "Bombadas",

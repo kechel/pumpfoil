@@ -401,7 +401,7 @@ const en: Record<string, string> = {
   "tech.gTurnStraight": "the same value, but only from pump strokes while the board was turning (faster than 8°/s, measured by the gyroscope) or not turning",
   "tech.gWhole": "over the complete run from start to end, including start, turns and fall, without the 10 s trimming (the earlier number)",
   "tech.gMiddle": "All values except “whole run” come only from the steady middle: without the first and last 10 s; runs shorter than 30 s are not evaluated. {n} runs.",
-  "tech.gHeave": "Heave is measured at the phone: the further it sits from the mast, the more of the up-and-down comes from pitching. Compare heave only between recordings with the phone in the same place.",
+  "tech.gHeave": "Heave is measured at the phone, not at a fixed point of the board: pitching adds more or less up-and-down depending on where the phone sits, and the point the board pitches about is not known. Compare heave only between recordings with the phone in the same place.",
   "tech.sStraight": "straight",
   "tech.kgTitle": "In turns vs. straight",
   "tech.strokes": "Pump strokes",

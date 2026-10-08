@@ -119,7 +119,7 @@ const fr: Record<string, string> = {
   "tech.gTurnStraight": "la même valeur, mais seulement sur les pompes où la planche tournait (plus de 8°/s, mesuré par le gyroscope) ou ne tournait pas",
   "tech.gWhole": "sur tout le run, du début à la fin, départ, virages et chute compris, sans couper les 10 s (l'ancienne valeur)",
   "tech.gMiddle": "Toutes les valeurs sauf « run entier » viennent seulement du milieu stable : sans les 10 premières et dernières secondes ; les runs de moins de 30 s ne sont pas évalués. {n} runs.",
-  "tech.gHeave": "L'amplitude verticale est mesurée au téléphone : plus il est loin du mât, plus le tangage s'y ajoute. Ne compare l'amplitude qu'entre des sessions où le téléphone était au même endroit.",
+  "tech.gHeave": "L'amplitude verticale est mesurée au téléphone, pas en un point fixe de la planche : selon l'endroit où il est fixé, le tangage ajoute plus ou moins de mouvement, et le point autour duquel la planche tangue n'est pas connu. Ne compare l'amplitude qu'entre des sessions où le téléphone était au même endroit.",
   "tech.sStraight": "ligne droite",
   "tech.kgTitle": "En virage vs ligne droite",
   "tech.strokes": "Pompes",

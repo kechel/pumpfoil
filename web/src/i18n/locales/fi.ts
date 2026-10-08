@@ -119,7 +119,7 @@ const fi: Record<string, string> = {
   "tech.gTurnStraight": "sama arvo, mutta vain niistä pumppauksista, joiden aikana lauta kääntyi (yli 8°/s, gyroskoopin mittaama) tai ei kääntynyt",
   "tech.gWhole": "koko ajon ajalta alusta loppuun, lähtö, käännökset ja kaatuminen mukaan lukien, ilman 10 s rajausta (aiempi luku)",
   "tech.gMiddle": "Kaikki arvot paitsi ”koko ajo” tulevat vain tasaisesta keskiosasta: ilman ensimmäisiä ja viimeisiä 10 s; alle 30 s ajoja ei arvioida. {n} ajoa.",
-  "tech.gHeave": "Pystyliike mitataan puhelimesta: mitä kauempana se on mastosta, sitä enemmän nyökkäys lisää liikettä. Vertaa pystyliikettä vain tallenteiden välillä, joissa puhelin oli samassa kohdassa.",
+  "tech.gHeave": "Pystyliike mitataan puhelimesta, ei laudan kiinteästä kohdasta: puhelimen paikasta riippuen nyökkäys lisää enemmän tai vähemmän liikettä, eikä tiedetä, minkä pisteen ympäri lauta nyökkää. Vertaa pystyliikettä vain tallenteiden välillä, joissa puhelin oli samassa kohdassa.",
   "tech.sStraight": "suora",
   "tech.kgTitle": "Käännöksissä vs. suoralla",
   "tech.strokes": "Pumppaukset",

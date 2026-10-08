@@ -104,7 +104,7 @@ const gsw: Record<string, string> = {
   "tech.gTurnStraight": "de glich Wärt, aber nume us Pumpzüg, wo s Brätt drüllt het (schnäller als 8 °/s, vom Kreisel gmässe) bzw. nöd drüllt het",
   "tech.gWhole": "über de ganz Lauf vo Aafang bis Änd, mit Start, Kurve und Sturz, ohni d 10-s-Chürzig (di bisherig Zahl)",
   "tech.gMiddle": "Alli Wärt usser „ganze Lauf“ chömed nume us em ruhige Mittelteil: ohni di erschte und letschte 10 s, Läuf under 30 s werded nöd usgwärtet. {n} Läuf.",
-  "tech.gHeave": "De Hub wird am Handy gmässe: Je wiiter es vom Mast wäg isch, desto meh Ufe und Abe chunnt vom Nicke dezue. Hub-Wärt drum nume zwüsche Ufnahme mit em Handy am glichä Ort verglichä.",
+  "tech.gHeave": "De Hub wird am Handy gmässe, nöd amene feschte Punkt vom Brätt: Je nachdem, wo s Handy isch, chunnt dur s Nicke meh oder weniger Ufe und Abe dezue, und um weli Punkt s Brätt nickt, weiss mer nöd. Hub-Wärt drum nume zwüsche Ufnahme mit em Handy am glichä Ort verglichä.",
   "tech.sStraight": "grad",
   "tech.kgTitle": "I Kurve gäge gradus",
   "tech.strokes": "Pumpzüg",

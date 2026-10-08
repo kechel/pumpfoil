@@ -119,7 +119,7 @@ const id: Record<string, string> = {
   "tech.gTurnStraight": "nilai yang sama, tetapi hanya dari pompa saat papan sedang berbelok (lebih dari 8°/dtk, diukur giroskop) atau tidak berbelok",
   "tech.gWhole": "sepanjang run dari awal sampai akhir, termasuk start, belokan dan jatuh, tanpa pemotongan 10 dtk (angka sebelumnya)",
   "tech.gMiddle": "Semua nilai kecuali “seluruh run” hanya dari bagian tengah yang stabil: tanpa 10 dtk pertama dan terakhir; run di bawah 30 dtk tidak dinilai. {n} run.",
-  "tech.gHeave": "Naik-turun diukur di ponsel: makin jauh dari tiang, makin banyak tambahan dari anggukan. Bandingkan naik-turun hanya antar rekaman dengan ponsel di tempat yang sama.",
+  "tech.gHeave": "Naik-turun diukur di ponsel, bukan di titik tetap papan: tergantung letak ponsel, anggukan menambah lebih atau kurang gerakan, dan titik putar anggukan papan tidak diketahui. Bandingkan hanya antar rekaman dengan ponsel di tempat yang sama.",
   "tech.sStraight": "lurus",
   "tech.kgTitle": "Di belokan vs. lurus",
   "tech.strokes": "Pompa",
