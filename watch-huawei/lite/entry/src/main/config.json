@@ -18,9 +18,15 @@
       "moduleType": "entry"
     },
     "reqPermissions": [
-      { "name": "ohos.permission.ACCELEROMETER" },
-      { "name": "ohos.permission.LOCATION" },
-      { "name": "ohos.permission.READ_HEALTH_DATA" }
+      {
+        "name": "ohos.permission.ACCELEROMETER"
+      },
+      {
+        "name": "ohos.permission.LOCATION"
+      },
+      {
+        "name": "ohos.permission.READ_HEALTH_DATA"
+      }
     ],
     "abilities": [
       {
@@ -45,7 +51,8 @@
     "js": [
       {
         "pages": [
-          "pages/index/index"
+          "pages/index/index",
+          "pages/auswahl/auswahl"
         ],
         "name": ".MainAbility"
       }

@@ -74,7 +74,8 @@
     "js": [
       {
         "pages": [
-          "pages/index/index"
+          "pages/index/index",
+          "pages/auswahl/auswahl"
         ],
         "name": ".MainAbility"
       }

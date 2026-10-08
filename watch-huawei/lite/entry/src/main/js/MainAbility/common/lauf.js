@@ -163,6 +163,20 @@ function Konfig(k) {
   // Fehlt der Schluessel, AUS — wie Zepp/Wear/Apple (der Server schickt ihn immer mit, Standard dort an).
   this.autoStart = k.autoStart === true;
   this.waterLock = k.waterLock === "on" || k.waterLock === "off" ? k.waterLock : "auto";
+  // Foils + Alarme (Server devices.py, Felder wie bei Zepp/Garmin/Wear). foils: [{id,label,min,max}],
+  // Standard-Foil vorn.
+  this.foils = k.foils && k.foils.length ? k.foils : [];
+  this.alarmEnabled = k.alarmEnabled === true;
+  this.alarmDefault = k.alarmDefault === "fixed" ? "fixed" : "foil";
+  this.speedLow = k.speedLow | 0; this.speedHigh = k.speedHigh | 0; this.hrHigh = k.hrHigh | 0;
+  this.patHigh = k.alarmPatternHigh || "short2"; this.patLow = k.alarmPatternLow || "long2";
+  this.patHr = k.alarmPatternHr || "short1";
+  this.repeat = k.alarmRepeat === "continuous" ? "continuous" : "once";
+  this.repeatS = Math.max(2, k.alarmRepeatS | 0 || 5);
+  this.runDistM = k.runDistM | 0; this.runDistMode = k.runDistMode === "every" ? "every" : "once";
+  this.patDist = k.alarmPatternDist || "short1";
+  this.runTimeS = k.runTimeS | 0; this.runTimeMode = k.runTimeMode === "every" ? "every" : "once";
+  this.patTime = k.alarmPatternTime || "short2";
 }
 function gueltigeZonen(z) {
   if (!z || z.length !== 6) return null;
@@ -170,4 +184,75 @@ function gueltigeZonen(z) {
   return z;
 }
 
-export default { Stand: Stand, Konfig: Konfig, maxKandidat: maxKandidat };
+/**
+ * Was der Nutzer AUF DER UHR waehlt (Einstellungsseite wie Zepp-Seite 4/4): Alarm an/aus, Grenzen vom
+ * Foil oder fest, welches Foil, eigene Layouts und Touch-Sperre (null = wie das Profil). Vorbelegt aus
+ * der Konfiguration (einmal, wie Zepp _foilInit), danach entscheidet die Uhr; wird gespeichert.
+ */
+function Auswahl(d) {
+  d = d || {};
+  this.gesetzt = d.gesetzt === true;
+  this.alarm = d.alarm === true;
+  this.quelle = d.quelle === "manual" ? "manual" : "foil";
+  this.foilId = typeof d.foilId === "number" ? d.foilId : null;
+  this.layouts = typeof d.layouts === "boolean" ? d.layouts : null;
+  this.sperre = typeof d.sperre === "boolean" ? d.sperre : null;
+}
+/** Erstbelegung aus der Konfiguration; spaeter nur noch: ein verschwundenes Foil durch das erste ersetzen. */
+Auswahl.prototype.vorbelegen = function (k) {
+  var da = false, i;
+  for (i = 0; i < k.foils.length; i++) if (k.foils[i].id === this.foilId) da = true;
+  if (!da) this.foilId = k.foils.length ? k.foils[0].id : null;
+  if (this.gesetzt) return;
+  this.gesetzt = true;
+  this.alarm = k.alarmEnabled;
+  this.quelle = k.alarmDefault === "foil" && k.foils.length ? "foil" : "manual";
+};
+Auswahl.prototype.foil = function (k) {
+  for (var i = 0; i < k.foils.length; i++) if (k.foils[i].id === this.foilId) return k.foils[i];
+  return null;
+};
+/** Naechstes Foil (Tippen auf die Zeile), im Kreis. */
+Auswahl.prototype.naechstesFoil = function (k) {
+  var n = k.foils.length, i;
+  if (!n) { this.foilId = null; return; }
+  for (i = 0; i < n; i++) if (k.foils[i].id === this.foilId) break;
+  this.foilId = k.foils[(i + 1) % n].id;
+};
+/** Auto -> An -> Aus -> Auto (wie das Garmin-Menue / Zepp). */
+function dreistufig(v) { return v === null ? true : v === true ? false : null; }
+Auswahl.prototype.daten = function () {
+  return { gesetzt: this.gesetzt, alarm: this.alarm, quelle: this.quelle, foilId: this.foilId,
+    layouts: this.layouts, sperre: this.sperre };
+};
+
+/**
+ * Vibrationsalarm wie Zepp (_checkAlarm, _checkHrAlarm, _checkMarks): Tempo ueber/unter den Grenzen
+ * (Foil oder fest; „unter" nur bis 2 km/h darunter, sonst brummt es beim Paddeln), Puls ueber der
+ * Grenze, Strecken-/Zeitmarken im Lauf. Liefert die Muster, die jetzt vibrieren sollen.
+ */
+function Alarm() { this.aktiv = false; this.hrAktiv = false; this.letzt = 0; this.lauf = -1; this.distN = 0; this.zeitN = 0; }
+Alarm.prototype.pruefe = function (k, a, kmh, hr, s, el, jetzt) {
+  var aus = [];
+  if (!a.alarm) return aus;
+  var lo = k.speedLow, hi = k.speedHigh, f = a.quelle === "foil" ? a.foil(k) : null;
+  if (f) { lo = f.min; hi = f.max; }
+  var ueber = hi > 0 && kmh > hi, unter = lo > 0 && kmh < lo && kmh >= lo - 2;
+  var wieder = k.repeat === "continuous" && jetzt - this.letzt >= k.repeatS * 1000;
+  if (ueber || unter) {
+    if (!this.aktiv || wieder) { this.aktiv = true; this.letzt = jetzt; aus.push(ueber ? k.patHigh : k.patLow); }
+  } else this.aktiv = false;
+  if (k.hrHigh > 0 && hr > k.hrHigh) {
+    if (!this.hrAktiv || wieder) { this.hrAktiv = true; this.letzt = jetzt; aus.push(k.patHr); }
+  } else this.hrAktiv = false;
+  if (!s.foiling) return aus;
+  if (s.runStartMs !== this.lauf) { this.lauf = s.runStartMs; this.distN = 0; this.zeitN = 0; }
+  if (k.runDistM > 0 && (this.distN === 0 || k.runDistMode === "every") &&
+      s.dist - s.runStartDist >= (this.distN + 1) * k.runDistM) { this.distN++; aus.push(k.patDist); }
+  if (k.runTimeS > 0 && (this.zeitN === 0 || k.runTimeMode === "every") &&
+      (el * 1000 - s.runStartMs) / 1000 >= (this.zeitN + 1) * k.runTimeS) { this.zeitN++; aus.push(k.patTime); }
+  return aus;
+};
+
+export default { Stand: Stand, Konfig: Konfig, maxKandidat: maxKandidat, Auswahl: Auswahl, Alarm: Alarm,
+  dreistufig: dreistufig };

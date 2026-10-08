@@ -1,0 +1,25 @@
+/* Feste Hoehen wie auf der Startseite (Lite zeichnet Container ohne Hoehe nicht), Breiten in Prozent. */
+.seite {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #000000;
+}
+.zeile {
+    width: 80%;
+    height: 58px;
+    margin-top: 8px;
+    border-radius: 29px;
+    justify-content: center;
+    align-items: center;
+    background-color: #1e293b;
+}
+.ztext {
+    width: 94%;
+    height: 40px;
+    font-size: 30px;
+    color: #ffffff;
+    text-align: center;
+}

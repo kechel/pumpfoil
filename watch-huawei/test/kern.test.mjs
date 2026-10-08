@@ -229,6 +229,7 @@ test("Watch-3/4-Projekt hat dieselbe Seite und dieselben Texte wie lite (sonst .
   const q = "../lite/entry/src/main/js/MainAbility/", z = "../wearable/entry/src/main/js/MainAbility/";
   if (!fs.existsSync(url(z))) return;
   const dateien = ["app.js", "pages/index/index.hml", "pages/index/index.css", "pages/index/index.js",
+    "pages/auswahl/auswahl.hml", "pages/auswahl/auswahl.css", "pages/auswahl/auswahl.js",
     ...fs.readdirSync(url(q + "i18n/")).map((f) => "i18n/" + f)];
   for (const f of dateien) assert.equal(fs.readFileSync(url(z + f), "utf8"), fs.readFileSync(url(q + f), "utf8"), f);
 });

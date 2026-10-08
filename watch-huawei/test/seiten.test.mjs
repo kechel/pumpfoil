@@ -121,3 +121,54 @@ test("Rand-Grafik auf eckiger Uhr: Rahmensegmente (Rechtecke) statt Bogen, volle
   const rund = S.zeichne(lay, { dw: 454, dh: 454, s, el: 0, t, jetzt: new Date(), k, idx: 0, anzahl: 1, pausiert: false });
   assert.ok(rund.some((b) => b.k === "a"), "rund (ohne Angabe): Bogen wie bisher");
 });
+
+test("Auswahl: Erstbelegung aus dem Profil, danach entscheidet die Uhr; Foil im Kreis; dreistufig", () => {
+  const k = new S.Konfig({ foils: [{ id: 7, label: "A", min: 12, max: 20 }, { id: 9, label: "B", min: 10, max: 18 }],
+    alarmEnabled: true, alarmDefault: "foil" });
+  const a = new S.Auswahl(null);
+  a.vorbelegen(k);
+  assert.equal(a.alarm, true); assert.equal(a.quelle, "foil"); assert.equal(a.foilId, 7);
+  a.alarm = false; a.naechstesFoil(k);
+  assert.equal(a.foilId, 9);
+  const b = new S.Auswahl(JSON.parse(JSON.stringify(a.daten())));
+  b.vorbelegen(new S.Konfig({ foils: k.foils, alarmEnabled: true }));
+  assert.equal(b.alarm, false, "Wahl an der Uhr ueberlebt neue Konfiguration");
+  b.vorbelegen(new S.Konfig({ foils: [{ id: 3, label: "C", min: 1, max: 2 }] }));
+  assert.equal(b.foilId, 3, "verschwundenes Foil -> erstes");
+  assert.deepEqual([null, true, false].map(S.dreistufig), [true, false, null]);
+  const ohne = new S.Auswahl(null); ohne.vorbelegen(new S.Konfig({ alarmEnabled: true }));
+  assert.equal(ohne.quelle, "manual", "ohne Foils: feste Grenzen");
+});
+
+test("Alarm: Tempo ueber/unter (Foil oder fest), einmal oder wiederholt, Puls, Marken je Lauf", () => {
+  const k = new S.Konfig({ foils: [{ id: 7, label: "A", min: 12, max: 20 }], alarmEnabled: true,
+    speedLow: 8, speedHigh: 30, hrHigh: 150, alarmRepeat: "once", runDistM: 100, runDistMode: "every", runTimeS: 30 });
+  const a = new S.Auswahl(null); a.vorbelegen(k);
+  const al = new S.Alarm();
+  const st = { foiling: false, runStartMs: 0, runStartDist: 0, dist: 0 };
+  assert.deepEqual(al.pruefe(k, a, 21, 0, st, 0, 1000), ["short2"], "ueber Foil-Max");
+  assert.deepEqual(al.pruefe(k, a, 22, 0, st, 0, 2000), [], "einmal, nicht wiederholt");
+  assert.deepEqual(al.pruefe(k, a, 15, 0, st, 0, 3000), [], "im Bereich");
+  assert.deepEqual(al.pruefe(k, a, 11, 0, st, 0, 4000), ["long2"], "knapp unter Min");
+  assert.deepEqual(al.pruefe(k, a, 3, 0, st, 0, 5000), [], "weit unter Min (paddeln): still");
+  a.quelle = "manual";
+  assert.deepEqual(al.pruefe(k, a, 25, 0, st, 0, 6000), [], "fest 8-30: 25 ist ok");
+  assert.deepEqual(al.pruefe(k, a, 25, 160, st, 0, 7000), ["short1"], "Puls ueber 150");
+  const kw = new S.Konfig({ alarmEnabled: true, speedHigh: 20, alarmRepeat: "continuous", alarmRepeatS: 5 });
+  const aw = new S.Auswahl(null); aw.vorbelegen(kw); const w = new S.Alarm();
+  assert.equal(w.pruefe(kw, aw, 25, 0, st, 0, 0).length, 1);
+  assert.equal(w.pruefe(kw, aw, 25, 0, st, 0, 3000).length, 0);
+  assert.equal(w.pruefe(kw, aw, 25, 0, st, 0, 5000).length, 1, "nach 5 s wieder");
+  // Marken: Strecke alle 100 m (every), Zeit einmal bei 30 s
+  const lauf = { foiling: true, runStartMs: 10000, runStartDist: 50, dist: 50 };
+  const m = new S.Alarm(); a.quelle = "foil";
+  const pr = (dist, el) => { lauf.dist = dist; return m.pruefe(k, a, 15, 0, lauf, el, 0); };
+  assert.deepEqual(pr(140, 20), []);
+  assert.deepEqual(pr(151, 25), ["short1"], "100 m");
+  assert.deepEqual(pr(251, 41), ["short1", "short2"], "200 m + 30 s");
+  assert.deepEqual(pr(260, 80), [], "Zeit nur einmal");
+  lauf.runStartMs = 90000; lauf.runStartDist = 300;
+  assert.deepEqual(pr(410, 95), ["short1"], "neuer Lauf zaehlt von vorn");
+  a.alarm = false;
+  assert.deepEqual(al.pruefe(k, a, 40, 200, st, 0, 9000), [], "Alarm aus: nichts");
+});
