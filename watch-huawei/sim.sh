@@ -2,7 +2,7 @@
 # Simulator-Schalter fuer die JS-FA-Linien (lite/ und wearable/):
 #   ./sim.sh an [konfig.json]   Wear-Engine-Attrappe (common/wearengine-sim.js) in der Seite, GPS-Fahrt
 #                 (common/sim-gps.js) im Recorder; mit Datei kommt diese Seiten-Konfiguration „vom Handy"
-#                 (z. B. watch-huawei/sim-konfig.json — steht in .gitignore, enthaelt persoenliche Layouts)
+#                 (watch-huawei/sim-konfig.json = Jans Datenseiten als Beispiel; wirkt nur mit diesem Parameter)
 #   ./sim.sh aus  zurueck auf die echte Wear Engine (= ./sync-common.sh)
 # Im Simulator fehlt `@system.wearengine`; mit der echten Datei bleibt die Seite schwarz.
 # NIE im Zustand „an" committen oder fuer eine Uhr bauen: der Test „Projekt-Kopien" schlaegt dann
