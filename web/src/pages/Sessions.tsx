@@ -521,7 +521,10 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
   // Generationszaehler gegen veraltete Antworten beim Filter-/Monatswechsel (s. fetchPage).
   const meinLaufRef = useRef(0);
   // `sport` wechselt nur per Neu-Mount (key im Aufrufer), deshalb reicht hier der Prop.
-  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}|${sport}`;
+  // `board` MUSS mit hinein (Jan, 08.10.2026: „phone on board funktioniert nur bei All, nicht bei
+  // mine"): ohne ihn teilten sich „alle" und „Handy am Brett" einen Speicherplatz, und das
+  // Nachpruefen mischte die gespeicherte volle Liste hinter die gefilterte.
+  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}|${sport}|${board}`;
   const restoreRef = useRef(false);                 // nach Cache-Restore die markierte Karte einscrollen
   const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
 
