@@ -17,5 +17,3 @@ local.properties
 # diag.sh-Sicherung der Seite — nur lokal
 .diag-sicherung/
 **/wearengine/sim-gps.js
-# Seiten-Konfiguration fuer ./sim.sh an sim-konfig.json — persoenliche Layouts, nie ins Repo
-sim-konfig.json
