@@ -12,23 +12,23 @@
     background-color: #000000;
 }
 /* Jeder Container mit FESTER Hoehe (08.10.2026): ohne Hoehe blieb der Block im Lite-Simulator
-   unsichtbar, obwohl modus/info stimmten. Hoehen = Summe der Kinder samt Raender, alle <= 320 px
+   unsichtbar, obwohl modus/info stimmten. Hoehen = Summe der Kinder samt Raender, alle <= 330 px; Infozeile 84 px (zwei Zeilen à 30 px, bei 76 abgeschnitten)
    (passt auf den 390er-Rundbildschirm). */
 .bbereit {
     width: 100%;
-    height: 250px;
+    height: 260px;
     flex-direction: column;
     align-items: center;
 }
 .baktion {
     width: 100%;
-    height: 320px;
+    height: 330px;
     flex-direction: column;
     align-items: center;
 }
 .bstopp {
     width: 100%;
-    height: 280px;
+    height: 290px;
     flex-direction: column;
     align-items: center;
 }
@@ -100,7 +100,7 @@
 }
 .klein {
     width: 80%;
-    height: 76px;
+    height: 84px;
     margin-top: 8px;
     font-size: 30px;
     color: #94a3b8;

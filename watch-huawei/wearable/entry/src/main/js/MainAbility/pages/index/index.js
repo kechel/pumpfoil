@@ -68,7 +68,7 @@ export default {
     }
     // Texte einmal holen (jedes $t kostet auf der Uhr), Displaygroesse fuer die Promille-Koordinaten.
     var keys = ["start", "pause", "resume", "stop", "holding", "discard", "discarded", "paused", "errors",
-      "gpsWait", "toPhone", "openPhone", "allSent", "noAccel"];
+      "gpsWait", "openPhone", "allSent", "noAccel"];
     this.tx = {};
     for (var j = 0; j < keys.length; j++) this.tx[keys[j]] = this.$t("strings." + keys[j]);
     this.texte = {};
@@ -120,7 +120,8 @@ export default {
     else if (z.offen > 0) {
       // „Zum Handy: 34/120" — gezaehlt in Dateien (je ~5 s Aufnahme), dieselbe Zahl, die das
       // Handy im Balken zeigt. Das Ziel ist das HANDY, nicht der Server.
-      info = tx.toPhone + " " + z.plan.fertig + "/" + z.plan.gesamt;
+      // nur die Zahl, ohne „Zum Handy:" (Jan, 08.10.2026: „0/35 passt") — Platz fuer den Handy-Hinweis
+      info = z.plan.fertig + "/" + z.plan.gesamt;
       if (z.sendeFehler > 0) info += " · " + tx.openPhone + " (" + z.sendeCode + ")";
     } else if (z.modus === "bereit") {
       // Nichts offen, aber das Handy antwortet nicht (Hallo scheitert): sagen statt „Alles uebertragen" —
