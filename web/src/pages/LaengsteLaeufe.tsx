@@ -155,8 +155,8 @@ export default function LaengsteLaeufe() {
       case "pitch": { const x = lageVon(l); return (x?.technik?.teil !== "ganz" ? x?.technik?.mit?.pump_nicken_deg : null) ?? x?.pitch_amplitude_deg ?? null; }
       case "roll": { const x = lageVon(l); return (x?.technik?.teil !== "ganz" ? x?.technik?.mit?.pump_rollen_deg : null) ?? x?.roll_amplitude_deg ?? null; }
       case "yaw": return lageVon(l)?.gier_rms_deg_s ?? null;
-      case "pitchHz": return lageVon(l)?.pitch_hz ?? null;
-      case "hub": return lageVon(l)?.hub_pp_cm ?? null;
+      case "pitchHz": { const x = lageVon(l); return (x?.technik?.teil !== "ganz" ? x?.technik?.mit?.takt_hz : null) ?? x?.pitch_hz ?? null; }
+      case "hub": { const x = lageVon(l); return (x?.technik?.teil !== "ganz" ? x?.technik?.mit?.hub_cm : null) ?? x?.hub_pp_cm ?? null; }
     }
   }
   // Fehlende Werte stehen immer unten, egal in welche Richtung sortiert wird.
@@ -320,11 +320,11 @@ export default function LaengsteLaeufe() {
                     {kopf("datum", t("longest.session"))}
                     {kopf("dauer", t("sd.colDuration"))}
                     {kopf("strecke", t("sd.colDistance"))}
-                    {kopf("pitch", t("board.pitch"))}
+                    {kopf("pitch", t("tech.colPitchPump"))}
                     {kopf("roll", t("board.roll"))}
                     {kopf("yaw", t("board.yaw"))}
                     {kopf("pitchHz", t("sd.colPitchRhythm"))}
-                    {kopf("hub", t("sd.colHeave"))}
+                    {kopf("hub", t("tech.colHeavePump"))}
                   </tr>
                 </thead>
                 <tbody>

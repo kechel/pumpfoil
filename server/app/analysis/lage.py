@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-10-08-rand-5s"
+LAGE_VERSION = "2026-10-08-median-je-zug"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -1318,22 +1318,54 @@ def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float,
     def halb(x: np.ndarray) -> float:
         return round(float((np.percentile(x, 95) - np.percentile(x, 5)) / 2.0), 1)
 
-    pp = _fft_band(p, hz, *TECHNIK_PUMP_HZ)
-    f = np.fft.rfftfreq(len(p), 1.0 / hz)
-    A = np.abs(np.fft.rfft(p - p.mean()))
-    band = (f >= TECHNIK_PUMP_HZ[0]) & (f <= TECHNIK_PUMP_HZ[1])
-    hub = erg.get("hub_cm")
-    hub_m = np.asarray(hub, dtype=float)[m] if hub is not None else None
+    # JE PUMPZUG, Median ueber die Zuege (Jan, 08.10.2026: „ist es nicht avg?"). Vorher kam der
+    # Pumpausschlag aus der halben 5/95-%-Spanne der ganzen Phase, die Kurve/gerade-Werte dagegen aus dem
+    # Median je Zug — zwei verschiedene Groessen, und die Gesamtzahl lag ueber beiden Teilen. Jetzt stammen
+    # Gesamt, Kurve und gerade aus DENSELBEN Zuegen. Wackeln und Schraeglage sind keine Pumpzug-Groessen
+    # und bleiben Spannen.
+    zuege = _pumpzuege(erg, m)
+    def med(i: int, nk: int = 1) -> float | None:
+        w = [z[i] for z in zuege if z[i] is not None]
+        return round(float(np.median(w)), nk) if len(w) >= TECHNIK_MIN_ZUEGE else None
     return {
         "mitte_s": round(float(m.sum() / hz), 1),
-        "pump_nicken_deg": halb(pp),
-        "pump_rollen_deg": halb(_fft_band(r, hz, *TECHNIK_PUMP_HZ)),
+        "zuege": len(zuege),
+        "pump_nicken_deg": med(1),
+        "pump_rollen_deg": med(2),
         "wackeln_deg": halb(_fft_band(r, hz, *TECHNIK_WACKEL_HZ)),
         "kurvenlage_deg": round(float(np.percentile(np.abs(_fft_band(r, hz, 0.0, TECHNIK_KURVE_HZ)), 95)), 1),
-        "hub_cm": (round(float(np.percentile(hub_m, 95) - np.percentile(hub_m, 5)), 1)
-                   if hub_m is not None and len(hub_m) else None),
-        "takt_hz": round(float(f[band][np.argmax(A[band])]), 2) if band.any() else None,
+        "hub_cm": med(3),
+        "takt_hz": med(0, 2),
     }
+
+
+def _pumpzuege(erg: dict, m: np.ndarray) -> list[tuple]:
+    """Pumpzuege eines Abschnitts: je Zug (Takt Hz, Nicken ±°, Rollen ±°, Hub cm, |Gierrate| °/s).
+
+    Ein Zug geht von Nulldurchgang zu Nulldurchgang (aufwaerts) des Nickens im Pumpband, zwischen den
+    Rasterpunkten interpoliert. Nicken/Rollen = (Hoch − Tief)/2 im Pumpband, Hub = Hoch − Tief, Gierrate
+    in der Zugmitte (fuer Kurve/gerade)."""
+    t = np.asarray(erg["t_ms"], dtype=float)
+    hz = float(erg["hz"])
+    tm = t[m] / 1000.0
+    p = _fft_band(np.asarray(erg["pitch_deg"], dtype=float)[m], hz, *TECHNIK_PUMP_HZ)
+    r = _fft_band(np.asarray(erg["roll_deg"], dtype=float)[m], hz, *TECHNIK_PUMP_HZ)
+    gier = np.asarray(erg["gier_delta_deg"], dtype=float)[m] / float(erg.get("yaw_fenster_s") or 1.0)
+    hub = np.asarray(erg["hub_cm"], dtype=float)[m] if erg.get("hub_cm") is not None else None
+    i = np.where((p[:-1] < 0) & (p[1:] >= 0))[0]
+    if len(i) < 2:
+        return []
+    t0 = tm[i] + (0 - p[i]) / (p[i + 1] - p[i]) * (tm[i + 1] - tm[i])
+    aus = []
+    for k in range(len(i) - 1):
+        T = t0[k + 1] - t0[k]
+        if not (1.0 / TECHNIK_PUMP_HZ[1] <= T <= 1.0 / TECHNIK_PUMP_HZ[0]):
+            continue
+        a, b = i[k], i[k + 1] + 1
+        aus.append((1.0 / T, (p[a:b].max() - p[a:b].min()) / 2.0, (r[a:b].max() - r[a:b].min()) / 2.0,
+                    float(hub[a:b].max() - hub[a:b].min()) if hub is not None else None,
+                    abs(float(gier[(a + b) // 2]))))
+    return aus
 
 
 # KURVE GEGEN GERADE (Jan, 08.10.2026: „ob man es schafft in kurven den rhythmus gut beizubehalten").
@@ -1356,24 +1388,9 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
     hz = float(erg["hz"])
     if m.sum() < 4 * hz:
         return None
-    tm = t[m] / 1000.0
-    p = _fft_band(np.asarray(erg["pitch_deg"], dtype=float)[m], hz, *TECHNIK_PUMP_HZ)
-    gier = np.asarray(erg["gier_delta_deg"], dtype=float)[m] / float(erg.get("yaw_fenster_s") or 1.0)
-    hub = np.asarray(erg["hub_cm"], dtype=float)[m] if erg.get("hub_cm") is not None else None
-    i = np.where((p[:-1] < 0) & (p[1:] >= 0))[0]
-    if len(i) < 3:
-        return None
-    # Nulldurchgang linear zwischen den beiden Rasterpunkten
-    t0 = tm[i] + (0 - p[i]) / (p[i + 1] - p[i]) * (tm[i + 1] - tm[i])
     seiten: dict[str, list] = {"kurve": [], "gerade": []}
-    for k in range(len(i) - 1):
-        T = t0[k + 1] - t0[k]
-        if not (1.0 / TECHNIK_PUMP_HZ[1] <= T <= 1.0 / TECHNIK_PUMP_HZ[0]):
-            continue
-        a, b = i[k], i[k + 1] + 1
-        art = "kurve" if abs(gier[(a + b) // 2]) > TECHNIK_KURVE_GIER_DEG_S else "gerade"
-        seiten[art].append((1.0 / T, (p[a:b].max() - p[a:b].min()) / 2.0,
-                            float(hub[a:b].max() - hub[a:b].min()) if hub is not None else None))
+    for z in _pumpzuege(erg, m):
+        seiten["kurve" if z[4] > TECHNIK_KURVE_GIER_DEG_S else "gerade"].append((z[0], z[1], z[3]))
     aus: dict = {}
     for art, z in seiten.items():
         if len(z) < TECHNIK_MIN_ZUEGE:
