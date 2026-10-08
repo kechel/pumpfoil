@@ -1,11 +1,11 @@
-<div class="seite" onswipe="wischen">
+<div class="seite" onswipe="wischen" onclick="seiteTippen">
     <!-- Datenseiten (seiten.js): eine Canvas ueber das ganze Display, hoch/runter wischen blaettert
          (rechts wischen beendet die App, das verlangt AppGallery). Seite 0 = Bedienung darunter. -->
     <canvas ref="leinwand" class="leinwand" if="{{ datenseite }}"></canvas>
     <text class="marke" if="{{ !datenseite }}">{{ marke }}</text>
 
     <div class="bbereit" if="{{ modus === 'bereit' }}">
-        <div class="kstart" ontouchstart="startHalten" ontouchend="loslassen">
+        <div class="kstart" ontouchstart="startHalten" ontouchend="loslassen" onclick="tippen" onlongpress="lang">
             <text class="knopftext">{{ knopfStart }}</text>
         </div>
         <progress class="balken" type="horizontal" percent="{{ balken }}" if="{{ balkenZeigen }}"></progress>

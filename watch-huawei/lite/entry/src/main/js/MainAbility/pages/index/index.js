@@ -192,6 +192,10 @@ export default {
   pauseHalten() { this.halten("pause", this.$t("strings.holdPause")); },
   weiterHalten() { this.halten("weiter", this.$t("strings.holdResume")); },
   stoppHalten() { this.halten("stopp", this.$t("strings.holdStop")); },
+  // VORLAEUFIG (Fehlersuche): welche Ereignisse kommen im Simulator an?
+  tippen() { console.info("Pumpfoil click Knopf"); this.info = "click Knopf"; },
+  lang() { console.info("Pumpfoil longpress Knopf"); this.info = "longpress Knopf"; },
+  seiteTippen() { console.info("Pumpfoil click Seite"); },
   loslassen() {
     if (this.haltText) console.info("Pumpfoil losgelassen");
     clearTimeout(this.haltUhr);
@@ -199,6 +203,7 @@ export default {
     this.zeigen();
   },
   wischen(e) {
+    console.info("Pumpfoil wischen " + (e && e.direction));
     // Hoch/runter blaettert waehrend der Aufnahme durch Bedienseite (0) und Datenseiten.
     if (R.modus !== "bereit" && (e.direction === "up" || e.direction === "down")) {
       var n = S.ring(R.konfig, R.seitenKontext().zustand).length;
