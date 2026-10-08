@@ -185,6 +185,8 @@ export type BoardAttitude = {
     // oder Fehlgriff). `rot_strittig`: die Richtung dieses Laufs wurde von der klareren
     // Mehrheit ueberstimmt.
     rot_verrutscht?: boolean; rot_strittig?: boolean;
+    // Technik-Kennzahlen aus dem Mittelteil (ab 30 s), korrigiert und unkorrigiert; null = zu kurz.
+    technik?: TechnikPaar | null;
   }[];
   // Der ausgewaehlte Lauf/Versuch OHNE den Rand von `pad_s` — die Kurven markieren damit, wo er
   // wirklich anfaengt und aufhoert. null, wenn die ganze Aufnahme gezeigt wird.
