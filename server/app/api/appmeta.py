@@ -841,6 +841,8 @@ NAECHSTES: list[dict] = [
      "items": [
          "New: Huawei watches (Watch GT, Watch Fit, Watch D and Watch 3, 4 and 5) record your sessions, and the Pumpfoil app on your Android phone uploads them. Starting as a public beta.",
          "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
+         # 08.10.2026 (0a1b4d18): Direkt-Upload per Code, im Emulator belegt (Sessions 14044-14049).
+         "The Huawei Watch 5 can also upload on its own after you link it with a code at pumpfoil.org, so it works without the Android app, for example with an iPhone.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
