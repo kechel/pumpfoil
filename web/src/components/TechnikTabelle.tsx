@@ -54,7 +54,7 @@ export function TechnikTabelle({ paar, laeufe }: { paar: TechnikPaar; laeufe?: n
           <div key={z.key}><dt className="inline font-semibold text-slate-300">{z.label}:</dt> <dd className="inline">{z.legende}</dd></div>
         ))}
       </dl>
-      <p className="text-sm text-slate-400">{t("tech.lCorrection")}</p>
+      <p className="text-sm text-slate-400"><MitLabel text={t("tech.lCorrection")} /></p>
       <p className="text-sm text-slate-400">
         {t("tech.lMiddle", { n: String(laeufe ?? paar.mit?.laeufe ?? paar.ohne?.laeufe ?? 1) })}
       </p>
@@ -86,7 +86,7 @@ export function LaufLegende({ n, mitteText = "tech.gMiddle" }: { n: number; mitt
           <div key={k}><dt className="inline font-semibold text-slate-300">{k}:</dt> <dd className="inline">{v}</dd></div>
         ))}
       </dl>
-      <p>{t("tech.lCorrection")}</p>
+      <p><MitLabel text={t("tech.lCorrection")} /></p>
       <p>{t("tech.gSpread")} {t(mitteText, { n: String(n) })}</p>
       <p>{t("tech.gHeave")}</p>
     </div>
@@ -355,4 +355,12 @@ export function KorrekturUmschalter({ korr, onChange }: { korr: boolean; onChang
       {knopf(false, t("tech.colWithout"))}
     </div>
   );
+}
+
+// Text der Form „Korrigiert: …" — das Wort vor dem ersten Doppelpunkt fett wie die Legenden-Begriffe
+// darueber (Jan, 08.10.2026). Ohne Doppelpunkt bleibt der Text unveraendert.
+function MitLabel({ text }: { text: string }) {
+  const m = text.match(/^([^:：]{1,40}[:：])\s*(.*)$/s);
+  if (!m) return <>{text}</>;
+  return <><span className="font-semibold text-slate-300">{m[1]}</span> {m[2]}</>;
 }
