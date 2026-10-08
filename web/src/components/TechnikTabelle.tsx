@@ -204,8 +204,9 @@ export function TechnikUebersicht({ zeilen, titel, mitteText, phase = "tech.sSta
                   <KurveGeradeZeile kg={z.kg} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
                 </td>
                 <td className="px-3 py-2 tabular-nums">
+                  <Zeilen zeilen={[[t("tech.sPump"), m?.pump_rollen_deg, o?.pump_rollen_deg, "±"]]} />
+                  <KurveGeradeZeile kg={z.kg} wert={(x) => x.rollen_deg != null ? `±${x.rollen_deg.toFixed(1)}°` : null} />
                   <Zeilen zeilen={[
-                    [t("tech.sPump"), m?.pump_rollen_deg, o?.pump_rollen_deg, "±"],
                     [t("tech.sWobble"), m?.wackeln_deg, o?.wackeln_deg, "±"],
                     [t("tech.sCurve"), m?.kurvenlage_deg, o?.kurvenlage_deg, ""]]} />
                 </td>
@@ -253,10 +254,13 @@ export function LageZellen({ k }: { k: NonNullable<BoardAttitude["laeufe"]>[numb
       </td>
       <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.roll_amplitude_deg?.toFixed(0)}°`}>
         {lang
-          ? <Zeilen zeilen={[
-              [t("tech.sPump"), k.technik!.mit!.pump_rollen_deg, k.technik!.ohne?.pump_rollen_deg, "±"],
-              [t("tech.sWobble"), k.technik!.mit!.wackeln_deg, k.technik!.ohne?.wackeln_deg, "±"],
-              [t("tech.sCurve"), k.technik!.mit!.kurvenlage_deg, k.technik!.ohne?.kurvenlage_deg, ""]]} />
+          ? <>
+              <Zeilen zeilen={[[t("tech.sPump"), k.technik!.mit!.pump_rollen_deg, k.technik!.ohne?.pump_rollen_deg, "±"]]} />
+              <KurveGeradeZeile kg={k.technik!.kurve_gerade} wert={(x) => x.rollen_deg != null ? `±${x.rollen_deg.toFixed(1)}°` : null} />
+              <Zeilen zeilen={[
+                [t("tech.sWobble"), k.technik!.mit!.wackeln_deg, k.technik!.ohne?.wackeln_deg, "±"],
+                [t("tech.sCurve"), k.technik!.mit!.kurvenlage_deg, k.technik!.ohne?.kurvenlage_deg, ""]]} />
+            </>
           : <>±{k.roll_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
       </td>
       <td className="px-3 py-2 align-top tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>

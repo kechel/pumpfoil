@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-10-08-median-je-zug"
+LAGE_VERSION = "2026-10-08-rollen-kurve"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -1390,7 +1390,7 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
         return None
     seiten: dict[str, list] = {"kurve": [], "gerade": []}
     for z in _pumpzuege(erg, m):
-        seiten["kurve" if z[4] > TECHNIK_KURVE_GIER_DEG_S else "gerade"].append((z[0], z[1], z[3]))
+        seiten["kurve" if z[4] > TECHNIK_KURVE_GIER_DEG_S else "gerade"].append((z[0], z[1], z[3], z[2]))
     aus: dict = {}
     for art, z in seiten.items():
         if len(z) < TECHNIK_MIN_ZUEGE:
@@ -1400,7 +1400,10 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
         aus[art] = {"zuege": len(z),
                     "takt_hz": round(float(np.median([x[0] for x in z])), 2),
                     "nicken_deg": round(float(np.median([x[1] for x in z])), 1),
-                    "hub_cm": round(float(np.median(h)), 1) if h else None}
+                    "hub_cm": round(float(np.median(h)), 1) if h else None,
+                    # Rollen je Pumpzug in Kurve/gerade (Jan, 08.10.2026: „bei roll per pump sind straight
+                    # und kurven zusammengemixt").
+                    "rollen_deg": round(float(np.median([x[3] for x in z])), 1)}
     return aus if (aus.get("kurve") or aus.get("gerade")) else None
 
 

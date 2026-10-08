@@ -917,7 +917,8 @@ export type Technik = {
   mitte_s?: number; laeufe?: number;
 };
 /** Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`); zuege/laeufe = worauf es steht. */
-export type KurveGeradeSeite = { zuege: number; laeufe?: number; takt_hz: number | null; nicken_deg: number | null; hub_cm: number | null };
+export type KurveGeradeSeite = { zuege: number; laeufe?: number; takt_hz: number | null; nicken_deg: number | null; hub_cm: number | null;
+  rollen_deg?: number | null };
 export type KurveGerade = { kurve: KurveGeradeSeite | null; gerade: KurveGeradeSeite | null };
 /** Mit und ohne Fliehkraft-Korrektur; null = Lauf zu kurz (unter 30 s) bzw. nichts auswertbar. */
 export type TechnikPaar = { mit: Technik | null; ohne: Technik | null; kurve_gerade?: KurveGerade | null;
