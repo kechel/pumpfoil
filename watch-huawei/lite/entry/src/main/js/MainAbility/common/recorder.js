@@ -241,7 +241,7 @@ R.stopp = function () {
  */
 R.leerlauf = function () {
   if (R.modus !== "bereit") return false;
-  if (!R.konfig.autoStart) {
+  if (!(R.auswahl.start === null ? R.konfig.autoStart : R.auswahl.start)) {
     if (R.leerGps) { try { geolocation.unsubscribe(); } catch (e) { /* war nicht an */ } R.leerGps = false; }
     return false;
   }

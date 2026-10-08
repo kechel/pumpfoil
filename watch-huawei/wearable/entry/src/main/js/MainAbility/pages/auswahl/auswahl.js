@@ -13,10 +13,10 @@ function holeRecorder() {
 }
 
 export default {
-  data: { bAlarm: "", bQuelle: "", bLayouts: "", bSperre: "", zAlarm: "", zQuelle: "", zFoil: "", zLayouts: "", zSperre: "" },
+  data: { bAlarm: "", bQuelle: "", bLayouts: "", bSperre: "", bStart: "", zStart: "", zAlarm: "", zQuelle: "", zFoil: "", zLayouts: "", zSperre: "" },
   onInit() {
     R = holeRecorder();
-    var keys = ["alarm", "thresholds", "autoFoil", "manual", "layoutsShort", "lock", "on", "off", "auto"];
+    var keys = ["alarm", "thresholds", "autoFoil", "manual", "layoutsShort", "lock", "autoStart", "on", "off", "auto"];
     this.tx = {};
     for (var i = 0; i < keys.length; i++) this.tx[keys[i]] = this.$t("strings." + keys[i]);
     this.zeigen();
@@ -27,12 +27,13 @@ export default {
   zeigen() {
     if (!R) { this.zAlarm = "Kein Recorder (getApp)"; return; }
     var a = R.auswahl, k = R.konfig, f = a.foil(k);
-    this.bAlarm = this.tx.alarm; this.bQuelle = this.tx.thresholds; this.bLayouts = this.tx.layoutsShort; this.bSperre = this.tx.lock;
+    this.bAlarm = this.tx.alarm; this.bQuelle = this.tx.thresholds; this.bLayouts = this.tx.layoutsShort; this.bSperre = this.tx.lock; this.bStart = this.tx.autoStart;
     this.zAlarm = this.anAus(a.alarm);
     this.zQuelle = a.quelle === "foil" ? this.tx.autoFoil : this.tx.manual;
     this.zFoil = f ? f.label : "–";
     this.zLayouts = this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer : k.layoutsOn);
     this.zSperre = this.stufe(a.sperre, k.waterLock === "on");
+    this.zStart = this.stufe(a.start, k.autoStart);
   },
   aendern(fn) { fn(R.auswahl); R.auswahlAnwenden(); this.zeigen(); },
   alarm() { this.aendern(function (a) { a.alarm = !a.alarm; }); },
@@ -40,6 +41,7 @@ export default {
   foil() { this.aendern(function (a) { a.naechstesFoil(R.konfig); }); },
   layouts() { this.aendern(function (a) { a.layouts = R.dreistufig(a.layouts); }); },
   sperre() { this.aendern(function (a) { a.sperre = R.dreistufig(a.sperre); }); },
+  start() { this.aendern(function (a) { a.start = R.dreistufig(a.start); }); },
   wischen(e) {
     var d = e && e.direction;
     // In der Liste ist hoch/runter Scrollen — zurueck nur noch mit rechts wischen.

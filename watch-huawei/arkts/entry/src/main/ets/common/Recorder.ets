@@ -707,7 +707,7 @@ export class Recorder {
     if (this.modus !== 'bereit') {
       return false;
     }
-    if (!this.konfig.autoStart) {
+    if (!(this.auswahl.start === null ? this.konfig.autoStart : this.auswahl.start)) {
       if (this.leerGpsAn) {
         try {
           geoLocationManager.off('locationChange', this.leerGps);

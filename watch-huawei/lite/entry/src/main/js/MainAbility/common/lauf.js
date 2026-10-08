@@ -197,6 +197,7 @@ function Auswahl(d) {
   this.foilId = typeof d.foilId === "number" ? d.foilId : null;
   this.layouts = typeof d.layouts === "boolean" ? d.layouts : null;
   this.sperre = typeof d.sperre === "boolean" ? d.sperre : null;
+  this.start = typeof d.start === "boolean" ? d.start : null;   // Auto-Start: null = wie im Profil
 }
 /** Erstbelegung aus der Konfiguration; spaeter nur noch: ein verschwundenes Foil durch das erste ersetzen. */
 Auswahl.prototype.vorbelegen = function (k) {
@@ -223,7 +224,7 @@ Auswahl.prototype.naechstesFoil = function (k) {
 function dreistufig(v) { return v === null ? true : v === true ? false : null; }
 Auswahl.prototype.daten = function () {
   return { gesetzt: this.gesetzt, alarm: this.alarm, quelle: this.quelle, foilId: this.foilId,
-    layouts: this.layouts, sperre: this.sperre };
+    layouts: this.layouts, sperre: this.sperre, start: this.start };
 };
 
 /**
