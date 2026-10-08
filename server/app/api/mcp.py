@@ -685,7 +685,7 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
     # ueberholt und wird neu gerechnet. Ein veralteter Eintrag kann so gar nicht gelesen werden,
     # und es gibt nichts, was jemand haendisch leeren muesste (s. models.BoardAttitudeCache).
     schluessel = hashlib.sha256("|".join([
-        str(getattr(ar, "algo_version", None)), lage.LAGE_VERSION,
+        str(getattr(ar, "algo_version", None)), lage.LAGE_VERSION, _AUSGABE_VERSION,
         str(s.trim_start_ms), str(s.attitude_rot_deg),
         hashlib.sha256((getattr(ar, "segments_json", None) or "").encode()).hexdigest(),
     ]).encode()).hexdigest()
@@ -754,6 +754,10 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
             # Wie das Handy in DIESEM Lauf auf dem Brett lag — aus den Daten bestimmt, nicht
             # angegeben. Dreht sich das von Lauf zu Lauf stark, sass es locker.
             "montage_drehung_deg": k.get("rot_deg"),
+            # Dieselben Zahlen wie die Tabelle „Lage je Lauf" der Webseite (Roman, 08.10.2026: die
+            # Tabelle sagte ±2,4° Rollen, dieses Werkzeug 20-34°). Die Amplituden oben sind ABSOLUT
+            # (inkl. Kurven, Start/Ende und einem Versatz der Lage); diese hier sind mittelwertfrei.
+            "technik": _technik_mcp(k.get("technik")),
         })
 
     ergebnis = {"kreiseldaten": hat_kreisel, "laeufe": laeufe}
@@ -770,6 +774,29 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
             "wie_gerechnet": _LAGE_ERKLAERUNG, "gieren_hinweis": _GIEREN_HINWEIS}
 
 
+# Hochzaehlen, wenn sich die AUSGABE aendert (nicht die Rechnung): sonst kaemen Zwischenspeicher-
+# Eintraege ohne die neuen Felder zurueck.
+_AUSGABE_VERSION = "mcp-2026-10-08-technik"
+
+
+def _technik_mcp(t: dict | None) -> dict | None:
+    """Technik eines Laufs wie in der Web-Tabelle: korrigiert, wo es die korrigierte Rechnung gibt."""
+    if not t:
+        return None
+    k = t.get("mit") or t.get("ohne")
+    if not k:
+        return None
+    return {"phase": "stabile_mitte" if t.get("teil") == "mitte" else "ganzer_lauf",
+            "fliehkraft_korrigiert": bool(t.get("mit")),
+            "pumpzuege": k.get("zuege"),
+            "pump_rollen_deg": k.get("pump_rollen_deg"),
+            "pump_nicken_deg": k.get("pump_nicken_deg"),
+            "wackeln_deg": k.get("wackeln_deg"),
+            "kurvenlage_deg": k.get("kurvenlage_deg"),
+            "hub_cm": k.get("hub_cm"),
+            "takt_hz": k.get("takt_hz")}
+
+
 # Die beiden Erklaerungen stehen neben der Rechnung, nicht darin: sie gehen bei JEDER Antwort mit
 # raus, auch bei einer aus dem Zwischenspeicher — gespeichert werden nur die Zahlen.
 _LAGE_ERKLAERUNG = (
@@ -778,7 +805,14 @@ _LAGE_ERKLAERUNG = (
     "also die Auslenkung, NICHT eine Winkelgeschwindigkeit. Eine Rate in Grad je Sekunde "
     "gibt es bisher nur fuers Gieren (`gier_rate_rms_deg_s`). Die Montage-Drehung wird je "
     "Lauf aus den Daten bestimmt. Ohne Kreiseldaten (`kreiseldaten: false`) stuetzt sich "
-    "alles allein auf die Beschleunigung und ist traeger.")
+    "alles allein auf die Beschleunigung und ist traeger. ACHTUNG: `nicken_amplitude_deg` und "
+    "`rollen_amplitude_deg` sind ABSOLUT — sie enthalten Kurven, Start und Ende und einen "
+    "etwaigen Versatz der Lage (z. B. durch starkes Pumpen), sind also KEIN Mass fuer das "
+    "Rollen auf der Geraden. Dafuer steht `technik` (dieselben Zahlen wie die Tabelle "
+    "„Lage je Lauf\" der Webseite, mittelwertfrei): `pump_rollen_deg`/`pump_nicken_deg` = ± Grad je "
+    "Pumpzug (Median ueber die Zuege), `wackeln_deg` = seitliches Hin und Her ueber 2-5 s, "
+    "`kurvenlage_deg` = Schraeglage in Kurven (unter 0,2 Hz, 95. Perzentil), `phase` = "
+    "stabile Mitte des Laufs oder der ganze Lauf bei kurzen Laeufen.")
 
 _GIEREN_HINWEIS = (
     "Gieren ist die gefahrene Route und sagt nichts ueber Technik oder Effizienz — es "
