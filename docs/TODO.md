@@ -1435,6 +1435,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 08.10. — „Wackeln" (Brett-Lage) mit mehr Daten nachpruefen.** Frage Jan: liegt es nur systembedingt
+  zwischen Pumpzug-Rollen und Schraeglage? Stand 08.10. (37 Laeufe ab 20 s, 4 Fahrer, 22 davon Jan): liegt in
+  76 % dazwischen, aus beiden vorhergesagt R² = 0,55 (r 0,69 zu Pumpzug-Rollen, 0,41 zu Schraeglage), ordnet
+  die Fahrer anders als die Schraeglage (Fahrer 13: Schraeglage 18,5°, Wackeln 4,9°) -> vorerst behalten.
+  Wiederholen, sobald deutlich mehr Brett-Laeufe da sind (Skript-Muster: alle `technik.mit` mit teil=mitte,
+  Regression Wackeln ~ Pumpzug-Rollen + Schraeglage). **Steigt R² deutlich ueber 0,8 -> Wackeln raus**
+  (lage.technik_kennzahlen, LageZellen/TechnikUebersicht, Legende tech.sWobble/gWobble).
+  Bekannte Unschaerfe: das Band 0,2-0,6 Hz faengt auch kurzes Hin-und-her-Carven ein, nicht nur Unruhe.
+
 - **🟡 08.10. — Hub je Handy-Position nachmessen (Jan macht die Aufnahmen).** Drei Handy-am-Brett-Aufnahmen
   bei Gelegenheit: Handy ganz VORN am Brett, ganz HINTEN, direkt AM MAST — moeglichst gleiche Bedingungen
   (Foil, Spot, Fahrweise). Danach gemeinsam ansehen: wie stark haengt der Hub (lage.py, am Handy gemessen) von
