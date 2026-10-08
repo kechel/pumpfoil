@@ -116,6 +116,11 @@ SDK API 24) unter `~/harmonyos/command-line-tools` (ausserhalb des Repos, NIE co
 `CLT_HOME`). Baut alle drei Linien unsigniert, vorher sync + Node-Tests. Die Lite-/JS-FA-Linien
 brauchen das lokale Wear-Engine-SDK (`wearengine.js`, s. „SDK holen"). Signieren bleibt DevEco.
 
+**Simulator (DevEco):** dort fehlt `@system.wearengine`, schon der Import scheitert und die Seite
+bleibt schwarz. `./sim.sh an` laesst recorder.js eine Attrappe laden (Senden scheitert sichtbar mit
+Code -2), `./sim.sh aus` stellt die echte Wear Engine wieder her — NIE im Zustand „an" committen.
+Ablauf-Logs: DevEco > Log, Filter `Pumpfoil`.
+
 DevEco Studio 6.x (macOS/Windows) → `watch-huawei/lite` bzw. `watch-huawei/wearable` oeffnen → Build HAP(s).
 Die Watch-3/4-Linie (HarmonyOS 2-4) ist aelter; bietet DevEco beim Oeffnen eine Migration an,
 annehmen und nur `config.json`/Seiten behalten. Danach im

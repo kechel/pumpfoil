@@ -29,6 +29,7 @@ export default {
     knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
   },
   onInit() {
+    console.info("Pumpfoil Seite onInit");
     this.knopfStart = this.$t("strings.start");
     this.knopfPause = this.$t("strings.pause");
     this.knopfWeiter = this.$t("strings.resume");
@@ -45,7 +46,8 @@ export default {
       if (d.windowWidth > 0) { that0.dw = d.windowWidth; that0.dh = d.windowHeight; }
       that0.lite = d.deviceType !== "wearable";
     } });
-    R.init();
+    // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
+    try { R.init(); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
     var that = this;
     this.takt = setInterval(function () { that.zeigen(); }, 1000);
     this.zeigen();
@@ -65,7 +67,8 @@ export default {
     // Eine Zeile Zustand: Halten-Fortschritt > Fehler > GPS > Uebertragung. Fehler bleiben
     // stehen, solange es sie gibt (nie nur einmal melden).
     var info = "";
-    if (this.haltText) info = this.haltText;
+    if (this.startFehler) info = this.startFehler;
+    else if (this.haltText) info = this.haltText;
     else if (z.fehler > 0) info = this.$t("strings.errors") + " " + z.fehler + ": " + z.letzterFehler;
     else if (z.modus === "laeuft" && !z.gpsOk) info = this.$t("strings.gpsWait");
     else if (z.offen > 0) {

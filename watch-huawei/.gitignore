@@ -10,3 +10,6 @@
 **/oh_modules/
 **/.preview/
 local.properties
+
+# Simulator-Attrappe (./sim.sh an) — nur lokal
+**/wearengine/sim.js
