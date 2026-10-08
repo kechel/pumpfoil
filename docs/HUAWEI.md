@@ -16,6 +16,15 @@ Huawei-Doku ist fast nur per JavaScript lesbar; Zahlen vor einer Entscheidung im
 | Netz | kein HTTP; nur Wear Engine P2P zum Handy, Uhr-App muss dabei **im Vordergrund** sein (Fehler 206) [DOK] | WLAN/eSIM vorhanden, ob Fremd-Apps direkt HTTPS duerfen [UNKLAR]; Praxis: P2P [FORUM] |
 | Codebasis | eigene | eigene (zweite) |
 
+**Beschleunigung auf Lite — Widerspruch (08.10.2026):** Die OpenHarmony-Doku fuehrt
+`@system.sensor.subscribeAccelerometer` fuer Lite Wearables als gepflegt (SystemCapability.Sensors.Sensor.Lite,
+Permission ACCELEROMETER) [DOK, https://gitcode.com/openharmony/docs/blob/master/en/application-dev/reference/apis-sensor-service-kit/js-apis-system-sensor.md].
+Der **DevEco-Simulator (6.1, liteWearable 454×454) hat sie NICHT**: sein `sensor`-Modul bietet nur
+subscribeBarometer, subscribeStepCounter, subscribeHeartRate, subscribeOnBodyState (+ unsubscribe/getOnBodyState)
+[GEMESSEN, Log „Accel an: fehlt (undefined)"]. Zusammen mit dem Forenbericht zur GT 6 ist offen, ob GT/Fit
+Fremd-Apps ueberhaupt Beschleunigung geben. Liefern sie keine, ist Lite bei uns GPS + Puls ohne Pump-
+Erkennung (wie Polar). Entscheidet erst eine echte Uhr; ArkTS (`@ohos.sensor`) ist davon nicht betroffen.
+
 **Hauptrisiko auf BEIDEN:** 30-120 min Aufnahme bei dunklem Display ist nirgends belegt — genau die Stelle,
 die uns auf Wear OS Wochen gekostet hat. Erst ein langer Test auf echter Hardware entscheidet.
 
