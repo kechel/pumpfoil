@@ -409,6 +409,7 @@ const de: Record<string, string> = {
   "tech.gPump": "Hoch und Tief jedes einzelnen Pumpzugs; gezeigt ist der Median über alle Pumpzüge – ein typischer Pumpzug",
   "tech.gWobble": "langsames seitliches Hin und Her über ein paar Pumpzüge (2–5 s)",
   "tech.gLean": "wie weit sich das Brett in Kurven zur Seite legt",
+  "tech.gYaw": "wie schnell das Brett dreht (°/s, vom Kreisel gemessen, quadratisch gemittelt über die Pumpzüge); in „Kurve“ immer über, in „gerade“ immer unter 8 °/s – dort heißt es: wie eng gedreht bzw. wie ruhig geradeaus gefahren",
   "tech.gTurnStraight": "derselbe Wert, aber nur aus Pumpzügen, bei denen das Brett drehte (schneller als 8 °/s, vom Kreisel gemessen) bzw. nicht drehte",
   "tech.gWhole": "dieselben Werte über den kompletten Lauf, mit Anfang und Ende – nichts gekürzt",
   "tech.gMiddle": "Alle Werte außer „ganzer Lauf“ stammen nur aus dem ruhigen Mittelteil: ohne die ersten und letzten 5 s, Läufe unter 20 s werden nicht ausgewertet. {n} Läufe.",

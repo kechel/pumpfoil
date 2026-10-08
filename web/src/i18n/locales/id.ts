@@ -116,6 +116,7 @@ const id: Record<string, string> = {
   "tech.gPump": "titik tinggi dan rendah setiap pompa; yang ditampilkan median dari semua pompa – pompa yang khas",
   "tech.gWobble": "goyangan ke samping yang lambat selama beberapa pompa (2–5 dtk)",
   "tech.gLean": "seberapa jauh papan rebah ke samping di belokan",
+  "tech.gYaw": "seberapa cepat papan berputar (°/dtk, diukur giroskop, rata-rata kuadrat atas tiap pompaan); di „belokan” selalu di atas, di „lurus” selalu di bawah 8 °/dtk – di sana menunjukkan seberapa tajam belokan atau seberapa tenang papan melaju lurus",
   "tech.gTurnStraight": "nilai yang sama, tetapi hanya dari pompa saat papan sedang berbelok (lebih dari 8°/dtk, diukur giroskop) atau tidak berbelok",
   "tech.gWhole": "nilai yang sama sepanjang run, termasuk awal dan akhir – tanpa pemotongan",
   "tech.gMiddle": "Semua nilai kecuali “seluruh run” hanya dari bagian tengah yang stabil: tanpa 5 dtk pertama dan terakhir; run di bawah 20 dtk tidak dinilai. {n} run.",

@@ -118,6 +118,7 @@ const nl: Record<string, string> = {
   "tech.gPump": "hoog en laag van elke afzonderlijke pompslag; getoond wordt de mediaan over alle pompslagen – een typische pompslag",
   "tech.gWobble": "langzaam zijwaarts heen en weer over een paar pompslagen (2–5 s)",
   "tech.gLean": "hoe ver het board in bochten opzij hangt",
+  "tech.gYaw": "hoe snel het board draait (°/s, gemeten door de gyroscoop, kwadratisch gemiddeld over de pumpslagen); bij ‘bocht’ altijd boven, bij ‘rechtdoor’ altijd onder 8 °/s – daar zegt het hoe krap de bocht was of hoe rustig het board rechtdoor ging",
   "tech.gTurnStraight": "dezelfde waarde, maar alleen uit pompslagen waarin het board draaide (sneller dan 8°/s, gemeten door de gyroscoop) of niet draaide",
   "tech.gWhole": "dezelfde waarden over de hele run, met begin en eind – niets ingekort",
   "tech.gMiddle": "Alle waarden behalve ‘hele run’ komen alleen uit het rustige middendeel: zonder de eerste en laatste 5 s; runs korter dan 20 s worden niet beoordeeld. {n} runs.",

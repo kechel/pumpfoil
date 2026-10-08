@@ -116,6 +116,7 @@ const fi: Record<string, string> = {
   "tech.gPump": "jokaisen pumppauksen ylä- ja alakohta; näytetään kaikkien pumppausten mediaani – tyypillinen pumppaus",
   "tech.gWobble": "hidas sivuttainen keinunta muutaman pumppauksen ajan (2–5 s)",
   "tech.gLean": "kuinka paljon lauta kallistuu käännöksissä",
+  "tech.gYaw": "kuinka nopeasti lauta kääntyy (°/s, gyroskoopin mittaama, neliöllinen keskiarvo pumppausvedoista); ”käännöksessä” aina yli, ”suoralla” aina alle 8 °/s – siellä se kertoo, kuinka tiukka käännös oli tai kuinka rauhallisesti lauta kulki suoraan",
   "tech.gTurnStraight": "sama arvo, mutta vain niistä pumppauksista, joiden aikana lauta kääntyi (yli 8°/s, gyroskoopin mittaama) tai ei kääntynyt",
   "tech.gWhole": "samat arvot koko ajon ajalta, alku ja loppu mukaan lukien – mitään ei rajattu",
   "tech.gMiddle": "Kaikki arvot paitsi ”koko ajo” tulevat vain tasaisesta keskiosasta: ilman ensimmäisiä ja viimeisiä 5 s; alle 20 s ajoja ei arvioida. {n} ajoa.",

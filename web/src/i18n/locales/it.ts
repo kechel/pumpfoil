@@ -116,6 +116,7 @@ const it: Record<string, string> = {
   "tech.gPump": "alto e basso di ogni singola pompata; si mostra la mediana su tutte le pompate – una pompata tipica",
   "tech.gWobble": "lenta oscillazione laterale su qualche pompata (2–5 s)",
   "tech.gLean": "quanto la tavola si inclina di lato nelle curve",
+  "tech.gYaw": "quanto velocemente gira la tavola (°/s, misurato dal giroscopio, media quadratica sulle pompate); in «curva» sempre sopra, in «rettilineo» sempre sotto 8 °/s – lì dice quanto era stretta la curva o quanto era tranquillo il rettilineo",
   "tech.gTurnStraight": "lo stesso valore, ma solo dalle pompate in cui la tavola girava (oltre 8°/s, misurato dal giroscopio) o non girava",
   "tech.gWhole": "gli stessi valori sull'intero run, inizio e fine inclusi – niente tagliato",
   "tech.gMiddle": "Tutti i valori tranne «run intero» vengono solo dalla parte centrale stabile: senza i primi e gli ultimi 5 s; i run sotto i 20 s non vengono valutati. {n} run.",

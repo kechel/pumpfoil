@@ -2468,7 +2468,8 @@ def board_attitude(user: models.User = Depends(current_user),
             if not werte:
                 continue
             zeile = {"laeufe": len(werte)}
-            for k in ("pump_nicken_deg", "pump_rollen_deg", "wackeln_deg", "kurvenlage_deg", "hub_cm", "takt_hz"):
+            for k in ("pump_nicken_deg", "pump_rollen_deg", "wackeln_deg", "kurvenlage_deg", "hub_cm", "takt_hz",
+                      "gier_deg_s"):
                 v = [float(w[k]) for w in werte if w.get(k) is not None]
                 zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
             aus[fassung] = zeile
@@ -2482,7 +2483,7 @@ def board_attitude(user: models.User = Depends(current_user),
             if not w:
                 continue
             zeile = {"laeufe": len(w), "zuege": int(sum(int(e["zuege"]) for e in w))}
-            for k in ("takt_hz", "nicken_deg", "hub_cm", "rollen_deg", "wackeln_deg", "kurvenlage_deg"):
+            for k in ("takt_hz", "nicken_deg", "hub_cm", "rollen_deg", "wackeln_deg", "kurvenlage_deg", "gier_deg_s"):
                 v = [float(e[k]) for e in w if e.get(k) is not None]
                 zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
             aus[art] = zeile

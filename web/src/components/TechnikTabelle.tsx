@@ -74,6 +74,7 @@ export function LaufLegende({ n, mitteText = "tech.gMiddle" }: { n: number; mitt
     [`${t("board.pitch")}, ${t("board.roll")}, ${t("sd.colPitchRhythm")}, ${t("sd.colHeave")}`, t("tech.gPump")],
     [t("tech.wobble"), t("tech.gWobble")],
     [t("tech.colLean"), t("tech.gLean")],
+    [t("board.yaw"), t("tech.gYaw")],
     [t("tech.sStable"), t("tech.gStable")],
     [`${t("tech.sTurn")} · ${t("tech.sStraight")}`, t("tech.gTurnStraight")],
     [t("tech.sWhole"), t("tech.gWhole")],
@@ -150,7 +151,7 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
   const n = (z: { technik?: TechnikPaar | null }) => z.technik?.mit?.laeufe ?? z.technik?.ohne?.laeufe ?? 0;
   const seite = (x: KurveGeradeSeite | null | undefined): Partial<Technik> | null => x
     ? { pump_nicken_deg: x.nicken_deg, pump_rollen_deg: x.rollen_deg ?? null, takt_hz: x.takt_hz, hub_cm: x.hub_cm,
-      wackeln_deg: x.wackeln_deg ?? null, kurvenlage_deg: x.kurvenlage_deg ?? null } : null;
+      wackeln_deg: x.wackeln_deg ?? null, kurvenlage_deg: x.kurvenlage_deg ?? null, gier_deg_s: x.gier_deg_s ?? null } : null;
   const f = (p: TechnikPaar | null | undefined) => (korr ? p?.mit : p?.ohne);
   const phasen = (z: typeof mitDaten[number]): PhaseZeile[] => {
     const kg = korr ? z.kg : z.kgOhne;
@@ -170,7 +171,7 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
       <span className="ml-auto"><KorrekturUmschalter korr={korr} onChange={setKorr} /></span>
     </div>
     <div className="overflow-x-auto rounded-xl border border-slate-800">
-      <table className="w-full min-w-[640px] text-sm">
+      <table className="w-full min-w-[700px] text-sm">
         <thead>
           <tr className="border-b border-slate-800 bg-slate-900/60 text-left text-slate-400">
             <th className="px-3 py-2 font-medium"></th>
@@ -181,6 +182,7 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
             <th className="px-3 py-2 text-right font-medium">{t("tech.colLean")}</th>
             <th className="px-3 py-2 text-right font-medium">{t("tech.cadence")} <span className="font-normal">{pump.suffix}</span></th>
             <th className="px-3 py-2 text-right font-medium">{t("tech.heave")}</th>
+            <th className="px-3 py-2 text-right font-medium">{t("board.yaw")}</th>
           </tr>
         </thead>
         <tbody>
@@ -219,13 +221,14 @@ type PhaseZeile = { phase: string; mit: Partial<Technik> | null | undefined; hau
  *  Kurve, gerade, ganzer Lauf. Kurze Laeufe (unter lage.TECHNIK_MIN_S) nur „ganzer Lauf". */
 function phasenDesLaufs(k: NonNullable<BoardAttitude["laeufe"]>[number], t: (k: string) => string, korr: boolean): PhaseZeile[] {
   const x = k.technik;
-  if (!x) return [{ phase: t("tech.sWhole"), mit: null, haupt: false }];
+  // Ohne Technik (zu kurz/alt) wenigstens das Gieren des ganzen Laufs zeigen, wie vor der Aufteilung.
+  if (!x) return [{ phase: t("tech.sWhole"), mit: { gier_deg_s: k.gier_rms_deg_s ?? null }, haupt: false }];
   const f = (p: TechnikPaar | null | undefined) => (korr ? p?.mit : p?.ohne);
   if (x.teil === "ganz") return [{ phase: t("tech.sWhole"), mit: f(x), haupt: true }];
   const kg = korr ? x.kurve_gerade : x.kurve_gerade_ohne;
   const seite = (z: KurveGeradeSeite | null | undefined): Partial<Technik> | null => z
     ? { pump_nicken_deg: z.nicken_deg, pump_rollen_deg: z.rollen_deg ?? null, takt_hz: z.takt_hz, hub_cm: z.hub_cm,
-      wackeln_deg: z.wackeln_deg ?? null, kurvenlage_deg: z.kurvenlage_deg ?? null } : null;
+      wackeln_deg: z.wackeln_deg ?? null, kurvenlage_deg: z.kurvenlage_deg ?? null, gier_deg_s: z.gier_deg_s ?? null } : null;
   return [
     { phase: t("tech.sStable"), mit: f(x), haupt: true },
     ...(kg ? [{ phase: t("tech.sTurn"), mit: seite(kg.kurve), haupt: false },
@@ -234,7 +237,7 @@ function phasenDesLaufs(k: NonNullable<BoardAttitude["laeufe"]>[number], t: (k: 
   ];
 }
 
-/** Die Wert-Zellen EINER Phase: Nicken | Rollen | Wackeln | Schraeglage | Takt | Hub. */
+/** Die Wert-Zellen EINER Phase: Nicken | Rollen | Wackeln | Schraeglage | Takt | Hub | Gieren. */
 function PhasenWerte({ z, takt }: { z: PhaseZeile; takt?: (hz: number) => string }) {
   const zelle = (v: number | null | undefined, f: (n: number) => string) => (
     <td className="px-3 py-1.5 text-right tabular-nums whitespace-nowrap">
@@ -251,6 +254,7 @@ function PhasenWerte({ z, takt }: { z: PhaseZeile; takt?: (hz: number) => string
       {zelle(m?.kurvenlage_deg, (n) => `${n.toFixed(1)}°`)}
       {zelle(m?.takt_hz, takt ?? ((n) => `${n.toFixed(2)} Hz`))}
       {zelle(m?.hub_cm, (n) => `${n.toFixed(0)} cm`)}
+      {zelle(m?.gier_deg_s, (n) => `${n.toFixed(0)}°/s`)}
     </>
   );
 }
@@ -276,8 +280,8 @@ export function PhasenKopf({ sortierbar }: { sortierbar?: (key: string, label: s
 
 /**
  * Alle Zeilen EINES Laufs: je Phase eine Zeile. `vorne`/`hinten` sind die Zellen, die nur einmal je Lauf
- * stehen (Nummer, Datum, Montage …) — sie bekommen `rowSpan` = Anzahl Phasen. Gieren steht ebenfalls
- * einmal je Lauf (es ist keine Pumpzug-Groesse).
+ * stehen (Nummer, Datum, Montage …) — sie bekommen `rowSpan` = Anzahl Phasen. Gieren steht seit dem
+ * 08.10.2026 je Phase (Jan: „warum geht gieren nicht je phase?").
  */
 export function LaufPhasenZeilen({ k, vorne, hinten, onClick, className, korr = true }: {
   k: NonNullable<BoardAttitude["laeufe"]>[number];
@@ -295,11 +299,6 @@ export function LaufPhasenZeilen({ k, vorne, hinten, onClick, className, korr = 
           {i === 0 && vorne(n)}
           <td className="px-3 py-1.5 whitespace-nowrap">{z.phase}</td>
           <PhasenWerte z={z} />
-          {i === 0 && (
-            <td rowSpan={n} className="px-3 py-1.5 text-right align-top tabular-nums">
-              <span className="font-semibold text-brand-700 dark:text-brand-300">{k.gier_rms_deg_s != null ? `${k.gier_rms_deg_s.toFixed(0)}°/s` : "–"}</span>
-            </td>
-          )}
           {i === 0 && hinten?.(n)}
         </tr>
       ))}

@@ -116,6 +116,7 @@ const pl: Record<string, string> = {
   "tech.gPump": "góra i dół każdej pojedynczej pompy; pokazana jest mediana ze wszystkich pomp – typowa pompa",
   "tech.gWobble": "powolne bujanie na boki przez kilka pomp (2–5 s)",
   "tech.gLean": "jak bardzo deska kładzie się na bok w zakrętach",
+  "tech.gYaw": "jak szybko obraca się deska (°/s, mierzone żyroskopem, średnia kwadratowa z ruchów pompowania); w „zakręcie” zawsze powyżej, „na prostej” zawsze poniżej 8 °/s – tam mówi, jak ciasny był zakręt lub jak spokojna była prosta",
   "tech.gTurnStraight": "ta sama wartość, ale tylko z pomp, podczas których deska skręcała (szybciej niż 8°/s, mierzone żyroskopem) albo nie skręcała",
   "tech.gWhole": "te same wartości z całego przejazdu, z początkiem i końcem – nic nie obcięte",
   "tech.gMiddle": "Wszystkie wartości poza „cały przejazd” pochodzą tylko ze spokojnego środka: bez pierwszych i ostatnich 5 s; przejazdy krótsze niż 20 s nie są oceniane. Przejazdy: {n}.",

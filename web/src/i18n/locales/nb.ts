@@ -116,6 +116,7 @@ const nb: Record<string, string> = {
   "tech.gPump": "topp og bunn for hvert enkelt pumpetak; vist er medianen over alle pumpetak – et typisk pumpetak",
   "tech.gWobble": "langsom vingling fra side til side over noen pumpetak (2–5 s)",
   "tech.gLean": "hvor mye brettet legger seg over i svingene",
+  "tech.gYaw": "hvor fort brettet dreier (°/s, målt av gyroskopet, kvadratisk middel over pumpetakene); i «sving» alltid over, på «rett» alltid under 8 °/s – der sier det hvor krapp svingen var eller hvor rolig brettet gikk rett fram",
   "tech.gTurnStraight": "samme verdi, men bare fra pumpetak mens brettet svingte (raskere enn 8°/s, målt av gyroskopet) eller ikke svingte",
   "tech.gWhole": "de samme verdiene over hele runen, med start og slutt – ingenting kuttet",
   "tech.gMiddle": "Alle verdier unntatt «hele runen» kommer bare fra den rolige midtdelen: uten de første og siste 5 s; runs under 20 s vurderes ikke. {n} runs.",
