@@ -260,6 +260,9 @@ export default function Sessions() {
   // 31.08.). Die Liste ist eine Übersicht; „nur präzise" verschweigt sonst still die Sessions
   // der Mitfahrer, deren Uhr keine verwertbaren Beschleunigungsdaten liefert.
   const [accelOnly, setAccelOnly, setAccelAuto, resetAccelAuto] = useAccelDefault(false);
+  // Dritte Taste „Handy am Brett" (Jan, 08.10.2026): nur Aufnahmen mit placement = board. Schliesst
+  // „nur Accel" aus (Brett-Sessions sollen alle erscheinen); die Listen laden bei jedem Wechsel neu.
+  const [brett, setBrett] = useState(false);
   // Spot gewechselt oder verlassen: eine vorherige Automatik ("Spot ohne Accel-Sessions")
   // wieder verwerfen, damit wieder der Default aus der eigenen Uhr gilt.
   useEffect(() => { resetAccelAuto(); }, [spot]);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -416,8 +419,9 @@ export default function Sessions() {
         )}
         {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. */}
         <ListenAnsicht className={isMine ? "" : "ml-auto"} />
-        <AccelToggle value={accelOnly} onChange={setAccelOnly} />
-        <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly} sport={sport} />
+        <AccelToggle value={accelOnly} onChange={(v) => { setBrett(false); setAccelOnly(v); }}
+                     brett={brett} onBrett={() => { setBrett(true); setAccelOnly(false); }} />
+        <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett} />
       </div>
 
 
@@ -434,8 +438,10 @@ export default function Sessions() {
           Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
           keine Spot-Zeile, an der eine Beschreibung haengen koennte. */}
       {spot && /^\d+$/.test(spot) && <SpotNotes spotId={Number(spot)} />}
-      {isMine ? <MySessionsList key={`${reloadKey}|${sport}`} myName={myName} accelOnly={accelOnly} sport={sport}
-                                onShowAll={() => setAccelAuto(false)} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} sport={sport} onShowAll={() => setAccelAuto(false)} />}
+      {isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
+                                board={brett} onShowAll={() => setAccelAuto(false)} />
+              : <CommunityList key={`${brett}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
+                               onShowAll={() => setAccelAuto(false)} />}
     </div>
   );
 }
@@ -471,22 +477,22 @@ export function ProcessingNote() {
 
 // „X new sessions so far today" neben dem Accel-Umschalter (Jan, 04.10.2026). Zaehlt mit denselben
 // Regeln wie die Liste darunter (Meine/Spot/Alle, Sportart, nur Accel); bei 0 steht nichts da.
-function HeuteNeu({ mine, spot, accelOnly, sport }: { mine: boolean; spot: string | null; accelOnly: boolean; sport: string }) {
+function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boolean; spot: string | null; accelOnly: boolean; sport: string; board?: boolean }) {
   const t = useT();
   const [n, setN] = useState<number | null>(null);
   useEffect(() => {
     let aus = false;
-    api.sessionsToday({ mine, spot: spot || undefined, accelOnly, sport })
+    api.sessionsToday({ mine, spot: spot || undefined, accelOnly, sport, board })
       .then((r) => { if (!aus) setN(r.n); }).catch(() => { if (!aus) setN(null); });
     return () => { aus = true; };
-  }, [mine, spot, accelOnly, sport]);
+  }, [mine, spot, accelOnly, sport, board]);
   if (!n) return null;
   // Fett und cyan (Jan): im Light-Mode das dunklere Cyan, wie die Links.
   return <span className="text-sm font-bold text-brand-600 dark:text-brand-300">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })} — Have fun, keep pumping!</span>;
 }
 
-function MySessionsList({ myName, accelOnly, sport, onShowAll }:
-    { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void }) {
+function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
+    { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean }) {
   const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const t = useT();
   const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
@@ -547,7 +553,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll }:
       // (StaleWhileRevalidate) den Wechsel zwischen „meine / alle / am Spot" aus seinem Cache,
       // und man sieht denselben Stand wie vorher — Jans Befund 21.09.2026. Beim Nachladen
       // weiterer Seiten ist der Cache dagegen erwuenscht (alte Seiten aendern sich nicht).
-      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, sport, fresh: replace });
+      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: replace });
       if (lauf !== meinLaufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
       offsetRef.current = off + page.length;
       hasMoreRef.current = page.length === PAGE;
@@ -569,7 +575,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll }:
       // `fresh: true` geht am Service-Worker-Cache vorbei. Ohne das bekaeme die Nachpruefung
       // seit 15.09. dieselbe gecachte Antwort wie die Anzeige (StaleWhileRevalidate) und
       // koennte nie etwas Neues melden.
-      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, sport, fresh: true });
+      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: true });
       if (lauf !== meinLaufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
@@ -667,7 +673,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll }:
   useEffect(() => {
     if (!items.some(isInterim)) return;
     const iv = setInterval(() => {
-      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current, sport })
+      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport })
         .then((fresh) => setItems((prev) => prev.map((p) => fresh.find((f) => f.id === p.id) ?? p)))
         .catch(() => {});
     }, 4000);
@@ -1101,8 +1107,8 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
   );
 }
 
-function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
-    { name: string; spot: string; accelOnly: boolean; sport: string; onShowAll?: () => void }) {
+function CommunityList({ name, spot, accelOnly, sport, onShowAll, board = false }:
+    { name: string; spot: string; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean }) {
   const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const t = useT();
   const [items, setItems] = useState<CommunityGroup[]>([]);
@@ -1143,7 +1149,7 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
   const maybeShowAll = (rows: CommunityGroup[], off: number) => {
     if (!spot || !accelOnly || off !== 0 || autoTried.current === spot) return;
     autoTried.current = spot;
-    api.communitySessionsGrouped(PAGE, 0, { name: name || undefined, spot, accelOnly: false, sport })
+    api.communitySessionsGrouped(PAGE, 0, { name: name || undefined, spot, accelOnly: false, sport, board })
       .then((probe) => { if (probe.length > rows.length) onShowAll?.(); })
       .catch(() => {});
   };
@@ -1153,7 +1159,7 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
     loadingRef.current = true; setLoading(true);
     const lauf = laufRef.current;
     const off = reset ? 0 : offsetRef.current;
-    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport })
+    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport, board })
       .then((rows) => {
         if (lauf !== laufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
         offsetRef.current = off + rows.length;
@@ -1189,7 +1195,7 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
     const lauf = laufRef.current;
     try {
       const fresh = await api.communitySessionsGrouped(
-        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport, fresh: true });
+        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport, fresh: true, board });
       if (lauf !== laufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       if (!fresh.length) return;
       const frisch = new Set(fresh.map(gruppenKey));
@@ -1201,7 +1207,7 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
       itemsRef.current = merged;
       offsetRef.current = merged.length;
       setItems(merged);
-      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}`,
+      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}|${board}`,
                          { items: merged, offset: offsetRef.current, more: moreRef.current });
     } catch { /* offline/Fehler: der Cache bleibt einfach stehen */ }
   }
@@ -1211,7 +1217,7 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
     // Abruf, nicht zum neuen — bliebe sie stehen, stiege `load(true)` unten sofort wieder aus.
     laufRef.current += 1;
     loadingRef.current = false;
-    const cached = communityCache.get(`${name}|${spot}|${accelOnly}|${sport}`);
+    const cached = communityCache.get(`${name}|${spot}|${accelOnly}|${sport}|${board}`);
     if (cached && cached.items.length) {
       setItems(cached.items); offsetRef.current = cached.offset; moreRef.current = cached.more;
       itemsRef.current = cached.items;
@@ -1229,7 +1235,7 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
       moreRef.current = true; offsetRef.current = 0; load(true);
     }
     return () => {
-      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
+      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}|${board}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
     };
   }, [name, spot, accelOnly, sport]); // eslint-disable-line react-hooks/exhaustive-deps
   // Lag die PWA lange im Hintergrund, laeuft beim Zurueckkommen KEIN Mount — ohne das hier bliebe

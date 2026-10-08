@@ -232,6 +232,7 @@ const fr: Record<string, string> = {
   "sessions.todayOne": "1 nouvelle session aujourd'hui pour l'instant",
   "sessions.todayN": "{n} nouvelles sessions aujourd'hui pour l'instant",
   "side.all": "tout",
+  "side.phoneOnBoard": "téléphone sur la planche",
   "side.recordsHint": "Records issus des sessions avec données d'accélération (précis) ou de toutes",
   "rec.spotTitle": "Records sur ce spot",
   "rec.farthestRun": "Run le plus long",

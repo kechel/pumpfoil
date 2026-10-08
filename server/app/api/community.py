@@ -288,12 +288,20 @@ def _attach_first_video(db: Session, items: list[dict], request: Request) -> lis
 
 
 # ----------------------------------------------------------------- Feed/Spots ----
+def _brett(q, board: bool):
+    """Dritter Filter der Sessions-Seite neben „nur Accel" / „alle" (Jan, 08.10.2026): nur Aufnahmen
+    mit dem HANDY AM BRETT (`placement = 'board'`, gesetzt vom Handy-Recorder). Die Liste der
+    Wahrheit fuer die Uhr (docs/GROUND-TRUTH.md) — so findet man sie, ohne zu suchen."""
+    return q.filter(S.placement == "board") if board else q
+
+
+
 @router.get("/sessions")
 def community_sessions(
     request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
-    sport: str = "pumpfoil", foil_id: int | None = None,
+    sport: str = "pumpfoil", foil_id: int | None = None, board: bool = False,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Feed: community-sichtbare Sessions, neueste zuerst, echte SQL-Paginierung.
@@ -303,7 +311,7 @@ def community_sessions(
     die eigenen (Jan, 04.09.: „sonst sind ja 99 % der Listen fuer mich leer") — der
     Nutzer-Vorschlag lautete ja „all sessions recorded with that specific front wing".
     """
-    q = _community(db.query(*BRIEF_COLS), user.id, accel_only, sport)
+    q = _brett(_community(db.query(*BRIEF_COLS), user.id, accel_only, sport), board)
     if name:
         q = q.filter(_such_alles(name, [U.display_name]))
     if spot:
@@ -317,14 +325,14 @@ def community_sessions(
 @router.get("/sessions-today")
 def sessions_today(
     since_ms: int, spot: str | None = Query(None), accel_only: bool = True, sport: str = "pumpfoil",
-    mine: bool = False,
+    mine: bool = False, board: bool = False,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     """Wie viele Sessions seit `since_ms` (Mitternacht beim BETRACHTER, vom Client geschickt) —
     fuer „X new sessions so far today" auf der Sessions-Seite (Jan, 04.10.2026). Dieselben Regeln
     wie die Liste darunter: `_community` (+ Spot), bei „Meine" nur die eigenen."""
     seit = datetime.fromtimestamp(since_ms / 1000.0, tz=timezone.utc)
-    q = _community(db.query(func.count(S.id)), user.id, accel_only, sport).filter(S.started_at >= seit)
+    q = _brett(_community(db.query(func.count(S.id)), user.id, accel_only, sport), board).filter(S.started_at >= seit)
     if mine:
         q = q.filter(S.user_id == user.id)
     if spot:
@@ -336,11 +344,11 @@ def sessions_today(
 def spot_sessions(
     request: Request,
     spot: str, limit: int = 50, offset: int = 0, accel_only: bool = True,
-    sport: str = "pumpfoil",
+    sport: str = "pumpfoil", board: bool = False,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     rows = (
-        _community(db.query(*BRIEF_COLS), user.id, accel_only, sport).filter(_spot_cond(spot, db))
+        _brett(_community(db.query(*BRIEF_COLS), user.id, accel_only, sport), board).filter(_spot_cond(spot, db))
         .order_by(S.started_at.desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
@@ -366,7 +374,7 @@ def sessions_grouped(
     request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
-    sport: str = "pumpfoil",
+    sport: str = "pumpfoil", board: bool = False,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Feed/Spot mit TAGES-GRUPPIERUNG (rein anzeige-seitig, ändert keine Daten/Rekorde):
@@ -377,7 +385,7 @@ def sessions_grouped(
     oben, darin Nutzer-Cluster nach letzter Session" (weil started_at desc gescannt wird, ist die
     Einfüge-Reihenfolge bereits genau diese). Einzel-Session-Gruppen (count=1) rendert der Client
     als normale Kachel mit Direkt-Link; ab count≥2 als aufklappbares Akkordeon."""
-    q = _community(db.query(*BRIEF_COLS, *GROUP_EXTRA), user.id, accel_only, sport)
+    q = _brett(_community(db.query(*BRIEF_COLS, *GROUP_EXTRA), user.id, accel_only, sport), board)
     if name:
         q = q.filter(_such_alles(name, [U.display_name]))
     if spot:

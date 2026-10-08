@@ -273,6 +273,7 @@ const nb: Record<string, string> = {
   "sessions.todayOne": "I dag så langt 1 ny økt",
   "sessions.todayN": "I dag så langt {n} nye økter",
   "side.all": "alle",
+  "side.phoneOnBoard": "telefon på brettet",
   "side.recordsHint": "Rekorder fra økter med akselerasjonsdata (presise) eller fra alle",
   "rec.spotTitle": "Rekorder på denne spoten",
   "rec.farthestRun": "Lengste run",

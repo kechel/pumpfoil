@@ -252,6 +252,7 @@ const ru: Record<string, string> = {
   "sessions.todayOne": "Сегодня пока 1 новая сессия",
   "sessions.todayN": "Сегодня пока новых сессий: {n}",
   "side.all": "все",
+  "side.phoneOnBoard": "телефон на доске",
   "side.recordsHint": "Рекорды из сессий с данными акселерометра (точные) или из всех",
   "rec.spotTitle": "Рекорды на этом споте",
   "rec.farthestRun": "Самый дальний заезд",

@@ -245,6 +245,7 @@ const fi: Record<string, string> = {
   "sessions.todayOne": "Tänään tähän mennessä 1 uusi sessio",
   "sessions.todayN": "Tänään tähän mennessä {n} uutta sessiota",
   "side.all": "kaikki",
+  "side.phoneOnBoard": "puhelin laudalla",
   "side.recordsHint": "Ennätykset vain kiihtyvyysdatan sisältävistä sessioista (tarkka) tai kaikista",
   "rec.spotTitle": "Ennätykset tällä spotilla",
   "rec.farthestRun": "Pisin matka",

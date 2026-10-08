@@ -258,6 +258,7 @@ const nl: Record<string, string> = {
   "sessions.todayOne": "Vandaag tot nu toe 1 nieuwe sessie",
   "sessions.todayN": "Vandaag tot nu toe {n} nieuwe sessies",
   "side.all": "alle",
+  "side.phoneOnBoard": "telefoon op de plank",
   "side.recordsHint": "Records alleen uit sessies met versnellingsdata (precies) of uit alle",
   "rec.spotTitle": "Records op deze spot",
   "rec.farthestRun": "Verste run",

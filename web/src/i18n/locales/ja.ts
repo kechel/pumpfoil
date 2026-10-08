@@ -252,6 +252,7 @@ const ja: Record<string, string> = {
   "sessions.todayOne": "今日はこれまでに新しいセッション1件",
   "sessions.todayN": "今日はこれまでに新しいセッション{n}件",
   "side.all": "すべて",
+  "side.phoneOnBoard": "ボード上の電話",
   "side.recordsHint": "加速度データありのセッション（高精度）からの記録、または全セッションから",
   "rec.spotTitle": "このスポットの記録",
   "rec.farthestRun": "最遠ラン",

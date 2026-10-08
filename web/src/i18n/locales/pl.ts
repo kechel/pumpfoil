@@ -273,6 +273,7 @@ const pl: Record<string, string> = {
   "sessions.todayOne": "Dziś do tej pory 1 nowa sesja",
   "sessions.todayN": "Dziś do tej pory nowe sesje: {n}",
   "side.all": "wszystkie",
+  "side.phoneOnBoard": "telefon na desce",
   "side.recordsHint": "Rekordy z sesji z danymi akcelerometru (dokładne) albo ze wszystkich",
   "rec.spotTitle": "Rekordy na tym spocie",
   "rec.farthestRun": "Najdalszy przejazd",
