@@ -55,6 +55,7 @@ struct Index {
   @State balken: number = 0;
   @State balkenZeigen: boolean = false;
   @State halten: boolean = true;
+  @State haltVoll: number = 0;   // 0..1, Fortschritt des 2-s-Haltens
   @State tPause: string = '';
   @State tStopp: string = '';
   @State tWeg: string = '';
@@ -165,6 +166,9 @@ struct Index {
 
   /** Eine Zeile Zustand, Vorrang wie Lite (recorder.js infoZeile): Fehler > GPS > verworfen > Uebertragung. */
   private infoZeile(z: Zustand): string {
+    if (z.letzterFehler.indexOf('3301100') >= 0) {
+      return this.t($r('app.string.gpsOff'));   // Ortung aus: sagen, was zu tun ist, statt Fehlercode
+    }
     if (z.fehler > 0) {
       return this.t($r('app.string.errors')) + ' ' + z.fehler + ': ' + z.letzterFehler;
     }
@@ -443,6 +447,11 @@ struct Index {
     clearTimeout(this.haltUhr);
     this.haltAktion = aktion;
     this.zeigen();
+    // Fortschritt im Knopf (wie der Halte-Ring auf Wear/Garmin): fuellt sich in 2 s von links.
+    this.haltVoll = 0;
+    animateTo({ duration: HALTEN_MS, curve: Curve.Linear }, () => {
+      this.haltVoll = 1;
+    });
     this.haltUhr = setTimeout(() => {
       this.haltAktion = '';
       this.ausfuehren(aktion);
@@ -451,6 +460,9 @@ struct Index {
 
   private loslassen(): void {
     clearTimeout(this.haltUhr);
+    animateTo({ duration: 0 }, () => {
+      this.haltVoll = 0;
+    });
     if (this.haltAktion !== '') {
       this.haltAktion = '';
       this.zeigen();
@@ -479,15 +491,25 @@ struct Index {
   @Builder
   knopf(text: string, farbe: string, aktion: string) {
     if (this.halten) {
-      Button(text).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(farbe)
-        .margin({ top: 8 })
-        .onTouch((e: TouchEvent) => {
-          if (e.type === TouchType.Down) {
-            this.halteStart(aktion === 'pause' ? this.pauseAktion() : aktion);
-          } else if (e.type === TouchType.Up || e.type === TouchType.Cancel) {
-            this.loslassen();
-          }
-        })
+      Stack({ alignContent: Alignment.Start }) {
+        Button(text).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(farbe)
+          .onTouch((e: TouchEvent) => {
+            if (e.type === TouchType.Down) {
+              this.halteStart(aktion === 'pause' ? this.pauseAktion() : aktion);
+            } else if (e.type === TouchType.Up || e.type === TouchType.Cancel) {
+              this.loslassen();
+            }
+          })
+        if (this.haltAktion !== '' && (aktion === 'stopp') === (this.haltAktion === 'stopp')) {
+          Row().width(200 * this.haltVoll).height(56).backgroundColor('#59ffffff')
+            .hitTestBehavior(HitTestMode.None)
+        }
+      }
+      .width(200)
+      .height(56)
+      .borderRadius(28)
+      .clip(true)
+      .margin({ top: 8 })
     } else {
       Button(text).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(farbe)
         .margin({ top: 8 })

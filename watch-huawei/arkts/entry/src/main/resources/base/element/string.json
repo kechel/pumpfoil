@@ -191,6 +191,10 @@
     {
       "name": "f_allRunsTime",
       "value": "all runs time"
+    },
+    {
+      "name": "gpsOff",
+      "value": "GPS off:\nturn on location"
     }
   ]
 }
