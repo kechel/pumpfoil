@@ -10,6 +10,7 @@
 // Server: server/tests/test_huawei_e2e.py laedt die Dateien wie die Bruecke hoch.
 // Aendert sich das Format absichtlich: HUAWEI_E2E_NEU=1 node --test test/e2e-uebertragung.test.mjs
 import { test, mock } from "node:test";
+import { kuenstlicheZeit } from "./e2e/uhrzeit.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { register } from "node:module";
@@ -61,7 +62,7 @@ function handy(nachrichten) {
 const flush = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
 
 test("Ende-zu-Ende Uhr: Fahrt mit Pause, Verluste und Doppelte — alles kommt genau einmal an", async () => {
-  mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: T0 });
+  const zeit = kuenstlicheZeit(T0);
   const zufall = mock.method(Math, "random", () => 0.4242);
   try {
     const R = (await import("../common/recorder.js")).default;
@@ -70,7 +71,7 @@ test("Ende-zu-Ende Uhr: Fahrt mit Pause, Verluste und Doppelte — alles kommt g
     let lat = 52.5, lon = 13.4;
     const laufen = async (ms, aufnahme) => {
       for (let t = 0; t < ms; t += 20) {
-        mock.timers.tick(20);
+        zeit.tick(20);
         const jetzt = Date.now();
         if (aufnahme && uhr.accel) {
           const p = Math.sin((jetzt - T0) / 1000 * 2 * Math.PI);   // Pumpen mit 1 Hz
@@ -137,6 +138,6 @@ test("Ende-zu-Ende Uhr: Fahrt mit Pause, Verluste und Doppelte — alles kommt g
     assert.equal(fs.readFileSync(new URL("huawei-e2e-dateien.json", FIX), "utf8"), dateien);
   } finally {
     zufall.mock.restore();
-    mock.timers.reset();
+    zeit.zurueck();
   }
 });

@@ -154,8 +154,9 @@ export default {
   },
   /**
    * Zeichenbefehle ausfuehren. Lite kennt laut Doku nur die System-Schriftgroessen 30/38 px; Watch 3/4
-   * (deviceType wearable) zeichnet die echte Groesse. UNGEPRUEFT auf Hardware: Grundlinie von fillText
-   * (hier mittig angenommen ueber +0,35 × Groesse) und welche Canvas-Aufrufe Lite wirklich kann.
+   * (deviceType wearable) zeichnet die echte Groesse. Lite: fillText setzt die Oberkante auf y (im Simulator
+   * gesehen); Watch 3/4: Grundlinie, mittig ueber +0,35 × Groesse (UNGEPRUEFT). Welche Canvas-Aufrufe Lite
+   * wirklich kann, steht erst auf Hardware fest.
    */
   malen(befehle) {
     var el = this.$refs.leinwand;
@@ -169,7 +170,9 @@ export default {
           var px = this.lite ? (b.s >= 34 ? 38 : 30) : b.s;
           c.fillStyle = b.c; c.font = px + "px";
           c.textAlign = b.a === "l" ? "left" : (b.a === "r" ? "right" : "center");
-          c.fillText(b.txt, b.x, b.y + Math.round(px * 0.35));
+          // Lite setzt den Text mit der OBERKANTE auf y (Simulator 08.10.2026: alles ~0,85 × Groesse zu
+          // tief, Jans Screenshot), Watch 3/4 (volle Canvas) mit der Grundlinie. b.y ist die Mitte.
+          c.fillText(b.txt, b.x, this.lite ? b.y - Math.round(px / 2) : b.y + Math.round(px * 0.35));
         } else if (b.k === "l") {
           c.strokeStyle = b.c; c.lineWidth = b.w; c.beginPath(); c.moveTo(b.x1, b.y1); c.lineTo(b.x2, b.y2); c.stroke();
         } else if (b.k === "a") {
