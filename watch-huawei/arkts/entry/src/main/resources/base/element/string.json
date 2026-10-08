@@ -2,11 +2,11 @@
   "string": [
     {
       "name": "start",
-      "value": "Hold to start"
+      "value": "START"
     },
     {
       "name": "pause",
-      "value": "Hold to pause"
+      "value": "Pause"
     },
     {
       "name": "resume",
@@ -14,7 +14,35 @@
     },
     {
       "name": "stop",
-      "value": "Stop"
+      "value": "STOP"
+    },
+    {
+      "name": "noAccel",
+      "value": "no acceleration data"
+    },
+    {
+      "name": "lockHold",
+      "value": "hold to unlock"
+    },
+    {
+      "name": "lock",
+      "value": "Touch lock"
+    },
+    {
+      "name": "done",
+      "value": "DONE"
+    },
+    {
+      "name": "discarded",
+      "value": "Discarded"
+    },
+    {
+      "name": "discard",
+      "value": "Discard"
+    },
+    {
+      "name": "holding",
+      "value": "Hold …"
     },
     {
       "name": "paused",
@@ -29,36 +57,12 @@
       "value": "Waiting for GPS"
     },
     {
-      "name": "toPhone",
-      "value": "To phone:"
-    },
-    {
       "name": "openPhone",
       "value": "open Pumpfoil app on phone"
     },
     {
       "name": "allSent",
       "value": "All sent"
-    },
-    {
-      "name": "holdStart",
-      "value": "Keep holding: start"
-    },
-    {
-      "name": "holdPause",
-      "value": "Keep holding: pause"
-    },
-    {
-      "name": "holdResume",
-      "value": "Keep holding: resume"
-    },
-    {
-      "name": "holdStop",
-      "value": "Keep holding: stop"
-    },
-    {
-      "name": "stopFirst",
-      "value": "Stop the recording first"
     },
     {
       "name": "module_desc",

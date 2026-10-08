@@ -2,23 +2,51 @@
   "string": [
     {
       "name": "start",
-      "value": "Halten: Start"
+      "value": "START"
     },
     {
       "name": "pause",
-      "value": "Halten: Pause"
+      "value": "Pausieren"
     },
     {
       "name": "resume",
-      "value": "Weiter"
+      "value": "Fortsetzen"
     },
     {
       "name": "stop",
-      "value": "Stopp"
+      "value": "STOPP"
+    },
+    {
+      "name": "noAccel",
+      "value": "ohne Beschleunigung"
+    },
+    {
+      "name": "lockHold",
+      "value": "halten = entsperren"
+    },
+    {
+      "name": "lock",
+      "value": "Touch-Sperre"
+    },
+    {
+      "name": "done",
+      "value": "FERTIG"
+    },
+    {
+      "name": "discarded",
+      "value": "Verworfen"
+    },
+    {
+      "name": "discard",
+      "value": "Verwerfen"
+    },
+    {
+      "name": "holding",
+      "value": "Halten …"
     },
     {
       "name": "paused",
-      "value": "Pause"
+      "value": "Pausiert"
     },
     {
       "name": "errors",
@@ -29,36 +57,12 @@
       "value": "Warte auf GPS"
     },
     {
-      "name": "toPhone",
-      "value": "Zum Handy:"
-    },
-    {
       "name": "openPhone",
       "value": "Pumpfoil-App am Handy öffnen"
     },
     {
       "name": "allSent",
       "value": "Alles übertragen"
-    },
-    {
-      "name": "holdStart",
-      "value": "Weiter halten: Start"
-    },
-    {
-      "name": "holdPause",
-      "value": "Weiter halten: Pause"
-    },
-    {
-      "name": "holdResume",
-      "value": "Weiter halten: weiter"
-    },
-    {
-      "name": "holdStop",
-      "value": "Weiter halten: Stopp"
-    },
-    {
-      "name": "stopFirst",
-      "value": "Erst die Aufnahme stoppen"
     },
     {
       "name": "perm_reason",

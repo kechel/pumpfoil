@@ -320,6 +320,9 @@ export interface KonfigDaten {
   colorByValue?: boolean;
   hrZones?: number[];
   speedZones?: number[];
+  stopMode?: string;
+  autoStart?: boolean;
+  waterLock?: string;
 }
 
 function gueltigeZonen(z: number[] | undefined): number[] | null {
@@ -346,6 +349,10 @@ export class Konfig {
   colorByValue: boolean = false;
   hrZones: number[] = [95, 114, 133, 152, 171, 190];
   speedZones: number[] = [8, 12, 16, 20, 24, 28];
+  // Ablauf wie die anderen Uhren (Server devices.py), wie lauf.js
+  stopMode: string = 'hold';
+  autoStart: boolean = false;
+  waterLock: string = 'auto';
 
   constructor(k: KonfigDaten | null) {
     if (k === null || k === undefined) {
@@ -380,6 +387,9 @@ export class Konfig {
     if (g !== null) {
       this.speedZones = g;
     }
+    this.stopMode = k.stopMode === 'press' ? 'press' : 'hold';
+    this.autoStart = k.autoStart === true;   // fehlt -> aus (wie Zepp/Wear/Apple)
+    this.waterLock = k.waterLock === 'on' || k.waterLock === 'off' ? k.waterLock : 'auto';
   }
 }
 
