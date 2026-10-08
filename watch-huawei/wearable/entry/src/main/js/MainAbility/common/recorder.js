@@ -219,7 +219,7 @@ R.stopp = function () {
   var aktiv = R.achse.jetzt(jetzt);
   var kmh = aktiv > 0 ? R.anzeige.strecke / (aktiv / 1000) * 3.6 : 0;
   R.letzte = { ms: aktiv, laeufe: R.stand.runCount,
-    text: (R.anzeige.strecke / 1000).toFixed(2) + " km · " + kmh.toFixed(1) + " km/h" };
+    km: (R.anzeige.strecke / 1000).toFixed(2) + " km", kmh: kmh.toFixed(1) + " km/h" };
   R.modus = "bereit";
   log("Stopp, Bloecke " + R.sammler.index);
   bildschirmAn(false);
@@ -264,7 +264,7 @@ R.infoZeile = function (z, tx) {
   if (z.modus === "laeuft" && !z.gpsOk) return tx.gpsWait;
   if (z.modus !== "bereit" && z.ohneAccel) return tx.noAccel;   // Zustand, kein Fehler (s. accelAn)
   if (z.modus === "bereit" && R.verworfen && Date.now() - R.verworfen < 10000) return tx.discarded;
-  var handy = tx.openPhone + " (" + z.sendeCode + ")";
+  var handy = tx.openPhone;   // ohne Fehlercode (Jan, 08.10.2026) — der steht im Log
   // nur die Zahl, ohne „Zum Handy:" (Jan, 08.10.2026: „0/35 passt") — Platz fuer den Handy-Hinweis
   if (z.offen > 0) return z.plan.fertig + "/" + z.plan.gesamt + (z.sendeFehler > 0 ? " · " + handy : "");
   // Nichts offen, aber das Handy antwortet nicht (Hallo scheitert): sagen statt „Alles uebertragen" —
