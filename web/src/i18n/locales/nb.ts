@@ -1255,7 +1255,7 @@ const nb: Record<string, string> = {
   "watches.nApple": "Rå akselerasjon via Core Motion.",
   "watches.nWear": "Kjører på alle klokker med Wear OS 3+ — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensortilgang avhenger av modellen.",
-  "watches.nHuawei": "Beta under arbeid: opptak på klokken, overføring via Pumpfoil-appen – kun Android-telefoner. Hvilken klokke som leverer hvilke data, må fortsatt testes.",
+  "watches.nHuawei": "Beta under arbeid: opptak på klokken, overføring via Pumpfoil-appen på Android-telefon – Watch 5 laster også opp selv etter kobling med kode, så den fungerer også med iPhone. Hvilken klokke som leverer hvilke data, må fortsatt testes.",
   "watches.nPolar": "Koble til kontoen din → importer treningsøkter (GPS + puls). API-eksporten inneholder ikke den høyfrekvente strømmen av rå akselerasjon som trengs for pumpegjenkjenning (bare via en egen BLE-sensor).",
   "watches.nSuunto": "Koble til kontoen din → importer treningsøkter (GPS + puls). FIT-eksporten inneholder (ennå) ikke den høyfrekvente strømmen av rå akselerasjon som trengs for pumpegjenkjenning.",
   "linked.xiaomi.title": "Xiaomi- og Redmi-klokker",

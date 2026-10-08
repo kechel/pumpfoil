@@ -1287,7 +1287,7 @@ const fi: Record<string, string> = {
   "watches.nApple": "Raakakiihtyvyys Core Motionin kautta.",
   "watches.nWear": "Toimii kaikissa Wear OS 3+ -kelloissa — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensoripääsy mallista riippuen.",
-  "watches.nHuawei": "Beta työn alla: tallennus kellossa, siirto Pumpfoil-sovelluksella – vain Android-puhelimet. Mikä kello antaa mitäkin tietoja, on vielä testattava.",
+  "watches.nHuawei": "Beta työn alla: tallennus kellossa, siirto Pumpfoil-sovelluksella Android-puhelimessa – Watch 5 lataa koodilla yhdistämisen jälkeen myös itse, joten se toimii myös iPhonen kanssa. Mikä kello antaa mitäkin tietoja, on vielä testattava.",
   "watches.nPolar": "Linkitä tili → tuo harjoitukset (GPS + HR). Pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa API-vienti ei toimita (vain erillisen BLE-sensorin kautta).",
   "watches.nSuunto": "Linkitä tili → tuo harjoitukset (GPS + HR). FIT-vienti ei (vielä) sisällä pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa.",
   "linked.xiaomi.title": "Xiaomi- ja Redmi-kellot",

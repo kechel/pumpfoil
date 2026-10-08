@@ -877,7 +877,7 @@ const gsw: Record<string, string> = {
   "watches.nApple": "Roh-Beschlünigung über Core Motion.",
   "watches.nWear": "Lauft uf jeder Wear-OS-3+-Uhr — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensor-Zuegriff je nach Modäll.",
-  "watches.nHuawei": "Beta in Arbet: Ufnahm uf de Uhr, Übertragig über d Pumpfoil-App – nur mit Android-Handy. Weli Uhr weli Date liferet, mues no testet wärde.",
+  "watches.nHuawei": "Beta in Arbet: Ufnahm uf de Uhr, Übertragig über d Pumpfoil-App mit Android-Handy – d Watch 5 ladt nach em Kopple per Code au sälber ufe, also au mit iPhone. Weli Uhr weli Date liferet, mues no testet wärde.",
   "watches.nPolar": "Konto verchnüpfe → Trainings importiere (GPS + HR). De hochfrequänt Accel-Stream für d Pump-Erkennig git de API-Export nöd (nur via separate BLE-Sensor).",
   "watches.nSuunto": "Konto verchnüpfe → Trainings importiere (GPS + HR). De hochfrequänt Accel-Stream für d Pump-Erkennig git de FIT-Export (nonig) nöd.",
   "linked.xiaomi.title": "Xiaomi- und Redmi-Uhre",
