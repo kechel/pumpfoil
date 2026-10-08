@@ -65,7 +65,7 @@ export function TechnikTabelle({ paar, laeufe }: { paar: TechnikPaar; laeufe?: n
  * Zeilen IN den Zellen (Jan, 08.10.2026: „ohne zusaetzliche spalten"), korrigiert vorn,
  * unkorrigiert in Klammern.
  */
-export function LaufLegende({ n, ganzerLauf = true }: { n: number; ganzerLauf?: boolean }) {
+export function LaufLegende({ n, ganzerLauf = true, mitteText = "tech.lMiddle" }: { n: number; ganzerLauf?: boolean; mitteText?: string }) {
   // Kategorien statt Spalte × Kategorie (Jan, 08.10.2026): „per pump", „wobble" usw. bedeuten in
   // jeder Spalte dasselbe — einmal erklaeren, die Spalten selbst in einer Zeile.
   const t = useT();
@@ -84,7 +84,7 @@ export function LaufLegende({ n, ganzerLauf = true }: { n: number; ganzerLauf?: 
           <div key={k}><dt className="inline font-semibold text-slate-300">{k}:</dt> <dd className="inline">{v}</dd></div>
         ))}
       </dl>
-      <p>{t(ganzerLauf ? "tech.gMiddle" : "tech.lMiddle", { n: String(n) })}</p>
+      <p>{t(ganzerLauf ? "tech.gMiddle" : mitteText, { n: String(n) })}</p>
       <p>{t("tech.lBrackets")}. {t("tech.lCorrection")}</p>
       {/* Hub = Bewegung AM HANDY (Jan, 08.10.2026): je nach Lage am Brett kommt das Nicken als Hebel
           dazu. Der Drehpunkt ist NICHT der Mast (Jan: „vorsicht") und nicht bekannt; einen Abstand
@@ -166,8 +166,9 @@ export function KurveGeradeZeile({ kg, wert }: { kg?: KurveGerade | null; wert: 
  * Zahlen untereinander in der Zelle, eine Legende darunter. Ersetzt die getrennten Technik- und
  * Kurve/Gerade-Tabellen samt der alten Tabelle je Lauflaenge.
  */
-export function TechnikUebersicht({ zeilen }: {
+export function TechnikUebersicht({ zeilen, titel, mitteText }: {
   zeilen: { label: string; technik?: TechnikPaar | null; kg?: KurveGerade | null }[];
+  titel?: string; mitteText?: string;
 }) {
   const t = useT();
   const pump = usePumpFmt();
@@ -175,6 +176,8 @@ export function TechnikUebersicht({ zeilen }: {
   if (!mitDaten.length) return null;
   const n = (z: { technik?: TechnikPaar | null }) => z.technik?.mit?.laeufe ?? z.technik?.ohne?.laeufe ?? 0;
   return (
+    <div className="mt-3">
+    {titel && <div className="mb-1 text-sm font-semibold text-slate-200">{titel}</div>}
     <div className="overflow-x-auto rounded-xl border border-slate-800">
       <table className="w-full min-w-[560px] text-sm">
         <thead>
@@ -218,7 +221,8 @@ export function TechnikUebersicht({ zeilen }: {
           })}
         </tbody>
       </table>
-      <LaufLegende n={n(mitDaten[0])} ganzerLauf={false} />
+      <LaufLegende n={n(mitDaten[0])} ganzerLauf={false} mitteText={mitteText} />
+    </div>
     </div>
   );
 }
