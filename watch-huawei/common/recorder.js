@@ -20,7 +20,7 @@ import file from "@system.file";
 import brightness from "@system.brightness";
 import device from "@system.device";
 import K from "./kern.js";
-import S from "./seiten.js";
+import S from "./lauf.js";   // nur Stand + Konfig — das Zeichnen gehoert ins Seiten-Buendel
 import C from "./konfig.js";
 import { P2pClient, Message, Builder } from "../wearengine/wearengine.js";
 
@@ -340,7 +340,10 @@ R.init = function () {
   log("init " + C.APP_VERSION);
   device.getInfo({
     success: function (i) {
-      R.modell = ("HUAWEI " + (i.model || i.product || "")).replace(/\s+$/, "") + " · HarmonyOS";
+      // Kein Regex (s. kern.ascii): Leerzeichen am Ende von Hand abschneiden.
+      var m = "HUAWEI " + (i.model || i.product || "");
+      while (m.charAt(m.length - 1) === " ") m = m.substring(0, m.length - 1);
+      R.modell = m + " · HarmonyOS";
     }
   });
   file.readText({

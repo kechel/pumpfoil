@@ -307,10 +307,16 @@ function dateiVon(d) {
  * Laenge in Zeichen gleich der in Bytes ist.
  */
 var TEIL_MAX = 800;
+// OHNE Regex: die JerryScript-Engine der Lite-Uhren kennt keine Regex-Literale — ein einziges `/…/`
+// ist dort ein Syntaxfehler, der Snapshot der Seite scheitert und die Uhr bleibt schwarz (gefunden am
+// 08.10.2026 im Simulator). build-all.sh prueft jede gebaute Seite mit jerry-snapshot.
 function ascii(s) {
-  return s.replace(/[\u0080-\uffff]/g, function (c) {
-    return "\\u" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4);
-  });
+  var aus = "";
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i);
+    aus += c < 128 ? s.charAt(i) : "\\u" + ("0000" + c.toString(16)).slice(-4);
+  }
+  return aus;
 }
 function teile(name, text, rest, max) {
   var t = ascii(text), m = max || TEIL_MAX, z = Math.max(1, rest || 1);

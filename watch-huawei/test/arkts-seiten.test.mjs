@@ -7,7 +7,9 @@ import { existsSync, mkdtempSync, copyFileSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import J from "../common/seiten.js";
+import J0 from "../common/seiten.js";
+import JL from "../common/lauf.js";
+const J = { ...J0, ...JL };   // Stand/Konfig liegen seit 08.10. in lauf.js
 
 const hier = dirname(fileURLToPath(import.meta.url));
 const TSC = join(hier, "../../web/node_modules/.bin/tsc");
