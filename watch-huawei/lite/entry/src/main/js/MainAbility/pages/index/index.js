@@ -21,7 +21,6 @@ var FELDTEXTE = ["kmh3s", "kmhAvg", "kmhMax", "bpmAvg", "bpmMax", "time", "dist"
   "allRunsDist", "allRunsTime", "paused"];
 
 var HALTEN_MS = 2000;
-var TEXT_LINIEN = true;   // VORLAEUFIG: Hilfslinien fuer die Textlage, danach false/entfernen
 
 /** Recorder aus dem app.js-Buendel holen — mit Log, was wirklich ankommt (getApp ist erst ab API 10 da). */
 function holeRecorder(vm) {
@@ -175,9 +174,9 @@ export default {
           c.textAlign = b.a === "l" ? "left" : (b.a === "r" ? "right" : "center");
           // Lite setzt den Text mit der OBERKANTE auf y (Simulator 08.10.2026: alles ~0,85 × Groesse zu
           // tief, Jans Screenshot), Watch 3/4 (volle Canvas) mit der Grundlinie. b.y ist die Mitte.
-          c.fillText(b.txt, b.x, this.lite ? b.y - Math.round(px / 2) : b.y + Math.round(px * 0.35));
-          // VORLAEUFIG (Fehlersuche Textlage, 08.10.2026): rote Linie dort, wo die Textmitte sitzen soll.
-          if (TEXT_LINIEN) { c.fillStyle = "#ff0000"; c.fillRect(b.x - 70, b.y, 140, 1); }
+          // Im Simulator mit Hilfslinien nachgemessen: Ziffern lagen bei -0,5 × Groesse noch ~0,1 × Groesse
+          // unter der Soll-Mitte (Platz fuer Unterlaengen im Textfeld) — daher -0,6.
+          c.fillText(b.txt, b.x, this.lite ? b.y - Math.round(px * 0.6) : b.y + Math.round(px * 0.35));
         } else if (b.k === "l") {
           c.strokeStyle = b.c; c.lineWidth = b.w; c.beginPath(); c.moveTo(b.x1, b.y1); c.lineTo(b.x2, b.y2); c.stroke();
         } else if (b.k === "a") {
