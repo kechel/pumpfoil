@@ -369,6 +369,12 @@ export class Recorder {
 
   private gpsRueckruf = (g: geoLocationManager.Location): void => {
     const jetzt: number = Date.now();
+    if (g.latitude === 0 && g.longitude === 0) {
+      // „Null Island": Platzhalter ohne echte Position (Emulator 08.10.2026: erster Fix 0,0 acc 6.5).
+      // Nie aufzeichnen — sonst Sprung um Tausende km in Strecke und Spur.
+      console.info('Pumpfoil GPS Fix 0,0 verworfen');
+      return;
+    }
     let t: number = this.achse.auf(g.timeStamp, jetzt);
     if (t < 0) {
       t = this.achse.jetzt(jetzt);
@@ -639,6 +645,9 @@ export class Recorder {
   }
 
   private leerGps = (g: geoLocationManager.Location): void => {
+    if (g.latitude === 0 && g.longitude === 0) {
+      return;   // Platzhalter 0,0 (s. gpsRueckruf): wuerde als Riesensprung den Auto-Start ausloesen
+    }
     if (this.auto !== null && this.auto.fix(g.latitude, g.longitude, g.timeStamp > 0 ? g.timeStamp : Date.now())) {
       this.autoLos = true;
     }
