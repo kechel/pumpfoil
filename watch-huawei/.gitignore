@@ -4,7 +4,7 @@
 # im Repo, damit die richtige Fassung pruefbar ist.
 **/wearengine/wearengine.js
 
-# Build-Ausgaben (hvigor / Command Line Tools)
+# Build-Ausgaben (hvigor / Command Line Tools, DevEco-Cache)
 **/.hvigor/
 **/build/
 **/oh_modules/
@@ -13,3 +13,4 @@ local.properties
 
 # Simulator-Attrappe (./sim.sh an) — nur lokal
 **/wearengine/sim.js
+**/.cache/
