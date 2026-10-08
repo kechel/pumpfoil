@@ -108,7 +108,7 @@ struct Index {
       info = this.t($r('app.string.gpsWait'));
     } else if (z.offen > 0) {
       // „Zum Handy: 34/120" — Dateien (je ~5 s Aufnahme), dieselbe Zahl wie im Handy-Balken.
-      info = this.t($r('app.string.toPhone')) + ' ' + z.plan.fertig + '/' + z.plan.gesamt;
+      info = z.plan.fertig + '/' + z.plan.gesamt;   // ohne „Zum Handy:" (wie Lite, Jan 08.10.2026)
       if (z.sendeFehler > 0) {
         info += ' · ' + this.t($r('app.string.openPhone')) + ' (' + z.sendeCode + ')';
       }
