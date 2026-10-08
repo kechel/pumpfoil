@@ -66,25 +66,26 @@ export function TechnikTabelle({ paar, laeufe }: { paar: TechnikPaar; laeufe?: n
  * unkorrigiert in Klammern.
  */
 export function LaufLegende({ n, ganzerLauf = true }: { n: number; ganzerLauf?: boolean }) {
+  // Kategorien statt Spalte × Kategorie (Jan, 08.10.2026): „per pump", „wobble" usw. bedeuten in
+  // jeder Spalte dasselbe — einmal erklaeren, die Spalten selbst in einer Zeile.
   const t = useT();
   const zeilen: [string, string][] = [
-    [`${t("board.pitch")} · ${t("tech.sPump")}`, t("tech.lPumpPitch")],
-    ...(ganzerLauf ? [[`${t("board.pitch")} · ${t("tech.sWhole")}`, t("tech.lWhole")] as [string, string]] : []),
-    [`${t("board.roll")} · ${t("tech.sPump")}`, t("tech.lPumpRoll")],
-    [`${t("board.roll")} · ${t("tech.sWobble")}`, t("tech.lWobble")],
-    [`${t("board.roll")} · ${t("tech.sCurve")}`, t("tech.lCurve")],
-    [t("tech.heave"), t("tech.lHeave")],
-    [`${t("tech.sTurn")} · ${t("tech.sStraight")}`, t("tech.lTurnStraight")],
+    [t("tech.sPump"), t("tech.gPump")],
+    [t("tech.sWobble"), t("tech.gWobble")],
+    [t("tech.sCurve"), t("tech.gLean")],
+    [`${t("tech.sTurn")} · ${t("tech.sStraight")}`, t("tech.gTurnStraight")],
+    ...(ganzerLauf ? [[t("tech.sWhole"), t("tech.gWhole")] as [string, string]] : []),
   ];
   return (
     <div className="space-y-1 px-3 pb-3 pt-2 text-sm text-slate-400">
+      <p>{t("tech.gColumns")}</p>
       <dl className="space-y-0.5">
         {zeilen.map(([k, v]) => (
           <div key={k}><dt className="inline font-semibold text-slate-300">{k}:</dt> <dd className="inline">{v}</dd></div>
         ))}
       </dl>
+      <p>{t(ganzerLauf ? "tech.gMiddle" : "tech.lMiddle", { n: String(n) })}</p>
       <p>{t("tech.lBrackets")}. {t("tech.lCorrection")}</p>
-      <p>{t("tech.lMiddle", { n: String(n) })}</p>
     </div>
   );
 }
