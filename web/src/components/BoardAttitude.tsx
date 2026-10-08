@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, BoardAttitude as Lage } from "../lib/api";
 import { Spinner } from "./ui";
 import { useT } from "../i18n";
@@ -262,7 +262,13 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // Standard: alles in EINEM Bild (Jan, 21.09.) — der Vergleich der Kurven ist der Zweck.
   const [zusammen, setZusammen] = useState(true);
 
+  // HOEHE HALTEN beim Laufwechsel (Jan, 08.10.2026: „springt die anzeige … platzhalter mit der gleichen
+  // groesse"): vor dem Neuladen die aktuelle Hoehe der Ansicht messen (fenster-/geraeteabhaengig) und den
+  // Ladekringel in einem Platzhalter genau dieser Hoehe zeigen — darunter verschiebt sich dann nichts.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [platzHoehe, setPlatzHoehe] = useState<number | null>(null);
   useEffect(() => {
+    if (boxRef.current) setPlatzHoehe(boxRef.current.offsetHeight);
     setLaden(true);
     api.boardAttitude(sessionId, { run, vonMs, bisMs, yawWindowS: fenster, hz: 20, padS: randS, token })
       .then(setD).catch(() => setD(null)).finally(() => setLaden(false));
@@ -335,10 +341,16 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     ...(hubReihe ? [{ name: t("board.height"), werte: hubReihe, farbe: "#34d399", einheit: " cm" }] : []),
   ], [d, hubReihe, t]);
 
-  if (laden) return <div className="py-8"><Spinner /></div>;
+  if (laden) {
+    return (
+      <div className="flex items-center justify-center py-8" style={platzHoehe ? { minHeight: platzHoehe } : undefined}>
+        <Spinner />
+      </div>
+    );
+  }
   if (!d || !d.ok) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-300">
+      <div ref={boxRef} className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-300">
         {d?.grund ? `${t("board.noData")} (${d.grund})` : t("board.noData")}
       </div>
     );
@@ -382,7 +394,7 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const nullText = NULLTEXT[d.nullpunkt ?? ""] ?? "board.zeroMean";
 
   return (
-    <div className="space-y-3">
+    <div ref={boxRef} className="space-y-3">
       {/* Vorn/hinten nicht aus den Daten bestimmbar (keine eindeutige Anfahrt): dann ist das
           Vorzeichen von Nicken und Rollen NICHT bekannt — sagen statt still ein Bild zeigen, das
           genauso gut spiegelverkehrt sein kann (Jan, 27.09.2026: „keinerlei annahmen"). */}
