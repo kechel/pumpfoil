@@ -17,6 +17,38 @@
       "value": "STOPP"
     },
     {
+      "name": "auto",
+      "value": "Auto"
+    },
+    {
+      "name": "off",
+      "value": "Aus"
+    },
+    {
+      "name": "on",
+      "value": "An"
+    },
+    {
+      "name": "layoutsShort",
+      "value": "Layouts"
+    },
+    {
+      "name": "manual",
+      "value": "Manuell"
+    },
+    {
+      "name": "autoFoil",
+      "value": "Auto (Foil)"
+    },
+    {
+      "name": "thresholds",
+      "value": "Schwellen"
+    },
+    {
+      "name": "alarm",
+      "value": "Alarm"
+    },
+    {
       "name": "noAccel",
       "value": "ohne Beschleunigung"
     },

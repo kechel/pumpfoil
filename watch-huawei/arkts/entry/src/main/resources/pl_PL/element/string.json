@@ -17,6 +17,38 @@
       "value": "STOP"
     },
     {
+      "name": "auto",
+      "value": "Auto"
+    },
+    {
+      "name": "off",
+      "value": "Wył."
+    },
+    {
+      "name": "on",
+      "value": "Wł."
+    },
+    {
+      "name": "layoutsShort",
+      "value": "Układy"
+    },
+    {
+      "name": "manual",
+      "value": "Ręcznie"
+    },
+    {
+      "name": "autoFoil",
+      "value": "Auto (foil)"
+    },
+    {
+      "name": "thresholds",
+      "value": "Progi"
+    },
+    {
+      "name": "alarm",
+      "value": "Alarm"
+    },
+    {
       "name": "noAccel",
       "value": "bez danych przyspieszenia"
     },

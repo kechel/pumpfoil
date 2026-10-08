@@ -21,7 +21,7 @@ import { wearEngine } from '@kit.WearEngine';
 import { util } from '@kit.ArkTS';
 import * as K from './Kern';
 import { GEGENSTELLEN, APP_VERSION } from './Konfig';
-import { Stand, Konfig, KonfigDaten } from './Seiten';
+import { Stand, Konfig, KonfigDaten, Auswahl, AuswahlDaten, Alarm } from './Seiten';
 
 /** Seiten-Konfiguration halbstuendlich neu anfragen (Antwort des Handys auf das Hallo). */
 const HALLO_ALLE_MS: number = 30 * 60 * 1000;
@@ -63,6 +63,7 @@ interface Meta {
   accel_scale: number;
   device_model: string;
   app_version: string;
+  foil_id?: number;   // gewaehltes Foil (wie Zepp), nur wenn gewaehlt
 }
 
 interface Ende {
@@ -166,7 +167,9 @@ export class Recorder {
   private auto: K.AutoStart | null = null;
   private autoLos: boolean = false;
   private leerGpsAn: boolean = false;
-  private ohneAccel: boolean = false;   // Sensorliste ohne ACCELEROMETER -> messweg.accel „keine"
+  private ohneAccel: boolean = false;
+  auswahl: Auswahl = new Auswahl(null);   // Wahl auf der Uhr (Einstellungen), gespeichert in auswahl.json
+  private alarm: Alarm = new Alarm();   // Sensorliste ohne ACCELEROMETER -> messweg.accel „keine"
 
   // --- Dateien --------------------------------------------------------------------------
 
@@ -421,6 +424,10 @@ export class Recorder {
       gps_hz: 1, accel_hz: 50, accel_scale: K.ACCEL_SCALE,
       device_model: this.modell, app_version: APP_VERSION
     };
+    if (this.auswahl.foilId !== null) {
+      meta.foil_id = this.auswahl.foilId;
+    }
+    this.alarm = new Alarm();
     this.schreibe(K.dateiMeta(this.id), JSON.stringify(meta));
     this.planSichern();
     this.modus = 'laeuft';
@@ -718,7 +725,7 @@ export class Recorder {
     const ganz: string = this.kTeile.join('');
     this.kTeile = null;
     try {
-      this.konfig = new Konfig(JSON.parse(ganz) as KonfigDaten);
+      this.konfigAnwenden(new Konfig(JSON.parse(ganz) as KonfigDaten));
       this.schreibe('konfig.json', ganz);
     } catch (e) {
       this.fehler('speicher', 'Konfig kaputt');
@@ -757,10 +764,18 @@ export class Recorder {
         // Standard
       }
     }
+    const at: string | null = this.lies('auswahl.json');
+    if (at !== null) {
+      try {
+        this.auswahl = new Auswahl(JSON.parse(at) as AuswahlDaten);
+      } catch (e) {
+        // neu
+      }
+    }
     const kt: string | null = this.lies('konfig.json');
     if (kt !== null) {
       try {
-        this.konfig = new Konfig(JSON.parse(kt) as KonfigDaten);
+        this.konfigAnwenden(new Konfig(JSON.parse(kt) as KonfigDaten));
       } catch (e) {
         // Standardseiten
       }
@@ -805,8 +820,56 @@ export class Recorder {
     const jetzt: number = Date.now();
     const f: number[] | null = this.fixNeu;
     this.fixNeu = null;
-    return this.stand.tick(this.achse.jetzt(jetzt), jetzt, f !== null, f !== null ? f[0] : 0,
+    const el: number = this.achse.jetzt(jetzt);
+    const wechsel: boolean = this.stand.tick(el, jetzt, f !== null, f !== null ? f[0] : 0,
       f !== null ? f[1] : 0, f !== null ? f[2] : -1, this.sammler.hr);
+    const muster: string[] = this.alarm.pruefe(this.konfig, this.auswahl, this.stand.sp3 * 3.6, this.sammler.hr,
+      this.stand, el / 1000, jetzt);
+    for (let i = 0; i < muster.length; i++) {
+      this.vibrieren(muster[i], i * 1500);
+    }
+    return wechsel;
+  }
+
+  /** Muster-ID -> Stoesse in ms (wie Wear vibratePattern): short1 · short2 · long2 · lsl. */
+  private vibrieren(muster: string, nach: number): void {
+    const folge: number[] = muster === 'short1' ? [150] : muster === 'long2' ? [500, 500]
+      : muster === 'lsl' ? [500, 150, 500] : [150, 150];
+    let t: number = nach;
+    for (let i = 0; i < folge.length; i++) {
+      const d: number = folge[i];
+      setTimeout(() => {
+        try {
+          vibrator.startVibration({ type: 'time', duration: d }, { id: 0, usage: 'alarm' });
+        } catch (e) {
+          // ohne Vibration geht es auch
+        }
+      }, t);
+      t += d + 250;
+    }
+  }
+
+  /** Neue Konfiguration: Auswahl vorbelegen, Layouts-Wahl darueberlegen, Auswahl sichern (wie recorder.js). */
+  private konfigAnwenden(k: Konfig): void {
+    this.konfig = k;
+    k.layoutsServer = k.layoutsOn;
+    this.auswahl.vorbelegen(k);
+    this.auswahlAnwenden();
+  }
+
+  /** Nach einer Aenderung auf der Einstellungsseite: Layouts-Wahl wirken lassen und speichern. */
+  auswahlAnwenden(): void {
+    const k: Konfig = this.konfig;
+    if (k.layoutsServer === undefined) {
+      k.layoutsServer = k.layoutsOn;
+    }
+    k.layoutsOn = this.auswahl.layouts === null ? (k.layoutsServer === true) : this.auswahl.layouts;
+    this.schreibe('auswahl.json', JSON.stringify(this.auswahl.daten()));
+  }
+
+  /** Touch-Sperre: Wahl auf der Uhr, sonst Profil (waterLock „on"). */
+  sperreAn(): boolean {
+    return this.auswahl.sperre === null ? this.konfig.waterLock === 'on' : this.auswahl.sperre;
   }
 
   seitenDaten(): SeitenDaten {
