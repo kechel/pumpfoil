@@ -71,7 +71,7 @@ struct Index {
   private leinwandBereit: boolean = false;
   private einstellungen: RenderingContextSettings = new RenderingContextSettings(true);
   private leinwand: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.einstellungen);
-  private haltAktion: string = '';
+  @State haltAktion: string = '';
   private haltUhr: number = -1;
   private wegScharf: boolean = false;
   private wegUhr: number = -1;
@@ -445,6 +445,9 @@ struct Index {
     if (this.sperre()) {
       return;
     }
+    if (this.haltAktion === aktion) {
+      return;   // Touch und Geste melden denselben Druck: nicht von vorn anfangen
+    }
     clearInterval(this.haltUhr);
     this.haltAktion = aktion;
     this.haltVoll = 0;
@@ -497,14 +500,29 @@ struct Index {
   knopf(text: string, farbe: string, aktion: string) {
     if (this.halten) {
       Stack({ alignContent: Alignment.Start }) {
+        // Zwei Wege zum selben Halten: onTouch (Finger) und eine LongPress-Geste mit 50 ms Anlauf.
+        // Im Emulator kam mit der Maus kein onTouch an (Knopf blieb unveraendert, 08.10.2026); die
+        // Geste laeuft ueber die Gestenerkennung und meldet Loslassen per onActionEnd/-Cancel.
         Button(text).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(farbe)
           .onTouch((e: TouchEvent) => {
             if (e.type === TouchType.Down) {
+              console.info('Pumpfoil touch down ' + aktion);
               this.halteStart(aktion === 'pause' ? this.pauseAktion() : aktion);
             } else if (e.type === TouchType.Up || e.type === TouchType.Cancel) {
               this.loslassen();
             }
           })
+          .gesture(LongPressGesture({ duration: 50 })
+            .onAction(() => {
+              console.info('Pumpfoil geste halten ' + aktion);
+              this.halteStart(aktion === 'pause' ? this.pauseAktion() : aktion);
+            })
+            .onActionEnd(() => {
+              this.loslassen();
+            })
+            .onActionCancel(() => {
+              this.loslassen();
+            }))
         // Immer da (Breite 0 ohne Halten), damit nichts erst beim Druck entstehen muss.
         Row()
           .width(this.haltAktion !== '' && (aktion === 'stopp') === (this.haltAktion === 'stopp') ? 200 * this.haltVoll : 0)
