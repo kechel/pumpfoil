@@ -444,26 +444,30 @@ struct Index {
     if (this.sperre()) {
       return;
     }
-    clearTimeout(this.haltUhr);
+    clearInterval(this.haltUhr);
     this.haltAktion = aktion;
-    this.zeigen();
-    // Fortschritt im Knopf (wie der Halte-Ring auf Wear/Garmin): fuellt sich in 2 s von links.
     this.haltVoll = 0;
-    animateTo({ duration: HALTEN_MS, curve: Curve.Linear }, () => {
-      this.haltVoll = 1;
-    });
-    this.haltUhr = setTimeout(() => {
-      this.haltAktion = '';
-      this.ausfuehren(aktion);
-    }, HALTEN_MS);
+    this.zeigen();
+    console.info('Pumpfoil halten ' + aktion);
+    // Fortschritt im Knopf (wie der Halte-Ring auf Wear/Garmin): ein Takt alle 50 ms fuellt den Balken,
+    // bei 100 % loest er aus. Bewusst kein animateTo: der Balken wird erst mit haltAktion gebaut, und
+    // ob eine Animation auf einem eben entstandenen Element laeuft, war im Emulator nicht zu sehen.
+    this.haltUhr = setInterval(() => {
+      this.haltVoll = Math.min(1, this.haltVoll + 50 / HALTEN_MS);
+      if (this.haltVoll >= 1) {
+        clearInterval(this.haltUhr);
+        this.haltAktion = '';
+        this.haltVoll = 0;
+        this.ausfuehren(aktion);
+      }
+    }, 50);
   }
 
   private loslassen(): void {
-    clearTimeout(this.haltUhr);
-    animateTo({ duration: 0 }, () => {
-      this.haltVoll = 0;
-    });
+    clearInterval(this.haltUhr);
+    this.haltVoll = 0;
     if (this.haltAktion !== '') {
+      console.info('Pumpfoil losgelassen');
       this.haltAktion = '';
       this.zeigen();
     }
@@ -500,10 +504,12 @@ struct Index {
               this.loslassen();
             }
           })
-        if (this.haltAktion !== '' && (aktion === 'stopp') === (this.haltAktion === 'stopp')) {
-          Row().width(200 * this.haltVoll).height(56).backgroundColor('#59ffffff')
-            .hitTestBehavior(HitTestMode.None)
-        }
+        // Immer da (Breite 0 ohne Halten), damit nichts erst beim Druck entstehen muss.
+        Row()
+          .width(this.haltAktion !== '' && (aktion === 'stopp') === (this.haltAktion === 'stopp') ? 200 * this.haltVoll : 0)
+          .height(56)
+          .backgroundColor('rgba(255,255,255,0.35)')
+          .hitTestBehavior(HitTestMode.None)
       }
       .width(200)
       .height(56)
