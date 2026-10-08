@@ -130,6 +130,7 @@ function gpsAn() {
   geolocation.subscribe({
     coordType: "wgs84",
     success: function (g) {
+      if (!g.latitude && !g.longitude) return;   // Platzhalter 0,0 nie aufzeichnen (ArkTS-Emulator 08.10.2026)
       var jetzt = Date.now();
       var t = R.achse.auf(g.time, jetzt);
       if (t < 0) t = R.achse.jetzt(jetzt);
@@ -249,7 +250,7 @@ R.leerlauf = function () {
     versuch("gps", "GPS Auto-Start", function () {
       geolocation.subscribe({
         coordType: "wgs84",
-        success: function (g) { if (R.auto && R.auto.fix(g.latitude, g.longitude, g.time || Date.now())) R.autoLos = true; },
+        success: function (g) { if ((g.latitude || g.longitude) && R.auto && R.auto.fix(g.latitude, g.longitude, g.time || Date.now())) R.autoLos = true; },
         fail: function (d, code) { fehler("gps", "GPS " + code); }
       });
     });
