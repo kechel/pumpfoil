@@ -131,8 +131,8 @@ function BoardAttitudeSection() {
       {/* Zweimal (Jan, 08.10.2026): Laeufe ab 30 s (Mittelteil) und Laeufe unter 30 s (ganzer Lauf),
           nie vermischt — er vermutet Unterschiede zwischen kurzen und langen Laeufen. */}
       <TechnikUebersicht titel={t("tech.hLong")} zeilen={[
-        { label: t("tech.allRuns"), technik: data.technik, kg: data.kurve_gerade, ganz: data.technik_ganz },
-        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik, kg: f.kurve_gerade, ganz: f.technik_ganz })) : []),
+        { label: t("tech.allRuns"), technik: data.technik, kg: data.kurve_gerade, kgOhne: data.kurve_gerade_ohne, ganz: data.technik_ganz },
+        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik, kg: f.kurve_gerade, kgOhne: f.kurve_gerade_ohne, ganz: f.technik_ganz })) : []),
       ]} />
       <TechnikUebersicht titel={t("tech.hShort")} mitteText="tech.lShort" zeilen={[
         { label: t("tech.allRuns"), technik: data.technik_kurz, nurGanz: true },

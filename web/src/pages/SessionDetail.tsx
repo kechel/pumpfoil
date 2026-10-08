@@ -1,4 +1,4 @@
-import { LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
+import { KorrekturUmschalter, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -2842,6 +2842,8 @@ function RunsTable({
   canEdit?: boolean;
   onSaved?: (s: SessionSummary) => void;
 }) {
+  // Lage je Lauf: korrigiert (Standard) oder unkorrigiert (Jan, 08.10.2026).
+  const [lageKorr, setLageKorr] = useState(true);
   const t = useT();
   const pf = usePumpFmt();
   const [busy, setBusy] = useState(false);
@@ -3112,9 +3114,10 @@ function RunsTable({
           Lage-Ansicht stehen. */}
       {laufKennz.some((k) => k.ok) && (
         <Card className="mt-4 overflow-x-auto">
-          <p className="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {t("sd.attitudePerRun")}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 px-3 pt-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("sd.attitudePerRun")}</p>
+            <span className="ml-auto"><KorrekturUmschalter korr={lageKorr} onChange={setLageKorr} /></span>
+          </div>
           <table className="w-full min-w-[520px] text-sm">
             <thead>
               <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
@@ -3126,7 +3129,7 @@ function RunsTable({
             <tbody>
               {laufKennz.filter((k) => k.ok).map((k) => (
                 // Je Lauf eine Zeile pro Phase (Jan, 08.10.2026); Nummer und Montage einmal je Lauf.
-                <LaufPhasenZeilen key={k.lauf} k={k}
+                <LaufPhasenZeilen key={k.lauf} k={k} korr={lageKorr}
                   onClick={() => onSelect(selected === k.lauf ? null : k.lauf)}
                   className={`cursor-pointer hover:bg-slate-800/50 ${selected === k.lauf ? "bg-brand-500/20" : ""}`}
                   vorne={(n) => <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{k.lauf + 1}</td>}

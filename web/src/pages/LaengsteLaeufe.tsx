@@ -7,7 +7,7 @@
 // (GET /api/sessions/longest-runs). Die Kurven je Lauf brauchen die volle Session (Puls je
 // Trackpunkt) und bei „Handy am Brett" die Lage-Kennzahlen je Lauf — beides holt die Seite je
 // betroffener Session nach. Bei fuenf Laeufen sind das hoechstens fuenf Abrufe.
-import { LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
+import { KorrekturUmschalter, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
@@ -60,6 +60,8 @@ export default function LaengsteLaeufe() {
   const [laeufe, setLaeufe] = useState<Lauf[] | null>(null);
   const [sessions, setSessions] = useState<Record<number, SessionSummary>>({});
   const [lage, setLage] = useState<Record<number, LageZeile[]>>({});
+  // Brett-Lage korrigiert (Standard) oder unkorrigiert (Jan, 08.10.2026).
+  const [lageKorr, setLageKorr] = useState(true);
   // Eigene Auswahl fuer den Lage-Abschnitt: die N laengsten Laeufe MIT Handy am Brett (Jan,
   // 02.10.2026: „bei Top 5 im Abschnitt fuer die Attitude die 5 laengsten mit phone on board") —
   // unabhaengig von der Gesamtliste, deren laengste Laeufe meist von der Uhr stammen.
@@ -313,8 +315,11 @@ export default function LaengsteLaeufe() {
           {/* 3. Lage je Lauf — nur Laeufe mit „Handy am Brett". */}
           {brettLaeufe && brettLaeufe.length > 0 && (
             <Card className="mt-6 overflow-x-auto">
-              <p className="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("sd.attitudePerRun")}</p>
-              <table className="w-full min-w-[620px] text-sm">
+              <div className="flex flex-wrap items-center gap-2 px-3 pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("sd.attitudePerRun")}</p>
+                <span className="ml-auto"><KorrekturUmschalter korr={lageKorr} onChange={setLageKorr} /></span>
+              </div>
+              <table className="w-full min-w-[860px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
                     {kopf("datum", t("longest.session"))}
@@ -345,7 +350,7 @@ export default function LaengsteLaeufe() {
                         <td colSpan={8} className="px-3 py-2 text-slate-500">{lage[l.session_id] ? "–" : "…"}</td>
                       </tr>
                     ) : (
-                      <LaufPhasenZeilen key={schl(l)} k={k} onClick={() => umschalten(schl(l))} className={zeile} vorne={kopfZellen} />
+                      <LaufPhasenZeilen key={schl(l)} k={k} korr={lageKorr} onClick={() => umschalten(schl(l))} className={zeile} vorne={kopfZellen} />
                     );
                   })}
                 </tbody>

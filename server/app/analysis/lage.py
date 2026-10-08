@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-10-08-phasen"
+LAGE_VERSION = "2026-10-08-wackeln-zugmitte"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -1332,8 +1332,12 @@ def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float,
         "zuege": len(zuege),
         "pump_nicken_deg": med(1),
         "pump_rollen_deg": med(2),
-        "wackeln_deg": halb(_fft_band(r, hz, *TECHNIK_WACKEL_HZ)),
-        "kurvenlage_deg": round(float(np.percentile(np.abs(_fft_band(r, hz, 0.0, TECHNIK_KURVE_HZ)), 95)), 1),
+        # Aus denselben Zugmitten wie Kurve/gerade (sonst lag der Gesamtwert ueber beiden Teilen);
+        # ohne genug Zuege aus dem durchgehenden Signal.
+        "wackeln_deg": (round(float((np.percentile([z[5] for z in zuege], 95) - np.percentile([z[5] for z in zuege], 5)) / 2.0), 1)
+                        if len(zuege) >= TECHNIK_MIN_ZUEGE else halb(_fft_band(r, hz, *TECHNIK_WACKEL_HZ))),
+        "kurvenlage_deg": (round(float(np.percentile([z[6] for z in zuege], 95)), 1) if len(zuege) >= TECHNIK_MIN_ZUEGE
+                           else round(float(np.percentile(np.abs(_fft_band(r, hz, 0.0, TECHNIK_KURVE_HZ)), 95)), 1)),
         "hub_cm": med(3),
         "takt_hz": med(0, 2),
     }
@@ -1349,7 +1353,10 @@ def _pumpzuege(erg: dict, m: np.ndarray) -> list[tuple]:
     hz = float(erg["hz"])
     tm = t[m] / 1000.0
     p = _fft_band(np.asarray(erg["pitch_deg"], dtype=float)[m], hz, *TECHNIK_PUMP_HZ)
-    r = _fft_band(np.asarray(erg["roll_deg"], dtype=float)[m], hz, *TECHNIK_PUMP_HZ)
+    r_roh = np.asarray(erg["roll_deg"], dtype=float)[m]
+    r = _fft_band(r_roh, hz, *TECHNIK_PUMP_HZ)
+    r_wackel = _fft_band(r_roh, hz, *TECHNIK_WACKEL_HZ)
+    r_kurve = _fft_band(r_roh, hz, 0.0, TECHNIK_KURVE_HZ)
     gier = np.asarray(erg["gier_delta_deg"], dtype=float)[m] / float(erg.get("yaw_fenster_s") or 1.0)
     hub = np.asarray(erg["hub_cm"], dtype=float)[m] if erg.get("hub_cm") is not None else None
     i = np.where((p[:-1] < 0) & (p[1:] >= 0))[0]
@@ -1362,9 +1369,13 @@ def _pumpzuege(erg: dict, m: np.ndarray) -> list[tuple]:
         if not (1.0 / TECHNIK_PUMP_HZ[1] <= T <= 1.0 / TECHNIK_PUMP_HZ[0]):
             continue
         a, b = i[k], i[k + 1] + 1
+        mitte = (a + b) // 2
         aus.append((1.0 / T, (p[a:b].max() - p[a:b].min()) / 2.0, (r[a:b].max() - r[a:b].min()) / 2.0,
                     float(hub[a:b].max() - hub[a:b].min()) if hub is not None else None,
-                    abs(float(gier[(a + b) // 2]))))
+                    abs(float(gier[mitte])),
+                    # Wackel- und Schraeglagen-Anteil des Rollens in der Zugmitte — damit lassen sich auch
+                    # diese beiden nach Kurve/gerade trennen (Jan, 08.10.2026).
+                    float(r_wackel[mitte]), abs(float(r_kurve[mitte]))))
     return aus
 
 
@@ -1390,7 +1401,7 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
         return None
     seiten: dict[str, list] = {"kurve": [], "gerade": []}
     for z in _pumpzuege(erg, m):
-        seiten["kurve" if z[4] > TECHNIK_KURVE_GIER_DEG_S else "gerade"].append((z[0], z[1], z[3], z[2]))
+        seiten["kurve" if z[4] > TECHNIK_KURVE_GIER_DEG_S else "gerade"].append((z[0], z[1], z[3], z[2], z[5], z[6]))
     aus: dict = {}
     for art, z in seiten.items():
         if len(z) < TECHNIK_MIN_ZUEGE:
@@ -1403,7 +1414,12 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
                     "hub_cm": round(float(np.median(h)), 1) if h else None,
                     # Rollen je Pumpzug in Kurve/gerade (Jan, 08.10.2026: „bei roll per pump sind straight
                     # und kurven zusammengemixt").
-                    "rollen_deg": round(float(np.median([x[3] for x in z])), 1)}
+                    "rollen_deg": round(float(np.median([x[3] for x in z])), 1),
+                    # Gleiche Statistik wie fuer die ganze Phase: Wackeln = halbe 5/95-%-Spanne,
+                    # Schraeglage = 95. Perzentil des Betrags — nur ueber die Zuege dieser Seite.
+                    "wackeln_deg": round(float((np.percentile([x[4] for x in z], 95)
+                                                - np.percentile([x[4] for x in z], 5)) / 2.0), 1),
+                    "kurvenlage_deg": round(float(np.percentile([x[5] for x in z], 95)), 1)}
     return aus if (aus.get("kurve") or aus.get("gerade")) else None
 
 
@@ -1419,7 +1435,9 @@ def _technik_lauf(erg_k: dict, erg: dict, a: float, b: float) -> dict:
            "mit": technik_kennzahlen(erg_k, a, b, rand, mins) if ok_k else None,
            "ohne": technik_kennzahlen(erg, a, b, rand, mins),
            "fliehkraft": erg_k.get("fliehkraft"),
-           "kurve_gerade": kurve_gerade(erg_k, a, b, rand, mins) if ok_k else None}
+           "kurve_gerade": kurve_gerade(erg_k, a, b, rand, mins) if ok_k else None,
+           # Auch unkorrigiert — die Tabellen sind zwischen korrigiert und unkorrigiert umschaltbar (Jan, 08.10.2026).
+           "kurve_gerade_ohne": kurve_gerade(erg, a, b, rand, mins)}
     # Phase „ganzer Lauf" fuer lange Laeufe (Jan, 08.10.2026: Tabelle mit Spalte „Phase"): DIESELBE
     # Rechnung wie die stabile Phase, nur mit Anfang und Ende — jede Spalte bleibt eine Groesse, und
     # man sieht, was Start und Ende ausmachen. Bei kurzen Laeufen IST das Obige schon der ganze Lauf.
