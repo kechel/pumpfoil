@@ -52,27 +52,42 @@
     color: #fbbf24;
     text-align: center;
 }
-.knopf {
+/* Knoepfe je mit EINER Klasse (statt „knopf start"): ob Lite mehrere Klassen je Element
+   anwendet, ist ungeprueft — die Knoepfe waren im Simulator unsichtbar (08.10.2026). */
+.kstart {
     width: 300px;
     height: 80px;
     margin-top: 12px;
     border-radius: 40px;
     justify-content: center;
     align-items: center;
-}
-.halb {
-    width: 170px;
-}
-.start {
     background-color: #0e7490;
 }
-.pause {
+.kpause {
+    width: 300px;
+    height: 80px;
+    margin-top: 12px;
+    border-radius: 40px;
+    justify-content: center;
+    align-items: center;
     background-color: #334155;
 }
-.weiter {
+.kweiter {
+    width: 170px;
+    height: 80px;
+    margin-top: 12px;
+    border-radius: 40px;
+    justify-content: center;
+    align-items: center;
     background-color: #0e7490;
 }
-.stopp {
+.kstopp {
+    width: 170px;
+    height: 80px;
+    margin-top: 12px;
+    border-radius: 40px;
+    justify-content: center;
+    align-items: center;
     background-color: #b91c1c;
 }
 .knopftext {
