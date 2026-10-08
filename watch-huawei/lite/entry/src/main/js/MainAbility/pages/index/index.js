@@ -175,13 +175,16 @@ export default {
   },
   halten(aktion, text) {
     var that = this;
+    console.info("Pumpfoil halten " + aktion);
     clearTimeout(this.haltUhr);
     this.haltText = text;
     this.zeigen();
     this.haltUhr = setTimeout(function () {
       that.haltText = "";
-      vibrator.vibrate({ mode: "short" });
-      R[aktion]();
+      // Rumpeln darf die Aktion nie verhindern (im Simulator/auf manchen Uhren evtl. ohne Vibrator).
+      try { vibrator.vibrate({ mode: "short" }); } catch (e) { console.error("Pumpfoil vibrate: " + e); }
+      console.info("Pumpfoil Aktion " + aktion);
+      try { R[aktion](); } catch (e) { console.error("Pumpfoil " + aktion + ": " + e); that.startFehler = aktion + ": " + e; }
       that.zeigen();
     }, HALTEN_MS);
   },
@@ -190,6 +193,7 @@ export default {
   weiterHalten() { this.halten("weiter", this.$t("strings.holdResume")); },
   stoppHalten() { this.halten("stopp", this.$t("strings.holdStop")); },
   loslassen() {
+    if (this.haltText) console.info("Pumpfoil losgelassen");
     clearTimeout(this.haltUhr);
     this.haltText = "";
     this.zeigen();
