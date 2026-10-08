@@ -333,13 +333,11 @@ struct Index {
     const a: Auswahl = r.auswahl;
     const k: Konfig = r.konfigJetzt();
     const f: Foil | null = a.foil(k);
-    this.zAlarm = this.t($r('app.string.alarm')) + ': ' + this.anAus(a.alarm);
-    this.zQuelle = this.t($r('app.string.thresholds')) + ': ' +
-      (a.quelle === 'foil' ? this.t($r('app.string.autoFoil')) : this.t($r('app.string.manual')));
-    this.zFoil = 'Foil: ' + (f !== null ? f.label : '–');
-    this.zLayouts = this.t($r('app.string.layoutsShort')) + ': ' +
-      this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer === true : k.layoutsOn);
-    this.zSperre = this.t($r('app.string.lock')) + ': ' + this.stufe(a.sperre, k.waterLock === 'on');
+    this.zAlarm = this.anAus(a.alarm);
+    this.zQuelle = a.quelle === 'foil' ? this.t($r('app.string.autoFoil')) : this.t($r('app.string.manual'));
+    this.zFoil = f !== null ? f.label : '–';
+    this.zLayouts = this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer === true : k.layoutsOn);
+    this.zSperre = this.stufe(a.sperre, k.waterLock === 'on');
   }
 
   private aendern(was: string): void {
@@ -360,11 +358,42 @@ struct Index {
     this.auswahlTexte();
   }
 
+  // Wie lite pages/auswahl: Begriff grau oben, Wert weiss darunter (lange Foil-Namen zweizeilig).
   @Builder
-  zeile(text: string, was: string) {
-    Button(text).width(240).height(46).fontSize(18).fontColor('#ffffff').backgroundColor('#1e293b')
-      .margin({ top: 6 })
-      .onClick(() => this.aendern(was))
+  zeile(begriff: ResourceStr, wert: string, was: string) {
+    Column() {
+      Text(begriff).fontSize(15).fontColor('#94a3b8').textAlign(TextAlign.Center)
+      Text(wert).fontSize(20).fontColor('#ffffff').textAlign(TextAlign.Center).maxLines(2)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+    }
+    .width('78%')
+    .padding({ top: 6, bottom: 6, left: 8, right: 8 })
+    .margin({ top: 6 })
+    .borderRadius(14)
+    .backgroundColor('#1e293b')
+    .onClick(() => this.aendern(was))
+  }
+
+  // Eigene Scroll-Flaeche: sie nimmt das senkrechte Wischen selbst (das Blaettern der Stack-Geste
+  // greift hier nicht), zurueck geht es mit Rechts-Wischen (onBackPress) wie auf Lite.
+  @Builder
+  einstellungsListe() {
+    Scroll() {
+      Column() {
+        this.zeile($r('app.string.alarm'), this.zAlarm, 'alarm')
+        this.zeile($r('app.string.thresholds'), this.zQuelle, 'quelle')
+        this.zeile('Foil', this.zFoil, 'foil')
+        this.zeile($r('app.string.layoutsShort'), this.zLayouts, 'layouts')
+        this.zeile($r('app.string.lock'), this.zSperre, 'sperre')
+      }
+      .width('100%')
+      .padding({ top: 70, bottom: 90 })
+    }
+    .width('100%')
+    .height('100%')
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
+    .backgroundColor('#000000')
   }
 
   private starten(): void {
@@ -487,6 +516,8 @@ struct Index {
             this.leinwandBereit = true;
             this.seiten();
           })
+      } else if (this.ansicht === 'auswahl') {
+        this.einstellungsListe()
       } else {
         this.bedienung()
       }
@@ -523,12 +554,6 @@ struct Index {
           Progress({ value: this.balken, total: 100, type: ProgressType.Linear })
             .width(200).color(CYAN).margin({ top: 10 })
         }
-      } else if (this.ansicht === 'auswahl') {
-        this.zeile(this.zAlarm, 'alarm')
-        this.zeile(this.zQuelle, 'quelle')
-        this.zeile(this.zFoil, 'foil')
-        this.zeile(this.zLayouts, 'layouts')
-        this.zeile(this.zSperre, 'sperre')
       } else if (this.ansicht === 'fertig') {
         Text(this.fZeit).fontSize(30).fontColor('#ffffff')
         Text(this.fStrecke).fontSize(20).fontColor('#ffffff')
