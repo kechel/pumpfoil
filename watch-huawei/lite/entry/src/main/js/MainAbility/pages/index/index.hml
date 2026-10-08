@@ -16,6 +16,17 @@
         <text class="klein">{{ info }}</text>
     </div>
 
+    <!-- Nach dem Stopp: Zusammenfassung wie Zepp (Dauer, Strecke + Schnitt, Laeufe), Uebertragung, FERTIG -->
+    <div class="bfertig" if="{{ ansicht === 'fertig' }}">
+        <text class="zeit">{{ fZeit }}</text>
+        <text class="wertbreit">{{ fStrecke }}</text>
+        <text class="zeile">{{ fLaeufe }}</text>
+        <div class="kstart" onclick="fertig">
+            <text class="knopftext">{{ tFertig }}</text>
+        </div>
+        <text class="klein">{{ info }}</text>
+    </div>
+
     <!-- Aktion: Pause/Fortsetzen + Verwerfen. Halte-Knopf OHNE onclick: mit click am selben Element kam
          im Simulator kein touchstart an; longpress ist der Ersatz (s. index.js lang). -->
     <div class="baktion" if="{{ ansicht === 'aktion' }}">

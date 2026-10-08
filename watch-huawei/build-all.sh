@@ -37,8 +37,10 @@ for m in release debug; do
     H=$("$JB/jerry" --mem-stats --parse-only "$f" 2>&1 | sed -n 's/^  Peak allocated = \([0-9]*\) bytes/\1/p' | head -1)
     G=$(wc -c < "$f")
     echo "  lite $m $(basename "$f"): $G Byte (Grenze 49152), Heap-Spitze $H von 49144"
-    # Zweite Grenze, vom Simulator gemeldet („app.js is bigger than 48 KB"): die Datei selbst.
-    [ "$G" -le 46000 ] || { echo "FEHLER: $f ist $G Byte — ueber 48 KB laedt die Uhr die Datei nicht (Grenze hier 46000)"; rm -f "$BC"; exit 1; }
+    # Zweite Grenze, vom Simulator gemeldet („app.js is bigger than 48 KB" = 49152): die Datei selbst.
+    # Release (geht auf die Uhr) mit Luft bei 46000; Debug (nur Simulator, unminifiziert) bei 48500.
+    GR=46000; [ "$m" = debug ] && GR=48500
+    [ "$G" -le "$GR" ] || { echo "FEHLER: $f ($m) ist $G Byte — ueber 49152 laedt die Uhr die Datei nicht (Grenze hier $GR)"; rm -f "$BC"; exit 1; }
     [ "${H:-99999}" -le 44000 ] || { echo "FEHLER: $f braucht beim Uebersetzen zu viel Heap (Grenze 44000 = 90 %) — verkleinern oder aufteilen"; rm -f "$BC"; exit 1; }
   done
 done
