@@ -151,6 +151,7 @@ export class Recorder {
   private letzterFehler: string = '';
   private gpsLetzt: number = 0;
   private gpsAbonniert: boolean = false;
+  private gpsFixe: number = 0;   // nur fuers Log: erster Fix und jeder 60.
   private ortungGefragt: boolean = false;   // je Aufnahme hoechstens einmal fragen
   private gpsVersuch: number = 0;
   private bg: string = 'aus';
@@ -316,6 +317,15 @@ export class Recorder {
       };
       geoLocationManager.on('locationChange', anfrage, this.gpsRueckruf);
       this.gpsAbonniert = true;
+      this.gpsFixe = 0;
+      console.info('Pumpfoil GPS abonniert');
+      try {
+        const l: geoLocationManager.Location = geoLocationManager.getLastLocation();
+        console.info('Pumpfoil GPS letzte bekannte Position ' + l.latitude + ',' + l.longitude + ' alt ' +
+          Math.round((Date.now() - l.timeStamp) / 1000) + ' s');
+      } catch (e) {
+        console.info('Pumpfoil GPS keine letzte Position (' + (e as BusinessError).code + ')');
+      }
       if (this.letzterFehler.indexOf('3301100') >= 0) {
         this.letzterFehler = '';   // Ortung ist inzwischen an: der Hinweis darf weg (der Zaehler bleibt)
       }
@@ -364,6 +374,11 @@ export class Recorder {
       t = this.achse.jetzt(jetzt);
     }
     this.gpsLetzt = jetzt;
+    this.gpsFixe++;
+    if (this.gpsFixe === 1 || this.gpsFixe % 60 === 0) {
+      console.info('Pumpfoil GPS Fix ' + this.gpsFixe + ': ' + g.latitude.toFixed(5) + ',' + g.longitude.toFixed(5) +
+        ' acc ' + g.accuracy + ' speed ' + g.speed);
+    }
     const v: number = g.speed >= 0 ? g.speed : -1;
     this.fixNeu = [g.latitude, g.longitude, v];
     this.anzeige.fix(g.latitude, g.longitude, g.accuracy, t, v);
