@@ -5,6 +5,7 @@
 #                    -> sichtbar: Fehler liegt im JS (Imports, R.init); schwarz: in hml/css
 #   ./diag.sh seite  einfache Textseite (wie die Vorlage), aber UNSER index.js mit allen Imports
 #                    -> zeigt „PUMPFOIL" + Infozeile: Imports/Start ok; schwarz: Imports/Start
+#   ./diag.sh wisch  nur das onswipe am aeussersten div entfernt -> wackelt die Seite dann noch?
 #   ./diag.sh aus    alles zurueck (git checkout der Seite + sync)
 # Nur lokal zum Testen — NIE committen.
 cd "$(dirname "$0")"
@@ -31,7 +32,11 @@ JS
 </div>
 HML
     echo "DIAG seite: einfache Seite, unser index.js mit Imports" ;;
+  wisch)
+    # Wackelt die Seite beim Wischen nur wegen des onswipe am aeussersten div? (08.10.2026)
+    sed -i.bak 's| onswipe="wischen"||' $z/index.hml && rm -f $z/index.hml.bak
+    echo "DIAG wisch: onswipe entfernt — wackelt es noch?" ;;
   aus)
     git checkout -- $z && ./sync-common.sh && echo "DIAG aus" ;;
-  *) echo "Aufruf: ./diag.sh js|seite|aus"; exit 1 ;;
+  *) echo "Aufruf: ./diag.sh js|seite|wisch|aus"; exit 1 ;;
 esac
