@@ -183,6 +183,30 @@
     {
       "name": "gpsOff",
       "value": "GPS wyłączony:\nwłącz lokalizację"
+    },
+    {
+      "name": "connect",
+      "value": "Połącz"
+    },
+    {
+      "name": "connected",
+      "value": "Połączono"
+    },
+    {
+      "name": "disconnect",
+      "value": "Rozłącz"
+    },
+    {
+      "name": "pairHint",
+      "value": "Wpisz kod tam w Koncie"
+    },
+    {
+      "name": "pairNoNet",
+      "value": "Brak połączenia z pumpfoil.org"
+    },
+    {
+      "name": "noInternet",
+      "value": "brak internetu"
     }
   ]
 }

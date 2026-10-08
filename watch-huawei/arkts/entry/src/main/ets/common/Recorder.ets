@@ -21,6 +21,7 @@ import { wearEngine } from '@kit.WearEngine';
 import { util } from '@kit.ArkTS';
 import * as K from './Kern';
 import { GEGENSTELLEN, APP_VERSION } from './Konfig';
+import * as D from './Direkt';
 import { Stand, Konfig, KonfigDaten, Auswahl, AuswahlDaten, Alarm } from './Seiten';
 
 /** Seiten-Konfiguration halbstuendlich neu anfragen (Antwort des Handys auf das Hallo). */
@@ -89,6 +90,27 @@ export interface Zustand {
   fehler: number;
   letzterFehler: string;
   verworfen: number;
+  direkt: boolean;        // mit pumpfoil.org gekoppelt: laedt selbst hoch, ohne Handy
+  direktFehler: number;   // Fehlversuche in Folge (0 = letzter Upload ging durch)
+}
+
+interface FixDaten {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  speed: number;
+  timeStamp: number;
+}
+
+interface DirektDatei {
+  t: string;
+}
+
+/** Laufendes Koppeln: Code auf der Uhr, claim_token zum Nachfragen. */
+export interface Koppeln {
+  code: string;
+  claim: string;
+  status: string;   // '' | 'netz' (kein Server) | 'fehler <code>'
 }
 
 interface OffeneDatei {
@@ -173,6 +195,20 @@ export class Recorder {
   private autoLos: boolean = false;
   private leerGpsAn: boolean = false;
   private ohneAccel: boolean = false;
+  // Direkt-Upload (Direkt.ets): Geraete-Token aus dem Koppeln, '' = nicht gekoppelt (Wear Engine)
+  private direktToken: string = '';
+  private direktLaeuft: boolean = false;
+  private direktFehler: number = 0;
+  private direktNaechster: number = 0;   // frueheste Zeit fuer den naechsten Versuch (Backoff)
+  private direktKonfigZuletzt: number = 0;
+  koppeln: Koppeln | null = null;
+  private koppelnLaeuft: boolean = false;
+  // DevEco-Emulator: dessen GPS-Emulation kam nie bei der App an (nur 0,0, 08.10.2026) -> eigene Fahrt
+  private emulator: boolean = false;
+  private simTakt: number = -1;
+  private simT: number = 0;
+  private simLat: number = 47.229;
+  private simLon: number = 8.607;
   auswahl: Auswahl = new Auswahl(null);   // Wahl auf der Uhr (Einstellungen), gespeichert in auswahl.json
   private alarm: Alarm = new Alarm();   // Sensorliste ohne ACCELEROMETER -> messweg.accel „keine"
 
@@ -308,6 +344,11 @@ export class Recorder {
    * GPS ohne Neustart dazu. Jeder Fehlversuch wird gezaehlt und geloggt (nicht nur der erste).
    */
   private gpsAbo(): void {
+    if (this.emulator) {
+      this.simAn((lat: number, lon: number, v: number) => this.fixVerarbeiten(lat, lon, 4, v, Date.now()));
+      this.gpsAbonniert = true;
+      return;
+    }
     try {
       const anfrage: geoLocationManager.LocationRequest = {
         priority: geoLocationManager.LocationRequestPriority.ACCURACY,
@@ -393,6 +434,12 @@ export class Recorder {
   }
 
   private gpsRueckruf = (g: geoLocationManager.Location): void => {
+    this.fixVerarbeiten(g.latitude, g.longitude, g.accuracy, g.speed, g.timeStamp);
+  }
+
+  /** Ein GPS-Fix, egal woher (System oder Emulator-Fahrt). */
+  private fixVerarbeiten(lat: number, lon: number, acc: number, speed: number, ts: number): void {
+    const g: FixDaten = { latitude: lat, longitude: lon, accuracy: acc, speed: speed, timeStamp: ts };
     const jetzt: number = Date.now();
     if (g.latitude === 0 && g.longitude === 0) {
       // „Null Island": Platzhalter ohne echte Position (Emulator 08.10.2026: erster Fix 0,0 acc 6.5).
@@ -437,6 +484,34 @@ export class Recorder {
       geoLocationManager.off('locationChange', this.gpsRueckruf);
     } catch (e) {
       // war nicht an
+    }
+    this.simAus();
+  }
+
+  /**
+   * NUR DevEco-Emulator (deviceInfo „emulator"): dessen GPS-Emulation erreichte die App nie, das
+   * System kannte nur 0,0 (08.10.2026). Stattdessen jede Sekunde ein Fix entlang einer Pumpfoil-Fahrt
+   * wie common/sim-gps.js fuer Lite: 30 s Lauf mit ~17-19 km/h, 20 s zurueck mit 3 km/h. Echte Uhren
+   * heissen nie „emulator" und kommen hier nie hin.
+   */
+  private simAn(ziel: (lat: number, lon: number, v: number) => void): void {
+    this.simAus();
+    console.info('Pumpfoil SIM: GPS-Fahrt (Emulator)');
+    this.simTakt = setInterval(() => {
+      this.simT++;
+      const p: number = this.simT % 50;
+      const kmh: number = p < 30 ? 17 + 2 * Math.sin(this.simT / 3) : 3;
+      const v: number = kmh / 3.6;
+      this.simLat += v * 0.7071 / 111320;
+      this.simLon += v * 0.7071 / (111320 * Math.cos(this.simLat * Math.PI / 180));
+      ziel(this.simLat, this.simLon, v);
+    }, 1000);
+  }
+
+  private simAus(): void {
+    if (this.simTakt >= 0) {
+      clearInterval(this.simTakt);
+      this.simTakt = -1;
     }
   }
 
@@ -640,12 +715,21 @@ export class Recorder {
           // war nicht an
         }
         this.leerGpsAn = false;
+        this.simAus();
       }
       return false;
     }
     if (!this.leerGpsAn) {
       this.leerGpsAn = true;
       this.auto = new K.AutoStart();
+      if (this.emulator) {
+        this.simAn((lat: number, lon: number, v: number) => {
+          if (this.auto !== null && this.auto.fix(lat, lon, Date.now())) {
+            this.autoLos = true;
+          }
+        });
+        return false;
+      }
       try {
         const anfrage: geoLocationManager.LocationRequest = {
           priority: geoLocationManager.LocationRequestPriority.ACCURACY,
@@ -668,6 +752,7 @@ export class Recorder {
       // gleich neu in sensorenAn
     }
     this.leerGpsAn = false;
+    this.simAus();
     this.start();
     return true;
   }
@@ -684,6 +769,10 @@ export class Recorder {
   // --- Uebertragung zum Handy (Nachrichten in Teilen, wie Lite) ---------------------------
 
   private senden(): void {
+    if (this.direktToken !== '') {
+      this.direktTakt();   // gekoppelt: alles direkt zum Server, die Wear Engine bleibt still
+      return;
+    }
     if (!this.schlange.darf(Date.now()) || this.ctx === null) {
       return;
     }
@@ -785,6 +874,211 @@ export class Recorder {
     });
   }
 
+  // --- Direkt zum Server (gekoppelt, ohne Handy; Direkt.ets) -------------------------------
+
+  gekoppelt(): boolean {
+    return this.direktToken !== '';
+  }
+
+  /** Koppeln beginnen: Code holen (pair-init). Die Seite zeigt koppeln.code an. */
+  koppelnStart(): void {
+    if (this.koppelnLaeuft) {
+      return;
+    }
+    this.koppelnLaeuft = true;
+    this.koppeln = { code: '', claim: '', status: '' };
+    D.anfrage('POST', '/api/devices/pair-init', D.pairInitKoerper(this.modell), '').then((a: D.Antwort) => {
+      this.koppelnLaeuft = false;
+      if (a.code !== 200) {
+        this.koppeln = { code: '', claim: '', status: a.code === 0 ? 'netz' : 'fehler ' + a.code };
+        console.error('Pumpfoil koppeln pair-init ' + a.code + ' ' + a.text.substring(0, 80));
+        return;
+      }
+      const p: D.PairInit = JSON.parse(a.text) as D.PairInit;
+      this.koppeln = { code: p.code, claim: p.claim_token, status: '' };
+      console.info('Pumpfoil koppeln: Code da');
+    });
+  }
+
+  /** Alle paar Sekunden, solange die Koppel-Ansicht offen ist: wurde der Code eingeloest? */
+  koppelnTakt(): void {
+    const k: Koppeln | null = this.koppeln;
+    if (this.koppelnLaeuft || this.direktToken !== '') {
+      return;
+    }
+    if (k === null || k.claim === '') {
+      this.koppelnStart();   // noch kein Code (oder kein Netz beim letzten Versuch): neu holen
+      return;
+    }
+    this.koppelnLaeuft = true;
+    D.anfrage('GET', '/api/devices/pair-poll?claim_token=' + k.claim, '', '').then((a: D.Antwort) => {
+      this.koppelnLaeuft = false;
+      if (a.code === 404) {
+        this.koppeln = null;   // abgelaufen: beim naechsten Takt ein neuer Code
+        return;
+      }
+      if (a.code !== 200) {
+        k.status = a.code === 0 ? 'netz' : 'fehler ' + a.code;
+        return;
+      }
+      k.status = '';
+      const p: D.PairPoll = JSON.parse(a.text) as D.PairPoll;
+      if (p.device_token !== null && p.device_token !== undefined && p.device_token !== '') {
+        this.direktToken = p.device_token;
+        const d: DirektDatei = { t: p.device_token };
+        this.schreibe('direkt.json', JSON.stringify(d));
+        this.koppeln = null;
+        this.direktKonfigZuletzt = 0;
+        this.direktNaechster = 0;
+        console.info('Pumpfoil koppeln: gekoppelt');
+      }
+    });
+  }
+
+  /** Entkoppeln: zurueck zur Wear Engine (Handy). Nichts Aufgezeichnetes geht verloren. */
+  trennen(): void {
+    this.direktToken = '';
+    this.koppeln = null;
+    this.direktFehler = 0;
+    this.loesche('direkt.json');
+    console.info('Pumpfoil direkt getrennt');
+  }
+
+  /** Token vom Server abgelehnt (in pumpfoil.org entfernt): entkoppeln, damit die Uhr nicht ewig 401 sammelt. */
+  private abgelehnt(wo: string): void {
+    console.error('Pumpfoil direkt 401 bei ' + wo + ' -> entkoppelt');
+    this.letzterFehler = 'pumpfoil.org 401';
+    this.trennen();
+  }
+
+  private direktFehlschlag(was: string, a: D.Antwort): void {
+    this.direktLaeuft = false;
+    this.direktFehler++;
+    // 30 s, 60 s, 2 min, dann 5 min — jeder Fehlversuch geloggt, nie nur der erste
+    const warte: number = this.direktFehler <= 1 ? 30000 : this.direktFehler === 2 ? 60000
+      : this.direktFehler === 3 ? 120000 : 300000;
+    this.direktNaechster = Date.now() + warte;
+    console.error('Pumpfoil direkt ' + was + ' ' + a.code + ' ' + a.text.substring(0, 80) + ' (Fehler ' + this.direktFehler + ')');
+  }
+
+  /** Vom Sendetakt (alle 3 s), wenn gekoppelt: Konfiguration halbstuendlich, fertige Sessions hochladen. */
+  private direktTakt(): void {
+    const jetzt: number = Date.now();
+    if (this.direktLaeuft || jetzt < this.direktNaechster) {
+      return;
+    }
+    if (jetzt - this.direktKonfigZuletzt > HALLO_ALLE_MS) {
+      this.direktLaeuft = true;
+      const tok: string = this.direktToken;
+      D.anfrage('GET', '/api/devices/config?p=huawei&v=' + APP_VERSION, '', tok).then((a: D.Antwort) => {
+        if (a.code === 401) {
+          this.direktLaeuft = false;
+          this.abgelehnt('config');
+          return;
+        }
+        if (a.code !== 200) {
+          this.direktFehlschlag('config', a);
+          return;
+        }
+        this.direktLaeuft = false;
+        this.direktKonfigZuletzt = Date.now();
+        try {
+          this.konfigAnwenden(new Konfig(JSON.parse(a.text) as KonfigDaten));
+          this.schreibe('konfig.json', a.text);
+        } catch (e) {
+          this.fehler('speicher', 'Konfig kaputt');
+        }
+      });
+      return;
+    }
+    const x: K.PlanEintrag | null = K.direktBereit(this.plan);
+    if (x === null) {
+      return;
+    }
+    this.hochladen(x.id, x.n);
+  }
+
+  /** Eine abgeschlossene Session: Meta, Chunks in Paketen (GPS zuerst), /complete — wie HuaweiBruecke.session. */
+  private hochladen(id: string, n: number): void {
+    const meta: string | null = this.lies(K.dateiMeta(id));
+    const ende: string | null = this.lies(K.dateiEnde(id));
+    if (meta === null || ende === null) {
+      this.fehler('speicher', 'direkt: Meta/Ende fehlt ' + id);
+      this.direktNaechster = Date.now() + 300000;
+      return;
+    }
+    const chunks: string[] = [];
+    for (let i = 0; i < n; i++) {
+      const c: string | null = this.lies(K.dateiChunk(id, i));
+      if (c === null) {
+        this.fehler('speicher', 'fehlt ' + K.dateiChunk(id, i));   // geht ohne ihn hoch, gezaehlt
+      } else {
+        chunks.push(c);
+      }
+    }
+    this.direktLaeuft = true;
+    const tok: string = this.direktToken;
+    console.info('Pumpfoil direkt: lade ' + id + ' (' + chunks.length + ' Chunks)');
+    let up: K.DirektUpload = K.direktUpload(meta, chunks, [], 30);
+    D.anfrage('POST', '/api/ingest/session', up.meta, tok).then((a: D.Antwort): Promise<D.Antwort> => {
+      if (a.code === 401) {
+        return Promise.resolve(a);
+      }
+      if (a.code !== 200) {
+        return Promise.resolve(a);
+      }
+      const r: D.SessionAntwort = JSON.parse(a.text) as D.SessionAntwort;
+      const da: number[] = r.received_chunks !== undefined ? r.received_chunks : [];
+      up = K.direktUpload(meta, chunks, da, 30);   // was schon da ist, geht nicht noch einmal
+      return this.pakete(id, up.pakete, 0, tok);
+    }).then((a: D.Antwort): Promise<D.Antwort> => {
+      if (a.code !== 200) {
+        return Promise.resolve(a);
+      }
+      return D.anfrage('POST', '/api/ingest/session/' + id + '/complete', ende, tok);
+    }).then((a: D.Antwort) => {
+      if (a.code === 401) {
+        this.direktLaeuft = false;
+        this.abgelehnt('ingest');
+        return;
+      }
+      if (a.code !== 200) {
+        this.direktFehlschlag('upload ' + id, a);
+        return;
+      }
+      // Erst NACH /complete loeschen (wie die Bruecke): bricht es vorher ab, ist alles noch da.
+      const weg: string[] = this.plan.weg(id);
+      for (let i = 0; i < weg.length; i++) {
+        this.loesche(weg[i]);
+      }
+      this.planSichern();
+      this.direktLaeuft = false;
+      this.direktFehler = 0;
+      console.info('Pumpfoil direkt: ' + id + ' hochgeladen');
+    });
+  }
+
+  /** Pakete nacheinander; jedes muss vollstaendig quittiert sein, sonst Abbruch (Wiederaufnahme spaeter). */
+  private pakete(id: string, pakete: string[], i: number, tok: string): Promise<D.Antwort> {
+    if (i >= pakete.length) {
+      const ok: D.Antwort = { code: 200, text: '' };
+      return Promise.resolve(ok);
+    }
+    return D.anfrage('POST', '/api/ingest/session/' + id + '/chunks', pakete[i], tok).then((a: D.Antwort): Promise<D.Antwort> => {
+      if (a.code !== 200) {
+        return Promise.resolve(a);
+      }
+      const soll: number = (JSON.parse(pakete[i]) as K.ChunkPaket).chunks.length;
+      const r: D.ChunkAntwort = JSON.parse(a.text) as D.ChunkAntwort;
+      const ist: number = r.received !== undefined ? r.received.length : 0;
+      if (ist < soll) {
+        const kurz: D.Antwort = { code: 500, text: 'nur ' + ist + ' von ' + soll + ' quittiert' };
+        return Promise.resolve(kurz);
+      }
+      return this.pakete(id, pakete, i + 1, tok);
+    });
+  }
+
   /** Rueckweg Handy -> Uhr: die Seiten-Konfiguration, in Teilen wie hin (PF1|k_konfig.json|…). */
   private empfangen(): void {
     if (this.ctx === null) {
@@ -859,6 +1153,16 @@ export class Recorder {
     console.info('Pumpfoil Geraeteinfo marketName=' + deviceInfo.marketName + ' productModel=' + deviceInfo.productModel +
       ' brand=' + deviceInfo.brand + ' manufacture=' + deviceInfo.manufacture);
     this.modell = ('HUAWEI ' + name).replace(new RegExp('^HUAWEI HUAWEI', 'i'), 'HUAWEI').trim() + ' · HarmonyOS';
+    this.emulator = deviceInfo.marketName === 'emulator' || deviceInfo.productModel === 'emulator';
+    const dt: string | null = this.lies('direkt.json');
+    if (dt !== null) {
+      try {
+        this.direktToken = (JSON.parse(dt) as DirektDatei).t;
+        console.info('Pumpfoil direkt gekoppelt');
+      } catch (e) {
+        this.direktToken = '';
+      }
+    }
     const gt: string | null = this.lies('gegenstelle.json');
     if (gt !== null) {
       try {
@@ -999,6 +1303,7 @@ export class Recorder {
         // war nicht an
       }
       this.leerGpsAn = false;
+      this.simAus();
     }
     this.sensorenAus();
     this.bildschirmAn(false);
@@ -1016,7 +1321,8 @@ export class Recorder {
       // Fehler IN FOLGE (nach einem Erfolg wieder 0), wie common/recorder.js.
       sendeFehler: this.schlange.fehlerFolge, sendeCode: this.schlange.letzterCode,
       fehler: this.f.speicher + this.f.accel + this.f.gps, letzterFehler: this.letzterFehler,
-      verworfen: this.verworfen
+      verworfen: this.verworfen,
+      direkt: this.direktToken !== '', direktFehler: this.direktFehler
     };
   }
 

@@ -6,7 +6,7 @@
  *   Verwerfen (zweimal tippen); STOPP 2 s halten (Profil stopMode „press": tippen). Nach dem Stopp die
  *   Zusammenfassung mit FERTIG. Touch-Sperre bei Profil waterLock „on". Logik in common/Recorder.ets.
  */
-import { Recorder, Zustand, SeitenDaten, Letzte } from '../common/Recorder';
+import { Recorder, Zustand, SeitenDaten, Letzte, Koppeln } from '../common/Recorder';
 import { APP_VERSION } from '../common/Konfig';
 import { ring, zeichne, Seite, Befehl, ZeichenKontext, Konfig, Auswahl, Foil, dreistufig } from '../common/Seiten';
 
@@ -50,6 +50,15 @@ struct Index {
   @State zLayouts: string = '';
   @State zSperre: string = '';
   private zeigeAuswahl: boolean = false;
+  // Koppeln mit pumpfoil.org (Direkt-Upload ohne Handy): eigene Ansicht aus den Einstellungen
+  private zeigeKoppeln: boolean = false;
+  private koppelnTick: number = 0;
+  private trennScharf: boolean = false;
+  @State zDirekt: string = '';
+  @State kGekoppelt: boolean = false;
+  @State kCode: string = '';
+  @State kStatus: string = '';
+  @State tTrennen: string = '';
   @State zeit: string = '0:00';
   @State strecke: string = '0.00 km';
   @State info: string = '';
@@ -116,6 +125,12 @@ struct Index {
       this.fertig();
       return true;
     }
+    if (this.zeigeKoppeln) {
+      this.zeigeKoppeln = false;   // zurueck in die Einstellungen
+      this.trennScharf = false;
+      this.zeigen();
+      return true;
+    }
     if (this.zeigeAuswahl) {
       this.zeigeAuswahl = false;
       this.zeigen();
@@ -179,6 +194,13 @@ struct Index {
     if (z.modus === 'bereit' && z.verworfen > 0 && Date.now() - z.verworfen < 10000) {
       return this.t($r('app.string.discarded'));
     }
+    if (z.direkt) {
+      // Gekoppelt: die Uhr laedt selbst hoch, ein Handy spielt keine Rolle
+      if (z.offen > 0) {
+        return z.plan.fertig + '/' + z.plan.gesamt + (z.direktFehler > 0 ? ' · ' + this.t($r('app.string.noInternet')) : '');
+      }
+      return z.modus === 'bereit' ? this.t($r('app.string.allSent')) : '';
+    }
     const handy: string = this.t($r('app.string.openPhone'));   // ohne Fehlercode (wie Lite)
     if (z.offen > 0) {
       return z.plan.fertig + '/' + z.plan.gesamt + (z.sendeFehler > 0 ? ' · ' + handy : '');
@@ -193,9 +215,13 @@ struct Index {
     const r: Recorder = Recorder.get();
     if (r.modus === 'bereit') {
       const l: Letzte | null = r.letzte;
-      this.ansicht = this.zeigeFertig && l !== null ? 'fertig' : (this.zeigeAuswahl ? 'auswahl' : 'bereit');
+      this.ansicht = this.zeigeFertig && l !== null ? 'fertig'
+        : (this.zeigeKoppeln ? 'koppeln' : (this.zeigeAuswahl ? 'auswahl' : 'bereit'));
       if (this.ansicht === 'auswahl') {
         this.auswahlTexte();
+      }
+      if (this.ansicht === 'koppeln') {
+        this.koppelnTexte();
       }
       if (l !== null && this.ansicht === 'fertig') {
         this.fZeit = zeitText(l.ms);
@@ -343,10 +369,18 @@ struct Index {
     this.zFoil = f !== null ? f.label : '–';
     this.zLayouts = this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer === true : k.layoutsOn);
     this.zSperre = this.stufe(a.sperre, k.waterLock === 'on');
+    this.zDirekt = r.gekoppelt() ? this.t($r('app.string.connected')) : this.t($r('app.string.connect'));
   }
 
   private aendern(was: string): void {
     const r: Recorder = Recorder.get();
+    if (was === 'direkt') {
+      this.zeigeKoppeln = true;
+      this.koppelnTick = 0;
+      this.trennScharf = false;
+      this.zeigen();
+      return;
+    }
     const a: Auswahl = r.auswahl;
     if (was === 'alarm') {
       a.alarm = !a.alarm;
@@ -390,6 +424,7 @@ struct Index {
         this.zeile('Foil', this.zFoil, 'foil')
         this.zeile($r('app.string.layoutsShort'), this.zLayouts, 'layouts')
         this.zeile($r('app.string.lock'), this.zSperre, 'sperre')
+        this.zeile('pumpfoil.org', this.zDirekt, 'direkt')
       }
       .width('100%')
       .padding({ top: 70, bottom: 90 })
@@ -399,6 +434,34 @@ struct Index {
     .scrollBar(BarState.Off)
     .edgeEffect(EdgeEffect.Spring)
     .backgroundColor('#000000')
+  }
+
+  /** Koppel-Ansicht: Code anzeigen und alle 5 s nachfragen, ob er auf pumpfoil.org eingeloest wurde. */
+  private koppelnTexte(): void {
+    const r: Recorder = Recorder.get();
+    if (!r.gekoppelt() && this.koppelnTick % 5 === 0) {
+      r.koppelnTakt();
+    }
+    this.koppelnTick++;
+    this.kGekoppelt = r.gekoppelt();
+    const k: Koppeln | null = r.koppeln;
+    this.kCode = k !== null && k.code !== '' ? k.code : '…';
+    this.kStatus = k !== null && k.status !== '' ? this.t($r('app.string.pairNoNet')) : '';
+    this.tTrennen = this.trennScharf ? this.t($r('app.string.disconnect')) + '?' : this.t($r('app.string.disconnect'));
+  }
+
+  /** Trennen wie Verwerfen: erster Tipp macht scharf, zweiter binnen 4 s trennt. */
+  private trennenTipp(): void {
+    if (this.trennScharf) {
+      this.trennScharf = false;
+      Recorder.get().trennen();
+    } else {
+      this.trennScharf = true;
+      setTimeout(() => {
+        this.trennScharf = false;
+      }, 4000);
+    }
+    this.zeigen();
   }
 
   private starten(): void {
@@ -601,6 +664,22 @@ struct Index {
           Progress({ value: this.balken, total: 100, type: ProgressType.Linear })
             .width(200).color(CYAN).margin({ top: 10 })
         }
+      } else if (this.ansicht === 'koppeln') {
+        if (this.kGekoppelt) {
+          Text(this.t($r('app.string.connected'))).fontSize(22).fontColor(CYAN)
+          Text('pumpfoil.org').fontSize(16).fontColor('#cbd5e1').margin({ top: 4 })
+          Button(this.tTrennen).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(ROT)
+            .margin({ top: 14 })
+            .onClick(() => this.trennenTipp())
+        } else {
+          Text(this.kCode).fontSize(40).fontWeight(FontWeight.Bold).fontColor('#ffffff').letterSpacing(4)
+          Text('pumpfoil.org').fontSize(18).fontColor(CYAN).margin({ top: 6 })
+          Text(this.t($r('app.string.pairHint'))).fontSize(15).fontColor('#94a3b8').textAlign(TextAlign.Center)
+            .width(260).maxLines(2).margin({ top: 4 })
+          if (this.kStatus !== '') {
+            Text(this.kStatus).fontSize(14).fontColor('#f59e0b').textAlign(TextAlign.Center).width(260).margin({ top: 6 })
+          }
+        }
       } else if (this.ansicht === 'fertig') {
         Text(this.fZeit).fontSize(30).fontColor('#ffffff')
         Text(this.fStrecke).fontSize(20).fontColor('#ffffff')
@@ -619,7 +698,9 @@ struct Index {
         Text(this.strecke).fontSize(24).fontColor('#ffffff')
         this.knopf(this.tStopp, ROT, 'stopp')
       }
-      this.infoText()
+      if (this.ansicht !== 'koppeln') {
+        this.infoText()
+      }
       if (this.ansicht === 'bereit') {
         // Version wie bei Garmin auf dem Startbildschirm: zeigt sofort, welcher Build laeuft.
         Text('v' + APP_VERSION).fontSize(13).fontColor('#64748b').margin({ top: 4 })

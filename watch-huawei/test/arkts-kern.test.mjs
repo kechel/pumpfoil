@@ -122,3 +122,42 @@ test("ArkTS-Kern: Sendeplan.weg und AutoStart wie kern.js", { skip: ohneTsc }, a
     assert.equal(at.fix(lat, 13.4, t), aj.fix(lat, 13.4, t), `Fix ${i}`);
   }
 });
+
+// --- Direkt-Upload (Uhr -> Server ohne Handy, nur ArkTS) ------------------------------------
+import { readFileSync } from "node:fs";
+
+test("Direkt-Upload: Meta mit expected_chunks, jeder Chunk genau einmal, GPS zuerst, Pakete <= 30", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  // Dieselben Dateien, die der echte Recorder im E2E-Test schrieb (auch Grundlage fuer Bruecke + Server).
+  const d = JSON.parse(readFileSync(join(hier, "fixtures/huawei-e2e-dateien.json"), "utf8"));
+  const meta = Object.entries(d).find(([k]) => k.startsWith("m_"))[1];
+  const chunks = Object.entries(d).filter(([k]) => k.startsWith("c_")).sort().map(([, v]) => v);
+  const up = A.direktUpload(meta, chunks, [], 30);
+  const m = JSON.parse(up.meta);
+  assert.equal(m.expected_chunks, chunks.length);
+  assert.equal(m.session_uuid, JSON.parse(meta).session_uuid, "Meta sonst unveraendert");
+  const raus = up.pakete.flatMap((p) => JSON.parse(p).chunks);
+  assert.ok(up.pakete.every((p) => JSON.parse(p).chunks.length <= 30));
+  assert.deepEqual(raus.map((c) => c.index).sort((a, b) => a - b), chunks.map((c) => JSON.parse(c).index).sort((a, b) => a - b));
+  const ersterAccel = raus.findIndex((c) => c.kind !== "gps");
+  assert.ok(raus.slice(0, ersterAccel).every((c) => c.kind === "gps") && raus.slice(ersterAccel).every((c) => c.kind !== "gps"), "GPS zuerst");
+  // Chunk-Texte gehen unveraendert hinein (keine zweite Serialisierung)
+  assert.ok(up.pakete.join("").includes(chunks[0]));
+  // Abgebrochener Upload: was der Server schon hat, geht nicht noch einmal raus
+  const nochmal = A.direktUpload(meta, chunks, [0, 1, 2], 30);
+  assert.equal(nochmal.pakete.flatMap((p) => JSON.parse(p).chunks).length, chunks.length - 3);
+  assert.equal(JSON.parse(nochmal.meta).expected_chunks, chunks.length, "expected_chunks bleibt die Gesamtzahl");
+});
+
+test("Direkt-Upload: nur abgeschlossene, per Wear Engine unberuehrte Sessions sind bereit", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  const p = new A.Sendeplan();
+  p.neu("laeuft"); p.chunk("laeuft");                      // Aufnahme laeuft noch
+  p.neu("halb"); p.chunk("halb"); p.ende("halb");
+  p.erledigt({ id: "halb", art: "m", nr: -1 });            // Meta schon beim Handy
+  p.neu("fertig"); p.chunk("fertig"); p.chunk("fertig"); p.ende("fertig");
+  assert.equal(A.direktBereit(p).id, "fertig");
+  const weg = p.weg("fertig");                               // nach dem Upload: alles loeschen
+  assert.deepEqual(weg, [A.dateiMeta("fertig"), A.dateiChunk("fertig", 0), A.dateiChunk("fertig", 1), A.dateiEnde("fertig")]);
+  assert.equal(A.direktBereit(p), null);
+});

@@ -102,3 +102,34 @@ def test_abgebrochener_upload_setzt_fort_ohne_doppelte(client):
         assert sorted(idx) == list(range(len(chunks)))
     finally:
         db.close()
+
+
+def test_direkt_gekoppelt_ohne_handy(client):
+    """Watch 5 ohne Handy-App (Direkt.ets): Code holen, im Konto einloesen, Token per Poll,
+    Konfiguration holen, dann dieselbe Session direkt hochladen wie die Bruecke es taete."""
+    from app import models
+    from app.db import SessionLocal
+
+    meta, chunks, ende = _dateien()
+    meta = dict(meta, session_uuid=meta["session_uuid"] + "-direkt")
+    r = client.post("/api/devices/pair-init", json={"label": meta["device_model"], "platform": "huawei"})
+    assert r.status_code == 200, r.text
+    code, claim = r.json()["code"], r.json()["claim_token"]
+    assert client.get("/api/devices/pair-poll", params={"claim_token": claim}).json()["device_token"] is None
+    jwt = client.post("/api/auth/register", json={"email": "huawei-direkt@b.de", "password": "supersecret"}).json()["access_token"]
+    r = client.post("/api/devices/pair-claim", json={"code": code}, headers={"Authorization": f"Bearer {jwt}"})
+    assert r.status_code == 200 and r.json()["platform"] == "huawei", r.text
+    tok = client.get("/api/devices/pair-poll", params={"claim_token": claim}).json()["device_token"]
+    assert tok
+    dev = {"X-Device-Token": tok}
+    cfg = client.get("/api/devices/config", params={"p": "huawei", "v": "1.0.2"}, headers=dev)
+    assert cfg.status_code == 200 and "views" in cfg.json(), cfg.text
+    _hochladen(client, dev, meta, chunks, ende)
+    db = SessionLocal()
+    try:
+        s = db.query(models.Session).filter_by(session_uuid=meta["session_uuid"]).one()
+        assert sorted(c.index for c in db.query(models.IngestChunk).filter_by(session_id=s.id)) == list(range(len(chunks)))
+        d = db.query(models.DeviceToken).filter_by(token=tok).one()
+        assert d.platform == "huawei" and d.label == meta["device_model"]
+    finally:
+        db.close()

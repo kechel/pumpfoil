@@ -183,6 +183,30 @@
     {
       "name": "gpsOff",
       "value": "GPS aus:\nOrtung einschalten"
+    },
+    {
+      "name": "connect",
+      "value": "Verbinden"
+    },
+    {
+      "name": "connected",
+      "value": "Verbunden"
+    },
+    {
+      "name": "disconnect",
+      "value": "Trennen"
+    },
+    {
+      "name": "pairHint",
+      "value": "Code dort unter Konto eingeben"
+    },
+    {
+      "name": "pairNoNet",
+      "value": "Keine Verbindung zu pumpfoil.org"
+    },
+    {
+      "name": "noInternet",
+      "value": "kein Internet"
     }
   ]
 }
