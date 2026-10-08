@@ -21,6 +21,9 @@
     },
     "reqPermissions": [
       {
+        "name": "ohos.permission.INTERNET"
+      },
+      {
         "name": "ohos.permission.ACCELEROMETER",
         "reason": "$string:perm_reason",
         "usedScene": {

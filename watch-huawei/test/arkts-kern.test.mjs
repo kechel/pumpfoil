@@ -161,3 +161,16 @@ test("Direkt-Upload: nur abgeschlossene, per Wear Engine unberuehrte Sessions si
   assert.deepEqual(weg, [A.dateiMeta("fertig"), A.dateiChunk("fertig", 0), A.dateiChunk("fertig", 1), A.dateiEnde("fertig")]);
   assert.equal(A.direktBereit(p), null);
 });
+
+test("Direkt-Upload: Watch 5 (Kern.ets) und Watch 3/4 (direkt.js) bilden byte-gleiche Pakete", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  const { register } = await import("node:module");
+  register("./e2e/hook.mjs", import.meta.url);
+  const J = (await import("../common/direkt.js")).default;
+  const d = JSON.parse(readFileSync(join(hier, "fixtures/huawei-e2e-dateien.json"), "utf8"));
+  const meta = Object.entries(d).find(([k]) => k.startsWith("m_"))[1];
+  const chunks = Object.entries(d).filter(([k]) => k.startsWith("c_")).sort().map(([, v]) => v);
+  for (const da of [[], [0, 3, 5]]) {
+    assert.deepEqual(J.upload(meta, chunks, da, 30), A.direktUpload(meta, chunks, da, 30));
+  }
+});
