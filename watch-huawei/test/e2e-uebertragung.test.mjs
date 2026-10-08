@@ -149,7 +149,8 @@ test("Ende-zu-Ende Rueckweg: Datenseiten vom Handy in Teilen (einer doppelt) lan
   const R = (await import("../common/recorder.js")).default;
   assert.ok(empfaenger.cb && empfaenger.cb.onReceiveMessage, "recorder.js hat einen Empfaenger angemeldet");
   const konfig = JSON.stringify({ views: [[1, 2, 3]], pauseView: [12, 20, 2], layoutsOn: false, stopMode: "press",
-    hrZones: [95, 114, 133, 152, 171, 190] });
+    hrZones: [95, 114, 133, 152, 171, 190], foils: [{ id: 42, label: "Gong Sirus XL", min: 12, max: 17 }],
+    alarmEnabled: true, alarmDefault: "foil" });
   // so zerlegt es die Android-Bruecke (HuaweiBruecke.konfigTeile, 800 Zeichen je Teil) — hier kleiner, damit es mehrere sind
   const max = 40, n = Math.ceil(konfig.length / max);
   const teile = [];
@@ -161,6 +162,9 @@ test("Ende-zu-Ende Rueckweg: Datenseiten vom Handy in Teilen (einer doppelt) lan
   assert.equal(R.konfig.layoutsOn, false);
   assert.equal(R.konfig.stopMode, "press", "Ablauf-Einstellung aus dem Profil kommt an");
   assert.equal(uhr.dateien.get("internal://app/konfig.json"), konfig, "gespeichert fuer den naechsten Start");
+  // Foils/Alarm: Auswahl auf der Uhr aus dem Profil vorbelegt und gespeichert (Einstellungsseite)
+  assert.equal(R.auswahl.foilId, 42); assert.equal(R.auswahl.alarm, true); assert.equal(R.auswahl.quelle, "foil");
+  assert.equal(JSON.parse(uhr.dateien.get("internal://app/auswahl.json")).foilId, 42);
   // Fremdes und Kaputtes wird ignoriert, nichts geht kaputt
   empfaenger.cb.onReceiveMessage("PF1|k_konfig.json|0|1|1|{kaputt");
   empfaenger.cb.onReceiveMessage("XYZ|irgendwas");

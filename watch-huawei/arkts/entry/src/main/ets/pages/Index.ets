@@ -7,7 +7,7 @@
  *   Zusammenfassung mit FERTIG. Touch-Sperre bei Profil waterLock „on". Logik in common/Recorder.ets.
  */
 import { Recorder, Zustand, SeitenDaten, Letzte } from '../common/Recorder';
-import { ring, zeichne, Seite, Befehl, ZeichenKontext, Konfig } from '../common/Seiten';
+import { ring, zeichne, Seite, Befehl, ZeichenKontext, Konfig, Auswahl, Foil, dreistufig } from '../common/Seiten';
 
 // Feldbeschriftungen (Schluessel wie Seiten.ets feld) — Ressourcen f_<schluessel>.
 const FELDTEXTE: string[] = ['kmh3s', 'kmhAvg', 'kmhMax', 'bpmAvg', 'bpmMax', 'time', 'dist', 'clock', 'runActive',
@@ -42,7 +42,13 @@ function art(p: number, gesamt: number): string {
 @Entry
 @Component
 struct Index {
-  @State ansicht: string = 'bereit';   // bereit | aktion | stopp | daten | fertig
+  @State ansicht: string = 'bereit';   // bereit | aktion | stopp | daten | fertig | auswahl
+  @State zAlarm: string = '';
+  @State zQuelle: string = '';
+  @State zFoil: string = '';
+  @State zLayouts: string = '';
+  @State zSperre: string = '';
+  private zeigeAuswahl: boolean = false;
   @State zeit: string = '0:00';
   @State strecke: string = '0.00 km';
   @State info: string = '';
@@ -108,6 +114,11 @@ struct Index {
       this.fertig();
       return true;
     }
+    if (this.zeigeAuswahl) {
+      this.zeigeAuswahl = false;
+      this.zeigen();
+      return true;
+    }
     return false;
   }
 
@@ -127,7 +138,7 @@ struct Index {
     if (r.leerlauf()) {   // Auto-Start (Profil), wie Zepp
       this.seite = 2;
       this.zeigeFertig = false;
-      if (r.konfigJetzt().waterLock === 'on') {
+      if (r.sperreAn()) {
         this.gesperrt = true;
       }
     }
@@ -177,7 +188,10 @@ struct Index {
     const r: Recorder = Recorder.get();
     if (r.modus === 'bereit') {
       const l: Letzte | null = r.letzte;
-      this.ansicht = this.zeigeFertig && l !== null ? 'fertig' : 'bereit';
+      this.ansicht = this.zeigeFertig && l !== null ? 'fertig' : (this.zeigeAuswahl ? 'auswahl' : 'bereit');
+      if (this.ansicht === 'auswahl') {
+        this.auswahlTexte();
+      }
       if (l !== null && this.ansicht === 'fertig') {
         this.fZeit = zeitText(l.ms);
         this.fStrecke = (l.m / 1000).toFixed(2) + ' km';
@@ -260,7 +274,7 @@ struct Index {
       this.sperrHinweis = false;
       return;
     }
-    if (k.waterLock === 'on' && !this.gesperrt && Date.now() - this.letzteBedienung > SPERRE_NACH_MS) {
+    if (Recorder.get().sperreAn() && !this.gesperrt && Date.now() - this.letzteBedienung > SPERRE_NACH_MS) {
       this.gesperrt = true;
     }
   }
@@ -290,11 +304,67 @@ struct Index {
 
   // --- Bedienung -----------------------------------------------------------------------------
   private blaettern(hoch: boolean): void {
-    if (Recorder.get().modus === 'bereit' || this.sperre()) {
+    if (Recorder.get().modus === 'bereit') {
+      // Startbildschirm: hoch = Einstellungen (wie Zepp-Seite 4/4), runter = zurueck
+      if (!this.zeigeFertig) {
+        this.zeigeAuswahl = hoch;
+        this.zeigen();
+      }
+      return;
+    }
+    if (this.sperre()) {
       return;
     }
     this.seite += hoch ? 1 : -1;   // ohne Umlauf; seiten() begrenzt
     this.zeigen();
+  }
+
+  // --- Einstellungen (wie lite pages/auswahl): jede Zeile tippen schaltet weiter ------------------
+  private anAus(v: boolean): string {
+    return v ? this.t($r('app.string.on')) : this.t($r('app.string.off'));
+  }
+
+  private stufe(v: boolean | null, profil: boolean): string {
+    return v === null ? this.t($r('app.string.auto')) + ' (' + this.anAus(profil) + ')' : this.anAus(v);
+  }
+
+  private auswahlTexte(): void {
+    const r: Recorder = Recorder.get();
+    const a: Auswahl = r.auswahl;
+    const k: Konfig = r.konfigJetzt();
+    const f: Foil | null = a.foil(k);
+    this.zAlarm = this.t($r('app.string.alarm')) + ': ' + this.anAus(a.alarm);
+    this.zQuelle = this.t($r('app.string.thresholds')) + ': ' +
+      (a.quelle === 'foil' ? this.t($r('app.string.autoFoil')) : this.t($r('app.string.manual')));
+    this.zFoil = 'Foil: ' + (f !== null ? f.label : '–');
+    this.zLayouts = this.t($r('app.string.layoutsShort')) + ': ' +
+      this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer === true : k.layoutsOn);
+    this.zSperre = this.t($r('app.string.lock')) + ': ' + this.stufe(a.sperre, k.waterLock === 'on');
+  }
+
+  private aendern(was: string): void {
+    const r: Recorder = Recorder.get();
+    const a: Auswahl = r.auswahl;
+    if (was === 'alarm') {
+      a.alarm = !a.alarm;
+    } else if (was === 'quelle') {
+      a.quelle = a.quelle === 'foil' ? 'manual' : 'foil';
+    } else if (was === 'foil') {
+      a.naechstesFoil(r.konfigJetzt());
+    } else if (was === 'layouts') {
+      a.layouts = dreistufig(a.layouts);
+    } else {
+      a.sperre = dreistufig(a.sperre);
+    }
+    r.auswahlAnwenden();
+    this.auswahlTexte();
+  }
+
+  @Builder
+  zeile(text: string, was: string) {
+    Button(text).width(240).height(46).fontSize(18).fontColor('#ffffff').backgroundColor('#1e293b')
+      .margin({ top: 6 })
+      .onClick(() => this.aendern(was))
   }
 
   private starten(): void {
@@ -306,7 +376,7 @@ struct Index {
     this.seite = 2;
     r.start();
     this.letzteBedienung = Date.now();
-    if (r.konfigJetzt().waterLock === 'on') {
+    if (r.sperreAn()) {
       this.gesperrt = true;   // wie Zepp: sperrt gleich beim Start
     }
     this.zeigen();
@@ -453,6 +523,12 @@ struct Index {
           Progress({ value: this.balken, total: 100, type: ProgressType.Linear })
             .width(200).color(CYAN).margin({ top: 10 })
         }
+      } else if (this.ansicht === 'auswahl') {
+        this.zeile(this.zAlarm, 'alarm')
+        this.zeile(this.zQuelle, 'quelle')
+        this.zeile(this.zFoil, 'foil')
+        this.zeile(this.zLayouts, 'layouts')
+        this.zeile(this.zSperre, 'sperre')
       } else if (this.ansicht === 'fertig') {
         Text(this.fZeit).fontSize(30).fontColor('#ffffff')
         Text(this.fStrecke).fontSize(20).fontColor('#ffffff')

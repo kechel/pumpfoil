@@ -83,3 +83,27 @@ test("Seiten.ets: Felder, Ring und Zeichenbefehle bytegleich", { skip: ohneTsc }
     }
   }
 });
+
+test("ArkTS-Seiten: Auswahl und Alarm wie lauf.js", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  const roh = { foils: [{ id: 7, label: "A", min: 12, max: 20 }, { id: 9, label: "B", min: 10, max: 18 }],
+    alarmEnabled: true, alarmDefault: "foil", speedLow: 8, speedHigh: 30, hrHigh: 150, alarmRepeat: "continuous",
+    alarmRepeatS: 4, runDistM: 100, runDistMode: "every", runTimeS: 30 };
+  const kj = new J.Konfig(roh), ka = new A.Konfig(roh);
+  const aj = new J.Auswahl(null), aa = new A.Auswahl(null);
+  aj.vorbelegen(kj); aa.vorbelegen(ka);
+  assert.deepEqual(aa.daten(), aj.daten());
+  aj.naechstesFoil(kj); aa.naechstesFoil(ka);
+  assert.deepEqual(aa.daten(), aj.daten());
+  assert.deepEqual([null, true, false].map(A.dreistufig), [null, true, false].map(J.dreistufig));
+  const lj = new J.Alarm(), la = new A.Alarm();
+  const sj = new J.Stand(), sa = new A.Stand();
+  for (const s of [sj, sa]) { s.foiling = true; s.runStartMs = 5000; s.runStartDist = 10; s.dist = 10; }
+  for (let i = 0; i < 60; i++) {
+    const kmh = [5, 9, 15, 19, 22, 25, 11][i % 7], hr = 140 + (i % 20);
+    sj.dist = sa.dist = 10 + i * 8;
+    if (i === 40) { sj.runStartMs = sa.runStartMs = 45000; sj.runStartDist = sa.runStartDist = 330; }
+    if (i === 20) { aj.quelle = aa.quelle = "manual"; }
+    assert.deepEqual(la.pruefe(ka, aa, kmh, hr, sa, 5 + i, i * 1000), lj.pruefe(kj, aj, kmh, hr, sj, 5 + i, i * 1000), `Takt ${i}`);
+  }
+});

@@ -17,6 +17,38 @@
       "value": "STOP"
     },
     {
+      "name": "auto",
+      "value": "Auto"
+    },
+    {
+      "name": "off",
+      "value": "Off"
+    },
+    {
+      "name": "on",
+      "value": "On"
+    },
+    {
+      "name": "layoutsShort",
+      "value": "Layouts"
+    },
+    {
+      "name": "manual",
+      "value": "Manual"
+    },
+    {
+      "name": "autoFoil",
+      "value": "Auto (foil)"
+    },
+    {
+      "name": "thresholds",
+      "value": "Thresholds"
+    },
+    {
+      "name": "alarm",
+      "value": "Alarm"
+    },
+    {
       "name": "noAccel",
       "value": "no acceleration data"
     },

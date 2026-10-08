@@ -323,6 +323,35 @@ export interface KonfigDaten {
   stopMode?: string;
   autoStart?: boolean;
   waterLock?: string;
+  foils?: Foil[];
+  alarmEnabled?: boolean;
+  alarmDefault?: string;
+  speedLow?: number;
+  speedHigh?: number;
+  hrHigh?: number;
+  alarmPatternHigh?: string;
+  alarmPatternLow?: string;
+  alarmPatternHr?: string;
+  alarmRepeat?: string;
+  alarmRepeatS?: number;
+  runDistM?: number;
+  runDistMode?: string;
+  alarmPatternDist?: string;
+  runTimeS?: number;
+  runTimeMode?: string;
+  alarmPatternTime?: string;
+}
+
+/** Ein Foil der Auswahl (Server devices.py _foil_alarm_list). */
+export interface Foil {
+  id: number;
+  label: string;
+  min: number;
+  max: number;
+}
+
+function ganz(v: number | undefined): number {
+  return v === undefined || v === null ? 0 : Math.trunc(v);
 }
 
 function gueltigeZonen(z: number[] | undefined): number[] | null {
@@ -353,6 +382,25 @@ export class Konfig {
   stopMode: string = 'hold';
   autoStart: boolean = false;
   waterLock: string = 'auto';
+  // Foils + Alarme (wie lauf.js)
+  foils: Foil[] = [];
+  alarmEnabled: boolean = false;
+  alarmDefault: string = 'foil';
+  speedLow: number = 0;
+  speedHigh: number = 0;
+  hrHigh: number = 0;
+  patHigh: string = 'short2';
+  patLow: string = 'long2';
+  patHr: string = 'short1';
+  repeat: string = 'once';
+  repeatS: number = 5;
+  runDistM: number = 0;
+  runDistMode: string = 'once';
+  patDist: string = 'short1';
+  runTimeS: number = 0;
+  runTimeMode: string = 'once';
+  patTime: string = 'short2';
+  layoutsServer: boolean | undefined = undefined;
 
   constructor(k: KonfigDaten | null) {
     if (k === null || k === undefined) {
@@ -390,6 +438,171 @@ export class Konfig {
     this.stopMode = k.stopMode === 'press' ? 'press' : 'hold';
     this.autoStart = k.autoStart === true;   // fehlt -> aus (wie Zepp/Wear/Apple)
     this.waterLock = k.waterLock === 'on' || k.waterLock === 'off' ? k.waterLock : 'auto';
+    this.foils = k.foils !== undefined && k.foils !== null && k.foils.length > 0 ? k.foils : [];
+    this.alarmEnabled = k.alarmEnabled === true;
+    this.alarmDefault = k.alarmDefault === 'fixed' ? 'fixed' : 'foil';
+    this.speedLow = ganz(k.speedLow);
+    this.speedHigh = ganz(k.speedHigh);
+    this.hrHigh = ganz(k.hrHigh);
+    this.patHigh = k.alarmPatternHigh ? k.alarmPatternHigh : 'short2';
+    this.patLow = k.alarmPatternLow ? k.alarmPatternLow : 'long2';
+    this.patHr = k.alarmPatternHr ? k.alarmPatternHr : 'short1';
+    this.repeat = k.alarmRepeat === 'continuous' ? 'continuous' : 'once';
+    this.repeatS = Math.max(2, ganz(k.alarmRepeatS) > 0 ? ganz(k.alarmRepeatS) : 5);
+    this.runDistM = ganz(k.runDistM);
+    this.runDistMode = k.runDistMode === 'every' ? 'every' : 'once';
+    this.patDist = k.alarmPatternDist ? k.alarmPatternDist : 'short1';
+    this.runTimeS = ganz(k.runTimeS);
+    this.runTimeMode = k.runTimeMode === 'every' ? 'every' : 'once';
+    this.patTime = k.alarmPatternTime ? k.alarmPatternTime : 'short2';
+  }
+}
+
+/** Gespeicherte Wahl auf der Uhr (wie lauf.js Auswahl). */
+export interface AuswahlDaten {
+  gesetzt?: boolean;
+  alarm?: boolean;
+  quelle?: string;
+  foilId?: number | null;
+  layouts?: boolean | null;
+  sperre?: boolean | null;
+}
+
+/** Wahl auf der Uhr (Einstellungsseite wie Zepp 4/4), einmal aus dem Profil vorbelegt (wie lauf.js Auswahl). */
+export class Auswahl {
+  gesetzt: boolean = false;
+  alarm: boolean = false;
+  quelle: string = 'foil';
+  foilId: number | null = null;
+  layouts: boolean | null = null;
+  sperre: boolean | null = null;
+
+  constructor(d: AuswahlDaten | null) {
+    if (d === null || d === undefined) {
+      return;
+    }
+    this.gesetzt = d.gesetzt === true;
+    this.alarm = d.alarm === true;
+    this.quelle = d.quelle === 'manual' ? 'manual' : 'foil';
+    this.foilId = typeof d.foilId === 'number' ? d.foilId : null;
+    this.layouts = typeof d.layouts === 'boolean' ? d.layouts : null;
+    this.sperre = typeof d.sperre === 'boolean' ? d.sperre : null;
+  }
+
+  vorbelegen(k: Konfig): void {
+    let da: boolean = false;
+    for (let i = 0; i < k.foils.length; i++) {
+      if (k.foils[i].id === this.foilId) {
+        da = true;
+      }
+    }
+    if (!da) {
+      this.foilId = k.foils.length > 0 ? k.foils[0].id : null;
+    }
+    if (this.gesetzt) {
+      return;
+    }
+    this.gesetzt = true;
+    this.alarm = k.alarmEnabled;
+    this.quelle = k.alarmDefault === 'foil' && k.foils.length > 0 ? 'foil' : 'manual';
+  }
+
+  foil(k: Konfig): Foil | null {
+    for (let i = 0; i < k.foils.length; i++) {
+      if (k.foils[i].id === this.foilId) {
+        return k.foils[i];
+      }
+    }
+    return null;
+  }
+
+  naechstesFoil(k: Konfig): void {
+    const n: number = k.foils.length;
+    if (n === 0) {
+      this.foilId = null;
+      return;
+    }
+    let i: number = 0;
+    for (; i < n; i++) {
+      if (k.foils[i].id === this.foilId) {
+        break;
+      }
+    }
+    this.foilId = k.foils[(i + 1) % n].id;
+  }
+
+  daten(): AuswahlDaten {
+    return { gesetzt: this.gesetzt, alarm: this.alarm, quelle: this.quelle, foilId: this.foilId,
+      layouts: this.layouts, sperre: this.sperre };
+  }
+}
+
+/** Auto -> An -> Aus -> Auto. */
+export function dreistufig(v: boolean | null): boolean | null {
+  return v === null ? true : (v === true ? false : null);
+}
+
+/** Vibrationsalarm wie Zepp/lauf.js Alarm: liefert die Muster, die jetzt vibrieren sollen. */
+export class Alarm {
+  private aktiv: boolean = false;
+  private hrAktiv: boolean = false;
+  private letzt: number = 0;
+  private lauf: number = -1;
+  private distN: number = 0;
+  private zeitN: number = 0;
+
+  pruefe(k: Konfig, a: Auswahl, kmh: number, hr: number, s: Stand, el: number, jetzt: number): string[] {
+    const aus: string[] = [];
+    if (!a.alarm) {
+      return aus;
+    }
+    let lo: number = k.speedLow;
+    let hi: number = k.speedHigh;
+    const f: Foil | null = a.quelle === 'foil' ? a.foil(k) : null;
+    if (f !== null) {
+      lo = f.min;
+      hi = f.max;
+    }
+    const ueber: boolean = hi > 0 && kmh > hi;
+    const unter: boolean = lo > 0 && kmh < lo && kmh >= lo - 2;
+    const wieder: boolean = k.repeat === 'continuous' && jetzt - this.letzt >= k.repeatS * 1000;
+    if (ueber || unter) {
+      if (!this.aktiv || wieder) {
+        this.aktiv = true;
+        this.letzt = jetzt;
+        aus.push(ueber ? k.patHigh : k.patLow);
+      }
+    } else {
+      this.aktiv = false;
+    }
+    if (k.hrHigh > 0 && hr > k.hrHigh) {
+      if (!this.hrAktiv || wieder) {
+        this.hrAktiv = true;
+        this.letzt = jetzt;
+        aus.push(k.patHr);
+      }
+    } else {
+      this.hrAktiv = false;
+    }
+    if (!s.foiling) {
+      return aus;
+    }
+    if (s.runStartMs !== this.lauf) {
+      this.lauf = s.runStartMs;
+      this.distN = 0;
+      this.zeitN = 0;
+    }
+    if (k.runDistM > 0 && (this.distN === 0 || k.runDistMode === 'every') &&
+      s.dist - s.runStartDist >= (this.distN + 1) * k.runDistM) {
+      this.distN++;
+      aus.push(k.patDist);
+    }
+    if (k.runTimeS > 0 && (this.zeitN === 0 || k.runTimeMode === 'every') &&
+      (el * 1000 - s.runStartMs) / 1000 >= (this.zeitN + 1) * k.runTimeS) {
+      this.zeitN++;
+      aus.push(k.patTime);
+    }
+    return aus;
   }
 }
 
