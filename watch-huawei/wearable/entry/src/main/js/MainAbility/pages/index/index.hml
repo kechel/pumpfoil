@@ -1,4 +1,4 @@
-<div class="seite" onswipe="wischen">
+<div class="seite" onswipe="wischen" onlongpress="entsperren" onclick="seiteTipp">
     <!-- Ablauf wie Zepp/Wear/Apple (Jan, 08.10.2026: „genauso von der benutzerfuehrung … wie bei
          anderen uhren"). Waehrend der Aufnahme eine Seitenfolge, hoch/runter gewischt:
            [Aktion] [STOPP] [Datenseiten …] [STOPP] [Aktion]   — Start auf der ersten Datenseite.
