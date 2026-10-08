@@ -231,7 +231,11 @@ function grafik(out, x, typ, ax, ay, st, ci, fl, fid, c) {
   var v = feldZahl(c.s, fid, c.el), f = fuellgrad(c.k, fid, v);
   var grund = (fl & 1) && v !== null ? ZONEN[zone(v, istPuls(fid) ? c.k.hrZones : c.k.speedZones)] : farbe(ci, CYAN);
   var leer = mische(grund, "#000000", 0.3);
-  if (typ === 8) {
+  if (typ === 8 && c.rund === false) {   // eckige Uhr: Rahmensegment wie Zepp layRandPolys (08.10.2026)
+    var lg = Math.max(0, Math.min(1000, x[2] | 0));
+    rahmen(out, dw, dh, th, x[1] | 0, lg, leer);
+    if (f > 0) rahmen(out, dw, dh, th, x[1] | 0, lg * f, grund);
+  } else if (typ === 8) {
     var laenge = Math.max(0, Math.min(1000, x[2] | 0)), r = Math.min(dw, dh) / 2 - th / 2 - 1;
     var a0 = -90 + ((x[1] | 0) % 1000) * 0.36;
     out.push({ k: "a", cx: dw / 2, cy: dh / 2, r: r, w: th, a0: a0, a1: a0 + laenge * 0.36, c: leer });
@@ -241,6 +245,29 @@ function grafik(out, x, typ, ax, ay, st, ci, fl, fid, c) {
     var bx = ax - Math.round(bw / 2), by = ay - Math.round(th / 2);
     out.push({ k: "r", x: bx, y: by, w: bw, h: th, c: leer });
     if (f > 0) out.push({ k: "r", x: bx, y: by, w: Math.max(th, Math.round(bw * f)), h: th, c: grund });
+  }
+}
+
+/**
+ * Rand-Grafik auf eckigen Uhren: den Rahmen ab oberer Mitte im Uhrzeigersinn abgehen, je Seite den
+ * ueberdeckten Abschnitt als Rechteck (rechtwinklige Ecken wie auf Zepp/Garmin). start/laenge in 1/1000
+ * des Umfangs, Strich th mittig auf einer Linie th/2+1 vom Rand.
+ */
+function rahmen(out, dw, dh, th, start, laenge, col) {
+  var e = th / 2 + 1, bw = dw - 2 * e, bh = dh - 2 * e, u = 2 * (bw + bh);
+  var len = [bw / 2, bh, bw, bh, bw / 2];
+  var d0 = ((start % 1000) + 1000) % 1000 / 1000 * u, d1 = d0 + Math.max(0, Math.min(1000, laenge)) / 1000 * u;
+  for (var runde = 0; runde < 2; runde++) {
+    var pos = runde * u;
+    for (var i = 0; i < 5; i++) {
+      var a = Math.max(d0, pos) - pos, b = Math.min(d1, pos + len[i]) - pos, l = Math.max(1, b - a), h = th / 2;
+      if (b > a) {
+        var q = i === 0 ? [e + bw / 2 + a, e - h, l, th] : i === 1 ? [dw - e - h, e + a, th, l]
+          : i === 2 ? [dw - e - b, dh - e - h, l, th] : i === 3 ? [e - h, dh - e - b, th, l] : [e + a, e - h, l, th];
+        out.push({ k: "r", x: Math.round(q[0]), y: Math.round(q[1]), w: Math.round(q[2]), h: Math.round(q[3]), c: col });
+      }
+      pos += len[i];
+    }
   }
 }
 

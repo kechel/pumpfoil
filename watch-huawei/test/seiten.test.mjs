@@ -107,3 +107,17 @@ test("Zeichnen: klassische Seite, Rand-Grafik und Groessenstufen wie gemessen", 
   const g = S.zeichne([1, 4, [[8, 0, 1000, 2, 0, 0, 1]]], ctx);
   assert.equal(g.filter((x) => x.k === "a").length, 1, "Tempo 0 -> nur leere Spur");
 });
+
+test("Rand-Grafik auf eckiger Uhr: Rahmensegmente (Rechtecke) statt Bogen, voller Umfang laeuft einmal herum", () => {
+  const k = new S.Konfig({});
+  const s = new S.Stand();
+  const lay = [1, 0, [[8, 0, 1000, 2, 0, 1, 5]]];   // Rand-Grafik: ab oben, ganzer Umfang, Feld 5
+  const t = (x) => x;
+  const eckig = S.zeichne(lay, { dw: 336, dh: 480, rund: false, s, el: 0, t, jetzt: new Date(), k, idx: 0, anzahl: 1, pausiert: false });
+  assert.equal(eckig.filter((b) => b.k === "a").length, 0, "kein Bogen");
+  const r = eckig.filter((b) => b.k === "r" && b.w < 336 && b.h < 480);
+  assert.ok(r.length >= 5, "Segmente je Seite");
+  for (const b of r) assert.ok(b.x >= 0 && b.y >= 0 && b.x + b.w <= 336 && b.y + b.h <= 480, "im Bild");
+  const rund = S.zeichne(lay, { dw: 454, dh: 454, s, el: 0, t, jetzt: new Date(), k, idx: 0, anzahl: 1, pausiert: false });
+  assert.ok(rund.some((b) => b.k === "a"), "rund (ohne Angabe): Bogen wie bisher");
+});

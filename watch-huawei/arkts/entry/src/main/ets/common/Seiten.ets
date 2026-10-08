@@ -522,6 +522,7 @@ export interface ZeichenKontext {
   idx: number;
   anzahl: number;
   pausiert: boolean;
+  rund?: boolean;   // false = eckige Uhr: Rand-Grafik als Rahmensegment (wie seiten.js)
 }
 
 function rechteck(x: number, y: number, w: number, h: number, c: string): Befehl {
@@ -667,6 +668,32 @@ function layout(e: Seite, c: ZeichenKontext): Befehl[] {
   return out.concat(vorne);
 }
 
+/** Rand-Grafik auf eckigen Uhren, Rahmen ab oberer Mitte im Uhrzeigersinn (wie seiten.js rahmen). */
+function rahmen(out: Befehl[], dw: number, dh: number, th: number, start: number, laenge: number, col: string): void {
+  const e: number = th / 2 + 1;
+  const bw: number = dw - 2 * e;
+  const bh: number = dh - 2 * e;
+  const u: number = 2 * (bw + bh);
+  const len: number[] = [bw / 2, bh, bw, bh, bw / 2];
+  const d0: number = ((start % 1000) + 1000) % 1000 / 1000 * u;
+  const d1: number = d0 + Math.max(0, Math.min(1000, laenge)) / 1000 * u;
+  for (let runde = 0; runde < 2; runde++) {
+    let pos: number = runde * u;
+    for (let i = 0; i < 5; i++) {
+      const a: number = Math.max(d0, pos) - pos;
+      const b: number = Math.min(d1, pos + len[i]) - pos;
+      const l: number = Math.max(1, b - a);
+      const h: number = th / 2;
+      if (b > a) {
+        const q: number[] = i === 0 ? [e + bw / 2 + a, e - h, l, th] : i === 1 ? [dw - e - h, e + a, th, l]
+          : i === 2 ? [dw - e - b, dh - e - h, l, th] : i === 3 ? [e - h, dh - e - b, th, l] : [e + a, e - h, l, th];
+        out.push(rechteck(Math.round(q[0]), Math.round(q[1]), Math.round(q[2]), Math.round(q[3]), col));
+      }
+      pos += len[i];
+    }
+  }
+}
+
 function grafik(out: Befehl[], x: Element, typ: number, ax: number, ay: number, st: number, ci: number,
   fl: number, fid: number, c: ZeichenKontext): void {
   const dw: number = c.dw;
@@ -676,7 +703,13 @@ function grafik(out: Befehl[], x: Element, typ: number, ax: number, ay: number, 
   const f: number = fuellgrad(c.k, fid, v);
   const grund: string = (fl & 1) && v !== null ? ZONEN[zone(v, istPuls(fid) ? c.k.hrZones : c.k.speedZones)] : farbe(ci, CYAN);
   const leer: string = mische(grund, '#000000', 0.3);
-  if (typ === 8) {
+  if (typ === 8 && c.rund === false) {   // eckige Uhr: Rahmensegment (wie seiten.js rahmen)
+    const lg: number = Math.max(0, Math.min(1000, zahl(x[2])));
+    rahmen(out, dw, dh, th, zahl(x[1]), lg, leer);
+    if (f > 0) {
+      rahmen(out, dw, dh, th, zahl(x[1]), lg * f, grund);
+    }
+  } else if (typ === 8) {
     const laenge: number = Math.max(0, Math.min(1000, zahl(x[2])));
     const r: number = Math.min(dw, dh) / 2 - th / 2 - 1;
     const a0: number = -90 + (zahl(x[1]) % 1000) * 0.36;

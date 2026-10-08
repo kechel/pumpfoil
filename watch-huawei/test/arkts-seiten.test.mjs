@@ -73,8 +73,9 @@ test("Seiten.ets: Felder, Ring und Zeichenbefehle bytegleich", { skip: ohneTsc }
       const rj = J.ring(kj, z), ra = A.ring(ka, z);
       assert.deepEqual(ra, rj, `Ring ${z}`);
       rj.forEach((seite, idx) => {
-        for (const pausiert of [false, true]) {
-          const cj = { dw: 466, dh: 466, s: sj, el: 899, t, jetzt, k: kj, idx, anzahl: rj.length, pausiert };
+        // rund 466 und eckig 336x480 (Rand-Grafik als Rahmensegment, 08.10.2026)
+        for (const [pausiert, form] of [[false, 0], [true, 0], [false, 1]]) {
+          const cj = { dw: form ? 336 : 466, dh: form ? 480 : 466, rund: !form, s: sj, el: 899, t, jetzt, k: kj, idx, anzahl: rj.length, pausiert };
           const ca = { ...cj, s: sa, k: ka };
           assert.equal(JSON.stringify(A.zeichne(seite, ca)), JSON.stringify(J.zeichne(seite, cj)), `Seite ${z}/${idx}`);
         }
