@@ -345,6 +345,30 @@ export class Recorder {
   }
 
   /**
+   * NUR DIAGNOSE: kommt per Abo 10 s lang kein (gueltiger) Fix, einmal je 10 s direkt fragen und das
+   * Ergebnis loggen (Emulator 08.10.2026: Abo lieferte nur 0,0, obwohl das GPX-Replay lief). Zeigt,
+   * ob das System eine Position hat, die nur das Abo nicht weitergibt. Aufgezeichnet wird daraus nichts.
+   */
+  private gpsProbe(): void {
+    try {
+      const frage: geoLocationManager.SingleLocationRequest = {
+        locatingPriority: geoLocationManager.LocatingPriority.PRIORITY_LOCATING_SPEED,
+        locatingTimeoutMs: 5000
+      };
+      geoLocationManager.getCurrentLocation(frage)
+        .then((l: geoLocationManager.Location) => {
+          console.info('Pumpfoil GPS Probe: ' + l.latitude.toFixed(5) + ',' + l.longitude.toFixed(5) +
+            ' acc ' + l.accuracy + ' speed ' + l.speed + ' (Abo lieferte 10 s nichts)');
+        })
+        .catch((e: BusinessError) => {
+          console.error('Pumpfoil GPS Probe fehlgeschlagen: ' + e.code);
+        });
+    } catch (e) {
+      console.error('Pumpfoil GPS Probe: ' + (e as BusinessError).code);
+    }
+  }
+
+  /**
    * Ortung im System aus (3301100): einmal je Aufnahme den System-Dialog zeigen, der sie einschaltet
    * (API 12). Im DevEco-Emulator steht der Schalter ab Werk aus, auf echten Uhren schalten Leute ihn
    * zum Akkusparen ab. Der Neuversuch in taktSeiten holt GPS danach ohne Neustart.
@@ -896,6 +920,9 @@ export class Recorder {
     if (!this.gpsAbonniert && jetzt - this.gpsVersuch >= 5000) {
       this.gpsVersuch = jetzt;
       this.gpsAbo();
+    } else if (this.gpsAbonniert && jetzt - this.gpsLetzt > 10000 && jetzt - this.gpsVersuch >= 10000) {
+      this.gpsVersuch = jetzt;
+      this.gpsProbe();
     }
     const f: number[] | null = this.fixNeu;
     this.fixNeu = null;
