@@ -17,6 +17,6 @@ var IOS_PKG = "org.pumpfoil.coolwatch";
 var IOS_FP = "org.pumpfoil.coolwatch";
 /** Reihenfolge = Erstversuch; die Uhr merkt sich, welche zuletzt angenommen hat (kern.Gegenstelle). */
 var GEGENSTELLEN = [[PHONE_PKG, PHONE_FP], [IOS_PKG, IOS_FP]];
-var APP_VERSION = "1.0.1";
+var APP_VERSION = "1.0.2";
 
 export default { GEGENSTELLEN: GEGENSTELLEN, APP_VERSION: APP_VERSION };

@@ -2,6 +2,7 @@
 // Was sich ohne Uhr pruefen laesst, wird hier geprueft (Regel 13.09.2026).
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import K from "../common/kern.js";
 
 test("base64 wie Node", () => {
@@ -275,4 +276,20 @@ test("Gegenstelle: bleibt beim Treffer, wechselt nach 3 Fehlern", () => {
   assert.equal(g.fehler(), true); assert.equal(g.jetzt(), "org.pumpfoil.coolwatch");
   assert.equal(new K.Gegenstelle(["a", "b"], 1).jetzt(), "b");
   assert.equal(new K.Gegenstelle(["a", "b"], 7).jetzt(), "a");
+});
+
+test("Versionsnummer ueberall gleich (common/konfig.js, Konfig.ets, lite/wearable config.json, arkts app.json5)", () => {
+  const lies = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
+  const js = lies("common/konfig.js").match(/APP_VERSION = "([^"]+)"/)[1];
+  const ets = lies("arkts/entry/src/main/ets/common/Konfig.ets").match(/APP_VERSION: string = '([^']+)'/)[1];
+  const app = lies("arkts/AppScope/app.json5");
+  assert.equal(ets, js);
+  assert.equal(app.match(/"versionName": "([^"]+)"/)[1], js);
+  const code = (v) => { const [a, b, c] = v.split(".").map(Number); return a * 1000000 + b * 1000 + c; };
+  assert.equal(Number(app.match(/"versionCode": (\d+)/)[1]), code(js), "versionCode passt zu versionName");
+  for (const p of ["lite", "wearable"]) {
+    const v = JSON.parse(lies(p + "/entry/src/main/config.json")).app.version;
+    assert.equal(v.name, js, p);
+    assert.equal(v.code, code(js), p + " code");
+  }
 });

@@ -7,6 +7,7 @@
  *   Zusammenfassung mit FERTIG. Touch-Sperre bei Profil waterLock „on". Logik in common/Recorder.ets.
  */
 import { Recorder, Zustand, SeitenDaten, Letzte } from '../common/Recorder';
+import { APP_VERSION } from '../common/Konfig';
 import { ring, zeichne, Seite, Befehl, ZeichenKontext, Konfig, Auswahl, Foil, dreistufig } from '../common/Seiten';
 
 // Feldbeschriftungen (Schluessel wie Seiten.ets feld) — Ressourcen f_<schluessel>.
@@ -601,6 +602,10 @@ struct Index {
         this.knopf(this.tStopp, ROT, 'stopp')
       }
       this.infoText()
+      if (this.ansicht === 'bereit') {
+        // Version wie bei Garmin auf dem Startbildschirm: zeigt sofort, welcher Build laeuft.
+        Text('v' + APP_VERSION).fontSize(13).fontColor('#64748b').margin({ top: 4 })
+      }
     }
     .width('100%')
     .height('100%')

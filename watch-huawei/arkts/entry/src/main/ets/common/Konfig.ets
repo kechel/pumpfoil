@@ -13,4 +13,4 @@ export const IOS_PKG: string = 'org.pumpfoil.coolwatch';
 export const IOS_FP: string = 'org.pumpfoil.coolwatch';
 /** Reihenfolge = Erstversuch; die Uhr merkt sich, welche zuletzt angenommen hat. */
 export const GEGENSTELLEN: string[][] = [[PHONE_PKG, PHONE_FP], [IOS_PKG, IOS_FP]];
-export const APP_VERSION: string = '1.0.1';
+export const APP_VERSION: string = '1.0.2';
