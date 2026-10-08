@@ -170,7 +170,7 @@ struct Index {
     if (z.letzterFehler.indexOf('3301100') >= 0) {
       return this.t($r('app.string.gpsOff'));   // Ortung aus: sagen, was zu tun ist, statt Fehlercode
     }
-    if (z.fehler > 0) {
+    if (z.fehler > 0 && z.letzterFehler !== '') {
       return this.t($r('app.string.errors')) + ' ' + z.fehler + ': ' + z.letzterFehler;
     }
     if (z.modus === 'laeuft' && !z.gpsOk) {

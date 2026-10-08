@@ -321,9 +321,15 @@ export class Recorder {
       }
     } catch (e) {
       const code: number = (e as BusinessError).code;
-      this.fehler('gps', 'GPS ' + code);
       if (code === 3301100) {
+        // Ortung aus ist ein ZUSTAND, kein Fehler der Aufnahme: jeder Versuch wird geloggt, aber nicht
+        // gezaehlt (sonst stand nach 5 min „Errors 38" da, Emulator 08.10.2026). Die Infozeile sagt
+        // „GPS aus: Ortung einschalten", solange das gilt.
+        this.letzterFehler = 'GPS 3301100';
+        console.error('Pumpfoil GPS 3301100 (Ortung aus)');
         this.ortungErfragen();
+      } else {
+        this.fehler('gps', 'GPS ' + code);
       }
     }
   }
