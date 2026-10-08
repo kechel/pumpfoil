@@ -104,6 +104,7 @@ const deAT: Record<string, string> = {
   "tech.gTurnStraight": "derselbe Wert, aber nur aus Pumpzügen, wo das Brett gedreht hat (schneller als 8 °/s, vom Kreisel gemessen) bzw. ned gedreht hat",
   "tech.gWhole": "über den ganzen Lauf von Anfang bis Ende, mit Start, Kurven und Sturz, ohne die 10-s-Kürzung (die bisherige Zahl)",
   "tech.gMiddle": "Alle Werte außer „ganzer Lauf“ kommen nur aus dem ruhigen Mittelteil: ohne die ersten und letzten 10 s, Läufe unter 30 s werden ned ausgewertet. {n} Läufe.",
+  "tech.gHeave": "Der Hub wird am Handy gemessen: Je weiter es vom Mast weg sitzt, desto mehr Rauf und Runter kommt vom Nicken dazu. Hub-Werte deshalb nur zwischen Aufnahmen mit dem Handy an derselben Stelle vergleichen.",
   "tech.sStraight": "gerade",
   "tech.kgTitle": "In Kurven gegen geradeaus",
   "tech.strokes": "Pumpzüge",
