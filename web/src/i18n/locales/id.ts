@@ -1207,7 +1207,7 @@ const id: Record<string, string> = {
   "watches.nApple": "Akselerasi mentah via Core Motion.",
   "watches.nWear": "Berjalan di jam Wear OS 3+ mana pun — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Akses sensor tergantung modelnya.",
-  "watches.nHuawei": "Beta sedang dibuat: merekam di jam, kirim lewat aplikasi Pumpfoil – hanya ponsel Android.",
+  "watches.nHuawei": "Beta sedang dibuat: merekam di jam, kirim lewat aplikasi Pumpfoil – hanya ponsel Android. Jam mana memberi data apa masih perlu diuji.",
   "watches.nPolar": "Tautkan akunmu → impor latihan (GPS + HR). Ekspor API tidak menyertakan aliran accel mentah laju-tinggi yang dibutuhkan untuk deteksi pump (hanya via sensor BLE terpisah).",
   "watches.nSuunto": "Tautkan akunmu → impor latihan (GPS + HR). Ekspor FIT (belum) menyertakan aliran accel mentah laju-tinggi yang dibutuhkan untuk deteksi pump.",
   "linked.xiaomi.title": "Jam Xiaomi dan Redmi",
