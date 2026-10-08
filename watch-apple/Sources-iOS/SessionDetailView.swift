@@ -1817,6 +1817,35 @@ private class EndPunkt: NSObject, MKAnnotation {
 // Track auf MapKit-Karte: nur die Foiling-Läufe (segments[].i_start..i_end), je Punktpaar
 // nach Modus (Speed/Puls/Pump) gefärbt; Nicht-Foiling unsichtbar; optional weiße Pump-Marker.
 // iOS-16-tauglich über MKMapView (neue SwiftUI-Map-Polyline-API erst ab iOS 17).
+/// Ein Linienzug gleicher Farbe und Breite (TrackMap). Farben gelten als gleich, wenn sich kein
+/// Kanal um mehr als 0,04 unterscheidet — fuer das Auge derselbe Ton, fuer MapKit ein Overlay
+/// statt Hunderten.
+struct Strich {
+    var coords: [CLLocationCoordinate2D]
+    var farbe: UIColor
+    var breite: CGFloat
+
+    static func anfuegen(_ liste: inout [Strich], _ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D,
+                         _ farbe: UIColor, _ breite: CGFloat) {
+        if let n = liste.indices.last, liste[n].breite == breite, aehnlich(liste[n].farbe, farbe),
+           let ende = liste[n].coords.last, ende.latitude == a.latitude, ende.longitude == a.longitude {
+            liste[n].coords.append(b)
+            return
+        }
+        liste.append(Strich(coords: [a, b], farbe: farbe, breite: breite))
+    }
+
+    private static func aehnlich(_ x: UIColor, _ y: UIColor) -> Bool {
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        guard x.getRed(&r1, green: &g1, blue: &b1, alpha: &a1), y.getRed(&r2, green: &g2, blue: &b2, alpha: &a2) else {
+            return x == y
+        }
+        let d: CGFloat = 0.04
+        return abs(r1 - r2) <= d && abs(g1 - g2) <= d && abs(b1 - b2) <= d && abs(a1 - a2) <= d
+    }
+}
+
 struct TrackMap: UIViewRepresentable {
     // Karten-Ebene appweit (s. MapTiles.swift). Aenderung loest updateUIView aus.
     @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
@@ -1867,15 +1896,33 @@ struct TrackMap: UIViewRepresentable {
         }
     }
 
+    /// Was die Karte bestimmt. Gleich wie beim letzten Mal -> nichts neu bauen: TrackMap hat eine
+    /// Closure-Eigenschaft, SwiftUI ruft updateUIView deshalb bei JEDER Neuzeichnung der Seite auf
+    /// (Versuche geladen, Cache-Auffrischung, Farbmodus …). Bei Nicolas_Is 6-h-Lauf (21.766 Punkte,
+    /// 08.10.2026) fror die App dabei ein.
+    private func signatur() -> String {
+        let segs: String = segments.map { "\($0.i_start)-\($0.i_end)-\(($0.pump_idx ?? []).count)" }.joined(separator: ",")
+        let a: [Double] = points.first ?? [], b: [Double] = points.last ?? []
+        return "\(ebene)|\(points.count)|\(a)|\(b)|\(segs)|\(mode)|\(hrRange.0)-\(hrRange.1)|\(pumpRange.0)-\(pumpRange.1)|"
+            + "\(showPumps)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
+    }
+
     func updateUIView(_ map: MKMapView, context: Context) {
+        let co = context.coordinator
+        co.onSelectRun = onSelectRun
+        let sig: String = signatur()
+        if sig == co.signatur { return }
+        co.signatur = sig
         map.mapType = MapTiles.typ(ebene)
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
-        let co = context.coordinator
         co.colors.removeAll(); co.widths.removeAll(); co.dashes.removeAll()
-        co.points = points; co.segments = segments; co.onSelectRun = onSelectRun
+        co.points = points; co.segments = segments
         var all: [CLLocationCoordinate2D] = []
         var sel: [CLLocationCoordinate2D] = []
+        // Benachbarte Punktpaare mit (fast) gleicher Farbe und Breite werden EINE Linie, und alle
+        // Linien gehen in einem Rutsch auf die Karte. Vorher: eine MKPolyline je Punktpaar.
+        var striche: [Strich] = []
         // Ohne erkannte Laeufe (GPS-only, grobes FIT-GPS, oder der Detektor fand nichts): die
         // KOMPLETTE Spur zeichnen, damit man die Fahrt trotzdem sieht — wie die PWA. Groessere
         // Lueckenschwelle, weil grobe Trackpunkte weiter auseinanderliegen.
@@ -1888,10 +1935,7 @@ struct TrackMap: UIViewRepresentable {
                 let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
                     .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
                 if gap <= 200 {
-                    let pl = MKPolyline(coordinates: [ca, cb], count: 2)
-                    co.colors[ObjectIdentifier(pl)] = colorAt(i + 1)
-                    co.widths[ObjectIdentifier(pl)] = 5
-                    map.addOverlay(pl)
+                    Strich.anfuegen(&striche, ca, cb, colorAt(i + 1), 5)
                     all.append(ca); all.append(cb)
                 }
                 i += 1
@@ -1914,10 +1958,8 @@ struct TrackMap: UIViewRepresentable {
                 let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
                     .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
                 if gap <= maxGapM {
-                    let pl = MKPolyline(coordinates: [ca, cb], count: 2)
-                    co.colors[ObjectIdentifier(pl)] = dim ? UIColor.systemGray.withAlphaComponent(0.5) : colorAt(i + 1)
-                    co.widths[ObjectIdentifier(pl)] = dim ? 2.5 : 5
-                    map.addOverlay(pl)
+                    Strich.anfuegen(&striche, ca, cb, dim ? UIColor.systemGray.withAlphaComponent(0.5) : colorAt(i + 1),
+                                    dim ? 2.5 : 5)
                     all.append(ca); all.append(cb)
                     if !dim { sel.append(ca); sel.append(cb) }
                 }
@@ -1931,6 +1973,15 @@ struct TrackMap: UIViewRepresentable {
                 }
             }
         }
+        var linien: [MKPolyline] = []
+        for st in striche {
+            let pl = MKPolyline(coordinates: st.coords, count: st.coords.count)
+            co.colors[ObjectIdentifier(pl)] = st.farbe
+            co.widths[ObjectIdentifier(pl)] = st.breite
+            linien.append(pl)
+        }
+        map.addOverlays(linien)
+        striche.removeAll()
         // Startversuche NACH den Laeufen, damit sie darueber liegen: ihre Linien sind duenner,
         // ein Lauf wuerde sie sonst verdecken. Gestrichelt und bernsteinfarben wie in PWA und
         // Android; ausserhalb des ausgewerteten Bereichs feiner gestrichelt und blasser.
@@ -1958,15 +2009,22 @@ struct TrackMap: UIViewRepresentable {
                     if p0.count >= 3 && p1.count >= 3 {
                         let c0 = CLLocationCoordinate2D(latitude: p0[0], longitude: p0[1])   // [lat,lon,g]
                         let c1 = CLLocationCoordinate2D(latitude: p1[0], longitude: p1[1])
-                        let pl = MKPolyline(coordinates: [c0, c1], count: 2)
-                        co.colors[ObjectIdentifier(pl)] = carveColor(p1[2], carveGMax)
-                        co.widths[ObjectIdentifier(pl)] = 6
-                        map.addOverlay(pl)
+                        Strich.anfuegen(&striche, c0, c1, carveColor(p1[2], carveGMax), 6)
                         all.append(c0); all.append(c1)
                     }
                     k += 1
                 }
             }
+        }
+        if !striche.isEmpty {
+            var boegen: [MKPolyline] = []
+            for st in striche {
+                let pl = MKPolyline(coordinates: st.coords, count: st.coords.count)
+                co.colors[ObjectIdentifier(pl)] = st.farbe
+                co.widths[ObjectIdentifier(pl)] = st.breite
+                boegen.append(pl)
+            }
+            map.addOverlays(boegen)
         }
         // Auf den ausgewählten Lauf zoomen, sonst auf alle Foiling-Läufe.
         let fit = (selectedRun != nil && !sel.isEmpty) ? sel : all
@@ -1990,6 +2048,7 @@ struct TrackMap: UIViewRepresentable {
         var colors: [ObjectIdentifier: UIColor] = [:]
         var widths: [ObjectIdentifier: CGFloat] = [:]
         var dashes: [ObjectIdentifier: [NSNumber]] = [:]   // gestrichelt (Startversuche)
+        var signatur: String = ""   // s. TrackMap.signatur
         var points: [[Double]] = []
         var segments: [Segment] = []
         var onSelectRun: ((Int) -> Void)?
