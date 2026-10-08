@@ -142,9 +142,10 @@ export default {
     var ctx = { dw: this.dw, dh: this.dh, rund: this.rund !== false, s: c.s, el: c.el, k: c.k, jetzt: new Date(), pausiert: c.pausiert,
       idx: this.seite - 2, anzahl: ring.length, t: function (k) { return that.texte[k] || k; } };
     var b = S.zeichne(ring[this.seite - 2], ctx);
-    // Touch-Sperre auf den Datenseiten sichtbar (wie Zepps Zeile unten), beim Antippen mit Anleitung
-    if (this.gesperrt) b.push({ k: "t", x: this.dw / 2, y: Math.round(this.dh * 0.86), s: 30, c: "#fbbf24", a: "c",
-      txt: this.sperrHinweis ? this.tx.lockHold : this.tx.lock, b: false });
+    // Touch-Sperre: gelber Strich ganz unten; Text nur beim Antippen, auf schwarzem Band (lag sonst ueber Feld 3)
+    var w = this.dw, h = this.dh, z = this.sperrHinweis;
+    if (this.gesperrt) b.push({ k: "r", x: z ? 0 : w * 0.4, y: h * (z ? 0.78 : 0.94), w: z ? w : w * 0.2, h: z ? h * 0.16 : 6, c: z ? "#000" : "#fbbf24" },
+      { k: "t", x: w / 2, y: h * 0.86, s: 30, c: "#fbbf24", a: "c", txt: z ? this.tx.lockHold : "", b: false });
     this.malen(b);
   },
   /** Zeichenbefehle ausfuehren — der Zeichner liegt im app.js-Buendel (common/maler.js), die Seite ist knapp. */
