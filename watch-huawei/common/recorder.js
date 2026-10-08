@@ -254,7 +254,9 @@ function p2p() {
     // Rueckweg Handy -> Uhr: die Seiten-Konfiguration (Antwort auf das Hallo), in Teilen wie hin.
     R.p2p.registerReceiver({
       onSuccess: function () {},
-      onFailure: function () { fehler("speicher", "Empfang Handy"); },
+      // Kein Speicherfehler: das Handy ist nur nicht erreichbar — das sagt schon „Pumpfoil am Handy oeffnen".
+      // Gezaehlt unter „sonst" (im Log, nicht als Fehler auf der Uhr).
+      onFailure: function () { fehler("sonst", "Empfang Handy"); },
       onReceiveMessage: function (m) { if (typeof m === "string") konfigTeil(m); }
     });
   }
