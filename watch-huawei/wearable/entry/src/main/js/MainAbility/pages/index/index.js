@@ -6,8 +6,11 @@
 import app from "@system.app";
 import vibrator from "@system.vibrator";
 import device from "@system.device";
-import R from "../../common/recorder.js";
 import S from "../../common/seiten.js";
+
+// Der Recorder steckt im app.js-Buendel (s. dort, Grund: 48 KB Uebersetzungs-Heap je Buendel).
+// Gesetzt in onInit (dann steht das App-Objekt sicher).
+var R = null;
 
 // Feldbeschriftungen (Schluessel wie seiten.js feld) aus den i18n-Dateien.
 var FELDTEXTE = ["kmh3s", "kmhAvg", "kmhMax", "bpmAvg", "bpmMax", "time", "dist", "clock", "runActive",
@@ -30,6 +33,7 @@ export default {
   },
   onInit() {
     console.info("Pumpfoil Seite onInit");
+    R = getApp().R;
     this.knopfStart = this.$t("strings.start");
     this.knopfPause = this.$t("strings.pause");
     this.knopfWeiter = this.$t("strings.resume");

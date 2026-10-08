@@ -18,11 +18,26 @@ for p in lite wearable arkts; do
   (cd "$p" && hvigorw assembleHap --mode module -p product=default --no-daemon) | grep -E "ERROR|Error Message|At File|BUILD" 
   ls -la "$p/entry/build/default/outputs/default/"*.hap
 done
-# Lite: eine Seite ueber ~48 KB scheitert beim Installieren (Huawei-Forum, docs/HUAWEI.md). Der
-# Debug-Build ist unminifiziert und lag am 07.10. schon bei 47,9 KB — Release (minifiziert) bei 28,7 KB.
-# Deshalb Lite zusaetzlich als Release bauen und beide Groessen zeigen; Release ueber 44 KB bricht ab.
-(cd lite && hvigorw assembleHap --mode module -p product=default -p buildMode=release --no-daemon) | grep -E "ERROR|BUILD"
-SEITE=lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/pages/index/index.js
-REL=$(wc -c < "$SEITE")
-echo "Lite-Seite (Release): $REL Byte (Grenze ~49152; Debug-Build ist ~1,7x groesser)"
-[ "$REL" -le 45056 ] || { echo "FEHLER: Lite-Seite zu gross fuer GT/Fit — Code verkleinern"; exit 1; }
+# Lite: die JerryScript-Engine uebersetzt JEDES Buendel (app.js, pages/index) in 48 KB Heap (gemessen
+# am 08.10.2026: jerry --mem-stats meldet „Heap size = 49144"). Nicht die Dateigroesse zaehlt, sondern
+# der Heap beim Uebersetzen — darueber scheitert der Snapshot und die Seite bleibt schwarz. Deshalb
+# Recorder im app.js-Buendel, Zeichnen im Seiten-Buendel, und hier je Buendel die Heap-Spitze pruefen.
+# Die Uhr laedt die Seite als JerryScript-Snapshot (.bc). Scheitert der Snapshot, warnt hvigor nur
+# („Failed to convert … to a snapshot") und baut trotzdem — die Seite bleibt dann SCHWARZ (08.10.2026:
+# ein Regex-Literal; JerryScript der Lite-Uhren kennt keine). Deshalb hier hart pruefen, Release und
+# Debug. Nur lite/: die Watch-3/4-Linie (wearable/) laeuft auf einer vollen JS-Engine ohne Snapshot.
+JB="$CLT/sdk/default/openharmony/js/build-tools/ace-loader/bin"
+BC=$(mktemp)
+for m in release debug; do
+  (cd lite && hvigorw assembleHap --mode module -p product=default -p buildMode=$m --no-daemon) | grep -E "ERROR" || true
+  for f in lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/app.js \
+           lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/pages/index/index.js; do
+    "$JB/jerry-snapshot" generate -o "$BC" "$f" >/dev/null 2>&1 \
+      || { echo "FEHLER: lite ($m) $f laesst sich nicht als Snapshot bauen (Syntax wie Regex-Literal, oder Heap)"; rm -f "$BC"; exit 1; }
+    H=$("$JB/jerry" --mem-stats --parse-only "$f" 2>&1 | sed -n 's/^  Peak allocated = \([0-9]*\) bytes/\1/p' | head -1)
+    echo "  lite $m $(basename "$f"): $(wc -c < "$f") Byte, Heap-Spitze $H von 49144"
+    [ "${H:-99999}" -le 44000 ] || { echo "FEHLER: $f braucht beim Uebersetzen zu viel Heap (Grenze 44000 = 90 %) — verkleinern oder aufteilen"; rm -f "$BC"; exit 1; }
+  done
+done
+rm -f "$BC"
+echo "Snapshot-Pruefung ok (lite, release + debug)"

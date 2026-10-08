@@ -45,8 +45,13 @@ halbstuendlich ein Hallo (`h_hallo.json`: Modell + Version) -> Android holt mit 
 Uhr speichert `konfig.json`. Ohne Konfiguration: Standardseiten.
 Bewusste Abweichungen: Lite kennt nur die Schriftgroessen 30/38 px (Watch 3/4 und ArkTS zeichnen die
 echte Groesse); Alarme, Foil-Auswahl und Verwerfen-Seite gibt es auf Huawei (noch) nicht.
-**GT/Fit/D2 nur mit RELEASE-Builds testen:** die Seite ist minifiziert 44 KB (Grenze ~48 KB), ein
-Debug-Build waere ~75 KB und liesse sich nicht installieren. `build-all.sh` bricht ueber 44 KB ab.
+**Lite-Grenze ist der UEBERSETZUNGS-HEAP, nicht die Dateigroesse** (gemessen 08.10.2026): JerryScript
+uebersetzt jedes Buendel (app.js, pages/index) in 48 KB Heap und kennt keine Regex-Literale. Scheitert
+das, warnt hvigor nur („Failed to convert … to a snapshot") — die Seite bleibt SCHWARZ, ohne Log.
+Deshalb lebt der Recorder (kern, recorder, lauf, Wear Engine) im app.js-Buendel, die Seite holt ihn per
+`getApp().R`; Zeichnen (seiten.js) liegt im Seiten-Buendel. `build-all.sh` baut Release und Debug,
+erzeugt den Snapshot und bricht ueber 90 % Heap ab (Stand: app 36-38 KB, Seite 23 KB). Debug geht so
+auch im Simulator.
 Ungeprueft auf Hardware: welche Canvas-Aufrufe Lite wirklich kann (Bogen, Linienbreite) und die
 Grundlinie von `fillText` (mittig angenommen).
 
@@ -124,8 +129,8 @@ Ablauf-Logs: DevEco > Log, Filter `Pumpfoil`.
 DevEco Studio 6.x (macOS/Windows) → `watch-huawei/lite` bzw. `watch-huawei/wearable` oeffnen → Build HAP(s).
 Die Watch-3/4-Linie (HarmonyOS 2-4) ist aelter; bietet DevEco beim Oeffnen eine Migration an,
 annehmen und nur `config.json`/Seiten behalten. Danach im
-Build-Log die Bundle-Groesse ansehen: laut einem Forumsbericht scheitern Lite-Bundles ueber
-~48 KB beim Installieren.
+Build-Log auf „Failed to convert … to a snapshot" achten: dann ist ein Buendel zu gross oder nutzt
+Syntax, die JerryScript nicht kennt (s. oben, `build-all.sh` prueft das).
 
 ## Herkunft
 

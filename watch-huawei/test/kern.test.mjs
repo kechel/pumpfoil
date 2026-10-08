@@ -185,7 +185,7 @@ test("Projekt-Kopien von common/ sind aktuell (sonst ./sync-common.sh)", async (
   for (const proj of ["lite", "wearable"]) {
     const ziel = url(`../${proj}/entry/src/main/js/MainAbility/common/`);
     if (!fs.existsSync(ziel)) continue;
-    for (const f of ["kern.js", "recorder.js", "konfig.js", "seiten.js"]) {
+    for (const f of ["kern.js", "recorder.js", "konfig.js", "seiten.js", "lauf.js"]) {
       assert.equal(fs.readFileSync(new URL(f, ziel), "utf8"), fs.readFileSync(url(`../common/${f}`), "utf8"),
         `${proj}/${f} weicht ab — ./sync-common.sh`);
     }

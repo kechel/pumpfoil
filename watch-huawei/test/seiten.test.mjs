@@ -1,7 +1,9 @@
 // Datenseiten (common/seiten.js): Lauf-Erkennung, Felder, Seiten-Ring, Zeichenbefehle.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import S from "../common/seiten.js";
+import S0 from "../common/seiten.js";
+import SL from "../common/lauf.js";
+const S = { ...S0, ...SL };   // Stand/Konfig liegen seit 08.10. in lauf.js
 
 const t = (k) => k;   // Texte: Schluessel selbst
 const ostwaerts = (lat, lon, m) => [lat, lon + m / (111320 * Math.cos(lat * Math.PI / 180))];
