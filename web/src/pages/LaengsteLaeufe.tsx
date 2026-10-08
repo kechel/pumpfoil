@@ -7,7 +7,7 @@
 // (GET /api/sessions/longest-runs). Die Kurven je Lauf brauchen die volle Session (Puls je
 // Trackpunkt) und bei „Handy am Brett" die Lage-Kennzahlen je Lauf — beides holt die Seite je
 // betroffener Session nach. Bei fuenf Laeufen sind das hoechstens fuenf Abrufe.
-import { KorrekturUmschalter, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
+import { KorrekturUmschalter, LAUF_GRUPPE, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
@@ -330,7 +330,6 @@ export default function LaengsteLaeufe() {
                       : <th key={key} className="px-3 py-2 text-right font-medium">{label}</th>} />
                   </tr>
                 </thead>
-                <tbody>
                   {anordnen(brettLaeufe, vergleich.filter((v) => v.placement === "board"), true).map((l) => {
                     const k = lage[l.session_id]?.find((x) => x.lauf === l.run_idx);
                     const kopfZellen = (n: number) => (<>
@@ -342,18 +341,19 @@ export default function LaengsteLaeufe() {
                       <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums font-semibold">{mmss(l.duration_s)}</td>
                       <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{l.distance_m != null ? `${Math.round(l.distance_m)} m` : "–"}</td>
                     </>);
-                    const zeile = `cursor-pointer hover:bg-slate-800/50 ${zeilenFarbe(l)}`;
+                    const zeile = `cursor-pointer ${LAUF_HOVER} ${zeilenFarbe(l)}`;
                     // Je Lauf eine Zeile pro Phase, wie „Lage je Lauf" in den Session-Details (Jan, 08.10.2026).
                     return !k?.ok ? (
-                      <tr key={schl(l)} onClick={() => umschalten(schl(l))} className={`${zeile} border-b border-slate-800/50`}>
+                      <tbody key={schl(l)} className={LAUF_GRUPPE}>
+                      <tr onClick={() => umschalten(schl(l))} className={zeile}>
                         {kopfZellen(1)}
                         <td colSpan={8} className="px-3 py-2 text-slate-500">{lage[l.session_id] ? "–" : "…"}</td>
                       </tr>
+                      </tbody>
                     ) : (
                       <LaufPhasenZeilen key={schl(l)} k={k} korr={lageKorr} onClick={() => umschalten(schl(l))} className={zeile} vorne={kopfZellen} />
                     );
                   })}
-                </tbody>
               </table>
               <LaufLegende />
             </Card>

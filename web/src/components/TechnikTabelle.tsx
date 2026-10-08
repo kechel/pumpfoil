@@ -298,20 +298,26 @@ export function LaufPhasenZeilen({ k, vorne, hinten, onClick, className, korr = 
   const t = useT();
   const zeilen = phasenDesLaufs(k, t, korr);
   const n = zeilen.length;
+  // Eigener <tbody> je Lauf (Jan, 08.10.2026): Hover faerbt ueber `group` den GANZEN Lauf, egal ueber
+  // welcher Phasenzeile die Maus steht, und die Trennlinie zwischen den Laeufen sitzt am tbody.
   return (
-    <>
+    <tbody className={LAUF_GRUPPE}>
       {zeilen.map((z, i) => (
-        <tr key={z.phase} onClick={onClick}
-          className={`${className ?? ""} ${i === n - 1 ? "border-b border-slate-800" : ""}`}>
+        <tr key={z.phase} onClick={onClick} className={className ?? ""}>
           {i === 0 && vorne(n)}
           <td className="px-3 py-1.5 whitespace-nowrap">{z.phase}</td>
           <PhasenWerte z={z} />
           {i === 0 && hinten?.(n)}
         </tr>
       ))}
-    </>
+    </tbody>
   );
 }
+
+/** tbody je Lauf: `group` fuer den Hover ueber alle Phasenzeilen, kraeftigere Trennlinie zwischen Laeufen. */
+export const LAUF_GRUPPE = "group border-b border-slate-700";
+/** Hover-Klasse fuer die Zeilen eines Laufs (wirkt ueber LAUF_GRUPPE auf den ganzen Lauf). */
+export const LAUF_HOVER = "group-hover:bg-slate-800/50";
 
 /** Eine Zeile im Zell-Raster: Beschriftung | Wert | Klammer (unkorrigiert). `haupt` = Hauptzahl (cyan, fett). */
 export type RasterZeile = { label: string; wert: string | null; klammer?: string | null; haupt?: boolean };
