@@ -33,6 +33,8 @@
     "f_lastRunMaxHr": "letzter max bpm",
     "f_allRunsDist": "olle Läufe Dist",
     "f_allRunsTime": "olle Läufe Zeit",
-    "done": "FERTIG"
+    "done": "FERTIG",
+    "lock": "Touch-Sperre",
+    "lockHold": "halten = entsperren"
   }
 }

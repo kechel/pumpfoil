@@ -33,6 +33,8 @@
     "f_lastRunMaxHr": "last max bpm",
     "f_allRunsDist": "all runs dist",
     "f_allRunsTime": "all runs time",
-    "done": "DONE"
+    "done": "DONE",
+    "lock": "Touch lock",
+    "lockHold": "hold to unlock"
   }
 }
