@@ -119,7 +119,7 @@ const nb: Record<string, string> = {
   "tech.gTurnStraight": "samme verdi, men bare fra pumpetak mens brettet svingte (raskere enn 8°/s, målt av gyroskopet) eller ikke svingte",
   "tech.gWhole": "over hele runen fra start til slutt, med start, svinger og fall, uten 10 s avkutting (det tidligere tallet)",
   "tech.gMiddle": "Alle verdier unntatt «hele runen» kommer bare fra den rolige midtdelen: uten de første og siste 10 s; runs under 30 s vurderes ikke. {n} runs.",
-  "tech.gHeave": "Opp og ned måles ved telefonen: jo lenger fra masten den sitter, desto mer kommer fra stampingen. Sammenlign derfor bare mellom opptak med telefonen på samme sted.",
+  "tech.gHeave": "Opp og ned måles ved telefonen, ikke i et fast punkt på brettet: avhengig av hvor den sitter, legger stampingen til mer eller mindre bevegelse, og punktet brettet stamper rundt er ikke kjent. Sammenlign derfor bare mellom opptak med telefonen på samme sted.",
   "tech.sStraight": "rett frem",
   "tech.kgTitle": "I svinger mot rett frem",
   "tech.strokes": "Pumpetak",

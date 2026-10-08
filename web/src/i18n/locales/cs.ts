@@ -121,7 +121,7 @@ const cs: Record<string, string> = {
   "tech.gTurnStraight": "stejná hodnota, ale jen z pumpnutí, během nichž se prkno točilo (rychleji než 8°/s, měřeno gyroskopem), resp. netočilo",
   "tech.gWhole": "přes celou jízdu od začátku do konce, se startem, zatáčkami a pádem, bez zkrácení o 10 s (dosavadní hodnota)",
   "tech.gMiddle": "Všechny hodnoty kromě „celá jízda“ pocházejí jen z klidné střední části: bez prvních a posledních 10 s; jízdy kratší než 30 s se nevyhodnocují. Jízd: {n}.",
-  "tech.gHeave": "Zdvih se měří u telefonu: čím dál od stěžně sedí, tím víc se k němu přičte klopení. Zdvih porovnávej jen mezi záznamy s telefonem na stejném místě.",
+  "tech.gHeave": "Zdvih se měří u telefonu, ne v pevném bodě prkna: podle toho, kde telefon sedí, přidá klopení víc nebo míň pohybu, a kolem kterého bodu prkno klopí, není známo. Zdvih porovnávej jen mezi záznamy s telefonem na stejném místě.",
   "tech.sStraight": "rovně",
   "tech.kgTitle": "V zatáčkách vs. rovně",
   "tech.strokes": "Pumpnutí",

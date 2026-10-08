@@ -119,7 +119,7 @@ const it: Record<string, string> = {
   "tech.gTurnStraight": "lo stesso valore, ma solo dalle pompate in cui la tavola girava (oltre 8°/s, misurato dal giroscopio) o non girava",
   "tech.gWhole": "sull'intero run dall'inizio alla fine, con partenza, curve e caduta, senza togliere i 10 s (il valore precedente)",
   "tech.gMiddle": "Tutti i valori tranne «run intero» vengono solo dalla parte centrale stabile: senza i primi e gli ultimi 10 s; i run sotto i 30 s non vengono valutati. {n} run.",
-  "tech.gHeave": "L'escursione è misurata al telefono: più è lontano dall'albero, più vi si somma il beccheggio. Confronta l'escursione solo tra registrazioni con il telefono nello stesso punto.",
+  "tech.gHeave": "L'escursione è misurata al telefono, non in un punto fisso della tavola: a seconda di dove si trova, il beccheggio aggiunge più o meno movimento, e il punto attorno a cui la tavola beccheggia non è noto. Confronta l'escursione solo tra registrazioni con il telefono nello stesso punto.",
   "tech.sStraight": "rettilineo",
   "tech.kgTitle": "In curva vs rettilineo",
   "tech.strokes": "Pompate",

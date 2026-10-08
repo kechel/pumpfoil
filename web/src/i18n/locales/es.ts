@@ -119,7 +119,7 @@ const es: Record<string, string> = {
   "tech.gTurnStraight": "el mismo valor, pero solo de los bombeos en los que la tabla giraba (más de 8°/s, medido por el giroscopio) o no giraba",
   "tech.gWhole": "sobre todo el tramo de principio a fin, con salida, curvas y caída, sin recortar los 10 s (el valor anterior)",
   "tech.gMiddle": "Todos los valores salvo «tramo completo» salen solo de la parte central estable: sin los primeros y últimos 10 s; los tramos de menos de 30 s no se evalúan. {n} tramos.",
-  "tech.gHeave": "El recorrido vertical se mide en el móvil: cuanto más lejos del mástil, más se le suma el cabeceo. Compara el recorrido solo entre grabaciones con el móvil en el mismo sitio.",
+  "tech.gHeave": "El recorrido vertical se mide en el móvil, no en un punto fijo de la tabla: según dónde esté, el cabeceo añade más o menos movimiento, y no se sabe alrededor de qué punto cabecea la tabla. Compara el recorrido solo entre grabaciones con el móvil en el mismo sitio.",
   "tech.sStraight": "recta",
   "tech.kgTitle": "En curva frente a recta",
   "tech.strokes": "Bombeos",

@@ -121,7 +121,7 @@ const nl: Record<string, string> = {
   "tech.gTurnStraight": "dezelfde waarde, maar alleen uit pompslagen waarin het board draaide (sneller dan 8°/s, gemeten door de gyroscoop) of niet draaide",
   "tech.gWhole": "over de hele run van begin tot eind, met start, bochten en val, zonder de 10 s inkorting (het eerdere getal)",
   "tech.gMiddle": "Alle waarden behalve ‘hele run’ komen alleen uit het rustige middendeel: zonder de eerste en laatste 10 s; runs korter dan 30 s worden niet beoordeeld. {n} runs.",
-  "tech.gHeave": "Het op-en-neer wordt bij de telefoon gemeten: hoe verder die van de mast zit, hoe meer het stampen erbij komt. Vergelijk het op-en-neer alleen tussen opnames met de telefoon op dezelfde plek.",
+  "tech.gHeave": "Het op-en-neer wordt bij de telefoon gemeten, niet op een vast punt van het board: afhankelijk van waar die zit, voegt het stampen meer of minder beweging toe, en om welk punt het board stampt is niet bekend. Vergelijk het alleen tussen opnames met de telefoon op dezelfde plek.",
   "tech.sStraight": "rechtdoor",
   "tech.kgTitle": "In bochten vs. rechtdoor",
   "tech.strokes": "Pompslagen",
