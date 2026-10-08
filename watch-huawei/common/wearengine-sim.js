@@ -6,6 +6,10 @@
  * das Simulator-Feld „Distributed Capability" (s. registerReceiver).
  * NIE fuer eine echte Uhr bauen — build-all.sh synct vorher und stellt den echten Import her.
  */
+// Seiten-Konfiguration, die ./sim.sh an <datei.json> hier unten anhaengt (SIM_KONFIG = …): kommt kurz nach
+// dem Start wie vom Handy an, in Teilen wie die Android-Bruecke sie schickt (HuaweiBruecke.konfigTeile).
+var SIM_KONFIG = null;
+
 export function P2pClient() {}
 P2pClient.prototype.setPeerPkgName = function () {};
 P2pClient.prototype.setPeerFingerPrint = function () {};
@@ -13,6 +17,13 @@ P2pClient.prototype.setPeerFingerPrint = function () {};
 // FeatureAbility.subscribeMsg an — derselbe Weg, den wearengine.js auf Wear-Engine-Versionen < 401 nimmt.
 // Testen: Message = PF1|k_konfig.json|0|1|1|{"views":[[1,2,3]],"layoutsOn":false}  -> Datenseiten wechseln.
 P2pClient.prototype.registerReceiver = function (cb) {
+  if (SIM_KONFIG && cb && cb.onReceiveMessage) {
+    setTimeout(function () {
+      var t = JSON.stringify(SIM_KONFIG), max = 800, n = Math.ceil(t.length / max);
+      for (var i = 0; i < n; i++) cb.onReceiveMessage("PF1|k_konfig.json|" + i + "|" + n + "|1|" + t.substring(i * max, (i + 1) * max));
+      console.info("Pumpfoil SIM: Konfiguration aus sim.sh geliefert, " + n + " Teile");
+    }, 1500);
+  }
   if (typeof FeatureAbility === "undefined" || !FeatureAbility.subscribeMsg) {
     console.info("Pumpfoil SIM: kein Empfang (FeatureAbility fehlt)");
     return;
