@@ -290,6 +290,25 @@ Sendeplan.prototype.stand = function () {
   }
   return { fertig: f, gesamt: g };
 };
+/**
+ * Session VERWERFEN: aus dem Plan nehmen und die Dateien nennen, die noch auf der Uhr liegen und nie
+ * zum Handy gingen (die schon gesendeten hat `senden` nach der Quittung geloescht). Was schon beim
+ * Handy ist, bleibt dort als unvollstaendige Session — dieselbe Lage wie bei Zepp nach einem
+ * Teil-Upload in der Pause.
+ */
+Sendeplan.prototype.weg = function (id) {
+  var aus = [];
+  for (var i = 0; i < this.s.length; i++) {
+    var x = this.s[i];
+    if (x.id !== id) continue;
+    if (!x.m) aus.push(dateiMeta(id));
+    for (var k = x.g; k < x.n; k++) aus.push(dateiChunk(id, k));
+    if (x.e && !x.eg) aus.push(dateiEnde(id));
+    this.s.splice(i, 1);
+    break;
+  }
+  return aus;
+};
 Sendeplan.prototype.daten = function () { return { s: this.s }; };
 function dateiVon(d) {
   return d.art === "m" ? dateiMeta(d.id) : (d.art === "e" ? dateiEnde(d.id) : dateiChunk(d.id, d.nr));

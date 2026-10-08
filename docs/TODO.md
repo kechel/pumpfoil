@@ -1493,6 +1493,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Android -> Uhr (iOS-Bruecke antwortet NICHT auf das Hallo — keine Nutzer, s. oben). Lite-Seite jetzt 44 KB
   (Release) -> fuer weitere Lite-Funktionen erst Platz schaffen; GT nur mit Release-Builds testen. Offen:
   Alarme, Foil-Auswahl, Verwerfen-Seite; Canvas-Verhalten auf echter Lite-Uhr.
+  **08.10. Simulator (Jan, DevEco auf dem Mac) — Lite laeuft:** schwarze Seite hatte drei Ursachen,
+  alle behoben: JerryScript uebersetzt jedes Buendel in 48 KB Heap UND laedt keine Datei ueber 48 KB
+  (Recorder jetzt im app.js-Buendel, Seite holt ihn per `getApp().data.R` — `getApp().R` kommt NICHT an),
+  keine Regex-Literale, Container ohne feste Hoehe werden nicht gezeichnet, feste 466 px auf 454er-Bildschirm
+  liessen die Seite scrollen. Werkzeuge: `sim.sh an|aus` (Wear-Engine-Attrappe), `diag.sh`, Logs „Pumpfoil".
+  Memory: huawei-lite-jerryscript-heap.
+  **Benutzerfuehrung wie Zepp (Jan, 08.10.: „genauso … wie bei anderen uhren"), in Schritten:**
+  (1) ✅ START tippen, Seitenfolge [Aktion][STOPP][Daten…][STOPP][Aktion] hoch/runter, Pause/Fortsetzen +
+  STOPP 2 s halten (stopMode press: tippen), Verwerfen zweimal tippen — Lite/Watch 3/4; ArkTS noch NICHT.
+  (2) Zusammenfassung nach Stopp + „Fertig"; `stopMode`/`autoStart`/`waterLock` durch die Handy-Bruecken
+      (Android `HuaweiBruecke.kt` Whitelist, iOS) und auf der Uhr auswerten.
+  (3) Touch-Sperre (durchsichtige Flaeche wie Zepp, 2 s halten = frei, Auto-Sperre).
+  (4) ArkTS-Linie (Watch 5) auf denselben Ablauf bringen.
+  **Auf Hardware pruefen:** ob touchstart/touchend sauber kommen (Simulator: unzuverlaessig, longpress ist
+  Ersatz); `sensor.subscribeAccelerometer` warf im Simulator TypeError — auf der Uhr MUSS Accel laufen;
+  Tasten/Krone fangen (`key`-Ereignis, `setMonitorForCrownEvents`) als Zusatz zum Blaettern.
+  **Aufraeumen:** Diagnose-Logs bleiben (Filter „Pumpfoil"); Debug-Seite 45,2/46 KB — vor Schritt 2/3
+  Platz schaffen (Teile der Seitenlogik ins app.js-Buendel).
 
 - **🟢 07.10. ~12:10 EINGEREICHT (Jans Meldung): Phone 1.1.40 (54) + Wear 1.2.40 (1050), Produktion, voller
   Roll-out — ersetzt 1.1.39/1.2.39 im Review.** Danach: erste 1.2.40-Sessions mit

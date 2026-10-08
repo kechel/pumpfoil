@@ -1,44 +1,46 @@
 <div class="seite" onswipe="wischen">
-    <!-- Datenseiten (seiten.js): eine Canvas ueber das ganze Display, hoch/runter wischen blaettert
-         (rechts wischen beendet die App, das verlangt AppGallery). Seite 0 = Bedienung darunter. -->
-    <canvas ref="leinwand" class="leinwand" if="{{ datenseite }}"></canvas>
-    <text class="marke" if="{{ modus === 'bereit' }}">{{ marke }}</text>
+    <!-- Ablauf wie Zepp/Wear/Apple (Jan, 08.10.2026: „genauso von der benutzerfuehrung … wie bei
+         anderen uhren"). Waehrend der Aufnahme eine Seitenfolge, hoch/runter gewischt:
+           [Aktion] [STOPP] [Datenseiten …] [STOPP] [Aktion]   — Start auf der ersten Datenseite.
+         Aktion = Pause/Fortsetzen (2 s halten) + Verwerfen (zweimal tippen); STOPP = 2 s halten,
+         im Profil-Modus „press" ein Tipp. Rechts wischen: bereit -> App zu, Aufnahme -> STOPP-Seite. -->
+    <canvas ref="leinwand" class="leinwand" if="{{ ansicht === 'daten' }}"></canvas>
 
-    <div class="bbereit" if="{{ modus === 'bereit' }}">
-        <div class="kstart" ontouchstart="startHalten" ontouchend="loslassen" onlongpress="startLang">
-            <text class="knopftext">{{ knopfStart }}</text>
+    <!-- Bereit: START tippen, wie auf allen Uhren -->
+    <div class="bbereit" if="{{ ansicht === 'bereit' }}">
+        <text class="marke">PUMPFOIL</text>
+        <div class="kstart" onclick="starten">
+            <text class="knopftext">{{ tStart }}</text>
         </div>
         <progress class="balken" type="horizontal" percent="{{ balken }}" if="{{ balkenZeigen }}"></progress>
         <text class="klein">{{ info }}</text>
     </div>
 
-    <div class="blaeuft" if="{{ modus === 'laeuft' && !datenseite }}">
+    <!-- Aktion: Pause/Fortsetzen + Verwerfen. Halte-Knopf OHNE onclick: mit click am selben Element kam
+         im Simulator kein touchstart an; longpress ist der Ersatz (s. index.js lang). -->
+    <div class="baktion" if="{{ ansicht === 'aktion' }}">
         <text class="zeit">{{ zeit }}</text>
-        <div class="rwert">
-            <text class="wert">{{ tempo }}</text>
-            <text class="wert">{{ strecke }}</text>
+        <div class="kpause" if="{{ halten }}" ontouchstart="pauseHalten" ontouchend="loslassen" onlongpress="pauseLang">
+            <text class="knopftext">{{ tPause }}</text>
         </div>
-        <div class="reinheit">
-            <text class="einheit">km/h</text>
-            <text class="einheit">km</text>
+        <div class="kpause" if="{{ !halten }}" onclick="pauseTipp">
+            <text class="knopftext">{{ tPause }}</text>
         </div>
-        <text class="wert">{{ puls }}</text>
-        <div class="kpause" ontouchstart="pauseHalten" ontouchend="loslassen" onlongpress="pauseLang">
-            <text class="knopftext">{{ knopfPause }}</text>
+        <div class="kweg" onclick="verwerfenTipp">
+            <text class="knopftext">{{ tWeg }}</text>
         </div>
         <text class="klein">{{ info }}</text>
     </div>
 
-    <div class="bpause" if="{{ modus === 'pause' && !datenseite }}">
+    <!-- STOPP: Zeit, Strecke, roter Knopf -->
+    <div class="bstopp" if="{{ ansicht === 'stopp' }}">
         <text class="zeit">{{ zeit }}</text>
-        <text class="hinweis">{{ textPause }}</text>
-        <div class="rknopf">
-            <div class="kweiter" ontouchstart="weiterHalten" ontouchend="loslassen" onlongpress="weiterLang">
-                <text class="knopftext">{{ knopfWeiter }}</text>
-            </div>
-            <div class="kstopp" ontouchstart="stoppHalten" ontouchend="loslassen" onlongpress="stoppLang">
-                <text class="knopftext">{{ knopfStopp }}</text>
-            </div>
+        <text class="wertbreit">{{ strecke }}</text>
+        <div class="kstopp" if="{{ halten }}" ontouchstart="stoppHalten" ontouchend="loslassen" onlongpress="stoppLang">
+            <text class="knopftext">{{ tStopp }}</text>
+        </div>
+        <div class="kstopp" if="{{ !halten }}" onclick="stoppTipp">
+            <text class="knopftext">{{ tStopp }}</text>
         </div>
         <text class="klein">{{ info }}</text>
     </div>

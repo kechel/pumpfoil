@@ -12,27 +12,27 @@
     background-color: #000000;
 }
 /* Jeder Container mit FESTER Hoehe (08.10.2026): ohne Hoehe blieb der Block im Lite-Simulator
-   unsichtbar, obwohl modus/info stimmten. Hoehen = Summe der Kinder samt Raender. */
+   unsichtbar, obwohl modus/info stimmten. Hoehen = Summe der Kinder samt Raender, alle <= 320 px
+   (passt auf den 390er-Rundbildschirm). */
 .bbereit {
     width: 100%;
-    height: 210px;
+    height: 250px;
     flex-direction: column;
     align-items: center;
 }
-.blaeuft {
+.baktion {
     width: 100%;
-    height: 360px;
+    height: 320px;
     flex-direction: column;
     align-items: center;
 }
-.bpause {
+.bstopp {
     width: 100%;
     height: 280px;
     flex-direction: column;
     align-items: center;
 }
 .marke {
-    /* vorlaeufig breit fuer die Startanzeige (Fehlersuche) */
     width: 90%;
     height: 40px;
     font-size: 30px;
@@ -46,43 +46,11 @@
     color: #ffffff;
     text-align: center;
 }
-.rwert {
+.wertbreit {
     width: 80%;
-    height: 46px;
-    flex-direction: row;
-    justify-content: space-around;
-}
-.reinheit {
-    width: 80%;
-    height: 36px;
-    flex-direction: row;
-    justify-content: space-around;
-}
-.rknopf {
-    width: 80%;
-    height: 92px;
-    flex-direction: row;
-    justify-content: space-around;
-}
-.wert {
-    width: 48%;
     height: 46px;
     font-size: 38px;
     color: #ffffff;
-    text-align: center;
-}
-.einheit {
-    width: 48%;
-    height: 36px;
-    font-size: 30px;
-    color: #94a3b8;
-    text-align: center;
-}
-.hinweis {
-    width: 80%;
-    height: 46px;
-    font-size: 38px;
-    color: #fbbf24;
     text-align: center;
 }
 /* Knoepfe je mit EINER Klasse (statt „knopf start"): ob Lite mehrere Klassen je Element
@@ -105,17 +73,17 @@
     align-items: center;
     background-color: #334155;
 }
-.kweiter {
-    width: 48%;
+.kstopp {
+    width: 70%;
     height: 80px;
     margin-top: 12px;
     border-radius: 40px;
     justify-content: center;
     align-items: center;
-    background-color: #0e7490;
+    background-color: #b91c1c;
 }
-.kstopp {
-    width: 48%;
+.kweg {
+    width: 70%;
     height: 80px;
     margin-top: 12px;
     border-radius: 40px;

@@ -14,3 +14,5 @@ local.properties
 # Simulator-Attrappe (./sim.sh an) — nur lokal
 **/wearengine/sim.js
 **/.cache/
+# diag.sh-Sicherung der Seite — nur lokal
+.diag-sicherung/

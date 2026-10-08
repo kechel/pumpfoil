@@ -158,6 +158,8 @@ function Konfig(k) {
   this.colorByValue = !!k.colorByValue;
   this.hrZones = gueltigeZonen(k.hrZones) || [95, 114, 133, 152, 171, 190];
   this.speedZones = gueltigeZonen(k.speedZones) || [8, 12, 16, 20, 24, 28];
+  // Ablauf wie die anderen Uhren (Server devices.py): Stopp/Pause halten oder tippen.
+  this.stopMode = k.stopMode === "press" ? "press" : "hold";
 }
 function gueltigeZonen(z) {
   if (!z || z.length !== 6) return null;
