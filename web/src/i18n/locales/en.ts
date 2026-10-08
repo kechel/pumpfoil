@@ -406,8 +406,6 @@ const en: Record<string, string> = {
   "tech.hShort": "Runs under 20 s – whole run",
   "tech.lShort": "Runs between 5 and 20 s, each over the whole run: start and end included, nothing trimmed. {n} runs.",
   "tech.sStable": "stable phase",
-  "tech.colPitchPump": "Pitch per pump stroke",
-  "tech.colHeavePump": "Heave per pump stroke",
   "tech.gStable": "the run without its first and last 5 s – start and end only disturb the first and last 1–2 s; runs under 20 s have no stable phase",
   "tech.gSpread": "Wobble and lean are not per stroke but ranges over the stable phase.",
   "tech.sStraight": "straight",

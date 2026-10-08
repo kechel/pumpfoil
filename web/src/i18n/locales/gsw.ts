@@ -109,8 +109,6 @@ const gsw: Record<string, string> = {
   "tech.hShort": "Läuf under 20 s – ganze Lauf",
   "tech.lShort": "Läuf zwüsche 5 und 20 s, jewils über de ganz Lauf: mit Aafang und Änd, nüt gchürzt. {n} Läuf.",
   "tech.sStable": "stabili Phase",
-  "tech.colPitchPump": "Nicke pro Pumpzug",
-  "tech.colHeavePump": "Hub pro Pumpzug",
   "tech.gStable": "de Lauf ohni sini erschte und letschte 5 s – Start und Änd störed nume di erschte und letschte 1–2 s; Läuf under 20 s händ kei stabili Phase",
   "tech.gSpread": "Wackle und Schräglag sind kei Wärt pro Pumpzug, sondern Spanne über di stabil Phase.",
   "tech.sStraight": "grad",

@@ -124,8 +124,6 @@ const fr: Record<string, string> = {
   "tech.hShort": "Runs de moins de 20 s – run entier",
   "tech.lShort": "Runs entre 5 et 20 s, chacun sur le run entier : début et fin compris, rien de coupé. {n} runs.",
   "tech.sStable": "phase stable",
-  "tech.colPitchPump": "Tangage par pompe",
-  "tech.colHeavePump": "Amplitude par pompe",
   "tech.gStable": "le run sans ses 5 premières et dernières secondes – le départ et la fin ne perturbent que les 1–2 premières et dernières secondes ; les runs de moins de 20 s n'ont pas de phase stable",
   "tech.gSpread": "L'oscillation et l'inclinaison ne sont pas des valeurs par pompe, mais des plages sur la phase stable.",
   "tech.sStraight": "ligne droite",

@@ -124,8 +124,6 @@ const pt: Record<string, string> = {
   "tech.hShort": "Runs abaixo de 20 s – run inteiro",
   "tech.lShort": "Runs entre 5 e 20 s, cada um inteiro: com início e fim, nada cortado. {n} runs.",
   "tech.sStable": "fase estável",
-  "tech.colPitchPump": "Arfagem por bombeada",
-  "tech.colHeavePump": "Subida e descida por bombeada",
   "tech.gStable": "o run sem os primeiros e últimos 5 s – largada e fim só perturbam os primeiros e últimos 1–2 s; runs com menos de 20 s não têm fase estável",
   "tech.gSpread": "Balanço e inclinação não são valores por bombeada, mas faixas ao longo da fase estável.",
   "tech.sStraight": "reta",

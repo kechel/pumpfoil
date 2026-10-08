@@ -320,11 +320,11 @@ export default function LaengsteLaeufe() {
                     {kopf("datum", t("longest.session"))}
                     {kopf("dauer", t("sd.colDuration"))}
                     {kopf("strecke", t("sd.colDistance"))}
-                    {kopf("pitch", t("tech.colPitchPump"))}
+                    {kopf("pitch", t("board.pitch"))}
                     {kopf("roll", t("board.roll"))}
                     {kopf("yaw", t("board.yaw"))}
                     {kopf("pitchHz", t("sd.colPitchRhythm"))}
-                    {kopf("hub", t("tech.colHeavePump"))}
+                    {kopf("hub", t("sd.colHeave"))}
                   </tr>
                 </thead>
                 <tbody>

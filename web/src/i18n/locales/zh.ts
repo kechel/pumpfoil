@@ -124,8 +124,6 @@ const zh: Record<string, string> = {
   "tech.hShort": "不足 20 秒的滑行——整段滑行",
   "tech.lShort": "5 到 20 秒的滑行,每段按整段计算:包含开头和结尾,不做截取。共 {n} 段。",
   "tech.sStable": "稳定阶段",
-  "tech.colPitchPump": "每次泵动的俯仰",
-  "tech.colHeavePump": "每次泵动的上下幅度",
   "tech.gStable": "去掉开头和结尾各 5 秒的滑行(起步和结束只影响开头和结尾的 1–2 秒);不足 20 秒的滑行没有稳定阶段",
   "tech.gSpread": "摇晃和倾角不是每次泵动的数值,而是整个稳定阶段内的幅度。",
   "tech.sStraight": "直行",

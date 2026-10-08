@@ -124,8 +124,6 @@ const nb: Record<string, string> = {
   "tech.hShort": "Runs under 20 s – hele runen",
   "tech.lShort": "Runs mellom 5 og 20 s, hver over hele runen: med start og slutt, ingenting kuttet. {n} runs.",
   "tech.sStable": "stabil fase",
-  "tech.colPitchPump": "Stamping per pumpetak",
-  "tech.colHeavePump": "Opp og ned per pumpetak",
   "tech.gStable": "runen uten de første og siste 5 s – start og slutt forstyrrer bare de første og siste 1–2 s; runs under 20 s har ingen stabil fase",
   "tech.gSpread": "Vingling og krengning er ikke verdier per pumpetak, men spenn over den stabile fasen.",
   "tech.sStraight": "rett frem",

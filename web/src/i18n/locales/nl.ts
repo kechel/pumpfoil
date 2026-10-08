@@ -126,8 +126,6 @@ const nl: Record<string, string> = {
   "tech.hShort": "Runs onder 20 s – hele run",
   "tech.lShort": "Runs tussen 5 en 20 s, telkens over de hele run: begin en eind inbegrepen, niets ingekort. {n} runs.",
   "tech.sStable": "stabiele fase",
-  "tech.colPitchPump": "Stampen per pompslag",
-  "tech.colHeavePump": "Op-en-neer per pompslag",
   "tech.gStable": "de run zonder zijn eerste en laatste 5 s – start en eind verstoren alleen de eerste en laatste 1–2 s; runs korter dan 20 s hebben geen stabiele fase",
   "tech.gSpread": "Wiebelen en helling zijn geen waarden per pompslag, maar spreidingen over de stabiele fase.",
   "tech.sStraight": "rechtdoor",

@@ -124,8 +124,6 @@ const pl: Record<string, string> = {
   "tech.hShort": "Przejazdy poniżej 20 s – cały przejazd",
   "tech.lShort": "Przejazdy od 5 do 20 s, każdy z całości: z początkiem i końcem, nic nie obcięte. Przejazdy: {n}.",
   "tech.sStable": "faza stabilna",
-  "tech.colPitchPump": "Pochylenie na pompę",
-  "tech.colHeavePump": "Ruch w pionie na pompę",
   "tech.gStable": "przejazd bez pierwszych i ostatnich 5 s – start i koniec zakłócają tylko pierwsze i ostatnie 1–2 s; przejazdy krótsze niż 20 s nie mają fazy stabilnej",
   "tech.gSpread": "Bujanie i przechył nie są wartościami na pompę, lecz zakresami w fazie stabilnej.",
   "tech.sStraight": "prosto",

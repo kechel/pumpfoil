@@ -124,8 +124,6 @@ const id: Record<string, string> = {
   "tech.hShort": "Run di bawah 20 dtk – seluruh run",
   "tech.lShort": "Run antara 5 dan 20 dtk, masing-masing seluruh run: termasuk awal dan akhir, tanpa pemotongan. {n} run.",
   "tech.sStable": "fase stabil",
-  "tech.colPitchPump": "Angguk per pompa",
-  "tech.colHeavePump": "Naik-turun per pompa",
   "tech.gStable": "run tanpa 5 dtk pertama dan terakhir – start dan akhir hanya mengganggu 1–2 dtk pertama dan terakhir; run di bawah 20 dtk tidak punya fase stabil",
   "tech.gSpread": "Goyangan dan kemiringan bukan nilai per pompa, melainkan rentang selama fase stabil.",
   "tech.sStraight": "lurus",

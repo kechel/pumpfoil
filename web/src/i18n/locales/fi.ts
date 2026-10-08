@@ -124,8 +124,6 @@ const fi: Record<string, string> = {
   "tech.hShort": "Alle 20 s ajot – koko ajo",
   "tech.lShort": "5–20 s ajot, kukin koko ajon ajalta: alku ja loppu mukana, mitään ei rajattu. {n} ajoa.",
   "tech.sStable": "tasainen vaihe",
-  "tech.colPitchPump": "Nyökkäys per pumppaus",
-  "tech.colHeavePump": "Pystyliike per pumppaus",
   "tech.gStable": "ajo ilman ensimmäisiä ja viimeisiä 5 s – lähtö ja loppu häiritsevät vain ensimmäisiä ja viimeisiä 1–2 s; alle 20 s ajoilla ei ole tasaista vaihetta",
   "tech.gSpread": "Huojunta ja kallistus eivät ole arvoja per pumppaus vaan vaihteluvälejä tasaisen vaiheen ajalta.",
   "tech.sStraight": "suora",

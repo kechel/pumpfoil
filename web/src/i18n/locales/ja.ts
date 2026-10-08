@@ -124,8 +124,6 @@ const ja: Record<string, string> = {
   "tech.hShort": "20秒未満のラン – ラン全体",
   "tech.lShort": "5〜20秒のラン、それぞれラン全体で計算(最初と最後を含み、カットなし)。{n} ラン。",
   "tech.sStable": "安定フェーズ",
-  "tech.colPitchPump": "パンプ1回ごとのピッチ",
-  "tech.colHeavePump": "パンプ1回ごとの上下動",
   "tech.gStable": "最初と最後の5秒を除いたラン(スタートと終わりの影響は最初と最後の1〜2秒だけ)。20秒未満のランには安定フェーズはありません",
   "tech.gSpread": "揺れと傾きはパンプ1回ごとの値ではなく、安定フェーズ全体での幅です。",
   "tech.sStraight": "直進",

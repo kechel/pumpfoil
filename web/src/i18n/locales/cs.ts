@@ -126,8 +126,6 @@ const cs: Record<string, string> = {
   "tech.hShort": "Jízdy pod 20 s – celá jízda",
   "tech.lShort": "Jízdy mezi 5 a 20 s, vždy přes celou jízdu: se začátkem i koncem, nic nezkráceno. Jízd: {n}.",
   "tech.sStable": "stabilní fáze",
-  "tech.colPitchPump": "Klopení na pumpnutí",
-  "tech.colHeavePump": "Zdvih na pumpnutí",
   "tech.gStable": "jízda bez prvních a posledních 5 s – start a konec ruší jen první a poslední 1–2 s; jízdy kratší než 20 s stabilní fázi nemají",
   "tech.gSpread": "Kývání a náklon nejsou hodnoty na pumpnutí, ale rozpětí za stabilní fázi.",
   "tech.sStraight": "rovně",

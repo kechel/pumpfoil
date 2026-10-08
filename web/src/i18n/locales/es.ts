@@ -124,8 +124,6 @@ const es: Record<string, string> = {
   "tech.hShort": "Tramos de menos de 20 s – tramo completo",
   "tech.lShort": "Tramos entre 5 y 20 s, cada uno completo: con inicio y final, sin recortar. {n} tramos.",
   "tech.sStable": "fase estable",
-  "tech.colPitchPump": "Cabeceo por bombeo",
-  "tech.colHeavePump": "Recorrido por bombeo",
   "tech.gStable": "el tramo sin sus primeros y últimos 5 s: la salida y el final solo alteran los primeros y últimos 1–2 s; los tramos de menos de 20 s no tienen fase estable",
   "tech.gSpread": "El bamboleo y la inclinación no son valores por bombeo, sino rangos sobre la fase estable.",
   "tech.sStraight": "recta",
