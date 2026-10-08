@@ -22,13 +22,16 @@ const K = (await import("../common/kern.js")).default;
 const T0 = Date.UTC(2026, 9, 8, 10, 0, 0);
 const FIX = new URL("./fixtures/", import.meta.url);
 
+/** Rueckweg Handy -> Uhr: der Empfaenger, den recorder.js bei der Wear Engine anmeldet. */
+const empfaenger = { cb: null };
+
 /** Wear Engine der Uhr: jede 11. Sendung geht verloren, jede 17. kommt an, meldet aber Fehler. */
 function wearEngine(zugestellt, protokoll) {
   let n = 0;
   function P2pClient() {}
   P2pClient.prototype.setPeerPkgName = function (p) { this.pkg = p; };
   P2pClient.prototype.setPeerFingerPrint = function () {};
-  P2pClient.prototype.registerReceiver = function () {};
+  P2pClient.prototype.registerReceiver = function (cb) { empfaenger.cb = cb; };
   P2pClient.prototype.send = function (m, cb) {
     n++;
     const text = m.builder.text, pkg = this.pkg;
@@ -140,4 +143,27 @@ test("Ende-zu-Ende Uhr: Fahrt mit Pause, Verluste und Doppelte — alles kommt g
     zufall.mock.restore();
     zeit.zurueck();
   }
+});
+
+test("Ende-zu-Ende Rueckweg: Datenseiten vom Handy in Teilen (einer doppelt) landen im Recorder und im Speicher", async () => {
+  const R = (await import("../common/recorder.js")).default;
+  assert.ok(empfaenger.cb && empfaenger.cb.onReceiveMessage, "recorder.js hat einen Empfaenger angemeldet");
+  const konfig = JSON.stringify({ views: [[1, 2, 3]], pauseView: [12, 20, 2], layoutsOn: false, stopMode: "press",
+    hrZones: [95, 114, 133, 152, 171, 190] });
+  // so zerlegt es die Android-Bruecke (HuaweiBruecke.konfigTeile, 800 Zeichen je Teil) — hier kleiner, damit es mehrere sind
+  const max = 40, n = Math.ceil(konfig.length / max);
+  const teile = [];
+  for (let i = 0; i < n; i++) teile.push(`PF1|k_konfig.json|${i}|${n}|1|` + konfig.substring(i * max, (i + 1) * max));
+  assert.ok(n >= 3);
+  for (const t of [teile[1], teile[0], teile[1], ...teile.slice(2)]) empfaenger.cb.onReceiveMessage(t);
+  await flush();
+  assert.deepEqual(R.konfig.views, [[1, 2, 3]]);
+  assert.equal(R.konfig.layoutsOn, false);
+  assert.equal(R.konfig.stopMode, "press", "Ablauf-Einstellung aus dem Profil kommt an");
+  assert.equal(uhr.dateien.get("internal://app/konfig.json"), konfig, "gespeichert fuer den naechsten Start");
+  // Fremdes und Kaputtes wird ignoriert, nichts geht kaputt
+  empfaenger.cb.onReceiveMessage("PF1|k_konfig.json|0|1|1|{kaputt");
+  empfaenger.cb.onReceiveMessage("XYZ|irgendwas");
+  await flush();
+  assert.deepEqual(R.konfig.views, [[1, 2, 3]], "kaputte Konfig ueberschreibt die gute nicht");
 });
