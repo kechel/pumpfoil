@@ -69,7 +69,7 @@ export default {
     }
     // Texte einmal holen (jedes $t kostet auf der Uhr), Displaygroesse fuer die Promille-Koordinaten.
     var keys = ["start", "pause", "resume", "stop", "holding", "discard", "discarded", "paused", "errors",
-      "gpsWait", "toPhone", "openPhone", "allSent"];
+      "gpsWait", "toPhone", "openPhone", "allSent", "noAccel"];
     this.tx = {};
     for (var j = 0; j < keys.length; j++) this.tx[keys[j]] = this.$t("strings." + keys[j]);
     this.texte = {};
@@ -116,6 +116,7 @@ export default {
     if (this.startFehler) info = this.startFehler;
     else if (z.fehler > 0) info = tx.errors + " " + z.fehler + ": " + z.letzterFehler;
     else if (z.modus === "laeuft" && !z.gpsOk) info = tx.gpsWait;
+    else if (z.modus !== "bereit" && z.ohneAccel) info = tx.noAccel;   // Zustand, kein Fehler (s. recorder accelAn)
     else if (z.modus === "bereit" && R.verworfen && Date.now() - R.verworfen < 10000) info = tx.discarded;
     else if (z.offen > 0) {
       // „Zum Handy: 34/120" — gezaehlt in Dateien (je ~5 s Aufnahme), dieselbe Zahl, die das

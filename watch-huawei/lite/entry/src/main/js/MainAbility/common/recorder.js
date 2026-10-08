@@ -94,11 +94,15 @@ function sensorenAn() {
   versuch("gps", "GPS an", gpsAn);
 }
 function accelAn() {
-  // Fehlt die Funktion (Simulator 08.10.2026: TypeError), SAGEN was das Modul stattdessen hat.
+  // Bietet die Uhr gar keine Beschleunigung an (DevEco-Simulator 08.10.2026: sensor hat nur Barometer,
+  // Schrittzaehler, Puls, Trageerkennung), ist das KEIN Fehler, sondern ein Zustand: ruhiger Hinweis auf
+  // der Uhr, `messweg.accel = "keine"` im /complete — so zeigen die Daten, welche Modelle nichts liefern.
   if (typeof sensor.subscribeAccelerometer !== "function") {
     var k = [];
     for (var x in sensor) k.push(x);
-    throw "fehlt (" + typeof sensor.subscribeAccelerometer + "), sensor: " + k.join(",");
+    R.ohneAccel = true;
+    log("ohne Beschleunigung, sensor: " + k.join(","));
+    return;
   }
   sensor.subscribeAccelerometer({
     interval: "game",
@@ -160,6 +164,7 @@ R.start = function () {
   R.anzeige = new K.Anzeige();
   R.maxLuecke = 0; R.accelLetzt = 0;
   R.f = { speicher: 0, accel: 0, gps: 0, puls: 0, sonst: 0 }; R.letzterFehler = ""; R.verworfen = 0;
+  R.ohneAccel = false;
   R.stand.neu(); R.fixNeu = null;
   R.plan.neu(R.id);
   schreibe(K.dateiMeta(R.id), {
@@ -196,7 +201,7 @@ R.weiter = function () {
 
 function abschliessen(id, n, endeWand, pausen, hr, extra) {
   var e = { ended_at: iso(endeWand), total_chunks: n, hr_samples: hr,
-    hr_source: hr > 0 ? "active" : "none", messweg: { gps: "lite", accel: "lite" } };
+    hr_source: hr > 0 ? "active" : "none", messweg: { gps: "lite", accel: R.ohneAccel ? "keine" : "lite" } };
   if (pausen && pausen.length > 0) e.pauses = pausen;
   if (extra) e.messweg.accel = extra;
   schreibe(K.dateiEnde(id), e, function () {
@@ -229,7 +234,7 @@ R.zustand = function () {
     // Fehler IN FOLGE (nach einem Erfolg wieder 0): mit fehlerGesamt blieb „Handy oeffnen" nach einem
     // einzigen Aussetzer fuer immer stehen.
     sendeFehler: R.schlange.fehlerFolge, sendeCode: R.schlange.letzterCode,
-    fehler: R.f.speicher + R.f.accel + R.f.gps, letzterFehler: R.letzterFehler
+    fehler: R.f.speicher + R.f.accel + R.f.gps, letzterFehler: R.letzterFehler, ohneAccel: !!R.ohneAccel
   };
 };
 
