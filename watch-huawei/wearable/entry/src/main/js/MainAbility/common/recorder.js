@@ -49,6 +49,8 @@ var R = {
 
 function iso(ms) { return new Date(ms).toISOString(); }
 function fehler(art, text) { R.f[art]++; R.letzterFehler = text; console.error("Pumpfoil " + text); }
+// Ablauf-Log fuer die Fehlersuche (DevEco > Log, Filter „Pumpfoil"). Jede Meldung jedes Mal, nie nur einmal.
+function log(text) { console.info("Pumpfoil " + text); }
 
 function schreibe(uri, obj, danach) {
   file.writeText({
@@ -143,6 +145,7 @@ R.start = function () {
     device_model: R.modell, app_version: C.APP_VERSION
   }, planSichern);
   R.modus = "laeuft";
+  log("Start " + R.id);
   laufSichern();
   bildschirmAn(true);
   sensorenAn();
@@ -154,12 +157,14 @@ R.pause = function () {
   restSchreiben();
   R.achse.pause(Date.now());
   R.modus = "pause";
+  log("Pause, Bloecke " + R.sammler.index);
   R.accelLetzt = 0;
   laufSichern();
 };
 
 R.weiter = function () {
   if (R.modus !== "pause") return;
+  log("Weiter");
   R.achse.weiter(Date.now());
   R.modus = "laeuft";
   laufSichern();
@@ -183,6 +188,7 @@ R.stopp = function () {
   if (R.modus === "laeuft") { sensorenAus(); restSchreiben(); }
   else R.achse.weiter(jetzt);   // Stopp aus der Pause: die Pause endet hier
   R.modus = "bereit";
+  log("Stopp, Bloecke " + R.sammler.index);
   bildschirmAn(false);
   abschliessen(R.id, R.sammler.index, jetzt, R.achse.pausen, R.sammler.hrAnzahl);
 };
@@ -216,6 +222,7 @@ var offenDatei = null;    // { d, uri, teile, nr }
 function p2p() {
   if (!R.p2p) {
     var g = R.gegen.jetzt();
+    log("P2P an " + g[0]);
     R.p2p = new P2pClient();
     R.p2p.setPeerPkgName(g[0]);
     R.p2p.setPeerFingerPrint(g[1]);
@@ -241,6 +248,7 @@ function konfigTeil(text) {
   var ganz = R.kTeile.join("");
   R.kTeile = null;
   try { R.konfig = new S.Konfig(JSON.parse(ganz)); } catch (e) { fehler("speicher", "Konfig kaputt"); return; }
+  log("Konfig vom Handy, " + n + " Teile");
   file.writeText({ uri: KONFIG, text: ganz, fail: function (d, code) { fehler("speicher", "Speicher " + code + " Konfig"); } });
 }
 
@@ -297,6 +305,7 @@ function teilSenden() {
       if (fertig) return;
       fertig = true;
       clearTimeout(wache);
+      log("Teil " + (o.nr + 1) + "/" + o.teile.length + (o.hallo ? " Hallo" : "") + " Code " + (r ? r.code : "-"));
       if (r && r.code === 207) {
         R.gegen.ok();
         R.schlange.laeuft = false;
@@ -317,6 +326,7 @@ function teilSenden() {
 }
 
 function fehlschlag(code) {
+  log("Senden scheitert, Code " + code);
   R.schlange.fehler(code, Date.now());
   if (R.gegen.fehler()) {
     // Andere Handy-App versuchen (Android <-> iOS); gemerkt wird, was zuletzt angenommen hat.
@@ -327,6 +337,7 @@ function fehlschlag(code) {
 
 /** Einmal beim App-Start: Modell, Sendeplan laden, abgebrochene Aufnahme abschliessen. */
 R.init = function () {
+  log("init " + C.APP_VERSION);
   device.getInfo({
     success: function (i) {
       R.modell = ("HUAWEI " + (i.model || i.product || "")).replace(/\s+$/, "") + " · HarmonyOS";
@@ -345,6 +356,7 @@ R.init = function () {
   file.readText({
     uri: PLAN,
     success: function (d) { try { R.plan = new K.Sendeplan(JSON.parse(d.text)); } catch (e) { /* neu */ } },
+    fail: function () { log("kein Sendeplan (neu)"); },
     complete: function () {
       file.readText({
         uri: LAUF,
@@ -352,6 +364,7 @@ R.init = function () {
           var l;
           try { l = JSON.parse(d.text); } catch (e) { return; }
           if (!l || !l.id || R.modus !== "bereit") return;
+          log("abgebrochene Aufnahme " + l.id + " abschliessen");
           if (!R.plan.finde(l.id)) R.plan.neu(l.id);
           var x = R.plan.finde(l.id);
           if (l.n > x.n) x.n = l.n;
