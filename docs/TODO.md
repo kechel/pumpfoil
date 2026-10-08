@@ -1435,6 +1435,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **⚪ 08.10. — Brett-Lage: Kennzahlen fuer „stabil pumpen koennen" (spaeter, Jan: „Zahlen jetzt gut so").**
+  Die heutigen Hauptzahlen (Median je Pumpzug) sagen, WIE jemand pumpt (Stil, foil-abhaengig), kaum wie
+  STABIL. Ideen, erst an den vorhandenen Laeufen durchrechnen, dann entscheiden: (1) Gleichmaessigkeit —
+  Streuung von Takt und Tiefe von Zug zu Zug (z. B. Variationskoeffizient der Werte aus lage._pumpzuege);
+  (2) Durchhalten — Takt/Tiefe im ersten gegen letzten Drittel langer Laeufe. Nichts davon ist gegen eine
+  unabhaengige Einschaetzung des Koennens belegt (docs/GROUND-TRUTH.md) — als Vermutung behandeln.
+
 - **🟡 08.10. — „Wackeln" (Brett-Lage) mit mehr Daten nachpruefen.** Frage Jan: liegt es nur systembedingt
   zwischen Pumpzug-Rollen und Schraeglage? Stand 08.10. (37 Laeufe ab 20 s, 4 Fahrer, 22 davon Jan): liegt in
   76 % dazwischen, aus beiden vorhergesagt R² = 0,55 (r 0,69 zu Pumpzug-Rollen, 0,41 zu Schraeglage), ordnet

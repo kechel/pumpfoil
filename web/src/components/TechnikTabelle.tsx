@@ -137,10 +137,12 @@ export function Zeilen({ zeilen }: { zeilen: [string, number | null | undefined,
   return (
     <div className="space-y-0.5 whitespace-nowrap">
       {zeilen.map(([label, mit, ohne, vz, grau]) => (
-        <div key={label} className={grau ? "text-slate-500" : ""}>
-          {mit != null ? `${vz}${mit.toFixed(grau ? 0 : 1)}°` : "–"}
-          {ohne != null && <span className="text-slate-500"> ({vz}{ohne.toFixed(1)}°)</span>}
-          <span className="ml-1 text-xs text-slate-500">{label}</span>
+        // Beschriftung VORN: sie gilt fuer die ganze Zeile; die Klammer gehoert zum Wert davor
+        // (unkorrigiert). Stand die Beschriftung hinten, las sie sich wie die der Klammer (Jan, 08.10.2026).
+        <div key={label}>
+          <span className="mr-1">{label}</span>
+          <span className={grau ? "" : "font-semibold text-brand-700 dark:text-brand-300"}>{mit != null ? `${vz}${mit.toFixed(grau ? 0 : 1)}°` : "–"}</span>
+          {ohne != null && <span> ({vz}{ohne.toFixed(1)}°)</span>}
         </div>
       ))}
     </div>
@@ -154,9 +156,8 @@ export function KurveGeradeZeile({ kg, wert }: { kg?: KurveGerade | null; wert: 
   if (!kg || (!kg.kurve && !kg.gerade)) return null;
   const k = kg.kurve ? wert(kg.kurve) : null, g = kg.gerade ? wert(kg.gerade) : null;
   return (
-    <div className="whitespace-nowrap text-xs text-slate-400">
-      {k ?? "–"} <span className="text-slate-500">{t("tech.sTurn")}</span>
-      {" · "}{g ?? "–"} <span className="text-slate-500">{t("tech.sStraight")}</span>
+    <div className="whitespace-nowrap">
+      {t("tech.sTurn")} {k ?? "–"}{" · "}{t("tech.sStraight")} {g ?? "–"}
     </div>
   );
 }
@@ -197,7 +198,7 @@ export function TechnikUebersicht({ zeilen, titel, mitteText, phase = "tech.sSta
               <tr key={z.label} className="border-b border-slate-800/50 align-top">
                 <td className="px-3 py-2">
                   <div className="text-slate-200">{z.label}</div>
-                  <div className="text-xs tabular-nums text-slate-400">{t("home.baRuns", { n: String(n(z)) })}</div>
+                  <div className="tabular-nums">{t("home.baRuns", { n: String(n(z)) })}</div>
                 </td>
                 <td className="px-3 py-2 tabular-nums">
                   <Zeilen zeilen={[[t(phase), m?.pump_nicken_deg, o?.pump_nicken_deg, "±"]]} />
@@ -211,11 +212,11 @@ export function TechnikUebersicht({ zeilen, titel, mitteText, phase = "tech.sSta
                     [t("tech.sCurve"), m?.kurvenlage_deg, o?.kurvenlage_deg, ""]]} />
                 </td>
                 <td className="px-3 py-2 tabular-nums">
-                  {m?.hub_cm != null ? `${m.hub_cm.toFixed(0)} cm` : "–"}
+                  <span className="font-semibold text-brand-700 dark:text-brand-300">{m?.hub_cm != null ? `${m.hub_cm.toFixed(0)} cm` : "–"}</span>
                   <KurveGeradeZeile kg={z.kg} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
                 </td>
                 <td className="px-3 py-2 tabular-nums">
-                  {m?.takt_hz != null ? pump.value(m.takt_hz) : "–"}
+                  <span className="font-semibold text-brand-700 dark:text-brand-300">{m?.takt_hz != null ? pump.value(m.takt_hz) : "–"}</span>
                   <KurveGeradeZeile kg={z.kg} wert={(x) => x.takt_hz != null ? String(pump.value(x.takt_hz)) : null} />
                 </td>
               </tr>
@@ -250,7 +251,7 @@ export function LageZellen({ k }: { k: NonNullable<BoardAttitude["laeufe"]>[numb
               <Zeilen zeilen={[[t("tech.sStable"), k.technik!.mit!.pump_nicken_deg, k.technik!.ohne?.pump_nicken_deg, "±"]]} />
               <KurveGeradeZeile kg={k.technik!.kurve_gerade} wert={(x) => x.nicken_deg != null ? `±${x.nicken_deg.toFixed(1)}°` : null} />
             </>
-          : <>±{k.pitch_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
+          : <>{t("tech.sWhole")} <span className="font-semibold text-brand-700 dark:text-brand-300">±{k.pitch_amplitude_deg?.toFixed(0)}°</span></>}
       </td>
       <td className="px-3 py-2 align-top tabular-nums" title={`${t("tech.sWhole")}: ±${k.roll_amplitude_deg?.toFixed(0)}°`}>
         {lang
@@ -261,13 +262,13 @@ export function LageZellen({ k }: { k: NonNullable<BoardAttitude["laeufe"]>[numb
                 [t("tech.sWobble"), k.technik!.mit!.wackeln_deg, k.technik!.ohne?.wackeln_deg, "±"],
                 [t("tech.sCurve"), k.technik!.mit!.kurvenlage_deg, k.technik!.ohne?.kurvenlage_deg, ""]]} />
             </>
-          : <>±{k.roll_amplitude_deg?.toFixed(0)}° <span className="text-xs text-slate-500">{t("tech.sWhole")}</span></>}
+          : <>{t("tech.sWhole")} <span className="font-semibold text-brand-700 dark:text-brand-300">±{k.roll_amplitude_deg?.toFixed(0)}°</span></>}
       </td>
-      <td className="px-3 py-2 align-top tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
+      <td className="px-3 py-2 align-top tabular-nums"><span className="font-semibold text-brand-700 dark:text-brand-300">{k.gier_rms_deg_s?.toFixed(0)}°/s</span></td>
       <td className="px-3 py-2 align-top tabular-nums">
         {lang && k.technik!.mit!.takt_hz != null
-          ? <>{k.technik!.mit!.takt_hz.toFixed(2)} Hz <span className="text-xs text-slate-500">{t("tech.sStable")}</span></>
-          : k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}
+          ? <>{t("tech.sStable")} <span className="font-semibold text-brand-700 dark:text-brand-300">{k.technik!.mit!.takt_hz.toFixed(2)} Hz</span></>
+          : <span className="font-semibold text-brand-700 dark:text-brand-300">{k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}</span>}
         <KurveGeradeZeile kg={lang ? k.technik!.kurve_gerade : null} wert={(x) => x.takt_hz != null ? `${x.takt_hz.toFixed(2)}` : null} />
       </td>
       {/* Ein unsicherer Hub wird nicht verschwiegen und nicht kommentiert — er steht
@@ -277,10 +278,10 @@ export function LageZellen({ k }: { k: NonNullable<BoardAttitude["laeufe"]>[numb
         title={lang || k.hub_sicher ? undefined : t("board.heaveShaky", {
           s: (k.hub_fenster_s ?? 3).toFixed(1).replace(/\.0$/, "") })}>
         {lang && k.technik!.mit!.hub_cm != null
-          ? <>{k.technik!.mit!.hub_cm.toFixed(0)} cm <span className="text-xs text-slate-500">{t("tech.sStable")}</span></>
-          : k.hub_pp_cm != null
+          ? <>{t("tech.sStable")} <span className="font-semibold text-brand-700 dark:text-brand-300">{k.technik!.mit!.hub_cm.toFixed(0)} cm</span></>
+          : <span className="font-semibold text-brand-700 dark:text-brand-300">{k.hub_pp_cm != null
             ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
-            : "–"}
+            : "–"}</span>}
         <KurveGeradeZeile kg={lang ? k.technik!.kurve_gerade : null} wert={(x) => x.hub_cm != null ? `${x.hub_cm.toFixed(0)}` : null} />
       </td>
     </>
