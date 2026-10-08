@@ -1435,6 +1435,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **💡 08.10. — Standard-Datenseiten ueberarbeiten (Jan: „gute custom-layouts als default ausliefern, sollte ja
+  rein serverseitig direkt moeglich sein").** Wer nichts eingestellt hat, bekommt heute klassische 3-Feld-Seiten
+  (`views [[1,2,0]]`, `offFoilView [12,17,16]`, `pauseView [12,20,2]`, server/app/api/devices.py). Stattdessen
+  gute Layouts als Voreinstellung — je Zustand, je Bildschirmform (rund/eckig) und mit Rueckfall fuer Uhren ohne
+  Layout-Renderer (Garmin 128-KB-Klasse: `_als_klassik`). Rein serverseitig, kein Uhr-Update; auf allen
+  Plattformen pruefen (Garmin/Wear/Apple/Zepp/Huawei), Huawei-Simulator mit `./sim.sh an <konfig>`.
+
 - **⚪ 08.10. — Brett-Lage: Kennzahlen fuer „stabil pumpen koennen" (spaeter, Jan: „Zahlen jetzt gut so").**
   Die heutigen Hauptzahlen (Median je Pumpzug) sagen, WIE jemand pumpt (Stil, foil-abhaengig), kaum wie
   STABIL. Ideen, erst an den vorhandenen Laeufen durchrechnen, dann entscheiden: (1) Gleichmaessigkeit —
