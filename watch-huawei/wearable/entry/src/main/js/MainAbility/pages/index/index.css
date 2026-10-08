@@ -13,8 +13,9 @@
     align-items: center;
 }
 .marke {
-    width: 300px;
-    height: 40px;
+    /* vorlaeufig breit und zweizeilig fuer die Startanzeige (Fehlersuche) */
+    width: 440px;
+    height: 120px;
     font-size: 30px;
     color: #22d3ee;
     text-align: center;

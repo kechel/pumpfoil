@@ -8,6 +8,8 @@ import R from "./common/recorder.js";
 
 export default {
   R: R,
+  // Auch unter data: ob Lite-getApp() nur `data` herausgibt, ist offen (Simulator: getApp().R fehlte).
+  data: { R: R },
   onCreate() {
     console.info("Pumpfoil onCreate");
   },

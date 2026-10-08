@@ -25,13 +25,15 @@ var HALTEN_MS = 2000;
 /** Recorder aus dem app.js-Buendel holen — mit Log, was wirklich ankommt (getApp ist erst ab API 10 da). */
 function holeRecorder(vm) {
   try {
-    if (typeof getApp !== "function") console.error("Pumpfoil getApp fehlt (" + typeof getApp + ")");
+    if (typeof getApp !== "function") { vm.appInfo = "getApp " + typeof getApp; console.error("Pumpfoil getApp fehlt (" + typeof getApp + ")"); }
     else {
       var a = getApp();
       if (a && a.R) return a.R;
+      if (a && a.data && a.data.R) return a.data.R;
       var k = [];
       for (var x in a) k.push(x);
-      console.error("Pumpfoil getApp ohne R: " + typeof a + " [" + k.join(",") + "]");
+      vm.appInfo = typeof a + "[" + k.join(",") + "]" + (a && a.data ? " d[" + Object.keys(a.data).join(",") + "]" : "");
+      console.error("Pumpfoil getApp ohne R: " + vm.appInfo);
     }
   } catch (e) { console.error("Pumpfoil getApp: " + e); }
   try { if (vm.$app && vm.$app.$def && vm.$app.$def.R) return vm.$app.$def.R; } catch (e) { /* weiter */ }
@@ -51,14 +53,14 @@ export default {
     // VORLAEUFIG (Fehlersuche Simulator, 08.10.2026): die Ueberschrift zeigt, wie weit der Start kam —
     // a = Daten geladen, b = onInit, c = Recorder da (x = fehlt), d = R.init durch, e = erste Anzeige.
     // Ziffer = Build-Stand, damit ein alter Build sofort auffaellt. Danach wieder „PUMPFOIL".
-    marke: "PUMPFOIL 3a",
+    marke: "PUMPFOIL 4a",
     knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
   },
   onInit() {
     console.info("Pumpfoil Seite onInit, Text start=" + this.$t("strings.start"));
-    this.marke = "PUMPFOIL 3b";
+    this.marke = "PUMPFOIL 4b";
     R = holeRecorder(this);
-    this.marke = R ? "PUMPFOIL 3c" : "PUMPFOIL 3x";
+    this.marke = R ? "PUMPFOIL 4c" : "4x " + (this.appInfo || "?") + " m=" + this.modus;
     if (!R) {
       // Ohne Recorder nichts weiter starten, aber SAGEN warum (Infozeile + Log), statt still leer zu bleiben.
       this.info = "Kein Recorder (getApp)";
@@ -82,11 +84,11 @@ export default {
     } });
     // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
     try { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
-    if (!this.startFehler) this.marke = "PUMPFOIL 3d";
+    if (!this.startFehler) this.marke = "PUMPFOIL 4d";
     var that = this;
     this.takt = setInterval(function () { that.zeigen(); }, 1000);
     this.zeigen();
-    if (!this.startFehler && this.marke === "PUMPFOIL 3d") this.marke = "PUMPFOIL 3e";
+    if (!this.startFehler && this.marke === "PUMPFOIL 4d") this.marke = "PUMPFOIL 4e";
   },
   onDestroy() {
     clearInterval(this.takt);
