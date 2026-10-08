@@ -52,7 +52,7 @@ const zh: Record<string, string> = {
   "board.markBoard": "手机装在板上",
   "board.mountAuto": "自动",
   "board.directionUnknown": "这条记录无法根据数据判断前后方向——俯仰和横滚可能是反的。",
-  "board.mounting": "安装旋转：",
+  "board.mounting": "安装：",
   "board.mountingHint": "手机在板上的摆放方式 — 180° 会把板头和侧倾对调",
   "board.noData": "这次记录没有姿态数据。",
   "board.pitch": "俯仰",

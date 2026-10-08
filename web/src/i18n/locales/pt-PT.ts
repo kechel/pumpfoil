@@ -64,7 +64,7 @@ const ptPT: Record<string, string> = {
   "board.markBoard": "O telemóvel estava na prancha",
   "board.mountAuto": "automático",
   "board.directionUnknown": "Não foi possível determinar pelos dados a frente e a traseira desta gravação — arfagem e rolamento podem estar invertidos.",
-  "board.mounting": "Rotação da montagem:",
+  "board.mounting": "Montagem:",
   "board.mountingHint": "como o telemóvel estava sobre a prancha — 180° inverte o nariz e a inclinação",
   "board.noData": "Sem dados de atitude para esta gravação.",
   "board.pitch": "Arfagem",

@@ -52,7 +52,7 @@ const es: Record<string, string> = {
   "board.markBoard": "El móvil iba en la tabla",
   "board.mountAuto": "automático",
   "board.directionUnknown": "No se pudo determinar a partir de los datos dónde está la parte delantera y trasera en esta grabación — el cabeceo y el balanceo pueden estar invertidos.",
-  "board.mounting": "Rotación del montaje:",
+  "board.mounting": "Montaje:",
   "board.mountingHint": "cómo iba el móvil sobre la tabla — 180° invierte la punta y la inclinación",
   "board.noData": "No hay datos de actitud para esta grabación.",
   "board.pitch": "Cabeceo",

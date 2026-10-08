@@ -54,7 +54,7 @@ const cs: Record<string, string> = {
   "board.markBoard": "Telefon byl na prkně",
   "board.mountAuto": "automaticky",
   "board.directionUnknown": "U tohoto záznamu se z dat nepodařilo určit předek a zadek — klopení a náklon tu mohou být obrácené.",
-  "board.mounting": "Otočení při montáži:",
+  "board.mounting": "Montáž:",
   "board.mountingHint": "jak telefon ležel na prkně — 180° prohodí špičku a náklon",
   "board.noData": "Pro tuto nahrávku nejsou data o poloze prkna.",
   "board.pitch": "Klopení",

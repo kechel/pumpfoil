@@ -52,7 +52,7 @@ const fr: Record<string, string> = {
   "board.markBoard": "Le téléphone était sur la planche",
   "board.mountAuto": "automatique",
   "board.directionUnknown": "L’avant et l’arrière n’ont pas pu être déterminés à partir des données de cet enregistrement — le tangage et le roulis peuvent être inversés ici.",
-  "board.mounting": "Rotation du montage :",
+  "board.mounting": "Montage :",
   "board.mountingHint": "comment le téléphone était posé sur la planche — 180° inverse le nez et l'inclinaison",
   "board.noData": "Pas de données d'assiette pour cet enregistrement.",
   "board.pitch": "Tangage",
