@@ -179,25 +179,40 @@ export default {
     clearTimeout(this.haltUhr);
     this.haltText = text;
     this.zeigen();
+    this.haltLaeuft = true;
     this.haltUhr = setTimeout(function () {
-      that.haltText = "";
-      // Rumpeln darf die Aktion nie verhindern (im Simulator/auf manchen Uhren evtl. ohne Vibrator).
-      try { vibrator.vibrate({ mode: "short" }); } catch (e) { console.error("Pumpfoil vibrate: " + e); }
-      console.info("Pumpfoil Aktion " + aktion);
-      try { R[aktion](); } catch (e) { console.error("Pumpfoil " + aktion + ": " + e); that.startFehler = aktion + ": " + e; }
-      that.zeigen();
+      that.haltLaeuft = false;
+      that.ausfuehren(aktion);
     }, HALTEN_MS);
   },
   startHalten() { this.halten("start", this.$t("strings.holdStart")); },
   pauseHalten() { this.halten("pause", this.$t("strings.holdPause")); },
   weiterHalten() { this.halten("weiter", this.$t("strings.holdResume")); },
   stoppHalten() { this.halten("stopp", this.$t("strings.holdStop")); },
-  // VORLAEUFIG (Fehlersuche): welche Ereignisse kommen im Simulator an?
-  tippen() { console.info("Pumpfoil click Knopf"); this.info = "click Knopf"; },
-  lang() { console.info("Pumpfoil longpress Knopf"); this.info = "longpress Knopf"; },
-  seiteTippen() { console.info("Pumpfoil click Seite"); },
+  // LONGPRESS ALS ERSATZ (08.10.2026, Simulator): touchstart/touchend kamen dort unzuverlaessig an
+  // (touchend sofort, mit click am Knopf gar keins), click und longpress dagegen sicher. Laeuft das
+  // 2-s-Halten (Touch kam an), zaehlt nur das; sonst loest das System-longpress (~1 s) die Aktion aus.
+  // Ein Aermelstreifer bleibt ein click und loest nichts aus.
+  lang(aktion) {
+    console.info("Pumpfoil longpress " + aktion + (this.haltLaeuft ? " (Halten laeuft, ignoriert)" : ""));
+    if (this.haltLaeuft) return;
+    this.ausfuehren(aktion);
+  },
+  startLang() { this.lang("start"); },
+  pauseLang() { this.lang("pause"); },
+  weiterLang() { this.lang("weiter"); },
+  stoppLang() { this.lang("stopp"); },
+  ausfuehren(aktion) {
+    this.haltText = "";
+    // Rumpeln darf die Aktion nie verhindern (im Simulator/auf manchen Uhren evtl. ohne Vibrator).
+    try { vibrator.vibrate({ mode: "short" }); } catch (e) { console.error("Pumpfoil vibrate: " + e); }
+    console.info("Pumpfoil Aktion " + aktion);
+    try { R[aktion](); } catch (e) { console.error("Pumpfoil " + aktion + ": " + e); this.startFehler = aktion + ": " + e; }
+    this.zeigen();
+  },
   loslassen() {
     if (this.haltText) console.info("Pumpfoil losgelassen");
+    this.haltLaeuft = false;
     clearTimeout(this.haltUhr);
     this.haltText = "";
     this.zeigen();
