@@ -7,7 +7,7 @@
 // (GET /api/sessions/longest-runs). Die Kurven je Lauf brauchen die volle Session (Puls je
 // Trackpunkt) und bei „Handy am Brett" die Lage-Kennzahlen je Lauf — beides holt die Seite je
 // betroffener Session nach. Bei fuenf Laeufen sind das hoechstens fuenf Abrufe.
-import { LageZellen, LaufLegende } from "../components/TechnikTabelle";
+import { LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
@@ -320,32 +320,32 @@ export default function LaengsteLaeufe() {
                     {kopf("datum", t("longest.session"))}
                     {kopf("dauer", t("sd.colDuration"))}
                     {kopf("strecke", t("sd.colDistance"))}
-                    {kopf("pitch", t("board.pitch"))}
-                    {kopf("roll", t("board.roll"))}
-                    {kopf("yaw", t("board.yaw"))}
-                    {kopf("pitchHz", t("sd.colPitchRhythm"))}
-                    {kopf("hub", t("sd.colHeave"))}
+                    <PhasenKopf sortierbar={(key, label) => ["pitch", "roll", "yaw", "pitchHz", "hub"].includes(key)
+                      ? kopf(key as Parameters<typeof kopf>[0], label)
+                      : <th key={key} className="px-3 py-2 text-right font-medium">{label}</th>} />
                   </tr>
                 </thead>
                 <tbody>
                   {anordnen(brettLaeufe, vergleich.filter((v) => v.placement === "board"), true).map((l) => {
                     const k = lage[l.session_id]?.find((x) => x.lauf === l.run_idx);
-                    return (
-                      <tr key={schl(l)} onClick={() => umschalten(schl(l))}
-                        className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${zeilenFarbe(l)}`}>
-                        <td className="px-3 py-2">
-                          <Link to={zuSession(l)} state={zurueckState} onClick={(e) => { e.stopPropagation(); merkeScroll(); }} className="text-brand-600 hover:underline dark:text-brand-300">
-                            {datum(l)} · #{l.run_idx + 1}
-                          </Link>
-                        </td>
-                        <td className="px-3 py-2 tabular-nums font-semibold">{mmss(l.duration_s)}</td>
-                        <td className="px-3 py-2 tabular-nums">{l.distance_m != null ? `${Math.round(l.distance_m)} m` : "–"}</td>
-                        {!lage[l.session_id] ? <td colSpan={5} className="px-3 py-2 text-slate-500">…</td>
-                          : !k?.ok ? <td colSpan={5} className="px-3 py-2 text-slate-500">–</td> : (
-                          // Dieselben Zellen wie „Lage je Lauf" in den Session-Details (Jan, 08.10.2026).
-                          <LageZellen k={k} />
-                        )}
+                    const kopfZellen = (n: number) => (<>
+                      <td rowSpan={n} className="px-3 py-1.5 align-top">
+                        <Link to={zuSession(l)} state={zurueckState} onClick={(e) => { e.stopPropagation(); merkeScroll(); }} className="text-brand-600 hover:underline dark:text-brand-300">
+                          {datum(l)} · #{l.run_idx + 1}
+                        </Link>
+                      </td>
+                      <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums font-semibold">{mmss(l.duration_s)}</td>
+                      <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{l.distance_m != null ? `${Math.round(l.distance_m)} m` : "–"}</td>
+                    </>);
+                    const zeile = `cursor-pointer hover:bg-slate-800/50 ${zeilenFarbe(l)}`;
+                    // Je Lauf eine Zeile pro Phase, wie „Lage je Lauf" in den Session-Details (Jan, 08.10.2026).
+                    return !k?.ok ? (
+                      <tr key={schl(l)} onClick={() => umschalten(schl(l))} className={`${zeile} border-b border-slate-800/50`}>
+                        {kopfZellen(1)}
+                        <td colSpan={8} className="px-3 py-2 text-slate-500">{lage[l.session_id] ? "–" : "…"}</td>
                       </tr>
+                    ) : (
+                      <LaufPhasenZeilen key={schl(l)} k={k} onClick={() => umschalten(schl(l))} className={zeile} vorne={kopfZellen} />
                     );
                   })}
                 </tbody>
