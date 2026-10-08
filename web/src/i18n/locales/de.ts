@@ -1464,7 +1464,7 @@ const de: Record<string, string> = {
   "watches.nApple": "Roh-Beschleunigung über Core Motion.",
   "watches.nWear": "Läuft auf jeder Wear-OS-3+-Uhr — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
-  "watches.nHuawei": "Beta in Arbeit: Aufnahme auf der Uhr, Übertragung über die Pumpfoil-App mit Android-Handy – die Watch 5 lädt nach Kopplung per Code auch selbst hoch, also auch mit iPhone. Welche Uhr welche Daten liefert, muss noch getestet werden.",
+  "watches.nHuawei": "Beta in Arbeit: Aufnahme auf der Uhr, Übertragung über die Pumpfoil-App mit Android-Handy – Watch 3, 4 und 5 können nach Kopplung per Code auch selbst hochladen. Welche Uhr welche Daten liefert, muss noch getestet werden.",
   "watches.nPolar": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der API-Export nicht (nur via separatem BLE-Sensor).",
   "watches.nSuunto": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der FIT-Export (noch) nicht.",
   "linked.xiaomi.title": "Xiaomi- und Redmi-Uhren",
