@@ -3158,7 +3158,7 @@ function RunsTable({
               ))}
             </tbody>
           </table>
-          <LaufLegende n={laufKennz.filter((k) => k.ok && k.technik?.mit && k.technik.teil !== "ganz").length} />
+          <LaufLegende />
         </Card>
       )}
       {segments.length > 0 && (

@@ -123,7 +123,7 @@ const it: Record<string, string> = {
   "tech.gHeave": "L'escursione è misurata al telefono – confrontabile solo con il telefono nello stesso punto.",
   "tech.hLong": "Run da 20 s – parte centrale stabile",
   "tech.hShort": "Run sotto i 20 s – run intero",
-  "tech.lShort": "Run tra 5 e 20 s, partenza e fine incluse. {n} run.",
+  "tech.lShort": "Run tra 5 e 20 s, partenza e fine incluse.",
   "tech.sStable": "fase stabile",
   "tech.gStable": "la run senza i primi e gli ultimi 5 s; le run sotto i 20 s non hanno fase stabile",
   "tech.gSpread": "Oscillazione e inclinazione sono ampiezze, non valori per pompata.",

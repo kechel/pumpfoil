@@ -67,7 +67,7 @@ export function TechnikTabelle({ paar, laeufe }: { paar: TechnikPaar; laeufe?: n
  * Zeilen IN den Zellen (Jan, 08.10.2026: „ohne zusaetzliche spalten"), korrigiert vorn,
  * unkorrigiert in Klammern.
  */
-export function LaufLegende({ n, mitteText = "tech.gMiddle" }: { n: number; mitteText?: string; ganzerLauf?: boolean }) {
+export function LaufLegende({ mitteText }: { mitteText?: string }) {
   // Erst die Spalten, dann die Phasen (Jan, 08.10.2026: Phasen als eigene Spalte), dann was gezaehlt wird.
   const t = useT();
   const zeilen: [string, string][] = [
@@ -82,13 +82,17 @@ export function LaufLegende({ n, mitteText = "tech.gMiddle" }: { n: number; mitt
   return (
     <div className="space-y-1 px-3 pb-3 pt-2 text-sm text-slate-400">
       <p>{t("tech.gColumns")}</p>
-      <dl className="space-y-0.5">
+      {/* Beschreibungen buendig nach dem breitesten Begriff (Jan, 08.10.2026); am Handy untereinander. */}
+      <dl className="space-y-0.5 sm:grid sm:grid-cols-[max-content_1fr] sm:gap-x-3 sm:gap-y-0.5 sm:space-y-0">
         {zeilen.map(([k, v]) => (
-          <div key={k}><dt className="inline font-semibold text-slate-300">{k}:</dt> <dd className="inline">{v}</dd></div>
+          <div key={k} className="sm:contents">
+            <dt className="inline font-semibold text-slate-300 sm:block">{k}:</dt> <dd className="inline sm:block">{v}</dd>
+          </div>
         ))}
       </dl>
       <p><MitLabel text={t("tech.lCorrection")} /></p>
-      <p>{t("tech.gSpread")} {t(mitteText, { n: String(n) })}</p>
+      {/* Keine Laufzahl mehr (Jan, 08.10.2026: „ganz weg") — die Zeilen der Tabelle zeigen sie schon. */}
+      <p>{t("tech.gSpread")}{mitteText ? ` ${t(mitteText)}` : ""}</p>
       <p>{t("tech.gHeave")}</p>
     </div>
   );
@@ -203,7 +207,7 @@ export function TechnikUebersicht({ zeilen, titel, mitteText }: {
           })}
         </tbody>
       </table>
-      <LaufLegende n={n(mitDaten[0])} mitteText={mitteText} />
+      <LaufLegende mitteText={mitteText} />
     </div>
     </div>
   );

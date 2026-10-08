@@ -125,7 +125,7 @@ const nl: Record<string, string> = {
   "tech.gHeave": "Hoogte wordt bij de telefoon gemeten – alleen vergelijkbaar met de telefoon op dezelfde plek.",
   "tech.hLong": "Runs vanaf 20 s – rustig middendeel",
   "tech.hShort": "Runs onder 20 s – hele run",
-  "tech.lShort": "Runs tussen 5 en 20 s, telkens inclusief start en einde. {n} runs.",
+  "tech.lShort": "Runs tussen 5 en 20 s, telkens inclusief start en einde.",
   "tech.sStable": "stabiele fase",
   "tech.gStable": "de run zonder de eerste en laatste 5 s; runs korter dan 20 s hebben geen stabiele fase",
   "tech.gSpread": "Wiebelen en helling zijn spreidingen, geen waarden per slag.",

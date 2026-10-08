@@ -123,7 +123,7 @@ const id: Record<string, string> = {
   "tech.gHeave": "Naik-turun diukur di ponsel – hanya sebanding bila ponsel di tempat yang sama.",
   "tech.hLong": "Run mulai 20 dtk – bagian tengah stabil",
   "tech.hShort": "Run di bawah 20 dtk – seluruh run",
-  "tech.lShort": "Run antara 5 dan 20 dtk, termasuk awal dan akhir. {n} run.",
+  "tech.lShort": "Run antara 5 dan 20 dtk, termasuk awal dan akhir.",
   "tech.sStable": "fase stabil",
   "tech.gStable": "run tanpa 5 dtk pertama dan terakhir; run di bawah 20 dtk tidak punya fase stabil",
   "tech.gSpread": "Goyangan dan kemiringan adalah rentang, bukan nilai per pompaan.",

@@ -123,7 +123,7 @@ const nb: Record<string, string> = {
   "tech.gHeave": "Hiv måles ved telefonen – bare sammenlignbart med telefonen på samme sted.",
   "tech.hLong": "Runs fra 20 s – rolig midtdel",
   "tech.hShort": "Runs under 20 s – hele runen",
-  "tech.lShort": "Runder mellom 5 og 20 s, inkludert start og slutt. {n} runder.",
+  "tech.lShort": "Runder mellom 5 og 20 s, inkludert start og slutt.",
   "tech.sStable": "stabil fase",
   "tech.gStable": "runden uten de første og siste 5 s; runder under 20 s har ingen stabil fase",
   "tech.gSpread": "Vugging og krenging er spenn, ikke verdier per tak.",

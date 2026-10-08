@@ -123,7 +123,7 @@ const es: Record<string, string> = {
   "tech.gHeave": "La oscilación vertical se mide en el móvil – solo comparable con el móvil en el mismo sitio.",
   "tech.hLong": "Tramos desde 20 s – parte central estable",
   "tech.hShort": "Tramos de menos de 20 s – tramo completo",
-  "tech.lShort": "Carreras de 5 a 20 s, inicio y final incluidos. {n} carreras.",
+  "tech.lShort": "Carreras de 5 a 20 s, inicio y final incluidos.",
   "tech.sStable": "fase estable",
   "tech.gStable": "la carrera sin sus primeros y últimos 5 s; las de menos de 20 s no tienen fase estable",
   "tech.gSpread": "Bamboleo e inclinación son amplitudes, no valores por bombeo.",

@@ -405,7 +405,7 @@ const en: Record<string, string> = {
   "tech.gHeave": "Heave is measured at the phone – only comparable with the phone in the same spot.",
   "tech.hLong": "Runs from 20 s – steady middle",
   "tech.hShort": "Runs under 20 s – whole run",
-  "tech.lShort": "Runs between 5 and 20 s, each including start and end. {n} runs.",
+  "tech.lShort": "Runs between 5 and 20 s, each including start and end.",
   "tech.sStable": "stable phase",
   "tech.gStable": "the run without its first and last 5 s; runs under 20 s have no stable phase",
   "tech.gSpread": "Wobble and lean are spans, not per-stroke values.",

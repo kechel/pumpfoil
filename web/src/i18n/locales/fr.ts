@@ -123,7 +123,7 @@ const fr: Record<string, string> = {
   "tech.gHeave": "Le heave est mesuré au téléphone – comparable seulement avec le téléphone au même endroit.",
   "tech.hLong": "Runs de 20 s et plus – milieu stable",
   "tech.hShort": "Runs de moins de 20 s – run entier",
-  "tech.lShort": "Runs entre 5 et 20 s, départ et fin compris. {n} runs.",
+  "tech.lShort": "Runs entre 5 et 20 s, départ et fin compris.",
   "tech.sStable": "phase stable",
   "tech.gStable": "le run sans ses 5 premières et 5 dernières s ; les runs de moins de 20 s n'ont pas de phase stable",
   "tech.gSpread": "Oscillation et inclinaison sont des amplitudes, pas des valeurs par coup.",
