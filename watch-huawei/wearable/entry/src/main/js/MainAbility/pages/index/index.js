@@ -81,6 +81,7 @@ export default {
     device.getInfo({ success: function (d) {
       if (d.windowWidth > 0) { that0.dw = d.windowWidth; that0.dh = d.windowHeight; }
       that0.lite = d.deviceType !== "wearable";
+      console.info("Pumpfoil Geraet " + d.deviceType + " " + d.windowWidth + "x" + d.windowHeight + " lite=" + that0.lite);
     } });
     // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
     try { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
