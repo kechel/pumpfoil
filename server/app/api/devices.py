@@ -706,6 +706,23 @@ def _manuell_standard() -> tuple[int, int]:
     return int(DEFAULTS["speed_min"]), int(DEFAULTS["speed_max"])
 
 
+def foil_kurzname(marke: str | None, modell: str | None, groesse: str | None, max_len: int = 24) -> str:
+    """Foil-Name fuer die Uhren (max. 24 Zeichen). Die GROESSE hat immer Vorrang (Jan, 08.10.2026): bis dahin
+    wurde „Marke Modell Groesse" hinten abgeschnitten, und bei 76 Foils fiel genau die Groesse weg — zwei
+    Gong TRAIL V3 standen gleich lautend in der Liste. Erst faellt die Marke weg, dann wird das Modell
+    gekuerzt; die Groesse bleibt immer ganz."""
+    teile = lambda *xs: " ".join(x.strip() for x in xs if x and x.strip())
+    for name in (teile(marke, modell, groesse), teile(modell, groesse)):
+        if len(name) <= max_len:
+            return name
+    g = (groesse or "").strip()
+    platz = max_len - len(g) - 1
+    if platz <= 0:
+        return g[:max_len]
+    m = (modell or marke or "").strip()[:platz].rstrip(" /-·,")
+    return teile(m, g)
+
+
 def _foil_alarm_list(db: Session, settings: dict) -> list[dict]:
     from ..foil_physics import alarm_speeds
 
@@ -737,8 +754,8 @@ def _foil_alarm_list(db: Session, settings: dict) -> list[dict]:
                 lo = hi = 0
             if lo <= 0 or hi <= 0:
                 lo, hi = _manuell_standard()
-        label = " ".join(p for p in [f.brand, f.model, f.size] if p).strip() or f"Foil {fid}"
-        out.append({"id": f.id, "label": label[:24], "min": lo, "max": hi})
+        label = foil_kurzname(f.brand, f.model, f.size) or f"Foil {fid}"
+        out.append({"id": f.id, "label": label, "min": lo, "max": hi})
     # Standard-Foil nach vorne.
     out.sort(key=lambda x: x["id"] != default_id)
     return out
