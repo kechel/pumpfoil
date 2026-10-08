@@ -2454,6 +2454,10 @@ def board_attitude(user: models.User = Depends(current_user),
         ohne `teil` sind lange Laeufe (vor dem 08.10. gab es Technik nur fuer die)."""
         return [x for x in menge if x.get("technik") and (x["technik"].get("teil") or "mitte") == teil]
 
+    def _ganz(menge: list[dict]) -> list[dict]:
+        """Die Phase „ganzer Lauf" langer Laeufe in der Form, die `_technik` erwartet."""
+        return [{"technik": x["technik"]["ganz"]} for x in menge if x["technik"].get("ganz")]
+
     def _technik(menge: list[dict]) -> dict | None:
         """Median der Technik-Kennzahlen (Mittelteil von Laeufen ab 30 s), beide Fassungen.
         `laeufe` = wie viele Laeufe darin stecken — kuerzere zaehlen nicht mit."""
@@ -2488,12 +2492,15 @@ def board_attitude(user: models.User = Depends(current_user),
         f_["technik"] = _technik(_teil(_f, "mitte"))
         f_["kurve_gerade"] = _kurve_gerade(_teil(_f, "mitte"))
         f_["technik_kurz"] = _technik(_teil(_f, "ganz"))
+        f_["technik_ganz"] = _technik(_ganz(_teil(_f, "mitte")))
         f_["kurve_gerade_kurz"] = _kurve_gerade(_teil(_f, "ganz"))
     out = {"gesamt": _zusammenfassen(laeufe), "je_foil": je_foil,
            "technik": _technik(_teil(laeufe, "mitte")), "technik_min_s": _lage.TECHNIK_MIN_S, "technik_rand_s": _lage.TECHNIK_RAND_S,
            "kurve_gerade": _kurve_gerade(_teil(laeufe, "mitte")),
            # Laeufe unter 30 s, ueber den ganzen Lauf (s. lage._technik_lauf) — getrennt ausgewiesen.
            "technik_kurz": _technik(_teil(laeufe, "ganz")),
+           # Lange Laeufe, Phase „ganzer Lauf" (mit Anfang und Ende), s. lage._technik_lauf.
+           "technik_ganz": _technik(_ganz(_teil(laeufe, "mitte"))),
            "kurve_gerade_kurz": _kurve_gerade(_teil(laeufe, "ganz")),
            "sessions": sessions_gezaehlt, "laeufe": len(laeufe),
            "ohne_kreisel": ohne_kreisel}

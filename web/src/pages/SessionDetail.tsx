@@ -1,4 +1,4 @@
-import { LageZellen, LaufLegende } from "../components/TechnikTabelle";
+import { LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -3119,24 +3119,18 @@ function RunsTable({
             <thead>
               <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
                 <th className="px-3 py-2 font-medium">#</th>
-                <th className="px-3 py-2 font-medium">{t("board.pitch")}</th>
-                <th className="px-3 py-2 font-medium">{t("board.roll")}</th>
-                <th className="px-3 py-2 font-medium">{t("board.yaw")}</th>
-                <th className="px-3 py-2 font-medium">{t("sd.colPitchRhythm")}</th>
-                <th className="px-3 py-2 font-medium">{t("sd.colHeave")}</th>
+                <PhasenKopf />
                 <th className="px-3 py-2 font-medium">{t("board.mounting")}</th>
               </tr>
             </thead>
             <tbody>
               {laufKennz.filter((k) => k.ok).map((k) => (
-                <tr
-                  key={k.lauf}
+                // Je Lauf eine Zeile pro Phase (Jan, 08.10.2026); Nummer und Montage einmal je Lauf.
+                <LaufPhasenZeilen key={k.lauf} k={k}
                   onClick={() => onSelect(selected === k.lauf ? null : k.lauf)}
-                  className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${
-                    selected === k.lauf ? "bg-brand-500/20" : ""}`}
-                >
-                  <td className="px-3 py-2 tabular-nums">{k.lauf + 1}</td>
-                  <LageZellen k={k} />
+                  className={`cursor-pointer hover:bg-slate-800/50 ${selected === k.lauf ? "bg-brand-500/20" : ""}`}
+                  vorne={(n) => <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{k.lauf + 1}</td>}
+                  hinten={(n) => (<>
                   {/* Die Montage je Lauf SICHTBAR machen (Jan, 22.09.): das Handy kann zwischen
                       zwei Laeufen verrutschen. Grau, wenn sie nicht aus diesem Lauf stammt,
                       sondern von der ganzen Aufnahme geerbt ist — dann war das Signal hier zu
@@ -3150,14 +3144,14 @@ function RunsTable({
                       abweichende Gradzahl SAGT ja schon, dass die Montage eine andere war; ein
                       Alarm macht daraus einen Fehler, wo keiner ist. Die Erklaerung bleibt im
                       Tooltip, fuer den, der hinschaut. */}
-                  <td className={`px-3 py-2 tabular-nums ${k.rot_eigen ? "" : "text-slate-500"}`}
+                  <td rowSpan={n} className={`px-3 py-1.5 align-top tabular-nums ${k.rot_eigen ? "" : "text-slate-500"}`}
                     title={k.rot_verrutscht ? t("sd.mountSlipped")
                       : k.rot_strittig ? t("sd.mountDisputed")
                       : k.rot_eigen ? `${t("board.mountAuto")} · ${k.rot_klarheit ?? "–"}`
                       : t("sd.mountInherited")}>
                     {k.rot_deg != null ? `${Math.round(k.rot_deg)}°` : "–"}
                   </td>
-                </tr>
+                  </>)} />
               ))}
             </tbody>
           </table>

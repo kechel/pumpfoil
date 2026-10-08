@@ -131,12 +131,12 @@ function BoardAttitudeSection() {
       {/* Zweimal (Jan, 08.10.2026): Laeufe ab 30 s (Mittelteil) und Laeufe unter 30 s (ganzer Lauf),
           nie vermischt — er vermutet Unterschiede zwischen kurzen und langen Laeufen. */}
       <TechnikUebersicht titel={t("tech.hLong")} zeilen={[
-        { label: t("tech.allRuns"), technik: data.technik, kg: data.kurve_gerade },
-        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik, kg: f.kurve_gerade })) : []),
+        { label: t("tech.allRuns"), technik: data.technik, kg: data.kurve_gerade, ganz: data.technik_ganz },
+        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik, kg: f.kurve_gerade, ganz: f.technik_ganz })) : []),
       ]} />
-      <TechnikUebersicht titel={t("tech.hShort")} mitteText="tech.lShort" phase="tech.sWhole" zeilen={[
-        { label: t("tech.allRuns"), technik: data.technik_kurz, kg: data.kurve_gerade_kurz },
-        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik_kurz, kg: f.kurve_gerade_kurz })) : []),
+      <TechnikUebersicht titel={t("tech.hShort")} mitteText="tech.lShort" zeilen={[
+        { label: t("tech.allRuns"), technik: data.technik_kurz, nurGanz: true },
+        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik_kurz, nurGanz: true })) : []),
       ]} />
     </div>
   );

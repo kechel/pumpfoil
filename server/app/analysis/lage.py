@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-10-08-rollen-kurve"
+LAGE_VERSION = "2026-10-08-phasen"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -1415,11 +1415,18 @@ def _technik_lauf(erg_k: dict, erg: dict, a: float, b: float) -> dict:
     lang = b - a >= TECHNIK_MIN_S * 1000.0
     rand, mins = (TECHNIK_RAND_S, TECHNIK_MIN_S) if lang else (0.0, TECHNIK_KURZ_MIN_S)
     ok_k = bool(erg_k.get("ok"))
-    return {"teil": "mitte" if lang else "ganz",
-            "mit": technik_kennzahlen(erg_k, a, b, rand, mins) if ok_k else None,
-            "ohne": technik_kennzahlen(erg, a, b, rand, mins),
-            "fliehkraft": erg_k.get("fliehkraft"),
-            "kurve_gerade": kurve_gerade(erg_k, a, b, rand, mins) if ok_k else None}
+    aus = {"teil": "mitte" if lang else "ganz",
+           "mit": technik_kennzahlen(erg_k, a, b, rand, mins) if ok_k else None,
+           "ohne": technik_kennzahlen(erg, a, b, rand, mins),
+           "fliehkraft": erg_k.get("fliehkraft"),
+           "kurve_gerade": kurve_gerade(erg_k, a, b, rand, mins) if ok_k else None}
+    # Phase „ganzer Lauf" fuer lange Laeufe (Jan, 08.10.2026: Tabelle mit Spalte „Phase"): DIESELBE
+    # Rechnung wie die stabile Phase, nur mit Anfang und Ende — jede Spalte bleibt eine Groesse, und
+    # man sieht, was Start und Ende ausmachen. Bei kurzen Laeufen IST das Obige schon der ganze Lauf.
+    if lang:
+        aus["ganz"] = {"mit": technik_kennzahlen(erg_k, a, b, 0.0, TECHNIK_KURZ_MIN_S) if ok_k else None,
+                       "ohne": technik_kennzahlen(erg, a, b, 0.0, TECHNIK_KURZ_MIN_S)}
+    return aus
 
 
 def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
