@@ -163,7 +163,7 @@ struct Index {
     if (z.modus === 'bereit' && z.verworfen > 0 && Date.now() - z.verworfen < 10000) {
       return this.t($r('app.string.discarded'));
     }
-    const handy: string = this.t($r('app.string.openPhone')) + ' (' + z.sendeCode + ')';
+    const handy: string = this.t($r('app.string.openPhone'));   // ohne Fehlercode (wie Lite)
     if (z.offen > 0) {
       return z.plan.fertig + '/' + z.plan.gesamt + (z.sendeFehler > 0 ? ' · ' + handy : '');
     }
@@ -180,8 +180,8 @@ struct Index {
       this.ansicht = this.zeigeFertig && l !== null ? 'fertig' : 'bereit';
       if (l !== null && this.ansicht === 'fertig') {
         this.fZeit = zeitText(l.ms);
-        this.fStrecke = (l.m / 1000).toFixed(2) + ' km · ' + l.kmh.toFixed(1) + ' km/h';
-        this.fLaeufe = l.laeufe + ' ' + (this.texte.get('runs') ?? 'Runs');
+        this.fStrecke = (l.m / 1000).toFixed(2) + ' km';
+        this.fLaeufe = l.kmh.toFixed(1) + ' km/h · ' + l.laeufe + ' ' + (this.texte.get('runs') ?? 'Runs');
       }
       this.seite = 2;
       this.zustandVorher = '';

@@ -117,7 +117,8 @@ export default {
       this.ansicht = this.zeigeFertig && R.letzte ? "fertig" : "bereit";
       if (this.ansicht === "fertig") {
         var l = R.letzte;
-        this.fZeit = zeitText(l.ms); this.fStrecke = l.text; this.fLaeufe = l.laeufe + " " + this.texte.runs;
+        // Strecke gross, Schnitt + Laeufe klein darunter (zusammen war die Zeile zu breit, 08.10.2026)
+        this.fZeit = zeitText(l.ms); this.fStrecke = l.km; this.fLaeufe = l.kmh + " · " + l.laeufe + " " + this.texte.runs;
       }
       this.seite = 2; this.zustandVorher = "";
       return;
