@@ -178,20 +178,6 @@ function dateiMeta(id) { return PRAEFIX + "m_" + id + ".json"; }
 function dateiChunk(id, n) { return PRAEFIX + "c_" + id + "_" + ("00000" + n).slice(-6) + ".json"; }
 function dateiEnde(id) { return PRAEFIX + "e_" + id + ".json"; }
 
-/** Reihenfolge fuer die Uebertragung: m vor c vor e, je Session; innerhalb c nach Nummer. */
-function sendeReihenfolge(namen) {
-  function rang(n) {
-    var b = n.substring(n.lastIndexOf("/") + 1);
-    var art = b.charAt(0) === "m" ? 0 : (b.charAt(0) === "c" ? 1 : (b.charAt(0) === "e" ? 2 : 9));
-    return [art, b];
-  }
-  return namen.filter(function (n) { return rang(n)[0] < 9; }).sort(function (a, b) {
-    var ra = rang(a), rb = rang(b);
-    if (ra[0] !== rb[0]) return ra[0] - rb[0];
-    return ra[1] < rb[1] ? -1 : (ra[1] > rb[1] ? 1 : 0);
-  });
-}
-
 /**
  * Warteschlange fuer die Uebertragung zum Handy. Wear Engine schickt EINE Datei gleichzeitig
  * (das SDK lehnt eine zweite ab) und meldet 206, wenn etwas nicht geht — u. a. wenn die
@@ -430,5 +416,5 @@ export default {
   Sendeplan: Sendeplan, dateiVon: dateiVon, teile: teile, ascii: ascii, Gegenstelle: Gegenstelle,
   TEIL_MAX: TEIL_MAX,
   neueId: neueId, dateiMeta: dateiMeta, dateiChunk: dateiChunk, dateiEnde: dateiEnde,
-  sendeReihenfolge: sendeReihenfolge, meter: meter, AutoStart: AutoStart
+  meter: meter, AutoStart: AutoStart
 };

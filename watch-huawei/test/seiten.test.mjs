@@ -138,6 +138,10 @@ test("Auswahl: Erstbelegung aus dem Profil, danach entscheidet die Uhr; Foil im 
   assert.deepEqual([null, true, false].map(S.dreistufig), [true, false, null]);
   const ohne = new S.Auswahl(null); ohne.vorbelegen(new S.Konfig({ alarmEnabled: true }));
   assert.equal(ohne.quelle, "manual", "ohne Foils: feste Grenzen");
+  // Auto-Start auf der Uhr (Jan, 08.10.2026): null = wie im Profil, sonst die Wahl; ueberlebt Speichern
+  assert.equal(new S.Auswahl(null).start, null);
+  const st = new S.Auswahl(null); st.start = S.dreistufig(st.start);
+  assert.equal(new S.Auswahl(JSON.parse(JSON.stringify(st.daten()))).start, true);
 });
 
 test("Alarm: Tempo ueber/unter (Foil oder fest), einmal oder wiederholt, Puls, Marken je Lauf", () => {

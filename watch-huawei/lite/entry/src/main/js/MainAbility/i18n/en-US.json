@@ -34,6 +34,7 @@
     "f_allRunsDist": "all runs dist",
     "f_allRunsTime": "all runs time",
     "done": "DONE",
+    "autoStart": "Auto-start",
     "lock": "Touch lock",
     "lockHold": "hold to unlock",
     "alarm": "Alarm",

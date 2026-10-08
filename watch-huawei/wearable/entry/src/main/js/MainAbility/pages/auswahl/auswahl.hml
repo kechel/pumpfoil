@@ -19,5 +19,8 @@
         <list-item class="eintrag" onclick="sperre">
             <div class="block"><text class="begriff">{{ bSperre }}</text><text class="wert">{{ zSperre }}</text></div>
         </list-item>
+        <list-item class="eintrag" onclick="start">
+            <div class="block"><text class="begriff">{{ bStart }}</text><text class="wert">{{ zStart }}</text></div>
+        </list-item>
     </list>
 </div>

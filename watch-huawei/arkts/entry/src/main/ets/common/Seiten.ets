@@ -466,6 +466,7 @@ export interface AuswahlDaten {
   foilId?: number | null;
   layouts?: boolean | null;
   sperre?: boolean | null;
+  start?: boolean | null;
 }
 
 /** Wahl auf der Uhr (Einstellungsseite wie Zepp 4/4), einmal aus dem Profil vorbelegt (wie lauf.js Auswahl). */
@@ -476,6 +477,7 @@ export class Auswahl {
   foilId: number | null = null;
   layouts: boolean | null = null;
   sperre: boolean | null = null;
+  start: boolean | null = null;   // Auto-Start: null = wie im Profil
 
   constructor(d: AuswahlDaten | null) {
     if (d === null || d === undefined) {
@@ -487,6 +489,7 @@ export class Auswahl {
     this.foilId = typeof d.foilId === 'number' ? d.foilId : null;
     this.layouts = typeof d.layouts === 'boolean' ? d.layouts : null;
     this.sperre = typeof d.sperre === 'boolean' ? d.sperre : null;
+    this.start = typeof d.start === 'boolean' ? d.start : null;
   }
 
   vorbelegen(k: Konfig): void {
@@ -533,7 +536,7 @@ export class Auswahl {
 
   daten(): AuswahlDaten {
     return { gesetzt: this.gesetzt, alarm: this.alarm, quelle: this.quelle, foilId: this.foilId,
-      layouts: this.layouts, sperre: this.sperre };
+      layouts: this.layouts, sperre: this.sperre, start: this.start };
   }
 }
 

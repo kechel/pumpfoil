@@ -219,6 +219,10 @@
     {
       "name": "noInternet",
       "value": "no internet"
+    },
+    {
+      "name": "autoStart",
+      "value": "Auto-start"
     }
   ]
 }

@@ -49,6 +49,7 @@ struct Index {
   @State zFoil: string = '';
   @State zLayouts: string = '';
   @State zSperre: string = '';
+  @State zStart: string = '';
   private zeigeAuswahl: boolean = false;
   // Koppeln mit pumpfoil.org (Direkt-Upload ohne Handy): eigene Ansicht aus den Einstellungen
   private zeigeKoppeln: boolean = false;
@@ -369,6 +370,7 @@ struct Index {
     this.zFoil = f !== null ? f.label : '–';
     this.zLayouts = this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer === true : k.layoutsOn);
     this.zSperre = this.stufe(a.sperre, k.waterLock === 'on');
+    this.zStart = this.stufe(a.start, k.autoStart);
     this.zDirekt = r.gekoppelt() ? this.t($r('app.string.connected')) : this.t($r('app.string.connect'));
   }
 
@@ -388,6 +390,8 @@ struct Index {
       a.quelle = a.quelle === 'foil' ? 'manual' : 'foil';
     } else if (was === 'foil') {
       a.naechstesFoil(r.konfigJetzt());
+    } else if (was === 'start') {
+      a.start = dreistufig(a.start);
     } else if (was === 'layouts') {
       a.layouts = dreistufig(a.layouts);
     } else {
@@ -424,6 +428,7 @@ struct Index {
         this.zeile('Foil', this.zFoil, 'foil')
         this.zeile($r('app.string.layoutsShort'), this.zLayouts, 'layouts')
         this.zeile($r('app.string.lock'), this.zSperre, 'sperre')
+        this.zeile($r('app.string.autoStart'), this.zStart, 'start')
         this.zeile('pumpfoil.org', this.zDirekt, 'direkt')
       }
       .width('100%')

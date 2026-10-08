@@ -34,6 +34,7 @@
     "f_allRunsDist": "olle Läufe Dist",
     "f_allRunsTime": "olle Läufe Zeit",
     "done": "FERTIG",
+    "autoStart": "Auto-Start",
     "lock": "Touch-Sperre",
     "lockHold": "halten = entsperren",
     "alarm": "Alarm",

@@ -84,14 +84,6 @@ test("Zeitachse mit Pausen: aktive Zeit, Pausenliste wie Wear/Apple", () => {
   assert.equal(z.auf(0, 46000), -1);
 });
 
-test("Sendereihenfolge: Meta, Chunks nach Nummer, Ende zuletzt", () => {
-  const id = "hw-x";
-  const namen = [K.dateiEnde(id), K.dateiChunk(id, 10), K.dateiChunk(id, 2), K.dateiMeta(id),
-    "internal://app/fremd.txt"];
-  assert.deepEqual(K.sendeReihenfolge(namen),
-    [K.dateiMeta(id), K.dateiChunk(id, 2), K.dateiChunk(id, 10), K.dateiEnde(id)]);
-});
-
 test("Warteschlange: eine Datei gleichzeitig, steigende Wartezeit, Fehler gezaehlt", () => {
   const w = new K.Warteschlange();
   assert.ok(w.darf(0));
