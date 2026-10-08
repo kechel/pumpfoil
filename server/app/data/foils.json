@@ -8521,5 +8521,26 @@
     "thickness_mm": null,
     "is_baseline": false,
     "specs_estimated": true
+  },
+  {
+    "brand": "Sroka",
+    "model": "Pump Foil",
+    "size": "1500",
+    "span_cm": 140.0,
+    "area_cm2": 1500.0
+  },
+  {
+    "brand": "Sroka",
+    "model": "Pump Foil",
+    "size": "1750",
+    "span_cm": 150.0,
+    "area_cm2": 1750.0
+  },
+  {
+    "brand": "Sroka",
+    "model": "Pump Foil",
+    "size": "2200",
+    "span_cm": 170.0,
+    "area_cm2": 2200.0
   }
 ]
