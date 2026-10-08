@@ -260,9 +260,14 @@ struct Index {
       t: (k: string): string => this.texte.get(k) ?? k
     };
     const b: Befehl[] = zeichne(seiten[this.seite - 2], ctx);
-    if (this.gesperrt) {   // Touch-Sperre auf den Datenseiten sichtbar (wie Zepps Zeile unten)
+    // Touch-Sperre: gelber Strich ganz unten; der Text lag auf Lite ueber dem dritten Feld (08.10.2026)
+    // und kommt nur noch beim Antippen, dann auf schwarzem Band ueber dem Feld (wie Lite).
+    if (this.gesperrt && this.sperrHinweis) {
+      b.push({ k: 'r', x: 0, y: Math.round(ctx.dh * 0.78), w: ctx.dw, h: Math.round(ctx.dh * 0.16), c: '#000000' });
       b.push({ k: 't', x: ctx.dw / 2, y: Math.round(ctx.dh * 0.86), s: 16, c: '#fbbf24', a: 'c', b: false,
-        txt: this.sperrHinweis ? this.t($r('app.string.lockHold')) : this.t($r('app.string.lock')) });
+        txt: this.t($r('app.string.lockHold')) });
+    } else if (this.gesperrt) {
+      b.push({ k: 'r', x: Math.round(ctx.dw * 0.4), y: Math.round(ctx.dh * 0.94), w: Math.round(ctx.dw * 0.2), h: 4, c: '#fbbf24' });
     }
     this.malen(b);
   }
