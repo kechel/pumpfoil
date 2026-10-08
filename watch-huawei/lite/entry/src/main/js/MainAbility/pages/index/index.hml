@@ -4,7 +4,7 @@
     <canvas ref="leinwand" class="leinwand" if="{{ datenseite }}"></canvas>
     <text class="marke" if="{{ !datenseite }}">{{ marke }}</text>
 
-    <div class="block" if="{{ modus === 'bereit' }}">
+    <div class="bbereit" if="{{ modus === 'bereit' }}">
         <div class="kstart" ontouchstart="startHalten" ontouchend="loslassen">
             <text class="knopftext">{{ knopfStart }}</text>
         </div>
@@ -12,13 +12,13 @@
         <text class="klein">{{ info }}</text>
     </div>
 
-    <div class="block" if="{{ modus === 'laeuft' && !datenseite }}">
+    <div class="blaeuft" if="{{ modus === 'laeuft' && !datenseite }}">
         <text class="zeit">{{ zeit }}</text>
-        <div class="reihe">
+        <div class="rwert">
             <text class="wert">{{ tempo }}</text>
             <text class="wert">{{ strecke }}</text>
         </div>
-        <div class="reihe">
+        <div class="reinheit">
             <text class="einheit">km/h</text>
             <text class="einheit">km</text>
         </div>
@@ -29,10 +29,10 @@
         <text class="klein">{{ info }}</text>
     </div>
 
-    <div class="block" if="{{ modus === 'pause' && !datenseite }}">
+    <div class="bpause" if="{{ modus === 'pause' && !datenseite }}">
         <text class="zeit">{{ zeit }}</text>
         <text class="hinweis">{{ textPause }}</text>
-        <div class="reihe">
+        <div class="rknopf">
             <div class="kweiter" ontouchstart="weiterHalten" ontouchend="loslassen">
                 <text class="knopftext">{{ knopfWeiter }}</text>
             </div>
