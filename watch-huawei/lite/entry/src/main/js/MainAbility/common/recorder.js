@@ -41,7 +41,7 @@ var R = {
   schlange: new K.Warteschlange(),
   p2p: null, startWand: 0, modell: "HUAWEI",
   // Diagnose — geht im /complete mit und steht auf der Uhr, nie nur im Log.
-  f: { speicher: 0, accel: 0, gps: 0, puls: 0 },
+  f: { speicher: 0, accel: 0, gps: 0, puls: 0, sonst: 0 },
   letzterFehler: "",
   accelLetzt: 0, maxLuecke: 0, gpsLetzt: 0,
   // Datenseiten (seiten.js): Lauf-Stand, Seiten-Konfiguration vom Handy, frischer GPS-Punkt
@@ -82,7 +82,18 @@ function chunkSchreiben(c) {
   });
 }
 
+// Jeder Schritt fuer sich: wirft einer (Funktion fehlt im Simulator/auf einem Modell — 08.10.2026
+// „start: TypeError"), laufen die anderen trotzdem an, und der Fehler wird gezaehlt und gezeigt.
+// Vorher brach der erste Wurf R.start ab: Aufnahme lief, aber ohne Sensoren.
+function versuch(art, name, fn) {
+  try { fn(); } catch (e) { fehler(art, name + ": " + e); }
+}
 function sensorenAn() {
+  versuch("accel", "Accel an", accelAn);
+  versuch("puls", "Puls an", pulsAn);
+  versuch("gps", "GPS an", gpsAn);
+}
+function accelAn() {
   sensor.subscribeAccelerometer({
     interval: "game",
     success: function (r) {
@@ -94,10 +105,14 @@ function sensorenAn() {
     },
     fail: function (d, code) { fehler("accel", "Accel " + code); }
   });
+}
+function pulsAn() {
   sensor.subscribeHeartRate({
     success: function (r) { R.sammler.puls(r.heartRate); },
     fail: function (d, code) { fehler("puls", "Puls " + code); }
   });
+}
+function gpsAn() {
   geolocation.subscribe({
     coordType: "wgs84",
     success: function (g) {
@@ -121,7 +136,7 @@ function sensorenAus() {
 function bildschirmAn(an) {
   // Verhindert nur den Inaktivitaets-Timeout, nicht Handgelenk senken (Lite-Doku) — aber das
   // ist alles, was eine Lite-App hat; ob die Aufnahme dunkel weiterlaeuft, zeigt die Diagnose.
-  brightness.setKeepScreenOn({ keepScreenOn: an });
+  versuch("sonst", "Bildschirm", function () { brightness.setKeepScreenOn({ keepScreenOn: an }); });
 }
 
 function restSchreiben() {
