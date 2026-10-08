@@ -111,6 +111,7 @@ const ja: Record<string, string> = {
   "tech.lWhole": "従来の数値:スタート・ターン・転倒を含むラン全体での最大のずれ",
   "tech.lBrackets": "かっこ内:補正なし",
   "tech.sTurn": "ターン",
+  "tech.allRuns": "すべてのラン",
   "tech.sStraight": "直進",
   "tech.kgTitle": "ターン中と直進の比較",
   "tech.strokes": "パンプ回数",

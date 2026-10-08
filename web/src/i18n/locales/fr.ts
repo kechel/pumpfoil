@@ -111,6 +111,7 @@ const fr: Record<string, string> = {
   "tech.lWhole": "l'ancienne valeur : plus grand écart sur tout le run, départ, virages et chute compris",
   "tech.lBrackets": "entre parenthèses : non corrigé",
   "tech.sTurn": "virages",
+  "tech.allRuns": "Tous les runs",
   "tech.sStraight": "ligne droite",
   "tech.kgTitle": "En virage vs ligne droite",
   "tech.strokes": "Pompes",

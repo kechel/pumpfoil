@@ -113,6 +113,7 @@ const cs: Record<string, string> = {
   "tech.lWhole": "dosavadní hodnota: největší odchylka za celou jízdu včetně startu, zatáček a pádu",
   "tech.lBrackets": "v závorce: neopraveno",
   "tech.sTurn": "zatáčky",
+  "tech.allRuns": "Všechny jízdy",
   "tech.sStraight": "rovně",
   "tech.kgTitle": "V zatáčkách vs. rovně",
   "tech.strokes": "Pumpnutí",

@@ -96,6 +96,7 @@ const gsw: Record<string, string> = {
   "tech.lWhole": "di bisherig Zahl: gröschti Abwiichig über de ganz Lauf, mit Start, Kurve und Sturz",
   "tech.lBrackets": "i Klammere: unkorrigiert",
   "tech.sTurn": "Kurve",
+  "tech.allRuns": "Alli Läuf",
   "tech.sStraight": "grad",
   "tech.kgTitle": "I Kurve gäge gradus",
   "tech.strokes": "Pumpzüg",

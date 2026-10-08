@@ -111,6 +111,7 @@ const it: Record<string, string> = {
   "tech.lWhole": "il valore precedente: scarto massimo sull'intero run, inclusi partenza, curve e cadute",
   "tech.lBrackets": "tra parentesi: non corretto",
   "tech.sTurn": "curve",
+  "tech.allRuns": "Tutti i run",
   "tech.sStraight": "rettilineo",
   "tech.kgTitle": "In curva vs rettilineo",
   "tech.strokes": "Pompate",

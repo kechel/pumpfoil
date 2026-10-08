@@ -111,6 +111,7 @@ const pt: Record<string, string> = {
   "tech.lWhole": "o valor anterior: maior desvio no run inteiro, incluindo largada, curvas e quedas",
   "tech.lBrackets": "entre parênteses: sem correção",
   "tech.sTurn": "curvas",
+  "tech.allRuns": "Todos os runs",
   "tech.sStraight": "reta",
   "tech.kgTitle": "Nas curvas vs. em reta",
   "tech.strokes": "Bombeadas",

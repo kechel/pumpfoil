@@ -111,6 +111,7 @@ const zh: Record<string, string> = {
   "tech.lWhole": "原有数值:整段滑行中的最大偏差,包括起步、转弯和摔倒",
   "tech.lBrackets": "括号内:未校正",
   "tech.sTurn": "转弯",
+  "tech.allRuns": "全部滑行",
   "tech.sStraight": "直行",
   "tech.kgTitle": "转弯与直行对比",
   "tech.strokes": "泵动次数",

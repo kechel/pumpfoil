@@ -111,6 +111,7 @@ const id: Record<string, string> = {
   "tech.lWhole": "angka sebelumnya: simpangan terbesar sepanjang run, termasuk start, belokan dan jatuh",
   "tech.lBrackets": "dalam kurung: tanpa koreksi",
   "tech.sTurn": "belokan",
+  "tech.allRuns": "Semua run",
   "tech.sStraight": "lurus",
   "tech.kgTitle": "Di belokan vs. lurus",
   "tech.strokes": "Pompa",

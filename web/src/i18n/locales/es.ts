@@ -111,6 +111,7 @@ const es: Record<string, string> = {
   "tech.lWhole": "el valor anterior: mayor desviación en todo el tramo, con salida, curvas y caídas",
   "tech.lBrackets": "entre paréntesis: sin corregir",
   "tech.sTurn": "curvas",
+  "tech.allRuns": "Todos los tramos",
   "tech.sStraight": "recta",
   "tech.kgTitle": "En curva frente a recta",
   "tech.strokes": "Bombeos",
