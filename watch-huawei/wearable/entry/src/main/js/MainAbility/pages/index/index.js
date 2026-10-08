@@ -48,11 +48,17 @@ export default {
   data: {
     modus: "bereit", zeit: "0:00", tempo: "0.0", strecke: "0.00", puls: "--", info: "",
     balken: 0, balkenZeigen: false, datenseite: false,
+    // VORLAEUFIG (Fehlersuche Simulator, 08.10.2026): die Ueberschrift zeigt, wie weit der Start kam —
+    // a = Daten geladen, b = onInit, c = Recorder da (x = fehlt), d = R.init durch, e = erste Anzeige.
+    // Ziffer = Build-Stand, damit ein alter Build sofort auffaellt. Danach wieder „PUMPFOIL".
+    marke: "PUMPFOIL 3a",
     knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
   },
   onInit() {
     console.info("Pumpfoil Seite onInit, Text start=" + this.$t("strings.start"));
+    this.marke = "PUMPFOIL 3b";
     R = holeRecorder(this);
+    this.marke = R ? "PUMPFOIL 3c" : "PUMPFOIL 3x";
     if (!R) {
       // Ohne Recorder nichts weiter starten, aber SAGEN warum (Infozeile + Log), statt still leer zu bleiben.
       this.info = "Kein Recorder (getApp)";
@@ -76,9 +82,11 @@ export default {
     } });
     // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
     try { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
+    if (!this.startFehler) this.marke = "PUMPFOIL 3d";
     var that = this;
     this.takt = setInterval(function () { that.zeigen(); }, 1000);
     this.zeigen();
+    if (!this.startFehler && this.marke === "PUMPFOIL 3d") this.marke = "PUMPFOIL 3e";
   },
   onDestroy() {
     clearInterval(this.takt);
