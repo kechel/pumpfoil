@@ -94,6 +94,12 @@ function sensorenAn() {
   versuch("gps", "GPS an", gpsAn);
 }
 function accelAn() {
+  // Fehlt die Funktion (Simulator 08.10.2026: TypeError), SAGEN was das Modul stattdessen hat.
+  if (typeof sensor.subscribeAccelerometer !== "function") {
+    var k = [];
+    for (var x in sensor) k.push(x);
+    throw "fehlt (" + typeof sensor.subscribeAccelerometer + "), sensor: " + k.join(",");
+  }
   sensor.subscribeAccelerometer({
     interval: "game",
     success: function (r) {
