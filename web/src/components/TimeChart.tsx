@@ -1,5 +1,6 @@
 // Schlanker SVG-Zeitreihen-Chart mit Drag-Select (Maus + Touch). Keine Chart-Lib.
 import { useRef, useState } from "react";
+import { minMax } from "../lib/minmax";
 
 export interface LabelSpan {
   t_start_ms: number;
@@ -55,8 +56,9 @@ export function TimeChart({
   // Ausschlag aus und links wie ein Einbruch (Jan, 18.09.2026: „ganz rechts haben alle grafen
   // noch so einen peak im diagramm, das ist verwirrend").
   const nums = values.filter((v): v is number => v != null);
-  const vmin = yRange ? yRange[0] : (nums.length ? Math.min(...nums) : 0);
-  const vmax = yRange ? yRange[1] : (nums.length ? Math.max(...nums) : 1);
+  const [lo, hi] = minMax(nums);   // ohne Spread: lange Aufnahmen sprengten sonst den Stack
+  const vmin = yRange ? yRange[0] : (nums.length ? lo : 0);
+  const vmax = yRange ? yRange[1] : (nums.length ? hi : 1);
   const vspan = Math.max(vmax - vmin, 1e-6);
   const yFor = (v: number) => H - 6 - ((v - vmin) / vspan) * (H - 12);
 
