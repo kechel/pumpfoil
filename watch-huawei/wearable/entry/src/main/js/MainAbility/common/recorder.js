@@ -430,6 +430,8 @@ R.init = function (we) {
       log("Geraeteinfo brand=" + i.brand + " manufacturer=" + i.manufacturer + " model=" + i.model + " product=" + i.product);
       // Kein Regex (s. kern.ascii): „HUAWEI" nicht doppelt, Leerzeichen am Ende von Hand abschneiden.
       var roh = "" + (i.model || i.product || "");
+      // Simulator meldet „***" — Platzhalter nie als Uhrenname (er landet in der Uhren-Statistik)
+      if (roh.indexOf("*") >= 0) roh = "";
       var m = roh.substring(0, 6).toUpperCase() === "HUAWEI" ? roh : "HUAWEI " + roh;
       while (m.charAt(m.length - 1) === " ") m = m.substring(0, m.length - 1);
       R.modell = m + " · HarmonyOS";
