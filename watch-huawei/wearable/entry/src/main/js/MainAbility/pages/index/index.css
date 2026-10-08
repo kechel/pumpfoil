@@ -1,7 +1,11 @@
-/* Lite Wearable: Schriften nur in den Systemgroessen (30/38), Farben wie die Marke (Cyan #22d3ee). */
+/* Lite Wearable: Schriften nur in den Systemgroessen (30/38), Farben wie die Marke (Cyan #22d3ee).
+   BREITEN IN PROZENT (08.10.2026): fest 466 px war groesser als der 454er-Bildschirm des Simulators,
+   Lite liess die Seite dann scrollen („wackelt") — und auf 390er-Rund und 280er-Eckig ragten die
+   Knoepfe ueber den Rand. Hoehen bleiben fest (ohne Hoehe zeichnet Lite einen Container nicht) und
+   passen zusammen mit der Ueberschrift auch auf 390 px. */
 .seite {
-    width: 466px;
-    height: 466px;
+    width: 100%;
+    height: 100%;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -10,72 +14,72 @@
 /* Jeder Container mit FESTER Hoehe (08.10.2026): ohne Hoehe blieb der Block im Lite-Simulator
    unsichtbar, obwohl modus/info stimmten. Hoehen = Summe der Kinder samt Raender. */
 .bbereit {
-    width: 466px;
+    width: 100%;
     height: 210px;
     flex-direction: column;
     align-items: center;
 }
 .blaeuft {
-    width: 466px;
+    width: 100%;
     height: 360px;
     flex-direction: column;
     align-items: center;
 }
 .bpause {
-    width: 466px;
+    width: 100%;
     height: 280px;
     flex-direction: column;
     align-items: center;
 }
 .marke {
     /* vorlaeufig breit fuer die Startanzeige (Fehlersuche) */
-    width: 440px;
+    width: 90%;
     height: 40px;
     font-size: 30px;
     color: #22d3ee;
     text-align: center;
 }
 .zeit {
-    width: 300px;
+    width: 70%;
     height: 50px;
     font-size: 38px;
     color: #ffffff;
     text-align: center;
 }
 .rwert {
-    width: 360px;
+    width: 80%;
     height: 46px;
     flex-direction: row;
     justify-content: space-around;
 }
 .reinheit {
-    width: 360px;
+    width: 80%;
     height: 36px;
     flex-direction: row;
     justify-content: space-around;
 }
 .rknopf {
-    width: 360px;
+    width: 80%;
     height: 92px;
     flex-direction: row;
     justify-content: space-around;
 }
 .wert {
-    width: 170px;
+    width: 48%;
     height: 46px;
     font-size: 38px;
     color: #ffffff;
     text-align: center;
 }
 .einheit {
-    width: 170px;
+    width: 48%;
     height: 36px;
     font-size: 30px;
     color: #94a3b8;
     text-align: center;
 }
 .hinweis {
-    width: 360px;
+    width: 80%;
     height: 46px;
     font-size: 38px;
     color: #fbbf24;
@@ -84,7 +88,7 @@
 /* Knoepfe je mit EINER Klasse (statt „knopf start"): ob Lite mehrere Klassen je Element
    anwendet, ist ungeprueft — die Knoepfe waren im Simulator unsichtbar (08.10.2026). */
 .kstart {
-    width: 300px;
+    width: 70%;
     height: 80px;
     margin-top: 12px;
     border-radius: 40px;
@@ -93,7 +97,7 @@
     background-color: #0e7490;
 }
 .kpause {
-    width: 300px;
+    width: 70%;
     height: 80px;
     margin-top: 12px;
     border-radius: 40px;
@@ -102,7 +106,7 @@
     background-color: #334155;
 }
 .kweiter {
-    width: 170px;
+    width: 48%;
     height: 80px;
     margin-top: 12px;
     border-radius: 40px;
@@ -111,7 +115,7 @@
     background-color: #0e7490;
 }
 .kstopp {
-    width: 170px;
+    width: 48%;
     height: 80px;
     margin-top: 12px;
     border-radius: 40px;
@@ -120,14 +124,14 @@
     background-color: #b91c1c;
 }
 .knopftext {
-    width: 280px;
+    width: 95%;
     height: 46px;
     font-size: 30px;
     color: #ffffff;
     text-align: center;
 }
 .klein {
-    width: 360px;
+    width: 80%;
     height: 76px;
     margin-top: 8px;
     font-size: 30px;
@@ -137,7 +141,7 @@
 /* Uebertragung zum Handy (nur im Bereit-Zustand). UNGEPRUEFT auf echter Uhr: <progress
    type="horizontal"> steht in der Lite-Wearable-Komponentenliste. */
 .balken {
-    width: 300px;
+    width: 64%;
     height: 16px;
     margin-top: 12px;
     color: #22d3ee;
@@ -145,6 +149,6 @@
 }
 /* Datenseiten: randlos ueber das ganze Display (Promille-Koordinaten beziehen sich darauf). */
 .leinwand {
-    width: 466px;
-    height: 466px;
+    width: 100%;
+    height: 100%;
 }
