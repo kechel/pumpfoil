@@ -48,6 +48,61 @@ decompress", die Lite-JS-App laeuft) [FORUM, mit Geraetebeleg]:
 - Lite-Grenzen laut demselben Projekt: HAP ≤ 10 MB, Seite ≤ 48 KB, ~1 MB RAM, kein Hintergrund, Bilder
   werden als Roh-RGBA abgelegt (Icons klein halten), Logs/Installation ueber die Handy-App „DevEco Assistant".
 
+## Welche Uhr gehoert zu welcher Linie (Recherche 08.10.2026)
+
+Huaweis eigene Support-Seiten trennen nach dem Weg, auf dem Apps auf die Uhr kommen: **Lite** = Apps
+ueber *Huawei Health › Geraet › AppGallery* [S1]; **voll** = AppGallery auf der Uhr selbst [S2], dazu
+eigene Listen fuer Watch 3/4 (HarmonyOS 2-4) [S3] und fuer Uhren mit HarmonyOS 5.0+ [S4]. Erscheinungs-
+jahre aus allgemeinem Wissen, nicht aus den Quellen. „(gefolgert)" = nur aus der Listen-Zugehoerigkeit,
+nicht auf einem Geraet geprueft.
+
+| Modell | Linie (bei uns) | Betriebssystem laut Huawei | Jahr | Quelle |
+|---|---|---|---|---|
+| Watch GT 2 / GT 2e | UNKLAR (S1 schliesst sie vom App-Store aus, S8 nennt sie fuer Wear Engine) | LiteOS | 2019/20 | S1, S8 |
+| Watch GT 2 Pro | Lite (`lite/`) | LiteOS (lite wearable OS 10.1+) | 2020 | S8 |
+| Watch GT 3 / 3 Pro, GT Runner, GT Cyber, GT 2022 Premium | Lite | HarmonyOS 2.x-3.x | 2021-22 | S1, S5 |
+| Watch GT 4 | Lite | HarmonyOS 4 | 2023 | S5 |
+| Watch GT 5 / 5 Pro | Lite — trotz „HarmonyOS 5" im Namen | HarmonyOS 4.x→5 | 2024 | S1, S5 |
+| Watch GT 6 / 6 Pro | Lite (ArkTS-App auf einer GT 6 abgelehnt) | HarmonyOS 5/6 | 2025 | S1, S5, S10 |
+| Watch GT 7 / 7 Pro, GT Runner 2 | Lite | — | 2025/26 | S1, S5 |
+| Watch Fit (1. Gen.) | Wear Engine ja, Fremd-Apps UNKLAR | LiteOS | 2020 | S8 |
+| Watch Fit 2 / 3 / 4 / 4 Pro / 5 / 5 Pro | Lite (Fit 3 mit 5.0.0.12, Fit 4 mit 5.1.0.116 weiter ueber Health) | HarmonyOS 2→5.x | 2022-25 | S1, S6 |
+| Watch D / D2 / D3 | Lite | — | 2021-25 | S1 |
+| Watch Ultimate (2023), Ultimate Design (2023, Gold) | Lite (kein Store auf der Uhr, Apps ueber Health) | HarmonyOS 3→5.0.0.13 | 2023 | S1, S7 |
+| Watch Buds / Buds 2 | Lite | — | 2022/25 | S1 |
+| Watch 3 / 3 Pro | Wearable alt (`wearable/`) | HarmonyOS 2-3 | 2021 | S2, S3 |
+| Watch 4 / 4 Pro / 4 Pro Space Edition | Wearable alt (global 2026 noch 4.3, kein HarmonyOS 5 gefunden) | HarmonyOS 3→4.3 | 2023 | S2, S3 |
+| Watch 5 | ArkTS (`arkts/`) — einzige Uhr mit HarmonyOS 5.1 / API 18 fuer Uhren-Entwicklung, Update auf 6 gemeldet | HarmonyOS 5.x/6 | 2025 | S2, S4, S9 |
+| Watch 6 / 6 Pro, Watch 10th Anniversary | ArkTS (gefolgert, steht auf der Liste HarmonyOS 5.0+) | HarmonyOS 5.0+ | 2026 | S2, S4 |
+| Watch Ultimate 2, Ultimate Design 2025-Varianten | ArkTS (gefolgert) | HarmonyOS 5.0/5.1+ | 2025 | S2, S4 |
+| Band 6-10 | keine Uhren-Apps; Wear Engine nur Benachrichtigungen/Status/Sensoren | — | 2021-25 | S8 |
+| Watch B7 / B5 (Business) | UNKLAR (B7 auf der Watch-3/4-Liste, B5 auf der GT-Liste) | — | — | S3, S5 |
+| Kinderuhren | eigener Store ueber die App Smart Care, keine unserer Linien | — | — | S3 |
+
+**Folgen:** „HarmonyOS 5/6" auf GT 5/6 und Fit 3/4/5 heisst NICHT ArkTS — die gehoeren zu `lite/`.
+Der Widerspruch zur Watch Ultimate ist aufgeloest: die Ultimate von 2023 ist Lite [S7], das Home-Assistant-
+Projekt meint mit „Ultimate" die Ultimate 2 (ArkTS).
+**Wear Engine** [S8] nennt ausdruecklich: Watch Ultimate und neuer, Watch 3 und neuer, GT 2 / 2 Pro, GT 2e
+(ab 11.0.14), GT 2022 Premium, GT 3, GT Runner, GT Cyber, Watch Buds, Watch Fit 1 und neuer, Watch D und
+neuer, Band 6/7 und neuer (eingeschraenkt). GT 4/5/6 und Watch 5 stehen nicht namentlich drin —
+vermutlich ueber „und neuer" abgedeckt, NICHT bestaetigt.
+
+**Offen:** GT 2 / 2e ueberhaupt Fremd-Apps? Watch 6 / Ultimate 2 nur ArkTS oder auch JS-FA? Globale
+Watch-5-Firmware ArkTS-only (ein Test vom Dez. 2025 sagt „HarmonyOS Next", Watch-4-Apps laufen nicht)?
+Eine Huawei-Liste der liteWearable-Geraete fuer Entwickler fehlt (der Forenartikel „Wearable Device Types"
+laesst sich ohne JavaScript nicht lesen).
+
+Quellen: [S1] https://consumer.huawei.com/uk/support/content/en-gb16066729 ·
+[S2] https://consumer.huawei.com/sg/support/content/en-gb16007003/ ·
+[S3] https://consumer.huawei.com/cn/support/content/zh-cn15876333/ ·
+[S4] https://consumer.huawei.com/cn/support/content/zh-cn16053381/ ·
+[S5] https://consumer.huawei.com/cn/support/content/zh-cn15878302/ ·
+[S6] https://consumer.huawei.com/cn/support/content/zh-cn15903440/ ·
+[S7] https://consumer.huawei.com/cn/support/content/zh-cn15943892/ ·
+[S8] https://developer.huawei.com/consumer/en/doc/development/connectivity-Guides/service-introduction-0000000000018585 ·
+[S9] https://www.ithome.com/0/860/132.htm ·
+[S10] https://github.com/gentslava/Home-Assistant-HarmonyOS-Next
+
 ## Handy-Seite: Wear Engine
 - Android-SDK, Paketname + SHA-256 bei Huawei hinterlegt; **Antrag „Apply for Wear Engine" noetig** (Firmen
   ~2 Wochen, Excel-Formulare zu Daten/Einwilligung) [FORUM]. Ohne Freigabe „Scope unauthorized" [DOK].

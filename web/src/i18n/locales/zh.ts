@@ -1207,6 +1207,7 @@ const zh: Record<string, string> = {
   "watches.nApple": "通过 Core Motion 获取原始加速度。",
   "watches.nWear": "可在任何 Wear OS 3+ 手表上运行 —— Samsung Galaxy Watch、Google Pixel Watch、TicWatch/Mobvoi、Fossil、OnePlus。",
   "watches.nAmazfit": "传感器访问取决于型号。",
+  "watches.nHuawei": "测试版开发中：在手表上记录，通过 Pumpfoil 应用传输——仅限安卓手机。",
   "watches.nPolar": "关联你的账号 → 导入训练（GPS + 心率）。API 导出不包含泵动识别所需的高频原始加速度流（只能通过单独的 BLE 传感器获取）。",
   "watches.nSuunto": "关联你的账号 → 导入训练（GPS + 心率）。FIT 导出（暂时）不包含泵动识别所需的高频原始加速度流。",
   "linked.xiaomi.title": "小米与 Redmi 手表",

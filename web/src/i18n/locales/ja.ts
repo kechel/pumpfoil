@@ -1207,6 +1207,7 @@ const ja: Record<string, string> = {
   "watches.nApple": "Core Motion 経由の生の加速度。",
   "watches.nWear": "Wear OS 3+ のどのウォッチでも動作 — Samsung Galaxy Watch、Google Pixel Watch、TicWatch/Mobvoi、Fossil、OnePlus。",
   "watches.nAmazfit": "センサーへのアクセスはモデルによります。",
+  "watches.nHuawei": "ベータ版を準備中：時計で記録し、Pumpfoilアプリで転送。Androidスマホのみ。",
   "watches.nPolar": "アカウントを連携 → ワークアウトをインポート（GPS + 心拍数）。API エクスポートには、ポンプ検出に必要な高レート生加速度ストリームが含まれません（別途 BLE センサー経由のみ）。",
   "watches.nSuunto": "アカウントを連携 → ワークアウトをインポート（GPS + 心拍数）。FIT エクスポートには、ポンプ検出に必要な高レート生加速度ストリームが（まだ）含まれません。",
   "linked.xiaomi.title": "Xiaomi・Redmi ウォッチ",
