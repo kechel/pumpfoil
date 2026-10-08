@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01, Apple-Mail „ready for distribution · 1.1.41 · iOS"
+        "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08, Apple-Mail „eligible for distribution · 1.1.43 for iOS"
+        # (Jans Meldung, Submission 96c09ad7-294a-46e1-b38b-d30d285d9d8e, eingereicht 07.10. 08:37, Build 49).
+        # Inhalt: Online-Punkt, Lesehaken, Profil mit „Nachricht", Suche ohne Akzente, Foil-Knoepfe mit
+        # Modell+Groesse, Upload-Leiste im Handy-Recorder, Rekord in km, Setup-Zeile + Popup.
+        # ALT: "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01, Apple-Mail „ready for distribution · 1.1.41 · iOS"
         # (Jans Meldung), Store-API de zeigt 1.1.41. Eingereicht 01.10. 13:18 (Build 46). Inhalt:
         # Sammel-Upload der Uhr, Pause 2 s halten, Kacheln/Zeilen, Spot-Rekorde je Sportart,
         # Chat-Bilder, „–" ohne Accel, v3-Texte, Claude-1:1-Link.
@@ -381,7 +385,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26 — dieselbe Einreichung wie "ios" (ein Bundle,
@@ -750,24 +755,7 @@ IN_REVIEW: list[dict] = [
          # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
          "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
      ]},
-    # EINGEREICHT 07.10.2026 08:37 (Jans Meldung, ASC „Warten auf Prüfung", 1.1.43 (49), Kennung
-    # 96c09ad7-294a-46e1-b38b-d30d285d9d8e).
-    {"name": "iPhone + Apple Watch", "version": "1.1.43",
-     "eingereicht": "2026-10-07",
-     "items": [
-         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
-         "In direct chats, two ticks show that your message has been read.",
-         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
-         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         # 07.10.2026 (Feedback Mirza): 780a895c.
-         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
-         # 03.10.2026: 879500d4.
-         "The phone recorder shows the upload progress, as on Android.",
-         # 01.10.2026: fafdd410.
-         "The longest-run record shows kilometres from 1,000 m on.",
-         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
-     ]},
+    # iPhone + Apple Watch 1.1.43 am 08.10. freigegeben -> raus (s. _APP_META["ios"]/["apple"]).
     # EINGEREICHT 01.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
     # Vor der Einreichung ungetestet (Testsession #12510 kam vom 1.0.12-Build, APP_VERSION vergessen,
     # 43bc9f02); DANACH auf Jans T-Rex 3 nachgetestet: #12511/#12512, Halten fuer Pause/Stopp ok.
