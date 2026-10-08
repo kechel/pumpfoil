@@ -1506,6 +1506,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
       (Android `HuaweiBruecke.kt` Whitelist, iOS) und auf der Uhr auswerten.
   (3) Touch-Sperre (durchsichtige Flaeche wie Zepp, 2 s halten = frei, Auto-Sperre).
   (4) ArkTS-Linie (Watch 5) auf denselben Ablauf bringen.
+  **Simulator 08.10. abends:** eigene Layouts (Boegen, Linien, Farben nach Wert), klassische Seiten und Pause
+  laufen auf Lite mit GPS-Fahrt-Attrappe (`./sim.sh an sim-konfig.json`); Textlage nachgemessen (Lite setzt
+  Text mit der Oberkante). Ende-zu-Ende Uhr->Handy->Server + Rueckweg Konfig in Node/Kotlin/pytest gruen.
+  Lite-Simulator hat KEINEN Beschleunigungssensor (s. docs/HUAWEI.md) -> auf Hardware klaeren.
   **Auf Hardware pruefen:** ob touchstart/touchend sauber kommen (Simulator: unzuverlaessig, longpress ist
   Ersatz); `sensor.subscribeAccelerometer` warf im Simulator TypeError — auf der Uhr MUSS Accel laufen;
   Tasten/Krone fangen (`key`-Ereignis, `setMonitorForCrownEvents`) als Zusatz zum Blaettern.
