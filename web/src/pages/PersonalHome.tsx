@@ -111,7 +111,8 @@ function BoardAttitudeSection() {
   const [data, setData] = useState<Awaited<ReturnType<typeof api.boardAttitudeStats>> | null>(null);
   useEffect(() => { api.boardAttitudeStats().then(setData).catch(() => {}); }, []);
   // Keine Brett-Aufnahme oder kein Lauf ab 30 s: nichts zeigen statt einer Ueberschrift ohne Inhalt.
-  if (!data || !data.technik || (!data.technik.mit && !data.technik.ohne)) return null;
+  const hat = (p?: { mit: unknown; ohne: unknown } | null) => !!p && !!(p.mit || p.ohne);
+  if (!data || (!hat(data.technik) && !hat(data.technik_kurz))) return null;
   return (
     <div className="mt-8">
       {/* Statt eines erklaerenden Satzes (Jan, 24.09.2026: „ganz raus") steht neben der
@@ -127,9 +128,15 @@ function BoardAttitudeSection() {
           untereinander in den Zellen wie bei „Lage je Lauf", eine Legende. Die alte Tabelle je
           Lauflaenge ist raus („alte unuebersichtliche Darstellung"); die unkorrigierten Werte
           stehen in Klammern. Je Foil nur, wenn es mehr als eines gibt. */}
-      <TechnikUebersicht zeilen={[
+      {/* Zweimal (Jan, 08.10.2026): Laeufe ab 30 s (Mittelteil) und Laeufe unter 30 s (ganzer Lauf),
+          nie vermischt — er vermutet Unterschiede zwischen kurzen und langen Laeufen. */}
+      <TechnikUebersicht titel={t("tech.hLong")} zeilen={[
         { label: t("tech.allRuns"), technik: data.technik, kg: data.kurve_gerade },
         ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik, kg: f.kurve_gerade })) : []),
+      ]} />
+      <TechnikUebersicht titel={t("tech.hShort")} mitteText="tech.lShort" zeilen={[
+        { label: t("tech.allRuns"), technik: data.technik_kurz, kg: data.kurve_gerade_kurz },
+        ...(data.je_foil.length > 1 ? data.je_foil.map((f) => ({ label: f.foil, technik: f.technik_kurz, kg: f.kurve_gerade_kurz })) : []),
       ]} />
     </div>
   );

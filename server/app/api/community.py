@@ -2385,6 +2385,7 @@ def board_attitude(user: models.User = Depends(current_user),
     # Die teure Rechnung je Session steht gespeichert (analysis/lage_cache.py, 06.10.2026: vorher
     # 11 s fuer 12 Sessions bei JEDEM Aufruf). Hier wird nur noch zusammengefasst.
     from ..analysis.lage_cache import laeufe_der_session
+    from ..analysis import lage as _lage
     for s in sessions:
         je = laeufe_der_session(db, s)
         if je.get("ohne_kreisel"):
@@ -2448,6 +2449,11 @@ def board_attitude(user: models.User = Depends(current_user),
                             "laeufe": len(menge), "klassen": klassen_f})
     je_foil.sort(key=lambda x: (-x["laeufe"], x["foil"]))
 
+    def _teil(menge: list[dict], teil: str) -> list[dict]:
+        """Nur Laeufe eines Teils: "mitte" (ab TECHNIK_MIN_S, Mittelteil) oder "ganz" (kuerzer). Alte Eintraege
+        ohne `teil` sind lange Laeufe (vor dem 08.10. gab es Technik nur fuer die)."""
+        return [x for x in menge if x.get("technik") and (x["technik"].get("teil") or "mitte") == teil]
+
     def _technik(menge: list[dict]) -> dict | None:
         """Median der Technik-Kennzahlen (Mittelteil von Laeufen ab 30 s), beide Fassungen.
         `laeufe` = wie viele Laeufe darin stecken — kuerzere zaehlen nicht mit."""
@@ -2478,11 +2484,17 @@ def board_attitude(user: models.User = Depends(current_user),
             aus[art] = zeile
         return aus or None
     for f_ in je_foil:
-        f_["technik"] = _technik([x for x in laeufe if x["foil_id"] == f_["foil_id"]])
-        f_["kurve_gerade"] = _kurve_gerade([x for x in laeufe if x["foil_id"] == f_["foil_id"]])
+        _f = [x for x in laeufe if x["foil_id"] == f_["foil_id"]]
+        f_["technik"] = _technik(_teil(_f, "mitte"))
+        f_["kurve_gerade"] = _kurve_gerade(_teil(_f, "mitte"))
+        f_["technik_kurz"] = _technik(_teil(_f, "ganz"))
+        f_["kurve_gerade_kurz"] = _kurve_gerade(_teil(_f, "ganz"))
     out = {"gesamt": _zusammenfassen(laeufe), "je_foil": je_foil,
-           "technik": _technik(laeufe), "technik_min_s": 30, "technik_rand_s": 10,
-           "kurve_gerade": _kurve_gerade(laeufe),
+           "technik": _technik(_teil(laeufe, "mitte")), "technik_min_s": _lage.TECHNIK_MIN_S, "technik_rand_s": _lage.TECHNIK_RAND_S,
+           "kurve_gerade": _kurve_gerade(_teil(laeufe, "mitte")),
+           # Laeufe unter 30 s, ueber den ganzen Lauf (s. lage._technik_lauf) — getrennt ausgewiesen.
+           "technik_kurz": _technik(_teil(laeufe, "ganz")),
+           "kurve_gerade_kurz": _kurve_gerade(_teil(laeufe, "ganz")),
            "sessions": sessions_gezaehlt, "laeufe": len(laeufe),
            "ohne_kreisel": ohne_kreisel}
 

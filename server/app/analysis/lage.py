@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-10-08-kurve-gerade"
+LAGE_VERSION = "2026-10-08-rand-5s"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -1274,11 +1274,17 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
 # Start/Sturz an den Raendern. Hier getrennt nach Zeitskala, und nur aus dem STABILEN MITTELTEIL:
 # die ersten und letzten 10 s fallen weg, kuerzere Laeufe als 30 s bleiben leer (Jan: „bei kuerzeren
 # laeufen dann den teil leer lassen"). Nachgemessen an allen Brett-Laeufen, s. Commit.
-TECHNIK_RAND_S = 10.0
-TECHNIK_MIN_S = 30.0
+# Rand und Mindestlaenge (Jan, 08.10.2026: „ich denke 5s sollten reichen"). Gemessen an 13 Laeufen ab 40 s:
+# der Pumpausschlag ist nur in der ersten und letzten Sekunde gestoert (1,7- bzw. 1,9-fach), ab der 2. Sekunde
+# wie in der Laufmitte (0,9-1,1). 5 s Rand reichen also; die Mitte soll mindestens 10 s haben (Wackeln, Takt).
+TECHNIK_RAND_S = 5.0
+TECHNIK_MIN_S = 20.0
 TECHNIK_PUMP_HZ = (0.6, 2.5)     # ein Pumpzug
 TECHNIK_WACKEL_HZ = (0.2, 0.6)   # ueber ein paar Pumpzyklen, 2-5 s
 TECHNIK_KURVE_HZ = 0.2           # langsamer: Kurvenlage
+# Kurze Laeufe (unter TECHNIK_MIN_S) werden ueber den GANZEN Lauf gerechnet, ohne Rand (Jan, 08.10.2026:
+# „einmal nur fuer laeufe < 30s … ich vermute da auch unterschiede"). Darunter ist kein Pumptakt messbar.
+TECHNIK_KURZ_MIN_S = 5.0
 
 
 def _fft_band(x: np.ndarray, hz: float, unten: float, oben: float) -> np.ndarray:
@@ -1288,7 +1294,8 @@ def _fft_band(x: np.ndarray, hz: float, unten: float, oben: float) -> np.ndarray
     return np.fft.irfft(X, len(x))
 
 
-def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float) -> dict | None:
+def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float,
+                       rand_s: float = TECHNIK_RAND_S, min_s: float = TECHNIK_MIN_S) -> dict | None:
     """Technik-Kennzahlen eines Laufs aus dem Ergebnis von `lage_berechnen` (Raster `erg["t_ms"]`).
 
     pump_nicken_deg / pump_rollen_deg  halbe Spanne (5./95. Perzentil) im Pumpband: ± Grad je Pumpzug
@@ -1298,10 +1305,10 @@ def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float) -> dict | None:
     takt_hz                            staerkste Frequenz des Nickens im Pumpband
     None, wenn der Lauf kuerzer als TECHNIK_MIN_S ist oder das Ergebnis nicht taugt.
     """
-    if not erg.get("ok") or bis_ms - von_ms < TECHNIK_MIN_S * 1000.0:
+    if not erg.get("ok") or bis_ms - von_ms < min_s * 1000.0:
         return None
     t = np.asarray(erg["t_ms"], dtype=float)
-    m = (t >= von_ms + TECHNIK_RAND_S * 1000.0) & (t <= bis_ms - TECHNIK_RAND_S * 1000.0)
+    m = (t >= von_ms + rand_s * 1000.0) & (t <= bis_ms - rand_s * 1000.0)
     hz = float(erg["hz"])
     if m.sum() < 4 * hz:
         return None
@@ -1338,13 +1345,14 @@ TECHNIK_KURVE_GIER_DEG_S = 8.0
 TECHNIK_MIN_ZUEGE = 5
 
 
-def kurve_gerade(erg: dict, von_ms: float, bis_ms: float) -> dict | None:
+def kurve_gerade(erg: dict, von_ms: float, bis_ms: float,
+                 rand_s: float = TECHNIK_RAND_S, min_s: float = TECHNIK_MIN_S) -> dict | None:
     """{"kurve": {...}, "gerade": {...}} mit zuege, takt_hz, nicken_deg (± je Zug), hub_cm (Spanne je Zug).
     Eine Seite ist None, wenn sie weniger als TECHNIK_MIN_ZUEGE Pumpzuege hat; alles None bei kurzen Laeufen."""
-    if not erg.get("ok") or bis_ms - von_ms < TECHNIK_MIN_S * 1000.0:
+    if not erg.get("ok") or bis_ms - von_ms < min_s * 1000.0:
         return None
     t = np.asarray(erg["t_ms"], dtype=float)
-    m = (t >= von_ms + TECHNIK_RAND_S * 1000.0) & (t <= bis_ms - TECHNIK_RAND_S * 1000.0)
+    m = (t >= von_ms + rand_s * 1000.0) & (t <= bis_ms - rand_s * 1000.0)
     hz = float(erg["hz"])
     if m.sum() < 4 * hz:
         return None
@@ -1377,6 +1385,21 @@ def kurve_gerade(erg: dict, von_ms: float, bis_ms: float) -> dict | None:
                     "nicken_deg": round(float(np.median([x[1] for x in z])), 1),
                     "hub_cm": round(float(np.median(h)), 1) if h else None}
     return aus if (aus.get("kurve") or aus.get("gerade")) else None
+
+
+def _technik_lauf(erg_k: dict, erg: dict, a: float, b: float) -> dict:
+    """Technik eines Laufs. Ab TECHNIK_MIN_S: ruhiger Mittelteil (`teil` = "mitte"). Kuerzer: ueber den
+    ganzen Lauf ohne Rand (`teil` = "ganz") — getrennt ausgewiesen, nie mit den langen vermischt.
+    Kurve gegen Gerade kommt aus der KORRIGIERTEN Rechnung (Nicken und Gieren aendert die Korrektur
+    nicht, der Hub ist dort der sauberere)."""
+    lang = b - a >= TECHNIK_MIN_S * 1000.0
+    rand, mins = (TECHNIK_RAND_S, TECHNIK_MIN_S) if lang else (0.0, TECHNIK_KURZ_MIN_S)
+    ok_k = bool(erg_k.get("ok"))
+    return {"teil": "mitte" if lang else "ganz",
+            "mit": technik_kennzahlen(erg_k, a, b, rand, mins) if ok_k else None,
+            "ohne": technik_kennzahlen(erg, a, b, rand, mins),
+            "fliehkraft": erg_k.get("fliehkraft"),
+            "kurve_gerade": kurve_gerade(erg_k, a, b, rand, mins) if ok_k else None}
 
 
 def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
@@ -1413,11 +1436,6 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "hub_pp_cm": k["hub_pp_cm"],
             "hub_hz": k["hub_hz"],
             "hub_sicher": k["hub_sicher"],
-            "technik": {"mit": technik_kennzahlen(erg_k, a, b) if erg_k.get("ok") else None,
-                        "ohne": technik_kennzahlen(erg, a, b),
-                        "fliehkraft": erg_k.get("fliehkraft"),
-                        # Kurve gegen Gerade aus der KORRIGIERTEN Rechnung (Nicken und Gieren
-                        # aendert die Korrektur nicht, der Hub ist dort der sauberere).
-                        "kurve_gerade": kurve_gerade(erg_k, a, b) if erg_k.get("ok") else None},
+            "technik": _technik_lauf(erg_k, erg, a, b),
         })
     return aus

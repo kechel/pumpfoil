@@ -920,7 +920,9 @@ export type Technik = {
 export type KurveGeradeSeite = { zuege: number; laeufe?: number; takt_hz: number | null; nicken_deg: number | null; hub_cm: number | null };
 export type KurveGerade = { kurve: KurveGeradeSeite | null; gerade: KurveGeradeSeite | null };
 /** Mit und ohne Fliehkraft-Korrektur; null = Lauf zu kurz (unter 30 s) bzw. nichts auswertbar. */
-export type TechnikPaar = { mit: Technik | null; ohne: Technik | null; kurve_gerade?: KurveGerade | null };
+export type TechnikPaar = { mit: Technik | null; ohne: Technik | null; kurve_gerade?: KurveGerade | null;
+  /** "mitte" = Lauf ab 30 s, ruhiger Mittelteil; "ganz" = Lauf unter 30 s, ueber den ganzen Lauf. */
+  teil?: "mitte" | "ganz" };
 
 export type BoardKlasse = {
   klasse: string; laeufe: number; pitch_deg: number; roll_deg: number | null;
@@ -1436,10 +1438,12 @@ export const api = {
   boardAttitudeStats: () => req<{
     gesamt: BoardKlasse[];
     je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[]; technik?: TechnikPaar | null;
-      kurve_gerade?: KurveGerade | null }[];
+      kurve_gerade?: KurveGerade | null; technik_kurz?: TechnikPaar | null; kurve_gerade_kurz?: KurveGerade | null }[];
     sessions: number; laeufe: number; ohne_kreisel: number;
     technik?: TechnikPaar | null;
     kurve_gerade?: KurveGerade | null;
+    technik_kurz?: TechnikPaar | null;
+    kurve_gerade_kurz?: KurveGerade | null;
   }>("/api/community/board-attitude"),
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),
