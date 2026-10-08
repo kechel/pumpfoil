@@ -22,22 +22,10 @@ var FELDTEXTE = ["kmh3s", "kmhAvg", "kmhMax", "bpmAvg", "bpmMax", "time", "dist"
 
 var HALTEN_MS = 2000;
 
-/** Recorder aus dem app.js-Buendel holen — mit Log, was wirklich ankommt (getApp ist erst ab API 10 da). */
-function holeRecorder(vm) {
-  try {
-    if (typeof getApp !== "function") { vm.appInfo = "getApp " + typeof getApp; console.error("Pumpfoil getApp fehlt (" + typeof getApp + ")"); }
-    else {
-      var a = getApp();
-      if (a && a.R) return a.R;
-      if (a && a.data && a.data.R) return a.data.R;
-      var k = [];
-      for (var x in a) k.push(x);
-      vm.appInfo = typeof a + "[" + k.join(",") + "]" + (a && a.data ? " d[" + Object.keys(a.data).join(",") + "]" : "");
-      console.error("Pumpfoil getApp ohne R: " + vm.appInfo);
-    }
-  } catch (e) { console.error("Pumpfoil getApp: " + e); }
-  try { if (vm.$app && vm.$app.$def && vm.$app.$def.R) return vm.$app.$def.R; } catch (e) { /* weiter */ }
-  return null;
+/** Recorder aus dem app.js-Buendel: Lite gibt per getApp() nur dessen `data` heraus (Simulator 08.10.2026). */
+function holeRecorder() {
+  try { var a = getApp(); return (a && a.data && a.data.R) || (a && a.R) || null; }
+  catch (e) { console.error("Pumpfoil getApp: " + e); return null; }
 }
 
 function zeitText(ms) {
@@ -56,11 +44,11 @@ function art(p, gesamt) {
 export default {
   data: {
     ansicht: "bereit", zeit: "0:00", strecke: "0.00 km", info: "", balken: 0, balkenZeigen: false,
-    halten: true, tStart: "", tPause: "", tWeg: "", tStopp: ""
+    halten: true, tStart: "", tPause: "", tWeg: "", tStopp: "", tFertig: "", fZeit: "", fStrecke: "", fLaeufe: ""
   },
   onInit() {
     console.info("Pumpfoil Seite onInit");
-    R = holeRecorder(this);
+    R = holeRecorder();
     if (!R) {
       // Ohne Recorder nichts weiter starten, aber SAGEN warum (Infozeile + Log), statt still leer zu bleiben.
       this.info = "Kein Recorder (getApp)";
@@ -68,13 +56,14 @@ export default {
     }
     // Texte einmal holen (jedes $t kostet auf der Uhr), Displaygroesse fuer die Promille-Koordinaten.
     var keys = ["start", "pause", "resume", "stop", "holding", "discard", "discarded", "paused", "errors",
-      "gpsWait", "openPhone", "allSent", "noAccel"];
+      "gpsWait", "openPhone", "allSent", "noAccel", "done"];
     this.tx = {};
     for (var j = 0; j < keys.length; j++) this.tx[keys[j]] = this.$t("strings." + keys[j]);
     this.texte = {};
     for (var i = 0; i < FELDTEXTE.length; i++) this.texte[FELDTEXTE[i]] = this.$t("strings.f_" + FELDTEXTE[i]);
     this.texte.paused = this.tx.paused;
     this.tStart = this.tx.start;
+    this.tFertig = this.tx.done;
     this.dw = 466; this.dh = 466; this.lite = true;
     this.seite = 2; this.zustandVorher = ""; this.haltAktion = ""; this.wegScharf = false;
     var that0 = this;
@@ -99,6 +88,7 @@ export default {
   },
   zeigenRoh() {
     if (R.takt()) this.seite = 2;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
+    if (R.leerlauf()) { this.seite = 2; this.zeigeFertig = false; }   // Auto-Start (Profil), wie Zepp
     var z = R.zustand(), tx = this.tx;
     var pausiert = z.modus === "pause";
     this.zeit = (pausiert ? tx.paused + " " : "") + zeitText(z.ms);
@@ -109,26 +99,8 @@ export default {
     this.tPause = pa === "pause" || pa === "weiter" ? tx.holding : (pausiert ? tx.resume : tx.pause) + zwei;
     this.tStopp = pa === "stopp" ? tx.holding : tx.stop + zwei;
     this.tWeg = this.wegScharf ? tx.discard + "?" : tx.discard;
-    // Eine Zeile Zustand: Fehler > GPS > Uebertragung. Fehler bleiben stehen, solange es sie gibt
-    // (nie nur einmal melden).
-    var info = "";
-    if (this.startFehler) info = this.startFehler;
-    else if (z.fehler > 0) info = tx.errors + " " + z.fehler + ": " + z.letzterFehler;
-    else if (z.modus === "laeuft" && !z.gpsOk) info = tx.gpsWait;
-    else if (z.modus !== "bereit" && z.ohneAccel) info = tx.noAccel;   // Zustand, kein Fehler (s. recorder accelAn)
-    else if (z.modus === "bereit" && R.verworfen && Date.now() - R.verworfen < 10000) info = tx.discarded;
-    else if (z.offen > 0) {
-      // „Zum Handy: 34/120" — gezaehlt in Dateien (je ~5 s Aufnahme), dieselbe Zahl, die das
-      // Handy im Balken zeigt. Das Ziel ist das HANDY, nicht der Server.
-      // nur die Zahl, ohne „Zum Handy:" (Jan, 08.10.2026: „0/35 passt") — Platz fuer den Handy-Hinweis
-      info = z.plan.fertig + "/" + z.plan.gesamt;
-      if (z.sendeFehler > 0) info += " · " + tx.openPhone + " (" + z.sendeCode + ")";
-    } else if (z.modus === "bereit") {
-      // Nichts offen, aber das Handy antwortet nicht (Hallo scheitert): sagen statt „Alles uebertragen" —
-      // ueber das Hallo kommen auch die Datenseiten vom Server (Simulator-Log 08.10.2026).
-      info = z.sendeFehler > 0 ? tx.openPhone + " (" + z.sendeCode + ")" : tx.allSent;
-    }
-    this.info = info;
+    // Infozeile baut der Recorder (app.js-Buendel — die Seite liegt nah an 48 KB).
+    this.info = this.startFehler || R.infoZeile(z, tx);
     // Balken nur ausserhalb der Aufnahme: waehrend der Fahrt gehen die Chunks laufend raus und
     // der Balken zappelte zwischen 1/2 und 2/2 — die Zahl in der Zeile reicht dort.
     this.balkenZeigen = z.modus === "bereit" && z.offen > 0 && z.plan.gesamt > 0;
@@ -137,7 +109,15 @@ export default {
   },
   /** Welche Seite der Folge gerade steht; Datenseiten zeichnen. */
   seiten() {
-    if (R.modus === "bereit") { this.ansicht = "bereit"; this.seite = 2; this.zustandVorher = ""; return; }
+    if (R.modus === "bereit") {
+      this.ansicht = this.zeigeFertig && R.letzte ? "fertig" : "bereit";
+      if (this.ansicht === "fertig") {
+        var l = R.letzte;
+        this.fZeit = zeitText(l.ms); this.fStrecke = l.text; this.fLaeufe = l.laeufe + " " + this.texte.runs;
+      }
+      this.seite = 2; this.zustandVorher = "";
+      return;
+    }
     var c = R.seitenKontext();
     // Pause <-> Fahrt: auf die erste Datenseite des neuen Zustands (wie Zepp/Wear).
     if (c.zustand !== this.zustandVorher) {
@@ -188,8 +168,11 @@ export default {
     }
   },
   // --- Bedienung -----------------------------------------------------------------------------
+  /** Zusammenfassung schliessen (FERTIG tippen oder rechts wischen, wie Wear SavedScreen). */
+  fertig() { this.zeigeFertig = false; this.zeigen(); },
   starten() {
     if (R.modus !== "bereit") return;
+    this.zeigeFertig = false;
     this.seite = 2;
     this.ausfuehren("start");
   },
@@ -238,6 +221,7 @@ export default {
     try { vibrator.vibrate({ mode: "short" }); } catch (e) { console.error("Pumpfoil vibrate: " + e); }
     console.info("Pumpfoil Aktion " + aktion);
     try { R[aktion](); } catch (e) { console.error("Pumpfoil " + aktion + ": " + e); this.startFehler = aktion + ": " + e; }
+    if (aktion === "stopp") this.zeigeFertig = true;   // Verwerfen: keine Zusammenfassung (wie Zepp/Wear)
     this.zeigen();
   },
   wischen(e) {
@@ -245,7 +229,8 @@ export default {
     console.info("Pumpfoil wischen " + d);
     if (R.modus === "bereit") {
       // Nach rechts wischen beendet die App (AppGallery verlangt das) — nur ausserhalb einer Aufnahme.
-      if (d === "right") app.terminate();
+      // Steht die Zusammenfassung, schliesst es erst diese.
+      if (d === "right") { if (this.zeigeFertig) this.fertig(); else app.terminate(); }
       return;
     }
     // Hoch = weiter, runter = zurueck, ohne Umlauf (wie Zepp). Rechts = zur STOPP-Seite (wie Zepp BACK).

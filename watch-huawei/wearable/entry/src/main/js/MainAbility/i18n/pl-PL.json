@@ -32,6 +32,7 @@
     "f_runs": "Przejazdy",
     "f_lastRunMaxHr": "ost. maks. bpm",
     "f_allRunsDist": "wsz. przejazdy dyst.",
-    "f_allRunsTime": "wsz. przejazdy czas"
+    "f_allRunsTime": "wsz. przejazdy czas",
+    "done": "GOTOWE"
   }
 }

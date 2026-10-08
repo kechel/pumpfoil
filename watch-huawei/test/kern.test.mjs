@@ -137,6 +137,23 @@ test("Sendeplan: Meta, Chunks, Ende — Ende erst nach Stopp, Chunks schon unter
   assert.equal(p.naechste(), null); assert.equal(p.s.length, 0, "erledigte Session raus");
 });
 
+test("AutoStart: drei Fixe in Folge ueber 7 km/h starten, Luecke/Sprung/langsam setzt zurueck", () => {
+  const a = new K.AutoStart();
+  const schritt = (m) => m / 111320;   // Meter nach Norden in Grad
+  let lat = 52.5, t = 0;
+  const fix = (m, dt = 1000) => { lat += schritt(m); t += dt; return a.fix(lat, 13.4, t); };
+  assert.equal(a.fix(lat, 13.4, t), false, "erster Fix: nichts");
+  assert.equal(fix(1), false); assert.equal(fix(1), false);            // 3,6 km/h: zu langsam
+  assert.equal(fix(3), false); assert.equal(fix(3), false);            // 10,8 km/h: 1, 2
+  assert.equal(fix(1), false, "zu langsam: zurueck auf 0");
+  assert.equal(fix(3), false); assert.equal(fix(3), false); assert.equal(fix(3), true, "dritter in Folge");
+  const b = new K.AutoStart(); lat = 52.5; t = 0; b.fix(lat, 13.4, t);
+  const f2 = (m, dt = 1000) => { lat += schritt(m); t += dt; return b.fix(lat, 13.4, t); };
+  f2(3); f2(3);
+  assert.equal(f2(30, 10000), false, "10 s Luecke setzt zurueck");
+  assert.equal(f2(100), false, "100 m/s ist kein Fahrer");
+});
+
 test("Sendeplan: verwerfen nennt nur die ungesendeten Dateien und nimmt die Session heraus", () => {
   const p = new K.Sendeplan();
   p.neu("a"); p.erledigt({ id: "a", art: "m" });

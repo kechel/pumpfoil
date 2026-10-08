@@ -32,6 +32,7 @@
     "f_runs": "Läufe",
     "f_lastRunMaxHr": "letzter max bpm",
     "f_allRunsDist": "alle Läufe Dist",
-    "f_allRunsTime": "alle Läufe Zeit"
+    "f_allRunsTime": "alle Läufe Zeit",
+    "done": "FERTIG"
   }
 }

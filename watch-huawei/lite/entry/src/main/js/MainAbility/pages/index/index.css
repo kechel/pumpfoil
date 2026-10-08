@@ -46,6 +46,19 @@
     color: #ffffff;
     text-align: center;
 }
+.bfertig {
+    width: 100%;
+    height: 330px;
+    flex-direction: column;
+    align-items: center;
+}
+.zeile {
+    width: 80%;
+    height: 40px;
+    font-size: 30px;
+    color: #94a3b8;
+    text-align: center;
+}
 .wertbreit {
     width: 80%;
     height: 46px;

@@ -401,6 +401,28 @@ Anzeige.prototype.fix = function (lat, lon, gen, t) {
   }
 };
 
+/**
+ * Auto-Start wie Zepp (AUTOSTART_SPEED 7 km/h, AUTOSTART_TICKS 3): drei Fixe in Folge schneller als
+ * 7 km/h -> starten. Die Lite-API hat kein Speed-Feld, also aus Weg/Zeit zweier Fixe. Ein Fix mit mehr
+ * als 5 s Abstand oder ein Sprung ueber 30 m/s (kein Fahrer) setzt den Zaehler zurueck.
+ */
+var AUTOSTART_MPS = 7 / 3.6, AUTOSTART_TICKS = 3;
+function AutoStart() { this.letzter = null; this.ticks = 0; }
+/** true = jetzt starten. */
+AutoStart.prototype.fix = function (lat, lon, tMs) {
+  var p = this.letzter;
+  this.letzter = [lat, lon, tMs];
+  if (!p) return false;
+  var dt = (tMs - p[2]) / 1000;
+  var v = dt > 0 ? meter(p[0], p[1], lat, lon) / dt : 0;
+  if (dt > 0 && dt <= 5 && v > AUTOSTART_MPS && v < 30) {
+    this.ticks++;
+    return this.ticks >= AUTOSTART_TICKS;
+  }
+  this.ticks = 0;
+  return false;
+};
+
 export default {
   ACCEL_JE_BLOCK: ACCEL_JE_BLOCK, GPS_JE_BLOCK: GPS_JE_BLOCK,
   b64: b64, i16: i16, i16Bytes: i16Bytes,
@@ -408,5 +430,5 @@ export default {
   Sendeplan: Sendeplan, dateiVon: dateiVon, teile: teile, ascii: ascii, Gegenstelle: Gegenstelle,
   TEIL_MAX: TEIL_MAX,
   neueId: neueId, dateiMeta: dateiMeta, dateiChunk: dateiChunk, dateiEnde: dateiEnde,
-  sendeReihenfolge: sendeReihenfolge, meter: meter
+  sendeReihenfolge: sendeReihenfolge, meter: meter, AutoStart: AutoStart
 };

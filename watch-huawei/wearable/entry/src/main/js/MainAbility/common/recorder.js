@@ -215,10 +215,62 @@ R.stopp = function () {
   var jetzt = Date.now();
   if (R.modus === "laeuft") { sensorenAus(); restSchreiben(); }
   else R.achse.weiter(jetzt);   // Stopp aus der Pause: die Pause endet hier
+  // Zusammenfassung fuer die Seite nach dem Stopp (wie Zepp: Strecke, Dauer, Schnitt) — aktive Zeit.
+  var aktiv = R.achse.jetzt(jetzt);
+  var kmh = aktiv > 0 ? R.anzeige.strecke / (aktiv / 1000) * 3.6 : 0;
+  R.letzte = { ms: aktiv, laeufe: R.stand.runCount,
+    text: (R.anzeige.strecke / 1000).toFixed(2) + " km · " + kmh.toFixed(1) + " km/h" };
   R.modus = "bereit";
   log("Stopp, Bloecke " + R.sammler.index);
   bildschirmAn(false);
   abschliessen(R.id, R.sammler.index, jetzt, R.achse.pausen, R.sammler.hrAnzahl);
+};
+
+/**
+ * Einmal je Sekunde im Bereit-Zustand (von der Seite): Auto-Start wie Zepp. Nur wenn das Profil es will,
+ * laeuft dafuer GPS schon vor der Aufnahme (Akku) — sonst ist es aus.
+ */
+R.leerlauf = function () {
+  if (R.modus !== "bereit") return false;
+  if (!R.konfig.autoStart) {
+    if (R.leerGps) { try { geolocation.unsubscribe(); } catch (e) { /* war nicht an */ } R.leerGps = false; }
+    return false;
+  }
+  if (!R.leerGps) {
+    R.leerGps = true; R.auto = new K.AutoStart();
+    versuch("gps", "GPS Auto-Start", function () {
+      geolocation.subscribe({
+        coordType: "wgs84",
+        success: function (g) { if (R.auto && R.auto.fix(g.latitude, g.longitude, g.time || Date.now())) R.autoLos = true; },
+        fail: function (d, code) { fehler("gps", "GPS " + code); }
+      });
+    });
+  }
+  if (!R.autoLos) return false;
+  R.autoLos = false; R.auto = null;
+  try { geolocation.unsubscribe(); } catch (e) { /* gleich neu in sensorenAn */ }
+  R.leerGps = false;
+  log("Auto-Start");
+  R.start();
+  return true;
+};
+
+/**
+ * Die eine Infozeile der Seite. Vorrang: Fehler > GPS > ohne Beschleunigung > verworfen > Uebertragung.
+ * Fehler bleiben stehen, solange es sie gibt (nie nur einmal melden). tx = Texte der Uhr-Sprache.
+ */
+R.infoZeile = function (z, tx) {
+  if (z.fehler > 0) return tx.errors + " " + z.fehler + ": " + z.letzterFehler;
+  if (z.modus === "laeuft" && !z.gpsOk) return tx.gpsWait;
+  if (z.modus !== "bereit" && z.ohneAccel) return tx.noAccel;   // Zustand, kein Fehler (s. accelAn)
+  if (z.modus === "bereit" && R.verworfen && Date.now() - R.verworfen < 10000) return tx.discarded;
+  var handy = tx.openPhone + " (" + z.sendeCode + ")";
+  // nur die Zahl, ohne „Zum Handy:" (Jan, 08.10.2026: „0/35 passt") — Platz fuer den Handy-Hinweis
+  if (z.offen > 0) return z.plan.fertig + "/" + z.plan.gesamt + (z.sendeFehler > 0 ? " · " + handy : "");
+  // Nichts offen, aber das Handy antwortet nicht (Hallo scheitert): sagen statt „Alles uebertragen" —
+  // ueber das Hallo kommen auch die Datenseiten vom Server.
+  if (z.modus === "bereit") return z.sendeFehler > 0 ? handy : tx.allSent;
+  return "";
 };
 
 /** Bild fuer die Seite. */
