@@ -22,6 +22,22 @@ var FELDTEXTE = ["kmh3s", "kmhAvg", "kmhMax", "bpmAvg", "bpmMax", "time", "dist"
 
 var HALTEN_MS = 2000;
 
+/** Recorder aus dem app.js-Buendel holen — mit Log, was wirklich ankommt (getApp ist erst ab API 10 da). */
+function holeRecorder(vm) {
+  try {
+    if (typeof getApp !== "function") console.error("Pumpfoil getApp fehlt (" + typeof getApp + ")");
+    else {
+      var a = getApp();
+      if (a && a.R) return a.R;
+      var k = [];
+      for (var x in a) k.push(x);
+      console.error("Pumpfoil getApp ohne R: " + typeof a + " [" + k.join(",") + "]");
+    }
+  } catch (e) { console.error("Pumpfoil getApp: " + e); }
+  try { if (vm.$app && vm.$app.$def && vm.$app.$def.R) return vm.$app.$def.R; } catch (e) { /* weiter */ }
+  return null;
+}
+
 function zeitText(ms) {
   var s = Math.floor(ms / 1000);
   var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
@@ -36,7 +52,12 @@ export default {
   },
   onInit() {
     console.info("Pumpfoil Seite onInit, Text start=" + this.$t("strings.start"));
-    R = getApp().R;
+    R = holeRecorder(this);
+    if (!R) {
+      // Ohne Recorder nichts weiter starten, aber SAGEN warum (Infozeile + Log), statt still leer zu bleiben.
+      this.info = "Kein Recorder (getApp)";
+      return;
+    }
     this.knopfStart = this.$t("strings.start");
     this.knopfPause = this.$t("strings.pause");
     this.knopfWeiter = this.$t("strings.resume");
@@ -61,7 +82,7 @@ export default {
   },
   onDestroy() {
     clearInterval(this.takt);
-    R.ende();
+    if (R) R.ende();
   },
   // Fehler beim Anzeigen sichtbar machen (Infozeile + Log), jede Sekunde neu — nie stumm.
   zeigen() {
