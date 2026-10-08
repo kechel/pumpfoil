@@ -137,6 +137,20 @@ test("Sendeplan: Meta, Chunks, Ende — Ende erst nach Stopp, Chunks schon unter
   assert.equal(p.naechste(), null); assert.equal(p.s.length, 0, "erledigte Session raus");
 });
 
+test("Sendeplan: verwerfen nennt nur die ungesendeten Dateien und nimmt die Session heraus", () => {
+  const p = new K.Sendeplan();
+  p.neu("a"); p.erledigt({ id: "a", art: "m" });
+  p.neu("b");
+  for (let i = 0; i < 4; i++) p.chunk("b");
+  p.erledigt({ id: "b", art: "m" }); p.erledigt({ id: "b", art: "c", nr: 0 }); p.erledigt({ id: "b", art: "c", nr: 1 });
+  assert.deepEqual(p.weg("b"), [K.dateiChunk("b", 2), K.dateiChunk("b", 3)]);
+  assert.equal(p.finde("b"), null);
+  assert.ok(p.finde("a"), "andere Session bleibt");
+  p.neu("c"); p.chunk("c");
+  assert.deepEqual(p.weg("c"), [K.dateiMeta("c"), K.dateiChunk("c", 0)], "nichts gesendet: Meta + Chunks");
+  assert.deepEqual(p.weg("x"), [], "unbekannt: nichts");
+});
+
 test("Sendeplan: ueberlebt Neustart (als JSON) und haelt zwei Sessions auseinander", () => {
   const p = new K.Sendeplan();
   p.neu("a"); p.chunk("a"); p.ende("a");

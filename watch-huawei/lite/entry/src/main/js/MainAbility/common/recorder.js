@@ -153,7 +153,7 @@ R.start = function () {
   R.sammler = new K.Sammler();
   R.anzeige = new K.Anzeige();
   R.maxLuecke = 0; R.accelLetzt = 0;
-  R.f = { speicher: 0, accel: 0, gps: 0, puls: 0 }; R.letzterFehler = "";
+  R.f = { speicher: 0, accel: 0, gps: 0, puls: 0, sonst: 0 }; R.letzterFehler = ""; R.verworfen = 0;
   R.stand.neu(); R.fixNeu = null;
   R.plan.neu(R.id);
   schreibe(K.dateiMeta(R.id), {
@@ -414,6 +414,25 @@ R.takt = function () {
 R.seitenKontext = function () {
   return { s: R.stand, k: R.konfig, el: R.modus === "bereit" ? 0 : R.achse.jetzt(Date.now()) / 1000,
     pausiert: R.modus === "pause", zustand: R.modus === "pause" ? "p" : (R.stand.foiling ? "on" : "off") };
+};
+
+/**
+ * Aufnahme VERWERFEN (wie Zepp/Wear/Apple: Aktionsseite, zweimal tippen): Sensoren aus, nichts mehr
+ * senden, die noch nicht gesendeten Dateien loeschen, kein Ende schreiben. Was schon beim Handy ist,
+ * bleibt dort unvollstaendig (s. kern Sendeplan.weg).
+ */
+R.verwerfen = function () {
+  if (R.modus === "bereit") return;
+  log("Verwerfen " + R.id + ", Bloecke " + R.sammler.index);
+  if (R.modus === "laeuft") sensorenAus();
+  R.modus = "bereit";
+  bildschirmAn(false);
+  if (offenDatei && offenDatei.d && offenDatei.d.id === R.id) offenDatei = null;
+  var weg = R.plan.weg(R.id);
+  for (var i = 0; i < weg.length; i++) file.delete({ uri: weg[i] });
+  planSichern();
+  file.delete({ uri: LAUF });
+  R.verworfen = Date.now();
 };
 
 R.ende = function () { sensorenAus(); bildschirmAn(false); };

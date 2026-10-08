@@ -1,7 +1,7 @@
 /*
- * Die eine Seite des Recorders. Logik in common/recorder.js + common/kern.js; hier nur
- * Anzeige und die 2-s-Halten-Gesten (wie auf allen Pumpfoil-Uhren: ein nasser Aermel soll
- * nichts beenden oder pausieren).
+ * Die eine Seite des Recorders. Logik in common/recorder.js + common/kern.js; hier nur Anzeige und
+ * Bedienung — im Ablauf wie Zepp/Wear/Apple (Jan, 08.10.2026): START tippen; Pause/Fortsetzen und
+ * STOPP 2 s halten (Profil stopMode „press": tippen); Verwerfen zweimal tippen.
  */
 import app from "@system.app";
 import vibrator from "@system.vibrator";
@@ -46,37 +46,37 @@ function zeitText(ms) {
   return (h > 0 ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (r < 10 ? "0" : "") + r;
 }
 
+// Seitenfolge waehrend der Aufnahme (wie Zepp): 0 Aktion, 1 STOPP, 2 … n+1 Daten, n+2 STOPP, n+3 Aktion.
+function art(p, gesamt) {
+  if (p === 0 || p === gesamt - 1) return "aktion";
+  if (p === 1 || p === gesamt - 2) return "stopp";
+  return "daten";
+}
+
 export default {
   data: {
-    modus: "bereit", zeit: "0:00", tempo: "0.0", strecke: "0.00", puls: "--", info: "",
-    balken: 0, balkenZeigen: false, datenseite: false,
-    // VORLAEUFIG (Fehlersuche Simulator, 08.10.2026): die Ueberschrift zeigt, wie weit der Start kam —
-    // a = Daten geladen, b = onInit, c = Recorder da (x = fehlt), d = R.init durch, e = erste Anzeige.
-    // Ziffer = Build-Stand, damit ein alter Build sofort auffaellt. Danach wieder „PUMPFOIL".
-    marke: "PUMPFOIL 5a",
-    knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
+    ansicht: "bereit", zeit: "0:00", strecke: "0.00 km", info: "", balken: 0, balkenZeigen: false,
+    halten: true, tStart: "", tPause: "", tWeg: "", tStopp: ""
   },
   onInit() {
-    console.info("Pumpfoil Seite onInit, Text start=" + this.$t("strings.start"));
-    this.marke = "PUMPFOIL 4b";
+    console.info("Pumpfoil Seite onInit");
     R = holeRecorder(this);
-    this.marke = R ? "PUMPFOIL 4c" : "4x " + (this.appInfo || "?") + " m=" + this.modus;
     if (!R) {
       // Ohne Recorder nichts weiter starten, aber SAGEN warum (Infozeile + Log), statt still leer zu bleiben.
       this.info = "Kein Recorder (getApp)";
       return;
     }
-    this.knopfStart = this.$t("strings.start");
-    this.knopfPause = this.$t("strings.pause");
-    this.knopfWeiter = this.$t("strings.resume");
-    this.knopfStopp = this.$t("strings.stop");
-    this.textPause = this.$t("strings.paused");
     // Texte einmal holen (jedes $t kostet auf der Uhr), Displaygroesse fuer die Promille-Koordinaten.
+    var keys = ["start", "pause", "resume", "stop", "holding", "discard", "discarded", "paused", "errors",
+      "gpsWait", "toPhone", "openPhone", "allSent"];
+    this.tx = {};
+    for (var j = 0; j < keys.length; j++) this.tx[keys[j]] = this.$t("strings." + keys[j]);
     this.texte = {};
     for (var i = 0; i < FELDTEXTE.length; i++) this.texte[FELDTEXTE[i]] = this.$t("strings.f_" + FELDTEXTE[i]);
-    this.texte.paused = this.textPause;
+    this.texte.paused = this.tx.paused;
+    this.tStart = this.tx.start;
     this.dw = 466; this.dh = 466; this.lite = true;
-    this.seite = 1; this.zustandVorher = "";
+    this.seite = 2; this.zustandVorher = ""; this.haltAktion = ""; this.wegScharf = false;
     var that0 = this;
     device.getInfo({ success: function (d) {
       if (d.windowWidth > 0) { that0.dw = d.windowWidth; that0.dh = d.windowHeight; }
@@ -84,11 +84,9 @@ export default {
     } });
     // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
     try { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
-    if (!this.startFehler) this.marke = "PUMPFOIL 4d";
     var that = this;
     this.takt = setInterval(function () { that.zeigen(); }, 1000);
     this.zeigen();
-    if (!this.startFehler && this.marke === "PUMPFOIL 4d") this.marke = "PUMPFOIL 4e";
   },
   onDestroy() {
     clearInterval(this.takt);
@@ -97,54 +95,62 @@ export default {
   // Fehler beim Anzeigen sichtbar machen (Infozeile + Log), jede Sekunde neu — nie stumm.
   zeigen() {
     try { this.zeigenRoh(); } catch (e) { console.error("Pumpfoil zeigen: " + e); this.info = "zeigen: " + e; }
-    // VORLAEUFIG (Fehlersuche): Zustand + Infozeile in die Ueberschrift, jede Sekunde.
-    this.marke = "5 m=" + this.modus + " ds=" + this.datenseite + " i=" + (this.info || "-");
   },
   zeigenRoh() {
-    if (R.takt()) this.seite = 1;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
-    var z = R.zustand();
-    this.modus = z.modus;
-    this.zeit = zeitText(z.ms);
-    this.tempo = z.kmh.toFixed(1);
-    this.strecke = (z.m / 1000).toFixed(2);
-    this.puls = z.puls > 0 ? z.puls + " bpm" : "-- bpm";
-    // Eine Zeile Zustand: Halten-Fortschritt > Fehler > GPS > Uebertragung. Fehler bleiben
-    // stehen, solange es sie gibt (nie nur einmal melden).
+    if (R.takt()) this.seite = 2;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
+    var z = R.zustand(), tx = this.tx;
+    var pausiert = z.modus === "pause";
+    this.zeit = (pausiert ? tx.paused + " " : "") + zeitText(z.ms);
+    this.strecke = (z.m / 1000).toFixed(2) + " km";
+    this.halten = R.konfig.stopMode !== "press";
+    var zwei = this.halten ? " · 2 s" : "";
+    var pa = this.haltAktion;
+    this.tPause = pa === "pause" || pa === "weiter" ? tx.holding : (pausiert ? tx.resume : tx.pause) + zwei;
+    this.tStopp = pa === "stopp" ? tx.holding : tx.stop + zwei;
+    this.tWeg = this.wegScharf ? tx.discard + "?" : tx.discard;
+    // Eine Zeile Zustand: Fehler > GPS > Uebertragung. Fehler bleiben stehen, solange es sie gibt
+    // (nie nur einmal melden).
     var info = "";
     if (this.startFehler) info = this.startFehler;
-    else if (this.haltText) info = this.haltText;
-    else if (z.fehler > 0) info = this.$t("strings.errors") + " " + z.fehler + ": " + z.letzterFehler;
-    else if (z.modus === "laeuft" && !z.gpsOk) info = this.$t("strings.gpsWait");
+    else if (z.fehler > 0) info = tx.errors + " " + z.fehler + ": " + z.letzterFehler;
+    else if (z.modus === "laeuft" && !z.gpsOk) info = tx.gpsWait;
+    else if (z.modus === "bereit" && R.verworfen && Date.now() - R.verworfen < 10000) info = tx.discarded;
     else if (z.offen > 0) {
       // „Zum Handy: 34/120" — gezaehlt in Dateien (je ~5 s Aufnahme), dieselbe Zahl, die das
       // Handy im Balken zeigt. Das Ziel ist das HANDY, nicht der Server.
-      info = this.$t("strings.toPhone") + " " + z.plan.fertig + "/" + z.plan.gesamt;
-      if (z.sendeFehler > 0) info += " · " + this.$t("strings.openPhone") + " (" + z.sendeCode + ")";
+      info = tx.toPhone + " " + z.plan.fertig + "/" + z.plan.gesamt;
+      if (z.sendeFehler > 0) info += " · " + tx.openPhone + " (" + z.sendeCode + ")";
     } else if (z.modus === "bereit") {
       // Nichts offen, aber das Handy antwortet nicht (Hallo scheitert): sagen statt „Alles uebertragen" —
       // ueber das Hallo kommen auch die Datenseiten vom Server (Simulator-Log 08.10.2026).
-      info = z.sendeFehler > 0 ? this.$t("strings.openPhone") + " (" + z.sendeCode + ")" : this.$t("strings.allSent");
+      info = z.sendeFehler > 0 ? tx.openPhone + " (" + z.sendeCode + ")" : tx.allSent;
     }
     this.info = info;
     // Balken nur ausserhalb der Aufnahme: waehrend der Fahrt gehen die Chunks laufend raus und
     // der Balken zappelte zwischen 1/2 und 2/2 — die Zahl in der Zeile reicht dort.
     this.balkenZeigen = z.modus === "bereit" && z.offen > 0 && z.plan.gesamt > 0;
     this.balken = z.plan.gesamt > 0 ? Math.floor(100 * z.plan.fertig / z.plan.gesamt) : 0;
-    this.datenseiten();
+    this.seiten();
   },
-  /** Seite 0 = Bedienung (Pause/Weiter/Stopp), 1 … n = Datenseiten des aktuellen Zustands. */
-  datenseiten() {
-    if (R.modus === "bereit") { this.datenseite = false; this.seite = 1; return; }
+  /** Welche Seite der Folge gerade steht; Datenseiten zeichnen. */
+  seiten() {
+    if (R.modus === "bereit") { this.ansicht = "bereit"; this.seite = 2; this.zustandVorher = ""; return; }
     var c = R.seitenKontext();
-    if (c.zustand !== this.zustandVorher) { this.zustandVorher = c.zustand; this.seite = 1; }
+    // Pause <-> Fahrt: auf die erste Datenseite des neuen Zustands (wie Zepp/Wear).
+    if (c.zustand !== this.zustandVorher) {
+      if (this.zustandVorher === "p" || c.zustand === "p") this.seite = 2;
+      this.zustandVorher = c.zustand;
+    }
     var ring = S.ring(c.k, c.zustand);
-    if (this.seite > ring.length) this.seite = ring.length;
-    this.datenseite = this.seite > 0 && this.haltText === "";
-    if (!this.datenseite) return;
+    var gesamt = ring.length + 4;
+    if (this.seite > gesamt - 1) this.seite = gesamt - 1;
+    if (this.seite < 0) this.seite = 0;
+    this.ansicht = art(this.seite, gesamt);
+    if (this.ansicht !== "daten") return;
     var that = this;
     var ctx = { dw: this.dw, dh: this.dh, s: c.s, el: c.el, k: c.k, jetzt: new Date(), pausiert: c.pausiert,
-      idx: this.seite - 1, anzahl: ring.length, t: function (k) { return that.texte[k] || k; } };
-    this.malen(S.zeichne(ring[this.seite - 1], ctx));
+      idx: this.seite - 2, anzahl: ring.length, t: function (k) { return that.texte[k] || k; } };
+    this.malen(S.zeichne(ring[this.seite - 2], ctx));
   },
   /**
    * Zeichenbefehle ausfuehren. Lite kennt laut Doku nur die System-Schriftgroessen 30/38 px; Watch 3/4
@@ -173,64 +179,72 @@ export default {
       } catch (e) { /* ein Befehl, den die Uhr nicht kann, darf die Seite nicht abbrechen */ }
     }
   },
-  halten(aktion, text) {
+  // --- Bedienung -----------------------------------------------------------------------------
+  starten() {
+    if (R.modus !== "bereit") return;
+    this.seite = 2;
+    this.ausfuehren("start");
+  },
+  /** 2 s halten (Pause/Fortsetzen, STOPP). Der Knopf zeigt „Halten …", bis es ausloest. */
+  halteStart(aktion) {
     var that = this;
     console.info("Pumpfoil halten " + aktion);
     clearTimeout(this.haltUhr);
-    this.haltText = text;
+    this.haltAktion = aktion;
     this.zeigen();
-    this.haltLaeuft = true;
-    this.haltUhr = setTimeout(function () {
-      that.haltLaeuft = false;
-      that.ausfuehren(aktion);
-    }, HALTEN_MS);
+    this.haltUhr = setTimeout(function () { that.haltAktion = ""; that.ausfuehren(aktion); }, HALTEN_MS);
   },
-  startHalten() { this.halten("start", this.$t("strings.holdStart")); },
-  pauseHalten() { this.halten("pause", this.$t("strings.holdPause")); },
-  weiterHalten() { this.halten("weiter", this.$t("strings.holdResume")); },
-  stoppHalten() { this.halten("stopp", this.$t("strings.holdStop")); },
+  pauseAktion() { return R.modus === "pause" ? "weiter" : "pause"; },
+  pauseHalten() { this.halteStart(this.pauseAktion()); },
+  stoppHalten() { this.halteStart("stopp"); },
+  loslassen() {
+    if (this.haltAktion) console.info("Pumpfoil losgelassen");
+    clearTimeout(this.haltUhr);
+    this.haltAktion = "";
+    this.zeigen();
+  },
   // LONGPRESS ALS ERSATZ (08.10.2026, Simulator): touchstart/touchend kamen dort unzuverlaessig an
-  // (touchend sofort, mit click am Knopf gar keins), click und longpress dagegen sicher. Laeuft das
-  // 2-s-Halten (Touch kam an), zaehlt nur das; sonst loest das System-longpress (~1 s) die Aktion aus.
-  // Ein Aermelstreifer bleibt ein click und loest nichts aus.
+  // (touchend sofort), longpress dagegen sicher. Laeuft das 2-s-Halten (Touch kam an), zaehlt nur das;
+  // sonst loest das System-longpress (~1 s) die Aktion aus. Ein Aermelstreifer loest nichts aus.
   lang(aktion) {
-    console.info("Pumpfoil longpress " + aktion + (this.haltLaeuft ? " (Halten laeuft, ignoriert)" : ""));
-    if (this.haltLaeuft) return;
+    console.info("Pumpfoil longpress " + aktion + (this.haltAktion ? " (Halten laeuft, ignoriert)" : ""));
+    if (this.haltAktion) return;
     this.ausfuehren(aktion);
   },
-  startLang() { this.lang("start"); },
-  pauseLang() { this.lang("pause"); },
-  weiterLang() { this.lang("weiter"); },
+  pauseLang() { this.lang(this.pauseAktion()); },
   stoppLang() { this.lang("stopp"); },
+  // Profil stopMode „press": ein Tipp genuegt (wie die anderen Uhren).
+  pauseTipp() { this.ausfuehren(this.pauseAktion()); },
+  stoppTipp() { this.ausfuehren("stopp"); },
+  /** Verwerfen wie Zepp: erster Tipp macht scharf („Verwerfen?"), zweiter binnen 4 s verwirft. */
+  verwerfenTipp() {
+    var that = this;
+    clearTimeout(this.wegUhr);
+    if (this.wegScharf) { this.wegScharf = false; this.ausfuehren("verwerfen"); return; }
+    this.wegScharf = true;
+    this.wegUhr = setTimeout(function () { that.wegScharf = false; that.zeigen(); }, 4000);
+    this.zeigen();
+  },
   ausfuehren(aktion) {
-    this.haltText = "";
     // Rumpeln darf die Aktion nie verhindern (im Simulator/auf manchen Uhren evtl. ohne Vibrator).
     try { vibrator.vibrate({ mode: "short" }); } catch (e) { console.error("Pumpfoil vibrate: " + e); }
     console.info("Pumpfoil Aktion " + aktion);
     try { R[aktion](); } catch (e) { console.error("Pumpfoil " + aktion + ": " + e); this.startFehler = aktion + ": " + e; }
     this.zeigen();
   },
-  loslassen() {
-    if (this.haltText) console.info("Pumpfoil losgelassen");
-    this.haltLaeuft = false;
-    clearTimeout(this.haltUhr);
-    this.haltText = "";
-    this.zeigen();
-  },
   wischen(e) {
-    console.info("Pumpfoil wischen " + (e && e.direction));
-    // Hoch/runter blaettert waehrend der Aufnahme durch Bedienseite (0) und Datenseiten.
-    if (R.modus !== "bereit" && (e.direction === "up" || e.direction === "down")) {
-      var n = S.ring(R.konfig, R.seitenKontext().zustand).length;
-      this.seite = e.direction === "up" ? Math.min(n, this.seite + 1) : Math.max(0, this.seite - 1);
-      this.datenseiten();
+    var d = e && e.direction;
+    console.info("Pumpfoil wischen " + d);
+    if (R.modus === "bereit") {
+      // Nach rechts wischen beendet die App (AppGallery verlangt das) — nur ausserhalb einer Aufnahme.
+      if (d === "right") app.terminate();
       return;
     }
-    // Nach rechts wischen beendet die App (AppGallery verlangt das) — aber nie mitten in einer
-    // Aufnahme: dann waere sie weg. Erst stoppen.
-    if (e.direction !== "right") return;
-    if (R.modus === "bereit") app.terminate();
-    else { this.haltText = this.$t("strings.stopFirst"); this.zeigen(); var that = this;
-      setTimeout(function () { that.haltText = ""; }, 2500); }
+    // Hoch = weiter, runter = zurueck, ohne Umlauf (wie Zepp). Rechts = zur STOPP-Seite (wie Zepp BACK).
+    if (d === "up") this.seite++;
+    else if (d === "down") this.seite--;
+    else if (d === "right") this.seite = 1;
+    else return;
+    this.zeigen();
   }
 };
