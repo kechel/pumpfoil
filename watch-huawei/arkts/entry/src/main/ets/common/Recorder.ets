@@ -10,7 +10,7 @@
  * Was die ArkTS-Uhr mehr kann als Lite: GPS liefert Tempo (geht als `speed` mit), es gibt eine
  * Hintergrund-Aufgabe, und Dateien gehen synchron (fileIo).
  */
-import { common, wantAgent, WantAgent } from '@kit.AbilityKit';
+import { common, wantAgent, WantAgent, abilityAccessCtrl } from '@kit.AbilityKit';
 import { sensor, vibrator } from '@kit.SensorServiceKit';
 import { geoLocationManager } from '@kit.LocationKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
@@ -151,6 +151,7 @@ export class Recorder {
   private letzterFehler: string = '';
   private gpsLetzt: number = 0;
   private gpsAbonniert: boolean = false;
+  private ortungGefragt: boolean = false;   // je Aufnahme hoechstens einmal fragen
   private gpsVersuch: number = 0;
   private bg: string = 'aus';
   private offenDatei: OffeneDatei | null = null;
@@ -295,6 +296,7 @@ export class Recorder {
       this.fehler('puls', 'Puls ' + (e as BusinessError).code);
     }
     this.gpsAbonniert = false;
+    this.ortungGefragt = false;
     this.gpsAbo();
   }
 
@@ -318,7 +320,34 @@ export class Recorder {
         this.letzterFehler = '';   // Ortung ist inzwischen an: der Hinweis darf weg (der Zaehler bleibt)
       }
     } catch (e) {
-      this.fehler('gps', 'GPS ' + (e as BusinessError).code);
+      const code: number = (e as BusinessError).code;
+      this.fehler('gps', 'GPS ' + code);
+      if (code === 3301100) {
+        this.ortungErfragen();
+      }
+    }
+  }
+
+  /**
+   * Ortung im System aus (3301100): einmal je Aufnahme den System-Dialog zeigen, der sie einschaltet
+   * (API 12). Im DevEco-Emulator steht der Schalter ab Werk aus, auf echten Uhren schalten Leute ihn
+   * zum Akkusparen ab. Der Neuversuch in taktSeiten holt GPS danach ohne Neustart.
+   */
+  private ortungErfragen(): void {
+    if (this.ortungGefragt || this.ctx === null) {
+      return;
+    }
+    this.ortungGefragt = true;
+    try {
+      abilityAccessCtrl.createAtManager().requestGlobalSwitch(this.ctx, abilityAccessCtrl.SwitchType.LOCATION)
+        .then((an: boolean) => {
+          console.info('Pumpfoil Ortung-Dialog: ' + (an ? 'eingeschaltet' : 'abgelehnt'));
+        })
+        .catch((e: BusinessError) => {
+          console.error('Pumpfoil Ortung-Dialog: ' + e.code);
+        });
+    } catch (e) {
+      console.error('Pumpfoil Ortung-Dialog: ' + (e as BusinessError).code);
     }
   }
 
