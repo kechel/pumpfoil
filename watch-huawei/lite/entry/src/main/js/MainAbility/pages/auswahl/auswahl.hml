@@ -1,10 +1,23 @@
 <div class="seite" onswipe="wischen">
-    <!-- Einstellungen auf der Uhr wie Zepp-Seite 4/4 (Jan, 08.10.2026: „config fuer foil, on foil alarm
-         an/aus … aus dem startscreen hinsliden"). Jede Zeile tippen schaltet weiter. Eigene Seite =
-         eigenes Buendel: die Startseite liegt an der 48-KB-Grenze. Runter/rechts wischen = zurueck. -->
-    <div class="zeile" onclick="alarm"><text class="ztext">{{ zAlarm }}</text></div>
-    <div class="zeile" onclick="quelle"><text class="ztext">{{ zQuelle }}</text></div>
-    <div class="zeile" onclick="foil"><text class="ztext">{{ zFoil }}</text></div>
-    <div class="zeile" onclick="layouts"><text class="ztext">{{ zLayouts }}</text></div>
-    <div class="zeile" onclick="sperre"><text class="ztext">{{ zSperre }}</text></div>
+    <!-- Einstellungen auf der Uhr wie Zepp-Seite 4/4 (Jan, 08.10.2026). Eigene Seite = eigenes Buendel (die
+         Startseite liegt an der 48-KB-Grenze). Als scrollbare Liste: Lite kennt nur 30/38 px Schrift, auf
+         der schmalen eckigen Uhr passte „Begriff: Wert" nicht in eine Zeile. Je Eintrag oben der Begriff,
+         darunter der Wert (darf zweizeilig sein), zusammen in EINEM div (Watch 3/4: list-item hat nur ein Kind). Tippen schaltet weiter; rechts wischen = zurueck. -->
+    <list class="liste">
+        <list-item class="eintrag" onclick="alarm">
+            <div class="block"><text class="begriff">{{ bAlarm }}</text><text class="wert">{{ zAlarm }}</text></div>
+        </list-item>
+        <list-item class="eintrag" onclick="quelle">
+            <div class="block"><text class="begriff">{{ bQuelle }}</text><text class="wert">{{ zQuelle }}</text></div>
+        </list-item>
+        <list-item class="eintrag" onclick="foil">
+            <div class="block"><text class="begriff">Foil</text><text class="wert">{{ zFoil }}</text></div>
+        </list-item>
+        <list-item class="eintrag" onclick="layouts">
+            <div class="block"><text class="begriff">{{ bLayouts }}</text><text class="wert">{{ zLayouts }}</text></div>
+        </list-item>
+        <list-item class="eintrag" onclick="sperre">
+            <div class="block"><text class="begriff">{{ bSperre }}</text><text class="wert">{{ zSperre }}</text></div>
+        </list-item>
+    </list>
 </div>

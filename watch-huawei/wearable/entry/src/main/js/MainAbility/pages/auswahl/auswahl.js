@@ -13,7 +13,7 @@ function holeRecorder() {
 }
 
 export default {
-  data: { zAlarm: "", zQuelle: "", zFoil: "", zLayouts: "", zSperre: "" },
+  data: { bAlarm: "", bQuelle: "", bLayouts: "", bSperre: "", zAlarm: "", zQuelle: "", zFoil: "", zLayouts: "", zSperre: "" },
   onInit() {
     R = holeRecorder();
     var keys = ["alarm", "thresholds", "autoFoil", "manual", "layoutsShort", "lock", "on", "off", "auto"];
@@ -27,11 +27,12 @@ export default {
   zeigen() {
     if (!R) { this.zAlarm = "Kein Recorder (getApp)"; return; }
     var a = R.auswahl, k = R.konfig, f = a.foil(k);
-    this.zAlarm = this.tx.alarm + ": " + this.anAus(a.alarm);
-    this.zQuelle = this.tx.thresholds + ": " + (a.quelle === "foil" ? this.tx.autoFoil : this.tx.manual);
-    this.zFoil = "Foil: " + (f ? f.label : "–");
-    this.zLayouts = this.tx.layoutsShort + ": " + this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer : k.layoutsOn);
-    this.zSperre = this.tx.lock + ": " + this.stufe(a.sperre, k.waterLock === "on");
+    this.bAlarm = this.tx.alarm; this.bQuelle = this.tx.thresholds; this.bLayouts = this.tx.layoutsShort; this.bSperre = this.tx.lock;
+    this.zAlarm = this.anAus(a.alarm);
+    this.zQuelle = a.quelle === "foil" ? this.tx.autoFoil : this.tx.manual;
+    this.zFoil = f ? f.label : "–";
+    this.zLayouts = this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer : k.layoutsOn);
+    this.zSperre = this.stufe(a.sperre, k.waterLock === "on");
   },
   aendern(fn) { fn(R.auswahl); R.auswahlAnwenden(); this.zeigen(); },
   alarm() { this.aendern(function (a) { a.alarm = !a.alarm; }); },
@@ -41,6 +42,7 @@ export default {
   sperre() { this.aendern(function (a) { a.sperre = R.dreistufig(a.sperre); }); },
   wischen(e) {
     var d = e && e.direction;
-    if (d === "down" || d === "right") router.replace({ uri: "pages/index/index" });
+    // In der Liste ist hoch/runter Scrollen — zurueck nur noch mit rechts wischen.
+    if (d === "right") router.replace({ uri: "pages/index/index" });
   }
 };
