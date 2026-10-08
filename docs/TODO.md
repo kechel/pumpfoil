@@ -1514,6 +1514,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (3) ✅ Touch-Sperre wie Zepp (waterLock „on": ab Start, nach 10 s wieder; halten = frei).
   (4) ✅ ArkTS-Linie (Watch 5) auf denselben Ablauf (Index.ets neu, Recorder verwerfen/leerlauf/letzte,
       Kern.ets weg/AutoStart mit Gleichstand-Test). Nur gebaut — im DevEco-Previewer/Emulator ungeprueft.
+  (5) ✅ Einstellungen auf der Uhr wie Zepp 4/4 (Alarm, Schwellen Foil/manuell, Foil, Layouts, Touch-Sperre;
+      vom Start hoch wischen) + Vibrationsalarm (Tempo/Puls/Marken) + meta.foil_id — alle drei Linien,
+      Lite als eigene Seite (Liste, im Simulator gesehen 08.10.). Foil-Namen am Server: Groesse hat Vorrang.
   **Simulator 08.10. abends:** eigene Layouts (Boegen, Linien, Farben nach Wert), klassische Seiten und Pause
   laufen auf Lite mit GPS-Fahrt-Attrappe (`./sim.sh an sim-konfig.json`); Textlage nachgemessen (Lite setzt
   Text mit der Oberkante). Ende-zu-Ende Uhr->Handy->Server + Rueckweg Konfig in Node/Kotlin/pytest gruen.
