@@ -20,6 +20,7 @@ import file from "@system.file";
 import brightness from "@system.brightness";
 import device from "@system.device";
 import K from "./kern.js";
+import M from "./maler.js";
 import S from "./lauf.js";   // nur Stand + Konfig — das Zeichnen gehoert ins Seiten-Buendel
 import C from "./konfig.js";
 // Wear Engine kommt von der SEITE herein (R.init(we)), nicht per Import: das app.js-Buendel lag mit ihr
@@ -505,6 +506,9 @@ R.verwerfen = function () {
   file.delete({ uri: LAUF });
   R.verworfen = Date.now();
 };
+
+/** Zeichner fuer die Datenseiten (common/maler.js), hier, damit er im app.js-Buendel liegt. */
+R.malen = M.malen;
 
 R.ende = function () { sensorenAus(); bildschirmAn(false); };
 

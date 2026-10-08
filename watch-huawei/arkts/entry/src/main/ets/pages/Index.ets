@@ -208,7 +208,8 @@ struct Index {
       return;
     }
     const ctx: ZeichenKontext = {
-      dw: this.leinwand.width, dh: this.leinwand.height, s: d.s, el: d.el, k: d.k, jetzt: new Date(),
+      dw: this.leinwand.width, dh: this.leinwand.height, rund: Math.abs(this.leinwand.width - this.leinwand.height) < 2,
+      s: d.s, el: d.el, k: d.k, jetzt: new Date(),
       pausiert: d.pausiert, idx: this.seite - 2, anzahl: seiten.length,
       t: (k: string): string => this.texte.get(k) ?? k
     };

@@ -70,6 +70,8 @@ export default {
     device.getInfo({ success: function (d) {
       if (d.windowWidth > 0) { that0.dw = d.windowWidth; that0.dh = d.windowHeight; }
       that0.lite = d.deviceType !== "wearable";
+      // Form fuer die Rand-Grafik: screenShape (rect|circle), sonst aus dem Seitenverhaeltnis
+      that0.rund = d.screenShape ? d.screenShape !== "rect" : d.windowWidth === d.windowHeight;
       console.info("Pumpfoil Geraet " + d.deviceType + " " + d.windowWidth + "x" + d.windowHeight + " lite=" + that0.lite);
     } });
     // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
@@ -136,7 +138,7 @@ export default {
     this.ansicht = art(this.seite, gesamt);
     if (this.ansicht !== "daten") return;
     var that = this;
-    var ctx = { dw: this.dw, dh: this.dh, s: c.s, el: c.el, k: c.k, jetzt: new Date(), pausiert: c.pausiert,
+    var ctx = { dw: this.dw, dh: this.dh, rund: this.rund !== false, s: c.s, el: c.el, k: c.k, jetzt: new Date(), pausiert: c.pausiert,
       idx: this.seite - 2, anzahl: ring.length, t: function (k) { return that.texte[k] || k; } };
     var b = S.zeichne(ring[this.seite - 2], ctx);
     // Touch-Sperre auf den Datenseiten sichtbar (wie Zepps Zeile unten), beim Antippen mit Anleitung
@@ -144,37 +146,10 @@ export default {
       txt: this.sperrHinweis ? this.tx.lockHold : this.tx.lock, b: false });
     this.malen(b);
   },
-  /**
-   * Zeichenbefehle ausfuehren. Lite kennt laut Doku nur die System-Schriftgroessen 30/38 px; Watch 3/4
-   * (deviceType wearable) zeichnet die echte Groesse. Lite: fillText setzt die Oberkante auf y (im Simulator
-   * gesehen); Watch 3/4: Grundlinie, mittig ueber +0,35 × Groesse (UNGEPRUEFT). Welche Canvas-Aufrufe Lite
-   * wirklich kann, steht erst auf Hardware fest.
-   */
+  /** Zeichenbefehle ausfuehren — der Zeichner liegt im app.js-Buendel (common/maler.js), die Seite ist knapp. */
   malen(befehle) {
     var el = this.$refs.leinwand;
-    if (!el) return;
-    var c = el.getContext("2d");
-    for (var i = 0; i < befehle.length; i++) {
-      var b = befehle[i];
-      try {
-        if (b.k === "r") { c.fillStyle = b.c; c.fillRect(b.x, b.y, b.w, b.h); }
-        else if (b.k === "t") {
-          var px = this.lite ? (b.s >= 34 ? 38 : 30) : b.s;
-          c.fillStyle = b.c; c.font = px + "px";
-          c.textAlign = b.a === "l" ? "left" : (b.a === "r" ? "right" : "center");
-          // Lite setzt den Text mit der OBERKANTE auf y (Simulator 08.10.2026: alles ~0,85 × Groesse zu
-          // tief, Jans Screenshot), Watch 3/4 (volle Canvas) mit der Grundlinie. b.y ist die Mitte.
-          // Im Simulator mit Hilfslinien nachgemessen: Ziffern lagen bei -0,5 × Groesse noch ~0,1 × Groesse
-          // unter der Soll-Mitte (Platz fuer Unterlaengen im Textfeld) — daher -0,6.
-          c.fillText(b.txt, b.x, this.lite ? b.y - Math.round(px * 0.6) : b.y + Math.round(px * 0.35));
-        } else if (b.k === "l") {
-          c.strokeStyle = b.c; c.lineWidth = b.w; c.beginPath(); c.moveTo(b.x1, b.y1); c.lineTo(b.x2, b.y2); c.stroke();
-        } else if (b.k === "a") {
-          c.strokeStyle = b.c; c.lineWidth = b.w; c.beginPath();
-          c.arc(b.cx, b.cy, b.r, b.a0 * Math.PI / 180, b.a1 * Math.PI / 180); c.stroke();
-        }
-      } catch (e) { /* ein Befehl, den die Uhr nicht kann, darf die Seite nicht abbrechen */ }
-    }
+    if (el) R.malen(el.getContext("2d"), befehle, this.lite);
   },
   // --- Bedienung -----------------------------------------------------------------------------
   /** Zusammenfassung schliessen (FERTIG tippen oder rechts wischen, wie Wear SavedScreen). */
