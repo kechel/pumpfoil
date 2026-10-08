@@ -706,7 +706,8 @@ export class Recorder {
       kmh: this.anzeige.tempo * 3.6, m: this.anzeige.strecke, puls: this.sammler.hr,
       gpsOk: this.gpsLetzt > 0 && jetzt - this.gpsLetzt < 5000,
       offen: this.plan.offen(), plan: this.plan.stand(),
-      sendeFehler: this.schlange.fehlerGesamt, sendeCode: this.schlange.letzterCode,
+      // Fehler IN FOLGE (nach einem Erfolg wieder 0), wie common/recorder.js.
+      sendeFehler: this.schlange.fehlerFolge, sendeCode: this.schlange.letzterCode,
       fehler: this.f.speicher + this.f.accel + this.f.gps, letzterFehler: this.letzterFehler
     };
   }

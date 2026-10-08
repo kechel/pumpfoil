@@ -205,7 +205,9 @@ R.zustand = function () {
     puls: R.sammler ? R.sammler.hr : 0,
     gpsOk: R.gpsLetzt > 0 && Date.now() - R.gpsLetzt < 5000,
     offen: R.plan.offen(), plan: R.plan.stand(),
-    sendeFehler: R.schlange.fehlerGesamt, sendeCode: R.schlange.letzterCode,
+    // Fehler IN FOLGE (nach einem Erfolg wieder 0): mit fehlerGesamt blieb „Handy oeffnen" nach einem
+    // einzigen Aussetzer fuer immer stehen.
+    sendeFehler: R.schlange.fehlerFolge, sendeCode: R.schlange.letzterCode,
     fehler: R.f.speicher + R.f.accel + R.f.gps, letzterFehler: R.letzterFehler
   };
 };
