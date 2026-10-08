@@ -726,6 +726,17 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 08.10.2026 20:07 (Jans Meldung, App Store Connect „Warten auf Pruefung", 1.1.44 (50),
+    # Uebermittlung 16003997-2233-4714-bbae-28c9fd33482f).
+    # 07.10.2026 (Peter3, b44db846): aussortierte Session ohne Laeufe -> PowerCard Int(NaN) -> Absturz.
+    # 08.10.2026 (PumpingCarbon, b3584e63): 6-h-Session #13763 fror die Karte ein (21.765 Overlays).
+    {"name": "iPhone + Apple Watch", "version": "1.1.44",
+     "eingereicht": "2026-10-08",
+     "items": [
+         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
+         "Opening a filtered-out session no longer closes the app.",
+         "Very long sessions, such as a six-hour ride, open again instead of freezing the app.",
+     ]},
     # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
     # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
     # Knopf „Nachricht", Profilbild fuehrt dorthin. Web ist live (c27b7aa5, 1d7ac4a0, 5272d67a,
@@ -822,14 +833,6 @@ NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.41 / 1.2.41",
      "items": [
          "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
-     ]},
-    # 07.10.2026 (Peter3, b44db846): aussortierte Session ohne Laeufe -> PowerCard Int(NaN) -> Absturz.
-    # 08.10.2026 (PumpingCarbon, b3584e63): 6-h-Session #13763 fror die Karte ein (21.765 Overlays).
-    {"name": "iPhone + Apple Watch", "version": "1.1.44",
-     "items": [
-         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
-         "Opening a filtered-out session no longer closes the app.",
-         "Very long sessions, such as a six-hour ride, open again instead of freezing the app.",
      ]},
     # 08.10.2026 (Jan: „Huawei im changelog unter coming next"): Recorder fuer alle drei Huawei-Linien
     # (Lite GT/Fit/D, Watch 3/4, Watch 5), Uebertragung ueber die Android-App. Im Simulator geprueft,
