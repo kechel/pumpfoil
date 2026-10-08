@@ -704,7 +704,10 @@ struct FoilerFliessReihe: Layout {
             x += abstand
             zeile = max(zeile, s.height)
         }
-        return CGSize(width: proposal.width ?? weiteste, height: y + zeile)
+        // Nie eine unendliche Breite melden: fragt SwiftUI mit .infinity (statt nil), war das bisher
+        // die Antwort — Verdacht fuer das Einfrieren auf Nicolas_Is Profil (08.10.2026, unbelegt).
+        let vorschlag: CGFloat? = proposal.width.flatMap { $0.isFinite ? $0 : nil }
+        return CGSize(width: vorschlag ?? weiteste, height: y + zeile)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
