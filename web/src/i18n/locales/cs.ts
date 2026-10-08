@@ -125,7 +125,7 @@ const cs: Record<string, string> = {
   "tech.gHeave": "Zdvih se měří u telefonu – srovnatelný jen s telefonem na stejném místě.",
   "tech.hLong": "Jízdy od 20 s – klidná střední část",
   "tech.hShort": "Jízdy pod 20 s – celá jízda",
-  "tech.lShort": "Jízdy mezi 5 a 20 s, vždy včetně startu a konce. {n} jízd.",
+  "tech.lShort": "Jízdy mezi 5 a 20 s, vždy včetně startu a konce.",
   "tech.sStable": "stabilní fáze",
   "tech.gStable": "jízda bez prvních a posledních 5 s; jízdy pod 20 s nemají stabilní fázi",
   "tech.gSpread": "Kývání a náklon jsou rozpětí, ne hodnoty na tah.",

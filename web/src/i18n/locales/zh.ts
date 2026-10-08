@@ -123,7 +123,7 @@ const zh: Record<string, string> = {
   "tech.gHeave": "起伏在手机处测量——只有手机在同一位置时才可比较。",
   "tech.hLong": "20 秒及以上的滑行——平稳中间部分",
   "tech.hShort": "不足 20 秒的滑行——整段滑行",
-  "tech.lShort": "5 到 20 秒的滑行,含起步和结尾。{n} 次滑行。",
+  "tech.lShort": "5 到 20 秒的滑行,含起步和结尾。",
   "tech.sStable": "稳定阶段",
   "tech.gStable": "去掉开头和结尾各 5 秒的滑行;短于 20 秒的滑行没有稳定阶段",
   "tech.gSpread": "摇摆和倾斜是幅度,不是每次泵动的值。",

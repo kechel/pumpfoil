@@ -135,7 +135,7 @@ const ptPT: Record<string, string> = {
   "tech.gHeave": "O sobe-e-desce é medido no telemóvel – só comparável com o telemóvel no mesmo sítio.",
   "tech.hLong": "Runs a partir de 20 s – meio estável",
   "tech.hShort": "Runs abaixo de 20 s – run inteiro",
-  "tech.lShort": "Corridas entre 5 e 20 s, início e fim incluídos. {n} corridas.",
+  "tech.lShort": "Corridas entre 5 e 20 s, início e fim incluídos.",
   "tech.sStable": "fase estável",
   "tech.gStable": "a corrida sem os primeiros e últimos 5 s; corridas abaixo de 20 s não têm fase estável",
   "tech.gSpread": "Balanço e inclinação são amplitudes, não valores por bombada.",

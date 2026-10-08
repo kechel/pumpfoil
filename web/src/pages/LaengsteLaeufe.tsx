@@ -355,10 +355,7 @@ export default function LaengsteLaeufe() {
                   })}
                 </tbody>
               </table>
-              <LaufLegende n={(brettLaeufe ?? []).filter((l) => {
-                const k = lage[l.session_id]?.find((x) => x.lauf === l.run_idx);
-                return !!(k?.ok && k.technik?.mit && k.technik.teil !== "ganz");
-              }).length} />
+              <LaufLegende />
             </Card>
           )}
 

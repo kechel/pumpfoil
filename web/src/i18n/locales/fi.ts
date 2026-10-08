@@ -123,7 +123,7 @@ const fi: Record<string, string> = {
   "tech.gHeave": "Nousu ja lasku mitataan puhelimesta – vertailukelpoinen vain puhelimen ollessa samassa kohdassa.",
   "tech.hLong": "Ajot 20 s:sta alkaen – tasainen keskiosa",
   "tech.hShort": "Alle 20 s ajot – koko ajo",
-  "tech.lShort": "Laskut 5–20 s, alku ja loppu mukaan lukien. {n} laskua.",
+  "tech.lShort": "Laskut 5–20 s, alku ja loppu mukaan lukien.",
   "tech.sStable": "tasainen vaihe",
   "tech.gStable": "laskun keskiosa ilman ensimmäisiä ja viimeisiä 5 s; alle 20 s laskuilla ei ole vakaata vaihetta",
   "tech.gSpread": "Huojunta ja kallistus ovat vaihteluvälejä, eivät arvoja per veto.",

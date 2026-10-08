@@ -123,7 +123,7 @@ const pl: Record<string, string> = {
   "tech.gHeave": "Ruch góra-dół mierzony jest przy telefonie – porównywalny tylko przy telefonie w tym samym miejscu.",
   "tech.hLong": "Przejazdy od 20 s – spokojny środek",
   "tech.hShort": "Przejazdy poniżej 20 s – cały przejazd",
-  "tech.lShort": "Przejazdy od 5 do 20 s, łącznie ze startem i końcem. {n} przejazdów.",
+  "tech.lShort": "Przejazdy od 5 do 20 s, łącznie ze startem i końcem.",
   "tech.sStable": "faza stabilna",
   "tech.gStable": "przejazd bez pierwszych i ostatnich 5 s; przejazdy poniżej 20 s nie mają fazy stabilnej",
   "tech.gSpread": "Kołysanie i przechył to rozpiętości, nie wartości na ruch.",

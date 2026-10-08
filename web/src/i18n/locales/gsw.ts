@@ -108,7 +108,7 @@ const gsw: Record<string, string> = {
   "tech.gHeave": "Hub wird am Handy gmässe – nur bi glicher Handy-Position verglichbar.",
   "tech.hLong": "Läuf ab 20 s – ruhige Mittelteil",
   "tech.hShort": "Läuf under 20 s – ganze Lauf",
-  "tech.lShort": "Läuf zwüsche 5 und 20 s, jewiils inkl. Start und Änd. {n} Läuf.",
+  "tech.lShort": "Läuf zwüsche 5 und 20 s, jewiils inkl. Start und Änd.",
   "tech.sStable": "stabili Phase",
   "tech.gStable": "dr Lauf ohni sini erschte und letschte 5 s, Läuf under 20 s händ kei stabili Phase",
   "tech.gSpread": "Wackle und Schräglag sind Spanne, kei Wärt pro Pumpzuug.",

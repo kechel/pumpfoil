@@ -416,7 +416,7 @@ const de: Record<string, string> = {
   "tech.gHeave": "Hub wird am Handy gemessen – nur bei gleicher Handy-Position vergleichbar.",
   "tech.hLong": "Läufe ab 20 s – ruhiger Mittelteil",
   "tech.hShort": "Läufe unter 20 s – ganzer Lauf",
-  "tech.lShort": "Läufe zwischen 5 und 20 s, jeweils inkl. Start und Ende. {n} Läufe.",
+  "tech.lShort": "Läufe zwischen 5 und 20 s, jeweils inkl. Start und Ende.",
   "tech.sStable": "stabile Phase",
   "tech.gStable": "der Lauf ohne seine ersten und letzten 5 s, Läufe unter 20 s haben keine stabile Phase",
   "tech.gSpread": "Wackeln und Schräglage sind Spannen, keine Werte je Pumpzug.",
