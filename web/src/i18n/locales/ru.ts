@@ -1207,6 +1207,7 @@ const ru: Record<string, string> = {
   "watches.nApple": "Сырое ускорение через Core Motion.",
   "watches.nWear": "Работает на любых часах с Wear OS 3+ — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Доступ к датчикам зависит от модели.",
+  "watches.nHuawei": "Бета в работе: запись на часах, передача через приложение Pumpfoil – только телефоны Android.",
   "watches.nPolar": "Привяжите аккаунт → импорт тренировок (GPS + пульс). Экспорт через API не включает высокочастотный поток сырого ускорения, нужный для распознавания помпинга (только через отдельный BLE-датчик).",
   "watches.nSuunto": "Привяжите аккаунт → импорт тренировок (GPS + пульс). Экспорт FIT (пока) не включает высокочастотный поток сырого ускорения, нужный для распознавания помпинга.",
   "linked.xiaomi.title": "Часы Xiaomi и Redmi",

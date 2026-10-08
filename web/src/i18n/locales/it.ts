@@ -966,6 +966,7 @@ const it: Record<string, string> = {
   "watches.nApple": "Accelerazione grezza via Core Motion.",
   "watches.nWear": "Funziona su qualsiasi orologio Wear OS 3+ — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Accesso ai sensori a seconda del modello.",
+  "watches.nHuawei": "Beta in corso: registra sull'orologio, trasferisce tramite l'app Pumpfoil – solo telefoni Android.",
   "watches.nPolar": "Collega l'account → importa allenamenti (GPS + FC). L'export API non include il flusso accel grezzo ad alta frequenza per il rilevamento del pump (solo con sensore BLE separato).",
   "watches.nSuunto": "Collega l'account → importa allenamenti (GPS + FC). L'export FIT non include (ancora) il flusso accel grezzo ad alta frequenza per il rilevamento del pump.",
   "linked.xiaomi.title": "Orologi Xiaomi e Redmi",

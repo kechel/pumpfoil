@@ -1209,6 +1209,7 @@ const ptPT: Record<string, string> = {
   "watches.nApple": "Aceleração bruta via Core Motion.",
   "watches.nWear": "Roda em qualquer relógio Wear OS 3+ — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "O acesso ao sensor depende do modelo.",
+  "watches.nHuawei": "Beta em curso: grava no relógio e transfere pela app Pumpfoil – só telemóveis Android.",
   "watches.nPolar": "Liga a tua conta → importa treinos (GPS + FC). A exportação da API não inclui o fluxo de accel em bruto em alta taxa necessário para detetar pump (só através de um sensor BLE separado).",
   "watches.nSuunto": "Liga a tua conta → importa treinos (GPS + FC). A exportação FIT (ainda) não inclui o fluxo de accel em bruto em alta taxa necessário para detetar pump.",
   "linked.xiaomi.title": "Relógios Xiaomi e Redmi",
