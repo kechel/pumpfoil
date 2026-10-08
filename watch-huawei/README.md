@@ -101,6 +101,12 @@ Geraet „emulator", faehrt die App selbst eine Runde wie `common/sim-gps.js` (`
 
 ## Was Jan eintragen muss (Platzhalter `..._EINTRAGEN`)
 
+**Stand AppGallery Connect (08.10.2026):** Projekt `Pumpfoil`; Debug-Zertifikat `pumpfoil-huawei-debug`
+(Schluessel in Jans privatem Schluessel-Repo, nie hier); **App ID `6917618548983879423`** = HarmonyOS-App
+`Pumpfoil`, Paket `org.pumpfoil.huawei` (Seite „Certificates, App IDs and Profiles" = HarmonyOS ab API 12,
+also die Watch 5/ArkTS). Offen: ob Lite und Watch 3/4 dieselbe App ID nutzen; Debug-Profil (.p7b) erst mit
+Geraete-UDID; `client_id` fuer `arkts/…/module.json5` (vermutlich die OAuth-Client-ID der App, nicht die App ID).
+
 | Was | Wo |
 |---|---|
 | Bundle-Name der Uhren-App (Vorschlag `org.pumpfoil.huawei`) | `config.json` beider Projekte → `app.bundleName`, dazu `HUAWEI_WATCH_PKG` in `android/app/build.gradle.kts` |
