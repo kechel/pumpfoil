@@ -745,6 +745,9 @@ export class Recorder {
     this.dir = ctx.filesDir;
     this.sensorenAuflisten();
     const name: string = deviceInfo.marketName !== '' ? deviceInfo.marketName : deviceInfo.productModel;
+    // Roh ins Log: daraus wird der Uhrenname am Server (Verkaufsname oder Code?).
+    console.info('Pumpfoil Geraeteinfo marketName=' + deviceInfo.marketName + ' productModel=' + deviceInfo.productModel +
+      ' brand=' + deviceInfo.brand + ' manufacture=' + deviceInfo.manufacture);
     this.modell = ('HUAWEI ' + name).replace(new RegExp('^HUAWEI HUAWEI', 'i'), 'HUAWEI').trim() + ' · HarmonyOS';
     const gt: string | null = this.lies('gegenstelle.json');
     if (gt !== null) {

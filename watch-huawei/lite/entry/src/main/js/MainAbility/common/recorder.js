@@ -425,8 +425,12 @@ R.init = function (we) {
   log("init " + C.APP_VERSION);
   device.getInfo({
     success: function (i) {
-      // Kein Regex (s. kern.ascii): Leerzeichen am Ende von Hand abschneiden.
-      var m = "HUAWEI " + (i.model || i.product || "");
+      // Was die Uhr wirklich meldet, roh ins Log — ob `model` der Verkaufsname oder ein Code ist, ist
+      // fuer echte Lite-Uhren noch offen (08.10.2026). Daraus wird der Uhrenname am Server.
+      log("Geraeteinfo brand=" + i.brand + " manufacturer=" + i.manufacturer + " model=" + i.model + " product=" + i.product);
+      // Kein Regex (s. kern.ascii): „HUAWEI" nicht doppelt, Leerzeichen am Ende von Hand abschneiden.
+      var roh = "" + (i.model || i.product || "");
+      var m = roh.substring(0, 6).toUpperCase() === "HUAWEI" ? roh : "HUAWEI " + roh;
       while (m.charAt(m.length - 1) === " ") m = m.substring(0, m.length - 1);
       R.modell = m + " · HarmonyOS";
     }
