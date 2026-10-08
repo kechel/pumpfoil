@@ -245,13 +245,7 @@ object HuaweiBruecke {
 
     private suspend fun teilAnnehmen(app: Context, text: String): Boolean {
         val t = teilLesen(text) ?: return false
-        val ganz: String? = ablage.withLock {
-            val dir = File(File(app.filesDir, "huawei-teile").apply { mkdirs() }, t.datei).apply { mkdirs() }
-            File(dir, t.nr.toString()).writeText(t.inhalt)   // doppelt geschickt -> ueberschreibt nur
-            if ((dir.listFiles()?.size ?: 0) < t.anzahl) null
-            else (0 until t.anzahl).joinToString("") { File(dir, it.toString()).readText() }
-                .also { dir.deleteRecursively() }
-        }
+        val ganz: String? = ablage.withLock { teilSpeichern(File(app.filesDir, "huawei-teile"), t) }
         if (t.datei == HALLO) {   // kein Aufnahme-Teil: zaehlt nicht im Balken, wird beantwortet
             if (ganz != null) hallo(app, ganz)
             return false
@@ -269,6 +263,19 @@ object HuaweiBruecke {
      * Label = Modell) die Konfiguration holen und die Datenseiten zurueckschicken. Nebenbei landet so
      * die App-Version der Uhr am Server (`/devices/config?v=`), wie bei den anderen Uhren.
      */
+    /**
+     * Einen Teil ablegen; sind alle Teile der Datei da, die ganze Datei zurueck (und die Teile weg).
+     * Doppelt geschickte Teile ueberschreiben nur. Ohne Context, damit der Ende-zu-Ende-Test
+     * (HuaweiBrueckeE2ETest) genau diesen Code mit einem Testordner faehrt.
+     */
+    internal fun teilSpeichern(basis: File, t: Teil): String? {
+        val dir = File(basis.apply { mkdirs() }, t.datei).apply { mkdirs() }
+        File(dir, t.nr.toString()).writeText(t.inhalt)   // doppelt geschickt -> ueberschreibt nur
+        if ((dir.listFiles()?.size ?: 0) < t.anzahl) return null
+        return (0 until t.anzahl).joinToString("") { File(dir, it.toString()).readText() }
+            .also { dir.deleteRecursively() }
+    }
+
     private suspend fun hallo(app: Context, text: String) {
         try {
             val h = JSONObject(text)
@@ -343,11 +350,15 @@ object HuaweiBruecke {
      * Eine Datei der Uhr ablegen. Rein nach Namen und Inhalt geprueft — nichts von der Uhr darf
      * ausserhalb des eigenen Ordners schreiben. true = eine Session ist vollstaendig.
      */
-    internal suspend fun ablegen(app: Context, name: String, text: String): Boolean = ablage.withLock {
+    internal suspend fun ablegen(app: Context, name: String, text: String): Boolean =
+        ablage.withLock { ablegenIn(wurzel(app), name, text) }
+
+    /** Wie [ablegen], ohne Context (Ende-zu-Ende-Test). */
+    internal fun ablegenIn(wurzel: File, name: String, text: String): Boolean {
         if (text.isEmpty() || text.length > MAX_DATEI) return false
         JSONObject(text)   // muss gueltiges JSON sein, sonst Exception
         val (id, ziel) = zielName(name) ?: return false
-        File(File(wurzel(app), id).apply { mkdirs() }, ziel).writeText(text)
+        File(File(wurzel, id).apply { mkdirs() }, ziel).writeText(text)
         return ziel == "complete.json"
     }
 
@@ -408,19 +419,32 @@ object HuaweiBruecke {
         }
     }
 
-    private suspend fun session(app: Context, dir: File) {
+    /** Was eine abgelegte Session hochladen wuerde: Meta (mit expected_chunks), Chunks, Ende. */
+    internal data class Upload(val meta: JSONObject, val chunks: List<JSONObject>, val complete: JSONObject)
+
+    internal fun uploadVon(dir: File): Upload {
         val meta = JSONObject(File(dir, "meta.json").readText())
+        val chunks = dir.listFiles()?.filter { it.name.startsWith("chunk-") }?.sortedBy { it.name }.orEmpty()
+            .map { JSONObject(it.readText()) }
+        meta.put("expected_chunks", chunks.size)
+        return Upload(meta, chunks, JSONObject(File(dir, "complete.json").readText()))
+    }
+
+    /** Reihenfolge der Chunk-Uploads: GPS zuerst (wie der Handy-Recorder) — bricht der Upload ab, ist die Spur schon vollstaendig. */
+    internal fun uploadReihenfolge(chunks: List<JSONObject>, schonDa: Set<Int>): List<JSONObject> =
+        chunks.filter { it.optInt("index", -1) !in schonDa }.sortedBy { if (it.optString("kind") == "gps") 0 else 1 }
+
+    private suspend fun session(app: Context, dir: File) {
+        val up = uploadVon(dir)
+        val meta = up.meta
         val id = meta.optString("session_uuid")
         if (id != dir.name) { dir.deleteRecursively(); return }   // passt nicht zusammen -> nie hochladen
         val tok = token(app, meta.optString("device_model", "HUAWEI").ifBlank { "HUAWEI" }) ?: return
-        val chunks = dir.listFiles()?.filter { it.name.startsWith("chunk-") }?.sortedBy { it.name }.orEmpty()
-        meta.put("expected_chunks", chunks.size)
+        val chunks = up.chunks
         val res = JSONObject(Ingest.post("/api/ingest/session", meta.toString(), tok))
         val da = HashSet<Int>()
         res.optJSONArray("received_chunks")?.let { a -> for (i in 0 until a.length()) da.add(a.getInt(i)) }
-        // GPS zuerst (wie der Handy-Recorder): bricht der Upload ab, ist die Spur schon vollstaendig.
-        val offen = chunks.map { JSONObject(it.readText()) }.filter { it.optInt("index", -1) !in da }
-            .sortedBy { if (it.optString("kind") == "gps") 0 else 1 }
+        val offen = uploadReihenfolge(chunks, da)
         // Was der Server schon hat (abgebrochener Upload), zaehlt gleich als erledigt.
         setze { it.copy(hochFertig = it.hochFertig + (chunks.size - offen.size)) }
         for (paket in offen.chunked(30)) {
@@ -431,8 +455,7 @@ object HuaweiBruecke {
             if (n < paket.size) throw IngestException(500, "nur $n von ${paket.size} quittiert")
             setze { it.copy(hochFertig = it.hochFertig + paket.size) }
         }
-        val comp = JSONObject(File(dir, "complete.json").readText())
-        Ingest.post("/api/ingest/session/$id/complete", comp.toString(), tok)
+        Ingest.post("/api/ingest/session/$id/complete", up.complete.toString(), tok)
         dir.deleteRecursively()   // erst NACH /complete
     }
 }
