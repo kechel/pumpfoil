@@ -1,4 +1,4 @@
-import { TechnikTabelle } from "../components/TechnikTabelle";
+import { KurveGeradeTabelle, TechnikTabelle } from "../components/TechnikTabelle";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
@@ -203,10 +203,12 @@ function BoardAttitudeSection() {
       {/* Technik-Kennzahlen zuerst (08.10.2026): getrennt nach Zeitskala, mit Legende, korrigiert
           und unkorrigiert. Die bisherige Tabelle je Lauflaenge bleibt darunter aufklappbar. */}
       {data.technik && (data.technik.mit || data.technik.ohne) && <TechnikTabelle paar={data.technik} />}
+      {data.kurve_gerade && (data.kurve_gerade.kurve || data.kurve_gerade.gerade) && <KurveGeradeTabelle kg={data.kurve_gerade} />}
       {data.je_foil.length > 1 && data.je_foil.filter((f) => f.technik && (f.technik.mit || f.technik.ohne)).map((f) => (
         <div key={`t${f.foil_id}`} className="mt-4">
           <div className="mb-1 text-sm font-semibold text-slate-200">{f.foil}</div>
           <TechnikTabelle paar={f.technik!} />
+          {f.kurve_gerade && (f.kurve_gerade.kurve || f.kurve_gerade.gerade) && <KurveGeradeTabelle kg={f.kurve_gerade} />}
         </div>
       ))}
       <details className="mt-4">

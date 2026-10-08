@@ -2463,10 +2463,26 @@ def board_attitude(user: models.User = Depends(current_user),
                 zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
             aus[fassung] = zeile
         return aus or None
+    def _kurve_gerade(menge: list[dict]) -> dict | None:
+        """Median je Seite (Kurve/Gerade) ueber die Laeufe; `laeufe`/`zuege` sagen, worauf er steht."""
+        aus = {}
+        for art in ("kurve", "gerade"):
+            w = [x["technik"]["kurve_gerade"][art] for x in menge
+                 if x.get("technik") and x["technik"].get("kurve_gerade") and x["technik"]["kurve_gerade"].get(art)]
+            if not w:
+                continue
+            zeile = {"laeufe": len(w), "zuege": int(sum(int(e["zuege"]) for e in w))}
+            for k in ("takt_hz", "nicken_deg", "hub_cm"):
+                v = [float(e[k]) for e in w if e.get(k) is not None]
+                zeile[k] = round(_median(v), 2 if k == "takt_hz" else 1) if v else None
+            aus[art] = zeile
+        return aus or None
     for f_ in je_foil:
         f_["technik"] = _technik([x for x in laeufe if x["foil_id"] == f_["foil_id"]])
+        f_["kurve_gerade"] = _kurve_gerade([x for x in laeufe if x["foil_id"] == f_["foil_id"]])
     out = {"gesamt": _zusammenfassen(laeufe), "je_foil": je_foil,
            "technik": _technik(laeufe), "technik_min_s": 30, "technik_rand_s": 10,
+           "kurve_gerade": _kurve_gerade(laeufe),
            "sessions": sessions_gezaehlt, "laeufe": len(laeufe),
            "ohne_kreisel": ohne_kreisel}
 

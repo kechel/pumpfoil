@@ -117,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-10-08-fliehkraft-technik"
+LAGE_VERSION = "2026-10-08-kurve-gerade"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -1329,6 +1329,56 @@ def technik_kennzahlen(erg: dict, von_ms: float, bis_ms: float) -> dict | None:
     }
 
 
+# KURVE GEGEN GERADE (Jan, 08.10.2026: „ob man es schafft in kurven den rhythmus gut beizubehalten").
+# Je Pumpzug (von Nulldurchgang zu Nulldurchgang des Nickens im Pumpband) Takt, Tiefe und Hub, sortiert
+# danach, ob das Brett dabei drehte. Kurve = Kreisel-Drehrate ueber 8 °/s (am GPS-Kurs belegt, r 0,8-1,0;
+# bei 4 m/s ein Radius unter ~30 m). Die Nulldurchgaenge werden zwischen den Rasterpunkten interpoliert —
+# auf dem 20-Hz-Raster allein sprang der Takt in Stufen von ~0,1 Hz.
+TECHNIK_KURVE_GIER_DEG_S = 8.0
+TECHNIK_MIN_ZUEGE = 5
+
+
+def kurve_gerade(erg: dict, von_ms: float, bis_ms: float) -> dict | None:
+    """{"kurve": {...}, "gerade": {...}} mit zuege, takt_hz, nicken_deg (± je Zug), hub_cm (Spanne je Zug).
+    Eine Seite ist None, wenn sie weniger als TECHNIK_MIN_ZUEGE Pumpzuege hat; alles None bei kurzen Laeufen."""
+    if not erg.get("ok") or bis_ms - von_ms < TECHNIK_MIN_S * 1000.0:
+        return None
+    t = np.asarray(erg["t_ms"], dtype=float)
+    m = (t >= von_ms + TECHNIK_RAND_S * 1000.0) & (t <= bis_ms - TECHNIK_RAND_S * 1000.0)
+    hz = float(erg["hz"])
+    if m.sum() < 4 * hz:
+        return None
+    tm = t[m] / 1000.0
+    p = _fft_band(np.asarray(erg["pitch_deg"], dtype=float)[m], hz, *TECHNIK_PUMP_HZ)
+    gier = np.asarray(erg["gier_delta_deg"], dtype=float)[m] / float(erg.get("yaw_fenster_s") or 1.0)
+    hub = np.asarray(erg["hub_cm"], dtype=float)[m] if erg.get("hub_cm") is not None else None
+    i = np.where((p[:-1] < 0) & (p[1:] >= 0))[0]
+    if len(i) < 3:
+        return None
+    # Nulldurchgang linear zwischen den beiden Rasterpunkten
+    t0 = tm[i] + (0 - p[i]) / (p[i + 1] - p[i]) * (tm[i + 1] - tm[i])
+    seiten: dict[str, list] = {"kurve": [], "gerade": []}
+    for k in range(len(i) - 1):
+        T = t0[k + 1] - t0[k]
+        if not (1.0 / TECHNIK_PUMP_HZ[1] <= T <= 1.0 / TECHNIK_PUMP_HZ[0]):
+            continue
+        a, b = i[k], i[k + 1] + 1
+        art = "kurve" if abs(gier[(a + b) // 2]) > TECHNIK_KURVE_GIER_DEG_S else "gerade"
+        seiten[art].append((1.0 / T, (p[a:b].max() - p[a:b].min()) / 2.0,
+                            float(hub[a:b].max() - hub[a:b].min()) if hub is not None else None))
+    aus: dict = {}
+    for art, z in seiten.items():
+        if len(z) < TECHNIK_MIN_ZUEGE:
+            aus[art] = None
+            continue
+        h = [x[2] for x in z if x[2] is not None]
+        aus[art] = {"zuege": len(z),
+                    "takt_hz": round(float(np.median([x[0] for x in z])), 2),
+                    "nicken_deg": round(float(np.median([x[1] for x in z])), 1),
+                    "hub_cm": round(float(np.median(h)), 1) if h else None}
+    return aus if (aus.get("kurve") or aus.get("gerade")) else None
+
+
 def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                        gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
                        ref_bereiche_ms: list[tuple[float, float]],
@@ -1365,6 +1415,9 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "hub_sicher": k["hub_sicher"],
             "technik": {"mit": technik_kennzahlen(erg_k, a, b) if erg_k.get("ok") else None,
                         "ohne": technik_kennzahlen(erg, a, b),
-                        "fliehkraft": erg_k.get("fliehkraft")},
+                        "fliehkraft": erg_k.get("fliehkraft"),
+                        # Kurve gegen Gerade aus der KORRIGIERTEN Rechnung (Nicken und Gieren
+                        # aendert die Korrektur nicht, der Hub ist dort der sauberere).
+                        "kurve_gerade": kurve_gerade(erg_k, a, b) if erg_k.get("ok") else None},
         })
     return aus
