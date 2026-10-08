@@ -50,7 +50,7 @@ const deAT: Record<string, string> = {
   "board.height": "Höhe",
   "board.mountAuto": "automatisch",
   "board.directionUnknown": "Vorn und hint’n hat si bei dera Aufnahme ned aus de Daten bestimmen lassen — Nicken und Roll’n kennan do umkehrt sein.",
-  "board.mounting": "Montage-Drahung:",
+  "board.mounting": "Montage:",
   "board.mountingHint": "wia s Handy am Brett glegn is — 180° draht Nasn und Schräglag um",
   "board.rig": "{foil} · {stab} · Mast {mast} cm · {board}",
   "board.rigAssumed": "Rumpf {fuse} cm und d’Längspositionen san no gschätzt",

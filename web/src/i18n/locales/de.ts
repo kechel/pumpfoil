@@ -92,7 +92,7 @@ const de: Record<string, string> = {
   "sd.attemptsLabel": "Versuch:",
   "board.mountAuto": "automatisch",
   "board.directionUnknown": "Vorn und hinten ließen sich bei dieser Aufnahme nicht aus den Daten bestimmen — Nicken und Rollen können hier umgekehrt sein.",
-  "board.mounting": "Montage-Drehung:",
+  "board.mounting": "Montage:",
   "board.mountingHint": "wie das Handy auf dem Brett lag — 180° dreht Nase und Schräglage um",
   "board.title": "Lage des Bretts",
   "board.show": "Lage",

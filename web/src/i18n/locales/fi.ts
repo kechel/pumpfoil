@@ -52,7 +52,7 @@ const fi: Record<string, string> = {
   "board.markBoard": "Puhelin oli laudassa",
   "board.mountAuto": "automaattinen",
   "board.directionUnknown": "Etu- ja takapäätä ei voitu määrittää tämän tallenteen datasta — nyökkäys ja kallistus voivat olla tässä käänteiset.",
-  "board.mounting": "Asennuskierto:",
+  "board.mounting": "Asennus:",
   "board.mountingHint": "miten puhelin oli laudalla — 180° vaihtaa keulan ja kallistuksen",
   "board.noData": "Tälle tallennukselle ei ole asentotietoja.",
   "board.pitch": "Nyökkäys",

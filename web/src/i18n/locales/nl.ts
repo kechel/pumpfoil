@@ -54,7 +54,7 @@ const nl: Record<string, string> = {
   "board.markBoard": "Telefoon zat op de board",
   "board.mountAuto": "automatisch",
   "board.directionUnknown": "Voor en achter konden voor deze opname niet uit de data worden bepaald — stampen en rollen kunnen hier omgekeerd zijn.",
-  "board.mounting": "Montagedraaiing:",
+  "board.mounting": "Montage:",
   "board.mountingHint": "hoe de telefoon op de board lag — 180° wisselt neus en helling om",
   "board.noData": "Geen standgegevens voor deze opname.",
   "board.pitch": "Stampen",

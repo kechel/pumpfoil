@@ -91,7 +91,7 @@ const en: Record<string, string> = {
   "sd.attemptsLabel": "Attempt:",
   "board.mountAuto": "automatic",
   "board.directionUnknown": "Front and back could not be determined from the data for this recording — pitch and roll may be reversed here.",
-  "board.mounting": "Mounting rotation:",
+  "board.mounting": "Mounting:",
   "board.mountingHint": "how the phone sat on the board — 180° swaps nose and lean",
   "board.title": "Board attitude",
   "board.show": "Attitude",

@@ -3128,8 +3128,9 @@ function RunsTable({
             <thead>
               <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
                 <th className="px-3 py-2 font-medium">#</th>
+                <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
                 <PhasenKopf />
-                <th className="px-3 py-2 font-medium">{t("board.mounting")}</th>
+                <th className="px-3 py-2 font-medium">{t("board.mounting").replace(/\s*[:：]\s*$/, "")}</th>
               </tr>
             </thead>
             <tbody>
@@ -3138,7 +3139,11 @@ function RunsTable({
                 <LaufPhasenZeilen key={k.lauf} k={k} korr={lageKorr}
                   onClick={() => onSelect(selected === k.lauf ? null : k.lauf)}
                   className={`cursor-pointer hover:bg-slate-800/50 ${selected === k.lauf ? "bg-brand-500/20" : ""}`}
-                  vorne={(n) => <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{k.lauf + 1}</td>}
+                  vorne={(n) => (<>
+                    <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{k.lauf + 1}</td>
+                    {/* Laufdauer der Uebersicht zuliebe (Jan, 08.10.2026). */}
+                    <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{fmtMMSS(segments[k.lauf]?.duration_s)}</td>
+                  </>)}
                   hinten={(n) => (<>
                   {/* Die Montage je Lauf SICHTBAR machen (Jan, 22.09.): das Handy kann zwischen
                       zwei Laeufen verrutschen. Grau, wenn sie nicht aus diesem Lauf stammt,
