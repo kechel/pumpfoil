@@ -3104,6 +3104,12 @@ function RunsTable({
         </table>
       </Card>
       )}
+      {/* Gehoert zur Lauf-Tabelle, nicht unter die Lage-Tabelle (Jan, 08.10.2026). */}
+      {segments.length > 0 && (
+        <p className="mt-2 px-1 text-xs text-slate-400">
+          {t("sd.tableFooter")}
+        </p>
+      )}
       {/* LAGE JE LAUF (Jan, 22.09.2026: „sollte eher als zusaetzliche stats-zeile in der tabelle
           je lauf angezeigt & berechnet werden oder?").
           Bewusst eine eigene kleine Tabelle unter der grossen statt weiterer Spalten: die grosse
@@ -3160,11 +3166,6 @@ function RunsTable({
           </table>
           <LaufLegende />
         </Card>
-      )}
-      {segments.length > 0 && (
-        <p className="mt-2 px-1 text-xs text-slate-400">
-          {t("sd.tableFooter")}
-        </p>
       )}
     </div>
   );
