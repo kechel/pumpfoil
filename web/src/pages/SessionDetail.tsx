@@ -1,4 +1,4 @@
-import { KorrekturUmschalter, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
+import { KorrekturUmschalter, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -3133,12 +3133,11 @@ function RunsTable({
                 <th className="px-3 py-2 font-medium">{t("board.mounting").replace(/\s*[:：]\s*$/, "")}</th>
               </tr>
             </thead>
-            <tbody>
-              {laufKennz.filter((k) => k.ok).map((k) => (
+            {laufKennz.filter((k) => k.ok).map((k) => (
                 // Je Lauf eine Zeile pro Phase (Jan, 08.10.2026); Nummer und Montage einmal je Lauf.
                 <LaufPhasenZeilen key={k.lauf} k={k} korr={lageKorr}
                   onClick={() => onSelect(selected === k.lauf ? null : k.lauf)}
-                  className={`cursor-pointer hover:bg-slate-800/50 ${selected === k.lauf ? "bg-brand-500/20" : ""}`}
+                  className={`cursor-pointer ${LAUF_HOVER} ${selected === k.lauf ? "bg-brand-500/20" : ""}`}
                   vorne={(n) => (<>
                     <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{k.lauf + 1}</td>
                     {/* Laufdauer der Uebersicht zuliebe (Jan, 08.10.2026). */}
@@ -3167,7 +3166,7 @@ function RunsTable({
                   </td>
                   </>)} />
               ))}
-            </tbody>
+            
           </table>
           <LaufLegende />
         </Card>
