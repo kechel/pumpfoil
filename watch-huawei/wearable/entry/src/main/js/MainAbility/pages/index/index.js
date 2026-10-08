@@ -53,7 +53,7 @@ export default {
     // VORLAEUFIG (Fehlersuche Simulator, 08.10.2026): die Ueberschrift zeigt, wie weit der Start kam —
     // a = Daten geladen, b = onInit, c = Recorder da (x = fehlt), d = R.init durch, e = erste Anzeige.
     // Ziffer = Build-Stand, damit ein alter Build sofort auffaellt. Danach wieder „PUMPFOIL".
-    marke: "PUMPFOIL 4a",
+    marke: "PUMPFOIL 5a",
     knopfStart: "", knopfPause: "", knopfWeiter: "", knopfStopp: "", textPause: ""
   },
   onInit() {
@@ -97,6 +97,8 @@ export default {
   // Fehler beim Anzeigen sichtbar machen (Infozeile + Log), jede Sekunde neu — nie stumm.
   zeigen() {
     try { this.zeigenRoh(); } catch (e) { console.error("Pumpfoil zeigen: " + e); this.info = "zeigen: " + e; }
+    // VORLAEUFIG (Fehlersuche): Zustand + Infozeile in die Ueberschrift, jede Sekunde.
+    this.marke = "5 m=" + this.modus + " ds=" + this.datenseite + " i=" + (this.info || "-");
   },
   zeigenRoh() {
     if (R.takt()) this.seite = 1;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
