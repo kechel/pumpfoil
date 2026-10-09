@@ -513,9 +513,9 @@ def device_config(
         "recordMode": _effective_record_mode(device, settings),
         # GNSS-Stufe je Uhr (best|l1|two|gps) — Uhren vor 1.0.77 ignorieren den Schluessel.
         "gnssMode": _effective_gnss_mode(device, settings),
-        # GPS nur um bewegte Abschnitte speichern (96/128-KB-Garmin ab 1.0.92): Standard an, je Uhr
-        # abschaltbar. Volle Uhren haben den Code gar nicht und ignorieren den Schluessel.
-        "gpsSparen": device.gps_sparen is not False,
+        # GPS nur um bewegte Abschnitte speichern (alle Garmin ab 1.0.92): je Uhr in „Meine Uhren",
+        # sonst Voreinstellung nach gemessener Ablage bzw. Speicherklasse (_gps_sparen_standard).
+        "gpsSparen": _gps_sparen(db, device, (_partmap().get(device.part_number) or {}).get("id") if device.part_number else None),
         # Wassersperre: "auto" (Uhr entscheidet) | "on" | "off". Aeltere Uhr-Versionen
         # ignorieren den Schluessel und verhalten sich wie bisher.
         "waterLock": _effective_water_lock(device, settings),
@@ -837,8 +837,9 @@ def list_devices(
             "record_mode": d.record_mode or udefault,
             "gnss_mode": d.gnss_mode or gdefault,
             # GPS-Sparen: nur bei Garmin-Uhren mit wenig Speicher (lite/klassik) einstellbar.
-            "gps_sparen": d.gps_sparen is not False,
-            "gps_sparen_moeglich": d.platform == "garmin" and _seiten_klasse(cat.get(model["id"]) if model else None) in ("lite", "klassik"),
+            "gps_sparen": _gps_sparen(db, d, model["id"] if model else None),
+            "gps_sparen_standard": _gps_sparen_standard(db, d, model["id"] if model else None),
+            "gps_sparen_moeglich": d.platform == "garmin",
             # Wassersperre: fehlte hier bis 25.09. — gespeichert wurde richtig, aber das Profil
             # zeigte nach dem Neuladen immer „Automatisch". Wie `/config`: Uhr vor Konto vor "auto".
             "water_lock": _effective_water_lock(d, ustored),
@@ -1036,6 +1037,34 @@ def set_device_accel_wakeup(
     d.accel_wakeup = None if mode == "default" else mode
     db.commit()
     return {"ok": True, "accel_wakeup": d.accel_wakeup}
+
+
+# GPS-Sparen: Voreinstellung an, wenn die Uhr wenig Ablage hat. Die Ablage folgt NICHT dem RAM
+# (docs/WATCH-STORAGE.md: fenix 5X mit 1,25 MB RAM lief bei 180 KB voll und verlor jede Session nach
+# ~11 min, Befund 09.10.2026) — deshalb zaehlt zuerst die GEMESSENE Ablage (diese Uhr oder ein Geraet
+# desselben Modells), dann die Speicherklasse aus dem Katalog (96/128 KB).
+GPS_SPAREN_ABLAGE_KB = 1000
+
+
+def _gps_sparen_standard(db: Session, device: models.DeviceToken, model_id: str | None) -> bool:
+    if device.platform != "garmin":
+        return False
+    if 0 < int(device.storage_full_kb or 0) < GPS_SPAREN_ABLAGE_KB:
+        return True
+    if device.part_number:
+        kleinste = (db.query(func.min(models.DeviceToken.storage_full_kb))
+                    .filter(models.DeviceToken.part_number == device.part_number,
+                            models.DeviceToken.storage_full_kb > 0).scalar())
+        if kleinste is not None and kleinste < GPS_SPAREN_ABLAGE_KB:
+            return True
+    return _seiten_klasse(_catalog_by_id().get(model_id) if model_id else None) in ("lite", "klassik")
+
+
+def _gps_sparen(db: Session, device: models.DeviceToken, model_id: str | None) -> bool:
+    """Wirksamer Wert: Einstellung der Uhr („Meine Uhren"), sonst die Voreinstellung."""
+    if device.gps_sparen is not None:
+        return bool(device.gps_sparen)
+    return _gps_sparen_standard(db, device, model_id)
 
 
 def _partmap() -> dict:
