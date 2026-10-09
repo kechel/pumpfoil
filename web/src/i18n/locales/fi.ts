@@ -545,6 +545,7 @@ const fi: Record<string, string> = {
   "account.gnssModeTwo": "GPS + yksi järjestelmä",
   "account.gnssModeGps": "Vain GPS (säästäväisin)",
   "account.gnssModeHint": "Useampi järjestelmä löytää sijainnin nopeammin ja luotettavammin, mutta kuluttaa enemmän akkua. Vain Garmin, kellon versiosta 1.0.77.",
+  "account.standardPage": "Yhteisön oletussivu: ”{name}”, tekijä {author}",
   "account.gpsSparen": "Säästä muistia: tallenna vain ajojen ympäriltä",
   "account.gpsSparenHint": "Kello tallentaa GPS:n ja liiketiedot vain, kun liikut yli 6 km/h, sekä 30 sekuntia ennen ja jälkeen. Uintia, odottelua ja takaisin kävelyä ei tallenneta. Ajot, pumppaukset ja foil-aika pysyvät käytännössä samoina (tarkistettu 141 sessiosta: foil-aika −0,15 %, pumppaukset −0,3 %); kartalta puuttuu vain matka ajojen välillä.",
   "account.gpsSparenUhr": "Tämä kello: mitattu muisti noin {kb} kt. Tilassa {modus} se riittää ilman säästöä noin {ohne} minuutiksi ja säästön kanssa yleensä {von}–{bis} minuutiksi – sen mukaan, kuinka paljon aikaa olet alle 6 km/h.",

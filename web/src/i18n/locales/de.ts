@@ -597,6 +597,7 @@ const de: Record<string, string> = {
   "account.gnssModeTwo": "GPS + ein System",
   "account.gnssModeGps": "Nur GPS (sparsamste)",
   "account.gnssModeHint": "Mehr Systeme finden schneller und zuverlässiger Position, brauchen aber mehr Akku. Gilt nur für Garmin ab Uhr-Version 1.0.77.",
+  "account.standardPage": "Standardseite aus der Community: „{name}“ von {author}",
   "account.gpsSparen": "Speicher sparen: nur rund um die Fahrt speichern",
   "account.gpsSparenHint": "Die Uhr speichert GPS und Bewegungsdaten nur, solange du schneller als 6 km/h bist – mit 30 Sekunden davor und danach. Schwimmen, Warten und Zurücklaufen landen nicht im Speicher. Läufe, Pumps und Foil-Zeit bleiben praktisch gleich (nachgerechnet an 141 Sessions: Foil-Zeit −0,15 %, Pumps −0,3 %), auf der Karte fehlt nur der Weg zwischen den Läufen.",
   "account.gpsSparenUhr": "Diese Uhr: gemessener Speicher etwa {kb} KB. Bei {modus} reicht das ohne Sparen für etwa {ohne} Minuten, mit Sparen meist für {von}–{bis} Minuten – je nachdem, wie viel Zeit du langsamer als 6 km/h bist.",

@@ -643,6 +643,8 @@ function ViewsEditor() {
   const [browseAll, setBrowseAll] = useState(true);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Stand der drei Seiten-Saetze beim Laden (JSON) — gespeichert wird ein Satz nur, wenn er sich geaendert hat
+  const geladen = useRef({ pages: "", off: "", pause: "" });
 
   useEffect(() => {
     // Aktivitätstyp nur zeigen, wenn wirklich eine Garmin verknüpft ist (wie vorher auf der
@@ -675,8 +677,12 @@ function ViewsEditor() {
       const one = (layoutId: unknown, view: unknown, fallback: number[]): Page[] =>
         typeof layoutId === "number" && layoutId ? [layoutId]
         : Array.isArray(view) ? [view as number[]] : [fallback];
-      setOffPages((s.off_foil_pages as Page[]) ?? one(s.off_foil_layout_id, s.off_foil_view, [12, 17, 16]));
-      setPausePages((s.pause_pages as Page[]) ?? one(s.pause_layout_id, s.pause_view, [12, 20, 2]));
+      const p0 = (s.pages as Page[]) ?? (s.views as number[][]) ?? [[1, 2, 0]];
+      const o0 = (s.off_foil_pages as Page[]) ?? one(s.off_foil_layout_id, s.off_foil_view, [12, 17, 16]);
+      const q0 = (s.pause_pages as Page[]) ?? one(s.pause_layout_id, s.pause_view, [12, 20, 2]);
+      setOffPages(o0);
+      setPausePages(q0);
+      geladen.current = { pages: JSON.stringify(p0), off: JSON.stringify(o0), pause: JSON.stringify(q0) };
     }).catch((e) => setErr(String(e)));
     api.layouts().then(setLayouts).catch(() => {});
   }, []);
@@ -684,9 +690,16 @@ function ViewsEditor() {
   async function save() {
     setErr(null);
     try {
+      // Seiten-Saetze nur mitschicken, wenn sie GEAENDERT wurden: wer auf den Standard-Seiten steht und
+      // nur einen Schalter umlegt, soll auf dem Standard bleiben (sonst entstuenden eigene Kopien, und
+      // spaetere Verbesserungen am Standard kaemen bei ihm nicht mehr an).
+      const geaendert = (jetzt: unknown, vorher: string) => JSON.stringify(jetzt) !== vorher;
       const res = await api.saveSettings({
-        pages, colorByValue, auto_start: autoStart, stop_mode: stopMode, activity_type: activityType, layouts_enabled: layoutsEnabled,
-        off_foil_pages: offPages, pause_pages: pausePages, browse_all_pages: browseAll,
+        colorByValue, auto_start: autoStart, stop_mode: stopMode, activity_type: activityType, layouts_enabled: layoutsEnabled,
+        browse_all_pages: browseAll,
+        ...(geaendert(pages, geladen.current.pages) ? { pages } : {}),
+        ...(geaendert(offPages, geladen.current.off) ? { off_foil_pages: offPages } : {}),
+        ...(geaendert(pausePages, geladen.current.pause) ? { pause_pages: pausePages } : {}),
       });
       setPages((res.pages as Page[]) ?? pages);
       setColorByValue(!!res.colorByValue);
@@ -697,6 +710,12 @@ function ViewsEditor() {
       setBrowseAll(res.browse_all_pages !== false);
       if (res.off_foil_pages) setOffPages(res.off_foil_pages as Page[]);
       if (res.pause_pages) setPausePages(res.pause_pages as Page[]);
+      // Aus Standard-Seiten koennen beim Speichern eigene Kopien geworden sein -> neu laden
+      const s2 = await api.getSettings();
+      const p2 = (s2.pages as Page[]) ?? pages, o2 = (s2.off_foil_pages as Page[]) ?? offPages, q2 = (s2.pause_pages as Page[]) ?? pausePages;
+      setPages(p2); setOffPages(o2); setPausePages(q2);
+      geladen.current = { pages: JSON.stringify(p2), off: JSON.stringify(o2), pause: JSON.stringify(q2) };
+      api.layouts().then(setLayouts).catch(() => {});
       setSaved(true);
     } catch (e) {
       setErr(String(e));
@@ -873,9 +892,14 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   {l && <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={130}
                     pageCount={pages.length} pageIndex={pi} />}
-                  <Link to={`/layouts/${pg}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">
-                    {t("lay.edit")} →
-                  </Link>
+                  {l?.standard ? (
+                    // Standard-Seite aus der Community: gehoert niemandem, deshalb kein Bearbeiten-Link
+                    <span className="text-sm text-slate-400">{t("account.standardPage", { name: l.name, author: l.author ?? "?" })}</span>
+                  ) : (
+                    <Link to={`/layouts/${pg}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">
+                      {t("lay.edit")} →
+                    </Link>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

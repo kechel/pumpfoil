@@ -17,7 +17,8 @@ export default function Layouts() {
   const [showData, setShowData] = useState(true);
   const [err, setErr] = useState("");
 
-  useEffect(() => { api.layouts().then(setRows).catch(() => setRows([])); }, []);
+  // Standard-Layouts (negative ID) gehoeren niemandem, hier wird nur Eigenes verwaltet
+  useEffect(() => { api.layouts().then((r) => setRows(r.filter((x) => !x.standard))).catch(() => setRows([])); }, []);
 
   function create(category: (typeof CATS)[number]) {
     const size = PREVIEW_SIZES.find((s) => s.id === "g240") ?? PREVIEW_SIZES[2];

@@ -1450,6 +1450,7 @@ const es: Record<string, string> = {
   "account.gnssModeTwo": "GPS + un sistema",
   "account.gnssModeGps": "Solo GPS (el más eficiente)",
   "account.gnssModeHint": "Más sistemas encuentran la posición más rápido y con más fiabilidad, pero gastan más batería. Solo Garmin, desde la versión 1.0.77.",
+  "account.standardPage": "Página predeterminada de la comunidad: «{name}» de {author}",
   "account.gpsSparen": "Ahorrar memoria: guardar solo alrededor de la sesión",
   "account.gpsSparenHint": "El reloj guarda el GPS y los datos de movimiento solo mientras vas a más de 6 km/h, con 30 segundos antes y después. Nadar, esperar y volver caminando no se guardan. Las tandas, los pumps y el tiempo en foil quedan prácticamente igual (comprobado en 141 sesiones: tiempo en foil −0,15 %, pumps −0,3 %); en el mapa solo falta el trayecto entre tandas.",
   "account.gpsSparenUhr": "Este reloj: memoria medida de unos {kb} KB. Con {modus} alcanza para unos {ohne} minutos sin ahorro y, con ahorro, normalmente para {von}–{bis} minutos, según cuánto tiempo pases por debajo de 6 km/h.",

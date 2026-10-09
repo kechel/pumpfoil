@@ -230,7 +230,8 @@ export interface WatchLayout {
   authored_shape: string | null;
   has_freetext: boolean;
   updated_at: string | null;
-  author?: string;   // nur in der Galerie
+  author?: string;   // in der Galerie und bei Standard-Layouts
+  standard?: boolean;  // Standard-Seite aus der Community (negative ID, server/app/standard_layouts.py)
   copies?: number;   // nur in der Galerie
   // Nutzungs-Ranking (nur in der Galerie): `used_by` = verschiedene Nutzer, die dieses Layout oder
   // eine Kopie davon wirklich eingebunden haben; `unchanged_copies` = davon unverändert.

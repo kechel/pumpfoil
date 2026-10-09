@@ -540,6 +540,7 @@ const ja: Record<string, string> = {
   "account.gnssModeTwo": "GPS + 1システム",
   "account.gnssModeGps": "GPSのみ（最も省電力）",
   "account.gnssModeHint": "システムが多いほど位置を速く確実に取得できますが、電池を多く使います。Garmin のみ、時計バージョン 1.0.77 以降。",
+  "account.standardPage": "コミュニティの標準ページ：「{name}」（作成：{author}）",
   "account.gpsSparen": "ストレージ節約：走行の前後だけ記録",
   "account.gpsSparenHint": "時速6 km以上で動いている間だけ、その前後30秒を含めてGPSとモーションデータを保存します。泳いでいる時間、待ち時間、歩いて戻る時間は保存しません。ラン、パンプ数、フォイル時間はほぼ変わりません（141セッションで検証：フォイル時間 −0.15 %、パンプ −0.3 %）。地図ではラン同士の間の移動だけが表示されなくなります。",
   "account.gpsSparenUhr": "このウォッチ：計測した保存容量は約{kb} KB。{modus}では、節約なしで約{ohne}分、節約ありで通常{von}〜{bis}分記録できます（時速6 km未満の時間の長さによります）。",
