@@ -303,11 +303,16 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
         <div className="space-y-2">
           {devices.map((d) => (
             <div key={d.id} className={`flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${d.revoked_at ? "opacity-60" : ""}`}>
-              {/* Bild der verknuepften Uhr (nur Garmin, Bilder aus dem Simulator; Jan, 09.10.2026) */}
+              {/* Bild der verknuepften Uhr (nur Garmin, Bilder aus dem Simulator; Jan, 09.10.2026). Breit: eigene
+                  Spalte links. Schmal (Handy): klein neben dem Namen, darunter volle Breite — als eigene Spalte
+                  brach dort der ganze Karteninhalt Wort fuer Wort um. */}
               {d.bild_url
-                ? <img src={d.bild_url} alt="" loading="lazy" className="h-16 w-16 shrink-0 self-start object-contain" />
-                : <WatchIcon className="h-5 w-5 shrink-0 text-brand-400" />}
+                ? <img src={d.bild_url} alt="" loading="lazy" className="hidden h-16 w-16 shrink-0 self-start object-contain sm:block" />
+                : <WatchIcon className="hidden h-5 w-5 shrink-0 text-brand-400 sm:block" />}
               <div className="min-w-0 flex-1">
+                {d.bild_url
+                  ? <img src={d.bild_url} alt="" loading="lazy" className="float-left mr-2 h-11 w-11 object-contain sm:hidden" />
+                  : <WatchIcon className="float-left mr-2 mt-0.5 h-5 w-5 text-brand-400 sm:hidden" />}
                 <div className="font-medium text-slate-100">
                   {d.model || d.label || t("account.deviceUnnamed")}
                   {d.app_version && <span className="ml-2 text-xs font-normal text-slate-400">v{d.app_version}</span>}
@@ -316,6 +321,7 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                 <div className="text-xs text-slate-400">
                   {t("account.deviceLastSeen", { time: fmt(d.last_seen_at) })} · {t("account.devicePaired", { time: fmt(d.created_at) })}
                 </div>
+                <div className="clear-both" />
                 {d.update_available && !d.revoked_at && (
                   d.model_id ? (
                     // Modell bekannt -> 1-Klick-Direktdownload des passenden .prg.
