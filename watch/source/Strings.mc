@@ -62,7 +62,13 @@ module Strings {
 
     // Geräte-Systemsprache -> unsere Spalte (nur die, die wir haben; sonst Englisch).
     function _systemIdx() as Lang.Number {
-        var sl = System.getDeviceSettings().systemLanguage;
+        // `systemLanguage` gibt es erst ab API 3.1.0. Das SDK fuehrt die Approach S62 mit Connect IQ 3.0.12;
+        // ohne Pruefung waere das ein „Symbol Not Found" — nicht fangbar, App-Absturz („IQ!") gleich beim
+        // Start, und zwar genau bei frisch installierter App (noch keine Profilsprache). Verdacht zur
+        // S62-Meldung vom 09.10.2026, nicht belegt.
+        var ds = System.getDeviceSettings();
+        if (!(ds has :systemLanguage)) { return 3; }
+        var sl = ds.systemLanguage;
         if (sl == System.LANGUAGE_DEU) { return 0; }   // Deutsch
         if (sl == System.LANGUAGE_ENG) { return 3; }   // Englisch
         if (sl == System.LANGUAGE_FRE) { return 4; }   // Französisch
