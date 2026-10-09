@@ -1453,6 +1453,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Server prüfen: `meta.json` hat `accel_luecken`, `metrics_json.time_base_notes` sagt „mit Luecken", keine
   Lücken/Doppelte in `ingest_chunks`, Pumps je Lauf plausibel gegen die Vorversion.
 
+- **🔲 Nach Freigabe Garmin 1.0.92: Antwortmail an Etienne (S62) NEU formulieren** (Spanisch, wie Jans erste Mail; Jan verschickt sie erst, wenn 1.0.92 im Store ist). Inhalt: Danke, der Fehler war ein Absturz beim Öffnen auf dem S62 (nicht Speicher/andere Apps), behoben in 1.0.92, jetzt verfügbar → App aktualisieren. **Befund:** `systemLanguage` (API 3.1) ungeprüft gelesen, S62 = CIQ 3.0.12 → Symbol Not Found bei frisch installierter App; im Simulator reproduziert und mit 1.0.92 behoben (d418afd5).
 - **Garmin Approach S62 (FW 5.10): „IQ!“ beim Öffnen der App** (Connect-IQ-Anfrage 09.10.2026, Nutzer hat neu installiert, hilft nicht). Jans Rückfrage: andere Apps/Watchfaces installiert? IQ! schon beim ersten Öffnen oder erst mit Aufnahmen? Vermutung Jan: Speicher — **aber das S62 ist KEIN Low-Mem-Gerät** (compiler.json: watchApp 1 MB, Instinct 2 nur 96 KB), also eher ein Absturz im Code. Naechster Schritt: Absturzbericht holen (Garmin ERA fuer unsere App oder `GARMIN/APPS/LOGS/CIQ_LOG.YML` vom Geraet).
 - **💡 08.10. — Standard-Datenseiten ueberarbeiten (Jan: „gute custom-layouts als default ausliefern, sollte ja
   rein serverseitig direkt moeglich sein").** Wer nichts eingestellt hat, bekommt heute klassische 3-Feld-Seiten
