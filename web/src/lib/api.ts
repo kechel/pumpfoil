@@ -1943,7 +1943,8 @@ export interface PairedDevice {
   gnss_mode?: string;         // GNSS-Stufe dieser Uhr (best|l1|two|gps), nur Garmin ab 1.0.77
   gps_sparen?: boolean;       // Speicher sparen: GPS + Accel nur um bewegte Abschnitte (Standard nach Ablage)
   gps_sparen_moeglich?: boolean;  // alle Garmin-Uhren, wirkt ab Uhr 1.0.92
-  speicher_kb?: number;       // gemessene Speichergrenze dieser Uhr bzw. des Modells (0 = nicht gemessen)
+  speicher_kb?: number;
+  bild_url?: string | null;   // Geraetebild der Uhr (/media/uhrbilder/<id>.webp), nur Garmin       // gemessene Speichergrenze dieser Uhr bzw. des Modells (0 = nicht gemessen)
   water_lock?: string;        // Wassersperre dieser Uhr (auto|on|off); nicht fuer Garmin
   accel_wakeup?: string | null;       // Wake-up-Sensor (on|off), null = Standard; nur Wear
   accel_wakeup_standard?: string;     // was ohne Override gilt (Konto bzw. global)

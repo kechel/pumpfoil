@@ -146,6 +146,18 @@ def _kappung(device: models.DeviceToken) -> bool:
     return not v or _version_lt(v, KAPPUNG_BIS_VERSION)
 
 
+UHRBILD_VERSION = 1   # hochzaehlen, wenn Bilder ersetzt werden (/media wird 90 Tage immutable gecacht)
+
+
+def _uhrbild_url(model_id: str | None) -> str | None:
+    if not model_id or not re.fullmatch(r"[a-z0-9]+", model_id):
+        return None
+    from ..config import get_settings
+    if not (get_settings().media_dir / "uhrbilder" / f"{model_id}.webp").is_file():
+        return None
+    return f"/media/uhrbilder/{model_id}.webp?v={UHRBILD_VERSION}"
+
+
 def _effective_record_mode(device: models.DeviceToken, settings: dict) -> str:
     """Wirksamer Aufzeichnungsmodus einer Uhr: Geräte-Override (device.record_mode)
     vor User-Default; danach FR55-Kappung full->lite (nur alte Uhr-Versionen, s. _kappung)."""
@@ -867,6 +879,10 @@ def list_devices(
             "gps_sparen": _gps_sparen(db, d, model["id"] if model else None),
             "gps_sparen_standard": _gps_sparen_standard(db, d, model["id"] if model else None),
             "gps_sparen_moeglich": d.platform == "garmin",
+            # Geraetebild der verknuepften Uhr (nur im eigenen Profil gezeigt). Die Bilder liegen NICHT im
+            # Repo, sondern unter server/media/uhrbilder/<model_id>.webp (Rahmen = Garmin-SDK-Bild, darf nicht
+            # ins oeffentliche Repo; Jan, 09.10.2026). Fehlt die Datei: None, die Seite zeigt das Symbol.
+            "bild_url": _uhrbild_url(model["id"] if model else None) if d.platform == "garmin" else None,
             # Gemessene Speichergrenze (dieselbe Zahl, die die Uhr als storageBudgetKb bekommt) — fuer
             # den Hinweis „so lange nimmt diese Uhr auf". 0 = nicht gemessen, dann keine Zahl.
             "speicher_kb": _storage_budget_kb(db, d) if d.platform == "garmin" else 0,
