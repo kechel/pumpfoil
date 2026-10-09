@@ -114,7 +114,7 @@ Geraete-UDID; `client_id` fuer `arkts/…/module.json5` (vermutlich die OAuth-Cl
 | Bundle-Name der Uhren-App (Vorschlag `org.pumpfoil.huawei`) | `config.json` beider Projekte → `app.bundleName`, dazu `HUAWEI_WATCH_PKG` in `android/app/build.gradle.kts` |
 | SHA-256 des Signierschluessels der Android-App (bei Play App Signing: Googles Schluessel) | `common/konfig.js` → `PHONE_FP` **und** `config.json` → `supportLists` (`org.pumpfoil.app:<fingerprint>`) |
 | Signier-Konfiguration (Zertifikat, Profil `.p7b`) | DevEco → Project Structure → Signing Configs (landet in `build-profile.json5`, Dateien NICHT committen) |
-| Wear-Engine-App-ID der Android-App | `android/app/build.gradle.kts` → `huaweiAppId` (Format laut Wear-Engine-Anleitung, ggf. mit `appid=`-Praefix) |
+| Wear-Engine-App-ID der Android-App | ✅ `appid=119274989` (HUAWEI-ID-Produkt „Pumpfoil", 09.10.2026) in `android/app/build.gradle.kts` → `huaweiAppId` |
 | Signatur-Fingerabdruck der Uhren-App | `android/app/build.gradle.kts` → `HUAWEI_WATCH_FP` **und** `watch-apple/Sources-iOS/HuaweiBruecke.swift` → `uhrFp` |
 | iOS: Client-ID, Client-Secret, Scheme-Secret (AppGallery Connect, HUAWEI-ID-Dienst + Wear-Engine-Antrag fuer die iOS-App `org.pumpfoil.coolwatch`) | `HuaweiBruecke.swift` → `clientId`, `clientSecret`, `schemeSecret`. **Secrets gehoeren nicht ins oeffentliche Repo** — vor dem Commit klaeren, ob sie als Build-Setting/xcconfig (gitignored) hineinkommen |
 | iOS: Rueck-Scheme `pumpfoil://huawei/zurueck` beim Wear-Engine-Antrag als Callback eintragen | AppGallery Connect |
