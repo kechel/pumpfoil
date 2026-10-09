@@ -42,8 +42,17 @@ PAARE = [(9528, 9529), (9535, 9534), (9650, 9648), (9650, 9649), (10195, 10194),
          # laut Lage aber flach und fest am Brett (Schwerkraft 95 % auf z, wie seine Brett-Sessions
          # #13055/#12738) -> auf „board" korrigiert. ACHTUNG: die Wear-OS-Uhr #14072 lieferte nur 7,7 Hz
          # Beschleunigung — fuer Laufgrenzen brauchbar, fuer Handgelenk-Pump-Merkmale kaum.
-         # Bewusst NICHT drin: #14062 (u808, „board", aber Lage wechselnd, 32 Grad Median) — Montage erfragt.
          (14073, 14072)]
+
+# BRETT-SESSIONS OHNE UHR (10.10.2026, Jan: „nimm mal mit dem Vermerk auf"). Kein Paar, also nichts fuer
+# die Uhr-gegen-Brett-Auswertung oben — aber Brett-Wahrheit ANDERER Fahrer, auf die ein kuenftiges
+# Brett-/Gleit-Modell (v4) wartet. Wird von keinem Skript gelesen, bis es das gibt.
+#   #14062 u808 Brunswick Heads 09.10., Motorola, 10 Laeufe, 6,4 min Foil. VERMERK: Montage nicht
+#   bestaetigt (Nachfrage per DM 10.10. offen). Ueber die GANZE Aufnahme wechselt die Lage stark (das
+#   Brett treibt zwischen den Laeufen beliebig) — IN den Laeufen aber wie ein festes Brett: 75 %
+#   Nicken, Lage von Lauf zu Lauf 7 Grad (wie #10993), kein Klappern (5 % ueber 8 Hz). Etwas weniger
+#   starr als Jans Montage. Meldet u808 etwas Loses (Tasche, Beutel), wieder herausnehmen.
+BRETT_OHNE_UHR = [14062]
 
 
 def bandpass(x, lo=0.8, hi=2.5):
