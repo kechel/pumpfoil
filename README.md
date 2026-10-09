@@ -1,3 +1,14 @@
+> [!WARNING]
+> **Service status (9 Oct 2026): pumpfoil.org is wrongly blocked by the DNS4EU filtering resolvers.**
+> If the app or the website shows *“Hostname pumpfoil.org not verified”* with a certificate for
+> `*.joindns4.eu`, your phone or network uses the filtering DNS from DNS4EU, which currently sends
+> pumpfoil.org to its warning page. Every other DNS service resolves it correctly. We have reported
+> the false positive (DNS4EU / Whalebone ticket 58102).
+>
+> **Workaround until it is fixed:** on Android set *Settings → Network → Private DNS* to
+> *Automatic* (or to `unfiltered.joindns4.eu`); on other devices use your provider's DNS or the
+> unfiltered DNS4EU resolver `86.54.11.100`. Updates on this page.
+
 <p align="center"><strong>No pull requests, please — they’re so Stone Age. Send us a prompt suggestion instead!</strong></p>
 
 <div align="center">
