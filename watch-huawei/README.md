@@ -101,6 +101,8 @@ Geraet „emulator", faehrt die App selbst eine Runde wie `common/sim-gps.js` (`
 
 ## Was Jan eintragen muss (Platzhalter `..._EINTRAGEN`)
 
+**09.10.2026: Huawei-Developer-Mitgliedschaft freigegeben** (Identitaetspruefung durch, Apps hochladbar). Android-Fingerabdruck eingetragen: Play **App-Signaturschluessel** SHA-256 `50:A7:8D:3E:E9:62:7F:96:B6:3A:13:C7:E8:75:02:50:77:8E:99:6F:0C:D3:E4:8A:58:6F:38:CD:7A:45:0F:BB` (in Uhr-Konfig ohne Doppelpunkte; ArkTS-Form noch Vermutung). Uploadschluessel (nur selbst signierte Builds): `B1:D6:1D:8B:19:19:45:D1:77:6B:FC:15:37:41:45:E7:C5:29:A8:6E:CF:F8:FD:A0:32:36:E5:F4:70:C9:8C:1D`.
+
 **Stand AppGallery Connect (08.10.2026):** Projekt `Pumpfoil` (Project ID `101653523865251079`); Debug-Zertifikat `pumpfoil-huawei-debug`
 (Schluessel in Jans privatem Schluessel-Repo, nie hier); **App ID `6917618548983879423`** = HarmonyOS-App
 `Pumpfoil`, Paket `org.pumpfoil.huawei` (Seite „Certificates, App IDs and Profiles" = HarmonyOS ab API 12,
