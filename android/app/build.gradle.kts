@@ -40,7 +40,10 @@ android {
         // Connect da sind (watch-huawei/README.md): App-ID der Android-App beim Wear-Engine-Antrag,
         // Bundle-Name und Signatur-Fingerabdruck der Uhren-App. Ohne gueltige Werte bleibt die
         // Bruecke aus und meldet das sichtbar (HuaweiBruecke.bereit).
-        manifestPlaceholders["huaweiAppId"] = "HUAWEI_APP_ID_EINTRAGEN"
+        // App-ID aus dem HUAWEI-ID-Produkt „Pumpfoil" (09.10.2026; Paket org.pumpfoil.app, Fingerabdruecke:
+        // Play-Signatur, Upload, Debug Mac, Debug VM). HMS erwartet das Praefix „appid=". Das zugehoerige
+        // GEHEIMNIS braucht die App nicht und gehoert NICHT ins Repo.
+        manifestPlaceholders["huaweiAppId"] = "appid=119274989"
         buildConfigField("String", "HUAWEI_WATCH_PKG", "\"org.pumpfoil.huawei\"")
         // Mehrere durch Komma: die ArkTS-Linie (Watch 5, watch-huawei/arkts) kann anders signiert
         // sein als Lite/JS-FA — dann beide eintragen, die Bruecke meldet sich fuer jeden an.
