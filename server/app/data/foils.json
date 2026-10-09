@@ -7310,7 +7310,7 @@
   },
   {
     "brand": "Gong",
-    "model": "Veloce H V3",
+    "model": "Veloce H V3 / V3 ATMO PERF",
     "size": "XS",
     "span_cm": 77.0,
     "area_cm2": 590.0,
@@ -7318,11 +7318,11 @@
     "thickness_estimated": false,
     "specs_estimated": false,
     "is_baseline": false,
-    "aliases": null
+    "aliases": "VELOCE V3 ATMO PERF|Veloce Atmo Perf|Veloce V3 Atmo|Veloce H V3"
   },
   {
     "brand": "Gong",
-    "model": "Veloce H V3",
+    "model": "Veloce H V3 / V3 ATMO PERF",
     "size": "S",
     "span_cm": 87.0,
     "area_cm2": 740.0,
@@ -7330,11 +7330,11 @@
     "thickness_estimated": false,
     "specs_estimated": false,
     "is_baseline": false,
-    "aliases": null
+    "aliases": "VELOCE V3 ATMO PERF|Veloce Atmo Perf|Veloce V3 Atmo|Veloce H V3"
   },
   {
     "brand": "Gong",
-    "model": "Veloce H V3",
+    "model": "Veloce H V3 / V3 ATMO PERF",
     "size": "M",
     "span_cm": 95.0,
     "area_cm2": 890.0,
@@ -7342,11 +7342,11 @@
     "thickness_estimated": false,
     "specs_estimated": false,
     "is_baseline": false,
-    "aliases": null
+    "aliases": "VELOCE V3 ATMO PERF|Veloce Atmo Perf|Veloce V3 Atmo|Veloce H V3"
   },
   {
     "brand": "Gong",
-    "model": "Veloce H V3",
+    "model": "Veloce H V3 / V3 ATMO PERF",
     "size": "L",
     "span_cm": 103.0,
     "area_cm2": 1040.0,
@@ -7354,11 +7354,11 @@
     "thickness_estimated": false,
     "specs_estimated": false,
     "is_baseline": false,
-    "aliases": null
+    "aliases": "VELOCE V3 ATMO PERF|Veloce Atmo Perf|Veloce V3 Atmo|Veloce H V3"
   },
   {
     "brand": "Gong",
-    "model": "Veloce H V3",
+    "model": "Veloce H V3 / V3 ATMO PERF",
     "size": "XL",
     "span_cm": 108.0,
     "area_cm2": 1150.0,
@@ -7366,11 +7366,11 @@
     "thickness_estimated": false,
     "specs_estimated": false,
     "is_baseline": false,
-    "aliases": null
+    "aliases": "VELOCE V3 ATMO PERF|Veloce Atmo Perf|Veloce V3 Atmo|Veloce H V3"
   },
   {
     "brand": "Gong",
-    "model": "Veloce H V3",
+    "model": "Veloce H V3 / V3 ATMO PERF",
     "size": "XXL",
     "span_cm": 115.0,
     "area_cm2": 1300.0,
@@ -7378,7 +7378,79 @@
     "thickness_estimated": false,
     "specs_estimated": false,
     "is_baseline": false,
-    "aliases": null
+    "aliases": "VELOCE V3 ATMO PERF|Veloce Atmo Perf|Veloce V3 Atmo|Veloce H V3"
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE FF V3 ATMO",
+    "size": "XS",
+    "span_cm": 79.0,
+    "area_cm2": 590.0,
+    "thickness_mm": 11.4,
+    "thickness_estimated": false,
+    "specs_estimated": false,
+    "is_baseline": false,
+    "aliases": "Veloce Free Fly V3 Atmo|Veloce Freefly|Veloce FF|Veloce Free Fly"
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE FF V3 ATMO",
+    "size": "S",
+    "span_cm": 88.0,
+    "area_cm2": 740.0,
+    "thickness_mm": 12.8,
+    "thickness_estimated": false,
+    "specs_estimated": false,
+    "is_baseline": false,
+    "aliases": "Veloce Free Fly V3 Atmo|Veloce Freefly|Veloce FF|Veloce Free Fly"
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE FF V3 ATMO",
+    "size": "M",
+    "span_cm": 97.0,
+    "area_cm2": 890.0,
+    "thickness_mm": 14.0,
+    "thickness_estimated": false,
+    "specs_estimated": false,
+    "is_baseline": false,
+    "aliases": "Veloce Free Fly V3 Atmo|Veloce Freefly|Veloce FF|Veloce Free Fly"
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE FF V3 ATMO",
+    "size": "L",
+    "span_cm": 105.0,
+    "area_cm2": 1040.0,
+    "thickness_mm": 15.1,
+    "thickness_estimated": false,
+    "specs_estimated": false,
+    "is_baseline": false,
+    "aliases": "Veloce Free Fly V3 Atmo|Veloce Freefly|Veloce FF|Veloce Free Fly"
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE FF V3 ATMO",
+    "size": "XL",
+    "span_cm": 110.0,
+    "area_cm2": 1150.0,
+    "thickness_mm": 15.9,
+    "thickness_estimated": false,
+    "specs_estimated": false,
+    "is_baseline": false,
+    "aliases": "Veloce Free Fly V3 Atmo|Veloce Freefly|Veloce FF|Veloce Free Fly"
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE FF V3 ATMO",
+    "size": "XXL",
+    "span_cm": 117.0,
+    "area_cm2": 1300.0,
+    "thickness_mm": 16.9,
+    "thickness_estimated": false,
+    "specs_estimated": false,
+    "is_baseline": false,
+    "aliases": "Veloce Free Fly V3 Atmo|Veloce Freefly|Veloce FF|Veloce Free Fly"
   },
   {
     "brand": "Gong",
