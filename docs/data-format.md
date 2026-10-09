@@ -40,8 +40,9 @@ X-Device-Token: <token>
 
 **`accel_luecken`** (seit 09.10.2026, Garmin ab 1.0.92 „Speicher sparen"): die Uhr speichert Accel
 ABSICHTLICH nur um bewegte Abschnitte herum und beginnt an jeder Lücke einen neuen Chunk mit eigener
-`t0_ms`. Mit dem Kennzeichen dehnt der Server einen Chunk nicht über die Lücke bis zum nächsten
-(`analysis/timebase.py`, `LUECKE_RATE_ANTEIL`). Ohne Kennzeichen rechnet die Achse wie bisher — ein
+`t0_ms` — und schickt je Accel-Chunk zusätzlich `t1_ms` (Ankunft des letzten Pakets). Liegt der
+nächste Chunk mehr als 5 s nach `t1_ms`, ist dazwischen eine Lücke, und der Server dehnt den Chunk
+nicht darüber (`analysis/timebase.py`, `LUECKE_MS`). Ohne Kennzeichen rechnet die Achse wie bisher — ein
 Client, der Lücken lässt, MUSS es also mitschicken. Steht in `meta.json` der Session.
 
 ### 2. Chunks hochladen

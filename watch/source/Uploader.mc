@@ -351,6 +351,7 @@ class SessionSyncJob {
     hidden var _meta;
     hidden var _accelTotal as Lang.Number = 0;
     hidden var _accelT0 = {};   // Chunk-Index -> ms seit Session-Start (s. SessionRecorder)
+    hidden var _accelT1 = {};   // Chunk-Index -> Ende in ms (ab 1.0.92, Speicher-Sparen)
     hidden var _gpsTotal as Lang.Number = 0;
     hidden var _completed as Lang.Boolean = false;
     hidden var _sa as Lang.Number = 0;   // bestätigte Accel-Chunks
@@ -375,6 +376,7 @@ class SessionSyncJob {
             // sonst null-Arithmetik in begin() -> Crash schon beim App-Start (Sync).
             _accelTotal = (st["accel_chunks"] instanceof Lang.Number) ? st["accel_chunks"] : 0;
             _accelT0 = (st["accel_t0"] instanceof Lang.Dictionary) ? st["accel_t0"] : {};
+            _accelT1 = (st["accel_t1"] instanceof Lang.Dictionary) ? st["accel_t1"] : {};
             _gpsTotal = (st["gps_chunks"] instanceof Lang.Number) ? st["gps_chunks"] : 0;
             _completed = (st["completed"] == true);
             // Pausen der Aufnahme (s. SessionRecorder._pauseListe) -> gehen im /complete mit,
@@ -583,6 +585,7 @@ class SessionSyncJob {
         // schaetzt wie bisher).
         var body = { "index" => i, "kind" => "accel", "encoding" => "int16-b64", "data" => b64 };
         if (_accelT0.hasKey(i)) { body["t0_ms"] = _accelT0[i]; }
+        if (_accelT1.hasKey(i)) { body["t1_ms"] = _accelT1[i]; }
         _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/chunk",
             body,

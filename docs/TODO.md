@@ -1438,7 +1438,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ## 📥 Inbox
 
 - **09.10. — Achse alt gegen neu im Bestand klären (aus dem Speicher-Sparen).** Die lückenfeste Regel
-  (`timebase.LUECKE_RATE_ANTEIL`) gilt nur für Sessions mit `accel_luecken`. Auf alle 3284 Sessions mit
+  (`timebase.LUECKE_MS`, Chunk-Ende `t1_ms`) gilt nur für Sessions mit `accel_luecken`. Auf alle 3284 Sessions mit
   exakter Achse angewandt hätte sie ~370 verschoben: Wear 182/387 (schwankende Rate, bis 1370 s, z. B.
   #2282, #9565), Garmin 97/1929 (bis 31.000 s, #458, #741, #1759 — Aussetzer/Pausen alter Fassungen),
   Handy-Recorder 57/220 (#10325), Apple 8/454 (#1813), iOS-Handy 6/100, Zepp 15/154. Je Plattform an ein

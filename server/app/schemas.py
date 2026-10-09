@@ -172,6 +172,10 @@ class ChunkIn(BaseModel):
     # Wert 0 fuer alle Nicht-Sender erzeugt und damit die exakte Zeitachse (timebase.py,
     # exact_chunks) fuer den gesamten Bestand unbrauchbar gemacht.
     t0_ms: int | None = None
+    # Ankunft des LETZTEN Pakets im Chunk (ms seit Session-Start), nur Accel, Garmin ab 1.0.92.
+    # Mit Speicher-Sparen folgt auf einen Chunk oft eine Luecke — t1 sagt, wo er wirklich endet
+    # (analysis/timebase.py), statt es aus dem Abstand zum naechsten Chunk zu raten.
+    t1_ms: int | None = None
     count: int = 0
     data: object  # list (gps) oder str (accel-base64)
 

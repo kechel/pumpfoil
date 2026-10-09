@@ -78,7 +78,8 @@ def save_gps_chunk(session_uuid: str, index: int, data: list) -> int:
     return len(data)
 
 
-def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None = None) -> int:
+def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None = None,
+                     t1_ms: int | None = None) -> int:
     d = ensure_session_dir(session_uuid)
     raw = base64.b64decode(b64)
     (d / "accel" / f"{index}.bin").write_bytes(raw)
@@ -91,6 +92,9 @@ def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None 
     # Sidecar statt Dateiname, damit alte Sessions unveraendert lesbar bleiben.
     if t0_ms is not None:
         (d / "accel" / f"{index}.t0").write_text(str(int(t0_ms)))
+    # Ende des Chunks (Garmin ab 1.0.92, s. ChunkIn.t1_ms) — eigenes Sidecar, fehlt bei allen anderen.
+    if t1_ms is not None:
+        (d / "accel" / f"{index}.t1").write_text(str(int(t1_ms)))
     # int16, 3 Achsen pro Sample
     return len(raw) // 2 // 3
 
@@ -237,7 +241,8 @@ def save_original_upload(session_uuid: str, raw: bytes, filename: str | None) ->
     return ziel.name
 
 
-def save_accel_raw(session_uuid: str, index: int, raw: bytes, t0_ms: int | None = None) -> int:
+def save_accel_raw(session_uuid: str, index: int, raw: bytes, t0_ms: int | None = None,
+                   t1_ms: int | None = None) -> int:
     """Wie save_accel_chunk, aber für bereits dekodierte int16-LE-Bytes (z. B. FIT-Import).
 
     `t0_ms` mitgeben, wenn die Startzeit des Chunks BEKANNT ist — dann kann die Analyse eine
@@ -248,7 +253,24 @@ def save_accel_raw(session_uuid: str, index: int, raw: bytes, t0_ms: int | None 
     (d / "accel" / f"{index}.bin").write_bytes(raw)
     if t0_ms is not None:
         (d / "accel" / f"{index}.t0").write_text(str(int(t0_ms)))
+    if t1_ms is not None:
+        (d / "accel" / f"{index}.t1").write_text(str(int(t1_ms)))
     return len(raw) // 2 // 3
+
+
+def load_accel_t1(session_uuid: str) -> dict[int, int]:
+    """Chunk-Index -> Ende in ms (Ankunft des letzten Pakets), nur wo die Uhr es schickt (Garmin ab
+    1.0.92) bzw. beim Zusammenfuehren von Sessions mit Luecken. Sonst leer."""
+    d = session_dir(session_uuid) / "accel"
+    if not d.exists():
+        return {}
+    out: dict[int, int] = {}
+    for f in d.glob("*.t1"):
+        try:
+            out[int(f.stem)] = int(f.read_text().strip())
+        except (ValueError, OSError):
+            continue
+    return out
 
 
 def load_accel_t0(session_uuid: str) -> dict[int, int]:

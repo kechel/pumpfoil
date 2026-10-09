@@ -265,7 +265,7 @@ def _chunk_speichern(db: Session, s: "models.Session", session_uuid: str, body: 
     elif body.kind == "accel":
         if not isinstance(body.data, str):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "accel data must be base64 string")
-        n = storage.save_accel_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
+        n = storage.save_accel_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms, t1_ms=body.t1_ms)
     elif body.kind == "gyro":
         # Drehrate, nur von den Handy-Recordern und nur wenn das Geraet einen Kreisel hat.
         # Die Auswertung liest den Kanal heute nicht — er wird gesammelt, damit spaeter Daten
