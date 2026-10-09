@@ -152,6 +152,10 @@ class SessionStartIn(BaseModel):
     # Eigene App-Version (z. B. "1.1.19"). Optional: Uhren melden sie schon beim Config-Abruf, der
     # Server fällt darauf zurück. Zeichen bewusst eng begrenzt (fließt in Anzeigen/Filter).
     app_version: str | None = Field(default=None, pattern=r"^[0-9A-Za-z.+-]{1,20}$")
+    # Die Uhr speichert nur um bewegte Abschnitte herum (Speicher-Sparen, Garmin ab 1.0.92) und
+    # laesst dazwischen ABSICHTLICH Luecken -> Zeitachse ohne Dehnen ueber die Luecke
+    # (analysis/timebase.py). Fehlt = False = Verhalten wie bisher.
+    accel_luecken: bool = False
 
 
 class SessionStartOut(BaseModel):

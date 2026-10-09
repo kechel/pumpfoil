@@ -11,6 +11,21 @@ import { WatchGuide } from "../components/WatchGuide";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { useT } from "../i18n";
 
+// Aufnahmezeit bis „Speicher voll" fuer den Hinweis bei „Speicher sparen" — dieselbe Rechnung wie die
+// Uhr (SessionRecorder.kbPerMin / storageMinutesLeft): 90 % der gemessenen Grenze, 11,5 KB/min bei
+// 25 Hz, 6,1 bei 10 Hz, 2,5 nur GPS. Mit Sparen bleiben meist 30–50 % der Zeit gespeichert (gemessen
+// 09.10.2026: 16–56 % je Session, fenix 5X im Schnitt 50 %) -> Faktor 2 bis 3. Ohne Messung keine Zahl.
+function sparMinuten(d: import("../lib/api").PairedDevice): { kb: number; modusKey: string; ohne: number; von: number; bis: number } | null {
+  const kb = d.speicher_kb ?? 0;
+  if (!kb || kb >= 5000) return null;
+  const modus = d.seiten_klasse === "lite" || d.record_mode === "gps" ? "gps"
+    : d.record_mode === "lite" || d.low_accel ? "lite" : "full";
+  const kbMin = modus === "gps" ? 2.5 : modus === "lite" ? 6.1 : 11.5;
+  const ohne = Math.round((kb * 0.9) / kbMin);
+  const modusKey = modus === "gps" ? "account.sparModusGps" : modus === "lite" ? "account.sparModusLite" : "account.sparModusFull";
+  return { kb, modusKey, ohne, von: ohne * 2, bis: ohne * 3 };
+}
+
 export default function Account() {
   const t = useT();
   const [sp] = useSearchParams();
@@ -364,19 +379,32 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     <p className="mt-1 text-sm text-slate-400">{t("account.gnssModeHint")}</p>
                   </div>
                 )}
-                {/* GPS nur um bewegte Abschnitte speichern (Jan, 09.10.2026) — nur Garmin-Uhren mit wenig
-                    Speicher (96/128 KB), nur dort steckt der Code. Standard an; aus = jeden Punkt. */}
-                {!d.revoked_at && d.gps_sparen_moeglich && (
-                  <div className="mt-2">
-                    <label className="flex max-w-sm items-center gap-2 text-sm text-slate-200">
-                      <input type="checkbox" checked={d.gps_sparen !== false}
-                        onChange={(e) => setGpsSparen(d.id, e.target.checked)} />
-                      {t("account.gpsSparen")}
-                    </label>
-                    <Rueck k={`${d.id}:gpsSparen`} />
-                    <p className="mt-1 text-sm text-slate-400">{t("account.gpsSparenHint")}</p>
-                  </div>
-                )}
+                {/* Speicher sparen (Jan, 09.10.2026): GPS UND Accel nur um bewegte Abschnitte (ab 6 km/h,
+                    ±30 s), alle Garmin-Uhren ab 1.0.92; Voreinstellung vom Server nach der gemessenen
+                    Ablage. Jan: „wichtig ist das das genau erklaert wird in einem hinweis bei der
+                    entsprechenden Uhr" — deshalb mit den Zahlen DIESER Uhr (sparMinuten). */}
+                {!d.revoked_at && d.gps_sparen_moeglich && (() => {
+                  const m = sparMinuten(d);
+                  return (
+                    <div className="mt-2">
+                      <label className="flex max-w-sm items-center gap-2 text-sm text-slate-200">
+                        <input type="checkbox" checked={d.gps_sparen !== false}
+                          onChange={(e) => setGpsSparen(d.id, e.target.checked)} />
+                        {t("account.gpsSparen")}
+                      </label>
+                      <Rueck k={`${d.id}:gpsSparen`} />
+                      <div className="mt-1 space-y-1 text-sm text-slate-400">
+                        <p>{t("account.gpsSparenHint")}</p>
+                        <p className="text-slate-300">
+                          {m ? t("account.gpsSparenUhr", { kb: m.kb, modus: t(m.modusKey), ohne: m.ohne, von: m.von, bis: m.bis })
+                             : t("account.gpsSparenUhrUnbekannt")}
+                        </p>
+                        <p>{t("account.gpsSparenNotfall")}</p>
+                        <p>{t("account.gpsSparenAus")}</p>
+                      </div>
+                    </div>
+                  );
+                })()}
                 {/* Wassersperre je Uhr — NICHT fuer Garmin: unser Aufnahme-Bildschirm hat dort
                     gar keine Tipp-Behandlung (`RecordDelegate` kennt nur Tasten), ein
                     Wassertropfen kann also nichts ausloesen. Ueberall sonst schon: beim Pumpen

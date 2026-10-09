@@ -153,6 +153,7 @@ def _trimmed_mit_achse(session) -> tuple[list, np.ndarray, np.ndarray]:
         chunk_counts=_accel_chunk_counts(session.session_uuid),
         t0_by_index=storage.load_accel_t0(session.session_uuid),
         trim_start_ms=lo, trim_end_ms=hi, excluded_ranges=None,
+        accel_luecken=storage.accel_luecken(session.session_uuid),
     )
     return gps_out, tb.accel, (tb.t_accel_ms - float(lo) if tb.t_accel_ms.size else np.empty(0))
 
@@ -160,7 +161,8 @@ def _trimmed_mit_achse(session) -> tuple[list, np.ndarray, np.ndarray]:
 CHUNK_SAMPLES = 500      # Chunk-Groesse beim Schreiben der zusammengefuehrten Accel-Spur
 
 
-def _save_accel_mit_ankern(new_uuid: str, teile: list[tuple[np.ndarray, np.ndarray]]) -> int:
+def _save_accel_mit_ankern(new_uuid: str, teile: list[tuple[np.ndarray, np.ndarray]],
+                           luecken: bool = False) -> int:
     """Schreibt die Accel-Teile als Chunks MIT `t0_ms`-Sidecar in die neue Session.
 
     Bis 2026-08-10 wurde daraus EIN Block, dessen Teile an `off_ms/1000 · getaggte_Rate` gelegt
@@ -171,12 +173,23 @@ def _save_accel_mit_ankern(new_uuid: str, teile: list[tuple[np.ndarray, np.ndarr
     Jetzt behält jeder Chunk seine WAHRE Startzeit in der neuen Zeitachse. Damit rekonstruiert
     `timebase.py` die Achse einer zusammengeführten Session genauso exakt wie die einer direkt
     aufgezeichneten — die Rate muss nirgends geraten werden.
+
+    `luecken=True` (eine Quelle hat mit Speicher-Sparen aufgenommen): an jeder Luecke im Teil beginnt
+    ein neuer Chunk, sonst wuerde die Zeitachse einen Chunk ueber die Luecke dehnen
+    (timebase.LUECKE_RATE_ANTEIL); die neue Session traegt dann ebenfalls `accel_luecken`.
     """
     index = 0
     for arr, t_ms in teile:
         n = int(arr.shape[0])
-        for start in range(0, n, CHUNK_SAMPLES):
-            stop = min(start + CHUNK_SAMPLES, n)
+        grenzen = [0, n]
+        if luecken and n > 1:
+            dt = np.diff(t_ms)
+            schritt = float(np.median(dt)) if dt.size else 0.0
+            grenzen = [0] + [int(i) + 1 for i in np.where(dt > max(5 * schritt, 1000.0))[0]] + [n]
+        starts = []
+        for a, b in zip(grenzen[:-1], grenzen[1:]):
+            starts += [(s, min(s + CHUNK_SAMPLES, b)) for s in range(a, b, CHUNK_SAMPLES)]
+        for start, stop in starts:
             storage.save_accel_raw(
                 new_uuid, index,
                 np.ascontiguousarray(arr[start:stop], dtype="<i2").tobytes(),
@@ -273,7 +286,10 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
     new_uuid = "merge-" + _uuid.uuid4().hex
     storage.ensure_session_dir(new_uuid)
     storage.save_gps_chunk(new_uuid, 0, combined_gps)
-    _save_accel_mit_ankern(new_uuid, accel_parts)
+    luecken = any(storage.accel_luecken(s.session_uuid) for s in sessions)
+    _save_accel_mit_ankern(new_uuid, accel_parts, luecken)
+    if luecken:
+        storage.markiere_accel_luecken(new_uuid)
 
     ns = models.Session(
         session_uuid=new_uuid, user_id=first.user_id, device_id=first.device_id,

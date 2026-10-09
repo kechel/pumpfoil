@@ -9,7 +9,7 @@ module Config {
     // wir Versionen, die im Store nie auftauchen. Inhalt: Wert-Grafiken in Layouts, Puls-Zonen
     // aus dem Profil, expected_chunks im Upload, gesaeuberter Max-Speed + Lauf-Zusammenfuehrung,
     // „Gespeichert" nicht mehr doppelt und mit 10-s-Ablauf.
-    const VERSION = "1.0.91";
+    const VERSION = "1.0.92";
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
@@ -46,8 +46,12 @@ module Config {
         try {
             Application.Properties.setValue(key, value);
             return true;
-        } catch (e) {
+        } catch (e instanceof Toybox.Lang.StorageFullException) {
             storeFailed = true;
+            return false;
+        } catch (e) {
+            // Properties laufen laut SDK nicht voll (Fehler nur bei unbekanntem Schluessel/Typ) — das
+            // ist kein „Speicher voll" und darf die rote Meldung nicht ausloesen (bis 1.0.91 tat es das).
             return false;
         }
     }

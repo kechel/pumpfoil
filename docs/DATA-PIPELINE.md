@@ -584,7 +584,17 @@ er wirkt weiter nur auf die GPS-Punkte, damit der Accel das Trim-Fenster lücken
 ⚠️ **Bestand:** der Fix wirkt erst nach einer Reanalyse. Bis dahin zeigen alte Sessions weiter die
 alten Zahlen. Reanalyse-Hinweise siehe CLAUDE.md (`DATABASE_URL` muss im Env sein).
 
-### 9.3 Die Chunk-Dauer wird über die Lücke geschmiert  🟠 offen
+### 9.3 Die Chunk-Dauer wird über die Lücke geschmiert  🟠 offen (für angekündigte Lücken 🟢 behoben 2026-10-09)
+
+**Teilweise gelöst 09.10.2026:** Sessions mit `accel_luecken` in `meta.json` (Speicher-Sparen,
+Garmin ab 1.0.92) bekommen die Referenzrate der vollen Chunks; ein Chunk, der darunter (< 80 %)
+läge, endet mit dieser Rate, der Rest bis zum nächsten Chunk bleibt leer. Offline geprüft an 141
+Garmin-Sessions (voll gegen gekürzt, echter `run_analysis`): Foil-Zeit −0,15 %, Pumps −0,3 %.
+**Für den Bestand NICHT eingeschaltet:** dieselbe Regel hätte die Achse von ~370 der 3284 Sessions
+mit exakter Achse verschoben (Wear 182/387 — schwankende Rate, Garmin 97/1929 — v. a. alte mit
+Aussetzern, Handys 57/220, Apple 8/454, Zepp 15/154). Ob dort alt oder neu richtiger ist, ist offen
+(TODO-Inbox 09.10.).
+
 
 `_accel_chunk_axis` bestimmt die Rate eines Chunks aus dem Abstand zum **nächsten** Chunk
 (`counts[k] / span`). Folgt auf einen Chunk eine Pause, werden seine Samples über die ganze Pause

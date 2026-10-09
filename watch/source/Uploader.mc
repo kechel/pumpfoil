@@ -49,7 +49,7 @@ module Uploader {
         try {
             Storage.setValue(key, value);
             return true;
-        } catch (e) {
+        } catch (e instanceof Lang.StorageFullException) {
             _storageFull = true;
             _lastError = :storage;
             // Notieren, damit die Meldung spaetestens beim naechsten Start rausgeht. Erst Platz
@@ -61,6 +61,8 @@ module Uploader {
                 try { Storage.setValue("storage_full_kb", pendingKb()); } catch (e4) { }
             }
             return false;
+        } catch (e) {
+            return false;   // anderer Fehler, kein voller Speicher (s. SessionRecorder._store)
         }
     }
 
@@ -172,6 +174,27 @@ module Uploader {
             if (!(st instanceof Lang.Dictionary)) { continue; }
             var a = st.hasKey("accel_chunks") ? st["accel_chunks"] : 0;
             var g = st.hasKey("gps_chunks") ? st["gps_chunks"] : 0;
+            if (!(a instanceof Lang.Number)) { a = 0; }
+            if (!(g instanceof Lang.Number)) { g = 0; }
+            // Schon Hochgeladenes ABZIEHEN (Wasserstaende sa_/sg_): bestaetigte Chunks sind geloescht,
+            // die Zaehler im state bleiben aber stehen. Bis 1.0.91 zaehlte eine halb hochgeladene
+            // Session deshalb voll -> Warnung „Speicher bald voll" schon beim Start.
+            var sa = Storage.getValue("sa_" + s[i]);
+            var sg = Storage.getValue("sg_" + s[i]);
+            var aRest = a - ((sa instanceof Lang.Number) ? sa : 0);
+            var gRest = g - ((sg instanceof Lang.Number) ? sg : 0);
+            if (aRest < 0) { aRest = 0; }
+            if (gRest < 0) { gRest = 0; }
+            // Accel: aus den gespeicherten Samples (6 B je Sample), sofern die Uhr sie fuehrt (ab 1.0.92,
+            // mit Speicher-Sparen sind viele Chunks nur angefangen); sonst pauschal je Chunk.
+            var an = st.hasKey("accel_n") ? st["accel_n"] : null;
+            if (an instanceof Lang.Number && a > 0) {
+                kb += ((an * 6) / a * aRest + 1023) / 1024;   // erst je Chunk teilen: kein Ueberlauf
+                a = 0;
+            } else {
+                a = aRest;
+            }
+            g = gRest;
             // Die Zaehler sind bereits die ANZAHL, nicht der Index des letzten Chunks:
             // `_flushAccel`/`_flushGps` erhoehen `_accelChunkIndex`/`_gpsChunkIndex` NACH dem
             // erfolgreichen Schreiben, und `_saveState` sichert den erhoehten Wert. Bis
@@ -182,8 +205,8 @@ module Uploader {
             // Uhr warnte mitten in einer frischen Aufnahme „~0 min bis Speicher voll".
             // Gegenprobe am Server: Session 9341 lieferte GPS-Chunks mit den Indizes 0..21,
             // also 22 Stueck — `gps_chunks` stand auf 22, nicht auf 21.
-            if (a instanceof Lang.Number && a > 0) { kb += a * KB_PER_ACCEL_CHUNK; }
-            if (g instanceof Lang.Number && g > 0) { kb += g * kbProGpsChunk(); }
+            if (a > 0) { kb += a * KB_PER_ACCEL_CHUNK; }
+            if (g > 0) { kb += g * kbProGpsChunk(); }
         }
         return kb;
     }
@@ -496,6 +519,9 @@ class SessionSyncJob {
         }
         Uploader.noteResult(200);
         if (_pendingKind != null) {
+            // Ein Chunk ist bestaetigt und wird geloescht -> es ist wieder Platz; die rote Meldung darf
+            // gehen (scheitert der folgende Schreibversuch trotzdem, setzt _set sie neu).
+            Uploader._storageFull = false;
             if (_pendingKind.equals("accel")) {
                 Storage.deleteValue("ca_" + _uuid + "_" + _pendingIdx);
                 _sa = _pendingIdx + 1; Uploader._set("sa_" + _uuid, _sa);

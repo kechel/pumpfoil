@@ -47,6 +47,31 @@ def write_meta(session_uuid: str, meta: dict) -> None:
     (d / "meta.json").write_text(json.dumps(meta, default=str, indent=2))
 
 
+def accel_luecken(session_uuid: str) -> bool:
+    """Hat die Uhr ABSICHTLICH Luecken zwischen den Accel-Chunks gelassen (Speicher-Sparen)? Steht
+    in meta.json, gesetzt von `/ingest/session` (`accel_luecken`) bzw. beim Zusammenfuehren. Die
+    Zeitachse dehnt einen Chunk dann nicht ueber die Luecke (analysis/timebase.py)."""
+    try:
+        meta = json.loads((session_dir(session_uuid) / "meta.json").read_text())
+    except (OSError, ValueError):
+        return False
+    return bool(isinstance(meta, dict) and meta.get("accel_luecken"))
+
+
+def markiere_accel_luecken(session_uuid: str) -> None:
+    """Setzt `accel_luecken` in meta.json und laesst den Rest stehen (zusammengefuehrte Sessions
+    haben oft gar keine meta.json — dann entsteht eine mit nur diesem Schluessel)."""
+    d = ensure_session_dir(session_uuid)
+    try:
+        meta = json.loads((d / "meta.json").read_text())
+        if not isinstance(meta, dict):
+            meta = {}
+    except (OSError, ValueError):
+        meta = {}
+    meta["accel_luecken"] = True
+    (d / "meta.json").write_text(json.dumps(meta, default=str, indent=2))
+
+
 def save_gps_chunk(session_uuid: str, index: int, data: list) -> int:
     d = ensure_session_dir(session_uuid)
     (d / "gps" / f"{index}.json").write_text(json.dumps(data))

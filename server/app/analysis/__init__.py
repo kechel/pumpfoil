@@ -499,6 +499,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
             chunk_counts=_accel_chunk_counts(session.session_uuid),
             t0_by_index=storage.load_accel_t0(session.session_uuid),
             trim_start_ms=lo, trim_end_ms=hi, excluded_ranges=None,
+            accel_luecken=storage.accel_luecken(session.session_uuid),
         )
         timebase_source = _tb.source
         if _tb.has_accel and _tb.accel_hz and _tb.accel_hz > 0:
