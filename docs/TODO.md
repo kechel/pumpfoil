@@ -1439,6 +1439,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **09.10. (Jan) — Naechste Android-/iOS-Version: zwei Punkte aus dem Web nachziehen.**
+  1. **Laufdauer ab 1 h als h:mm:ss** (Web seit 3667835a, `web/src/lib/dauer.ts`; Anlass: 6-h-Lauf von
+     Nicolas_I stand als „361:09"). Stellen: Android `CommunityScreen.kt` (`fmtDurC`), `FoilerScreen.kt`
+     (`minSek`); iOS `HomeView.swift` (`fmtDur`), `SessionsView.swift` (`fmtDur`), `FoilStatsView.swift`
+     (`durStr`), `VerlaufView.swift` (`mmssMin`). Dabei zuerst auf ganze Sekunden runden (sonst „0:60").
+  2. **„Watch layouts from the community" auf der Community-Seite** wie im Web (`Home.tsx`, Top 5 aus
+     `GET /api/layouts/community` + „alle ansehen"). Die Galerie gibt es nativ schon
+     (`LayoutGalleryScreen.kt` / `LayoutGalleryView.swift`), erreichbar aber nur ueber Profil → Datenfelder.
+
 - **09.10. — Achse alt gegen neu im Bestand klären (aus dem Speicher-Sparen).** Die lückenfeste Regel
   (`timebase.LUECKE_MS`, Chunk-Ende `t1_ms`) gilt nur für Sessions mit `accel_luecken`. Auf alle 3284 Sessions mit
   exakter Achse angewandt hätte sie ~370 verschoben: Wear 182/387 (schwankende Rate, bis 1370 s, z. B.
