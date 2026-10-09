@@ -82,7 +82,7 @@ class SessionRecorder {
     hidden var _accelCount = 0;
     hidden var _accelOn = false;     // Roh-Accel zur Laufzeit aktiv? (sonst GPS-only)
     hidden var _gpsBuf;              // Array von [t_ms, lat, lon, speed, hr, hacc]
-    // Nur bei den GPS-Sparern benutzt (_gpsPunkt :gpssparen), EIN Feld: die Klasse liegt an der Grenze
+    // GPS-Sparen (_gpsPunkt), EIN Feld: die Klasse liegt an der Grenze
     // von 253 Mitgliedern (monkeyc, Instinct 2). [Vorlauf-Punkte, letzte 3 Tempi, haelt (0/1), ein,
     // aus, nach, an (Schalter je Uhr aus /config, beim Start aus dem Cache gelesen)]
     hidden var _gZ = [[], [], 0, 0, 0, 0, true];
@@ -1925,15 +1925,9 @@ class SessionRecorder {
         }
     }
 
-    // Alle Uhren ausser den GPS-Sparern (monkey.jungle :gpssparen): jeder GPS-Punkt wird gespeichert.
-    (:gpsvoll)
-    hidden function _gpsPunkt(p, spd) {
-        _gpsBuf.add(p);
-        if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
-    }
-
-    // NUR die GPS-Sparer (monkey.jungle: die fuenf 96-KB-Uhren + fr55, Jan 09.10.2026: „phil faehrt mit
-    // meiner fr55 und die ist nach einer stunde voll") und NUR ohne Accel: GPS nur um bewegte Abschnitte herum speichern (Jan, 09.10.2026:
+    // ALLE Garmin-Uhren, ob es greift entscheidet der Schalter je Uhr (gpsSparen aus /config; der Server
+    // setzt die Voreinstellung nach der gemessenen Ablage — die fenix 5X hat 1,25 MB RAM, lief aber bei
+    // 180 KB voll und verlor jede Session nach ~11 min, Befund 09.10.2026). NUR ohne Accel: GPS nur um bewegte Abschnitte herum speichern (Jan, 09.10.2026:
     // „nimm ruhig 6 km/h als schwelle fuer speichern, wichtig ist das genug puffer davor und danach
     // mitgespeichert wird, ruhig 30 sekunden"). Der Server braucht Vorlauf vor dem Lauf zum Entscheiden,
     // und seine GPS-Erkennung haengt hinterher — deshalb 33 Punkte davor (Erkennung + 30 s) und 30 danach.
@@ -1948,7 +1942,6 @@ class SessionRecorder {
     // Schwellen (als Zahlen, nicht als const — s. Mitglieder-Grenze oben): rein ab 6 km/h (1,667 m/s)
     // fuer 3 s (Median aus 3), raus unter 5 km/h (1,389 m/s) fuer 3 s; Vorlauf 33 Punkte (~30 s vor dem
     // Beginn), Nachlauf 30 Punkte.
-    (:gpssparen)
     hidden function _gpsPunkt(p, spd) {
         // Mit Accel bleibt alles wie bisher: dort fuellt der Accel den Speicher, und der Fall ist
         // am Server nicht nachgerechnet (nur GPS-only, s. oben).
@@ -1980,7 +1973,6 @@ class SessionRecorder {
             if (vl.size() > 33) { z[0] = vl.slice(1, null); }
         }
     }
-    (:gpssparen)
     hidden function _gpsBufAdd(p) {
         _gpsBuf.add(p);
         if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
