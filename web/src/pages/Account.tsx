@@ -303,7 +303,10 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
         <div className="space-y-2">
           {devices.map((d) => (
             <div key={d.id} className={`flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${d.revoked_at ? "opacity-60" : ""}`}>
-              <WatchIcon className="h-5 w-5 shrink-0 text-brand-400" />
+              {/* Bild der verknuepften Uhr (nur Garmin, Bilder aus dem Simulator; Jan, 09.10.2026) */}
+              {d.bild_url
+                ? <img src={d.bild_url} alt="" loading="lazy" className="h-16 w-16 shrink-0 self-start object-contain" />
+                : <WatchIcon className="h-5 w-5 shrink-0 text-brand-400" />}
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-slate-100">
                   {d.model || d.label || t("account.deviceUnnamed")}
