@@ -302,14 +302,16 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
       ) : (
         <div className="space-y-2">
           {devices.map((d) => (
-            <div key={d.id} className={`flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${d.revoked_at ? "opacity-60" : ""}`}>
+            <div key={d.id} className={`flex flex-wrap items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 sm:flex-nowrap ${d.revoked_at ? "opacity-60" : ""}`}>
               {/* Bild der verknuepften Uhr (nur Garmin, Bilder aus dem Simulator; Jan, 09.10.2026). Breit: eigene
                   Spalte links. Schmal (Handy): klein neben dem Namen, darunter volle Breite — als eigene Spalte
                   brach dort der ganze Karteninhalt Wort fuer Wort um. */}
               {d.bild_url
                 ? <img src={d.bild_url} alt="" loading="lazy" className="hidden h-16 w-16 shrink-0 self-start object-contain sm:block" />
                 : <WatchIcon className="hidden h-5 w-5 shrink-0 text-brand-400 sm:block" />}
-              <div className="min-w-0 flex-1">
+              {/* Handy: volle Breite, die Knoepfe (Ausblenden/Trennen) rutschen darunter — rechts daneben
+                  liessen sie dem Inhalt nur einen schmalen Streifen. */}
+              <div className="min-w-0 w-full sm:w-auto sm:flex-1">
                 {d.bild_url
                   ? <img src={d.bild_url} alt="" loading="lazy" className="float-left mr-2 h-11 w-11 object-contain sm:hidden" />
                   : <WatchIcon className="float-left mr-2 mt-0.5 h-5 w-5 text-brand-400 sm:hidden" />}
