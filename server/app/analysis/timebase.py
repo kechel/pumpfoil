@@ -99,25 +99,36 @@ class TimeBase:
 # um bewegte Abschnitte herum und beginnt an jeder Luecke einen neuen Chunk. Ohne Sonderregel
 # verteilt die Achse die Samples des Chunks VOR der Luecke ueber die ganze Luecke (Rate =
 # counts/Abstand) — in der Offline-Pruefung (141 Garmin-Sessions, 09.10.2026) kostete das 2,5 %
-# der Pumps und verschob 61 Laeufe. Mit der Regel unten: Foil-Zeit −0,08 %, Pumps −0,2 %.
+# der Pumps und verschob 61 Laeufe.
+#
+# Woran eine Luecke erkannt wird: die Uhr schickt je Chunk auch sein ENDE (`t1_ms`, Ankunft des
+# letzten Pakets). Liegt der naechste Chunk mehr als LUECKE_MS danach, ist dazwischen eine Luecke.
+# Erste Fassung (09.10.) riet die Luecke aus der Rate („weit unter den vollen Chunks"). Das scheiterte
+# schon am ersten echten Test (#14075, FR55): die FR55 liefert real ~2,5 statt 10 Hz, in Paketen
+# alle ~3 s, und mit Sparen ist kaum ein Chunk voll — es gab keine Referenz, und die Bandpruefung
+# gegen die getaggte Rate warf die Achse ganz weg. Mit t1 muss nichts geraten werden.
+# Die Rate eines Chunks VOR einer Luecke ist die der Chunks ohne Luecke (Median); gibt es keine,
+# zaehlt counts/(t1 − t0). Die Bandpruefung gegen die GETAGGTE Rate entfaellt hier: die Uhr meldet,
+# was sie anfordert, nicht was sie liefert (FR55: 10 angefordert, 2,5 geliefert), und mit t0+t1 ist
+# die Achse gemessen.
 #
 # NUR fuer Sessions, deren Uhr das ankuendigt (`accel_luecken` in meta.json, s. storage). Auf den
-# Bestand angewandt haette dieselbe Regel die Achse von ~370 der 3284 Sessions verschoben (Wear mit
+# Bestand angewandt haette eine Lueckenregel die Achse von ~370 der 3284 Sessions verschoben (Wear mit
 # schwankender Rate, Pausen alter Garmin-Fassungen, Handys) — ob dort alt oder neu richtiger ist,
 # ist NICHT geklaert, also bleibt fuer sie alles beim Alten.
-LUECKE_RATE_ANTEIL = 0.8   # Chunk-Rate unter 80 % der Referenz -> der Rest bis zum naechsten t0 ist Luecke
+LUECKE_MS = 5000   # naechster Chunk mehr als 5 s nach dem Ende des vorigen -> Luecke
 
 
 def _accel_chunk_axis(
     chunk_counts: dict[int, int], t0_by_index: dict[int, int],
     tagged_hz: float | None, gps_end_ms: float, luecken: bool = False,
+    t1_by_index: dict[int, int] | None = None,
 ) -> tuple[np.ndarray | None, float | None, str]:
     """Accel-Zeitachse aus den Chunk-Startzeiten. Gibt (t_ms je Sample, mittlere Rate, Grund)
     zurück; t_ms=None heißt: die Sidecars sind nicht belastbar (Grund erklärt warum).
 
-    `luecken=True`: die Uhr hat absichtlich Luecken gelassen (s. LUECKE_RATE_ANTEIL). Referenz ist
-    die Rate der VOLLEN Chunks; ein Chunk, der weit darunter laege, bekommt sie, und der Rest bis
-    zum naechsten Chunk bleibt leer."""
+    `luecken=True`: die Uhr hat absichtlich Luecken gelassen; `t1_by_index` (Chunk-Enden) sagt wo
+    (s. LUECKE_MS). Chunks ohne t1 werden wie bisher behandelt."""
     idx = sorted(chunk_counts)
     if not idx:
         return None, None, "keine Accel-Chunks"
@@ -135,17 +146,32 @@ def _accel_chunk_axis(
     for k in range(len(idx) - 1):
         span_s = (t0[k + 1] - t0[k]) / 1000.0
         raten[k] = counts[k] / span_s if span_s > 0 else np.nan
-    if luecken and len(idx) >= 2 and np.isfinite(raten[:-1]).all():
-        voll = counts[:-1] >= counts.max()
-        ref = float(np.median(raten[:-1][voll])) if voll.any() else float(np.median(raten[:-1]))
-        raten[:-1] = np.where(raten[:-1] < LUECKE_RATE_ANTEIL * ref, ref, raten[:-1])
-    raten[-1] = raten[-2] if len(idx) >= 2 else (tagged_hz or np.nan)
+    t1 = t1_by_index or {}
+    if luecken and t1:
+        luecke = np.zeros(len(idx), dtype=bool)
+        eigen = np.full(len(idx), np.nan)          # counts / (t1 - t0), nur wo t1 bekannt
+        for k, i in enumerate(idx):
+            if i in t1 and t1[i] > t0[k]:
+                eigen[k] = counts[k] / max((t1[i] - t0[k]) / 1000.0, 1.0)
+                if k < len(idx) - 1 and t0[k + 1] - t1[i] > LUECKE_MS:
+                    luecke[k] = True
+        ohne = [raten[k] for k in range(len(idx) - 1) if not luecke[k] and np.isfinite(raten[k])]
+        if ohne:
+            ref = float(np.median(ohne))
+        elif np.isfinite(eigen).any():
+            ref = float(np.nanmedian(eigen))
+        else:
+            ref = float(tagged_hz or np.nan)
+        raten[:-1] = np.where(luecke[:-1], ref, raten[:-1])
+        raten[-1] = ref
+    else:
+        raten[-1] = raten[-2] if len(idx) >= 2 else (tagged_hz or np.nan)
     if not np.isfinite(raten).all():
         return None, None, "Chunk-Raten nicht berechenbar"
     mittel = float(np.nanmedian(raten))
     if not (T0_RATE_ABS_HZ[0] <= mittel <= T0_RATE_ABS_HZ[1]):
         return None, None, f"Chunk-Rate {mittel:.2f} Hz unplausibel"
-    if tagged_hz:
+    if tagged_hz and not (luecken and t1):
         q = mittel / tagged_hz
         if not (T0_RATE_BAND[0] <= q <= T0_RATE_BAND[1]):
             return None, None, f"Chunk-Rate {mittel:.2f} Hz weit außerhalb des Bandes um {tagged_hz} Hz"
@@ -154,7 +180,7 @@ def _accel_chunk_axis(
         return None, None, "Chunk-Kette reicht über das GPS-Ende hinaus (fremde Zeitbasis?)"
     teile = [t0[k] + np.arange(int(counts[k])) / raten[k] * 1000.0 for k in range(len(idx))]
     return (np.concatenate(teile) if teile else np.empty(0), mittel,
-            "t0_ms je Chunk, mit Luecken" if luecken else "t0_ms je Chunk")
+            "t0_ms je Chunk, mit Luecken" if (luecken and t1) else "t0_ms je Chunk")
 
 
 def build_timebase(
@@ -169,6 +195,7 @@ def build_timebase(
     trim_end_ms: int | None = None,
     excluded_ranges: list | None = None,
     accel_luecken: bool = False,
+    t1_by_index: dict[int, int] | None = None,
 ) -> TimeBase:
     """Baut die Session-Zeitachse. `gps` sind die ROHEN Samples (Session-ms, ungetrimmt),
     `accel` das rohe (N,3)-int16-Array. Trim und Ausschluss wirken NUR hier."""
@@ -187,7 +214,8 @@ def build_timebase(
         if gps_end_ms > 0:
             hz_measured = n / (gps_end_ms / 1000.0)
         t_exact, hz_chunks, grund = _accel_chunk_axis(
-            chunk_counts or {}, t0_by_index or {}, tagged_accel_hz, gps_end_ms, accel_luecken
+            chunk_counts or {}, t0_by_index or {}, tagged_accel_hz, gps_end_ms, accel_luecken,
+            t1_by_index,
         )
         if t_exact is not None and t_exact.size == n:
             t_accel, source, hz_eff = t_exact, "exact_chunks", hz_chunks
@@ -268,6 +296,7 @@ def build_timebase_for_session(session, *, gps=None, accel=None) -> TimeBase:
         trim_start_ms=session.trim_start_ms, trim_end_ms=session.trim_end_ms,
         excluded_ranges=analyse_ausschluss(session),
         accel_luecken=storage.accel_luecken(uuid),
+        t1_by_index=storage.load_accel_t1(uuid),
     )
 
 

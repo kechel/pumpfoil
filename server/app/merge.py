@@ -154,6 +154,7 @@ def _trimmed_mit_achse(session) -> tuple[list, np.ndarray, np.ndarray]:
         t0_by_index=storage.load_accel_t0(session.session_uuid),
         trim_start_ms=lo, trim_end_ms=hi, excluded_ranges=None,
         accel_luecken=storage.accel_luecken(session.session_uuid),
+        t1_by_index=storage.load_accel_t1(session.session_uuid),
     )
     return gps_out, tb.accel, (tb.t_accel_ms - float(lo) if tb.t_accel_ms.size else np.empty(0))
 
@@ -176,7 +177,7 @@ def _save_accel_mit_ankern(new_uuid: str, teile: list[tuple[np.ndarray, np.ndarr
 
     `luecken=True` (eine Quelle hat mit Speicher-Sparen aufgenommen): an jeder Luecke im Teil beginnt
     ein neuer Chunk, sonst wuerde die Zeitachse einen Chunk ueber die Luecke dehnen
-    (timebase.LUECKE_RATE_ANTEIL); die neue Session traegt dann ebenfalls `accel_luecken`.
+    (timebase.LUECKE_MS, dazu t1 je Chunk); die neue Session traegt dann ebenfalls `accel_luecken`.
     """
     index = 0
     for arr, t_ms in teile:
@@ -194,6 +195,8 @@ def _save_accel_mit_ankern(new_uuid: str, teile: list[tuple[np.ndarray, np.ndarr
                 new_uuid, index,
                 np.ascontiguousarray(arr[start:stop], dtype="<i2").tobytes(),
                 t0_ms=int(round(float(t_ms[start]))),
+                # Ende des Chunks = Zeit seines letzten Samples, damit die Luecke danach erkannt wird
+                t1_ms=int(round(float(t_ms[stop - 1]))) if luecken else None,
             )
             index += 1
     return index

@@ -86,8 +86,9 @@ class SessionRecorder {
     // von 253 Mitgliedern (monkeyc, Instinct 2). [Vorlauf-Punkte, letzte 3 Tempi, haelt (0/1), ein,
     // aus, nach, an (Schalter je Uhr aus /config, beim Start aus dem Cache gelesen),
     // Luecke gemeldet (meta accel_luecken), Accel-Vorlauf [[t0_ms, ByteArray, Samples], …],
-    // gespeicherte Accel-Samples der Session (fuer Uploader.pendingKb, s. _saveState)]
-    hidden var _gZ = [[], [], 0, 0, 0, 0, true, false, [], 0];
+    // gespeicherte Accel-Samples der Session (fuer Uploader.pendingKb, s. _saveState),
+    // Chunk-Index -> Ende in ms (t1_ms, Ankunft des letzten Pakets; der Server erkennt daran die Luecken)]
+    hidden var _gZ = [[], [], 0, 0, 0, 0, true, false, [], 0, {}];
 
     // Live-Stats
     hidden var _speedRing as Lang.Array<Lang.Float or Null> = new [SPEED_AVG_SAMPLES];
@@ -1220,7 +1221,7 @@ class SessionRecorder {
         _accelCount = 0;
         _gpsBuf = [];
         var gsp = Storage.getValue("gps_sparen");   // je Uhr in „Meine Uhren"; fehlt -> an
-        _gZ = [[], [], 0, 0, 0, 0, !(gsp instanceof Lang.Boolean) || gsp, false, [], 0];
+        _gZ = [[], [], 0, 0, 0, 0, !(gsp instanceof Lang.Boolean) || gsp, false, [], 0, {}];
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1528,6 +1529,7 @@ class SessionRecorder {
             // Chunk. Pauschal 9 KB je Chunk gerechnet, haette eine Session mit 20 Laeufen ~90 KB zu viel
             // gezeigt -> Warnung und Umschalten auf nur GPS viel zu frueh (Uploader.pendingKb).
             "accel_n" => _gZ[9],
+            "accel_t1" => _gZ[10],
             "completed" => completed,
             "pauses" => _pauseListe
         });
@@ -2061,8 +2063,13 @@ class SessionRecorder {
                 _accelBuf = new [0]b;
                 for (var j = 0; j < n; j++) { _appendI16(a.x[j]); _appendI16(a.y[j]); _appendI16(a.z[j]); }
                 var ring = z[8];
-                ring.add([_elapsedMs(), _accelBuf, n]);
-                if (ring.size() > 33) { z[8] = ring.slice(1, null); }
+                var jetzt = _elapsedMs();
+                ring.add([jetzt, _accelBuf, n]);
+                // 33 SEKUNDEN, nicht 33 Pakete: die FR55 liefert ein Paket nur alle ~3 s — mit einer
+                // Paketzahl wurden daraus ~96 s Vorlauf (#14075, 09.10.2026). Deckel 40 fuer den RAM.
+                var weg = 0;
+                while (weg < ring.size() - 1 && (ring[weg][0] < jetzt - 33000 || ring.size() - weg > 40)) { weg++; }
+                if (weg > 0) { z[8] = ring.slice(weg, null); }
                 _accelBuf = buf;
                 return;
             }
@@ -2359,6 +2366,9 @@ class SessionRecorder {
         // das auf 96-KB-Uhren den Object-Store sprengt.
         if (_accelBufT0 != null && _accelT0.size() < 600) {
             _accelT0[_accelChunkIndex] = _accelBufT0;
+            // Ende dazu (Ankunft des letzten Pakets = jetzt): erst damit sieht der Server, ob nach dem
+            // Chunk eine Luecke kommt. Erste Fassung ohne t1 scheiterte an der FR55 (#14075, s. timebase).
+            _gZ[10][_accelChunkIndex] = _elapsedMs();
         }
         _accelBufT0 = null;
         _accelChunkIndex++;
