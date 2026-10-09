@@ -146,7 +146,7 @@ def _kappung(device: models.DeviceToken) -> bool:
     return not v or _version_lt(v, KAPPUNG_BIS_VERSION)
 
 
-UHRBILD_VERSION = 1   # hochzaehlen, wenn Bilder ersetzt werden (/media wird 90 Tage immutable gecacht)
+UHRBILD_VERSION = 2   # hochzaehlen, wenn Bilder ersetzt werden (/media wird 90 Tage immutable gecacht)
 
 
 def _uhrbild_url(model_id: str | None) -> str | None:
