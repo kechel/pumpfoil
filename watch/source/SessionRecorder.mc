@@ -1970,8 +1970,8 @@ class SessionRecorder {
     // Die Schwelle ist bewusst NIEDRIGER als die Lauferkennung der Uhr (10 km/h): mit der lagen
     // langsame Laeufe um 8-10 km/h nie im Gespeicherten (309 von 15.841, der laengste 3:14 min).
     // Schwellen (als Zahlen, nicht als const — s. Mitglieder-Grenze oben): rein ab 6 km/h (1,667 m/s)
-    // fuer 3 s (Median aus 3), raus unter 5 km/h (1,389 m/s) fuer 3 s; Vorlauf 33 Punkte (~30 s vor dem
-    // Beginn), Nachlauf 30 Punkte.
+    // fuer 3 s (Median aus 3), raus unter 5 km/h (1,389 m/s) fuer 3 s; Vorlauf 33 s (~30 s vor dem
+    // Beginn), Nachlauf 30 s (beides in Sekunden, nicht Punkten — s. unten).
     //
     // ACCEL (Jan, 09.10.2026: „lass uns direkt das mit accel auch genauso einbauen, das waere ja der
     // eigentliche gewinn"): dieselben Fenster. Waehrend nicht gespeichert wird, sammelt onAccel die
@@ -2007,6 +2007,7 @@ class SessionRecorder {
         if (z[2] == 0 && z[3] >= 3) {
             z[2] = 1;
             z[4] = 0;
+            z[5] = 0;   // ein laufender Nachlauf geht nahtlos in den neuen Abschnitt ueber
             var vor = z[0];
             for (var i = 0; i < vor.size(); i++) { _gpsBufAdd(vor[i]); }   // Vorlauf zuerst
             z[0] = [];
@@ -2024,28 +2025,35 @@ class SessionRecorder {
         if (z[2] == 1) {
             _gpsBufAdd(p);
             z[4] = (v3 < 1.389) ? z[4] + 1 : 0;
-            if (z[4] >= 3) { z[2] = 0; z[5] = 30; }
-        } else if (z[5] > 0) {
+            // Nachlauf: 30 SEKUNDEN (z[5] = Ende in ms), nicht 30 Punkte — die FR55 schickt im Stehen GPS
+            // nur alle paar Sekunden bis 50 s (#14085), mit einer Punktzahl dauerte der Nachlauf Minuten.
+            if (z[4] >= 3) { z[2] = 0; z[5] = p[0] + 30000; }
+        } else if (z[5] > 0 && p[0] <= z[5]) {
             _gpsBufAdd(p);
-            z[5] = z[5] - 1;
-            if (z[5] == 0 && _accelOn) {
+        } else {
+            if (z[5] > 0) {
                 // Nachlauf vorbei -> hier beginnt eine Luecke: angefangenen Accel-Chunk abschliessen und
                 // einmal je Session in meta vermerken, dass die Luecken Absicht sind (Uploader schickt meta
-                // bei /ingest/session mit, auch beim Fortsetzen).
-                _flushAccel(true);
-                if (!z[7]) {
-                    z[7] = true;
-                    var m = Storage.getValue("meta_" + _sessionUuid);
-                    if (m instanceof Lang.Dictionary) {
-                        m["accel_luecken"] = true;
-                        _store("meta_" + _sessionUuid, m);
+                // bei /ingest/session mit, auch beim Fortsetzen). Dasselbe in onAccel, falls kein GPS kommt.
+                z[5] = 0;
+                if (_accelOn) {
+                    _flushAccel(true);
+                    if (!z[7]) {
+                        z[7] = true;
+                        var m = Storage.getValue("meta_" + _sessionUuid);
+                        if (m instanceof Lang.Dictionary) {
+                            m["accel_luecken"] = true;
+                            _store("meta_" + _sessionUuid, m);
+                        }
                     }
                 }
             }
-        } else {
             var vl = z[0];
             vl.add(p);   // noch nicht speichern — nur fuer den Vorlauf aufheben
-            if (vl.size() > 33) { z[0] = vl.slice(1, null); }
+            // 33 SEKUNDEN statt 33 Punkte (s. Nachlauf), Deckel 40 Punkte fuer den RAM (Instinct 2: 96 KB)
+            var weg = 0;
+            while (weg < vl.size() - 1 && (vl[weg][0] < p[0] - 33000 || vl.size() - weg > 40)) { weg++; }
+            if (weg > 0) { z[0] = vl.slice(weg, null); }
         }
     }
     hidden function _gpsBufAdd(p) {
@@ -2073,6 +2081,20 @@ class SessionRecorder {
             // Jan: „mach es das es halt funktioniert mit der Profileinstellung egal was wir der Uhr dafuer
             // tatsaechlich 'vorgeben' muessen".
             var teil = _accelHz < ACCEL_HZ;
+            // Nachlauf abgelaufen, aber kein GPS-Punkt gekommen (im Stehen liefert die FR55 GPS nur selten):
+            // dann beendet ihn der Sensor — sonst liefe der Accel bis zum naechsten GPS-Punkt weiter mit.
+            if (z[2] == 0 && z[5] > 0 && _elapsedMs() > z[5] + 2000) {
+                z[5] = 0;
+                _flushAccel(true);
+                if (!z[7]) {
+                    z[7] = true;
+                    var m2 = Storage.getValue("meta_" + _sessionUuid);
+                    if (m2 instanceof Lang.Dictionary) {
+                        m2["accel_luecken"] = true;
+                        _store("meta_" + _sessionUuid, m2);
+                    }
+                }
+            }
             // Speicher-Sparen: ausserhalb eines Abschnitts nur in den Vorlauf-Ring (s. _gpsPunkt). Dafuer
             // kurz in einen eigenen ByteArray schreiben — _appendI16 schreibt immer in _accelBuf.
             var n = 0;
