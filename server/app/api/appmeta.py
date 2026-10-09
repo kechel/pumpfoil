@@ -268,7 +268,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.91",   # LIVE 2026-09-29: Store-API latestExternalVersion 1.0.91 / intern 45,
+        "latest": "1.0.92",   # LIVE 2026-10-09: Store-Seite + Store-API latestExternalVersion 1.0.92 / intern 47,
+        # Jan hat sie aus dem Store auf seine Uhr installiert (Token 1471, Session #14094). Inhalt:
+        # Speicher sparen GPS + Accel, nur GPS unter 100 KB frei, Speicher-Schaetzung, FR55-Kappung weg, S62-Absturz.
+        # ALT: "latest": "1.0.91",   # LIVE 2026-09-29: Store-API latestExternalVersion 1.0.91 / intern 45,
         # Jans echte fenix 7X Pro (Token 297) meldet 1.0.91, Testsession #10844 — am selben Tag
         # eingereicht und freigegeben. Inhalt: Datenfelder 22/23 „alle Laeufe: Strecke/Zeit".
         # ALT: "latest": "1.0.90",   # LIVE im CIQ-Store 2026-09-26, belegt am STORE, nicht nur gemeldet:
@@ -731,19 +734,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # 09.10.2026: Garmin 1.0.92 (Commit 5f82a663) — Speicher sparen fuer GPS + Accel, Umschalten auf nur GPS
-    # bei < 100 KB frei, Speicher-Schaetzung, Kappung FR55 aufgehoben (Sensor 25 Hz + Ausduennen), S62-Absturz.
-    # Getestet: FR55 + fenix 7X Pro echt, Instinct 2 + S62 im Simulator, Starttest aller 129 Uhren im Simulator.
-    # EINGEREICHT 09.10.2026 14:32 (Jans Meldung, Connect IQ Store).
-    {"name": "Garmin", "version": "1.0.92",
-     "eingereicht": "2026-10-09",
-     "items": [
-         "Save storage: the watch keeps GPS, heart rate and motion data only while you move faster than 6 km/h, plus 30 seconds before and after, and you can switch this for each watch under My watches.",
-         "If storage runs low during a recording, the watch switches to GPS only instead of losing the rest of the session.",
-         "The remaining recording time is more accurate, and the storage full message no longer appears without reason.",
-         "The motion data setting from your profile now applies to every watch, including the Forerunner 55.",
-         "The app no longer crashes when opened on the Approach S62.",
-     ]},
+    # Garmin 1.0.92 am 09.10. FREIGEGEBEN (s. `_APP_META`); Punkte + Ereignisse im Changelog (ids 550-556).
     # iPhone + Apple Watch 1.1.44 am 09.10. freigegeben -> raus (s. _APP_META["ios"]/["apple"]).
     # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
     # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
