@@ -835,7 +835,7 @@ internal fun sessionStatsTeile(a: Analysis, m: Metrics?): List<String> {
     }
 }
 
-private fun fmtDur(s: Double): String { val t = s.toInt(); return "%d:%02d".format(t / 60, t % 60) }
+private fun fmtDur(s: Double): String = fmtLaufDauer(s)
 
 // Tages-Gruppe (≥2 Sessions eines Nutzers am Tag): eingeklappte Kopf-Kachel mit Tages-Summen +
 // Zähler + Kombi-Minimap(s); aufgeklappt die Einzel-Sessions (je mit Detail-Link). Wie PWA.

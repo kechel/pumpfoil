@@ -33,7 +33,7 @@ func row(_ key: String, _ e: CommunityRecordEntry?, ohneSession: Bool = false,
     return RecRow(id: key, label: Loc.t(key, lang), value: da ? fmt(e!.value ?? 0) : "–",
                   entry: da ? e : nil)
 }
-func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+func dur(_ s: Double) -> String { fmtLaufDauer(s) }
 // Tageszeit-Rekorde: Sekunden seit Mitternacht (Spot-Ortszeit); Night Owl kann >24 h sein.
 func hhmm(_ v: Double) -> String {
     let s = ((Int(v) % 86400) + 86400) % 86400

@@ -833,6 +833,21 @@ NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.41 / 1.2.41",
      "items": [
          "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
+         # 09.10.2026: Web-Neuerungen des Tages nachgezogen (Android im Emulator gesehen).
+         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
+         "Your linked Garmin watch shows its picture under My watches.",
+         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
+         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
+         "The default data pages from the community are marked with their name and author in the data pages editor.",
+     ]},
+    # 09.10.2026: dieselben Punkte fuer das iPhone (Code nur swiftc -parse; Build/Typpruefung bei Jan in Xcode).
+    {"name": "iPhone + Apple Watch", "version": "1.1.45",
+     "items": [
+         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
+         "Your linked Garmin watch shows its picture under My watches.",
+         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
+         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
+         "The default data pages from the community are marked with their name and author in the data pages editor.",
      ]},
     # 08.10.2026 (Jan: „Huawei im changelog unter coming next"): Recorder fuer alle drei Huawei-Linien
     # (Lite GT/Fit/D, Watch 3/4, Watch 5), Uebertragung ueber die Android-App. Im Simulator geprueft,

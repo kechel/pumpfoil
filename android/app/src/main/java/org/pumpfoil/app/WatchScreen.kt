@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -252,7 +253,13 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                 if (idx > 0) HorizontalDivider(Modifier.padding(vertical = 10.dp))
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    // Bild der verknuepften Uhr (nur Garmin, aus dem Simulator; wie im Web), sonst das Symbol
+                    val bild = Api.mediaUrl(d.bildUrl)
+                    if (bild != null) {
+                        coil.compose.AsyncImage(model = bild, contentDescription = null, modifier = Modifier.size(56.dp))
+                    } else {
+                        Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    }
                     Spacer(Modifier.width(8.dp))
                     Text(d.model ?: d.label ?: I18n.t("account.deviceUnnamed"), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     d.appVersion?.let { Text("v$it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -329,6 +336,26 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     Rueck("${d.id}:gnss")
                     Text(I18n.t("account.gnssModeHint"), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
+                // Speicher sparen (Garmin ab 1.0.92): GPS + Bewegungsdaten nur um bewegte Abschnitte. Genau
+                // erklaert wie im Web (Jan: „wichtig ist das das genau erklaert wird"), mit den Zahlen DIESER Uhr.
+                if (d.gpsSparenMoeglich) {
+                    Spacer(Modifier.height(10.dp))
+                    var sparen by remember(d.id, ladeStand) { mutableStateOf(d.gpsSparen != false) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(I18n.t("account.gpsSparen"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
+                        androidx.compose.material3.Switch(checked = sparen, onCheckedChange = { an ->
+                            sparen = an
+                            speichern("${d.id}:sparen") { Api.setDeviceGpsSparen(d.id, an) }
+                        })
+                    }
+                    Rueck("${d.id}:sparen")
+                    val hinweis = MaterialTheme.typography.bodyMedium
+                    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+                    Text(I18n.t("account.gpsSparenHint"), style = hinweis, color = grau, modifier = Modifier.padding(top = 4.dp))
+                    Text(sparUhrText(d), style = hinweis, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(top = 4.dp))
+                    Text(I18n.t("account.gpsSparenNotfall"), style = hinweis, color = grau, modifier = Modifier.padding(top = 4.dp))
+                    Text(I18n.t("account.gpsSparenAus"), style = hinweis, color = grau, modifier = Modifier.padding(top = 4.dp))
                 }
                 // Je Uhr NUR, was sie auch umsetzt — wie die PWA (Jan, 25.09.2026: „je uhr einfach
                 // nur das anbieten was auch sinn ergibt"). Wassersperre: alle ausser Garmin, dort hat
@@ -539,4 +566,23 @@ fun HuaweiKarte() {
             }
         }
     }
+}
+
+// Aufnahmezeit bis „Speicher voll" fuer den Hinweis bei Speicher sparen — dieselbe Rechnung wie das Web
+// (Account.tsx sparMinuten) und die Uhr: 90 % der gemessenen Grenze, 11,5 KB/min bei 25 Hz, 6,1 bei 10 Hz,
+// 2,5 nur GPS; mit Sparen bleiben meist 30–50 % gespeichert -> Faktor 2 bis 3. Ohne Messung keine Zahl.
+private fun sparUhrText(d: PairedDevice): String {
+    val kb = d.speicherKb
+    if (kb <= 0 || kb >= 5000) return I18n.t("account.gpsSparenUhrUnbekannt")
+    val modus = when {
+        d.seitenKlasse == "lite" || d.recordMode == "gps" -> "gps"
+        d.recordMode == "lite" || d.lowAccel -> "lite"
+        else -> "full"
+    }
+    val kbMin = when (modus) { "gps" -> 2.5; "lite" -> 6.1; else -> 11.5 }
+    val ohne = Math.round(kb * 0.9 / kbMin).toInt()
+    val modusText = I18n.t(when (modus) { "gps" -> "account.sparModusGps"; "lite" -> "account.sparModusLite"; else -> "account.sparModusFull" })
+    return I18n.t("account.gpsSparenUhr")
+        .replace("{kb}", kb.toString()).replace("{modus}", modusText)
+        .replace("{ohne}", ohne.toString()).replace("{von}", (ohne * 2).toString()).replace("{bis}", (ohne * 3).toString())
 }

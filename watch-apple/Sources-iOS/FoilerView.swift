@@ -662,12 +662,8 @@ func foilerRekordWert(_ metric: String, _ v: Double) -> String {
     }
 }
 
-/// m:ss wie die PWA (Minuten abgerundet, Sekunden gerundet).
-func foilerMinSek(_ s: Double) -> String {
-    let m: Int = Int(s / 60)
-    let sek: Int = Int(s.truncatingRemainder(dividingBy: 60).rounded())
-    return String(format: "%d:%02d", m, sek)
-}
+/// m:ss bzw. ab einer Stunde h:mm:ss, wie die PWA (fmtLaufDauer).
+func foilerMinSek(_ s: Double) -> String { fmtLaufDauer(s) }
 
 func foilerUhrzeit(_ v: Double) -> String {
     let s: Int = ((Int(v) % 86400) + 86400) % 86400

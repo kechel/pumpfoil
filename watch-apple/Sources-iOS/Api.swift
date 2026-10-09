@@ -1384,6 +1384,12 @@ enum Api {
         let _: GnssModeResp = try await request("/api/devices/\(id)/gnss-mode", method: "PUT", body: ["gnss_mode": mode], auth: true)
     }
 
+    // Speicher sparen je Uhr (Garmin ab 1.0.92), wie die PWA.
+    struct GpsSparenResp: Decodable { let gps_sparen: Bool? }
+    static func setDeviceGpsSparen(_ id: Int, an: Bool) async throws {
+        let _: GpsSparenResp = try await request("/api/devices/\(id)/gps-sparen", method: "PUT", body: ["gps_sparen": an], auth: true)
+    }
+
     // Wassersperre je Uhr (auto|on|off). Nicht Garmin — dort hat der Aufnahme-Bildschirm gar
     // keine Tipp-Behandlung.
     struct WaterLockResp: Decodable { let water_lock: String? }

@@ -287,4 +287,4 @@ private fun SportMarke(text: String) {
 }
 
 // Foil-Zeit der Gruppe als m:ss — dasselbe Format wie die Gruppenkachel (fmtDur in SessionsScreen.kt).
-private fun zeilenDauer(s: Double): String { val t = s.toInt(); return "%d:%02d".format(t / 60, t % 60) }
+private fun zeilenDauer(s: Double): String = fmtLaufDauer(s)

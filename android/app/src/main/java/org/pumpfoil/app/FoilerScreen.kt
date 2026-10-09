@@ -363,7 +363,7 @@ private fun titelFormat(metric: String): Pair<String, (Double) -> String> = when
 }
 
 // m:ss wie im Web (floor Minuten, gerundete Sekunden).
-private fun minSek(v: Double): String = "%d:%02d".format((v / 60).toInt(), (v % 60).roundToInt())
+private fun minSek(v: Double): String = fmtLaufDauer(v)
 
 private fun uhrzeit(s: Double): String { val t = s.toInt(); return "%02d:%02d".format(t / 3600, (t % 3600) / 60) }
 

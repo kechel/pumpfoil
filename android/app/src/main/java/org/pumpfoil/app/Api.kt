@@ -1352,6 +1352,12 @@ object Api {
         http("PUT", "/api/devices/$id/record-mode", buildJsonObject { put("record_mode", mode) }.toString(), auth = true)
     }
 
+    // Speicher sparen je Uhr (an/aus) — nur Garmin, wirkt ab Uhr 1.0.92 (devices.py set_device_gps_sparen).
+    suspend fun setDeviceGpsSparen(id: Int, an: Boolean): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/devices/$id/gps-sparen", buildJsonObject { put("gps_sparen", an) }.toString(), auth = true)
+        Unit
+    }
+
     // GNSS-Stufe je Uhr setzen (best|l1|two|gps). Nur Garmin liefert das aus; der Server
     // prueft den Wert selbst (devices.py set_device_gnss_mode).
     suspend fun setDeviceGnssMode(id: Int, mode: String): Unit = withContext(Dispatchers.IO) {

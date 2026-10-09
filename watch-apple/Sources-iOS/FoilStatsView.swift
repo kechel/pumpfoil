@@ -172,8 +172,7 @@ struct FoilStatsView: View {
     // m:ss wie in den Rekord-Kacheln der Startseite; erst runden, sonst entsteht "6:60".
     private func durStr(_ sec: Double?) -> String {
         guard let sec else { return "–" }
-        let t = Int(sec.rounded())
-        return String(format: "%d:%02d", t / 60, t % 60)
+        return fmtLaufDauer(sec)
     }
     private func kmStr(_ m: Double?) -> String {
         guard let m else { return "–" }

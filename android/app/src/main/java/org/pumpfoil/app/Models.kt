@@ -37,6 +37,14 @@ data class PairedDevice(
     // Zahl der AUSGEBLENDETEN Eintraege desselben Nutzers — steht in jeder Antwort, damit die
     // Oberflaeche "N ausgeblendete anzeigen" anbieten kann, ohne ein zweites Mal zu fragen.
     @SerialName("hidden_total") val hiddenTotal: Int = 0,
+    // Speicher sparen (GPS + Accel nur um bewegte Abschnitte, Garmin ab 1.0.92): Wert je Uhr (null =
+    // Server-Standard nach gemessener Ablage), ob schaltbar, und die gemessene Speichergrenze in KB
+    // (0 = nicht gemessen) fuer den Hinweis „so lange nimmt diese Uhr auf".
+    @SerialName("gps_sparen") val gpsSparen: Boolean? = null,
+    @SerialName("gps_sparen_moeglich") val gpsSparenMoeglich: Boolean = false,
+    @SerialName("speicher_kb") val speicherKb: Int = 0,
+    // Geraetebild der Uhr (/media/uhrbilder/<id>.webp, nur Garmin) — nur im eigenen Profil gezeigt.
+    @SerialName("bild_url") val bildUrl: String? = null,
 )
 
 // Spiegelt die API-Schemas (snake_case JSON -> camelCase via @SerialName).
@@ -1103,6 +1111,9 @@ data class WatchLayoutBrief(
     val copies: Int? = null,
     val used_by: Int? = null,
     val has_freetext: Boolean = false,
+    // Standard-Seite aus der Community (negative ID, server/app/standard_layouts.py): gehoert niemandem,
+    // zeigt Name + Autor. Speichert man sie zurueck, legt der Server eine eigene Kopie an.
+    val standard: Boolean = false,
     val published: Boolean = false,
 )
 

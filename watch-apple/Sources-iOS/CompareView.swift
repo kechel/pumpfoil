@@ -483,7 +483,7 @@ struct CompareView: View {
 
     private func mmss(_ s: Double?) -> String {
         guard let s else { return "–" }
-        return String(format: "%d:%02d", Int(s) / 60, Int(s) % 60)
+        return fmtLaufDauer(s)
     }
     // Explizit typisierte Helfer — entlasten den Swift-Type-Checker (Archive/Release kippt sonst
     // bei verschachtelten .map{}??-Interpolationen -> „unendliches" Kompilieren).
@@ -544,7 +544,7 @@ struct CompareView: View {
     /// in Loc.swift die Uebersetzungstabellen in Bloecke zerlegt hat.
     private var cmpMetrics: [CmpMetric] {
         let w = mapWin
-        func mmssF(_ v: Double) -> String { String(format: "%d:%02d", Int(v) / 60, Int(v) % 60) }
+        func mmssF(_ v: Double) -> String { fmtLaufDauer(v) }
         func einF(_ v: Double) -> String { String(format: "%.1f", v) }
         func ganzF(_ v: Double) -> String { String(format: "%.0f", v) }
         func segsOf(_ s: SessionDetail) -> [Segment] { s.analysis?.segments ?? [] }
