@@ -745,6 +745,33 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 09.10.2026 (Jans Meldung, Play Console: Produktion 55 (1.1.41), Produktion (Wear OS)
+    # 1051 (1.2.41), „Schnelle Vorabprüfungen … noch maximal 14 Minuten“). Ersetzt die abgelehnte
+    # 1.1.40 / 1.2.40: dieselben Punkte plus R8-Fix (77146918) und Portierung vom 09.10. (081c95f3).
+    {"name": "Android phone + Wear OS", "version": "1.1.41 / 1.2.41",
+     "eingereicht": "2026-10-09",
+     "items": [
+         # Aus der abgelehnten 1.1.40 / 1.2.40 (09.10.) uebernommen.
+         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
+         "The watch asks once for physical activity access, which it only uses to measure your speed while you record.",
+         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
+         "In direct chats, two ticks show that your message has been read.",
+         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
+         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
+         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
+         # 01.10.2026: fafdd410.
+         "The longest-run record shows kilometres from 1,000 m on.",
+         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
+         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
+         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
+         # 09.10.2026: Web-Neuerungen des Tages nachgezogen (Android im Emulator gesehen).
+         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
+         "Your linked Garmin watch shows its picture under My watches.",
+         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
+         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
+         "The default data pages from the community are marked with their name and author in the data pages editor.",
+     ]},
     # Garmin 1.0.92 am 09.10. FREIGEGEBEN (s. `_APP_META`); Punkte + Ereignisse im Changelog (ids 550-556).
     # iPhone + Apple Watch 1.1.44 am 09.10. freigegeben -> raus (s. _APP_META["ios"]/["apple"]).
     # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
@@ -826,29 +853,7 @@ NAECHSTES: list[dict] = [
     # 07.10.2026 (Roman, Handy am Brett, #13908): Android/iOS zeigten „nur ~47 Hz, braucht 15 Hz",
     # obwohl der Accel ausgewertet war — die PWA blendet den Hinweis am Brett seit 03.10. aus, die
     # Apps hatten das nie bekommen. Code fertig, wartet auf die naechste Runde (nicht gebumpt).
-    {"name": "Android phone + Wear OS", "version": "1.1.41 / 1.2.41",
-     "items": [
-         # Aus der abgelehnten 1.1.40 / 1.2.40 (09.10.) uebernommen.
-         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
-         "The watch asks once for physical activity access, which it only uses to measure your speed while you record.",
-         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
-         "In direct chats, two ticks show that your message has been read.",
-         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
-         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
-         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
-         # 01.10.2026: fafdd410.
-         "The longest-run record shows kilometres from 1,000 m on.",
-         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
-         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
-         # 09.10.2026: Web-Neuerungen des Tages nachgezogen (Android im Emulator gesehen).
-         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
-         "Your linked Garmin watch shows its picture under My watches.",
-         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
-         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
-         "The default data pages from the community are marked with their name and author in the data pages editor.",
-     ]},
+    # Android 1.1.41 / Wear 1.2.41 am 09.10. eingereicht -> IN_REVIEW.
     # 09.10.2026: dieselben Punkte fuer das iPhone (Code nur swiftc -parse; Build/Typpruefung bei Jan in Xcode).
     {"name": "iPhone + Apple Watch", "version": "1.1.45",
      "items": [
