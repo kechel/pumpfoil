@@ -540,6 +540,8 @@ const ja: Record<string, string> = {
   "account.gnssModeTwo": "GPS + 1システム",
   "account.gnssModeGps": "GPSのみ（最も省電力）",
   "account.gnssModeHint": "システムが多いほど位置を速く確実に取得できますが、電池を多く使います。Garmin のみ、時計バージョン 1.0.77 以降。",
+  "account.gpsSparen": "容量を節約：走行の前後だけGPSを保存",
+  "account.gpsSparenHint": "時速6kmを超えている間と、その前後30秒だけGPSを保存します。容量はおよそ2倍に。ランと解析はそのままで、地図からはラン間の移動だけが消えます。時計バージョン1.0.92以降、動きのデータなしで記録する場合のみ。",
   "account.waterLock": "ウォーターロック",
   "account.waterLockAuto": "自動（推奨）",
   "account.waterLockOn": "常にオン",

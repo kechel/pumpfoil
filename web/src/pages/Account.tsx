@@ -257,6 +257,10 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, gnss_mode: mode } : x)) : ds));
     speichern(`${id}:gnss`, api.setDeviceGnssMode(id, mode));
   };
+  const setGpsSparen = (id: number, an: boolean) => {
+    setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, gps_sparen: an } : x)) : ds));
+    speichern(`${id}:gpsSparen`, api.setDeviceGpsSparen(id, an));
+  };
   const setWaterLock = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, water_lock: mode } : x)) : ds));
     speichern(`${id}:water`, api.setDeviceWaterLock(id, mode));
@@ -358,6 +362,19 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     </select>
                     <Rueck k={`${d.id}:gnss`} />
                     <p className="mt-1 text-sm text-slate-400">{t("account.gnssModeHint")}</p>
+                  </div>
+                )}
+                {/* GPS nur um bewegte Abschnitte speichern (Jan, 09.10.2026) — nur Garmin-Uhren mit wenig
+                    Speicher (96/128 KB), nur dort steckt der Code. Standard an; aus = jeden Punkt. */}
+                {!d.revoked_at && d.gps_sparen_moeglich && (
+                  <div className="mt-2">
+                    <label className="flex max-w-sm items-center gap-2 text-sm text-slate-200">
+                      <input type="checkbox" checked={d.gps_sparen !== false}
+                        onChange={(e) => setGpsSparen(d.id, e.target.checked)} />
+                      {t("account.gpsSparen")}
+                    </label>
+                    <Rueck k={`${d.id}:gpsSparen`} />
+                    <p className="mt-1 text-sm text-slate-400">{t("account.gpsSparenHint")}</p>
                   </div>
                 )}
                 {/* Wassersperre je Uhr — NICHT fuer Garmin: unser Aufnahme-Bildschirm hat dort

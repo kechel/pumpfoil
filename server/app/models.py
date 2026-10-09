@@ -150,6 +150,9 @@ class DeviceToken(Base):
     # Akku — deshalb je Uhr einstellbar wie der Aufzeichnungsmodus (Jan, 16.08.), statt es fuer
     # alle gleich zu entscheiden. Die Uhr holt den Wert beim App-Start ueber /config.
     gnss_mode: Mapped[str | None] = mapped_column(String(8))
+    # GPS nur um bewegte Abschnitte speichern (Garmin 96/128-KB-Uhren ab 1.0.92, Jan 09.10.2026):
+    # None/True = an (Standard), False = jeden Punkt speichern. Je Uhr in „Meine Uhren".
+    gps_sparen: Mapped[bool | None] = mapped_column(Boolean)
     # Wassersperre dieser Uhr: "auto" (Uhr entscheidet) | "on" | "off"; None = Nutzer-Default.
     water_lock: Mapped[str | None] = mapped_column(String(8))
     # Wake-up-Beschleunigungssensor dieser Uhr (nur Wear OS, ab 1.2.33): "on" | "off";

@@ -1450,6 +1450,8 @@ const es: Record<string, string> = {
   "account.gnssModeTwo": "GPS + un sistema",
   "account.gnssModeGps": "Solo GPS (el más eficiente)",
   "account.gnssModeHint": "Más sistemas encuentran la posición más rápido y con más fiabilidad, pero gastan más batería. Solo Garmin, desde la versión 1.0.77.",
+  "account.gpsSparen": "Ahorrar memoria: GPS solo alrededor de las bajadas",
+  "account.gpsSparenHint": "El reloj guarda el GPS solo cuando vas a más de 6 km/h, con 30 segundos antes y después: cabe aproximadamente el doble. Las bajadas y el análisis no cambian; en el mapa solo falta el camino entre bajadas. Desde la versión 1.0.92 del reloj y solo al grabar sin datos de movimiento.",
   "account.waterLock": "Bloqueo por agua",
   "account.waterLockAuto": "Automático (recomendado)",
   "account.waterLockOn": "Siempre activado",

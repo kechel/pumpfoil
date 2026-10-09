@@ -557,6 +557,8 @@ const nb: Record<string, string> = {
   "account.gnssModeTwo": "GPS + ett system",
   "account.gnssModeGps": "Bare GPS (mest sparsom)",
   "account.gnssModeHint": "Flere systemer finner posisjonen raskere og sikrere, men bruker mer batteri. Bare Garmin, fra klokkeversjon 1.0.77.",
+  "account.gpsSparen": "Spar lagring: GPS bare rundt turene",
+  "account.gpsSparenHint": "Klokken lagrer GPS bare når du er raskere enn 6 km/t, med 30 sekunder før og etter – da får du plass til omtrent dobbelt så mye. Turer og analyse blir det samme; på kartet mangler bare veien mellom turene. Fra klokkeversjon 1.0.92, og bare når det tas opp uten bevegelsesdata.",
   "account.waterLock": "Vannlås",
   "account.waterLockAuto": "Automatisk (anbefalt)",
   "account.waterLockOn": "Alltid på",

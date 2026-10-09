@@ -82,9 +82,10 @@ class SessionRecorder {
     hidden var _accelCount = 0;
     hidden var _accelOn = false;     // Roh-Accel zur Laufzeit aktiv? (sonst GPS-only)
     hidden var _gpsBuf;              // Array von [t_ms, lat, lon, speed, hr, hacc]
-    // Nur im Lite-Build benutzt (_gpsPunkt :lite), EIN Feld: die Klasse liegt an der Grenze von 253
-    // Mitgliedern (monkeyc, Instinct 2). [Vorlauf-Punkte, letzte 3 Tempi, haelt (0/1), ein, aus, nach]
-    hidden var _gZ = [[], [], 0, 0, 0, 0];
+    // Nur bei den GPS-Sparern benutzt (_gpsPunkt :gpssparen), EIN Feld: die Klasse liegt an der Grenze
+    // von 253 Mitgliedern (monkeyc, Instinct 2). [Vorlauf-Punkte, letzte 3 Tempi, haelt (0/1), ein,
+    // aus, nach, an (Schalter je Uhr aus /config, beim Start aus dem Cache gelesen)]
+    hidden var _gZ = [[], [], 0, 0, 0, 0, true];
 
     // Live-Stats
     hidden var _speedRing as Lang.Array<Lang.Float or Null> = new [SPEED_AVG_SAMPLES];
@@ -970,6 +971,11 @@ class SessionRecorder {
                 if (!_presetsApplied) { autoStart = data["autoStart"]; }   // live nur beim 1. Config
                 _store("auto_start", data["autoStart"]);                    // Cache = Web-Preset (Neustart)
             }
+            // GPS nur um bewegte Abschnitte (GPS-Sparer, je Uhr in „Meine Uhren"): nur cachen, wirkt ab
+            // der naechsten Aufnahme (start liest den Cache) — kein eigenes Feld, s. _gZ.
+            if (data.hasKey("gpsSparen") && data["gpsSparen"] instanceof Lang.Boolean) {
+                _store("gps_sparen", data["gpsSparen"]);
+            }
             if (data.hasKey("gnssMode") && data["gnssMode"] instanceof Lang.String) {
                 var gmNeu = data["gnssMode"];
                 if (!gmNeu.equals(gnssMode)) {
@@ -1206,7 +1212,8 @@ class SessionRecorder {
         _accelBuf = new [0]b;
         _accelCount = 0;
         _gpsBuf = [];
-        _gZ = [[], [], 0, 0, 0, 0];
+        var gsp = Storage.getValue("gps_sparen");   // je Uhr in „Meine Uhren"; fehlt -> an
+        _gZ = [[], [], 0, 0, 0, 0, !(gsp instanceof Lang.Boolean) || gsp];
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1918,14 +1925,15 @@ class SessionRecorder {
         }
     }
 
-    // Volle App: jeder GPS-Punkt wird gespeichert, wie immer.
-    (:full)
+    // Alle Uhren ausser den GPS-Sparern (monkey.jungle :gpssparen): jeder GPS-Punkt wird gespeichert.
+    (:gpsvoll)
     hidden function _gpsPunkt(p, spd) {
         _gpsBuf.add(p);
         if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
     }
 
-    // NUR die 96-KB-Uhren (Lite-Build): GPS nur um bewegte Abschnitte herum speichern (Jan, 09.10.2026:
+    // NUR die GPS-Sparer (monkey.jungle: die fuenf 96-KB-Uhren + fr55, Jan 09.10.2026: „phil faehrt mit
+    // meiner fr55 und die ist nach einer stunde voll") und NUR ohne Accel: GPS nur um bewegte Abschnitte herum speichern (Jan, 09.10.2026:
     // „nimm ruhig 6 km/h als schwelle fuer speichern, wichtig ist das genug puffer davor und danach
     // mitgespeichert wird, ruhig 30 sekunden"). Der Server braucht Vorlauf vor dem Lauf zum Entscheiden,
     // und seine GPS-Erkennung haengt hinterher — deshalb 33 Punkte davor (Erkennung + 30 s) und 30 danach.
@@ -1940,9 +1948,12 @@ class SessionRecorder {
     // Schwellen (als Zahlen, nicht als const — s. Mitglieder-Grenze oben): rein ab 6 km/h (1,667 m/s)
     // fuer 3 s (Median aus 3), raus unter 5 km/h (1,389 m/s) fuer 3 s; Vorlauf 33 Punkte (~30 s vor dem
     // Beginn), Nachlauf 30 Punkte.
-    (:lite)
+    (:gpssparen)
     hidden function _gpsPunkt(p, spd) {
+        // Mit Accel bleibt alles wie bisher: dort fuellt der Accel den Speicher, und der Fall ist
+        // am Server nicht nachgerechnet (nur GPS-only, s. oben).
         var z = _gZ;
+        if (_accelOn || !z[6]) { _gpsBufAdd(p); return; }   // abgeschaltet: jeden Punkt speichern
         var v = z[1];
         v.add(spd);
         if (v.size() > 3) { v = v.slice(1, null); z[1] = v; }
@@ -1969,7 +1980,7 @@ class SessionRecorder {
             if (vl.size() > 33) { z[0] = vl.slice(1, null); }
         }
     }
-    (:lite)
+    (:gpssparen)
     hidden function _gpsBufAdd(p) {
         _gpsBuf.add(p);
         if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }

@@ -1337,6 +1337,8 @@ const fr: Record<string, string> = {
   "account.gnssModeTwo": "GPS + un système",
   "account.gnssModeGps": "GPS seul (le plus économe)",
   "account.gnssModeHint": "Plus de systèmes trouvent la position plus vite et plus sûrement, mais consomment plus de batterie. Garmin uniquement, à partir de la version 1.0.77.",
+  "account.gpsSparen": "Économiser la mémoire : GPS seulement autour des runs",
+  "account.gpsSparenHint": "La montre n'enregistre le GPS que lorsque tu dépasses 6 km/h, avec 30 secondes avant et après — environ deux fois plus de place. Runs et analyse restent identiques ; seule la carte n'affiche plus le trajet entre les runs. À partir de la version 1.0.92 de la montre, et seulement sans données de mouvement.",
   "account.waterLock": "Verrou à l'eau",
   "account.waterLockAuto": "Automatique (recommandé)",
   "account.waterLockOn": "Toujours actif",

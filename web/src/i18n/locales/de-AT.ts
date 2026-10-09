@@ -1136,6 +1136,8 @@ const deAT: Record<string, string> = {
   "account.gnssModeTwo": "GPS + ein System",
   "account.gnssModeGps": "Nur GPS (sparsamste)",
   "account.gnssModeHint": "Mehr Systeme finden schneller und zuverlässiger Position, brauchen aber mehr Akku. Gilt nur für Garmin ab Uhr-Version 1.0.77.",
+  "account.gpsSparen": "Speicher sparen: GPS nur rund um die Fahrt",
+  "account.gpsSparenHint": "Die Uhr speichert GPS nur, solang du schneller als 6 km/h bist, mit 30 Sekunden davor und danach – so geht ungefähr doppelt so viel in den Speicher. Läufe und Auswertung bleiben gleich, auf der Karte fehlt nur der Weg zwischen den Läufen. Gilt ab Uhr-Version 1.0.92 und nur, wenn ohne Beschleunigungsdaten aufgezeichnet wird.",
   "account.waterLock": "Wassersperre",
   "account.waterLockAuto": "Automatisch (empfohlen)",
   "account.waterLockOn": "Immer an",
