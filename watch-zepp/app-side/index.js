@@ -63,12 +63,15 @@ async function handle(req) {
     // Speicher-Spitzenwert der App und Systemspeicher der Uhr, beide in KB (s. models.py).
     const qmem = req.mem ? "&mem=" + encodeURIComponent(req.mem) : "";
     const qmt = req.memtot ? "&memtot=" + encodeURIComponent(req.memtot) : "";
-    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql + qm + qc + qmem + qmt, method: "GET", headers: { "X-Device-Token": req.token } });
+    // Speicher voll (Uhr ab 1.0.14): dieselben Parameter wie Garmin, der Server zaehlt entprellt.
+    const qsf = req.sfKb ? "&sf=1&kb=" + encodeURIComponent(req.sfKb) : "";
+    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql + qm + qc + qmem + qmt + qsf, method: "GET", headers: { "X-Device-Token": req.token } });
     const code = r.status || 0;
     if (code === 401) return { paired: false, revoked: true };
     if (code < 200 || code >= 300) return { paired: true };
     const b = parse(r);
-    return { paired: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart,
+    // `ok`: der Server hat wirklich geantwortet (2xx) — erst dann darf die Uhr Gemeldetes loeschen.
+    return { paired: true, ok: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart,
       // Halten oder kurzer Druck fuer STOPP (Profil-Einstellung, gilt fuer alle Uhren).
       stopMode: b && b.stopMode, colorByValue: b && b.colorByValue,
       foils: b && b.foils, alarmEnabled: b && b.alarmEnabled, alarmDefault: b && b.alarmDefault, speedHigh: b && b.speedHigh, speedLow: b && b.speedLow,

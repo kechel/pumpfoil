@@ -1465,6 +1465,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   voll läuft (→ `storage_full_kb`). Für Zepp (Warteschlange in `@zos/storage`, begrenzt) und Huawei Lite
   (Puffer wächst ohne Handy) erst messen, dann über Speicher-Sparen entscheiden — der Server kann es
   schon (`accel_luecken`).
+  **🟡 Zepp GEBAUT (nächste Amazfit-Fassung, nicht gebumpt):** 3. Schreibfehler in Folge (Accel oder GPS) →
+  belegtes Volumen (wartende Sessions + laufende) als `sf=1&kb=…` beim nächsten CONFIG; gelöscht erst nach
+  2xx (`ok` aus der App-Side). Zepp nennt keinen Fehlergrund, daher die 3er-Schwelle. Node-Test der Helfer,
+  `node --check`; Server-Test `test_speicher_voll_zepp.py` (zählt, schaltet für Zepp nichts um).
+  Ungeprüft: Zeus-Build + Simulator (nur auf Jans Mac). Nebenbefund, nicht geändert: bei dauerhaftem
+  Accel-Schreibfehler wächst `accelBuffer` im RAM weiter (Absturzrisiko) — nach der ersten Messung entscheiden.
+  **Huawei offen:** die Uhr zählt Schreibfehler schon (`R.f.speicher`, angezeigt), aber Lite hat kein HTTP —
+  der Weg zum Server liefe über die Nachrichten ans Handy (Protokoll `PF1|…` erweitern, Android + Uhr
+  zusammen). Erst mit echter Hardware sinnvoll (Wear-Engine-Antrag läuft).
 - **09.10. — Garmin 1.0.92 (Speicher sparen) vor watch/bin testen:** FR55 Wasserfahrt mit 10 Hz (RAM: Accel-
   Vorlauf ~33 Pakete ≈ 5–7 KB zusätzlich), Instinct 2 (nur GPS), eine große Uhr mit 25 Hz; je Session am
   Server prüfen: `meta.json` hat `accel_luecken`, `metrics_json.time_base_notes` sagt „mit Luecken", keine

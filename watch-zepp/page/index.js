@@ -413,6 +413,43 @@ const loadPending = () => { try { return JSON.parse(store.getItem("pending", "[]
 const savePending = (a) => { try { store.setItem("pending", JSON.stringify(a)); } catch (e) {} };
 const removePending = (uuid) => savePending(loadPending().filter((s) => s.uuid !== uuid));
 
+// „SPEICHER VOLL" MELDEN (09.10.2026, Gegenstueck zu Garmin `sf`/`kb`, s. devices.py). Bisher wusste der
+// Server nur von Garmin-Uhren, wann ihr Puffer volllaeuft; hier scheiterte das Schreiben stumm (nur
+// console.log). Zepp OS nennt den GRUND eines Fehlschlags nicht (kein StorageFullException wie bei
+// Connect IQ) — deshalb zaehlt erst der DRITTE Fehlschlag in Folge, ein einzelner Aussetzer nicht.
+// Gemeldet wird, wie viel die Uhr dabei belegt hatte (alle wartenden Sessions + die laufende), damit
+// der Server je Modell lernt, wie viel Platz eine Amazfit wirklich hat — erst messen, dann ueber
+// Speicher-Sparen entscheiden. Der Wert liegt ZUSAETZLICH im Speicher der Seite: ist der Flash voll,
+// scheitert womoeglich auch `store.setItem`.
+const SF_KEY = "sf_kb";
+let sfKbLauf = 0;
+const belegtKb = (aktiv) => {
+  let b = 0;
+  for (const p of loadPending()) {
+    if (aktiv && p.uuid === aktiv.uuid) continue;
+    for (const f of [p.accelFile, p.gpsFile]) {
+      if (!f) continue;
+      try { const st = statSync({ path: f }); if (st && st.size > 0) b += st.size; } catch (e) {}
+    }
+  }
+  if (aktiv) b += (aktiv.accelBytes || 0) + (aktiv.gpsCount || 0) * 18;
+  return Math.max(1, Math.ceil(b / 1024));
+};
+const speicherVollMerken = (kb) => {
+  sfKbLauf = Math.max(sfKbLauf, kb);
+  try {
+    const alt = parseInt(store.getItem(SF_KEY, "0"), 10) || 0;
+    if (kb > alt) store.setItem(SF_KEY, String(kb));
+  } catch (e) {}
+  console.log("[pumpfoil] storage full? write failed 3x, " + kb + " KB in use");
+};
+const speicherVollKb = () => {
+  let kb = sfKbLauf;
+  try { kb = Math.max(kb, parseInt(store.getItem(SF_KEY, "0"), 10) || 0); } catch (e) {}
+  return kb;
+};
+const speicherVollGemeldet = () => { sfKbLauf = 0; try { store.setItem(SF_KEY, ""); } catch (e) {} };
+
 // Wasserstand je Session: wie viele GPS- und Accel-Bloecke der Server schon bestaetigt hat.
 // Verfahren von der Garmin-Uhr uebernommen (`_sa`/`_sg` in watch/source/Uploader.mc) — GETRENNT
 // nach Art, weil beide Arten ihre eigene Nummerierung ab 0 haben.
@@ -1028,9 +1065,12 @@ Page(
         if (written !== buffer.byteLength) throw new Error("short accelerometer write " + written);
         s.accelBytes += buffer.byteLength;
         s.accelBuffer = [];
+        s.accelFehler = 0;
       } catch (e) {
         if (fd >= 0) { try { closeSync({ fd }); } catch (e2) {} }
         console.log("[pumpfoil] accelerometer write failed " + ((e && e.message) || e));
+        s.accelFehler = (s.accelFehler || 0) + 1;
+        if (s.accelFehler === 3) speicherVollMerken(belegtKb(s));
       }
     },
 
@@ -1084,6 +1124,7 @@ Page(
         // schwieg dann — dadurch sah ein kaputter Schreibpfad wie „die Aufnahme hoert auf" aus,
         // und ich habe einen Abend lang die falsche Stelle gesucht.
         console.log("[pumpfoil] gps write failed " + ((e && e.message) || e));
+        if (s.gpsFehler + 1 === 3) speicherVollMerken(belegtKb(s));
         // Nach drei Fehlschlaegen in Folge zurueck auf den Weg von 1.0.9: Spur im Speicher. Der
         // ist erprobt. Lieber viel Speicher als eine Aufnahme, die stumm bei zehn Punkten endet.
         //
@@ -1504,13 +1545,17 @@ Page(
       // Frage, wie nah die App dran war. Sonst der aktuelle Hoechststand dieses Laufs; der
       // Server behaelt ohnehin nur das Maximum.
       const mem = (crash && s.crashMem) || memRead();
+      const sfKb = speicherVollKb();
       this.reqQ({ method: "CONFIG", token: getTok(), version: APP_VERSION, model: DEVICE_MODEL,
-                  crash: crash, mem: mem && mem.peak, memtot: mem && mem.total,
+                  crash: crash, mem: mem && mem.peak, memtot: mem && mem.total, sfKb: sfKb,
                   wantLayouts: s.layoutsPref !== false }).then((r) => {
         // ERST HIER loeschen, nicht beim Lesen: der Server hat geantwortet, die Auskunft ist
         // angekommen. Scheitert der Abruf, bleibt sie liegen und geht beim naechsten Versuch raus
         // — auch ueber einen App-Neustart hinweg.
         if (crash) { s.crashPhase = 0; s.crashMem = null; crashGemeldet(); }
+        // Speicher-voll-Meldung ebenso erst nach der Antwort loeschen (und nur, wenn der Server sie
+        // wirklich geantwortet hat: `ok` setzt die App-Side nur bei 2xx).
+        if (sfKb && r && r.ok) speicherVollGemeldet();
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         this._configAnwenden(r);
         this._configSichern(r);
