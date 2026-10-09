@@ -731,6 +731,19 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 09.10.2026: Garmin 1.0.92 (Commit 5f82a663) — Speicher sparen fuer GPS + Accel, Umschalten auf nur GPS
+    # bei < 100 KB frei, Speicher-Schaetzung, Kappung FR55 aufgehoben (Sensor 25 Hz + Ausduennen), S62-Absturz.
+    # Getestet: FR55 + fenix 7X Pro echt, Instinct 2 + S62 im Simulator, Starttest aller 129 Uhren im Simulator.
+    # EINGEREICHT 09.10.2026 14:32 (Jans Meldung, Connect IQ Store).
+    {"name": "Garmin", "version": "1.0.92",
+     "eingereicht": "2026-10-09",
+     "items": [
+         "Save storage: the watch keeps GPS, heart rate and motion data only while you move faster than 6 km/h, plus 30 seconds before and after, and you can switch this for each watch under My watches.",
+         "If storage runs low during a recording, the watch switches to GPS only instead of losing the rest of the session.",
+         "The remaining recording time is more accurate, and the storage full message no longer appears without reason.",
+         "The motion data setting from your profile now applies to every watch, including the Forerunner 55.",
+         "The app no longer crashes when opened on the Approach S62.",
+     ]},
     # iPhone + Apple Watch 1.1.44 am 09.10. freigegeben -> raus (s. _APP_META["ios"]/["apple"]).
     # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
     # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
@@ -821,17 +834,7 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 09.10.2026: Garmin 1.0.92 (Commit 5f82a663) — Speicher sparen fuer GPS + Accel, Umschalten auf nur GPS
-    # bei < 100 KB frei, Speicher-Schaetzung, Kappung FR55 aufgehoben (Sensor 25 Hz + Ausduennen), S62-Absturz.
-    # Getestet: FR55 + fenix 7X Pro echt, Instinct 2 + S62 im Simulator, Starttest aller 129 Uhren im Simulator.
-    {"name": "Garmin", "version": "1.0.92",
-     "items": [
-         "Save storage: the watch keeps GPS, heart rate and motion data only while you move faster than 6 km/h, plus 30 seconds before and after, and you can switch this for each watch under My watches.",
-         "If storage runs low during a recording, the watch switches to GPS only instead of losing the rest of the session.",
-         "The remaining recording time is more accurate, and the storage full message no longer appears without reason.",
-         "The motion data setting from your profile now applies to every watch, including the Forerunner 55.",
-         "The app no longer crashes when opened on the Approach S62.",
-     ]},
+    # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
     # 07.10.2026 (Roman, Handy am Brett, #13908): Android/iOS zeigten „nur ~47 Hz, braucht 15 Hz",
     # obwohl der Accel ausgewertet war — die PWA blendet den Hinweis am Brett seit 03.10. aus, die
