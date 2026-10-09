@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08, Apple-Mail „eligible for distribution · 1.1.43 for iOS"
+        "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09, Apple-Mail eligible for distribution, 1.1.44 for iOS
+        # (Jans Meldung, Submission 16003997-2233-4714-bbae-28c9fd33482f, eingereicht 08.10. 20:07, Build 50).
+        # Inhalt: Karte langer Sessions friert nicht mehr ein, kein falscher Rate-Hinweis am Brett,
+        # aussortierte Session ohne Laeufe stuerzt nicht mehr ab.
+        # ALT: "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08, Apple-Mail „eligible for distribution · 1.1.43 for iOS"
         # (Jans Meldung, Submission 96c09ad7-294a-46e1-b38b-d30d285d9d8e, eingereicht 07.10. 08:37, Build 49).
         # Inhalt: Online-Punkt, Lesehaken, Profil mit „Nachricht", Suche ohne Akzente, Foil-Knoepfe mit
         # Modell+Groesse, Upload-Leiste im Handy-Recorder, Rekord in km, Setup-Zeile + Popup.
@@ -385,7 +389,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -726,17 +731,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 08.10.2026 20:07 (Jans Meldung, App Store Connect „Warten auf Pruefung", 1.1.44 (50),
-    # Uebermittlung 16003997-2233-4714-bbae-28c9fd33482f).
-    # 07.10.2026 (Peter3, b44db846): aussortierte Session ohne Laeufe -> PowerCard Int(NaN) -> Absturz.
-    # 08.10.2026 (PumpingCarbon, b3584e63): 6-h-Session #13763 fror die Karte ein (21.765 Overlays).
-    {"name": "iPhone + Apple Watch", "version": "1.1.44",
-     "eingereicht": "2026-10-08",
-     "items": [
-         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
-         "Opening a filtered-out session no longer closes the app.",
-         "Very long sessions, such as a six-hour ride, open again instead of freezing the app.",
-     ]},
+    # iPhone + Apple Watch 1.1.44 am 09.10. freigegeben -> raus (s. _APP_META["ios"]/["apple"]).
     # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
     # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
     # Knopf „Nachricht", Profilbild fuehrt dorthin. Web ist live (c27b7aa5, 1d7ac4a0, 5272d67a,
