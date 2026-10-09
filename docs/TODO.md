@@ -1437,6 +1437,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **Garmin Approach S62 (FW 5.10): „IQ!“ beim Öffnen der App** (Connect-IQ-Anfrage 09.10.2026, Nutzer hat neu installiert, hilft nicht). Jans Rückfrage: andere Apps/Watchfaces installiert? IQ! schon beim ersten Öffnen oder erst mit Aufnahmen? Vermutung Jan: Speicher — **aber das S62 ist KEIN Low-Mem-Gerät** (compiler.json: watchApp 1 MB, Instinct 2 nur 96 KB), also eher ein Absturz im Code. Naechster Schritt: Absturzbericht holen (Garmin ERA fuer unsere App oder `GARMIN/APPS/LOGS/CIQ_LOG.YML` vom Geraet).
 - **💡 08.10. — Standard-Datenseiten ueberarbeiten (Jan: „gute custom-layouts als default ausliefern, sollte ja
   rein serverseitig direkt moeglich sein").** Wer nichts eingestellt hat, bekommt heute klassische 3-Feld-Seiten
   (`views [[1,2,0]]`, `offFoilView [12,17,16]`, `pauseView [12,20,2]`, server/app/api/devices.py). Stattdessen
