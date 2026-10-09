@@ -7,7 +7,9 @@
  * die Konsole pruefen (docs/HUAWEI.md).
  */
 export const PHONE_PKG: string = 'org.pumpfoil.app';
-export const PHONE_FP: string = 'PHONE_FINGERPRINT_EINTRAGEN';
+// Play App-Signaturschluessel (SHA-256, ohne Doppelpunkte, Play Console 09.10.2026). VERMUTUNG: dieselbe Form wie bei
+// Lite/Watch 3/4 — erst die erste echte Verbindung (Cloud-Debugging) belegt, ob ArkTS sie so annimmt.
+export const PHONE_FP: string = '50A78D3EE9627F96B63A13C7E8750250778E996F0CD3E48A586F38CD7A450FBB';
 /** iOS-App: laut Huawei kein Fingerabdruck („enter any text") — wir nehmen den Bundle-Namen. */
 export const IOS_PKG: string = 'org.pumpfoil.coolwatch';
 export const IOS_FP: string = 'org.pumpfoil.coolwatch';
