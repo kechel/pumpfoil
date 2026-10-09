@@ -540,6 +540,8 @@ const zh: Record<string, string> = {
   "account.gnssModeTwo": "GPS + 一个系统",
   "account.gnssModeGps": "仅 GPS（最省电）",
   "account.gnssModeHint": "系统越多定位越快越可靠，但更耗电。仅限 Garmin，手表版本 1.0.77 起。",
+  "account.gpsSparen": "节省存储：只在滑行前后记录 GPS",
+  "account.gpsSparenHint": "手表仅在速度超过 6 km/h 时保存 GPS，并多存前后各 30 秒——可存约两倍的数据。滑行和分析结果不变，地图上只少了滑行之间的路线。手表版本 1.0.92 起，仅在不记录运动数据时生效。",
   "account.waterLock": "防水锁",
   "account.waterLockAuto": "自动（推荐）",
   "account.waterLockOn": "始终开启",

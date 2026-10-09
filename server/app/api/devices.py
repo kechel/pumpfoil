@@ -513,6 +513,9 @@ def device_config(
         "recordMode": _effective_record_mode(device, settings),
         # GNSS-Stufe je Uhr (best|l1|two|gps) — Uhren vor 1.0.77 ignorieren den Schluessel.
         "gnssMode": _effective_gnss_mode(device, settings),
+        # GPS nur um bewegte Abschnitte speichern (96/128-KB-Garmin ab 1.0.92): Standard an, je Uhr
+        # abschaltbar. Volle Uhren haben den Code gar nicht und ignorieren den Schluessel.
+        "gpsSparen": device.gps_sparen is not False,
         # Wassersperre: "auto" (Uhr entscheidet) | "on" | "off". Aeltere Uhr-Versionen
         # ignorieren den Schluessel und verhalten sich wie bisher.
         "waterLock": _effective_water_lock(device, settings),
@@ -833,6 +836,9 @@ def list_devices(
             # Aufzeichnungsmodus pro Uhr: gesetzter Override, sonst User-Default (zur Anzeige).
             "record_mode": d.record_mode or udefault,
             "gnss_mode": d.gnss_mode or gdefault,
+            # GPS-Sparen: nur bei Garmin-Uhren mit wenig Speicher (lite/klassik) einstellbar.
+            "gps_sparen": d.gps_sparen is not False,
+            "gps_sparen_moeglich": d.platform == "garmin" and _seiten_klasse(cat.get(model["id"]) if model else None) in ("lite", "klassik"),
             # Wassersperre: fehlte hier bis 25.09. — gespeichert wurde richtig, aber das Profil
             # zeigte nach dem Neuladen immer „Automatisch". Wie `/config`: Uhr vor Konto vor "auto".
             "water_lock": _effective_water_lock(d, ustored),
@@ -937,6 +943,26 @@ def set_device_record_mode(
     d.record_mode = mode
     db.commit()
     return {"ok": True, "record_mode": mode}
+
+
+@router.put("/{device_id}/gps-sparen")
+def set_device_gps_sparen(
+    device_id: int, body: dict,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """GPS nur um bewegte Abschnitte speichern — an/aus fuer EINE Uhr. Greift ab der naechsten
+    Aufnahme nach dem naechsten Config-Abruf der Uhr (App-Start)."""
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    if d.revoked_at is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gerät ist widerrufen")
+    an = (body or {}).get("gps_sparen")
+    if not isinstance(an, bool):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "gps_sparen muss true oder false sein")
+    d.gps_sparen = an
+    db.commit()
+    return {"ok": True, "gps_sparen": an}
 
 
 @router.put("/{device_id}/gnss-mode")

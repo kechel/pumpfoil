@@ -562,6 +562,8 @@ const nl: Record<string, string> = {
   "account.gnssModeTwo": "GPS + één systeem",
   "account.gnssModeGps": "Alleen GPS (zuinigst)",
   "account.gnssModeHint": "Meer systemen vinden je positie sneller en betrouwbaarder, maar kosten meer batterij. Alleen Garmin, vanaf horlogeversie 1.0.77.",
+  "account.gpsSparen": "Geheugen sparen: GPS alleen rond je runs",
+  "account.gpsSparenHint": "Het horloge slaat GPS alleen op zolang je sneller gaat dan 6 km/u, met 30 seconden ervoor en erna — zo past er ongeveer twee keer zoveel in. Runs en analyse blijven gelijk; op de kaart ontbreekt alleen de weg tussen de runs. Vanaf horlogeversie 1.0.92 en alleen bij opnemen zonder bewegingsdata.",
   "account.waterLock": "Waterslot",
   "account.waterLockAuto": "Automatisch (aanbevolen)",
   "account.waterLockOn": "Altijd aan",

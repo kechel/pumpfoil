@@ -545,6 +545,8 @@ const fi: Record<string, string> = {
   "account.gnssModeTwo": "GPS + yksi järjestelmä",
   "account.gnssModeGps": "Vain GPS (säästäväisin)",
   "account.gnssModeHint": "Useampi järjestelmä löytää sijainnin nopeammin ja luotettavammin, mutta kuluttaa enemmän akkua. Vain Garmin, kellon versiosta 1.0.77.",
+  "account.gpsSparen": "Säästä tilaa: GPS vain ajojen ympäriltä",
+  "account.gpsSparenHint": "Kello tallentaa GPS:n vain, kun menet yli 6 km/h, sekä 30 sekuntia ennen ja jälkeen – tilaa riittää noin kaksi kertaa niin paljon. Ajot ja analyysi pysyvät samoina; kartalta puuttuu vain matka ajojen välillä. Kelloversiosta 1.0.92 alkaen ja vain tallennettaessa ilman liikedataa.",
   "account.waterLock": "Vesilukko",
   "account.waterLockAuto": "Automaattinen (suositus)",
   "account.waterLockOn": "Aina päällä",

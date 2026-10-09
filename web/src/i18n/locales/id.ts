@@ -540,6 +540,8 @@ const id: Record<string, string> = {
   "account.gnssModeTwo": "GPS + satu sistem",
   "account.gnssModeGps": "Hanya GPS (paling hemat)",
   "account.gnssModeHint": "Makin banyak sistem, posisi ditemukan lebih cepat dan andal, tetapi baterai lebih boros. Hanya Garmin, mulai versi jam 1.0.77.",
+  "account.gpsSparen": "Hemat memori: GPS hanya di sekitar run",
+  "account.gpsSparenHint": "Jam hanya menyimpan GPS saat kamu lebih cepat dari 6 km/jam, plus 30 detik sebelum dan sesudahnya — muat kira-kira dua kali lipat. Run dan analisis tetap sama; di peta hanya jalur antar-run yang hilang. Mulai versi jam 1.0.92 dan hanya saat merekam tanpa data gerakan.",
   "account.waterLock": "Kunci air",
   "account.waterLockAuto": "Otomatis (disarankan)",
   "account.waterLockOn": "Selalu aktif",

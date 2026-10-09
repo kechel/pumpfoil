@@ -1327,6 +1327,10 @@ export const api = {
   // Absturz-Zähler dieser Uhr zurücksetzen -> sie bekommt wieder eigene Layouts.
   resetLayoutCanary: (id: number) =>
     req<{ ok: boolean }>(`/api/devices/${id}/layout-canary/reset`, { method: "POST" }),
+  setDeviceGpsSparen: (id: number, gps_sparen: boolean) =>
+    req<{ ok: boolean; gps_sparen: boolean }>(`/api/devices/${id}/gps-sparen`, {
+      method: "PUT", body: JSON.stringify({ gps_sparen }),
+    }),
   setDeviceGnssMode: (id: number, gnss_mode: string) =>
     req<{ ok: boolean; gnss_mode: string }>(`/api/devices/${id}/gnss-mode`, {
       method: "PUT", body: JSON.stringify({ gnss_mode }),
@@ -1937,6 +1941,8 @@ export interface PairedDevice {
   model_id: string | null;    // Katalog-/Download-ID -> /api/app/download/<id>
   record_mode: string;        // Aufzeichnungsmodus dieser Uhr (full|lite|gps)
   gnss_mode?: string;         // GNSS-Stufe dieser Uhr (best|l1|two|gps), nur Garmin ab 1.0.77
+  gps_sparen?: boolean;       // GPS nur um bewegte Abschnitte speichern (Standard an)
+  gps_sparen_moeglich?: boolean;  // nur Garmin mit 96/128 KB, ab Uhr 1.0.92
   water_lock?: string;        // Wassersperre dieser Uhr (auto|on|off); nicht fuer Garmin
   accel_wakeup?: string | null;       // Wake-up-Sensor (on|off), null = Standard; nur Wear
   accel_wakeup_standard?: string;     // was ohne Override gilt (Konto bzw. global)

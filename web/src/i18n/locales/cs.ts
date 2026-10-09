@@ -562,6 +562,8 @@ const cs: Record<string, string> = {
   "account.gnssModeTwo": "GPS + jeden systém",
   "account.gnssModeGps": "Jen GPS (nejúspornější)",
   "account.gnssModeHint": "Více systémů najde polohu rychleji a spolehlivěji, ale spotřebuje více baterie. Jen Garmin, od verze hodinek 1.0.77.",
+  "account.gpsSparen": "Šetřit paměť: GPS jen kolem jízd",
+  "account.gpsSparenHint": "Hodinky ukládají GPS jen při rychlosti nad 6 km/h, s 30 sekundami před a po – vejde se zhruba dvakrát víc. Jízdy i rozbor zůstávají stejné; na mapě chybí jen cesta mezi jízdami. Od verze hodinek 1.0.92 a jen při záznamu bez pohybových dat.",
   "account.waterLock": "Zámek proti vodě",
   "account.waterLockAuto": "Automaticky (doporučeno)",
   "account.waterLockOn": "Vždy zapnuto",

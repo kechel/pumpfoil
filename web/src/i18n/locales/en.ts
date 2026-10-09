@@ -576,6 +576,8 @@ const en: Record<string, string> = {
   "account.gnssModeTwo": "GPS + one system",
   "account.gnssModeGps": "GPS only (most efficient)",
   "account.gnssModeHint": "More systems find your position faster and more reliably, but use more battery. Garmin only, from watch version 1.0.77.",
+  "account.gpsSparen": "Save storage: GPS only around your rides",
+  "account.gpsSparenHint": "The watch stores GPS only while you are faster than 6 km/h, plus 30 seconds before and after — so about twice as much fits. Runs and analysis stay the same; the map only misses the way between runs. From watch version 1.0.92, and only when recording without motion data.",
   "account.waterLock": "Water lock",
   "account.waterLockAuto": "Automatic (recommended)",
   "account.waterLockOn": "Always on",

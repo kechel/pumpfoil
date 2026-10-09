@@ -558,6 +558,8 @@ const pl: Record<string, string> = {
   "account.gnssModeTwo": "GPS + jeden system",
   "account.gnssModeGps": "Tylko GPS (najoszczędniej)",
   "account.gnssModeHint": "Więcej systemów szybciej i pewniej ustala pozycję, ale zużywa więcej baterii. Tylko Garmin, od wersji zegarka 1.0.77.",
+  "account.gpsSparen": "Oszczędzaj pamięć: GPS tylko wokół przejazdów",
+  "account.gpsSparenHint": "Zegarek zapisuje GPS tylko powyżej 6 km/h, plus 30 sekund przed i po – mieści się mniej więcej dwa razy więcej. Przejazdy i analiza bez zmian; na mapie brakuje tylko drogi między przejazdami. Od wersji zegarka 1.0.92 i tylko przy nagrywaniu bez danych ruchu.",
   "account.waterLock": "Blokada wodna",
   "account.waterLockAuto": "Automatycznie (zalecane)",
   "account.waterLockOn": "Zawsze włączona",

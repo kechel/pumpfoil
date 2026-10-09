@@ -540,6 +540,8 @@ const pt: Record<string, string> = {
   "account.gnssModeTwo": "GPS + um sistema",
   "account.gnssModeGps": "Só GPS (mais económico)",
   "account.gnssModeHint": "Mais sistemas encontram a posição mais depressa e com mais fiabilidade, mas gastam mais bateria. Só Garmin, a partir da versão 1.0.77.",
+  "account.gpsSparen": "Economizar memória: GPS só em torno das descidas",
+  "account.gpsSparenHint": "O relógio só grava o GPS quando você passa de 6 km/h, com 30 segundos antes e depois — cabe cerca do dobro. Descidas e análise continuam iguais; no mapa só falta o trajeto entre as descidas. A partir da versão 1.0.92 do relógio e só gravando sem dados de movimento.",
   "account.waterLock": "Bloqueio de água",
   "account.waterLockAuto": "Automático (recomendado)",
   "account.waterLockOn": "Sempre ligado",
