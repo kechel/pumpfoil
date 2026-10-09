@@ -3,7 +3,15 @@
 um (Speicher sparen, Ablage-Budget und GPS-only sind Garmin-Automatiken). Erst messen, dann entscheiden."""
 from __future__ import annotations
 
-from tests.test_gps_sparen import _paar
+
+def _paar(client, kennung: str):
+    # Eigene Kopie statt `from tests.test_gps_sparen import _paar`: `tests` ist kein Paket, das
+    # ging nur lokal durch und brach in der CI mit „No module named 'tests'" (09.10.2026).
+    r = client.post("/api/auth/register", json={"email": f"{kennung}@test.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    paar = client.post("/api/devices/pair", json={"code": code, "label": "Garmin"}).json()
+    return auth, {"X-Device-Token": paar["device_token"]}
 
 
 def _zepp(client, dev, extra=""):

@@ -745,6 +745,17 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
+    # Kennung 4f8b90a9-35d5-4b8b-91e1-ae255905c4e0). Inhalt: Portierung vom 09.10. (081c95f3).
+    {"name": "iPhone + Apple Watch", "version": "1.1.45",
+     "eingereicht": "2026-10-09",
+     "items": [
+         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
+         "Your linked Garmin watch shows its picture under My watches.",
+         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
+         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
+         "The default data pages from the community are marked with their name and author in the data pages editor.",
+     ]},
     # EINGEREICHT 09.10.2026 (Jans Meldung, Play Console: Produktion 55 (1.1.41), Produktion (Wear OS)
     # 1051 (1.2.41), „Schnelle Vorabprüfungen … noch maximal 14 Minuten“). Ersetzt die abgelehnte
     # 1.1.40 / 1.2.40: dieselben Punkte plus R8-Fix (77146918) und Portierung vom 09.10. (081c95f3).
@@ -855,14 +866,7 @@ NAECHSTES: list[dict] = [
     # Apps hatten das nie bekommen. Code fertig, wartet auf die naechste Runde (nicht gebumpt).
     # Android 1.1.41 / Wear 1.2.41 am 09.10. eingereicht -> IN_REVIEW.
     # 09.10.2026: dieselben Punkte fuer das iPhone (Code nur swiftc -parse; Build/Typpruefung bei Jan in Xcode).
-    {"name": "iPhone + Apple Watch", "version": "1.1.45",
-     "items": [
-         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
-         "Your linked Garmin watch shows its picture under My watches.",
-         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
-         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
-         "The default data pages from the community are marked with their name and author in the data pages editor.",
-     ]},
+    # iPhone + Apple Watch 1.1.45 am 09.10. eingereicht -> IN_REVIEW.
     # 08.10.2026 (Jan: „Huawei im changelog unter coming next"): Recorder fuer alle drei Huawei-Linien
     # (Lite GT/Fit/D, Watch 3/4, Watch 5), Uebertragung ueber die Android-App. Im Simulator geprueft,
     # nie auf Hardware; Wear-Engine-Freigabe und Signierung stehen aus (docs/TODO.md).
