@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09, Apple-Mail eligible for distribution, 1.1.44 for iOS
+        "latest": "1.1.45",   # FREIGEGEBEN 2026-10-09 abends, Apple-Mail eligible for distribution, 1.1.45 for iOS
+        # (Jans Meldung, Submission 4f8b90a9-35d5-4b8b-91e1-ae255905c4e0, eingereicht 09.10. 18:51, Build 51;
+        # Store-API de/us/ch 1.1.45, currentVersionReleaseDate 2026-10-09T20:42:37Z). Inhalt: Portierung
+        # vom 09.10. (Speicher sparen, Uhrbild, Laufdauer h:mm:ss, Community-Layouts, Standardseiten).
+        # ALT: "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09, Apple-Mail eligible for distribution, 1.1.44 for iOS
         # (Jans Meldung, Submission 16003997-2233-4714-bbae-28c9fd33482f, eingereicht 08.10. 20:07, Build 50).
         # Inhalt: Karte langer Sessions friert nicht mehr ein, kein falscher Rate-Hinweis am Brett,
         # aussortierte Session ohne Laeufe stuerzt nicht mehr ab.
@@ -392,7 +396,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.45",   # FREIGEGEBEN 2026-10-09 abends — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -747,15 +752,7 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = [
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
     # Kennung 4f8b90a9-35d5-4b8b-91e1-ae255905c4e0). Inhalt: Portierung vom 09.10. (081c95f3).
-    {"name": "iPhone + Apple Watch", "version": "1.1.45",
-     "eingereicht": "2026-10-09",
-     "items": [
-         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
-         "Your linked Garmin watch shows its picture under My watches.",
-         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
-         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
-         "The default data pages from the community are marked with their name and author in the data pages editor.",
-     ]},
+    # iPhone + Apple Watch 1.1.45 am 09.10. abends FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple (+web, wo die PWA es seit heute auch hat).
     # EINGEREICHT 09.10.2026 (Jans Meldung, Play Console: Produktion 55 (1.1.41), Produktion (Wear OS)
     # 1051 (1.2.41), „Schnelle Vorabprüfungen … noch maximal 14 Minuten“). Ersetzt die abgelehnte
     # 1.1.40 / 1.2.40: dieselben Punkte plus R8-Fix (77146918) und Portierung vom 09.10. (081c95f3).
