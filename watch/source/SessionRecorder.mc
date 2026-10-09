@@ -1946,6 +1946,12 @@ class SessionRecorder {
         // Mit Accel bleibt alles wie bisher: dort fuellt der Accel den Speicher, und der Fall ist
         // am Server nicht nachgerechnet (nur GPS-only, s. oben).
         var z = _gZ;
+        // Abgeschaltet, aber der Puffer wird knapp (Jan, 09.10.2026: „automatisches aktivieren wenn der
+        // verbleibende freie speicher unter 100kb gesunken ist waehrend der aufnahme"): ab hier fuer den
+        // Rest der Aufnahme sparen. Dieselbe Schaetzung wie die Restzeit-Anzeige (storageMinutesLeft).
+        if (!z[6] && storageBudgetKb > 0 && storageBudgetKb * 0.9 - Uploader.pendingKbCached() < 100) {
+            z[6] = true;
+        }
         if (_accelOn || !z[6]) { _gpsBufAdd(p); return; }   // abgeschaltet: jeden Punkt speichern
         var v = z[1];
         v.add(spd);
