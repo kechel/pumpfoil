@@ -1220,8 +1220,13 @@ class SessionRecorder {
         _accelBuf = new [0]b;
         _accelCount = 0;
         _gpsBuf = [];
-        var gsp = Storage.getValue("gps_sparen");   // je Uhr in „Meine Uhren"; fehlt -> an
-        _gZ = [[], [], 0, 0, 0, 0, !(gsp instanceof Lang.Boolean) || gsp, false, [], 0, {}];
+        // je Uhr in „Meine Uhren"; der Server schickt die Voreinstellung nach der gemessenen Ablage.
+        // FEHLT sie (frisch installiert, Aufnahme vor dem ersten Config-Abruf) -> AUS, wie bis 1.0.91.
+        // Bis zum S62-Test am 09.10.2026 hiess es „fehlt -> an": eine frische App auf einer Uhr mit viel
+        // Speicher (S62, Server-Standard aus) sparte dann trotzdem, und unter 6 km/h kam eine LEERE
+        // Session an (#14076).
+        var gsp = Storage.getValue("gps_sparen");
+        _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}];
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1334,6 +1339,11 @@ class SessionRecorder {
             try { Sensor.unregisterSensorDataListener(); } catch (e) {}
             _flushAccel(true);
         }
+        // Speicher sparen: den GPS-Vorlauf (bis 33 s) zum Schluss immer mitnehmen — sonst endet eine
+        // Aufnahme, in der man nie 3 s ueber 6 km/h war, ganz ohne Daten (kein Ort, keine Endzeit).
+        var vl = _gZ[0];
+        for (var k = 0; k < vl.size(); k++) { _gpsBufAdd(vl[k]); }
+        _gZ[0] = [];
         _flushGps(true);
         _recording = false;
         Uploader.setPauseSync(false);   // ab hier ist der REGULAERE Abschluss zustaendig
