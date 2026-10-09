@@ -301,6 +301,7 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
         place_name=first.place_name, place_water=first.place_water,
         place_lat=first.place_lat, place_lon=first.place_lon,
         foil_id=first.foil_id, is_pumpfoil=first.is_pumpfoil,
+        **_einstufung(sessions),
         # Setup des ERSTEN Teils uebernehmen, nicht den heutigen Profil-Standard.
         **uebernehmen(first),
         mod_ok=any(x.mod_ok for x in sessions),
@@ -381,6 +382,55 @@ def unmerge_session(db: DbSession, merged: models.Session) -> list[models.Sessio
     return sources
 
 
+# Import-Quellen, die EIN verknuepftes Konto liefert (Jan, 09.10.2026). Importierte Sessions haben keine
+# `device_id`, deshalb bekamen sie nie einen Vorschlag — auch wenn die Uhr eine Session in Teile
+# zerlegt hat (Fall Chasingbirds: Suunto lieferte eine Pumpfoil-Session als 7 Aufnahmen). Bei diesen
+# Quellen stammt alles aus dem Konto EINER Person; zwei Uhren gleichzeitig faengt die Luecken-Regel
+# (keine Ueberlappung) ab. Hochgeladene Dateien (`fit-`, `imp-`) bleiben draussen: dort kann jede
+# Datei von einer anderen Uhr kommen.
+IMPORT_QUELLEN = ("suunto", "polar", "coros")
+
+
+def _import_quelle(session) -> str | None:
+    p = (getattr(session, "session_uuid", None) or "").split("-", 1)[0]
+    return p if p in IMPORT_QUELLEN else None
+
+
+def _gleiche_quelle(a, b) -> bool:
+    """Dasselbe Messgeraet (device_id gesetzt und gleich) ODER beide aus demselben Import-Konto."""
+    if a.device_id is not None:
+        return a.device_id == b.device_id
+    if b.device_id is not None:
+        return False
+    q = _import_quelle(a)
+    return q is not None and q == _import_quelle(b)
+
+
+# Wer die Sportart festgelegt hat, von schwach nach stark (s. Session.sport_source).
+_QUELLE_RANG = {"default": 0, "auto": 1, "owner": 2, "admin": 3}
+
+
+def _einstufung(sessions: list[models.Session]) -> dict:
+    """Sportart-Einstufung fuer die zusammengefuehrte Session.
+
+    BIS 09.10.2026 GING SIE VERLOREN: die neue Session bekam die Vorgaben (`pumpfoil`/`default`) und
+    die Datei-Sportart des ersten Teils. Bei einer im Rad- oder Lauf-Modus aufgezeichneten Session,
+    die ein Mensch auf Pumpfoil gestellt hatte, fiel damit `_mensch_sagt_pumpfoil` weg — die Neuanalyse
+    lief ohne GPS-Erkennung und fand 0 Laeufe. Uebernommen wird die Einstufung der Quelle mit dem
+    staerksten Urteil (Admin vor Besitzer vor Automatik); die Admin-Sperre gegen Meldungen gilt,
+    sobald sie an EINEM Teil hing.
+    """
+    staerkste = max(sessions, key=lambda x: _QUELLE_RANG.get(getattr(x, "sport_source", None) or "default", 0))
+    out = {
+        "sport_class": staerkste.sport_class or "pumpfoil",
+        "sport_source": getattr(staerkste, "sport_source", None) or "default",
+        "data_quality": staerkste.data_quality or "ok",
+    }
+    if any(getattr(x, "pumpfoil_override", None) for x in sessions):
+        out["pumpfoil_override"] = True
+    return out
+
+
 def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]:
     """Gruppen eigener Sessions, die zusammengehoeren koennten: aufeinanderfolgend,
     Luecke Ende<->Start <= 1 h, gleiche Accel-Rate. Nur Vorschlaege (kein Auto-Merge).
@@ -403,11 +453,12 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
         gap = (s.started_at - _end(prev)).total_seconds()
         # Zusammenführen NUR wenn:
         #  - selbes MESSGERÄT (device_id gesetzt UND gleich) — nie Daten verschiedener Uhren/Handys
-        #    mischen; None==None gilt NICHT als "gleich" (unbekanntes Gerät -> kein Vorschlag).
+        #    mischen; None==None gilt NICHT als "gleich" (unbekanntes Gerät -> kein Vorschlag),
+        #    AUSSER beide kommen aus demselben verknuepften Konto (`_gleiche_quelle`, 09.10.2026).
         #  - zeitlich AUFEINANDERFOLGEND, keine Überlappung: 0 <= Lücke <= AUTO_MAX_GAP_S.
         #    Überlappung (gap < 0) = parallele Aufzeichnung (z. B. mehrere Geräte gleichzeitig)
         #    -> klar keine Fortsetzung.
-        same_device = s.device_id is not None and s.device_id == prev.device_id
+        same_device = _gleiche_quelle(s, prev)
         if same_device and 0 <= gap <= AUTO_MAX_GAP_S \
                 and s.accel_hz == prev.accel_hz and s.foil_id == prev.foil_id \
                 and _same_spot(s, prev):
