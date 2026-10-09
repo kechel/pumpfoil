@@ -1439,6 +1439,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 09.10. — DNS4EU sperrt pumpfoil.org (Fehlalarm, Sinkhole 6000063). Whalebone-Ticket 58102.** Hinweis steht
+  oben im GitHub-README. Pruefen: `dig +short @86.54.11.1 pumpfoil.org` muss 78.46.102.130 liefern (gesperrt:
+  51.15.69.11). Sobald frei: README-Hinweis entfernen. Belege: Google Safe Browsing sauber, Spamhaus DBL/ZEN nicht
+  gelistet, alle anderen Filter-DNS lassen durch.
+
 - **09.10. (Jan) — Naechste Android-/iOS-Version: zwei Punkte aus dem Web nachziehen.**
   1. **Laufdauer ab 1 h als h:mm:ss** (Web seit 3667835a, `web/src/lib/dauer.ts`; Anlass: 6-h-Lauf von
      Nicolas_I stand als „361:09"). Stellen: Android `CommunityScreen.kt` (`fmtDurC`), `FoilerScreen.kt`
