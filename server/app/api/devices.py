@@ -126,12 +126,32 @@ def _hide_replaced_siblings(db: Session, device: models.DeviceToken) -> int:
     return int(res.rowcount or 0)
 
 
+# Ab dieser Uhr-Version gilt die 25-Hz-Kappung NICHT mehr (Jan, 09.10.2026: „mach es das es halt
+# funktioniert mit der Profileinstellung"). Zwei Gruende: (1) die Kappung war kaputt — die FR55 kennt
+# 10 Hz nicht und lieferte bei angeforderten 10 nur ~2,5 Hz (jede FR55-Session seit Juli ohne Pumps;
+# bei 25 angefordert: echte 25,0 Hz, 7 von 7 mit Pumps). 1.0.92 laesst den Sensor immer mit 25 Hz
+# laufen und duennt fuer „Sparsam" selbst auf 10 aus. (2) Die Abstuerze, gegen die gekappt wurde, waren
+# der VOLLE OBJECT STORE, nicht der RAM — so steht es seit dem FR55-Debugging vom 27.06.2026 fest
+# („IQ!"-Crash beim Aufnahme-Start = voller CIQ-Object-Store); die fenix 5 (19.07.) laeuft bei 180 KB nach
+# ~14 min mit 25 Hz voll, und vor 1.0.74 beendete ein voller Store die App. 1.0.92 schaltet unter 100 KB
+# frei selbst auf nur GPS um. Fuer die fenix 5 belegt das erst ein langer Testlauf.
+KAPPUNG_BIS_VERSION = "1.0.92"
+
+
+def _kappung(device: models.DeviceToken) -> bool:
+    """Wird 'full' fuer diese Uhr auf 'lite' gekappt? Nur noch fuer alte Uhr-Versionen."""
+    if not _is_low_accel_model(device.part_number):
+        return False
+    v = getattr(device, "app_version", None)
+    return not v or _version_lt(v, KAPPUNG_BIS_VERSION)
+
+
 def _effective_record_mode(device: models.DeviceToken, settings: dict) -> str:
     """Wirksamer Aufzeichnungsmodus einer Uhr: Geräte-Override (device.record_mode)
-    vor User-Default; danach FR55-Kappung full->lite (nur runter, 'gps' bleibt)."""
+    vor User-Default; danach FR55-Kappung full->lite (nur alte Uhr-Versionen, s. _kappung)."""
     dev = device.record_mode if device.record_mode in ("full", "lite", "gps") else None
     base = dev or settings.get("record_mode", "full")
-    if base == "full" and _is_low_accel_model(device.part_number):
+    if base == "full" and _kappung(device):
         return "lite"
     return base
 
@@ -858,7 +878,7 @@ def list_devices(
             "accel_wakeup": d.accel_wakeup if d.accel_wakeup in ACCEL_WAKEUP_MODES else None,
             "accel_wakeup_standard": _accel_wakeup_standard(ustored),
             # FR55 & Co. werden bei 'full' automatisch auf 'lite' gekappt -> UI-Hinweis.
-            "low_accel": _is_low_accel_model(d.part_number),
+            "low_accel": _kappung(d),
             # Eigene Layouts: kann diese Uhr sie überhaupt (Speicher) und hat sie einen Absturz
             # gemeldet? Die UI zeigt das je Uhr und bietet das Zurücksetzen an.
             "layout_capable": bool(((cat.get(model["id"]) or {}).get("mem") or 0) >= LAYOUT_MIN_MEMORY) if model else False,

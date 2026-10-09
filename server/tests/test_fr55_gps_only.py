@@ -116,3 +116,18 @@ def test_wer_schon_gefahren_ist_wird_nicht_umgestellt(client):
     finally:
         db.close()
     assert _config(client, dev, FR55)["recordMode"] == "lite"
+
+
+def test_ab_1_0_92_keine_kappung_mehr(client):
+    """Ab Uhr 1.0.92 gilt die Profileinstellung (Jan, 09.10.2026): 'full' bleibt 25 Hz. Die Kappung auf
+    10 Hz war kaputt — die FR55 kennt 10 Hz nicht und lieferte ~2,5 Hz —, und der Absturz, gegen den sie
+    half, war der volle Speicher (1.0.92 schaltet selbst auf nur GPS). Alte Uhr-Versionen bleiben gekappt."""
+    auth = _konto(client, "fr55-ab-1092")
+    dev = _paaren(client, auth, "Garmin")
+    gid = client.get("/api/devices/list", headers=auth).json()[0]["id"]
+    client.put(f"/api/devices/{gid}/record-mode", headers=auth, json={"record_mode": "full"})
+    assert _config(client, dev, FR55)["recordMode"] == "lite"           # 1.0.88
+    r = client.get(f"/api/devices/config?p=garmin&v=1.0.92&pn={FR55}", headers=dev)
+    assert r.json()["recordMode"] == "full"
+    liste = client.get("/api/devices/list", headers=auth).json()
+    assert liste[0]["low_accel"] is False

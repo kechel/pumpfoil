@@ -87,8 +87,9 @@ class SessionRecorder {
     // aus, nach, an (Schalter je Uhr aus /config, beim Start aus dem Cache gelesen),
     // Luecke gemeldet (meta accel_luecken), Accel-Vorlauf [[t0_ms, ByteArray, Samples], …],
     // gespeicherte Accel-Samples der Session (fuer Uploader.pendingKb, s. _saveState),
-    // Chunk-Index -> Ende in ms (t1_ms, Ankunft des letzten Pakets; der Server erkennt daran die Luecken)]
-    hidden var _gZ = [[], [], 0, 0, 0, 0, true, false, [], 0, {}];
+    // Chunk-Index -> Ende in ms (t1_ms, Ankunft des letzten Pakets; der Server erkennt daran die Luecken),
+    // Zaehler fuers Ausduennen 25 -> 10 Hz (s. onAccel)]
+    hidden var _gZ = [[], [], 0, 0, 0, 0, true, false, [], 0, {}, 0];
 
     // Live-Stats
     hidden var _speedRing as Lang.Array<Lang.Float or Null> = new [SPEED_AVG_SAMPLES];
@@ -1226,7 +1227,7 @@ class SessionRecorder {
         // Speicher (S62, Server-Standard aus) sparte dann trotzdem, und unter 6 km/h kam eine LEERE
         // Session an (#14076).
         var gsp = Storage.getValue("gps_sparen");
-        _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}];
+        _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}, 0];
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1304,7 +1305,7 @@ class SessionRecorder {
             try {
                 Sensor.registerSensorDataListener(method(:onAccel), {
                     :period => 1,
-                    :accelerometer => { :enabled => true, :sampleRate => _accelHz }
+                    :accelerometer => { :enabled => true, :sampleRate => ACCEL_HZ }
                 });
                 _accelOn = true;
             } catch (e) {
@@ -1442,7 +1443,7 @@ class SessionRecorder {
             try {
                 Sensor.registerSensorDataListener(method(:onAccel), {
                     :period => 1,
-                    :accelerometer => { :enabled => true, :sampleRate => _accelHz }
+                    :accelerometer => { :enabled => true, :sampleRate => ACCEL_HZ }
                 });
             } catch (e) { _accelOn = false; }
         }
@@ -2064,14 +2065,28 @@ class SessionRecorder {
             if (_paused) { return; }   // pausiert: keine Rohdaten sammeln (Sicherung; Listener ist eh ab)
             if (sensorData == null || sensorData.accelerometerData == null) { return; }
             var a = sensorData.accelerometerData;
-            var n = a.x.size();
+            var roh = a.x.size();
+            var z = _gZ;
+            // 10 Hz („Sparsam"): der Sensor laeuft IMMER mit 25 Hz, ausgeduennt wird hier — 10 of 25 Werten,
+            // gleichmaessig verteilt. Grund (09.10.2026): die FR55 kennt 10 Hz nicht und lieferte bei
+            // angeforderten 10 nur ~2,5 Hz (alle FR55-Sessions seit Juli, nie Pumps); bei 25 liefert sie 25.
+            // Jan: „mach es das es halt funktioniert mit der Profileinstellung egal was wir der Uhr dafuer
+            // tatsaechlich 'vorgeben' muessen".
+            var teil = _accelHz < ACCEL_HZ;
             // Speicher-Sparen: ausserhalb eines Abschnitts nur in den Vorlauf-Ring (s. _gpsPunkt). Dafuer
             // kurz in einen eigenen ByteArray schreiben — _appendI16 schreibt immer in _accelBuf.
-            var z = _gZ;
+            var n = 0;
             if (z[6] && z[2] == 0 && z[5] == 0) {
                 var buf = _accelBuf;
                 _accelBuf = new [0]b;
-                for (var j = 0; j < n; j++) { _appendI16(a.x[j]); _appendI16(a.y[j]); _appendI16(a.z[j]); }
+                for (var j = 0; j < roh; j++) {
+                    if (teil) {
+                        var c = z[11]; z[11] = c + 1;
+                        if (((c + 1) * _accelHz) / ACCEL_HZ == (c * _accelHz) / ACCEL_HZ) { continue; }
+                    }
+                    _appendI16(a.x[j]); _appendI16(a.y[j]); _appendI16(a.z[j]);
+                    n++;
+                }
                 var ring = z[8];
                 var jetzt = _elapsedMs();
                 ring.add([jetzt, _accelBuf, n]);
@@ -2083,8 +2098,12 @@ class SessionRecorder {
                 _accelBuf = buf;
                 return;
             }
-            if (_accelCount == 0 && n > 0) { _accelBufT0 = _elapsedMs(); }
-            for (var i = 0; i < n; i++) {
+            if (_accelCount == 0 && roh > 0) { _accelBufT0 = _elapsedMs(); }
+            for (var i = 0; i < roh; i++) {
+                if (teil) {
+                    var c2 = z[11]; z[11] = c2 + 1;
+                    if (((c2 + 1) * _accelHz) / ACCEL_HZ == (c2 * _accelHz) / ACCEL_HZ) { continue; }
+                }
                 _appendI16(a.x[i]);
                 _appendI16(a.y[i]);
                 _appendI16(a.z[i]);
