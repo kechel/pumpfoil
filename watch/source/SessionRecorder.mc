@@ -82,6 +82,9 @@ class SessionRecorder {
     hidden var _accelCount = 0;
     hidden var _accelOn = false;     // Roh-Accel zur Laufzeit aktiv? (sonst GPS-only)
     hidden var _gpsBuf;              // Array von [t_ms, lat, lon, speed, hr, hacc]
+    // Nur im Lite-Build benutzt (_gpsPunkt :lite), EIN Feld: die Klasse liegt an der Grenze von 253
+    // Mitgliedern (monkeyc, Instinct 2). [Vorlauf-Punkte, letzte 3 Tempi, haelt (0/1), ein, aus, nach]
+    hidden var _gZ = [[], [], 0, 0, 0, 0];
 
     // Live-Stats
     hidden var _speedRing as Lang.Array<Lang.Float or Null> = new [SPEED_AVG_SAMPLES];
@@ -1203,6 +1206,7 @@ class SessionRecorder {
         _accelBuf = new [0]b;
         _accelCount = 0;
         _gpsBuf = [];
+        _gZ = [[], [], 0, 0, 0, 0];
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1908,11 +1912,67 @@ class SessionRecorder {
             if (!_recording || _paused) { return; }
             var deg = info.position.toDegrees();
             var spd = info.speed == null ? 0.0 : info.speed;
-            _gpsBuf.add([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy]);
-            if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
+            _gpsPunkt([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy], spd);
         } catch (e) {
             // Einzelnen Punkt verwerfen, Aufnahme läuft weiter.
         }
+    }
+
+    // Volle App: jeder GPS-Punkt wird gespeichert, wie immer.
+    (:full)
+    hidden function _gpsPunkt(p, spd) {
+        _gpsBuf.add(p);
+        if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
+    }
+
+    // NUR die 96-KB-Uhren (Lite-Build): GPS nur um bewegte Abschnitte herum speichern (Jan, 09.10.2026:
+    // „nimm ruhig 6 km/h als schwelle fuer speichern, wichtig ist das genug puffer davor und danach
+    // mitgespeichert wird, ruhig 30 sekunden"). Der Server braucht Vorlauf vor dem Lauf zum Entscheiden,
+    // und seine GPS-Erkennung haengt hinterher — deshalb 33 Punkte davor (Erkennung + 30 s) und 30 danach.
+    //
+    // NACHGERECHNET vor dem Bau, auf echten Daten (Server-Laeufe als Wahrheit, nur lesend):
+    //   1994 Garmin-Sessions / 15.841 Laeufe: 99,99 % der Laeufe vollstaendig im Gespeicherten
+    //   (1 Lauf von 2 s/8 m fehlt), gespeichert ~41 % der GPS-Punkte.
+    //   487 Sessions / 4709 Laeufe durch die Server-Erkennung (v2 GPS-only) auf voll vs. gekuerzt:
+    //   4709 identisch in Start, Ende und Strecke, 1 fehlt (28 m), 2 neu.
+    // Die Schwelle ist bewusst NIEDRIGER als die Lauferkennung der Uhr (10 km/h): mit der lagen
+    // langsame Laeufe um 8-10 km/h nie im Gespeicherten (309 von 15.841, der laengste 3:14 min).
+    // Schwellen (als Zahlen, nicht als const — s. Mitglieder-Grenze oben): rein ab 6 km/h (1,667 m/s)
+    // fuer 3 s (Median aus 3), raus unter 5 km/h (1,389 m/s) fuer 3 s; Vorlauf 33 Punkte (~30 s vor dem
+    // Beginn), Nachlauf 30 Punkte.
+    (:lite)
+    hidden function _gpsPunkt(p, spd) {
+        var z = _gZ;
+        var v = z[1];
+        v.add(spd);
+        if (v.size() > 3) { v = v.slice(1, null); z[1] = v; }
+        var a = v[0], b = (v.size() > 1) ? v[1] : a, c = (v.size() > 2) ? v[2] : b;
+        var v3 = (a > b) ? ((b > c) ? b : ((a > c) ? c : a)) : ((a > c) ? a : ((b > c) ? c : b));
+        z[3] = (v3 >= 1.667) ? z[3] + 1 : 0;
+        if (z[2] == 0 && z[3] >= 3) {
+            z[2] = 1;
+            z[4] = 0;
+            var vor = z[0];
+            for (var i = 0; i < vor.size(); i++) { _gpsBufAdd(vor[i]); }   // Vorlauf zuerst
+            z[0] = [];
+        }
+        if (z[2] == 1) {
+            _gpsBufAdd(p);
+            z[4] = (v3 < 1.389) ? z[4] + 1 : 0;
+            if (z[4] >= 3) { z[2] = 0; z[5] = 30; }
+        } else if (z[5] > 0) {
+            _gpsBufAdd(p);
+            z[5] = z[5] - 1;
+        } else {
+            var vl = z[0];
+            vl.add(p);   // noch nicht speichern — nur fuer den Vorlauf aufheben
+            if (vl.size() > 33) { z[0] = vl.slice(1, null); }
+        }
+    }
+    (:lite)
+    hidden function _gpsBufAdd(p) {
+        _gpsBuf.add(p);
+        if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
     }
 
     function hasGpsFix() { return _hasGpsFix; }
