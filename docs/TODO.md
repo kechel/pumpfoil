@@ -1503,6 +1503,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   ihn eingrenzen. Jan zur Geometrie: Auftrieb und Gleichgewichtspunkt des Fahrers liegen ueber dem
   FRONTFLUEGEL, der x cm vor dem Mast sitzt („wie ein Hufeisen") -> Kandidat fuer den Drehpunkt, zu pruefen. Kein Setup-Feld fuer die Handy-Position (Jan: „wollen wir nicht"). Memory: hub-am-handy-kein-drehpunkt.
 
+- **🟡 09.10. — HUAWEI: Wear-Engine-Antrag EINGEREICHT (Jans Meldung, ~18:25).** Vorher HUAWEI-ID-Produkt „Pumpfoil"
+  angelegt (Mobile App, `org.pumpfoil.app`, App-ID 119274989 → `huaweiAppId`, 6a04105b; Fingerabdruecke Play-Signatur,
+  Upload, Debug Mac, Debug VM). Antrag: Android App, „all need support" (Lite + Smart), Uhr-App ja, NUR Berechtigung
+  „Basic device information" (= `Permission.DEVICE_MANAGER`). Zwei Excel (Datennutzung inkl. Firmenangaben + Autorisierungs-
+  weg mit 3 Emulator-Screenshots, das dritte als simuliert gekennzeichnet) liegen bei Jan. Ergebnis per Mail/SMS/Konsole,
+  laut Forum ~2 Wochen. Danach: Uhren-Signatur (`HUAWEI_WATCH_FP`), Debug-Zertifikat mit UDID, erster Test auf Hardware.
 - **🟡 07.10. — HUAWEI-Uhren (Anfrage aus Polen, Jan: „wir finden Tester in der Community").** Recherche in
   docs/HUAWEI.md. Wear-Engine-Uhren-SDKs 5.0.2.306 (lite + wearable, je eine JS-Datei, Apache 2.0) liegen vor.
   Reihenfolge: (1) Jan: Huawei-Entwicklerkonto SmartKomm, Projekt in AppGallery Connect, „Apply for Wear Engine"
