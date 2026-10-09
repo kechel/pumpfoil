@@ -540,6 +540,7 @@ const id: Record<string, string> = {
   "account.gnssModeTwo": "GPS + satu sistem",
   "account.gnssModeGps": "Hanya GPS (paling hemat)",
   "account.gnssModeHint": "Makin banyak sistem, posisi ditemukan lebih cepat dan andal, tetapi baterai lebih boros. Hanya Garmin, mulai versi jam 1.0.77.",
+  "account.standardPage": "Halaman bawaan dari komunitas: “{name}” oleh {author}",
   "account.gpsSparen": "Hemat memori: rekam hanya di sekitar sesi",
   "account.gpsSparenHint": "Jam hanya menyimpan GPS dan data gerak selama kamu lebih cepat dari 6 km/j, ditambah 30 detik sebelum dan sesudahnya. Berenang, menunggu, dan berjalan kembali tidak disimpan. Run, pump, dan waktu foil praktis tetap sama (diperiksa pada 141 sesi: waktu foil −0,15 %, pump −0,3 %); di peta hanya jalur di antara run yang hilang.",
   "account.gpsSparenUhr": "Jam ini: memori terukur sekitar {kb} KB. Pada {modus} itu cukup untuk sekitar {ohne} menit tanpa penghematan, dan biasanya {von}–{bis} menit dengan penghematan – tergantung berapa lama kamu lebih lambat dari 6 km/j.",

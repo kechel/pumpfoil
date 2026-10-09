@@ -562,6 +562,7 @@ const cs: Record<string, string> = {
   "account.gnssModeTwo": "GPS + jeden systém",
   "account.gnssModeGps": "Jen GPS (nejúspornější)",
   "account.gnssModeHint": "Více systémů najde polohu rychleji a spolehlivěji, ale spotřebuje více baterie. Jen Garmin, od verze hodinek 1.0.77.",
+  "account.standardPage": "Výchozí stránka z komunity: „{name}“ od {author}",
   "account.gpsSparen": "Šetřit úložiště: ukládat jen kolem jízd",
   "account.gpsSparenHint": "Hodinky ukládají GPS a pohybová data jen tehdy, když jedeš rychleji než 6 km/h, a k tomu 30 sekund před a po. Plavání, čekání a cesta zpět pěšky se neukládají. Jízdy, pumpy a čas na foilu zůstávají prakticky stejné (ověřeno na 141 sessions: čas na foilu −0,15 %, pumpy −0,3 %); na mapě chybí jen cesta mezi jízdami.",
   "account.gpsSparenUhr": "Tyto hodinky: naměřené úložiště asi {kb} KB. V režimu {modus} to bez šetření stačí asi na {ohne} minut, se šetřením obvykle na {von}–{bis} minut – podle toho, kolik času jsi pomaleji než 6 km/h.",

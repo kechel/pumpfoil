@@ -358,13 +358,22 @@ def meta(_user: models.User = Depends(current_user)) -> dict:
 @router.get("")
 def list_layouts(
     category: str | None = Query(None),
+    standard: bool = Query(True),
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
+    """Eigene Layouts, dahinter die Standard-Layouts aus der Community (negative ID, `standard: True`,
+    s. standard_layouts.py). Die nativen Apps kennen nur diese Liste und zeigen damit die
+    Standard-Seiten ohne App-Update an; gestaltet/geloescht wird dort nichts. Die Layout-Verwaltung im
+    Web blendet sie aus (oder fragt mit standard=false)."""
     q = db.query(models.WatchLayout).filter_by(user_id=user.id)
     if category in CATEGORIES:
         q = q.filter_by(category=category)
     rows = q.order_by(models.WatchLayout.category, models.WatchLayout.id).all()
-    return [_out(x) for x in rows]
+    out = [_out(x) for x in rows]
+    if standard:
+        from .. import standard_layouts as SL
+        out += SL.als_layouts(db, category if category in CATEGORIES else None)
+    return out
 
 
 @router.get("/community")

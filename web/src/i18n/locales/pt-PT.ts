@@ -548,6 +548,7 @@ const ptPT: Record<string, string> = {
   "account.gnssModeTwo": "GPS + um sistema",
   "account.gnssModeGps": "Só GPS (mais económico)",
   "account.gnssModeHint": "Mais sistemas encontram a posição mais depressa e com mais fiabilidade, mas gastam mais bateria. Só Garmin, a partir da versão 1.0.77.",
+  "account.standardPage": "Página predefinida da comunidade: “{name}” de {author}",
   "account.gpsSparen": "Poupar memória: gravar só em torno das sessões",
   "account.gpsSparenHint": "O relógio grava GPS e dados de movimento apenas enquanto vais acima de 6 km/h, com 30 segundos antes e depois. Nadar, esperar e voltar a pé não são gravados. Runs, pumps e tempo em foil ficam praticamente iguais (verificado em 141 sessões: tempo em foil −0,15 %, pumps −0,3 %); no mapa falta apenas o caminho entre os runs.",
   "account.gpsSparenUhr": "Este relógio: memória medida de cerca de {kb} KB. Em {modus}, isso dá para cerca de {ohne} minutos sem poupança e, com poupança, normalmente para {von}–{bis} minutos – conforme o tempo que passas abaixo de 6 km/h.",

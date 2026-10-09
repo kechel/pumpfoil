@@ -1262,6 +1262,7 @@ const gsw: Record<string, string> = {
   "account.gnssModeTwo": "GPS + ei Syschtem",
   "account.gnssModeGps": "Nur GPS (sparsamscht)",
   "account.gnssModeHint": "Meh Syschtem finde schneller und zuverlässiger d Position, bruuche aber meh Akku. Gilt nur für Garmin ab Uhr-Version 1.0.77.",
+  "account.standardPage": "Standardsiite us de Community: „{name}“ vo {author}",
   "account.gpsSparen": "Spicher spare: nume rund um d Fahrt spichere",
   "account.gpsSparenHint": "D Uhr spicheret GPS und Bewegigsdate nume, solang du schnäller als 6 km/h bisch – mit 30 Sekunde devor und dernah. Schwümme, Warte und Zruggloufe landed nöd im Spicher. Läuf, Pumps und Foil-Zyt blibed praktisch glych (nahgrächnet a 141 Sessions: Foil-Zyt −0,15 %, Pumps −0,3 %), uf de Charte fählt nume de Wäg zwüsche de Läuf.",
   "account.gpsSparenUhr": "Die Uhr: gmässne Spicher öppe {kb} KB. Bi {modus} längts ohni Spare für öppe {ohne} Minute, mit Spare meischtens für {von}–{bis} Minute – je nachdem, wie vill Zyt du langsamer als 6 km/h bisch.",

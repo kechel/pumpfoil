@@ -576,6 +576,7 @@ const en: Record<string, string> = {
   "account.gnssModeTwo": "GPS + one system",
   "account.gnssModeGps": "GPS only (most efficient)",
   "account.gnssModeHint": "More systems find your position faster and more reliably, but use more battery. Garmin only, from watch version 1.0.77.",
+  "account.standardPage": "Default page from the community: “{name}” by {author}",
   "account.gpsSparen": "Save storage: record only around your rides",
   "account.gpsSparenHint": "The watch stores GPS and motion data only while you are faster than 6 km/h, plus 30 seconds before and after. Swimming, waiting and walking back are not stored. Runs, pumps and foil time stay practically the same (checked on 141 sessions: foil time −0.15 %, pumps −0.3 %); the map only misses the way between runs.",
   "account.gpsSparenUhr": "This watch: measured storage about {kb} KB. At {modus} that lasts about {ohne} minutes without saving, and usually {von}–{bis} minutes with saving – depending on how much time you spend slower than 6 km/h.",

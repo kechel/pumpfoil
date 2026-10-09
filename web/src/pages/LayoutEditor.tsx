@@ -61,7 +61,7 @@ export default function LayoutEditor() {
 
   useEffect(() => {
     api.layouts().then((rows) => {
-      const found = rows.find((x) => String(x.id) === id) ?? null;
+      const found = rows.find((x) => String(x.id) === id && !x.standard) ?? null;
       setL(found ? withPausedHint(found) : null);
       if (found?.authored_w) {
         const m = PREVIEW_SIZES.find((s) => s.w === found.authored_w && s.shape === found.authored_shape);

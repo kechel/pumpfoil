@@ -557,6 +557,7 @@ const nb: Record<string, string> = {
   "account.gnssModeTwo": "GPS + ett system",
   "account.gnssModeGps": "Bare GPS (mest sparsom)",
   "account.gnssModeHint": "Flere systemer finner posisjonen raskere og sikrere, men bruker mer batteri. Bare Garmin, fra klokkeversjon 1.0.77.",
+  "account.standardPage": "Standardside fra fellesskapet: «{name}» av {author}",
   "account.gpsSparen": "Spar lagring: lagre bare rundt øktene",
   "account.gpsSparenHint": "Klokka lagrer GPS og bevegelsesdata bare mens du er raskere enn 6 km/t, med 30 sekunder før og etter. Svømming, venting og gåing tilbake lagres ikke. Runs, pumps og foiltid blir praktisk talt de samme (sjekket på 141 økter: foiltid −0,15 %, pumps −0,3 %); på kartet mangler bare veien mellom runsene.",
   "account.gpsSparenUhr": "Denne klokka: målt lagring på omtrent {kb} KB. Med {modus} holder det i omtrent {ohne} minutter uten sparing, og vanligvis {von}–{bis} minutter med sparing – avhengig av hvor mye tid du er saktere enn 6 km/t.",

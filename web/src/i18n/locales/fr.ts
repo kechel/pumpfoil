@@ -1337,6 +1337,7 @@ const fr: Record<string, string> = {
   "account.gnssModeTwo": "GPS + un système",
   "account.gnssModeGps": "GPS seul (le plus économe)",
   "account.gnssModeHint": "Plus de systèmes trouvent la position plus vite et plus sûrement, mais consomment plus de batterie. Garmin uniquement, à partir de la version 1.0.77.",
+  "account.standardPage": "Page par défaut de la communauté : « {name} » par {author}",
   "account.gpsSparen": "Économiser la mémoire : n'enregistrer qu'autour des runs",
   "account.gpsSparenHint": "La montre n'enregistre le GPS et les données de mouvement que lorsque tu vas à plus de 6 km/h, avec 30 secondes avant et après. Nager, attendre et revenir à pied ne sont pas enregistrés. Les runs, les pumps et le temps en foil restent pratiquement identiques (vérifié sur 141 sessions : temps en foil −0,15 %, pumps −0,3 %) ; sur la carte, seul le trajet entre les runs manque.",
   "account.gpsSparenUhr": "Cette montre : mémoire mesurée d'environ {kb} Ko. En {modus}, cela suffit pour environ {ohne} minutes sans économie, et généralement pour {von}–{bis} minutes avec économie – selon le temps que tu passes sous 6 km/h.",

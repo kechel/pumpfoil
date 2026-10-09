@@ -558,6 +558,7 @@ const pl: Record<string, string> = {
   "account.gnssModeTwo": "GPS + jeden system",
   "account.gnssModeGps": "Tylko GPS (najoszczędniej)",
   "account.gnssModeHint": "Więcej systemów szybciej i pewniej ustala pozycję, ale zużywa więcej baterii. Tylko Garmin, od wersji zegarka 1.0.77.",
+  "account.standardPage": "Strona domyślna od społeczności: „{name}” autorstwa {author}",
   "account.gpsSparen": "Oszczędzaj pamięć: zapisuj tylko wokół jazd",
   "account.gpsSparenHint": "Zegarek zapisuje GPS i dane ruchu tylko wtedy, gdy jedziesz szybciej niż 6 km/h, plus 30 sekund przed i po. Pływanie, czekanie i powrót pieszo nie są zapisywane. Przejazdy, pompki i czas na foilu pozostają praktycznie takie same (sprawdzone na 141 sesjach: czas na foilu −0,15 %, pompki −0,3 %); na mapie brakuje tylko drogi między przejazdami.",
   "account.gpsSparenUhr": "Ten zegarek: zmierzona pamięć około {kb} KB. W trybie {modus} wystarcza to bez oszczędzania na około {ohne} minut, a z oszczędzaniem zwykle na {von}–{bis} minut – zależnie od tego, ile czasu jesteś wolniej niż 6 km/h.",

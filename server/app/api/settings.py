@@ -394,9 +394,28 @@ def _clean_view3(v) -> list | None:
 
 
 def _own_layout_id(db: Session, user: models.User, v, category: str) -> int | None:
-    """Layout-ID nur akzeptieren, wenn sie dem Nutzer gehört UND die Kategorie passt."""
+    """Layout-ID nur akzeptieren, wenn sie dem Nutzer gehört UND die Kategorie passt.
+
+    NEGATIVE ID = Standard-Layout (standard_layouts.py): wer einen Satz mit Standard-Seiten aendert und
+    speichert, bekommt davon hier eine EIGENE Kopie — ab dann gehoert die Seite ihm und haengt nicht
+    mehr am Standard."""
     if not isinstance(v, (int, float)):
         return None
+    if v < 0:
+        from .. import standard_layouts as SL
+        s = SL.nach_id(int(v))
+        if s is None or s["category"] != category:
+            return None
+        quelle = db.get(models.WatchLayout, int(s["quelle_id"]))
+        kopie = models.WatchLayout(
+            user_id=user.id, name=s["name"][:60], category=category, shape=s.get("shape") or "round",
+            bg_color=int(s.get("bg_color") or 0), elements=json.dumps(s.get("elements") or []),
+            published=False, copied_from_id=quelle.id if quelle is not None else None,
+            authored_w=s.get("authored_w"), authored_h=s.get("authored_h"),
+            authored_shape=s.get("authored_shape"))
+        db.add(kopie)
+        db.flush()
+        return kopie.id
     row = (db.query(models.WatchLayout)
            .filter_by(id=int(v), user_id=user.id, category=category).first())
     return row.id if row else None
@@ -442,9 +461,19 @@ def _visible_stab_ids(db: Session, user: models.User, ids: set[int | None]) -> s
 @router.get("")
 def get_settings(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     m = _merged(user)
-    # Nie konfiguriert -> Seitenreihenfolge = die klassischen 3-Feld-Ansichten (so wie heute).
+    # Nie konfiguriert -> die Standard-Seiten aus der Community (standard_layouts.py), dieselben, die
+    # auch die Uhr bekommt. Der Editor zeigt sie ueber `standard_layouts` (negative IDs) an.
+    from .. import standard_layouts as SL
+    gespeichert = json.loads(user.settings_json) if user.settings_json else {}
+    if SL.ist_standard(gespeichert, "on_foil"):
+        m["pages"] = SL.ids("on_foil")
+    if SL.ist_standard(gespeichert, "off_foil"):
+        m["off_foil_pages"] = SL.ids("off_foil")
+    if SL.ist_standard(gespeichert, "pause"):
+        m["pause_pages"] = SL.ids("pause")
     if not m.get("pages"):
         m["pages"] = [list(v) for v in (m.get("views") or [])]
+    # Die Layouts dazu liefert GET /api/layouts mit (negative IDs, `standard: True`).
     # Homespot ist namensbasiert (mit Apps geteilt); zusätzlich die spot_id für neue Clients.
     from ..spots import spot_id_by_name
     m["homespot_id"] = spot_id_by_name(db, m["homespot"]) if m.get("homespot") else None

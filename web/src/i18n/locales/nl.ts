@@ -562,6 +562,7 @@ const nl: Record<string, string> = {
   "account.gnssModeTwo": "GPS + één systeem",
   "account.gnssModeGps": "Alleen GPS (zuinigst)",
   "account.gnssModeHint": "Meer systemen vinden je positie sneller en betrouwbaarder, maar kosten meer batterij. Alleen Garmin, vanaf horlogeversie 1.0.77.",
+  "account.standardPage": "Standaardpagina uit de community: ‘{name}’ van {author}",
   "account.gpsSparen": "Opslag sparen: alleen rond je ritten opslaan",
   "account.gpsSparenHint": "Het horloge slaat GPS en bewegingsdata alleen op zolang je sneller dan 6 km/u gaat, met 30 seconden ervoor en erna. Zwemmen, wachten en teruglopen worden niet opgeslagen. Runs, pumps en foiltijd blijven praktisch gelijk (gecontroleerd op 141 sessies: foiltijd −0,15 %, pumps −0,3 %); op de kaart ontbreekt alleen de weg tussen de runs.",
   "account.gpsSparenUhr": "Dit horloge: gemeten opslag ongeveer {kb} KB. Bij {modus} is dat zonder sparen genoeg voor ongeveer {ohne} minuten, met sparen meestal voor {von}–{bis} minuten – afhankelijk van hoeveel tijd je langzamer dan 6 km/u gaat.",

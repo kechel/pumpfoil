@@ -1306,13 +1306,33 @@ def _layout_payload(l: models.WatchLayout) -> list:
 def _layouts_for_watch(db: Session, user_id: int, settings: dict) -> dict:
     """Seitenliste + Off-Foil/Pause in Uhr-Form. Klassische 3-Feld-Seite = [0,a,b,c],
     Layout-Seite = [1,bg,[elements]] — ein Tag-Byte vorneweg macht beides unterscheidbar."""
+    from .. import standard_layouts as SL
     own = {l.id: l for l in db.query(models.WatchLayout).filter_by(user_id=user_id).all()}
 
-    def one(ref, cat: str, fallback: list) -> list:
-        l = own.get(int(ref)) if isinstance(ref, (int, float)) else None
+    def aufloesen(ref, cat: str) -> list | None:
+        """Layout-ID -> Uhr-Form: eigenes Layout oder (negative ID) Standard-Layout."""
+        if not isinstance(ref, (int, float)):
+            return None
+        l = own.get(int(ref))
         if l is not None and l.category == cat:
             return _layout_payload(l)
-        return [0] + list(fallback)
+        s = SL.nach_id(int(ref))
+        if s is not None and s["category"] == cat:
+            return SL.payload(s)
+        return None
+
+    # Nie selbst eingestellt -> Standard-Seiten aus der Community (standard_layouts.py)
+    if SL.ist_standard(settings, "on_foil"):
+        settings = {**settings, "pages": SL.ids("on_foil")}
+    # Das Einzelfeld (`offFoil`/`pause`, liest z. B. 1.0.66) traegt die erste Seite des Satzes mit.
+    if SL.ist_standard(settings, "off_foil"):
+        settings = {**settings, "off_foil_pages": SL.ids("off_foil"), "off_foil_layout_id": SL.ids("off_foil")[0]}
+    if SL.ist_standard(settings, "pause"):
+        settings = {**settings, "pause_pages": SL.ids("pause"), "pause_layout_id": SL.ids("pause")[0]}
+
+    def one(ref, cat: str, fallback: list) -> list:
+        p = aufloesen(ref, cat)
+        return p if p is not None else [0] + list(fallback)
 
     pages: list = []
     for item in (settings.get("pages") or settings.get("views") or [[1, 2, 0]]):
@@ -1320,9 +1340,9 @@ def _layouts_for_watch(db: Session, user_id: int, settings: dict) -> dict:
             f = [int(x) for x in item[:3]] + [0] * max(0, 3 - len(item))
             pages.append([0] + f)
         else:
-            l = own.get(int(item)) if isinstance(item, (int, float)) else None
-            if l is not None and l.category == "on_foil":
-                pages.append(_layout_payload(l))
+            p = aufloesen(item, "on_foil")
+            if p is not None:
+                pages.append(p)
     if not pages:
         pages = [[0, 1, 2, 0]]
     # F3: je Zustand ein SATZ Seiten. `offFoil`/`pause` (Einzahl) bleiben für 1.0.66 im Store
@@ -1337,9 +1357,9 @@ def _layouts_for_watch(db: Session, user_id: int, settings: dict) -> dict:
                     f = [int(x) for x in item[:3]] + [0] * max(0, 3 - len(item))
                     out.append([0] + f)
                 else:
-                    l = own.get(int(item)) if isinstance(item, (int, float)) else None
-                    if l is not None and l.category == cat:
-                        out.append(_layout_payload(l))
+                    p = aufloesen(item, cat)
+                    if p is not None:
+                        out.append(p)
         return out or [fallback]
 
     off_one = one(settings.get("off_foil_layout_id"), "off_foil",
