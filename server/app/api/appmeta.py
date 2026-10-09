@@ -671,6 +671,17 @@ BEKANNTE_PROBLEME: list[dict] = []
 
 
 ABGELEHNT: list[dict] = [
+    {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
+     # Google, 09.10.2026 (Jans Meldung): „Wear app functionality not working as described …
+     # Your app crashed when testing", Version code 1050. Im Wear-Emulator mit dem R8-Release-Build
+     # nachgestellt: Absturz beim Aufnahmestart, sobald alle Berechtigungen erteilt sind —
+     # protobuf-lite in Health Services fand die von R8 umbenannten Felder nicht
+     # („Field name_ for DataProto$DataType not found"). Debug-Build war nie betroffen. Behoben
+     # mit einer Keep-Regel in wear/proguard-rules.pro; Release-Build danach im Emulator mit und ohne
+     # Berechtigungen bis Stopp durchgefahren.
+     "abgelehnt": "2026-10-09",
+     "grund": "the watch app crashed when a recording started; the cause is found and fixed for "
+              "the next version"},
     {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.27",
      # Google, 10.09.2026, Wear App Quality Guidelines / „Wear font size": „Your app must conform
      # to the font size set by the user in System Settings. If the user selects a larger font size,
@@ -750,22 +761,7 @@ IN_REVIEW: list[dict] = [
     # (Wear OS) 1050 (1.2.40), voller Roll-out, „Vorabprüfungen … noch maximal 14 Minuten"):
     # 1.2.40 = Messweg nach Doku (GPS aus Health Services, Wake-up-Accel mit Batching, GPS-Waechter),
     # neue Berechtigung ACTIVITY_RECOGNITION. Notschalter WEAR_GPS_HS / WEAR_ACCEL_BATCH (global).
-    {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
-     "eingereicht": "2026-10-07",
-     "items": [
-         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
-         "The watch asks once for physical activity access, which it only uses to measure your speed while you record.",
-         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
-         "In direct chats, two ticks show that your message has been read.",
-         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
-         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
-         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
-         # 01.10.2026: fafdd410.
-         "The longest-run record shows kilometres from 1,000 m on.",
-         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
-     ]},
+    # 1.1.40 / 1.2.40 am 09.10. ABGELEHNT (Wear-Absturz, s. ABGELEHNT) -> Punkte nach NAECHSTES 1.1.41 / 1.2.41.
     # iPhone + Apple Watch 1.1.43 am 08.10. freigegeben -> raus (s. _APP_META["ios"]/["apple"]).
     # EINGEREICHT 01.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
     # Vor der Einreichung ungetestet (Testsession #12510 kam vom 1.0.12-Build, APP_VERSION vergessen,
@@ -832,6 +828,19 @@ NAECHSTES: list[dict] = [
     # Apps hatten das nie bekommen. Code fertig, wartet auf die naechste Runde (nicht gebumpt).
     {"name": "Android phone + Wear OS", "version": "1.1.41 / 1.2.41",
      "items": [
+         # Aus der abgelehnten 1.1.40 / 1.2.40 (09.10.) uebernommen.
+         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
+         "The watch asks once for physical activity access, which it only uses to measure your speed while you record.",
+         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
+         "In direct chats, two ticks show that your message has been read.",
+         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
+         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
+         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
+         # 01.10.2026: fafdd410.
+         "The longest-run record shows kilometres from 1,000 m on.",
+         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
+         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
          "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
          # 09.10.2026: Web-Neuerungen des Tages nachgezogen (Android im Emulator gesehen).
          "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
