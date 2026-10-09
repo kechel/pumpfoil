@@ -307,7 +307,7 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                   Spalte links. Schmal (Handy): klein neben dem Namen, darunter volle Breite — als eigene Spalte
                   brach dort der ganze Karteninhalt Wort fuer Wort um. */}
               {d.bild_url
-                ? <img src={d.bild_url} alt="" loading="lazy" className="hidden h-16 w-16 shrink-0 self-start object-contain sm:block" />
+                ? <img src={d.bild_url} alt="" loading="lazy" className="hidden h-32 w-32 shrink-0 self-start object-contain sm:block" />
                 : <WatchIcon className="hidden h-5 w-5 shrink-0 text-brand-400 sm:block" />}
               {/* Handy: volle Breite, die Knoepfe (Ausblenden/Trennen) rutschen darunter — rechts daneben
                   liessen sie dem Inhalt nur einen schmalen Streifen. */}
