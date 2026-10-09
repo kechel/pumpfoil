@@ -521,6 +521,38 @@ def session_status(
     return {"exists": True, "status": "complete" if done else (s.status or "recording")}
 
 
+# Wie weit `ended_at` hinter dem Datenende liegen darf, bevor es als falsch gilt (wie merge._end).
+ENDE_TOLERANZ_S = 3600
+
+
+def _ende_auf_daten_kappen(s: models.Session) -> bool:
+    """`ended_at` weit HINTER den Daten -> aufs Datenende setzen. -> geaendert?
+
+    Anlass (09.10.2026, #14325, iPhone-Handy-Recorder 1.1.41): Akku leer nach 13,7 h Aufnahme, die
+    App schloss die Session sechs Tage spaeter beim naechsten Start ab und schickte „jetzt" als Ende.
+    Die Session stand damit ueberall mit gut 150 Stunden Dauer. Dieselbe Regel gilt beim
+    Zusammenfuehren schon lange (`merge._end`); hier wirkt sie fuer jede Plattform und jede alte
+    App-Fassung, ohne Store-Runde.
+
+    Datenende = Start + letzter GPS-Zeitstempel + gemeldete Pausen (Garmin, Apple Watch, Wear OS und
+    Amazfit melden sie; der Handy-Recorder kennt keine Pause, seine Zeitstempel sind Wanduhr). Eine
+    echte Pause wird dadurch nicht abgeschnitten. Ohne GPS bleibt alles, wie es ist.
+    """
+    if s.ended_at is None or s.started_at is None:
+        return False
+    from datetime import timedelta
+    lm = storage.gps_last_ms(s.session_uuid)
+    if not lm:
+        return False
+    daten_ende = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
+    if s.ended_at > daten_ende + timedelta(seconds=ENDE_TOLERANZ_S):
+        log.info("ingest: Endzeit von %s auf Datenende gekappt (%s -> %s)",
+                 s.session_uuid, s.ended_at.isoformat(), daten_ende.isoformat())
+        s.ended_at = daten_ende
+        return True
+    return False
+
+
 @router.post("/session/{session_uuid}/complete")
 def complete_session(
     session_uuid: str,
@@ -554,6 +586,7 @@ def complete_session(
         lm = storage.gps_last_ms(s.session_uuid)
         if lm:
             s.ended_at = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
+    _ende_auf_daten_kappen(s)
     s.total_chunks = body.total_chunks
     # Puls-Diagnose nur uebernehmen, wenn sie mitkommt — sonst wuerde ein erneutes /complete
     # einer alten App-Version (Retry/Watchdog) eine schon gemeldete Angabe wieder loeschen.
