@@ -37,7 +37,13 @@ PAARE = [(9528, 9529), (9535, 9534), (9650, 9648), (9650, 9649), (10195, 10194),
          (12687, 12722), (12738, 12737), (13055, 13051),
          # nachgetragen 07.10.2026: u244 (Samsung am Brett + Garmin), mit bewusst gefahrenen Gleitphasen
          # mitten in und am Ende von Laeufen (Fahrer-Meldung im Chat) — Kandidat fuer Gleit-Labels.
-         (13908, 13909)]
+         (13908, 13909),
+         # nachgetragen 10.10.2026: 09.10. u574 Steinberger See. Brett-Handy war als „phone" markiert, lag
+         # laut Lage aber flach und fest am Brett (Schwerkraft 95 % auf z, wie seine Brett-Sessions
+         # #13055/#12738) -> auf „board" korrigiert. ACHTUNG: die Wear-OS-Uhr #14072 lieferte nur 7,7 Hz
+         # Beschleunigung — fuer Laufgrenzen brauchbar, fuer Handgelenk-Pump-Merkmale kaum.
+         # Bewusst NICHT drin: #14062 (u808, „board", aber Lage wechselnd, 32 Grad Median) — Montage erfragt.
+         (14073, 14072)]
 
 
 def bandpass(x, lo=0.8, hi=2.5):
