@@ -505,7 +505,7 @@ private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode) {
     }
 }
 
-private fun cmpMmss(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
+private fun cmpMmss(s: Double): String = fmtLaufDauer(s)
 
 @Composable
 private fun CompareTable(

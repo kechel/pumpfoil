@@ -19,6 +19,8 @@ struct CommunityView: View {
     @State private var leaders: Leaders?
     @State private var media: [MediaItem] = []
     @State private var topLiked: [CommunityItem] = []
+    // Uhr-Layouts der Community (Top 5) — wie der Abschnitt auf der Community-Seite der PWA (Home.tsx).
+    @State private var layoutsTop: [WatchLayoutBrief] = []
     @State private var cstats: Api.CommunityStats?
     @State private var spots: SpotsList?
     @State private var spotShown: [String] = []
@@ -83,6 +85,7 @@ struct CommunityView: View {
                 mediaFeedSection
                 leaderboardSection
                 topLikedSection
+                layoutsSection
                 spotsSection
             }
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
@@ -380,6 +383,35 @@ struct CommunityView: View {
         }
     }
 
+    // Uhr-Layouts der Community: die fuenf meistgenutzten als Vorschau, darunter EIN Link in die ganze
+    // Galerie (bisher nur ueber Profil → Datenfelder erreichbar). Zwei getrennte Zeilen, damit nicht
+    // ein Tipp mehrere Ziele ausloest. Nichts veroeffentlicht -> kein leerer Abschnitt.
+    @ViewBuilder private var layoutsSection: some View {
+        if !layoutsTop.isEmpty {
+            Section(Loc.t("home.layouts", lang)) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 12) {
+                        ForEach(layoutsTop) { l in layoutKachel(l) }
+                    }
+                    .padding(.vertical, 4)
+                }
+                NavigationLink(Loc.t("home.layoutsAll", lang)) {
+                    LayoutGalleryView(lang: lang)
+                }
+            }
+        }
+    }
+
+    private func layoutKachel(_ l: WatchLayoutBrief) -> some View {
+        let w: Int = l.authored_w ?? 240
+        let h: Int = l.authored_h ?? 240
+        return VStack(spacing: 4) {
+            WatchLayoutPreview(elements: l.elements ?? [], bgColor: l.bg_color ?? 0, shape: l.shape ?? "round",
+                               w: w, h: h, px: 96, pageCount: 1, pageIndex: 0, lang: lang)
+            Text(l.name).font(.caption).lineLimit(1).frame(maxWidth: 96)
+        }
+    }
+
     @ViewBuilder private var spotsSection: some View {
         Section(Loc.t("home.spots", lang)) {
             TextField(Loc.t("home.spotSearch", lang), text: $spotQuery).textInputAutocapitalization(.never)
@@ -439,6 +471,7 @@ struct CommunityView: View {
 
     // Dieselbe Folge wie vorher inline (Basis -> Zeitraum -> Spot-Rekorde), nur einmal benannt.
     private func reloadAll() async {
+        layoutsTop = Array(((try? await Api.communityLayouts()) ?? []).prefix(5))
         await loadBase()
         await loadPeriod()
         await loadSpotRecs()

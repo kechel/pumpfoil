@@ -398,8 +398,11 @@ private fun PageSetEditor(
                                         elements = l.elements, bgColor = l.bg_color, shape = l.shape,
                                         w = l.authored_w ?: 240, h = l.authored_h ?: 240, px = 110.dp,
                                         pageCount = pages.size, pageIndex = idx)
-                                    Text(l.name, style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.primary)
+                                    Text(if (l.standard) I18n.t("account.standardPage").replace("{name}", l.name).replace("{author}", l.author ?: "?")
+                                         else l.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (l.standard) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.weight(1f, fill = false))
                                 }
                             } else {
                                 Text(I18n.t("account.layoutMissing"),

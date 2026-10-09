@@ -460,7 +460,7 @@ struct HomeView: View {
         TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at
     }
     private func fmtDist(_ m: Double) -> String { meterOderKm(m) }
-    private func fmtDur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+    private func fmtDur(_ s: Double) -> String { fmtLaufDauer(s) }
     // Foiling-Zeit aus Minuten, Format wie Web-fmtDur: "X h Y min" bzw. "Y min".
     private func fmtMin(_ min: Double) -> String {
         let h = Int(min) / 60, m = Int(min.rounded()) % 60

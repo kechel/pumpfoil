@@ -915,7 +915,7 @@ struct GroupCardView: View {
     private var statsText: String {
         var parts: [String] = ["\(group.count) " + Loc.t("unit.sessions", lang)]
         if group.foiling_km > 0 { parts.append(String(format: "%.1f km", group.foiling_km)) }
-        if group.foiling_time_s > 0 { parts.append(String(format: "%d:%02d", Int(group.foiling_time_s) / 60, Int(group.foiling_time_s) % 60)) }
+        if group.foiling_time_s > 0 { parts.append(fmtLaufDauer(group.foiling_time_s)) }
         if group.pump_count > 0 { parts.append("↕ \(group.pump_count)") }
         if let sp = group.max_speed_mps { parts.append(String(format: "max %.1f km/h", sp * 3.6)) }
         return parts.joined(separator: "  ·  ")
@@ -1282,7 +1282,25 @@ func isDrylandBoard(_ name: String) -> Bool {
     name.range(of: "skateboard", options: .caseInsensitive) != nil
 }
 
-func fmtDur(_ s: Double) -> String { let t = Int(s); return String(format: "%d:%02d", t / 60, t % 60) }
+func fmtDur(_ s: Double) -> String { fmtLaufDauer(s) }
+
+/// Laufdauer wie die PWA (web/src/lib/dauer.ts, 09.10.2026): m:ss, ab einer Stunde h:mm:ss. Vorher stand
+/// ueberall `Int(s) / 60` — ein 6-h-Lauf erschien als „361:09". Zuerst auf ganze Sekunden runden, sonst
+/// wurde aus 59,6 s „0:60".
+func fmtLaufDauer(_ s: Double) -> String {
+    guard s.isFinite else { return "–" }
+    let t: Int = Int(s.rounded())
+    let h: Int = t / 3600
+    let m: Int = (t % 3600) / 60
+    let sek: Int = t % 60
+    return h > 0 ? String(format: "%d:%02d:%02d", h, m, sek) : String(format: "%d:%02d", m, sek)
+}
+
+/// Mit Einheit: „6:01:09 h" bzw. „4:12 min".
+func fmtLaufDauerEinheit(_ s: Double) -> String {
+    guard s.isFinite else { return "–" }
+    return fmtLaufDauer(s) + (Int(s.rounded()) >= 3600 ? " h" : " min")
+}
 
 // Datum + Start[–Ende] + „Uhr" (nur wo üblich, via sessions.oclock) für die Listen-Zeilen.
 // tz = IANA-Zeitzone des Spots (Server) — Anzeige in Ortszeit, Fallback Geräte-Zeit.

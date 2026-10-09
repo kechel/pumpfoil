@@ -12,6 +12,8 @@ struct WatchView: View {
     // Wassersperre (nicht Garmin) und Wake-up-Sensor (nur Wear) je Uhr, id → Wert.
     @State private var waterLocks: [Int: String] = [:]
     @State private var wakeups: [Int: String] = [:]
+    // Speicher sparen je Uhr (id → an/aus), nur Garmin.
+    @State private var sparen: [Int: Bool] = [:]
     // Rueckmeldung je Uhr UND Einstellung (PWA Account.tsx, 26.09.2026): die Regler speichern
     // sofort beim Umstellen. Vorher kam nur ein kurzes „Gespeichert" unten am Abschnitt, auch wenn
     // der Aufruf scheiterte (`try?`). Jetzt steht es direkt unter dem Regler, 3 s lang; bei einem
@@ -126,7 +128,7 @@ struct WatchView: View {
     private func deviceRow(_ d: PairedDevice) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Image(systemName: "applewatch").foregroundStyle(Color.accentColor)
+                uhrBild(d)
                 Text(deviceTitle(d)).fontWeight(.medium)
                 Spacer()
                 versionLabel(d)
@@ -144,6 +146,7 @@ struct WatchView: View {
             gpsOnlyHint(d)
             garminHint(d)
             gnssPicker(d)
+            speicherSparen(d)
             waterLockPicker(d)
             accelWakeupPicker(d)
             geraeteAktionen(d)
@@ -217,6 +220,66 @@ struct WatchView: View {
             rueck("\(d.id):gnss")
             Text(Loc.t("account.gnssModeHint", lang)).font(.callout).foregroundStyle(.secondary)
         }
+    }
+
+    // Bild der verknuepften Uhr (nur Garmin, aus dem Simulator; PWA seit 09.10.2026), sonst das Symbol.
+    @ViewBuilder private func uhrBild(_ d: PairedDevice) -> some View {
+        if let u = Api.mediaURL(d.bild_url) {
+            NetzBild(url: u) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFit()
+                default: Image(systemName: "applewatch").foregroundStyle(Color.accentColor)
+                }
+            }
+            .frame(width: 56, height: 56)
+        } else {
+            Image(systemName: "applewatch").foregroundStyle(Color.accentColor)
+        }
+    }
+
+    // Speicher sparen (Garmin ab 1.0.92) mit dem Hinweis der PWA: was gespart wird, die Zahlen DIESER Uhr,
+    // das Umschalten auf nur GPS bei wenig Speicher, wann man es ausschaltet (Jan: „genau erklaert").
+    @ViewBuilder private func speicherSparen(_ d: PairedDevice) -> some View {
+        if d.gps_sparen_moeglich == true {
+            Toggle(Loc.t("account.gpsSparen", lang), isOn: sparenBinding(d))
+            rueck("\(d.id):gpsSparen")
+            Text(Loc.t("account.gpsSparenHint", lang)).font(.callout).foregroundStyle(.secondary)
+            Text(sparenUhrText(d)).font(.callout)
+            Text(Loc.t("account.gpsSparenNotfall", lang)).font(.callout).foregroundStyle(.secondary)
+            Text(Loc.t("account.gpsSparenAus", lang)).font(.callout).foregroundStyle(.secondary)
+        }
+    }
+
+    private func sparenBinding(_ d: PairedDevice) -> Binding<Bool> {
+        Binding(get: { sparen[d.id] ?? (d.gps_sparen != false) }, set: { setSparen(d.id, $0) })
+    }
+
+    private func setSparen(_ id: Int, _ an: Bool) {
+        sparen[id] = an
+        speichern("\(id):gpsSparen") { try await Api.setDeviceGpsSparen(id, an: an) }
+    }
+
+    /// Aufnahmezeit bis „Speicher voll" — dieselbe Rechnung wie die PWA (Account.tsx `sparMinuten`) und
+    /// die Uhr: 90 % der gemessenen Grenze; 11,5 KB/min bei 25 Hz, 6,1 bei 10 Hz, 2,5 nur GPS; mit Sparen
+    /// meist Faktor 2 bis 3. Ohne Messung keine Zahl.
+    private func sparenUhrText(_ d: PairedDevice) -> String {
+        let kb = d.speicher_kb ?? 0
+        if kb <= 0 || kb >= 5000 { return Loc.t("account.gpsSparenUhrUnbekannt", lang) }
+        let m = mode(d)
+        let modus: String
+        if d.seiten_klasse == "lite" || m == "gps" { modus = "gps" }
+        else if m == "lite" || d.low_accel == true { modus = "lite" }
+        else { modus = "full" }
+        let kbMin: Double = modus == "gps" ? 2.5 : (modus == "lite" ? 6.1 : 11.5)
+        let ohne = Int((Double(kb) * 0.9 / kbMin).rounded())
+        let key: String = modus == "gps" ? "account.sparModusGps" : (modus == "lite" ? "account.sparModusLite" : "account.sparModusFull")
+        var s = Loc.t("account.gpsSparenUhr", lang)
+        s = s.replacingOccurrences(of: "{kb}", with: String(kb))
+        s = s.replacingOccurrences(of: "{modus}", with: Loc.t(key, lang))
+        s = s.replacingOccurrences(of: "{ohne}", with: String(ohne))
+        s = s.replacingOccurrences(of: "{von}", with: String(ohne * 2))
+        s = s.replacingOccurrences(of: "{bis}", with: String(ohne * 3))
+        return s
     }
 
     // „Nur GPS" schaltet alles ab, was aus der Bewegung kommt — das MUSS dranstehen. Fehlte der
@@ -350,6 +413,7 @@ struct WatchView: View {
             gnss = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.gnss_mode ?? "best") })
             waterLocks = [:]
             wakeups = [:]
+            sparen = [:]
         }
     }
 

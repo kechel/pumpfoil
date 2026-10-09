@@ -158,7 +158,7 @@ struct VerlaufView: View {
 enum VMode { case cumulative, w7, w30 }
 enum VKind { case max, sum, count, avg, ratio }
 
-private func mmssMin(_ s: Double) -> String { String(format: "%d:%02d min", Int(s / 60), Int(s.truncatingRemainder(dividingBy: 60))) }
+private func mmssMin(_ s: Double) -> String { fmtLaufDauerEinheit(s) }
 private func hexColor(_ hex: UInt) -> Color {
     Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
 }

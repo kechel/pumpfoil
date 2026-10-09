@@ -173,10 +173,7 @@ private fun statCard(s: FoilStat, onFoil: (FoilStat) -> Unit = {}) {
 }
 
 // m:ss wie in den Rekord-Kacheln der Startseite.
-private fun fmtRunDur(sec: Double): String {
-    val t = sec.roundToInt()          // erst runden, sonst wird aus 389,6 s "6:60"
-    return "%d:%02d".format(t / 60, t % 60)
-}
+private fun fmtRunDur(sec: Double): String = fmtLaufDauer(sec)
 
 @Composable
 private fun metric(value: String, label: String, modifier: Modifier = Modifier) {

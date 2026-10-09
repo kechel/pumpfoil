@@ -1038,7 +1038,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             val m = a.metrics
             val segList = a.segments.orEmpty()
             fun dist(x: Double) = if (x < 1000) "%.0f m".format(x) else "%.2f km".format(x / 1000)
-            fun mmssD(x: Double) = "%d:%02d".format((x / 60).toInt(), (x % 60).toInt())
+            fun mmssD(x: Double) = fmtLaufDauer(x)
             // Rekord-Läufe (für anklickbare Kacheln -> Lauf auswählen).
             val bestSpeedIdx = segList.indices.maxByOrNull { segList[it].maxSpeedMps }
             val longestRunIdx = segList.indices.maxByOrNull { segList[it].durationS }
@@ -1831,7 +1831,7 @@ private fun laufSpalten(
         // Distanz in Metern, auch oberhalb von 1000 — wie die PWA (Math.round + " m").
         add(LaufSpalte(k("sd.colDistance"), 62) { seg -> "%.0f m".format(seg.distanceM) })
         add(LaufSpalte(k("sd.colDuration"), 56) { seg ->
-            "%d:%02d".format((seg.durationS / 60).toInt(), (seg.durationS % 60).toInt())
+            fmtLaufDauer(seg.durationS)
         })
         add(LaufSpalte(k("sd.colAvg"), 54) { seg -> eine(seg.avgSpeedMps * 3.6) })
         add(LaufSpalte(k("sd.colMax"), 64) { seg -> eine(seg.fenster(win, "max")?.times(3.6)) })

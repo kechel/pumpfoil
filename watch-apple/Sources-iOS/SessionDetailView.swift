@@ -501,7 +501,7 @@ struct SessionDetailView: View {
         excludeBusy = false
     }
 
-    private func mmss(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+    private func mmss(_ s: Double) -> String { fmtLaufDauer(s) }
 
     // In kleine, je einzeln type-gecheckte Helfer zerlegt (früher ein ~200-Zeilen-@ViewBuilder mit
     // >10 direkten Kindern -> Swift-Type-Checker/Archive lief exponentiell/„ewig"; vgl. CompareView).
@@ -1556,7 +1556,7 @@ struct SessionDetailView: View {
         let segs = a.segments ?? []
         let m = a.metrics
         func dist(_ x: Double) -> String { x < 1000 ? "\(Int(x)) m" : String(format: "%.2f km", x / 1000) }
-        func mmssD(_ x: Double) -> String { String(format: "%d:%02d", Int(x) / 60, Int(x) % 60) }
+        func mmssD(_ x: Double) -> String { fmtLaufDauer(x) }
         // Rekord-Läufe -> anklickbare Kacheln (Lauf auswählen).
         let bestSpeedIdx = segs.indices.max { (segs[$0].max_speed_mps ?? 0) < (segs[$1].max_speed_mps ?? 0) }
         let longestRunIdx = segs.indices.max { (segs[$0].duration_s ?? 0) < (segs[$1].duration_s ?? 0) }
@@ -2425,7 +2425,7 @@ private struct RunsTable: View {
         return f.string(from: start.addingTimeInterval(ms / 1000.0))
     }
 
-    private static func mmss(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+    private static func mmss(_ s: Double) -> String { fmtLaufDauer(s) }
     private static func eine(_ v: Double?) -> String { v.map { String(format: "%.1f", $0) } ?? "–" }
 }
 

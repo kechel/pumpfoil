@@ -88,7 +88,7 @@ private class HMetric(
     val fmt: (Double) -> String,
 )
 
-private fun mmssMin(s: Double) = "%d:%02d min".format((s / 60).toInt(), (s % 60).toInt())
+private fun mmssMin(s: Double) = fmtLaufDauerEinheit(s)
 
 // Best-pro-Session-Metriken (kumuliert = laufender Bestwert, Fenster = Max im Fenster).
 private val METRICS = listOf(

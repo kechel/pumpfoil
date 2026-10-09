@@ -71,6 +71,14 @@ struct PairedDevice: Codable, Identifiable {
     // Zahl der AUSGEBLENDETEN Eintraege desselben Nutzers — steht in jeder Antwort, damit die
     // Oberflaeche "N ausgeblendete anzeigen" anbieten kann, ohne ein zweites Mal zu fragen.
     let hidden_total: Int?
+    // Speicher sparen (Garmin ab 1.0.92): GPS + Accel nur um bewegte Abschnitte. Wert der Uhr (nil =
+    // Server-Voreinstellung nach gemessener Ablage), ob die Uhr es kann, gemessene Speichergrenze (KB, 0 =
+    // nicht gemessen) — wie die PWA (Account.tsx, 09.10.2026).
+    let gps_sparen: Bool?
+    let gps_sparen_moeglich: Bool?
+    let speicher_kb: Int?
+    // Geraetebild der verknuepften Uhr (/media/uhrbilder/<id>.webp), nur Garmin, sonst nil.
+    let bild_url: String?
 }
 
 // Eigene Session im Zwischenzustand (recording/live) — Live-Upload-Karte (Home + Sessions).
@@ -1217,6 +1225,9 @@ struct WatchLayoutBrief: Codable, Identifiable {
     let used_by: Int?
     let has_freetext: Bool?
     let published: Bool?
+    // Standard-Seite aus der Community (negative ID, server/app/standard_layouts.py, 09.10.2026). Wer nie
+    // eigene Seiten eingestellt hat, sieht diese; speichert er sie zurueck, legt der Server Kopien an.
+    let standard: Bool?
 }
 
 // Ein Element-Feld ist entweder eine Zahl oder (bei Freitext) ein String. Swifts Codable braucht

@@ -91,12 +91,15 @@ private val PERIODS = listOf("today" to "period.today", "10d" to "period.10d", "
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}) {
+fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}, onLayouts: () -> Unit = {}) {
     var records by remember { mutableStateOf<Map<String, PeriodRecords>?>(null) }
     var leaders by remember { mutableStateOf<Leaders?>(null) }
     var media by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
     var topLiked by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var cstats by remember { mutableStateOf<Api.CommunityStats?>(null) }
+    // Uhr-Layouts aus der Community (wie im Web: die fuenf meistgenutzten, Link zur Galerie)
+    var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
+    LaunchedEffect(Unit) { layouts = try { Api.communityLayouts().take(5) } catch (_: Exception) { emptyList() } }
     var spots by remember { mutableStateOf<SpotsList?>(null) }
     val spotShown = remember { mutableStateListOf<String>() }
     val spotRecs = remember { mutableStateMapOf<String, PeriodRecords>() }
@@ -336,6 +339,42 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             items(topLiked) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) } }
                         }
 
+                        // Uhr-Layouts der Community — im Web unter „Best bewertet" (Home.tsx LayoutTeaser),
+                        // in den Apps fehlte der Abschnitt; die Galerie war nur ueber Profil -> Datenfelder zu finden.
+                        if (layouts.isNotEmpty()) {
+                            item {
+                                Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(I18n.t("home.layouts"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                                    TextButton(onClick = onLayouts) { Text(I18n.t("home.layoutsAll") + " →") }
+                                }
+                                Text(I18n.t("home.layoutsHint"), style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp))
+                                androidx.compose.foundation.lazy.LazyRow(
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                ) {
+                                    items(layouts.size) { i ->
+                                        val l = layouts[i]
+                                        Card(Modifier.width(170.dp).clickable { onLayouts() }) {
+                                            Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                                WatchLayoutPreview(elements = l.elements, bgColor = l.bg_color, shape = l.shape,
+                                                    w = l.authored_w ?: 240, h = l.authored_h ?: 240, px = 130.dp)
+                                                Spacer(Modifier.height(6.dp))
+                                                Text(l.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                                Text(I18n.t("lay.byAuthor").replace("{name}", l.author ?: "?"), style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                                                Text(I18n.t("lay.cat.${l.category}"), style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                                                val n = l.used_by ?: 0
+                                                if (n > 0) Text(I18n.t(if (n == 1) "lay.usedBy1" else "lay.usedBy").replace("{n}", n.toString()),
+                                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, maxLines = 1)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // Spots: eigene Spots + Suche, je Spot ein Rekord-Grid.
                         item {
                             SectionHeader(I18n.t("home.spots"))
@@ -516,5 +555,5 @@ private fun ytId(url: String?): String? {
     if (url.isNullOrBlank()) return null
     return Regex("""(?:v=|youtu\.be/|shorts/|embed/)([\w-]{11})""").find(url)?.groupValues?.get(1)
 }
-private fun fmtDurC(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
+private fun fmtDurC(s: Double): String = fmtLaufDauer(s)
 // Kurzdatum dd.MM.yy jetzt zentral in TimeFmt.shortDate (Spot-Ortszeit via tz).

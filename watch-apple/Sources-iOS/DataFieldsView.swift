@@ -187,13 +187,25 @@ struct DataFieldsView: View {
                                        w: l.authored_w ?? 240, h: l.authored_h ?? 240,
                                        px: 100, pageCount: pages.wrappedValue.count,
                                        pageIndex: idx, lang: lang)
-                    Text(l.name).foregroundStyle(Color.accentColor)
+                    layoutName(l)
                 }
             } else {
                 Text(Loc.t("account.layoutMissing", lang)).foregroundStyle(Color.red)
             }
         }
         pageActions(pages: pages, idx: idx)
+    }
+
+    // Standard-Seite aus der Community: mit Herkunft statt nur dem Namen (wie die PWA).
+    @ViewBuilder private func layoutName(_ l: WatchLayoutBrief) -> some View {
+        if l.standard == true {
+            Text(Loc.t("account.standardPage", lang)
+                    .replacingOccurrences(of: "{name}", with: l.name)
+                    .replacingOccurrences(of: "{author}", with: l.author ?? "?"))
+                .font(.callout).foregroundStyle(.secondary)
+        } else {
+            Text(l.name).foregroundStyle(Color.accentColor)
+        }
     }
 
     @ViewBuilder private func pageActions(pages: Binding<[WatchPage]>, idx: Int) -> some View {
