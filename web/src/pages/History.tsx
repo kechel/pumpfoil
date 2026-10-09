@@ -7,6 +7,7 @@ import { ChartIcon } from "../components/Icons";
 import { SpotProgression } from "../components/SpotProgression";
 import { HrProgress } from "../components/HrProgress";
 import { useT, useNumberFormat } from "../i18n";
+import { fmtLaufDauerEinheit } from "../lib/dauer";
 
 export type Mode = "cumulative" | "window7" | "window30";
 export type Pt = { t: number; v: number; sid: number; run: number | null };
@@ -14,7 +15,7 @@ const RUN_METRICS = ["distance", "duration", "speed", "glide"];
 
 const METRICS: { key: keyof HistoryPoint; labelKey: string; fmt: (v: number) => string; color: string }[] = [
   { key: "distance", labelKey: "rec.farthestRun", fmt: (v) => `${Math.round(v)} m`, color: "#22d3ee" },
-  { key: "duration", labelKey: "rec.longestRun", fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")} min`, color: "#34d399" },
+  { key: "duration", labelKey: "rec.longestRun", fmt: (v) => fmtLaufDauerEinheit(v), color: "#34d399" },
   { key: "glide", labelKey: "rec.longestGlide", fmt: (v) => `${v.toFixed(1)} s`, color: "#a78bfa" },
   { key: "foiling_km", labelKey: "metric.foilingPerSession", fmt: (v) => `${v.toFixed(1)} km`, color: "#60a5fa" },
 ];

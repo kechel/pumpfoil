@@ -29,6 +29,7 @@ import { SpotRenameRequest } from "../components/SpotRenameRequest";
 import { useT } from "../i18n";
 import { verwerfeSessionListen } from "../lib/pwaCache";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
+import { fmtLaufDauer } from "../lib/dauer";
 
 const PAGE = 20;
 
@@ -1286,7 +1287,7 @@ export function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]>
   const pf = usePumpFmt();
   const m = a.metrics;
   const kmh = (v?: number | null) => (v != null ? (v * 3.6).toFixed(1) : null);
-  const dur = (s?: number | null) => (s == null ? "–" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`);
+  const dur = (s?: number | null) => fmtLaufDauer(s);
   return (
     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
       <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b> km</span>
