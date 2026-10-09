@@ -25,6 +25,7 @@ import { SessionStats } from "./Sessions";
 import { foilLabel } from "../lib/foilLabel";
 import { useI18n, useNumberFormat } from "../i18n";
 import { REC_ITEMS } from "./Home";
+import { fmtLaufDauer } from "../lib/dauer";
 
 // Bewusst dieselbe Formel wie auf der eigenen Startseite (`PersonalHome.fmtDur`) — eine zweite
 // Schreibweise fuer dieselbe Zahl liest sich wie ein anderer Wert.
@@ -120,7 +121,7 @@ export default function Foiler() {
   // Darstellung auseinander, wirken es zwei verschiedene Zahlen.
   const rekorde: { label: string; wert: number | undefined; fmt: (v: number) => string; datum?: string | null; tz?: string | null; sid?: number | null }[] = [
     { label: t("rec.farthestRun"), wert: r?.distance?.value, fmt: (v) => `${Math.round(v)} m`, datum: r?.distance?.started_at, tz: (r?.distance as any)?.tz, sid: r?.distance?.session_id },
-    { label: t("rec.longestRun"), wert: r?.duration?.value, fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}`, datum: r?.duration?.started_at, tz: (r?.duration as any)?.tz, sid: r?.duration?.session_id },
+    { label: t("rec.longestRun"), wert: r?.duration?.value, fmt: (v) => fmtLaufDauer(v), datum: r?.duration?.started_at, tz: (r?.duration as any)?.tz, sid: r?.duration?.session_id },
     { label: t("rec.topSpeed"), wert: r?.speed?.value, fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, datum: r?.speed?.started_at, tz: (r?.speed as any)?.tz, sid: r?.speed?.session_id },
     { label: t("rec.longestGlide"), wert: r?.glide?.value, fmt: (v) => `${v.toFixed(1)} s`, datum: r?.glide?.started_at, tz: (r?.glide as any)?.tz, sid: r?.glide?.session_id },
     { label: t("rec.mostRuns"), wert: r?.runs?.value, fmt: (v) => `${Math.round(v)}`, datum: r?.runs?.started_at, tz: (r?.runs as any)?.tz, sid: r?.runs?.session_id },

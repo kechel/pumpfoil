@@ -29,6 +29,7 @@ const STANDARD_ZEITRAUM = "10d";
 const RUECKFALL = ["10d", "30d", "365d", "all"];
 import { CHANGELOG_SEEN_KEY, abonnieren, neuestesDatum } from "../lib/changelogLatest";
 import { useT, useI18n, useNumberFormat } from "../i18n";
+import { fmtLaufDauer } from "../lib/dauer";
 
 // Kleiner Hinweis, wenn mir jemand eine Session übertragen will (Details/Annehmen in „Meine Sessions").
 function TransferHint() {
@@ -278,7 +279,7 @@ export default function PersonalHome() {
     const r = s?.records;
     return [
       { label: t("rec.farthestRun"), rec: r?.distance, fmt: (v) => `${Math.round(v)} m` },
-      { label: t("rec.longestRun"), rec: r?.duration, fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}` },
+      { label: t("rec.longestRun"), rec: r?.duration, fmt: (v) => fmtLaufDauer(v) },
       { label: t("rec.topSpeed"), rec: r?.speed, fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
       { label: t("rec.longestGlide"), rec: r?.glide, fmt: (v) => `${v.toFixed(1)} s` },
       { label: t("rec.mostRuns"), rec: r?.runs, fmt: (v) => `${Math.round(v)}` },

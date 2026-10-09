@@ -6,9 +6,10 @@ import { ChevronIcon, WatchIcon, FoilIcon } from "../components/Icons";
 import { useSort, SortHead } from "../components/SortableTable";
 import { usePumpFmt } from "../lib/pumpRate";
 import { useT } from "../i18n";
+import { fmtLaufDauer } from "../lib/dauer";
 
 // m:ss wie bei den Rekorden auf der Startseite (Home.tsx) — dieselbe Kennzahl, dieselbe Schreibweise.
-const fmtDur = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+const fmtDur = (s: number) => fmtLaufDauer(s);
 
 type Row = Awaited<ReturnType<typeof api.foilStats>>[number];
 
