@@ -178,6 +178,8 @@ def start_session(
             "gps_hz": body.gps_hz,
             "accel_hz": body.accel_hz,
             "accel_scale": body.accel_scale,
+            # Nur wenn gesetzt — die meta.json aller anderen Uhren bleibt Byte fuer Byte wie bisher.
+            **({"accel_luecken": True} if body.accel_luecken else {}),
         },
     )
     _altlasten_abschliessen(db, device, s, background)

@@ -46,7 +46,11 @@ nur RAM (`totalMemory`/`freeMemory`), ein `freeStorage` existiert nicht. Also:
 `GET /api/devices/config` → `storageBudgetKb`, in dieser Reihenfolge (`_storage_budget_kb`):
 
 1. **Eigene Messung** dieser Uhr (`storage_full_kb`) — für dieses Gerät die Wahrheit.
-2. **Minimum der Meldungen desselben Modells** (part_number) — die vorsichtigste bekannte Zahl.
+2. **Median der Meldungen desselben Modells** (part_number). Bis 09.10.2026 das Minimum — eine einzige
+   zu niedrige Meldung drückte damit alle Uhren des Modells (Instinct 2X: 105 gegen 178 KB). Zu niedrige
+   Meldungen gab es, weil die Uhr bis 1.0.91 jeden Schreibfehler für „voll" hielt und hochgeladene Teile
+   mitzählte (beides ab 1.0.92 behoben: nur `StorageFullException`, `sa_`/`sg_` werden abgezogen, Accel
+   nach gespeicherten Samples `accel_n` statt pauschal 9 KB je Chunk).
 3. **Sammelwert 200 KB** (`STORAGE_BUDGET_DEFAULT_KB`), wenn zu diesem Modell noch nie etwas
    gemeldet wurde.
 

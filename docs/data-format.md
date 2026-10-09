@@ -32,10 +32,17 @@ X-Device-Token: <token>
   "sport": "pumpfoil",
   "gps_hz": 1,
   "accel_hz": 25,
-  "accel_scale": 2048      // int16-Wert pro 1 g  (raw = g * accel_scale)
+  "accel_scale": 2048,     // int16-Wert pro 1 g  (raw = g * accel_scale)
+  "accel_luecken": true    // optional, Standard false — s. unten
 }
 → 200 { "session_id": 42, "received_chunks": [0,1,2] }   // received_chunks für Resume
 ```
+
+**`accel_luecken`** (seit 09.10.2026, Garmin ab 1.0.92 „Speicher sparen"): die Uhr speichert Accel
+ABSICHTLICH nur um bewegte Abschnitte herum und beginnt an jeder Lücke einen neuen Chunk mit eigener
+`t0_ms`. Mit dem Kennzeichen dehnt der Server einen Chunk nicht über die Lücke bis zum nächsten
+(`analysis/timebase.py`, `LUECKE_RATE_ANTEIL`). Ohne Kennzeichen rechnet die Achse wie bisher — ein
+Client, der Lücken lässt, MUSS es also mitschicken. Steht in `meta.json` der Session.
 
 ### 2. Chunks hochladen
 ```

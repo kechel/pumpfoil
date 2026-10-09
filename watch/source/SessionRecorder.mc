@@ -82,10 +82,12 @@ class SessionRecorder {
     hidden var _accelCount = 0;
     hidden var _accelOn = false;     // Roh-Accel zur Laufzeit aktiv? (sonst GPS-only)
     hidden var _gpsBuf;              // Array von [t_ms, lat, lon, speed, hr, hacc]
-    // GPS-Sparen (_gpsPunkt), EIN Feld: die Klasse liegt an der Grenze
+    // Speicher-Sparen (_gpsPunkt, onAccel), EIN Feld: die Klasse liegt an der Grenze
     // von 253 Mitgliedern (monkeyc, Instinct 2). [Vorlauf-Punkte, letzte 3 Tempi, haelt (0/1), ein,
-    // aus, nach, an (Schalter je Uhr aus /config, beim Start aus dem Cache gelesen)]
-    hidden var _gZ = [[], [], 0, 0, 0, 0, true];
+    // aus, nach, an (Schalter je Uhr aus /config, beim Start aus dem Cache gelesen),
+    // Luecke gemeldet (meta accel_luecken), Accel-Vorlauf [[t0_ms, ByteArray, Samples], …],
+    // gespeicherte Accel-Samples der Session (fuer Uploader.pendingKb, s. _saveState)]
+    hidden var _gZ = [[], [], 0, 0, 0, 0, true, false, [], 0];
 
     // Live-Stats
     hidden var _speedRing as Lang.Array<Lang.Float or Null> = new [SPEED_AVG_SAMPLES];
@@ -416,7 +418,10 @@ class SessionRecorder {
         if (sfkb instanceof Lang.Number && sfkb >= 0) {
             storageFullPending = true;
             storageFullKb = sfkb;
-            storageFull = true;
+            // NICHT mehr `storageFull = true` (bis 1.0.91): die rote Meldung blieb dann stehen, bis die
+            // naechste Aufnahme begann — auch nachdem der Server die Meldung quittiert hatte und der
+            // Puffer laengst hochgeladen war. Ist der Store wirklich noch voll, scheitert gleich der
+            // naechste Schreibversuch (Boot-Marke) und setzt die Meldung neu.
         }
         // Bevorzugt die zuletzt von der Website geladene Konfiguration (Cache),
         // sonst die nativen Garmin-App-Settings (Offline-Fallback).
@@ -692,7 +697,9 @@ class SessionRecorder {
     // 5 KB je GPS-Chunk = 120 Samples bei 1 Hz):
     //   25 Hz -> 11,5 KB/min · 10 Hz -> 6,1 KB/min · nur GPS -> 2,5 KB/min
     function kbPerMin() {
-        var gpsOnly = recordMode.equals("gps") || _isLowMem();
+        // waehrend der Aufnahme zaehlt, was WIRKLICH laeuft: nach dem Umschalten auf nur GPS (unter
+        // 100 KB frei, s. _gpsPunkt) rechnet die Restzeit mit GPS allein
+        var gpsOnly = recordMode.equals("gps") || _isLowMem() || (_recording && !_accelOn);
         var hz = gpsOnly ? 0 : (recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ);
         var accel = (hz * 60.0 / ACCEL_CHUNK_SAMPLES) * Uploader.KB_PER_ACCEL_CHUNK;
         // Chunk-ZIEL, nicht die Konstante: auf kleinen Uhren sind es 30 Samples, also mehr
@@ -1213,7 +1220,7 @@ class SessionRecorder {
         _accelCount = 0;
         _gpsBuf = [];
         var gsp = Storage.getValue("gps_sparen");   // je Uhr in „Meine Uhren"; fehlt -> an
-        _gZ = [[], [], 0, 0, 0, 0, !(gsp instanceof Lang.Boolean) || gsp];
+        _gZ = [[], [], 0, 0, 0, 0, !(gsp instanceof Lang.Boolean) || gsp, false, [], 0];
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1455,9 +1462,14 @@ class SessionRecorder {
         try {
             Storage.setValue(key, value);
             return true;
-        } catch (e) {
+        } catch (e instanceof Lang.StorageFullException) {
             storageFull = true;
             _noteStorageFull();
+            return false;
+        } catch (e) {
+            // Kein voller Speicher (falscher Typ, Wert ueber 32 KB …): bis 1.0.91 galt JEDER Fehler als
+            // „voll" — rote Meldung ohne Grund, und die Meldung an den Server drueckte die gemessene
+            // Speichergrenze dieses Modells. Jetzt nur den Schreibversuch verwerfen.
             return false;
         }
     }
@@ -1512,6 +1524,10 @@ class SessionRecorder {
             "accel_chunks" => _accelChunkIndex,
             "accel_t0" => _accelT0,
             "gps_chunks" => _gpsChunkIndex,
+            // Samples statt nur Chunks: mit Speicher-Sparen endet an jeder Luecke ein ANGEFANGENER
+            // Chunk. Pauschal 9 KB je Chunk gerechnet, haette eine Session mit 20 Laeufen ~90 KB zu viel
+            // gezeigt -> Warnung und Umschalten auf nur GPS viel zu frueh (Uploader.pendingKb).
+            "accel_n" => _gZ[9],
             "completed" => completed,
             "pauses" => _pauseListe
         });
@@ -1927,7 +1943,8 @@ class SessionRecorder {
 
     // ALLE Garmin-Uhren, ob es greift entscheidet der Schalter je Uhr (gpsSparen aus /config; der Server
     // setzt die Voreinstellung nach der gemessenen Ablage — die fenix 5X hat 1,25 MB RAM, lief aber bei
-    // 180 KB voll und verlor jede Session nach ~11 min, Befund 09.10.2026). NUR ohne Accel: GPS nur um bewegte Abschnitte herum speichern (Jan, 09.10.2026:
+    // 180 KB voll und verlor jede Session nach ~11 min, Befund 09.10.2026). GPS UND Accel nur um bewegte
+    // Abschnitte herum speichern (Jan, 09.10.2026:
     // „nimm ruhig 6 km/h als schwelle fuer speichern, wichtig ist das genug puffer davor und danach
     // mitgespeichert wird, ruhig 30 sekunden"). Der Server braucht Vorlauf vor dem Lauf zum Entscheiden,
     // und seine GPS-Erkennung haengt hinterher — deshalb 33 Punkte davor (Erkennung + 30 s) und 30 danach.
@@ -1942,17 +1959,32 @@ class SessionRecorder {
     // Schwellen (als Zahlen, nicht als const — s. Mitglieder-Grenze oben): rein ab 6 km/h (1,667 m/s)
     // fuer 3 s (Median aus 3), raus unter 5 km/h (1,389 m/s) fuer 3 s; Vorlauf 33 Punkte (~30 s vor dem
     // Beginn), Nachlauf 30 Punkte.
+    //
+    // ACCEL (Jan, 09.10.2026: „lass uns direkt das mit accel auch genauso einbauen, das waere ja der
+    // eigentliche gewinn"): dieselben Fenster. Waehrend nicht gespeichert wird, sammelt onAccel die
+    // Pakete (je ~1 s) in einem Vorlauf-Ring von 33 Paketen; beginnt ein Abschnitt, gehen sie zuerst in
+    // den Puffer. Endet der Nachlauf, wird der angefangene Chunk abgeschlossen — der Server sieht so an
+    // jeder Luecke einen neuen Chunk mit eigener t0 und dehnt nichts ueber die Luecke, SOFERN die Session
+    // `accel_luecken` traegt (meta, gesetzt bei der ersten Luecke; Server: analysis/timebase.py).
+    // Offline durch den echten Server-Weg (v2 + v3 + Pumps), 141 Garmin-Sessions voll gegen gekuerzt:
+    // Foil-Zeit −0,08 %, Pumps −0,2 %, 1365 von 1414 Laeufen gleich (der Rest Grenzfaelle 3–11 s).
+    // Gespeichert ~49 % der Accel-Daten.
     hidden function _gpsPunkt(p, spd) {
-        // Mit Accel bleibt alles wie bisher: dort fuellt der Accel den Speicher, und der Fall ist
-        // am Server nicht nachgerechnet (nur GPS-only, s. oben).
         var z = _gZ;
-        // Abgeschaltet, aber der Puffer wird knapp (Jan, 09.10.2026: „automatisches aktivieren wenn der
-        // verbleibende freie speicher unter 100kb gesunken ist waehrend der aufnahme"): ab hier fuer den
-        // Rest der Aufnahme sparen. Dieselbe Schaetzung wie die Restzeit-Anzeige (storageMinutesLeft).
-        if (!z[6] && storageBudgetKb > 0 && storageBudgetKb * 0.9 - Uploader.pendingKbCached() < 100) {
+        // Der Puffer wird knapp (Jan, 09.10.2026: „automatisches aktivieren wenn der verbleibende freie
+        // speicher unter 100kb gesunken ist waehrend der aufnahme"): ab hier fuer den Rest der Aufnahme
+        // sparen UND auf nur GPS umschalten — lieber ohne Pumps weiter als eine abgebrochene Aufnahme.
+        // Dieselbe Schaetzung wie die Restzeit-Anzeige (storageMinutesLeft).
+        if (storageBudgetKb > 0 && storageBudgetKb * 0.9 - Uploader.pendingKbCached() < 100) {
             z[6] = true;
+            if (_accelOn) {
+                try { Sensor.unregisterSensorDataListener(); } catch (e) { }
+                _accelOn = false;
+                _flushAccel(true);
+                z[8] = [];
+            }
         }
-        if (_accelOn || !z[6]) { _gpsBufAdd(p); return; }   // abgeschaltet: jeden Punkt speichern
+        if (!z[6]) { _gpsBufAdd(p); return; }   // abgeschaltet: jeden Punkt speichern
         var v = z[1];
         v.add(spd);
         if (v.size() > 3) { v = v.slice(1, null); z[1] = v; }
@@ -1965,6 +1997,16 @@ class SessionRecorder {
             var vor = z[0];
             for (var i = 0; i < vor.size(); i++) { _gpsBufAdd(vor[i]); }   // Vorlauf zuerst
             z[0] = [];
+            // Accel-Vorlauf in den Puffer, paketweise mit eigener Startzeit (ein Chunk, der mitten im
+            // Ring voll wird, bekommt fuer den naechsten die Zeit SEINES ersten Pakets).
+            var ar = z[8];
+            for (var k = 0; k < ar.size(); k++) {
+                if (_accelCount == 0) { _accelBufT0 = ar[k][0]; }
+                _accelBuf.addAll(ar[k][1]);
+                _accelCount += ar[k][2];
+                if (_accelCount >= _accelChunkTarget()) { _flushAccel(false); }
+            }
+            z[8] = [];
         }
         if (z[2] == 1) {
             _gpsBufAdd(p);
@@ -1973,6 +2015,20 @@ class SessionRecorder {
         } else if (z[5] > 0) {
             _gpsBufAdd(p);
             z[5] = z[5] - 1;
+            if (z[5] == 0 && _accelOn) {
+                // Nachlauf vorbei -> hier beginnt eine Luecke: angefangenen Accel-Chunk abschliessen und
+                // einmal je Session in meta vermerken, dass die Luecken Absicht sind (Uploader schickt meta
+                // bei /ingest/session mit, auch beim Fortsetzen).
+                _flushAccel(true);
+                if (!z[7]) {
+                    z[7] = true;
+                    var m = Storage.getValue("meta_" + _sessionUuid);
+                    if (m instanceof Lang.Dictionary) {
+                        m["accel_luecken"] = true;
+                        _store("meta_" + _sessionUuid, m);
+                    }
+                }
+            }
         } else {
             var vl = z[0];
             vl.add(p);   // noch nicht speichern — nur fuer den Vorlauf aufheben
@@ -1997,6 +2053,19 @@ class SessionRecorder {
             if (sensorData == null || sensorData.accelerometerData == null) { return; }
             var a = sensorData.accelerometerData;
             var n = a.x.size();
+            // Speicher-Sparen: ausserhalb eines Abschnitts nur in den Vorlauf-Ring (s. _gpsPunkt). Dafuer
+            // kurz in einen eigenen ByteArray schreiben — _appendI16 schreibt immer in _accelBuf.
+            var z = _gZ;
+            if (z[6] && z[2] == 0 && z[5] == 0) {
+                var buf = _accelBuf;
+                _accelBuf = new [0]b;
+                for (var j = 0; j < n; j++) { _appendI16(a.x[j]); _appendI16(a.y[j]); _appendI16(a.z[j]); }
+                var ring = z[8];
+                ring.add([_elapsedMs(), _accelBuf, n]);
+                if (ring.size() > 33) { z[8] = ring.slice(1, null); }
+                _accelBuf = buf;
+                return;
+            }
             if (_accelCount == 0 && n > 0) { _accelBufT0 = _elapsedMs(); }
             for (var i = 0; i < n; i++) {
                 _appendI16(a.x[i]);
@@ -2293,6 +2362,7 @@ class SessionRecorder {
         }
         _accelBufT0 = null;
         _accelChunkIndex++;
+        _gZ[9] = _gZ[9] + _accelCount;
         _accelBuf = new [0]b;
         _accelCount = 0;
         _saveState(false);

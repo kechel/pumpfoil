@@ -1437,6 +1437,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **09.10. — Achse alt gegen neu im Bestand klären (aus dem Speicher-Sparen).** Die lückenfeste Regel
+  (`timebase.LUECKE_RATE_ANTEIL`) gilt nur für Sessions mit `accel_luecken`. Auf alle 3284 Sessions mit
+  exakter Achse angewandt hätte sie ~370 verschoben: Wear 182/387 (schwankende Rate, bis 1370 s, z. B.
+  #2282, #9565), Garmin 97/1929 (bis 31.000 s, #458, #741, #1759 — Aussetzer/Pausen alter Fassungen),
+  Handy-Recorder 57/220 (#10325), Apple 8/454 (#1813), iOS-Handy 6/100, Zepp 15/154. Je Plattform an ein
+  paar Fällen gegen GPS-Läufe prüfen, welche Achse stimmt (DATA-PIPELINE §9.3). Nicht ungefragt umstellen.
+- **09.10. — „Speicher voll"-Meldung auch für Zepp und Huawei.** Bisher meldet nur Garmin, wenn der Puffer
+  voll läuft (→ `storage_full_kb`). Für Zepp (Warteschlange in `@zos/storage`, begrenzt) und Huawei Lite
+  (Puffer wächst ohne Handy) erst messen, dann über Speicher-Sparen entscheiden — der Server kann es
+  schon (`accel_luecken`).
+- **09.10. — Garmin 1.0.92 (Speicher sparen) vor watch/bin testen:** FR55 Wasserfahrt mit 10 Hz (RAM: Accel-
+  Vorlauf ~33 Pakete ≈ 5–7 KB zusätzlich), Instinct 2 (nur GPS), eine große Uhr mit 25 Hz; je Session am
+  Server prüfen: `meta.json` hat `accel_luecken`, `metrics_json.time_base_notes` sagt „mit Luecken", keine
+  Lücken/Doppelte in `ingest_chunks`, Pumps je Lauf plausibel gegen die Vorversion.
+
 - **Garmin Approach S62 (FW 5.10): „IQ!“ beim Öffnen der App** (Connect-IQ-Anfrage 09.10.2026, Nutzer hat neu installiert, hilft nicht). Jans Rückfrage: andere Apps/Watchfaces installiert? IQ! schon beim ersten Öffnen oder erst mit Aufnahmen? Vermutung Jan: Speicher — **aber das S62 ist KEIN Low-Mem-Gerät** (compiler.json: watchApp 1 MB, Instinct 2 nur 96 KB), also eher ein Absturz im Code. Naechster Schritt: Absturzbericht holen (Garmin ERA fuer unsere App oder `GARMIN/APPS/LOGS/CIQ_LOG.YML` vom Geraet).
 - **💡 08.10. — Standard-Datenseiten ueberarbeiten (Jan: „gute custom-layouts als default ausliefern, sollte ja
   rein serverseitig direkt moeglich sein").** Wer nichts eingestellt hat, bekommt heute klassische 3-Feld-Seiten

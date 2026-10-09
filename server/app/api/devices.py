@@ -683,9 +683,16 @@ STORAGE_BUDGET_UNBEKANNT = 0
 def _storage_budget_kb(db: Session, device) -> int:
     """Puffer-Budget dieser Uhr in KB (0 = unbekannt/nicht zutreffend).
 
-    Reihenfolge: eigene Messung > Messung desselben Modells (Minimum, also die vorsichtigste) >
-    0 = unbekannt. Die eigene Messung ist fuer dieses Geraet die Wahrheit und sticht deshalb;
-    ohne jede Messung wird NICHT geraten (s. den Kommentar oben).
+    Reihenfolge: eigene Messung > Messung desselben Modells (MEDIAN) > 0 = unbekannt. Die eigene
+    Messung ist fuer dieses Geraet die Wahrheit und sticht deshalb; ohne jede Messung wird NICHT
+    geraten (s. den Kommentar oben).
+
+    Bis 09.10.2026 stand hier das MINIMUM („die vorsichtigste"). Eine einzige zu niedrige Meldung
+    drueckte damit das Budget ALLER Uhren dieses Modells — und zu niedrige Meldungen gab es: die Uhr
+    hielt bis 1.0.91 jeden Schreibfehler fuer „voll" (nicht nur `StorageFullException`) und
+    schaetzte ihren Puffer ohne die schon hochgeladenen Teile. Belegt ist die Streuung an der
+    Instinct 2X (105 gegen 178 KB) und 006-B3888 (116 gegen 148–189 KB). Der Median haelt eine
+    einzelne Ausreisser-Meldung aus; bei zwei Meldungen ist er der Mittelwert.
     """
     eigen = int(getattr(device, "storage_full_kb", 0) or 0)
     if eigen > 0:
@@ -693,7 +700,7 @@ def _storage_budget_kb(db: Session, device) -> int:
     pn = getattr(device, "part_number", None)
     if pn:
         modell = db.execute(sa_text(
-            "SELECT MIN(NULLIF(storage_full_kb,0)) FROM device_tokens"
+            "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY storage_full_kb) FROM device_tokens"
             " WHERE part_number = :pn AND COALESCE(storage_full_kb,0) > 0"),
             {"pn": pn}).scalar()
         if modell:
@@ -840,6 +847,9 @@ def list_devices(
             "gps_sparen": _gps_sparen(db, d, model["id"] if model else None),
             "gps_sparen_standard": _gps_sparen_standard(db, d, model["id"] if model else None),
             "gps_sparen_moeglich": d.platform == "garmin",
+            # Gemessene Speichergrenze (dieselbe Zahl, die die Uhr als storageBudgetKb bekommt) — fuer
+            # den Hinweis „so lange nimmt diese Uhr auf". 0 = nicht gemessen, dann keine Zahl.
+            "speicher_kb": _storage_budget_kb(db, d) if d.platform == "garmin" else 0,
             # Wassersperre: fehlte hier bis 25.09. — gespeichert wurde richtig, aber das Profil
             # zeigte nach dem Neuladen immer „Automatisch". Wie `/config`: Uhr vor Konto vor "auto".
             "water_lock": _effective_water_lock(d, ustored),
