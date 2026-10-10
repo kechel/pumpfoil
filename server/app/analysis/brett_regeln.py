@@ -12,8 +12,14 @@ Definition, je Abtastschritt:
            und Ausgleichsbewegungen. Jan: „bringt keine Energie ins System -> kein Pump, sondern
            gleiten". Gemessen an Jans Laeufen: Fahrt-Zyklen 93 % mit Energie, schwache Endzyklen
            17 %, Treiben 0 %.
-  gleiten  auf dem Foil ohne Energie: vom Laufstart bis zum Aufsetzen, ausser pump.
+  gleiten  auf dem Foil ohne Energie: vom Laufstart bis zum Aufsetzen, ausser pump (Label 1).
   aus      sonst.
+GLEITZEIT (Kennzahl, `gleit_s` / `gleit_phasen_ms`) ist enger als Label 1 und folgt der Regel der
+bisherigen Gleit-Anzeige (analysis/__init__.py, GLIDE_SHOW_*; Jan, 10.10.2026: „auf jeden Fall genauso
+wie die bestehende Regel", Obergrenze 15 statt 10 s): nur zusammenhaengende Stuecke ohne Pump von
+GLEIT_MIN_S bis GLEIT_MAX_S, NICHT der Anlauf vom Laufstart bis zum ersten Pump, das Laufende zaehlt,
+und kein Stueck, in dem Beschleunigungsdaten fehlen. Die erste Fassung zaehlte alles ausser pump,
+auch die halbe Sekunde zwischen zwei Zyklen — das ergab 14 % statt 7 % (an #9656 46 %).
 Aufsetzen = erster ECHTER GPS-Punkt (Vorgaenger <= 1,5 s) in [Laufende - 15 s, Laufende] unter
 max(8 km/h, 0,6 x Fahrt-Tempo), minus 0,7 s Doppler-Nachlauf; ohne solchen Punkt das erkannte Ende.
 Das Aufsetzen KUERZT einen Lauf nur, es verlaengert ihn nie (Jan, 10.10.2026: in der ersten Fassung
@@ -37,6 +43,8 @@ MAX_ZYKLUS_MS = 1600          # laengere Gipfel-Abstaende sind kein Pumpzyklus m
 AUFSETZ_MIN_KMH = 8.0
 AUFSETZ_ANTEIL = 0.6
 DOPPLER_NACHLAUF_MS = 700
+GLEIT_MIN_S = 1.5
+GLEIT_MAX_S = 15.0
 
 
 def _band(x: np.ndarray, lo: float, hi: float) -> np.ndarray:
@@ -92,15 +100,19 @@ def montage(t: np.ndarray, pitch: np.ndarray, roll: np.ndarray, laeufe: list[tup
 
 
 def je_lauf(t: np.ndarray, hub_cm: np.ndarray, pitch_deg: np.ndarray, gps: np.ndarray,
-            laeufe: list[tuple[float, float]]) -> tuple[np.ndarray, list[dict]]:
+            laeufe: list[tuple[float, float]], echt: np.ndarray | None = None) -> tuple[np.ndarray, list[dict]]:
     """Labels (0 aus, 1 gleiten, 2 pump) je Abtastschritt und Kennzahlen je Lauf.
 
     `t` in Session-ms, gleichmaessig mit HZ; `laeufe` als (Start, Ende) in Session-ms;
-    `gps` wie `storage.load_gps` (t_ms, lat, lon, Tempo m/s, ...)."""
+    `gps` wie `storage.load_gps` (t_ms, lat, lon, Tempo m/s, ...); `echt` je Abtastschritt: liegt ein
+    echter Beschleunigungswert in der Naehe (sonst ist das Raster nur aufgefuellt). Ohne `echt` gilt
+    alles als gemessen."""
     hub = np.nan_to_num(np.asarray(hub_cm, float))
     pitch = np.nan_to_num(np.asarray(pitch_deg, float))
     gps = np.asarray(gps, float) if len(gps) else np.empty((0, 4))
     lab = np.zeros(t.size, dtype=np.int8)
+    echt = np.ones(t.size, bool) if echt is None else np.asarray(echt, bool)
+    luecke = np.concatenate([[0], np.cumsum(~echt)])   # Fehlstellen bis Index i (exklusiv)
     aus: list[dict] = []
     if t.size < 2 * HZ:
         return lab, [{"ok": False} for _ in laeufe]
@@ -116,7 +128,8 @@ def je_lauf(t: np.ndarray, hub_cm: np.ndarray, pitch_deg: np.ndarray, gps: np.nd
         lab[ia:itd] = 1
         zyklen = [(pk[i], pk[i + 1], float(np.mean(pf[pk[i]:pk[i + 1]] * vz[pk[i]:pk[i + 1]])))
                   for i in range(len(pk) - 1)
-                  if a <= t[pk[i]] and t[pk[i + 1]] <= td and t[pk[i + 1]] - t[pk[i]] <= MAX_ZYKLUS_MS]
+                  if a <= t[pk[i]] and t[pk[i + 1]] <= td and t[pk[i + 1]] - t[pk[i]] <= MAX_ZYKLUS_MS
+                  and luecke[pk[i + 1]] == luecke[pk[i]]]     # kein Zyklus ueber eine Datenluecke
         pumps, pump_ms = 0, []
         ok = len(zyklen) >= MIN_ZYKLEN
         if not ok:
@@ -130,13 +143,22 @@ def je_lauf(t: np.ndarray, hub_cm: np.ndarray, pitch_deg: np.ndarray, gps: np.nd
                     pumps += 1
                     pump_ms.append(float(t[p0]))
         stueck = lab[ia:itd]
+        phasen = []
+        if ok:
+            for x, y in _phasen(np.arange(ia, itd, dtype=float), stueck == 1):
+                i0, i1 = int(x), int(y)
+                d = (t[min(i1, t.size - 1)] - t[i0]) / 1000.0
+                if (i0 > ia                                      # nicht der Anlauf
+                        and GLEIT_MIN_S <= d <= GLEIT_MAX_S
+                        and luecke[min(i1, t.size)] == luecke[i0]):   # durchgehend gemessen
+                    phasen.append([round(float(t[i0])), round(float(t[min(i1, t.size - 1)]))])
         aus.append({
             "ok": ok,
             "aufsetzen_ms": round(td), "aufsetzen_quelle": quelle,
             "zyklen": len(zyklen), "pumps": pumps if ok else None,
             "pump_ms": [round(x) for x in pump_ms],
-            "gleit_phasen_ms": _phasen(t[ia:itd], stueck == 1) if ok else [],
+            "gleit_phasen_ms": phasen,
             "pump_s": round(float(np.sum(stueck == 2) * dt), 1) if ok else None,
-            "gleit_s": round(float(np.sum(stueck == 1) * dt), 1) if ok else None,
+            "gleit_s": round(sum((y - x) / 1000.0 for x, y in phasen), 1) if ok else None,
         })
     return lab, aus

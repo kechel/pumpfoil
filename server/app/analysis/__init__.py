@@ -56,9 +56,11 @@ MAX_GLIDE_S = 15.0
 # zwischen zwei Pumps bzw. letzter Pump -> Laufende, 1,5-10 s. Gegen das Brett geprueft
 # (scripts/v3/gleiten_versatz.py): ab 1 s pumpte das Brett in ~90 % der Uhr-„Gleitphasen" weiter,
 # echtes Gleiten liegt vor allem am Laufende (Median 3,4 s); ueber 10 s ist es fast immer ein
-# Erkennungsfehler (verpasste Pumps, Beine pumpen bei ruhigem Arm).
+# Erkennungsfehler (verpasste Pumps, Beine pumpen bei ruhigem Arm). Obergrenze seit 10.10.2026 15 s
+# statt 10 (Jan: „es gibt auch Gleits bis 15 Sekunden"), gleich MAX_GLIDE_S und den Brett-Regeln;
+# wirkt auf jede neue Analyse, gespeicherte Laeufe behalten ihre Gleitphasen bis zur Reanalyse.
 GLIDE_SHOW_MIN_S = 1.5
-GLIDE_SHOW_MAX_S = 10.0
+GLIDE_SHOW_MAX_S = 15.0
 
 
 def _accel_spans_session(accel, scale) -> bool:

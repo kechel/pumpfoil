@@ -29,6 +29,24 @@ def _track_zeiten(s: models.Session, n_punkte: int) -> np.ndarray | None:
     return t if t.size == n_punkte else None
 
 
+def echt_maske(s: models.Session, t: np.ndarray) -> np.ndarray:
+    """Je Rasterpunkt (Session-ms): liegt ein ECHTER Beschleunigungswert naeher als zwei Abtastschritte
+    (mind. 250 ms)? Dieselbe Regel wie `accel_echt` in run_analysis — wo Daten fehlen, gibt es weder
+    Pump noch Gleiten."""
+    from types import SimpleNamespace
+    from ..analysis.timebase import build_timebase_for_session
+    tb = build_timebase_for_session(SimpleNamespace(
+        session_uuid=s.session_uuid, accel_scale=s.accel_scale, accel_hz=s.accel_hz,
+        trim_start_ms=None, trim_end_ms=None, excluded_ranges=None, fremdkraft_keep=None))
+    src = np.asarray(tb.t_accel_ms, float)
+    if src.size < 2:
+        return np.zeros(t.size, bool)
+    hz = float(tb.accel_hz or 0) or 1000.0 / max(float(np.median(np.diff(src))), 1.0)
+    i = np.clip(np.searchsorted(src, t), 1, src.size - 1)
+    abstand = np.minimum(np.abs(src[i] - t), np.abs(src[i - 1] - t))
+    return abstand <= max(2000.0 / hz, 250.0)
+
+
 def ueberlagern(db, s: models.Session, out) -> bool:
     """`out` (SessionOut mit Analyse) nach den Brett-Regeln umschreiben. False = nichts gemacht."""
     from ..analysis import brett_regeln as BR
@@ -50,7 +68,7 @@ def ueberlagern(db, s: models.Session, out) -> bool:
         return False
     t = np.asarray(r["t_ms"], float)
     gps = np.asarray(storage.load_gps(s.session_uuid), float)
-    _, lauf = BR.je_lauf(t, r["hub_cm"], r["pitch_deg"], gps, laeufe)
+    _, lauf = BR.je_lauf(t, r["hub_cm"], r["pitch_deg"], gps, laeufe, echt=echt_maske(s, t))
     coords = (a.track_geojson or {}).get("geometry", {}).get("coordinates") or []
     tz = _track_zeiten(s, len(coords))
 
@@ -81,10 +99,11 @@ def ueberlagern(db, s: models.Session, out) -> bool:
         g["dist_per_pump_m"] = round(g["distance_m"] / k["pumps"], 1) if k["pumps"] and g.get("distance_m") else None
         g["t_to_first_pump_s"] = (round((k["pump_ms"][0] - float(g["t_start_session_ms"])) / 1000.0, 1)
                                   if k["pump_ms"] else None)
+        # gleit_phasen_ms ist schon nach der Anzeige-Regel gefiltert (1,5-15 s, kein Anlauf, keine Luecke)
         ph = [(x, y, (y - x) / 1000.0) for x, y in k["gleit_phasen_ms"] if y > x]
-        g["glides"] = [[idx(x, g), idx(y, g), round(d, 1), int(round(x))] for x, y, d in ph if d >= 1.5]
+        g["glides"] = [[idx(x, g), idx(y, g), round(d, 1), int(round(x))] for x, y, d in ph]
         g["num_glides"] = len(g["glides"])
-        lang = [d for _, _, d in ph if d >= 1.5]
+        lang = [d for _, _, d in ph]
         g["avg_glide_s"] = round(float(np.mean(lang)), 2) if lang else 0.0
         g["longest_glide_s"] = round(max(lang), 2) if lang else 0.0
         g["gleit_s"] = k["gleit_s"]
