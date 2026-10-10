@@ -1694,11 +1694,11 @@ const cs: N2 = {
   subtitle:
     "Jak se ze surových čísel ze senzorů stanou pumpnutí, jízdy na foilu, start/konec a fáze klouzání — zpracování signálu, sliding window, ML model a labelování, pěkně popořadě.",
   intro:
-    "V [části 1](/nerd-analysen) šlo o **pravdu**: druhé hodinky na stěžni foilu, které prozradí, co foil doopravdy dělá. Tady jde o **mašinerii**: co server počítá, aby se z roztřeseného signálu na zápěstí stalo čisté vyhodnocení relace. Vše následující se děje **na straně serveru** — hodinky jsou jen tenký rekordér.",
+    "V [části 1](/nerd-analysen) šlo o **pravdu**: druhé hodinky na stěžni foilu, které prozradí, co foil doopravdy dělá. Tady jde o **mašinerii**: co server počítá, aby se z roztřeseného signálu na zápěstí stalo čisté vyhodnocení vyjížďky. Vše následující se děje **na straně serveru** — hodinky jsou jen tenký rekordér.",
 
   raw: {
     h: "Co přichází: surová data",
-    p: "Každá relace se skládá ze dvou toků, obou se společnou časovou základnou (ms od začátku záznamu):",
+    p: "Každá vyjížďka se skládá ze dvou toků, obou se společnou časovou základnou (ms od začátku záznamu):",
     li: [
       "**GPS**, cca **1 Hz**: na vzorek `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`. Rychlost a tep mohou chybět (pak se odvodí z polohy, resp. jsou prázdné).",
       "**Zrychlení**, podle hodinek **10–100 Hz**: pole `int16` tvaru `(N × 3)` — X/Y/Z v surových jednotkách. `accel_scale` (jednotek na g) z toho udělá fyzikální g.",
@@ -1770,7 +1770,7 @@ const cs: N2 = {
   },
   rate: {
     h: "Nerd detail: skutečná vzorkovací frekvence",
-    p: "Některé hodinky o své frekvenci **lžou**. Forerunner 55 hlásí „10 Hz“, ale reálně dodá jen ~2,5 Hz. Frekvenční příznaky a kadence pumpování by s tím byly na nic. Proto server určuje frekvenci **genericky z dat samotných**: `skutečné_Hz = počet_vzorků_zrychlení / doba_GPS`. Pokud se to odchýlí o > 25 % od hlášené hodnoty, platí naměřená frekvence. A leží-li **pod 15 Hz**, je signál pro frekvenční analýzu příliš hrubý → relace se vyhodnotí jako **GPS-only** (pumpnutí n/a, zato poctivé meze místo vymyšlených hodnot).",
+    p: "Některé hodinky o své frekvenci **lžou**. Forerunner 55 hlásí „10 Hz“, ale reálně dodá jen ~2,5 Hz. Frekvenční příznaky a kadence pumpování by s tím byly na nic. Proto server určuje frekvenci **genericky z dat samotných**: `skutečné_Hz = počet_vzorků_zrychlení / doba_GPS`. Pokud se to odchýlí o > 25 % od hlášené hodnoty, platí naměřená frekvence. A leží-li **pod 15 Hz**, je signál pro frekvenční analýzu příliš hrubý → vyjížďka se vyhodnotí jako **GPS-only** (pumpnutí n/a, zato poctivé meze místo vymyšlených hodnot).",
   },
   ml: {
     h: "Jsem na foilu? — ML model",
@@ -1837,22 +1837,22 @@ const cs: N2 = {
   },
   gpsonly: {
     h: "Bez zrychlení: GPS-only a jeho úskalí",
-    p: "Importované relace (např. z Polaru) nebo hodinky s příliš hrubou frekvencí **nemají použitelné zrychlení**. Pak nese jen GPS — a to má své mouchy:",
+    p: "Importované vyjížďky (např. z Polaru) nebo hodinky s příliš hrubou frekvencí **nemají použitelné zrychlení**. Pak nese jen GPS — a to má své mouchy:",
     li: [
       "**Jednotlivé spiky** (dopplerovský glitch, „teleport“): nahrazeny lokálním mediánem, resp. skoky tam-a-zpět vyhlazeny.",
       "**Několikasekundové dopplerovské bursty** (~3 s na 50 km/h, ale pod prahem glitche 90 km/h): nahrazeny robustním **15s mediánem** — ten je vůči krátkým burstům necitlivý, kdežto skutečná držená jízda ho zvedne s sebou a zůstane nedotčená. Dvě podmínky (relativně nad mediánem **a** absolutně nad ~28 km/h) chrání skutečné jízdy.",
-      "**30km/h pumpfoilový gate**: bez zrychlení nelze pumpfoil spolehlivě oddělit od poháněného foilování (kite/vítr/wake). Leží-li vyhlazená maximální rychlost nad 30 km/h, považuje se relace za poháněnou → **žádný** pumpfoil. Se zrychlením tento gate odpadá — tam vyhodnocení věří signálu pumpnutí/jízdy na foilu.",
+      "**30km/h pumpfoilový gate**: bez zrychlení nelze pumpfoil spolehlivě oddělit od poháněného foilování (kite/vítr/wake). Leží-li vyhlazená maximální rychlost nad 30 km/h, považuje se vyjížďka za poháněnou → **žádný** pumpfoil. Se zrychlením tento gate odpadá — tam vyhodnocení věří signálu pumpnutí/jízdy na foilu.",
     ],
   },
   label: {
     h: "Odkud se bere pravda — ťukání do pumpnutí",
     p: "Model potřebuje **pravdu**, proti které se počítadlo pumpnutí vedené kadencí kalibruje — a tu si aktuálně naťukám sám. Dívám se na **video** jedné jízdy a **při každém skutečném pumpnutí ťuknu** na tlačítko. Dělám to na **více pokusů**; ty se přes křížovou korelaci sečtou do **konsensu** (malé posuny reakční doby se zprůměrují). Výsledek: skutečný počet pumpnutí a skutečné časování na jízdu. Je to záměrně **přechodné řešení** — dost přesné na dnešní kalibraci, ale naťukané ručně.",
-    p2: "Při kalibraci proti takovým labelům je důležité: **GroupKFold** místo běžné křížové validace. Sousední sekundy téže jízdy jsou téměř identické — kdyby padly zároveň do trénovací i testovací množiny, model by se sám sebe ptal (leakage) a hlásil vysněné hodnoty. GroupKFold proto drží **celé relace** pohromadě: testuje se vždy na jízdách, které model nikdy neviděl.",
-    cap: "Koloběh: **naťukaná** pravda o pumpnutích → features → RandomForest → foil_rf.pkl → vyhodnocení každé relace. Nové ťuky se vracejí zpět, model se překalibruje.",
+    p2: "Při kalibraci proti takovým labelům je důležité: **GroupKFold** místo běžné křížové validace. Sousední sekundy téže jízdy jsou téměř identické — kdyby padly zároveň do trénovací i testovací množiny, model by se sám sebe ptal (leakage) a hlásil vysněné hodnoty. GroupKFold proto drží **celé vyjížďky** pohromadě: testuje se vždy na jízdách, které model nikdy neviděl.",
+    cap: "Koloběh: **naťukaná** pravda o pumpnutích → features → RandomForest → foil_rf.pkl → vyhodnocení každé vyjížďky. Nové ťuky se vracejí zpět, model se překalibruje.",
     fits: ["Ťukání do pumpnutí", "video · více pokusů"],
     feats: ["Features", "14 × ±5 s kontext"],
     rf: ["RandomForest", "GroupKFold-CV"],
-    pkl: ["foil_rf.pkl", "→ každá relace"],
+    pkl: ["foil_rf.pkl", "→ každá vyjížďka"],
     loopNote: "nové naťukané jízdy → překalibrovat",
   },
   x5: {

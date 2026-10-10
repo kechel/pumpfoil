@@ -732,7 +732,7 @@ const id: N4 = {
     "li": [
       "**Angguk (pitch)** — hidung papan naik dan turun. Inilah gerakan pump yang *sebenarnya*; yang lain hanya pelengkap.",
       "**Guling (roll)** — papan miring ke kiri dan ke kanan. Carving, dan koreksi-koreksi kecil di antara pump.",
-      "**Oleng (yaw)** — perubahan arah hadap. Dicocokkan dengan jejak GPS, karena keduanya mengukur hal yang sama dan harus sesuai.",
+      "**Geleng (yaw)** — perubahan arah hadap. Dicocokkan dengan jejak GPS, karena keduanya mengukur hal yang sama dan harus sesuai.",
       "**Naik-turun (heave)** — seberapa jauh papan benar-benar naik dan turun, dalam sentimeter, dari integrasi ganda percepatan vertikal."
     ],
     "cap": "Satu run, 28 detik. Kurva angguk adalah pumping-nya; naik-turun di bawahnya adalah ritme yang sama, dalam sentimeter.",
@@ -1059,9 +1059,9 @@ const nl: N4 = {
       "**Stampen (pitch)** — de neus die omhoog en omlaag gaat. Dit *is* de pumpbeweging; al het andere is bijzaak.",
       "**Rollen (roll)** — de board die naar links en rechts helt. Carven, en de kleine correcties tussen de pumps.",
       "**Gieren (yaw)** — de koersverandering. Gecontroleerd aan de hand van het GPS-spoor, omdat beide hetzelfde meten en moeten kloppen.",
-      "**Deining (heave)** — hoe ver de board echt omhoog en omlaag gaat, in centimeters, door de verticale versnelling twee keer te integreren."
+      "**Dompen (heave)** — hoe ver de board echt omhoog en omlaag gaat, in centimeters, door de verticale versnelling twee keer te integreren."
     ],
-    "cap": "Eén run, 28 seconden. De stampcurve is het pumpen; de deining eronder is hetzelfde ritme, in centimeters.",
+    "cap": "Eén run, 28 seconden. De stampcurve is het pumpen; het dompen eronder is hetzelfde ritme, in centimeters.",
     "capTiles": "Dezelfde drie hoeken zoals de site ze toont, live langs de route."
   },
   "mount": {
@@ -1071,16 +1071,16 @@ const nl: N4 = {
     "cap": "Stampenergie in de pumpband tegen de aangenomen montagehoek. De piek is het antwoord."
   },
   "heave": {
-    "h": "Deining, en waarom het getal een kanttekening nodig heeft",
-    "p": "Hoe ver gaat een board echt op en neer terwijl je pumpt? De versnelling twee keer integreren geeft een antwoord in centimeters, en dat is precies het soort getal dat betrouwbaar oogt en stiekem broos is. Alles wat trager is dan de band die je overhoudt, wordt versterkt met het kwadraat van zijn periode — een kleine drift aan de onderkant wordt meters denkbeeldige deining.",
-    "p2": "Het nivelleervenster bepaalt die ondergrens, en het is geen vrij te kiezen parameter. Reken dezelfde run door met een venster van 1 seconde en je krijgt 18 cm; met 5 seconden krijg je 33 cm — voor exact dezelfde sessie. Daarom leiden we het venster af van de **gemeten cadans** van die run — hier 1,38 Hz, dus 1,45 seconden — en markeren we het getal als onbetrouwbaar zodra de beweging te dicht bij die grens ligt. Eerlijk gelezen zegt deze grafiek niet *de deining is 20 cm*, maar *de deining is 20 cm als je deining definieert als de beweging op pumptempo*.",
+    "h": "Dompen, en waarom het getal een kanttekening nodig heeft",
+    "p": "Hoe ver gaat een board echt op en neer terwijl je pumpt? De versnelling twee keer integreren geeft een antwoord in centimeters, en dat is precies het soort getal dat betrouwbaar oogt en stiekem broos is. Alles wat trager is dan de band die je overhoudt, wordt versterkt met het kwadraat van zijn periode — een kleine drift aan de onderkant wordt meters denkbeeldig dompen.",
+    "p2": "Het nivelleervenster bepaalt die ondergrens, en het is geen vrij te kiezen parameter. Reken dezelfde run door met een venster van 1 seconde en je krijgt 18 cm; met 5 seconden krijg je 33 cm — voor exact dezelfde sessie. Daarom leiden we het venster af van de **gemeten cadans** van die run — hier 1,38 Hz, dus 1,45 seconden — en markeren we het getal als onbetrouwbaar zodra de beweging te dicht bij die grens ligt. Eerlijk gelezen zegt deze grafiek niet *het dompen is 20 cm*, maar *het dompen is 20 cm als je dompen definieert als de beweging op pumptempo*.",
     "cap": "Dezelfde run, dezelfde data, zes verschillende nivelleervensters: 18 cm tot 33 cm."
   },
   "rules": {
     "h": "Van meten naar tellen: pumps, glides en neerkomen",
     "p": "Zodra de board zijn eigen beweging doorgeeft, heeft het tellen op de board de polsteller niet meer nodig. Sinds **10 oktober 2026** wordt elke opname met de telefoon op de board geteld volgens vier eenvoudige regels die iedereen kan nagaan:",
     "li": [
-      "**Een pump is een beweging die energie toevoegt.** Elk op en neer van de board in de pumpband (0,5–3 Hz) is één cyclus. Die telt alleen als pump als de neus in de maat van de verticale beweging knikt — technisch: als het gemiddelde product van snel stampen en deiningssnelheid over de cyclus meer is dan 30 % van de mediaan van die run. Uitdovende schommelingen na de laatste pump en kleine balanscorrecties bewegen de board ook, maar voegen geen energie toe.",
+      "**Een pump is een beweging die energie toevoegt.** Elk op en neer van de board in de pumpband (0,5–3 Hz) is één cyclus. Die telt alleen als pump als de neus in de maat van de verticale beweging knikt — technisch: als het gemiddelde product van snel stampen en dompsnelheid over de cyclus meer is dan 30 % van de mediaan van die run. Uitdovende schommelingen na de laatste pump en kleine balanscorrecties bewegen de board ook, maar voegen geen energie toe.",
       "**De run eindigt bij het neerkomen.** Dat is het eerste schone GPS-punt in de laatste 15 seconden van een run onder max(8 km/h, 60 % van de kruissnelheid van de run), min 0,7 s voor de vertraging van de GPS-snelheid. Het neerkomen kan een run alleen inkorten, nooit verlengen.",
       "**Gliden is vliegen zonder pumpen.** Stukken zonder pump van 1,5 tot 15 seconden tellen als glide — dezelfde regel waarmee de sessiekaart glijfases al liet zien. De aanloop voor de eerste pump telt niet, het einde van de run wel, en een stuk met ontbrekende bewegingsdata telt helemaal niet.",
       "**Wat te kort is om te beoordelen, blijft zoals het was.** Een run met minder dan vijf cycli heeft geen zinvolle mediaan en houdt daarom de telling van de polsteller."
@@ -1093,7 +1093,7 @@ const nl: N4 = {
     "li": [
       "**De montagerichting wordt automatisch gevonden, en die is stabiel.** Over twee runs van één sessie varieerde de gedetecteerde hoek met 3° — rekenruis, geen telefoon die verschoof. Tussen de sessies varieerde hij precies zoveel als de tape anders zat.",
       "**De cadans is opvallend constant.** 1,38 en 1,39 Hz in twee runs van één sessie; 1,45 Hz in een andere. Pumpen lijkt minder op inspanning en meer op een resonantie die iemand heeft gevonden.",
-      "**De deining ligt rond 20 cm** bij die cadans, gemeten van laagste tot hoogste punt, met de kanttekening van hierboven.",
+      "**Het dompen ligt rond 20 cm** bij die cadans, gemeten van laagste tot hoogste punt, met de kanttekening van hierboven.",
       "**Het stampen schommelt ongeveer ±19°, het rollen ongeveer ±10°** in een schone run — de board stampt dus veel meer dan hij rolt. Precies dat neemt de hele detectieaanpak aan, en niemand had het ooit echt gecontroleerd."
     ]
   },
