@@ -11391,3 +11391,6 @@ Offen daraus:
   Bewegungsdaten der Kamera gegen Uhr bzw. Handy am Brett kreuzkorrelieren (wie `paare_ausrichten.py` fuer
   Uhr/Brett) -> Video zeitgenau an die Session haengen, Laeufe/Pumps im Video springen lassen, ggf. auch
   Pump-Wahrheit fuer das Training. Erst nur ansehen, nichts bauen.
+- **10.10.2026 — Neue iOS-Store-Screenshots (macht Jan).** Die iOS-Bilder in README/Store
+  (`screenshots/mobile/ios-store-65-en`) sind aelter als die Android-Reihe `mobile-v3`. Jan nimmt sie
+  auf dem Mac neu auf; danach README-Abschnitt iOS und ggf. `make_store_previews.py --en` nachziehen.
