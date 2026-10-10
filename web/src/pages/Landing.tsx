@@ -323,7 +323,7 @@ export default function Landing() {
                 images={["/watch-wear-1.webp", "/watch-wear-2.webp", "/watch-wear-3.webp"]}
                 badge={<PlayBadge className="mt-2" />} />
               <WatchCarousel rounded="rounded-full" caption="Amazfit" sub="Zepp OS"
-                images={["/watch-amazfit-1.webp", "/watch-amazfit-2.webp", "/watch-amazfit-3.webp"]}
+                images={[1, 2, 3, 4, 5, 6, 7].map((n) => `/watch-amazfit-${n}.webp`)}
                 badge={<ZeppAppBadges />} />
               {/* HUAWEI (10.10.2026, Jan: „NEU (Beta) kennzeichnen und hervorheben"). Bilder aus Jans
                   DevEco-Emulator (Watch 5, ArkTS) mit den Standard-Layouts der Community, auf das runde
