@@ -3,7 +3,7 @@ Track Every Pump
 Spor saatini bir pumpfoil bilgisayarına dönüştür: GPS kaydı, foil mesafesi, pump temposu ve süzülme fazları – her seanstan tam otomatik.
 
 Saatinde ve telefonunda
-Garmin, Apple Watch, Wear OS ve Amazfit için uygulamalar – ayrıca iOS ve Android için, saat olmadan da çalışan kayıt özellikli uygulamalar. Hesap bağla: Polar, Suunto, COROS, Xiaomi (Mi Fitness üzerinden).
+Garmin, Apple Watch, Wear OS, Amazfit ve Huawei (beta) için uygulamalar – ayrıca iOS ve Android için, saat olmadan da çalışan kayıt özellikli uygulamalar. Hesap bağla: Polar, Suunto, COROS, Xiaomi (Mi Fitness).
 
 Neler var
 • Ayarlanabilir veri alanları: hız, nabız, mesafe, süre

@@ -3,7 +3,7 @@ Track Every Pump
 Zamień swój zegarek sportowy w komputer do pumpfoila: ślad GPS, dystans na foilu, kadencja pompowania i fazy ślizgu – automatycznie z każdej sesji.
 
 Na zegarku i w telefonie
-Aplikacje na Garmin, Apple Watch, Wear OS i Amazfit – plus natywne aplikacje na iOS i Androida z nagrywaniem także bez zegarka. Konta do połączenia: Polar, Suunto, COROS, Xiaomi (przez Mi Fitness).
+Aplikacje na Garmin, Apple Watch, Wear OS, Amazfit i Huawei (beta) – plus natywne aplikacje na iOS i Androida z nagrywaniem także bez zegarka. Konta do połączenia: Polar, Suunto, COROS, Xiaomi (przez Mi Fitness).
 
 Co dostajesz
 • Konfigurowalne pola danych: prędkość, tętno, dystans, czas

@@ -3,7 +3,7 @@ Track Every Pump
 Ta montre de sport devient un ordinateur de pumpfoil : trace GPS, distance en foil, cadence de pump et glisse – automatiquement, à chaque session.
 
 Sur la montre et le téléphone
-Apps pour Garmin, Apple Watch, Wear OS et Amazfit – et des apps natives iOS & Android, avec enregistreur même sans montre. Comptes à connecter : Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
+Apps pour Garmin, Apple Watch, Wear OS, Amazfit et Huawei (bêta) – et des apps natives iOS & Android, avec enregistreur même sans montre. À connecter : Polar, Suunto, COROS, Xiaomi (Mi Fitness).
 
 Ce que tu obtiens
 • Champs de données configurables : vitesse, cardio, distance, temps

@@ -3,7 +3,7 @@ Track Every Pump
 Turn your sports watch into a pumpfoil computer: GPS track, foiling distance, pump cadence and glides – fully automatic from every session.
 
 On your watch & phone
-Apps for Garmin, Apple Watch, Wear OS and Amazfit – plus native apps for iOS & Android with a recorder that works without a watch. Link your account: Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
+Apps for Garmin, Apple Watch, Wear OS, Amazfit and Huawei (beta) – plus native apps for iOS & Android with a recorder that works without a watch. Link your account: Polar, Suunto, COROS, Xiaomi (Mi Fitness).
 
 What you get
 • Configurable data fields: speed, heart rate, distance, time

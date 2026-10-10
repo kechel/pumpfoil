@@ -3,7 +3,7 @@ Track Every Pump
 スポーツウォッチをパンプフォイル用コンピューターに。GPSトラック、フォイリング距離、パンプのケイデンス、グライドを、どのセッションからも全自動で記録します。
 
 時計でもスマホでも
-Garmin、Apple Watch、Wear OS、Amazfit 用アプリに加え、iOS と Android のネイティブアプリ。時計がなくてもスマホだけで記録できます。連携できるアカウント：Polar、Suunto、COROS、Xiaomi（Mi Fitness 経由）。
+Garmin、Apple Watch、Wear OS、Amazfit、Huawei（ベータ）用アプリに加え、iOS と Android のネイティブアプリ。時計がなくてもスマホだけで記録できます。連携できるアカウント：Polar、Suunto、COROS、Xiaomi（Mi Fitness 経由）。
 
 できること
 • データ項目を自由に設定：速度、心拍、距離、時間

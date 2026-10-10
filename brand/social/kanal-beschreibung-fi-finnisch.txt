@@ -3,7 +3,7 @@ Track Every Pump
 Tee urheilukellostasi pumpfoil-tietokone: GPS-jälki, foilausmatka, pumppaustahti ja liu'ut – täysin automaattisesti joka sessiosta.
 
 Kellossa ja puhelimessa
-Sovellukset Garminille, Apple Watchille, Wear OS:lle ja Amazfitille – lisäksi natiivit iOS- ja Android-sovellukset, joissa tallennin toimii myös ilman kelloa. Tilin voi yhdistää: Polar, Suunto, COROS, Xiaomi (Mi Fitnessin kautta).
+Sovellukset Garminille, Apple Watchille, Wear OS:lle, Amazfitille ja Huaweille (beta) – lisäksi natiivit iOS- ja Android-sovellukset, joissa tallennin toimii myös ilman kelloa. Tilin voi yhdistää: Polar, Suunto, COROS, Xiaomi (Mi Fitnessin kautta).
 
 Mitä saat
 • Muokattavat tietokentät: vauhti, syke, matka, aika

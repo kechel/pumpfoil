@@ -3,7 +3,7 @@ Track Every Pump
 Mach aus deiner Sportuhr in einen Pumpfoil-Computer: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen – vollautomatisch aus jeder Session.
 
 Direkt auf Uhr & Handy
-Apps für Garmin, Apple Watch, Wear OS und Amazfit – dazua native Apps für iOS & Android, mit Recorder aa ganz ohne Uhr. Konto verknüpfen: Polar, Suunto, COROS, Xiaomi (über Mi Fitness).
+Apps für Garmin, Apple Watch, Wear OS, Amazfit und Huawei (Beta) – dazua native Apps für iOS & Android, Recorder aa ohne Uhr. Konto verknüpfen: Polar, Suunto, COROS, Xiaomi (Mi Fitness).
 
 Was du bekommst
 • Konfigurierbare Datenfelder: Tempo, Puls, Distanz, Zeit

@@ -3,7 +3,7 @@ Track Every Pump
 Proměň své sportovní hodinky v pumpfoilový počítač: GPS stopa, vzdálenost na foilu, kadence pumpování a klouzání – automaticky z každé session.
 
 V hodinkách i v telefonu
-Aplikace pro Garmin, Apple Watch, Wear OS a Amazfit – k tomu nativní aplikace pro iOS a Android s nahráváním i bez hodinek. Účty k propojení: Polar, Suunto, COROS, Xiaomi (přes Mi Fitness).
+Aplikace pro Garmin, Apple Watch, Wear OS, Amazfit a Huawei (beta) – k tomu nativní aplikace pro iOS a Android s nahráváním i bez hodinek. Účty k propojení: Polar, Suunto, COROS, Xiaomi (přes Mi Fitness).
 
 Co získáš
 • Nastavitelná datová pole: rychlost, tep, vzdálenost, čas
