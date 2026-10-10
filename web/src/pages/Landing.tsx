@@ -20,8 +20,9 @@ import { ThemeToggle } from "../components/ThemeToggle";
 
 // Uhr-Karussell je Plattform: EIN Screenshot breit, auto-rotierend + antippbar (statt
 // mehrere Uhren × je 2 Screenshots nebeneinander → zu breit). Punkte zeigen die Anzahl.
-function WatchCarousel({ images, rounded, caption, sub, badge, delay = 2800 }: {
+function WatchCarousel({ images, rounded, caption, sub, badge, delay = 2800, plakette }: {
   images: string[]; rounded: string; caption: string; sub?: string; badge: React.ReactNode; delay?: number;
+  plakette?: string;   // z. B. „NEU (Beta)" — hervorgehoben oben rechts am Bild
 }) {
   const [i, setI] = useState(0);
   useEffect(() => {
@@ -38,6 +39,9 @@ function WatchCarousel({ images, rounded, caption, sub, badge, delay = 2800 }: {
             onClick={() => setI((cur + 1) % images.length)}
             className={`absolute inset-0 h-full w-full cursor-pointer object-contain ${rounded} border border-slate-800 shadow-xl transition-opacity duration-500 ${idx === cur ? "opacity-100" : "opacity-0"}`} />
         ))}
+        {plakette && (
+          <span className="absolute -right-3 -top-2 z-10 whitespace-nowrap rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-bold text-slate-950 shadow-lg">{plakette}</span>
+        )}
       </div>
       {images.length > 1 && (
         <div className="mt-2 flex gap-1.5">
@@ -321,20 +325,14 @@ export default function Landing() {
               <WatchCarousel rounded="rounded-full" caption="Amazfit" sub="Zepp OS"
                 images={["/watch-amazfit-1.webp", "/watch-amazfit-2.webp", "/watch-amazfit-3.webp"]}
                 badge={<ZeppAppBadges />} />
-              {/* HUAWEI (10.10.2026, Jan: „NEU (Beta) kennzeichnen und hervorheben"). Noch kein Uhrbild
-                  und noch nicht installierbar (Wear-Engine-Freigabe steht aus) — deshalb ein schlichtes
-                  Feld statt eines erfundenen Displays und „kommt bald" statt eines Store-Knopfs. Gleiche
-                  Masse wie WatchCarousel, damit die Reihe buendig bleibt. */}
-              <figure className="flex flex-col items-center">
-                <div className="relative flex h-28 w-28 flex-col items-center justify-center rounded-full border-2 border-brand-500 bg-black shadow-xl sm:h-32 sm:w-32">
-                  <span className="text-sm font-bold tracking-widest text-white">HUAWEI</span>
-                  <span className="mt-1.5 rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-bold text-slate-950">{t("land.huaweiNew")}</span>
-                </div>
-                <div className="mt-2 h-1.5" />
-                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Huawei</figcaption>
-                <span className="whitespace-nowrap text-[11px] leading-tight text-slate-400">Watch GT · Fit · Watch 3/4/5</span>
-                <div className="mt-2"><span className="inline-block rounded-lg border border-brand-500/50 px-3 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{t("land.huaweiSoon")}</span></div>
-              </figure>
+              {/* HUAWEI (10.10.2026, Jan: „NEU (Beta) kennzeichnen und hervorheben"). Bilder aus Jans
+                  DevEco-Emulator (Watch 5, ArkTS) mit den Standard-Layouts der Community, auf das runde
+                  Display zugeschnitten. Noch nicht installierbar (Wear-Engine-Freigabe steht aus) —
+                  deshalb „kommt bald" statt eines Store-Knopfs. */}
+              <WatchCarousel rounded="rounded-full" caption="Huawei" sub="Watch GT · Fit · Watch 3/4/5"
+                images={["/watch-huawei-1.webp", "/watch-huawei-2.webp", "/watch-huawei-3.webp", "/watch-huawei-4.webp"]}
+                plakette={t("land.huaweiNew")}
+                badge={<span className="mt-2 inline-block rounded-lg border border-brand-500/50 px-3 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{t("land.huaweiSoon")}</span>} />
             </div>
           </section>
         </div>
