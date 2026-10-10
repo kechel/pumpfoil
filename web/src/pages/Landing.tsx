@@ -130,7 +130,8 @@ export default function Landing() {
   // Mobile-App-Screenshots (Hochformat, Android-App, Jans Emulator 10.10.2026). Bis dahin je Slot ein
   // dark/light-Paar; die neuen Aufnahmen gibt es nur hell, deshalb EIN Bild fuer beide Modi. Namen
   // anderer Nutzer sind unkenntlich gemacht (Jan: Spots und sein eigener Name duerfen bleiben).
-  const SHOTS = Array.from({ length: 14 }, (_, i) => i + 1);
+  // Reihenfolge: 15 = Uhren-Statistik "Aufnahmequalitaet", direkt nach der Nutzungs-Seite (12)
+  const SHOTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 13, 14];
   // Desktop 2 nebeneinander pro Slide, Mobile 1.
   const [perView, setPerView] = useState(1);
   useEffect(() => {
