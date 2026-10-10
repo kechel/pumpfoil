@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { Link, useNavigate } from "react-router-dom";
 import { api, SessionSummary } from "../lib/api";
@@ -128,6 +128,7 @@ export default function Compare() {
   const [merging, setMerging] = useState(false);
   const [mergeErr, setMergeErr] = useState<string | null>(null);
   const [sessions, setSessions] = useState<Record<string, SessionSummary | null>>({});
+  const unterwegs = useRef(new Set<string>());   // Lade-Schluessel, deren Anfrage noch laeuft
   const mergeIdsBase = mergeableIds(refs);
   // Zusätzlich zum Client-Check (ganze Sessions, eigene, gleiches Datum): nur DERSELBEN Uhr.
   // Die Sessions sind hier voll geladen (device_label). Bei bekannt-verschiedenen Uhren gar
@@ -171,19 +172,17 @@ export default function Compare() {
   // Alle referenzierten Sessions laden (dedupliziert; fehlende -> null).
   useEffect(() => {
     const missing = Array.from(new Map(refs.map((r) => [ladeKey(r), r] as const)).entries())
-      .filter(([k]) => !(k in sessions));
+      .filter(([k]) => !(k in sessions) && !unterwegs.current.has(k));
     if (!missing.length) return;
+    missing.forEach(([k]) => unterwegs.current.add(k));   // sonst holt jeder Eingang die anderen erneut
     setLoading(true);
+    // Jede Session eintragen, sobald sie da ist: die Brett-Regeln-Vorschau rechnet ~10 s, die
+    // gespeicherte Fassung daneben soll nicht so lange auf „–" stehen.
     Promise.all(missing.map(([k, r]) =>
       (r.modell === "neu" ? api.sessionBrettNeu(r.sessionId) : api.session(r.sessionId))
-        .then((s) => [k, s] as const).catch(() => [k, null] as const),
-    )).then((pairs) => {
-      setSessions((prev) => {
-        const next = { ...prev };
-        for (const [id, s] of pairs) next[id] = s;
-        return next;
-      });
-    }).finally(() => setLoading(false));
+        .catch(() => null)
+        .then((s) => { unterwegs.current.delete(k); setSessions((prev) => ({ ...prev, [k]: s })); }),
+    )).finally(() => setLoading(unterwegs.current.size > 0));
   }, [refs, sessions]);
 
   // Farbe je Fahrer (gleicher Fahrer -> gleiche Farbe, auch über mehrere Sessions).
