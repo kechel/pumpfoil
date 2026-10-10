@@ -3,7 +3,7 @@ Track Every Pump
 Gjør sportsklokka til en pumpfoil-datamaskin: GPS-spor, foil-distanse, pumpefrekvens og glidefaser – helautomatisk fra hver økt.
 
 På klokke og mobil
-Apper for Garmin, Apple Watch, Wear OS og Amazfit – i tillegg native apper for iOS og Android, med opptak også uten klokke. Kontoer å koble til: Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
+Apper for Garmin, Apple Watch, Wear OS, Amazfit og Huawei (beta) – i tillegg native apper for iOS og Android, med opptak også uten klokke. Kontoer å koble til: Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
 
 Dette får du
 • Konfigurerbare datafelt: fart, puls, distanse, tid

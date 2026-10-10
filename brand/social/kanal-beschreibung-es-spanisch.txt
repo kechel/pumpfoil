@@ -3,7 +3,7 @@ Track Every Pump
 Convierte tu reloj deportivo en un ordenador de pumpfoil: track GPS, distancia en foil, cadencia de pump y planeos – automático en cada sesión.
 
 En el reloj y en el móvil
-Apps para Garmin, Apple Watch, Wear OS y Amazfit – además de apps nativas para iOS y Android, con grabador incluso sin reloj. Cuentas para vincular: Polar, Suunto, COROS, Xiaomi (vía Mi Fitness).
+Apps para Garmin, Apple Watch, Wear OS, Amazfit y Huawei (beta) – además de apps nativas para iOS y Android, con grabador incluso sin reloj. Cuentas para vincular: Polar, Suunto, COROS, Xiaomi (vía Mi Fitness).
 
 Lo que obtienes
 • Campos de datos configurables: velocidad, pulso, distancia, tiempo
