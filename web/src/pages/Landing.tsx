@@ -314,7 +314,7 @@ export default function Landing() {
             {/* Feste Bildhöhe -> Captions gleich; Subline-Zeile in ALLEN Spalten (ggf. leer) -> Badges exakt gleich hoch. */}
             <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
               <WatchCarousel rounded="rounded-full" caption="Garmin"
-                images={["/watch-garmin-1.webp", "/watch-garmin-2.webp", "/watch-garmin-3.webp", "/watch-garmin-4.webp"]}
+                images={Array.from({ length: 18 }, (_, i) => `/watch-garmin-v2-${i + 1}.webp`)}
                 badge={<ConnectIqButton className="mt-2" />} />
               <WatchCarousel rounded="rounded-[1.5rem]" caption="Apple Watch"
                 images={["/watch-apple-1.webp", "/watch-apple-2.webp", "/watch-apple-3.webp"]}
