@@ -50,7 +50,7 @@ rate or pump cadence) with **every detected pump stroke marked right on the rout
 - <img src="docs/readme-icons/map.svg" width="18"> **Color-coded track** — foiling segments colored by speed / heart rate / pump frequency, with pump markers.
 - <img src="docs/readme-icons/upload.svg" width="18"> **FIT upload** — analyze old activities too: drop in a `.fit` file (or Garmin's ZIP export).
 - <img src="docs/readme-icons/tag.svg" width="18"> **Labeling UI** — mark pump / glide / not-foiling ranges to build training data for the ML model.
-- <img src="docs/readme-icons/community.svg" width="18"> **Community & history** — compare sessions over time, share runs; web UI in 7 languages.
+- <img src="docs/readme-icons/community.svg" width="18"> **Community & history** — compare sessions over time, share runs; web UI and apps in 18 languages.
 - <img src="docs/readme-icons/download.svg" width="18"> **One-click watch download** — the site detects your watch model and serves the matching build.
 
 ## A look inside the app
