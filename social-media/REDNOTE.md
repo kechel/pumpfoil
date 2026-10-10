@@ -78,7 +78,7 @@ Nicht die Weltliste, sondern die fuer China:
 | 高驰 COROS | ✅ chinesische Marke, in China stark — ueber die Kontoanbindung |
 | Wear OS | ❌ Google ist in China gesperrt, erreicht dort niemanden |
 | **小米 Xiaomi** | ❌ **auf keinen Fall** |
-| 华为 Huawei | ❌ wird gar nicht unterstuetzt |
+| **华为 Huawei** | ✅ **seit 10.10.2026, Beta** — App auf der Uhr ueber HUAWEI Health / Wear Engine |
 
 **Warum Xiaomi trotz aller Naheliegendheit raus muss:** unsere Anbindung laeuft ueber
 Mi Fitness → Suunto, und dazu steht in unserer eigenen App-Doku
@@ -87,10 +87,23 @@ worldwide except in China."* Genau diese Bruecke fehlt dort. 小米 zu nennen wa
 Versprechen, das beim ersten Versuch bricht — und das vor dem Publikum, das die Marke am
 besten kennt.
 
-**Der Elefant ist Huawei.** Die groesste Uhrenmarke Chinas unterstuetzen wir gar nicht,
-weder mit App noch ueber ein Konto. Das ist jetzt die verbliebene Deckelung des Kanals: die
-Seite ist erreichbar und die iOS-App im Store, aber wer dort eine Huawei traegt — und das
-sind viele — kommt trotzdem nicht weit.
+**Der Elefant war Huawei — und er ist seit 10.10.2026 weg.** Die groesste Uhrenmarke Chinas
+unterstuetzten wir bis dahin gar nicht, weder mit App noch ueber ein Konto; das war die
+verbliebene Deckelung dieses Kanals. Wer dort eine Huawei trug — und das sind viele — kam
+trotz erreichbarer Seite und iOS-App im Store nicht weit.
+
+Jetzt laeuft die Uhren-App ueber HUAWEI Health / Wear Engine, vorerst als **Beta** (der
+Wear-Engine-Antrag ist seit 09.10. eingereicht). Das ist fuer RedNote die groesste
+inhaltliche Aenderung seit Kanalstart.
+
+**（测试版） bleibt dran, solange die Beta laeuft.** Ohne den Zusatz waere es genau das
+Versprechen, das beim ersten Versuch bricht — das Argument, mit dem 小米 hier
+ausgeschlossen ist, gilt auch fuer uns selbst. Genannt wird Huawei ab jetzt an drei Stellen:
+in der chinesischen Endcard (`ZEILEN_ZH` in `brand/master/endcard.py`), im App-Hinweis unter
+jedem RedNote-Text (`rednote_text()`) und in der Kanalbeschreibung.
+
+Warum trotz laufender Beta schon jetzt: Jan plant die Videos rund zwei Wochen im Voraus
+(10.10.) — was heute gerendert wird, erscheint dort erst, wenn die Beta weiter ist.
 
 ## Wie das Studio das bedient
 

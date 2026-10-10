@@ -309,8 +309,12 @@ def rednote_text(caps: dict) -> dict:
     # eine Bruecke, die es laut unserer eigenen Doku "worldwide except in China"
     # gibt. 小米 hier zu nennen waere also ein Versprechen, das dort bricht.
     # Dafuer 高驰 (COROS), chinesische Marke, in China stark.
+    # 华为 seit 10.10.2026 dabei — die groesste Uhrenmarke Chinas, bis dahin die
+    # Deckelung dieses Kanals. Mit （测试版）, solange die Beta laeuft: ohne den
+    # Zusatz waere es dasselbe gebrochene Versprechen wie bei 小米.
     app = ("用运动手表记录每一次 pump：GPS、水翼距离、滑行时间。\n"
-           "免费开源，支持佳明 / Apple Watch / 华米 Amazfit / 高驰 COROS → pumpfoil.org")
+           "免费开源，支持佳明 / Apple Watch / 华米 Amazfit / 高驰 COROS / "
+           "华为（测试版）→ pumpfoil.org")
     tags = " ".join("#" + x for x in XHS_TAGS)
     teile = [d.get("zh", "").strip(), app, tags]
     text = "\n\n".join(x for x in teile if x)
