@@ -314,7 +314,7 @@ export default function Landing() {
             {/* Feste Bildhöhe -> Captions gleich; Subline-Zeile in ALLEN Spalten (ggf. leer) -> Badges exakt gleich hoch. */}
             <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
               <WatchCarousel rounded="rounded-full" caption="Garmin"
-                images={Array.from({ length: 18 }, (_, i) => `/watch-garmin-v2-${i + 1}.webp`)}
+                images={Array.from({ length: 13 }, (_, i) => `/watch-garmin-v3-${i + 1}.webp`)}
                 badge={<ConnectIqButton className="mt-2" />} />
               <WatchCarousel rounded="rounded-[1.5rem]" caption="Apple Watch"
                 images={["/watch-apple-1.webp", "/watch-apple-2.webp", "/watch-apple-3.webp"]}
@@ -330,7 +330,7 @@ export default function Landing() {
                   Display zugeschnitten. Noch nicht installierbar (Wear-Engine-Freigabe steht aus) —
                   deshalb „kommt bald" statt eines Store-Knopfs. */}
               <WatchCarousel rounded="rounded-full" caption="Huawei" sub="Watch GT · Fit · Watch 3/4/5"
-                images={[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/watch-huawei-v2-${n}.webp`)}
+                images={[1, 2, 3, 4, 5, 6, 7].map((n) => `/watch-huawei-v3-${n}.webp`)}
                 plakette={t("land.huaweiNew")}
                 badge={<span className="mt-2 inline-block rounded-lg border border-brand-500/50 px-3 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{t("land.huaweiSoon")}</span>} />
             </div>
