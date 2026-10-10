@@ -17,7 +17,7 @@
 
 # Pumpfoil
 
-**Record and analyze pump foiling sessions from your sports watch — GPS track, foiling distance, pump cadence and glide phases. Garmin, Wear OS, Apple Watch and Amazfit (Zepp OS), with native iOS/Android apps and a web PWA.**
+**Record and analyze pump foiling sessions from your sports watch — GPS track, foiling distance, pump cadence and glide phases. Garmin, Wear OS, Apple Watch, Amazfit (Zepp OS) and Huawei (beta), with native iOS/Android apps and a web PWA.**
 
 [pumpfoil.org](https://pumpfoil.org) · License: [AGPL-3.0](#license)
 
@@ -70,27 +70,35 @@ Native apps on every platform — one account, one analysis backend.
 
 **📱 Android phone**
 
-<img src="screenshots/mobile/android-store/01.png" alt="Android — home dashboard" width="200"> <img src="screenshots/mobile/android-store/02.png" alt="Android — session with track on map" width="200"> <img src="screenshots/mobile/android-store/03.png" alt="Android — per-run stats: distance, speed, pumps, heart rate" width="200"> <img src="screenshots/mobile/android-store/06.png" alt="Android — community, spots & records" width="200">
+<img src="screenshots/mobile/android-store-en/01.png" alt="Android — home dashboard" width="200"> <img src="screenshots/mobile/android-store-en/02.png" alt="Android — session with track on map" width="200"> <img src="screenshots/mobile/android-store-en/03.png" alt="Android — per-run stats: distance, speed, pumps, heart rate" width="200"> <img src="screenshots/mobile/android-store-en/06.png" alt="Android — community, spots & records" width="200">
 
 **📱 iOS phone**
 
-<img src="screenshots/mobile/ios-store-65/01.png" alt="iOS — home dashboard" width="200"> <img src="screenshots/mobile/ios-store-65/02.png" alt="iOS — session with track on map" width="200"> <img src="screenshots/mobile/ios-store-65/03.png" alt="iOS — per-run stats: distance, speed, pumps, heart rate" width="200"> <img src="screenshots/mobile/ios-store-65/05.png" alt="iOS — community, spots & records" width="200">
+<img src="screenshots/mobile/ios-store-65-en/01.png" alt="iOS — home dashboard" width="200"> <img src="screenshots/mobile/ios-store-65-en/02.png" alt="iOS — session with track on map" width="200"> <img src="screenshots/mobile/ios-store-65-en/03.png" alt="iOS — per-run stats: distance, speed, pumps, heart rate" width="200"> <img src="screenshots/mobile/ios-store-65-en/05.png" alt="iOS — community, spots & records" width="200">
+
+**📱 No watch? Record with the phone** (Android & iOS app — strapped to the board or in a pocket)
+
+<img src="web/public/phonerec-v2-3.webp" alt="Phone recorder — start" width="180"> <img src="web/public/phonerec-v2-4.webp" alt="Phone recorder — recording" width="180"> <img src="web/public/phonerec-v2-5.webp" alt="Phone recorder — upload" width="180">
 
 **⌚ Wear OS**
 
-<img src="brand/stores/google/wear-os/wear-01.png" alt="Wear OS — recording" width="170"> <img src="brand/stores/google/wear-os/wear-02.png" alt="Wear OS — data field" width="170"> <img src="brand/stores/google/wear-os/wear-03.png" alt="Wear OS — data field" width="170"> <img src="brand/stores/google/wear-os/wear-04.png" alt="Wear OS — summary" width="170">
+<img src="web/public/watch-wear-v2-7.webp" alt="Wear OS — start" width="160"> <img src="web/public/watch-wear-v2-1.webp" alt="Wear OS — recording" width="160"> <img src="web/public/watch-wear-v2-3.webp" alt="Wear OS — data fields" width="160"> <img src="web/public/watch-wear-v2-6.webp" alt="Wear OS — last run" width="160"> <img src="web/public/watch-wear-v2-10.webp" alt="Wear OS — upload done" width="160">
 
 **⌚ Apple Watch**
 
-<img src="brand/stores/apple/apple-watch/ultra3-01.png" alt="Apple Watch — recording" width="170"> <img src="brand/stores/apple/apple-watch/ultra3-02.png" alt="Apple Watch — data field" width="170"> <img src="brand/stores/apple/apple-watch/ultra3-03.png" alt="Apple Watch — data field" width="170"> <img src="brand/stores/apple/apple-watch/ultra3-04.png" alt="Apple Watch — summary" width="170">
+<img src="web/public/watch-apple-v2-1.webp" alt="Apple Watch — recording" width="160"> <img src="web/public/watch-apple-v2-2.webp" alt="Apple Watch — on foil" width="160"> <img src="web/public/watch-apple-v2-3.webp" alt="Apple Watch — data fields" width="160"> <img src="web/public/watch-apple-v2-4.webp" alt="Apple Watch — data fields" width="160"> <img src="web/public/watch-apple-v2-8.webp" alt="Apple Watch — settings" width="160">
 
 **⌚ Garmin** (all ~78 Connect IQ devices)
 
-<img src="web/public/guide/garmin/start.webp" alt="Garmin — start" width="160"> <img src="web/public/guide/garmin/settings.webp" alt="Garmin — settings" width="160"> <img src="web/public/guide/garmin/alarm-2.webp" alt="Garmin — foil alarm" width="160"> <img src="web/public/guide/garmin/on-foil-1.webp" alt="Garmin — on foil" width="160"> <img src="web/public/guide/garmin/on-foil-2.webp" alt="Garmin — on foil" width="160">
+<img src="web/public/watch-garmin-v3-7.webp" alt="Garmin — start" width="160"> <img src="web/public/watch-garmin-v3-1.webp" alt="Garmin — recording" width="160"> <img src="web/public/watch-garmin-v3-3.webp" alt="Garmin — on foil" width="160"> <img src="web/public/watch-garmin-v3-6.webp" alt="Garmin — data fields" width="160"> <img src="web/public/watch-garmin-v3-10.webp" alt="Garmin — upload done" width="160">
 
 **⌚ Amazfit** (Zepp OS)
 
-<img src="screenshots/watch/zepp/store360/rund/zepp-rund-01.png" alt="Amazfit — data fields" width="170"> <img src="screenshots/watch/zepp/store360/rund/zepp-rund-04.png" alt="Amazfit — recording" width="170"> <img src="screenshots/watch/zepp/store360/rund/zepp-rund-08.png" alt="Amazfit — summary" width="170"> <img src="screenshots/watch/zepp/store360/rund/zepp-rund-12.png" alt="Amazfit — connect" width="170">
+<img src="web/public/watch-amazfit-v2-7.webp" alt="Amazfit — start" width="160"> <img src="web/public/watch-amazfit-v2-1.webp" alt="Amazfit — recording" width="160"> <img src="web/public/watch-amazfit-v2-2.webp" alt="Amazfit — data fields" width="160"> <img src="web/public/watch-amazfit-v2-4.webp" alt="Amazfit — stop" width="160"> <img src="web/public/watch-amazfit-v2-6.webp" alt="Amazfit — last run" width="160">
+
+**⌚ Huawei** (HarmonyOS — new, beta)
+
+<img src="web/public/watch-huawei-v3-7.webp" alt="Huawei — start" width="160"> <img src="web/public/watch-huawei-v3-1.webp" alt="Huawei — recording" width="160"> <img src="web/public/watch-huawei-v3-3.webp" alt="Huawei — data fields" width="160"> <img src="web/public/watch-huawei-v3-4.webp" alt="Huawei — last run" width="160"> <img src="web/public/watch-huawei-v3-6.webp" alt="Huawei — settings" width="160">
 
 ## Architecture
 
