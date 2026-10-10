@@ -9,7 +9,7 @@ Ausgabe:
   screenshots/mobile/ios-store/01..08.png     (1290x2796, App Store 6.7")
   screenshots/mobile/android-store/01..08.png (1080x2160, Play 2:1)
 
-Aufruf:  python screenshots/mobile/make_store_previews.py
+Aufruf:  python screenshots/mobile/make_store_previews.py [--nur-android]
 """
 from __future__ import annotations
 
@@ -164,7 +164,9 @@ def sorted_ios():
 
 
 def sorted_android():
-    return sorted(glob.glob(str(HERE / "android" / "*")))
+    # Seit 10.10.2026: Jans neue Emulator-Aufnahmen, Namen anderer Nutzer unkenntlich gemacht
+    # (01..20 = Reihenfolge der Original-Screenshots in android/20261010-neu/).
+    return sorted(glob.glob(str(HERE / "android" / "20261010-neu" / "unkenntlich" / "*.png")))
 
 
 # (Index in sortierter Liste [1-basiert], Titel)
@@ -179,30 +181,34 @@ IOS = [
     (34, "Dein Foil-Quiver & Leistung"),
 ]
 ANDROID = [
-    (3,  "Jede Session automatisch getrackt"),
-    (8,  "Jeder Lauf auf der Karte"),
-    (9,  "Distanz · Speed · Pumps · Puls"),
-    (13, "Dein Fortschritt über Zeit"),
-    (14, "Teile deine Session-Card"),
-    (12, "Community, Spots & Rekorde"),
-    (5,  "Chat mit anderen Foilern"),
-    (32, "Alle Spots auf der Karte"),
+    (2,  "Jede Session automatisch getrackt"),
+    (7,  "Jeder Lauf auf der Karte"),
+    (6,  "Distanz · Speed · Pumps · Puls"),
+    (11, "Dein Fortschritt über Zeit"),
+    (16, "Handy am Brett: Nicken & Rollen"),
+    (4,  "Community, Spots & Rekorde"),
+    (13, "Eigene Datenseiten für deine Uhr"),
+    (8,  "Alle Spots auf der Karte"),
 ]
 
 
 def main():
+    import sys
+    nur_android = "--nur-android" in sys.argv   # iOS-Quellen nicht noetig, iOS-Bilder bleiben unberuehrt
     cache: dict = {}
     ios_files, an_files = sorted_ios(), sorted_android()
     print(f"iOS-Quellen: {len(ios_files)} · Android-Quellen: {len(an_files)}")
 
     # App Store Connect (2025): 6.9" = 1320x2868 (Pflicht-Slot), 6.5" = 1242x2688.
     # Der alte 6.7"-Slot (1290x2796) existiert nicht mehr -> "falsche Auflösung".
-    print("iOS 6.9\" (1320x2868):")
-    for i, (idx, title) in enumerate(IOS, 1):
+    if nur_android:
+        ios_files = []
+    print("iOS 6.9\" (1320x2868):") if ios_files else None
+    for i, (idx, title) in enumerate(IOS if ios_files else [], 1):
         make(ios_files[idx - 1], title, (1320, 2868),
              HERE / "ios-store" / f"{i:02d}.png", cache)
-    print("iOS 6.5\" (1242x2688):")
-    for i, (idx, title) in enumerate(IOS, 1):
+    print("iOS 6.5\" (1242x2688):") if ios_files else None
+    for i, (idx, title) in enumerate(IOS if ios_files else [], 1):
         make(ios_files[idx - 1], title, (1242, 2688),
              HERE / "ios-store-65" / f"{i:02d}.png", cache)
 
