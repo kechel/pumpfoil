@@ -4,3 +4,6 @@ local.properties
 *.apk
 *.aab
 .idea/
+# Zielordner von "Generate Signed Bundle" in Android Studio (AAB + output-metadata.json, baselineProfiles)
+app/release/
+wear/release/
