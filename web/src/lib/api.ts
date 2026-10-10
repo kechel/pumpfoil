@@ -1593,6 +1593,8 @@ export const api = {
       body: JSON.stringify({ start_ms, end_ms, keep }),
     }),
   session: (id: number) => req<SessionSummary>(`/api/sessions/${id}`),
+  // Admin: dieselbe Session nach den Brett-Regeln (Vorschau, s. server/app/api/brett_vorschau.py)
+  sessionBrettNeu: (id: number) => req<SessionSummary>(`/api/sessions/${id}?brett=neu`),
   // Öffentlicher Teilen-Link: erzeugen (idempotent) / widerrufen / anonym abrufen.
   createShareLink: (id: number) => req<{ token: string; path: string }>(`/api/sessions/${id}/share`, { method: "POST" }),
   revokeShareLink: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}/share`, { method: "DELETE" }),

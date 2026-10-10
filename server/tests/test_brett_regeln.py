@@ -43,7 +43,14 @@ def test_ohne_gps_gilt_das_erkannte_ende():
 def test_zu_wenig_zyklen_keine_pump_aussage():
     t, hub, pitch, (a, b) = _lauf(pump_s=2.0, nachschwingen_s=0.0)
     _, lauf = BR.je_lauf(t, hub, pitch, np.empty((0, 4)), [(a, b)])
-    assert not lauf[0]["ok"] and lauf[0]["pumps"] == 0
+    assert not lauf[0]["ok"] and lauf[0]["pumps"] is None and lauf[0]["gleit_s"] is None
+
+
+def test_aufsetzen_verlaengert_den_lauf_nie():
+    t, hub, pitch, (a, b) = _lauf()
+    gps = _gps(a, b + 8000, aufsetzen=b + 5000)   # GPS sieht das Aufsetzen erst NACH dem Laufende
+    lab, lauf = BR.je_lauf(t, hub, pitch, gps, [(a, b)])
+    assert lauf[0]["aufsetzen_ms"] <= b and np.all(lab[t > b] == 0)
 
 
 def test_montage_nur_in_den_laeufen():

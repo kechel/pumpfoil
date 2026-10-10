@@ -14,8 +14,12 @@ Definition, je Abtastschritt:
            17 %, Treiben 0 %.
   gleiten  auf dem Foil ohne Energie: vom Laufstart bis zum Aufsetzen, ausser pump.
   aus      sonst.
-Aufsetzen = erster ECHTER GPS-Punkt (Vorgaenger <= 1,5 s) ab Laufende - 15 s unter
+Aufsetzen = erster ECHTER GPS-Punkt (Vorgaenger <= 1,5 s) in [Laufende - 15 s, Laufende] unter
 max(8 km/h, 0,6 x Fahrt-Tempo), minus 0,7 s Doppler-Nachlauf; ohne solchen Punkt das erkannte Ende.
+Das Aufsetzen KUERZT einen Lauf nur, es verlaengert ihn nie (Jan, 10.10.2026: in der ersten Fassung
+lag es bis 10 s nach dem Ende, #9484 hatte dadurch mehr Gleitzeit als Foilzeit).
+Laeufe mit weniger als MIN_ZYKLEN Zyklen bekommen KEINE Aussage (`ok` False, `pumps` None) — der
+Aufrufer behaelt dort die bisherige Zaehlung.
 
 Grenzen: eine Naeherung, keine Leistungsmessung; relativ zum eigenen Pumpen im selben Lauf; setzt
 eine feste Montage voraus. Die Montage-Kennzahlen (`montage`) werden mitgeliefert, aber noch nicht
@@ -26,7 +30,7 @@ from __future__ import annotations
 import numpy as np
 
 HZ = 25.0
-REGEL_VERSION = "brett-regeln-1"
+REGEL_VERSION = "brett-regeln-2"
 ENERGIE_ANTEIL = 0.3          # Zyklus zaehlt als Pump ab 0,3 x Median-Kopplung des Laufs
 MIN_ZYKLEN = 5                # weniger Zyklen im Lauf: kein Median, keine Pump-Aussage
 MAX_ZYKLUS_MS = 1600          # laengere Gipfel-Abstaende sind kein Pumpzyklus mehr
@@ -42,6 +46,15 @@ def _band(x: np.ndarray, lo: float, hi: float) -> np.ndarray:
     return np.fft.irfft(X, n=x.size)
 
 
+def _phasen(t: np.ndarray, maske: np.ndarray) -> list[list[int]]:
+    """Zusammenhaengende Stuecke einer Maske als [[Start-ms, Ende-ms], ...]."""
+    if not maske.any():
+        return []
+    d = np.diff(np.concatenate([[0], maske.astype(np.int8), [0]]))
+    an, ab = np.flatnonzero(d == 1), np.flatnonzero(d == -1)
+    return [[round(float(t[i])), round(float(t[min(j, t.size - 1)]))] for i, j in zip(an, ab)]
+
+
 def aufsetzen_ms(gps: np.ndarray, a: float, b: float) -> tuple[float, str]:
     """Zeitpunkt des Aufsetzens (Session-ms) und Quelle ("gps" | "lauf")."""
     if gps.size == 0:
@@ -51,9 +64,9 @@ def aufsetzen_ms(gps: np.ndarray, a: float, b: float) -> tuple[float, str]:
     if fahrt.sum() < 5:
         return b, "lauf"
     grenze = max(AUFSETZ_MIN_KMH, AUFSETZ_ANTEIL * float(np.median(gv[fahrt])))
-    for i in np.where((gt >= b - 15000) & (gt <= b + 10000))[0]:
+    for i in np.where((gt >= b - 15000) & (gt <= b))[0]:
         if gv[i] < grenze and i > 0 and gt[i] - gt[i - 1] <= 1500:
-            return float(gt[i] - DOPPLER_NACHLAUF_MS), "gps"
+            return max(a, min(b, float(gt[i] - DOPPLER_NACHLAUF_MS))), "gps"
     return b, "lauf"
 
 
@@ -104,20 +117,26 @@ def je_lauf(t: np.ndarray, hub_cm: np.ndarray, pitch_deg: np.ndarray, gps: np.nd
         zyklen = [(pk[i], pk[i + 1], float(np.mean(pf[pk[i]:pk[i + 1]] * vz[pk[i]:pk[i + 1]])))
                   for i in range(len(pk) - 1)
                   if a <= t[pk[i]] and t[pk[i + 1]] <= td and t[pk[i + 1]] - t[pk[i]] <= MAX_ZYKLUS_MS]
-        pumps = 0
-        if len(zyklen) >= MIN_ZYKLEN:
+        pumps, pump_ms = 0, []
+        ok = len(zyklen) >= MIN_ZYKLEN
+        if not ok:
+            lab[ia:itd] = 0      # keine Aussage: weder Pump noch Gleiten erfinden
+        if ok:
             wref = float(np.median([w for _, _, w in zyklen]))
             sg = np.sign(wref) or 1.0
             for p0, p1, w in zyklen:
                 if wref != 0 and sg * w / abs(wref) > ENERGIE_ANTEIL:
                     lab[p0:p1] = 2
                     pumps += 1
+                    pump_ms.append(float(t[p0]))
         stueck = lab[ia:itd]
         aus.append({
-            "ok": len(zyklen) >= MIN_ZYKLEN,
+            "ok": ok,
             "aufsetzen_ms": round(td), "aufsetzen_quelle": quelle,
-            "zyklen": len(zyklen), "pumps": pumps,
-            "pump_s": round(float(np.sum(stueck == 2) * dt), 1),
-            "gleit_s": round(float(np.sum(stueck == 1) * dt), 1),
+            "zyklen": len(zyklen), "pumps": pumps if ok else None,
+            "pump_ms": [round(x) for x in pump_ms],
+            "gleit_phasen_ms": _phasen(t[ia:itd], stueck == 1) if ok else [],
+            "pump_s": round(float(np.sum(stueck == 2) * dt), 1) if ok else None,
+            "gleit_s": round(float(np.sum(stueck == 1) * dt), 1) if ok else None,
         })
     return lab, aus

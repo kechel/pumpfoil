@@ -98,6 +98,10 @@ function statsFor(it: Item, win: "1" | "3" | "5", weight: number | null): Stats 
   };
 }
 
+// Schluessel im Lade-Speicher: dieselbe Session kann zweimal drin sein — einmal wie gespeichert,
+// einmal nach den Brett-Regeln (`modell: "neu"`, Admin-Vorschau).
+const ladeKey = (r: CompareRef) => (r.modell ? `${r.sessionId}:${r.modell}` : String(r.sessionId));
+
 interface Item {
   ref: CompareRef;
   session: SessionSummary | null;
@@ -107,14 +111,23 @@ interface Item {
   riderColor: string;
 }
 
+// Alt gegen neu derselben Session: der Name traegt das Modell, sonst sind beide nicht zu unterscheiden
+// (und bekaemen dieselbe Fahrer-Farbe). Admin-Vorschau, daher bewusst nicht uebersetzt.
+function riderName(r: CompareRef, s: SessionSummary | null, hatNeu: Set<number>): string {
+  const n = s?.owner_name ?? "?";
+  if (r.modell === "neu") return `${n} · Brett-Regeln neu`;
+  return hatNeu.has(r.sessionId) ? `${n} · bisher` : n;
+}
+
 export default function Compare() {
   const t = useT();
   const pf = usePumpFmt();   // Pump-Kadenz-Einheit (Hz | /min) aus dem Profil
   const refs = useCompare();
+  const hatNeu = useMemo(() => new Set(refs.filter((r) => r.modell === "neu").map((r) => r.sessionId)), [refs]);
   const nav = useNavigate();
   const [merging, setMerging] = useState(false);
   const [mergeErr, setMergeErr] = useState<string | null>(null);
-  const [sessions, setSessions] = useState<Record<number, SessionSummary | null>>({});
+  const [sessions, setSessions] = useState<Record<string, SessionSummary | null>>({});
   const mergeIdsBase = mergeableIds(refs);
   // Zusätzlich zum Client-Check (ganze Sessions, eigene, gleiches Datum): nur DERSELBEN Uhr.
   // Die Sessions sind hier voll geladen (device_label). Bei bekannt-verschiedenen Uhren gar
@@ -157,12 +170,13 @@ export default function Compare() {
 
   // Alle referenzierten Sessions laden (dedupliziert; fehlende -> null).
   useEffect(() => {
-    const ids = Array.from(new Set(refs.map((r) => r.sessionId)));
-    const missing = ids.filter((id) => !(id in sessions));
+    const missing = Array.from(new Map(refs.map((r) => [ladeKey(r), r] as const)).entries())
+      .filter(([k]) => !(k in sessions));
     if (!missing.length) return;
     setLoading(true);
-    Promise.all(missing.map((id) =>
-      api.session(id).then((s) => [id, s] as const).catch(() => [id, null] as const),
+    Promise.all(missing.map(([k, r]) =>
+      (r.modell === "neu" ? api.sessionBrettNeu(r.sessionId) : api.session(r.sessionId))
+        .then((s) => [k, s] as const).catch(() => [k, null] as const),
     )).then((pairs) => {
       setSessions((prev) => {
         const next = { ...prev };
@@ -177,18 +191,18 @@ export default function Compare() {
     const map = new Map<string, string>();
     let n = 0;
     for (const r of refs) {
-      const name = sessions[r.sessionId]?.owner_name ?? "?";
+      const name = riderName(r, sessions[ladeKey(r)] ?? null, hatNeu);
       if (!map.has(name)) map.set(name, RIDER_COLORS[n++ % RIDER_COLORS.length]);
     }
     return map;
-  }, [refs, sessions]);
+  }, [refs, sessions, hatNeu]);
 
   const items: Item[] = useMemo(() => refs.map((r, i) => {
-    const session = sessions[r.sessionId] ?? null;
+    const session = sessions[ladeKey(r)] ?? null;
     const seg = r.runIdx != null ? (session?.analysis?.segments?.[r.runIdx] ?? null) : null;
-    const rider = session?.owner_name ?? null;
+    const rider = session ? riderName(r, session, hatNeu) : null;
     return { ref: r, session, seg, color: COLORS[i % COLORS.length], rider, riderColor: riderColor.get(rider ?? "?") ?? COLORS[i % COLORS.length] };
-  }), [refs, sessions, riderColor]);
+  }), [refs, sessions, riderColor, hatNeu]);
 
   // Items mit geladener Session + Track für die Karte.
   const mapItems: CompareMapItem[] = useMemo(() =>
@@ -421,7 +435,7 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
               const best = (r.seg.distance_m ?? 0) === bestDist && bestDist > 0;
               const power = showPower ? powerOf(r.session, r.seg.avg_speed_mps, r.seg.avg_pump_hz, weight) : null;
               return (
-                <tr key={`${r.sessionId}:${r.runIdx}`} className={`border-b border-slate-800/50 hover:bg-slate-800/50 ${best ? "bg-brand-500/5" : ""}`}>
+                <tr key={`${r.sessionId}:${r.runIdx}:${r.rider}`} className={`border-b border-slate-800/50 hover:bg-slate-800/50 ${best ? "bg-brand-500/5" : ""}`}>
                   <td className="px-3 py-2">
                     <span className="flex items-center gap-2">
                       <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} />
