@@ -15,6 +15,7 @@ import numpy as np
 from app import models, storage
 from app.db import SessionLocal
 from app.api.sessions import _lage_antwort
+from app.api.brett_vorschau import echt_maske
 from app.analysis import brett_regeln as BR
 
 ap = argparse.ArgumentParser()
@@ -42,7 +43,7 @@ for s in ss:
         continue
     t = np.asarray(r["t_ms"], float)
     gps = np.asarray(storage.load_gps(s.session_uuid), float)
-    _, lauf = BR.je_lauf(t, r["hub_cm"], r["pitch_deg"], gps, laeufe)
+    _, lauf = BR.je_lauf(t, r["hub_cm"], r["pitch_deg"], gps, laeufe, echt=echt_maske(s, t))
     mo = BR.montage(t, np.nan_to_num(np.asarray(r["pitch_deg"], float)),
                     np.nan_to_num(np.asarray(r.get("roll_deg") or np.zeros(t.size), float)), laeufe)
     foil_alt = sum((b - x) / 1000 for x, b in laeufe)

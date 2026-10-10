@@ -8,10 +8,16 @@ GPS = np.arange(0, 60_000, 1000.0)          # ein Track-Punkt je Sekunde
 
 
 def test_luecken_zwischen_pumps_und_am_ende():
-    ps = np.array([5000, 5700, 6400, 9000, 9700, 21_000, 21_700])
-    g = gleit_anzeige(ps, [True] * 6, 25_000, GPS)
-    # 6,4 -> 9,0 s (2,6 s) ja · 9,7 -> 21,0 s (11,3 s) zu lang · Ende 21,7 -> 25,0 s (3,3 s) ja
-    assert g == [[7, 9, 2.6, 6400], [22, 25, 3.3, 21_700]]
+    ps = np.array([5000, 5700, 6400, 9000, 9700, 25_000, 25_700])
+    g = gleit_anzeige(ps, [True] * 6, 29_000, GPS)
+    # 6,4 -> 9,0 s (2,6 s) ja · 9,7 -> 25,0 s (15,3 s) zu lang (Grenze 15 s seit 10.10.2026)
+    # · Ende 25,7 -> 29,0 s (3,3 s) ja
+    assert g == [[7, 9, 2.6, 6400], [26, 29, 3.3, 25_700]]
+
+
+def test_gleiten_bis_fuenfzehn_sekunden():
+    ps = np.array([5000, 5700, 18_000, 18_700])                # 5,7 -> 18,0 s = 12,3 s
+    assert gleit_anzeige(ps, [True] * 3, 19_000, GPS)[0][:3] == [6, 18, 12.3]
 
 
 def test_unter_eineinhalb_sekunden_nicht():

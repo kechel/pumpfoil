@@ -58,3 +58,22 @@ def test_montage_nur_in_den_laeufen():
     roll = np.zeros_like(pitch)
     mo = BR.montage(t, pitch + 30 * (t > b), roll, [(a, b)])   # nach dem Lauf beliebig gedreht
     assert mo["nick_anteil"] == 1.0
+
+
+def test_gleitzeit_nach_der_anzeige_regel():
+    """Gleitzeit = Stuecke ohne Pump von 1,5-15 s, das Laufende zaehlt, kurze Luecken zwischen
+    Zyklen nicht (Jan, 10.10.2026)."""
+    t, hub, pitch, (a, b) = _lauf(pump_s=20.0, nachschwingen_s=6.0)
+    _, lauf = BR.je_lauf(t, hub, pitch, np.empty((0, 4)), [(a, b)])
+    k = lauf[0]
+    assert len(k["gleit_phasen_ms"]) == 1                      # nur das Nachschwingen am Ende
+    x, y = k["gleit_phasen_ms"][0]
+    assert BR.GLEIT_MIN_S <= (y - x) / 1000 <= BR.GLEIT_MAX_S and y >= b - 100
+    assert abs(k["gleit_s"] - (y - x) / 1000) < 0.05
+
+
+def test_keine_gleitzeit_ueber_eine_datenluecke():
+    t, hub, pitch, (a, b) = _lauf(pump_s=20.0, nachschwingen_s=6.0)
+    echt = ~((t > b - 3000) & (t < b - 2000))                 # 1 s ohne Messwerte im Nachschwingen
+    _, lauf = BR.je_lauf(t, hub, pitch, np.empty((0, 4)), [(a, b)], echt=echt)
+    assert lauf[0]["gleit_phasen_ms"] == [] and lauf[0]["gleit_s"] == 0
