@@ -2570,7 +2570,8 @@ export default function SessionDetail() {
       {/* ADMIN-VORSCHAU Brett-Regeln (Jan, 10.10.2026): dieselbe Session zweimal in den Vergleich,
           wie gespeichert und nach den Regeln (`?brett=neu`, server/app/api/brett_vorschau.py) —
           mit Pump-Markern und Gleitphasen wie bei zwei normalen Sessions. Ersetzt den Korb. */}
-      {isAdmin && session.placement === "board" && session.has_gyro && (
+      {/* Nur solange die gespeicherte Analyse die Regeln noch nicht traegt (live seit 10.10.2026). */}
+      {isAdmin && session.placement === "board" && session.has_gyro && !(session.analysis?.metrics as any)?.brett_regel && (
         <div className="mt-3 border-t border-slate-800 pt-3">
           <button
             onClick={() => {

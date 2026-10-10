@@ -15,7 +15,7 @@ import numpy as np
 from app import models, storage
 from app.db import SessionLocal
 from app.api.sessions import _lage_antwort
-from app.api.brett_vorschau import echt_maske
+from app.analysis.brett_anwenden import echt_maske
 from app.analysis import brett_regeln as BR
 
 ap = argparse.ArgumentParser()
