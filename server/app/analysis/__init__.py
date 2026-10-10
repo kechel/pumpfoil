@@ -438,6 +438,43 @@ def gleit_anzeige(ps, ohne_luecke, ende_ms: float, gps_t, versatz_ms: float = 0.
              round(d, 1), int(round(a + versatz_ms))] for a, b, d in zeige]
 
 
+def _brett_regeln_schreiben(db: DbSession, session, result, sens: str) -> None:
+    """Brett-Regeln auf die gespeicherten Laeufe anwenden und Summen/Bestwerte nachziehen."""
+    from .brett_anwenden import anwenden
+    from .brett_regeln import REGEL_VERSION
+    from .preview import build_track_preview
+    segs = json.loads(result.segments_json or "[]")
+    coords = (json.loads(result.track_geojson or "{}").get("geometry") or {}).get("coordinates") or []
+    erg = anwenden(db, session, segs, len(coords))
+    if erg is None:
+        return
+    segs = erg["segments"]
+    result.segments_json = json.dumps(segs)
+    result.foiling_time_s = erg["foiling_time_s"]
+    if result.pump_count is not None:
+        result.pump_count = erg["pump_count"]
+        result.avg_cadence_hz = erg["avg_cadence_hz"]
+    metrics = json.loads(result.metrics_json or "{}")
+    metrics.update({"avg_pump_hz": erg["avg_cadence_hz"], "brett_regel": REGEL_VERSION, "gleit_s": erg["gleit_s"]})
+    result.metrics_json = json.dumps(metrics)
+    for k, sk in (("duration", "duration_s"), ("glide", "longest_glide_s")):
+        best = (0.0, None)
+        for j, seg in enumerate(segs):
+            v = seg.get(sk) or 0.0
+            if v > best[0]:
+                best = (v, j)
+        setattr(result, f"best_{k}_s", best[0])
+        setattr(result, f"best_{k}_idx", best[1])
+    result.track_preview = build_track_preview(coords, segs)
+    # Preset-Cache der aktiven Stufe mitziehen — die Detailansicht liest bei „nicht normal" von dort.
+    if result.sensitivity_json:
+        cache = json.loads(result.sensitivity_json) or {}
+        if sens in cache:
+            cache[sens].update({"foiling_time_s": erg["foiling_time_s"], "segments": segs})
+            result.sensitivity_json = json.dumps(cache)
+    db.commit()
+
+
 def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -> "models.AnalysisResult":
     """Lädt die Rohdaten der Session, rechnet die Analyse und persistiert das Ergebnis.
 
@@ -1009,6 +1046,16 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # 12 wenn ich die Session oeffne". Nur ein Zeitstempel — an der Analyse selbst aendert er nichts.
     session.updated_at = datetime.now(timezone.utc)
     db.commit()
+    # BRETT-REGELN (analysis/brett_anwenden.py, live seit 10.10.2026 mit Jans OK): am Brett misst das
+    # Handy die Physik direkt — Pumps nur mit Energie, Lauf-Ende am Aufsetzen, Gleitzeit. Ersetzt in
+    # der FINALEN Analyse die Zahlen des Handgelenk-Zaehlers je Lauf; Laeufe ohne Aussage behalten sie.
+    # Nach dem ersten Commit, damit ein Fehler hier nie die eigentliche Analyse kostet.
+    if final and am_brett:
+        try:
+            _brett_regeln_schreiben(db, session, result, _sens)
+        except Exception:  # noqa: BLE001
+            db.rollback()
+            logging.getLogger(__name__).exception("Brett-Regeln fuer Session %s", session.id)
     # Brett-Lage je Lauf gleich vorrechnen (analysis/lage_cache.py) — sonst rechnet die Startseite
     # sie beim naechsten Oeffnen nach (11 s fuer 12 Sessions, 06.10.2026). Darf die Analyse nie brechen.
     if final and session.placement == "board":
