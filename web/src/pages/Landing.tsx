@@ -412,6 +412,15 @@ export default function Landing() {
         <section className="pb-12">
           <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.phoneRecTitle")}</h2>
           <p className="mx-auto max-w-2xl text-center text-slate-300">{t("land.phoneRecBody")}</p>
+          {/* Ablauf in fuenf Bildern (Android-App, Jans Emulator 10.10.2026): Recorder im Profil an ->
+              Aufnahme-Knopf auf der Startseite -> Aufnahme-Seite -> laeuft -> Upload. Auf dem Handy
+              wischbar (Snap), am Desktop alle nebeneinander. */}
+          <div className="-mx-5 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:mx-0 sm:justify-center sm:overflow-visible sm:px-0">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <img key={n} src={`/phonerec-v2-${n}.webp`} alt={t("land.phoneRecTitle")} loading="lazy"
+                className="w-[200px] shrink-0 snap-center rounded-[22px] sm:w-[170px]" />
+            ))}
+          </div>
         </section>
 
         <section className="pb-12">
@@ -470,7 +479,7 @@ export default function Landing() {
                         className="w-[230px] shrink-0 sm:w-[256px]"
                       >
                         <img
-                          src={`/mobile-v2-${n}.webp`}
+                          src={`/mobile-v3-${n}.webp`}
                           alt={t("land.appShotsTitle")}
                           loading="lazy"
                           className="block w-full"
