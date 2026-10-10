@@ -136,6 +136,18 @@ export default function Impressum() {
           </ul>
         </section>
 
+        {/* GitHub (10.10.2026, Jan): das Repo ist oeffentlich und enthaelt Screenshots, auf denen
+            Anzeigenamen stehen koennen, dazu Changelog und Doku. pumpfoil.org laedt nichts von GitHub. */}
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.ghTitle")}</h3>
+          <p className="mb-2 text-slate-300">{t("imp.ghIntro")}</p>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.gh1")}
+            {li("imp.gh2")}
+            {li("imp.gh3")}
+          </ul>
+        </section>
+
         {/* KI-Unterstuetzung: Auswertung, Modellverbesserung und Katalogrecherche laufen mit
             Claude, dabei koennen Inhalte an Anthropic uebertragen werden. Gehoert offengelegt
             wie die anderen Dritten (Google/Apple/verknuepfte Konten). */}
