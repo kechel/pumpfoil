@@ -320,7 +320,7 @@ export default function Landing() {
                 images={[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `/watch-apple-v2-${n}.webp`)}
                 badge={<AppStoreBadge className="mt-2" />} />
               <WatchCarousel rounded="rounded-full" caption="Wear OS" sub="Samsung · Pixel · TicWatch …"
-                images={["/watch-wear-1.webp", "/watch-wear-2.webp", "/watch-wear-3.webp"]}
+                images={Array.from({ length: 10 }, (_, i) => `/watch-wear-v2-${i + 1}.webp`)}
                 badge={<PlayBadge className="mt-2" />} />
               <WatchCarousel rounded="rounded-full" caption="Amazfit" sub="Zepp OS"
                 images={[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/watch-amazfit-v2-${n}.webp`)}
