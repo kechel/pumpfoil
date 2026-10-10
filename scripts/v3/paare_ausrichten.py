@@ -10,7 +10,17 @@ Verfahren wie docs/GROUND-TRUTH.md §12a/§12d:
 Ergebnis je Paar nach server/data/ml/v3/paare.json: Versatz (Uhr-Session-ms -> Brett-Session-ms),
 Streuung ueber die Laeufe, r je Lauf. Nur DERSELBE Fahrer (Brett-Handy + eigene Uhr).
 
-Aufruf (aus server/): DATABASE_URL=... .venv/bin/python ../scripts/v3/paare_ausrichten.py
+PAARE FINDEN SICH SELBST (seit 10.10.2026, `paare_finden`): Brett-Session (placement board + Kreisel +
+Analyse) und jede zeitlich ueberlappende Session DESSELBEN Fahrers, die nicht selbst am Brett lag und
+Beschleunigungsdaten hat. Vorher stand hier eine Liste von Hand, und neue Parallelfahrten fehlten,
+bis jemand daran dachte (Jan, 03.10.: „ist die zu den Trainingsdaten ergaenzt?" — war sie nicht).
+Gegen die Handliste geprueft: findet alle 18 Paare, dazu nur #9484/#9485 (s. AUSGESCHLOSSEN).
+Die Wanduhr-Ueberlappung ist bewusst nur ein Grob-Filter (#13055/#13051 ueberlappen laut
+Start/Ende nur 2 % und richten sich trotzdem sauber aus); ueber die Qualitaet entscheidet die
+Ausrichtung — die Auswertungen nehmen nur Paare mit Streuung <= 400 ms.
+
+Aufruf (aus server/): DATABASE_URL=... .venv/bin/python ../scripts/v3/paare_ausrichten.py [--liste]
+  --liste   nur die gefundenen Paare und Brett-Sessions ohne Uhr zeigen, nichts ausrichten/schreiben
 """
 import os
 os.environ.setdefault("OMP_NUM_THREADS", "1")
@@ -25,34 +35,48 @@ sys.path.insert(0, str(WURZEL / "server"))
 ML = WURZEL / "server" / "data" / "ml"
 HZ = 25.0
 
-# (Brett-Handy, Uhr) — derselbe Fahrer. Aus der Paar-Suche (Inventar 29.09.) und GROUND-TRUTH §12c/d.
-PAARE = [(9528, 9529), (9535, 9534), (9650, 9648), (9650, 9649), (10195, 10194),
-         (10248, 10250), (10328, 10326), (10874, 10873), (10875, 10873),
-         # nachgetragen 03.10.2026 (Jan: „fuer ein zukuenftiges v4-Modell"): 30.09. u2 (Pixel + Uhr),
-         # 30.09. u574 (Samsung am Brett + Wear OS), 02.10. u2 Illmensee (Pixel UND iPhone am Brett +
-         # fenix 7X Pro). Zu 02.10.: zwei echte kurze Startversuche 16:44:12 / 16:44:31 Ortszeit,
-         # nur von der Uhr gefunden — Labels fuer ein Brett-Modell, s. docs/TODO.md.
-         (10968, 10969), (10993, 10979), (12610, 12608), (12611, 12608),
-         # nachgetragen 06.10.2026: 03.10. u2 Illmensee (iPhone + fenix), 03./04.10. u574 Steinberger See
-         (12687, 12722), (12738, 12737), (13055, 13051),
-         # nachgetragen 07.10.2026: u244 (Samsung am Brett + Garmin), mit bewusst gefahrenen Gleitphasen
-         # mitten in und am Ende von Laeufen (Fahrer-Meldung im Chat) — Kandidat fuer Gleit-Labels.
-         (13908, 13909),
-         # nachgetragen 10.10.2026: 09.10. u574 Steinberger See. Brett-Handy war als „phone" markiert, lag
-         # laut Lage aber flach und fest am Brett (Schwerkraft 95 % auf z, wie seine Brett-Sessions
-         # #13055/#12738) -> auf „board" korrigiert. ACHTUNG: die Wear-OS-Uhr #14072 lieferte nur 7,7 Hz
-         # Beschleunigung — fuer Laufgrenzen brauchbar, fuer Handgelenk-Pump-Merkmale kaum.
-         (14073, 14072)]
+# Brett-Sessions, die NIE ein Paar sind, mit Grund. Alles andere findet `paare_finden`.
+AUSGESCHLOSSEN = {
+    9484: "Dropstart-Experiment, keine normale Fahrt (Uhr #9485)",
+    9656: "u5, Handy zwischen den Laeufen absichtlich gedreht (Montage nicht fest)",
+}
+# Vermerke zu einzelnen Sessions (frueher an der Handliste, gelesen wird davon nichts):
+#   #14073 u574 09.10.: Brett-Handy war als „phone" markiert, lag laut Lage flach und fest am Brett
+#     -> auf „board" korrigiert. Die Wear-OS-Uhr #14072 lieferte nur 7,7 Hz Beschleunigung.
+#   #13908 u244 07.10.: bewusst gefahrene Gleitphasen mitten in und am Ende von Laeufen (Fahrer-Meldung).
+#   #10968 u2 02.10.: zwei echte kurze Startversuche 16:44:12 / 16:44:31 Ortszeit, nur von der Uhr gefunden.
+#   #14062 u808 (Brett ohne Uhr): Montage nicht bestaetigt (Nachfrage per DM 10.10. offen); in den Laeufen
+#     wie ein festes Brett (75 % Nicken, kein Klappern). Meldet u808 etwas Loses -> in AUSGESCHLOSSEN.
 
-# BRETT-SESSIONS OHNE UHR (10.10.2026, Jan: „nimm mal mit dem Vermerk auf"). Kein Paar, also nichts fuer
-# die Uhr-gegen-Brett-Auswertung oben — aber Brett-Wahrheit ANDERER Fahrer, auf die ein kuenftiges
-# Brett-/Gleit-Modell (v4) wartet. Wird von keinem Skript gelesen, bis es das gibt.
-#   #14062 u808 Brunswick Heads 09.10., Motorola, 10 Laeufe, 6,4 min Foil. VERMERK: Montage nicht
-#   bestaetigt (Nachfrage per DM 10.10. offen). Ueber die GANZE Aufnahme wechselt die Lage stark (das
-#   Brett treibt zwischen den Laeufen beliebig) — IN den Laeufen aber wie ein festes Brett: 75 %
-#   Nicken, Lage von Lauf zu Lauf 7 Grad (wie #10993), kein Klappern (5 % ueber 8 Hz). Etwas weniger
-#   starr als Jans Montage. Meldet u808 etwas Loses (Tasche, Beutel), wieder herausnehmen.
-BRETT_OHNE_UHR = [14062]
+
+def paare_finden(db) -> tuple[list[tuple[int, int]], list[int]]:
+    """(Paare (Brett, Uhr), Brett-Sessions ohne Uhr) aus der Datenbank. Liest nur."""
+    from datetime import timedelta
+    from app import models, storage
+    S = models.Session
+
+    def spanne(s):
+        ende = s.ended_at or (s.started_at + timedelta(milliseconds=storage.gps_last_ms(s.session_uuid) or 0))
+        return s.started_at, ende
+
+    paare, ohne = [], []
+    bretter = (db.query(S).filter(S.placement == "board", S.deleted.isnot(True), S.merged_into.is_(None))
+               .order_by(S.id).all())
+    for b in bretter:
+        if b.id in AUSGESCHLOSSEN or b.result is None or not storage.chunk_laengen(b.session_uuid, "gyro"):
+            continue
+        ba, be = spanne(b)
+        kand = (db.query(S).filter(S.user_id == b.user_id, S.id != b.id, S.deleted.isnot(True),
+                                   S.merged_into.is_(None), S.started_at < be,
+                                   S.started_at > ba - timedelta(hours=12))
+                .order_by(S.id).all())
+        treffer = [u.id for u in kand
+                   if (u.placement or "") != "board" and u.result is not None
+                   and spanne(u)[1] > ba and storage.chunk_laengen(u.session_uuid, "accel")]
+        paare += [(b.id, u) for u in treffer]
+        if not treffer:
+            ohne.append(b.id)
+    return paare, ohne
 
 
 def bandpass(x, lo=0.8, hi=2.5):
@@ -132,11 +156,20 @@ def ausrichten(B, U):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--liste", action="store_true")
+    args = ap.parse_args()
     from app import db
     S = db.SessionLocal()
     out = []
     try:
-        for b_id, u_id in PAARE:
+        paare, ohne = paare_finden(S)
+        print(f"{len(paare)} Paare: {paare}", flush=True)
+        print(f"Brett ohne Uhr: {ohne} · ausgeschlossen: {sorted(AUSGESCHLOSSEN)}", flush=True)
+        if args.liste:
+            return
+        for b_id, u_id in paare:
             B, U = laden(S, b_id), laden(S, u_id)
             erg = ausrichten(B, U)
             erg.update({"brett": b_id, "uhr": u_id, "fahrer_brett": B["user"], "fahrer_uhr": U["user"],
@@ -150,6 +183,8 @@ def main():
                   f"-> gemeinsam {erg.get('gemeinsam_ms')} ms, Streuung {erg.get('streuung_ms')} ms", flush=True)
     finally:
         S.rollback(); S.close()
+    if args.liste:
+        return
     (ML / "v3").mkdir(parents=True, exist_ok=True)
     (ML / "v3" / "paare.json").write_text(json.dumps(out, indent=1))
 
