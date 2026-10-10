@@ -191,10 +191,27 @@ ANDROID = [
     (8,  "Alle Spots auf der Karte"),
 ]
 
+# Englische Titel (README auf GitHub ist englisch): gleiche Bilder, Ausgabe in *-en/.
+TITEL_EN = {
+    "Jede Session automatisch getrackt": "Every session tracked automatically",
+    "Jeder Lauf auf der Karte": "Every run on the map",
+    "Distanz · Speed · Pumps · Puls": "Distance · speed · pumps · heart rate",
+    "Dein Fortschritt über Zeit": "Your progress over time",
+    "Handy am Brett: Nicken & Rollen": "Phone on the board: pitch & roll",
+    "Community, Spots & Rekorde": "Community, spots & records",
+    "Eigene Datenseiten für deine Uhr": "Custom data pages for your watch",
+    "Alle Spots auf der Karte": "All spots on the map",
+    "Chat mit anderen Foilern": "Chat with other foilers",
+    "Dein Foil-Quiver & Leistung": "Your foil quiver & performance",
+}
+
 
 def main():
     import sys
     nur_android = "--nur-android" in sys.argv   # iOS-Quellen nicht noetig, iOS-Bilder bleiben unberuehrt
+    en = "--en" in sys.argv                      # englische Titel -> android-store-en/, ios-store(-65)-en/
+    sfx = "-en" if en else ""
+    def tt(t): return TITEL_EN[t] if en else t
     cache: dict = {}
     ios_files, an_files = sorted_ios(), sorted_android()
     print(f"iOS-Quellen: {len(ios_files)} · Android-Quellen: {len(an_files)}")
@@ -205,17 +222,17 @@ def main():
         ios_files = []
     print("iOS 6.9\" (1320x2868):") if ios_files else None
     for i, (idx, title) in enumerate(IOS if ios_files else [], 1):
-        make(ios_files[idx - 1], title, (1320, 2868),
-             HERE / "ios-store" / f"{i:02d}.png", cache)
+        make(ios_files[idx - 1], tt(title), (1320, 2868),
+             HERE / f"ios-store{sfx}" / f"{i:02d}.png", cache)
     print("iOS 6.5\" (1242x2688):") if ios_files else None
     for i, (idx, title) in enumerate(IOS if ios_files else [], 1):
-        make(ios_files[idx - 1], title, (1242, 2688),
-             HERE / "ios-store-65" / f"{i:02d}.png", cache)
+        make(ios_files[idx - 1], tt(title), (1242, 2688),
+             HERE / f"ios-store-65{sfx}" / f"{i:02d}.png", cache)
 
     print("Android (1080x2160):")
     for i, (idx, title) in enumerate(ANDROID, 1):
-        make(an_files[idx - 1], title, (1080, 2160),
-             HERE / "android-store" / f"{i:02d}.png", cache)
+        make(an_files[idx - 1], tt(title), (1080, 2160),
+             HERE / f"android-store{sfx}" / f"{i:02d}.png", cache)
 
 
 if __name__ == "__main__":
