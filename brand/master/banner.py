@@ -12,7 +12,12 @@ import gen
 
 W, H = 2560, 1440
 OUT = os.path.join(os.path.dirname(__file__), "../social/youtube-banner-2560x1440.png")
-SUBLINE = "GARMIN · WEAR OS · APPLE WATCH · AMAZFIT · POLAR · SUUNTO · COROS · XIAOMI · PHONE"
+SUBLINE = "GARMIN · WEAR OS · APPLE WATCH · HUAWEI (BETA) · AMAZFIT · POLAR · SUUNTO · COROS · XIAOMI · PHONE"
+# HUAWEI (BETA) seit 10.10.2026, leicht hervorgehoben (HERVOR). Steht direkt hinter APPLE WATCH:
+# beide sind lang genug fuer eine eigene Zeile (ALLEIN_AB), so bleiben in der Endcard die
+# kurzen Namen paarweise. Hinter AMAZFIT stuende AMAZFIT allein in einer Zeile.
+HERVOR = ("HUAWEI (BETA)",)
+HERVOR_FARBE = "#ffffff"        # auf dunklem Grund; auf hellem Grund ruft man mit Navy auf
 # AMAZFIT/Zepp approved & public 2026-07-21. PHONE = Handy-Recorder.
 # COROS seit 2026-09-04 dabei: die MCP-Anbindung braucht keinen Partner-Vertrag.
 # XIAOMI seit 2026-09-04: keine App auf der Uhr moeglich, aber Mi Fitness schiebt Trainings
@@ -62,10 +67,17 @@ def montserrat(px: int) -> "ImageFont.FreeTypeFont":
     return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", px)
 
 
-def subline_image(text: str, px: int, tracking: int) -> Image.Image:
+def subline_image(text: str, px: int, tracking: int, farbe: str = "#22d3ee",
+                  hervor: str = HERVOR_FARBE) -> Image.Image:
     """Eine Zeile der Plattform-Liste als tightes, transparentes Bild
-    (Montserrat, cyan, gesperrt)."""
+    (Montserrat, cyan, gesperrt). Eintraege aus HERVOR in der Farbe `hervor`."""
     font = montserrat(px)
+    hell = [False] * len(text)
+    for h in HERVOR:
+        i = text.find(h)
+        while i >= 0:
+            hell[i:i + len(h)] = [True] * len(h)
+            i = text.find(h, i + 1)
     probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
     widths = [probe.textlength(ch, font=font) + tracking for ch in text]
     total = int(sum(widths) - tracking)
@@ -73,8 +85,8 @@ def subline_image(text: str, px: int, tracking: int) -> Image.Image:
     img = Image.new("RGBA", (total, asc + desc), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     x = 0
-    for ch, w in zip(text, widths):
-        d.text((x, 0), ch, font=font, fill=_hex("#22d3ee"))
+    for ch, w, hv in zip(text, widths, hell):
+        d.text((x, 0), ch, font=font, fill=_hex(hervor if hv else farbe))
         x += w
     return img
 

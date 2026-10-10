@@ -174,7 +174,11 @@ def endcard(theme: str, sp: str = "") -> Image.Image:
     # CJK-Zeichen fuellen die ganze Kegelhoehe, lateinische Versalien nur rund
     # 72 % — bei gleicher Breite wirkt Chinesisch sonst deutlich groesser.
     zh = sp == "-zh"
-    zeile_bild = zh_zeile if zh else banner.subline_image
+    # Lateinisch: Grundfarbe + Hervorhebung (HUAWEI (BETA)) gleich beim Zeichnen setzen, sonst
+    # wuerde das Umfaerben unten die Hervorhebung wieder plattmachen.
+    zeile_bild = zh_zeile if zh else (lambda z, px, tracking: banner.subline_image(
+        z, px, tracking, farbe=CYAN_HELL if hell else gen.CYAN,
+        hervor="#020617" if hell else banner.HERVOR_FARBE))
     grund = verlauf(HELL if hell else DUNKEL)
     wellen_farbe = CYAN_HELL if hell else gen.CYAN
 
@@ -220,7 +224,7 @@ def endcard(theme: str, sp: str = "") -> Image.Image:
     # subline_image faerbt schon in Marken-Cyan, zh_zeile zeichnet weiss. Auf
     # hellem Grund braucht es ohnehin die dunklere Stufe. Also: umfaerben statt
     # neu rendern, und zwar immer dann, wenn die Farbe nicht schon stimmt.
-    zeilen_farbe = CYAN_HELL if hell else (gen.CYAN if zh else None)
+    zeilen_farbe = (CYAN_HELL if hell else gen.CYAN) if zh else None
     if zeilen_farbe:
         r, g, b = banner._hex(zeilen_farbe)
         for i, z in enumerate(zeilen):
