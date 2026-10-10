@@ -156,6 +156,12 @@ export default function NerdAnalysen4() {
       <Pr>{c.found.p}</Pr>
       <List items={c.found.li} />
 
+      {/* Brett-Regeln, live seit 10.10.2026 (server/app/analysis/brett_regeln.py + brett_anwenden.py) */}
+      <H>{c.rules.h}</H>
+      <Pr>{c.rules.p}</Pr>
+      <List items={c.rules.li} />
+      <Pr>{c.rules.p2}</Pr>
+
       <H>{c.limits.h}</H>
       <Pr>{c.limits.p}</Pr>
       <List items={c.limits.li} />

@@ -17,6 +17,7 @@ export interface N4 {
   what: { h: string; p: string; li: string[]; cap: string; capTiles: string };
   mount: { h: string; p: string; p2: string; cap: string };
   heave: { h: string; p: string; p2: string; cap: string };
+  rules: { h: string; p: string; li: string[]; p2: string };
   found: { h: string; p: string; li: string[] };
   limits: { h: string; p: string; li: string[] };
   videorun: { h: string; p: string; cap: string };
@@ -79,6 +80,18 @@ const en: N4 = {
     cap: "The same run, the same data, six different levelling windows: 18 cm to 33 cm.",
   },
 
+  rules: {
+    h: "From measuring to counting: pumps, glides and touchdown",
+    p: "Once the board reports its own motion, counting on the board no longer needs the wrist counter. Since **10 October 2026**, every recording with the phone on the board is counted by four simple rules that anyone can check:",
+    li: [
+      "**A pump is a stroke that puts energy in.** Every up-and-down of the board in the pump band (0.5–3 Hz) is one cycle. It counts as a pump only if the nose pitches in step with the vertical motion — technically, if the mean product of fast pitch and heave velocity over the cycle exceeds 30 % of the median of that run. Fading oscillations after the last stroke and small balance corrections move the board too, but they put no energy in.",
+      "**The run ends at touchdown.** That is the first clean GPS point in the last 15 seconds of a run below max(8 km/h, 60 % of the run's cruising speed), minus 0.7 s for the lag of GPS speed. Touchdown can only shorten a run, never extend it.",
+      "**Glide is flying without pumping.** Stretches without a pump of 1.5 to 15 seconds count as glide — the same rule the session map already used to show glides. The run-up before the first pump does not count, the end of the run does, and a stretch with missing motion data does not count at all.",
+      "**Too short to judge stays as it was.** A run with fewer than five cycles has no meaningful median, so it keeps the count of the wrist counter.",
+    ],
+    p2: "Across the 20 board recordings of six riders we had on that day, the rules count **14 % fewer pumps** than the wrist counter, and glides make up **about 8 % of foiling time**. Most real glides last 2 to 6 seconds; the longest was 11.9 s, on a ride where the phone had been turned between runs — the rules assume a firmly fixed phone, and a phone that shifts produces glides that never happened. The old values stay stored next to the new ones, so every change can be traced back.",
+  },
+
   found: {
     h: "What four rides have already told us",
     p:
@@ -96,7 +109,7 @@ const en: N4 = {
     p: "The list of things we cannot claim is longer than the list of things we can, and it should stay that way until the data grows:",
     li: [
       "**Four rides, one rider, one board, one lake.** Nothing here is validated across riders, and our pump counting is still calibrated on a single person — see [Part 3](/nerd-analysen-3) for how thin that ground is.",
-      "**Glide detection still does not exist.** The number we show as longest glide is the longest gap between two *detected* pumps, which is not the same thing and never was.",
+      "**Glide time is measured on the board only.** On the wrist, the number we show as longest glide is still the longest gap between two *detected* pumps, which is not the same thing.",
       "**Nobody rides with a phone taped to their board.** This is a measuring instrument, not a feature. Its job is to produce the truth that the watch on your wrist is measured against.",
     ],
   },
@@ -151,6 +164,17 @@ const cs: N4 = {
     "p2": "Okno vyrovnání nastavuje tuto dolní hranici a není to volný parametr. Požádejte stejnou jízdu s oknem 1 sekundy a dostanete 18 cm; požádejte s 5 sekundami a dostanete 33 cm, pro stejnou jízdu. Okno tedy odvozujeme ze **změ možné kadence** té jízdy — zde 1,38 Hz, takže 1,45 sekundy — a číslo označíme jako nespolehlivé, když se pohyb nachází příliš blízko hrany. Čestné čtení tohoto grafu není *heave je 20 cm*; je to *heave je 20 cm když definujete heave jako pohyb na pumpovací rychlosti*.",
     "cap": "Stejná jízda, stejná data, šest různých oken vyrovnání: 18 cm až 33 cm."
   },
+  "rules": {
+    "h": "Od měření k počítání: pumpy, klouzání a dosednutí",
+    "p": "Jakmile prkno hlásí vlastní pohyb, počítání na prkně už nepotřebuje čítač ze zápěstí. Od **10. října 2026** se každý záznam s telefonem na prkně počítá podle čtyř jednoduchých pravidel, která si může ověřit každý:",
+    "li": [
+      "**Pumpa je tah, který dodává energii.** Každé nahoru a dolů prkna v pumpovacím pásmu (0,5–3 Hz) je jeden cyklus. Jako pumpa se počítá jen tehdy, když nos kývá v taktu se svislým pohybem — technicky: když průměrný součin rychlého pitche a rychlosti heave přes cyklus přesáhne 30 % mediánu dané jízdy. Doznívající kmity po posledním tahu a drobné vyrovnávací pohyby prknem také hýbou, ale žádnou energii nedodávají.",
+      "**Jízda končí dosednutím.** To je první čistý bod GPS v posledních 15 sekundách jízdy pod max(8 km/h, 60 % cestovní rychlosti jízdy), mínus 0,7 s za zpoždění rychlosti z GPS. Dosednutí může jízdu jen zkrátit, nikdy prodloužit.",
+      "**Klouzání je létání bez pumpování.** Úseky bez pumpy dlouhé 1,5 až 15 sekund se počítají jako klouzání — stejné pravidlo, podle kterého už mapa session ukazovala klouzání. Rozjezd před první pumpou se nepočítá, konec jízdy ano, a úsek s chybějícími daty o pohybu se nepočítá vůbec.",
+      "**Co je příliš krátké na posouzení, zůstává, jak bylo.** Jízda s méně než pěti cykly nemá smysluplný medián, a proto si ponechá počet z čítače na zápěstí."
+    ],
+    "p2": "Na 20 záznamech na prkně od šesti jezdců, které jsme ten den měli, napočítají pravidla **o 14 % méně pump** než čítač na zápěstí a klouzání tvoří **asi 8 % času na foilu**. Většina skutečných klouzání trvá 2 až 6 sekund; nejdelší mělo 11,9 s, při vyjížďce, kdy byl telefon mezi jízdami otočen — pravidla předpokládají pevně uchycený telefon a telefon, který se posune, vytváří klouzání, která se nikdy nestala. Staré hodnoty zůstávají uložené vedle nových, takže každou změnu lze zpětně dohledat."
+  },
   "found": {
     "h": "Co čtyři jízdy nám již řekly",
     "p": "Toto je malá hromada údajů — čtyři záznamy na prkně — takže to jsou pozorování, ne zákony. Jsou to však první čísla, která máme popisující prkno spíše než jezdce.",
@@ -166,7 +190,7 @@ const cs: N4 = {
     "p": "Seznam věcí, které nemůžeme tvrdit, je delší než seznam věcí, které můžeme, a měl by takto zůstat dokud data nerostou:",
     "li": [
       "**Čtyři jízdy, jeden jezdec, jedno prkno, jedno jezero.** Nic zde není ověřeno mezi jezdci a náš čítač pumpů je stále kalibrován na jednu osobu — podívejte se na [Část 3](/nerd-analysen-3) jak tenký je ten základ.",
-      "**Detekce klouzání ještě neexistuje.** Číslo, které ukazujeme jako nejdelší klouzání, je největší mezera mezi dvěma *detekovanými* pumpami, což není totéž a nikdy nebylo.",
+      "**Doba klouzání se měří jen na prkně.** Na zápěstí je číslo, které ukazujeme jako nejdelší klouzání, stále největší mezera mezi dvěma *detekovanými* pumpami, což není totéž.",
       "**Nikdo nejezdí s telefonem přilepeným na své prkno.** Toto je měřicí přístroj, ne funkce. Jeho úkolem je vytvořit pravdu, proti které se měří hodinky na tvém zápěstí."
     ]
   },
@@ -229,6 +253,17 @@ const deAT: N4 = {
     "p2": "Das Ausgleichs-Fenster setzt diese untere Kante, und es ist kein freier Parameter. Frag nach demselben Lauf mit einem 1-Sekunden-Fenster und du bekommst 18 cm; frag mit 5 Sekunden und du bekommst 33 cm, für die identische Fahrt. Wir leiten das Fenster daher aus der **gemessenen Kadenz** dieses Laufs ab — hier 1,38 Hz, also 1,45 Sekunden — und wir kennzeichnen die Zahl als unzuverlässig, wann immer die Bewegung zu nah an der Kante sitzt. Die ehrliche Lesart dieses Diagramms ist nicht *das Heave ist 20 cm*; es ist *das Heave ist 20 cm, wenn du Heave als die Bewegung bei Pump-Geschwindigkeit definierst*.",
     "cap": "Derselbe Lauf, dieselben Daten, sechs verschiedene Ausgleichs-Fenster: 18 cm bis 33 cm."
   },
+  "rules": {
+    "h": "Vom Messen zum Zählen: Pumps, Gleiten und Aufsetzen",
+    "p": "Sobald das Board seine eigene Bewegung meldet, braucht das Zählen am Board den Handgelenk-Zähler nicht mehr. Seit dem **10. Oktober 2026** wird jede Aufnahme mit Handy am Board nach vier einfachen Regeln gezählt, die jeder nachprüfen kann:",
+    "li": [
+      "**Ein Pump ist ein Zug, der Energie hineinbringt.** Jedes Auf und Ab des Boards im Pump-Band (0,5–3 Hz) ist ein Zyklus. Als Pump zählt er nur, wenn die Nase im Takt der Vertikalbewegung nickt — technisch: wenn das mittlere Produkt aus schnellem Nicken und Hub-Geschwindigkeit über den Zyklus mehr als 30 % des Medians dieses Laufs beträgt. Nachschwingen nach dem letzten Zug und kleine Ausgleichsbewegungen bewegen das Board auch, bringen aber keine Energie hinein.",
+      "**Der Lauf endet beim Aufsetzen.** Das ist der erste saubere GPS-Punkt in den letzten 15 Sekunden eines Laufs unter max(8 km/h, 60 % des Fahrt-Tempos), minus 0,7 s für den Nachlauf der GPS-Geschwindigkeit. Das Aufsetzen kann einen Lauf nur kürzen, nie verlängern.",
+      "**Gleiten ist Fliegen ohne Pumpen.** Stücke ohne Pump von 1,5 bis 15 Sekunden zählen als Gleiten — dieselbe Regel, nach der die Session-Karte Gleitphasen schon gezeigt hat. Der Anlauf vor dem ersten Pump zählt nicht, das Laufende schon, und ein Stück mit fehlenden Bewegungsdaten zählt gar nicht.",
+      "**Zu kurz zum Urteilen bleibt, wie es war.** Ein Lauf mit weniger als fünf Zyklen hat keinen sinnvollen Median und behält deshalb die Zählung des Handgelenk-Zählers."
+    ],
+    "p2": "Über die 20 Board-Aufnahmen von sechs Fahrern, die wir an dem Tag gehabt haben, zählen die Regeln **14 % weniger Pumps** als der Handgelenk-Zähler, und Gleiten macht **etwa 8 % der Foil-Zeit** aus. Die meisten echten Gleitphasen dauern 2 bis 6 Sekunden; die längste waren 11,9 s, bei einer Fahrt, in der das Handy zwischen den Läufen gedreht worden ist — die Regeln setzen ein fest montiertes Handy voraus, und ein Handy, das verrutscht, erzeugt Gleitphasen, die es nie gegeben hat. Die alten Werte bleiben neben den neuen gespeichert, damit jede Änderung nachvollziehbar bleibt."
+  },
   "found": {
     "h": "Was vier Fahrten uns schon erzählt haben",
     "p": "Das ist ein kleiner Haufen von Daten — vier Board-Aufzeichnungen — also sind das Beobachtungen, nicht Gesetze. Sie sind aber die ersten Zahlen, die wir haben, die das Board beschreiben, nicht den Fahrer.",
@@ -244,7 +279,7 @@ const deAT: N4 = {
     "p": "Die Liste der Dinge, die wir nicht behaupten können, ist länger als die Liste der Dinge, die wir können, und sie sollte so bleiben, bis die Daten wachsen:",
     "li": [
       "**Vier Fahrten, ein Fahrer, ein Board, ein See.** Nichts hier ist über Fahrer validiert, und unsere Pump-Zählung ist immer noch auf einer Person geeicht — siehe [Teil 3](/nerd-analysen-3) für wie dünn dieser Grund ist.",
-      "**Gleit-Erkennung existiert immer noch nicht.** Die Zahl, die wir als längste Gleitphase zeigen, ist die längste Lücke zwischen zwei *erkannten* Pumps, das ist nicht dasselbe und war nie so.",
+      "**Gleitzeit wird nur am Board gemessen.** Am Handgelenk ist die Zahl, die wir als längste Gleitphase zeigen, weiterhin die längste Lücke zwischen zwei *erkannten* Pumps, und das ist nicht dasselbe.",
       "**Niemand fährt mit einem Handy, das ans Board geklebt ist.** Das ist ein Messinstrument, kein Feature. Seine Aufgabe ist es, die Wahrheit zu produzieren, gegen die der Sensor auf deinem Handgelenk gemessen wird."
     ]
   },
@@ -301,6 +336,17 @@ const de: N4 = {
     "p2": "Das Ausgleichs-Fenster setzt diese untere Kante, und es ist kein freier Parameter. Frag nach demselben Lauf mit einem 1-Sekunden-Fenster und du bekommst 18 cm; frag mit 5 Sekunden und du bekommst 33 cm, für die identische Fahrt. Wir leiten das Fenster daher aus der **gemessenen Kadenz** dieses Laufs ab — hier 1,38 Hz, also 1,45 Sekunden — und wir kennzeichnen die Zahl als unzuverlässig, wann immer die Bewegung zu nah an der Kante sitzt. Die ehrliche Lesart dieses Diagramms ist nicht *das Heave ist 20 cm*; es ist *das Heave ist 20 cm, wenn du Heave als die Bewegung bei Pump-Geschwindigkeit definierst*.",
     "cap": "Derselbe Lauf, dieselben Daten, sechs verschiedene Ausgleichs-Fenster: 18 cm bis 33 cm."
   },
+  "rules": {
+    "h": "Vom Messen zum Zählen: Pumps, Gleiten und Aufsetzen",
+    "p": "Sobald das Board seine eigene Bewegung meldet, braucht das Zählen am Board den Handgelenk-Zähler nicht mehr. Seit dem **10. Oktober 2026** wird jede Aufnahme mit Handy am Board nach vier einfachen Regeln gezählt, die jeder nachprüfen kann:",
+    "li": [
+      "**Ein Pump ist ein Zug, der Energie hineinbringt.** Jedes Auf und Ab des Boards im Pump-Band (0,5–3 Hz) ist ein Zyklus. Als Pump zählt er nur, wenn die Nase im Takt der Vertikalbewegung nickt — technisch: wenn das mittlere Produkt aus schnellem Nicken und Hub-Geschwindigkeit über den Zyklus mehr als 30 % des Medians dieses Laufs beträgt. Nachschwingen nach dem letzten Zug und kleine Ausgleichsbewegungen bewegen das Board auch, bringen aber keine Energie hinein.",
+      "**Der Lauf endet beim Aufsetzen.** Das ist der erste saubere GPS-Punkt in den letzten 15 Sekunden eines Laufs unter max(8 km/h, 60 % des Fahrt-Tempos), minus 0,7 s für den Nachlauf der GPS-Geschwindigkeit. Das Aufsetzen kann einen Lauf nur kürzen, nie verlängern.",
+      "**Gleiten ist Fliegen ohne Pumpen.** Stücke ohne Pump von 1,5 bis 15 Sekunden zählen als Gleiten — dieselbe Regel, nach der die Session-Karte Gleitphasen schon zeigte. Der Anlauf vor dem ersten Pump zählt nicht, das Laufende schon, und ein Stück mit fehlenden Bewegungsdaten zählt gar nicht.",
+      "**Zu kurz zum Urteilen bleibt, wie es war.** Ein Lauf mit weniger als fünf Zyklen hat keinen sinnvollen Median und behält deshalb die Zählung des Handgelenk-Zählers."
+    ],
+    "p2": "Über die 20 Board-Aufnahmen von sechs Fahrern, die wir an dem Tag hatten, zählen die Regeln **14 % weniger Pumps** als der Handgelenk-Zähler, und Gleiten macht **etwa 8 % der Foil-Zeit** aus. Die meisten echten Gleitphasen dauern 2 bis 6 Sekunden; die längste waren 11,9 s, bei einer Fahrt, in der das Handy zwischen den Läufen gedreht worden war — die Regeln setzen ein fest montiertes Handy voraus, und ein Handy, das verrutscht, erzeugt Gleitphasen, die es nie gab. Die alten Werte bleiben neben den neuen gespeichert, damit jede Änderung nachvollziehbar bleibt."
+  },
   "found": {
     "h": "Was vier Fahrten uns schon erzählt haben",
     "p": "Das ist ein kleiner Haufen von Daten — vier Board-Aufzeichnungen — also sind das Beobachtungen, nicht Gesetze. Sie sind aber die ersten Zahlen, die wir haben, die das Board beschreiben, nicht den Fahrer.",
@@ -316,7 +362,7 @@ const de: N4 = {
     "p": "Die Liste der Dinge, die wir nicht behaupten können, ist länger als die Liste der Dinge, die wir können, und sie sollte so bleiben, bis die Daten wachsen:",
     "li": [
       "**Vier Fahrten, ein Fahrer, ein Board, ein See.** Nichts hier ist über Fahrer validiert, und unsere Pump-Zählung ist immer noch auf einer Person geeicht — siehe [Teil 3](/nerd-analysen-3) für wie dünn dieser Grund ist.",
-      "**Gleit-Erkennung existiert immer noch nicht.** Die Zahl, die wir als längste Gleitphase zeigen, ist die längste Lücke zwischen zwei *erkannten* Pumps, das ist nicht dasselbe und war nie so.",
+      "**Gleitzeit wird nur am Board gemessen.** Am Handgelenk ist die Zahl, die wir als längste Gleitphase zeigen, weiterhin die längste Lücke zwischen zwei *erkannten* Pumps, und das ist nicht dasselbe.",
       "**Niemand fährt mit einem Handy, das ans Board geklebt ist.** Das ist ein Messinstrument, kein Feature. Seine Aufgabe ist es, die Wahrheit zu produzieren, gegen die der Sensor auf deinem Handgelenk gemessen wird."
     ]
   },
@@ -373,6 +419,17 @@ const es: N4 = {
     "p2": "La ventana de nivelación establece ese borde inferior, y no es un parámetro libre. Pide el mismo run con una ventana de 1 segundo y obtienes 18 cm; pide con 5 segundos y obtienes 33 cm, para el run idéntico. Por lo tanto, derivamos la ventana de la **cadencia medida** de ese run — aquí 1,38 Hz, así 1,45 segundos — y marcamos el número como poco confiable cuando el movimiento se sienta demasiado cerca del borde. La lectura honesta de este gráfico no es *el heave es 20 cm*; es *el heave es 20 cm cuando defines heave como el movimiento a velocidad de pump*.",
     "cap": "El mismo run, los mismos datos, seis ventanas de nivelación diferentes: 18 cm a 33 cm."
   },
+  "rules": {
+    "h": "De medir a contar: pumps, planeo y contacto con el agua",
+    "p": "Cuando la tabla informa de su propio movimiento, contar en la tabla ya no necesita el contador de la muñeca. Desde el **10 de octubre de 2026**, cada grabación con el móvil en la tabla se cuenta con cuatro reglas sencillas que cualquiera puede comprobar:",
+    "li": [
+      "**Un pump es un golpe que aporta energía.** Cada subida y bajada de la tabla en la banda de pump (0,5–3 Hz) es un ciclo. Cuenta como pump solo si la proa cabecea al compás del movimiento vertical — técnicamente, si el producto medio del cabeceo rápido y la velocidad de heave a lo largo del ciclo supera el 30 % de la mediana de ese run. Las oscilaciones que se apagan tras el último golpe y las pequeñas correcciones de equilibrio también mueven la tabla, pero no aportan energía.",
+      "**El run termina al tocar el agua.** Es el primer punto GPS limpio en los últimos 15 segundos de un run por debajo de max(8 km/h, 60 % de la velocidad de crucero del run), menos 0,7 s por el retraso de la velocidad GPS. El contacto con el agua solo puede acortar un run, nunca alargarlo.",
+      "**Planear es volar sin bombear.** Los tramos sin pump de 1,5 a 15 segundos cuentan como planeo — la misma regla con la que el mapa de la sesión ya mostraba los planeos. El arranque antes del primer pump no cuenta, el final del run sí, y un tramo sin datos de movimiento no cuenta en absoluto.",
+      "**Lo que es demasiado corto para juzgar se queda como estaba.** Un run con menos de cinco ciclos no tiene una mediana con sentido, así que conserva el conteo del contador de la muñeca."
+    ],
+    "p2": "En las 20 grabaciones de tabla de seis riders que teníamos ese día, las reglas cuentan **un 14 % menos de pumps** que el contador de la muñeca, y el planeo supone **alrededor del 8 % del tiempo de foil**. La mayoría de los planeos reales duran de 2 a 6 segundos; el más largo fue de 11,9 s, en una sesión en la que el móvil se había girado entre runs — las reglas suponen un móvil bien fijado, y un móvil que se desplaza produce planeos que nunca ocurrieron. Los valores antiguos siguen guardados junto a los nuevos, así que cada cambio se puede rastrear."
+  },
   "found": {
     "h": "Lo que cuatro run ya nos han dicho",
     "p": "Este es un pequeño montón de datos — cuatro grabaciones de tabla — así que estas son observaciones, no leyes. Sin embargo, son los primeros números que tenemos que describen la tabla en lugar del rider.",
@@ -388,7 +445,7 @@ const es: N4 = {
     "p": "La lista de cosas que no podemos pretender es más larga que la lista de cosas que podemos, y debería mantenerse así hasta que los datos crezcan:",
     "li": [
       "**Cuatro run, un rider, una tabla, un lago.** Nada aquí se valida entre riders, y nuestro conteo de pump sigue siendo calibrado en una sola persona — ver [Parte 3](/nerd-analysen-3) para cuán frágil es ese terreno.",
-      "**La detección de planeo aún no existe.** El número que mostramos como el planeo más largo es la brecha más larga entre dos pump *detectados*, lo que no es lo mismo y nunca lo fue.",
+      "**El tiempo de planeo solo se mide en la tabla.** En la muñeca, el número que mostramos como el planeo más largo sigue siendo la brecha más larga entre dos pump *detectados*, lo que no es lo mismo.",
       "**Nadie hace un run con un móvil pegado a su tabla.** Esto es un instrumento de medición, no una característica. Su trabajo es producir la verdad contra la que se mide el reloj en tu muñeca."
     ]
   },
@@ -439,6 +496,17 @@ const fi: N4 = {
     "p2": "Tasointtiikkuna asettaa tämän alarajan, eikä se ole vapaa parametri. Kysy samaa vetoa 1 sekunnin ikkunalla ja saat 18 cm; kysy 5 sekuntin ikkunalla ja saat 33 cm, samalle vedolle. Johdamme siis ikkunan mitatusta **vedosta** — tässä 1,38 Hz, joten 1,45 sekuntia — ja merkitsemme luvun epäluotettavaksi milloin tahansa liike istuu liian lähellä reunaa. Rehellinen lukeminen tästä kaaviosta ei ole *heave on 20 cm*; se on *heave on 20 cm kun määrität heavea pumppausnopeudella olevaksi liikkeeksi*.",
     "cap": "Sama veto, sama data, kuusi eri tasoitusikkunaa: 18 cm:stä 33 cm:iin."
   },
+  "rules": {
+    "h": "Mittaamisesta laskemiseen: pumppaukset, liu'ut ja kosketus",
+    "p": "Kun lauta kertoo oman liikkeensä, laskeminen laudalla ei enää tarvitse rannelaskijaa. **10. lokakuuta 2026** alkaen jokainen tallenne, jossa puhelin on laudalla, lasketaan neljällä yksinkertaisella säännöllä, jotka kuka tahansa voi tarkistaa:",
+    "li": [
+      "**Pumppaus on veto, joka tuo energiaa.** Jokainen laudan ylös–alas-liike pumppauskaistalla (0,5–3 Hz) on yksi sykli. Se lasketaan pumppaukseksi vain, jos nenä nyökkää pystyliikkeen tahdissa — teknisesti: jos nopean pitchin ja heave-nopeuden tulon keskiarvo syklin yli ylittää 30 % kyseisen juoksun mediaanista. Viimeisen vedon jälkeen vaimenevat heilahdukset ja pienet tasapainokorjaukset liikuttavat lautaa myös, mutta eivät tuo energiaa.",
+      "**Juoksu päättyy kosketukseen.** Se on ensimmäinen puhdas GPS-piste juoksun viimeisten 15 sekunnin aikana alle max(8 km/h, 60 % juoksun matkanopeudesta), miinus 0,7 s GPS-nopeuden viiveen vuoksi. Kosketus voi vain lyhentää juoksua, ei koskaan pidentää sitä.",
+      "**Liuku on lentämistä ilman pumppausta.** 1,5–15 sekunnin pätkät ilman pumppausta lasketaan liu'uksi — sama sääntö, jolla sessiokartta jo näytti liu'ut. Lähtö ennen ensimmäistä pumppausta ei lasketa, juoksun loppu lasketaan, ja pätkää, josta liikedata puuttuu, ei lasketa lainkaan.",
+      "**Liian lyhyt arvioitavaksi jää ennalleen.** Juoksulla, jossa on alle viisi sykliä, ei ole mielekästä mediaania, joten se pitää rannelaskijan luvun."
+    ],
+    "p2": "Sinä päivänä meillä olleissa kuuden ratsastajan 20 lautatallenteessa säännöt laskevat **14 % vähemmän pumppauksia** kuin rannelaskija, ja liu'ut muodostavat **noin 8 % foilausajasta**. Useimmat todelliset liu'ut kestävät 2–6 sekuntia; pisin oli 11,9 s vedolla, jolla puhelinta oli käännetty juoksujen välillä — säännöt olettavat tukevasti kiinnitetyn puhelimen, ja liikkuva puhelin tuottaa liukuja, joita ei koskaan ollut. Vanhat arvot säilyvät tallessa uusien rinnalla, joten jokainen muutos voidaan jäljittää."
+  },
   "found": {
     "h": "Mitä neljä vetoa on jo kertoneet meille",
     "p": "Tämä on pieni datakasa — neljä lautaennätystä — joten nämä ovat huomioita, ei lakeja. Ne ovat kuitenkin ensimmäiset luvut jotka kuvaavat lautaa eikä ratsastajaa.",
@@ -454,7 +522,7 @@ const fi: N4 = {
     "p": "Lista asioista joita emme voi väittää on pidempi kuin lista asioista joita voimme, ja sen pitäisi pysyä niin kunnes data kasvaa:",
     "li": [
       "**Neljä vetoa, yksi ratsastaja, yksi lauta, yksi järvi.** Mitään täällä ei ole vahvistettu ratsastajien yli, ja pumppauslaskijamme on vielä kalibroitu yhden henkilön mukaan — katso [Osa 3](/nerd-analysen-3) kuinka ohut se pohja on.",
-      "**Liukudetektio ei vielä ole olemassa.** Luku jonka näytämme pisimmäksi liukuna on pisin rako kahden *havaitun* pumppauksen välillä, mikä ei ole sama asia eikä ole koskaan ollut.",
+      "**Liukuaika mitataan vain laudalla.** Ranteessa luku, jonka näytämme pisimpänä liukuna, on edelleen pisin rako kahden *havaitun* pumppauksen välillä, mikä ei ole sama asia.",
       "**Kukaan ei aja puhelimen kanssa teipattuna lautaan.** Tämä on mittausväline, ei ominaisuus. Sen työ on tuottaa totuus jota ranteen kello mitataan vastaan."
     ]
   },
@@ -517,6 +585,17 @@ const fr: N4 = {
     "p2": "La fenêtre de nivellement fixe cette limite inférieure, et ça n'est pas un paramètre libre. Demande le même run avec une fenêtre de 1 seconde et tu obtiens 18 cm ; demande avec 5 secondes et tu obtiens 33 cm, pour le même run. Nous tirons donc la fenêtre de la **cadence mesurée** de ce run — ici 1,38 Hz, donc 1,45 secondes — et nous marquons le nombre comme peu fiable quand le mouvement s'assoit trop près du bord. La lecture honnête de ce graphique ce n'est pas *le heave est 20 cm* ; c'est *le heave est 20 cm quand tu définis le heave comme le mouvement à la vitesse de propulsion*.",
     "cap": "Le même run, les mêmes données, six fenêtres de nivellement différentes : 18 cm à 33 cm."
   },
+  "rules": {
+    "h": "De la mesure au comptage : pumps, glisse et retour à l'eau",
+    "p": "Dès que la planche rapporte son propre mouvement, compter sur la planche n'a plus besoin du compteur au poignet. Depuis le **10 octobre 2026**, chaque enregistrement avec le téléphone sur la planche est compté selon quatre règles simples que chacun peut vérifier :",
+    "li": [
+      "**Un pump est un coup qui apporte de l'énergie.** Chaque montée et descente de la planche dans la bande de pump (0,5–3 Hz) est un cycle. Il ne compte comme pump que si le nez tangue en rythme avec le mouvement vertical — techniquement, si le produit moyen du tangage rapide et de la vitesse de heave sur le cycle dépasse 30 % de la médiane de ce run. Les oscillations qui s'éteignent après le dernier coup et les petites corrections d'équilibre font aussi bouger la planche, mais n'apportent pas d'énergie.",
+      "**Le run se termine au retour à l'eau.** C'est le premier point GPS propre dans les 15 dernières secondes d'un run sous max(8 km/h, 60 % de la vitesse de croisière du run), moins 0,7 s pour le retard de la vitesse GPS. Le retour à l'eau peut seulement raccourcir un run, jamais l'allonger.",
+      "**La glisse, c'est voler sans pomper.** Les passages sans pump de 1,5 à 15 secondes comptent comme glisse — la même règle que la carte de session utilisait déjà pour afficher les glisses. L'élan avant le premier pump ne compte pas, la fin du run si, et un passage sans données de mouvement ne compte pas du tout.",
+      "**Trop court pour juger reste comme avant.** Un run de moins de cinq cycles n'a pas de médiane qui ait un sens, il garde donc le comptage du compteur au poignet."
+    ],
+    "p2": "Sur les 20 enregistrements de planche de six riders dont on disposait ce jour-là, les règles comptent **14 % de pumps en moins** que le compteur au poignet, et la glisse représente **environ 8 % du temps de foil**. La plupart des vraies glisses durent 2 à 6 secondes ; la plus longue faisait 11,9 s, sur une session où le téléphone avait été tourné entre deux runs — les règles supposent un téléphone fermement fixé, et un téléphone qui bouge produit des glisses qui n'ont jamais eu lieu. Les anciennes valeurs restent enregistrées à côté des nouvelles, donc chaque changement reste traçable."
+  },
   "found": {
     "h": "Ce que quatre runs nous ont déjà dit",
     "p": "C'est une petite pile de données — quatre enregistrements de planche — donc ce sont des observations, pas des lois. Elles sont cependant les premiers nombres qu'on a qui décrivent la planche plutôt que le rider.",
@@ -532,7 +611,7 @@ const fr: N4 = {
     "p": "La liste des choses qu'on ne peut pas prétendre est plus longue que la liste des choses qu'on peut, et ça devrait rester comme ça jusqu'à ce que les données augmentent :",
     "li": [
       "**Quatre runs, un rider, une planche, un lac.** Rien ici n'est validé sur différents riders, et notre comptage de pump est toujours étalonné sur une seule personne — voir [Partie 3](/nerd-analysen-3) pour combien cette base est fine.",
-      "**La détection de glisse n'existe toujours pas.** Le nombre qu'on affiche comme la plus longue glisse c'est le plus long écart entre deux *pumps détectées*, ce qui n'est pas la même chose et ne l'a jamais été.",
+      "**Le temps de glisse n'est mesuré que sur la planche.** Au poignet, le nombre qu'on affiche comme la plus longue glisse reste le plus long écart entre deux *pumps détectées*, ce qui n'est pas la même chose.",
       "**Personne ne fait un run avec un téléphone collé à sa planche.** C'est un instrument de mesure, pas une fonctionnalité. Son rôle c'est de produire la vérité contre laquelle la montre à ton poignet se mesure."
     ]
   },
@@ -589,6 +668,17 @@ const gsw: N4 = {
     "p2": "S Usgliich-Fënster setzt die untri Kant, und es isch kei freeii Paramëter. Frag na de gliiche Lauf mit nere 1-Sekunde-Fënschter und d becho 18 cm; frag mit 5 Sekunde und d becho 33 cm, för die identisch Fahrt. Mer lëited s Fënschter deswëge us de **gmässne Kadänz** vum Lauf ab — da 1,38 Hz, also 1,45 Sekunde — und mer kënzeichne d Zahl as unzuverlässig, wenn d Bewegig z nah a de Kant sitzt. D ehrlich Lesart vo däm Diagramm isch nöd *s Heave isch 20 cm*; es isch *s Heave isch 20 cm, wenn d Heave as d Bewegig bi Pump-Gschwindigkeit definiersch*.",
     "cap": "Dersëlb Lauf, dieselbe Date, sächs verschiedeni Usgliich-Fënschter: 18 cm bis 33 cm."
   },
+  "rules": {
+    "h": "Vom Mässe zum Zelle: Pumps, Glëitfaase und Uufsetze",
+    "p": "Sobald s Board sini eiget Bewegig mäldet, bruucht s Zelle am Board de Handglänk-Zëller nüme. Sit em **10. Oktober 2026** wird jedi Ufzeichnig mit em Händy am Board nach vier eifache Reegle zellt, wo jede sälber nacheprüefe chan:",
+    "li": [
+      "**En Pump isch en Zug, wo Energii inebringt.** Jedes Ufe und Abe vom Board im Pump-Band (0,5–3 Hz) isch en Zyklus. As Pump zellt er nur, wenn d Spitz im Takt vo de vertikale Bewegig nickt — technisch: wenn s mittleri Produkt us schnällem Nicke und Heave-Gschwindigkeit über de Zyklus meh as 30 % vom Median vo däm Lauf isch. S Nachschwinge nach em letschte Zug und chlini Usgliichsbewegige bewegid s Board au, bringed aber kei Energii ine.",
+      "**De Lauf hört bim Uufsetze uf.** Das isch de erscht suuber GPS-Punkt i de letschte 15 Sekunde vom Lauf under max(8 km/h, 60 % vom Fahrt-Tempo), minus 0,7 s für de Nachlauf vo de GPS-Gschwindigkeit. S Uufsetze chan en Lauf nur chürzer mache, nie länger.",
+      "**Glëite isch Flüüge ohni Pumpe.** Stück ohni Pump vo 1,5 bis 15 Sekunde zelled as Glëite — di gliich Reegle, wo d Session-Charte d Glëitfaase scho demit zeigt het. De Aalauf vor em erschte Pump zellt nöd, s Laufänd scho, und es Stück, wo Bewegigsdate fëhled, zellt gar nöd.",
+      "**Was z churz isch zum Urteile, blibt wies gsi isch.** En Lauf mit weniger as füf Zykle het kän sinnvolle Median und bhaltet drum d Zellig vom Handglänk-Zëller."
+    ],
+    "p2": "Über di 20 Board-Ufzeichnige vo sächs Fahrer, wo mer a däm Tag gha hend, zelled d Reegle **14 % weniger Pumps** as de Handglänk-Zëller, und s Glëite macht **öppe 8 % vo de Foil-Ziit** us. Di meischte echte Glëitfaase dured 2 bis 6 Sekunde; di längscht isch 11,9 s gsi, bi nere Fahrt, wo s Händy zwüsche de Läuf dräit worde isch — d Reegle gönd vo me fescht montierte Händy us, und es Händy, wo verrutscht, macht Glëitfaase, wos nie gä het. Di alte Wärt bliibed näbe de nöie gspeicheret, dass mer jedi Änderig nachverfolge chan."
+  },
   "found": {
     "h": "Was vier Fahrte üs scho verzellt hend",
     "p": "Das isch ne chlii Haufe vo Date — vier Board-Ufzeichnunge — also sind das Beobachtunge, nöd Gsetze. Si sind aber d erschte Zahle, wo mer hend, wo s Board beschriibe, nöd de Fahrer.",
@@ -604,7 +694,7 @@ const gsw: N4 = {
     "p": "D Lischt vo de Ding, wo mer nöd behaupte chönd, isch länger as d Lischt vo de Ding, wo mer chönd, und si söll so blïbe, bis d Date wachse:",
     "li": [
       "**Vier Fahrte, e Fahrer, e Board, e Sëe.** Nüt da isch über Fahrer validiert, und üsi Pump-Zëllig isch immer no uf nere Persoon ggicht — gsee [Teil 3](/nerd-analysen-3) för wie dün dä Grund isch.",
-      "**Glëit-Erkennig existiert immer no nöd.** D Zahl, wo mer as längschti Glëitfaas zëige, isch d längschti Lück zwüsche zwei *erkannte* Pumps, das isch nöd dasselb und isch nie so gsi.",
+      "**D Glëitziit wird nur am Board gmässe.** Am Handglänk isch d Zahl, wo mer as längschti Glëitfaas zëige, immer no d längschti Lück zwüsche zwei *erkannte* Pumps, und das isch nöd dasselb.",
       "**Niemä fahrt mit nere Händy, wo ans Board chlebt isch.** Das isch e Mess-Istrumänt, kei Feature. Sini Aufgab isch es, d Wahrheit z produzirä, gäge wo de Sensor uf dine Handglänk gmässe wird."
     ]
   },
@@ -661,6 +751,17 @@ const id: N4 = {
     "p2": "Jendela leveling menetapkan tepi itu, dan itu bukan parameter gratis. Minta lari yang sama dengan jendela 1-detik dan Anda mendapatkan 18 cm; minta dengan 5 detik dan Anda mendapatkan 33 cm, untuk lari yang identik. Kami karena itu menurunkan jendela dari **kadence yang diukur** lari itu — di sini 1,38 Hz, jadi 1,45 detik — dan kami menandai angka sebagai tidak dapat diandalkan setiap kali gerakan terlalu dekat dengan tepi. Pembacaan jujur bagan ini bukan *heave adalah 20 cm*; ini *heave adalah 20 cm ketika Anda mendefinisikan heave sebagai gerakan pada kecepatan pompa*.",
     "cap": "Lari yang sama, data yang sama, enam jendela leveling yang berbeda: 18 cm hingga 33 cm."
   },
+  "rules": {
+    "h": "Dari mengukur ke menghitung: pompa, glide, dan mendarat",
+    "p": "Begitu papan melaporkan gerakannya sendiri, penghitungan di papan tidak lagi membutuhkan penghitung di pergelangan tangan. Sejak **10 Oktober 2026**, setiap rekaman dengan ponsel di papan dihitung dengan empat aturan sederhana yang bisa diperiksa siapa pun:",
+    "li": [
+      "**Pompa adalah dorongan yang memasukkan energi.** Setiap naik-turun papan dalam band pompa (0,5–3 Hz) adalah satu siklus. Siklus itu dihitung sebagai pompa hanya jika hidung papan mengangguk seirama dengan gerakan vertikal — secara teknis, jika rata-rata hasil kali pitch cepat dan kecepatan heave sepanjang siklus melebihi 30 % dari median lari itu. Osilasi yang memudar setelah dorongan terakhir dan koreksi keseimbangan kecil juga menggerakkan papan, tetapi tidak memasukkan energi.",
+      "**Lari berakhir saat mendarat.** Itu adalah titik GPS bersih pertama dalam 15 detik terakhir sebuah lari di bawah max(8 km/h, 60 % dari kecepatan jelajah lari itu), dikurangi 0,7 s untuk keterlambatan kecepatan GPS. Pendaratan hanya bisa memperpendek lari, tidak pernah memperpanjangnya.",
+      "**Glide adalah terbang tanpa memompa.** Bagian tanpa pompa selama 1,5 hingga 15 detik dihitung sebagai glide — aturan yang sama yang sudah dipakai peta sesi untuk menampilkan glide. Ancang-ancang sebelum pompa pertama tidak dihitung, akhir lari dihitung, dan bagian dengan data gerak yang hilang tidak dihitung sama sekali.",
+      "**Terlalu pendek untuk dinilai tetap seperti semula.** Lari dengan kurang dari lima siklus tidak punya median yang bermakna, jadi tetap memakai hitungan penghitung pergelangan tangan."
+    ],
+    "p2": "Dari 20 rekaman papan milik enam pengendara yang kami miliki hari itu, aturan ini menghitung **14 % lebih sedikit pompa** daripada penghitung pergelangan tangan, dan glide mencakup **sekitar 8 % waktu foiling**. Sebagian besar glide nyata berlangsung 2 hingga 6 detik; yang terpanjang 11,9 s, pada sesi di mana ponsel sempat diputar di antara lari — aturan ini mengandaikan ponsel terpasang kuat, dan ponsel yang bergeser menghasilkan glide yang tidak pernah terjadi. Nilai lama tetap disimpan di samping yang baru, sehingga setiap perubahan bisa ditelusuri."
+  },
   "found": {
     "h": "Apa empat lari sudah beritahu kami",
     "p": "Ini adalah tumpukan data kecil — empat rekaman papan — jadi ini pengamatan, bukan hukum. Namun, ini adalah angka-angka pertama yang kami miliki yang menggambarkan papan bukan pengendara.",
@@ -676,7 +777,7 @@ const id: N4 = {
     "p": "Daftar hal yang tidak dapat kami klaim lebih panjang daripada daftar hal yang dapat kami, dan harus tetap begitu sampai data tumbuh:",
     "li": [
       "**Empat lari, satu pengendara, satu papan, satu danau.** Apa pun di sini belum divalidasi di seluruh pengendara, dan penghitungan pompa kami masih dikalibrasi pada satu orang — lihat [Bagian 3](/nerd-analysen-3) untuk seberapa tipis tanah itu.",
-      "**Deteksi glide masih tidak ada.** Angka yang kami tampilkan sebagai glide terpanjang adalah celah terpanjang antara dua pompa *terdeteksi*, yang bukan hal yang sama dan tidak pernah ada.",
+      "**Waktu glide hanya diukur di papan.** Di pergelangan tangan, angka yang kami tampilkan sebagai glide terpanjang masih merupakan celah terpanjang antara dua pompa *terdeteksi*, yang bukan hal yang sama.",
       "**Tidak ada yang naik dengan ponsel yang ditempel ke papan mereka.** Ini adalah instrumen pengukur, bukan fitur. Tugasnya adalah menghasilkan kebenaran yang diukur sensor di pergelangan tangan Anda terhadapnya."
     ]
   },
@@ -733,6 +834,17 @@ const it: N4 = {
     "p2": "La finestra di livellamento imposta quel bordo inferiore, e non è un parametro libero. Chiedi lo stesso run con una finestra di 1 secondo e ottieni 18 cm; chiedi con 5 secondi e ottieni 33 cm, per il run identico. Perciò deriviamo la finestra dalla **cadenza misurata** di quel run — qui 1,38 Hz, quindi 1,45 secondi — e contrassegniamo il numero come inaffidabile quando il movimento si siede troppo vicino al bordo. La lettura onesta di questo grafico non è *l'heave è 20 cm*; è *l'heave è 20 cm quando definisci heave come il movimento alla velocità di pump*.",
     "cap": "Lo stesso run, gli stessi dati, sei diverse finestre di livellamento: 18 cm a 33 cm."
   },
+  "rules": {
+    "h": "Dal misurare al contare: pump, planata e ritorno in acqua",
+    "p": "Una volta che la tavola riporta il proprio movimento, contare sulla tavola non ha più bisogno del contatore al polso. Dal **10 ottobre 2026**, ogni registrazione con il telefono sulla tavola viene contata con quattro regole semplici che chiunque può verificare:",
+    "li": [
+      "**Un pump è un colpo che immette energia.** Ogni salita e discesa della tavola nella banda di pump (0,5–3 Hz) è un ciclo. Conta come pump solo se il naso beccheggia a tempo con il movimento verticale — tecnicamente, se il prodotto medio di beccheggio rapido e velocità di heave sul ciclo supera il 30 % della mediana di quel run. Le oscillazioni che si spengono dopo l'ultimo colpo e le piccole correzioni di equilibrio muovono anche la tavola, ma non immettono energia.",
+      "**Il run finisce al ritorno in acqua.** È il primo punto GPS pulito negli ultimi 15 secondi di un run sotto max(8 km/h, 60 % della velocità di crociera del run), meno 0,7 s per il ritardo della velocità GPS. Il ritorno in acqua può solo accorciare un run, mai allungarlo.",
+      "**Planare è volare senza pompare.** I tratti senza pump da 1,5 a 15 secondi contano come planata — la stessa regola con cui la mappa della sessione mostrava già le planate. La rincorsa prima del primo pump non conta, la fine del run sì, e un tratto con dati di movimento mancanti non conta affatto.",
+      "**Troppo corto per giudicare resta com'era.** Un run con meno di cinque cicli non ha una mediana sensata, quindi mantiene il conteggio del contatore al polso."
+    ],
+    "p2": "Sulle 20 registrazioni della tavola di sei rider che avevamo quel giorno, le regole contano **il 14 % di pump in meno** rispetto al contatore al polso, e la planata costituisce **circa l'8 % del tempo in foil**. La maggior parte delle planate reali dura da 2 a 6 secondi; la più lunga è stata di 11,9 s, in una sessione in cui il telefono era stato girato tra un run e l'altro — le regole presuppongono un telefono fissato saldamente, e un telefono che si sposta produce planate mai avvenute. I vecchi valori restano salvati accanto ai nuovi, così ogni modifica resta tracciabile."
+  },
   "found": {
     "h": "Cosa quattro run ci hanno già detto",
     "p": "Questo è un piccolo mucchio di dati — quattro registrazioni della tavola — quindi queste sono osservazioni, non leggi. Sono, però, i primi numeri che abbiamo che descrivono la tavola piuttosto che il rider.",
@@ -748,7 +860,7 @@ const it: N4 = {
     "p": "L'elenco delle cose che non possiamo pretendere è più lungo dell'elenco delle cose che possiamo, e dovrebbe rimanere così finché i dati non crescono:",
     "li": [
       "**Quattro run, un rider, una tavola, un lago.** Niente qui è validato tra rider diversi, e il nostro pump counting è ancora calibrato su una sola persona — vedi [Parte 3](/nerd-analysen-3) per quanto sottile sia quel terreno.",
-      "**La rilevazione di planata ancora non esiste.** Il numero che mostriamo come la più lunga planata è il divario più lungo tra due pump *rilevate*, il che non è la stessa cosa e non lo è mai stato.",
+      "**Il tempo di planata si misura solo sulla tavola.** Al polso, il numero che mostriamo come la più lunga planata è ancora il divario più lungo tra due pump *rilevate*, il che non è la stessa cosa.",
       "**Nessuno fa un run con un telefono incollato alla sua tavola.** Questo è uno strumento di misura, non una funzionalità. Il suo lavoro è produrre la verità contro cui l'orologio al tuo polso viene misurato."
     ]
   },
@@ -805,6 +917,17 @@ const ja: N4 = {
     "p2": "レベリングウィンドウがその下端を設定し、自由パラメータではありません。同じラン1秒ウィンドウで求めたら18 cm；5秒で求めたら33 cm、同じライド。したがって私たちはウィンドウを**その走ったケイデンス**から導出 — ここ1.38 Hz、したがって1.45秒 — そして動きが端に近く座るときいつでも数を信頼できないでマーク。この図のホネスト読みは*ヘーブが20 cm*ではない；それは*ポンピング速度での動きとしてヘーブを定義したとき、ヘーブが20 cm*です。",
     "cap": "同じラン、同じデータ、6つの異なるレベリングウィンドウ：18 cmから33 cm。"
   },
+  "rules": {
+    "h": "計測からカウントへ：ポンプ、グライド、着水",
+    "p": "ボードが自分の動きを報告するようになれば、ボード上のカウントにリストのカウンターはもう必要ありません。**2026年10月10日**から、ボードに携帯を付けたすべての記録は、誰でも確認できる4つの単純なルールでカウントされます：",
+    "li": [
+      "**ポンプとはエネルギーを入れるストロークです。** ポンプバンド（0.5～3 Hz）でのボードの上下1回が1サイクルです。それがポンプとして数えられるのは、ノーズが上下動と同期してピッチするときだけです — 技術的には、サイクル全体での速いピッチとヘーブ速度の積の平均が、そのランの中央値の30 %を超える場合です。最後のストロークの後に減衰する揺れや小さなバランス修正もボードを動かしますが、エネルギーは入れません。",
+      "**ランは着水で終わります。** それは、ランの最後の15秒の中で max(8 km/h, ランの巡航速度の60 %) を下回る最初のきれいなGPS点から、GPS速度の遅れ分として0.7 sを引いた時点です。着水はランを短くすることしかできず、長くすることはありません。",
+      "**グライドとはポンプせずに飛ぶことです。** ポンプのない1.5～15秒の区間をグライドとして数えます — セッションマップがグライドを表示するのにすでに使っていたのと同じルールです。最初のポンプ前の助走は数えず、ランの終わりは数え、動きのデータが欠けた区間はまったく数えません。",
+      "**判断するには短すぎるものはそのままです。** サイクルが5つ未満のランには意味のある中央値がないため、リストのカウンターの値を保持します。"
+    ],
+    "p2": "その日に手元にあった6人のライダーの20件のボード記録で、ルールはリストのカウンターより**14 %少ないポンプ**を数え、グライドは**フォイル時間の約8 %**を占めます。実際のグライドの大半は2～6秒です。最長は11.9 sで、ランの合間に携帯の向きが変わったライドでのものでした — ルールは携帯がしっかり固定されていることを前提としており、ずれる携帯は実際には起きていないグライドを生み出します。古い値は新しい値の隣に保存されたままなので、すべての変更を後から追跡できます。"
+  },
   "found": {
     "h": "4つのライドが既に私たちに伝えたもの",
     "p": "これはデータの小さいパイル — 4つのボード記録 — だからこれは観察で、法則ではありません。しかし、それらはライダーではなくボードを記述する最初の数字です。",
@@ -820,7 +943,7 @@ const ja: N4 = {
     "p": "我々が主張できない物のリストは我々が主張できるものより長く、データが増えるまでそのように留まるべき：",
     "li": [
       "**4つのライド、1つのライダー、1つのボード、1つの湖。** ここは何ライダーで検証されず、ポンプカウントはまだ1人で較正 — [パート3](/nerd-analysen-3)でどれほど薄いその地面が見てください。",
-      "**グライド検出はまだ存在しません。** 数私たちは最長グライドとして見せるのは2つの*検出された*ポンプ間の最長ギャップで、同じ物ではなく決してありました。",
+      "**グライド時間はボード上でのみ計測されます。** リストでは、最長グライドとして表示する数値は今も2つの*検出された*ポンプ間の最長ギャップであり、同じものではありません。",
       "**誰もボード貼りポンで乗りません。** これは計測器、機能ではありません。その仕事は真実を生産することリスト上ウォッチが対して計測される。"
     ]
   },
@@ -877,6 +1000,17 @@ const nb: N4 = {
     "p2": "Utjevningsvinduen setter den nedre kanten, og det er ikke en fri parameter. Spør om samme tur med et 1-sekunders vindu og du får 18 cm; spør med 5 sekunder og du får 33 cm, for den identiske turen. Vi avleder derfor vinduen fra den **målte kadensen** av den turen — her 1,38 Hz, så 1,45 sekunder — og vi merker tallet som upålitelig når bevegelsen sitter for tett på kanten. Den ærlige lesningen av dette diagrammet er ikke *heave er 20 cm*; det er *heave er 20 cm når du definerer heave som bevegelsen ved pump-hastighet*.",
     "cap": "Den samme turen, de samme dataene, seks forskjellige utjevningsvinduer: 18 cm til 33 cm."
   },
+  "rules": {
+    "h": "Fra måling til telling: pumps, glide og landing",
+    "p": "Så snart brettet rapporterer sin egen bevegelse, trenger tellingen på brettet ikke lenger håndledd-telleren. Siden **10. oktober 2026** telles hvert opptak med mobil på brettet etter fire enkle regler som alle kan etterprøve:",
+    "li": [
+      "**En pump er et slag som tilfører energi.** Hvert opp og ned av brettet i pump-båndet (0,5–3 Hz) er én syklus. Den teller som pump bare hvis nesen vipper i takt med den vertikale bevegelsen — teknisk: hvis det gjennomsnittlige produktet av rask pitch og heave-hastighet over syklusen overstiger 30 % av medianen for den turen. Utdøende svingninger etter siste slag og små balansekorreksjoner beveger også brettet, men tilfører ingen energi.",
+      "**Turen slutter ved landing.** Det er det første rene GPS-punktet i de siste 15 sekundene av en tur under max(8 km/h, 60 % av turens marsjfart), minus 0,7 s for forsinkelsen i GPS-hastigheten. Landingen kan bare forkorte en tur, aldri forlenge den.",
+      "**Glide er flyging uten pumping.** Strekk uten pump på 1,5 til 15 sekunder teller som glide — samme regel som øktkartet allerede brukte for å vise glide. Tilløpet før første pump teller ikke, slutten av turen gjør det, og et strekk med manglende bevegelsesdata teller ikke i det hele tatt.",
+      "**For kort til å vurdere blir som før.** En tur med færre enn fem sykluser har ingen meningsfull median, og beholder derfor tellingen fra håndledd-telleren."
+    ],
+    "p2": "Over de 20 brett-opptakene fra seks ryttere vi hadde den dagen, teller reglene **14 % færre pumps** enn håndledd-telleren, og glide utgjør **omtrent 8 % av foil-tiden**. De fleste ekte glide varer 2 til 6 sekunder; den lengste var 11,9 s, på en økt der mobilen var blitt dreid mellom turene — reglene forutsetter en fast montert mobil, og en mobil som forskyver seg, gir glide som aldri skjedde. De gamle verdiene blir lagret ved siden av de nye, slik at hver endring kan spores."
+  },
   "found": {
     "h": "Hva fire turer allerede har fortalt oss",
     "p": "Det er en liten haug data — fire brett-opptak — så det er observasjoner, ikke lover. De er likevel de første tallene vi har som beskriver brettet i stedenfor rytteren.",
@@ -892,7 +1026,7 @@ const nb: N4 = {
     "p": "Listen over ting vi ikke kan hevde er lengre enn listen over ting vi kan, og den skal bli sånn til dataene vokser:",
     "li": [
       "**Fire turer, en rytter, ett brett, en sjø.** Ingenting her er validert på tvers av rytterne, og vår pump-telling er fortsatt kalibrert på en enkelt person — se [Del 3](/nerd-analysen-3) for hvor tynt det grunnet er.",
-      "**Glide-gjenkjenning eksisterer fortsatt ikke.** Tallet vi viser som lengste glide er det lengste gapet mellom to *gjenkjente* pumps, som ikke er det samme og var aldri det.",
+      "**Glidetid måles bare på brettet.** På håndleddet er tallet vi viser som lengste glide fortsatt det lengste gapet mellom to *gjenkjente* pumps, og det er ikke det samme.",
       "**Ingen rider med en mobil tapet på sitt brett.** Det er et måleinstrument, ikke en funksjon. Jobben er å produsere sannheten som klokken på håndleddet ditt måles mot."
     ]
   },
@@ -943,6 +1077,17 @@ const nl: N4 = {
     "p2": "Het niveau-venster stelt die ondergrens in, en het is geen vrije parameter. Vraag dezelfde sprint met een 1-seconde-venster en je krijgt 18 cm; vraag met 5 seconden en je krijgt 33 cm, voor dezelfde sprint. We leiden dus het venster af van de **gemeten cadans** van die sprint — hier 1,38 Hz, dus 1,45 seconden — en we markeren het getal als onbetrouwbaar wanneer de beweging te dicht bij de rand zit. Het eerlijke lezen van deze grafiek is niet *de heave is 20 cm*; het is *de heave is 20 cm als je heave definieert als de beweging op pompsnelheid*.",
     "cap": "Dezelfde sprint, dezelfde gegevens, zes verschillende nivel-vensters: 18 cm tot 33 cm."
   },
+  "rules": {
+    "h": "Van meten naar tellen: pompen, glijden en neerkomen",
+    "p": "Zodra de board zijn eigen beweging doorgeeft, heeft tellen op de board de polsteller niet meer nodig. Sinds **10 oktober 2026** wordt elke opname met de telefoon op de board geteld volgens vier eenvoudige regels die iedereen kan nagaan:",
+    "li": [
+      "**Een pomp is een slag die energie toevoegt.** Elk op en neer van de board in de pompband (0,5–3 Hz) is één cyclus. Die telt alleen als pomp als de neus in de maat van de verticale beweging knikt — technisch: als het gemiddelde product van snelle pitch en heave-snelheid over de cyclus meer is dan 30 % van de mediaan van die sprint. Uitdovende schommelingen na de laatste slag en kleine balanscorrecties bewegen de board ook, maar voegen geen energie toe.",
+      "**De sprint eindigt bij het neerkomen.** Dat is het eerste schone GPS-punt in de laatste 15 seconden van een sprint onder max(8 km/h, 60 % van de kruissnelheid van de sprint), min 0,7 s voor de vertraging van de GPS-snelheid. Het neerkomen kan een sprint alleen inkorten, nooit verlengen.",
+      "**Glijden is vliegen zonder pompen.** Stukken zonder pomp van 1,5 tot 15 seconden tellen als glijding — dezelfde regel waarmee de sessiekaart glijfases al toonde. De aanloop voor de eerste pomp telt niet, het einde van de sprint wel, en een stuk met ontbrekende bewegingsdata telt helemaal niet.",
+      "**Te kort om te beoordelen blijft zoals het was.** Een sprint met minder dan vijf cycli heeft geen zinvolle mediaan en houdt daarom de telling van de polsteller."
+    ],
+    "p2": "Over de 20 boardopnamen van zes rijders die we die dag hadden, tellen de regels **14 % minder pompen** dan de polsteller, en glijden maakt **ongeveer 8 % van de foiltijd** uit. De meeste echte glijdingen duren 2 tot 6 seconden; de langste was 11,9 s, op een ride waarbij de telefoon tussen sprints was gedraaid — de regels gaan uit van een stevig bevestigde telefoon, en een telefoon die verschuift levert glijdingen op die nooit gebeurd zijn. De oude waarden blijven naast de nieuwe bewaard, zodat elke wijziging terug te volgen is."
+  },
   "found": {
     "h": "Wat vier sprints ons al hebben verteld",
     "p": "Dit is een klein stapeltje gegevens — vier boardopnamen — dus dit zijn waarnemingen, geen wetten. Ze zijn echter de eerste getallen die we hebben die de board beschrijven in plaats van de rij.",
@@ -958,7 +1103,7 @@ const nl: N4 = {
     "p": "De lijst met dingen die we niet kunnen claimen is langer dan de lijst met dingen die we kunnen, en dat moet zo blijven totdat de gegevens groeien:",
     "li": [
       "**Vier sprints, één rij, één board, één meer.** Niets hier is gevalideerd over rijen heen, en onze pompenteller is nog steeds afgestemd op één persoon — zie [Deel 3](/nerd-analysen-3) voor hoe dun die basis is.",
-      "**Glijdetectie bestaat nog niet.** Het getal dat we als langste glijding tonen is de langste kloof tussen twee *gedetecteerde* pompen, wat niet hetzelfde is en nooit was.",
+      "**Glijtijd wordt alleen op de board gemeten.** Op de pols is het getal dat we als langste glijding tonen nog steeds de langste kloof tussen twee *gedetecteerde* pompen, en dat is niet hetzelfde.",
       "**Niemand rijdt met een telefoon op hun board geplakt.** Dit is een meetinstrument, geen feature. Zijn taak is de waarheid voortbrengen waartegen het horloge op je pols wordt gemeten."
     ]
   },
@@ -1021,6 +1166,17 @@ const ptPT: N4 = {
     "p2": "A janela de nivelação define essa borda baixa, e não é um parâmetro livre. Peça a mesma anda com janela de 1-segundo e obtém 18 cm; peça com 5 segundos e obtém 33 cm, para a mesma anda. Portanto derivamos a janela da **cadência medida** dessa anda — aqui 1,38 Hz, portanto 1,45 segundos — e marcamos o número como não fiável sempre que o movimento fica muito perto da borda. A leitura honesta deste gráfico não é *o heave é 20 cm*; é *o heave é 20 cm quando defines heave como o movimento à velocidade de bombeio*.",
     "cap": "A mesma anda, os mesmos dados, seis janelas de nivelação diferentes: 18 cm a 33 cm."
   },
+  "rules": {
+    "h": "De medir a contar: bombeios, planagem e amaragem",
+    "p": "Assim que a prancha reporta o seu próprio movimento, contar na prancha deixa de precisar do contador do pulso. Desde **10 de outubro de 2026**, cada gravação com o telemóvel na prancha é contada por quatro regras simples que qualquer pessoa pode verificar:",
+    "li": [
+      "**Um bombeio é um golpe que introduz energia.** Cada subida e descida da prancha na banda de bombeio (0,5–3 Hz) é um ciclo. Só conta como bombeio se o nariz inclinar ao ritmo do movimento vertical — tecnicamente, se o produto médio da inclinação rápida e da velocidade de heave ao longo do ciclo ultrapassar 30 % da mediana dessa anda. As oscilações que se extinguem depois do último golpe e as pequenas correções de equilíbrio também mexem a prancha, mas não introduzem energia.",
+      "**A anda termina na amaragem.** É o primeiro ponto GPS limpo nos últimos 15 segundos de uma anda abaixo de max(8 km/h, 60 % da velocidade de cruzeiro da anda), menos 0,7 s pelo atraso da velocidade GPS. A amaragem só pode encurtar uma anda, nunca prolongá-la.",
+      "**Planagem é voar sem bombear.** Troços sem bombeio de 1,5 a 15 segundos contam como planagem — a mesma regra com que o mapa da sessão já mostrava as planagens. O arranque antes do primeiro bombeio não conta, o fim da anda conta, e um troço com dados de movimento em falta não conta de todo.",
+      "**O que é curto demais para avaliar fica como estava.** Uma anda com menos de cinco ciclos não tem uma mediana com sentido, por isso mantém a contagem do contador do pulso."
+    ],
+    "p2": "Nas 20 gravações de prancha de seis surfistas que tínhamos nesse dia, as regras contam **menos 14 % de bombeios** do que o contador do pulso, e a planagem representa **cerca de 8 % do tempo de foil**. A maioria das planagens reais dura 2 a 6 segundos; a mais longa foi de 11,9 s, numa sessão em que o telemóvel tinha sido rodado entre andas — as regras pressupõem um telemóvel bem fixo, e um telemóvel que se desloca produz planagens que nunca aconteceram. Os valores antigos ficam guardados ao lado dos novos, para que cada alteração possa ser rastreada."
+  },
   "found": {
     "h": "O que quatro andas já nos disseram",
     "p": "Isto é uma pequena pilha de dados — quatro gravações de prancha — portanto estas são observações, não leis. Mas são, no entanto, os primeiros números que temos que descrevem a prancha e não o surfista.",
@@ -1036,7 +1192,7 @@ const ptPT: N4 = {
     "p": "A lista de coisas que não conseguimos afirmar é mais longa que a lista de coisas que conseguimos, e deve ficar assim enquanto os dados crescem:",
     "li": [
       "**Quatro andas, um surfista, uma prancha, um lago.** Nada aqui é validado entre surfistas, e a nossa contagem de bombeio ainda é calibrada numa pessoa — vê [Parte 3](/nerd-analysen-3) para quão fino é o chão.",
-      "**Deteção de planagem ainda não existe.** O número que mostramos como planagem mais longa é a lacuna mais longa entre dois *bombeios detetados*, que não é a mesma coisa e nunca foi.",
+      "**O tempo de planagem só é medido na prancha.** No pulso, o número que mostramos como planagem mais longa continua a ser a lacuna mais longa entre dois *bombeios detetados*, que não é a mesma coisa.",
       "**Ninguém anda com um telemóvel colado à prancha.** Isto é um instrumento de medição, não uma característica. O seu trabalho é produzir a verdade contra que o relógio no teu pulso é medido."
     ]
   },
@@ -1087,6 +1243,17 @@ const pt: N4 = {
     "p2": "A janela de nivelamento define essa borda inferior, e não é um parâmetro livre. Peça pelo mesmo lauf com janela de 1 segundo e você obtém 18 cm; peça com 5 segundos e obtém 33 cm, para o passeio idêntico. Portanto derivamos a janela da **cadência medida** daquele lauf — aqui 1,38 Hz, então 1,45 segundos — e marcamos o número como não confiável sempre que o movimento fica muito perto da borda. A leitura honesta deste gráfico não é *o heave é 20 cm*; é *o heave é 20 cm quando você define heave como o movimento em velocidade de bombeio*.",
     "cap": "O mesmo lauf, os mesmos dados, seis janelas de nivelamento diferentes: 18 cm a 33 cm."
   },
+  "rules": {
+    "h": "De medir a contar: pumps, glide e pouso",
+    "p": "Assim que a prancha informa o próprio movimento, contar na prancha não precisa mais do contador do pulso. Desde **10 de outubro de 2026**, cada gravação com o celular na prancha é contada por quatro regras simples que qualquer pessoa pode conferir:",
+    "li": [
+      "**Um pump é um stroke que coloca energia.** Cada subida e descida da prancha na faixa de pump (0,5–3 Hz) é um ciclo. Ele só conta como pump se o nariz fizer pitch no ritmo do movimento vertical — tecnicamente, se o produto médio do pitch rápido e da velocidade de heave ao longo do ciclo passar de 30 % da mediana daquele lauf. Oscilações que se apagam depois do último stroke e pequenas correções de equilíbrio também mexem a prancha, mas não colocam energia.",
+      "**O lauf termina no pouso.** É o primeiro ponto GPS limpo nos últimos 15 segundos de um lauf abaixo de max(8 km/h, 60 % da velocidade de cruzeiro do lauf), menos 0,7 s pelo atraso da velocidade do GPS. O pouso só pode encurtar um lauf, nunca alongá-lo.",
+      "**Glide é voar sem bombear.** Trechos sem pump de 1,5 a 15 segundos contam como glide — a mesma regra com que o mapa da sessão já mostrava os glides. A arrancada antes do primeiro pump não conta, o fim do lauf conta, e um trecho com dados de movimento faltando não conta de jeito nenhum.",
+      "**Curto demais para julgar fica como estava.** Um lauf com menos de cinco ciclos não tem uma mediana que faça sentido, então mantém a contagem do contador do pulso."
+    ],
+    "p2": "Nas 20 gravações de prancha de seis pilotos que tínhamos naquele dia, as regras contam **14 % menos pumps** que o contador do pulso, e o glide representa **cerca de 8 % do tempo de foil**. A maioria dos glides reais dura de 2 a 6 segundos; o mais longo foi de 11,9 s, num passeio em que o celular tinha sido girado entre laufs — as regras pressupõem um celular bem fixado, e um celular que se desloca produz glides que nunca aconteceram. Os valores antigos continuam salvos ao lado dos novos, para que toda mudança possa ser rastreada."
+  },
   "found": {
     "h": "O Que Quatro Passeios Já Nos Disseram",
     "p": "É uma pequena pilha de dados — quatro gravações de prancha — então essas são observações, não leis. Elas são, no entanto, os primeiros números que temos que descrevem a prancha em vez do ciclista.",
@@ -1102,7 +1269,7 @@ const pt: N4 = {
     "p": "A lista de coisas que não podemos reivindicar é mais longa que a lista de coisas que conseguimos, e deve permanecer assim até os dados crescerem:",
     "li": [
       "**Quatro passeios, um ciclista, uma prancha, um lago.** Nada aqui é validado entre ciclistas, e nossa contagem de pump ainda é calibrada em uma pessoa — veja [Parte 3](/nerd-analysen-3) para quão fino é aquele solo.",
-      "**Detecção de glide ainda não existe.** O número que mostramos como glide mais longo é a lacuna mais longa entre dois pumps *detectados*, o que não é a mesma coisa e nunca foi.",
+      "**O tempo de glide é medido só na prancha.** No pulso, o número que mostramos como glide mais longo ainda é a lacuna mais longa entre dois pumps *detectados*, o que não é a mesma coisa.",
       "**Ninguém anda com um celular fitado na sua prancha.** Isto é um instrumento de medição, não um recurso. Seu trabalho é produzir a verdade contra a qual o relógio no seu pulso é medido."
     ]
   },
@@ -1165,6 +1332,17 @@ const ru: N4 = {
     "p2": "Окно выравнивания устанавливает этот нижний край, и это не свободный параметр. Спроси за тот же лаун с 1-секундным окном и получишь 18 cm; спроси с 5 секунд и получишь 33 cm, для одного и того же лауна. Мы таким образом выводим окно из **измеренной кадансии** того лауна — здесь 1.38 Hz, таким образом 1.45 секунды — и мы отмечаем число как ненадёжное когда движение сидит слишком близко к краю. Честное чтение этой диаграммы не *heave это 20 cm*; это *heave это 20 cm когда определяешь heave как движение на Pump-скорости*.",
     "cap": "Тот же лаун, те же данные, шесть разных окон выравнивания: 18 cm до 33 cm."
   },
+  "rules": {
+    "h": "От измерения к подсчёту: Pumps, глайд и касание воды",
+    "p": "Как только доска сообщает о собственном движении, подсчёту на доске больше не нужен счётчик на запястье. С **10 октября 2026** каждая запись с телефоном на доске считается по четырём простым правилам, которые может проверить каждый:",
+    "li": [
+      "**Pump — это толчок, который добавляет энергию.** Каждое движение доски вверх и вниз в Pump-диапазоне (0.5–3 Hz) — это один цикл. Он считается Pump, только если носик качается в такт с вертикальным движением — технически: если среднее произведение быстрого pitch и скорости heave за цикл превышает 30 % медианы этого лауна. Затухающие колебания после последнего толчка и мелкие поправки равновесия тоже двигают доску, но энергии не добавляют.",
+      "**Лаун заканчивается касанием воды.** Это первая чистая GPS-точка в последних 15 секундах лауна ниже max(8 km/h, 60 % крейсерской скорости лауна), минус 0.7 s на запаздывание GPS-скорости. Касание может только укоротить лаун, но никогда не удлинить.",
+      "**Глайд — это полёт без Pumping.** Отрезки без Pump длиной от 1.5 до 15 секунд считаются глайдом — то же правило, по которому карта сессии уже показывала глайды. Разгон до первого Pump не считается, конец лауна считается, а отрезок с отсутствующими данными движения не считается вовсе.",
+      "**Слишком короткое для оценки остаётся как было.** У лауна с менее чем пятью циклами нет осмысленной медианы, поэтому он сохраняет подсчёт счётчика на запястье."
+    ],
+    "p2": "На 20 записях с доски от шести гонщиков, которые были у нас в тот день, правила насчитывают **на 14 % меньше Pumps**, чем счётчик на запястье, а глайд составляет **около 8 % времени на фойле**. Большинство настоящих глайдов длятся от 2 до 6 секунд; самый длинный был 11.9 s, в заезде, где телефон повернули между лаунами — правила предполагают прочно закреплённый телефон, а телефон, который сдвигается, создаёт глайды, которых никогда не было. Старые значения хранятся рядом с новыми, так что каждое изменение можно отследить."
+  },
   "found": {
     "h": "Что четыре лауна уже рассказали нам",
     "p": "Это маленькая кучка данных — четыре доска-записи — таким образом это наблюдения, не законы. Они однако первые числа которые мы имеем что описывают доску вместо гонщика.",
@@ -1180,7 +1358,7 @@ const ru: N4 = {
     "p": "Список вещей которые мы не можем требовать длиннее чем список вещей которые можем, и он должен оставаться так до данные растут:",
     "li": [
       "**Четыре лауна, один гонщик, одна доска, одно озеро.** Ничто здесь не валидировано через гонщиков, и наш Pump-подсчёт ещё откалиброван на одного человека — см. [Часть 3](/nerd-analysen-3) как тонкая та земля.",
-      "**Глайд-детекция всё ещё не существует.** Число которое мы показываем как самый длинный глайд это самая длинная щель между двумя *обнаруженными* Pumps, что это не одно и то же и никогда не было.",
+      "**Время глайда измеряется только на доске.** На запястье число, которое мы показываем как самый длинный глайд, по-прежнему остаётся самой длинной щелью между двумя *обнаруженными* Pumps, а это не одно и то же.",
       "**Никто не катается с телефоном приклеенным к их доске.** Это измерительный инструмент, не функция. Его работа это произвести истину что часы на твоём запястье измеряются против."
     ]
   },
@@ -1237,6 +1415,17 @@ const zh: N4 = {
     "p2": "水平窗口设置那个下边缘，它不是一个自由参数。对相同的运行用1秒窗口询问你得到18厘米；对5秒要求你得到33厘米，对于相同的骑行。因此我们从该运行的**测量频率**派生窗口 — 这里1.38 Hz，所以1.45秒 — 并且我们标记数字为不可靠，无论何时运动太接近边缘。这个图表的诚实读数不是*升沉是20厘米*；它是*升沉是20厘米当你定义升沉为泵动速度处的运动时*。",
     "cap": "相同的运行，相同的数据，六个不同的水平窗口：18厘米到33厘米。"
   },
+  "rules": {
+    "h": "从测量到计数：泵动、滑行和触水",
+    "p": "一旦板能报告自身的运动，板上的计数就不再需要手腕计数器。自**2026年10月10日**起，每条手机在板上的记录都按四条任何人都能核查的简单规则计数：",
+    "li": [
+      "**泵动是注入能量的一次划动。**板在泵动频带（0.5–3 Hz）内的每一次上下都是一个周期。只有当机头随竖直运动同步俯仰时，它才算作泵动 — 技术上说：如果整个周期内快速俯仰与升沉速度乘积的平均值超过该运行中位数的30 %。最后一次划动之后逐渐衰减的振荡和小的平衡修正也会让板移动，但它们不注入能量。",
+      "**运行在触水时结束。**那是运行最后15秒内第一个低于max(8 km/h, 运行巡航速度的60 %)的干净GPS点，再减去0.7 s以补偿GPS速度的滞后。触水只能缩短一次运行，永远不会延长它。",
+      "**滑行就是不泵动的飞行。**1.5到15秒没有泵动的片段算作滑行 — 与会话地图显示滑行时已经使用的规则相同。第一次泵动之前的助跑不算，运行的结尾算，缺少运动数据的片段完全不算。",
+      "**太短无法判断的保持原样。**少于五个周期的运行没有有意义的中位数，因此保留手腕计数器的计数。"
+    ],
+    "p2": "在当天我们拥有的六名骑手的20条板记录中，这些规则计出的泵动比手腕计数器**少14 %**，滑行约占**飞行时间的8 %**。大多数真实滑行持续2到6秒；最长的是11.9 s，发生在一次骑行中，手机在两次运行之间被转动过 — 规则假定手机牢固固定，而移位的手机会产生从未发生过的滑行。旧值与新值并排保存，因此每一处变化都可以追溯。"
+  },
   "found": {
     "h": "四次骑行已经告诉我们什么",
     "p": "这是一小堆数据 — 四个板记录 — 所以这些是观察，不是规律。然而，它们是我们有的第一个描述板而不是骑手的数字。",
@@ -1252,7 +1441,7 @@ const zh: N4 = {
     "p": "无法声称的事物列表比能声称的列表更长，直到数据增长它应该保持这样：",
     "li": [
       "**四次骑行，一个骑手，一个板，一个湖。**这里没有什么在骑手中被验证，我们的泵动计数仍然在单个人上校准 — 看[第3部分](/nerd-analysen-3)了解那个地面多薄。",
-      "**滑行检测仍然不存在。**我们显示为最长滑行的数字是两个*检测到的*泵动之间的最长间隙，这不是同一个东西，从不是。",
+      "**滑行时间只在板上测量。**在手腕上，我们显示为最长滑行的数字仍然是两个*检测到的*泵动之间的最长间隙，这不是同一个东西。",
       "**没有人骑手机胶带贴在他们的板上。**这是一个测量仪器，不是一个特性。它的工作是产生手腕上的表被测量的真相。"
     ]
   },
@@ -1309,6 +1498,17 @@ const pl: N4 = {
     "p2": "Okno wyliczające ustawia ten dolny krawędź, i to nie jest wolny parametr. Poproś o ten sam przebieg z oknem 1-sekundowym a dostajesz 18 cm; poproś z 5 sekund a dostajesz 33 cm, na tej samej jeździe. Dlatego wyprowadzamy okno z **zmierzonej kadencji** tego przebiegu — tutaj 1.38 Hz, tak 1.45 sekundy — i oznaczamy liczbę jako niewiarygodną, ilekroć ruch siedzi zbyt blisko krawędzi. Uczciwe czytanie tego wykresu nie jest *heave to 20 cm*; to *heave to 20 cm, gdy definiujesz heave jako ruch przy prędkości pompowania*.",
     "cap": "Ten sam przebieg, te same dane, sześć różnych okien wyliczających: 18 cm na 33 cm."
   },
+  "rules": {
+    "h": "Od mierzenia do liczenia: pompowania, szybowanie i wodowanie",
+    "p": "Gdy deska sama raportuje swój ruch, liczenie na desce nie potrzebuje już licznika z nadgarstka. Od **10 października 2026** każde nagranie z telefonem na desce jest liczone według czterech prostych reguł, które każdy może sprawdzić:",
+    "li": [
+      "**Pompowanie to ruch, który dodaje energię.** Każde uniesienie i opadnięcie deski w paśmie pompowania (0.5–3 Hz) to jeden cykl. Liczy się jako pompowanie tylko wtedy, gdy nos kiwa się w rytm ruchu pionowego — technicznie: gdy średni iloczyn szybkiego pitchu i prędkości heave w cyklu przekracza 30 % mediany tego przebiegu. Wygasające drgania po ostatnim ruchu i drobne korekty równowagi też poruszają deską, ale nie dodają energii.",
+      "**Przebieg kończy się wodowaniem.** To pierwszy czysty punkt GPS w ostatnich 15 sekundach przebiegu poniżej max(8 km/h, 60 % prędkości przelotowej przebiegu), minus 0.7 s na opóźnienie prędkości z GPS. Wodowanie może przebieg tylko skrócić, nigdy wydłużyć.",
+      "**Szybowanie to latanie bez pompowania.** Odcinki bez pompowania trwające od 1.5 do 15 sekund liczą się jako szybowanie — ta sama reguła, według której mapa sesji już pokazywała szybowanie. Rozbieg przed pierwszym pompowaniem się nie liczy, koniec przebiegu tak, a odcinek z brakującymi danymi ruchu nie liczy się wcale.",
+      "**Co za krótkie do oceny, zostaje jak było.** Przebieg z mniej niż pięcioma cyklami nie ma sensownej mediany, więc zachowuje wynik licznika z nadgarstka."
+    ],
+    "p2": "W 20 nagraniach z deski od sześciu jeźdźców, które mieliśmy tego dnia, reguły liczą **o 14 % mniej pompowań** niż licznik z nadgarstka, a szybowanie stanowi **około 8 % czasu na foilu**. Większość prawdziwych szybowań trwa od 2 do 6 sekund; najdłuższe trwało 11.9 s, w jeździe, w której telefon został obrócony między przebiegami — reguły zakładają solidnie zamocowany telefon, a telefon, który się przesuwa, tworzy szybowania, których nigdy nie było. Stare wartości są zapisane obok nowych, więc każdą zmianę można prześledzić."
+  },
   "found": {
     "h": "Co cztery jazdy już nam powiedziały",
     "p": "To jest mała sterta danych — cztery recording desz — więc to są obserwacje, nie prawa. Są jednak pierwsze liczby, które mamy, które opisują deskę zamiast jeźdźca.",
@@ -1324,7 +1524,7 @@ const pl: N4 = {
     "p": "Lista rzeczy, których nie możemy twierdzić, jest dłuższa niż lista rzeczy, które możemy, i powinno to pozostać tak, dopóki dane rosną:",
     "li": [
       "**Cztery jazdy, jeden jeźdźca, jedna deska, jedno jezioro.** Nic tutaj nie jest sprawdzane między jeźdźcami i nasze liczenie pompowania wciąż jest kalibrowane na jedną osobę — zobacz [Część 3](/nerd-analysen-3), jak cienkie to podłoże jest.",
-      "**Detekcja szybowania wciąż nie istnieje.** Liczba, którą pokazujemy jako najdłuższe szybowanie, to najdłuższa luka między dwoma *wykrytymi* pompowaniami, co nie jest tym samym i nigdy nie było.",
+      "**Czas szybowania jest mierzony tylko na desce.** Na nadgarstku liczba, którą pokazujemy jako najdłuższe szybowanie, to wciąż najdłuższa luka między dwoma *wykrytymi* pompowaniami, a to nie to samo.",
       "**Nikt nie jeździ z telefonem zalepioną na desce.** To jest instrument pomiarowy, nie funkcja. Jego zadaniem jest wytwarzanie prawdy, względem której zegarek na twoim nadgarstku jest mierzony."
     ]
   },
