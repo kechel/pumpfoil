@@ -455,7 +455,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.12",  # FREIGEGEBEN 2026-09-30 (Zepp-Mail: „The application Pumpfoil
+        "latest": "1.0.13",  # FREIGEGEBEN 2026-10-10 (Zepp-Mail „The application Pumpfoil (1.0.13) you submitted has been approved", Jans Meldung; eingereicht 01.10., neun Tage).
+        # ALT: "latest": "1.0.12",  # FREIGEGEBEN 2026-09-30 (Zepp-Mail: „The application Pumpfoil
         # (1.0.12) you submitted has been approved and added to the ZEPP app store", Jans Meldung).
         # Eingereicht 24.09. — sechs Tage. Inhalt: Vibration an Strecken-/Zeitmarken, Bildschirm
         # bleibt an, Pause mit Teil-Upload, Verwerfen, viel vollstaendigere Spur, Einstellungen
@@ -801,14 +802,7 @@ IN_REVIEW: list[dict] = [
     # EINGEREICHT 01.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
     # Vor der Einreichung ungetestet (Testsession #12510 kam vom 1.0.12-Build, APP_VERSION vergessen,
     # 43bc9f02); DANACH auf Jans T-Rex 3 nachgetestet: #12511/#12512, Halten fuer Pause/Stopp ok.
-    {"name": "Amazfit", "version": "1.0.13",
-     "eingereicht": "2026-10-01",
-     "items": [
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-         "While a recording is paused, the watch shows your pause pages and says so on every "
-         "page.",
-         "Stop, pause and resume now need a two-second hold, so a wet sleeve can't end or pause your session by accident.",
-     ]},
+    # Amazfit 1.0.13 am 10.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit zepp 1.0.13.
     # EINGEREICHT 01.10.2026 13:18 (Jans Meldung, ASC „Warten auf Prüfung", 1.1.41 (46), Kennung
     # f1acdcef-93f5-4369-b729-67fcadc062d2). Auf der VM nur swiftc -parse; Jans Xcode-Build + Simulator
     # (Uhr startete erst nach Schliessen des Android-Emulators). Ohne eigenen Punkt: Claude-1:1 mit
