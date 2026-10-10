@@ -127,9 +127,10 @@ export default function Landing() {
     { icon: LocationIcon, title: t("land.f12Title"), body: t("land.f12Body") },
     { icon: TagIcon, title: t("land.f6Title"), body: t("land.f6Body") },
   ];
-  // Mobile-App-Screenshots (Hochformat, Android). Je Slot ein Paar dark/light
-  // (mobile-dark-N.webp / mobile-light-N.webp) — CSS zeigt via html.theme-light das passende.
-  const SHOTS = Array.from({ length: 8 }, (_, i) => i + 1);
+  // Mobile-App-Screenshots (Hochformat, Android-App, Jans Emulator 10.10.2026). Bis dahin je Slot ein
+  // dark/light-Paar; die neuen Aufnahmen gibt es nur hell, deshalb EIN Bild fuer beide Modi. Namen
+  // anderer Nutzer sind unkenntlich gemacht (Jan: Spots und sein eigener Name duerfen bleiben).
+  const SHOTS = Array.from({ length: 14 }, (_, i) => i + 1);
   // Desktop 2 nebeneinander pro Slide, Mobile 1.
   const [perView, setPerView] = useState(1);
   useEffect(() => {
@@ -469,16 +470,10 @@ export default function Landing() {
                         className="w-[230px] shrink-0 sm:w-[256px]"
                       >
                         <img
-                          src={`/mobile-dark-${n}.webp`}
+                          src={`/mobile-v2-${n}.webp`}
                           alt={t("land.appShotsTitle")}
                           loading="lazy"
-                          className="shot-dark block w-full"
-                        />
-                        <img
-                          src={`/mobile-light-${n}.webp`}
-                          alt={t("land.appShotsTitle")}
-                          loading="lazy"
-                          className="shot-light block w-full"
+                          className="block w-full"
                         />
                       </div>
                     ))}
