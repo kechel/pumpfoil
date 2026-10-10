@@ -1444,6 +1444,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 - **10.10. — Garmin fenix 9 Pro (51 mm): Kopplungscode-Seite, „pumpfoil.org" und „Enter it there" liegen
   uebereinander** (Jans Simulator-Screenshot, screenshots/watch/garmin/20261010-neu, 09.34.02). Wahrscheinlich
   feste Zeilenabstaende statt Schrifthoehe des Geraets; auf anderen grossen Displays (fenix 8/9, epix) mitpruefen.
+- **10.10. — Wear OS: das System-Symbol der laufenden Aktivitaet (oben mittig) verdeckt in den Layouts das „REC"
+  bzw. die Uhrzeit** (Jans Emulator-Screenshots screenshots/watch/wear/20261010-neu). Pruefen, ob Wear-Layouts oben
+  einen Schutzbereich brauchen (Editor-Vorschau fuer runde Wear-Uhren) oder das Symbol sich ausblenden laesst.
 - **10.10. — Apple Watch: 9-Felder-Seite (Layout „All in") zu eng** — Beschriftungen und Werte ueberlappen
   (z. B. „Hr" ueber „59"), Screenshot screenshots/watch/apple/20261010-neu 09.52.58; das „REC" scheint unter
   „Paused" durch wie auf Amazfit (s. naechster Punkt).
