@@ -147,6 +147,12 @@ DEFAULTS = {
     # Gewicht in den eigenen Sessions fuer ANDERE verbergen (Opt-out, Jan 06.10.2026: sichtbar ist
     # der Standard, weil die Leistung es ohnehin schon verwendete). Der Besitzer sieht es immer.
     "weight_hidden": False,
+    # Handgelenk der Uhr und Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen sagen sie, ob
+    # die Uhr an der VORDEREN oder HINTEREN Hand sitzt — der Haupt-Stoerfaktor der Pump-Erkennung
+    # am Handgelenk. "" = nicht angegeben. Privat (nicht auf der Foiler-Seite), aendert nichts an
+    # der Analyse; es soll nur die gesammelten Daten spaeter danach aufteilbar machen.
+    "watch_wrist": "",    # "left" | "right"
+    "stance": "",         # "regular" (linker Fuss vorn) | "goofy" (rechter Fuss vorn)
     # Einrichtungs-Assistent (/onboarding, noch nicht verlinkt): wann er durchlaufen wurde.
     # None = noch nie. Reiner MERKER, damit eine spätere Weiche neue Konten genau einmal
     # dorthin leiten kann — er schaltet von sich aus nichts. Form: {"done_at": ISO, "version": n};
@@ -257,6 +263,15 @@ ALARM_DEFAULTS = {"foil", "fixed"}
 def _merged(user: models.User) -> dict:
     stored = json.loads(user.settings_json) if user.settings_json else {}
     return {**DEFAULTS, **stored}
+
+
+def uhr_hand(settings: dict) -> str | None:
+    """"front" / "back" = Uhr an der vorderen / hinteren Hand, None = nicht bekannt.
+    Regular steht mit dem linken Fuss vorn, also ist links die vordere Hand; goofy umgekehrt."""
+    w, st = settings.get("watch_wrist"), settings.get("stance")
+    if w not in ("left", "right") or st not in ("regular", "goofy"):
+        return None
+    return "front" if (w == "left") == (st == "regular") else "back"
 
 
 def _clean_hr_zones(v) -> list | None:
@@ -570,6 +585,10 @@ def update_settings(
         current["hide_location"] = bool(patch["hide_location"])
     if "weight_hidden" in patch:
         current["weight_hidden"] = bool(patch["weight_hidden"])
+    if "watch_wrist" in patch and patch["watch_wrist"] in ("", "left", "right"):
+        current["watch_wrist"] = patch["watch_wrist"]
+    if "stance" in patch and patch["stance"] in ("", "regular", "goofy"):
+        current["stance"] = patch["stance"]
     if "weight_kg" in patch:
         try:
             current["weight_kg"] = max(0, min(300, round(float(patch["weight_kg"]))))

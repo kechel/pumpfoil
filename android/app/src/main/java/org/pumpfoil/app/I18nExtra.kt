@@ -7,6 +7,18 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Pulso do relógio e base",
+    "rider.ridingHint" to "Opcional e só para você. Juntos dizem se o relógio está na mão da frente ou de trás — isso afeta quão bem detectamos pumps no pulso. Assim podemos avaliar isso depois; nada muda nas suas sessões.",
+    "rider.wrist" to "Relógio no pulso",
+    "rider.wristLeft" to "esquerdo",
+    "rider.wristRight" to "direito",
+    "rider.stance" to "Base",
+    "rider.stanceRegular" to "Regular (pé esquerdo à frente)",
+    "rider.stanceGoofy" to "Goofy (pé direito à frente)",
+    "rider.notSet" to "não informado",
+    "rider.handFront" to "Seu relógio está na mão da frente.",
+    "rider.handBack" to "Seu relógio está na mão de trás.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web pt.ts, 01.10.2026.
     "presence.online" to "Online",
     "online.title" to "Ponto online",
@@ -1130,6 +1142,18 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "時計の手首とスタンス",
+    "rider.ridingHint" to "任意で、あなただけに表示されます。時計が前の手か後ろの手かが分かり、手首でのパンプ検出の精度に影響します。後で評価に使えます。セッションには何も変わりません。",
+    "rider.wrist" to "時計をつける手首",
+    "rider.wristLeft" to "左",
+    "rider.wristRight" to "右",
+    "rider.stance" to "スタンス",
+    "rider.stanceRegular" to "レギュラー（左足が前）",
+    "rider.stanceGoofy" to "グーフィー（右足が前）",
+    "rider.notSet" to "未設定",
+    "rider.handFront" to "時計は前の手についています。",
+    "rider.handBack" to "時計は後ろの手についています。",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web ja.ts, 01.10.2026.
     "presence.online" to "オンライン",
     "online.title" to "オンライン表示",
@@ -2253,6 +2277,18 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "手表佩戴手腕与站姿",
+    "rider.ridingHint" to "可选，仅你可见。两者结合可知手表戴在前手还是后手——这会影响我们在手腕上识别 pump 的准确度。有了这项信息我们以后可以评估；你的 session 不会有任何变化。",
+    "rider.wrist" to "手表戴在",
+    "rider.wristLeft" to "左手腕",
+    "rider.wristRight" to "右手腕",
+    "rider.stance" to "站姿",
+    "rider.stanceRegular" to "Regular（左脚在前）",
+    "rider.stanceGoofy" to "Goofy（右脚在前）",
+    "rider.notSet" to "未设置",
+    "rider.handFront" to "你的手表戴在前手。",
+    "rider.handBack" to "你的手表戴在后手。",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web zh.ts, 01.10.2026.
     "presence.online" to "在线",
     "online.title" to "在线标记",
@@ -3376,6 +3412,18 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Рука с часами и стойка",
+    "rider.ridingHint" to "Необязательно и видно только тебе. Вместе это показывает, на передней или задней руке часы, — от этого зависит, насколько хорошо мы распознаём пампы по запястью. С этими данными мы сможем проверить это позже; в твоих сессиях ничего не меняется.",
+    "rider.wrist" to "Часы на руке",
+    "rider.wristLeft" to "левой",
+    "rider.wristRight" to "правой",
+    "rider.stance" to "Стойка",
+    "rider.stanceRegular" to "Regular (левая нога впереди)",
+    "rider.stanceGoofy" to "Goofy (правая нога впереди)",
+    "rider.notSet" to "не указано",
+    "rider.handFront" to "Часы на передней руке.",
+    "rider.handBack" to "Часы на задней руке.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web ru.ts, 01.10.2026.
     "presence.online" to "В сети",
     "online.title" to "Значок «в сети»",
@@ -4499,6 +4547,18 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Pergelangan jam & stance",
+    "rider.ridingHint" to "Opsional dan hanya untukmu. Dari sini kami tahu apakah jam ada di tangan depan atau belakang — ini memengaruhi seberapa baik kami mendeteksi pump di pergelangan. Dengan data ini kami bisa mengevaluasinya nanti; sesimu tidak berubah.",
+    "rider.wrist" to "Jam di pergelangan",
+    "rider.wristLeft" to "kiri",
+    "rider.wristRight" to "kanan",
+    "rider.stance" to "Stance",
+    "rider.stanceRegular" to "Regular (kaki kiri di depan)",
+    "rider.stanceGoofy" to "Goofy (kaki kanan di depan)",
+    "rider.notSet" to "tidak diisi",
+    "rider.handFront" to "Jammu ada di tangan depan.",
+    "rider.handBack" to "Jammu ada di tangan belakang.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web id.ts, 01.10.2026.
     "presence.online" to "Online",
     "online.title" to "Titik online",
@@ -5625,6 +5685,18 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Klokkehåndledd og stance",
+    "rider.ridingHint" to "Valgfritt og bare for deg. Sammen viser de om klokka sitter på fremre eller bakre hånd — det påvirker hvor godt vi gjenkjenner pumps ved håndleddet. Med dette kan vi vurdere det senere; øktene dine endres ikke.",
+    "rider.wrist" to "Klokke på håndleddet",
+    "rider.wristLeft" to "venstre",
+    "rider.wristRight" to "høyre",
+    "rider.stance" to "Stance",
+    "rider.stanceRegular" to "Regular (venstre fot foran)",
+    "rider.stanceGoofy" to "Goofy (høyre fot foran)",
+    "rider.notSet" to "ikke angitt",
+    "rider.handFront" to "Klokka di sitter på fremre hånd.",
+    "rider.handBack" to "Klokka di sitter på bakre hånd.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web nb.ts, 01.10.2026.
     "presence.online" to "Pålogget",
     "online.title" to "Pålogget-prikk",
@@ -6788,6 +6860,18 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Nadgarstek z zegarkiem i postawa",
+    "rider.ridingHint" to "Opcjonalne i tylko dla ciebie. Razem pokazują, czy zegarek jest na przedniej, czy tylnej ręce — to wpływa na to, jak dobrze rozpoznajemy pumpy na nadgarstku. Dzięki temu ocenimy to później; w twoich sesjach nic się nie zmienia.",
+    "rider.wrist" to "Zegarek na nadgarstku",
+    "rider.wristLeft" to "lewym",
+    "rider.wristRight" to "prawym",
+    "rider.stance" to "Postawa",
+    "rider.stanceRegular" to "Regular (lewa stopa z przodu)",
+    "rider.stanceGoofy" to "Goofy (prawa stopa z przodu)",
+    "rider.notSet" to "nie podano",
+    "rider.handFront" to "Zegarek masz na przedniej ręce.",
+    "rider.handBack" to "Zegarek masz na tylnej ręce.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web pl.ts, 01.10.2026.
     "presence.online" to "Online",
     "online.title" to "Kropka online",
@@ -7953,6 +8037,18 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Pulso do relógio e base",
+    "rider.ridingHint" to "Opcional e só para ti. Juntos indicam se o relógio está na mão da frente ou de trás — isso influencia a qualidade com que detetamos pumps no pulso. Assim podemos avaliá-lo mais tarde; nada muda nas tuas sessões.",
+    "rider.wrist" to "Relógio no pulso",
+    "rider.wristLeft" to "esquerdo",
+    "rider.wristRight" to "direito",
+    "rider.stance" to "Base",
+    "rider.stanceRegular" to "Regular (pé esquerdo à frente)",
+    "rider.stanceGoofy" to "Goofy (pé direito à frente)",
+    "rider.notSet" to "não indicado",
+    "rider.handFront" to "O teu relógio está na mão da frente.",
+    "rider.handBack" to "O teu relógio está na mão de trás.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web pt-PT.ts, 01.10.2026.
     "presence.online" to "Online",
     "online.title" to "Ponto online",

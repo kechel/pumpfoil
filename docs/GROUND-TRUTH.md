@@ -128,8 +128,8 @@ obwohl die Daten da sind.
 
 | Feld | Warum | Stand |
 |---|---|---|
-| **Handgelenk** (links/rechts) | Haupt-Störfaktor; 93 % der Wahrheit kommt von einem | fehlt |
-| **Stance** (regular/goofy) | entscheidet, ob das Handgelenk die vordere oder hintere Hand ist | fehlt |
+| **Handgelenk** (links/rechts) | Haupt-Störfaktor; 93 % der Wahrheit kommt von einem | im Profil seit 10.10.2026 (`watch_wrist`) |
+| **Stance** (regular/goofy) | entscheidet, ob das Handgelenk die vordere oder hintere Hand ist | im Profil seit 10.10.2026 (`stance`; `settings.uhr_hand()` -> front/back) |
 | **Uhrmodell** | Rate 25 gegen 50 Hz, anderer Sensor | vorhanden (`device_model`, `watch_model_flags`) |
 | **Foil / Brett / Mast** | Signatur hängt daran | vorhanden (Setup + Katalog) |
 | **Montageort am Brett** (Nase/Mitte/Heck) | Hebelarm; bestimmt Hub und wie stark das Nicken als Vertikalbewegung erscheint | fehlt |

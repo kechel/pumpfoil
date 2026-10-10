@@ -34,6 +34,8 @@ export default function Settings() {
   const [homespot, setHomespot] = useState("");
   const [spots, setSpots] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
+  const [wrist, setWrist] = useState("");
+  const [stance, setStance] = useState("");
   const [savedToast, setSavedToast] = useState(false);
   const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string; label: string; model: string } | null>(null);
 
@@ -41,6 +43,8 @@ export default function Settings() {
     api.getSettings().then((s) => {
       setHomespot((s.homespot as string) ?? "");
       setWeight(s.weight_kg ? String(s.weight_kg) : "");
+      setWrist((s.watch_wrist as string) ?? "");
+      setStance((s.stance as string) ?? "");
     }).catch(() => {});
     api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
     // Uhr-Update-Hinweis direkt am Button, ohne erst in die Geräteliste zu klicken.
@@ -74,6 +78,14 @@ export default function Settings() {
   function saveHomespot(v: string) {
     setHomespot(v);
     api.saveSettings({ homespot: v }).then(flashSaved).catch(() => {});
+  }
+  function saveWrist(v: string) {
+    setWrist(v);
+    api.saveSettings({ watch_wrist: v }).then(flashSaved).catch(() => {});
+  }
+  function saveStance(v: string) {
+    setStance(v);
+    api.saveSettings({ stance: v }).then(flashSaved).catch(() => {});
   }
   function saveWeight() {
     api.saveSettings({ weight_kg: Number(weight) || 0 }).then(flashSaved).catch(() => {});
@@ -267,6 +279,38 @@ export default function Settings() {
           <span className="text-sm text-slate-400">kg</span>
         </div>
         <GewichtExtras />
+      </Card>
+
+      {/* Handgelenk + Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen = Uhr an der vorderen
+          oder hinteren Hand, der Haupt-Stoerfaktor der Pump-Erkennung. Privat, aendert nichts. */}
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("profile.ridingTitle")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("profile.ridingHint")}</p>
+        <div className="flex flex-wrap gap-4">
+          <label className="text-sm text-slate-300">
+            <span className="mb-1 block">{t("profile.wrist")}</span>
+            <select value={wrist} onChange={(e) => saveWrist(e.target.value)}
+              className="w-48 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
+              <option value="">{t("profile.notSet")}</option>
+              <option value="left">{t("profile.wristLeft")}</option>
+              <option value="right">{t("profile.wristRight")}</option>
+            </select>
+          </label>
+          <label className="text-sm text-slate-300">
+            <span className="mb-1 block">{t("profile.stance")}</span>
+            <select value={stance} onChange={(e) => saveStance(e.target.value)}
+              className="w-60 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
+              <option value="">{t("profile.notSet")}</option>
+              <option value="regular">{t("profile.stanceRegular")}</option>
+              <option value="goofy">{t("profile.stanceGoofy")}</option>
+            </select>
+          </label>
+        </div>
+        {wrist && stance && (
+          <p className="mt-3 text-sm text-slate-300">
+            {(wrist === "left") === (stance === "regular") ? t("profile.handFront") : t("profile.handBack")}
+          </p>
+        )}
       </Card>
 
       {/* Puls-Zonen: eine Quelle für Uhr-Grafiken UND Web — die Uhren können sie nicht überall

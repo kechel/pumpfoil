@@ -18,6 +18,8 @@ struct SettingsView: View {
     @State private var spZonen: [Int] = [8, 12, 16, 20, 24, 28]
     @State private var spZonenVorschlag = true
     @State private var homespot = ""
+    @State private var wrist = ""
+    @State private var stance = ""
     @State private var spots: [String] = []
     @State private var nLike = true
     @State private var nAnalyzed = true
@@ -48,6 +50,7 @@ struct SettingsView: View {
             // werden statt an sechs Abschnitten vorbeizuscrollen.
             languageSection
             weightSection
+            riderSection
             zonenSection
             spZonenSection
             homespotSection
@@ -73,6 +76,8 @@ struct SettingsView: View {
         .task { await load() }
         .onChange(of: weight) { _ in saved = false }
         .onChange(of: homespot) { _ in saved = false }
+        .onChange(of: wrist) { _ in saved = false }
+        .onChange(of: stance) { _ in saved = false }
         .onChange(of: nLike) { _ in saved = false }
         .onChange(of: nAnalyzed) { _ in saved = false }
         .onChange(of: nRecord) { _ in saved = false }
@@ -89,6 +94,32 @@ struct SettingsView: View {
             Stepper(weightLabel, value: $weight, in: 0...300)
         }
     }
+
+    // Handgelenk + Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen = Uhr an der vorderen
+    // oder hinteren Hand. Privat, aendert nichts an der Analyse. Gespeichert ueber „Speichern".
+    private var riderSection: some View {
+        Section {
+            Picker(Loc.t("rider.wrist", lang), selection: $wrist) {
+                Text(Loc.t("rider.notSet", lang)).tag("")
+                Text(Loc.t("rider.wristLeft", lang)).tag("left")
+                Text(Loc.t("rider.wristRight", lang)).tag("right")
+            }
+            Picker(Loc.t("rider.stance", lang), selection: $stance) {
+                Text(Loc.t("rider.notSet", lang)).tag("")
+                Text(Loc.t("rider.stanceRegular", lang)).tag("regular")
+                Text(Loc.t("rider.stanceGoofy", lang)).tag("goofy")
+            }
+            if !wrist.isEmpty && !stance.isEmpty {
+                Text(Loc.t(riderHandFront ? "rider.handFront" : "rider.handBack", lang))
+            }
+        } header: {
+            Text(Loc.t("rider.ridingTitle", lang))
+        } footer: {
+            Text(Loc.t("rider.ridingHint", lang))
+        }
+    }
+
+    private var riderHandFront: Bool { (wrist == "left") == (stance == "regular") }
 
     // Puls-Zonen. Einzige Quelle fuer ALLE Plattformen: nur Garmin und Zepp koennen die Zonen der
     // Uhr selbst lesen, watchOS und Wear OS haben keine API dafuer. Stepper statt Textfeld — im
@@ -421,6 +452,8 @@ struct SettingsView: View {
         let s = (try? await Api.settings()) ?? [:]
         weight = min(max((s["weight_kg"] as? Int) ?? 0, 0), 300)
         homespot = (s["homespot"] as? String) ?? ""
+        wrist = (s["watch_wrist"] as? String) ?? ""
+        stance = (s["stance"] as? String) ?? ""
         if let z = (s["hr_zones"] as? [Any])?.compactMap({ ($0 as? NSNumber)?.intValue }), z.count == 6 {
             zonen = z
         }
@@ -465,6 +498,8 @@ struct SettingsView: View {
                 "hr_zones": zonen,
                 "speed_zones": spZonen,
                 "homespot": homespot,
+                "watch_wrist": wrist,
+                "stance": stance,
                 // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern von hier
                 // hat die im Web gesetzte Chat-Einstellung also stillschweigend geloescht.
                 "notify_prefs": ["like": nLike, "analyzed": nAnalyzed, "record": nRecord, "chat": nChat],
