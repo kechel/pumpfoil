@@ -1441,6 +1441,12 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+- **10.10. — Garmin fenix 9 Pro (51 mm): Kopplungscode-Seite, „pumpfoil.org" und „Enter it there" liegen
+  uebereinander** (Jans Simulator-Screenshot, screenshots/watch/garmin/20261010-neu, 09.34.02). Wahrscheinlich
+  feste Zeilenabstaende statt Schrifthoehe des Geraets; auf anderen grossen Displays (fenix 8/9, epix) mitpruefen.
+- **10.10. — „REC" in der Pause ausblenden? (offen, Jans Entscheidung).** Das Layout-Element REC (typ 5) prueft auf
+  keiner Plattform die Pause; auf Seiten ohne eigenen Pausen-Hinweis setzt die Uhr „Paused" oben drueber und das REC
+  scheint durch (Amazfit-Screenshot 09.23.51). Betraefe Garmin/Wear/Apple/Zepp/Huawei + Editor-Vorschau.
 
 - **🔲 09.10. — DNS4EU sperrt pumpfoil.org (Fehlalarm, Sinkhole 6000063). Whalebone-Ticket 58102.** Hinweis steht
   oben im GitHub-README. Pruefen: `dig +short @86.54.11.1 pumpfoil.org` muss 78.46.102.130 liefern (gesperrt:
