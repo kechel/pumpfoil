@@ -1580,7 +1580,7 @@ const cs: N5 = {
 };
 
 const pl: N5 = {
-  back: "← Część 4: Telefon zalepiony na desce",
+  back: "← Część 4: Telefon przyklejony taśmą do deski",
   h1: "Część 5: Model wykrywania",
   subtitle: "Nowe wykrywanie jazdy na foilu, zbudowane ze wszystkiego, co powiedzieli nam riderzy — i tam, gdzie wciąż potrzebuje Ciebie",
   intro:

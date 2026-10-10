@@ -846,7 +846,7 @@ const ptPT: N1 = {
   "back": "← Voltar",
   "next": "→ Parte 2: Como funciona a deteção",
   "h1": "Análises para nerds",
-  "subtitle": "Experiência de dupla relógio: Pumpfoil · Illmensee, 27.06.2026 · dados brutos de aceleração, muito processamento de sinal e um pouco de física de foil. Para quem quer saber de verdade.",
+  "subtitle": "Experiência com dois relógios: Pumpfoil · Illmensee, 27.06.2026 · dados brutos de aceleração, muito processamento de sinal e um pouco de física de foil. Para quem quer saber de verdade.",
   "intro": "Pergunta: o que se consegue extrair dos dados de movimento de uma sessão de Pumpfoil — e conseguimos melhorar a deteção de bombeio, estar-em-foil e planagem? Para isso, registámos uma sessão **em simultâneo com dois relógios**: um na mão e um **diretamente no mastro do foil, debaixo de água** — a «verdade» sobre o que o foil realmente faz.",
   "aufbau": {
     "h": "O equipamento",
