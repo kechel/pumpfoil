@@ -330,7 +330,7 @@ export default function Landing() {
                   Display zugeschnitten. Noch nicht installierbar (Wear-Engine-Freigabe steht aus) —
                   deshalb „kommt bald" statt eines Store-Knopfs. */}
               <WatchCarousel rounded="rounded-full" caption="Huawei" sub="Watch GT · Fit · Watch 3/4/5"
-                images={["/watch-huawei-1.webp", "/watch-huawei-2.webp", "/watch-huawei-3.webp", "/watch-huawei-4.webp"]}
+                images={[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/watch-huawei-${n}.webp`)}
                 plakette={t("land.huaweiNew")}
                 badge={<span className="mt-2 inline-block rounded-lg border border-brand-500/50 px-3 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{t("land.huaweiSoon")}</span>} />
             </div>
