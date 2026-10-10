@@ -197,7 +197,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
           <li>{t("guide.z.s4")}</li>
         </ol>
         <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-          {["/watch-amazfit-1.webp", "/watch-amazfit-2.webp", "/watch-amazfit-3.webp"].map((s) => (
+          {["/watch-amazfit-v2-1.webp", "/watch-amazfit-v2-2.webp", "/watch-amazfit-v2-3.webp"].map((s) => (
             <img key={s} src={s} alt="Amazfit" loading="lazy"
               className="w-full rounded-full border border-slate-800 shadow" />
           ))}
