@@ -323,14 +323,14 @@ export default function Landing() {
                 images={["/watch-wear-1.webp", "/watch-wear-2.webp", "/watch-wear-3.webp"]}
                 badge={<PlayBadge className="mt-2" />} />
               <WatchCarousel rounded="rounded-full" caption="Amazfit" sub="Zepp OS"
-                images={[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/watch-amazfit-${n}.webp`)}
+                images={[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/watch-amazfit-v2-${n}.webp`)}
                 badge={<ZeppAppBadges />} />
               {/* HUAWEI (10.10.2026, Jan: „NEU (Beta) kennzeichnen und hervorheben"). Bilder aus Jans
                   DevEco-Emulator (Watch 5, ArkTS) mit den Standard-Layouts der Community, auf das runde
                   Display zugeschnitten. Noch nicht installierbar (Wear-Engine-Freigabe steht aus) —
                   deshalb „kommt bald" statt eines Store-Knopfs. */}
               <WatchCarousel rounded="rounded-full" caption="Huawei" sub="Watch GT · Fit · Watch 3/4/5"
-                images={[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/watch-huawei-${n}.webp`)}
+                images={[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/watch-huawei-v2-${n}.webp`)}
                 plakette={t("land.huaweiNew")}
                 badge={<span className="mt-2 inline-block rounded-lg border border-brand-500/50 px-3 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{t("land.huaweiSoon")}</span>} />
             </div>
