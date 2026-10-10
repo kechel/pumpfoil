@@ -71,6 +71,8 @@ fun SettingsScreen(onBack: () -> Unit) {
     var zonen by remember { mutableStateOf(listOf(95, 114, 133, 152, 171, 190)) }
     var zonenVorschlag by remember { mutableStateOf(true) }
     var homespot by remember { mutableStateOf("") }
+    var wrist by remember { mutableStateOf("") }
+    var stance by remember { mutableStateOf("") }
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }
     val snackHost = remember { SnackbarHostState() }
     fun flashSaved() { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } }
@@ -95,6 +97,8 @@ fun SettingsScreen(onBack: () -> Unit) {
             val s = Api.settings()
             weight = (s["weight_kg"]?.jsonPrimitive?.intOrNull ?: 0).toString()
             homespot = s["homespot"]?.jsonPrimitive?.contentOrNull ?: ""
+            wrist = s["watch_wrist"]?.jsonPrimitive?.contentOrNull ?: ""
+            stance = s["stance"]?.jsonPrimitive?.contentOrNull ?: ""
             (s["hr_zones"] as? kotlinx.serialization.json.JsonArray)
                 ?.mapNotNull { it.jsonPrimitive.intOrNull }
                 ?.takeIf { it.size == 6 }?.let { zonen = it }
@@ -181,6 +185,33 @@ fun SettingsScreen(onBack: () -> Unit) {
                 singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.width(120.dp),
             )
+            Spacer(Modifier.height(16.dp))
+
+            // Handgelenk + Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen = Uhr an der
+            // vorderen oder hinteren Hand. Privat, aendert nichts; speichert sofort wie im Web.
+            Text(I18n.t("rider.ridingTitle"), style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("rider.ridingHint"), style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(8.dp))
+            Text(I18n.t("rider.wrist"), style = MaterialTheme.typography.bodyMedium)
+            Dropdown(
+                options = listOf("" to I18n.t("rider.notSet"), "left" to I18n.t("rider.wristLeft"), "right" to I18n.t("rider.wristRight")),
+                selected = wrist,
+                onSelect = { v -> wrist = v; scope.launch { try { Api.saveSettings(buildJsonObject { put("watch_wrist", v) }); flashSaved() } catch (_: Exception) {} } },
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(I18n.t("rider.stance"), style = MaterialTheme.typography.bodyMedium)
+            Dropdown(
+                options = listOf("" to I18n.t("rider.notSet"), "regular" to I18n.t("rider.stanceRegular"), "goofy" to I18n.t("rider.stanceGoofy")),
+                selected = stance,
+                onSelect = { v -> stance = v; scope.launch { try { Api.saveSettings(buildJsonObject { put("stance", v) }); flashSaved() } catch (_: Exception) {} } },
+            )
+            if (wrist.isNotEmpty() && stance.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    I18n.t(if ((wrist == "left") == (stance == "regular")) "rider.handFront" else "rider.handBack"),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
             Spacer(Modifier.height(16.dp))
 
             // Zonen — EIN Block, zweimal benutzt: Puls und Geschwindigkeit funktionieren

@@ -122,6 +122,18 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to row("Uhr-Handgelenk & Stance", "Uhr-Handgelänk & Stance", "Uhr-Handgelenk & Stance", "Watch wrist & stance", "Poignet de la montre et position", "Polso dell’orologio e stance", "Muñeca del reloj y postura"),
+    "rider.ridingHint" to row("Optional und nur für dich. Daraus ergibt sich, ob die Uhr an der vorderen oder hinteren Hand sitzt — das beeinflusst, wie gut wir Pumps am Handgelenk erkennen. Mit deiner Angabe können wir das später auswerten; an deinen Sessions ändert sich nichts.", "Freiwillig und nur für dich. Drus gseht mer, öb d Uhr a de vordere oder hindere Hand isch — das beiflusst, wie guet mer Pumps am Handgelänk erkenned. Mit dinere Aagab chönd mer das spöter uswärte; a dine Sessions änderet sich nüt.", "Optional und nur für dich. Daraus ergibt sich, ob die Uhr an der vorderen oder hinteren Hand sitzt — das beeinflusst, wie gut wir Pumps am Handgelenk erkennen. Mit deiner Angabe können wir das später auswerten; an deinen Sessions ändert sich nix.", "Optional and private. Together they tell us whether your watch is on your front or back hand — which affects how well we detect pumps at the wrist. With it we can check that later; nothing changes in your sessions.", "Facultatif et privé. Ensemble, ils indiquent si ta montre est sur la main avant ou arrière, ce qui influe sur la détection des pumps au poignet. Cela nous permettra de l’évaluer plus tard ; rien ne change dans tes sessions.", "Facoltativo e privato. Insieme indicano se porti l’orologio sulla mano anteriore o posteriore, il che influisce su quanto bene riconosciamo i pump al polso. Così potremo valutarlo in seguito; nelle tue sessioni non cambia nulla.", "Opcional y privado. Juntos indican si llevas el reloj en la mano delantera o trasera, lo que influye en lo bien que detectamos los pumps en la muñeca. Así podremos analizarlo más adelante; tus sesiones no cambian."),
+    "rider.wrist" to row("Uhr am Handgelenk", "Uhr am Handgelänk", "Uhr am Handgelenk", "Watch on wrist", "Montre au poignet", "Orologio al polso", "Reloj en la muñeca"),
+    "rider.wristLeft" to row("links", "links", "links", "left", "gauche", "sinistro", "izquierda"),
+    "rider.wristRight" to row("rechts", "rächts", "rechts", "right", "droit", "destro", "derecha"),
+    "rider.stance" to row("Stance", "Stance", "Stance", "Stance", "Position", "Stance", "Postura"),
+    "rider.stanceRegular" to row("Regular (linker Fuß vorn)", "Regular (linke Fuess vorne)", "Regular (linker Fuß vorn)", "Regular (left foot forward)", "Regular (pied gauche devant)", "Regular (piede sinistro avanti)", "Regular (pie izquierdo delante)"),
+    "rider.stanceGoofy" to row("Goofy (rechter Fuß vorn)", "Goofy (rächte Fuess vorne)", "Goofy (rechter Fuß vorn)", "Goofy (right foot forward)", "Goofy (pied droit devant)", "Goofy (piede destro avanti)", "Goofy (pie derecho delante)"),
+    "rider.notSet" to row("keine Angabe", "kei Aagab", "ka Angabe", "not set", "non renseigné", "non indicato", "sin indicar"),
+    "rider.handFront" to row("Deine Uhr sitzt an der vorderen Hand.", "Dini Uhr isch a de vordere Hand.", "Deine Uhr sitzt an der vorderen Hand.", "Your watch is on your front hand.", "Ta montre est sur la main avant.", "Il tuo orologio è sulla mano anteriore.", "Llevas el reloj en la mano delantera."),
+    "rider.handBack" to row("Deine Uhr sitzt an der hinteren Hand.", "Dini Uhr isch a de hindere Hand.", "Deine Uhr sitzt an der hinteren Hand.", "Your watch is on your back hand.", "Ta montre est sur la main arrière.", "Il tuo orologio è sulla mano posteriore.", "Llevas el reloj en la mano trasera."),
     // Online-Punkt, Lesebestaetigung, native Profilseite (Online.kt, ChatScreen.kt, FoilerScreen.kt), aus den Web-Sprachdateien 01.10.2026.
     "presence.online" to row("Online", "Online", "Online", "Online", "En ligne", "Online", "En línea"),
     "online.title" to row("Online-Punkt", "Online-Pünktli", "Online-Punkt", "Online dot", "Point en ligne", "Punto online", "Punto en línea"),
@@ -1509,6 +1521,18 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Kellon ranne ja asento",
+    "rider.ridingHint" to "Vapaaehtoinen ja vain sinulle. Näistä selviää, onko kello etu- vai takakädessä — se vaikuttaa siihen, miten hyvin tunnistamme pumppaukset ranteesta. Tiedon avulla voimme tutkia sitä myöhemmin; sessioihisi ei muutu mitään.",
+    "rider.wrist" to "Kello ranteessa",
+    "rider.wristLeft" to "vasen",
+    "rider.wristRight" to "oikea",
+    "rider.stance" to "Asento",
+    "rider.stanceRegular" to "Regular (vasen jalka edessä)",
+    "rider.stanceGoofy" to "Goofy (oikea jalka edessä)",
+    "rider.notSet" to "ei valittu",
+    "rider.handFront" to "Kellosi on etukädessä.",
+    "rider.handBack" to "Kellosi on takakädessä.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web fi.ts, 01.10.2026.
     "presence.online" to "Paikalla",
     "online.title" to "Paikalla-piste",
@@ -2624,6 +2648,18 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Pols van je horloge & stance",
+    "rider.ridingHint" to "Optioneel en alleen voor jou. Samen laten ze zien of je horloge aan je voorste of achterste hand zit — dat bepaalt mee hoe goed we pumps aan de pols herkennen. Zo kunnen we dat later evalueren; aan je sessies verandert niets.",
+    "rider.wrist" to "Horloge om pols",
+    "rider.wristLeft" to "links",
+    "rider.wristRight" to "rechts",
+    "rider.stance" to "Stance",
+    "rider.stanceRegular" to "Regular (linkervoet voor)",
+    "rider.stanceGoofy" to "Goofy (rechtervoet voor)",
+    "rider.notSet" to "niet ingevuld",
+    "rider.handFront" to "Je horloge zit aan je voorste hand.",
+    "rider.handBack" to "Je horloge zit aan je achterste hand.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web nl.ts, 01.10.2026.
     "presence.online" to "Online",
     "online.title" to "Online-stip",
@@ -3738,6 +3774,18 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
+    "rider.ridingTitle" to "Zápěstí s hodinkami a postoj",
+    "rider.ridingHint" to "Nepovinné a jen pro tebe. Z toho poznáme, zda máš hodinky na přední, nebo zadní ruce — to ovlivňuje, jak dobře rozpoznáme pumpy na zápěstí. S tímto údajem to můžeme později vyhodnotit; na tvých sessions se nic nemění.",
+    "rider.wrist" to "Hodinky na zápěstí",
+    "rider.wristLeft" to "levé",
+    "rider.wristRight" to "pravé",
+    "rider.stance" to "Postoj",
+    "rider.stanceRegular" to "Regular (levá noha vpředu)",
+    "rider.stanceGoofy" to "Goofy (pravá noha vpředu)",
+    "rider.notSet" to "neuvedeno",
+    "rider.handFront" to "Hodinky máš na přední ruce.",
+    "rider.handBack" to "Hodinky máš na zadní ruce.",
     // Online-Punkt, Lesebestaetigung, Profilseite — aus web cs.ts, 01.10.2026.
     "presence.online" to "Online",
     "online.title" to "Online tečka",
