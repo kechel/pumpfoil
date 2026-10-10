@@ -2866,6 +2866,11 @@ function RunsTable({
   const t = useT();
   const pf = usePumpFmt();
   const [busy, setBusy] = useState(false);
+  // Sortieren per Klick auf die Spaltenueberschrift (Wunsch PumpingCarbon, 10.10.2026). Erster Klick
+  // aufsteigend, zweiter absteigend; „#" stellt die Laufreihenfolge wieder her. Die Zeilen behalten
+  // ihre Laufnummer — Auswahl, Vergleich und Aussortieren haengen am Lauf, nicht an der Position.
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortAsc, setSortAsc] = useState(true);
   // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise oben sind
   // die einzige Spur davon, deshalb auch bei 0 Läufen rendern (alle aussortiert/abgetrennt).
   if (!segments.length && !excluded.length && !poweredRuns.length && !keptWindows.length) return null;
@@ -2910,9 +2915,46 @@ function RunsTable({
   const bpm = (v: number | null | undefined) => (v != null ? `${Math.round(v)} bpm` : "–");
   // Kadenz-Zellen ohne Einheit — die steht in der Spaltenüberschrift (Hz bzw. /min).
   const hz = (v: number | null | undefined) => (v != null ? pf.value(v) : "–");
+  const speedOf = (s: any, kind: "avg" | "max" | "min"): number | null =>
+    s[`${kind}_${win}s`] ?? (kind === "avg" ? s.avg_speed_mps : kind === "max" ? s.max_speed_mps : s.min_speed_mps) ?? null;
   const val = (s: any, kind: "avg" | "max" | "min") => {
-    const v = s[`${kind}_${win}s`] ?? (kind === "avg" ? s.avg_speed_mps : kind === "max" ? s.max_speed_mps : s.min_speed_mps);
+    const v = speedOf(s, kind);
     return v != null ? (v * 3.6).toFixed(1) : "–";
+  };
+  const hrAvg = (s: any): number | null => { const w = hrWerte(s); return w.length ? w.reduce((a, b) => a + b, 0) / w.length : null; };
+  // Sortierwert je Spalte; fehlende Werte stehen immer unten, egal in welcher Richtung.
+  const SORT: Record<string, (s: any) => number | null | undefined> = {
+    start: (s) => s.t_start_ms, distance: (s) => s.distance_m, duration: (s) => s.duration_s,
+    avg: (s) => s.avg_speed_mps, max: (s) => speedOf(s, "max"), min: (s) => speedOf(s, "min"),
+    power: (s) => powerFor?.(s.avg_speed_mps, s.avg_pump_hz), pumps: (s) => s.pumps,
+    distPerPump: (s) => (s.pumps ? s.distance_m / s.pumps : null), avgPump: (s) => s.avg_pump_hz,
+    pumpMax: (s) => s.max_pump_hz, hrStart: (s) => hrWerte(s)[0] ?? null, hrAvg: (s) => hrAvg(s),
+    hrMax: (s) => maxHr(s), hrEnd: (s) => { const w = hrWerte(s); return w.length ? w[w.length - 1] : null; },
+    glide: (s) => s.longest_glide_s,
+  };
+  const order = segments.map((_, i) => i);
+  if (sortKey && SORT[sortKey]) {
+    const f = SORT[sortKey];
+    order.sort((a, b) => {
+      const va = f(segments[a]), vb = f(segments[b]);
+      if (va == null || vb == null) return va == null ? (vb == null ? a - b : 1) : -1;
+      return (sortAsc ? va - vb : vb - va) || a - b;
+    });
+  }
+  const sortBy = (k: string | null) => {
+    if (k === null) { setSortKey(null); setSortAsc(true); return; }
+    if (sortKey === k) setSortAsc((v) => !v); else { setSortKey(k); setSortAsc(true); }
+  };
+  const th = (k: string | null, label: React.ReactNode) => {
+    const aktiv = k !== null && sortKey === k;
+    return (
+      <th key={k ?? "nr"} className="px-3 py-2 font-medium" aria-sort={aktiv ? (sortAsc ? "ascending" : "descending") : undefined}>
+        <button type="button" onClick={() => sortBy(k)}
+          className={`inline-flex items-center gap-0.5 uppercase tracking-wide hover:text-slate-200 ${aktiv ? "text-brand-600 dark:text-brand-300" : ""}`}>
+          {label}{aktiv && <span aria-hidden>{sortAsc ? "▲" : "▼"}</span>}
+        </button>
+      </th>
+    );
   };
   // Lauf aussortieren / wieder aufnehmen: der Server rechnet die Session danach neu und
   // liefert die frischen Kennzahlen zurück -> Seite und Listen-Cache aktualisieren.
@@ -3030,28 +3072,29 @@ function RunsTable({
           <thead>
             <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="px-3 py-2 font-medium" title={t("compare.add")}><CompareIcon className="h-4 w-4" /></th>
-              <th className="px-3 py-2 font-medium">#</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colStart")}</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colAvg")}</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colMax", { win })}</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colMin", { win })}</th>
-              {showPower && <th className="px-3 py-2 font-medium">{t("sd.colPower")}</th>}
-              <th className="px-3 py-2 font-medium">{t("sd.colPumps")}</th>
-              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colDistPerPump")}</th>}
-              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump", { unit: pf.suffix })}</th>}
-              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin", { unit: pf.suffix })}</th>}
-              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colHrStart")}</th>}
-              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colHrAvg")}</th>}
-              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colMaxHr")}</th>}
-              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colHrEnd")}</th>}
-              <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
+              {th(null, "#")}
+              {th("start", t("sd.colStart"))}
+              {th("distance", t("sd.colDistance"))}
+              {th("duration", t("sd.colDuration"))}
+              {th("avg", t("sd.colAvg"))}
+              {th("max", t("sd.colMax", { win }))}
+              {th("min", t("sd.colMin", { win }))}
+              {showPower && th("power", t("sd.colPower"))}
+              {th("pumps", t("sd.colPumps"))}
+              {hasPump && th("distPerPump", t("sd.colDistPerPump"))}
+              {hasPump && th("avgPump", t("sd.colAvgPump", { unit: pf.suffix }))}
+              {hasPump && th("pumpMax", t("sd.colPumpMaxMin", { unit: pf.suffix }))}
+              {hasHr && th("hrStart", t("sd.colHrStart"))}
+              {hasHr && th("hrAvg", t("sd.colHrAvg"))}
+              {hasHr && th("hrMax", t("sd.colMaxHr"))}
+              {hasHr && th("hrEnd", t("sd.colHrEnd"))}
+              {th("glide", t("sd.colGlide"))}
               {canEdit && <th className="px-3 py-2 font-medium" title={t("sd.excludeRun")}><FoilOffIcon className="h-4 w-4" /></th>}
             </tr>
           </thead>
           <tbody>
-            {segments.map((s, i) => {
+            {order.map((i) => {
+              const s = segments[i];
               const best = (s.distance_m ?? 0) === bestDist;
               const sel = selected === i;
               return (
