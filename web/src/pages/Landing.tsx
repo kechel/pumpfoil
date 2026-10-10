@@ -317,7 +317,7 @@ export default function Landing() {
                 images={Array.from({ length: 13 }, (_, i) => `/watch-garmin-v3-${i + 1}.webp`)}
                 badge={<ConnectIqButton className="mt-2" />} />
               <WatchCarousel rounded="rounded-[1.5rem]" caption="Apple Watch"
-                images={["/watch-apple-1.webp", "/watch-apple-2.webp", "/watch-apple-3.webp"]}
+                images={[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `/watch-apple-v2-${n}.webp`)}
                 badge={<AppStoreBadge className="mt-2" />} />
               <WatchCarousel rounded="rounded-full" caption="Wear OS" sub="Samsung · Pixel · TicWatch …"
                 images={["/watch-wear-1.webp", "/watch-wear-2.webp", "/watch-wear-3.webp"]}
