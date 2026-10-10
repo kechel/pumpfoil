@@ -25,7 +25,7 @@ import BoardAttitude from "../components/BoardAttitude";
 import { carveColor } from "../lib/turns";
 import { setPumpUnit, usePumpFmt } from "../lib/pumpRate";
 import type { CarveData } from "../lib/api";
-import { useCompare, toggleCompare, refKey } from "../lib/compare";
+import { useCompare, toggleCompare, refKey, setCompare } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch, getLastSessionsFilter } from "../lib/lastSession";
 import { useT } from "../i18n";
 import { TransferPicker } from "../components/TransferPicker";
@@ -2565,6 +2565,22 @@ export default function SessionDetail() {
             </button>
           </div>
           {trimOpen && <TrimPanel session={session} onSaved={uebernehmen} onClose={() => setTrimOpen(false)} />}
+        </div>
+      )}
+      {/* ADMIN-VORSCHAU Brett-Regeln (Jan, 10.10.2026): dieselbe Session zweimal in den Vergleich,
+          wie gespeichert und nach den Regeln (`?brett=neu`, server/app/api/brett_vorschau.py) —
+          mit Pump-Markern und Gleitphasen wie bei zwei normalen Sessions. Ersetzt den Korb. */}
+      {isAdmin && session.placement === "board" && session.has_gyro && (
+        <div className="mt-3 border-t border-slate-800 pt-3">
+          <button
+            onClick={() => {
+              setCompare([{ sessionId: session.id, runIdx: null }, { sessionId: session.id, runIdx: null, modell: "neu" }]);
+              nav("/vergleich");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+          >
+            Admin: bisheriges Modell gegen Brett-Regeln vergleichen
+          </button>
         </div>
       )}
     </div>

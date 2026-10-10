@@ -8,13 +8,15 @@ export interface CompareRef {
   runIdx: number | null;
   owned?: boolean;   // gehoert mir? (fuer Merge-Angebot in Vergleichen)
   date?: string;     // YYYY-MM-DD (Start), fuer „gleiches Datum"-Merge
+  // "neu" = dieselbe Session nach den Brett-Regeln (nur Admin, `?brett=neu`, s. brett_vorschau.py)
+  modell?: "neu";
 }
 
 const KEY = "foil_compare";
 const MAX = 4; // 2–3 sind der Normalfall; etwas Luft nach oben.
 
 export function refKey(r: CompareRef): string {
-  return `${r.sessionId}:${r.runIdx ?? "s"}`;
+  return `${r.sessionId}:${r.runIdx ?? "s"}${r.modell ? ":" + r.modell : ""}`;
 }
 
 function read(): CompareRef[] {
@@ -25,7 +27,8 @@ function read(): CompareRef[] {
     if (!Array.isArray(arr)) return [];
     return arr
       .filter((x) => x && typeof x.sessionId === "number")
-      .map((x) => ({ sessionId: x.sessionId, runIdx: x.runIdx ?? null, owned: x.owned, date: x.date }));
+      .map((x) => ({ sessionId: x.sessionId, runIdx: x.runIdx ?? null, owned: x.owned, date: x.date,
+        ...(x.modell === "neu" ? { modell: "neu" as const } : {}) }));
   } catch {
     return [];
   }
@@ -82,7 +85,8 @@ export function clearCompare() {
 
 // Korb komplett ersetzen (z. B. Merge-Vorschlag: genau diese Sessions vorauswaehlen).
 export function setCompare(refs: CompareRef[]) {
-  write(refs.slice(0, MAX).map((r) => ({ sessionId: r.sessionId, runIdx: r.runIdx ?? null, owned: r.owned, date: r.date })));
+  write(refs.slice(0, MAX).map((r) => ({ sessionId: r.sessionId, runIdx: r.runIdx ?? null, owned: r.owned, date: r.date,
+    ...(r.modell ? { modell: r.modell } : {}) })));
 }
 
 export const COMPARE_MAX = MAX;
@@ -90,7 +94,7 @@ export const COMPARE_MAX = MAX;
 // -> ids der zu mergenden Sessions, wenn die Auswahl mergebar ist: nur ganze Sessions
 // (keine einzelnen Laeufe), alle EIGENE, gleiches Datum, >=2 verschiedene. Sonst null.
 export function mergeableIds(refs: CompareRef[]): number[] | null {
-  if (refs.some((r) => r.runIdx != null)) return null;
+  if (refs.some((r) => r.runIdx != null || r.modell)) return null;
   const ids = [...new Set(refs.map((r) => r.sessionId))];
   if (ids.length < 2) return null;
   if (!refs.every((r) => r.owned && r.date)) return null;

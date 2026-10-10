@@ -2083,9 +2083,12 @@ def get_session(
     background_tasks: BackgroundTasks,
     request: Request,
     response: Response,
+    brett: str | None = Query(None),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> SessionOut:
+    # `?brett=neu` (nur Admin): Laeufe nach den Brett-Regeln ueberlagert, s. brett_vorschau.py.
+    brett_neu = brett == "neu" and user.is_admin
     # Admin darf alles sehen (auch gelöschte) — sonst kann er Wiederherstellung nicht beurteilen.
     if user.is_admin:
         s = db.get(models.Session, session_id)
@@ -2151,7 +2154,7 @@ def get_session(
     import zlib as _zlib
     _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id)],
                        sort_keys=True, default=str)
-    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}"'
+    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
@@ -2192,6 +2195,9 @@ def get_session(
     out.liked = liked
     out.merged_count = int(db.query(func.count()).select_from(models.Session)
                            .filter(models.Session.merged_into == s.id).scalar() or 0)
+    if brett_neu:
+        from .brett_vorschau import ueberlagern
+        ueberlagern(db, s, out)
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "private, no-cache"
     return out

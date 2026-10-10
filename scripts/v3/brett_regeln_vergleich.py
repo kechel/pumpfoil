@@ -46,10 +46,12 @@ for s in ss:
     mo = BR.montage(t, np.nan_to_num(np.asarray(r["pitch_deg"], float)),
                     np.nan_to_num(np.asarray(r.get("roll_deg") or np.zeros(t.size), float)), laeufe)
     foil_alt = sum((b - x) / 1000 for x, b in laeufe)
-    foil_neu = sum((k["aufsetzen_ms"] - x) / 1000 for (x, _), k in zip(laeufe, lauf) if k["aufsetzen_ms"] > x)
+    # ohne Aussage (zu wenig Zyklen) bleibt der Lauf, wie er ist — wie in app/api/brett_vorschau.py
+    foil_neu = sum(((k["aufsetzen_ms"] if k["ok"] else b) - x) / 1000 for (x, b), k in zip(laeufe, lauf))
     pumps_alt = sum(int(g.get("pumps") or 0) for g in seg)
-    pumps_neu = sum(k["pumps"] for k in lauf)
-    gleit = sum(k["gleit_s"] for k in lauf)
+    # Laeufe ohne Aussage (zu wenig Zyklen) behalten die alte Zaehlung — wie die Vorschau.
+    pumps_neu = sum(k["pumps"] if k["ok"] else int(g.get("pumps") or 0) for g, k in zip(seg, lauf))
+    gleit = sum(k["gleit_s"] or 0 for k in lauf)
     gps_td = sum(1 for k in lauf if k["aufsetzen_quelle"] == "gps")
     z = dict(id=s.id, user=s.user_id, laeufe=len(laeufe), foil_alt=foil_alt, foil_neu=foil_neu,
              pumps_alt=pumps_alt, pumps_neu=pumps_neu, gleit_s=gleit, aufsetzen_gps=gps_td,
