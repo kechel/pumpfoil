@@ -82,6 +82,12 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   const [showPumps, setShowPumps] = useState(false);
   const hasPumpMarks = items.some((it) =>
     (it.session.analysis?.segments ?? []).some((s: any) => (s.pump_idx ?? []).length > 0));
+  // Gleitphasen (`seg.glides`, [Start-Index, End-Index, Dauer s, Start]) wie in der Einzelansicht —
+  // vor allem fuer alt gegen neu derselben Session (Brett-Regeln, Jan 10.10.2026), wo die Gleitphasen
+  // sonst nur als fehlende Pump-Marker zu sehen waren.
+  const [showGlides, setShowGlides] = useState(false);
+  const hasGlides = items.some((it) =>
+    (it.session.analysis?.segments ?? []).some((s: any) => (s.glides ?? []).length > 0));
   // 0 = kein Messwert: eine Session, in der ALLE Werte 0 sind, hat keinen Puls — sonst boete die
   // Karte den Puls-Modus an und faerbte alles grau.
   const hasHr = items.some((it) => (it.session.analysis?.track_geojson?.properties?.hr ?? []).some((v: number | null) => v != null && v > 0));
@@ -374,6 +380,19 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       // EINTRAGS (nicht des Fahrers): bei zwei Aufnahmen derselben Fahrt ist sonst nicht zu
       // sehen, welches Geraet welchen Stoss gefunden hat. Weisser Rand, damit sie auf jeder
       // Streckenfarbe und auf beiden Kartenhintergruenden stehen.
+      // Gleitphasen breit und halb durchsichtig in der Farbe des EINTRAGS (wie die Pump-Marker):
+      // liegen zwei Aufnahmen derselben Fahrt uebereinander, sieht man, wer wo Gleiten sieht.
+      if (showGlides) {
+        for (const { seg } of ranges) {
+          for (const [i0, i1, d] of (seg.glides ?? []) as number[][]) {
+            const pts = coords.slice(i0, Math.max(i1, i0 + 1) + 1).filter(Boolean);
+            if (pts.length < 2) continue;
+            L.polyline(pts, { color: it.color, weight: 10, opacity: 0.55, lineCap: "round" })
+              .bindTooltip(`${t("sd.glide")} ${d.toFixed(1)} s`, { sticky: true })
+              .addTo(lg);
+          }
+        }
+      }
       if (showPumps) {
         for (const { seg } of ranges) {
           for (const pidx of seg.pump_idx ?? []) {
@@ -386,7 +405,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
         }
       }
     }
-  }, [items, mode, win, sLo, sHi, pumpRange, hrRange, weight, fullscreen, spielModus, showPumps]);
+  }, [items, mode, win, sLo, sHi, pumpRange, hrRange, weight, fullscreen, spielModus, showPumps, showGlides]);
 
   if (!items.some((it) => it.session.analysis?.track_geojson)) return null;
 
@@ -415,6 +434,16 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
               : "bg-slate-800 text-slate-200"}`}>
             <span className="inline-flex items-center gap-1">
               {t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}
+            </span>
+          </button>
+        )}
+        {hasGlides && (
+          <button onClick={() => setShowGlides((v) => !v)}
+            className={`rounded-lg px-2.5 py-1 text-xs ${showGlides
+              ? "bg-brand-500 font-semibold text-slate-950"
+              : "bg-slate-800 text-slate-200"}`}>
+            <span className="inline-flex items-center gap-1">
+              {t("sd.glides")} {showGlides ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}
             </span>
           </button>
         )}
