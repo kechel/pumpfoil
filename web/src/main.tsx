@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Navigate, useParams, createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Navigate, useParams, createBrowserRouter, RouterProvider, Outlet, useMatches } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 // Muss VOR der ersten Karte laufen: Leaflet soll keine Tasten schlucken, waehrend jemand tippt.
 import "./lib/leafletKeyboard";
@@ -106,100 +106,105 @@ function SprachStartseite() {
   return <Landing />;
 }
 
-function RootRoute() {
-  return getToken() ? <App /> : <Landing />;
-}
-
 /**
- * Eine Seite, die es in zwei Welten geben muss: oeffentlich (fuer Google und Gaeste, ohne
- * Login) und drinnen im App-Rahmen (fuer Angemeldete, mit Menue). Dieselbe Adresse, damit
- * ein geteilter Link fuer beide funktioniert.
+ * EIN Rahmen fuer die ganze angemeldete App — auch fuer die Text-Seiten (Changelog, Nerd-Analysen,
+ * Impressum …). Bis 10.10.2026 rendeten die Text-Seiten je ein EIGENES `<App>`; der Wechsel
+ * dorthin baute den ganzen Rahmen neu auf, und das offene Chat-Fenster samt getipptem Text war
+ * weg (Jan). Jetzt haengen alle Seiten unter derselben Route, `App` bleibt beim Wechsel stehen.
+ *
+ * Text-Seiten muss es in zwei Welten geben: oeffentlich (fuer Google und Gaeste, ohne Login)
+ * und drinnen im App-Rahmen (fuer Angemeldete, mit Menue). Dieselbe Adresse, damit ein geteilter
+ * Link fuer beide funktioniert. Markiert sind sie mit `handle: { text: true }`.
  */
-function TextSeite({ children }: { children: React.ReactNode }) {
-  if (getToken()) return <App>{children}</App>;
+function Rahmen() {
+  const textSeite = useMatches().some((m) => (m.handle as { text?: boolean } | undefined)?.text);
+  if (getToken()) return <App />;
+  if (!textSeite) return <Landing />;
   // Fuer Gaeste fehlt der App-Rahmen — und damit auch dessen Innenabstand und Breite. Ohne
   // eigenen Rahmen liefen die Nerd-Analysen randlos ueber die ganze Bildschirmbreite, waehrend
   // `Systemarchitektur` einen eigenen `max-w-3xl` mitbringt und richtig aussah (Jan, 07.09.).
   // Dieselben Werte wie im App-Rahmen (`<main>` dort: px-4 py-5 md:px-8), damit eine Seite in
   // beiden Welten gleich wirkt. Der doppelte max-w in `Systemarchitektur` schadet nicht.
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-5 md:px-8">{children}</main>
+    <main className="mx-auto w-full max-w-3xl px-4 py-5 md:px-8"><Outlet /></main>
   );
 }
+
+const TEXT = { text: true };
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
-  { path: "/impressum", element: <TextSeite><Impressum /></TextSeite> },
-  // Statusseite fuer Facebook-Loeschanfragen — die Adresse gibt der Data-Deletion-Callback
-  // zurueck, Meta prueft sie vor der Freigabe. Oeffentlich, ohne Login.
-  { path: "/datenloeschung", element: <TextSeite><Datenloeschung /></TextSeite> },
-  // IM App-Rahmen fuer Angemeldete, nackt fuer Gaeste — wie die Nerd-Seiten seit 07.09.
-  // Jans Befund 24.09.: der „Send us your input via feedback"-Knopf tat nichts, weil das
-  // Feedback-Fenster (`FeedbackWidget`) im App-Rahmen haengt und der hier fehlte. Dasselbe
-  // galt fuers Menue: „da wird die ganze app nicht angezeigt, nur der content-bereich".
-  { path: "/changelog", element: <TextSeite><Changelog /></TextSeite> },
   // Eine eigene Adresse je Sprache fuer die oeffentliche Startseite: /en/, /fr/, /ja/ …
-  // Statische Pfade wie /login gewinnen in React Router gegen dieses dynamische Segment,
-  // die bestehenden Routen bleiben also unberuehrt. Unbekannte Segmente landen auf /.
+  // Statische Pfade wie /login und die Text-Seiten gewinnen in React Router gegen dieses
+  // dynamische Segment, die bestehenden Routen bleiben also unberuehrt. Unbekannte Segmente
+  // landen auf /.
   { path: "/:lang", element: <SprachStartseite /> },
-  // Oeffentlich OHNE Login — und das ist eine SEO-Entscheidung (Jan, 06.09.2026): fuer
-  // Gaeste rendert `RootRoute` sonst die Landing-Page, Google saehe also unter vier
-  // eigenen Adressen denselben Inhalt („Duplikat ohne Canonical") und muesste sie in der
-  // robots.txt gesperrt bleiben. Genau diese Seiten sind aber der tiefste eigene Inhalt,
-  // den wir haben. Sie rufen keine API auf, es geht also kein Zugriffsschutz verloren.
-  // …und fuer Angemeldete IM App-Rahmen, sonst steht der Text nackt da, ohne Menue und ohne
-  // Weg zurueck (Jan, 07.09.: „das sieht jetzt sehr doof aus, wenn man da reingeht").
-  { path: "/nerd-analysen", element: <TextSeite><NerdAnalysen /></TextSeite> },
-  { path: "/nerd-analysen-2", element: <TextSeite><NerdAnalysen2 /></TextSeite> },
-  { path: "/nerd-analysen-3", element: <TextSeite><NerdAnalysen3 /></TextSeite> },
-  { path: "/nerd-analysen-4", element: <TextSeite><NerdAnalysen4 /></TextSeite> },
-  { path: "/nerd-analysen-5", element: <TextSeite><NerdAnalysen5 /></TextSeite> },
-  { path: "/systemarchitektur", element: <TextSeite><Systemarchitektur /></TextSeite> },
   { path: "/s/:token", element: <PublicSession /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
   {
-    path: "/",
-    element: <RootRoute />,
+    element: <Rahmen />,
     children: [
-      { index: true, element: <PersonalHome /> },
-      { path: "home", element: <PersonalHome /> },   // Alias (Alt-Links/Bookmarks)
-      { path: "community", element: <Home /> },
-      { path: "verlauf", element: <History /> },
-      { path: "sessions", element: <Sessions /> },
-      { path: "current-feedback-request", element: <CurrentFeedbackRequest /> },
-      { path: "import", element: <Import /> },
-      // Oeffentliche Foiler-Seite. NOCH NICHT VERLINKT (Jan, 08.09.2026: erst ansehen,
-      // dann entscheiden, wo sie erscheint) — nur direkt ueber /foiler/<id> erreichbar.
-      { path: "foiler/:id", element: <Foiler /> },
-      // Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026) — seit 02.10. fuer alle, Knopf ganz unten auf Home.
-      { path: "laeufe", element: <LaengsteLaeufe /> },
-      { path: "alle-sessions", element: <AllSessionsRedirect /> },
-      { path: "spots", element: <Spots /> },
-      { path: "foils", element: <Foils /> },
-      { path: "setup", element: <Setup /> },
-      { path: "layouts", element: <Layouts /> },
-      { path: "layouts/community", element: <LayoutGallery /> },
-      { path: "layouts/:id", element: <LayoutEditor /> },
-      { path: "foil-stats", element: <FoilStats /> },
-      { path: "foil-stats/:foilId", element: <FoilDetail /> },
-      { path: "watch-stats", element: <WatchStats /> },
-      { path: "foil-rechner", element: <FoilCalculator /> },
-      { path: "account", element: <Account /> },
-      // Einrichtungs-Assistent fuer neue Konten. NOCH NICHT VERLINKT (Jan, 11.09.2026:
-      // „noch nirgendwo verlinken, aber ich komme ja dann ueber die url da schon drauf") —
-      // nur direkt ueber /onboarding erreichbar, wie /foiler/:id am 08.09. Die Weiche, die
-      // neue Konten einmalig hierher leitet, kommt erst, wenn der Ablauf steht.
-      { path: "onboarding", element: <Onboarding /> },
-      { path: "einstellungen", element: <Settings /> },
-      { path: "konten", element: <LinkedAccounts /> },
-      // Zustimmungsseite des eigenen OAuth-Servers. IM App-Rahmen, damit sie aussieht wie der
-      // Rest und der Nutzer sieht, wo er ist — wer aus einem fremden Programm hierher springt,
-      // soll Pumpfoil erkennen und nicht ein nacktes Formular.
-      { path: "/oauth/consent", element: <OAuthConsent /> },
-      { path: "vergleich", element: <Compare /> },
-      { path: "sessions/:id", element: <SessionDetail /> },
-      { path: "sessions/:id/label", element: <Labeling /> },
-      { path: "admin", element: <Admin /> },
+      // Text-Seiten: oeffentlich fuer Gaeste, im App-Rahmen fuer Angemeldete (s. `Rahmen`).
+      // - Oeffentlich OHNE Login ist eine SEO-Entscheidung (Jan, 06.09.2026): fuer Gaeste rendert
+      //   der Rahmen sonst die Landing-Page, Google saehe unter mehreren Adressen denselben Inhalt
+      //   („Duplikat ohne Canonical"). Sie rufen keine API auf, es geht kein Zugriffsschutz verloren.
+      // - IM App-Rahmen fuer Angemeldete, sonst steht der Text nackt da, ohne Menue und ohne Weg
+      //   zurueck (Jan, 07.09.), und der Feedback-Knopf im Changelog tat nichts, weil das
+      //   Feedback-Fenster im App-Rahmen haengt (Jan, 24.09.).
+      // - /datenloeschung: Statusseite fuer Facebook-Loeschanfragen, Meta prueft sie vor der Freigabe.
+      { path: "/impressum", element: <Impressum />, handle: TEXT },
+      { path: "/datenloeschung", element: <Datenloeschung />, handle: TEXT },
+      { path: "/changelog", element: <Changelog />, handle: TEXT },
+      { path: "/nerd-analysen", element: <NerdAnalysen />, handle: TEXT },
+      { path: "/nerd-analysen-2", element: <NerdAnalysen2 />, handle: TEXT },
+      { path: "/nerd-analysen-3", element: <NerdAnalysen3 />, handle: TEXT },
+      { path: "/nerd-analysen-4", element: <NerdAnalysen4 />, handle: TEXT },
+      { path: "/nerd-analysen-5", element: <NerdAnalysen5 />, handle: TEXT },
+      { path: "/systemarchitektur", element: <Systemarchitektur />, handle: TEXT },
+      {
+        path: "/",
+        children: [
+          { index: true, element: <PersonalHome /> },
+          { path: "home", element: <PersonalHome /> },   // Alias (Alt-Links/Bookmarks)
+          { path: "community", element: <Home /> },
+          { path: "verlauf", element: <History /> },
+          { path: "sessions", element: <Sessions /> },
+          { path: "current-feedback-request", element: <CurrentFeedbackRequest /> },
+          { path: "import", element: <Import /> },
+          // Oeffentliche Foiler-Seite. NOCH NICHT VERLINKT (Jan, 08.09.2026: erst ansehen,
+          // dann entscheiden, wo sie erscheint) — nur direkt ueber /foiler/<id> erreichbar.
+          { path: "foiler/:id", element: <Foiler /> },
+          // Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026) — seit 02.10. fuer alle, Knopf ganz unten auf Home.
+          { path: "laeufe", element: <LaengsteLaeufe /> },
+          { path: "alle-sessions", element: <AllSessionsRedirect /> },
+          { path: "spots", element: <Spots /> },
+          { path: "foils", element: <Foils /> },
+          { path: "setup", element: <Setup /> },
+          { path: "layouts", element: <Layouts /> },
+          { path: "layouts/community", element: <LayoutGallery /> },
+          { path: "layouts/:id", element: <LayoutEditor /> },
+          { path: "foil-stats", element: <FoilStats /> },
+          { path: "foil-stats/:foilId", element: <FoilDetail /> },
+          { path: "watch-stats", element: <WatchStats /> },
+          { path: "foil-rechner", element: <FoilCalculator /> },
+          { path: "account", element: <Account /> },
+          // Einrichtungs-Assistent fuer neue Konten. NOCH NICHT VERLINKT (Jan, 11.09.2026:
+          // „noch nirgendwo verlinken, aber ich komme ja dann ueber die url da schon drauf") —
+          // nur direkt ueber /onboarding erreichbar, wie /foiler/:id am 08.09. Die Weiche, die
+          // neue Konten einmalig hierher leitet, kommt erst, wenn der Ablauf steht.
+          { path: "onboarding", element: <Onboarding /> },
+          { path: "einstellungen", element: <Settings /> },
+          { path: "konten", element: <LinkedAccounts /> },
+          // Zustimmungsseite des eigenen OAuth-Servers. IM App-Rahmen, damit sie aussieht wie der
+          // Rest und der Nutzer sieht, wo er ist — wer aus einem fremden Programm hierher springt,
+          // soll Pumpfoil erkennen und nicht ein nacktes Formular.
+          { path: "/oauth/consent", element: <OAuthConsent /> },
+          { path: "vergleich", element: <Compare /> },
+          { path: "sessions/:id", element: <SessionDetail /> },
+          { path: "sessions/:id/label", element: <Labeling /> },
+          { path: "admin", element: <Admin /> },
+        ],
+      },
     ],
   },
 ]);
