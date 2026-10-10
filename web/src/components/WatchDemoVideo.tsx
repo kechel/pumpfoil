@@ -14,7 +14,7 @@ export function WatchDemoVideo({ className = "", title, round = false }: { class
         muted
         loop
         preload="metadata"
-        poster="/watch-garmin-v2-7.webp"
+        poster="/watch-garmin-v3-7.webp"
         className={`w-full border border-slate-800 shadow-xl ${round ? "aspect-square rounded-full object-cover" : "rounded-3xl"}`}
       >
         <source src="/watch-garmin-demo.webm" type="video/webm" />
