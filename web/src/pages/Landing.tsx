@@ -321,6 +321,20 @@ export default function Landing() {
               <WatchCarousel rounded="rounded-full" caption="Amazfit" sub="Zepp OS"
                 images={["/watch-amazfit-1.webp", "/watch-amazfit-2.webp", "/watch-amazfit-3.webp"]}
                 badge={<ZeppAppBadges />} />
+              {/* HUAWEI (10.10.2026, Jan: „NEU (Beta) kennzeichnen und hervorheben"). Noch kein Uhrbild
+                  und noch nicht installierbar (Wear-Engine-Freigabe steht aus) — deshalb ein schlichtes
+                  Feld statt eines erfundenen Displays und „kommt bald" statt eines Store-Knopfs. Gleiche
+                  Masse wie WatchCarousel, damit die Reihe buendig bleibt. */}
+              <figure className="flex flex-col items-center">
+                <div className="relative flex h-28 w-28 flex-col items-center justify-center rounded-full border-2 border-brand-500 bg-black shadow-xl sm:h-32 sm:w-32">
+                  <span className="text-sm font-bold tracking-widest text-white">HUAWEI</span>
+                  <span className="mt-1.5 rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-bold text-slate-950">{t("land.huaweiNew")}</span>
+                </div>
+                <div className="mt-2 h-1.5" />
+                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Huawei</figcaption>
+                <span className="whitespace-nowrap text-[11px] leading-tight text-slate-400">Watch GT · Fit · Watch 3/4/5</span>
+                <div className="mt-2"><span className="inline-block rounded-lg border border-brand-500/50 px-3 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{t("land.huaweiSoon")}</span></div>
+              </figure>
             </div>
           </section>
         </div>

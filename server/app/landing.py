@@ -51,7 +51,7 @@ PUNKTE: tuple[tuple[str, str], ...] = (
     # Domains landet, soll seine Uhr dort wiederfinden. WIE der Weg technisch aussieht (App auf
     # der Uhr, Konto verknuepfen, Import), steht auf pumpfoil.org und nicht hier.
     ("Die Uhr nimmt nur auf",
-     "Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi — oder dein Handy. "
+     "Garmin, Apple Watch, Wear OS, Amazfit, Huawei (Beta), Polar, COROS, Suunto, Xiaomi — oder dein Handy. "
      "Starten, fahren, fertig; der Rest passiert danach."),
     ("Ausgewertet wird auf dem Server",
      "Läufe, Pumps, Kadenz, Gleitphasen, Höchst- und Durchschnittsgeschwindigkeit. Nicht "
