@@ -643,8 +643,8 @@ const nb: N3 = {
 
 const ptPT: N3 = {
   "back": "← Parte 2: Como funciona",
-  "h1": "Parte 3: A medição de dupla relógio — onde estamos hoje",
-  "subtitle": "Segunda experiência de dupla relógio: mão contra verdade próxima da prancha",
+  "h1": "Parte 3: A medição com dois relógios — onde estamos hoje",
+  "subtitle": "Segunda experiência com dois relógios: mão contra verdade próxima da prancha",
   "intro": "Após a Parte 1 medimos novamente **em simultâneo com dois relógios** — desta vez, para testar a **deteção de bombeio** e o **fim de uma sessão** (planagem e afundamento) contra uma verdade próxima da prancha. Um **Forerunner 55** na mão (GPS + 25 Hz aceleração) e um **fēnix 7X Pro** uma vez no casco do foil debaixo de água, uma vez no tornozelo (100 Hz aceleração) — cada um ao longo de toda a sessão, ambos sincronizados pela hora do sistema e afinados pelo impulso de salto.",
   "setup": {
     "h": "O equipamento",
