@@ -78,6 +78,12 @@ ZEILEN_ZH = [
     ("高驰", "颂拓"),       # ueber die Kontoanbindung
     ("博能", "手机"),       # Konto, und ganz ohne Uhr
     ("苹果手表", None),     # App auf der Uhr — sitzt mittig auf der Achse
+    # 华为 kam am 10.10.2026 dazu. Bis dahin stand hier NICHTS von Huawei, und
+    # das war richtig: wir unterstuetzten die groesste Uhrenmarke Chinas gar
+    # nicht. Das Kuerzel （测试版） bleibt stehen, solange die Beta laeuft — eine
+    # Nennung ohne diesen Zusatz waere dasselbe Versprechen, das beim ersten
+    # Versuch bricht, mit dem Xiaomi hier ausgeschlossen ist.
+    ("华为（测试版）", None),
 ]
 
 SPRACHEN = {"": (APP_ZEILE, MOTTO), "-zh": (APP_ZEILE_ZH, MOTTO_ZH)}
