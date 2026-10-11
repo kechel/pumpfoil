@@ -869,6 +869,20 @@ NAECHSTES: list[dict] = [
          # iPhone bewusst NICHT erwaehnt: laut Huawei koennen iPhone-Nutzer keine Fremd-Apps auf die Uhr installieren.
          "Huawei Watch 3, 4 and 5 can also upload on their own after you link them with a code at pumpfoil.org, without the Android app.",
      ]},
+    # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
+    # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
+    {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
+     "items": [
+         "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
+         "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
+         "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.46",
+     "items": [
+         "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
+         "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
+         "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
