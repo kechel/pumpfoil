@@ -132,7 +132,16 @@ export default function Landing() {
   // anderer Nutzer sind unkenntlich gemacht (Jan: Spots und sein eigener Name duerfen bleiben).
   // Reihenfolge: 8 = Spotkarte gleich auf der ersten Seite rechts (Jan); 15 = Uhren-Statistik
   // "Aufnahmequalitaet", direkt nach der Nutzungs-Seite (12)
-  const SHOTS = [1, 8, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 15, 13, 14];
+  const SHOTS_ANDROID = [1, 8, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 15, 13, 14];
+  // iPhone-App (Jans Simulator 11.10.2026), umschaltbar gegen Android (Jan: „oder wir machen das
+  // carousell umschaltbar android / iOS"). Nummern = Reihenfolge der Originale in
+  // screenshots/mobile/ios/20261011-neu/, Namen anderer Nutzer ebenfalls unkenntlich.
+  const SHOTS_IOS = [1, 13, 2, 9, 10, 11, 3, 4, 12, 14, 27, 5, 15, 22, 25, 26];
+  // Wer mit einem iPhone/iPad kommt, sieht gleich die iPhone-Bilder.
+  const [os, setOs] = useState<"android" | "ios">(() =>
+    typeof navigator !== "undefined" && /iPhone|iPad|iPod/.test(navigator.userAgent) ? "ios" : "android");
+  const SHOTS = os === "ios" ? SHOTS_IOS : SHOTS_ANDROID;
+  const shotSrc = (n: number) => (os === "ios" ? `/ios-v1-${n}.webp` : `/mobile-v3-${n}.webp`);
   // Desktop 2 nebeneinander pro Slide, Mobile 1.
   const [perView, setPerView] = useState(1);
   useEffect(() => {
@@ -454,7 +463,18 @@ export default function Landing() {
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
         <section className="pb-10">
-          <h2 className="mb-5 text-center text-xl font-bold sm:text-2xl">{t("land.appShotsTitle")}</h2>
+          <h2 className="mb-3 text-center text-xl font-bold sm:text-2xl">{t("land.appShotsTitle")}</h2>
+          <div className="mb-5 flex justify-center gap-2" role="tablist">
+            {(["android", "ios"] as const).map((o) => (
+              <button key={o} role="tab" aria-selected={os === o}
+                onClick={() => { setOs(o); setPage(0); }}
+                className={`rounded-lg px-3 py-1 text-sm ${os === o
+                  ? "bg-brand-500 font-semibold text-slate-950"
+                  : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
+                {o === "ios" ? "iPhone" : "Android"}
+              </button>
+            ))}
+          </div>
           <div className="mx-auto flex items-center justify-center gap-1 sm:gap-4">
             <button
               onClick={() => goPage(-1)}
@@ -477,11 +497,11 @@ export default function Landing() {
                   <div key={p} className="flex w-full shrink-0 items-center justify-center gap-4 sm:gap-8">
                     {SHOTS.slice(p * perView, p * perView + perView).map((n) => (
                       <div
-                        key={n}
+                        key={`${os}-${n}`}
                         className="w-[230px] shrink-0 sm:w-[256px]"
                       >
                         <img
-                          src={`/mobile-v3-${n}.webp`}
+                          src={shotSrc(n)}
                           alt={t("land.appShotsTitle")}
                           loading="lazy"
                           className="block w-full"

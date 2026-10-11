@@ -160,7 +160,9 @@ def make(shot_path: str, title: str, canvas: tuple[int, int], out_path: Path,
 
 
 def sorted_ios():
-    return sorted(glob.glob(str(HERE / "ios" / "*2026-07-06*")))
+    # Seit 11.10.2026: Jans neue Simulator-Aufnahmen (iPhone 18 Pro Max), Namen anderer Nutzer
+    # unkenntlich (01..27 = Reihenfolge der Originale in ios/20261011-neu/).
+    return sorted(glob.glob(str(HERE / "ios" / "20261011-neu" / "unkenntlich" / "*.png")))
 
 
 def sorted_android():
@@ -172,13 +174,13 @@ def sorted_android():
 # (Index in sortierter Liste [1-basiert], Titel)
 IOS = [
     (1,  "Jede Session automatisch getrackt"),
-    (13, "Jeder Lauf auf der Karte"),
-    (16, "Distanz · Speed · Pumps · Puls"),
-    (20, "Dein Fortschritt über Zeit"),
-    (76, "Community, Spots & Rekorde"),
-    (26, "Chat mit anderen Foilern"),
-    (24, "Alle Spots auf der Karte"),
-    (34, "Dein Foil-Quiver & Leistung"),
+    (9,  "Jeder Lauf auf der Karte"),
+    (11, "Distanz · Speed · Pumps · Puls"),
+    (12, "Dein Fortschritt über Zeit"),
+    (4,  "Handy am Brett: Nicken & Rollen"),
+    (5,  "Community, Spots & Rekorde"),
+    (22, "Eigene Datenseiten für deine Uhr"),
+    (13, "Alle Spots auf der Karte"),
 ]
 ANDROID = [
     (2,  "Jede Session automatisch getrackt"),
