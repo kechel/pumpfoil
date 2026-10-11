@@ -1739,6 +1739,32 @@ private fun RunsTable(
             // dieselbe Breite haben, sonst laufen sie auseinander.
             val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, hrWerteImLauf, startedAt, tz,
                                       trimStartMs, pausen)
+            // Sortieren per Tipp auf die Spaltenueberschrift, wie die PWA (Wunsch eines Fahrers,
+            // 10.10.2026): erster Tipp aufsteigend, zweiter absteigend; „#" stellt die
+            // Laufreihenfolge wieder her. Fehlende Werte stehen immer unten, Gleichstand bleibt in
+            // Laufreihenfolge. Die Zeilen behalten ihren Lauf-Index — Auswahl, Vergleich und
+            // Aussortieren haengen am Lauf, nicht an der Position. Nur Bildschirm-Zustand.
+            var sortKey by remember { mutableStateOf<String?>(null) }
+            var sortAsc by remember { mutableStateOf(true) }
+            val sortSpalte = spalten.firstOrNull { it.key == sortKey }
+            val order = if (sortSpalte == null) segments.indices.toList() else {
+                val werte = segments.map { sortSpalte.sortWert(it) }
+                segments.indices.sortedWith { a, b ->
+                    val va = werte[a]
+                    val vb = werte[b]
+                    if (va == null || vb == null) {
+                        if (va == null) (if (vb == null) a - b else 1) else -1
+                    } else {
+                        val c = if (sortAsc) va.compareTo(vb) else vb.compareTo(va)
+                        if (c != 0) c else a - b
+                    }
+                }
+            }
+            val sortBy: (String?) -> Unit = { k ->
+                if (k == null) { sortKey = null; sortAsc = true }
+                else if (sortKey == k) sortAsc = !sortAsc
+                else { sortKey = k; sortAsc = true }
+            }
             val hScroll = rememberScrollState()
             Column(Modifier.horizontalScroll(hScroll)) {
                 Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.Bottom) {
@@ -1748,16 +1774,20 @@ private fun RunsTable(
                         modifier = Modifier.width(32.dp).size(16.dp))
                     Text("#", style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.width(24.dp))
+                        modifier = Modifier.width(24.dp).clickable { sortBy(null) })
                     spalten.forEach { sp ->
-                        Text(sp.kopf, style = MaterialTheme.typography.labelSmall, maxLines = 2,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(sp.breite.dp).padding(end = 6.dp))
+                        val aktiv = sp.key == sortKey
+                        Text(if (aktiv) sp.kopf + (if (sortAsc) " ▲" else " ▼") else sp.kopf,
+                            style = MaterialTheme.typography.labelSmall, maxLines = 2,
+                            color = if (aktiv) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.width(sp.breite.dp).clickable { sortBy(sp.key) }.padding(end = 6.dp))
                     }
                     // Kopf der Aussortier-Spalte: nur Platzhalter, damit die Zellen darunter passen.
                     if (canEdit) Spacer(Modifier.width(36.dp))
                 }
-                segments.forEachIndexed { i, seg ->
+                // `i` ist der Lauf-Index (nicht die Zeilenposition) — alles in der Zeile haengt daran.
+                order.forEach { i ->
+                    val seg = segments[i]
                     val sel = selected == i
                     Row(
                         Modifier.padding(top = 4.dp)
@@ -1798,8 +1828,17 @@ private fun RunsTable(
     }
 }
 
-/** Eine Spalte der Lauf-Tabelle: Kopf, feste Breite in dp, Zellwert. */
-private data class LaufSpalte(val kopf: String, val breite: Int, val wert: (Segment) -> String)
+/**
+ * Eine Spalte der Lauf-Tabelle: Sortier-Schluessel, Kopf, feste Breite in dp, Sortierwert (die
+ * rohe Zahl, nicht der formatierte Text; null = fehlt, steht immer unten), Zellwert.
+ */
+private data class LaufSpalte(
+    val key: String,
+    val kopf: String,
+    val breite: Int,
+    val sortWert: (Segment) -> Double?,
+    val wert: (Segment) -> String,
+)
 
 /**
  * Die dreizehn Spalten der PWA-Lauf-Tabelle, in derselben Reihenfolge und mit denselben
@@ -1825,43 +1864,46 @@ private fun laufSpalten(
     val zeigeWatt = wattFuer != null && segments.any { wattFuer(it.avgSpeedMps, it.avgPumpHz) != null }
     fun eine(v: Double?) = if (v == null) "–" else "%.1f".format(v)
     return buildList {
-        add(LaufSpalte(k("sd.colStart"), 68) { seg ->
+        add(LaufSpalte("start", k("sd.colStart"), 68, { it.tStartMs }) { seg ->
             Clockmap.laufUhrzeitMs(seg, trimStartMs, pausen)?.let { clockAt(startedAt, tz, it) } ?: "–"
         })
         // Distanz in Metern, auch oberhalb von 1000 — wie die PWA (Math.round + " m").
-        add(LaufSpalte(k("sd.colDistance"), 62) { seg -> "%.0f m".format(seg.distanceM) })
-        add(LaufSpalte(k("sd.colDuration"), 56) { seg ->
+        add(LaufSpalte("distance", k("sd.colDistance"), 62, { it.distanceM }) { seg -> "%.0f m".format(seg.distanceM) })
+        add(LaufSpalte("duration", k("sd.colDuration"), 56, { it.durationS }) { seg ->
             fmtLaufDauer(seg.durationS)
         })
-        add(LaufSpalte(k("sd.colAvg"), 54) { seg -> eine(seg.avgSpeedMps * 3.6) })
-        add(LaufSpalte(k("sd.colMax"), 64) { seg -> eine(seg.fenster(win, "max")?.times(3.6)) })
-        add(LaufSpalte(k("sd.colMin"), 64) { seg -> eine(seg.fenster(win, "min")?.times(3.6)) })
-        if (zeigeWatt) add(LaufSpalte(k("sd.colPower"), 58) { seg ->
+        add(LaufSpalte("avg", k("sd.colAvg"), 54, { it.avgSpeedMps }) { seg -> eine(seg.avgSpeedMps * 3.6) })
+        add(LaufSpalte("max", k("sd.colMax"), 64, { it.fenster(win, "max") }) { seg -> eine(seg.fenster(win, "max")?.times(3.6)) })
+        add(LaufSpalte("min", k("sd.colMin"), 64, { it.fenster(win, "min") }) { seg -> eine(seg.fenster(win, "min")?.times(3.6)) })
+        if (zeigeWatt) add(LaufSpalte("power", k("sd.colPower"), 58,
+            { wattFuer!!(it.avgSpeedMps, it.avgPumpHz)?.toDouble() }) { seg ->
             wattFuer!!(seg.avgSpeedMps, seg.avgPumpHz)?.let { "$it W" } ?: "–"
         })
         // „–" auch fuer null: Lauf ohne Beschleunigungswerte (Segment.accelFehlt), nichts gemessen.
-        add(LaufSpalte(k("sd.colPumps"), 52) { seg -> seg.pumps?.takeIf { it > 0 }?.toString() ?: "–" })
+        add(LaufSpalte("pumps", k("sd.colPumps"), 52, { it.pumps?.toDouble() }) { seg -> seg.pumps?.takeIf { it > 0 }?.toString() ?: "–" })
         if (hatPump) {
-            add(LaufSpalte(k("sd.colDistPerPump"), 70) { seg ->
+            add(LaufSpalte("distPerPump", k("sd.colDistPerPump"), 70,
+                { s -> s.pumps?.takeIf { it > 0 }?.let { s.distanceM / it } }) { seg ->
                 seg.pumps?.takeIf { it > 0 }?.let { "%.1f m".format(seg.distanceM / it) } ?: "–"
             })
-            add(LaufSpalte(k("sd.colAvgPump"), 62) { seg -> PumpUnit.fmtValue(seg.avgPumpHz) })
-            add(LaufSpalte(k("sd.colPumpMaxMin"), 84) { seg ->
+            add(LaufSpalte("avgPump", k("sd.colAvgPump"), 62, { it.avgPumpHz }) { seg -> PumpUnit.fmtValue(seg.avgPumpHz) })
+            add(LaufSpalte("pumpMax", k("sd.colPumpMaxMin"), 84, { it.maxPumpHz }) { seg ->
                 PumpUnit.fmtValue(seg.maxPumpHz) + " / " + PumpUnit.fmtValue(seg.minPumpHz)
             })
         }
         // Puls: Start, Durchschnitt, Max., Ende — Reihenfolge wie in der PWA (26.09.2026).
         if (zeigeMaxHr) {
-            add(LaufSpalte(k("sd.colHrStart"), 62) { seg -> hrWerte(seg).firstOrNull()?.let { "$it bpm" } ?: "–" })
-            add(LaufSpalte(k("sd.colHrAvg"), 62) { seg ->
+            add(LaufSpalte("hrStart", k("sd.colHrStart"), 62, { hrWerte(it).firstOrNull()?.toDouble() }) { seg -> hrWerte(seg).firstOrNull()?.let { "$it bpm" } ?: "–" })
+            add(LaufSpalte("hrAvg", k("sd.colHrAvg"), 62,
+                { s -> hrWerte(s).takeIf { it.isNotEmpty() }?.average() }) { seg ->
                 hrWerte(seg).takeIf { it.isNotEmpty() }?.let { "${Math.round(it.average())} bpm" } ?: "–"
             })
-            add(LaufSpalte(k("sd.colMaxHr"), 62) { seg ->
+            add(LaufSpalte("hrMax", k("sd.colMaxHr"), 62, { maxHr(it)?.toDouble() }) { seg ->
                 maxHr(seg)?.let { "$it bpm" } ?: "–"
             })
-            add(LaufSpalte(k("sd.colHrEnd"), 62) { seg -> hrWerte(seg).lastOrNull()?.let { "$it bpm" } ?: "–" })
+            add(LaufSpalte("hrEnd", k("sd.colHrEnd"), 62, { hrWerte(it).lastOrNull()?.toDouble() }) { seg -> hrWerte(seg).lastOrNull()?.let { "$it bpm" } ?: "–" })
         }
-        add(LaufSpalte(k("sd.colGlide"), 68) { seg -> seg.longestGlideS?.let { "%.1f s".format(it) } ?: "–" })
+        add(LaufSpalte("glide", k("sd.colGlide"), 68, { it.longestGlideS }) { seg -> seg.longestGlideS?.let { "%.1f s".format(it) } ?: "–" })
     }
 }
 

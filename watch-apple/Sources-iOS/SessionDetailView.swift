@@ -2191,13 +2191,47 @@ private struct RunsTable: View {
     @AppStorage(PumpUnit.storeKey) private var pumpUnitRaw = "hz"
     // Vergleichskorb: die erste Spalte legt EINZELNE LAEUFE hinein (wie die PWA-Lauf-Tabelle).
     @ObservedObject private var compare = CompareStore.shared
+    // Sortieren per Tipp auf die Spaltenueberschrift, wie die PWA (Wunsch eines Fahrers,
+    // 10.10.2026): erster Tipp aufsteigend, zweiter absteigend; "#" stellt die Laufreihenfolge
+    // wieder her. Fehlende Werte stehen immer unten, Gleichstand bleibt in Laufreihenfolge. Die
+    // Zeilen behalten ihren Lauf-Index — Auswahl, Vergleich und Aussortieren haengen am Lauf,
+    // nicht an der Position. Nur Bildschirm-Zustand, nichts wird gespeichert.
+    @State private var sortKey: String? = nil
+    @State private var sortAsc: Bool = true
 
-    /// Eine Spalte: Kopf, feste Breite (Kopf und Zellen muessen beim Waagerecht-Scrollen
-    /// deckungsgleich bleiben) und die Zellwert-Funktion.
+    /// Eine Spalte: Sortier-Schluessel, Kopf, feste Breite (Kopf und Zellen muessen beim
+    /// Waagerecht-Scrollen deckungsgleich bleiben), Sortierwert (die rohe Zahl, nicht der
+    /// formatierte Text; nil = fehlt, steht immer unten) und die Zellwert-Funktion.
     private struct Spalte {
+        let key: String
         let kopf: String
         let breite: CGFloat
+        let sort: (Segment) -> Double?
         let wert: (Int, Segment) -> String
+    }
+
+    /// Lauf-Indizes in Anzeige-Reihenfolge (PWA `order`). Ohne Sortierung die Laufreihenfolge.
+    private func reihenfolge(_ sp: [Spalte]) -> [Int] {
+        let alle = Array(segments.indices)
+        guard let key = sortKey, let spalte = sp.first(where: { $0.key == key }) else { return alle }
+        let werte: [Double?] = segments.map { spalte.sort($0) }
+        let auf = sortAsc
+        return alle.sorted { a, b in Self.vorher(a, b, werte, auf) }
+    }
+
+    /// true, wenn Lauf a vor Lauf b steht. Fehlende Werte immer unten, Gleichstand nach Index.
+    private static func vorher(_ a: Int, _ b: Int, _ werte: [Double?], _ auf: Bool) -> Bool {
+        let va = werte[a]
+        let vb = werte[b]
+        guard let x = va else { return vb == nil && a < b }
+        guard let y = vb else { return true }
+        if x == y { return a < b }
+        return auf ? x < y : x > y
+    }
+
+    private func sortBy(_ k: String?) {
+        guard let k = k else { sortKey = nil; sortAsc = true; return }
+        if sortKey == k { sortAsc.toggle() } else { sortKey = k; sortAsc = true }
     }
 
     /// Hoechstpuls im Lauf. Identische Logik wie die PWA: ueber i_start..i_end laufen,
@@ -2237,6 +2271,14 @@ private struct RunsTable: View {
         return Int((Double(summe) / Double(w.count)).rounded())
     }
 
+    /// Ungerundeter Durchschnittspuls - Sortierwert der Spalte (PWA sortiert ebenfalls ungerundet).
+    private func hrMittelRoh(_ seg: Segment) -> Double? {
+        let w = hrWerte(seg)
+        guard !w.isEmpty else { return nil }
+        let summe: Int = w.reduce(0, +)
+        return Double(summe) / Double(w.count)
+    }
+
     // Spalten nur zeigen, wenn wenigstens EIN Lauf sie fuellt - sonst stehen dort nur Striche und
     // nehmen Platz weg. Dieselben drei Bedingungen wie die PWA (hasPump / hasHr / showPower).
     private var hatPump: Bool { segments.contains { $0.avg_pump_hz != nil && ($0.pumps ?? 0) > 0 } }
@@ -2244,6 +2286,18 @@ private struct RunsTable: View {
     private var zeigeWatt: Bool {
         guard let f = wattFuer else { return false }
         return segments.contains { f($0.avg_speed_mps, $0.avg_pump_hz) != nil }
+    }
+
+    // Sortierwerte, die mehr als einen Feldzugriff brauchen - eigene Funktionen, damit die
+    // Closures in `spalten` klein bleiben (Type-Checker).
+    private func wattSort(_ seg: Segment) -> Double? {
+        guard let w = wattFuer?(seg.avg_speed_mps, seg.avg_pump_hz) else { return nil }
+        return Double(w)
+    }
+
+    private static func distProPump(_ seg: Segment) -> Double? {
+        guard let d = seg.distance_m, let n = seg.pumps, n > 0 else { return nil }
+        return d / Double(n)
     }
 
     private var spalten: [Spalte] {
@@ -2255,61 +2309,72 @@ private struct RunsTable: View {
                 .replacingOccurrences(of: "{unit}", with: einheit)
         }
         var s: [Spalte] = []
-        s.append(Spalte(kopf: k("sd.colStart"), breite: 66) { _, seg in self.startUhr(seg) })
+        s.append(Spalte(key: "start", kopf: k("sd.colStart"), breite: 66, sort: { $0.t_start_ms }) { _, seg in self.startUhr(seg) })
         // Distanz in Metern, auch oberhalb von 1000 - wie die PWA (Math.round + " m").
-        s.append(Spalte(kopf: k("sd.colDistance"), breite: 64) { _, seg in
+        s.append(Spalte(key: "distance", kopf: k("sd.colDistance"), breite: 64, sort: { $0.distance_m }) { _, seg in
             seg.distance_m.map { "\(Int($0.rounded())) m" } ?? "–"
         })
-        s.append(Spalte(kopf: k("sd.colDuration"), breite: 58) { _, seg in
+        s.append(Spalte(key: "duration", kopf: k("sd.colDuration"), breite: 58, sort: { $0.duration_s }) { _, seg in
             seg.duration_s.map { Self.mmss($0) } ?? "–"
         })
-        s.append(Spalte(kopf: k("sd.colAvg"), breite: 58) { _, seg in
+        s.append(Spalte(key: "avg", kopf: k("sd.colAvg"), breite: 58, sort: { $0.avg_speed_mps }) { _, seg in
             Self.eine(seg.avg_speed_mps.map { $0 * 3.6 })
         })
-        s.append(Spalte(kopf: k("sd.colMax"), breite: 64) { _, seg in
+        s.append(Spalte(key: "max", kopf: k("sd.colMax"), breite: 64,
+                          sort: { seg in seg.fenster(self.win, "max") }) { _, seg in
             Self.eine(seg.fenster(self.win, "max").map { $0 * 3.6 })
         })
-        s.append(Spalte(kopf: k("sd.colMin"), breite: 64) { _, seg in
+        s.append(Spalte(key: "min", kopf: k("sd.colMin"), breite: 64,
+                          sort: { seg in seg.fenster(self.win, "min") }) { _, seg in
             Self.eine(seg.fenster(self.win, "min").map { $0 * 3.6 })
         })
         if zeigeWatt {
-            s.append(Spalte(kopf: k("sd.colPower"), breite: 60) { _, seg in
+            s.append(Spalte(key: "power", kopf: k("sd.colPower"), breite: 60,
+                              sort: { seg in self.wattSort(seg) }) { _, seg in
                 guard let w = self.wattFuer?(seg.avg_speed_mps, seg.avg_pump_hz) else { return "–" }
                 return "\(w) W"
             })
         }
-        s.append(Spalte(kopf: k("sd.colPumps"), breite: 54) { _, seg in
+        s.append(Spalte(key: "pumps", kopf: k("sd.colPumps"), breite: 54,
+                          sort: { seg in seg.pumps.map { Double($0) } }) { _, seg in
             (seg.pumps ?? 0) > 0 ? "\(seg.pumps!)" : "–"
         })
         if hatPump {
-            s.append(Spalte(kopf: k("sd.colDistPerPump"), breite: 70) { _, seg in
+            s.append(Spalte(key: "distPerPump", kopf: k("sd.colDistPerPump"), breite: 70,
+                              sort: { seg in Self.distProPump(seg) }) { _, seg in
                 guard let d = seg.distance_m, let n = seg.pumps, n > 0 else { return "–" }
                 return String(format: "%.1f m", d / Double(n))
             })
-            s.append(Spalte(kopf: k("sd.colAvgPump"), breite: 64) { _, seg in
+            s.append(Spalte(key: "avgPump", kopf: k("sd.colAvgPump"), breite: 64,
+                              sort: { $0.avg_pump_hz }) { _, seg in
                 PumpUnit.fmtValue(seg.avg_pump_hz)
             })
-            s.append(Spalte(kopf: k("sd.colPumpMaxMin"), breite: 84) { _, seg in
+            s.append(Spalte(key: "pumpMax", kopf: k("sd.colPumpMaxMin"), breite: 84,
+                              sort: { $0.max_pump_hz }) { _, seg in
                 PumpUnit.fmtValue(seg.max_pump_hz) + " / " + PumpUnit.fmtValue(seg.min_pump_hz)
             })
         }
         // Puls: Start, Durchschnitt, Max, Ende — Reihenfolge wie in der PWA (26.09.2026).
         if zeigeMaxHr {
-            s.append(Spalte(kopf: k("sd.colHrStart"), breite: 64) { _, seg in
+            s.append(Spalte(key: "hrStart", kopf: k("sd.colHrStart"), breite: 64,
+                              sort: { seg in self.hrWerte(seg).first.map { Double($0) } }) { _, seg in
                 Self.bpm(self.hrWerte(seg).first)
             })
-            s.append(Spalte(kopf: k("sd.colHrAvg"), breite: 64) { _, seg in
+            s.append(Spalte(key: "hrAvg", kopf: k("sd.colHrAvg"), breite: 64,
+                              sort: { seg in self.hrMittelRoh(seg) }) { _, seg in
                 Self.bpm(self.hrMittel(seg))
             })
-            s.append(Spalte(kopf: k("sd.colMaxHr"), breite: 64) { _, seg in
+            s.append(Spalte(key: "hrMax", kopf: k("sd.colMaxHr"), breite: 64,
+                              sort: { seg in self.maxHr(seg).map { Double($0) } }) { _, seg in
                 guard let v = self.maxHr(seg) else { return "–" }
                 return "\(v) bpm"
             })
-            s.append(Spalte(kopf: k("sd.colHrEnd"), breite: 64) { _, seg in
+            s.append(Spalte(key: "hrEnd", kopf: k("sd.colHrEnd"), breite: 64,
+                              sort: { seg in self.hrWerte(seg).last.map { Double($0) } }) { _, seg in
                 Self.bpm(self.hrWerte(seg).last)
             })
         }
-        s.append(Spalte(kopf: k("sd.colGlide"), breite: 70) { _, seg in
+        s.append(Spalte(key: "glide", kopf: k("sd.colGlide"), breite: 70, sort: { $0.longest_glide_s }) { _, seg in
             seg.longest_glide_s.map { String(format: "%.1f s", $0) } ?? "–"
         })
         return s
@@ -2343,23 +2408,40 @@ private struct RunsTable: View {
             Image(systemName: "arrow.left.arrow.right").font(.caption2)
                 .foregroundStyle(.secondary).frame(width: 24)
             // "#" bekommt eine feste, schmale Spalte.
-            Text("#").font(.caption2).foregroundStyle(.secondary)
-                .frame(width: 22, alignment: .leading)
+            // Tipp auf "#" stellt die Laufreihenfolge wieder her.
+            Button { sortBy(nil) } label: {
+                Text("#").font(.caption2).foregroundStyle(.secondary)
+                    .frame(width: 22, alignment: .leading)
+            }
+            .buttonStyle(.borderless)
             ForEach(Array(sp.enumerated()), id: \.offset) { _, s in
-                Text(s.kopf)
-                    .font(.caption2).foregroundStyle(.secondary)
-                    .lineLimit(2).minimumScaleFactor(0.75)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(width: s.breite, alignment: .leading)
+                kopfZelle(s)
             }
             if canEdit { Spacer().frame(width: 30) }
         }
         .padding(.bottom, 3)
     }
 
+    /// Ein Spaltenkopf als Knopf: aktiv in Akzentfarbe mit Pfeil (aufsteigend/absteigend).
+    private func kopfZelle(_ s: Spalte) -> some View {
+        let aktiv = sortKey == s.key
+        let pfeil = aktiv ? (sortAsc ? " ▲" : " ▼") : ""
+        let farbe: Color = aktiv ? Color.accentColor : Color.secondary
+        return Button { sortBy(s.key) } label: {
+            Text(s.kopf + pfeil)
+                .font(.caption2).foregroundStyle(farbe)
+                .lineLimit(2).minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(width: s.breite, alignment: .leading)
+        }
+        .buttonStyle(.borderless)
+    }
+
+    // `i` ist der Lauf-Index (nicht die Zeilenposition) — alles in der Zeile haengt daran.
     @ViewBuilder private func zeilen(_ sp: [Spalte]) -> some View {
-        ForEach(Array(segments.enumerated()), id: \.offset) { i, seg in
-            zeile(i, seg, sp)
+        let order = reihenfolge(sp)
+        ForEach(order, id: \.self) { i in
+            zeile(i, segments[i], sp)
         }
     }
 
