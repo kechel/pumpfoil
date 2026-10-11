@@ -7,6 +7,24 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ---
 
+## 🧪 Laufende Feldtests
+
+Wer testet gerade was, worauf warten wir, wann ist es durch (Jan, 11.10.2026: „buch führen welche
+field-tests wir gerade am laufen haben"). Bei jeder Nachfrage hier nachziehen; Erledigtes raus und
+das Ergebnis in den Commit bzw. in die Release-Notizen. Pruefen immer an den Server-Daten
+(Chunks lueckenlos, Punkte gegen Dauer, `accel_hz_measured`, `time_base`) und **gegen die
+Vorversion desselben Fahrers mit Zahlen** (Regel „Qualitaet vor Tempo" in CLAUDE.md).
+Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich verfaelschen.
+
+| Test | Wer (Geraet) | Sonder-Einstellung | Stand (zuletzt geprueft) | Wartet auf | Durch, wenn |
+|---|---|---|---|---|---|
+| **Amazfit 1.0.13** (GPS/Hintergrund, Pausenseiten, 2-s-Halten) | Klettermax68 u352 (GTR 4); neu u870 (Active, seit 11.10., noch keine Session) | keine (nur Wassersperre an) | 11.10.: #14896 (12 min Autofahrt) sauber — GPS 0,98 Pkt/s statt 0,15-0,19, laengste Luecke 10,5 s statt 86-293 s, Accel 9,76 Hz exakt (1.0.12: 9,8-19,7 Hz, Achse „uncertain"). Rest kam 40 min verzoegert, kein Fehler. | lange Session AUF DEM WASSER, >= 30 min, Bildschirm aus; Pause einmal benutzen | Wasser-Session mit derselben Tabelle gegen 1.0.12, keine Luecken > 15 s |
+| **Garmin 1.0.92** (FR55: Sensor 25 Hz + Ausduennen statt 2,5 Hz) | FR55-Fahrer u38 (auf 1.0.92, noch keine Session), u5 + u533 noch auf 1.0.90/1.0.91 | — | 09.10. live; eigene Test-Session u2 #14092 | erste echte FR55-Session mit 1.0.92 | `accel_hz_measured` ~ eingestellte Rate statt 2,5 Hz |
+| **Garmin 1.0.92 auf Instinct 2S** (Low-Mem) | Bert u481 | — | 11.10.: Uhr noch auf 1.0.91; dort 2 Abstuerze gemeldet (Phase 3, zuletzt 02.10.); #14663 auf 1.0.91 sauber (53 Chunks, keine Luecke) | Update auf 1.0.92 + Session | keine neuen Absturz-Meldungen, Chunks lueckenlos |
+| **Wear OS 1.2.41** (GPS bei Bildschirm aus nach Google-Doku) | Foilbert u574 (OPWWE251, 1.2.37) | **Weckruf per Bewegung AUS** (`accel_wakeup: off`, Behelf gegen den GPS-Abriss), Empfindlichkeit „light" | 1.1.41/1.2.41 seit 09.10. im Review | Freigabe; dann Session mit 1.2.41, danach eine mit Weckruf wieder AN | GPS ohne Abriss bei Bildschirm aus, auch mit Weckruf an |
+| **Brett-Regeln** (live seit 10.10.) | alle Brett-Fahrer; Feedback im Community-Chat | u808: Montage unbestaetigt (#14062) | 20 Brett-Sessions neu gerechnet, Pumps -14 %, Gleiten ~8 % | Rueckmeldungen; u808 zur Montage | Feedback eingearbeitet, u808 geklaert |
+| **Huawei 1.0.2 (Beta)** | noch niemand | — | im Simulator geprueft, nie auf Hardware | Wear-Engine-Freigabe + Signierung (Jan) | erste echte Session von einer Huawei-Uhr |
+
 ## 🚀 App-Release-Stand
 
 - **🔲 19.09. — Wirkt der Low-Mem-Fix (Garmin 1.0.87)? NOCH KEINE DATEN.** Nachgesehen, weil
