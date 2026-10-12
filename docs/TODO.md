@@ -11415,3 +11415,13 @@ Offen daraus:
   (brand/stores/zepp/README.md). Bei der naechsten Simulator-Runde beide Formen aufnehmen: Startseite mit START,
   on foil, Puls/Tempo-Bogen, Datenseite Dst/Dur/Hr/Avg, Statistik pausiert, LAST RUN, Pause-Menue. Dann
   `scripts/zepp-store-previews.py` (raw/circle + raw/square).
+- **12.10.2026 — NUR GEMERKT, nichts aendern (Jan denkt noch nach): Startversuche bei Sessions ohne Lauf.**
+  Jans Empfindlichkeit steht seit 10.10. auf „light"; dabei fielen 10 alte GPS-only-Sessions (Juni/Juli 2025,
+  #54–#103) auf 0 Laeufe und gelten als nicht Pumpfoil — ihre Startversuche (`sensitivity_json["attempts"]`,
+  z. B. #54: 1 Versuch) zaehlen aber weiter. Jan: das waere der eigentliche Fehler, offen ist, ob sich
+  Startversuche ohne Lauf ueberhaupt zuverlaessig zaehlen lassen.
+- **12.10.2026 — NUR GEMERKT: Empfindlichkeits-Reanalyse ueberlebt keinen Server-Neustart.** `app/reanalysis.py`
+  laeuft als Daemon-Thread im Server-Prozess; ein Neustart bricht ihn ab, nichts setzt ihn fort, und
+  `reanalysis_progress.running` bleibt fuer immer True. Belegt bei Jan: seit 10.10. 14:24 haengt sein Lauf bei
+  906/986 (Neustart beim Gleitzeit-Commit), die App zeigt dauerhaft „Re-analyzing your sessions", 80 Sessions
+  noch nicht auf „light" gerechnet. Vorschlag (nicht umgesetzt): beim Start haengende Laeufe fortsetzen.
