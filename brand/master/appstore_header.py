@@ -96,18 +96,20 @@ def bauen(W, H):
     s = spalte * 0.58 / block.width
     block = block.resize((round(block.width * s), round(block.height * s)), Image.LANCZOS)
     base.alpha_composite(block, ((W - block.width) // 2, int(H * LOGO_Y - block.height / 2)))
-    # Darunter: drei Screens + Uhr nebeneinander, Oberkanten buendig
-    gap = spalte * 0.025
-    uhr_anteil = 0.72                          # Uhr-Breite relativ zur Screen-Breite
-    sb = (spalte - 3 * gap) / (3 + uhr_anteil)
-    teile = [(Image.open(os.path.join(IOS, f"{n:02d}.png")), sb, 0.07) for n in SCREENS]
-    teile.append((Image.open(UHR), sb * uhr_anteil, 0.22))
-    x = (W - spalte) / 2
+    # Darunter: die Screens als gestaffelter Stapel, linksbuendig in der Spalte, der rechte vorn;
+    # die Uhr liegt oben rechts UEBER dem Stapel und reicht bis zum rechten Spaltenrand (Jan:
+    # „mach die Uhr ruhig ueber den screenshot stack … stack kann linksbuendig sein und die Uhr
+    # dann oben etwas ueberlappen bis zum rechten rand").
+    versatz, uhr_anteil, uhr_drin = 0.55, 0.80, 0.45   # Staffelung, Uhr/Screen-Breite, Ueberlappung
+    sb = spalte / (1 + 2 * versatz + uhr_anteil * (1 - uhr_drin))
+    links = (W - spalte) / 2
     oben = H * SCREENS_Y
-    for img, b, r in teile:
-        g, pad = gerahmt(img, int(b), r)
-        base.alpha_composite(g, (int(x - pad), int(oben - pad)))
-        x += b + gap
+    for k, n in enumerate((SCREENS[0], SCREENS[2], SCREENS[1])):   # Start, Fortschritt, Karte vorn
+        g, pad = gerahmt(Image.open(os.path.join(IOS, f"{n:02d}.png")), int(sb))
+        base.alpha_composite(g, (int(links + k * versatz * sb - pad), int(oben - pad)))
+    ub = sb * uhr_anteil
+    g, pad = gerahmt(Image.open(UHR), int(ub), 0.22)
+    base.alpha_composite(g, (int(links + spalte - ub - pad), int(oben + sb * 0.10 - pad)))
     return base.convert("RGB")
 
 
