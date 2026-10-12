@@ -45,6 +45,10 @@ AUSGESCHLOSSEN = {
 #     -> auf „board" korrigiert. Die Wear-OS-Uhr #14072 lieferte nur 7,7 Hz Beschleunigung.
 #   #13908 u244 07.10.: bewusst gefahrene Gleitphasen mitten in und am Ende von Laeufen (Fahrer-Meldung).
 #   #10968 u2 02.10.: zwei echte kurze Startversuche 16:44:12 / 16:44:31 Ortszeit, nur von der Uhr gefunden.
+#   #15004 u683 12.10.2026: iPhone am Brett + Apple Watch Series 10 (#15003), erstes Paar mit Apple Watch.
+#     Handy QUER und um ~17° geneigt montiert -> die alte Brett-Frage (Achse <= 15°) fragte nicht; der
+#     Fahrer bestaetigte im Chat „phone on the board", auf Jans OK als board markiert. Ausrichtung
+#     Streuung 0 ms, r 0,51-0,82 je Lauf. Beleg, dass die Neigungs-Pruefung zu eng ist (TODO Brett-Frage).
 #   #14062 u808 (Brett ohne Uhr): Montage nicht bestaetigt (Nachfrage per DM 10.10. offen); in den Laeufen
 #     wie ein festes Brett (75 % Nicken, kein Klappern). Meldet u808 etwas Loses -> in AUSGESCHLOSSEN.
 
