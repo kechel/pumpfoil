@@ -438,6 +438,34 @@ def gleit_anzeige(ps, ohne_luecke, ende_ms: float, gps_t, versatz_ms: float = 0.
              round(d, 1), int(round(a + versatz_ms))] for a, b, d in zeige]
 
 
+# PUMPFOIL JA/NEIN UNABHAENGIG VON DER EMPFINDLICHKEIT (Jan, 12.10.2026: „zur erkennung ob eine session
+# aussortiert wird sollten wir immer die light-methode verwenden … fuer die lauf vs. Startversuch-
+# erkennung die Profileinstellung"). Findet die Einstellung des Besitzers KEINEN Lauf, rechnet die
+# Analyse zusaetzlich mit „light"; reicht das fuer die Regel unten, gilt die Session als Pumpfoil —
+# mit 0 Laeufen und ihren Startversuchen. Regel aus dem Trockenlauf vom 12.10. (43 Kandidaten, davon
+# 29 plausibel): mindestens 2 Laeufe ODER einer von mindestens 8 s; OHNE Accel zusaetzlich kein
+# „Lauf" ueber 10 min unter 12 km/h (Paddeln/SUP, nicht Pumpen) — mit Accel entscheidet das Modell.
+LIGHT_MIN_LAEUFE = 2
+LIGHT_MIN_EINZEL_S = 8.0
+PADDEL_MAX_S = 600.0
+PADDEL_UNTER_KMH = 12.0
+
+
+def pumpfoil_per_light(segmente: list[dict], detection: str) -> tuple[bool, str]:
+    """Reicht das „light"-Ergebnis, um die Session als Pumpfoil zu zaehlen? -> (ja, Grund).
+    Rein, getestet in tests/test_pumpfoil_light.py."""
+    if detection not in ("model", "gps_only") or not segmente:
+        return False, "keine Laeufe"
+    dauern = [float(g.get("duration_s") or 0.0) for g in segmente]
+    if not (len(segmente) >= LIGHT_MIN_LAEUFE or max(dauern) >= LIGHT_MIN_EINZEL_S):
+        return False, "nur ein kurzer Lauf"
+    if detection == "gps_only":
+        for g, d in zip(segmente, dauern):
+            if d > PADDEL_MAX_S and float(g.get("avg_speed_mps") or 0.0) * 3.6 < PADDEL_UNTER_KMH:
+                return False, "Paddeln (langer langsamer Lauf ohne Accel)"
+    return True, f"{len(segmente)} Lauf/Laeufe mit light"
+
+
 def _brett_regeln_schreiben(db: DbSession, session, result, sens: str) -> None:
     """Brett-Regeln auf die gespeicherten Laeufe anwenden und Summen/Bestwerte nachziehen."""
     from .brett_anwenden import anwenden
@@ -747,6 +775,33 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         is_pumpfoil = n_runs > 0 and max_sp <= PUMPFOIL_GPS_MAX_MPS
     else:
         is_pumpfoil = False
+    # Keine Laeufe mit der Einstellung des Besitzers? Dann mit „light" pruefen, ob es trotzdem Pumpfoil
+    # ist (s. `pumpfoil_per_light`). Nur bei Pumpfoil-Sessions; Laeufe und Zahlen bleiben die der
+    # Profil-Einstellung (also 0 Laeufe, die Startversuche zaehlen).
+    if (not is_pumpfoil and n_runs == 0 and _sens != "light"
+            and detection in ("model", "gps_only")
+            and (session.sport_class or "pumpfoil") == "pumpfoil"
+            and session.pumpfoil_override is None):
+        try:
+            _light_kw = dict(SENSITIVITY_PRESETS["light"])
+            if detector_v2_enabled():
+                if am_brett:
+                    _light_kw["use_model"] = False
+                res_l = analyze_session_v2(session, judge_fremdkraft=True, **_light_kw)
+                if final and accel_usable and detector_v3_enabled():
+                    res_l = _v3_anwenden(res_l, session, True, "light")
+            else:
+                res_l = analyze_gps(gps_samples, gps_hz=session.gps_hz, mask_override=mask_override,
+                                    impulse_times_ms=impulses, water_rings=water_rings, **_light_kw)
+            ok_l, grund_l = pumpfoil_per_light(res_l.get("segments") or [], detection)
+            if detection == "gps_only" and (res_l.get("max_speed_mps") or 0.0) > PUMPFOIL_GPS_MAX_MPS:
+                ok_l, grund_l = False, "zu schnell fuer Pumpfoil"
+            res["metrics"]["pumpfoil_per_light"] = {"ja": bool(ok_l), "grund": grund_l,
+                                                    "laeufe": len(res_l.get("segments") or [])}
+            if ok_l:
+                is_pumpfoil = True
+        except Exception:  # noqa: BLE001 - die Zusatzpruefung darf die Analyse nie brechen
+            logging.getLogger(__name__).exception("light-Pruefung fuer Session %s", session.id)
     # Admin-Override (z. B. „Aussortieren" aus der Verdachtsliste) schlägt den Detektor —
     # und überlebt so auch jede Reanalyse. NULL = automatisch.
     if session.pumpfoil_override is not None:
@@ -919,7 +974,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # Start-Erfolgsquote (nur Anzeige, ADDITIV): attempts-Preset auf der GANZEN Aufnahme
     # (`gps_fuer_versuche`, s. oben) — NICHT auf dem getrimmten Satz. Rührt keine anderen
     # Felder/Stats an.
-    result.start_attempts_json = json.dumps(attempt_distances(gps_fuer_versuche, session.gps_hz))
+    # Startversuche NUR bei Pumpfoil (Jan, 12.10.2026): eine aussortierte Session zaehlte bis dahin
+    # weiter ihre Versuche — in die Start-Erfolgsquote, obwohl sie gar nicht als Pumpfoil gilt.
+    result.start_attempts_json = (json.dumps(attempt_distances(gps_fuer_versuche, session.gps_hz))
+                                  if session.is_pumpfoil else json.dumps([]))
     # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
     result.carve_s = result.carve_m = result.carve_l = None
     # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).
