@@ -40,3 +40,25 @@ def test_ohne_zeitzone_als_utc():
     s = _s(vor_s=20)
     s.updated_at = s.updated_at.replace(tzinfo=None)
     assert nach_neustart_faellig(s, START) is True
+
+
+# --- Empfindlichkeits-Reanalyse (app/reanalysis.py), seit 12.10.2026 ------------------------------
+from app.reanalysis import fortsetzen_faellig  # noqa: E402
+
+
+def _r(running=True, vor_s=60):
+    return SimpleNamespace(running=running, updated_at=START - timedelta(seconds=vor_s))
+
+
+def test_haengende_reanalyse_wird_fortgesetzt():
+    # Jans Fall: running seit zwei Tagen, zuletzt fortgeschrieben lange vor dem Neustart.
+    assert fortsetzen_faellig(_r(vor_s=2 * 24 * 3600), START) is True
+
+
+def test_reanalyse_im_neuen_prozess_nicht():
+    # Fortgeschrieben NACH dem Start: der Lauf lebt in diesem Prozess.
+    assert fortsetzen_faellig(_r(vor_s=-5), START) is False
+
+
+def test_fertige_reanalyse_nicht():
+    assert fortsetzen_faellig(_r(running=False), START) is False

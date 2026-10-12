@@ -7,6 +7,10 @@ running task(s), timeout graceful shutdown exceeded" — und die Session bleibt 
 Liste „wird verarbeitet", ohne Benachrichtigung, aus der Community ausgeblendet. Die Uhr hat ihre
 Kopie da schon geloescht. Bisher holte das nur `foil-haenger.timer` nach, alle drei Stunden.
 
+SEIT 12.10.2026 AUCH die Empfindlichkeits-Reanalysen (app/reanalysis.py, `fortsetzen_faellig`):
+ein Lauf, der vor dem Start zuletzt fortgeschrieben wurde und noch `running` ist, wird ab seinem
+letzten Stand fortgesetzt.
+
 WAS HIER PASSIERT: kurz nach dem Start sucht EIN Worker (Postgres-Advisory-Sperre; es laufen vier)
 nach Sessions auf `complete`, die zuletzt VOR diesem Start angefasst wurden. Deren Auswertung kann
 nur mit dem alten Prozess gestorben sein — ein neuer Upload laege nach dem Start. Die werden mit
@@ -85,6 +89,23 @@ def _lauf(prozess_start: datetime) -> None:
                 _analyze_in_background(sid, True)
             except Exception:   # eine kaputte Session darf die anderen nicht aufhalten
                 log.exception("Nachholen von #%s fehlgeschlagen", sid)
+        # Ebenso die Empfindlichkeits-Reanalysen (app/reanalysis.py): ein Daemon-Thread im alten
+        # Prozess, der Neustart hat ihn beendet. Fortsetzen ab dem letzten Stand, mit dem Preset,
+        # das der Nutzer JETZT eingestellt hat.
+        from .reanalysis import fortsetzen_faellig, start_reanalysis
+        for row in db.query(models.ReanalysisProgress).filter(models.ReanalysisProgress.running.is_(True)).all():
+            if not fortsetzen_faellig(row, prozess_start):
+                continue
+            u = db.get(models.User, row.user_id)
+            if u is None:
+                continue
+            log.info("Empfindlichkeits-Reanalyse von u%s nach dem Neustart fortsetzen ab %s/%s",
+                     row.user_id, row.done, row.total)
+            try:
+                start_reanalysis(row.user_id, u.foil_sensitivity or "normal",
+                                 ab=int(row.done or 0), fortsetzen=True)
+            except Exception:
+                log.exception("Fortsetzen der Reanalyse von u%s fehlgeschlagen", row.user_id)
         db.execute(text("select pg_advisory_unlock(:k)"), {"k": SPERRE})
     except Exception:
         log.exception("Nachholen nach dem Neustart fehlgeschlagen")
