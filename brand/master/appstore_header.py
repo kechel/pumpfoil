@@ -75,8 +75,12 @@ def gerahmt(img, breite, radius_anteil=0.07):
 # kante der screenshots, dann ist es nicht schlimm wenn drunter was abgeschnitten wird … links und
 # rechts einfach komplett leer lassen"): oben das Lockup, darunter drei Screens und die Uhr mit
 # buendiger Oberkante. Unten darf der Ausschnitt abschneiden, links und rechts ist nur Hintergrund.
-SPALTE_B = 0.30                # Breite der Spalte (Anteil von W)
-LOGO_Y, SCREENS_Y = 0.36, 0.44   # Mitte des Lockups / Oberkante der Screens (Anteil von H)
+# Zweite Vorschau (Jan, 12.10.2026: „etwas groesser, weiter oben anfangen"): das iPhone zeigt die
+# mittleren ~54 % der Breite und von OBEN bis ~63 % der Hoehe (darunter liegt die App-Info).
+# Oben liegen Dynamic Island und die Knoepfe Zurueck/Teilen (bis ~0,22 H, aussen) — das Lockup
+# sitzt knapp darunter, die Screens beginnen direkt danach und laufen unten aus dem Bild.
+SPALTE_B = 0.46                # Breite der Spalte (Anteil von W)
+LOGO_Y, SCREENS_Y = 0.255, 0.335   # Mitte des Lockups / Oberkante der Screens (Anteil von H)
 
 
 def bauen(W, H):
@@ -89,7 +93,7 @@ def bauen(W, H):
     spalte = W * SPALTE_B
     # Lockup oben, etwas kleiner als die Spalte
     block = lockup_block()
-    s = spalte * 0.66 / block.width
+    s = spalte * 0.58 / block.width
     block = block.resize((round(block.width * s), round(block.height * s)), Image.LANCZOS)
     base.alpha_composite(block, ((W - block.width) // 2, int(H * LOGO_Y - block.height / 2)))
     # Darunter: drei Screens + Uhr nebeneinander, Oberkanten buendig
