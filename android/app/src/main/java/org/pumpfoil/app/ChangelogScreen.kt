@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.async
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,11 +79,17 @@ fun ChangelogScreen(onBack: () -> Unit) {
     var fehler by remember { mutableStateOf(false) }
     var stand by remember { mutableStateOf<ReleaseStand?>(null) }
 
+    // Beide parallel laden, aber ZUSAMMEN zeigen (Jan, 12.10.2026): kamen die Tage zuerst, schob sich
+    // die Release-Tabelle danach UEBER die Liste, die LazyColumn blieb am ersten Tag stehen — die
+    // Tabelle lag oberhalb des Bildschirms, und niemand wusste, dass man hochscrollen muss.
     LaunchedEffect(Unit) {
-        try { tage = Api.changelog().days } catch (_: Exception) { fehler = true }
-    }
-    LaunchedEffect(Unit) {
-        stand = try { Api.releaseStand() } catch (_: Exception) { null }
+        kotlinx.coroutines.coroutineScope {
+            val st = async { try { Api.releaseStand() } catch (_: Exception) { null } }
+            val tg = async { try { Api.changelog().days } catch (_: Exception) { null } }
+            val (r, t) = st.await() to tg.await()
+            stand = r
+            if (t == null) fehler = true else tage = t
+        }
     }
 
     Scaffold(
