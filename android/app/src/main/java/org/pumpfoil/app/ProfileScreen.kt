@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Surfing
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.AlertDialog
@@ -71,7 +72,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -229,6 +230,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 headlineContent = { Text(I18n.t("onb.startTitle")) },
                 supportingContent = { Text(I18n.t("onb.startSub")) },
                 leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            // Changelog nativ (12.10.2026, Nutzer-Meldung) — wie der Menuepunkt im Web.
+            ListItem(
+                modifier = Modifier.clickable { onChangelog() },
+                headlineContent = { Text(I18n.t("nav.changelog")) },
+                leadingContent = { Icon(Icons.Filled.NewReleases, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(

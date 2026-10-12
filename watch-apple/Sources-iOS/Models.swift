@@ -657,6 +657,57 @@ struct NewsBanner: Codable {
     let texts: [String: String]
 }
 
+// Native Changelog-Seite (ChangelogView in ProfileView.swift, 12.10.2026, Nutzer-Meldung): dieselben
+// zwei oeffentlichen Abrufe wie web/src/pages/Changelog.tsx. ALLES optional — der Server schickt
+// z. B. `art`, `plattformen`, `rejected` nur, wenn es etwas gibt; ein Pflichtfeld liesse dann den
+// ganzen Abruf scheitern.
+struct ReleaseZeile: Codable {
+    let name: String?
+    let version: String?
+    let note: String?
+    let store_url: String?
+    let items: [String]?
+}
+
+struct BekanntesProblem: Codable {
+    let titel: String?
+    let text: String?
+    let note: String?
+}
+
+struct ReleaseStand: Codable {
+    let live: [ReleaseZeile]?
+    let review: [ReleaseZeile]?
+    let rejected: [ReleaseZeile]?
+    let next: [ReleaseZeile]?
+    let ideen: [String]?
+    let probleme: [BekanntesProblem]?
+}
+
+struct ChangelogPlattform: Codable {
+    let name: String?
+    let version: String?
+}
+
+struct ChangelogPunkt: Codable {
+    let text: String?
+    let img: String?
+    let img_alt: String?
+    let art: String?                 // "ereignis" = Schritt im Store-Lauf
+    let plattformen: [ChangelogPlattform]?
+}
+
+struct ChangelogTag: Codable, Identifiable {
+    let date: String
+    let items: [ChangelogPunkt]?
+    var id: String { date }
+}
+
+struct ChangelogAntwort: Codable {
+    let days: [ChangelogTag]?
+    let latest: String?
+}
+
 struct ChatMsg: Codable, Identifiable {
     let id: Int
     let user_id: Int

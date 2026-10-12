@@ -1011,6 +1011,15 @@ object Api {
         json.decodeFromString(NewsBanner.serializer(), http("GET", "/api/app/news", null, auth = false))
     }
 
+    // Changelog + Release-Stand (oeffentlich, wie web Changelog.tsx) — ChangelogScreen.kt, 12.10.2026.
+    suspend fun changelog(): ChangelogAntwort = withContext(Dispatchers.IO) {
+        json.decodeFromString(ChangelogAntwort.serializer(), http("GET", "/api/app/changelog", null, auth = false))
+    }
+
+    suspend fun releaseStand(): ReleaseStand = withContext(Dispatchers.IO) {
+        json.decodeFromString(ReleaseStand.serializer(), http("GET", "/api/app/releases", null, auth = false))
+    }
+
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog:
     // color=cyan|speed|hr, stats=komma-Keys, bg=navy, track=0|1, title, shade=light|dark.
     /**
