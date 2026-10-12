@@ -45,7 +45,9 @@ export default function Admin() {
   // rein Beobachtende (Nutzer, Sessions, geloescht, News, Sperren, Protokoll, System).
   const badge: Partial<Record<Tab, number>> = {
     flagged: pending?.flagged ?? 0, fake: pending?.fake ?? 0,
-    suspect: pending?.suspect ?? 0, chat: pending?.chat ?? 0,
+    // „suspect" ohne Zahl seit 12.10.2026 (Jan): Reiter bleibt, ist aber keine offene Aufgabe mehr
+    // (Gate schuetzt die Statistik, Sportart klaert der Knopf beim Besitzer). S. admin.py pending.
+    chat: pending?.chat ?? 0,
     social: pending?.social ?? 0, feedback: pending?.feedback ?? 0,
     spots: pending?.spots ?? 0,
   };
