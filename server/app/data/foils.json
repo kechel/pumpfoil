@@ -2931,7 +2931,8 @@
     "span_cm": 78,
     "area_cm2": 950,
     "thickness_mm": 18.2,
-    "is_baseline": false
+    "is_baseline": false,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4106,7 +4107,8 @@
     "size": "1350",
     "span_cm": 135.0,
     "area_cm2": 1864.0,
-    "thickness_mm": 21.0
+    "thickness_mm": 21.0,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4123,7 +4125,8 @@
     "size": "1300",
     "span_cm": 128.0,
     "area_cm2": 1330.0,
-    "thickness_mm": 16.7
+    "thickness_mm": 16.7,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4131,7 +4134,8 @@
     "size": "1077",
     "span_cm": 107.7,
     "area_cm2": 1069.0,
-    "thickness_mm": 17.0
+    "thickness_mm": 17.0,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4139,7 +4143,8 @@
     "size": "977",
     "span_cm": 97.7,
     "area_cm2": 953.0,
-    "thickness_mm": 16.7
+    "thickness_mm": 16.7,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4147,7 +4152,8 @@
     "size": "847",
     "span_cm": 84.7,
     "area_cm2": 784.0,
-    "thickness_mm": 16.0
+    "thickness_mm": 16.0,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4155,7 +4161,8 @@
     "size": "737",
     "span_cm": 73.7,
     "area_cm2": 648.0,
-    "thickness_mm": 14.7
+    "thickness_mm": 14.7,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4163,7 +4170,8 @@
     "size": "700",
     "span_cm": 70.0,
     "area_cm2": 557.0,
-    "thickness_mm": 13.15
+    "thickness_mm": 13.15,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4171,7 +4179,8 @@
     "size": "965",
     "span_cm": 96.5,
     "area_cm2": 1210.0,
-    "thickness_mm": 19.0
+    "thickness_mm": 19.0,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4179,7 +4188,8 @@
     "size": "905",
     "span_cm": 90.5,
     "area_cm2": 998.0,
-    "thickness_mm": 17.0
+    "thickness_mm": 17.0,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
@@ -4187,7 +4197,8 @@
     "size": "805",
     "span_cm": 80.5,
     "area_cm2": 792.0,
-    "thickness_mm": 15.3
+    "thickness_mm": 15.3,
+    "aliases": "BB"
   },
   {
     "brand": "Sabfoil",
