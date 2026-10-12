@@ -113,6 +113,34 @@ def bauen(W, H, spalte_b=None, logo_y=None, screens_y=None):
     return base.convert("RGB")
 
 
+def bauen_suche(W, H):
+    """Suchergebnisse: die Karte zeigt das Bild GANZ in 16:9 (Jans Vorschau 12.10.2026) und klein.
+    Deshalb formatfuellend: Lockup links, rechts der Screen-Stapel mit der Uhr darueber; die
+    Screens laufen unten aus dem Bild."""
+    base = verlauf(W, H)
+    wm = gen.render_waves(gen.CYAN, int(H * 0.6))
+    for (x, y) in ((-int(W * 0.05), -int(H * 0.08)), (W - int(wm.width * 0.85), H - int(wm.height * 0.8))):
+        faint = wm.copy(); faint.putalpha(faint.split()[3].point(lambda v: int(v * 0.08)))
+        layer = Image.new("RGBA", base.size, (0, 0, 0, 0)); layer.alpha_composite(faint, (x, y))
+        base.alpha_composite(layer)
+    block = lockup_block()
+    s = W * 0.40 / block.width
+    block = block.resize((round(block.width * s), round(block.height * s)), Image.LANCZOS)
+    base.alpha_composite(block, (int(W * 0.06), int(H * 0.47 - block.height / 2)))
+    # rechts: Stapel ab 52 % der Breite bis 6 % vor dem Rand, Uhr oben rechts darueber
+    links, spalte = W * 0.52, W * 0.42
+    versatz, uhr_anteil, uhr_drin = 0.55, 0.80, 0.45
+    sb = spalte / (1 + 2 * versatz + uhr_anteil * (1 - uhr_drin))
+    oben = H * 0.13
+    for k, n in enumerate((SCREENS[0], SCREENS[2], SCREENS[1])):
+        g, pad = gerahmt(Image.open(os.path.join(IOS, f"{n:02d}.png")), int(sb))
+        base.alpha_composite(g, (int(links + k * versatz * sb - pad), int(oben - pad)))
+    ub = sb * uhr_anteil
+    g, pad = gerahmt(Image.open(UHR), int(ub), 0.22)
+    base.alpha_composite(g, (int(links + spalte - ub - pad), int(oben + sb * 0.10 - pad)))
+    return base.convert("RGB")
+
+
 def main():
     os.makedirs(AUS, exist_ok=True)
     gross = bauen(5244, 2950)
@@ -121,10 +149,8 @@ def main():
     h = round(5244 / (3840 / 1646)); y0 = (2950 - h) // 2
     gross.crop((0, y0, 5244, y0 + h)).resize((3840, 1646), Image.LANCZOS).save(
         os.path.join(AUS, "header-3840x1646.png"), optimize=True)
-    # Suchergebnisse (eigener Slot, 3840x2560 / 1920x1280 / 5244x2950): dort erscheint das Bild als
-    # kleine Karte und GANZ — also kein leerer Rand, sondern dieselbe Komposition formatfuellend.
-    such = bauen(3840, 2560, spalte_b=0.80, logo_y=0.125, screens_y=0.235)
-    such.save(os.path.join(AUS, "suche-3840x2560.png"), optimize=True)
+    # Suchergebnisse (eigener Slot, 5244x2950 / 3840x2560 / 1920x1280): die Karte zeigt 16:9 ganz.
+    bauen_suche(5244, 2950).save(os.path.join(AUS, "suche-5244x2950.png"), optimize=True)
     print(AUS)
 
 
