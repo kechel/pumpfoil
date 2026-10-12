@@ -27,25 +27,49 @@ def progress_for(db, user_id: int) -> dict:
     return {"running": bool(row.running), "done": int(row.done or 0), "total": int(row.total or 0)}
 
 
-def start_reanalysis(user_id: int, preset: str) -> None:
+def fortsetzen_faellig(row, prozess_start: datetime) -> bool:
+    """Hat ein Neustart diesen Lauf abgebrochen? `running`, aber zuletzt VOR dem Start dieses
+    Prozesses fortgeschrieben — dann lief er im alten Prozess und ist mit ihm gestorben.
+
+    Anlass (12.10.2026, Jan: „das es abgebrochene automatisch wieder aufnimmt … ist natuerlich ein
+    bug, bitte fixen"): Jans Lauf hing seit 10.10. 14:24 bei 906/986, weil ein Server-Neustart den
+    Daemon-Thread beendet hatte; `running` blieb fuer immer True, die App zeigte dauerhaft „Re-
+    analyzing your sessions", und 80 Sessions waren nie auf das neue Preset gerechnet. Bewusst
+    OHNE Zeitfenster (anders als bei den Final-Analysen in nach_neustart.py): der Nutzer hat die
+    Rechnung selbst angestossen, sie spaet fertig zu machen ist immer richtig. Reine Entscheidung,
+    getestet in tests/test_nach_neustart.py."""
+    if row is None or not getattr(row, "running", False):
+        return False
+    stand = getattr(row, "updated_at", None)
+    if stand is None:
+        return True
+    if stand.tzinfo is None:
+        stand = stand.replace(tzinfo=timezone.utc)
+    return stand < prozess_start
+
+
+def start_reanalysis(user_id: int, preset: str, ab: int = 0, fortsetzen: bool = False) -> None:
     """Startet (falls nicht schon laufend) die Reanalyse der Sessions dieses Users für `preset`.
-    Bereits für dieses Preset gecachte Sessions werden übersprungen (Umschalten ohne Neurechnung)."""
+    `ab` = so viele Sessions (nach ID sortiert) gelten schon als erledigt — beim Fortsetzen nach
+    einem Neustart der alte Stand von `done`. `fortsetzen` uebergeht die Sperre „laeuft schon":
+    der Lauf, der dort steht, ist mit dem alten Prozess gestorben (s. `fortsetzen_faellig`)."""
     db = SessionLocal()
     try:
         row = db.get(models.ReanalysisProgress, user_id)
-        if row is not None and row.running:
+        if row is not None and row.running and not fortsetzen:
             return  # läuft schon
         if row is None:
             row = models.ReanalysisProgress(user_id=user_id)
             db.add(row)
         row.running = True
-        row.done = 0
-        row.total = 0
+        row.done = ab
+        if not ab:
+            row.total = 0
         row.updated_at = _now()
         db.commit()
     finally:
         db.close()
-    threading.Thread(target=_worker, args=(user_id, preset), daemon=True).start()
+    threading.Thread(target=_worker, args=(user_id, preset, ab), daemon=True).start()
 
 
 def _set(db, user_id: int, **fields) -> None:
@@ -54,15 +78,15 @@ def _set(db, user_id: int, **fields) -> None:
     db.commit()
 
 
-def _worker(user_id: int, preset: str) -> None:
+def _worker(user_id: int, preset: str, ab: int = 0) -> None:
     db = SessionLocal()
     try:
         ids = [s.id for s in db.query(models.Session)
                .filter(models.Session.user_id == user_id)
                .order_by(models.Session.id).all()]
         _set(db, user_id, total=len(ids))
-        done = 0
-        for sid in ids:
+        done = min(ab, len(ids))
+        for sid in ids[done:]:
             s = db.get(models.Session, sid)
             if s is not None:
                 # Kanonische Spalten auf das (neue) Preset des Nutzers umschreiben — run_analysis
