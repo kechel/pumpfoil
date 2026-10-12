@@ -70,52 +70,52 @@ def gerahmt(img, breite, radius_anteil=0.07):
 
 
 # Was das iPhone zeigt (Jan, 12.10.2026, Geraetevorschau in App Store Connect): nur einen kleinen
-# MITTIGEN Ausschnitt, etwa ein Drittel der Breite und 40 % der Hoehe. Die erste Fassung hatte
-# das Lockup links und die Screens rechts — auf dem iPhone sah man davon nur die Raender. Jetzt
-# steht das Lockup genau in der Mitte und passt in diesen Ausschnitt; die Screens flankieren es
-# links und rechts und sind auf iPad/Mac zu sehen.
-MITTE_B, MITTE_H = 0.30, 0.36
+# MITTIGEN Ausschnitt, etwa ein Drittel der Breite und 40 % der Hoehe. Deshalb steht alles in einer
+# schmalen Spalte in der Mitte (Jan: „etwas kleiner, das logo drueber, die Uhr mit an die obere
+# kante der screenshots, dann ist es nicht schlimm wenn drunter was abgeschnitten wird … links und
+# rechts einfach komplett leer lassen"): oben das Lockup, darunter drei Screens und die Uhr mit
+# buendiger Oberkante. Unten darf der Ausschnitt abschneiden, links und rechts ist nur Hintergrund.
+SPALTE_B = 0.30                # Breite der Spalte (Anteil von W)
+LOGO_Y, SCREENS_Y = 0.36, 0.44   # Mitte des Lockups / Oberkante der Screens (Anteil von H)
 
 
-def bauen(W, H, band_h):
+def bauen(W, H):
     base = verlauf(W, H)
     wm = gen.render_waves(gen.CYAN, int(H * 0.6))
     for (x, y) in ((-int(W * 0.05), -int(H * 0.08)), (W - int(wm.width * 0.85), H - int(wm.height * 0.8))):
         faint = wm.copy(); faint.putalpha(faint.split()[3].point(lambda v: int(v * 0.08)))
         layer = Image.new("RGBA", base.size, (0, 0, 0, 0)); layer.alpha_composite(faint, (x, y))
         base.alpha_composite(layer)
-    top = (H - band_h) // 2
-    # Seiten zuerst (liegen hinter dem Lockup, falls sie sich beruehren)
-    sh = int(band_h * 0.80)
-    bilder = {n: Image.open(os.path.join(IOS, f"{n:02d}.png")) for n in SCREENS}
-    ratio = bilder[SCREENS[0]].width / bilder[SCREENS[0]].height
-    rand = W * (1 - MITTE_B) / 2               # Breite je Seitenfeld
-    def setze(img, f, cx, cy, radius=0.07):
-        g, pad = gerahmt(img, int(sh * f * ratio) if radius < 0.2 else int(sh * f * 0.82), radius)
-        base.alpha_composite(g, (int(cx - g.width / 2), int(cy - g.height / 2)))
-    cy = top + band_h / 2
-    # links: Startseite, davor die Uhr
-    setze(bilder[SCREENS[0]], 0.92, rand * 0.42, cy)
-    setze(Image.open(UHR), 0.42, rand * 0.80, cy + sh * 0.22, radius=0.22)
-    # rechts: Lauf auf der Karte vorn, Fortschritt dahinter
-    setze(bilder[SCREENS[2]], 0.84, W - rand * 0.30, cy - sh * 0.03)
-    setze(bilder[SCREENS[1]], 0.92, W - rand * 0.62, cy)
-    # Mitte: Lockup, passt in den Ausschnitt, den das iPhone zeigt
+    spalte = W * SPALTE_B
+    # Lockup oben, etwas kleiner als die Spalte
     block = lockup_block()
-    s = min(W * MITTE_B * 0.86 / block.width, H * MITTE_H * 0.70 / block.height)
+    s = spalte * 0.66 / block.width
     block = block.resize((round(block.width * s), round(block.height * s)), Image.LANCZOS)
-    base.alpha_composite(block, ((W - block.width) // 2, (H - block.height) // 2))
+    base.alpha_composite(block, ((W - block.width) // 2, int(H * LOGO_Y - block.height / 2)))
+    # Darunter: drei Screens + Uhr nebeneinander, Oberkanten buendig
+    gap = spalte * 0.025
+    uhr_anteil = 0.72                          # Uhr-Breite relativ zur Screen-Breite
+    sb = (spalte - 3 * gap) / (3 + uhr_anteil)
+    teile = [(Image.open(os.path.join(IOS, f"{n:02d}.png")), sb, 0.07) for n in SCREENS]
+    teile.append((Image.open(UHR), sb * uhr_anteil, 0.22))
+    x = (W - spalte) / 2
+    oben = H * SCREENS_Y
+    for img, b, r in teile:
+        g, pad = gerahmt(img, int(b), r)
+        base.alpha_composite(g, (int(x - pad), int(oben - pad)))
+        x += b + gap
     return base.convert("RGB")
 
 
 def main():
     os.makedirs(AUS, exist_ok=True)
-    # 5244x2950: Band = Hoehe, die ein Zuschnitt auf 3840x1646 (2,33:1) uebrig liesse
-    for (w, h) in ((5244, 2950), (3840, 1646)):
-        band = min(h, round(w / (3840 / 1646)))
-        p = os.path.join(AUS, f"header-{w}x{h}.png")
-        bauen(w, h, int(band * 0.86)).save(p, optimize=True)
-        print(p)
+    gross = bauen(5244, 2950)
+    gross.save(os.path.join(AUS, "header-5244x2950.png"), optimize=True)
+    # 3840x1646 (2,33:1) = mittiger Zuschnitt davon — gleiche Spalte, gleiche Lage
+    h = round(5244 / (3840 / 1646)); y0 = (2950 - h) // 2
+    gross.crop((0, y0, 5244, y0 + h)).resize((3840, 1646), Image.LANCZOS).save(
+        os.path.join(AUS, "header-3840x1646.png"), optimize=True)
+    print(AUS)
 
 
 if __name__ == "__main__":
