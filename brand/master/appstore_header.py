@@ -83,19 +83,19 @@ SPALTE_B = 0.46                # Breite der Spalte (Anteil von W)
 LOGO_Y, SCREENS_Y = 0.255, 0.335   # Mitte des Lockups / Oberkante der Screens (Anteil von H)
 
 
-def bauen(W, H):
+def bauen(W, H, spalte_b=None, logo_y=None, screens_y=None):
     base = verlauf(W, H)
     wm = gen.render_waves(gen.CYAN, int(H * 0.6))
     for (x, y) in ((-int(W * 0.05), -int(H * 0.08)), (W - int(wm.width * 0.85), H - int(wm.height * 0.8))):
         faint = wm.copy(); faint.putalpha(faint.split()[3].point(lambda v: int(v * 0.08)))
         layer = Image.new("RGBA", base.size, (0, 0, 0, 0)); layer.alpha_composite(faint, (x, y))
         base.alpha_composite(layer)
-    spalte = W * SPALTE_B
+    spalte = W * (spalte_b or SPALTE_B)
     # Lockup oben, etwas kleiner als die Spalte
     block = lockup_block()
     s = spalte * 0.58 / block.width
     block = block.resize((round(block.width * s), round(block.height * s)), Image.LANCZOS)
-    base.alpha_composite(block, ((W - block.width) // 2, int(H * LOGO_Y - block.height / 2)))
+    base.alpha_composite(block, ((W - block.width) // 2, int(H * (logo_y or LOGO_Y) - block.height / 2)))
     # Darunter: die Screens als gestaffelter Stapel, linksbuendig in der Spalte, der rechte vorn;
     # die Uhr liegt oben rechts UEBER dem Stapel und reicht bis zum rechten Spaltenrand (Jan:
     # „mach die Uhr ruhig ueber den screenshot stack … stack kann linksbuendig sein und die Uhr
@@ -103,7 +103,7 @@ def bauen(W, H):
     versatz, uhr_anteil, uhr_drin = 0.55, 0.80, 0.45   # Staffelung, Uhr/Screen-Breite, Ueberlappung
     sb = spalte / (1 + 2 * versatz + uhr_anteil * (1 - uhr_drin))
     links = (W - spalte) / 2
-    oben = H * SCREENS_Y
+    oben = H * (screens_y or SCREENS_Y)
     for k, n in enumerate((SCREENS[0], SCREENS[2], SCREENS[1])):   # Start, Fortschritt, Karte vorn
         g, pad = gerahmt(Image.open(os.path.join(IOS, f"{n:02d}.png")), int(sb))
         base.alpha_composite(g, (int(links + k * versatz * sb - pad), int(oben - pad)))
@@ -121,6 +121,10 @@ def main():
     h = round(5244 / (3840 / 1646)); y0 = (2950 - h) // 2
     gross.crop((0, y0, 5244, y0 + h)).resize((3840, 1646), Image.LANCZOS).save(
         os.path.join(AUS, "header-3840x1646.png"), optimize=True)
+    # Suchergebnisse (eigener Slot, 3840x2560 / 1920x1280 / 5244x2950): dort erscheint das Bild als
+    # kleine Karte und GANZ — also kein leerer Rand, sondern dieselbe Komposition formatfuellend.
+    such = bauen(3840, 2560, spalte_b=0.80, logo_y=0.125, screens_y=0.235)
+    such.save(os.path.join(AUS, "suche-3840x2560.png"), optimize=True)
     print(AUS)
 
 
