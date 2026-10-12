@@ -886,6 +886,7 @@ NAECHSTES: list[dict] = [
          "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
      ]},
     # 12.10.2026: derselbe Fix fuer iOS (RecordView scrollt), 1.1.46 war schon eingereicht.
+    # 12.10.2026: gebumpt auf 1.1.47 (53) (Jan: „iOS release ich dann direkt neu").
     {"name": "iPhone + Apple Watch", "version": "1.1.47",
      "items": [
          "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
