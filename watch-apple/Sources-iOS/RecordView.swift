@@ -59,7 +59,9 @@ struct RecordView: View {
             VStack(spacing: 16) {
                 if rec.recording { recordingBody }
                 else if rec.status == "saved" || rec.status == "saving" { savedBody }
-                else { idleBody }
+                // Scrollbar (12.10.2026, Meldung Roman auf Android): mit vielen Foils oder auf kleinen
+                // iPhones (SE, mini) laeuft der Inhalt sonst unter die Leiste und START ist weg.
+                else { ScrollView { idleBody } }
             }
             .padding(20)
             .navigationTitle(Loc.t("rec.title", lang))

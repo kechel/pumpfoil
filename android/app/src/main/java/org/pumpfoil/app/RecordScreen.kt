@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -198,7 +200,13 @@ fun RecordScreen(onBack: () -> Unit) {
             when {
                 st.recording -> RecordingBody(st)
                 st.status == "saved" || st.status == "saving" -> SavedBody(st, onBack)
-                else -> {
+                else -> Column(
+                    // SCROLLBAR (12.10.2026, Meldung Roman, Samsung): seit die Foil-Knoepfe zweizeilig
+                    // sind (06.10.), passte der Inhalt auf kleineren Bildschirmen nicht mehr — START lag
+                    // unter der Navigationsleiste und war nicht erreichbar, man konnte nicht aufnehmen.
+                    Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
                     // Idle: Titel + Hinweis, Live-GPS-Status (wie Uhr), Autostart, Foil-Auswahl, START.
                     Spacer(Modifier.height(8.dp))
                     Text(I18n.t("rec.pageTitle"),
@@ -289,8 +297,8 @@ fun RecordScreen(onBack: () -> Unit) {
                         Spacer(Modifier.height(16.dp))
                         PhoneUploadBar()
                     }
-                    Spacer(Modifier.weight(1f))
-                    // Halten-zum-Stoppen ist nur während der Aufnahme; hier Platzhalter-Ende.
+                    // Luft unter START, damit er beim Scrollen nicht an der Leiste klebt.
+                    Spacer(Modifier.height(24.dp))
                 }
             }
 
