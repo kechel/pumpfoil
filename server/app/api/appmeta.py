@@ -755,6 +755,14 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 12.10.2026 17:41 (Jans Meldung, App Store Connect: 1.1.47 (53), „Warten auf Pruefung",
+    # Kennung ea0118e4-9f5b-417b-97dd-9037056d629e). Inhalt: Aufnahme-Startseite scrollt (4bb69bee),
+    # im Simulator von Jan geprueft (11 Foils, START erreichbar).
+    {"name": "iPhone + Apple Watch", "version": "1.1.47",
+     "eingereicht": "2026-10-12",
+     "items": [
+         "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
+     ]},
     # iPhone + Apple Watch 1.1.46 am 12.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple.
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
     # Kennung 4f8b90a9-35d5-4b8b-91e1-ae255905c4e0). Inhalt: Portierung vom 09.10. (081c95f3).
@@ -884,12 +892,6 @@ NAECHSTES: list[dict] = [
          "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
          "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
          "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
-     ]},
-    # 12.10.2026: derselbe Fix fuer iOS (RecordView scrollt), 1.1.46 war schon eingereicht.
-    # 12.10.2026: gebumpt auf 1.1.47 (53) (Jan: „iOS release ich dann direkt neu").
-    {"name": "iPhone + Apple Watch", "version": "1.1.47",
-     "items": [
-         "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
