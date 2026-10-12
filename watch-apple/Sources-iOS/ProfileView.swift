@@ -334,15 +334,15 @@ struct ChangelogView: View {
         }
     }
 
+    /// Beide parallel laden, aber ZUSAMMEN setzen (Jan, 12.10.2026): kamen die Tage zuerst, rutschte
+    /// die Release-Tabelle danach oberhalb des sichtbaren Bereichs in die Liste.
     private func laden() async {
         async let s: ReleaseStand? = try? Api.releaseStand()
-        do {
-            let a: ChangelogAntwort = try await Api.changelog()
-            tage = a.days ?? []
-        } catch {
-            fehler = true
-        }
-        stand = await s
+        async let a: ChangelogAntwort? = try? Api.changelog()
+        let st: ReleaseStand? = await s
+        let an: ChangelogAntwort? = await a
+        stand = st
+        if let an { tage = an.days ?? [] } else { fehler = true }
     }
 }
 
