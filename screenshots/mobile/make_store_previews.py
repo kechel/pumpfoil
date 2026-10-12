@@ -231,6 +231,13 @@ def main():
         make(ios_files[idx - 1], tt(title), (1242, 2688),
              HERE / f"ios-store-65{sfx}" / f"{i:02d}.png", cache)
 
+    # 12.10.2026: App Store Connect hat einen eigenen Slot „iPhone mit Dynamic Island (mittleres
+    # Display)" = 6,1"/6,3" und nimmt dort NUR 1206x2622 bzw. 1179x2556 (Jans Upload scheiterte
+    # mit den 6,9"-Bildern: „Die Dateiabmessungen sind ungueltig").
+    print("iPhone 6.3\" (1206x2622):") if ios_files else None
+    for i, (idx, title) in enumerate(IOS if ios_files else [], 1):
+        make(ios_files[idx - 1], tt(title), (1206, 2622),
+             HERE / f"ios-store-63{sfx}" / f"{i:02d}.png", cache)
     print("Android (1080x2160):")
     for i, (idx, title) in enumerate(ANDROID, 1):
         make(an_files[idx - 1], tt(title), (1080, 2160),
