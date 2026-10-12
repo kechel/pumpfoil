@@ -928,6 +928,10 @@ IDEEN: list[str] = [
     "Paddle-up starts: count the strokes it takes you to get up, and how fast you are when "
     "the board lifts.",
     "Pick the foil per run, not just per session — most of us swap gear during a session.",
+    # Wunsch PumpingCarbon (Feedback 09.10.2026): „wie weit man geschwommen ist … da man diese ja so
+    # weit wie es geht reduzieren moechte". Ohne Zusage (Jan, 12.10.). Offen: Schwimmen vom Treiben
+    # unterscheiden; unter Wasser gibt es oft kein GPS (s. Amazfit-Feldtest 12.10.).
+    "How far you swam between runs — a number worth getting as low as possible.",
     # Vorschlag von Oerni im 1:1-Chat mit Jan (04.10.2026): wer in EINER Session pumpt und Boote
     # (Wakethief) faehrt, will die Laeufe einzeln zuordnen; die zaehlen dann auch in der
     # Spot-Statistik. Jan: „benoetigt den gleichen Umbau wie Foil je Lauf".
