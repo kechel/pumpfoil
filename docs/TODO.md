@@ -11409,3 +11409,9 @@ Offen daraus:
   Bewegungsdaten der Kamera gegen Uhr bzw. Handy am Brett kreuzkorrelieren (wie `paare_ausrichten.py` fuer
   Uhr/Brett) -> Video zeitgenau an die Session haengen, Laeufe/Pumps im Video springen lassen, ggf. auch
   Pump-Wahrheit fuer das Training. Erst nur ansehen, nichts bauen.
+- **12.10.2026 — Zepp-Store-Bilder bei der naechsten Amazfit-Einreichung erneuern.** Im Store stehen 4 Paare
+  mit v1.0.11 (gueltig, abgenommen). Neue runde Aufnahmen (1.0.13) liegen in
+  `screenshots/watch/zepp/20261010-neu/`, eckige fehlen — Zepp verlangt dieselben Bildschirme rund UND eckig
+  (brand/stores/zepp/README.md). Bei der naechsten Simulator-Runde beide Formen aufnehmen: Startseite mit START,
+  on foil, Puls/Tempo-Bogen, Datenseite Dst/Dur/Hr/Avg, Statistik pausiert, LAST RUN, Pause-Menue. Dann
+  `scripts/zepp-store-previews.py` (raw/circle + raw/square).
