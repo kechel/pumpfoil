@@ -1344,3 +1344,50 @@ data class FoilerTitel(
     @SerialName("session_id") val sessionId: Int? = null,
     val allein: Boolean = false,                // er ist dort der einzige Fahrer
 )
+
+// Native Changelog-Seite (ChangelogScreen.kt, 12.10.2026, Nutzer-Meldung): dieselben zwei
+// oeffentlichen Abrufe wie web/src/pages/Changelog.tsx. Alles optional mit Vorgabe — fehlt ein
+// Abschnitt (z. B. `rejected`), bleibt er einfach leer.
+@Serializable
+data class ReleaseZeile(
+    val name: String = "",
+    val version: String = "",
+    val note: String? = null,
+    @SerialName("store_url") val storeUrl: String? = null,
+    val items: List<String> = emptyList(),
+)
+
+@Serializable
+data class BekanntesProblem(
+    val titel: String = "",
+    val text: String = "",
+    val note: String? = null,
+)
+
+@Serializable
+data class ReleaseStand(
+    val live: List<ReleaseZeile> = emptyList(),
+    val review: List<ReleaseZeile> = emptyList(),
+    val rejected: List<ReleaseZeile> = emptyList(),
+    val next: List<ReleaseZeile> = emptyList(),
+    val ideen: List<String> = emptyList(),
+    val probleme: List<BekanntesProblem> = emptyList(),
+)
+
+@Serializable
+data class ChangelogPlattform(val name: String = "", val version: String = "")
+
+@Serializable
+data class ChangelogPunkt(
+    val text: String = "",
+    val img: String? = null,
+    @SerialName("img_alt") val imgAlt: String? = null,
+    val art: String? = null,                 // "ereignis" = Schritt im Store-Lauf
+    val plattformen: List<ChangelogPlattform> = emptyList(),
+)
+
+@Serializable
+data class ChangelogTag(val date: String = "", val items: List<ChangelogPunkt> = emptyList())
+
+@Serializable
+data class ChangelogAntwort(val days: List<ChangelogTag> = emptyList(), val latest: String? = null)

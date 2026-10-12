@@ -87,6 +87,8 @@ struct ProfileView: View {
             // Einrichtungs-Assistent: fuer ALLE und jederzeit, nicht nur fuer neue Konten
             // (die erreicht zusaetzlich die Weiche beim ersten Start, s. RootView).
             navRow("onb.startTitle", "checklist") { OnboardingView() }
+            // Changelog nativ (12.10.2026, Nutzer-Meldung) — wie der Menuepunkt im Web.
+            navRow("nav.changelog", "sparkles") { ChangelogView() }
             Link(Loc.t("profile.web", lang), destination: URL(string: "https://pumpfoil.org")!)
         }
     }
@@ -285,3 +287,309 @@ struct ProfileView: View {
 // Datei fuer das Teilen-Blatt. Gleichnamiger Typ steht auch in SessionDetailView — beide sind
 // dateiprivat, das ist kein Konflikt.
 private struct ExportItem: Identifiable { let id = UUID(); let url: URL }
+
+// MARK: - Changelog
+
+// Changelog nativ (12.10.2026, Nutzer-Meldung): dieselbe Seite wie web/src/pages/Changelog.tsx —
+// oben der Release-Stand (Live / in Pruefung / abgelehnt / als Naechstes / Ideen), darunter die
+// Tage, neueste zuerst. Inhalt bewusst ENGLISCH wie im Web (Memory changelog-page), uebersetzt sind
+// nur Titel, „Details (n)" und die Fehlerzeile. Hier statt in einer eigenen Datei, damit kein
+// xcodegen-Lauf noetig ist. Beide Abrufe sind unabhaengig: faellt der Release-Stand aus,
+// verschwindet nur sein Block (wie im Web).
+struct ChangelogView: View {
+    @AppStorage("appLang") private var lang = "de"
+    @State private var tage: [ChangelogTag]?
+    @State private var fehler = false
+    @State private var stand: ReleaseStand?
+
+    var body: some View {
+        List {
+            standSections
+            ladeZeile
+            ForEach(tage ?? []) { tag in
+                ChangelogTagSection(tag: tag)
+            }
+        }
+        .listStyle(.insetGrouped)
+        .navigationTitle(Loc.t("nav.changelog", lang))
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await laden() }
+    }
+
+    @ViewBuilder private var standSections: some View {
+        if let s = stand {
+            let probleme: [BekanntesProblem] = s.probleme ?? []
+            if !probleme.isEmpty {
+                ChangelogProblemSection(probleme: probleme)
+            }
+            ChangelogReleaseSection(stand: s, lang: lang)
+        }
+    }
+
+    @ViewBuilder private var ladeZeile: some View {
+        if fehler {
+            Text(Loc.t("common.loadFailed", lang)).foregroundStyle(.secondary)
+        } else if tage == nil {
+            Text(Loc.t("common.loading", lang)).foregroundStyle(.secondary)
+        }
+    }
+
+    private func laden() async {
+        async let s: ReleaseStand? = try? Api.releaseStand()
+        do {
+            let a: ChangelogAntwort = try await Api.changelog()
+            tage = a.days ?? []
+        } catch {
+            fehler = true
+        }
+        stand = await s
+    }
+}
+
+/// `[label](ziel)` -> nur `label`. Die Links fuehren meist auf Web-Seiten; nativ bleibt der Text.
+private func changelogOhneLinks(_ t: String) -> String {
+    t.replacingOccurrences(of: #"\[([^\]]+)\]\(([^)]+)\)"#, with: "$1", options: .regularExpression)
+}
+
+/// „October 12, 2026" — fest Englisch wie das Web (`tagLang`).
+private func changelogTagLang(_ iso: String) -> String {
+    let ein = DateFormatter()
+    ein.locale = Locale(identifier: "en_US_POSIX")
+    ein.dateFormat = "yyyy-MM-dd"
+    guard let d = ein.date(from: iso) else { return iso }
+    let aus = DateFormatter()
+    aus.locale = Locale(identifier: "en_US_POSIX")
+    aus.dateFormat = "MMMM d, yyyy"
+    return aus.string(from: d)
+}
+
+// Bekannte Probleme — Warnbox ueber dem Release-Stand (Web `BekannteProbleme`).
+private struct ChangelogProblemSection: View {
+    let probleme: [BekanntesProblem]
+
+    var body: some View {
+        Section {
+            ForEach(Array(probleme.enumerated()), id: \.offset) { _, p in
+                zeile(p)
+            }
+        } header: {
+            Text("Known problems right now").foregroundStyle(Color.orange)
+        }
+    }
+
+    private func zeile(_ p: BekanntesProblem) -> some View {
+        let kopf: String = (p.titel ?? "") + ": " + (p.text ?? "")
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(kopf).font(.subheadline)
+            if let n = p.note, !n.isEmpty {
+                Text(n).font(.subheadline).foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+// Release-Stand: dieselben Abschnitte in derselben Reihenfolge und Farbfamilie wie das Web.
+private struct ChangelogReleaseSection: View {
+    let stand: ReleaseStand
+    let lang: String
+
+    private struct Gruppe { let titel: String; let farbe: Color; let zeilen: [ReleaseZeile] }
+
+    private var gruppen: [Gruppe] {
+        let alle: [Gruppe] = [
+            Gruppe(titel: "Live now", farbe: .accentColor, zeilen: stand.live ?? []),
+            Gruppe(titel: "Being reviewed", farbe: .green, zeilen: stand.review ?? []),
+            Gruppe(titel: "Rejected", farbe: .orange, zeilen: stand.rejected ?? []),
+            Gruppe(titel: "Coming next", farbe: Color(red: 1.0, green: 0x55 / 255, blue: 0), zeilen: stand.next ?? []),
+        ]
+        return alle.filter { !$0.zeilen.isEmpty }
+    }
+
+    var body: some View {
+        Section {
+            ForEach(Array(gruppen.enumerated()), id: \.offset) { _, g in
+                gruppeView(g)
+            }
+            ideenView
+        } header: {
+            Text("Release status")
+        } footer: {
+            Text("Where everything stands right now — website, phone apps and watch apps.")
+        }
+    }
+
+    private func gruppeView(_ g: Gruppe) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(g.titel.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(g.farbe)
+            ForEach(Array(g.zeilen.enumerated()), id: \.offset) { _, r in
+                ChangelogReleaseZeile(r: r, lang: lang)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    @ViewBuilder private var ideenView: some View {
+        let ideen: [String] = stand.ideen ?? []
+        if !ideen.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("IDEAS FOR FUTURE DEVELOPMENT").font(.caption.weight(.semibold)).foregroundStyle(Color.purple)
+                Text("No dates and no order — things we would like to build.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                ChangelogAufklapper(punkte: ideen, lang: lang)
+            }
+            .padding(.vertical, 2)
+        }
+    }
+}
+
+// Eine Einreichung: Name, Version (mit Store-Link, wenn es einen gibt), Notiz, eingeklappte Punkte.
+private struct ChangelogReleaseZeile: View {
+    let r: ReleaseZeile
+    let lang: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(r.name ?? "").font(.subheadline.weight(.medium))
+            version
+            if let n = r.note, !n.isEmpty {
+                Text(n).font(.subheadline).foregroundStyle(.secondary)
+            }
+            let punkte: [String] = r.items ?? []
+            if !punkte.isEmpty {
+                ChangelogAufklapper(punkte: punkte, lang: lang)
+            }
+        }
+    }
+
+    @ViewBuilder private var version: some View {
+        let v: String = r.version ?? ""
+        if let s = r.store_url, !s.isEmpty, let u = URL(string: s) {
+            Link(v, destination: u).font(.subheadline.weight(.medium)).buttonStyle(.borderless)
+        } else {
+            Text(v).font(.subheadline.weight(.medium))
+        }
+    }
+}
+
+// „Details (n)" — zu, bis man es aufmacht (wie <details> im Web). `.borderless`, damit der Tipp in
+// der Listenzeile nur den Knopf trifft (Memory swiftui-listenzeile-mehrere-knoepfe).
+private struct ChangelogAufklapper: View {
+    let punkte: [String]
+    let lang: String
+    @State private var offen = false
+
+    private var titel: String {
+        Loc.t("changelog.details", lang).replacingOccurrences(of: "{n}", with: String(punkte.count))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button { offen.toggle() } label: {
+                Label(titel, systemImage: offen ? "chevron.down" : "chevron.right").font(.subheadline)
+            }
+            .buttonStyle(.borderless)
+            if offen {
+                ForEach(Array(punkte.enumerated()), id: \.offset) { _, t in
+                    ChangelogAufzaehlung(text: t, gedaempft: false)
+                }
+            }
+        }
+    }
+}
+
+private struct ChangelogAufzaehlung: View {
+    let text: String
+    let gedaempft: Bool
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text("•")
+            Text(text).foregroundStyle(gedaempft ? Color.secondary : Color.primary)
+        }
+        .font(.subheadline)
+    }
+}
+
+// Ein Tag: Datum als Kopf, darunter die Punkte. Store-Ereignisse ohne Aufzaehlungspunkt, gedaempft
+// und mit Strich links — gleiche Schriftgroesse („Hinweise nie winzig"), wie im Web.
+private struct ChangelogTagSection: View {
+    let tag: ChangelogTag
+
+    var body: some View {
+        Section {
+            ForEach(Array((tag.items ?? []).enumerated()), id: \.offset) { _, p in
+                ChangelogPunktZeile(p: p)
+            }
+        } header: {
+            Text(changelogTagLang(tag.date)).foregroundStyle(Color.accentColor)
+        }
+    }
+}
+
+private struct ChangelogPunktZeile: View {
+    let p: ChangelogPunkt
+
+    private var ereignis: Bool { p.art == "ereignis" }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            textZeile
+            plaketten
+            bild
+        }
+    }
+
+    @ViewBuilder private var textZeile: some View {
+        let t: String = changelogOhneLinks(p.text ?? "")
+        if ereignis {
+            HStack(spacing: 10) {
+                Rectangle().fill(Color.secondary.opacity(0.4)).frame(width: 2)
+                Text(t).font(.subheadline).foregroundStyle(.secondary)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        } else {
+            ChangelogAufzaehlung(text: t, gedaempft: false)
+        }
+    }
+
+    // Plattform-Plaketten: welche App-Version den Punkt bringt (Web: `plattformen`).
+    @ViewBuilder private var plaketten: some View {
+        let pl: [ChangelogPlattform] = p.plattformen ?? []
+        if !pl.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(Array(pl.enumerated()), id: \.offset) { _, x in
+                        plakette(x)
+                    }
+                }
+            }
+            .padding(.leading, 14)
+        }
+    }
+
+    private func plakette(_ x: ChangelogPlattform) -> some View {
+        let n: String = x.name ?? ""
+        let v: String = x.version ?? ""
+        let t: String = v.isEmpty ? n : n + " " + v
+        return Text(t)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 8).padding(.vertical, 2)
+            .background(Color(.tertiarySystemFill), in: Capsule())
+    }
+
+    @ViewBuilder private var bild: some View {
+        if let u = Api.mediaURL(p.img) {
+            NetzBild(url: u) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFit()
+                default: Color(.tertiarySystemBackground).frame(height: 120)
+                }
+            }
+            .frame(maxWidth: 260)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .accessibilityLabel(p.img_alt ?? "")
+            .padding(.leading, 14)
+        }
+    }
+}

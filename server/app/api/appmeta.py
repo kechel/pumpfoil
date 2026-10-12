@@ -886,12 +886,19 @@ NAECHSTES: list[dict] = [
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
     {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
      "items": [
+         # 12.10.2026 (Nutzer-Meldung): native Changelog-Seite, live vom Server, Link im Profil.
+         "The changelog is now in the app too, under Profile, always with the latest news — including versions you don't have yet.",
          # 12.10.2026 (Meldung Roman, Samsung): START lag unter der Navigationsleiste (seit den
          # zweizeiligen Foil-Knoepfen in 1.1.41), Aufnahme unmoeglich. Fix: Startseite scrollt.
          "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
          "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
          "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
          "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
+     ]},
+    # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht). Nicht gebumpt.
+    {"name": "iPhone + Apple Watch", "version": "1.1.48",
+     "items": [
+         "The changelog is now in the app too, under Profile, always with the latest news — including versions you don't have yet.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.

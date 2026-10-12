@@ -139,6 +139,10 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "online.title" to row("Online-Punkt", "Online-Pünktli", "Online-Punkt", "Online dot", "Point en ligne", "Punto online", "Punto en línea"),
     "online.hint" to row("Solange du die App oder die Seite offen hast, sehen andere einen kleinen grünen Punkt an deinem Profilbild.", "Solang du d App oder d Siite offe hesch, gsehnd anderi es chliises grüens Pünktli a dim Profilbild.", "Solange du die App oder die Seite offen hast, sehen andere einen kleinen grünen Punkt an deinem Profilbild.", "While you have the app or the website open, others see a small green dot on your profile picture.", "Tant que l'appli ou le site est ouvert, les autres voient un petit point vert sur ta photo de profil.", "Finché hai l'app o il sito aperti, gli altri vedono un piccolo punto verde sulla tua foto profilo.", "Mientras tengas la app o la web abiertas, los demás ven un pequeño punto verde en tu foto de perfil."),
     "online.switch" to row("Anderen zeigen, wenn ich online bin", "Andere zeige, wenn i online bi", "Anderen zeigen, wenn ich online bin", "Show others when I'm online", "Montrer aux autres quand je suis en ligne", "Mostra agli altri quando sono online", "Mostrar a los demás cuando estoy en línea"),
+    // Native Changelog-Seite (ChangelogScreen.kt), aus den Web-Sprachdateien 12.10.2026 (Nutzer-Meldung).
+    "nav.changelog" to row("Neuerungen", "Neuigkeite", "Neuerungen", "Changelog", "Nouveautés", "Novità", "Novedades"),
+    "changelog.details" to row("Details ({n})", "Details ({n})", "Details ({n})", "Details ({n})", "Détails ({n})", "Dettagli ({n})", "Detalles ({n})"),
+    "common.loadFailed" to row("Konnte nicht geladen werden.", "Het nöd chönne glade werde.", "Hot net gladen werdn kenna.", "Could not be loaded.", "Impossible de charger.", "Impossibile caricare.", "No se pudo cargar."),
     "chat.sent" to row("Gesendet", "Gschickt", "Gesendet", "Sent", "Envoyé", "Inviato", "Enviado"),
     "chat.read" to row("Gelesen", "Gläse", "Gelesen", "Read", "Lu", "Letto", "Leído"),
     "watchStats.tabUsage" to row("Nutzung", "Nutzig", "Nutzung", "Usage", "Utilisation", "Utilizzo", "Uso"),
@@ -1538,6 +1542,10 @@ private fun fiTabelle(): Map<String, String> = mapOf(
     "online.title" to "Paikalla-piste",
     "online.hint" to "Kun sovellus tai sivusto on auki, muut näkevät pienen vihreän pisteen profiilikuvassasi.",
     "online.switch" to "Näytä muille, kun olen paikalla",
+    // Native Changelog-Seite — aus web fi.ts, 12.10.2026.
+    "nav.changelog" to "Uutuudet",
+    "changelog.details" to "Tiedot ({n})",
+    "common.loadFailed" to "Lataus ei onnistunut.",
     "chat.sent" to "Lähetetty",
     "chat.read" to "Luettu",
     "watchStats.tabUsage" to "Käyttö",
@@ -2665,6 +2673,10 @@ private fun nlTabelle(): Map<String, String> = mapOf(
     "online.title" to "Online-stip",
     "online.hint" to "Zolang je de app of de website open hebt, zien anderen een klein groen stipje bij je profielfoto.",
     "online.switch" to "Anderen laten zien wanneer ik online ben",
+    // Native Changelog-Seite — aus web nl.ts, 12.10.2026.
+    "nav.changelog" to "Nieuw",
+    "changelog.details" to "Details ({n})",
+    "common.loadFailed" to "Kon niet geladen worden.",
     "chat.sent" to "Verzonden",
     "chat.read" to "Gelezen",
     "watchStats.tabUsage" to "Gebruik",
@@ -3791,6 +3803,10 @@ private fun csTabelle(): Map<String, String> = mapOf(
     "online.title" to "Online tečka",
     "online.hint" to "Dokud máš otevřenou aplikaci nebo web, ostatní vidí u tvého profilového obrázku malou zelenou tečku.",
     "online.switch" to "Ukázat ostatním, když jsem online",
+    // Native Changelog-Seite — aus web cs.ts, 12.10.2026.
+    "nav.changelog" to "Novinky",
+    "changelog.details" to "Podrobnosti ({n})",
+    "common.loadFailed" to "Nepodařilo se načíst.",
     "chat.sent" to "Odesláno",
     "chat.read" to "Přečteno",
     "watchStats.tabUsage" to "Používání",

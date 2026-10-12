@@ -1062,6 +1062,15 @@ enum Api {
         try await request("/api/app/news", method: "GET", body: nil, auth: false)
     }
 
+    // Changelog + Release-Stand (oeffentlich, wie web Changelog.tsx) — ChangelogView, 12.10.2026.
+    static func changelog() async throws -> ChangelogAntwort {
+        try await request("/api/app/changelog", method: "GET", body: nil, auth: false)
+    }
+
+    static func releaseStand() async throws -> ReleaseStand {
+        try await request("/api/app/releases", method: "GET", body: nil, auth: false)
+    }
+
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog.
     /// Teilen-Bild vom Server. `bg`: "navy" | "transparent" (Foto legt die App drueber) |
     /// "karte" | "satellit".
