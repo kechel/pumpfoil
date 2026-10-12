@@ -684,7 +684,11 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
                 .filter(models.SpotNote.hidden.is_(True)).scalar() or 0)
     return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat,
             "social": social, "feedback": feedback, "spots": spots,
-            "total": flagged + fake + suspect + chat + social + feedback + spots}
+            # `suspect` zaehlt NICHT mehr mit (Jan, 12.10.2026): das Physik-Gate nimmt die Laeufe ueber
+            # 40 km/h ohnehin aus Rekorden und Statistik, und ob eine Session ueberhaupt Pumpfoil
+            # ist, klaert der Knopf „sieht nicht nach Pumpfoil aus" beim Besitzer. Der Reiter bleibt
+            # (falls wir ihn wieder brauchen), die Zahl wird weiter geliefert, nur nicht gemeldet.
+            "total": flagged + fake + chat + social + feedback + spots}
 
 
 @router.get("/overview")
