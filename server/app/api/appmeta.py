@@ -877,6 +877,7 @@ NAECHSTES: list[dict] = [
          "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
          "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
      ]},
+    # 12.10.2026: iOS gebumpt auf 1.1.46 (52) (Jan: „pumpe mal die iOS version, dann release ich").
     {"name": "iPhone + Apple Watch", "version": "1.1.46",
      "items": [
          "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
