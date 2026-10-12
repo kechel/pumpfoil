@@ -69,6 +69,14 @@ def gerahmt(img, breite, radius_anteil=0.07):
     return out, pad
 
 
+# Was das iPhone zeigt (Jan, 12.10.2026, Geraetevorschau in App Store Connect): nur einen kleinen
+# MITTIGEN Ausschnitt, etwa ein Drittel der Breite und 40 % der Hoehe. Die erste Fassung hatte
+# das Lockup links und die Screens rechts — auf dem iPhone sah man davon nur die Raender. Jetzt
+# steht das Lockup genau in der Mitte und passt in diesen Ausschnitt; die Screens flankieren es
+# links und rechts und sind auf iPad/Mac zu sehen.
+MITTE_B, MITTE_H = 0.30, 0.36
+
+
 def bauen(W, H, band_h):
     base = verlauf(W, H)
     wm = gen.render_waves(gen.CYAN, int(H * 0.6))
@@ -76,28 +84,27 @@ def bauen(W, H, band_h):
         faint = wm.copy(); faint.putalpha(faint.split()[3].point(lambda v: int(v * 0.08)))
         layer = Image.new("RGBA", base.size, (0, 0, 0, 0)); layer.alpha_composite(faint, (x, y))
         base.alpha_composite(layer)
-    top = (H - band_h) // 2                    # mittleres Band, das jeder Zuschnitt behaelt
-    # Links: Lockup, auf 42 % der Breite, vertikal mittig im Band
+    top = (H - band_h) // 2
+    # Seiten zuerst (liegen hinter dem Lockup, falls sie sich beruehren)
+    sh = int(band_h * 0.80)
+    bilder = {n: Image.open(os.path.join(IOS, f"{n:02d}.png")) for n in SCREENS}
+    ratio = bilder[SCREENS[0]].width / bilder[SCREENS[0]].height
+    rand = W * (1 - MITTE_B) / 2               # Breite je Seitenfeld
+    def setze(img, f, cx, cy, radius=0.07):
+        g, pad = gerahmt(img, int(sh * f * ratio) if radius < 0.2 else int(sh * f * 0.82), radius)
+        base.alpha_composite(g, (int(cx - g.width / 2), int(cy - g.height / 2)))
+    cy = top + band_h / 2
+    # links: Startseite, davor die Uhr
+    setze(bilder[SCREENS[0]], 0.92, rand * 0.42, cy)
+    setze(Image.open(UHR), 0.42, rand * 0.80, cy + sh * 0.22, radius=0.22)
+    # rechts: Lauf auf der Karte vorn, Fortschritt dahinter
+    setze(bilder[SCREENS[2]], 0.84, W - rand * 0.30, cy - sh * 0.03)
+    setze(bilder[SCREENS[1]], 0.92, W - rand * 0.62, cy)
+    # Mitte: Lockup, passt in den Ausschnitt, den das iPhone zeigt
     block = lockup_block()
-    s = min(W * 0.40 / block.width, band_h * 0.4 / block.height)
+    s = min(W * MITTE_B * 0.86 / block.width, H * MITTE_H * 0.70 / block.height)
     block = block.resize((round(block.width * s), round(block.height * s)), Image.LANCZOS)
-    base.alpha_composite(block, (int(W * 0.06), top + (band_h - block.height) // 2))
-    # Rechts: drei iPhone-Screens gestaffelt, mittlerer vorn und groesser, davor die Uhr
-    sh = int(band_h * 0.92)                    # Hoehe des mittleren Screens
-    bilder = [Image.open(os.path.join(IOS, f"{n:02d}.png")) for n in SCREENS]
-    ratio = bilder[0].width / bilder[0].height
-    mitte_x = int(W * 0.74)
-    for i, (img, f, dx) in enumerate(((bilder[0], 0.86, -0.62), (bilder[2], 0.86, 0.62), (bilder[1], 1.0, 0.0))):
-        b = int(sh * f * ratio)
-        g, pad = gerahmt(img, b)
-        x = mitte_x + int(dx * sh * ratio) - g.width // 2
-        y = top + (band_h - g.height) // 2
-        base.alpha_composite(g, (x, y))
-    uhr = Image.open(UHR).convert("RGBA")
-    ub = int(sh * ratio * 0.62)
-    g, pad = gerahmt(uhr, ub, radius_anteil=0.22)
-    base.alpha_composite(g, (mitte_x + int(sh * ratio * 0.62) - g.width // 2 + int(ub * 0.35),
-                             top + band_h - g.height + int(pad * 0.6)))
+    base.alpha_composite(block, ((W - block.width) // 2, (H - block.height) // 2))
     return base.convert("RGB")
 
 
