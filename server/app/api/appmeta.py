@@ -751,6 +751,15 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 12.10.2026 06:24 (Jans Meldung, App Store Connect: 1.1.46 (52), „Warten auf Pruefung",
+    # Kennung fbfc5ecf-015e-4bc2-a6d1-d1087803e076). Inhalt: 4cd0fb77, 4cb9e81e, e6660048.
+    {"name": "iPhone + Apple Watch", "version": "1.1.46",
+     "eingereicht": "2026-10-12",
+     "items": [
+         "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
+         "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
+         "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
+     ]},
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
     # Kennung 4f8b90a9-35d5-4b8b-91e1-ae255905c4e0). Inhalt: Portierung vom 09.10. (081c95f3).
     # iPhone + Apple Watch 1.1.45 am 09.10. abends FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple (+web, wo die PWA es seit heute auch hat).
@@ -872,13 +881,6 @@ NAECHSTES: list[dict] = [
     # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
     {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
-     "items": [
-         "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
-         "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
-         "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
-     ]},
-    # 12.10.2026: iOS gebumpt auf 1.1.46 (52) (Jan: „pumpe mal die iOS version, dann release ich").
-    {"name": "iPhone + Apple Watch", "version": "1.1.46",
      "items": [
          "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
          "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
