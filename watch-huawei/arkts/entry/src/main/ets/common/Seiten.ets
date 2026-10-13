@@ -307,7 +307,7 @@ export function feld(s: Stand, id: number, el: number, t: Texte, jetzt: Date): s
   }
 }
 
-/** Was das Handy aus /api/devices/config schickt (HuaweiBruecke.konfigFuerUhr). */
+/** Was /api/devices/config liefert (Watch 5: direkt vom Server; Lite: ueber HuaweiBruecke.konfigFuerUhr). */
 export interface KonfigDaten {
   views?: number[][];
   offFoilView?: number[];

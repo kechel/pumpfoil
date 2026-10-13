@@ -51,7 +51,8 @@ struct Index {
   @State zSperre: string = '';
   @State zStart: string = '';
   private zeigeAuswahl: boolean = false;
-  // Koppeln mit pumpfoil.org (Direkt-Upload ohne Handy): eigene Ansicht aus den Einstellungen
+  // Koppeln mit pumpfoil.org (Direkt-Upload, seit 13.10.2026 der einzige Weg): Ansicht aus den
+  // Einstellungen oder per Tipp auf die Infozeile, solange nicht gekoppelt
   private zeigeKoppeln: boolean = false;
   private koppelnTick: number = 0;
   private trennScharf: boolean = false;
@@ -196,20 +197,31 @@ struct Index {
       return this.t($r('app.string.discarded'));
     }
     if (z.direkt) {
-      // Gekoppelt: die Uhr laedt selbst hoch, ein Handy spielt keine Rolle
+      // Gekoppelt: die Uhr laedt selbst hoch
       if (z.offen > 0) {
         return z.plan.fertig + '/' + z.plan.gesamt + (z.direktFehler > 0 ? ' · ' + this.t($r('app.string.noInternet')) : '');
       }
       return z.modus === 'bereit' ? this.t($r('app.string.allSent')) : '';
     }
-    const handy: string = this.t($r('app.string.openPhone'));   // ohne Fehlercode (wie Lite)
+    // Ungekoppelt (Watch 5 ohne Wear Engine seit 13.10.2026): Aufnahmen warten auf der Uhr, bis
+    // gekoppelt ist. Antippen der Zeile oeffnet das Koppeln (infoTipp).
+    const koppeln: string = this.t($r('app.string.pairFirst'));
     if (z.offen > 0) {
-      return z.plan.fertig + '/' + z.plan.gesamt + (z.sendeFehler > 0 ? ' · ' + handy : '');
+      return z.plan.fertig + '/' + z.plan.gesamt + ' · ' + koppeln;
     }
-    if (z.modus === 'bereit') {
-      return z.sendeFehler > 0 ? handy : this.t($r('app.string.allSent'));
+    return z.modus === 'bereit' ? koppeln : '';
+  }
+
+  /** Infozeile angetippt: ungekoppelt auf dem Startbildschirm direkt in die Koppel-Ansicht. */
+  private infoTipp(): void {
+    const r: Recorder = Recorder.get();
+    if (r.modus !== 'bereit' || r.gekoppelt() || this.ansicht !== 'bereit' || this.sperrHinweis) {
+      return;
     }
-    return '';
+    this.zeigeKoppeln = true;
+    this.koppelnTick = 0;
+    this.trennScharf = false;
+    this.zeigen();
   }
 
   private seiten(): void {
@@ -623,6 +635,7 @@ struct Index {
   infoText() {
     Text(this.info).fontSize(16).fontColor('#cbd5e1').textAlign(TextAlign.Center).width(260).maxLines(3)
       .margin({ top: 8 })
+      .onClick(() => this.infoTipp())
   }
 
   build() {

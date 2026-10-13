@@ -3,8 +3,12 @@
  * OHNE Geraete-APIs. Gegenstueck zu watch-huawei/common/kern.js (Lite + JS-FA).
  *
  * Gleiche Logik, gleiche Ausgabe: test/arkts-kern.test.mjs uebersetzt diese Datei mit tsc und
- * prueft sie gegen kern.js — Binaerformat, Chunks, Zeitachse, Sendeplan und Nachrichten-Teile
- * muessen BYTEGLEICH sein, denn Handy und Server unterscheiden die Uhren-Linien nicht.
+ * prueft sie gegen kern.js — Binaerformat, Chunks, Zeitachse und Sendeplan muessen BYTEGLEICH
+ * sein, denn der Server unterscheidet die Uhren-Linien nicht.
+ *
+ * Seit 13.10.2026 ohne Wear Engine (Watch 5 laedt nur direkt hoch, Huawei lehnte die Berechtigung
+ * ab): Warteschlange, Nachrichten-Teile (teile/ascii) und Gegenstelle sind raus — sie gibt es nur
+ * noch in kern.js fuer Lite. Der Sendeplan bleibt: er ist die Liste der Dateien je Session.
  *
  * Bewusst im strengen ArkTS-Umfang (feste Typen, keine Tupel, kein any, keine Prototypen),
  * damit die Datei ohne Anpassung in DevEco uebersetzt.
@@ -18,7 +22,6 @@ const G: number = 9.80665;
 export const ACCEL_JE_BLOCK: number = 250;        // ~5 s bei 50 Hz
 export const GPS_JE_BLOCK: number = 30;           // ~30 s bei 1 Hz
 const MAX_FIX_ALTER_MS: number = 10 * 60 * 1000;
-export const TEIL_MAX: number = 800;
 
 const B64: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -230,7 +233,7 @@ export function neueId(wandMs: number, zufall: number): string {
   return 'hw-' + wandMs.toString(36) + '-' + Math.floor(zufall * 1e9).toString(36);
 }
 
-/** Dateinamen (ohne Ordner; der kommt aus der Geraete-Schicht). Handy erkennt sie am Muster. */
+/** Dateinamen (ohne Ordner; der kommt aus der Geraete-Schicht), gleiches Muster wie kern.js. */
 export function dateiMeta(id: string): string {
   return 'm_' + id + '.json';
 }
@@ -243,50 +246,13 @@ export function dateiEnde(id: string): string {
   return 'e_' + id + '.json';
 }
 
-/**
- * Warteschlange zum Handy: eine Nachricht gleichzeitig, Fehler GEZAEHLT und angezeigt (Regel
- * 13.09.: nie nur einmal melden), Wartezeit 5 s, 15 s, 30 s, dann 60 s.
- */
-export class Warteschlange {
-  laeuft: boolean = false;
-  fehlerFolge: number = 0;
-  fehlerGesamt: number = 0;
-  gesendet: number = 0;
-  letzterCode: number = 0;
-  naechsterVersuch: number = 0;
-
-  darf(jetzt: number): boolean {
-    return !this.laeuft && jetzt >= this.naechsterVersuch;
-  }
-
-  start(): void {
-    this.laeuft = true;
-  }
-
-  ok(): void {
-    this.laeuft = false;
-    this.fehlerFolge = 0;
-    this.gesendet++;
-    this.naechsterVersuch = 0;
-  }
-
-  fehler(code: number, jetzt: number): void {
-    this.laeuft = false;
-    this.fehlerFolge++;
-    this.fehlerGesamt++;
-    this.letzterCode = code;
-    const w: number[] = [5000, 15000, 30000, 60000];
-    this.naechsterVersuch = jetzt + w[Math.min(this.fehlerFolge - 1, w.length - 1)];
-  }
-}
-
 export interface PlanEintrag {
   id: string;
   n: number;    // geschriebene Chunks
-  g: number;    // davon beim Handy
-  m: number;    // Meta beim Handy (0/1)
+  g: number;    // davon gesendet (nur Lite/Wear Engine; hier immer 0)
+  m: number;    // Meta gesendet (0/1, hier immer 0)
   e: number;    // Ende geschrieben (0/1)
-  eg: number;   // Ende beim Handy (0/1)
+  eg: number;   // Ende gesendet (0/1, hier immer 0)
 }
 
 export interface PlanDaten {
@@ -305,8 +271,10 @@ export interface PlanStand {
 }
 
 /**
- * Sendeplan: WAS als Naechstes zum Handy geht, ohne Dateien aufzulisten (Zaehler je Session,
- * als kleine Datei mitgeschrieben). Reihenfolge je Session: Meta, Chunks 0..n-1, Ende.
+ * Sendeplan: welche Dateien je Session auf der Uhr liegen, ohne sie aufzulisten (Zaehler je
+ * Session, als kleine Datei mitgeschrieben). Reihenfolge je Session: Meta, Chunks 0..n-1, Ende.
+ * naechste/erledigt stammen vom Weg ueber das Handy (wie kern.js) und werden auf der Watch 5
+ * nicht mehr gerufen; der Direkt-Upload nimmt ganze Sessions (direktBereit) und `weg`.
  */
 export class Sendeplan {
   s: PlanEintrag[] = [];
@@ -458,62 +426,6 @@ export function dateiVon(d: Datei): string {
   return dateiChunk(d.id, d.nr);
 }
 
-/** Nicht-ASCII als \uXXXX — in unseren JSON-Texten gueltig, und Zeichen = Bytes. */
-export function ascii(s: string): string {
-  return s.replace(/[\u0080-￿]/g, (c: string): string =>
-    '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4));
-}
-
-/**
- * Datei in Nachrichten-Teile: `PF1|<datei>|<teil>|<anzahl>|<rest>|<inhalt>` — dasselbe Format
- * wie Lite/JS-FA (kern.js `teile`), die Handy-Bruecken kennen nur dieses.
- */
-export function teile(name: string, text: string, rest: number, max?: number): string[] {
-  const t: string = ascii(text);
-  const m: number = max !== undefined && max > 0 ? max : TEIL_MAX;
-  const z: number = Math.max(1, rest);
-  const n: number = Math.max(1, Math.ceil(t.length / m));
-  const r: string[] = [];
-  for (let i = 0; i < n; i++) {
-    r.push('PF1|' + name + '|' + i + '|' + n + '|' + z + '|' + t.substring(i * m, (i + 1) * m));
-  }
-  return r;
-}
-
-/**
- * Gegenstelle: Android (org.pumpfoil.app) oder iOS (org.pumpfoil.coolwatch). Wer zuletzt
- * angenommen hat, bleibt; nach 3 Fehlschlaegen in Folge wird gewechselt.
- */
-export class Gegenstelle {
-  liste: string[][];
-  i: number;
-  folge: number = 0;
-
-  constructor(liste: string[][], aktiv: number) {
-    this.liste = liste;
-    this.i = aktiv > 0 && aktiv < liste.length ? aktiv : 0;
-  }
-
-  jetzt(): string[] {
-    return this.liste[this.i];
-  }
-
-  ok(): void {
-    this.folge = 0;
-  }
-
-  /** true = gewechselt. */
-  fehler(): boolean {
-    this.folge++;
-    if (this.folge >= 3 && this.liste.length > 1) {
-      this.i = (this.i + 1) % this.liste.length;
-      this.folge = 0;
-      return true;
-    }
-    return false;
-  }
-}
-
 /** Strecke zwischen zwei Punkten in m (nur Anzeige; der Server rechnet selbst). */
 export function meter(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const r: number = 6371000;
@@ -591,12 +503,13 @@ export class Anzeige {
   }
 }
 
-// --- Direkt-Upload (Uhr -> Server ohne Handy, nur ArkTS) ------------------------------------
+// --- Direkt-Upload (Uhr -> Server, nur ArkTS) -----------------------------------------------
 //
 // Gekoppelt laedt die Uhr eine Session erst hoch, wenn sie ABGESCHLOSSEN ist — mit allen Dateien
 // am Stueck, genau wie die Android-Bruecke (HuaweiBruecke.uploadVon/uploadReihenfolge): Meta mit
-// expected_chunks, GPS-Chunks zuerst in Paketen zu 30, dann /complete. Nur Sessions, von denen noch
-// NICHTS per Wear Engine ging; angefangene laufen ueber das Handy zu Ende.
+// expected_chunks, GPS-Chunks zuerst in Paketen zu 30, dann /complete. Seit 13.10.2026 ohne Wear
+// Engine ist auf der Watch 5 nie etwas „angesendet" (m/g/eg bleiben 0): jede abgeschlossene
+// Session ist bereit, auch die vor dem Koppeln aufgenommenen.
 
 /** Erste Session, die fertig und noch unberuehrt ist, sonst null. */
 export function direktBereit(p: Sendeplan): PlanEintrag | null {

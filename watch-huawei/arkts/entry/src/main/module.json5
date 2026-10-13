@@ -59,12 +59,9 @@
         "reason": "$string:perm_reason",
         "usedScene": { "abilities": ["EntryAbility"], "when": "always" }
       }
-    ],
-    "metadata": [
-      // Wear Engine auf der Uhr (HarmonyOS): App-ID aus AppGallery Connect und die Handy-Apps, mit
-      // denen die Uhr reden darf. Platzhalter liefert Jan nach (watch-huawei/README.md).
-      { "name": "client_id", "value": "HUAWEI_ARKTS_CLIENT_ID_EINTRAGEN" },
-      { "name": "wearEngineRemoteAppNameList", "value": "org.pumpfoil.app" }
     ]
+    // Keine Wear-Engine-Metadaten mehr (client_id, wearEngineRemoteAppNameList), seit 13.10.2026:
+    // Huawei hat die Wear-Engine-Berechtigung abgelehnt und empfiehlt, dass Uhren mit Internet
+    // selbst hochladen. Die Watch 5 laedt nur noch direkt zu pumpfoil.org (INTERNET oben).
   }
 }
