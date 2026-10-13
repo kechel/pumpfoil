@@ -287,11 +287,16 @@ def _plat_fuer_hinweis(p: str | None, device: models.DeviceToken) -> str:
     Bleibt alles unbekannt: LEERER String -> kein Hinweis. Das ist der dokumentierte sichere
     Standard, kein Notbehelf.
     """
-    if p:
-        return p
-    if device.platform:
-        return device.platform
+    plat = p or device.platform
+    if plat:
+        return _HINWEIS_SCHLUESSEL.get(plat, plat)
     return "garmin" if device.part_number else ""
+
+
+# Plattform der Uhr -> Schluessel in `appmeta._APP_META`, wo beide verschieden heissen. Die
+# HUAWEI WATCH 5 meldet sich als `p=huawei` (so steckt es in der eingereichten 1.0.2), ihre
+# Store-Version steht seit 13.10.2026 unter "huawei-watch5" (drei Huawei-Linien, je eigene Nummer).
+_HINWEIS_SCHLUESSEL = {"huawei": "huawei-watch5"}
 
 
 @router.get("/config")
