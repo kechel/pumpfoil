@@ -5,6 +5,17 @@ import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -326,6 +337,10 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
     var sending by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var actionMsg by remember { mutableStateOf<ChatMsg?>(null) }   // Long-Press -> Aktionsauswahl
+    // Antwort auf eine Nachricht (wie Web Chat.tsx, 13.10.2026): Zitat ueber dem Eingabefeld, beim
+    // Senden geht `reply_to` mit. `glow` = kurz hervorgehobenes Original nach dem Sprung dorthin.
+    var replyTo by remember(room.scope) { mutableStateOf<ChatMsg?>(null) }
+    var glow by remember { mutableStateOf<Int?>(null) }
     var editMsg by remember { mutableStateOf<ChatMsg?>(null) }     // Bearbeiten-Dialog
     var editText by remember { mutableStateOf("") }
     // Bilder (30.09.2026, wie Web Chat.tsx): Anhaenge im Eingabefeld bzw. im Bearbeiten-Dialog.
@@ -398,8 +413,10 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
     val laedtNoch = anhaenge.any { it.id == null && !it.fehler }
     val bereiteBilder = anhaenge.mapNotNull { it.id }
 
-    // Beim Öffnen und bei neuen Nachrichten ans Ende scrollen (wie die Web-PWA).
-    LaunchedEffect(msgs.size) {
+    // Beim Öffnen und bei neuen Nachrichten ans Ende scrollen (wie die Web-PWA). Haengt an der
+    // NEUESTEN id, nicht an der Anzahl: laedt der Sprung zu einem Zitat aeltere Nachrichten VORNE
+    // nach, soll die Liste dort stehen bleiben und nicht ans Ende springen.
+    LaunchedEffect(msgs.lastOrNull()?.id) {
         val n = msgs.size + (if (error != null) 1 else 0)
         if (n > 0) listState.animateScrollToItem(n - 1)
     }
@@ -417,9 +434,29 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
         sending = true
         val ids = bereiteBilder
         scope.launch {
-            try { Api.chatPost(room.scope, t, ids); input = ""; anhaenge = emptyList(); load() }
+            try { Api.chatPost(room.scope, t, ids, replyTo?.id); input = ""; anhaenge = emptyList(); replyTo = null; load() }
             catch (e: Exception) { error = e.message }
             sending = false
+        }
+    }
+    // Tipp aufs Zitat: zum Original scrollen und es kurz hervorheben. Liegt es vor der geladenen
+    // Liste, erst alles von dort bis zur aeltesten geladenen Nachricht holen (wie Web zumOriginal).
+    fun zumOriginal(id: Int) {
+        scope.launch {
+            var idx = msgs.indexOfFirst { it.id == id }
+            if (idx < 0) {
+                val erste = msgs.minOfOrNull { it.id } ?: return@launch
+                if (id >= erste) return@launch
+                val davor = runCatching { Api.chatRange(room.scope, id, erste) }.getOrNull() ?: return@launch
+                msgs = (davor + msgs).distinctBy { it.id }.sortedBy { it.id }
+                idx = msgs.indexOfFirst { it.id == id }
+                if (idx < 0) return@launch
+            }
+            val vorne = (if (blocked) 1 else 0) + (if (error != null) 1 else 0)
+            listState.animateScrollToItem(idx + vorne)
+            glow = id
+            kotlinx.coroutines.delay(2200)
+            if (glow == id) glow = null
         }
     }
     LaunchedEffect(room.scope) {
@@ -484,8 +521,12 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
             title = { if (m.text.isNotBlank()) Text(m.text, maxLines = 2) },
             text = {
                 Column {
+                    if (!m.hidden && weiterAn == null) {
+                        TextButton(onClick = { replyTo = m; actionMsg = null }) { Text(I18n.t("chat.reply")) }
+                    }
                     if (editable) {
                         TextButton(onClick = {
+                            replyTo = null
                             editText = m.text
                             // Die Bilder der Nachricht stehen als Anhaenge im Dialog — einzelne
                             // entfernen, neue dazunehmen; wirksam erst beim Speichern (wie Web).
@@ -631,6 +672,25 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                 }
             } else
             Column(Modifier.fillMaxWidth()) {
+            replyTo?.let { r ->
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 6.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                        .padding(start = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f).padding(vertical = 6.dp)) {
+                        Text(I18n.t("chat.replyingTo").replace("{name}", r.name ?: "—"), style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                        Text(r.text.ifBlank { if (r.photos.isNotEmpty()) I18n.t("chat.quotePhoto") else "" },
+                            style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    IconButton(onClick = { replyTo = null }) {
+                        Icon(Icons.Filled.Close, contentDescription = I18n.t("chat.replyCancel"))
+                    }
+                }
+            }
             ChatAnhangLeiste(anhaenge, onWeg = { k -> anhaenge = anhaenge.filter { it.key != k } },
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp))
             Row(
@@ -664,9 +724,11 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
             items(msgs) { m ->
                 val editable = m.mine && withinEditWindow(m.createdAt)
-                val hasActions = editable || !m.mine || isAdmin   // Long-Press-Menü sinnvoll?
+                // Long-Press-Menü sinnvoll? Antworten geht auf jede sichtbare Nachricht.
+                val hasActions = editable || !m.mine || isAdmin || (!m.hidden && weiterAn == null)
                 Row(
                     Modifier.fillMaxWidth()
+                        .then(if (glow == m.id) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f), RoundedCornerShape(8.dp)) else Modifier)
                         .combinedClickable(enabled = hasActions, onClick = {}, onLongClick = { actionMsg = m })
                         .padding(vertical = 6.dp)
                         .then(if (m.hidden) Modifier.alpha(0.5f) else Modifier),
@@ -733,8 +795,29 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                             }
                         }
+                        // Zitat der beantworteten Nachricht; Tipp springt zum Original.
+                        m.replyTo?.let { q ->
+                            Row(
+                                Modifier.padding(top = 2.dp, bottom = 2.dp).height(IntrinsicSize.Min)
+                                    .then(if (!q.missing) Modifier.clickable { zumOriginal(q.id) } else Modifier),
+                            ) {
+                                Box(Modifier.width(3.dp).fillMaxHeight().background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)))
+                                Column(Modifier.padding(start = 8.dp)) {
+                                    if (q.missing) {
+                                        Text(I18n.t("chat.quoteMissing"), style = MaterialTheme.typography.bodySmall,
+                                            fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    } else {
+                                        Text(q.name ?: "—", style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                        val qt = q.text?.takeIf { it.isNotBlank() } ?: if (q.photo) I18n.t("chat.quotePhoto") else ""
+                                        Text(qt, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                            }
+                        }
                         // Reine Bild-Nachricht: kein leerer Textblock, nur die Bilder.
-                        if (m.text.isNotBlank()) LinkifiedText(m.text)
+                        if (m.text.isNotBlank()) LinkifiedText(m.text, onLongPress = if (hasActions) ({ actionMsg = m }) else null)
                         ChatFotoStapel(m.photos)
                     }
                 }
@@ -753,7 +836,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
 
 // Nachrichtentext mit klickbaren Links (wie Web-linkify).
 @Composable
-private fun LinkifiedText(text: String) {
+private fun LinkifiedText(text: String, onLongPress: (() -> Unit)? = null) {
     val uriHandler = LocalUriHandler.current
     val primary = MaterialTheme.colorScheme.primary
     val annotated = buildAnnotatedString {
@@ -768,10 +851,23 @@ private fun LinkifiedText(text: String) {
         }
         append(text.substring(last))
     }
-    ClickableText(
+    // Eigene Gesten statt ClickableText (13.10.2026): ClickableText schluckte den langen Druck, das
+    // Aktionsmenue (Antworten, Bearbeiten, Melden) ging nur ueber Name/Avatar auf. Jetzt: Tipp oeffnet
+    // einen Link, langer Druck geht an `onLongPress`.
+    var layout by remember { mutableStateOf<androidx.compose.ui.text.TextLayoutResult?>(null) }
+    Text(
         text = annotated,
         style = LocalTextStyle.current.copy(color = LocalContentColor.current),
-        onClick = { off -> annotated.getStringAnnotations("URL", off, off).firstOrNull()?.let { uriHandler.openUri(it.item) } },
+        onTextLayout = { layout = it },
+        modifier = Modifier.pointerInput(annotated) {
+            detectTapGestures(
+                onTap = { pos ->
+                    val off = layout?.getOffsetForPosition(pos) ?: return@detectTapGestures
+                    annotated.getStringAnnotations("URL", off, off).firstOrNull()?.let { uriHandler.openUri(it.item) }
+                },
+                onLongPress = { onLongPress?.invoke() },
+            )
+        },
     )
 }
 

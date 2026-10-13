@@ -140,6 +140,12 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "online.hint" to row("Solange du die App oder die Seite offen hast, sehen andere einen kleinen grünen Punkt an deinem Profilbild.", "Solang du d App oder d Siite offe hesch, gsehnd anderi es chliises grüens Pünktli a dim Profilbild.", "Solange du die App oder die Seite offen hast, sehen andere einen kleinen grünen Punkt an deinem Profilbild.", "While you have the app or the website open, others see a small green dot on your profile picture.", "Tant que l'appli ou le site est ouvert, les autres voient un petit point vert sur ta photo de profil.", "Finché hai l'app o il sito aperti, gli altri vedono un piccolo punto verde sulla tua foto profilo.", "Mientras tengas la app o la web abiertas, los demás ven un pequeño punto verde en tu foto de perfil."),
     "online.switch" to row("Anderen zeigen, wenn ich online bin", "Andere zeige, wenn i online bi", "Anderen zeigen, wenn ich online bin", "Show others when I'm online", "Montrer aux autres quand je suis en ligne", "Mostra agli altri quando sono online", "Mostrar a los demás cuando estoy en línea"),
     // Native Changelog-Seite (ChangelogScreen.kt), aus den Web-Sprachdateien 12.10.2026 (Nutzer-Meldung).
+    // Chat: auf eine Nachricht antworten (Zitat, Sprung aufs Original) — aus den Web-Sprachdateien, 13.10.2026.
+    "chat.reply" to row("Antworten", "Antworte", "Antworten", "Reply", "Répondre", "Rispondi", "Responder"),
+    "chat.replyingTo" to row("Antwort an {name}", "Antwort a {name}", "Antwort an {name}", "Replying to {name}", "Réponse à {name}", "Risposta a {name}", "Respondiendo a {name}"),
+    "chat.replyCancel" to row("Antwort abbrechen", "Antwort abbräche", "Antwort abbrechen", "Cancel reply", "Annuler la réponse", "Annulla risposta", "Cancelar respuesta"),
+    "chat.quoteMissing" to row("Ursprüngliche Nachricht nicht mehr vorhanden", "Ursprünglichi Nachricht nüm da", "Ursprüngliche Nachricht nicht mehr vorhanden", "Original message no longer available", "Le message d'origine n'est plus disponible", "Il messaggio originale non è più disponibile", "El mensaje original ya no está disponible"),
+    "chat.quotePhoto" to row("Foto", "Foti", "Foto", "Photo", "Photo", "Foto", "Foto"),
     "nav.changelog" to row("Neuerungen", "Neuigkeite", "Neuerungen", "Changelog", "Nouveautés", "Novità", "Novedades"),
     "changelog.details" to row("Details ({n})", "Details ({n})", "Details ({n})", "Details ({n})", "Détails ({n})", "Dettagli ({n})", "Detalles ({n})"),
     "common.loadFailed" to row("Konnte nicht geladen werden.", "Het nöd chönne glade werde.", "Hot net gladen werdn kenna.", "Could not be loaded.", "Impossible de charger.", "Impossibile caricare.", "No se pudo cargar."),
@@ -1525,6 +1531,12 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web fi.ts, 13.10.2026.
+    "chat.reply" to "Vastaa",
+    "chat.replyingTo" to "Vastaus käyttäjälle {name}",
+    "chat.replyCancel" to "Peru vastaus",
+    "chat.quoteMissing" to "Alkuperäinen viesti ei ole enää saatavilla",
+    "chat.quotePhoto" to "Kuva",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Kellon ranne ja asento",
     "rider.ridingHint" to "Vapaaehtoinen ja vain sinulle. Näistä selviää, onko kello etu- vai takakädessä — se vaikuttaa siihen, miten hyvin tunnistamme pumppaukset ranteesta. Tiedon avulla voimme tutkia sitä myöhemmin; sessioihisi ei muutu mitään.",
@@ -2656,6 +2668,12 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web nl.ts, 13.10.2026.
+    "chat.reply" to "Beantwoorden",
+    "chat.replyingTo" to "Antwoord aan {name}",
+    "chat.replyCancel" to "Antwoord annuleren",
+    "chat.quoteMissing" to "Het oorspronkelijke bericht is niet meer beschikbaar",
+    "chat.quotePhoto" to "Foto",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Pols van je horloge & stance",
     "rider.ridingHint" to "Optioneel en alleen voor jou. Samen laten ze zien of je horloge aan je voorste of achterste hand zit — dat bepaalt mee hoe goed we pumps aan de pols herkennen. Zo kunnen we dat later evalueren; aan je sessies verandert niets.",
@@ -3786,6 +3804,12 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web cs.ts, 13.10.2026.
+    "chat.reply" to "Odpovědět",
+    "chat.replyingTo" to "Odpověď pro {name}",
+    "chat.replyCancel" to "Zrušit odpověď",
+    "chat.quoteMissing" to "Původní zpráva už není k dispozici",
+    "chat.quotePhoto" to "Fotka",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Zápěstí s hodinkami a postoj",
     "rider.ridingHint" to "Nepovinné a jen pro tebe. Z toho poznáme, zda máš hodinky na přední, nebo zadní ruce — to ovlivňuje, jak dobře rozpoznáme pumpy na zápěstí. S tímto údajem to můžeme později vyhodnotit; na tvých sessions se nic nemění.",
