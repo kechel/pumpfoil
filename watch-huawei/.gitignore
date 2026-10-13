@@ -20,3 +20,10 @@ local.properties
 
 # DevEco-Studio-Projekteinstellungen (je Rechner)
 **/.idea/
+
+# Signatur NIE ins Repo (Schluessel/Zertifikate/Profile + signing.json liegen in Jans privatem Repo)
+*.p12
+*.p7b
+*.cer
+*.csr
+signing.json
