@@ -1,7 +1,7 @@
 # AppGallery listing — English (UK, default)
 
-## Brief introduction (max. 80)
-Record your pump foiling sessions on the watch – runs, speed and heart rate.
+## Brief introduction (max. 80, AppGallery empfiehlt <= 25)
+Record your pump foiling
 
 ## Full introduction (max. 8000)
 Pumpfoil turns your HUAWEI WATCH into a recorder for pump foiling. Start a session, go pumping, and the watch records GPS, motion and heart rate. Afterwards your session is analysed on pumpfoil.org: every run on the foil, distance, speed, pumping cadence, glide phases and your progress over time.
