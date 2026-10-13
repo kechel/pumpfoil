@@ -759,6 +759,14 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 13.10.2026 11:06 (Jans Meldung, AppGallery Connect „Under pre-review", 1.0.2 (1000002),
+    # nur Smart watch = Watch 5, ohne Festland-China; signiert ueber signing.json im privaten Repo).
+    {"name": "Huawei", "version": "1.0.2",
+     "eingereicht": "2026-10-13",
+     "items": [
+         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
+         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
+     ]},
     # iPhone + Apple Watch 1.1.47 am 13.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt im Changelog mit ios/apple.
     # iPhone + Apple Watch 1.1.46 am 12.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple.
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
@@ -874,11 +882,7 @@ NAECHSTES: list[dict] = [
     # 13.10.2026 (Jan, nach der Wear-Engine-Ablehnung): ZUERST nur Huawei Watch 5, ohne Wear Engine —
     # laedt nach Code-Kopplung selbst zu pumpfoil.org hoch. GT/Fit/D (Lite, ohne Internet) erst mit
     # einem neuen Wear-Engine-Antrag nach der Freigabe; Watch 3/4 nicht mehr (Huawei raet ab).
-    {"name": "Huawei", "version": "1.0.2",
-     "items": [
-         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
-         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
-     ]},
+    # Huawei 1.0.2 (Watch 5) am 13.10. eingereicht -> IN_REVIEW.
     # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
     {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
