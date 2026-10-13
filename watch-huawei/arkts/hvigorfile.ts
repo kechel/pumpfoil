@@ -10,8 +10,8 @@ import * as path from 'path';
 // in build-profile.json5 schreibt, Pfade gern relativ zur signing.json:
 //   { "signingConfigs": [ { "name": "release", "type": "HarmonyOS", "material": { ... } } ] }
 // Gesucht wird in $PUMPFOIL_HUAWEI_SIGNING und ~/gits/rechnungen/pumpfoil-huawei/signing.json (kein Symlink, Jan).
-// Build Mode „release" (DevEco oben bzw. -p buildMode=release) nimmt den Eintrag mit „release" im
-// Namen, sonst bleibt „default" (Debug/Emulator). Ohne Datei: unsigniert wie bisher (VM-Build).
+// Build Mode „release" (-p buildMode=release, oder „Build APP(s)" = assembleApp ohne buildMode) nimmt
+// den Eintrag mit „release" im Namen, sonst bleibt „default" (Debug/Emulator). Ohne Datei: unsigniert wie bisher (VM-Build).
 const KANDIDATEN: string[] = [
   process.env.PUMPFOIL_HUAWEI_SIGNING ?? '',
   path.join(os.homedir(), 'gits', 'rechnungen', 'pumpfoil-huawei', 'signing.json'),   // Jans privates Repo
@@ -41,7 +41,10 @@ getNode(__filename).afterNodeEvaluate((node) => {
   }
   const namen = new Set(neu.map((c) => c.name));
   opt.app.signingConfigs = (opt.app.signingConfigs ?? []).filter((c: any) => !namen.has(c.name)).concat(neu);
-  const modus = hvigor.getParameter().getExtParam('buildMode') ?? 'debug';
+  // DevEco ruft „Build APP(s)" OHNE -p buildMode auf (13.10.2026, Jans Log); hvigor baut assembleApp
+  // dann als release. Also: ausdruecklicher buildMode gewinnt, sonst assembleApp = release.
+  const app = (hvigor.getCommandEntryTask() ?? []).some((t) => /assembleApp/.test(t));
+  const modus = hvigor.getParameter().getExtParam('buildMode') ?? (app ? 'release' : 'debug');
   const rel = neu.find((c) => /release/i.test(c.name));
   if (modus === 'release' && rel !== undefined) {
     for (const p of opt.app.products ?? []) {
