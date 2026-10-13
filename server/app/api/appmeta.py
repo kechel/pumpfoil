@@ -931,6 +931,9 @@ NAECHSTES: list[dict] = [
          # 13.10.2026 (Jan): POB-Taste in der Sessionliste (c9822c27), Chat-Antworten (PWA a5e873d8).
          "The session list has a POB button that shows only sessions recorded with the phone on the board.",
          "In the chat you can reply to a message: hold it and choose Reply; tapping the quote jumps to the original.",
+         # 13.10.2026 (Jan: „den rest auch noch nachziehen"): Gleitphasen (420509c6), Lage mit Phasen.
+         "Glides can be shown on the session map and on the comparison map, and the comparison map shows pump markers too.",
+         "Board attitude per run shows each phase (stable phase, turns, straight, whole run), switchable between corrected and uncorrected, and the comparison table sorts by tapping a column header.",
      ]},
     # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht). Nicht gebumpt.
     {"name": "iPhone + Apple Watch", "version": "1.1.48",

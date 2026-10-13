@@ -107,6 +107,8 @@ fun BrettSchalter(s: SessionDetail, onReload: () -> Unit) {
 fun LageJeLaufTabelle(s: SessionDetail, selected: Int?, onSelect: (Int) -> Unit) {
     if (s.placement != "board") return
     var laeufe by remember(s.id) { mutableStateOf<List<LageLauf>>(emptyList()) }
+    // Korrigiert (Standard) oder unkorrigiert — wie PWA (Jan, 08.10.2026).
+    var korr by remember { mutableStateOf(true) }
     LaunchedEffect(s.id, s.placement) {
         laeufe = try {
             val d = Api.boardAttitude(s.id, nurLaeufe = true)
@@ -115,49 +117,41 @@ fun LageJeLaufTabelle(s: SessionDetail, selected: Int?, onSelect: (Int) -> Unit)
     }
     if (laeufe.isEmpty()) return
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    val segs = s.analysis?.segments.orEmpty()
     Spacer(Modifier.height(12.dp))
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 10.dp)) {
-            Text(I18n.t("sd.attitudePerRun").uppercase(), style = MaterialTheme.typography.labelMedium,
-                color = grau, modifier = Modifier.padding(horizontal = 12.dp))
-            Column(Modifier.horizontalScroll(rememberScrollState()).padding(top = 6.dp)) {
-                val breiten = listOf(36, 72, 72, 104, 120, 72, 80)
-                @Composable
-                fun Zeile(werte: List<String>, kopf: Boolean, gedimmt: Set<Int> = emptySet(), mod: Modifier = Modifier) {
-                    Row(mod.padding(horizontal = 12.dp, vertical = 6.dp)) {
-                        werte.forEachIndexed { i, w ->
-                            Text(w, Modifier.width(breiten[i].dp),
-                                style = if (kopf) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodyMedium,
-                                color = if (kopf || i in gedimmt) grau else MaterialTheme.colorScheme.onSurface)
-                        }
-                    }
-                }
-                Zeile(listOf("#", I18n.t("board.pitch"), I18n.t("board.roll"), I18n.t("board.yaw"),
-                    I18n.t("sd.colPitchRhythm"), I18n.t("sd.colHeave"), I18n.t("board.mounting")), kopf = true)
-                HorizontalDivider()
-                laeufe.forEach { k ->
-                    val hub = k.hubPpCm?.let { v ->
-                        val t = "${v.roundToInt()} cm"
-                        if (k.hubSicher) t else "($t)"
-                    } ?: "–"
-                    val gedimmt = buildSet { if (!k.hubSicher) add(5); if (!k.rotEigen) add(6) }
-                    Zeile(
-                        listOf(
-                            "${k.lauf + 1}",
-                            k.pitchAmplitudeDeg?.let { "±${it.roundToInt()}°" } ?: "–",
-                            k.rollAmplitudeDeg?.let { "±${it.roundToInt()}°" } ?: "–",
-                            k.gierRmsDegS?.let { "${it.roundToInt()}°/s" } ?: "–",
-                            k.pitchHz?.let { String.format("%.2f Hz", it) } ?: "–",
-                            hub,
-                            k.rotDeg?.let { "${it.roundToInt()}°" } ?: "–",
-                        ),
-                        kopf = false, gedimmt = gedimmt,
-                        mod = Modifier
-                            .then(if (selected == k.lauf) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)) else Modifier)
-                            .clickable { onSelect(k.lauf) },
-                    )
-                }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(I18n.t("sd.attitudePerRun").uppercase(), style = MaterialTheme.typography.labelMedium,
+                    color = grau, modifier = Modifier.weight(1f))
+                KorrekturUmschalter(korr) { korr = it }
             }
+            Spacer(Modifier.height(4.dp))
+            // Spalten wie in der PWA-Session: #, Dauer | Phase + Werte | Montage. Unsicherer Hub
+            // steht in den Phasen schon nicht mehr (die Technik-Zahlen sind gesichert); die Montage
+            // ist grau, wenn sie vom Lauf davor geerbt ist.
+            LagePhasenTabelle(
+                vorneSpalten = listOf(LageSpalte("#", 32), LageSpalte(I18n.t("sd.colDuration"), 56)),
+                hintenSpalten = listOf(LageSpalte(I18n.t("board.mounting").trimEnd(':', ' ', '：'), 80)),
+                korr = korr,
+                zeilen = laeufe.map { k ->
+                    LageTabZeile(
+                        key = "${k.lauf}", k = k, geladen = true,
+                        vorne = listOf(
+                            { Text("${k.lauf + 1}", style = MaterialTheme.typography.bodySmall) },
+                            { Text(segs.getOrNull(k.lauf)?.let { fmtLaufDauer(it.durationS) } ?: "–",
+                                style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold) },
+                        ),
+                        hinten = listOf({
+                            Text(k.rotDeg?.let { "${it.roundToInt()}°" } ?: "–", style = MaterialTheme.typography.bodySmall,
+                                color = if (k.rotEigen) MaterialTheme.colorScheme.onSurface else grau)
+                        }),
+                        markiert = selected == k.lauf,
+                        onClick = { onSelect(k.lauf) },
+                    )
+                },
+            )
+            LaufLegende()
         }
     }
 }

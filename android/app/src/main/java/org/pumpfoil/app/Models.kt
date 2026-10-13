@@ -1234,6 +1234,48 @@ data class LageLauf(
     @SerialName("hub_sicher") val hubSicher: Boolean = false,
     @SerialName("rot_deg") val rotDeg: Double? = null,
     @SerialName("rot_eigen") val rotEigen: Boolean = false,
+    // Technik-Kennzahlen je Phase, mit und ohne Fliehkraft-Korrektur (lage.py, wie PWA TechnikTabelle.tsx).
+    val technik: TechnikPaar? = null,
+)
+
+/** Technik-Kennzahlen eines Laufs (lage.py `technik_kennzahlen`). */
+@Serializable
+data class Technik(
+    @SerialName("pump_nicken_deg") val pumpNickenDeg: Double? = null,
+    @SerialName("pump_rollen_deg") val pumpRollenDeg: Double? = null,
+    @SerialName("wackeln_deg") val wackelnDeg: Double? = null,
+    @SerialName("kurvenlage_deg") val kurvenlageDeg: Double? = null,
+    @SerialName("hub_cm") val hubCm: Double? = null,
+    @SerialName("takt_hz") val taktHz: Double? = null,
+    @SerialName("gier_deg_s") val gierDegS: Double? = null,
+)
+
+/** Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`). */
+@Serializable
+data class KurveGeradeSeite(
+    @SerialName("takt_hz") val taktHz: Double? = null,
+    @SerialName("nicken_deg") val nickenDeg: Double? = null,
+    @SerialName("hub_cm") val hubCm: Double? = null,
+    @SerialName("rollen_deg") val rollenDeg: Double? = null,
+    @SerialName("wackeln_deg") val wackelnDeg: Double? = null,
+    @SerialName("kurvenlage_deg") val kurvenlageDeg: Double? = null,
+    @SerialName("gier_deg_s") val gierDegS: Double? = null,
+) {
+    fun alsTechnik() = Technik(nickenDeg, rollenDeg, wackelnDeg, kurvenlageDeg, hubCm, taktHz, gierDegS)
+}
+
+@Serializable
+data class KurveGerade(val kurve: KurveGeradeSeite? = null, val gerade: KurveGeradeSeite? = null)
+
+/** Mit und ohne Fliehkraft-Korrektur; `teil` "mitte" = Lauf ab 30 s (ruhiger Mittelteil), "ganz" = kuerzer. */
+@Serializable
+data class TechnikPaar(
+    val mit: Technik? = null,
+    val ohne: Technik? = null,
+    @SerialName("kurve_gerade") val kurveGerade: KurveGerade? = null,
+    @SerialName("kurve_gerade_ohne") val kurveGeradeOhne: KurveGerade? = null,
+    val teil: String? = null,
+    val ganz: TechnikPaar? = null,
 )
 
 // Masse des Foils in cm fuer die Zeichnung (s. PWA FoilRig.tsx). `gemessen` sagt je Feld, ob der

@@ -7,6 +7,29 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (pt)
+    "account.claimBad" to "Código inválido ou expirado — confira o código no relógio ou gere um novo lá.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (pt)
+    "tech.wobble" to "Balanço",
+    "tech.sWhole" to "run inteiro",
+    "tech.sTurn" to "curvas",
+    "tech.sStable" to "fase estável",
+    "tech.colPhase" to "Fase",
+    "tech.colLean" to "Inclinação",
+    "tech.sStraight" to "reta",
+    "tech.colWith" to "corrigido",
+    "tech.colWithout" to "sem correção",
+    "tech.gPump" to "de cima a baixo por bombada, mediana de todas as bombadas",
+    "tech.gWobble" to "balanço lateral lento em 2–5 s",
+    "tech.gLean" to "quanto a prancha deita para o lado nas curvas",
+    "tech.gYaw" to "a rapidez com que a prancha gira (°/s)",
+    "tech.gStable" to "a corrida sem os primeiros e últimos 5 s; corridas abaixo de 20 s não têm fase estável",
+    "tech.gTurnStraight" to "só bombadas em que a prancha girava mais ou menos rápido que 8 °/s",
+    "tech.gWhole" to "início e fim incluídos",
+    "tech.lCorrection" to "Corrigido: a força centrífuga das curvas é descontada antes.",
+    "tech.gColumns" to "Arfagem = bico para cima/baixo · Rolagem = inclinação lateral · Subida e descida = prancha para cima e para baixo · Ritmo = bombeadas por segundo",
+    "tech.gSpread" to "Balanço e inclinação são amplitudes, não valores por bombada.",
+    "tech.gHeave" to "O sobe-e-desce é medido no celular – só comparável com o celular no mesmo lugar.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (pt)
     "sd.glides" to "Planeios",
     "sd.glide" to "Planeio",
@@ -1155,6 +1178,29 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (ja)
+    "account.claimBad" to "コードが無効か期限切れです。ウォッチのコードを確認するか、ウォッチで新しいコードを表示してください。",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (ja)
+    "tech.wobble" to "揺れ",
+    "tech.sWhole" to "ラン全体",
+    "tech.sTurn" to "ターン",
+    "tech.sStable" to "安定フェーズ",
+    "tech.colPhase" to "フェーズ",
+    "tech.colLean" to "傾き",
+    "tech.sStraight" to "直進",
+    "tech.colWith" to "補正あり",
+    "tech.colWithout" to "補正なし",
+    "tech.gPump" to "パンプ1回ごとの上下幅、全パンプの中央値",
+    "tech.gWobble" to "2〜5秒かけての左右へのゆっくりした揺れ",
+    "tech.gLean" to "ターンでボードがどれだけ横に倒れるか",
+    "tech.gYaw" to "ボードが回る速さ(°/s)",
+    "tech.gStable" to "最初と最後の5秒を除いたラン。20秒未満のランには安定区間なし",
+    "tech.gTurnStraight" to "ボードの回転が8°/sより速い/遅いパンプのみ",
+    "tech.gWhole" to "スタートと終わりを含む",
+    "tech.lCorrection" to "補正あり:ターン中の遠心力を先に取り除きます。",
+    "tech.gColumns" to "ピッチ=ノーズの上下 · ロール=横への傾き · 上下動=ボードの上下 · テンポ=1秒あたりのパンプ回数",
+    "tech.gSpread" to "揺れと傾きは幅で、パンプごとの値ではありません。",
+    "tech.gHeave" to "上下動はスマホの位置で測定 — スマホが同じ位置のときだけ比較できます。",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (ja)
     "sd.glides" to "グライド",
     "sd.glide" to "グライド",
@@ -2303,6 +2349,29 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (zh)
+    "account.claimBad" to "配对码无效或已过期 —— 请核对手表上的配对码，或在手表上重新获取。",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (zh)
+    "tech.wobble" to "摇晃",
+    "tech.sWhole" to "整段滑行",
+    "tech.sTurn" to "转弯",
+    "tech.sStable" to "稳定阶段",
+    "tech.colPhase" to "阶段",
+    "tech.colLean" to "倾角",
+    "tech.sStraight" to "直行",
+    "tech.colWith" to "已校正",
+    "tech.colWithout" to "未校正",
+    "tech.gPump" to "每次泵动从高到低,取所有泵动的中位数",
+    "tech.gWobble" to "2–5 秒内缓慢的左右摇摆",
+    "tech.gLean" to "转弯时板子向侧面倾倒的程度",
+    "tech.gYaw" to "板子转动的快慢(°/s)",
+    "tech.gStable" to "去掉开头和结尾各 5 秒的滑行;短于 20 秒的滑行没有稳定阶段",
+    "tech.gTurnStraight" to "仅限板子转动快于或慢于 8 °/s 的泵动",
+    "tech.gWhole" to "含起步和结尾",
+    "tech.lCorrection" to "已校正:先扣除转弯时的离心力。",
+    "tech.gColumns" to "俯仰=板头上下 · 侧倾=向侧面倾斜 · 上下幅度=板子上下 · 节奏=每秒泵动次数",
+    "tech.gSpread" to "摇摆和倾斜是幅度,不是每次泵动的值。",
+    "tech.gHeave" to "起伏在手机处测量——只有手机在同一位置时才可比较。",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (zh)
     "sd.glides" to "滑翔",
     "sd.glide" to "滑翔",
@@ -3451,6 +3520,29 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (ru)
+    "account.claimBad" to "Код недействителен или устарел — проверьте код на часах или получите там новый.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (ru)
+    "tech.wobble" to "Раскачка",
+    "tech.sWhole" to "весь заезд",
+    "tech.sTurn" to "повороты",
+    "tech.sStable" to "стабильная фаза",
+    "tech.colPhase" to "Фаза",
+    "tech.colLean" to "Крен",
+    "tech.sStraight" to "прямо",
+    "tech.colWith" to "с поправкой",
+    "tech.colWithout" to "без поправки",
+    "tech.gPump" to "от верха до низа за памп, медиана по всем пампам",
+    "tech.gWobble" to "медленное покачивание из стороны в сторону за 2–5 с",
+    "tech.gLean" to "насколько доска заваливается вбок в поворотах",
+    "tech.gYaw" to "как быстро поворачивается доска (°/с)",
+    "tech.gStable" to "заезд без первых и последних 5 с; у заездов короче 20 с нет стабильной фазы",
+    "tech.gTurnStraight" to "только пампы, когда доска поворачивала быстрее или медленнее 8 °/с",
+    "tech.gWhole" to "включая старт и финиш",
+    "tech.lCorrection" to "С поправкой: центробежная сила в поворотах сначала вычитается.",
+    "tech.gColumns" to "Тангаж = нос вверх/вниз · Крен = наклон вбок · Ход = доска вверх-вниз · Темп = качков в секунду",
+    "tech.gSpread" to "Покачивание и крен — размахи, а не значения за памп.",
+    "tech.gHeave" to "Вертикальный ход измеряется у телефона – сравнимо только при телефоне на том же месте.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (ru)
     "sd.glides" to "Глайды",
     "sd.glide" to "Глайд",
@@ -4599,6 +4691,29 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (id)
+    "account.claimBad" to "Kode tidak valid atau kedaluwarsa — periksa kode di jam, atau minta kode baru di sana.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (id)
+    "tech.wobble" to "Goyangan",
+    "tech.sWhole" to "seluruh run",
+    "tech.sTurn" to "belokan",
+    "tech.sStable" to "fase stabil",
+    "tech.colPhase" to "Fase",
+    "tech.colLean" to "Kemiringan",
+    "tech.sStraight" to "lurus",
+    "tech.colWith" to "dikoreksi",
+    "tech.colWithout" to "tanpa koreksi",
+    "tech.gPump" to "dari atas ke bawah per pompaan, median semua pompaan",
+    "tech.gWobble" to "goyangan pelan ke samping selama 2–5 dtk",
+    "tech.gLean" to "seberapa jauh papan rebah ke samping di belokan",
+    "tech.gYaw" to "seberapa cepat papan berputar (°/dtk)",
+    "tech.gStable" to "run tanpa 5 dtk pertama dan terakhir; run di bawah 20 dtk tidak punya fase stabil",
+    "tech.gTurnStraight" to "hanya pompaan saat papan berputar lebih cepat atau lebih lambat dari 8 °/dtk",
+    "tech.gWhole" to "termasuk awal dan akhir",
+    "tech.lCorrection" to "Dikoreksi: gaya sentrifugal di belokan dikurangi lebih dulu.",
+    "tech.gColumns" to "Angguk = ujung naik/turun · Guling = miring ke samping · Naik-turun = papan naik dan turun · Ritme = pompa per detik",
+    "tech.gSpread" to "Goyangan dan kemiringan adalah rentang, bukan nilai per pompaan.",
+    "tech.gHeave" to "Naik-turun diukur di ponsel – hanya sebanding bila ponsel di tempat yang sama.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (id)
     "sd.glides" to "Meluncur",
     "sd.glide" to "Meluncur",
@@ -5750,6 +5865,29 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (nb)
+    "account.claimBad" to "Koden er ugyldig eller utløpt — sjekk koden på klokka, eller hent en ny der.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (nb)
+    "tech.wobble" to "Vingling",
+    "tech.sWhole" to "hele runen",
+    "tech.sTurn" to "svinger",
+    "tech.sStable" to "stabil fase",
+    "tech.colPhase" to "Fase",
+    "tech.colLean" to "Krengning",
+    "tech.sStraight" to "rett frem",
+    "tech.colWith" to "korrigert",
+    "tech.colWithout" to "ukorrigert",
+    "tech.gPump" to "topp til bunn per pumpetak, median over alle tak",
+    "tech.gWobble" to "langsom vugging fra side til side over 2–5 s",
+    "tech.gLean" to "hvor mye brettet legger seg over i svingene",
+    "tech.gYaw" to "hvor fort brettet dreier (°/s)",
+    "tech.gStable" to "runden uten de første og siste 5 s; runder under 20 s har ingen stabil fase",
+    "tech.gTurnStraight" to "bare tak der brettet dreide raskere eller saktere enn 8 °/s",
+    "tech.gWhole" to "inkludert start og slutt",
+    "tech.lCorrection" to "Korrigert: sentrifugalkraften i svinger trekkes fra først.",
+    "tech.gColumns" to "Stamping = nesen opp/ned · Rulling = tipping til siden · Opp og ned = brettet opp og ned · Takt = pumpetak per sekund",
+    "tech.gSpread" to "Vugging og krenging er spenn, ikke verdier per tak.",
+    "tech.gHeave" to "Hiv måles ved telefonen – bare sammenlignbart med telefonen på samme sted.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (nb)
     "sd.glides" to "Glid",
     "sd.glide" to "Glid",
@@ -6938,6 +7076,29 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (pl)
+    "account.claimBad" to "Kod jest nieprawidłowy lub wygasł — sprawdź kod na zegarku albo wygeneruj tam nowy.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (pl)
+    "tech.wobble" to "Bujanie",
+    "tech.sWhole" to "cały przejazd",
+    "tech.sTurn" to "zakręty",
+    "tech.sStable" to "faza stabilna",
+    "tech.colPhase" to "Faza",
+    "tech.colLean" to "Przechył",
+    "tech.sStraight" to "prosto",
+    "tech.colWith" to "skorygowane",
+    "tech.colWithout" to "bez korekty",
+    "tech.gPump" to "od góry do dołu na ruch pompowania, mediana ze wszystkich ruchów",
+    "tech.gWobble" to "powolne kołysanie na boki w ciągu 2–5 s",
+    "tech.gLean" to "jak bardzo deska kładzie się na bok w zakrętach",
+    "tech.gYaw" to "jak szybko obraca się deska (°/s)",
+    "tech.gStable" to "przejazd bez pierwszych i ostatnich 5 s; przejazdy poniżej 20 s nie mają fazy stabilnej",
+    "tech.gTurnStraight" to "tylko ruchy, gdy deska obracała się szybciej lub wolniej niż 8 °/s",
+    "tech.gWhole" to "łącznie ze startem i końcem",
+    "tech.lCorrection" to "Skorygowane: najpierw odejmowana jest siła odśrodkowa w zakrętach.",
+    "tech.gColumns" to "Pochylenie = dziób w górę/w dół · Przechył = przechył na bok · Ruch w pionie = deska w górę i w dół · Tempo = pompy na sekundę",
+    "tech.gSpread" to "Kołysanie i przechył to rozpiętości, nie wartości na ruch.",
+    "tech.gHeave" to "Ruch góra-dół mierzony jest przy telefonie – porównywalny tylko przy telefonie w tym samym miejscu.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (pl)
     "sd.glides" to "Ślizgi",
     "sd.glide" to "Ślizg",
@@ -8128,6 +8289,29 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (pt-PT)
+    "account.claimBad" to "Código inválido ou expirado — confirma o código no relógio ou pede lá um novo.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (pt-PT)
+    "tech.wobble" to "Balanço",
+    "tech.sWhole" to "run inteiro",
+    "tech.sTurn" to "curvas",
+    "tech.sStable" to "fase estável",
+    "tech.colPhase" to "Fase",
+    "tech.colLean" to "Inclinação",
+    "tech.sStraight" to "reta",
+    "tech.colWith" to "corrigido",
+    "tech.colWithout" to "sem correção",
+    "tech.gPump" to "de cima a baixo por bombada, mediana de todas as bombadas",
+    "tech.gWobble" to "balanço lateral lento em 2–5 s",
+    "tech.gLean" to "quanto a prancha se deita para o lado nas curvas",
+    "tech.gYaw" to "a rapidez com que a prancha roda (°/s)",
+    "tech.gStable" to "a corrida sem os primeiros e últimos 5 s; corridas abaixo de 20 s não têm fase estável",
+    "tech.gTurnStraight" to "só bombadas em que a prancha rodava mais ou menos depressa que 8 °/s",
+    "tech.gWhole" to "início e fim incluídos",
+    "tech.lCorrection" to "Corrigido: a força centrífuga nas curvas é retirada primeiro.",
+    "tech.gColumns" to "Arfagem = bico para cima/baixo · Rolamento = inclinação lateral · Subida e descida = prancha para cima e para baixo · Ritmo = bombadas por segundo",
+    "tech.gSpread" to "Balanço e inclinação são amplitudes, não valores por bombada.",
+    "tech.gHeave" to "O sobe-e-desce é medido no telemóvel – só comparável com o telemóvel no mesmo sítio.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (pt-PT)
     "sd.glides" to "Planeios",
     "sd.glide" to "Planeio",

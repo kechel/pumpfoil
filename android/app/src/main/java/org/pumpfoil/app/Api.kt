@@ -1431,7 +1431,9 @@ object Api {
     // dem 12.09. anhand der gemeldeten Plattform (naming.geraete_label); hier steht die Wurzel.
     suspend fun pairClaim(code: String, label: String = "Garmin"): Unit = withContext(Dispatchers.IO) {
         val body = buildJsonObject { put("code", code.trim().uppercase()); put("label", label) }.toString()
-        http("POST", "/api/devices/pair-claim", body, auth = true)
+        // 400 = Code falsch oder abgelaufen: lesbar sagen statt „Serverfehler (400)" (wie PWA account.claimBad).
+        try { http("POST", "/api/devices/pair-claim", body, auth = true) }
+        catch (e: RuntimeException) { if (e.message?.contains("(400)") == true) throw RuntimeException(I18n.t("account.claimBad")) else throw e }
     }
 
     // Anzeigename zur gewaehlten Marke (gleiche Tabelle wie server-seitig).
