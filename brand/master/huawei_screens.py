@@ -12,16 +12,20 @@ from PIL import Image
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 WURZEL = os.path.abspath(os.path.join(HIER, "../.."))
-QUELLE = os.path.join(WURZEL, "screenshots/watch/huawei-arkts-emulator/20261013-chat")
+QUELLE = os.path.join(WURZEL, "screenshots/watch/huawei-arkts-emulator/20261013")
 AUS = os.path.join(WURZEL, "brand/stores/huawei/screenshots")
 # Reihenfolge = Reihenfolge im Store: erst was die App ausmacht, dann der Ablauf.
 BILDER = [
-    "09-pause-uhr-letzter-lauf.png",
-    "16-fertig-zusammenfassung.png",
-    "11-stopp-18-32.png",
-    "19-pausiert-neu.png",
-    "03-start-ungekoppelt.png",
-    "05-einstellungen-2.png",
+    # Jans Layouts waehrend der Fahrt (REC), ohne die alte Pause-Ueberlappung (Jan: „nur die
+    # start/stopp/pause screens ist genau das unwichtigste")
+    "Screenshot_2026-10-13T071458.png",   # Boegen Puls/Tempo, 112 bpm / 15.1 km/h
+    "Screenshot_2026-10-13T071442.png",   # LAST RUN, vier Felder + Uhrzeit
+    "Screenshot_2026-10-13T071501.png",   # Dst/Dur/Hr/Avg in Farbe
+    "Screenshot_2026-10-13T071449.png",   # on foil 0:31 / HR 112
+    "Screenshot_2026-10-13T071445.png",   # drei Spalten letzter Lauf/Puls + Uhrzeit
+    "Screenshot_2026-10-13T071556.png",   # Pause-Layout mit Boegen, 18.6 km/h
+    "Screenshot_2026-10-13T072200.png",   # Zusammenfassung nach dem Stopp, alles gesendet
+    "Screenshot_2026-10-13T071131.png",   # Startbildschirm
 ]
 N = 840
 
