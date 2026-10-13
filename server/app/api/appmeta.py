@@ -200,7 +200,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.37",   # LIVE 2026-10-02: Play-Mail „Your update to Pumpfoil, created on Oct 1, 2026
+        "latest": "1.1.41",   # LIVE 2026-10-13: Play-Mail „Your update to Pumpfoil, created on Oct 9, 2026
+        # at 3:44 PM GMT, is live in the store" (Jans Meldung), gut 3 Tage Pruefung. Ersetzt die abgelehnte
+        # 1.1.40: Foil-Knoepfe, Rekord in km, Session-Seite aufgeraeumt, Portierung vom 09.10.
+        # ALT: "latest": "1.1.37",   # LIVE 2026-10-02: Play-Mail „Your update to Pumpfoil, created on Oct 1, 2026
         # at 11:17 AM GMT, is live in the store" (Jans Meldung). Kacheln/Zeilen, Spot-Rekorde je Sportart,
         # Chat-Bilder, „–" ohne Accel, Speichern im Teilen-Dialog, v3-Texte, Claude-1:1-Link.
         # ALT: "latest": "1.1.36",   # LIVE 2026-09-30: Play-Mail „Your update to Pumpfoil, created on Sep 29,
@@ -359,7 +362,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.37",   # LIVE 2026-10-02, dieselbe Play-Mail wie android. Uhr: Sammel-Upload,
+        "latest": "1.2.41",   # LIVE 2026-10-13, dieselbe Play-Mail wie android. Uhr: GPS aus Health
+        # Services nach Google-Doku + GPS-Waechter, ACTIVITY_RECOGNITION, R8-Keep-Regel fuer protobuf-lite.
+        # ALT: "latest": "1.2.37",   # LIVE 2026-10-02, dieselbe Play-Mail wie android. Uhr: Sammel-Upload,
         # GPS-Messzeit statt Zustellzeit (SM-L715F), Pause/Fortsetzen 2 s halten.
         # ALT: "latest": "1.2.36",   # LIVE 2026-09-30, dieselbe Play-Mail wie android (eine Einreichung,
         # beide Spuren). Uhr: Platzhalter-GPS-Genauigkeit sperrt nicht mehr, Datenfelder 22/23.
@@ -806,33 +811,8 @@ IN_REVIEW: list[dict] = [
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
     # Kennung 4f8b90a9-35d5-4b8b-91e1-ae255905c4e0). Inhalt: Portierung vom 09.10. (081c95f3).
     # iPhone + Apple Watch 1.1.45 am 09.10. abends FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple (+web, wo die PWA es seit heute auch hat).
-    # EINGEREICHT 09.10.2026 (Jans Meldung, Play Console: Produktion 55 (1.1.41), Produktion (Wear OS)
-    # 1051 (1.2.41), „Schnelle Vorabprüfungen … noch maximal 14 Minuten“). Ersetzt die abgelehnte
-    # 1.1.40 / 1.2.40: dieselben Punkte plus R8-Fix (77146918) und Portierung vom 09.10. (081c95f3).
-    {"name": "Android phone + Wear OS", "version": "1.1.41 / 1.2.41",
-     "eingereicht": "2026-10-09",
-     "items": [
-         # Aus der abgelehnten 1.1.40 / 1.2.40 (09.10.) uebernommen.
-         "Wear OS watches keep recording GPS with the screen off: positions now come the way Google recommends for workout apps, and the watch requests GPS again by itself if it ever stops.",
-         "The watch asks once for physical activity access, which it only uses to measure your speed while you record.",
-         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
-         "In direct chats, two ticks show that your message has been read.",
-         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
-         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         # 07.10.2026 (Feedback Mirza, iOS; Jan: Android genauso): 780a895c, b2640260.
-         "The foil buttons in the phone recorder show model and size, with the brand underneath, so foils of the same brand can be told apart.",
-         # 01.10.2026: fafdd410.
-         "The longest-run record shows kilometres from 1,000 m on.",
-         # 07.10.2026 (Jan): Setup als kompakte Zeile + Popup, Gewicht je Session.
-         "The session page is tidier: time and watch share one line, and setup, caption and your weight for that session are edited together behind one edit button.",
-         "With the phone on the board, the session page no longer shows a wrong warning that the sensor rate is too low.",
-         # 09.10.2026: Web-Neuerungen des Tages nachgezogen (Android im Emulator gesehen).
-         "Under My watches you can switch Save storage for each Garmin watch, with an explanation of what it means for that watch.",
-         "Your linked Garmin watch shows its picture under My watches.",
-         "Run times of an hour or more show the hours, for example 6:01:09 instead of 361:09.",
-         "The Community page shows the most used watch layouts from the community, with a link to all of them.",
-         "The default data pages from the community are marked with their name and author in the data pages editor.",
-     ]},
+    # Android 1.1.41 / Wear 1.2.41 am 13.10. FREIGEGEBEN (s. `_APP_META`); 5 neue Punkte im Changelog mit
+    # android/wear, die Portierungs-Punkte vom 08./09. (ids 544, 558-562) tragen jetzt auch android.
     # Garmin 1.0.92 am 09.10. FREIGEGEBEN (s. `_APP_META`); Punkte + Ereignisse im Changelog (ids 550-556).
     # iPhone + Apple Watch 1.1.44 am 09.10. freigegeben -> raus (s. _APP_META["ios"]/["apple"]).
     # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
