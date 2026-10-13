@@ -24,3 +24,22 @@ def test_releases_antwortet(client):
     # Antwort steht und jeder Abschnitt so viele Zeilen hat wie seine Quelle in appmeta.
     assert isinstance(d["review"], list) and len(d["review"]) == len(appmeta.IN_REVIEW)
     assert d["live"]
+
+
+def test_huawei_linien_getrennt():
+    """Drei Huawei-Linien, je eigener Schluessel und eigene Versionsnummer (Jan, 13.10.2026)."""
+    for k in ("huawei-watch5", "huawei-gt", "huawei-watch34"):
+        assert k in appmeta._APP_META, k
+        assert k in appmeta.PLATTFORM_NAMEN, k
+        assert any(k in schl for schl, _ in appmeta.GRUPPEN), k
+
+
+def test_watch5_hinweis_findet_seinen_schluessel():
+    """Die eingereichte Watch-5-App fragt mit p=huawei — der Update-Hinweis muss trotzdem unter
+    "huawei-watch5" nachsehen, sonst bekaeme sie nie einen."""
+    from types import SimpleNamespace
+    from app.api.devices import _plat_fuer_hinweis
+    geraet = SimpleNamespace(platform="huawei", part_number=None)
+    assert _plat_fuer_hinweis("huawei", geraet) == "huawei-watch5"
+    assert _plat_fuer_hinweis(None, geraet) == "huawei-watch5"
+    assert _plat_fuer_hinweis("zepp", geraet) == "zepp"

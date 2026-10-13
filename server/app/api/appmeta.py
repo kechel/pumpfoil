@@ -495,6 +495,27 @@ _APP_META: dict[str, dict[str, str]] = {
         # Leer lassen statt raten — der Hinweis auf der Uhr braucht keinen Link.
         "store_url": "",
     },
+    # HUAWEI: drei Linien, je eigene Versionsnummer und eigener Schluessel (Jan, 13.10.2026: „die
+    # versionsnummern werden ja auch auseinanderlaufen bei Huawei, also vielleicht direkt richtig
+    # benennen und getrennt behandeln wie andere plattformen"). Alle drei sind EIN Bundle
+    # (org.pumpfoil.huawei, AppGallery-App 6917618548983879423) mit je einem Paket pro Geraeteklasse.
+    # Die Watch 5 schickt `p=huawei` (1.0.2 ist so eingereicht) -> devices._plat_fuer_hinweis
+    # bildet das auf "huawei-watch5" ab. `latest` erst bei bestaetigter Freigabe setzen.
+    "huawei-watch5": {      # watch-huawei/arkts, HarmonyOS 5/6, laedt selbst hoch (seit 1.0.2)
+        "latest": "",       # 1.0.2 eingereicht 13.10.2026, s. IN_REVIEW
+        "min_supported": "",
+        "store_url": "",
+    },
+    "huawei-gt": {          # watch-huawei/lite: Watch GT / Fit / D (LiteOS), braucht Wear Engine
+        "latest": "",
+        "min_supported": "",
+        "store_url": "",
+    },
+    "huawei-watch34": {     # watch-huawei/wearable: Watch 3 / 4 (JS-FA), ruht
+        "latest": "",
+        "min_supported": "",
+        "store_url": "",
+    },
 }
 
 
@@ -566,7 +587,11 @@ PRUEFER = {
     "Wear OS": "Google",
     "Amazfit": "the Zepp store",
     "Garmin": "the Connect IQ store",
-    "Huawei": "Huawei AppGallery",
+    # Seit 13.10.2026 drei Huawei-Linien getrennt (Jan: „in der release-tabelle am besten trennen
+    # zwischen den 3 Huawei Versionen, und offen dazuschreiben welche spaeter kommen").
+    "Huawei Watch 5": "Huawei AppGallery",
+    "Huawei Watch GT / Fit / D": "Huawei AppGallery",
+    "Huawei Watch 3 / 4": "Huawei AppGallery",
 }
 
 
@@ -612,7 +637,10 @@ def _note(e: dict, zustand: str) -> str:
         # Bauzustand, das entweder niemanden interessiert oder falsch war — am 18.09. stand
         # „built" an einer Fassung, die niemand gebaut hatte. Eine Zeile, die nichts behauptet,
         # kann auch nicht falsch werden.
-        return "current development"
+        # Ausnahme `spaeter`: Linien, an denen gerade NICHT gearbeitet wird, sagen das offen
+        # (Huawei GT/Fit/D wartet auf eine Huawei-Freigabe, Watch 3/4 ruht). „current development"
+        # waere dort falsch (Jan, 13.10.2026).
+        return e.get("spaeter") or "current development"
     if zustand == "rejected":
         satz = f"not approved on {_datum(e['abgelehnt'])}"
         return f"{satz}: {e['grund']}" if e.get("grund") else satz
@@ -629,6 +657,9 @@ GRUPPEN = [
     (("android", "wear"), "Android phone + Wear OS"),
     (("garmin",), "Garmin"),
     (("zepp",), "Amazfit"),
+    (("huawei-watch5",), "Huawei Watch 5"),
+    (("huawei-gt",), "Huawei Watch GT / Fit / D"),
+    (("huawei-watch34",), "Huawei Watch 3 / 4"),
 ]
 
 # Anzeigename je EINZELNER Plattform — fuer die Marke an einem Changelog-Punkt. Anders als
@@ -645,6 +676,9 @@ PLATTFORM_NAMEN = {
     # Name. Ohne diesen Eintrag fiel `PLATTFORM_NAMEN.get(k, k)` auf den rohen Schluessel zurueck
     # und auf /changelog stand als Marke woertlich „apple" (so bei den beiden Punkten vom 08.09.).
     "apple": "iPhone + Apple Watch",
+    "huawei-watch5": "Huawei Watch 5",
+    "huawei-gt": "Huawei Watch GT / Fit / D",
+    "huawei-watch34": "Huawei Watch 3 / 4",
 }
 
 # `items` sind die Aenderungen der jeweiligen Fassung — schon so formuliert, wie sie spaeter
@@ -761,7 +795,7 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = [
     # EINGEREICHT 13.10.2026 11:06 (Jans Meldung, AppGallery Connect „Under pre-review", 1.0.2 (1000002),
     # nur Smart watch = Watch 5, ohne Festland-China; signiert ueber signing.json im privaten Repo).
-    {"name": "Huawei", "version": "1.0.2",
+    {"name": "Huawei Watch 5", "version": "1.0.2",
      "eingereicht": "2026-10-13",
      "items": [
          "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
@@ -883,6 +917,18 @@ NAECHSTES: list[dict] = [
     # laedt nach Code-Kopplung selbst zu pumpfoil.org hoch. GT/Fit/D (Lite, ohne Internet) erst mit
     # einem neuen Wear-Engine-Antrag nach der Freigabe; Watch 3/4 nicht mehr (Huawei raet ab).
     # Huawei 1.0.2 (Watch 5) am 13.10. eingereicht -> IN_REVIEW.
+    # Die beiden anderen Huawei-Linien, offen mit Stand (Jan, 13.10.2026). Code liegt in
+    # watch-huawei/lite bzw. watch-huawei/wearable, im Simulator geprueft, nie auf Hardware.
+    {"name": "Huawei Watch GT / Fit / D", "version": "later",
+     "spaeter": "comes after the Watch 5",
+     "items": [
+         "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei that we will apply for once the Watch 5 is out.",
+     ]},
+    {"name": "Huawei Watch 3 / 4", "version": "on hold",
+     "spaeter": "not planned for now",
+     "items": [
+         "Huawei advised us not to release new apps for these older models, so they are on hold; tell us if you ride with one.",
+     ]},
     # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
     {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
