@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { Link, useNavigate } from "react-router-dom";
-import { api, SessionSummary } from "../lib/api";
+import { api, BoardAttitude, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
 import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
@@ -13,6 +13,7 @@ import { invalidateSessionListCache } from "./Sessions";
 import { setLastSession } from "../lib/lastSession";
 import { usePumpFmt } from "../lib/pumpRate";
 import { useT } from "../i18n";
+import { KorrekturUmschalter, LAUF_GRUPPE, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 
 // Farben zur Zuordnung Wert -> markiertes Element (Legende oben + Punkt je Wert).
 const COLORS = ["#2dd4bf", "#f59e0b", "#a78bfa", "#f472b6"];
@@ -367,6 +368,7 @@ export default function Compare() {
               zeigen: oben der Verlauf, darunter die Zahlen. */}
           <CompareHrStrips items={hrItems} />
           <AllRunsTable items={items} win={win} weight={weight} />
+          <BrettLageTabelle items={items} />
         </>
       )}
     </div>
@@ -462,5 +464,131 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
         </table>
       </Card>
     </div>
+  );
+}
+
+// LAGE JE LAUF fuer alle Sessions im Korb mit „Handy am Brett" — dieselbe Tabelle wie in „Meine
+// laengsten Laeufe" (Jan, 13.10.2026: „im ganz normalen compare sessions View moechte ich dann auch
+// die gesamte phone on board vergleiche haben … wenn ich sessions von anderen vorher markiert habe").
+// Ein einzelner Lauf im Korb -> nur dieser, eine ganze Session -> alle ihre Laeufe.
+type LageZeile = NonNullable<BoardAttitude["laeufe"]>[number];
+type BrettSort = "dauer" | "strecke" | "pitch" | "roll" | "yaw" | "pitchHz" | "hub";
+interface BrettLauf { key: string; it: Item; ri: number; seg: any }
+
+function BrettLageTabelle({ items }: { items: Item[] }) {
+  const t = useT();
+  const [lage, setLage] = useState<Record<number, LageZeile[]>>({});
+  const unterwegs = useRef(new Set<number>());
+  const [korr, setKorr] = useState(true);
+  const [sortKey, setSortKey] = useState<BrettSort | null>(null);
+  const [sortAuf, setSortAuf] = useState(false);
+  const brett = items.filter((it) => it.session?.placement === "board");
+
+  useEffect(() => {
+    brett.map((it) => it.ref.sessionId)
+      .filter((id, i, a) => a.indexOf(id) === i && !(id in lage) && !unterwegs.current.has(id))
+      .forEach((id) => {
+        unterwegs.current.add(id);
+        api.boardAttitude(id, { hz: 2, jeLauf: true })
+          .then((a) => setLage((alt) => ({ ...alt, [id]: a.laeufe ?? [] })))
+          .catch(() => setLage((alt) => ({ ...alt, [id]: [] })))
+          .finally(() => unterwegs.current.delete(id));
+      });
+  }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const laeufe: BrettLauf[] = brett.flatMap((it) => {
+    const segs: any[] = it.session?.analysis?.segments ?? [];
+    const idx = it.ref.runIdx != null ? [it.ref.runIdx] : segs.map((_, i) => i);
+    return idx.filter((ri) => segs[ri]).map((ri) => ({ key: `${refKey(it.ref)}-${ri}`, it, ri, seg: segs[ri] }));
+  });
+  if (!laeufe.length) return null;
+
+  const lageVon = (l: BrettLauf) => {
+    const k = lage[l.it.ref.sessionId]?.find((x) => x.lauf === l.ri);
+    return k?.ok ? k : undefined;
+  };
+  // Sortiert nach der Zahl, die oben in der Zelle steht (wie in „Meine laengsten Laeufe").
+  const wert = (l: BrettLauf, k: BrettSort): number | null => {
+    const x = lageVon(l);
+    const mit = x?.technik?.teil !== "ganz" ? x?.technik?.mit : null;
+    switch (k) {
+      case "dauer": return l.seg.duration_s ?? null;
+      case "strecke": return l.seg.distance_m ?? null;
+      case "pitch": return mit?.pump_nicken_deg ?? x?.pitch_amplitude_deg ?? null;
+      case "roll": return mit?.pump_rollen_deg ?? x?.roll_amplitude_deg ?? null;
+      case "yaw": return x?.gier_rms_deg_s ?? null;
+      case "pitchHz": return mit?.takt_hz ?? x?.pitch_hz ?? null;
+      case "hub": return mit?.hub_cm ?? x?.hub_pp_cm ?? null;
+    }
+  };
+  const k0 = sortKey;
+  const zeilen = k0 == null ? laeufe : [...laeufe].sort((a, b) => {
+    const va = wert(a, k0), vb = wert(b, k0);
+    if (va == null || vb == null) return va == null ? (vb == null ? 0 : 1) : -1;
+    return sortAuf ? va - vb : vb - va;
+  });
+  // Erster Klick: groesster Wert zuerst, zweiter dreht um, dritter zurueck zur Korb-Reihenfolge.
+  const sortieren = (k: BrettSort) => {
+    if (k !== sortKey) { setSortKey(k); setSortAuf(false); }
+    else if (!sortAuf) setSortAuf(true);
+    else { setSortKey(null); setSortAuf(false); }
+  };
+  const kopf = (k: BrettSort | null, inhalt: React.ReactNode, rechts = false) => (
+    <th key={k ?? "lauf"} className={`px-3 py-2 font-medium ${rechts ? "text-right" : ""}`}>
+      {k == null ? inhalt : (
+        <button type="button" onClick={() => sortieren(k)}
+          className={`inline-flex items-center gap-1 uppercase tracking-wide hover:text-slate-200 ${k === sortKey ? "text-slate-200" : ""}`}>
+          {inhalt}
+          {k === sortKey && <span aria-hidden>{sortAuf ? "▲" : "▼"}</span>}
+        </button>
+      )}
+    </th>
+  );
+  const datum = (s: SessionSummary | null) => s?.started_at ? fmtDate(s.started_at, s.tz, { day: "2-digit", month: "short", year: "2-digit" }) : "–";
+
+  return (
+    <Card className="mt-6 overflow-x-auto">
+      <div className="flex flex-wrap items-center gap-2 px-3 pt-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("sd.attitudePerRun")}</p>
+        <span className="ml-auto"><KorrekturUmschalter korr={korr} onChange={setKorr} /></span>
+      </div>
+      <table className="w-full min-w-[900px] text-sm">
+        <thead>
+          <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
+            {kopf(null, t("longest.session"))}
+            {kopf("dauer", t("sd.colDuration"))}
+            {kopf("strecke", t("sd.colDistance"))}
+            <PhasenKopf sortierbar={(key, label) => ["pitch", "roll", "yaw", "pitchHz", "hub"].includes(key)
+              ? kopf(key as BrettSort, label)
+              : <th key={key} className="px-3 py-2 text-right font-medium">{label}</th>} />
+          </tr>
+        </thead>
+        {zeilen.map((l) => {
+          const k = lage[l.it.ref.sessionId]?.find((x) => x.lauf === l.ri);
+          const vorne = (n: number) => (<>
+            <td rowSpan={n} className="px-3 py-1.5 align-top">
+              <span className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: l.it.color }} />
+              {l.it.rider && <span className="pf-name font-semibold" style={{ color: l.it.riderColor }}>{l.it.rider} · </span>}
+              <Link to={{ pathname: `/sessions/${l.it.ref.sessionId}`, search: `?run=${l.ri}` }} className="text-brand-600 hover:underline dark:text-brand-300">
+                {datum(l.it.session)} · #{l.ri + 1}
+              </Link>
+            </td>
+            <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums font-semibold">{l.seg.duration_s != null ? fmtMMSS(l.seg.duration_s) : "–"}</td>
+            <td rowSpan={n} className="px-3 py-1.5 align-top tabular-nums">{l.seg.distance_m != null ? `${Math.round(l.seg.distance_m)} m` : "–"}</td>
+          </>);
+          return !k?.ok ? (
+            <tbody key={l.key} className={LAUF_GRUPPE}>
+              <tr className={LAUF_HOVER}>
+                {vorne(1)}
+                <td colSpan={8} className="px-3 py-2 text-slate-500">{lage[l.it.ref.sessionId] ? "–" : "…"}</td>
+              </tr>
+            </tbody>
+          ) : (
+            <LaufPhasenZeilen key={l.key} k={k} korr={korr} className={LAUF_HOVER} vorne={vorne} />
+          );
+        })}
+      </table>
+      <LaufLegende />
+    </Card>
   );
 }
