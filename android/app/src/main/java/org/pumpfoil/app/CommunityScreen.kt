@@ -431,7 +431,8 @@ internal fun cyanChipColors() = FilterChipDefaults.filterChipColors(
 
 // Accel/alle-Umschalter (zwei Segmente, wie PWA + Home).
 @Composable
-internal fun AccelSeg(accelOnly: Boolean, onChange: (Boolean) -> Unit) {
+internal fun AccelSeg(accelOnly: Boolean, brett: Boolean = false, onBrett: (() -> Unit)? = null,
+                      onChange: (Boolean) -> Unit) {
     @Composable
     fun seg(active: Boolean, label: String, onClick: () -> Unit) {
         Surface(
@@ -444,9 +445,17 @@ internal fun AccelSeg(accelOnly: Boolean, onChange: (Boolean) -> Unit) {
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        seg(accelOnly, I18n.t("side.onlyAccel")) { onChange(true) }
+        // Kurz „accel" in allen Sprachen (Jan, 13.10.2026): mit POB passt die Zeile so auch auf
+        // schmalen Displays.
+        seg(accelOnly && !brett, "accel") { onChange(true) }
         Spacer(Modifier.width(4.dp))
-        seg(!accelOnly, I18n.t("side.all")) { onChange(false) }
+        seg(!accelOnly && !brett, I18n.t("side.all")) { onChange(false) }
+        // Dritte Taste „POB" = phone on board, nur Aufnahmen mit placement = board (wie die PWA seit
+        // 08.10.2026; Beschriftung in allen Sprachen „POB", Jan 13.10.2026).
+        if (onBrett != null) {
+            Spacer(Modifier.width(4.dp))
+            seg(brett, "POB") { onBrett() }
+        }
     }
 }
 

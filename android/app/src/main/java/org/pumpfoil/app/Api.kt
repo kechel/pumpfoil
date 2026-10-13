@@ -240,11 +240,12 @@ object Api {
     // `sport`: null/"all" = alle Sportarten (Serverdefault), sonst genau diese — wie `api.sessions`
     // in der PWA (Nutzerwunsch 27.09.2026, Filter nach Sportart).
     suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false,
-                         sport: String? = null): List<SessionSummary> = withContext(Dispatchers.IO) {
+                         sport: String? = null, board: Boolean = false): List<SessionSummary> = withContext(Dispatchers.IO) {
         val qs = buildString {
             append("?filter=$filter")
             if (!month.isNullOrBlank()) append("&month=$month")
             if (accelOnly) append("&accel_only=true")
+            if (board) append("&board=true")   // nur Handy am Brett (POB)
             if (!sport.isNullOrBlank() && sport != "all") append("&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"))
         }
         json.decodeFromString(
@@ -462,9 +463,11 @@ object Api {
 
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
     suspend fun communitySessionsGrouped(spot: String? = null, limit: Int = 20, offset: Int = 0,
-                                         accelOnly: Boolean = true, sport: String? = null): List<CommunityGroup> = withContext(Dispatchers.IO) {
+                                         accelOnly: Boolean = true, sport: String? = null,
+                                         board: Boolean = false): List<CommunityGroup> = withContext(Dispatchers.IO) {
         val sp = if (!spot.isNullOrBlank()) "&spot=" + java.net.URLEncoder.encode(spot, "UTF-8") else ""
-        val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp" + (if (sport != null) "&sport=$sport" else "")
+        val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp" + (if (sport != null) "&sport=$sport" else "") +
+            (if (board) "&board=true" else "")
         json.decodeFromString(
             ListSerializer(CommunityGroup.serializer()),
             http("GET", "/api/community/sessions-grouped$qs", null, auth = true),
