@@ -878,8 +878,10 @@ function layout(e: Seite, c: ZeichenKontext): Befehl[] {
       vorne.push(text(ax, ay, groesse(st, dw), col, a, txt, typ === 1));
     }
   }
+  // Ohne eigenes Pause-Element: klein und ganz oben wie Garmin (FONT_XTINY ganz oben). Mit
+  // Stufe 2 auf 0,07 H lag es im Emulator-Test (13.10.2026) ueber Uhrzeit/Labels am oberen Rand.
   if (c.pausiert && !hatPause) {
-    vorne.push(text(Math.round(dw / 2), Math.round(dh * 0.07), groesse(2, dw), CYAN, 'c', c.t('paused'), true));
+    vorne.push(text(Math.round(dw / 2), Math.round(dh * 0.05), groesse(0, dw), CYAN, 'c', c.t('paused'), true));
   }
   return out.concat(vorne);
 }
