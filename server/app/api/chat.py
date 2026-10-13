@@ -151,9 +151,13 @@ class PostIn(BaseModel):
     text: str = ""
     # Vorher hochgeladene Bilder (POST /api/chat/photos) — vorerst nur Admins (Jan, 30.09.2026).
     photo_ids: list[int] = []
+    # Antwort auf eine Nachricht desselben Raums (Jan, 13.10.2026). Optional — aeltere Apps schicken
+    # das Feld nicht und posten wie bisher.
+    reply_to: int | None = None
 
 
 MAX_CHAT_FOTOS = 10
+ZITAT_ZEICHEN = 140   # Auszug des Originals ueber der Antwort
 
 
 def _photos_for(db: Session, msg_ids: list[int]) -> dict[int, list[dict]]:
@@ -174,14 +178,53 @@ def _hat_fotos(db: Session, msg_id: int) -> bool:
 
 def _msg_out(m: models.ChatMessage, name: str, avatar: str | None, uid: int,
              author_new: bool = False, like_count: int = 0, liked: bool = False,
-             photos: list | None = None) -> dict:
+             photos: list | None = None, reply: dict | None = None) -> dict:
     return {
         "id": m.id, "user_id": m.user_id, "name": name, "avatar_url": avatar,
         "text": m.text, "created_at": m.created_at.isoformat() if m.created_at else None,
         "mine": m.user_id == uid, "hidden": m.hidden, "report_count": m.report_count,
         "author_new": author_new, "like_count": like_count, "liked": liked,
         "photos": photos or [],
+        # NEU 13.10.2026, rein additiv: aeltere Apps kennen das Feld nicht und ignorieren es
+        # (Android ignoreUnknownKeys, iOS Codable) — dort steht die Antwort wie eine normale Nachricht.
+        "reply_to": reply,
     }
+
+
+def _zitate(db: Session, msgs: list[models.ChatMessage], viewer: models.User) -> dict[int, dict]:
+    """Batch: {antwort_id: Zitat} fuer alle Antworten in `msgs`. Das Zitat folgt denselben
+    Sichtbarkeitsregeln wie die Liste: verborgene Nachrichten (ausser fuer Admins) und Nachrichten
+    versteckter Testkonten (ausser die eigenen) erscheinen als `missing`, geloeschte ebenso, und
+    nur aus DEMSELBEN Raum — ein Zitat kann nie Text aus einem anderen Chat zeigen."""
+    ziele = {m.reply_to_id for m in msgs if m.reply_to_id}
+    if not ziele:
+        return {}
+    orig: dict[int, tuple] = {}
+    for o, name, u_hidden in (
+        db.query(models.ChatMessage, owner_label_sql(models.User), models.User.hidden)
+        .join(models.User, models.ChatMessage.user_id == models.User.id)
+        .filter(models.ChatMessage.id.in_(ziele)).all()
+    ):
+        orig[o.id] = (o, name, u_hidden)
+    fotos = {mid for (mid,) in db.query(models.ChatPhoto.message_id)
+             .filter(models.ChatPhoto.message_id.in_(ziele)).distinct().all()}
+    out: dict[int, dict] = {}
+    for m in msgs:
+        if not m.reply_to_id:
+            continue
+        t = orig.get(m.reply_to_id)
+        sichtbar = (t is not None and t[0].scope == m.scope
+                    and (viewer.is_admin or not t[0].hidden)
+                    and (not t[2] or t[0].user_id == viewer.id))
+        if not sichtbar:
+            out[m.id] = {"id": m.reply_to_id, "missing": True}
+            continue
+        o, name, _ = t
+        txt = " ".join((o.text or "").split())
+        out[m.id] = {"id": o.id, "user_id": o.user_id, "name": name,
+                     "text": txt[:ZITAT_ZEICHEN] + ("…" if len(txt) > ZITAT_ZEICHEN else ""),
+                     "photo": o.id in fotos, "missing": False}
+    return out
 
 
 def _likes_for(db: Session, msg_ids: list[int], uid: int) -> tuple[dict, set]:
@@ -199,13 +242,15 @@ def _likes_for(db: Session, msg_ids: list[int], uid: int) -> tuple[dict, set]:
 
 @router.get("")
 def list_messages(
-    scope: str = Query(...), after: int = 0, before: int = 0, limit: int = 30,
+    scope: str = Query(...), after: int = 0, before: int = 0, limit: int = 30, from_id: int = 0,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Chat-Nachrichten, immer aufsteigend (älteste -> neueste) zurückgegeben.
     - ohne Cursor: die neuesten `limit` Nachrichten (für initiales Laden).
     - after=<id>: alle Nachrichten neuer als id (Polling).
-    - before=<id>: die `limit` Nachrichten direkt vor id (Hochscroll-Nachladen)."""
+    - before=<id>: die `limit` Nachrichten direkt vor id (Hochscroll-Nachladen).
+    - before=<id>&from_id=<id>: ALLE Nachrichten von from_id (einschliesslich) bis vor before, hoechstens
+      500 — zum Springen auf ein zitiertes Original (Jan, 13.10.2026: „inkl. ggf. nachladen bis dahin")."""
     _check_scope(scope)
     scope = _canon_scope(db, scope)
     _require_access(scope, user.id)
@@ -224,6 +269,9 @@ def list_messages(
         # Neue Nachrichten seit `after`: aufsteigend ab dem Cursor.
         rows = q.filter(models.ChatMessage.id > after).order_by(
             models.ChatMessage.id.asc()).limit(lim).all()
+    elif from_id and before:
+        rows = q.filter(models.ChatMessage.id >= from_id, models.ChatMessage.id < before).order_by(
+            models.ChatMessage.id.asc()).limit(500).all()
     else:
         # Neueste (oder die vor `before`): absteigend holen, dann umdrehen.
         if before:
@@ -233,8 +281,9 @@ def list_messages(
     ids = [m.id for m, _n, _a, _c in rows]
     counts, mine = _likes_for(db, ids, user.id)
     fotos = _photos_for(db, ids)
+    zitate = _zitate(db, [m for m, _n, _a, _c in rows], user)
     return [_msg_out(m, name, avatar, user.id, is_new_account(created),
-                     counts.get(m.id, 0), m.id in mine, fotos.get(m.id))
+                     counts.get(m.id, 0), m.id in mine, fotos.get(m.id), zitate.get(m.id))
             for m, name, avatar, created in rows]
 
 
@@ -312,6 +361,13 @@ def post_message(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leere Nachricht")
     if len(text) > 2000:
         text = text[:2000]
+    # Antwort: Original muss im SELBEN Raum liegen und fuer den Schreibenden sichtbar sein.
+    reply_to = None
+    if body.reply_to:
+        o = db.get(models.ChatMessage, body.reply_to)
+        if o is None or o.scope != scope or (o.hidden and not user.is_admin):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekannte Nachricht")
+        reply_to = o.id
 
     now = datetime.now(timezone.utc)
     is_new = is_new_account(user.created_at)
@@ -340,7 +396,8 @@ def post_message(
             continue
         if r.scope == scope:
             # Gleicher Raum: idempotent zurückgeben (Doppel-Tap/Retry).
-            return _msg_out(r, user.display_name, user.avatar_url, user.id, is_new)
+            return _msg_out(r, user.display_name, user.avatar_url, user.id, is_new,
+                            reply=_zitate(db, [r], user).get(r.id))
         # Gleicher Text in einem ANDEREN Raum -> Cross-Room-Spam blocken.
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
@@ -350,7 +407,7 @@ def post_message(
     # (s. `_ist_store_testroboter`). Bewusst KEIN Fehler nach aussen — der Roboter soll seinen
     # Durchlauf normal beenden, sonst meldet der Pre-Launch-Report einen Fehler in unserer App.
     roboter = _ist_store_testroboter(db, user, text)
-    m = models.ChatMessage(scope=scope, user_id=user.id, text=text, hidden=roboter)
+    m = models.ChatMessage(scope=scope, user_id=user.id, text=text, hidden=roboter, reply_to_id=reply_to)
     db.add(m)
     if roboter:
         user.hidden = True
@@ -377,7 +434,7 @@ def post_message(
     db.refresh(m)
     _notify_subscribers(db, m, user)
     return _msg_out(m, user.display_name, user.avatar_url, user.id, is_new,
-                    photos=_photos_for(db, [m.id]).get(m.id))
+                    photos=_photos_for(db, [m.id]).get(m.id), reply=_zitate(db, [m], user).get(m.id))
 
 
 @router.post("/photos")
