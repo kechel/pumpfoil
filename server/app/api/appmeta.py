@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.46",   # FREIGEGEBEN 2026-10-12, Apple-Mail eligible for distribution, 1.1.46 for iOS
+        "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13, Apple-Mail eligible for distribution, 1.1.47 for iOS
+        # (Jans Meldung, Submission ea0118e4-9f5b-417b-97dd-9037056d629e, eingereicht 12.10. 17:41, Build 53).
+        # Inhalt: Aufnahme-Startseite scrollt (START auf kleinen iPhones erreichbar).
+        # ALT: "latest": "1.1.46",   # FREIGEGEBEN 2026-10-12, Apple-Mail eligible for distribution, 1.1.46 for iOS
         # (Jans Meldung, Submission fbfc5ecf-015e-4bc2-a6d1-d1087803e076, eingereicht 12.10. 06:24, Build 52).
         # Inhalt: Handgelenk/Stance im Profil, sortierbare Lauf-Tabelle, Begriffe cs/nl/id/nb.
         # ALT: "latest": "1.1.45",   # FREIGEGEBEN 2026-10-09 abends, Apple-Mail eligible for distribution, 1.1.45 for iOS
@@ -399,7 +402,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.46",   # FREIGEGEBEN 2026-10-12 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.46",   # FREIGEGEBEN 2026-10-12 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.45",   # FREIGEGEBEN 2026-10-09 abends — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.43",   # FREIGEGEBEN 2026-10-08 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -755,14 +759,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 12.10.2026 17:41 (Jans Meldung, App Store Connect: 1.1.47 (53), „Warten auf Pruefung",
-    # Kennung ea0118e4-9f5b-417b-97dd-9037056d629e). Inhalt: Aufnahme-Startseite scrollt (4bb69bee),
-    # im Simulator von Jan geprueft (11 Foils, START erreichbar).
-    {"name": "iPhone + Apple Watch", "version": "1.1.47",
-     "eingereicht": "2026-10-12",
-     "items": [
-         "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
-     ]},
+    # iPhone + Apple Watch 1.1.47 am 13.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt im Changelog mit ios/apple.
     # iPhone + Apple Watch 1.1.46 am 12.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple.
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
     # Kennung 4f8b90a9-35d5-4b8b-91e1-ae255905c4e0). Inhalt: Portierung vom 09.10. (081c95f3).
