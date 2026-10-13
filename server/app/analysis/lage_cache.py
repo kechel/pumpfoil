@@ -18,15 +18,22 @@ Zusammenfassen frisch von der Session gelesen.
 from __future__ import annotations
 
 import json
+import pathlib
 import zlib
 
 import numpy as np
+
+# Quelltext von lage.py im Fingerabdruck (13.10.2026, Jan: „das aendert sich ja nur falls wir am
+# model / Algorithmus etwas aendern"): jede Aenderung an der Rechnung verwirft den Speicher von
+# selbst, auch wenn niemand an `LAGE_VERSION` denkt. Kostet nach einer Aenderung EINE Neurechnung
+# je Session beim naechsten Abruf — auch nach reinen Kommentar-Aenderungen, das ist der Preis.
+_LAGE_QUELLE = f"{zlib.crc32((pathlib.Path(__file__).parent / 'lage.py').read_bytes()):08x}"
 
 
 def fingerabdruck(s, result) -> str:
     from . import lage
     seg = (result.segments_json or "") if result is not None else ""
-    return (f"{lage.LAGE_VERSION}|{zlib.crc32(seg.encode()):08x}|{int(s.trim_start_ms or 0)}|"
+    return (f"{lage.LAGE_VERSION}|{_LAGE_QUELLE}|{zlib.crc32(seg.encode()):08x}|{int(s.trim_start_ms or 0)}|"
             f"{s.attitude_rot_deg if s.attitude_rot_deg is not None else '-'}")
 
 
@@ -34,7 +41,7 @@ def _rechnen(s, result) -> dict:
     """Die Rechnung, wie sie bis 06.10. in community.board_attitude stand — unveraendert."""
     from .. import storage
     from . import lage
-    leer = {"gezaehlt": False, "ohne_kreisel": False, "laeufe": []}
+    leer = {"gezaehlt": False, "ohne_kreisel": False, "laeufe": [], "je_lauf": []}
     uuid = s.session_uuid
     acc = storage.load_accel(uuid)
     if len(acc) < 4:
@@ -53,7 +60,7 @@ def _rechnen(s, result) -> dict:
         segmente = json.loads(result.segments_json) if result and result.segments_json else []
     except (ValueError, AttributeError):
         segmente = []
-    aus = {"gezaehlt": False, "ohne_kreisel": not hat_kreisel, "laeufe": []}
+    aus = {"gezaehlt": False, "ohne_kreisel": not hat_kreisel, "laeufe": [], "je_lauf": []}
     if not segmente:
         return aus
     off = int(s.trim_start_ms or 0)
@@ -69,6 +76,10 @@ def _rechnen(s, result) -> dict:
         mag=lage.magnetfeld(storage.load_mag(uuid), lage.zeitachse(
             storage.load_mag_t0(uuid), storage.chunk_laengen(uuid, "mag"))))
     aus["gezaehlt"] = True
+    # Die VOLLEN Kennzahlen je Lauf, genau so, wie der Lage-Endpunkt sie mit `je_lauf` liefert —
+    # fuer die Lauf-Tabellen (Session, laengste Laeufe, Vergleich), die bisher bei jedem Aufruf
+    # 5-14 s auf die Rechnung warteten (13.10.2026).
+    aus["je_lauf"] = kennzahlen
     for (a, b), k in zip(bereiche, kennzahlen):
         if not k.get("ok"):
             continue
@@ -96,7 +107,8 @@ def laeufe_der_session(db, s, speichern: bool = True) -> dict:
     if result.lage_json:
         try:
             d = json.loads(result.lage_json)
-            if d.get("fp") == fp:
+            # Eintraege von vor dem 13.10. haben noch keine vollen Kennzahlen -> einmal neu.
+            if d.get("fp") == fp and "je_lauf" in d:
                 return d
         except ValueError:
             pass

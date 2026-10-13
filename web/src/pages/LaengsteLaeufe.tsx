@@ -113,7 +113,7 @@ export default function LaengsteLaeufe() {
   const vglSet = useMemo(() => new Set(vergleich.map(schl)), [vergleich]);
   useEffect(() => {
     vergleich.filter((l) => l.placement === "board" && !lage[l.session_id]).forEach((l) =>
-      api.boardAttitude(l.session_id, { hz: 2, jeLauf: true })
+      api.boardAttitude(l.session_id, { nurLaeufe: true })
         .then((a) => setLage((alt) => ({ ...alt, [l.session_id]: a.laeufe ?? [] }))).catch(() => {}));
   }, [vergleich]); // eslint-disable-line react-hooks/exhaustive-deps
   // Reihenfolge in jeder Ansicht: markierte (Markier-Reihenfolge) -> Vergleichskorb -> Rest.
@@ -215,7 +215,7 @@ export default function LaengsteLaeufe() {
     (brettLaeufe ?? []).map((l) => l.session_id).filter((id, i, a) => a.indexOf(id) === i && !sessions[id])
       .forEach((id) => api.session(id).then((x) => setSessions((alt) => ({ ...alt, [id]: x }))).catch(() => {}));
     (brettLaeufe ?? []).map((l) => l.session_id).filter((id, i, a) => a.indexOf(id) === i && !lage[id])
-      .forEach((id) => api.boardAttitude(id, { hz: 2, jeLauf: true })
+      .forEach((id) => api.boardAttitude(id, { nurLaeufe: true })
         .then((a) => setLage((alt) => ({ ...alt, [id]: a.laeufe ?? [] }))).catch(() => {}));
   }, [brettLaeufe]); // eslint-disable-line react-hooks/exhaustive-deps
 

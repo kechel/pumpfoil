@@ -1207,12 +1207,16 @@ export const api = {
     // Kennzahlen je erkanntem Lauf mitliefern. Kostet serverseitig einen Durchgang je Lauf
     // (jeder bekommt seine eigene Montage-Drehung), deshalb nur fuer die Lauf-Tabelle.
     jeLauf?: boolean;
+    // NUR die Kennzahlen je Lauf, serverseitig gespeichert (lage_cache.py) — ohne Lage-Kurven,
+    // dadurch sofort statt 5-14 s. Fuer alle Lauf-Tabellen (13.10.2026).
+    nurLaeufe?: boolean;
     // Teilen-Token: dann laeuft der Abruf ueber den oeffentlichen Weg, ohne Login.
     token?: string | null;
   } = {}) => {
     const q = new URLSearchParams();
     if (o.run != null) q.set("run", String(o.run));
     if (o.jeLauf) q.set("je_lauf", "1");
+    if (o.nurLaeufe) q.set("nur_laeufe", "1");
     if (o.run == null && o.vonMs != null && o.bisMs != null) {
       q.set("from_ms", String(Math.round(o.vonMs)));
       q.set("to_ms", String(Math.round(o.bisMs)));

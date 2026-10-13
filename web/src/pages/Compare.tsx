@@ -489,7 +489,7 @@ function BrettLageTabelle({ items }: { items: Item[] }) {
       .filter((id, i, a) => a.indexOf(id) === i && !(id in lage) && !unterwegs.current.has(id))
       .forEach((id) => {
         unterwegs.current.add(id);
-        api.boardAttitude(id, { hz: 2, jeLauf: true })
+        api.boardAttitude(id, { nurLaeufe: true })
           .then((a) => setLage((alt) => ({ ...alt, [id]: a.laeufe ?? [] })))
           .catch(() => setLage((alt) => ({ ...alt, [id]: [] })))
           .finally(() => unterwegs.current.delete(id));
