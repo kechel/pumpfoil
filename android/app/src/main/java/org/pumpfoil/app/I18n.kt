@@ -149,6 +149,29 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026.
     "sd.glides" to row("Gleiten", "Glite", "Gleiten", "Glides", "Glisses", "Planate", "Planeos"),
     "sd.glide" to row("Gleitphase", "Glitphase", "Gleitphase", "Glide", "Glisse", "Planata", "Planeo"),
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026.
+    "tech.wobble" to row("Wackeln", "Wackle", "Wackeln", "Wobble", "Oscillation", "Oscillazione", "Bamboleo"),
+    "tech.sWhole" to row("ganzer Lauf", "ganze Lauf", "ganzer Lauf", "whole run", "run entier", "run intero", "tramo completo"),
+    "tech.sTurn" to row("Kurve", "Kurve", "Kurve", "turns", "virages", "curve", "curvas"),
+    "tech.sStable" to row("stabile Phase", "stabili Phase", "stabile Phase", "stable phase", "phase stable", "fase stabile", "fase estable"),
+    "tech.colPhase" to row("Phase", "Phase", "Phase", "Phase", "Phase", "Fase", "Fase"),
+    "tech.colLean" to row("Schräglage", "Schräglag", "Schräglage", "Lean", "Inclinaison", "Inclinazione", "Inclinación"),
+    "tech.sStraight" to row("gerade", "grad", "gerade", "straight", "ligne droite", "rettilineo", "recta"),
+    "tech.colWith" to row("korrigiert", "korrigiert", "korrigiert", "corrected", "corrigé", "corretto", "corregido"),
+    "tech.colWithout" to row("unkorrigiert", "unkorrigiert", "unkorrigiert", "uncorrected", "non corrigé", "non corretto", "sin corregir"),
+    "tech.gPump" to row("Hoch bis Tief je Pumpzug, Median über alle Pumpzüge", "Höch bis Tüüf pro Pumpzuug, Median über alli Pumpzüüg", "Hoch bis Tief je Pumpzug, Median über alle Pumpzüge", "high to low per pump stroke, median over all strokes", "du haut au bas par coup de pump, médiane sur tous les coups", "dall'alto al basso per pompata, mediana su tutte le pompate", "de arriba abajo por bombeo, mediana de todos los bombeos"),
+    "tech.gWobble" to row("langsames seitliches Hin und Her über 2–5 s", "langsams sitlechs Hin und Här über 2–5 s", "langsames seitliches Hin und Her über 2–5 s", "slow side-to-side rocking over 2–5 s", "lent balancement latéral sur 2–5 s", "lento ondeggiare laterale su 2–5 s", "lento balanceo lateral en 2–5 s"),
+    "tech.gLean" to row("wie weit sich das Brett in Kurven zur Seite legt", "wie wiit sich s Brätt i de Kurve uf d Siite leit", "wie weit sich das Brett in de Kurven zur Seite legt", "how far the board leans over in turns", "de combien la planche se couche dans les virages", "quanto la tavola si inclina di lato nelle curve", "cuánto se tumba la tabla hacia un lado en las curvas"),
+    "tech.gYaw" to row("wie schnell das Brett dreht (°/s)", "wie schnäll sich s Brätt dräiht (°/s)", "wie schnell sich des Brett dreht (°/s)", "how fast the board turns (°/s)", "vitesse de rotation de la planche (°/s)", "quanto velocemente gira la tavola (°/s)", "lo rápido que gira la tabla (°/s)"),
+    "tech.gStable" to row("der Lauf ohne seine ersten und letzten 5 s, Läufe unter 20 s haben keine stabile Phase", "dr Lauf ohni sini erschte und letschte 5 s, Läuf under 20 s händ kei stabili Phase", "der Lauf ohne seine ersten und letzten 5 s, Läufe unter 20 s haben keine stabile Phase", "the run without its first and last 5 s; runs under 20 s have no stable phase", "le run sans ses 5 premières et 5 dernières s ; les runs de moins de 20 s n'ont pas de phase stable", "la run senza i primi e gli ultimi 5 s; le run sotto i 20 s non hanno fase stabile", "la carrera sin sus primeros y últimos 5 s; las de menos de 20 s no tienen fase estable"),
+    "tech.gTurnStraight" to row("nur Pumpzüge, bei denen das Brett schneller bzw. langsamer als 8 °/s drehte", "nur Pumpzüüg, wo sich s Brätt schnäller bzw. langsamer als 8 °/s dräiht het", "nur Pumpzüge, bei denen sich des Brett schneller bzw. langsamer als 8 °/s dreht hat", "only strokes where the board turned faster or slower than 8°/s", "seulement les coups où la planche tournait plus ou moins vite que 8 °/s", "solo pompate in cui la tavola girava più o meno veloce di 8 °/s", "solo bombeos en que la tabla giraba más o menos rápido que 8 °/s"),
+    "tech.gWhole" to row("inkl. Start und Ende", "inkl. Start und Änd", "inkl. Start und Ende", "including start and end", "départ et fin compris", "partenza e fine incluse", "inicio y final incluidos"),
+    "tech.lCorrection" to row("Korrigiert: Die Fliehkraft in Kurven wird vorher herausgerechnet.", "Korrigiert: D Fliehchraft i de Kurve wird vorher usegrechnet.", "Korrigiert: Die Fliehkraft in de Kurven wird vorher rausgerechnet.", "Corrected: the centrifugal force in turns is taken out first.", "Corrigé : la force centrifuge des virages est retirée d'abord.", "Corretto: la forza centrifuga in curva viene tolta prima.", "Corregido: primero se descuenta la fuerza centrífuga de las curvas."),
+    "tech.gColumns" to row("Nicken = Nase hoch/runter · Rollen = seitlich kippen · Hub = Brett auf und ab · Takt = Pumpzüge pro Sekunde", "Nicke = Nase ufe/abe · Rolle = sitlich kippe · Hub = Brätt ufe und abe · Takt = Pumpzüg pro Sekunde", "Nicken = Nase rauf/runter · Rollen = seitlich kippen · Hub = Brett rauf und runter · Takt = Pumpzüge pro Sekunde", "Pitch = nose up/down · Roll = sideways tilt · Heave = board up and down · Rate = pump strokes per second", "Tangage = nez haut/bas · Roulis = bascule latérale · Amplitude verticale = planche haut/bas · Cadence = pompes par seconde", "Beccheggio = muso su/giù · Rollio = inclinazione laterale · Escursione = tavola su e giù · Cadenza = pompate al secondo", "Cabeceo = punta arriba/abajo · Alabeo = inclinación lateral · Recorrido vertical = tabla arriba y abajo · Cadencia = bombeos por segundo"),
+    "tech.gSpread" to row("Wackeln und Schräglage sind Spannen, keine Werte je Pumpzug.", "Wackle und Schräglag sind Spanne, kei Wärt pro Pumpzuug.", "Wackeln und Schräglage san Spannen, ka Werte je Pumpzug.", "Wobble and lean are spans, not per-stroke values.", "Oscillation et inclinaison sont des amplitudes, pas des valeurs par coup.", "Oscillazione e inclinazione sono ampiezze, non valori per pompata.", "Bamboleo e inclinación son amplitudes, no valores por bombeo."),
+    "tech.gHeave" to row("Hub wird am Handy gemessen – nur bei gleicher Handy-Position vergleichbar.", "Hub wird am Handy gmässe – nur bi glicher Handy-Position verglichbar.", "Hub wird am Handy gmessen – nur bei gleicher Handy-Position vergleichbar.", "Heave is measured at the phone – only comparable with the phone in the same spot.", "Le heave est mesuré au téléphone – comparable seulement avec le téléphone au même endroit.", "L'escursione è misurata al telefono – confrontabile solo con il telefono nello stesso punto.", "La oscilación vertical se mide en el móvil – solo comparable con el móvil en el mismo sitio."),
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026.
+    "account.claimBad" to row("Code ungültig oder abgelaufen — Code auf der Uhr prüfen oder dort einen neuen holen.", "Code ungültig oder abgloffe — Code uf de Uhr prüefe oder dört en neue hole.", "Code ungültig oder abgelaufen — Code auf der Uhr prüfen oder dort einen neuen holen.", "Code invalid or expired — check the code on the watch, or get a new one there.", "Code invalide ou expiré — vérifie le code sur la montre ou demandes-en un nouveau.", "Codice non valido o scaduto: controlla il codice sull'orologio o generane uno nuovo.", "Código no válido o caducado: revisa el código en el reloj o pide uno nuevo allí."),
     "nav.changelog" to row("Neuerungen", "Neuigkeite", "Neuerungen", "Changelog", "Nouveautés", "Novità", "Novedades"),
     "changelog.details" to row("Details ({n})", "Details ({n})", "Details ({n})", "Details ({n})", "Détails ({n})", "Dettagli ({n})", "Detalles ({n})"),
     "common.loadFailed" to row("Konnte nicht geladen werden.", "Het nöd chönne glade werde.", "Hot net gladen werdn kenna.", "Could not be loaded.", "Impossible de charger.", "Impossibile caricare.", "No se pudo cargar."),
@@ -1534,6 +1557,29 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (fi)
+    "account.claimBad" to "Koodi on virheellinen tai vanhentunut — tarkista koodi kellosta tai hae sieltä uusi.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (fi)
+    "tech.wobble" to "Huojunta",
+    "tech.sWhole" to "koko ajo",
+    "tech.sTurn" to "käännös",
+    "tech.sStable" to "tasainen vaihe",
+    "tech.colPhase" to "Vaihe",
+    "tech.colLean" to "Kallistus",
+    "tech.sStraight" to "suora",
+    "tech.colWith" to "korjattu",
+    "tech.colWithout" to "korjaamaton",
+    "tech.gPump" to "ylhäältä alas per pumppausveto, mediaani kaikista vedoista",
+    "tech.gWobble" to "hidas sivuttainen keinunta 2–5 s aikana",
+    "tech.gLean" to "kuinka paljon lauta kallistuu käännöksissä",
+    "tech.gYaw" to "kuinka nopeasti lauta kääntyy (°/s)",
+    "tech.gStable" to "laskun keskiosa ilman ensimmäisiä ja viimeisiä 5 s; alle 20 s laskuilla ei ole vakaata vaihetta",
+    "tech.gTurnStraight" to "vain vedot, joissa lauta kääntyi nopeammin tai hitaammin kuin 8 °/s",
+    "tech.gWhole" to "alku ja loppu mukaan lukien",
+    "tech.lCorrection" to "Korjattu: käännösten keskipakovoima poistetaan ensin.",
+    "tech.gColumns" to "Nyökkäys = kärki ylös/alas · Kallistus = sivuttainen kallistus · Pystyliike = lauta ylös ja alas · Tahti = pumppauksia sekunnissa",
+    "tech.gSpread" to "Huojunta ja kallistus ovat vaihteluvälejä, eivät arvoja per veto.",
+    "tech.gHeave" to "Nousu ja lasku mitataan puhelimesta – vertailukelpoinen vain puhelimen ollessa samassa kohdassa.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (fi)
     "sd.glides" to "Liu'ut",
     "sd.glide" to "Liuku",
@@ -2674,6 +2720,29 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (nl)
+    "account.claimBad" to "Code ongeldig of verlopen — controleer de code op het horloge of vraag daar een nieuwe aan.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (nl)
+    "tech.wobble" to "Wiebelen",
+    "tech.sWhole" to "hele run",
+    "tech.sTurn" to "bochten",
+    "tech.sStable" to "stabiele fase",
+    "tech.colPhase" to "Fase",
+    "tech.colLean" to "Helling",
+    "tech.sStraight" to "rechtdoor",
+    "tech.colWith" to "gecorrigeerd",
+    "tech.colWithout" to "ongecorrigeerd",
+    "tech.gPump" to "hoog tot laag per pumpslag, mediaan over alle slagen",
+    "tech.gWobble" to "langzaam zijwaarts heen en weer over 2–5 s",
+    "tech.gLean" to "hoe ver het board in bochten opzij hangt",
+    "tech.gYaw" to "hoe snel het board draait (°/s)",
+    "tech.gStable" to "de run zonder de eerste en laatste 5 s; runs korter dan 20 s hebben geen stabiele fase",
+    "tech.gTurnStraight" to "alleen slagen waarbij het board sneller of langzamer dan 8 °/s draaide",
+    "tech.gWhole" to "inclusief start en einde",
+    "tech.lCorrection" to "Gecorrigeerd: de middelpuntvliedende kracht in bochten wordt eerst weggerekend.",
+    "tech.gColumns" to "Stampen = neus op/neer · Rollen = zijwaarts kantelen · Op-en-neer = board op en neer · Ritme = pompslagen per seconde",
+    "tech.gSpread" to "Wiebelen en helling zijn spreidingen, geen waarden per slag.",
+    "tech.gHeave" to "Hoogte wordt bij de telefoon gemeten – alleen vergelijkbaar met de telefoon op dezelfde plek.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (nl)
     "sd.glides" to "Glides",
     "sd.glide" to "Glide",
@@ -3813,6 +3882,29 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (cs)
+    "account.claimBad" to "Kód je neplatný nebo vypršel — zkontroluj kód na hodinkách, nebo si tam vyžádej nový.",
+    // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (cs)
+    "tech.wobble" to "Kývání",
+    "tech.sWhole" to "celá jízda",
+    "tech.sTurn" to "zatáčky",
+    "tech.sStable" to "stabilní fáze",
+    "tech.colPhase" to "Fáze",
+    "tech.colLean" to "Náklon",
+    "tech.sStraight" to "rovně",
+    "tech.colWith" to "opraveno",
+    "tech.colWithout" to "neopraveno",
+    "tech.gPump" to "od vrcholu ke dnu na pumpovací tah, medián přes všechny tahy",
+    "tech.gWobble" to "pomalé houpání do stran během 2–5 s",
+    "tech.gLean" to "jak moc se prkno v zatáčkách položí na stranu",
+    "tech.gYaw" to "jak rychle se prkno otáčí (°/s)",
+    "tech.gStable" to "jízda bez prvních a posledních 5 s; jízdy pod 20 s nemají stabilní fázi",
+    "tech.gTurnStraight" to "jen tahy, kdy se prkno otáčelo rychleji, resp. pomaleji než 8 °/s",
+    "tech.gWhole" to "včetně startu a konce",
+    "tech.lCorrection" to "Opraveno: odstředivá síla v zatáčkách se nejprve odečte.",
+    "tech.gColumns" to "Klopení = špička nahoru/dolů · Náklon = boční náklon · Zdvih = prkno nahoru a dolů · Tempo = pumpnutí za sekundu",
+    "tech.gSpread" to "Kývání a náklon jsou rozpětí, ne hodnoty na tah.",
+    "tech.gHeave" to "Zdvih se měří u telefonu – srovnatelný jen s telefonem na stejném místě.",
     // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (cs)
     "sd.glides" to "Klouzání",
     "sd.glide" to "Klouzání",

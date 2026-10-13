@@ -533,7 +533,7 @@ private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode) {
     }
     if (rows.isEmpty()) return
     Column(Modifier.fillMaxWidth()) {
-        Text(I18n.t("compare.runsTitle"), style = MaterialTheme.typography.titleMedium,
+        Text(I18n.t("compare.runsTitle").replace("{count}", "${rows.size}"), style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
         rows.forEach { (s, lauf, farbe) ->
             val (idx, seg) = lauf
@@ -811,6 +811,11 @@ private fun BrettLageVergleich(tracks: List<CmpTrack>, mode: CompareMode, onOpen
     val brett = tracks.filter { it.session.placement == "board" }
     val ids = brett.map { it.session.id }.distinct()
     var lage by remember { mutableStateOf<Map<Int, List<LageLauf>>>(emptyMap()) }
+    var korr by remember { mutableStateOf(true) }
+    // Sortieren wie PWA (Compare.tsx): erster Tipp groesster Wert zuerst, zweiter dreht um, dritter
+    // zurueck zur Korb-Reihenfolge. Fehlende Werte immer unten.
+    var sortKey by remember { mutableStateOf<String?>(null) }
+    var sortAuf by remember { mutableStateOf(false) }
     LaunchedEffect(ids) {
         ids.filter { it !in lage }.forEach { id ->
             val l = try { Api.boardAttitude(id, nurLaeufe = true).laeufe } catch (_: Exception) { emptyList() }
@@ -819,60 +824,70 @@ private fun BrettLageVergleich(tracks: List<CmpTrack>, mode: CompareMode, onOpen
     }
     if (brett.isEmpty()) return
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    class Lauf(val cmp: CmpTrack, val idx: Int, val seg: Segment) {
+        val k: LageLauf? get() = lage[cmp.session.id]?.firstOrNull { it.lauf == idx }
+    }
+    val alle = brett.flatMap { cmp -> cmp.laeufe.map { (idx, seg) -> Lauf(cmp, idx, seg) } }
+    fun wert(l: Lauf, key: String): Double? = when (key) {
+        "dauer" -> l.seg.durationS
+        "strecke" -> l.seg.distanceM
+        else -> lageSortWert(l.k, key)
+    }
+    val k0 = sortKey
+    val sortiert = if (k0 == null) alle else alle.sortedWith { a, b ->
+        val va = wert(a, k0); val vb = wert(b, k0)
+        when {
+            va == null && vb == null -> 0
+            va == null -> 1
+            vb == null -> -1
+            else -> if (sortAuf) va.compareTo(vb) else vb.compareTo(va)
+        }
+    }
     Spacer(Modifier.height(12.dp))
     Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
         Column(Modifier.padding(vertical = 10.dp)) {
-            Text(I18n.t("sd.attitudePerRun").uppercase(), style = MaterialTheme.typography.labelMedium,
-                color = grau, modifier = Modifier.padding(horizontal = 12.dp))
-            Column(Modifier.horizontalScroll(rememberScrollState()).padding(top = 6.dp)) {
-                val breiten = listOf(170, 64, 64, 72, 72, 104, 110, 72)
-                Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-                    listOf("", I18n.t("sd.colDuration"), I18n.t("sd.colDistance"),
-                        I18n.t("board.pitch"), I18n.t("board.roll"), I18n.t("board.yaw"),
-                        I18n.t("sd.colPitchRhythm"), I18n.t("sd.colHeave")).forEachIndexed { i, w ->
-                        Text(w, Modifier.width(breiten[i].dp), style = MaterialTheme.typography.labelSmall, color = grau)
-                    }
-                }
-                HorizontalDivider()
-                brett.forEach { cmp ->
-                    val s = cmp.session
-                    val farbe = if (mode == CompareMode.RIDER) cmp.riderColor else cmp.sessionColor
-                    cmp.laeufe.forEach { (idx, seg) ->
-                        val geladen = lage[s.id]
-                        val k = geladen?.firstOrNull { it.lauf == idx && it.ok }
-                        val leer = if (geladen == null) "…" else "–"
-                        val hub = k?.hubPpCm?.let { v -> "${v.roundToInt()} cm".let { if (k.hubSicher) it else "($it)" } } ?: leer
-                        Row(Modifier.clickable { onOpen(s.id) }.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically) {
-                            Row(Modifier.width(breiten[0].dp), verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.size(8.dp).background(farbe, CircleShape))
-                                Spacer(Modifier.width(6.dp))
-                                Column {
-                                    s.ownerName?.takeIf { it.isNotBlank() }?.let {
-                                        Text(it, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                                    }
-                                    Text("#${idx + 1} · ${prettyDate(s.startedAt, s.tz)}", style = MaterialTheme.typography.labelSmall,
-                                        color = grau, maxLines = 1)
-                                }
-                            }
-                            val werte = listOf(
-                                cmpMmss(seg.durationS),
-                                "${seg.distanceM.toInt()} m",
-                                k?.pitchAmplitudeDeg?.let { "±${it.roundToInt()}°" } ?: leer,
-                                k?.rollAmplitudeDeg?.let { "±${it.roundToInt()}°" } ?: leer,
-                                k?.gierRmsDegS?.let { "${it.roundToInt()}°/s" } ?: leer,
-                                k?.pitchHz?.let { String.format("%.2f Hz", it) } ?: leer,
-                                hub,
-                            )
-                            werte.forEachIndexed { i, w ->
-                                Text(w, Modifier.width(breiten[i + 1].dp), style = MaterialTheme.typography.bodyMedium,
-                                    color = if (i == 6 && k?.hubSicher == false) grau else MaterialTheme.colorScheme.onSurface)
-                            }
-                        }
-                    }
-                    HorizontalDivider()
-                }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(I18n.t("sd.attitudePerRun").uppercase(), style = MaterialTheme.typography.labelMedium,
+                    color = grau, modifier = Modifier.weight(1f))
+                KorrekturUmschalter(korr) { korr = it }
             }
+            Spacer(Modifier.height(4.dp))
+            LagePhasenTabelle(
+                vorneSpalten = listOf(LageSpalte("", 160), LageSpalte(I18n.t("sd.colDuration"), 60, "dauer"),
+                    LageSpalte(I18n.t("sd.colDistance"), 64, "strecke")),
+                korr = korr, sortKey = sortKey, sortAuf = sortAuf,
+                onSort = { key ->
+                    if (key != sortKey) { sortKey = key; sortAuf = false }
+                    else if (!sortAuf) sortAuf = true
+                    else { sortKey = null; sortAuf = false }
+                },
+                zeilen = sortiert.map { l ->
+                    val s = l.cmp.session
+                    val farbe = if (mode == CompareMode.RIDER) l.cmp.riderColor else l.cmp.sessionColor
+                    LageTabZeile(
+                        key = "${l.cmp.ref.key}-${l.idx}", k = l.k, geladen = lage[s.id] != null,
+                        vorne = listOf(
+                            {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(Modifier.size(8.dp).background(farbe, CircleShape))
+                                    Spacer(Modifier.width(6.dp))
+                                    Column {
+                                        s.ownerName?.takeIf { it.isNotBlank() }?.let {
+                                            Text(it, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                        }
+                                        Text("#${l.idx + 1} · ${prettyDate(s.startedAt, s.tz)}", style = MaterialTheme.typography.labelSmall,
+                                            color = grau, maxLines = 1)
+                                    }
+                                }
+                            },
+                            { Text(cmpMmss(l.seg.durationS), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold) },
+                            { Text("${l.seg.distanceM.toInt()} m", style = MaterialTheme.typography.bodySmall) },
+                        ),
+                        onClick = { onOpen(s.id) },
+                    )
+                },
+            )
+            LaufLegende()
         }
     }
 }
