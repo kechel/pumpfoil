@@ -1670,8 +1670,9 @@ const nl: Record<string, string> = {
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Code van het horloge invoeren",
-  "account.claimHelp": "Open Pumpfoil op het horloge en ga naar ‘Verbinden' — Garmin: MENU ingedrukt houden (knop midden-links) → ‘Instellingen' → ‘Verbinden'; Amazfit: veeg vanaf het startscherm naar links; Wear OS en Apple Watch tonen dat scherm bij de eerste start. De getoonde code (6 tekens, letters & cijfers) hier invoeren.",
-  "account.claimReq": "Belangrijk: de begeleidende app van je horloge moet op de telefoon open en met het horloge verbonden zijn (Garmin Connect, Zepp, Wear OS of Apple Watch), en de telefoon heeft internet nodig — het horloge gaat via de telefoon online. Code binnen 15 min invoeren; toont het horloge geen code, werk dan de app bij.",
+  "account.claimHelp": "Open Pumpfoil op het horloge en ga naar ‘Verbinden' — Garmin: MENU ingedrukt houden (knop midden-links) → ‘Instellingen' → ‘Verbinden'; Amazfit: veeg vanaf het startscherm naar links; Wear OS en Apple Watch tonen dat scherm bij de eerste start. De getoonde code (6 tekens, letters & cijfers) hier invoeren. HUAWEI Watch 5: tik op het startscherm op ‘pair at pumpfoil.org'.",
+  "account.claimReq": "Belangrijk: de begeleidende app van je horloge moet op de telefoon open en met het horloge verbonden zijn (Garmin Connect, Zepp, Wear OS of Apple Watch), en de telefoon heeft internet nodig — het horloge gaat via de telefoon online. Code binnen 15 min invoeren; toont het horloge geen code, werk dan de app bij. Uitzondering HUAWEI Watch 5: die uploadt zelf, een app op de telefoon is niet nodig.",
+  "account.claimBad": "Code ongeldig of verlopen — controleer de code op het horloge of vraag daar een nieuwe aan.",
   "account.claimPlaceholder": "bijv. VURWGG",
   "account.claimBtn": "Verbinden",
   "account.claimAlready": "Dit horloge is al verbonden.",

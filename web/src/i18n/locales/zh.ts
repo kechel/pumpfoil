@@ -1559,8 +1559,9 @@ const zh: Record<string, string> = {
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "输入手表上的配对码",
-  "account.claimHelp": "在手表上打开 Pumpfoil 并进入“连接”—— Garmin：按住 MENU（左中键）→“设置”→“连接”；Amazfit：从起始屏幕向左滑动；Wear OS 和 Apple Watch 首次启动时会自动显示该界面。在此输入显示的配对码（6 位，字母和数字）。",
-  "account.claimReq": "重要：手表的配套手机应用（Garmin Connect、Zepp、Wear OS 或 Apple Watch）必须已打开并与手表连接，且手机需联网 —— 手表通过手机上网。请在 15 分钟内输入配对码；如果手表不显示配对码，请更新应用。",
+  "account.claimHelp": "在手表上打开 Pumpfoil 并进入“连接”—— Garmin：按住 MENU（左中键）→“设置”→“连接”；Amazfit：从起始屏幕向左滑动；Wear OS 和 Apple Watch 首次启动时会自动显示该界面。在此输入显示的配对码（6 位，字母和数字）。HUAWEI Watch 5：在起始屏幕上点按“pair at pumpfoil.org”。",
+  "account.claimReq": "重要：手表的配套手机应用（Garmin Connect、Zepp、Wear OS 或 Apple Watch）必须已打开并与手表连接，且手机需联网 —— 手表通过手机上网。请在 15 分钟内输入配对码；如果手表不显示配对码，请更新应用。例外：HUAWEI Watch 5 会自行上传，无需手机应用。",
+  "account.claimBad": "配对码无效或已过期 —— 请核对手表上的配对码，或在手表上重新获取。",
   "account.claimPlaceholder": "例如 VURWGG",
   "account.claimBtn": "连接",
   "account.claimAlready": "此手表已连接。",

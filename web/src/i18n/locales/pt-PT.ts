@@ -1555,8 +1555,9 @@ const ptPT: Record<string, string> = {
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Escreve o código do relógio",
-  "account.claimHelp": "Abre o Pumpfoil no relógio e vai a “Ligar” — Garmin: mantém MENU premido (botão do meio à esquerda) → “Definições” → “Ligar”; Amazfit: desliza para a esquerda a partir do ecrã inicial; Wear OS e Apple Watch mostram esse ecrã no primeiro arranque. Escreve aqui o código apresentado (6 caracteres, letras e números).",
-  "account.claimReq": "Importante: a app complementar do teu relógio tem de estar aberta no telemóvel e ligada ao relógio (Garmin Connect, Zepp, Wear OS ou Apple Watch), e o telemóvel precisa de Internet — o relógio vai à Internet pelo telemóvel. Escreve o código em até 15 min; se o relógio não mostrar nenhum código, atualiza a app.",
+  "account.claimHelp": "Abre o Pumpfoil no relógio e vai a “Ligar” — Garmin: mantém MENU premido (botão do meio à esquerda) → “Definições” → “Ligar”; Amazfit: desliza para a esquerda a partir do ecrã inicial; Wear OS e Apple Watch mostram esse ecrã no primeiro arranque. Escreve aqui o código apresentado (6 caracteres, letras e números). HUAWEI Watch 5: toca em “pair at pumpfoil.org” no ecrã inicial.",
+  "account.claimReq": "Importante: a app complementar do teu relógio tem de estar aberta no telemóvel e ligada ao relógio (Garmin Connect, Zepp, Wear OS ou Apple Watch), e o telemóvel precisa de Internet — o relógio vai à Internet pelo telemóvel. Escreve o código em até 15 min; se o relógio não mostrar nenhum código, atualiza a app. Exceção HUAWEI Watch 5: envia sozinho, não precisa de nenhuma app no telemóvel.",
+  "account.claimBad": "Código inválido ou expirado — confirma o código no relógio ou pede lá um novo.",
   "account.claimPlaceholder": "ex.: VURWGG",
   "account.claimBtn": "Ligar",
   "account.claimAlready": "Este relógio já está ligado.",

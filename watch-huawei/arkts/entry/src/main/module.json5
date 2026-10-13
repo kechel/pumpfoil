@@ -56,7 +56,7 @@
       },
       {
         "name": "ohos.permission.READ_HEALTH_DATA",
-        "reason": "$string:perm_reason",
+        "reason": "$string:hr_reason",
         "usedScene": { "abilities": ["EntryAbility"], "when": "always" }
       }
     ]

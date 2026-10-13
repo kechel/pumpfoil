@@ -1738,8 +1738,9 @@ const en: Record<string, string> = {
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Enter code from the watch",
-  "account.claimHelp": "Open Pumpfoil on the watch and go to “Connect” — Garmin: hold MENU (middle-left button) → “Settings” → “Connect”; Amazfit: swipe left from the start screen; Wear OS and Apple Watch show that screen on first start. Enter the code shown (6 characters, letters & digits) here.",
-  "account.claimReq": "Important: your watch's companion app must be open on the phone and connected to the watch (Garmin Connect, Zepp, Wear OS or Apple Watch), and the phone needs internet — the watch goes online via the phone. Enter the code within 15 min; if the watch shows no code, update the app.",
+  "account.claimHelp": "Open Pumpfoil on the watch and go to “Connect” — Garmin: hold MENU (middle-left button) → “Settings” → “Connect”; Amazfit: swipe left from the start screen; Wear OS and Apple Watch show that screen on first start. Enter the code shown (6 characters, letters & digits) here. HUAWEI Watch 5: tap “pair at pumpfoil.org” on the start screen.",
+  "account.claimReq": "Important: your watch's companion app must be open on the phone and connected to the watch (Garmin Connect, Zepp, Wear OS or Apple Watch), and the phone needs internet — the watch goes online via the phone. Enter the code within 15 min; if the watch shows no code, update the app. Exception HUAWEI Watch 5: it uploads by itself, no app on the phone needed.",
+  "account.claimBad": "Code invalid or expired — check the code on the watch, or get a new one there.",
   "account.claimPlaceholder": "e.g. VURWGG",
   "account.claimBtn": "Connect",
   "account.claimAlready": "This watch is already connected.",

@@ -113,7 +113,9 @@ function ClaimFromWatch() {
       setPlatform(r.platform ?? null);
       setCode("");
     } catch (e) {
-      setErr((e as Error).message);
+      // 400 = Code unbekannt/abgelaufen; vorher stand hier roh „400: {"detail":…}" auf Deutsch.
+      const m = (e as Error).message;
+      setErr(m.startsWith("400") ? t("account.claimBad") : m);
     }
     setBusy(false);
   }
