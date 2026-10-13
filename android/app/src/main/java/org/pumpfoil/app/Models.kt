@@ -773,6 +773,19 @@ data class ChatMsg(
     // koennen vorerst nur Admins, ANZEIGEN muss jeder — sonst sieht eine reine Bild-Nachricht
     // aus wie eine leere Zeile.
     val photos: List<ChatPhoto> = emptyList(),
+    // Antwort auf eine andere Nachricht (Server seit 13.10.2026, chat.py:_zitate): kurzes Zitat des
+    // Originals; `missing` = geloescht/ausgeblendet. Aeltere Server liefern das Feld nicht.
+    @SerialName("reply_to") val replyTo: ChatQuote? = null,
+)
+
+@Serializable
+data class ChatQuote(
+    val id: Int,
+    val missing: Boolean = false,
+    @SerialName("user_id") val userId: Int? = null,
+    val name: String? = null,
+    val text: String? = null,
+    val photo: Boolean = false,
 )
 
 // Ein Chat-Bild: `url` ist das Bild (max. 1600 px), `thumb_url` das Vorschaubild (480 px).

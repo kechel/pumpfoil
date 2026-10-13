@@ -900,16 +900,24 @@ object Api {
 
     // `photoIds`: vorher per uploadChatPhoto hochgeladene Bilder (vorerst nur Admins); die
     // Nachricht darf dann auch ganz ohne Text sein.
-    suspend fun chatPost(scope: String, text: String, photoIds: List<Int> = emptyList()): ChatMsg = withContext(Dispatchers.IO) {
+    suspend fun chatPost(scope: String, text: String, photoIds: List<Int> = emptyList(), replyTo: Int? = null): ChatMsg = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(scope, "UTF-8")
         val body = buildJsonObject {
             put("text", text)
+            if (replyTo != null) put("reply_to", replyTo)
             if (photoIds.isNotEmpty()) put("photo_ids", kotlinx.serialization.json.JsonArray(photoIds.map { kotlinx.serialization.json.JsonPrimitive(it) }))
         }.toString()
         json.decodeFromString(ChatMsg.serializer(), http("POST", "/api/chat?scope=$s", body, auth = true))
     }
 
     // Neue Nachrichten seit `after` (für Live-Polling).
+    // Alle Nachrichten von `fromId` bis vor `before`, aufsteigend (max. 500) — fuer den Sprung zu einem
+    // zitierten Original, das noch nicht geladen ist (Server seit 13.10.2026).
+    suspend fun chatRange(scope: String, fromId: Int, before: Int): List<ChatMsg> = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(scope, "UTF-8")
+        json.decodeFromString(ListSerializer(ChatMsg.serializer()), http("GET", "/api/chat?scope=$s&from_id=$fromId&before=$before", null, auth = true))
+    }
+
     suspend fun chatSince(scope: String, after: Int): List<ChatMsg> = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(scope, "UTF-8")
         json.decodeFromString(ListSerializer(ChatMsg.serializer()), http("GET", "/api/chat?scope=$s&after=$after", null, auth = true))

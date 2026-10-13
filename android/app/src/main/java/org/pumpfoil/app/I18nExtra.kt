@@ -7,6 +7,12 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web pt.ts, 13.10.2026.
+    "chat.reply" to "Responder",
+    "chat.replyingTo" to "Respondendo a {name}",
+    "chat.replyCancel" to "Cancelar resposta",
+    "chat.quoteMissing" to "A mensagem original não está mais disponível",
+    "chat.quotePhoto" to "Foto",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Pulso do relógio e base",
     "rider.ridingHint" to "Opcional e só para você. Juntos dizem se o relógio está na mão da frente ou de trás — isso afeta quão bem detectamos pumps no pulso. Assim podemos avaliar isso depois; nada muda nas suas sessões.",
@@ -1146,6 +1152,12 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web ja.ts, 13.10.2026.
+    "chat.reply" to "返信",
+    "chat.replyingTo" to "{name} さんへの返信",
+    "chat.replyCancel" to "返信をやめる",
+    "chat.quoteMissing" to "元のメッセージはもうありません",
+    "chat.quotePhoto" to "写真",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "時計の手首とスタンス",
     "rider.ridingHint" to "任意で、あなただけに表示されます。時計が前の手か後ろの手かが分かり、手首でのパンプ検出の精度に影響します。後で評価に使えます。セッションには何も変わりません。",
@@ -2285,6 +2297,12 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web zh.ts, 13.10.2026.
+    "chat.reply" to "回复",
+    "chat.replyingTo" to "回复 {name}",
+    "chat.replyCancel" to "取消回复",
+    "chat.quoteMissing" to "原消息已不存在",
+    "chat.quotePhoto" to "照片",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "手表佩戴手腕与站姿",
     "rider.ridingHint" to "可选，仅你可见。两者结合可知手表戴在前手还是后手——这会影响我们在手腕上识别 pump 的准确度。有了这项信息我们以后可以评估；你的 session 不会有任何变化。",
@@ -3424,6 +3442,12 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web ru.ts, 13.10.2026.
+    "chat.reply" to "Ответить",
+    "chat.replyingTo" to "Ответ для {name}",
+    "chat.replyCancel" to "Отменить ответ",
+    "chat.quoteMissing" to "Исходное сообщение больше недоступно",
+    "chat.quotePhoto" to "Фото",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Рука с часами и стойка",
     "rider.ridingHint" to "Необязательно и видно только тебе. Вместе это показывает, на передней или задней руке часы, — от этого зависит, насколько хорошо мы распознаём пампы по запястью. С этими данными мы сможем проверить это позже; в твоих сессиях ничего не меняется.",
@@ -4563,6 +4587,12 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web id.ts, 13.10.2026.
+    "chat.reply" to "Balas",
+    "chat.replyingTo" to "Membalas {name}",
+    "chat.replyCancel" to "Batalkan balasan",
+    "chat.quoteMissing" to "Pesan asli sudah tidak tersedia",
+    "chat.quotePhoto" to "Foto",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Pergelangan jam & stance",
     "rider.ridingHint" to "Opsional dan hanya untukmu. Dari sini kami tahu apakah jam ada di tangan depan atau belakang — ini memengaruhi seberapa baik kami mendeteksi pump di pergelangan. Dengan data ini kami bisa mengevaluasinya nanti; sesimu tidak berubah.",
@@ -5705,6 +5735,12 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web nb.ts, 13.10.2026.
+    "chat.reply" to "Svar",
+    "chat.replyingTo" to "Svar til {name}",
+    "chat.replyCancel" to "Avbryt svar",
+    "chat.quoteMissing" to "Den opprinnelige meldingen finnes ikke lenger",
+    "chat.quotePhoto" to "Bilde",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Klokkehåndledd og stance",
     "rider.ridingHint" to "Valgfritt og bare for deg. Sammen viser de om klokka sitter på fremre eller bakre hånd — det påvirker hvor godt vi gjenkjenner pumps ved håndleddet. Med dette kan vi vurdere det senere; øktene dine endres ikke.",
@@ -6884,6 +6920,12 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web pl.ts, 13.10.2026.
+    "chat.reply" to "Odpowiedz",
+    "chat.replyingTo" to "Odpowiedź dla {name}",
+    "chat.replyCancel" to "Anuluj odpowiedź",
+    "chat.quoteMissing" to "Pierwotna wiadomość nie jest już dostępna",
+    "chat.quotePhoto" to "Zdjęcie",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Nadgarstek z zegarkiem i postawa",
     "rider.ridingHint" to "Opcjonalne i tylko dla ciebie. Razem pokazują, czy zegarek jest na przedniej, czy tylnej ręce — to wpływa na to, jak dobrze rozpoznajemy pumpy na nadgarstku. Dzięki temu ocenimy to później; w twoich sesjach nic się nie zmienia.",
@@ -8065,6 +8107,12 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Chat-Antworten — aus web pt-PT.ts, 13.10.2026.
+    "chat.reply" to "Responder",
+    "chat.replyingTo" to "A responder a {name}",
+    "chat.replyCancel" to "Cancelar resposta",
+    "chat.quoteMissing" to "A mensagem original já não está disponível",
+    "chat.quotePhoto" to "Foto",
     // Handgelenk + Stance (10.10.2026), aus web/src/i18n/locales.
     "rider.ridingTitle" to "Pulso do relógio e base",
     "rider.ridingHint" to "Opcional e só para ti. Juntos indicam se o relógio está na mão da frente ou de trás — isso influencia a qualidade com que detetamos pumps no pulso. Assim podemos avaliá-lo mais tarde; nada muda nas tuas sessões.",

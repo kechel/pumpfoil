@@ -160,6 +160,10 @@ fun MainScaffold(onLogout: () -> Unit) {
         val cmp = (debugCtx as? android.app.Activity)?.intent?.getStringExtra("debug_compare")
             ?.split(",")?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
         if (cmp.isNotEmpty()) { cmp.forEach { CompareStore.toggle(it) }; nav.navigate("compare") }
+        // Und `--es debug_chat global:main`: diesen Chatraum oeffnen.
+        (debugCtx as? android.app.Activity)?.intent?.getStringExtra("debug_chat")?.let { sc ->
+            nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(sc)}")
+        }
     }
     // Das in der Foil-Liste angetippte Foil, fuer die Detailseite. Als Merker statt in der
     // Route: die Detailseite braucht Name, AR und die Zaehler, und die stehen in der Liste
