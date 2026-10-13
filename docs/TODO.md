@@ -1464,7 +1464,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Chatverlauf waere bei Antworten ein Bezug zur Nachricht/Frage praktisch“ — er antwortete, nachdem schon ~10
   neuere Nachrichten da waren. Gibt es bisher nicht (keine reply_to-Spalte in chat_messages). Zitat-Antwort wie
   in Messengern: Antwort-Knopf an der Nachricht, kurzer Auszug ueber der Antwort, Tippen springt hin. Web + Apps.
-  Noch nicht entschieden.
+  **13.10. in der PWA gebaut (a5e873d8)**, Server rein additiv (`reply_to`). Offen: Jans Test, dann Changelog-Punkt,
+  danach Android/iOS (dort bisher nur als normale Nachricht sichtbar).
 - **10.10. — Garmin fenix 9 Pro (51 mm): Kopplungscode-Seite, „pumpfoil.org" und „Enter it there" liegen
   uebereinander** (Jans Simulator-Screenshot, screenshots/watch/garmin/20261010-neu, 09.34.02). Wahrscheinlich
   feste Zeilenabstaende statt Schrifthoehe des Geraets; auf anderen grossen Displays (fenix 8/9, epix) mitpruefen.
