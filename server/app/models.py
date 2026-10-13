@@ -357,6 +357,8 @@ class ChatMessage(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     report_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+    # Antwort auf diese Nachricht (gleicher scope). Kein Fremdschluessel, s. db.py.
+    reply_to_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class ChatPhoto(Base):

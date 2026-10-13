@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon, CameraIcon, CheckIcon, DoubleCheckIcon } from "./Icons";
+import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon, CameraIcon, CheckIcon, DoubleCheckIcon, ReplyIcon } from "./Icons";
 import { FotoStapel } from "./FotoStapel";
 import { useT } from "../i18n";
 import { MicButton } from "./MicButton";
@@ -43,6 +43,10 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   const [loadingMore, setLoadingMore] = useState(false);
   const [editing, setEditing] = useState<number | null>(null);   // id der Nachricht, die gerade bearbeitet wird
   const [menuFor, setMenuFor] = useState<number | null>(null);    // per Long-Press geöffnete Aktionen (Bearbeiten/Löschen)
+  // Antworten mit Zitat (Jan, 13.10.2026): worauf die naechste Nachricht antwortet, und welche
+  // Nachricht nach einem Sprung aufs Original kurz hervorgehoben ist.
+  const [replyTo, setReplyTo] = useState<ChatMsg | null>(null);
+  const [glow, setGlow] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // Bilder im Eingabefeld (vorerst nur Admins): beim Auswaehlen schon hochgeladen, damit die Vorschau
   // steht und das Senden sofort geht. `id` fehlt, solange der Upload laeuft.
@@ -61,6 +65,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
 
   useEffect(() => { api.getProfile().then((p) => { setIsAdmin(!!p.is_admin); setKannFotos(!!(p.chat_photos ?? p.is_admin)); setMeineId(p.id ?? 0); }).catch(() => {}); }, []);
   useEffect(() => { api.chatRoomState(scope).then((s) => { setPush(s.push); setWeiterAn(s.weiter_an ?? null); setGelesenBis(s.gelesen_bis ?? null); }).catch(() => {}); }, [scope]);
+  useEffect(() => { setReplyTo(null); setGlow(null); }, [scope]);
 
   // Bearbeiten/Löschen-Icons wieder ausblenden, sobald man woanders hin tippt/klickt.
   // Listener verzögert anhängen, damit der öffnende Long-Press ihn nicht sofort auslöst.
@@ -191,7 +196,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // einzelne lassen sich entfernen, neue dazunehmen. Wirksam erst beim Speichern; Abbrechen
   // laesst die Nachricht, wie sie war. Die Vorschau bestehender Bilder ist ihr Vorschaubild (URL).
   function startEdit(m: ChatMsg) {
-    setEditing(m.id); setText(m.text); setMenuFor(null);
+    setEditing(m.id); setText(m.text); setMenuFor(null); setReplyTo(null);
     setAnhaenge((m.photos ?? []).map((p) => ({ key: `p${p.id}`, vorschau: p.thumb_url || p.url, id: p.id })));
     requestAnimationFrame(() => inputRef.current?.focus());
   }
@@ -250,10 +255,11 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
     const v = raw.trim();
     if ((!v && bereiteBilder.length === 0) || busy || laedtNoch) return;
     setBusy(true);
-    api.chatPost(scope, v, bereiteBilder)
+    api.chatPost(scope, v, bereiteBilder, replyTo?.id)
       .then((m) => {
         setText("");
         anhaengeLeeren();
+        setReplyTo(null);
         if (m.id > lastId.current) {
           lastId.current = m.id;
           setMsgs((prev) => {
@@ -265,6 +271,33 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         requestAnimationFrame(scrollToBottom);
       })
       .finally(() => setBusy(false));
+  }
+  function antworten(m: ChatMsg) {
+    setEditing(null); setMenuFor(null); setReplyTo(m);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }
+  // Auf das zitierte Original springen: ist es geladen, hinscrollen und kurz hervorheben; sonst erst
+  // alles von dort bis zur aeltesten geladenen Nachricht nachladen (ein Abruf, Server: from_id).
+  function zeigen(id: number) {
+    const el = document.getElementById(`chat-msg-${id}`);
+    if (!el) return false;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    setGlow(id);
+    setTimeout(() => setGlow((g) => (g === id ? null : g)), 2200);
+    return true;
+  }
+  function zumOriginal(id: number) {
+    if (zeigen(id)) return;
+    if (!firstId.current || id >= firstId.current) return;   // nicht (mehr) da, z. B. geloescht
+    setLoadingMore(true);
+    api.chatRange(scope, id, firstId.current).then((rows) => {
+      if (!rows.length) return;
+      firstId.current = rows[0].id;
+      setMsgs((prev) => [...rows, ...prev]);
+      // Das 100er-Anzeigelimit gilt fuers Hochscrollen; nach einem Sprung bleibt alles Geladene stehen.
+      setHasMore(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => zeigen(id)));
+    }).catch(() => {}).finally(() => setLoadingMore(false));
   }
   function like(id: number) {
     api.chatLike(id).then((r) => setMsgs((prev) => prev.map((m) => m.id === id ? { ...m, liked: r.liked, like_count: r.like_count } : m))).catch(() => {});
@@ -295,7 +328,8 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         {!capped && !hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
         {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}
         {msgs.map((m) => (
-          <div key={m.id} className={`group flex items-start gap-2 ${m.hidden ? "opacity-50" : ""}`}
+          <div key={m.id} id={`chat-msg-${m.id}`}
+            className={`group flex items-start gap-2 rounded-xl transition-colors duration-700 ${m.hidden ? "opacity-50" : ""} ${glow === m.id ? "bg-brand-500/15 ring-1 ring-brand-500/40" : ""}`}
             onContextMenu={(e) => { if (!isDesktop && canEdit(m)) { e.preventDefault(); openMenu(m); } }}
             onTouchStart={() => pressStart(m)} onTouchEnd={pressCancel} onTouchMove={pressCancel}>
             {!isDesktop && menuFor === m.id && canEdit(m) && (
@@ -346,11 +380,26 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                       )}
                     </>
                   )}
+                  {!m.hidden && (
+                    <button onClick={() => antworten(m)} title={t("chat.reply")} aria-label={t("chat.reply")}
+                      className="text-slate-500 hover:text-brand-600 dark:hover:text-brand-300"><ReplyIcon className="h-4 w-4" /></button>
+                  )}
                   {!m.mine && (
                     <button onClick={() => report(m.id)} title={t("chat.report")} className="text-slate-500 hover:text-red-400"><FlagIcon className="h-3.5 w-3.5" /></button>
                   )}
                 </span>
               </div>
+              {m.reply_to && (
+                m.reply_to.missing
+                  ? <div className="mb-1 border-l-2 border-slate-600 pl-2 text-xs italic text-slate-500">{t("chat.quoteMissing")}</div>
+                  : <button type="button" onClick={() => zumOriginal(m.reply_to!.id)} title={t("chat.quoteJump")}
+                      className="mb-1 block w-full rounded-r-lg border-l-2 border-brand-500/70 bg-slate-800/60 py-1 pl-2 pr-2 text-left hover:bg-slate-800">
+                      <span className="block text-xs font-semibold text-brand-600 dark:text-brand-300">{m.reply_to.name || "—"}</span>
+                      <span className="line-clamp-2 block break-words text-xs text-slate-400">
+                        {m.reply_to.text || (m.reply_to.photo ? t("chat.quotePhoto") : "")}
+                      </span>
+                    </button>
+              )}
               {m.text && <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>}
               {m.photos && m.photos.length > 0 && <FotoStapel photos={m.photos} name={m.name} avatarUrl={m.avatar_url} />}
             </div>
@@ -378,6 +427,16 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           {t("chat.replyDirect", { name: weiterAn.name ?? "Jan" })} →
         </button>
       ) : (<>
+      {replyTo && editing == null && (
+        <div className="mb-1.5 flex items-start gap-2 rounded-lg border-l-2 border-brand-500/70 bg-slate-800/60 py-1 pl-2 pr-1">
+          <ReplyIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600 dark:text-brand-300" />
+          <div className="min-w-0 flex-1">
+            <span className="block text-xs font-semibold text-brand-600 dark:text-brand-300">{t("chat.replyingTo", { name: replyTo.name || "—" })}</span>
+            <span className="line-clamp-1 block break-words text-xs text-slate-400">{replyTo.text || ((replyTo.photos?.length ?? 0) > 0 ? t("chat.quotePhoto") : "")}</span>
+          </div>
+          <button onClick={() => setReplyTo(null)} className="p-1 text-slate-400 hover:text-slate-200" title={t("chat.replyCancel")} aria-label={t("chat.replyCancel")}><CloseIcon className="h-3.5 w-3.5" /></button>
+        </div>
+      )}
       {editing != null && (
         <div className="mb-1 flex items-center justify-between text-xs text-brand-600 dark:text-brand-300">
           <span>{t("chat.editing")}</span>
@@ -419,6 +478,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
             if (e.key === "Escape" && editing != null) cancelEdit();
+            else if (e.key === "Escape" && replyTo) setReplyTo(null);
           }}
           placeholder={t("chat.placeholder")}
           maxLength={2000}

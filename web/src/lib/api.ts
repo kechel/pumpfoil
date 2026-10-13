@@ -77,6 +77,13 @@ export interface ChatMsg {
   author_new?: boolean;   // Konto jünger als 24 h -> "neu"-Badge
   like_count?: number; liked?: boolean;   // 👍
   photos?: ChatPhoto[];   // angehaengte Bilder (30.09.2026, vorerst nur Admins koennen senden)
+  reply_to?: ChatQuote | null;   // Antwort auf diese Nachricht (13.10.2026)
+}
+
+// Zitat des Originals ueber einer Antwort. `missing`: geloescht, verborgen oder nicht sichtbar.
+export interface ChatQuote {
+  id: number; missing: boolean;
+  user_id?: number; name?: string | null; text?: string; photo?: boolean;
 }
 
 export interface ChatPhoto { id: number; url: string; thumb_url: string }
@@ -1132,7 +1139,9 @@ export const api = {
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),
   chatBefore: (scope: string, before: number, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&before=${before}&limit=${limit}`),
-  chatPost: (scope: string, text: string, photoIds: number[] = []) => req<ChatMsg>(`/api/chat?scope=${encodeURIComponent(scope)}`, { method: "POST", body: JSON.stringify({ text, photo_ids: photoIds }) }),
+  chatPost: (scope: string, text: string, photoIds: number[] = [], replyTo?: number) => req<ChatMsg>(`/api/chat?scope=${encodeURIComponent(scope)}`, { method: "POST", body: JSON.stringify(replyTo ? { text, photo_ids: photoIds, reply_to: replyTo } : { text, photo_ids: photoIds }) }),
+  // Alle Nachrichten von fromId (einschliesslich) bis vor before — Sprung auf ein zitiertes Original.
+  chatRange: (scope: string, fromId: number, before: number) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&from_id=${fromId}&before=${before}`),
   // Bild VOR dem Senden hochladen (Vorschau im Eingabefeld), vorerst nur Admins.
   uploadChatPhoto: async (file: File) => uploadFile<ChatPhoto>(`/api/chat/photos`, await downscaleImage(file)),
   chatReport: (id: number) => req<{ ok: boolean; report_count: number; hidden: boolean }>(`/api/chat/${id}/report`, { method: "POST" }),

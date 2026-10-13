@@ -95,6 +95,10 @@ def _migrate_add_indexes() -> None:
         "((CAST(NULLIF(jsonb_extract_path_text(CAST(metrics_json AS JSONB), 'max_hr'), '') AS FLOAT)) DESC)",
         # Per-User-Empfindlichkeit — neue Spalten idempotent ergänzen. Cache je Preset in einem
         # JSON-Feld (sensitivity_json); die früheren Einzel-*_personal-Spalten wieder entfernen.
+        # Chat: Antwort auf eine Nachricht (Jan, 13.10.2026). Bewusst OHNE Fremdschluessel: Loeschen
+        # (eigene Nachricht, DSGVO) darf nie an einer Antwort haengen bleiben; fehlt das Original,
+        # zeigt die Antwort „nicht mehr verfuegbar".
+        "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS reply_to_id INTEGER",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS pump_unit VARCHAR(8) DEFAULT 'hz'",
         "ALTER TABLE foils ADD COLUMN IF NOT EXISTS specs_estimated BOOLEAN DEFAULT false",
