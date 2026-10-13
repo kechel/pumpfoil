@@ -156,6 +156,10 @@ fun MainScaffold(onLogout: () -> Unit) {
         if (!BuildConfig.DEBUG) return@LaunchedEffect
         val id = (debugCtx as? android.app.Activity)?.intent?.getIntExtra("debug_session", 0) ?: 0
         if (id > 0) nav.navigate("session/$id")
+        // Ebenso `--es debug_compare 15099,15004`: diese Sessions in den Vergleich und ihn oeffnen.
+        val cmp = (debugCtx as? android.app.Activity)?.intent?.getStringExtra("debug_compare")
+            ?.split(",")?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
+        if (cmp.isNotEmpty()) { cmp.forEach { CompareStore.toggle(it) }; nav.navigate("compare") }
     }
     // Das in der Foil-Liste angetippte Foil, fuer die Detailseite. Als Merker statt in der
     // Route: die Detailseite braucht Name, AR und die Zaehler, und die stehen in der Liste

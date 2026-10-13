@@ -109,7 +109,7 @@ fun LageJeLaufTabelle(s: SessionDetail, selected: Int?, onSelect: (Int) -> Unit)
     var laeufe by remember(s.id) { mutableStateOf<List<LageLauf>>(emptyList()) }
     LaunchedEffect(s.id, s.placement) {
         laeufe = try {
-            val d = Api.boardAttitude(s.id, jeLauf = true, hz = 2)
+            val d = Api.boardAttitude(s.id, nurLaeufe = true)
             if (d.ok) d.laeufe.filter { it.ok } else emptyList()
         } catch (_: Exception) { emptyList() }
     }

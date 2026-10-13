@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -53,6 +54,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlin.math.roundToInt
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.coroutines.launch
@@ -280,6 +282,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                             if (mode == CompareMode.RIDER) riderColor(items.getOrNull(i)?.second?.ownerName) else compareColor(i)
                         }
                         AllRuns(cmpTracks, mode)
+                        BrettLageVergleich(cmpTracks, mode, onOpen)
                     }
                     mergeError?.let {
                         Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -745,5 +748,82 @@ private fun SyncBedienzeile(
             onValueChange = { onPos(it.toDouble() * plan.dauerMs) },
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+/**
+ * LAGE JE LAUF fuer alle Sessions im Korb mit „Handy am Brett", auch die anderer Fahrer — wie in der
+ * PWA (Jan, 13.10.2026: „die neue Ansicht beim sessions vergleichen doch auch noch mit in das android
+ * release nehmen"). Spalten wie die Lage-Tabelle der Session-Details hier in der App; ein einzelner
+ * Lauf im Korb -> nur dieser, eine ganze Session -> alle ihre Laeufe. Tippen oeffnet die Session.
+ */
+@Composable
+private fun BrettLageVergleich(tracks: List<CmpTrack>, mode: CompareMode, onOpen: (Int) -> Unit) {
+    val brett = tracks.filter { it.session.placement == "board" }
+    val ids = brett.map { it.session.id }.distinct()
+    var lage by remember { mutableStateOf<Map<Int, List<LageLauf>>>(emptyMap()) }
+    LaunchedEffect(ids) {
+        ids.filter { it !in lage }.forEach { id ->
+            val l = try { Api.boardAttitude(id, nurLaeufe = true).laeufe } catch (_: Exception) { emptyList() }
+            lage = lage + (id to l)
+        }
+    }
+    if (brett.isEmpty()) return
+    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    Spacer(Modifier.height(12.dp))
+    Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+        Column(Modifier.padding(vertical = 10.dp)) {
+            Text(I18n.t("sd.attitudePerRun").uppercase(), style = MaterialTheme.typography.labelMedium,
+                color = grau, modifier = Modifier.padding(horizontal = 12.dp))
+            Column(Modifier.horizontalScroll(rememberScrollState()).padding(top = 6.dp)) {
+                val breiten = listOf(170, 64, 64, 72, 72, 104, 110, 72)
+                Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+                    listOf("", I18n.t("sd.colDuration"), I18n.t("sd.colDistance"),
+                        I18n.t("board.pitch"), I18n.t("board.roll"), I18n.t("board.yaw"),
+                        I18n.t("sd.colPitchRhythm"), I18n.t("sd.colHeave")).forEachIndexed { i, w ->
+                        Text(w, Modifier.width(breiten[i].dp), style = MaterialTheme.typography.labelSmall, color = grau)
+                    }
+                }
+                HorizontalDivider()
+                brett.forEach { cmp ->
+                    val s = cmp.session
+                    val farbe = if (mode == CompareMode.RIDER) cmp.riderColor else cmp.sessionColor
+                    cmp.laeufe.forEach { (idx, seg) ->
+                        val geladen = lage[s.id]
+                        val k = geladen?.firstOrNull { it.lauf == idx && it.ok }
+                        val leer = if (geladen == null) "…" else "–"
+                        val hub = k?.hubPpCm?.let { v -> "${v.roundToInt()} cm".let { if (k.hubSicher) it else "($it)" } } ?: leer
+                        Row(Modifier.clickable { onOpen(s.id) }.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.width(breiten[0].dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(8.dp).background(farbe, CircleShape))
+                                Spacer(Modifier.width(6.dp))
+                                Column {
+                                    s.ownerName?.takeIf { it.isNotBlank() }?.let {
+                                        Text(it, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                    }
+                                    Text("#${idx + 1} · ${prettyDate(s.startedAt, s.tz)}", style = MaterialTheme.typography.labelSmall,
+                                        color = grau, maxLines = 1)
+                                }
+                            }
+                            val werte = listOf(
+                                cmpMmss(seg.durationS),
+                                "${seg.distanceM.toInt()} m",
+                                k?.pitchAmplitudeDeg?.let { "±${it.roundToInt()}°" } ?: leer,
+                                k?.rollAmplitudeDeg?.let { "±${it.roundToInt()}°" } ?: leer,
+                                k?.gierRmsDegS?.let { "${it.roundToInt()}°/s" } ?: leer,
+                                k?.pitchHz?.let { String.format("%.2f Hz", it) } ?: leer,
+                                hub,
+                            )
+                            werte.forEachIndexed { i, w ->
+                                Text(w, Modifier.width(breiten[i + 1].dp), style = MaterialTheme.typography.bodyMedium,
+                                    color = if (i == 6 && k?.hubSicher == false) grau else MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                    }
+                    HorizontalDivider()
+                }
+            }
+        }
     }
 }
