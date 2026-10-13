@@ -173,11 +173,6 @@ export class Recorder {
   private autoLos: boolean = false;
   private leerGpsAn: boolean = false;
   private ohneAccel: boolean = false;
-  // Accel-Takt fuers Log (13.10.2026): Emulator meldet minSamplePeriod 5 ms, lieferte aber ~150 ms.
-  // r.timestamp (ns, vom Sensor) gegen die Wanduhr trennt „Sensor liefert so" von „Rueckruf zu langsam".
-  private taktN: number = 0;
-  private taktTs0: number = 0;
-  private taktWand0: number = 0;
   // Direkt-Upload (Direkt.ets): Geraete-Token aus dem Koppeln, '' = nicht gekoppelt (Aufnahmen warten)
   private direktToken: string = '';
   private direktLaeuft: boolean = false;
@@ -297,26 +292,9 @@ export class Recorder {
     }
   }
 
-  /** Alle 250 Werte eine Logzeile: Abstand laut Sensor-Zeitstempel und laut Wanduhr, in ms. */
-  private accelTakt(ts: number): void {
-    const wand: number = Date.now();
-    if (this.taktN === 0) {
-      this.taktTs0 = ts;
-      this.taktWand0 = wand;
-    }
-    this.taktN++;
-    if (this.taktN > 250) {
-      const n: number = this.taktN - 1;
-      console.info('Pumpfoil Accel-Takt: ' + n + ' Werte, Sensor ' + ((ts - this.taktTs0) / 1e6 / n).toFixed(1) +
-        ' ms, Wanduhr ' + ((wand - this.taktWand0) / n).toFixed(1) + ' ms je Wert');
-      this.taktN = 0;
-    }
-  }
-
   private sensorenAn(): void {
     try {
       sensor.on(sensor.SensorId.ACCELEROMETER, (r: sensor.AccelerometerResponse) => {
-        this.accelTakt(r.timestamp);
         const c: K.AccelChunk | null = this.sammler.accelWert(r.x, r.y, r.z, this.achse.jetzt(Date.now()));
         if (c !== null) {
           this.chunkSchreiben(c);
