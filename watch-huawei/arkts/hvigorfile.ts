@@ -12,18 +12,21 @@ import * as path from 'path';
 // Gesucht wird in $PUMPFOIL_HUAWEI_SIGNING, ~/pumpfoil-huawei/signing.json, ~/gits/pumpfoil-huawei/signing.json.
 // Build Mode „release" (DevEco oben bzw. -p buildMode=release) nimmt den Eintrag mit „release" im
 // Namen, sonst bleibt „default" (Debug/Emulator). Ohne Datei: unsigniert wie bisher (VM-Build).
+const KANDIDATEN: string[] = [
+  process.env.PUMPFOIL_HUAWEI_SIGNING ?? '',
+  path.join(os.homedir(), 'pumpfoil-huawei', 'signing.json'),
+  path.join(os.homedir(), 'gits', 'pumpfoil-huawei', 'signing.json'),
+].filter((k) => k !== '');
+
 function signingDatei(): string | undefined {
-  const kandidaten: string[] = [
-    process.env.PUMPFOIL_HUAWEI_SIGNING ?? '',
-    path.join(os.homedir(), 'pumpfoil-huawei', 'signing.json'),
-    path.join(os.homedir(), 'gits', 'pumpfoil-huawei', 'signing.json'),
-  ];
-  return kandidaten.find((k) => k !== '' && fs.existsSync(k));
+  return KANDIDATEN.find((k) => fs.existsSync(k));
 }
 
 getNode(__filename).afterNodeEvaluate((node) => {
   const datei = signingDatei();
   if (datei === undefined) {
+    // Sichtbar machen statt still unsigniert (13.10.2026: Jan sah nur „Will skip sign").
+    console.log('Pumpfoil-Signatur: keine signing.json gefunden (gesucht: ' + KANDIDATEN.join(', ') + ') -> unsigniert');
     return;
   }
   const ctx = node.getContext(OhosPluginId.OHOS_APP_PLUGIN) as OhosAppContext;
