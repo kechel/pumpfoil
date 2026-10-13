@@ -9,13 +9,12 @@ import * as path from 'path';
 // privatem Repo als signing.json — genau das, was DevEco unter Project Structure -> Signing Configs
 // in build-profile.json5 schreibt, Pfade gern relativ zur signing.json:
 //   { "signingConfigs": [ { "name": "release", "type": "HarmonyOS", "material": { ... } } ] }
-// Gesucht wird in $PUMPFOIL_HUAWEI_SIGNING, ~/pumpfoil-huawei/signing.json, ~/gits/pumpfoil-huawei/signing.json.
+// Gesucht wird in $PUMPFOIL_HUAWEI_SIGNING und ~/gits/rechnungen/pumpfoil-huawei/signing.json (kein Symlink, Jan).
 // Build Mode „release" (DevEco oben bzw. -p buildMode=release) nimmt den Eintrag mit „release" im
 // Namen, sonst bleibt „default" (Debug/Emulator). Ohne Datei: unsigniert wie bisher (VM-Build).
 const KANDIDATEN: string[] = [
   process.env.PUMPFOIL_HUAWEI_SIGNING ?? '',
-  path.join(os.homedir(), 'pumpfoil-huawei', 'signing.json'),
-  path.join(os.homedir(), 'gits', 'pumpfoil-huawei', 'signing.json'),
+  path.join(os.homedir(), 'gits', 'rechnungen', 'pumpfoil-huawei', 'signing.json'),   // Jans privates Repo
 ].filter((k) => k !== '');
 
 function signingDatei(): string | undefined {
