@@ -489,6 +489,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     // Vollbild-Karte, s. unten beim TrackMap.
     var mapFull by remember(s.id) { mutableStateOf(false) }
     var showPumps by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigePumps(ctxPrefs)) }
+    // Gleitphasen einblenden (wie PWA seit 03.10.2026), Daten aus `seg.glides`.
+    var showGlides by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigeGleiten(ctxPrefs)) }
     // Startversuche: die Anlaeufe, aus denen KEIN Lauf wurde. Standardmaessig an; die Linien holt
     // ein eigener Endpunkt, und zwar erst wenn der Schalter das erste Mal an ist.
     var showAttempts by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigeVersuche(ctxPrefs)) }
@@ -499,8 +501,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         }
     }
     // Jede Aenderung merken — sie gilt dann auch fuer die naechste Session.
-    LaunchedEffect(colorMode, win, showPumps, showAttempts) {
-        SessionViewPrefs.merke(ctxPrefs, colorMode, win, showPumps, showAttempts)
+    LaunchedEffect(colorMode, win, showPumps, showAttempts, showGlides) {
+        SessionViewPrefs.merke(ctxPrefs, colorMode, win, showPumps, showAttempts, showGlides)
     }
     var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
     LaunchedEffect(selectedRun) { onRunSelected(selectedRun) }   // hoch melden -> Teilen-Vorauswahl (#37)
@@ -904,7 +906,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         // Bewusst NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den ausgewerteten
                         // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
                         val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
-                        if (colorMode == ColorMode.SPEED || zeigeMarker || zeigeVersuchsSchalter) {
+                        val zeigeGleitSchalter = segs.any { it.glides.isNotEmpty() }
+                        if (colorMode == ColorMode.SPEED || zeigeMarker || zeigeVersuchsSchalter || zeigeGleitSchalter) {
                             FlowRow(
                                 Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -926,6 +929,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                                         Spacer(Modifier.width(12.dp))
                                     }
+                                    if (zeigeGleitSchalter) {
+                                        Text(I18n.t("sd.glides"), style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Spacer(Modifier.width(4.dp))
+                                        Switch(checked = showGlides, onCheckedChange = { showGlides = it })
+                                        Spacer(Modifier.width(12.dp))
+                                    }
                                     if (zeigeVersuchsSchalter) {
                                         Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -939,7 +949,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 Card(Modifier.fillMaxWidth()) {
                     Box {
-                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
+                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, showGlides, win,
                         if (showAttempts) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -963,7 +973,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Dialog(onDismissRequest = { mapFull = false },
                            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
+                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, showGlides, win,
                                 if (showAttempts) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1293,7 +1303,7 @@ private fun pumpDot(): android.graphics.drawable.Drawable {
 @Composable
 private fun TrackMap(
     track: Track, segments: List<Segment>, mode: ColorMode,
-    hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean, win: Int,
+    hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean, showGlides: Boolean, win: Int,
     /** Misslungene Startversuche als fertige Linien; leer = nicht anzeigen. */
     attempts: List<AttemptLine>,
     selectedRun: Int?, onSelectRun: (Int) -> Unit,
@@ -1388,6 +1398,23 @@ private fun TrackMap(
                         })
                         allPts.add(pa); allPts.add(pb)
                         if (!dim) { selPts.add(pa); selPts.add(pb) }
+                    }
+                    // Gleitphasen in Marken-Cyan, UNTER den Pump-Markern (wie PWA), nur fuer nicht gedimmte Laeufe.
+                    if (showGlides && !dim) {
+                        for (g in seg.glides) {
+                            if (g.size < 2) continue
+                            val i0 = g[0].toInt().coerceIn(0, pts.size - 1)
+                            val i1 = maxOf(g[1].toInt(), i0 + 1).coerceIn(0, pts.size - 1)
+                            val gp = (i0..i1).map { GeoPoint(pts[it].second, pts[it].first) }
+                            if (gp.size < 2) continue
+                            map.overlays.add(Polyline(map).apply {
+                                setPoints(gp)
+                                outlinePaint.color = Color(0xFF22D3EE).toArgb()
+                                outlinePaint.strokeWidth = 6f * dens
+                                outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                                setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }
+                            })
+                        }
                     }
                     // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.
                     if (showPumps && !dim) {

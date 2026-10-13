@@ -7,6 +7,9 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (pt)
+    "sd.glides" to "Planeios",
+    "sd.glide" to "Planeio",
     // Chat-Antworten — aus web pt.ts, 13.10.2026.
     "chat.reply" to "Responder",
     "chat.replyingTo" to "Respondendo a {name}",
@@ -1152,6 +1155,9 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (ja)
+    "sd.glides" to "グライド",
+    "sd.glide" to "グライド",
     // Chat-Antworten — aus web ja.ts, 13.10.2026.
     "chat.reply" to "返信",
     "chat.replyingTo" to "{name} さんへの返信",
@@ -2297,6 +2303,9 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (zh)
+    "sd.glides" to "滑翔",
+    "sd.glide" to "滑翔",
     // Chat-Antworten — aus web zh.ts, 13.10.2026.
     "chat.reply" to "回复",
     "chat.replyingTo" to "回复 {name}",
@@ -3442,6 +3451,9 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (ru)
+    "sd.glides" to "Глайды",
+    "sd.glide" to "Глайд",
     // Chat-Antworten — aus web ru.ts, 13.10.2026.
     "chat.reply" to "Ответить",
     "chat.replyingTo" to "Ответ для {name}",
@@ -4587,6 +4599,9 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (id)
+    "sd.glides" to "Meluncur",
+    "sd.glide" to "Meluncur",
     // Chat-Antworten — aus web id.ts, 13.10.2026.
     "chat.reply" to "Balas",
     "chat.replyingTo" to "Membalas {name}",
@@ -5735,6 +5750,9 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (nb)
+    "sd.glides" to "Glid",
+    "sd.glide" to "Glid",
     // Chat-Antworten — aus web nb.ts, 13.10.2026.
     "chat.reply" to "Svar",
     "chat.replyingTo" to "Svar til {name}",
@@ -6920,6 +6938,9 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (pl)
+    "sd.glides" to "Ślizgi",
+    "sd.glide" to "Ślizg",
     // Chat-Antworten — aus web pl.ts, 13.10.2026.
     "chat.reply" to "Odpowiedz",
     "chat.replyingTo" to "Odpowiedź dla {name}",
@@ -8107,6 +8128,9 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (pt-PT)
+    "sd.glides" to "Planeios",
+    "sd.glide" to "Planeio",
     // Chat-Antworten — aus web pt-PT.ts, 13.10.2026.
     "chat.reply" to "Responder",
     "chat.replyingTo" to "A responder a {name}",

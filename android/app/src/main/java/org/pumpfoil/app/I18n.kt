@@ -146,6 +146,9 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "chat.replyCancel" to row("Antwort abbrechen", "Antwort abbräche", "Antwort abbrechen", "Cancel reply", "Annuler la réponse", "Annulla risposta", "Cancelar respuesta"),
     "chat.quoteMissing" to row("Ursprüngliche Nachricht nicht mehr vorhanden", "Ursprünglichi Nachricht nüm da", "Ursprüngliche Nachricht nicht mehr vorhanden", "Original message no longer available", "Le message d'origine n'est plus disponible", "Il messaggio originale non è più disponibile", "El mensaje original ya no está disponible"),
     "chat.quotePhoto" to row("Foto", "Foti", "Foto", "Photo", "Photo", "Foto", "Foto"),
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026.
+    "sd.glides" to row("Gleiten", "Glite", "Gleiten", "Glides", "Glisses", "Planate", "Planeos"),
+    "sd.glide" to row("Gleitphase", "Glitphase", "Gleitphase", "Glide", "Glisse", "Planata", "Planeo"),
     "nav.changelog" to row("Neuerungen", "Neuigkeite", "Neuerungen", "Changelog", "Nouveautés", "Novità", "Novedades"),
     "changelog.details" to row("Details ({n})", "Details ({n})", "Details ({n})", "Details ({n})", "Détails ({n})", "Dettagli ({n})", "Detalles ({n})"),
     "common.loadFailed" to row("Konnte nicht geladen werden.", "Het nöd chönne glade werde.", "Hot net gladen werdn kenna.", "Could not be loaded.", "Impossible de charger.", "Impossibile caricare.", "No se pudo cargar."),
@@ -1531,6 +1534,9 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (fi)
+    "sd.glides" to "Liu'ut",
+    "sd.glide" to "Liuku",
     // Chat-Antworten — aus web fi.ts, 13.10.2026.
     "chat.reply" to "Vastaa",
     "chat.replyingTo" to "Vastaus käyttäjälle {name}",
@@ -2668,6 +2674,9 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (nl)
+    "sd.glides" to "Glides",
+    "sd.glide" to "Glide",
     // Chat-Antworten — aus web nl.ts, 13.10.2026.
     "chat.reply" to "Beantwoorden",
     "chat.replyingTo" to "Antwoord aan {name}",
@@ -3804,6 +3813,9 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Gleitphasen auf der Karte — aus den Web-Sprachdateien, 13.10.2026. (cs)
+    "sd.glides" to "Klouzání",
+    "sd.glide" to "Klouzání",
     // Chat-Antworten — aus web cs.ts, 13.10.2026.
     "chat.reply" to "Odpovědět",
     "chat.replyingTo" to "Odpověď pro {name}",

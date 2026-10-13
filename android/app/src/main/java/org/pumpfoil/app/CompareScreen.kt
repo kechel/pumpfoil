@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -103,6 +104,8 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
     var mergeError by remember { mutableStateOf<String?>(null) }
     var mode by remember { mutableStateOf(CompareMode.TRACK) }
     var win by remember { mutableStateOf(3) }
+    var zeigePumps by remember { mutableStateOf(false) }
+    var zeigeGleiten by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(selected) {
@@ -261,9 +264,22 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                                     }
                                 }
                             }
+                            // Pump-Marker und Gleitphasen einblendbar wie in der PWA-Vergleichskarte (13.10.2026),
+                            // je in der Farbe des Eintrags — zwei Aufnahmen derselben Fahrt bleiben unterscheidbar.
+                            val hatPumps = cmpTracks.any { c -> c.laeufe.any { it.second.pumpIdx.isNotEmpty() } }
+                            val hatGleiten = cmpTracks.any { c -> c.laeufe.any { it.second.glides.isNotEmpty() } }
+                            if (hatPumps || hatGleiten) {
+                                Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    if (hatPumps) FilterChip(selected = zeigePumps, onClick = { zeigePumps = !zeigePumps },
+                                        label = { Text(I18n.t("sd.pumpMarker")) }, colors = cyanChipColors())
+                                    if (hatGleiten) FilterChip(selected = zeigeGleiten, onClick = { zeigeGleiten = !zeigeGleiten },
+                                        label = { Text(I18n.t("sd.glides")) }, colors = cyanChipColors())
+                                }
+                            }
                             CompareMap(cmpTracks, mode, win, pumpRange, hrRange,
                                 Modifier.fillMaxWidth().height(240.dp).padding(horizontal = 12.dp),
-                                plan = plan, posMs = pos, spielModus = spielModus)
+                                plan = plan, posMs = pos, spielModus = spielModus,
+                                zeigePumps = zeigePumps, zeigeGleiten = zeigeGleiten)
                             if (plan != null) {
                                 SyncBedienzeile(
                                     plan = plan, spielt = spielt, tempo = tempo, pos = pos,
@@ -321,7 +337,8 @@ private fun foilLabel(s: SessionDetail): String? {
 @Composable
 private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
                        pumpRange: Pair<Double, Double>, hrRange: Pair<Int, Int>, modifier: Modifier = Modifier,
-                       plan: SyncPlan? = null, posMs: Double = 0.0, spielModus: Boolean = false) {
+                       plan: SyncPlan? = null, posMs: Double = 0.0, spielModus: Boolean = false,
+                       zeigePumps: Boolean = false, zeigeGleiten: Boolean = false) {
     fun colorAt(cmp: CmpTrack, i: Int): Color = when (mode) {
         CompareMode.TRACK -> cmp.sessionColor
         CompareMode.RIDER -> cmp.riderColor
@@ -437,6 +454,38 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
                                 outlinePaint.strokeWidth = 4f * dens
                             })
                             all.add(pa); all.add(pb)
+                        }
+                    }
+                }
+                // Gleitphasen breit und halb durchsichtig, darueber die Pump-Marker — beides in der
+                // Farbe des EINTRAGS (wie PWA CompareMap.tsx).
+                for (cmp in tracks) {
+                    val pts = cmp.track.points
+                    if (pts.isEmpty()) continue
+                    for ((_, seg) in cmp.laeufe) {
+                        if (zeigeGleiten) for (g in seg.glides) {
+                            if (g.size < 2) continue
+                            val i0 = g[0].toInt().coerceIn(0, pts.size - 1)
+                            val i1 = maxOf(g[1].toInt(), i0 + 1).coerceIn(0, pts.size - 1)
+                            val gp = (i0..i1).map { GeoPoint(pts[it].second, pts[it].first) }
+                            if (gp.size < 2) continue
+                            map.overlays.add(Polyline(map).apply {
+                                setPoints(gp)
+                                outlinePaint.color = cmp.sessionColor.copy(alpha = 0.55f).toArgb()
+                                outlinePaint.strokeWidth = 10f * dens
+                                outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                            })
+                        }
+                        if (zeigePumps && seg.pumpIdx.isNotEmpty()) {
+                            // EIN Bild je Eintrag, nicht je Pump — eine Session hat Hunderte davon.
+                            val bild = punktMarker(map, GeoPoint(0.0, 0.0), cmp.sessionColor, dens * 0.7f, hohl = false).icon
+                            for (pi in seg.pumpIdx) {
+                                val pp = pts.getOrNull(pi) ?: continue
+                                map.overlays.add(Marker(map).apply {
+                                    position = GeoPoint(pp.second, pp.first); icon = bild
+                                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER); setInfoWindow(null)
+                                })
+                            }
                         }
                     }
                 }
