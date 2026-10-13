@@ -13,18 +13,22 @@ export function AccelToggle({ value, onChange, className = "", brett = false, on
   const t = useT();
   return (
     <div className={`inline-flex overflow-hidden rounded-lg border border-slate-700 text-[11px] font-medium ${className}`} title={t("side.recordsHint")}>
-      <button onClick={() => onChange(true)}
+      {/* Kurz „accel" in allen Sprachen (Jan, 13.10.2026: passt so auch auf schmalen Displays in
+          eine Zeile); die volle Bezeichnung im Tooltip. */}
+      <button onClick={() => onChange(true)} title={t("side.onlyAccel")}
         className={`px-2.5 py-0.5 ${value && !brett ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-        {t("side.onlyAccel")}
+        accel
       </button>
       <button onClick={() => onChange(false)}
         className={`px-2.5 py-0.5 ${!value && !brett ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
         {t("side.all")}
       </button>
       {onBrett && (
-        <button onClick={onBrett}
+        // „POB" (phone on board) in allen Sprachen, Jan 13.10.2026 — kurz, die Zeile bricht sonst um;
+        // die volle Bezeichnung steht im Tooltip.
+        <button onClick={onBrett} title={t("side.phoneOnBoard")}
           className={`px-2.5 py-0.5 ${brett ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-          {t("side.phoneOnBoard")}
+          POB
         </button>
       )}
     </div>

@@ -48,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -112,7 +113,10 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // mit „alle", auch wenn der Nutzer selbst Accel-Läufe hat (s. AccelDefault.kt). Eine eigene
     // Umschaltung hat Vorrang.
     val accel = rememberAccelDefault()
-    val accelOnly = accel.value
+    // „POB" (phone on board, wie die PWA): nur Aufnahmen mit dem Handy am Brett. Schliesst „nur Accel"
+    // aus — Brett-Sessions sollen alle erscheinen.
+    var brett by rememberSaveable { mutableStateOf(false) }
+    val accelOnly = accel.value && !brett
     // Spot ohne eine einzige Session mit Beschleunigungsdaten: nur EINMAL je Spot nachfragen.
     var accelAutoSpot by remember { mutableStateOf<String?>(null) }
     // pump | other (nur eigene). Startwert kann von aussen kommen (Startseiten-Hinweis
@@ -216,7 +220,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         try {
             when (scope) {
                 Scope.MINE -> {
-                    val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport)
+                    val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett)
                     if (meine != ladeGeneration) return
                     own = r
                 }
@@ -225,12 +229,12 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 // und eFoil/Wake/… fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Seit
                 // 27.09.2026 laesst sich die Liste auf eine Sportart einschraenken (Sportart-Auswahl).
                 Scope.ALL -> {
-                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = sport)
+                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = sport, board = brett)
                     if (meine != ladeGeneration) return
                     groups = r
                 }
                 Scope.SPOT -> {
-                    val r = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = sport) else emptyList()
+                    val r = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = sport, board = brett) else emptyList()
                     if (meine != ladeGeneration) return
                     groups = r
                     maybeShowAll(groups)
@@ -243,8 +247,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // Filterwechsel: die ALTE Liste sofort weg, nicht erst, wenn die neue da ist (PWA 8f9cc725) —
     // sonst liest man Sessions eines anderen Spots unter der neuen Ueberschrift. Nicht bei `tick`
     // (Nachladen derselben Liste), dort bleibt sie stehen, bis die frische kommt.
-    LaunchedEffect(scope, spot, accelOnly, filter, month, sport) { groups = emptyList(); own = emptyList() }
-    LaunchedEffect(scope, spot, tick, accelOnly, filter, month, sport) { load() }
+    LaunchedEffect(scope, spot, accelOnly, filter, month, sport, brett) { groups = emptyList(); own = emptyList() }
+    LaunchedEffect(scope, spot, tick, accelOnly, filter, month, sport, brett) { load() }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
     // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026) — samt Sportart.
     LaunchedEffect(scope, spot, accelOnly, filter, month, sport) {
@@ -337,7 +341,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     )
                 }
                 FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
-                AccelSeg(accelOnly) { accel.set(it) }
+                AccelSeg(accelOnly, brett = brett, onBrett = { brett = true }) { brett = false; accel.set(it) }
             }
             }
             // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte) — und rechts
