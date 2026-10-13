@@ -89,12 +89,12 @@
       "value": "Waiting for GPS"
     },
     {
-      "name": "openPhone",
-      "value": "open app\non phone"
-    },
-    {
       "name": "allSent",
       "value": "All sent"
+    },
+    {
+      "name": "pairFirst",
+      "value": "pair at\npumpfoil.org"
     },
     {
       "name": "module_desc",

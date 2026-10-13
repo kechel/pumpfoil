@@ -89,12 +89,12 @@
       "value": "Czekam na GPS"
     },
     {
-      "name": "openPhone",
-      "value": "otwórz aplikację\nw telefonie"
-    },
-    {
       "name": "allSent",
       "value": "Wszystko wysłane"
+    },
+    {
+      "name": "pairFirst",
+      "value": "połącz z\npumpfoil.org"
     },
     {
       "name": "perm_reason",

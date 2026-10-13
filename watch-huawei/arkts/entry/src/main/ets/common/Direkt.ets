@@ -7,6 +7,10 @@
  * Geraete-Token da ist. Danach: Konfiguration per /api/devices/config, Sessions per Ingest — mit
  * denselben Pfaden und Koerpern wie die Android-Bruecke.
  *
+ * Seit 13.10.2026 der EINZIGE Upload-Weg der Watch 5: Huawei hat die Wear-Engine-Berechtigung
+ * abgelehnt und empfiehlt, dass Uhren mit Internet selbst hochladen. Ungekoppelt warten die
+ * Aufnahmen auf der Uhr, bis gekoppelt ist.
+ *
  * UNGEPRUEFT auf echter Uhr: ob eine Watch 5 ohne gekoppeltes Android-Handy ins Netz kommt (WLAN,
  * eSIM oder ueber die Health-App am iPhone). Im DevEco-Emulator geht das Netz ueber den Mac.
  */

@@ -62,7 +62,7 @@ test("ArkTS-Kern: GPS-Tempo geht mit, gerundet auf cm/s", { skip: ohneTsc }, asy
   assert.equal(c.data[1][3], -1);
 });
 
-test("ArkTS-Kern: Zeitachse, Sendeplan, Teile und Gegenstelle wie kern.js", { skip: ohneTsc }, async () => {
+test("ArkTS-Kern: Zeitachse, Sendeplan und Dateinamen wie kern.js", { skip: ohneTsc }, async () => {
   const A = await arkts();
   // Zeitachse
   for (const [Z, w] of [[K.Zeitachse, "js"], [A.Zeitachse, "ts"]]) {
@@ -86,21 +86,15 @@ test("ArkTS-Kern: Zeitachse, Sendeplan, Teile und Gegenstelle wie kern.js", { sk
     return r;
   };
   assert.deepEqual(reihe(A.Sendeplan), reihe(K.Sendeplan));
-  // Teile: gleicher Text inkl. Nicht-ASCII und |
-  const text = JSON.stringify({ device_model: "HUAWEI WATCH 5 · HarmonyOS", x: "a|b", y: "ä€😀".repeat(200) });
-  assert.deepEqual(A.teile("m_hw-x.json", text, 7), K.teile("m_hw-x.json", text, 7));
-  assert.deepEqual(A.teile("m_a.json", "{}", 0, 5), K.teile("m_a.json", "{}", 0, 5));
   // Dateinamen: ohne Ordner, sonst gleich
   assert.equal("internal://app/" + A.dateiChunk("hw-x", 42), K.dateiChunk("hw-x", 42));
   assert.equal("internal://app/" + A.dateiVon({ id: "hw-x", art: "e", nr: -1 }), K.dateiEnde("hw-x"));
   assert.equal(A.neueId(1791374454000, 0.5), K.neueId(1791374454000, 0.5));
-  // Gegenstelle + Warteschlange
-  const gj = new K.Gegenstelle([["a", "1"], ["b", "2"]], 0), gt = new A.Gegenstelle([["a", "1"], ["b", "2"]], 0);
-  const lauf = (g) => [g.fehler(), g.fehler(), g.fehler(), g.jetzt()];
-  assert.deepEqual(lauf(gt), lauf(gj));
-  const wj = new K.Warteschlange(), wt = new A.Warteschlange();
-  for (const w of [wj, wt]) { w.start(); w.fehler(206, 1000); w.fehler(206, 2000); }
-  assert.deepEqual([wt.naechsterVersuch, wt.fehlerGesamt, wt.letzterCode], [wj.naechsterVersuch, wj.fehlerGesamt, wj.letzterCode]);
+  // Teile, Gegenstelle und Warteschlange gibt es im ArkTS-Kern seit 13.10.2026 nicht mehr (Watch 5
+  // ohne Wear Engine, nur Direkt-Upload) — sie duerfen auch nicht unbemerkt zurueckkommen.
+  assert.equal(A.teile, undefined);
+  assert.equal(A.Gegenstelle, undefined);
+  assert.equal(A.Warteschlange, undefined);
 });
 
 test("ArkTS-Kern: Sendeplan.weg und AutoStart wie kern.js", { skip: ohneTsc }, async () => {
@@ -160,6 +154,22 @@ test("Direkt-Upload: nur abgeschlossene, per Wear Engine unberuehrte Sessions si
   const weg = p.weg("fertig");                               // nach dem Upload: alles loeschen
   assert.deepEqual(weg, [A.dateiMeta("fertig"), A.dateiChunk("fertig", 0), A.dateiChunk("fertig", 1), A.dateiEnde("fertig")]);
   assert.equal(A.direktBereit(p), null);
+});
+
+test("ArkTS-Kern: ungekoppelt Aufgenommenes geht nach dem Koppeln komplett hoch (Watch 5 ohne Wear Engine)", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  // Drei Sessions ungekoppelt aufgenommen und abgeschlossen, die vierte laeuft noch; der Plan
+  // ueberlebt den Neustart als JSON (plan.json).
+  const p0 = new A.Sendeplan();
+  for (const id of ["s1", "s2", "s3"]) { p0.neu(id); p0.chunk(id); p0.chunk(id); p0.ende(id); }
+  p0.neu("laeuft"); p0.chunk("laeuft");
+  const p = new A.Sendeplan(JSON.parse(JSON.stringify(p0.daten())));
+  const hoch = [];
+  for (let x = A.direktBereit(p); x; x = A.direktBereit(p)) { hoch.push(x.id + ":" + x.n); p.weg(x.id); }
+  assert.deepEqual(hoch, ["s1:2", "s2:2", "s3:2"]);
+  assert.equal(A.direktBereit(p), null);                     // die laufende wartet auf ihr Ende
+  p.ende("laeuft");
+  assert.equal(A.direktBereit(p).id, "laeuft");
 });
 
 test("Direkt-Upload: Watch 5 (Kern.ets) und Watch 3/4 (direkt.js) bilden byte-gleiche Pakete", { skip: ohneTsc }, async () => {

@@ -16,8 +16,9 @@ arkts/       DevEco-Projekt fuer Watch 5 und jede Uhr mit HarmonyOS 5+ (ArkTS, S
                common/Kern.ets     derselbe Kern in ArkTS — test/arkts-kern.test.mjs prueft ihn BYTEGLEICH
                                    gegen common/kern.js (tsc aus web/node_modules). Aenderung am Kern =
                                    beide Dateien aendern, der Test faellt sonst.
-               common/Recorder.ets Geraete-Schicht (Kits: Sensor, Location, fileIo, WearEngine,
-                                   BackgroundTasks); liefert anders als Lite ein GPS-Tempo
+               common/Recorder.ets Geraete-Schicht (Kits: Sensor, Location, fileIo, Network,
+                                   BackgroundTasks); liefert anders als Lite ein GPS-Tempo.
+                                   KEINE Wear Engine (seit 13.10.2026, s. „Direkt zum Server")
                pages/Index.ets     dieselbe Seite wie lite/ (Texte in resources/, 4 Sprachen wie lite/)
 test/        Node-Tests (kern.test.mjs = JS-Kern, arkts-kern.test.mjs = ArkTS-Kern gegen JS-Kern)
 sync-common.sh  kopiert common/ in die Projekte — nach JEDER Aenderung an common/ ausfuehren
@@ -26,7 +27,8 @@ sync-common.sh  kopiert common/ in die Projekte — nach JEDER Aenderung an comm
 Weg der Daten: Uhr nimmt auf → schreibt Chunk-Dateien im normalen Upload-Format
 (docs/ingest-contract.md) → schickt sie per Wear Engine ans Handy → die Pumpfoil-App (Android
 `HuaweiBruecke.kt`, iOS `HuaweiBruecke.swift`) laedt sie hoch. Die Uhr hat fuer Fremd-Apps kein
-eigenes Netz (docs/HUAWEI.md).
+eigenes Netz (docs/HUAWEI.md). Das gilt fuer Lite und Watch 3/4 — **die Watch 5 (arkts/) laedt
+seit 13.10.2026 nur noch selbst hoch**, ohne Wear Engine (naechster Abschnitt).
 
 **Uebertragung als Nachrichten in Teilen, nicht als Dateien** (`PF1|<datei>|<nr>|<anzahl>|<rest>|<inhalt>`,
 ≤ 800 Zeichen ASCII, `common/kern.js teile`): Huaweis iOS-Guide sagt woertlich, das iOS-SDK koenne
@@ -76,10 +78,20 @@ Was die Uhr NICHT liefert und wie damit umgegangen wird:
 
 ## Direkt zum Server ohne Handy (nur Watch 5 / ArkTS, ab 1.0.2)
 
+**Watch 5 = NUR Direkt-Upload, keine Wear Engine (Jan, 13.10.2026):** Huawei hat die
+Wear-Engine-Berechtigung fuer die Watch-5-App abgelehnt und empfiehlt, dass Uhren mit Internet
+selbst hochladen. Deshalb ist der Handy-Weg aus `arkts/` ganz raus: kein `@kit.WearEngine`, keine
+P2P-Nachrichten, kein Hallo, keine Konfiguration vom Handy, keine Gegenstelle; in `module.json5`
+keine `client_id`/`wearEngineRemoteAppNameList` mehr. Ungekoppelt bleibt jede Aufnahme auf der
+Uhr (Plan + Dateien), die Infozeile sagt „mit pumpfoil.org koppeln" (Antippen oeffnet das Koppeln);
+nach dem Koppeln laedt die Uhr alle abgeschlossenen Sessions hoch, auch die von vorher (Test in
+`test/arkts-kern.test.mjs`). Datenseiten: gekoppelt vom Server, sonst die eingebauten Standards
+(`Seiten.ets` `Konfig`). Lite und Watch 3/4 senden weiter ueber die Wear Engine.
+
 Jan, 08.10.2026: „dann gehts ohne app und auch fuer leute mit iphone". Einstellungen → **pumpfoil.org**
 → die Uhr zeigt einen Code (`/api/devices/pair-init`, Plattform `huawei`), der Nutzer gibt ihn auf
 pumpfoil.org unter Konto ein, die Uhr holt per `/pair-poll` ihr Geraete-Token (`direkt.json`).
-Gekoppelt bleibt die Wear Engine still; die Uhr holt die Konfiguration selbst (`/api/devices/config`)
+Gekoppelt holt die Uhr die Konfiguration selbst (`/api/devices/config`)
 und laedt jede ABGESCHLOSSENE Session wie die Android-Bruecke hoch (Meta mit `expected_chunks`,
 GPS-Chunks zuerst in Paketen zu 30, `/complete`, erst danach loeschen; Backoff 30 s … 5 min; 401 →
 entkoppelt). Logik in `Kern.ets` (`direktBereit`, `direktUpload`, getestet in
@@ -107,7 +119,7 @@ Geraet „emulator", faehrt die App selbst eine Runde wie `common/sim-gps.js` (`
 (Schluessel in Jans privatem Schluessel-Repo, nie hier); **App ID `6917618548983879423`** = HarmonyOS-App
 `Pumpfoil`, Paket `org.pumpfoil.huawei` (Seite „Certificates, App IDs and Profiles" = HarmonyOS ab API 12,
 also die Watch 5/ArkTS). Offen: ob Lite und Watch 3/4 dieselbe App ID nutzen; Debug-Profil (.p7b) erst mit
-Geraete-UDID; `client_id` fuer `arkts/…/module.json5` (vermutlich die OAuth-Client-ID der App, nicht die App ID).
+Geraete-UDID. (Die `client_id` fuer `arkts/…/module.json5` entfaellt seit 13.10.2026 — die Watch 5 nutzt keine Wear Engine mehr.)
 
 | Was | Wo |
 |---|---|

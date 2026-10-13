@@ -89,12 +89,12 @@
       "value": "Wart' auf GPS"
     },
     {
-      "name": "openPhone",
-      "value": "App am\nHandy aufmachen"
-    },
-    {
       "name": "allSent",
       "value": "Alles drüben"
+    },
+    {
+      "name": "pairFirst",
+      "value": "mit pumpfoil.org\nkoppeln"
     },
     {
       "name": "perm_reason",
