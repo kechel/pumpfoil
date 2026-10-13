@@ -11415,3 +11415,12 @@ Offen daraus:
   (brand/stores/zepp/README.md). Bei der naechsten Simulator-Runde beide Formen aufnehmen: Startseite mit START,
   on foil, Puls/Tempo-Bogen, Datenseite Dst/Dur/Hr/Avg, Statistik pausiert, LAST RUN, Pause-Menue. Dann
   `scripts/zepp-store-previews.py` (raw/circle + raw/square).
+- **13.10.2026 — HUAWEI: Wear-Engine-Antrag ABGELEHNT, neuer Plan (Jan).** Huawei verlangte (1) Screenshots/UX-Diagramm
+  der Szenarien Uhr<->Handy, (2) Begruendung, warum nicht direkt uebers Internet, plus Loesung, wenn die Handy-App
+  nicht laeuft, (3) Watch 3/4 seien zu alt. Entscheidung: ZUERST nur Watch 5 (ArkTS) OHNE Wear Engine — Direkt-Upload
+  nach Code-Kopplung; Wear Engine aus der Watch-5-App ganz raus. Nach deren Freigabe + Release neuer Antrag nur
+  fuer GT/Fit/D (Lite, kein HTTP fuer Fremd-Apps): Diagramm Uhr -> Handy -> Server, Screenshots aus dem
+  Lite-Simulator (Aufnahme, „3/12", „open app on phone", „all sent") + Android-Karte; Antwort auf (2): Uhr behaelt
+  jede Aufnahme bis zur Quittung jedes Teils, zeigt „open app on phone", setzt beim Oeffnen der App selbst fort.
+  Watch 3/4: Code bleibt, wird nicht beworben/eingereicht. Offen fuer Watch 5: Release-Zertifikat + Profil (Jan),
+  signierter Build, AppGallery-Eintrag (Texte, Screenshots aus screenshots/watch/huawei-arkts-emulator).

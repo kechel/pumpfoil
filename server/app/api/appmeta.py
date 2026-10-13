@@ -871,13 +871,13 @@ NAECHSTES: list[dict] = [
     # 08.10.2026 (Jan: „Huawei im changelog unter coming next"): Recorder fuer alle drei Huawei-Linien
     # (Lite GT/Fit/D, Watch 3/4, Watch 5), Uebertragung ueber die Android-App. Im Simulator geprueft,
     # nie auf Hardware; Wear-Engine-Freigabe und Signierung stehen aus (docs/TODO.md).
+    # 13.10.2026 (Jan, nach der Wear-Engine-Ablehnung): ZUERST nur Huawei Watch 5, ohne Wear Engine —
+    # laedt nach Code-Kopplung selbst zu pumpfoil.org hoch. GT/Fit/D (Lite, ohne Internet) erst mit
+    # einem neuen Wear-Engine-Antrag nach der Freigabe; Watch 3/4 nicht mehr (Huawei raet ab).
     {"name": "Huawei", "version": "1.0.2",
      "items": [
-         "New: Huawei watches (Watch GT, Watch Fit, Watch D and Watch 3, 4 and 5) record your sessions, and the Pumpfoil app on your Android phone uploads them. Starting as a public beta.",
+         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
          "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
-         # 08.10.2026 (0a1b4d18 Watch 5, 24323c27 Watch 3/4): Direkt-Upload per Code, Watch 5 im Emulator belegt.
-         # iPhone bewusst NICHT erwaehnt: laut Huawei koennen iPhone-Nutzer keine Fremd-Apps auf die Uhr installieren.
-         "Huawei Watch 3, 4 and 5 can also upload on their own after you link them with a code at pumpfoil.org, without the Android app.",
      ]},
     # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
