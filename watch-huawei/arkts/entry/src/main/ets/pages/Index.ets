@@ -62,6 +62,7 @@ struct Index {
   @State kStatus: string = '';
   @State tTrennen: string = '';
   @State zeit: string = '0:00';
+  @State pausiertKopf: string = '';   // in der Pause statt der Zeit oben auf der Aktionsseite
   @State strecke: string = '0.00 km';
   @State info: string = '';
   @State balken: number = 0;
@@ -164,7 +165,10 @@ struct Index {
     const z: Zustand = r.zustand();
     const k: Konfig = r.konfigJetzt();
     const pausiert: boolean = z.modus === 'pause';
-    this.zeit = (pausiert ? this.t($r('app.string.paused')) + ' ' : '') + zeitText(z.ms);
+    // Frueher „Paused 1:43" in einer Zeile: ragte auf dem runden Display ueber den Rand und las
+    // sich wie die Pausendauer (war aber die Fahrzeit). Jetzt in der Pause nur „Paused" wie Garmin.
+    this.zeit = zeitText(z.ms);
+    this.pausiertKopf = pausiert ? this.t($r('app.string.paused')) : '';
     this.strecke = (z.m / 1000).toFixed(2) + ' km';
     this.halten = k.stopMode !== 'press';
     const zwei: string = this.halten ? ' · 2 s' : '';
@@ -711,7 +715,11 @@ struct Index {
           .backgroundColor(CYAN_DUNKEL).margin({ top: 8 })
           .onClick(() => this.fertig())
       } else if (this.ansicht === 'aktion') {
-        Text(this.zeit).fontSize(28).fontColor('#ffffff')
+        if (this.pausiertKopf !== '') {
+          Text(this.pausiertKopf).fontSize(26).fontColor(CYAN).maxLines(1)
+        } else {
+          Text(this.zeit).fontSize(28).fontColor('#ffffff')
+        }
         this.knopf(this.tPause, CYAN_DUNKEL, 'pause')
         Button(this.tWeg).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(ROT)
           .margin({ top: 8 })
