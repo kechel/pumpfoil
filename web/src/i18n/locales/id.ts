@@ -1559,8 +1559,9 @@ const id: Record<string, string> = {
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Masukkan kode dari jam",
-  "account.claimHelp": "Buka Pumpfoil di jam lalu ke “Hubungkan” — Garmin: tahan MENU (tombol tengah-kiri) → “Pengaturan” → “Hubungkan”; Amazfit: geser ke kiri dari layar awal; Wear OS dan Apple Watch menampilkan layar itu saat pertama kali dibuka. Masukkan kode yang ditampilkan (6 karakter, huruf & angka) di sini.",
-  "account.claimReq": "Penting: aplikasi pendamping jam tanganmu harus terbuka di ponsel dan terhubung ke jam (Garmin Connect, Zepp, Wear OS atau Apple Watch), dan ponsel butuh internet — jam terhubung online lewat ponsel. Masukkan kode dalam 15 menit; jika jam tidak menampilkan kode, perbarui aplikasinya.",
+  "account.claimHelp": "Buka Pumpfoil di jam lalu ke “Hubungkan” — Garmin: tahan MENU (tombol tengah-kiri) → “Pengaturan” → “Hubungkan”; Amazfit: geser ke kiri dari layar awal; Wear OS dan Apple Watch menampilkan layar itu saat pertama kali dibuka. Masukkan kode yang ditampilkan (6 karakter, huruf & angka) di sini. HUAWEI Watch 5: ketuk “pair at pumpfoil.org” di layar awal.",
+  "account.claimReq": "Penting: aplikasi pendamping jam tanganmu harus terbuka di ponsel dan terhubung ke jam (Garmin Connect, Zepp, Wear OS atau Apple Watch), dan ponsel butuh internet — jam terhubung online lewat ponsel. Masukkan kode dalam 15 menit; jika jam tidak menampilkan kode, perbarui aplikasinya. Pengecualian HUAWEI Watch 5: jam mengunggah sendiri, tidak perlu aplikasi di ponsel.",
+  "account.claimBad": "Kode tidak valid atau kedaluwarsa — periksa kode di jam, atau minta kode baru di sana.",
   "account.claimPlaceholder": "mis. VURWGG",
   "account.claimBtn": "Hubungkan",
   "account.claimAlready": "Jam ini sudah terhubung.",

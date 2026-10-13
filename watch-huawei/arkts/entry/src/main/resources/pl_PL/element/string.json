@@ -98,7 +98,11 @@
     },
     {
       "name": "perm_reason",
-      "value": "Zapisuje prędkość, pozycję, tętno i ruch podczas sesji pumpfoil."
+      "value": "Zapisuje prędkość i trasę podczas sesji pumpfoil."
+    },
+    {
+      "name": "hr_reason",
+      "value": "Zapisuje tętno podczas sesji."
     },
     {
       "name": "bg_reason",

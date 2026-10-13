@@ -1557,8 +1557,9 @@ const ja: Record<string, string> = {
   "field.23": "全ラン：時間",
 
   "account.claimTitle": "ウォッチのコードを入力",
-  "account.claimHelp": "ウォッチで Pumpfoil を開き「接続」へ — Garmin: MENU（左中央のボタン）を長押し →「設定」→「接続」。Amazfit: 開始画面から左にスワイプ。Wear OS と Apple Watch は初回起動時にこの画面が表示されます。表示されたコード（6文字、英数字）をここに入力します。",
-  "account.claimReq": "重要：ウォッチのコンパニオンアプリ（Garmin Connect、Zepp、Wear OS、Apple Watch）がスマホで開いていてウォッチに接続され、スマホがインターネットにつながっている必要があります — ウォッチはスマホ経由でオンラインになります。コードは15分以内に入力してください。ウォッチにコードが表示されない場合はアプリを更新してください。",
+  "account.claimHelp": "ウォッチで Pumpfoil を開き「接続」へ — Garmin: MENU（左中央のボタン）を長押し →「設定」→「接続」。Amazfit: 開始画面から左にスワイプ。Wear OS と Apple Watch は初回起動時にこの画面が表示されます。表示されたコード（6文字、英数字）をここに入力します。HUAWEI Watch 5：開始画面の「pair at pumpfoil.org」をタップします。",
+  "account.claimReq": "重要：ウォッチのコンパニオンアプリ（Garmin Connect、Zepp、Wear OS、Apple Watch）がスマホで開いていてウォッチに接続され、スマホがインターネットにつながっている必要があります — ウォッチはスマホ経由でオンラインになります。コードは15分以内に入力してください。ウォッチにコードが表示されない場合はアプリを更新してください。例外：HUAWEI Watch 5 は自分でアップロードするため、スマホのアプリは不要です。",
+  "account.claimBad": "コードが無効か期限切れです。ウォッチのコードを確認するか、ウォッチで新しいコードを表示してください。",
   "account.claimPlaceholder": "例：VURWGG",
   "account.claimBtn": "接続",
   "account.claimAlready": "このウォッチはすでに接続されています。",

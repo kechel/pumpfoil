@@ -1670,8 +1670,9 @@ const cs: Record<string, string> = {
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Zadej kód z hodinek",
-  "account.claimHelp": "Otevři Pumpfoil na hodinkách a přejdi na „Propojit“ — Garmin: podrž MENU (tlačítko uprostřed vlevo) → „Nastavení“ → „Propojit“; Amazfit: přejeď z úvodní obrazovky doleva; Wear OS a Apple Watch tuto obrazovku zobrazí při prvním spuštění. Zobrazený kód (6 znaků, písmena a číslice) zadej sem.",
-  "account.claimReq": "Důležité: doprovodná aplikace tvých hodinek musí být v telefonu otevřená a propojená s hodinkami (Garmin Connect, Zepp, Wear OS nebo Apple Watch) a telefon potřebuje internet — hodinky jdou online přes telefon. Kód zadej do 15 min; pokud hodinky kód nezobrazí, aktualizuj aplikaci.",
+  "account.claimHelp": "Otevři Pumpfoil na hodinkách a přejdi na „Propojit“ — Garmin: podrž MENU (tlačítko uprostřed vlevo) → „Nastavení“ → „Propojit“; Amazfit: přejeď z úvodní obrazovky doleva; Wear OS a Apple Watch tuto obrazovku zobrazí při prvním spuštění. Zobrazený kód (6 znaků, písmena a číslice) zadej sem. HUAWEI Watch 5: na úvodní obrazovce klepni na „pair at pumpfoil.org“.",
+  "account.claimReq": "Důležité: doprovodná aplikace tvých hodinek musí být v telefonu otevřená a propojená s hodinkami (Garmin Connect, Zepp, Wear OS nebo Apple Watch) a telefon potřebuje internet — hodinky jdou online přes telefon. Kód zadej do 15 min; pokud hodinky kód nezobrazí, aktualizuj aplikaci. Výjimka HUAWEI Watch 5: nahrává sama, aplikaci v telefonu nepotřebuje.",
+  "account.claimBad": "Kód je neplatný nebo vypršel — zkontroluj kód na hodinkách, nebo si tam vyžádej nový.",
   "account.claimPlaceholder": "např. VURWGG",
   "account.claimBtn": "Propojit",
   "account.claimAlready": "Tyto hodinky jsou už propojené.",

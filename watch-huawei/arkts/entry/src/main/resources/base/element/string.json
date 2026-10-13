@@ -110,7 +110,11 @@
     },
     {
       "name": "perm_reason",
-      "value": "Records speed, position, heart rate and motion of your pump foiling session."
+      "value": "Records speed and track of your pump foiling session."
+    },
+    {
+      "name": "hr_reason",
+      "value": "Records your heart rate during the session."
     },
     {
       "name": "bg_reason",

@@ -98,7 +98,11 @@
     },
     {
       "name": "perm_reason",
-      "value": "Zeichnet Tempo, Position, Puls und Bewegung von deiner Pumpfoil-Session auf."
+      "value": "Zeichnet Tempo und Strecke von deiner Pumpfoil-Session auf."
+    },
+    {
+      "name": "hr_reason",
+      "value": "Zeichnet deinen Puls während der Session auf."
     },
     {
       "name": "bg_reason",
