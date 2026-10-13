@@ -57,6 +57,8 @@ struct SessionDetailView: View {
     @State private var carve: CarveData?   // Carve-Bögen + Zähler (GET /carves)
     @AppStorage("sd_smooth_win") private var win = 3
     @AppStorage("sd_show_pumps") private var showPumps = false   // Pump-Marker default aus
+    // Gleitphasen einblenden (wie PWA seit 03.10.2026), Daten aus `seg.glides`; default aus.
+    @AppStorage("sd_show_glides") private var showGlides = false
     // Startversuche standardmaessig AN (Jans Vorgabe): sie erklaeren die Luecken zwischen den
     // Laeufen, und der Schalter erscheint ohnehin nur, wenn es misslungene Versuche gibt.
     @AppStorage("sd_show_attempts") private var showAttempts = true
@@ -1003,6 +1005,9 @@ struct SessionDetailView: View {
         if (s.analysis?.pump_count ?? 0) > 0 {
             Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
         }
+        if (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
+            Toggle(Loc.t("sd.glides", lang), isOn: $showGlides).font(.caption).fixedSize()
+        }
         // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
         // der Schalter stehen, sonst koennte man ihn nie einschalten), leer = keine.
         if attempts == nil || !(attempts?.isEmpty ?? true) {
@@ -1041,7 +1046,7 @@ struct SessionDetailView: View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
-                        showPumps: showPumps, selectedRun: selectedRun,
+                        showPumps: showPumps, showGlides: showGlides, selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
                         attempts: showAttempts ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax)
@@ -1858,6 +1863,7 @@ struct TrackMap: UIViewRepresentable {
     let hrRange: (Int, Int)
     let pumpRange: (Double, Double)
     let showPumps: Bool
+    var showGlides: Bool = false
     let selectedRun: Int?
     let onSelectRun: (Int) -> Void
     /// Misslungene Startversuche als fertige Linien; leer = nicht anzeigen.
@@ -1904,7 +1910,27 @@ struct TrackMap: UIViewRepresentable {
         let segs: String = segments.map { "\($0.i_start)-\($0.i_end)-\(($0.pump_idx ?? []).count)" }.joined(separator: ",")
         let a: [Double] = points.first ?? [], b: [Double] = points.last ?? []
         return "\(ebene)|\(points.count)|\(a)|\(b)|\(segs)|\(mode)|\(hrRange.0)-\(hrRange.1)|\(pumpRange.0)-\(pumpRange.1)|"
-            + "\(showPumps)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
+            + "\(showPumps)|\(showGlides)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
+    }
+
+    /// Gleitphasen in Marken-Cyan ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA).
+    private func zeichneGleiten(_ map: MKMapView, _ co: Coordinator) {
+        guard showGlides, !points.isEmpty else { return }
+        let n: Int = points.count
+        let cyan = UIColor(red: 0x22 / 255.0, green: 0xD3 / 255.0, blue: 0xEE / 255.0, alpha: 0.98)
+        for (runIdx, seg) in segments.enumerated() {
+            if selectedRun != nil && runIdx != selectedRun { continue }
+            for g in seg.glides ?? [] where g.count >= 2 {
+                let i0: Int = min(max(Int(g[0]), 0), n - 1)
+                let i1: Int = min(max(Int(g[1]), i0 + 1), n - 1)
+                guard i1 > i0 else { continue }
+                let cs: [CLLocationCoordinate2D] = (i0...i1).map { CLLocationCoordinate2D(latitude: points[$0][1], longitude: points[$0][0]) }
+                let pl = MKPolyline(coordinates: cs, count: cs.count)
+                co.colors[ObjectIdentifier(pl)] = cyan
+                co.widths[ObjectIdentifier(pl)] = 6
+                map.addOverlay(pl)
+            }
+        }
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
@@ -1982,6 +2008,7 @@ struct TrackMap: UIViewRepresentable {
         }
         map.addOverlays(linien)
         striche.removeAll()
+        zeichneGleiten(map, co)
         // Startversuche NACH den Laeufen, damit sie darueber liegen: ihre Linien sind duenner,
         // ein Lauf wuerde sie sonst verdecken. Gestrichelt und bernsteinfarben wie in PWA und
         // Android; ausserhalb des ausgewerteten Bereichs feiner gestrichelt und blasser.

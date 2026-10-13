@@ -110,10 +110,11 @@ enum Api {
     // `sport`: "all" (Default) schraenkt nicht ein und wird gar nicht erst mitgeschickt — wie die
     // PWA (api.ts). Der Server liest es fuer eigene Sessions wie der Community-Feed (27.09.2026).
     static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false,
-                         sport: String = "all") async throws -> [SessionSummary] {
+                         sport: String = "all", board: Bool = false) async throws -> [SessionSummary] {
         var qs = "?filter=\(filter)"
         if let month, !month.isEmpty { qs += "&month=\(month)" }
         if accelOnly { qs += "&accel_only=true" }
+        if board { qs += "&board=true" }   // nur Handy am Brett (POB)
         qs += sportQuery(sport)
         return try await request("/api/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
@@ -204,11 +205,14 @@ enum Api {
 
     // Lage des Bretts. `run` = ein Lauf, sonst die ganze Aufnahme; `jeLauf` liefert die Kennzahlen
     // je Lauf mit (ein Abruf fuer die ganze Tabelle); `hz` regelt nur die Aufloesung der Kurven.
+    // `nurLaeufe` = NUR die Kennzahlen je Lauf, serverseitig gespeichert (lage_cache.py) — sofort
+    // statt 5-14 s, fuer die Lauf-Tabellen (13.10.2026).
     static func boardAttitude(_ id: Int, run: Int? = nil, jeLauf: Bool = false, hz: Int? = nil,
-                              yawWindowS: Double? = nil) async throws -> BoardAttitude {
+                              yawWindowS: Double? = nil, nurLaeufe: Bool = false) async throws -> BoardAttitude {
         var q: [String] = []
         if let run { q.append("run=\(run)") }
         if jeLauf { q.append("je_lauf=1") }
+        if nurLaeufe { q.append("nur_laeufe=1") }
         if let hz { q.append("hz=\(hz)") }
         if let yawWindowS { q.append("yaw_window_s=\(yawWindowS)") }
         let pfad = "/api/sessions/\(id)/attitude" + (q.isEmpty ? "" : "?" + q.joined(separator: "&"))
@@ -400,9 +404,19 @@ enum Api {
     }
 
     static func pairClaim(code: String, label: String = "Garmin") async throws {
-        let _: ClaimResponse = try await request(
-            "/api/devices/pair-claim", method: "POST",
-            body: ["code": code.trimmingCharacters(in: .whitespaces).uppercased(), "label": label], auth: true)
+        do {
+            let _: ClaimResponse = try await request(
+                "/api/devices/pair-claim", method: "POST",
+                body: ["code": code.trimmingCharacters(in: .whitespaces).uppercased(), "label": label], auth: true)
+        } catch ApiError.http(400, _) {
+            // Code falsch oder abgelaufen: lesbar sagen statt roher Serverantwort (wie PWA account.claimBad).
+            throw ClaimFehler(text: Loc.t("account.claimBad", Api.uiLang))
+        }
+    }
+
+    struct ClaimFehler: LocalizedError {
+        let text: String
+        var errorDescription: String? { text }
     }
 
     /// Anzeigename zur im Assistenten gewaehlten Marke (gleiche Tabelle wie server-seitig).
@@ -443,9 +457,10 @@ enum Api {
     // sport: "all" = alle Sportarten (die allgemeine Sessions-Liste „was ist neu"), sonst genau
     // eine. Der Endpunkt-Default ist "pumpfoil"; Rekorde/Bestenlisten bleiben dabei.
     static func communitySessionsGrouped(spot: String? = nil, limit: Int = 20, offset: Int = 0,
-                                         accelOnly: Bool = true, sport: String = "pumpfoil") async throws -> [CommunityGroup] {
+                                         accelOnly: Bool = true, sport: String = "pumpfoil", board: Bool = false) async throws -> [CommunityGroup] {
         let sp = (spot?.isEmpty == false) ? "&spot=\(spot!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot!)" : ""
-        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)", method: "GET", body: nil, auth: true)
+        let b = board ? "&board=true" : ""
+        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)\(b)", method: "GET", body: nil, auth: true)
     }
 
     // `period` (today|10d|30d|365d|all) wirkt auf Rekorde UND Gesamtwerte — beides kommt aus
@@ -919,9 +934,10 @@ enum Api {
 
     /// `photoIds`: vorher hochgeladene Bilder (`uploadChatPhoto`); die Nachricht darf auch NUR
     /// aus Bildern bestehen (Server chat.py, 30.09.2026).
-    static func chatPost(scope: String, text: String, photoIds: [Int] = []) async throws -> ChatMsg {
+    static func chatPost(scope: String, text: String, photoIds: [Int] = [], replyTo: Int? = nil) async throws -> ChatMsg {
         let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
-        let body: [String: Any] = ["text": text, "photo_ids": photoIds]
+        var body: [String: Any] = ["text": text, "photo_ids": photoIds]
+        if let replyTo { body["reply_to"] = replyTo }
         return try await request("/api/chat?scope=\(s)", method: "POST", body: body, auth: true)
     }
 
@@ -946,6 +962,13 @@ enum Api {
         let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
         guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: respData, encoding: .utf8) ?? "") }
         return try JSONDecoder().decode(ChatPhoto.self, from: respData)
+    }
+
+    // Alle Nachrichten von `fromId` bis vor `before`, aufsteigend (max. 500) — fuer den Sprung zu einem
+    // zitierten Original, das noch nicht geladen ist (Server seit 13.10.2026).
+    static func chatRange(scope: String, fromId: Int, before: Int) async throws -> [ChatMsg] {
+        let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
+        return try await request("/api/chat?scope=\(s)&from_id=\(fromId)&before=\(before)", method: "GET", body: nil, auth: true)
     }
 
     // Neue Nachrichten seit `after` (Live-Polling).

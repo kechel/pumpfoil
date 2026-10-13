@@ -38,6 +38,9 @@ struct CompareView: View {
     // Echtzeit als Start, wie die PWA seit 24.09.; 1× steht mit in der Auswahl.
     @State private var tempo = 1
     @State private var pos: Double = 0     // ms in der Wiedergabe (ohne die Leerlaufzeiten)
+    // Pump-Marker und Gleitphasen auf der Karte (wie PWA CompareMap.tsx, 13.10.2026).
+    @State private var zeigePumps = false
+    @State private var zeigeGleiten = false
 
     // Zerlegt, weil Swift einen ViewBuilder als EINEN Ausdruck auflöst: Ladezustand, Inhalt,
     // Merge-Fußzeile samt Task-Closure und das Binding der navigationDestination steckten in
@@ -72,6 +75,7 @@ struct CompareView: View {
                     compareMapSection
                     compareTable
                     allRunsSection
+                    BrettLageVergleich(items: brettEintraege, lang: lang)
                 }
                 .padding(.vertical)
             }
@@ -247,7 +251,8 @@ struct CompareView: View {
     // Karte einmal typisiert bauen (Normal- und Vollbild-Ansicht teilen dieselben Parameter).
     private func compareMap(_ tracks: [CompareMap.Track]) -> CompareMap {
         CompareMap(tracks: tracks, mode: mapMode, pumpRange: pumpRange, hrRange: hrRange,
-                   speedRange: speedRange, plan: plan, posMs: pos, spielModus: spielModus)
+                   speedRange: speedRange, plan: plan, posMs: pos, spielModus: spielModus,
+                   zeigePumps: zeigePumps, zeigeGleiten: zeigeGleiten)
     }
 
     /// Bedienzeile des synchronen Abspielens — wie die PWA: Start/Pause, Tempo, Uhrzeit in
@@ -328,8 +333,38 @@ struct CompareView: View {
                     .padding(.leading, 6)
             }
             if mapMode == .speed { smoothingPicker }
+            markerSchalter
         }
         .padding(.horizontal)
+    }
+
+    private var hatPumpMarker: Bool { mapTracks.contains { $0.segments.contains { !($0.pump_idx ?? []).isEmpty } } }
+    private var hatGleiten: Bool { mapTracks.contains { $0.segments.contains { !($0.glides ?? []).isEmpty } } }
+
+    @ViewBuilder private var markerSchalter: some View {
+        if hatPumpMarker || hatGleiten {
+            HStack(spacing: 14) {
+                if hatPumpMarker { Toggle(Loc.t("sd.pumpMarker", lang), isOn: $zeigePumps).fixedSize() }
+                if hatGleiten { Toggle(Loc.t("sd.glides", lang), isOn: $zeigeGleiten).fixedSize() }
+            }
+            .font(.caption)
+            .toggleStyle(.button)
+        }
+    }
+
+    /// Brett-Eintraege fuer die Lage-Tabelle: je Korb-Eintrag mit Handy am Brett die Laeufe (ein
+    /// einzelner Lauf im Korb -> nur dieser), mit der Farbe des Eintrags bzw. des Fahrers.
+    private var brettEintraege: [BrettLageVergleich.Eintrag] {
+        var r: [BrettLageVergleich.Eintrag] = []
+        for (i, it) in items.enumerated() where it.s.placement == "board" {
+            let segs: [Segment] = it.s.analysis?.segments ?? []
+            let idx: [Int] = it.ref.runIdx.map { segs.indices.contains($0) ? [$0] : [] } ?? Array(segs.indices)
+            let farbe: Color = mapMode == .rider ? riderColorC(it.s.owner_name) : sessColor(i)
+            for ri in idx {
+                r.append(BrettLageVergleich.Eintrag(id: "\(i)-\(ri)", session: it.s, lauf: ri, seg: segs[ri], farbe: farbe))
+            }
+        }
+        return r
     }
 
     // Beide Picker bleiben als Ganzes eine Teil-View — .tag() muss direktes Kind bleiben.
@@ -441,7 +476,7 @@ struct CompareView: View {
         }
         if !runs.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
-                Text(Loc.t("compare.runsTitle", lang)).font(.headline).padding(.horizontal).padding(.bottom, 6)
+                Text(Loc.t("compare.runsTitle", lang).replacingOccurrences(of: "{count}", with: "\(runs.count)")).font(.headline).padding(.horizontal).padding(.bottom, 6)
                 ForEach(Array(runs.enumerated()), id: \.offset) { _, r in
                     let (k, s, idx, seg) = r
                     runRow(k, s, idx, seg)
@@ -706,6 +741,8 @@ struct CompareMap: UIViewRepresentable {
     var plan: SyncPlan? = nil
     var posMs: Double = 0
     var spielModus: Bool = false
+    var zeigePumps: Bool = false
+    var zeigeGleiten: Bool = false
     private let maxGapM = 30.0
 
     private func colorFor(_ tr: Track, _ i: Int) -> UIColor {
@@ -738,6 +775,7 @@ struct CompareMap: UIViewRepresentable {
         map.removeAnnotations(map.annotations)
         let co = context.coordinator
         co.colors.removeAll()
+        co.breiten.removeAll()
         var all: [CLLocationCoordinate2D] = []
 
         // Waehrend der Wiedergabe zeichnet NUR der Abspieler: je Fahrer der Lauf, in dem er
@@ -827,7 +865,37 @@ struct CompareMap: UIViewRepresentable {
                 }
             }
         }
+        zeichneMarker(map, co)
         zeigeBereich(map, all)
+    }
+
+    /// Gleitphasen breit und halb durchsichtig, darueber die Pump-Marker — beides in der Farbe des
+    /// EINTRAGS (wie PWA CompareMap.tsx): zwei Aufnahmen derselben Fahrt bleiben unterscheidbar.
+    private func zeichneMarker(_ map: MKMapView, _ co: Coordinator) {
+        guard zeigePumps || zeigeGleiten else { return }
+        for tr in tracks where !tr.points.isEmpty {
+            let n: Int = tr.points.count
+            for seg in tr.segments {
+                if zeigeGleiten {
+                    for g in seg.glides ?? [] where g.count >= 2 {
+                        let i0: Int = min(max(Int(g[0]), 0), n - 1)
+                        let i1: Int = min(max(Int(g[1]), i0 + 1), n - 1)
+                        guard i1 > i0 else { continue }
+                        let cs: [CLLocationCoordinate2D] = (i0...i1).map { CLLocationCoordinate2D(latitude: tr.points[$0][1], longitude: tr.points[$0][0]) }
+                        let pl = MKPolyline(coordinates: cs, count: cs.count)
+                        co.colors[ObjectIdentifier(pl)] = tr.color.withAlphaComponent(0.55)
+                        co.breiten[ObjectIdentifier(pl)] = 10
+                        map.addOverlay(pl)
+                    }
+                }
+                if zeigePumps {
+                    for pi in seg.pump_idx ?? [] where pi >= 0 && pi < n {
+                        let c = CLLocationCoordinate2D(latitude: tr.points[pi][1], longitude: tr.points[pi][0])
+                        map.addAnnotation(FahrerPunkt(coordinate: c, farbe: tr.color, geparkt: false, klein: true))
+                    }
+                }
+            }
+        }
     }
 
     /// Kartenausschnitt auf die gezeichneten Punkte setzen. Ueber `sichereRegion`
@@ -847,11 +915,13 @@ struct CompareMap: UIViewRepresentable {
 
     final class Coordinator: NSObject, MKMapViewDelegate {
         var colors: [ObjectIdentifier: UIColor] = [:]
+        var breiten: [ObjectIdentifier: CGFloat] = [:]   // Gleitphasen breiter (10), sonst 4
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             guard let pl = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
             let r = MKPolylineRenderer(polyline: pl)
             r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue
-            r.lineWidth = 4
+            r.lineWidth = breiten[ObjectIdentifier(pl)] ?? 4
+            r.lineCap = .round
             return r
         }
 
@@ -864,7 +934,7 @@ struct CompareMap: UIViewRepresentable {
                 ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
             v.annotation = annotation
             v.canShowCallout = false
-            let r: CGFloat = p.geparkt ? 5 : 7
+            let r: CGFloat = p.klein ? 4 : (p.geparkt ? 5 : 7)
             let rand: CGFloat = 2
             let seite = (r + rand) * 2
             let bild = UIGraphicsImageRenderer(size: CGSize(width: seite, height: seite)).image { ctx in
@@ -895,9 +965,123 @@ final class FahrerPunkt: NSObject, MKAnnotation {
     let coordinate: CLLocationCoordinate2D
     let farbe: UIColor
     let geparkt: Bool
-    init(coordinate: CLLocationCoordinate2D, farbe: UIColor, geparkt: Bool) {
+    let klein: Bool   // Pump-Marker im Vergleich: kleiner Punkt in der Farbe des Eintrags
+    init(coordinate: CLLocationCoordinate2D, farbe: UIColor, geparkt: Bool, klein: Bool = false) {
         self.coordinate = coordinate
         self.farbe = farbe
         self.geparkt = geparkt
+        self.klein = klein
+    }
+}
+
+/// LAGE JE LAUF fuer alle Sessions im Korb mit „Handy am Brett", auch die anderer Fahrer — wie in der
+/// PWA (Jan, 13.10.2026). Phasenzeilen + Umschalter wie in den Session-Details; die Spaltentitel
+/// sortieren wie in der PWA: erster Tipp groesster Wert zuerst, zweiter dreht um, dritter zurueck.
+struct BrettLageVergleich: View {
+    struct Eintrag: Identifiable {
+        let id: String
+        let session: SessionDetail
+        let lauf: Int
+        let seg: Segment
+        let farbe: Color
+    }
+    let items: [Eintrag]
+    let lang: String
+    @State private var lage: [Int: [LageLauf]] = [:]
+    @State private var korr = true
+    @State private var sortKey: String? = nil
+    @State private var sortAuf = false
+
+    private var ids: [Int] {
+        var r: [Int] = []
+        for e in items where !r.contains(e.session.id) { r.append(e.session.id) }
+        return r
+    }
+
+    var body: some View {
+        Group {
+            if items.isEmpty {
+                Color.clear.frame(height: 0)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(Loc.t("sd.attitudePerRun", lang).uppercased())
+                            .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        Spacer()
+                        KorrekturUmschalter(korr: $korr, lang: lang)
+                    }
+                    LagePhasenTabelle(vorneSpalten: vorne, zeilen: zeilen, korr: korr, lang: lang,
+                                      sortKey: sortKey, sortAuf: sortAuf, onSort: sortieren)
+                    LaufLegende(lang: lang)
+                }
+                .padding(12)
+                .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal)
+            }
+        }
+        .task(id: ids) { await laden() }
+    }
+
+    private var vorne: [LageSpalte] {
+        [LageSpalte(kopf: "", breite: 150),
+         LageSpalte(kopf: Loc.t("sd.colDuration", lang), breite: 54, key: "dauer"),
+         LageSpalte(kopf: Loc.t("sd.colDistance", lang), breite: 60, key: "strecke")]
+    }
+
+    private func sortieren(_ k: String) {
+        if k != sortKey { sortKey = k; sortAuf = false }
+        else if !sortAuf { sortAuf = true }
+        else { sortKey = nil; sortAuf = false }
+    }
+
+    private func kennzahl(_ e: Eintrag) -> LageLauf? {
+        lage[e.session.id]?.first { $0.lauf == e.lauf }
+    }
+
+    private func wert(_ e: Eintrag, _ k: String) -> Double? {
+        switch k {
+        case "dauer": return e.seg.duration_s
+        case "strecke": return e.seg.distance_m
+        default: return lageSortWert(kennzahl(e), k)
+        }
+    }
+
+    private var sortiert: [Eintrag] {
+        guard let k = sortKey else { return items }
+        let auf: Bool = sortAuf
+        return items.sorted { (a: Eintrag, b: Eintrag) -> Bool in
+            let va: Double? = wert(a, k), vb: Double? = wert(b, k)
+            guard let x = va else { return false }
+            guard let y = vb else { return true }
+            return auf ? x < y : x > y
+        }
+    }
+
+    private func label(_ e: Eintrag) -> AnyView {
+        let datum: String = TimeFmt.dateTime(e.session.started_at, e.session.tz) ?? e.session.started_at
+        return AnyView(HStack(spacing: 5) {
+            Circle().fill(e.farbe).frame(width: 7, height: 7)
+            VStack(alignment: .leading, spacing: 1) {
+                if let o = e.session.owner_name, !o.isEmpty { Text(o).font(.caption).bold().lineLimit(1) }
+                Text("#\(e.lauf + 1) · \(datum)").font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+            }
+        })
+    }
+
+    private var zeilen: [LageTabZeile] {
+        sortiert.map { (e: Eintrag) -> LageTabZeile in
+            let dauer: String = e.seg.duration_s.map { fmtLaufDauer($0) } ?? "–"
+            let strecke: String = "\(Int(e.seg.distance_m ?? 0)) m"
+            let zellen: [AnyView] = [label(e), AnyView(Text(dauer).font(.caption.weight(.semibold))),
+                                     AnyView(Text(strecke).font(.caption))]
+            return LageTabZeile(id: e.id, k: kennzahl(e), geladen: lage[e.session.id] != nil, vorne: zellen)
+        }
+    }
+
+    private func laden() async {
+        for id in ids where lage[id] == nil {
+            let d = try? await Api.boardAttitude(id, nurLaeufe: true)
+            lage[id] = d?.laeufe ?? []
+        }
     }
 }

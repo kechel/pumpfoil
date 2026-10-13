@@ -86,26 +86,29 @@ struct BrettSchalterView: View {
 
 // MARK: - Lage je Lauf
 
-/// Eigene kleine Tabelle unter der grossen (Jan, 22.09.). EIN Abruf, `hz = 2`. Unsicherer Hub in
-/// Klammern, geerbte Montage grau — ohne Warnfarbe (Jan, 23.09.).
+/// Lage je Lauf in den Session-Details: je Lauf eine Zeile pro Phase, Umschalter korrigiert |
+/// unkorrigiert, Legende (13.10.2026, wie PWA SessionDetail + TechnikTabelle.tsx). EIN Abruf aus dem
+/// Speicher (`nurLaeufe`). Geerbte Montage grau.
 struct LageJeLaufTabelle: View {
     let session: SessionDetail
     let lang: String
     @Binding var ausgewaehlt: Int?
     @State private var laeufe: [LageLauf] = []
+    @State private var korr = true
 
     var body: some View {
         Group {
             if session.placement == "board", !laeufe.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(Loc.t("sd.attitudePerRun", lang).uppercased())
-                        .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            kopf
-                            ForEach(laeufe) { k in zeile(k) }
-                        }
+                    HStack {
+                        Text(Loc.t("sd.attitudePerRun", lang).uppercased())
+                            .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        Spacer()
+                        KorrekturUmschalter(korr: $korr, lang: lang)
                     }
+                    LagePhasenTabelle(vorneSpalten: vorne, zeilen: zeilen, korr: korr, lang: lang,
+                                      hintenSpalten: hinten)
+                    LaufLegende(lang: lang)
                 }
                 .padding(12)
                 .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
@@ -116,51 +119,263 @@ struct LageJeLaufTabelle: View {
         .task(id: "\(session.id)-\(session.placement ?? "")") { await laden() }
     }
 
-    private let breiten: [CGFloat] = [30, 64, 64, 90, 104, 70, 70]
-
-    private var kopf: some View {
-        let t: [String] = ["#", Loc.t("board.pitch", lang), Loc.t("board.roll", lang), Loc.t("board.yaw", lang),
-                           Loc.t("sd.colPitchRhythm", lang), Loc.t("sd.colHeave", lang), Loc.t("board.mounting", lang)]
-        return HStack(spacing: 0) {
-            ForEach(0..<t.count, id: \.self) { i in
-                Text(t[i]).font(.caption2).foregroundStyle(.secondary).frame(width: breiten[i], alignment: .leading)
-            }
-        }
-        .padding(.vertical, 4)
+    private var vorne: [LageSpalte] {
+        [LageSpalte(kopf: "#", breite: 30), LageSpalte(kopf: Loc.t("sd.colDuration", lang), breite: 56)]
     }
 
-    private func zeile(_ k: LageLauf) -> some View {
-        let hub: String = k.hub_pp_cm.map { v in
-            let s = "\(Int(v.rounded())) cm"
-            return (k.hub_sicher == true) ? s : "(\(s))"
-        } ?? "–"
-        let werte: [String] = [
-            "\(k.lauf + 1)",
-            k.pitch_amplitude_deg.map { "±\(Int($0.rounded()))°" } ?? "–",
-            k.roll_amplitude_deg.map { "±\(Int($0.rounded()))°" } ?? "–",
-            k.gier_rms_deg_s.map { "\(Int($0.rounded()))°/s" } ?? "–",
-            k.pitch_hz.map { String(format: "%.2f Hz", $0) } ?? "–",
-            hub,
-            k.rot_deg.map { "\(Int($0.rounded()))°" } ?? "–",
-        ]
-        let grau: Set<Int> = Set([k.hub_sicher == true ? -1 : 5, k.rot_eigen == true ? -1 : 6])
-        return HStack(spacing: 0) {
-            ForEach(0..<werte.count, id: \.self) { i in
-                Text(werte[i]).font(.callout).monospacedDigit()
-                    .foregroundStyle(grau.contains(i) ? Color.secondary : Color.primary)
-                    .frame(width: breiten[i], alignment: .leading)
-            }
+    private var hinten: [LageSpalte] {
+        let m: String = Loc.t("board.mounting", lang).trimmingCharacters(in: CharacterSet(charactersIn: ": ："))
+        return [LageSpalte(kopf: m, breite: 80)]
+    }
+
+    private func dauer(_ lauf: Int) -> String {
+        guard let segs = session.analysis?.segments, lauf < segs.count, let d = segs[lauf].duration_s else { return "–" }
+        return fmtLaufDauer(d)
+    }
+
+    private var zeilen: [LageTabZeile] {
+        laeufe.map { (k: LageLauf) -> LageTabZeile in
+            let rot: String = k.rot_deg.map { "\(Int($0.rounded()))°" } ?? "–"
+            let farbe: Color = k.rot_eigen == true ? .primary : .secondary
+            let vorneZellen: [AnyView] = [
+                AnyView(Text("\(k.lauf + 1)").font(.caption)),
+                AnyView(Text(dauer(k.lauf)).font(.caption.weight(.semibold))),
+            ]
+            let hintenZellen: [AnyView] = [AnyView(Text(rot).font(.caption).foregroundStyle(farbe))]
+            return LageTabZeile(id: "\(k.lauf)", k: k, geladen: true, vorne: vorneZellen, hinten: hintenZellen,
+                                markiert: ausgewaehlt == k.lauf,
+                                onTap: { ausgewaehlt = (ausgewaehlt == k.lauf) ? nil : k.lauf })
         }
-        .padding(.vertical, 6)
-        .background(ausgewaehlt == k.lauf ? Color.accentColor.opacity(0.18) : Color.clear)
-        .contentShape(Rectangle())
-        .onTapGesture { ausgewaehlt = (ausgewaehlt == k.lauf) ? nil : k.lauf }
     }
 
     private func laden() async {
         guard session.placement == "board" else { laeufe = []; return }
-        let d = try? await Api.boardAttitude(session.id, jeLauf: true, hz: 2)
+        let d = try? await Api.boardAttitude(session.id, nurLaeufe: true)
         laeufe = (d?.ok == true) ? (d?.laeufe ?? []).filter { $0.ok } : []
+    }
+}
+
+// MARK: - Lage je Lauf mit Phasen (gemeinsam fuer Session und Vergleich)
+
+/// Eine Phasenzeile eines Laufs; `haupt` = die Hauptzahl (cyan, fett), wie in der PWA.
+struct PhaseZeile {
+    let phase: String
+    let werte: Technik?
+    let haupt: Bool
+}
+
+/// Wie `phasenDesLaufs` in TechnikTabelle.tsx.
+func phasenDesLaufs(_ k: LageLauf, korr: Bool, lang: String) -> [PhaseZeile] {
+    guard let x = k.technik else {
+        // Ohne Technik (zu kurz/alt) wenigstens das Gieren des ganzen Laufs.
+        return [PhaseZeile(phase: Loc.t("tech.sWhole", lang), werte: Technik(gier_deg_s: k.gier_rms_deg_s), haupt: false)]
+    }
+    func f(_ p: TechnikPaar?) -> Technik? { korr ? p?.mit : p?.ohne }
+    if x.teil == "ganz" { return [PhaseZeile(phase: Loc.t("tech.sWhole", lang), werte: f(x), haupt: true)] }
+    let kg: KurveGerade? = korr ? x.kurve_gerade : x.kurve_gerade_ohne
+    var r: [PhaseZeile] = [PhaseZeile(phase: Loc.t("tech.sStable", lang), werte: f(x), haupt: true)]
+    if let kg {
+        r.append(PhaseZeile(phase: Loc.t("tech.sTurn", lang), werte: kg.kurve?.alsTechnik, haupt: false))
+        r.append(PhaseZeile(phase: Loc.t("tech.sStraight", lang), werte: kg.gerade?.alsTechnik, haupt: false))
+    }
+    if let g = x.ganz { r.append(PhaseZeile(phase: Loc.t("tech.sWhole", lang), werte: f(g), haupt: false)) }
+    return r
+}
+
+/// Sortierwert = die Zahl oben in der Zelle (Mittelteil, bei kurzen Laeufen der ganze Lauf).
+/// Schluessel wie in der PWA: pitch, roll, yaw, pitchHz, hub.
+func lageSortWert(_ k: LageLauf?, _ key: String) -> Double? {
+    guard let k, k.ok else { return nil }
+    let mit: Technik? = k.technik?.teil != "ganz" ? k.technik?.mit : nil
+    switch key {
+    case "pitch": return mit?.pump_nicken_deg ?? k.pitch_amplitude_deg
+    case "roll": return mit?.pump_rollen_deg ?? k.roll_amplitude_deg
+    case "yaw": return k.gier_rms_deg_s
+    case "pitchHz": return mit?.takt_hz ?? k.pitch_hz
+    case "hub": return mit?.hub_cm ?? k.hub_pp_cm
+    default: return nil
+    }
+}
+
+/// Kopf einer Spalte vor oder hinter den Phasen; `key` != nil = sortierbar.
+struct LageSpalte {
+    let kopf: String
+    let breite: CGFloat
+    var key: String? = nil
+}
+
+/// Eine Zeile = ein Lauf. `k == nil` = (noch) keine Lage-Zahlen -> „…" bzw. „–".
+struct LageTabZeile: Identifiable {
+    let id: String
+    let k: LageLauf?
+    let geladen: Bool
+    let vorne: [AnyView]
+    var hinten: [AnyView] = []
+    var markiert: Bool = false
+    var onTap: (() -> Void)? = nil
+}
+
+/// Umschalter korrigiert | unkorrigiert (wie PWA KorrekturUmschalter).
+struct KorrekturUmschalter: View {
+    @Binding var korr: Bool
+    let lang: String
+
+    var body: some View {
+        Picker("", selection: $korr) {
+            Text(Loc.t("tech.colWith", lang)).tag(true)
+            Text(Loc.t("tech.colWithout", lang)).tag(false)
+        }
+        .pickerStyle(.segmented)
+        .fixedSize()
+    }
+}
+
+/// Legende unter der Tabelle (wie PWA LaufLegende).
+struct LaufLegende: View {
+    let lang: String
+
+    private var zeilen: [(String, String)] {
+        let pump: String = [Loc.t("board.pitch", lang), Loc.t("board.roll", lang), Loc.t("sd.colPitchRhythm", lang),
+                            Loc.t("sd.colHeave", lang)].joined(separator: ", ")
+        let kg: String = Loc.t("tech.sTurn", lang) + " · " + Loc.t("tech.sStraight", lang)
+        return [
+            (pump, Loc.t("tech.gPump", lang)),
+            (Loc.t("tech.wobble", lang), Loc.t("tech.gWobble", lang)),
+            (Loc.t("tech.colLean", lang), Loc.t("tech.gLean", lang)),
+            (Loc.t("board.yaw", lang), Loc.t("tech.gYaw", lang)),
+            (Loc.t("tech.sStable", lang), Loc.t("tech.gStable", lang)),
+            (kg, Loc.t("tech.gTurnStraight", lang)),
+            (Loc.t("tech.sWhole", lang), Loc.t("tech.gWhole", lang)),
+        ]
+    }
+
+    private func zeile(_ k: String, _ v: String) -> Text {
+        Text(k + ": ").fontWeight(.semibold) + Text(v)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(Loc.t("tech.gColumns", lang))
+            ForEach(zeilen.indices, id: \.self) { i in zeile(zeilen[i].0, zeilen[i].1) }
+            Text(Loc.t("tech.lCorrection", lang))
+            Text(Loc.t("tech.gSpread", lang))
+            Text(Loc.t("tech.gHeave", lang))
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .padding(.top, 6)
+    }
+}
+
+/// Die Tabelle: Kopf mit sortierbaren Spaltentiteln (▼/▲ an der aktiven Spalte, wie PWA), je Lauf die
+/// Zellen `vorne` einmal links neben allen Phasenzeilen. `onSort == nil` = nicht sortierbar.
+struct LagePhasenTabelle: View {
+    let vorneSpalten: [LageSpalte]
+    let zeilen: [LageTabZeile]
+    let korr: Bool
+    let lang: String
+    var hintenSpalten: [LageSpalte] = []
+    var sortKey: String? = nil
+    var sortAuf: Bool = false
+    var onSort: ((String) -> Void)? = nil
+
+    private let phaseBreite: CGFloat = 96
+
+    private var werteSpalten: [LageSpalte] {
+        [LageSpalte(kopf: Loc.t("board.pitch", lang), breite: 62, key: "pitch"),
+         LageSpalte(kopf: Loc.t("board.roll", lang), breite: 62, key: "roll"),
+         LageSpalte(kopf: Loc.t("tech.wobble", lang), breite: 64),
+         LageSpalte(kopf: Loc.t("tech.colLean", lang), breite: 56),
+         LageSpalte(kopf: Loc.t("sd.colPitchRhythm", lang), breite: 84, key: "pitchHz"),
+         LageSpalte(kopf: Loc.t("sd.colHeave", lang), breite: 60, key: "hub"),
+         LageSpalte(kopf: Loc.t("board.yaw", lang), breite: 64, key: "yaw")]
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                kopfZeile
+                Divider()
+                ForEach(zeilen) { z in
+                    laufZeile(z)
+                    Divider()
+                }
+            }
+        }
+    }
+
+    private func kopfText(_ sp: LageSpalte, rechts: Bool) -> some View {
+        let aktiv: Bool = sp.key != nil && sp.key == sortKey
+        let text: String = aktiv ? sp.kopf + (sortAuf ? " ▲" : " ▼") : sp.kopf
+        return Text(text).font(.caption2).lineLimit(2)
+            .foregroundStyle(aktiv ? Color.primary : Color.secondary)
+            .frame(width: sp.breite, alignment: rechts ? .trailing : .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { if let k = sp.key, let onSort { onSort(k) } }
+    }
+
+    private var kopfZeile: some View {
+        HStack(alignment: .bottom, spacing: 6) {
+            ForEach(vorneSpalten.indices, id: \.self) { i in kopfText(vorneSpalten[i], rechts: false) }
+            kopfText(LageSpalte(kopf: Loc.t("tech.colPhase", lang), breite: phaseBreite), rechts: false)
+            ForEach(werteSpalten.indices, id: \.self) { i in kopfText(werteSpalten[i], rechts: true) }
+            ForEach(hintenSpalten.indices, id: \.self) { i in kopfText(hintenSpalten[i], rechts: false) }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func werte(_ t: Technik?) -> [String?] {
+        [t?.pump_nicken_deg.map { String(format: "±%.1f°", $0) },
+         t?.pump_rollen_deg.map { String(format: "±%.1f°", $0) },
+         t?.wackeln_deg.map { String(format: "±%.1f°", $0) },
+         t?.kurvenlage_deg.map { String(format: "%.1f°", $0) },
+         t?.takt_hz.map { String(format: "%.2f Hz", $0) },
+         t?.hub_cm.map { String(format: "%.0f cm", $0) },
+         t?.gier_deg_s.map { String(format: "%.0f°/s", $0) }]
+    }
+
+    private func phasenZeile(_ p: PhaseZeile) -> some View {
+        let w: [String?] = werte(p.werte)
+        let spalten: [LageSpalte] = werteSpalten
+        return HStack(spacing: 6) {
+            Text(p.phase).font(.caption).lineLimit(1).frame(width: phaseBreite, alignment: .leading)
+            ForEach(0..<w.count, id: \.self) { i in
+                Text(w[i] ?? "–").font(.caption).monospacedDigit()
+                    .fontWeight(p.haupt && w[i] != nil ? .semibold : .regular)
+                    .foregroundStyle(p.haupt && w[i] != nil ? Color.accentColor : Color.primary)
+                    .frame(width: spalten[i].breite, alignment: .trailing)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    @ViewBuilder private func phasenBlock(_ z: LageTabZeile) -> some View {
+        if let k = z.k, k.ok {
+            let ph: [PhaseZeile] = phasenDesLaufs(k, korr: korr, lang: lang)
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(ph.indices, id: \.self) { i in phasenZeile(ph[i]) }
+            }
+        } else {
+            let breite: CGFloat = phaseBreite + werteSpalten.reduce(0) { $0 + $1.breite + 6 }
+            Text(z.geladen ? "–" : "…").font(.caption).foregroundStyle(.secondary)
+                .frame(width: breite, alignment: .leading)
+        }
+    }
+
+    private func laufZeile(_ z: LageTabZeile) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            ForEach(z.vorne.indices, id: \.self) { i in
+                z.vorne[i].frame(width: i < vorneSpalten.count ? vorneSpalten[i].breite : 60, alignment: .leading)
+            }
+            phasenBlock(z)
+            ForEach(z.hinten.indices, id: \.self) { i in
+                z.hinten[i].frame(width: i < hintenSpalten.count ? hintenSpalten[i].breite : 60, alignment: .leading)
+            }
+        }
+        .padding(.vertical, 4)
+        .background(z.markiert ? Color.accentColor.opacity(0.18) : Color.clear)
+        .contentShape(Rectangle())
+        .onTapGesture { z.onTap?() }
     }
 }
 

@@ -319,7 +319,7 @@ struct CommunityView: View {
                     }
                 }
                 Spacer()
-                chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
+                chip("accel", accelOnly) { accelOnly = true }   // kurz wie PWA + Android (13.10.2026)
                 chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
             }
         }

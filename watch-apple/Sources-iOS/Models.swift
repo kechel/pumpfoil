@@ -723,6 +723,18 @@ struct ChatMsg: Codable, Identifiable {
     // Angehaengte Bilder (30.09.2026; senden koennen vorerst nur Admins, sehen alle). `var` mit
     // Vorgabe, damit der Memberwise-Init ohne das Feld weiter geht und Decodable es liest.
     var photos: [ChatPhoto]? = nil
+    // Antwort auf eine andere Nachricht (Server seit 13.10.2026, chat.py `_zitate`): kurzes Zitat des
+    // Originals; `missing` = geloescht/ausgeblendet. Aeltere Server liefern das Feld nicht.
+    var reply_to: ChatQuote? = nil
+}
+
+struct ChatQuote: Codable, Hashable {
+    let id: Int
+    let missing: Bool?
+    let user_id: Int?
+    let name: String?
+    let text: String?
+    let photo: Bool?
 }
 
 /// Ein Bild an einer Chat-Nachricht (Server chat.py `_photos_for`): `url` = volles Bild,
@@ -845,6 +857,9 @@ struct Segment: Codable {
     let max_speed_mps: Double?
     let pumps: Int?
     let pump_idx: [Int]?
+    // Gleitphasen [Start-Index, End-Index, Dauer s, Start-ms] (Server seit 03.10.2026) — die Karte
+    // kann sie einblenden wie die PWA.
+    var glides: [[Double]]? = nil
     let avg_pump_hz: Double?
     let longest_glide_s: Double?
     // Ab hier: Felder, die der Server schon immer liefert, die iOS aber nicht gelesen hat —
@@ -1397,7 +1412,51 @@ struct LageLauf: Decodable, Identifiable {
     let hub_sicher: Bool?
     let rot_deg: Double?
     let rot_eigen: Bool?
+    // Technik-Kennzahlen je Phase, mit und ohne Fliehkraft-Korrektur (lage.py, PWA TechnikTabelle.tsx).
+    var technik: TechnikPaar? = nil
     var id: Int { lauf }
+}
+
+/// Technik-Kennzahlen eines Laufs (lage.py `technik_kennzahlen`).
+struct Technik: Decodable {
+    var pump_nicken_deg: Double? = nil
+    var pump_rollen_deg: Double? = nil
+    var wackeln_deg: Double? = nil
+    var kurvenlage_deg: Double? = nil
+    var hub_cm: Double? = nil
+    var takt_hz: Double? = nil
+    var gier_deg_s: Double? = nil
+}
+
+/// Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`).
+struct KurveGeradeSeite: Decodable {
+    let takt_hz: Double?
+    let nicken_deg: Double?
+    let hub_cm: Double?
+    let rollen_deg: Double?
+    let wackeln_deg: Double?
+    let kurvenlage_deg: Double?
+    let gier_deg_s: Double?
+    var alsTechnik: Technik {
+        Technik(pump_nicken_deg: nicken_deg, pump_rollen_deg: rollen_deg, wackeln_deg: wackeln_deg,
+                kurvenlage_deg: kurvenlage_deg, hub_cm: hub_cm, takt_hz: takt_hz, gier_deg_s: gier_deg_s)
+    }
+}
+
+struct KurveGerade: Decodable {
+    let kurve: KurveGeradeSeite?
+    let gerade: KurveGeradeSeite?
+}
+
+/// Mit und ohne Fliehkraft-Korrektur; `teil` "mitte" = Lauf ab 30 s, "ganz" = kuerzer.
+/// `final class`, weil `ganz` wieder ein TechnikPaar ist (rekursiv).
+final class TechnikPaar: Decodable {
+    let mit: Technik?
+    let ohne: Technik?
+    let kurve_gerade: KurveGerade?
+    let kurve_gerade_ohne: KurveGerade?
+    let teil: String?
+    let ganz: TechnikPaar?
 }
 
 /// Masse des Foils in cm fuer die Zeichnung (PWA FoilRig.tsx).

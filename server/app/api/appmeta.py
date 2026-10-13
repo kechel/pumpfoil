@@ -935,10 +935,16 @@ NAECHSTES: list[dict] = [
          "Glides can be shown on the session map and on the comparison map, and the comparison map shows pump markers too.",
          "Board attitude per run shows each phase (stable phase, turns, straight, whole run), switchable between corrected and uncorrected, and the comparison table sorts by tapping a column header.",
      ]},
-    # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht). Nicht gebumpt.
+    # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht).
+    # 13.10.2026 (Jan: „das gleiche fuer iOS genauso"): Portierung wie Android 1.1.42; gebumpt auf 1.1.48 (54).
     {"name": "iPhone + Apple Watch", "version": "1.1.48",
      "items": [
          "The changelog is now in the app too, under Profile, always with the latest news — including versions you don't have yet.",
+         "Comparing sessions shows the board attitude of every run recorded with the phone on the board, also for other riders' sessions, and attitude tables open instantly.",
+         "Board attitude per run shows each phase (stable phase, turns, straight, whole run), switchable between corrected and uncorrected, and the comparison table sorts by tapping a column header.",
+         "Glides can be shown on the session map and on the comparison map, and the comparison map shows pump markers too.",
+         "The session list has a POB button that shows only sessions recorded with the phone on the board.",
+         "In the chat you can reply to a message: hold it and choose Reply; tapping the quote jumps to the original.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
