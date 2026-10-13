@@ -21,7 +21,8 @@ def _session(segs="[]", trim=None, rot=None):
 def test_rechnet_einmal_und_dann_aus_dem_speicher(monkeypatch):
     aufrufe = []
     monkeypatch.setattr(L, "_rechnen", lambda s, r: aufrufe.append(1) or
-                        {"gezaehlt": True, "ohne_kreisel": False, "laeufe": [{"dauer_s": 30.0, "pitch": 5.0}]})
+                        {"gezaehlt": True, "ohne_kreisel": False, "laeufe": [{"dauer_s": 30.0, "pitch": 5.0}],
+                         "je_lauf": [{"lauf": 0, "ok": True}]})
     db, s = _Db(), _session('[{"t_start_ms": 0}]')
     a = L.laeufe_der_session(db, s)
     b = L.laeufe_der_session(db, s)
@@ -32,7 +33,7 @@ def test_rechnet_einmal_und_dann_aus_dem_speicher(monkeypatch):
 def test_jede_eingabe_aendert_den_fingerabdruck(monkeypatch):
     aufrufe = []
     monkeypatch.setattr(L, "_rechnen", lambda s, r: aufrufe.append(1) or
-                        {"gezaehlt": True, "ohne_kreisel": False, "laeufe": []})
+                        {"gezaehlt": True, "ohne_kreisel": False, "laeufe": [], "je_lauf": []})
     db, s = _Db(), _session('[{"t_start_ms": 0}]')
     L.laeufe_der_session(db, s)
     s.result.segments_json = '[{"t_start_ms": 0}, {"t_start_ms": 9}]'   # neue Auswertung
@@ -43,8 +44,24 @@ def test_jede_eingabe_aendert_den_fingerabdruck(monkeypatch):
     L.laeufe_der_session(db, s)
     monkeypatch.setattr("app.analysis.lage.LAGE_VERSION", "neu")        # Rechenstand
     L.laeufe_der_session(db, s)
+    monkeypatch.setattr(L, "_LAGE_QUELLE", "geaendert")                 # lage.py bearbeitet
+    L.laeufe_der_session(db, s)
     L.laeufe_der_session(db, s)                                         # nichts geaendert
-    assert len(aufrufe) == 5
+    assert len(aufrufe) == 6
+
+
+def test_alter_eintrag_ohne_volle_kennzahlen_rechnet_einmal_neu(monkeypatch):
+    # Eintraege von vor dem 13.10.2026 haben nur die Startseiten-Zusammenfassung, nicht die
+    # vollen Kennzahlen je Lauf, die die Lauf-Tabellen brauchen.
+    aufrufe = []
+    monkeypatch.setattr(L, "_rechnen", lambda s, r: aufrufe.append(1) or
+                        {"gezaehlt": True, "ohne_kreisel": False, "laeufe": [], "je_lauf": [{"lauf": 0}]})
+    db, s = _Db(), _session('[{"t_start_ms": 0}]')
+    fp = L.fingerabdruck(s, s.result)
+    s.result.lage_json = json.dumps({"fp": fp, "gezaehlt": True, "ohne_kreisel": False, "laeufe": []})
+    assert L.laeufe_der_session(db, s)["je_lauf"] == [{"lauf": 0}]
+    L.laeufe_der_session(db, s)
+    assert len(aufrufe) == 1
 
 
 def test_ohne_ergebnis_nichts():

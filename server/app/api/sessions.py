@@ -3999,6 +3999,7 @@ def _lage_antwort(
     pad_s: float = 10.0,
     hz: float = 20.0,
     je_lauf: bool = False,
+    nur_laeufe: bool = False,
 ) -> dict:
     """Lage des Bretts (Pitch/Roll absolut, Gierwinkel-Aenderung je Fenster) fuer einen Lauf.
 
@@ -4010,6 +4011,14 @@ def _lage_antwort(
     nicht das Brett. Der Endpunkt liefert trotzdem, sagt aber im Feld `placement`, woran man ist —
     die Oberflaeche entscheidet, ob sie es zeigt.
     """
+    # NUR die Kennzahlen je Lauf, aus dem Speicher (analysis/lage_cache.py) — fuer die Lauf-Tabellen,
+    # die von der Antwort sonst nichts brauchen. Die volle Antwort rechnet zusaetzlich die Lage-Kurven
+    # der ganzen Aufnahme, und das allein dauerte 3-10 s (13.10.2026).
+    if nur_laeufe:
+        from ..analysis.lage_cache import laeufe_der_session
+        d = laeufe_der_session(db, s)
+        return {"ok": True, "session_id": s.id, "placement": s.placement, "laeufe": d.get("je_lauf") or []}
+
     uuid = s.session_uuid
 
     acc = storage.load_accel(uuid)
@@ -4178,12 +4187,11 @@ def _lage_antwort(
     # Kennzahlen je Lauf nur auf Anforderung: sie kosten einen eigenen Durchgang JE LAUF (die
     # Montage wird dort neu bestimmt, s. `lage.kennzahlen_je_lauf`). Die Lauf-Tabelle holt sie
     # einmal, die Lage-Ansicht selbst braucht sie nicht.
+    # Seit 13.10.2026 aus dem Speicher (analysis/lage_cache.py) — dieselbe Rechnung mit denselben
+    # Eingaben, einmal je Session statt bei jedem Aufruf.
     if je_lauf:
-        erg["laeufe"] = lage.kennzahlen_je_lauf(
-            acc, t_acc, gyr, t_gyr, bereiche, starts,
-            gps=storage.load_gps(uuid),
-            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None),
-            mag=mag)
+        from ..analysis.lage_cache import laeufe_der_session
+        erg["laeufe"] = laeufe_der_session(db, s).get("je_lauf") or []
     return erg
 
 
@@ -4201,9 +4209,11 @@ def _lage_parameter(
     hz: float = Query(20.0, ge=2.0, le=50.0),
     je_lauf: bool = Query(False, description="Kennzahlen je erkanntem Lauf mitliefern "
                                              "(eigene Montage-Drehung je Lauf, s. lage.py)"),
+    nur_laeufe: bool = Query(False, description="NUR die Kennzahlen je Lauf, gespeichert "
+                                                "(analysis/lage_cache.py), ohne Lage-Kurven"),
 ) -> dict:
     return dict(run=run, yaw_window_s=yaw_window_s, height_window_s=height_window_s,
-                from_ms=from_ms, to_ms=to_ms, pad_s=pad_s, hz=hz, je_lauf=je_lauf)
+                from_ms=from_ms, to_ms=to_ms, pad_s=pad_s, hz=hz, je_lauf=je_lauf, nur_laeufe=nur_laeufe)
 
 
 @router.get("/{session_id}/attitude")

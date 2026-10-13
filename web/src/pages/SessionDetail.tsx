@@ -958,7 +958,7 @@ export default function SessionDetail() {
   useEffect(() => {
     if (!session?.id || !hatLagedaten) { setLaufKennz([]); return; }
     let weg = false;
-    api.boardAttitude(session.id, { hz: 2, jeLauf: true, token })
+    api.boardAttitude(session.id, { nurLaeufe: true, token })
       .then((d) => { if (!weg) setLaufKennz(d.ok ? (d.laeufe ?? []) : []); })
       .catch(() => { if (!weg) setLaufKennz([]); });
     return () => { weg = true; };
