@@ -28,6 +28,9 @@ struct SessionsView: View {
     // Startwert deshalb direkt `false` — stand hier hart auf `true`, was beim ersten Aufbau kurz
     // „nur präzise" gezeigt und einmal umsonst geladen hätte.
     @State private var accelOnly = false
+    // „POB" (phone on board, wie PWA + Android): nur Aufnahmen mit dem Handy am Brett. Schliesst
+    // „nur Accel" aus — Brett-Sessions sollen alle erscheinen.
+    @State private var brett = false
     @State private var accelTouched = false        // Nutzer hat selbst umgeschaltet -> Automatik aus
     @State private var accelAutoSpot: String?      // Spot, für den schon nachgefragt wurde (1×)
     // pump | other (nur eigene). `startFilter` erlaubt der Startseite, direkt in die
@@ -77,6 +80,7 @@ struct SessionsView: View {
                 // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
                 .onChange(of: spot) { _ in resetAccelAuto(); listeLeeren(); Task { await loadWeather(); await load() } }
                 .onChange(of: accelOnly) { _ in listeLeeren(); Task { await load() } }
+                .onChange(of: brett) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: filter) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
                 .onChange(of: month) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: sport) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
@@ -252,8 +256,11 @@ struct SessionsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 ScrollView(.horizontal, showsIndicators: false) { scopeChips }
                 HStack {
-                    chip(Loc.t("side.onlyAccel", lang), accelOnly) { chooseAccel(true) }
-                    chip(Loc.t("side.all", lang), !accelOnly) { chooseAccel(false) }
+                    // Kurz „accel" und „POB" in allen Sprachen (Jan, 13.10.2026): passt so auch auf
+                    // schmalen Displays in eine Zeile.
+                    chip("accel", accelOnly && !brett) { brett = false; chooseAccel(true) }
+                    chip(Loc.t("side.all", lang), !accelOnly && !brett) { brett = false; chooseAccel(false) }
+                    chip("POB", brett) { brett = true }
                     Spacer()
                     Menu {
                         Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
@@ -538,18 +545,18 @@ struct SessionsView: View {
             switch scope {
             case .mine:
                 let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter,
-                                               accelOnly: accelOnly, sport: sport)
+                                               accelOnly: accelOnly && !brett, sport: sport, board: brett)
                 guard meine == ladeGeneration else { return }
                 own = r
             // sport: Default "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten
             // zeigen (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte
             // kennzeichnet alles, was kein Pumpfoilen ist. Seit 27.09.2026 waehlbar (Sportart-Filter).
             case .all:
-                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly, sport: sport)
+                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly && !brett, sport: sport, board: brett)
                 guard meine == ladeGeneration else { return }
                 groups = r
             case .spot:
-                let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: sport))
+                let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly && !brett, sport: sport, board: brett))
                 guard meine == ladeGeneration else { return }
                 groups = r
                 await maybeShowAllForSpot()

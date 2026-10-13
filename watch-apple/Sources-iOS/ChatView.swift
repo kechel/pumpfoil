@@ -311,6 +311,12 @@ struct ChatRoomView: View {
     // ein Alert mit Textfeld): nur dort lassen sich die Bilder der Nachricht zeigen, entfernen und
     // ergaenzen. Wirksam erst beim Speichern, Abbrechen laesst alles, wie es war.
     @State private var editMsg: ChatMsg?
+    // Antwort auf eine Nachricht (wie PWA Chat.tsx, 13.10.2026): Zitat ueber dem Eingabefeld, beim
+    // Senden geht `reply_to` mit. `glow` = kurz hervorgehobenes Original nach dem Sprung dorthin,
+    // `sprungZiel` loest das Scrollen im ScrollViewReader aus.
+    @State private var replyTo: ChatMsg?
+    @State private var glow: Int?
+    @State private var sprungZiel: Int?
     @State private var showDict = false
     // Bilder im Eingabefeld (senden vorerst nur Admins, wie die PWA): gleich beim Auswaehlen
     // hochgeladen, damit die Vorschau steht und das Senden sofort geht (s. ChatAnhang).
@@ -382,8 +388,14 @@ struct ChatRoomView: View {
     private var messageScroll: some View {
         ScrollViewReader { proxy in
             ScrollView { messageList }
-                .onChange(of: msgs.count) { _ in
+                // An der NEUESTEN id, nicht an der Anzahl: laedt der Sprung zu einem Zitat aeltere
+                // Nachrichten vorne nach, soll die Liste nicht ans Ende springen.
+                .onChange(of: msgs.last?.id) { _ in
                     withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+                }
+                .onChange(of: sprungZiel) { ziel in
+                    guard let ziel else { return }
+                    withAnimation { proxy.scrollTo(ziel, anchor: .center) }
                 }
         }
     }
@@ -449,6 +461,7 @@ struct ChatRoomView: View {
     private var composer: some View {
         VStack(alignment: .leading, spacing: 6) {
             editBar
+            replyBar
             anhangLeiste
             composerRow
         }
@@ -494,6 +507,30 @@ struct ChatRoomView: View {
                     .accessibilityLabel(Loc.t("chat.editCancel", lang))
             }
         }
+    }
+
+    // „Antwort an {name}" + kurzes Zitat + X ueber dem Eingabefeld.
+    @ViewBuilder private var replyBar: some View {
+        if let r = replyTo {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Loc.t("chat.replyingTo", lang).replacingOccurrences(of: "{name}", with: r.name ?? "—"))
+                        .font(.caption.weight(.semibold)).foregroundStyle(Color.accentColor)
+                    Text(replyVorschau(r)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer()
+                Button { replyTo = nil } label: { Image(systemName: "xmark").font(.caption) }
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Loc.t("chat.replyCancel", lang))
+            }
+            .padding(8)
+            .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private func replyVorschau(_ r: ChatMsg) -> String {
+        if !r.text.isEmpty { return r.text }
+        return (r.photos ?? []).isEmpty ? "" : Loc.t("chat.quotePhoto", lang)
     }
 
     @ViewBuilder private var anhangLeiste: some View {
@@ -645,6 +682,7 @@ struct ChatRoomView: View {
     // MARK: - Bearbeiten und Bilder (30.09.2026, PWA 866779e6 + bd988744)
 
     private func startEdit(_ m: ChatMsg) {
+        replyTo = nil
         editMsg = m
         draft = m.text
         anhaenge = (m.photos ?? []).map { p in
@@ -778,14 +816,62 @@ struct ChatRoomView: View {
             chatAvatarColumn(m)
             VStack(alignment: .leading, spacing: 2) {
                 bubbleHeader(m)
+                bubbleZitat(m)
                 bubbleText(m)
                 bubblePhotos(m)
             }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(glow == m.id ? Color.accentColor.opacity(0.18) : Color.clear, in: RoundedRectangle(cornerRadius: 8))
         .opacity(bubbleOpacity(m))
         .contextMenu { bubbleMenu(m) }
+        .id(m.id)
+    }
+
+    // Zitat der beantworteten Nachricht; Tipp springt zum Original (wie PWA).
+    @ViewBuilder private func bubbleZitat(_ m: ChatMsg) -> some View {
+        if let q = m.reply_to {
+            HStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 2).fill(Color.accentColor).frame(width: 3)
+                zitatInhalt(q)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 2)
+            .contentShape(Rectangle())
+            .onTapGesture { if q.missing != true { Task { await zumOriginal(q.id) } } }
+            .accessibilityHint(Loc.t("chat.quoteJump", lang))
+        }
+    }
+
+    @ViewBuilder private func zitatInhalt(_ q: ChatQuote) -> some View {
+        if q.missing == true {
+            Text(Loc.t("chat.quoteMissing", lang)).font(.caption).italic().foregroundStyle(.secondary)
+        } else {
+            let t: String = (q.text?.isEmpty == false) ? (q.text ?? "") : (q.photo == true ? Loc.t("chat.quotePhoto", lang) : "")
+            VStack(alignment: .leading, spacing: 1) {
+                Text(q.name ?? "—").font(.caption.weight(.semibold)).foregroundStyle(Color.accentColor)
+                Text(t).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            }
+        }
+    }
+
+    /// Zum Original scrollen und es kurz hervorheben. Liegt es vor der geladenen Liste, erst alles
+    /// von dort bis zur aeltesten geladenen Nachricht holen (wie PWA zumOriginal).
+    private func zumOriginal(_ id: Int) async {
+        if !msgs.contains(where: { $0.id == id }) {
+            guard let erste = msgs.map({ $0.id }).min(), id < erste,
+                  let davor = try? await Api.chatRange(scope: scope, fromId: id, before: erste) else { return }
+            var neu: [ChatMsg] = davor
+            for m in msgs where !neu.contains(where: { $0.id == m.id }) { neu.append(m) }
+            msgs = neu.sorted { $0.id < $1.id }
+            guard msgs.contains(where: { $0.id == id }) else { return }
+        }
+        sprungZiel = nil
+        sprungZiel = id
+        glow = id
+        try? await Task.sleep(nanoseconds: 2_200_000_000)
+        if glow == id { glow = nil }
     }
 
     // Eine Nachricht darf NUR aus Bildern bestehen — dann kein leerer Textblock.
@@ -838,6 +924,9 @@ struct ChatRoomView: View {
     }
 
     @ViewBuilder private func bubbleMenu(_ m: ChatMsg) -> some View {
+        if !m.hidden && weiterAn == nil {
+            Button(Loc.t("chat.reply", lang)) { editMsg = nil; replyTo = m }
+        }
         if editable(m) {
             Button(Loc.t("chat.edit", lang)) { startEdit(m) }
             Button(Loc.t("common.delete", lang), role: .destructive) {
@@ -920,7 +1009,7 @@ struct ChatRoomView: View {
         guard x.id == id else { return x }
         return ChatMsg(id: x.id, user_id: x.user_id, name: x.name, avatar_url: x.avatar_url,
                        text: x.text, created_at: x.created_at, mine: x.mine, hidden: x.hidden,
-                       like_count: count, liked: liked, photos: x.photos)
+                       like_count: count, liked: liked, photos: x.photos, reply_to: x.reply_to)
     }
 
     // Online-Punkt + Tipp auf die Foiler-Seite des Verfassers (OnlinePunkt.swift).
@@ -964,7 +1053,8 @@ struct ChatRoomView: View {
         guard !text.isEmpty || !ids.isEmpty, !laedtNoch, !sending else { return }
         sending = true; defer { sending = false }
         do {
-            let m = try await Api.chatPost(scope: scope, text: text, photoIds: ids)
+            let m = try await Api.chatPost(scope: scope, text: text, photoIds: ids, replyTo: replyTo?.id)
+            replyTo = nil
             msgs.append(m)
             lastId = max(lastId, m.id)
             draft = ""
