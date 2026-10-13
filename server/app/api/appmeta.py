@@ -798,6 +798,30 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
+    # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
+    # EINGEREICHT 13.10.2026 abends (Jans Meldung, Play Console: Produktion 56 (1.1.42), Produktion (Wear OS)
+    # 1052 (1.2.42), Vorabpruefungen „noch maximal 14 Minuten"; Store-Screenshots Telefon + Wear mit geaendert).
+    {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
+     "eingereicht": "2026-10-13",
+     "items": [
+         # 12.10.2026 (Nutzer-Meldung): native Changelog-Seite, live vom Server, Link im Profil.
+         "The changelog is now in the app too, under Profile, always with the latest news — including versions you don't have yet.",
+         # 12.10.2026 (Meldung Roman, Samsung): START lag unter der Navigationsleiste (seit den
+         # zweizeiligen Foil-Knoepfen in 1.1.41), Aufnahme unmoeglich. Fix: Startseite scrollt.
+         "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
+         "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
+         "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
+         "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
+         # 13.10.2026 (Jan): Lage je Lauf im Vergleich, wie in der PWA (3c8b3e6a); Tabellen aus dem Speicher (91eb8278).
+         "Comparing sessions shows the board attitude of every run recorded with the phone on the board, also for other riders' sessions, and attitude tables open instantly.",
+         # 13.10.2026 (Jan): POB-Taste in der Sessionliste (c9822c27), Chat-Antworten (PWA a5e873d8).
+         "The session list has a POB button that shows only sessions recorded with the phone on the board.",
+         "In the chat you can reply to a message: hold it and choose Reply; tapping the quote jumps to the original.",
+         # 13.10.2026 (Jan: „den rest auch noch nachziehen"): Gleitphasen (420509c6), Lage mit Phasen.
+         "Glides can be shown on the session map and on the comparison map, and the comparison map shows pump markers too.",
+         "Board attitude per run shows each phase (stable phase, turns, straight, whole run), switchable between corrected and uncorrected, and the comparison table sorts by tapping a column header.",
+     ]},
     # EINGEREICHT 13.10.2026 11:06 (Jans Meldung, AppGallery Connect „Under pre-review", 1.0.2 (1000002),
     # nur Smart watch = Watch 5, ohne Festland-China; signiert ueber signing.json im privaten Repo).
     {"name": "Huawei Watch 5", "version": "1.0.2",
@@ -913,27 +937,6 @@ NAECHSTES: list[dict] = [
     {"name": "Garmin", "version": "1.0.93",
      "items": [
          "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
-     ]},
-    # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
-    # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
-    {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
-     "items": [
-         # 12.10.2026 (Nutzer-Meldung): native Changelog-Seite, live vom Server, Link im Profil.
-         "The changelog is now in the app too, under Profile, always with the latest news — including versions you don't have yet.",
-         # 12.10.2026 (Meldung Roman, Samsung): START lag unter der Navigationsleiste (seit den
-         # zweizeiligen Foil-Knoepfen in 1.1.41), Aufnahme unmoeglich. Fix: Startseite scrollt.
-         "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
-         "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
-         "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
-         "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
-         # 13.10.2026 (Jan): Lage je Lauf im Vergleich, wie in der PWA (3c8b3e6a); Tabellen aus dem Speicher (91eb8278).
-         "Comparing sessions shows the board attitude of every run recorded with the phone on the board, also for other riders' sessions, and attitude tables open instantly.",
-         # 13.10.2026 (Jan): POB-Taste in der Sessionliste (c9822c27), Chat-Antworten (PWA a5e873d8).
-         "The session list has a POB button that shows only sessions recorded with the phone on the board.",
-         "In the chat you can reply to a message: hold it and choose Reply; tapping the quote jumps to the original.",
-         # 13.10.2026 (Jan: „den rest auch noch nachziehen"): Gleitphasen (420509c6), Lage mit Phasen.
-         "Glides can be shown on the session map and on the comparison map, and the comparison map shows pump markers too.",
-         "Board attitude per run shows each phase (stable phase, turns, straight, whole run), switchable between corrected and uncorrected, and the comparison table sorts by tapping a column header.",
      ]},
     # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht).
     # 13.10.2026 (Jan: „das gleiche fuer iOS genauso"): Portierung wie Android 1.1.42; gebumpt auf 1.1.48 (54).
