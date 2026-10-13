@@ -15,6 +15,7 @@ internal object SessionViewPrefs {
     private const val K_GLAETTUNG = "sd_smooth_win"
     private const val K_PUMPS = "sd_show_pumps"
     private const val K_VERSUCHE = "sd_show_attempts"
+    private const val K_GLEIT = "sd_show_glides"
 
     private fun p(ctx: Context) = ctx.getSharedPreferences(DATEI, Context.MODE_PRIVATE)
 
@@ -32,8 +33,13 @@ internal object SessionViewPrefs {
     /** Startversuche: standardmaessig AN (wie im Web, Jans Vorgabe). */
     fun zeigeVersuche(ctx: Context): Boolean = p(ctx).getBoolean(K_VERSUCHE, true)
 
-    internal fun merke(ctx: Context, modus: ColorMode, glaettung: Int, pumps: Boolean, versuche: Boolean) {
+    /** Gleitphasen: standardmaessig AUS (wie im Web). */
+    fun zeigeGleiten(ctx: Context): Boolean = p(ctx).getBoolean(K_GLEIT, false)
+
+    internal fun merke(ctx: Context, modus: ColorMode, glaettung: Int, pumps: Boolean, versuche: Boolean,
+                       gleiten: Boolean = false) {
         p(ctx).edit()
+            .putBoolean(K_GLEIT, gleiten)
             .putString(K_MODUS, modus.name)
             .putInt(K_GLAETTUNG, glaettung)
             .putBoolean(K_PUMPS, pumps)

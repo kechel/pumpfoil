@@ -341,6 +341,9 @@ data class Segment(
     // 0 Pumps, die es nie gab. Die Anzeige zeigt dann „–" wie Web und iOS.
     val pumps: Int? = null,
     @SerialName("pump_idx") val pumpIdx: List<Int> = emptyList(),
+    // Gleitphasen [Start-Index, End-Index, Dauer s, Start-ms] (Server seit 03.10.2026, Brett-Regeln
+    // seit 10.10.) — die Karte kann sie einblenden wie die PWA.
+    val glides: List<List<Double>> = emptyList(),
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
     @SerialName("longest_glide_s") val longestGlideS: Double? = null,
     @SerialName("accel_fehlt") val accelFehlt: Boolean = false,
