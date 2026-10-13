@@ -76,6 +76,27 @@ Gesamtreichweite, mindestens 3 Minuten. Sonst stünde die Warnung auf einer 158-
 | 158 KB | 12 min gesamt → Warnung ab 7 min | 23 → ab 14 | 57 → ab 15 |
 | 431 KB | 34 min gesamt → Warnung ab 15 min | 64 → ab 15 | 155 → ab 15 |
 
+## Reserve: wann die Uhr während der Aufnahme auf nur GPS umschaltet
+
+Ab Garmin 1.0.92 schaltet die Uhr Accel für den Rest der Aufnahme ab und spart (nur Fahrabschnitte),
+sobald der geschätzte freie Puffer unter eine **Reserve** fällt — lieber ohne Pumps weiter als eine
+abgebrochene Aufnahme (`SessionRecorder._gpsPunkt`). Bis 1.0.92 waren das fest 100 KB; ab der
+nächsten Fassung (Jan, 13.10.2026: „ja gerne auch 2h Reserve"):
+
+`Reserve = max(100 KB, min(halber nutzbarer Puffer, GPS für 2 h))`
+
+| Uhr (Puffer → nutzbar × 0,9) | Reserve | GPS + Puls danach |
+|---|---|---|
+| FR55 / Instinct 2 (158 → 142 KB) | 100 KB | ~25–40 min, mit „Speicher sparen" mehr |
+| ungemeldetes Modell (200 → 180 KB) | 100 KB | ~25–40 min |
+| Forerunner 935 (241 → 217 KB) | 108 KB | ~30–45 min |
+| Venu Sq (431 → 388 KB) | 194 KB | ~50–80 min |
+| großer Puffer (≥ ~1 MB) | 300 KB (480 auf ≤128-KB-RAM-Uhren) | 2 h |
+
+Kein Fehler, wenn Accel auf einer kleinen Uhr nach Minuten endet und GPS weiterläuft: ohne Handy in
+Reichweite (keine Uploads während der Fahrt) ist das genau diese Reserve (#15052, 12.10.2026: FR55,
+nach 7,4 min, GPS die vollen 48 min). Test: `node --test watch/test/`.
+
 ## Wann NICHTS angezeigt wird
 
 - **Handy in Reichweite** — dann laufen die Chunks laufend hoch, der Puffer bleibt klein, eine

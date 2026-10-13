@@ -1988,7 +1988,17 @@ class SessionRecorder {
         // speicher unter 100kb gesunken ist waehrend der aufnahme"): ab hier fuer den Rest der Aufnahme
         // sparen UND auf nur GPS umschalten — lieber ohne Pumps weiter als eine abgebrochene Aufnahme.
         // Dieselbe Schaetzung wie die Restzeit-Anzeige (storageMinutesLeft).
-        if (storageBudgetKb > 0 && storageBudgetKb * 0.9 - Uploader.pendingKbCached() < 100) {
+        // Reserve (Jan, 13.10.2026: „bei grösseren uhren … wuerde mehr als 100kb Puffer durchaus sinn
+        // machen … ja gerne auch 2h Reserve"): so viel, dass GPS + Puls danach noch 2 h laufen
+        // (7200 Punkte bei 1 Hz, in der Chunk-Geometrie von Uploader.pendingKb), hoechstens die Haelfte
+        // des nutzbaren Puffers, mindestens die bisherigen 100 KB. FR55/Instinct 2 (158 KB) bleiben so
+        // bei 100, eine Venu Sq (431 KB) haelt 194 KB zurueck. Inline statt eigener Funktion: die Klasse
+        // steht an der Mitglieder-Grenze (s. _gZ).
+        var nutz = storageBudgetKb * 0.9;
+        var res = 7200.0 / _gpsChunkTarget() * Uploader.kbProGpsChunk();
+        if (res > nutz / 2) { res = nutz / 2; }
+        if (res < 100) { res = 100; }
+        if (storageBudgetKb > 0 && nutz - Uploader.pendingKbCached() < res) {
             z[6] = true;
             if (_accelOn) {
                 try { Sensor.unregisterSensorDataListener(); } catch (e) { }
