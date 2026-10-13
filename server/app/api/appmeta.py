@@ -926,6 +926,8 @@ NAECHSTES: list[dict] = [
          "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
          "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
          "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
+         # 13.10.2026 (Jan): Lage je Lauf im Vergleich, wie in der PWA (3c8b3e6a); Tabellen aus dem Speicher (91eb8278).
+         "Comparing sessions shows the board attitude of every run recorded with the phone on the board, also for other riders' sessions, and attitude tables open instantly.",
      ]},
     # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht). Nicht gebumpt.
     {"name": "iPhone + Apple Watch", "version": "1.1.48",

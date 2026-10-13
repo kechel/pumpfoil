@@ -703,12 +703,16 @@ object Api {
     // Lage des Bretts (Nicken/Rollen/Gieren/Hub). `run` = ein Lauf, sonst die ganze Aufnahme;
     // `jeLauf` liefert die Kennzahlen je Lauf mit (ein Abruf fuer die ganze Tabelle), `hz` regelt
     // nur die Aufloesung der Kurven herunter — die Kennzahlen rechnet der Server mit voller Rate.
+    // `nurLaeufe` = NUR die Kennzahlen je Lauf, serverseitig gespeichert (lage_cache.py) — sofort statt
+    // 5-14 s, fuer die Lauf-Tabellen (13.10.2026). Aeltere Server ignorieren den Parameter nicht: er
+    // ist seit 91eb8278 da, und die App spricht nur mit pumpfoil.org.
     suspend fun boardAttitude(id: Int, run: Int? = null, jeLauf: Boolean = false, hz: Int? = null,
-                              yawWindowS: Double? = null): BoardAttitude =
+                              yawWindowS: Double? = null, nurLaeufe: Boolean = false): BoardAttitude =
         withContext(Dispatchers.IO) {
             val q = buildList {
                 if (run != null) add("run=$run")
                 if (jeLauf) add("je_lauf=1")
+                if (nurLaeufe) add("nur_laeufe=1")
                 if (hz != null) add("hz=$hz")
                 if (yawWindowS != null) add("yaw_window_s=$yawWindowS")
             }.joinToString("&")
