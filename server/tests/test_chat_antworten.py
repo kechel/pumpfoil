@@ -1,6 +1,21 @@
 """Antworten mit Zitat im Chat (Jan, 13.10.2026). Rein additiv: `reply_to` im POST ist optional,
 jede Nachricht traegt `reply_to` (null oder Zitat) — aeltere Apps ignorieren das Feld."""
-from tests.test_chat_bot_weiterleitung import _konto
+
+
+def _konto(client, mail, admin=False):
+    """Konto anlegen + einloggen. Eigene Kopie statt Import aus einem anderen Testmodul: in CI ist
+    `tests` kein importierbares Paket (13.10.2026: ModuleNotFoundError, Server-Job rot)."""
+    client.post("/api/auth/register", json={"email": mail, "password": "geheim123", "name": mail[:6]})
+    tok = client.post("/api/auth/login", json={"email": mail, "password": "geheim123"}).json()["access_token"]
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    u = db.query(models.User).filter_by(email=mail).first()
+    if admin:
+        u.is_admin = True
+    uid = u.id
+    db.commit(); db.close()
+    return {"Authorization": f"Bearer {tok}"}, uid
 
 RAUM = "global:main"
 
