@@ -929,6 +929,11 @@ NAECHSTES: list[dict] = [
      "items": [
          "Huawei advised us not to release new apps for these older models, so they are on hold; tell us if you ride with one.",
      ]},
+    # 13.10.2026 (Jan: „ja gerne auch 2h Reserve"): Reserve vor dem Accel-Abschalten (6da979b9). Nicht gebumpt.
+    {"name": "Garmin", "version": "1.0.93",
+     "items": [
+         "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
+     ]},
     # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
     {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
