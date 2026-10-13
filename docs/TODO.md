@@ -1460,6 +1460,11 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+- **13.10. — Chat: Antworten mit Bezug auf die Nachricht** (Feedback #180, Philipp u5, 12:28): „In einem laengeren
+  Chatverlauf waere bei Antworten ein Bezug zur Nachricht/Frage praktisch“ — er antwortete, nachdem schon ~10
+  neuere Nachrichten da waren. Gibt es bisher nicht (keine reply_to-Spalte in chat_messages). Zitat-Antwort wie
+  in Messengern: Antwort-Knopf an der Nachricht, kurzer Auszug ueber der Antwort, Tippen springt hin. Web + Apps.
+  Noch nicht entschieden.
 - **10.10. — Garmin fenix 9 Pro (51 mm): Kopplungscode-Seite, „pumpfoil.org" und „Enter it there" liegen
   uebereinander** (Jans Simulator-Screenshot, screenshots/watch/garmin/20261010-neu, 09.34.02). Wahrscheinlich
   feste Zeilenabstaende statt Schrifthoehe des Geraets; auf anderen grossen Displays (fenix 8/9, epix) mitpruefen.
