@@ -281,7 +281,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.92",   # LIVE 2026-10-09: Store-Seite + Store-API latestExternalVersion 1.0.92 / intern 47,
+        "latest": "1.0.93",   # LIVE 2026-10-14: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf
+        # seine fenix installiert (Token 1575). Inhalt: Reserve 2 h GPS, Konto-Wechsel mit old_token, Zeile
+        # „Handy nimmt auf", Abmelden beim Verlassen. watch/bin neu gebaut (129/129).
+        # ALT: "latest": "1.0.92",   # LIVE 2026-10-09: Store-Seite + Store-API latestExternalVersion 1.0.92 / intern 47,
         # Jan hat sie aus dem Store auf seine Uhr installiert (Token 1471, Session #14094). Inhalt:
         # Speicher sparen GPS + Accel, nur GPS unter 100 KB frei, Speicher-Schaetzung, FR55-Kappung weg, S62-Absturz.
         # ALT: "latest": "1.0.91",   # LIVE 2026-09-29: Store-API latestExternalVersion 1.0.91 / intern 45,
@@ -798,18 +801,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # 13.10.2026 (Jan: „ja gerne auch 2h Reserve"): Reserve vor dem Accel-Abschalten (6da979b9). Nicht gebumpt.
-    # EINGEREICHT 14.10.2026 (Jans Meldung, Connect IQ Store). .iq aus 7b94363f, alle 218 Geraete, -r.
-    # Firmware-Neustarts der fenix 7X Pro im Upload sind NICHT 1.0.93 (auch Store 1.0.92, docs/TODO.md).
-    {"name": "Garmin", "version": "1.0.93",
-     "eingereicht": "2026-10-14",
-     "items": [
-         "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
-         # 14.10.2026 (ea2f1333, 78c623ed): Neu-Verbinden einer schon verbundenen Uhr + altes Token widerrufen.
-         "Moving a watch to another account now works directly with a new code from the watch, and the old account no longer keeps it listed.",
-         "If you also record with the Pumpfoil phone app, the start screen shows when your phone is recording, so you can check it after packing the phone away.",
-         "Closing the app lets pumpfoil.org know you are done, so you no longer count as currently pumping.",
-     ]},
+    # Garmin 1.0.93 (eingereicht + freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht).
     # 13.10.2026 (Jan: „das gleiche fuer iOS genauso"): Portierung wie Android 1.1.42; gebumpt auf 1.1.48 (54).
     # EINGEREICHT 13.10.2026 20:54 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.48 (54),
