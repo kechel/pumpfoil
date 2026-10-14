@@ -542,6 +542,9 @@ def device_config(
         einfaerben = False
 
     return {
+        # Laeuft der Handy-Recorder desselben Kontos? Garmin 1.0.93 zeigt dann eine Zeile auf der
+        # Startseite (nur dann, Jan 14.10.2026); aeltere Uhren ignorieren das Feld.
+        "phone_rec": handy_rec_fuer_config(db, device),
         "views": views_out,
         "colorByValue": einfaerben,
         # Auto-Start: Aufnahme automatisch starten, wenn man losfährt (GPS). Default an.
@@ -1665,6 +1668,9 @@ def _uhren_status(db: Session, user_id: int) -> list[dict]:
             # die Meldung WAR der Upload (Upload aktualisiert last_seen) -> fertig
             hochgeladen = zuletzt is not None and _aware(zuletzt) >= seen - timedelta(minutes=2)
         live = letzte is not None and letzte.status == "live"
+        # App danach ohne Aufnahme verlassen (die Meldung kam als letzte) -> nimmt nicht auf
+        if d.app_closed_at is not None and _aware(d.app_closed_at) >= seen - timedelta(seconds=5) and not live:
+            continue
         out.append({
             "device_id": d.id,
             "device": geraete_label(d.label, d.platform),
@@ -1676,6 +1682,17 @@ def _uhren_status(db: Session, user_id: int) -> list[dict]:
         })
     out.sort(key=lambda r: r["last_seen_age_s"])
     return out
+
+
+@router.post("/app-closed")
+def app_geschlossen(
+    device: models.DeviceToken = Depends(current_device),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Die Uhr-App wurde ohne laufende Aufnahme verlassen (Garmin ab 1.0.93, best effort)."""
+    device.app_closed_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/live")
@@ -1697,7 +1714,25 @@ def laufende_fuer_geraet(
     desselben Kontos laeuft. Die eigene Aufnahme des fragenden Geraets ist nicht dabei."""
     rows = [r for r in _laufende_aufnahmen(db, device.user_id)
             if db.get(models.Session, r["session_id"]).device_id != device.id]
-    return {"sessions": rows, "phone_active": any(r["active"] and r["placement"] == "phone" for r in rows)}
+    return {"sessions": rows, "phone_active": any(r["active"] and r["placement"] == "phone" for r in rows),
+            "phone_rec": _handy_rec_fuer_uhr(rows)}
+
+
+def _handy_rec_fuer_uhr(rows: list[dict]) -> dict:
+    """Kompakt fuer die Uhr-Startseite (Garmin 1.0.93): state 0 = nichts anzeigen, 1 = Handy nimmt
+    auf, 2 = Handy-Aufnahme laeuft, aber seit ago_min Minuten keine Daten (Funkloch)."""
+    handy = [r for r in rows if r["placement"] == "phone"]
+    if not handy:
+        return {"state": 0, "ago_min": 0}
+    r = handy[0]   # juengste Daten zuerst (s. _laufende_aufnahmen)
+    return {"state": 1 if r["active"] else 2, "ago_min": r["last_data_age_s"] // 60}
+
+
+def handy_rec_fuer_config(db: Session, device: models.DeviceToken) -> dict:
+    """Fuer /devices/config: dieselbe Angabe, damit die Uhr sie schon beim App-Start kennt."""
+    rows = [r for r in _laufende_aufnahmen(db, device.user_id)
+            if db.get(models.Session, r["session_id"]).device_id != device.id]
+    return _handy_rec_fuer_uhr(rows)
 
 
 @router.get("/pair-confirmed/{device_id}")

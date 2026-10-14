@@ -244,8 +244,16 @@ def test_live_status(client):
     client.get("/api/devices/config", headers=uhr)
     w = client.get("/api/devices/live", headers=auth).json()["watches"]
     assert [x["state"] for x in w] == ["probably_recording"]
+    # App ohne Aufnahme verlassen -> keine Vermutung mehr; erneute Meldung -> wieder da
+    client.post("/api/devices/app-closed", headers=uhr)
+    assert client.get("/api/devices/live", headers=auth).json()["watches"] == []
+    import time as _t; _t.sleep(6)
+    client.get("/api/devices/config", headers=uhr)
+    assert [x["state"] for x in client.get("/api/devices/live", headers=auth).json()["watches"]] == ["probably_recording"]
     st = client.get("/api/devices/live-status", headers=uhr).json()
     assert st["phone_active"] is True
+    assert st["phone_rec"]["state"] == 1
+    assert client.get("/api/devices/config", headers=uhr).json()["phone_rec"]["state"] == 1
     # das Handy selbst sieht seine eigene Aufnahme nicht als „anderes Geraet"
     assert client.get("/api/devices/live-status", headers=phone).json()["sessions"] == []
     # abgeschlossen -> nicht mehr live

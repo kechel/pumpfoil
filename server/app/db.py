@@ -445,6 +445,7 @@ def _migrate_add_columns() -> None:
         },
     }
     want.setdefault("device_pairings", {})["old_token"] = "VARCHAR(64)"
+    want.setdefault("device_tokens", {})["app_closed_at"] = "TIMESTAMP WITH TIME ZONE"
     insp = inspect(engine)
     with engine.begin() as conn:
         for table, cols in want.items():

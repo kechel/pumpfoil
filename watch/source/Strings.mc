@@ -265,6 +265,10 @@ module Strings {
         if (key.equals("pair.generating")) { return ["Code wird erzeugt…", "Code wird erzügt…", "Code wird erzeugt…", "generating code…", "génération du code…", "generazione codice…", "generando código…", "gerando código…", "membuat kode…", "создание кода…", "code genereren…", "luodaan koodia…", "generuji kód…", "lager kode…", "generuję kod…"]; }
         if (key.equals("pair.fetching")) { return ["hole Code…", "hole Code…", "hole Code…", "fetching code…", "obtention du code…", "recupero codice…", "obteniendo código…", "obtendo código…", "mengambil kode…", "получение кода…", "code ophalen…", "haetaan koodia…", "načítám kód…", "henter kode…", "pobieram kod…"]; }
         if (key.equals("pair.done"))     { return ["Verbunden!", "Verbunde!", "Verbunden!", "Connected!", "Connecté !", "Connesso!", "¡Conectado!", "Conectado!", "Terhubung!", "Подключено!", "Verbonden!", "Yhdistetty!", "Připojeno!", "Tilkoblet!", "Połączono!"]; }
+        // Handy-Recorder laeuft (nur dann sichtbar, Startseite) — Jan 14.10.2026
+        if (key.equals("phone.rec"))     { return ["Handy nimmt auf", "Handy nimmt uf", "Handy nimmt auf", "Phone recording", "Tél. enregistre", "Telefono registra", "Móvil grabando", "Celular gravando", "Ponsel merekam", "Телефон пишет", "Telefoon neemt op", "Puhelin tallentaa", "Telefon nahrává", "Telefonen tar opp", "Telefon nagrywa"]; }
+        if (key.equals("phone.recStale")) { return ["Handy: Daten vor", "Handy: Date vor", "Handy: Daten vor", "Phone: data", "Tél. : données il y a", "Telefono: dati", "Móvil: datos hace", "Celular: dados há", "Ponsel: data", "Телефон: данные", "Telefoon: data", "Puhelin: tiedot", "Telefon: data před", "Telefon: data for", "Telefon: dane"]; }
+        if (key.equals("phone.recAgo"))  { return ["min", "min", "min", "min ago", "min", "min fa", "min", "min", "mnt lalu", "мин назад", "min geleden", "min sitten", "min", "min siden", "min temu"]; }
         if (key.equals("common.error"))  { return ["Fehler", "Fähler", "Fehler", "Error", "Erreur", "Errore", "Error", "Erro", "Kesalahan", "Ошибка", "Fout", "Virhe", "Chyba", "Feil", "Błąd"]; }
         return null;
     }

@@ -978,6 +978,7 @@ class SessionRecorder {
                 Strings.setLang(data["language"]);
             }
             if (data.hasKey("views")) { setScreensFromConfig(data["views"]); }
+            if (data.hasKey("phone_rec")) { PhoneRec.lesen(data["phone_rec"]); }
             if (data.hasKey("colorByValue") && data["colorByValue"] != null) {
                 colorByValue = data["colorByValue"];
                 _store("colorByValue", colorByValue);  // cachen -> ueberlebt reloadConfig/Neustart
@@ -1568,7 +1569,7 @@ class SessionRecorder {
                 _pairPollCtr++;
                 if (_pairPollCtr >= 3) { _pairPollCtr = 0; _pollPairing(); }
             }
-            if (!_recording) { _maybeAutoStart(); return; }
+            if (!_recording) { PhoneRec.tickIdle(); _maybeAutoStart(); return; }
             if (_paused) { return; }   // pausiert: keine Lauf-Erkennung/Alarm, nur Anzeige
             var act = Activity.getActivityInfo();
             if (act == null) { return; }

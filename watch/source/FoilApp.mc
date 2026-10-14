@@ -31,6 +31,10 @@ class FoilApp extends Application.AppBase {
     // Abgesichert, damit ein Fehler im Aufraeumen nicht selbst zum Absturz wird.
     function onStop(state) {
         try { if (_recorder != null) { _recorder.runClear(); } } catch (e) {}
+        // App ohne laufende Aufnahme verlassen -> dem Server sagen, damit die Website nicht eine
+        // Stunde lang „nimmt vermutlich auf" zeigt (Jan, 14.10.2026). Best effort: ob Connect IQ
+        // die Anfrage beim Beenden noch rausschickt, ist nur auf echter Uhr pruefbar.
+        try { if (_recorder != null && !_recorder.isRecording()) { PhoneRec.meldeAppZu(); } } catch (e) {}
     }
 
     // Haupt-View beim Start.
