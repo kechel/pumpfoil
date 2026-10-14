@@ -538,7 +538,9 @@ struct RecordView: View {
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 90 * 1_000_000_000)
                 if Task.isCancelled || rec.isRecording { break }
-                guard Api.deviceToken != nil else { continue }
+                // Nicht neben einem laufenden Upload (wie Garmin 1.0.93): der Upload hat Vorrang,
+                // die Zeile kommt dann eben eine Runde spaeter.
+                guard Api.deviceToken != nil, !rec.uploading else { continue }
                 if let pr = try? await Api.liveStatus() { phoneRec = pr.state; phoneRecAgo = pr.ago_min }
                 else { continue }
             }
