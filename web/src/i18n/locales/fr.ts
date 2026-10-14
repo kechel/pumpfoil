@@ -1339,6 +1339,8 @@ const fr: Record<string, string> = {
   "account.claimBtn": "Connecter",
   "account.claimHelp": "Ouvre Pumpfoil sur la montre et va sur « Connecter » — Garmin : maintiens MENU (bouton milieu-gauche) → « Réglages » → « Connecter » ; Amazfit : balaie vers la gauche depuis l'écran de départ ; Wear OS et Apple Watch affichent cet écran au premier démarrage. Saisis ici le code affiché (6 caractères, lettres & chiffres). HUAWEI Watch 5 : touche « pair at pumpfoil.org » sur l'écran de départ.",
   "account.claimOk": "Montre connectée ! ✓",
+  "account.claimWaiting": "Code accepté — en attente de la confirmation de la montre …",
+  "account.claimSlow": "La montre ne s'est pas encore manifestée. Si le code reste affiché sur la montre : fermez Pumpfoil sur la montre et relancez-le, téléphone connecté en Bluetooth. Si la montre est encore liée à un autre compte, retirez-la d'abord de « Mes montres » sur ce compte, puis demandez un nouveau code.",
   "account.claimPlaceholder": "p. ex. VURWGG",
   "account.claimReq": "Important : l'app compagnon de ta montre doit être ouverte sur le téléphone et connectée à la montre (Garmin Connect, Zepp, Wear OS ou Apple Watch), et le téléphone a besoin d'Internet — la montre passe par le téléphone. Saisis le code dans les 15 min ; si la montre n'affiche pas de code, actualise l'app. Exception HUAWEI Watch 5 : elle envoie elle-même, aucune app n'est nécessaire sur le téléphone.",
   "account.claimBad": "Code invalide ou expiré — vérifie le code sur la montre ou demandes-en un nouveau.",

@@ -1136,6 +1136,8 @@ const deAT: Record<string, string> = {
   "account.claimBtn": "Verbinden",
   "account.claimHelp": "Öffne Pumpfoil auf der Uhr und gehe dort auf „Verbinden“ — Garmin: MENU halten (Knopf Mitte-links) → „Einstellungen“ → „Verbinden“; Amazfit: vom Startbildschirm nach links wischen; Wear OS und Apple Watch zeigen die Seite beim ersten Start selbst. Den angezeigten Code (6 Zeichen, Buchstaben & Ziffern) hier eintragen. HUAWEI Watch 5: am Startbildschirm „mit pumpfoil.org koppeln“ antippen.",
   "account.claimOk": "Uhr verbunden! ✓",
+  "account.claimWaiting": "Code angenommen — wart, bis die Uhr bestätigt …",
+  "account.claimSlow": "Die Uhr hat sich noch nicht gemeldet. Bleibt der Code auf der Uhr stehen: Pumpfoil auf der Uhr beenden und neu starten, das Handy dabei per Bluetooth verbunden. Hängt die Uhr noch an einem anderen Konto, sie dort zuerst unter „Meine Uhren“ entfernen und danach einen neuen Code holen.",
   "account.claimPlaceholder": "z. B. VURWGG",
   "account.claimReq": "Wichtig: Die Begleit-App deiner Uhr muss am Handy offen und mit der Uhr verbunden sein (Garmin Connect, Zepp, Wear OS bzw. Apple Watch), und das Handy braucht Internet — die Uhr geht übers Handy online. Code innerhalb 15 Min eingeben; erzeugt die Uhr keinen Code, App aktualisieren. Ausnahme HUAWEI Watch 5: Sie lädt selber hoch, eine App am Handy braucht's nicht.",
   "account.claimBad": "Code ungültig oder abgelaufen — Code auf der Uhr prüfen oder dort einen neuen holen.",

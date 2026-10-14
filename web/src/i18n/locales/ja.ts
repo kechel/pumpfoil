@@ -1570,6 +1570,8 @@ const ja: Record<string, string> = {
   "account.claimBtn": "接続",
   "account.claimAlready": "このウォッチはすでに接続されています。",
   "account.claimOk": "ウォッチを接続しました！ ✓",
+  "account.claimWaiting": "コードを受け付けました — ウォッチの確認を待っています…",
+  "account.claimSlow": "ウォッチからまだ応答がありません。ウォッチにコードが表示されたままの場合は、スマートフォンをBluetoothで接続したまま、ウォッチのPumpfoilを終了して再起動してください。ウォッチがまだ別のアカウントに接続されている場合は、先にそのアカウントの「マイウォッチ」から削除し、新しいコードを取得してください。",
   "account.offFoilTitle": "オフフォイル画面",
   "account.offFoilDesc": "フォイリングしていない間、ウォッチに自動的に表示されます（デフォルト：時計＋最後のラン）。フォイリング中は、ウォッチが最後に選択した画面に切り替わります。",
 

@@ -1654,6 +1654,8 @@ const pl: Record<string, string> = {
   "account.claimBtn": "Połącz",
   "account.claimAlready": "Ten zegarek jest już połączony.",
   "account.claimOk": "Zegarek połączony! ✓",
+  "account.claimWaiting": "Kod przyjęty — czekam na potwierdzenie z zegarka …",
+  "account.claimSlow": "Zegarek jeszcze się nie zgłosił. Jeśli kod wciąż widnieje na zegarku: zamknij Pumpfoil na zegarku i uruchom ponownie, z telefonem połączonym przez Bluetooth. Jeśli zegarek jest nadal połączony z innym kontem, najpierw usuń go tam w „Moje zegarki”, a potem pobierz nowy kod.",
   "account.offFoilTitle": "Gdy nie jedziesz",
   "account.offFoilDesc": "Pokazywane, gdy przejazd się kończy i tak długo, jak nie jedziesz — także podczas czekania między przejazdami. Nagrywanie leci dalej.",
   "foils.toSetup": "Szczegółowy setup",

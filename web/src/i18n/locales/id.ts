@@ -1572,6 +1572,8 @@ const id: Record<string, string> = {
   "account.claimBtn": "Hubungkan",
   "account.claimAlready": "Jam ini sudah terhubung.",
   "account.claimOk": "Jam terhubung! ✓",
+  "account.claimWaiting": "Kode diterima — menunggu konfirmasi dari jam …",
+  "account.claimSlow": "Jam belum merespons. Jika kode tetap tampil di jam: tutup Pumpfoil di jam lalu buka lagi, dengan ponsel terhubung lewat Bluetooth. Jika jam masih tertaut ke akun lain, hapus dulu di sana pada “Jam saya”, lalu ambil kode baru.",
   "account.offFoilTitle": "Layar off-foil",
   "account.offFoilDesc": "Ditampilkan otomatis di jam saat kamu tidak foiling (bawaan: jam + run terakhir). Saat foiling, jam beralih kembali ke tampilan terakhir yang kamu pilih.",
 

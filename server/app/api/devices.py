@@ -1561,7 +1561,9 @@ def pair_claim(
     if p is None or _aware(p.expires_at) < now:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger oder abgelaufener Code")
     if p.device_token is not None:
-        return {"ok": True, "already": True, "platform": p.platform}
+        vorhanden = db.query(models.DeviceToken).filter_by(token=p.device_token).first()
+        return {"ok": True, "already": True, "platform": p.platform,
+                "device_id": vorhanden.id if vorhanden and vorhanden.user_id == user.id else None}
     # Label/Plattform bevorzugt von der Uhr (pair-init), sonst vom Web-Body, sonst Default „Garmin"
     # (historisch: einzige Reverse-Pairing-Uhr war Garmin).
     device = models.DeviceToken(
@@ -1580,7 +1582,27 @@ def pair_claim(
     # Plattform verschieden: Satellitensysteme gibt es nur bei Garmin, und Amazfit uebernimmt den
     # Aufzeichnungsmodus (noch) gar nicht — `watch-zepp/app-side/index.js` reicht nur `language`,
     # `latestVersion`, `pauseView`, `layoutsOn`, `layouts` und `pages` durch.
-    return {"ok": True, "label": device.label, "platform": device.platform}
+    # `device_id`: damit die Oberflaeche per /pair-confirmed/{id} warten kann, bis die UHR das
+    # Token wirklich abgeholt hat — „verbunden" erst dann (Jan, 14.10.2026, s. pair_confirmed).
+    return {"ok": True, "label": device.label, "platform": device.platform, "device_id": device.id}
+
+
+@router.get("/pair-confirmed/{device_id}")
+def pair_confirmed(
+    device_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Hat die Uhr das beim Einloesen angelegte Token abgeholt (pair-poll) oder schon benutzt?
+
+    Bis zum 14.10.2026 meldete die Website „verbunden", sobald der CODE eingeloest war — ob die Uhr
+    das Token je abholte, sah niemand. Eine schon verbundene Garmin-Uhr fragte beim Neu-Verbinden
+    gar nicht nach (Fehler bis 1.0.92), der Code blieb auf der Uhr stehen, die Website zeigte
+    trotzdem Erfolg. Jetzt wartet die Oberflaeche auf dieses Signal."""
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Device not found")
+    return {"confirmed": d.last_seen_at is not None}
 
 
 @router.post("/mint", response_model=DeviceTokenOut)
@@ -1636,6 +1658,13 @@ def pair_poll(
     now = datetime.now(timezone.utc)
     if p is None or _aware(p.expires_at) < now:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pairing nicht gefunden/abgelaufen")
+    if p.device_token is not None:
+        # Abholen = die Uhr hat sich gemeldet: Bestaetigung fuer die Website (pair_confirmed).
+        # Nur beim ersten Mal setzen; danach pflegt current_device den Zeitstempel.
+        d = db.query(models.DeviceToken).filter_by(token=p.device_token).first()
+        if d is not None and d.last_seen_at is None:
+            d.last_seen_at = now
+            db.commit()
     return PairPollOut(device_token=p.device_token)
 
 

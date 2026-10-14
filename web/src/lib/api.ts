@@ -1366,9 +1366,12 @@ export const api = {
     }),
   // Reverse-Pairing: Code von der Uhr hier eingeben.
   pairClaim: (code: string) =>
-    req<{ ok: boolean; label?: string; already?: boolean; platform?: string }>("/api/devices/pair-claim", {
+    req<{ ok: boolean; label?: string; already?: boolean; platform?: string; device_id?: number | null }>("/api/devices/pair-claim", {
       method: "POST", body: JSON.stringify({ code, label: "Garmin" }),
     }),
+  // Hat die Uhr das Token abgeholt? Erst dann gilt sie als verbunden (s. PairWarten.tsx).
+  pairConfirmed: (deviceId: number) =>
+    req<{ confirmed: boolean }>(`/api/devices/pair-confirmed/${deviceId}`),
   uploadFit: async (file: File) => {
     const fd = new FormData();
     fd.append("file", file);

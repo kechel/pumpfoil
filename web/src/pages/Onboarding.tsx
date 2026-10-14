@@ -10,6 +10,7 @@ import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "../components/StoreBadg
 import { openChatOverlay } from "../components/DmWidget";
 import { gearMatches } from "../lib/gearSearch";
 import { useI18n } from "../i18n";
+import { PairWarten } from "../components/PairWarten";
 
 /**
  * Einrichtungs-Assistent fuer neue Konten. NOCH NICHT VERLINKT (Jan, 11.09.2026: „kannst du
@@ -630,11 +631,14 @@ function UhrSchritt({ geraete, setGeraete }: {
   const istUhr = UHREN.some((u) => u.id === wahl);
   const perCode = wahl === "garmin" || wahl === "amazfit";
 
+  const [warteId, setWarteId] = useState<number | null>(null);
   async function einloesen() {
-    setBusy(true); setErr(null); setMsg(null);
+    setBusy(true); setErr(null); setMsg(null); setWarteId(null);
     try {
       const r = await api.pairClaim(code.trim().toUpperCase());
-      setMsg(r.already ? t("account.claimAlready") : t("account.claimOk"));
+      // Erst „verbunden", wenn die Uhr das Token abgeholt hat (PairWarten, Jan 14.10.2026).
+      if (!r.already && r.device_id) setWarteId(r.device_id);
+      else setMsg(r.already ? t("account.claimAlready") : t("account.claimOk"));
       setCode("");
       api.myDevices().then((d) => setGeraete(d.filter((x) => !x.revoked_at))).catch(() => {});
     } catch (e) {
@@ -695,6 +699,7 @@ function UhrSchritt({ geraete, setGeraete }: {
                 {busy ? "…" : t("account.claimBtn")}
               </Button>
             </div>
+            {warteId && <PairWarten key={warteId} deviceId={warteId} />}
             {msg && <p className="mt-3 text-emerald-700 dark:text-emerald-400">{msg}</p>}
             {err && <div className="mt-3"><ErrorBox message={err} /></div>}
           </div>

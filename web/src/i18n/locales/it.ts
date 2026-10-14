@@ -1504,6 +1504,8 @@ const it: Record<string, string> = {
   "sd.optimalLegend": "Ottimale {v} km/h",
   "field.14": "Run durata (live)",
   "account.claimOk": "Orologio collegato! ✓",
+  "account.claimWaiting": "Codice accettato — in attesa della conferma dell'orologio …",
+  "account.claimSlow": "L'orologio non si è ancora fatto sentire. Se il codice resta sull'orologio: chiudi Pumpfoil sull'orologio e riavvialo, con il telefono collegato via Bluetooth. Se l'orologio è ancora collegato a un altro account, rimuovilo prima lì in «I miei orologi», poi richiedi un nuovo codice.",
   "compare.full": "Confronto pieno (max {n})",
   "account.claimBtn": "Collega",
   "field.0": "— vuoto —",

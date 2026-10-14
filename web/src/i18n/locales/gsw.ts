@@ -1262,6 +1262,8 @@ const gsw: Record<string, string> = {
   "account.claimBtn": "Verbinde",
   "account.claimHelp": "Öffne Pumpfoil uf de Uhr und gang dört uf „Verbinde“ — Garmin: MENU halte (Chnopf Mitti-links) → „Yystellige“ → „Verbinde“; Amazfit: vom Startbildschirm nach links wüsche; Wear OS und Apple Watch zeiged d Siite bim erste Start vo sälber. De aazeigt Code (6 Zeiche, Buechstabe & Zahle) da yygää. HUAWEI Watch 5: uf em Startbildschirm „mit pumpfoil.org koppeln“ aatippe.",
   "account.claimOk": "Uhr verbunde! ✓",
+  "account.claimWaiting": "Code aagnoo — wart, bis d Uhr bestätigt …",
+  "account.claimSlow": "D Uhr hät sich no nöd gmäldet. Bliibt de Code uf de Uhr stah: Pumpfoil uf de Uhr beände und neu starte, s Handy derbii per Bluetooth verbunde. Isch d Uhr no mit emne andere Konto verbunde, sie det zerscht under „Mini Uhre“ entferne und denn en neue Code hole.",
   "account.claimPlaceholder": "z. B. VURWGG",
   "account.claimReq": "Wichtig: D Begleit-App vo dinere Uhr mues am Händy offe und mit de Uhr verbunde si (Garmin Connect, Zepp bzw. Wear OS / Apple Watch), und s Händy bruucht Internet — d Uhr gaht übers Händy online. Code i 15 Min yygää; erzügt d Uhr kei Code, App aktualisiere. Usnahm HUAWEI Watch 5: Si ladt sälber ufe, e App am Händy bruuchts nöd.",
   "account.claimBad": "Code ungültig oder abgloffe — Code uf de Uhr prüefe oder dört en neue hole.",
