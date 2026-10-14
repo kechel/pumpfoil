@@ -133,6 +133,9 @@ struct RecordView: View {
     // Neueste im Store freigegebene Version (Server: appmeta._APP_META["apple"]). Das Feld kam schon
     // in der Config an, wurde aber nirgends angezeigt — der Nutzer erfuhr nie von einem Update.
     @State private var storeVersion = ""
+    // Handy-Recorder desselben Kontos (wie Garmin 1.0.93): nur bei laufender Handy-Aufnahme eine Zeile.
+    @State private var phoneRec = 0
+    @State private var phoneRecAgo = 0
     @AppStorage("layoutsPref") private var layoutsPrefRaw = 0   // 0 = auto, 1 = an, 2 = aus
     @State private var colorBy = false
     @State private var alarm = WatchAlarm()
@@ -513,6 +516,33 @@ struct RecordView: View {
             .font(.caption2)
             .foregroundStyle(rec.gpsBereit ? Color.green : Color.orange)
         }
+        phoneRecLine
+    }
+
+    // Handy-Recorder laeuft: NUR dann eine Zeile — fast alle fahren ohne Handy-Aufnahme (Jan).
+    // Alle 90 s nachgefragt, solange die Startseite offen ist (sonst saehe man einen erst nach
+    // der Uhr-App gestarteten Recorder nicht); waehrend der Aufnahme nicht.
+    @ViewBuilder private var phoneRecLine: some View {
+        Group {
+            if phoneRec == 1 {
+                Text(WLoc.t("phone.rec", lang)).font(.caption2).foregroundStyle(Color.red)
+            } else if phoneRec == 2 {
+                Text(WLoc.t("phone.recStale", lang).replacingOccurrences(of: "{n}", with: String(phoneRecAgo)))
+                    .font(.caption2).foregroundStyle(Color.orange)
+            } else {
+                Color.clear.frame(width: 0, height: 0)
+            }
+        }
+        .task(id: rec.isRecording) {
+            if rec.isRecording { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 90 * 1_000_000_000)
+                if Task.isCancelled || rec.isRecording { break }
+                guard Api.deviceToken != nil else { continue }
+                if let pr = try? await Api.liveStatus() { phoneRec = pr.state; phoneRecAgo = pr.ago_min }
+                else { continue }
+            }
+        }
     }
 
     // Standort-Zustand: fehlende Freigabe verhindert die Aufnahme (rot), „nur ungefähr" macht
@@ -817,6 +847,8 @@ struct RecordView: View {
         // fehlt das Paket, bleiben die klassischen 3-Feld-Seiten unveraendert stehen.
         layoutsServerDefault = c.layoutsOn ?? false
         storeVersion = c.latestVersion ?? ""
+        phoneRec = c.phone_rec?.state ?? 0
+        phoneRecAgo = c.phone_rec?.ago_min ?? 0
         onFoilPages = (c.pages?.compactMap { WatchPageRef($0) }) ?? views.map { WatchPageRef.classic($0) }
         let pp: [WatchPageRef] = c.pausePages?.compactMap { WatchPageRef($0) } ?? []
         pausePages = pp.isEmpty ? nil : pp
