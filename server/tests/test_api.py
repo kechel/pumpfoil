@@ -284,6 +284,14 @@ def test_upload_zaehlt_nicht_als_pumpen(client):
     client.post("/api/ingest/session/upl-uuid-001/chunk", headers=uhr,
                 json={"index": 0, "kind": "gps", "encoding": "json", "data": _gps_chunk()})
     assert [w["state"] for w in client.get("/api/devices/live", headers=auth).json()["watches"]] == ["uploaded"]
+    # ... im Zaehler „gerade am Pumpen" zaehlt sie trotzdem mit (Jan): erst App verlassen nimmt sie raus
+    from app.db import SessionLocal
+    from app.api.devices import gerade_aktiv
+    db = SessionLocal(); vorher = gerade_aktiv(db); db.close()
+    assert vorher >= 1
+    client.post("/api/devices/app-closed", headers=uhr)
+    db = SessionLocal(); nachher = gerade_aktiv(db); db.close()
+    assert nachher == vorher - 1
 
 
 def test_like_state_in_detail(client):
