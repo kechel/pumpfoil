@@ -2152,7 +2152,15 @@ def get_session(
     # gleichzeitig die Ergebniszeile anlegen wollten. Die Ursache ist behoben (s. run_analysis),
     # aber ein Weg zurueck muss es geben — sonst kostet der naechste unbekannte Fehler wieder
     # eine Aufnahme. Der Lauf setzt `analyzed` und hoert damit von selbst auf.
-    elif s.user_id == user.id and s.status == "complete":
+    #
+    # ERST NACH EINER RUHEFRIST (14.10.2026): vorher griff das Netz bei JEDEM Abruf einer
+    # `complete`-Session — auch zwei Sekunden nach `/complete`, waehrend dessen finale Analyse
+    # noch lief. Belegt an #16754: `/complete` 23:47:32, Detail-Abruf der App 23:47:34 -> zweite
+    # finale Analyse daneben, bei haengendem Overpass gut eine Minute lang doppelt. Die Apps
+    # fragen alle paar Sekunden ab, das konnte sich stapeln. `updated_at` setzt `/complete`
+    # selbst und jede Analyse; steht es laenger als die Frist still, ist die Analyse tot.
+    elif (s.user_id == user.id and s.status == "complete"
+          and _complete_haengt(s)):
         import logging as _logging
 
         from .ingest import _analyze_in_background
@@ -3907,6 +3915,23 @@ def set_classification(
         _spot_nachziehen(db, s)
     return {"ok": True, "sport_class": s.sport_class, "data_quality": s.data_quality,
             "sport_source": s.sport_source, "reanalyzing": neu_rechnen}
+
+
+# Wie lange eine `complete`-Session unveraendert stehen muss, bevor der Detail-Abruf ihre finale
+# Analyse nachholt. Eine laufende Analyse braucht bei haengendem Overpass bis gut eine Minute
+# (#16753: 95 s); 5 min lassen ihr Luft und halten die Wartezeit fuer den Nutzer klein. Der
+# Aufraeum-Lauf (ingest.HAENGER_RUHE_MIN, 15 min) bleibt der zweite Rueckweg.
+SICHERHEITSNETZ_RUHE_MIN = 5
+
+
+def _complete_haengt(s: models.Session, jetzt: datetime | None = None) -> bool:
+    stand = s.updated_at or s.created_at
+    if stand is None:
+        return True
+    if stand.tzinfo is None:
+        stand = stand.replace(tzinfo=timezone.utc)
+    jetzt = jetzt or datetime.now(timezone.utc)
+    return stand <= jetzt - timedelta(minutes=SICHERHEITSNETZ_RUHE_MIN)
 
 
 def _klassifikation_nachrechnen(session_id: int) -> None:
