@@ -1592,6 +1592,114 @@ def pair_claim(
     return {"ok": True, "label": device.label, "platform": device.platform, "device_id": device.id}
 
 
+# --- Laeuft gerade eine Aufnahme? (Jan, 14.10.2026) ---
+# „Ich hab das Handy schon verpackt / die Uhr unterm Neo — nimmt es auf?" Beantwortet aus den
+# Live-Uploads: Status `live` setzt nur /ingest/.../analyze, und das rufen nur Recorder WAEHREND
+# der Aufnahme (Handy-Recorder mit Live-Upload, Garmin in der Pause). Ein nachtraeglicher Upload
+# einer fertigen Session bleibt `recording` und taucht hier nicht auf.
+LIVE_FENSTER_MIN = 30          # aelter -> gilt nicht mehr als laufend (vergessen/abgebrochen)
+LIVE_AKTIV_S = 180             # juengster Chunk so frisch -> „nimmt gerade auf"
+
+
+def _laufende_aufnahmen(db: Session, user_id: int) -> list[dict]:
+    jetzt = datetime.now(timezone.utc)
+    letzte = (
+        db.query(models.IngestChunk.session_id, func.max(models.IngestChunk.received_at))
+        .join(models.Session, models.Session.id == models.IngestChunk.session_id)
+        .filter(models.Session.user_id == user_id, models.Session.status == "live",
+                models.Session.started_at > jetzt - timedelta(hours=14))
+        .group_by(models.IngestChunk.session_id)
+        .all()
+    )
+    out = []
+    for sid, zuletzt in letzte:
+        if zuletzt is None:
+            continue
+        zuletzt = _aware(zuletzt)
+        alter = (jetzt - zuletzt).total_seconds()
+        if alter > LIVE_FENSTER_MIN * 60:
+            continue
+        s = db.get(models.Session, sid)
+        d = db.get(models.DeviceToken, s.device_id) if s.device_id else None
+        out.append({
+            "session_id": s.id,
+            "placement": s.placement,
+            "device": geraete_label(d.label, d.platform) if d else None,
+            "started_at": _aware(s.started_at).isoformat(),
+            "last_data_at": zuletzt.isoformat(),
+            "last_data_age_s": int(alter),
+            # frisch = Daten kommen laufend; sonst pausiert/Netz weg (Garmin sendet nur in der Pause)
+            "active": alter <= LIVE_AKTIV_S,
+        })
+    out.sort(key=lambda r: r["last_data_age_s"])
+    return out
+
+
+UHR_AKTIV_MIN = 60   # so lange nach der letzten Meldung gilt eine Uhr als „vermutlich am Aufnehmen"
+
+
+def _uhren_status(db: Session, user_id: int) -> list[dict]:
+    """Garmin & Co. senden waehrend der Aufnahme nichts. Der Rest laesst sich trotzdem lesen (Jan,
+    14.10.2026): die Uhr meldet sich beim App-Start (Config-Abruf), in der Pause und beim Upload.
+    Meldung in der letzten Stunde und seitdem KEINE fertig hochgeladene Session -> die App lief
+    zuletzt, vermutlich wird aufgenommen. Wurde danach hochgeladen -> fertig, nimmt nicht auf.
+    Eine Vermutung, keine Messung — die Oberflaeche sagt das auch so."""
+    jetzt = datetime.now(timezone.utc)
+    devs = (db.query(models.DeviceToken)
+            .filter(models.DeviceToken.user_id == user_id, models.DeviceToken.revoked_at.is_(None),
+                    models.DeviceToken.last_seen_at > jetzt - timedelta(minutes=UHR_AKTIV_MIN))
+            .all())
+    out = []
+    for d in devs:
+        if (d.label or "") == "Phone":
+            continue                     # Handy-Recorder: der laeuft ueber _laufende_aufnahmen
+        seen = _aware(d.last_seen_at)
+        letzte = (db.query(models.Session)
+                  .filter(models.Session.device_id == d.id)
+                  .order_by(models.Session.started_at.desc()).first())
+        hochgeladen = False
+        if letzte is not None and letzte.status not in ("recording", "live"):
+            # Abschluss-Zeit ~ juengster Chunk dieser Session
+            zuletzt = (db.query(func.max(models.IngestChunk.received_at))
+                       .filter(models.IngestChunk.session_id == letzte.id).scalar())
+            # die Meldung WAR der Upload (Upload aktualisiert last_seen) -> fertig
+            hochgeladen = zuletzt is not None and _aware(zuletzt) >= seen - timedelta(minutes=2)
+        live = letzte is not None and letzte.status == "live"
+        out.append({
+            "device_id": d.id,
+            "device": geraete_label(d.label, d.platform),
+            "last_seen_at": seen.isoformat(),
+            "last_seen_age_s": int((jetzt - seen).total_seconds()),
+            # uploaded = zuletzt eine fertige Session hochgeladen · paused = Live-Sync aus der Pause ·
+            # probably_recording = App lief zuletzt, seitdem nichts hochgeladen
+            "state": "uploaded" if hochgeladen else ("paused" if live else "probably_recording"),
+        })
+    out.sort(key=lambda r: r["last_seen_age_s"])
+    return out
+
+
+@router.get("/live")
+def meine_laufenden(
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Eigene, gerade laufende Aufnahmen (Website/Apps: „dein Handy nimmt auf, seit …") und der
+    vermutete Zustand der Uhren (s. _uhren_status)."""
+    return {"sessions": _laufende_aufnahmen(db, user.id), "watches": _uhren_status(db, user.id)}
+
+
+@router.get("/live-status")
+def laufende_fuer_geraet(
+    device: models.DeviceToken = Depends(current_device),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Dasselbe fuer ein Geraet mit Device-Token — damit die Uhr fragen kann, ob der Handy-Recorder
+    desselben Kontos laeuft. Die eigene Aufnahme des fragenden Geraets ist nicht dabei."""
+    rows = [r for r in _laufende_aufnahmen(db, device.user_id)
+            if db.get(models.Session, r["session_id"]).device_id != device.id]
+    return {"sessions": rows, "phone_active": any(r["active"] and r["placement"] == "phone" for r in rows)}
+
+
 @router.get("/pair-confirmed/{device_id}")
 def pair_confirmed(
     device_id: int,

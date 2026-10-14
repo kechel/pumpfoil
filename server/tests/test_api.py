@@ -222,6 +222,38 @@ def test_reverse_pairing_revokes_old_token(client):
     assert client.get("/api/devices/config", headers={"X-Device-Token": neu}).status_code == 200
 
 
+def test_live_status(client):
+    # Handy-Recorder laedt waehrend der Aufnahme hoch und ruft /analyze -> Status live ->
+    # /devices/live (Nutzer) und /devices/live-status (andere Uhr desselben Kontos) zeigen ihn.
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "livestatus@b.de", "password": "supersecret"}).json()["access_token"]}
+    phone = {"X-Device-Token": client.post("/api/devices/mint?label=Phone", headers=auth).json()["device_token"]}
+    uhr = {"X-Device-Token": client.post("/api/devices/mint?label=Uhr", headers=auth).json()["device_token"]}
+    from datetime import datetime, timezone
+    uuid = "livestatus-uuid-001"
+    client.post("/api/ingest/session", headers=phone, json={
+        "session_uuid": uuid, "started_at": datetime.now(timezone.utc).isoformat(), "placement": "phone"})
+    client.post(f"/api/ingest/session/{uuid}/chunk", headers=phone,
+                json={"index": 0, "kind": "gps", "encoding": "json", "data": _gps_chunk()})
+    # vor /analyze: noch nicht live (koennte ein nachtraeglicher Upload sein)
+    assert client.get("/api/devices/live", headers=auth).json()["sessions"] == []
+    client.post(f"/api/ingest/session/{uuid}/analyze", headers=phone)
+    rows = client.get("/api/devices/live", headers=auth).json()["sessions"]
+    assert len(rows) == 1 and rows[0]["active"] is True and rows[0]["placement"] == "phone"
+    # Uhr hat sich gemeldet (Config-Abruf beim App-Start), seitdem nichts hochgeladen
+    client.get("/api/devices/config", headers=uhr)
+    w = client.get("/api/devices/live", headers=auth).json()["watches"]
+    assert [x["state"] for x in w] == ["probably_recording"]
+    st = client.get("/api/devices/live-status", headers=uhr).json()
+    assert st["phone_active"] is True
+    # das Handy selbst sieht seine eigene Aufnahme nicht als „anderes Geraet"
+    assert client.get("/api/devices/live-status", headers=phone).json()["sessions"] == []
+    # abgeschlossen -> nicht mehr live
+    client.post(f"/api/ingest/session/{uuid}/complete", headers=phone,
+                json={"ended_at": datetime.now(timezone.utc).isoformat(), "total_chunks": 1})
+    assert client.get("/api/devices/live", headers=auth).json()["sessions"] == []
+
+
 def test_like_state_in_detail(client):
     # get_session muss liked/like_count korrekt liefern (Apps/Web bauen darauf auf).
     auth = {"Authorization": "Bearer " + client.post(
