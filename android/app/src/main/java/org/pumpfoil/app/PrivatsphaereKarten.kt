@@ -126,6 +126,40 @@ fun OrtVerbergenKarte(onSaved: () -> Unit) {
 }
 
 /**
+ * Opt-out „auf der Spot-Karte als gerade aktiv zaehlen" (Web: AktivAufKarteCard in Settings.tsx;
+ * Jan, 14.10.2026). Wirkt nur auf die gruenen Spots; im Gesamtzaehler „N gerade am Pumpen" zaehlt
+ * man weiter mit (verraet niemanden). Fehlt der Wert, gilt er als an — wie settings.DEFAULTS.
+ * Direkt unter „Ort verbergen", wie in der PWA.
+ */
+@Composable
+fun AktivAufKarteKarte(onSaved: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var an by remember { mutableStateOf<Boolean?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        an = try { Api.settings()["show_active_spot"]?.jsonPrimitive?.booleanOrNull != false } catch (_: Exception) { true }
+    }
+    val wert = an ?: return
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("activespot.title"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("activespot.hint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
+            Haken(I18n.t("activespot.switch"), wert, aktiv = !busy) { neu ->
+                busy = true
+                scope.launch {
+                    try {
+                        Api.saveSettings(buildJsonObject { put("show_active_spot", neu) })
+                        an = neu; onSaved()
+                    } catch (_: Exception) {}
+                    busy = false
+                }
+            }
+        }
+    }
+}
+
+/**
  * Gruener Online-Punkt am Profilbild abschaltbar (Web: OnlinePunktCard in Settings.tsx; Jan,
  * 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal default an fuer alle").
  * Dieselbe Art Entscheidung wie „Ort verbergen" — was sehen andere von mir —, deshalb direkt

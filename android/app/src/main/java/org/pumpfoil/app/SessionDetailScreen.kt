@@ -830,6 +830,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // fuer die Tabelle nicht sichtbar. `remember` steht bewusst UNBEDINGT (nicht im `let`), damit
         // die Composition-Struktur stabil bleibt, wenn eine Session noch keinen Track hat.
         val trackForRuns = remember(a?.trackGeojson) { a?.trackGeojson?.let { parseTrack(it) } }
+        // Echte Session-ms je Trackpunkt (wie die PWA, 14.10.2026) — nur fuer die Pulsabfall-Spalten
+        // der Lauf-Tabelle: Auto-Pausen lassen Punkte aus, „Index + 60" ist dann nicht 60 s.
+        // Genommen nur, wenn die Anzahl zur Spur passt; sonst null und die Spalten fehlen.
+        var trackZeiten by remember(s.id) { mutableStateOf<List<Long>?>(null) }
+        LaunchedEffect(s.id, a?.trackGeojson) {
+            trackZeiten = if (a?.trackGeojson == null) null
+                else try { Api.sessionTrackTimes(s.id) } catch (_: Exception) { null }
+        }
+        val zeitenFuerLaeufe = trackZeiten?.takeIf { it.size == (trackForRuns?.points?.size ?: -1) }
         // Track auf OSM-Karte (osmdroid): nur die Foiling-Läufe, gefärbt nach Modus (Speed/Puls/Pump),
         // optional Pump-Marker — wie im Web.
         // Aufnahme OHNE eine einzige Position: sagen, was passiert ist, statt nichts zu zeigen.
@@ -1096,6 +1105,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             if (segList.isNotEmpty() || excluded.isNotEmpty() || powered.isNotEmpty() || kept.isNotEmpty()) RunsTable(
                 segments = segList, selected = selectedRun, sessionId = s.id,
                 hr = trackForRuns?.hr.orEmpty(),
+                zeiten = zeitenFuerLaeufe,
                 excluded = excluded, poweredRuns = powered, keptWindows = kept,
                 canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
                 trimStartMs = s.trimStartMs, pausen = s.pauseWindows.orEmpty(),
@@ -1560,6 +1570,9 @@ private fun RunsTable(
     // Tabelle den Hoechstpuls je Lauf selbst; Server und Reanalyse bleiben unangetastet.
     // (`pulsAntwortBpm` im Segment ist der MITTELWERT ueber den Lauf, nicht das Maximum.)
     hr: List<Int?> = emptyList(),
+    // Echte Session-ms je Trackpunkt (GET …/track-times), gleich lang wie `hr`. Ohne sie keine
+    // Pulsabfall-Spalten: Auto-Pausen lassen Punkte aus, „Index + 60" ist dann nicht 60 s.
+    zeiten: List<Long>? = null,
     excluded: List<List<Long>> = emptyList(),
     // Fremdkraft-Vorschläge der Erkennung v2 (analysis.metrics.fremdkraft_laeufe) + bereits
     // zurückgeholte Fenster (session.fremdkraft_keep). Beides Session-ms.
@@ -1752,6 +1765,29 @@ private fun RunsTable(
             out
         }
     }
+    // Pulsabfall nach dem Lauf (Heart Rate Recovery; Wunsch ThermikDreher, Jan 14.10.2026, wie die
+    // PWA `hrDrop`): Hoechstpuls des Laufs minus Puls 60 bzw. 120 s nach Laufende. null („–"), wenn
+    // dort kein Messwert liegt (±5 s: Auto-Pause, Uhr nicht am Arm, Aufnahme zu Ende) oder der
+    // naechste Lauf vorher beginnt — dann steigt der Puls schon wieder.
+    val chrono = segments.sortedBy { it.iStart }
+    val hrAbfall: (Segment, Int) -> Int? = abfall@{ seg, sek ->
+        val z = zeiten
+        if (z == null || hr.isEmpty() || seg.iEnd < 0 || seg.iEnd >= z.size) return@abfall null
+        val ziel = z[seg.iEnd] + sek * 1000L
+        val naechster = chrono.firstOrNull { it.iStart > seg.iEnd }
+        if (naechster != null && naechster.iStart < z.size && z[naechster.iStart] <= ziel) return@abfall null
+        var best: Int? = null
+        var abst = 5001L
+        var i = seg.iEnd + 1
+        while (i < z.size && z[i] <= ziel + 5000) {
+            val d = kotlin.math.abs(z[i] - ziel)
+            val v = hr.getOrNull(i)
+            if (d < abst && v != null && v > 0) { abst = d; best = v }
+            i++
+        }
+        val top = maxHrImLauf(seg)
+        if (best != null && top != null) top - best else null
+    }
     // Spalte nur zeigen, wenn wenigstens EIN Lauf einen Puls hat — sonst steht eine Spalte voller
     // Striche und nimmt auf dem Handy Platz weg (genauso macht es die PWA mit `hasHr`).
     Card(Modifier.fillMaxWidth()) {
@@ -1764,7 +1800,7 @@ private fun RunsTable(
             // fehlten damit ganz (Jans Meldung 18.08.). Gewichte gehen bei Scroll nicht: der
             // Inhalt ist dann breiter als der Container, und Kopf und Zellen muessen exakt
             // dieselbe Breite haben, sonst laufen sie auseinander.
-            val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, hrWerteImLauf, startedAt, tz,
+            val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, hrWerteImLauf, hrAbfall, startedAt, tz,
                                       trimStartMs, pausen)
             // Sortieren per Tipp auf die Spaltenueberschrift, wie die PWA (Wunsch eines Fahrers,
             // 10.10.2026): erster Tipp aufsteigend, zweiter absteigend; „#" stellt die
@@ -1878,6 +1914,7 @@ private fun laufSpalten(
     wattFuer: ((Double, Double?) -> Int?)?,
     maxHr: (Segment) -> Int?,
     hrWerte: (Segment) -> List<Int>,
+    hrAbfall: (Segment, Int) -> Int?,
     startedAt: String,
     tz: String?,
     trimStartMs: Long?,
@@ -1888,6 +1925,10 @@ private fun laufSpalten(
     fun k(key: String) = I18n.t(key).replace("{win}", win.toString()).replace("{unit}", einheit)
     val hatPump = segments.any { it.avgPumpHz != null && (it.pumps ?: 0) > 0 }
     val zeigeMaxHr = segments.any { maxHr(it) != null }
+    // Wie `hasDrop` in der PWA: nur, wenn wenigstens ein Lauf einen Wert hat.
+    val zeigeAbfall = zeigeMaxHr && segments.any { hrAbfall(it, 60) != null || hrAbfall(it, 120) != null }
+    // „−23 bpm" fuer einen Abfall, „+8 bpm" fuer einen Anstieg (wie die PWA).
+    fun abfall(v: Int?) = if (v == null) "–" else "${if (v > 0) "−" else if (v < 0) "+" else ""}${kotlin.math.abs(v)} bpm"
     val zeigeWatt = wattFuer != null && segments.any { wattFuer(it.avgSpeedMps, it.avgPumpHz) != null }
     fun eine(v: Double?) = if (v == null) "–" else "%.1f".format(v)
     return buildList {
@@ -1929,6 +1970,12 @@ private fun laufSpalten(
                 maxHr(seg)?.let { "$it bpm" } ?: "–"
             })
             add(LaufSpalte("hrEnd", k("sd.colHrEnd"), 62, { hrWerte(it).lastOrNull()?.toDouble() }) { seg -> hrWerte(seg).lastOrNull()?.let { "$it bpm" } ?: "–" })
+        }
+        if (zeigeAbfall) {
+            for (sek in listOf(60, 120)) {
+                add(LaufSpalte("hrDrop$sek", I18n.t("sd.colHrDrop").replace("{s}", sek.toString()), 72,
+                    { hrAbfall(it, sek)?.toDouble() }) { seg -> abfall(hrAbfall(seg, sek)) })
+            }
         }
         add(LaufSpalte("glide", k("sd.colGlide"), 68, { it.longestGlideS }) { seg -> seg.longestGlideS?.let { "%.1f s".format(it) } ?: "–" })
     }

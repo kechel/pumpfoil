@@ -69,6 +69,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -308,6 +309,13 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     ) { pad ->
         val scopeC = rememberCoroutineScope()
         Column(Modifier.padding(pad).fillMaxSize()) {
+            // „Heute N neue Sessions …" direkt unter der Ueberschrift — in der PWA steht der Satz
+            // seit 14.10.2026 neben dem Seitentitel. Hier sitzt der Titel in der TopBar, und neben
+            // ihm ist auf dem Handy kein Platz; also die erste Zeile darunter, ueber volle Breite,
+            // damit er umbrechen darf statt die Knoepfe zu verdraengen.
+            HeuteNeu(mine = scope == Scope.MINE, spot = if (scope == Scope.SPOT) spot else null,
+                     spotId = if (scope == Scope.SPOT) spotIds[spot] else null,
+                     accelOnly = accelOnly, sport = sport, board = brett)
             // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
             UploadProgressCard(onOpen = { onOpen(it, null) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
             // Scope-Umschalter + Accel/alle-Umschalter in EINER umbrechenden Zeile.
@@ -346,8 +354,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 AccelSeg(accelOnly, brett = brett, onBrett = { brett = true }) { brett = false; accel.set(it) }
             }
             }
-            HeuteNeu(mine = scope == Scope.MINE, spot = if (scope == Scope.SPOT) spot else null,
-                     accelOnly = accelOnly, sport = sport, board = brett)
             // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte) — und rechts
             // in derselben Zeile der Datei-Import, damit er keine eigene Zeile mehr kostet
             // (Jan, 18.09.2026). Nur in „Meine": ein Import erzeugt immer eine EIGENE Session,
@@ -365,7 +371,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     }
                     // Sportart gleich daneben: sie gilt fuer jede Ansicht, nicht nur fuer „Meine".
                     // Der Monat zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
-                    SportDropdown(sports, sport) { sel -> sport = sel; month = "" }
+                    // Hoechstens 150 dp, wie die Spot-Auswahl daneben (PWA, 14.10.2026).
+                    SportDropdown(sports, sport, Modifier.widthIn(max = 150.dp)) { sel -> sport = sel; month = "" }
                     if (scope == Scope.MINE) {
                         ImportFileButton({ neueId ->
                             if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
@@ -1092,10 +1099,14 @@ internal fun SportDropdown(sports: List<SportRuns>, selected: String, modifier: 
 private fun SpotDropdown(spots: List<String>, labels: Map<String, String>, selected: String,
                          onSelect: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
-    Box {
+    // Hoechstens 150 dp breit (PWA, Jan 14.10.2026): ein langer Spotname nahm sonst die halbe Zeile
+    // und schob Sportart und Ansicht in die naechste. Der volle Name steht in der Ueberschrift und
+    // aufgeklappt in der Liste.
+    Box(Modifier.widthIn(max = 150.dp)) {
         AssistChip(
             onClick = { open = true },
-            label = { Text(if (selected.isBlank()) I18n.t("all.allSpots") else "📍 $selected", maxLines = 1) },
+            label = { Text(if (selected.isBlank()) I18n.t("all.allSpots") else "📍 $selected", maxLines = 1,
+                           overflow = TextOverflow.Ellipsis) },
             trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
@@ -1205,39 +1216,60 @@ private fun VergleichKnopf(id: Int, aktiv: Boolean) {
 
 
 /**
- * „X new sessions so far today · N currently pumping — Have fun, keep pumping!" wie die PWA
+ * „N new sessions today · N currently pumping — Have fun, keep pumping!" wie die PWA
  * (Sessions.tsx HeuteNeu). Zaehlt mit denselben Regeln wie die Liste darunter; „gerade am Pumpen"
- * gilt fuer ALLE und steht deshalb nur in „Alle" ohne Spot. Bei 0/0 steht nichts da.
+ * gilt fuer ALLE und steht deshalb nur in „Alle" ohne Spot. An einem Spot statt dessen
+ * „jemand gerade am Pumpen" (`pumping_here`, 14.10.2026) — nur ja/nein, vom Server nach der Regel
+ * der gruenen Spots entschieden; dafuer geht die spot_id statt des Namens hin (wie die PWA), sonst
+ * liefert der Server das Feld nicht. Bei 0/0/nein steht nichts da.
+ *
+ * Formatiert wie die Statistikzeile der Community (Jan, 14.10.2026): Fliesstext ruhig, nur die
+ * Zahlen fett/cyan, der §-markierte Teil pulsiert — und dahinter das Motto extra fett/cyan.
  */
 @Composable
-private fun HeuteNeu(mine: Boolean, spot: String?, accelOnly: Boolean, sport: String, board: Boolean) {
+private fun HeuteNeu(mine: Boolean, spot: String?, spotId: Int?, accelOnly: Boolean, sport: String, board: Boolean) {
     var n by remember { mutableStateOf(0) }
     var pumpt by remember { mutableStateOf(0) }
-    LaunchedEffect(mine, spot, accelOnly, sport, board) {
-        n = try { Api.sessionsToday(mine, spot, accelOnly, sport, board) } catch (_: Exception) { 0 }
+    var hier by remember { mutableStateOf(false) }
+    // Mit id, wenn bekannt (der Server erkennt sie und rechnet nur dann `pumping_here`); sonst der
+    // Name wie bisher — die Zahl stimmt so oder so.
+    val spotParam = spotId?.toString() ?: spot
+    LaunchedEffect(mine, spotParam, accelOnly, sport, board) {
+        try {
+            val r = Api.sessionsToday(mine, spotParam, accelOnly, sport, board)
+            n = r.n; hier = r.pumpingHere
+        } catch (_: Exception) { n = 0; hier = false }
     }
     val global = !mine && spot.isNullOrBlank()
     LaunchedEffect(global) {
         pumpt = if (!global) 0 else try { Api.communityStats().pumpingNow } catch (_: Exception) { 0 }
     }
-    if (n == 0 && pumpt == 0) return
-    val takt = androidx.compose.animation.core.rememberInfiniteTransition(label = "pumpt").animateFloat(
-        initialValue = 1f, targetValue = 0.45f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-            androidx.compose.animation.core.tween(1200), androidx.compose.animation.core.RepeatMode.Reverse),
-        label = "puls").value
-    val farbe = MaterialTheme.colorScheme.primary
+    if (n == 0 && pumpt == 0 && !hier) return
+    val primary = MaterialTheme.colorScheme.primary
+    val puls = pumpPulsFarbe(pumpt > 0 || hier)
     val text = androidx.compose.ui.text.buildAnnotatedString {
-        if (n > 0) append(I18n.t(if (n == 1) "sessions.todayOne" else "sessions.todayN").replace("{n}", n.toString()))
-        if (pumpt > 0) {
-            if (n > 0) append(" · ")
-            I18n.t("sessions.pumpingNow").replace("{n}", pumpt.toString()).split("§").forEachIndexed { i, p ->
-                if (i % 2 == 1) withStyle(androidx.compose.ui.text.SpanStyle(color = farbe.copy(alpha = takt))) { append(p) }
+        fun satz(txt: String, pulsiert: Boolean) {
+            txt.split("§").forEachIndexed { i, p ->
+                if (i % 2 == 1) withStyle(androidx.compose.ui.text.SpanStyle(
+                    color = if (pulsiert) puls else primary, fontWeight = FontWeight.Bold)) { append(p) }
                 else append(p)
             }
         }
-        append(" — Have fun, keep pumping!")
+        var teile = 0
+        fun trenner() { if (teile++ > 0) append(" · ") }
+        if (n > 0) {
+            trenner()
+            // „todayOne" traegt die 1 als Ziffer im Text (kein Platzhalter) — die erste 1 hervorheben.
+            satz(if (n == 1) I18n.t("sessions.todayOne").replaceFirst("1", "§1§")
+                 else I18n.t("sessions.todayN").replace("{n}", "§$n§"), false)
+        }
+        if (pumpt > 0) { trenner(); satz(I18n.t("sessions.pumpingNow").replace("{n}", pumpt.toString()), true) }
+        if (hier) { trenner(); satz(I18n.t("sessions.pumpingHere"), true) }
+        append(" — ")
+        withStyle(androidx.compose.ui.text.SpanStyle(color = primary, fontWeight = FontWeight.ExtraBold)) {
+            append("Have fun, keep pumping!")
+        }
     }
-    Text(text, Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
-        style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = farbe)
+    Text(text, Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

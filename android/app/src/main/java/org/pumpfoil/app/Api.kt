@@ -235,8 +235,14 @@ object Api {
         json.decodeFromString(LiveStatusResponse.serializer(), http("GET", "/api/devices/live", null, auth = true))
     }
 
-    /** Neue Sessions seit Mitternacht (lokal), wie /sessions in der PWA („X new sessions so far today"). */
-    suspend fun sessionsToday(mine: Boolean, spot: String?, accelOnly: Boolean, sport: String, board: Boolean): Int = withContext(Dispatchers.IO) {
+    /**
+     * Neue Sessions seit Mitternacht (lokal), wie /sessions in der PWA („X new sessions today").
+     * `pumpingHere` (14.10.2026): an einem Spot entscheidet der Server nach der Regel der gruenen
+     * Spots, ob dort gerade jemand pumpt — nur ja/nein, und nur wenn `spot` eine spot_id ist
+     * (kleine Spots liefern nie `true`).
+     */
+    data class HeuteNeu(val n: Int, val pumpingHere: Boolean)
+    suspend fun sessionsToday(mine: Boolean, spot: String?, accelOnly: Boolean, sport: String, board: Boolean): HeuteNeu = withContext(Dispatchers.IO) {
         val mitternacht = java.util.Calendar.getInstance().apply {
             set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
             set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
@@ -244,7 +250,8 @@ object Api {
         val q = StringBuilder("since_ms=$mitternacht&accel_only=$accelOnly&sport=${java.net.URLEncoder.encode(sport, "UTF-8")}&mine=$mine")
         if (!spot.isNullOrBlank()) q.append("&spot=").append(java.net.URLEncoder.encode(spot, "UTF-8"))
         if (board) q.append("&board=true")
-        org.json.JSONObject(http("GET", "/api/community/sessions-today?$q", null, auth = true)).optInt("n", 0)
+        val o = org.json.JSONObject(http("GET", "/api/community/sessions-today?$q", null, auth = true))
+        HeuteNeu(o.optInt("n", 0), o.optBoolean("pumping_here", false))
     }
 
     suspend fun inProgress(): List<InProgressSession> = withContext(Dispatchers.IO) {
@@ -308,6 +315,17 @@ object Api {
         }
         val text = conn.inputStream.bufferedReader().readText()
         json.decodeFromString(SessionDetail.serializer(), text) to conn.getHeaderField("ETag")
+    }
+
+    /**
+     * ECHTE Session-ms je Punkt der Kartenspur (GET /api/sessions/{id}/track-times, wie
+     * `api.sessionTrackTimes` in der PWA). Gleich lang wie die Koordinaten der Spur — der Aufrufer
+     * prueft die Laenge und nimmt die Zeiten sonst nicht (dann keine Pulsabfall-Spalten).
+     */
+    suspend fun sessionTrackTimes(id: Int): List<Long> = withContext(Dispatchers.IO) {
+        val a = org.json.JSONObject(http("GET", "/api/sessions/$id/track-times", null, auth = true))
+            .optJSONArray("t_ms") ?: return@withContext emptyList()
+        List(a.length()) { a.getLong(it) }
     }
 
     // Carve-Erkennung (nur Anzeige): Grad-Buckets + geglättete 25-Hz-Bögen mit Kurvenlage-g.
@@ -864,6 +882,17 @@ object Api {
     // accelOnly=false wie die PWA (Spots.tsx) — sonst fehlen GPS-only-Spots (z. B. Frankreich).
     // `sport` wie in der PWA (Spots.tsx, 27.09.2026): die Zahl je Spot zaehlt dann nur diese
     // Sportart; "all" ist auch der Serverdefault.
+    /**
+     * Gruene Spots „gerade aktiv" (PWA `api.spotActive`, 14.10.2026; Regeln: server
+     * devices.aktive_spots). `first` = spot_ids, die EINZELN gruen werden duerfen; `second` = kleine
+     * Spots in einer aktiven Gegend — die faerben nur ein Buendel, nie den Spot selbst.
+     */
+    suspend fun spotActive(): Pair<Set<Int>, Set<Int>> = withContext(Dispatchers.IO) {
+        val o = org.json.JSONObject(http("GET", "/api/community/spot-active", null, auth = true))
+        fun ids(k: String): Set<Int> = o.optJSONArray(k)?.let { a -> (0 until a.length()).map { a.getInt(it) }.toSet() } ?: emptySet()
+        ids("spots") to ids("area")
+    }
+
     suspend fun spotMap(accelOnly: Boolean = false, sport: String = "all"): List<SpotMapItem> = withContext(Dispatchers.IO) {
         val sp = java.net.URLEncoder.encode(sport, "UTF-8")
         json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map?accel_only=$accelOnly&sport=$sp", null, auth = true))
