@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, InProgressSession } from "../lib/api";
+import { api, InProgressSession, LiveWatch } from "../lib/api";
 import { WatchIcon, LocationIcon, CheckIcon, UploadIcon, InfoIcon, ChevronIcon } from "./Icons";
 import { useT } from "../i18n";
 
@@ -123,6 +123,9 @@ function UploadRow({
 }) {
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
+  // Handy-Recorder mit Live-Upload (14.10.2026): das ist eine laufende AUFNAHME, kein haengender
+  // Upload — eigene, knappe Zeile statt Fortschrittsbalken und „oeffne die App auf der Uhr".
+  if (s.placement === "phone" && s.status === "live") return <HandyLiveZeile s={s} t={t} eigeneSeite={eigeneSeite} />;
   // „Als abgeschlossen markieren": der Server rechnet final durch (status -> analyzed), danach
   // faellt die Karte von selbst weg. Neu laden, damit die Detailseite die Zahlen zeigt.
   //
@@ -240,6 +243,59 @@ function UploadRow({
         <p className="mt-2 leading-snug text-slate-400">{t("upload.hint")}</p>
       )}
 
+    </div>
+  );
+}
+
+function HandyLiveZeile({ s, t, eigeneSeite }: { s: InProgressSession; t: ReturnType<typeof useT>; eigeneSeite?: boolean }) {
+  const nav = useNavigate();
+  const min = Math.max(0, Math.round((Date.now() - new Date(s.started_at).getTime()) / 60000));
+  const ago = s.last_received_at ? Math.round((Date.now() - new Date(s.last_received_at).getTime()) / 60000) : 0;
+  const frisch = ago <= 3;
+  return (
+    <div
+      onClick={eigeneSeite ? undefined : () => nav(`/sessions/${s.id}`)}
+      className={`flex items-center gap-3 rounded-xl border border-cyan-500/40 bg-cyan-500/5 dark:bg-cyan-400/10 p-3 ${eigeneSeite ? "" : "cursor-pointer hover:border-cyan-500/70"}`}
+    >
+      <span className="relative flex h-3 w-3 shrink-0">
+        {frisch && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/60" />}
+        <span className={`relative inline-flex h-3 w-3 rounded-full ${frisch ? "bg-red-500" : "bg-amber-500"}`} />
+      </span>
+      <span className="min-w-0 flex-1 text-sm font-medium text-slate-100">
+        {frisch ? t("live.phoneActive", { min: String(min) }) : t("live.phoneStale", { ago: String(ago) })}
+      </span>
+      {!eigeneSeite && <ChevronIcon className="h-4 w-4 shrink-0 -rotate-90 text-slate-400" />}
+    </div>
+  );
+}
+
+/**
+ * Uhren, die waehrend der Aufnahme schweigen (Garmin & Co.): „App lief zuletzt vor X min, seitdem
+ * nichts hochgeladen — nimmt vermutlich auf" (Jans Regel, 14.10.2026; Server: devices._uhren_status).
+ * Uhren in der Pause stehen schon als Live-Upload in der Karte oben und fehlen hier.
+ */
+export function UhrenLiveStatus() {
+  const t = useT();
+  const [uhren, setUhren] = useState<LiveWatch[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const hol = () => api.liveStatus().then((r) => { if (alive) setUhren(r.watches.filter((w) => w.state === "probably_recording")); }).catch(() => {});
+    hol();
+    const id = setInterval(hol, 60_000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
+  if (uhren.length === 0) return null;
+  return (
+    <div className="mb-4 space-y-2">
+      {uhren.map((w) => (
+        <div key={w.device_id} className="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+          <div className="flex items-center gap-2 text-sm text-slate-200">
+            <WatchIcon className="h-4 w-4 shrink-0 text-brand-400" />
+            <span>{t("live.watchProbably", { device: w.device, ago: String(Math.round(w.last_seen_age_s / 60)) })}</span>
+          </div>
+          <p className="mt-1 text-sm text-slate-400">{t("live.guessHint")}</p>
+        </div>
+      ))}
     </div>
   );
 }

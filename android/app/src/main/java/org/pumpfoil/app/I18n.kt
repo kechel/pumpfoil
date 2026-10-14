@@ -172,6 +172,9 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "tech.gHeave" to row("Hub wird am Handy gemessen – nur bei gleicher Handy-Position vergleichbar.", "Hub wird am Handy gmässe – nur bi glicher Handy-Position verglichbar.", "Hub wird am Handy gmessen – nur bei gleicher Handy-Position vergleichbar.", "Heave is measured at the phone – only comparable with the phone in the same spot.", "Le heave est mesuré au téléphone – comparable seulement avec le téléphone au même endroit.", "L'escursione è misurata al telefono – confrontabile solo con il telefono nello stesso punto.", "La oscilación vertical se mide en el móvil – solo comparable con el móvil en el mismo sitio."),
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026.
     "account.claimBad" to row("Code ungültig oder abgelaufen — Code auf der Uhr prüfen oder dort einen neuen holen.", "Code ungültig oder abgloffe — Code uf de Uhr prüefe oder dört en neue hole.", "Code ungültig oder abgelaufen — Code auf der Uhr prüfen oder dort einen neuen holen.", "Code invalid or expired — check the code on the watch, or get a new one there.", "Code invalide ou expiré — vérifie le code sur la montre ou demandes-en un nouveau.", "Codice non valido o scaduto: controlla il codice sull'orologio o generane uno nuovo.", "Código no válido o caducado: revisa el código en el reloj o pide uno nuevo allí."),
+    // Handy-Recorder: Live-Upload (14.10.2026)
+    "profile.phoneLive" to row("Live hochladen", "Live uelade", "Live hochladen", "Upload live", "Envoi en direct", "Carica in diretta", "Subir en directo"),
+    "profile.phoneLiveSub" to row("Lädt schon während der Aufnahme hoch, solange das Handy Netz hat. So siehst du auf einem anderen Gerät, ob und was es aufnimmt, und deine Uhr kann es abfragen. Kostet rund 5 MB mobile Daten pro Stunde.", "Ladt scho während de Ufnahm ue, solang s Handy Netz hät. So gsehsch uf emne andere Gerät, öb und was es ufnimmt, und dini Uhr chas abfröge. Choschtet öppe 5 MB mobili Date pro Stund.", "Lädt schon während der Aufnahme hoch, solange das Handy Netz hat. So siehst du auf einem anderen Gerät, ob und was es aufnimmt, und deine Uhr kann es abfragen. Kostet rund 5 MB mobile Daten pro Stunde.", "Uploads while you're still recording, whenever the phone has signal. That way you can see on another device whether and what it's recording, and your watch can check. Uses about 5 MB of mobile data per hour.", "Envoie les données pendant l'enregistrement, tant que le téléphone a du réseau. Tu vois ainsi sur un autre appareil s'il enregistre et quoi, et ta montre peut le vérifier. Consomme environ 5 Mo de données mobiles par heure.", "Carica i dati già durante la registrazione, finché il telefono ha rete. Così vedi da un altro dispositivo se e cosa sta registrando, e il tuo orologio può controllarlo. Consuma circa 5 MB di dati mobili all'ora.", "Sube los datos ya durante la grabación, mientras el móvil tenga cobertura. Así ves desde otro dispositivo si está grabando y qué, y tu reloj puede consultarlo. Gasta unos 5 MB de datos móviles por hora."),
     "nav.changelog" to row("Neuerungen", "Neuigkeite", "Neuerungen", "Changelog", "Nouveautés", "Novità", "Novedades"),
     "changelog.details" to row("Details ({n})", "Details ({n})", "Details ({n})", "Details ({n})", "Détails ({n})", "Dettagli ({n})", "Detalles ({n})"),
     "common.loadFailed" to row("Konnte nicht geladen werden.", "Het nöd chönne glade werde.", "Hot net gladen werdn kenna.", "Could not be loaded.", "Impossible de charger.", "Impossibile caricare.", "No se pudo cargar."),
@@ -1557,6 +1560,9 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (fi)
+    "profile.phoneLive" to "Lähetä livenä",
+    "profile.phoneLiveSub" to "Lähettää tiedot jo tallennuksen aikana, kun puhelimella on verkko. Näet toiselta laitteelta, tallentaako se ja mitä, ja kellosi voi tarkistaa sen. Kuluttaa noin 5 Mt mobiilidataa tunnissa.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (fi)
     "account.claimBad" to "Koodi on virheellinen tai vanhentunut — tarkista koodi kellosta tai hae sieltä uusi.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (fi)
@@ -2720,6 +2726,9 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (nl)
+    "profile.phoneLive" to "Live uploaden",
+    "profile.phoneLiveSub" to "Uploadt al tijdens de opname, zolang de telefoon bereik heeft. Zo zie je op een ander apparaat of en wat hij opneemt, en je horloge kan het opvragen. Kost ongeveer 5 MB mobiele data per uur.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (nl)
     "account.claimBad" to "Code ongeldig of verlopen — controleer de code op het horloge of vraag daar een nieuwe aan.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (nl)
@@ -3882,6 +3891,9 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (cs)
+    "profile.phoneLive" to "Nahrávat živě",
+    "profile.phoneLiveSub" to "Nahrává data už během záznamu, dokud má telefon signál. Na jiném zařízení tak uvidíš, jestli a co nahrává, a tvoje hodinky to můžou zjistit. Spotřebuje asi 5 MB mobilních dat za hodinu.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (cs)
     "account.claimBad" to "Kód je neplatný nebo vypršel — zkontroluj kód na hodinkách, nebo si tam vyžádej nový.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (cs)

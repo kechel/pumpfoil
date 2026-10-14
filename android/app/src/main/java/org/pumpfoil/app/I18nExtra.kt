@@ -7,6 +7,9 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (pt)
+    "profile.phoneLive" to "Enviar ao vivo",
+    "profile.phoneLiveSub" to "Envia os dados já durante a gravação, enquanto o celular tiver sinal. Assim você vê em outro aparelho se e o que ele está gravando, e o seu relógio pode consultar. Gasta cerca de 5 MB de dados móveis por hora.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (pt)
     "account.claimBad" to "Código inválido ou expirado — confira o código no relógio ou gere um novo lá.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (pt)
@@ -1178,6 +1181,9 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (ja)
+    "profile.phoneLive" to "ライブアップロード",
+    "profile.phoneLiveSub" to "電波がある間は記録中からアップロードします。別の端末から記録中かどうか・何を記録しているかを確認でき、ウォッチからも問い合わせられます。モバイルデータを1時間あたり約5 MB使用します。",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (ja)
     "account.claimBad" to "コードが無効か期限切れです。ウォッチのコードを確認するか、ウォッチで新しいコードを表示してください。",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (ja)
@@ -2349,6 +2355,9 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (zh)
+    "profile.phoneLive" to "实时上传",
+    "profile.phoneLiveSub" to "只要手机有网络，就在记录过程中上传数据。这样你可以在其他设备上看到它是否在记录、记录了什么，手表也能查询。每小时约消耗 5 MB 移动数据。",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (zh)
     "account.claimBad" to "配对码无效或已过期 —— 请核对手表上的配对码，或在手表上重新获取。",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (zh)
@@ -3520,6 +3529,9 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (ru)
+    "profile.phoneLive" to "Загружать в реальном времени",
+    "profile.phoneLiveSub" to "Загружает данные уже во время записи, пока у телефона есть сеть. Так на другом устройстве видно, идёт ли запись и что записывается, а часы могут это проверить. Расходует около 5 МБ мобильного трафика в час.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (ru)
     "account.claimBad" to "Код недействителен или устарел — проверьте код на часах или получите там новый.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (ru)
@@ -4691,6 +4703,9 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (id)
+    "profile.phoneLive" to "Unggah langsung",
+    "profile.phoneLiveSub" to "Mengunggah data sudah selama perekaman, selama ponsel ada sinyal. Jadi kamu bisa melihat di perangkat lain apakah dan apa yang sedang direkam, dan jammu bisa mengeceknya. Memakai sekitar 5 MB data seluler per jam.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (id)
     "account.claimBad" to "Kode tidak valid atau kedaluwarsa — periksa kode di jam, atau minta kode baru di sana.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (id)
@@ -5865,6 +5880,9 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (nb)
+    "profile.phoneLive" to "Last opp direkte",
+    "profile.phoneLiveSub" to "Laster opp allerede mens du tar opp, så lenge telefonen har dekning. Da ser du på en annen enhet om og hva den tar opp, og klokka di kan sjekke det. Bruker rundt 5 MB mobildata i timen.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (nb)
     "account.claimBad" to "Koden er ugyldig eller utløpt — sjekk koden på klokka, eller hent en ny der.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (nb)
@@ -7076,6 +7094,9 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (pl)
+    "profile.phoneLive" to "Wysyłaj na żywo",
+    "profile.phoneLiveSub" to "Wysyła dane już podczas nagrywania, dopóki telefon ma zasięg. Dzięki temu na innym urządzeniu widzisz, czy i co nagrywa, a zegarek może to sprawdzić. Zużywa około 5 MB danych komórkowych na godzinę.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (pl)
     "account.claimBad" to "Kod jest nieprawidłowy lub wygasł — sprawdź kod na zegarku albo wygeneruj tam nowy.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (pl)
@@ -8289,6 +8310,9 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Handy-Recorder: Live-Upload (14.10.2026) (pt-PT)
+    "profile.phoneLive" to "Enviar em direto",
+    "profile.phoneLiveSub" to "Envia os dados já durante a gravação, enquanto o telemóvel tiver rede. Assim vês noutro dispositivo se e o que está a gravar, e o teu relógio pode consultar. Gasta cerca de 5 MB de dados móveis por hora.",
     // Code eingeben: lesbarer Fehler statt Serverfehler (400) — aus den Web-Sprachdateien, 13.10.2026. (pt-PT)
     "account.claimBad" to "Código inválido ou expirado — confirma o código no relógio ou pede lá um novo.",
     // Lage je Lauf mit Phasen + Korrektur-Umschalter — aus den Web-Sprachdateien, 13.10.2026. (pt-PT)

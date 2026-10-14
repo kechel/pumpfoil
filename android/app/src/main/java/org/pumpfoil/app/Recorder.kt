@@ -206,8 +206,8 @@ object Recorder {
 
     private var uuid = ""
     private var startMs = 0L
-    private var chunkIndex = 0
-    private var running = false
+    @Volatile private var chunkIndex = 0
+    @Volatile private var running = false
     private var appCtx: Context? = null
     private var draining = false
 
@@ -265,6 +265,63 @@ object Recorder {
         _state.value = State(recording = true, status = "recording",
             pendingCount = RecStore.pendingCount(ctx))
         scope.launch { flushLoop() }
+        val sid = uuid
+        scope.launch { liveLoop(ctx.applicationContext, sid) }
+    }
+
+    // --- Live-Upload waehrend der Aufnahme (Jan, 14.10.2026) ---
+    // Solange Netz da ist, gehen die fertig geschriebenen Chunks schon waehrend der Aufnahme raus,
+    // und alle paar Minuten rechnet der Server zwischendurch aus (`/analyze` -> Status `live`).
+    // Damit sieht man auf einem anderen Geraet, was das verpackte Handy gerade macht, und die Uhr
+    // kann fragen, ob der Handy-Recorder laeuft (/devices/live-status).
+    // Bewusst nebensaechlich: jeder Fehler wird geschluckt, die Dateien bleiben liegen und der
+    // normale Upload nach dem Stopp schickt ueber `received_chunks` nur noch, was fehlt.
+    // Abschaltbar im Profil (`phone_live_upload`, Standard an).
+    private const val LIVE_INTERVAL_MS = 30_000L
+    private const val LIVE_ANALYSE_MS = 120_000L
+
+    private suspend fun liveLoop(ctx: Context, sid: String) {
+        val prefs = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+        val gesendet = HashSet<Int>()
+        var angemeldet = false
+        var letzteAnalyse = 0L
+        while (running && uuid == sid) {
+            delay(LIVE_INTERVAL_MS)
+            if (!running || uuid != sid) break
+            if (!prefs.getBoolean("phone_live_upload", true)) continue
+            try {
+                if (Ingest.ensureToken(ctx) == null) continue
+                val dir = RecStore.dir(ctx, sid)
+                if (!angemeldet) {
+                    val meta = RecStore.readJson(java.io.File(dir, "meta.json")) ?: continue
+                    val res = Ingest.startSession(meta)   // ohne expected_chunks: Aufnahme laeuft noch
+                    res.optJSONArray("received_chunks")?.let { a ->
+                        for (i in 0 until a.length()) gesendet.add(a.getInt(i))
+                    }
+                    angemeldet = true
+                }
+                // Nur Chunks unter dem aktuellen Zaehler: writeChunk schreibt die Datei VOR dem
+                // Hochzaehlen, alles darunter ist also vollstaendig auf der Platte.
+                val bis = chunkIndex
+                var neu = 0
+                for (f in RecStore.chunkFiles(dir)) {
+                    if (!running || uuid != sid) break
+                    val idx = f.name.removePrefix("chunk-").removeSuffix(".json").toIntOrNull() ?: continue
+                    if (idx >= bis || idx in gesendet) continue
+                    val chunk = RecStore.readJson(f) ?: continue
+                    Ingest.uploadChunk(sid, chunk)
+                    gesendet.add(idx); neu++
+                }
+                val jetzt = System.currentTimeMillis()
+                if (neu > 0 && running && jetzt - letzteAnalyse >= LIVE_ANALYSE_MS) {
+                    Ingest.analyze(sid)
+                    letzteAnalyse = jetzt
+                }
+            } catch (e: Exception) {
+                // offline/Server weg: naechste Runde nochmal; 401 klaert der Upload nach dem Stopp
+                android.util.Log.i("Recorder", "live upload: ${e.message}")
+            }
+        }
     }
 
     fun stop() {

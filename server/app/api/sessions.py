@@ -1034,6 +1034,8 @@ def list_in_progress(
             "tz": tz_name(s.place_lat, s.place_lon),
             "status": s.status,
             "device_label": lbl.split("/")[0].strip() if lbl else None,
+            # Handy-Recorder mit Live-Upload: die Karte sagt dann „nimmt auf" statt „Upload haengt"
+            "placement": s.placement,
             # ALLE Kanaele, auch Gyro: `expected_chunks` kommt vom Client und zaehlt einen
             # gemeinsamen Chunk-Index ueber alle Kanaele hoch. Ohne das Gyro hier stuende der
             # Fortschritt bei einer Handy-Aufnahme mit Kreisel dauerhaft unter 100 %.
