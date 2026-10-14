@@ -551,6 +551,44 @@ def test_zuordnung_antwortet_sofort_und_rechnet_im_hintergrund(client, monkeypat
     assert r.json()["reanalyzing"] is False and gerufen == [sid]
 
 
+def test_sicherheitsnetz_complete_erst_nach_ruhefrist(client, monkeypatch):
+    """14.10.2026 (#16754): der Detail-Abruf holte die finale Analyse einer `complete`-Session
+    sofort nach — auch 2 s nach `/complete`, neben der noch laufenden. Jetzt erst, wenn die
+    Session SICHERHEITSNETZ_RUHE_MIN unveraendert steht."""
+    from datetime import datetime, timedelta, timezone
+    from app import models
+    from app.api import ingest as api_ingest
+    from app.api import sessions as api_sessions
+    from app.db import SessionLocal
+
+    r = client.post("/api/auth/register", json={"email": "netz@b.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post("/api/devices/pair", json={"code": code}).json()["device_token"]}
+    client.post("/api/ingest/session", headers=dev,
+                json={"session_uuid": "netz-uuid", "started_at": "2026-06-20T09:00:00Z"})
+    sid = client.post("/api/ingest/session/netz-uuid/complete", headers=dev,
+                      json={"ended_at": "2026-06-20T09:02:00Z", "total_chunks": 0}).json()["session_id"]
+
+    gerufen = []
+    monkeypatch.setattr(api_ingest, "_analyze_in_background", lambda *a, **k: gerufen.append(a))
+
+    def stand(vor_min):
+        db = SessionLocal()
+        s = db.get(models.Session, sid)
+        s.status = "complete"
+        s.updated_at = datetime.now(timezone.utc) - timedelta(minutes=vor_min)
+        db.commit(); db.close()
+
+    stand(0)                                            # /complete gerade eben
+    assert client.get(f"/api/sessions/{sid}", headers=auth).status_code == 200
+    assert gerufen == []
+
+    stand(api_sessions.SICHERHEITSNETZ_RUHE_MIN + 1)    # steht still -> Analyse ist tot
+    assert client.get(f"/api/sessions/{sid}", headers=auth).status_code == 200
+    assert gerufen == [(sid, True)]
+
+
 def test_gruene_spots_schuetzen_kleine_spots(client):
     """Spot-Karte (Jan, 14.10.2026): ein Spot wird nur einzeln gruen, wenn dort >= 4 Fahrer waren;
     ein kleiner Spot meldet sich nur ueber eine Kachel mit > 5 Fahrern; wer im Profil
