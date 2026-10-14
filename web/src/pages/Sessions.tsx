@@ -368,7 +368,9 @@ export default function Sessions() {
         <select
           value={spot}
           onChange={(e) => setScope("all", e.target.value)}
-          className={`${SELECT_SCHRUMPFT} rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100`}
+          // Hoechstens 150 px breit (Jan, 14.10.2026): sonst nimmt die Spot-Auswahl die halbe Zeile
+          // ein; aufgeklappt zeigt der Browser die Namen trotzdem in voller Laenge.
+          className={`${SELECT_SCHRUMPFT} max-w-[150px] rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100`}
         >
           <option value="">{t("all.allSpots")}</option>
           {(() => {
