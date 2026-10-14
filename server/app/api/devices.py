@@ -1698,8 +1698,10 @@ def _uhren_status(db: Session, user_id: int) -> list[dict]:
 
 def gerade_aktiv(db: Session) -> int:
     """Wie viele Nutzer pumpen gerade vermutlich? (Jan, 14.10.2026: Zusatz in der Statistikzeile.)
-    Dieselbe Regel wie fuer die eigenen Geraete: Handy laedt live hoch, oder eine Uhr hat sich in der
-    letzten Stunde gemeldet und seitdem weder fertig hochgeladen noch die App verlassen."""
+    Handy laedt live hoch, ODER eine Uhr hat sich in der letzten Stunde gemeldet und die App wurde
+    seitdem nicht verlassen. Ein Upload zaehlt AUSDRUECKLICH mit (Jan: „danach lande ich ja auch im
+    Start-Screen, erst wenn ich die App verlasse oder eine Stunde um ist runterziehen entspricht eher
+    der Realitaet") — anders als die eigene Uhr-Karte, die nach einem Upload „fertig" zeigt."""
     jetzt = datetime.now(timezone.utc)
     kandidaten = {u for (u,) in db.query(models.DeviceToken.user_id).filter(
         models.DeviceToken.revoked_at.is_(None),
@@ -1709,7 +1711,7 @@ def gerade_aktiv(db: Session) -> int:
         models.Session.started_at > jetzt - timedelta(hours=14)).distinct()}
     n = 0
     for u in kandidaten:
-        if _laufende_aufnahmen(db, u) or any(w["state"] != "uploaded" for w in _uhren_status(db, u)):
+        if _laufende_aufnahmen(db, u) or _uhren_status(db, u):
             n += 1
     return n
 
