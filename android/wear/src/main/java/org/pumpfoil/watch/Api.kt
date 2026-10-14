@@ -50,6 +50,9 @@ object Api {
         val body = JSONObject()
             .put("platform", "wear")
             .put("label", android.os.Build.MODEL?.takeIf { it.isNotBlank() } ?: "Wear OS")
+        // Schon verbunden (Konto-Wechsel per Code)? Bisheriges Token mitschicken — der Server
+        // widerruft es, sobald diese Uhr das neue abholt (wie Garmin 1.0.93, 14.10.2026).
+        deviceToken?.takeIf { it.isNotBlank() }?.let { body.put("old_token", it) }
         val res = post("/api/devices/pair-init", body, auth = false)
         res.getString("code") to res.getString("claim_token")
     }
@@ -89,6 +92,12 @@ object Api {
         val crash = if (laufAbgebrochen) "&crash=3" else ""
         get("/api/devices/config?p=wear$v$lay$crash")
     }
+
+    /** Laeuft der Handy-Recorder desselben Kontos? -> {"phone_rec": {"state": 0|1|2, "ago_min": n}} */
+    suspend fun liveStatus(): JSONObject = withContext(Dispatchers.IO) { get("/api/devices/live-status") }
+
+    /** App ohne laufende Aufnahme verlassen -> der Server zaehlt die Uhr nicht mehr als „am Pumpen". */
+    suspend fun appClosed() = withContext(Dispatchers.IO) { post("/api/devices/app-closed", JSONObject()) }
 
     // Letzte erfolgreiche Config cachen — damit die Uhr offline mit den zuletzt
     // bekannten Einstellungen sofort startklar ist.
