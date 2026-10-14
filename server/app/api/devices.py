@@ -1700,14 +1700,9 @@ ZAEHLER_FENSTER_MIN = 120   # Startseite/Pause/Upload: so lange zaehlt eine Uhr 
 ZAEHLER_NACH_ZU_MIN = 30    # nach „App verlassen" noch so lange (einpacken, heimfahren)
 
 
-def gerade_aktiv(db: Session) -> int:
-    """Wie viele Nutzer pumpen gerade vermutlich? (Jan, 14.10.2026: Zusatz in Statistikzeile + Sessions.)
-
-    Gezaehlt wird ein Nutzer, wenn sein Handy-Recorder live hochlaedt ODER sich eine seiner Uhren in
-    den letzten 2 Stunden gemeldet hat (App-Start, Pause, Upload — alles zaehlt) und die App nicht
-    vor mehr als 30 Minuten verlassen wurde. 2 h, weil Garmin waehrend der Aufnahme nichts sendet und
-    41 % der Garmin-Sessions laenger als 1 h sind (90 % unter 115 min, Messung 14.10.); 30 min nach
-    dem Verlassen fuer „bin noch am See, packe ein". Eine Schaetzung, keine Messung."""
+def _aktive_nutzer(db: Session) -> set[int]:
+    """Die Nutzer hinter „N gerade am Pumpen" (s. `gerade_aktiv`) — auch Grundlage der gruenen
+    Spots auf der Karte (`aktive_spots`)."""
     jetzt = datetime.now(timezone.utc)
     nutzer: set[int] = set()
     for d in (db.query(models.DeviceToken)
@@ -1726,7 +1721,148 @@ def gerade_aktiv(db: Session) -> int:
             models.Session.started_at > jetzt - timedelta(hours=14)).distinct():
         if u not in nutzer and _laufende_aufnahmen(db, u):
             nutzer.add(u)
-    return len(nutzer)
+    return nutzer
+
+
+def gerade_aktiv(db: Session) -> int:
+    """Wie viele Nutzer pumpen gerade vermutlich? (Jan, 14.10.2026: Zusatz in Statistikzeile + Sessions.)
+
+    Gezaehlt wird ein Nutzer, wenn sein Handy-Recorder live hochlaedt ODER sich eine seiner Uhren in
+    den letzten 2 Stunden gemeldet hat (App-Start, Pause, Upload — alles zaehlt) und die App nicht
+    vor mehr als 30 Minuten verlassen wurde. 2 h, weil Garmin waehrend der Aufnahme nichts sendet und
+    41 % der Garmin-Sessions laenger als 1 h sind (90 % unter 115 min, Messung 14.10.); 30 min nach
+    dem Verlassen fuer „bin noch am See, packe ein". Eine Schaetzung, keine Messung.
+    Der Profil-Schalter „auf der Spot-Karte zeigen" wirkt hier NICHT (Jan: „im Gesamtzaehler dann
+    trotzdem, nur das was jemanden zuordnen koennte nicht")."""
+    return len(_aktive_nutzer(db))
+
+
+# --- Gruene Spots auf der Karte (Jan, 14.10.2026) ---------------------------------------------
+# „Gerade aktiv" an einem Spot zu zeigen verraet bei kleinen Spots, WER am Wasser ist (und damit
+# nicht zu Hause): 375 von 501 Spots hatten in 90 Tagen genau EINEN Fahrer. Darum zwei Stufen:
+#   * Ein Spot wird einzeln gruen, wenn dort in 180 Tagen mind. SPOT_MIN_FAHRER verschiedene
+#     Leute gefahren sind (damals 20 Spots, gut ein Viertel aller Sessions).
+#   * Kleinere Spots melden nur ueber eine feste Kachel (~50 km): sie wird aktiv, wenn ihre
+#     kleinen Spots zusammen MEHR als KACHEL_MIN_FAHRER Fahrer in 90 Tagen hatten. Die Karte
+#     faerbt damit nur BUENDEL, nie einen kleinen Spot selbst. Fest an Kacheln statt an den
+#     Buendeln der Karte, weil die im Browser je Zoom entstehen: ein Buendel-Schwellwert liesse
+#     sich durch Hineinzoomen auf den einen kleinen Spot zurueckrechnen.
+# Wer im Profil „auf der Spot-Karte zeigen" abschaltet, faellt hier ganz heraus.
+# Welcher Spot? Der Spot der laufenden Handy-Aufnahme, sonst der Spot der letzten Session
+# (traf im Bestand 79 %: 2244 von 2837 Sessions lagen am selben Spot wie die vorige).
+SPOT_MIN_FAHRER = 4
+SPOT_FENSTER_TAGE = 180
+KACHEL_MIN_FAHRER = 5          # „mehr als 5"
+KACHEL_FENSTER_TAGE = 90
+KACHEL_LAT = 0.45              # ~50 km
+KACHEL_LON = 0.65              # ~50 km auf 45° N
+_AKTIV_CACHE: tuple[float, dict] | None = None
+
+
+def _kachel(lat: float, lon: float) -> tuple[int, int]:
+    import math
+    return (math.floor(lat / KACHEL_LAT), math.floor(lon / KACHEL_LON))
+
+
+def _zeigt_sich(user: models.User | None) -> bool:
+    if user is None:
+        return False
+    try:
+        return bool((json.loads(user.settings_json or "{}") or {}).get("show_active_spot", True))
+    except ValueError:
+        return True
+
+
+def _spot_des_nutzers(db: Session, uid: int, spots: dict[int, models.Spot]) -> int | None:
+    """Laufende Handy-Aufnahme -> deren Spot (oder der naechste Spot zur letzten Position, < 5 km);
+    sonst der Spot der letzten Session."""
+    from .. import storage
+    live = (db.query(models.Session)
+            .filter(models.Session.user_id == uid, models.Session.status == "live",
+                    models.Session.deleted.isnot(True),
+                    models.Session.started_at > datetime.now(timezone.utc) - timedelta(hours=14))
+            .order_by(models.Session.started_at.desc()).first())
+    if live is not None and _laufende_aufnahmen(db, uid):
+        if live.spot_id in spots:
+            return live.spot_id
+        try:
+            gps = storage.load_gps(live.session_uuid) or []
+        except Exception:   # noqa: BLE001 - die Karte darf daran nie scheitern
+            gps = []
+        if gps:
+            import math
+            la, lo = float(gps[-1][1]), float(gps[-1][2])
+            best, dist = None, 5.0
+            for sp in spots.values():
+                d = math.hypot((sp.lat - la) * 111.0, (sp.lon - lo) * 111.0 * math.cos(math.radians(la)))
+                if d < dist:
+                    best, dist = sp.id, d
+            if best is not None:
+                return best
+    letzte = (db.query(models.Session.spot_id)
+              .filter(models.Session.user_id == uid, models.Session.deleted.isnot(True),
+                      models.Session.spot_id.isnot(None))
+              .order_by(models.Session.started_at.desc()).first())
+    sid = letzte[0] if letzte else None
+    for _ in range(5):   # zusammengelegte Spots bis zum Ziel verfolgen
+        if sid is None or sid in spots:
+            break
+        sp = db.get(models.Spot, sid)
+        sid = sp.merged_into if sp is not None else None
+    return sid if sid in spots else None
+
+
+def aktive_spots(db: Session) -> dict:
+    """{"spots": [ids einzeln gruener Spots], "area": [ids kleiner Spots in aktiven Kacheln]}.
+    60 s im Speicher — die Karte fragt alle 2 Minuten, die Abfrage liest alle Spots."""
+    import time
+    global _AKTIV_CACHE
+    if _AKTIV_CACHE is not None and time.monotonic() - _AKTIV_CACHE[0] < 60:
+        return _AKTIV_CACHE[1]
+    jetzt = datetime.now(timezone.utc)
+    spots = {sp.id: sp for sp in db.query(models.Spot)
+             .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
+                     models.Spot.lon.isnot(None)).all()}
+
+    def fahrer(tage: int) -> dict[int, set[int]]:
+        out: dict[int, set[int]] = {}
+        for sid, uid in (db.query(models.Session.spot_id, models.Session.user_id)
+                         .filter(models.Session.deleted.isnot(True), models.Session.spot_id.isnot(None),
+                                 models.Session.started_at >= jetzt - timedelta(days=tage))
+                         .distinct().all()):
+            out.setdefault(sid, set()).add(uid)
+        return out
+
+    gross = {sid for sid, u in fahrer(SPOT_FENSTER_TAGE).items()
+             if len(u) >= SPOT_MIN_FAHRER and sid in spots}
+    kachel_fahrer: dict[tuple[int, int], set[int]] = {}
+    kachel_spots: dict[tuple[int, int], list[int]] = {}
+    for sid, u in fahrer(KACHEL_FENSTER_TAGE).items():
+        if sid in spots and sid not in gross:
+            k = _kachel(spots[sid].lat, spots[sid].lon)
+            kachel_fahrer.setdefault(k, set()).update(u)
+    for sid, sp in spots.items():
+        if sid not in gross:
+            kachel_spots.setdefault(_kachel(sp.lat, sp.lon), []).append(sid)
+
+    gruen: set[int] = set()
+    kacheln: set[tuple[int, int]] = set()
+    for uid in _aktive_nutzer(db):
+        if not _zeigt_sich(db.get(models.User, uid)):
+            continue
+        sid = _spot_des_nutzers(db, uid, spots)
+        if sid is None:
+            continue
+        if sid in gross:
+            gruen.add(sid)
+        else:
+            k = _kachel(spots[sid].lat, spots[sid].lon)
+            if len(kachel_fahrer.get(k, ())) > KACHEL_MIN_FAHRER:
+                kacheln.add(k)
+    daten = {"spots": sorted(gruen),
+             "area": sorted(s for k in kacheln for s in kachel_spots.get(k, []))}
+    _AKTIV_CACHE = (time.monotonic(), daten)
+    return daten
 
 
 @router.post("/app-closed")

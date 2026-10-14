@@ -9,6 +9,9 @@ import { SpotsIcon } from "../components/Icons";
 import { SpotCompare } from "../components/SpotCompare";
 import { useT } from "../i18n";
 
+// Gruen fuer „gerade aktiv" — Tailwind green-400, hebt sich vom Marken-Cyan ab.
+const GRUEN = "#4ade80";
+
 type Spot = { spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number };
 
 // Spot-Namen kommen aus dem Geocoder bzw. einer Admin-Umbenennung und landen im Tooltip-HTML —
@@ -27,14 +30,32 @@ export default function Spots() {
   // Filter „nur mit Beschreibung" (Wunsch Jan): rein clientseitig — `spot-map` liefert je Spot
   // schon die Anzahl der sichtbaren Beschreibungen mit, ein zweiter Server-Aufruf waere unnoetig.
   const [nurNotes, setNurNotes] = useState(false);
+  // Gruene Spots „gerade aktiv" (Jan, 14.10.2026). `einzeln` = Spot darf selbst gruen werden
+  // (>= 4 Fahrer in 180 Tagen), `gegend` = kleiner Spot in einer aktiven Kachel: faerbt nur ein
+  // BUENDEL, nie den Spot selbst — Regeln und Gruende in server `devices.aktive_spots`.
+  const [aktiv, setAktiv] = useState<{ einzeln: Set<number>; gegend: Set<number> }>({ einzeln: new Set(), gegend: new Set() });
+  const [nurAktiv, setNurAktiv] = useState(false);
+  useEffect(() => {
+    let weg = false;
+    const holen = () => api.spotActive()
+      .then((r) => { if (!weg) setAktiv({ einzeln: new Set(r.spots), gegend: new Set(r.area) }); })
+      .catch(() => {});
+    holen();
+    const iv = window.setInterval(holen, 120_000);
+    return () => { weg = true; window.clearInterval(iv); };
+  }, []);
   // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing"). Default „all" wie
   // bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
   const [sport, setSport] = useState("all");
   const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
   useEffect(() => { api.communitySports().then(setSports).catch(() => {}); }, []);
+  // „Gerade aktiv" zeigt die einzeln gruenen Spots UND die kleinen aus aktiven Kacheln — sonst
+  // waere ein gruenes Buendel nach dem Filtern verschwunden. Die kleinen bleiben dabei blau.
+  const istAktiv = (s: Spot) => s.spot_id != null && (aktiv.einzeln.has(s.spot_id) || aktiv.gegend.has(s.spot_id));
   const spots = useMemo(
-    () => (alle == null ? null : (nurNotes ? alle.filter((s) => (s.notes ?? 0) > 0) : alle)),
-    [alle, nurNotes]);
+    () => (alle == null ? null : alle.filter((s) => (!nurNotes || (s.notes ?? 0) > 0) && (!nurAktiv || istAktiv(s)))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [alle, nurNotes, nurAktiv, aktiv]);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
 
@@ -136,8 +157,9 @@ export default function Spots() {
         }
         if (gruppe.length === 1) {
           const s = spots[i];
+          const gruen = s.spot_id != null && aktiv.einzeln.has(s.spot_id);
           const mk = L.circleMarker([s.lat, s.lon], {
-            radius: 9, color: "#0f172a", weight: 1.5, fillColor: "#22d3ee", fillOpacity: 0.95,
+            radius: 9, color: "#0f172a", weight: 1.5, fillColor: gruen ? GRUEN : "#22d3ee", fillOpacity: 0.95,
           });
           // Gewaesser mit in den Tooltip: Spots am selben Ort heissen „Berlin 3"/„Berlin 4" und sind
           // sonst nicht auseinanderzuhalten (Jan, 24.08.).
@@ -151,12 +173,13 @@ export default function Spots() {
         // damit der Nutzer selbst waehlt, statt dass die Zeichenreihenfolge fuer ihn waehlt.
         const teil = gruppe.map((k) => spots[k]);
         const summe = teil.reduce((n, s) => n + s.sessions, 0);
+        const gruen = teil.some((s) => istAktiv(s));
         const mitte = L.latLngBounds(teil.map((s) => [s.lat, s.lon] as [number, number]));
         const bk = L.marker(mitte.getCenter(), {
           icon: L.divIcon({
             className: "",
             html: `<div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;`
-              + `border-radius:9999px;background:#22d3ee;color:#0f172a;border:2px solid #0f172a;`
+              + `border-radius:9999px;background:${gruen ? GRUEN : "#22d3ee"};color:#0f172a;border:2px solid #0f172a;`
               + `font:600 12px/1 ui-sans-serif,system-ui;">${teil.length}</div>`,
             iconSize: [30, 30], iconAnchor: [15, 15],
           }),
@@ -179,7 +202,8 @@ export default function Spots() {
       viewGesetzt.current = true;
     }
     return () => { m.off("zoomend", zeichne); };
-  }, [spots, nav, spotsLabel, sport]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spots, nav, spotsLabel, sport, aktiv]);
 
   return (
     <div>
@@ -200,6 +224,13 @@ export default function Spots() {
         )}
         {/* Nicht an der GEFILTERTEN Liste festmachen: mit Haken und einer Sportart ohne Beschreibungen
             waere sie leer, der Haken verschwaende — und mit ihm der Weg zurueck (Jan, 28.09.2026). */}
+        {(aktiv.einzeln.size + aktiv.gegend.size > 0 || nurAktiv) && (
+          <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+            <input type="checkbox" checked={nurAktiv} onChange={(e) => setNurAktiv(e.target.checked)}
+              className="h-4 w-4 accent-green-500" />
+            {t("spots.onlyActive")}
+          </label>
+        )}
         {((alle ?? []).some((s) => (s.notes ?? 0) > 0) || nurNotes) && (
           <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-300">
             <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}
@@ -250,6 +281,10 @@ export default function Spots() {
             </select>
           </div>
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
+          <p className="mt-2 flex gap-2 text-sm text-slate-400">
+            <span aria-hidden className="mt-1 inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: GRUEN }} />
+            <span>{t("spots.activeLegend")}</span>
+          </p>
           <SpotCompare />
         </>
       )}

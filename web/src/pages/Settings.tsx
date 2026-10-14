@@ -337,6 +337,7 @@ export default function Settings() {
           unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
           Art Entscheidung — was sehen andere von mir. */}
       <OrtVerbergenCard onSaved={flashSaved} />
+      <AktivAufKarteCard onSaved={flashSaved} />
 
       {/* Online-Punkt (Jan, 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal
           default an fuer alle"). Dieselbe Art Entscheidung wie oben — was sehen andere von mir. */}
@@ -733,6 +734,39 @@ function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
       </label>
       <p className="mt-3 text-sm text-slate-400">{t("hideloc.scope")}</p>
       <p className="mt-1 text-sm text-slate-400">{t("hideloc.single")}</p>
+    </Card>
+  );
+}
+
+// Opt-out „auf der Spot-Karte als gerade aktiv zeigen" (Jan, 14.10.2026). Wirkt nur auf die gruenen
+// Spots; im Gesamtzaehler „N gerade am Pumpen" zaehlt man weiter mit (verraet niemanden).
+function AktivAufKarteCard({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const [an, setAn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.getSettings().then((s) => setAn(s.show_active_spot !== false)).catch(() => setAn(true));
+  }, []);
+  if (an === null) return null;
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("activespot.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("activespot.hint")}</p>
+      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+        <input
+          type="checkbox" checked={an} disabled={busy}
+          onChange={(e) => {
+            const wert = e.target.checked;
+            setBusy(true);
+            api.saveSettings({ show_active_spot: wert })
+              .then(() => { setAn(wert); onSaved?.(); })
+              .catch(() => {})
+              .finally(() => setBusy(false));
+          }}
+          className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+        />
+        {t("activespot.switch")}
+      </label>
     </Card>
   );
 }
