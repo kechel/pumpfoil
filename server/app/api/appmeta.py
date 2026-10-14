@@ -953,16 +953,23 @@ NAECHSTES: list[dict] = [
          "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
          # 14.10.2026 (ea2f1333, 78c623ed): Neu-Verbinden einer schon verbundenen Uhr + altes Token widerrufen.
          "Moving a watch to another account now works directly with a new code from the watch, and the old account no longer keeps it listed.",
-         "The start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
+         "If you also record with the Pumpfoil phone app, the start screen shows when your phone is recording, so you can check it after packing the phone away.",
+         "Closing the app lets pumpfoil.org know you are done, so you no longer count as currently pumping.",
      ]},
-    # 14.10.2026 (5c36ed35 / 714e63de): Live-Upload im Handy-Recorder, gebumpt auf 1.1.43 / 1.1.49.
+    # 14.10.2026: Live-Upload (5c36ed35), Live-Anzeigen + gerade am Pumpen + Aufnahme-Bildschirm
+    # (08339c1c). Android-Phone fuer Jans Test auf 1.1.43 gebumpt; iOS nicht (erst beim Release).
     {"name": "Android phone", "version": "1.1.43",
      "items": [
          "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
+         "Home shows when your phone is recording and which of your watches is probably recording right now.",
+         "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
+         "While recording, the stop button always stays on screen, the title bar is gone to give the map more room, and the map no longer flickers while you hold stop.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.49",
      "items": [
          "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
+         "Home shows when your phone is recording and which of your watches is probably recording right now.",
+         "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
          "The watch start screen tells you when your phone recorder is running, so you can check it after packing the phone away.",
      ]},
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
