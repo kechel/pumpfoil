@@ -256,6 +256,14 @@ def test_live_status(client):
     assert client.get("/api/devices/config", headers=uhr).json()["phone_rec"]["state"] == 1
     # das Handy selbst sieht seine eigene Aufnahme nicht als „anderes Geraet"
     assert client.get("/api/devices/live-status", headers=phone).json()["sessions"] == []
+    # Kontakt-Protokoll: Config/Status/Start/Analyse je eine Zeile, Chunks nicht
+    from app.db import SessionLocal
+    from app import models as _m
+    db = SessionLocal()
+    arten = [k for (k,) in db.query(_m.DeviceContact.kind).all()]
+    db.close()
+    assert "devices/config" in arten and "ingest/start" in arten and "ingest/analyze" in arten
+    assert not any("chunk" in a for a in arten)
     # abgeschlossen -> nicht mehr live
     client.post(f"/api/ingest/session/{uuid}/complete", headers=phone,
                 json={"ended_at": datetime.now(timezone.utc).isoformat(), "total_chunks": 1})

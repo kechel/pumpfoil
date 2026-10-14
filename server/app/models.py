@@ -104,6 +104,23 @@ class PairingCode(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class DeviceContact(Base):
+    """Wann hat sich welches Geraet beim Server gemeldet, und wobei (Jan, 14.10.2026: „mit loggen
+    wann sich welche Uhr gemeldet hat, damit wir Daten haben"). Grundlage, um zu sehen, ob „nimmt
+    vermutlich auf" / Live-Status ueberhaupt genutzt werden und stimmen, bevor weitere Community-
+    Funktionen (Live-Karte, Zaehler) gebaut werden. Nur fuer den Betreiber; Chunk-Uploads werden
+    NICHT einzeln geloggt (Hunderte je Session), nur Start und Abschluss."""
+
+    __tablename__ = "device_contacts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("device_tokens.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+    kind: Mapped[str] = mapped_column(String(32))   # z. B. devices/config, ingest/start, pair
+    app_version: Mapped[str | None] = mapped_column(String(20))
+
+
 class DevicePairing(Base):
     """Reverse-Pairing: die UHR erzeugt einen Code (zeigt ihn an), der Web-Nutzer
     gibt ihn auf pumpfoil.org ein. Die Uhr pollt mit claim_token auf den Device-Token.
