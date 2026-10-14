@@ -1184,6 +1184,11 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   `appmeta.IDEEN`): wie schnell der Puls nach jedem Lauf wieder faellt, z. B. Abfall nach 30/60 s
   ab Laufende. Daten sind da: Puls je GPS-Punkt (`load_gps` Index 4, NICHT `hr_samples`), Laufenden
   aus `segments_json`. Offen: Mindestpause, Uhr nicht am Arm (Luecken), Ruhepuls als Bezug.
+  Jan dazu (14.10.): auf den speicherarmen Uhren vernachlaessigen, die sollen Aufnahmeplatz
+  sparen — dort fehlt der Puls in den Auto-Pausen (Speicher sparen beim Duempeln). Moegliche
+  Variante: in solchen Pausen nur EINEN Pulswert pro Minute speichern; Auswertung auch nur
+  minuetlich, z. B. Differenz zum Maximalpuls des Laufs, wuerde schon reichen.
+  **Wartet:** Jan fragt ThermikDreher, welche Zahlen er erwarten wuerde.
 
 - **Instinct-Nebendisplay nutzen** (26.09.2026, Jan: „fuer dieses release nicht, mit in ideas"):
   das runde Mini-Display oben rechts (`WatchUi.getSubscreen()`, ab API 3.2.7) fuer einen Wert, der
