@@ -52,6 +52,15 @@ AUSGESCHLOSSEN = {
 #   #14062 u808 (Brett ohne Uhr): Montage nicht bestaetigt (Nachfrage per DM 10.10. offen); in den Laeufen
 #     wie ein festes Brett (75 % Nicken, kein Klappern). Meldet u808 etwas Loses -> in AUSGESCHLOSSEN.
 
+# Handy BESTAETIGT am Koerper (Hosentasche o. ae.), NICHT am Brett — Gegenbeispiele fuer die
+# automatische Brett-Erkennung (docs/TODO.md, „Am Brett automatisch erkennen"). `placement` kennt nur
+# board/phone, und „phone" ist zugleich der Standard: eine unangeschaute Session sieht aus wie eine
+# bewusste Taschen-Aufnahme. Darum zaehlen als Taschen-Wahrheit NUR die hier eingetragenen, jeweils
+# mit Beleg. {Handy-Session: Vermerk}
+TASCHE = {
+    16736: "u5 14.10.2026, Handy in der Hosentasche (Jans Meldung), 6 Laeufe, Kreisel, 51 Hz; dazu "
+           "Uhr #16735 (FR55, 1.0.92, record_mode lite -> 0 Accel-Chunks, nur GPS)",
+}
 
 def paare_finden(db) -> tuple[list[tuple[int, int]], list[int]]:
     """(Paare (Brett, Uhr), Brett-Sessions ohne Uhr) aus der Datenbank. Liest nur."""

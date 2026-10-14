@@ -3131,6 +3131,8 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      Gegenprobe wertlos. Vor der ersten Vergleichsaufnahme also entweder einen dritten Wert
      (`pocket`) einfuehren oder Jan sagt ausdruecklich, welche Sessions die Taschen-Aufnahmen
      sind.
+     **Seit 14.10.2026:** bestaetigte Taschen-Aufnahmen stehen in `TASCHE` in
+     `scripts/v3/paare_ausrichten.py` (erste: #16736, Hosentasche, mit Uhr #16735).
      **Der Umschalter verschwindet auch danach nicht**, er wird zum Override: er ist die Quelle
      der Wahrheit, aus der die Erkennung ueberhaupt lernt und gegen die sie geprueft wird —
      dieselbe Rolle wie der Admin-Override bei der Pumpfoil-Klassifikation.
