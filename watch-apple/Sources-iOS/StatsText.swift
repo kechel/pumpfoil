@@ -80,7 +80,9 @@ struct CommunityStatsText: View {
     }
 }
 
-private extension Color {
+// Nicht mehr `private`: der Sessions-Kopf (HeuteNeu in SessionsView.swift) pulst seit 14.10.2026
+// mit demselben Mischen wie diese Zeile.
+extension Color {
     /// Linear zwischen zwei Farben mischen. `UIColor` liefert die Komponenten; scheitert das
     /// (dynamische Farbe ohne aufgeloesten Kontext), bleibt die Ausgangsfarbe — dann pulst es
     /// eben nicht, statt dass etwas Falsches erscheint.

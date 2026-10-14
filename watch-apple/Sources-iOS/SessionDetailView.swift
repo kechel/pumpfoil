@@ -55,6 +55,9 @@ struct SessionDetailView: View {
     // Skala — die haengt an der einzelnen Session.
     @AppStorage("sd_color_mode") private var colorMode: TrackColorMode = .speed
     @State private var carve: CarveData?   // Carve-Bögen + Zähler (GET /carves)
+    // Echte Session-ms je Track-Punkt (GET /track-times) — nur fuer den Pulsabfall in der
+    // Lauftabelle. nil = nicht geholt oder Fehler; dann entfallen die Spalten.
+    @State private var trackZeiten: [Int]?
     @AppStorage("sd_smooth_win") private var win = 3
     @AppStorage("sd_show_pumps") private var showPumps = false   // Pump-Marker default aus
     // Gleitphasen einblenden (wie PWA seit 03.10.2026), Daten aus `seg.glides`; default aus.
@@ -655,7 +658,7 @@ struct SessionDetailView: View {
     /// Angezeigte Session austauschen (kein Push!). Der Zustand der alten muss weg, sonst blitzt sie
     /// in der neuen kurz auf; `.task(id: sid)` laedt anschliessend neu.
     private func showSession(_ newId: Int) {
-        session = nil; carve = nil; neighbors = nil; attempts = nil
+        session = nil; carve = nil; trackZeiten = nil; neighbors = nil; attempts = nil
         photos = []; videos = []
         selectedRun = nil; lightbox = nil
         shareUrl = nil; linkCopied = false; showLink = false
@@ -1301,6 +1304,7 @@ struct SessionDetailView: View {
         // (wie die PWA). `puls_antwort_bpm` im Segment ist der MITTELWERT, nicht das Maximum.
         RunsTable(segments: segs, selected: selectedRun, lang: lang,
                   hr: s.analysis?.track_geojson?.properties?.hr ?? [],
+                  zeiten: passendeZeiten(s),
                   sessionId: s.id,
                   win: win,
                   sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz,
@@ -1309,6 +1313,14 @@ struct SessionDetailView: View {
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
                   onSelect: { selectedRun = (selectedRun == $0) ? nil : $0 })
+    }
+
+    /// Track-Zeiten nur, wenn sie Punkt fuer Punkt zur Spur passen (PWA: Laenge == Koordinaten).
+    /// Sonst stimmen die Indizes nicht, und der Pulsabfall laege an der falschen Stelle.
+    private func passendeZeiten(_ s: SessionDetail) -> [Int]? {
+        guard let z = trackZeiten, let n = s.analysis?.track_geojson?.geometry.coordinates.count,
+              z.count == n else { return nil }
+        return z
     }
 
     @ViewBuilder private var excludeErrorRow: some View {
@@ -1634,6 +1646,8 @@ struct SessionDetailView: View {
             }
             session = s
             carve = try? await Api.sessionCarves(sid)   // Carve-Bögen (nur Anzeige)
+            // Fehlt die Antwort, fehlen nur die zwei Pulsabfall-Spalten — nichts sonst haengt daran.
+            trackZeiten = try? await Api.sessionTrackTimes(sid)
             neighbors = try? await Api.sessionNeighbors(sid, query: NachbarFilter.aktuell.query)
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
@@ -2194,6 +2208,9 @@ private struct RunsTable: View {
     let lang: String
     // Puls je Trackpunkt - Quelle fuer den Hoechstpuls je Lauf (s. runsTable).
     var hr: [Int?] = []
+    // Echte Session-ms je Track-Punkt, gleich lang wie `hr` (s. passendeZeiten). Ohne sie keine
+    // Pulsabfall-Spalten: Auto-Pausen lassen Punkte aus, „Index + 60" ist dann nicht 60 s.
+    var zeiten: [Int]? = nil
     // Session-Id fuer die Vergleichs-Spalte (ein Korb-Eintrag ist sessionId + Lauf-Index).
     var sessionId: Int = 0
     // Glaettungsfenster der Detailansicht (1/3/5 s) - dieselbe Wahl wie im Geschwindigkeitsdiagramm,
@@ -2291,6 +2308,35 @@ private struct RunsTable: View {
 
     private static func bpm(_ v: Int?) -> String { v.map { "\($0) bpm" } ?? "–" }
 
+    /// Pulsabfall nach dem Lauf (Heart Rate Recovery, PWA `hrDrop`, 14.10.2026): Hoechstpuls des
+    /// Laufs minus Puls `sek` Sekunden nach Laufende. nil, wenn dort kein Messwert liegt (±5 s:
+    /// Auto-Pause, Uhr nicht am Arm, Aufnahme zu Ende) oder der naechste Lauf vorher beginnt —
+    /// dann steigt der Puls schon wieder.
+    private func hrDrop(_ seg: Segment, _ sek: Int) -> Int? {
+        guard let z = zeiten, !hr.isEmpty, seg.i_end >= 0, seg.i_end < z.count else { return nil }
+        let ziel: Int = z[seg.i_end] + sek * 1000
+        // Naechster Lauf in Zeitfolge = kleinster i_start hinter diesem Laufende.
+        let spaeter: [Int] = segments.map { $0.i_start }.filter { $0 > seg.i_end }
+        if let n = spaeter.min(), n < z.count, z[n] <= ziel { return nil }
+        var best: Int? = nil
+        var abst: Int = 5001
+        var i = seg.i_end + 1
+        while i < z.count && i < hr.count && z[i] <= ziel + 5000 {
+            let d: Int = abs(z[i] - ziel)
+            if d < abst, let v = hr[i], v > 0 { abst = d; best = v }
+            i += 1
+        }
+        guard let b = best, let top = maxHr(seg) else { return nil }
+        return top - b
+    }
+
+    /// "−23 bpm" fuer einen Abfall, "+8 bpm" fuer einen Anstieg (PWA `drop`).
+    private static func dropText(_ v: Int?) -> String {
+        guard let v = v else { return "–" }
+        let zeichen: String = v > 0 ? "−" : (v < 0 ? "+" : "")
+        return "\(zeichen)\(abs(v)) bpm"
+    }
+
     private func hrMittel(_ seg: Segment) -> Int? {
         let w = hrWerte(seg)
         guard !w.isEmpty else { return nil }
@@ -2310,6 +2356,10 @@ private struct RunsTable: View {
     // nehmen Platz weg. Dieselben drei Bedingungen wie die PWA (hasPump / hasHr / showPower).
     private var hatPump: Bool { segments.contains { $0.avg_pump_hz != nil && ($0.pumps ?? 0) > 0 } }
     private var zeigeMaxHr: Bool { segments.contains { maxHr($0) != nil } }
+    private var zeigeDrop: Bool {
+        guard zeigeMaxHr, zeiten != nil else { return false }
+        return segments.contains { hrDrop($0, 60) != nil || hrDrop($0, 120) != nil }
+    }
     private var zeigeWatt: Bool {
         guard let f = wattFuer else { return false }
         return segments.contains { f($0.avg_speed_mps, $0.avg_pump_hz) != nil }
@@ -2400,6 +2450,15 @@ private struct RunsTable: View {
                               sort: { seg in self.hrWerte(seg).last.map { Double($0) } }) { _, seg in
                 Self.bpm(self.hrWerte(seg).last)
             })
+        }
+        if zeigeDrop {
+            for sek in [60, 120] {
+                let kopf: String = Loc.t("sd.colHrDrop", lang).replacingOccurrences(of: "{s}", with: "\(sek)")
+                s.append(Spalte(key: "hrDrop\(sek)", kopf: kopf, breite: 70,
+                                  sort: { seg in self.hrDrop(seg, sek).map { Double($0) } }) { _, seg in
+                    Self.dropText(self.hrDrop(seg, sek))
+                })
+            }
         }
         s.append(Spalte(key: "glide", kopf: k("sd.colGlide"), breite: 70, sort: { $0.longest_glide_s }) { _, seg in
             seg.longest_glide_s.map { String(format: "%.1f s", $0) } ?? "–"

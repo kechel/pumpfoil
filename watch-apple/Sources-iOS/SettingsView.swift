@@ -58,6 +58,7 @@ struct SettingsView: View {
             // untereinander, wie in der PWA. Beide speichern sofort, nicht ueber „Speichern".
             OeffentlicheSeiteSection(lang: lang)
             OrtVerbergenSection(lang: lang)
+            AktivAufKarteSection(lang: lang)
             // Online-Punkt (Jan, 01.10.2026: „im profil zum ausstellen, aber erstmal default an").
             // Dieselbe Art Entscheidung — was sehen andere von mir. Ohne diesen Schalter koennte ein
             // Nutzer, der nur die App hat, den Punkt nicht abschalten.
@@ -618,6 +619,42 @@ struct OrtVerbergenSection: View {
     private func laden() async {
         let s = (try? await Api.settings()) ?? [:]
         an = (s["hide_location"] as? Bool) ?? false
+    }
+}
+
+/// „Auf der Spot-Karte zeigen" (PWA AktivAufKarteCard, Jan 14.10.2026): Opt-out fuer die gruenen
+/// Spots. Wirkt nur auf die Karte; im Gesamtzaehler „N gerade am Pumpen" zaehlt man weiter mit.
+/// Fehlt der Wert, gilt er als an — dieselbe Vorgabe wie settings.DEFAULTS.
+struct AktivAufKarteSection: View {
+    let lang: String
+    @State private var an: Bool? = nil
+
+    var body: some View {
+        Section {
+            if an != nil {
+                Toggle(Loc.t("activespot.switch", lang), isOn: Binding(get: { an ?? true }, set: { v in setzen(v) }))
+            } else {
+                ProgressView()
+            }
+        } header: {
+            Text(Loc.t("activespot.title", lang))
+        } footer: {
+            Text(Loc.t("activespot.hint", lang))
+        }
+        .task { await laden() }
+    }
+
+    private func setzen(_ v: Bool) {
+        let alt = an
+        an = v
+        Task {
+            do { try await Api.saveSettings(["show_active_spot": v]) } catch { an = alt }
+        }
+    }
+
+    private func laden() async {
+        let s = (try? await Api.settings()) ?? [:]
+        an = (s["show_active_spot"] as? Bool) != false
     }
 }
 

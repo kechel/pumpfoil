@@ -21,6 +21,9 @@ func sichereRegion(_ mitte: CLLocationCoordinate2D, _ spanne: MKCoordinateSpan) 
 // ein wenig Luft. Gemessen an den echten 231 Spots bleiben damit auf JEDER Zoomstufe hoechstens
 // 23 Pins stehen (mit 26 waeren es in der Europa-Ansicht 39).
 private let NAEHE: Double = 38
+// Gruen fuer „gerade aktiv" — dasselbe wie die PWA (#4ade80, Tailwind green-400), hebt sich vom
+// Marken-Cyan ab.
+private let GRUEN = Color(red: 74.0 / 255.0, green: 222.0 / 255.0, blue: 128.0 / 255.0)
 
 // Ein Karten-Pin: entweder EIN Spot oder ein Buendel mehrerer, die sich beim aktuellen Zoom
 // ueberdecken wuerden. `id` ist der Name des staerksten Spots darin — Spot-Namen sind eindeutig.
@@ -57,6 +60,12 @@ struct SpotsView: View {
     @State private var suche = ""
     // Filter „nur mit Beschreibung" — rein clientseitig, `spot-map` liefert die Zahl je Spot mit.
     @State private var nurNotes = false
+    // Gruene Spots „gerade aktiv" (PWA Spots.tsx, Jan 14.10.2026). `aktivEinzeln` = Spot darf selbst
+    // gruen werden (>= 4 Fahrer in 180 Tagen), `aktivGegend` = kleiner Spot in einer aktiven Kachel:
+    // faerbt nur ein BUENDEL, nie den Spot selbst. Alle 120 s neu geholt, solange die Ansicht steht.
+    @State private var aktivEinzeln: Set<Int> = []
+    @State private var aktivGegend: Set<Int> = []
+    @State private var nurAktiv = false
     // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing", PWA Spots.tsx). Default
     // „all" wie bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
     @State private var sport = "all"
@@ -119,7 +128,35 @@ struct SpotsView: View {
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }
             .onChange(of: sport) { _ in Task { await sportLaden() } }
+            .task { await aktivSchleife() }
         }
+    }
+
+    /// Holt die aktiven Spots sofort und dann alle 120 s (wie die PWA). Endet mit der Ansicht —
+    /// `.task` bricht die Schleife beim Verlassen ab. Ein Fehler laesst den alten Stand stehen.
+    private func aktivSchleife() async {
+        while !Task.isCancelled {
+            if let r = try? await Api.spotActive() {
+                aktivEinzeln = Set(r.spots)
+                aktivGegend = Set(r.area)
+                // Immer neu buendeln: frische Buendel-Werte zwingen die Pins, ihre Farbe neu zu
+                // zeichnen, und der Filter „gerade aktiv" haengt ebenfalls an diesen Mengen.
+                buendeln()
+            }
+            try? await Task.sleep(nanoseconds: 120_000_000_000)
+        }
+    }
+
+    /// Spot faellt unter „gerade aktiv": einzeln gruen ODER kleiner Spot in einer aktiven Kachel.
+    private func istAktiv(_ s: SpotMapItem) -> Bool {
+        guard let id = s.spot_id else { return false }
+        return aktivEinzeln.contains(id) || aktivGegend.contains(id)
+    }
+
+    /// Einzelner Pin gruen NUR, wenn der Spot selbst gruen werden darf (kleine Spots nie allein).
+    private func einzelnGruen(_ s: SpotMapItem) -> Bool {
+        guard let id = s.spot_id else { return false }
+        return aktivEinzeln.contains(id)
     }
 
     @ViewBuilder private var karteOben: some View {
@@ -176,11 +213,11 @@ struct SpotsView: View {
     /// Session zurueck"); dort wie hier ist die Loesung ein Button, der GENAU EIN Ziel anhaengt.
     @ViewBuilder private func annotation(_ b: SpotBuendel) -> some View {
         if b.teil.count == 1 {
-            Button { navPath.append(ziel(b.teil[0])) } label: { pin(b.teil[0].sessions) }
+            Button { navPath.append(ziel(b.teil[0])) } label: { pin(b.teil[0].sessions, gruen: einzelnGruen(b.teil[0])) }
                 .buttonStyle(.plain)
                 .accessibilityLabel(b.teil[0].spot)
         } else {
-            Button { hineinzoomen(b) } label: { buendelPin(b.teil.count) }
+            Button { hineinzoomen(b) } label: { buendelPin(b.teil.count, gruen: b.teil.contains { istAktiv($0) }) }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(b.teil.count) \(Loc.t("nav.spots", lang))")
         }
@@ -188,23 +225,26 @@ struct SpotsView: View {
 
     // Buendel-Pin: Anzahl der SPOTS im Kreis, ohne Spitze — dadurch von einem einzelnen Spot
     // (Anzahl der Sessions, mit Spitze) auf den ersten Blick zu unterscheiden.
-    private func buendelPin(_ anzahl: Int) -> some View {
-        Text("\(anzahl)")
+    // Gruen, sobald EIN Spot darin aktiv ist — auch ein kleiner aus einer aktiven Kachel.
+    private func buendelPin(_ anzahl: Int, gruen: Bool) -> some View {
+        let farbe: Color = gruen ? GRUEN : Color.accentColor
+        return Text("\(anzahl)")
             .font(.caption).bold().foregroundStyle(.black)
             .frame(width: 30, height: 30)
-            .background(Color.accentColor, in: Circle())
+            .background(farbe, in: Circle())
             .overlay(Circle().stroke(.black, lineWidth: 2))
     }
 
     // Karten-Pin: Session-Anzahl im Kreis + Spitze nach unten.
-    private func pin(_ sessions: Int) -> some View {
-        VStack(spacing: 0) {
+    private func pin(_ sessions: Int, gruen: Bool) -> some View {
+        let farbe: Color = gruen ? GRUEN : Color.accentColor
+        return VStack(spacing: 0) {
             Text("\(sessions)")
                 .font(.caption2).bold().foregroundStyle(.white)
                 .padding(6)
-                .background(Color.accentColor, in: Circle())
+                .background(farbe, in: Circle())
             Image(systemName: "arrowtriangle.down.fill")
-                .font(.caption2).foregroundStyle(Color.accentColor)
+                .font(.caption2).foregroundStyle(farbe)
                 .offset(y: -3)
         }
     }
@@ -212,8 +252,11 @@ struct SpotsView: View {
     /// Der Filter wirkt auf die KARTE genauso wie auf die Treffer — wie in der PWA, wo `spots`
     /// die gefilterte Menge ist und die Marker daraus entstehen.
     private var sichtbar: [SpotMapItem] {
-        nurNotes ? items.filter { ($0.notes ?? 0) > 0 } : items
+        // „Gerade aktiv" zeigt die einzeln gruenen UND die kleinen aus aktiven Kacheln — sonst waere
+        // ein gruenes Buendel nach dem Filtern verschwunden. Die kleinen bleiben dabei cyan.
+        items.filter { s in (!nurNotes || (s.notes ?? 0) > 0) && (!nurAktiv || istAktiv(s)) }
     }
+    private var hatAktive: Bool { !aktivEinzeln.isEmpty || !aktivGegend.isEmpty }
     private var mitNotes: Int { items.filter { ($0.notes ?? 0) > 0 }.count }
 
     /// Treffer zum Suchtext. Ohne Eingabe leer — dann steht unter der Karte nur der Vergleich.
@@ -247,9 +290,24 @@ struct SpotsView: View {
                 }
                 .onChange(of: nurNotes) { _ in buendeln() }   // Pins sofort nachziehen
             }
+            // Wie oben: auch ohne aktive Spots stehen lassen, solange der Schalter an ist.
+            if hatAktive || nurAktiv {
+                Toggle(isOn: $nurAktiv) { Text(Loc.t("spots.onlyActive", lang)) }
+                    .tint(GRUEN)
+                    .onChange(of: nurAktiv) { _ in buendeln() }
+            }
+            aktivLegende
             // Dritter Nutzer in Folge suchte in der PWA einen Knopf zum Anlegen, den es bewusst
             // nicht gibt. Einmal erklaeren, wie Spots entstehen.
             Text(Loc.t("spots.autoHint", lang)).font(.footnote).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Legende unter der Karte (PWA spots.activeLegend): gruener Punkt + Erklaerung der Regel.
+    private var aktivLegende: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Circle().fill(GRUEN).frame(width: 12, height: 12).padding(.top, 3)
+            Text(Loc.t("spots.activeLegend", lang)).font(.footnote).foregroundStyle(.secondary)
         }
     }
 
