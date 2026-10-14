@@ -22,7 +22,9 @@ def test_complete_speichert_den_messweg(client):
     r = client.post(f"/api/ingest/session/{uuid}/complete", headers=dev, json={
         "total_chunks": 0,
         "messweg": {"gps": "lm", "gps_neu": 2, "gps_wechsel": "tethered" + "x" * 200,
-                    "accel": "batch", "fremd": "wird verworfen"}})
+                    "accel": "batch", "fremd": "wird verworfen",
+                    # Wear 1.2.43: Puls-Waechter-Neustarts + Grund eines fremden Uebungsendes.
+                    "puls_neu": 3, "puls_ende": "ENDED/" + "9" * 100}})
     assert r.status_code == 200, r.text
     db = SessionLocal()
     try:
@@ -32,6 +34,7 @@ def test_complete_speichert_den_messweg(client):
         db.close()
     assert mw["gps"] == "lm" and mw["gps_neu"] == 2 and mw["accel"] == "batch"
     assert "fremd" not in mw and len(mw["gps_wechsel"]) == 60
+    assert mw["puls_neu"] == 3 and len(mw["puls_ende"]) == 40
 
 
 def test_ohne_messweg_bleibt_das_feld_leer(client):

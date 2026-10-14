@@ -387,6 +387,7 @@ object Recorder {
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0; letzteGpsT = -1; genauigkeit.reset()
         messwegGps = "lm"; messwegGpsNeu = 0; messwegGpsWechsel = ""; messwegAccel = "normal"
+        messwegPulsNeu = 0; messwegPulsEnde = ""
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -500,7 +501,8 @@ object Recorder {
                 .apply { if (pausenJson.length() > 0) put("pauses", pausenJson) }
                 .put("hr_samples", hrCount)
                 .put("messweg", JSONObject().put("gps", messwegGps).put("gps_neu", messwegGpsNeu)
-                    .put("gps_wechsel", messwegGpsWechsel).put("accel", messwegAccel))
+                    .put("gps_wechsel", messwegGpsWechsel).put("accel", messwegAccel)
+                    .put("puls_neu", messwegPulsNeu).put("puls_ende", messwegPulsEnde))
                 .put("hr_source", when {
                     hrCount == 0 -> "none"
                     _state.value.pulsMessung -> "active"
@@ -776,6 +778,8 @@ object Recorder {
     @Volatile var messwegGpsNeu = 0          // GPS neu angefordert (Waechter)
     @Volatile var messwegGpsWechsel = ""     // Grund, falls von Health Services zurueckgefallen
     @Volatile var messwegAccel = "normal"    // "batch" = Wake-up + Hardware-Batching, "normal"
+    @Volatile var messwegPulsNeu = 0         // Uebung vom Puls-Waechter neu angefordert (1.2.43)
+    @Volatile var messwegPulsEnde = ""       // fremdes Ende der Uebung: "ZUSTAND/endReason" (1.2.43)
 
     fun setGpsOhneHardware(v: Boolean) {
         _state.value = _state.value.copy(gpsOhneHardware = v)

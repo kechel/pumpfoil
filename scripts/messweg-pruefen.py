@@ -49,5 +49,7 @@ for s, d in rows:
     hz = m.get("accel_hz_measured")
     print(f"#{s.id:>7} u{s.user_id:<5} {(d.label or '')[:22]:22} {(s.app_version or d.app_version or '')[:7]:7} "
           f"{dauer / 60:5.1f} {mw.get('gps', '?'):4} {mw.get('gps_neu', '–'):>3} {abdeckung:>7} {luecke:>7} "
-          f"{mw.get('accel', '?'):7} {(f'{hz:.1f}' if hz else '–'):>6} {str(m.get('time_base') or '–')[:7]:7} {mw.get('gps_wechsel') or ''}")
+          f"{mw.get('accel', '?'):7} {(f'{hz:.1f}' if hz else '–'):>6} {str(m.get('time_base') or '–')[:7]:7} {mw.get('gps_wechsel') or ''}"
+          # Puls (Wear 1.2.43): Anteil der Punkte mit Puls, Waechter-Neustarts, fremdes Uebungsende
+          f" | Puls {(sum(1 for p in g if p[4]) / len(g) * 100 if g else 0):.0f} % neu={mw.get('puls_neu', '–')} {mw.get('puls_ende') or ''}")
 db.close()
