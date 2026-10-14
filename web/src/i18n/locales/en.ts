@@ -1169,6 +1169,7 @@ const en: Record<string, string> = {
   "imp.owner2": "Labels, trimming, re-analyzing, uploading/deleting photos.",
   "imp.owner3": "Your <b>email address</b> and account settings — never visible to other users.",
   "imp.owner4": "Who specifically voted/liked a session is not shown to other users.",
+  "imp.owner5": "<b>Recordings in progress</b>: if your phone recorder uploads live (“Upload live” switch in your profile, can be turned off), GPS and motion data reach our server while you are still recording. Only you can see that and since when it is recording, on your other devices and your watches. For watches, “probably recording” is derived solely from when the watch app last checked in. Other users only see the session once it is finished.",
   "imp.operatorTitle": "🛠 Only the operator (Jan)",
   "imp.operator1": "Email addresses, all raw data, device links and technical server logs.",
   "imp.operator2": "Passwords are stored only as a salted hash (PBKDF2) — even I can't see them in plain text.",

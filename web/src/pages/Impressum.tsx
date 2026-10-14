@@ -52,6 +52,7 @@ export default function Impressum() {
             {li("imp.owner2")}
             {li("imp.owner3")}
             {li("imp.owner4")}
+            {li("imp.owner5")}
           </ul>
         </section>
 

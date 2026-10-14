@@ -1023,6 +1023,7 @@ const pt: Record<string, string> = {
   "imp.owner2": "Rótulos, recorte, reanálise, envio/exclusão de fotos.",
   "imp.owner3": "Seu <b>endereço de e-mail</b> e configurações da conta — nunca visíveis a outros usuários.",
   "imp.owner4": "Quem exatamente votou/curtiu uma sessão não é mostrado a outros usuários.",
+  "imp.owner5": "<b>Gravações em andamento</b>: se o gravador do celular envia ao vivo (chave “Enviar ao vivo” no perfil, pode ser desligada), os dados de GPS e movimento chegam ao nosso servidor já durante a gravação. Só você vê que está gravando e desde quando, nos seus outros aparelhos e relógios. Nos relógios, “provavelmente gravando” é deduzido apenas do momento em que o app do relógio se comunicou pela última vez. Outros usuários só veem a sessão quando ela termina.",
   "imp.operatorTitle": "🛠 Só o operador (Jan)",
   "imp.operator1": "Endereços de e-mail, todos os dados brutos, vínculos de dispositivo e logs técnicos do servidor.",
   "imp.operator2": "As senhas são guardadas só como hash com sal (PBKDF2) — nem eu consigo vê-las em texto puro.",

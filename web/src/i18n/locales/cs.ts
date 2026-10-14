@@ -1067,6 +1067,7 @@ const cs: Record<string, string> = {
   "imp.owner2": "Štítky, oříznutí, opětovná analýza, nahrávání/mazání fotek.",
   "imp.owner3": "Tvoje <b>e-mailová adresa</b> a nastavení účtu — nikdy viditelné pro jiné uživatele.",
   "imp.owner4": "Kdo konkrétně u vyjížďky hlasoval / dal to se mi líbí, se ostatním uživatelům nezobrazuje.",
+  "imp.owner5": "<b>Probíhající záznamy</b>: pokud záznamník v telefonu nahrává živě (přepínač „Nahrávat živě“ v profilu, lze vypnout), GPS a pohybová data jdou na náš server už během záznamu. Že a od kdy se nahrává, vidíš jen ty, na svých dalších zařízeních a hodinkách. U hodinek odvozujeme „nejspíš nahrává“ jen z okamžiku, kdy se aplikace v hodinkách naposledy ozvala. Ostatní uživatelé uvidí session až po jejím dokončení.",
   "imp.operatorTitle": "🛠 Jen provozovatel (Jan)",
   "imp.operator1": "E-mailové adresy, všechna surová data, propojení zařízení a technické serverové logy.",
   "imp.operator2": "Hesla se ukládají jen jako solený hash (PBKDF2) — ani já je nevidím v čitelné podobě.",

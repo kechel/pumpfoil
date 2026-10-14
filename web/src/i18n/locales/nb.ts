@@ -1079,6 +1079,7 @@ const nb: Record<string, string> = {
   "imp.owner2": "Merking, trimming, ny analyse, opplasting/sletting av bilder.",
   "imp.owner3": "<b>E-postadressen</b> din og kontoinnstillinger — aldri synlig for andre brukere.",
   "imp.owner4": "Hvem som konkret har stemt eller likt en økt, vises ikke for andre brukere.",
+  "imp.owner5": "<b>Pågående opptak</b>: laster telefonopptakeren opp direkte (bryteren «Last opp direkte» i profilen, kan slås av), går GPS- og bevegelsesdata til serveren vår allerede mens du tar opp. Bare du ser at og siden når det tas opp, på de andre enhetene og klokkene dine. For klokker utleder vi «tar sannsynligvis opp» bare fra når klokkeappen sist meldte seg. Andre brukere ser økten først når den er ferdig.",
   "imp.operatorTitle": "🛠 Bare operatøren (Jan)",
   "imp.operator1": "E-postadresser, alle rådata, enhetskoblinger og tekniske serverlogger.",
   "imp.operator2": "Passord lagres bare som en saltet hash (PBKDF2) — selv jeg kan ikke se dem i klartekst.",

@@ -1510,6 +1510,7 @@ const fr: Record<string, string> = {
   "imp.owner2": "Labels, rognage, ré-analyse, importer/supprimer des photos.",
   "imp.owner3": "Ton <b>adresse e-mail</b> et les réglages du compte — jamais visibles par les autres utilisateurs.",
   "imp.owner4": "Qui a précisément voté/liké une session n'est pas montré aux autres utilisateurs.",
+  "imp.owner5": "<b>Enregistrements en cours</b> : si ton enregistreur téléphone envoie en direct (interrupteur « Envoi en direct » dans le profil, désactivable), les données GPS et de mouvement arrivent sur notre serveur pendant l'enregistrement. Toi seul vois qu'il enregistre et depuis quand, sur tes autres appareils et tes montres. Pour les montres, « enregistre probablement » se déduit uniquement du moment où l'appli montre s'est manifestée pour la dernière fois. Les autres utilisateurs ne voient la session qu'une fois terminée.",
   "imp.ownerTitle": "🔒 Toi seul (propriétaire de la session)",
   "imp.privacyText": "Toutes les données importées sont conservées durablement. Pour supprimer, utilise le bouton « Supprimer le compte » dans ton profil (app web ou app iOS/Android) — il supprime définitivement ton compte avec toutes les sessions, données brutes et photos. Le transfert est chiffré (HTTPS).",
   "imp.aiTitle": "Assistance IA (Anthropic Claude)",
