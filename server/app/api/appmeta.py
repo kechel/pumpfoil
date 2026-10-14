@@ -971,6 +971,8 @@ NAECHSTES: list[dict] = [
     {"name": "Wear OS", "version": "1.2.43",
      "items": [
          "The watch start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
+         # 15.10.2026 (deb99c81): Waechter riss die Uebung ab, wenn die Uhr eine Weile im Wasser war (#16671).
+         "Heart rate and the more accurate GPS keep recording after your watch has been underwater for a few minutes.",
      ]},
     {"name": "Huawei Watch 5", "version": "1.0.3",
      "items": [
