@@ -31,7 +31,9 @@ async function handle(req) {
   // --- Pairing (reverse) ---
   if (req.method === "PAIR_INIT") {
     console.log("[pumpfoil] PAIR_INIT -> fetch " + BASE + "/api/devices/pair-init");
-    const r = await fetch({ url: BASE + "/api/devices/pair-init", method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: (req.model || "Amazfit").slice(0, 60), platform: "zepp" }) });
+    const r = await fetch({ url: BASE + "/api/devices/pair-init", method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ label: (req.model || "Amazfit").slice(0, 60), platform: "zepp" },
+      // Konto-Wechsel: der Server widerruft das alte Token beim Abholen des neuen (Uhr ab 1.0.14).
+      req.oldToken ? { old_token: String(req.oldToken).slice(0, 64) } : {})) });
     console.log("[pumpfoil] PAIR_INIT fetch status=" + (r && r.status));
     const b = parse(r);
     if (!b || !b.code) throw new Error("init failed");
@@ -103,7 +105,16 @@ async function handle(req) {
       // Wert-Skalen der Layout-Grafiken. FEHLTEN hier zuerst: die Uhr liest `r.hrZones`, aber die
       // Whitelist liess sie nicht durch — genau der Fehler, vor dem der Kommentar oben warnt
       // (Sprache/Update-Hinweis/Layouts waren schon einmal aus demselben Grund unsichtbar).
-      hrZones: b && b.hrZones, speedZones: b && b.speedZones };
+      hrZones: b && b.hrZones, speedZones: b && b.speedZones,
+      // Handy-Recorder desselben Kontos (Uhr ab 1.0.14) — auch hier gilt die Warnung oben.
+      phone_rec: b && b.phone_rec };
+  }
+
+  // --- App beendet (Uhr ab 1.0.14): nicht mehr als „gerade am Pumpen" zaehlen ---
+  if (req.method === "APP_CLOSED") {
+    if (!req.token) return { ok: false };
+    const r = await fetch({ url: BASE + "/api/devices/app-closed", method: "POST", headers: { "X-Device-Token": req.token, "Content-Type": "application/json" }, body: "{}" });
+    return { ok: (r.status || 0) >= 200 && (r.status || 0) < 300 };
   }
 
   // --- TEST: winziger Trigger, App-Side lädt Mini-Session komplett selbst hoch (kein Daten-Transfer) ---

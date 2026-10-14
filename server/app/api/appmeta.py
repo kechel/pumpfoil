@@ -972,6 +972,13 @@ NAECHSTES: list[dict] = [
      "items": [
          "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
      ]},
+    # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
+    # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
+    # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
+    {"name": "Amazfit", "version": "1.0.14",
+     "items": [
+         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
