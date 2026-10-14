@@ -24,7 +24,7 @@ from .. import export_track, media, models, storage
 from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
 from ..analysis import lage
-from ..db import get_db
+from ..db import SessionLocal, get_db
 from ..fitimport import parse_fit_bytes
 from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
 from ..naming import geraete_label, owner_label
@@ -3819,6 +3819,7 @@ def flag_not_pumpfoil(
 def set_classification(
     session_id: int, body: ClassifyIn,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
 ) -> dict:
     """Zuordnen — durch den BESITZER oder einen ADMIN (gleichberechtigt, Jans Vorgabe)."""
     s = _session_or_404(db, session_id)
@@ -3890,11 +3891,38 @@ def set_classification(
     # beiden Sessions umstellen koennen, ohne dass sich etwas bewegt (dort: 15 Laeufe).
     #
     # Nur bei echter Aenderung: derselbe Wert nochmal gewaehlt kostet keine Analyse.
-    if zuschnitt_weg or s.sport_class != _vorher_class or s.data_quality != _vorher_dq:
+    #
+    # IM HINTERGRUND, nicht vor der Antwort (14.10.2026): die Zuordnung selbst steht oben schon
+    # committet, nur die Zahlen ziehen nach. Synchron dauerte das bei haengendem Overpass bis
+    # 95 s (#16753) — die iOS-App gab nach 20 s mit „Konnte nicht gespeichert werden" auf,
+    # obwohl alles gespeichert war. Die Clients laden danach ohnehin neu; der `updated_at`-Stempel
+    # der Analyse bricht ihren ETag-Cache, sobald die neuen Zahlen da sind.
+    neu_rechnen = bool(zuschnitt_weg or s.sport_class != _vorher_class or s.data_quality != _vorher_dq)
+    if neu_rechnen and background_tasks is not None:
+        background_tasks.add_task(_klassifikation_nachrechnen, s.id)
+    elif neu_rechnen:
+        # Direkter Aufruf aus Python (admin.sportregel_anwenden): dort gibt es keinen Request-
+        # Hintergrund, der Aufrufer arbeitet danach mit derselben DB-Session weiter -> synchron.
         run_analysis(db, s)
         _spot_nachziehen(db, s)
     return {"ok": True, "sport_class": s.sport_class, "data_quality": s.data_quality,
-            "sport_source": s.sport_source}
+            "sport_source": s.sport_source, "reanalyzing": neu_rechnen}
+
+
+def _klassifikation_nachrechnen(session_id: int) -> None:
+    """Neuanalyse nach einer Zuordnung, in eigener DB-Session (die des Requests ist dann zu)."""
+    import logging
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, session_id)
+        if s is not None and not s.deleted:
+            run_analysis(db, s)
+            _spot_nachziehen(db, s)
+    except Exception:  # noqa: BLE001 — Hintergrund: protokollieren, nie still schlucken
+        db.rollback()
+        logging.getLogger(__name__).exception("Neuanalyse nach Zuordnung, Session %s", session_id)
+    finally:
+        db.close()
 
 
 @router.post("/{session_id}/appeal")
