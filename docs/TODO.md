@@ -1473,6 +1473,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Meldung beim Start-Druck noch durch, bevor der Timer laeuft? Nur auf echter Uhr testbar;
   (4) Live-Karte „wer pumpt gerade wo" (Spot-Ebene, nur eingeloggt), erst wenn (3) klar ist —
   sonst fehlen die Garmin-Fahrer.
+  **Garmin 1.0.93 hat den vollen Satz** (Referenz fuer alle Uhren): (a) Neu-Verbinden pollt auch,
+  wenn schon verbunden, und schickt `old_token` bei pair-init; (b) Startseite zeigt NUR bei laufendem
+  Handy-Recorder „Handy nimmt auf" (rot) / „Handy: Daten vor X min" (orange) — Quelle `phone_rec`
+  aus /devices/config und alle 90 s /devices/live-status, nur ohne laufende Aufnahme; (c) beim
+  Verlassen der App ohne Aufnahme POST /devices/app-closed. Auf Speicher-knappen Varianten NUR (c)
+  (Jan). Portierung 14.10. angestossen: Wear OS, Apple Watch, Huawei ArkTS (Watch 5).
+  **MERKEN fuer Huawei GT/Fit/D (lite) und Watch 3/4 (wearable), falls die je kommen:** denselben
+  Satz einbauen — auf lite (48-KB-Heap, s. Memory huawei-lite-jerryscript-heap) vermutlich nur (c).
 - **13.10. — Chat: Antworten mit Bezug auf die Nachricht** (Feedback #180, Philipp u5, 12:28): „In einem laengeren
   Chatverlauf waere bei Antworten ein Bezug zur Nachricht/Frage praktisch“ — er antwortete, nachdem schon ~10
   neuere Nachrichten da waren. Gibt es bisher nicht (keine reply_to-Spalte in chat_messages). Zitat-Antwort wie

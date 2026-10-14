@@ -215,6 +215,14 @@
     {
       "name": "autoStart",
       "value": "Auto-Start"
+    },
+    {
+      "name": "phoneRec",
+      "value": "Handy nimmt auf"
+    },
+    {
+      "name": "phoneRecStale",
+      "value": "Handy: Daten vor {n} min"
     }
   ]
 }

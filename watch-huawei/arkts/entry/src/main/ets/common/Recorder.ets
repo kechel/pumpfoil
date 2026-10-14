@@ -91,6 +91,8 @@ export interface Zustand {
   verworfen: number;
   direkt: boolean;        // mit pumpfoil.org gekoppelt: laedt selbst hoch (ungekoppelt: wartet auf der Uhr)
   direktFehler: number;   // Fehlversuche in Folge (0 = letzter Upload ging durch)
+  phoneRec: number;       // Handy-Recorder desselben Kontos: 0 nichts, 1 nimmt auf, 2 seit phoneRecAgo min keine Daten
+  phoneRecAgo: number;
 }
 
 interface FixDaten {
@@ -179,6 +181,12 @@ export class Recorder {
   private direktFehler: number = 0;
   private direktNaechster: number = 0;   // frueheste Zeit fuer den naechsten Versuch (Backoff)
   private direktKonfigZuletzt: number = 0;
+  // Wie Garmin 1.0.93 (14.10.2026): Handy-Recorder-Stand, alle 90 s auf dem Startbildschirm erfragt.
+  private phoneRec: number = 0;
+  private phoneRecAgo: number = 0;
+  private phoneRecZuletzt: number = 0;
+  // Token vor dem Trennen: geht beim naechsten pair-init als old_token mit (Konto-Wechsel).
+  private altesToken: string = '';
   koppeln: Koppeln | null = null;
   private koppelnLaeuft: boolean = false;
   // DevEco-Emulator: dessen GPS-Emulation kam nie bei der App an (nur 0,0, 08.10.2026) -> eigene Fahrt
@@ -766,7 +774,7 @@ export class Recorder {
     }
     this.koppelnLaeuft = true;
     this.koppeln = { code: '', claim: '', status: '' };
-    D.anfrage('POST', '/api/devices/pair-init', D.pairInitKoerper(this.modell), '').then((a: D.Antwort) => {
+    D.anfrage('POST', '/api/devices/pair-init', D.pairInitKoerper(this.modell, this.altesToken), '').then((a: D.Antwort) => {
       this.koppelnLaeuft = false;
       if (a.code !== 200) {
         this.koppeln = { code: '', claim: '', status: a.code === 0 ? 'netz' : 'fehler ' + a.code };
@@ -807,6 +815,7 @@ export class Recorder {
         const d: DirektDatei = { t: p.device_token };
         this.schreibe('direkt.json', JSON.stringify(d));
         this.koppeln = null;
+        this.altesToken = '';
         this.direktKonfigZuletzt = 0;
         this.direktNaechster = 0;
         console.info('Pumpfoil koppeln: gekoppelt');
@@ -816,7 +825,11 @@ export class Recorder {
 
   /** Entkoppeln: Aufnahmen bleiben ab jetzt auf der Uhr, bis neu gekoppelt ist. Nichts geht verloren. */
   trennen(): void {
+    if (this.direktToken !== '') {
+      this.altesToken = this.direktToken;
+    }
     this.direktToken = '';
+    this.phoneRec = 0;
     this.koppeln = null;
     this.direktFehler = 0;
     this.loesche('direkt.json');
@@ -865,6 +878,7 @@ export class Recorder {
         }
         this.direktLaeuft = false;
         this.direktKonfigZuletzt = Date.now();
+        this.phoneRecLesen(a.text);
         try {
           this.konfigAnwenden(new Konfig(JSON.parse(a.text) as KonfigDaten));
           this.schreibe('konfig.json', a.text);
@@ -876,9 +890,44 @@ export class Recorder {
     }
     const x: K.PlanEintrag | null = K.direktBereit(this.plan);
     if (x === null) {
+      // Nichts hochzuladen: auf dem Startbildschirm alle 90 s fragen, ob der Handy-Recorder laeuft
+      // (sonst saehe man einen erst nach der Uhr-App gestarteten nicht). Waehrend der Aufnahme nicht.
+      if (this.modus === 'bereit' && jetzt - this.phoneRecZuletzt > 90000) {
+        this.phoneRecZuletzt = jetzt;
+        this.direktLaeuft = true;
+        D.anfrage('GET', '/api/devices/live-status', '', this.direktToken).then((a: D.Antwort) => {
+          this.direktLaeuft = false;
+          if (a.code === 200) {
+            this.phoneRecLesen(a.text);
+          }
+        });
+      }
       return;
     }
     this.hochladen(x.id, x.n);
+  }
+
+  private phoneRecLesen(text: string): void {
+    try {
+      const h: D.PhoneRecHuelle = JSON.parse(text) as D.PhoneRecHuelle;
+      this.phoneRec = h.phone_rec !== undefined ? h.phone_rec.state : 0;
+      this.phoneRecAgo = h.phone_rec !== undefined ? h.phone_rec.ago_min : 0;
+    } catch (e) {
+      this.phoneRec = 0;
+    }
+  }
+
+  /**
+   * App wird beendet (EntryAbility.onDestroy): ohne laufende Aufnahme dem Server sagen, damit er die
+   * Uhr nicht weiter als „gerade am Pumpen" zaehlt (wie Garmin 1.0.93). Best effort.
+   */
+  appVerlassen(): void {
+    if (this.modus !== 'bereit' || this.direktToken === '') {
+      return;
+    }
+    D.anfrage('POST', '/api/devices/app-closed', '{}', this.direktToken).then((a: D.Antwort) => {
+      console.info('Pumpfoil app-closed ' + a.code);
+    });
   }
 
   /** Eine abgeschlossene Session: Meta, Chunks in Paketen (GPS zuerst), /complete — wie HuaweiBruecke.session. */
@@ -1136,7 +1185,8 @@ export class Recorder {
       offen: this.plan.offen(), plan: this.plan.stand(),
       fehler: this.f.speicher + this.f.accel + this.f.gps, letzterFehler: this.letzterFehler,
       verworfen: this.verworfen,
-      direkt: this.direktToken !== '', direktFehler: this.direktFehler
+      direkt: this.direktToken !== '', direktFehler: this.direktFehler,
+      phoneRec: this.phoneRec, phoneRecAgo: this.phoneRecAgo
     };
   }
 
