@@ -208,6 +208,59 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         flushTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.flushAll() }
         }
+        liveTask?.cancel()
+        let sid = uuid
+        liveTask = Task { [weak self] in await self?.liveLoop(sid) }
+    }
+
+    // MARK: Live-Upload waehrend der Aufnahme (wie Recorder.liveLoop auf Android, 14.10.2026)
+    // Solange Netz da ist, gehen die fertig geschriebenen Chunks schon waehrend der Aufnahme raus,
+    // alle 2 min rechnet der Server zwischendurch (`/analyze` -> Status `live`). Fehler werden
+    // geschluckt; die Dateien bleiben liegen, der Upload nach dem Stopp schickt ueber
+    // `received_chunks` nur den Rest. Abschaltbar im Profil (`phone_live_upload`, Standard an).
+    private var liveTask: Task<Void, Never>?
+    private static let liveIntervalSek: UInt64 = 30
+    private static let liveAnalyseSek: Double = 120
+
+    private func liveLoop(_ sid: String) async {
+        var gesendet = Set<Int>()
+        var angemeldet = false
+        var letzteAnalyse: Double = 0
+        while !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: Self.liveIntervalSek * 1_000_000_000)
+            if Task.isCancelled || !recording || uuid != sid { break }
+            if UserDefaults.standard.object(forKey: "phone_live_upload") as? Bool == false { continue }
+            guard await PhoneIngest.ensureToken() != nil else { continue }
+            let dir = Store.dir(sid)
+            do {
+                if !angemeldet {
+                    guard let meta = Store.readJson(dir.appendingPathComponent("meta.json")) else { continue }
+                    let res = try await PhoneIngest.startSession(meta)   // ohne expected_chunks
+                    for i in (res["received_chunks"] as? [Int]) ?? [] { gesendet.insert(i) }
+                    angemeldet = true
+                }
+                // Nur Chunks unter dem aktuellen Zaehler: writeChunk schreibt die Datei VOR dem
+                // Hochzaehlen (beides auf dem MainActor), alles darunter ist vollstaendig.
+                let bis = chunkIndex
+                var neu = 0
+                for f in Store.chunkFiles(dir) {
+                    if Task.isCancelled || !recording || uuid != sid { break }
+                    let teile = f.lastPathComponent.split(separator: "-")
+                    guard teile.count >= 2, let idx = Int(teile[1]) else { continue }
+                    if idx >= bis || gesendet.contains(idx) { continue }
+                    guard let chunk = Store.readJson(f) else { continue }
+                    try await PhoneIngest.uploadChunk(sid, chunk)
+                    gesendet.insert(idx); neu += 1
+                }
+                let jetzt = Date().timeIntervalSince1970
+                if neu > 0, recording, jetzt - letzteAnalyse >= Self.liveAnalyseSek {
+                    try await PhoneIngest.analyze(sid)
+                    letzteAnalyse = jetzt
+                }
+            } catch {
+                // offline/Server weg: naechste Runde nochmal; 401 klaert der Upload nach dem Stopp
+            }
+        }
     }
 
     func stop() {
@@ -218,6 +271,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         motion.stopGyroUpdates()
         motion.stopDeviceMotionUpdates()
         flushTimer?.invalidate(); flushTimer = nil
+        liveTask?.cancel(); liveTask = nil
         status = "saving"
         flushAll()
         Store.writeComplete(uuid, ["ended_at": Self.nowIso(), "total_chunks": chunkIndex])

@@ -3794,6 +3794,47 @@ static let nlOverlay: [String: String] = {
         "id": "Kode tidak valid atau kedaluwarsa — periksa kode di jam, atau minta kode baru di sana.",
         "nb": "Koden er ugyldig eller utløpt — sjekk koden på klokka, eller hent en ny der.",
     ]
+    // Handy-Recorder: Live-Upload (14.10.2026)
+    private static let _neu_profile_phoneLive: [String: String] = [
+        "de": "Live hochladen",
+        "gsw": "Live uelade",
+        "de-AT": "Live hochladen",
+        "en": "Upload live",
+        "fr": "Envoi en direct",
+        "it": "Carica in diretta",
+        "es": "Subir en directo",
+        "fi": "Lähetä livenä",
+        "nl": "Live uploaden",
+        "cs": "Nahrávat živě",
+        "pl": "Wysyłaj na żywo",
+        "pt": "Enviar ao vivo",
+        "pt-PT": "Enviar em direto",
+        "ja": "ライブアップロード",
+        "zh": "实时上传",
+        "ru": "Загружать в реальном времени",
+        "id": "Unggah langsung",
+        "nb": "Last opp direkte",
+    ]
+    private static let _neu_profile_phoneLiveSub: [String: String] = [
+        "de": "Lädt schon während der Aufnahme hoch, solange das Handy Netz hat. So siehst du auf einem anderen Gerät, ob und was es aufnimmt, und deine Uhr kann es abfragen. Kostet rund 5 MB mobile Daten pro Stunde.",
+        "gsw": "Ladt scho während de Ufnahm ue, solang s Handy Netz hät. So gsehsch uf emne andere Gerät, öb und was es ufnimmt, und dini Uhr chas abfröge. Choschtet öppe 5 MB mobili Date pro Stund.",
+        "de-AT": "Lädt schon während der Aufnahme hoch, solange das Handy Netz hat. So siehst du auf einem anderen Gerät, ob und was es aufnimmt, und deine Uhr kann es abfragen. Kostet rund 5 MB mobile Daten pro Stunde.",
+        "en": "Uploads while you're still recording, whenever the phone has signal. That way you can see on another device whether and what it's recording, and your watch can check. Uses about 5 MB of mobile data per hour.",
+        "fr": "Envoie les données pendant l'enregistrement, tant que le téléphone a du réseau. Tu vois ainsi sur un autre appareil s'il enregistre et quoi, et ta montre peut le vérifier. Consomme environ 5 Mo de données mobiles par heure.",
+        "it": "Carica i dati già durante la registrazione, finché il telefono ha rete. Così vedi da un altro dispositivo se e cosa sta registrando, e il tuo orologio può controllarlo. Consuma circa 5 MB di dati mobili all'ora.",
+        "es": "Sube los datos ya durante la grabación, mientras el móvil tenga cobertura. Así ves desde otro dispositivo si está grabando y qué, y tu reloj puede consultarlo. Gasta unos 5 MB de datos móviles por hora.",
+        "fi": "Lähettää tiedot jo tallennuksen aikana, kun puhelimella on verkko. Näet toiselta laitteelta, tallentaako se ja mitä, ja kellosi voi tarkistaa sen. Kuluttaa noin 5 Mt mobiilidataa tunnissa.",
+        "nl": "Uploadt al tijdens de opname, zolang de telefoon bereik heeft. Zo zie je op een ander apparaat of en wat hij opneemt, en je horloge kan het opvragen. Kost ongeveer 5 MB mobiele data per uur.",
+        "cs": "Nahrává data už během záznamu, dokud má telefon signál. Na jiném zařízení tak uvidíš, jestli a co nahrává, a tvoje hodinky to můžou zjistit. Spotřebuje asi 5 MB mobilních dat za hodinu.",
+        "pl": "Wysyła dane już podczas nagrywania, dopóki telefon ma zasięg. Dzięki temu na innym urządzeniu widzisz, czy i co nagrywa, a zegarek może to sprawdzić. Zużywa około 5 MB danych komórkowych na godzinę.",
+        "pt": "Envia os dados já durante a gravação, enquanto o celular tiver sinal. Assim você vê em outro aparelho se e o que ele está gravando, e o seu relógio pode consultar. Gasta cerca de 5 MB de dados móveis por hora.",
+        "pt-PT": "Envia os dados já durante a gravação, enquanto o telemóvel tiver rede. Assim vês noutro dispositivo se e o que está a gravar, e o teu relógio pode consultar. Gasta cerca de 5 MB de dados móveis por hora.",
+        "ja": "電波がある間は記録中からアップロードします。別の端末から記録中かどうか・何を記録しているかを確認でき、ウォッチからも問い合わせられます。モバイルデータを1時間あたり約5 MB使用します。",
+        "zh": "只要手机有网络，就在记录过程中上传数据。这样你可以在其他设备上看到它是否在记录、记录了什么，手表也能查询。每小时约消耗 5 MB 移动数据。",
+        "ru": "Загружает данные уже во время записи, пока у телефона есть сеть. Так на другом устройстве видно, идёт ли запись и что записывается, а часы могут это проверить. Расходует около 5 МБ мобильного трафика в час.",
+        "id": "Mengunggah data sudah selama perekaman, selama ponsel ada sinyal. Jadi kamu bisa melihat di perangkat lain apakah dan apa yang sedang direkam, dan jammu bisa mengeceknya. Memakai sekitar 5 MB data seluler per jam.",
+        "nb": "Laster opp allerede mens du tar opp, så lenge telefonen har dekning. Da ser du på en annen enhet om og hva den tar opp, og klokka di kan sjekke det. Bruker rundt 5 MB mobildata i timen.",
+    ]
     static let neuTexte: [String: [String: String]] = [
         "rider.ridingTitle": _neu_rider_ridingTitle,
         "rider.ridingHint": _neu_rider_ridingHint,
@@ -3871,6 +3912,8 @@ static let nlOverlay: [String: String] = {
         "tech.gSpread": _neu_tech_gSpread,
         "tech.gHeave": _neu_tech_gHeave,
         "account.claimBad": _neu_account_claimBad,
+        "profile.phoneLive": _neu_profile_phoneLive,
+        "profile.phoneLiveSub": _neu_profile_phoneLiveSub,
     ]
 
     static func t(_ key: String, _ lang: String) -> String {

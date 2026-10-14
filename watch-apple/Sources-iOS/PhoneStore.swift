@@ -123,6 +123,10 @@ enum PhoneIngest {
     static func uploadChunk(_ uuid: String, _ chunk: [String: Any]) async throws {
         _ = try await post("/api/ingest/session/\(uuid)/chunk", chunk)
     }
+    /// Zwischenanalyse waehrend der Aufnahme (Live-Upload) — setzt die Session auf `live`.
+    static func analyze(_ uuid: String) async throws {
+        _ = try await post("/api/ingest/session/\(uuid)/analyze", [:])
+    }
     static func complete(_ uuid: String, endedAt: String, totalChunks: Int) async throws {
         _ = try await post("/api/ingest/session/\(uuid)/complete", ["ended_at": endedAt, "total_chunks": totalChunks])
     }
