@@ -344,6 +344,8 @@ export default function Sessions() {
             <span className="ml-2 text-base font-normal text-slate-400">· {spotZusatz}</span>
           )}
         </h2>
+        {/* „N neue Sessions heute — Have fun, keep pumping!" neben der Ueberschrift (Jan, 14.10.2026). */}
+        <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett} />
       </div>
 
       <UploadProgressCard />
@@ -408,14 +410,11 @@ export default function Sessions() {
         {spot && /^\d+$/.test(spot) && (
           <SpotRenameRequest spotId={Number(spot)} spotName={spotName} />
         )}
-        {/* Rechter Block: Hinweis „heute neu", Import-Link (nur Meine), Ansicht und Accel-Umschalter
-            als EIN rechtsbuendiger Block (Jan, 07.09. und 14.10.2026). Vorher trugen Link bzw.
-            Ansicht das `ml-auto` und der Hinweis stand dahinter — die Knoepfe rutschten dadurch
-            nach links, sobald der Hinweis Platz brauchte. Der Hinweis steht jetzt VOR den Knoepfen,
-            die Knoepfe bleiben am rechten Rand. Import nur als Link (nicht der Datei-Knopf — der
+        {/* Rechter Block: Import-Link (nur Meine), Ansicht und Accel-Umschalter als EIN
+            rechtsbuendiger Block (Jan, 07.09. und 14.10.2026). Der Hinweis „heute neu" steht seit
+            14.10. oben neben der Ueberschrift — in dieser Zeile schob er die Knoepfe herum. Import nur als Link (nicht der Datei-Knopf — der
             Upload gehoert auf die Import-Seite mit der Garmin-Anleitung) und nur in „Meine". */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett} />
           {isMine && (
             <Link to="/import"
               className="inline-flex items-center gap-1.5 text-sm text-brand-400 hover:underline">

@@ -337,7 +337,17 @@ def sessions_today(
         q = q.filter(S.user_id == user.id)
     if spot:
         q = q.filter(_spot_cond(spot, db))
-    return {"n": int(q.scalar() or 0)}
+    out = {"n": int(q.scalar() or 0)}
+    # „Gerade pumpt hier jemand" (Jan, 14.10.2026): GENAU die Regel der gruenen Spots — nur ein
+    # Spot, der einzeln gruen werden darf (>= 4 Fahrer in 180 Tagen), und nur ja/nein, keine Zahl.
+    # Entschieden hier auf dem Server; fuer kleine Spots kommt nie etwas beim Client an.
+    if spot and spot.isdigit() and not mine:
+        from .devices import aktive_spots
+        try:
+            out["pumping_here"] = int(spot) in aktive_spots(db)["spots"]
+        except Exception:   # noqa: BLE001 - die Zeile darf daran nie scheitern
+            log.exception("pumping_here")
+    return out
 
 
 @spot_router.get("/spot-sessions")

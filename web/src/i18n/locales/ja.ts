@@ -303,6 +303,7 @@ const ja: Record<string, string> = {
   "sessions.todayOne": "今日はこれまでに新しいセッション1件",
   "sessions.todayN": "今日はこれまでに新しいセッション{n}件",
   "sessions.pumpingNow": "今§{n}§人がパンプ中",
+  "sessions.pumpingHere": "いま§誰か§がここでパンプ中",
   "side.all": "すべて",
   "side.phoneOnBoard": "ボード上の電話",
   "side.recordsHint": "加速度データありのセッション（高精度）からの記録、または全セッションから",
