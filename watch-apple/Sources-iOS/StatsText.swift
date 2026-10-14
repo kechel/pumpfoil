@@ -28,6 +28,8 @@ struct CommunityStatsText: View {
         if Meilenstein.imFenster(stats.pumps, Meilenstein.pumps) { s.insert(stats.pumps.formatted()) }
         if Meilenstein.imFenster(stats.foilers, Meilenstein.leute) { s.insert("\(stats.foilers)") }
         if Meilenstein.imFenster(stats.spots, Meilenstein.leute) { s.insert("\(stats.spots)") }
+        // „N gerade am Pumpen" pulsiert immer, solange die Zahl da ist (Jan, 14.10.2026, wie die PWA)
+        if let n = stats.pumping_now, n > 0 { s.insert("\(n)") }
         return s
     }
 
@@ -47,11 +49,13 @@ struct CommunityStatsText: View {
     }
 
     private func satz(takt: Double, hebt: Set<String>) -> Text {
-        let raw = Loc.t("banner.stats", lang)
+        let grund = Loc.t("banner.stats", lang)
             .replacingOccurrences(of: "{foilers}", with: "\(stats.foilers)")
             .replacingOccurrences(of: "{spots}", with: "\(stats.spots)")
             .replacingOccurrences(of: "{sessions}", with: "\(stats.sessions)")
             .replacingOccurrences(of: "{pumps}", with: stats.pumps.formatted())
+        // Zusatz nur bei N > 0; der Satzpunkt faellt weg, der Zusatz bringt seinen mit.
+        let raw = zusatz(grund)
         let ziel: Color = schema == .dark ? .white : .black
         let anteil = (schema == .dark ? 0.30 : 0.22) * takt
         var out = Text("")
@@ -66,6 +70,13 @@ struct CommunityStatsText: View {
             }
         }
         return out
+    }
+
+    private func zusatz(_ grund: String) -> String {
+        guard let n = stats.pumping_now, n > 0 else { return grund }
+        var g = grund
+        while let l = g.last, l == "." || l == "。" || l == " " { g.removeLast() }
+        return g + Loc.t("banner.pumpingNow", lang).replacingOccurrences(of: "{n}", with: "\(n)")
     }
 }
 

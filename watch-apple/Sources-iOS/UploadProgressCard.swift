@@ -21,7 +21,12 @@ struct UploadProgressCard: View {
                     // vom 03.09. — 30 haengende Uploads sahen ihre Besitzer NIRGENDS. Deshalb
                     // eine schmale Zeile mit dem Weg zur Session; entschieden wird dort.
                     ForEach(rows.filter { $0.ueberholt != true }) { s in
-                        NavigationLink { SessionDetailView(id: s.id) } label: { UploadCardRow(s: s) }
+                        NavigationLink { SessionDetailView(id: s.id) } label: {
+                            // Handy-Recorder mit Live-Upload: laufende AUFNAHME, kein haengender
+                            // Upload (wie PWA/Android, 14.10.2026).
+                            if s.placement == "phone" && s.status == "live" { HandyLiveZeile(s: s) }
+                            else { UploadCardRow(s: s) }
+                        }
                             .buttonStyle(.plain)
                     }
                     ForEach(rows.filter { $0.ueberholt == true }) { s in
@@ -150,6 +155,77 @@ struct SessionUploadCard: View {
             if let r = try? await Api.inProgress() { row = r.first { $0.id == id } }
             let secs: UInt64 = row == nil ? 20 : 4
             try? await Task.sleep(nanoseconds: secs * 1_000_000_000)
+        }
+    }
+}
+
+
+private func minutenSeit(_ iso: String?) -> Int {
+    guard let iso else { return 0 }
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let d = f.date(from: iso) ?? {
+        let g = ISO8601DateFormatter(); g.formatOptions = [.withInternetDateTime]; return g.date(from: iso)
+    }()
+    guard let d else { return 0 }
+    return max(0, Int(Date().timeIntervalSince(d) / 60))
+}
+
+/// „Dein Handy nimmt auf – seit X min" (roter Punkt) bzw. „letzte Daten vor X min" (orange).
+private struct HandyLiveZeile: View {
+    let s: InProgressSession
+    @AppStorage("appLang") private var lang = "de"
+    @State private var an = false
+
+    var body: some View {
+        let ago = minutenSeit(s.last_received_at)
+        let frisch = ago <= 3
+        HStack(spacing: 10) {
+            Circle().fill(frisch ? Color.red : Color.orange).frame(width: 12, height: 12)
+                .opacity(frisch && an ? 0.35 : 1)
+                .animation(frisch ? .easeInOut(duration: 0.9).repeatForever(autoreverses: true) : .default, value: an)
+            Text(frisch ? Loc.t("live.phoneActive", lang).replacingOccurrences(of: "{min}", with: "\(minutenSeit(s.started_at))")
+                        : Loc.t("live.phoneStale", lang).replacingOccurrences(of: "{ago}", with: "\(ago)"))
+                .font(.callout.weight(.medium))
+            Spacer(minLength: 4)
+            Image(systemName: "chevron.right").font(.footnote).foregroundStyle(.tertiary)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.accentColor.opacity(0.4)))
+        .onAppear { an = true }
+    }
+}
+
+/// Eigene Uhren, die sich in der letzten Stunde gemeldet und seitdem nichts hochgeladen haben:
+/// „… nimmt vermutlich auf" (wie die PWA-Startseite, 14.10.2026). Fragt einmal pro Minute.
+struct UhrenLiveStatus: View {
+    @AppStorage("appLang") private var lang = "de"
+    @State private var uhren: [Api.LiveWatch] = []
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(uhren) { w in
+                HStack(spacing: 8) {
+                    Image(systemName: "applewatch").foregroundStyle(Color.accentColor)
+                    Text(Loc.t("live.watchProbably", lang)
+                        .replacingOccurrences(of: "{device}", with: w.device)
+                        .replacingOccurrences(of: "{ago}", with: "\(w.last_seen_age_s / 60)"))
+                        .font(.callout)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(.separator)))
+            }
+            // nie ganz leer: eine leere VStack laedt ihre .task nicht zuverlaessig (s. Memory
+            // swiftui-leere-group-laedt-nicht)
+            Color.clear.frame(height: 0)
+        }
+        .task {
+            while !Task.isCancelled {
+                if let r = try? await Api.liveStatus() { uhren = r.watches.filter { $0.state == "probably_recording" } }
+                try? await Task.sleep(nanoseconds: 60 * 1_000_000_000)
+            }
         }
     }
 }

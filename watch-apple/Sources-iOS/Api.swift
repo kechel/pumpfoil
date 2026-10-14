@@ -135,6 +135,26 @@ enum Api {
         try await request("/api/community/sports", method: "GET", body: nil, auth: true)
     }
 
+    /// Eigene Uhren, die vermutlich gerade aufnehmen (wie die PWA-Startseite).
+    struct LiveWatch: Decodable, Identifiable { let device_id: Int; let device: String; let last_seen_age_s: Int; let state: String
+        var id: Int { device_id } }
+    struct LiveStatus: Decodable { let watches: [LiveWatch] }
+    static func liveStatus() async throws -> LiveStatus {
+        try await request("/api/devices/live", method: "GET", body: nil, auth: true)
+    }
+
+    /// Neue Sessions seit Mitternacht (lokal) — „X new sessions so far today" wie die PWA.
+    struct TodayCount: Decodable { let n: Int }
+    static func sessionsToday(mine: Bool, spot: String?, accelOnly: Bool, sport: String, board: Bool) async throws -> Int {
+        let mitternacht = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970 * 1000)
+        var q = "since_ms=\(mitternacht)&accel_only=\(accelOnly)&mine=\(mine)"
+        q += "&sport=" + (sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport)
+        if let spot, !spot.isEmpty { q += "&spot=" + (spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot) }
+        if board { q += "&board=true" }
+        let r: TodayCount = try await request("/api/community/sessions-today?" + q, method: "GET", body: nil, auth: true)
+        return r.n
+    }
+
     static func inProgress() async throws -> [InProgressSession] {
         try await request("/api/sessions/in-progress", method: "GET", body: nil, auth: true)
     }
@@ -1280,7 +1300,11 @@ enum Api {
         try await request("/api/sessions/merge-suggestions", method: "GET", body: nil, auth: true)
     }
 
-    struct CommunityStats: Decodable { let foilers: Int; let spots: Int; let sessions: Int; let pumps: Int }
+    struct CommunityStats: Decodable {
+        let foilers: Int; let spots: Int; let sessions: Int; let pumps: Int
+        /// „N gerade am Pumpen" (Server devices.gerade_aktiv, seit 14.10.2026); nil/0 = Zusatz weglassen
+        let pumping_now: Int?
+    }
 
     // Community-Kennzahlen (Willkommens-Banner + Stats-Leiste).
     static func communityStats() async throws -> CommunityStats {
