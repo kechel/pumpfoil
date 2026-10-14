@@ -1462,6 +1462,17 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+- **14.10. — Laeuft die Aufnahme? Handy ↔ Uhr ↔ Server (Jan, Uhr unterm Neo / Handy verpackt).**
+  Gebaut am 14.10.: Server `/devices/live` (Nutzer) + `/devices/live-status` (Uhr, mit `phone_active`);
+  Handy-Recorder laedt live hoch (Android 1.1.43 5c36ed35 im Emulator geprueft, iOS 1.1.49 714e63de nur
+  parse); PWA-Startseite zeigt „Handy nimmt auf" und Uhren „nimmt vermutlich auf" (Jans Regel: Meldung
+  < 1 h, seitdem nichts fertig hochgeladen); Datenschutz-Absatz `imp.owner5`. **Offen:**
+  (1) Garmin-Anzeige „Handy nimmt auf / nicht" auf der Uhr (Idle-Start, fragt `/devices/live-status`) —
+  ANZEIGE AUF DER UHR, erst Entwurf an Jan; (2) Android/iOS: Uhren-Status wie in der PWA (nach PWA-
+  Freigabe), Apple Watch/Wear direkt per WatchConnectivity/Data Layer; (3) Garmin: kommt eine
+  Meldung beim Start-Druck noch durch, bevor der Timer laeuft? Nur auf echter Uhr testbar;
+  (4) Live-Karte „wer pumpt gerade wo" (Spot-Ebene, nur eingeloggt), erst wenn (3) klar ist —
+  sonst fehlen die Garmin-Fahrer.
 - **13.10. — Chat: Antworten mit Bezug auf die Nachricht** (Feedback #180, Philipp u5, 12:28): „In einem laengeren
   Chatverlauf waere bei Antworten ein Bezug zur Nachricht/Frage praktisch“ — er antwortete, nachdem schon ~10
   neuere Nachrichten da waren. Gibt es bisher nicht (keine reply_to-Spalte in chat_messages). Zitat-Antwort wie
