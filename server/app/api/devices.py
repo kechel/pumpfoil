@@ -1696,24 +1696,37 @@ def _uhren_status(db: Session, user_id: int) -> list[dict]:
     return out
 
 
+ZAEHLER_FENSTER_MIN = 120   # Startseite/Pause/Upload: so lange zaehlt eine Uhr nach ihrer letzten Meldung
+ZAEHLER_NACH_ZU_MIN = 30    # nach „App verlassen" noch so lange (einpacken, heimfahren)
+
+
 def gerade_aktiv(db: Session) -> int:
-    """Wie viele Nutzer pumpen gerade vermutlich? (Jan, 14.10.2026: Zusatz in der Statistikzeile.)
-    Handy laedt live hoch, ODER eine Uhr hat sich in der letzten Stunde gemeldet und die App wurde
-    seitdem nicht verlassen. Ein Upload zaehlt AUSDRUECKLICH mit (Jan: „danach lande ich ja auch im
-    Start-Screen, erst wenn ich die App verlasse oder eine Stunde um ist runterziehen entspricht eher
-    der Realitaet") — anders als die eigene Uhr-Karte, die nach einem Upload „fertig" zeigt."""
+    """Wie viele Nutzer pumpen gerade vermutlich? (Jan, 14.10.2026: Zusatz in Statistikzeile + Sessions.)
+
+    Gezaehlt wird ein Nutzer, wenn sein Handy-Recorder live hochlaedt ODER sich eine seiner Uhren in
+    den letzten 2 Stunden gemeldet hat (App-Start, Pause, Upload — alles zaehlt) und die App nicht
+    vor mehr als 30 Minuten verlassen wurde. 2 h, weil Garmin waehrend der Aufnahme nichts sendet und
+    41 % der Garmin-Sessions laenger als 1 h sind (90 % unter 115 min, Messung 14.10.); 30 min nach
+    dem Verlassen fuer „bin noch am See, packe ein". Eine Schaetzung, keine Messung."""
     jetzt = datetime.now(timezone.utc)
-    kandidaten = {u for (u,) in db.query(models.DeviceToken.user_id).filter(
-        models.DeviceToken.revoked_at.is_(None),
-        models.DeviceToken.last_seen_at > jetzt - timedelta(minutes=UHR_AKTIV_MIN)).distinct()}
-    kandidaten |= {u for (u,) in db.query(models.Session.user_id).filter(
-        models.Session.status == "live",
-        models.Session.started_at > jetzt - timedelta(hours=14)).distinct()}
-    n = 0
-    for u in kandidaten:
-        if _laufende_aufnahmen(db, u) or _uhren_status(db, u):
-            n += 1
-    return n
+    nutzer: set[int] = set()
+    for d in (db.query(models.DeviceToken)
+              .filter(models.DeviceToken.revoked_at.is_(None),
+                      models.DeviceToken.last_seen_at > jetzt - timedelta(minutes=ZAEHLER_FENSTER_MIN))
+              .all()):
+        if (d.label or "") == "Phone":
+            continue
+        zu = _aware(d.app_closed_at) if d.app_closed_at else None
+        if zu is not None and zu >= _aware(d.last_seen_at) - timedelta(seconds=5) \
+                and zu < jetzt - timedelta(minutes=ZAEHLER_NACH_ZU_MIN):
+            continue
+        nutzer.add(d.user_id)
+    for (u,) in db.query(models.Session.user_id).filter(
+            models.Session.status == "live",
+            models.Session.started_at > jetzt - timedelta(hours=14)).distinct():
+        if u not in nutzer and _laufende_aufnahmen(db, u):
+            nutzer.add(u)
+    return len(nutzer)
 
 
 @router.post("/app-closed")

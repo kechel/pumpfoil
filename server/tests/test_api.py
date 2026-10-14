@@ -289,9 +289,19 @@ def test_upload_zaehlt_nicht_als_pumpen(client):
     from app.api.devices import gerade_aktiv
     db = SessionLocal(); vorher = gerade_aktiv(db); db.close()
     assert vorher >= 1
+    # App verlassen: noch 30 min weiter mitgezaehlt (einpacken, heimfahren), danach raus
     client.post("/api/devices/app-closed", headers=uhr)
-    db = SessionLocal(); nachher = gerade_aktiv(db); db.close()
-    assert nachher == vorher - 1
+    db = SessionLocal(); assert gerade_aktiv(db) == vorher; db.close()
+    from datetime import datetime, timedelta, timezone
+    from app import models as _m
+    db = SessionLocal()
+    for d in db.query(_m.DeviceToken).filter(_m.DeviceToken.token == uhr["X-Device-Token"]).all():
+        if d.app_closed_at is not None:
+            d.last_seen_at = datetime.now(timezone.utc) - timedelta(minutes=40)
+            d.app_closed_at = datetime.now(timezone.utc) - timedelta(minutes=40)
+    db.commit()
+    assert gerade_aktiv(db) == vorher - 1
+    db.close()
 
 
 def test_like_state_in_detail(client):
