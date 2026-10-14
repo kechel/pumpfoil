@@ -1481,8 +1481,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   0x180D, Merkmal 0x2A37) — spricht praktisch jeder Gurt (Polar, Garmin HRM, Wahoo …); Gurt im Recorder
   koppeln/merken, Puls je GPS-Punkt in Feld 4 wie bei den Uhren (`hr_source` setzen). Fallen: der Gurt
   darf nur von EINER App gleichzeitig gehalten werden (Polar-/Garmin-App trennen); Bluetooth-Berechtigung
-  nie stumm scheitern lassen; Aufnahme-Pfad -> langer Test mit echtem Gurt. Antwort an u683 ist raus
-  (TODO aufgenommen). Nebenbei: seine Apple Watch #16666 hat Puls nur ~22 von 33 min (Ursache offen).
+  nie stumm scheitern lassen; Aufnahme-Pfad -> langer Test mit echtem Gurt. Antwort an u683 (Jan):
+  „nehmen wir mit auf". Nebenbei: seine Apple Watch #16666 hat Puls nur ~22 von 33 min (Ursache offen).
 - **14.10. — fēnix 7X Pro, Firmware 27.18: Uhr startet MITTEN IM UPLOAD komplett neu (Firmware-Absturz).**
   Drei Faelle am 14.10. (11:40, 12:28 mit 1.0.93-Testbuild per USB, 13:23 mit **1.0.92 aus dem Store**),
   jedes Mal nach 15–25 hochgeladenen Chunks. `GARMIN/Debug/err_log.bak`: „RTL Trap errnum 0x00f",
