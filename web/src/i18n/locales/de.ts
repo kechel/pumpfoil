@@ -268,6 +268,7 @@ const de: Record<string, string> = {
   "side.onlyAccel": "nur Accel",
   "sessions.todayOne": "Heute bisher 1 neue Session",
   "sessions.todayN": "Heute bisher {n} neue Sessions",
+  "sessions.pumpingNow": "§{n}§ gerade am Pumpen",
   "side.all": "alle",
   "side.phoneOnBoard": "Handy am Brett",
   "side.recordsHint": "Rekorde nur aus Sessions mit Beschleunigungsdaten (präzise) oder aus allen",

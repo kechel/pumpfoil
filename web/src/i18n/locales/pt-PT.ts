@@ -310,6 +310,7 @@ const ptPT: Record<string, string> = {
   "side.onlyAccel": "só com accel",
   "sessions.todayOne": "Hoje até agora 1 sessão nova",
   "sessions.todayN": "Hoje até agora {n} sessões novas",
+  "sessions.pumpingNow": "§{n}§ a pumpar agora",
   "side.all": "tudo",
   "side.phoneOnBoard": "telefone na prancha",
   "side.recordsHint": "Recordes de sessões com dados de aceleração (preciso) ou de todas",

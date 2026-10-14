@@ -305,6 +305,7 @@ const nl: Record<string, string> = {
   "side.onlyAccel": "alleen accel",
   "sessions.todayOne": "Vandaag tot nu toe 1 nieuwe sessie",
   "sessions.todayN": "Vandaag tot nu toe {n} nieuwe sessies",
+  "sessions.pumpingNow": "§{n}§ nu aan het pumpen",
   "side.all": "alle",
   "side.phoneOnBoard": "telefoon op de plank",
   "side.recordsHint": "Records alleen uit sessies met versnellingsdata (precies) of uit alle",

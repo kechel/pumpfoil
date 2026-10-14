@@ -305,6 +305,7 @@ const cs: Record<string, string> = {
   "side.onlyAccel": "jen accel",
   "sessions.todayOne": "Dnes zatím 1 nová session",
   "sessions.todayN": "Dnes zatím {n} nových sessions",
+  "sessions.pumpingNow": "§{n}§ právě pumpuje",
   "side.all": "vše",
   "side.phoneOnBoard": "telefon na desce",
   "side.recordsHint": "Rekordy jen z vyjížděk s daty ze zrychlení (přesné), nebo ze všech",
