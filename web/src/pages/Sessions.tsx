@@ -397,7 +397,7 @@ export default function Sessions() {
             dann trotzdem anzeigen, sonst stuende die Auswahl auf einem Wert, den es nicht gibt. */}
         {(sports.length > 1 || sport !== "all") && (
           <select value={sport} onChange={(e) => setSport(e.target.value)}
-            className={`${SELECT_SCHRUMPFT} rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100`}>
+            className={`${SELECT_SCHRUMPFT} w-[150px] rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100`}>
             <option value="all">{t("all.allSports")}</option>
             {sport !== "all" && !sports.some((x) => x.sport === sport) && (
               <option value={sport}>{t(`cls.sport.${sport}`)}</option>
