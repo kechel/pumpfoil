@@ -484,3 +484,39 @@ def test_setup_snapshot_beim_anlegen(client):
     setup = client.get(f"/api/sessions/{sid}", headers=auth).json().get("setup") or {}
     assert setup.get("stab", {}).get("id") == alt, "Standard-Wechsel hat die Historie geaendert"
     assert setup.get("mast_len_cm") == 80
+
+
+def test_zugeordnete_sportart_steht_in_liste_und_ueberlebt_alle_loeschen(client):
+    """Jan, 14.10.2026: eine Session, die der Besitzer einer anderen Sportart zuordnet (Tanzen
+    indoor ohne GPS, Wingfoil ohne erkannte Pumpfoil-Laeufe), ist KEIN Ausschuss — sie steht in
+    der normalen Liste, und „alle aussortierten loeschen" laesst sie stehen."""
+    r = client.post("/api/auth/register", json={"email": "zuordnung@b.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post("/api/devices/pair", json={"code": code}).json()["device_token"]}
+
+    ids = []
+    for n in range(2):
+        uuid = f"zuordnung-uuid-{n}"
+        client.post("/api/ingest/session", headers=dev,
+                    json={"session_uuid": uuid, "started_at": f"2026-06-2{n}T09:00:00Z"})
+        r = client.post(f"/api/ingest/session/{uuid}/complete", headers=dev,
+                        json={"ended_at": f"2026-06-2{n}T09:02:00Z", "total_chunks": 0})
+        assert r.status_code == 200, r.text
+        ids.append(r.json()["session_id"])
+
+    def liste(f):
+        return {s["id"] for s in client.get(f"/api/sessions?filter={f}", headers=auth).json()}
+
+    # Ohne Daten -> keine Laeufe -> beide aussortiert.
+    assert set(ids) <= liste("other") and not (set(ids) & liste("pump"))
+
+    r = client.put(f"/api/sessions/{ids[0]}/classification", headers=auth, json={"sport": "other"})
+    assert r.status_code == 200, r.text
+    assert ids[0] in liste("pump") and ids[0] not in liste("other")
+    assert ids[1] in liste("other")
+
+    r = client.delete("/api/sessions/other/all", headers=auth)
+    assert r.json()["deleted"] == 1
+    assert client.get(f"/api/sessions/{ids[0]}", headers=auth).status_code == 200
+    assert ids[0] in liste("pump")
