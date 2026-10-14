@@ -507,20 +507,26 @@ function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boole
     return () => { aus = true; };
   }, [global]);
   if (!n && !pumpt && !hier) return null;
+  // Formatiert wie die Statistikzeile der Community (Jan, 14.10.2026): Fliesstext ruhig, nur die
+  // Zahlen fett/cyan, „gerade am Pumpen" pulsiert — und dahinter das Motto extra fett/cyan (CI).
+  const hervor = "font-bold tabular-nums text-brand-600 dark:text-brand-300";
+  const satz = (txt: string, puls: boolean, key: string) => (
+    <span key={key}>{txt.split("§").map((x, i) => i % 2 === 1
+      ? <span key={i} className={hervor + (puls ? " pf-million" : "")}>{x}</span>
+      : <span key={i}>{x}</span>)}</span>
+  );
   const teile: ReactNode[] = [];
-  if (n) teile.push(<span key="h">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })}</span>);
-  if (pumpt) {
-    const p = t("sessions.pumpingNow", { n: pumpt }).split("§");
-    teile.push(<span key="p">{teile.length ? " · " : ""}{p.map((x, i) => i % 2 === 1
-      ? <span key={i} className="pf-million">{x}</span> : <span key={i}>{x}</span>)}</span>);
-  }
-  if (hier) {
-    const p = t("sessions.pumpingHere").split("§");
-    teile.push(<span key="hier">{teile.length ? " · " : ""}{p.map((x, i) => i % 2 === 1
-      ? <span key={i} className="pf-million">{x}</span> : <span key={i}>{x}</span>)}</span>);
-  }
-  // Fett und cyan (Jan): im Light-Mode das dunklere Cyan, wie die Links.
-  return <span className="text-sm font-bold text-brand-600 dark:text-brand-300">{teile} — Have fun, keep pumping!</span>;
+  const trenner = () => (teile.length ? <span key={`t${teile.length}`}> · </span> : null);
+  // „todayOne" traegt die 1 als Ziffer im Text (kein Platzhalter) — die erste 1 hervorheben.
+  if (n) teile.push(satz(n === 1 ? t("sessions.todayOne").replace("1", "§1§")
+                                 : t("sessions.todayN", { n: `§${n}§` }), false, "h"));
+  if (pumpt) { const tr = trenner(); if (tr) teile.push(tr); teile.push(satz(t("sessions.pumpingNow", { n: pumpt }), true, "p")); }
+  if (hier) { const tr = trenner(); if (tr) teile.push(tr); teile.push(satz(t("sessions.pumpingHere"), true, "hier")); }
+  return (
+    <span className="text-sm text-slate-300">
+      {teile} — <span className="font-bold text-brand-600 dark:text-brand-300">Have fun, keep pumping!</span>
+    </span>
+  );
 }
 
 function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
