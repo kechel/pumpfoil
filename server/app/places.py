@@ -37,6 +37,9 @@ OVERPASS_URLS = [
 ]
 OVERPASS_URL = OVERPASS_URLS[0][0]   # Rueckwaertskompatibel (falls jemand direkt darauf zeigt)
 _last_good: str | None = None
+# Nach einem Komplettausfall so lange nicht mehr fragen (je Worker-Prozess, nur im Speicher).
+OVERPASS_PAUSE_S = 600
+_alle_weg_bis: float = 0.0
 
 # Land-Features, nach denen man einen Launch-Spot benennt (konservative Whitelist —
 # nur eindeutige „Venue"-artige Tags, KEINE Restaurants/Schulen/Regionen).
@@ -62,7 +65,14 @@ def _overpass(q: str, timeout: float, tries: int = 2):
     """Overpass-Request ueber mehrere Instanzen mit Retry/Backoff. -> payload | None.
     Die zuletzt erfolgreiche Instanz wird bevorzugt (siehe OVERPASS_URLS)."""
     import time
-    global _last_good
+    global _last_good, _alle_weg_bis
+    # Waren eben ALLE Instanzen weg, gar nicht erst wieder anklopfen: jeder Versuch kostet mit
+    # Timeouts und Pausen ueber eine Minute, und die Analyse wartet synchron darauf. Belegt am
+    # 14.10.2026: Sportart umstellen rechnete neu, 69 von 72 s gingen in die Wasser-Abfrage, die
+    # iOS-App gab nach 20 s mit „Konnte nicht gespeichert werden" auf. Rueckgabe None = derselbe
+    # Weg wie ein Fehlschlag (wird nicht als „kein Wasser" gecacht, s. _water_rings_cached).
+    if time.monotonic() < _alle_weg_bis:
+        return None
     urls = list(OVERPASS_URLS)
     if _last_good:                              # zuletzt erfolgreiche zuerst
         urls.sort(key=lambda u: u[0] != _last_good)
@@ -79,6 +89,7 @@ def _overpass(q: str, timeout: float, tries: int = 2):
             except Exception:  # noqa: BLE001
                 if attempt < tries - 1:
                     time.sleep(2 * (attempt + 1))
+    _alle_weg_bis = time.monotonic() + OVERPASS_PAUSE_S
     return None
 
 
