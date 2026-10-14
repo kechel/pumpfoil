@@ -505,6 +505,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             while (true) {
                 kotlinx.coroutines.delay(90_000)
                 if (Api.deviceToken.isNullOrBlank() || !Api.isOnline(ctx)) continue
+                // Nicht neben einem laufenden Upload (wie Garmin 1.0.93): der hat Vorrang.
+                if (Recorder.state.value.uploading) continue
                 try { lesePhoneRec(Api.liveStatus().optJSONObject("phone_rec")) } catch (_: Exception) {}
             }
         }
