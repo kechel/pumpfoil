@@ -1,6 +1,11 @@
 package org.pumpfoil.app
 
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.filled.Watch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,8 +68,75 @@ fun UploadProgressCard(onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
     val laufend = rows.filter { !it.ueberholt }
     val ueberholt = rows.filter { it.ueberholt }
     Column(modifier.padding(bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        laufend.forEach { s -> UploadRow(s, onOpen) }
+        laufend.forEach { s ->
+            // Handy-Recorder mit Live-Upload: laufende AUFNAHME, kein haengender Upload (wie PWA, 14.10.2026)
+            if (s.placement == "phone" && s.status == "live") HandyLiveZeile(s, onOpen) else UploadRow(s, onOpen)
+        }
         ueberholt.forEach { s -> SchmaleZeile(s, onOpen) }
+    }
+}
+
+private fun minutenSeit(iso: String?): Int = try {
+    if (iso.isNullOrBlank()) 0
+    else ((System.currentTimeMillis() - java.time.OffsetDateTime.parse(iso).toInstant().toEpochMilli()) / 60000L)
+        .toInt().coerceAtLeast(0)
+} catch (_: Exception) { 0 }
+
+/** „Dein Handy nimmt auf – seit X min" (rot pulsierend) bzw. „letzte Daten vor X min" (orange). */
+@Composable
+private fun HandyLiveZeile(s: InProgressSession, onOpen: (Int) -> Unit) {
+    val ago = minutenSeit(s.lastReceivedAt)
+    val frisch = ago <= 3
+    val takt = androidx.compose.animation.core.rememberInfiniteTransition(label = "live").animateFloat(
+        initialValue = 1f, targetValue = 0.35f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(900), androidx.compose.animation.core.RepeatMode.Reverse),
+        label = "punkt").value
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+            .clickable { onOpen(s.id) }.padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(12.dp).clip(androidx.compose.foundation.shape.CircleShape)
+            .background(if (frisch) Color(0xFFEF4444).copy(alpha = takt) else Color(0xFFF59E0B)))
+        Spacer(Modifier.width(10.dp))
+        Text(
+            if (frisch) I18n.t("live.phoneActive").replace("{min}", minutenSeit(s.startedAt).toString())
+            else I18n.t("live.phoneStale").replace("{ago}", ago.toString()),
+            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+/**
+ * Eigene Uhren, die sich in der letzten Stunde gemeldet und seitdem nichts hochgeladen haben:
+ * „… nimmt vermutlich auf" (wie die PWA-Startseite, 14.10.2026). Fragt einmal pro Minute.
+ */
+@Composable
+fun UhrenLiveStatus(modifier: Modifier = Modifier) {
+    var uhren by remember { mutableStateOf<List<LiveWatch>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            uhren = try { Api.liveStatus().watches.filter { it.state == "probably_recording" } } catch (_: Exception) { uhren }
+            delay(60_000L)
+        }
+    }
+    if (uhren.isEmpty()) return
+    Column(modifier.padding(bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        uhren.forEach { w ->
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)).padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(I18n.t("live.watchProbably").replace("{device}", w.device)
+                        .replace("{ago}", (w.lastSeenAgeS / 60).toString()),
+                    style = MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 }
 

@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import org.osmdroid.config.Configuration
@@ -183,10 +184,12 @@ fun RecordScreen(onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            // Waehrend der Aufnahme keine Titelleiste: der Zurueck-Pfeil ist dann ohne Funktion, und
+            // der Platz gehoert Karte und STOPP (Jan, 14.10.2026).
+            if (!st.recording) TopAppBar(
                 title = { Text(I18n.t("rec.title")) },
                 navigationIcon = {
-                    IconButton(onClick = { if (!st.recording) onBack() }) {
+                    IconButton(onClick = { onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back"))
                     }
                 },
@@ -198,7 +201,7 @@ fun RecordScreen(onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
-                st.recording -> RecordingBody(st)
+                st.recording -> {}   // Statistik + Karte stehen unten in einem eigenen Scrollbereich
                 st.status == "saved" || st.status == "saving" -> SavedBody(st, onBack)
                 else -> Column(
                     // SCROLLBAR (12.10.2026, Meldung Roman, Samsung): seit die Foil-Knoepfe zweizeilig
@@ -303,9 +306,30 @@ fun RecordScreen(onBack: () -> Unit) {
             }
 
             if (st.recording) {
-                // Live-Track-Karte füllt den Platz zwischen Statistik und dem fixen STOPP-Button.
-                Spacer(Modifier.height(12.dp))
-                TrackCanvas(st.track, st.isFoiling, Modifier.fillMaxWidth().weight(1f))
+                // STOPP darf nie aus dem Bild rutschen (Jan, 14.10.2026 — wie vorher START auf kleinen
+                // Bildschirmen). Deshalb: Statistik + Karte in EINEM Scrollbereich ueber dem festen
+                // STOPP. Die Karte fuellt den Rest, ist aber mindestens 180 dp hoch; reicht der Platz
+                // dafuer nicht, scrollt der Bereich, und STOPP bleibt stehen.
+                val dichte = androidx.compose.ui.platform.LocalDensity.current
+                var statsH by remember { mutableStateOf(0) }
+                androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
+                    val luftPx = with(dichte) { 12.dp.roundToPx() }
+                    val minPx = with(dichte) { 180.dp.roundToPx() }
+                    val kartePx = maxOf(constraints.maxHeight - statsH - luftPx, minPx)
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                        // RecordingBody legt mehrere Zeilen hintereinander -> in eine Column, nicht in eine Box
+                        Column(Modifier.fillMaxWidth().onGloballyPositioned { statsH = it.size.height },
+                            horizontalAlignment = Alignment.CenterHorizontally) { RecordingBody(st) }
+                        Spacer(Modifier.height(12.dp))
+                        // Waehrend STOPP gehalten wird, steht die Karte still: der Halte-Balken zeichnet
+                        // den Bildschirm alle 100 ms neu, und jedes Mal baute die Karte ihre Linie neu
+                        // auf — das Flackern (Jan, 14.10.2026).
+                        TrackCanvas(st.track, st.isFoiling,
+                            Modifier.fillMaxWidth().height(with(dichte) { kartePx.toDp() }),
+                            eingefroren = holdProgress > 0f)
+                    }
+                }
                 Spacer(Modifier.height(12.dp))
                 Text(I18n.t("rec.holdStop"),
                     style = MaterialTheme.typography.bodySmall,
@@ -409,7 +433,8 @@ private fun StatCell(label: String, value: String, modifier: Modifier = Modifier
 // Live-Track auf der echten OSM-Karte (osmdroid, FLOSS — wie Spots/Session-Detail). Polyline des
 // bisherigen Laufs, Karte folgt der aktuellen Position. Tiles cachen; offline bleibt die Linie sichtbar.
 @Composable
-private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Modifier = Modifier) {
+private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Modifier = Modifier,
+                        eingefroren: Boolean = false) {
     val lineColor = (if (onFoil) MaterialTheme.colorScheme.primary
                      else MaterialTheme.colorScheme.onSurfaceVariant).toArgb()
     val density = LocalContext.current.resources.displayMetrics.density
@@ -432,6 +457,7 @@ private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Mod
                     }
                 },
                 update = { map ->
+                    if (eingefroren) return@AndroidView   // STOPP wird gehalten: nichts neu zeichnen
                     MapTiles.anwenden(map, ebene)
                     map.overlays.clear()
                     if (track.size >= 2) {

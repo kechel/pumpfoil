@@ -230,6 +230,23 @@ object Api {
         http("DELETE", "/api/sessions/$id/share", null, auth = true); Unit
     }
 
+    /** Eigene Uhren, die vermutlich gerade aufnehmen (wie die PWA-Startseite). */
+    suspend fun liveStatus(): LiveStatusResponse = withContext(Dispatchers.IO) {
+        json.decodeFromString(LiveStatusResponse.serializer(), http("GET", "/api/devices/live", null, auth = true))
+    }
+
+    /** Neue Sessions seit Mitternacht (lokal), wie /sessions in der PWA („X new sessions so far today"). */
+    suspend fun sessionsToday(mine: Boolean, spot: String?, accelOnly: Boolean, sport: String, board: Boolean): Int = withContext(Dispatchers.IO) {
+        val mitternacht = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val q = StringBuilder("since_ms=$mitternacht&accel_only=$accelOnly&sport=${java.net.URLEncoder.encode(sport, "UTF-8")}&mine=$mine")
+        if (!spot.isNullOrBlank()) q.append("&spot=").append(java.net.URLEncoder.encode(spot, "UTF-8"))
+        if (board) q.append("&board=true")
+        org.json.JSONObject(http("GET", "/api/community/sessions-today?$q", null, auth = true)).optInt("n", 0)
+    }
+
     suspend fun inProgress(): List<InProgressSession> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             ListSerializer(InProgressSession.serializer()),
@@ -1175,7 +1192,9 @@ object Api {
     }
 
     @kotlinx.serialization.Serializable
-    data class CommunityStats(val foilers: Int = 0, val spots: Int = 0, val sessions: Int = 0, val pumps: Int = 0)
+    data class CommunityStats(val foilers: Int = 0, val spots: Int = 0, val sessions: Int = 0, val pumps: Int = 0,
+                              // „N gerade am Pumpen" (Server devices.gerade_aktiv); 0 = Zusatz weglassen
+                              @kotlinx.serialization.SerialName("pumping_now") val pumpingNow: Int = 0)
 
     // Community-Kennzahlen (Willkommens-Banner + Stats-Leiste).
     suspend fun communityStats(): CommunityStats = withContext(Dispatchers.IO) {

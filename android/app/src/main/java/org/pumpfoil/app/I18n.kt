@@ -175,6 +175,14 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     // Handy-Recorder: Live-Upload (14.10.2026)
     "profile.phoneLive" to row("Live hochladen", "Live uelade", "Live hochladen", "Upload live", "Envoi en direct", "Carica in diretta", "Subir en directo"),
     "profile.phoneLiveSub" to row("Lädt schon während der Aufnahme hoch, solange das Handy Netz hat. So siehst du auf einem anderen Gerät, ob und was es aufnimmt, und deine Uhr kann es abfragen. Kostet rund 5 MB mobile Daten pro Stunde.", "Ladt scho während de Ufnahm ue, solang s Handy Netz hät. So gsehsch uf emne andere Gerät, öb und was es ufnimmt, und dini Uhr chas abfröge. Choschtet öppe 5 MB mobili Date pro Stund.", "Lädt schon während der Aufnahme hoch, solange das Handy Netz hat. So siehst du auf einem anderen Gerät, ob und was es aufnimmt, und deine Uhr kann es abfragen. Kostet rund 5 MB mobile Daten pro Stunde.", "Uploads while you're still recording, whenever the phone has signal. That way you can see on another device whether and what it's recording, and your watch can check. Uses about 5 MB of mobile data per hour.", "Envoie les données pendant l'enregistrement, tant que le téléphone a du réseau. Tu vois ainsi sur un autre appareil s'il enregistre et quoi, et ta montre peut le vérifier. Consomme environ 5 Mo de données mobiles par heure.", "Carica i dati già durante la registrazione, finché il telefono ha rete. Così vedi da un altro dispositivo se e cosa sta registrando, e il tuo orologio può controllarlo. Consuma circa 5 MB di dati mobili all'ora.", "Sube los datos ya durante la grabación, mientras el móvil tenga cobertura. Así ves desde otro dispositivo si está grabando y qué, y tu reloj puede consultarlo. Gasta unos 5 MB de datos móviles por hora."),
+    // Live-Status + gerade am Pumpen (14.10.2026)
+    "banner.pumpingNow" to row(" – §{n}§ gerade am Pumpen.", " – §{n}§ grad am Pumpe.", " – §{n}§ grad am Pumpen.", " – §{n}§ currently pumping.", " – §{n}§ en train de pumper.", " – §{n}§ stanno pompando adesso.", " – §{n}§ bombeando ahora mismo."),
+    "sessions.todayOne" to row("Heute bisher 1 neue Session", "Hüt bis jetzt 1 neui Session", "Heute bisher 1 neue Session", "1 new session so far today", "1 nouvelle session aujourd'hui pour l'instant", "Finora oggi 1 nuova sessione", "Hoy, de momento, 1 sesión nueva"),
+    "sessions.todayN" to row("Heute bisher {n} neue Sessions", "Hüt bis jetzt {n} neui Sessions", "Heute bisher {n} neue Sessions", "{n} new sessions so far today", "{n} nouvelles sessions aujourd'hui pour l'instant", "Finora oggi {n} nuove sessioni", "Hoy, de momento, {n} sesiones nuevas"),
+    "sessions.pumpingNow" to row("§{n}§ gerade am Pumpen", "§{n}§ grad am Pumpe", "§{n}§ grad am Pumpen", "§{n}§ currently pumping", "§{n}§ en train de pumper", "§{n}§ stanno pompando adesso", "§{n}§ bombeando ahora mismo"),
+    "live.phoneActive" to row("Dein Handy nimmt auf – seit {min} min", "Dis Handy nimmt uf – sit {min} min", "Dein Handy nimmt auf – seit {min} min", "Your phone is recording – for {min} min", "Ton téléphone enregistre – depuis {min} min", "Il tuo telefono sta registrando – da {min} min", "Tu móvil está grabando – desde hace {min} min"),
+    "live.phoneStale" to row("Handy-Aufnahme läuft, letzte Daten vor {ago} min (gerade kein Netz?)", "Handy-Ufnahm lauft, letschti Date vor {ago} min (grad kei Netz?)", "Handy-Aufnahme läuft, letzte Daten vor {ago} min (grad kein Netz?)", "Phone recording is running, last data {ago} min ago (no signal right now?)", "Enregistrement du téléphone en cours, dernières données il y a {ago} min (pas de réseau ?)", "Registrazione del telefono in corso, ultimi dati {ago} min fa (niente rete?)", "Grabación del móvil en curso, últimos datos hace {ago} min (¿sin cobertura?)"),
+    "live.watchProbably" to row("{device}: App zuletzt vor {ago} min aktiv, seitdem nichts hochgeladen – nimmt vermutlich auf", "{device}: App zletscht vor {ago} min aktiv, sither nüt uegladä – nimmt wahrschiinlich uf", "{device}: App zuletzt vor {ago} min aktiv, seitdem nix hochgeladen – nimmt vermutlich auf", "{device}: app last active {ago} min ago, nothing uploaded since – probably recording", "{device} : appli active pour la dernière fois il y a {ago} min, rien d'envoyé depuis – enregistre probablement", "{device}: app attiva l'ultima volta {ago} min fa, niente caricato da allora – probabilmente sta registrando", "{device}: app activa por última vez hace {ago} min, nada subido desde entonces – probablemente grabando"),
     "nav.changelog" to row("Neuerungen", "Neuigkeite", "Neuerungen", "Changelog", "Nouveautés", "Novità", "Novedades"),
     "changelog.details" to row("Details ({n})", "Details ({n})", "Details ({n})", "Details ({n})", "Détails ({n})", "Dettagli ({n})", "Detalles ({n})"),
     "common.loadFailed" to row("Konnte nicht geladen werden.", "Het nöd chönne glade werde.", "Hot net gladen werdn kenna.", "Could not be loaded.", "Impossible de charger.", "Impossibile caricare.", "No se pudo cargar."),
@@ -1560,6 +1568,14 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (fi)
+    "banner.pumpingNow" to " – §{n}§ pumppaa juuri nyt.",
+    "sessions.todayOne" to "Tänään tähän mennessä 1 uusi sessio",
+    "sessions.todayN" to "Tänään tähän mennessä {n} uutta sessiota",
+    "sessions.pumpingNow" to "§{n}§ pumppaa juuri nyt",
+    "live.phoneActive" to "Puhelimesi tallentaa – {min} min ajan",
+    "live.phoneStale" to "Puhelimen tallennus käynnissä, viimeisimmät tiedot {ago} min sitten (ei verkkoa?)",
+    "live.watchProbably" to "{device}: sovellus viimeksi aktiivinen {ago} min sitten, sen jälkeen ei mitään lähetetty – tallentaa luultavasti",
     // Handy-Recorder: Live-Upload (14.10.2026) (fi)
     "profile.phoneLive" to "Lähetä livenä",
     "profile.phoneLiveSub" to "Lähettää tiedot jo tallennuksen aikana, kun puhelimella on verkko. Näet toiselta laitteelta, tallentaako se ja mitä, ja kellosi voi tarkistaa sen. Kuluttaa noin 5 Mt mobiilidataa tunnissa.",
@@ -2726,6 +2742,14 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (nl)
+    "banner.pumpingNow" to " – §{n}§ nu aan het pumpen.",
+    "sessions.todayOne" to "Vandaag tot nu toe 1 nieuwe sessie",
+    "sessions.todayN" to "Vandaag tot nu toe {n} nieuwe sessies",
+    "sessions.pumpingNow" to "§{n}§ nu aan het pumpen",
+    "live.phoneActive" to "Je telefoon neemt op – sinds {min} min",
+    "live.phoneStale" to "Telefoonopname loopt, laatste gegevens {ago} min geleden (geen bereik?)",
+    "live.watchProbably" to "{device}: app {ago} min geleden voor het laatst actief, sindsdien niets geüpload – neemt waarschijnlijk op",
     // Handy-Recorder: Live-Upload (14.10.2026) (nl)
     "profile.phoneLive" to "Live uploaden",
     "profile.phoneLiveSub" to "Uploadt al tijdens de opname, zolang de telefoon bereik heeft. Zo zie je op een ander apparaat of en wat hij opneemt, en je horloge kan het opvragen. Kost ongeveer 5 MB mobiele data per uur.",
@@ -3891,6 +3915,14 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (cs)
+    "banner.pumpingNow" to " – §{n}§ právě pumpuje.",
+    "sessions.todayOne" to "Dnes zatím 1 nová session",
+    "sessions.todayN" to "Dnes zatím {n} nových sessions",
+    "sessions.pumpingNow" to "§{n}§ právě pumpuje",
+    "live.phoneActive" to "Tvůj telefon nahrává – {min} min",
+    "live.phoneStale" to "Záznam v telefonu běží, poslední data před {ago} min (bez signálu?)",
+    "live.watchProbably" to "{device}: aplikace naposledy aktivní před {ago} min, od té doby nic nenahráno – nejspíš nahrává",
     // Handy-Recorder: Live-Upload (14.10.2026) (cs)
     "profile.phoneLive" to "Nahrávat živě",
     "profile.phoneLiveSub" to "Nahrává data už během záznamu, dokud má telefon signál. Na jiném zařízení tak uvidíš, jestli a co nahrává, a tvoje hodinky to můžou zjistit. Spotřebuje asi 5 MB mobilních dat za hodinu.",
