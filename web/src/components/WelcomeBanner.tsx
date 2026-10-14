@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { api, NewsBanner } from "../lib/api";
+import { api, CommunityStatsData, NewsBanner } from "../lib/api";
 import { useI18n, formatNumber } from "../i18n";
-import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, imMeilensteinFenster } from "../lib/pumpPulse";
+import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, imMeilensteinFenster, mitPumptGerade } from "../lib/pumpPulse";
 import { CloseIcon, MailIcon } from "./Icons";
 
 // Willkommens-/News-Banner oben im Start-Bereich. Inhalt + Version kommen aus der DB
@@ -12,7 +12,7 @@ const DISMISS_KEY = "foil_banner_v1";
 
 export function WelcomeBanner() {
   const { t, lang } = useI18n();
-  const [stats, setStats] = useState<{ foilers: number; spots: number; sessions: number; pumps: number } | null>(null);
+  const [stats, setStats] = useState<CommunityStatsData | null>(null);
   const [news, setNews] = useState<NewsBanner | null>(null);
   const [dismissedVer, setDismissedVer] = useState(() => Number(localStorage.getItem(DISMISS_KEY) || 0));
 
@@ -21,7 +21,8 @@ export function WelcomeBanner() {
   const show = !!news && news.enabled && news.version > dismissedVer;
 
   useEffect(() => {
-    if (show) api.communityStats().then(setStats).catch(() => {});
+    // fresh: am SW-Cache vorbei — „gerade am Pumpen" waere aus dem Cache sonst veraltet.
+    if (show) api.communityStats(true).then(setStats).catch(() => {});
   }, [show]);
 
   if (!show || !news) return null;
@@ -35,12 +36,12 @@ export function WelcomeBanner() {
 
   // Stats-Satz: Zahlen sind mit § markiert -> fett/cyan gerendert (Wortstellung bleibt je Sprache erhalten).
   const parts = stats
-    ? t("banner.stats", {
+    ? mitPumptGerade(t("banner.stats", {
         foilers: formatNumber(stats.foilers, lang),
         spots: formatNumber(stats.spots, lang),
         sessions: formatNumber(stats.sessions, lang),
         pumps: formatNumber(stats.pumps, lang),
-      }).split("§")
+      }), stats.pumping_now, (n) => t("banner.pumpingNow", { n }), (x) => formatNumber(x, lang)).split("§")
     : [];
 
   // Wie in CommunityStats: drei Zahlen mit eigener Stufe, Sessions bewusst nicht.
@@ -50,7 +51,9 @@ export function WelcomeBanner() {
   const pulst = (teil: string) => !!stats && (
     (pulsPumps && teil === formatNumber(stats.pumps, lang))
     || (pulsFoiler && teil === formatNumber(stats.foilers, lang))
-    || (pulsSpots && teil === formatNumber(stats.spots, lang)));
+    || (pulsSpots && teil === formatNumber(stats.spots, lang))
+    // „gerade am Pumpen" pulsiert immer, solange die Zahl da ist (Jan, 14.10.2026)
+    || (!!stats.pumping_now && teil === formatNumber(stats.pumping_now, lang)));
 
   // Das ✉️ im Banner-Text ist ein Platzhalter → hier durchs echte Umschlag-Icon ersetzen
   // (identisch zum Feedback-Tab rechts), damit Text und Button-Icon zusammenpassen.

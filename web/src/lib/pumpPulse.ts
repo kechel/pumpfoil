@@ -33,3 +33,15 @@ export function imMeilensteinFenster(wert: number | null | undefined, stufe: num
   const erreicht = Math.floor(wert / stufe) * stufe;
   return wert < erreicht * (1 + FENSTER);
 }
+
+
+/**
+ * „… – N gerade am Pumpen." an den Statistiksatz haengen, nur wenn N > 0 (Jan, 14.10.2026).
+ * Der Satzpunkt des Grundsatzes faellt dafuer weg, der Zusatz bringt seinen eigenen mit.
+ * Gezaehlt wird serverseitig (devices.gerade_aktiv): Handy laedt live hoch, oder eine Uhr hat sich
+ * in der letzten Stunde gemeldet und seitdem weder fertig hochgeladen noch die App verlassen.
+ */
+export function mitPumptGerade(satz: string, n: number | undefined, zusatz: (n: string) => string, fmt: (x: number) => string): string {
+  if (!n || n <= 0) return satz;
+  return satz.replace(/[.。]\s*$/, "") + zusatz(fmt(n));
+}

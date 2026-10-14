@@ -1566,6 +1566,7 @@ const pl: Record<string, string> = {
   "dm.empty": "Jeszcze żadnych wiadomości prywatnych. Poszukaj wyżej nazwy, aby do kogoś napisać.",
   "banner.news": "Nowe aktualizacje aplikacji na Androida i iOS są w sklepie — zaktualizuj teraz!",
   "banner.stats": "Jest nas już §{foilers}§ pumpfoilerów na §{spots}§ spotach, z §{sessions}§ sesjami i §{pumps}§ pompami łącznie.",
+  "banner.pumpingNow": " – §{n}§ właśnie pompuje.",
   "banner.dismiss": "Zamknij",
   "phome.latest": "Najnowsze sesje",
   "phome.byFoil": "Według foila",

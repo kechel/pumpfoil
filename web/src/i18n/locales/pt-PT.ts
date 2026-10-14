@@ -1475,6 +1475,7 @@ const ptPT: Record<string, string> = {
   "dm.empty": "Ainda sem mensagens diretas. Busque um nome acima para enviar mensagem a alguém.",
   "banner.news": "Novas atualizações para a app Android e iOS na loja — atualiza agora!",
   "banner.stats": "Já somos §{foilers}§ pumpfoilers em §{spots}§ spots, com §{sessions}§ sessões e §{pumps}§ pumps no total.",
+  "banner.pumpingNow": " – §{n}§ a pumpar agora.",
   "banner.dismiss": "Dispensar",
   "phome.latest": "Últimas sessões",
   "phome.byFoil": "Por foil",

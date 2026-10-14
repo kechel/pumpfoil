@@ -1079,6 +1079,7 @@ const deAT: Record<string, string> = {
   "dm.empty": "Noch keine Direktnachrichten. Such oben nach einem Namen, um jemandem zu schreiben.",
   "banner.news": "Neue Updates für die Android- und iOS-App im Store — jetzt aktualisieren!",
   "banner.stats": "Mia san scho §{foilers}§ Pumpfoiler auf §{spots}§ Spots mit §{sessions}§ Sessions und zamm §{pumps}§ Pumps.",
+  "banner.pumpingNow": " – §{n}§ grad am Pumpen.",
   "banner.dismiss": "Ausblendn",
   "phome.latest": "Letzte Sessions",
   "phome.byFoil": "Je Foil",

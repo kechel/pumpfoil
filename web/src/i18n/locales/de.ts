@@ -1740,6 +1740,7 @@ const de: Record<string, string> = {
   "banner.msg": "ist gaaanz neu (seit 23. Juni 2026) — fast täglich neue Features & Foils. Sag mir, was dir gefällt (und was nicht): einfach rechts aufs ✉️ klicken →",
   "banner.news": "Neue Updates für die Android- und iOS-App im Store — jetzt aktualisieren!",
   "banner.stats": "Wir sind schon §{foilers}§ Pumpfoiler an §{spots}§ Spots mit §{sessions}§ Sessions und zusammen §{pumps}§ Pumps.",
+  "banner.pumpingNow": " – §{n}§ gerade am Pumpen.",
   "banner.dismiss": "Ausblenden",
   "phome.latest": "Letzte Sessions",
   "phome.byFoil": "Je Foil",

@@ -1590,6 +1590,7 @@ const cs: Record<string, string> = {
   "banner.msg": "je úplně nový (od 23. června 2026) — skoro denně nové funkce a foily. Napiš mi, co se ti líbí (a co ne): stačí kliknout vpravo na ✉️ →",
   "banner.news": "Nové aktualizace pro Android a iOS aplikaci v obchodě — aktualizuj hned!",
   "banner.stats": "Už je nás §{foilers}§ pumpfoilerů na §{spots}§ spotech s §{sessions}§ vyjížďkami a dohromady §{pumps}§ pumpnutí.",
+  "banner.pumpingNow": " – §{n}§ právě pumpuje.",
   "banner.dismiss": "Skrýt",
   "phome.latest": "Poslední vyjížďky",
   "phome.byFoil": "Podle foilu",

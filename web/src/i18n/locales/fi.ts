@@ -1553,6 +1553,7 @@ const fi: Record<string, string> = {
   "banner.msg": "on ihan uusi (23. kesäkuuta 2026 lähtien) — melkein päivittäin uusia ominaisuuksia ja foileja. Kerro, mistä pidät (ja mistä et): klikkaa vain oikealla olevaa ✉️ →",
   "banner.news": "Uudet päivitykset Android- ja iOS-sovellukseen kaupassa — päivitä nyt!",
   "banner.stats": "Meitä on jo §{foilers}§ pumpfoilaajaa §{spots}§ spotilla §{sessions}§ sessiolla ja yhteensä §{pumps}§ pumppauksella.",
+  "banner.pumpingNow": " – §{n}§ pumppaa juuri nyt.",
   "banner.dismiss": "Piilota",
   "phome.latest": "Viimeisimmät sessiot",
   "phome.byFoil": "Foileittain",

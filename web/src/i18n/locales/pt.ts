@@ -1479,6 +1479,7 @@ const pt: Record<string, string> = {
   "dm.empty": "Ainda sem mensagens diretas. Busque um nome acima para enviar mensagem a alguém.",
   "banner.news": "Novas atualizações para o app Android e iOS na loja — atualize agora!",
   "banner.stats": "Já somos §{foilers}§ pumpfoilers em §{spots}§ spots, com §{sessions}§ sessões e §{pumps}§ pumps no total.",
+  "banner.pumpingNow": " – §{n}§ pumpando agora.",
   "banner.dismiss": "Dispensar",
   "phome.latest": "Últimas sessões",
   "phome.byFoil": "Por foil",

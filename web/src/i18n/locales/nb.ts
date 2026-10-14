@@ -1516,6 +1516,7 @@ const nb: Record<string, string> = {
   "dm.empty": "Ingen direktemeldinger ennå. Søk etter et navn over for å sende melding til noen.",
   "banner.news": "Nye oppdateringer av Android- og iOS-appen i butikken — oppdater nå!",
   "banner.stats": "Vi er allerede §{foilers}§ pumpfoilere på §{spots}§ spots med §{sessions}§ økter og §{pumps}§ pumper til sammen.",
+  "banner.pumpingNow": " – §{n}§ pumper akkurat nå.",
   "banner.dismiss": "Lukk",
   "phome.latest": "Siste økter",
   "phome.byFoil": "Per foil",

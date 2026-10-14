@@ -1479,6 +1479,7 @@ const ja: Record<string, string> = {
   "dm.empty": "まだダイレクトメッセージがありません。上で名前を検索して誰かにメッセージを送りましょう。",
   "banner.news": "ストアで Android と iOS アプリの新しいアップデート — 今すぐ更新を！",
   "banner.stats": "私たちはすでに §{spots}§ のスポットで §{foilers}§ 人のパンプフォイラー、合計 §{sessions}§ セッションと §{pumps}§ 回のポンプです。",
+  "banner.pumpingNow": "——今まさに§{n}§人がパンプ中。",
   "banner.dismiss": "閉じる",
   "phome.latest": "最新のセッション",
   "phome.byFoil": "フォイル別",
