@@ -7,6 +7,7 @@ struct ProfileView: View {
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
     @AppStorage("phone_rec_enabled") private var phoneRecEnabled = false
+    @AppStorage("phone_live_upload") private var phoneLiveUpload = true
     @State private var editing = false
     @State private var draftName = ""
     @State private var avatarItem: PhotosPickerItem?
@@ -121,6 +122,19 @@ struct ProfileView: View {
                     Text(Loc.t("profile.phoneRec", lang))
                     Text(Loc.t("profile.phoneRecSub", lang)).font(.caption).foregroundStyle(.secondary)
                     waterproofHint
+                }
+            }
+            liveUploadToggle
+        }
+    }
+
+    // Live-Upload waehrend der Aufnahme (PhoneRecorder.liveLoop), Standard an.
+    @ViewBuilder private var liveUploadToggle: some View {
+        if phoneRecEnabled {
+            Toggle(isOn: $phoneLiveUpload) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Loc.t("profile.phoneLive", lang))
+                    Text(Loc.t("profile.phoneLiveSub", lang)).font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
