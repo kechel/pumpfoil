@@ -1462,6 +1462,17 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+- **14.10. — fēnix 7X Pro, Firmware 27.18: Uhr startet MITTEN IM UPLOAD komplett neu (Firmware-Absturz).**
+  Drei Faelle am 14.10. (11:40, 12:28 mit 1.0.93-Testbuild per USB, 13:23 mit **1.0.92 aus dem Store**),
+  jedes Mal nach 15–25 hochgeladenen Chunks. `GARMIN/Debug/err_log.bak`: „RTL Trap errnum 0x00f",
+  Absturzadresse `0x10001fcf` und Stack in allen Faellen identisch -> Firmware, nicht unsere App
+  (verschiedene App-Builds koennen nicht an derselben Adresse abstuerzen; CIQ_LOG leer, kein „IQ!").
+  Bedingungen bei allen drei: Uhr nicht am Arm, liegend, drinnen ohne GPS-Fix, WLAN an. Eine echte
+  Fahrt am selben Morgen (1.0.92, 80 Chunks) lief durch. Daten gingen NIE verloren — der Upload setzt
+  nach dem Neustart fort (#16653, #16661 vollstaendig). **Offen:** bei Garmin melden (Forum/Developer-
+  Bericht mit err_log), pruefen ob es ein Firmware-Update gibt; testen, ob es auch draussen mit GPS-Fix
+  bzw. ohne WLAN passiert; ggf. Upload schonender (weniger parallele Anfragen, s. Memory
+  upload-parallelization). 1.0.93 deshalb NICHT zurueckgehalten.
 - **14.10. — Laeuft die Aufnahme? Handy ↔ Uhr ↔ Server (Jan, Uhr unterm Neo / Handy verpackt).**
   Gebaut am 14.10.: Server `/devices/live` (Nutzer) + `/devices/live-status` (Uhr, mit `phone_active`);
   Handy-Recorder laedt live hoch (Android 1.1.43 5c36ed35 im Emulator geprueft, iOS 1.1.49 714e63de nur
