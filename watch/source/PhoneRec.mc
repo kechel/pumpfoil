@@ -52,6 +52,11 @@ module PhoneRec {
         _ctr = 0;
         var token = Config.getString("deviceToken");
         if (token == null || token.equals("") || !System.getDeviceSettings().phoneConnected) { return; }
+        // Nie neben einem laufenden Upload: der Uploader haelt selbst mehrere Anfragen offen, und
+        // Connect IQ begrenzt die gleichzeitigen. Am 14.10. startete die fenix waehrend eines Uploads
+        // neu (Phase „Startseite", ~90 s nach App-Start) — Ursache noch offen, das hier schliesst
+        // diesen Verdacht aus.
+        if (Uploader.isBusy() || Uploader.pendingCount() > 0) { return; }
         Communications.makeWebRequest(
             Config.baseUrl() + "/api/devices/live-status",
             {},
