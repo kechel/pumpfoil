@@ -62,6 +62,17 @@ TASCHE = {
            "Uhr #16735 (FR55, 1.0.92, record_mode lite -> 0 Accel-Chunks, nur GPS)",
 }
 
+# Handy AM BRETT bei einer ANDEREN Sportart als Pumpfoil — Wahrheit fuer Sportart-/Antriebs-Erkennung,
+# NICHT fuer Pump-Zaehlung/Gleiten (dort wuerde der Antrieb als Pumpen gelernt). Gelesen wird davon
+# noch nichts; `paare_finden` fasst sie nur nicht an, solange `placement` nicht „board" ist.
+# {Handy-Session: Vermerk}
+ANDERE_SPORTART = {
+    16729: "u267 14.10.2026, foil_scoot, Jans Meldung „phone on board“; Handy als „phone“ markiert, "
+           "laut Lage in den Laeufen flach (Schwerkraft ~z, 6 von 8 Laeufen), Kreisel + Magnetfeld, "
+           "53,5 Hz, 1 h 47 min, 8 Laeufe (bis 21 min lang); dazu Garmin #16719 (1.0.93, 24,9 Hz, 8 Laeufe). "
+           "Lauf ab 3774 s: Accel 14 s eingefroren (std 0). Fehlstart-Session #16709 (7 s) ignorieren.",
+}
+
 def paare_finden(db) -> tuple[list[tuple[int, int]], list[int]]:
     """(Paare (Brett, Uhr), Brett-Sessions ohne Uhr) aus der Datenbank. Liest nur."""
     from datetime import timedelta
