@@ -1485,6 +1485,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Bericht mit err_log), pruefen ob es ein Firmware-Update gibt; testen, ob es auch draussen mit GPS-Fix
   bzw. ohne WLAN passiert; ggf. Upload schonender (weniger parallele Anfragen, s. Memory
   upload-parallelization). 1.0.93 deshalb NICHT zurueckgehalten.
+  **Aufloesung 14.10. abends:** die Uhr stuerzte dann auch beim blossen Blaettern im Garmin-Menue ab,
+  ohne unsere App -> Zustand der Uhr. Nach Werksreset + 1.0.93 aus dem Store: #16697 (kurz) und
+  #16707 (20 min, 11 GPS + 21 Accel-Chunks lueckenlos, Puls in allen 1201 Punkten, 25,1 Hz) ohne
+  Absturz. Sehr wahrscheinlich kaputter Uhr-Speicher nach den USB-Sideloads. Kein Garmin-Bericht noetig,
+  solange es nicht wiederkommt; Testbuilds nach Moeglichkeit im Emulator statt auf der Alltags-Uhr.
 - **14.10. — Laeuft die Aufnahme? Handy ↔ Uhr ↔ Server (Jan, Uhr unterm Neo / Handy verpackt).**
   Gebaut am 14.10.: Server `/devices/live` (Nutzer) + `/devices/live-status` (Uhr, mit `phone_active`);
   Handy-Recorder laedt live hoch (Android 1.1.43 5c36ed35 im Emulator geprueft, iOS 1.1.49 714e63de nur
