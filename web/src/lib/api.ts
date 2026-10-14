@@ -1536,7 +1536,7 @@ export const api = {
       sport: opts.sport ?? "pumpfoil", mine: String(!!opts.mine) });
     if (opts.spot) q.set("spot", opts.spot);
     if (opts.board) q.set("board", "true");
-    return req<{ n: number }>(`/api/community/sessions-today?${q}`);
+    return req<{ n: number; pumping_here?: boolean }>(`/api/community/sessions-today?${q}`);
   },
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).

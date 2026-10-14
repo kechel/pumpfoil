@@ -408,23 +408,25 @@ export default function Sessions() {
         {spot && /^\d+$/.test(spot) && (
           <SpotRenameRequest spotId={Number(spot)} spotName={spotName} />
         )}
-        {/* Weg zur Import-Seite — in DERSELBEN Zeile wie die Filter, links vom Accel-Umschalter,
-            beide zusammen rechtsbuendig (Jan, 07.09.2026). Deshalb traegt der LINK jetzt `ml-auto`
-            und der Umschalter nicht mehr: `ml-auto` schiebt alles ab hier nach rechts, die zwei
-            bleiben dabei ein Block. Bewusst nur der Link und nicht der Datei-Knopf — der Upload
-            gehoert auf die Import-Seite, wo auch die Anleitung zum Garmin-Export steht.
-            Nur in „Meine": ein Upload erzeugt immer eine EIGENE Session. */}
-        {isMine && (
-          <Link to="/import"
-            className="ml-auto inline-flex items-center gap-1.5 text-sm text-brand-400 hover:underline">
-            <UploadIcon className="h-4 w-4" /> {t("import.title")}
-          </Link>
-        )}
-        {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. */}
-        <ListenAnsicht className={isMine ? "" : "ml-auto"} />
-        <AccelToggle value={accelOnly} onChange={(v) => { setBrett(false); setAccelOnly(v); }}
-                     brett={brett} onBrett={() => { setBrett(true); setAccelOnly(false); }} />
-        <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett} />
+        {/* Rechter Block: Hinweis „heute neu", Import-Link (nur Meine), Ansicht und Accel-Umschalter
+            als EIN rechtsbuendiger Block (Jan, 07.09. und 14.10.2026). Vorher trugen Link bzw.
+            Ansicht das `ml-auto` und der Hinweis stand dahinter — die Knoepfe rutschten dadurch
+            nach links, sobald der Hinweis Platz brauchte. Der Hinweis steht jetzt VOR den Knoepfen,
+            die Knoepfe bleiben am rechten Rand. Import nur als Link (nicht der Datei-Knopf — der
+            Upload gehoert auf die Import-Seite mit der Garmin-Anleitung) und nur in „Meine". */}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett} />
+          {isMine && (
+            <Link to="/import"
+              className="inline-flex items-center gap-1.5 text-sm text-brand-400 hover:underline">
+              <UploadIcon className="h-4 w-4" /> {t("import.title")}
+            </Link>
+          )}
+          {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. */}
+          <ListenAnsicht />
+          <AccelToggle value={accelOnly} onChange={(v) => { setBrett(false); setAccelOnly(v); }}
+                       brett={brett} onBrett={() => { setBrett(true); setAccelOnly(false); }} />
+        </div>
       </div>
 
 
@@ -486,10 +488,14 @@ function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boole
   // „N gerade am Pumpen" (Jan, 14.10.2026), derselbe Zaehler wie in der Statistikzeile. Er gilt fuer
   // ALLE — deshalb nur in der Ansicht „Alle" ohne Spot-Filter, sonst passte er nicht zur Liste.
   const [pumpt, setPumpt] = useState(0);
+  // An einem Spot: „gerade pumpt hier jemand" — nur ja/nein, vom Server nach der Regel der gruenen
+  // Spots entschieden (kleine Spots liefern nie `true`).
+  const [hier, setHier] = useState(false);
   useEffect(() => {
     let aus = false;
     api.sessionsToday({ mine, spot: spot || undefined, accelOnly, sport, board })
-      .then((r) => { if (!aus) setN(r.n); }).catch(() => { if (!aus) setN(null); });
+      .then((r) => { if (!aus) { setN(r.n); setHier(!!r.pumping_here); } })
+      .catch(() => { if (!aus) { setN(null); setHier(false); } });
     return () => { aus = true; };
   }, [mine, spot, accelOnly, sport, board]);
   const global = !mine && !spot;
@@ -499,12 +505,17 @@ function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boole
     api.communityStats(true).then((s) => { if (!aus) setPumpt(s.pumping_now ?? 0); }).catch(() => {});
     return () => { aus = true; };
   }, [global]);
-  if (!n && !pumpt) return null;
+  if (!n && !pumpt && !hier) return null;
   const teile: ReactNode[] = [];
   if (n) teile.push(<span key="h">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })}</span>);
   if (pumpt) {
     const p = t("sessions.pumpingNow", { n: pumpt }).split("§");
     teile.push(<span key="p">{teile.length ? " · " : ""}{p.map((x, i) => i % 2 === 1
+      ? <span key={i} className="pf-million">{x}</span> : <span key={i}>{x}</span>)}</span>);
+  }
+  if (hier) {
+    const p = t("sessions.pumpingHere").split("§");
+    teile.push(<span key="hier">{teile.length ? " · " : ""}{p.map((x, i) => i % 2 === 1
       ? <span key={i} className="pf-million">{x}</span> : <span key={i}>{x}</span>)}</span>);
   }
   // Fett und cyan (Jan): im Light-Mode das dunklere Cyan, wie die Links.
