@@ -23,6 +23,9 @@ DEFAULTS = {
     "colorByValue": False,
     # Auto-Start der Aufnahme, sobald man losfährt (GPS-Geschwindigkeit). Default an.
     "auto_start": True,
+    # Auf der Spot-Karte als „gerade aktiv" mitzaehlen (Jan, 14.10.2026: „im profil ausstellbar").
+    # Wirkt NUR auf die gruenen Spots, nicht auf den Gesamtzaehler „N gerade am Pumpen".
+    "show_active_spot": True,
     # Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren).
     "record_mode": "full",
     # Wassersperre auf der Uhr: "auto" = die Uhr entscheidet selbst (Zepp z. B. nur ab drei
@@ -554,6 +557,8 @@ def update_settings(
         current["speed_zones"] = _clean_speed_zones(patch["speed_zones"])
     if "auto_start" in patch:
         current["auto_start"] = bool(patch["auto_start"])
+    if "show_active_spot" in patch:
+        current["show_active_spot"] = bool(patch["show_active_spot"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
         current["record_mode"] = patch["record_mode"]
     if "water_lock" in patch and patch["water_lock"] in ("auto", "on", "off"):

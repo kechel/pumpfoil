@@ -1149,6 +1149,8 @@ export const api = {
     const m = /filename="([^"]+)"/.exec(cd);
     return { blob: await res.blob(), name: m?.[1] || `pumpfoil-${id}.${kind}` };
   },
+  // Gruene Spots „gerade aktiv" (Regeln: server devices.aktive_spots).
+  spotActive: () => req<{ spots: number[]; area: number[] }>(`/api/community/spot-active`),
   spotMap: (accelOnly = true, sport = "all") => req<{ spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}&sport=${encodeURIComponent(sport)}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),

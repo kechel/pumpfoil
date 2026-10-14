@@ -520,3 +520,82 @@ def test_zugeordnete_sportart_steht_in_liste_und_ueberlebt_alle_loeschen(client)
     assert r.json()["deleted"] == 1
     assert client.get(f"/api/sessions/{ids[0]}", headers=auth).status_code == 200
     assert ids[0] in liste("pump")
+
+
+def test_gruene_spots_schuetzen_kleine_spots(client):
+    """Spot-Karte (Jan, 14.10.2026): ein Spot wird nur einzeln gruen, wenn dort >= 4 Fahrer waren;
+    ein kleiner Spot meldet sich nur ueber eine Kachel mit > 5 Fahrern; wer im Profil
+    `show_active_spot` abschaltet, faellt heraus — zaehlt im Gesamtzaehler aber weiter."""
+    from datetime import datetime, timedelta, timezone
+    from app.db import SessionLocal
+    from app import models
+    from app.api import devices as D
+
+    def konto(name):
+        r = client.post("/api/auth/register", json={"email": f"{name}@spot.de", "password": "supersecret"})
+        auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+        code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+        tok = client.post("/api/devices/pair", json={"code": code}).json()["device_token"]
+        return auth, {"X-Device-Token": tok}, client.get("/api/auth/me", headers=auth).json()["id"]
+
+    db = SessionLocal()
+    # Weit weg von allen anderen Testdaten (eigene Kacheln).
+    gross = models.Spot(name="Gross", lat=-60.0, lon=-120.0)
+    klein = models.Spot(name="Klein", lat=-62.0, lon=-125.0)
+    db.add_all([gross, klein]); db.commit()
+    alt = datetime.now(timezone.utc) - timedelta(days=3)
+    nutzer = [konto(f"spotfahrer{i}") for i in range(4)]
+    for i, (_, _, uid) in enumerate(nutzer):
+        db.add(models.Session(session_uuid=f"spot-gross-{i}", user_id=uid, started_at=alt,
+                              spot_id=gross.id, status="analyzed"))
+    einsam_auth, einsam_dev, einsam_id = konto("einsam")
+    db.add(models.Session(session_uuid="spot-klein-0", user_id=einsam_id, started_at=alt,
+                          spot_id=klein.id, status="analyzed"))
+    db.commit(); db.close()
+
+    def aktiv():
+        D._AKTIV_CACHE = None
+        return client.get("/api/community/spot-active", headers=nutzer[0][0]).json()
+
+    assert gross.id not in aktiv()["spots"]
+    client.get("/api/devices/config", headers=nutzer[1][1])          # Uhr meldet sich -> aktiv
+    client.get("/api/devices/config", headers=einsam_dev)
+    d = aktiv()
+    assert gross.id in d["spots"]
+    assert klein.id not in d["spots"] and klein.id not in d["area"]  # 1 Fahrer: verborgen
+
+    db = SessionLocal(); vorher = D.gerade_aktiv(db); db.close()
+    client.put("/api/settings", headers=nutzer[1][0], json={"show_active_spot": False})
+    assert gross.id not in aktiv()["spots"]
+    db = SessionLocal(); assert D.gerade_aktiv(db) == vorher; db.close()   # Zaehler unveraendert
+
+
+def test_kachel_mit_mehr_als_5_fahrern_faerbt_nur_buendel(client):
+    """Sechs kleine Spots (je 1 Fahrer) in einer Kachel: einer aktiv -> alle sechs in `area`
+    (das Buendel wird gruen), keiner einzeln in `spots`."""
+    from datetime import datetime, timedelta, timezone
+    from app.db import SessionLocal
+    from app import models
+    from app.api import devices as D
+    db = SessionLocal()
+    kleine = [models.Spot(name=f"Mini{i}", lat=-70.0 + i * 0.01, lon=-150.0) for i in range(6)]
+    db.add_all(kleine); db.commit()
+    alt = datetime.now(timezone.utc) - timedelta(days=3)
+    # Ein echtes Konto mit Uhr (aktiv), fuenf weitere Fahrer direkt in der DB (Register-Ratenlimit).
+    r = client.post("/api/auth/register", json={"email": "mini0@spot.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post("/api/devices/pair", json={"code": code}).json()["device_token"]}
+    uids = [client.get("/api/auth/me", headers=auth).json()["id"]]
+    for i in range(1, 6):
+        u = models.User(email=f"mini{i}@spot.de", password_hash="x"); db.add(u); db.flush(); uids.append(u.id)
+    for i, sp in enumerate(kleine):
+        db.add(models.Session(session_uuid=f"spot-mini-{i}", user_id=uids[i], started_at=alt,
+                              spot_id=sp.id, status="analyzed"))
+    db.commit()
+    ids = {sp.id for sp in kleine}
+    db.close()
+    client.get("/api/devices/config", headers=dev)
+    D._AKTIV_CACHE = None
+    d = client.get("/api/community/spot-active", headers=auth).json()
+    assert ids <= set(d["area"]) and not (ids & set(d["spots"]))

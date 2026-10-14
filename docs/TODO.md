@@ -1490,6 +1490,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   #16707 (20 min, 11 GPS + 21 Accel-Chunks lueckenlos, Puls in allen 1201 Punkten, 25,1 Hz) ohne
   Absturz. Sehr wahrscheinlich kaputter Uhr-Speicher nach den USB-Sideloads. Kein Garmin-Bericht noetig,
   solange es nicht wiederkommt; Testbuilds nach Moeglichkeit im Emulator statt auf der Alltags-Uhr.
+- **14.10. — Gruene Spots „gerade aktiv" auf der Spot-Karte (Web gebaut).** Server
+  `devices.aktive_spots` + `GET /api/community/spot-active`; Spot = laufende Handy-Aufnahme, sonst
+  letzte Session (79 % Treffer). Einzeln gruen ab 4 Fahrern/180 Tage; kleinere Spots nur ueber feste
+  ~50-km-Kacheln mit > 5 Fahrern/90 Tage (faerben nur Buendel). Profil-Schalter `show_active_spot`
+  (nur Karte, Gesamtzaehler bleibt). Filter „gerade aktiv", Legende, Datenschutz `imp.owner6`.
+  **Offen:** Android/iOS-Spotkarte (Gruen + Filter + Legende + Profil-Schalter); spaeter pruefen
+  (device_contacts gegen folgende Uploads), wie oft „letzter Spot" danebenliegt.
 - **14.10. — Laeuft die Aufnahme? Handy ↔ Uhr ↔ Server (Jan, Uhr unterm Neo / Handy verpackt).**
   Gebaut am 14.10.: Server `/devices/live` (Nutzer) + `/devices/live-status` (Uhr, mit `phone_active`);
   Handy-Recorder laedt live hoch (Android 1.1.43 5c36ed35 im Emulator geprueft, iOS 1.1.49 714e63de nur

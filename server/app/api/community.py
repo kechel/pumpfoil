@@ -1379,6 +1379,18 @@ def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
     return out
 
 
+@spot_router.get("/spot-active")
+def spot_active(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Gruene Spots fuer die Karte (nur eingeloggt): `spots` = einzeln gruen, `area` = kleine Spots
+    in einer aktiven Kachel (faerben nur Buendel). Regeln und Grenzen: `devices.aktive_spots`."""
+    from .devices import aktive_spots
+    try:
+        return aktive_spots(db)
+    except Exception:   # noqa: BLE001 - die Karte darf daran nie scheitern
+        log.exception("spot-active")
+        return {"spots": [], "area": []}
+
+
 @spot_router.get("/spot-compare")
 def spot_compare(period: str = "all", accel_only: bool = False,
                  _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
