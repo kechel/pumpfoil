@@ -522,6 +522,35 @@ def test_zugeordnete_sportart_steht_in_liste_und_ueberlebt_alle_loeschen(client)
     assert ids[0] in liste("pump")
 
 
+def test_zuordnung_antwortet_sofort_und_rechnet_im_hintergrund(client, monkeypatch):
+    """14.10.2026: Sportart umstellen rechnete VOR der Antwort neu (bis 95 s bei haengendem
+    Overpass), die iOS-App gab nach 20 s auf. Jetzt: Antwort sofort, Neuanalyse als Hintergrund-
+    Aufgabe; derselbe Wert nochmal gewaehlt rechnet gar nicht."""
+    from app.api import sessions as api_sessions
+
+    r = client.post("/api/auth/register", json={"email": "async@b.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post("/api/devices/pair", json={"code": code}).json()["device_token"]}
+    client.post("/api/ingest/session", headers=dev,
+                json={"session_uuid": "async-uuid", "started_at": "2026-06-20T09:00:00Z"})
+    sid = client.post("/api/ingest/session/async-uuid/complete", headers=dev,
+                      json={"ended_at": "2026-06-20T09:02:00Z", "total_chunks": 0}).json()["session_id"]
+
+    gerufen = []
+    monkeypatch.setattr(api_sessions, "_klassifikation_nachrechnen", lambda i: gerufen.append(i))
+    monkeypatch.setattr(api_sessions, "run_analysis",
+                        lambda *a, **k: (_ for _ in ()).throw(AssertionError("synchron gerechnet")))
+
+    r = client.put(f"/api/sessions/{sid}/classification", headers=auth, json={"sport": "other"})
+    assert r.status_code == 200, r.text
+    assert r.json()["reanalyzing"] is True and r.json()["sport_class"] == "other"
+    assert gerufen == [sid]
+
+    r = client.put(f"/api/sessions/{sid}/classification", headers=auth, json={"sport": "other"})
+    assert r.json()["reanalyzing"] is False and gerufen == [sid]
+
+
 def test_gruene_spots_schuetzen_kleine_spots(client):
     """Spot-Karte (Jan, 14.10.2026): ein Spot wird nur einzeln gruen, wenn dort >= 4 Fahrer waren;
     ein kleiner Spot meldet sich nur ueber eine Kachel mit > 5 Fahrern; wer im Profil
