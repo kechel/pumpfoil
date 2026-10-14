@@ -52,6 +52,8 @@ class RecorderService : Service(), SensorEventListener {
     /** Beginn der Puls-Anforderung. Bezugspunkt des Waechters, solange NIE ein Wert kam. */
     private var pulsSeitMs = 0L
     private var hsNeustarts = 0
+    /** elapsedRealtime, zu dem WIR die Uebung zuletzt beendet haben (s. stopHeartRate). */
+    @Volatile private var eigenesEndeMs = 0L
     private var waechter: java.util.concurrent.ScheduledExecutorService? = null
     private val locMgr by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
 
@@ -367,8 +369,19 @@ class RecorderService : Service(), SensorEventListener {
                     // eine andere App die Uebung uebernommen hat oder das System sie beendete,
                     // koennen wir nicht wissen — aber wir koennen es MERKEN und neu anfordern.
                     if (update.exerciseStateInfo.state.isEnded) {
+                        val grund = update.exerciseStateInfo.endReason
+                        // UNSER EIGENES Ende (Waechter-Neustart, Pause, Stopp) — kein Ausfall. Bis
+                        // 1.2.41 lief es hier durch: der Waechter beendete die Uebung, startete eine
+                        // neue, und dieses ENDED setzte danach `hsClient = null` und warf das GPS auf
+                        // den LocationManager. Ergebnis an #16671 (u574, 14.10.2026): ab Minute 24
+                        // nie wieder Puls, GPS nur noch mit dem 125-m-Platzhalter.
+                        if (SystemClock.elapsedRealtime() - eigenesEndeMs < EIGENES_ENDE_FENSTER_MS) {
+                            android.util.Log.i("Pumpfoil", "Uebung beendet (eigenes Ende, Grund $grund)")
+                            return
+                        }
                         android.util.Log.w("Pumpfoil",
-                            "Uebung beendet (${update.exerciseStateInfo.state})")
+                            "Uebung beendet (${update.exerciseStateInfo.state}, Grund $grund)")
+                        Recorder.messwegPulsEnde = "${update.exerciseStateInfo.state}/$grund"
                         // Auch die letzte Lieferung traegt noch Positionen — mitnehmen, solange
                         // die Aufnahme laeuft (danach verwirft addGps sie ohnehin).
                         if (gpsUeberHs) hsOrteUebernehmen(update)
@@ -477,8 +490,15 @@ class RecorderService : Service(), SensorEventListener {
                 // gebuendelt schweigen — ein Neustart nach 120 s haette die Ortung jedes Mal mit
                 // abgerissen. Dann gilt die laengere Grenze.
                 val grenze = if (gpsUeberHs) HS_STILL_MS else PULS_STILL_MS
-                if (seit > 0 && still > grenze && hsNeustarts < PULS_MAX_NEUSTARTS) {
+                // Liefert die Uebung noch Positionen, LEBT sie — fehlender Puls heisst dann nur
+                // „kein Hautkontakt" (Uhr im Wasser). Ein Neustart wuerde ausgerechnet die
+                // funktionierende Ortung abreissen (#16671: Puls weg ab Min 17,8, GPS aus der
+                // Uebung lief weiter, nach 300 s riss der Waechter alles ab).
+                val uebungLebt = gpsUeberHs && letzterOrtMs > 0L &&
+                    SystemClock.elapsedRealtime() - letzterOrtMs < HS_STILL_MS
+                if (!uebungLebt && seit > 0 && still > grenze && hsNeustarts < PULS_MAX_NEUSTARTS) {
                     hsNeustarts++
+                    Recorder.messwegPulsNeu = hsNeustarts
                     android.util.Log.w("Pumpfoil",
                         "Puls seit ${still / 1000} s still — Uebung neu anfordern ($hsNeustarts)")
                     Recorder.setPulsMessung(false)
@@ -563,6 +583,8 @@ class RecorderService : Service(), SensorEventListener {
         val client = hsClient ?: return
         hsClient = null
         hsDelivered = false
+        // Merken: das gleich eintreffende ENDED stammt von UNS (s. onExerciseUpdateReceived).
+        eigenesEndeMs = SystemClock.elapsedRealtime()
         // Beendet die Uebung und damit die Messung. Der Callback stirbt mit dem Service.
         try { client.endExerciseAsync() } catch (_: Throwable) {}
     }
@@ -684,6 +706,8 @@ class RecorderService : Service(), SensorEventListener {
         const val PULS_MAX_NEUSTARTS = 8
         /** Health Services darf bei dunklem Display gebuendelt liefern (Doku: bis ~150 s). */
         const val HS_STILL_MS = 300_000L
+        /** So lange nach unserem eigenen endExerciseAsync gilt ein ENDED als unseres. */
+        const val EIGENES_ENDE_FENSTER_MS = 15_000L
         /** Laengstens so lange wartet Stopp/Pause auf den Health-Services-Puffer. */
         const val HS_LEEREN_MAX_MS = 4_000L
         /** LocationManager liefert jede Sekunde; so lange Stille heisst „ausgefallen". */
