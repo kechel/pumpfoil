@@ -1067,10 +1067,8 @@ IDEEN: list[str] = [
     # Uhr nur den letzten Lauf; Jan: „direkt auf der uhr ist aber auch ne gute idee".
     "Scroll through all runs of the session on your watch, not just the last one, to compare "
     "them with friends right at the water.",
-    # Nutzerfrage ThermikDreher im 1:1-Chat mit Jan (14.10.2026): Heart Rate Recovery (HRR), wie
-    # schnell der Puls nach einem Lauf wieder faellt. Puls liegt je GPS-Punkt vor (load_gps Index 4),
-    # die Pausen zwischen den Laeufen kennen wir aus den Segmenten. Jan: „nehms mal mit auf".
-    "Heart rate recovery: how quickly your pulse drops again after each run.",
+    # Heart Rate Recovery (ThermikDreher, 14.10.) stand hier ein paar Stunden — am selben Tag als
+    # Pulsabfall 60/120 s in der Lauftabelle gebaut, steht im Changelog. Nicht wieder eintragen.
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
     # steht seitdem im Changelog. Nicht wieder eintragen.
 ]
