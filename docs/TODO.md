@@ -1180,8 +1180,9 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
 
 ## 💡 Backlog (Produktideen — bewusst später)
 
-- **Heart Rate Recovery (HRR)** (14.10.2026, Nutzerfrage ThermikDreher im 1:1-Chat; steht in
-  `appmeta.IDEEN`): wie schnell der Puls nach jedem Lauf wieder faellt, z. B. Abfall nach 30/60 s
+- **Heart Rate Recovery (HRR)** (14.10.2026, Nutzerfrage ThermikDreher im 1:1-Chat). **Web gebaut
+  14.10.:** Spalten Pulsabfall 60/120 s in der Lauftabelle (SessionDetail, aus track-times). Offen:
+  Android/iOS-Lauftabelle, Erweiterungen je nach ThermikDrehers Antwort. Urspruenglich: wie schnell der Puls nach jedem Lauf wieder faellt, z. B. Abfall nach 30/60 s
   ab Laufende. Daten sind da: Puls je GPS-Punkt (`load_gps` Index 4, NICHT `hr_samples`), Laufenden
   aus `segments_json`. Offen: Mindestpause, Uhr nicht am Arm (Luecken), Ruhepuls als Bezug.
   Jan dazu (14.10.): auf den speicherarmen Uhren vernachlaessigen, die sollen Aufnahmeplatz
