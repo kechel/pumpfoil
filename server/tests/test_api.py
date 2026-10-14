@@ -271,6 +271,21 @@ def test_live_status(client):
     assert client.get("/api/devices/live", headers=auth).json()["sessions"] == []
 
 
+def test_upload_zaehlt_nicht_als_pumpen(client):
+    # Eine Uhr, die gerade eine fertige Session hochlaedt, nimmt nicht auf (Garmin sperrt das Netz
+    # waehrend der Aufnahme) -> nicht „probably_recording".
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "upl@b.de", "password": "supersecret"}).json()["access_token"]}
+    uhr = {"X-Device-Token": client.post("/api/devices/mint?label=Uhr", headers=auth).json()["device_token"]}
+    client.get("/api/devices/config", headers=uhr)
+    assert [w["state"] for w in client.get("/api/devices/live", headers=auth).json()["watches"]] == ["probably_recording"]
+    client.post("/api/ingest/session", headers=uhr, json={
+        "session_uuid": "upl-uuid-001", "started_at": "2026-06-20T09:00:00Z"})
+    client.post("/api/ingest/session/upl-uuid-001/chunk", headers=uhr,
+                json={"index": 0, "kind": "gps", "encoding": "json", "data": _gps_chunk()})
+    assert [w["state"] for w in client.get("/api/devices/live", headers=auth).json()["watches"]] == ["uploaded"]
+
+
 def test_like_state_in_detail(client):
     # get_session muss liked/like_count korrekt liefern (Apps/Web bauen darauf auf).
     auth = {"Authorization": "Bearer " + client.post(

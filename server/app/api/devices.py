@@ -1661,6 +1661,18 @@ def _uhren_status(db: Session, user_id: int) -> list[dict]:
                   .filter(models.Session.device_id == d.id)
                   .order_by(models.Session.started_at.desc()).first())
         hochgeladen = False
+        # Laeuft gerade ein UPLOAD (Session `recording`, angelegt oder beliefert um die letzte
+        # Meldung herum)? Dann pumpt niemand — Garmin sperrt das Netz waehrend der Aufnahme, eine
+        # Uhr, die hochlaedt, nimmt also nicht auf. Ohne das zaehlte jeder Upload kurz als
+        # „gerade am Pumpen" (gesehen 14.10. an einer Instinct 3).
+        if letzte is not None and letzte.status == "recording":
+            beginn = _aware(letzte.created_at) if getattr(letzte, "created_at", None) else None
+            zuletzt_rx = (db.query(func.max(models.IngestChunk.received_at))
+                          .filter(models.IngestChunk.session_id == letzte.id).scalar())
+            marke = max([t for t in (beginn, _aware(zuletzt_rx) if zuletzt_rx else None) if t is not None],
+                        default=None)
+            if marke is not None and marke >= seen - timedelta(minutes=2):
+                hochgeladen = True
         if letzte is not None and letzte.status not in ("recording", "live"):
             # Abschluss-Zeit ~ juengster Chunk dieser Session
             zuletzt = (db.query(func.max(models.IngestChunk.received_at))
