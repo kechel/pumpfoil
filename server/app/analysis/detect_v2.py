@@ -497,6 +497,8 @@ def detect_v2(
     # obwohl in der Spur 20 echte Laeufe bis 18,1 km/h stecken. Ein konstanter Wert UNTER der
     # Schwelle aendert nichts (Garmin meldet fest 4 und passiert ohnehin); im ganzen Bestand
     # sind genau 3 Sessions von 2 Nutzern betroffen, alle mit 125.
+    # Dazu Platzhalter-ABSCHNITTE (Quellenwechsel mitten in der Aufnahme, #16671), s. v1.
+    hacc = v1.hacc_platzhalter_weg(hacc)
     if np.isfinite(hacc).any() and float(np.ptp(hacc[np.isfinite(hacc)])) == 0.0:
         hacc = np.full_like(hacc, np.nan)
     speed_raw = np.array([float(s[3]) if len(s) > 3 and s[3] is not None else np.nan for s in gps])

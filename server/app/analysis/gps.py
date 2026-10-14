@@ -237,6 +237,39 @@ def eingefrorene_ortung(samples: list) -> tuple[float, bool]:
     return round(anteil, 3), anteil >= 0.60
 
 
+# Ab so vielen exakt gleichen Genauigkeitswerten IN FOLGE gilt die Angabe als Platzhalter.
+HACC_PLATZHALTER_MIN = 60
+
+
+def hacc_platzhalter_weg(hacc: np.ndarray) -> np.ndarray:
+    """Abschnitte, in denen die Genauigkeit ueber HACC_PLATZHALTER_MIN Fixes EXAKT gleich bleibt,
+    auf NaN (= keine Angabe) setzen — das ist ein Platzhalter, keine Messung.
+
+    Die Regel „konstant ueber die GANZE Aufnahme" reicht nicht mehr, seit Wear OS 1.2.40 die
+    Quelle mitten in der Aufnahme wechseln kann. Belegt an #16671 (u574, OnePlus OPWWE251,
+    14.10.2026): 15 min GPS aus Health Services mit echten 1-20 m, dann Rueckfall auf den
+    LocationManager, der auf dieser Uhr fest 125,0 m meldet. Weil die Spalte als Ganzes schwankte,
+    galt das 15-m-Gate fuer alle 2868 Platzhalter-Punkte -> 1 statt 11 Laeufe, obwohl die Uhr in
+    jedem Lauf fast jede Sekunde einen glatten Punkt hatte.
+
+    Warum 60 und nicht 20 wie live auf der Uhr: am Server stehen auch Handys mit kurz
+    stehengebliebenen echten Werten (22,07 m x 24, 34,18 m x 30 — eine eingefrorene Ortung, die
+    weiter ausgesiebt werden soll). Im ganzen Bestand (15.10.2026) haben nur zwei Sessions Folgen
+    >= 60 ueber der Schwelle, beide mit 125,0 (#16671, #5286). Werte unter MAX_HACC aendern nichts.
+    """
+    out = np.array(hacc, dtype=float, copy=True)
+    n = out.size
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and out[j + 1] == out[i]:
+            j += 1
+        if j - i + 1 >= HACC_PLATZHALTER_MIN and np.isfinite(out[i]):
+            out[i:j + 1] = np.nan
+        i = j + 1
+    return out
+
+
 def clean_speed_series(speed: np.ndarray, gps_hz: int) -> np.ndarray:
     """Alle gemessenen GPS-Glitch-Regeln in EINER Funktion — die einzige Stelle, an der die
     Geschwindigkeit von Doppler-Muell befreit wird. v1 (analyze_gps) und v2 (detect_v2) rufen
@@ -399,6 +432,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     #
     # Bewusst NICHT „Ausreisser ignorieren": eine Uhr, die zwischendurch ehrlich 80 m meldet,
     # soll weiterhin ausgesiebt werden. Nur die voellig unbewegte Spalte ist informationslos.
+    hacc = hacc_platzhalter_weg(hacc)
     hacc_echt = hacc[~np.isnan(hacc)]
     hacc_konstant = hacc_echt.size > 0 and float(np.ptp(hacc_echt)) == 0.0
     if hacc_konstant:
