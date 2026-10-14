@@ -5,6 +5,8 @@ erlaubt der Uhr, nach Abbruch nur Fehlendes nachzuschicken.
 """
 from __future__ import annotations
 
+import time
+
 import json as _json_mod
 import logging
 
@@ -475,8 +477,18 @@ def analyze_partial(
     # zurückstufen (sonst hängt eine verwaiste Uhr-Session in der Analyze-Schleife).
     if s.status == "complete":
         return {"session_id": s.id, "status": "complete", "analysis": "skipped"}
+    # Der Handy-Recorder ruft /analyze waehrend der Aufnahme regelmaessig (Live-Upload, 14.10.2026).
+    # Mehr als eine Zwischenanalyse je Minute und Session bringt nichts und stapelt nur Rechenlast.
+    # Je Worker gemerkt — bei 4 Workern im schlimmsten Fall 4 je Minute, das ist in Ordnung.
+    jetzt = time.monotonic()
+    if s.status == "live" and jetzt - _LETZTE_ZWISCHENANALYSE.get(s.id, -1e9) < 60:
+        return {"session_id": s.id, "status": "live", "analysis": "throttled"}
+    _LETZTE_ZWISCHENANALYSE[s.id] = jetzt
     background.add_task(_analyze_in_background, s.id, False)
     return {"session_id": s.id, "status": "live", "analysis": "queued"}
+
+
+_LETZTE_ZWISCHENANALYSE: dict[int, float] = {}
 
 
 @router.get("/session/{session_uuid}/status")
