@@ -81,6 +81,10 @@ module PhoneRec {
     function meldeAppZu() as Void {
         var token = Config.getString("deviceToken");
         if (token == null || token.equals("") || !System.getDeviceSettings().phoneConnected) { return; }
+        // Wie bei der Handy-Abfrage: nie neben einem laufenden Upload. Dann entfaellt die Abmeldung,
+        // und der Server zaehlt nach seiner 2-h-Regel. NUR isBusy, nicht „Sessions warten" — ohne Netz
+        // warten sie oft, und dann meldete sich nie jemand ab.
+        if (Uploader.isBusy()) { return; }
         Communications.makeWebRequest(
             Config.baseUrl() + "/api/devices/app-closed",
             {},
