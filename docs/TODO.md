@@ -1474,6 +1474,15 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+- **14.10. — Handy-Recorder: Puls vom Brustgurt (Bluetooth) aufnehmen, iOS + Android.** Nutzermeldung u683:
+  Gurt war mit dem iPhone verbunden, #16667 (iPhone, 1.1.47) hat trotzdem keinen Puls. Belegt: der
+  Handy-Recorder nimmt bisher auf KEINER Plattform Puls auf (kein CoreBluetooth/BLE-Code, kein HealthKit-
+  Puls in `PhoneRecorder.swift`, auf Android ebenso nichts). Plan: Standard-Heart-Rate-Profil (BLE-Service
+  0x180D, Merkmal 0x2A37) — spricht praktisch jeder Gurt (Polar, Garmin HRM, Wahoo …); Gurt im Recorder
+  koppeln/merken, Puls je GPS-Punkt in Feld 4 wie bei den Uhren (`hr_source` setzen). Fallen: der Gurt
+  darf nur von EINER App gleichzeitig gehalten werden (Polar-/Garmin-App trennen); Bluetooth-Berechtigung
+  nie stumm scheitern lassen; Aufnahme-Pfad -> langer Test mit echtem Gurt. Antwort an u683 ist raus
+  (TODO aufgenommen). Nebenbei: seine Apple Watch #16666 hat Puls nur ~22 von 33 min (Ursache offen).
 - **14.10. — fēnix 7X Pro, Firmware 27.18: Uhr startet MITTEN IM UPLOAD komplett neu (Firmware-Absturz).**
   Drei Faelle am 14.10. (11:40, 12:28 mit 1.0.93-Testbuild per USB, 13:23 mit **1.0.92 aus dem Store**),
   jedes Mal nach 15–25 hochgeladenen Chunks. `GARMIN/Debug/err_log.bak`: „RTL Trap errnum 0x00f",
