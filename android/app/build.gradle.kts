@@ -48,8 +48,8 @@ android {
         // Mehrere durch Komma: die ArkTS-Linie (Watch 5, watch-huawei/arkts) kann anders signiert
         // sein als Lite/JS-FA — dann beide eintragen, die Bruecke meldet sich fuer jeden an.
         buildConfigField("String", "HUAWEI_WATCH_FP", "\"HUAWEI_WATCH_FINGERPRINT_EINTRAGEN\"")
-        versionCode = 56
-        versionName = "1.1.42"
+        versionCode = 57
+        versionName = "1.1.43"
     }
     buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }

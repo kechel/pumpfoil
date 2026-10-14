@@ -748,6 +748,15 @@ export interface InProgressSession {
   last_received_at?: string | null;
   /** danach ist eine neuere Session vollstaendig angekommen -> nicht mehr von der Uhr holbar */
   ueberholt?: boolean;   // Zeitpunkt des letzten Chunks; für Stall-Erkennung (>5 min)
+  placement?: string | null;   // "phone" + status "live" = Handy nimmt gerade auf (Live-Upload)
+}
+
+export interface LiveWatch {
+  device_id: number;
+  device: string;
+  last_seen_at: string;
+  last_seen_age_s: number;
+  state: "probably_recording" | "paused" | "uploaded";
 }
 
 function userFilterQS(f?: UserFilter): string {
@@ -1370,6 +1379,8 @@ export const api = {
       method: "POST", body: JSON.stringify({ code, label: "Garmin" }),
     }),
   // Hat die Uhr das Token abgeholt? Erst dann gilt sie als verbunden (s. PairWarten.tsx).
+  // Laeuft gerade etwas? Live-Uploads + vermuteter Zustand der Uhren (devices.py /live).
+  liveStatus: () => req<{ sessions: unknown[]; watches: LiveWatch[] }>("/api/devices/live"),
   pairConfirmed: (deviceId: number) =>
     req<{ confirmed: boolean }>(`/api/devices/pair-confirmed/${deviceId}`),
   uploadFit: async (file: File) => {

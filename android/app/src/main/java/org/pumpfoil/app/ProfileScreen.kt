@@ -169,6 +169,24 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                         })
                     },
                 )
+                // Live-Upload waehrend der Aufnahme (Recorder.liveLoop), Standard an.
+                if (phoneRec) {
+                    var live by remember {
+                        mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                            .getBoolean("phone_live_upload", true))
+                    }
+                    ListItem(
+                        headlineContent = { Text(I18n.t("profile.phoneLive")) },
+                        supportingContent = { Text(I18n.t("profile.phoneLiveSub")) },
+                        trailingContent = {
+                            Switch(checked = live, onCheckedChange = {
+                                live = it
+                                pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                                    .edit().putBoolean("phone_live_upload", it).apply()
+                            })
+                        },
+                    )
+                }
             }
             // Übersicht wie die PWA: nur EIN „Uhr"-Eintrag (koppeln/Alarm/Datenseiten dahinter)
             // + darunter „Verknüpfte Konten". Kein Wear-Status/Garmin direkt in der Übersicht.

@@ -15,7 +15,7 @@ import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
-import { UploadProgressCard } from "../components/UploadProgressCard";
+import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
 import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { PERIODS } from "./Home";
@@ -335,6 +335,7 @@ export default function PersonalHome() {
 
       {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
       <UploadProgressCard />
+      <UhrenLiveStatus />
 
       <TransferHint />
 

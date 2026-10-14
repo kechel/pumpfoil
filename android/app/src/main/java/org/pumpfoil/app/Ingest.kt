@@ -45,6 +45,10 @@ object Ingest {
     suspend fun uploadChunk(uuid: String, chunk: JSONObject): Unit = withContext(Dispatchers.IO) {
         post("/api/ingest/session/$uuid/chunk", chunk.toString()); Unit
     }
+    /** Zwischenanalyse waehrend der Aufnahme (Live-Upload) — setzt die Session auf `live`. */
+    suspend fun analyze(uuid: String): Unit = withContext(Dispatchers.IO) {
+        post("/api/ingest/session/$uuid/analyze", "{}"); Unit
+    }
     suspend fun complete(uuid: String, endedAt: String, totalChunks: Int): Unit = withContext(Dispatchers.IO) {
         post("/api/ingest/session/$uuid/complete",
             JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks).toString()); Unit
