@@ -62,6 +62,9 @@ enum WLoc {
         // Aufnahme-Screen
         // GPS-Bereitschaft im Ruhebild — dieselben Texte wie auf der Garmin
         // (Strings.mc "gps.ready"/"gps.searching"), damit beide Uhren gleich sprechen.
+        // Handy-Recorder laeuft (nur dann sichtbar) — wie Garmin 1.0.93, 14.10.2026
+        "phone.rec": r("Handy nimmt auf", "Handy nimmt uf", "Handy nimmt auf", "Phone recording", "Tél. enregistre", "Telefono registra", "Móvil grabando"),
+        "phone.recStale": r("Handy: Daten vor {n} min", "Handy: Date vor {n} min", "Handy: Daten vor {n} min", "Phone: data {n} min ago", "Tél. : données il y a {n} min", "Telefono: dati {n} min fa", "Móvil: datos hace {n} min"),
         "gps.ready": r("GPS bereit", "GPS bereit", "GPS bereit", "GPS ready", "GPS prêt", "GPS pronto", "GPS listo"),
         "gps.searching": r("GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…"),
         "rec.start": r("Start", "Start", "Start", "Start", "Démarrer", "Avvia", "Iniciar"),
@@ -184,6 +187,8 @@ enum WLoc {
 // Polnisch — 17. Sprache (28.08.), Texte aus den Web-Locales bzw. einmal uebersetzt
 // und mit den Handy-Apps geteilt.
 let wPlOverlay: [String: String] = [
+    "phone.rec": "Telefon nagrywa",
+    "phone.recStale": "Telefon: dane sprzed {n} min",
     "gps.ready": "GPS gotowy",
     "gps.searching": "Szukam GPS…",
     "menu.layouts": "Własne układy",

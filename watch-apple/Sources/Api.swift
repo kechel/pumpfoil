@@ -45,7 +45,26 @@ enum Api {
     struct PairPollResponse: Decodable { let device_token: String? }
 
     static func pairInit() async throws -> PairInitResponse {
-        try await post("/api/devices/pair-init", [:], auth: false)
+        // Schon verbunden (Konto-Wechsel per Code)? Bisheriges Token mitschicken — der Server
+        // widerruft es, sobald diese Uhr das neue abholt (wie Garmin 1.0.93, 14.10.2026).
+        var body: [String: Any] = [:]
+        if let t = deviceToken, !t.isEmpty { body["old_token"] = t }
+        return try await post("/api/devices/pair-init", body, auth: false)
+    }
+
+    /// Laeuft der Handy-Recorder desselben Kontos? state 0 = nichts zeigen, 1 = nimmt auf,
+    /// 2 = laeuft, aber seit ago_min Minuten keine Daten.
+    struct PhoneRec: Codable { let state: Int; let ago_min: Int }
+    struct LiveStatus: Decodable { let phone_rec: PhoneRec? }
+    static func liveStatus() async throws -> PhoneRec? {
+        guard let url = URL(string: baseURL + "/api/devices/live-status") else { throw err("Bad URL") }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 10
+        if let t = deviceToken { req.setValue(t, forHTTPHeaderField: "X-Device-Token") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError(status: code, body: "") }
+        return try JSONDecoder().decode(LiveStatus.self, from: data).phone_rec
     }
 
     // Pollt, ob der Code in der Web-App eingelöst wurde -> dann kommt das Device-Token.
@@ -115,6 +134,8 @@ enum Api {
         // Zonen-API) und die Geschwindigkeitsspanne. Optional -> alter Server/Cache bleibt lesbar.
         let hrZones: [Int]?
         let speedZones: [Int]?
+        // Handy-Recorder desselben Kontos (seit 14.10.2026); alter Server/Cache -> nil.
+        let phone_rec: PhoneRec?
     }
 
     // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt
