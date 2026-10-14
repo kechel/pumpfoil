@@ -144,7 +144,21 @@ data class InProgressSession(
     @SerialName("last_received_at") val lastReceivedAt: String? = null,
     // danach ist eine neuere Session vollstaendig angekommen -> von der Uhr nicht mehr holbar
     val ueberholt: Boolean = false,
+    // "phone" + status "live" = Handy-Recorder nimmt gerade auf (Live-Upload) -> eigene Zeile statt Upload-Karte
+    val placement: String? = null,
 )
+
+/** Eigene Uhr, die sich zuletzt gemeldet und seitdem nichts hochgeladen hat (GET /api/devices/live). */
+@Serializable
+data class LiveWatch(
+    @SerialName("device_id") val deviceId: Int,
+    val device: String = "",
+    @SerialName("last_seen_age_s") val lastSeenAgeS: Int = 0,
+    val state: String = "",
+)
+
+@Serializable
+data class LiveStatusResponse(val watches: List<LiveWatch> = emptyList())
 
 @Serializable
 data class SessionSummary(

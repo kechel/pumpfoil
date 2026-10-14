@@ -7,6 +7,14 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (pt)
+    "banner.pumpingNow" to " – §{n}§ pumpando agora.",
+    "sessions.todayOne" to "Hoje até agora 1 sessão nova",
+    "sessions.todayN" to "Hoje até agora {n} sessões novas",
+    "sessions.pumpingNow" to "§{n}§ pumpando agora",
+    "live.phoneActive" to "Seu celular está gravando – há {min} min",
+    "live.phoneStale" to "Gravação do celular em andamento, últimos dados há {ago} min (sem sinal?)",
+    "live.watchProbably" to "{device}: app ativo pela última vez há {ago} min, nada enviado desde então – provavelmente gravando",
     // Handy-Recorder: Live-Upload (14.10.2026) (pt)
     "profile.phoneLive" to "Enviar ao vivo",
     "profile.phoneLiveSub" to "Envia os dados já durante a gravação, enquanto o celular tiver sinal. Assim você vê em outro aparelho se e o que ele está gravando, e o seu relógio pode consultar. Gasta cerca de 5 MB de dados móveis por hora.",
@@ -1181,6 +1189,14 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (ja)
+    "banner.pumpingNow" to "——今まさに§{n}§人がパンプ中。",
+    "sessions.todayOne" to "今日はこれまでに新しいセッション1件",
+    "sessions.todayN" to "今日はこれまでに新しいセッション{n}件",
+    "sessions.pumpingNow" to "今§{n}§人がパンプ中",
+    "live.phoneActive" to "スマートフォンが記録中 – {min}分前から",
+    "live.phoneStale" to "スマートフォンで記録中、最後のデータは{ago}分前（電波がない？）",
+    "live.watchProbably" to "{device}：アプリの最終動作は{ago}分前、その後アップロードなし – 記録中の可能性が高い",
     // Handy-Recorder: Live-Upload (14.10.2026) (ja)
     "profile.phoneLive" to "ライブアップロード",
     "profile.phoneLiveSub" to "電波がある間は記録中からアップロードします。別の端末から記録中かどうか・何を記録しているかを確認でき、ウォッチからも問い合わせられます。モバイルデータを1時間あたり約5 MB使用します。",
@@ -2355,6 +2371,14 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (zh)
+    "banner.pumpingNow" to "——此刻有 §{n}§ 人正在泵。",
+    "sessions.todayOne" to "今天到目前为止 1 个新记录",
+    "sessions.todayN" to "今天到目前为止 {n} 个新记录",
+    "sessions.pumpingNow" to "此刻 §{n}§ 人正在泵",
+    "live.phoneActive" to "你的手机正在记录 – 已 {min} 分钟",
+    "live.phoneStale" to "手机记录进行中，最后数据在 {ago} 分钟前（暂时没有网络？）",
+    "live.watchProbably" to "{device}：应用最后活动于 {ago} 分钟前，此后没有上传 – 很可能正在记录",
     // Handy-Recorder: Live-Upload (14.10.2026) (zh)
     "profile.phoneLive" to "实时上传",
     "profile.phoneLiveSub" to "只要手机有网络，就在记录过程中上传数据。这样你可以在其他设备上看到它是否在记录、记录了什么，手表也能查询。每小时约消耗 5 MB 移动数据。",
@@ -3529,6 +3553,14 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (ru)
+    "banner.pumpingNow" to " – §{n}§ катаются прямо сейчас.",
+    "sessions.todayOne" to "Сегодня пока 1 новая сессия",
+    "sessions.todayN" to "Сегодня пока новых сессий: {n}",
+    "sessions.pumpingNow" to "§{n}§ катаются прямо сейчас",
+    "live.phoneActive" to "Телефон записывает – уже {min} мин",
+    "live.phoneStale" to "Запись на телефоне идёт, последние данные {ago} мин назад (нет сети?)",
+    "live.watchProbably" to "{device}: приложение было активно {ago} мин назад, с тех пор ничего не загружено – вероятно, идёт запись",
     // Handy-Recorder: Live-Upload (14.10.2026) (ru)
     "profile.phoneLive" to "Загружать в реальном времени",
     "profile.phoneLiveSub" to "Загружает данные уже во время записи, пока у телефона есть сеть. Так на другом устройстве видно, идёт ли запись и что записывается, а часы могут это проверить. Расходует около 5 МБ мобильного трафика в час.",
@@ -4703,6 +4735,14 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (id)
+    "banner.pumpingNow" to " – §{n}§ sedang pumping sekarang.",
+    "sessions.todayOne" to "Hari ini sejauh ini 1 sesi baru",
+    "sessions.todayN" to "Hari ini sejauh ini {n} sesi baru",
+    "sessions.pumpingNow" to "§{n}§ sedang pumping",
+    "live.phoneActive" to "Ponselmu sedang merekam – sejak {min} mnt",
+    "live.phoneStale" to "Perekaman ponsel berjalan, data terakhir {ago} mnt lalu (tidak ada sinyal?)",
+    "live.watchProbably" to "{device}: aplikasi terakhir aktif {ago} mnt lalu, sejak itu tidak ada unggahan – kemungkinan sedang merekam",
     // Handy-Recorder: Live-Upload (14.10.2026) (id)
     "profile.phoneLive" to "Unggah langsung",
     "profile.phoneLiveSub" to "Mengunggah data sudah selama perekaman, selama ponsel ada sinyal. Jadi kamu bisa melihat di perangkat lain apakah dan apa yang sedang direkam, dan jammu bisa mengeceknya. Memakai sekitar 5 MB data seluler per jam.",
@@ -5880,6 +5920,14 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (nb)
+    "banner.pumpingNow" to " – §{n}§ pumper akkurat nå.",
+    "sessions.todayOne" to "I dag så langt 1 ny økt",
+    "sessions.todayN" to "I dag så langt {n} nye økter",
+    "sessions.pumpingNow" to "§{n}§ pumper akkurat nå",
+    "live.phoneActive" to "Telefonen tar opp – i {min} min",
+    "live.phoneStale" to "Opptak på telefonen pågår, siste data for {ago} min siden (ingen dekning?)",
+    "live.watchProbably" to "{device}: appen sist aktiv for {ago} min siden, ingenting lastet opp siden – tar sannsynligvis opp",
     // Handy-Recorder: Live-Upload (14.10.2026) (nb)
     "profile.phoneLive" to "Last opp direkte",
     "profile.phoneLiveSub" to "Laster opp allerede mens du tar opp, så lenge telefonen har dekning. Da ser du på en annen enhet om og hva den tar opp, og klokka di kan sjekke det. Bruker rundt 5 MB mobildata i timen.",
@@ -7094,6 +7142,14 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (pl)
+    "banner.pumpingNow" to " – §{n}§ właśnie pompuje.",
+    "sessions.todayOne" to "Dziś do tej pory 1 nowa sesja",
+    "sessions.todayN" to "Dziś do tej pory nowe sesje: {n}",
+    "sessions.pumpingNow" to "§{n}§ właśnie pompuje",
+    "live.phoneActive" to "Twój telefon nagrywa – od {min} min",
+    "live.phoneStale" to "Nagrywanie w telefonie trwa, ostatnie dane {ago} min temu (brak zasięgu?)",
+    "live.watchProbably" to "{device}: aplikacja ostatnio aktywna {ago} min temu, od tego czasu nic nie wysłano – prawdopodobnie nagrywa",
     // Handy-Recorder: Live-Upload (14.10.2026) (pl)
     "profile.phoneLive" to "Wysyłaj na żywo",
     "profile.phoneLiveSub" to "Wysyła dane już podczas nagrywania, dopóki telefon ma zasięg. Dzięki temu na innym urządzeniu widzisz, czy i co nagrywa, a zegarek może to sprawdzić. Zużywa około 5 MB danych komórkowych na godzinę.",
@@ -8310,6 +8366,14 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Live-Status + gerade am Pumpen (14.10.2026) (pt-PT)
+    "banner.pumpingNow" to " – §{n}§ a pumpar agora.",
+    "sessions.todayOne" to "Hoje até agora 1 sessão nova",
+    "sessions.todayN" to "Hoje até agora {n} sessões novas",
+    "sessions.pumpingNow" to "§{n}§ a pumpar agora",
+    "live.phoneActive" to "O teu telemóvel está a gravar – há {min} min",
+    "live.phoneStale" to "Gravação do telemóvel a decorrer, últimos dados há {ago} min (sem rede?)",
+    "live.watchProbably" to "{device}: app ativa pela última vez há {ago} min, nada enviado desde então – provavelmente a gravar",
     // Handy-Recorder: Live-Upload (14.10.2026) (pt-PT)
     "profile.phoneLive" to "Enviar em direto",
     "profile.phoneLiveSub" to "Envia os dados já durante a gravação, enquanto o telemóvel tiver rede. Assim vês noutro dispositivo se e o que está a gravar, e o teu relógio pode consultar. Gasta cerca de 5 MB de dados móveis por hora.",

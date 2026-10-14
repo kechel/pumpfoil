@@ -251,6 +251,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp)) {
             // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
             UploadProgressCard(onOpen = { onOpen(it, null) })
+            UhrenLiveStatus()
             val uv = updateVer
             if (uv != null && !updateDismissed) {
                 UpdateBanner(
@@ -786,6 +787,8 @@ internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
         if (Meilenstein.imFenster(s.pumps.toLong(), Meilenstein.PUMPS)) add("%,d".format(s.pumps))
         if (Meilenstein.imFenster(s.foilers.toLong(), Meilenstein.LEUTE)) add(s.foilers.toString())
         if (Meilenstein.imFenster(s.spots.toLong(), Meilenstein.LEUTE)) add(s.spots.toString())
+        // „N gerade am Pumpen" pulsiert immer, solange die Zahl da ist (Jan, 14.10.2026, wie die PWA)
+        if (s.pumpingNow > 0) add(s.pumpingNow.toString())
     }
     // Den Takt nur laufen lassen, wenn ueberhaupt etwas pulst — eine Endlos-Animation kostet
     // sonst jeden Frame Arbeit fuer nichts.
@@ -801,11 +804,15 @@ internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
     val pulsFarbe = if (dunkel) lerp(primary, Color.White, 0.30f * takt)
                     else lerp(primary, Color.Black, 0.22f * takt)
 
-    val raw = I18n.t("banner.stats")
+    val grund = I18n.t("banner.stats")
         .replace("{foilers}", s.foilers.toString())
         .replace("{spots}", s.spots.toString())
         .replace("{sessions}", s.sessions.toString())
         .replace("{pumps}", "%,d".format(s.pumps))
+    // Zusatz nur bei N > 0; der Satzpunkt des Grundsatzes faellt weg, der Zusatz bringt seinen mit.
+    val raw = if (s.pumpingNow > 0)
+        grund.replace(Regex("[.。]\\s*$"), "") + I18n.t("banner.pumpingNow").replace("{n}", s.pumpingNow.toString())
+    else grund
     return buildAnnotatedString {
         raw.split("§").forEachIndexed { i, p ->
             if (i % 2 == 1) {

@@ -1,5 +1,7 @@
 package org.pumpfoil.app
 
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -344,6 +346,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 AccelSeg(accelOnly, brett = brett, onBrett = { brett = true }) { brett = false; accel.set(it) }
             }
             }
+            HeuteNeu(mine = scope == Scope.MINE, spot = if (scope == Scope.SPOT) spot else null,
+                     accelOnly = accelOnly, sport = sport, board = brett)
             // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte) — und rechts
             // in derselben Zeile der Datei-Import, damit er keine eigene Zeile mehr kostet
             // (Jan, 18.09.2026). Nur in „Meine": ein Import erzeugt immer eine EIGENE Session,
@@ -1197,4 +1201,43 @@ private fun VergleichKnopf(id: Int, aktiv: Boolean) {
         color = if (aktiv) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(6.dp))
             .clickable { CompareStore.toggle(id) }.padding(vertical = 4.dp, horizontal = 2.dp))
+}
+
+
+/**
+ * „X new sessions so far today · N currently pumping — Have fun, keep pumping!" wie die PWA
+ * (Sessions.tsx HeuteNeu). Zaehlt mit denselben Regeln wie die Liste darunter; „gerade am Pumpen"
+ * gilt fuer ALLE und steht deshalb nur in „Alle" ohne Spot. Bei 0/0 steht nichts da.
+ */
+@Composable
+private fun HeuteNeu(mine: Boolean, spot: String?, accelOnly: Boolean, sport: String, board: Boolean) {
+    var n by remember { mutableStateOf(0) }
+    var pumpt by remember { mutableStateOf(0) }
+    LaunchedEffect(mine, spot, accelOnly, sport, board) {
+        n = try { Api.sessionsToday(mine, spot, accelOnly, sport, board) } catch (_: Exception) { 0 }
+    }
+    val global = !mine && spot.isNullOrBlank()
+    LaunchedEffect(global) {
+        pumpt = if (!global) 0 else try { Api.communityStats().pumpingNow } catch (_: Exception) { 0 }
+    }
+    if (n == 0 && pumpt == 0) return
+    val takt = androidx.compose.animation.core.rememberInfiniteTransition(label = "pumpt").animateFloat(
+        initialValue = 1f, targetValue = 0.45f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(1200), androidx.compose.animation.core.RepeatMode.Reverse),
+        label = "puls").value
+    val farbe = MaterialTheme.colorScheme.primary
+    val text = androidx.compose.ui.text.buildAnnotatedString {
+        if (n > 0) append(I18n.t(if (n == 1) "sessions.todayOne" else "sessions.todayN").replace("{n}", n.toString()))
+        if (pumpt > 0) {
+            if (n > 0) append(" · ")
+            I18n.t("sessions.pumpingNow").replace("{n}", pumpt.toString()).split("§").forEachIndexed { i, p ->
+                if (i % 2 == 1) withStyle(androidx.compose.ui.text.SpanStyle(color = farbe.copy(alpha = takt))) { append(p) }
+                else append(p)
+            }
+        }
+        append(" — Have fun, keep pumping!")
+    }
+    Text(text, Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
+        style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = farbe)
 }
