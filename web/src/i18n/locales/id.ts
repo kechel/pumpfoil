@@ -1023,6 +1023,7 @@ const id: Record<string, string> = {
   "imp.owner2": "Label, pemangkasan, analisis ulang, mengunggah/menghapus foto.",
   "imp.owner3": "<b>Alamat email</b> dan pengaturan akunmu — tidak pernah terlihat oleh pengguna lain.",
   "imp.owner4": "Siapa persisnya yang memilih/menyukai sesi tidak ditampilkan ke pengguna lain.",
+  "imp.owner5": "<b>Perekaman yang sedang berjalan</b>: jika perekam ponselmu mengunggah langsung (sakelar “Unggah langsung” di profil, bisa dimatikan), data GPS dan gerakan sudah dikirim ke server kami selama perekaman. Hanya kamu yang melihat bahwa dan sejak kapan perekaman berjalan, di perangkat dan jam milikmu yang lain. Untuk jam, “kemungkinan sedang merekam” hanya disimpulkan dari kapan aplikasi jam terakhir terhubung. Pengguna lain baru melihat sesinya setelah selesai.",
   "imp.operatorTitle": "🛠 Hanya operator (Jan)",
   "imp.operator1": "Alamat email, semua data mentah, tautan perangkat dan log server teknis.",
   "imp.operator2": "Kata sandi disimpan hanya sebagai hash bergaram (PBKDF2) — bahkan aku tidak bisa melihatnya dalam teks biasa.",

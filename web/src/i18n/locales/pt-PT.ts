@@ -1029,6 +1029,7 @@ const ptPT: Record<string, string> = {
   "imp.owner2": "Rótulos, recorte, reanálise, envio/exclusão de fotos.",
   "imp.owner3": "O teu <b>endereço de e-mail</b> e definições da conta — nunca visíveis a outros utilizadores.",
   "imp.owner4": "Quem exatamente votou/gostou de uma sessão não é mostrado a outros utilizadores.",
+  "imp.owner5": "<b>Gravações a decorrer</b>: se o gravador do telemóvel envia em direto (interruptor «Enviar em direto» no perfil, pode ser desligado), os dados de GPS e movimento chegam ao nosso servidor já durante a gravação. Só tu vês que está a gravar e desde quando, nos teus outros dispositivos e relógios. Nos relógios, «provavelmente a gravar» deduz-se apenas do momento em que a app do relógio comunicou pela última vez. Os outros utilizadores só veem a sessão quando terminar.",
   "imp.operatorTitle": "🛠 Só o operador (Jan)",
   "imp.operator1": "Endereços de e-mail, todos os dados brutos, vínculos de dispositivo e logs técnicos do servidor.",
   "imp.operator2": "As palavras-passe são guardadas só como hash com sal (PBKDF2) — nem eu consigo vê-las em texto puro.",

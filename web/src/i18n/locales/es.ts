@@ -1430,6 +1430,7 @@ const es: Record<string, string> = {
   "wx.title": "Tiempo y nivel del agua",
   "field.4": "Distancia",
   "imp.owner4": "Quién ha votado/dado me gusta a una sesión no se muestra a otros usuarios.",
+  "imp.owner5": "<b>Grabaciones en curso</b>: si tu grabador del móvil sube en directo (interruptor «Subir en directo» en el perfil, desactivable), los datos GPS y de movimiento llegan a nuestro servidor ya durante la grabación. Solo tú ves que está grabando y desde cuándo, en tus otros dispositivos y tus relojes. En los relojes, «probablemente grabando» se deduce solo del momento en que la app del reloj respondió por última vez. Los demás usuarios solo ven la sesión cuando ha terminado.",
   "compare.open": "Abrir comparación",
   "wx.gust": "R",
   "account.recordModeHint": "Si la grabación se interrumpe en un reloj con poca memoria (p. ej. Forerunner 55), elige « Ahorro » o « Solo GPS ». Solo GPS ofrece recorrido/velocidad/fases de foil, pero sin detección de pump.",

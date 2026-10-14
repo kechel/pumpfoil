@@ -1463,6 +1463,7 @@ const gsw: Record<string, string> = {
   "imp.owner2": "Labels, Trimme, Neu-Analysiere, Föteli uuflade/lösche.",
   "imp.owner3": "Dini <b>E-Mail-Adrässe</b> und d Konto-Yystellige — nie für anderi Nutzer sichtbar.",
   "imp.owner4": "Wär für e Session konkret gstimmt/gliked hät, wird andere Nutzer nöd aazeigt.",
+  "imp.owner5": "<b>Laufendi Ufnahme</b>: Ladt din Handy-Recorder live ue (Schalter „Live uelade“ im Profil, abschaltbar), gönd GPS- und Bewegigsdate scho während de Ufnahm an üse Server. Dass und sit wänn ufgnoo wird, gsehsch nur du, uf dine andere Gerät und dine Uhre. Bi Uhre leited mir „nimmt wahrschiinlich uf“ nur us em Ziitpunkt ab, wo sich d Uhre-App zletscht gmäldet hät. Andere Nutzer gsehnd d Session erscht, wänn sie abgschlosse isch.",
   "imp.ownerTitle": "🔒 Nur du sälber (Bsitzer vo de Session)",
   "imp.privacyText": "Alli uufglade Date werdet duurhaft gspycheret. Zum Lösche bruuch bitte de Chnopf „Konto lösche“ i dim Profil (Web-App oder iOS-/Android-App) — er entfernt dis Konto mit allne Sessions, Rohdate und Föteli ändgültig. D Übertragig lauft verschlüsselt (HTTPS).",
   "imp.aiTitle": "KI-Hilf (Anthropic Claude)",

@@ -1067,6 +1067,7 @@ const nl: Record<string, string> = {
   "imp.owner2": "Labels, trimmen, opnieuw analyseren, foto's uploaden/verwijderen.",
   "imp.owner3": "Je <b>e-mailadres</b> en accountinstellingen — nooit zichtbaar voor andere gebruikers.",
   "imp.owner4": "Wie concreet op een sessie heeft gestemd/geliket, wordt niet aan andere gebruikers getoond.",
+  "imp.owner5": "<b>Lopende opnames</b>: uploadt je telefoonrecorder live (schakelaar „Live uploaden” in je profiel, uit te zetten), dan komen GPS- en bewegingsgegevens al tijdens de opname op onze server. Alleen jij ziet dat en sinds wanneer er wordt opgenomen, op je andere apparaten en je horloges. Bij horloges leiden we „neemt waarschijnlijk op” alleen af uit het moment waarop de horloge-app zich het laatst meldde. Andere gebruikers zien de sessie pas als die is afgerond.",
   "imp.operatorTitle": "🛠 Alleen de beheerder (Jan)",
   "imp.operator1": "E-mailadressen, alle ruwe data, apparaatkoppelingen en technische serverlogs.",
   "imp.operator2": "Wachtwoorden worden alleen als gezouten hash (PBKDF2) opgeslagen — ook ik zie ze niet in klare tekst.",

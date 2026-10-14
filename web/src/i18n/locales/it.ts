@@ -1349,6 +1349,7 @@ const it: Record<string, string> = {
   "imp.google2": "<b>Utilizzo (Data Usage):</b> esclusivamente per creare e accedere al tuo account Pumpfoil e per mostrare il tuo nome nell'app.",
   "wx.water": "Acqua",
   "imp.owner4": "Chi ha esattamente votato/messo like a una sessione non viene mostrato agli altri utenti.",
+  "imp.owner5": "<b>Registrazioni in corso</b>: se il registratore del telefono carica in diretta (interruttore «Carica in diretta» nel profilo, disattivabile), i dati GPS e di movimento arrivano al nostro server già durante la registrazione. Solo tu vedi che sta registrando e da quando, sugli altri tuoi dispositivi e sui tuoi orologi. Per gli orologi, «probabilmente sta registrando» si ricava solo dal momento in cui l'app dell'orologio si è fatta sentire l'ultima volta. Gli altri utenti vedono la sessione solo quando è conclusa.",
   "compare.colorTrackHint": "Ogni contrassegno nel suo colore di legenda",
   "field.15": "Run distanza (live)",
   "field.4": "Distanza",

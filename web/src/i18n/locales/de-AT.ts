@@ -1426,6 +1426,7 @@ const deAT: Record<string, string> = {
   "imp.owner2": "Labels, Trimmen, Neu-Analysieren, Fotos hochladen/löschen.",
   "imp.owner3": "Deine <b>E-Mail-Adresse</b> und Konto-Einstellungen — nie für andere Nutzer sichtbar.",
   "imp.owner4": "Wer für eine Session konkret gestimmt/geliked hat, wird anderen Nutzern nicht angezeigt.",
+  "imp.owner5": "<b>Laufende Aufnahmen</b>: Lädt dein Handy-Recorder live hoch (Schalter „Live hochladen“ im Profil, abschaltbar), gehen GPS- und Bewegungsdaten schon während der Aufnahme an unseren Server. Dass und seit wann aufgenommen wird, siehst nur du, auf deinen anderen Geräten und deinen Uhren. Bei Uhren leiten wir „nimmt vermutlich auf“ allein aus dem Zeitpunkt ab, zu dem sich die Uhr-App zuletzt gemeldet hat. Anderen Nutzern erscheint die Session erst, wenn sie abgeschlossen ist.",
   "imp.ownerTitle": "🔒 Nur du selbst (Besitzer der Session)",
   "imp.privacyText": "Alle hochgeladenen Daten werden dauerhaft gespeichert. Zum Löschen nutze bitte den Button „Konto löschen“ in deinem Profil (Web-App oder iOS-/Android-App) — er entfernt dein Konto mit allen Sessions, Rohdaten und Fotos endgültig. Die Übertragung läuft verschlüsselt (HTTPS).",
   "imp.aiTitle": "KI-Unterstützung (Anthropic Claude)",

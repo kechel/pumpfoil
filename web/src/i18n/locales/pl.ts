@@ -1125,6 +1125,7 @@ const pl: Record<string, string> = {
   "imp.owner2": "Etykiety, przycinanie, ponowna analiza, wysyłanie/usuwanie zdjęć.",
   "imp.owner3": "Twój <b>adres e-mail</b> i ustawienia konta — nigdy widoczne dla innych użytkowników.",
   "imp.owner4": "Kto konkretnie zagłosował/polubił sesję, nie jest pokazywane innym użytkownikom.",
+  "imp.owner5": "<b>Trwające nagrania</b>: jeśli rejestrator w telefonie wysyła na żywo (przełącznik „Wysyłaj na żywo” w profilu, można wyłączyć), dane GPS i ruchu trafiają na nasz serwer już podczas nagrywania. Tylko ty widzisz, że i od kiedy trwa nagrywanie, na swoich innych urządzeniach i zegarkach. W przypadku zegarków „prawdopodobnie nagrywa” wynika wyłącznie z tego, kiedy aplikacja zegarka ostatnio się zgłosiła. Inni użytkownicy zobaczą sesję dopiero po jej zakończeniu.",
   "imp.operatorTitle": "🛠 Tylko operator (Jan)",
   "imp.operator1": "Adresy e-mail, wszystkie surowe dane, powiązania urządzeń i techniczne logi serwera.",
   "imp.operator2": "Hasła są przechowywane wyłącznie jako solony skrót (PBKDF2) — nawet ja nie widzę ich w postaci jawnej.",

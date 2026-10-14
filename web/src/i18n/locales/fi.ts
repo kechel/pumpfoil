@@ -1036,6 +1036,7 @@ const fi: Record<string, string> = {
   "imp.owner2": "Merkinnät, rajaus, uudelleenanalysointi, kuvien lataus/poisto.",
   "imp.owner3": "<b>Sähköpostiosoitteesi</b> ja tiliasetukset — eivät koskaan näy muille käyttäjille.",
   "imp.owner4": "Kuka tarkalleen äänesti/tykkäsi sessiosta, ei näytetä muille käyttäjille.",
+  "imp.owner5": "<b>Käynnissä olevat tallennukset</b>: jos puhelimen tallennin lähettää livenä (profiilin kytkin ”Lähetä livenä”, voi kytkeä pois), GPS- ja liiketiedot tulevat palvelimellemme jo tallennuksen aikana. Vain sinä näet, että ja mistä asti tallennus on käynnissä, muilla laitteillasi ja kelloissasi. Kelloille ”tallentaa luultavasti” päätellään pelkästään siitä, milloin kellosovellus viimeksi ilmoittautui. Muut käyttäjät näkevät session vasta, kun se on valmis.",
   "imp.operatorTitle": "🛠 Vain ylläpitäjä (Jan)",
   "imp.operator1": "Sähköpostiosoitteet, kaikki raakadata, laitelinkitykset ja tekniset palvelinlokit.",
   "imp.operator2": "Salasanat tallennetaan vain suolattuna hashina (PBKDF2) — en näe niitäkään selkokielisenä.",
