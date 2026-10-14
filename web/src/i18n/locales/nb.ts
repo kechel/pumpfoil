@@ -1604,6 +1604,8 @@ const nb: Record<string, string> = {
   "account.claimBtn": "Koble til",
   "account.claimAlready": "Denne klokka er allerede koblet til.",
   "account.claimOk": "Klokka er koblet til! ✓",
+  "account.claimWaiting": "Koden er godtatt — venter på at klokka bekrefter …",
+  "account.claimSlow": "Klokka har ikke meldt seg ennå. Blir koden stående på klokka: avslutt Pumpfoil på klokka og start den på nytt, med telefonen koblet til via Bluetooth. Er klokka fortsatt koblet til en annen konto, fjern den der først under «Mine klokker», og hent så en ny kode.",
   "account.offFoilTitle": "Når du ikke kjører",
   "account.offFoilDesc": "Vises så snart et run er slutt, og så lenge du ikke kjører — også mens du venter mellom runs. Opptaket fortsetter.",
   "foils.toSetup": "Detaljert oppsett",

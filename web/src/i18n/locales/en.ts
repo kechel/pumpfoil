@@ -1751,6 +1751,8 @@ const en: Record<string, string> = {
   "account.claimBtn": "Connect",
   "account.claimAlready": "This watch is already connected.",
   "account.claimOk": "Watch connected! ✓",
+  "account.claimWaiting": "Code accepted — waiting for the watch to confirm …",
+  "account.claimSlow": "The watch hasn't checked in yet. If the code stays on the watch: close Pumpfoil on the watch and start it again, with the phone connected via Bluetooth. If the watch is still linked to another account, remove it there under “My watches” first, then get a new code.",
   "account.offFoilTitle": "While you're not riding",
   "account.offFoilDesc": "Shown as soon as a run ends and for as long as you're not riding — including waiting between runs. Recording keeps going.",
   "foils.toSetup": "Detailed setup",

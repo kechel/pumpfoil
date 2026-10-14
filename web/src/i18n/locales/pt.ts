@@ -1572,6 +1572,8 @@ const pt: Record<string, string> = {
   "account.claimBtn": "Conectar",
   "account.claimAlready": "Este relógio já está conectado.",
   "account.claimOk": "Relógio conectado! ✓",
+  "account.claimWaiting": "Código aceito — aguardando a confirmação do relógio …",
+  "account.claimSlow": "O relógio ainda não respondeu. Se o código continuar no relógio: feche o Pumpfoil no relógio e abra de novo, com o celular conectado por Bluetooth. Se o relógio ainda estiver vinculado a outra conta, remova-o primeiro lá em “Meus relógios” e depois gere um novo código.",
   "account.offFoilTitle": "Tela off-foil",
   "account.offFoilDesc": "Exibida automaticamente no relógio enquanto você não está foilando (padrão: relógio + última volta). Ao foilar, o relógio volta à sua última tela selecionada.",
 

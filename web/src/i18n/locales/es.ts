@@ -1519,6 +1519,8 @@ const es: Record<string, string> = {
   "meta.errLen": "Máx. 30 caracteres.",
   "field.5": "Velocidad (actual)",
   "account.claimOk": "¡Reloj conectado! ✓",
+  "account.claimWaiting": "Código aceptado — esperando la confirmación del reloj …",
+  "account.claimSlow": "El reloj aún no ha respondido. Si el código sigue en el reloj: cierra Pumpfoil en el reloj y vuelve a abrirlo, con el móvil conectado por Bluetooth. Si el reloj sigue vinculado a otra cuenta, quítalo primero allí en «Mis relojes» y luego pide un código nuevo.",
   "imp.privacyText": "Todos los datos subidos se conservan de forma permanente. Para eliminarlos usa el botón « Eliminar cuenta » en tu perfil (app web o app iOS/Android) — elimina definitivamente tu cuenta con todas las sesiones, datos brutos y fotos. La transferencia está cifrada (HTTPS).",
   "imp.aiTitle": "Asistencia de IA (Anthropic Claude)",
   "imp.aiIntro": "Para el análisis y el desarrollo utilizamos el asistente de IA Claude de Anthropic. Los datos de sesión y en bruto, los comentarios y los mensajes de chat —también los mensajes directos— pueden transmitirse a Anthropic y tratarse allí con estos fines:",

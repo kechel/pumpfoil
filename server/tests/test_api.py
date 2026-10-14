@@ -183,9 +183,22 @@ def test_reverse_pairing_flow(client):
     # vor dem Einlösen: noch kein Token
     assert client.get(f"/api/devices/pair-poll?claim_token={claim}").json()["device_token"] is None
     # Einlösen durch eingeloggten User
-    assert client.post("/api/devices/pair-claim", json={"code": code}, headers=auth).json()["ok"] is True
+    r = client.post("/api/devices/pair-claim", json={"code": code}, headers=auth).json()
+    assert r["ok"] is True
+    dev_id = r["device_id"]
+    # eingeloest, aber die Uhr hat das Token noch nicht abgeholt -> noch NICHT bestaetigt
+    assert client.get(f"/api/devices/pair-confirmed/{dev_id}", headers=auth).json()["confirmed"] is False
     # danach liefert das Polling das Device-Token
     assert client.get(f"/api/devices/pair-poll?claim_token={claim}").json()["device_token"]
+    # ... und erst jetzt gilt die Uhr als bestaetigt
+    assert client.get(f"/api/devices/pair-confirmed/{dev_id}", headers=auth).json()["confirmed"] is True
+    # erneutes Einloesen desselben Codes nennt dasselbe Geraet
+    again = client.post("/api/devices/pair-claim", json={"code": code}, headers=auth).json()
+    assert again["already"] is True and again["device_id"] == dev_id
+    # fremde Nutzer sehen den Status nicht
+    other = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "rev2@b.de", "password": "supersecret"}).json()["access_token"]}
+    assert client.get(f"/api/devices/pair-confirmed/{dev_id}", headers=other).status_code == 404
 
 
 def test_like_state_in_detail(client):

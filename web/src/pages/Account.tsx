@@ -10,6 +10,7 @@ import { WatchMatrix } from "../components/WatchMatrix";
 import { WatchGuide } from "../components/WatchGuide";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { useT } from "../i18n";
+import { PairWarten } from "../components/PairWarten";
 
 // Aufnahmezeit bis „Speicher voll" fuer den Hinweis bei „Speicher sparen" — dieselbe Rechnung wie die
 // Uhr (SessionRecorder.kbPerMin / storageMinutesLeft): 90 % der gemessenen Grenze, 11,5 KB/min bei
@@ -105,11 +106,14 @@ function ClaimFromWatch() {
   // einstellen laesst. Die Stellschrauben sind verschieden (s. claimNext*-Texte), deshalb nicht
   // ein Text fuer alle.
   const [platform, setPlatform] = useState<string | null>(null);
+  // Code angenommen, Uhr hat noch nicht bestaetigt -> PairWarten zeigt den Zwischenstand.
+  const [warteId, setWarteId] = useState<number | null>(null);
   async function claim() {
-    setBusy(true); setErr(null); setMsg(null); setPlatform(null);
+    setBusy(true); setErr(null); setMsg(null); setPlatform(null); setWarteId(null);
     try {
       const r = await api.pairClaim(code.trim().toUpperCase());
-      setMsg(r.already ? t("account.claimAlready") : t("account.claimOk"));
+      if (!r.already && r.device_id) setWarteId(r.device_id);
+      else setMsg(r.already ? t("account.claimAlready") : t("account.claimOk"));
       setPlatform(r.platform ?? null);
       setCode("");
     } catch (e) {
@@ -145,12 +149,13 @@ function ClaimFromWatch() {
           {busy ? "…" : t("account.claimBtn")}
         </Button>
       </div>
+      {warteId && <PairWarten key={warteId} deviceId={warteId} onConfirmed={() => setMsg("")} />}
       {msg && <div className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">{msg}</div>}
       {/* Direkt nach dem Verbinden sagen, was sich fuer DIESE Uhr einstellen laesst (Jan, 17.08.).
           Genau hier ist der Moment, in dem jemand hinsieht — sonst findet die Einstellungen
           niemand: `gnss_mode` stand bei ALLEN 115 Garmin-Uhren auf NULL. Nicht winzig setzen
           (memory hints-warnings-never-tiny). */}
-      {msg && nextKey && (
+      {msg !== null && nextKey && (
         <div className="mt-3 rounded-lg border border-brand-500/30 bg-brand-500/10 p-3 text-slate-200">
           <p className="mb-1 font-semibold">{t("account.claimNextTitle")}</p>
           <p>{t(nextKey)}</p>
