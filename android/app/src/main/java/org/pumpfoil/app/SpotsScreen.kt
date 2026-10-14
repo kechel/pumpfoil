@@ -214,7 +214,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                     ) {
                         Checkbox(checked = nurAktiv, onCheckedChange = { nurAktiv = it },
                             colors = CheckboxDefaults.colors(checkedColor = AKTIV_GRUEN))
-                        Text(I18n.t("spots.onlyActive"), style = MaterialTheme.typography.bodyMedium)
+                        Text(I18n.t("spots.activeShort"), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
                 // Auch bei 0 zeigen, solange der Haken sitzt: sonst bleibt nach einem Sportart-Wechsel
@@ -225,7 +225,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                         modifier = Modifier.align(Alignment.CenterVertically).clickable { nurNotes = !nurNotes },
                     ) {
                         Checkbox(checked = nurNotes, onCheckedChange = { nurNotes = it })
-                        Text("${I18n.t("spots.onlyWithNotes")} ($mitNotes)",
+                        Text("${I18n.t("spots.notesShort")} ($mitNotes)",
                              style = MaterialTheme.typography.bodyMedium)
                     }
                 }
