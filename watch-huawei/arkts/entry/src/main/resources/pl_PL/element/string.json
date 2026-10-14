@@ -215,6 +215,14 @@
     {
       "name": "autoStart",
       "value": "Autostart"
+    },
+    {
+      "name": "phoneRec",
+      "value": "Telefon nagrywa"
+    },
+    {
+      "name": "phoneRecStale",
+      "value": "Telefon: dane sprzed {n} min"
     }
   ]
 }

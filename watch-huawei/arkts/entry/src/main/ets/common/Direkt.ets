@@ -43,6 +43,16 @@ export interface ChunkAntwort {
 interface PairInitKoerper {
   label: string;
   platform: string;
+  old_token?: string;   // vorher verbunden (Konto-Wechsel): der Server widerruft es beim Abholen des neuen
+}
+
+/** {"phone_rec": {"state": 0|1|2, "ago_min": n}} aus /devices/config und /devices/live-status. */
+export interface PhoneRec {
+  state: number;
+  ago_min: number;
+}
+export interface PhoneRecHuelle {
+  phone_rec?: PhoneRec;
 }
 
 /** Eine Anfrage; loest nie mit einem Fehler aus, sondern liefert code 0 + Meldung. */
@@ -72,7 +82,10 @@ export function anfrage(methode: string, pfad: string, body: string, token: stri
   });
 }
 
-export function pairInitKoerper(label: string): string {
+export function pairInitKoerper(label: string, altesToken: string): string {
   const k: PairInitKoerper = { label: label.substring(0, 120), platform: 'huawei' };
+  if (altesToken !== '') {
+    k.old_token = altesToken;
+  }
   return JSON.stringify(k);
 }

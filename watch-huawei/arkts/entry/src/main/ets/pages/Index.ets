@@ -205,6 +205,12 @@ struct Index {
       if (z.offen > 0) {
         return z.plan.fertig + '/' + z.plan.gesamt + (z.direktFehler > 0 ? ' · ' + this.t($r('app.string.noInternet')) : '');
       }
+      if (z.modus === 'bereit' && z.phoneRec === 1) {
+        return this.t($r('app.string.phoneRec'));   // nur bei laufendem Handy-Recorder (wie Garmin 1.0.93)
+      }
+      if (z.modus === 'bereit' && z.phoneRec === 2) {
+        return this.t($r('app.string.phoneRecStale')).replace('{n}', '' + z.phoneRecAgo);
+      }
       return z.modus === 'bereit' ? this.t($r('app.string.allSent')) : '';
     }
     // Ungekoppelt (Watch 5 ohne Wear Engine seit 13.10.2026): Aufnahmen warten auf der Uhr, bis

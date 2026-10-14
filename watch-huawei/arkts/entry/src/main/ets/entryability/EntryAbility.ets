@@ -32,6 +32,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   onDestroy(): void {
+    Recorder.get().appVerlassen();   // vor ende(): braucht Modus + Token
     Recorder.get().ende();
   }
 }
