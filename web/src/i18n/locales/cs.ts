@@ -922,6 +922,7 @@ const cs: Record<string, string> = {
   "sd.colHrStart": "Tep začátek",
   "sd.colHrAvg": "Prům. tep",
   "sd.colHrEnd": "Tep konec",
+  "sd.colHrDrop": "Pokles tepu {s} s",
   "hr.progressTitle": "Tréninková křivka: tep při pumpování",
   "hr.progressHint": "Jak vysoko vyšplhá tvůj tep po 30 sekundách, 1, 2 a 5 minutách pumpování.",
   "hr.afterMinutes": "po {min} minutě/ách",

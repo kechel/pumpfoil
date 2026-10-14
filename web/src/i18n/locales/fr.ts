@@ -791,6 +791,7 @@ const fr: Record<string, string> = {
   "sd.colHrStart": "Pouls début",
   "sd.colHrAvg": "Pouls moy.",
   "sd.colHrEnd": "Pouls fin",
+  "sd.colHrDrop": "Baisse pouls {s} s",
   "hr.progressTitle": "Courbe d'entraînement : pouls en pumping",
   "hr.progressHint": "À quelle hauteur monte ton pouls après 30 secondes, 1, 2 et 5 minutes de pumping.",
   "hr.afterMinutes": "après {min} minute(s)",

@@ -789,6 +789,7 @@ const es: Record<string, string> = {
   "sd.colHrStart": "Pulso inicio",
   "sd.colHrAvg": "Pulso medio",
   "sd.colHrEnd": "Pulso final",
+  "sd.colHrDrop": "Bajada pulso {s} s",
   "hr.progressTitle": "Curva de entrenamiento: pulso al bombear",
   "hr.progressHint": "Cuánto sube tu pulso tras 30 segundos, 1, 2 y 5 minutos bombeando.",
   "hr.afterMinutes": "tras {min} minuto(s)",

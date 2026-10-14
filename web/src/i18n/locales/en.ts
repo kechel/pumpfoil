@@ -969,6 +969,7 @@ const en: Record<string, string> = {
   "sd.colHrStart": "HR start",
   "sd.colHrAvg": "Avg HR",
   "sd.colHrEnd": "HR end",
+  "sd.colHrDrop": "HR drop {s} s",
   "hr.progressTitle": "Training curve: heart rate while pumping",
   "hr.progressHint": "How high your pulse climbs after 30 seconds, 1, 2 and 5 minutes of pumping.",
   "hr.afterMinutes": "after {min} minute(s)",

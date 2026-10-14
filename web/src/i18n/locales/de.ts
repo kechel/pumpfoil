@@ -992,6 +992,7 @@ const de: Record<string, string> = {
   "sd.colHrStart": "Puls Start",
   "sd.colHrAvg": "Ø Puls",
   "sd.colHrEnd": "Puls Ende",
+  "sd.colHrDrop": "Pulsabfall {s} s",
   "hr.progressTitle": "Trainingskurve: Puls beim Pumpen",
   "hr.progressHint": "Wie hoch dein Puls nach 30 Sekunden, 1, 2 und 5 Minuten Pumpen steigt.",
   "hr.afterMinutes": "nach {min} Minute(n)",

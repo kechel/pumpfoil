@@ -922,6 +922,7 @@ const nl: Record<string, string> = {
   "sd.colHrStart": "Hartslag start",
   "sd.colHrAvg": "Gem. hartslag",
   "sd.colHrEnd": "Hartslag eind",
+  "sd.colHrDrop": "Hartslagdaling {s} s",
   "hr.progressTitle": "Trainingscurve: hartslag tijdens pumpen",
   "hr.progressHint": "Hoe hoog je hartslag komt na 30 seconden, 1, 2 en 5 minuten pumpen.",
   "hr.afterMinutes": "na {min} minuut/minuten",

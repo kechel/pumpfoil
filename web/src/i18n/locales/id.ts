@@ -898,6 +898,7 @@ const id: Record<string, string> = {
   "sd.colHrStart": "Detak awal",
   "sd.colHrAvg": "Detak rata-rata",
   "sd.colHrEnd": "Detak akhir",
+  "sd.colHrDrop": "Penurunan detak {s} dtk",
   "hr.progressTitle": "Kurva latihan: detak jantung saat pumping",
   "hr.progressHint": "Seberapa tinggi detak jantungmu setelah 30 detik, 1, 2 dan 5 menit pumping.",
   "hr.afterMinutes": "setelah {min} menit",

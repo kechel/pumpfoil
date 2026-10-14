@@ -898,6 +898,7 @@ const ru: Record<string, string> = {
   "sd.colHrStart": "Пульс в начале",
   "sd.colHrAvg": "Ср. пульс",
   "sd.colHrEnd": "Пульс в конце",
+  "sd.colHrDrop": "Спад пульса {s} с",
   "hr.progressTitle": "Кривая тренированности: пульс при помпинге",
   "hr.progressHint": "Насколько поднимается пульс после 30 секунд, 1, 2 и 5 минут помпинга.",
   "hr.afterMinutes": "через {min} мин.",

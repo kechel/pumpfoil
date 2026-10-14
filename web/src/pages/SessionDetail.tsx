@@ -2408,6 +2408,7 @@ export default function SessionDetail() {
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
         trimStartMs={session.trim_start_ms ?? null} pausen={session.pause_windows ?? []}
         hr={session.analysis?.track_geojson?.properties?.hr ?? []}
+        zeiten={trackZeiten && trackZeiten.length === (session.analysis?.track_geojson?.geometry?.coordinates?.length ?? -1) ? trackZeiten : null}
         excluded={session.excluded_ranges ?? []}
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
@@ -2827,6 +2828,7 @@ function RunsTable({
   excluded = [],
   poweredRuns = [],
   hr = [],
+  zeiten = null,
   keptWindows = [],
   canEdit = false,
   onSaved,
@@ -2858,6 +2860,10 @@ function RunsTable({
   // der Hoechstpuls je Lauf hier ausrechnen, ohne den Server oder eine Reanalyse anzufassen.
   // (`v2_hr_bpm` im Segment ist der MITTELWERT ueber den Lauf, nicht das Maximum.)
   hr?: (number | null)[];
+  // Echte Session-ms je Track-Punkt (GET …/track-times, nur eigene Ansicht), gleich lang wie `hr`.
+  // Ohne sie keine Pulsabfall-Spalten: Auto-Pausen lassen Punkte aus, „Index + 60" ist dann
+  // nicht 60 s.
+  zeiten?: number[] | null;
   canEdit?: boolean;
   onSaved?: (s: SessionSummary) => void;
 }) {
@@ -2912,6 +2918,26 @@ function RunsTable({
     }
     return out;
   };
+  // Pulsabfall nach dem Lauf (Heart Rate Recovery; Wunsch ThermikDreher, Jan 14.10.2026): Hoechstpuls
+  // des Laufs minus Puls 60 bzw. 120 s nach Laufende. Kein neues Messen, die Uhr zeichnet in den
+  // Pausen ohnehin weiter auf. „–", wenn dort kein Messwert liegt (±5 s: Auto-Pause, Uhr nicht am
+  // Arm, Aufnahme zu Ende) oder der naechste Lauf vorher beginnt — dann steigt der Puls schon wieder.
+  const chrono = segments.filter((s) => s?.i_start != null).sort((a, b) => a.i_start - b.i_start);
+  const hrDrop = (s: any, sek: number): number | null => {
+    if (!zeiten || !hr.length || s?.i_end == null || s.i_end >= zeiten.length) return null;
+    const ziel = zeiten[s.i_end] + sek * 1000;
+    const naechster = chrono.find((x) => x.i_start > s.i_end);
+    if (naechster && naechster.i_start < zeiten.length && zeiten[naechster.i_start] <= ziel) return null;
+    let best: number | null = null, abst = 5001;
+    for (let i = s.i_end + 1; i < zeiten.length && zeiten[i] <= ziel + 5000; i++) {
+      const d = Math.abs(zeiten[i] - ziel), v = hr[i];
+      if (d < abst && v != null && v > 0) { abst = d; best = v; }
+    }
+    const top = maxHr(s);
+    return best != null && top != null ? top - best : null;
+  };
+  const hasDrop = hasHr && segments.some((s) => hrDrop(s, 60) != null || hrDrop(s, 120) != null);
+  const drop = (v: number | null) => (v != null ? `${v > 0 ? "−" : v < 0 ? "+" : ""}${Math.abs(v)} bpm` : "–");
   const bpm = (v: number | null | undefined) => (v != null ? `${Math.round(v)} bpm` : "–");
   // Kadenz-Zellen ohne Einheit — die steht in der Spaltenüberschrift (Hz bzw. /min).
   const hz = (v: number | null | undefined) => (v != null ? pf.value(v) : "–");
@@ -2930,6 +2956,7 @@ function RunsTable({
     distPerPump: (s) => (s.pumps ? s.distance_m / s.pumps : null), avgPump: (s) => s.avg_pump_hz,
     pumpMax: (s) => s.max_pump_hz, hrStart: (s) => hrWerte(s)[0] ?? null, hrAvg: (s) => hrAvg(s),
     hrMax: (s) => maxHr(s), hrEnd: (s) => { const w = hrWerte(s); return w.length ? w[w.length - 1] : null; },
+    hrDrop60: (s) => hrDrop(s, 60), hrDrop120: (s) => hrDrop(s, 120),
     glide: (s) => s.longest_glide_s,
   };
   const order = segments.map((_, i) => i);
@@ -3088,6 +3115,8 @@ function RunsTable({
               {hasHr && th("hrAvg", t("sd.colHrAvg"))}
               {hasHr && th("hrMax", t("sd.colMaxHr"))}
               {hasHr && th("hrEnd", t("sd.colHrEnd"))}
+              {hasDrop && th("hrDrop60", t("sd.colHrDrop", { s: 60 }))}
+              {hasDrop && th("hrDrop120", t("sd.colHrDrop", { s: 120 }))}
               {th("glide", t("sd.colGlide"))}
               {canEdit && <th className="px-3 py-2 font-medium" title={t("sd.excludeRun")}><FoilOffIcon className="h-4 w-4" /></th>}
             </tr>
@@ -3145,6 +3174,8 @@ function RunsTable({
                       <td className="px-3 py-2 tabular-nums">{bpm(w.length ? w[w.length - 1] : null)}</td>
                     </>);
                   })()}
+                  {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 60))}</td>}
+                  {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 120))}</td>}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
                   {canEdit && (
                     <td className="px-3 py-2">

@@ -905,6 +905,7 @@ const fi: Record<string, string> = {
   "sd.colHrStart": "Syke alussa",
   "sd.colHrAvg": "Keskisyke",
   "sd.colHrEnd": "Syke lopussa",
+  "sd.colHrDrop": "Sykkeen lasku {s} s",
   "hr.progressTitle": "Harjoituskäyrä: syke pumpatessa",
   "hr.progressHint": "Kuinka korkealle syke nousee 30 sekunnin, 1, 2 ja 5 minuutin pumppauksen jälkeen.",
   "hr.afterMinutes": "{min} minuutin jälkeen",

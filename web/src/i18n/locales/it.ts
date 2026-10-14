@@ -789,6 +789,7 @@ const it: Record<string, string> = {
   "sd.colHrStart": "Battito inizio",
   "sd.colHrAvg": "Battito medio",
   "sd.colHrEnd": "Battito fine",
+  "sd.colHrDrop": "Calo battito {s} s",
   "hr.progressTitle": "Curva di allenamento: battito durante il pump",
   "hr.progressHint": "Quanto sale il battito dopo 30 secondi, 1, 2 e 5 minuti di pump.",
   "hr.afterMinutes": "dopo {min} minuto/i",
