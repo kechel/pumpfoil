@@ -798,6 +798,18 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 13.10.2026 (Jan: „ja gerne auch 2h Reserve"): Reserve vor dem Accel-Abschalten (6da979b9). Nicht gebumpt.
+    # EINGEREICHT 14.10.2026 (Jans Meldung, Connect IQ Store). .iq aus 7b94363f, alle 218 Geraete, -r.
+    # Firmware-Neustarts der fenix 7X Pro im Upload sind NICHT 1.0.93 (auch Store 1.0.92, docs/TODO.md).
+    {"name": "Garmin", "version": "1.0.93",
+     "eingereicht": "2026-10-14",
+     "items": [
+         "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
+         # 14.10.2026 (ea2f1333, 78c623ed): Neu-Verbinden einer schon verbundenen Uhr + altes Token widerrufen.
+         "Moving a watch to another account now works directly with a new code from the watch, and the old account no longer keeps it listed.",
+         "If you also record with the Pumpfoil phone app, the start screen shows when your phone is recording, so you can check it after packing the phone away.",
+         "Closing the app lets pumpfoil.org know you are done, so you no longer count as currently pumping.",
+     ]},
     # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht).
     # 13.10.2026 (Jan: „das gleiche fuer iOS genauso"): Portierung wie Android 1.1.42; gebumpt auf 1.1.48 (54).
     # EINGEREICHT 13.10.2026 20:54 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.48 (54),
@@ -946,15 +958,6 @@ NAECHSTES: list[dict] = [
      "spaeter": "not planned for now",
      "items": [
          "Huawei advised us not to release new apps for these older models, so they are on hold; tell us if you ride with one.",
-     ]},
-    # 13.10.2026 (Jan: „ja gerne auch 2h Reserve"): Reserve vor dem Accel-Abschalten (6da979b9). Nicht gebumpt.
-    {"name": "Garmin", "version": "1.0.93",
-     "items": [
-         "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
-         # 14.10.2026 (ea2f1333, 78c623ed): Neu-Verbinden einer schon verbundenen Uhr + altes Token widerrufen.
-         "Moving a watch to another account now works directly with a new code from the watch, and the old account no longer keeps it listed.",
-         "If you also record with the Pumpfoil phone app, the start screen shows when your phone is recording, so you can check it after packing the phone away.",
-         "Closing the app lets pumpfoil.org know you are done, so you no longer count as currently pumping.",
      ]},
     # 14.10.2026: Live-Upload (5c36ed35), Live-Anzeigen + gerade am Pumpen + Aufnahme-Bildschirm
     # (08339c1c). Android-Phone fuer Jans Test auf 1.1.43 gebumpt; iOS nicht (erst beim Release).
