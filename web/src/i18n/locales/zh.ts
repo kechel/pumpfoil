@@ -303,7 +303,7 @@ const zh: Record<string, string> = {
   "sessions.todayOne": "今天到目前为止 1 个新记录",
   "sessions.todayN": "今天到目前为止 {n} 个新记录",
   "sessions.pumpingNow": "此刻 §{n}§ 人正在泵",
-  "sessions.pumpingHere": "§有人§正在 pump",
+  "sessions.pumpingHere": "有人§正在 pump§",
   "side.all": "全部",
   "side.phoneOnBoard": "手机放在板上",
   "side.recordsHint": "来自含加速度数据（精确）的记录，或来自全部记录的纪录",

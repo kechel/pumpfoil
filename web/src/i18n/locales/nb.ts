@@ -324,7 +324,7 @@ const nb: Record<string, string> = {
   "sessions.todayOne": "I dag så langt 1 ny økt",
   "sessions.todayN": "I dag så langt {n} nye økter",
   "sessions.pumpingNow": "§{n}§ pumper akkurat nå",
-  "sessions.pumpingHere": "§noen§ pumper nå",
+  "sessions.pumpingHere": "noen §pumper nå§",
   "side.all": "alle",
   "side.phoneOnBoard": "telefon på brettet",
   "side.recordsHint": "Rekorder fra økter med akselerasjonsdata (presise) eller fra alle",

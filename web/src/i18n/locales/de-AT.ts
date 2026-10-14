@@ -283,7 +283,7 @@ const deAT: Record<string, string> = {
   "sessions.todayOne": "Heute bisher 1 neue Session",
   "sessions.todayN": "Heute bisher {n} neue Sessions",
   "sessions.pumpingNow": "§{n}§ grad am Pumpen",
-  "sessions.pumpingHere": "§jemand§ gerade am Pumpen",
+  "sessions.pumpingHere": "jemand §gerade am Pumpen§",
   "side.all": "olle",
   "side.phoneOnBoard": "Handy aufm Brett",
   "side.recordsHint": "Rekorde nur aus Sessions mit Beschleunigungsdaten (genau) oder aus olle",
