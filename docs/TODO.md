@@ -1180,6 +1180,11 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
 
 ## 💡 Backlog (Produktideen — bewusst später)
 
+- **Heart Rate Recovery (HRR)** (14.10.2026, Nutzerfrage ThermikDreher im 1:1-Chat; steht in
+  `appmeta.IDEEN`): wie schnell der Puls nach jedem Lauf wieder faellt, z. B. Abfall nach 30/60 s
+  ab Laufende. Daten sind da: Puls je GPS-Punkt (`load_gps` Index 4, NICHT `hr_samples`), Laufenden
+  aus `segments_json`. Offen: Mindestpause, Uhr nicht am Arm (Luecken), Ruhepuls als Bezug.
+
 - **Instinct-Nebendisplay nutzen** (26.09.2026, Jan: „fuer dieses release nicht, mit in ideas"):
   das runde Mini-Display oben rechts (`WatchUi.getSubscreen()`, ab API 3.2.7) fuer einen Wert, der
   auf jeder Seite steht — Puls, Laufdauer o. ae., evtl. im Profil waehlbar. Nur Mittelklasse
