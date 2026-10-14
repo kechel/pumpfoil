@@ -514,20 +514,45 @@ def _sport_cond(sport: str | None):
     return models.Session.sport_class == sport
 
 
-def _apply_pump_filter(q, user, filter: str):
-    """Filtert eine Session-Query auf Pumpfoil ('pump') bzw. Aussortierte ('other').
-    Für Nutzer mit persönlicher Empfindlichkeit entscheidet sein gecachtes Preset
-    (sensitivity_json[preset].num_runs > 0), sonst das globale is_pumpfoil. Fügt bei Bedarf
-    einen Outer-Join auf AnalysisResult hinzu (Aufrufer darf danach KEIN zweites Mal joinen)."""
+# Von einem MENSCHEN einer anderen Sportart zugeordnet (Besitzer oder Admin) — eine gueltige
+# Aufnahme dieser Sportart, kein Ausschuss, auch wenn die Pumpfoil-Erkennung darin keine Laeufe
+# findet (Jan, 14.10.2026: „das waere imho ein bug … 'alle loeschen' sollte nur gelten fuer laeufe
+# ohne zuordnung"). Damals 876 Sessions, v. a. Wingfoil/Kite, die ein Admin eingeordnet hatte, dazu
+# Indoor-Aufnahmen ohne GPS. Import-Voreinstellungen („default"/„file") und die automatische
+# Einordnung („auto") zaehlen NICHT — die 4.9k importierten Spaziergaenge bleiben aussortiert.
+_MENSCH_QUELLEN = ("owner", "admin")
+
+
+def _menschlich_zugeordnet():
+    S = models.Session
+    return and_(S.sport_source.in_(_MENSCH_QUELLEN), S.sport_class.isnot(None),
+                S.sport_class != "pumpfoil")
+
+
+def _in_liste_cond(user):
+    """Bedingung „steht in der normalen Liste" (Gegenteil: „Aussortiert") — EINE Definition fuer
+    Liste, Monate, Vor/Zurueck und „alle aussortierten loeschen". Liefert (Bedingung, braucht_join):
+    mit persoenlicher Empfindlichkeit zaehlen auch Laeufe aus dem gecachten Preset, dafuer muss der
+    Aufrufer AnalysisResult outer-joinen. Ohne NULL-Faelle: jeder Teil ist echt wahr/falsch, damit
+    `not_()` nichts verschluckt."""
+    S = models.Session
+    teile = [S.is_pumpfoil.is_(True), _menschlich_zugeordnet()]
     sens = (user.foil_sensitivity or "normal")
     if sens != "normal":
+        teile.append(func.coalesce(cast(func.jsonb_extract_path_text(
+            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0) > 0)
+        return or_(*teile), True
+    return or_(*teile), False
+
+
+def _apply_pump_filter(q, user, filter: str):
+    """Filtert eine Session-Query auf die normale Liste ('pump') bzw. Aussortierte ('other'),
+    s. `_in_liste_cond`. Fügt bei Bedarf einen Outer-Join auf AnalysisResult hinzu (Aufrufer darf
+    danach KEIN zweites Mal joinen)."""
+    cond, join = _in_liste_cond(user)
+    if join:
         q = q.outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
-        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
-            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
-        is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
-        return q.filter(is_pump if filter != "other" else not_(is_pump)), True
-    return q.filter(models.Session.is_pumpfoil.is_(True) if filter != "other"
-                    else models.Session.is_pumpfoil.isnot(True)), False
+    return q.filter(cond if filter != "other" else not_(cond)), join
 
 
 def _owned(db, user, session_id) -> models.Session:
@@ -809,16 +834,10 @@ def list_sessions(
     # So taucht z. B. eine Session, die erst mit „attempts" Läufe zeigt, auch in seiner Pump-Liste
     # auf. Global is_pumpfoil bleibt für Community/Rekorde.
     sens = (user.foil_sensitivity or "normal")
-    if accel_only or sens != "normal":
+    cond, join = _in_liste_cond(user)
+    if accel_only or join:
         q = q.outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
-    if sens != "normal":
-        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
-            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
-        is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
-        q = q.filter(is_pump if filter != "other" else not_(is_pump))
-    else:
-        q = q.filter(models.Session.is_pumpfoil.is_(True) if filter != "other"
-                     else models.Session.is_pumpfoil.isnot(True))
+    q = q.filter(cond if filter != "other" else not_(cond))
     if accel_only:
         q = q.filter(models.AnalysisResult.detection == "model")
     if month:
@@ -2381,37 +2400,27 @@ def session_neighbors(
         # Ohne `filter` entscheidet die aktuelle Session, welche Art gemeint ist.
         sens = (user.foil_sensitivity or "normal")
         andere = filter == "other" if filter in ("pump", "other") else None
-        if sens != "normal":
-            if andere is None:
-                s_pump = bool(s.is_pumpfoil)
-                if not s_pump:
-                    ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
-                    if ar and ar.sensitivity_json:
-                        try:
-                            s_pump = int((json.loads(ar.sensitivity_json).get(sens) or {}).get("num_runs") or 0) > 0
-                        except (ValueError, AttributeError, TypeError):
-                            pass
-                andere = not s_pump
-            preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
-                cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
-            is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
-            base = (db.query(models.Session.id)
-                    .outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
-                    .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
-                            not_(is_pump) if andere else is_pump))
-        else:
-            if andere is None:
-                andere = not s.is_pumpfoil
-            same_kind = (models.Session.is_pumpfoil.isnot(True) if andere
-                         else models.Session.is_pumpfoil.is_(True))
-            base = db.query(models.Session.id).filter(
-                models.Session.user_id == user.id,
-                models.Session.deleted.isnot(True),
-                same_kind,
-            )
-            if accel_only:
-                base = base.outerjoin(models.AnalysisResult,
-                                      models.AnalysisResult.session_id == models.Session.id)
+        if andere is None:
+            # Die aktuelle Session selbst: gleiche Definition wie `_in_liste_cond`, nur in Python.
+            s_pump = bool(s.is_pumpfoil) or (
+                s.sport_source in _MENSCH_QUELLEN and (s.sport_class or "pumpfoil") != "pumpfoil")
+            if not s_pump and sens != "normal":
+                ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+                if ar and ar.sensitivity_json:
+                    try:
+                        s_pump = int((json.loads(ar.sensitivity_json).get(sens) or {}).get("num_runs") or 0) > 0
+                    except (ValueError, AttributeError, TypeError):
+                        pass
+            andere = not s_pump
+        cond, join = _in_liste_cond(user)
+        base = db.query(models.Session.id).filter(
+            models.Session.user_id == user.id,
+            models.Session.deleted.isnot(True),
+        )
+        if join or accel_only:
+            base = base.outerjoin(models.AnalysisResult,
+                                  models.AnalysisResult.session_id == models.Session.id)
+        base = base.filter(not_(cond) if andere else cond)
         if accel_only:
             base = base.filter(models.AnalysisResult.detection == "model")
         if (sc := _sport_cond(sport)) is not None:
@@ -2448,20 +2457,15 @@ def delete_all_other_sessions(
     - „Aussortiert" = exakt dieselbe Definition wie die Liste (list_sessions filter='other'):
       mit persönlichem Empfindlichkeits-Preset zählt eine Session mit preset-Läufen als Pumpfoil
       und wird hier NICHT gelöscht; sonst global is_pumpfoil IS NOT TRUE.
+    - Von Besitzer/Admin einer anderen Sportart zugeordnet -> steht in der normalen Liste und wird
+      hier NIE gelöscht (s. `_menschlich_zugeordnet`, Jan 14.10.2026).
     - Soft-Delete wie beim Einzel-Löschen (Tombstone bleibt, FIT-Reimport legt sie nicht neu an).
     """
     q = db.query(models.Session).filter(
         models.Session.user_id == user.id,          # NUR eigene
         models.Session.deleted.isnot(True),
     )
-    sens = (user.foil_sensitivity or "normal")
-    if sens != "normal":
-        q = q.outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
-        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
-            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
-        q = q.filter(not_(or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)))
-    else:
-        q = q.filter(models.Session.is_pumpfoil.isnot(True))   # NUR aussortierte
+    q, _ = _apply_pump_filter(q, user, "other")   # NUR aussortierte, NIE menschlich zugeordnete
     rows = q.all()
     for s in rows:
         s.deleted = True
