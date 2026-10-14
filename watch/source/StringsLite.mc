@@ -178,6 +178,9 @@ module Strings {
         if (key.equals("lay.fallback"))  { return "Layout off (crash)"; }
         if (key.equals("lay.none"))      { return "no pages"; }
         if (key.equals("common.auto"))   { return "Automatic"; }
+        if (key.equals("phone.rec"))     { return "Phone recording"; }
+        if (key.equals("phone.recStale")) { return "Phone: data"; }
+        if (key.equals("phone.recAgo"))  { return "min ago"; }
         return null;
     }
 }

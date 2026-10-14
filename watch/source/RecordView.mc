@@ -499,6 +499,14 @@ class RecordView extends WatchUi.View {
             }
         }
 
+        // Handy-Recorder laeuft (Jan, 14.10.2026): NUR dann eine Zeile — wer ohne Handy-Aufnahme
+        // faehrt (fast alle), sieht hier nie etwas. Rot = nimmt auf, orange = seit X min keine Daten.
+        var prz = PhoneRec.zeile();
+        if (prz != null && y < mitteMax) {
+            dc.setColor(PhoneRec.state == 1 ? FARBE_ROT : FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
+            y += _drawWrap(dc, w / 2, y, xf, prz, false) + luft;
+        }
+
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
         // Der Name kommt vom Nutzer -> NICHT umbrechen, sondern hinten kuerzen: ein mitten
         // durchgeschnittener Foil-Name liest sich schlechter als "Foil: Armstro…".
