@@ -953,6 +953,7 @@ NAECHSTES: list[dict] = [
          "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
          # 14.10.2026 (ea2f1333, 78c623ed): Neu-Verbinden einer schon verbundenen Uhr + altes Token widerrufen.
          "Moving a watch to another account now works directly with a new code from the watch, and the old account no longer keeps it listed.",
+         "The start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
      ]},
     # 14.10.2026 (5c36ed35 / 714e63de): Live-Upload im Handy-Recorder, gebumpt auf 1.1.43 / 1.1.49.
     {"name": "Android phone", "version": "1.1.43",
@@ -962,6 +963,16 @@ NAECHSTES: list[dict] = [
     {"name": "iPhone + Apple Watch", "version": "1.1.49",
      "items": [
          "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
+         "The watch start screen tells you when your phone recorder is running, so you can check it after packing the phone away.",
+     ]},
+    # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
+    {"name": "Wear OS", "version": "1.2.43",
+     "items": [
+         "The watch start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
+     ]},
+    {"name": "Huawei Watch 5", "version": "1.0.3",
+     "items": [
+         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
