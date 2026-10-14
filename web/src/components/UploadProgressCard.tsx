@@ -293,7 +293,6 @@ export function UhrenLiveStatus() {
             <WatchIcon className="h-4 w-4 shrink-0 text-brand-400" />
             <span>{t("live.watchProbably", { device: w.device, ago: String(Math.round(w.last_seen_age_s / 60)) })}</span>
           </div>
-          <p className="mt-1 text-sm text-slate-400">{t("live.guessHint")}</p>
         </div>
       ))}
     </div>
