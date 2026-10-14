@@ -1853,7 +1853,7 @@ const de: Record<string, string> = {
   "account.claimAlready": "Diese Uhr ist bereits verbunden.",
   "account.claimOk": "Uhr verbunden! ✓",
   "account.claimWaiting": "Code angenommen — warte, bis die Uhr bestätigt …",
-  "account.claimSlow": "Die Uhr hat sich noch nicht gemeldet. Bleibt der Code auf der Uhr stehen: Pumpfoil auf der Uhr beenden und neu starten, das Handy dabei per Bluetooth verbunden. Ist die Uhr noch mit einem anderen Konto verbunden, sie dort zuerst unter „Meine Uhren“ entfernen und danach einen neuen Code holen.",
+  "account.claimSlow": "Die Uhr hat sich noch nicht gemeldet. Bleibt der Code auf der Uhr stehen: Pumpfoil auf der Uhr beenden und neu starten, das Handy dabei per Bluetooth verbunden. Garmin-Uhren mit Version 1.0.92 oder älter können nicht von einem Konto zum anderen wechseln: dort die App aktualisieren oder die Uhr im alten Konto entfernen.",
   "account.offFoilTitle": "Wenn du gerade nicht foilst",
   "account.offFoilDesc": "Zeigt die Uhr, sobald ein Lauf endet und solange du nicht fährst — also auch beim Dümpeln zwischen den Läufen. Die Aufnahme läuft dabei weiter.",
   "foils.toSetup": "Detailliertes Setup",

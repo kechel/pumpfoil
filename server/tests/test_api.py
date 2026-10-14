@@ -201,6 +201,27 @@ def test_reverse_pairing_flow(client):
     assert client.get(f"/api/devices/pair-confirmed/{dev_id}", headers=other).status_code == 404
 
 
+def test_reverse_pairing_revokes_old_token(client):
+    # Konto-Wechsel: die schon verbundene Uhr schickt ihr altes Token bei pair-init mit. Erst wenn
+    # sie das NEUE abholt, ist das alte widerrufen (Jan, 14.10.2026).
+    a = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "alt@b.de", "password": "supersecret"}).json()["access_token"]}
+    b = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "neu@b.de", "password": "supersecret"}).json()["access_token"]}
+    init = client.post("/api/devices/pair-init").json()
+    client.post("/api/devices/pair-claim", json={"code": init["code"]}, headers=a)
+    alt = client.get(f"/api/devices/pair-poll?claim_token={init['claim_token']}").json()["device_token"]
+    assert client.get("/api/devices/config", headers={"X-Device-Token": alt}).status_code == 200
+
+    init2 = client.post("/api/devices/pair-init", json={"old_token": alt}).json()
+    client.post("/api/devices/pair-claim", json={"code": init2["code"]}, headers=b)
+    # eingeloest, aber noch nicht abgeholt: altes Token gilt weiter
+    assert client.get("/api/devices/config", headers={"X-Device-Token": alt}).status_code == 200
+    neu = client.get(f"/api/devices/pair-poll?claim_token={init2['claim_token']}").json()["device_token"]
+    assert client.get("/api/devices/config", headers={"X-Device-Token": alt}).status_code == 401
+    assert client.get("/api/devices/config", headers={"X-Device-Token": neu}).status_code == 200
+
+
 def test_like_state_in_detail(client):
     # get_session muss liked/like_count korrekt liefern (Apps/Web bauen darauf auf).
     auth = {"Authorization": "Bearer " + client.post(

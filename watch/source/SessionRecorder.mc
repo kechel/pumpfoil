@@ -836,11 +836,17 @@ class SessionRecorder {
             return;
         }
         pairStatus = Strings.s("pair.fetching");
+        // Schon verbunden (Konto-Wechsel)? Dann das bisherige Token mitschicken: der Server widerruft
+        // es, sobald diese Uhr das neue abholt — im alten Konto bleibt keine Karteileiche stehen und
+        // niemand muss die Uhr dort erst entfernen (Jan, 14.10.2026). Leer = Erst-Verbindung.
+        var alt = Config.getString("deviceToken");
+        var body = (alt != null && !alt.equals("")) ? { "old_token" => alt } : {};
         Communications.makeWebRequest(
             Config.baseUrl() + "/api/devices/pair-init",
-            {},
+            body,
             {
                 :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => { "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON },
                 :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
             },
             method(:onPairInit));

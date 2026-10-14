@@ -1684,7 +1684,7 @@ const cs: Record<string, string> = {
   "account.claimAlready": "Tyto hodinky jsou už propojené.",
   "account.claimOk": "Hodinky propojeny! ✓",
   "account.claimWaiting": "Kód přijat — čekám na potvrzení z hodinek …",
-  "account.claimSlow": "Hodinky se zatím neozvaly. Pokud kód na hodinkách zůstává: ukonči Pumpfoil na hodinkách a spusť ho znovu, s telefonem připojeným přes Bluetooth. Jsou-li hodinky ještě propojené s jiným účtem, odeber je nejdřív tam v „Moje hodinky“ a pak si vyžádej nový kód.",
+  "account.claimSlow": "Hodinky se zatím neozvaly. Pokud kód na hodinkách zůstává: ukonči Pumpfoil na hodinkách a spusť ho znovu, s telefonem připojeným přes Bluetooth. Hodinky Garmin s verzí 1.0.92 nebo starší neumějí přejít z jednoho účtu na jiný: aktualizuj aplikaci, nebo hodinky odeber ze starého účtu.",
   "account.offFoilTitle": "Off-foil obrazovka",
   "account.offFoilDesc": "Zobrazuje se na hodinkách automaticky, dokud se právě nefoilíš (výchozí: hodiny + poslední jízda). Při foilingu hodinky přepnou zpět na tvé naposledy zvolené zobrazení.",
 

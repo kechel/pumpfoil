@@ -1752,7 +1752,7 @@ const en: Record<string, string> = {
   "account.claimAlready": "This watch is already connected.",
   "account.claimOk": "Watch connected! ✓",
   "account.claimWaiting": "Code accepted — waiting for the watch to confirm …",
-  "account.claimSlow": "The watch hasn't checked in yet. If the code stays on the watch: close Pumpfoil on the watch and start it again, with the phone connected via Bluetooth. If the watch is still linked to another account, remove it there under “My watches” first, then get a new code.",
+  "account.claimSlow": "The watch hasn't checked in yet. If the code stays on the watch: close Pumpfoil on the watch and start it again, with the phone connected via Bluetooth. Garmin watches on version 1.0.92 or older can't switch from one account to another: update the app there, or remove the watch from the old account.",
   "account.offFoilTitle": "While you're not riding",
   "account.offFoilDesc": "Shown as soon as a run ends and for as long as you're not riding — including waiting between runs. Recording keeps going.",
   "foils.toSetup": "Detailed setup",

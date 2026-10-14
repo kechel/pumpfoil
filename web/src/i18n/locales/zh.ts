@@ -1573,7 +1573,7 @@ const zh: Record<string, string> = {
   "account.claimAlready": "此手表已连接。",
   "account.claimOk": "手表已连接！ ✓",
   "account.claimWaiting": "代码已接受 — 正在等待手表确认…",
-  "account.claimSlow": "手表尚未回应。如果代码一直显示在手表上：在手机通过蓝牙连接的情况下，退出手表上的 Pumpfoil 并重新启动。如果手表仍连接着另一个账户，请先在该账户的“我的手表”中将其移除，然后获取新代码。",
+  "account.claimSlow": "手表尚未回应。如果代码一直显示在手表上：在手机通过蓝牙连接的情况下，退出手表上的 Pumpfoil 并重新启动。版本 1.0.92 或更早的 Garmin 手表无法从一个账户切换到另一个账户：请更新应用，或从旧账户中移除手表。",
   "account.offFoilTitle": "非上翼界面",
   "account.offFoilDesc": "当你不在水翼滑行时，手表上自动显示（默认：时钟 + 上一航段）。水翼滑行时，手表切回你上次选择的视图。",
 
