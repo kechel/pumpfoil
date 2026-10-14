@@ -1554,8 +1554,11 @@ class SessionRecorder {
         // Aufnahme noch die App beenden (Aufzeichnung läuft im Hintergrund weiter).
         try {
             _gnssWachhund();
-            // Reverse-Pairing pollt auch im Idle (alle ~3 s), solange ein Code aktiv ist.
-            if (!_claimToken.equals("") && !isPaired()) {
+            // Reverse-Pairing pollt auch im Idle (alle ~3 s), solange ein Code aktiv ist — auch wenn
+            // die Uhr schon verbunden ist: das Ueberschreiben einer bestehenden Verknuepfung
+            // (startPairing) holte sonst nie den neuen Token ab, der Code blieb ewig stehen
+            // (FR55, 14.10.2026; seit dem Ueberschreiben-Feature vom 29.06. so).
+            if (!_claimToken.equals("")) {
                 _pairPollCtr++;
                 if (_pairPollCtr >= 3) { _pairPollCtr = 0; _pollPairing(); }
             }
