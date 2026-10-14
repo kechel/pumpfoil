@@ -309,7 +309,7 @@ const cs: Record<string, string> = {
   "sessions.todayOne": "Dnes zatím 1 nová session",
   "sessions.todayN": "Dnes zatím {n} nových sessions",
   "sessions.pumpingNow": "§{n}§ právě pumpuje",
-  "sessions.pumpingHere": "§někdo§ tu právě pumpuje",
+  "sessions.pumpingHere": "§někdo§ právě pumpuje",
   "side.all": "vše",
   "side.phoneOnBoard": "telefon na desce",
   "side.recordsHint": "Rekordy jen z vyjížděk s daty ze zrychlení (přesné), nebo ze všech",

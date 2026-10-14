@@ -267,7 +267,7 @@ const en: Record<string, string> = {
   "sessions.todayOne": "1 new session so far today",
   "sessions.todayN": "{n} new sessions so far today",
   "sessions.pumpingNow": "§{n}§ currently pumping",
-  "sessions.pumpingHere": "§someone§ is pumping here right now",
+  "sessions.pumpingHere": "§someone§ currently pumping",
   "side.all": "all",
   "side.phoneOnBoard": "phone on board",
   "side.recordsHint": "Records from sessions with acceleration data (precise) or from all",

@@ -296,7 +296,7 @@ const fi: Record<string, string> = {
   "sessions.todayOne": "Tänään tähän mennessä 1 uusi sessio",
   "sessions.todayN": "Tänään tähän mennessä {n} uutta sessiota",
   "sessions.pumpingNow": "§{n}§ pumppaa juuri nyt",
-  "sessions.pumpingHere": "§joku§ pumppaa täällä juuri nyt",
+  "sessions.pumpingHere": "§joku§ pumppaa nyt",
   "side.all": "kaikki",
   "side.phoneOnBoard": "puhelin laudalla",
   "side.recordsHint": "Ennätykset vain kiihtyvyysdatan sisältävistä sessioista (tarkka) tai kaikista",
