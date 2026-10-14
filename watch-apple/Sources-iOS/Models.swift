@@ -1020,6 +1020,10 @@ struct AttemptLine: Decodable {
 }
 struct AttemptsAntwort: Decodable { var attempts: [AttemptLine] = [] }
 
+// GET /api/sessions/{id}/track-times: ECHTE Session-ms je Punkt der Kartenspur (nur mit Konto).
+// Quelle fuer den Pulsabfall nach dem Lauf; nur brauchbar, wenn gleich lang wie die Koordinaten.
+struct TrackTimes: Decodable { var t_ms: [Int] = [] }
+
 struct CarveData: Codable {
     var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
     var carves: [Carve] = []

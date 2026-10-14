@@ -176,6 +176,14 @@ struct SessionsView: View {
         return Loc.t("sessions.empty", lang)
     }
 
+    /// Spot fuer die Heute-Zeile: als ID, wenn bekannt — nur dann liefert der Server
+    /// `pumping_here`. Sonst der Name (Altbestand ohne Spot-Zeile), die Zahl stimmt sowieso.
+    private var heuteSpot: String? {
+        guard scope == .spot, !spot.isEmpty else { return nil }
+        if let id = spotIds[spot] { return String(id) }
+        return spot
+    }
+
     private var spotChatItem: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             NavigationLink { ChatRoomView(scope: "spot:\(spot)", title: spot) } label: {
@@ -254,9 +262,11 @@ struct SessionsView: View {
             // Alle Filter in EINER List-Row (VStack) — sonst erzeugt jede Zeile den großen
             // Default-Zeilenabstand der List zwischen sich.
             VStack(alignment: .leading, spacing: 8) {
-                ScrollView(.horizontal, showsIndicators: false) { scopeChips }
-                HeuteNeu(mine: scope == .mine, spot: scope == .spot ? spot : nil,
+                // „N neue Sessions heute" ganz oben, direkt unter dem Titel (PWA 9131874f: neben die
+                // Ueberschrift). Auf dem iPhone ist neben dem grossen Titel kein Platz.
+                HeuteNeu(mine: scope == .mine, spot: heuteSpot,
                          accelOnly: accelOnly && !brett, sport: sport, board: brett, lang: lang)
+                ScrollView(.horizontal, showsIndicators: false) { scopeChips }
                 HStack {
                     // Kurz „accel" und „POB" in allen Sprachen (Jan, 13.10.2026): passt so auch auf
                     // schmalen Displays in eine Zeile.
@@ -273,8 +283,11 @@ struct SessionsView: View {
                             }
                         }
                     } label: {
+                        // Hoechstens 150 pt (PWA a10184b5/4648715d): ein langer Spotname schob sonst die
+                        // Chips aus der Zeile. Abgeschnitten wird hinten.
                         Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
-                            .font(.subheadline).lineLimit(1)
+                            .font(.subheadline).lineLimit(1).truncationMode(.tail)
+                            .frame(maxWidth: 150, alignment: .trailing)
                     }
                 }
                 sportFilterRow
@@ -615,10 +628,13 @@ struct SportFilterMenu: View {
                 Button(label(s.sport)) { onSelect(s.sport) }
             }
         } label: {
+            // Hoechstens 150 pt wie die PWA (d3fc32ba) — lange Sportnamen schneiden ab statt die
+            // Zeile zu sprengen. Rahmen um Text UND Pfeil, sonst klafft dazwischen eine Luecke.
             HStack(spacing: 4) {
-                Text(label(sport)).font(.subheadline).lineLimit(1)
+                Text(label(sport)).font(.subheadline).lineLimit(1).truncationMode(.tail)
                 Image(systemName: "chevron.down").font(.caption2)
             }
+            .frame(maxWidth: 150, alignment: .leading)
         }
     }
 }
@@ -1378,24 +1394,35 @@ struct IncomingTransferRow: View {
 }
 
 
-/// „X new sessions so far today · N currently pumping — Have fun, keep pumping!" wie die PWA
+/// „X new sessions today · N currently pumping — Have fun, keep pumping!" wie die PWA
 /// (Sessions.tsx HeuteNeu). „Gerade am Pumpen" gilt fuer ALLE, deshalb nur in „Alle" ohne Spot.
+/// An einem Spot stattdessen „someone currently pumping" (`pumping_here`, 14.10.2026) — nur
+/// ja/nein, vom Server nach der Regel der gruenen Spots entschieden.
+///
+/// Formatiert wie die Community-Statistikzeile (PWA 6df817f6, Jan: „zu viel Blau"): Fliesstext
+/// ruhig, nur die Zahlen fett/cyan, die §-Teile von „gerade am Pumpen" pulsieren (dasselbe Mischen
+/// wie CommunityStatsText), dahinter das Motto fett/cyan.
 private struct HeuteNeu: View {
     let mine: Bool
+    // Spot als ID (wenn bekannt) — nur damit liefert der Server `pumping_here`.
     let spot: String?
     let accelOnly: Bool
     let sport: String
     let board: Bool
     let lang: String
+    @Environment(\.colorScheme) private var schema
     @State private var n = 0
     @State private var pumpt = 0
+    @State private var hier = false
 
     private var global: Bool { !mine && (spot ?? "").isEmpty }
+    private var pulst: Bool { pumpt > 0 || hier }
 
     var body: some View {
         Group {
-            if n > 0 || pumpt > 0 {
-                TimelineView(.animation(minimumInterval: 0.1, paused: pumpt == 0)) { zeit in
+            if n > 0 || pulst {
+                TimelineView(.animation(minimumInterval: 0.1, paused: !pulst)) { zeit in
+                    // Ein voller Atemzug in 2,4 s — derselbe Takt wie im Web und in der Statistikzeile.
                     let t = zeit.date.timeIntervalSinceReferenceDate
                     let takt = (sin(t * 2 * .pi / 2.4) + 1) / 2
                     satz(takt: takt)
@@ -1404,27 +1431,60 @@ private struct HeuteNeu: View {
                 Color.clear.frame(height: 0)
             }
         }
-        .task(id: "\(mine)|\(spot ?? "")|\(accelOnly)|\(sport)|\(board)") {
-            n = (try? await Api.sessionsToday(mine: mine, spot: spot, accelOnly: accelOnly, sport: sport, board: board)) ?? 0
-            pumpt = global ? ((try? await Api.communityStats())?.pumping_now ?? 0) : 0
+        .task(id: "\(mine)|\(spot ?? "")|\(accelOnly)|\(sport)|\(board)") { await laden() }
+    }
+
+    private func laden() async {
+        if let r = try? await Api.sessionsToday(mine: mine, spot: spot, accelOnly: accelOnly, sport: sport, board: board) {
+            n = r.n
+            hier = r.pumping_here ?? false
+        } else {
+            n = 0
+            hier = false
         }
+        pumpt = global ? ((try? await Api.communityStats())?.pumping_now ?? 0) : 0
+    }
+
+    /// Text mit §-markierten Teilen: die markierten fett/cyan, bei `puls` zusaetzlich pulsierend.
+    private func teil(_ txt: String, puls: Bool, takt: Double) -> Text {
+        let ziel: Color = schema == .dark ? .white : .black
+        let anteil: Double = (schema == .dark ? 0.30 : 0.22) * takt
+        let farbe: Color = puls ? Color.accentColor.mischen(mit: ziel, anteil: anteil) : Color.accentColor
+        var out = Text("")
+        for (i, p) in txt.components(separatedBy: "§").enumerated() {
+            out = out + (i % 2 == 1 ? Text(p).bold().foregroundColor(farbe) : Text(p))
+        }
+        return out
+    }
+
+    /// „todayOne" traegt die 1 als Ziffer im Text (kein Platzhalter) — die erste 1 hervorheben.
+    private var heuteText: String {
+        if n == 1 {
+            let roh = Loc.t("sessions.todayOne", lang)
+            guard let r = roh.range(of: "1") else { return roh }
+            return roh.replacingCharacters(in: r, with: "§1§")
+        }
+        return Loc.t("sessions.todayN", lang).replacingOccurrences(of: "{n}", with: "§\(n)§")
     }
 
     private func satz(takt: Double) -> some View {
         var out = Text("")
+        var leer = true
         if n > 0 {
-            out = out + Text(Loc.t(n == 1 ? "sessions.todayOne" : "sessions.todayN", lang)
-                .replacingOccurrences(of: "{n}", with: "\(n)"))
+            out = out + teil(heuteText, puls: false, takt: takt)
+            leer = false
         }
         if pumpt > 0 {
-            if n > 0 { out = out + Text(" · ") }
-            let teile = Loc.t("sessions.pumpingNow", lang).replacingOccurrences(of: "{n}", with: "\(pumpt)")
-                .components(separatedBy: "§")
-            for (i, p) in teile.enumerated() {
-                out = out + (i % 2 == 1 ? Text(p).foregroundColor(Color.accentColor.opacity(0.45 + 0.55 * takt)) : Text(p))
-            }
+            if !leer { out = out + Text(" · ") }
+            let p: String = Loc.t("sessions.pumpingNow", lang).replacingOccurrences(of: "{n}", with: "\(pumpt)")
+            out = out + teil(p, puls: true, takt: takt)
+            leer = false
         }
-        out = out + Text(" — Have fun, keep pumping!")
-        return out.font(.footnote.bold()).foregroundColor(.accentColor)
+        if hier {
+            if !leer { out = out + Text(" · ") }
+            out = out + teil(Loc.t("sessions.pumpingHere", lang), puls: true, takt: takt)
+        }
+        out = out + Text(" — ") + Text("Have fun, keep pumping!").bold().foregroundColor(.accentColor)
+        return out.font(.footnote).foregroundColor(.secondary)
     }
 }

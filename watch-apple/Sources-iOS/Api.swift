@@ -143,16 +143,17 @@ enum Api {
         try await request("/api/devices/live", method: "GET", body: nil, auth: true)
     }
 
-    /// Neue Sessions seit Mitternacht (lokal) — „X new sessions so far today" wie die PWA.
-    struct TodayCount: Decodable { let n: Int }
-    static func sessionsToday(mine: Bool, spot: String?, accelOnly: Bool, sport: String, board: Bool) async throws -> Int {
+    /// Neue Sessions seit Mitternacht (lokal) — „X new sessions today" wie die PWA.
+    /// `pumping_here` (seit 14.10.2026) kommt nur bei einem Spot als ID und nicht „Meine": ja/nein
+    /// nach der Regel der gruenen Spots, entschieden auf dem Server (kleine Spots nie `true`).
+    struct TodayCount: Decodable { let n: Int; var pumping_here: Bool? = nil }
+    static func sessionsToday(mine: Bool, spot: String?, accelOnly: Bool, sport: String, board: Bool) async throws -> TodayCount {
         let mitternacht = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970 * 1000)
         var q = "since_ms=\(mitternacht)&accel_only=\(accelOnly)&mine=\(mine)"
         q += "&sport=" + (sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport)
         if let spot, !spot.isEmpty { q += "&spot=" + (spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot) }
         if board { q += "&board=true" }
-        let r: TodayCount = try await request("/api/community/sessions-today?" + q, method: "GET", body: nil, auth: true)
-        return r.n
+        return try await request("/api/community/sessions-today?" + q, method: "GET", body: nil, auth: true)
     }
 
     static func inProgress() async throws -> [InProgressSession] {
@@ -189,6 +190,13 @@ enum Api {
 
     static func sessionCarves(_ id: Int) async throws -> CarveData {
         try await request("/api/sessions/\(id)/carves", method: "GET", body: nil, auth: true)
+    }
+
+    // Echte Zeit je Track-Punkt (Session-ms). Leeres Array, wenn der Server keine GPS-Daten hat.
+    static func sessionTrackTimes(_ id: Int) async throws -> [Int] {
+        let r: TrackTimes = try await request("/api/sessions/\(id)/track-times", method: "GET",
+                                              body: nil, auth: true)
+        return r.t_ms
     }
 
     // Persönliche Home-Stats: Start-Erfolgsquote + Carve-Anzahl je Zeitfenster.
@@ -932,6 +940,14 @@ enum Api {
     static func spotMap(accelOnly: Bool = false, sport: String = "all") async throws -> [SpotMapItem] {
         let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
         return try await request("/api/community/spot-map?accel_only=\(accelOnly)&sport=\(sp)", method: "GET", body: nil, auth: true)
+    }
+
+    // Gruene Spots „gerade aktiv" (PWA spotActive, 14.10.2026; Regeln: server devices.aktive_spots).
+    // `spots` = darf selbst gruen werden, `area` = kleiner Spot in einer aktiven Kachel: faerbt nur
+    // ein BUENDEL, nie den Spot allein.
+    struct SpotActive: Decodable { var spots: [Int] = []; var area: [Int] = [] }
+    static func spotActive() async throws -> SpotActive {
+        try await request("/api/community/spot-active", method: "GET", body: nil, auth: true)
     }
 
     // Spot-Vergleich (wie SpotCompare.tsx): accelOnly=false wie bei der Spot-Karte, sonst fallen
