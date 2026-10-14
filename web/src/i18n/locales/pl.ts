@@ -324,7 +324,7 @@ const pl: Record<string, string> = {
   "sessions.todayOne": "Dziś do tej pory 1 nowa sesja",
   "sessions.todayN": "Dziś do tej pory nowe sesje: {n}",
   "sessions.pumpingNow": "§{n}§ właśnie pompuje",
-  "sessions.pumpingHere": "§ktoś§ właśnie tu pompuje",
+  "sessions.pumpingHere": "§ktoś§ teraz pompuje",
   "side.all": "wszystkie",
   "side.phoneOnBoard": "telefon na desce",
   "side.recordsHint": "Rekordy z sesji z danymi akcelerometru (dokładne) albo ze wszystkich",

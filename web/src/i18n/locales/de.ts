@@ -272,7 +272,7 @@ const de: Record<string, string> = {
   "sessions.todayOne": "Heute bisher 1 neue Session",
   "sessions.todayN": "Heute bisher {n} neue Sessions",
   "sessions.pumpingNow": "§{n}§ gerade am Pumpen",
-  "sessions.pumpingHere": "§jemand§ ist gerade hier am Pumpen",
+  "sessions.pumpingHere": "§jemand§ gerade am Pumpen",
   "side.all": "alle",
   "side.phoneOnBoard": "Handy am Brett",
   "side.recordsHint": "Rekorde nur aus Sessions mit Beschleunigungsdaten (präzise) oder aus allen",
