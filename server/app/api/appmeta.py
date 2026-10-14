@@ -951,6 +951,17 @@ NAECHSTES: list[dict] = [
     {"name": "Garmin", "version": "1.0.93",
      "items": [
          "Watches with more memory keep a bigger reserve when they record without a phone nearby, so GPS and heart rate keep going for up to two more hours after motion recording stops to save space.",
+         # 14.10.2026 (ea2f1333, 78c623ed): Neu-Verbinden einer schon verbundenen Uhr + altes Token widerrufen.
+         "Moving a watch to another account now works directly with a new code from the watch, and the old account no longer keeps it listed.",
+     ]},
+    # 14.10.2026 (5c36ed35 / 714e63de): Live-Upload im Handy-Recorder, gebumpt auf 1.1.43 / 1.1.49.
+    {"name": "Android phone", "version": "1.1.43",
+     "items": [
+         "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.49",
+     "items": [
+         "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
