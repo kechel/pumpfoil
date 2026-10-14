@@ -255,6 +255,8 @@ struct SessionsView: View {
             // Default-Zeilenabstand der List zwischen sich.
             VStack(alignment: .leading, spacing: 8) {
                 ScrollView(.horizontal, showsIndicators: false) { scopeChips }
+                HeuteNeu(mine: scope == .mine, spot: scope == .spot ? spot : nil,
+                         accelOnly: accelOnly && !brett, sport: sport, board: brett, lang: lang)
                 HStack {
                     // Kurz „accel" und „POB" in allen Sprachen (Jan, 13.10.2026): passt so auch auf
                     // schmalen Displays in eine Zeile.
@@ -1372,5 +1374,57 @@ struct IncomingTransferRow: View {
         let d = f.date(from: iso) ?? { f.formatOptions = [.withInternetDateTime]; return f.date(from: iso) }()
         guard let d else { return "" }
         return d.formatted(date: .abbreviated, time: .shortened)
+    }
+}
+
+
+/// „X new sessions so far today · N currently pumping — Have fun, keep pumping!" wie die PWA
+/// (Sessions.tsx HeuteNeu). „Gerade am Pumpen" gilt fuer ALLE, deshalb nur in „Alle" ohne Spot.
+private struct HeuteNeu: View {
+    let mine: Bool
+    let spot: String?
+    let accelOnly: Bool
+    let sport: String
+    let board: Bool
+    let lang: String
+    @State private var n = 0
+    @State private var pumpt = 0
+
+    private var global: Bool { !mine && (spot ?? "").isEmpty }
+
+    var body: some View {
+        Group {
+            if n > 0 || pumpt > 0 {
+                TimelineView(.animation(minimumInterval: 0.1, paused: pumpt == 0)) { zeit in
+                    let t = zeit.date.timeIntervalSinceReferenceDate
+                    let takt = (sin(t * 2 * .pi / 2.4) + 1) / 2
+                    satz(takt: takt)
+                }
+            } else {
+                Color.clear.frame(height: 0)
+            }
+        }
+        .task(id: "\(mine)|\(spot ?? "")|\(accelOnly)|\(sport)|\(board)") {
+            n = (try? await Api.sessionsToday(mine: mine, spot: spot, accelOnly: accelOnly, sport: sport, board: board)) ?? 0
+            pumpt = global ? ((try? await Api.communityStats())?.pumping_now ?? 0) : 0
+        }
+    }
+
+    private func satz(takt: Double) -> some View {
+        var out = Text("")
+        if n > 0 {
+            out = out + Text(Loc.t(n == 1 ? "sessions.todayOne" : "sessions.todayN", lang)
+                .replacingOccurrences(of: "{n}", with: "\(n)"))
+        }
+        if pumpt > 0 {
+            if n > 0 { out = out + Text(" · ") }
+            let teile = Loc.t("sessions.pumpingNow", lang).replacingOccurrences(of: "{n}", with: "\(pumpt)")
+                .components(separatedBy: "§")
+            for (i, p) in teile.enumerated() {
+                out = out + (i % 2 == 1 ? Text(p).foregroundColor(Color.accentColor.opacity(0.45 + 0.55 * takt)) : Text(p))
+            }
+        }
+        out = out + Text(" — Have fun, keep pumping!")
+        return out.font(.footnote.bold()).foregroundColor(.accentColor)
     }
 }

@@ -98,6 +98,8 @@ struct InProgressSession: Decodable, Identifiable {
     let last_received_at: String?
     /// danach ist eine neuere Session vollstaendig angekommen -> von der Uhr nicht mehr holbar
     let ueberholt: Bool?
+    /// "phone" + status "live" = Handy-Recorder nimmt gerade auf (Live-Upload, seit 14.10.2026)
+    let placement: String?
 }
 
 struct SessionSummary: Codable, Identifiable {
