@@ -953,12 +953,15 @@ NAECHSTES: list[dict] = [
      ]},
     # 14.10.2026: Live-Upload (5c36ed35), Live-Anzeigen + gerade am Pumpen + Aufnahme-Bildschirm
     # (08339c1c). Android-Phone fuer Jans Test auf 1.1.43 gebumpt; iOS nicht (erst beim Release).
+    # Dazu am 14.10. abends: Pulsabfall-Spalten + gruene Spots (Android 0a1e3e64, iOS 03ab0213).
     {"name": "Android phone", "version": "1.1.43",
      "items": [
          "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
          "Home shows when your phone is recording and which of your watches is probably recording right now.",
          "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
          "While recording, the stop button always stays on screen, the title bar is gone to give the map more room, and the map no longer flickers while you hold stop.",
+         "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
+         "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.49",
      "items": [
@@ -966,6 +969,8 @@ NAECHSTES: list[dict] = [
          "Home shows when your phone is recording and which of your watches is probably recording right now.",
          "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
          "The watch start screen tells you when your phone recorder is running, so you can check it after packing the phone away.",
+         "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
+         "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
      ]},
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     {"name": "Wear OS", "version": "1.2.43",
