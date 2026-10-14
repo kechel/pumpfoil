@@ -1812,6 +1812,7 @@ def pair_poll(
         d = db.query(models.DeviceToken).filter_by(token=p.device_token).first()
         if d is not None and d.last_seen_at is None:
             d.last_seen_at = now
+            db.add(models.DeviceContact(device_id=d.id, user_id=d.user_id, kind="pair"))
             # Konto-/Token-Wechsel: das alte Token dieser Uhr ist ab jetzt tot. Erst HIER, nicht beim
             # Einloesen — haette die Uhr das neue nie abgeholt, liefe sie sonst ohne gueltiges Token.
             # Wer old_token schickt, kennt das Geheimnis; fremde Tokens lassen sich so nicht raten.

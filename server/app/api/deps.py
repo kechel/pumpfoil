@@ -126,7 +126,22 @@ def require_social(user: models.User = Depends(current_user)) -> models.User:
     return user
 
 
+def _kontakt_art(path: str) -> str | None:
+    """Kurzname fuer das Kontakt-Protokoll; None = nicht loggen (einzelne Chunks)."""
+    teile = [t for t in path.split("/") if t][1:]          # ohne "api"
+    if not teile:
+        return None
+    if teile[0] == "ingest":
+        if teile[-1] in ("chunk", "chunks"):
+            return None
+        if len(teile) == 2:                                 # POST /ingest/session
+            return "ingest/start"
+        return "ingest/" + teile[-1][:20]                   # complete, analyze, status
+    return "/".join(teile[:2])[:32]
+
+
 def current_device(
+    request: Request,
     x_device_token: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ) -> models.DeviceToken:
@@ -148,5 +163,9 @@ def current_device(
     # Simulators statt die der Uhr.
     if device.hidden_at is not None:
         device.hidden_at = None
+    art = _kontakt_art(request.url.path)
+    if art:
+        db.add(models.DeviceContact(device_id=device.id, user_id=device.user_id, kind=art,
+                                    app_version=device.app_version))
     db.commit()
     return device
