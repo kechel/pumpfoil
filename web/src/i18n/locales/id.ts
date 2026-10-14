@@ -1573,7 +1573,7 @@ const id: Record<string, string> = {
   "account.claimAlready": "Jam ini sudah terhubung.",
   "account.claimOk": "Jam terhubung! ✓",
   "account.claimWaiting": "Kode diterima — menunggu konfirmasi dari jam …",
-  "account.claimSlow": "Jam belum merespons. Jika kode tetap tampil di jam: tutup Pumpfoil di jam lalu buka lagi, dengan ponsel terhubung lewat Bluetooth. Jika jam masih tertaut ke akun lain, hapus dulu di sana pada “Jam saya”, lalu ambil kode baru.",
+  "account.claimSlow": "Jam belum merespons. Jika kode tetap tampil di jam: tutup Pumpfoil di jam lalu buka lagi, dengan ponsel terhubung lewat Bluetooth. Jam Garmin dengan versi 1.0.92 atau lebih lama tidak bisa pindah dari satu akun ke akun lain: perbarui aplikasinya, atau hapus jam dari akun lama.",
   "account.offFoilTitle": "Layar off-foil",
   "account.offFoilDesc": "Ditampilkan otomatis di jam saat kamu tidak foiling (bawaan: jam + run terakhir). Saat foiling, jam beralih kembali ke tampilan terakhir yang kamu pilih.",
 

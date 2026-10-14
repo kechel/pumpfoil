@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -26,6 +27,8 @@ from ..schemas import (
 )
 from ..security import new_pairing_code, new_token
 from .deps import current_device, current_user
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])
 
@@ -1526,12 +1529,14 @@ async def pair_init(
     ein claim_token zum Pollen. Optionaler Body {label, platform}: die Uhr meldet ihre
     Plattform, damit sie beim Claim korrekt gelabelt wird (sonst Default „Garmin")."""
     # Body tolerant lesen — ältere Uhren (Garmin) schicken einen leeren/nicht-JSON-Body.
-    label = platform = None
+    label = platform = old_token = None
     try:
         data = await request.json()
         if isinstance(data, dict):
             label = (str(data["label"])[:120] if data.get("label") else None)
             platform = (str(data["platform"])[:16] if data.get("platform") else None)
+            # Bisheriges Token einer schon verbundenen Uhr (Konto-Wechsel) -> s. pair_poll.
+            old_token = (str(data["old_token"])[:64] if data.get("old_token") else None)
     except Exception:  # noqa: BLE001
         pass
     for _ in range(10):
@@ -1542,7 +1547,7 @@ async def pair_init(
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Could not allocate code")
     expires = datetime.now(timezone.utc) + timedelta(minutes=PAIRING_TTL_MIN)
     p = models.DevicePairing(code=code, claim_token=new_token(), expires_at=expires,
-                             label=label, platform=platform)
+                             label=label, platform=platform, old_token=old_token)
     db.add(p)
     db.commit()
     db.refresh(p)
@@ -1664,6 +1669,15 @@ def pair_poll(
         d = db.query(models.DeviceToken).filter_by(token=p.device_token).first()
         if d is not None and d.last_seen_at is None:
             d.last_seen_at = now
+            # Konto-/Token-Wechsel: das alte Token dieser Uhr ist ab jetzt tot. Erst HIER, nicht beim
+            # Einloesen — haette die Uhr das neue nie abgeholt, liefe sie sonst ohne gueltiges Token.
+            # Wer old_token schickt, kennt das Geheimnis; fremde Tokens lassen sich so nicht raten.
+            if p.old_token and p.old_token != p.device_token:
+                alt = db.query(models.DeviceToken).filter_by(token=p.old_token).first()
+                if alt is not None and alt.revoked_at is None:
+                    alt.revoked_at = now
+                    log.info("pair: altes Token #%s (Nutzer %s) widerrufen, Uhr jetzt #%s (Nutzer %s)",
+                             alt.id, alt.user_id, d.id, d.user_id)
             db.commit()
     return PairPollOut(device_token=p.device_token)
 

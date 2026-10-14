@@ -1684,7 +1684,7 @@ const nl: Record<string, string> = {
   "account.claimAlready": "Dit horloge is al verbonden.",
   "account.claimOk": "Horloge verbonden! ✓",
   "account.claimWaiting": "Code geaccepteerd — wachten tot het horloge bevestigt …",
-  "account.claimSlow": "Het horloge heeft zich nog niet gemeld. Blijft de code op het horloge staan: sluit Pumpfoil op het horloge en start het opnieuw, met de telefoon via Bluetooth verbonden. Is het horloge nog aan een ander account gekoppeld, verwijder het daar dan eerst onder „Mijn horloges” en vraag daarna een nieuwe code.",
+  "account.claimSlow": "Het horloge heeft zich nog niet gemeld. Blijft de code op het horloge staan: sluit Pumpfoil op het horloge en start het opnieuw, met de telefoon via Bluetooth verbonden. Garmin-horloges met versie 1.0.92 of ouder kunnen niet van het ene account naar het andere wisselen: werk de app bij of verwijder het horloge uit het oude account.",
   "account.offFoilTitle": "Off-foil-scherm",
   "account.offFoilDesc": "Wordt op het horloge automatisch getoond zolang je even niet foilt (standaard: kloktijd + laatste run). Tijdens het foilen schakelt het horloge terug naar je laatst gekozen weergave.",
 

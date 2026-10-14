@@ -121,6 +121,10 @@ class DevicePairing(Base):
     # Von der Uhr bei pair-init gemeldet (die Uhr kennt ihre Plattform) -> beim Claim aufs
     # DeviceToken übernommen, damit z. B. eine Amazfit nicht als „Garmin" gelabelt wird.
     label: Mapped[str | None] = mapped_column(String(120))
+    # Token, mit dem die Uhr VORHER verbunden war (pair-init, optional). Holt sie das neue Token
+    # ab, wird das alte widerrufen — sonst bliebe die Uhr im alten Konto als Karteileiche stehen
+    # (Konto-Wechsel ohne „erst dort entfernen", Jan 14.10.2026).
+    old_token: Mapped[str | None] = mapped_column(String(64))
     platform: Mapped[str | None] = mapped_column(String(16))
 
 

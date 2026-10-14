@@ -1569,7 +1569,7 @@ const ptPT: Record<string, string> = {
   "account.claimAlready": "Este relógio já está ligado.",
   "account.claimOk": "Relógio ligado! ✓",
   "account.claimWaiting": "Código aceite — a aguardar a confirmação do relógio …",
-  "account.claimSlow": "O relógio ainda não respondeu. Se o código continuar no relógio: fecha o Pumpfoil no relógio e abre-o de novo, com o telemóvel ligado por Bluetooth. Se o relógio ainda estiver associado a outra conta, remove-o primeiro aí em “Os meus relógios” e depois pede um novo código.",
+  "account.claimSlow": "O relógio ainda não respondeu. Se o código continuar no relógio: fecha o Pumpfoil no relógio e abre-o de novo, com o telemóvel ligado por Bluetooth. Relógios Garmin com a versão 1.0.92 ou anterior não conseguem mudar de uma conta para outra: atualiza a app ou remove o relógio da conta antiga.",
   "account.offFoilTitle": "Ecrã off-foil",
   "account.offFoilDesc": "Apresentado automaticamente no relógio enquanto não andas em foil (predefinição: relógio + última volta). Ao foilar, o relógio volta ao último ecrã que selecionaste.",
   // Watch setup guide (WatchGuide)

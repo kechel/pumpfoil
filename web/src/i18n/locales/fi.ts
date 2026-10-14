@@ -1647,7 +1647,7 @@ const fi: Record<string, string> = {
   "account.claimAlready": "Tämä kello on jo yhdistetty.",
   "account.claimOk": "Kello yhdistetty! ✓",
   "account.claimWaiting": "Koodi hyväksytty — odotetaan kellon vahvistusta …",
-  "account.claimSlow": "Kello ei ole vielä ilmoittautunut. Jos koodi jää kellon näytölle: sulje Pumpfoil kellosta ja käynnistä se uudelleen puhelimen ollessa yhdistettynä Bluetoothilla. Jos kello on yhä liitetty toiseen tiliin, poista se ensin siellä kohdasta ”Omat kellot” ja hae sitten uusi koodi.",
+  "account.claimSlow": "Kello ei ole vielä ilmoittautunut. Jos koodi jää kellon näytölle: sulje Pumpfoil kellosta ja käynnistä se uudelleen puhelimen ollessa yhdistettynä Bluetoothilla. Garmin-kellot, joissa on versio 1.0.92 tai vanhempi, eivät voi vaihtaa tililtä toiselle: päivitä sovellus tai poista kello vanhalta tililtä.",
   "account.offFoilTitle": "Off-Foil-näyttö",
   "account.offFoilDesc": "Näytetään kellossa automaattisesti, kun et juuri foilaa (oletus: kellonaika + viimeisin lenkki). Foilatessa kello vaihtaa takaisin viimeksi valitsemaasi näkymään.",
 

@@ -444,6 +444,7 @@ def _migrate_add_columns() -> None:
             "carve_l": "INTEGER",
         },
     }
+    want.setdefault("device_pairings", {})["old_token"] = "VARCHAR(64)"
     insp = inspect(engine)
     with engine.begin() as conn:
         for table, cols in want.items():
