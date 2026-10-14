@@ -807,6 +807,18 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = [
     # Garmin 1.0.93 (eingereicht + freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.48 (eingereicht 13.10., freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
+    # EINGEREICHT 15.10.2026 00:17 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.49 (55),
+    # Kennung 1804c36e-6a63-4118-9b6a-e0bc0448778c).
+    {"name": "iPhone + Apple Watch", "version": "1.1.49",
+     "eingereicht": "2026-10-15",
+     "items": [
+         "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
+         "Home shows when your phone is recording and which of your watches is probably recording right now.",
+         "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
+         "The watch start screen tells you when your phone recorder is running, so you can check it after packing the phone away.",
+         "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
+         "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
+     ]},
     # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
     # EINGEREICHT 13.10.2026 abends (Jans Meldung, Play Console: Produktion 56 (1.1.42), Produktion (Wear OS)
@@ -954,15 +966,7 @@ NAECHSTES: list[dict] = [
          "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
          "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
      ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.49",
-     "items": [
-         "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
-         "Home shows when your phone is recording and which of your watches is probably recording right now.",
-         "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
-         "The watch start screen tells you when your phone recorder is running, so you can check it after packing the phone away.",
-         "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
-         "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
-     ]},
+    # iPhone + Apple Watch 1.1.49 am 15.10. eingereicht -> IN_REVIEW.
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     {"name": "Wear OS", "version": "1.2.43",
      "items": [
