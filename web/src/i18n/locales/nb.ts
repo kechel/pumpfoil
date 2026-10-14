@@ -912,6 +912,7 @@ const nb: Record<string, string> = {
   "sd.colHrStart": "Puls start",
   "sd.colHrAvg": "Snittpuls",
   "sd.colHrEnd": "Puls slutt",
+  "sd.colHrDrop": "Pulsfall {s} s",
   "hr.progressTitle": "Treningskurve: puls under pumping",
   "hr.progressHint": "Hvor høyt pulsen din går etter 30 sekunder, 1, 2 og 5 minutters pumping.",
   "hr.afterMinutes": "etter {min} minutt(er)",

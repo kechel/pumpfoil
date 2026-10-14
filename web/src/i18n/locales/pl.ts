@@ -950,6 +950,7 @@ const pl: Record<string, string> = {
   "sd.colHrStart": "Tętno start",
   "sd.colHrAvg": "Śr. tętno",
   "sd.colHrEnd": "Tętno koniec",
+  "sd.colHrDrop": "Spadek tętna {s} s",
   "hr.progressTitle": "Krzywa treningowa: tętno podczas pompowania",
   "hr.progressHint": "Jak wysoko wchodzi Twoje tętno po 30 sekundach, 1, 2 i 5 minutach pompowania.",
   "hr.afterMinutes": "po {min} min",

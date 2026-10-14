@@ -905,6 +905,7 @@ const ptPT: Record<string, string> = {
   "sd.colHrStart": "Pulso início",
   "sd.colHrAvg": "Pulso médio",
   "sd.colHrEnd": "Pulso final",
+  "sd.colHrDrop": "Queda pulso {s} s",
   "hr.progressTitle": "Curva de treino: pulso a bombear",
   "hr.progressHint": "Até onde sobe o teu pulso depois de 30 segundos, 1, 2 e 5 minutos a bombear.",
   "hr.afterMinutes": "após {min} minuto(s)",

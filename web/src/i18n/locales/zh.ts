@@ -898,6 +898,7 @@ const zh: Record<string, string> = {
   "sd.colHrStart": "起始心率",
   "sd.colHrAvg": "平均心率",
   "sd.colHrEnd": "结束心率",
+  "sd.colHrDrop": "心率下降 {s}秒",
   "hr.progressTitle": "训练曲线：泵动时的心率",
   "hr.progressHint": "泵动 30 秒、1、2、5 分钟后心率上升到多少。",
   "hr.afterMinutes": "{min} 分钟后",

@@ -898,6 +898,7 @@ const ja: Record<string, string> = {
   "sd.colHrStart": "開始心拍",
   "sd.colHrAvg": "平均心拍",
   "sd.colHrEnd": "終了心拍",
+  "sd.colHrDrop": "心拍低下 {s}秒",
   "hr.progressTitle": "トレーニング曲線：ポンピング中の心拍",
   "hr.progressHint": "30秒・1分・2分・5分ポンピングしたときの心拍の上がり方。",
   "hr.afterMinutes": "{min}分後",

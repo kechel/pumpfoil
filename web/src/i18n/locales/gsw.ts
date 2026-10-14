@@ -720,6 +720,7 @@ const gsw: Record<string, string> = {
   "sd.colHrStart": "Puls Start",
   "sd.colHrAvg": "Ø Puls",
   "sd.colHrEnd": "Puls Änd",
+  "sd.colHrDrop": "Puls abe {s} s",
   "hr.progressTitle": "Trainingskurve: Puls bim Pumpe",
   "hr.progressHint": "Wie hoch din Puls nach 30 Sekunde, 1, 2 und 5 Minute Pumpe staigt.",
   "hr.afterMinutes": "nach {min} Minute",
