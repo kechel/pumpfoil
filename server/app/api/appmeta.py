@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13, Apple-Mail eligible for distribution, 1.1.47 for iOS
+        "latest": "1.1.48",   # FREIGEGEBEN 2026-10-14, Apple-Mail eligible for distribution, 1.1.48 for iOS
+        # (Jans Meldung, Submission 3ab8a758-10f8-4e9b-8788-425b17ec30d3, eingereicht 13.10. 20:54, Build 54).
+        # Inhalt: native Changelog-Seite, Lage je Lauf mit Phasen, Gleitphasen auf den Karten, POB-Taste, Chat-Antworten.
+        # ALT: "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13, Apple-Mail eligible for distribution, 1.1.47 for iOS
         # (Jans Meldung, Submission ea0118e4-9f5b-417b-97dd-9037056d629e, eingereicht 12.10. 17:41, Build 53).
         # Inhalt: Aufnahme-Startseite scrollt (START auf kleinen iPhones erreichbar).
         # ALT: "latest": "1.1.46",   # FREIGEGEBEN 2026-10-12, Apple-Mail eligible for distribution, 1.1.46 for iOS
@@ -410,7 +413,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.48",   # FREIGEGEBEN 2026-10-14 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.46",   # FREIGEGEBEN 2026-10-12 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.45",   # FREIGEGEBEN 2026-10-09 abends — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.44",   # FREIGEGEBEN 2026-10-09 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -802,20 +806,7 @@ ABGELEHNT: list[dict] = [
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
     # Garmin 1.0.93 (eingereicht + freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
-    # 12.10.2026: native Changelog-Seite fuer iOS (1.1.47 war schon eingereicht).
-    # 13.10.2026 (Jan: „das gleiche fuer iOS genauso"): Portierung wie Android 1.1.42; gebumpt auf 1.1.48 (54).
-    # EINGEREICHT 13.10.2026 20:54 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.48 (54),
-    # Kennung 3ab8a758-10f8-4e9b-8788-425b17ec30d3).
-    {"name": "iPhone + Apple Watch", "version": "1.1.48",
-     "eingereicht": "2026-10-13",
-     "items": [
-         "The changelog is now in the app too, under Profile, always with the latest news — including versions you don't have yet.",
-         "Comparing sessions shows the board attitude of every run recorded with the phone on the board, also for other riders' sessions, and attitude tables open instantly.",
-         "Board attitude per run shows each phase (stable phase, turns, straight, whole run), switchable between corrected and uncorrected, and the comparison table sorts by tapping a column header.",
-         "Glides can be shown on the session map and on the comparison map, and the comparison map shows pump markers too.",
-         "The session list has a POB button that shows only sessions recorded with the phone on the board.",
-         "In the chat you can reply to a message: hold it and choose Reply; tapping the quote jumps to the original.",
-     ]},
+    # iPhone + Apple Watch 1.1.48 (eingereicht 13.10., freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
     # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
     # EINGEREICHT 13.10.2026 abends (Jans Meldung, Play Console: Produktion 56 (1.1.42), Produktion (Wear OS)
