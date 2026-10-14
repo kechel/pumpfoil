@@ -303,6 +303,7 @@ const ru: Record<string, string> = {
   "sessions.todayOne": "Сегодня пока 1 новая сессия",
   "sessions.todayN": "Сегодня пока новых сессий: {n}",
   "sessions.pumpingNow": "§{n}§ катаются прямо сейчас",
+  "sessions.pumpingHere": "§кто-то§ сейчас пампит здесь",
   "side.all": "все",
   "side.phoneOnBoard": "телефон на доске",
   "side.recordsHint": "Рекорды из сессий с данными акселерометра (точные) или из всех",
