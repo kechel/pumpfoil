@@ -20,6 +20,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -85,6 +91,20 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     var suche by remember { mutableStateOf("") }
     // Filter „nur mit Beschreibung" — rein clientseitig, `spot-map` liefert die Zahl je Spot mit.
     var nurNotes by remember { mutableStateOf(false) }
+    // Gruene Spots „gerade aktiv" (Jan, 14.10.2026, wie Spots.tsx). `einzeln` = Spot darf selbst
+    // gruen werden (>= 4 Fahrer in 180 Tagen), `gegend` = kleiner Spot in einer aktiven Kachel:
+    // faerbt nur ein BUENDEL, nie den Spot selbst — Regeln in server `devices.aktive_spots`.
+    var aktivEinzeln by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    var aktivGegend by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    var nurAktiv by remember { mutableStateOf(false) }
+    // Alle 120 s nachfragen, solange die Seite offen ist (wie die PWA). Ein Fehler laesst den
+    // letzten Stand stehen — die Karte darf daran nie scheitern.
+    LaunchedEffect(Unit) {
+        while (true) {
+            try { Api.spotActive().let { (e, g) -> aktivEinzeln = e; aktivGegend = g } } catch (_: Exception) {}
+            kotlinx.coroutines.delay(120_000)
+        }
+    }
 
     // Spot, auf dem die Karte startet — Name, in `items` nachgeschlagen.
     //
@@ -153,7 +173,14 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
 
     // Der Filter wirkt auf die KARTE genauso wie auf die Treffer — wie in der PWA, wo `spots`
     // die gefilterte Menge ist und die Marker daraus entstehen.
-    val sichtbar = remember(items, nurNotes) { if (nurNotes) items.filter { it.notes > 0 } else items }
+    // „Gerade aktiv" zeigt die einzeln gruenen Spots UND die kleinen aus aktiven Kacheln — sonst
+    // waere ein gruenes Buendel nach dem Filtern verschwunden. Die kleinen bleiben dabei cyan.
+    val sichtbar = remember(items, nurNotes, nurAktiv, aktivEinzeln, aktivGegend) {
+        items.filter { s ->
+            (!nurNotes || s.notes > 0) &&
+                (!nurAktiv || (s.spotId != null && (s.spotId in aktivEinzeln || s.spotId in aktivGegend)))
+        }
+    }
     val mitNotes = remember(items) { items.count { it.notes > 0 } }
 
     // Treffer zum Suchtext. Ohne Eingabe leer — dann steht unter der Karte nur der Spot-Vergleich.
@@ -179,6 +206,17 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 SportDropdown(sports, sport, Modifier.align(Alignment.CenterVertically)) { sport = it }
+                // Auch hier: sichtbar, solange etwas aktiv ist oder der Haken sitzt (Weg zurueck).
+                if (aktivEinzeln.isNotEmpty() || aktivGegend.isNotEmpty() || nurAktiv) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.align(Alignment.CenterVertically).clickable { nurAktiv = !nurAktiv },
+                    ) {
+                        Checkbox(checked = nurAktiv, onCheckedChange = { nurAktiv = it },
+                            colors = CheckboxDefaults.colors(checkedColor = AKTIV_GRUEN))
+                        Text(I18n.t("spots.onlyActive"), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
                 // Auch bei 0 zeigen, solange der Haken sitzt: sonst bleibt nach einem Sportart-Wechsel
                 // eine leere Karte ohne Weg zurueck (Jan, 28.09.2026).
                 if (mitNotes > 0 || nurNotes) {
@@ -238,7 +276,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
             //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
             SpotsMap(
-                karte, sichtbar, oeffneSpot, startSpot,
+                karte, sichtbar, oeffneSpot, startSpot, aktivEinzeln, aktivGegend,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
@@ -247,6 +285,16 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             } else {
                 LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                    // Legende der gruenen Spots direkt unter der Karte (wie die PWA): ohne sie bleibt
+                    // offen, warum ein Spot gruen ist — und warum ein kleiner nie allein gruen wird.
+                    item {
+                        Row(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
+                            Box(Modifier.padding(top = 4.dp).size(12.dp).clip(CircleShape).background(AKTIV_GRUEN))
+                            Spacer(Modifier.width(8.dp))
+                            Text(I18n.t("spots.activeLegend"), style = MaterialTheme.typography.bodySmall,
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                     if (items.isNotEmpty()) {
                         // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
                         item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
@@ -295,13 +343,19 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     }
 }
 
+// Gruen fuer „gerade aktiv" — wie die PWA (#4ade80, Tailwind green-400), hebt sich vom Marken-Cyan ab.
+private val AKTIV_GRUEN = androidx.compose.ui.graphics.Color(0xFF4ADE80)
+private const val CYAN_ARGB = 0xFF22D3EE.toInt()
+private const val GRUEN_ARGB = 0xFF4ADE80.toInt()
+
 // Kleiner Marken-Cyan-Punkt (#22d3ee, Navy-Rand) als Marker-Icon — wie die circleMarker der PWA.
-private fun cyanDot(ctx: android.content.Context): android.graphics.drawable.Drawable {
+// `farbe`: gruen, wenn der Spot gerade aktiv ist.
+private fun cyanDot(ctx: android.content.Context, farbe: Int = CYAN_ARGB): android.graphics.drawable.Drawable {
     val size = (ctx.resources.displayMetrics.density * 14).toInt().coerceAtLeast(20)
     val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
     val c = android.graphics.Canvas(bmp)
     val cx = size / 2f; val r = size / 2f - ctx.resources.displayMetrics.density * 1.5f
-    val fill = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF22D3EE.toInt() }
+    val fill = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = farbe }
     val stroke = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF0F172A.toInt(); style = android.graphics.Paint.Style.STROKE; strokeWidth = ctx.resources.displayMetrics.density * 1.5f
     }
@@ -311,13 +365,13 @@ private fun cyanDot(ctx: android.content.Context): android.graphics.drawable.Dra
 
 // Buendel-Pin: Anzahl der SPOTS im Kreis. Groesser als der Einzelpunkt und mit Zahl darin —
 // dadurch sofort als "hier liegen mehrere" erkennbar (wie das divIcon der PWA).
-private fun cyanBundle(ctx: android.content.Context, anzahl: Int): android.graphics.drawable.Drawable {
+private fun cyanBundle(ctx: android.content.Context, anzahl: Int, farbe: Int = CYAN_ARGB): android.graphics.drawable.Drawable {
     val d = ctx.resources.displayMetrics.density
     val size = (d * 26).toInt().coerceAtLeast(34)
     val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
     val c = android.graphics.Canvas(bmp)
     val cx = size / 2f; val r = size / 2f - d * 1.5f
-    val fill = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF22D3EE.toInt() }
+    val fill = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = farbe }
     val stroke = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF0F172A.toInt(); style = android.graphics.Paint.Style.STROKE; strokeWidth = d * 2f
     }
@@ -377,18 +431,22 @@ private fun SpotsMap(
     items: List<SpotMapItem>,
     onOpenSpot: (String) -> Unit,
     startSpot: String = "",
+    aktivEinzeln: Set<Int> = emptySet(),
+    aktivGegend: Set<Int> = emptySet(),
     modifier: Modifier = Modifier,
 ) {
     // Damit der Zoom-Listener (einmalig gesetzt) immer die aktuellen Daten sieht.
     val daten = rememberUpdatedState(items)
     val oeffne = rememberUpdatedState(onOpenSpot)
+    val einzeln = rememberUpdatedState(aktivEinzeln)
+    val gegend = rememberUpdatedState(aktivGegend)
     // Der Listener haengt an der KARTE, nicht am Listeneintrag — deshalb nur einmal setzen.
     // Beim Zoomen muessen die Pins neu, weil sich die Buendelung mit dem Zoom aendert.
     LaunchedEffect(karte) {
         karte.addMapListener(DelayedMapListener(object : MapListener {
             override fun onScroll(e: ScrollEvent?): Boolean = false
             override fun onZoom(e: ZoomEvent?): Boolean {
-                zeichnePins(karte, daten.value, oeffne.value); return true
+                zeichnePins(karte, daten.value, oeffne.value, einzeln.value, gegend.value); return true
             }
         }, 150))
     }
@@ -406,8 +464,9 @@ private fun SpotsMap(
     //
     // Ein LaunchedEffect auf `items` laeuft genau einmal je Datenstand — dieselbe Ersparnis wie
     // der Merker (Pins bauen heisst eine Bitmap je Buendel), aber am richtigen Auslöser.
-    LaunchedEffect(karte, items) {
-        zeichnePins(karte, items, oeffne.value)
+    // Die gruenen Spots gehoeren mit in den Schluessel: sie kommen alle 120 s neu.
+    LaunchedEffect(karte, items, aktivEinzeln, aktivGegend) {
+        zeichnePins(karte, items, oeffne.value, aktivEinzeln, aktivGegend)
         // Einpassen NUR ohne gemerkten Ausschnitt — sonst reisst ein spaeteres Neuladen der
         // Spots dem Nutzer die Ansicht weg (s. SpotsKarte).
         if (SpotsKarte.vorhanden) return@LaunchedEffect
@@ -456,11 +515,16 @@ private const val HEIM_ZOOM = 9.0
 
 // Overlays neu setzen: ein Pin je Buendel. Einzelner Spot -> zu seinen Sessions; mehrere ->
 // hineinzoomen, damit der Nutzer selbst waehlt.
-private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (String) -> Unit) {
+// Gruen (wie die PWA): ein EINZELNER Spot nur, wenn seine id in `einzeln` steht; ein Buendel, wenn
+// irgendein Mitglied in `einzeln` ODER `gegend` steht. Kleine Spots (`gegend`) werden so nie allein
+// gruen — sonst liesse sich ablesen, wer dort gerade faehrt.
+private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (String) -> Unit,
+                        einzeln: Set<Int> = emptySet(), gegend: Set<Int> = emptySet()) {
     map.overlays.clear()
     val d = map.context.resources.displayMetrics.density
     val gruppen = buendelSpots(items, map.zoomLevelDouble, (d * 24).toDouble())
     val punkt = cyanDot(map.context)
+    val punktGruen by lazy { cyanDot(map.context, GRUEN_ARGB) }
     for (g in gruppen) {
         val mitte = BoundingBox.fromGeoPoints(g.map { GeoPoint(it.lat, it.lon) })
         map.overlays.add(Marker(map).apply {
@@ -469,13 +533,14 @@ private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (Str
                 val s = g[0]
                 position = GeoPoint(s.lat, s.lon)
                 title = "${s.spot} (${s.sessions})"
-                icon = punkt
+                icon = if (s.spotId != null && s.spotId in einzeln) punktGruen else punkt
                 setOnMarkerClickListener { _, _ -> onOpenSpot(s.spot); true }
             } else {
                 position = GeoPoint(mitte.centerLatitude, mitte.centerLongitude)
                 title = g.take(6).joinToString("\n") { "${it.spot} (${it.sessions})" } +
                     if (g.size > 6) "\n… +${g.size - 6}" else ""
-                icon = cyanBundle(map.context, g.size)
+                val gruen = g.any { it.spotId != null && (it.spotId in einzeln || it.spotId in gegend) }
+                icon = cyanBundle(map.context, g.size, if (gruen) GRUEN_ARGB else CYAN_ARGB)
                 setOnMarkerClickListener { _, _ ->
                     map.zoomToBoundingBox(mitte.increaseByScale(1.6f), true, 48)
                     true

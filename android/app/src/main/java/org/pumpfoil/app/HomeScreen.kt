@@ -779,20 +779,17 @@ private fun fmtMin(min: Double): String {
 // Hell gegen dunkel wie im Web: auf dunklem Grund wird die Zahl HELLER, auf hellem SATTER.
 // Aufhellen auf Weiss zoege sie Richtung Hintergrund, und der Hoehepunkt des Pulses waere
 // genau der Moment, in dem sie am schlechtesten zu lesen ist.
+/**
+ * Die pulsierende Marken-Farbe (Helligkeit, s. oben) — gemeinsam fuer die Statistikzeile hier und
+ * die Kopfzeile der Sessions-Liste („gerade am Pumpen", 14.10.2026), damit beide gleich atmen.
+ * Den Takt nur laufen lassen, wenn ueberhaupt etwas pulst — eine Endlos-Animation kostet sonst
+ * jeden Frame Arbeit fuer nichts.
+ */
 @Composable
-internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
+internal fun pumpPulsFarbe(laeuft: Boolean): Color {
     val primary = MaterialTheme.colorScheme.primary
     val dunkel = isSystemInDarkTheme()
-    val pulsend = buildList {
-        if (Meilenstein.imFenster(s.pumps.toLong(), Meilenstein.PUMPS)) add("%,d".format(s.pumps))
-        if (Meilenstein.imFenster(s.foilers.toLong(), Meilenstein.LEUTE)) add(s.foilers.toString())
-        if (Meilenstein.imFenster(s.spots.toLong(), Meilenstein.LEUTE)) add(s.spots.toString())
-        // „N gerade am Pumpen" pulsiert immer, solange die Zahl da ist (Jan, 14.10.2026, wie die PWA)
-        if (s.pumpingNow > 0) add(s.pumpingNow.toString())
-    }
-    // Den Takt nur laufen lassen, wenn ueberhaupt etwas pulst — eine Endlos-Animation kostet
-    // sonst jeden Frame Arbeit fuer nichts.
-    val takt = if (pulsend.isEmpty()) 0f else {
+    val takt = if (!laeuft) 0f else {
         val t = rememberInfiniteTransition(label = "meilenstein")
         t.animateFloat(
             initialValue = 0f, targetValue = 1f,
@@ -801,8 +798,21 @@ internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
                 repeatMode = RepeatMode.Reverse),
             label = "puls").value
     }
-    val pulsFarbe = if (dunkel) lerp(primary, Color.White, 0.30f * takt)
-                    else lerp(primary, Color.Black, 0.22f * takt)
+    return if (dunkel) lerp(primary, Color.White, 0.30f * takt)
+           else lerp(primary, Color.Black, 0.22f * takt)
+}
+
+@Composable
+internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
+    val primary = MaterialTheme.colorScheme.primary
+    val pulsend = buildList {
+        if (Meilenstein.imFenster(s.pumps.toLong(), Meilenstein.PUMPS)) add("%,d".format(s.pumps))
+        if (Meilenstein.imFenster(s.foilers.toLong(), Meilenstein.LEUTE)) add(s.foilers.toString())
+        if (Meilenstein.imFenster(s.spots.toLong(), Meilenstein.LEUTE)) add(s.spots.toString())
+        // „N gerade am Pumpen" pulsiert immer, solange die Zahl da ist (Jan, 14.10.2026, wie die PWA)
+        if (s.pumpingNow > 0) add(s.pumpingNow.toString())
+    }
+    val pulsFarbe = pumpPulsFarbe(pulsend.isNotEmpty())
 
     val grund = I18n.t("banner.stats")
         .replace("{foilers}", s.foilers.toString())
