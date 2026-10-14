@@ -279,6 +279,7 @@ const es: Record<string, string> = {
   "side.onlyAccel": "solo accel.",
   "sessions.todayOne": "Hoy, de momento, 1 sesión nueva",
   "sessions.todayN": "Hoy, de momento, {n} sesiones nuevas",
+  "sessions.pumpingNow": "§{n}§ bombeando ahora mismo",
   "side.all": "todos",
   "side.phoneOnBoard": "teléfono en la tabla",
   "side.recordsHint": "Récords de sesiones con datos de aceleración (precisos) o de todas",

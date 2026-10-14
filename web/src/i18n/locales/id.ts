@@ -299,6 +299,7 @@ const id: Record<string, string> = {
   "side.onlyAccel": "hanya accel",
   "sessions.todayOne": "Hari ini sejauh ini 1 sesi baru",
   "sessions.todayN": "Hari ini sejauh ini {n} sesi baru",
+  "sessions.pumpingNow": "§{n}§ sedang pumping",
   "side.all": "semua",
   "side.phoneOnBoard": "ponsel di papan",
   "side.recordsHint": "Rekor dari sesi dengan data akselerasi (presisi) atau dari semua",

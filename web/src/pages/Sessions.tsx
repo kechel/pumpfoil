@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
 import { foilLabel } from "../lib/foilLabel";
@@ -483,15 +483,32 @@ export function ProcessingNote() {
 function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boolean; spot: string | null; accelOnly: boolean; sport: string; board?: boolean }) {
   const t = useT();
   const [n, setN] = useState<number | null>(null);
+  // „N gerade am Pumpen" (Jan, 14.10.2026), derselbe Zaehler wie in der Statistikzeile. Er gilt fuer
+  // ALLE — deshalb nur in der Ansicht „Alle" ohne Spot-Filter, sonst passte er nicht zur Liste.
+  const [pumpt, setPumpt] = useState(0);
   useEffect(() => {
     let aus = false;
     api.sessionsToday({ mine, spot: spot || undefined, accelOnly, sport, board })
       .then((r) => { if (!aus) setN(r.n); }).catch(() => { if (!aus) setN(null); });
     return () => { aus = true; };
   }, [mine, spot, accelOnly, sport, board]);
-  if (!n) return null;
+  const global = !mine && !spot;
+  useEffect(() => {
+    if (!global) { setPumpt(0); return; }
+    let aus = false;
+    api.communityStats(true).then((s) => { if (!aus) setPumpt(s.pumping_now ?? 0); }).catch(() => {});
+    return () => { aus = true; };
+  }, [global]);
+  if (!n && !pumpt) return null;
+  const teile: ReactNode[] = [];
+  if (n) teile.push(<span key="h">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })}</span>);
+  if (pumpt) {
+    const p = t("sessions.pumpingNow", { n: pumpt }).split("§");
+    teile.push(<span key="p">{teile.length ? " · " : ""}{p.map((x, i) => i % 2 === 1
+      ? <span key={i} className="pf-million">{x}</span> : <span key={i}>{x}</span>)}</span>);
+  }
   // Fett und cyan (Jan): im Light-Mode das dunklere Cyan, wie die Links.
-  return <span className="text-sm font-bold text-brand-600 dark:text-brand-300">{t(n === 1 ? "sessions.todayOne" : "sessions.todayN", { n })} — Have fun, keep pumping!</span>;
+  return <span className="text-sm font-bold text-brand-600 dark:text-brand-300">{teile} — Have fun, keep pumping!</span>;
 }
 
 function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
