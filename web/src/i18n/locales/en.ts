@@ -1639,6 +1639,7 @@ const en: Record<string, string> = {
   "dm.empty": "No direct messages yet. Search a name above to message someone.",
   "banner.news": "New updates for the Android and iOS app in the store — update now!",
   "banner.stats": "We're already §{foilers}§ pumpfoilers at §{spots}§ spots with §{sessions}§ sessions and §{pumps}§ pumps in total.",
+  "banner.pumpingNow": " – §{n}§ currently pumping.",
   "banner.dismiss": "Dismiss",
   "phome.latest": "Latest sessions",
   "phome.byFoil": "Per foil",

@@ -1523,7 +1523,7 @@ def community_stats(
     now = time.monotonic()
     with _stats_lock:
         if _stats_cache and now - _stats_cache[0] < _STATS_TTL:
-            return _stats_cache[1]
+            return {**_stats_cache[1], "pumping_now": _pumpt_gerade(db)}
     # Foiler = ALLE registrierten Nutzer (inkl. Testaccounts) — die Zahl wirkt sonst zu klein.
     # Spots/Sessions bleiben community-sichtbar (accel_only=False, versteckte Konten raus).
     foilers = db.query(func.count(U.id)).scalar()
@@ -1544,7 +1544,17 @@ def community_stats(
             "sessions": int(row[0] or 0), "pumps": int(row[1] or 0)}
     with _stats_lock:
         _stats_cache = (now, data)
-    return data
+    return {**data, "pumping_now": _pumpt_gerade(db)}
+
+
+def _pumpt_gerade(db: Session) -> int:
+    """„N gerade am Pumpen" (devices.gerade_aktiv) — NICHT im 5-min-Cache, sonst hinkt die Zahl
+    hinterher; die Abfrage beruehrt nur die Geraete der letzten Stunde. Fehler -> 0 (Zusatz entfaellt)."""
+    try:
+        from .devices import gerade_aktiv
+        return gerade_aktiv(db)
+    except Exception:   # die Statistikzeile darf daran nie scheitern
+        return 0
 
 
 @router.get("/foil-stats")

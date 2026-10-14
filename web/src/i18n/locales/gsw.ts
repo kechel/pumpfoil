@@ -1139,6 +1139,7 @@ const gsw: Record<string, string> = {
   "dm.empty": "No kei Direktnachrichte. Suech obe nach eme Name zum öpperem schriibe.",
   "banner.news": "Nöii Updates für d Android- und iOS-App im Store — jetz aktualisiere!",
   "banner.stats": "Mir sind scho §{foilers}§ Pumpfoiler a §{spots}§ Spots mit §{sessions}§ Sessions und zäme §{pumps}§ Pumps.",
+  "banner.pumpingNow": " – §{n}§ grad am Pumpe.",
   "banner.dismiss": "Uusblände",
   "phome.latest": "Letschti Sessions",
   "phome.byFoil": "Pro Foil",

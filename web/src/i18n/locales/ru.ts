@@ -1479,6 +1479,7 @@ const ru: Record<string, string> = {
   "dm.empty": "Пока нет личных сообщений. Найдите имя выше, чтобы написать кому-нибудь.",
   "banner.news": "Новые обновления приложений Android и iOS в магазине — обновитесь сейчас!",
   "banner.stats": "Нас уже §{foilers}§ pump-фойлеров на §{spots}§ спотах с §{sessions}§ сессиями и §{pumps}§ помпинг-движениями в сумме.",
+  "banner.pumpingNow": " – §{n}§ катаются прямо сейчас.",
   "banner.dismiss": "Закрыть",
   "phome.latest": "Последние сессии",
   "phome.byFoil": "По фойлу",

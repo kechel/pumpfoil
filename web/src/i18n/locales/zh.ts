@@ -1479,6 +1479,7 @@ const zh: Record<string, string> = {
   "dm.empty": "还没有私信。在上方搜索一个名字来给某人发消息。",
   "banner.news": "商店里的 Android 和 iOS 应用有新更新 —— 立即更新！",
   "banner.stats": "我们已经有 §{foilers}§ 名泵翼玩家，遍布 §{spots}§ 个地点，共 §{sessions}§ 条记录和 §{pumps}§ 次泵动。",
+  "banner.pumpingNow": "——此刻有 §{n}§ 人正在泵。",
   "banner.dismiss": "关闭",
   "phome.latest": "最新记录",
   "phome.byFoil": "按水翼",

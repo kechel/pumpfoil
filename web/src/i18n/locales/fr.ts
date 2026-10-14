@@ -1225,6 +1225,7 @@ const fr: Record<string, string> = {
   "dm.empty": "Pas encore de messages directs. Cherche un nom ci-dessus pour écrire à quelqu'un.",
   "banner.news": "Nouvelles mises à jour de l'app Android et iOS dans le store — mets à jour maintenant !",
   "banner.stats": "Nous sommes déjà §{foilers}§ pumpfoilers sur §{spots}§ spots avec §{sessions}§ sessions et §{pumps}§ pumps au total.",
+  "banner.pumpingNow": " – §{n}§ en train de pumper.",
   "banner.dismiss": "Masquer",
   "phome.latest": "Dernières sessions",
   "phome.byFoil": "Par foil",

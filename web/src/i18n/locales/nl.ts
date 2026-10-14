@@ -1590,6 +1590,7 @@ const nl: Record<string, string> = {
   "banner.msg": "is spliksplinternieuw (sinds 23 juni 2026) — bijna dagelijks nieuwe features & foils. Laat me weten wat je bevalt (en wat niet): klik gewoon rechts op de ✉️ →",
   "banner.news": "Nieuwe updates voor de Android- en iOS-app in de store — nu bijwerken!",
   "banner.stats": "We zijn al §{foilers}§ pumpfoilers op §{spots}§ spots met §{sessions}§ sessies en samen §{pumps}§ pumps.",
+  "banner.pumpingNow": " – §{n}§ nu aan het pumpen.",
   "banner.dismiss": "Verbergen",
   "phome.latest": "Laatste sessies",
   "phome.byFoil": "Per foil",

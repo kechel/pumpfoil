@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
+import { api, CommunityStatsData } from "../lib/api";
 import { useNumberFormat, useT } from "../i18n";
-import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, imMeilensteinFenster } from "../lib/pumpPulse";
+import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, imMeilensteinFenster, mitPumptGerade } from "../lib/pumpPulse";
 
 // Schlanke Stats-Leiste (nur die Zahlen aus dem Willkommens-Banner), dauerhaft oben im
 // Community-Bereich. Nutzt denselben Satz/Endpoint; Zahlen (§-markiert) fett/cyan.
 export function CommunityStats({ className = "" }: { className?: string }) {
   const t = useT();
   const nf = useNumberFormat();
-  const [stats, setStats] = useState<{ foilers: number; spots: number; sessions: number; pumps: number } | null>(null);
+  const [stats, setStats] = useState<CommunityStatsData | null>(null);
   // Zuerst der (gecachte) Stand, damit die Zeile sofort dasteht; direkt danach die Wahrheit.
   // Anders als bei den Rekorden IMMER beide: die Antwort ist 58 Bytes gross, der zweite Aufruf
   // kostet also nichts — und die Zahlen wachsen mit jeder hochgeladenen Session, der gecachte
@@ -33,14 +33,15 @@ export function CommunityStats({ className = "" }: { className?: string }) {
 
   // Alle vier Zahlen durch den sprachabhaengigen Formatierer (auch sessions/foilers wachsen
   // ueber 1000) — sonst mischt der Satz gruppierte und ungruppierte Zahlen.
-  const parts = t("banner.stats", {
+  const parts = mitPumptGerade(t("banner.stats", {
     foilers: nf(stats.foilers), spots: nf(stats.spots), sessions: nf(stats.sessions), pumps: nf(stats.pumps),
-  }).split("§");
+  }), stats.pumping_now, (n) => t("banner.pumpingNow", { n }), nf).split("§");
 
   const pulst = (teil: string) =>
     (pulsPumps && teil === nf(stats.pumps))
     || (pulsFoiler && teil === nf(stats.foilers))
-    || (pulsSpots && teil === nf(stats.spots));
+    || (pulsSpots && teil === nf(stats.spots))
+    || (!!stats.pumping_now && teil === nf(stats.pumping_now));
 
   return (
     <div className={`rounded-xl border border-brand-500/30 bg-gradient-to-br from-brand-500/15 via-brand-400/10 to-transparent px-4 py-1.5 text-sm text-slate-300 ${className}`}>

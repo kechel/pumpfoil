@@ -253,6 +253,7 @@ def test_live_status(client):
     st = client.get("/api/devices/live-status", headers=uhr).json()
     assert st["phone_active"] is True
     assert st["phone_rec"]["state"] == 1
+    assert client.get("/api/community/stats", headers=auth).json()["pumping_now"] >= 1
     assert client.get("/api/devices/config", headers=uhr).json()["phone_rec"]["state"] == 1
     # das Handy selbst sieht seine eigene Aufnahme nicht als „anderes Geraet"
     assert client.get("/api/devices/live-status", headers=phone).json()["sessions"] == []

@@ -751,6 +751,12 @@ export interface InProgressSession {
   placement?: string | null;   // "phone" + status "live" = Handy nimmt gerade auf (Live-Upload)
 }
 
+export interface CommunityStatsData {
+  foilers: number; spots: number; sessions: number; pumps: number;
+  /** vermutlich gerade auf dem Wasser (devices.gerade_aktiv); 0 = Zusatz weglassen */
+  pumping_now?: number;
+}
+
 export interface LiveWatch {
   device_id: number;
   device: string;
@@ -1492,8 +1498,7 @@ export const api = {
   // `fresh` geht am Service-Worker-Cache vorbei (s. vite.config.ts) — die Zahlen aendern sich
   // mit jeder Session, der gecachte Stand ist also immer ein bisschen alt.
   communityStats: (fresh?: boolean) =>
-    req<{ foilers: number; spots: number; sessions: number; pumps: number }>(
-      `/api/community/stats${fresh ? "?fresh=1" : ""}`),
+    req<CommunityStatsData>(`/api/community/stats${fresh ? "?fresh=1" : ""}`),
   spotRecords: (spot: string, period = "all", accelOnly = true, sport = "pumpfoil") =>
     req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}&sport=${sport}`),
   spotCompare: (period = "all", accelOnly = false) =>

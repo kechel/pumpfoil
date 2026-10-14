@@ -1684,6 +1684,24 @@ def _uhren_status(db: Session, user_id: int) -> list[dict]:
     return out
 
 
+def gerade_aktiv(db: Session) -> int:
+    """Wie viele Nutzer pumpen gerade vermutlich? (Jan, 14.10.2026: Zusatz in der Statistikzeile.)
+    Dieselbe Regel wie fuer die eigenen Geraete: Handy laedt live hoch, oder eine Uhr hat sich in der
+    letzten Stunde gemeldet und seitdem weder fertig hochgeladen noch die App verlassen."""
+    jetzt = datetime.now(timezone.utc)
+    kandidaten = {u for (u,) in db.query(models.DeviceToken.user_id).filter(
+        models.DeviceToken.revoked_at.is_(None),
+        models.DeviceToken.last_seen_at > jetzt - timedelta(minutes=UHR_AKTIV_MIN)).distinct()}
+    kandidaten |= {u for (u,) in db.query(models.Session.user_id).filter(
+        models.Session.status == "live",
+        models.Session.started_at > jetzt - timedelta(hours=14)).distinct()}
+    n = 0
+    for u in kandidaten:
+        if _laufende_aufnahmen(db, u) or any(w["state"] != "uploaded" for w in _uhren_status(db, u)):
+            n += 1
+    return n
+
+
 @router.post("/app-closed")
 def app_geschlossen(
     device: models.DeviceToken = Depends(current_device),

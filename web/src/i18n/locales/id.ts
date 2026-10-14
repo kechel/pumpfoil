@@ -1479,6 +1479,7 @@ const id: Record<string, string> = {
   "dm.empty": "Belum ada pesan langsung. Cari nama di atas untuk mengirim pesan ke seseorang.",
   "banner.news": "Pembaruan baru untuk aplikasi Android dan iOS di toko — perbarui sekarang!",
   "banner.stats": "Kita sudah §{foilers}§ pumpfoiler di §{spots}§ spot dengan §{sessions}§ sesi dan §{pumps}§ pump secara total.",
+  "banner.pumpingNow": " – §{n}§ sedang pumping sekarang.",
   "banner.dismiss": "Tutup",
   "phome.latest": "Sesi terbaru",
   "phome.byFoil": "Per foil",
