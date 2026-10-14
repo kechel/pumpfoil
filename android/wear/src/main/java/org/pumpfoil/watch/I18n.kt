@@ -62,6 +62,8 @@ object I18n {
 // Norwegen kam mit dem ersten Nutzer aus Sogndal (05.08.2026) dazu; Bokmaal deckt auch
 // nn-/no-Geraete ab (s. web/src/i18n/index.tsx).
 private val NB: Map<String, String> = mapOf(
+    "phone.rec" to "Telefonen tar opp",
+    "phone.recStale" to "Telefon: data for {n} min siden",
     "gps.ready" to "GPS klar",
     "gps.searching" to "GPS søker…",
     "rec.paused" to "Pauset",
@@ -196,6 +198,9 @@ private val S: Map<String, Map<String, String>> = mapOf(
     // Aufnahme-Screen
     // GPS-Bereitschaft im Ruhebild — dieselben Texte wie auf der Garmin
     // (Strings.mc "gps.ready"/"gps.searching"), damit alle Uhren gleich sprechen.
+    // Handy-Recorder laeuft (nur dann sichtbar, Startseite) — wie Garmin 1.0.93, Jan 14.10.2026
+    "phone.rec" to row("Handy nimmt auf", "Handy nimmt uf", "Handy nimmt auf", "Phone recording", "Tél. enregistre", "Telefono registra", "Móvil grabando"),
+    "phone.recStale" to row("Handy: Daten vor {n} min", "Handy: Date vor {n} min", "Handy: Daten vor {n} min", "Phone: data {n} min ago", "Tél. : données il y a {n} min", "Telefono: dati {n} min fa", "Móvil: datos hace {n} min"),
     "gps.ready" to row("GPS bereit", "GPS bereit", "GPS bereit", "GPS ready", "GPS prêt", "GPS pronto", "GPS listo"),
     "gps.searching" to row("GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…"),
     "rec.start" to row("Start", "Start", "Start", "Start", "Démarrer", "Avvia", "Iniciar"),
@@ -349,6 +354,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Zusatz-Sprach-Overlays (pt, ja, zh, ru, id) — je Key aus dem ENGLISCHEN Quellwert.
 // Keys ohne Eintrag fallen in t() auf Englisch (dann Deutsch) zurueck.
 private val PT: Map<String, String> = mapOf(
+    "phone.rec" to "Celular gravando",
+    "phone.recStale" to "Celular: dados há {n} min",
     "gps.ready" to "GPS pronto",
     "gps.searching" to "Buscando GPS…",
     "rec.discardHold" to "Descartar",
@@ -456,6 +463,8 @@ private val PT: Map<String, String> = mapOf(
     "f.allRunsTime" to "todas voltas tempo",
 )
 private val JA: Map<String, String> = mapOf(
+    "phone.rec" to "スマホで記録中",
+    "phone.recStale" to "スマホ：{n}分前のデータ",
     "gps.ready" to "GPS 準備完了",
     "gps.searching" to "GPS 検索中…",
     "common.auto" to "自動",
@@ -562,6 +571,8 @@ private val JA: Map<String, String> = mapOf(
     "f.allRunsTime" to "全ラン時間",
 )
 private val ZH: Map<String, String> = mapOf(
+    "phone.rec" to "手机正在记录",
+    "phone.recStale" to "手机：数据来自 {n} 分钟前",
     "gps.ready" to "GPS 就绪",
     "gps.searching" to "正在搜索 GPS…",
     "common.auto" to "自动",
@@ -668,6 +679,8 @@ private val ZH: Map<String, String> = mapOf(
     "f.allRunsTime" to "全部航段时间",
 )
 private val RU: Map<String, String> = mapOf(
+    "phone.rec" to "Телефон пишет",
+    "phone.recStale" to "Телефон: данные {n} мин назад",
     "gps.ready" to "GPS готов",
     "gps.searching" to "Поиск GPS…",
     "rec.discardHold" to "Отменить",
@@ -775,6 +788,8 @@ private val RU: Map<String, String> = mapOf(
     "f.allRunsTime" to "все заезды время",
 )
 private val ID: Map<String, String> = mapOf(
+    "phone.rec" to "Ponsel merekam",
+    "phone.recStale" to "Ponsel: data {n} mnt lalu",
     "gps.ready" to "GPS siap",
     "gps.searching" to "Mencari GPS…",
     "rec.discardHold" to "Buang",
@@ -885,6 +900,8 @@ private val ID: Map<String, String> = mapOf(
 // Polnisch — 17. Sprache (28.08.), Texte aus den Web-Locales bzw. einmal uebersetzt
 // und mit den Handy-Apps geteilt.
 private val PL: Map<String, String> = mapOf(
+    "phone.rec" to "Telefon nagrywa",
+    "phone.recStale" to "Telefon: dane sprzed {n} min",
     "gps.ready" to "GPS gotowy",
     "gps.searching" to "Szukam GPS…",
     "rec.paused" to "Pauza",
@@ -998,6 +1015,8 @@ private val PL: Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    "phone.rec" to "Telefoon neemt op",
+    "phone.recStale" to "Telefoon: data {n} min geleden",
     "gps.ready" to "GPS klaar",
     "gps.searching" to "GPS zoeken…",
     "foil.alarmHelp" to "Trilt wanneer je boven of onder het optimale snelheidsbereik van je foil komt.",
@@ -1111,6 +1130,8 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    "phone.rec" to "Puhelin tallentaa",
+    "phone.recStale" to "Puhelin: tiedot {n} min sitten",
     "gps.ready" to "GPS valmis",
     "gps.searching" to "GPS haku…",
     "foil.alarmHelp" to "Värisee, kun ylität tai alitat foilisi optimaalisen nopeusalueen.",
@@ -1224,6 +1245,8 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    "phone.rec" to "Telefon nahrává",
+    "phone.recStale" to "Telefon: data před {n} min",
     "gps.ready" to "GPS připraveno",
     "gps.searching" to "hledání GPS…",
     "foil.alarmHelp" to "Zavibruje, když překročíš nebo klesneš pod optimální rychlostní rozsah svého foilu.",

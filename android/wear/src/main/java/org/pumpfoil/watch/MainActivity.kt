@@ -89,6 +89,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
      */
     private val ambient by lazy { AmbientLifecycleObserver(this, this) }
 
+    // App verlassen (Wischen/Zurueck beendet die Activity) ohne laufende Aufnahme -> dem Server
+    // sagen, damit er die Uhr nicht weiter als „gerade am Pumpen" zaehlt (wie Garmin 1.0.93).
+    // Nur bei isFinishing: Display aus oder Wechsel in eine andere App beendet nichts.
+    override fun onDestroy() {
+        if (isFinishing && !Recorder.state.value.recording && !Api.deviceToken.isNullOrBlank()) {
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
+                .launch { try { Api.appClosed() } catch (_: Exception) {} }
+        }
+        super.onDestroy()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(ambient)
@@ -314,10 +325,19 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         // Hinweis. Bis 2026-07-30 fragte die Wear-App das Feld gar nicht ab, obwohl der Server es
         // mitschickt — der Nutzer erfuhr also nie von einem Update.
         var storeVersion by remember { mutableStateOf("") }
+        // Handy-Recorder desselben Kontos (wie Garmin 1.0.93): 0 = nichts zeigen, 1 = nimmt auf,
+        // 2 = laeuft, aber seit phoneRecAgo min keine Daten. Aus /config und alle 90 s /live-status.
+        var phoneRec by remember { mutableStateOf(0) }
+        var phoneRecAgo by remember { mutableStateOf(0) }
+        fun lesePhoneRec(o: JSONObject?) {
+            phoneRec = o?.optInt("state", 0) ?: 0
+            phoneRecAgo = o?.optInt("ago_min", 0) ?: 0
+        }
 
         fun applyConfig(c: JSONObject) {
             if (c.has("language")) I18n.set(ctx, c.optString("language", "de"))
             storeVersion = c.optString("latestVersion", "")
+            if (c.has("phone_rec")) lesePhoneRec(c.optJSONObject("phone_rec"))
             val vs = c.optJSONArray("views")
             if (vs != null && vs.length() > 0) {
                 views = (0 until vs.length()).map { i ->
@@ -476,6 +496,16 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     } catch (_: Exception) {}
                     syncing = false
                 }
+            }
+        }
+        // Startseite: alle 90 s nachfragen, ob der Handy-Recorder laeuft — sonst saehe man einen erst
+        // nach der Uhr-App gestarteten Recorder nicht (Jan). Waehrend der Aufnahme nicht.
+        LaunchedEffect(s.recording) {
+            if (s.recording) return@LaunchedEffect
+            while (true) {
+                kotlinx.coroutines.delay(90_000)
+                if (Api.deviceToken.isNullOrBlank() || !Api.isOnline(ctx)) continue
+                try { lesePhoneRec(Api.liveStatus().optJSONObject("phone_rec")) } catch (_: Exception) {}
             }
         }
         // Token serverseitig ungültig -> automatisch ein frisches vom Phone anfordern
@@ -1280,6 +1310,15 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     Text(I18n.t(if (gpsBereit) "gps.ready" else "gps.searching"),
                         style = MaterialTheme.typography.caption2,
                         color = if (gpsBereit) Color(0xFF34C759) else Color(0xFFF59E0B),
+                        textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(4.dp))
+                }
+                // Handy-Recorder laeuft: NUR dann eine Zeile (fast alle fahren ohne Handy-Aufnahme).
+                if (!s.starting && phoneRec > 0) {
+                    Text(if (phoneRec == 1) I18n.t("phone.rec")
+                         else I18n.t("phone.recStale").replace("{n}", phoneRecAgo.toString()),
+                        style = MaterialTheme.typography.caption2,
+                        color = if (phoneRec == 1) Color(0xFFEF4444) else Color(0xFFF59E0B),
                         textAlign = TextAlign.Center)
                     Spacer(Modifier.height(4.dp))
                 }
