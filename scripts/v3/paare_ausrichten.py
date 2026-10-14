@@ -67,7 +67,7 @@ TASCHE = {
 # noch nichts; `paare_finden` fasst sie nur nicht an, solange `placement` nicht „board" ist.
 # {Handy-Session: Vermerk}
 ANDERE_SPORTART = {
-    16729: "u267 14.10.2026, foil_scoot, Jans Meldung „phone on board“; Handy als „phone“ markiert, "
+    16729: "u267 14.10.2026, foil_scoot (DM an Jan: „Scooter daten sollten gleich da sein“, Montage NICHT genannt, Rueckfrage offen); Handy als „phone“ markiert, Brett-Verdacht schlaegt an, "
            "laut Lage in den Laeufen flach (Schwerkraft ~z, 6 von 8 Laeufen), Kreisel + Magnetfeld, "
            "53,5 Hz, 1 h 47 min, 8 Laeufe (bis 21 min lang); dazu Garmin #16719 (1.0.93, 24,9 Hz, 8 Laeufe). "
            "Lauf ab 3774 s: Accel 14 s eingefroren (std 0). Fehlstart-Session #16709 (7 s) ignorieren.",
