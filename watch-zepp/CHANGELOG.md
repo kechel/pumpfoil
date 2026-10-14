@@ -10,6 +10,15 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## Unreleased (naechste: 1.0.14, noch nicht gebumpt)
+
+- **Speicher voll an den Server melden** (`fc953a91`): `sf`/`kb` im CONFIG wie Garmin.
+- **Wie Garmin 1.0.93** (15.10.2026): Startseite zeigt statt „Verbunden ✓" „Handy nimmt auf" bzw.
+  „Handy: Daten vor X min", wenn der Handy-Recorder desselben Kontos laeuft (aus dem Heartbeat-CONFIG,
+  das waehrend Aufnahme und Upload ruht; nie aus dem gesicherten Stand). Beim Beenden ohne Aufnahme
+  und ohne Upload `APP_CLOSED` -> `/api/devices/app-closed` (best effort). „Neu verbinden" schickt das
+  alte Token als `old_token` mit, der Server widerruft es. Nur `node --check` + Tests; Simulator offen.
+
 ## 1.0.13 — gebumpt am 30.09.2026, NOCH NICHT eingereicht
 
 - **Pause/Fortsetzen mit 2 s halten** (Jan, 30.09.): auf der Aktionsseite loeste ein einfacher Tipp

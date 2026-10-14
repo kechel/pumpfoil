@@ -583,6 +583,9 @@ const S = {
   "up.notLinked":    ["Nicht verbunden", "Nöd verbunde", "Nicht verbunden", "Not linked", "Non lié", "Non collegato", "No vinculado", "Não vinculado", "Tidak tertaut", "Не привязано", "Niet gekoppeld", "Ei linkitetty", "Nepropojeno", "未接続", "未连接"],
   "pair.noConn":     ["Keine Verbindung", "Kei Verbindig", "Keine Verbindung", "No connection", "Pas de connexion", "Nessuna connessione", "Sin conexión", "Sem conexão", "Tidak ada koneksi", "Нет связи", "Geen verbinding", "Ei yhteyttä", "Bez připojení"],
   "up.noPhone":      ["Kein Telefon", "Kei Telefon", "Kein Telefon", "No phone", "Pas de téléphone", "Nessun telefono", "Sin teléfono", "Sem telefone", "Tanpa HP", "Нет телефона", "Geen telefoon", "Ei puhelinta", "Bez telefonu"],
+  // Handy-Recorder desselben Kontos laeuft (wie Garmin 1.0.93 / Apple Watch / Wear, 15.10.2026).
+  "phone.rec":       ["Handy nimmt auf", "Handy nimmt uf", "Handy nimmt auf", "Phone recording", "Tél. enregistre", "Telefono registra", "Móvil grabando", "Celular gravando", "Ponsel merekam", "Телефон пишет", "Telefoon neemt op", "Puhelin tallentaa", "Telefon nahrává", "スマホで記録中", "手机正在记录"],
+  "phone.recStale":  ["Handy: Daten vor {n} min", "Handy: Date vor {n} min", "Handy: Daten vor {n} min", "Phone: data {n} min ago", "Tél. : données il y a {n} min", "Telefono: dati {n} min fa", "Móvil: datos hace {n} min", "Celular: dados há {n} min", "Ponsel: data {n} mnt lalu", "Телефон: данные {n} мин назад", "Telefoon: data {n} min geleden", "Puhelin: tiedot {n} min sitten", "Telefon: data před {n} min", "スマホ：{n}分前のデータ", "手机：数据来自 {n} 分钟前"],
   "up.waiting":      ["Warte…", "Warte…", "Warte…", "Waiting…", "Attente…", "Attendo…", "Esperando…", "Aguardando…", "Menunggu…", "Ожидание…", "Wachten…", "Odotetaan…", "Čekání…"],
   // Button + Slot-Label fuer den Pairing-Code. nl/fi/cs bleiben leer (Garmins Wortlaut dort ist
   // fuer den 300-px-Button zu lang) -> englisch.
@@ -741,6 +744,8 @@ const PL = {
   "up.serverUnreach": "Serwer nieosiągalny",
   "up.waitConn": "Czekam na połączenie",
   "up.waiting": "Czekam…",
+  "phone.rec": "Telefon nagrywa",
+  "phone.recStale": "Telefon: dane sprzed {n} min",
 };
 
 const NB = {
@@ -751,6 +756,8 @@ const NB = {
   "pair.noConn": "Ikke tilkoblet",
   "up.noPhone": "Ingen mobil",
   "up.waiting": "Venter…",
+  "phone.rec": "Telefonen tar opp",
+  "phone.recStale": "Telefon: data for {n} min siden",
   "pair.gen": "Lag kode",
   "pair.code": "Koblingskode",
   "pair.enterThere": "tast den inn der",
@@ -920,6 +927,8 @@ Page(
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       last: null, upStatus: "", upPct: 0,
       uploading: false,
+      // Handy-Recorder desselben Kontos: 0 nichts, 1 nimmt auf, 2 laeuft ohne frische Daten.
+      phoneRec: 0, phoneRecAgo: 0,
       // Lauf-/Foil-Erkennung (Paket 1). sp3 = 3-s-Median in m/s, spWin = [[tMs, mps], …].
       sp3: 0, spWin: [], foiling: false, _prevFoil: false,
       enterStreak: 0, exitStreak: 0, runEndedMs: -100000,
@@ -1559,6 +1568,11 @@ Page(
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         this._configAnwenden(r);
         this._configSichern(r);
+        // Handy-Recorder NUR aus der frischen Antwort, nie aus dem gesicherten Stand — der
+        // zeigte sonst nach einem App-Start ohne Handy eine laengst beendete Aufnahme an.
+        // Kommt alle 20 s mit dem Heartbeat-CONFIG, der waehrend Aufnahme und Upload ruht.
+        s.phoneRec = (r && r.ok && r.phone_rec && r.phone_rec.state) || 0;
+        s.phoneRecAgo = (r && r.ok && r.phone_rec && r.phone_rec.ago_min) || 0;
         s.paired = true;
         if (s.brightMode === "idle") this._setBrightMode("idle");
         this.applyButton(); this.rerender();
@@ -1715,7 +1729,10 @@ Page(
         this._idleHinweis(bleOk() ? t("up.serverUnreach") : t("up.noPhone"));
         this.rerender();
       };
-      this.reqQ({ method: "PAIR_INIT", model: DEVICE_MODEL }, { timeout: 12000 }).then((r) => {
+      // Vorher verbunden (Konto-Wechsel ueber „neu verbinden")? Das alte Token geht mit, der
+      // Server widerruft es, sobald diese Uhr das neue abholt (wie Garmin 1.0.93).
+      this.reqQ({ method: "PAIR_INIT", model: DEVICE_MODEL, oldToken: store.getItem("oldToken", "") || "" },
+                { timeout: 12000 }).then((r) => {
         if (!r || !r.code) { fehler(); return; }
         this._idleHinweis("");   // alte Fehlermeldung raeumen, s. dort
         s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
@@ -1729,7 +1746,7 @@ Page(
         if (s.paired || s.recording || s.idlePage > 1) { s.pollTimer = null; return; }
         this.reqQ({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
           if (r && r.paired && r.device_token) {
-            store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
+            store.setItem("deviceToken", r.device_token); store.setItem("claimToken", ""); store.setItem("oldToken", "");
             s.pollTimer = null; s.paired = true; s.code = "";
             this._setBrightMode("idle", true);
             this.connect();
@@ -2176,7 +2193,12 @@ Page(
       this._verText();
       w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/4");
       const gps = s.fix ? "GPS ●" : t("gps.searching");
-      const conn = !bleOk() ? t("up.noPhone") : (s.paired ? t("menu.connected") + " ✓" : t("up.waiting"));
+      // Laeuft der Handy-Recorder, ersetzt seine Meldung das „Verbunden" (die Auskunft kam ja
+      // ueber die Verbindung) — die Zeile ist ohnehin schon randvoll, s. unten.
+      const phone = s.phoneRec === 1 ? t("phone.rec")
+        : s.phoneRec === 2 ? t("phone.recStale").replace("{n}", String(s.phoneRecAgo)) : "";
+      const conn = !bleOk() ? t("up.noPhone")
+        : (s.paired ? (phone || t("menu.connected") + " ✓") : t("up.waiting"));
       if (s.idlePage === 0) {
         this.renderFields(s.offFoil);
         // Der Alarm-Hinweis war ein Glocken-Emoji — Standard-Emojis sind in der UI verboten
@@ -3560,7 +3582,7 @@ Page(
       }
     },
     done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this._setBrightMode(s.uploading ? "uploading" : "idle", true); try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {} this.hideBar(); this.applyButton(); this.renderIdle(); },
-    repair() { const s = this.state; store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
+    repair() { const s = this.state; if (getTok()) store.setItem("oldToken", getTok()); store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
 
     // ---- Upload / Offline-Queue ----
     uploadSession(sess, onProg) {
@@ -3794,6 +3816,12 @@ Page(
       // Sauberes Ende: die Marke darf nicht liegenbleiben, sonst meldet der naechste Start
       // einen Absturz, den es nie gab.
       canaryClear();
+      // Ohne laufende Aufnahme und ohne Upload dem Server sagen, dass die App zu ist — sonst zaehlt
+      // die Uhr bis zu 2 h weiter als „gerade am Pumpen" (wie Garmin 1.0.93). Best effort: ob die
+      // Nachricht nach onDestroy noch rausgeht, entscheidet Zepp.
+      if (!s.recording && !s.uploading && getTok() && bleOk()) {
+        try { this.reqQ({ method: "APP_CLOSED", token: getTok() }, { timeout: 5000 }).catch(() => {}); } catch (e) {}
+      }
       this._setBrightMode("system");
       if (s.timer) clearInterval(s.timer);
       if (s.pollTimer) clearTimeout(s.pollTimer);
