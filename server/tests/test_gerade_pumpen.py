@@ -164,3 +164,31 @@ def test_verwaister_spot_zaehlt_nicht(client):
     d.pos_spot_id = wid
     db.commit(); db.close()
     assert _zustand(uid) == (False, None)
+
+
+def test_zugeordnete_andere_sportart_haelt_den_spot(client):
+    """Ein Spot, an dem nur eine von Menschen zugeordnete Wingfoil-Session haengt (Erkennung: kein
+    Pumpfoil), ist NICHT verwaist (Jan, 16.10.2026: die Spot-Karte zeigt unter „All sports" auch
+    andere Sportarten). Eine nur automatisch aussortierte Session haelt ihn dagegen nicht."""
+    from app.db import SessionLocal
+    from app import models
+    from app.api.sessions import _spot_aufraeumen
+    db = SessionLocal()
+    wing = models.Spot(name="PosWing", lat=-77.0, lon=70.0)
+    aus = models.Spot(name="PosAussortiert", lat=-78.0, lon=71.0)
+    db.add_all([wing, aus]); db.commit()
+    wid, aid = wing.id, aus.id
+    db.close()
+    _a, _u, uid = _konto(client, "poswing")
+    s1 = _session(uid, "pos-wing-1", wid, num_runs=4, alter_min=60 * 24 * 5)
+    s2 = _session(uid, "pos-aus-1", aid, num_runs=0, alter_min=60 * 24 * 5)
+    db = SessionLocal()
+    for sid, sc, src in ((s1, "wingfoil", "admin"), (s2, "pumpfoil", "auto")):
+        s = db.get(models.Session, sid)
+        s.is_pumpfoil, s.sport_class, s.sport_source = False, sc, src
+    db.commit()
+    assert _spot_aufraeumen(db, wid) is False
+    assert _spot_aufraeumen(db, aid) is True
+    db.commit(); db.close()
+    _auth, uhr, _uid = _konto(client, "poswingpos")
+    assert client.post("/api/devices/position", headers=uhr, json={"lat": -77.0, "lon": 70.0}).json()["spot"] is True
