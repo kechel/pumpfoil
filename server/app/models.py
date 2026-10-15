@@ -180,6 +180,11 @@ class DeviceToken(Base):
     # Uhr-App ohne laufende Aufnahme verlassen (POST /devices/app-closed, Garmin ab 1.0.93): dann ist
     # „Meldung in der letzten Stunde" KEIN Hinweis auf eine laufende Aufnahme (devices._uhren_status).
     app_closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Erster GPS-Fix im Startbildschirm (POST /devices/position, Jan 15.10.2026): WANN und an welchem
+    # Spot (<= 1 km). Die Koordinaten selbst werden NICHT gespeichert. pos_at gesetzt + pos_spot_id
+    # NULL = kein bekannter Spot in der Naehe -> zaehlt nicht als „gerade am Pumpen" (devices._zustand).
+    pos_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    pos_spot_id: Mapped[int | None] = mapped_column(Integer)
     # Wassersperre dieser Uhr: "auto" (Uhr entscheidet) | "on" | "off"; None = Nutzer-Default.
     water_lock: Mapped[str | None] = mapped_column(String(8))
     # Wake-up-Beschleunigungssensor dieser Uhr (nur Wear OS, ab 1.2.33): "on" | "off";

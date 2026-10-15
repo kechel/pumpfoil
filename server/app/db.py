@@ -169,6 +169,9 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS mem_peak_kb INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS mem_total_kb INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS hidden_at TIMESTAMPTZ",
+        # Positionsmeldung beim ersten GPS-Fix (nur Zeit + Spot, keine Koordinaten). S. models.py.
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS pos_at TIMESTAMPTZ",
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS pos_spot_id INTEGER",
         # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
         # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS stab_id INTEGER REFERENCES stabs(id)",

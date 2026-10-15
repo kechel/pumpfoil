@@ -1721,7 +1721,12 @@ def _aktive_nutzer(db: Session) -> set[int]:
             models.Session.started_at > jetzt - timedelta(hours=14)).distinct():
         if u not in nutzer and _laufende_aufnahmen(db, u):
             nutzer.add(u)
-    return nutzer
+    if not nutzer:
+        return nutzer
+    # Wer nachweislich NICHT an einem Spot ist, faellt raus (Jan, 15.10.2026): Position fern von
+    # jedem Spot, zuletzt eine Session ohne Laeufe hochgeladen oder sie geloescht (s. `_zustand`).
+    spots = _spots_mit_ort(db)
+    return {u for u in nutzer if _zustand(db, u, spots)[0]}
 
 
 def gerade_aktiv(db: Session) -> int:
@@ -1773,43 +1778,102 @@ def _zeigt_sich(user: models.User | None) -> bool:
         return True
 
 
-def _spot_des_nutzers(db: Session, uid: int, spots: dict[int, models.Spot]) -> int | None:
-    """Laufende Handy-Aufnahme -> deren Spot (oder der naechste Spot zur letzten Position, < 5 km);
-    sonst der Spot der letzten Session."""
-    from .. import storage
-    live = (db.query(models.Session)
-            .filter(models.Session.user_id == uid, models.Session.status == "live",
-                    models.Session.deleted.isnot(True),
-                    models.Session.started_at > datetime.now(timezone.utc) - timedelta(hours=14))
-            .order_by(models.Session.started_at.desc()).first())
-    if live is not None and _laufende_aufnahmen(db, uid):
-        if live.spot_id in spots:
-            return live.spot_id
-        try:
-            gps = storage.load_gps(live.session_uuid) or []
-        except Exception:   # noqa: BLE001 - die Karte darf daran nie scheitern
-            gps = []
-        if gps:
-            import math
-            la, lo = float(gps[-1][1]), float(gps[-1][2])
-            best, dist = None, 5.0
-            for sp in spots.values():
-                d = math.hypot((sp.lat - la) * 111.0, (sp.lon - lo) * 111.0 * math.cos(math.radians(la)))
-                if d < dist:
-                    best, dist = sp.id, d
-            if best is not None:
-                return best
-    letzte = (db.query(models.Session.spot_id)
-              .filter(models.Session.user_id == uid, models.Session.deleted.isnot(True),
-                      models.Session.spot_id.isnot(None))
-              .order_by(models.Session.started_at.desc()).first())
-    sid = letzte[0] if letzte else None
+POS_RADIUS_KM = 1.0      # Position (Uhr-Startbildschirm, Handy-Aufnahme) gehoert zu einem Spot bis hier
+SIGNAL_FENSTER_H = 14    # aelter begonnene Sessions sind kein Hinweis auf „gerade"
+
+
+def _spots_mit_ort(db: Session) -> dict[int, models.Spot]:
+    return {sp.id: sp for sp in db.query(models.Spot)
+            .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
+                    models.Spot.lon.isnot(None)).all()}
+
+
+def _naechster_spot(lat: float, lon: float, spots: dict[int, models.Spot],
+                    radius_km: float = POS_RADIUS_KM) -> int | None:
+    import math
+    best, dist = None, radius_km
+    for sp in spots.values():
+        d = math.hypot((sp.lat - lat) * 111.0, (sp.lon - lon) * 111.0 * math.cos(math.radians(lat)))
+        if d <= dist:
+            best, dist = sp.id, d
+    return best
+
+
+def _bis_ziel(db: Session, sid: int | None, spots: dict[int, models.Spot]) -> int | None:
     for _ in range(5):   # zusammengelegte Spots bis zum Ziel verfolgen
         if sid is None or sid in spots:
             break
         sp = db.get(models.Spot, sid)
         sid = sp.merged_into if sp is not None else None
     return sid if sid in spots else None
+
+
+def _zustand(db: Session, uid: int, spots: dict[int, models.Spot]) -> tuple[bool, int | None]:
+    """(zaehlt als „gerade am Pumpen", Spot) eines Nutzers, der sich zuletzt gemeldet hat.
+
+    Jans Regeln (15.10.2026), in dieser Reihenfolge:
+      1. Laufende Handy-Aufnahme mit GPS: Spot <= 1 km um die letzte Position, sonst zaehlt er NICHT.
+      2. Sonst gewinnt das JUENGSTE Signal der letzten Stunden:
+         * Positionsmeldung einer Uhr beim ersten GPS-Fix im Startbildschirm (`pos_at`): Spot <= 1 km
+           oder — kein Spot in der Naehe — zaehlt nicht (Emulator zu Hause).
+         * eine hochgeladene Session (`created_at`): ihr Spot; geloescht oder 0 erkannte Laeufe ->
+           zaehlt sofort nicht mehr; Laeufe, aber kein bekannter Spot -> zaehlt, ohne Spot.
+           Noch nicht analysiert -> kein Signal (die Analyse braucht Sekunden).
+      3. Kein Signal (alte Uhr-Apps ohne Positionsmeldung, noch kein Upload): wie bisher der Spot
+         der letzten Session."""
+    from .. import storage
+    jetzt = datetime.now(timezone.utc)
+    seit = jetzt - timedelta(hours=SIGNAL_FENSTER_H)
+    live = (db.query(models.Session)
+            .filter(models.Session.user_id == uid, models.Session.status == "live",
+                    models.Session.deleted.isnot(True), models.Session.started_at > seit)
+            .order_by(models.Session.started_at.desc()).first())
+    if live is not None and _laufende_aufnahmen(db, uid):
+        if live.spot_id in spots:
+            return True, live.spot_id
+        try:
+            gps = storage.load_gps(live.session_uuid) or []
+        except Exception:   # noqa: BLE001 - die Karte darf daran nie scheitern
+            gps = []
+        if gps:
+            sid = _naechster_spot(float(gps[-1][1]), float(gps[-1][2]), spots)
+            return sid is not None, sid
+
+    fenster = jetzt - timedelta(minutes=ZAEHLER_FENSTER_MIN)
+    signale: list[tuple[datetime, bool, int | None]] = []
+    for d in (db.query(models.DeviceToken)
+              .filter(models.DeviceToken.user_id == uid, models.DeviceToken.revoked_at.is_(None),
+                      models.DeviceToken.pos_at > fenster).all()):
+        sid = _bis_ziel(db, d.pos_spot_id, spots)
+        signale.append((_aware(d.pos_at), sid is not None, sid))
+    for s, num_runs in (db.query(models.Session, models.AnalysisResult.num_runs)
+                        .outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+                        .filter(models.Session.user_id == uid, models.Session.created_at > fenster,
+                                models.Session.started_at > seit, models.Session.merged_into.is_(None),
+                                models.Session.status != "live")
+                        .all()):
+        if s.deleted:
+            signale.append((_aware(s.created_at), False, None))
+        elif num_runs is None:
+            continue                       # noch nicht analysiert
+        elif num_runs == 0:
+            signale.append((_aware(s.created_at), False, None))
+        else:
+            signale.append((_aware(s.created_at), True, _bis_ziel(db, s.spot_id, spots)))
+    if signale:
+        _t, aktiv, sid = max(signale, key=lambda x: x[0])
+        return aktiv, sid
+
+    letzte = (db.query(models.Session.spot_id)
+              .filter(models.Session.user_id == uid, models.Session.deleted.isnot(True),
+                      models.Session.spot_id.isnot(None))
+              .order_by(models.Session.started_at.desc()).first())
+    return True, _bis_ziel(db, letzte[0] if letzte else None, spots)
+
+
+def _spot_des_nutzers(db: Session, uid: int, spots: dict[int, models.Spot]) -> int | None:
+    """Der Spot, an dem der Nutzer gerade vermutlich pumpt (Regeln: `_zustand`)."""
+    return _zustand(db, uid, spots)[1]
 
 
 def aktive_spots(db: Session) -> dict:
@@ -1874,6 +1938,29 @@ def app_geschlossen(
     device.app_closed_at = datetime.now(timezone.utc)
     db.commit()
     return {"ok": True}
+
+
+@router.post("/position")
+def position(
+    body: dict,
+    device: models.DeviceToken = Depends(current_device),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Erster GPS-Fix im Startbildschirm der Uhr (Jan, 15.10.2026), einmal je App-Start.
+
+    Gespeichert wird nur WANN und welcher Spot (<= 1 km) — die Koordinaten nicht. Kein Spot in der
+    Naehe -> der Nutzer zaehlt nicht als „gerade am Pumpen" (s. `_zustand`). Antwort `spot`: ob einer
+    gefunden wurde (fuer Tests; die Uhren werten sie nicht aus)."""
+    try:
+        lat, lon = float(body.get("lat")), float(body.get("lon"))
+    except (TypeError, ValueError):
+        raise HTTPException(422, "lat/lon fehlen")
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0) or (lat == 0.0 and lon == 0.0):
+        raise HTTPException(422, "lat/lon ungueltig")
+    device.pos_at = datetime.now(timezone.utc)
+    device.pos_spot_id = _naechster_spot(lat, lon, _spots_mit_ort(db))
+    db.commit()
+    return {"ok": True, "spot": device.pos_spot_id is not None}
 
 
 @router.get("/live")
