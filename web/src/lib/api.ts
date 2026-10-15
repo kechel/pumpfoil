@@ -1022,6 +1022,9 @@ export const api = {
                accel_hz: number | null; gps_only: number; ortung_steht: number | null;
                guete_gut: number | null; hacc_m: number | null;
                puls_wechsel: number | null; puls_tot: number | null; puls_sessions: number;
+               // Ab welcher App-Version gezaehlt wurde bzw. nur aeltere Aufnahmen (15.10.2026).
+               accel_ab?: string | null; accel_alt?: boolean;
+               puls_ab?: string | null; puls_alt?: boolean;
                urteil: string }[];
   }>("/api/app/watch-quality"),
 

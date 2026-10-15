@@ -40,6 +40,16 @@ function passend<T>(zeilen: T[], name: (z: T) => string, suche: string): T[] {
   return zeilen.filter((z) => passtZu(name(z), q));
 }
 
+/** Woher die Zahl kommt (Jan, 15.10.2026: neuere Daten nehmen, wo die App sich geaendert hat,
+ *  und das kenntlich machen). `ab` = nur Aufnahmen ab dieser App-Version, `alt` = es gibt nur
+ *  Aufnahmen aus aelteren Versionen, die heutige App zeichnet anders auf. */
+function Herkunft({ ab, alt }: { ab?: string | null; alt?: boolean }) {
+  const t = useT();
+  if (ab) return <div className="text-xs font-normal text-slate-400">{t("watchQuality.since", { v: ab })}</div>;
+  if (alt) return <div className="text-xs font-normal text-amber-700 dark:text-amber-400">{t("watchQuality.oldApp")}</div>;
+  return null;
+}
+
 function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
   const t = useT();
   if (!d || !d.modelle?.length) return null;
@@ -99,6 +109,7 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
                   <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {r.accel_hz != null ? `${r.accel_hz.toFixed(0)} Hz` : "–"}
+                    {r.accel_hz != null && <Herkunft ab={r.accel_ab} alt={r.accel_alt} />}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{gps}</td>
                   {/* Puls als WERTWECHSEL je Minute. Der Anteil fehlender Werte taugte nicht:
@@ -108,6 +119,7 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
                   <td className="px-4 py-3 text-right tabular-nums">
                     {r.puls_wechsel == null ? "–"
                       : t("watchQuality.hrRate", { n: r.puls_wechsel.toFixed(0) })}
+                    {r.puls_wechsel != null && <Herkunft ab={r.puls_ab} alt={r.puls_alt} />}
                   </td>
                 </tr>
               );
