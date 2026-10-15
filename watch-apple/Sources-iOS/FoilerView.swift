@@ -98,6 +98,7 @@ struct FoilerView: View {
             chatFehlerZeile
             ausHinweis(d)
             kopf(d)
+            freundSection(d)
             angaben(d)
             rekordeSection(d)
             titelSection(d)
@@ -195,19 +196,42 @@ struct FoilerView: View {
         return Loc.t("foiler.since", lang).replacingOccurrences(of: "{date}", with: text)
     }
 
+    // MARK: - Freundschaft (15.10.2026, wie Foiler.tsx)
+
+    /// Nicht auf der eigenen Seite und nicht unter 13 — das prueft der Server ueber
+    /// `freundschaft_moeglich`. Beginnt oder endet eine Freundschaft, laedt die Seite neu: dann
+    /// sieht man mehr bzw. weniger.
+    @ViewBuilder private func freundSection(_ d: FoilerProfil) -> some View {
+        if !d.ich, d.freundschaft_moeglich == true {
+            Section {
+                FreundschaftKnopf(userId: d.id, name: d.name ?? "—", status: d.freundschaft) { neu in
+                    if neu == "freund" || d.freundschaft == "freund" {
+                        Task { await laden() }
+                    } else {
+                        var kopie = d
+                        kopie.freundschaft = neu
+                        self.d = kopie
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
     // MARK: - Angaben (Homespot, Uhr, Foil, YouTube)
 
     private func hatAngaben(_ d: FoilerProfil) -> Bool {
         let hs: Bool = !(d.homespot ?? "").isEmpty
         let uhr: Bool = !(d.uhren ?? []).isEmpty
         let foil: Bool = !(d.foils ?? []).isEmpty
-        return hs || uhr || foil || d.kanal != nil
+        return hs || uhr || foil || d.kanal != nil || d.gewicht_kg != nil
     }
 
     @ViewBuilder private func angaben(_ d: FoilerProfil) -> some View {
         if hatAngaben(d) {
             Section {
                 homespotZeile(d)
+                gewichtZeile(d)
                 uhrZeile(d)
                 foilZeile(d)
                 kanalZeile(d)
@@ -226,6 +250,13 @@ struct FoilerView: View {
             } else {
                 angabeZeile("mappin.and.ellipse", label, h)
             }
+        }
+    }
+
+    // Gewicht: der Server liefert es nur Freunden und einem selbst (15.10.2026).
+    @ViewBuilder private func gewichtZeile(_ d: FoilerProfil) -> some View {
+        if let kg = d.gewicht_kg {
+            angabeZeile("scalemass", Loc.t("friends.weight", lang), "\(Int(kg.rounded())) kg")
         }
     }
 

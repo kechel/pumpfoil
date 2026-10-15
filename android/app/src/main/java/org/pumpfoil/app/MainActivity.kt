@@ -310,6 +310,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onImprint = { nav.navigate("impressum") },
                     onOnboarding = { nav.navigate("onboarding") },
                     onChangelog = { nav.navigate("changelog") },
+                    onFriends = { nav.navigate("friends") },
                 )
             }
             composable("watch") {
@@ -358,6 +359,11 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("accounts") { LinkedAccountsScreen(onBack = { nav.popBackStack() }) }
             composable("impressum") { ImpressumScreen(onBack = { nav.popBackStack() }) }
             composable("changelog") { ChangelogScreen(onBack = { nav.popBackStack() }) }
+            composable("friends") {
+                FreundeScreen(onBack = { nav.popBackStack() },
+                    onOpenFoiler = { uid -> nav.navigate("foiler/$uid") },
+                    onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") })
+            }
             composable(
                 "session/{id}?v={v}",
                 arguments = listOf(

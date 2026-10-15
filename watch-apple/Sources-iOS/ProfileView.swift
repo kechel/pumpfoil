@@ -80,6 +80,8 @@ struct ProfileView: View {
         Section {
             navRow("nav.watch", "applewatch") { WatchView() }
             navRow("accounts.title", "link") { LinkedAccountsView() }
+            // Unter 13 keine Freunde (Server: 403), wie Chat und Community.
+            if session.profile?.social_allowed != false { FreundeZeile() }
             foilsRow
             navRow("profile.calc", "function") { FoilCalculatorView() }
             navRow("profile.stats", "chart.bar") { FoilStatsView() }

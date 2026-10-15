@@ -137,7 +137,7 @@ struct SpotsView: View {
     private func aktivSchleife() async {
         while !Task.isCancelled {
             if let r = try? await Api.spotActive() {
-                aktivEinzeln = Set(r.spots)
+                aktivEinzeln = r.einzeln   // inkl. Spots, an denen ein Freund pumpt (15.10.2026)
                 aktivGegend = Set(r.area)
                 // Immer neu buendeln: frische Buendel-Werte zwingen die Pins, ihre Farbe neu zu
                 // zeichnen, und der Filter „gerade aktiv" haengt ebenfalls an diesen Mengen.

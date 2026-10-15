@@ -97,6 +97,35 @@ enum Api {
         try await request("/api/community/foiler/\(id)", method: "GET", body: nil, auth: true)
     }
 
+    // Freunde (15.10.2026, PWA Friends.tsx). Regeln und was eine Freundschaft freigibt: server
+    // app/freunde.py — die App entscheidet nichts, sie zeigt nur den Stand.
+    static func friends() async throws -> FreundeListe {
+        try await request("/api/friends", method: "GET", body: nil, auth: true)
+    }
+    struct FreundeAnzahl: Decodable { let incoming: Int }
+    static func friendsCount() async throws -> Int {
+        let r: FreundeAnzahl = try await request("/api/friends/count", method: "GET", body: nil, auth: true)
+        return r.incoming
+    }
+    /// Neuer Stand aus MEINER Sicht: "freund" | "angefragt" | nil.
+    struct FreundStatus: Decodable { let status: String? }
+    static func friendRequest(_ id: Int) async throws -> String? {
+        let r: FreundStatus = try await request("/api/friends/\(id)/request", method: "POST", body: nil, auth: true)
+        return r.status
+    }
+    static func friendAccept(_ id: Int) async throws -> String? {
+        let r: FreundStatus = try await request("/api/friends/\(id)/accept", method: "POST", body: nil, auth: true)
+        return r.status
+    }
+    static func friendDecline(_ id: Int) async throws -> String? {
+        let r: FreundStatus = try await request("/api/friends/\(id)/decline", method: "POST", body: nil, auth: true)
+        return r.status
+    }
+    static func friendRemove(_ id: Int) async throws -> String? {
+        let r: FreundStatus = try await request("/api/friends/\(id)", method: "DELETE", body: nil, auth: true)
+        return r.status
+    }
+
     static func updateDisplayName(_ name: String) async throws -> Profile {
         try await request("/api/auth/me", method: "PUT", body: ["display_name": name], auth: true)
     }
@@ -146,13 +175,18 @@ enum Api {
     /// Neue Sessions seit Mitternacht (lokal) — „X new sessions today" wie die PWA.
     /// `pumping_here` (seit 14.10.2026) kommt nur bei einem Spot als ID und nicht „Meine": ja/nein
     /// nach der Regel der gruenen Spots, entschieden auf dem Server (kleine Spots nie `true`).
-    struct TodayCount: Decodable { let n: Int; var pumping_here: Bool? = nil }
-    static func sessionsToday(mine: Bool, spot: String?, accelOnly: Bool, sport: String, board: Bool) async throws -> TodayCount {
+    /// `friends_here` (15.10.2026): FREUNDE, die gerade an diesem Spot pumpen, mit Namen — der
+    /// Server liefert sie nur an deren Freunde (server app/freunde.py).
+    struct FreundHier: Decodable { let user_id: Int; let name: String? }
+    struct TodayCount: Decodable { let n: Int; var pumping_here: Bool? = nil; var friends_here: [FreundHier]? = nil }
+    static func sessionsToday(mine: Bool, spot: String?, accelOnly: Bool, sport: String, board: Bool,
+                              freunde: Bool = false) async throws -> TodayCount {
         let mitternacht = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970 * 1000)
         var q = "since_ms=\(mitternacht)&accel_only=\(accelOnly)&mine=\(mine)"
         q += "&sport=" + (sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport)
         if let spot, !spot.isEmpty { q += "&spot=" + (spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot) }
         if board { q += "&board=true" }
+        if freunde { q += "&friends=1" }
         return try await request("/api/community/sessions-today?" + q, method: "GET", body: nil, auth: true)
     }
 
@@ -485,10 +519,11 @@ enum Api {
     // sport: "all" = alle Sportarten (die allgemeine Sessions-Liste „was ist neu"), sonst genau
     // eine. Der Endpunkt-Default ist "pumpfoil"; Rekorde/Bestenlisten bleiben dabei.
     static func communitySessionsGrouped(spot: String? = nil, limit: Int = 20, offset: Int = 0,
-                                         accelOnly: Bool = true, sport: String = "pumpfoil", board: Bool = false) async throws -> [CommunityGroup] {
+                                         accelOnly: Bool = true, sport: String = "pumpfoil", board: Bool = false,
+                                         freunde: Bool = false) async throws -> [CommunityGroup] {
         let sp = (spot?.isEmpty == false) ? "&spot=\(spot!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot!)" : ""
         let b = board ? "&board=true" : ""
-        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)\(b)", method: "GET", body: nil, auth: true)
+        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)\(b)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
     // `period` (today|10d|30d|365d|all) wirkt auf Rekorde UND Gesamtwerte — beides kommt aus
@@ -563,8 +598,8 @@ enum Api {
         return r.has_accel
     }
 
-    static func spots(accelOnly: Bool = true) async throws -> SpotsList {
-        try await request("/api/community/spots?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+    static func spots(accelOnly: Bool = true, freunde: Bool = false) async throws -> SpotsList {
+        try await request("/api/community/spots?accel_only=\(accelOnly)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
     /// Community-Rekorde. Mit `spot` nur die dieses Spots — dann kommen ALLE Zeitfenster in
@@ -573,8 +608,8 @@ enum Api {
     /// `sport`: nil = Endpunkt-Default (pumpfoil), wie bisher. Die Spot-Rekorde fragen seit dem
     /// 29.09.2026 je Sportart einzeln (PWA a9725cb9), s. SpotRecordsView.
     static func communityRecords(accelOnly: Bool = true, foilBand: String = "all",
-                                 spot: String? = nil, sport: String? = nil) async throws -> [String: PeriodRecords] {
-        var pfad = "/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)"
+                                 spot: String? = nil, sport: String? = nil, freunde: Bool = false) async throws -> [String: PeriodRecords] {
+        var pfad = "/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)\(freunde ? "&friends=1" : "")"
         if let sport, !sport.isEmpty { pfad += "&sport=\(sport)" }
         if let spot, !spot.isEmpty {
             let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
@@ -584,8 +619,8 @@ enum Api {
     }
 
     /// Die Foil-Baender fuer die Auswahl „vergleichbare Foils" — mit Session- und Fahrerzahl.
-    static func foilBands(accelOnly: Bool = true) async throws -> [FoilBand] {
-        try await request("/api/community/foil-bands?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+    static func foilBands(accelOnly: Bool = true, freunde: Bool = false) async throws -> [FoilBand] {
+        try await request("/api/community/foil-bands?accel_only=\(accelOnly)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
     static func updateLanguage(_ lang: String) async throws -> Profile {
@@ -611,21 +646,21 @@ enum Api {
         try await request("/api/auth/me/reanalysis", method: "GET", body: nil, auth: true)
     }
 
-    static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all") async throws -> Leaders {
-        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)", method: "GET", body: nil, auth: true)
+    static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all", freunde: Bool = false) async throws -> Leaders {
+        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
-    static func latestPhotos(limit: Int = 8) async throws -> [MediaItem] {
-        try await request("/api/community/latest-photos?limit=\(limit)", method: "GET", body: nil, auth: true)
+    static func latestPhotos(limit: Int = 8, freunde: Bool = false) async throws -> [MediaItem] {
+        try await request("/api/community/latest-photos?limit=\(limit)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
-    static func topLiked(period: String = "all", limit: Int = 5) async throws -> [CommunityItem] {
-        try await request("/api/community/top-liked?period=\(period)&limit=\(limit)", method: "GET", body: nil, auth: true)
+    static func topLiked(period: String = "all", limit: Int = 5, freunde: Bool = false) async throws -> [CommunityItem] {
+        try await request("/api/community/top-liked?period=\(period)&limit=\(limit)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
-    static func spotRecords(_ spot: String, period: String = "all", accelOnly: Bool = true) async throws -> PeriodRecords {
+    static func spotRecords(_ spot: String, period: String = "all", accelOnly: Bool = true, freunde: Bool = false) async throws -> PeriodRecords {
         let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
-        return try await request("/api/community/spot-records?spot=\(s)&period=\(period)&accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+        return try await request("/api/community/spot-records?spot=\(s)&period=\(period)&accel_only=\(accelOnly)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
     static func spotWeather(_ spot: String) async throws -> SpotWeather {
@@ -945,7 +980,13 @@ enum Api {
     // Gruene Spots „gerade aktiv" (PWA spotActive, 14.10.2026; Regeln: server devices.aktive_spots).
     // `spots` = darf selbst gruen werden, `area` = kleiner Spot in einer aktiven Kachel: faerbt nur
     // ein BUENDEL, nie den Spot allein.
-    struct SpotActive: Decodable { var spots: [Int] = []; var area: [Int] = [] }
+    // `friends` (15.10.2026): Freunde, die gerade pumpen, mit Spot — deren Spots werden auch unter
+    // der Schwelle gruen. Der Server liefert sie nur an bestaetigte Freunde.
+    struct SpotActive: Decodable {
+        var spots: [Int] = []; var area: [Int] = []; var friends: [FreundKurz]? = nil
+        /// Spots, die EINZELN gruen werden: die der Regel plus die, an denen ein Freund pumpt.
+        var einzeln: Set<Int> { Set(spots).union((friends ?? []).compactMap { $0.spot_id }) }
+    }
     static func spotActive() async throws -> SpotActive {
         try await request("/api/community/spot-active", method: "GET", body: nil, auth: true)
     }

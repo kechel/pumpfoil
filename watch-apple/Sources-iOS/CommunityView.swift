@@ -35,7 +35,12 @@ struct CommunityView: View {
     // verdrahtet sind (s. FOIL_BANDS in server/app/api/community.py).
     @State private var bands: [FoilBand] = []
     @State private var bandKey = "all"
-    @State private var accelOnly = true
+    @State private var accelWahl = true
+    // Ansicht „Freunde" (Jan, 15.10.2026): die ganze Seite nur ueber mich + meine Freunde — alles,
+    // was accel/alle aendert, filtert dann auf Freunde. Die Statistikzeile oben bleibt global.
+    // Ein reiner Filter, er gibt nichts frei (server app/freunde.py). Freunde zaehlen wie „alle".
+    @State private var freunde = false
+    private var accelOnly: Bool { accelWahl && !freunde }
     @State private var lbMetric = "sessions"
 
     private let periods: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
@@ -119,7 +124,8 @@ struct CommunityView: View {
             .task { if records == nil { await reloadAll() } }
             // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA).
             .onAppear { Task { await refreshMedia() } }
-            .onChange(of: accelOnly) { _ in Task { await reloadAll() } }
+            .onChange(of: accelWahl) { _ in Task { await reloadAll() } }
+            .onChange(of: freunde) { _ in Task { await reloadAll() } }
             .onChange(of: period) { _ in Task { await reloadPeriod() } }
             // Foil-Band gewechselt -> Rekorde UND Bestenlisten neu holen. Fehlte bis 01.09.
             // (Jans Befund im Simulator): die Auswahl aenderte nur die Beschriftung, weil ein
@@ -319,8 +325,9 @@ struct CommunityView: View {
                     }
                 }
                 Spacer()
-                chip("accel", accelOnly) { accelOnly = true }   // kurz wie PWA + Android (13.10.2026)
-                chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
+                chip("accel", accelWahl && !freunde) { freunde = false; accelWahl = true }   // kurz wie PWA + Android (13.10.2026)
+                chip(Loc.t("side.all", lang), !accelWahl && !freunde) { freunde = false; accelWahl = false }
+                chip(Loc.t("friends.title", lang), freunde) { freunde = true }
             }
         }
     }
@@ -434,7 +441,7 @@ struct CommunityView: View {
                             .font(.caption).foregroundStyle(.secondary).buttonStyle(.plain)
                     }
                 }
-                recordGrid(spotRecs["\(accelOnly):\(period):\(sp)"], showSpot: false)
+                recordGrid(spotRecs["\(accelOnly):\(freunde):\(period):\(sp)"], showSpot: false)
             }
         }
     }
@@ -483,14 +490,14 @@ struct CommunityView: View {
     }
 
     private func refreshMedia() async {
-        media = (try? await Api.latestPhotos()) ?? []
+        media = (try? await Api.latestPhotos(freunde: freunde)) ?? []
     }
 
     private func loadBase() async {
         loading = true; defer { loading = false }
         do {
-            records = try await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey); error = nil
-            let bs = (try? await Api.foilBands(accelOnly: accelOnly)) ?? []
+            records = try await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, freunde: freunde); error = nil
+            let bs = (try? await Api.foilBands(accelOnly: accelOnly, freunde: freunde)) ?? []
             bands = bs
             // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
             // sonst stuende man vor leeren Rekorden.
@@ -498,8 +505,8 @@ struct CommunityView: View {
                 bandKey = "all"
             }
             cstats = try? await Api.communityStats()
-            media = (try? await Api.latestPhotos()) ?? []
-            if let sp = try? await Api.spots(accelOnly: false) {
+            media = (try? await Api.latestPhotos(freunde: freunde)) ?? []
+            if let sp = try? await Api.spots(accelOnly: false, freunde: freunde) {
                 spots = sp
                 spotShown = sp.mine ?? []
                 spotRecs = [:]
@@ -510,19 +517,19 @@ struct CommunityView: View {
     /// Nur die bandabhaengigen Teile: Rekorde + Bestenlisten. Spots und Best-bewertet haengen
     /// bewusst NICHT am Band (dort ist der Spot der Vergleich, nicht das Foil).
     private func reloadBand() async {
-        records = (try? await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey)) ?? records
-        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey)
+        records = (try? await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, freunde: freunde)) ?? records
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde)
     }
 
     private func loadPeriod() async {
-        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey)
-        topLiked = (try? await Api.topLiked(period: period)) ?? []
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde)
+        topLiked = (try? await Api.topLiked(period: period, freunde: freunde)) ?? []
     }
 
     private func loadSpotRecs() async {
         for sp in spotShown {
-            let key = "\(accelOnly):\(period):\(sp)"
-            if spotRecs[key] == nil, let r = try? await Api.spotRecords(sp, period: period, accelOnly: accelOnly) {
+            let key = "\(accelOnly):\(freunde):\(period):\(sp)"
+            if spotRecs[key] == nil, let r = try? await Api.spotRecords(sp, period: period, accelOnly: accelOnly, freunde: freunde) {
                 spotRecs[key] = r
             }
         }

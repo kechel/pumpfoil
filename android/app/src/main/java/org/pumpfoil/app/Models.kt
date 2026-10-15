@@ -1379,6 +1379,30 @@ data class FoilerProfil(
     // Die letzten FUENF — dieselbe Form wie die eigene Liste, ohne Besitzer-Felder. Die Grenze
     // zieht der Server (keine Sessionliste je Nutzer, Entscheidung 04.09./08.09.2026).
     val sessions: List<SessionSummary> = emptyList(),
+    // Freunde (15.10.2026): mein Stand zu ihm ("freund" | "angefragt" | "eingehend" | null), ob eine
+    // Anfrage ueberhaupt geht, und das Gewicht — das liefert der Server nur Freunden und mir selbst.
+    val freundschaft: String? = null,
+    @SerialName("freundschaft_moeglich") val freundschaftMoeglich: Boolean = false,
+    @SerialName("gewicht_kg") val gewichtKg: Double? = null,
+)
+
+@Serializable
+data class FreundKurz(
+    @SerialName("user_id") val userId: Int,
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val seit: String? = null,      // nur bei Freunden
+    val am: String? = null,        // nur bei Anfragen
+    @SerialName("spot_id") val spotId: Int? = null,   // nur bei „gerade am Pumpen"
+    val spot: String? = null,
+)
+
+@Serializable
+data class FreundeListe(
+    val freunde: List<FreundKurz> = emptyList(),
+    val eingehend: List<FreundKurz> = emptyList(),
+    val ausgehend: List<FreundKurz> = emptyList(),
+    val aktiv: List<FreundKurz> = emptyList(),
 )
 
 @Serializable
