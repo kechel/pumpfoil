@@ -971,6 +971,7 @@ NAECHSTES: list[dict] = [
          "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
          "The session list and the Community page have a Friends view with only you and your friends.",
          "Home shows which of your friends are pumping right now and where.",
+         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
      ]},
     # iPhone + Apple Watch 1.1.49 am 15.10. eingereicht -> IN_REVIEW.
     # 15.10.2026: Brett-Automatik-Hinweis (wie Android), Code nur swiftc -parse.
@@ -981,6 +982,7 @@ NAECHSTES: list[dict] = [
          "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
          "The session list and the Community page have a Friends view with only you and your friends.",
          "Home shows which of your friends are pumping right now and where.",
+         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
      ]},
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     {"name": "Wear OS", "version": "1.2.43",

@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -97,6 +99,10 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     var aktivEinzeln by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var aktivGegend by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var nurAktiv by remember { mutableStateOf(false) }
+    // Heatmap (Jan, 15.10.2026, wie Spots.tsx): null = aus, sonst "30d" | "365d". Ein zweiter
+    // Tipp auf den gewaehlten Zeitraum schaltet sie ab.
+    var heat by remember { mutableStateOf<String?>(null) }
+    var heatSessions by remember { mutableStateOf<Int?>(null) }
     // Alle 120 s nachfragen, solange die Seite offen ist (wie die PWA). Ein Fehler laesst den
     // letzten Stand stehen — die Karte darf daran nie scheitern.
     LaunchedEffect(Unit) {
@@ -206,6 +212,14 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 SportDropdown(sports, sport, Modifier.align(Alignment.CenterVertically)) { sport = it }
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterVertically),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(I18n.t("spots.heatmap"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    listOf("30d", "365d").forEach { p ->
+                        FilterChip(selected = heat == p, onClick = { heat = if (heat == p) null else p },
+                            label = { Text(I18n.t("period.$p")) }, colors = cyanChipColors())
+                    }
+                }
                 // Auch hier: sichtbar, solange etwas aktiv ist oder der Haken sitzt (Weg zurueck).
                 if (aktivEinzeln.isNotEmpty() || aktivGegend.isNotEmpty() || nurAktiv) {
                     Row(
@@ -279,6 +293,12 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 karte, sichtbar, oeffneSpot, startSpot, aktivEinzeln, aktivGegend,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
+            HeatmapLaden(karte, heat) { heatSessions = it }
+            if (heat != null && heatSessions != null) {
+                Text("${I18n.t("spots.heatHint")} · $heatSessions ${I18n.t("side.sessions")}",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+            }
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
             if (loading && items.isEmpty()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -520,7 +540,8 @@ private const val HEIM_ZOOM = 9.0
 // gruen — sonst liesse sich ablesen, wer dort gerade faehrt.
 private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (String) -> Unit,
                         einzeln: Set<Int> = emptySet(), gegend: Set<Int> = emptySet()) {
-    map.overlays.clear()
+    // Die Heatmap bleibt liegen (sie hat ihren eigenen Ablauf, s. HeatOverlay), nur die Pins gehen.
+    map.overlays.removeAll { it !is HeatOverlay }
     val d = map.context.resources.displayMetrics.density
     val gruppen = buendelSpots(items, map.zoomLevelDouble, (d * 24).toDouble())
     val punkt = cyanDot(map.context)

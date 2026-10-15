@@ -14,6 +14,16 @@ const GRUEN = "#4ade80";
 
 type Spot = { spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number };
 
+// Heatmap-Farbe fuer t in [0, 1]: blau -> cyan -> gelb -> rot, wie man es von Heatmaps kennt.
+function heatFarbe(t: number): string {
+  const stops: [number, number, number][] = [[59, 130, 246], [34, 211, 238], [250, 204, 21], [239, 68, 68]];
+  const x = t * (stops.length - 1);
+  const i = Math.min(stops.length - 2, Math.floor(x));
+  const f = x - i;
+  const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
 // Spot-Namen kommen aus dem Geocoder bzw. einer Admin-Umbenennung und landen im Tooltip-HTML —
 // deshalb maskieren, statt darauf zu vertrauen, dass nie eine spitze Klammer darin steht.
 function esc(x: string) {
@@ -49,6 +59,12 @@ export default function Spots() {
     const iv = window.setInterval(holen, 120_000);
     return () => { weg = true; window.clearInterval(iv); };
   }, []);
+  // Heatmap (Jan, 15.10.2026): wo auf dem Wasser gefahren wird — Zahl der Sessions je Zelle, nur
+  // die Laeufe, fuer alle gleich und einmal taeglich vorgerechnet (server app/heatmap.py).
+  // null = aus; ein zweiter Klick auf den gewaehlten Zeitraum schaltet sie wieder ab.
+  const [heat, setHeat] = useState<"30d" | "365d" | null>(null);
+  const [heatStand, setHeatStand] = useState<{ stand: string | null; sessions: number } | null>(null);
+  const heatLayer = useRef<L.LayerGroup | null>(null);
   // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing"). Default „all" wie
   // bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
   const [sport, setSport] = useState("all");
@@ -212,6 +228,51 @@ export default function Spots() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spots, nav, spotsLabel, sport, aktiv]);
 
+  // Heatmap-Zellen fuer den aktuellen Ausschnitt nachladen (bei jeder Bewegung, kurz entprellt).
+  // Unter den Spot-Markern (eigene Ebene, zuerst angelegt), damit die Spots klickbar bleiben.
+  useEffect(() => {
+    const m = mapObj.current;
+    if (!m) return;
+    if (!heatLayer.current) {
+      m.createPane("heat");
+      const pane = m.getPane("heat");
+      if (pane) { pane.style.zIndex = "350"; pane.style.pointerEvents = "none"; }
+      heatLayer.current = L.layerGroup().addTo(m);
+    }
+    const grp = heatLayer.current;
+    if (!heat) { grp.clearLayers(); setHeatStand(null); return; }
+    const renderer = L.canvas({ pane: "heat", padding: 0.2 });
+    let weg = false;
+    let timer: number | undefined;
+    const laden = () => {
+      const b = m.getBounds();
+      api.heatmap(heat, m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth())
+        .then((r) => {
+          if (weg) return;
+          grp.clearLayers();
+          setHeatStand({ stand: r.stand, sessions: r.sessions });
+          if (r.z == null) return;
+          const n = 2 ** r.z;
+          const lon = (x: number) => (x / n) * 360 - 180;
+          const lat = (y: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n))) * 180) / Math.PI;
+          const ln = Math.log(1 + r.max);
+          for (const [x, y, c] of r.cells) {
+            const t = Math.min(1, Math.log(1 + c) / ln);
+            grp.addLayer(L.rectangle([[lat(y + 1), lon(x)], [lat(y), lon(x + 1)]], {
+              renderer, stroke: false, interactive: false,
+              fillColor: heatFarbe(t), fillOpacity: 0.35 + 0.45 * t,
+            }));
+          }
+        })
+        .catch(() => {});
+    };
+    const spaeter = () => { window.clearTimeout(timer); timer = window.setTimeout(laden, 250); };
+    laden();
+    m.on("moveend", spaeter);
+    return () => { weg = true; window.clearTimeout(timer); m.off("moveend", spaeter); };
+  // `spots` mit drin: die Karte entsteht erst, wenn die Spots da sind.
+  }, [heat, spots]);
+
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
@@ -273,6 +334,20 @@ export default function Spots() {
             {/* Die Auswahlliste „Spot waehlen …" daneben ist am 14.10.2026 raus (Jan): sie tat dasselbe
                 wie das Suchfeld, und bei 578 Spots blaettert niemand mehr durch. Das Suchfeld zeigt die
                 Namen beim Tippen ohnehin als Vorschlaege (datalist). */}
+          </div>
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold text-slate-300">{t("spots.heatmap")}</span>
+            {(["30d", "365d"] as const).map((p) => (
+              <button key={p} onClick={() => setHeat(heat === p ? null : p)} aria-pressed={heat === p}
+                className={`rounded-full border px-3 py-1 ${heat === p
+                  ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+                  : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
+                {t(`period.${p}`)}
+              </button>
+            ))}
+            {heat && heatStand && (
+              <span className="text-slate-400">{t("spots.heatHint")} · {heatStand.sessions} {t("side.sessions")}</span>
+            )}
           </div>
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
           <p className="mt-2 flex gap-2 text-sm text-slate-400">

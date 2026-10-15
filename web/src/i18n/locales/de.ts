@@ -771,6 +771,8 @@ const de: Record<string, string> = {
   "spotnote.uploadFail": "Foto konnte nicht gespeichert werden.",
   "spots.onlyWithNotes": "Nur mit Beschreibung",
   "spots.onlyActive": "Gerade aktiv",
+  "spots.heatmap": "Heatmap",
+  "spots.heatHint": "Farbe = wie viele Sessions dort gefahren sind (nur die Läufe), täglich aktualisiert.",
   "spots.activeLegend": "Grün: dort ist vermutlich gerade jemand auf dem Wasser. Ein einzelner Spot wird nur grün, wenn dort in den letzten 180 Tagen mindestens 4 Leute gepumpt haben. Ein Bündel wird auch für kleinere Spots in der Nähe grün, wenn diese zusammen in den letzten 90 Tagen mehr als 5 Fahrer hatten. „Aktiv“ heißt: Uhr oder Handy hat sich in den letzten 2 Stunden gemeldet.",
   "sd.spotPage": "Spot-Sessions & Beschreibung",
   "sessions.mySpots": "Meine Spots",

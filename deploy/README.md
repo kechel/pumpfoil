@@ -145,6 +145,11 @@ Aktive Timer (`systemctl list-timers | grep foil`):
 
 Nichts geht verloren, wenn **DB + `data/` + `media/`** gesichert sind — genau das tut
 `backup-latest.sh`:
+- **foil-heatmap.timer** (täglich **03:45**) → `scripts/heatmap-rechnen.py`: Heatmap der Spot-Karte
+  (`app/heatmap.py`) nach `server/data/heatmap/`. Liest nur; rechnet nur neue/geänderte Sessions
+  nach (auch Importe in die Vergangenheit, Fingerabdruck je Session). Installieren:
+  sudo cp deploy/foil-heatmap.{service,timer} /etc/systemd/system/
+  sudo systemctl daemon-reload && sudo systemctl enable --now foil-heatmap.timer
 - **Postgres** (`pg_dump --format=custom`, OHNE Tabellenfilter) → **alle** Tabellen automatisch,
   inkl. künftig neu hinzukommender (z. B. `record_snapshots`/`record_events`). Kein Pflegeaufwand
   pro Tabelle.

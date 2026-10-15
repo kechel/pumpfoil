@@ -31,7 +31,7 @@ export type AktiverFreund = FreundKurz & { spot_id: number | null; spot: string 
 export function setFreundeAnsicht(an: boolean) { freundeAnsicht = an; }
 function mitFreunden(path: string): string {
   if (!freundeAnsicht || !path.startsWith("/api/community/")
-      || /^\/api\/community\/(stats|spot-active|foiler)/.test(path)) return path;
+      || /^\/api\/community\/(stats|spot-active|foiler|heatmap)/.test(path)) return path;
   return path + (path.includes("?") ? "&" : "?") + "friends=1";
 }
 
@@ -1180,6 +1180,10 @@ export const api = {
   // Freunde (15.10.2026): Liste + Anfragen, Regeln in server/app/freunde.py.
   friends: () => req<{ freunde: (FreundKurz & { seit: string })[]; eingehend: (FreundKurz & { am: string })[];
                        ausgehend: (FreundKurz & { am: string })[]; aktiv: AktiverFreund[] }>("/api/friends"),
+  // Heatmap der Spot-Karte (app/heatmap.py): Kachel-Zellen (x, y, Sessions) auf Stufe `z`.
+  heatmap: (period: "30d" | "365d", z: number, w: number, s: number, e: number, n: number) =>
+    req<{ z: number | null; cells: [number, number, number][]; max: number; stand: string | null; sessions: number }>(
+      `/api/community/heatmap?period=${period}&z=${z}&w=${w}&s=${s}&e=${e}&n=${n}`),
   friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
   // Nur „wer von meinen Freunden pumpt gerade wo" — Startseite (FreundePumpen.tsx).
   friendsActive: () => req<AktiverFreund[]>("/api/friends/active"),

@@ -2109,6 +2109,8 @@ const nb: Record<string, string> = {
   "spotnote.write": "Min stedsbeskrivelse",
   "spots.onlyWithNotes": "Kun med beskrivelse",
   "spots.onlyActive": "Aktiv nå",
+  "spots.heatmap": "Varmekart",
+  "spots.heatHint": "Farge = hvor mange økter som er kjørt der (bare løpene), oppdateres daglig.",
   "spots.activeLegend": "Grønn: noen er trolig på vannet akkurat nå. Et enkelt spot blir bare grønt hvis minst 4 ryttere har pumpet der de siste 180 dagene. En gruppe blir også grønn for mindre spots i nærheten, hvis de til sammen hadde mer enn 5 ryttere de siste 90 dagene. «Aktiv» betyr at en klokke eller telefon meldte seg de siste 2 timene.",
   "watches.nStrava": "Import ville vært teknisk mulig, men API-et gir ikke rå akselerometerdata med høy rate (altså ingen pumpegjenkjenning), og det ligger bak en betalingsmur med API-vilkår som ikke passer et åpent prosjekt — bevisst ikke integrert.",
   "watches.subStrava": "aktivitetsportal",

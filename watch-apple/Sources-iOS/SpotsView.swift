@@ -66,6 +66,10 @@ struct SpotsView: View {
     @State private var aktivEinzeln: Set<Int> = []
     @State private var aktivGegend: Set<Int> = []
     @State private var nurAktiv = false
+    // Heatmap (Jan, 15.10.2026, wie Spots.tsx): nil = aus, sonst "30d" | "365d". Ein zweiter Tipp
+    // auf den gewaehlten Zeitraum schaltet sie ab. Geholt je Ausschnitt, s. `heatSchluessel`.
+    @State private var heat: String?
+    @State private var heatDaten: HeatAntwort?
     // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing", PWA Spots.tsx). Default
     // „all" wie bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
     @State private var sport = "all"
@@ -159,6 +163,35 @@ struct SpotsView: View {
         return aktivEinzeln.contains(id)
     }
 
+    /// Heatmap-Umschalter: „30 Tage" / „1 Jahr", ein zweiter Tipp schaltet ab. Darunter der Hinweis,
+    /// was die Farbe bedeutet.
+    @ViewBuilder private var heatZeile: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text(Loc.t("spots.heatmap", lang)).font(.subheadline.weight(.semibold))
+                heatKnopf("30d")
+                heatKnopf("365d")
+            }
+            if heat != nil, let d = heatDaten {
+                Text("\(Loc.t("spots.heatHint", lang)) · \(d.sessions) \(Loc.t("side.sessions", lang))")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    // Eigener Button-Stil je Knopf: zwei Knoepfe in einer Listenzeile loesen sonst beide aus
+    // (swiftui-listenzeile-mehrere-knoepfe).
+    private func heatKnopf(_ p: String) -> some View {
+        let an: Bool = heat == p
+        return Button { heat = an ? nil : p } label: {
+            Text(Loc.t("period.\(p)", lang)).font(.subheadline)
+                .padding(.horizontal, 10).padding(.vertical, 4)
+                .foregroundStyle(an ? Color.black : Color.primary)
+                .background(Capsule().fill(an ? Color.accentColor : Color.secondary.opacity(0.15)))
+        }
+        .buttonStyle(.borderless)
+    }
+
     @ViewBuilder private var karteOben: some View {
         if !items.isEmpty {
             spotKarte
@@ -173,7 +206,38 @@ struct SpotsView: View {
                 .onChange(of: region.span.longitudeDelta) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
                 .onChange(of: region.center.latitude) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
                 .onChange(of: region.center.longitude) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
+                .overlay { heatSchicht }
+                .task(id: heatSchluessel) { await heatLaden() }
                 .mitKartenUmschalter()
+        }
+    }
+
+    @ViewBuilder private var heatSchicht: some View {
+        if heat != nil, let d = heatDaten { HeatSchicht(daten: d, region: region) }
+    }
+
+    /// Neu holen, wenn Zeitraum oder Ausschnitt sich aendern (auf ~1/20 der Spanne gerundet, damit
+    /// nicht jedes Pixel Schwenk eine Anfrage ausloest).
+    private var heatSchluessel: String {
+        guard let h = heat else { return "aus" }
+        let s: Double = Swift.max(region.span.longitudeDelta / 20, 0.000_1)
+        let la: Int = Int((region.center.latitude / s).rounded())
+        let lo: Int = Int((region.center.longitude / s).rounded())
+        return "\(h)|\(kartenZoom(region, breite: kartenBreite))|\(la)|\(lo)"
+    }
+
+    private func heatLaden() async {
+        guard let h = heat else { heatDaten = nil; return }
+        try? await Task.sleep(nanoseconds: 300_000_000)   // entprellen: der Task bricht beim naechsten Wechsel ab
+        if Task.isCancelled { return }
+        let r: MKCoordinateRegion = region
+        let w: Double = r.center.longitude - r.span.longitudeDelta / 2
+        let e: Double = r.center.longitude + r.span.longitudeDelta / 2
+        let s: Double = r.center.latitude - r.span.latitudeDelta / 2
+        let n: Double = r.center.latitude + r.span.latitudeDelta / 2
+        if let d = try? await Api.heatmap(period: h, z: kartenZoom(r, breite: kartenBreite), w: w, s: s, e: e, n: n),
+           !Task.isCancelled, heat == h {
+            heatDaten = d
         }
     }
 
@@ -279,6 +343,7 @@ struct SpotsView: View {
 
     @ViewBuilder private var kopfSection: some View {
         Section {
+            heatZeile
             if SportFilterMenu.zeigen(sport: sport, sports: sports) {
                 SportFilterMenu(sport: sport, sports: sports, lang: lang) { sport = $0 }
             }
