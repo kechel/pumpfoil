@@ -1476,6 +1476,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **15.10. — Idee: Heatmap auf der Spot-Karte, umschaltbar „letzte 30 Tage" / „letztes Jahr".**
+  Aus dem Gespraech mit u683 (DM, Jans Antwort 16:39: „heatmap is a nice idea, maybe switchable
+  between 'last 30 days' and 'last year'"); derselbe Wunsch kam schon als „wo fahren die Leute
+  typischerweise". Zeigt, WO auf dem Wasser gefahren wird, nicht nur den Startsteg. Vor dem Bau zu
+  klaeren: (1) Datenschutz — verborgene Orte (Point Nemo) und Sessions mit „Ort verbergen" MUESSEN
+  draussen bleiben, und an kleinen Spots (unter `devices.SPOT_MIN_FAHRER`) liesse sich ablesen,
+  wer da faehrt -> dort erst ab einer Mindestzahl Fahrer zeigen; (2) nur Laeufe (on-foil), nicht
+  Schwimmen/Paddeln dazwischen (s. GPS-Luecken = Uhr unter Wasser); (3) serverseitig vorgerechnet
+  (Raster je Zoomstufe, Kacheln oder ein Punktgitter), nicht Rohpunkte an den Browser; (4) auch in
+  Android/iOS (osmdroid/MapKit), sonst wieder eine Web-only-Funktion.
 - **👥 15.10. — Freunde ✅ LIVE (Server + PWA).** Jans Konzept: gegenseitige Freundschaft mit zwei
   Zustimmungen, kein Schalter — der Dialog sagt woertlich, was Freunde sehen. Freigegeben: ganze
   Foiler-Seite (auch abgeschaltet), Gewicht, „gerade am Pumpen" mit Spot (gruen auch unter der
