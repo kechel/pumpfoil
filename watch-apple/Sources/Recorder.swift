@@ -845,6 +845,10 @@ extension Recorder: CLLocationManagerDelegate {
             // Bereitschaft gilt auch VOR der Aufnahme (Vorwaermen). hAcc <= 0 heisst „ungueltig".
             if loc.horizontalAccuracy > 0 && loc.horizontalAccuracy <= Self.gpsFixAccM {
                 self.gpsBereit = true
+                // Startbildschirm, erster brauchbarer Fix -> Spot-Meldung an den Server (Api).
+                if !self.isRecording {
+                    Api.meldePosition(lat: loc.coordinate.latitude, lon: loc.coordinate.longitude)
+                }
             }
             // Ab hier geht es nur um die laufende Aufnahme: waehrend des Vorwaermens darf nichts
             // in den GPS-Puffer, sonst stuenden dort Punkte mit Zeiten vor dem Sessionstart.

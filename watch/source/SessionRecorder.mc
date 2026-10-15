@@ -1955,7 +1955,11 @@ class SessionRecorder {
             _idleSpeed = info.speed == null ? 0.0 : info.speed;
             // Im Idle nur den Fix vorwärmen/anzeigen, aber nichts in die Session puffern.
             // Pausiert: ebenfalls nichts puffern (Sicherung; LocationEvents sind eh aus).
-            if (!_recording || _paused) { return; }
+            if (!_recording || _paused) {
+                // Startbildschirm: erster brauchbarer Fix -> Spot-Meldung an den Server (PhoneRec).
+                if (!_recording && _hasGpsFix) { PhoneRec.meldePosition(info.position.toDegrees()); }
+                return;
+            }
             var deg = info.position.toDegrees();
             var spd = info.speed == null ? 0.0 : info.speed;
             _gpsPunkt([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy], spd);

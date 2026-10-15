@@ -1476,6 +1476,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **15.10. — „Gerade am Pumpen": Spot aus Uhr-Position und Upload. Server ✅ LIVE (8b958905), Uhren im
+  Code.** Jans Vorgaben: die Uhr meldet im Startbildschirm beim ersten GPS-Fix einmal ihre Position;
+  Spot <= 1 km -> dort aktiv, sonst zaehlt man NICHT (Emulator zu Hause). Ein Upload ersetzt den Spot;
+  0 erkannte Laeufe oder geloescht -> sofort raus. Server: `POST /api/devices/position` (gespeichert
+  nur `pos_at` + `pos_spot_id`, keine Koordinaten), Regeln in `devices._zustand` (juengstes Signal
+  gewinnt; Handy-Aufnahme 1 km statt 5 km, ohne Rueckfall; ohne Signal wie bisher letzte Session —
+  fuer alte Uhr-Apps). Gilt fuer Zaehler, gruene Spots, Freunde. Datenschutz `imp.owner6` in 18 Sprachen.
+  Auf echten Daten beim Einschalten: von 5 Kandidaten fielen 2 heraus, beide mit einer 0-Lauf-Session
+  als letztem Upload. Bekannte Grenze: die gruenen Spots haben weiter ihren 60-s-Speicher je Worker.
+  - Garmin (PhoneRec.meldePosition, auch lite: +0,5 KB): gebaut fenix7xpro/instinct2/fr55/fenix6,
+    **nicht auf echter Uhr geprueft** (Simulator gibt es auf der VM nicht). -> NAECHSTES 1.0.94.
+  - Wear OS: im VM-Emulator geprueft (fern -> Spot keiner, Neustart am Illmensee -> Spot 18). -> 1.2.43.
+  - Apple Watch: nur `swiftc -parse`. -> 1.1.50.
+  - Huawei Watch 5 (arkts): EINE Einzelabfrage `getCurrentLocation` im Bereit-Zustand (ohne Auto-Start
+    laeuft dort kein GPS-Abo), Build ok, ungeprueft. -> 1.0.3.
+  - **Offen, wenn die Linien kommen: Huawei GT/Fit/D (lite) und Watch 3/4 (wearable) brauchen dasselbe**
+    (Jan, 15.10.). Ebenso Amazfit (nicht mitgemacht, Zepp-Beitragender) und die Handy-Recorder ohne
+    Live-Upload (melden ihren Ort erst mit dem Upload).
 - **15.10. — Heatmap auf der Spot-Karte ✅ LIVE (Web, Android/iOS im Code).** Jans Vorgaben: der
   oeffentliche Ort (verborgene also an Point Nemo), Zahl der SESSIONS je Zelle (nicht Laeufe), nur
   die Laeufe als Spur, fuer alle gleich (keine Freunde/Sonderrechte), umschaltbar 30 Tage / 12

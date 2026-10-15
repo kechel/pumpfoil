@@ -976,6 +976,8 @@ NAECHSTES: list[dict] = [
          "The session list and the Community page have a Friends view with only you and your friends.",
          "Home shows which of your friends are pumping right now and where.",
          "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
+         # 15.10.2026: Apple Watch meldet den Spot beim ersten GPS-Fix (Server 8b958905).
+         "On the Apple Watch: once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
      ]},
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     {"name": "Wear OS", "version": "1.2.43",
@@ -983,10 +985,20 @@ NAECHSTES: list[dict] = [
          "The watch start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
          # 15.10.2026 (deb99c81): Waechter riss die Uebung ab, wenn die Uhr eine Weile im Wasser war (#16671).
          "Heart rate and the more accurate GPS keep recording after your watch has been underwater for a few minutes.",
+         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
      ]},
     {"name": "Huawei Watch 5", "version": "1.0.3",
      "items": [
          "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
+         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
+     ]},
+    # 15.10.2026 (Jan): Spot-Meldung beim ersten GPS-Fix (Server 8b958905), auch auf den 96-KB-Uhren
+    # (+0,5 KB). Nicht gebumpt (1.0.93 ist live), gebaut wird erst zur Einreichung.
+    {"name": "Garmin", "version": "1.0.94",
+     "items": [
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
      ]},
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll

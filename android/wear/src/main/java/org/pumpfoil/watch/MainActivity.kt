@@ -104,6 +104,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(ambient)
         Api.load(applicationContext)
+        Api.positionNeu()               // Spot-Meldung beim ersten GPS-Fix, einmal je App-Start
         I18n.load(applicationContext)   // gecachte Profil-Sprache (offline-tauglich)
         // Kann Health Services hier Ortung fuer Uebungen? Ergebnis cachen, der Aufnahme-Dienst liest
         // es beim Start (GPS nach Doku, Wear 1.2.40; s. RecorderService.hsOrtMoeglich).
@@ -1248,6 +1249,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                         (SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) < 5_000_000_000L
                     if (l.hasAccuracy()) genau.sehen(l.accuracy.toDouble())
                     gpsBereit = l.hasAccuracy() && !genau.zuUngenau(l.accuracy.toDouble()) && frisch
+                    // Startbildschirm, erster brauchbarer Fix -> Spot-Meldung an den Server (Api).
+                    if (gpsBereit && !Recorder.state.value.recording) Api.meldePosition(l.latitude, l.longitude)
                     if (!autoScharf.value) {
                         streak = 0
                     } else {
