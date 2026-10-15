@@ -1789,13 +1789,13 @@ def _spots_mit_ort(db: Session) -> dict[int, models.Spot]:
 
 
 def _spots_fuer_position(db: Session, spots: dict[int, models.Spot] | None = None) -> dict[int, models.Spot]:
-    """Nur Spots, an denen mindestens eine GUELTIGE Session haengt (nicht geloescht, nicht
-    aussortiert). Verwaiste Spot-Zeilen (alte geloeschte Test-Sessions, z. B. „Burgweiler 3" neben
-    Jans Wohnort, 16.10.2026: 32 von 654) duerfen eine Position nie zu „pumpt gerade" machen."""
+    """Nur Spots, an denen mindestens eine GUELTIGE Session haengt (`spots.gueltig_fuer_spot`).
+    Verwaiste Spot-Zeilen (alte geloeschte Test-Sessions, z. B. „Burgweiler 3" neben Jans Wohnort,
+    16.10.2026: 32 von 654) duerfen eine Position nie zu „pumpt gerade" machen."""
+    from ..spots import gueltig_fuer_spot
     spots = spots if spots is not None else _spots_mit_ort(db)
     ids = {sid for (sid,) in db.query(models.Session.spot_id)
-           .filter(models.Session.spot_id.isnot(None), models.Session.deleted.isnot(True),
-                   models.Session.is_pumpfoil.isnot(False)).distinct()}
+           .filter(models.Session.spot_id.isnot(None), gueltig_fuer_spot()).distinct()}
     return {k: v for k, v in spots.items() if k in ids}
 
 

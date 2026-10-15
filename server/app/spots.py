@@ -649,6 +649,21 @@ def _notes_umhaengen(db, quelle_id: int, ziel_id: int) -> None:
     db.flush()
 
 
+def gueltig_fuer_spot():
+    """SQL-Bedingung: diese Session haelt einen Spot am Leben (Jan, 16.10.2026: „alle Spots, die
+    irgendeine Session haben, die nicht aussortiert oder geloescht wurde" — die Spot-Karte zeigt
+    unter „All sports" auch andere Sportarten). Nicht geloescht UND nicht aussortiert: die Erkennung
+    sagt Pumpfoil (oder hat noch nicht entschieden), ODER ein Mensch hat eine andere Sportart
+    zugeordnet — dieselbe Trennung wie die Sessionliste (`sessions._in_liste_cond`)."""
+    from sqlalchemy import and_, or_
+    from . import models
+    S = models.Session
+    return and_(S.deleted.isnot(True),
+                or_(S.is_pumpfoil.isnot(False),
+                    and_(S.sport_source.in_(("owner", "admin")), S.sport_class.isnot(None),
+                         S.sport_class != "pumpfoil")))
+
+
 def _session_count(db, spot_id: int) -> int:
     from . import models
     return (db.query(models.Session)
@@ -780,16 +795,18 @@ def _sperre_koordinate(db, punkt) -> None:
         pass          # Sperre ist Beschleuniger, nicht Bedingung — Riegel 2 traegt allein.
 
 
-def assign_one(db, s):
+def assign_one(db, s, erzwingen: bool = False):
     """Laufende Zuordnung einer EINZELNEN (neu analysierten) Session zu einem Spot.
-    Setzt spot_id + place_name + place_water. Legt bei Bedarf einen neuen Spot an."""
+    Setzt spot_id + place_name + place_water. Legt bei Bedarf einen neuen Spot an.
+    `erzwingen`: auch ohne Pumpfoil-Laeufe (Wiederherstellen von Spots zugeordneter anderer
+    Sportarten, 16.10.2026) — die laufende Zuordnung nach der Analyse nutzt das nicht."""
     from . import models
     g = _session_geom(db, s)
     if g is None:
         return
     # Spot nur fuer echte Pumpfoil-Sessions mit On-Foil. Sonst: nur Name (kein Spot).
     r = s.result
-    if not (s.is_pumpfoil and r and (r.num_runs or 0) > 0):
+    if not erzwingen and not (s.is_pumpfoil and r and (r.num_runs or 0) > 0):
         name, src, water = name_for(*g.start)
         s.spot_id = None
         if name:

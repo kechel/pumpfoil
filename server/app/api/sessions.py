@@ -1866,7 +1866,9 @@ def _spot_aufraeumen(db: Session, spot_id: int | None) -> bool:
     selber ggf. den spot wieder loeschen wenn es keine anderen gueltigen sessions an dem spot mehr
     gibt danach").
 
-    Gueltig = nicht geloescht UND nicht aussortiert (`is_pumpfoil` nicht False). Beim ANLEGEN war
+    Gueltig = nicht geloescht UND nicht aussortiert (`spots.gueltig_fuer_spot`: Erkennung sagt Pumpfoil
+    ODER ein Mensch hat eine andere Sportart zugeordnet; bis 16.10.2026 nur `is_pumpfoil` nicht False,
+    damit fielen zugeordnete Wing-/Kite-Spots mit weg). Beim ANLEGEN war
     das schon richtig — `assign_one` vergibt einen Spot nur fuer Pumpfoil mit Laeufen —, aber beim
     nachtraeglichen Aussortieren/Loeschen blieb die Spot-Zeile stehen und tauchte als Waise auf der
     Karte auf.
@@ -1880,10 +1882,9 @@ def _spot_aufraeumen(db: Session, spot_id: int | None) -> bool:
     """
     if not spot_id:
         return False
+    from ..spots import gueltig_fuer_spot
     gueltig = (db.query(models.Session.id)
-               .filter(models.Session.spot_id == spot_id,
-                       models.Session.deleted.isnot(True),
-                       models.Session.is_pumpfoil.isnot(False))
+               .filter(models.Session.spot_id == spot_id, gueltig_fuer_spot())
                .first())
     if gueltig is not None:
         return False
