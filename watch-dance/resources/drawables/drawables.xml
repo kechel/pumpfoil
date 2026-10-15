@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drawables>
+  <!-- Marken-Icon (Pumpfoil: cyan + Wellen), aus dem Watch-Icon icon-1024.png auf 108px
+       herunterskaliert (Garmin skaliert je Gerät weiter). -->
+  <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
+</drawables>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Connect-IQ-Manifest. Die application-id ist ein Platzhalter-UUID; beim ersten
+  echten Build mit der VS-Code-Extension ("Generate a new App") neu erzeugen.
+  Permissions decken: GPS (Positioning), Roh-Accel (Sensor), Upload (Communications),
+  Hintergrund-Upload (Background) und FIT-Custom-Fields (FitContributor) ab.
+-->
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
+  <iq:application
+      entry="FoilApp"
+      id="bd24f834c0954ad6a255b555819392f9"
+      launcherIcon="@Drawables.LauncherIcon"
+      minApiLevel="2.4.0"
+      name="@Strings.AppName"
+      type="watch-app">
+    <iq:products>
+      <!-- DANCE: nur Jans Testuhr -->
+      <iq:product id="fenix7xpro"/>
+    </iq:products>
+    <iq:permissions>
+      <iq:uses-permission id="Positioning"/>
+      <iq:uses-permission id="Sensor"/>
+      <iq:uses-permission id="SensorLogging"/>
+      <iq:uses-permission id="Communications"/>
+      <iq:uses-permission id="Fit"/>
+      <iq:uses-permission id="FitContributor"/>
+    </iq:permissions>
+    <iq:languages>
+      <iq:language>deu</iq:language>
+      <iq:language>eng</iq:language>
+    </iq:languages>
+  </iq:application>
+</iq:manifest>

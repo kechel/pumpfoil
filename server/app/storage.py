@@ -99,6 +99,19 @@ def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None 
     return len(raw) // 2 // 3
 
 
+def save_hr_chunk(session_uuid: str, index: int, data: list) -> int:
+    """Puls-Chunk OHNE Position (Jan, 16.10.2026: Tanz-Variante der Garmin-App, ohne GPS).
+
+    Sonst steckt der Puls in den GPS-Zeilen (Feld 5). Zeilen ohne Position darf es dort nicht geben —
+    die Auswertung sucht zu jeder Position das Gewaesser und bricht an `None` ab (geprueft 16.10.).
+    Deshalb ein eigener Kanal: `[[t_ms, bpm], ...]`, t_ms wie ueberall seit Session-Start. Die
+    Auswertung liest ihn heute NICHT, die Daten werden gesammelt."""
+    d = ensure_session_dir(session_uuid)
+    (d / "hr").mkdir(parents=True, exist_ok=True)
+    (d / "hr" / f"{index}.json").write_text(json.dumps(data))
+    return len(data)
+
+
 def save_gyro_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None = None) -> int:
     """Drehraten-Chunk ablegen — gleiche Form wie Accel, eigenes Verzeichnis.
 

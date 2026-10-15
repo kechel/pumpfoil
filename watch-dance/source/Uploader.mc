@@ -1,0 +1,799 @@
+using Toybox.Communications;
+using Toybox.Application;
+using Toybox.Application.Storage;
+using Toybox.StringUtil;
+using Toybox.System;
+using Toybox.Lang;
+using Toybox.PersistedContent;
+using Toybox.Timer;
+
+// Robuster Multi-Session-Sync der gepufferten Roh-Sessions an den Server.
+//
+// Eigenschaften:
+//  - merkt sich alle noch nicht vollständig hochgeladenen Sessions ("sessions"-Index)
+//    und holt sie später nach (Verbindungen brechen ab / fehlen) — idempotent.
+//  - lädt pro Session nur die noch fehlenden Chunks (Wasserstand sa_/sg_), löscht jeden
+//    Chunk erst NACH Server-Bestätigung -> kein Datenverlust.
+//  - während die Aufnahme läuft: /analyze (Live-Auswertung, Session bleibt offen);
+//    nach Aktivitätsende (state.completed): /complete und danach lokal aufräumen.
+//  - gleiche session_uuid => eine Session am Server, kein Duplikat.
+//
+// Sequentiell (eine Anfrage zur Zeit): Sessions nacheinander, Chunks nacheinander.
+
+typedef WebData as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null;
+
+module Uploader {
+
+    var _busy = false;
+    var _queue = null;
+    var _job = null;
+
+    // Fortschritt/Status für die UI (UploadView). Werden vom Job gepflegt.
+    var _curSent = 0;            // bestätigte Chunks der aktuellen Session
+    var _curTotal = 0;          // Gesamt-Chunks der aktuellen Session
+    var _lastError = :none;     // :none | :offline | :auth | :server | :storage
+    var _sentAny = false;       // mind. ein Chunk in diesem Lauf bestätigt (Aktivitätsnachweis)
+    var _storageFull = false;   // ein Storage-Write ist gescheitert -> Object Store voll
+
+    function storageFull() as Lang.Boolean { return _storageFull; }
+
+    // Geschützter Storage-Write. Der Recorder hat das seit Langem (SessionRecorder._store), der
+    // Uploader hatte es NICHT — obwohl hier nach JEDEM bestätigten Chunk geschrieben wird (die
+    // Wasserstände sa_/sg_). Ist der Object Store der Uhr voll, wirft `setValue`, und ohne Fang
+    // stirbt die App mit „IQ!". Besonders bitter beim App-Start: `syncAll()` läuft dort
+    // automatisch, also crasht die App bei jedem Öffnen, sobald genug Sessions gepuffert sind.
+    // Weiterlaufen ist richtig: der Chunk ist vom Server bestätigt und wurde gelöscht, nur der
+    // Wasserstand fehlt — beim nächsten Lauf wird er erneut geschickt, und das ist idempotent
+    // (gleiche session_uuid => eine Session am Server).
+    function _set(key, value) as Lang.Boolean {
+        try {
+            Storage.setValue(key, value);
+            return true;
+        } catch (e instanceof Lang.StorageFullException) {
+            _storageFull = true;
+            _lastError = :storage;
+            // Notieren, damit die Meldung spaetestens beim naechsten Start rausgeht. Erst Platz
+            // schaffen (layouts_config ist ein nachladbarer Cache), dann die kleine Zahl — sonst
+            // scheitert auch die Notiz. Eigener try: wir sind gerade an einem Write gescheitert.
+            // Der Sofortversuch laeuft im Recorder (_noteStorageFull), der die Verbindung kennt.
+            try { Storage.setValue("storage_full_kb", pendingKb()); } catch (e2) {
+                try { Storage.deleteValue("layouts_config"); } catch (e3) { }
+                try { Storage.setValue("storage_full_kb", pendingKb()); } catch (e4) { }
+            }
+            return false;
+        } catch (e) {
+            return false;   // anderer Fehler, kein voller Speicher (s. SessionRecorder._store)
+        }
+    }
+
+    // --- Auto-Retry-Watchdog (nur solange die App offen ist) --------------------
+    // Nach einem abgebrochenen/fehlgeschlagenen Upload NICHT bis zum nächsten App-Start
+    // warten (bei Garmin oft Tage), sondern zeitnah erneut versuchen: erst nach 3/10/30 s,
+    // danach nur noch beim (Wieder-)Aufbau der Telefonverbindung. Beim App-Beenden stirbt
+    // der Timer -> Fortsetzung dann beim nächsten App-Start (bestehendes Verhalten).
+    var BACKOFF = [3, 10, 30];   // Sekunden zwischen den ersten Wiederholungen
+    var WATCH_SECS = 30;         // danach: nur noch alle 30 s auf Reconnect prüfen
+    var _recordingActive = false;
+    // UUID der Session, die GERADE aufgezeichnet wird (oder null). In der PAUSE darf gesynct
+    // werden, aber diese eine Session muss draussen bleiben: syncAll wuerde sie mit /complete
+    // abschliessen, waehrend die Uhr noch weiter puffert -> halbe Session ausgewertet.
+    var _activeUuid = null;
+    // Pausen-Modus: nur DANN darf die laufende Session mitgehen — und dann ausschliesslich als
+    // TEIL-Upload (kein /complete, kein lokales Aufraeumen). Gesetzt von SessionRecorder.pause(),
+    // zurueckgenommen in resume() und stop().
+    var _pauseSync = false;
+    var _watch = null;
+
+    function isRecordingActive() as Lang.Boolean { return _recordingActive; }
+
+    // Von SessionRecorder gesetzt: während der Aufnahme darf NIE gesynct werden
+    // (syncAll würde die laufende Session vorzeitig /complete-n -> Datenverlust-Risiko).
+    function setRecording(active as Lang.Boolean) as Void {
+        _recordingActive = active;
+        if (active && _watch != null) { _watch.stop(); }   // laufenden Retry-Timer stoppen
+    }
+
+    // Vom Recorder gesetzt: welche Session laeuft gerade (null = keine). Nur zum AUSSCHLIESSEN
+    // in syncAll — s. _activeUuid.
+    function setActiveSession(uuid) as Void { _activeUuid = uuid; }
+
+    function setPauseSync(an as Lang.Boolean) as Void { _pauseSync = an; }
+
+    // Ist DIESE Session die gerade laufende? Dann darf sie nur teil-hochgeladen werden.
+    function isPartial(uuid) as Lang.Boolean {
+        return _activeUuid != null && uuid.equals(_activeUuid);
+    }
+
+    // Watchdog-Singleton (lazy).
+    function watch() as RetryWatch {
+        if (_watch == null) { _watch = new RetryWatch(); }
+        return _watch;
+    }
+
+    // Sekunden bis zum nächsten geplanten Backoff-Versuch (für den Countdown im Upload-Screen);
+    // -1 = kein aktiver Versuch geplant (fertig, oder nur noch Reconnect-Beobachtung).
+    function retryEtaSecs() as Lang.Number {
+        return (_watch == null) ? -1 : _watch.etaSecs();
+    }
+
+    // Anzahl noch nicht vollständig hochgeladener Sessions (für UI-Feedback).
+    function pendingCount() as Lang.Number {
+        var s = Storage.getValue("sessions");
+        return (s instanceof Lang.Array) ? s.size() : 0;
+    }
+
+    // Gepuffertes VOLUMEN in KB — die Anzahl allein ist als Warnsignal unbrauchbar:
+    // 20 Sessions à 2 min sind ~0,6 MB, 3 Sessions à 5 h sind ~13 MB (Faktor 22 bei umgekehrter
+    // Anzahl). Gerechnet statt gemessen, weil Connect IQ keine Auskunft über den freien Object
+    // Store gibt (`System.getSystemStats()` liefert nur RAM, ein `freeStorage` existiert nicht).
+    //
+    // Grundlage sind die Zähler, die in `state_<uuid>` ohnehin stehen, und die Chunk-Geometrie:
+    //   Accel: ACCEL_CHUNK_SAMPLES(1500) × 3 Achsen × 2 B (int16 LE interleaved) = 9000 B ≈ 9 KB
+    //   GPS:   GPS_CHUNK_SAMPLES(120) × ~40 B JSON pro Sample                    ≈ 5 KB
+    // NICHT die 12 KB aus dem Kommentar im Recorder — das ist die base64-Größe beim SENDEN, im
+    // Object Store liegt das rohe ByteArray.
+    // Bewusst OHNE eigene Byte-Buchhaltung: die bräuchte zusätzliche Schreibzugriffe, und genau
+    // Schreiben ist das, was bei vollem Speicher scheitert. Die Zahl ist damit eine Schätzung
+    // (~±30 %) — sie soll 0,6 MB von 13 MB unterscheiden, nicht eine Tankuhr sein.
+    const KB_PER_ACCEL_CHUNK = 9;
+    const KB_PER_GPS_CHUNK = 5;
+    // Auf speicherknappen Uhren schreibt der Recorder NUR 30 statt 120 Samples je GPS-Chunk
+    // (`SessionRecorder._gpsChunkTarget`, Begruendung dort) — ein Chunk ist dort also ~1,2 KB
+    // statt ~5 KB. Ohne diese Anpassung schaetzte `pendingKb()` den Puffer VIERFACH zu gross und
+    // die Restzeit-Warnung schluege genau auf den Uhren zu frueh an, die wir gerade entlasten.
+    // Aufgerundet auf 2: die ganze Rechnung ist eine Schaetzung (~±30 %), und zu hoch zu liegen
+    // ist bei einer Voll-Warnung die harmlosere Richtung.
+    const KB_PER_GPS_CHUNK_LOWMEM = 2;
+
+    // Dieselbe Schwelle wie im Recorder. Bewusst hier dupliziert statt durchgereicht: der
+    // Uploader laeuft auch OHNE laufende Aufnahme (Sync im Hintergrund), hat also keinen
+    // Recorder zur Hand. Wer die Schwelle aendert, aendert sie an beiden Stellen.
+    var _kbGps = null;
+
+    function kbProGpsChunk() as Lang.Number {
+        if (_kbGps == null) {
+            _kbGps = KB_PER_GPS_CHUNK;
+            try {
+                var st = System.getSystemStats();
+                if (st != null && (st has :totalMemory) && st.totalMemory != null
+                        && st.totalMemory <= 131072) {
+                    _kbGps = KB_PER_GPS_CHUNK_LOWMEM;
+                }
+            } catch (e) {
+            }
+        }
+        return _kbGps;
+    }
+
+    function pendingKb() as Lang.Number {
+        var s = Storage.getValue("sessions");
+        if (!(s instanceof Lang.Array)) { return 0; }
+        var kb = 0;
+        for (var i = 0; i < s.size(); i++) {
+            var st = Storage.getValue("state_" + s[i]);
+            if (!(st instanceof Lang.Dictionary)) { continue; }
+            var a = st.hasKey("accel_chunks") ? st["accel_chunks"] : 0;
+            var g = st.hasKey("gps_chunks") ? st["gps_chunks"] : 0;
+            if (!(a instanceof Lang.Number)) { a = 0; }
+            if (!(g instanceof Lang.Number)) { g = 0; }
+            // Schon Hochgeladenes ABZIEHEN (Wasserstaende sa_/sg_): bestaetigte Chunks sind geloescht,
+            // die Zaehler im state bleiben aber stehen. Bis 1.0.91 zaehlte eine halb hochgeladene
+            // Session deshalb voll -> Warnung „Speicher bald voll" schon beim Start.
+            var sa = Storage.getValue("sa_" + s[i]);
+            var sg = Storage.getValue("sg_" + s[i]);
+            var aRest = a - ((sa instanceof Lang.Number) ? sa : 0);
+            var gRest = g - ((sg instanceof Lang.Number) ? sg : 0);
+            if (aRest < 0) { aRest = 0; }
+            if (gRest < 0) { gRest = 0; }
+            // Accel: aus den gespeicherten Samples (6 B je Sample), sofern die Uhr sie fuehrt (ab 1.0.92,
+            // mit Speicher-Sparen sind viele Chunks nur angefangen); sonst pauschal je Chunk.
+            var an = st.hasKey("accel_n") ? st["accel_n"] : null;
+            if (an instanceof Lang.Number && a > 0) {
+                kb += ((an * 6) / a * aRest + 1023) / 1024;   // erst je Chunk teilen: kein Ueberlauf
+                a = 0;
+            } else {
+                a = aRest;
+            }
+            g = gRest;
+            // Die Zaehler sind bereits die ANZAHL, nicht der Index des letzten Chunks:
+            // `_flushAccel`/`_flushGps` erhoehen `_accelChunkIndex`/`_gpsChunkIndex` NACH dem
+            // erfolgreichen Schreiben, und `_saveState` sichert den erhoehten Wert. Bis
+            // 20.09.2026 stand hier +1 — das buchte je wartender Session einen Accel- und einen
+            // GPS-Chunk zu viel (auf grossen Uhren 9+5 = 14 KB, auf kleinen 9+2 = 11 KB), und
+            // zwar AUCH fuer Sessions mit null Chunks. Bei sieben wartenden Sessions waren das
+            // rund 100 KB Puffer, den es nicht gab -> `storageMinutesLeft()` fiel auf 0 und die
+            // Uhr warnte mitten in einer frischen Aufnahme „~0 min bis Speicher voll".
+            // Gegenprobe am Server: Session 9341 lieferte GPS-Chunks mit den Indizes 0..21,
+            // also 22 Stueck — `gps_chunks` stand auf 22, nicht auf 21.
+            if (a > 0) { kb += a * KB_PER_ACCEL_CHUNK; }
+            if (g > 0) { kb += g * kbProGpsChunk(); }
+        }
+        return kb;
+    }
+
+    // Gecachte Fassung fuer die Anzeige waehrend der Aufnahme: pendingKb() liest je wartender
+    // Session einen state_-Eintrag, das soll nicht bei jedem Bild passieren. 30 s sind fein genug —
+    // in dieser Zeit waechst der Puffer im dichtesten Modus um ~6 KB.
+    var _pkbWert = -1;
+    var _pkbZeit = 0;
+
+    function pendingKbCached() as Lang.Number {
+        var jetzt = System.getTimer();
+        if (_pkbWert < 0 || jetzt - _pkbZeit > 30000 || jetzt < _pkbZeit) {
+            _pkbWert = pendingKb();
+            _pkbZeit = jetzt;
+        }
+        return _pkbWert;
+    }
+
+    function isBusy() as Lang.Boolean {
+        return _busy;
+    }
+
+    // Chunk-Fortschritt der gerade laufenden Session (für Fortschrittsbalken).
+    function progressSent() as Lang.Number { return _curSent; }
+    function progressTotal() as Lang.Number { return _curTotal; }
+
+    // Letzter Fehlergrund des Sync-Laufs (für klare UI-Meldung statt „hängt").
+    function lastError() as Lang.Symbol { return _lastError; }
+
+    // Hat die Uhr aktuell eine Telefon-Verbindung? (Primärer Upload-Pfad.)
+    function phoneConnected() as Lang.Boolean {
+        return System.getDeviceSettings().phoneConnected;
+    }
+
+    // Vom Job gemeldet: Fehler einordnen (negativer Code = Transport/BLE/Netz weg).
+    function noteResult(responseCode as Lang.Number) as Void {
+        if (responseCode == 200) {
+            _lastError = :none;
+        } else if (responseCode <= 0) {
+            _lastError = :offline;   // BLE/Netz nicht verfügbar, Timeout etc.
+        } else if (responseCode == 401) {
+            _lastError = :auth;
+            // Server erreichbar, Device-Token aber eindeutig verworfen (widerrufen/ungültig)
+            // -> lokal entkoppeln, damit die Uhr neu gekoppelt werden kann. Die gepufferten
+            // Sessions bleiben im Storage und gehen nach erneutem Pairing raus.
+            Config.setString("deviceToken", "");
+        } else if (responseCode == 403) {
+            _lastError = :auth;
+        } else {
+            _lastError = :server;
+        }
+    }
+
+    // Alle ausstehenden Sessions hochladen (manuell, periodisch, App-Start, Background).
+    function syncAll() as Void {
+        if (_busy || _recordingActive) { return; }
+        var sessions = Storage.getValue("sessions");
+        if (!(sessions instanceof Lang.Array) || sessions.size() == 0) { return; }
+        _queue = [];
+        for (var i = 0; i < sessions.size(); i++) {
+            // Die laufende Aufnahme geht nur in der PAUSE mit, und dort als Teil-Upload
+            // (SessionSyncJob sieht das an Uploader.isPartial und schliesst sie nie ab).
+            // Waehrend die Aufnahme laeuft, bleibt sie draussen — sie waechst noch, und Connect
+            // IQ laesst waehrend einer aktiven Aktivitaet ohnehin keine Uebertragung zu.
+            if (!_pauseSync && _activeUuid != null && sessions[i].equals(_activeUuid)) { continue; }
+            _queue.add(sessions[i]);
+        }
+        if (_queue.size() == 0) { _queue = null; return; }
+        _busy = true;
+        _lastError = :none;
+        _sentAny = false;
+        _curSent = 0; _curTotal = 0;
+        _next();
+    }
+
+    // Nächste Session der Warteschlange starten (oder fertig).
+    function _next() as Void {
+        // Aufnahme laeuft wieder (Pause beendet): den ganzen Lauf beenden, nicht nur die
+        // laufende Session. Waehrend einer aktiven Aktivitaet geht ohnehin keine Uebertragung.
+        if (_recordingActive) { _queue = null; }
+        if (_queue == null || _queue.size() == 0) {
+            _busy = false; _queue = null; _job = null;
+            watch().arm();   // Lauf beendet -> bei Rest-Offenem den nächsten Auto-Retry planen
+            // PROFIL NACHZIEHEN, wenn wirklich etwas abgeschlossen wurde (Jan, 23.09.2026).
+            // HIER und nicht in onFinal: sonst feuerte es je Session, und beim Nachholen mehrerer
+            // Aufnahmen waeren das ebenso viele Abrufe. Hier ist die Warteschlange leer, also
+            // genau einmal je Lauf.
+            //
+            // WARUM UEBERHAUPT: ein abgeschlossener Upload ist der einzige Augenblick, in dem die
+            // Uhr nachweislich online ist — und er faellt genau dorthin, wo der Fahrer gerade
+            // etwas geaendert haben koennte (neues Foil, neue Schwelle, andere Seiten) und vor der
+            // naechsten Fahrt steht. Die ganze Antwort sind 2502 Bytes, gemessen am 23.09.
+            //
+            // NUR NACH ERFOLG: ein gescheiterter Versuch sagt nichts ueber die Verbindung, und
+            // der Retry-Waechter kuemmert sich ohnehin darum.
+            if (_etwasFertig) { _etwasFertig = false; _profilNachziehen(); }
+            return;
+        }
+        var uuid = _queue[0];
+        _queue.remove(uuid);
+        _job = new SessionSyncJob(uuid);
+        _job.begin();
+    }
+
+    // Wird vom Job am Ende (Erfolg, Fehler oder Abbruch) aufgerufen.
+    function sessionDone() as Void {
+        _next();
+    }
+
+    // Hat in diesem Lauf mindestens eine Session ein erfolgreiches /complete gesehen?
+    var _etwasFertig = false;
+    function noteCompleted() as Void { _etwasFertig = true; }
+
+    // (:layouts): NUR in den Builds mit eigenen Seiten. Die sparsamen Stufen (LITE 96 KB +
+    // ENG 128 KB) bekommen vom Server ohnehin keine Layouts — dort waere der Abruf ein Byte
+    // Code und ein Funkkontakt fuer nichts (Jan, 23.09.2026: „nicht in den garmin-varianten
+    // die garkeine custom screens haben"). Sprache, Foils und Alarme holt der App-Start dort
+    // weiterhin wie bisher.
+    (:layouts) function _profilNachziehen() as Void {
+        try {
+            if (!System.getDeviceSettings().phoneConnected) { return; }
+            var app = Application.getApp();
+            if (app != null && (app has :recorder)) {
+                var r = app.recorder();
+                if (r != null) { r.fetchConfig(); }
+            }
+        } catch (e) { }
+    }
+    (:nolayouts) function _profilNachziehen() as Void { }
+
+    function _toast(msg as Lang.String) as Void {
+        System.println(msg);
+    }
+}
+
+// Sync einer einzelnen Session (Pairing -> Session anmelden -> fehlende Chunks ->
+// abschließen/analysieren).
+class SessionSyncJob {
+    hidden var _uuid as Lang.String;
+    hidden var _token as Lang.String;
+    hidden var _meta;
+    hidden var _accelTotal as Lang.Number = 0;
+    hidden var _accelT0 = {};   // Chunk-Index -> ms seit Session-Start (s. SessionRecorder)
+    hidden var _accelT1 = {};   // Chunk-Index -> Ende in ms (ab 1.0.92, Speicher-Sparen)
+    hidden var _gpsTotal as Lang.Number = 0;
+    hidden var _completed as Lang.Boolean = false;
+    hidden var _sa as Lang.Number = 0;   // bestätigte Accel-Chunks
+    hidden var _sg as Lang.Number = 0;   // bestätigte GPS-Chunks
+    hidden var _phase as Lang.Symbol = :idle;
+    hidden var _idx as Lang.Number = 0;
+    hidden var _pendingKind = null;      // "accel"/"gps" des gerade gesendeten Chunks
+    hidden var _pauses = [];             // Pausenfenster [[session_ms, dauer_ms], …]
+    // Teil-Upload der noch LAUFENDEN Session (nur aus einer Pause heraus): am Ende /analyze
+    // statt /complete, und NIEMALS _cleanup — die Aufnahme geht ja weiter.
+    hidden var _partial as Lang.Boolean = false;
+    hidden var _pendingIdx as Lang.Number = 0;
+    hidden var _sy as Lang.Number = 0;   // DANCE: Wasserstand der Gyro-Chunks
+
+    function initialize(uuid as Lang.String) {
+        _uuid = uuid;
+        _partial = Uploader.isPartial(uuid);
+        var st = Storage.getValue("state_" + uuid);
+        _meta = Storage.getValue("meta_" + uuid);
+        _token = Config.getString("deviceToken");
+        if (st instanceof Lang.Dictionary) {
+            // Robust gegen fehlende/null Keys (z. B. GPS-only-Session ohne accel_chunks):
+            // sonst null-Arithmetik in begin() -> Crash schon beim App-Start (Sync).
+            _accelTotal = (st["accel_chunks"] instanceof Lang.Number) ? st["accel_chunks"] : 0;
+            _accelT0 = (st["accel_t0"] instanceof Lang.Dictionary) ? st["accel_t0"] : {};
+            _accelT1 = (st["accel_t1"] instanceof Lang.Dictionary) ? st["accel_t1"] : {};
+            _gpsTotal = (st["gps_chunks"] instanceof Lang.Number) ? st["gps_chunks"] : 0;
+            _completed = (st["completed"] == true);
+            // Pausen der Aufnahme (s. SessionRecorder._pauseListe) -> gehen im /complete mit,
+            // damit der Server aus Session-ms wieder eine Uhrzeit machen kann. Alte Sessions im
+            // Store haben den Key nicht -> leer, und der Server verhaelt sich wie vorher.
+            _pauses = (st["pauses"] instanceof Lang.Array) ? st["pauses"] : [];
+        }
+        var sa = Storage.getValue("sa_" + uuid); _sa = (sa == null) ? 0 : sa;
+        var sg = Storage.getValue("sg_" + uuid); _sg = (sg == null) ? 0 : sg;
+        var sy = Storage.getValue("sy_" + uuid); _sy = (sy == null) ? 0 : sy;
+    }
+
+    hidden function _opts() as Lang.Dictionary {
+        return {
+            :method => Communications.HTTP_REQUEST_METHOD_POST,
+            :headers => {
+                "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON,
+                "X-Device-Token" => _token
+            },
+            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+        };
+    }
+
+    hidden function _optsGet() as Lang.Dictionary {
+        return {
+            :method => Communications.HTTP_REQUEST_METHOD_GET,
+            :headers => { "X-Device-Token" => _token },
+            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+        };
+    }
+
+    // makeWebRequest defensiv: bei kaputtem BT-/Netz-Zustand (z. B. schnelles An/Aus im
+    // Upload-Screen) kann makeWebRequest SYNCHRON eine Exception werfen. Aus einem Timer-/
+    // Callback-Pfad (Watchdog/Reconnect) heraus wäre das ein ungefangener Fehler -> App-Crash
+    // (IQ!). Abfangen, als offline werten, den Lauf sauber beenden (Daten bleiben gepuffert,
+    // nächster Sync macht weiter).
+    hidden function _web(url, params, opts, cb) as Void {
+        try {
+            Communications.makeWebRequest(url, params, opts, cb);
+        } catch (e) {
+            Uploader.noteResult(-1);
+            Uploader.sessionDone();
+        }
+    }
+
+    function begin() as Void {
+        if (!(_meta instanceof Lang.Dictionary)) {
+            _removeFromIndex();           // kein Meta -> nichts hochzuladen
+            Uploader.sessionDone();
+            return;
+        }
+        // Chunk-Fortschritt der aktuellen Session für die UI initialisieren.
+        Uploader._curTotal = _accelTotal + _gpsTotal;
+        Uploader._curSent = _sa + _sg;
+        if (_token == null || _token.equals("")) {
+            var code = Config.getString("pairingCode");
+            if (code == null || code.equals("")) {
+                // Weder Device-Token noch Pairing-Code -> Uhr ist nicht verbunden. Klar
+                // melden, sonst zeigt der Upload-Screen fälschlich „Warte…" statt eines
+                // Verbinden-Hinweises. Die Session bleibt gepuffert.
+                Uploader._lastError = :auth;
+                Uploader.sessionDone(); return;
+            }
+            _phase = :pair;
+            _web(
+                Config.baseUrl() + "/api/devices/pair",
+                { "code" => code },
+                {
+                    :method => Communications.HTTP_REQUEST_METHOD_POST,
+                    :headers => { "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON },
+                    :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                },
+                method(:onPair)
+            );
+            return;
+        }
+        _checkStatus();
+    }
+
+    function onPair(responseCode as Lang.Number, data as WebData) as Void {
+        if (responseCode == 200 && data instanceof Lang.Dictionary && data.hasKey("device_token")) {
+            _token = data["device_token"] as Lang.String;
+            Config.setString("deviceToken", _token);
+            _checkStatus();
+        } else {
+            Uploader.noteResult(responseCode);
+            Uploader.sessionDone();   // später erneut
+        }
+    }
+
+    // Zuerst mit dem Server abgleichen: ist die Session dort schon abgeschlossen?
+    // Falls ja (z. B. verlorene /complete-Bestätigung) -> lokal aufräumen statt endlos
+    // erneut hochzuladen. Sonst regulär hochladen.
+    hidden function _checkStatus() as Void {
+        _phase = :status;
+        _web(
+            Config.baseUrl() + "/api/ingest/session/" + _uuid + "/status",
+            {},
+            _optsGet(),
+            method(:onStatus)
+        );
+    }
+
+    function onStatus(responseCode as Lang.Number, data as WebData) as Void {
+        if (responseCode != 200) {
+            Uploader.noteResult(responseCode);   // Server nicht erreichbar -> später erneut
+            Uploader.sessionDone();
+            return;
+        }
+        Uploader.noteResult(200);
+        if (data instanceof Lang.Dictionary && data["status"] != null
+                && (data["status"] as Lang.String).equals("complete")) {
+            _cleanup();              // Server hat die Session bereits vollständig -> lokal weg
+            Uploader.sessionDone();
+            return;
+        }
+        _startSession();             // noch nicht abgeschlossen -> regulär (weiter)hochladen
+    }
+
+    hidden function _startSession() as Void {
+        _phase = :start;
+        // expected_chunks: der Server macht daraus `upload_total` (sessions.py:199), damit Web und
+        // Apps "x von y" zeigen statt eines unbestimmten Balkens. NUR fuer eine abgeschlossene
+        // Aufnahme — bei einer laufenden waere die Zahl zu klein und der Fortschritt lief ueber
+        // sein eigenes Ziel hinaus. `_meta` ist hier eine Kopie aus dem Store; das Ergaenzen
+        // schreibt NICHT zurueck (Storage.getValue liefert einen Wert, keine Referenz).
+        if (_completed && (_meta instanceof Lang.Dictionary)) {
+            _meta["expected_chunks"] = _accelTotal + _gpsTotal;
+        }
+        _web(
+            Config.baseUrl() + "/api/ingest/session",
+            _meta,
+            _opts(),
+            method(:onStep)
+        );
+    }
+
+    // Callback für /session und jeden Chunk: bestätigt den vorherigen Chunk, schickt den nächsten.
+    function onStep(responseCode as Lang.Number, data as WebData) as Void {
+        if (responseCode != 200) {
+            Uploader.noteResult(responseCode);
+            Uploader.sessionDone(); return;   // Puffer bleibt -> später fortsetzen
+        }
+        Uploader.noteResult(200);
+        if (_pendingKind != null) {
+            // Ein Chunk ist bestaetigt und wird geloescht -> es ist wieder Platz; die rote Meldung darf
+            // gehen (scheitert der folgende Schreibversuch trotzdem, setzt _set sie neu).
+            Uploader._storageFull = false;
+            if (_pendingKind.equals("accel")) {
+                Storage.deleteValue("ca_" + _uuid + "_" + _pendingIdx);
+                _sa = _pendingIdx + 1; Uploader._set("sa_" + _uuid, _sa);
+            } else if (_pendingKind.equals("gyro")) {
+                Storage.deleteValue("cy_" + _uuid + "_" + _pendingIdx);
+                _sy = _pendingIdx + 1; Uploader._set("sy_" + _uuid, _sy);
+            } else {
+                Storage.deleteValue("cg_" + _uuid + "_" + _pendingIdx);
+                _sg = _pendingIdx + 1; Uploader._set("sg_" + _uuid, _sg);
+            }
+            _pendingKind = null;
+            Uploader._curSent = _sa + _sg;   // Fortschritt für die UI
+            Uploader._sentAny = true;
+        }
+        _advance();
+    }
+
+    // Schickt den nächsten fehlenden Chunk; überspringt bereits gelöschte; sonst abschließen.
+    // Reihenfolge GPS-FIRST: erst ALLE GPS-Chunks, dann Accel. Bei abgebrochenem Upload (App im
+    // Hintergrund, Uhr außer Reichweite) ist damit die GPS-Spur zuerst vollständig -> die Session
+    // wird server-seitig als gps_only analysierbar statt hängen zu bleiben. Server/Web sind bereits
+    // GPS-first; das hier ist die Client-Parität. _sa/_sg sind unabhängige Resume-Zähler pro Kind
+    // -> der Reorder ist rückwärtskompatibel mit halb hochgeladenen Alt-Sessions.
+    hidden function _advance() as Void {
+        // Die Pause ist vorbei und es wird wieder aufgenommen -> Teil-Upload hier abbrechen.
+        // Connect IQ laesst waehrend einer aktiven Aktivitaet keine Uebertragung zu, und die
+        // Puffer bleiben liegen: beim naechsten Sync geht es an derselben Stelle weiter
+        // (Wasserstaende sa_/sg_). KEIN Abschluss, kein Aufraeumen.
+        if (_partial && Uploader.isRecordingActive()) { Uploader.sessionDone(); return; }
+        if (_phase == :start) { _phase = :gps; _idx = _sg; }
+        if (_phase == :gps) {
+            while (_idx < _gpsTotal) {
+                var gdata = Storage.getValue("cg_" + _uuid + "_" + _idx);
+                if (gdata == null) {
+                    _sg = _idx + 1; Uploader._set("sg_" + _uuid, _sg); _idx++; continue;
+                }
+                _sendGps(_idx, gdata); return;
+            }
+            _phase = :accel; _idx = _sa;
+        }
+        if (_phase == :accel) {
+            while (_idx < _accelTotal) {
+                var bytes = Storage.getValue("ca_" + _uuid + "_" + _idx);
+                if (bytes == null) {
+                    _sa = _idx + 1; Uploader._set("sa_" + _uuid, _sa); _idx++; continue;
+                }
+                _sendAccel(_idx, bytes); return;
+            }
+            _phase = :gyro; _idx = _sy;
+        }
+        // DANCE: Gyro-Chunks, Index = Accel-Index (gleiche Grenzen, gleiche t0). Fehlende ueberspringen.
+        if (_phase == :gyro) {
+            while (_idx < _accelTotal) {
+                var gy = Storage.getValue("cy_" + _uuid + "_" + _idx);
+                if (gy == null) {
+                    _sy = _idx + 1; Uploader._set("sy_" + _uuid, _sy); _idx++; continue;
+                }
+                _sendGyro(_idx, gy); return;
+            }
+            _phase = :final;
+        }
+        if (_phase == :final) { _finalize(); }
+    }
+
+    hidden function _sendAccel(i as Lang.Number, bytes as Lang.ByteArray) as Void {
+        _pendingKind = "accel"; _pendingIdx = i; _idx = i + 1;
+        var b64 = StringUtil.convertEncodedString(bytes, {
+            :fromRepresentation => StringUtil.REPRESENTATION_BYTE_ARRAY,
+            :toRepresentation => StringUtil.REPRESENTATION_STRING_BASE64
+        });
+        // Chunk-Startzeit mitschicken, wo bekannt -> exakte Accel-Zeitachse am Server
+        // (Sessions von vor dem Update haben kein accel_t0 im State -> Feld fehlt, Server
+        // schaetzt wie bisher).
+        var body = { "index" => i, "kind" => "accel", "encoding" => "int16-b64", "data" => b64 };
+        if (_accelT0.hasKey(i)) { body["t0_ms"] = _accelT0[i]; }
+        if (_accelT1.hasKey(i)) { body["t1_ms"] = _accelT1[i]; }
+        _web(
+            Config.baseUrl() + "/api/ingest/session/" + _uuid + "/chunk",
+            body,
+            _opts(),
+            method(:onStep)
+        );
+    }
+
+    hidden function _sendGyro(i as Lang.Number, bytes as Lang.ByteArray) as Void {
+        _pendingKind = "gyro"; _pendingIdx = i; _idx = i + 1;
+        var b64 = StringUtil.convertEncodedString(bytes, {
+            :fromRepresentation => StringUtil.REPRESENTATION_BYTE_ARRAY,
+            :toRepresentation => StringUtil.REPRESENTATION_STRING_BASE64
+        });
+        var body = { "index" => i, "kind" => "gyro", "encoding" => "int16-b64", "data" => b64 };
+        if (_accelT0.hasKey(i)) { body["t0_ms"] = _accelT0[i]; }
+        _web(
+            Config.baseUrl() + "/api/ingest/session/" + _uuid + "/chunk",
+            body,
+            _opts(),
+            method(:onStep)
+        );
+    }
+
+    hidden function _sendGps(i as Lang.Number, gdata) as Void {
+        _pendingKind = "gps"; _pendingIdx = i; _idx = i + 1;
+        _web(
+            Config.baseUrl() + "/api/ingest/session/" + _uuid + "/chunk",
+            { "index" => i, "kind" => "hr", "encoding" => "json", "data" => gdata },   // DANCE: Puls-Zeilen [t_ms, bpm]
+            _opts(),
+            method(:onStep)
+        );
+    }
+
+    // syncAll() läuft NIE während der Aufnahme (nur Start/Pairing/Upload-Screen) -> jede
+    // gesyncte Session ist fertig. Daher immer /complete (auch bei _completed==false, z. B.
+    // verwaiste Sessions ohne sauberen Stopp), sonst hingen die in einer /analyze-Endlosschleife.
+    hidden function _finalize() as Void {
+        // Teil-Upload: die Aufnahme laeuft noch (Pause). NICHT abschliessen — nur einmal
+        // anstossen, dass der Server das Bisherige durchrechnet. Er haelt die Session auf
+        // `status = live`; auf dem Handy sind die Laeufe bis hierhin damit schon zu sehen.
+        if (_partial) {
+            _phase = :analyze;
+            _web(
+                Config.baseUrl() + "/api/ingest/session/" + _uuid + "/analyze",
+                {},
+                _opts(),
+                method(:onPartial)
+            );
+            return;
+        }
+        _phase = :complete;
+        _web(
+            Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
+            { "total_chunks" => _gpsTotal, "pauses" => _pauses },
+            _opts(),
+            method(:onFinal)
+        );
+    }
+
+    // Teil-Upload fertig: KEIN _cleanup (die Session laeuft weiter und braucht ihren State).
+    function onPartial(responseCode as Lang.Number, data as WebData) as Void {
+        Uploader.noteResult(responseCode);
+        Uploader.sessionDone();
+    }
+
+    function onFinal(responseCode as Lang.Number, data as WebData) as Void {
+        Uploader.noteResult(responseCode);
+        if (responseCode == 200) {
+            _cleanup();   // vollständig hochgeladen + abgeschlossen -> lokal aufräumen
+            Uploader.noteCompleted();   // -> Profil nachziehen, sobald die Queue leer ist
+        }
+        Uploader.sessionDone();
+    }
+
+    // Session lokal vollständig entfernen (nur nach bestätigtem /complete).
+    hidden function _cleanup() as Void {
+        for (var i = 0; i < _accelTotal; i++) { Storage.deleteValue("ca_" + _uuid + "_" + i); }
+        for (var i = 0; i < _gpsTotal; i++) { Storage.deleteValue("cg_" + _uuid + "_" + i); }
+        for (var i = 0; i < _accelTotal; i++) { Storage.deleteValue("cy_" + _uuid + "_" + i); }
+        Storage.deleteValue("sy_" + _uuid);
+        Storage.deleteValue("state_" + _uuid);
+        Storage.deleteValue("meta_" + _uuid);
+        Storage.deleteValue("sa_" + _uuid);
+        Storage.deleteValue("sg_" + _uuid);
+        _removeFromIndex();
+    }
+
+    hidden function _removeFromIndex() as Void {
+        var arr = Storage.getValue("sessions");
+        if (arr instanceof Lang.Array) {
+            arr.remove(_uuid);
+            Uploader._set("sessions", arr);
+        }
+    }
+}
+
+// Auto-Retry-Watchdog: hält abgebrochene Uploads am Leben, solange die App offen ist.
+// Ein einziger Timer, der sich selbst neu plant. Nach einem Fehlversuch: erneute
+// syncAll-Läufe nach 3/10/30 s; danach nur noch Reconnect-Beobachtung (alle 30 s), bis das
+// Telefon neu verbindet oder die App beendet wird. NIE während einer laufenden Aufnahme.
+class RetryWatch {
+    hidden var _timer as Timer.Timer or Null = null;
+    hidden var _idx as Lang.Number = 0;               // Position in Uploader.BACKOFF
+    hidden var _wasConnected as Lang.Boolean = false; // für Reconnect-Erkennung
+    hidden var _etaMs as Lang.Number = -1;            // System.getTimer()-Ziel des nächsten Backoff-Versuchs (-1 = keiner)
+
+    function initialize() {}
+
+    // EIN Timer über die Lebenszeit der Uhr-App — NIE pro arm() ein neues Timer.Timer-Objekt
+    // erzeugen: alte (auch gestoppte/verwaiste) Timer zählen bei Garmin gegen ein hartes Limit,
+    // sonst „Too Many Timers Error" (IQ!-Crash) nach vielen arm()/onTick-Zyklen. Lazy erzeugt,
+    // danach nur noch stop()/start() darauf.
+    hidden function _timerObj() as Timer.Timer {
+        if (_timer == null) { _timer = new Timer.Timer(); }
+        return _timer;
+    }
+
+    // Nach jedem syncAll-Lauf aufgerufen: ist noch etwas offen -> nächsten Versuch planen,
+    // sonst ruhen. Wartezeit aus dem Backoff (3/10/30 s), danach Reconnect-Poll (30 s).
+    function arm() as Void {
+        _cancel();
+        if (Uploader.pendingCount() == 0) { _idx = 0; _etaMs = -1; return; }
+        // Nicht verbunden UND kein Pairing-Code offen -> es gibt nichts zu wiederholen (der
+        // Upload scheitert ohne Token immer an :auth). Dann NICHT im Kreis retryen (das lief
+        // sonst endlos: onTick -> syncAll -> auth-fail -> arm -> …). Der Sync wird ausgelöst,
+        // sobald das Pairing durchläuft (onPairPoll/onPairClaim) bzw. beim nächsten App-Start.
+        var tok = Config.getString("deviceToken");
+        var code = Config.getString("pairingCode");
+        if ((tok == null || tok.equals("")) && (code == null || code.equals(""))) {
+            _idx = 0; _etaMs = -1; return;
+        }
+        _wasConnected = Uploader.phoneConnected();
+        var secs;
+        if (_idx < Uploader.BACKOFF.size()) {
+            secs = Uploader.BACKOFF[_idx];
+            _etaMs = System.getTimer() + secs * 1000;   // aktive Wiederholung -> Countdown sichtbar
+        } else {
+            secs = Uploader.WATCH_SECS;
+            _etaMs = -1;                                  // nur Reconnect-Beobachtung, kein Countdown
+        }
+        // Defensiv: selbst wenn das Timer-Limit anderweitig erschöpft ist, darf das den
+        // Upload/App nicht crashen — dann eben kein Auto-Retry (Daten bleiben gepuffert).
+        try {
+            _timerObj().start(method(:onTick), secs * 1000, false);
+        } catch (e) {
+            _etaMs = -1;
+        }
+    }
+
+    // Frische Auslösung (z. B. manuell geöffneter Upload-Screen): Backoff von vorn.
+    function reset() as Void { _idx = 0; }
+
+    function stop() as Void { _cancel(); _idx = 0; _etaMs = -1; }
+
+    // Sekunden bis zum nächsten Backoff-Versuch (aufgerundet); -1 wenn keiner geplant.
+    function etaSecs() as Lang.Number {
+        if (_etaMs < 0) { return -1; }
+        var rem = _etaMs - System.getTimer();
+        if (rem < 0) { rem = 0; }
+        return (rem + 999) / 1000;
+    }
+
+    hidden function _cancel() as Void {
+        // NUR stoppen, NICHT das Objekt verwerfen (Wiederverwendung -> kein Timer-Leak).
+        if (_timer != null) { _timer.stop(); }
+    }
+
+    function onTick() as Void {
+        // Der Timer hat gefeuert; er wird bei Bedarf in arm() erneut gestartet (dasselbe
+        // Objekt) — hier NICHT auf null setzen (sonst legt arm() ein neues an -> Timer-Leak).
+        if (Uploader.pendingCount() == 0) { _idx = 0; return; }   // alles hochgeladen -> Ruhe
+        if (Uploader.isRecordingActive()) { arm(); return; }      // NIE während Aufnahme
+        if (Uploader.isBusy()) { arm(); return; }                 // Lauf aktiv -> später erneut
+
+        var conn = Uploader.phoneConnected();
+        var reconnected = conn && !_wasConnected;
+        _wasConnected = conn;
+
+        // syncAll defensiv: im Timer-Callback darf NICHTS ungefangen werfen (sonst IQ!-Crash).
+        if (reconnected) {          // Telefon wieder da -> sofort frischer Versuch (Backoff neu)
+            _idx = 0;
+            try { Uploader.syncAll(); } catch (e) {}   // Lauf-Ende plant via arm() den nächsten Schritt
+            return;
+        }
+        if (_idx < Uploader.BACKOFF.size()) {   // nächster Backoff-Versuch (3 -> 10 -> 30 s)
+            _idx += 1;
+            try { Uploader.syncAll(); } catch (e) {}   // offline: schlägt schnell fehl -> danach nächster
+            return;
+        }
+        // Backoff erschöpft: aktive Versuche pausieren, nur noch auf Reconnect lauschen.
+        arm();
+    }
+}
+
