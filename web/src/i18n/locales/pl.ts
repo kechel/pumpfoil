@@ -53,6 +53,7 @@ const pl: Record<string, string> = {
   "board.height": "Wysokość",
   "board.map": "Mapa",
   "board.markBoard": "Telefon był na desce",
+  "board.autoErkannt": "Rozpoznano automatycznie: telefon leżał płasko i dokładnie tak samo w każdym przejeździe. Odznacz, jeśli nie był na desce.",
   "board.mountAuto": "automatycznie",
   "board.directionUnknown": "Nie udało się ustalić z danych, gdzie jest przód, a gdzie tył w tym nagraniu — pochylenie i przechył mogą być tu odwrócone.",
   "board.mounting": "Montaż:",

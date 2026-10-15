@@ -53,6 +53,7 @@ const es: Record<string, string> = {
   "board.height": "Altura",
   "board.map": "Mapa",
   "board.markBoard": "El móvil iba en la tabla",
+  "board.autoErkannt": "Reconocido automáticamente: el móvil iba plano y exactamente en la misma posición en cada run. Desmarca si no iba en la tabla.",
   "board.mountAuto": "automático",
   "board.directionUnknown": "No se pudo determinar a partir de los datos dónde está la parte delantera y trasera en esta grabación — el cabeceo y el balanceo pueden estar invertidos.",
   "board.mounting": "Montaje:",

@@ -65,6 +65,7 @@ const ptPT: Record<string, string> = {
   "board.height": "Altura",
   "board.map": "Mapa",
   "board.markBoard": "O telemóvel estava na prancha",
+  "board.autoErkannt": "Reconhecido automaticamente: o telemóvel esteve plano e exatamente na mesma posição em cada run. Desmarca se não estava na prancha.",
   "board.mountAuto": "automático",
   "board.directionUnknown": "Não foi possível determinar pelos dados a frente e a traseira desta gravação — arfagem e rolamento podem estar invertidos.",
   "board.mounting": "Montagem:",

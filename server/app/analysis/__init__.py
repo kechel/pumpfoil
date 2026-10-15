@@ -392,6 +392,37 @@ def abschliessend_auswerten(db: DbSession, session: "models.Session") -> None:
     run_analysis(db, session, final=True)
     if maybe_auto_trim(db, session):
         run_analysis(db, session, final=True)
+    if brett_automatik(db, session):
+        run_analysis(db, session, final=True)
+
+
+def brett_automatik(db: DbSession, session: "models.Session") -> bool:
+    """Handy-Aufnahme nach der abschliessenden Analyse selbst auf „am Brett" stellen, wenn Lage UND
+    Starrheit es eindeutig sagen (Regel + Messung bei `brett_auto_urteil` in api/sessions.py).
+    True = umgestellt, der Aufrufer rechnet dann mit den Brett-Regeln neu.
+
+    Nur solange niemand entschieden hat: `placement == "phone"` (so meldet sich jeder
+    Handy-Recorder) und `placement_quelle` leer. Wer „am Brett" herausnimmt oder „phone"
+    bestaetigt, setzt `placement_quelle = "nutzer"` — danach nie wieder automatisch."""
+    if session.placement != "phone" or session.placement_quelle is not None:
+        return False
+    try:
+        from ..api.sessions import brett_auto_urteil, brett_merkmale
+        db.refresh(session)
+        m = brett_merkmale(session)
+        if not brett_auto_urteil(m):
+            return False
+        session.placement = "board"
+        session.placement_quelle = "auto"
+        db.commit()
+        logging.getLogger(__name__).info(
+            "Brett-Automatik: Session %s auf board (Achse %s°, Streuung %s° ueber %s Laeufe, Hub %s)",
+            session.id, m.get("achse_deg"), m.get("streu_deg"), m.get("streu_laeufe"), m.get("hub_anteil"))
+        return True
+    except Exception:  # noqa: BLE001 - die Automatik darf die Auswertung nie brechen
+        db.rollback()
+        logging.getLogger(__name__).exception("Brett-Automatik fuer Session %s", session.id)
+        return False
 
 
 def attempt_distances(gps_samples, gps_hz) -> list:

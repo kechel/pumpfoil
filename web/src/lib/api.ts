@@ -329,6 +329,8 @@ export interface SessionSummary {
   // Lage-Ansicht sinnvoll), "phone" = am Körper, null = Uhr oder unbekannt. Setzen dürfen das
   // nur Admins — deshalb braucht die Ansicht selbst kein zweites Gate.
   placement?: string | null;
+  // Wer „am Brett" gesetzt hat: "auto" = Brett-Automatik der Analyse, "nutzer" = Besitzer.
+  placement_quelle?: string | null;
   // „Ort verbergen": `ort_verborgen` = der Server hat Ort und Spur nach Point Nemo
   // versetzt (auch fuer den Besitzer). `ort_sichtbarkeit` ist der EIGENE Zustand
   // dieser Aufnahme: null = wie im Profil, "show", "hide".

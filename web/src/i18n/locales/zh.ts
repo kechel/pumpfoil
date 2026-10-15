@@ -53,6 +53,7 @@ const zh: Record<string, string> = {
   "board.height": "高度",
   "board.map": "地图",
   "board.markBoard": "手机装在板上",
+  "board.autoErkannt": "已自动识别：手机在每一趟中都平放且位置完全相同。如果手机不在板上，请取消勾选。",
   "board.mountAuto": "自动",
   "board.directionUnknown": "这条记录无法根据数据判断前后方向——俯仰和横滚可能是反的。",
   "board.mounting": "安装：",

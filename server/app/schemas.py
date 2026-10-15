@@ -263,6 +263,8 @@ class SessionOut(BaseModel):
     # "board" = Handy war am Brett befestigt -> Lage-Auswertung (Pitch/Roll/Gierrate) moeglich.
     # "phone" = am Koerper, misst den Fahrer. None = Uhr oder unbekannt.
     placement: str | None = None
+    # "auto" = von der Analyse als „am Brett" erkannt, "nutzer" = vom Besitzer gesetzt, None = nie.
+    placement_quelle: str | None = None
     # Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
     # Betrifft NUR die Auswertung — die Rohdaten bleiben, jederzeit umkehrbar.
     excluded_ranges: list[list[int]] = []

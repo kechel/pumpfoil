@@ -474,6 +474,10 @@ class Session(Base):
     # Aufnahme-Platzierung, von der Uhr/App gemeldet: None/"" = Uhr am Handgelenk, "phone" = Handy
     # (Tasche/Hüfte, „Record on Phone"-Beta). Für spätere platzierungs-spezifische Pump-Analyse.
     placement: Mapped[str | None] = mapped_column(String(16))
+    # Wer `placement = "board"` gesetzt hat: "auto" = die abschliessende Analyse (Brett-Automatik,
+    # 15.10.2026), "nutzer" = der Besitzer selbst. NULL = nie angefasst. Eine Besitzer-Entscheidung
+    # gewinnt immer — die Automatik setzt nur, solange hier NULL steht.
+    placement_quelle: Mapped[str | None] = mapped_column(String(8))
     # „Ort verbergen" je Aufnahme. NULL = folgt der Einstellung im Profil (s. ORT_SICHTBARKEIT
     # unten und `hide_location` in api/settings.py). Versetzt wird erst bei der AUSGABE, die
     # gespeicherten Koordinaten bleiben echt — sonst waere der Schalter nicht umkehrbar.

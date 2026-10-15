@@ -55,6 +55,7 @@ const cs: Record<string, string> = {
   "board.height": "Výška",
   "board.map": "Mapa",
   "board.markBoard": "Telefon byl na prkně",
+  "board.autoErkannt": "Rozpoznáno automaticky: telefon ležel v každé jízdě naplocho a přesně stejně. Zruš zaškrtnutí, pokud nebyl na prkně.",
   "board.mountAuto": "automaticky",
   "board.directionUnknown": "U tohoto záznamu se z dat nepodařilo určit předek a zadek — klopení a náklon tu mohou být obrácené.",
   "board.mounting": "Montáž:",

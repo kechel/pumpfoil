@@ -208,6 +208,7 @@ const gsw: Record<string, string> = {
   "board.zeroStill": "Nullpunkt aus einer Ruhephase",
   "board.zeroMean": "Nullpunkt = Mittelwert des Laufs",
   "board.markBoard": "Handy war am Brett",
+  "board.autoErkannt": "Automatisch erkannt: s Handy isch i jedem Lauf flach und gnau gliich gläge. Haagge wägg, wänns nöd am Brett gsi isch.",
   "session.onBoard": "am Brätt",
   "watchStats.scrollTo": "Spring zue:",
   "watchStats.noMatch": "Nuet gfunde.",

@@ -172,6 +172,7 @@ const de: Record<string, string> = {
   "sd.mergeShareGoneOk": "Verstanden",
   "sd.boardAskYes": "Ja, es war am Brett",
   "board.markBoard": "Handy war am Brett",
+  "board.autoErkannt": "Automatisch erkannt: das Handy lag in jedem Lauf flach und genau gleich. Haken raus, falls es nicht am Brett war.",
   "session.onBoard": "am Brett",
   "watchStats.scrollTo": "Springen zu:",
   "watchStats.noMatch": "Nichts gefunden.",
