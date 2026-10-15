@@ -809,6 +809,21 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 15.10.2026: Brett-Automatik-Hinweis (wie Android), Code nur swiftc -parse.
+    # EINGEREICHT 16.10.2026 00:04 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.50 (56),
+    # Kennung 3612e127-51da-4d5e-9704-934972265f99).
+    {"name": "iPhone + Apple Watch", "version": "1.1.50",
+     "eingereicht": "2026-10-16",
+     "items": [
+         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
+         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
+         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
+         "The session list and the Community page have a Friends view with only you and your friends.",
+         "Home shows which of your friends are pumping right now and where.",
+         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
+         # 15.10.2026: Apple Watch meldet den Spot beim ersten GPS-Fix (Server 8b958905).
+         "On the Apple Watch: once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
+     ]},
     # Garmin 1.0.93 (eingereicht + freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.48 (eingereicht 13.10., freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.49 (eingereicht + freigegeben 15.10.2026) -> LIVE, Punkte stehen im Changelog.
@@ -966,19 +981,7 @@ NAECHSTES: list[dict] = [
          "Home shows which of your friends are pumping right now and where.",
          "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
      ]},
-    # iPhone + Apple Watch 1.1.49 am 15.10. eingereicht -> IN_REVIEW.
-    # 15.10.2026: Brett-Automatik-Hinweis (wie Android), Code nur swiftc -parse.
-    {"name": "iPhone + Apple Watch", "version": "1.1.50",
-     "items": [
-         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
-         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
-         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
-         "The session list and the Community page have a Friends view with only you and your friends.",
-         "Home shows which of your friends are pumping right now and where.",
-         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
-         # 15.10.2026: Apple Watch meldet den Spot beim ersten GPS-Fix (Server 8b958905).
-         "On the Apple Watch: once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-     ]},
+    # iPhone + Apple Watch 1.1.50 am 16.10. eingereicht -> IN_REVIEW.
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     {"name": "Wear OS", "version": "1.2.43",
      "items": [
