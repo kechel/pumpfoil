@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  App-Settings (Garmin Connect am Handy / on-device unter Apps & Aktivitäten ->
+  Pumpfoil). Das ist der einzige Weg, einer Connect-IQ-Device-App einen
+  Einstellungs-Eintrag zu geben, der OHNE Start der App erreichbar ist
+  (getSettingsView() gilt nur für Watchfaces/Datafields).
+
+  Pairing per Code (von pumpfoil.org/Account) ins Feld eintragen -> die App löst
+  ihn beim nächsten Öffnen/Settings-Change ein. Upload läuft automatisch nach dem
+  Stopp bzw. beim App-Start; die Datenfelder/Alarme kommen normalerweise von der
+  Website und überschreiben diese nativen Fallback-Werte.
+-->
+<settings>
+  <setting propertyKey="@Properties.pairingCode" title="@Strings.SettingPairingCode" prompt="@Strings.SettingPairingCodePrompt">
+    <settingConfig type="alphaNumeric" />
+  </setting>
+
+  <!--
+    Datenfelder + Vibrationsalarm werden zentral auf pumpfoil.org konfiguriert (Konto ->
+    Datenfelder/Alarm) und von der App gezogen; die nativen Einstellungs-Gruppen wurden
+    daher entfernt (2026-07-02). Die Properties (field1..6, colorByValue, alarmEnabled,
+    speedHigh/Low) bleiben in properties.xml als Offline-Defaults -> keine Codeaenderung
+    noetig, alle Lesestellen nutzen Config.getNumber/getBool(key, default).
+  -->
+</settings>

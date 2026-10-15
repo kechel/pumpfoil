@@ -131,6 +131,12 @@ def start_session(
                                 or "pumpfoil")
             except ValueError:
                 _sport_class = "pumpfoil"
+        _sport_source = None
+        # Tanz-Variante der Garmin-App (watch-dance/, Jan 16.10.2026): eine andere Sportart, die der
+        # Nutzer mit der Wahl der App selbst getroffen hat -> „other" wie von Hand zugeordnet. Damit
+        # steht die Session in der normalen Liste statt bei den Aussortierten und erzeugt keinen Spot.
+        if (body.sport or "") == "dance":
+            _sport_class, _sport_source = "other", "owner"
         s = models.Session(
             session_uuid=body.session_uuid,
             user_id=device.user_id,
@@ -147,6 +153,7 @@ def start_session(
             # ganze Historie (s. app/setup_snapshot.py).
             **standard_setup(db, _uu),
             sport_class=_sport_class,
+            **({"sport_source": _sport_source} if _sport_source else {}),
             placement=(body.placement or None),
             device_model=(body.device_model or None),
             # Angabe des Clients, sonst die letzte vom Gerät gemeldete Version (Uhren schicken sie
@@ -275,6 +282,13 @@ def _chunk_speichern(db: Session, s: "models.Session", session_uuid: str, body: 
         if not isinstance(body.data, str):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "gyro data must be base64 string")
         n = storage.save_gyro_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
+    elif body.kind == "hr":
+        # Puls ohne Position (Tanz-Variante der Garmin-App, s. storage.save_hr_chunk).
+        if not isinstance(body.data, list) or not all(
+                isinstance(r, list) and len(r) >= 2 and all(isinstance(x, (int, float)) for x in r[:2])
+                for r in body.data):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "hr data must be a list of [t_ms, bpm]")
+        n = storage.save_hr_chunk(session_uuid, body.index, body.data)
     elif body.kind == "mag":
         # Magnetfeld (Kompass), nur von den Handy-Recordern. Fuer vorn/hinten am Brett (s.
         # storage.save_mag_chunk); die Auswertung liest ihn, sobald das Verfahren steht.

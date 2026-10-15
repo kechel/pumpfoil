@@ -96,6 +96,13 @@ Accel, flach im Muster `[gx, gy, gz, ...]`. Physikalisch: **`rad/s = raw / 1024`
   später überhaupt etwas zum Auswerten da ist (Pump-/Turn-Erkennung, s. `docs/TODO.md`).
 - **Kosten:** verdoppelt den Roh-Umfang einer Handy-Aufnahme (s. Größen-Richtwert unten).
 
+**Puls-Chunk** (`kind=hr`, `encoding=json`) — **optional, seit 16.10.2026**: `data` = `[[t_ms, bpm], ...]`,
+`t_ms` wie ueberall seit `started_at`. Nur fuer Aufnahmen OHNE GPS (Tanz-Variante der Garmin-App,
+`watch-dance/`); sonst steckt der Puls in den GPS-Zeilen. GPS-Zeilen ohne Position sind verboten — die
+Auswertung bricht daran ab. Abgelegt unter `server/data/<uuid>/hr/`, die Analyse liest ihn heute NICHT.
+Eine Session mit `sport = "dance"` ordnet der Server beim Anlegen als `sport_class = other`
+(`sport_source = owner`) ein.
+
 **Magnetfeld-Chunk** (`kind=mag`, `encoding=int16-b64`) — **optional, seit 27.09.2026**: gleiche Form
 wie Accel/Gyro, flach im Muster `[mx, my, mz, ...]`. Physikalisch: **`µT = raw / 10`** (fest im
 Vertrag, Bereich ±3276 µT — das Erdfeld hat 25–65 µT, Halterungen mit Magneten einige hundert).
