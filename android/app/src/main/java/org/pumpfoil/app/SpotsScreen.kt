@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Surface
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.foundation.layout.Spacer
@@ -99,9 +100,11 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     var aktivEinzeln by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var aktivGegend by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var nurAktiv by remember { mutableStateOf(false) }
-    // Heatmap (Jan, 15.10.2026, wie Spots.tsx): null = aus, sonst "30d" | "365d". Ein zweiter
-    // Tipp auf den gewaehlten Zeitraum schaltet sie ab.
-    var heat by remember { mutableStateOf<String?>(null) }
+    // Schalter „Spots | Heatmap" (Jan, 15.10.2026, wie Spots.tsx): bei Spots die Haken, bei
+    // Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins weg.
+    var heatAnsicht by remember { mutableStateOf(false) }
+    var heatZeitraum by remember { mutableStateOf("365d") }
+    val heat = if (heatAnsicht) heatZeitraum else null
     var heatSessions by remember { mutableStateOf<Int?>(null) }
     // Alle 120 s nachfragen, solange die Seite offen ist (wie die PWA). Ein Fehler laesst den
     // letzten Stand stehen — die Karte darf daran nie scheitern.
@@ -212,16 +215,22 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 SportDropdown(sports, sport, Modifier.align(Alignment.CenterVertically)) { sport = it }
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterVertically),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(I18n.t("spots.heatmap"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                    listOf("30d", "365d").forEach { p ->
-                        FilterChip(selected = heat == p, onClick = { heat = if (heat == p) null else p },
-                            label = { Text(I18n.t("period.$p")) }, colors = cyanChipColors())
+                Row(Modifier.align(Alignment.CenterVertically)) {
+                    AnsichtSeg(!heatAnsicht, I18n.t("nav.spots")) { heatAnsicht = false }
+                    Spacer(Modifier.width(4.dp))
+                    AnsichtSeg(heatAnsicht, I18n.t("spots.heatmap")) { heatAnsicht = true }
+                }
+                if (heatAnsicht) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterVertically),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("30d", "365d").forEach { p ->
+                            FilterChip(selected = heatZeitraum == p, onClick = { heatZeitraum = p },
+                                label = { Text(I18n.t("period.$p")) }, colors = cyanChipColors())
+                        }
                     }
                 }
                 // Auch hier: sichtbar, solange etwas aktiv ist oder der Haken sitzt (Weg zurueck).
-                if (aktivEinzeln.isNotEmpty() || aktivGegend.isNotEmpty() || nurAktiv) {
+                if (!heatAnsicht && (aktivEinzeln.isNotEmpty() || aktivGegend.isNotEmpty() || nurAktiv)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.CenterVertically).clickable { nurAktiv = !nurAktiv },
@@ -233,7 +242,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 }
                 // Auch bei 0 zeigen, solange der Haken sitzt: sonst bleibt nach einem Sportart-Wechsel
                 // eine leere Karte ohne Weg zurueck (Jan, 28.09.2026).
-                if (mitNotes > 0 || nurNotes) {
+                if (!heatAnsicht && (mitNotes > 0 || nurNotes)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.CenterVertically).clickable { nurNotes = !nurNotes },
@@ -290,7 +299,8 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
             //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
             SpotsMap(
-                karte, sichtbar, oeffneSpot, startSpot, aktivEinzeln, aktivGegend,
+                // In der Heatmap-Ansicht keine Pins (sie lagen sonst ueber den Zellen).
+                karte, if (heatAnsicht) emptyList() else sichtbar, oeffneSpot, startSpot, aktivEinzeln, aktivGegend,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
             HeatmapLaden(karte, heat) { heatSessions = it }
@@ -307,7 +317,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     // Legende der gruenen Spots direkt unter der Karte (wie die PWA): ohne sie bleibt
                     // offen, warum ein Spot gruen ist — und warum ein kleiner nie allein gruen wird.
-                    item {
+                    if (!heatAnsicht) item {
                         Row(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
                             Box(Modifier.padding(top = 4.dp).size(12.dp).clip(CircleShape).background(AKTIV_GRUEN))
                             Spacer(Modifier.width(8.dp))
@@ -441,6 +451,17 @@ fun buendelSpots(items: List<SpotMapItem>, zoom: Double, naehe: Double): List<Li
         out.add(gruppe)
     }
     return out
+}
+
+// Segment des Schalters „Spots | Heatmap" — dieselbe Form wie AccelSeg (CommunityScreen).
+@Composable
+private fun AnsichtSeg(aktiv: Boolean, label: String, onClick: () -> Unit) {
+    Surface(onClick = onClick, shape = MaterialTheme.shapes.small,
+        color = if (aktiv) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant) {
+        Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1,
+            color = if (aktiv) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+    }
 }
 
 // FLOSS-Karte (OpenStreetMap via osmdroid) mit gebuendelten Pins, eingebettet per AndroidView
