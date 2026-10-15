@@ -1006,6 +1006,8 @@ NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.14",
      "items": [
          "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
+         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905), wie Garmin/Wear/Apple.
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.

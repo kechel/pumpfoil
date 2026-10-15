@@ -3270,10 +3270,27 @@ Page(
       } else if (s.screen === "idle") {
         if (fixChanged) this.applyButton();
         if (acquiredFix) this._gpsReadyFeedback();
+        if (fix && lat != null && lon != null) this._meldePosition(lat, lon);
         if (s.autoStart && fix && speed > AUTOSTART_SPEED) { s.autoTicks++; if (s.autoTicks >= AUTOSTART_TICKS) { this.start(); return; } }
         else s.autoTicks = 0;
         this.renderIdle();
       }
+    },
+
+    // Erster GPS-Fix im Startbildschirm -> einmal je App-Start an den Server (Jan, 15.10.2026, wie
+    // Garmin/Wear/Apple). Der Server merkt sich NUR den Spot im Umkreis von 1 km, nicht die Position;
+    // ohne Spot in der Naehe zaehlt man nicht als „gerade am Pumpen". _pos: 0 offen, 1 unterwegs,
+    // 2 erledigt; hoechstens 3 Versuche, nie neben einem Upload.
+    _meldePosition(lat, lon) {
+      const s = this.state;
+      if (DEV_FAKE_GPS || s._pos || (s._posVersuche || 0) >= 3 || s.uploading || !getTok() || !bleOk()) return;
+      s._pos = 1;
+      s._posVersuche = (s._posVersuche || 0) + 1;
+      try {
+        this.reqQ({ method: "POSITION", token: getTok(), lat: lat, lon: lon }, { timeout: 15000 })
+          .then((r) => { s._pos = r && r.done ? 2 : 0; })
+          .catch(() => { s._pos = 0; });
+      } catch (e) { s._pos = 0; }
     },
 
     // ---- Persistente Aufnahme (Absturz-sicher) ----
