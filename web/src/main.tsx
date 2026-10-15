@@ -78,6 +78,7 @@ import LayoutGallery from "./pages/LayoutGallery";
 import FoilStats from "./pages/FoilStats";
 import FoilDetail from "./pages/FoilDetail";
 import WatchStats from "./pages/WatchStats";
+import Friends from "./pages/Friends";
 import FoilCalculator from "./pages/FoilCalculator";
 import PersonalHome from "./pages/PersonalHome";
 import Admin from "./pages/Admin";
@@ -194,6 +195,8 @@ const router = createBrowserRouter([
           // neue Konten einmalig hierher leitet, kommt erst, wenn der Ablauf steht.
           { path: "onboarding", element: <Onboarding /> },
           { path: "einstellungen", element: <Settings /> },
+          // Freunde verwalten (15.10.2026), Einstieg ueber den Knopf auf der Profilseite.
+          { path: "friends", element: <Friends /> },
           { path: "konten", element: <LinkedAccounts /> },
           // Zustimmungsseite des eigenen OAuth-Servers. IM App-Rahmen, damit sie aussieht wie der
           // Rest und der Nutzer sieht, wo er ist — wer aus einem fremden Programm hierher springt,

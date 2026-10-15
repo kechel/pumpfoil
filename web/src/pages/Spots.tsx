@@ -3,7 +3,7 @@ import { passtZu, suchform } from "../lib/suche";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
-import { api } from "../lib/api";
+import { api, type AktiverFreund } from "../lib/api";
 import { Spinner, Card } from "../components/ui";
 import { SpotsIcon } from "../components/Icons";
 import { SpotCompare } from "../components/SpotCompare";
@@ -33,12 +33,17 @@ export default function Spots() {
   // Gruene Spots „gerade aktiv" (Jan, 14.10.2026). `einzeln` = Spot darf selbst gruen werden
   // (>= 4 Fahrer in 180 Tagen), `gegend` = kleiner Spot in einer aktiven Kachel: faerbt nur ein
   // BUENDEL, nie den Spot selbst — Regeln und Gruende in server `devices.aktive_spots`.
-  const [aktiv, setAktiv] = useState<{ einzeln: Set<number>; gegend: Set<number> }>({ einzeln: new Set(), gegend: new Set() });
+  // Freunde (15.10.2026): ihr Spot wird einzeln gruen — auch ein kleiner, s. server app/freunde.py.
+  const [aktiv, setAktiv] = useState<{ einzeln: Set<number>; gegend: Set<number>; freunde: AktiverFreund[] }>({ einzeln: new Set(), gegend: new Set(), freunde: [] });
   const [nurAktiv, setNurAktiv] = useState(false);
   useEffect(() => {
     let weg = false;
     const holen = () => api.spotActive()
-      .then((r) => { if (!weg) setAktiv({ einzeln: new Set(r.spots), gegend: new Set(r.area) }); })
+      .then((r) => {
+        if (weg) return;
+        const freunde = r.friends ?? [];
+        setAktiv({ einzeln: new Set([...r.spots, ...freunde.map((f) => f.spot_id as number)]), gegend: new Set(r.area), freunde });
+      })
       .catch(() => {});
     holen();
     const iv = window.setInterval(holen, 120_000);
@@ -163,7 +168,9 @@ export default function Spots() {
           });
           // Gewaesser mit in den Tooltip: Spots am selben Ort heissen „Berlin 3"/„Berlin 4" und sind
           // sonst nicht auseinanderzuhalten (Jan, 24.08.).
-          mk.bindTooltip(`${esc(s.spot)} · ${s.sessions}` + (s.water ? `<br><span style="opacity:.7">${esc(s.water)}</span>` : ""), { direction: "top" });
+          const hier = aktiv.freunde.filter((f) => f.spot_id === s.spot_id).map((f) => f.name ?? "—");
+          mk.bindTooltip(`${esc(s.spot)} · ${s.sessions}` + (s.water ? `<br><span style="opacity:.7">${esc(s.water)}</span>` : "")
+                         + (hier.length ? `<br><b>${esc(t("friends.hereNow", { names: hier.join(", ") }))}</b>` : ""), { direction: "top" });
           mk.on("click", () => nav(`/sessions?spot=${s.spot_id ?? encodeURIComponent(s.spot)}`
                                    + (sport !== "all" ? `&sport=${encodeURIComponent(sport)}` : "")));
           grp.addLayer(mk);

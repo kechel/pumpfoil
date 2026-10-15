@@ -80,6 +80,9 @@ class User(Base):
     session_epoch: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Zuletzt aktiv (letzter authentifizierter Request; gedrosselt aktualisiert) — für den Admin.
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Wann zuletzt den Freunden „gerade am Spot" gemeldet wurde (app/freunde.py, `melden`) —
+    # damit ein Pumptag EINE Nachricht ergibt und nicht eine je Timer-Lauf.
+    freunde_gemeldet_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # ONLINE-PUNKT (Jan, 01.10.2026: „im chat so einen kleinen gruenen kreis … bei usern die gerade
     # online sind", dann „ueberall wo das profilbild angezeigt wird", „egal ob app oder web").
     # `online_at` = letzter Request bei OFFENER App/Seite, minuetlich gedrosselt (s. deps.py);
@@ -1374,6 +1377,27 @@ class UserBlock(Base):
     blocker_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     blocked_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class Friendship(Base):
+    """Freundschaft zwischen zwei Nutzern (Jan, 15.10.2026). EINE Zeile je Paar, `user_lo` < `user_hi`.
+
+    Gegenseitig mit zwei Zustimmungen: die Anfrage ist die Zustimmung des Anfragenden, die
+    Bestaetigung die des anderen. Erst bei `status = "accepted"` gibt der Server etwas heraus
+    (app/freunde.py, `freund_ids`). `declined` bleibt stehen, damit eine neue Anfrage erst nach
+    `freunde.SPERRE_NACH_ABLEHNUNG` moeglich ist — der Anfragende sieht davon nichts (weiter
+    „angefragt"). Beenden loescht die Zeile."""
+
+    __tablename__ = "friendships"
+    __table_args__ = (UniqueConstraint("user_lo", "user_hi", name="uq_friendship_pair"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_lo: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    user_hi: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    requester_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(String(10), default="pending")   # pending|accepted|declined|withdrawn
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    responded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class SessionTransfer(Base):

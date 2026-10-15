@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { passtZu } from "../lib/suche";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
-import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand } from "../lib/api";
+import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand } from "../lib/api";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
@@ -425,7 +425,15 @@ function CommunitySection() {
   const [period, setPeriod] = useState("10d");
   // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil). Default smart:
   // accel, wenn der Nutzer Accel-Daten hat, sonst alle.
-  const [accelOnly, setAccelOnly] = useAccelDefault();
+  const [accelWahl, setAccelOnly] = useAccelDefault();
+  // Dritte Taste „Freunde" (Jan, 15.10.2026): die GANZE Seite nur ueber mich + meine Freunde —
+  // Rekorde, Medien, Ranglisten, Spots. Wie „alle" (auch GPS-only), nur eingegrenzt; der Filter
+  // sitzt im Server (`_community`), hier wird er nur beim RENDERN eingeschaltet, damit auch die
+  // Effekte der Kinder (die vor denen dieser Komponente laufen) ihn schon sehen.
+  const [freunde, setFreunde] = useState(false);
+  const accelOnly = accelWahl && !freunde;
+  setFreundeAnsicht(freunde);
+  useEffect(() => () => setFreundeAnsicht(false), []);
   // Foil-Band („vergleichbare Foils") für Rekorde UND Bestenlisten — NICHT für Spots und
   // „Am besten bewertet" (Jans Vorgabe): dort geht es nicht um Vergleichbarkeit der Ausrüstung.
   // Die Bänder samt Session- und Fahrerzahl kommen vom Server (s. /api/community/foil-bands),
@@ -435,7 +443,7 @@ function CommunitySection() {
   const band = bands.find((b) => b.key === bandKey);
   // Alles, was den Inhalt der Rekorde aendert — wechselt eines davon, sind die gemerkten
   // Zeitraeume wertlos. Die Sportart gehoert ausdruecklich dazu (Jan, 16.09.2026).
-  const filterKey = `${accelOnly}|${sport}|${bandKey}`;
+  const filterKey = `${accelOnly}|${sport}|${bandKey}|${freunde}`;
   const geholt = useRef<{ key: string; perioden: Set<string> }>({ key: "", perioden: new Set() });
 
   // Rekorde werden ZEITRAUMWEISE geholt und behalten (16.09.2026). Die Seite zeigt immer genau
@@ -481,7 +489,7 @@ function CommunitySection() {
         setBandKey("all");
       }
     }).catch(() => setBands([]));
-  }, [accelOnly, sport]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accelOnly, sport, freunde]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     api.communitySports().then(setSports).catch(() => {});
@@ -519,7 +527,8 @@ function CommunitySection() {
             {t(labelKey)}
           </button>
         ))}
-        <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
+        <AccelToggle value={accelWahl} onChange={(v) => { setFreunde(false); setAccelOnly(v); }} className="ml-auto"
+                     freunde={freunde} onFreunde={() => setFreunde(true)} />
         {/* Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
             (Jan: „nur die mit mind. einem lauf all time"). Betrifft Rekorde, Rangliste und Spots —
             NICHT „Neueste Medien", „Am besten bewertet" und die Uhr-Layouts: die kommen absichtlich
@@ -552,9 +561,11 @@ function CommunitySection() {
         <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
       )}
       <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot />
-      <LatestMedia />
-      <Leaderboards period={period} accelOnly={accelOnly} sport={sport} band={band} />
-      <TopLiked period={period} />
+      {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern
+          sich dabei nicht immer (accel war schon aus). */}
+      <LatestMedia key={`m${freunde}`} />
+      <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} />
+      <TopLiked key={`t${freunde}`} period={period} />
       {/* Reihenfolge unter „Best bewertet" (Jan, 11.09.2026): erst die Uhr-Layouts, dann der
           Social-Feed, dann die Spots.
           Die LAYOUTS standen ganz unten und duerfen prominenter werden — daran beteiligen sich
@@ -565,7 +576,7 @@ function CommunitySection() {
           gehoert er wieder nach oben. */}
       <LayoutTeaser />
       <SocialFeed />
-      <SpotSection period={period} accelOnly={accelOnly} sport={sport} />
+      <SpotSection key={`s${freunde}`} period={period} accelOnly={accelOnly} sport={sport} />
     </div>
   );
 }

@@ -26,6 +26,7 @@ import { foilLabel } from "../lib/foilLabel";
 import { useI18n, useNumberFormat } from "../i18n";
 import { REC_ITEMS } from "./Home";
 import { fmtLaufDauer } from "../lib/dauer";
+import { FreundschaftKnopf } from "../components/Freundschaft";
 
 // Bewusst dieselbe Formel wie auf der eigenen Startseite (`PersonalHome.fmtDur`) — eine zweite
 // Schreibweise fuer dieselbe Zahl liest sich wie ein anderer Wert.
@@ -159,12 +160,27 @@ export default function Foiler() {
         {/* Nachricht schreiben, oben rechts — wie der Spot-Chat-Knopf in der Spot-Ansicht. Nicht auf
             der eigenen Seite. */}
         {!d.ich && (
-          <button
-            onClick={() => openDmOverlay(d.id)}
-            className="ml-auto inline-flex shrink-0 items-center gap-1 self-start rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
-          >
-            <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("foiler.chat")}
-          </button>
+          <div className="ml-auto flex shrink-0 flex-wrap justify-end gap-2 self-start">
+            {/* Freundschaft (15.10.2026): Stand und Dialog, s. components/Freundschaft.tsx. Bei einer
+                eingehenden Anfrage steht der Knopf als „Annehmen" da. */}
+            {d.freundschaft_moeglich && (
+              <FreundschaftKnopf userId={d.id} name={d.name ?? "—"} status={d.freundschaft ?? null}
+                onChange={(s) => {
+                  // Bestaetigt oder beendet: die Seite neu laden — jetzt sieht man mehr bzw. weniger.
+                  if (s === "freund" || d.freundschaft === "freund") {
+                    api.foilerProfil(d.id).then(setD).catch(() => setFehler(true));
+                  } else {
+                    setD({ ...d, freundschaft: s });
+                  }
+                }} />
+            )}
+            <button
+              onClick={() => openDmOverlay(d.id)}
+              className="inline-flex shrink-0 items-center gap-1 self-start rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+            >
+              <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("foiler.chat")}
+            </button>
+          </div>
         )}
       </div>
 
@@ -181,6 +197,13 @@ export default function Foiler() {
                 ? <Link to={`/sessions?spot=${d.homespot_id}`} className="underline decoration-slate-500 hover:decoration-brand-400">{d.homespot}</Link>
                 : d.homespot}
             </span>
+          </>
+        )}
+        {d.gewicht_kg != null && (
+          <>
+            {/* Nur Freunde (und man selbst) bekommen das Feld vom Server. */}
+            <span className="flex items-center gap-1.5 text-slate-400">{t("friends.weight")}:</span>
+            <span className="font-semibold text-slate-200">{d.gewicht_kg} kg</span>
           </>
         )}
         {d.uhren && d.uhren.length > 0 && (

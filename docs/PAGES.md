@@ -32,7 +32,7 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 | `/sessions/:id/label` | `Labeling.tsx` | Pump-**Tap-to-Label** synchron zum Video (Ground Truth fürs Pump-Modell). |
 | `/import` | `Import.tsx` | Erklärt den Garmin-Export und bietet den FIT/ZIP-Upload. |
 | `/alle-sessions` | `AllSessionsRedirect.tsx` | Redirect für Alt-Links/Bookmarks. |
-| `/foiler/:id` | `Foiler.tsx` | **Oeffentliche Profilseite eines Foilers** (Login noetig, nicht fuer Suchmaschinen): Anzeigename, Dabei-seit, Homespot, bis zu drei benutzte Uhren, drei meistgenutzte Foils, Rekorde der letzten 12 Monate. Was erscheint, entscheidet der Server aus `settings.public_profile` (`/api/community/foiler/<id>`); 404 bei hidden/blocked/unter 13/abgeschaltet. **Bewusst ohne Sessionliste** (Bewegungsprofil, 04.09.2026). Stand 08.09.2026 **nirgends verlinkt** — Einstieg noch offen. |
+| `/foiler/:id` | `Foiler.tsx` | **Oeffentliche Profilseite eines Foilers** (Login noetig, nicht fuer Suchmaschinen): Anzeigename, Dabei-seit, Homespot, bis zu drei benutzte Uhren, drei meistgenutzte Foils, Rekorde der letzten 12 Monate. Was erscheint, entscheidet der Server aus `settings.public_profile` (`/api/community/foiler/<id>`); 404 bei hidden/blocked/unter 13/abgeschaltet. **Freunde** (seit 15.10.2026) sehen alles, auch eine abgeschaltete Seite, dazu das Gewicht; Knopf „Freundschaft anfragen“ oben rechts. **Bewusst ohne Sessionliste** (Bewegungsprofil, 04.09.2026). Stand 08.09.2026 **nirgends verlinkt** — Einstieg noch offen. |
 | `/spots` | `Spots.tsx` | Kartenansicht aller Spot-Locations; Marker → Sessions am Spot. |
 | `/foils` | `Foils.tsx` | Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern). |
 | `/foil-stats` | `FoilStats.tsx` | Community-Vergleich je Foil: welche Werte mit welchem Material gefahren werden. |
@@ -41,6 +41,7 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 | `/foil-rechner` | `FoilCalculator.tsx` | Nativer Foil-Rechner: mehrere Foils vergleichen (Kennwerte + theoretische Leistung über Speeds; geportetes Physik-Modul). |
 | `/vergleich` | `Compare.tsx` | Mehr-Fahrer-/Session-Vergleich mit Farb-Legende je Fahrer. |
 | `/account` | `Account.tsx` | **Uhr einrichten**: Tabs Guide/Connect/Ansichten/Alarm/App/Kompatibilität (Watch-Matrix, Connect-IQ-Download). Von Einstellungen aus verlinkt. |
+| `/friends` | `Friends.tsx` | **Freunde verwalten** (15.10.2026, Einstieg: Knopf auf der Profilseite): Freunde, wer davon gerade pumpt (mit Spot), Anfragen an mich, eigene offene Anfragen. Angefragt wird auf `/foiler/:id`. Regeln: `server/app/freunde.py`. |
 | `/einstellungen` | `Settings.tsx` | Zentrale Einstellungen: Profil (Name/E-Mail/Avatar), Sprache, Theme, Schriftgröße, PWA-Install, Push-Benachrichtigungen; Einstiege zu Uhr/Foils/Rechner/Konten; App-Build-Info. |
 | `/konten` | `LinkedAccounts.tsx` | „Verknüpfte Konten": Import-Integrationen (Polar/COROS/Suunto/…) je als eigene Karte; blendet sich aus, wenn serverseitig nicht konfiguriert. |
 

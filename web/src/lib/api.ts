@@ -19,7 +19,24 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+// Ansicht „Freunde" (Jan, 15.10.2026): Community-Seite und Session-Liste schalten sie beim Rendern
+// ein (setFreundeAnsicht), dann haengt JEDE Community-Abfrage `friends=1` an — Rekorde, Ranglisten,
+// Feed, Medien. Der Server filtert damit in `_community` auf mich + meine Freunde (app/freunde.py).
+// Ausgenommen: die Statistikzeile (bleibt die ganze Community), die gruenen Spots und die
+// Foiler-Seite (beide kennen Freunde ohnehin). Beim Verlassen der Seite wieder aus.
+let freundeAnsicht = false;
+export type Freundschaft = "freund" | "angefragt" | "eingehend" | null;
+export type FreundKurz = { user_id: number; name: string | null; avatar_url: string | null };
+export type AktiverFreund = FreundKurz & { spot_id: number | null; spot: string | null };
+export function setFreundeAnsicht(an: boolean) { freundeAnsicht = an; }
+function mitFreunden(path: string): string {
+  if (!freundeAnsicht || !path.startsWith("/api/community/")
+      || /^\/api\/community\/(stats|spot-active|foiler)/.test(path)) return path;
+  return path + (path.includes("?") ? "&" : "?") + "friends=1";
+}
+
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  path = mitFreunden(path);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     // Client-Kennung: Web kann alle Video-Plattformen (IG/TikTok) anzeigen -> Server liefert sie.
@@ -981,6 +998,8 @@ export const api = {
   foilerProfil: (id: number) => req<{
     id: number; name: string | null; avatar_url: string | null;
     ich: boolean; aus: boolean;
+    // Aus Sicht des Betrachters (Freunde, 15.10.2026) + Gewicht nur fuer Freunde und einen selbst.
+    freundschaft?: Freundschaft; freundschaft_moeglich?: boolean; gewicht_kg?: number | null;
     zeigt: { join: boolean; watch: boolean; foil: boolean; homespot: boolean; records: boolean;
              media: boolean; spots: boolean; sessions: boolean; titles: boolean;
              channel: boolean };
@@ -1155,7 +1174,17 @@ export const api = {
     return { blob: await res.blob(), name: m?.[1] || `pumpfoil-${id}.${kind}` };
   },
   // Gruene Spots „gerade aktiv" (Regeln: server devices.aktive_spots).
-  spotActive: () => req<{ spots: number[]; area: number[] }>(`/api/community/spot-active`),
+  // `friends`: Freunde, die gerade pumpen, mit ihrem Spot (je Betrachter, s. app/freunde.py).
+  spotActive: () => req<{ spots: number[]; area: number[]; friends?: AktiverFreund[] }>(`/api/community/spot-active`),
+
+  // Freunde (15.10.2026): Liste + Anfragen, Regeln in server/app/freunde.py.
+  friends: () => req<{ freunde: (FreundKurz & { seit: string })[]; eingehend: (FreundKurz & { am: string })[];
+                       ausgehend: (FreundKurz & { am: string })[]; aktiv: AktiverFreund[] }>("/api/friends"),
+  friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
+  friendRequest: (id: number) => req<{ status: Freundschaft }>(`/api/friends/${id}/request`, { method: "POST" }),
+  friendAccept: (id: number) => req<{ status: Freundschaft }>(`/api/friends/${id}/accept`, { method: "POST" }),
+  friendDecline: (id: number) => req<{ status: Freundschaft }>(`/api/friends/${id}/decline`, { method: "POST" }),
+  friendRemove: (id: number) => req<{ status: Freundschaft }>(`/api/friends/${id}`, { method: "DELETE" }),
   spotMap: (accelOnly = true, sport = "all") => req<{ spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}&sport=${encodeURIComponent(sport)}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
@@ -1541,7 +1570,7 @@ export const api = {
       sport: opts.sport ?? "pumpfoil", mine: String(!!opts.mine) });
     if (opts.spot) q.set("spot", opts.spot);
     if (opts.board) q.set("board", "true");
-    return req<{ n: number; pumping_here?: boolean }>(`/api/community/sessions-today?${q}`);
+    return req<{ n: number; pumping_here?: boolean; friends_here?: { user_id: number; name: string | null }[] }>(`/api/community/sessions-today?${q}`);
   },
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
@@ -1659,11 +1688,11 @@ export const api = {
   // „Älter/neuer" folgt dem Filter der Liste, aus der man kam (s. lastSession.ts). Ohne
   // Angaben antwortet der Server wie bisher: eigene Sessions, gleiche Art.
   sessionNeighbors: (id: number, f?: {
-    scope?: "mine" | "all"; spot?: string; sport?: string;
+    scope?: "mine" | "all" | "friends"; spot?: string; sport?: string;
     accelOnly?: boolean; filter?: "pump" | "other"; month?: string;
   }) => {
     const q = new URLSearchParams();
-    if (f?.scope === "all") q.set("scope", "all");
+    if (f?.scope === "all" || f?.scope === "friends") q.set("scope", f.scope);
     if (f?.spot) q.set("spot", f.spot);
     if (f?.sport) q.set("sport", f.sport);
     if (f?.accelOnly) q.set("accel_only", "true");

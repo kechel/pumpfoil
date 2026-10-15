@@ -332,6 +332,7 @@ export default function Settings() {
       </Card>
 
       <PublicProfileCard onSaved={flashSaved} />
+      <FreundeKarte />
 
       {/* ORT VERBERGEN, Voreinstellung fuer ALLE eigenen Aufnahmen (Jan, 25.09.2026: „das wuerde
           unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
@@ -808,5 +809,26 @@ function GewichtExtras() {
         </p>
       )}
     </>
+  );
+}
+
+
+// Einstieg in „Freunde verwalten" (Jan, 15.10.2026) direkt unter der Foiler-Seite — beides regelt,
+// wer was von einem sieht. Das Abzeichen zaehlt die offenen Anfragen an mich.
+function FreundeKarte() {
+  const t = useT();
+  const [n, setN] = useState(0);
+  useEffect(() => { api.friendsCount().then((r) => setN(r.incoming)).catch(() => {}); }, []);
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("friends.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("friends.profileHint")}</p>
+      <Link to="/friends">
+        <Button variant="ghost">
+          {t("friends.manage")}
+          {n > 0 && <span className="ml-2 rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{n}</span>}
+        </Button>
+      </Link>
+    </Card>
   );
 }

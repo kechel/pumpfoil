@@ -2394,9 +2394,13 @@ def session_neighbors(
     if s is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
 
-    if scope == "all" or spot:
+    if scope in ("all", "friends") or spot:
         # Fremde Fahrer: dieselben Sichtbarkeits- und Sportfilter wie der Community-Feed.
         base = _community(db.query(models.Session.id), user.id, accel_only, sport)
+        if scope == "friends":
+            # Liste „Freunde" (15.10.2026): ich + meine Freunde, wie `?friends=1` an der Liste.
+            from ..freunde import freund_ids
+            base = base.filter(models.Session.user_id.in_(freund_ids(db, user.id) | {user.id}))
         if spot:
             base = base.filter(_spot_cond(spot, db))
         if name:
