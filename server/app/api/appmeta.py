@@ -965,8 +965,15 @@ NAECHSTES: list[dict] = [
          "While recording, the stop button always stays on screen, the title bar is gone to give the map more room, and the map no longer flickers while you hold stop.",
          "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
          "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
+         # 15.10.2026: Brett-Automatik (Server 700eb422), Hinweis wie in der PWA.
+         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
      ]},
     # iPhone + Apple Watch 1.1.49 am 15.10. eingereicht -> IN_REVIEW.
+    # 15.10.2026: Brett-Automatik-Hinweis (wie Android), Code nur swiftc -parse.
+    {"name": "iPhone + Apple Watch", "version": "1.1.50",
+     "items": [
+         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
+     ]},
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     {"name": "Wear OS", "version": "1.2.43",
      "items": [

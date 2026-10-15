@@ -1197,6 +1197,8 @@ struct SessionDetail: Codable, Identifiable {
     // Wo sass das Geraet: "board" (Handy am Brett) | "phone" (Tasche/Huefte) | nil (Uhr). Nur
     // "board" macht Nicken/Rollen zu einer Aussage ueber das BRETT (s. analysis/lage.py).
     let placement: String?
+    // Wer "board" gesetzt hat: "auto" (Brett-Automatik der Analyse, seit 15.10.2026) | "nutzer" | nil.
+    let placement_quelle: String?
     // Kreiseldaten vorhanden — liefern allein die Handy-Recorder. Ohne sie gibt es keine Lage.
     let has_gyro: Bool?
     // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start, gleiche Basis wie
