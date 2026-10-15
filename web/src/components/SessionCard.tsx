@@ -233,6 +233,16 @@ export function SessionCard({
     );
   }
 
+  const klasseBadge = needsClassification ? (
+    <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-sm text-amber-800 dark:text-amber-200">
+      {t("cls.needsBadge")}
+    </span>
+  ) : isClassified({ sport_class: sportClass, data_quality: dataQuality }) ? (
+    <span className="rounded-lg bg-slate-500/15 px-2 py-0.5 text-sm text-slate-300">
+      {t(classLabelKey({ sport_class: sportClass, data_quality: dataQuality }))}
+    </span>
+  ) : null;
+
   return (
     <>
     <Link
@@ -256,7 +266,15 @@ export function SessionCard({
             Text bis auf Wortbreite — Datum und alle Setup-Abzeichen brachen einzeln um. Auf
             Englisch fiel es kaum auf, auf DEUTSCH zerlegte es die Karte: „wird verarbeitet" ist
             gut doppelt so breit wie „processing". */}
-        {statusBadge && <div className="flex">{statusBadge}</div>}
+        {/* Sportart-Abzeichen auf dem Handy ebenfalls hier oben (Jan, 15.10.2026: „Andere
+            Sportart" in der rechten Spalte quetschte den Titel „Tanzen Langsamer Walzer, Jive" bis
+            auf Wortbreite — derselbe Fehler wie beim Status oben). Ab `sm` bleibt es rechts. */}
+        {(statusBadge || klasseBadge) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {statusBadge}
+            {klasseBadge && <span className="sm:hidden">{klasseBadge}</span>}
+          </div>
+        )}
         <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 gap-3">
           <div className="flex shrink-0 flex-col items-center gap-1.5">
@@ -346,15 +364,7 @@ export function SessionCard({
             {videoEl}
             {trackEl}
           </div>
-          {needsClassification ? (
-            <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-sm text-amber-800 dark:text-amber-200">
-              {t("cls.needsBadge")}
-            </span>
-          ) : isClassified({ sport_class: sportClass, data_quality: dataQuality }) ? (
-            <span className="rounded-lg bg-slate-500/15 px-2 py-0.5 text-sm text-slate-300">
-              {t(classLabelKey({ sport_class: sportClass, data_quality: dataQuality }))}
-            </span>
-          ) : null}
+          {klasseBadge && <span className="hidden sm:inline-flex">{klasseBadge}</span>}
           <ChevronIcon className="h-5 w-5 text-slate-400" />
         </div>
         </div>
