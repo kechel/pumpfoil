@@ -1456,6 +1456,7 @@ const zh: Record<string, string> = {
   "friends.hereNow": "{names} 正在这里 pumping",
   "friends.pumpingNow": "正在 pumping",
   "friends.pumpingNowTitle": "正在 pumping",
+  "friends.nPumping": "{n} 位好友正在 pumping",
   "friends.howTo": "在骑手的个人主页发送请求，例如通过会话上的名字进入。",
   "notif.typeFriend": "好友：请求和谁在 pumping",
   "hr.pickTitle": "自选时间点",

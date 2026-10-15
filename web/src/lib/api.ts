@@ -1181,6 +1181,8 @@ export const api = {
   friends: () => req<{ freunde: (FreundKurz & { seit: string })[]; eingehend: (FreundKurz & { am: string })[];
                        ausgehend: (FreundKurz & { am: string })[]; aktiv: AktiverFreund[] }>("/api/friends"),
   friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
+  // Nur „wer von meinen Freunden pumpt gerade wo" — Startseite (FreundePumpen.tsx).
+  friendsActive: () => req<AktiverFreund[]>("/api/friends/active"),
   friendRequest: (id: number) => req<{ status: Freundschaft }>(`/api/friends/${id}/request`, { method: "POST" }),
   friendAccept: (id: number) => req<{ status: Freundschaft }>(`/api/friends/${id}/accept`, { method: "POST" }),
   friendDecline: (id: number) => req<{ status: Freundschaft }>(`/api/friends/${id}/decline`, { method: "POST" }),

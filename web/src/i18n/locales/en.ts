@@ -1613,6 +1613,7 @@ const en: Record<string, string> = {
   "friends.hereNow": "{names} pumping here right now",
   "friends.pumpingNow": "pumping right now",
   "friends.pumpingNowTitle": "Pumping right now",
+  "friends.nPumping": "{n} friends pumping right now",
   "friends.howTo": "Send requests from a rider's profile page, for example via their name on a session.",
   "notif.typeFriend": "Friends: requests and who is pumping",
   "hr.pickTitle": "Pick your own moment",

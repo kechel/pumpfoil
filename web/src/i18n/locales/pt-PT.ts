@@ -1453,6 +1453,7 @@ const ptPT: Record<string, string> = {
   "friends.hereNow": "{names} está a pumpar aqui agora",
   "friends.pumpingNow": "a pumpar agora",
   "friends.pumpingNowTitle": "A pumpar agora",
+  "friends.nPumping": "{n} amigos a pumpar agora",
   "friends.howTo": "Os pedidos enviam-se a partir da página de perfil de um rider, por exemplo pelo nome numa sessão.",
   "notif.typeFriend": "Amigos: pedidos e quem está a pumpar",
   "hr.pickTitle": "O teu próprio momento",

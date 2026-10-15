@@ -1061,6 +1061,7 @@ const deAT: Record<string, string> = {
   "friends.hereNow": "{names} pumpt grad do",
   "friends.pumpingNow": "pumpt grad",
   "friends.pumpingNowTitle": "Grad am Pumpen",
+  "friends.nPumping": "{n} Freunde pumpen grad",
   "friends.howTo": "Anfragen stellst auf der Profilseite von an Foiler, z. B. über sein Namen bei aner Session.",
   "notif.typeFriend": "Freunde: Anfragen und wer grad pumpt",
   "hr.pickTitle": "Eigener Zeitpunkt",

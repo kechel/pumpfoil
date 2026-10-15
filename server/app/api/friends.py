@@ -68,6 +68,16 @@ def liste(user: models.User = Depends(current_user), db: Session = Depends(get_d
             "aktiv": freunde.aktive_freunde(db, user.id)}
 
 
+@router.get("/active")
+def aktiv(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Nur „wer von meinen Freunden pumpt gerade wo" — fuer die Zeile neben der Begruessung auf der
+    Startseite (Jan, 15.10.2026). Leichter als die ganze Liste, weil die Startseite es alle zwei
+    Minuten nachfragt."""
+    if not freunde.darf_freunde_haben(user):
+        return []
+    return freunde.aktive_freunde(db, user.id)
+
+
 @router.get("/count")
 def anzahl(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """Offene Anfragen an mich — fuer das Abzeichen am Knopf „Freunde verwalten"."""

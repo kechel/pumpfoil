@@ -18,6 +18,7 @@ import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
 import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
+import { FreundePumpen } from "../components/FreundePumpen";
 import { PERIODS } from "./Home";
 
 // Voreingestelltes Zeitfenster der Kacheln. Einer der Werte aus PERIODS.
@@ -331,6 +332,7 @@ export default function PersonalHome() {
           {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
         </h2>
         <ChangelogBadge />
+        <FreundePumpen />
       </div>
 
       {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}

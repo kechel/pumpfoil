@@ -1583,6 +1583,7 @@ const cs: Record<string, string> = {
   "friends.hereNow": "{names} tu právě pumpuje",
   "friends.pumpingNow": "právě pumpuje",
   "friends.pumpingNowTitle": "Právě pumpují",
+  "friends.nPumping": "{n} přátel právě pumpuje",
   "friends.howTo": "Žádosti posíláš z profilové stránky jezdce, např. přes jeho jméno u session.",
   "notif.typeFriend": "Přátelé: žádosti a kdo pumpuje",
   "hr.pickTitle": "Vlastní okamžik",

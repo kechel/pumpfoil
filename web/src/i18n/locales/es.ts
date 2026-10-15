@@ -1199,6 +1199,7 @@ const es: Record<string, string> = {
   "friends.hereNow": "{names} está pumpeando aquí ahora",
   "friends.pumpingNow": "pumpeando ahora",
   "friends.pumpingNowTitle": "Pumpeando ahora",
+  "friends.nPumping": "{n} amigos pumpeando ahora",
   "friends.howTo": "Las solicitudes se envían desde la página de perfil de un rider, por ejemplo con su nombre en una sesión.",
   "notif.typeFriend": "Amigos: solicitudes y quién está pumpeando",
   "hr.pickTitle": "Tu propio momento",

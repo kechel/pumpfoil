@@ -1,5 +1,6 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -312,5 +313,73 @@ fun NeuBadge() {
         Text(I18n.t("badge.new").uppercase(), color = g, fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp))
+    }
+}
+
+/**
+ * Unter dem Gruss auf der Startseite: welche meiner Freunde gerade wo pumpen (Jan, 15.10.2026:
+ * „wenn es mehr als 3 sind dann nur noch x Friends currently pumping und bei klick dann darunter
+ * oeffnen"). Nichts da -> nichts gezeigt. Alle zwei Minuten neu, wie die Spot-Karte. Wer zaehlt
+ * und welcher Spot, entscheidet der Server (app/freunde.py).
+ */
+@Composable
+fun FreundePumpenZeile(onOpenSpot: (String) -> Unit) {
+    var aktiv by remember { mutableStateOf<List<FreundKurz>>(emptyList()) }
+    var offen by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            aktiv = try { Api.friendsActive() } catch (_: Exception) { aktiv }
+            kotlinx.coroutines.delay(120_000)
+        }
+    }
+    if (aktiv.isEmpty()) return
+    val g = gruen()
+    val oeffneFoiler = LocalOpenFoiler.current
+
+    @Composable
+    fun Eintrag(f: FreundKurz) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(f.name ?: "—", color = g, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.clickable { oeffneFoiler?.invoke(f.userId) })
+            f.spot?.let { sp ->
+                Text(" @ ", color = g, style = MaterialTheme.typography.bodyMedium)
+                Text(sp, color = g, style = MaterialTheme.typography.bodyMedium, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.clickable { onOpenSpot(sp) })
+            }
+        }
+    }
+
+    @Composable
+    fun PunktGruen() {
+        androidx.compose.foundation.layout.Box(Modifier.size(8.dp)
+            .background(g, androidx.compose.foundation.shape.CircleShape))
+    }
+
+    Column(Modifier.fillMaxWidth().padding(top = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (aktiv.size <= 3) {
+            aktiv.forEach { f ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    PunktGruen(); Spacer(Modifier.width(6.dp)); Eintrag(f)
+                }
+            }
+        } else {
+            androidx.compose.material3.Surface(onClick = { offen = !offen },
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(50), color = g.copy(alpha = 0.12f)) {
+                Row(Modifier.padding(horizontal = 10.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    PunktGruen(); Spacer(Modifier.width(6.dp))
+                    Text(I18n.t("friends.nPumping").replace("{n}", aktiv.size.toString()), color = g,
+                        fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                    Text(if (offen) "  ▴" else "  ▾", color = g)
+                }
+            }
+            if (offen) {
+                androidx.compose.material3.Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                    color = g.copy(alpha = 0.06f), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        aktiv.forEach { f -> Eintrag(f) }
+                    }
+                }
+            }
+        }
     }
 }

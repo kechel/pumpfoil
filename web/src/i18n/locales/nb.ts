@@ -1494,6 +1494,7 @@ const nb: Record<string, string> = {
   "friends.hereNow": "{names} pumper her nå",
   "friends.pumpingNow": "pumper nå",
   "friends.pumpingNowTitle": "Pumper nå",
+  "friends.nPumping": "{n} venner pumper nå",
   "friends.howTo": "Forespørsler sender du fra profilsiden til en rider, for eksempel via navnet på en økt.",
   "notif.typeFriend": "Venner: forespørsler og hvem som pumper",
   "hr.pickTitle": "Ditt eget tidspunkt",

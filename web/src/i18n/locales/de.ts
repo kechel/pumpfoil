@@ -1734,6 +1734,7 @@ const de: Record<string, string> = {
   "friends.hereNow": "{names} pumpt gerade hier",
   "friends.pumpingNow": "pumpt gerade",
   "friends.pumpingNowTitle": "Gerade am Pumpen",
+  "friends.nPumping": "{n} Freunde pumpen gerade",
   "friends.howTo": "Anfragen stellst du auf der Profilseite eines Foilers, z. B. über seinen Namen an einer Session.",
   "notif.typeFriend": "Freunde: Anfragen und wer gerade pumpt",
   "hr.pickTitle": "Eigener Zeitpunkt",
