@@ -1485,8 +1485,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   `?friends=1` in `_community`. Verwaltung `/friends` (Knopf auf der Profilseite). NICHT
   freigegeben (Jan): verborgene Orte, ganze Sessionliste, Ausruestung, Verabredung, Rohdaten.
   Code: `server/app/freunde.py`, `api/friends.py`, Tests `tests/test_freunde.py`.
-  **Offen:** (1) Native Apps (Android/iOS) — Knopf, Freunde-Seite, Reiter, Taste, Push-Schalter;
-  (2) Schritt 2 „Live-Position nur fuer Freunde" (spaeter, Jan); (3) eine Anfrage geht nur ueber
+  **Native (15.10. abends):** Android + iOS portiert — Freunde-Seite (`FreundeScreen.kt` /
+  `FreundeView.swift`, NEUE Swift-Datei -> xcodegen), Knopf + Gewicht auf der Foiler-Seite, Eintrag
+  im Profil mit „neu", Reiter „Freunde" in Sessions, dritte Taste in Community, Freundes-Spots
+  gruen, „X pumpt gerade hier" mit Namen. Android im Emulator mit u38 angesehen (nur lesend; u38 ist
+  versteckt, also ohne Freundschaft — Knopf und Dialog NICHT live gesehen), iOS nur `swiftc -parse`.
+  In NAECHSTES (Android 1.1.43, iPhone 1.1.50). Kein Push-Schalter in den Apps: die Apps haben
+  keinen eigenen Push, der Schalter sitzt in der PWA.
+  **Offen:** (1) erledigt (s. o.); (2) Schritt 2 „Live-Position nur fuer Freunde" (spaeter, Jan); (3) eine Anfrage geht nur ueber
   die Foiler-Seite — bei ganz abgeschalteter Seite kann man den Nutzer nicht anfragen (Einstieg
   z. B. ueber den Namen an einer Session ergaenzen?); (4) Push-Texte nur de/en.
 - **14.10. — Handy-Recorder: Puls vom Brustgurt (Bluetooth) aufnehmen, iOS + Android.** Nutzermeldung u683:

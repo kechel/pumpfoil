@@ -12,7 +12,7 @@ import Foundation
 /// Benachrichtigung öffnet, hat keinen Listen-Kontext; dann bleibt `leer` stehen und der Server
 /// antwortet wie bisher (eigene Sessions, gleiche Art wie die aktuelle).
 struct NachbarFilter {
-    var scope = "mine"          // "mine" | "all"
+    var scope = "mine"          // "mine" | "all" | "friends"
     var spot: String?           // Spot-Name oder -id; gesetzt = alle Fahrer an diesem Spot
     var sport: String?          // nil = Serverdefault ("all")
     var accelOnly = false
@@ -32,7 +32,7 @@ struct NachbarFilter {
         func add(_ k: String, _ v: String) {
             teile.append("\(k)=\(v.addingPercentEncoding(withAllowedCharacters: erlaubt) ?? v)")
         }
-        if scope == "all" { add("scope", "all") }
+        if scope == "all" || scope == "friends" { add("scope", scope) }
         if let s = spot, !s.isEmpty { add("spot", s) }
         if let s = sport, !s.isEmpty { add("sport", s) }
         if accelOnly { add("accel_only", "true") }

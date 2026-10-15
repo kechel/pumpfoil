@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Watch
@@ -82,7 +83,9 @@ fun FoilerScreen(
 ) {
     var d by remember(userId) { mutableStateOf<FoilerProfil?>(null) }
     var fehler by remember(userId) { mutableStateOf(false) }
-    LaunchedEffect(userId) {
+    // Hochgezaehlt, wenn eine Freundschaft beginnt oder endet: dann sieht man mehr bzw. weniger.
+    var neuLaden by remember(userId) { mutableStateOf(0) }
+    LaunchedEffect(userId, neuLaden) {
         try { d = Api.foilerProfil(userId) } catch (_: Exception) { fehler = true }
     }
     val p = d
@@ -121,7 +124,15 @@ fun FoilerScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 p == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 else -> CompositionLocalProvider(LocalOpenFoiler provides ohneSelbst) {
-                    FoilerInhalt(p, onOpenSession, onOpenSpot, onSettings)
+                    FoilerInhalt(p, onOpenSession, onOpenSpot, onSettings,
+                        // Freundschaft (15.10.2026, wie Foiler.tsx): nicht auf der eigenen Seite und
+                        // nicht unter 13 — das prueft der Server ueber `freundschaftMoeglich`.
+                        freundKnopf = if (!p.ich && social && p.freundschaftMoeglich) ({
+                            FreundschaftKnopf(p.id, p.name ?: "—", p.freundschaft, onChange = { neu ->
+                                if (neu == "freund" || p.freundschaft == "freund") neuLaden++
+                                else d = p.copy(freundschaft = neu)
+                            }, modifier = Modifier.padding(top = 12.dp))
+                        }) else null)
                 }
             }
         }
@@ -135,6 +146,7 @@ private fun FoilerInhalt(
     onOpenSession: (Int) -> Unit,
     onOpenSpot: (String) -> Unit,
     onSettings: () -> Unit,
+    freundKnopf: (@Composable () -> Unit)? = null,
 ) {
     val uri = LocalUriHandler.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
@@ -165,6 +177,8 @@ private fun FoilerInhalt(
             }
         }
 
+        freundKnopf?.invoke()
+
         // Angaben: Label links, Wert rechts. Die Label-Spalte ist so breit wie das laengste Label
         // (Web: grid max-content) — hier ueber eine feste Mindestbreite angenaehert.
         val angaben = buildList<Triple<ImageVector, String, @Composable () -> Unit>> {
@@ -173,6 +187,12 @@ private fun FoilerInhalt(
                     // Der Homespot fuehrt zum Spot. Die App navigiert Spots ueber den Namen.
                     Text(hs, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable { onOpenSpot(hs) })
+                })
+            }
+            // Gewicht: der Server liefert es nur Freunden und einem selbst (15.10.2026).
+            d.gewichtKg?.let { kg ->
+                add(Triple(Icons.Filled.MonitorWeight, I18n.t("friends.weight")) {
+                    Text("${kg.roundToInt()} kg", fontWeight = FontWeight.SemiBold)
                 })
             }
             if (d.uhren.isNotEmpty()) add(Triple(Icons.Filled.Watch, I18n.t("foiler.watch")) {
@@ -378,7 +398,7 @@ private fun zahl(n: Int): String =
     java.text.NumberFormat.getIntegerInstance(java.util.Locale.forLanguageTag(I18n.lang)).format(n)
 
 // „Dabei seit 3. Mai 2026" in der PROFILSPRACHE, nicht in der des Geraets (Web, Jan 08.09.2026).
-private fun langDatum(iso: String): String = try {
+internal fun langDatum(iso: String): String = try {
     java.time.LocalDate.parse(iso.take(10)).format(
         java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.LONG)
             .withLocale(java.util.Locale.forLanguageTag(I18n.lang)))

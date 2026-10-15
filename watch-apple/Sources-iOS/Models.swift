@@ -947,6 +947,31 @@ struct FoilerProfil: Decodable {
     let titel: [FoilerTitel]?
     let spot_titel: [FoilerSpotTitel]?
     let sessions: [SessionSummary]?   // die letzten FUENF (Grenze zieht der Server)
+    // Freunde (15.10.2026): mein Stand zu ihm ("freund" | "angefragt" | "eingehend" | nil), ob eine
+    // Anfrage ueberhaupt geht, und das Gewicht — das liefert der Server nur Freunden und mir selbst.
+    var freundschaft: String? = nil
+    var freundschaft_moeglich: Bool? = nil
+    var gewicht_kg: Double? = nil
+}
+
+// Freunde-Liste (GET /api/friends). `seit` nur bei Freunden, `am` nur bei Anfragen, `spot_id`/
+// `spot` nur bei „gerade am Pumpen".
+struct FreundKurz: Decodable, Identifiable {
+    let user_id: Int
+    let name: String?
+    let avatar_url: String?
+    var seit: String? = nil
+    var am: String? = nil
+    var spot_id: Int? = nil
+    var spot: String? = nil
+    var id: Int { user_id }
+}
+
+struct FreundeListe: Decodable {
+    var freunde: [FreundKurz] = []
+    var eingehend: [FreundKurz] = []
+    var ausgehend: [FreundKurz] = []
+    var aktiv: [FreundKurz] = []
 }
 
 struct FoilerZeigt: Decodable {

@@ -21,6 +21,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
@@ -72,7 +75,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}, onFriends: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -202,6 +205,32 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 headlineContent = { Text(I18n.t("accounts.title")) },
                 supportingContent = { Text(I18n.t("accounts.sub")) },
                 leadingContent = { Icon(Icons.Filled.Link, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            // Freunde verwalten (Jan, 15.10.2026: „zwischen verknuepfte Konten und meine foils und ein
+            // 'neu' Badge mit dran"). Die Zahl zaehlt offene Anfragen an mich. Unter 13 gibt es
+            // keine Freunde (Server: 403) — dann faellt der Eintrag weg, wie Chat und Community.
+            var anfragen by remember { mutableStateOf(0) }
+            LaunchedEffect(Unit) { anfragen = try { Api.friendsCount() } catch (_: Exception) { 0 } }
+            if (profile?.socialAllowed != false) ListItem(
+                modifier = Modifier.clickable { onFriends() },
+                headlineContent = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(I18n.t("friends.manage"))
+                        Spacer(Modifier.width(8.dp))
+                        NeuBadge()
+                        if (anfragen > 0) {
+                            Spacer(Modifier.width(6.dp))
+                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
+                                Text("$anfragen", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp))
+                            }
+                        }
+                    }
+                },
+                supportingContent = { Text(I18n.t("friends.profileHint")) },
+                leadingContent = { Icon(Icons.Filled.Groups, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(

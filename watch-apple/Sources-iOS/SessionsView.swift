@@ -1,7 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-private enum SessionScope { case mine, spot, all }
+// friends (Jan, 15.10.2026): meine + die meiner Freunde in EINER Liste (wie die PWA).
+private enum SessionScope { case mine, spot, all, friends }
 
 // Sessions-Liste mit Scope-Umschalter (Meine / Homespot / Alle) + Spot-Suche.
 struct SessionsView: View {
@@ -265,7 +266,8 @@ struct SessionsView: View {
                 // „N neue Sessions heute" ganz oben, direkt unter dem Titel (PWA 9131874f: neben die
                 // Ueberschrift). Auf dem iPhone ist neben dem grossen Titel kein Platz.
                 HeuteNeu(mine: scope == .mine, spot: heuteSpot,
-                         accelOnly: accelOnly && !brett, sport: sport, board: brett, lang: lang)
+                         accelOnly: accelOnly && !brett, sport: sport, board: brett,
+                         freunde: scope == .friends, lang: lang)
                 ScrollView(.horizontal, showsIndicators: false) { scopeChips }
                 HStack {
                     // Kurz „accel" und „POB" in allen Sprachen (Jan, 13.10.2026): passt so auch auf
@@ -454,6 +456,7 @@ struct SessionsView: View {
         switch scope {
         case .mine: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.mine", lang))"
         case .all: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.all", lang))"
+        case .friends: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("friends.title", lang))"
         // Zusatz mit in den Titel (wie im Web): „Berlin 3" allein sagt nicht, welcher der
         // drei Berliner Spots gemeint ist.
         case .spot:
@@ -471,6 +474,7 @@ struct SessionsView: View {
                 chip("📍\(homespot)", scope == .spot && spot == homespot) { spot = homespot; scope = .spot }
             }
             chip(Loc.t("sessions.all", lang), scope == .all && spot.isEmpty) { spot = ""; scope = .all }
+            chip(Loc.t("friends.title", lang), scope == .friends) { spot = ""; scope = .friends }
             // Datei-Import RECHTS in derselben Zeile, schmal (Jan, 18.09.2026: „auf ios kann der
             // import fit button auch nur icon + fit und nach oben rechtsbuendig neben
             // mine|spot|all"). Vorher stand „Import FIT/TCX/GPX" in einer eigenen, fast
@@ -566,8 +570,9 @@ struct SessionsView: View {
             // sport: Default "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten
             // zeigen (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte
             // kennzeichnet alles, was kein Pumpfoilen ist. Seit 27.09.2026 waehlbar (Sportart-Filter).
-            case .all:
-                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly && !brett, sport: sport, board: brett)
+            case .all, .friends:
+                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly && !brett, sport: sport, board: brett,
+                                                               freunde: scope == .friends)
                 guard meine == ladeGeneration else { return }
                 groups = r
             case .spot:
@@ -586,6 +591,8 @@ struct SessionsView: View {
                                                       filter: filter, month: month.isEmpty ? nil : month)
             case .all:
                 NachbarFilter.aktuell = NachbarFilter(scope: "all", sport: sport, accelOnly: accelOnly)
+            case .friends:
+                NachbarFilter.aktuell = NachbarFilter(scope: "friends", sport: sport, accelOnly: accelOnly)
             case .spot:
                 NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot.isEmpty ? nil : spot,
                                                       sport: sport, accelOnly: accelOnly)
@@ -1409,13 +1416,17 @@ private struct HeuteNeu: View {
     let accelOnly: Bool
     let sport: String
     let board: Bool
+    var freunde: Bool = false
     let lang: String
     @Environment(\.colorScheme) private var schema
     @State private var n = 0
     @State private var pumpt = 0
     @State private var hier = false
+    // Freunde gerade an diesem Spot, mit Namen (15.10.2026) — der Server liefert sie nur an Freunde.
+    @State private var freundeHier: [String] = []
 
-    private var global: Bool { !mine && (spot ?? "").isEmpty }
+    // Der Gesamtzaehler gilt fuer ALLE — nicht in „Meine", am Spot oder in „Freunde".
+    private var global: Bool { !mine && (spot ?? "").isEmpty && !freunde }
     private var pulst: Bool { pumpt > 0 || hier }
 
     var body: some View {
@@ -1431,16 +1442,19 @@ private struct HeuteNeu: View {
                 Color.clear.frame(height: 0)
             }
         }
-        .task(id: "\(mine)|\(spot ?? "")|\(accelOnly)|\(sport)|\(board)") { await laden() }
+        .task(id: "\(mine)|\(spot ?? "")|\(accelOnly)|\(sport)|\(board)|\(freunde)") { await laden() }
     }
 
     private func laden() async {
-        if let r = try? await Api.sessionsToday(mine: mine, spot: spot, accelOnly: accelOnly, sport: sport, board: board) {
+        if let r = try? await Api.sessionsToday(mine: mine, spot: spot, accelOnly: accelOnly, sport: sport, board: board,
+                                                freunde: freunde) {
             n = r.n
-            hier = r.pumping_here ?? false
+            freundeHier = (r.friends_here ?? []).map { $0.name ?? "—" }
+            hier = (r.pumping_here ?? false) || !freundeHier.isEmpty
         } else {
             n = 0
             hier = false
+            freundeHier = []
         }
         pumpt = global ? ((try? await Api.communityStats())?.pumping_now ?? 0) : 0
     }
@@ -1482,7 +1496,10 @@ private struct HeuteNeu: View {
         }
         if hier {
             if !leer { out = out + Text(" · ") }
-            out = out + teil(Loc.t("sessions.pumpingHere", lang), puls: true, takt: takt)
+            // Mit Namen, wenn es Freunde sind — sonst nur „jemand" (die Regel der gruenen Spots).
+            let hierText: String = freundeHier.isEmpty ? Loc.t("sessions.pumpingHere", lang)
+                : Loc.t("friends.hereNow", lang).replacingOccurrences(of: "{names}", with: "§" + freundeHier.joined(separator: ", ") + "§")
+            out = out + teil(hierText, puls: true, takt: takt)
         }
         out = out + Text(" — ") + Text("Have fun, keep pumping!").bold().foregroundColor(.accentColor)
         return out.font(.footnote).foregroundColor(.secondary)

@@ -94,7 +94,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
-private enum class Scope { MINE, SPOT, ALL }
+// FRIENDS (Jan, 15.10.2026): meine + die meiner Freunde in EINER Liste (wie die PWA).
+private enum class Scope { MINE, SPOT, ALL, FRIENDS }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -231,8 +232,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 // (wie die PWA seit 2026-07-31) — ohne das griff der Endpunkt-Default „pumpfoil"
                 // und eFoil/Wake/… fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Seit
                 // 27.09.2026 laesst sich die Liste auf eine Sportart einschraenken (Sportart-Auswahl).
-                Scope.ALL -> {
-                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = sport, board = brett)
+                Scope.ALL, Scope.FRIENDS -> {
+                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = sport, board = brett,
+                                                         freunde = scope == Scope.FRIENDS)
                     if (meine != ladeGeneration) return
                     groups = r
                 }
@@ -259,6 +261,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             Scope.MINE -> NachbarFilter(scope = "mine", sport = sport, accelOnly = accelOnly,
                                         filter = filter, month = month.ifBlank { null })
             Scope.ALL -> NachbarFilter(scope = "all", sport = sport, accelOnly = accelOnly)
+            Scope.FRIENDS -> NachbarFilter(scope = "friends", sport = sport, accelOnly = accelOnly)
             Scope.SPOT -> NachbarFilter(scope = "all", spot = spot.ifBlank { null },
                                         sport = sport, accelOnly = accelOnly)
         })
@@ -291,6 +294,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             val title = when (scope) {
                 Scope.MINE -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.mine")}"
                 Scope.ALL -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.all")}"
+                Scope.FRIENDS -> "${I18n.t("nav.sessions")} · ${I18n.t("friends.title")}"
                 // Zusatz mit in den Titel (wie im Web): „Berlin 3" allein sagt nicht, welcher
                 // der drei Berliner Spots gemeint ist.
                 Scope.SPOT -> "${I18n.t("nav.sessions")} · 📍${spot}" +
@@ -315,7 +319,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             // damit er umbrechen darf statt die Knoepfe zu verdraengen.
             HeuteNeu(mine = scope == Scope.MINE, spot = if (scope == Scope.SPOT) spot else null,
                      spotId = if (scope == Scope.SPOT) spotIds[spot] else null,
-                     accelOnly = accelOnly, sport = sport, board = brett)
+                     accelOnly = accelOnly, sport = sport, board = brett, freunde = scope == Scope.FRIENDS)
             // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
             UploadProgressCard(onOpen = { onOpen(it, null) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
             // Scope-Umschalter + Accel/alle-Umschalter in EINER umbrechenden Zeile.
@@ -351,6 +355,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     )
                 }
                 FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
+                FilterChip(selected = scope == Scope.FRIENDS, onClick = { spot = ""; scope = Scope.FRIENDS }, label = { Text(I18n.t("friends.title")) }, colors = cyanChipColors())
                 AccelSeg(accelOnly, brett = brett, onBrett = { brett = true }) { brett = false; accel.set(it) }
             }
             }
@@ -1227,20 +1232,24 @@ private fun VergleichKnopf(id: Int, aktiv: Boolean) {
  * Zahlen fett/cyan, der §-markierte Teil pulsiert — und dahinter das Motto extra fett/cyan.
  */
 @Composable
-private fun HeuteNeu(mine: Boolean, spot: String?, spotId: Int?, accelOnly: Boolean, sport: String, board: Boolean) {
+private fun HeuteNeu(mine: Boolean, spot: String?, spotId: Int?, accelOnly: Boolean, sport: String, board: Boolean,
+                     freunde: Boolean = false) {
     var n by remember { mutableStateOf(0) }
     var pumpt by remember { mutableStateOf(0) }
     var hier by remember { mutableStateOf(false) }
+    // Freunde gerade an diesem Spot, mit Namen (15.10.2026) — der Server liefert sie nur an Freunde.
+    var freundeHier by remember { mutableStateOf<List<String>>(emptyList()) }
     // Mit id, wenn bekannt (der Server erkennt sie und rechnet nur dann `pumping_here`); sonst der
     // Name wie bisher — die Zahl stimmt so oder so.
     val spotParam = spotId?.toString() ?: spot
-    LaunchedEffect(mine, spotParam, accelOnly, sport, board) {
+    LaunchedEffect(mine, spotParam, accelOnly, sport, board, freunde) {
         try {
-            val r = Api.sessionsToday(mine, spotParam, accelOnly, sport, board)
-            n = r.n; hier = r.pumpingHere
-        } catch (_: Exception) { n = 0; hier = false }
+            val r = Api.sessionsToday(mine, spotParam, accelOnly, sport, board, freunde)
+            n = r.n; hier = r.pumpingHere; freundeHier = r.freundeHier
+        } catch (_: Exception) { n = 0; hier = false; freundeHier = emptyList() }
     }
-    val global = !mine && spot.isNullOrBlank()
+    // Der Gesamtzaehler gilt fuer ALLE — nicht in „Meine", am Spot oder in „Freunde".
+    val global = !mine && spot.isNullOrBlank() && !freunde
     LaunchedEffect(global) {
         pumpt = if (!global) 0 else try { Api.communityStats().pumpingNow } catch (_: Exception) { 0 }
     }
@@ -1264,7 +1273,10 @@ private fun HeuteNeu(mine: Boolean, spot: String?, spotId: Int?, accelOnly: Bool
                  else I18n.t("sessions.todayN").replace("{n}", "§$n§"), false)
         }
         if (pumpt > 0) { trenner(); satz(I18n.t("sessions.pumpingNow").replace("{n}", pumpt.toString()), true) }
-        if (hier) { trenner(); satz(I18n.t("sessions.pumpingHere"), true) }
+        // Mit Namen, wenn es Freunde sind — sonst nur „jemand" (die Regel der gruenen Spots).
+        if (freundeHier.isNotEmpty()) {
+            trenner(); satz(I18n.t("friends.hereNow").replace("{names}", "§" + freundeHier.joinToString(", ") + "§"), true)
+        } else if (hier) { trenner(); satz(I18n.t("sessions.pumpingHere"), true) }
         append(" — ")
         withStyle(androidx.compose.ui.text.SpanStyle(color = primary, fontWeight = FontWeight.ExtraBold)) {
             append("Have fun, keep pumping!")

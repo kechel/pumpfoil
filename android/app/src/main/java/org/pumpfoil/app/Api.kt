@@ -241,8 +241,11 @@ object Api {
      * Spots, ob dort gerade jemand pumpt — nur ja/nein, und nur wenn `spot` eine spot_id ist
      * (kleine Spots liefern nie `true`).
      */
-    data class HeuteNeu(val n: Int, val pumpingHere: Boolean)
-    suspend fun sessionsToday(mine: Boolean, spot: String?, accelOnly: Boolean, sport: String, board: Boolean): HeuteNeu = withContext(Dispatchers.IO) {
+    // `freundeHier` (15.10.2026): Namen der FREUNDE, die gerade an diesem Spot pumpen — der Server
+    // liefert sie nur an deren Freunde (server app/freunde.py).
+    data class HeuteNeu(val n: Int, val pumpingHere: Boolean, val freundeHier: List<String> = emptyList())
+    suspend fun sessionsToday(mine: Boolean, spot: String?, accelOnly: Boolean, sport: String, board: Boolean,
+                              freunde: Boolean = false): HeuteNeu = withContext(Dispatchers.IO) {
         val mitternacht = java.util.Calendar.getInstance().apply {
             set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
             set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
@@ -250,8 +253,11 @@ object Api {
         val q = StringBuilder("since_ms=$mitternacht&accel_only=$accelOnly&sport=${java.net.URLEncoder.encode(sport, "UTF-8")}&mine=$mine")
         if (!spot.isNullOrBlank()) q.append("&spot=").append(java.net.URLEncoder.encode(spot, "UTF-8"))
         if (board) q.append("&board=true")
+        if (freunde) q.append("&friends=1")
         val o = org.json.JSONObject(http("GET", "/api/community/sessions-today?$q", null, auth = true))
-        HeuteNeu(o.optInt("n", 0), o.optBoolean("pumping_here", false))
+        val fh = o.optJSONArray("friends_here")
+        val namen = if (fh == null) emptyList() else (0 until fh.length()).map { fh.getJSONObject(it).optString("name").ifBlank { "—" } }
+        HeuteNeu(o.optInt("n", 0), o.optBoolean("pumping_here", false) || namen.isNotEmpty(), namen)
     }
 
     suspend fun inProgress(): List<InProgressSession> = withContext(Dispatchers.IO) {
@@ -358,7 +364,7 @@ object Api {
             q.append(if (q.isEmpty()) "?" else "&").append(k).append('=')
                 .append(java.net.URLEncoder.encode(v, "UTF-8"))
         }
-        if (f.scope == "all") add("scope", "all")
+        if (f.scope == "all" || f.scope == "friends") add("scope", f.scope)
         f.spot?.takeIf { it.isNotBlank() }?.let { add("spot", it) }
         f.sport?.takeIf { it.isNotBlank() }?.let { add("sport", it) }
         if (f.accelOnly) add("accel_only", "true")
@@ -499,10 +505,10 @@ object Api {
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
     suspend fun communitySessionsGrouped(spot: String? = null, limit: Int = 20, offset: Int = 0,
                                          accelOnly: Boolean = true, sport: String? = null,
-                                         board: Boolean = false): List<CommunityGroup> = withContext(Dispatchers.IO) {
+                                         board: Boolean = false, freunde: Boolean = false): List<CommunityGroup> = withContext(Dispatchers.IO) {
         val sp = if (!spot.isNullOrBlank()) "&spot=" + java.net.URLEncoder.encode(spot, "UTF-8") else ""
         val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp" + (if (sport != null) "&sport=$sport" else "") +
-            (if (board) "&board=true" else "")
+            (if (board) "&board=true" else "") + (if (freunde) "&friends=1" else "")
         json.decodeFromString(
             ListSerializer(CommunityGroup.serializer()),
             http("GET", "/api/community/sessions-grouped$qs", null, auth = true),
@@ -847,8 +853,8 @@ object Api {
                 http("POST", "/api/sessions/$id/powered-runs/keep", body, auth = true))
         }
 
-    suspend fun spots(accelOnly: Boolean = true): SpotsList = withContext(Dispatchers.IO) {
-        json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots?accel_only=$accelOnly", null, auth = true))
+    suspend fun spots(accelOnly: Boolean = true, freunde: Boolean = false): SpotsList = withContext(Dispatchers.IO) {
+        json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots?accel_only=$accelOnly" + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
     /**
@@ -862,6 +868,7 @@ object Api {
         spot: String? = null,
         // Sportart der Rekorde; null = Serverdefault „pumpfoil" (Community-Seite, Foil-Detail).
         sport: String? = null,
+        freunde: Boolean = false,
     ): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             MapSerializer(String.serializer(), PeriodRecords.serializer()),
@@ -869,14 +876,15 @@ object Api {
             append("/api/community/records?accel_only=$accelOnly&foil_band=$foilBand")
             if (!spot.isNullOrBlank()) append("&spot=" + java.net.URLEncoder.encode(spot, "UTF-8"))
             if (!sport.isNullOrBlank()) append("&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"))
+            if (freunde) append("&friends=1")
         }, null, auth = true),
         )
     }
 
     /** Die Foil-Baender fuer die Auswahl „vergleichbare Foils" — mit Session- und Fahrerzahl. */
-    suspend fun foilBands(accelOnly: Boolean = true): List<FoilBand> = withContext(Dispatchers.IO) {
+    suspend fun foilBands(accelOnly: Boolean = true, freunde: Boolean = false): List<FoilBand> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(FoilBand.serializer()),
-            http("GET", "/api/community/foil-bands?accel_only=$accelOnly", null, auth = true))
+            http("GET", "/api/community/foil-bands?accel_only=$accelOnly" + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
     // accelOnly=false wie die PWA (Spots.tsx) — sonst fehlen GPS-only-Spots (z. B. Frankreich).
@@ -886,11 +894,17 @@ object Api {
      * Gruene Spots „gerade aktiv" (PWA `api.spotActive`, 14.10.2026; Regeln: server
      * devices.aktive_spots). `first` = spot_ids, die EINZELN gruen werden duerfen; `second` = kleine
      * Spots in einer aktiven Gegend — die faerben nur ein Buendel, nie den Spot selbst.
+     * Spots, an denen gerade ein FREUND pumpt (15.10.2026), stehen mit in `first`: die werden auch
+     * unter der Schwelle gruen — der Server liefert `friends` nur an bestaetigte Freunde.
      */
     suspend fun spotActive(): Pair<Set<Int>, Set<Int>> = withContext(Dispatchers.IO) {
         val o = org.json.JSONObject(http("GET", "/api/community/spot-active", null, auth = true))
         fun ids(k: String): Set<Int> = o.optJSONArray(k)?.let { a -> (0 until a.length()).map { a.getInt(it) }.toSet() } ?: emptySet()
-        ids("spots") to ids("area")
+        val fr = o.optJSONArray("friends")
+        val freundSpots = if (fr == null) emptySet() else (0 until fr.length()).mapNotNull {
+            fr.getJSONObject(it).let { f -> if (f.isNull("spot_id")) null else f.getInt("spot_id") }
+        }.toSet()
+        (ids("spots") + freundSpots) to ids("area")
     }
 
     suspend fun spotMap(accelOnly: Boolean = false, sport: String = "all"): List<SpotMapItem> = withContext(Dispatchers.IO) {
@@ -917,21 +931,21 @@ object Api {
         json.decodeFromString(ListSerializer(ChatRoom.serializer()), http("GET", "/api/chat/rooms", null, auth = true))
     }
 
-    suspend fun leaders(period: String = "all", accelOnly: Boolean = true, foilBand: String = "all"): Leaders = withContext(Dispatchers.IO) {
-        json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly&foil_band=$foilBand", null, auth = true))
+    suspend fun leaders(period: String = "all", accelOnly: Boolean = true, foilBand: String = "all", freunde: Boolean = false): Leaders = withContext(Dispatchers.IO) {
+        json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly&foil_band=$foilBand" + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
-    suspend fun latestPhotos(limit: Int = 8): List<MediaItem> = withContext(Dispatchers.IO) {
-        json.decodeFromString(ListSerializer(MediaItem.serializer()), http("GET", "/api/community/latest-photos?limit=$limit", null, auth = true))
+    suspend fun latestPhotos(limit: Int = 8, freunde: Boolean = false): List<MediaItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(MediaItem.serializer()), http("GET", "/api/community/latest-photos?limit=$limit" + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
-    suspend fun topLiked(period: String = "all", limit: Int = 5): List<CommunityItem> = withContext(Dispatchers.IO) {
-        json.decodeFromString(ListSerializer(CommunityItem.serializer()), http("GET", "/api/community/top-liked?period=$period&limit=$limit", null, auth = true))
+    suspend fun topLiked(period: String = "all", limit: Int = 5, freunde: Boolean = false): List<CommunityItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(CommunityItem.serializer()), http("GET", "/api/community/top-liked?period=$period&limit=$limit" + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
-    suspend fun spotRecords(spot: String, period: String = "all", accelOnly: Boolean = true): PeriodRecords = withContext(Dispatchers.IO) {
+    suspend fun spotRecords(spot: String, period: String = "all", accelOnly: Boolean = true, freunde: Boolean = false): PeriodRecords = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(spot, "UTF-8")
-        json.decodeFromString(PeriodRecords.serializer(), http("GET", "/api/community/spot-records?spot=$s&period=$period&accel_only=$accelOnly", null, auth = true))
+        json.decodeFromString(PeriodRecords.serializer(), http("GET", "/api/community/spot-records?spot=$s&period=$period&accel_only=$accelOnly" + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
     suspend fun spotWeather(spot: String): SpotWeather = withContext(Dispatchers.IO) {
@@ -1019,6 +1033,30 @@ object Api {
     // Schalter des Nutzers (`zeigt`); die App filtert nichts nach.
     suspend fun foilerProfil(userId: Int): FoilerProfil = withContext(Dispatchers.IO) {
         json.decodeFromString(FoilerProfil.serializer(), http("GET", "/api/community/foiler/$userId", null, auth = true))
+    }
+
+    // Freunde (15.10.2026, PWA Friends.tsx). Regeln und was eine Freundschaft freigibt: server
+    // app/freunde.py — die App entscheidet nichts, sie zeigt nur den Stand.
+    suspend fun friends(): FreundeListe = withContext(Dispatchers.IO) {
+        json.decodeFromString(FreundeListe.serializer(), http("GET", "/api/friends", null, auth = true))
+    }
+    suspend fun friendsCount(): Int = withContext(Dispatchers.IO) {
+        org.json.JSONObject(http("GET", "/api/friends/count", null, auth = true)).optInt("incoming", 0)
+    }
+    /** Neuer Stand aus MEINER Sicht: "freund" | "angefragt" | null. */
+    private fun freundStatus(text: String): String? =
+        org.json.JSONObject(text).let { if (it.isNull("status")) null else it.optString("status") }
+    suspend fun friendRequest(userId: Int): String? = withContext(Dispatchers.IO) {
+        freundStatus(http("POST", "/api/friends/$userId/request", null, auth = true))
+    }
+    suspend fun friendAccept(userId: Int): String? = withContext(Dispatchers.IO) {
+        freundStatus(http("POST", "/api/friends/$userId/accept", null, auth = true))
+    }
+    suspend fun friendDecline(userId: Int): String? = withContext(Dispatchers.IO) {
+        freundStatus(http("POST", "/api/friends/$userId/decline", null, auth = true))
+    }
+    suspend fun friendRemove(userId: Int): String? = withContext(Dispatchers.IO) {
+        freundStatus(http("DELETE", "/api/friends/$userId", null, auth = true))
     }
 
     suspend fun chatDmOpen(userId: Int): DmOpen = withContext(Dispatchers.IO) {

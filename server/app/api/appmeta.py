@@ -967,12 +967,18 @@ NAECHSTES: list[dict] = [
          "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
          # 15.10.2026: Brett-Automatik (Server 700eb422), Hinweis wie in der PWA.
          "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
+         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
+         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
+         "The session list and the Community page have a Friends view with only you and your friends.",
      ]},
     # iPhone + Apple Watch 1.1.49 am 15.10. eingereicht -> IN_REVIEW.
     # 15.10.2026: Brett-Automatik-Hinweis (wie Android), Code nur swiftc -parse.
     {"name": "iPhone + Apple Watch", "version": "1.1.50",
      "items": [
          "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
+         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
+         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
+         "The session list and the Community page have a Friends view with only you and your friends.",
      ]},
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     {"name": "Wear OS", "version": "1.2.43",

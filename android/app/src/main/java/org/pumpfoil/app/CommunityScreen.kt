@@ -107,7 +107,12 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var period by remember { mutableStateOf("10d") }
-    var accelOnly by remember { mutableStateOf(true) }
+    var accelWahl by remember { mutableStateOf(true) }
+    // Ansicht „Freunde" (Jan, 15.10.2026): die ganze Seite nur ueber mich + meine Freunde — alles,
+    // was accel/alle aendert, filtert dann auf Freunde. Die Statistikzeile oben bleibt global.
+    // Ein reiner Filter, er gibt nichts frei (server app/freunde.py). Freunde zaehlen wie „alle".
+    var freunde by remember { mutableStateOf(false) }
+    val accelOnly = accelWahl && !freunde
     // Foil-Band („vergleichbare Foils") fuer Rekorde UND Bestenlisten — NICHT fuer Spots und
     // „Am besten bewertet" (Jans Vorgabe): dort geht es nicht um Vergleichbarkeit der Ausruestung.
     // Die Baender samt Session-/Fahrerzahl kommen vom Server, damit hier keine Grenzen fest
@@ -126,10 +131,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     suspend fun loadBase() {
         loading = true
         try {
-            records = Api.communityRecords(accelOnly, bandKey); error = null
+            records = Api.communityRecords(accelOnly, bandKey, freunde = freunde); error = null
             cstats = try { Api.communityStats() } catch (_: Exception) { cstats }
-            media = try { Api.latestPhotos() } catch (_: Exception) { emptyList() }
-            val sp = try { Api.spots(accelOnly = false) } catch (_: Exception) { null }
+            media = try { Api.latestPhotos(freunde = freunde) } catch (_: Exception) { emptyList() }
+            val sp = try { Api.spots(accelOnly = false, freunde = freunde) } catch (_: Exception) { null }
             if (sp != null) {
                 spots = sp
                 spotShown.clear(); spotShown.addAll(sp.mine)
@@ -138,9 +143,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         } catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(accelOnly, bandKey) { loadBase() }
-    LaunchedEffect(accelOnly) {
-        bands = try { Api.foilBands(accelOnly) } catch (_: Exception) { emptyList() }
+    LaunchedEffect(accelOnly, bandKey, freunde) { loadBase() }
+    LaunchedEffect(accelOnly, freunde) {
+        bands = try { Api.foilBands(accelOnly, freunde) } catch (_: Exception) { emptyList() }
         // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
         // sonst stuende man vor leeren Rekorden.
         if (bands.none { it.key == bandKey && (it.art == "alle" || it.fahrer >= MIN_BAND_FAHRER) }) {
@@ -152,22 +157,22 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     val mediaOwner = LocalLifecycleOwner.current
     DisposableEffect(mediaOwner) {
         val obs = LifecycleEventObserver { _, e ->
-            if (e == Lifecycle.Event.ON_RESUME) scope.launch { media = try { Api.latestPhotos() } catch (_: Exception) { media } }
+            if (e == Lifecycle.Event.ON_RESUME) scope.launch { media = try { Api.latestPhotos(freunde = freunde) } catch (_: Exception) { media } }
         }
         mediaOwner.lifecycle.addObserver(obs)
         onDispose { mediaOwner.lifecycle.removeObserver(obs) }
     }
     // Zeitraum- + accel-abhängig: Bestenliste, Best bewertet.
-    LaunchedEffect(period, accelOnly, bandKey) {
-        leaders = try { Api.leaders(period, accelOnly, bandKey) } catch (_: Exception) { leaders }
-        topLiked = try { Api.topLiked(period) } catch (_: Exception) { topLiked }
+    LaunchedEffect(period, accelOnly, bandKey, freunde) {
+        leaders = try { Api.leaders(period, accelOnly, bandKey, freunde) } catch (_: Exception) { leaders }
+        topLiked = try { Api.topLiked(period, freunde = freunde) } catch (_: Exception) { topLiked }
     }
     // Rekorde je gezeigtem Spot (Zeitraum + accel).
-    LaunchedEffect(spotShown.toList(), period, accelOnly) {
+    LaunchedEffect(spotShown.toList(), period, accelOnly, freunde) {
         spotShown.forEach { sp ->
-            val key = "$accelOnly:$period:$sp"
+            val key = "$accelOnly:$freunde:$period:$sp"
             if (key !in spotRecs) {
-                try { spotRecs[key] = Api.spotRecords(sp, period, accelOnly) } catch (_: Exception) {}
+                try { spotRecs[key] = Api.spotRecords(sp, period, accelOnly, freunde) } catch (_: Exception) {}
             }
         }
     }
@@ -251,7 +256,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                 } else {
                                     Spacer(Modifier.width(1.dp))
                                 }
-                                AccelSeg(accelOnly) { accelOnly = it }
+                                AccelSeg(accelWahl, freunde = freunde, onFreunde = { freunde = true }) { freunde = false; accelWahl = it }
                             }
                         }
 
@@ -405,7 +410,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
-                                RecordGrid(spotRecs["$accelOnly:$period:$sp"], showSpot = false, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp))
+                                RecordGrid(spotRecs["$accelOnly:$freunde:$period:$sp"], showSpot = false, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp))
                             }
                         }
                     }
@@ -432,6 +437,7 @@ internal fun cyanChipColors() = FilterChipDefaults.filterChipColors(
 // Accel/alle-Umschalter (zwei Segmente, wie PWA + Home).
 @Composable
 internal fun AccelSeg(accelOnly: Boolean, brett: Boolean = false, onBrett: (() -> Unit)? = null,
+                      freunde: Boolean = false, onFreunde: (() -> Unit)? = null,
                       onChange: (Boolean) -> Unit) {
     @Composable
     fun seg(active: Boolean, label: String, onClick: () -> Unit) {
@@ -447,9 +453,14 @@ internal fun AccelSeg(accelOnly: Boolean, brett: Boolean = false, onBrett: (() -
     Row(verticalAlignment = Alignment.CenterVertically) {
         // Kurz „accel" in allen Sprachen (Jan, 13.10.2026): mit POB passt die Zeile so auch auf
         // schmalen Displays.
-        seg(accelOnly && !brett, "accel") { onChange(true) }
+        seg(accelOnly && !brett && !freunde, "accel") { onChange(true) }
         Spacer(Modifier.width(4.dp))
-        seg(!accelOnly && !brett, I18n.t("side.all")) { onChange(false) }
+        seg(!accelOnly && !brett && !freunde, I18n.t("side.all")) { onChange(false) }
+        // Dritte Taste „Freunde" auf der Community-Seite (15.10.2026, wie AccelToggle.tsx).
+        if (onFreunde != null) {
+            Spacer(Modifier.width(4.dp))
+            seg(freunde, I18n.t("friends.title")) { onFreunde() }
+        }
         // Dritte Taste „POB" = phone on board, nur Aufnahmen mit placement = board (wie die PWA seit
         // 08.10.2026; Beschriftung in allen Sprachen „POB", Jan 13.10.2026).
         if (onBrett != null) {
