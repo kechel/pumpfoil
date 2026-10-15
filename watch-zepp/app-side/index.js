@@ -117,6 +117,15 @@ async function handle(req) {
     return { ok: (r.status || 0) >= 200 && (r.status || 0) < 300 };
   }
 
+  // --- Erster GPS-Fix im Startbildschirm (Uhr ab 1.0.14): Spot-Meldung fuer „gerade am Pumpen" ---
+  // done = nicht wiederholen (angekommen oder 4xx); sonst probiert die Uhr es beim naechsten Fix.
+  if (req.method === "POSITION") {
+    if (!req.token || typeof req.lat !== "number" || typeof req.lon !== "number") return { ok: false, done: true };
+    const r = await fetch({ url: BASE + "/api/devices/position", method: "POST", headers: { "X-Device-Token": req.token, "Content-Type": "application/json" }, body: JSON.stringify({ lat: req.lat, lon: req.lon }) });
+    const st = r.status || 0;
+    return { ok: st >= 200 && st < 300, done: st >= 200 && st < 500 };
+  }
+
   // --- TEST: winziger Trigger, App-Side lädt Mini-Session komplett selbst hoch (kein Daten-Transfer) ---
   if (req.method === "TESTUPLOAD") {
     const TOK = "uz2b13aF54204SnQMRF_ZoINBkDTNE_j";

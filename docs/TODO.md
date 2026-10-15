@@ -1492,8 +1492,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - Huawei Watch 5 (arkts): EINE Einzelabfrage `getCurrentLocation` im Bereit-Zustand (ohne Auto-Start
     laeuft dort kein GPS-Abo), Build ok, ungeprueft. -> 1.0.3.
   - **Offen, wenn die Linien kommen: Huawei GT/Fit/D (lite) und Watch 3/4 (wearable) brauchen dasselbe**
-    (Jan, 15.10.). Ebenso Amazfit (nicht mitgemacht, Zepp-Beitragender) und die Handy-Recorder ohne
-    Live-Upload (melden ihren Ort erst mit dem Upload).
+    (Jan, 15.10.). Ebenso die Handy-Recorder ohne Live-Upload (melden ihren Ort erst mit dem Upload).
+  - Amazfit (nachgezogen auf Jans Nachfrage): Seite meldet ueber die App-Side (`POSITION`), nur
+    `node --check` + Node-Tests; `zeus build` laeuft auf der VM nicht (auch ohne die Aenderung). -> 1.0.14.
 - **15.10. — Heatmap auf der Spot-Karte ✅ LIVE (Web, Android/iOS im Code).** Jans Vorgaben: der
   oeffentliche Ort (verborgene also an Point Nemo), Zahl der SESSIONS je Zelle (nicht Laeufe), nur
   die Laeufe als Spur, fuer alle gleich (keine Freunde/Sonderrechte), umschaltbar 30 Tage / 12
