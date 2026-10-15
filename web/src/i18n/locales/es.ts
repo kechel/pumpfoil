@@ -1991,6 +1991,8 @@ const es: Record<string, string> = {
   "spotnote.write": "Mi descripción del spot",
   "spots.onlyWithNotes": "Solo con descripción",
   "spots.onlyActive": "Activo ahora",
+  "spots.heatmap": "Mapa de calor",
+  "spots.heatHint": "Color = cuántas sesiones se han hecho ahí (solo las tandas), actualizado a diario.",
   "spots.activeLegend": "Verde: probablemente alguien está en el agua ahora mismo. Un spot solo se pone verde si al menos 4 riders han pumpeado allí en los últimos 180 días. Un grupo también se pone verde por spots pequeños cercanos si juntos tuvieron más de 5 riders en los últimos 90 días. «Activo» significa que un reloj o un móvil se conectó en las últimas 2 horas.",
   "spz.bound": "Límite {n}",
   "spz.hint": "La misma idea para la velocidad: estas zonas colorean el número de tu reloj y los gráficos de valor de tus diseños. La sugerencia sale de las velocidades que realmente haces.",

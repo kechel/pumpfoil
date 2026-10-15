@@ -2164,6 +2164,8 @@ const cs: Record<string, string> = {
   "spotnote.write": "Můj popis spotu",
   "spots.onlyWithNotes": "Jen s popisem",
   "spots.onlyActive": "Právě aktivní",
+  "spots.heatmap": "Teplotní mapa",
+  "spots.heatHint": "Barva = kolik sessions se tam jelo (jen jízdy), aktualizace denně.",
   "spots.activeLegend": "Zelená: pravděpodobně je teď někdo na vodě. Jednotlivý spot zezelená jen tehdy, když tam za posledních 180 dní pumpovali alespoň 4 jezdci. Skupina zezelená i kvůli menším spotům poblíž, pokud spolu měly za posledních 90 dní víc než 5 jezdců. „Aktivní“ znamená, že se hodinky nebo telefon ozvaly během posledních 2 hodin.",
   "spz.bound": "Hranice {n}",
   "spz.hint": "Totéž pro rychlost: tyto zóny obarvují číslo na hodinkách i hodnotové grafiky ve tvých rozvrženích. Návrh vychází z rychlostí, které skutečně jezdíš.",

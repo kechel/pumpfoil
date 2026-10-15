@@ -907,6 +907,12 @@ object Api {
         (ids("spots") + freundSpots) to ids("area")
     }
 
+    /** Heatmap der Spot-Karte (app/heatmap.py): Zellen im Ausschnitt, fuer alle gleich. */
+    suspend fun heatmap(period: String, z: Int, w: Double, s: Double, e: Double, n: Double): HeatAntwort = withContext(Dispatchers.IO) {
+        json.decodeFromString(HeatAntwort.serializer(),
+            http("GET", "/api/community/heatmap?period=$period&z=$z&w=$w&s=$s&e=$e&n=$n", null, auth = true))
+    }
+
     suspend fun spotMap(accelOnly: Boolean = false, sport: String = "all"): List<SpotMapItem> = withContext(Dispatchers.IO) {
         val sp = java.net.URLEncoder.encode(sport, "UTF-8")
         json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map?accel_only=$accelOnly&sport=$sp", null, auth = true))

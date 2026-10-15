@@ -728,6 +728,8 @@ const pl: Record<string, string> = {
   "spotnote.uploadFail": "Nie udało się zapisać zdjęcia.",
   "spots.onlyWithNotes": "Tylko z opisem",
   "spots.onlyActive": "Teraz aktywne",
+  "spots.heatmap": "Mapa cieplna",
+  "spots.heatHint": "Kolor = ile sesji tam pływano (tylko przejazdy), aktualizowana codziennie.",
   "spots.activeLegend": "Zielony: prawdopodobnie ktoś jest teraz na wodzie. Pojedynczy spot robi się zielony tylko wtedy, gdy w ciągu ostatnich 180 dni pompowało tam co najmniej 4 riderów. Grupa robi się zielona także z powodu mniejszych spotów w pobliżu, jeśli razem miały ponad 5 riderów w ciągu ostatnich 90 dni. „Aktywny” oznacza, że zegarek lub telefon zgłosił się w ciągu ostatnich 2 godzin.",
   "sd.spotPage": "Sesje i opis spotu",
   "sessions.mySpots": "Moje spoty",

@@ -981,6 +981,12 @@ enum Api {
         return try await request("/api/community/spot-map?accel_only=\(accelOnly)&sport=\(sp)", method: "GET", body: nil, auth: true)
     }
 
+    /// Heatmap der Spot-Karte (app/heatmap.py): Zellen im Ausschnitt, fuer alle gleich.
+    static func heatmap(period: String, z: Int, w: Double, s: Double, e: Double, n: Double) async throws -> HeatAntwort {
+        try await request("/api/community/heatmap?period=\(period)&z=\(z)&w=\(w)&s=\(s)&e=\(e)&n=\(n)",
+                          method: "GET", body: nil, auth: true)
+    }
+
     // Gruene Spots „gerade aktiv" (PWA spotActive, 14.10.2026; Regeln: server devices.aktive_spots).
     // `spots` = darf selbst gruen werden, `area` = kleiner Spot in einer aktiven Kachel: faerbt nur
     // ein BUENDEL, nie den Spot allein.

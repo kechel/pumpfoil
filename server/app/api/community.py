@@ -1694,6 +1694,16 @@ def _freundschaft_moeglich(db: Session, ich: models.User, anderer: models.User) 
             and not gesperrt(db, ich.id, anderer.id))
 
 
+@router.get("/heatmap")
+def heatmap(period: str = Query("365d"), z: int = Query(10, ge=0, le=22),
+            w: float = Query(-180), s: float = Query(-85), e: float = Query(180), n: float = Query(85),
+            user: models.User = Depends(current_user)) -> dict:
+    """Heatmap der Spot-Karte: Zellen im Ausschnitt mit der Zahl der Sessions (app/heatmap.py).
+    Fuer ALLE gleich (Jan: keine Freunde, keine Sonderrechte) — einmal taeglich vorgerechnet."""
+    from ..heatmap import abfragen
+    return abfragen(period, z, w, s, e, n)
+
+
 @router.get("/foiler/{user_id}")
 def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:

@@ -2108,6 +2108,8 @@ const id: Record<string, string> = {
   "spotnote.write": "Deskripsi spot-ku",
   "spots.onlyWithNotes": "Hanya yang ada deskripsi",
   "spots.onlyActive": "Aktif sekarang",
+  "spots.heatmap": "Peta panas",
+  "spots.heatHint": "Warna = berapa banyak sesi di sana (hanya run), diperbarui setiap hari.",
   "spots.activeLegend": "Hijau: kemungkinan ada orang di air saat ini. Satu spot hanya menjadi hijau jika setidaknya 4 rider pernah pumping di sana dalam 180 hari terakhir. Sebuah grup juga menjadi hijau karena spot kecil di dekatnya, jika bersama-sama memiliki lebih dari 5 rider dalam 90 hari terakhir. \"Aktif\" berarti jam tangan atau ponsel terhubung dalam 2 jam terakhir.",
   "spz.bound": "Batas {n}",
   "spz.hint": "Gagasan yang sama untuk kecepatan: zona ini mewarnai angka di jammu dan grafik nilai di tata letakmu sendiri. Saran berasal dari kecepatan yang benar-benar kamu tempuh.",
