@@ -1026,6 +1026,10 @@ IDEEN: list[str] = [
     "already drawn on the map.",
     "Paddle-up starts: count the strokes it takes you to get up, and how fast you are when "
     "the board lifts.",
+    # Frage gizmomogwai (u683) zu #16667, 14.10.2026; Jan: „adding it to the ideas list". Ob es mit
+    # 25 Hz geht oder erst mit 100 Hz, ist offen (docs/TODO.md Inbox 14.10.).
+    "Tell which way you started each run: running or dock start, drop start, dead start, maybe "
+    "even from the knees.",
     "Pick the foil per run, not just per session — most of us swap gear during a session.",
     # Wunsch PumpingCarbon (Feedback 09.10.2026): „wie weit man geschwommen ist … da man diese ja so
     # weit wie es geht reduzieren moechte". Ohne Zusage (Jan, 12.10.). Offen: Schwimmen vom Treiben
