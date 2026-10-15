@@ -3181,7 +3181,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      Bestand: #13111, #14828 (u745), #16729 (u267, foil_scoot) umgestellt, Sicherung
      `server/data/sicherung/vor-brett-automatik-20261015-0756.json`. Grenzen: quer+geneigt
      montiert (u683, 15-17°) bleibt beim Hinweis; Schienbein saehe aus wie Brett (Jan: ok).
-     Offen: Hinweistext „automatisch erkannt" in iOS/Android (native eingefroren).
+     Hinweistext „automatisch erkannt" auch in Android (1.1.43, noch nicht eingereicht) und iOS (1.1.50) gebaut, 15.10.; Android kompiliert, iOS nur swiftc -parse.
   6. **Fenstergroessen fuers Gieren feintunen**, sobald eine echte Pump-Session am Brett
      aufgenommen ist (0,1 / 0,5 / 1 / 3 / 5 s stehen zur Wahl).
 
@@ -5097,7 +5097,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   brasilianische Form tragen — erst dann eine Aussage treffen, nicht schaetzen. Auffaellig waere auch,
   wenn ein Schluessel in `pt-PT` NEUER ist als in `pt` (dann traegt Brasilien den alten Text).
 
-- **🧊 08.09. (Jan) — NATIVE APPS + UHREN EINGEFROREN, hier wird weitergemacht.** Ansage Jan:
+- **🧊 08.09. (Jan) — NATIVE APPS + UHREN EINGEFROREN (längst AUFGEHOBEN, nur noch Historie; Jan 15.10.: „da ist nix eingefroren").** Ansage Jan:
   „das ganze Portieren machen wir dann irgendwann alles zusammen, das rate limit schlaegt bald zu
   und das brauche ich noch vielleicht fuer details an der Profilseite“ — plus: „bis dahin bitte nichts
   mehr an den native apps oder uhren einfach machen“. Also **kein** Anfassen von `android/`,

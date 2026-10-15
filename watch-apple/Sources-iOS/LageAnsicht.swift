@@ -66,6 +66,11 @@ struct BrettSchalterView: View {
     var body: some View {
         if session.owned == true, session.has_gyro == true || session.placement == "board" {
             Toggle(Loc.t("board.markBoard", lang), isOn: binding).disabled(busy)
+            // Von der Brett-Automatik gesetzt (15.10.2026, wie PWA): sagen, dass es geraten ist, und
+            // wie man es zuruecknimmt. Ein Tipp macht daraus "nutzer" — danach nie wieder automatisch.
+            if session.placement == "board", session.placement_quelle == "auto" {
+                Text(Loc.t("board.autoErkannt", lang)).font(.subheadline).foregroundStyle(.tint)
+            }
         }
     }
 

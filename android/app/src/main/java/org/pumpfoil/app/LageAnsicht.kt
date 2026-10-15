@@ -92,6 +92,11 @@ fun BrettSchalter(s: SessionDetail, onReload: () -> Unit) {
         Checkbox(checked = an, onCheckedChange = null, enabled = !busy)
         Text(I18n.t("board.markBoard"), style = MaterialTheme.typography.bodyMedium)
     }
+    // Von der Brett-Automatik gesetzt (15.10.2026, wie PWA): sagen, dass es geraten ist, und wie man
+    // es zuruecknimmt. Ein Tipp macht daraus "nutzer" — danach setzt die Analyse es nie wieder.
+    if (an && s.placementQuelle == "auto") {
+        Text(I18n.t("board.autoErkannt"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+    }
 }
 
 /**

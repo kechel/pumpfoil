@@ -1068,6 +1068,8 @@ data class SessionDetail(
     // Wo sass das Geraet: "board" (Handy am Brett) | "phone" (Tasche/Huefte) | null (Uhr). Nur
     // "board" macht Nicken/Rollen zu einer Aussage ueber das BRETT (s. analysis/lage.py).
     val placement: String? = null,
+    // Wer "board" gesetzt hat: "auto" (Brett-Automatik der Analyse, seit 15.10.2026) | "nutzer" | null.
+    @SerialName("placement_quelle") val placementQuelle: String? = null,
     // Kreiseldaten vorhanden — liefern allein die Handy-Recorder. Ohne sie gibt es keine Lage.
     @SerialName("has_gyro") val hasGyro: Boolean = false,
     // Aus der Auswertung genommene Zeitfenster [[start_ms, end_ms], …], ms ab Session-Start
