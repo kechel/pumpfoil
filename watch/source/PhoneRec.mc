@@ -98,4 +98,36 @@ module PhoneRec {
     }
 
     function onLeer(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {}
+
+    // Erster GPS-Fix im Startbildschirm -> einmal je App-Start an den Server (Jan, 15.10.2026).
+    // Der Server sucht den Spot im Umkreis von 1 km und merkt sich NUR den Spot, nicht die Position;
+    // ohne Spot in der Naehe zaehlt man nicht als „gerade am Pumpen" (Emulator zu Hause). Auch auf
+    // den 96-KB-Uhren (lite), wie das Abmelden. Vom Positions-Callback, nur ohne laufende Aufnahme.
+    // _pos: 0 = noch nicht gemeldet, 1 = Anfrage unterwegs, 2 = erledigt. Hoechstens 3 Versuche.
+    var _pos = 0;
+    var _posVersuche = 0;
+
+    function meldePosition(deg) as Void {
+        if (_pos != 0 || _posVersuche >= 3) { return; }
+        var token = Config.getString("deviceToken");
+        if (token == null || token.equals("") || !System.getDeviceSettings().phoneConnected) { return; }
+        if (Uploader.isBusy()) { return; }   // nie neben einem Upload (s. tickIdle); naechster Fix probiert es wieder
+        _pos = 1;
+        _posVersuche++;
+        Communications.makeWebRequest(
+            Config.baseUrl() + "/api/devices/position",
+            { "lat" => deg[0], "lon" => deg[1] },
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => { "X-Device-Token" => token,
+                              "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            new Lang.Method(PhoneRec, :onPos));
+    }
+
+    function onPos(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        // 4xx (Token weg, Position abgelehnt): nicht wiederholen. Netzfehler/5xx: beim naechsten Fix nochmal.
+        _pos = (responseCode >= 200 && responseCode < 500) ? 2 : 0;
+    }
 }

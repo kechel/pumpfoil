@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -98,6 +99,30 @@ object Api {
 
     /** App ohne laufende Aufnahme verlassen -> der Server zaehlt die Uhr nicht mehr als „am Pumpen". */
     suspend fun appClosed() = withContext(Dispatchers.IO) { post("/api/devices/app-closed", JSONObject()) }
+
+    // Erster brauchbarer GPS-Fix im Startbildschirm -> einmal je App-Start an den Server (Jan,
+    // 15.10.2026). Der Server merkt sich NUR den Spot im Umkreis von 1 km, nicht die Position; ohne
+    // Spot in der Naehe zaehlt man nicht als „gerade am Pumpen". 0 = offen, 1 = unterwegs, 2 = erledigt.
+    @Volatile private var posStand = 0
+    @Volatile private var posVersuche = 0
+
+    /** Bei jedem App-Start (MainActivity.onCreate) wieder scharf machen. */
+    fun positionNeu() { posStand = 0; posVersuche = 0 }
+
+    fun meldePosition(lat: Double, lon: Double) {
+        if (posStand != 0 || posVersuche >= 3 || deviceToken.isNullOrBlank()) return
+        posStand = 1
+        posVersuche++
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob()).launch {
+            posStand = try {
+                post("/api/devices/position", JSONObject().put("lat", lat).put("lon", lon)); 2
+            } catch (e: ApiException) {
+                if (e.status in 400..499) 2 else 0     // Token weg/abgelehnt: nicht wiederholen
+            } catch (_: Exception) {
+                0                                      // Netz: beim naechsten Fix nochmal
+            }
+        }
+    }
 
     // Letzte erfolgreiche Config cachen — damit die Uhr offline mit den zuletzt
     // bekannten Einstellungen sofort startklar ist.

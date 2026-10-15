@@ -67,6 +67,28 @@ enum Api {
         return try JSONDecoder().decode(LiveStatus.self, from: data).phone_rec
     }
 
+    // Erster brauchbarer GPS-Fix im Startbildschirm -> einmal je App-Start an den Server (Jan,
+    // 15.10.2026). Der Server merkt sich NUR den Spot im Umkreis von 1 km, nicht die Position; ohne
+    // Spot in der Naehe zaehlt man nicht als „gerade am Pumpen". 0 = offen, 1 = unterwegs, 2 = erledigt.
+    @MainActor private static var posStand = 0
+    @MainActor private static var posVersuche = 0
+
+    @MainActor static func meldePosition(lat: Double, lon: Double) {
+        guard posStand == 0, posVersuche < 3, let t = deviceToken, !t.isEmpty else { return }
+        posStand = 1
+        posVersuche += 1
+        Task { @MainActor in
+            do {
+                let _: Ack = try await post("/api/devices/position", ["lat": lat, "lon": lon])
+                posStand = 2
+            } catch let e as ApiError {
+                posStand = (400..<500).contains(e.status) ? 2 : 0   // Token weg/abgelehnt: nicht wiederholen
+            } catch {
+                posStand = 0                                        // Netz: beim naechsten Fix nochmal
+            }
+        }
+    }
+
     // Pollt, ob der Code in der Web-App eingelöst wurde -> dann kommt das Device-Token.
     static func pairPoll(claimToken: String) async throws -> PairPollResponse {
         guard let url = URL(string: baseURL + "/api/devices/pair-poll?claim_token=" + claimToken)

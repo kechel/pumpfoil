@@ -103,6 +103,11 @@ interface FixDaten {
   timeStamp: number;
 }
 
+interface PosBody {
+  lat: number;
+  lon: number;
+}
+
 interface DirektDatei {
   t: string;
 }
@@ -174,6 +179,11 @@ export class Recorder {
   private auto: K.AutoStart | null = null;
   private autoLos: boolean = false;
   private leerGpsAn: boolean = false;
+  // Spot-Meldung beim ersten GPS-Fix im Bereit-Zustand (Jan, 15.10.2026), einmal je App-Start:
+  // 0 = offen, 1 = unterwegs, 2 = erledigt. posNaechster = fruehester naechster Versuch (ms).
+  private posStand: number = 0;
+  private posVersuche: number = 0;
+  private posNaechster: number = 0;
   private ohneAccel: boolean = false;
   // Direkt-Upload (Direkt.ets): Geraete-Token aus dem Koppeln, '' = nicht gekoppelt (Aufnahmen warten)
   private direktToken: string = '';
@@ -690,6 +700,7 @@ export class Recorder {
     if (this.modus !== 'bereit') {
       return false;
     }
+    this.positionMelden();
     if (!(this.auswahl.start === null ? this.konfig.autoStart : this.auswahl.start)) {
       if (this.leerGpsAn) {
         try {
@@ -738,6 +749,49 @@ export class Recorder {
     this.simAus();
     this.start();
     return true;
+  }
+
+  /**
+   * Erster brauchbarer GPS-Fix im Bereit-Zustand -> einmal je App-Start an den Server (Jan, 15.10.2026).
+   * Der Server merkt sich NUR den Spot im Umkreis von 1 km, nicht die Position; ohne Spot in der Naehe
+   * zaehlt man nicht als „gerade am Pumpen". Ohne Auto-Start laeuft im Bereit-Zustand kein GPS-Abo, deshalb
+   * EINE Einzelabfrage (kein Dauer-GPS fuer die Meldung). Hoechstens 3 Versuche, je mindestens 60 s Abstand.
+   */
+  private positionMelden(): void {
+    if (this.posStand !== 0 || this.posVersuche >= 3 || this.direktToken === '' || Date.now() < this.posNaechster) {
+      return;
+    }
+    this.posStand = 1;
+    this.posVersuche++;
+    this.posNaechster = Date.now() + 60000;
+    const nochmal = (): void => {
+      this.posStand = 0;
+    };
+    try {
+      const frage: geoLocationManager.SingleLocationRequest = {
+        locatingPriority: geoLocationManager.LocatingPriority.PRIORITY_ACCURACY,
+        locatingTimeoutMs: 60000
+      };
+      geoLocationManager.getCurrentLocation(frage)
+        .then((l: geoLocationManager.Location) => {
+          if ((l.latitude === 0 && l.longitude === 0) || l.accuracy > 50 || this.modus !== 'bereit') {
+            nochmal();
+            return;
+          }
+          const body: string = JSON.stringify({ lat: l.latitude, lon: l.longitude } as PosBody);
+          D.anfrage('POST', '/api/devices/position', body, this.direktToken).then((a: D.Antwort) => {
+            console.info('Pumpfoil position ' + a.code);
+            // 4xx (Token weg, abgelehnt): nicht wiederholen. Kein Netz/5xx: spaeter nochmal.
+            this.posStand = (a.code >= 200 && a.code < 500) ? 2 : 0;
+          });
+        })
+        .catch((e: BusinessError) => {
+          console.info('Pumpfoil position: kein Fix ' + e.code);
+          nochmal();
+        });
+    } catch (e) {
+      nochmal();   // keine Ortungs-Berechtigung o. Ae.: nichts erfragen, die Aufnahme fragt selbst
+    }
   }
 
   private leerGps = (g: geoLocationManager.Location): void => {
