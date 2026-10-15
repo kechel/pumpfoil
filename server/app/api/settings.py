@@ -253,7 +253,7 @@ PUBLIC_PROFILE_KEYS = ("join", "watch", "foil", "homespot", "records", "media", 
                        "sessions", "titles", "channel")
 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
-NOTIFY_TYPES = ("like", "analyzed", "record")
+NOTIFY_TYPES = ("like", "analyzed", "record", "friend")   # friend: Anfragen + „pumpt gerade" (15.10.2026)
 
 # Erlaubte Vibrationsmuster + Modi (IDs identisch mit Web + Uhr).
 ALARM_PATTERNS = {"short1", "short2", "long2", "lsl"}

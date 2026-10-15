@@ -1475,6 +1475,20 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+
+- **👥 15.10. — Freunde ✅ LIVE (Server + PWA).** Jans Konzept: gegenseitige Freundschaft mit zwei
+  Zustimmungen, kein Schalter — der Dialog sagt woertlich, was Freunde sehen. Freigegeben: ganze
+  Foiler-Seite (auch abgeschaltet), Gewicht, „gerade am Pumpen" mit Spot (gruen auch unter der
+  4-Fahrer-Schwelle und trotz „auf der Spot-Karte zeigen" aus), Push „X pumpt gerade · Spot"
+  (Typ `friend`, max. 1×/6 h, laeuft im 5-min-Timer `foil-live-analyse`). Ansicht „Freunde" in
+  der Session-Liste (4. Reiter) und auf der Community-Seite (3. Taste neben accel/alle) = Filter
+  `?friends=1` in `_community`. Verwaltung `/friends` (Knopf auf der Profilseite). NICHT
+  freigegeben (Jan): verborgene Orte, ganze Sessionliste, Ausruestung, Verabredung, Rohdaten.
+  Code: `server/app/freunde.py`, `api/friends.py`, Tests `tests/test_freunde.py`.
+  **Offen:** (1) Native Apps (Android/iOS) — Knopf, Freunde-Seite, Reiter, Taste, Push-Schalter;
+  (2) Schritt 2 „Live-Position nur fuer Freunde" (spaeter, Jan); (3) eine Anfrage geht nur ueber
+  die Foiler-Seite — bei ganz abgeschalteter Seite kann man den Nutzer nicht anfragen (Einstieg
+  z. B. ueber den Namen an einer Session ergaenzen?); (4) Push-Texte nur de/en.
 - **14.10. — Handy-Recorder: Puls vom Brustgurt (Bluetooth) aufnehmen, iOS + Android.** Nutzermeldung u683:
   Gurt war mit dem iPhone verbunden, #16667 (iPhone, 1.1.47) hat trotzdem keinen Puls. Belegt: der
   Handy-Recorder nimmt bisher auf KEINER Plattform Puls auf (kein CoreBluetooth/BLE-Code, kein HealthKit-

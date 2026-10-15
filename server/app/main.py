@@ -11,7 +11,7 @@ from fastapi.responses import (FileResponse, HTMLResponse, PlainTextResponse, Re
                                Response)
 from fastapi.staticfiles import StaticFiles
 
-from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, health as health_api, ingest, layouts, mcp, mcp_dateien, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
+from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, friends, health as health_api, ingest, layouts, mcp, mcp_dateien, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
 from . import landing
 from .api.deps import require_social
 from .config import get_settings
@@ -63,6 +63,9 @@ app = FastAPI(
 
 # JSON-Antworten (Feed/Verlauf/Listen) komprimieren — spart Transfer übers Netz.
 app.add_middleware(GZipMiddleware, minimum_size=500)
+# Ansicht „Freunde" (?friends=1) fuer alle /api/community-Abfragen, s. app/freunde.py.
+from .freunde import FreundeFilter  # noqa: E402
+app.add_middleware(FreundeFilter)
 
 
 # Standard-Sicherheits-Header auf alle Antworten.
@@ -487,6 +490,7 @@ app.include_router(boards.router)
 app.include_router(layouts.router)
 app.include_router(chat.router, dependencies=[Depends(require_social)])
 app.include_router(transfers.router, dependencies=[Depends(require_social)])
+app.include_router(friends.router, dependencies=[Depends(require_social)])
 app.include_router(appmeta.router)
 
 # --- Öffentliche Medien (Fotos, Profilbilder). Unraffbare UUID-Dateinamen. ---

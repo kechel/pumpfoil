@@ -27,6 +27,7 @@ from ..db import get_db
 from ..media import thumb_url as _thumb
 from ..naming import geraete_label, owner_label, owner_label_sql
 from .. import ortverbergen
+from ..freunde import freund_ids, nur_freunde
 from ..tzlookup import tz_name, tz_of
 from ..videos import client_wants_all_videos, filter_videos
 from ..weather import spot_water_temp, spot_weather
@@ -206,6 +207,11 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
                   if sport == "pumpfoil" else (S.sport_class == sport))),
                 or_(S.data_quality.is_(None), S.data_quality == "ok"))
     )
+    # Ansicht „Freunde" (?friends=1, s. app/freunde.py): nur ich + meine bestaetigten Freunde. Ein
+    # reiner Filter auf ohnehin sichtbare Sessions — er gibt nichts frei, er grenzt nur ein. Ohne
+    # Betrachter (Statistikzeile, viewer_id=None) bleibt alles wie es ist.
+    if viewer_id and nur_freunde():
+        q = q.filter(S.user_id.in_(freund_ids(query.session, viewer_id) | {viewer_id}))
     if not nur_foiling:
         pass          # keine Bedingung an den INHALT der Aufnahme
     elif nur_gps:
@@ -347,6 +353,16 @@ def sessions_today(
             out["pumping_here"] = int(spot) in aktive_spots(db)["spots"]
         except Exception:   # noqa: BLE001 - die Zeile darf daran nie scheitern
             log.exception("pumping_here")
+        # Freunde gerade an DIESEM Spot, mit Namen (s. app/freunde.py) — je Betrachter.
+        try:
+            from ..freunde import aktive_freunde
+            hier = [{"user_id": f["user_id"], "name": f["name"]}
+                    for f in aktive_freunde(db, user.id) if f["spot_id"] == int(spot)]
+            if hier:
+                out["friends_here"] = hier
+                out["pumping_here"] = True
+        except Exception:   # noqa: BLE001
+            log.exception("friends_here")
     return out
 
 
@@ -878,7 +894,8 @@ def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_ban
     """
     zeitraeume = [period] if period in PERIODS else list(PERIODS)
     key = (accel_only, sport, foil_band, spot, tuple(zeitraeume))
-    versteckt = bool(getattr(_user, "hidden", False))
+    # Versteckte Konten und die Ansicht „Freunde" (haengt am Betrachter) gehen am Cache vorbei.
+    versteckt = bool(getattr(_user, "hidden", False)) or nur_freunde()
     jetzt = time.monotonic()
     if not versteckt:
         with _rec_lock:
@@ -1090,6 +1107,8 @@ def latest_photos(
     items: list[dict] = []
     _vis = (S.deleted.isnot(True), S.flagged.isnot(True), U.blocked.isnot(True),
             or_(U.hidden.isnot(True), U.id == user.id), S.is_pumpfoil.is_(True))
+    if nur_freunde():   # Ansicht „Freunde": wie in `_community`
+        _vis = _vis + (S.user_id.in_(freund_ids(db, user.id) | {user.id}),)
 
     # Fotos: je Session das neueste, nach Upload-Zeit.
     prows = (
@@ -1394,11 +1413,21 @@ def spot_active(_user: models.User = Depends(current_user), db: Session = Depend
     """Gruene Spots fuer die Karte (nur eingeloggt): `spots` = einzeln gruen, `area` = kleine Spots
     in einer aktiven Kachel (faerben nur Buendel). Regeln und Grenzen: `devices.aktive_spots`."""
     from .devices import aktive_spots
+    from ..freunde import aktive_freunde
     try:
-        return aktive_spots(db)
+        # NEUES dict: `aktive_spots` liefert den 60-s-Cache fuer alle — nie hineinschreiben.
+        raus = dict(aktive_spots(db))
     except Exception:   # noqa: BLE001 - die Karte darf daran nie scheitern
         log.exception("spot-active")
-        return {"spots": [], "area": []}
+        raus = {"spots": [], "area": []}
+    # Freunde, die gerade pumpen (Jan, 15.10.2026): ihr Spot wird gruen, auch unter der Schwelle
+    # und auch mit „auf der Spot-Karte zeigen" aus — je Betrachter, nie im Cache.
+    try:
+        raus["friends"] = [f for f in aktive_freunde(db, _user.id) if f["spot_id"] is not None]
+    except Exception:   # noqa: BLE001
+        log.exception("spot-active friends")
+        raus["friends"] = []
+    return raus
 
 
 @spot_router.get("/spot-compare")
@@ -1659,6 +1688,12 @@ def _ist_attrappe(label: str | None) -> bool:
     return l in _ATTRAPPEN_GANZ or any(t in l for t in _ATTRAPPEN_TEILE)
 
 
+def _freundschaft_moeglich(db: Session, ich: models.User, anderer: models.User) -> bool:
+    from ..freunde import darf_freunde_haben, gesperrt
+    return (ich.id != anderer.id and darf_freunde_haben(ich) and darf_freunde_haben(anderer)
+            and not gesperrt(db, ich.id, anderer.id))
+
+
 @router.get("/foiler/{user_id}")
 def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
@@ -1696,6 +1731,12 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         einst = {}
     sicht = dict(DEFAULTS["public_profile"])
     sicht.update(einst.get("public_profile") or {})
+    # FREUNDE sehen die GANZE Seite (Jan, 15.10.2026): jeden Abschnitt, auch eine ganz abgeschaltete
+    # Seite. So steht es im Bestaetigungsdialog, einen Schalter dafuer gibt es bewusst nicht.
+    from ..freunde import beziehung, ist_freund
+    freund = ist_freund(db, user.id, u.id)
+    if freund:
+        sicht = {k: True for k in ("enabled",) + PUBLIC_PROFILE_KEYS}
     # Der Nutzer selbst darf seine Seite immer sehen — sonst kann er nicht pruefen, was andere
     # sehen, und genau das ist der Sinn der Schalter.
     if not sicht.get("enabled") and u.id != user.id:
@@ -1708,7 +1749,18 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         "ich": u.id == user.id,
         "aus": not sicht.get("enabled"),      # nur der Besitzer sieht das
         "zeigt": {k: bool(sicht.get(k)) for k in PUBLIC_PROFILE_KEYS},
+        # Aus Sicht des Betrachters: "freund" | "angefragt" | "eingehend" | None (Knopf + Dialog).
+        "freundschaft": beziehung(db, user.id, u.id),
+        # Darf hier ueberhaupt eine Anfrage gestellt werden? (Altersgrenze, Sperre, Testkonto)
+        "freundschaft_moeglich": _freundschaft_moeglich(db, user, u),
     }
+    # Gewicht nur fuer Freunde (und einen selbst), auch wenn „Gewicht verbergen" an ist.
+    if freund or u.id == user.id:
+        try:
+            kg = float(einst.get("weight_kg") or 0)
+        except (TypeError, ValueError):
+            kg = 0.0
+        raus["gewicht_kg"] = round(kg) if kg > 0 else None
     if sicht.get("join"):
         raus["seit"] = u.created_at.date().isoformat()
     if sicht.get("homespot"):

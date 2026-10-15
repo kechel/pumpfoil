@@ -6,6 +6,7 @@
 
 SCHREIBT: rechnet die Analyse neu (`final=False`) — der Status bleibt `live`, die Uhr darf ihre
 Daten also weiter behalten. Schon abgeschlossene Sessions mit spaeten Chunks rechnet es FINAL. Laeuft ueber `foil-live-analyse.timer` alle 5 Minuten.
+Meldet im selben Lauf den Freunden, wer gerade pumpt (`app.freunde.melden`).
 
 WARUM ES DAS GIBT (Jan, 06.09.2026): „auswerten und anzeigen was schon da ist … und immer wenn
 zusaetzliche Daten ankamen, nochmal neu die ganze Analyse."
@@ -92,6 +93,15 @@ def main() -> int:
             print(f"   #{s.id} (user {s.user_id}): {vorher} -> {res.num_runs} Laeufe, "
                   f"{res.total_distance_m} m")
         print(f"nachgerechnet: {gerechnet}")
+        # Huckepack (15.10.2026): Freunden melden, wer gerade pumpt — derselbe 5-Minuten-Takt,
+        # kein eigener Timer. Ein Fehler hier darf das Nachrechnen oben nicht ungeschehen machen.
+        if not args.trocken:
+            try:
+                from app.freunde import melden
+                print(f"Freunde benachrichtigt fuer {melden(db)} Fahrer")
+            except Exception as e:   # noqa: BLE001
+                db.rollback()
+                print(f"Freunde-Meldung fehlgeschlagen: {e}")
     finally:
         db.close()
     return 0

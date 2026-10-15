@@ -37,7 +37,7 @@ export function getLastSessionsSearch(): string {
 // oben: wer das Detail über einen Rekord oder die Startseite betritt, hat keinen Listen-
 // Kontext — dann bleibt es beim Standard (eigene Sessions), so wie bisher.
 export type NachbarFilter = {
-  scope?: "mine" | "all";
+  scope?: "mine" | "all" | "friends";
   spot?: string;
   sport?: string;
   accelOnly?: boolean;

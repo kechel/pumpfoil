@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { api, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
+import { api, setFreundeAnsicht, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
 import { foilLabel } from "../lib/foilLabel";
 import { Card, Spinner, ErrorBox, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
@@ -238,7 +238,8 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 export default function Sessions() {
   const t = useT();
   const [sp, setSp] = useSearchParams();
-  const scope = sp.get("scope") === "all" ? "all" : "mine";
+  // „friends" (Jan, 15.10.2026): meine + die meiner Freunde in EINER Liste.
+  const scope = sp.get("scope") === "all" ? "all" : sp.get("scope") === "friends" ? "friends" : "mine";
   const spot = sp.get("spot") || "";   // spot_id (String) — Name wird für Anzeige/Chat aufgelöst
   // Sportart-Filter (Nutzerwunsch 27.09.2026: „filter sessions … for Wakethief"). Default „all",
   // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
@@ -295,7 +296,7 @@ export default function Sessions() {
   // hier eigens mit hinein; `sport` ebenso (Default „all").
   useEffect(() => {
     setLastSessionsFilter({
-      scope: spot ? "all" : (scope === "all" ? "all" : "mine"),
+      scope: spot ? "all" : scope,
       spot: spot || undefined,
       sport,
       accelOnly,
@@ -305,9 +306,14 @@ export default function Sessions() {
   }, [sp, scope, spot, sport, accelOnly]);
 
   const isMine = scope === "mine" && !spot;
-  const setScope = (next: "mine" | "all", nextSpot = "") => {
+  const isFreunde = scope === "friends" && !spot;
+  // Ansicht „Freunde": schon beim RENDERN setzen, nicht im Effekt — die Kinder laden in IHREN
+  // Effekten, und die laufen vor denen dieser Seite (s. lib/api.ts, setFreundeAnsicht).
+  setFreundeAnsicht(isFreunde);
+  useEffect(() => () => setFreundeAnsicht(false), []);
+  const setScope = (next: "mine" | "all" | "friends", nextSpot = "") => {
     const n = new URLSearchParams();
-    if (next === "all") n.set("scope", "all");
+    if (next !== "mine") n.set("scope", next);
     if (nextSpot) n.set("spot", nextSpot);
     if (sport !== "all") n.set("sport", sport);   // die Sportart bleibt beim Wechsel Meine/Spot/Alle
     setSp(n);
@@ -323,6 +329,7 @@ export default function Sessions() {
     ? `${t("sessions.title")}${myName ? ` · ${myName}` : ""}`
     : spot
       ? `${t("sessions.title")} · ${spotName}`
+      : isFreunde ? `${t("sessions.title")} · ${t("friends.title")}`
       : `${t("sessions.title")} · ${t("nav.allSessions.short")}`;
   // Zweite Zeile des Spots (Gewaesser bzw. Steg/Ortslage) auch in die Ueberschrift: „Berlin 3"
   // allein sagt nicht, welcher der drei Berliner Spots gemeint ist (Jan, 25.08.). Kleiner und
@@ -345,7 +352,7 @@ export default function Sessions() {
           )}
         </h2>
         {/* „N neue Sessions heute — Have fun, keep pumping!" neben der Ueberschrift (Jan, 14.10.2026). */}
-        <HeuteNeu mine={isMine} spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett} />
+        <HeuteNeu key={String(isFreunde)} mine={isMine} freunde={isFreunde} spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett} />
       </div>
 
       <UploadProgressCard />
@@ -357,6 +364,7 @@ export default function Sessions() {
           {homespot && (
             <button className={`inline-flex items-center gap-1 ${tabCls(spot === hsRef)}`} onClick={() => setScope("all", hsRef)}><LocationIcon className="h-4 w-4" /> {homespot}</button>
           )}
+          <button className={tabCls(isFreunde)} onClick={() => setScope("friends")}>{t("friends.title")}</button>
           <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
         </div>
         {/* `min-w-0` ist hier das Entscheidende: das Feld sitzt in einer Flex-Zeile, und ein
@@ -447,7 +455,7 @@ export default function Sessions() {
       {spot && /^\d+$/.test(spot) && <SpotNotes spotId={Number(spot)} />}
       {isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
                                 board={brett} onShowAll={() => setAccelAuto(false)} />
-              : <CommunityList key={`${brett}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
+              : <CommunityList key={`${brett}|${isFreunde}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                onShowAll={() => setAccelAuto(false)} />}
     </div>
   );
@@ -484,7 +492,7 @@ export function ProcessingNote() {
 
 // „X new sessions so far today" neben dem Accel-Umschalter (Jan, 04.10.2026). Zaehlt mit denselben
 // Regeln wie die Liste darunter (Meine/Spot/Alle, Sportart, nur Accel); bei 0 steht nichts da.
-function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boolean; spot: string | null; accelOnly: boolean; sport: string; board?: boolean }) {
+function HeuteNeu({ mine, freunde = false, spot, accelOnly, sport, board = false }: { mine: boolean; freunde?: boolean; spot: string | null; accelOnly: boolean; sport: string; board?: boolean }) {
   const t = useT();
   const [n, setN] = useState<number | null>(null);
   // „N gerade am Pumpen" (Jan, 14.10.2026), derselbe Zaehler wie in der Statistikzeile. Er gilt fuer
@@ -493,21 +501,24 @@ function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boole
   // An einem Spot: „gerade pumpt hier jemand" — nur ja/nein, vom Server nach der Regel der gruenen
   // Spots entschieden (kleine Spots liefern nie `true`).
   const [hier, setHier] = useState(false);
+  // Freunde gerade an diesem Spot, mit Namen (15.10.2026) — der Server liefert sie nur an Freunde.
+  const [freundeHier, setFreundeHier] = useState<string[]>([]);
   useEffect(() => {
     let aus = false;
     api.sessionsToday({ mine, spot: spot || undefined, accelOnly, sport, board })
-      .then((r) => { if (!aus) { setN(r.n); setHier(!!r.pumping_here); } })
-      .catch(() => { if (!aus) { setN(null); setHier(false); } });
+      .then((r) => { if (!aus) { setN(r.n); setHier(!!r.pumping_here); setFreundeHier((r.friends_here ?? []).map((f) => f.name ?? "—")); } })
+      .catch(() => { if (!aus) { setN(null); setHier(false); setFreundeHier([]); } });
     return () => { aus = true; };
   }, [mine, spot, accelOnly, sport, board]);
-  const global = !mine && !spot;
+  // Der Gesamtzaehler gilt fuer ALLE — nicht in „Meine", am Spot oder in „Freunde".
+  const global = !mine && !spot && !freunde;
   useEffect(() => {
     if (!global) { setPumpt(0); return; }
     let aus = false;
     api.communityStats(true).then((s) => { if (!aus) setPumpt(s.pumping_now ?? 0); }).catch(() => {});
     return () => { aus = true; };
   }, [global]);
-  if (!n && !pumpt && !hier) return null;
+  if (!n && !pumpt && !hier && !freundeHier.length) return null;
   // Formatiert wie die Statistikzeile der Community (Jan, 14.10.2026): Fliesstext ruhig, nur die
   // Zahlen fett/cyan, „gerade am Pumpen" pulsiert — und dahinter das Motto extra fett/cyan (CI).
   const hervor = "font-bold tabular-nums text-brand-600 dark:text-brand-300";
@@ -522,7 +533,10 @@ function HeuteNeu({ mine, spot, accelOnly, sport, board = false }: { mine: boole
   if (n) teile.push(satz(n === 1 ? t("sessions.todayOne").replace("1", "§1§")
                                  : t("sessions.todayN", { n: `§${n}§` }), false, "h"));
   if (pumpt) { const tr = trenner(); if (tr) teile.push(tr); teile.push(satz(t("sessions.pumpingNow", { n: pumpt }), true, "p")); }
-  if (hier) { const tr = trenner(); if (tr) teile.push(tr); teile.push(satz(t("sessions.pumpingHere"), true, "hier")); }
+  if (freundeHier.length) {
+    const tr = trenner(); if (tr) teile.push(tr);
+    teile.push(satz(t("friends.hereNow", { names: `§${freundeHier.join(", ")}§` }), true, "fh"));
+  } else if (hier) { const tr = trenner(); if (tr) teile.push(tr); teile.push(satz(t("sessions.pumpingHere"), true, "hier")); }
   return (
     <span className="text-sm text-slate-300">
       {teile} — <span className="font-bold text-brand-600 dark:text-brand-300">Have fun, keep pumping!</span>
