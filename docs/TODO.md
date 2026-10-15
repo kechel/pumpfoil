@@ -1497,8 +1497,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   je 40-s-Fenster: 14 von 15 Fenstern mit klarem **Dreier-Muster** (Spitze bei Schlag/3) liegen in
   den ersten 56 min, Schlag 86-102/min (Langsamer Walzer 84-90 BPM); danach fast nur **Zweier-
   Muster**, Schlag 118-132/min, staerkster Block 57,5-61 min mit 132/66 pro min und Oberwellen
-  (Jive, Unterrichtstempo?). Plausibel, aber unbelegt: braucht Jans Zeitplan der Stunde als
-  Wahrheit. Fuer ein Projekt: Fuehrungs-/Nicht-Fuehrungshand als Merkmal, beschriftete Taenze von
+  (Jive, Unterrichtstempo?). **Von Jan bestaetigt (15.10.): erste Stunde Langsamer Walzer, danach
+  Jive**, dazwischen viele Pausen (Erklaeren, Teile ohne Musik geuebt) — die Grenze aus den Daten
+  (~56-57 min) passt. Arm der Uhr noch offen. Fuer ein Projekt: Fuehrungs-/Nicht-Fuehrungshand als Merkmal, beschriftete Taenze von
   mehreren Paaren, Takt (3/4 vs 4/4) + Tempo trennen nur grob (Rumba/Samba/Cha-Cha liegen nah).
   Skripte lagen nur im Scratchpad. Nicht jetzt.
 - **14.10. — Idee: Startart je Lauf erkennen (Running/Dock Start, Dropstart, Deadstart, ggf. Kniestart).**
