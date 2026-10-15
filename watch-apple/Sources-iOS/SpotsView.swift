@@ -66,9 +66,12 @@ struct SpotsView: View {
     @State private var aktivEinzeln: Set<Int> = []
     @State private var aktivGegend: Set<Int> = []
     @State private var nurAktiv = false
-    // Heatmap (Jan, 15.10.2026, wie Spots.tsx): nil = aus, sonst "30d" | "365d". Ein zweiter Tipp
-    // auf den gewaehlten Zeitraum schaltet sie ab. Geholt je Ausschnitt, s. `heatSchluessel`.
-    @State private var heat: String?
+    // Schalter „Spots | Heatmap" (Jan, 15.10.2026, wie Spots.tsx): bei Spots die Schalter „gerade
+    // aktiv"/„mit Beschreibung", bei Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins
+    // weg — so liegt die Heatmap-Schicht auch ueber nichts mehr, was man antippen muesste.
+    @State private var heatAnsicht = false
+    @State private var heatZeitraum = "365d"
+    private var heat: String? { heatAnsicht ? heatZeitraum : nil }
     @State private var heatDaten: HeatAntwort?
     // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing", PWA Spots.tsx). Default
     // „all" wie bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
@@ -163,18 +166,23 @@ struct SpotsView: View {
         return aktivEinzeln.contains(id)
     }
 
-    /// Heatmap-Umschalter: „30 Tage" / „1 Jahr", ein zweiter Tipp schaltet ab. Darunter der Hinweis,
-    /// was die Farbe bedeutet.
+    /// Schalter „Spots | Heatmap"; bei Heatmap darunter die Zeitraeume und was die Farbe bedeutet.
     @ViewBuilder private var heatZeile: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Text(Loc.t("spots.heatmap", lang)).font(.subheadline.weight(.semibold))
-                heatKnopf("30d")
-                heatKnopf("365d")
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("", selection: $heatAnsicht) {
+                Text(Loc.t("nav.spots", lang)).tag(false)
+                Text(Loc.t("spots.heatmap", lang)).tag(true)
             }
-            if heat != nil, let d = heatDaten {
-                Text("\(Loc.t("spots.heatHint", lang)) · \(d.sessions) \(Loc.t("side.sessions", lang))")
-                    .font(.caption).foregroundStyle(.secondary)
+            .pickerStyle(.segmented)
+            if heatAnsicht {
+                HStack(spacing: 8) {
+                    heatKnopf("30d")
+                    heatKnopf("365d")
+                }
+                if let d = heatDaten {
+                    Text("\(Loc.t("spots.heatHint", lang)) · \(d.sessions) \(Loc.t("side.sessions", lang))")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
         }
     }
@@ -182,8 +190,8 @@ struct SpotsView: View {
     // Eigener Button-Stil je Knopf: zwei Knoepfe in einer Listenzeile loesen sonst beide aus
     // (swiftui-listenzeile-mehrere-knoepfe).
     private func heatKnopf(_ p: String) -> some View {
-        let an: Bool = heat == p
-        return Button { heat = an ? nil : p } label: {
+        let an: Bool = heatZeitraum == p
+        return Button { heatZeitraum = p } label: {
             Text(Loc.t("period.\(p)", lang)).font(.subheadline)
                 .padding(.horizontal, 10).padding(.vertical, 4)
                 .foregroundStyle(an ? Color.black : Color.primary)
@@ -252,12 +260,12 @@ struct SpotsView: View {
     /// Jaceks Absturzmeldung geschlossen hat, und das ist es nicht wert.
     @ViewBuilder private var spotKarte: some View {
         if #available(iOS 17.0, *), ebene == MapTiles.satellit {
-            Map(coordinateRegion: $region, annotationItems: buendel) { b in
+            Map(coordinateRegion: $region, annotationItems: heatAnsicht ? [] : buendel) { b in
                 MapAnnotation(coordinate: b.mitte) { annotation(b) }
             }
             .mapStyle(.hybrid)
         } else {
-            Map(coordinateRegion: $region, annotationItems: buendel) { b in
+            Map(coordinateRegion: $region, annotationItems: heatAnsicht ? [] : buendel) { b in
                 MapAnnotation(coordinate: b.mitte) { annotation(b) }
             }
         }
@@ -349,14 +357,14 @@ struct SpotsView: View {
             }
             // Auch bei 0 zeigen, solange der Schalter an ist: sonst bleibt nach einem Sportart-Wechsel
             // eine leere Karte ohne Weg zurueck (Jan, 28.09.2026, am Android gefunden).
-            if mitNotes > 0 || nurNotes {
+            if !heatAnsicht && (mitNotes > 0 || nurNotes) {
                 Toggle(isOn: $nurNotes) {
                     Text("\(Loc.t("spots.onlyWithNotes", lang)) (\(mitNotes))")
                 }
                 .onChange(of: nurNotes) { _ in buendeln() }   // Pins sofort nachziehen
             }
             // Wie oben: auch ohne aktive Spots stehen lassen, solange der Schalter an ist.
-            if hatAktive || nurAktiv {
+            if !heatAnsicht && (hatAktive || nurAktiv) {
                 Toggle(isOn: $nurAktiv) { Text(Loc.t("spots.onlyActive", lang)) }
                     .tint(GRUEN)
                     .onChange(of: nurAktiv) { _ in buendeln() }

@@ -61,8 +61,11 @@ export default function Spots() {
   }, []);
   // Heatmap (Jan, 15.10.2026): wo auf dem Wasser gefahren wird — Zahl der Sessions je Zelle, nur
   // die Laeufe, fuer alle gleich und einmal taeglich vorgerechnet (server app/heatmap.py).
-  // null = aus; ein zweiter Klick auf den gewaehlten Zeitraum schaltet sie wieder ab.
-  const [heat, setHeat] = useState<"30d" | "365d" | null>(null);
+  // Oben ein Schalter „Spots | Heatmap" (Jan, 15.10.2026): bei Spots die Haken „gerade aktiv" /
+  // „mit Beschreibung", bei Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins weg.
+  const [ansicht, setAnsicht] = useState<"spots" | "heat">("spots");
+  const [heatZeitraum, setHeatZeitraum] = useState<"30d" | "365d">("365d");
+  const heat = ansicht === "heat" ? heatZeitraum : null;
   const [heatStand, setHeatStand] = useState<{ stand: string | null; sessions: number } | null>(null);
   const heatLayer = useRef<L.LayerGroup | null>(null);
   // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing"). Default „all" wie
@@ -240,6 +243,8 @@ export default function Spots() {
       heatLayer.current = L.layerGroup().addTo(m);
     }
     const grp = heatLayer.current;
+    // Pins nur in der Spot-Ansicht.
+    if (markers.current) { if (heat) markers.current.remove(); else markers.current.addTo(m); }
     if (!heat) { grp.clearLayers(); setHeatStand(null); return; }
     const renderer = L.canvas({ pane: "heat", padding: 0.2 });
     let weg = false;
@@ -275,7 +280,7 @@ export default function Spots() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <SpotsIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">
           {t("nav.spots")}
@@ -290,23 +295,51 @@ export default function Spots() {
             {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
           </select>
         )}
-        {/* Nicht an der GEFILTERTEN Liste festmachen: mit Haken und einer Sportart ohne Beschreibungen
-            waere sie leer, der Haken verschwaende — und mit ihm der Weg zurueck (Jan, 28.09.2026). */}
-        {(aktiv.einzeln.size + aktiv.gegend.size > 0 || nurAktiv) && (
-          <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" checked={nurAktiv} onChange={(e) => setNurAktiv(e.target.checked)}
-              className="h-4 w-4 accent-green-500" />
-            {t("spots.onlyActive")}
-          </label>
-        )}
-        {((alle ?? []).some((s) => (s.notes ?? 0) > 0) || nurNotes) && (
-          <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}
-              className="h-4 w-4 accent-brand-500" />
-            {t("spots.onlyWithNotes")}
-            <span className="text-slate-500">({(alle ?? []).filter((s) => (s.notes ?? 0) > 0).length})</span>
-          </label>
-        )}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+          <div className="inline-flex overflow-hidden rounded-xl border border-slate-700 text-sm">
+            {(["spots", "heat"] as const).map((a) => (
+              <button key={a} onClick={() => setAnsicht(a)} aria-pressed={ansicht === a}
+                className={`px-3 py-1.5 ${ansicht === a
+                  ? "bg-brand-500 font-semibold text-slate-950"
+                  : "bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
+                {a === "spots" ? t("nav.spots") : t("spots.heatmap")}
+              </button>
+            ))}
+          </div>
+          {ansicht === "heat" ? (
+            <div className="flex items-center gap-2 text-sm">
+              {(["30d", "365d"] as const).map((p) => (
+                <button key={p} onClick={() => setHeatZeitraum(p)} aria-pressed={heatZeitraum === p}
+                  className={`rounded-full border px-3 py-1 ${heatZeitraum === p
+                    ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+                    : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
+                  {t(`period.${p}`)}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Nicht an der GEFILTERTEN Liste festmachen: mit Haken und einer Sportart ohne
+                  Beschreibungen waere sie leer, der Haken verschwaende — und mit ihm der Weg zurueck
+                  (Jan, 28.09.2026). */}
+              {(aktiv.einzeln.size + aktiv.gegend.size > 0 || nurAktiv) && (
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+                  <input type="checkbox" checked={nurAktiv} onChange={(e) => setNurAktiv(e.target.checked)}
+                    className="h-4 w-4 accent-green-500" />
+                  {t("spots.onlyActive")}
+                </label>
+              )}
+              {((alle ?? []).some((s) => (s.notes ?? 0) > 0) || nurNotes) && (
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+                  <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}
+                    className="h-4 w-4 accent-brand-500" />
+                  {t("spots.onlyWithNotes")}
+                  <span className="text-slate-500">({(alle ?? []).filter((s) => (s.notes ?? 0) > 0).length})</span>
+                </label>
+              )}
+            </>
+          )}
+        </div>
       </div>
       {/* Dritter Nutzer in Folge suchte einen "Spot anlegen"-Knopf — den es bewusst nicht
           gibt. Einmal erklaeren, wie Spots entstehen (und warum ein Name kurz fehlen kann). */}
@@ -335,25 +368,17 @@ export default function Spots() {
                 wie das Suchfeld, und bei 578 Spots blaettert niemand mehr durch. Das Suchfeld zeigt die
                 Namen beim Tippen ohnehin als Vorschlaege (datalist). */}
           </div>
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-semibold text-slate-300">{t("spots.heatmap")}</span>
-            {(["30d", "365d"] as const).map((p) => (
-              <button key={p} onClick={() => setHeat(heat === p ? null : p)} aria-pressed={heat === p}
-                className={`rounded-full border px-3 py-1 ${heat === p
-                  ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
-                  : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
-                {t(`period.${p}`)}
-              </button>
-            ))}
-            {heat && heatStand && (
-              <span className="text-slate-400">{t("spots.heatHint")} · {heatStand.sessions} {t("side.sessions")}</span>
-            )}
-          </div>
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
-          <p className="mt-2 flex gap-2 text-sm text-slate-400">
-            <span aria-hidden className="mt-1 inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: GRUEN }} />
-            <span>{t("spots.activeLegend")}</span>
-          </p>
+          {heat ? (
+            <p className="mt-2 text-sm text-slate-400">
+              {t("spots.heatHint")}{heatStand ? ` · ${heatStand.sessions} ${t("side.sessions")}` : ""}
+            </p>
+          ) : (
+            <p className="mt-2 flex gap-2 text-sm text-slate-400">
+              <span aria-hidden className="mt-1 inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: GRUEN }} />
+              <span>{t("spots.activeLegend")}</span>
+            </p>
+          )}
           <SpotCompare />
         </>
       )}

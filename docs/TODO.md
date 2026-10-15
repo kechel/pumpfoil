@@ -1482,8 +1482,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Monate, einmal taeglich. Raster = Web-Mercator-Kacheln, feinste Stufe z21 (Bodensee ~13 m).
   `app/heatmap.py`, `scripts/heatmap-rechnen.py`, Timer `foil-heatmap` 03:45 (rechnet nur neue/
   geaenderte Sessions nach, auch Importe in die Vergangenheit), `GET /api/community/heatmap`.
-  iOS: als Canvas UEBER der SwiftUI-`Map` (keine Flaechen vor iOS 17) — halb durchsichtig, Pins
-  bleiben bedienbar; in Xcode ansehen. Neue Swift-Datei `HeatmapKarte.swift` -> xcodegen.
+  Oben ein Schalter „Spots | Heatmap" (Jan): bei Spots die Haken aktiv/Beschreibung, bei Heatmap
+  die Zeitraeume; in der Heatmap-Ansicht keine Pins. iOS: Canvas UEBER der SwiftUI-`Map` (keine
+  Flaechen vor iOS 17) — da ohne Pins unkritisch; in Xcode ansehen. Neue Swift-Datei `HeatmapKarte.swift` -> xcodegen.
 - **👥 15.10. — Freunde ✅ LIVE (Server + PWA).** Jans Konzept: gegenseitige Freundschaft mit zwei
   Zustimmungen, kein Schalter — der Dialog sagt woertlich, was Freunde sehen. Freigegeben: ganze
   Foiler-Seite (auch abgeschaltet), Gewicht, „gerade am Pumpen" mit Spot (gruen auch unter der
