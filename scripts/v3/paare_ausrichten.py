@@ -63,8 +63,9 @@ TASCHE = {
 }
 
 # Handy AM BRETT bei einer ANDEREN Sportart als Pumpfoil — Wahrheit fuer Sportart-/Antriebs-Erkennung,
-# NICHT fuer Pump-Zaehlung/Gleiten (dort wuerde der Antrieb als Pumpen gelernt). Gelesen wird davon
-# noch nichts; `paare_finden` fasst sie nur nicht an, solange `placement` nicht „board" ist.
+# NICHT fuer Pump-Zaehlung/Gleiten (dort wuerde der Antrieb als Pumpen gelernt). `paare_finden`
+# ueberspringt sie (und jede Brett-Session mit sport_class != pumpfoil) — seit 15.10.2026 noetig,
+# weil die Brett-Automatik #16729 auf „board" gestellt hat.
 # {Handy-Session: Vermerk}
 ANDERE_SPORTART = {
     16729: "u267 14.10.2026, foil_scoot (DM an Jan: „Scooter daten sollten gleich da sein“, Montage NICHT genannt, Rueckfrage offen); Handy als „phone“ markiert, Brett-Verdacht schlaegt an, "
@@ -87,6 +88,10 @@ def paare_finden(db) -> tuple[list[tuple[int, int]], list[int]]:
     bretter = (db.query(S).filter(S.placement == "board", S.deleted.isnot(True), S.merged_into.is_(None))
                .order_by(S.id).all())
     for b in bretter:
+        # Seit der Brett-Automatik (15.10.2026) steht `placement = "board"` auch bei anderen
+        # Sportarten (#16729 foil_scoot) — die gehoeren nicht in die Pump-Wahrheit.
+        if b.id in ANDERE_SPORTART or (b.sport_class or "pumpfoil") != "pumpfoil":
+            continue
         if b.id in AUSGESCHLOSSEN or b.result is None or not storage.chunk_laengen(b.session_uuid, "gyro"):
             continue
         ba, be = spanne(b)

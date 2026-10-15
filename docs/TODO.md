@@ -3171,6 +3171,17 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      **Der Umschalter verschwindet auch danach nicht**, er wird zum Override: er ist die Quelle
      der Wahrheit, aus der die Erkennung ueberhaupt lernt und gegen die sie geprueft wird —
      dieselbe Rolle wie der Admin-Override bei der Pumpfoil-Klassifikation.
+     **✅ LIVE seit 15.10.2026 (700eb422, Jans OK):** `brett_automatik` in
+     `abschliessend_auswerten` stellt eine Handy-Aufnahme selbst auf „board", wenn Schwerkraft
+     <= 9° neben einer Geraeteachse UND mittlere Lage von Lauf zu Lauf <= 1,5° (Median, >= 3 Laeufe)
+     UND sicherer Hub in >= 50 % der Laeufe. Gemessen an 122 Handy-Aufnahmen: markierte Bretter
+     1,1-7,7° / 0,4-1,1° (12 von 14), Hosentasche #16736 20,6° / 2,9°. Richtung gegen GPS-Kurs
+     trennte nicht (Brett 4-18°, Tasche 8,3°). `sessions.placement_quelle` (auto|nutzer): der
+     Besitzer gewinnt immer, Rausnehmen ist endgueltig; PWA zeigt „automatisch erkannt".
+     Bestand: #13111, #14828 (u745), #16729 (u267, foil_scoot) umgestellt, Sicherung
+     `server/data/sicherung/vor-brett-automatik-20261015-0756.json`. Grenzen: quer+geneigt
+     montiert (u683, 15-17°) bleibt beim Hinweis; Schienbein saehe aus wie Brett (Jan: ok).
+     Offen: Hinweistext „automatisch erkannt" in iOS/Android (native eingefroren).
   6. **Fenstergroessen fuers Gieren feintunen**, sobald eine echte Pump-Session am Brett
      aufgenommen ist (0,1 / 0,5 / 1 / 3 / 5 s stehen zur Wahl).
 
