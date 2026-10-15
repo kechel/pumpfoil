@@ -1788,6 +1788,17 @@ def _spots_mit_ort(db: Session) -> dict[int, models.Spot]:
                     models.Spot.lon.isnot(None)).all()}
 
 
+def _spots_fuer_position(db: Session, spots: dict[int, models.Spot] | None = None) -> dict[int, models.Spot]:
+    """Nur Spots, an denen mindestens eine GUELTIGE Session haengt (nicht geloescht, nicht
+    aussortiert). Verwaiste Spot-Zeilen (alte geloeschte Test-Sessions, z. B. „Burgweiler 3" neben
+    Jans Wohnort, 16.10.2026: 32 von 654) duerfen eine Position nie zu „pumpt gerade" machen."""
+    spots = spots if spots is not None else _spots_mit_ort(db)
+    ids = {sid for (sid,) in db.query(models.Session.spot_id)
+           .filter(models.Session.spot_id.isnot(None), models.Session.deleted.isnot(True),
+                   models.Session.is_pumpfoil.isnot(False)).distinct()}
+    return {k: v for k, v in spots.items() if k in ids}
+
+
 def _naechster_spot(lat: float, lon: float, spots: dict[int, models.Spot],
                     radius_km: float = POS_RADIUS_KM) -> int | None:
     import math
@@ -1824,6 +1835,7 @@ def _zustand(db: Session, uid: int, spots: dict[int, models.Spot]) -> tuple[bool
     from .. import storage
     jetzt = datetime.now(timezone.utc)
     seit = jetzt - timedelta(hours=SIGNAL_FENSTER_H)
+    pos_spots = None   # erst bei Bedarf (eine Abfrage ueber alle Sessions)
     live = (db.query(models.Session)
             .filter(models.Session.user_id == uid, models.Session.status == "live",
                     models.Session.deleted.isnot(True), models.Session.started_at > seit)
@@ -1836,7 +1848,7 @@ def _zustand(db: Session, uid: int, spots: dict[int, models.Spot]) -> tuple[bool
         except Exception:   # noqa: BLE001 - die Karte darf daran nie scheitern
             gps = []
         if gps:
-            sid = _naechster_spot(float(gps[-1][1]), float(gps[-1][2]), spots)
+            sid = _naechster_spot(float(gps[-1][1]), float(gps[-1][2]), _spots_fuer_position(db, spots))
             return sid is not None, sid
 
     fenster = jetzt - timedelta(minutes=ZAEHLER_FENSTER_MIN)
@@ -1845,6 +1857,11 @@ def _zustand(db: Session, uid: int, spots: dict[int, models.Spot]) -> tuple[bool
               .filter(models.DeviceToken.user_id == uid, models.DeviceToken.revoked_at.is_(None),
                       models.DeviceToken.pos_at > fenster).all()):
         sid = _bis_ziel(db, d.pos_spot_id, spots)
+        if sid is not None:
+            if pos_spots is None:
+                pos_spots = _spots_fuer_position(db, spots)
+            if sid not in pos_spots:
+                sid = None             # Spot inzwischen ohne gueltige Session (verwaist)
         signale.append((_aware(d.pos_at), sid is not None, sid))
     for s, num_runs in (db.query(models.Session, models.AnalysisResult.num_runs)
                         .outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
@@ -1958,7 +1975,7 @@ def position(
     if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0) or (lat == 0.0 and lon == 0.0):
         raise HTTPException(422, "lat/lon ungueltig")
     device.pos_at = datetime.now(timezone.utc)
-    device.pos_spot_id = _naechster_spot(lat, lon, _spots_mit_ort(db))
+    device.pos_spot_id = _naechster_spot(lat, lon, _spots_fuer_position(db))
     db.commit()
     return {"ok": True, "spot": device.pos_spot_id is not None}
 

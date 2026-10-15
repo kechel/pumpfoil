@@ -287,7 +287,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.93",   # LIVE 2026-10-14: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf
+        "latest": "1.0.94",   # LIVE 2026-10-16: am Tag der Einreichung freigegeben; Store-API latestExternalVersion
+        # 1.0.94 / intern 49, Jan hat sie aus dem Store auf seine fenix installiert (Token 1577). Inhalt: Spot-Meldung
+        # beim ersten GPS-Fix im Startbildschirm. watch/bin neu gebaut.
+        # ALT: "latest": "1.0.93",   # LIVE 2026-10-14: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf
         # seine fenix installiert (Token 1575). Inhalt: Reserve 2 h GPS, Konto-Wechsel mit old_token, Zeile
         # „Handy nimmt auf", Abmelden beim Verlassen. watch/bin neu gebaut (129/129).
         # ALT: "latest": "1.0.92",   # LIVE 2026-10-09: Store-Seite + Store-API latestExternalVersion 1.0.92 / intern 47,
@@ -997,12 +1000,7 @@ NAECHSTES: list[dict] = [
          # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
          "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
      ]},
-    # 15.10.2026 (Jan): Spot-Meldung beim ersten GPS-Fix (Server 8b958905), auch auf den 96-KB-Uhren
-    # (+0,5 KB). Nicht gebumpt (1.0.93 ist live), gebaut wird erst zur Einreichung.
-    {"name": "Garmin", "version": "1.0.94",
-     "items": [
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-     ]},
+    # Garmin 1.0.94 (eingereicht + freigegeben 16.10.2026) -> LIVE, Punkt steht im Changelog.
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
