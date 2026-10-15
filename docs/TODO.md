@@ -1484,6 +1484,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   darf nur von EINER App gleichzeitig gehalten werden (Polar-/Garmin-App trennen); Bluetooth-Berechtigung
   nie stumm scheitern lassen; Aufnahme-Pfad -> langer Test mit echtem Gurt. Antwort an u683 (Jan):
   „nehmen wir mit auf". Nebenbei: seine Apple Watch #16666 hat Puls nur ~22 von 33 min (Ursache offen).
+- **15.10. — Garmin drinnen ohne GPS-Fix: Session endet fuer den Server beim letzten GPS-Punkt.**
+  Belegt an Jans Tanzsession #16753 (fēnix, 1.0.93, Ravensburg, drinnen): Accel lief volle 90,75 min
+  (91 Chunks, t0/t1 je Chunk sauber, 25 Hz), GPS-Punkte nur von 5 bis 43 min. Folgen: `ended_at`
+  21:19 statt ~22:06, `time_base` = `measured_rate` mit **52,2 Hz** (90 min Accel auf 43 min
+  gequetscht), und **Puls nur bis Minute 43** — der Puls reist im GPS-Datensatz (Feld 4) mit, ohne
+  Fix kein Datensatz, kein Puls. Fuer Pumpfoil egal (draussen), fuer Tanzen/Hallensport nicht.
+  Zu klaeren: warum `exact_chunks` nicht greift, obwohl t0 fuer alle Chunks da ist (Pipeline ->
+  Jans OK); ob die Uhr Puls auch ohne Fix schreiben soll. Analyse-Aenderung -> Jans OK.
+- **15.10. — Idee: Tanzerkennung (Jans Anstoss, erste Sichtung #16753).** Langsamer Walzer + Jive,
+  Uhr am linken Arm (Fuehrungshand Herr). Ohne Beschriftung, nur Spektrum der Vertikalbeschleunigung
+  je 40-s-Fenster: 14 von 15 Fenstern mit klarem **Dreier-Muster** (Spitze bei Schlag/3) liegen in
+  den ersten 56 min, Schlag 86-102/min (Langsamer Walzer 84-90 BPM); danach fast nur **Zweier-
+  Muster**, Schlag 118-132/min, staerkster Block 57,5-61 min mit 132/66 pro min und Oberwellen
+  (Jive, Unterrichtstempo?). Plausibel, aber unbelegt: braucht Jans Zeitplan der Stunde als
+  Wahrheit. Fuer ein Projekt: Fuehrungs-/Nicht-Fuehrungshand als Merkmal, beschriftete Taenze von
+  mehreren Paaren, Takt (3/4 vs 4/4) + Tempo trennen nur grob (Rumba/Samba/Cha-Cha liegen nah).
+  Skripte lagen nur im Scratchpad. Nicht jetzt.
 - **14.10. — Idee: Startart je Lauf erkennen (Running/Dock Start, Dropstart, Deadstart, ggf. Kniestart).**
   Nutzerfrage u683 (zu #16667), Jans Antwort: gibt es noch nicht, ob es geht, haengt vermutlich an der
   Accel-Rate (25 Hz vielleicht, evtl. erst 100 Hz) — „kommt auf die Ideenliste". Anknuepfen an: die
