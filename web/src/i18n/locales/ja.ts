@@ -53,6 +53,7 @@ const ja: Record<string, string> = {
   "board.height": "高さ",
   "board.map": "地図",
   "board.markBoard": "スマホはボードに付いていた",
+  "board.autoErkannt": "自動で判定しました：スマホはどのランでも平らで、まったく同じ向きでした。ボードに付けていなかった場合はチェックを外してください。",
   "board.mountAuto": "自動",
   "board.directionUnknown": "この記録では、データから前後を判定できませんでした。ピッチとロールが逆になっている可能性があります。",
   "board.mounting": "取り付け:",

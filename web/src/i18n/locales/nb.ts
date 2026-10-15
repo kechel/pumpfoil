@@ -53,6 +53,7 @@ const nb: Record<string, string> = {
   "board.height": "Høyde",
   "board.map": "Kart",
   "board.markBoard": "Telefonen satt på brettet",
+  "board.autoErkannt": "Gjenkjent automatisk: telefonen lå flatt og i nøyaktig samme stilling i hver run. Fjern haken hvis den ikke satt på brettet.",
   "board.mountAuto": "automatisk",
   "board.directionUnknown": "Foran og bak kunne ikke bestemmes ut fra dataene for dette opptaket — stamping og rulling kan være omvendt her.",
   "board.mounting": "Montering:",

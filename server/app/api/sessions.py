@@ -370,6 +370,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         # Wo das Geraet war. Die Lage-Ansicht (Pitch/Roll/Gierrate) haengt daran: nur „board"
         # misst das Brett, am Koerper misst es den Fahrer.
         placement=s.placement,
+        placement_quelle=getattr(s, "placement_quelle", None),
         attitude_rot_deg=s.attitude_rot_deg,
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,
@@ -2973,6 +2974,9 @@ def set_meta(
         if wert not in ("", "board", "phone"):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "placement: board | phone | (leer)")
         s.placement = wert or None
+        # Der Besitzer hat entschieden — die Brett-Automatik fasst die Aufnahme nie wieder an,
+        # auch wenn er „phone" nur bestaetigt oder „board" wieder herausnimmt.
+        s.placement_quelle = "nutzer"
     if body.ort_sichtbarkeit is not None:
         wert = body.ort_sichtbarkeit.strip().lower()
         if wert not in ("", "show", "hide"):
@@ -4399,6 +4403,71 @@ def lage_achse_deg(acc: "np.ndarray", t_acc_ms: "np.ndarray", bereiche: list) ->
     return statistics.median(winkel) if winkel else None
 
 
+# BRETT-AUTOMATIK (15.10.2026, Jans Auftrag): nach der abschliessenden Analyse wird eine Handy-
+# Aufnahme selbst auf „am Brett" gestellt, wenn ZWEI unabhaengige Merkmale es sagen — strenger als
+# der Hinweis oben, der nur fragt:
+#   1. flach oder hochkant: Schwerkraft hoechstens 9° neben einer Geraeteachse (Hinweis: 15°);
+#   2. starr: die mittlere Lage weicht von Lauf zu Lauf im Median hoechstens 1,5° ab (>= 3 Laeufe);
+#   dazu wie beim Hinweis sicherer Hub in mindestens der Haelfte der Laeufe.
+# Gemessen an allen 122 Handy-Aufnahmen mit Laeufen: vom Besitzer markierte Bretter 1,1-7,7° und
+# 0,4-1,1° (12 von 14); Philipps Hosentasche #16736 (unter dem Anzug, schwierigster Fall) 20,6° und
+# 2,9°. Die Richtung gegen den GPS-Kurs trennte NICHT (Brett 4-18°, Tasche 8,3°) und ist deshalb
+# nicht dabei. Bekannte Grenzen: quer UND geneigt montiert (u683, 15-17°) wird nicht erkannt und
+# bleibt beim Hinweis; ein Handy fest am Schienbein saehe aus wie am Brett — Pumps stimmen dann,
+# Nicken/Rollen messen das Bein (Jan: „das ist ok"). Eine Entscheidung des Besitzers
+# (`placement_quelle = "nutzer"`) gewinnt immer.
+BRETT_AUTO_ACHSE_MAX_DEG = 9.0
+BRETT_AUTO_STREU_MAX_DEG = 1.5
+BRETT_AUTO_MIN_LAEUFE = 3
+
+
+def lage_streuung_deg(acc: "np.ndarray", t_acc_ms: "np.ndarray", bereiche: list) -> tuple[float | None, int]:
+    """Wie starr sitzt das Handy? Je Lauf (>= 10 s) die mittlere Schwerkraftrichtung im Geraet,
+    dann der Median der Winkel zur gemeinsamen Mitte. Fest am Brett liegt es in jedem Lauf gleich
+    (unter ~1°), in der Tasche verrutscht es zwischen den Laeufen. Liefert (Grad, Zahl der Laeufe);
+    (None, n) bei weniger als zwei auswertbaren Laeufen."""
+    import math
+    import statistics
+    import numpy as np
+    t = np.asarray(t_acc_ms, dtype=float)
+    x = np.asarray(acc, dtype=float)
+    mitten = []
+    for a, b in bereiche:
+        if b - a < 10000:
+            continue
+        m = (t >= a) & (t <= b)
+        X, T = x[m], t[m]
+        if len(X) < 50 or T[-1] <= T[0]:
+            continue
+        fs = len(X) / ((T[-1] - T[0]) / 1000.0)
+        w = max(1, int(2 * fs))
+        n = len(X) // w
+        if n < 2:
+            continue
+        G = X[:n * w].reshape(n, w, 3).mean(axis=1)
+        G /= np.maximum(np.linalg.norm(G, axis=1, keepdims=True), 1e-9)
+        mu = G.mean(axis=0)
+        norm = float(np.linalg.norm(mu))
+        if norm > 0:
+            mitten.append(mu / norm)
+    if len(mitten) < 2:
+        return None, len(mitten)
+    M = np.array(mitten)
+    c = M.mean(axis=0)
+    c /= max(float(np.linalg.norm(c)), 1e-9)
+    winkel = [math.degrees(math.acos(min(1.0, max(-1.0, float(v))))) for v in M @ c]
+    return statistics.median(winkel), len(mitten)
+
+
+def brett_auto_urteil(m: dict) -> bool:
+    """Darf die Analyse diese Aufnahme selbst auf „am Brett" stellen? Rein, getestet."""
+    achse, streu, n, hub = m.get("achse_deg"), m.get("streu_deg"), m.get("streu_laeufe") or 0, m.get("hub_anteil")
+    return (achse is not None and achse <= BRETT_AUTO_ACHSE_MAX_DEG
+            and streu is not None and streu <= BRETT_AUTO_STREU_MAX_DEG
+            and n >= BRETT_AUTO_MIN_LAEUFE
+            and hub is not None and hub >= BRETT_HUB_ANTEIL_MIN)
+
+
 def brett_urteil(kennzahlen: list[dict], achse_deg: float | None) -> dict | None:
     """Das Urteil aus Lage-Kennzahlen je Lauf und der Lage im Raum — rein, ohne Daten zu laden
     (getestet in tests/test_brett_hinweis.py). None = es gibt keinen auswertbaren Lauf."""
@@ -4419,16 +4488,11 @@ def brett_urteil(kennzahlen: list[dict], achse_deg: float | None) -> dict | None
             "achse_deg": round(achse_deg, 1) if achse_deg is not None else None}
 
 
-def _brett_verdacht(s: models.Session) -> dict:
-    """Sieht diese Aufnahme nach „Handy am Brett" aus? Rein lesend, nichts gespeichert."""
-    import time as _time
+def brett_merkmale(s: models.Session) -> dict:
+    """Die Brett-Merkmale einer Aufnahme, frisch gerechnet (ohne Cache). Rein lesend.
 
-    jetzt = _time.monotonic()
-    with _brett_lock:
-        treffer = _brett_cache.get(s.id)
-        if treffer and jetzt - treffer[0] < _BRETT_TTL:
-            return treffer[1]
-
+    Liefert das Urteil von `brett_urteil` plus `streu_deg`/`streu_laeufe` aus
+    `lage_streuung_deg` — die braucht die Brett-Automatik (`brett_auto_urteil`)."""
     aus = {"verdacht": False, "laeufe": 0, "nick_roll": None, "hub_anteil": None}
     try:
         uuid = s.session_uuid
@@ -4450,8 +4514,25 @@ def _brett_verdacht(s: models.Session) -> dict:
                     k = lage.kennzahlen_je_lauf(acc, t_acc, gyr, t_gyr, bereiche, starts,
                                                 gps=storage.load_gps(uuid), rot_vorgabe=None)
                     aus = brett_urteil(k, lage_achse_deg(acc, t_acc, bereiche)) or aus
+                    streu, n = lage_streuung_deg(acc, t_acc, bereiche)
+                    aus = {**aus, "streu_deg": round(streu, 1) if streu is not None else None,
+                           "streu_laeufe": n}
     except Exception:   # noqa: BLE001 - ein Hinweis darf nie eine Seite kaputtmachen
         aus = {"verdacht": False, "laeufe": 0, "nick_roll": None, "hub_anteil": None}
+    return aus
+
+
+def _brett_verdacht(s: models.Session) -> dict:
+    """Sieht diese Aufnahme nach „Handy am Brett" aus? Rein lesend, nichts gespeichert."""
+    import time as _time
+
+    jetzt = _time.monotonic()
+    with _brett_lock:
+        treffer = _brett_cache.get(s.id)
+        if treffer and jetzt - treffer[0] < _BRETT_TTL:
+            return treffer[1]
+
+    aus = brett_merkmale(s)
 
     with _brett_lock:
         if len(_brett_cache) >= _BRETT_MAX:

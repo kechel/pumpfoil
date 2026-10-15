@@ -122,6 +122,8 @@ def _migrate_add_indexes() -> None:
         "UPDATE sessions SET updated_at = created_at WHERE updated_at IS NULL",
         # Aufnahme-Platzierung (Handy-Recorder „Record on Phone" = 'phone', sonst Uhr).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS placement VARCHAR(16)",
+        # Wer „am Brett" gesetzt hat: auto | nutzer (15.10.2026, Brett-Automatik).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS placement_quelle VARCHAR(8)",
         # „Ort verbergen" je Aufnahme (25.09.2026). NULL = folgt dem Profil.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS ort_sichtbarkeit VARCHAR(8)",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS attitude_rot_deg INTEGER",

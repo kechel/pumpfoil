@@ -53,6 +53,7 @@ const id: Record<string, string> = {
   "board.height": "Ketinggian",
   "board.map": "Peta",
   "board.markBoard": "Ponsel ada di papan",
+  "board.autoErkannt": "Dikenali otomatis: ponsel datar dan posisinya persis sama di setiap run. Hapus centang jika tidak ada di papan.",
   "board.mountAuto": "otomatis",
   "board.directionUnknown": "Depan dan belakang tidak dapat ditentukan dari data rekaman ini — pitch dan roll di sini bisa terbalik.",
   "board.mounting": "Pemasangan:",

@@ -2463,13 +2463,20 @@ export default function SessionDetail() {
                       const wert = e.target.checked ? "board" : (session.has_gyro ? "phone" : "");
                       api.updateSessionMeta(session.id, { placement: wert })
                         .then((frisch) => setSession((alt) => (alt
-                          ? { ...alt, placement: frisch.placement } : alt)))
+                          ? { ...alt, placement: frisch.placement,
+                              placement_quelle: frisch.placement_quelle } : alt)))
                         .catch(() => {});
                     }}
                     className="h-4 w-4 rounded border-slate-600 bg-slate-800"
                   />
                   {t("board.markBoard")}
                 </label>
+                {/* Brett-Automatik (15.10.2026): hat die Analyse den Haken gesetzt, sagt es die
+                    Seite — automatische Zuordnungen sind immer sichtbar und mit einem Klick
+                    rueckgaengig (Rausnehmen setzt im Server `placement_quelle = "nutzer"`). */}
+                {session.placement === "board" && session.placement_quelle === "auto" && (
+                  <span className="text-sm text-cyan-300">{t("board.autoErkannt")}</span>
+                )}
                 {/* HANDEINSTELLUNG DER MONTAGE IST RAUS (Jan, 23.09.2026: „das manuelle
                     'festlegen' koennen wir uns ganz sparen, die erkennung ist doch relativ genau
                     und gut oder").

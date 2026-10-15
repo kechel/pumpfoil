@@ -53,6 +53,7 @@ const fi: Record<string, string> = {
   "board.height": "Korkeus",
   "board.map": "Kartta",
   "board.markBoard": "Puhelin oli laudassa",
+  "board.autoErkannt": "Tunnistettu automaattisesti: puhelin oli joka laskussa tasaisesti ja täsmälleen samassa asennossa. Poista rasti, jos se ei ollut laudassa.",
   "board.mountAuto": "automaattinen",
   "board.directionUnknown": "Etu- ja takapäätä ei voitu määrittää tämän tallenteen datasta — nyökkäys ja kallistus voivat olla tässä käänteiset.",
   "board.mounting": "Asennus:",

@@ -53,6 +53,7 @@ const fr: Record<string, string> = {
   "board.height": "Hauteur",
   "board.map": "Carte",
   "board.markBoard": "Le téléphone était sur la planche",
+  "board.autoErkannt": "Reconnu automatiquement : le téléphone était à plat et exactement dans la même position à chaque run. Décoche si ce n'était pas sur la planche.",
   "board.mountAuto": "automatique",
   "board.directionUnknown": "L’avant et l’arrière n’ont pas pu être déterminés à partir des données de cet enregistrement — le tangage et le roulis peuvent être inversés ici.",
   "board.mounting": "Montage :",

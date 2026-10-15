@@ -53,6 +53,7 @@ const it: Record<string, string> = {
   "board.height": "Altezza",
   "board.map": "Mappa",
   "board.markBoard": "Il telefono era sulla tavola",
+  "board.autoErkannt": "Riconosciuto automaticamente: il telefono era piatto ed esattamente nella stessa posizione in ogni run. Togli la spunta se non era sulla tavola.",
   "board.mountAuto": "automatico",
   "board.directionUnknown": "Non è stato possibile determinare dai dati il davanti e il dietro di questa registrazione — beccheggio e rollio potrebbero essere invertiti.",
   "board.mounting": "Montaggio:",

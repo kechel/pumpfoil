@@ -171,6 +171,7 @@ const en: Record<string, string> = {
   "sd.mergeShareGoneOk": "Got it",
   "sd.boardAskYes": "Yes, it was on the board",
   "board.markBoard": "Phone was on the board",
+  "board.autoErkannt": "Recognised automatically: the phone lay flat and in exactly the same position in every run. Untick if it was not on the board.",
   "session.onBoard": "on board",
   "watchStats.scrollTo": "Scroll to:",
   "watchStats.noMatch": "Nothing found.",

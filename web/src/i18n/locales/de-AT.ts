@@ -208,6 +208,7 @@ const deAT: Record<string, string> = {
   "board.zeroStill": "Nullpunkt aus einer Ruhephase",
   "board.zeroMean": "Nullpunkt = Mittelwert des Laufs",
   "board.markBoard": "Handy war am Brett",
+  "board.autoErkannt": "Automatisch erkannt: 's Handy is in jedem Lauf flach und genau gleich g'legen. Hakerl weg, wenn's ned am Brett war.",
   "session.onBoard": "am Brett",
   "watchStats.scrollTo": "Springen zu:",
   "watchStats.noMatch": "Nix gfundn.",

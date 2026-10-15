@@ -55,6 +55,7 @@ const nl: Record<string, string> = {
   "board.height": "Hoogte",
   "board.map": "Kaart",
   "board.markBoard": "Telefoon zat op de board",
+  "board.autoErkannt": "Automatisch herkend: de telefoon lag in elke run plat en precies hetzelfde. Vinkje weg als hij niet op de board zat.",
   "board.mountAuto": "automatisch",
   "board.directionUnknown": "Voor en achter konden voor deze opname niet uit de data worden bepaald — stampen en rollen kunnen hier omgekeerd zijn.",
   "board.mounting": "Montage:",
