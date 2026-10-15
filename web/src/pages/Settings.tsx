@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { api, clearToken, SocialChannelState } from "../lib/api";
-import { Card, Button, Avatar } from "../components/ui";
+import { Card, Button, Avatar, NewBadge } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon, CommunityIcon } from "../components/Icons";
 import { useI18n, useT } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { fmtDate } from "../lib/time";
@@ -175,6 +175,8 @@ export default function Settings() {
         <ChevronIcon className="h-5 w-5 text-slate-400" />
       </Link>
 
+      <FreundeKarte />
+
       <Link
         to="/foils"
         className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
@@ -332,7 +334,6 @@ export default function Settings() {
       </Card>
 
       <PublicProfileCard onSaved={flashSaved} />
-      <FreundeKarte />
 
       {/* ORT VERBERGEN, Voreinstellung fuer ALLE eigenen Aufnahmen (Jan, 25.09.2026: „das wuerde
           unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
@@ -813,22 +814,29 @@ function GewichtExtras() {
 }
 
 
-// Einstieg in „Freunde verwalten" (Jan, 15.10.2026) direkt unter der Foiler-Seite — beides regelt,
-// wer was von einem sieht. Das Abzeichen zaehlt die offenen Anfragen an mich.
+// Einstieg in „Freunde verwalten" (Jan, 15.10.2026: „als button ganz oben zwischen verknuepfte
+// Konten und meine foils und ein 'neu' Badge mit dran"). Die Zahl zaehlt offene Anfragen an mich.
 function FreundeKarte() {
   const t = useT();
   const [n, setN] = useState(0);
   useEffect(() => { api.friendsCount().then((r) => setN(r.incoming)).catch(() => {}); }, []);
   return (
-    <Card className="mt-4 p-5">
-      <h3 className="mb-1 font-semibold">{t("friends.title")}</h3>
-      <p className="mb-3 text-sm text-slate-300">{t("friends.profileHint")}</p>
-      <Link to="/friends">
-        <Button variant="ghost">
-          {t("friends.manage")}
-          {n > 0 && <span className="ml-2 rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{n}</span>}
-        </Button>
-      </Link>
-    </Card>
+    <Link
+      to="/friends"
+      className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
+    >
+      <span className="flex items-center gap-3">
+        <CommunityIcon className="h-6 w-6 text-brand-400" />
+        <span className="min-w-0">
+          <span className="flex flex-wrap items-center gap-2 font-medium text-slate-100">
+            {t("friends.manage")}
+            <NewBadge />
+            {n > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{n}</span>}
+          </span>
+          <span className="block text-sm text-slate-400">{t("friends.profileHint")}</span>
+        </span>
+      </span>
+      <ChevronIcon className="h-5 w-5 text-slate-400" />
+    </Link>
   );
 }
