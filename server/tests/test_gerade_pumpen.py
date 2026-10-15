@@ -41,7 +41,12 @@ def _session(uid, uuid, spot_id, num_runs=None, deleted=False, alter_min=1):
     return sid
 
 
-def _spots():
+_N = [0]
+
+
+def _spots(client):
+    """Zwei Spots mit je einer gueltigen Session eines anderen Fahrers (ohne die waeren sie
+    verwaist und zaehlten fuer Positionen nicht, s. devices._spots_fuer_position)."""
     from app.db import SessionLocal
     from app import models
     db = SessionLocal()
@@ -51,11 +56,15 @@ def _spots():
     db.add_all([a, b]); db.commit()
     ids = a.id, b.id
     db.close()
+    _N[0] += 1
+    _a, _u, anderer = _konto(client, f"posspotfahrer{_N[0]}")
+    for i, sid in enumerate(ids):
+        _session(anderer, f"pos-spot-{_N[0]}-{i}", sid, num_runs=2, alter_min=60 * 24 * 10)
     return ids
 
 
 def test_position_am_spot_und_fern(client):
-    a, b = _spots()
+    a, b = _spots(client)
     auth, uhr, uid = _konto(client, "posfern")
     _session(uid, "pos-alt-1", b, num_runs=3, alter_min=60 * 24 * 3)   # alte Session an B
     client.get("/api/devices/config", headers=uhr)                     # App-Start
@@ -73,7 +82,7 @@ def test_position_am_spot_und_fern(client):
 def test_position_wird_nicht_gespeichert_und_geprueft(client):
     from app.db import SessionLocal
     from app import models
-    _spots()
+    _spots(client)
     _auth, uhr, uid = _konto(client, "posdaten")
     assert client.post("/api/devices/position", headers=uhr, json={"lat": "x"}).status_code == 422
     assert client.post("/api/devices/position", headers=uhr, json={"lat": 0, "lon": 0}).status_code == 422
@@ -88,7 +97,7 @@ def test_position_wird_nicht_gespeichert_und_geprueft(client):
 
 
 def test_noch_nicht_analysiert_ist_kein_signal(client):
-    a, b = _spots()
+    a, b = _spots(client)
     _auth, uhr, uid = _konto(client, "posupload")
     client.post("/api/devices/position", headers=uhr, json={"lat": -70.0, "lon": 100.0})
     # Hochgeladen, noch nicht analysiert -> noch kein Signal, Position gilt weiter
@@ -97,7 +106,7 @@ def test_noch_nicht_analysiert_ist_kein_signal(client):
 
 
 def test_upload_mit_laeufen_setzt_spot(client):
-    a, b = _spots()
+    a, b = _spots(client)
     _auth, uhr, uid = _konto(client, "poslaeufe")
     client.post("/api/devices/position", headers=uhr, json={"lat": -70.0, "lon": 100.0})
     _session(uid, "pos-up-1", b, num_runs=4, alter_min=0)              # juenger als die Meldung
@@ -108,7 +117,7 @@ def test_upload_mit_laeufen_setzt_spot(client):
 
 
 def test_null_laeufe_oder_geloescht_nimmt_sofort_raus(client):
-    a, b = _spots()
+    a, b = _spots(client)
     _auth, uhr, uid = _konto(client, "posnull")
     client.get("/api/devices/config", headers=uhr)
     _session(uid, "pos-alt-2", a, num_runs=3, alter_min=60 * 24)       # gestern an A
@@ -125,10 +134,33 @@ def test_null_laeufe_oder_geloescht_nimmt_sofort_raus(client):
 
 
 def test_neue_position_nach_null_laeufen_zaehlt_wieder(client):
-    a, b = _spots()
+    a, b = _spots(client)
     _auth, uhr, uid = _konto(client, "poswieder")
     _session(uid, "pos-null-2", a, num_runs=0, alter_min=5)
     client.get("/api/devices/config", headers=uhr)
     assert _zustand(uid)[0] is False
     client.post("/api/devices/position", headers=uhr, json={"lat": -70.5, "lon": 101.0})
     assert _zustand(uid) == (True, b)
+
+
+def test_verwaister_spot_zaehlt_nicht(client):
+    """Ein Spot ohne gueltige Session (nur geloeschte Test-Sessions) macht eine Position nicht zu
+    „pumpt gerade" — Befund 16.10.2026: Jans Uhr zu Hause landete an „Burgweiler 3"."""
+    from app.db import SessionLocal
+    from app import models
+    db = SessionLocal()
+    waise = models.Spot(name="PosWaise", lat=-75.0, lon=60.0)
+    db.add(waise); db.commit()
+    wid = waise.id
+    db.close()
+    _auth, uhr, uid = _konto(client, "poswaise")
+    _session(uid, "pos-waise-del", wid, num_runs=3, deleted=True, alter_min=60 * 24 * 30)
+    r = client.post("/api/devices/position", headers=uhr, json={"lat": -75.0, "lon": 60.0})
+    assert r.json()["spot"] is False
+    assert _zustand(uid) == (False, None)
+    # eine schon gespeicherte Zuordnung zu einem Spot, der danach verwaist, zaehlt auch nicht
+    db = SessionLocal()
+    d = db.query(models.DeviceToken).filter_by(token=uhr["X-Device-Token"]).one()
+    d.pos_spot_id = wid
+    db.commit(); db.close()
+    assert _zustand(uid) == (False, None)
