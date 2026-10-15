@@ -1493,7 +1493,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Zu klaeren: warum `exact_chunks` nicht greift, obwohl t0 fuer alle Chunks da ist (Pipeline ->
   Jans OK); ob die Uhr Puls auch ohne Fix schreiben soll. Analyse-Aenderung -> Jans OK.
 - **15.10. — Idee: Tanzerkennung (Jans Anstoss, erste Sichtung #16753).** Langsamer Walzer + Jive,
-  Uhr am linken Arm (Fuehrungshand Herr). Ohne Beschriftung, nur Spektrum der Vertikalbeschleunigung
+  Arm der Uhr nicht bekannt (Jan fragen). Ohne Beschriftung, nur Spektrum der Vertikalbeschleunigung
   je 40-s-Fenster: 14 von 15 Fenstern mit klarem **Dreier-Muster** (Spitze bei Schlag/3) liegen in
   den ersten 56 min, Schlag 86-102/min (Langsamer Walzer 84-90 BPM); danach fast nur **Zweier-
   Muster**, Schlag 118-132/min, staerkster Block 57,5-61 min mit 132/66 pro min und Oberwellen
