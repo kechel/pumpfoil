@@ -816,6 +816,12 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # Spalte (test/false_data) und haengt an der Sport-Klassifizierung.
     from .gps import eingefrorene_ortung
     frozen_share, frozen = eingefrorene_ortung(gps_samples)
+    # Nicht bei Handy-Aufnahmen (`placement` gesetzt, das melden nur die Handy-Recorder): ein
+    # ruhig liegendes Handy meldet ebenfalls dieselben Koordinaten, und der Hinweis („Handy nicht
+    # mit ans Wasser nehmen, damit die Uhr ihr eigenes GPS benutzt") ergibt dort keinen Sinn.
+    # Jan, 15.10.2026, an seinem iPhone-Test #16777 (24 min auf dem Tisch).
+    if session.placement is not None:
+        frozen = False
     res["metrics"]["gps_frozen_share"] = frozen_share
     res["metrics"]["gps_frozen"] = bool(frozen)
     res["metrics"]["is_pumpfoil"] = bool(is_pumpfoil)
