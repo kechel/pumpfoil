@@ -48,6 +48,26 @@ DIE VIER KATEGORIEN
 4. **Speicher.** `device_tokens.storage_full_count`/`crash_count`. Bewusst nur als Hinweis:
    nur je zehn Geraete haben ueberhaupt etwas gemeldet, das traegt keine Statistik.
 
+NEUERE APP-VERSIONEN ZAEHLEN, WO SICH DIE AUFNAHME GEAENDERT HAT (Jan, 15.10.2026)
+„wenn das besser geworden ist, dann koennen wir ja jetzt die besseren Daten nehmen … die alten
+Raten einfach verwerfen". Die Tabelle soll sagen, was eine Uhr HEUTE mit unserer App liefert.
+Deshalb gibt es je Plattform und Kennzahl eine Grenze `AKTUELL_AB` mit belegtem Grund. Hat ein
+Modell ab dort mindestens `MIN_NEU` Sessions, zaehlen nur diese, und die Zeile traegt die Version
+(`accel_ab`/`puls_ab`) — die Seite zeigt sie an. Gibt es nur aeltere, zaehlen diese, und die Zeile
+traegt `accel_alt`/`puls_alt`. Gemessen am 15.10. ueber 2946 Sessions: ausser den Faellen unten
+liegt jede Plattform ueber alle Versionen gleich (Garmin 25 Hz von 1.0.53 bis 1.0.92, Apple 25 Hz
+seit Beginn). Die 10 Hz bei einzelnen Garmin-Nutzern sind deren Einstellung „sparsam", keine
+Version — dafuer gibt es bewusst keine Grenze.
+Puls aus den bekannten Fehlerfassungen (`puls_verwertbar`) faellt jetzt AUCH aus den Wertwechseln
+heraus: Wear 1.2.23/1.2.24 lagen bei 4 statt ~30 Wechseln/min, Apple vor 1.1.30 bei ~4 statt ~7.
+
+ATTRAPPEN UND PLATZHALTER
+Emulatoren (`sdk_gwear_x86_64`, Konto 38) und Simulatoren fliegen raus — dieselbe Liste wie
+in `community._ist_attrappe`. Sie standen am 15.10. mit 25 Hz und 0,2 m in den Wear-Zahlen.
+Genauigkeits-Platzhalter (>= 60 exakt gleiche Meter in Folge, z. B. fest 125,0 m beim OnePlus
+OPWWE251) zaehlen nicht als Messung, wie seit 15.10. in der Analyse (`hacc_platzhalter_weg`).
+Garmin ist davon ausgenommen: dort ist die Spalte eine Stufe 0..4, „4" am Stueck ist normal.
+
 FAIRNESS — „ein Nutzer, eine Stimme"
 Je Modell fahren oft ein oder zwei Leute die meisten Sessions. Wuerde man einfach ueber alle
 Sessions mitteln, bewertet man deren Setup, nicht das Modell. Belegt am fēnix 6X Pro: ueber
@@ -72,6 +92,17 @@ PULS_STARR_PUNKTE = 60      # >= so viele gleiche Werte am Stueck = eingefroren
 PULS_TOT_PRO_MIN = 1.0      # weniger als ein neuer Wert je Minute = die Messung steht
 ACCEL_MIN_HZ = 15.0         # darunter reicht es nicht fuers Pump-Modell (s. analysis/__init__)
 BEWEGT_MPS = 1.0            # ab hier gilt "in Bewegung" — darunter zaehlt Stillstand nicht als Fehler
+HACC_PLATZHALTER_MIN = 60   # so viele exakt gleiche Meter in Folge = Platzhalter (wie analysis)
+MIN_NEU = 3                 # so viele Sessions ab `AKTUELL_AB` braucht ein Modell, sonst alte Daten
+# Ab welcher App-Version eine Kennzahl so aufgenommen wird wie heute (s. Kopfzeile).
+AKTUELL_AB = {
+    # Seit 1.2.28 duennt die Wear-App selbst auf 25 Hz aus (AccelAusduenner, wie Garmin); vorher
+    # kamen je Uhr 28-55 Hz roh. Die alten Raten liefert die heutige App nicht mehr.
+    ("wear", "accel"): (1, 2, 28),
+    # Puls: die Fehlerfassungen regelt `puls_verwertbar`; diese Grenzen sind nur fuer die Anzeige.
+    ("apple", "puls"): (1, 1, 30),
+    ("wear", "puls"): (1, 2, 26),
+}
 
 
 def env_laden() -> None:
@@ -100,7 +131,20 @@ def puls_verwertbar(plattform: str, v: str | None) -> bool:
     return True                          # Garmin/Amazfit: nie betroffen
 
 
-def messen(samples: list) -> dict | None:
+def ohne_platzhalter(werte: list) -> list:
+    """Abschnitte mit >= HACC_PLATZHALTER_MIN exakt gleichen Werten in Folge entfernen."""
+    raus, i, n = [], 0, len(werte)
+    while i < n:
+        j = i
+        while j + 1 < n and werte[j + 1] == werte[i]:
+            j += 1
+        if j - i + 1 < HACC_PLATZHALTER_MIN:
+            raus.extend(werte[i:j + 1])
+        i = j + 1
+    return raus
+
+
+def messen(samples: list, plattform: str = "garmin") -> dict | None:
     if len(samples) < MIN_PUNKTE:
         return None
     n = len(samples)
@@ -132,6 +176,8 @@ def messen(samples: list) -> dict | None:
             haccs.append(float(h))
     # Wertwechsel je Minute: die einzige Puls-Zahl, die UNSER Padding nicht verfaelscht
     # (s. Kategorie 3). Nur ueber die Punkte, die ueberhaupt einen Wert tragen.
+    if plattform != "garmin":               # Garmin: Stufe 0..4, kein Meterwert
+        haccs = ohne_platzhalter(haccs)
     werte = [s[4] for s in samples if len(s) > 4 and s[4]]
     dauer_min = max(1.0, (samples[-1][0] - samples[0][0]) / 60000.0)
     wechsel = sum(1 for a, b in zip(werte, werte[1:]) if a != b) / dauer_min if werte else 0.0
@@ -148,6 +194,7 @@ def main() -> None:
     sys.path.insert(0, os.path.join(BASIS, "server"))
     from sqlalchemy import create_engine, text
     from app import storage
+    from app.api.community import _ist_attrappe
 
     eng = create_engine(os.environ["DATABASE_URL"])
     with eng.connect() as c:
@@ -179,8 +226,10 @@ def main() -> None:
     for i, (uuid, uid, appv, plattform, label, metrics, detection) in enumerate(zeilen):
         if i and i % 300 == 0:
             print(f"   {i} …", file=sys.stderr)
+        if _ist_attrappe(label):                # Emulator/Simulator, s. Kopfzeile
+            continue
         try:
-            w = messen(storage.load_gps(uuid))
+            w = messen(storage.load_gps(uuid), plattform)
         except Exception:                       # noqa: BLE001
             continue
         if w is None:
@@ -189,7 +238,30 @@ def main() -> None:
         w["accel_hz"] = m.get("accel_hz_measured")
         w["gps_only"] = (detection == "gps_only")
         w["puls_zaehlt"] = puls_verwertbar(plattform, appv)
+        w["version"] = version(appv)
         je_nutzer[(plattform, (label or "?").strip(), uid)].append(w)
+
+    # Stufe 0: je Modell und Kennzahl entscheiden, ob die neueren Versionen reichen (s. Kopfzeile).
+    alle_je_modell: dict[tuple, list] = defaultdict(list)
+    for (plattform, label, uid), L in je_nutzer.items():
+        alle_je_modell[(plattform, label)].extend(L)
+    stand: dict[tuple, dict] = {}
+    for (plattform, label), L in alle_je_modell.items():
+        st = {}
+        for art, feld in (("accel", "accel_hz"), ("puls", "puls_wechsel")):
+            ab = AKTUELL_AB.get((plattform, art))
+            basis = [w for w in L if w[feld] is not None and (art != "puls" or w["puls_zaehlt"])]
+            if ab is None or not basis:
+                st[art] = (None, False)
+            elif sum(1 for w in basis if w["version"] >= ab) >= MIN_NEU:
+                st[art] = (ab, False)
+            else:
+                st[art] = (None, True)              # nur aeltere Daten
+        stand[(plattform, label)] = st
+
+    def nimmt(plattform, label, art, w) -> bool:
+        ab, _ = stand[(plattform, label)][art]
+        return ab is None or w["version"] >= ab
 
     # Stufe 1: je Nutzer und Modell einen Wert je Kennzahl.
     je_modell: dict[tuple, list] = defaultdict(list)
@@ -197,19 +269,20 @@ def main() -> None:
         def med(feld, filt=lambda w: True):
             werte = [w[feld] for w in L if filt(w) and w[feld] is not None]
             return median(werte) if werte else None
-        puls = [w for w in L if w["puls_zaehlt"]]
+        puls = [w for w in L if w["puls_zaehlt"] and nimmt(plattform, label, "puls", w)]
         je_modell[(plattform, label)].append({
             "sessions": len(L),
             "stunden": sum(w["dauer_s"] for w in L) / 3600.0,
-            "accel_hz": med("accel_hz"),
+            "accel_hz": med("accel_hz", lambda w: nimmt(plattform, label, "accel", w)),
             "gps_only": sum(1 for w in L if w["gps_only"]) / len(L),
             "ortung_steht": med("ortung_steht"),
             "guete_gut": med("guete_gut"),
             "hacc": med("hacc"),
-            "puls_sessions": len(L),
-            "puls_wechsel": (median(x) if (x := [w["puls_wechsel"] for w in L
+            "puls_sessions": len(puls),
+            "puls_wechsel": (median(x) if (x := [w["puls_wechsel"] for w in puls
                                                  if w["puls_wechsel"] is not None]) else None),
-            "puls_tot": sum(1 for w in L if (w["puls_wechsel"] or 0) < PULS_TOT_PRO_MIN) / len(L),
+            "puls_tot": (sum(1 for w in puls if (w["puls_wechsel"] or 0) < PULS_TOT_PRO_MIN) / len(puls)
+                         if puls else None),
             "puls_fehlt": (median(w["puls_fehlt"] for w in puls) if puls else None),
             "puls_starr": (sum(1 for w in puls if w["puls_starr"] >= PULS_STARR_PUNKTE) / len(puls)
                            if puls else None),
@@ -248,6 +321,14 @@ def main() -> None:
             "puls_tot": round(pt * 100, 1) if pt is not None else None,
             "puls_starr": round(ps * 100, 1) if ps is not None else None,
             "speicher_voll": voll, "abstuerze": crash,
+            # Woher die Zahl kommt (s. „NEUERE APP-VERSIONEN" oben): ab welcher Version gezaehlt
+            # wurde, oder dass es nur Aufnahmen aus aelteren Versionen gibt.
+            "accel_ab": ".".join(map(str, stand[(plattform, label)]["accel"][0]))
+                        if stand[(plattform, label)]["accel"][0] else None,
+            "accel_alt": stand[(plattform, label)]["accel"][1],
+            "puls_ab": ".".join(map(str, stand[(plattform, label)]["puls"][0]))
+                       if stand[(plattform, label)]["puls"][0] else None,
+            "puls_alt": stand[(plattform, label)]["puls"][1],
         })
 
     # Urteil: die Pump-Erkennung entscheidet — dafuer ist die App da.
