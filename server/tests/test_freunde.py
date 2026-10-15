@@ -161,6 +161,9 @@ def test_gruene_spots_und_meldung_nur_fuer_freunde(client, monkeypatch):
     fa = client.get("/api/community/spot-active", headers=a[1]).json()
     assert [f["spot_id"] for f in fa["friends"]] == [spot_id] and spot_id not in fa["spots"]
     assert client.get("/api/community/spot-active", headers=c[1]).json()["friends"] == []
+    # Startseite: nur Freunde sehen, wer wo pumpt.
+    assert [f["spot_id"] for f in client.get("/api/friends/active", headers=a[1]).json()] == [spot_id]
+    assert client.get("/api/friends/active", headers=c[1]).json() == []
     hier = client.get(f"/api/community/sessions-today?since_ms=0&spot={spot_id}&sport=all", headers=a[1]).json()
     assert hier["pumping_here"] is True and hier["friends_here"][0]["user_id"] == b[0]
     assert "friends_here" not in client.get(f"/api/community/sessions-today?since_ms=0&spot={spot_id}&sport=all",

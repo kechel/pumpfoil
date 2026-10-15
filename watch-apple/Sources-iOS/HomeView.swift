@@ -131,11 +131,17 @@ struct HomeView: View {
         if showBanner, let n = news { welcomeBanner(n) }
     }
 
+    // Darunter: Freunde gerade am Pumpen (15.10.2026) — neben der Begruessung ist auf dem iPhone
+    // kein Platz. Im selben Stapel mit Abstand 0, damit die leere Zeile keinen Abstand kostet (sie
+    // muss da sein, sonst laedt sie nie). Unter 13 gibt es keine Freunde.
     private var greetingRow: some View {
-        HStack {
-            Text(helloText).font(.title2).bold()
-            Spacer()
-            recordButton
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text(helloText).font(.title2).bold()
+                Spacer()
+                recordButton
+            }
+            if session.profile?.social_allowed != false { FreundePumpenZeile() }
         }
         .padding(.top, 12)
     }

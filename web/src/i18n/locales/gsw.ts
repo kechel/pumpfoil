@@ -1115,6 +1115,7 @@ const gsw: Record<string, string> = {
   "friends.hereNow": "{names} pumpt grad do",
   "friends.pumpingNow": "pumpt grad",
   "friends.pumpingNowTitle": "Grad am Pumpe",
+  "friends.nPumping": "{n} Fründe pumped grad",
   "friends.howTo": "Aafroge stellsch uf de Profilsiite vo me Foiler, z. B. über sin Name binere Session.",
   "notif.typeFriend": "Fründe: Aafroge und wer grad pumpt",
   "hr.pickTitle": "Eigene Ziitpunkt",

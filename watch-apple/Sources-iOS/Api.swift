@@ -103,6 +103,10 @@ enum Api {
         try await request("/api/friends", method: "GET", body: nil, auth: true)
     }
     struct FreundeAnzahl: Decodable { let incoming: Int }
+    /// Nur „wer von meinen Freunden pumpt gerade wo" — Startseite (FreundePumpenZeile).
+    static func friendsActive() async throws -> [FreundKurz] {
+        try await request("/api/friends/active", method: "GET", body: nil, auth: true)
+    }
     static func friendsCount() async throws -> Int {
         let r: FreundeAnzahl = try await request("/api/friends/count", method: "GET", body: nil, auth: true)
         return r.incoming

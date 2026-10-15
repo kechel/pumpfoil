@@ -1456,6 +1456,7 @@ const ru: Record<string, string> = {
   "friends.hereNow": "{names} сейчас пампит здесь",
   "friends.pumpingNow": "сейчас пампит",
   "friends.pumpingNowTitle": "Сейчас пампят",
+  "friends.nPumping": "{n} друзей сейчас пампят",
   "friends.howTo": "Заявки отправляются со страницы профиля райдера, например через его имя у сессии.",
   "notif.typeFriend": "Друзья: заявки и кто пампит",
   "hr.pickTitle": "Свой момент",

@@ -1583,6 +1583,7 @@ const nl: Record<string, string> = {
   "friends.hereNow": "{names} pumpt hier nu",
   "friends.pumpingNow": "pumpt nu",
   "friends.pumpingNowTitle": "Nu aan het pumpen",
+  "friends.nPumping": "{n} vrienden pumpen nu",
   "friends.howTo": "Verzoeken stuur je vanaf de profielpagina van een rider, bijvoorbeeld via zijn naam bij een sessie.",
   "notif.typeFriend": "Vrienden: verzoeken en wie er pumpt",
   "hr.pickTitle": "Je eigen moment",

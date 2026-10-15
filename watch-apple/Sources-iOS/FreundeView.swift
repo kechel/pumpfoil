@@ -338,3 +338,87 @@ struct FreundeZeile: View {
         } icon: { Image(systemName: "person.2").foregroundStyle(Color.accentColor) }
     }
 }
+
+/// Unter der Begruessung auf der Startseite: welche meiner Freunde gerade wo pumpen (Jan,
+/// 15.10.2026: „wenn es mehr als 3 sind dann nur noch x Friends currently pumping und bei klick
+/// dann darunter oeffnen"). Nichts da -> nichts gezeigt (Hoehe 0). Alle zwei Minuten neu, wie die
+/// Spot-Karte. Wer zaehlt und welcher Spot, entscheidet der Server (app/freunde.py).
+struct FreundePumpenZeile: View {
+    @AppStorage("appLang") private var lang = "de"
+    @Environment(\.colorScheme) private var schema
+    @State private var aktiv: [FreundKurz] = []
+    @State private var offen = false
+    @State private var foiler: FreundeView.FoilerZiel?
+    private let bisEinzeln = 3
+
+    var body: some View {
+        inhalt
+            .task {
+                while !Task.isCancelled {
+                    if let r = try? await Api.friendsActive() { aktiv = r }
+                    try? await Task.sleep(nanoseconds: 120_000_000_000)
+                }
+            }
+            .sheet(item: $foiler) { z in FoilerSheet(userId: z.id) }
+            .padding(.top, aktiv.isEmpty ? 0 : 8)
+    }
+
+    @ViewBuilder private var inhalt: some View {
+        let g: Color = freundGruen(schema)
+        if aktiv.isEmpty {
+            Color.clear.frame(height: 0)
+        } else if aktiv.count <= bisEinzeln {
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(aktiv) { f in
+                    HStack(spacing: 6) {
+                        Circle().fill(g).frame(width: 8, height: 8)
+                        eintrag(f, g)
+                    }
+                }
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                Button { withAnimation { offen.toggle() } } label: {
+                    HStack(spacing: 6) {
+                        Circle().fill(g).frame(width: 8, height: 8)
+                        Text(Loc.t("friends.nPumping", lang).replacingOccurrences(of: "{n}", with: "\(aktiv.count)"))
+                            .font(.subheadline.weight(.semibold))
+                        Image(systemName: offen ? "chevron.up" : "chevron.down").font(.caption)
+                    }
+                    .foregroundStyle(g)
+                    .padding(.horizontal, 10).padding(.vertical, 4)
+                    .background(Capsule().fill(g.opacity(0.12)))
+                }
+                .buttonStyle(.plain)
+                if offen {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(aktiv) { f in eintrag(f, g) }
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(g.opacity(0.06)))
+                }
+            }
+        }
+    }
+
+    /// „Anna @ Illmensee": der Name oeffnet die Foiler-Seite, der Spot die Spot-Sessions.
+    private func eintrag(_ f: FreundKurz, _ g: Color) -> some View {
+        HStack(spacing: 4) {
+            Button { foiler = FreundeView.FoilerZiel(id: f.user_id) } label: {
+                Text(f.name ?? "—").font(.subheadline.weight(.semibold))
+            }
+            .buttonStyle(.plain)
+            if let spot = f.spot {
+                Text("@").font(.subheadline)
+                NavigationLink {
+                    SpotSessionsView(spot: spot, vorgegebeneSpotId: f.spot_id)
+                } label: {
+                    Text(spot).font(.subheadline)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .foregroundStyle(g)
+    }
+}

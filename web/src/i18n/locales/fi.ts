@@ -1546,6 +1546,7 @@ const fi: Record<string, string> = {
   "friends.hereNow": "{names} pumppaa täällä nyt",
   "friends.pumpingNow": "pumppaa nyt",
   "friends.pumpingNowTitle": "Pumppaa nyt",
+  "friends.nPumping": "{n} kaveria pumppaa nyt",
   "friends.howTo": "Pyynnöt lähetetään ajajan profiilisivulta, esimerkiksi session nimen kautta.",
   "notif.typeFriend": "Kaverit: pyynnöt ja kuka pumppaa",
   "hr.pickTitle": "Oma ajankohta",

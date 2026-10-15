@@ -1456,6 +1456,7 @@ const id: Record<string, string> = {
   "friends.hereNow": "{names} sedang pumping di sini",
   "friends.pumpingNow": "sedang pumping",
   "friends.pumpingNowTitle": "Sedang pumping",
+  "friends.nPumping": "{n} teman sedang pumping",
   "friends.howTo": "Permintaan dikirim dari halaman profil rider, misalnya lewat namanya di sebuah sesi.",
   "notif.typeFriend": "Teman: permintaan dan siapa yang sedang pumping",
   "hr.pickTitle": "Pilih momenmu sendiri",

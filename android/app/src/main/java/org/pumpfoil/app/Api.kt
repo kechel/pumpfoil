@@ -1040,6 +1040,10 @@ object Api {
     suspend fun friends(): FreundeListe = withContext(Dispatchers.IO) {
         json.decodeFromString(FreundeListe.serializer(), http("GET", "/api/friends", null, auth = true))
     }
+    /** Nur „wer von meinen Freunden pumpt gerade wo" — Startseite (FreundePumpenZeile). */
+    suspend fun friendsActive(): List<FreundKurz> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(FreundKurz.serializer()), http("GET", "/api/friends/active", null, auth = true))
+    }
     suspend fun friendsCount(): Int = withContext(Dispatchers.IO) {
         org.json.JSONObject(http("GET", "/api/friends/count", null, auth = true)).optInt("incoming", 0)
     }

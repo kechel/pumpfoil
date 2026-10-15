@@ -1456,6 +1456,7 @@ const ja: Record<string, string> = {
   "friends.hereNow": "{names} がいまここでパンピング中",
   "friends.pumpingNow": "パンピング中",
   "friends.pumpingNowTitle": "いまパンピング中",
+  "friends.nPumping": "友達{n}人がいまパンピング中",
   "friends.howTo": "リクエストはライダーのプロフィールページから送ります。セッションに表示される名前からも開けます。",
   "notif.typeFriend": "友だち：リクエストとパンピング中のお知らせ",
   "hr.pickTitle": "好きな時点を選ぶ",
