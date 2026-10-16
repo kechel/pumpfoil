@@ -153,8 +153,7 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
           {t(art === "start" ? "spots.heatHintStart" : "spots.heatHint")}
         </p>
       )}
-      <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null}
-        offen={planen} schliessen={() => setPlanen(false)} />
+      <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen} />
     </Card>
   );
 }
@@ -167,7 +166,7 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
 //      Einstellungen nicht zur Liste passen).
 //   3. Vorschlaege als sortierbare Tabelle; die gewaehlte Route farbig auf der Karte (rot = laengster
 //      Abschnitt), darunter ihre Abschnitte und „Merken".
-//   4. Reiter „Gemerkt": oeffentlich, nur mit Datum (nie wer). Ein Klick stellt das Formular wie
+//   4. Darunter immer die gemerkten Routen: oeffentlich, nur mit Datum (nie wer). Ein Klick stellt das Formular wie
 //      beim Merken ein, rechnet und waehlt die Route aus — damit sieht man alle Details.
 // Rechnung in lib/routen.ts, gemerkte Routen: /api/community/spot/{id}/routen.
 const ZUVERLAESSIG = [2, 3, 5, 10];
@@ -217,11 +216,8 @@ function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   );
 }
 
-function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
-  spotId: number; karte: L.Map | null; offen: boolean; schliessen: () => void;
-}) {
+function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Map | null; offen: boolean }) {
   const t = useT();
-  const [reiter, setReiter] = useState<"vorschlag" | "gemerkt">("vorschlag");
   const [minStarts, setMinStarts] = useState(3);
   const [minFahrer, setMinFahrer] = useState(1);   // verschiedene Fahrer an einem Startplatz
   const [start, setStart] = useState(0);
@@ -309,7 +305,6 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
     setRichtung(wieder.einstellungen.richtung ?? null);
     setGewaehlt(passt ? passt.punkte.join("-") : null);
     setUeberlagert(passt ? null : wieder);
-    setReiter("vorschlag");
     setWieder(null);
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -432,7 +427,7 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
     : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`;
   const regler = (label: string, wert: number, setz: (v: number) => void, von: number, bis: number,
                   einheit = " m", schritt = 10) => (
-    <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-slate-400">
+    <label className="flex flex-col gap-1 text-xs text-slate-400">
       <span>{label}: <span className="font-semibold text-slate-100">{wert}{einheit}</span></span>
       <input type="range" min={von} max={bis} step={schritt} value={wert}
         onChange={(e) => setz(Number(e.target.value))} className="accent-brand-500" />
@@ -444,54 +439,7 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
 
   return (
     <div className="mt-3 border-t border-slate-800 pt-3">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm">
-          <button onClick={() => setReiter("vorschlag")} aria-pressed={reiter === "vorschlag"} className={pille(reiter === "vorschlag")}>
-            {t("routes.tabSuggest")}
-          </button>
-          <button onClick={() => setReiter("gemerkt")} aria-pressed={reiter === "gemerkt"} className={pille(reiter === "gemerkt")}>
-            {t("routes.tabSaved")}{gemerkt?.length ? ` (${gemerkt.length})` : ""}
-          </button>
-        </div>
-        <button onClick={schliessen} className="text-xs text-slate-400 hover:text-slate-200">{t("routes.close")}</button>
-      </div>
-
-      {reiter === "gemerkt" ? (
-        gemerkt == null ? <p className="text-xs text-slate-400">…</p>
-        : !gemerkt.length ? <p className="text-sm text-slate-300">{t("routes.noSaved")}</p>
-        : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
-                  <th className="px-2 py-1 font-medium">{t("routes.colRoute")}</th>
-                  <th className="px-2 py-1 text-right font-medium">{t("routes.colDistance")}</th>
-                  <th className="px-2 py-1 text-right font-medium">{t("routes.colLegs")}</th>
-                  <th className="px-2 py-1 text-right font-medium">{t("routes.savedOn")}</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {gemerkt.map((g) => (
-                  <tr key={g.schluessel} onClick={() => aufrufen(g)}
-                    className="cursor-pointer border-b border-slate-800/60 text-slate-200 hover:bg-slate-800">
-                    <td className="px-2 py-1.5 font-semibold tabular-nums">{nummern(g.punkte).join(" → ")}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums">{g.meter} m</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums">{g.punkte.length - 1}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{datum(g.gemerkt_am)}</td>
-                    <td className="px-2 py-1.5 text-right">
-                      {g.eigene_id != null && (
-                        <button onClick={(e) => { e.stopPropagation(); vergessen(g.eigene_id as number); }}
-                          className="text-xs text-slate-400 hover:text-slate-200">{t("routes.delete")}</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      ) : (
+      {(
         <>
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
             <span className="text-xs text-slate-400">{t("routes.reliability")}</span>
@@ -507,17 +455,29 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
                 ≥ {n}
               </button>
             ))}
+            <div className="ml-auto flex flex-wrap items-center gap-4">
+              <label className="flex items-center gap-2 text-sm text-slate-200">
+                <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
+                  className="h-4 w-4 accent-brand-500" />
+                {t("routes.noCrossing")}
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-200">
+                <input type="checkbox" checked={rundkurs} onChange={(e) => setRundkurs(e.target.checked)}
+                  className="h-4 w-4 accent-brand-500" />
+                {t("routes.roundtrip")}
+              </label>
+            </div>
           </div>
           {pos == null ? (
             <p className="text-xs text-slate-400">…</p>
           ) : (
             <>
-              <div className="mb-1 text-xs text-slate-400">{t("routes.startPoints")}</div>
-              <div className="mb-3 flex gap-2 overflow-x-auto pb-1 text-sm">
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+                <span className="shrink-0 text-xs text-slate-400">{t("routes.startPoints")}</span>
                 {pos.map((p, i) => {
                   const lage = lageText(p, pos[0]);
                   const raus = aus.has(i);
-                  return (
+                  return [
                     <span key={i} title={t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" })}
                       className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap ${pille(start === i)} ${raus ? "opacity-50" : ""}`}>
                       {/* Haken = Startplatz wird angefahren; abhaken schliesst ihn aus (Jan). Der
@@ -531,33 +491,31 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
                         {lage && <span className="ml-1">· {lage}</span>}
                         <span className="ml-1 opacity-75">· {p.starts}×</span>
                       </button>
-                    </span>
-                  );
+                    </span>,
+                    // Losfahren nach … direkt hinter dem gewaehlten Start (Jan). Die Richtungen
+                    // kommen aus der berechneten Liste, deshalb nur, solange sie gilt.
+                    start === i && !veraltet && richtungen.length > 1 && (
+                      <span key={`r${i}`} className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+                        <span className="text-xs text-slate-400">{t("routes.direction")}</span>
+                        {[null, ...richtungen].map((r) => (
+                          <button key={String(r)} onClick={() => setRichtung(r)} aria-pressed={richtung === r}
+                            className={`${pille(richtung === r)} px-2`}>
+                            {r == null ? t("routes.anyDirection") : richtungName(r)}
+                          </button>
+                        ))}
+                      </span>
+                    ),
+                  ];
                 })}
               </div>
-              <div className="mb-3 flex flex-wrap gap-4">
+              <div className="mb-3 grid gap-x-4 gap-y-2 sm:grid-cols-3">
                 {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
                 {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}
+                {pos.length >= 2 && regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
               </div>
-              {pos.length >= 2 && (
-                <div className="mb-3 flex flex-wrap items-end gap-4">
-                  {regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
-                  <div className="flex flex-1 flex-wrap items-center gap-4">
-                    <label className="flex items-center gap-2 text-sm text-slate-200">
-                      <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
-                        className="h-4 w-4 accent-brand-500" />
-                      {t("routes.noCrossing")}
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-200">
-                      <input type="checkbox" checked={rundkurs} onChange={(e) => setRundkurs(e.target.checked)}
-                        className="h-4 w-4 accent-brand-500" />
-                      {t("routes.roundtrip")}
-                    </label>
-                  </div>
-                </div>
-              )}
               {/* Passt die Liste nicht mehr zu den Einstellungen, verschwindet sie und der Knopf
                   erscheint (Jan: eine stehengebliebene Tabelle verwirrt). */}
+              {(<>
               {veraltet && (
                 <button onClick={() => { setUeberlagert(null); setAnstoss((n) => n + 1); }}
                   className="mb-3 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">
@@ -566,19 +524,6 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
               )}
               {!veraltet && (<>
 
-              {richtungen.length > 1 && (
-                <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-xs text-slate-400">{t("routes.direction")}</span>
-                  <button onClick={() => setRichtung(null)} aria-pressed={richtung == null} className={pille(richtung == null)}>
-                    {t("routes.anyDirection")}
-                  </button>
-                  {richtungen.map((r) => (
-                    <button key={r} onClick={() => setRichtung(r)} aria-pressed={richtung === r} className={pille(richtung === r)}>
-                      {richtungName(r)}
-                    </button>
-                  ))}
-                </div>
-              )}
               {ueberlagert && (
                 <div className="mb-3 rounded-lg border border-slate-700 bg-slate-900 p-2 text-sm text-slate-300">
                   <p className="mb-1.5">{t("routes.changed")}</p>
@@ -588,9 +533,9 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
               {!routen.length ? (
                 ergebnis && <p className="text-sm text-slate-300">{t("routes.none", { n: pos.length })}</p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="max-h-72 overflow-auto rounded-lg border border-slate-800">
                   <table className="w-full text-sm">
-                    <thead>
+                    <thead className="sticky top-0 z-10 bg-slate-900">
                       <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
                         {([["empf", "#"], ["route", t("routes.colRoute")], ["meter", t("routes.colDistance")],
                            ["legs", t("routes.colLegs")], ["kreuz", t("routes.colCrossings")],
@@ -645,7 +590,46 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
               )}
               {ergebnis?.gekuerzt && <p className="mt-2 text-xs text-slate-400">{t("routes.cut")}</p>}
               </>)}
+              </>)}
               <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
+              {/* Gemerkte Routen immer darunter, ohne Umschalter (Jan). */}
+              <div className="mb-1 mt-4 text-sm font-semibold text-slate-100">
+                {t("routes.tabSaved")}{gemerkt?.length ? ` (${gemerkt.length})` : ""}
+              </div>
+              {gemerkt == null ? <p className="text-xs text-slate-400">…</p>
+        : !gemerkt.length ? <p className="text-sm text-slate-300">{t("routes.noSaved")}</p>
+        : (
+          <div className="max-h-72 overflow-auto rounded-lg border border-slate-800">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10 bg-slate-900">
+                <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
+                  <th className="px-2 py-1 font-medium">{t("routes.colRoute")}</th>
+                  <th className="px-2 py-1 text-right font-medium">{t("routes.colDistance")}</th>
+                  <th className="px-2 py-1 text-right font-medium">{t("routes.colLegs")}</th>
+                  <th className="px-2 py-1 text-right font-medium">{t("routes.savedOn")}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {gemerkt.map((g) => (
+                  <tr key={g.schluessel} onClick={() => aufrufen(g)}
+                    className="cursor-pointer border-b border-slate-800/60 text-slate-200 hover:bg-slate-800">
+                    <td className="px-2 py-1.5 font-semibold tabular-nums">{nummern(g.punkte).join(" → ")}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{g.meter} m</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{g.punkte.length - 1}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{datum(g.gemerkt_am)}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      {g.eigene_id != null && (
+                        <button onClick={(e) => { e.stopPropagation(); vergessen(g.eigene_id as number); }}
+                          className="text-xs text-slate-400 hover:text-slate-200">{t("routes.delete")}</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
             </>
           )}
         </>
