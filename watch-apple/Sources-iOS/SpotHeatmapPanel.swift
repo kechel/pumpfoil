@@ -133,7 +133,7 @@ struct SpotHeatmapPanel: View {
             .frame(height: 280)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .mitKartenUmschalter()
-            .schutzgebietSteuerung(lang: lang)
+            .schutzgebietSteuerung(lang: lang, legende: true)
             .overlay(alignment: .topTrailing) {
                 if z.planen {
                     // „+" fuer eigene Punkte (nur in der Planung)

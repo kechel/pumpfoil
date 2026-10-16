@@ -533,7 +533,7 @@ private fun SpotsMap(
             karte.controller.setCenter(GeoPoint(ziel.lat, ziel.lon))
         }
     }
-    MapTiles.MitUmschalter(modifier) { ebene ->
+    MapTiles.MitUmschalter(modifier, legende = true) { ebene ->
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             // Gibt die EINE Karte zurueck, statt eine neue zu bauen. Beim Zurueckscrollen haengt

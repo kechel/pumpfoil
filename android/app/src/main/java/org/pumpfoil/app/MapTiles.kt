@@ -113,7 +113,7 @@ object MapTiles {
      * je nach Karte wechselt (iOS macht es genauso).
      */
     @Composable
-    fun MitUmschalter(modifier: Modifier = Modifier, karte: @Composable (String) -> Unit) {
+    fun MitUmschalter(modifier: Modifier = Modifier, legende: Boolean = false, karte: @Composable (String) -> Unit) {
         val ctx = LocalContext.current
         var wahl by remember { mutableStateOf(gewaehlt(ctx)) }
         Box(modifier) {
@@ -123,8 +123,7 @@ object MapTiles {
                 // Schutzgebiete (Schutzgebiete.kt): Knopf nur, wenn die Karte welche gezeichnet hat
                 if (Schutzgebiete.gezeichnet.isNotEmpty()) Schutzgebiete.Knopf()
             }
-            Schutzgebiete.Legende(Modifier.align(Alignment.BottomStart))
-            Schutzgebiete.Fenster()
+            if (legende) Schutzgebiete.Legende(Modifier.align(Alignment.BottomStart))
         }
     }
 }

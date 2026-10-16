@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,11 +48,12 @@ import org.osmdroid.views.overlay.Polygon
  *
  *  - Erst ab Zoom 11, nachgeladen beim Verschieben; meldet der Server „unvollstaendig" (Overpass
  *    langsam), fragt die Karte bis zu sechsmal nach. Die Karte haengt nie davon ab.
- *  - Immer an; der Schild-Knopf blendet alle aus (nicht gespeichert), ein Tipp auf eine Flaeche
- *    zeigt Name, Art, „keine Rechtsauskunft" und „Ausblenden" (nur bis zum Neuladen).
- *  - Legende unten links mit den gezeichneten Arten.
+ *  - Immer an; der Schild-Knopf blendet alle aus (nicht gespeichert). KEIN Fenster beim Antippen
+ *    (Jan, 16.10.2026: „die Markierung reicht voellig") — ein Tipp geht an die Karte durch.
+ *  - Legende unten links mit den gezeichneten Arten — nur Spot-Uebersicht und Spot-Panel
+ *    (`MitUmschalter(legende = true)`), nicht in Session-, Vergleichs- und Aufnahme-Karten.
  *
- * Einbau: `Schutzgebiete.anhaengen(map)` im `factory` der Karte; Knopf, Legende und Fenster legt
+ * Einbau: `Schutzgebiete.anhaengen(map)` im `factory` der Karte; Knopf und Legende legt
  * `MapTiles.MitUmschalter` selbst darueber.
  */
 object Schutzgebiete {
@@ -63,8 +62,6 @@ object Schutzgebiete {
     var an by mutableStateOf(true)
     /** Arten, die auf der zuletzt geladenen Karte gezeichnet sind — fuer die Legende. */
     var gezeichnet by mutableStateOf<Set<String>>(emptySet())
-    /** Angetippte Flaeche (Fenster) samt Karte, auf der sie liegt. */
-    var angetippt by mutableStateOf<Pair<SchutzFlaeche, Ebene>?>(null)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     fun farbe(art: String): Color = when (art) {
@@ -113,11 +110,6 @@ object Schutzgebiete {
             map.invalidate()
         }
 
-        fun ausblenden(f: SchutzFlaeche) {
-            ordner.items.filter { (it as? Polygon)?.id == f.id }.forEach { ordner.remove(it) }
-            map.invalidate()
-        }
-
         private fun laden() {
             if (tot || map.repository == null || map.zoomLevelDouble < AB_ZOOM || map.width == 0) return
             val bb = map.boundingBox
@@ -145,7 +137,8 @@ object Schutzgebiete {
                             outlinePaint.strokeWidth = (if (f.art == "verbot") 3f else if (f.art == "ffh") 1.5f else 2f) * dens
                             if (f.art == "ffh") outlinePaint.pathEffect = android.graphics.DashPathEffect(floatArrayOf(6 * dens, 4 * dens), 0f)
                             fillPaint.color = c.copy(alpha = if (f.art == "verbot") 0.25f else if (f.art == "ffh") 0.05f else 0.1f).toArgb()
-                            setOnClickListener { _, _, _ -> angetippt = f to this@Ebene; true }
+                            // Tipp nicht verbrauchen: an die Karte durchreichen (Routen-Punkte setzen)
+                            setOnClickListener { _, _, _ -> false }
                         }
                         // FolderOverlay verliert beim Abbau der Karte (onDetach) seine Liste, ohne es
                         // nach aussen zu zeigen -> NullPointerException. Dann ist diese Karte weg.
@@ -195,23 +188,5 @@ object Schutzgebiete {
                     fontSize = 11.sp, color = Color(0xFF0F172A))
             }
         }
-    }
-
-    /** Fenster zur angetippten Flaeche. */
-    @Composable
-    fun Fenster() {
-        val (f, ebene) = angetippt ?: return
-        val art = I18n.t(when (f.art) { "ffh" -> "map.ffh"; "verbot" -> "map.prohibited"; else -> "map.nsg" })
-        AlertDialog(onDismissRequest = { angetippt = null },
-            title = { Text(f.name.ifBlank { art }) },
-            text = {
-                Column {
-                    Text(art + if (f.titel.isNotBlank() && f.titel != art) " · ${f.titel}" else "")
-                    Spacer(Modifier.size(6.dp))
-                    Text(I18n.t("map.protectedHint"), fontSize = 12.sp)
-                }
-            },
-            confirmButton = { TextButton(onClick = { angetippt = null }) { Text("OK") } },
-            dismissButton = { TextButton(onClick = { ebene.ausblenden(f); angetippt = null }) { Text(I18n.t("map.hideArea")) } })
     }
 }

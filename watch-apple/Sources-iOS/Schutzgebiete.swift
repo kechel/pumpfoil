@@ -9,21 +9,21 @@ import MapKit
 //  - Erst ab etwa Zoom 11 (Ausschnitt schmaler als ~0,35 Grad), nachgeladen beim Verschieben;
 //    meldet der Server „unvollstaendig" (Overpass langsam), fragt die Karte bis zu sechsmal nach.
 //    Die Karte haengt nie davon ab.
-//  - Immer an; der Schild-Knopf blendet alle aus (nicht gespeichert), ein Tipp auf eine Flaeche zeigt
-//    Name, Art, „keine Rechtsauskunft" und „Ausblenden" (nur bis zum Neuladen).
-//  - Legende unten links mit den gezeichneten Arten.
+//  - Immer an; der Schild-Knopf blendet alle aus (nicht gespeichert). KEIN Fenster beim Antippen
+//    (Jan, 16.10.2026: „die Markierung reicht voellig").
+//  - Legende unten links mit den gezeichneten Arten — nur im Spot-Panel
+//    (`.schutzgebietSteuerung(lang:legende: true)`), nicht auf Session-, Vergleichs-, Verlauf- und
+//    Aufnahme-Karten.
 //
 // Einbau in eine MKMapView: `SchutzLader(map:)` anlegen, `ausschnittGeaendert()` aus
-// regionDidChange, `renderer(for:)` aus rendererFor, `tippen(bei:)` aus einem Tipp. Knopf, Legende
-// und Fenster: `.schutzgebietSteuerung(lang:)` an der SwiftUI-Huelle der Karte.
+// regionDidChange, `renderer(for:)` aus rendererFor. Knopf und Legende:
+// `.schutzgebietSteuerung(lang:)` an der SwiftUI-Huelle der Karte.
 
 @MainActor
 final class SchutzZustand: ObservableObject {
     static let shared = SchutzZustand()
     @Published var an = true
     @Published var gezeichnet: Set<String> = []
-    @Published var angetippt: SchutzFlaeche? = nil
-    weak var angetipptVon: SchutzLader?
     var lader: [WeakLader] = []
 
     struct WeakLader { weak var l: SchutzLader? }
@@ -115,26 +115,6 @@ final class SchutzLader {
         return r
     }
 
-    /// Tipp auf die Karte: liegt er in einer Flaeche, deren Fenster oeffnen.
-    func tippen(bei koord: CLLocationCoordinate2D) {
-        guard let map, SchutzZustand.shared.an else { return }
-        let punkt = MKMapPoint(koord)
-        for p in polygone.reversed() {
-            guard let r = map.renderer(for: p) as? MKPolygonRenderer else { continue }
-            if r.path?.contains(r.point(for: punkt)) == true, let f = p.flaeche {
-                SchutzZustand.shared.angetipptVon = self
-                SchutzZustand.shared.angetippt = f
-                return
-            }
-        }
-    }
-
-    func ausblenden(_ f: SchutzFlaeche) {
-        let weg = polygone.filter { $0.flaeche?.id == f.id }
-        map?.removeOverlays(weg)
-        polygone.removeAll { $0.flaeche?.id == f.id }
-    }
-
     static func farbe(_ art: String) -> UIColor {
         switch art {
         case "ffh": return UIColor(red: 245 / 255, green: 158 / 255, blue: 11 / 255, alpha: 1)
@@ -150,6 +130,7 @@ final class SchutzLader {
 /// Schild-Knopf (oben links unter dem Ebenen-Umschalter) und Legende (unten links).
 struct SchutzSteuerung: ViewModifier {
     let lang: String
+    let legende: Bool
     @ObservedObject private var z = SchutzZustand.shared
 
     func body(content: Content) -> some View {
@@ -167,28 +148,11 @@ struct SchutzSteuerung: ViewModifier {
                 }
             }
             .overlay(alignment: .bottomLeading) {
-                if z.an && !z.gezeichnet.isEmpty { legende }
-            }
-            .alert(z.angetippt.map { $0.name.isEmpty ? Loc.t(SchutzLader.artKey($0.art), lang) : $0.name } ?? "",
-                   isPresented: Binding(get: { z.angetippt != nil }, set: { if !$0 { z.angetippt = nil } })) {
-                Button(Loc.t("map.hideArea", lang)) {
-                    if let f = z.angetippt { z.angetipptVon?.ausblenden(f) }
-                    z.angetippt = nil
-                }
-                Button("OK", role: .cancel) { z.angetippt = nil }
-            } message: {
-                Text(fensterText)
+                if legende && z.an && !z.gezeichnet.isEmpty { legendenKasten }
             }
     }
 
-    private var fensterText: String {
-        guard let f = z.angetippt else { return "" }
-        let art: String = Loc.t(SchutzLader.artKey(f.art), lang)
-        let zusatz: String = (!f.titel.isEmpty && f.titel != art) ? " · \(f.titel)" : ""
-        return art + zusatz + "\n\n" + Loc.t("map.protectedHint", lang)
-    }
-
-    private var legende: some View {
+    private var legendenKasten: some View {
         VStack(alignment: .leading, spacing: 3) {
             ForEach(["nsg", "ffh", "verbot"].filter { z.gezeichnet.contains($0) }, id: \.self) { a in
                 HStack(spacing: 6) {
@@ -219,5 +183,7 @@ private struct LegendenLinie: View {
 
 extension View {
     /// Schild-Knopf, Legende und Fenster der Schutzgebiete ueber eine MapKit-Karte legen.
-    func schutzgebietSteuerung(lang: String) -> some View { modifier(SchutzSteuerung(lang: lang)) }
+    func schutzgebietSteuerung(lang: String, legende: Bool = false) -> some View {
+        modifier(SchutzSteuerung(lang: lang, legende: legende))
+    }
 }

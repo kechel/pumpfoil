@@ -281,7 +281,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
                 Pille(I18n.t("routes.plan"), planen, betont = true) { planen = !planen }
             }
             Spacer(Modifier.height(8.dp))
-            MapTiles.MitUmschalter(Modifier.fillMaxWidth().height(280.dp).clip(RoundedCornerShape(10.dp))) { ebeneWahl ->
+            MapTiles.MitUmschalter(Modifier.fillMaxWidth().height(280.dp).clip(RoundedCornerShape(10.dp)), legende = true) { ebeneWahl ->
                 // KEIN onRelease -> onDetach: die Karte ist oben gemerkt und wird wiederverwendet; eine
                 // abgebaute osmdroid-Karte zeichnet danach nichts Neues mehr. Abgebaut wird sie, wenn
                 // das Panel verschwindet (DisposableEffect oben).
