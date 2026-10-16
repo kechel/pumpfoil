@@ -627,7 +627,6 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                         className={raus ? "line-through" : ""}>
                         <span className="font-semibold">{platzName(i)}</span>
                         {lage && <span className="ml-1">· {lage}</span>}
-                        <span className="ml-1 opacity-75">· {p.starts}×</span>
                       </button>
                     </span>,
                     // Losfahren nach … direkt hinter dem gewaehlten Start (Jan). Die Richtungen
