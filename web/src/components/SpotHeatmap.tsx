@@ -147,14 +147,17 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
   }, [bereit, gemerkt, gemerktWahl, planen]);
   useEffect(() => () => { gemerktEbene.current = null; }, [mitte]);
 
-  // Klick auf eine gemerkte Route oeffnet die Planung und stellt sie dort ein (Jan).
+  // Klick auf eine gemerkte Route oeffnet die Planung und stellt sie dort ein (Jan). Ist sie noch
+  // hervorgehoben (also unveraendert eingestellt), schliesst ein zweiter Klick die Planung wieder.
   const gemerktKlick = (r: Gemerkt) => {
-    const neu = gemerktWahl === r.schluessel && planen ? null : r.schluessel;
-    setGemerktWahl(neu);
-    if (neu) {
-      setPlanen(true);
-      setAufruf((alt) => ({ g: r, n: (alt?.n ?? 0) + 1 }));
+    if (planen && gemerktWahl === r.schluessel) {
+      setGemerktWahl(null);
+      setPlanen(false);
+      return;
     }
+    setGemerktWahl(r.schluessel);
+    setPlanen(true);
+    setAufruf((alt) => ({ g: r, n: (alt?.n ?? 0) + 1 }));
   };
   // Datum in der Sprache der App (die setzt <html lang>), nicht in der des Browsers
   const datum = (iso: string) => new Date(iso).toLocaleDateString(document.documentElement.lang || undefined,
@@ -215,7 +218,8 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
         </div>
       )}
       <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen}
-        aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} sport={sport} />
+        aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} sport={sport}
+        gemerktWahl={gemerktWahl} abweichung={() => setGemerktWahl(null)} />
     </Card>
   );
 }
@@ -312,9 +316,10 @@ function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   );
 }
 
-function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport }: {
+function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport, gemerktWahl, abweichung }: {
   spotId: number; karte: L.Map | null; offen: boolean;
   aufruf: { g: Gemerkt; n: number } | null; gemerkt: Gemerkt[]; gemerktGeaendert: () => void; sport: string;
+  gemerktWahl: string | null; abweichung: () => void;
 }) {
   const t = useT();
   const [minStarts, setMinStarts] = useState(3);
@@ -400,15 +405,14 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     if (!wieder || !ergebnis || !pos) return;
     const idx = wieder.punkte.map(([la, lo]) => naechster(pos, { lat: la, lon: lo }));
     const passt = idx.every((i) => i >= 0)
-      ? ergebnis.routen.find((r) => {
-          const a = r.punkte.join("-");
-          return a === idx.join("-") || a === [...idx].reverse().join("-");
-        })
+      ? (ergebnis.routen.find((r) => r.punkte.join("-") === idx.join("-"))          // gemerkte Richtung zuerst
+         ?? ergebnis.routen.find((r) => r.punkte.join("-") === [...idx].reverse().join("-")))
       : undefined;
     setRichtung(wieder.einstellungen.richtung ?? null);
     setGewaehlt(passt ? passt.punkte.join("-") : null);
     setUeberlagert(passt ? null : wieder);
     setWieder(null);
+    aufrufLaeuft.current = false;
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const richtungen = ergebnis ? [...new Set(ergebnis.routen.map((r) => r.richtung))].sort((a, b) => a - b) : [];
@@ -522,9 +526,30 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   };
 
   // Gemerkte Route aus der Leiste unter der Karte aufgerufen (im Planungsmodus).
+  const aufrufLaeuft = useRef(false);
   useEffect(() => {
-    if (offen && aufruf) aufrufen(aufruf.g);
+    if (offen && aufruf) { aufrufLaeuft.current = true; aufrufen(aufruf.g); }
   }, [aufruf]);  // eslint-disable-line react-hooks/exhaustive-deps
+  // Weicht die Planung von der aufgerufenen gemerkten Route ab (andere Route gewaehlt, Einstellung
+  // geaendert), ist es nicht mehr sie -> Hervorhebung in der Leiste weg (Jan). Nicht waehrend des
+  // Aufrufs selbst, der stellt erst nach und nach alles ein.
+  // Verglichen wird ueber die Lage (je Punkt NAH_M), nicht ueber den gerundeten Schluessel: die
+  // Startplaetze werden taeglich neu gebuendelt und verschieben sich um ein paar Meter.
+  const gleicheRoute = (g: Gemerkt, pts: Punkt[]) => {
+    const a = g.punkte.map(([lat, lon]) => ({ lat, lon }));
+    // MIT Richtung: dieselbe Runde andersherum ist zum Fahren eine andere Route
+    return pts.length === a.length && pts.every((p, i) => abstandM(p, a[i]) < NAH_M);
+  };
+  const istNochGemerkte = (() => {
+    const g = gemerkt.find((x) => x.schluessel === gemerktWahl);
+    if (!g || veraltet) return false;
+    if (gewaehlteRoute && pos) return gleicheRoute(g, gewaehlteRoute.punkte.map((q) => pos[q]));
+    return ueberlagert?.schluessel === g.schluessel;
+  })();
+  useEffect(() => {
+    if (!offen || !gemerktWahl || aufrufLaeuft.current || wieder) return;
+    if (!istNochGemerkte) abweichung();
+  }, [istNochGemerkte, gemerktWahl, offen, wieder]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!offen) return null;
   const pille = (aktiv: boolean) => `rounded-full border px-3 py-1 ${aktiv
