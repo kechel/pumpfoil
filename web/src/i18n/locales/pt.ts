@@ -2124,6 +2124,7 @@ const pt: Record<string, string> = {
   "routes.save": "Salvar",
   "routes.saved": "Salva ✓",
   "routes.delete": "Excluir",
+  "routes.deleteConfirm": "Remover esta rota das suas salvas? Se outras pessoas também a salvaram, ela continua visível para todos.",
   "routes.changed": "Os pontos de largada mudaram desde que foi salva – exibindo a rota salva.",
   "routes.limit": "Você já salvou 20 rotas neste spot.",
   "routes.exclude": "Excluir ponto de largada",

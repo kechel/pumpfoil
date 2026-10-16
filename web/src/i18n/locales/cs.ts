@@ -2180,6 +2180,7 @@ const cs: Record<string, string> = {
   "routes.save": "Uložit",
   "routes.saved": "Uloženo ✓",
   "routes.delete": "Smazat",
+  "routes.deleteConfirm": "Odebrat tuto trasu z tvých uložených? Pokud ji uložili i jiní, zůstane viditelná pro všechny.",
   "routes.changed": "Místa startu se od uložení změnila – zobrazena je uložená trasa.",
   "routes.limit": "Na tomto spotu už máš uloženo 20 tras.",
   "routes.exclude": "Vyloučit místo startu",

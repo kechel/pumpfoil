@@ -2125,6 +2125,7 @@ const nb: Record<string, string> = {
   "routes.save": "Lagre",
   "routes.saved": "Lagret ✓",
   "routes.delete": "Slett",
+  "routes.deleteConfirm": "Fjerne ruten fra dine lagrede? Har andre også lagret den, blir den synlig for alle.",
   "routes.changed": "Startplassene har endret seg siden lagringen – viser den lagrede ruten.",
   "routes.limit": "Du har allerede lagret 20 ruter på denne spoten.",
   "routes.exclude": "Utelat startplass",

@@ -2014,6 +2014,7 @@ const deAT: Record<string, string> = {
   "routes.save": "Merken",
   "routes.saved": "Gemerkt ✓",
   "routes.delete": "Löschen",
+  "routes.deleteConfirm": "Diese Route aus deinen gemerkten entfernen? Haben andere sie auch gemerkt, bleibt sie für alle sichtbar.",
   "routes.changed": "Die Startplätze haben sich seit dem Merken verändert – gezeigt wird die gemerkte Route.",
   "routes.limit": "Du hast an diesem Spot schon 20 Routen gemerkt.",
   "routes.exclude": "Startplatz ausschließen",

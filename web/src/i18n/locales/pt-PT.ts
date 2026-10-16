@@ -2118,6 +2118,7 @@ const ptPT: Record<string, string> = {
   "routes.save": "Guardar",
   "routes.saved": "Guardada ✓",
   "routes.delete": "Eliminar",
+  "routes.deleteConfirm": "Remover esta rota das tuas guardadas? Se outros também a guardaram, continua visível para todos.",
   "routes.changed": "Os pontos de partida mudaram desde que foi guardada – a mostrar a rota guardada.",
   "routes.limit": "Já guardaste 20 rotas neste spot.",
   "routes.exclude": "Excluir ponto de partida",

@@ -1187,13 +1187,13 @@ export const api = {
   // Heatmap der Spot-Karte (app/heatmap.py): Kachel-Zellen (x, y, Sessions) auf Stufe `z`.
   /** `art`: „foil" = wo gefahren wird (die Laeufe), „start" = wo die Laeufe beginnen. */
   heatmap: (period: "30d" | "365d", z: number, w: number, s: number, e: number, n: number,
-            art: "foil" | "start" = "foil") =>
+            art: "foil" | "start" = "foil", sport = "all") =>
     req<{ z: number | null; cells: [number, number, number][]; max: number; stand: string | null; sessions: number }>(
-      `/api/community/heatmap?period=${period}&z=${z}&w=${w}&s=${s}&e=${e}&n=${n}&art=${art}`),
+      `/api/community/heatmap?period=${period}&z=${z}&w=${w}&s=${s}&e=${e}&n=${n}&art=${art}&sport=${encodeURIComponent(sport)}`),
   /** Verlaessliche Startpositionen eines Spots (>= minStarts Starts aus >= 2 Sessions), fuer Routen. */
-  spotStartpositionen: (spotId: number, minStarts: number, minFahrer = 1) =>
+  spotStartpositionen: (spotId: number, minStarts: number, minFahrer = 1, sport = "all") =>
     req<{ positionen: { lat: number; lon: number; starts: number; sessions: number; fahrer: number }[] }>(
-      `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}&min_fahrer=${minFahrer}`),
+      `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}&min_fahrer=${minFahrer}&sport=${encodeURIComponent(sport)}`),
   /** Gemerkte Routen eines Spots — oeffentlich, nur mit Datum; `eigene_id` nur bei den eigenen. */
   spotRouten: (spotId: number) => req<unknown[]>(`/api/community/spot/${spotId}/routen`),
   spotRouteMerken: (spotId: number, body: { punkte: number[][]; einstellungen: Record<string, unknown> }) =>

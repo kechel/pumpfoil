@@ -2008,6 +2008,7 @@ const gsw: Record<string, string> = {
   "routes.save": "Merke",
   "routes.saved": "Gmerkt ✓",
   "routes.delete": "Lösche",
+  "routes.deleteConfirm": "Die Route us dine gmerkte usenäh? Händ anderi si au gmerkt, bliibt si für alli sichtbar.",
   "routes.changed": "D Startplätz händ sich sit em Merke veränderet – zeigt wird di gmerkti Route.",
   "routes.limit": "Du häsch a dem Spot scho 20 Route gmerkt.",
   "routes.exclude": "Startplatz uusschliesse",

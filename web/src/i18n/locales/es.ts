@@ -2007,6 +2007,7 @@ const es: Record<string, string> = {
   "routes.save": "Guardar",
   "routes.saved": "Guardada ✓",
   "routes.delete": "Eliminar",
+  "routes.deleteConfirm": "¿Quitar esta ruta de tus guardadas? Si otros también la guardaron, seguirá visible para todos.",
   "routes.changed": "Los puntos de salida han cambiado desde que se guardó; se muestra la ruta guardada.",
   "routes.limit": "Ya has guardado 20 rutas en este spot.",
   "routes.exclude": "Excluir punto de salida",

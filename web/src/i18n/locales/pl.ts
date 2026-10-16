@@ -744,6 +744,7 @@ const pl: Record<string, string> = {
   "routes.save": "Zapisz",
   "routes.saved": "Zapisano ✓",
   "routes.delete": "Usuń",
+  "routes.deleteConfirm": "Usunąć tę trasę z zapisanych? Jeśli inni też ją zapisali, pozostanie widoczna dla wszystkich.",
   "routes.changed": "Miejsca startu zmieniły się od zapisu – pokazana jest zapisana trasa.",
   "routes.limit": "Masz już 20 zapisanych tras na tym spocie.",
   "routes.exclude": "Wyklucz miejsce startu",

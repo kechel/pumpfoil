@@ -36,7 +36,9 @@ function gemerkteArt(): Art {
   catch { return "foil"; }
 }
 
-export function SpotHeatmap({ spotId }: { spotId: number }) {
+// `sport`: Sportfilter der Seite („all" = alle). Heatmap, Startplaetze und Routen folgen ihm — so
+// ist mit der Vorgabe niemand ausgeschlossen (Jan, 16.10.2026, Hinweis aus dem Spot-Chat).
+export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?: string }) {
   const t = useT();
   // `t` nicht in die Abhaengigkeiten der Karte: aendert es sich, wuerde die Karte neu gebaut und
   // der eingepasste Ausschnitt ginge verloren.
@@ -116,7 +118,7 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
     let timer: number | undefined;
     const laden = () => {
       const b = k.m.getBounds();
-      api.heatmap(wahl, k.m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), art)
+      api.heatmap(wahl, k.m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), art, sport)
         .then((r) => { if (!weg) heatZeichnen(k.grp, k.renderer, r); })
         .catch(() => {});
     };
@@ -124,7 +126,7 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
     laden();
     k.m.on("moveend", spaeter);
     return () => { weg = true; window.clearTimeout(timer); k.m.off("moveend", spaeter); };
-  }, [bereit, wahl, art]);
+  }, [bereit, wahl, art, sport]);
 
   // Gewaehlte gemerkte Route ohne Planungsmodus auf der Karte (im Planungsmodus zeichnet die Planung).
   useEffect(() => {
@@ -207,18 +209,13 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
                 <button onClick={() => gemerktKlick(r)} aria-pressed={an} className="tabular-nums">
                   {t("routes.savedChip", { n: k.starts, max: k.maxM, total: r.meter, datum: datum(r.gemerkt_am) })}
                 </button>
-                {r.eigene_id != null && (
-                  <button onClick={() => api.spotRouteVergessen(spotId, r.eigene_id as number)
-                    .then(() => { if (an) setGemerktWahl(null); gemerktLaden(); }).catch(() => {})}
-                    title={t("routes.delete")} aria-label={t("routes.delete")} className="opacity-60 hover:opacity-100">×</button>
-                )}
               </span>
             );
           })}
         </div>
       )}
       <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen}
-        aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} />
+        aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} sport={sport} />
     </Card>
   );
 }
@@ -315,9 +312,9 @@ function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   );
 }
 
-function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert }: {
+function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport }: {
   spotId: number; karte: L.Map | null; offen: boolean;
-  aufruf: { g: Gemerkt; n: number } | null; gemerkt: Gemerkt[]; gemerktGeaendert: () => void;
+  aufruf: { g: Gemerkt; n: number } | null; gemerkt: Gemerkt[]; gemerktGeaendert: () => void; sport: string;
 }) {
   const t = useT();
   const [minStarts, setMinStarts] = useState(3);
@@ -354,11 +351,11 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     if (!offen) { erstGerechnet.current = false; return; }
     let weg = false;
     setPos(null); setErgebnis(null);
-    api.spotStartpositionen(spotId, minStarts, minFahrer)
+    api.spotStartpositionen(spotId, minStarts, minFahrer, sport)
       .then((r) => { if (!weg) setPos(r.positionen); })
       .catch(() => { if (!weg) setPos([]); });
     return () => { weg = true; };
-  }, [offen, spotId, minStarts, minFahrer]);
+  }, [offen, spotId, minStarts, minFahrer, sport]);
 
   // Neue Startpunkte: Start auf den meistgenutzten — oder auf den einer gemerkten Route — und rechnen.
   useEffect(() => {
@@ -680,10 +677,25 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                                   <Abschnitte pts={r.punkte.map((q) => pos[q])} namen={r.punkte.map(platzName)} />
                                   {(() => {
                                     // Schon selbst gemerkt -> kein zweites Mal (Jan); von anderen gemerkt -> darf man auch
-                                    const schonMeine = gemerkt.some((x) => x.eigene_id != null
+                                    const meine = gemerkt.find((x) => x.eigene_id != null
                                       && x.schluessel === routenSchluessel(r.punkte.map((q) => pos[q])));
-                                    return schonMeine || merkStatus === "ok"
-                                      ? <span className="text-xs font-semibold text-brand-600 dark:text-brand-300">{t("routes.saved")}</span>
+                                    return meine || merkStatus === "ok"
+                                      ? (
+                                        <span className="inline-flex items-center gap-3 text-xs">
+                                          <span className="font-semibold text-brand-600 dark:text-brand-300">{t("routes.saved")}</span>
+                                          {/* Loeschen nur hier, mit Rueckfrage (Jan) — entfernt nur den EIGENEN
+                                              Eintrag; haben andere die Route auch gemerkt, bleibt sie stehen. */}
+                                          {meine?.eigene_id != null && (
+                                            <button onClick={() => {
+                                              if (!window.confirm(t("routes.deleteConfirm"))) return;
+                                              api.spotRouteVergessen(spotId, meine.eigene_id as number)
+                                                .then(() => { setMerkStatus(null); gemerktGeaendert(); }).catch(() => {});
+                                            }} className="text-slate-400 underline hover:text-slate-200">
+                                              {t("routes.delete")}
+                                            </button>
+                                          )}
+                                        </span>
+                                      )
                                       : (
                                   <button onClick={() => merken(r)} disabled={merkStatus === "…"}
                                     className="rounded-full border border-brand-500 bg-brand-500/15 px-3 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-500/25 disabled:opacity-70 dark:text-brand-300">

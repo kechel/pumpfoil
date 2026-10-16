@@ -2181,6 +2181,7 @@ const nl: Record<string, string> = {
   "routes.save": "Opslaan",
   "routes.saved": "Opgeslagen ✓",
   "routes.delete": "Verwijderen",
+  "routes.deleteConfirm": "Deze route uit je opgeslagen routes verwijderen? Als anderen hem ook hebben opgeslagen, blijft hij voor iedereen zichtbaar.",
   "routes.changed": "De startplekken zijn sinds het opslaan veranderd – de opgeslagen route wordt getoond.",
   "routes.limit": "Je hebt op deze spot al 20 routes opgeslagen.",
   "routes.exclude": "Startplek uitsluiten",

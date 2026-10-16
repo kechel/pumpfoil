@@ -244,7 +244,8 @@ export default function Spots() {
     let timer: number | undefined;
     const laden = () => {
       const b = m.getBounds();
-      api.heatmap(heat, m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), heatArt)
+      // Heatmap folgt dem Sportarten-Filter oben (Jan, 16.10.2026: „all sports" = alle Laeufe)
+      api.heatmap(heat, m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), heatArt, sport)
         .then((r) => {
           if (weg) return;
           setHeatStand({ stand: r.stand, sessions: r.sessions });
@@ -257,7 +258,7 @@ export default function Spots() {
     m.on("moveend", spaeter);
     return () => { weg = true; window.clearTimeout(timer); m.off("moveend", spaeter); };
   // `spots` mit drin: die Karte entsteht erst, wenn die Spots da sind.
-  }, [heat, heatArt, spots]);
+  }, [heat, heatArt, sport, spots]);
 
   return (
     <div>

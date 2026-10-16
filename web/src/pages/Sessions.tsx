@@ -450,7 +450,7 @@ export default function Sessions() {
           nur eben auf den Spot eingegrenzt. */}
       {spot && <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} sports={sports.map((x) => x.sport)} />}
       {/* Heatmap des Spots zwischen Rekorden und Wetter (Jan, 16.10.2026) — nur bei echter Spot-id. */}
-      {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} />}
+      {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} sport={sport} />}
       {spot && <SpotWeather spot={spot} />}
       {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
           Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
