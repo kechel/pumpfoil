@@ -613,11 +613,16 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                   return [
                     <span key={i} title={t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" })}
                       className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap ${pille(start === i)} ${raus ? "opacity-50" : ""}`}>
-                      {/* Haken = Startplatz wird angefahren; abhaken schliesst ihn aus (Jan). Der
-                          gewaehlte Start ist immer dabei. */}
-                      <input type="checkbox" checked={!raus} disabled={start === i}
-                        onChange={() => setAus((alt) => { const n = new Set(alt); if (n.has(i)) n.delete(i); else n.add(i); return n; })}
-                        aria-label={t(raus ? "routes.include" : "routes.exclude")} className="h-3.5 w-3.5 accent-slate-900" />
+                      {/* Haken = Startplatz wird angefahren; abhaken schliesst ihn aus (Jan). Eigener Knopf
+                          statt nativer Checkbox: die war 14 px gross, in Safari kaum zu treffen, und ein Klick
+                          daneben machte den Platz zum Start. Der gewaehlte Start ist immer dabei. */}
+                      <button type="button" disabled={start === i} aria-pressed={!raus}
+                        onClick={(e) => { e.stopPropagation(); setAus((alt) => { const n = new Set(alt); if (n.has(i)) n.delete(i); else n.add(i); return n; }); }}
+                        title={t(raus ? "routes.include" : "routes.exclude")} aria-label={t(raus ? "routes.include" : "routes.exclude")}
+                        className={`-my-1 -ml-2 flex h-7 w-7 items-center justify-center rounded-full border-r ${start === i
+                          ? "cursor-default border-transparent opacity-60" : "border-current/30 hover:bg-black/10"}`}>
+                        {raus ? "○" : "✓"}
+                      </button>
                       <button onClick={() => { if (!raus) setStart(i); }} aria-pressed={start === i} disabled={raus}
                         className={raus ? "line-through" : ""}>
                         <span className="font-semibold">{platzName(i)}</span>
