@@ -27,6 +27,7 @@ import { setPumpUnit, usePumpFmt } from "../lib/pumpRate";
 import type { CarveData } from "../lib/api";
 import { useCompare, toggleCompare, refKey, setCompare } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch, getLastSessionsFilter } from "../lib/lastSession";
+import { abschnitt } from "../lib/kurve";
 import { useT } from "../i18n";
 import { TransferPicker } from "../components/TransferPicker";
 import { CompareHrStrips } from "../components/CompareHrStrips";
@@ -1243,10 +1244,6 @@ export default function SessionDetail() {
     const phz: (number | null)[] = gj.properties?.pump_hz ?? [];
 
     // Nur die Foiling-Läufe zeichnen — Nicht-Foiling wird komplett ausgeblendet.
-    // Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
-    // 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
-    // und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
-    const MAX_DRAW_GAP_M = 80;
     const segs = session.analysis.segments ?? [];
     // Ohne erkannte Foiling-Läufe (z. B. GPS-only / grobes FIT-GPS, oder Accel-Session
     // wo der Detektor nichts fand wie #427-Glide): die KOMPLETTE GPS-Spur speed-gefärbt
@@ -1270,7 +1267,8 @@ export default function SessionDetail() {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
       const dim = selectedRun != null && idx !== selectedRun;
       for (let i = seg.i_start; i < seg.i_end; i++) {
-        if (map.distance(coords[i], coords[i + 1]) > MAX_DRAW_GAP_M) continue;
+        // Innerhalb eines Laufs IMMER durchgehend, GPS-Luecken als Kurve (lib/kurve.ts)
+        const linie = abschnitt(coords, i, seg.i_start, seg.i_end, map.distance(coords[i], coords[i + 1]));
         let color: string;
         if (dim) {
           color = "#64748b";
@@ -1293,7 +1291,7 @@ export default function SessionDetail() {
           const [lo, hi] = hrRange;
           color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1));
         }
-        L.polyline([coords[i], coords[i + 1]], { color, weight: dim ? 3 : 5, opacity: dim ? 0.35 : 0.95 })
+        L.polyline(linie, { color, weight: dim ? 3 : 5, opacity: dim ? 0.35 : 0.95 })
           .on("click", () => setSelectedRun((p) => (p === idx ? null : idx)))
           .addTo(lg);
       }
