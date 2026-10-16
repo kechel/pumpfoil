@@ -771,6 +771,8 @@ const en: Record<string, string> = {
   "routes.include": "Include start spot again",
   "routes.startPoints": "Start",
   "routes.direction": "Head off",
+  "routes.target": "Destination",
+  "routes.whyTarget": "The chosen destination can't be reached with these settings – pick another one or change distance/number of points.",
   "routes.anyDirection": "any",
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",

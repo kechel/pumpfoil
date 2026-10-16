@@ -2197,6 +2197,8 @@ const nl: Record<string, string> = {
   "routes.include": "Weer meenemen",
   "routes.startPoints": "Start",
   "routes.direction": "Vertrekken richting",
+  "routes.target": "Bestemming",
+  "routes.whyTarget": "De gekozen bestemming is met deze instellingen niet te bereiken – kies een andere of wijzig afstand/aantal punten.",
   "routes.anyDirection": "maakt niet uit",
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",

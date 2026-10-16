@@ -2023,6 +2023,8 @@ const es: Record<string, string> = {
   "routes.include": "Volver a incluir",
   "routes.startPoints": "Salida",
   "routes.direction": "Salir hacia",
+  "routes.target": "Destino",
+  "routes.whyTarget": "Con estos ajustes no se llega al destino elegido – elige otro o cambia distancia/número de puntos.",
   "routes.anyDirection": "cualquiera",
   "routes.reliability": "mín. salidas",
   "routes.riders": "mín. riders",

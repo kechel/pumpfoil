@@ -2196,6 +2196,8 @@ const cs: Record<string, string> = {
   "routes.include": "Znovu zahrnout místo startu",
   "routes.startPoints": "Start",
   "routes.direction": "Vyjet směrem",
+  "routes.target": "Cíl",
+  "routes.whyTarget": "Do zvoleného cíle to s tímto nastavením nejde – zvol jiný cíl nebo změň vzdálenost/počet bodů.",
   "routes.anyDirection": "libovolně",
   "routes.reliability": "min. startů",
   "routes.riders": "min. jezdců",

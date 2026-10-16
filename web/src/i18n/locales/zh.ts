@@ -2137,6 +2137,8 @@ const zh: Record<string, string> = {
   "routes.include": "重新包含",
   "routes.startPoints": "起点",
   "routes.direction": "出发方向",
+  "routes.target": "终点",
+  "routes.whyTarget": "按当前设置无法到达所选终点，请换个终点或调整距离/点数。",
   "routes.anyDirection": "不限",
   "routes.reliability": "最少起步次数",
   "routes.riders": "最少滑手",

@@ -2140,6 +2140,8 @@ const id: Record<string, string> = {
   "routes.include": "Sertakan lagi",
   "routes.startPoints": "Start",
   "routes.direction": "Berangkat ke",
+  "routes.target": "Tujuan",
+  "routes.whyTarget": "Tujuan yang dipilih tidak bisa dicapai dengan pengaturan ini – pilih yang lain atau ubah jarak/jumlah titik.",
   "routes.anyDirection": "bebas",
   "routes.reliability": "min. start",
   "routes.riders": "min. rider",

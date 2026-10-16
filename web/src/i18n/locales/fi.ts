@@ -2178,6 +2178,8 @@ const fi: Record<string, string> = {
   "routes.include": "Ota lähtöpaikka mukaan",
   "routes.startPoints": "Lähtö",
   "routes.direction": "Lähtösuunta",
+  "routes.target": "Määränpää",
+  "routes.whyTarget": "Valittuun määränpäähän ei pääse näillä asetuksilla – valitse toinen tai muuta väliä/pisteiden määrää.",
   "routes.anyDirection": "mikä tahansa",
   "routes.reliability": "väh. lähtöjä",
   "routes.riders": "väh. kuskeja",

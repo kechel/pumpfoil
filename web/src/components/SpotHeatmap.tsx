@@ -243,7 +243,8 @@ type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 type Punkt = { lat: number; lon: number };
 export type Gemerkt = {
   schluessel: string; gemerkt_am: string; punkte: [number, number][]; meter: number; eigene_id: number | null;
-  einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; erstes_ziel?: [number, number] | null; min_m?: number;
+  einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; erstes_ziel?: [number, number] | null;
+                   ziel?: [number, number] | null; min_m?: number;
                    max_m?: number; punkte?: number; ohne_kreuzung?: boolean; rundkurs?: boolean;
                   ausgeschlossen?: [number, number][] };
 };
@@ -330,6 +331,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   const [anzahl, setAnzahl] = useState(6);            // Startpunkte auf der Route (Start mitgezaehlt)
   const [ohneKreuzung, setOhneKreuzung] = useState(true);
   const [rundkurs, setRundkurs] = useState(true);
+  const [zielPlatz, setZielPlatz] = useState<number | null>(null);   // ohne Rundkurs: wo die Route endet
   // Erstes Ziel = die Richtung, in die man losfaehrt (Jan: statt Himmelsrichtung der naechste
   // Startplatz); Index in `pos`.
   // null = beliebig. Filtert die berechnete Liste, braucht keine neue Rechnung.
@@ -348,7 +350,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   const ebene = useRef<L.LayerGroup | null>(null);
   const erstGerechnet = useRef(false);
 
-  const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort()]);
+  const zielAktiv = !rundkurs && zielPlatz != null && zielPlatz !== start && !aus.has(zielPlatz) ? zielPlatz : null;
+  const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort(), zielAktiv]);
   // Auch ohne Ergebnis „veraltet": nach dem Neuladen der Startplaetze ist es verworfen — stellt man
   // die alte Einstellung wieder her, stuende sonst weder Liste noch Knopf da.
   const veraltet = pos != null && (gerechnetMit !== einstellungsSchluessel || ergebnis == null);
@@ -382,6 +385,10 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       if (i >= 0 && i !== s) ex.add(i);
     }
     setAus(ex);
+    // Ziel (ohne Rundkurs): bei einer gemerkten Route deren Ziel, sonst keins
+    const wz = wieder?.einstellungen.ziel;
+    const wzi = wz ? naechster(pos, { lat: wz[0], lon: wz[1] }) : -1;
+    setZielPlatz(wzi >= 0 ? wzi : null);
     // Automatisch nur beim ersten Oeffnen und beim Aufrufen einer gemerkten Route; sonst (andere
     // Zuverlaessigkeit/Fahrerzahl) verschwindet die Liste und „Jetzt berechnen" erscheint — wie bei
     // jeder anderen Einstellung (Jan).
@@ -395,7 +402,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   useEffect(() => {
     if (!pos || anstoss === 0) return;
     setErgebnis(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
-      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus }));
+      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined }));
     setGerechnetMit(einstellungsSchluessel);
     setGewaehlt(null);
     setMerkStatus(null);
@@ -496,6 +503,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       punkte: r.punkte.map((i) => [pos[i].lat, pos[i].lon]),
       einstellungen: { min_starts: minStarts, min_fahrer: minFahrer, start: [pos[start].lat, pos[start].lon],
                        erstes_ziel: richtung != null ? [pos[richtung].lat, pos[richtung].lon] : null,
+                       ziel: zielAktiv != null ? [pos[zielAktiv].lat, pos[zielAktiv].lon] : null,
                        min_m: minM, max_m: maxM, punkte: anzahl, ohne_kreuzung: ohneKreuzung, rundkurs,
                        ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]) },
     })
@@ -525,6 +533,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
         if (i >= 0 && i !== st) ex.add(i);
       }
       setAus(ex);
+      const zz = e.ziel ? naechster(pos, { lat: e.ziel[0], lon: e.ziel[1] }) : -1;
+      setZielPlatz(zz >= 0 ? zz : null);
       window.setTimeout(() => setAnstoss((n) => n + 1), 0);
     }
   };
@@ -645,6 +655,21 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                   ];
                 })}
               </div>
+              {/* Ziel waehlen, nur ohne Rundkurs (Jan) — eine echte Einstellung: die Suche nimmt dann
+                  nur Routen, die dort enden. */}
+              {!rundkurs && (
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="shrink-0 text-xs text-slate-400">{t("routes.target")}</span>
+                  <button onClick={() => setZielPlatz(null)} aria-pressed={zielAktiv == null} className={`${pille(zielAktiv == null)} px-2`}>
+                    {t("routes.anyDirection")}
+                  </button>
+                  {pos.map((_, i) => i !== start && !aus.has(i) && (
+                    <button key={i} onClick={() => setZielPlatz(i)} aria-pressed={zielAktiv === i} className={`${pille(zielAktiv === i)} px-2`}>
+                      {platzName(i)}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="mb-3 grid gap-x-4 gap-y-2 sm:grid-cols-3">
                 {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
                 {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}
@@ -671,13 +696,14 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                 ergebnis && (() => {
                   // Begruendung statt leerer Liste (Jan)
                   const w = warumKeine(pos, start, minM, Math.max(minM, maxM),
-                    { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus });
+                    { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined });
                   const text = w.grund === "nachbar" ? (w.naechsterM == null ? t("routes.whyNoOther")
                       : t("routes.whyNeighbour", { m: w.naechsterM, min: minM, max: maxM }))
                     : w.grund === "zuWenig" ? t("routes.whyTooFew", { n: w.verfuegbar, soll: Math.min(anzahl, pos.length) })
                     : w.grund === "rundkurs" ? t("routes.whyRoundtrip")
                     : w.grund === "kreuzung" ? t("routes.whyCrossing")
                     : w.grund === "punkte" ? t("routes.whyPoints", { n: w.hoechstens })
+                    : w.grund === "ziel" ? t("routes.whyTarget")
                     : t("routes.none", { n: pos.length });
                   return <p className="rounded-lg border border-slate-700 bg-slate-900 p-2 text-sm text-slate-300">{text}</p>;
                 })()
@@ -689,7 +715,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                         {([["empf", "#"], ["route", t("routes.colRoute")], ["meter", t("routes.colDistance")],
                            ["legs", t("routes.colLegs")], ["kreuz", t("routes.colCrossings")],
                            ["doppelt", t("routes.colDuplicates")]] as [Spalte | "route", string][]).map(([sp, text]) => (
-                          <th key={sp} className={`px-2 py-1 font-medium ${sp === "route" ? "" : "text-right"}`}>
+                          <th key={sp} className={`px-2 py-1 font-medium ${sp === "route" ? ""
+                            : sp === "legs" || sp === "kreuz" || sp === "doppelt" ? "text-center" : "text-right"}`}>
                             {sp === "route" ? text : (
                               <button onClick={() => setSortierung((alt) => ({ nach: sp, ab: alt.nach === sp ? !alt.ab : false }))}
                                 className={`hover:text-slate-200 ${sortierung.nach === sp ? "text-slate-100" : ""}`}>
@@ -712,9 +739,9 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                             <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{i + 1}</td>
                             <td className="px-2 py-1.5 font-semibold tabular-nums">{r.punkte.map(platzName).join(" → ")}</td>
                             <td className="px-2 py-1.5 text-right tabular-nums">{Math.round(r.meter)} m</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{r.punkte.length - 1}</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{r.kreuzungen}</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{r.doppelt}</td>
+                            <td className="px-2 py-1.5 text-center tabular-nums">{r.punkte.length - 1}</td>
+                            <td className="px-2 py-1.5 text-center tabular-nums">{r.kreuzungen}</td>
+                            <td className="px-2 py-1.5 text-center tabular-nums">{r.doppelt}</td>
                           </tr>,
                           an && (
                             <tr key={schl + "-details"} className="border-b border-slate-800/60 bg-brand-500/5">

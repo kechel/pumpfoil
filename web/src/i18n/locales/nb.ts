@@ -2141,6 +2141,8 @@ const nb: Record<string, string> = {
   "routes.include": "Ta med igjen",
   "routes.startPoints": "Start",
   "routes.direction": "Start mot",
+  "routes.target": "Mål",
+  "routes.whyTarget": "Det valgte målet nås ikke med disse innstillingene – velg et annet eller endre avstand/antall punkter.",
   "routes.anyDirection": "valgfritt",
   "routes.reliability": "min. starter",
   "routes.riders": "min. utøvere",

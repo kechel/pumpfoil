@@ -2140,6 +2140,8 @@ const pt: Record<string, string> = {
   "routes.include": "Incluir de novo",
   "routes.startPoints": "Largada",
   "routes.direction": "Sair rumo a",
+  "routes.target": "Destino",
+  "routes.whyTarget": "Com estas configurações não dá para chegar ao destino escolhido – escolha outro ou mude distância/número de pontos.",
   "routes.anyDirection": "qualquer",
   "routes.reliability": "mín. largadas",
   "routes.riders": "mín. riders",

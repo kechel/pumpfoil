@@ -2134,6 +2134,8 @@ const ptPT: Record<string, string> = {
   "routes.include": "Incluir de novo",
   "routes.startPoints": "Partida",
   "routes.direction": "Partir para",
+  "routes.target": "Destino",
+  "routes.whyTarget": "Com estas definições não dá para chegar ao destino escolhido – escolhe outro ou muda distância/número de pontos.",
   "routes.anyDirection": "qualquer",
   "routes.reliability": "mín. partidas",
   "routes.riders": "mín. riders",
