@@ -37,13 +37,15 @@ def test_tanz_session_ohne_gps(client):
         assert client.post(f"/api/ingest/session/{uuid}/chunk", headers=uhr, json={
             "index": 0, "kind": kind, "encoding": "int16-b64", "t0_ms": 0, "data": raw}).status_code == 200
     r = client.post(f"/api/ingest/session/{uuid}/complete", headers=uhr,
-                    json={"ended_at": "2026-10-15T20:02:00Z", "total_chunks": 1})
+                    json={"total_chunks": 1})          # die Garmin-App schickt kein Ende
     assert r.status_code == 200
 
     db = SessionLocal()
     s = db.query(models.Session).filter_by(session_uuid=uuid).one()
     assert (s.sport, s.sport_class, s.sport_source) == ("dance", "other", "owner")
     assert s.status == "analyzed" and s.spot_id is None
+    # Endzeit aus dem letzten Puls-Zeitstempel (ohne GPS gaebe es sonst keine)
+    assert (s.ended_at - s.started_at).total_seconds() == (n - 1)
     assert json.loads((storage.session_dir(uuid) / "hr" / "0.json").read_text()) == hr
     kinds = {k for (k,) in db.query(models.IngestChunk.kind).filter_by(session_id=s.id)}
     assert kinds == {"hr", "accel", "gyro"}
