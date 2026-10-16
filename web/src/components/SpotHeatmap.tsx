@@ -145,10 +145,14 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
   }, [bereit, gemerkt, gemerktWahl, planen]);
   useEffect(() => () => { gemerktEbene.current = null; }, [mitte]);
 
+  // Klick auf eine gemerkte Route oeffnet die Planung und stellt sie dort ein (Jan).
   const gemerktKlick = (r: Gemerkt) => {
-    const neu = gemerktWahl === r.schluessel ? null : r.schluessel;
+    const neu = gemerktWahl === r.schluessel && planen ? null : r.schluessel;
     setGemerktWahl(neu);
-    if (planen && neu) setAufruf((alt) => ({ g: r, n: (alt?.n ?? 0) + 1 }));
+    if (neu) {
+      setPlanen(true);
+      setAufruf((alt) => ({ g: r, n: (alt?.n ?? 0) + 1 }));
+    }
   };
   // Datum in der Sprache der App (die setzt <html lang>), nicht in der des Browsers
   const datum = (iso: string) => new Date(iso).toLocaleDateString(document.documentElement.lang || undefined,
