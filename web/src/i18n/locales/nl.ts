@@ -2177,6 +2177,8 @@ const nl: Record<string, string> = {
   "routes.reliability": "Startpunt gebruikt",
   "routes.minDist": "Min. afstand",
   "routes.maxDist": "Max. afstand",
+  "routes.count": "Startpunten op de route",
+  "routes.noCrossing": "Zonder kruisingen",
   "routes.none": "Geen route met deze instellingen ({n} startpunten).",
   "routes.legs": "{n} etappes",
   "routes.hint": "{n} startpunten die door meerdere sessies zijn gebruikt. Een startpunt ligt een paar meter in rijrichting, omdat een run pas met snelheid begint.",

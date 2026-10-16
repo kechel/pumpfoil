@@ -2176,6 +2176,8 @@ const cs: Record<string, string> = {
   "routes.reliability": "Místo startu použito",
   "routes.minDist": "Min. vzdálenost",
   "routes.maxDist": "Max. vzdálenost",
+  "routes.count": "Míst startu na trase",
+  "routes.noCrossing": "Bez křížení",
   "routes.none": "S tímto nastavením žádná trasa ({n} míst startu).",
   "routes.legs": "{n} úseků",
   "routes.hint": "{n} míst startu použitých více sessions. Místo startu leží pár metrů ve směru jízdy, protože jízda začíná až s rychlostí.",

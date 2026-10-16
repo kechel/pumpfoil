@@ -2114,6 +2114,8 @@ const ptPT: Record<string, string> = {
   "routes.reliability": "Ponto de partida usado",
   "routes.minDist": "Distância mín.",
   "routes.maxDist": "Distância máx.",
+  "routes.count": "Pontos de partida na rota",
+  "routes.noCrossing": "Sem cruzamentos",
   "routes.none": "Nenhuma rota com estas definições ({n} pontos de partida).",
   "routes.legs": "{n} troços",
   "routes.hint": "{n} pontos de partida usados em várias sessões. O ponto fica alguns metros no sentido da deslocação, porque a volta só começa com velocidade.",

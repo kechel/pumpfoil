@@ -2121,6 +2121,8 @@ const nb: Record<string, string> = {
   "routes.reliability": "Startpunkt brukt",
   "routes.minDist": "Min. avstand",
   "routes.maxDist": "Maks. avstand",
+  "routes.count": "Startpunkter på ruten",
+  "routes.noCrossing": "Uten kryssinger",
   "routes.none": "Ingen rute med disse innstillingene ({n} startpunkter).",
   "routes.legs": "{n} etapper",
   "routes.hint": "{n} startpunkter brukt av flere økter. Et startpunkt ligger noen meter i fartsretningen, fordi et løp først begynner når du har fart.",

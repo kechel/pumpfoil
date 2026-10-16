@@ -760,6 +760,8 @@ const en: Record<string, string> = {
   "routes.reliability": "Start point used",
   "routes.minDist": "Min. distance",
   "routes.maxDist": "Max. distance",
+  "routes.count": "Start points on the route",
+  "routes.noCrossing": "No crossings",
   "routes.none": "No route with these settings ({n} start points).",
   "routes.legs": "{n} legs",
   "routes.hint": "{n} start points used by several sessions. A start point sits a few metres along the direction of travel, because a run only begins once you have speed.",

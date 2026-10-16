@@ -2158,6 +2158,8 @@ const fi: Record<string, string> = {
   "routes.reliability": "Lähtöpaikkaa käytetty",
   "routes.minDist": "Väli väh.",
   "routes.maxDist": "Väli enint.",
+  "routes.count": "Lähtöpaikkoja reitillä",
+  "routes.noCrossing": "Ei risteäviä osuuksia",
   "routes.none": "Ei reittiä näillä asetuksilla ({n} lähtöpaikkaa).",
   "routes.legs": "{n} osuutta",
   "routes.hint": "{n} lähtöpaikkaa, joita useampi sessio on käyttänyt. Lähtöpaikka on muutaman metrin ajosuuntaan, koska lenkki alkaa vasta vauhdissa.",

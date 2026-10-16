@@ -2004,6 +2004,8 @@ const gsw: Record<string, string> = {
   "routes.reliability": "Startpunkt bruucht",
   "routes.minDist": "Abstand min.",
   "routes.maxDist": "Abstand max.",
+  "routes.count": "Startpünkt uf de Route",
+  "routes.noCrossing": "Ohni Überschniidige",
   "routes.none": "Kei Route mit dene Iistellige ({n} Startpünkt).",
   "routes.legs": "{n} Abschnitt",
   "routes.hint": "{n} Startpünkt, wo mehreri Sessions bruucht händ. En Startpunkt liit es paar Meter i Fahrtrichtig, will en Lauf erscht mit Tempo aafangt.",

@@ -2120,6 +2120,8 @@ const id: Record<string, string> = {
   "routes.reliability": "Titik start dipakai",
   "routes.minDist": "Jarak min.",
   "routes.maxDist": "Jarak maks.",
+  "routes.count": "Titik start di rute",
+  "routes.noCrossing": "Tanpa persilangan",
   "routes.none": "Tidak ada rute dengan pengaturan ini ({n} titik start).",
   "routes.legs": "{n} ruas",
   "routes.hint": "{n} titik start yang dipakai beberapa sesi. Titik start berada beberapa meter searah laju, karena run baru dimulai saat sudah melaju.",

@@ -2003,6 +2003,8 @@ const fr: Record<string, string> = {
   "routes.reliability": "Point de départ utilisé",
   "routes.minDist": "Distance min.",
   "routes.maxDist": "Distance max.",
+  "routes.count": "Points de départ sur le parcours",
+  "routes.noCrossing": "Sans croisements",
   "routes.none": "Aucun parcours avec ces réglages ({n} points de départ).",
   "routes.legs": "{n} tronçons",
   "routes.hint": "{n} points de départ utilisés par plusieurs sessions. Un point de départ se trouve quelques mètres dans le sens de la marche, car un run ne commence qu'avec de la vitesse.",

@@ -2120,6 +2120,8 @@ const pt: Record<string, string> = {
   "routes.reliability": "Ponto de largada usado",
   "routes.minDist": "Distância mín.",
   "routes.maxDist": "Distância máx.",
+  "routes.count": "Pontos de largada na rota",
+  "routes.noCrossing": "Sem cruzamentos",
   "routes.none": "Nenhuma rota com estas configurações ({n} pontos de largada).",
   "routes.legs": "{n} trechos",
   "routes.hint": "{n} pontos de largada usados em várias sessões. O ponto fica alguns metros no sentido do deslocamento, porque a volta só começa com velocidade.",

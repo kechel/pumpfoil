@@ -2117,6 +2117,8 @@ const zh: Record<string, string> = {
   "routes.reliability": "起步点使用次数",
   "routes.minDist": "最小距离",
   "routes.maxDist": "最大距离",
+  "routes.count": "路线上的起步点",
+  "routes.noCrossing": "不交叉",
   "routes.none": "此设置下没有路线（{n} 个起步点）。",
   "routes.legs": "{n} 段",
   "routes.hint": "{n} 个被多次训练使用的起步点。由于滑行在有速度后才开始，起步点会沿行进方向偏移几米。",
