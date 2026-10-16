@@ -148,11 +148,6 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
         </div>
       </div>
       <div ref={box} className="mt-2 h-64 w-full overflow-hidden rounded-lg sm:h-80" />
-      {wahl !== "off" && (
-        <p className="mt-2 text-xs text-slate-400">
-          {t(art === "start" ? "spots.heatHintStart" : "spots.heatHint")}
-        </p>
-      )}
       <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen} />
     </Card>
   );
