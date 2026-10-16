@@ -1543,6 +1543,7 @@ const nb: Record<string, string> = {
   "settings.coros.help4": "Koble fra når du vil (trekker tilbake tilgangen og stopper importen).",
   "settings.suunto.title": "Suunto-import",
   "settings.suunto.hint": "Koble til Suunto-kontoen din og importer treningene dine som økter.",
+  "settings.suunto.activity": "Suunto har ingen pumpfoil-modus: bare ta opp som Stand-up padling eller Surfing. Vi gjenkjenner pumpfoiling automatisk, uansett hvilken modus du bruker.",
   "settings.suunto.broken": "⚠ Kobling med Suunto funker ikke for tiden: innlogging hos Suunto går bra (Suunto sender deg til og med en bekreftelse på e-post), men Suunto nekter deretter appen vår tilgang til kontoen din. Det er ikke din feil og har ingenting å gjøre med passordet ditt — vi jobber med Suunto for å løse det. Inntil da kan du importere Suunto-aktiviteter som fil.",
   "settings.suunto.connect": "Koble til Suunto",
   "settings.suunto.connected": "Tilkoblet",

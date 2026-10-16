@@ -1505,6 +1505,7 @@ const zh: Record<string, string> = {
   "settings.coros.help4": "可随时断开连接（撤销访问权限并停止导入）。",
   "settings.suunto.title": "Suunto 导入",
   "settings.suunto.hint": "连接你的 Suunto 账号，将训练作为记录导入。",
+  "settings.suunto.activity": "Suunto 没有 pumpfoil 模式：直接用桨板（SUP）或冲浪模式记录即可。无论用哪种模式，我们都会自动识别 pumpfoil。",
   "settings.suunto.connect": "连接 Suunto",
   "settings.suunto.connected": "已连接",
   "settings.suunto.sync": "导入训练",

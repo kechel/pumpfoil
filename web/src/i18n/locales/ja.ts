@@ -1505,6 +1505,7 @@ const ja: Record<string, string> = {
   "settings.coros.help4": "いつでも連携解除できます（アクセスを取り消し、インポートを停止します）。",
   "settings.suunto.title": "Suunto インポート",
   "settings.suunto.hint": "Suunto アカウントを連携し、ワークアウトをセッションとしてインポートします。",
+  "settings.suunto.activity": "Suunto にはパンプフォイルのモードがありません。スタンドアップパドルかサーフィンで記録してください。どのモードでもパンプフォイルは自動で認識されます。",
   "settings.suunto.connect": "Suunto を連携",
   "settings.suunto.connected": "連携済み",
   "settings.suunto.sync": "ワークアウトをインポート",

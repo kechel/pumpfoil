@@ -1248,6 +1248,7 @@ const it: Record<string, string> = {
   "settings.coros.help4": "Scollega quando vuoi (revoca l'accesso e ferma l'import).",
   "settings.suunto.title": "Import Suunto",
   "settings.suunto.hint": "Collega il tuo account Suunto e importa i tuoi allenamenti come sessioni.",
+  "settings.suunto.activity": "Suunto non ha una modalità pumpfoil: registra semplicemente come Stand-up paddle o Surf. Riconosciamo il pumpfoil automaticamente, qualunque modalità usi.",
   "settings.suunto.connect": "Collega Suunto",
   "settings.suunto.connected": "Collegato",
   "settings.suunto.sync": "Importa allenamenti",

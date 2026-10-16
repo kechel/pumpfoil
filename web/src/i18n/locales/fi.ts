@@ -1595,6 +1595,7 @@ const fi: Record<string, string> = {
   "settings.coros.help4": "Katkaisu mahdollista milloin vain (poistaa pääsyn ja pysäyttää tuonnin).",
   "settings.suunto.title": "Suunto-tuonti",
   "settings.suunto.hint": "Yhdistä Suunto-tilisi ja tuo workoutisi sessioiksi.",
+  "settings.suunto.activity": "Suuntossa ei ole pumpfoil-lajia: tallenna vain SUP- tai surffaustilassa. Tunnistamme pumpfoilauksen automaattisesti, käytitpä mitä tilaa tahansa.",
   "settings.suunto.connect": "Yhdistä Suuntoon",
   "settings.suunto.connected": "Yhdistetty",
   "settings.suunto.sync": "Tuo workoutit",

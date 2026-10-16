@@ -1505,6 +1505,7 @@ const ru: Record<string, string> = {
   "settings.coros.help4": "Отключить можно в любой момент (отзывает доступ и останавливает импорт).",
   "settings.suunto.title": "Импорт Suunto",
   "settings.suunto.hint": "Подключите свой аккаунт Suunto и импортируйте тренировки как сессии.",
+  "settings.suunto.activity": "В Suunto нет режима для памп-фойла: просто записывай как SUP или сёрфинг. Памп-фойл мы распознаём автоматически, в каком бы режиме ты ни записывал.",
   "settings.suunto.connect": "Подключить Suunto",
   "settings.suunto.connected": "Подключено",
   "settings.suunto.sync": "Импортировать тренировки",

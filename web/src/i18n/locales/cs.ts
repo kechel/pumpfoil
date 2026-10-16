@@ -1632,6 +1632,7 @@ const cs: Record<string, string> = {
   "settings.coros.help4": "Odpojení je kdykoli možné (odebere přístup a zastaví import).",
   "settings.suunto.title": "Suunto import",
   "settings.suunto.hint": "Propoj svůj účet Suunto a importuj své workouty jako vyjížďky.",
+  "settings.suunto.activity": "Suunto nemá režim pro pumpfoil: nahrávej prostě jako Stand-up paddleboarding nebo Surfování. Pumpfoil rozpoznáme automaticky, ať použiješ jakýkoli režim.",
   "settings.suunto.connect": "Propojit se Suunto",
   "settings.suunto.connected": "Propojeno",
   "settings.suunto.sync": "Importovat workouty",
