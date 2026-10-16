@@ -2130,7 +2130,7 @@ const id: Record<string, string> = {
   "routes.startPoints": "Start",
   "routes.direction": "Berangkat ke",
   "routes.anyDirection": "bebas",
-  "routes.reliability": "Titik start dipakai",
+  "routes.reliability": "min. start",
   "routes.riders": "min. rider",
   "routes.spotInfo": "{name}: {starts} start dari {sessions} sesi oleh {fahrer} rider",
   "routes.minDist": "Jarak min.",

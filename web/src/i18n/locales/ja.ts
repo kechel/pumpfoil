@@ -2124,7 +2124,7 @@ const ja: Record<string, string> = {
   "routes.startPoints": "スタート",
   "routes.direction": "出発方向",
   "routes.anyDirection": "指定なし",
-  "routes.reliability": "スタート地点の利用",
+  "routes.reliability": "最少スタート数",
   "routes.riders": "最少ライダー数",
   "routes.spotInfo": "{name}: {fahrer} 人のライダー、{sessions} セッションで {starts} 回スタート",
   "routes.minDist": "最小距離",

@@ -2014,7 +2014,7 @@ const gsw: Record<string, string> = {
   "routes.startPoints": "Start",
   "routes.direction": "Losfahre gäge",
   "routes.anyDirection": "egal",
-  "routes.reliability": "Startpunkt bruucht",
+  "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",
   "routes.spotInfo": "{name}: {starts} Starts us {sessions} Sessions vo {fahrer} Fahrer",
   "routes.minDist": "Abstand min.",

@@ -2130,7 +2130,7 @@ const pt: Record<string, string> = {
   "routes.startPoints": "Largada",
   "routes.direction": "Sair rumo a",
   "routes.anyDirection": "qualquer",
-  "routes.reliability": "Ponto de largada usado",
+  "routes.reliability": "mín. largadas",
   "routes.riders": "mín. riders",
   "routes.spotInfo": "{name}: {starts} largadas em {sessions} sessões de {fahrer} riders",
   "routes.minDist": "Distância mín.",
