@@ -4,7 +4,7 @@ import {
   ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
   FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
   LockIcon, HeartIcon, EditIcon, BoardIcon, SparklesIcon, StarIcon, ListIcon, SpotsIcon,
-  CameraIcon, ShareIcon, LinkIcon, CompareIcon, SendIcon,
+  CameraIcon, ShareIcon, LinkIcon, CompareIcon, SendIcon, WaveIcon, ShieldIcon,
 } from "../components/Icons";
 import { useT, useI18n } from "../i18n";
 import { SPORTS } from "../lib/sportClass";
@@ -107,6 +107,13 @@ export default function Landing() {
     { icon: ShareIcon, k: "comm7" }, { icon: LinkIcon, k: "comm8" },
     { icon: CompareIcon, k: "comm9" }, { icon: FoilIcon, k: "comm10" },
     { icon: SendIcon, k: "comm11" }, { icon: ChartIcon, k: "comm12" },
+    // Freunde + „gerade am Pumpen" (Jan, 16.10.2026)
+    { icon: HeartIcon, k: "comm13" }, { icon: WaveIcon, k: "comm14" },
+  ];
+  // Routenplanung (Jan, 16.10.2026): eigener Abschnitt mit Bild vom Illmensee
+  const routenPunkte = [
+    { icon: SpotsIcon, k: "routes1" }, { icon: MapIcon, k: "routes2" },
+    { icon: StarIcon, k: "routes3" }, { icon: ShieldIcon, k: "routes4" },
   ];
   const kannPunkte = [
     { icon: EditIcon, k: "kann1" }, { icon: CommunityIcon, k: "kann2" },
@@ -439,6 +446,25 @@ export default function Landing() {
           <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.commBody")}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {commPunkte.map((p) => (
+              <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <p.icon className="h-7 w-7 text-brand-400" />
+                <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
+                <p className="mt-1 text-sm text-slate-400">{t(`land.${p.k}Body`)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Routenplanung aus den Startplaetzen der Heatmap (Jan, 16.10.2026). Bild: Spot-Seite Illmensee
+            (Testkonto, englische Oberflaeche), Startpunkt-Heatmap, Rundtour mit farbigen Abschnitten,
+            FFH-Gebiet; keine Namen anderer Nutzer zu sehen. */}
+        <section className="pb-12">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.routesTitle")}</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.routesBody")}</p>
+          <img src="/routen-illmensee.webp" alt={t("land.routesImgAlt")} loading="lazy" width={1400} height={1438}
+            className="mx-auto mb-6 w-full max-w-3xl rounded-2xl border border-slate-800 shadow-lg" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {routenPunkte.map((p) => (
               <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
                 <p.icon className="h-7 w-7 text-brand-400" />
                 <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
