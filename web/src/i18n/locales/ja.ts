@@ -1528,6 +1528,7 @@ const ja: Record<string, string> = {
   "map.ffh": "Natura 2000（生息地）",
   "map.prohibited": "遊泳・航行禁止",
   "map.protectedHint": "OpenStreetMap による情報です。法的助言ではありません。現地の規則に従ってください。",
+  "map.hideArea": "非表示",
   "social.title": "SNSフィード",
   "social.hint": "コミュニティの動画をひとつの場所に集め、ここでそのまま再生できます — 間にアルゴリズムはありません。 <b>プロフィールに YouTube チャンネルを登録すると、あなたの動画も並びます。</b> （Instagram と TikTok では利用できません。）",
   "social.prev": "前へ",

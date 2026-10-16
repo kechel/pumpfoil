@@ -1602,6 +1602,7 @@ const fi: Record<string, string> = {
   "map.ffh": "Natura 2000 -alue",
   "map.prohibited": "Uinti- tai veneilykielto",
   "map.protectedHint": "OpenStreetMapin mukaan – ei oikeudellinen tieto, noudata paikallisia sääntöjä.",
+  "map.hideArea": "Piilota",
   "social.title": "Somevirrat",
   "social.hint": "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. <b>Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan.</b> (Instagram ja TikTok eivät salli tätä.)",
   "social.prev": "Edellinen",

@@ -1271,6 +1271,7 @@ const it: Record<string, string> = {
   "map.ffh": "Sito Natura 2000 (habitat)",
   "map.prohibited": "Divieto di balneazione o navigazione",
   "map.protectedHint": "Secondo OpenStreetMap – non è consulenza legale, rispetta le regole sul posto.",
+  "map.hideArea": "Nascondi",
   "social.title": "Feed social",
   "social.hint": "Video della community, raccolti in un posto e riproducibili qui — senza algoritmi di mezzo. <b>Aggiungi il tuo canale YouTube nel profilo e i tuoi video entrano nel feed.</b> (Instagram e TikTok non lo permettono.)",
   "social.prev": "Indietro",

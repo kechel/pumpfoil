@@ -899,6 +899,12 @@ def assign_one(db, s, erzwingen: bool = False):
             sp = models.Spot(name=name, name_source=src, water_name=water,
                              lat=g.start[0], lon=g.start[1], poly_wkt=_m_to_wkt(new_m, lat0))
             db.add(sp); db.flush()
+            # Schutzgebiete fuer die Karte einmal vorab holen (im Hintergrund, s. schutzgebiete.py)
+            try:
+                from .schutzgebiete import fuer_neuen_spot
+                fuer_neuen_spot(float(g.start[0]), float(g.start[1]))
+            except Exception:   # noqa: BLE001 — darf das Anlegen des Spots nie kosten
+                pass
             s.spot_id = sp.id
             if name:
                 s.place_name = name

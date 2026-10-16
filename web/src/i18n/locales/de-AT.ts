@@ -1127,6 +1127,7 @@ const deAT: Record<string, string> = {
   "map.ffh": "FFH-Gebiet (Natura 2000)",
   "map.prohibited": "Bade- oder Fahrverbot",
   "map.protectedHint": "Laut OpenStreetMap – keine Rechtsauskunft, Regeln vor Ort beachten.",
+  "map.hideArea": "Ausblenden",
   "social.title": "Social-Media-Feeds",
   "social.hint": "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. <b>Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit.</b> (Instagram und TikTok erlauben das leider nicht.)",
   "social.prev": "Zurück",

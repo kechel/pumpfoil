@@ -1639,6 +1639,7 @@ const cs: Record<string, string> = {
   "map.ffh": "Evropsky významná lokalita (Natura 2000)",
   "map.prohibited": "Zákaz koupání nebo plavby",
   "map.protectedHint": "Podle OpenStreetMap – nejde o právní informaci, dodržuj místní pravidla.",
+  "map.hideArea": "Skrýt",
   "social.title": "Feedy ze sociálních sítí",
   "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. <b>Zadej svůj YouTube kanál v profilu a tvoje videa se přidají.</b> (Instagram a TikTok to neumožňují.)",
   "social.prev": "Zpět",

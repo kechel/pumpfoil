@@ -1528,6 +1528,7 @@ const zh: Record<string, string> = {
   "map.ffh": "Natura 2000 栖息地保护区",
   "map.prohibited": "禁止游泳或划船",
   "map.protectedHint": "据 OpenStreetMap，不构成法律意见，请遵守当地规定。",
+  "map.hideArea": "隐藏",
   "social.title": "社交媒体动态",
   "social.hint": "社区视频汇聚一处，可直接在这里播放——中间没有算法。 <b>在个人资料中填入你的 YouTube 频道，你的视频也会一起出现。</b> （Instagram 和 TikTok 不支持。）",
   "social.prev": "上一个",

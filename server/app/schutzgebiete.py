@@ -37,7 +37,7 @@ import requests
 from .config import get_settings
 
 KACHEL_GRAD = 0.1
-CACHE_TAGE = 30
+CACHE_TAGE = 180              # Schutzgebiete aendern sich selten (Jan)
 FEHLER_CACHE_S = 600          # nach einem Overpass-Fehler so lange nicht erneut fragen
 MAX_KACHELN = 30              # groessere Ausschnitte: nichts (die Karte ist dann weit weg)
 # Der Reihe nach probieren: die oeffentlichen Server sind oft ueberlastet (502/504).
@@ -200,3 +200,26 @@ def im_ausschnitt(w: float, s: float, e: float, n: float) -> dict:
             for f in fl:
                 gesehen.setdefault(f["id"], f)
     return {"zu_weit": False, "unvollstaendig": fehlt, "flaechen": list(gesehen.values())}
+
+
+def fuer_neuen_spot(lat: float, lon: float) -> None:
+    """Neuer Spot: seine Kacheln einmal im Hintergrund holen (Jan: sonst nur beim Aufruf laden).
+    Eigener Thread — die Analyse, die den Spot anlegt, wartet nicht auf Overpass; ein Fehler
+    stoert niemanden, die Karte holt dann beim ersten Aufruf nach."""
+    import os
+    import threading
+
+    if os.environ.get("PYTEST_CURRENT_TEST"):     # Tests legen Spots an — keine echten Abfragen
+        return
+
+    def holen():
+        kacheln = {(math.floor((lon + dlo) / KACHEL_GRAD), math.floor((lat + dla) / KACHEL_GRAD))
+                   for dla in (-0.05, 0.05) for dlo in (-0.05, 0.05)}
+        for ix, iy in kacheln:
+            try:
+                if _aus_cache(ix, iy) is None:
+                    _kachel(ix, iy)
+            except Exception:   # noqa: BLE001 — Hintergrund, nie bis in die Analyse durchschlagen
+                pass
+
+    threading.Thread(target=holen, daemon=True, name="schutzgebiete").start()

@@ -1187,6 +1187,7 @@ const gsw: Record<string, string> = {
   "map.ffh": "FFH-Gebiet (Natura 2000)",
   "map.prohibited": "Bade- oder Fahrverbot",
   "map.protectedHint": "Laut OpenStreetMap – kei Rechtsuskunft, Regle vor Ort beachte.",
+  "map.hideArea": "Uusblände",
   "social.title": "Social-Media-Feeds",
   "social.hint": "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. <b>Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit.</b> (Instagram und TikTok erlaubed das leider nöd.)",
   "social.prev": "Zrugg",
