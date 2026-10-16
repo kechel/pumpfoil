@@ -1290,10 +1290,6 @@ val ATTEMPT_COLOR = Color(0xFFF59E0B)
 // Track auf OSM-Karte (osmdroid, FLOSS — wie Spots/Web). Nur die Foiling-Läufe
 // (segments[].iStart..iEnd), je Punktpaar nach Modus gefärbt; Nicht-Foiling unsichtbar.
 // Optional weiße Pump-Marker an den erkannten Pump-Stößen.
-// Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
-// 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
-// und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
-private const val MAX_DRAW_GAP_M = 80.0
 
 private fun pumpDot(): android.graphics.drawable.Drawable {
     // Dichteskaliert: 14 PHYSISCHE px waren auf HiDPI-Displays winzig (~5 dp). Jetzt ~13 dp,
@@ -1400,12 +1396,11 @@ private fun TrackMap(
                     val start = seg.iStart.coerceIn(0, pts.size - 1)
                     val end = seg.iEnd.coerceIn(0, pts.size - 1)
                     for (i in start until end) {
-                        val a = pts[i]; val b = pts[i + 1]
-                        val pa = GeoPoint(a.second, a.first)   // (lat, lon)
-                        val pb = GeoPoint(b.second, b.first)
-                        if (pa.distanceToAsDouble(pb) > MAX_DRAW_GAP_M) continue
+                        // Im Lauf IMMER durchgehend, GPS-Luecken als Kurve (Kurve.kt)
+                        val linie = Kurve.abschnitt(pts, i, start, end)
+                        val pa = linie.first(); val pb = linie.last()
                         map.overlays.add(Polyline(map).apply {
-                            setPoints(listOf(pa, pb))
+                            setPoints(linie)
                             outlinePaint.color = if (dim) GRAY.copy(alpha = 0.5f).toArgb() else colorAt(i + 1).toArgb()
                             outlinePaint.strokeWidth = (if (dim) 2.5f else 5f) * dens
                             setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }   // Lauf antippen -> auswählen
