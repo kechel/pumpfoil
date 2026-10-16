@@ -1604,6 +1604,7 @@ const pl: Record<string, string> = {
   "friends.requested": "Zaproszono",
   "friends.accept": "Akceptuj",
   "friends.decline": "Odrzuć",
+  "friends.declineSilent": "Odrzucenie jest ciche: druga osoba się o tym nie dowie.",
   "friends.isFriend": "Znajomi",
   "friends.remove": "Zakończ znajomość",
   "friends.withdraw": "Wycofaj zaproszenie",

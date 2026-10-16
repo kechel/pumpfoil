@@ -1458,6 +1458,7 @@ const pt: Record<string, string> = {
   "friends.requested": "Pedido enviado",
   "friends.accept": "Aceitar",
   "friends.decline": "Recusar",
+  "friends.declineSilent": "Recusar é silencioso: a outra pessoa não fica sabendo.",
   "friends.isFriend": "Amigos",
   "friends.remove": "Encerrar amizade",
   "friends.withdraw": "Retirar pedido",

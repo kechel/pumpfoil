@@ -1585,6 +1585,7 @@ const nl: Record<string, string> = {
   "friends.requested": "Aangevraagd",
   "friends.accept": "Accepteren",
   "friends.decline": "Weigeren",
+  "friends.declineSilent": "Weigeren gaat stil: de ander krijgt het niet te horen.",
   "friends.isFriend": "Vrienden",
   "friends.remove": "Vriendschap beëindigen",
   "friends.withdraw": "Verzoek intrekken",

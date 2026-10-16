@@ -1496,6 +1496,7 @@ const nb: Record<string, string> = {
   "friends.requested": "Forespurt",
   "friends.accept": "Godta",
   "friends.decline": "Avslå",
+  "friends.declineSilent": "Å avslå skjer i stillhet: den andre får ikke vite det.",
   "friends.isFriend": "Venner",
   "friends.remove": "Avslutt vennskap",
   "friends.withdraw": "Trekk tilbake forespørsel",

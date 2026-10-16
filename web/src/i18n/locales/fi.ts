@@ -1548,6 +1548,7 @@ const fi: Record<string, string> = {
   "friends.requested": "Pyydetty",
   "friends.accept": "Hyväksy",
   "friends.decline": "Hylkää",
+  "friends.declineSilent": "Hylkääminen on hiljaista: toinen ei saa siitä tietoa.",
   "friends.isFriend": "Kavereita",
   "friends.remove": "Lopeta kaveruus",
   "friends.withdraw": "Peru pyyntö",

@@ -1203,6 +1203,7 @@ const fr: Record<string, string> = {
   "friends.requested": "Demandé",
   "friends.accept": "Accepter",
   "friends.decline": "Refuser",
+  "friends.declineSilent": "Refuser est discret : l’autre personne n’en est pas informée.",
   "friends.isFriend": "Amis",
   "friends.remove": "Mettre fin à l'amitié",
   "friends.withdraw": "Retirer la demande",

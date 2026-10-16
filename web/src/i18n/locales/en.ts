@@ -1675,6 +1675,7 @@ const en: Record<string, string> = {
   "friends.requested": "Requested",
   "friends.accept": "Accept",
   "friends.decline": "Decline",
+  "friends.declineSilent": "Declining is silent: the other person is not told.",
   "friends.isFriend": "Friends",
   "friends.remove": "End friendship",
   "friends.withdraw": "Withdraw request",

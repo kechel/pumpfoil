@@ -2,6 +2,7 @@
 // Freunde sehen — einen Schalter dafuer gibt es bewusst nicht: wer zustimmt, stimmt genau dem zu.
 // Was der Server dann freigibt, regelt server/app/freunde.py; diese Komponente entscheidet nichts.
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api, Freundschaft } from "../lib/api";
 import { useT } from "../i18n";
 
@@ -93,5 +94,51 @@ export function FreundschaftKnopf({ userId, name, status, onChange }: {
           onAblehnen={dialog === "annehmen" ? () => fertig(api.friendDecline(userId)) : undefined} />
       )}
     </>
+  );
+}
+
+/** Anfragen an mich, ganz oben auf der Startseite (Jan, 16.10.2026: „sollte vermutlich auch in meinem
+ *  home gleich ganz oben mit auftauchen"). Annehmen oeffnet den Dialog mit dem Wortlaut, Ablehnen geht
+ *  sofort und still — der andere erfaehrt es nicht (Server: friends.ablehnen). */
+export function FreundesAnfragen() {
+  const t = useT();
+  const [liste, setListe] = useState<{ user_id: number; name: string | null }[]>([]);
+  const [offen, setOffen] = useState<{ id: number; name: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const laden = () => api.friends().then((d) => setListe(d.eingehend)).catch(() => {});
+  useEffect(() => {
+    api.friendsCount().then((c) => { if (c.incoming > 0) laden(); }).catch(() => {});
+  }, []);
+  const ausfuehren = (p: Promise<{ status: Freundschaft }>) => {
+    setBusy(true);
+    p.then(() => { setOffen(null); laden(); }).catch(() => {}).finally(() => setBusy(false));
+  };
+  if (liste.length === 0) return null;
+  return (
+    <div className="mb-5 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm text-slate-200">
+      {liste.map((f) => (
+        <div key={f.user_id} className="flex flex-wrap items-center gap-2 py-1">
+          <span className="min-w-0 flex-1">
+            {t("friends.incomingFrom", { name: "\u0000" }).split("\u0000").map((teil, i) => (
+              <span key={i}>{i > 0 && <Link to={`/foiler/${f.user_id}`} className="font-semibold hover:underline">{f.name ?? "—"}</Link>}{teil}</span>
+            ))}
+          </span>
+          <button onClick={() => ausfuehren(api.friendDecline(f.user_id))} disabled={busy}
+            className="rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+            {t("friends.decline")}
+          </button>
+          <button onClick={() => setOffen({ id: f.user_id, name: f.name ?? "—" })} disabled={busy}
+            className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+            {t("friends.accept")}
+          </button>
+        </div>
+      ))}
+      <p className="mt-1 text-sm text-slate-400">{t("friends.declineSilent")}</p>
+      {offen && (
+        <FreundschaftDialog art="annehmen" name={offen.name} busy={busy} onClose={() => setOffen(null)}
+          onJa={() => ausfuehren(api.friendAccept(offen.id))}
+          onAblehnen={() => ausfuehren(api.friendDecline(offen.id))} />
+      )}
+    </div>
   );
 }

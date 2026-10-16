@@ -1458,6 +1458,7 @@ const zh: Record<string, string> = {
   "friends.requested": "已请求",
   "friends.accept": "接受",
   "friends.decline": "拒绝",
+  "friends.declineSilent": "拒绝不会通知对方。",
   "friends.isFriend": "好友",
   "friends.remove": "解除好友",
   "friends.withdraw": "撤回请求",

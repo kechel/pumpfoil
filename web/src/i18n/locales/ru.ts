@@ -1458,6 +1458,7 @@ const ru: Record<string, string> = {
   "friends.requested": "Заявка отправлена",
   "friends.accept": "Принять",
   "friends.decline": "Отклонить",
+  "friends.declineSilent": "Отклонение происходит тихо: другой человек об этом не узнает.",
   "friends.isFriend": "Друзья",
   "friends.remove": "Прекратить дружбу",
   "friends.withdraw": "Отозвать заявку",

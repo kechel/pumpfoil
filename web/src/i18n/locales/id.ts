@@ -1458,6 +1458,7 @@ const id: Record<string, string> = {
   "friends.requested": "Diminta",
   "friends.accept": "Terima",
   "friends.decline": "Tolak",
+  "friends.declineSilent": "Menolak bersifat diam-diam: orang lain tidak diberi tahu.",
   "friends.isFriend": "Berteman",
   "friends.remove": "Akhiri pertemanan",
   "friends.withdraw": "Tarik permintaan",
