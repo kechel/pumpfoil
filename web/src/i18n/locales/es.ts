@@ -1267,6 +1267,7 @@ const es: Record<string, string> = {
   "map.street": "Mapa",
   "map.satellite": "Satélite",
   "map.fullscreen": "Pantalla completa",
+  "map.compass": "N,NE,E,SE,S,SO,O,NO",
   "map.nsg": "Reserva natural",
   "map.ffh": "Lugar de importancia comunitaria (Natura 2000)",
   "map.prohibited": "Prohibido bañarse o navegar",

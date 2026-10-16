@@ -1123,6 +1123,7 @@ const deAT: Record<string, string> = {
   "map.street": "Karte",
   "map.satellite": "Satellit",
   "map.fullscreen": "Vollbild",
+  "map.compass": "N,NO,O,SO,S,SW,W,NW",
   "map.nsg": "Naturschutzgebiet",
   "map.ffh": "FFH-Gebiet (Natura 2000)",
   "map.prohibited": "Bade- oder Fahrverbot",

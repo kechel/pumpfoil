@@ -1269,6 +1269,7 @@ const fr: Record<string, string> = {
   "map.street": "Carte",
   "map.satellite": "Satellite",
   "map.fullscreen": "Plein écran",
+  "map.compass": "N,NE,E,SE,S,SO,O,NO",
   "map.nsg": "Réserve naturelle",
   "map.ffh": "Site Natura 2000 (habitats)",
   "map.prohibited": "Baignade ou navigation interdite",

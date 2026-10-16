@@ -1598,6 +1598,7 @@ const fi: Record<string, string> = {
   "map.street": "Kartta",
   "map.satellite": "Satelliitti",
   "map.fullscreen": "Koko näyttö",
+  "map.compass": "P,KO,I,KA,E,LO,L,LU",
   "map.nsg": "Luonnonsuojelualue",
   "map.ffh": "Natura 2000 -alue",
   "map.prohibited": "Uinti- tai veneilykielto",

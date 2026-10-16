@@ -1635,6 +1635,7 @@ const cs: Record<string, string> = {
   "map.street": "Mapa",
   "map.satellite": "Satelit",
   "map.fullscreen": "Celá obrazovka",
+  "map.compass": "S,SV,V,JV,J,JZ,Z,SZ",
   "map.nsg": "Přírodní rezervace",
   "map.ffh": "Evropsky významná lokalita (Natura 2000)",
   "map.prohibited": "Zákaz koupání nebo plavby",

@@ -19,10 +19,11 @@ function wxIcon(code: number | null | undefined): string {
   return "⛈️";
 }
 
-const CARD8 = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"];
-function dirLabel(deg: number | null | undefined): string {
+// Himmelsrichtungen in der UI-Sprache (map.compass, 8 Kuerzel ab Nord im Uhrzeigersinn) — vorher
+// stand hier fest „N, NO, O, SO …", also deutsch auch in der englischen Oberflaeche.
+function dirLabel(deg: number | null | undefined, kompass: string[]): string {
   if (deg == null) return "";
-  return CARD8[Math.round(deg / 45) % 8];
+  return kompass[Math.round(deg / 45) % 8] ?? "";
 }
 
 // Pfeil zeigt, wohin der Wind weht (meteorolog. Richtung = woher -> +180°).
@@ -35,6 +36,7 @@ const kn = (v: number | null | undefined) => (v != null ? Math.round(v) : "–")
 
 export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot?: boolean }) {
   const t = useT();
+  const kompass = t("map.compass").split(",");
   const [data, setData] = useState<SpotWeatherData | null>(null);
   const [done, setDone] = useState(false);
 
@@ -76,7 +78,7 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
             <a href={om} target="_blank" rel="noopener noreferrer" title="Open-Meteo" className="text-base hover:opacity-80">{wxIcon(cur.code)}</a>
             {cur.temp != null && <span className="tabular-nums text-slate-100">{Math.round(cur.temp)}°</span>}
             {cur.wind != null && (
-              <span className="tabular-nums">{kn(cur.wind)} kn <WindArrow deg={cur.dir} /> {dirLabel(cur.dir)}</span>
+              <span className="tabular-nums">{kn(cur.wind)} kn <WindArrow deg={cur.dir} /> {dirLabel(cur.dir, kompass)}</span>
             )}
             <span className="text-xs text-slate-500">{t("wx.now")}</span>
           </span>
@@ -96,7 +98,7 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
                 💨 <span className="tabular-nums">{kn(d.wind_max)}</span>
                 {d.gust_max != null && <span className="text-slate-500">({t("wx.gust")} {kn(d.gust_max)})</span>}
               </div>
-              <div className="text-[11px] text-slate-400"><WindArrow deg={d.dir} /> {dirLabel(d.dir)} · kn</div>
+              <div className="text-[11px] text-slate-400"><WindArrow deg={d.dir} /> {dirLabel(d.dir, kompass)} · kn</div>
               {d.precip != null && d.precip > 0 && <div className="text-[11px] text-sky-400">☔ {d.precip.toFixed(1)} mm</div>}
             </div>
           ))}

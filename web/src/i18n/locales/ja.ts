@@ -1524,6 +1524,7 @@ const ja: Record<string, string> = {
   "map.street": "地図",
   "map.satellite": "衛星",
   "map.fullscreen": "全画面",
+  "map.compass": "北,北東,東,南東,南,南西,西,北西",
   "map.nsg": "自然保護区",
   "map.ffh": "Natura 2000（生息地）",
   "map.prohibited": "遊泳・航行禁止",

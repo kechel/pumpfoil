@@ -1524,6 +1524,7 @@ const zh: Record<string, string> = {
   "map.street": "地图",
   "map.satellite": "卫星",
   "map.fullscreen": "全屏",
+  "map.compass": "北,东北,东,东南,南,西南,西,西北",
   "map.nsg": "自然保护区",
   "map.ffh": "Natura 2000 栖息地保护区",
   "map.prohibited": "禁止游泳或划船",
