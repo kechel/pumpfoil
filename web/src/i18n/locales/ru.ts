@@ -1523,6 +1523,7 @@ const ru: Record<string, string> = {
   "phome.byFoil": "По фойлу",
   "map.street": "Карта",
   "map.satellite": "Спутник",
+  "map.fullscreen": "Во весь экран",
   "social.title": "Ленты соцсетей",
   "social.hint": "Видео сообщества в одном месте, воспроизводятся прямо здесь — без алгоритма посередине. <b>Укажите свой канал YouTube в профиле, и ваши видео появятся в ленте.</b> (Instagram и TikTok этого не позволяют.)",
   "social.prev": "Назад",

@@ -1634,6 +1634,7 @@ const cs: Record<string, string> = {
   "phome.byFoil": "Podle foilu",
   "map.street": "Mapa",
   "map.satellite": "Satelit",
+  "map.fullscreen": "Celá obrazovka",
   "social.title": "Feedy ze sociálních sítí",
   "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. <b>Zadej svůj YouTube kanál v profilu a tvoje videa se přidají.</b> (Instagram a TikTok to neumožňují.)",
   "social.prev": "Zpět",

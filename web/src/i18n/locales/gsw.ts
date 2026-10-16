@@ -1182,6 +1182,7 @@ const gsw: Record<string, string> = {
   "phome.byFoil": "Pro Foil",
   "map.street": "Charte",
   "map.satellite": "Satellit",
+  "map.fullscreen": "Vollbild",
   "social.title": "Social-Media-Feeds",
   "social.hint": "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. <b>Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit.</b> (Instagram und TikTok erlaubed das leider nöd.)",
   "social.prev": "Zrugg",

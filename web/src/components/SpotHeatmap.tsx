@@ -89,7 +89,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
       // Die Seite soll beim Scrollen nicht an der Karte haengenbleiben.
       scrollWheelZoom: false, dragging: !L.Browser.mobile,
     }).setView([mitte.lat, mitte.lon], 15);
-    basiskarten(m, { street: tRef.current("map.street"), satellite: tRef.current("map.satellite") });
+    basiskarten(m, { street: tRef.current("map.street"), satellite: tRef.current("map.satellite"), fullscreen: tRef.current("map.fullscreen") });
     karte.current = { m, grp: L.layerGroup().addTo(m), renderer: L.canvas({ padding: 0.2 }) };
     let weg = false;
     const u = UMKREIS_GRAD;

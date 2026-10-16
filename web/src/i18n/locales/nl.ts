@@ -1634,6 +1634,7 @@ const nl: Record<string, string> = {
   "phome.byFoil": "Per foil",
   "map.street": "Kaart",
   "map.satellite": "Satelliet",
+  "map.fullscreen": "Volledig scherm",
   "social.title": "Social-media-feeds",
   "social.hint": "Video's uit de community, op één plek en hier af te spelen — zonder algoritme ertussen. <b>Zet je YouTube-kanaal in je profiel, dan doen jouw video's mee.</b> (Instagram en TikTok staan dit niet toe.)",
   "social.prev": "Vorige",

@@ -213,3 +213,14 @@ html.theme-light .pf-million {
 @media (prefers-reduced-motion: reduce) {
   .pf-million { animation: none; text-shadow: 0 0 0.14em currentColor; }
 }
+
+/* Karte im Vollbild ohne Fullscreen-API (iPhone-Safari): ueber den ganzen Bildschirm legen.
+   Siehe lib/mapTiles.ts vollbildKnopf. */
+.leaflet-container.karte-vollbild {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 10000 !important;
+  border-radius: 0 !important;
+}
