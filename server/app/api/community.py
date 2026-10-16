@@ -1706,6 +1706,20 @@ def heatmap(period: str = Query("365d"), z: int = Query(10, ge=0, le=22),
     return abfragen(period, z, w, s, e, n, art)
 
 
+@router.get("/spot/{spot_id}/startpositionen")
+def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
+                         user: models.User = Depends(current_user),
+                         db: Session = Depends(get_db)) -> dict:
+    """Verlaessliche Startpositionen eines Spots fuer die Routen-Vorschlaege (app/heatmap.py).
+    Fuer alle gleich, wie die Heatmap."""
+    from ..heatmap import startpositionen
+    sp = db.get(models.Spot, spot_id)
+    if sp is None or sp.lat is None or sp.lon is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    ids = [i for (i,) in db.query(models.Session.id).filter(models.Session.spot_id == spot_id)]
+    return {"positionen": startpositionen(ids, float(sp.lat), float(sp.lon), min_starts)}
+
+
 @router.get("/foiler/{user_id}")
 def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:

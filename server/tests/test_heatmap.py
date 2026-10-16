@@ -58,3 +58,25 @@ def test_start_schwelle_zwei_laeufe(monkeypatch, tmp_path):
     alle = np.concatenate([zwei_in_einer, einzeln])
     kr, nr = np.unique(alle, return_counts=True)
     assert set(kr[nr >= H.START_MIN_LAEUFE]) == set(np.unique(zwei_in_einer))
+
+
+def test_startpositionen_buendel_und_schwellen(monkeypatch):
+    """Starts naeher als 25 m bilden eine Position; sie zaehlt ab min_starts UND 2 Sessions."""
+    import numpy as np
+    from app import heatmap as H
+    steg, insel = [9.3794, 47.8628], [9.3778, 47.8621]          # ~130 m auseinander
+    def starts(*pts):
+        return H._zellen([list(p) for p in pts], eindeutig=False)
+    cache = {
+        1: ("fp", None, None, starts(steg, steg, [9.37942, 47.86282])),
+        2: ("fp", None, None, starts(steg, insel)),
+        3: ("fp", None, None, starts(insel, insel)),
+        4: ("fp", None, None, starts([9.3810, 47.8610]) ),   # einmalig weit weg
+    }
+    monkeypatch.setattr(H, "_zellen_cache", lambda: cache)
+    r = H.startpositionen([1, 2, 3, 4], 47.8628, 9.3794, min_starts=3)
+    assert [(p["starts"], p["sessions"]) for p in r] == [(4, 2), (3, 2)]
+    assert abs(r[0]["lat"] - 47.8628) < 0.0002
+    # nur aus EINER Session -> keine verlaessliche Position, auch bei vielen Starts
+    cache[5] = ("fp", None, None, starts(*([[9.3830, 47.8600]] * 6)))
+    assert len(H.startpositionen([1, 2, 3, 5], 47.8628, 9.3794, min_starts=3)) == 2
