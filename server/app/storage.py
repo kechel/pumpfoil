@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import base64
 import json
+import math
 import re
 from pathlib import Path
 
@@ -360,14 +361,71 @@ def load_foil_status(session_uuid: str) -> list | None:
     return json.loads(f.read_text()) if f.exists() else None
 
 
-def load_gps(session_uuid: str) -> list:
-    """Alle GPS-Chunks in Index-Reihenfolge zu einer flachen Sample-Liste."""
+def load_gps(session_uuid: str, roh: bool = False) -> list:
+    """Alle GPS-Chunks in Index-Reihenfolge zu einer flachen Sample-Liste.
+
+    Standard: fehlendes Tempo aufgefuellt (s. `tempo_auffuellen`). `roh=True` liefert die Datei
+    unveraendert — fuer alles, was die Punkte wieder WEGSCHREIBT (Zusammenfuehren)."""
     gps_dir = session_dir(session_uuid) / "gps"
     if not gps_dir.exists():
         return []
     out: list = []
     for f in sorted(gps_dir.glob("*.json"), key=lambda p: int(p.stem)):
         out.extend(json.loads(f.read_text()))
+    return out if roh else tempo_auffuellen(out)
+
+
+# Ab diesem Positions-Tempo ist ein gemeldetes Tempo 0 kein Stillstand, sondern eine Luecke.
+# Stehen/Treiben bleibt darunter (Positionsrauschen im Stand liegt bei wenigen dm/s).
+TEMPO_LUECKE_MPS = 1.0
+
+
+def tempo_auffuellen(samples: list) -> list:
+    """Fehlendes Uhr-Tempo (Feld 4) aus den Positionen ersetzen. Die Datei bleibt unberuehrt.
+
+    Das Tempo der Uhr ist Doppler-Tempo vom GPS-Chip und genauer als zwei Positionen — es bleibt
+    die Quelle, auf der auch die Modelle trainiert sind. Ersetzt wird nur, was KEINE Messung ist:
+      * negativ (Wear ab 1.2.42: -1 = „Geraet liefert kein Tempo") -> immer aus den Positionen;
+      * genau 0, waehrend die Positionen >= TEMPO_LUECKE_MPS zeigen -> aus den Positionen.
+    Befund 16.10.2026 (#16840, Xiaomi Watch 2 Pro, Wear 1.2.41, damals noch 0 statt -1): in 37 %
+    der Fahrsekunden Tempo 0 bei sauberer Spur. Die Erkennung teilte zwei Laeufe mittendrin,
+    Startpunkte lagen im Wasser, die Tempo-Faerbung zeigte Nullen. Mit Auffuellen: 7 statt 8
+    Laeufe, wie die Startzaehlung, und unveraenderte Laeufe in den Sessions davor."""
+    out = samples
+    for i in range(1, len(samples)):
+        r = samples[i]
+        if len(r) < 4 or r[3] is None:
+            continue
+        try:
+            v_uhr = float(r[3])
+        except (TypeError, ValueError):
+            continue
+        if v_uhr > 0:
+            continue
+        p = samples[i - 1]
+        v_pos = None
+        try:
+            dt = (float(r[0]) - float(p[0])) / 1000.0
+            if dt > 0 and None not in (r[1], r[2], p[1], p[2]):
+                dy = (float(r[1]) - float(p[1])) * 111320.0
+                dx = (float(r[2]) - float(p[2])) * 111320.0 * math.cos(math.radians(float(r[1])))
+                v_pos = math.hypot(dx, dy) / dt
+        except (TypeError, ValueError, IndexError):
+            v_pos = None
+        if v_uhr < 0:
+            neu = round(v_pos, 3) if v_pos is not None else 0.0
+        elif v_pos is not None and v_pos >= TEMPO_LUECKE_MPS:
+            neu = round(v_pos, 3)
+        else:
+            continue
+        if out is samples:
+            out = list(samples)
+        out[i] = list(r[:3]) + [neu] + list(r[4:])
+    if out and len(out[0]) > 3 and out[0][3] is not None and isinstance(out[0][3], (int, float)) \
+            and out[0][3] < 0:
+        if out is samples:
+            out = list(samples)
+        out[0] = list(out[0][:3]) + [0.0] + list(out[0][4:])
     return out
 
 

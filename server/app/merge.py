@@ -141,7 +141,9 @@ def _trimmed_mit_achse(session) -> tuple[list, np.ndarray, np.ndarray]:
     """Wie `_trimmed`, liefert zusätzlich die Session-ms je Accel-Sample (auf den Trim rebased)."""
     from .analysis.timebase import _accel_chunk_counts, build_timebase
 
-    gps = storage.load_gps(session.session_uuid)
+    # roh: die Punkte werden fuer die zusammengefuehrte Session wieder geschrieben — dort gehoert
+    # das Tempo hin, wie die Uhr es gemeldet hat, nicht das aufgefuellte.
+    gps = storage.load_gps(session.session_uuid, roh=True)
     accel = storage.load_accel(session.session_uuid)
     lo = session.trim_start_ms if session.trim_start_ms is not None else 0
     hi = session.trim_end_ms if session.trim_end_ms is not None else (gps[-1][0] if gps else 0)
