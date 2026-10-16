@@ -304,8 +304,9 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
         place_lat=first.place_lat, place_lon=first.place_lon,
         foil_id=first.foil_id, is_pumpfoil=first.is_pumpfoil,
         **_einstufung(sessions),
-        # Setup des ERSTEN Teils uebernehmen, nicht den heutigen Profil-Standard.
-        **uebernehmen(first),
+        # Setup der Teile uebernehmen (je Feld der erste Teil, der es hat), nicht den heutigen
+        # Profil-Standard.
+        **uebernehmen(sessions),
         mod_ok=any(x.mod_ok for x in sessions),
         # youtube_url (Legacy-Spiegel) setzt sync_video_mirror nach dem Übernehmen der Video-Rows.
     )

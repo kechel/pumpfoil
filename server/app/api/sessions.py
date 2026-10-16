@@ -460,9 +460,11 @@ def _resolve_setup(db: Session, s: models.Session, owned: bool = True) -> dict |
     des Besitzers (settings_json). Je Komponente `*_is_default`, damit die UI „geerbt" zeigen
     kann. None, wenn nichts gesetzt ist (dann blendet die UI den Block aus).
 
-    Die Vererbung greift seit 10.09.2026 nur noch bei ALTEN Sessions: neu angelegte bekommen den
-    Standard als Schnappschuss mitgeschrieben (`app/setup_snapshot.py`), weil ein Wechsel des
-    Standards sonst die ganze Historie umschreibt — von einem Nutzer gemeldet und belegt."""
+    Seit 16.10.2026 erben Stab/Mast/Shim/Board NICHT mehr: neu angelegte Sessions bekommen den
+    Standard seit 10.09. als Schnappschuss (`app/setup_snapshot.py`); eine Session ohne Angabe
+    bleibt leer. Vorher zeigten alle alten Sessions den HEUTIGEN Favoriten (Nutzer-Feedback: zwei
+    Boards, ein Favorit, und die ganze Historie stand auf dem Favoriten). Nur das Gewicht erbt
+    weiter (`_owner_weight_kg`) — es ist keine Ausruestung, und die Leistung rechnet damit."""
     st: dict = {}
     if s.user and s.user.settings_json:
         try:
@@ -470,7 +472,7 @@ def _resolve_setup(db: Session, s: models.Session, owned: bool = True) -> dict |
         except ValueError:
             st = {}
     out: dict = {}
-    stab_id = s.stab_id if s.stab_id is not None else st.get("stab_id")
+    stab_id = s.stab_id
     if stab_id:
         stab = db.get(models.Stab, int(stab_id))
         if stab is not None:
@@ -479,15 +481,15 @@ def _resolve_setup(db: Session, s: models.Session, owned: bool = True) -> dict |
                 "id": stab.id, "brand": stab.brand, "model": stab.model, "size": stab.size,
                 "is_default": s.stab_id is None,
             }
-    mast = s.mast_len_cm if s.mast_len_cm is not None else st.get("mast_len_cm")
+    mast = s.mast_len_cm
     if mast:
         out["mast_len_cm"] = int(mast)
         out["mast_is_default"] = s.mast_len_cm is None
-    shim = s.shim_deg if s.shim_deg is not None else st.get("shim_deg")
+    shim = s.shim_deg
     if shim is not None:   # 0° ist ein gültiger Wert
         out["shim_deg"] = round(float(shim), 1)
         out["shim_is_default"] = s.shim_deg is None
-    board_id = s.board_id if s.board_id is not None else st.get("board_id")
+    board_id = s.board_id
     if board_id:
         b = db.get(models.Board, int(board_id))
         if b is not None:
@@ -869,36 +871,30 @@ def list_sessions(
                 o.foil = {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
                           "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None}
     # Restliches Setup (Stab/Mast/Shim/Board) je Session — die Karten in Liste und auf der
-    # Startseite zeigen es an, wenn es hinterlegt ist. Batch statt _resolve_setup je Session:
-    # das sind alles eigene Sessions, die Standards kommen also aus EINEM settings_json.
-    _st: dict = {}
-    if user.settings_json:
-        try:
-            _st = json.loads(user.settings_json) or {}
-        except ValueError:
-            _st = {}
-    _sids = {s.stab_id if s.stab_id is not None else _st.get("stab_id") for s in rows}
-    _bids = {s.board_id if s.board_id is not None else _st.get("board_id") for s in rows}
+    # Startseite zeigen es an, wenn es hinterlegt ist. Batch statt _resolve_setup je Session;
+    # kein Erben vom Standard (16.10.2026, s. _resolve_setup).
+    _sids = {s.stab_id for s in rows}
+    _bids = {s.board_id for s in rows}
     _smap = {x.id: x for x in db.query(models.Stab).filter(
         models.Stab.id.in_([int(i) for i in _sids if i])).all()} if any(_sids) else {}
     _bmap = {x.id: x for x in db.query(models.Board).filter(
         models.Board.id.in_([int(i) for i in _bids if i])).all()} if any(_bids) else {}
     for o, s in zip(outs, rows):
         setup: dict = {}
-        sid = s.stab_id if s.stab_id is not None else _st.get("stab_id")
+        sid = s.stab_id
         st_obj = _smap.get(int(sid)) if sid else None
         if st_obj is not None:
             setup["stab"] = {"id": st_obj.id, "brand": st_obj.brand, "model": st_obj.model,
                              "size": st_obj.size, "is_default": s.stab_id is None}
-        mast = s.mast_len_cm if s.mast_len_cm is not None else _st.get("mast_len_cm")
+        mast = s.mast_len_cm
         if mast:
             setup["mast_len_cm"] = int(mast)
             setup["mast_is_default"] = s.mast_len_cm is None
-        shim = s.shim_deg if s.shim_deg is not None else _st.get("shim_deg")
+        shim = s.shim_deg
         if shim is not None:
             setup["shim_deg"] = round(float(shim), 1)
             setup["shim_is_default"] = s.shim_deg is None
-        bid = s.board_id if s.board_id is not None else _st.get("board_id")
+        bid = s.board_id
         b_obj = _bmap.get(int(bid)) if bid else None
         if b_obj is not None:
             setup["board"] = {"id": b_obj.id, "name": b_obj.name, "volume_l": b_obj.volume_l,
@@ -4023,15 +4019,15 @@ def _rig_geometrie(db: Session, s: models.Session) -> dict:
     setze("foil_span_cm", foil.span_cm if foil else None, RIG_STANDARD["foil_span_cm"])
     setze("foil_area_cm2", foil.area_cm2 if foil else None, RIG_STANDARD["foil_area_cm2"])
 
-    stab_id = s.stab_id if s.stab_id is not None else st.get("stab_id")
+    stab_id = s.stab_id
     stab = db.get(models.Stab, int(stab_id)) if stab_id else None
     setze("stab_span_cm", stab.span_cm if stab else None, RIG_STANDARD["stab_span_cm"])
     setze("stab_area_cm2", stab.area_cm2 if stab else None, RIG_STANDARD["stab_area_cm2"])
 
-    setze("mast_len_cm", s.mast_len_cm if s.mast_len_cm is not None else st.get("mast_len_cm"),
+    setze("mast_len_cm", s.mast_len_cm,
           RIG_STANDARD["mast_len_cm"])
 
-    board_id = s.board_id if s.board_id is not None else st.get("board_id")
+    board_id = s.board_id
     board = db.get(models.Board, int(board_id)) if board_id else None
     setze("board_len_cm", board.length_cm if board else None, RIG_STANDARD["board_len_cm"])
 
@@ -4046,7 +4042,7 @@ def _rig_geometrie(db: Session, s: models.Session) -> dict:
     g["x_stab_cm"] = round(X_STAB_ANTEIL * lb, 1)
     g["fuse_len_cm"] = round(abs(g["x_stab_cm"] - g["x_foil_cm"]), 1)
     gemessen["x_mast_cm"] = gemessen["x_stab_cm"] = False     # s. Kommentar oben
-    g["shim_deg"] = float(s.shim_deg if s.shim_deg is not None else (st.get("shim_deg") or 0.0))
+    g["shim_deg"] = float(s.shim_deg if s.shim_deg is not None else 0.0)
     g["gemessen"] = gemessen
     g["name"] = {"foil": f"{foil.brand} {foil.model}" if foil else None,
                  "stab": f"{stab.brand} {stab.model}" if stab else None,

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from .. import models
+from .. import models, setup_snapshot
 from ..db import get_db
 from ..push import send_push, wants
 from .deps import current_user
@@ -158,6 +158,11 @@ def accept(transfer_id: int, user: models.User = Depends(current_user),
     s.user_id = user.id
     # Foil gehörte dem Absender → auf Standard-Foil des Empfängers zurücksetzen.
     s.foil_id = None
+    # Ebenso das restliche Setup (16.10.2026): Board und Gewicht gehören dem Absender (das Board
+    # ist sogar SEIN Datensatz), Stab/Mast/Shim waren seine Wahl, nicht die des Empfängers. Leer
+    # statt falsch — der Empfänger trägt nach; das Gewicht kommt dann aus seinem Profil.
+    for f in setup_snapshot.FELDER:
+        setattr(s, f, None)
     t.status = "accepted"
     t.resolved_at = _utcnow()
     db.commit()
