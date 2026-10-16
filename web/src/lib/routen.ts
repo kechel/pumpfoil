@@ -10,7 +10,7 @@
 // gleicher Punktzahl liegt so oben die Route, die am Ufer entlang fuehrt statt quer hinueber. Positionen kommen vom Server (GET /api/community/spot/{id}/
 // startpositionen), die Rechnung ist hier — bei einer Handvoll Punkte ist sie trivial.
 
-export type Startposition = { lat: number; lon: number; starts: number; sessions: number };
+export type Startposition = { lat: number; lon: number; starts: number; sessions: number; fahrer?: number };
 // kreuzungen: Paare von Abschnitten, die sich kreuzen (nur ohne „Ohne Ueberschneidungen" > 0).
 // doppelt: Abschnitte, die schon einmal gefahren wurden (in einer der beiden Richtungen) — beim
 // Rundkurs mit zwei Punkten der Rueckweg. Beides fuer die Tabelle und die Empfehlung.
@@ -19,18 +19,23 @@ export type Route = { punkte: number[]; meter: number; wertung: number; richtung
 // rundkurs: zurueck zum Startpunkt (Jan, 16.10.2026, Vorgabe an). Der Rueckweg darf derselbe
 // Abschnitt sein wie der erste, nur umgekehrt — das ist keine Ueberschneidung. `punkte` zaehlt
 // die verschiedenen Startpunkte; in `Route.punkte` steht der Start dann am Ende noch einmal.
-export type RoutenOptionen = { punkte: number; ohneKreuzung: boolean; rundkurs?: boolean; jeRichtung?: number };
+// ausgeschlossen: Startplaetze, die keine Route anfahren soll (Jan: „wenn man weiss, dass ein
+// bestimmter Start nicht funktioniert oder man selber da nicht starten kann").
+export type RoutenOptionen = { punkte: number; ohneKreuzung: boolean; rundkurs?: boolean; jeRichtung?: number;
+                               ausgeschlossen?: Set<number> };
 export type RoutenErgebnis = { routen: Route[]; gekuerzt: boolean; genutzt: number };
 
 // Grenzen gegen kombinatorisches Wachstum an grossen Seen (Jan, 16.10.2026: „aus Performance-
-// Gruenden nach oben begrenzen"). Gemessen am groessten Fall, Lac d'Annecy (33 Startpunkte ab 2
-// Starts): ohne Abbruch bis 230 ms je Reglerbewegung und bei erreichter Schrittgrenze ZUFAELLIGE
-// Teilergebnisse. Jetzt: nur die meistgenutzten MAX_POSITIONEN, und die Suche behaelt je
-// Startrichtung nur die besten `jeRichtung` Routen — ein Ast, der schon schlechter ist als die
-// schlechteste behaltene, wird nicht weiterverfolgt (die Wertung waechst nur). Naechste Punkte
-// zuerst, damit frueh gute Routen da sind und der Abbruch greift.
-export const MAX_POSITIONEN = 12;
-const MAX_SCHRITTE = 300000;
+// Gruenden nach oben begrenzen" — aber ALLE verlaesslichen Startpunkte anzeigen und verplanen,
+// keine feste Hoechstzahl). Begrenzt wird deshalb die SUCHE, nicht die Punkte:
+//   * von jedem Punkt aus nur die MAX_NACHBARN naechsten im erlaubten Abstand (eine Route springt
+//     nicht zum zehntnaechsten Punkt),
+//   * je Startrichtung nur die besten `jeRichtung` Routen; ein Ast, der schon schlechter ist als
+//     die schlechteste behaltene, wird nicht weiterverfolgt (die Wertung waechst nur),
+//   * naechste Punkte zuerst, damit frueh gute Routen da sind und der Abbruch greift,
+//   * ein Zeitbudget; ist es erschoepft, gibt es die besten bis dahin (`gekuerzt`).
+const MAX_NACHBARN = 8;
+const ZEIT_MS = 150;
 
 export function abstandM(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
   const kx = 111320 * Math.cos((a.lat * Math.PI) / 180);
@@ -47,9 +52,9 @@ export function kreuzen(a: P, b: P, c: P, d: P): boolean {
 
 export function routenVorschlagen(pos: Startposition[], start: number, minM: number, maxM: number,
                                   opt: RoutenOptionen): RoutenErgebnis {
-  const p = pos.slice(0, MAX_POSITIONEN);
+  const p = pos;
   const leer = { routen: [], gekuerzt: false, genutzt: p.length };
-  const ziel = Math.min(Math.max(2, Math.round(opt.punkte)), p.length);
+  const ziel = Math.min(Math.max(2, Math.round(opt.punkte)), p.length - (opt.ausgeschlossen?.size ?? 0));
   if (p.length < 2 || start < 0 || start >= p.length) return leer;
   const k = opt.jeRichtung ?? 20;
   const kx = 111320 * Math.cos((p[0].lat * Math.PI) / 180);
@@ -57,10 +62,14 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
   const d = p.map((a) => p.map((b) => abstandM(a, b)));
   // Nachbarn je Punkt, naechste zuerst
   const nachbarn = p.map((_, i) => p.map((_, j) => j)
-    .filter((j) => j !== i && d[i][j] >= minM && d[i][j] <= maxM)
-    .sort((x, y) => d[i][x] - d[i][y]));
+    .filter((j) => j !== i && d[i][j] >= minM && d[i][j] <= maxM && !opt.ausgeschlossen?.has(j))
+    .sort((x, y) => d[i][x] - d[i][y])
+    .slice(0, MAX_NACHBARN));
   const beste: Route[][] = Array.from({ length: 8 }, () => []);   // je Richtung, aufsteigend
   let schritte = 0;
+  let gekuerzt = false;
+  const bis = (typeof performance !== "undefined" ? performance.now() : Date.now()) + ZEIT_MS;
+  const jetzt = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
   const weg: number[] = [start];
   const besucht = new Set([start]);
   const kreuztFrueheren = (i: number, j: number) => {
@@ -81,7 +90,8 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
   };
   const schranke = (r: number) => (beste[r].length < k ? Infinity : beste[r][k - 1].wertung);
   const gehe = (i: number, meter: number, wertung: number, r: number) => {
-    if (++schritte > MAX_SCHRITTE) return;
+    if (gekuerzt) return;
+    if ((++schritte & 1023) === 0 && jetzt() > bis) { gekuerzt = true; return; }
     if (wertung >= schranke(r)) return;
     if (weg.length === ziel) {
       let punkte = [...weg];
@@ -126,7 +136,7 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
   };
   gehe(start, 0, 0, 0);
   const routen = beste.flat().sort((x, y) => x.wertung - y.wertung);
-  return { routen, gekuerzt: schritte > MAX_SCHRITTE, genutzt: p.length };
+  return { routen, gekuerzt, genutzt: p.length };
 }
 
 const RICHTUNGEN = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"];

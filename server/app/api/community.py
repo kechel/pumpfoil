@@ -15,7 +15,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from sqlalchemy import Float, and_, cast, false, func, literal, not_, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
@@ -1708,6 +1708,7 @@ def heatmap(period: str = Query("365d"), z: int = Query(10, ge=0, le=22),
 
 @router.get("/spot/{spot_id}/startpositionen")
 def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
+                         min_fahrer: int = Query(1, ge=1, le=50),
                          user: models.User = Depends(current_user),
                          db: Session = Depends(get_db)) -> dict:
     """Verlaessliche Startpositionen eines Spots fuer die Routen-Vorschlaege (app/heatmap.py).
@@ -1716,8 +1717,108 @@ def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
     sp = db.get(models.Spot, spot_id)
     if sp is None or sp.lat is None or sp.lon is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
-    ids = [i for (i,) in db.query(models.Session.id).filter(models.Session.spot_id == spot_id)]
-    return {"positionen": startpositionen(ids, float(sp.lat), float(sp.lon), min_starts)}
+    zeilen = db.query(models.Session.id, models.Session.user_id).filter(models.Session.spot_id == spot_id).all()
+    return {"positionen": startpositionen([i for i, _u in zeilen], float(sp.lat), float(sp.lon), min_starts,
+                                          min_fahrer, {i: u for i, u in zeilen})}
+
+
+# --- Gemerkte Routen (Jan, 16.10.2026) ---------------------------------------------------------
+# Oeffentlich fuer alle sichtbar, angezeigt wird nur das Datum, nie wer sie gemerkt hat. Kein
+# Freitext -> nichts zu moderieren; gegen Massen-Eintraege eine Obergrenze je Nutzer und Spot.
+ROUTEN_JE_NUTZER_UND_SPOT = 20
+ROUTE_MAX_PUNKTE = 60
+ROUTE_MAX_ABSTAND_KM = 10.0      # alle Punkte in diesem Umkreis um den Spot
+_EINSTELLUNGEN = {"min_starts": int, "start": list, "richtung": (int, type(None)), "min_m": (int, float),
+                  "max_m": (int, float), "punkte": int, "ohne_kreuzung": bool, "rundkurs": bool,
+                  "ausgeschlossen": list, "min_fahrer": int}
+
+
+def _routen_schluessel(punkte: list) -> str:
+    """Punktfolge auf ~11 m gerundet, richtungsunabhaengig: dieselbe Route = derselbe Schluessel."""
+    seq = [f"{round(a, 4)},{round(b, 4)}" for a, b in punkte]
+    return min(";".join(seq), ";".join(reversed(seq)))
+
+
+def _route_meter(punkte: list) -> float:
+    import math
+    m = 0.0
+    for (a1, b1), (a2, b2) in zip(punkte, punkte[1:]):
+        m += math.hypot((b2 - b1) * 111320 * math.cos(math.radians(a1)), (a2 - a1) * 111320)
+    return m
+
+
+@router.get("/spot/{spot_id}/routen")
+def spot_routen(spot_id: int, user: models.User = Depends(current_user),
+                db: Session = Depends(get_db)) -> list[dict]:
+    """Gemerkte Routen eines Spots, je Route EIN Eintrag (juengstes Merkdatum). `eigene_id` nur,
+    wenn man sie selbst gemerkt hat (zum Loeschen) — sonst nichts ueber die Merkenden."""
+    R = models.GemerkteRoute
+    zeilen = db.query(R).filter(R.spot_id == spot_id).order_by(R.created_at.desc()).all()
+    raus: dict[str, dict] = {}
+    for z in zeilen:
+        e = raus.get(z.schluessel)
+        if e is None:
+            e = raus[z.schluessel] = {
+                "schluessel": z.schluessel, "gemerkt_am": z.created_at.isoformat(),
+                "punkte": json.loads(z.punkte_json), "einstellungen": json.loads(z.einstellungen_json or "{}"),
+                "meter": round(z.meter), "eigene_id": None}
+        if z.user_id == user.id and e["eigene_id"] is None:
+            e["eigene_id"] = z.id
+    return list(raus.values())
+
+
+@router.post("/spot/{spot_id}/routen")
+def route_merken(spot_id: int, body: dict = Body(...), user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    import math
+    sp = db.get(models.Spot, spot_id)
+    if sp is None or sp.lat is None or sp.lon is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    punkte = body.get("punkte")
+    if not isinstance(punkte, list) or not (2 <= len(punkte) <= ROUTE_MAX_PUNKTE):
+        raise HTTPException(422, "punkte")
+    sauber = []
+    for p in punkte:
+        if (not isinstance(p, list) or len(p) != 2
+                or not all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in p)):
+            raise HTTPException(422, "punkte")
+        lat, lon = float(p[0]), float(p[1])
+        if math.hypot((lon - sp.lon) * 111.32 * math.cos(math.radians(sp.lat)),
+                      (lat - sp.lat) * 111.32) > ROUTE_MAX_ABSTAND_KM:
+            raise HTTPException(422, "zu weit vom Spot")
+        sauber.append([round(lat, 6), round(lon, 6)])
+    roh = body.get("einstellungen") or {}
+    if not isinstance(roh, dict):
+        raise HTTPException(422, "einstellungen")
+    einst = {k: roh[k] for k, typ in _EINSTELLUNGEN.items() if k in roh and isinstance(roh[k], typ)}
+    if len(json.dumps(einst)) > 1000:
+        raise HTTPException(422, "einstellungen")
+    R = models.GemerkteRoute
+    schl = _routen_schluessel(sauber)
+    alt = db.query(R).filter(R.spot_id == spot_id, R.user_id == user.id, R.schluessel == schl).first()
+    if alt is not None:                       # schon gemerkt -> nur das Datum auffrischen
+        alt.created_at = datetime.now(timezone.utc)
+        alt.einstellungen_json = json.dumps(einst)
+        db.commit()
+        return {"id": alt.id}
+    if db.query(R).filter(R.spot_id == spot_id, R.user_id == user.id).count() >= ROUTEN_JE_NUTZER_UND_SPOT:
+        raise HTTPException(status.HTTP_409_CONFLICT, "limit")
+    z = R(spot_id=spot_id, user_id=user.id, schluessel=schl, punkte_json=json.dumps(sauber),
+          einstellungen_json=json.dumps(einst), meter=_route_meter(sauber))
+    db.add(z)
+    db.commit()
+    return {"id": z.id}
+
+
+@router.delete("/spot/{spot_id}/routen/{route_id}")
+def route_vergessen(spot_id: int, route_id: int, user: models.User = Depends(current_user),
+                    db: Session = Depends(get_db)) -> dict:
+    z = db.get(models.GemerkteRoute, route_id)
+    if z is None or z.spot_id != spot_id or z.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    db.delete(z)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/foiler/{user_id}")

@@ -602,6 +602,9 @@ def _merge_spot_rows(db, target, sources, lat0):
                   models.Session.place_name: target.name or models.Session.place_name,
                   models.Session.place_water: target.water_name}))
         _notes_umhaengen(db, sp.id, target.id)
+        # gemerkte Routen ziehen mit um (sonst nimmt sie das Loeschen der Quelle per CASCADE mit)
+        (db.query(models.GemerkteRoute).filter(models.GemerkteRoute.spot_id == sp.id)
+         .update({models.GemerkteRoute.spot_id: target.id}))
         if sp.poly_wkt:
             polys.append(_wkt_to_m(sp.poly_wkt, lat0))
         sp.merged_into = target.id
