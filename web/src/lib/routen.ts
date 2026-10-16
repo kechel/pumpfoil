@@ -10,7 +10,8 @@
 // gleicher Punktzahl liegt so oben die Route, die am Ufer entlang fuehrt statt quer hinueber. Positionen kommen vom Server (GET /api/community/spot/{id}/
 // startpositionen), die Rechnung ist hier — bei einer Handvoll Punkte ist sie trivial.
 
-export type Startposition = { lat: number; lon: number; starts: number; sessions: number; fahrer?: number };
+// eigen: selbst gesetzter Punkt („+" auf der Karte), nicht aus echten Starts — rechnet wie jeder andere.
+export type Startposition = { lat: number; lon: number; starts: number; sessions: number; fahrer?: number; eigen?: boolean };
 // kreuzungen: Paare von Abschnitten, die sich kreuzen (nur ohne „Ohne Ueberschneidungen" > 0).
 // doppelt: Abschnitte, die schon einmal gefahren wurden (in einer der beiden Richtungen) — beim
 // Rundkurs mit zwei Punkten der Rueckweg. Beides fuer die Tabelle und die Empfehlung.

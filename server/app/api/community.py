@@ -1723,6 +1723,17 @@ def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
                                           min_fahrer, {i: u for i, u in zeilen}, sport)}
 
 
+@router.get("/spot/{spot_id}/meine_starts")
+def spot_meine_starts(spot_id: int, sport: str = Query("all", max_length=40),
+                      user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Wo der Aufrufer selbst an diesem Spot schon gestartet ist (nur die eigenen Sessions) — fuer
+    die gruene Markierung in der Routenplanung."""
+    from ..heatmap import meine_starts
+    ids = [i for (i,) in db.query(models.Session.id).filter(models.Session.spot_id == spot_id,
+                                                            models.Session.user_id == user.id)]
+    return {"starts": meine_starts(ids, sport)}
+
+
 # --- Gemerkte Routen (Jan, 16.10.2026) ---------------------------------------------------------
 # Oeffentlich fuer alle sichtbar, angezeigt wird nur das Datum, nie wer sie gemerkt hat. Kein
 # Freitext -> nichts zu moderieren; gegen Massen-Eintraege eine Obergrenze je Nutzer und Spot.
@@ -1731,7 +1742,9 @@ ROUTE_MAX_PUNKTE = 60
 ROUTE_MAX_ABSTAND_KM = 10.0      # alle Punkte in diesem Umkreis um den Spot
 _EINSTELLUNGEN = {"min_starts": int, "start": list, "richtung": (int, type(None)), "min_m": (int, float),
                   "max_m": (int, float), "punkte": int, "ohne_kreuzung": bool, "rundkurs": bool,
-                  "ausgeschlossen": list, "min_fahrer": int, "erstes_ziel": (list, type(None)), "ziel": (list, type(None))}
+                  "ausgeschlossen": list, "min_fahrer": int, "erstes_ziel": (list, type(None)), "ziel": (list, type(None)),
+                  "eigene": list}
+EIGENE_MAX = 20   # selbst gesetzte Punkte je Route (Routenplanung, „+" auf der Karte)
 
 
 def _routen_schluessel(punkte: list) -> str:
@@ -1792,7 +1805,12 @@ def route_merken(spot_id: int, body: dict = Body(...), user: models.User = Depen
     if not isinstance(roh, dict):
         raise HTTPException(422, "einstellungen")
     einst = {k: roh[k] for k, typ in _EINSTELLUNGEN.items() if k in roh and isinstance(roh[k], typ)}
-    if len(json.dumps(einst)) > 1000:
+    if "eigene" in einst:
+        # Selbst gesetzte Punkte (nicht aus echten Starts): nur in dieser gemerkten Route gespeichert
+        einst["eigene"] = [[round(float(p[0]), 6), round(float(p[1]), 6)] for p in einst["eigene"][:EIGENE_MAX]
+                           if isinstance(p, list) and len(p) == 2
+                           and all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in p)]
+    if len(json.dumps(einst)) > 2500:
         raise HTTPException(422, "einstellungen")
     R = models.GemerkteRoute
     schl = _routen_schluessel(sauber)

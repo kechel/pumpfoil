@@ -362,3 +362,25 @@ def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3,
                      "starts": int(len(idx)), "sessions": n_sess, "fahrer": n_fahrer})
     raus.sort(key=lambda r: -r["starts"])
     return raus
+
+
+def meine_starts(session_ids, sport: str = "all") -> list[list[float]]:
+    """Wo man selbst schon gestartet ist: die Startzellen der EIGENEN Sessions eines Spots als
+    Mittelpunkte, ohne Doppelte (Jan, 16.10.2026: Startplaetze, an denen man schon gestartet ist,
+    in der Routenplanung gruen). Keine Schwelle wie bei `startpositionen` — ein Start reicht."""
+    cache = _zellen_cache()
+    n = 1 << Z_MAX
+    zellen: set[tuple[int, int]] = set()
+    for sid in session_ids:
+        e = cache.get(sid)
+        if e is None or len(e) < 4 or not len(e[3]):
+            continue
+        if sport != "all" and (e[4] if len(e) > 4 else "pumpfoil") != sport:
+            continue
+        ix, iy = _entpacken(e[3])
+        zellen.update(zip(ix.tolist(), iy.tolist()))
+    raus = []
+    for ix, iy in sorted(zellen):
+        lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (iy + 0.5) / n))))
+        raus.append([round(lat, 6), round((ix + 0.5) / n * 360.0 - 180.0, 6)])
+    return raus
