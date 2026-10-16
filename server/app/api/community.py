@@ -1731,7 +1731,7 @@ ROUTE_MAX_PUNKTE = 60
 ROUTE_MAX_ABSTAND_KM = 10.0      # alle Punkte in diesem Umkreis um den Spot
 _EINSTELLUNGEN = {"min_starts": int, "start": list, "richtung": (int, type(None)), "min_m": (int, float),
                   "max_m": (int, float), "punkte": int, "ohne_kreuzung": bool, "rundkurs": bool,
-                  "ausgeschlossen": list, "min_fahrer": int}
+                  "ausgeschlossen": list, "min_fahrer": int, "erstes_ziel": (list, type(None))}
 
 
 def _routen_schluessel(punkte: list) -> str:

@@ -3,7 +3,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
-import { abstandM, lageText, warumKeine, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
+import { abstandM, lageText, warumKeine, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
 import { rampColor } from "../lib/trackColors";
 import { useT } from "../i18n";
@@ -243,7 +243,7 @@ type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 type Punkt = { lat: number; lon: number };
 export type Gemerkt = {
   schluessel: string; gemerkt_am: string; punkte: [number, number][]; meter: number; eigene_id: number | null;
-  einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; richtung?: number | null; min_m?: number;
+  einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; erstes_ziel?: [number, number] | null; min_m?: number;
                    max_m?: number; punkte?: number; ohne_kreuzung?: boolean; rundkurs?: boolean;
                   ausgeschlossen?: [number, number][] };
 };
@@ -330,7 +330,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   const [anzahl, setAnzahl] = useState(6);            // Startpunkte auf der Route (Start mitgezaehlt)
   const [ohneKreuzung, setOhneKreuzung] = useState(true);
   const [rundkurs, setRundkurs] = useState(true);
-  // Richtung des ersten Abschnitts (Jan: „am Startpunkt 1 entweder Richtung W oder NO starten");
+  // Erstes Ziel = die Richtung, in die man losfaehrt (Jan: statt Himmelsrichtung der naechste
+  // Startplatz); Index in `pos`.
   // null = beliebig. Filtert die berechnete Liste, braucht keine neue Rechnung.
   const [richtung, setRichtung] = useState<number | null>(null);
   const [aus, setAus] = useState<Set<number>>(new Set());          // ausgeschlossene Startplaetze
@@ -408,14 +409,16 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       ? (ergebnis.routen.find((r) => r.punkte.join("-") === idx.join("-"))          // gemerkte Richtung zuerst
          ?? ergebnis.routen.find((r) => r.punkte.join("-") === [...idx].reverse().join("-")))
       : undefined;
-    setRichtung(wieder.einstellungen.richtung ?? null);
+    const ez = wieder.einstellungen.erstes_ziel;
+    const ezIdx = ez ? naechster(pos, { lat: ez[0], lon: ez[1] }) : -1;
+    setRichtung(ezIdx >= 0 ? ezIdx : null);
     setGewaehlt(passt ? passt.punkte.join("-") : null);
     setUeberlagert(passt ? null : wieder);
     setWieder(null);
     aufrufLaeuft.current = false;
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  const richtungen = ergebnis ? [...new Set(ergebnis.routen.map((r) => r.richtung))].sort((a, b) => a - b) : [];
+  const richtungen = ergebnis ? [...new Set(ergebnis.routen.map((r) => r.erstesZiel))].sort((a, b) => a - b) : [];
   const listeFuer = (rich: number | null): Route[] => {
     if (!ergebnis) return [];
     const wert = (r: Route): number[] => {
@@ -433,7 +436,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       return 0;
     };
     const empf = (a: Route, b: Route) => (a.kreuzungen - b.kreuzungen) || (a.doppelt - b.doppelt) || (a.wertung - b.wertung);
-    return ergebnis.routen.filter((r) => rich == null || r.richtung === rich).sort(empf).slice(0, 20).sort(vgl);
+    return ergebnis.routen.filter((r) => rich == null || r.erstesZiel === rich).sort(empf).slice(0, 20).sort(vgl);
   };
   const routen = listeFuer(richtung);
   // Nach jeder Berechnung die erste Route direkt auswaehlen (Jan) — ausser beim Aufrufen einer
@@ -442,8 +445,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   useEffect(() => {
     if (!wieder) setGewaehlt(ersteRoute);
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
-  // Startrichtung wechseln: nur ein Filter auf die berechnete Liste (die Suche behaelt die besten
-  // Routen JE Richtung) — kein neues Rechnen noetig; die erste der neuen Liste wird gewaehlt.
+  // Erstes Ziel wechseln: nur ein Filter auf die berechnete Liste (die Suche behaelt die besten
+  // Routen JE erstem Ziel) — kein neues Rechnen noetig; die erste der neuen Liste wird gewaehlt.
   const richtungWaehlen = (r: number | null) => {
     setRichtung(r);
     setGewaehlt(listeFuer(r)[0]?.punkte.join("-") ?? null);
@@ -491,7 +494,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     setMerkStatus("…");
     api.spotRouteMerken(spotId, {
       punkte: r.punkte.map((i) => [pos[i].lat, pos[i].lon]),
-      einstellungen: { min_starts: minStarts, min_fahrer: minFahrer, start: [pos[start].lat, pos[start].lon], richtung,
+      einstellungen: { min_starts: minStarts, min_fahrer: minFahrer, start: [pos[start].lat, pos[start].lon],
+                       erstes_ziel: richtung != null ? [pos[richtung].lat, pos[richtung].lon] : null,
                        min_m: minM, max_m: maxM, punkte: anzahl, ohne_kreuzung: ohneKreuzung, rundkurs,
                        ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]) },
     })
@@ -623,13 +627,13 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                     </span>,
                     // Losfahren nach … direkt hinter dem gewaehlten Start (Jan). Die Richtungen
                     // kommen aus der berechneten Liste, deshalb nur, solange sie gilt.
-                    start === i && !veraltet && richtungen.length > 1 && (
+                    start === i && !veraltet && richtungen.length > 0 && (
                       <span key={`r${i}`} className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
                         <span className="text-xs text-slate-400">{t("routes.direction")}</span>
                         {[null, ...richtungen].map((r) => (
                           <button key={String(r)} onClick={() => richtungWaehlen(r)} aria-pressed={richtung === r}
                             className={`${pille(richtung === r)} px-2`}>
-                            {r == null ? t("routes.anyDirection") : richtungName(r)}
+                            {r == null ? t("routes.anyDirection") : platzName(r)}
                           </button>
                         ))}
                       </span>
