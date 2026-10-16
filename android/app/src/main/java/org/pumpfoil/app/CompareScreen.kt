@@ -72,8 +72,6 @@ private enum class CompareMode { RIDER, TRACK, SPEED, PUMP, HR }
 // Farbpalette je Session/Fahrer (wie PWA/iOS).
 private val COMPARE_PALETTE = listOf(0x2DD4BFL, 0xF59E0BL, 0xA78BFAL, 0xF472B6L, 0x60A5FAL, 0x34D399L)
 private fun compareColor(i: Int): Color = Color(0xFF000000L or COMPARE_PALETTE[i % COMPARE_PALETTE.size])
-// 80 statt 30 m wie die Session-Karte (MAX_DRAW_GAP_M): Amazfit-Aussetzer mitten im Lauf verbinden.
-private const val CMP_GAP_M = 80.0
 
 // Eine verglichene Session mit geparstem Track + Farben.
 private class CmpTrack(
@@ -410,13 +408,12 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
                         val idx = lauf.iStart + f * (lauf.iEnd - lauf.iStart)
                         val bis = minOf(idx.toInt(), lauf.iEnd)
                         for (i in lauf.iStart until bis) {
-                            val a = pts.getOrNull(i) ?: continue
-                            val b = pts.getOrNull(i + 1) ?: continue
-                            val pa = GeoPoint(a.second, a.first)
-                            val pb = GeoPoint(b.second, b.first)
-                            if (pa.distanceToAsDouble(pb) > CMP_GAP_M) continue
+                            if (pts.getOrNull(i) == null || pts.getOrNull(i + 1) == null) continue
+                            // wie die Session-Karte: im Lauf durchgehend, Luecken als Kurve (Kurve.kt)
+                            val linie = Kurve.abschnitt(pts, i, lauf.iStart, lauf.iEnd.coerceAtMost(pts.size - 1))
+                            val pa = linie.first(); val pb = linie.last()
                             map.overlays.add(Polyline(map).apply {
-                                setPoints(listOf(pa, pb))
+                                setPoints(linie)
                                 outlinePaint.color = colorAt(cmp, i + 1).toArgb()
                                 outlinePaint.strokeWidth = 4f * dens
                             })
@@ -447,11 +444,10 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
                         val start = seg.iStart.coerceIn(0, pts.size - 1)
                         val end = seg.iEnd.coerceIn(0, pts.size - 1)
                         for (i in start until end) {
-                            val a = pts[i]; val b = pts[i + 1]
-                            val pa = GeoPoint(a.second, a.first); val pb = GeoPoint(b.second, b.first)
-                            if (pa.distanceToAsDouble(pb) > CMP_GAP_M) continue
+                            val linie = Kurve.abschnitt(pts, i, start, end)
+                            val pa = linie.first(); val pb = linie.last()
                             map.overlays.add(Polyline(map).apply {
-                                setPoints(listOf(pa, pb))
+                                setPoints(linie)
                                 outlinePaint.color = colorAt(cmp, i + 1).toArgb()
                                 outlinePaint.strokeWidth = 4f * dens
                             })

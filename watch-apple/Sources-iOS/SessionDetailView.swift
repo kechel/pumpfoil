@@ -1840,6 +1840,37 @@ private class EndPunkt: NSObject, MKAnnotation {
 /// Ein Linienzug gleicher Farbe und Breite (TrackMap). Farben gelten als gleich, wenn sich kein
 /// Kanal um mehr als 0,04 unterscheidet — fuer das Auge derselbe Ton, fuer MapKit ein Overlay
 /// statt Hunderten.
+/// GPS-Luecke innerhalb eines Laufs als weiche Kurve — wie web/src/lib/kurve.ts (Jan, 16.10.2026:
+/// „wenn es schon als ein Lauf erkannt wurde, dann sollte der gps-track auch durchgehend gezeichnet
+/// werden"). Abschnitt i -> i+1, `pts` sind [lon, lat]; ab 12 m Catmull-Rom durch die Nachbarpunkte
+/// aus [lo, hi], darunter die Gerade. In Grad gerechnet — auf Dutzenden Metern bedeutungslos verzerrt.
+func laufAbschnitt(_ pts: [[Double]], _ i: Int, _ lo: Int, _ hi: Int) -> [CLLocationCoordinate2D] {
+    let a = pts[i], b = pts[i + 1]
+    let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
+    let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
+    let abstand: Double = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
+        .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
+    if abstand < 12 { return [ca, cb] }
+    let v: [Double] = i - 1 >= lo ? pts[i - 1] : a
+    let n: [Double] = i + 2 <= hi ? pts[i + 2] : b
+    var out: [CLLocationCoordinate2D] = []
+    for k in 0...12 {
+        let t: Double = Double(k) / 12
+        out.append(CLLocationCoordinate2D(latitude: catmullRom(v[1], a[1], b[1], n[1], t),
+                                          longitude: catmullRom(v[0], a[0], b[0], n[0], t)))
+    }
+    return out
+}
+
+private func catmullRom(_ p0: Double, _ p1: Double, _ p2: Double, _ p3: Double, _ t: Double) -> Double {
+    let t2: Double = t * t
+    let t3: Double = t2 * t
+    let lin: Double = (-p0 + p2) * t
+    let quad: Double = (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2
+    let kub: Double = (-p0 + 3 * p1 - 3 * p2 + p3) * t3
+    return 0.5 * (2 * p1 + lin + quad + kub)
+}
+
 struct Strich {
     var coords: [CLLocationCoordinate2D]
     var farbe: UIColor
@@ -1885,10 +1916,6 @@ struct TrackMap: UIViewRepresentable {
     var attempts: [AttemptLine] = []
     var carveArcs: [[[Double]]] = []   // je Carve Punkte [lat,lon,g] — nur im TURNS-Modus
     var carveGMax: Double = 0.6
-    // Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
-    // 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
-    // und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
-    private let maxGapM = 80.0
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -1997,17 +2024,14 @@ struct TrackMap: UIViewRepresentable {
             let hi = max(0, min(seg.i_end, points.count - 1))
             var i = lo
             while i < hi {
-                let a = points[i], b = points[i + 1]
-                let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
-                let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
-                let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
-                    .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
-                if gap <= maxGapM {
-                    Strich.anfuegen(&striche, ca, cb, dim ? UIColor.systemGray.withAlphaComponent(0.5) : colorAt(i + 1),
-                                    dim ? 2.5 : 5)
-                    all.append(ca); all.append(cb)
-                    if !dim { sel.append(ca); sel.append(cb) }
+                // Im Lauf IMMER durchgehend, GPS-Luecken als Kurve (laufAbschnitt)
+                let linie = laufAbschnitt(points, i, lo, hi)
+                let farbe: UIColor = dim ? UIColor.systemGray.withAlphaComponent(0.5) : colorAt(i + 1)
+                for k in 0..<(linie.count - 1) {
+                    Strich.anfuegen(&striche, linie[k], linie[k + 1], farbe, dim ? 2.5 : 5)
                 }
+                all.append(linie[0]); all.append(linie[linie.count - 1])
+                if !dim { sel.append(linie[0]); sel.append(linie[linie.count - 1]) }
                 i += 1
             }
             // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.

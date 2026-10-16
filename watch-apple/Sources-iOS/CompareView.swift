@@ -745,10 +745,6 @@ struct CompareMap: UIViewRepresentable {
     var spielModus: Bool = false
     var zeigePumps: Bool = false
     var zeigeGleiten: Bool = false
-    // Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
-    // 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
-    // und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
-    private let maxGapM = 80.0
 
     private func colorFor(_ tr: Track, _ i: Int) -> UIColor {
         switch mode {
@@ -824,17 +820,12 @@ struct CompareMap: UIViewRepresentable {
                 var i = lauf.i_start
                 while i < bis {
                     guard tr.points.indices.contains(i), tr.points.indices.contains(i + 1) else { break }
-                    let a = tr.points[i], b = tr.points[i + 1]
-                    let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
-                    let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
-                    let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
-                        .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
-                    if gap <= maxGapM {
-                        let pl = MKPolyline(coordinates: [ca, cb], count: 2)
-                        co.colors[ObjectIdentifier(pl)] = colorFor(tr, i + 1)
-                        map.addOverlay(pl)
-                        all.append(ca); all.append(cb)
-                    }
+                    // wie die Session-Karte: im Lauf durchgehend, Luecken als Kurve (laufAbschnitt)
+                    let linie = laufAbschnitt(tr.points, i, lauf.i_start, min(lauf.i_end, tr.points.count - 1))
+                    let pl = MKPolyline(coordinates: linie, count: linie.count)
+                    co.colors[ObjectIdentifier(pl)] = colorFor(tr, i + 1)
+                    map.addOverlay(pl)
+                    all.append(linie[0]); all.append(linie[linie.count - 1])
                     i += 1
                 }
                 let k = min(max(Int(idx), 0), tr.points.count - 1)
@@ -856,17 +847,11 @@ struct CompareMap: UIViewRepresentable {
                 let hi = max(0, min(seg.i_end, tr.points.count - 1))
                 var i = lo
                 while i < hi {
-                    let a = tr.points[i], b = tr.points[i + 1]
-                    let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
-                    let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
-                    let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
-                        .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
-                    if gap <= maxGapM {
-                        let pl = MKPolyline(coordinates: [ca, cb], count: 2)
-                        co.colors[ObjectIdentifier(pl)] = colorFor(tr, i + 1)
-                        map.addOverlay(pl)
-                        all.append(ca); all.append(cb)
-                    }
+                    let linie = laufAbschnitt(tr.points, i, lo, hi)
+                    let pl = MKPolyline(coordinates: linie, count: linie.count)
+                    co.colors[ObjectIdentifier(pl)] = colorFor(tr, i + 1)
+                    map.addOverlay(pl)
+                    all.append(linie[0]); all.append(linie[linie.count - 1])
                     i += 1
                 }
             }
