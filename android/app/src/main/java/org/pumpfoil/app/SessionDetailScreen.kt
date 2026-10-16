@@ -1290,7 +1290,10 @@ val ATTEMPT_COLOR = Color(0xFFF59E0B)
 // Track auf OSM-Karte (osmdroid, FLOSS — wie Spots/Web). Nur die Foiling-Läufe
 // (segments[].iStart..iEnd), je Punktpaar nach Modus gefärbt; Nicht-Foiling unsichtbar.
 // Optional weiße Pump-Marker an den erkannten Pump-Stößen.
-private const val MAX_DRAW_GAP_M = 30.0
+// Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
+// 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
+// und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
+private const val MAX_DRAW_GAP_M = 80.0
 
 private fun pumpDot(): android.graphics.drawable.Drawable {
     // Dichteskaliert: 14 PHYSISCHE px waren auf HiDPI-Displays winzig (~5 dp). Jetzt ~13 dp,

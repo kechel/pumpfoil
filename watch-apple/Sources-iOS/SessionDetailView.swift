@@ -1885,7 +1885,10 @@ struct TrackMap: UIViewRepresentable {
     var attempts: [AttemptLine] = []
     var carveArcs: [[[Double]]] = []   // je Carve Punkte [lat,lon,g] — nur im TURNS-Modus
     var carveGMax: Double = 0.6
-    private let maxGapM = 30.0
+    // Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
+    // 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
+    // und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
+    private let maxGapM = 80.0
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 

@@ -745,7 +745,10 @@ struct CompareMap: UIViewRepresentable {
     var spielModus: Bool = false
     var zeigePumps: Bool = false
     var zeigeGleiten: Bool = false
-    private let maxGapM = 30.0
+    // Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
+    // 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
+    // und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
+    private let maxGapM = 80.0
 
     private func colorFor(_ tr: Track, _ i: Int) -> UIColor {
         switch mode {
