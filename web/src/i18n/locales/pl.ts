@@ -1663,6 +1663,7 @@ const pl: Record<string, string> = {
   "map.ffh": "Obszar Natura 2000 (siedliskowy)",
   "map.prohibited": "Zakaz kąpieli lub pływania",
   "map.protectedHint": "Według OpenStreetMap – to nie porada prawna, przestrzegaj lokalnych zasad.",
+  "map.hideArea": "Ukryj",
   "social.title": "Kanały społecznościowe",
   "social.hint": "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. <b>Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą.</b> (Instagram i TikTok na to nie pozwalają.)",
   "social.prev": "Wstecz",

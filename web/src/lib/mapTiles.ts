@@ -24,14 +24,15 @@ export function gewaehlteKarte(): "karte" | "satellit" {
  *  Session-Karte auf Luftbild stellt, findet die Spot-Karte genauso vor. */
 export type KartenTexte = {
   street: string; satellite: string; fullscreen?: string;
-  schutz?: { nsg: string; ffh: string; verbot: string; hinweis: string };
+  schutz?: { nsg: string; ffh: string; verbot: string; hinweis: string; ausblenden: string };
 };
 
 /** Alle Beschriftungen fuer basiskarten aus der Uebersetzung — EINE Stelle statt in jeder Karte. */
 export function kartenTexte(t: (k: string) => string): KartenTexte {
   return {
     street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen"),
-    schutz: { nsg: t("map.nsg"), ffh: t("map.ffh"), verbot: t("map.prohibited"), hinweis: t("map.protectedHint") },
+    schutz: { nsg: t("map.nsg"), ffh: t("map.ffh"), verbot: t("map.prohibited"), hinweis: t("map.protectedHint"),
+              ausblenden: t("map.hideArea") },
   };
 }
 
@@ -163,7 +164,7 @@ function vollbildKnopf(map: L.Map, name: string) {
 // Schutzgebiete IMMER auf jeder Karte (Jan, 16.10.2026, nicht ausblendbar): Naturschutzgebiete,
 // FFH/Natura 2000 und — wo in OSM eingetragen — Bade-/Fahrverbote an Wasserflaechen. Vogelschutz-
 // und Landschaftsschutzgebiete nicht. Daten vom eigenen Server (GET /api/community/schutzgebiete,
-// dort aus OSM/Overpass geholt und 30 Tage zwischengespeichert) — kein weiterer fremder Dienst im
+// dort aus OSM/Overpass geholt und 180 Tage zwischengespeichert) — kein weiterer fremder Dienst im
 // Browser. Erst ab SCHUTZ_AB_ZOOM, darunter waere der Ausschnitt zu gross. Beim Antippen Name und
 // Art plus der Hinweis, dass das keine Rechtsauskunft ist.
 const SCHUTZ_AB_ZOOM = 11;
@@ -198,10 +199,18 @@ function schutzgebiete(map: L.Map, texte: NonNullable<KartenTexte["schutz"]>) {
           if (da.has(f.id)) continue;
           da.add(f.id);
           const art = f.art === "verbot" ? texte.verbot : f.art === "ffh" ? texte.ffh : texte.nsg;
-          L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz" })
+          const flaeche = L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz" })
             .bindPopup(`<b>${esc(f.name || art)}</b><br>${esc(art)}${f.titel && f.titel !== art ? ` · ${esc(f.titel)}` : ""}` +
-              `<br><span style="font-size:11px;opacity:.75">${esc(texte.hinweis)}</span>`)
+              `<br><span style="font-size:11px;opacity:.75">${esc(texte.hinweis)}</span>` +
+              `<br><button type="button" data-ausblenden style="margin-top:6px;font-size:12px;text-decoration:underline">` +
+              `${esc(texte.ausblenden)}</button>`)
             .addTo(grp);
+          // Einzeln ausblenden (Jan) — nur bis zum Neuladen, gespeichert wird nichts. `da` behaelt die
+          // ID, damit ein Nachladen sie nicht gleich wieder zeichnet.
+          flaeche.on("popupopen", (ev: L.PopupEvent) => {
+            const knopf = ev.popup.getElement()?.querySelector("[data-ausblenden]");
+            knopf?.addEventListener("click", () => { map.closePopup(); grp.removeLayer(flaeche); }, { once: true });
+          });
         }
         // Server hat nicht alles holen koennen (Overpass langsam/ueberlastet): spaeter nachfragen
         window.clearTimeout(nochmal);

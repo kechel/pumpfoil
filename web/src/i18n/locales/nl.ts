@@ -1639,6 +1639,7 @@ const nl: Record<string, string> = {
   "map.ffh": "Natura 2000-gebied (habitat)",
   "map.prohibited": "Zwem- of vaarverbod",
   "map.protectedHint": "Volgens OpenStreetMap – geen juridisch advies, houd je aan de regels ter plaatse.",
+  "map.hideArea": "Verbergen",
   "social.title": "Social-media-feeds",
   "social.hint": "Video's uit de community, op één plek en hier af te spelen — zonder algoritme ertussen. <b>Zet je YouTube-kanaal in je profiel, dan doen jouw video's mee.</b> (Instagram en TikTok staan dit niet toe.)",
   "social.prev": "Vorige",

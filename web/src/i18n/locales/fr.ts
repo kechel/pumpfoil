@@ -1273,6 +1273,7 @@ const fr: Record<string, string> = {
   "map.ffh": "Site Natura 2000 (habitats)",
   "map.prohibited": "Baignade ou navigation interdite",
   "map.protectedHint": "Selon OpenStreetMap – pas un avis juridique, respecte les règles sur place.",
+  "map.hideArea": "Masquer",
   "social.title": "Fils réseaux sociaux",
   "social.hint": "Les vidéos de la communauté, rassemblées ici et lisibles sur place — sans algorithme entre deux. <b>Ajoute ta chaîne YouTube dans ton profil et tes vidéos rejoignent le fil.</b> (Instagram et TikTok ne le permettent pas.)",
   "social.prev": "Précédent",

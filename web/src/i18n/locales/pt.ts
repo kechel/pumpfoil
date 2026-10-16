@@ -1528,6 +1528,7 @@ const pt: Record<string, string> = {
   "map.ffh": "Área Natura 2000 (habitats)",
   "map.prohibited": "Proibido nadar ou navegar",
   "map.protectedHint": "Segundo o OpenStreetMap – não é orientação jurídica, respeite as regras locais.",
+  "map.hideArea": "Ocultar",
   "social.title": "Feeds de redes sociais",
   "social.hint": "Vídeos da comunidade reunidos num só lugar e reproduzíveis aqui — sem algoritmo no meio. <b>Adicione o seu canal do YouTube no perfil e os seus vídeos entram também. O</b> (O Instagram e o TikTok não permitem isso.)",
   "social.prev": "Anterior",

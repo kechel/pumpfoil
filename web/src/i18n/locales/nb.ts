@@ -1565,6 +1565,7 @@ const nb: Record<string, string> = {
   "map.ffh": "Natura 2000-område",
   "map.prohibited": "Bade- eller ferdselsforbud",
   "map.protectedHint": "Ifølge OpenStreetMap – ikke juridisk rådgivning, følg reglene på stedet.",
+  "map.hideArea": "Skjul",
   "social.title": "Sosiale feeder",
   "social.hint": "Videoer fra fellesskapet, samlet på ett sted og spillbare her — uten algoritme imellom. <b>Legg inn YouTube-kanalen din i profilen, så blir videoene dine med.</b> (Instagram og TikTok tillater det ikke.)",
   "social.prev": "Forrige",

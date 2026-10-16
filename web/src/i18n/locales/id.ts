@@ -1528,6 +1528,7 @@ const id: Record<string, string> = {
   "map.ffh": "Kawasan Natura 2000",
   "map.prohibited": "Dilarang berenang atau berperahu",
   "map.protectedHint": "Menurut OpenStreetMap – bukan nasihat hukum, patuhi aturan setempat.",
+  "map.hideArea": "Sembunyikan",
   "social.title": "Feed media sosial",
   "social.hint": "Video dari komunitas, terkumpul di satu tempat dan bisa diputar di sini — tanpa algoritma di antaranya. <b>Tambahkan kanal YouTube-mu di profil, videomu ikut tampil.</b> (Instagram dan TikTok tidak mengizinkannya.)",
   "social.prev": "Sebelumnya",
