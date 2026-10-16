@@ -9,21 +9,29 @@ import { useT } from "../i18n";
 // Heatmap EINES Spots auf seiner Sessions-Seite, zwischen Rekord-Kacheln und Wetter (Jan,
 // 16.10.2026: „einfach die heatmap ganz normal so wie in spots … passend eingezoomt und nur die
 // heatmap, nicht umschaltbar auf spotanzeige"). Dieselben Daten und Farben wie die Spot-Karte
-// (lib/heatmap.ts), keine Pins. Drei Knoepfe: 1 Jahr (Vorgabe), 30 Tage, Aus — „Aus" klappt die
-// Karte zu und gilt im Browser fuer alle Spots weiter (localStorage, reine Bequemlichkeit).
+// (lib/heatmap.ts), keine Pins. Knoepfe: „Auf dem Foil" / „Startpunkte" und 1 Jahr (Vorgabe) /
+// 30 Tage / Aus. „Aus" nimmt nur die Heatmap weg, die Karte bleibt — damit man den See sieht (Jan).
+// Beide Wahlen gelten im Browser fuer alle Spots weiter (localStorage, reine Bequemlichkeit).
 //
 // Eingezoomt wird auf die gefahrenen Zellen des letzten Jahres im Umkreis UMKREIS_GRAD um den
 // Spot; der Zeitraum aendert danach nur die Farben, nicht den Ausschnitt. Ohne Zellen dort (neuer
 // Spot, nur verborgene Aufnahmen) bleibt das Panel ganz weg.
 const UMKREIS_GRAD = 0.02;      // ~2 km Breite; Laeufe liegen am Spot
 const SPEICHER = "spot_heatmap";
+const SPEICHER_ART = "spot_heatmap_art";
 type Wahl = "365d" | "30d" | "off";
+type Art = "foil" | "start";
 
 function gemerkt(): Wahl {
   try {
     const v = localStorage.getItem(SPEICHER);
     return v === "30d" || v === "off" ? v : "365d";
   } catch { return "365d"; }
+}
+
+function gemerkteArt(): Art {
+  try { return localStorage.getItem(SPEICHER_ART) === "start" ? "start" : "foil"; }
+  catch { return "foil"; }
 }
 
 export function SpotHeatmap({ spotId }: { spotId: number }) {
@@ -42,7 +50,11 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
     setWahlRoh(w);
     try { localStorage.setItem(SPEICHER, w); } catch { /* privat/blockiert: gilt nur jetzt */ }
   };
-  const an = wahl !== "off";
+  const [art, setArtRoh] = useState<Art>(gemerkteArt);
+  const setArt = (a: Art) => {
+    setArtRoh(a);
+    try { localStorage.setItem(SPEICHER_ART, a); } catch { /* s. o. */ }
+  };
 
   useEffect(() => {
     setMitte(null); setLeer(false);
@@ -54,9 +66,9 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
       .catch(() => setLeer(true));
   }, [spotId]);
 
-  // Karte anlegen und einpassen (nur solange sie an ist).
+  // Karte anlegen und einpassen.
   useEffect(() => {
-    if (!mitte || !an || !box.current) return;
+    if (!mitte || !box.current) return;
     const m = L.map(box.current, {
       zoomControl: true, attributionControl: true, maxZoom: 20,
       // Die Seite soll beim Scrollen nicht an der Karte haengenbleiben.
@@ -80,17 +92,18 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
       })
       .catch(() => setLeer(true));
     return () => { weg = true; setBereit(false); karte.current = null; m.remove(); };
-  }, [mitte, an]);
+  }, [mitte]);
 
   // Zellen fuer Ausschnitt und Zeitraum nachladen, bei jeder Bewegung (kurz entprellt).
   useEffect(() => {
     const k = karte.current;
-    if (!bereit || !k || wahl === "off") return;
+    if (!bereit || !k) return;
+    if (wahl === "off") { k.grp.clearLayers(); return; }
     let weg = false;
     let timer: number | undefined;
     const laden = () => {
       const b = k.m.getBounds();
-      api.heatmap(wahl, k.m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth())
+      api.heatmap(wahl, k.m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), art)
         .then((r) => { if (!weg) heatZeichnen(k.grp, k.renderer, r); })
         .catch(() => {});
     };
@@ -98,12 +111,12 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
     laden();
     k.m.on("moveend", spaeter);
     return () => { weg = true; window.clearTimeout(timer); k.m.off("moveend", spaeter); };
-  }, [bereit, wahl]);
+  }, [bereit, wahl, art]);
 
   if (leer) return null;
-  const knopf = (w: Wahl, text: string) => (
-    <button key={w} onClick={() => setWahl(w)} aria-pressed={wahl === w}
-      className={`rounded-full border px-3 py-1 ${wahl === w
+  const knopf = (aktiv: boolean, text: string, klick: () => void) => (
+    <button key={text} onClick={klick} aria-pressed={aktiv}
+      className={`rounded-full border px-3 py-1 ${aktiv
         ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
         : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
       {text}
@@ -113,17 +126,20 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
     <Card className="mb-4 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-base font-semibold text-slate-100">{t("spots.heatmap")}</div>
-        <div className="flex items-center gap-2 text-sm">
-          {knopf("365d", t("period.365d"))}
-          {knopf("30d", t("period.30d"))}
-          {knopf("off", t("spots.heatOff"))}
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {knopf(art === "foil", t("spots.heatFoil"), () => setArt("foil"))}
+          {knopf(art === "start", t("spots.heatStart"), () => setArt("start"))}
+          <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
+          {knopf(wahl === "365d", t("period.365d"), () => setWahl("365d"))}
+          {knopf(wahl === "30d", t("period.30d"), () => setWahl("30d"))}
+          {knopf(wahl === "off", t("spots.heatOff"), () => setWahl("off"))}
         </div>
       </div>
-      {an && (
-        <>
-          <div ref={box} className="mt-2 h-64 w-full overflow-hidden rounded-lg sm:h-80" />
-          <p className="mt-2 text-xs text-slate-400">{t("spots.heatHint")}</p>
-        </>
+      <div ref={box} className="mt-2 h-64 w-full overflow-hidden rounded-lg sm:h-80" />
+      {wahl !== "off" && (
+        <p className="mt-2 text-xs text-slate-400">
+          {t(art === "start" ? "spots.heatHintStart" : "spots.heatHint")}
+        </p>
       )}
     </Card>
   );

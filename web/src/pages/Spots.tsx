@@ -56,6 +56,8 @@ export default function Spots() {
   // „mit Beschreibung", bei Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins weg.
   const [ansicht, setAnsicht] = useState<"spots" | "heat">("spots");
   const [heatZeitraum, setHeatZeitraum] = useState<"30d" | "365d">("365d");
+  // „Auf dem Foil" (die Laeufe) oder „Startpunkte" (wo die Laeufe beginnen) — Jan, 16.10.2026.
+  const [heatArt, setHeatArt] = useState<"foil" | "start">("foil");
   const heat = ansicht === "heat" ? heatZeitraum : null;
   const [heatStand, setHeatStand] = useState<{ stand: string | null; sessions: number } | null>(null);
   const heatLayer = useRef<L.LayerGroup | null>(null);
@@ -242,7 +244,7 @@ export default function Spots() {
     let timer: number | undefined;
     const laden = () => {
       const b = m.getBounds();
-      api.heatmap(heat, m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth())
+      api.heatmap(heat, m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), heatArt)
         .then((r) => {
           if (weg) return;
           setHeatStand({ stand: r.stand, sessions: r.sessions });
@@ -255,7 +257,7 @@ export default function Spots() {
     m.on("moveend", spaeter);
     return () => { weg = true; window.clearTimeout(timer); m.off("moveend", spaeter); };
   // `spots` mit drin: die Karte entsteht erst, wenn die Spots da sind.
-  }, [heat, spots]);
+  }, [heat, heatArt, spots]);
 
   return (
     <div>
@@ -286,7 +288,16 @@ export default function Spots() {
             ))}
           </div>
           {ansicht === "heat" ? (
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              {(["foil", "start"] as const).map((a) => (
+                <button key={a} onClick={() => setHeatArt(a)} aria-pressed={heatArt === a}
+                  className={`rounded-full border px-3 py-1 ${heatArt === a
+                    ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+                    : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
+                  {t(a === "foil" ? "spots.heatFoil" : "spots.heatStart")}
+                </button>
+              ))}
+              <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
               {(["30d", "365d"] as const).map((p) => (
                 <button key={p} onClick={() => setHeatZeitraum(p)} aria-pressed={heatZeitraum === p}
                   className={`rounded-full border px-3 py-1 ${heatZeitraum === p
@@ -350,7 +361,7 @@ export default function Spots() {
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
           {heat ? (
             <p className="mt-2 text-sm text-slate-400">
-              {t("spots.heatHint")}{heatStand ? ` · ${heatStand.sessions} ${t("side.sessions")}` : ""}
+              {t(heatArt === "start" ? "spots.heatHintStart" : "spots.heatHint")}{heatStand ? ` · ${heatStand.sessions} ${t("side.sessions")}` : ""}
             </p>
           ) : (
             <p className="mt-2 flex gap-2 text-sm text-slate-400">
