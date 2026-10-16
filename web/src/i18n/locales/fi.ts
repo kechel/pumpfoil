@@ -2148,6 +2148,7 @@ const fi: Record<string, string> = {
   "spots.onlyActive": "Aktiivinen nyt",
   "spots.heatmap": "Lämpökartta",
   "spots.heatHint": "Väri = kuinka monta sessiota siellä on ajettu (vain lenkit), päivitetään päivittäin.",
+  "spots.heatOff": "Pois",
   "spots.activeLegend": "Vihreä: joku on luultavasti juuri nyt vedessä. Yksittäinen spotti muuttuu vihreäksi vain, jos siellä on pumpannut vähintään 4 ajajaa viimeisen 180 päivän aikana. Ryhmä muuttuu vihreäksi myös lähellä olevien pienempien spottien takia, jos niillä oli yhteensä yli 5 ajajaa viimeisen 90 päivän aikana. ”Aktiivinen” tarkoittaa, että kello tai puhelin on ilmoittautunut viimeisen 2 tunnin aikana.",
   "spz.bound": "Raja {n}",
   "spz.hint": "Sama ajatus nopeudelle: nämä vyöhykkeet värittävät kellosi numeron ja omien asettelujesi arvografiikat. Ehdotus tulee nopeuksista joita todella ajat.",

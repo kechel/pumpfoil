@@ -1994,6 +1994,7 @@ const gsw: Record<string, string> = {
   "spots.onlyActive": "Grad aktiv",
   "spots.heatmap": "Heatmap",
   "spots.heatHint": "Farb = wie vill Sessions det gfahre worde sind (nur d Läuf), täglich aktualisiert.",
+  "spots.heatOff": "Us",
   "spots.activeLegend": "Grüen: det isch wahrschinlich grad öpper uf em Wasser. En einzelne Spot wird nume grüen, wenn det i de letschte 180 Täg mindeschtens 4 Lüüt pumpet händ. Es Büschel wird au für chliineri Spots i de Nöchi grüen, wenn die zäme i de letschte 90 Täg meh als 5 Fahrer gha händ. „Aktiv“ heisst: Uhr oder Handy het sich i de letschte 2 Stund gmäldet.",
   "spz.bound": "Gränze {n}",
   "spz.hint": "Di gliich Skala für d Gschwindigkeit: sie färbt d Zahl uf de Uhr und d Wärt-Grafike i eigene Layouts. De Vorschlag chunnt us dinere eigene gfahrne Gschwindigkeit.",

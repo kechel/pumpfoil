@@ -2110,6 +2110,7 @@ const pt: Record<string, string> = {
   "spots.onlyActive": "Ativo agora",
   "spots.heatmap": "Mapa de calor",
   "spots.heatHint": "Cor = quantas sessões foram feitas ali (só as voltas), atualizado diariamente.",
+  "spots.heatOff": "Desligado",
   "spots.activeLegend": "Verde: provavelmente alguém está na água agora. Um spot sozinho só fica verde se pelo menos 4 riders pumparam lá nos últimos 180 dias. Um grupo também fica verde por spots menores próximos, se juntos tiveram mais de 5 riders nos últimos 90 dias. \"Ativo\" significa que um relógio ou celular se conectou nas últimas 2 horas.",
   "spz.bound": "Limite {n}",
   "spz.hint": "A mesma ideia para a velocidade: estas zonas colorem o número no seu relógio e os gráficos de valor nos seus layouts. A sugestão vem das velocidades que você realmente faz.",

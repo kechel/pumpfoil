@@ -2167,6 +2167,7 @@ const nl: Record<string, string> = {
   "spots.onlyActive": "Nu actief",
   "spots.heatmap": "Heatmap",
   "spots.heatHint": "Kleur = hoeveel sessies daar gevaren zijn (alleen runs), dagelijks bijgewerkt.",
+  "spots.heatOff": "Uit",
   "spots.activeLegend": "Groen: er is waarschijnlijk nu iemand op het water. Een losse spot wordt alleen groen als daar de afgelopen 180 dagen minstens 4 riders hebben gepompt. Een groep wordt ook groen voor kleinere spots in de buurt, als die samen de afgelopen 90 dagen meer dan 5 riders hadden. ‘Actief’ betekent: een horloge of telefoon heeft zich de afgelopen 2 uur gemeld.",
   "spz.bound": "Grens {n}",
   "spz.hint": "Hetzelfde idee voor snelheid: deze zones kleuren het getal op je horloge en de waardegrafieken in je eigen lay-outs. Het voorstel komt uit de snelheden die je echt vaart.",
