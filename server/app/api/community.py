@@ -2434,23 +2434,10 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
                        "aspect_ratio": (round((f.span_cm ** 2) / f.area_cm2, 2)
                                         if f.area_cm2 and f.span_cm else None)}
                 for f in db.query(models.Foil).filter(models.Foil.id.in_(fids)).all()}
-    # Restliches Setup (Stab/Mast/Board) im Batch. Anders als bei den eigenen Sessions gehoeren die
-    # Sessions hier VERSCHIEDENEN Nutzern -> die Standards kommen aus mehreren settings_json, also
-    # eine Abfrage ueber die Besitzer und dann zwei ueber Stabs/Boards. Kein N+1.
-    oids = {b.get("owner_id") for b in briefs if b.get("owner_id")}
-    defaults: dict[int, dict] = {}
-    if oids:
-        for uid, sj in db.query(models.User.id, models.User.settings_json).filter(
-                models.User.id.in_(oids)).all():
-            try:
-                defaults[uid] = (json.loads(sj) or {}) if sj else {}
-            except ValueError:
-                defaults[uid] = {}
-
+    # Restliches Setup (Stab/Mast/Board) im Batch — nur was an der Session steht, kein Erben vom
+    # Standard des Besitzers mehr (16.10.2026, s. sessions._resolve_setup). Kein N+1.
     def _eff(b: dict, key: str):
-        """Wert der Session, sonst Standard des Besitzers."""
-        v = b.get(key)
-        return v if v is not None else (defaults.get(b.get("owner_id")) or {}).get(key)
+        return b.get(key)
 
     sids2 = {_eff(b, "stab_id") for b in briefs}
     bids2 = {_eff(b, "board_id") for b in briefs}

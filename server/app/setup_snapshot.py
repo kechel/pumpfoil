@@ -71,13 +71,17 @@ def standard_setup(db, user: models.User | None) -> dict:
     return out
 
 
-def uebernehmen(quelle: models.Session) -> dict:
-    """Setup einer bestehenden Session uebernehmen (Zusammenfuehren) — ohne Umweg ueber die
+def uebernehmen(quellen: list[models.Session]) -> dict:
+    """Setup bestehender Sessions uebernehmen (Zusammenfuehren) — ohne Umweg ueber die
     Nutzer-Einstellungen, sonst bekaeme die zusammengefuehrte Session den HEUTIGEN Standard
-    statt des Setups der Teile."""
+    statt des Setups der Teile. Je Feld der erste Teil (in der uebergebenen Reihenfolge), der es
+    hat — vorher nur der erste Teil, dadurch ging ein Board verloren, das erst ein spaeterer Teil
+    trug (Nutzer-Meldung 16.10.2026)."""
     out = {}
     for f in FELDER:
-        v = getattr(quelle, f, None)
-        if v is not None:
-            out[f] = v
+        for quelle in quellen:
+            v = getattr(quelle, f, None)
+            if v is not None:
+                out[f] = v
+                break
     return out
