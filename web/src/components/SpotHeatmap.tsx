@@ -3,7 +3,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
-import { lageText, routenVorschlagen, type Route, type Startposition } from "../lib/routen";
+import { lageText, richtungIndex, richtungName, routenVorschlagen, type Route, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
 import { useT } from "../i18n";
 
@@ -51,6 +51,7 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
     setWahlRoh(w);
     try { localStorage.setItem(SPEICHER, w); } catch { /* privat/blockiert: gilt nur jetzt */ }
   };
+  const [planen, setPlanen] = useState(false);
   const [art, setArtRoh] = useState<Art>(gemerkteArt);
   const setArt = (a: Art) => {
     setArtRoh(a);
@@ -134,6 +135,15 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
           {knopf(wahl === "365d", t("period.365d"), () => setWahl("365d"))}
           {knopf(wahl === "30d", t("period.30d"), () => setWahl("30d"))}
           {knopf(wahl === "off", t("spots.heatOff"), () => setWahl("off"))}
+          <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
+          {/* Routen planen: oben bei den Karten-Einstellungen, hervorgehoben (Jan); die Planung
+              selbst erscheint unter der Karte. */}
+          <button onClick={() => setPlanen(!planen)} aria-pressed={planen}
+            className={`rounded-full border px-3 py-1 font-semibold ${planen
+              ? "border-brand-500 bg-brand-500 text-slate-950"
+              : "border-brand-500 bg-brand-500/15 text-brand-600 dark:text-brand-300 hover:bg-brand-500/25"}`}>
+            {t("routes.plan")}
+          </button>
         </div>
       </div>
       <div ref={box} className="mt-2 h-64 w-full overflow-hidden rounded-lg sm:h-80" />
@@ -142,7 +152,8 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
           {t(art === "start" ? "spots.heatHintStart" : "spots.heatHint")}
         </p>
       )}
-      <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} />
+      <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null}
+        offen={planen} schliessen={() => setPlanen(false)} />
     </Card>
   );
 }
@@ -156,15 +167,20 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
 //      zeigt die Route auf der Karte. Rechnung in lib/routen.ts.
 const ZUVERLAESSIG = [2, 3, 5, 10];
 
-function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | null }) {
+function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
+  spotId: number; karte: L.Map | null; offen: boolean; schliessen: () => void;
+}) {
   const t = useT();
-  const [offen, setOffen] = useState(false);
   const [minStarts, setMinStarts] = useState(3);
   const [start, setStart] = useState(0);
   const [minM, setMinM] = useState(50);
   const [maxM, setMaxM] = useState(300);
   const [anzahl, setAnzahl] = useState(99);           // Startpunkte auf der Route; 99 = alle
   const [ohneKreuzung, setOhneKreuzung] = useState(true);
+  // Richtung des ersten Abschnitts (Jan: „am Startpunkt 1 entweder Richtung W oder NO starten");
+  // null = beliebig.
+  const [richtung, setRichtung] = useState<number | null>(null);
+  const [alleRouten, setAlleRouten] = useState<Route[] | null>(null);
   const [pos, setPos] = useState<Startposition[] | null>(null);
   const [routen, setRouten] = useState<Route[] | null>(null);
   const [gewaehlt, setGewaehlt] = useState<number | null>(null);
@@ -184,10 +200,22 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
   // Vorschlaege neu rechnen, wenn sich Punkte, Start oder Abstaende aendern.
   useEffect(() => {
     if (!pos) { setRouten(null); return; }
-    setRouten(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
-      { punkte: Math.min(anzahl, pos.length), ohneKreuzung }));
-    setGewaehlt(null);
+    setAlleRouten(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
+      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, anzahl: 100000 }));
   }, [pos, start, minM, maxM, anzahl, ohneKreuzung]);
+  // Neuer Startpunkt -> Richtung wieder beliebig (die alte gibt es dort vielleicht nicht).
+  useEffect(() => { setRichtung(null); }, [start, pos]);
+  // Richtungen, in die vom Start aus ueberhaupt eine Route losgeht.
+  const richtungen = pos && alleRouten
+    ? [...new Set(alleRouten.map((r) => richtungIndex(pos[r.punkte[0]], pos[r.punkte[1]])))].sort((a, b) => a - b)
+    : [];
+  useEffect(() => {
+    if (!pos || !alleRouten) { setRouten(null); return; }
+    setRouten(alleRouten
+      .filter((r) => richtung == null || richtungIndex(pos[r.punkte[0]], pos[r.punkte[1]]) === richtung)
+      .slice(0, 10));
+    setGewaehlt(null);
+  }, [alleRouten, richtung, pos]);
 
   // Startpunkte (nummeriert) und die gewaehlte Route auf die Karte; Klick auf einen Punkt = Start.
   useEffect(() => {
@@ -225,14 +253,7 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
     ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
     : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`;
 
-  if (!offen) {
-    return (
-      <button onClick={() => setOffen(true)}
-        className="mt-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800">
-        {t("routes.plan")}
-      </button>
-    );
-  }
+  if (!offen) return null;
   const regler = (label: string, wert: number, setz: (v: number) => void, von: number, bis: number,
                   einheit = " m", schritt = 10) => (
     <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-slate-400">
@@ -245,7 +266,7 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
     <div className="mt-3 border-t border-slate-800 pt-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="text-sm font-semibold text-slate-100">{t("routes.plan")}</div>
-        <button onClick={() => setOffen(false)} className="text-xs text-slate-400 hover:text-slate-200">
+        <button onClick={schliessen} className="text-xs text-slate-400 hover:text-slate-200">
           {t("routes.close")}
         </button>
       </div>
@@ -275,6 +296,19 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
               );
             })}
           </div>
+          {richtungen.length > 1 && (
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-xs text-slate-400">{t("routes.direction")}</span>
+              <button onClick={() => setRichtung(null)} aria-pressed={richtung == null} className={pille(richtung == null)}>
+                {t("routes.anyDirection")}
+              </button>
+              {richtungen.map((r) => (
+                <button key={r} onClick={() => setRichtung(r)} aria-pressed={richtung === r} className={pille(richtung === r)}>
+                  {richtungName(r)}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="mb-3 flex flex-wrap gap-4">
             {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
             {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}

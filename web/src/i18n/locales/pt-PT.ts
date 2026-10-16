@@ -2110,6 +2110,8 @@ const ptPT: Record<string, string> = {
   "spots.heatHintStart": "Cor = quantas sessões começaram uma volta ali, atualizado diariamente.",
   "routes.plan": "Planear rota",
   "routes.startPoint": "Ponto de partida",
+  "routes.direction": "Partir para",
+  "routes.anyDirection": "qualquer",
   "routes.close": "Fechar",
   "routes.reliability": "Ponto de partida usado",
   "routes.minDist": "Distância mín.",

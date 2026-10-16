@@ -2173,6 +2173,8 @@ const nl: Record<string, string> = {
   "spots.heatHintStart": "Kleur = hoeveel sessies daar een run begonnen, dagelijks bijgewerkt.",
   "routes.plan": "Route plannen",
   "routes.startPoint": "Startpunt",
+  "routes.direction": "Vertrekken richting",
+  "routes.anyDirection": "maakt niet uit",
   "routes.close": "Sluiten",
   "routes.reliability": "Startpunt gebruikt",
   "routes.minDist": "Min. afstand",

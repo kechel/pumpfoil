@@ -1999,6 +1999,8 @@ const es: Record<string, string> = {
   "spots.heatHintStart": "Color = cuántas sesiones empezaron una carrera ahí, actualizado a diario.",
   "routes.plan": "Planificar ruta",
   "routes.startPoint": "Punto de salida",
+  "routes.direction": "Salir hacia",
+  "routes.anyDirection": "cualquiera",
   "routes.close": "Cerrar",
   "routes.reliability": "Punto de salida usado",
   "routes.minDist": "Distancia mín.",

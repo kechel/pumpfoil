@@ -2110,6 +2110,8 @@ const ja: Record<string, string> = {
   "spots.heatHintStart": "色 = そこでランを始めたセッションの数（毎日更新）。",
   "routes.plan": "ルートを計画",
   "routes.startPoint": "スタート地点",
+  "routes.direction": "出発方向",
+  "routes.anyDirection": "指定なし",
   "routes.close": "閉じる",
   "routes.reliability": "スタート地点の利用",
   "routes.minDist": "最小距離",

@@ -2000,6 +2000,8 @@ const gsw: Record<string, string> = {
   "spots.heatHintStart": "Farb = wie vill Sessions det en Lauf aagfange händ, täglich aktualisiert.",
   "routes.plan": "Route plane",
   "routes.startPoint": "Startpunkt",
+  "routes.direction": "Losfahre gäge",
+  "routes.anyDirection": "egal",
   "routes.close": "Zuemache",
   "routes.reliability": "Startpunkt bruucht",
   "routes.minDist": "Abstand min.",

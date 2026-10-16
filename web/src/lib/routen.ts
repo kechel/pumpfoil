@@ -78,6 +78,15 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
 
 const RICHTUNGEN = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"];
 
+/** Himmelsrichtung von a nach b als Index 0..7 in RICHTUNGEN (0 = N, im Uhrzeigersinn). */
+export function richtungIndex(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const kx = 111320 * Math.cos((a.lat * Math.PI) / 180);
+  const w = (Math.atan2((b.lon - a.lon) * kx, (b.lat - a.lat) * 111320) * 180) / Math.PI;
+  return Math.round(((w + 360) % 360) / 45) % 8;
+}
+
+export function richtungName(i: number): string { return RICHTUNGEN[i]; }
+
 /** Kurzbeschreibung eines Punkts relativ zum Bezugspunkt, z. B. „130 m SW". */
 export function lageText(p: { lat: number; lon: number }, bezug: { lat: number; lon: number },
                          richtungen = RICHTUNGEN): string {

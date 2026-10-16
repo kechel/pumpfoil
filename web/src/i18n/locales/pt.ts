@@ -2116,6 +2116,8 @@ const pt: Record<string, string> = {
   "spots.heatHintStart": "Cor = quantas sessões começaram uma volta ali, atualizado diariamente.",
   "routes.plan": "Planejar rota",
   "routes.startPoint": "Ponto de largada",
+  "routes.direction": "Sair rumo a",
+  "routes.anyDirection": "qualquer",
   "routes.close": "Fechar",
   "routes.reliability": "Ponto de largada usado",
   "routes.minDist": "Distância mín.",
