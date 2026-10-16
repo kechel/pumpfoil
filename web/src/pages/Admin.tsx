@@ -476,8 +476,14 @@ function StatsSection() {
   const fmtTick = (ms: number) => new Date(ms).toLocaleDateString(undefined,
     tage <= 120 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
   const zusatz = fensterZusatz(fenster);
-  const reihe = (key: keyof AdminStatsSeries["totals"]) =>
-    fensterSumme(aufAchse(data?.buckets ?? [], key, achse), fenster);
+  // Reihen, die PERSONEN zaehlen, kommen fertig je Fenster vom Server: die Summe der Tageswerte
+  // waere Fahrer-TAGE (Befund Jan, 16.10.2026: „1 Jahr" zeigte 10 143 aktive Nutzer bei 466
+  // Fahrern insgesamt). Alle anderen Reihen werden hier summiert.
+  const reihe = (key: keyof AdminStatsSeries["totals"]) => {
+    const fertig = data?.fenster_distinct?.[key]?.[String(fenster === Infinity ? 0 : fenster)];
+    return fertig ? achse.map((tag) => fertig[tag] ?? 0)
+      : fensterSumme(aufAchse(data?.buckets ?? [], key, achse), fenster);
+  };
 
   const knopf = (aktiv: boolean) =>
     `rounded-lg px-3 py-1.5 text-xs transition-colors ${aktiv
