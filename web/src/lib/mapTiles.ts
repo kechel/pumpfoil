@@ -229,6 +229,35 @@ function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
   // Knopf in der Karte: alle Schutzgebiete aus/ein (Jan) — nicht gespeichert, nach dem Neuladen
   // sind sie wieder da. Einzeln ausgeblendete bleiben dabei weg.
   let sichtbar = true;
+  // Legende unten links (Jan): nur die Arten, die auf dieser Karte gezeichnet sind, mit ihrem
+  // Linienmuster. Weg, solange die Schutzgebiete ausgeblendet sind.
+  const gezeichnet = new Set<string>();
+  let legende: HTMLDivElement | null = null;
+  const legendeZeigen = () => {
+    if (!legende) return;
+    const t = namen.schutz;
+    const reihen = (["nsg", "ffh", "verbot"] as const).filter((a) => gezeichnet.has(a)).map((a) => {
+      const st = SCHUTZ_STIL[a];
+      const linie = `<svg width="26" height="10" aria-hidden="true"><line x1="1" y1="5" x2="25" y2="5" stroke="${st.color}" ` +
+        `stroke-width="${st.weight}" ${st.dashArray ? `stroke-dasharray="${st.dashArray}"` : ""}/></svg>`;
+      const name = a === "verbot" ? t?.verbot : a === "ffh" ? t?.ffh : t?.nsg;
+      return `<div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${linie}${esc(name ?? a)}</div>`;
+    });
+    legende.innerHTML = reihen.join("");
+    legende.style.display = sichtbar && reihen.length ? "block" : "none";
+  };
+  const Legende = L.Control.extend({
+    options: { position: "bottomleft" as L.ControlPosition },
+    onAdd() {
+      legende = L.DomUtil.create("div", "leaflet-control") as HTMLDivElement;
+      legende.style.cssText = "background:rgba(255,255,255,.88);color:#0f172a;border-radius:6px;padding:4px 7px;" +
+        "font:11px/1.5 ui-sans-serif,system-ui,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.3);display:none";
+      L.DomEvent.disableClickPropagation(legende);
+      return legende;
+    },
+  });
+  map.addControl(new Legende());
+  griff.neu.push(legendeZeigen);
   const Knopf = L.Control.extend({
     options: { position: "topleft" as L.ControlPosition },
     onAdd() {
@@ -252,6 +281,7 @@ function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
         sichtbar = !sichtbar;
         if (sichtbar) grp.addTo(map); else { map.closePopup(); grp.remove(); }
         zeigen();
+        legendeZeigen();
       });
       L.DomEvent.disableClickPropagation(box);
       return box;
@@ -282,6 +312,7 @@ function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
           const flaeche = L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz" })
             .bindPopup(inhalt)
             .addTo(grp);
+          gezeichnet.add(f.art);
           // Einzeln ausblenden (Jan) — nur bis zum Neuladen, gespeichert wird nichts. `da` behaelt die
           // ID, damit ein Nachladen sie nicht gleich wieder zeichnet.
           flaeche.on("popupopen", (ev: L.PopupEvent) => {
@@ -289,6 +320,7 @@ function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
             knopf?.addEventListener("click", () => { map.closePopup(); grp.removeLayer(flaeche); }, { once: true });
           });
         }
+        legendeZeigen();
         // Server hat nicht alles holen koennen (Overpass langsam/ueberlastet): spaeter nachfragen
         window.clearTimeout(nochmal);
         if (r.unvollstaendig && versuche < 6) { versuche++; nochmal = window.setTimeout(laden, 6000); }
