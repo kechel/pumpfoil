@@ -384,7 +384,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   const [minFahrer, setMinFahrer] = useState(1);   // verschiedene Fahrer an einem Startplatz
   // Umkreis in km: 0 = nur die Startplaetze dieses Spots, sonst auch die aller Spots im Umkreis
   // (Jan: „eine Route mit 30 Stops rund um den Zuerichsee … einen Regler fuer Umkreis").
-  const [umkreis, setUmkreis] = useState(0);
+  // Vorgabe 2 km (Jan): Nachbarspots direkt nebenan gehoeren meist zum selben See.
+  const [umkreis, setUmkreis] = useState(2);
   const [start, setStart] = useState(0);
   const [minM, setMinM] = useState(50);
   const [maxM, setMaxM] = useState(300);
