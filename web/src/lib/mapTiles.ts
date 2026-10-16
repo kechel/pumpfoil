@@ -24,24 +24,46 @@ export function gewaehlteKarte(): "karte" | "satellit" {
  *  Session-Karte auf Luftbild stellt, findet die Spot-Karte genauso vor. */
 export type KartenTexte = {
   street: string; satellite: string; fullscreen?: string;
-  schutz?: { nsg: string; ffh: string; verbot: string; hinweis: string; ausblenden: string };
+  zoomIn?: string; zoomOut?: string;
+  schutz?: { nsg: string; ffh: string; verbot: string; hinweis: string; ausblenden: string; knopf: string };
 };
 
 /** Alle Beschriftungen fuer basiskarten aus der Uebersetzung — EINE Stelle statt in jeder Karte. */
 export function kartenTexte(t: (k: string) => string): KartenTexte {
   return {
     street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen"),
+    zoomIn: t("map.zoomIn"), zoomOut: t("map.zoomOut"),
     schutz: { nsg: t("map.nsg"), ffh: t("map.ffh"), verbot: t("map.prohibited"), hinweis: t("map.protectedHint"),
-              ausblenden: t("map.hideArea") },
+              ausblenden: t("map.hideArea"), knopf: t("map.protectedToggle") },
   };
+}
+
+// Sprachwechsel fuer ALLE offenen Karten: die Karte kann entstehen, bevor die Sprache des Kontos
+// geladen ist (Spot-Panel) — dann stuenden Knoepfe und Fenster in der alten Sprache. Jede Karte
+// meldet sich hier an; I18nProvider ruft bei jedem Sprachwechsel `kartenSprache`.
+type KartenGriff = { texte: KartenTexte; neu: (() => void)[] };
+const OFFENE_KARTEN = new Set<KartenGriff>();
+let letzteTexte: KartenTexte | null = null;
+
+export function kartenSprache(texte: KartenTexte) {
+  letzteTexte = texte;
+  for (const g of OFFENE_KARTEN) {
+    Object.assign(g.texte, texte);
+    for (const f of g.neu) f();
+  }
 }
 
 export function basiskarten(
   map: L.Map,
-  namen: KartenTexte,
+  vorgabe: KartenTexte,
   opts: { maxZoom?: number } = {},
 ) {
   const maxZoom = opts.maxZoom ?? 22;
+  // Ein veraenderliches Objekt: Sprachwechsel schreiben hinein, alle Beschriftungen lesen daraus.
+  const namen: KartenTexte = { ...vorgabe, ...(letzteTexte ?? {}) };
+  const griff: KartenGriff = { texte: namen, neu: [] };
+  OFFENE_KARTEN.add(griff);
+  map.on("unload", () => { OFFENE_KARTEN.delete(griff); });
   const strasse = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap",
     maxZoom,
@@ -74,6 +96,7 @@ export function basiskarten(
         knopf.setAttribute("aria-label", knopf.textContent);
       };
       beschriften();
+      griff.neu.push(beschriften);
       L.DomEvent.on(knopf, "click", (e: Event) => {
         L.DomEvent.stop(e);
         const neu = aktiv === "satellit" ? "karte" : "satellit";
@@ -89,8 +112,18 @@ export function basiskarten(
     },
   });
   map.addControl(new Umschalter());
-  vollbildKnopf(map, namen.fullscreen ?? "Fullscreen");
-  if (namen.schutz) schutzgebiete(map, namen.schutz);
+  vollbildKnopf(map, namen, griff);
+  if (namen.schutz) schutzgebiete(map, namen, griff);
+  // Leaflets Zoom-Knoepfe tragen sonst englische Titel
+  const zoomTitel = () => {
+    const c = map.getContainer();
+    for (const [sel, txt] of [[".leaflet-control-zoom-in", namen.zoomIn], [".leaflet-control-zoom-out", namen.zoomOut]] as const) {
+      const el = c.querySelector(sel);
+      if (el && txt) { el.setAttribute("title", txt); el.setAttribute("aria-label", txt); }
+    }
+  };
+  zoomTitel();
+  griff.neu.push(zoomTitel);
   return { strasse, satellit };
 }
 
@@ -104,7 +137,7 @@ export function basiskarten(
 const AUF = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const ZU = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 
-function vollbildKnopf(map: L.Map, name: string) {
+function vollbildKnopf(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
   const Knopf = L.Control.extend({
     options: { position: "topleft" as L.ControlPosition },
     onAdd() {
@@ -112,8 +145,13 @@ function vollbildKnopf(map: L.Map, name: string) {
       const a = L.DomUtil.create("a", "", box) as HTMLAnchorElement;
       a.href = "#";
       a.setAttribute("role", "button");
-      a.title = name;
-      a.setAttribute("aria-label", name);
+      const beschriften = () => {
+        const name = namen.fullscreen ?? "Fullscreen";
+        a.title = name;
+        a.setAttribute("aria-label", name);
+      };
+      beschriften();
+      griff.neu.push(beschriften);
       a.style.cssText = "display:flex;align-items:center;justify-content:center;width:30px;height:30px;";
       const el = map.getContainer();
       let ersatz = false;
@@ -181,11 +219,45 @@ function esc(x: string) {
   return x.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 }
 
-function schutzgebiete(map: L.Map, texte: NonNullable<KartenTexte["schutz"]>) {
+const SCHILD = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';
+
+function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
   map.createPane("schutz");
   const pane = map.getPane("schutz");
   if (pane) pane.style.zIndex = "330";             // ueber den Kacheln, unter Heatmap und Routen
   const grp = L.layerGroup().addTo(map);
+  // Knopf in der Karte: alle Schutzgebiete aus/ein (Jan) — nicht gespeichert, nach dem Neuladen
+  // sind sie wieder da. Einzeln ausgeblendete bleiben dabei weg.
+  let sichtbar = true;
+  const Knopf = L.Control.extend({
+    options: { position: "topleft" as L.ControlPosition },
+    onAdd() {
+      const box = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const a = L.DomUtil.create("a", "", box) as HTMLAnchorElement;
+      a.href = "#";
+      a.setAttribute("role", "button");
+      a.innerHTML = SCHILD;
+      const zeigen = () => {
+        const name = namen.schutz?.knopf ?? "Protected areas";
+        a.title = name;
+        a.setAttribute("aria-label", name);
+        a.setAttribute("aria-pressed", String(sichtbar));
+        a.style.cssText = "display:flex;align-items:center;justify-content:center;width:30px;height:30px;" +
+          (sichtbar ? "color:#dc2626;" : "color:#94a3b8;");
+      };
+      zeigen();
+      griff.neu.push(zeigen);
+      L.DomEvent.on(a, "click", (e: Event) => {
+        L.DomEvent.stop(e);
+        sichtbar = !sichtbar;
+        if (sichtbar) grp.addTo(map); else { map.closePopup(); grp.remove(); }
+        zeigen();
+      });
+      L.DomEvent.disableClickPropagation(box);
+      return box;
+    },
+  });
+  map.addControl(new Knopf());
   const da = new Set<string>();
   let timer: number | undefined, nochmal: number | undefined, versuche = 0, weg = false;
   const laden = () => {
@@ -198,12 +270,17 @@ function schutzgebiete(map: L.Map, texte: NonNullable<KartenTexte["schutz"]>) {
         for (const f of r.flaechen as Schutzflaeche[]) {
           if (da.has(f.id)) continue;
           da.add(f.id);
-          const art = f.art === "verbot" ? texte.verbot : f.art === "ffh" ? texte.ffh : texte.nsg;
-          const flaeche = L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz" })
-            .bindPopup(`<b>${esc(f.name || art)}</b><br>${esc(art)}${f.titel && f.titel !== art ? ` · ${esc(f.titel)}` : ""}` +
+          // Fenstertext erst beim Oeffnen bauen -> immer in der aktuellen Sprache
+          const inhalt = () => {
+            const texte = namen.schutz as NonNullable<KartenTexte["schutz"]>;
+            const art = f.art === "verbot" ? texte.verbot : f.art === "ffh" ? texte.ffh : texte.nsg;
+            return `<b>${esc(f.name || art)}</b><br>${esc(art)}${f.titel && f.titel !== art ? ` · ${esc(f.titel)}` : ""}` +
               `<br><span style="font-size:11px;opacity:.75">${esc(texte.hinweis)}</span>` +
               `<br><button type="button" data-ausblenden style="margin-top:6px;font-size:12px;text-decoration:underline">` +
-              `${esc(texte.ausblenden)}</button>`)
+              `${esc(texte.ausblenden)}</button>`;
+          };
+          const flaeche = L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz" })
+            .bindPopup(inhalt)
             .addTo(grp);
           // Einzeln ausblenden (Jan) — nur bis zum Neuladen, gespeichert wird nichts. `da` behaelt die
           // ID, damit ein Nachladen sie nicht gleich wieder zeichnet.

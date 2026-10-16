@@ -2,6 +2,7 @@
 // Fehlende Keys fallen auf `en` zurück, dann auf `de` (Voll-Bestand), zuletzt wird der Key
 // selbst zurückgegeben (im Dev sichtbar). Neue Sprachen zeigen fehlende Strings also Englisch.
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { kartenSprache, kartenTexte } from "../lib/mapTiles";
 import { api, getToken } from "../lib/api";
 import de from "./locales/de";
 import gsw from "./locales/gsw";
@@ -166,6 +167,9 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     },
     [lang]
   );
+
+  // Offene Karten mitnehmen (Knoepfe, Schutzgebiet-Fenster) — s. lib/mapTiles.ts kartenSprache
+  useEffect(() => { kartenSprache(kartenTexte(t)); }, [t]);
 
   return <Ctx.Provider value={{ lang, setLang, t }}>{children}</Ctx.Provider>;
 }
