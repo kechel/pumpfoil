@@ -1520,6 +1520,7 @@ const ptPT: Record<string, string> = {
   "map.street": "Mapa",
   "map.satellite": "Satélite",
   "map.fullscreen": "Ecrã inteiro",
+  "map.compass": "N,NE,E,SE,S,SO,O,NO",
   "map.nsg": "Reserva natural",
   "map.ffh": "Sítio Natura 2000 (habitats)",
   "map.prohibited": "Proibido nadar ou navegar",

@@ -1734,6 +1734,7 @@ const en: Record<string, string> = {
   "map.street": "Map",
   "map.satellite": "Satellite",
   "map.fullscreen": "Fullscreen",
+  "map.compass": "N,NE,E,SE,S,SW,W,NW",
   "map.nsg": "Nature reserve",
   "map.ffh": "Habitats site (Natura 2000)",
   "map.prohibited": "No swimming or boating",

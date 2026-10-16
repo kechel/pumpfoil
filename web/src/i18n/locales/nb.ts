@@ -1561,6 +1561,7 @@ const nb: Record<string, string> = {
   "map.street": "Kart",
   "map.satellite": "Satellitt",
   "map.fullscreen": "Fullskjerm",
+  "map.compass": "N,NØ,Ø,SØ,S,SV,V,NV",
   "map.nsg": "Naturreservat",
   "map.ffh": "Natura 2000-område",
   "map.prohibited": "Bade- eller ferdselsforbud",

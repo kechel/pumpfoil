@@ -1524,6 +1524,7 @@ const ru: Record<string, string> = {
   "map.street": "Карта",
   "map.satellite": "Спутник",
   "map.fullscreen": "Во весь экран",
+  "map.compass": "С,СВ,В,ЮВ,Ю,ЮЗ,З,СЗ",
   "map.nsg": "Заповедник",
   "map.ffh": "Территория Natura 2000",
   "map.prohibited": "Купание или плавание запрещено",

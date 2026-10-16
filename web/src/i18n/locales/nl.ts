@@ -1635,6 +1635,7 @@ const nl: Record<string, string> = {
   "map.street": "Kaart",
   "map.satellite": "Satelliet",
   "map.fullscreen": "Volledig scherm",
+  "map.compass": "N,NO,O,ZO,Z,ZW,W,NW",
   "map.nsg": "Natuurreservaat",
   "map.ffh": "Natura 2000-gebied (habitat)",
   "map.prohibited": "Zwem- of vaarverbod",

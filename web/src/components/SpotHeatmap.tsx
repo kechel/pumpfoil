@@ -618,7 +618,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
                 <span className="shrink-0 text-xs text-slate-400">{t("routes.startPoints")}</span>
                 {pos.map((p, i) => {
-                  const lage = lageText(p, pos[0]);
+                  const lage = lageText(p, pos[0], t("map.compass").split(","));
                   const raus = aus.has(i);
                   return [
                     <span key={i} title={t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" })}

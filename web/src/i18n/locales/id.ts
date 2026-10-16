@@ -1524,6 +1524,7 @@ const id: Record<string, string> = {
   "map.street": "Peta",
   "map.satellite": "Satelit",
   "map.fullscreen": "Layar penuh",
+  "map.compass": "U,TL,T,TG,S,BD,B,BL",
   "map.nsg": "Cagar alam",
   "map.ffh": "Kawasan Natura 2000",
   "map.prohibited": "Dilarang berenang atau berperahu",

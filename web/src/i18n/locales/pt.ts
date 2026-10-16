@@ -1524,6 +1524,7 @@ const pt: Record<string, string> = {
   "map.street": "Mapa",
   "map.satellite": "Satélite",
   "map.fullscreen": "Tela cheia",
+  "map.compass": "N,NE,L,SE,S,SO,O,NO",
   "map.nsg": "Reserva natural",
   "map.ffh": "Área Natura 2000 (habitats)",
   "map.prohibited": "Proibido nadar ou navegar",
