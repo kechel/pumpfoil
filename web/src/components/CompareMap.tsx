@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { basiskarten, kartenTexte } from "../lib/mapTiles";
+import { abschnitt } from "../lib/kurve";
 import { SessionSummary } from "../lib/api";
 import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed, riderWeightFor } from "../lib/foilPhysics";
@@ -22,10 +23,6 @@ export interface CompareMapItem {
 }
 
 type Mode = "rider" | "track" | "speed" | "optimal" | "pump" | "hr";
-// Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
-// 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
-// und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
-const MAX_DRAW_GAP_M = 80;
 
 // Optimale Geschwindigkeit (km/h) des Foils einer Session beim gegebenen Fahrergewicht.
 // Die optimale Geschwindigkeit haengt ueber die Stall-Geschwindigkeit an der WURZEL des Gewichts —
@@ -296,10 +293,9 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       for (let k = lauf.i_start; k < bis; k++) {
         const a = bahn.pts[k], b = bahn.pts[k + 1];
         if (!a || !b) continue;
-        // Dieselbe Lueckenregel wie die statische Karte: ueber einen GPS-Aussetzer wird nicht
-        // quer durch die Landschaft gezeichnet.
-        if (mapObj.current && mapObj.current.distance(a, b) > MAX_DRAW_GAP_M) continue;
-        L.polyline([a, b], { color: bahn.farbeAn(k + 1), weight: 4, opacity: 0.95 }).addTo(lg);
+        // Wie die Session-Karte: im Lauf durchgehend, GPS-Luecken als Kurve (lib/kurve.ts)
+        const linie = mapObj.current ? abschnitt(bahn.pts, k, lauf.i_start, lauf.i_end, mapObj.current.distance(a, b)) : [a, b];
+        L.polyline(linie, { color: bahn.farbeAn(k + 1), weight: 4, opacity: 0.95 }).addTo(lg);
       }
 
       // Pump-Marken mitwachsen lassen: nur die, die der Zeiger schon passiert hat. Sie erst am
@@ -368,7 +364,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       for (const { seg } of ranges) {
         for (let i = seg.i_start; i < seg.i_end; i++) {
           if (!coords[i] || !coords[i + 1]) continue;
-          if (map.distance(coords[i], coords[i + 1]) > MAX_DRAW_GAP_M) continue;
+          const linie = abschnitt(coords, i, seg.i_start, seg.i_end, map.distance(coords[i], coords[i + 1]));
           let color: string;
           if (mode === "rider") color = it.riderColor;
           else if (mode === "track") color = it.color;
@@ -376,7 +372,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
           else if (mode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, opt);
           else if (mode === "pump") { const v = phz[i + 1]; const [lo, hi] = pumpRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
           else color = hrColor(hr[i + 1], hrRange);
-          L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: 0.92 }).addTo(lg);
+          L.polyline(linie, { color, weight: 4, opacity: 0.92 }).addTo(lg);
         }
       }
       // Pump-Marker NACH den Linien, sonst verdecken die Linien sie. Gefuellt in der Farbe des
