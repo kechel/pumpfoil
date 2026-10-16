@@ -312,11 +312,14 @@ def _zellen_cache() -> dict:
 
 
 def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3,
-                    min_fahrer: int = 1, fahrer_von: dict | None = None, sport: str = "all") -> list[dict]:
+                    min_fahrer: int = 1, fahrer_von: dict | None = None, sport: str = "all",
+                    vom_spot: set | None = None) -> list[dict]:
     """Startpositionen aus den Lauf-Starts der Sessions `session_ids` (die eines Spots), um den
     Bezugspunkt lat0/lon0. Absteigend nach Zahl der Starts. `fahrer_von` = Session -> Nutzer; damit
     zaehlt `fahrer` die VERSCHIEDENEN Fahrer an der Stelle, und `min_fahrer` filtert danach (Jan:
-    neben den Starts auch die Zahl unterschiedlicher Fahrer heranziehen)."""
+    neben den Starts auch die Zahl unterschiedlicher Fahrer heranziehen). `vom_spot`: Sessions des
+    eigentlichen Spots, wenn Nachbarspots mitgerechnet werden — Positionen mit Starts daraus tragen
+    `vom_spot: True` (die Planung beginnt dort)."""
     cache = _zellen_cache()
     n = 1 << Z_MAX
     kx = 111320.0 * math.cos(math.radians(lat0))
@@ -358,8 +361,11 @@ def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3,
                 or n_fahrer < max(1, int(min_fahrer))):
             continue
         mx, my = X[idx].mean(axis=0)
-        raus.append({"lat": round(lat0 + my / 111320.0, 6), "lon": round(lon0 + mx / kx, 6),
-                     "starts": int(len(idx)), "sessions": n_sess, "fahrer": n_fahrer})
+        pos = {"lat": round(lat0 + my / 111320.0, 6), "lon": round(lon0 + mx / kx, 6),
+               "starts": int(len(idx)), "sessions": n_sess, "fahrer": n_fahrer}
+        if vom_spot is not None:
+            pos["vom_spot"] = any(sess[i] in vom_spot for i in idx)
+        raus.append(pos)
     raus.sort(key=lambda r: -r["starts"])
     return raus
 

@@ -756,6 +756,8 @@ const pl: Record<string, string> = {
   "routes.anyDirection": "dowolnie",
   "routes.reliability": "min. startów",
   "routes.riders": "min. riderów",
+  "routes.radius": "Promień",
+  "routes.radiusSpot": "tylko spot",
   "routes.spotInfo": "{name}: {starts} startów z {sessions} sesji, riderów: {fahrer}",
   "routes.minDist": "Min. odległość na odcinek",
   "routes.maxDist": "Maks. odległość na odcinek",
