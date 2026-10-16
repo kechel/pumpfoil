@@ -460,6 +460,7 @@ private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Mod
                     if (eingefroren) return@AndroidView   // STOPP wird gehalten: nichts neu zeichnen
                     MapTiles.anwenden(map, ebene)
                     map.overlays.clear()
+                    Schutzgebiete.anhaengen(map)   // Schutzgebiete wieder einhaengen (Schutzgebiete.kt)
                     if (track.size >= 2) {
                         val gpts = track.map { GeoPoint(it[0], it[1]) }
                         map.overlays.add(Polyline(map).apply {

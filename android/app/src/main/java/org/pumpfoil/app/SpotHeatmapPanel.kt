@@ -128,6 +128,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
         MapView(ctx).apply {
             setMultiTouchControls(true)
             controller.setZoom(15.0); controller.setCenter(GeoPoint(lat, lon))
+            Schutzgebiete.anhaengen(this)
             // In der scrollenden Seite: Gesten auf der Karte gehoeren der Karte
             setOnTouchListener { v, e ->
                 if (e.action == MotionEvent.ACTION_DOWN) v.parent?.requestDisallowInterceptTouchEvent(true)
@@ -136,6 +137,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
         }
     }
     val ebene = remember(spotId) { mutableListOf<Overlay>() }
+    androidx.compose.runtime.DisposableEffect(karte) { onDispose { karte.onDetach() } }
 
     // Einpassen auf die Zellen des letzten Jahres um den Spot; ohne Zellen -> Panel weg
     LaunchedEffect(spotId) {
@@ -196,7 +198,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
     val dens = ctx.resources.displayMetrics.density
     LaunchedEffect(bereit, planen, plan.serverPos, plan.eigene, plan.gewaehlt, plan.gerechnetMit, plan.einstellungsSchluessel,
                    plan.ueberlagert, plan.start, plan.aus, meineStarts, plan.umkreis, gemerktWahl, gemerkt, plan.setzen) {
-        if (!bereit) return@LaunchedEffect
+        if (!bereit || karte.repository == null) return@LaunchedEffect   // abgebaute Karte nicht anfassen
         karte.overlays.removeAll(ebene); ebene.clear()
         if (planen) {
             val p = plan.pos
@@ -280,8 +282,11 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
             }
             Spacer(Modifier.height(8.dp))
             MapTiles.MitUmschalter(Modifier.fillMaxWidth().height(280.dp).clip(RoundedCornerShape(10.dp))) { ebeneWahl ->
-                AndroidView(modifier = Modifier.fillMaxSize(), factory = { karte.also { MapTiles.anwenden(it, ebeneWahl) } },
-                    update = { MapTiles.anwenden(it, ebeneWahl) }, onRelease = { it.onDetach() })
+                // KEIN onRelease -> onDetach: die Karte ist oben gemerkt und wird wiederverwendet; eine
+                // abgebaute osmdroid-Karte zeichnet danach nichts Neues mehr. Abgebaut wird sie, wenn
+                // das Panel verschwindet (DisposableEffect oben).
+                AndroidView(modifier = Modifier.fillMaxSize(), factory = { karte.also { (it.parent as? android.view.ViewGroup)?.removeView(it); MapTiles.anwenden(it, ebeneWahl) } },
+                    update = { MapTiles.anwenden(it, ebeneWahl) })
                 // „+" fuer eigene Punkte (nur in der Planung), oben rechts
                 if (planen) Box(Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.TopEnd) {
                     Surface(shape = RoundedCornerShape(6.dp), color = if (plan.setzen) CYAN else MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
