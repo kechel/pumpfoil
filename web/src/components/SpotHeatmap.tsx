@@ -163,6 +163,8 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
   const [start, setStart] = useState(0);
   const [minM, setMinM] = useState(50);
   const [maxM, setMaxM] = useState(300);
+  const [anzahl, setAnzahl] = useState(99);           // Startpunkte auf der Route; 99 = alle
+  const [ohneKreuzung, setOhneKreuzung] = useState(true);
   const [pos, setPos] = useState<Startposition[] | null>(null);
   const [routen, setRouten] = useState<Route[] | null>(null);
   const [gewaehlt, setGewaehlt] = useState<number | null>(null);
@@ -182,9 +184,10 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
   // Vorschlaege neu rechnen, wenn sich Punkte, Start oder Abstaende aendern.
   useEffect(() => {
     if (!pos) { setRouten(null); return; }
-    setRouten(routenVorschlagen(pos, start, minM, Math.max(minM, maxM)));
+    setRouten(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
+      { punkte: Math.min(anzahl, pos.length), ohneKreuzung }));
     setGewaehlt(null);
-  }, [pos, start, minM, maxM]);
+  }, [pos, start, minM, maxM, anzahl, ohneKreuzung]);
 
   // Startpunkte (nummeriert) und die gewaehlte Route auf die Karte; Klick auf einen Punkt = Start.
   useEffect(() => {
@@ -230,10 +233,11 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
       </button>
     );
   }
-  const regler = (label: string, wert: number, setz: (v: number) => void, von: number, bis: number) => (
+  const regler = (label: string, wert: number, setz: (v: number) => void, von: number, bis: number,
+                  einheit = " m", schritt = 10) => (
     <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-slate-400">
-      <span>{label}: <span className="font-semibold text-slate-100">{wert} m</span></span>
-      <input type="range" min={von} max={bis} step={10} value={wert}
+      <span>{label}: <span className="font-semibold text-slate-100">{wert}{einheit}</span></span>
+      <input type="range" min={von} max={bis} step={schritt} value={wert}
         onChange={(e) => setz(Number(e.target.value))} className="accent-brand-500" />
     </label>
   );
@@ -275,6 +279,16 @@ function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | nul
             {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
             {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}
           </div>
+          {pos.length >= 2 && (
+            <div className="mb-3 flex flex-wrap items-end gap-4">
+              {regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
+              <label className="flex flex-1 items-center gap-2 text-sm text-slate-200">
+                <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
+                  className="h-4 w-4 accent-brand-500" />
+                {t("routes.noCrossing")}
+              </label>
+            </div>
+          )}
           {!routen?.length ? (
             <p className="text-sm text-slate-300">{t("routes.none", { n: pos.length })}</p>
           ) : (

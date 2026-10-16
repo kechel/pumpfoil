@@ -740,6 +740,8 @@ const pl: Record<string, string> = {
   "routes.reliability": "Miejsce startu użyte",
   "routes.minDist": "Min. odległość",
   "routes.maxDist": "Maks. odległość",
+  "routes.count": "Miejsca startu na trasie",
+  "routes.noCrossing": "Bez przecięć",
   "routes.none": "Brak trasy przy tych ustawieniach ({n} miejsc startu).",
   "routes.legs": "{n} odcinków",
   "routes.hint": "{n} miejsc startu używanych przez kilka sesji. Miejsce startu leży kilka metrów w kierunku jazdy, bo przejazd zaczyna się dopiero z prędkością.",

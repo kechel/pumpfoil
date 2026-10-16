@@ -2010,6 +2010,8 @@ const deAT: Record<string, string> = {
   "routes.reliability": "Startpunkt genutzt",
   "routes.minDist": "Abstand min.",
   "routes.maxDist": "Abstand max.",
+  "routes.count": "Startpunkte auf der Route",
+  "routes.noCrossing": "Ohne Überschneidungen",
   "routes.none": "Keine Route mit diesen Einstellungen ({n} Startpunkte).",
   "routes.legs": "{n} Abschnitte",
   "routes.hint": "{n} Startpunkte, die mehrere Sessions genutzt haben. Ein Startpunkt liegt ein paar Meter in Fahrtrichtung, weil ein Lauf erst mit Tempo beginnt.",

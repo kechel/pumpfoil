@@ -2003,6 +2003,8 @@ const es: Record<string, string> = {
   "routes.reliability": "Punto de salida usado",
   "routes.minDist": "Distancia mín.",
   "routes.maxDist": "Distancia máx.",
+  "routes.count": "Puntos de salida en la ruta",
+  "routes.noCrossing": "Sin cruces",
   "routes.none": "Ninguna ruta con estos ajustes ({n} puntos de salida).",
   "routes.legs": "{n} tramos",
   "routes.hint": "{n} puntos de salida usados en varias sesiones. Un punto de salida queda unos metros en el sentido de la marcha, porque una carrera empieza al tener velocidad.",

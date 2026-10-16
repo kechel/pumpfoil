@@ -2114,6 +2114,8 @@ const ja: Record<string, string> = {
   "routes.reliability": "スタート地点の利用",
   "routes.minDist": "最小距離",
   "routes.maxDist": "最大距離",
+  "routes.count": "ルート上のスタート地点",
+  "routes.noCrossing": "交差なし",
   "routes.none": "この設定ではルートがありません（スタート地点 {n} 件）。",
   "routes.legs": "{n} 区間",
   "routes.hint": "複数のセッションで使われたスタート地点 {n} 件。ランは速度が出てから始まるため、スタート地点は進行方向に数メートルずれます。",
