@@ -16,7 +16,7 @@ import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
-import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon, WatchIcon } from "../components/Icons";
+import { CommunityIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
 import { PERIODS } from "./Home";
@@ -206,6 +206,7 @@ export default function PersonalHome() {
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
   const [latestFehler, setLatestFehler] = useState(false);
   const [homespot, setHomespot] = useState("");
+  const [homespotId, setHomespotId] = useState<number | null>(null);
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
   // VORERST Default "alle" (zu wenige Nutzer, um einzuschränken); smarter Default vorbereitet.
   const [accelOnly, setAccelOnly] = useState(false);
@@ -244,7 +245,10 @@ export default function PersonalHome() {
     // `homespot_effective`, nicht `homespot`: bei leerem Profilwert leitet der Server ihn aus
     // der letzten Session ab (s. settings.py). Vorher blieb die Wetterkarte bei 96 % der
     // Nutzer aus, obwohl das Profil „Automatisch (letzte Session)" versprach.
-    api.getSettings().then((s) => setHomespot((s.homespot_effective as string) ?? (s.homespot as string) ?? "")).catch(() => {});
+    api.getSettings().then((s) => {
+      setHomespot((s.homespot_effective as string) ?? (s.homespot as string) ?? "");
+      setHomespotId(typeof s.homespot_effective_id === "number" ? s.homespot_effective_id : null);
+    }).catch(() => {});
   }, []);
   useEffect(() => {
     api.statsByFoil(accelOnly, period, sport || undefined).then(setByFoil).catch(() => setByFoil([]));
@@ -345,11 +349,19 @@ export default function PersonalHome() {
       <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
 
       {/* Letzte Sessions ganz oben (direkt nach der Begrüßung) */}
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex min-w-0 items-center gap-3">
+          {/* Homespot direkt verlinkt, links neben den Ansichts-Knoepfen (Jan) */}
+          {homespot && homespotId != null && (
+            <Link to={`/sessions?spot=${homespotId}`} title={t("foiler.homespot")}
+              className="flex shrink-0 items-center gap-1 text-xs text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+              <LocationIcon className="h-4 w-4 shrink-0" />
+              <span className="max-w-[7rem] truncate sm:max-w-[16rem]">{homespot}</span>
+            </Link>
+          )}
           <ListenAnsicht />
-          <Link to="/sessions" className="text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
+          <Link to="/sessions" className="whitespace-nowrap text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
         </div>
       </div>
       {/* Wartet eine eigene Session auf Zuordnung, MUSS es hier stehen: ein Push allein genügt nicht
