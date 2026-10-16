@@ -342,12 +342,13 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
         const l: [number, number][] = [[ab.a.lat, ab.a.lon], [ab.b.lat, ab.b.lon]];
         g.addLayer(L.polyline(l, { color: "#0f172a", weight: 7, opacity: 0.6, interactive: false }));
         g.addLayer(L.polyline(l, { color: ab.farbe, weight: 4, opacity: 1, interactive: false }));
-        // Abschnittsnummer mittig auf der Linie, in ihrer Farbe
-        const html = `<div style="width:18px;height:18px;border-radius:9px;display:flex;align-items:center;` +
-          `justify-content:center;font:700 11px ui-sans-serif,system-ui;background:${ab.farbe};` +
-          `color:#0f172a;border:2px solid #0f172a">${k + 1}</div>`;
+        // Abschnittsnummer mittig auf der Linie: immer weiss hinterlegt (Jan, lesbar auf jeder
+        // Farbe), der Rand in der Farbe des Abschnitts
+        const html = `<div style="width:20px;height:20px;border-radius:10px;display:flex;align-items:center;` +
+          `justify-content:center;font:700 11px ui-sans-serif,system-ui;background:#ffffff;` +
+          `color:#0f172a;border:3px solid ${ab.farbe};box-shadow:0 0 0 1px #0f172a">${k + 1}</div>`;
         g.addLayer(L.marker([(ab.a.lat + ab.b.lat) / 2, (ab.a.lon + ab.b.lon) / 2], {
-          icon: L.divIcon({ html, className: "", iconSize: [18, 18], iconAnchor: [9, 9] }),
+          icon: L.divIcon({ html, className: "", iconSize: [20, 20], iconAnchor: [10, 10] }),
           interactive: false, keyboard: false,
         }));
       });
