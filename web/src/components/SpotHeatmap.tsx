@@ -333,7 +333,7 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
     const empf = (a: Route, b: Route) => (a.kreuzungen - b.kreuzungen) || (a.doppelt - b.doppelt) || (a.wertung - b.wertung);
     return ergebnis.routen.filter((r) => richtung == null || r.richtung === richtung).sort(empf).slice(0, 20).sort(vgl);
   })();
-  const gewaehlteRoute = routen.find((r) => r.punkte.join("-") === gewaehlt) ?? null;
+  const gewaehlteRoute = veraltet ? null : routen.find((r) => r.punkte.join("-") === gewaehlt) ?? null;
 
   // Karte: Startpunkte (nummeriert; Klick = Start) und die gewaehlte bzw. ueberlagerte Route.
   useEffect(() => {
@@ -344,7 +344,7 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
     if (!offen || !pos) { g.remove(); return; }
     g.addTo(karte);
     const linie = gewaehlteRoute ? gewaehlteRoute.punkte.map((i) => pos[i] as Punkt)
-      : ueberlagert ? ueberlagert.punkte.map(([lat, lon]) => ({ lat, lon })) : null;
+      : ueberlagert && !veraltet ? ueberlagert.punkte.map(([lat, lon]) => ({ lat, lon })) : null;
     if (linie) {
       // Jeder Abschnitt in der Farbe seiner Laenge (Rampe wie beim Tempo, rot = laengster), unter
       // einer dunklen Kontur, damit die Farbe auf Luftbild und Karte gleich lesbar ist.
@@ -379,7 +379,7 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
       g.addLayer(mk);
     });
     return () => { g.clearLayers(); };
-  }, [karte, offen, pos, gewaehlteRoute, ueberlagert, start, aus, t]);
+  }, [karte, offen, pos, gewaehlteRoute, ueberlagert, veraltet, start, aus, t]);
 
   useEffect(() => () => { ebene.current?.remove(); }, []);
 
@@ -556,12 +556,15 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
                   </div>
                 </div>
               )}
-              <button onClick={() => { setUeberlagert(null); setAnstoss((n) => n + 1); }}
-                className={`mb-3 rounded-lg px-4 py-2 text-sm font-semibold ${veraltet
-                  ? "bg-brand-500 text-slate-950 hover:bg-brand-400"
-                  : "border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"}`}>
-                {t("routes.compute")}
-              </button>
+              {/* Passt die Liste nicht mehr zu den Einstellungen, verschwindet sie und der Knopf
+                  erscheint (Jan: eine stehengebliebene Tabelle verwirrt). */}
+              {veraltet && (
+                <button onClick={() => { setUeberlagert(null); setAnstoss((n) => n + 1); }}
+                  className="mb-3 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+                  {t("routes.compute")}
+                </button>
+              )}
+              {!veraltet && (<>
 
               {richtungen.length > 1 && (
                 <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
@@ -641,6 +644,7 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
                 </div>
               )}
               {ergebnis?.gekuerzt && <p className="mt-2 text-xs text-slate-400">{t("routes.cut")}</p>}
+              </>)}
               <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
             </>
           )}
