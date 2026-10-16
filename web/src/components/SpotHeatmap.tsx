@@ -665,6 +665,27 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     setEigene(eigene.filter((_, j) => j !== k));
   };
 
+  // Manuelle Punkte einer aufgerufenen Route (nicht die eigenen) entfernen: bei der naechsten eigenen
+  // Berechnung und beim Schliessen der Planung (Jan: „verschwinden, sobald die Planung nicht mehr
+  // diese Route ist"). Solange man nur in der Liste eine andere Route waehlt, bleiben sie — die Liste
+  // ist mit ihnen gerechnet. Gibt zurueck, ob etwas entfernt wurde.
+  const fremdeEntfernen = (): boolean => {
+    if (!eigene.some((p) => !p.lokal)) return false;
+    const neuIndex: number[] = [];                    // alter Index -> neuer (-1 = entfernt)
+    let n = 0;
+    for (let i = 0; i < nServer + eigene.length; i++) {
+      neuIndex.push(i < nServer || eigene[i - nServer].lokal ? n++ : -1);
+    }
+    const um = (i: number) => neuIndex[i] ?? -1;
+    setStart((s) => Math.max(0, um(s)));
+    setAus((a) => new Set([...a].map(um).filter((i) => i >= 0)));
+    setZielPlatz((z) => (z == null || um(z) < 0 ? null : um(z)));
+    setRichtung((r) => (r == null || um(r) < 0 ? null : um(r)));
+    setEigene(eigene.filter((p) => p.lokal));
+    return true;
+  };
+  useEffect(() => { if (!offen) fremdeEntfernen(); }, [offen]);  // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => () => { ebene.current?.remove(); }, []);
 
   const merken = (r: Route) => {
@@ -677,7 +698,9 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                        ziel: zielAktiv != null ? [pos[zielAktiv].lat, pos[zielAktiv].lon] : null,
                        min_m: minM, max_m: maxM, punkte: anzahl, ohne_kreuzung: ohneKreuzung, rundkurs,
                        ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]),
-                       eigene: eigene.map((p) => [p.lat, p.lon]), umkreis_km: umkreis },
+                       // nur die manuellen Punkte, die die Route wirklich anfaehrt (Jan)
+                       eigene: [...new Set(r.punkte.filter((i) => i >= nServer))].map((i) => [pos[i].lat, pos[i].lon]),
+                       umkreis_km: umkreis },
     })
       .then(() => { setMerkStatus("ok"); gemerktGeaendert(); })
       .catch((e) => setMerkStatus(String(e).includes("409") ? "limit" : "fehler"));
@@ -687,12 +710,15 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     const e = g.einstellungen;
     setUeberlagert(null);
     setWieder(g);
-    // Selbst gesetzte Punkte der Route dazunehmen (nur fuer jetzt, nicht in die eigenen gespeichert),
-    // ausser es liegt schon einer an der Stelle
+    // Manuelle Punkte der Route dazunehmen (nur fuer jetzt, nicht in die eigenen gespeichert), ausser
+    // es liegt schon einer der eigenen an der Stelle. Sie gehoeren zu DIESER Route: die einer vorher
+    // aufgerufenen fliegen raus, statt sich anzusammeln (Jan, 16.10.2026). Start, Ausschluesse und
+    // Ziel stellt der Aufruf ohnehin neu ein, Indizes muessen hier nicht nachgezogen werden.
+    const lokale = eigene.filter((p) => p.lokal);
     const dazu = (e.eigene ?? []).map(([lat, lon]) => ({ lat, lon, lokal: false }))
-      .filter((p) => !eigene.some((q) => abstandM(p, q) < 5));
-    const neueEigene = dazu.length ? [...eigene, ...dazu].slice(0, EIGENE_MAX) : eigene;
-    if (dazu.length) setEigene(neueEigene);
+      .filter((p) => !lokale.some((q) => abstandM(p, q) < 5));
+    const neueEigene = [...lokale, ...dazu].slice(0, EIGENE_MAX);
+    if (neueEigene.length !== eigene.length || neueEigene.some((p, i) => p !== eigene[i])) setEigene(neueEigene);
     const posNeu: Startposition[] | null = serverPos && [...serverPos,
       ...neueEigene.map((p) => ({ lat: p.lat, lon: p.lon, starts: 0, sessions: 0, eigen: true }))];
     if (e.min_m != null) setMinM(e.min_m);
@@ -902,7 +928,12 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                   erscheint (Jan: eine stehengebliebene Tabelle verwirrt). */}
               {(<>
               {veraltet && (
-                <button onClick={() => { setUeberlagert(null); setAnstoss((n) => n + 1); }}
+                <button onClick={() => {
+                  setUeberlagert(null);
+                  // erst die fremden Punkte weg, dann mit den neuen Startplaetzen rechnen
+                  if (fremdeEntfernen()) window.setTimeout(() => setAnstoss((n) => n + 1), 0);
+                  else setAnstoss((n) => n + 1);
+                }}
                   className="mb-3 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">
                   {t("routes.compute")}
                 </button>
