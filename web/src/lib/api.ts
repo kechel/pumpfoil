@@ -819,7 +819,8 @@ export interface AdminPending {
 export interface AdminStatsBucket {
   date: string; new_users: number; active_users: number;
   // ZWEI verschiedene Daten je Session, nicht dasselbe (s. `api/admin.py`):
-  //   sessions = an diesem Tag GEFAHREN, imported = an diesem Tag bei uns ANGEKOMMEN.
+  //   sessions = an diesem Tag GEFAHREN, imported = an diesem Tag ueber eine
+  //   Kontoverknuepfung (Suunto/Polar/COROS) bei uns ANGEKOMMEN.
   // Eine Nachhol-Aktion der Kontoverknuepfungen bringt 1000 alte Fahrten an einem Tag —
   // die gehoeren in `imported`, nicht in `sessions`.
   sessions: number; imported: number; photos: number; likes: number;

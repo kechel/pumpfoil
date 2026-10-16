@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 import json
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
-from sqlalchemy import case, func, literal, or_, select
+from sqlalchemy import and_, case, func, literal, or_, select
 from sqlalchemy.orm import Session
 
 from .. import models, storage
@@ -910,7 +910,14 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     # Gefahren, nicht importiert — s. Docstring.
     au = series(S.started_at, S, distinct=S.user_id, extra=live)
     se = series(S.started_at, S, extra=live)
-    im = series(S.created_at, S, extra=live)
+    # Importiert = ueber eine KONTOVERKNUEPFUNG gekommen (Suunto, Polar, COROS), ohne dass die
+    # Pumpfoil-App aufgenommen hat (Jan, 16.10.2026). Vorher zaehlte hier JEDE Session nach
+    # Ankunftsdatum — „Gesamt" war damit dieselbe Zahl wie bei den Sessions. Quelle ist das
+    # Praefix der session_uuid (s. plat_serie); Datei-Uploads zaehlen nicht dazu. Datum bleibt
+    # `created_at`, damit eine Nachhol-Aktion als Spitze zu sehen ist.
+    importiert = and_(live, S.device_id.is_(None),
+                      or_(*(S.session_uuid.like(f"{q}-%") for q in ("suunto", "polar", "coros"))))
+    im = series(S.created_at, S, extra=importiert)
     ph = series(P.created_at, P)
     li = series(L.created_at, L)
     # Erst hier: `plat_serie` liest `live`, das weiter oben gesetzt wird.
@@ -969,7 +976,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         # distinct über das Fenster, ebenfalls nach Fahrtdatum
         "active_users": total(S, distinct=S.user_id, col=S.started_at, extra=live),
         "sessions": total(S, col=S.started_at, extra=live),
-        "imported": total(S, col=S.created_at, extra=live),
+        "imported": total(S, col=S.created_at, extra=importiert),
         "photos": total(P, col=P.created_at),
         "likes": total(L, col=L.created_at),
         **{f"p_{p}": plat_gesamt.get(p, 0) for p in PLATTFORMEN},
