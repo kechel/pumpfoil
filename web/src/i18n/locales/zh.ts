@@ -2107,6 +2107,7 @@ const zh: Record<string, string> = {
   "spots.onlyActive": "当前活跃",
   "spots.heatmap": "热力图",
   "spots.heatHint": "颜色 = 在此处的 session 数量（仅滑行段），每日更新。",
+  "spots.heatOff": "关闭",
   "spots.activeLegend": "绿色：现在可能有人在水上。单个地点只有在过去 180 天内至少有 4 名骑手在那里 pump 过时才会变绿。附近较小的地点如果在过去 90 天内合计超过 5 名骑手，也会让一组变绿。“活跃”表示手表或手机在过去 2 小时内连接过。",
   "spz.bound": "边界 {n}",
   "spz.hint": "速度也是同样的思路：这些区间为手表上的数字和你自定义布局中的数值图形着色。建议值来自你实际骑行的速度。",

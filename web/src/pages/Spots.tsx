@@ -3,6 +3,7 @@ import { passtZu, suchform } from "../lib/suche";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
+import { heatZeichnen } from "../lib/heatmap";
 import { api, type AktiverFreund } from "../lib/api";
 import { Spinner, Card } from "../components/ui";
 import { SpotsIcon } from "../components/Icons";
@@ -13,16 +14,6 @@ import { useT } from "../i18n";
 const GRUEN = "#4ade80";
 
 type Spot = { spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number };
-
-// Heatmap-Farbe fuer t in [0, 1]: blau -> cyan -> gelb -> rot, wie man es von Heatmaps kennt.
-function heatFarbe(t: number): string {
-  const stops: [number, number, number][] = [[59, 130, 246], [34, 211, 238], [250, 204, 21], [239, 68, 68]];
-  const x = t * (stops.length - 1);
-  const i = Math.min(stops.length - 2, Math.floor(x));
-  const f = x - i;
-  const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
 
 // Spot-Namen kommen aus dem Geocoder bzw. einer Admin-Umbenennung und landen im Tooltip-HTML —
 // deshalb maskieren, statt darauf zu vertrauen, dass nie eine spitze Klammer darin steht.
@@ -254,20 +245,8 @@ export default function Spots() {
       api.heatmap(heat, m.getZoom(), b.getWest(), b.getSouth(), b.getEast(), b.getNorth())
         .then((r) => {
           if (weg) return;
-          grp.clearLayers();
           setHeatStand({ stand: r.stand, sessions: r.sessions });
-          if (r.z == null) return;
-          const n = 2 ** r.z;
-          const lon = (x: number) => (x / n) * 360 - 180;
-          const lat = (y: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n))) * 180) / Math.PI;
-          const ln = Math.log(1 + r.max);
-          for (const [x, y, c] of r.cells) {
-            const t = Math.min(1, Math.log(1 + c) / ln);
-            grp.addLayer(L.rectangle([[lat(y + 1), lon(x)], [lat(y), lon(x + 1)]], {
-              renderer, stroke: false, interactive: false,
-              fillColor: heatFarbe(t), fillOpacity: 0.35 + 0.45 * t,
-            }));
-          }
+          heatZeichnen(grp, renderer, r);
         })
         .catch(() => {});
     };

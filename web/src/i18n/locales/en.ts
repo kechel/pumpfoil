@@ -750,6 +750,7 @@ const en: Record<string, string> = {
   "spots.onlyActive": "Active right now",
   "spots.heatmap": "Heatmap",
   "spots.heatHint": "Colour = how many sessions were ridden there (runs only), updated daily.",
+  "spots.heatOff": "Off",
   "spots.activeLegend": "Green: someone is probably out on the water right now. A single spot only turns green if at least 4 riders have pumped there in the last 180 days. A group also turns green for smaller spots nearby, if together they had more than 5 riders in the last 90 days. \"Active\" means a watch or phone checked in within the last 2 hours.",
   "sd.spotPage": "Spot sessions & description",
   "sessions.mySpots": "My spots",

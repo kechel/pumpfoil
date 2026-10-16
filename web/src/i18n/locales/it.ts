@@ -1993,6 +1993,7 @@ const it: Record<string, string> = {
   "spots.onlyActive": "Attivo adesso",
   "spots.heatmap": "Heatmap",
   "spots.heatHint": "Colore = quante sessioni sono state fatte lì (solo le run), aggiornata ogni giorno.",
+  "spots.heatOff": "Disattivato",
   "spots.activeLegend": "Verde: probabilmente qualcuno è in acqua in questo momento. Uno spot singolo diventa verde solo se almeno 4 rider vi hanno pompato negli ultimi 180 giorni. Un gruppo diventa verde anche per spot più piccoli vicini, se insieme hanno avuto più di 5 rider negli ultimi 90 giorni. «Attivo» significa che un orologio o un telefono si è collegato nelle ultime 2 ore.",
   "spz.bound": "Limite {n}",
   "spz.hint": "La stessa idea per la velocità: queste zone colorano il numero sul tuo orologio e le grafiche di valore nei tuoi layout. Il suggerimento viene dalle velocità che fai davvero.",
