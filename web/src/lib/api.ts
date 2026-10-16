@@ -1191,9 +1191,9 @@ export const api = {
     req<{ z: number | null; cells: [number, number, number][]; max: number; stand: string | null; sessions: number }>(
       `/api/community/heatmap?period=${period}&z=${z}&w=${w}&s=${s}&e=${e}&n=${n}&art=${art}&sport=${encodeURIComponent(sport)}`),
   /** Verlaessliche Startpositionen eines Spots (>= minStarts Starts aus >= 2 Sessions), fuer Routen. */
-  spotStartpositionen: (spotId: number, minStarts: number, minFahrer = 1, sport = "all") =>
-    req<{ positionen: { lat: number; lon: number; starts: number; sessions: number; fahrer: number }[] }>(
-      `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}&min_fahrer=${minFahrer}&sport=${encodeURIComponent(sport)}`),
+  spotStartpositionen: (spotId: number, minStarts: number, minFahrer = 1, sport = "all", umkreisKm = 0) =>
+    req<{ positionen: { lat: number; lon: number; starts: number; sessions: number; fahrer: number; vom_spot?: boolean }[] }>(
+      `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}&min_fahrer=${minFahrer}&sport=${encodeURIComponent(sport)}&umkreis_km=${umkreisKm}`),
   /** Wo man selbst an diesem Spot schon gestartet ist (nur eigene Sessions) — gruen in der Routenplanung. */
   spotMeineStarts: (spotId: number, sport = "all") =>
     req<{ starts: [number, number][] }>(`/api/community/spot/${spotId}/meine_starts?sport=${encodeURIComponent(sport)}`),

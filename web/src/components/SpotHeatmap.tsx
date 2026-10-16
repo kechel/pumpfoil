@@ -230,7 +230,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
       )}
       <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen}
         aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} sport={sport}
-        gemerktWahl={gemerktWahl} abweichung={() => setGemerktWahl(null)} meineStarts={meineStarts} />
+        gemerktWahl={gemerktWahl} abweichung={() => setGemerktWahl(null)} meineStarts={meineStarts} mitte={mitte} />
     </Card>
   );
 }
@@ -249,6 +249,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
 // Rechnung in lib/routen.ts, gemerkte Routen: /api/community/spot/{id}/routen.
 const ZUVERLAESSIG = [2, 3, 5, 10];
 const FAHRER = [1, 2, 3, 5];
+const UMKREIS = [0, 2, 5, 10, 20, 30];   // km; 0 = nur dieser Spot (Server: hoechstens 30 km, 50 Startplaetze)
 const NAH_M = 40;                // gemerkter Punkt == heutiger Startpunkt, wenn so nah
 type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 type Punkt = { lat: number; lon: number };
@@ -257,7 +258,8 @@ export type Gemerkt = {
   einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; erstes_ziel?: [number, number] | null;
                    ziel?: [number, number] | null; min_m?: number;
                    max_m?: number; punkte?: number; ohne_kreuzung?: boolean; rundkurs?: boolean;
-                  ausgeschlossen?: [number, number][]; eigene?: [number, number][] };
+                  ausgeschlossen?: [number, number][]; eigene?: [number, number][];
+                  umkreis_km?: number };
 };
 const GRUEN = "#4ade80";         // hier ist man selbst schon gestartet
 const MEIN_M = 30;               // so nah an einem eigenen Start = „schon gestartet"
@@ -360,14 +362,17 @@ function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   );
 }
 
-function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport, gemerktWahl, abweichung, meineStarts }: {
+function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport, gemerktWahl, abweichung, meineStarts, mitte }: {
   spotId: number; karte: L.Map | null; offen: boolean;
   aufruf: { g: Gemerkt; n: number } | null; gemerkt: Gemerkt[]; gemerktGeaendert: () => void; sport: string;
-  gemerktWahl: string | null; abweichung: () => void; meineStarts: Punkt[];
+  gemerktWahl: string | null; abweichung: () => void; meineStarts: Punkt[]; mitte: Punkt | null;
 }) {
   const t = useT();
   const [minStarts, setMinStarts] = useState(3);
   const [minFahrer, setMinFahrer] = useState(1);   // verschiedene Fahrer an einem Startplatz
+  // Umkreis in km: 0 = nur die Startplaetze dieses Spots, sonst auch die aller Spots im Umkreis
+  // (Jan: „eine Route mit 30 Stops rund um den Zuerichsee … einen Regler fuer Umkreis").
+  const [umkreis, setUmkreis] = useState(0);
   const [start, setStart] = useState(0);
   const [minM, setMinM] = useState(50);
   const [maxM, setMaxM] = useState(300);
@@ -401,9 +406,16 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   const [ueberlagert, setUeberlagert] = useState<Gemerkt | null>(null); // gemerkte, die heute nicht mehr passt
   const ebene = useRef<L.LayerGroup | null>(null);
   const erstGerechnet = useRef(false);
+  const umkreisSetzen = (km: number) => { if (km !== umkreis) { einpassen.current = true; setUmkreis(km); } };
+  // Startplaetze vor dem Neuladen: Start, Ausschluesse und Ziel werden ueber die Lage uebernommen,
+  // statt bei jeder anderen Zuverlaessigkeit/jedem Umkreis auf den Anfang zu springen.
+  const posRef = useRef<Startposition[] | null>(null);
+  const vorher = useRef<Startposition[] | null>(null);
+  const einpassen = useRef(false);                     // nach Umkreis-Wechsel die Karte auf die Startplaetze
 
   const zielAktiv = !rundkurs && zielPlatz != null && zielPlatz !== start && !aus.has(zielPlatz) ? zielPlatz : null;
-  const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort(), zielAktiv,
+  posRef.current = pos;
+  const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, umkreis, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort(), zielAktiv,
                                                  eigene.map((p) => [p.lat, p.lon])]);
   // Auch ohne Ergebnis „veraltet": nach dem Neuladen der Startplaetze ist es verworfen — stellt man
   // die alte Einstellung wieder her, stuende sonst weder Liste noch Knopf da.
@@ -414,34 +426,47 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   useEffect(() => {
     if (!offen) { erstGerechnet.current = false; return; }
     let weg = false;
+    if (posRef.current) vorher.current = posRef.current;
     setServerPos(null); setErgebnis(null);
-    api.spotStartpositionen(spotId, minStarts, minFahrer, sport)
+    api.spotStartpositionen(spotId, minStarts, minFahrer, sport, umkreis)
       .then((r) => { if (!weg) setServerPos(r.positionen); })
       .catch(() => { if (!weg) setServerPos([]); });
     return () => { weg = true; };
-  }, [offen, spotId, minStarts, minFahrer, sport]);
+  }, [offen, spotId, minStarts, minFahrer, sport, umkreis]);
+  useEffect(() => { if (!offen) vorher.current = null; }, [offen]);
 
   // Neue Startpunkte: Start auf den meistgenutzten — oder auf den einer gemerkten Route — und rechnen.
   useEffect(() => {
     if (!pos) return;
-    let s = 0;
+    const alt = wieder ? null : vorher.current;
+    vorher.current = null;
+    const neu = (i: number | null) => (i == null || !alt?.[i] ? -1 : naechster(pos, alt[i]));
+    // Vorgabe-Start: der meistgenutzte Startplatz DIESES Spots (mit Umkreis kommen fremde dazu)
+    let s = Math.max(0, pos.findIndex((p) => p.vom_spot !== false && !p.eigen));
     if (wieder?.einstellungen.start) {
       const [la, lo] = wieder.einstellungen.start;
       const i = naechster(pos, { lat: la, lon: lo });
       if (i >= 0) s = i;
-    }
+    } else if (alt && neu(start) >= 0) s = neu(start);
     setStart(s);
-    // Ausschluesse: bei einer gemerkten Route deren Plaetze, sonst keine
+    // Ausschluesse: bei einer gemerkten Route deren Plaetze, sonst die bisherigen (ueber die Lage)
     const ex = new Set<number>();
-    for (const [la, lo] of wieder?.einstellungen.ausgeschlossen ?? []) {
+    const exAlt: [number, number][] = wieder ? (wieder.einstellungen.ausgeschlossen ?? [])
+      : alt ? [...aus].filter((i) => alt[i]).map((i) => [alt[i].lat, alt[i].lon]) : [];
+    for (const [la, lo] of exAlt) {
       const i = naechster(pos, { lat: la, lon: lo });
       if (i >= 0 && i !== s) ex.add(i);
     }
     setAus(ex);
-    // Ziel (ohne Rundkurs): bei einer gemerkten Route deren Ziel, sonst keins
+    // Ziel (ohne Rundkurs): bei einer gemerkten Route deren Ziel, sonst das bisherige
     const wz = wieder?.einstellungen.ziel;
-    const wzi = wz ? naechster(pos, { lat: wz[0], lon: wz[1] }) : -1;
+    const wzi = wz ? naechster(pos, { lat: wz[0], lon: wz[1] }) : neu(zielPlatz);
     setZielPlatz(wzi >= 0 ? wzi : null);
+    // Umkreis gewechselt: Karte auf alle Startplaetze einpassen
+    if (einpassen.current && karte && pos.length) {
+      einpassen.current = false;
+      karte.fitBounds(L.latLngBounds(pos.map((p) => [p.lat, p.lon] as [number, number])), { padding: [24, 24], maxZoom: 16, animate: false });
+    }
     // Automatisch nur beim ersten Oeffnen und beim Aufrufen einer gemerkten Route; sonst (andere
     // Zuverlaessigkeit/Fahrerzahl) verschwindet die Liste und „Jetzt berechnen" erscheint — wie bei
     // jeder anderen Einstellung (Jan).
@@ -478,6 +503,11 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     aufrufLaeuft.current = false;
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Begruendung ohne Route: rechnet mehrmals, deshalb nur einmal je Ergebnis (nicht bei jedem Rendern)
+  const grund = useMemo(() => (!pos || !ergebnis || ergebnis.routen.length ? null
+    : warumKeine(pos, start, minM, Math.max(minM, maxM),
+      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined })),
+    [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
   const richtungen = ergebnis ? [...new Set(ergebnis.routen.map((r) => r.erstesZiel))].sort((a, b) => a - b) : [];
   const listeFuer = (rich: number | null): Route[] => {
     if (!ergebnis) return [];
@@ -521,6 +551,10 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     g.clearLayers();
     if (!offen || !pos) { g.remove(); return; }
     g.addTo(karte);
+    if (umkreis > 0 && mitte) {
+      g.addLayer(L.circle([mitte.lat, mitte.lon], { radius: umkreis * 1000, color: "#22d3ee", weight: 1.5,
+        dashArray: "6 6", fill: false, interactive: false }));
+    }
     const linie = gewaehlteRoute ? gewaehlteRoute.punkte.map((i) => pos[i] as Punkt)
       : ueberlagert && !veraltet ? ueberlagert.punkte.map(([lat, lon]) => ({ lat, lon })) : null;
     if (linie) {
@@ -556,7 +590,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       g.addLayer(mk);
     });
     return () => { g.clearLayers(); };
-  }, [karte, offen, pos, gewaehlteRoute, ueberlagert, veraltet, start, aus, t, meineStarts]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [karte, offen, pos, gewaehlteRoute, ueberlagert, veraltet, start, aus, t, meineStarts, umkreis, mitte]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // „+" auf der Karte (Jan): danach setzt der naechste Klick auf die Karte einen eigenen Punkt.
   // Als Leaflet-Knopf, damit er auch im Vollbild da ist.
@@ -628,7 +662,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                        ziel: zielAktiv != null ? [pos[zielAktiv].lat, pos[zielAktiv].lon] : null,
                        min_m: minM, max_m: maxM, punkte: anzahl, ohne_kreuzung: ohneKreuzung, rundkurs,
                        ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]),
-                       eigene: eigene.map((p) => [p.lat, p.lon]) },
+                       eigene: eigene.map((p) => [p.lat, p.lon]), umkreis_km: umkreis },
     })
       .then(() => { setMerkStatus("ok"); gemerktGeaendert(); })
       .catch((e) => setMerkStatus(String(e).includes("409") ? "limit" : "fehler"));
@@ -651,9 +685,9 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     if (e.punkte != null) setAnzahl(e.punkte);
     if (e.ohne_kreuzung != null) setOhneKreuzung(e.ohne_kreuzung);
     if (e.rundkurs != null) setRundkurs(e.rundkurs);
-    const ms = e.min_starts ?? minStarts, mf = e.min_fahrer ?? 1;
-    if (ms !== minStarts || mf !== minFahrer) {      // laedt die Startpunkte neu, rechnet dann
-      setMinStarts(ms); setMinFahrer(mf);
+    const ms = e.min_starts ?? minStarts, mf = e.min_fahrer ?? 1, uk = e.umkreis_km ?? 0;
+    if (ms !== minStarts || mf !== minFahrer || uk !== umkreis) {      // laedt die Startpunkte neu, rechnet dann
+      setMinStarts(ms); setMinFahrer(mf); umkreisSetzen(uk);
     }
     else if (posNeu) {                                  // gleiche Startpunkte: Start setzen, rechnen
       const st = e.start ? naechster(posNeu, { lat: e.start[0], lon: e.start[1] }) : -1;
@@ -729,6 +763,13 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                 ≥ {n}
               </button>
             ))}
+            <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
+            <span className="text-xs text-slate-400">{t("routes.radius")}</span>
+            {UMKREIS.map((km) => (
+              <button key={km} onClick={() => umkreisSetzen(km)} aria-pressed={umkreis === km} className={pille(umkreis === km)}>
+                {km === 0 ? t("routes.radiusSpot") : `${km} km`}
+              </button>
+            ))}
             <div className="ml-auto flex flex-wrap items-center gap-4">
               <label className="flex items-center gap-2 text-sm text-slate-200">
                 <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
@@ -754,7 +795,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
                 <span className="shrink-0 text-xs text-slate-400">{t("routes.startPoints")}</span>
                 {pos.map((p, i) => {
-                  const lage = lageText(p, pos[0], t("map.compass").split(","));
+                  // Lage zum Spot selbst (mit Umkreis ist der meistgenutzte Platz oft ein fremder)
+                  const lage = lageText(p, mitte ?? pos[0], t("map.compass").split(","));
                   const raus = aus.has(i);
                   return [
                     <span key={i} title={p.eigen ? t("routes.ownPointInfo", { name: platzName(i) })
@@ -837,7 +879,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               )}
               <div className="mb-3 grid gap-x-4 gap-y-2 sm:grid-cols-3">
                 {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
-                {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}
+                {/* mit Umkreis liegen die Startplaetze Kilometer auseinander (Zuerichsee) -> bis 10 km */}
+                {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, umkreis > 0 ? 10000 : 2000, " m", umkreis > 0 ? 50 : 10)}
                 {pos.length >= 2 && regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
               </div>
               {/* Passt die Liste nicht mehr zu den Einstellungen, verschwindet sie und der Knopf
@@ -860,8 +903,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               {!routen.length ? (
                 ergebnis && (() => {
                   // Begruendung statt leerer Liste (Jan)
-                  const w = warumKeine(pos, start, minM, Math.max(minM, maxM),
-                    { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined });
+                  const w = grund ?? { grund: "unbekannt" as const };
                   const text = w.grund === "nachbar" ? (w.naechsterM == null ? t("routes.whyNoOther")
                       : t("routes.whyNeighbour", { m: w.naechsterM, min: minM, max: maxM }))
                     : w.grund === "zuWenig" ? t("routes.whyTooFew", { n: w.verfuegbar, soll: Math.min(anzahl, pos.length) })

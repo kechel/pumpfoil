@@ -2044,6 +2044,8 @@ const fr: Record<string, string> = {
   "routes.anyDirection": "peu importe",
   "routes.reliability": "min. départs",
   "routes.riders": "min. riders",
+  "routes.radius": "Rayon",
+  "routes.radiusSpot": "spot seul",
   "routes.spotInfo": "{name} : {starts} départs sur {sessions} sessions de {fahrer} riders",
   "routes.minDist": "Distance min. par tronçon",
   "routes.maxDist": "Distance max. par tronçon",

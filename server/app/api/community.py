@@ -1710,17 +1710,40 @@ def heatmap(period: str = Query("365d"), z: int = Query(10, ge=0, le=22),
 def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
                          min_fahrer: int = Query(1, ge=1, le=50),
                          sport: str = Query("all", max_length=40),
+                         umkreis_km: float = Query(0, ge=0, le=50),
                          user: models.User = Depends(current_user),
                          db: Session = Depends(get_db)) -> dict:
     """Verlaessliche Startpositionen eines Spots fuer die Routen-Vorschlaege (app/heatmap.py).
-    Fuer alle gleich, wie die Heatmap."""
+    Fuer alle gleich, wie die Heatmap.
+
+    Mit `umkreis_km` > 0 zaehlen die Startplaetze ALLER Spots in diesem Umkreis um den Spot mit
+    (Jan, 16.10.2026: „eine Route mit 30 Stops rund um den Zuerichsee … einen Regler fuer Umkreis")
+    — sonst nur die dieses Spots. Hoechstens UMKREIS_MAX_KM und POSITIONEN_MAX Startplaetze (die
+    meistgenutzten)."""
+    import math
     from ..heatmap import startpositionen
     sp = db.get(models.Spot, spot_id)
     if sp is None or sp.lat is None or sp.lon is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
-    zeilen = db.query(models.Session.id, models.Session.user_id).filter(models.Session.spot_id == spot_id).all()
-    return {"positionen": startpositionen([i for i, _u in zeilen], float(sp.lat), float(sp.lon), min_starts,
-                                          min_fahrer, {i: u for i, u in zeilen}, sport)}
+    S = models.Session
+    lat0, lon0 = float(sp.lat), float(sp.lon)
+    if umkreis_km <= 0:
+        zeilen = db.query(S.id, S.user_id).filter(S.spot_id == spot_id).all()
+        return {"positionen": startpositionen([i for i, _u in zeilen], lat0, lon0, min_starts,
+                                              min_fahrer, {i: u for i, u in zeilen}, sport)}
+    r = min(umkreis_km, UMKREIS_MAX_KM)
+    kx = 111.32 * math.cos(math.radians(lat0))
+    km = lambda la, lo: math.hypot((lo - lon0) * kx, (la - lat0) * 111.32)  # noqa: E731
+    # Spots etwas ueber den Umkreis hinaus: ihre Starts koennen noch darin liegen
+    dla, dlo = (r + 2) / 111.32, (r + 2) / kx
+    spots = [i for i, la, lo in db.query(models.Spot.id, models.Spot.lat, models.Spot.lon).filter(
+        models.Spot.lat.between(lat0 - dla, lat0 + dla), models.Spot.lon.between(lon0 - dlo, lon0 + dlo))
+        if la is not None and lo is not None and km(la, lo) <= r + 2]
+    zeilen = db.query(S.id, S.user_id, S.spot_id).filter(S.spot_id.in_(spots + [spot_id])).all()
+    pos = startpositionen([i for i, _u, _s in zeilen], lat0, lon0, min_starts, min_fahrer,
+                          {i: u for i, u, _s in zeilen}, sport, vom_spot={i for i, _u, x in zeilen if x == spot_id})
+    # schon nach Starts sortiert -> die meistgenutzten bleiben (Jan: „max dann 50 oder so")
+    return {"positionen": [p for p in pos if km(p["lat"], p["lon"]) <= r][:POSITIONEN_MAX]}
 
 
 @router.get("/spot/{spot_id}/meine_starts")
@@ -1739,11 +1762,13 @@ def spot_meine_starts(spot_id: int, sport: str = Query("all", max_length=40),
 # Freitext -> nichts zu moderieren; gegen Massen-Eintraege eine Obergrenze je Nutzer und Spot.
 ROUTEN_JE_NUTZER_UND_SPOT = 20
 ROUTE_MAX_PUNKTE = 60
-ROUTE_MAX_ABSTAND_KM = 10.0      # alle Punkte in diesem Umkreis um den Spot
+ROUTE_MAX_ABSTAND_KM = 40.0      # alle Punkte in diesem Umkreis um den Spot (Umkreis-Regler bis 30 km + eigene Punkte)
+UMKREIS_MAX_KM = 30.0            # Startplaetze aus dem Umkreis: hoechstens so weit ...
+POSITIONEN_MAX = 50              # ... und hoechstens so viele
 _EINSTELLUNGEN = {"min_starts": int, "start": list, "richtung": (int, type(None)), "min_m": (int, float),
                   "max_m": (int, float), "punkte": int, "ohne_kreuzung": bool, "rundkurs": bool,
                   "ausgeschlossen": list, "min_fahrer": int, "erstes_ziel": (list, type(None)), "ziel": (list, type(None)),
-                  "eigene": list}
+                  "eigene": list, "umkreis_km": (int, float)}
 EIGENE_MAX = 20   # selbst gesetzte Punkte je Route (Routenplanung, „+" auf der Karte)
 
 

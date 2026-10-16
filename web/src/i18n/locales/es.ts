@@ -2044,6 +2044,8 @@ const es: Record<string, string> = {
   "routes.anyDirection": "cualquiera",
   "routes.reliability": "mín. salidas",
   "routes.riders": "mín. riders",
+  "routes.radius": "Radio",
+  "routes.radiusSpot": "solo spot",
   "routes.spotInfo": "{name}: {starts} salidas en {sessions} sesiones de {fahrer} riders",
   "routes.minDist": "Distancia mín. por tramo",
   "routes.maxDist": "Distancia máx. por tramo",

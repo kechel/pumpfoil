@@ -85,3 +85,35 @@ def test_spot_weg_routen_weg(client):
     db.delete(db.get(models.Spot, sid)); db.commit()
     assert db.query(models.GemerkteRoute).filter_by(spot_id=sid).count() == 0
     db.close()
+
+
+def test_startpositionen_im_umkreis(client, monkeypatch):
+    from datetime import datetime, timezone
+    """Umkreis-Regler: Startplaetze der Nachbarspots zaehlen mit, `vom_spot` markiert die eigenen,
+    ausserhalb des Umkreises nichts, hoechstens POSITIONEN_MAX."""
+    from app.db import SessionLocal
+    from app import models, heatmap as H
+    from app.api import community as C
+    a = _konto(client, "routeu")
+    db = SessionLocal()
+    uid = db.query(models.User.id).order_by(models.User.id.desc()).first()[0]
+    hier = models.Spot(name="Hier", lat=-61.0, lon=20.0)
+    nachbar = models.Spot(name="Nachbar", lat=-61.0, lon=20.05)      # ~2,7 km
+    weit = models.Spot(name="Weit", lat=-61.0, lon=21.0)             # ~54 km
+    db.add_all([hier, nachbar, weit]); db.commit()
+    cache, sid = {}, {}
+    for sp in (hier, nachbar, weit):
+        for k in range(2):
+            s = models.Session(user_id=uid, session_uuid=f"umk-{sp.name}-{k}", spot_id=sp.id, status="analyzed",
+                               started_at=datetime(2026, 10, 1, tzinfo=timezone.utc))
+            db.add(s); db.commit()
+            cache[s.id] = ("fp", None, None, H._zellen([[sp.lon, sp.lat]] * 2, eindeutig=False))
+    hid = hier.id
+    db.close()
+    monkeypatch.setattr(H, "_zellen_cache", lambda: cache)
+    url = f"/api/community/spot/{hid}/startpositionen?min_starts=2"
+    assert len(client.get(url, headers=a).json()["positionen"]) == 1
+    r = client.get(url + "&umkreis_km=5", headers=a).json()["positionen"]
+    assert len(r) == 2 and sorted(p["vom_spot"] for p in r) == [False, True]
+    monkeypatch.setattr(C, "POSITIONEN_MAX", 1)
+    assert len(client.get(url + "&umkreis_km=5", headers=a).json()["positionen"]) == 1

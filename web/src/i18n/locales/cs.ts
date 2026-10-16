@@ -2217,6 +2217,8 @@ const cs: Record<string, string> = {
   "routes.anyDirection": "libovolně",
   "routes.reliability": "min. startů",
   "routes.riders": "min. jezdců",
+  "routes.radius": "Okruh",
+  "routes.radiusSpot": "jen spot",
   "routes.spotInfo": "{name}: {starts} startů z {sessions} sessions od {fahrer} jezdců",
   "routes.minDist": "Min. vzdálenost na úsek",
   "routes.maxDist": "Max. vzdálenost na úsek",

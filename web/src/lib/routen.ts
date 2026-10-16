@@ -11,7 +11,9 @@
 // startpositionen), die Rechnung ist hier — bei einer Handvoll Punkte ist sie trivial.
 
 // eigen: selbst gesetzter Punkt („+" auf der Karte), nicht aus echten Starts — rechnet wie jeder andere.
-export type Startposition = { lat: number; lon: number; starts: number; sessions: number; fahrer?: number; eigen?: boolean };
+// vom_spot: mit Umkreis — false = Startplatz eines Nachbarspots.
+export type Startposition = { lat: number; lon: number; starts: number; sessions: number; fahrer?: number; eigen?: boolean;
+                              vom_spot?: boolean };
 // kreuzungen: Paare von Abschnitten, die sich kreuzen (nur ohne „Ohne Ueberschneidungen" > 0).
 // doppelt: Abschnitte, die schon einmal gefahren wurden (in einer der beiden Richtungen) — beim
 // Rundkurs mit zwei Punkten der Rueckweg. Beides fuer die Tabelle und die Empfehlung.
@@ -40,7 +42,8 @@ export type RoutenErgebnis = { routen: Route[]; gekuerzt: boolean; genutzt: numb
 //   * naechste Punkte zuerst, damit frueh gute Routen da sind und der Abbruch greift,
 //   * ein Zeitbudget; ist es erschoepft, gibt es die besten bis dahin (`gekuerzt`).
 const MAX_NACHBARN = 8;
-const ZEIT_MS = 150;
+const ZEIT_MS = 150;            // dazu je Punkt auf der Route ZEIT_JE_PUNKT (30 Stops rund um einen See)
+const ZEIT_JE_PUNKT = 15;
 
 export function abstandM(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
   const kx = 111320 * Math.cos((a.lat * Math.PI) / 180);
@@ -73,7 +76,7 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
   const beste: Route[][] = p.map(() => []);   // je erstem Ziel, aufsteigend nach Wertung
   let schritte = 0;
   let gekuerzt = false;
-  const bis = (typeof performance !== "undefined" ? performance.now() : Date.now()) + ZEIT_MS;
+  const bis = (typeof performance !== "undefined" ? performance.now() : Date.now()) + ZEIT_MS + ZEIT_JE_PUNKT * ziel;
   const jetzt = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
   const weg: number[] = [start];
   const besucht = new Set([start]);
@@ -157,7 +160,11 @@ export function lageText(p: { lat: number; lon: number }, bezug: { lat: number; 
   if (m < 15) return "";
   const kx = 111320 * Math.cos((bezug.lat * Math.PI) / 180);
   const w = (Math.atan2((p.lon - bezug.lon) * kx, (p.lat - bezug.lat) * 111320) * 180) / Math.PI;
-  return `${Math.round(m / 10) * 10} m ${richtungen[Math.round(((w + 360) % 360) / 45) % 8]}`;
+  const r = richtungen[Math.round(((w + 360) % 360) / 45) % 8];
+  if (m < 1000) return `${Math.round(m / 10) * 10} m ${r}`;
+  // ab 1 km in km (mit Umkreis liegen Startplaetze anderer Spots weit weg), Dezimalzeichen der App-Sprache
+  const lang = typeof document !== "undefined" ? document.documentElement.lang || undefined : undefined;
+  return `${(m / 1000).toLocaleString(lang, { maximumFractionDigits: 1 })} km ${r}`;
 }
 
 /** Warum keine Route herauskommt — fuer eine verstaendliche Meldung statt einer leeren Liste (Jan).
