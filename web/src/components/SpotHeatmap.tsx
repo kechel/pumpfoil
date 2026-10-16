@@ -3,7 +3,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
-import { abstandM, lageText, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
+import { abstandM, lageText, warumKeine, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
 import { rampColor } from "../lib/trackColors";
 import { useT } from "../i18n";
@@ -343,7 +343,9 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   const erstGerechnet = useRef(false);
 
   const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort()]);
-  const veraltet = pos != null && gerechnetMit !== einstellungsSchluessel;
+  // Auch ohne Ergebnis „veraltet": nach dem Neuladen der Startplaetze ist es verworfen — stellt man
+  // die alte Einstellung wieder her, stuende sonst weder Liste noch Knopf da.
+  const veraltet = pos != null && (gerechnetMit !== einstellungsSchluessel || ergebnis == null);
 
 
   // Startpunkte je Zuverlaessigkeit holen.
@@ -633,7 +635,19 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                 </div>
               )}
               {!routen.length ? (
-                ergebnis && <p className="text-sm text-slate-300">{t("routes.none", { n: pos.length })}</p>
+                ergebnis && (() => {
+                  // Begruendung statt leerer Liste (Jan)
+                  const w = warumKeine(pos, start, minM, Math.max(minM, maxM),
+                    { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus });
+                  const text = w.grund === "nachbar" ? (w.naechsterM == null ? t("routes.whyNoOther")
+                      : t("routes.whyNeighbour", { m: w.naechsterM, min: minM, max: maxM }))
+                    : w.grund === "zuWenig" ? t("routes.whyTooFew", { n: w.verfuegbar, soll: Math.min(anzahl, pos.length) })
+                    : w.grund === "rundkurs" ? t("routes.whyRoundtrip")
+                    : w.grund === "kreuzung" ? t("routes.whyCrossing")
+                    : w.grund === "punkte" ? t("routes.whyPoints", { n: w.hoechstens })
+                    : t("routes.none", { n: pos.length });
+                  return <p className="rounded-lg border border-slate-700 bg-slate-900 p-2 text-sm text-slate-300">{text}</p>;
+                })()
               ) : (
                 <div className="max-h-72 overflow-auto rounded-lg border border-slate-800">
                   <table className="w-full text-sm">
@@ -716,7 +730,6 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               {ergebnis?.gekuerzt && <p className="mt-2 text-xs text-slate-400">{t("routes.cut")}</p>}
               </>)}
               </>)}
-              <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
             </>
           )}
         </>
