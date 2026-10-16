@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import L from "leaflet";
-import { basiskarten } from "../lib/mapTiles";
+import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { api, LabelItem, RawData } from "../lib/api";
 import { Card, Button, Spinner, ErrorBox } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
@@ -202,7 +202,7 @@ function LabelMap({ raw, selection }: { raw: RawData; selection: [number, number
   useEffect(() => {
     if (!mapRef.current || pts.length < 2 || mapObj.current) return;
     mapObj.current = L.map(mapRef.current, { zoomControl: false, attributionControl: false });
-    basiskarten(mapObj.current, { street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen") }, { maxZoom: 22 });
+    basiskarten(mapObj.current, kartenTexte(t), { maxZoom: 22 });
     layer.current = L.layerGroup().addTo(mapObj.current);
     mapObj.current.fitBounds(L.latLngBounds(pts.map((p) => [p.lat, p.lon] as [number, number])), { padding: [20, 20] });
     setTimeout(() => mapObj.current?.invalidateSize(), 100);

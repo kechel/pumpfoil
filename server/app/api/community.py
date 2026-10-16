@@ -1822,6 +1822,15 @@ def route_vergessen(spot_id: int, route_id: int, user: models.User = Depends(cur
     return {"ok": True}
 
 
+@router.get("/schutzgebiete")
+def schutzgebiete(w: float = Query(...), s: float = Query(...), e: float = Query(...), n: float = Query(...),
+                  user: models.User = Depends(current_user)) -> dict:
+    """Naturschutz-/FFH-Gebiete und Bade-/Fahrverbote im Ausschnitt (app/schutzgebiete.py, aus OSM,
+    vom Server geholt und zwischengespeichert)."""
+    from ..schutzgebiete import im_ausschnitt
+    return im_ausschnitt(w, s, e, n)
+
+
 @router.get("/foiler/{user_id}")
 def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:

@@ -1200,6 +1200,10 @@ export const api = {
     req<{ id: number }>(`/api/community/spot/${spotId}/routen`, { method: "POST", body: JSON.stringify(body) }),
   spotRouteVergessen: (spotId: number, id: number) =>
     req<{ ok: boolean }>(`/api/community/spot/${spotId}/routen/${id}`, { method: "DELETE" }),
+  /** Schutzgebiete + Bade-/Fahrverbote im Ausschnitt (Server holt sie aus OSM, zwischengespeichert). */
+  schutzgebiete: (w: number, s: number, e: number, n: number) =>
+    req<{ zu_weit: boolean; unvollstaendig: boolean; flaechen: unknown[] }>(
+      `/api/community/schutzgebiete?w=${w}&s=${s}&e=${e}&n=${n}`),
   friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
   // Nur „wer von meinen Freunden pumpt gerade wo" — Startseite (FreundePumpen.tsx).
   friendsActive: () => req<AktiverFreund[]>("/api/friends/active"),

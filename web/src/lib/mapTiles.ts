@@ -1,4 +1,5 @@
 import L from "leaflet";
+import { api } from "./api";
 
 // Basiskarten für ALLE Leaflet-Karten der App: Straßenkarte (OpenStreetMap) und Luftbild
 // (Esri World Imagery). Nutzerwunsch vom 26.08.: „How hard is it to have satellite view option
@@ -21,9 +22,22 @@ export function gewaehlteKarte(): "karte" | "satellit" {
 
 /** Fügt Straßen- und Satellitenkarte samt Umschalter hinzu. Die Wahl gilt appweit — wer die
  *  Session-Karte auf Luftbild stellt, findet die Spot-Karte genauso vor. */
+export type KartenTexte = {
+  street: string; satellite: string; fullscreen?: string;
+  schutz?: { nsg: string; ffh: string; verbot: string; hinweis: string };
+};
+
+/** Alle Beschriftungen fuer basiskarten aus der Uebersetzung — EINE Stelle statt in jeder Karte. */
+export function kartenTexte(t: (k: string) => string): KartenTexte {
+  return {
+    street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen"),
+    schutz: { nsg: t("map.nsg"), ffh: t("map.ffh"), verbot: t("map.prohibited"), hinweis: t("map.protectedHint") },
+  };
+}
+
 export function basiskarten(
   map: L.Map,
-  namen: { street: string; satellite: string; fullscreen?: string },
+  namen: KartenTexte,
   opts: { maxZoom?: number } = {},
 ) {
   const maxZoom = opts.maxZoom ?? 22;
@@ -75,6 +89,7 @@ export function basiskarten(
   });
   map.addControl(new Umschalter());
   vollbildKnopf(map, namen.fullscreen ?? "Fullscreen");
+  if (namen.schutz) schutzgebiete(map, namen.schutz);
   return { strasse, satellit };
 }
 
@@ -142,4 +157,60 @@ function vollbildKnopf(map: L.Map, name: string) {
     },
   });
   map.addControl(new Knopf());
+}
+
+
+// Schutzgebiete IMMER auf jeder Karte (Jan, 16.10.2026, nicht ausblendbar): Naturschutzgebiete,
+// FFH/Natura 2000 und — wo in OSM eingetragen — Bade-/Fahrverbote an Wasserflaechen. Vogelschutz-
+// und Landschaftsschutzgebiete nicht. Daten vom eigenen Server (GET /api/community/schutzgebiete,
+// dort aus OSM/Overpass geholt und 30 Tage zwischengespeichert) — kein weiterer fremder Dienst im
+// Browser. Erst ab SCHUTZ_AB_ZOOM, darunter waere der Ausschnitt zu gross. Beim Antippen Name und
+// Art plus der Hinweis, dass das keine Rechtsauskunft ist.
+const SCHUTZ_AB_ZOOM = 11;
+const SCHUTZ_STIL: Record<string, L.PathOptions> = {
+  nsg: { color: "#dc2626", weight: 2, fillColor: "#dc2626", fillOpacity: 0.1 },
+  ffh: { color: "#f59e0b", weight: 1.5, dashArray: "6 4", fillColor: "#f59e0b", fillOpacity: 0.05 },
+  verbot: { color: "#b91c1c", weight: 3, fillColor: "#b91c1c", fillOpacity: 0.25 },
+};
+
+type Schutzflaeche = { id: string; art: "nsg" | "ffh" | "verbot"; name: string; titel: string;
+                       aussen: [number, number][][]; innen: [number, number][][] };
+
+function esc(x: string) {
+  return x.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+}
+
+function schutzgebiete(map: L.Map, texte: NonNullable<KartenTexte["schutz"]>) {
+  map.createPane("schutz");
+  const pane = map.getPane("schutz");
+  if (pane) pane.style.zIndex = "330";             // ueber den Kacheln, unter Heatmap und Routen
+  const grp = L.layerGroup().addTo(map);
+  const da = new Set<string>();
+  let timer: number | undefined, nochmal: number | undefined, versuche = 0, weg = false;
+  const laden = () => {
+    if (weg) return;
+    if (map.getZoom() < SCHUTZ_AB_ZOOM) return;
+    const b = map.getBounds();
+    api.schutzgebiete(b.getWest(), b.getSouth(), b.getEast(), b.getNorth())
+      .then((r) => {
+        if (weg) return;
+        for (const f of r.flaechen as Schutzflaeche[]) {
+          if (da.has(f.id)) continue;
+          da.add(f.id);
+          const art = f.art === "verbot" ? texte.verbot : f.art === "ffh" ? texte.ffh : texte.nsg;
+          L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz" })
+            .bindPopup(`<b>${esc(f.name || art)}</b><br>${esc(art)}${f.titel && f.titel !== art ? ` · ${esc(f.titel)}` : ""}` +
+              `<br><span style="font-size:11px;opacity:.75">${esc(texte.hinweis)}</span>`)
+            .addTo(grp);
+        }
+        // Server hat nicht alles holen koennen (Overpass langsam/ueberlastet): spaeter nachfragen
+        window.clearTimeout(nochmal);
+        if (r.unvollstaendig && versuche < 6) { versuche++; nochmal = window.setTimeout(laden, 6000); }
+      })
+      .catch(() => {});
+  };
+  const spaeter = () => { window.clearTimeout(timer); versuche = 0; timer = window.setTimeout(laden, 400); };
+  map.whenReady(laden);
+  map.on("moveend", spaeter);
+  map.on("unload", () => { weg = true; window.clearTimeout(timer); window.clearTimeout(nochmal); });
 }
