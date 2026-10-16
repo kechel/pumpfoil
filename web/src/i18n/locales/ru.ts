@@ -2116,6 +2116,8 @@ const ru: Record<string, string> = {
   "spots.heatHintStart": "Цвет = сколько сессий начали там заезд, обновляется ежедневно.",
   "routes.plan": "Спланировать маршрут",
   "routes.startPoint": "Точка старта",
+  "routes.direction": "Направление старта",
+  "routes.anyDirection": "любое",
   "routes.close": "Закрыть",
   "routes.reliability": "Точка старта использована",
   "routes.minDist": "Мин. расстояние",

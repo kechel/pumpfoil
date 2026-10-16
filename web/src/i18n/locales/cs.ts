@@ -2172,6 +2172,8 @@ const cs: Record<string, string> = {
   "spots.heatHintStart": "Barva = kolik sessions tam začalo jízdu, aktualizováno denně.",
   "routes.plan": "Naplánovat trasu",
   "routes.startPoint": "Místo startu",
+  "routes.direction": "Vyjet směrem",
+  "routes.anyDirection": "libovolně",
   "routes.close": "Zavřít",
   "routes.reliability": "Místo startu použito",
   "routes.minDist": "Min. vzdálenost",

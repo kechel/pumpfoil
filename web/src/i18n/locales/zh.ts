@@ -2113,6 +2113,8 @@ const zh: Record<string, string> = {
   "spots.heatHintStart": "颜色 = 在此处开始滑行的训练次数，每日更新。",
   "routes.plan": "规划路线",
   "routes.startPoint": "起步点",
+  "routes.direction": "出发方向",
+  "routes.anyDirection": "不限",
   "routes.close": "关闭",
   "routes.reliability": "起步点使用次数",
   "routes.minDist": "最小距离",

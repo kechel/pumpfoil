@@ -2116,6 +2116,8 @@ const id: Record<string, string> = {
   "spots.heatHintStart": "Warna = berapa sesi yang memulai run di sana, diperbarui harian.",
   "routes.plan": "Rencanakan rute",
   "routes.startPoint": "Titik start",
+  "routes.direction": "Berangkat ke",
+  "routes.anyDirection": "bebas",
   "routes.close": "Tutup",
   "routes.reliability": "Titik start dipakai",
   "routes.minDist": "Jarak min.",

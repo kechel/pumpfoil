@@ -736,6 +736,8 @@ const pl: Record<string, string> = {
   "spots.heatHintStart": "Kolor = ile sesji rozpoczęło tam przejazd, aktualizowane codziennie.",
   "routes.plan": "Zaplanuj trasę",
   "routes.startPoint": "Miejsce startu",
+  "routes.direction": "Ruszaj w kierunku",
+  "routes.anyDirection": "dowolnie",
   "routes.close": "Zamknij",
   "routes.reliability": "Miejsce startu użyte",
   "routes.minDist": "Min. odległość",

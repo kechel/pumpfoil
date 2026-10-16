@@ -2006,6 +2006,8 @@ const deAT: Record<string, string> = {
   "spots.heatHintStart": "Farbe = wie viele Sessions dort einen Lauf begonnen haben, täglich aktualisiert.",
   "routes.plan": "Route planen",
   "routes.startPoint": "Startpunkt",
+  "routes.direction": "Losfahren nach",
+  "routes.anyDirection": "beliebig",
   "routes.close": "Schließen",
   "routes.reliability": "Startpunkt genutzt",
   "routes.minDist": "Abstand min.",

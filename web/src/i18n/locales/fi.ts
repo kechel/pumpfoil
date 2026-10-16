@@ -2154,6 +2154,8 @@ const fi: Record<string, string> = {
   "spots.heatHintStart": "Väri = kuinka monessa sessiossa lenkki alkoi siellä, päivitetään päivittäin.",
   "routes.plan": "Suunnittele reitti",
   "routes.startPoint": "Lähtöpaikka",
+  "routes.direction": "Lähtösuunta",
+  "routes.anyDirection": "mikä tahansa",
   "routes.close": "Sulje",
   "routes.reliability": "Lähtöpaikkaa käytetty",
   "routes.minDist": "Väli väh.",

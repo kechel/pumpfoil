@@ -2117,6 +2117,8 @@ const nb: Record<string, string> = {
   "spots.heatHintStart": "Farge = hvor mange økter som startet et løp der, oppdateres daglig.",
   "routes.plan": "Planlegg rute",
   "routes.startPoint": "Startpunkt",
+  "routes.direction": "Start mot",
+  "routes.anyDirection": "valgfritt",
   "routes.close": "Lukk",
   "routes.reliability": "Startpunkt brukt",
   "routes.minDist": "Min. avstand",

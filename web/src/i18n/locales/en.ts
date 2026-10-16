@@ -756,6 +756,8 @@ const en: Record<string, string> = {
   "spots.heatHintStart": "Colour = how many sessions started a run there, updated daily.",
   "routes.plan": "Plan a route",
   "routes.startPoint": "Start point",
+  "routes.direction": "Head off",
+  "routes.anyDirection": "any",
   "routes.close": "Close",
   "routes.reliability": "Start point used",
   "routes.minDist": "Min. distance",
