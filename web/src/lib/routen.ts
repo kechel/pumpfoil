@@ -159,3 +159,31 @@ export function lageText(p: { lat: number; lon: number }, bezug: { lat: number; 
   const w = (Math.atan2((p.lon - bezug.lon) * kx, (p.lat - bezug.lat) * 111320) * 180) / Math.PI;
   return `${Math.round(m / 10) * 10} m ${richtungen[Math.round(((w + 360) % 360) / 45) % 8]}`;
 }
+
+/** Warum keine Route herauskommt — fuer eine verstaendliche Meldung statt einer leeren Liste (Jan).
+ *  Probiert die Einstellungen einzeln gelockert durch; die erste, die hilft, ist der Grund. */
+export type KeinGrund =
+  | { grund: "nachbar"; naechsterM: number | null }      // vom Start aus nichts im Abstandsbereich
+  | { grund: "zuWenig"; verfuegbar: number }             // weniger Plaetze als gewuenscht
+  | { grund: "rundkurs" }                                // offen ginge es, zurueck zum Start nicht
+  | { grund: "kreuzung" }                                // nur mit Ueberschneidungen
+  | { grund: "punkte"; hoechstens: number }              // mit weniger Punkten ginge es
+  | { grund: "unbekannt" };
+
+export function warumKeine(pos: Startposition[], start: number, minM: number, maxM: number,
+                           opt: RoutenOptionen): KeinGrund {
+  const aus = opt.ausgeschlossen ?? new Set<number>();
+  const verfuegbar = pos.length - aus.size;
+  if (verfuegbar < Math.max(2, opt.punkte)) return { grund: "zuWenig", verfuegbar };
+  const andere = pos.map((_, j) => j).filter((j) => j !== start && !aus.has(j));
+  const abst = andere.map((j) => abstandM(pos[start], pos[j]));
+  if (!abst.some((m) => m >= minM && m <= maxM)) {
+    return { grund: "nachbar", naechsterM: abst.length ? Math.round(Math.min(...abst)) : null };
+  }
+  const geht = (o: Partial<RoutenOptionen>) =>
+    routenVorschlagen(pos, start, minM, maxM, { ...opt, ...o, jeRichtung: 1 }).routen.length > 0;
+  if (opt.rundkurs && geht({ rundkurs: false })) return { grund: "rundkurs" };
+  if (opt.ohneKreuzung && geht({ ohneKreuzung: false })) return { grund: "kreuzung" };
+  for (let n = opt.punkte - 1; n >= 2; n--) if (geht({ punkte: n })) return { grund: "punkte", hoechstens: n };
+  return { grund: "unbekannt" };
+}
