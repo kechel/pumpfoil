@@ -149,8 +149,7 @@ struct RoutenKarte: UIViewRepresentable {
                 return v.frame.insetBy(dx: -6, dy: -6).contains(pt)
             }) { return }
             let koord = map.convert(pt, toCoordinateFrom: map)
-            if parent.setzen { parent.onSetzen(koord.latitude, koord.longitude); return }
-            schutz?.tippen(bei: koord)
+            if parent.setzen { parent.onSetzen(koord.latitude, koord.longitude) }
         }
 
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
