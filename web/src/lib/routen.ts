@@ -41,7 +41,7 @@ export type RoutenErgebnis = { routen: Route[]; gekuerzt: boolean; genutzt: numb
 //     die schlechteste behaltene, wird nicht weiterverfolgt (die Wertung waechst nur),
 //   * naechste Punkte zuerst, damit frueh gute Routen da sind und der Abbruch greift,
 //   * ein Zeitbudget; ist es erschoepft, gibt es die besten bis dahin (`gekuerzt`).
-const MAX_NACHBARN = 8;
+export const MAX_NACHBARN = 8;
 const ZEIT_MS = 150;            // dazu je Punkt auf der Route ZEIT_JE_PUNKT (30 Stops rund um einen See)
 const ZEIT_JE_PUNKT = 15;
 
