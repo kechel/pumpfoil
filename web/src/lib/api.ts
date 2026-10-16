@@ -858,6 +858,9 @@ export interface AdminStatsSeries {
             mcp_users: number; mcp_calls: number };
   /** Fenster-Summe je Werkzeug — zeigt, welche Aufrufe wirklich gebraucht werden. */
   mcp_werkzeuge?: Record<string, number>;
+  /** Je Reihe, die Personen zaehlt (active_users, mcp_users): Fensterlaenge in Tagen ("0" =
+   *  seit Beginn) → Tag → VERSCHIEDENE Nutzer im nachlaufenden Fenster. */
+  fenster_distinct?: Record<string, Record<string, Record<string, number>>>;
 }
 
 /** Systemzustand des Servers (Admin). Feldnamen wie im Server (`api/health.py`) — deutsch, weil

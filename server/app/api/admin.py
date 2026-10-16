@@ -725,6 +725,44 @@ def _stats_cut(period: str) -> datetime | None:
     return now - timedelta(days=days)
 
 
+# Fensterlaengen der Admin-Statistik in Tagen (0 = seit Beginn) — dieselben Knoepfe wie im Web
+# (Admin.tsx FENSTER). Fuer Reihen, die VERSCHIEDENE NUTZER zaehlen, geht die Fenster-Zahl nicht
+# aus den Tageswerten: wer an 200 Tagen faehrt, ist eine Person und nicht 200.
+_STATS_FENSTER = (1, 3, 10, 30, 365, 0)
+
+
+def _fenster_distinct(paare, bis: str) -> dict[str, dict[str, int]]:
+    """Je Fensterlaenge und Tag: wie viele VERSCHIEDENE Nutzer im nachlaufenden Fenster.
+
+    `paare` = (Tag als "YYYY-MM-DD", user_id), je Paar hoechstens einmal. Liefert
+    {"<n>": {"<tag>": zahl}} auf einer lueckenlosen Tagesachse vom ersten Tag bis `bis`.
+    Befund Jan, 16.10.2026: „aktive Nutzer, 1 Jahr summiert" zeigte 10 143 — das war die Summe
+    der Tageswerte, also Fahrer-TAGE, nicht Fahrer."""
+    je_tag: dict[str, list[int]] = {}
+    for tag, uid in paare:
+        je_tag.setdefault(str(tag), []).append(uid)
+    if not je_tag:
+        return {str(n): {} for n in _STATS_FENSTER}
+    tag0 = datetime.fromisoformat(min(je_tag)).date()
+    ende = max(datetime.fromisoformat(bis).date(), datetime.fromisoformat(max(je_tag)).date())
+    achse = [str(tag0 + timedelta(days=i)) for i in range((ende - tag0).days + 1)]
+    out: dict[str, dict[str, int]] = {}
+    for n in _STATS_FENSTER:
+        zaehler: dict[int, int] = {}
+        reihe: dict[str, int] = {}
+        for i, tag in enumerate(achse):
+            for uid in je_tag.get(tag, ()):
+                zaehler[uid] = zaehler.get(uid, 0) + 1
+            if n and i >= n:
+                for uid in je_tag.get(achse[i - n], ()):
+                    zaehler[uid] -= 1
+                    if not zaehler[uid]:
+                        del zaehler[uid]
+            reihe[tag] = len(zaehler)
+        out[str(n)] = reihe
+    return out
+
+
 @router.get("/stats-series")
 def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
                  db: Session = Depends(get_db)) -> dict:
@@ -940,8 +978,19 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         "mcp_users": mcp_nutzer_fenster,
         "mcp_calls": sum(mcp_aufrufe.values()),
     }
+    # Verschiedene Nutzer je Fenster, fuer die beiden Reihen, die Personen zaehlen. Immer ueber
+    # die ganze Historie (das Web beschneidet erst danach auf den Zeitraum).
+    heute = str(datetime.now(timezone.utc).date())
+    d_fahrt = func.date(S.started_at)
+    fenster = {
+        "active_users": _fenster_distinct(
+            db.query(d_fahrt, S.user_id).filter(live, S.started_at.isnot(None), S.user_id.isnot(None))
+            .distinct().all(), heute),
+        "mcp_users": _fenster_distinct(
+            db.query(M.tag, M.user_id).distinct().all(), heute),
+    }
     return {"period": period, "buckets": buckets, "totals": totals,
-            "mcp_werkzeuge": mcp_werkzeuge}
+            "mcp_werkzeuge": mcp_werkzeuge, "fenster_distinct": fenster}
 
 
 def _news_row(db: Session) -> "models.NewsBanner":
