@@ -56,7 +56,9 @@ export function kartenSprache(texte: KartenTexte) {
 export function basiskarten(
   map: L.Map,
   vorgabe: KartenTexte,
-  opts: { maxZoom?: number } = {},
+  // legende: Legende der Schutzgebiets-Arten unten links — nur Spot-Uebersicht und Spot-Ansicht
+  // (Jan, 16.10.2026: „nicht in der session-ansicht").
+  opts: { maxZoom?: number; legende?: boolean } = {},
 ) {
   const maxZoom = opts.maxZoom ?? 22;
   // Ein veraenderliches Objekt: Sprachwechsel schreiben hinein, alle Beschriftungen lesen daraus.
@@ -113,7 +115,7 @@ export function basiskarten(
   });
   map.addControl(new Umschalter());
   vollbildKnopf(map, namen, griff);
-  if (namen.schutz) schutzgebiete(map, namen, griff);
+  if (namen.schutz) schutzgebiete(map, namen, griff, !!opts.legende);
   // Leaflets Zoom-Knoepfe tragen sonst englische Titel
   const zoomTitel = () => {
     const c = map.getContainer();
@@ -203,8 +205,9 @@ function vollbildKnopf(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
 // FFH/Natura 2000 und — wo in OSM eingetragen — Bade-/Fahrverbote an Wasserflaechen. Vogelschutz-
 // und Landschaftsschutzgebiete nicht. Daten vom eigenen Server (GET /api/community/schutzgebiete,
 // dort aus OSM/Overpass geholt und 180 Tage zwischengespeichert) — kein weiterer fremder Dienst im
-// Browser. Erst ab SCHUTZ_AB_ZOOM, darunter waere der Ausschnitt zu gross. Beim Antippen Name und
-// Art plus der Hinweis, dass das keine Rechtsauskunft ist.
+// Browser. Erst ab SCHUTZ_AB_ZOOM, darunter waere der Ausschnitt zu gross. KEIN Fenster beim
+// Antippen (Jan, 16.10.2026: „das brauchen wir garnicht, die Markierung reicht voellig") — die
+// Flaechen sind nicht anklickbar, ein Tipp geht an die Karte durch (Routen-Punkte setzen).
 const SCHUTZ_AB_ZOOM = 11;
 const SCHUTZ_STIL: Record<string, L.PathOptions> = {
   nsg: { color: "#dc2626", weight: 2, fillColor: "#dc2626", fillOpacity: 0.1 },
@@ -221,13 +224,13 @@ function esc(x: string) {
 
 const SCHILD = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';
 
-function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
+function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff, mitLegende: boolean) {
   map.createPane("schutz");
   const pane = map.getPane("schutz");
   if (pane) pane.style.zIndex = "330";             // ueber den Kacheln, unter Heatmap und Routen
   const grp = L.layerGroup().addTo(map);
   // Knopf in der Karte: alle Schutzgebiete aus/ein (Jan) — nicht gespeichert, nach dem Neuladen
-  // sind sie wieder da. Einzeln ausgeblendete bleiben dabei weg.
+  // sind sie wieder da.
   let sichtbar = true;
   // Legende unten links (Jan): nur die Arten, die auf dieser Karte gezeichnet sind, mit ihrem
   // Linienmuster. Weg, solange die Schutzgebiete ausgeblendet sind.
@@ -256,8 +259,10 @@ function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
       return legende;
     },
   });
-  map.addControl(new Legende());
-  griff.neu.push(legendeZeigen);
+  if (mitLegende) {
+    map.addControl(new Legende());
+    griff.neu.push(legendeZeigen);
+  }
   const Knopf = L.Control.extend({
     options: { position: "topleft" as L.ControlPosition },
     onAdd() {
@@ -279,7 +284,7 @@ function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
       L.DomEvent.on(a, "click", (e: Event) => {
         L.DomEvent.stop(e);
         sichtbar = !sichtbar;
-        if (sichtbar) grp.addTo(map); else { map.closePopup(); grp.remove(); }
+        if (sichtbar) grp.addTo(map); else grp.remove();
         zeigen();
         legendeZeigen();
       });
@@ -300,25 +305,9 @@ function schutzgebiete(map: L.Map, namen: KartenTexte, griff: KartenGriff) {
         for (const f of r.flaechen as Schutzflaeche[]) {
           if (da.has(f.id)) continue;
           da.add(f.id);
-          // Fenstertext erst beim Oeffnen bauen -> immer in der aktuellen Sprache
-          const inhalt = () => {
-            const texte = namen.schutz as NonNullable<KartenTexte["schutz"]>;
-            const art = f.art === "verbot" ? texte.verbot : f.art === "ffh" ? texte.ffh : texte.nsg;
-            return `<b>${esc(f.name || art)}</b><br>${esc(art)}${f.titel && f.titel !== art ? ` · ${esc(f.titel)}` : ""}` +
-              `<br><span style="font-size:11px;opacity:.75">${esc(texte.hinweis)}</span>` +
-              `<br><button type="button" data-ausblenden style="margin-top:6px;font-size:12px;text-decoration:underline">` +
-              `${esc(texte.ausblenden)}</button>`;
-          };
-          const flaeche = L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz" })
-            .bindPopup(inhalt)
+          L.polygon([...f.aussen, ...f.innen], { ...SCHUTZ_STIL[f.art], pane: "schutz", interactive: false })
             .addTo(grp);
           gezeichnet.add(f.art);
-          // Einzeln ausblenden (Jan) — nur bis zum Neuladen, gespeichert wird nichts. `da` behaelt die
-          // ID, damit ein Nachladen sie nicht gleich wieder zeichnet.
-          flaeche.on("popupopen", (ev: L.PopupEvent) => {
-            const knopf = ev.popup.getElement()?.querySelector("[data-ausblenden]");
-            knopf?.addEventListener("click", () => { map.closePopup(); grp.removeLayer(flaeche); }, { once: true });
-          });
         }
         legendeZeigen();
         // Server hat nicht alles holen koennen (Overpass langsam/ueberlastet): spaeter nachfragen
