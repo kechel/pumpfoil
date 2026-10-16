@@ -3,7 +3,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
-import { abstandM, lageText, warumKeine, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
+import { abstandM, lageText, MAX_NACHBARN, warumKeine, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
 import { rampColor } from "../lib/trackColors";
 import { useT } from "../i18n";
@@ -499,8 +499,11 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   // Rechnen — nur auf Anstoss („Jetzt berechnen", neue Startpunkte, gemerkte Route aufgerufen).
   useEffect(() => {
     if (!pos || anstoss === 0) return;
-    setErgebnis(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
-      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined }));
+    const neu = routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
+      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined });
+    setErgebnis(neu);
+    // vorab gewaehlte Richtung ohne eine einzige Route dorthin -> wieder „beliebig"
+    if (richtung != null && !neu.routen.some((r) => r.erstesZiel === richtung)) setRichtung(null);
     setGerechnetMit(einstellungsSchluessel);
     setGewaehlt(null);
     setMerkStatus(null);
@@ -528,7 +531,14 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     : warumKeine(pos, start, minM, Math.max(minM, maxM),
       { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined })),
     [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
-  const richtungen = ergebnis ? [...new Set(ergebnis.routen.map((r) => r.erstesZiel))].sort((a, b) => a - b) : [];
+  // Moegliche erste Ziele ohne gueltige Liste: wie die Suche — die MAX_NACHBARN naechsten im Abstand
+  const richtungsWahl: number[] = !veraltet && ergebnis ? (() => {
+    const r = [...new Set(ergebnis.routen.map((x) => x.erstesZiel))];
+    // vorab gewaehlte Richtung bleibt sichtbar, auch wenn sie die Liste (noch) nicht hergibt
+    return (richtung != null && !r.includes(richtung) ? [...r, richtung] : r).sort((a, b) => a - b);
+  })() : pos && pos[start] ? pos.map((p, j) => ({ j, m: abstandM(pos[start], p) }))
+    .filter(({ j, m }) => j !== start && !aus.has(j) && m >= minM && m <= Math.max(minM, maxM))
+    .sort((a, b) => a.m - b.m).slice(0, MAX_NACHBARN).map(({ j }) => j).sort((a, b) => a - b) : [];
   const listeFuer = (rich: number | null): Route[] => {
     if (!ergebnis) return [];
     const wert = (r: Route): number[] => {
@@ -557,6 +567,10 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
   // Erstes Ziel wechseln: nur ein Filter auf die berechnete Liste (die Suche behaelt die besten
   // Routen JE erstem Ziel) — kein neues Rechnen noetig; die erste der neuen Liste wird gewaehlt.
+  // Start gewechselt: eine Richtung zum neuen Start selbst oder zu einem ausgeschlossenen Platz gilt nicht
+  useEffect(() => {
+    if (richtung != null && (richtung === start || aus.has(richtung))) setRichtung(null);
+  }, [start, aus]);  // eslint-disable-line react-hooks/exhaustive-deps
   const richtungWaehlen = (r: number | null) => {
     setRichtung(r);
     setGewaehlt(listeFuer(r)[0]?.punkte.join("-") ?? null);
@@ -878,12 +892,14 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                         </button>
                       )}
                     </span>,
-                    // Losfahren nach … direkt hinter dem gewaehlten Start (Jan). Die Richtungen
-                    // kommen aus der berechneten Liste, deshalb nur, solange sie gilt.
-                    start === i && !veraltet && richtungen.length > 0 && (
+                    // Losfahren nach … direkt hinter dem gewaehlten Start (Jan). Gilt die berechnete
+                    // Liste, kommen die Richtungen aus ihr; sonst (Start gewechselt o. ae.) stehen die
+                    // Plaetze zur Wahl, die die Suche vom Start aus anfahren kann (Jan: „warum kann ich
+                    // den 2. Punkt nicht waehlen … erst nach Klick auf Berechnen").
+                    start === i && richtungsWahl.length > 0 && (
                       <span key={`r${i}`} className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
                         <span className="text-xs text-slate-400">{t("routes.direction")}</span>
-                        {[null, ...richtungen].map((r) => (
+                        {[null, ...richtungsWahl].map((r) => (
                           <button key={String(r)} onClick={() => richtungWaehlen(r)} aria-pressed={richtung === r}
                             className={`${pille(richtung === r)} px-2`}>
                             {r == null ? t("routes.anyDirection") : platzName(r)}
