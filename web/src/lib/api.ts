@@ -1199,6 +1199,8 @@ export const api = {
     req<{ starts: [number, number][] }>(`/api/community/spot/${spotId}/meine_starts?sport=${encodeURIComponent(sport)}`),
   /** Gemerkte Routen eines Spots — oeffentlich, nur mit Datum; `eigene_id` nur bei den eigenen. */
   spotRouten: (spotId: number) => req<unknown[]>(`/api/community/spot/${spotId}/routen`),
+  /** Alle gemerkten Routen aller Spots (Community-Seite), mit spot_id/spot_name — nur Datum, nie wer. */
+  alleRouten: () => req<unknown[]>(`/api/community/routen`),
   spotRouteMerken: (spotId: number, body: { punkte: number[][]; einstellungen: Record<string, unknown> }) =>
     req<{ id: number }>(`/api/community/spot/${spotId}/routen`, { method: "POST", body: JSON.stringify(body) }),
   spotRouteVergessen: (spotId: number, id: number) =>

@@ -34,7 +34,13 @@ def test_merken_liste_ohne_namen_und_zusammengelegt(client):
     liste_b = client.get(f"/api/community/spot/{sid}/routen", headers=b).json()
     assert len(liste_a) == 1 and liste_a[0]["eigene_id"] is not None and liste_b[0]["eigene_id"] is not None
     e = liste_a[0]
-    assert set(e) == {"schluessel", "gemerkt_am", "punkte", "einstellungen", "meter", "eigene_id"}
+    assert set(e) == {"id", "schluessel", "gemerkt_am", "punkte", "einstellungen", "meter", "eigene_id"}
+    # Community-Liste aller Spots: dieselbe Route einmal, mit Spot, Laengenfilter
+    alle = [x for x in client.get("/api/community/routen", headers=a).json() if x["spot_id"] == sid]
+    assert len(alle) == 1 and alle[0]["spot_name"] == "RoutenSee" and "user_id" not in alle[0]
+    m = alle[0]["meter"]
+    assert [x for x in client.get(f"/api/community/routen?min_m={m + 10}", headers=a).json() if x["spot_id"] == sid] == []
+    assert len([x for x in client.get(f"/api/community/routen?max_m={m + 10}", headers=a).json() if x["spot_id"] == sid]) == 1
     assert 400 < e["meter"] < 700
     dritter = _konto(client, "routec")
     assert client.get(f"/api/community/spot/{sid}/routen", headers=dritter).json()[0]["eigene_id"] is None
