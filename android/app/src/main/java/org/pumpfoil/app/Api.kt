@@ -704,6 +704,16 @@ object Api {
         json.decodeFromString(BoardBrief.serializer(), http("POST", "/api/boards", body.toString(), auth = true))
     }
 
+    /** Board nachtraeglich bearbeiten (Nutzer-Feedback 16.10.2026: zwei gleich benannte Boards). */
+    suspend fun boardUpdate(id: Int, name: String, volumeL: Double?, lengthCm: Double?): BoardBrief = withContext(Dispatchers.IO) {
+        val body = buildJsonObject {
+            put("name", name)
+            if (volumeL == null) put("volume_l", JsonNull) else put("volume_l", volumeL)
+            if (lengthCm == null) put("length_cm", JsonNull) else put("length_cm", lengthCm)
+        }
+        json.decodeFromString(BoardBrief.serializer(), http("PUT", "/api/boards/$id", body.toString(), auth = true))
+    }
+
     suspend fun boardDelete(id: Int): Unit = withContext(Dispatchers.IO) {
         http("DELETE", "/api/boards/$id", null, auth = true); Unit
     }

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.AlertDialog
@@ -97,6 +98,11 @@ fun SetupScreen(onBack: () -> Unit) {
     var nbVol by remember { mutableStateOf("") }
     var nbLen by remember { mutableStateOf("") }
     var delBoardId by remember { mutableStateOf<Int?>(null) }
+    // Board bearbeiten: id + Name/Volumen/Laenge als Eingabetext
+    var editBoard by remember { mutableStateOf<BoardBrief?>(null) }
+    var ebName by remember { mutableStateOf("") }
+    var ebVol by remember { mutableStateOf("") }
+    var ebLen by remember { mutableStateOf("") }
     var delStabId by remember { mutableStateOf<Int?>(null) }
 
     fun applySettings(s: kotlinx.serialization.json.JsonObject) {
@@ -159,6 +165,41 @@ fun SetupScreen(onBack: () -> Unit) {
                 }) { Text(I18n.t("common.deleteLower")) }
             },
             dismissButton = { TextButton(onClick = { delBoardId = null }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+
+    editBoard?.let { eb ->
+        AlertDialog(
+            onDismissRequest = { editBoard = null },
+            title = { Text(I18n.t("setup.boardEdit")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    OutlinedTextField(value = ebName, onValueChange = { ebName = it }, singleLine = true,
+                        label = { Text(I18n.t("setup.boardNamePlaceholder")) }, modifier = Modifier.fillMaxWidth())
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedTextField(value = ebVol, onValueChange = { ebVol = it }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            label = { Text(I18n.t("setup.boardVolPlaceholder")) }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(value = ebLen, onValueChange = { ebLen = it }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            label = { Text(I18n.t("setup.boardLenPlaceholder")) }, modifier = Modifier.weight(1f))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = ebName.isNotBlank(), onClick = {
+                    scope.launch {
+                        try {
+                            val neu = Api.boardUpdate(eb.id, ebName.trim(),
+                                ebVol.trim().replace(",", ".").toDoubleOrNull(),
+                                ebLen.trim().replace(",", ".").toDoubleOrNull())
+                            boards = boards.map { if (it.id == neu.id) neu else it }
+                            editBoard = null
+                        } catch (_: Exception) {}
+                    }
+                }) { Text(I18n.t("common.save")) }
+            },
+            dismissButton = { TextButton(onClick = { editBoard = null }) { Text(I18n.t("common.cancel")) } },
         )
     }
 
@@ -316,6 +357,13 @@ fun SetupScreen(onBack: () -> Unit) {
                         ).joinToString(" · ")
                         Text(specs.ifBlank { I18n.t("setup.noSpecs") }, style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    IconButton(onClick = {
+                        ebName = b.name; ebVol = b.volumeL?.let { fmtNum(it) } ?: ""; ebLen = b.lengthCm?.let { fmtNum(it) } ?: ""
+                        editBoard = b
+                    }) {
+                        Icon(Icons.Filled.Edit, contentDescription = I18n.t("setup.boardEdit"),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     IconButton(onClick = { delBoardId = b.id }) {
                         Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.deleteLower"),
