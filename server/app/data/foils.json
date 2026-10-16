@@ -846,6 +846,36 @@
   },
   {
     "brand": "AXIS",
+    "model": "SURGE",
+    "size": "1080",
+    "span_cm": 108,
+    "area_cm2": 1142,
+    "thickness_mm": 18.3,
+    "is_baseline": false,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "1150",
+    "span_cm": 115,
+    "area_cm2": 1199,
+    "thickness_mm": 17.9,
+    "is_baseline": false,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "1240",
+    "span_cm": 124,
+    "area_cm2": 1340,
+    "thickness_mm": 18.5,
+    "is_baseline": false,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "AXIS",
     "model": "ART V2",
     "size": "819",
     "span_cm": 82,
