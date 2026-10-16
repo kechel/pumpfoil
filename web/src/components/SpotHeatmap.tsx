@@ -3,8 +3,9 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
-import { lageText, MAX_POSITIONEN, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
+import { abstandM, lageText, MAX_POSITIONEN, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
+import { rampColor } from "../lib/trackColors";
 import { useT } from "../i18n";
 
 // Heatmap EINES Spots auf seiner Sessions-Seite, zwischen Rekord-Kacheln und Wetter (Jan,
@@ -166,6 +167,16 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
 //   3. Mindest-/Hoechstabstand zwischen zwei Startpunkten, darunter die Vorschlaege; ein Klick
 //      zeigt die Route auf der Karte. Rechnung in lib/routen.ts.
 const ZUVERLAESSIG = [2, 3, 5, 10];
+
+/** Die Abschnitte einer Route mit Laenge und Farbe (blau = kuerzester, rot = laengster). */
+function abschnitte(r: Route, pos: Startposition[]) {
+  const ab = r.punkte.slice(1).map((nach, k) => {
+    const von = r.punkte[k];
+    return { von, nach, meter: abstandM(pos[von], pos[nach]) };
+  });
+  const lo = Math.min(...ab.map((a) => a.meter)), hi = Math.max(...ab.map((a) => a.meter));
+  return ab.map((a) => ({ ...a, farbe: rampColor(hi > lo ? (a.meter - lo) / (hi - lo) : 0.5) }));
+}
 type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 
 function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
@@ -255,8 +266,13 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
     g.addTo(karte);
     const r = gewaehlt != null ? routen?.[gewaehlt] : null;
     if (r) {
-      g.addLayer(L.polyline(r.punkte.map((i) => [pos[i].lat, pos[i].lon] as [number, number]),
-        { color: "#ffffff", weight: 4, opacity: 0.95, dashArray: "8 6", interactive: false }));
+      // Jeder Abschnitt in der Farbe seiner Laenge (Rampe wie beim Tempo, rot = laengster) — unter
+      // einer schmalen dunklen Kontur, damit die Farbe auf Luftbild und Karte gleich lesbar ist.
+      for (const ab of abschnitte(r, pos)) {
+        const linie: [number, number][] = [[pos[ab.von].lat, pos[ab.von].lon], [pos[ab.nach].lat, pos[ab.nach].lon]];
+        g.addLayer(L.polyline(linie, { color: "#0f172a", weight: 7, opacity: 0.6, interactive: false }));
+        g.addLayer(L.polyline(linie, { color: ab.farbe, weight: 4, opacity: 1, interactive: false }));
+      }
     }
     pos.forEach((p, i) => {
       const istStart = i === start;
@@ -380,7 +396,7 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
                   </tr>
                 </thead>
                 <tbody>
-                  {routen.map((r, i) => (
+                  {routen.map((r, i) => [
                     <tr key={r.punkte.join("-")} onClick={() => setGewaehlt(gewaehlt === i ? null : i)}
                       aria-selected={gewaehlt === i}
                       className={`cursor-pointer border-b border-slate-800/60 ${gewaehlt === i
@@ -391,8 +407,23 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
                       <td className="px-2 py-1.5 text-right tabular-nums">{r.punkte.length - 1}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{r.kreuzungen}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{r.doppelt}</td>
-                    </tr>
-                  ))}
+                    </tr>,
+                    gewaehlt === i && (
+                      <tr key={r.punkte.join("-") + "-details"} className="border-b border-slate-800/60 bg-brand-500/5">
+                        <td />
+                        <td colSpan={5} className="px-2 pb-2 pt-1">
+                          <div className="flex flex-wrap gap-1.5 text-xs">
+                            {abschnitte(r, pos).map((ab, k) => (
+                              <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 tabular-nums text-slate-200">
+                                <span className="h-2.5 w-2.5 rounded-full" style={{ background: ab.farbe }} aria-hidden />
+                                {ab.von + 1}→{ab.nach + 1} · {Math.round(ab.meter)} m
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ),
+                  ])}
                 </tbody>
               </table>
             </div>
