@@ -2163,6 +2163,7 @@ const id: Record<string, string> = {
   "routes.direction": "Berangkat ke",
   "routes.target": "Tujuan",
   "routes.whyTarget": "Tujuan yang dipilih tidak bisa dicapai dengan pengaturan ini – pilih yang lain atau ubah jarak/jumlah titik.",
+  "routes.whyDirection": "Dengan pengaturan ini tidak ada rute yang pertama menuju {name} – pilih arah lain atau “bebas”.",
   "routes.anyDirection": "bebas",
   "routes.reliability": "min. start",
   "routes.riders": "min. rider",

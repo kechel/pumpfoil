@@ -2157,6 +2157,7 @@ const ja: Record<string, string> = {
   "routes.direction": "出発方向",
   "routes.target": "目的地",
   "routes.whyTarget": "この設定では選んだ目的地に到達できません。別の目的地を選ぶか、距離や地点数を変更してください。",
+  "routes.whyDirection": "この設定では、最初に {name} へ向かうルートはありません。別の方向か「どれでも」を選んでください。",
   "routes.anyDirection": "指定なし",
   "routes.reliability": "最少スタート数",
   "routes.riders": "最少ライダー数",

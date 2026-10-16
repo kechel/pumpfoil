@@ -758,6 +758,7 @@ const pl: Record<string, string> = {
   "routes.direction": "Ruszaj w kierunku",
   "routes.target": "Cel",
   "routes.whyTarget": "Z tymi ustawieniami nie da się dotrzeć do wybranego celu – wybierz inny lub zmień odległość/liczbę punktów.",
+  "routes.whyDirection": "Przy tych ustawieniach żadna trasa nie prowadzi najpierw do {name} – wybierz inny kierunek albo „dowolnie”.",
   "routes.anyDirection": "dowolnie",
   "routes.reliability": "min. startów",
   "routes.riders": "min. riderów",

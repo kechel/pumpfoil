@@ -2164,6 +2164,7 @@ const nb: Record<string, string> = {
   "routes.direction": "Start mot",
   "routes.target": "Mål",
   "routes.whyTarget": "Det valgte målet nås ikke med disse innstillingene – velg et annet eller endre avstand/antall punkter.",
+  "routes.whyDirection": "Med disse innstillingene går ingen rute først til {name} – velg en annen retning eller «hvilken som helst».",
   "routes.anyDirection": "valgfritt",
   "routes.reliability": "min. starter",
   "routes.riders": "min. utøvere",

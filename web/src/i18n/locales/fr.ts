@@ -2046,6 +2046,7 @@ const fr: Record<string, string> = {
   "routes.direction": "Partir vers",
   "routes.target": "Arrivée",
   "routes.whyTarget": "Impossible d'atteindre l'arrivée choisie avec ces réglages – choisis-en une autre ou change distance/nombre de points.",
+  "routes.whyDirection": "Avec ces réglages, aucun itinéraire ne part d'abord vers {name} – choisis une autre direction ou « peu importe ».",
   "routes.anyDirection": "peu importe",
   "routes.reliability": "min. départs",
   "routes.riders": "min. riders",

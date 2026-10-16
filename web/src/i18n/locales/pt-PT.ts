@@ -2157,6 +2157,7 @@ const ptPT: Record<string, string> = {
   "routes.direction": "Partir para",
   "routes.target": "Destino",
   "routes.whyTarget": "Com estas definições não dá para chegar ao destino escolhido – escolhe outro ou muda distância/número de pontos.",
+  "routes.whyDirection": "Com estas definições nenhuma rota vai primeiro para {name} – escolhe outra direção ou “qualquer”.",
   "routes.anyDirection": "qualquer",
   "routes.reliability": "mín. partidas",
   "routes.riders": "mín. riders",

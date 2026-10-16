@@ -2047,6 +2047,7 @@ const gsw: Record<string, string> = {
   "routes.direction": "Losfahre gäge",
   "routes.target": "Ziel",
   "routes.whyTarget": "Zum gwählte Ziel gahts mit dene Iistellige nöd – en anders Ziel wähle oder Abstand/Punktzahl ändere.",
+  "routes.whyDirection": "Mit dene Iistellige gits kei Route, wo zerscht nach {name} fahrt – anderi Richtig oder „beliebig“ wähle.",
   "routes.anyDirection": "egal",
   "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",

@@ -502,8 +502,6 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     const neu = routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
       { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus, ziel: zielAktiv ?? undefined });
     setErgebnis(neu);
-    // vorab gewaehlte Richtung ohne eine einzige Route dorthin -> wieder „beliebig"
-    if (richtung != null && !neu.routen.some((r) => r.erstesZiel === richtung)) setRichtung(null);
     setGerechnetMit(einstellungsSchluessel);
     setGewaehlt(null);
     setMerkStatus(null);
@@ -970,6 +968,12 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               {!routen.length ? (
                 ergebnis && (() => {
                   // Begruendung statt leerer Liste (Jan)
+                  // Routen gibt es, nur nicht in die gewaehlte Richtung: das sagen, statt die Wahl
+                  // still auf „beliebig" zu setzen (Jan)
+                  if (richtung != null && ergebnis.routen.length > 0) {
+                    return <p className="rounded-lg border border-slate-700 bg-slate-900 p-2 text-sm text-slate-300">
+                      {t("routes.whyDirection", { name: platzName(richtung) })}</p>;
+                  }
                   const w = grund ?? { grund: "unbekannt" as const };
                   const text = w.grund === "nachbar" ? (w.naechsterM == null ? t("routes.whyNoOther")
                       : t("routes.whyNeighbour", { m: w.naechsterM, min: minM, max: maxM }))

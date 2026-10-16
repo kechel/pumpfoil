@@ -2220,6 +2220,7 @@ const nl: Record<string, string> = {
   "routes.direction": "Vertrekken richting",
   "routes.target": "Bestemming",
   "routes.whyTarget": "De gekozen bestemming is met deze instellingen niet te bereiken – kies een andere of wijzig afstand/aantal punten.",
+  "routes.whyDirection": "Met deze instellingen gaat geen route eerst naar {name} – kies een andere richting of ‘willekeurig’.",
   "routes.anyDirection": "maakt niet uit",
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",
