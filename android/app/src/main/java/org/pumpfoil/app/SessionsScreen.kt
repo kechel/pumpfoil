@@ -105,6 +105,10 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
     // Name -> spot_id (fuer die Spot-Beschreibungen; die Spot-Auswahl selbst bleibt namensbasiert).
     var spotIds by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var spotOrte by remember { mutableStateOf<Map<String, Pair<Double, Double>>>(emptyMap()) }
+    // Zustand der Spot-Panels ausserhalb der LazyColumn (s. SpotPanelZustand)
+    val heatZustaende = remember { mutableMapOf<Int, SpotPanelZustand>() }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     // Name -> zweite Zeile (Gewaesser bzw. Steg/Ortslage), wie im Web hinter dem Spot-Namen.
     var spotLabels by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }   // alle Spot-Namen (Dropdown)
@@ -170,6 +174,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         try {
             val karte = Api.spotMap(accelOnly = false)
             spotIds = karte.mapNotNull { m -> m.spotId?.let { m.spot to it } }.toMap()
+            spotOrte = karte.filter { it.lat != 0.0 || it.lon != 0.0 }.associate { it.spot to (it.lat to it.lon) }
             spotLabels = karte.mapNotNull { m ->
                 m.water?.takeIf { it.isNotBlank() && !it.equals(m.spot, ignoreCase = true) }
                     ?.let { m.spot to it }
@@ -466,6 +471,11 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                             if (scope == Scope.SPOT) {
                                 if (spot.isNotBlank()) {
                                     item { SpotRecordsSection(spot, accelOnly, sport, sports) { id -> onOpen(id, null) } }
+                                }
+                                // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
+                                val sidH = spotIds[spot]; val ortH = spotOrte[spot]
+                                if (sidH != null && ortH != null) item(key = "heatmap-$sidH") {
+                                    SpotHeatmapPanel(heatZustaende.getOrPut(sidH) { SpotPanelZustand(ctx, sidH) }, ortH.first, ortH.second, sport)
                                 }
                                 weather?.let { sw ->
                                     item {

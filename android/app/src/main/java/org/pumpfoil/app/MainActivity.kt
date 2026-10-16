@@ -270,13 +270,16 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") },
                                               onOpenSpotSport = { s, sp -> nav.navigate("spot/${Uri.encode(s)}?sport=${Uri.encode(sp)}") }) }
             composable(
-                "spot/{name}?sport={sport}",
+                "spot/{name}?sport={sport}&route={route}",
                 arguments = listOf(navArgument("name") { type = NavType.StringType },
-                                   navArgument("sport") { type = NavType.StringType; defaultValue = "all" }),
+                                   navArgument("sport") { type = NavType.StringType; defaultValue = "all" },
+                                   // gemerkte Route aus der Community-Liste: dort direkt aufrufen
+                                   navArgument("route") { type = NavType.IntType; defaultValue = -1 }),
             ) { entry ->
                 SpotSessionsScreen(
                     spot = entry.arguments?.getString("name").orEmpty(),
                     sport0 = entry.arguments?.getString("sport") ?: "all",
+                    routeId = entry.arguments?.getInt("route")?.takeIf { it > 0 },
                     onBack = { nav.popBackStack() },
                     onOpen = { id -> nav.navigate("session/$id") },
                     onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },

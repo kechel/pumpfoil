@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, onSpotChat: (String) -> Unit = {}, social: Boolean = true,
-                       sport0: String = "all") {
+                       sport0: String = "all", routeId: Int? = null) {
     // Sportart-Filter (27.09.2026, wie `/sessions?spot=…&sport=…` in der PWA): kommt von der
     // Spot-Karte mit, damit Etikett (Zahl am Marker) und Klickziel dieselbe Menge meinen; hier
     // wieder umstellbar, „Alle Sportarten" bleibt immer waehlbar. Default „all".
@@ -57,11 +57,16 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     var weather by remember(spot) { mutableStateOf<SpotWeather?>(null) }
     // Zweite Zeile zum Spot (Gewaesser bzw. Steg/Ortslage) — dieselbe Abfrage, ein Feld mehr.
     var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
+    // Lage des Spots fuer „Heatmap & Routen" (SpotHeatmapPanel)
+    var spotOrt by remember(spot) { mutableStateOf<Pair<Double, Double>?>(null) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val heatZustand = remember(spotId) { spotId?.let { SpotPanelZustand(ctx, it) } }
     LaunchedEffect(spot) {
         weather = try { Api.spotWeather(spot) } catch (_: Exception) { null }
         try {
             val m = Api.spotMap(accelOnly = false).firstOrNull { it.spot == spot }
             spotId = m?.spotId
+            spotOrt = m?.let { it.lat to it.lon }?.takeIf { it.first != 0.0 || it.second != 0.0 }
             spotLabel = m?.water?.takeIf { it.isNotBlank() && !it.equals(spot, ignoreCase = true) }
         } catch (_: Exception) { /* offline -> Titel ohne Zusatz */ }
     }
@@ -133,6 +138,11 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
                         // trotzdem (s. docs/TODO.md).
                         item { SpotRecordsSection(spot, accelOnly = false, sport = sport, sports = sports, onOpen = onOpen) }
+                        // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
+                        val sid0 = spotId; val ort = spotOrt
+                        if (sid0 != null && ort != null) item(key = "heatmap-$sid0") {
+                            SpotHeatmapPanel(heatZustand ?: SpotPanelZustand(ctx, sid0), ort.first, ort.second, sport, routeId)
+                        }
                         weather?.let { sw ->
                             item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") } }
                         }
