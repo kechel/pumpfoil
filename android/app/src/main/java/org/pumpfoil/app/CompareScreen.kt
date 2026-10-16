@@ -72,7 +72,8 @@ private enum class CompareMode { RIDER, TRACK, SPEED, PUMP, HR }
 // Farbpalette je Session/Fahrer (wie PWA/iOS).
 private val COMPARE_PALETTE = listOf(0x2DD4BFL, 0xF59E0BL, 0xA78BFAL, 0xF472B6L, 0x60A5FAL, 0x34D399L)
 private fun compareColor(i: Int): Color = Color(0xFF000000L or COMPARE_PALETTE[i % COMPARE_PALETTE.size])
-private const val CMP_GAP_M = 30.0
+// 80 statt 30 m wie die Session-Karte (MAX_DRAW_GAP_M): Amazfit-Aussetzer mitten im Lauf verbinden.
+private const val CMP_GAP_M = 80.0
 
 // Eine verglichene Session mit geparstem Track + Farben.
 private class CmpTrack(

@@ -1243,7 +1243,10 @@ export default function SessionDetail() {
     const phz: (number | null)[] = gj.properties?.pump_hz ?? [];
 
     // Nur die Foiling-Läufe zeichnen — Nicht-Foiling wird komplett ausgeblendet.
-    const MAX_DRAW_GAP_M = 30;
+    // Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
+    // 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
+    // und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
+    const MAX_DRAW_GAP_M = 80;
     const segs = session.analysis.segments ?? [];
     // Ohne erkannte Foiling-Läufe (z. B. GPS-only / grobes FIT-GPS, oder Accel-Session
     // wo der Detektor nichts fand wie #427-Glide): die KOMPLETTE GPS-Spur speed-gefärbt

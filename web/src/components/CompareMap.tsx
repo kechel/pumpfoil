@@ -22,7 +22,10 @@ export interface CompareMapItem {
 }
 
 type Mode = "rider" | "track" | "speed" | "optimal" | "pump" | "hr";
-const MAX_DRAW_GAP_M = 30;
+// Innerhalb eines Laufs: Punkte weiter auseinander als das nicht verbinden (GPS-Sprung). 80 statt
+// 30 m (Jan, 16.10.2026): Amazfit setzt mitten im Lauf 7-12 s aus, bei Fahrtempo sind das 30-75 m,
+// und der Lauf zerfiel auf der Karte in Stuecke. Positionsspruenge repariert der Server vorher.
+const MAX_DRAW_GAP_M = 80;
 
 // Optimale Geschwindigkeit (km/h) des Foils einer Session beim gegebenen Fahrergewicht.
 // Die optimale Geschwindigkeit haengt ueber die Stall-Geschwindigkeit an der WURZEL des Gewichts —
