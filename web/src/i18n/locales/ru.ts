@@ -2109,6 +2109,7 @@ const ru: Record<string, string> = {
   "spots.onlyWithNotes": "Только с описанием",
   "spots.onlyActive": "Активно сейчас",
   "spots.heatmap": "Тепловая карта",
+  "spots.heatmapRoutes": "Тепловая карта и маршруты",
   "spots.heatHint": "Цвет = сколько сессий там проехано (только заезды), обновляется ежедневно.",
   "spots.heatOff": "Выкл.",
   "spots.heatFoil": "На фойле",

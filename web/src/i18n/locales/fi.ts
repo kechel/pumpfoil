@@ -2147,6 +2147,7 @@ const fi: Record<string, string> = {
   "spots.onlyWithNotes": "Vain kuvauksen kanssa",
   "spots.onlyActive": "Aktiivinen nyt",
   "spots.heatmap": "Lämpökartta",
+  "spots.heatmapRoutes": "Lämpökartta ja reitit",
   "spots.heatHint": "Väri = kuinka monta sessiota siellä on ajettu (vain lenkit), päivitetään päivittäin.",
   "spots.heatOff": "Pois",
   "spots.heatFoil": "Foililla",

@@ -1992,6 +1992,7 @@ const fr: Record<string, string> = {
   "spots.onlyWithNotes": "Avec description uniquement",
   "spots.onlyActive": "Actif en ce moment",
   "spots.heatmap": "Carte de chaleur",
+  "spots.heatmapRoutes": "Carte de chaleur et parcours",
   "spots.heatHint": "Couleur = nombre de sessions ridées à cet endroit (runs uniquement), mise à jour quotidienne.",
   "spots.heatOff": "Désactivé",
   "spots.heatFoil": "Sur le foil",

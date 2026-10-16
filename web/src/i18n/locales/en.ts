@@ -749,6 +749,7 @@ const en: Record<string, string> = {
   "spots.onlyWithNotes": "With description only",
   "spots.onlyActive": "Active right now",
   "spots.heatmap": "Heatmap",
+  "spots.heatmapRoutes": "Heatmap & routes",
   "spots.heatHint": "Colour = how many sessions were ridden there (runs only), updated daily.",
   "spots.heatOff": "Off",
   "spots.heatFoil": "On foil",

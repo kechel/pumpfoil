@@ -2165,6 +2165,7 @@ const cs: Record<string, string> = {
   "spots.onlyWithNotes": "Jen s popisem",
   "spots.onlyActive": "Právě aktivní",
   "spots.heatmap": "Teplotní mapa",
+  "spots.heatmapRoutes": "Teplotní mapa a trasy",
   "spots.heatHint": "Barva = kolik sessions se tam jelo (jen jízdy), aktualizace denně.",
   "spots.heatOff": "Vypnuto",
   "spots.heatFoil": "Na foilu",

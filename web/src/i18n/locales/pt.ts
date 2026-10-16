@@ -2109,6 +2109,7 @@ const pt: Record<string, string> = {
   "spots.onlyWithNotes": "Só com descrição",
   "spots.onlyActive": "Ativo agora",
   "spots.heatmap": "Mapa de calor",
+  "spots.heatmapRoutes": "Mapa de calor e rotas",
   "spots.heatHint": "Cor = quantas sessões foram feitas ali (só as voltas), atualizado diariamente.",
   "spots.heatOff": "Desligado",
   "spots.heatFoil": "No foil",

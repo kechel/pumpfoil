@@ -729,6 +729,7 @@ const pl: Record<string, string> = {
   "spots.onlyWithNotes": "Tylko z opisem",
   "spots.onlyActive": "Teraz aktywne",
   "spots.heatmap": "Mapa cieplna",
+  "spots.heatmapRoutes": "Mapa cieplna i trasy",
   "spots.heatHint": "Kolor = ile sesji tam pływano (tylko przejazdy), aktualizowana codziennie.",
   "spots.heatOff": "Wył.",
   "spots.heatFoil": "Na foilu",

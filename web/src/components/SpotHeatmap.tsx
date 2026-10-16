@@ -128,7 +128,7 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
   return (
     <Card className="mb-4 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-base font-semibold text-slate-100">{t("spots.heatmap")}</div>
+        <div className="text-base font-semibold text-slate-100">{t("spots.heatmapRoutes")}</div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {knopf(art === "foil", t("spots.heatFoil"), () => setArt("foil"))}
           {knopf(art === "start", t("spots.heatStart"), () => setArt("start"))}

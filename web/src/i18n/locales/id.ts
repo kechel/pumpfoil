@@ -2109,6 +2109,7 @@ const id: Record<string, string> = {
   "spots.onlyWithNotes": "Hanya yang ada deskripsi",
   "spots.onlyActive": "Aktif sekarang",
   "spots.heatmap": "Peta panas",
+  "spots.heatmapRoutes": "Peta panas & rute",
   "spots.heatHint": "Warna = berapa banyak sesi di sana (hanya run), diperbarui setiap hari.",
   "spots.heatOff": "Mati",
   "spots.heatFoil": "Di atas foil",

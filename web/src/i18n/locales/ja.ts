@@ -2103,6 +2103,7 @@ const ja: Record<string, string> = {
   "spots.onlyWithNotes": "説明があるものだけ",
   "spots.onlyActive": "いまアクティブ",
   "spots.heatmap": "ヒートマップ",
+  "spots.heatmapRoutes": "ヒートマップとルート",
   "spots.heatHint": "色 = そこで行われたセッション数（ランのみ）、毎日更新。",
   "spots.heatOff": "オフ",
   "spots.heatFoil": "フォイル上",
