@@ -75,12 +75,16 @@ export default function Friends() {
               <h3 className="mb-1 font-semibold">{t("friends.incoming")}</h3>
               {d.eingehend.map((f) => (
                 <Zeile key={f.user_id} id={f.user_id} name={f.name} avatar={f.avatar_url} unter={datum(f.am)}>
+                  <button onClick={() => ausfuehren(api.friendDecline(f.user_id))} disabled={busy} className={knopf}>
+                    {t("friends.decline")}
+                  </button>
                   <button onClick={() => setOffen({ art: "annehmen", id: f.user_id, name: f.name ?? "—" })}
                     className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
                     {t("friends.accept")}
                   </button>
                 </Zeile>
               ))}
+              <p className="mt-1 text-sm text-slate-400">{t("friends.declineSilent")}</p>
             </Card>
           )}
 

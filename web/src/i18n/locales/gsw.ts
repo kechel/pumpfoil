@@ -1117,6 +1117,7 @@ const gsw: Record<string, string> = {
   "friends.requested": "Aagfrogt",
   "friends.accept": "Aanää",
   "friends.decline": "Ablehne",
+  "friends.declineSilent": "Ablehne isch still: de ander erfahrt nüüt dävo.",
   "friends.isFriend": "Befründet",
   "friends.remove": "Fründschaft beände",
   "friends.withdraw": "Aafrog zruggzieh",

@@ -1458,6 +1458,7 @@ const ja: Record<string, string> = {
   "friends.requested": "リクエスト済み",
   "friends.accept": "承認",
   "friends.decline": "拒否",
+  "friends.declineSilent": "拒否は相手に通知されません。",
   "friends.isFriend": "友だち",
   "friends.remove": "友だちをやめる",
   "friends.withdraw": "リクエストを取り消す",

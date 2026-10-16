@@ -19,6 +19,7 @@ import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgres
 import { CommunityIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
+import { FreundesAnfragen } from "../components/Freundschaft";
 import { PERIODS } from "./Home";
 
 // Voreingestelltes Zeitfenster der Kacheln. Einer der Werte aus PERIODS.
@@ -338,6 +339,8 @@ export default function PersonalHome() {
         <ChangelogBadge />
         <FreundePumpen />
       </div>
+
+      <FreundesAnfragen />
 
       {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
       <UploadProgressCard />

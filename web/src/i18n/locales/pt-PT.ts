@@ -1455,6 +1455,7 @@ const ptPT: Record<string, string> = {
   "friends.requested": "Pedido enviado",
   "friends.accept": "Aceitar",
   "friends.decline": "Recusar",
+  "friends.declineSilent": "Recusar é silencioso: a outra pessoa não é informada.",
   "friends.isFriend": "Amigos",
   "friends.remove": "Terminar amizade",
   "friends.withdraw": "Retirar pedido",

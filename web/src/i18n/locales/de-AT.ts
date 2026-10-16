@@ -1063,6 +1063,7 @@ const deAT: Record<string, string> = {
   "friends.requested": "Angefragt",
   "friends.accept": "Annehmen",
   "friends.decline": "Ablehnen",
+  "friends.declineSilent": "Ablehnen is still: der andere erfährt nix davon.",
   "friends.isFriend": "Befreundet",
   "friends.remove": "Freundschaft beenden",
   "friends.withdraw": "Anfrage zurückziehen",

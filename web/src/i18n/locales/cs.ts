@@ -1585,6 +1585,7 @@ const cs: Record<string, string> = {
   "friends.requested": "Požádáno",
   "friends.accept": "Přijmout",
   "friends.decline": "Odmítnout",
+  "friends.declineSilent": "Odmítnutí je tiché: druhá strana se o něm nedozví.",
   "friends.isFriend": "Přátelé",
   "friends.remove": "Ukončit přátelství",
   "friends.withdraw": "Stáhnout žádost",
