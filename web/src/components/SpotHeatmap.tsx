@@ -3,7 +3,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
-import { lageText, richtungIndex, richtungName, routenVorschlagen, type Route, type Startposition } from "../lib/routen";
+import { lageText, MAX_POSITIONEN, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
 import { useT } from "../i18n";
 
@@ -166,6 +166,7 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
 //   3. Mindest-/Hoechstabstand zwischen zwei Startpunkten, darunter die Vorschlaege; ein Klick
 //      zeigt die Route auf der Karte. Rechnung in lib/routen.ts.
 const ZUVERLAESSIG = [2, 3, 5, 10];
+type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 
 function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
   spotId: number; karte: L.Map | null; offen: boolean; schliessen: () => void;
@@ -177,10 +178,15 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
   const [maxM, setMaxM] = useState(300);
   const [anzahl, setAnzahl] = useState(99);           // Startpunkte auf der Route; 99 = alle
   const [ohneKreuzung, setOhneKreuzung] = useState(true);
+  const [rundkurs, setRundkurs] = useState(true);
+  const [gesamt, setGesamt] = useState(0);            // so viele Startpunkte gaebe es ohne Grenze
   // Richtung des ersten Abschnitts (Jan: „am Startpunkt 1 entweder Richtung W oder NO starten");
   // null = beliebig.
   const [richtung, setRichtung] = useState<number | null>(null);
-  const [alleRouten, setAlleRouten] = useState<Route[] | null>(null);
+  const [ergebnis, setErgebnis] = useState<RoutenErgebnis | null>(null);
+  // Tabelle sortierbar (Jan): Vorgabe „Empfehlung" = wenige Kreuzungen, wenige doppelte
+  // Abschnitte, dann die Wertung (Strecke + Kehren).
+  const [sortierung, setSortierung] = useState<{ nach: Spalte; ab: boolean }>({ nach: "empf", ab: false });
   const [pos, setPos] = useState<Startposition[] | null>(null);
   const [routen, setRouten] = useState<Route[] | null>(null);
   const [gewaehlt, setGewaehlt] = useState<number | null>(null);
@@ -192,30 +198,52 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
     let weg = false;
     setPos(null);
     api.spotStartpositionen(spotId, minStarts)
-      .then((r) => { if (!weg) { setPos(r.positionen); setStart(0); } })
+      .then((r) => {
+        if (weg) return;
+        // nur die meistgenutzten (lib/routen.ts MAX_POSITIONEN) — Leiste, Karte und Suche gleich
+        setGesamt(r.positionen.length);
+        setPos(r.positionen.slice(0, MAX_POSITIONEN));
+        setStart(0);
+      })
       .catch(() => { if (!weg) setPos([]); });
     return () => { weg = true; };
   }, [offen, spotId, minStarts]);
 
   // Vorschlaege neu rechnen, wenn sich Punkte, Start oder Abstaende aendern.
   useEffect(() => {
-    if (!pos) { setRouten(null); return; }
-    setAlleRouten(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
-      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, anzahl: 100000 }));
-  }, [pos, start, minM, maxM, anzahl, ohneKreuzung]);
+    if (!pos) { setErgebnis(null); return; }
+    setErgebnis(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
+      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs }));
+  }, [pos, start, minM, maxM, anzahl, ohneKreuzung, rundkurs]);
   // Neuer Startpunkt -> Richtung wieder beliebig (die alte gibt es dort vielleicht nicht).
   useEffect(() => { setRichtung(null); }, [start, pos]);
   // Richtungen, in die vom Start aus ueberhaupt eine Route losgeht.
-  const richtungen = pos && alleRouten
-    ? [...new Set(alleRouten.map((r) => richtungIndex(pos[r.punkte[0]], pos[r.punkte[1]])))].sort((a, b) => a - b)
+  const richtungen = ergebnis
+    ? [...new Set(ergebnis.routen.map((r) => r.richtung))].sort((a, b) => a - b)
     : [];
   useEffect(() => {
-    if (!pos || !alleRouten) { setRouten(null); return; }
-    setRouten(alleRouten
-      .filter((r) => richtung == null || richtungIndex(pos[r.punkte[0]], pos[r.punkte[1]]) === richtung)
-      .slice(0, 10));
+    if (!ergebnis) { setRouten(null); return; }
+    const wert = (r: Route): number[] => {
+      switch (sortierung.nach) {
+        case "meter": return [r.meter];
+        case "legs": return [r.punkte.length - 1, r.meter];
+        case "kreuz": return [r.kreuzungen, r.wertung];
+        case "doppelt": return [r.doppelt, r.wertung];
+        default: return [r.kreuzungen, r.doppelt, r.wertung];
+      }
+    };
+    const vgl = (a: Route, b: Route) => {
+      const x = wert(a), y = wert(b);
+      for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return (x[i] - y[i]) * (sortierung.ab ? -1 : 1);
+      return 0;
+    };
+    setRouten(ergebnis.routen.filter((r) => richtung == null || r.richtung === richtung)
+      .sort((a, b) => [a.kreuzungen, a.doppelt, a.wertung].reduce((acc, v, i) =>
+        acc || v - [b.kreuzungen, b.doppelt, b.wertung][i], 0))
+      .slice(0, 20)
+      .sort(vgl));
     setGewaehlt(null);
-  }, [alleRouten, richtung, pos]);
+  }, [ergebnis, richtung, sortierung]);
 
   // Startpunkte (nummeriert) und die gewaehlte Route auf die Karte; Klick auf einen Punkt = Start.
   useEffect(() => {
@@ -316,31 +344,62 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
           {pos.length >= 2 && (
             <div className="mb-3 flex flex-wrap items-end gap-4">
               {regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
-              <label className="flex flex-1 items-center gap-2 text-sm text-slate-200">
-                <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
-                  className="h-4 w-4 accent-brand-500" />
-                {t("routes.noCrossing")}
-              </label>
+              <div className="flex flex-1 flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-slate-200">
+                  <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
+                    className="h-4 w-4 accent-brand-500" />
+                  {t("routes.noCrossing")}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-200">
+                  <input type="checkbox" checked={rundkurs} onChange={(e) => setRundkurs(e.target.checked)}
+                    className="h-4 w-4 accent-brand-500" />
+                  {t("routes.roundtrip")}
+                </label>
+              </div>
             </div>
           )}
           {!routen?.length ? (
             <p className="text-sm text-slate-300">{t("routes.none", { n: pos.length })}</p>
           ) : (
-            <ol className="space-y-1">
-              {routen.map((r, i) => (
-                <li key={i}>
-                  <button onClick={() => setGewaehlt(gewaehlt === i ? null : i)} aria-pressed={gewaehlt === i}
-                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${gewaehlt === i
-                      ? "border-brand-500 bg-brand-500/10 text-slate-100"
-                      : "border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
-                    <span className="font-semibold tabular-nums">{r.punkte.map((q) => q + 1).join(" → ")}</span>
-                    <span className="ml-2 text-xs text-slate-400">
-                      {t("routes.legs", { n: r.punkte.length - 1 })} · {Math.round(r.meter)} m
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ol>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
+                    {([["empf", "#"], ["route", t("routes.colRoute")], ["meter", t("routes.colDistance")],
+                       ["legs", t("routes.colLegs")], ["kreuz", t("routes.colCrossings")],
+                       ["doppelt", t("routes.colDuplicates")]] as [Spalte | "route", string][]).map(([sp, text]) => (
+                      <th key={sp} className={`px-2 py-1 font-medium ${sp === "route" ? "" : "text-right"}`}>
+                        {sp === "route" ? text : (
+                          <button onClick={() => setSortierung((alt) => ({ nach: sp, ab: alt.nach === sp ? !alt.ab : false }))}
+                            className={`hover:text-slate-200 ${sortierung.nach === sp ? "text-slate-100" : ""}`}>
+                            {text}{sortierung.nach === sp ? (sortierung.ab ? " ▼" : " ▲") : ""}
+                          </button>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {routen.map((r, i) => (
+                    <tr key={r.punkte.join("-")} onClick={() => setGewaehlt(gewaehlt === i ? null : i)}
+                      aria-selected={gewaehlt === i}
+                      className={`cursor-pointer border-b border-slate-800/60 ${gewaehlt === i
+                        ? "bg-brand-500/10 text-slate-100" : "text-slate-200 hover:bg-slate-800"}`}>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{i + 1}</td>
+                      <td className="px-2 py-1.5 font-semibold tabular-nums">{r.punkte.map((q) => q + 1).join(" → ")}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">{Math.round(r.meter)} m</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">{r.punkte.length - 1}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">{r.kreuzungen}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">{r.doppelt}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {ergebnis?.gekuerzt && <p className="mt-2 text-xs text-slate-400">{t("routes.cut")}</p>}
+          {gesamt > pos.length && (
+            <p className="mt-2 text-xs text-slate-400">{t("routes.capped", { n: pos.length, m: gesamt })}</p>
           )}
           <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
         </>
