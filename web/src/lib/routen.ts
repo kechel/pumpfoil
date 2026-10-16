@@ -14,7 +14,10 @@ export type Startposition = { lat: number; lon: number; starts: number; sessions
 // kreuzungen: Paare von Abschnitten, die sich kreuzen (nur ohne „Ohne Ueberschneidungen" > 0).
 // doppelt: Abschnitte, die schon einmal gefahren wurden (in einer der beiden Richtungen) — beim
 // Rundkurs mit zwei Punkten der Rueckweg. Beides fuer die Tabelle und die Empfehlung.
-export type Route = { punkte: number[]; meter: number; wertung: number; richtung: number;
+// erstesZiel: der Startplatz, zu dem der erste Abschnitt fuehrt (Index in den Positionen) — die
+// „Richtung", in die man losfaehrt (Jan, 16.10.2026: statt Himmelsrichtung das naechste Ziel; man
+// startet oft senkrecht vom Ufer weg und faehrt dann zu einem Nachbarn).
+export type Route = { punkte: number[]; meter: number; wertung: number; erstesZiel: number;
                       kreuzungen: number; doppelt: number };
 // rundkurs: zurueck zum Startpunkt (Jan, 16.10.2026, Vorgabe an). Der Rueckweg darf derselbe
 // Abschnitt sein wie der erste, nur umgekehrt — das ist keine Ueberschneidung. `punkte` zaehlt
@@ -30,7 +33,7 @@ export type RoutenErgebnis = { routen: Route[]; gekuerzt: boolean; genutzt: numb
 // keine feste Hoechstzahl). Begrenzt wird deshalb die SUCHE, nicht die Punkte:
 //   * von jedem Punkt aus nur die MAX_NACHBARN naechsten im erlaubten Abstand (eine Route springt
 //     nicht zum zehntnaechsten Punkt),
-//   * je Startrichtung nur die besten `jeRichtung` Routen; ein Ast, der schon schlechter ist als
+//   * je erstem Ziel nur die besten `jeRichtung` Routen; ein Ast, der schon schlechter ist als
 //     die schlechteste behaltene, wird nicht weiterverfolgt (die Wertung waechst nur),
 //   * naechste Punkte zuerst, damit frueh gute Routen da sind und der Abbruch greift,
 //   * ein Zeitbudget; ist es erschoepft, gibt es die besten bis dahin (`gekuerzt`).
@@ -65,7 +68,7 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
     .filter((j) => j !== i && d[i][j] >= minM && d[i][j] <= maxM && !opt.ausgeschlossen?.has(j))
     .sort((x, y) => d[i][x] - d[i][y])
     .slice(0, MAX_NACHBARN));
-  const beste: Route[][] = Array.from({ length: 8 }, () => []);   // je Richtung, aufsteigend
+  const beste: Route[][] = p.map(() => []);   // je erstem Ziel, aufsteigend nach Wertung
   let schritte = 0;
   let gekuerzt = false;
   const bis = (typeof performance !== "undefined" ? performance.now() : Date.now()) + ZEIT_MS;
@@ -119,7 +122,7 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
         }
       }
       const liste = beste[r];
-      liste.push({ punkte, meter, wertung, richtung: r, kreuzungen, doppelt });
+      liste.push({ punkte, meter, wertung, erstesZiel: r, kreuzungen, doppelt });
       liste.sort((x, y) => x.wertung - y.wertung);
       if (liste.length > k) liste.pop();
       return;
@@ -127,7 +130,7 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
     for (const j of nachbarn[i]) {
       if (besucht.has(j)) continue;
       if (opt.ohneKreuzung && kreuztFrueheren(i, j)) continue;
-      const rr = weg.length === 1 ? richtungIndex(p[i], p[j]) : r;
+      const rr = weg.length === 1 ? j : r;
       const kk = kehre(i, j);
       besucht.add(j); weg.push(j);
       gehe(j, meter + d[i][j], wertung + d[i][j] + kk, rr);
@@ -141,14 +144,6 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
 
 const RICHTUNGEN = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"];
 
-/** Himmelsrichtung von a nach b als Index 0..7 in RICHTUNGEN (0 = N, im Uhrzeigersinn). */
-export function richtungIndex(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
-  const kx = 111320 * Math.cos((a.lat * Math.PI) / 180);
-  const w = (Math.atan2((b.lon - a.lon) * kx, (b.lat - a.lat) * 111320) * 180) / Math.PI;
-  return Math.round(((w + 360) % 360) / 45) % 8;
-}
-
-export function richtungName(i: number): string { return RICHTUNGEN[i]; }
 
 /** Kurzbeschreibung eines Punkts relativ zum Bezugspunkt, z. B. „130 m SW". */
 export function lageText(p: { lat: number; lon: number }, bezug: { lat: number; lon: number },
