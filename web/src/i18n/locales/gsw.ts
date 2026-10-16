@@ -2051,7 +2051,7 @@ const gsw: Record<string, string> = {
   "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",
   "routes.radius": "Umkreis",
-  "routes.radiusSpot": "nur Spot",
+  "routes.radiusSpot": "Spot",
   "routes.spotInfo": "{name}: {starts} Starts us {sessions} Sessions vo {fahrer} Fahrer",
   "routes.minDist": "Abstand min. pro Abschnitt",
   "routes.maxDist": "Abstand max. pro Abschnitt",

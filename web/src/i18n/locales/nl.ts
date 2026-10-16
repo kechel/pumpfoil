@@ -2224,7 +2224,7 @@ const nl: Record<string, string> = {
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",
   "routes.radius": "Straal",
-  "routes.radiusSpot": "alleen spot",
+  "routes.radiusSpot": "spot",
   "routes.spotInfo": "{name}: {starts} starts uit {sessions} sessies van {fahrer} riders",
   "routes.minDist": "Min. afstand per etappe",
   "routes.maxDist": "Max. afstand per etappe",
