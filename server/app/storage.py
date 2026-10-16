@@ -374,7 +374,16 @@ def load_gps(session_uuid: str) -> list:
 def gps_last_ms(session_uuid: str) -> int | None:
     """Letzter GPS-Zeitstempel (ms ab Start) — billig: liest NUR den letzten Chunk.
     Für die Endzeit-Anzeige in Listen (ohne die ganze GPS-Spur zu laden)."""
-    gps_dir = session_dir(session_uuid) / "gps"
+    return _letzter_ms(session_uuid, "gps")
+
+
+def hr_last_ms(session_uuid: str) -> int | None:
+    """Letzter Zeitstempel des Puls-Kanals `hr` (Sessions OHNE GPS, s. save_hr_chunk)."""
+    return _letzter_ms(session_uuid, "hr")
+
+
+def _letzter_ms(session_uuid: str, art: str) -> int | None:
+    gps_dir = session_dir(session_uuid) / art
     if not gps_dir.exists():
         return None
     files = sorted(gps_dir.glob("*.json"), key=lambda p: int(p.stem))

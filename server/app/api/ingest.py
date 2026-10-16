@@ -609,7 +609,8 @@ def complete_session(
     # Session mit 44 min Pause 44 min zu frueh (gemeldet 10.09.2026).
     if s.ended_at is None and s.started_at is not None:
         from datetime import timedelta
-        lm = storage.gps_last_ms(s.session_uuid)
+        # Ohne GPS (Tanz-App) traegt der Puls-Kanal die Zeit — sonst bliebe die Endzeit leer.
+        lm = storage.gps_last_ms(s.session_uuid) or storage.hr_last_ms(s.session_uuid)
         if lm:
             s.ended_at = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
     _ende_auf_daten_kappen(s)
