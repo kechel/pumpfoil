@@ -750,7 +750,7 @@ const pl: Record<string, string> = {
   "routes.startPoints": "Start",
   "routes.direction": "Ruszaj w kierunku",
   "routes.anyDirection": "dowolnie",
-  "routes.reliability": "Miejsce startu użyte",
+  "routes.reliability": "min. startów",
   "routes.riders": "min. riderów",
   "routes.spotInfo": "{name}: {starts} startów z {sessions} sesji, riderów: {fahrer}",
   "routes.minDist": "Min. odległość",

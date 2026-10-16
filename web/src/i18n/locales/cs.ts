@@ -2186,7 +2186,7 @@ const cs: Record<string, string> = {
   "routes.startPoints": "Start",
   "routes.direction": "Vyjet směrem",
   "routes.anyDirection": "libovolně",
-  "routes.reliability": "Místo startu použito",
+  "routes.reliability": "min. startů",
   "routes.riders": "min. jezdců",
   "routes.spotInfo": "{name}: {starts} startů z {sessions} sessions od {fahrer} jezdců",
   "routes.minDist": "Min. vzdálenost",

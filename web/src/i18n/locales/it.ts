@@ -2013,7 +2013,7 @@ const it: Record<string, string> = {
   "routes.startPoints": "Partenza",
   "routes.direction": "Partire verso",
   "routes.anyDirection": "qualsiasi",
-  "routes.reliability": "Punto di partenza usato",
+  "routes.reliability": "min. partenze",
   "routes.riders": "min. rider",
   "routes.spotInfo": "{name}: {starts} partenze da {sessions} sessioni di {fahrer} rider",
   "routes.minDist": "Distanza min.",

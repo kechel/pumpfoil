@@ -2131,7 +2131,7 @@ const nb: Record<string, string> = {
   "routes.startPoints": "Start",
   "routes.direction": "Start mot",
   "routes.anyDirection": "valgfritt",
-  "routes.reliability": "Startpunkt brukt",
+  "routes.reliability": "min. starter",
   "routes.riders": "min. utøvere",
   "routes.spotInfo": "{name}: {starts} starter fra {sessions} økter av {fahrer} utøvere",
   "routes.minDist": "Min. avstand",

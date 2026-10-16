@@ -793,7 +793,7 @@ const de: Record<string, string> = {
   "routes.startPoints": "Start",
   "routes.direction": "Losfahren nach",
   "routes.anyDirection": "beliebig",
-  "routes.reliability": "Startpunkt genutzt",
+  "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",
   "routes.spotInfo": "{name}: {starts} Starts aus {sessions} Sessions von {fahrer} Fahrern",
   "routes.minDist": "Abstand min.",

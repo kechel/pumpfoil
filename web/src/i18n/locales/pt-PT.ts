@@ -2124,7 +2124,7 @@ const ptPT: Record<string, string> = {
   "routes.startPoints": "Partida",
   "routes.direction": "Partir para",
   "routes.anyDirection": "qualquer",
-  "routes.reliability": "Ponto de partida usado",
+  "routes.reliability": "mín. partidas",
   "routes.riders": "mín. riders",
   "routes.spotInfo": "{name}: {starts} partidas em {sessions} sessões de {fahrer} riders",
   "routes.minDist": "Distância mín.",
