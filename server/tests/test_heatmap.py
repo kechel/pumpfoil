@@ -46,3 +46,15 @@ def test_startzellen_erster_punkt_je_lauf():
     erwartet = {tuple(int(v) for v in np.concatenate(kachel(np.array([p[0]]), np.array([p[1]]))))
                 for p in (a[0], b[0])}
     assert {(int(x), int(y)) for x, y in zip(ix, iy)} == erwartet
+
+
+def test_start_schwelle_zwei_laeufe(monkeypatch, tmp_path):
+    """Startzellen erscheinen erst ab START_MIN_LAEUFE Laeufen — auch aus EINER Session."""
+    import numpy as np
+    from app import heatmap as H
+    zwei_in_einer = H._zellen([[9.374, 47.862], [9.374, 47.862]], eindeutig=False)
+    einzeln = H._zellen([[9.39, 47.85]], eindeutig=False)
+    assert len(zwei_in_einer) == 2 and len(einzeln) == 1
+    alle = np.concatenate([zwei_in_einer, einzeln])
+    kr, nr = np.unique(alle, return_counts=True)
+    assert set(kr[nr >= H.START_MIN_LAEUFE]) == set(np.unique(zwei_in_einer))

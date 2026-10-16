@@ -47,7 +47,12 @@ _SHIFT = 32   # ix in den oberen Bits, iy in den unteren (2^21 < 2^32)
 # Zwei Arten: „foil" = wo auf dem Foil gefahren wird (die Laeufe), „start" = wo die Laeufe beginnen.
 ARTEN = ("foil", "start")
 # Hochzaehlen, wenn sich aendert, was je Session im Cache steht (2: Startzellen dazu).
-CACHE_VERSION = 2
+CACHE_VERSION = 3
+# Startpunkte: eine Zelle erscheint erst ab so vielen LAEUFEN, die dort beginnen (Jan, 16.10.2026:
+# „nur Zellen ab 2 Laeufen, nicht Sessions"). Ein einzelner Start mitten auf dem Wasser ist fast
+# immer ein Ausreisser (GPS-Luecke vor dem Lauf, kurzer Fehlalarm); echte Startplaetze werden
+# wiederholt genutzt. Die FARBE zaehlt weiter Sessions, wie bei den Laeufen.
+START_MIN_LAEUFE = 2
 
 
 def _praefix(art: str) -> str:
@@ -98,12 +103,13 @@ def _laeufe(track_geojson: str | dict, segments_json: str | list | None,
     return laeufe
 
 
-def _zellen(pts: list) -> np.ndarray:
+def _zellen(pts: list, eindeutig: bool = True) -> np.ndarray:
     if not pts:
         return np.zeros(0, dtype=np.int64)
     arr = np.asarray(pts, dtype=float)[:, :2]
     ix, iy = kachel(arr[:, 0], arr[:, 1])
-    return np.unique(_packen(ix, iy))
+    k = _packen(ix, iy)
+    return np.unique(k) if eindeutig else np.sort(k)
 
 
 def zellen_der_session(track_geojson: str | dict, segments_json: str | list | None,
@@ -115,8 +121,10 @@ def zellen_der_session(track_geojson: str | dict, segments_json: str | list | No
 def startzellen_der_session(track_geojson: str | dict, segments_json: str | list | None,
                             verborgen: bool) -> np.ndarray:
     """Die Zellen, in denen die Laeufe dieser Session BEGINNEN — der erste Punkt je Lauf (Jan,
-    16.10.2026: Heatmap umschaltbar „on-foil" / „starting positions")."""
-    return _zellen([lauf[0] for lauf in _laeufe(track_geojson, segments_json, verborgen)])
+    16.10.2026: Heatmap umschaltbar „on-foil" / „starting positions"). EINE Zelle JE LAUF, also
+    mit Wiederholungen: gebraucht fuer die Schwelle START_MIN_LAEUFE."""
+    return _zellen([lauf[0] for lauf in _laeufe(track_geojson, segments_json, verborgen)],
+                   eindeutig=False)
 
 
 def _cache_laden() -> dict:
@@ -188,11 +196,18 @@ def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
             for z in range(Z_MIN, Z_MAX + 1):
                 d = Z_MAX - z
                 if listen:
-                    je = []
+                    je, roh = [], []
                     for zl in listen:
                         ix, iy = _entpacken(zl)
-                        je.append(np.unique(_packen(ix >> d, iy >> d)))   # je Session einmal je Zelle
+                        grob = _packen(ix >> d, iy >> d)
+                        je.append(np.unique(grob))   # je Session einmal je Zelle
+                        roh.append(grob)
                     k, n = np.unique(np.concatenate(je), return_counts=True)
+                    if art == "start":
+                        # Laeufe je Zelle (mit Wiederholungen) -> Schwelle START_MIN_LAEUFE
+                        kr, nr = np.unique(np.concatenate(roh), return_counts=True)
+                        m = nr[np.searchsorted(kr, k)] >= START_MIN_LAEUFE
+                        k, n = k[m], n[m]
                 else:
                     k, n = np.zeros(0, dtype=np.int64), np.zeros(0, dtype=np.int64)
                 ausgabe[f"{_praefix(art)}{name}_{z}_k"] = k
