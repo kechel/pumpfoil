@@ -2090,6 +2090,7 @@ const pt: Record<string, string> = {
   "settings.suunto.broken": "⚠ A ligação com a Suunto não está funcionando no momento: o login na Suunto dá certo (a Suunto até te manda um e-mail de confirmação), mas depois a Suunto nega ao nosso app o acesso à sua conta. Não é culpa sua e não tem nada a ver com sua senha — estamos resolvendo isso com a Suunto. Até lá você pode importar as atividades da Suunto como arquivo.",
   "setup.addValue": "Adicionar",
   "setup.boardDelConfirm": "Excluir esta prancha? As sessões que a usam voltam ao seu padrão.",
+  "setup.boardEdit": "Editar prancha",
   "setup.boardDesc": "As pranchas você mesmo cadastra (nome, opcionalmente volume e comprimento) — para isso não existe catálogo do fabricante.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Nome da prancha",

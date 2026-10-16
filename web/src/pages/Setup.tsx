@@ -4,7 +4,7 @@ import { api, Board, Stab } from "../lib/api";
 import { gearMatches } from "../lib/gearSearch";
 import { Button, Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
-import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
+import { ChevronIcon, StarIcon, FoilIcon, EditIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 // Detailed Setup: Stab (Katalog), Mastlänge, Shim-Winkel und Boards — jede Komponente
@@ -29,6 +29,8 @@ export default function Setup() {
   const [newMast, setNewMast] = useState("");
   const [newShim, setNewShim] = useState("");
   const [newBoard, setNewBoard] = useState({ name: "", volume_l: "", length_cm: "" });
+  // Board nachtraeglich bearbeiten (Nutzer-Feedback 16.10.2026: zwei gleich benannte Boards)
+  const [editBoard, setEditBoard] = useState<{ id: number; name: string; volume_l: string; length_cm: string } | null>(null);
   const [newStab, setNewStab] = useState({ brand: "", model: "", size: "" });
   const [stabErr, setStabErr] = useState("");
 
@@ -113,6 +115,15 @@ export default function Setup() {
     const num = (s: string) => (s.trim() === "" ? null : Number(s.replace(",", ".")));
     api.boardCreate({ name, volume_l: num(newBoard.volume_l), length_cm: num(newBoard.length_cm) })
       .then((b) => { setBoards((bs) => [...bs, b]); setNewBoard({ name: "", volume_l: "", length_cm: "" }); })
+      .catch(() => {});
+  }
+  function saveBoard() {
+    if (!editBoard) return;
+    const name = editBoard.name.trim();
+    if (!name) return;
+    const num = (s: string) => (s.trim() === "" ? null : Number(s.replace(",", ".")));
+    api.boardUpdate(editBoard.id, { name, volume_l: num(editBoard.volume_l), length_cm: num(editBoard.length_cm) })
+      .then((b) => { setBoards((bs) => bs.map((x) => (x.id === b.id ? b : x))); setEditBoard(null); })
       .catch(() => {});
   }
   function delBoard(id: number) {
@@ -235,7 +246,24 @@ export default function Setup() {
         <p className="mb-3 text-sm text-slate-400">{t("setup.boardDesc")}</p>
         <div className="mb-3 space-y-2">
           {boards.length === 0 && <span className="text-sm text-slate-500">{t("setup.emptyList")}</span>}
-          {boards.map((b) => (
+          {boards.map((b) => editBoard?.id === b.id ? (
+            <div key={b.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-brand-500 bg-brand-500/5 px-3 py-2">
+              <input value={editBoard.name} onChange={(e) => setEditBoard({ ...editBoard, name: e.target.value })}
+                onKeyDown={(e) => { if (e.key === "Enter") saveBoard(); if (e.key === "Escape") setEditBoard(null); }}
+                autoFocus placeholder={t("setup.boardNamePlaceholder")}
+                className="min-w-[10rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+              <input value={editBoard.volume_l} onChange={(e) => setEditBoard({ ...editBoard, volume_l: e.target.value })}
+                inputMode="decimal" placeholder={t("setup.boardVolPlaceholder")}
+                className="w-24 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+              <input value={editBoard.length_cm} onChange={(e) => setEditBoard({ ...editBoard, length_cm: e.target.value })}
+                inputMode="decimal" placeholder={t("setup.boardLenPlaceholder")}
+                className="w-24 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+              <button onClick={() => setEditBoard(null)} className="rounded-lg px-2.5 py-1.5 text-sm text-slate-300 hover:bg-slate-800">
+                {t("common.cancel")}
+              </button>
+              <Button onClick={saveBoard} className="text-sm">{t("common.save")}</Button>
+            </div>
+          ) : (
             <div key={b.id} className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2 ${
               b.id === boardId ? "border-brand-500 bg-brand-500/5" : "border-slate-700 bg-slate-900/50"}`}>
               <div className="min-w-0">
@@ -249,6 +277,12 @@ export default function Setup() {
                 <button onClick={() => save({ board_id: b.id === boardId ? null : b.id })} title={t("setup.setDefault")}
                   className={`rounded-lg px-2 py-1.5 ${b.id === boardId ? "bg-brand-500 text-slate-950" : "text-slate-400 hover:text-amber-300"}`}>
                   <StarIcon className="h-4 w-4" filled={b.id === boardId} />
+                </button>
+                <button onClick={() => setEditBoard({ id: b.id, name: b.name, volume_l: b.volume_l == null ? "" : String(b.volume_l),
+                    length_cm: b.length_cm == null ? "" : String(b.length_cm) })}
+                  title={t("setup.boardEdit")} aria-label={t("setup.boardEdit")}
+                  className="rounded-lg px-2 py-1.5 text-slate-400 hover:text-slate-200">
+                  <EditIcon className="h-4 w-4" />
                 </button>
                 <button onClick={() => delBoard(b.id)}
                   className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700">

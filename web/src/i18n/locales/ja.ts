@@ -2084,6 +2084,7 @@ const ja: Record<string, string> = {
   "settings.suunto.broken": "⚠ Suunto との連携は現在機能していません：Suunto でのログイン自体は成功し（Suunto から確認メールも届きます）、その後 Suunto が当アプリのアカウントへのアクセスを拒否します。あなたの問題ではなく、パスワードとも関係ありません — Suunto と調整中です。それまでは Suunto のアクティビティをファイルとして取り込めます。",
   "setup.addValue": "追加",
   "setup.boardDelConfirm": "このボードを削除しますか？ 使用中のセッションは既定値に戻ります。",
+  "setup.boardEdit": "ボードを編集",
   "setup.boardDesc": "ボードはご自分で入力します（名称、任意で容量と長さ） — これにはメーカーのカタログがありません。",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "ボード名",

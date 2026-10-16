@@ -2146,6 +2146,7 @@ const cs: Record<string, string> = {
   "settings.suunto.broken": "⚠ Propojení se Suunto momentálně nefunguje: přihlášení u Suunto proběhne (Suunto ti dokonce pošle potvrzovací e-mail), ale pak Suunto naší aplikaci odepře přístup k tvému účtu. Není to tvoje chyba a s tvým heslem to nemá nic společného — řešíme to se Suunto. Do té doby můžeš aktivity ze Suunto importovat jako soubor.",
   "setup.addValue": "Přidat",
   "setup.boardDelConfirm": "Smazat tento board? Vyjížďky, které ho používají, se vrátí k tvému výchozímu.",
+  "setup.boardEdit": "Upravit board",
   "setup.boardDesc": "Boardy si zadáváš sám (název, volitelně objem a délku) — katalog výrobce pro ně neexistuje.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Název boardu",

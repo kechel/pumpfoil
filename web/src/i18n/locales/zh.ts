@@ -2087,6 +2087,7 @@ const zh: Record<string, string> = {
   "settings.suunto.broken": "⚠ 与 Suunto 的关联目前无法使用：在 Suunto 登录是成功的（Suunto 甚至会给你发确认邮件），但随后 Suunto 拒绝我们的应用访问你的账号。这不是你的问题，也与密码无关——我们正在与 Suunto 处理。在此之前，你可以把 Suunto 的活动以文件方式导入。",
   "setup.addValue": "添加",
   "setup.boardDelConfirm": "删除这块板？使用它的会话会回到你的默认设置。",
+  "setup.boardEdit": "编辑板",
   "setup.boardDesc": "板由你自己录入（名称，可选容积和长度）——这方面没有厂商目录。",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "板的名称",

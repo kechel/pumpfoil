@@ -1943,6 +1943,7 @@ const es: Record<string, string> = {
   "settings.suunto.broken": "⚠ La vinculación con Suunto ahora mismo no funciona: el inicio de sesión en Suunto sale bien (Suunto incluso te manda un correo de confirmación), pero después Suunto le niega a nuestra app el acceso a tu cuenta. No es culpa tuya y no tiene nada que ver con tu contraseña — lo estamos aclarando con Suunto. Mientras tanto puedes importar las actividades de Suunto como archivo.",
   "setup.addValue": "Añadir",
   "setup.boardDelConfirm": "¿Eliminar esta tabla? Las sesiones que la usan vuelven a tu valor por defecto.",
+  "setup.boardEdit": "Editar tabla",
   "setup.boardDesc": "Las tablas las introduces tú (nombre, opcionalmente volumen y longitud) — para esto no hay catálogo del fabricante.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Nombre de la tabla",

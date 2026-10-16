@@ -2147,6 +2147,7 @@ const nl: Record<string, string> = {
   "settings.suunto.broken": "⚠ Koppelen met Suunto werkt momenteel niet: inloggen bij Suunto lukt (Suunto stuurt je zelfs een bevestigingsmail), maar daarna weigert Suunto onze app toegang tot je account. Dat ligt niet aan jou en heeft niets met je wachtwoord te maken — we zoeken het uit met Suunto. Tot die tijd kun je Suunto-activiteiten als bestand importeren.",
   "setup.addValue": "Toevoegen",
   "setup.boardDelConfirm": "Dit board verwijderen? Sessies die het gebruiken vallen terug op je standaard.",
+  "setup.boardEdit": "Board bewerken",
   "setup.boardDesc": "Je boards voer je zelf in (naam, eventueel volume en lengte) — daarvoor is er geen fabrikantencatalogus.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Naam van het board",
