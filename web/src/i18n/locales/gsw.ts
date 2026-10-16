@@ -1944,6 +1944,7 @@ const gsw: Record<string, string> = {
   "settings.suunto.broken": "⚠ D Verknüpfig mit Suunto funktioniert im Moment nöd: d Aamäldig bi Suunto lauft dure (du überchunnsch vo Suunto sogar es Bestätigungs-Mail), aber Suunto verweigeret üsere App denn de Zuegriff uf dis Konto. De Fehler lit nöd bi dir und nöd a dim Passwort — mir kläred das mit Suunto. Bis denn chasch Suunto-Aktivitäte als Datei importiere.",
   "setup.addValue": "Hinzuefüege",
   "setup.boardDelConfirm": "Das Board lösche? Sessions, wo s bruuched, fallet zrugg uf din Standard.",
+  "setup.boardEdit": "Board bearbeite",
   "setup.boardDesc": "Dini Boards treisch sälber ii (Name, optional Volume und Längi) — defür git s kein Hersteller-Katalog.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Board-Name",

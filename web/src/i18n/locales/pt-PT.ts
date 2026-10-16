@@ -2084,6 +2084,7 @@ const ptPT: Record<string, string> = {
   "settings.suunto.broken": "⚠ A ligação com a Suunto não está a funcionar de momento: o início de sessão na Suunto resulta (a Suunto até te manda um e-mail de confirmação), mas depois a Suunto nega à nossa app o acesso à tua conta. Não é culpa tua e não tem nada a ver com a tua palavra-passe — estamos a resolver isto com a Suunto. Até lá podes importar as atividades da Suunto como ficheiro.",
   "setup.addValue": "Adicionar",
   "setup.boardDelConfirm": "Eliminar esta prancha? As sessões que a usam voltam à tua predefinição.",
+  "setup.boardEdit": "Editar prancha",
   "setup.boardDesc": "As pranchas registas tu mesmo (nome, opcionalmente volume e comprimento) — para isso não existe catálogo do fabricante.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Nome da prancha",

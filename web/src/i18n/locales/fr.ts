@@ -1943,6 +1943,7 @@ const fr: Record<string, string> = {
   "settings.suunto.broken": "⚠ La liaison avec Suunto ne fonctionne pas actuellement : la connexion chez Suunto réussit (Suunto t'envoie même un e-mail de confirmation), mais Suunto refuse ensuite à notre application l'accès à ton compte. Ce n'est pas ta faute et cela n'a rien à voir avec ton mot de passe — nous réglons ça avec Suunto. En attendant, tu peux importer les activités Suunto sous forme de fichier.",
   "setup.addValue": "Ajouter",
   "setup.boardDelConfirm": "Supprimer cette board ? Les sessions qui l'utilisent reviennent à ta valeur par défaut.",
+  "setup.boardEdit": "Modifier la planche",
   "setup.boardDesc": "Tu saisis tes boards toi-même (nom, éventuellement volume et longueur) — il n'y a pas de catalogue constructeur pour ça.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Nom de la board",

@@ -2090,6 +2090,7 @@ const id: Record<string, string> = {
   "settings.suunto.broken": "⚠ Penautan dengan Suunto saat ini tidak berfungsi: masuk di Suunto berhasil (Suunto bahkan mengirimimu email konfirmasi), tapi setelah itu Suunto menolak akses aplikasi kami ke akunmu. Ini bukan salahmu dan tidak ada hubungannya dengan kata sandimu — kami sedang mengurusnya bersama Suunto. Sampai saat itu kamu bisa mengimpor aktivitas Suunto sebagai berkas.",
   "setup.addValue": "Tambah",
   "setup.boardDelConfirm": "Hapus papan ini? Sesi yang memakainya kembali ke bawaanmu.",
+  "setup.boardEdit": "Edit papan",
   "setup.boardDesc": "Papan kamu masukkan sendiri (nama, opsional volume dan panjang) — untuk ini tidak ada katalog produsen.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Nama papan",

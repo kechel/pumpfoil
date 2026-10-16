@@ -2118,6 +2118,7 @@ const fi: Record<string, string> = {
   "settings.suunto.broken": "⚠ Suunto-yhteys ei tällä hetkellä toimi: kirjautuminen Suuntoon onnistuu (Suunto lähettää sinulle jopa vahvistussähköpostin), mutta sen jälkeen Suunto estää sovellukseltamme pääsyn tiliisi. Tämä ei ole sinun vikasi eikä liity salasanaasi — selvitämme asiaa Suunnon kanssa. Siihen asti voit tuoda Suunto-aktiviteetit tiedostona.",
   "setup.addValue": "Lisää",
   "setup.boardDelConfirm": "Poistetaanko tämä lauta? Sitä käyttävät sessiot palaavat oletukseesi.",
+  "setup.boardEdit": "Muokkaa lautaa",
   "setup.boardDesc": "Laudat syötät itse (nimi, valinnaisesti tilavuus ja pituus) — niille ei ole valmistajaluetteloa.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Laudan nimi",

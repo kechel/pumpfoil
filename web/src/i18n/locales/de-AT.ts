@@ -1950,6 +1950,7 @@ const deAT: Record<string, string> = {
   "settings.suunto.broken": "⚠ Die Verknüpfung mit Suunto geht momentan nicht: die Anmeldung bei Suunto lauft durch (du kriegst von Suunto sogar a Bestätigungs-Mail), aber Suunto verweigert unserer App danach den Zugriff auf dein Konto. Der Fehler liegt nicht bei dir und nicht an deinem Passwort — wir klären das mit Suunto. Bis dahin kannst du Suunto-Aktivitäten als Datei importieren.",
   "setup.addValue": "Hinzufügen",
   "setup.boardDelConfirm": "Das Board löschen? Sessions, die's nutzen, fallen zurück auf deinen Standard.",
+  "setup.boardEdit": "Board bearbeiten",
   "setup.boardDesc": "Deine Boards trägst du selber ein (Name, optional Volumen und Länge) — dafür gibt's kein Hersteller-Katalog.",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardNamePlaceholder": "Board-Name",
