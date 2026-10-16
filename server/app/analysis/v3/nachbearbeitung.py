@@ -246,6 +246,39 @@ def nach_empfindlichkeit(segs: list, v2_segmente: list, sens: str, geschuetzt=()
     return out
 
 
+# Uhren, bei denen v3 die Raender eines v2-Laufs NICHT abschneidet (Jans OK 16.10.2026). Amazfit
+# liefert im Median nur 0,24 GPS-Punkte je Sekunde, mit Luecken von 7-12 s auch mitten im Lauf; das
+# Modell rechnet je GPS-Punkt und ist nach jeder Luecke unsicher -> es kappte echte Laufenden (Zepp:
+# 40 % der Laeufe um mehr als ein Viertel gekuerzt, Garmin 6-7 %). Sichtpruefung an #14983: wo das
+# den Lauf aendert, wird er richtiger. Das Veto (ganzer Lauf weg) und neue Stuecke bleiben.
+OHNE_RANDSCHNITT = {"zepp"}
+
+
+def plattform(session) -> str | None:
+    """Plattform des aufnehmenden Geraets (DeviceToken.platform), sonst None."""
+    from sqlalchemy.orm import object_session
+    from ... import models
+    db = object_session(session)
+    if db is None or not getattr(session, "device_id", None):
+        return None
+    t = db.get(models.DeviceToken, session.device_id)
+    return t.platform if t else None
+
+
+def ganze_v2_laeufe(segs: list, v2_segmente: list) -> list:
+    """Rein: jeder v2-Lauf, von dem v3 mindestens die Haelfte behaelt, zaehlt GANZ (statt der
+    v3-Stuecke darin); weniger als die Haelfte bleibt wie v3 es sieht (dann ist es ohnehin ein
+    Auto-Aussortiert-Fall). Neue v3-Stuecke ohne v2-Lauf bleiben."""
+    def iv(s):
+        return float(s["t_start_session_ms"]), float(s["t_end_session_ms"])
+
+    def deckung(a, b):
+        return sum(max(0.0, min(b, iv(x)[1]) - max(a, iv(x)[0])) for x in segs)
+    ganz = [s for s in v2_segmente if deckung(*iv(s)) >= 0.5 * max(iv(s)[1] - iv(s)[0], 1.0)]
+    rest = [x for x in segs if not any(iv(x)[0] < iv(g)[1] and iv(x)[1] > iv(g)[0] for g in ganz)]
+    return sorted(ganz + rest, key=lambda s: s["t_start_session_ms"])
+
+
 def anwenden(res: dict, session, judge: bool, sens: str) -> dict:
     """v2-Ergebnis -> v3-Ergebnis (gleiches Format). Bei jedem Fehler: v2 unveraendert zurueck."""
     try:
@@ -282,6 +315,9 @@ def _anwenden(res, session, judge, sens):
     L = ohne_ausschluss(L, analyse_ausschluss(session))
     off = (int(v2[0]["t_start_session_ms"]) - int(v2[0]["t_start_ms"])) if v2 else int(session.trim_start_ms or 0)
     segs = nach_empfindlichkeit(_segmente(L, v2, session, off), v2, sens, geschuetzt)
+    ohne_rand = plattform(session) in OHNE_RANDSCHNITT
+    if ohne_rand:
+        segs = ganze_v2_laeufe(segs, v2)
     for g in geschuetzt:                       # vom Nutzer zurueckgeholt: unveraendert
         if g not in segs:
             segs.append(g)
@@ -314,4 +350,6 @@ def _anwenden(res, session, judge, sens):
     m["fremdkraft_laeufe"] = list(m.get("fremdkraft_laeufe") or []) + verworfen
     m["v3"] = {"version": VERSION, "laeufe_v2": len(v2), "laeufe_v3": len(segs), "verworfen": len(verworfen),
                "neu": sum(1 for s in segs if s.get("v3")), "empfindlichkeit": sens}
+    if ohne_rand:
+        m["v3"]["randschnitt"] = False
     return res
