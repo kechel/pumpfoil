@@ -44,6 +44,15 @@ ZELLEN_DATEI = ORDNER / "zellen.pkl"
 ERGEBNIS_DATEI = ORDNER / "heatmap.npz"
 
 _SHIFT = 32   # ix in den oberen Bits, iy in den unteren (2^21 < 2^32)
+# Zwei Arten: „foil" = wo auf dem Foil gefahren wird (die Laeufe), „start" = wo die Laeufe beginnen.
+ARTEN = ("foil", "start")
+# Hochzaehlen, wenn sich aendert, was je Session im Cache steht (2: Startzellen dazu).
+CACHE_VERSION = 2
+
+
+def _praefix(art: str) -> str:
+    """Schluessel in heatmap.npz: „foil" ohne Praefix (wie vor den Startpunkten), „start_" sonst."""
+    return "" if art == "foil" else f"{art}_"
 
 
 def kachel(lon: np.ndarray, lat: np.ndarray, z: int = Z_MAX) -> tuple[np.ndarray, np.ndarray]:
@@ -64,9 +73,9 @@ def _entpacken(k: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return k >> _SHIFT, k & ((1 << _SHIFT) - 1)
 
 
-def zellen_der_session(track_geojson: str | dict, segments_json: str | list | None,
-                       verborgen: bool) -> np.ndarray:
-    """Die Zellen (Stufe Z_MAX, gepackt, eindeutig), durch die die LAEUFE dieser Session fuehren."""
+def _laeufe(track_geojson: str | dict, segments_json: str | list | None,
+            verborgen: bool) -> list[list]:
+    """Die Punkte je LAUF (Segmente `foiling`), bei verborgenen Aufnahmen am oeffentlichen Ort."""
     from .ortverbergen import geojson_versetzen
     gj = json.loads(track_geojson) if isinstance(track_geojson, str) else track_geojson
     if verborgen:
@@ -75,20 +84,39 @@ def zellen_der_session(track_geojson: str | dict, segments_json: str | list | No
         gj = geojson_versetzen(gj)
     koord = (gj or {}).get("geometry", {}).get("coordinates") or []
     segs = json.loads(segments_json) if isinstance(segments_json, str) else (segments_json or [])
-    teile = []
+    laeufe = []
     for sg in segs:
         if sg.get("type") != "foiling":
             continue
         a, b = sg.get("i_start"), sg.get("i_end")
         if a is None or b is None:
             continue
-        teile.extend(koord[max(0, int(a)): int(b) + 1])
-    pts = [p for p in teile if p and len(p) >= 2 and p[0] is not None and p[1] is not None]
+        pts = [p for p in koord[max(0, int(a)): int(b) + 1]
+               if p and len(p) >= 2 and p[0] is not None and p[1] is not None]
+        if pts:
+            laeufe.append(pts)
+    return laeufe
+
+
+def _zellen(pts: list) -> np.ndarray:
     if not pts:
         return np.zeros(0, dtype=np.int64)
     arr = np.asarray(pts, dtype=float)[:, :2]
     ix, iy = kachel(arr[:, 0], arr[:, 1])
     return np.unique(_packen(ix, iy))
+
+
+def zellen_der_session(track_geojson: str | dict, segments_json: str | list | None,
+                       verborgen: bool) -> np.ndarray:
+    """Die Zellen (Stufe Z_MAX, gepackt, eindeutig), durch die die LAEUFE dieser Session fuehren."""
+    return _zellen([p for lauf in _laeufe(track_geojson, segments_json, verborgen) for p in lauf])
+
+
+def startzellen_der_session(track_geojson: str | dict, segments_json: str | list | None,
+                            verborgen: bool) -> np.ndarray:
+    """Die Zellen, in denen die Laeufe dieser Session BEGINNEN — der erste Punkt je Lauf (Jan,
+    16.10.2026: Heatmap umschaltbar „on-foil" / „starting positions")."""
+    return _zellen([lauf[0] for lauf in _laeufe(track_geojson, segments_json, verborgen)])
 
 
 def _cache_laden() -> dict:
@@ -132,40 +160,43 @@ def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
         if uid not in profil:
             profil[uid] = profil_verbirgt(db.get(U, uid))
         verborgen = ist_verborgen(type("S", (), {"ort_sichtbarkeit": sicht})(), profil[uid])
-        fp = (ar_id, algo, laenge, verborgen)
+        fp = (CACHE_VERSION, ar_id, algo, laenge, verborgen)
         alt = cache.get(sid)
         if alt is not None and alt[0] == fp:
-            zellen = alt[1]
+            zellen, starts = alt[1], alt[3]
         else:
             gj, segs = db.query(AR.track_geojson, AR.segments_json).filter(AR.id == ar_id).one()
             try:
                 zellen = zellen_der_session(gj, segs, verborgen)
+                starts = startzellen_der_session(gj, segs, verborgen)
             except (ValueError, TypeError, KeyError) as e:   # kaputte Spur -> leer, nicht abbrechen
                 log(f"Session {sid}: Spur unlesbar ({e})")
-                zellen = np.zeros(0, dtype=np.int64)
+                zellen = starts = np.zeros(0, dtype=np.int64)
             neu_gerechnet += 1
         g = gestartet if gestartet.tzinfo else gestartet.replace(tzinfo=timezone.utc)
-        neu_cache[sid] = (fp, zellen, g)
+        neu_cache[sid] = (fp, zellen, g, starts)
     _atomar(ZELLEN_DATEI, lambda f: pickle.dump(neu_cache, f, protocol=pickle.HIGHEST_PROTOCOL))
 
     ausgabe: dict[str, np.ndarray] = {}
     bilanz = {}
-    for name, tage in ZEITRAEUME.items():
-        grenze = jetzt - timedelta(days=tage)
-        listen = [z for (_fp, z, g) in neu_cache.values() if g >= grenze and len(z)]
-        bilanz[name] = len(listen)
-        for z in range(Z_MIN, Z_MAX + 1):
-            d = Z_MAX - z
-            if listen:
-                je = []
-                for zl in listen:
-                    ix, iy = _entpacken(zl)
-                    je.append(np.unique(_packen(ix >> d, iy >> d)))   # je Session einmal je Zelle
-                k, n = np.unique(np.concatenate(je), return_counts=True)
-            else:
-                k, n = np.zeros(0, dtype=np.int64), np.zeros(0, dtype=np.int64)
-            ausgabe[f"{name}_{z}_k"] = k
-            ausgabe[f"{name}_{z}_n"] = n.astype(np.int32)
+    for art, spalte in (("foil", 1), ("start", 3)):
+        for name, tage in ZEITRAEUME.items():
+            grenze = jetzt - timedelta(days=tage)
+            listen = [e[spalte] for e in neu_cache.values() if e[2] >= grenze and len(e[spalte])]
+            if art == "foil":
+                bilanz[name] = len(listen)
+            for z in range(Z_MIN, Z_MAX + 1):
+                d = Z_MAX - z
+                if listen:
+                    je = []
+                    for zl in listen:
+                        ix, iy = _entpacken(zl)
+                        je.append(np.unique(_packen(ix >> d, iy >> d)))   # je Session einmal je Zelle
+                    k, n = np.unique(np.concatenate(je), return_counts=True)
+                else:
+                    k, n = np.zeros(0, dtype=np.int64), np.zeros(0, dtype=np.int64)
+                ausgabe[f"{_praefix(art)}{name}_{z}_k"] = k
+                ausgabe[f"{_praefix(art)}{name}_{z}_n"] = n.astype(np.int32)
     ausgabe["stand"] = np.array([jetzt.timestamp()])
     ausgabe["sessions"] = np.array([bilanz[n] for n in ZEITRAEUME])
     _atomar(ERGEBNIS_DATEI, lambda f: np.savez_compressed(f, **ausgabe))
@@ -190,16 +221,18 @@ def _daten():
     return _GELADEN["daten"]
 
 
-def abfragen(zeitraum: str, zoom: int, w: float, s: float, e: float, n: float) -> dict:
+def abfragen(zeitraum: str, zoom: int, w: float, s: float, e: float, n: float,
+             art: str = "foil") -> dict:
     """Zellen im Ausschnitt fuer den Kartenzoom `zoom`. Zellen etwa 16 Pixel (Stufe zoom+4); bei zu
     vielen eine Stufe groeber. `max` ist die Skala fuer die Farbe: das 98. Perzentil der GANZEN
     Stufe, damit sich die Farben beim Verschieben nicht aendern."""
     d = _daten()
-    if d is None or zeitraum not in ZEITRAEUME:
+    if d is None or zeitraum not in ZEITRAEUME or art not in ARTEN \
+            or f"{_praefix(art)}{zeitraum}_{Z_MAX}_k" not in d:
         return {"z": None, "cells": [], "max": 1, "stand": None, "sessions": 0}
     stufe = max(Z_MIN, min(Z_MAX, int(zoom) + 4))
     while True:
-        k, cnt = d[f"{zeitraum}_{stufe}_k"], d[f"{zeitraum}_{stufe}_n"]
+        k, cnt = d[f"{_praefix(art)}{zeitraum}_{stufe}_k"], d[f"{_praefix(art)}{zeitraum}_{stufe}_n"]
         ix, iy = _entpacken(k)
         x0, y1 = kachel(np.array([w]), np.array([s]), stufe)
         x1, y0 = kachel(np.array([e]), np.array([n]), stufe)

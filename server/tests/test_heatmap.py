@@ -33,3 +33,16 @@ def test_verborgen_liegt_an_point_nemo():
     assert abs(int(ix[0]) - int(nx[0])) < 50          # nicht mehr am Bodensee
     bx, _ = kachel(np.array([9.374]), np.array([47.862]))
     assert abs(int(ix[0]) - int(bx[0])) > 10_000
+
+
+def test_startzellen_erster_punkt_je_lauf():
+    from app.heatmap import _entpacken, kachel, startzellen_der_session
+    a = [[9.374 + i * 0.0001, 47.862] for i in range(5)]       # Lauf 1 beginnt am Steg
+    b = [[9.380 + i * 0.0001, 47.865] for i in range(5)]       # Lauf 2 woanders
+    segs = [{"type": "foiling", "i_start": 0, "i_end": 4}, {"type": "idle", "i_start": 5, "i_end": 5},
+            {"type": "foiling", "i_start": 6, "i_end": 10}]
+    z = startzellen_der_session(_spur(a + [[9.5, 47.9]] + b), json.dumps(segs), verborgen=False)
+    ix, iy = _entpacken(z)
+    erwartet = {tuple(int(v) for v in np.concatenate(kachel(np.array([p[0]]), np.array([p[1]]))))
+                for p in (a[0], b[0])}
+    assert {(int(x), int(y)) for x, y in zip(ix, iy)} == erwartet

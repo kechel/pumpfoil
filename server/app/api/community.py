@@ -1697,11 +1697,13 @@ def _freundschaft_moeglich(db: Session, ich: models.User, anderer: models.User) 
 @router.get("/heatmap")
 def heatmap(period: str = Query("365d"), z: int = Query(10, ge=0, le=22),
             w: float = Query(-180), s: float = Query(-85), e: float = Query(180), n: float = Query(85),
+            art: str = Query("foil"),
             user: models.User = Depends(current_user)) -> dict:
     """Heatmap der Spot-Karte: Zellen im Ausschnitt mit der Zahl der Sessions (app/heatmap.py).
+    `art`: „foil" = Laeufe, „start" = Startpunkte der Laeufe.
     Fuer ALLE gleich (Jan: keine Freunde, keine Sonderrechte) — einmal taeglich vorgerechnet."""
     from ..heatmap import abfragen
-    return abfragen(period, z, w, s, e, n)
+    return abfragen(period, z, w, s, e, n, art)
 
 
 @router.get("/foiler/{user_id}")
