@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15, Apple-Mail eligible for distribution, 1.1.49 for iOS
+        "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16, Apple-Mail eligible for distribution, 1.1.50 for iOS
+        # (Jans Meldung, Submission 3612e127-51da-4d5e-9704-934972265f99, eingereicht 16.10. 00:04, Build 56).
+        # Inhalt: Freunde, Freunde-Ansicht, Spot-Heatmap, Brett-Automatik-Hinweis, Watch meldet den Spot.
+        # ALT: "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15, Apple-Mail eligible for distribution, 1.1.49 for iOS
         # (Jans Meldung, Submission 1804c36e-6a63-4118-9b6a-e0bc0448778c, eingereicht 15.10. 00:17, Build 55).
         # Inhalt: Handy-Recorder laedt live, gerade-am-Pumpen + Live-Anzeigen, Pulsabfall, gruene Spots.
         # ALT: "latest": "1.1.48",   # FREIGEGEBEN 2026-10-14, Apple-Mail eligible for distribution, 1.1.48 for iOS
@@ -419,7 +422,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.48",   # FREIGEGEBEN 2026-10-14 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.46",   # FREIGEGEBEN 2026-10-12 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -812,21 +816,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # 15.10.2026: Brett-Automatik-Hinweis (wie Android), Code nur swiftc -parse.
-    # EINGEREICHT 16.10.2026 00:04 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.50 (56),
-    # Kennung 3612e127-51da-4d5e-9704-934972265f99).
-    {"name": "iPhone + Apple Watch", "version": "1.1.50",
-     "eingereicht": "2026-10-16",
-     "items": [
-         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
-         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
-         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
-         "The session list and the Community page have a Friends view with only you and your friends.",
-         "Home shows which of your friends are pumping right now and where.",
-         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
-         # 15.10.2026: Apple Watch meldet den Spot beim ersten GPS-Fix (Server 8b958905).
-         "On the Apple Watch: once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-     ]},
+    # iPhone + Apple Watch 1.1.50 (eingereicht 16.10., freigegeben 16.10.2026) -> LIVE, Punkte stehen im Changelog.
     # Garmin 1.0.93 (eingereicht + freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.48 (eingereicht 13.10., freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.49 (eingereicht + freigegeben 15.10.2026) -> LIVE, Punkte stehen im Changelog.
