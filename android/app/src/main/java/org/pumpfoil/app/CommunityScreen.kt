@@ -91,7 +91,8 @@ private val PERIODS = listOf("today" to "period.today", "10d" to "period.10d", "
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}, onLayouts: () -> Unit = {}) {
+fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}, onLayouts: () -> Unit = {},
+                    onOpenRoute: (String, Int) -> Unit = { _, _ -> }) {
     var records by remember { mutableStateOf<Map<String, PeriodRecords>?>(null) }
     var leaders by remember { mutableStateOf<Leaders?>(null) }
     var media by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
@@ -413,6 +414,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                 RecordGrid(spotRecs["$accelOnly:$freunde:$period:$sp"], showSpot = false, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp))
                             }
                         }
+                        // Alle gemerkten Routen, ganz unten unter den Spots (Jan, 16.10.2026)
+                        item { RoutenAbschnitt(onOpenRoute) }
                     }
                 }
             }
@@ -577,3 +580,52 @@ private fun ytId(url: String?): String? {
 }
 private fun fmtDurC(s: Double): String = fmtLaufDauer(s)
 // Kurzdatum dd.MM.yy jetzt zentral in TimeFmt.shortDate (Spot-Ortszeit via tz).
+
+/**
+ * Alle gemerkten Routen aller Spots (wie RoutenSection in web/src/pages/Home.tsx): dieselben
+ * Kaertchen wie unter der Spot-Karte, dazu der Spotname, filterbar nach Gesamtlaenge. Ein Tipp
+ * oeffnet den Spot und ruft die Route dort in der Planung auf. Nur Datum, nie wer.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun RoutenAbschnitt(onOpenRoute: (String, Int) -> Unit) {
+    var routen by remember { mutableStateOf<List<GemerkteRoute>?>(null) }
+    var minKm by remember { mutableStateOf(0f) }
+    var maxKm by remember { mutableStateOf(ROUTEN_KM_MAX) }
+    LaunchedEffect(Unit) { routen = try { Api.alleRouten() } catch (_: Exception) { emptyList() } }
+    val alle = routen ?: return
+    if (alle.isEmpty()) return     // noch keine gemerkt -> kein leerer Abschnitt
+    // „max" am Anschlag = ohne Grenze
+    val passend = alle.filter { it.meter >= minKm * 1000 && (maxKm >= ROUTEN_KM_MAX || it.meter <= maxKm * 1000) }
+    Column(Modifier.padding(top = 8.dp)) {
+        SectionHeader(I18n.t("home.routes"))
+        @Composable fun regler(label: String, wert: Float, setz: (Float) -> Unit) {
+            Column(Modifier.padding(horizontal = 12.dp)) {
+                Text("$label: " + if (wert >= ROUTEN_KM_MAX) I18n.t("home.routesNoLimit") else "${wert.toInt()} km",
+                    style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                androidx.compose.material3.Slider(value = wert, onValueChange = { setz(Math.round(it).toFloat()) }, valueRange = 0f..ROUTEN_KM_MAX)
+            }
+        }
+        regler(I18n.t("home.routesMin"), minKm) { minKm = minOf(it, maxKm) }
+        regler(I18n.t("home.routesMax"), maxKm) { maxKm = maxOf(it, minKm) }
+        if (passend.isEmpty()) {
+            Text(I18n.t("home.routesNone"), Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else androidx.compose.foundation.layout.FlowRow(Modifier.padding(horizontal = 12.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
+            for (r in passend) {
+                val (n, maxM) = gemerktKurz(r)
+                Pille(buildString {
+                    if (r.eigeneId != null) append("● ")
+                    append("📍 ").append(r.spotName ?: "").append(" · ")
+                    append(I18n.t("routes.savedChip").replace("{n}", "$n").replace("{max}", "$maxM")
+                        .replace("{total}", "${r.meter}").replace("{datum}", routenDatum(r.gemerktAm)))
+                    if (mitEigenen(r)) append(" · ").append(I18n.t("routes.manualTag"))
+                }, false, klein = true) { r.id?.let { id -> r.spotName?.let { onOpenRoute(it, id) } } }
+            }
+        }
+    }
+}
+
+private const val ROUTEN_KM_MAX = 50f

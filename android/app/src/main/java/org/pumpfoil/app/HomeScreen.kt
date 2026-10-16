@@ -89,6 +89,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 @Composable
 fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
+    var homespotLink by remember { mutableStateOf<String?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     // Dieselben Kacheln zusaetzlich je Foil (PWA 30.08.). Eigene Abfrage, eigener Fehlerfall:
     // faellt sie aus, fehlt nur der Block — die Startseite bleibt vollstaendig.
@@ -206,7 +207,11 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         community = try { Api.communityStats() } catch (_: Exception) { community }
         startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
         carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
-        val hs = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null }
+        val einst = try { Api.settings() } catch (_: Exception) { null }
+        val hs = einst?.get("homespot")?.jsonPrimitive?.contentOrNull
+        // Link auf den Homespot in der Zeile „Letzte Sessions" (Jan, 16.10.2026): wie die PWA mit
+        // homespot_effective — ohne Profilwert der Spot der letzten Session.
+        homespotLink = einst?.get("homespot_effective")?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: hs
         weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs) } catch (_: Exception) { null } else null
         loading = false
     }
@@ -391,6 +396,11 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(I18n.t("phome.latest"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                homespotLink?.let { hs ->
+                    Text("📍 $hs", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 110.dp).clickable { onOpenSpot(hs) }.padding(horizontal = 4.dp, vertical = 6.dp))
+                }
                 // Kacheln / eine Zeile je Session (ListenAnsicht.kt), wie die PWA-Startseite.
                 ListenAnsichtUmschalter()
                 TextButton(onClick = onOpenSessions) {
@@ -719,8 +729,12 @@ private fun wxIcon(code: Int?): String = when {
     else -> "⛈️"
 }
 
-private val CARD8 = listOf("N", "NO", "O", "SO", "S", "SW", "W", "NW")
-private fun dirLabel(deg: Double?): String = if (deg == null) "" else CARD8[(Math.round(deg / 45) % 8).toInt()]
+// Himmelsrichtungen in der Sprache der App (map.compass, wie die PWA seit 16.10.2026)
+private fun dirLabel(deg: Double?): String {
+    if (deg == null) return ""
+    val r = I18n.t("map.compass").split(",").takeIf { it.size == 8 } ?: listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+    return r[(Math.round(deg / 45) % 8).toInt()]
+}
 
 private fun dayLabel(i: Int, date: String): String = when (i) {
     0 -> I18n.t("wx.today")
