@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { passtZu, suchform } from "../lib/suche";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
-import { basiskarten } from "../lib/mapTiles";
+import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { heatZeichnen } from "../lib/heatmap";
 import { api, type AktiverFreund } from "../lib/api";
 import { Spinner, Card } from "../components/ui";
@@ -119,7 +119,7 @@ export default function Spots() {
     if (!mapObj.current) {
       const m = L.map(mapRef.current, { attributionControl: false });
       mapObj.current = m;
-      basiskarten(m, { street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen") }, { maxZoom: 19 });
+      basiskarten(m, kartenTexte(t), { maxZoom: 19 });
       markers.current = L.layerGroup().addTo(m);
       setTimeout(() => m.invalidateSize(), 100);
       // Gemerkten Ausschnitt herstellen, bevor der Marker-Block unten `fitBounds` erwaegt.

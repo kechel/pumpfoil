@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { api } from "../lib/api";
-import { basiskarten } from "../lib/mapTiles";
+import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
 import { abstandM, lageText, warumKeine, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
@@ -89,7 +89,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
       // Die Seite soll beim Scrollen nicht an der Karte haengenbleiben.
       scrollWheelZoom: false, dragging: !L.Browser.mobile,
     }).setView([mitte.lat, mitte.lon], 15);
-    basiskarten(m, { street: tRef.current("map.street"), satellite: tRef.current("map.satellite"), fullscreen: tRef.current("map.fullscreen") });
+    basiskarten(m, kartenTexte(tRef.current));
     karte.current = { m, grp: L.layerGroup().addTo(m), renderer: L.canvas({ padding: 0.2 }) };
     let weg = false;
     const u = UMKREIS_GRAD;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
-import { basiskarten } from "../lib/mapTiles";
+import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { SessionSummary } from "../lib/api";
 import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed, riderWeightFor } from "../lib/foilPhysics";
@@ -130,7 +130,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
     if (!mapObj.current) {
       mapObj.current = L.map(mapRef.current, { zoomControl: false, maxZoom: 22 });
       L.control.zoom({ position: "bottomright" }).addTo(mapObj.current);
-      basiskarten(mapObj.current, { street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen") }, { maxZoom: 22 });
+      basiskarten(mapObj.current, kartenTexte(t), { maxZoom: 22 });
       // Eigene Ebene fuer die Pump-Marken, wie in der Einzelansicht. Ohne sie entscheidet die
       // Reihenfolge: die Linien des ZWEITEN Eintrags uebermalen die Marken des ersten — genau
       // das war im Vergleich zu sehen (Jan, 22.09.). Ueber den Strecken, unter dem Laufzeiger.

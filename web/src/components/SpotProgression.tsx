@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import L from "leaflet";
-import { basiskarten } from "../lib/mapTiles";
+import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { api } from "../lib/api";
 import { speedColor } from "../lib/trackColors";
 import { useT } from "../i18n";
@@ -67,7 +67,7 @@ export function SpotProgression() {
     }
     if (!mapObj.current) {
       mapObj.current = L.map(mapRef.current, { zoomControl: false, maxZoom: 22, attributionControl: false });
-      basiskarten(mapObj.current, { street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen") }, { maxZoom: 22 });
+      basiskarten(mapObj.current, kartenTexte(t), { maxZoom: 22 });
     }
     const map = mapObj.current;
     map.eachLayer((l) => { if (l instanceof L.LayerGroup || l instanceof L.Polyline) map.removeLayer(l); });
