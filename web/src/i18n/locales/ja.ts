@@ -1523,6 +1523,7 @@ const ja: Record<string, string> = {
   "phome.byFoil": "フォイル別",
   "map.street": "地図",
   "map.satellite": "衛星",
+  "map.fullscreen": "全画面",
   "social.title": "SNSフィード",
   "social.hint": "コミュニティの動画をひとつの場所に集め、ここでそのまま再生できます — 間にアルゴリズムはありません。 <b>プロフィールに YouTube チャンネルを登録すると、あなたの動画も並びます。</b> （Instagram と TikTok では利用できません。）",
   "social.prev": "前へ",

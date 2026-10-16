@@ -1560,6 +1560,7 @@ const nb: Record<string, string> = {
   "phome.byFoil": "Per foil",
   "map.street": "Kart",
   "map.satellite": "Satellitt",
+  "map.fullscreen": "Fullskjerm",
   "social.title": "Sosiale feeder",
   "social.hint": "Videoer fra fellesskapet, samlet på ett sted og spillbare her — uten algoritme imellom. <b>Legg inn YouTube-kanalen din i profilen, så blir videoene dine med.</b> (Instagram og TikTok tillater det ikke.)",
   "social.prev": "Forrige",

@@ -1519,6 +1519,7 @@ const ptPT: Record<string, string> = {
   "phome.byFoil": "Por foil",
   "map.street": "Mapa",
   "map.satellite": "Satélite",
+  "map.fullscreen": "Ecrã inteiro",
   "social.title": "Feeds de redes sociais",
   "social.hint": "Vídeos da comunidade reunidos num só sítio e reproduzíveis aqui — sem algoritmo pelo meio. <b>Adiciona o teu canal do YouTube no perfil e os teus vídeos entram também. O</b> (O Instagram e o TikTok não permitem isto.)",
   "social.prev": "Anterior",

@@ -1597,6 +1597,7 @@ const fi: Record<string, string> = {
   "phome.byFoil": "Foileittain",
   "map.street": "Kartta",
   "map.satellite": "Satelliitti",
+  "map.fullscreen": "Koko näyttö",
   "social.title": "Somevirrat",
   "social.hint": "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. <b>Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan.</b> (Instagram ja TikTok eivät salli tätä.)",
   "social.prev": "Edellinen",

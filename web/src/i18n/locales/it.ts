@@ -1266,6 +1266,7 @@ const it: Record<string, string> = {
   "phome.byFoil": "Per foil",
   "map.street": "Mappa",
   "map.satellite": "Satellite",
+  "map.fullscreen": "Schermo intero",
   "social.title": "Feed social",
   "social.hint": "Video della community, raccolti in un posto e riproducibili qui — senza algoritmi di mezzo. <b>Aggiungi il tuo canale YouTube nel profilo e i tuoi video entrano nel feed.</b> (Instagram e TikTok non lo permettono.)",
   "social.prev": "Indietro",

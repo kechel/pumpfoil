@@ -1827,6 +1827,7 @@ const de: Record<string, string> = {
   "phome.byFoil": "Je Foil",
   "map.street": "Karte",
   "map.satellite": "Satellit",
+  "map.fullscreen": "Vollbild",
   "social.title": "Social-Media-Feeds",
   "social.hint": "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. <b>Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit.</b> (Instagram und TikTok erlauben das leider nicht.)",
   "social.prev": "Zurück",

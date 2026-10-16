@@ -1268,6 +1268,7 @@ const fr: Record<string, string> = {
   "phome.byFoil": "Par foil",
   "map.street": "Carte",
   "map.satellite": "Satellite",
+  "map.fullscreen": "Plein écran",
   "social.title": "Fils réseaux sociaux",
   "social.hint": "Les vidéos de la communauté, rassemblées ici et lisibles sur place — sans algorithme entre deux. <b>Ajoute ta chaîne YouTube dans ton profil et tes vidéos rejoignent le fil.</b> (Instagram et TikTok ne le permettent pas.)",
   "social.prev": "Précédent",

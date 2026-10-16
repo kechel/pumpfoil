@@ -1726,6 +1726,7 @@ const en: Record<string, string> = {
   "phome.byFoil": "Per foil",
   "map.street": "Map",
   "map.satellite": "Satellite",
+  "map.fullscreen": "Fullscreen",
   "social.title": "Social media feeds",
   "social.hint": "Videos from the community, gathered in one place and playable right here — no algorithm in between. <b>Add your YouTube channel in your profile and your videos join in.</b> (Instagram and TikTok do not allow this.)",
   "social.prev": "Previous",

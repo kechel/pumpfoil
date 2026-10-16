@@ -119,7 +119,7 @@ export default function Spots() {
     if (!mapObj.current) {
       const m = L.map(mapRef.current, { attributionControl: false });
       mapObj.current = m;
-      basiskarten(m, { street: t("map.street"), satellite: t("map.satellite") }, { maxZoom: 19 });
+      basiskarten(m, { street: t("map.street"), satellite: t("map.satellite"), fullscreen: t("map.fullscreen") }, { maxZoom: 19 });
       markers.current = L.layerGroup().addTo(m);
       setTimeout(() => m.invalidateSize(), 100);
       // Gemerkten Ausschnitt herstellen, bevor der Marker-Block unten `fitBounds` erwaegt.
