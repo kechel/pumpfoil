@@ -1793,17 +1793,40 @@ def spot_routen(spot_id: int, user: models.User = Depends(current_user),
     wenn man sie selbst gemerkt hat (zum Loeschen) — sonst nichts ueber die Merkenden."""
     R = models.GemerkteRoute
     zeilen = db.query(R).filter(R.spot_id == spot_id).order_by(R.created_at.desc()).all()
-    raus: dict[str, dict] = {}
+    return _routen_liste(zeilen, user.id)
+
+
+def _routen_liste(zeilen, user_id: int) -> list[dict]:
+    """Je Route (Schluessel je Spot) EIN Eintrag mit dem juengsten Merkdatum; `zeilen` neueste zuerst.
+    `id` = die juengste Zeile (zum Verlinken), `eigene_id` nur bei den eigenen — nie wer sonst."""
+    raus: dict[tuple, dict] = {}
     for z in zeilen:
-        e = raus.get(z.schluessel)
+        e = raus.get((z.spot_id, z.schluessel))
         if e is None:
-            e = raus[z.schluessel] = {
-                "schluessel": z.schluessel, "gemerkt_am": z.created_at.isoformat(),
+            e = raus[(z.spot_id, z.schluessel)] = {
+                "id": z.id, "schluessel": z.schluessel, "gemerkt_am": z.created_at.isoformat(),
                 "punkte": json.loads(z.punkte_json), "einstellungen": json.loads(z.einstellungen_json or "{}"),
                 "meter": round(z.meter), "eigene_id": None}
-        if z.user_id == user.id and e["eigene_id"] is None:
+        if z.user_id == user_id and e["eigene_id"] is None:
             e["eigene_id"] = z.id
     return list(raus.values())
+
+
+@router.get("/routen")
+def alle_routen(min_m: float = Query(0, ge=0), max_m: float = Query(10_000_000, ge=0),
+                user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Alle gemerkten Routen aller Spots fuer die Community-Seite (Jan, 16.10.2026), mit Spotname,
+    gefiltert nach Gesamtlaenge. Wie je Spot: nur Datum, nie wer."""
+    R, Sp = models.GemerkteRoute, models.Spot
+    zeilen = (db.query(R).filter(R.meter >= min_m, R.meter <= max_m)
+              .order_by(R.created_at.desc()).limit(2000).all())
+    liste = _routen_liste(zeilen, user.id)
+    namen = dict(db.query(Sp.id, Sp.name).filter(Sp.id.in_({z.spot_id for z in zeilen})).all()) if zeilen else {}
+    spot_von = {z.id: z.spot_id for z in zeilen}
+    for e in liste:
+        e["spot_id"] = spot_von[e["id"]]
+        e["spot_name"] = namen.get(e["spot_id"]) or ""
+    return liste
 
 
 @router.post("/spot/{spot_id}/routen")

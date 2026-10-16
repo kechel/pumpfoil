@@ -168,6 +168,18 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
     setPlanen(true);
     setAufruf((alt) => ({ g: r, n: (alt?.n ?? 0) + 1 }));
   };
+  // Aus der Community-Liste verlinkt (?route=<id>): die Route einmal aufrufen wie per Klick, sobald
+  // Karte und gemerkte Routen da sind, und das Panel in den Blick holen.
+  const routeAusLink = useRef<number | null>(Number(new URLSearchParams(window.location.search).get("route")) || null);
+  useEffect(() => {
+    const id = routeAusLink.current;
+    if (!id || !bereit || !gemerkt.length) return;
+    routeAusLink.current = null;
+    const r = gemerkt.find((x) => x.id === id);
+    if (!r) return;
+    gemerktKlick(r);
+    box.current?.scrollIntoView({ block: "center" });
+  }, [bereit, gemerkt]);  // eslint-disable-line react-hooks/exhaustive-deps
   // Datum in der Sprache der App (die setzt <html lang>), nicht in der des Browsers
   const datum = (iso: string) => new Date(iso).toLocaleDateString(document.documentElement.lang || undefined,
     { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -254,7 +266,7 @@ const NAH_M = 40;                // gemerkter Punkt == heutiger Startpunkt, wenn
 type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 type Punkt = { lat: number; lon: number };
 export type Gemerkt = {
-  schluessel: string; gemerkt_am: string; punkte: [number, number][]; meter: number; eigene_id: number | null;
+  id?: number; schluessel: string; gemerkt_am: string; punkte: [number, number][]; meter: number; eigene_id: number | null;
   einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; erstes_ziel?: [number, number] | null;
                    ziel?: [number, number] | null; min_m?: number;
                    max_m?: number; punkte?: number; ohne_kreuzung?: boolean; rundkurs?: boolean;
@@ -272,7 +284,7 @@ function schonGestartet(meine: Punkt[], p: Punkt): boolean {
 }
 
 /** Enthaelt die gemerkte Route selbst gesetzte Punkte? */
-function mitEigenen(g: Gemerkt): boolean {
+export function mitEigenen(g: Gemerkt): boolean {
   const e = g.einstellungen.eigene ?? [];
   return g.punkte.some(([la, lo]) => e.some(([a, b]) => abstandM({ lat: la, lon: lo }, { lat: a, lon: b }) < 5));
 }
@@ -342,7 +354,7 @@ function routenSchluessel(pts: Punkt[]): string {
 }
 
 /** Kurzinfo einer gemerkten Route: verschiedene Startplaetze, laengster Abschnitt, Strecke. */
-function gemerktKurz(g: Gemerkt) {
+export function gemerktKurz(g: Gemerkt) {
   const pts = g.punkte.map(([lat, lon]) => ({ lat, lon }));
   const rund = pts.length > 2 && abstandM(pts[0], pts[pts.length - 1]) < 1;
   const legs = pts.slice(1).map((b, k) => abstandM(pts[k], b));
