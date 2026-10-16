@@ -2163,6 +2163,8 @@ const zh: Record<string, string> = {
   "routes.anyDirection": "不限",
   "routes.reliability": "最少起步次数",
   "routes.riders": "最少滑手",
+  "routes.startReq": "起步点条件",
+  "routes.config": "路线配置",
   "routes.radius": "半径",
   "routes.spotInfo": "{name}：{fahrer} 位滑手、{sessions} 次训练中起步 {starts} 次",
   "routes.minDist": "每段最小距离",

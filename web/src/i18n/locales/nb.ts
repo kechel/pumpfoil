@@ -2167,6 +2167,8 @@ const nb: Record<string, string> = {
   "routes.anyDirection": "valgfritt",
   "routes.reliability": "min. starter",
   "routes.riders": "min. utøvere",
+  "routes.startReq": "Krav til startplasser",
+  "routes.config": "Rutekonfigurasjon",
   "routes.radius": "Radius",
   "routes.spotInfo": "{name}: {starts} starter fra {sessions} økter av {fahrer} utøvere",
   "routes.minDist": "Min. avstand per etappe",

@@ -2050,6 +2050,8 @@ const gsw: Record<string, string> = {
   "routes.anyDirection": "egal",
   "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",
+  "routes.startReq": "Aaforderige a d Startplätz",
+  "routes.config": "Route-Konfiguration",
   "routes.radius": "Umkreis",
   "routes.spotInfo": "{name}: {starts} Starts us {sessions} Sessions vo {fahrer} Fahrer",
   "routes.minDist": "Abstand min. pro Abschnitt",

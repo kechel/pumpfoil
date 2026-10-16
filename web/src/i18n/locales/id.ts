@@ -2166,6 +2166,8 @@ const id: Record<string, string> = {
   "routes.anyDirection": "bebas",
   "routes.reliability": "min. start",
   "routes.riders": "min. rider",
+  "routes.startReq": "Syarat titik start",
+  "routes.config": "Konfigurasi rute",
   "routes.radius": "Radius",
   "routes.spotInfo": "{name}: {starts} start dari {sessions} sesi oleh {fahrer} rider",
   "routes.minDist": "Jarak min. per ruas",

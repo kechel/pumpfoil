@@ -2204,6 +2204,8 @@ const fi: Record<string, string> = {
   "routes.anyDirection": "mikä tahansa",
   "routes.reliability": "väh. lähtöjä",
   "routes.riders": "väh. kuskeja",
+  "routes.startReq": "Lähtöpaikkojen vaatimukset",
+  "routes.config": "Reitin asetukset",
   "routes.radius": "Säde",
   "routes.spotInfo": "{name}: {starts} lähtöä {sessions} sessiosta, {fahrer} kuskia",
   "routes.minDist": "Väli väh. per osuus",

@@ -2166,6 +2166,8 @@ const ru: Record<string, string> = {
   "routes.anyDirection": "любое",
   "routes.reliability": "мин. стартов",
   "routes.riders": "мин. райдеров",
+  "routes.startReq": "Требования к точкам старта",
+  "routes.config": "Настройка маршрута",
   "routes.radius": "Радиус",
   "routes.spotInfo": "{name}: {starts} стартов из {sessions} сессий, райдеров: {fahrer}",
   "routes.minDist": "Мин. расстояние на отрезок",

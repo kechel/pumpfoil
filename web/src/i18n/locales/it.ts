@@ -2049,6 +2049,8 @@ const it: Record<string, string> = {
   "routes.anyDirection": "qualsiasi",
   "routes.reliability": "min. partenze",
   "routes.riders": "min. rider",
+  "routes.startReq": "Requisiti dei punti di partenza",
+  "routes.config": "Configurazione del percorso",
   "routes.radius": "Raggio",
   "routes.spotInfo": "{name}: {starts} partenze da {sessions} sessioni di {fahrer} rider",
   "routes.minDist": "Distanza min. per tratto",

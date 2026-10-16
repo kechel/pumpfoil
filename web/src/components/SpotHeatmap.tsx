@@ -185,6 +185,30 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
     { day: "2-digit", month: "2-digit", year: "numeric" });
 
   if (leer) return null;
+  const leiste = gemerkt.length > 0 && (
+    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-400">{t("routes.savedTitle")}</span>
+          {gemerkt.map((r) => {
+            const k = gemerktKurz(r);
+            const an = gemerktWahl === r.schluessel;
+            return (
+              <span key={r.schluessel} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${an
+                ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+                : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
+                {/* eigene gemerkte: kleiner Punkt (nur fuer einen selbst sichtbar) */}
+                {r.eigene_id != null && (
+                  <span className={`h-2 w-2 rounded-full ${an ? "bg-slate-950" : "bg-brand-500"}`} title={t("routes.mine")} aria-label={t("routes.mine")} />
+                )}
+                <button onClick={() => gemerktKlick(r)} aria-pressed={an} className="tabular-nums">
+                  {t("routes.savedChip", { n: k.starts, max: k.maxM, total: r.meter, datum: datum(r.gemerkt_am) })}
+                  {/* mit selbst gesetzten Punkten (nicht aus echten Starts) — Jan: „markieren mit manuell" */}
+                  {mitEigenen(r) && <span className={`ml-1.5 rounded px-1 ${an ? "bg-slate-950/15" : "bg-slate-700/60"}`}>{t("routes.manualTag")}</span>}
+                </button>
+              </span>
+            );
+          })}
+        </div>
+  );
   const knopf = (aktiv: boolean, text: string, klick: () => void) => (
     <button key={text} onClick={klick} aria-pressed={aktiv}
       className={`rounded-full border px-3 py-1 ${aktiv
@@ -216,33 +240,13 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
         </div>
       </div>
       <div ref={box} className="mt-2 h-64 w-full overflow-hidden rounded-lg sm:h-80" />
-      {gemerkt.length > 0 && (
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-slate-400">{t("routes.savedTitle")}</span>
-          {gemerkt.map((r) => {
-            const k = gemerktKurz(r);
-            const an = gemerktWahl === r.schluessel;
-            return (
-              <span key={r.schluessel} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${an
-                ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
-                : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
-                {/* eigene gemerkte: kleiner Punkt (nur fuer einen selbst sichtbar) */}
-                {r.eigene_id != null && (
-                  <span className={`h-2 w-2 rounded-full ${an ? "bg-slate-950" : "bg-brand-500"}`} title={t("routes.mine")} aria-label={t("routes.mine")} />
-                )}
-                <button onClick={() => gemerktKlick(r)} aria-pressed={an} className="tabular-nums">
-                  {t("routes.savedChip", { n: k.starts, max: k.maxM, total: r.meter, datum: datum(r.gemerkt_am) })}
-                  {/* mit selbst gesetzten Punkten (nicht aus echten Starts) — Jan: „markieren mit manuell" */}
-                  {mitEigenen(r) && <span className={`ml-1.5 rounded px-1 ${an ? "bg-slate-950/15" : "bg-slate-700/60"}`}>{t("routes.manualTag")}</span>}
-                </button>
-              </span>
-            );
-          })}
-        </div>
-      )}
+      {/* Ohne Planung stehen die gemerkten Routen direkt unter der Karte, mit Planung ganz unten
+          ueber der Legende (Jan) */}
+      {!planen && leiste}
       <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen}
         aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} sport={sport}
-        gemerktWahl={gemerktWahl} abweichung={() => setGemerktWahl(null)} meineStarts={meineStarts} mitte={mitte} />
+        gemerktWahl={gemerktWahl} abweichung={() => setGemerktWahl(null)} meineStarts={meineStarts} mitte={mitte}
+        leiste={leiste} />
     </Card>
   );
 }
@@ -376,10 +380,11 @@ function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   );
 }
 
-function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport, gemerktWahl, abweichung, meineStarts, mitte }: {
+function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport, gemerktWahl, abweichung, meineStarts, mitte, leiste }: {
   spotId: number; karte: L.Map | null; offen: boolean;
   aufruf: { g: Gemerkt; n: number } | null; gemerkt: Gemerkt[]; gemerktGeaendert: () => void; sport: string;
   gemerktWahl: string | null; abweichung: () => void; meineStarts: Punkt[]; mitte: Punkt | null;
+  leiste: React.ReactNode;
 }) {
   const t = useT();
   const [minStarts, setMinStarts] = useState(3);
@@ -791,38 +796,38 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       {(
         <>
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+            {/* Die drei Bedingungen an die Startplaetze in einem Kasten (Jan) */}
+            <fieldset className="min-w-0 max-w-full rounded-xl border border-slate-700 px-3 pb-2 pt-0.5">
+            <legend className="px-1 text-xs font-medium text-slate-300">{t("routes.startReq")}</legend>
+            <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400">{t("routes.reliability")}</span>
             {ZUVERLAESSIG.map((n) => (
               <button key={n} onClick={() => setMinStarts(n)} aria-pressed={minStarts === n} className={pille(minStarts === n)}>
                 ≥ {n}×
               </button>
             ))}
-            <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
+            </span>
+            <span className="mx-1 hidden h-5 w-px bg-slate-700 sm:block" aria-hidden />
+            <span className="inline-flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400">{t("routes.riders")}</span>
             {FAHRER.map((n) => (
               <button key={n} onClick={() => setMinFahrer(n)} aria-pressed={minFahrer === n} className={pille(minFahrer === n)}>
                 ≥ {n}
               </button>
             ))}
-            <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
+            </span>
+            <span className="mx-1 hidden h-5 w-px bg-slate-700 sm:block" aria-hidden />
+            <span className="inline-flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400">{t("routes.radius")}</span>
             {UMKREIS.map((km) => (
               <button key={km} onClick={() => umkreisSetzen(km)} aria-pressed={umkreis === km} className={pille(umkreis === km)}>
                 {km} km
               </button>
             ))}
-            <div className="ml-auto flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-slate-200">
-                <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
-                  className="h-4 w-4 accent-brand-500" />
-                {t("routes.noCrossing")}
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-200">
-                <input type="checkbox" checked={rundkurs} onChange={(e) => setRundkurs(e.target.checked)}
-                  className="h-4 w-4 accent-brand-500" />
-                {t("routes.roundtrip")}
-              </label>
+            </span>
             </div>
+            </fieldset>
           </div>
           {setzen && (
             <p className="mb-3 rounded-lg border border-brand-500 bg-brand-500/10 p-2 text-sm text-slate-200">
@@ -833,6 +838,9 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
             <p className="text-xs text-slate-400">…</p>
           ) : (
             <>
+              {/* Alles, was die Route selbst festlegt, in einem Kasten (Jan) */}
+              <fieldset className="mb-3 min-w-0 rounded-xl border border-slate-700 px-3 pb-3 pt-0.5">
+              <legend className="px-1 text-xs font-medium text-slate-300">{t("routes.config")}</legend>
               <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
                 <span className="shrink-0 text-xs text-slate-400">{t("routes.startPoints")}</span>
                 {pos.map((p, i) => {
@@ -886,23 +894,6 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                   ];
                 })}
               </div>
-              {/* Legende nur, wenn es etwas zu erklaeren gibt */}
-              {(pos.some((p) => schonGestartet(meineStarts, p)) || eigene.length > 0) && (
-                <div className="-mt-1 mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
-                  {pos.some((p) => schonGestartet(meineStarts, p)) && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="h-3 w-3 rounded-full border border-slate-900" style={{ background: GRUEN }} aria-hidden />
-                      {t("routes.myStart")}
-                    </span>
-                  )}
-                  {eigene.length > 0 && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="h-3 w-3 rounded-full border-2 border-dashed border-slate-300 bg-brand-500" aria-hidden />
-                      {t("routes.ownPoint")}
-                    </span>
-                  )}
-                </div>
-              )}
               {/* Ziel waehlen, nur ohne Rundkurs (Jan) — eine echte Einstellung: die Suche nimmt dann
                   nur Routen, die dort enden. */}
               {!rundkurs && (
@@ -918,12 +909,26 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                   ))}
                 </div>
               )}
-              <div className="mb-3 grid gap-x-4 gap-y-2 sm:grid-cols-3">
+              {/* Regler und die beiden Haken in einer Zeile (Jan), auf schmalen Bildschirmen untereinander */}
+              <div className="grid items-end gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto]">
                 {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
                 {/* mit Umkreis liegen die Startplaetze Kilometer auseinander (Zuerichsee) -> bis 10 km */}
                 {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, umkreis > 0 ? 10000 : 2000, " m", umkreis > 0 ? 50 : 10)}
-                {pos.length >= 2 && regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
+                {pos.length >= 2 ? regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1) : <span />}
+                <div className="flex flex-wrap items-center gap-4 pb-0.5 sm:col-span-3 lg:col-span-1">
+                  <label className="flex items-center gap-2 whitespace-nowrap text-sm text-slate-200">
+                    <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
+                      className="h-4 w-4 accent-brand-500" />
+                    {t("routes.noCrossing")}
+                  </label>
+                  <label className="flex items-center gap-2 whitespace-nowrap text-sm text-slate-200">
+                    <input type="checkbox" checked={rundkurs} onChange={(e) => setRundkurs(e.target.checked)}
+                      className="h-4 w-4 accent-brand-500" />
+                    {t("routes.roundtrip")}
+                  </label>
+                </div>
               </div>
+              </fieldset>
               {/* Passt die Liste nicht mehr zu den Einstellungen, verschwindet sie und der Knopf
                   erscheint (Jan: eine stehengebliebene Tabelle verwirrt). */}
               {(<>
@@ -1045,6 +1050,27 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               </>)}
             </>
           )}
+          {/* Gemerkte Routen und Legende unter der Tabelle (Jan) */}
+          {leiste}
+          {pos && (<>
+              {/* Legende ganz unten (Jan), nur wenn es etwas zu erklaeren gibt */}
+              {(pos.some((p) => schonGestartet(meineStarts, p)) || eigene.length > 0) && (
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
+                  {pos.some((p) => schonGestartet(meineStarts, p)) && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded-full border border-slate-900" style={{ background: GRUEN }} aria-hidden />
+                      {t("routes.myStart")}
+                    </span>
+                  )}
+                  {eigene.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded-full border-2 border-dashed border-slate-300 bg-brand-500" aria-hidden />
+                      {t("routes.ownPoint")}
+                    </span>
+                  )}
+                </div>
+              )}
+          </>)}
         </>
       )}
     </div>

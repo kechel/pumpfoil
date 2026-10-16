@@ -2160,6 +2160,8 @@ const ja: Record<string, string> = {
   "routes.anyDirection": "指定なし",
   "routes.reliability": "最少スタート数",
   "routes.riders": "最少ライダー数",
+  "routes.startReq": "スタート地点の条件",
+  "routes.config": "ルート設定",
   "routes.radius": "半径",
   "routes.spotInfo": "{name}: {fahrer} 人のライダー、{sessions} セッションで {starts} 回スタート",
   "routes.minDist": "区間ごとの最小距離",
