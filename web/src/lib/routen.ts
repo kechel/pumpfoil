@@ -3,19 +3,19 @@
 // Eine Route beginnt am gewaehlten Startpunkt (Vorgabe: der meistgenutzte, Index 0), geht von
 // Position zu Position, jede hoechstens einmal, und jeder Abschnitt liegt zwischen `minM` und
 // `maxM` Metern. Sie hat genau `punkte` Startpunkte (den Start mitgezaehlt). Mit `ohneKreuzung`
-// darf kein Abschnitt einen frueheren kreuzen und keiner fast denselben Weg zurueckfuehren (Winkel
-// zum vorigen unter UMKEHR_GRAD) — kein Hin-und-her ueber den See (Jan, 16.10.2026).
-// Die kuerzesten zuerst: bei gleicher Punktzahl ist die kuerzere die, die am Ufer entlang fuehrt
-// statt quer hinueber. Positionen kommen vom Server (GET /api/community/spot/{id}/
+// darf kein Abschnitt einen frueheren kreuzen — kein Hin-und-her ueber den See (Jan, 16.10.2026).
+// Sortiert nach einer Wertung: Strecke plus Aufschlag fuer jede Kehre spitzer als 90 Grad (bis zur
+// Laenge des neuen Abschnitts bei voller Umkehr). Kehren sind also erlaubt, rutschen aber nach
+// unten (Jan: „die 35-Grad-Regel muss nicht hart sein, aber die Sortierung beeinflussen"). Bei
+// gleicher Punktzahl liegt so oben die Route, die am Ufer entlang fuehrt statt quer hinueber. Positionen kommen vom Server (GET /api/community/spot/{id}/
 // startpositionen), die Rechnung ist hier — bei einer Handvoll Punkte ist sie trivial.
 
 export type Startposition = { lat: number; lon: number; starts: number; sessions: number };
-export type Route = { punkte: number[]; meter: number };
+export type Route = { punkte: number[]; meter: number; wertung: number };
 export type RoutenOptionen = { punkte: number; ohneKreuzung: boolean; anzahl?: number };
 
 const MAX_POSITIONEN = 15;      // mehr gibt es an keinem Spot; Schutz gegen kombinatorisches Wachstum
 const MAX_SCHRITTE = 200000;
-const UMKEHR_GRAD = 35;
 
 export function abstandM(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
   const kx = 111320 * Math.cos((a.lat * Math.PI) / 180);
@@ -49,27 +49,30 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
     }
     return false;
   };
-  const kehrtUm = (i: number, j: number) => {
-    if (weg.length < 2) return false;
+  // Aufschlag fuer die Kehre an i (von weg[-2] kommend, nach j): 0 bis 90 Grad Winkel zwischen
+  // Rueck- und Weiterweg = voller bis kein Aufschlag, gemessen an der Laenge des neuen Abschnitts.
+  const kehre = (i: number, j: number) => {
+    if (weg.length < 2) return 0;
     const h = xy[weg[weg.length - 2]];
     const a: P = [h[0] - xy[i][0], h[1] - xy[i][1]], b: P = [xy[j][0] - xy[i][0], xy[j][1] - xy[i][1]];
     const w = Math.acos(Math.max(-1, Math.min(1, (a[0] * b[0] + a[1] * b[1]) /
       (Math.hypot(...a) * Math.hypot(...b) || 1)))) * 180 / Math.PI;
-    return w < UMKEHR_GRAD;
+    return w < 90 ? ((90 - w) / 90) * d[i][j] : 0;
   };
-  const gehe = (i: number, meter: number) => {
+  const gehe = (i: number, meter: number, wertung: number) => {
     if (++schritte > MAX_SCHRITTE) return;
-    if (weg.length === ziel) { raus.push({ punkte: [...weg], meter }); return; }
+    if (weg.length === ziel) { raus.push({ punkte: [...weg], meter, wertung }); return; }
     for (let j = 0; j < p.length; j++) {
       if (besucht.has(j) || d[i][j] < minM || d[i][j] > maxM) continue;
-      if (opt.ohneKreuzung && (kreuztFrueheren(i, j) || kehrtUm(i, j))) continue;
+      if (opt.ohneKreuzung && kreuztFrueheren(i, j)) continue;
+      const k = kehre(i, j);
       besucht.add(j); weg.push(j);
-      gehe(j, meter + d[i][j]);
+      gehe(j, meter + d[i][j], wertung + d[i][j] + k);
       weg.pop(); besucht.delete(j);
     }
   };
-  gehe(start, 0);
-  raus.sort((a, b) => a.meter - b.meter);
+  gehe(start, 0, 0);
+  raus.sort((a, b) => a.wertung - b.wertung);
   return raus.slice(0, opt.anzahl ?? 10);
 }
 
