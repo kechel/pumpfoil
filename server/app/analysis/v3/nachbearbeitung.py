@@ -266,17 +266,28 @@ def plattform(session) -> str | None:
 
 
 def ganze_v2_laeufe(segs: list, v2_segmente: list) -> list:
-    """Rein: jeder v2-Lauf, von dem v3 mindestens die Haelfte behaelt, zaehlt GANZ (statt der
-    v3-Stuecke darin); weniger als die Haelfte bleibt wie v3 es sieht (dann ist es ohnehin ein
-    Auto-Aussortiert-Fall). Neue v3-Stuecke ohne v2-Lauf bleiben."""
+    """Rein: behaelt v3 mindestens die Haelfte eines v2-Laufs, reichen sein erstes Stueck bis zum
+    v2-Anfang und sein letztes bis zum v2-Ende. NUR die Raender: eine Luecke, die v3 MITTEN im Lauf
+    herausnimmt, bleibt (Befund #12509: zehn Minuten bei 20 km/h, das Modell in der Mitte klar
+    dagegen — die erste Fassung fuellte sie wieder auf). Weniger als die Haelfte bleibt wie v3 es
+    sieht; neue Stuecke ohne v2-Lauf bleiben. Verlaengerte Stuecke verlieren ihre v2-Werte und
+    werden vom Aufrufer neu vermessen."""
     def iv(s):
         return float(s["t_start_session_ms"]), float(s["t_end_session_ms"])
-
-    def deckung(a, b):
-        return sum(max(0.0, min(b, iv(x)[1]) - max(a, iv(x)[0])) for x in segs)
-    ganz = [s for s in v2_segmente if deckung(*iv(s)) >= 0.5 * max(iv(s)[1] - iv(s)[0], 1.0)]
-    rest = [x for x in segs if not any(iv(x)[0] < iv(g)[1] and iv(x)[1] > iv(g)[0] for g in ganz)]
-    return sorted(ganz + rest, key=lambda s: s["t_start_session_ms"])
+    out = [dict(x) for x in segs]
+    for g in v2_segmente:
+        a, b = iv(g)
+        drin = sorted((x for x in out if iv(x)[0] < b and iv(x)[1] > a), key=lambda x: iv(x)[0])
+        if not drin:
+            continue
+        bleibt = sum(max(0.0, min(b, iv(x)[1]) - max(a, iv(x)[0])) for x in drin)
+        if bleibt < 0.5 * max(b - a, 1.0):
+            continue
+        if iv(drin[0])[0] > a:
+            drin[0]["t_start_session_ms"] = int(a); drin[0]["_neu_vermessen"] = True
+        if iv(drin[-1])[1] < b:
+            drin[-1]["t_end_session_ms"] = int(b); drin[-1]["_neu_vermessen"] = True
+    return sorted(out, key=lambda s: s["t_start_session_ms"])
 
 
 def anwenden(res: dict, session, judge: bool, sens: str) -> dict:
@@ -317,7 +328,12 @@ def _anwenden(res, session, judge, sens):
     segs = nach_empfindlichkeit(_segmente(L, v2, session, off), v2, sens, geschuetzt)
     ohne_rand = plattform(session) in OHNE_RANDSCHNITT
     if ohne_rand:
+        # Raender auf den v2-Lauf verlaengern, dann die Intervalle wie alle anderen vermessen
+        # (deckungsgleich mit einem v2-Lauf -> dessen Werte exakt; sonst neu gerechnet).
         segs = ganze_v2_laeufe(segs, v2)
+        if any(x.get("_neu_vermessen") for x in segs):
+            iv = [(float(x["t_start_session_ms"]), float(x["t_end_session_ms"])) for x in segs if x not in geschuetzt]
+            segs = [x for x in segs if x in geschuetzt] + _segmente(iv, v2, session, off)
     for g in geschuetzt:                       # vom Nutzer zurueckgeholt: unveraendert
         if g not in segs:
             segs.append(g)

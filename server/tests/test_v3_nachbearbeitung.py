@@ -48,13 +48,15 @@ def test_stueck_im_aussortierten_fenster_faellt_weg():
     assert N.ohne_ausschluss([(108_000, 120_000)], [(110_000, 118_000)]) == []
 
 
-def test_ohne_randschnitt_zaehlt_den_ganzen_v2_lauf():
-    """Zepp (16.10.2026): behaelt v3 mindestens die Haelfte eines v2-Laufs, zaehlt der ganze Lauf;
-    weniger bleibt wie v3 es sieht; neue Stuecke ohne v2-Lauf bleiben."""
+def test_ohne_randschnitt_verlaengert_nur_die_raender():
+    """Zepp (16.10.2026): behaelt v3 mindestens die Haelfte eines v2-Laufs, reichen erstes und
+    letztes Stueck bis an dessen Raender; eine Luecke in der Mitte bleibt; unter der Haelfte und
+    neue Stuecke bleiben wie v3 sie sieht."""
     from app.analysis.v3.nachbearbeitung import ganze_v2_laeufe
     s = lambda a, b, **kw: {"t_start_session_ms": a, "t_end_session_ms": b, **kw}  # noqa: E731
-    v2 = [s(0, 20000), s(100000, 120000)]
-    v3 = [s(3000, 15000, v3=1), s(100000, 105000, v3=1), s(200000, 210000, v3=1)]
+    v2 = [s(0, 20000), s(100000, 120000), s(300000, 400000)]
+    v3 = [s(3000, 15000, v3=1), s(100000, 105000, v3=1), s(200000, 210000, v3=1),
+          s(310000, 340000, v3=1), s(360000, 390000, v3=1)]
     out = ganze_v2_laeufe(v3, v2)
     assert [(x["t_start_session_ms"], x["t_end_session_ms"]) for x in out] == \
-        [(0, 20000), (100000, 105000), (200000, 210000)]
+        [(0, 20000), (100000, 105000), (200000, 210000), (300000, 340000), (360000, 400000)]
