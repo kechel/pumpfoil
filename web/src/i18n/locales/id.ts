@@ -1505,6 +1505,7 @@ const id: Record<string, string> = {
   "settings.coros.help4": "Putuskan kapan saja (mencabut akses dan menghentikan impor).",
   "settings.suunto.title": "Impor Suunto",
   "settings.suunto.hint": "Hubungkan akun Suunto-mu dan impor workout-mu sebagai sesi.",
+  "settings.suunto.activity": "Suunto tidak punya mode pumpfoil: rekam saja sebagai Stand-up paddle atau Surfing. Kami mengenali pumpfoil secara otomatis, mode apa pun yang kamu pakai.",
   "settings.suunto.connect": "Hubungkan Suunto",
   "settings.suunto.connected": "Terhubung",
   "settings.suunto.sync": "Impor workout",

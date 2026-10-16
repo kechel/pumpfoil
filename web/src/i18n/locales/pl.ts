@@ -1651,6 +1651,7 @@ const pl: Record<string, string> = {
   "settings.coros.help4": "Rozłącz w każdej chwili (odbiera dostęp i zatrzymuje import).",
   "settings.suunto.title": "Import z Suunto",
   "settings.suunto.hint": "Połącz swoje konto Suunto i importuj treningi jako sesje.",
+  "settings.suunto.activity": "Suunto nie ma trybu pumpfoil: nagrywaj po prostu jako Stand-up paddling albo Surfing. Pumpfoil rozpoznajemy automatycznie, niezależnie od trybu.",
   "settings.suunto.broken": "⚠ Łączenie z Suunto chwilowo nie działa: logowanie u Suunto się udaje (Suunto wysyła nawet e-mail z potwierdzeniem), ale potem Suunto odmawia naszej aplikacji dostępu do Twojego konta. To nie Twoja wina i nie ma nic wspólnego z Twoim hasłem — wyjaśniamy to z Suunto. Do tego czasu możesz importować aktywności Suunto jako plik.",
   "settings.suunto.connect": "Połącz Suunto",
   "settings.suunto.connected": "Połączono",

@@ -411,7 +411,9 @@ function SuuntoCard() {
   return (
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("settings.suunto.title")}</h3>
-      <p className="mb-3 text-sm text-slate-300">{t("settings.suunto.hint")}</p>
+      <p className="mb-1 text-sm text-slate-300">{t("settings.suunto.hint")}</p>
+      {/* Welcher Modus? (Jan, 17.10.2026: im Chat gefragt) — die Sportart bestimmen wir selbst */}
+      <p className="mb-3 text-sm text-slate-400">{t("settings.suunto.activity")}</p>
       <div className="mb-3 flex items-center gap-3">
         <a href="https://www.suunto.com/" target="_blank" rel="noopener noreferrer" title="Suunto"
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">

@@ -1632,6 +1632,7 @@ const nl: Record<string, string> = {
   "settings.coros.help4": "Verbreken kan altijd (trekt de toegang in en stopt de import).",
   "settings.suunto.title": "Suunto-import",
   "settings.suunto.hint": "Koppel je Suunto-account en importeer je workouts als sessies.",
+  "settings.suunto.activity": "Suunto heeft geen pumpfoil-modus: neem gewoon op als Stand-up paddling of Surfen. We herkennen pumpfoilen automatisch, welke modus je ook gebruikt.",
   "settings.suunto.connect": "Met Suunto verbinden",
   "settings.suunto.connected": "Verbonden",
   "settings.suunto.sync": "Workouts importeren",

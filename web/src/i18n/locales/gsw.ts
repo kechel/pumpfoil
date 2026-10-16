@@ -1164,6 +1164,7 @@ const gsw: Record<string, string> = {
   "settings.coros.help4": "Trenne jederzit möglich (entzieht de Zuegriff und stoppt de Import).",
   "settings.suunto.title": "Suunto-Import",
   "settings.suunto.hint": "Verbinde dis Suunto-Konto und importier dini Workouts als Sessions.",
+  "settings.suunto.activity": "Suunto hät kein Pumpfoil-Modus: zeichne eifach als Stand-up-Paddling oder Surfe uf. Mir erkänned Pumpfoil automatisch, egal mit wellem Modus.",
   "settings.suunto.connect": "Mit Suunto verbinde",
   "settings.suunto.connected": "Verbunde",
   "settings.suunto.sync": "Workouts importiere",
