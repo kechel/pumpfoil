@@ -92,3 +92,17 @@ def test_startpositionen_fahrer(monkeypatch):
     r = H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2, fahrer_von=von)
     assert r[0]["fahrer"] == 2 and r[0]["sessions"] == 3
     assert H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2, min_fahrer=3, fahrer_von=von) == []
+
+
+def test_startpositionen_nach_sportart(monkeypatch):
+    from app import heatmap as H
+    steg = [9.3794, 47.8628]
+    z = lambda n: H._zellen([steg] * n, eindeutig=False)
+    cache = {1: ("fp", None, None, z(2), "pumpfoil"), 2: ("fp", None, None, z(2), "foil_scoot"),
+             3: ("fp", None, None, z(2), "foil_scoot")}
+    monkeypatch.setattr(H, "_zellen_cache", lambda: cache)
+    alle = H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2)
+    scoot = H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2, sport="foil_scoot")
+    pump = H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2, sport="pumpfoil")
+    assert alle[0]["starts"] == 6 and scoot[0]["starts"] == 4
+    assert pump == []          # nur eine Session -> keine verlaessliche Position

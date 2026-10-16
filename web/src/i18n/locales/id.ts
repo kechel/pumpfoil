@@ -2124,6 +2124,7 @@ const id: Record<string, string> = {
   "routes.save": "Simpan",
   "routes.saved": "Tersimpan ✓",
   "routes.delete": "Hapus",
+  "routes.deleteConfirm": "Hapus rute ini dari simpananmu? Jika orang lain juga menyimpannya, rute tetap terlihat untuk semua.",
   "routes.changed": "Titik start berubah sejak disimpan – yang ditampilkan rute tersimpan.",
   "routes.limit": "Kamu sudah menyimpan 20 rute di spot ini.",
   "routes.exclude": "Kecualikan titik start",

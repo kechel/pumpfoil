@@ -2121,6 +2121,7 @@ const zh: Record<string, string> = {
   "routes.save": "保存",
   "routes.saved": "已保存 ✓",
   "routes.delete": "删除",
+  "routes.deleteConfirm": "从你保存的路线中移除？如果其他人也保存了，它仍对所有人可见。",
   "routes.changed": "保存后起步点已有变化，显示的是保存的路线。",
   "routes.limit": "你在此水域已保存 20 条路线。",
   "routes.exclude": "排除起步点",

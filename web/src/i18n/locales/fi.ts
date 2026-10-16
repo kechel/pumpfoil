@@ -2162,6 +2162,7 @@ const fi: Record<string, string> = {
   "routes.save": "Tallenna",
   "routes.saved": "Tallennettu ✓",
   "routes.delete": "Poista",
+  "routes.deleteConfirm": "Poistetaanko reitti tallentamistasi? Jos muutkin ovat tallentaneet sen, se näkyy edelleen kaikille.",
   "routes.changed": "Lähtöpaikat ovat muuttuneet tallennuksen jälkeen – näytetään tallennettu reitti.",
   "routes.limit": "Olet jo tallentanut tälle spotille 20 reittiä.",
   "routes.exclude": "Jätä lähtöpaikka pois",

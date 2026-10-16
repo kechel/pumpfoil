@@ -2118,6 +2118,7 @@ const ja: Record<string, string> = {
   "routes.save": "保存",
   "routes.saved": "保存済み ✓",
   "routes.delete": "削除",
+  "routes.deleteConfirm": "このルートを保存から削除しますか？他の人も保存している場合は、引き続き全員に表示されます。",
   "routes.changed": "保存後にスタート地点が変わったため、保存したルートを表示しています。",
   "routes.limit": "このスポットではすでに 20 件のルートを保存しています。",
   "routes.exclude": "スタート地点を除外",

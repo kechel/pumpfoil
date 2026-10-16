@@ -2007,6 +2007,7 @@ const it: Record<string, string> = {
   "routes.save": "Salva",
   "routes.saved": "Salvato ✓",
   "routes.delete": "Elimina",
+  "routes.deleteConfirm": "Rimuovere questo percorso dai tuoi salvati? Se l'hanno salvato anche altri, resta visibile a tutti.",
   "routes.changed": "I punti di partenza sono cambiati dal salvataggio – viene mostrato il percorso salvato.",
   "routes.limit": "Hai già salvato 20 percorsi in questo spot.",
   "routes.exclude": "Escludi punto di partenza",

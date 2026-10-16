@@ -2007,6 +2007,7 @@ const fr: Record<string, string> = {
   "routes.save": "Enregistrer",
   "routes.saved": "Enregistré ✓",
   "routes.delete": "Supprimer",
+  "routes.deleteConfirm": "Retirer ce parcours de tes enregistrements ? Si d'autres l'ont aussi enregistré, il reste visible pour tous.",
   "routes.changed": "Les points de départ ont changé depuis l'enregistrement – le parcours enregistré est affiché.",
   "routes.limit": "Tu as déjà enregistré 20 parcours sur ce spot.",
   "routes.exclude": "Exclure le point de départ",

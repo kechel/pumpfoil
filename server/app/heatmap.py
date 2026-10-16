@@ -47,7 +47,7 @@ _SHIFT = 32   # ix in den oberen Bits, iy in den unteren (2^21 < 2^32)
 # Zwei Arten: „foil" = wo auf dem Foil gefahren wird (die Laeufe), „start" = wo die Laeufe beginnen.
 ARTEN = ("foil", "start")
 # Hochzaehlen, wenn sich aendert, was je Session im Cache steht (2: Startzellen dazu).
-CACHE_VERSION = 3
+CACHE_VERSION = 4
 # Startpunkte: eine Zelle erscheint erst ab so vielen LAEUFEN, die dort beginnen (Jan, 16.10.2026:
 # „nur Zellen ab 2 Laeufen, nicht Sessions"). Ein einzelner Start mitten auf dem Wasser ist fast
 # immer ein Ausreisser (GPS-Luecke vor dem Lauf, kurzer Fehlalarm); echte Startplaetze werden
@@ -55,9 +55,10 @@ CACHE_VERSION = 3
 START_MIN_LAEUFE = 2
 
 
-def _praefix(art: str) -> str:
-    """Schluessel in heatmap.npz: „foil" ohne Praefix (wie vor den Startpunkten), „start_" sonst."""
-    return "" if art == "foil" else f"{art}_"
+def _praefix(art: str, sport: str = "all") -> str:
+    """Schluessel in heatmap.npz: je Art („foil" ohne, „start_") und Sportart („all" ohne, sonst
+    „sp-<sportart>_"). „foil"+„all" hat damit dieselben Schluessel wie vor Startpunkten/Sportarten."""
+    return ("" if art == "foil" else f"{art}_") + ("" if sport == "all" else f"sp-{sport}_")
 
 
 def kachel(lon: np.ndarray, lat: np.ndarray, z: int = Z_MAX) -> tuple[np.ndarray, np.ndarray]:
@@ -146,7 +147,7 @@ def _atomar(pfad: pathlib.Path, schreiben) -> None:
 def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
     """Alles neu aggregieren; Zellen je Session nur fuer neue/geaenderte Sessions neu rechnen.
     Liest nur — schreibt nichts in die Datenbank."""
-    from sqlalchemy import func
+    from sqlalchemy import func, or_
     from .api.community import AR, S, U, _community
     from .ortverbergen import ist_verborgen, profil_verbirgt
 
@@ -155,16 +156,24 @@ def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
     seit = jetzt - timedelta(days=max(ZEITRAEUME.values()))
     # viewer_id=None: genau die Sessions, die die Community fuer ALLE zeigt (keine Freunde,
     # keine eigenen versteckten). accel_only=False: auch GPS-Aufnahmen haben Laeufe.
+    # ALLE Sportarten (Jan, 16.10.2026, nach einem Hinweis aus dem Spot-Chat: die Scooter-Laeufe
+    # fehlten). Nur die Integritaets-Filter von _community, dazu dieselbe Regel wie fuer gueltige
+    # Spots (spots.gueltig_fuer_spot): von der Erkennung aussortierte Sessions zaehlen nur, wenn ein
+    # Mensch ihnen eine Sportart gegeben hat. „other" (Rad, Laufen …) bleibt draussen, ebenso
+    # unklassifizierte. Gezeichnet werden ohnehin nur die erkannten Laeufe.
+    from .spots import gueltig_fuer_spot
     rows = (_community(db.query(S.id, S.started_at, S.ort_sichtbarkeit, S.user_id, AR.id,
-                                AR.algo_version, func.length(AR.track_geojson)),
-                       viewer_id=None, accel_only=False, sport="pumpfoil")
-            .filter(S.started_at >= seit, AR.track_geojson.isnot(None))
+                                AR.algo_version, func.length(AR.track_geojson), S.sport_class),
+                       viewer_id=None, accel_only=False, sport="all", nur_foiling=False)
+            .filter(S.started_at >= seit, AR.track_geojson.isnot(None), AR.num_runs > 0,
+                    gueltig_fuer_spot(), S.needs_classification.isnot(True),
+                    or_(S.sport_class.is_(None), S.sport_class != "other"))
             .all())
     profil = {}
     cache = _cache_laden()
     neu_cache: dict = {}
     neu_gerechnet = 0
-    for sid, gestartet, sicht, uid, ar_id, algo, laenge in rows:
+    for sid, gestartet, sicht, uid, ar_id, algo, laenge, sportart in rows:
         if uid not in profil:
             profil[uid] = profil_verbirgt(db.get(U, uid))
         verborgen = ist_verborgen(type("S", (), {"ort_sichtbarkeit": sicht})(), profil[uid])
@@ -182,36 +191,41 @@ def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
                 zellen = starts = np.zeros(0, dtype=np.int64)
             neu_gerechnet += 1
         g = gestartet if gestartet.tzinfo else gestartet.replace(tzinfo=timezone.utc)
-        neu_cache[sid] = (fp, zellen, g, starts)
+        neu_cache[sid] = (fp, zellen, g, starts, sportart or "pumpfoil")
     _atomar(ZELLEN_DATEI, lambda f: pickle.dump(neu_cache, f, protocol=pickle.HIGHEST_PROTOCOL))
 
     ausgabe: dict[str, np.ndarray] = {}
     bilanz = {}
+    sportarten = sorted({e[4] for e in neu_cache.values()})
     for art, spalte in (("foil", 1), ("start", 3)):
-        for name, tage in ZEITRAEUME.items():
-            grenze = jetzt - timedelta(days=tage)
-            listen = [e[spalte] for e in neu_cache.values() if e[2] >= grenze and len(e[spalte])]
-            if art == "foil":
-                bilanz[name] = len(listen)
-            for z in range(Z_MIN, Z_MAX + 1):
-                d = Z_MAX - z
-                if listen:
-                    je, roh = [], []
-                    for zl in listen:
-                        ix, iy = _entpacken(zl)
-                        grob = _packen(ix >> d, iy >> d)
-                        je.append(np.unique(grob))   # je Session einmal je Zelle
-                        roh.append(grob)
-                    k, n = np.unique(np.concatenate(je), return_counts=True)
-                    if art == "start":
-                        # Laeufe je Zelle (mit Wiederholungen) -> Schwelle START_MIN_LAEUFE
-                        kr, nr = np.unique(np.concatenate(roh), return_counts=True)
-                        m = nr[np.searchsorted(kr, k)] >= START_MIN_LAEUFE
-                        k, n = k[m], n[m]
-                else:
-                    k, n = np.zeros(0, dtype=np.int64), np.zeros(0, dtype=np.int64)
-                ausgabe[f"{_praefix(art)}{name}_{z}_k"] = k
-                ausgabe[f"{_praefix(art)}{name}_{z}_n"] = n.astype(np.int32)
+        for sport in ["all"] + sportarten:
+            for name, tage in ZEITRAEUME.items():
+                grenze = jetzt - timedelta(days=tage)
+                listen = [e[spalte] for e in neu_cache.values()
+                          if e[2] >= grenze and len(e[spalte]) and (sport == "all" or e[4] == sport)]
+                if art == "foil":
+                    ausgabe[f"n_{_praefix('foil', sport)}{name}"] = np.array([len(listen)])
+                    if sport == "all":
+                        bilanz[name] = len(listen)
+                for z in range(Z_MIN, Z_MAX + 1):
+                    d = Z_MAX - z
+                    if listen:
+                        je, roh = [], []
+                        for zl in listen:
+                            ix, iy = _entpacken(zl)
+                            grob = _packen(ix >> d, iy >> d)
+                            je.append(np.unique(grob))   # je Session einmal je Zelle
+                            roh.append(grob)
+                        k, n = np.unique(np.concatenate(je), return_counts=True)
+                        if art == "start":
+                            # Laeufe je Zelle (mit Wiederholungen) -> Schwelle START_MIN_LAEUFE
+                            kr, nr = np.unique(np.concatenate(roh), return_counts=True)
+                            m = nr[np.searchsorted(kr, k)] >= START_MIN_LAEUFE
+                            k, n = k[m], n[m]
+                    else:
+                        k, n = np.zeros(0, dtype=np.int64), np.zeros(0, dtype=np.int64)
+                    ausgabe[f"{_praefix(art, sport)}{name}_{z}_k"] = k
+                    ausgabe[f"{_praefix(art, sport)}{name}_{z}_n"] = n.astype(np.int32)
     ausgabe["stand"] = np.array([jetzt.timestamp()])
     ausgabe["sessions"] = np.array([bilanz[n] for n in ZEITRAEUME])
     _atomar(ERGEBNIS_DATEI, lambda f: np.savez_compressed(f, **ausgabe))
@@ -237,17 +251,17 @@ def _daten():
 
 
 def abfragen(zeitraum: str, zoom: int, w: float, s: float, e: float, n: float,
-             art: str = "foil") -> dict:
+             art: str = "foil", sport: str = "all") -> dict:
     """Zellen im Ausschnitt fuer den Kartenzoom `zoom`. Zellen etwa 16 Pixel (Stufe zoom+4); bei zu
     vielen eine Stufe groeber. `max` ist die Skala fuer die Farbe: das 98. Perzentil der GANZEN
     Stufe, damit sich die Farben beim Verschieben nicht aendern."""
     d = _daten()
     if d is None or zeitraum not in ZEITRAEUME or art not in ARTEN \
-            or f"{_praefix(art)}{zeitraum}_{Z_MAX}_k" not in d:
+            or f"{_praefix(art, sport)}{zeitraum}_{Z_MAX}_k" not in d:
         return {"z": None, "cells": [], "max": 1, "stand": None, "sessions": 0}
     stufe = max(Z_MIN, min(Z_MAX, int(zoom) + 4))
     while True:
-        k, cnt = d[f"{_praefix(art)}{zeitraum}_{stufe}_k"], d[f"{_praefix(art)}{zeitraum}_{stufe}_n"]
+        k, cnt = d[f"{_praefix(art, sport)}{zeitraum}_{stufe}_k"], d[f"{_praefix(art, sport)}{zeitraum}_{stufe}_n"]
         ix, iy = _entpacken(k)
         x0, y1 = kachel(np.array([w]), np.array([s]), stufe)
         x1, y0 = kachel(np.array([e]), np.array([n]), stufe)
@@ -264,7 +278,7 @@ def abfragen(zeitraum: str, zoom: int, w: float, s: float, e: float, n: float,
     i = list(ZEITRAEUME).index(zeitraum)
     return {"z": stufe, "cells": zellen, "max": max(1, skala),
             "stand": datetime.fromtimestamp(float(d["stand"][0]), timezone.utc).isoformat(),
-            "sessions": int(d["sessions"][i])}
+            "sessions": int(d.get(f"n_{_praefix('foil', sport)}{zeitraum}", d["sessions"][i:i + 1])[0])}
 
 
 # --- Startpositionen eines Spots (Routen-Vorschlaege auf der Spot-Seite) -------------------------
@@ -298,7 +312,7 @@ def _zellen_cache() -> dict:
 
 
 def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3,
-                    min_fahrer: int = 1, fahrer_von: dict | None = None) -> list[dict]:
+                    min_fahrer: int = 1, fahrer_von: dict | None = None, sport: str = "all") -> list[dict]:
     """Startpositionen aus den Lauf-Starts der Sessions `session_ids` (die eines Spots), um den
     Bezugspunkt lat0/lon0. Absteigend nach Zahl der Starts. `fahrer_von` = Session -> Nutzer; damit
     zaehlt `fahrer` die VERSCHIEDENEN Fahrer an der Stelle, und `min_fahrer` filtert danach (Jan:
@@ -310,6 +324,8 @@ def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3,
     for sid in session_ids:
         e = cache.get(sid)
         if e is None or len(e) < 4 or not len(e[3]):
+            continue
+        if sport != "all" and (e[4] if len(e) > 4 else "pumpfoil") != sport:
             continue
         ix, iy = _entpacken(e[3])
         lon = (ix + 0.5) / n * 360.0 - 180.0

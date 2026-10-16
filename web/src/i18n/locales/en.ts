@@ -764,6 +764,7 @@ const en: Record<string, string> = {
   "routes.save": "Save",
   "routes.saved": "Saved ✓",
   "routes.delete": "Delete",
+  "routes.deleteConfirm": "Remove this route from your saved routes? If others saved it too, it stays visible for everyone.",
   "routes.changed": "The start spots have changed since this was saved – showing the saved route.",
   "routes.limit": "You have already saved 20 routes at this spot.",
   "routes.exclude": "Exclude start spot",

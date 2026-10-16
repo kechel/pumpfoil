@@ -1697,18 +1697,19 @@ def _freundschaft_moeglich(db: Session, ich: models.User, anderer: models.User) 
 @router.get("/heatmap")
 def heatmap(period: str = Query("365d"), z: int = Query(10, ge=0, le=22),
             w: float = Query(-180), s: float = Query(-85), e: float = Query(180), n: float = Query(85),
-            art: str = Query("foil"),
+            art: str = Query("foil"), sport: str = Query("all", max_length=40),
             user: models.User = Depends(current_user)) -> dict:
     """Heatmap der Spot-Karte: Zellen im Ausschnitt mit der Zahl der Sessions (app/heatmap.py).
-    `art`: „foil" = Laeufe, „start" = Startpunkte der Laeufe.
+    `art`: „foil" = Laeufe, „start" = Startpunkte der Laeufe. `sport`: „all" oder eine Sportart.
     Fuer ALLE gleich (Jan: keine Freunde, keine Sonderrechte) — einmal taeglich vorgerechnet."""
     from ..heatmap import abfragen
-    return abfragen(period, z, w, s, e, n, art)
+    return abfragen(period, z, w, s, e, n, art, sport)
 
 
 @router.get("/spot/{spot_id}/startpositionen")
 def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
                          min_fahrer: int = Query(1, ge=1, le=50),
+                         sport: str = Query("all", max_length=40),
                          user: models.User = Depends(current_user),
                          db: Session = Depends(get_db)) -> dict:
     """Verlaessliche Startpositionen eines Spots fuer die Routen-Vorschlaege (app/heatmap.py).
@@ -1719,7 +1720,7 @@ def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
         raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
     zeilen = db.query(models.Session.id, models.Session.user_id).filter(models.Session.spot_id == spot_id).all()
     return {"positionen": startpositionen([i for i, _u in zeilen], float(sp.lat), float(sp.lon), min_starts,
-                                          min_fahrer, {i: u for i, u in zeilen})}
+                                          min_fahrer, {i: u for i, u in zeilen}, sport)}
 
 
 # --- Gemerkte Routen (Jan, 16.10.2026) ---------------------------------------------------------
