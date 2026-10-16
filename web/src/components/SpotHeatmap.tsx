@@ -24,7 +24,7 @@ const SPEICHER_ART = "spot_heatmap_art";
 type Wahl = "365d" | "30d" | "off";
 type Art = "foil" | "start";
 
-function gemerkt(): Wahl {
+function gemerkteWahl(): Wahl {
   try {
     const v = localStorage.getItem(SPEICHER);
     return v === "30d" || v === "off" ? v : "365d";
@@ -47,12 +47,22 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
   const [mitte, setMitte] = useState<{ lat: number; lon: number } | null>(null);
   const [leer, setLeer] = useState(false);
   const [bereit, setBereit] = useState(false);
-  const [wahl, setWahlRoh] = useState<Wahl>(gemerkt);
+  const [wahl, setWahlRoh] = useState<Wahl>(gemerkteWahl);
   const setWahl = (w: Wahl) => {
     setWahlRoh(w);
     try { localStorage.setItem(SPEICHER, w); } catch { /* privat/blockiert: gilt nur jetzt */ }
   };
   const [planen, setPlanen] = useState(false);
+  // Gemerkte Routen: immer unter der Karte (Jan), kompakt; Klick zeigt sie — im Planungsmodus
+  // stellt er zusaetzlich das Formular ein.
+  const [gemerkt, setGemerkt] = useState<Gemerkt[]>([]);
+  const [gemerktWahl, setGemerktWahl] = useState<string | null>(null);
+  const [aufruf, setAufruf] = useState<{ g: Gemerkt; n: number } | null>(null);
+  const gemerktEbene = useRef<L.LayerGroup | null>(null);
+  const gemerktLaden = () => {
+    api.spotRouten(spotId).then((r) => setGemerkt(r as Gemerkt[])).catch(() => setGemerkt([]));
+  };
+  useEffect(() => { setGemerktWahl(null); gemerktLaden(); }, [spotId]);  // eslint-disable-line react-hooks/exhaustive-deps
   const [art, setArtRoh] = useState<Art>(gemerkteArt);
   const setArt = (a: Art) => {
     setArtRoh(a);
@@ -116,6 +126,34 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
     return () => { weg = true; window.clearTimeout(timer); k.m.off("moveend", spaeter); };
   }, [bereit, wahl, art]);
 
+  // Gewaehlte gemerkte Route ohne Planungsmodus auf der Karte (im Planungsmodus zeichnet die Planung).
+  useEffect(() => {
+    const k = karte.current;
+    if (!bereit || !k) return;
+    if (!gemerktEbene.current) gemerktEbene.current = L.layerGroup().addTo(k.m);
+    const g = gemerktEbene.current;
+    g.clearLayers();
+    const r = gemerkt.find((x) => x.schluessel === gemerktWahl);
+    if (planen || !r) return;
+    const pts = r.punkte.map(([lat, lon]) => ({ lat, lon }));
+    routeZeichnen(g, pts);
+    pts.forEach((p, i) => {
+      if (i > 0 && i === pts.length - 1 && abstandM(p, pts[0]) < 1) return;   // Rundkurs: Start nur einmal
+      g.addLayer(L.circleMarker([p.lat, p.lon], { radius: i === 0 ? 7 : 5, color: "#0f172a", weight: 2,
+        fillColor: i === 0 ? "#ffffff" : "#22d3ee", fillOpacity: 1, interactive: false }));
+    });
+  }, [bereit, gemerkt, gemerktWahl, planen]);
+  useEffect(() => () => { gemerktEbene.current = null; }, [mitte]);
+
+  const gemerktKlick = (r: Gemerkt) => {
+    const neu = gemerktWahl === r.schluessel ? null : r.schluessel;
+    setGemerktWahl(neu);
+    if (planen && neu) setAufruf((alt) => ({ g: r, n: (alt?.n ?? 0) + 1 }));
+  };
+  // Datum in der Sprache der App (die setzt <html lang>), nicht in der des Browsers
+  const datum = (iso: string) => new Date(iso).toLocaleDateString(document.documentElement.lang || undefined,
+    { day: "2-digit", month: "2-digit", year: "numeric" });
+
   if (leer) return null;
   const knopf = (aktiv: boolean, text: string, klick: () => void) => (
     <button key={text} onClick={klick} aria-pressed={aktiv}
@@ -148,7 +186,35 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
         </div>
       </div>
       <div ref={box} className="mt-2 h-64 w-full overflow-hidden rounded-lg sm:h-80" />
-      <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen} />
+      {gemerkt.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-400">{t("routes.savedTitle")}</span>
+          {gemerkt.map((r) => {
+            const k = gemerktKurz(r);
+            const an = gemerktWahl === r.schluessel;
+            return (
+              <span key={r.schluessel} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${an
+                ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+                : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
+                {/* eigene gemerkte: kleiner Punkt (nur fuer einen selbst sichtbar) */}
+                {r.eigene_id != null && (
+                  <span className={`h-2 w-2 rounded-full ${an ? "bg-slate-950" : "bg-brand-500"}`} title={t("routes.mine")} aria-label={t("routes.mine")} />
+                )}
+                <button onClick={() => gemerktKlick(r)} aria-pressed={an} className="tabular-nums">
+                  {t("routes.savedChip", { n: k.starts, max: k.maxM, total: r.meter, datum: datum(r.gemerkt_am) })}
+                </button>
+                {r.eigene_id != null && (
+                  <button onClick={() => api.spotRouteVergessen(spotId, r.eigene_id as number)
+                    .then(() => { if (an) setGemerktWahl(null); gemerktLaden(); }).catch(() => {})}
+                    title={t("routes.delete")} aria-label={t("routes.delete")} className="opacity-60 hover:opacity-100">×</button>
+                )}
+              </span>
+            );
+          })}
+        </div>
+      )}
+      <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen}
+        aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} />
     </Card>
   );
 }
@@ -161,7 +227,8 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
 //      Einstellungen nicht zur Liste passen).
 //   3. Vorschlaege als sortierbare Tabelle; die gewaehlte Route farbig auf der Karte (rot = laengster
 //      Abschnitt), darunter ihre Abschnitte und „Merken".
-//   4. Darunter immer die gemerkten Routen: oeffentlich, nur mit Datum (nie wer). Ein Klick stellt das Formular wie
+//   4. Gemerkte Routen stehen immer als kurze Leiste unter der Karte (SpotHeatmap): oeffentlich, nur mit
+//      Datum (nie wer). Im Planungsmodus stellt ein Klick das Formular wie
 //      beim Merken ein, rechnet und waehlt die Route aus — damit sieht man alle Details.
 // Rechnung in lib/routen.ts, gemerkte Routen: /api/community/spot/{id}/routen.
 const ZUVERLAESSIG = [2, 3, 5, 10];
@@ -169,7 +236,7 @@ const FAHRER = [1, 2, 3, 5];
 const NAH_M = 40;                // gemerkter Punkt == heutiger Startpunkt, wenn so nah
 type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 type Punkt = { lat: number; lon: number };
-type Gemerkt = {
+export type Gemerkt = {
   schluessel: string; gemerkt_am: string; punkte: [number, number][]; meter: number; eigene_id: number | null;
   einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; richtung?: number | null; min_m?: number;
                    max_m?: number; punkte?: number; ohne_kreuzung?: boolean; rundkurs?: boolean;
@@ -198,6 +265,39 @@ function naechster(pos: Startposition[], p: Punkt): number {
   return best;
 }
 
+/** Route auf die Karte: jeder Abschnitt in der Farbe seiner Laenge (Rampe wie beim Tempo, rot =
+ *  laengster) unter einer dunklen Kontur, mittig die Abschnittsnummer weiss mit duennem Rand. */
+function routeZeichnen(g: L.LayerGroup, linie: Punkt[]) {
+  abschnitte(linie, linie.map(() => "")).forEach((ab, k) => {
+    const l: [number, number][] = [[ab.a.lat, ab.a.lon], [ab.b.lat, ab.b.lon]];
+    g.addLayer(L.polyline(l, { color: "#0f172a", weight: 7, opacity: 0.6, interactive: false }));
+    g.addLayer(L.polyline(l, { color: ab.farbe, weight: 4, opacity: 1, interactive: false }));
+    const html = `<div style="width:18px;height:18px;border-radius:9px;display:flex;align-items:center;` +
+      `justify-content:center;font:700 11px ui-sans-serif,system-ui;background:#ffffff;` +
+      `color:#0f172a;border:1px solid #0f172a">${k + 1}</div>`;
+    g.addLayer(L.marker([(ab.a.lat + ab.b.lat) / 2, (ab.a.lon + ab.b.lon) / 2], {
+      icon: L.divIcon({ html, className: "", iconSize: [18, 18], iconAnchor: [9, 9] }),
+      interactive: false, keyboard: false,
+    }));
+  });
+}
+
+/** Schluessel wie auf dem Server (community._routen_schluessel): Punktfolge auf 4 Nachkommastellen,
+ *  richtungsunabhaengig — damit „schon gemerkt" auch hier erkannt wird. */
+function routenSchluessel(pts: Punkt[]): string {
+  const seq = pts.map((p) => `${Number(p.lat.toFixed(4))},${Number(p.lon.toFixed(4))}`);
+  const a = seq.join(";"), b = [...seq].reverse().join(";");
+  return a < b ? a : b;
+}
+
+/** Kurzinfo einer gemerkten Route: verschiedene Startplaetze, laengster Abschnitt, Strecke. */
+function gemerktKurz(g: Gemerkt) {
+  const pts = g.punkte.map(([lat, lon]) => ({ lat, lon }));
+  const rund = pts.length > 2 && abstandM(pts[0], pts[pts.length - 1]) < 1;
+  const legs = pts.slice(1).map((b, k) => abstandM(pts[k], b));
+  return { starts: rund ? pts.length - 1 : pts.length, maxM: Math.round(Math.max(...legs)), pts };
+}
+
 function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   return (
     <div className="flex flex-wrap gap-1.5 text-xs">
@@ -211,7 +311,10 @@ function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   );
 }
 
-function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Map | null; offen: boolean }) {
+function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert }: {
+  spotId: number; karte: L.Map | null; offen: boolean;
+  aufruf: { g: Gemerkt; n: number } | null; gemerkt: Gemerkt[]; gemerktGeaendert: () => void;
+}) {
   const t = useT();
   const [minStarts, setMinStarts] = useState(3);
   const [minFahrer, setMinFahrer] = useState(1);   // verschiedene Fahrer an einem Startplatz
@@ -231,7 +334,6 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
   const [anstoss, setAnstoss] = useState(0);
   const [sortierung, setSortierung] = useState<{ nach: Spalte; ab: boolean }>({ nach: "empf", ab: false });
   const [gewaehlt, setGewaehlt] = useState<string | null>(null);     // Schluessel = Punktfolge
-  const [gemerkt, setGemerkt] = useState<Gemerkt[] | null>(null);
   const [merkStatus, setMerkStatus] = useState<string | null>(null);
   // Wiederherstellen einer gemerkten Route: wartet auf die Startpunkte der passenden Zuverlaessigkeit.
   const [wieder, setWieder] = useState<Gemerkt | null>(null);
@@ -242,10 +344,6 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
   const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort()]);
   const veraltet = pos != null && gerechnetMit !== einstellungsSchluessel;
 
-  const gemerktLaden = () => {
-    api.spotRouten(spotId).then((r) => setGemerkt(r as Gemerkt[])).catch(() => setGemerkt([]));
-  };
-  useEffect(() => { if (offen) gemerktLaden(); }, [offen, spotId]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // Startpunkte je Zuverlaessigkeit holen.
   useEffect(() => {
@@ -311,7 +409,7 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const richtungen = ergebnis ? [...new Set(ergebnis.routen.map((r) => r.richtung))].sort((a, b) => a - b) : [];
-  const routen: Route[] = (() => {
+  const listeFuer = (rich: number | null): Route[] => {
     if (!ergebnis) return [];
     const wert = (r: Route): number[] => {
       switch (sortierung.nach) {
@@ -328,14 +426,21 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
       return 0;
     };
     const empf = (a: Route, b: Route) => (a.kreuzungen - b.kreuzungen) || (a.doppelt - b.doppelt) || (a.wertung - b.wertung);
-    return ergebnis.routen.filter((r) => richtung == null || r.richtung === richtung).sort(empf).slice(0, 20).sort(vgl);
-  })();
+    return ergebnis.routen.filter((r) => rich == null || r.richtung === rich).sort(empf).slice(0, 20).sort(vgl);
+  };
+  const routen = listeFuer(richtung);
   // Nach jeder Berechnung die erste Route direkt auswaehlen (Jan) — ausser beim Aufrufen einer
   // gemerkten, die waehlt ihre eigene (Effekt oben).
   const ersteRoute = routen[0]?.punkte.join("-") ?? null;
   useEffect(() => {
     if (!wieder) setGewaehlt(ersteRoute);
   }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
+  // Startrichtung wechseln: nur ein Filter auf die berechnete Liste (die Suche behaelt die besten
+  // Routen JE Richtung) — kein neues Rechnen noetig; die erste der neuen Liste wird gewaehlt.
+  const richtungWaehlen = (r: number | null) => {
+    setRichtung(r);
+    setGewaehlt(listeFuer(r)[0]?.punkte.join("-") ?? null);
+  };
   const gewaehlteRoute = veraltet ? null : routen.find((r) => r.punkte.join("-") === gewaehlt) ?? null;
 
   // Karte: Startpunkte (nummeriert; Klick = Start) und die gewaehlte bzw. ueberlagerte Route.
@@ -351,20 +456,7 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
     if (linie) {
       // Jeder Abschnitt in der Farbe seiner Laenge (Rampe wie beim Tempo, rot = laengster), unter
       // einer dunklen Kontur, damit die Farbe auf Luftbild und Karte gleich lesbar ist.
-      abschnitte(linie, linie.map(() => "")).forEach((ab, k) => {
-        const l: [number, number][] = [[ab.a.lat, ab.a.lon], [ab.b.lat, ab.b.lon]];
-        g.addLayer(L.polyline(l, { color: "#0f172a", weight: 7, opacity: 0.6, interactive: false }));
-        g.addLayer(L.polyline(l, { color: ab.farbe, weight: 4, opacity: 1, interactive: false }));
-        // Abschnittsnummer mittig auf der Linie: weiss mit duennem schwarzem Rand (Jan) — die Farbe
-        // traegt die Linie selbst
-        const html = `<div style="width:18px;height:18px;border-radius:9px;display:flex;align-items:center;` +
-          `justify-content:center;font:700 11px ui-sans-serif,system-ui;background:#ffffff;` +
-          `color:#0f172a;border:1px solid #0f172a">${k + 1}</div>`;
-        g.addLayer(L.marker([(ab.a.lat + ab.b.lat) / 2, (ab.a.lon + ab.b.lon) / 2], {
-          icon: L.divIcon({ html, className: "", iconSize: [18, 18], iconAnchor: [9, 9] }),
-          interactive: false, keyboard: false,
-        }));
-      });
+      routeZeichnen(g, linie);
     }
     pos.forEach((p, i) => {
       const istStart = i === start;
@@ -396,7 +488,7 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
                        min_m: minM, max_m: maxM, punkte: anzahl, ohne_kreuzung: ohneKreuzung, rundkurs,
                        ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]) },
     })
-      .then(() => { setMerkStatus("ok"); gemerktLaden(); })
+      .then(() => { setMerkStatus("ok"); gemerktGeaendert(); })
       .catch((e) => setMerkStatus(String(e).includes("409") ? "limit" : "fehler"));
   };
 
@@ -426,9 +518,10 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
     }
   };
 
-  const vergessen = (id: number) => {
-    api.spotRouteVergessen(spotId, id).then(gemerktLaden).catch(() => {});
-  };
+  // Gemerkte Route aus der Leiste unter der Karte aufgerufen (im Planungsmodus).
+  useEffect(() => {
+    if (offen && aufruf) aufrufen(aufruf.g);
+  }, [aufruf]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!offen) return null;
   const pille = (aktiv: boolean) => `rounded-full border px-3 py-1 ${aktiv
@@ -442,7 +535,6 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
         onChange={(e) => setz(Number(e.target.value))} className="accent-brand-500" />
     </label>
   );
-  const datum = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
   const nummern = (pts: [number, number][]) =>
     pts.map(([lat, lon]) => { const i = pos ? naechster(pos, { lat, lon }) : -1; return i >= 0 ? platzName(i) : "·"; });
 
@@ -507,7 +599,7 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
                       <span key={`r${i}`} className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
                         <span className="text-xs text-slate-400">{t("routes.direction")}</span>
                         {[null, ...richtungen].map((r) => (
-                          <button key={String(r)} onClick={() => setRichtung(r)} aria-pressed={richtung === r}
+                          <button key={String(r)} onClick={() => richtungWaehlen(r)} aria-pressed={richtung === r}
                             className={`${pille(richtung === r)} px-2`}>
                             {r == null ? t("routes.anyDirection") : richtungName(r)}
                           </button>
@@ -582,10 +674,18 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
                               <td colSpan={5} className="px-2 pb-2 pt-1">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <Abschnitte pts={r.punkte.map((q) => pos[q])} namen={r.punkte.map(platzName)} />
-                                  <button onClick={() => merken(r)} disabled={merkStatus === "…" || merkStatus === "ok"}
+                                  {(() => {
+                                    // Schon selbst gemerkt -> kein zweites Mal (Jan); von anderen gemerkt -> darf man auch
+                                    const schonMeine = gemerkt.some((x) => x.eigene_id != null
+                                      && x.schluessel === routenSchluessel(r.punkte.map((q) => pos[q])));
+                                    return schonMeine || merkStatus === "ok"
+                                      ? <span className="text-xs font-semibold text-brand-600 dark:text-brand-300">{t("routes.saved")}</span>
+                                      : (
+                                  <button onClick={() => merken(r)} disabled={merkStatus === "…"}
                                     className="rounded-full border border-brand-500 bg-brand-500/15 px-3 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-500/25 disabled:opacity-70 dark:text-brand-300">
-                                    {merkStatus === "ok" ? t("routes.saved") : t("routes.save")}
-                                  </button>
+                                    {t("routes.save")}
+                                  </button>);
+                                  })()}
                                 </div>
                                 {merkStatus === "limit" && <p className="mt-1 text-xs text-slate-400">{t("routes.limit")}</p>}
                               </td>
@@ -601,44 +701,6 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
               </>)}
               </>)}
               <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
-              {/* Gemerkte Routen immer darunter, ohne Umschalter (Jan). */}
-              <div className="mb-1 mt-4 text-sm font-semibold text-slate-100">
-                {t("routes.tabSaved")}{gemerkt?.length ? ` (${gemerkt.length})` : ""}
-              </div>
-              {gemerkt == null ? <p className="text-xs text-slate-400">…</p>
-        : !gemerkt.length ? <p className="text-sm text-slate-300">{t("routes.noSaved")}</p>
-        : (
-          <div className="max-h-72 overflow-auto rounded-lg border border-slate-800">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-slate-900">
-                <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
-                  <th className="px-2 py-1 font-medium">{t("routes.colRoute")}</th>
-                  <th className="px-2 py-1 text-right font-medium">{t("routes.colDistance")}</th>
-                  <th className="px-2 py-1 text-right font-medium">{t("routes.colLegs")}</th>
-                  <th className="px-2 py-1 text-right font-medium">{t("routes.savedOn")}</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {gemerkt.map((g) => (
-                  <tr key={g.schluessel} onClick={() => aufrufen(g)}
-                    className="cursor-pointer border-b border-slate-800/60 text-slate-200 hover:bg-slate-800">
-                    <td className="px-2 py-1.5 font-semibold tabular-nums">{nummern(g.punkte).join(" → ")}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums">{g.meter} m</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums">{g.punkte.length - 1}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{datum(g.gemerkt_am)}</td>
-                    <td className="px-2 py-1.5 text-right">
-                      {g.eigene_id != null && (
-                        <button onClick={(e) => { e.stopPropagation(); vergessen(g.eigene_id as number); }}
-                          className="text-xs text-slate-400 hover:text-slate-200">{t("routes.delete")}</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
             </>
           )}
         </>
