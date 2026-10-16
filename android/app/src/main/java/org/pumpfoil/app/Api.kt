@@ -8,6 +8,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
@@ -907,10 +908,59 @@ object Api {
         (ids("spots") + freundSpots) to ids("area")
     }
 
-    /** Heatmap der Spot-Karte (app/heatmap.py): Zellen im Ausschnitt, fuer alle gleich. */
-    suspend fun heatmap(period: String, z: Int, w: Double, s: Double, e: Double, n: Double): HeatAntwort = withContext(Dispatchers.IO) {
+    /** Heatmap (app/heatmap.py): Zellen im Ausschnitt, fuer alle gleich. `art` foil = auf dem Foil,
+     *  start = Startpunkte; `sport` all oder eine Sportart (seit 16.10. alle Sportarten mit Laeufen). */
+    suspend fun heatmap(period: String, z: Int, w: Double, s: Double, e: Double, n: Double,
+                        art: String = "foil", sport: String = "all"): HeatAntwort = withContext(Dispatchers.IO) {
+        val sp = java.net.URLEncoder.encode(sport, "UTF-8")
         json.decodeFromString(HeatAntwort.serializer(),
-            http("GET", "/api/community/heatmap?period=$period&z=$z&w=$w&s=$s&e=$e&n=$n", null, auth = true))
+            http("GET", "/api/community/heatmap?period=$period&z=$z&w=$w&s=$s&e=$e&n=$n&art=$art&sport=$sp", null, auth = true))
+    }
+
+    // --- Routen planen (PWA SpotHeatmap.tsx, 16.10.2026) ---------------------------------------
+    /** Verlaessliche Startplaetze eines Spots; mit `umkreisKm` > 0 auch die der Spots im Umkreis. */
+    suspend fun spotStartpositionen(spotId: Int, minStarts: Int, minFahrer: Int, sport: String, umkreisKm: Int): List<Startposition> =
+        withContext(Dispatchers.IO) {
+            val sp = java.net.URLEncoder.encode(sport, "UTF-8")
+            val o = json.parseToJsonElement(http("GET",
+                "/api/community/spot/$spotId/startpositionen?min_starts=$minStarts&min_fahrer=$minFahrer&sport=$sp&umkreis_km=$umkreisKm",
+                null, auth = true)).jsonObject
+            json.decodeFromJsonElement(ListSerializer(Startposition.serializer()), o["positionen"] ?: JsonArray(emptyList()))
+        }
+
+    /** Wo man selbst an diesem Spot schon gestartet ist (nur eigene Sessions) — gruen in der Planung. */
+    suspend fun spotMeineStarts(spotId: Int, sport: String): List<List<Double>> = withContext(Dispatchers.IO) {
+        val sp = java.net.URLEncoder.encode(sport, "UTF-8")
+        val o = json.parseToJsonElement(http("GET", "/api/community/spot/$spotId/meine_starts?sport=$sp", null, auth = true)).jsonObject
+        json.decodeFromJsonElement(ListSerializer(ListSerializer(Double.serializer())), o["starts"] ?: JsonArray(emptyList()))
+    }
+
+    /** Gemerkte Routen eines Spots — oeffentlich, nur Datum; `eigeneId` nur bei den eigenen. */
+    suspend fun spotRouten(spotId: Int): List<GemerkteRoute> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(GemerkteRoute.serializer()), http("GET", "/api/community/spot/$spotId/routen", null, auth = true))
+    }
+
+    /** Alle gemerkten Routen aller Spots (Community), mit Spotname. */
+    suspend fun alleRouten(): List<GemerkteRoute> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(GemerkteRoute.serializer()), http("GET", "/api/community/routen", null, auth = true))
+    }
+
+    /** Route merken; wirft bei 409 (schon 20 an diesem Spot) eine Exception mit „409" im Text. */
+    suspend fun spotRouteMerken(spotId: Int, punkte: List<List<Double>>, einstellungen: JsonObject) = withContext(Dispatchers.IO) {
+        val body = buildJsonObject {
+            put("punkte", JsonArray(punkte.map { p -> JsonArray(p.map { JsonPrimitive(it) }) }))
+            put("einstellungen", einstellungen)
+        }
+        http("POST", "/api/community/spot/$spotId/routen", body.toString(), auth = true)
+    }
+
+    suspend fun spotRouteVergessen(spotId: Int, id: Int) = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/community/spot/$spotId/routen/$id", null, auth = true)
+    }
+
+    /** Naturschutz-/FFH-Gebiete und Bade-/Fahrverbote im Ausschnitt (Server holt sie aus OSM). */
+    suspend fun schutzgebiete(w: Double, s: Double, e: Double, n: Double): SchutzAntwort = withContext(Dispatchers.IO) {
+        json.decodeFromString(SchutzAntwort.serializer(), http("GET", "/api/community/schutzgebiete?w=$w&s=$s&e=$e&n=$n", null, auth = true))
     }
 
     suspend fun spotMap(accelOnly: Boolean = false, sport: String = "all"): List<SpotMapItem> = withContext(Dispatchers.IO) {

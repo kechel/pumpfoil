@@ -75,17 +75,20 @@ fun heatFarbe(t: Double): Int {
  * Verschieben/Zoomen (entprellt), entfernt das Overlay, wenn `zeitraum` null ist.
  */
 @androidx.compose.runtime.Composable
-fun HeatmapLaden(karte: MapView, zeitraum: String?, onSessions: (Int?) -> Unit) {
+fun HeatmapLaden(karte: MapView, zeitraum: String?, art: String = "foil", sport: String = "all", onSessions: (Int?) -> Unit) {
     val overlay = androidx.compose.runtime.remember { HeatOverlay() }
     val aktuell = androidx.compose.runtime.rememberUpdatedState(zeitraum)
+    val artJetzt = androidx.compose.runtime.rememberUpdatedState(art)
+    val sportJetzt = androidx.compose.runtime.rememberUpdatedState(sport)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     fun laden() {
         val p = aktuell.value ?: return
         val bb = karte.boundingBox
         scope.launch {
             try {
-                val r = Api.heatmap(p, karte.zoomLevelDouble.toInt(), bb.lonWest, bb.latSouth, bb.lonEast, bb.latNorth)
-                if (aktuell.value != p) return@launch
+                val a = artJetzt.value; val sp = sportJetzt.value
+                val r = Api.heatmap(p, karte.zoomLevelDouble.toInt(), bb.lonWest, bb.latSouth, bb.lonEast, bb.latNorth, a, sp)
+                if (aktuell.value != p || artJetzt.value != a || sportJetzt.value != sp) return@launch
                 overlay.daten = r
                 onSessions(r.sessions)
                 karte.invalidate()
@@ -98,7 +101,7 @@ fun HeatmapLaden(karte: MapView, zeitraum: String?, onSessions: (Int?) -> Unit) 
             override fun onZoom(e: org.osmdroid.events.ZoomEvent?): Boolean { laden(); return false }
         }, 300))
     }
-    androidx.compose.runtime.LaunchedEffect(zeitraum) {
+    androidx.compose.runtime.LaunchedEffect(zeitraum, art, sport) {
         if (zeitraum == null) {
             karte.overlays.remove(overlay); overlay.daten = null; onSessions(null); karte.invalidate()
         } else {
