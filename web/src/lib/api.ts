@@ -1194,6 +1194,9 @@ export const api = {
   spotStartpositionen: (spotId: number, minStarts: number, minFahrer = 1, sport = "all") =>
     req<{ positionen: { lat: number; lon: number; starts: number; sessions: number; fahrer: number }[] }>(
       `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}&min_fahrer=${minFahrer}&sport=${encodeURIComponent(sport)}`),
+  /** Wo man selbst an diesem Spot schon gestartet ist (nur eigene Sessions) — gruen in der Routenplanung. */
+  spotMeineStarts: (spotId: number, sport = "all") =>
+    req<{ starts: [number, number][] }>(`/api/community/spot/${spotId}/meine_starts?sport=${encodeURIComponent(sport)}`),
   /** Gemerkte Routen eines Spots — oeffentlich, nur mit Datum; `eigene_id` nur bei den eigenen. */
   spotRouten: (spotId: number) => req<unknown[]>(`/api/community/spot/${spotId}/routen`),
   spotRouteMerken: (spotId: number, body: { punkte: number[][]; einstellungen: Record<string, unknown> }) =>

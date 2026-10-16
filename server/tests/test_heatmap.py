@@ -106,3 +106,17 @@ def test_startpositionen_nach_sportart(monkeypatch):
     pump = H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2, sport="pumpfoil")
     assert alle[0]["starts"] == 6 and scoot[0]["starts"] == 4
     assert pump == []          # nur eine Session -> keine verlaessliche Position
+
+
+def test_meine_starts_ohne_schwelle_und_nach_sportart(monkeypatch):
+    """Eigene Starts: ein Start reicht, gleiche Zelle nur einmal, Sportfilter greift."""
+    from app import heatmap as H
+    steg, insel = [9.3794, 47.8628], [9.3778, 47.8621]
+    z = lambda *p: H._zellen([list(x) for x in p], eindeutig=False)
+    cache = {1: ("fp", None, None, z(steg, steg), "pumpfoil"), 2: ("fp", None, None, z(insel), "foil_scoot")}
+    monkeypatch.setattr(H, "_zellen_cache", lambda: cache)
+    alle = H.meine_starts([1, 2])
+    assert len(alle) == 2
+    assert min(abs(a - 47.8628) + abs(b - 9.3794) for a, b in alle) < 0.0002
+    assert len(H.meine_starts([1, 2], sport="pumpfoil")) == 1
+    assert H.meine_starts([]) == []

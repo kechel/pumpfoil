@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten, kartenTexte } from "../lib/mapTiles";
@@ -65,6 +65,15 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
     api.spotRouten(spotId).then((r) => setGemerkt(r as Gemerkt[])).catch(() => setGemerkt([]));
   };
   useEffect(() => { setGemerktWahl(null); gemerktLaden(); }, [spotId]);  // eslint-disable-line react-hooks/exhaustive-deps
+  // Wo man selbst schon gestartet ist: diese Startplaetze gruen (Jan) — nur fuer einen selbst.
+  const [meineStarts, setMeineStarts] = useState<Punkt[]>([]);
+  useEffect(() => {
+    let weg = false;
+    api.spotMeineStarts(spotId, sport)
+      .then((r) => { if (!weg) setMeineStarts(r.starts.map(([lat, lon]) => ({ lat, lon }))); })
+      .catch(() => { if (!weg) setMeineStarts([]); });
+    return () => { weg = true; };
+  }, [spotId, sport]);
   const [art, setArtRoh] = useState<Art>(gemerkteArt);
   const setArt = (a: Art) => {
     setArtRoh(a);
@@ -142,9 +151,9 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
     pts.forEach((p, i) => {
       if (i > 0 && i === pts.length - 1 && abstandM(p, pts[0]) < 1) return;   // Rundkurs: Start nur einmal
       g.addLayer(L.circleMarker([p.lat, p.lon], { radius: i === 0 ? 7 : 5, color: "#0f172a", weight: 2,
-        fillColor: i === 0 ? "#ffffff" : "#22d3ee", fillOpacity: 1, interactive: false }));
+        fillColor: i === 0 ? "#ffffff" : schonGestartet(meineStarts, p) ? GRUEN : "#22d3ee", fillOpacity: 1, interactive: false }));
     });
-  }, [bereit, gemerkt, gemerktWahl, planen]);
+  }, [bereit, gemerkt, gemerktWahl, planen, meineStarts]);
   useEffect(() => () => { gemerktEbene.current = null; }, [mitte]);
 
   // Klick auf eine gemerkte Route oeffnet die Planung und stellt sie dort ein (Jan). Ist sie noch
@@ -211,6 +220,8 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
                 )}
                 <button onClick={() => gemerktKlick(r)} aria-pressed={an} className="tabular-nums">
                   {t("routes.savedChip", { n: k.starts, max: k.maxM, total: r.meter, datum: datum(r.gemerkt_am) })}
+                  {/* mit selbst gesetzten Punkten (nicht aus echten Starts) — Jan: „markieren mit manuell" */}
+                  {mitEigenen(r) && <span className={`ml-1.5 rounded px-1 ${an ? "bg-slate-950/15" : "bg-slate-700/60"}`}>{t("routes.manualTag")}</span>}
                 </button>
               </span>
             );
@@ -219,7 +230,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
       )}
       <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} offen={planen}
         aufruf={aufruf} gemerkt={gemerkt} gemerktGeaendert={gemerktLaden} sport={sport}
-        gemerktWahl={gemerktWahl} abweichung={() => setGemerktWahl(null)} />
+        gemerktWahl={gemerktWahl} abweichung={() => setGemerktWahl(null)} meineStarts={meineStarts} />
     </Card>
   );
 }
@@ -246,8 +257,40 @@ export type Gemerkt = {
   einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; erstes_ziel?: [number, number] | null;
                    ziel?: [number, number] | null; min_m?: number;
                    max_m?: number; punkte?: number; ohne_kreuzung?: boolean; rundkurs?: boolean;
-                  ausgeschlossen?: [number, number][] };
+                  ausgeschlossen?: [number, number][]; eigene?: [number, number][] };
 };
+const GRUEN = "#4ade80";         // hier ist man selbst schon gestartet
+const MEIN_M = 30;               // so nah an einem eigenen Start = „schon gestartet"
+const EIGENE_MAX = 20;           // selbst gesetzte Punkte je Spot (wie der Server je Route)
+type EigenerPunkt = Punkt & { lokal: boolean };   // lokal = selbst gesetzt; sonst aus einer aufgerufenen gemerkten Route
+
+/** Ist man an dieser Stelle selbst schon gestartet? */
+function schonGestartet(meine: Punkt[], p: Punkt): boolean {
+  return meine.some((q) => abstandM(q, p) < MEIN_M);
+}
+
+/** Enthaelt die gemerkte Route selbst gesetzte Punkte? */
+function mitEigenen(g: Gemerkt): boolean {
+  const e = g.einstellungen.eigene ?? [];
+  return g.punkte.some(([la, lo]) => e.some(([a, b]) => abstandM({ lat: la, lon: lo }, { lat: a, lon: b }) < 5));
+}
+
+// Selbst gesetzte Punkte bleiben je Spot im Browser (Jan: „die sollten nicht verschwinden, nur weil
+// sich die Startpunkte beim naechsten Laden veraendern"); mit einer gemerkten Route gehen sie in
+// deren Einstellungen mit.
+const EIGENE_SPEICHER = (spotId: number) => `routen_eigene_${spotId}`;
+function eigeneLaden(spotId: number): EigenerPunkt[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(EIGENE_SPEICHER(spotId)) ?? "[]");
+    return Array.isArray(v) ? v.filter((p) => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite))
+      .slice(0, EIGENE_MAX).map(([lat, lon]) => ({ lat, lon, lokal: true })) : [];
+  } catch { return []; }
+}
+function eigeneSpeichern(spotId: number, e: EigenerPunkt[]) {
+  try { localStorage.setItem(EIGENE_SPEICHER(spotId), JSON.stringify(e.filter((p) => p.lokal).map((p) => [p.lat, p.lon]))); }
+  catch { /* privat/blockiert: gilt nur jetzt */ }
+}
+const PIN_PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z"/><path d="M12 7.5v6M9 10.5h6"/></svg>';
 
 /** Name eines Startplatzes: A, B, C … Z, AA, AB … (A = meistgenutzt). Buchstaben statt Zahlen,
  *  damit sie nicht mit den Abschnittsnummern auf den Linien verwechselt werden (Jan). */
@@ -317,10 +360,10 @@ function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
   );
 }
 
-function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport, gemerktWahl, abweichung }: {
+function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaendert, sport, gemerktWahl, abweichung, meineStarts }: {
   spotId: number; karte: L.Map | null; offen: boolean;
   aufruf: { g: Gemerkt; n: number } | null; gemerkt: Gemerkt[]; gemerktGeaendert: () => void; sport: string;
-  gemerktWahl: string | null; abweichung: () => void;
+  gemerktWahl: string | null; abweichung: () => void; meineStarts: Punkt[];
 }) {
   const t = useT();
   const [minStarts, setMinStarts] = useState(3);
@@ -337,7 +380,16 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   // null = beliebig. Filtert die berechnete Liste, braucht keine neue Rechnung.
   const [richtung, setRichtung] = useState<number | null>(null);
   const [aus, setAus] = useState<Set<number>>(new Set());          // ausgeschlossene Startplaetze
-  const [pos, setPos] = useState<Startposition[] | null>(null);
+  const [serverPos, setServerPos] = useState<Startposition[] | null>(null);
+  // Selbst gesetzte Punkte („+" auf der Karte, Jan): gleichwertig, haengen hinten an die echten
+  // Startplaetze an und bekommen die Buchstaben fortlaufend weiter.
+  const [eigene, setEigeneRoh] = useState<EigenerPunkt[]>(() => eigeneLaden(spotId));
+  const setEigene = (e: EigenerPunkt[]) => { setEigeneRoh(e); eigeneSpeichern(spotId, e); };
+  useEffect(() => { setEigeneRoh(eigeneLaden(spotId)); }, [spotId]);
+  const [setzen, setSetzen] = useState(false);       // naechster Klick auf die Karte setzt einen Punkt
+  const pos = useMemo<Startposition[] | null>(() => serverPos && [...serverPos,
+    ...eigene.map((p) => ({ lat: p.lat, lon: p.lon, starts: 0, sessions: 0, fahrer: 0, eigen: true }))], [serverPos, eigene]);
+  const nServer = serverPos?.length ?? 0;
   const [ergebnis, setErgebnis] = useState<RoutenErgebnis | null>(null);
   const [gerechnetMit, setGerechnetMit] = useState("");
   const [anstoss, setAnstoss] = useState(0);
@@ -351,7 +403,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   const erstGerechnet = useRef(false);
 
   const zielAktiv = !rundkurs && zielPlatz != null && zielPlatz !== start && !aus.has(zielPlatz) ? zielPlatz : null;
-  const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort(), zielAktiv]);
+  const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort(), zielAktiv,
+                                                 eigene.map((p) => [p.lat, p.lon])]);
   // Auch ohne Ergebnis „veraltet": nach dem Neuladen der Startplaetze ist es verworfen — stellt man
   // die alte Einstellung wieder her, stuende sonst weder Liste noch Knopf da.
   const veraltet = pos != null && (gerechnetMit !== einstellungsSchluessel || ergebnis == null);
@@ -361,10 +414,10 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
   useEffect(() => {
     if (!offen) { erstGerechnet.current = false; return; }
     let weg = false;
-    setPos(null); setErgebnis(null);
+    setServerPos(null); setErgebnis(null);
     api.spotStartpositionen(spotId, minStarts, minFahrer, sport)
-      .then((r) => { if (!weg) setPos(r.positionen); })
-      .catch(() => { if (!weg) setPos([]); });
+      .then((r) => { if (!weg) setServerPos(r.positionen); })
+      .catch(() => { if (!weg) setServerPos([]); });
     return () => { weg = true; };
   }, [offen, spotId, minStarts, minFahrer, sport]);
 
@@ -396,7 +449,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       erstGerechnet.current = true;
       setAnstoss((n) => n + 1);
     }
-  }, [pos]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [serverPos]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // Rechnen — nur auf Anstoss („Jetzt berechnen", neue Startpunkte, gemerkte Route aufgerufen).
   useEffect(() => {
@@ -479,20 +532,89 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
       const istStart = i === start;
       const raus = aus.has(i);
       const aktiv = !raus && (gewaehlteRoute ? gewaehlteRoute.punkte.includes(i) : true);
+      // gruen = hier ist man selbst schon gestartet; gestrichelt = selbst gesetzter Punkt
+      const farbe = !aktiv ? "#94a3b8" : schonGestartet(meineStarts, p) ? GRUEN : "#22d3ee";
       const html = `<div style="width:24px;height:24px;border-radius:12px;display:flex;align-items:center;` +
-        `justify-content:center;font:700 12px ui-sans-serif,system-ui;cursor:pointer;` +
-        `border:${istStart ? "3px solid #ffffff" : "2px solid #0f172a"};` +
-        `background:${aktiv ? "#22d3ee" : "#94a3b8"};color:#0f172a;` +
+        `justify-content:center;font:700 12px ui-sans-serif,system-ui;cursor:pointer;box-sizing:border-box;` +
+        `border:${istStart ? "3px solid #ffffff" : `2px ${p.eigen ? "dashed" : "solid"} #0f172a`};` +
+        `background:${farbe};color:#0f172a;` +
         `${raus ? "text-decoration:line-through;opacity:0.6;" : ""}">${platzName(i)}</div>`;
       const mk = L.marker([p.lat, p.lon], {
         icon: L.divIcon({ html, className: "", iconSize: [24, 24], iconAnchor: [12, 12] }),
-        title: t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" }),
+        title: p.eigen ? t("routes.ownPointInfo", { name: platzName(i) })
+          : t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" }),
+        draggable: !!p.eigen,
       });
       mk.on("click", () => { if (!raus) setStart(i); });
+      if (p.eigen) {
+        // Verschieben per Ziehen; danach gilt er als selbst gesetzt (auch wenn er aus einer gemerkten Route kam)
+        mk.on("dragend", () => {
+          const ll = mk.getLatLng();
+          setEigene(eigene.map((q, k) => (k === i - nServer ? { lat: ll.lat, lon: ll.lng, lokal: true } : q)));
+        });
+      }
       g.addLayer(mk);
     });
     return () => { g.clearLayers(); };
-  }, [karte, offen, pos, gewaehlteRoute, ueberlagert, veraltet, start, aus, t]);
+  }, [karte, offen, pos, gewaehlteRoute, ueberlagert, veraltet, start, aus, t, meineStarts]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // „+" auf der Karte (Jan): danach setzt der naechste Klick auf die Karte einen eigenen Punkt.
+  // Als Leaflet-Knopf, damit er auch im Vollbild da ist.
+  const setzKnopf = useRef<HTMLAnchorElement | null>(null);
+  useEffect(() => {
+    if (!karte || !offen) return;
+    const Knopf = L.Control.extend({
+      options: { position: "topleft" as L.ControlPosition },
+      onAdd() {
+        const box = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+        const a = L.DomUtil.create("a", "", box) as HTMLAnchorElement;
+        a.href = "#";
+        a.setAttribute("role", "button");
+        a.innerHTML = PIN_PLUS;
+        a.style.cssText = "display:flex;align-items:center;justify-content:center;width:30px;height:30px;";
+        L.DomEvent.disableClickPropagation(box);
+        L.DomEvent.on(a, "click", (ev) => { L.DomEvent.preventDefault(ev); setSetzen((x) => !x); });
+        setzKnopf.current = a;
+        return box;
+      },
+    });
+    const k = new Knopf();
+    k.addTo(karte);
+    return () => { k.remove(); setzKnopf.current = null; setSetzen(false); };
+  }, [karte, offen]);
+  useEffect(() => {
+    const a = setzKnopf.current;
+    if (!a) return;
+    const name = t("routes.addPoint");
+    a.title = name;
+    a.setAttribute("aria-label", name);
+    a.setAttribute("aria-pressed", String(setzen));
+    a.style.background = setzen ? "#22d3ee" : "";
+    a.style.color = setzen ? "#0f172a" : "";
+  }, [setzen, t, karte, offen]);
+  useEffect(() => {
+    if (!karte || !setzen) return;
+    const el = karte.getContainer();
+    el.style.cursor = "crosshair";
+    const klick = (e: L.LeafletMouseEvent) => {
+      setSetzen(false);
+      if (eigene.length >= EIGENE_MAX) return;
+      setEigene([...eigene, { lat: e.latlng.lat, lon: e.latlng.lng, lokal: true }]);
+    };
+    karte.on("click", klick);
+    return () => { karte.off("click", klick); el.style.cursor = ""; };
+  }, [karte, setzen, eigene]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Eigenen Punkt entfernen: Indizes dahinter ruecken eins vor (Start, Ausschluesse, Ziel, Richtung).
+  const eigenenEntfernen = (k: number) => {
+    const gi = nServer + k;
+    const ruecken = (i: number) => (i > gi ? i - 1 : i);
+    setStart((s) => (s === gi ? 0 : ruecken(s)));
+    setAus((a) => new Set([...a].filter((i) => i !== gi).map(ruecken)));
+    setZielPlatz((z) => (z == null || z === gi ? null : ruecken(z)));
+    setRichtung((r) => (r == null || r === gi ? null : ruecken(r)));
+    setEigene(eigene.filter((_, j) => j !== k));
+  };
 
   useEffect(() => () => { ebene.current?.remove(); }, []);
 
@@ -505,7 +627,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                        erstes_ziel: richtung != null ? [pos[richtung].lat, pos[richtung].lon] : null,
                        ziel: zielAktiv != null ? [pos[zielAktiv].lat, pos[zielAktiv].lon] : null,
                        min_m: minM, max_m: maxM, punkte: anzahl, ohne_kreuzung: ohneKreuzung, rundkurs,
-                       ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]) },
+                       ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]),
+                       eigene: eigene.map((p) => [p.lat, p.lon]) },
     })
       .then(() => { setMerkStatus("ok"); gemerktGeaendert(); })
       .catch((e) => setMerkStatus(String(e).includes("409") ? "limit" : "fehler"));
@@ -515,6 +638,14 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     const e = g.einstellungen;
     setUeberlagert(null);
     setWieder(g);
+    // Selbst gesetzte Punkte der Route dazunehmen (nur fuer jetzt, nicht in die eigenen gespeichert),
+    // ausser es liegt schon einer an der Stelle
+    const dazu = (e.eigene ?? []).map(([lat, lon]) => ({ lat, lon, lokal: false }))
+      .filter((p) => !eigene.some((q) => abstandM(p, q) < 5));
+    const neueEigene = dazu.length ? [...eigene, ...dazu].slice(0, EIGENE_MAX) : eigene;
+    if (dazu.length) setEigene(neueEigene);
+    const posNeu: Startposition[] | null = serverPos && [...serverPos,
+      ...neueEigene.map((p) => ({ lat: p.lat, lon: p.lon, starts: 0, sessions: 0, eigen: true }))];
     if (e.min_m != null) setMinM(e.min_m);
     if (e.max_m != null) setMaxM(e.max_m);
     if (e.punkte != null) setAnzahl(e.punkte);
@@ -524,16 +655,16 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     if (ms !== minStarts || mf !== minFahrer) {      // laedt die Startpunkte neu, rechnet dann
       setMinStarts(ms); setMinFahrer(mf);
     }
-    else if (pos) {                                  // gleiche Startpunkte: Start setzen, rechnen
-      const st = e.start ? naechster(pos, { lat: e.start[0], lon: e.start[1] }) : -1;
+    else if (posNeu) {                                  // gleiche Startpunkte: Start setzen, rechnen
+      const st = e.start ? naechster(posNeu, { lat: e.start[0], lon: e.start[1] }) : -1;
       if (st >= 0) setStart(st);
       const ex = new Set<number>();
       for (const [la, lo] of e.ausgeschlossen ?? []) {
-        const i = naechster(pos, { lat: la, lon: lo });
+        const i = naechster(posNeu, { lat: la, lon: lo });
         if (i >= 0 && i !== st) ex.add(i);
       }
       setAus(ex);
-      const zz = e.ziel ? naechster(pos, { lat: e.ziel[0], lon: e.ziel[1] }) : -1;
+      const zz = e.ziel ? naechster(posNeu, { lat: e.ziel[0], lon: e.ziel[1] }) : -1;
       setZielPlatz(zz >= 0 ? zz : null);
       window.setTimeout(() => setAnstoss((n) => n + 1), 0);
     }
@@ -611,6 +742,11 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
               </label>
             </div>
           </div>
+          {setzen && (
+            <p className="mb-3 rounded-lg border border-brand-500 bg-brand-500/10 p-2 text-sm text-slate-200">
+              {eigene.length >= EIGENE_MAX ? t("routes.addPointLimit", { n: EIGENE_MAX }) : t("routes.addPointHint")}
+            </p>
+          )}
           {pos == null ? (
             <p className="text-xs text-slate-400">…</p>
           ) : (
@@ -621,7 +757,8 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                   const lage = lageText(p, pos[0], t("map.compass").split(","));
                   const raus = aus.has(i);
                   return [
-                    <span key={i} title={t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" })}
+                    <span key={i} title={p.eigen ? t("routes.ownPointInfo", { name: platzName(i) })
+                      : t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" })}
                       className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap ${pille(start === i)} ${raus ? "opacity-50" : ""}`}>
                       {/* Haken = Startplatz wird angefahren; abhaken schliesst ihn aus (Jan). Eigener Knopf
                           statt nativer Checkbox: die war 14 px gross, in Safari kaum zu treffen, und ein Klick
@@ -634,10 +771,21 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                         {raus ? "○" : "✓"}
                       </button>
                       <button onClick={() => { if (!raus) setStart(i); }} aria-pressed={start === i} disabled={raus}
-                        className={raus ? "line-through" : ""}>
-                        <span className="font-semibold">{platzName(i)}</span>
+                        className={`inline-flex items-center ${raus ? "line-through" : ""}`}>
+                        {schonGestartet(meineStarts, p) && (
+                          <span className="mr-1.5 h-2.5 w-2.5 rounded-full border border-slate-900" style={{ background: GRUEN }}
+                            title={t("routes.myStart")} aria-label={t("routes.myStart")} />
+                        )}
+                        <span className={`font-semibold ${p.eigen ? "underline decoration-dashed underline-offset-2" : ""}`}>{platzName(i)}</span>
                         {lage && <span className="ml-1">· {lage}</span>}
                       </button>
+                      {p.eigen && (
+                        <button type="button" onClick={(e) => { e.stopPropagation(); eigenenEntfernen(i - nServer); }}
+                          title={t("routes.removePoint")} aria-label={t("routes.removePoint")}
+                          className="-my-1 -mr-2 flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/10">
+                          ✕
+                        </button>
+                      )}
                     </span>,
                     // Losfahren nach … direkt hinter dem gewaehlten Start (Jan). Die Richtungen
                     // kommen aus der berechneten Liste, deshalb nur, solange sie gilt.
@@ -655,6 +803,23 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
                   ];
                 })}
               </div>
+              {/* Legende nur, wenn es etwas zu erklaeren gibt */}
+              {(pos.some((p) => schonGestartet(meineStarts, p)) || eigene.length > 0) && (
+                <div className="-mt-1 mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
+                  {pos.some((p) => schonGestartet(meineStarts, p)) && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded-full border border-slate-900" style={{ background: GRUEN }} aria-hidden />
+                      {t("routes.myStart")}
+                    </span>
+                  )}
+                  {eigene.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded-full border-2 border-dashed border-slate-300 bg-brand-500" aria-hidden />
+                      {t("routes.ownPoint")}
+                    </span>
+                  )}
+                </div>
+              )}
               {/* Ziel waehlen, nur ohne Rundkurs (Jan) — eine echte Einstellung: die Suche nimmt dann
                   nur Routen, die dort enden. */}
               {!rundkurs && (

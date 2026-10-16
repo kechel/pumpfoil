@@ -47,6 +47,14 @@ def test_einstellungen_gefiltert_und_formular_wiederherstellbar(client):
                 json={"punkte": RUNDE, "einstellungen": {"min_m": 50, "max_m": 300, "rundkurs": True, "boese": "<x>"}})
     e = client.get(f"/api/community/spot/{sid}/routen", headers=a).json()[0]["einstellungen"]
     assert e == {"min_m": 50, "max_m": 300, "rundkurs": True}
+    # Selbst gesetzte Punkte gehen mit der Route, kaputte Eintraege fliegen raus, hoechstens 20
+    from app.api import community as C
+    eigene = [[-60.0011111111, 20.0022222222], ["x", 1], [1.0], [True, 2.0]] + [[-60.0, 20.0]] * 30
+    assert client.post(f"/api/community/spot/{sid}/routen", headers=a,
+                       json={"punkte": RUNDE, "einstellungen": {"eigene": eigene}}).status_code == 200
+    e = client.get(f"/api/community/spot/{sid}/routen", headers=a).json()[0]["einstellungen"]["eigene"]
+    assert e[0] == [-60.001111, 20.002222]
+    assert len(e) == C.EIGENE_MAX - 3 and all(len(p) == 2 for p in e)
 
 
 def test_pruefungen_loeschen_und_grenze(client):
