@@ -3,6 +3,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
+import { lageText, routenVorschlagen, type Route, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
 import { useT } from "../i18n";
 
@@ -141,6 +142,161 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
           {t(art === "start" ? "spots.heatHintStart" : "spots.heatHint")}
         </p>
       )}
+      <RoutenVorschlag spotId={spotId} karte={bereit ? karte.current?.m ?? null : null} />
     </Card>
+  );
+}
+
+// Routen-Vorschlaege unter der Karte (Jan, 16.10.2026). Ablauf:
+//   1. Knopf „Route planen" — erst danach erscheint der Rest.
+//   2. Zuverlaessigkeit (Startpunkt mind. N-mal genutzt) und die Startpunkte als Leiste, nummeriert
+//      (1 = meistgenutzt) mit Lage zum meistgenutzten; Start per Leiste oder Klick auf die Karte,
+//      Vorgabe der meistgenutzte.
+//   3. Mindest-/Hoechstabstand zwischen zwei Startpunkten, darunter die Vorschlaege; ein Klick
+//      zeigt die Route auf der Karte. Rechnung in lib/routen.ts.
+const ZUVERLAESSIG = [2, 3, 5, 10];
+
+function RoutenVorschlag({ spotId, karte }: { spotId: number; karte: L.Map | null }) {
+  const t = useT();
+  const [offen, setOffen] = useState(false);
+  const [minStarts, setMinStarts] = useState(3);
+  const [start, setStart] = useState(0);
+  const [minM, setMinM] = useState(50);
+  const [maxM, setMaxM] = useState(300);
+  const [pos, setPos] = useState<Startposition[] | null>(null);
+  const [routen, setRouten] = useState<Route[] | null>(null);
+  const [gewaehlt, setGewaehlt] = useState<number | null>(null);
+  const ebene = useRef<L.LayerGroup | null>(null);
+
+  // Startpunkte je Zuverlaessigkeit holen, sobald geplant wird.
+  useEffect(() => {
+    if (!offen) return;
+    let weg = false;
+    setPos(null);
+    api.spotStartpositionen(spotId, minStarts)
+      .then((r) => { if (!weg) { setPos(r.positionen); setStart(0); } })
+      .catch(() => { if (!weg) setPos([]); });
+    return () => { weg = true; };
+  }, [offen, spotId, minStarts]);
+
+  // Vorschlaege neu rechnen, wenn sich Punkte, Start oder Abstaende aendern.
+  useEffect(() => {
+    if (!pos) { setRouten(null); return; }
+    setRouten(routenVorschlagen(pos, start, minM, Math.max(minM, maxM)));
+    setGewaehlt(null);
+  }, [pos, start, minM, maxM]);
+
+  // Startpunkte (nummeriert) und die gewaehlte Route auf die Karte; Klick auf einen Punkt = Start.
+  useEffect(() => {
+    if (!karte) return;
+    if (!ebene.current) ebene.current = L.layerGroup();
+    const g = ebene.current;
+    g.clearLayers();
+    if (!offen || !pos) { g.remove(); return; }
+    g.addTo(karte);
+    const r = gewaehlt != null ? routen?.[gewaehlt] : null;
+    if (r) {
+      g.addLayer(L.polyline(r.punkte.map((i) => [pos[i].lat, pos[i].lon] as [number, number]),
+        { color: "#ffffff", weight: 4, opacity: 0.95, dashArray: "8 6", interactive: false }));
+    }
+    pos.forEach((p, i) => {
+      const istStart = i === start;
+      const aktiv = r ? r.punkte.includes(i) : true;
+      const html = `<div style="width:24px;height:24px;border-radius:12px;display:flex;align-items:center;` +
+        `justify-content:center;font:700 12px ui-sans-serif,system-ui;cursor:pointer;` +
+        `border:${istStart ? "3px solid #ffffff" : "2px solid #0f172a"};` +
+        `background:${aktiv ? "#22d3ee" : "#94a3b8"};color:#0f172a">${i + 1}</div>`;
+      const mk = L.marker([p.lat, p.lon], {
+        icon: L.divIcon({ html, className: "", iconSize: [24, 24], iconAnchor: [12, 12] }),
+        title: `${i + 1} · ${p.starts}× · ${p.sessions} ${t("side.sessions")}`,
+      });
+      mk.on("click", () => setStart(i));
+      g.addLayer(mk);
+    });
+    return () => { g.clearLayers(); };
+  }, [karte, offen, pos, routen, gewaehlt, start, t]);
+
+  useEffect(() => () => { ebene.current?.remove(); }, []);
+
+  const pille = (aktiv: boolean) => `rounded-full border px-3 py-1 ${aktiv
+    ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+    : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`;
+
+  if (!offen) {
+    return (
+      <button onClick={() => setOffen(true)}
+        className="mt-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800">
+        {t("routes.plan")}
+      </button>
+    );
+  }
+  const regler = (label: string, wert: number, setz: (v: number) => void, von: number, bis: number) => (
+    <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-slate-400">
+      <span>{label}: <span className="font-semibold text-slate-100">{wert} m</span></span>
+      <input type="range" min={von} max={bis} step={10} value={wert}
+        onChange={(e) => setz(Number(e.target.value))} className="accent-brand-500" />
+    </label>
+  );
+  return (
+    <div className="mt-3 border-t border-slate-800 pt-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="text-sm font-semibold text-slate-100">{t("routes.plan")}</div>
+        <button onClick={() => setOffen(false)} className="text-xs text-slate-400 hover:text-slate-200">
+          {t("routes.close")}
+        </button>
+      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-xs text-slate-400">{t("routes.reliability")}</span>
+        {ZUVERLAESSIG.map((n) => (
+          <button key={n} onClick={() => setMinStarts(n)} aria-pressed={minStarts === n} className={pille(minStarts === n)}>
+            ≥ {n}×
+          </button>
+        ))}
+      </div>
+      {pos == null ? (
+        <p className="text-xs text-slate-400">…</p>
+      ) : (
+        <>
+          <div className="mb-1 text-xs text-slate-400">{t("routes.startPoint")}</div>
+          <div className="mb-3 flex gap-2 overflow-x-auto pb-1 text-sm">
+            {pos.map((p, i) => {
+              const lage = lageText(p, pos[0]);
+              return (
+                <button key={i} onClick={() => setStart(i)} aria-pressed={start === i}
+                  className={`shrink-0 whitespace-nowrap ${pille(start === i)}`}>
+                  <span className="font-semibold">{i + 1}</span>
+                  {lage && <span className="ml-1">· {lage}</span>}
+                  <span className="ml-1 opacity-75">· {p.starts}×</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mb-3 flex flex-wrap gap-4">
+            {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
+            {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}
+          </div>
+          {!routen?.length ? (
+            <p className="text-sm text-slate-300">{t("routes.none", { n: pos.length })}</p>
+          ) : (
+            <ol className="space-y-1">
+              {routen.map((r, i) => (
+                <li key={i}>
+                  <button onClick={() => setGewaehlt(gewaehlt === i ? null : i)} aria-pressed={gewaehlt === i}
+                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${gewaehlt === i
+                      ? "border-brand-500 bg-brand-500/10 text-slate-100"
+                      : "border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800"}`}>
+                    <span className="font-semibold tabular-nums">{r.punkte.map((q) => q + 1).join(" → ")}</span>
+                    <span className="ml-2 text-xs text-slate-400">
+                      {t("routes.legs", { n: r.punkte.length - 1 })} · {Math.round(r.meter)} m
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+          <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
+        </>
+      )}
+    </div>
   );
 }

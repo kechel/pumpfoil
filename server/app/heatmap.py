@@ -265,3 +265,79 @@ def abfragen(zeitraum: str, zoom: int, w: float, s: float, e: float, n: float,
     return {"z": stufe, "cells": zellen, "max": max(1, skala),
             "stand": datetime.fromtimestamp(float(d["stand"][0]), timezone.utc).isoformat(),
             "sessions": int(d["sessions"][i])}
+
+
+# --- Startpositionen eines Spots (Routen-Vorschlaege auf der Spot-Seite) -------------------------
+# Jan, 16.10.2026: aus den „sicheren" Startpunkten eines Spots Routen vorschlagen. Eine
+# Startposition ist ein Buendel von Lauf-Starts (Verkettung naeher als BUENDEL_M). Sie zaehlt erst,
+# wenn dort Starts aus mindestens START_MIN_SESSIONS verschiedenen Sessions liegen — sonst verraet
+# sie die Gewohnheit EINER Aufnahme und ist kein verlaesslicher Startplatz. Wie oft mindestens
+# gestartet wurde, stellt der Nutzer ein („Zuverlaessigkeit").
+#
+# Quelle ist derselbe Cache wie fuer die Heatmap (zellen.pkl): dieselben Sessions wie die Community
+# (letztes Jahr, Pumpfoil), verborgene am oeffentlichen Ort — die liegen dann nicht mehr am Spot
+# und fallen von selbst heraus.
+#
+# Achtung beim Deuten: ein Lauf beginnt in den Daten erst, wenn das Tempo stimmt — ein paar
+# Sekunden NACH dem Abstossen. Am Steg von Illmensee zieht sich das als 40-50 m lange Fahne in
+# Fahrtrichtung. Die Position ist der Schwerpunkt dieser Fahne, nicht der Steg selbst.
+BUENDEL_M = 25.0
+START_MIN_SESSIONS = 2
+_ZELLEN_GELADEN: dict = {"mtime": None, "daten": None}
+
+
+def _zellen_cache() -> dict:
+    try:
+        mt = ZELLEN_DATEI.stat().st_mtime
+    except OSError:
+        return {}
+    if _ZELLEN_GELADEN["mtime"] != mt:
+        _ZELLEN_GELADEN["daten"] = _cache_laden()
+        _ZELLEN_GELADEN["mtime"] = mt
+    return _ZELLEN_GELADEN["daten"] or {}
+
+
+def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3) -> list[dict]:
+    """Startpositionen aus den Lauf-Starts der Sessions `session_ids` (die eines Spots), um den
+    Bezugspunkt lat0/lon0. Absteigend nach Zahl der Starts."""
+    cache = _zellen_cache()
+    n = 1 << Z_MAX
+    kx = 111320.0 * math.cos(math.radians(lat0))
+    pts, sess = [], []
+    for sid in session_ids:
+        e = cache.get(sid)
+        if e is None or len(e) < 4 or not len(e[3]):
+            continue
+        ix, iy = _entpacken(e[3])
+        lon = (ix + 0.5) / n * 360.0 - 180.0
+        lat = np.degrees(np.arctan(np.sinh(np.pi * (1 - 2 * (iy + 0.5) / n))))
+        for a, b in zip(lat, lon):
+            pts.append(((b - lon0) * kx, (a - lat0) * 111320.0))
+            sess.append(sid)
+    if not pts:
+        return []
+    X = np.asarray(pts)
+    lab = -np.ones(len(X), dtype=int)
+    k = 0
+    for i in range(len(X)):
+        if lab[i] >= 0:
+            continue
+        lab[i] = k
+        stapel = [i]
+        while stapel:
+            j = stapel.pop()
+            nb = np.flatnonzero((lab < 0) & (np.hypot(X[:, 0] - X[j, 0], X[:, 1] - X[j, 1]) < BUENDEL_M))
+            lab[nb] = k
+            stapel.extend(nb.tolist())
+        k += 1
+    raus = []
+    for g in range(k):
+        idx = np.flatnonzero(lab == g)
+        n_sess = len({sess[i] for i in idx})
+        if len(idx) < max(1, int(min_starts)) or n_sess < START_MIN_SESSIONS:
+            continue
+        mx, my = X[idx].mean(axis=0)
+        raus.append({"lat": round(lat0 + my / 111320.0, 6), "lon": round(lon0 + mx / kx, 6),
+                     "starts": int(len(idx)), "sessions": n_sess})
+    raus.sort(key=lambda r: -r["starts"])
+    return raus
