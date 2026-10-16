@@ -804,6 +804,8 @@ const de: Record<string, string> = {
   "routes.anyDirection": "beliebig",
   "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",
+  "routes.startReq": "Anforderungen an Startplätze",
+  "routes.config": "Routen-Konfiguration",
   "routes.radius": "Umkreis",
   "routes.spotInfo": "{name}: {starts} Starts aus {sessions} Sessions von {fahrer} Fahrern",
   "routes.minDist": "Abstand min. je Abschnitt",

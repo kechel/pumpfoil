@@ -781,6 +781,8 @@ const en: Record<string, string> = {
   "routes.anyDirection": "any",
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",
+  "routes.startReq": "Start point requirements",
+  "routes.config": "Route configuration",
   "routes.radius": "Radius",
   "routes.spotInfo": "{name}: {starts} starts from {sessions} sessions by {fahrer} riders",
   "routes.minDist": "Min. distance per leg",

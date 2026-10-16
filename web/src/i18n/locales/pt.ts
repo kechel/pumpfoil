@@ -2166,6 +2166,8 @@ const pt: Record<string, string> = {
   "routes.anyDirection": "qualquer",
   "routes.reliability": "mín. largadas",
   "routes.riders": "mín. riders",
+  "routes.startReq": "Requisitos dos pontos de largada",
+  "routes.config": "Configuração da rota",
   "routes.radius": "Raio",
   "routes.spotInfo": "{name}: {starts} largadas em {sessions} sessões de {fahrer} riders",
   "routes.minDist": "Distância mín. por trecho",

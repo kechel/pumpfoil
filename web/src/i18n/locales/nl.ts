@@ -2223,6 +2223,8 @@ const nl: Record<string, string> = {
   "routes.anyDirection": "maakt niet uit",
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",
+  "routes.startReq": "Eisen aan startplekken",
+  "routes.config": "Routeconfiguratie",
   "routes.radius": "Straal",
   "routes.spotInfo": "{name}: {starts} starts uit {sessions} sessies van {fahrer} riders",
   "routes.minDist": "Min. afstand per etappe",
