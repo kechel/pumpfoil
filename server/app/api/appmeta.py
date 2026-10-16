@@ -983,6 +983,21 @@ NAECHSTES: list[dict] = [
          "The session list and the Community page have a Friends view with only you and your friends.",
          "Home shows which of your friends are pumping right now and where.",
          "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
+         # 16.10.2026: Heatmap & Routen auf der Spot-Seite, Routen in der Community, Schutzgebiete
+         # (Android 0fecf406/f9f7de2a/38b89b0c, iOS 871a5329 + Folgecommit; PWA seit 16.10.).
+         "Every spot page has a heatmap of where riders pump or start, and you can plan freefoiling routes from the start spots riders really use there, as round trips or from A to B, including start spots of neighbouring spots within a radius you choose.",
+         "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
+         "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
+         "Home links to your home spot, and wind directions use your app language.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.51",
+     "items": [
+         # 16.10.2026: Heatmap & Routen auf der Spot-Seite, Routen in der Community, Schutzgebiete
+         # (Android 0fecf406/f9f7de2a/38b89b0c, iOS 871a5329 + Folgecommit; PWA seit 16.10.).
+         "Every spot page has a heatmap of where riders pump or start, and you can plan freefoiling routes from the start spots riders really use there, as round trips or from A to B, including start spots of neighbouring spots within a radius you choose.",
+         "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
+         "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
+         "Home links to your home spot, and wind directions use your app language.",
      ]},
     # iPhone + Apple Watch 1.1.50 am 16.10. eingereicht -> IN_REVIEW.
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.

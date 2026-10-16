@@ -92,6 +92,7 @@ struct CommunityView: View {
                 topLikedSection
                 layoutsSection
                 spotsSection
+                RoutenAbschnitt(lang: lang)
             }
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
             // Vollbild des Social-Feeds — an der LIST, nicht an der Zeile (s. oben).
@@ -719,5 +720,70 @@ struct CommunityRow: View {
 
     private var dateText: String {
         sessionDateTime(item.started_at, item.ended_at, item.tz)
+    }
+}
+
+/// Alle gemerkten Routen aller Spots (wie RoutenSection in web/src/pages/Home.tsx und
+/// RoutenAbschnitt in der Android-App): dieselben Kaertchen wie unter der Spot-Karte, dazu der
+/// Spotname, filterbar nach Gesamtlaenge. Ein Tipp oeffnet den Spot und ruft die Route dort in der
+/// Planung auf. Nur Datum, nie wer.
+struct RoutenAbschnitt: View {
+    let lang: String
+    @State private var routen: [GemerkteRoute]? = nil
+    @State private var minKm: Double = 0
+    @State private var maxKm: Double = 50
+    private let obergrenze: Double = 50
+
+    var body: some View {
+        Group {
+            if let alle = routen, !alle.isEmpty {     // noch keine gemerkt -> kein leerer Abschnitt
+                Section(Loc.t("home.routes", lang)) {
+                    regler(Loc.t("home.routesMin", lang), wert: minKm) { minKm = Swift.min($0, maxKm) }
+                    regler(Loc.t("home.routesMax", lang), wert: maxKm) { maxKm = Swift.max($0, minKm) }
+                    let passend: [GemerkteRoute] = alle.filter { r in
+                        Double(r.meter) >= minKm * 1000 && (maxKm >= obergrenze || Double(r.meter) <= maxKm * 1000)
+                    }
+                    if passend.isEmpty {
+                        Text(Loc.t("home.routesNone", lang)).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    ForEach(passend) { r in zeile(r) }
+                }
+            }
+        }
+        .task { if routen == nil { routen = (try? await Api.alleRouten()) ?? [] } }
+    }
+
+    private func regler(_ label: String, wert: Double, setz: @escaping (Double) -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("\(label): " + (wert >= obergrenze ? Loc.t("home.routesNoLimit", lang) : "\(Int(wert)) km"))
+                .font(.caption).foregroundStyle(.secondary)
+            Slider(value: Binding(get: { wert }, set: { setz($0.rounded()) }), in: 0...obergrenze)
+        }
+    }
+
+    @ViewBuilder private func zeile(_ r: GemerkteRoute) -> some View {
+        if let name = r.spotName, !name.isEmpty {
+            NavigationLink { SpotSessionsView(spot: name, vorgegebeneSpotId: r.spotId, routeId: r.id) } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        if r.eigeneId != nil { Circle().fill(Color.accentColor).frame(width: 8, height: 8) }
+                        Text("📍 \(name)").font(.subheadline.weight(.semibold))
+                        if r.mitEigenen {
+                            Text(Loc.t("routes.manualTag", lang)).font(.caption2)
+                                .padding(.horizontal, 5).padding(.vertical, 1)
+                                .background(Capsule().fill(Color.secondary.opacity(0.2)))
+                        }
+                    }
+                    Text(text(r)).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func text(_ r: GemerkteRoute) -> String {
+        let k = r.kurz
+        return Loc.t("routes.savedChip", lang).replacingOccurrences(of: "{n}", with: "\(k.starts)")
+            .replacingOccurrences(of: "{max}", with: "\(k.maxM)").replacingOccurrences(of: "{total}", with: "\(r.meter)")
+            .replacingOccurrences(of: "{datum}", with: r.datum(lang))
     }
 }

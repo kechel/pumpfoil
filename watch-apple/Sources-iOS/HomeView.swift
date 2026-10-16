@@ -15,6 +15,8 @@ struct HomeView: View {
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
     @State private var weather: SpotWeather?
+    // Homespot als Link in der Zeile „Letzte Sessions" (Jan, 16.10.2026)
+    @State private var homespotName: String? = nil
     @State private var loading = true
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
@@ -251,6 +253,12 @@ struct HomeView: View {
         HStack {
             Text(Loc.t("phome.latest", lang)).font(.headline)
             Spacer()
+            if let hs = homespotName {
+                NavigationLink { SpotSessionsView(spot: hs) } label: {
+                    Label(hs, systemImage: "mappin.and.ellipse").font(.caption).lineLimit(1)
+                        .foregroundStyle(Color.accentColor).frame(maxWidth: 120)
+                }
+            }
             // Kacheln / eine Zeile je Session (PWA PersonalHome, 30.09.2026) — gilt fuer alle Listen.
             ListenAnsichtUmschalter(lang: lang)
             NavigationLink { SessionsView() } label: {
@@ -540,6 +548,7 @@ struct HomeView: View {
         let einst = try? await Api.settings()
         let hs = (einst?["homespot_effective"] as? String) ?? (einst?["homespot"] as? String)
         if let hs, !hs.isEmpty { weather = try? await Api.spotWeather(hs) } else { weather = nil }
+        homespotName = (hs?.isEmpty == false) ? hs : nil
         incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
         startSuccess = try? await Api.startSuccess()
         carveStats = try? await Api.carveStats()
@@ -642,7 +651,7 @@ struct HomeWeatherCard: View {
                     Text(wxIcon(c.code)).font(.title2)
                     if let t = c.temp { Text("\(Int(t.rounded()))°").font(.title2.bold()) }
                     if let w = c.wind {
-                        Text("\(Int(w.rounded())) kn \(dirLabel(c.dir))").font(.subheadline).foregroundStyle(.secondary)
+                        Text("\(Int(w.rounded())) kn \(dirLabel(c.dir, lang))").font(.subheadline).foregroundStyle(.secondary)
                     }
                     Text(Loc.t("wx.now", lang)).font(.caption2).foregroundStyle(.secondary)
                 }
@@ -770,10 +779,12 @@ private func wxIcon(_ code: Int?) -> String {
     }
 }
 
-private let card8 = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"]
-private func dirLabel(_ deg: Double?) -> String {
+// Himmelsrichtungen in der Sprache der App (map.compass, wie die PWA seit 16.10.2026)
+private func dirLabel(_ deg: Double?, _ lang: String) -> String {
     guard let deg else { return "" }
-    return card8[(Int((deg / 45).rounded()) % 8 + 8) % 8]
+    let teile: [String] = Loc.t("map.compass", lang).split(separator: ",").map(String.init)
+    let r: [String] = teile.count == 8 ? teile : ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    return r[(Int((deg / 45).rounded()) % 8 + 8) % 8]
 }
 
 private func dayLabel(_ i: Int, _ date: String?, _ lang: String) -> String {
