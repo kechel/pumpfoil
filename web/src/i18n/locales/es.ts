@@ -2046,6 +2046,7 @@ const es: Record<string, string> = {
   "routes.direction": "Salir hacia",
   "routes.target": "Destino",
   "routes.whyTarget": "Con estos ajustes no se llega al destino elegido – elige otro o cambia distancia/número de puntos.",
+  "routes.whyDirection": "Con estos ajustes ninguna ruta va primero hacia {name}: elige otra dirección o “cualquiera”.",
   "routes.anyDirection": "cualquiera",
   "routes.reliability": "mín. salidas",
   "routes.riders": "mín. riders",

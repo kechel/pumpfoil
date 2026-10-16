@@ -2053,6 +2053,7 @@ const deAT: Record<string, string> = {
   "routes.direction": "Losfahren nach",
   "routes.target": "Ziel",
   "routes.whyTarget": "Zum gewählten Ziel geht es mit diesen Einstellungen nicht – anderes Ziel wählen oder Abstand/Punktzahl ändern.",
+  "routes.whyDirection": "Mit diesen Einstellungen gibt es keine Route, die zuerst nach {name} fährt – andere Richtung oder „beliebig“ wählen.",
   "routes.anyDirection": "beliebig",
   "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",

@@ -2219,6 +2219,7 @@ const cs: Record<string, string> = {
   "routes.direction": "Vyjet směrem",
   "routes.target": "Cíl",
   "routes.whyTarget": "Do zvoleného cíle to s tímto nastavením nejde – zvol jiný cíl nebo změň vzdálenost/počet bodů.",
+  "routes.whyDirection": "S tímto nastavením žádná trasa nevede nejdřív do {name} – zvol jiný směr nebo „libovolně“.",
   "routes.anyDirection": "libovolně",
   "routes.reliability": "min. startů",
   "routes.riders": "min. jezdců",

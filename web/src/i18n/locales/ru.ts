@@ -2163,6 +2163,7 @@ const ru: Record<string, string> = {
   "routes.direction": "Направление старта",
   "routes.target": "Финиш",
   "routes.whyTarget": "С этими настройками до выбранного финиша не добраться – выбери другой или измени расстояние/число точек.",
+  "routes.whyDirection": "При этих настройках ни один маршрут не идёт сначала к {name} – выберите другое направление или «любое».",
   "routes.anyDirection": "любое",
   "routes.reliability": "мин. стартов",
   "routes.riders": "мин. райдеров",

@@ -2163,6 +2163,7 @@ const pt: Record<string, string> = {
   "routes.direction": "Sair rumo a",
   "routes.target": "Destino",
   "routes.whyTarget": "Com estas configurações não dá para chegar ao destino escolhido – escolha outro ou mude distância/número de pontos.",
+  "routes.whyDirection": "Com essas configurações nenhuma rota vai primeiro para {name} – escolha outra direção ou “qualquer”.",
   "routes.anyDirection": "qualquer",
   "routes.reliability": "mín. largadas",
   "routes.riders": "mín. riders",

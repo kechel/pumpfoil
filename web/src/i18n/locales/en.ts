@@ -778,6 +778,7 @@ const en: Record<string, string> = {
   "routes.direction": "Head off",
   "routes.target": "Destination",
   "routes.whyTarget": "The chosen destination can't be reached with these settings – pick another one or change distance/number of points.",
+  "routes.whyDirection": "With these settings no route heads to {name} first – choose another direction or “any”.",
   "routes.anyDirection": "any",
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",
