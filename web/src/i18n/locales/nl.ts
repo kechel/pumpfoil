@@ -2166,6 +2166,7 @@ const nl: Record<string, string> = {
   "spots.onlyWithNotes": "Alleen met beschrijving",
   "spots.onlyActive": "Nu actief",
   "spots.heatmap": "Heatmap",
+  "spots.heatmapRoutes": "Heatmap & routes",
   "spots.heatHint": "Kleur = hoeveel sessies daar gevaren zijn (alleen runs), dagelijks bijgewerkt.",
   "spots.heatOff": "Uit",
   "spots.heatFoil": "Op de foil",

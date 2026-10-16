@@ -2106,6 +2106,7 @@ const zh: Record<string, string> = {
   "spots.onlyWithNotes": "仅显示有说明的",
   "spots.onlyActive": "当前活跃",
   "spots.heatmap": "热力图",
+  "spots.heatmapRoutes": "热力图与路线",
   "spots.heatHint": "颜色 = 在此处的 session 数量（仅滑行段），每日更新。",
   "spots.heatOff": "关闭",
   "spots.heatFoil": "在水翼上",

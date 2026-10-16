@@ -2110,6 +2110,7 @@ const nb: Record<string, string> = {
   "spots.onlyWithNotes": "Kun med beskrivelse",
   "spots.onlyActive": "Aktiv nå",
   "spots.heatmap": "Varmekart",
+  "spots.heatmapRoutes": "Varmekart og ruter",
   "spots.heatHint": "Farge = hvor mange økter som er kjørt der (bare løpene), oppdateres daglig.",
   "spots.heatOff": "Av",
   "spots.heatFoil": "På foilen",

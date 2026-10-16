@@ -1999,6 +1999,7 @@ const deAT: Record<string, string> = {
   "spots.onlyWithNotes": "Nur mit Beschreibung",
   "spots.onlyActive": "Gerade aktiv",
   "spots.heatmap": "Heatmap",
+  "spots.heatmapRoutes": "Heatmap & Routen",
   "spots.heatHint": "Farbe = wie viele Sessions dort gefahren sind (nur die Läufe), täglich aktualisiert.",
   "spots.heatOff": "Aus",
   "spots.heatFoil": "Auf dem Foil",

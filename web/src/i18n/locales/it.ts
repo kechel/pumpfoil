@@ -1992,6 +1992,7 @@ const it: Record<string, string> = {
   "spots.onlyWithNotes": "Solo con descrizione",
   "spots.onlyActive": "Attivo adesso",
   "spots.heatmap": "Heatmap",
+  "spots.heatmapRoutes": "Heatmap e percorsi",
   "spots.heatHint": "Colore = quante sessioni sono state fatte lì (solo le run), aggiornata ogni giorno.",
   "spots.heatOff": "Disattivato",
   "spots.heatFoil": "Sul foil",
