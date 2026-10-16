@@ -237,6 +237,7 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
   const [wieder, setWieder] = useState<Gemerkt | null>(null);
   const [ueberlagert, setUeberlagert] = useState<Gemerkt | null>(null); // gemerkte, die heute nicht mehr passt
   const ebene = useRef<L.LayerGroup | null>(null);
+  const erstGerechnet = useRef(false);
 
   const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort()]);
   const veraltet = pos != null && gerechnetMit !== einstellungsSchluessel;
@@ -248,7 +249,7 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
 
   // Startpunkte je Zuverlaessigkeit holen.
   useEffect(() => {
-    if (!offen) return;
+    if (!offen) { erstGerechnet.current = false; return; }
     let weg = false;
     setPos(null); setErgebnis(null);
     api.spotStartpositionen(spotId, minStarts, minFahrer)
@@ -274,7 +275,13 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
       if (i >= 0 && i !== s) ex.add(i);
     }
     setAus(ex);
-    setAnstoss((n) => n + 1);
+    // Automatisch nur beim ersten Oeffnen und beim Aufrufen einer gemerkten Route; sonst (andere
+    // Zuverlaessigkeit/Fahrerzahl) verschwindet die Liste und „Jetzt berechnen" erscheint — wie bei
+    // jeder anderen Einstellung (Jan).
+    if (!erstGerechnet.current || wieder) {
+      erstGerechnet.current = true;
+      setAnstoss((n) => n + 1);
+    }
   }, [pos]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // Rechnen — nur auf Anstoss („Jetzt berechnen", neue Startpunkte, gemerkte Route aufgerufen).
