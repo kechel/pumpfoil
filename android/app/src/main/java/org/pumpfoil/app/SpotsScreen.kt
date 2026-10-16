@@ -104,6 +104,8 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     // Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins weg.
     var heatAnsicht by remember { mutableStateOf(false) }
     var heatZeitraum by remember { mutableStateOf("365d") }
+    // „Auf dem Foil" / „Startpunkte" (Jan, 16.10.2026, wie Spots.tsx)
+    var heatArt by remember { mutableStateOf("foil") }
     val heat = if (heatAnsicht) heatZeitraum else null
     var heatSessions by remember { mutableStateOf<Int?>(null) }
     // Alle 120 s nachfragen, solange die Seite offen ist (wie die PWA). Ein Fehler laesst den
@@ -223,6 +225,10 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 if (heatAnsicht) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterVertically),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("foil" to "spots.heatFoil", "start" to "spots.heatStart").forEach { (a, k) ->
+                            FilterChip(selected = heatArt == a, onClick = { heatArt = a },
+                                label = { Text(I18n.t(k)) }, colors = cyanChipColors())
+                        }
                         listOf("30d", "365d").forEach { p ->
                             FilterChip(selected = heatZeitraum == p, onClick = { heatZeitraum = p },
                                 label = { Text(I18n.t("period.$p")) }, colors = cyanChipColors())
@@ -303,9 +309,10 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 karte, if (heatAnsicht) emptyList() else sichtbar, oeffneSpot, startSpot, aktivEinzeln, aktivGegend,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
-            HeatmapLaden(karte, heat) { heatSessions = it }
+            // Sportart folgt dem Filter oben (seit 16.10. kennt die Heatmap alle Sportarten mit Laeufen)
+            HeatmapLaden(karte, heat, heatArt, sport) { heatSessions = it }
             if (heat != null && heatSessions != null) {
-                Text("${I18n.t("spots.heatHint")} · $heatSessions ${I18n.t("side.sessions")}",
+                Text("${I18n.t(if (heatArt == "start") "spots.heatHintStart" else "spots.heatHint")} · $heatSessions ${I18n.t("side.sessions")}",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
             }
@@ -563,6 +570,7 @@ private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (Str
                         einzeln: Set<Int> = emptySet(), gegend: Set<Int> = emptySet()) {
     // Die Heatmap bleibt liegen (sie hat ihren eigenen Ablauf, s. HeatOverlay), nur die Pins gehen.
     map.overlays.removeAll { it !is HeatOverlay }
+    Schutzgebiete.anhaengen(map)   // Schutzgebiete wieder einhaengen (Schutzgebiete.kt)
     val d = map.context.resources.displayMetrics.density
     val gruppen = buendelSpots(items, map.zoomLevelDouble, (d * 24).toDouble())
     val punkt = cyanDot(map.context)

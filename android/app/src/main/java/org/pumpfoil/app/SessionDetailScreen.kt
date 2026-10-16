@@ -1358,6 +1358,7 @@ private fun TrackMap(
             update = { map ->
                 MapTiles.anwenden(map, ebene)
                 map.overlays.clear()
+                Schutzgebiete.anhaengen(map)   // Schutzgebiete wieder einhaengen (Schutzgebiete.kt)
                 val dens = map.context.resources.displayMetrics.density   // px<->dp, sonst zu dünn auf HiDPI
                 // Dezente metrische Maßstabsleiste unten links (wie Web-Karte, #15).
                 map.overlays.add(ScaleBarOverlay(map).apply {

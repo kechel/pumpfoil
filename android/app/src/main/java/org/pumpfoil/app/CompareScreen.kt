@@ -362,6 +362,7 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
             update = { map ->
                 MapTiles.anwenden(map, ebene)
                 map.overlays.clear()
+                Schutzgebiete.anhaengen(map)   // Schutzgebiete wieder einhaengen (Schutzgebiete.kt)
                 val dens = map.context.resources.displayMetrics.density
                 val all = ArrayList<GeoPoint>()
 

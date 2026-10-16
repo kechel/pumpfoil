@@ -118,7 +118,13 @@ object MapTiles {
         var wahl by remember { mutableStateOf(gewaehlt(ctx)) }
         Box(modifier) {
             karte(wahl)
-            Umschalter(wahl, Modifier.align(Alignment.TopStart)) { wahl = it }
+            androidx.compose.foundation.layout.Column(Modifier.align(Alignment.TopStart)) {
+                Umschalter(wahl) { wahl = it }
+                // Schutzgebiete (Schutzgebiete.kt): Knopf nur, wenn die Karte welche gezeichnet hat
+                if (Schutzgebiete.gezeichnet.isNotEmpty()) Schutzgebiete.Knopf()
+            }
+            Schutzgebiete.Legende(Modifier.align(Alignment.BottomStart))
+            Schutzgebiete.Fenster()
         }
     }
 }

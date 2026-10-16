@@ -568,6 +568,7 @@ fun SpotProgression() {
                                     fitted = true
                                 }
                                 map.overlays.clear()
+                                Schutzgebiete.anhaengen(map)   // Schutzgebiete wieder einhaengen (Schutzgebiete.kt)
                                 val tr = trs[safeIdx]
                                 // JE LAUF eine eigene Linie — zwischen zwei Laeufen wird NICHT
                                 // verbunden. Vorher lief hier die komplette Aufnahme durch, und
