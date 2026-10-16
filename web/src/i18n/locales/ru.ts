@@ -2167,7 +2167,6 @@ const ru: Record<string, string> = {
   "routes.reliability": "мин. стартов",
   "routes.riders": "мин. райдеров",
   "routes.radius": "Радиус",
-  "routes.radiusSpot": "спот",
   "routes.spotInfo": "{name}: {starts} стартов из {sessions} сессий, райдеров: {fahrer}",
   "routes.minDist": "Мин. расстояние на отрезок",
   "routes.maxDist": "Макс. расстояние на отрезок",

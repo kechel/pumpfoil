@@ -2050,7 +2050,6 @@ const it: Record<string, string> = {
   "routes.reliability": "min. partenze",
   "routes.riders": "min. rider",
   "routes.radius": "Raggio",
-  "routes.radiusSpot": "spot",
   "routes.spotInfo": "{name}: {starts} partenze da {sessions} sessioni di {fahrer} rider",
   "routes.minDist": "Distanza min. per tratto",
   "routes.maxDist": "Distanza max per tratto",

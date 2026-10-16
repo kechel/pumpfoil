@@ -261,7 +261,9 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
 // Rechnung in lib/routen.ts, gemerkte Routen: /api/community/spot/{id}/routen.
 const ZUVERLAESSIG = [2, 3, 5];         // ≥ 10× und Fahrer ≥ 5 am 16.10. raus (Jan: zu eng in der Zeile)
 const FAHRER = [1, 2, 3];
-const UMKREIS = [0, 2, 5, 10, 20, 30];   // km; 0 = nur dieser Spot (Server: hoechstens 30 km, 50 Startplaetze)
+// km (Server: hoechstens 30 km, 50 Startplaetze). „nur dieser Spot" (0) am 16.10. raus (Jan: „2 km
+// ist doch prima") — der Server kann es weiter.
+const UMKREIS = [2, 5, 10, 20, 30];
 const NAH_M = 40;                // gemerkter Punkt == heutiger Startpunkt, wenn so nah
 type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
 type Punkt = { lat: number; lon: number };
@@ -698,7 +700,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
     if (e.punkte != null) setAnzahl(e.punkte);
     if (e.ohne_kreuzung != null) setOhneKreuzung(e.ohne_kreuzung);
     if (e.rundkurs != null) setRundkurs(e.rundkurs);
-    const ms = e.min_starts ?? minStarts, mf = e.min_fahrer ?? 1, uk = e.umkreis_km ?? 0;
+    const ms = e.min_starts ?? minStarts, mf = e.min_fahrer ?? 1, uk = e.umkreis_km || 2;   // vor dem Umkreis gemerkt: wie die Vorgabe
     if (ms !== minStarts || mf !== minFahrer || uk !== umkreis) {      // laedt die Startpunkte neu, rechnet dann
       setMinStarts(ms); setMinFahrer(mf); umkreisSetzen(uk);
     }
@@ -780,7 +782,7 @@ function RoutenVorschlag({ spotId, karte, offen, aufruf, gemerkt, gemerktGeaende
             <span className="text-xs text-slate-400">{t("routes.radius")}</span>
             {UMKREIS.map((km) => (
               <button key={km} onClick={() => umkreisSetzen(km)} aria-pressed={umkreis === km} className={pille(umkreis === km)}>
-                {km === 0 ? t("routes.radiusSpot") : `${km} km`}
+                {km} km
               </button>
             ))}
             <div className="ml-auto flex flex-wrap items-center gap-4">
