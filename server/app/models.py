@@ -1763,3 +1763,29 @@ class BoardAttitudeCache(Base):
 # Damit gehen beide Richtungen: Profil oeffentlich + einzelne verbergen, oder Profil verborgen +
 # einzelne freigeben.
 ORT_SICHTBARKEIT = ("show", "hide")
+
+
+class GemerkteRoute(Base):
+    """Eine gemerkte Route an einem Spot (Jan, 16.10.2026): aus der Routenplanung der Spot-Seite,
+    oeffentlich fuer alle sichtbar — gezeigt wird nur, WANN sie gemerkt wurde, nie von wem.
+
+    Gespeichert sind die KOORDINATEN der Punkte, nicht die Nummern der Startpunkte: die werden
+    taeglich neu gebuendelt und koennen sich verschieben. `einstellungen` = das Formular, mit dem
+    die Route entstand (Zuverlaessigkeit, Start, Richtung, Abstaende, Punktzahl, Kreuzungen,
+    Rundkurs) — beim Aufrufen stellt es sich wieder so ein. `schluessel` = die Punktfolge gerundet
+    und richtungsunabhaengig, damit dieselbe Route nur EINMAL in der Liste steht.
+
+    `user_id` nur fuer das Loeschen der eigenen und die Kontoloeschung (die generische Runde in
+    loeschung.py raeumt die Zeilen mit ab). Mit dem Spot verschwindet sie (ondelete CASCADE).
+    """
+
+    __tablename__ = "gemerkte_routen"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    spot_id: Mapped[int] = mapped_column(ForeignKey("spots.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    schluessel: Mapped[str] = mapped_column(String(1000), index=True)
+    punkte_json: Mapped[str] = mapped_column(Text)
+    einstellungen_json: Mapped[str] = mapped_column(Text, default="{}")
+    meter: Mapped[float] = mapped_column(Float, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

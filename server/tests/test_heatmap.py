@@ -80,3 +80,15 @@ def test_startpositionen_buendel_und_schwellen(monkeypatch):
     # nur aus EINER Session -> keine verlaessliche Position, auch bei vielen Starts
     cache[5] = ("fp", None, None, starts(*([[9.3830, 47.8600]] * 6)))
     assert len(H.startpositionen([1, 2, 3, 5], 47.8628, 9.3794, min_starts=3)) == 2
+
+
+def test_startpositionen_fahrer(monkeypatch):
+    from app import heatmap as H
+    steg = [9.3794, 47.8628]
+    z = lambda n: H._zellen([steg] * n, eindeutig=False)
+    cache = {1: ("fp", None, None, z(3)), 2: ("fp", None, None, z(2)), 3: ("fp", None, None, z(1))}
+    monkeypatch.setattr(H, "_zellen_cache", lambda: cache)
+    von = {1: 10, 2: 10, 3: 11}                     # zwei Sessions desselben Fahrers + ein anderer
+    r = H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2, fahrer_von=von)
+    assert r[0]["fahrer"] == 2 and r[0]["sessions"] == 3
+    assert H.startpositionen([1, 2, 3], 47.8628, 9.3794, min_starts=2, min_fahrer=3, fahrer_von=von) == []

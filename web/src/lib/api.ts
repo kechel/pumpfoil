@@ -1191,9 +1191,15 @@ export const api = {
     req<{ z: number | null; cells: [number, number, number][]; max: number; stand: string | null; sessions: number }>(
       `/api/community/heatmap?period=${period}&z=${z}&w=${w}&s=${s}&e=${e}&n=${n}&art=${art}`),
   /** Verlaessliche Startpositionen eines Spots (>= minStarts Starts aus >= 2 Sessions), fuer Routen. */
-  spotStartpositionen: (spotId: number, minStarts: number) =>
-    req<{ positionen: { lat: number; lon: number; starts: number; sessions: number }[] }>(
-      `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}`),
+  spotStartpositionen: (spotId: number, minStarts: number, minFahrer = 1) =>
+    req<{ positionen: { lat: number; lon: number; starts: number; sessions: number; fahrer: number }[] }>(
+      `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}&min_fahrer=${minFahrer}`),
+  /** Gemerkte Routen eines Spots — oeffentlich, nur mit Datum; `eigene_id` nur bei den eigenen. */
+  spotRouten: (spotId: number) => req<unknown[]>(`/api/community/spot/${spotId}/routen`),
+  spotRouteMerken: (spotId: number, body: { punkte: number[][]; einstellungen: Record<string, unknown> }) =>
+    req<{ id: number }>(`/api/community/spot/${spotId}/routen`, { method: "POST", body: JSON.stringify(body) }),
+  spotRouteVergessen: (spotId: number, id: number) =>
+    req<{ ok: boolean }>(`/api/community/spot/${spotId}/routen/${id}`, { method: "DELETE" }),
   friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
   // Nur „wer von meinen Freunden pumpt gerade wo" — Startseite (FreundePumpen.tsx).
   friendsActive: () => req<AktiverFreund[]>("/api/friends/active"),

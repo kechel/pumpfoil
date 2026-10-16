@@ -297,9 +297,12 @@ def _zellen_cache() -> dict:
     return _ZELLEN_GELADEN["daten"] or {}
 
 
-def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3) -> list[dict]:
+def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3,
+                    min_fahrer: int = 1, fahrer_von: dict | None = None) -> list[dict]:
     """Startpositionen aus den Lauf-Starts der Sessions `session_ids` (die eines Spots), um den
-    Bezugspunkt lat0/lon0. Absteigend nach Zahl der Starts."""
+    Bezugspunkt lat0/lon0. Absteigend nach Zahl der Starts. `fahrer_von` = Session -> Nutzer; damit
+    zaehlt `fahrer` die VERSCHIEDENEN Fahrer an der Stelle, und `min_fahrer` filtert danach (Jan:
+    neben den Starts auch die Zahl unterschiedlicher Fahrer heranziehen)."""
     cache = _zellen_cache()
     n = 1 << Z_MAX
     kx = 111320.0 * math.cos(math.radians(lat0))
@@ -334,10 +337,12 @@ def startpositionen(session_ids, lat0: float, lon0: float, min_starts: int = 3) 
     for g in range(k):
         idx = np.flatnonzero(lab == g)
         n_sess = len({sess[i] for i in idx})
-        if len(idx) < max(1, int(min_starts)) or n_sess < START_MIN_SESSIONS:
+        n_fahrer = len({(fahrer_von or {}).get(sess[i], sess[i]) for i in idx})
+        if (len(idx) < max(1, int(min_starts)) or n_sess < START_MIN_SESSIONS
+                or n_fahrer < max(1, int(min_fahrer))):
             continue
         mx, my = X[idx].mean(axis=0)
         raus.append({"lat": round(lat0 + my / 111320.0, 6), "lon": round(lon0 + mx / kx, 6),
-                     "starts": int(len(idx)), "sessions": n_sess})
+                     "starts": int(len(idx)), "sessions": n_sess, "fahrer": n_fahrer})
     raus.sort(key=lambda r: -r["starts"])
     return raus

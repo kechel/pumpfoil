@@ -3,7 +3,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { basiskarten } from "../lib/mapTiles";
 import { heatZeichnen, zellKanten } from "../lib/heatmap";
-import { abstandM, lageText, MAX_POSITIONEN, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
+import { abstandM, lageText, richtungName, routenVorschlagen, type Route, type RoutenErgebnis, type Startposition } from "../lib/routen";
 import { Card } from "./ui";
 import { rampColor } from "../lib/trackColors";
 import { useT } from "../i18n";
@@ -159,81 +159,163 @@ export function SpotHeatmap({ spotId }: { spotId: number }) {
   );
 }
 
-// Routen-Vorschlaege unter der Karte (Jan, 16.10.2026). Ablauf:
-//   1. Knopf „Route planen" — erst danach erscheint der Rest.
-//   2. Zuverlaessigkeit (Startpunkt mind. N-mal genutzt) und die Startpunkte als Leiste, nummeriert
-//      (1 = meistgenutzt) mit Lage zum meistgenutzten; Start per Leiste oder Klick auf die Karte,
-//      Vorgabe der meistgenutzte.
-//   3. Mindest-/Hoechstabstand zwischen zwei Startpunkten, darunter die Vorschlaege; ein Klick
-//      zeigt die Route auf der Karte. Rechnung in lib/routen.ts.
+// Routen planen unter der Karte (Jan, 16.10.2026). Ablauf:
+//   1. Knopf „Route planen" oben in der Kopfzeile — erst danach erscheint der Rest.
+//   2. Zuverlaessigkeit (Startpunkt mind. N-mal genutzt), die Startpunkte als Leiste (1 = meist-
+//      genutzt, Lage zum meistgenutzten; Start per Leiste oder Klick auf die Karte), Abstaende,
+//      Zahl der Punkte, Kreuzungen, Rundkurs — und „Jetzt berechnen" (hervorgehoben, solange die
+//      Einstellungen nicht zur Liste passen).
+//   3. Vorschlaege als sortierbare Tabelle; die gewaehlte Route farbig auf der Karte (rot = laengster
+//      Abschnitt), darunter ihre Abschnitte und „Merken".
+//   4. Reiter „Gemerkt": oeffentlich, nur mit Datum (nie wer). Ein Klick stellt das Formular wie
+//      beim Merken ein, rechnet und waehlt die Route aus — damit sieht man alle Details.
+// Rechnung in lib/routen.ts, gemerkte Routen: /api/community/spot/{id}/routen.
 const ZUVERLAESSIG = [2, 3, 5, 10];
-
-/** Die Abschnitte einer Route mit Laenge und Farbe (blau = kuerzester, rot = laengster). */
-function abschnitte(r: Route, pos: Startposition[]) {
-  const ab = r.punkte.slice(1).map((nach, k) => {
-    const von = r.punkte[k];
-    return { von, nach, meter: abstandM(pos[von], pos[nach]) };
-  });
-  const lo = Math.min(...ab.map((a) => a.meter)), hi = Math.max(...ab.map((a) => a.meter));
-  return ab.map((a) => ({ ...a, farbe: rampColor(hi > lo ? (a.meter - lo) / (hi - lo) : 0.5) }));
-}
+const FAHRER = [1, 2, 3, 5];
+const NAH_M = 40;                // gemerkter Punkt == heutiger Startpunkt, wenn so nah
 type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
+type Punkt = { lat: number; lon: number };
+type Gemerkt = {
+  schluessel: string; gemerkt_am: string; punkte: [number, number][]; meter: number; eigene_id: number | null;
+  einstellungen: { min_starts?: number; min_fahrer?: number; start?: [number, number]; richtung?: number | null; min_m?: number;
+                   max_m?: number; punkte?: number; ohne_kreuzung?: boolean; rundkurs?: boolean;
+                  ausgeschlossen?: [number, number][] };
+};
+
+/** Name eines Startplatzes: A, B, C … Z, AA, AB … (A = meistgenutzt). Buchstaben statt Zahlen,
+ *  damit sie nicht mit den Abschnittsnummern auf den Linien verwechselt werden (Jan). */
+export function platzName(i: number): string {
+  let n = i, s = "";
+  do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1; } while (n >= 0);
+  return s;
+}
+
+/** Abschnitte einer Punktfolge mit Laenge und Farbe (blau = kuerzester, rot = laengster). */
+function abschnitte(pts: Punkt[], namen: string[]) {
+  const ab = pts.slice(1).map((b, k) => ({ a: pts[k], b, von: namen[k], nach: namen[k + 1], meter: abstandM(pts[k], b) }));
+  const lo = Math.min(...ab.map((x) => x.meter)), hi = Math.max(...ab.map((x) => x.meter));
+  return ab.map((x) => ({ ...x, farbe: rampColor(hi > lo ? (x.meter - lo) / (hi - lo) : 0.5) }));
+}
+
+/** Index des heutigen Startpunkts an dieser Stelle, oder -1. */
+function naechster(pos: Startposition[], p: Punkt): number {
+  let best = -1, bm = NAH_M;
+  pos.forEach((q, i) => { const m = abstandM(q, p); if (m < bm) { bm = m; best = i; } });
+  return best;
+}
+
+function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-1.5 text-xs">
+      {abschnitte(pts, namen).map((ab, k) => (
+        <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 tabular-nums text-slate-200">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: ab.farbe }} aria-hidden />
+          <span className="font-semibold">{k + 1}</span> · {ab.von}→{ab.nach} · {Math.round(ab.meter)} m
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
   spotId: number; karte: L.Map | null; offen: boolean; schliessen: () => void;
 }) {
   const t = useT();
+  const [reiter, setReiter] = useState<"vorschlag" | "gemerkt">("vorschlag");
   const [minStarts, setMinStarts] = useState(3);
+  const [minFahrer, setMinFahrer] = useState(1);   // verschiedene Fahrer an einem Startplatz
   const [start, setStart] = useState(0);
   const [minM, setMinM] = useState(50);
   const [maxM, setMaxM] = useState(300);
-  const [anzahl, setAnzahl] = useState(99);           // Startpunkte auf der Route; 99 = alle
+  const [anzahl, setAnzahl] = useState(6);            // Startpunkte auf der Route (Start mitgezaehlt)
   const [ohneKreuzung, setOhneKreuzung] = useState(true);
   const [rundkurs, setRundkurs] = useState(true);
-  const [gesamt, setGesamt] = useState(0);            // so viele Startpunkte gaebe es ohne Grenze
   // Richtung des ersten Abschnitts (Jan: „am Startpunkt 1 entweder Richtung W oder NO starten");
-  // null = beliebig.
+  // null = beliebig. Filtert die berechnete Liste, braucht keine neue Rechnung.
   const [richtung, setRichtung] = useState<number | null>(null);
-  const [ergebnis, setErgebnis] = useState<RoutenErgebnis | null>(null);
-  // Tabelle sortierbar (Jan): Vorgabe „Empfehlung" = wenige Kreuzungen, wenige doppelte
-  // Abschnitte, dann die Wertung (Strecke + Kehren).
-  const [sortierung, setSortierung] = useState<{ nach: Spalte; ab: boolean }>({ nach: "empf", ab: false });
+  const [aus, setAus] = useState<Set<number>>(new Set());          // ausgeschlossene Startplaetze
   const [pos, setPos] = useState<Startposition[] | null>(null);
-  const [routen, setRouten] = useState<Route[] | null>(null);
-  const [gewaehlt, setGewaehlt] = useState<number | null>(null);
+  const [ergebnis, setErgebnis] = useState<RoutenErgebnis | null>(null);
+  const [gerechnetMit, setGerechnetMit] = useState("");
+  const [anstoss, setAnstoss] = useState(0);
+  const [sortierung, setSortierung] = useState<{ nach: Spalte; ab: boolean }>({ nach: "empf", ab: false });
+  const [gewaehlt, setGewaehlt] = useState<string | null>(null);     // Schluessel = Punktfolge
+  const [gemerkt, setGemerkt] = useState<Gemerkt[] | null>(null);
+  const [merkStatus, setMerkStatus] = useState<string | null>(null);
+  // Wiederherstellen einer gemerkten Route: wartet auf die Startpunkte der passenden Zuverlaessigkeit.
+  const [wieder, setWieder] = useState<Gemerkt | null>(null);
+  const [ueberlagert, setUeberlagert] = useState<Gemerkt | null>(null); // gemerkte, die heute nicht mehr passt
   const ebene = useRef<L.LayerGroup | null>(null);
 
-  // Startpunkte je Zuverlaessigkeit holen, sobald geplant wird.
+  const einstellungsSchluessel = JSON.stringify([minStarts, minFahrer, start, minM, maxM, anzahl, ohneKreuzung, rundkurs, [...aus].sort()]);
+  const veraltet = pos != null && gerechnetMit !== einstellungsSchluessel;
+
+  const gemerktLaden = () => {
+    api.spotRouten(spotId).then((r) => setGemerkt(r as Gemerkt[])).catch(() => setGemerkt([]));
+  };
+  useEffect(() => { if (offen) gemerktLaden(); }, [offen, spotId]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Startpunkte je Zuverlaessigkeit holen.
   useEffect(() => {
     if (!offen) return;
     let weg = false;
-    setPos(null);
-    api.spotStartpositionen(spotId, minStarts)
-      .then((r) => {
-        if (weg) return;
-        // nur die meistgenutzten (lib/routen.ts MAX_POSITIONEN) — Leiste, Karte und Suche gleich
-        setGesamt(r.positionen.length);
-        setPos(r.positionen.slice(0, MAX_POSITIONEN));
-        setStart(0);
-      })
+    setPos(null); setErgebnis(null);
+    api.spotStartpositionen(spotId, minStarts, minFahrer)
+      .then((r) => { if (!weg) setPos(r.positionen); })
       .catch(() => { if (!weg) setPos([]); });
     return () => { weg = true; };
-  }, [offen, spotId, minStarts]);
+  }, [offen, spotId, minStarts, minFahrer]);
 
-  // Vorschlaege neu rechnen, wenn sich Punkte, Start oder Abstaende aendern.
+  // Neue Startpunkte: Start auf den meistgenutzten — oder auf den einer gemerkten Route — und rechnen.
   useEffect(() => {
-    if (!pos) { setErgebnis(null); return; }
+    if (!pos) return;
+    let s = 0;
+    if (wieder?.einstellungen.start) {
+      const [la, lo] = wieder.einstellungen.start;
+      const i = naechster(pos, { lat: la, lon: lo });
+      if (i >= 0) s = i;
+    }
+    setStart(s);
+    // Ausschluesse: bei einer gemerkten Route deren Plaetze, sonst keine
+    const ex = new Set<number>();
+    for (const [la, lo] of wieder?.einstellungen.ausgeschlossen ?? []) {
+      const i = naechster(pos, { lat: la, lon: lo });
+      if (i >= 0 && i !== s) ex.add(i);
+    }
+    setAus(ex);
+    setAnstoss((n) => n + 1);
+  }, [pos]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Rechnen — nur auf Anstoss („Jetzt berechnen", neue Startpunkte, gemerkte Route aufgerufen).
+  useEffect(() => {
+    if (!pos || anstoss === 0) return;
     setErgebnis(routenVorschlagen(pos, start, minM, Math.max(minM, maxM),
-      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs }));
-  }, [pos, start, minM, maxM, anzahl, ohneKreuzung, rundkurs]);
-  // Neuer Startpunkt -> Richtung wieder beliebig (die alte gibt es dort vielleicht nicht).
-  useEffect(() => { setRichtung(null); }, [start, pos]);
-  // Richtungen, in die vom Start aus ueberhaupt eine Route losgeht.
-  const richtungen = ergebnis
-    ? [...new Set(ergebnis.routen.map((r) => r.richtung))].sort((a, b) => a - b)
-    : [];
+      { punkte: Math.min(anzahl, pos.length), ohneKreuzung, rundkurs, ausgeschlossen: aus }));
+    setGerechnetMit(einstellungsSchluessel);
+    setGewaehlt(null);
+    setMerkStatus(null);
+  }, [anstoss]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Nach dem Rechnen einer aufgerufenen gemerkten Route: Richtung setzen und die Route auswaehlen.
   useEffect(() => {
-    if (!ergebnis) { setRouten(null); return; }
+    if (!wieder || !ergebnis || !pos) return;
+    const idx = wieder.punkte.map(([la, lo]) => naechster(pos, { lat: la, lon: lo }));
+    const passt = idx.every((i) => i >= 0)
+      ? ergebnis.routen.find((r) => {
+          const a = r.punkte.join("-");
+          return a === idx.join("-") || a === [...idx].reverse().join("-");
+        })
+      : undefined;
+    setRichtung(wieder.einstellungen.richtung ?? null);
+    setGewaehlt(passt ? passt.punkte.join("-") : null);
+    setUeberlagert(passt ? null : wieder);
+    setReiter("vorschlag");
+    setWieder(null);
+  }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const richtungen = ergebnis ? [...new Set(ergebnis.routen.map((r) => r.richtung))].sort((a, b) => a - b) : [];
+  const routen: Route[] = (() => {
+    if (!ergebnis) return [];
     const wert = (r: Route): number[] => {
       switch (sortierung.nach) {
         case "meter": return [r.meter];
@@ -248,15 +330,12 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
       for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return (x[i] - y[i]) * (sortierung.ab ? -1 : 1);
       return 0;
     };
-    setRouten(ergebnis.routen.filter((r) => richtung == null || r.richtung === richtung)
-      .sort((a, b) => [a.kreuzungen, a.doppelt, a.wertung].reduce((acc, v, i) =>
-        acc || v - [b.kreuzungen, b.doppelt, b.wertung][i], 0))
-      .slice(0, 20)
-      .sort(vgl));
-    setGewaehlt(null);
-  }, [ergebnis, richtung, sortierung]);
+    const empf = (a: Route, b: Route) => (a.kreuzungen - b.kreuzungen) || (a.doppelt - b.doppelt) || (a.wertung - b.wertung);
+    return ergebnis.routen.filter((r) => richtung == null || r.richtung === richtung).sort(empf).slice(0, 20).sort(vgl);
+  })();
+  const gewaehlteRoute = routen.find((r) => r.punkte.join("-") === gewaehlt) ?? null;
 
-  // Startpunkte (nummeriert) und die gewaehlte Route auf die Karte; Klick auf einen Punkt = Start.
+  // Karte: Startpunkte (nummeriert; Klick = Start) und die gewaehlte bzw. ueberlagerte Route.
   useEffect(() => {
     if (!karte) return;
     if (!ebene.current) ebene.current = L.layerGroup();
@@ -264,40 +343,93 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
     g.clearLayers();
     if (!offen || !pos) { g.remove(); return; }
     g.addTo(karte);
-    const r = gewaehlt != null ? routen?.[gewaehlt] : null;
-    if (r) {
-      // Jeder Abschnitt in der Farbe seiner Laenge (Rampe wie beim Tempo, rot = laengster) — unter
-      // einer schmalen dunklen Kontur, damit die Farbe auf Luftbild und Karte gleich lesbar ist.
-      for (const ab of abschnitte(r, pos)) {
-        const linie: [number, number][] = [[pos[ab.von].lat, pos[ab.von].lon], [pos[ab.nach].lat, pos[ab.nach].lon]];
-        g.addLayer(L.polyline(linie, { color: "#0f172a", weight: 7, opacity: 0.6, interactive: false }));
-        g.addLayer(L.polyline(linie, { color: ab.farbe, weight: 4, opacity: 1, interactive: false }));
-      }
+    const linie = gewaehlteRoute ? gewaehlteRoute.punkte.map((i) => pos[i] as Punkt)
+      : ueberlagert ? ueberlagert.punkte.map(([lat, lon]) => ({ lat, lon })) : null;
+    if (linie) {
+      // Jeder Abschnitt in der Farbe seiner Laenge (Rampe wie beim Tempo, rot = laengster), unter
+      // einer dunklen Kontur, damit die Farbe auf Luftbild und Karte gleich lesbar ist.
+      abschnitte(linie, linie.map(() => "")).forEach((ab, k) => {
+        const l: [number, number][] = [[ab.a.lat, ab.a.lon], [ab.b.lat, ab.b.lon]];
+        g.addLayer(L.polyline(l, { color: "#0f172a", weight: 7, opacity: 0.6, interactive: false }));
+        g.addLayer(L.polyline(l, { color: ab.farbe, weight: 4, opacity: 1, interactive: false }));
+        // Abschnittsnummer mittig auf der Linie, in ihrer Farbe
+        const html = `<div style="width:18px;height:18px;border-radius:9px;display:flex;align-items:center;` +
+          `justify-content:center;font:700 11px ui-sans-serif,system-ui;background:${ab.farbe};` +
+          `color:#0f172a;border:2px solid #0f172a">${k + 1}</div>`;
+        g.addLayer(L.marker([(ab.a.lat + ab.b.lat) / 2, (ab.a.lon + ab.b.lon) / 2], {
+          icon: L.divIcon({ html, className: "", iconSize: [18, 18], iconAnchor: [9, 9] }),
+          interactive: false, keyboard: false,
+        }));
+      });
     }
     pos.forEach((p, i) => {
       const istStart = i === start;
-      const aktiv = r ? r.punkte.includes(i) : true;
+      const raus = aus.has(i);
+      const aktiv = !raus && (gewaehlteRoute ? gewaehlteRoute.punkte.includes(i) : true);
       const html = `<div style="width:24px;height:24px;border-radius:12px;display:flex;align-items:center;` +
         `justify-content:center;font:700 12px ui-sans-serif,system-ui;cursor:pointer;` +
         `border:${istStart ? "3px solid #ffffff" : "2px solid #0f172a"};` +
-        `background:${aktiv ? "#22d3ee" : "#94a3b8"};color:#0f172a">${i + 1}</div>`;
+        `background:${aktiv ? "#22d3ee" : "#94a3b8"};color:#0f172a;` +
+        `${raus ? "text-decoration:line-through;opacity:0.6;" : ""}">${platzName(i)}</div>`;
       const mk = L.marker([p.lat, p.lon], {
         icon: L.divIcon({ html, className: "", iconSize: [24, 24], iconAnchor: [12, 12] }),
-        title: `${i + 1} · ${p.starts}× · ${p.sessions} ${t("side.sessions")}`,
+        title: t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" }),
       });
-      mk.on("click", () => setStart(i));
+      mk.on("click", () => { if (!raus) setStart(i); });
       g.addLayer(mk);
     });
     return () => { g.clearLayers(); };
-  }, [karte, offen, pos, routen, gewaehlt, start, t]);
+  }, [karte, offen, pos, gewaehlteRoute, ueberlagert, start, aus, t]);
 
   useEffect(() => () => { ebene.current?.remove(); }, []);
 
+  const merken = (r: Route) => {
+    if (!pos) return;
+    setMerkStatus("…");
+    api.spotRouteMerken(spotId, {
+      punkte: r.punkte.map((i) => [pos[i].lat, pos[i].lon]),
+      einstellungen: { min_starts: minStarts, min_fahrer: minFahrer, start: [pos[start].lat, pos[start].lon], richtung,
+                       min_m: minM, max_m: maxM, punkte: anzahl, ohne_kreuzung: ohneKreuzung, rundkurs,
+                       ausgeschlossen: [...aus].map((i) => [pos[i].lat, pos[i].lon]) },
+    })
+      .then(() => { setMerkStatus("ok"); gemerktLaden(); })
+      .catch((e) => setMerkStatus(String(e).includes("409") ? "limit" : "fehler"));
+  };
+
+  const aufrufen = (g: Gemerkt) => {
+    const e = g.einstellungen;
+    setUeberlagert(null);
+    setWieder(g);
+    if (e.min_m != null) setMinM(e.min_m);
+    if (e.max_m != null) setMaxM(e.max_m);
+    if (e.punkte != null) setAnzahl(e.punkte);
+    if (e.ohne_kreuzung != null) setOhneKreuzung(e.ohne_kreuzung);
+    if (e.rundkurs != null) setRundkurs(e.rundkurs);
+    const ms = e.min_starts ?? minStarts, mf = e.min_fahrer ?? 1;
+    if (ms !== minStarts || mf !== minFahrer) {      // laedt die Startpunkte neu, rechnet dann
+      setMinStarts(ms); setMinFahrer(mf);
+    }
+    else if (pos) {                                  // gleiche Startpunkte: Start setzen, rechnen
+      const st = e.start ? naechster(pos, { lat: e.start[0], lon: e.start[1] }) : -1;
+      if (st >= 0) setStart(st);
+      const ex = new Set<number>();
+      for (const [la, lo] of e.ausgeschlossen ?? []) {
+        const i = naechster(pos, { lat: la, lon: lo });
+        if (i >= 0 && i !== st) ex.add(i);
+      }
+      setAus(ex);
+      window.setTimeout(() => setAnstoss((n) => n + 1), 0);
+    }
+  };
+
+  const vergessen = (id: number) => {
+    api.spotRouteVergessen(spotId, id).then(gemerktLaden).catch(() => {});
+  };
+
+  if (!offen) return null;
   const pille = (aktiv: boolean) => `rounded-full border px-3 py-1 ${aktiv
     ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
     : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"}`;
-
-  if (!offen) return null;
   const regler = (label: string, wert: number, setz: (v: number) => void, von: number, bis: number,
                   einheit = " m", schritt = 10) => (
     <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-slate-400">
@@ -306,133 +438,212 @@ function RoutenVorschlag({ spotId, karte, offen, schliessen }: {
         onChange={(e) => setz(Number(e.target.value))} className="accent-brand-500" />
     </label>
   );
+  const datum = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+  const nummern = (pts: [number, number][]) =>
+    pts.map(([lat, lon]) => { const i = pos ? naechster(pos, { lat, lon }) : -1; return i >= 0 ? platzName(i) : "·"; });
+
   return (
     <div className="mt-3 border-t border-slate-800 pt-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-slate-100">{t("routes.plan")}</div>
-        <button onClick={schliessen} className="text-xs text-slate-400 hover:text-slate-200">
-          {t("routes.close")}
-        </button>
-      </div>
-      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-xs text-slate-400">{t("routes.reliability")}</span>
-        {ZUVERLAESSIG.map((n) => (
-          <button key={n} onClick={() => setMinStarts(n)} aria-pressed={minStarts === n} className={pille(minStarts === n)}>
-            ≥ {n}×
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm">
+          <button onClick={() => setReiter("vorschlag")} aria-pressed={reiter === "vorschlag"} className={pille(reiter === "vorschlag")}>
+            {t("routes.tabSuggest")}
           </button>
-        ))}
+          <button onClick={() => setReiter("gemerkt")} aria-pressed={reiter === "gemerkt"} className={pille(reiter === "gemerkt")}>
+            {t("routes.tabSaved")}{gemerkt?.length ? ` (${gemerkt.length})` : ""}
+          </button>
+        </div>
+        <button onClick={schliessen} className="text-xs text-slate-400 hover:text-slate-200">{t("routes.close")}</button>
       </div>
-      {pos == null ? (
-        <p className="text-xs text-slate-400">…</p>
+
+      {reiter === "gemerkt" ? (
+        gemerkt == null ? <p className="text-xs text-slate-400">…</p>
+        : !gemerkt.length ? <p className="text-sm text-slate-300">{t("routes.noSaved")}</p>
+        : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
+                  <th className="px-2 py-1 font-medium">{t("routes.colRoute")}</th>
+                  <th className="px-2 py-1 text-right font-medium">{t("routes.colDistance")}</th>
+                  <th className="px-2 py-1 text-right font-medium">{t("routes.colLegs")}</th>
+                  <th className="px-2 py-1 text-right font-medium">{t("routes.savedOn")}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {gemerkt.map((g) => (
+                  <tr key={g.schluessel} onClick={() => aufrufen(g)}
+                    className="cursor-pointer border-b border-slate-800/60 text-slate-200 hover:bg-slate-800">
+                    <td className="px-2 py-1.5 font-semibold tabular-nums">{nummern(g.punkte).join(" → ")}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{g.meter} m</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{g.punkte.length - 1}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{datum(g.gemerkt_am)}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      {g.eigene_id != null && (
+                        <button onClick={(e) => { e.stopPropagation(); vergessen(g.eigene_id as number); }}
+                          className="text-xs text-slate-400 hover:text-slate-200">{t("routes.delete")}</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
       ) : (
         <>
-          <div className="mb-1 text-xs text-slate-400">{t("routes.startPoint")}</div>
-          <div className="mb-3 flex gap-2 overflow-x-auto pb-1 text-sm">
-            {pos.map((p, i) => {
-              const lage = lageText(p, pos[0]);
-              return (
-                <button key={i} onClick={() => setStart(i)} aria-pressed={start === i}
-                  className={`shrink-0 whitespace-nowrap ${pille(start === i)}`}>
-                  <span className="font-semibold">{i + 1}</span>
-                  {lage && <span className="ml-1">· {lage}</span>}
-                  <span className="ml-1 opacity-75">· {p.starts}×</span>
-                </button>
-              );
-            })}
-          </div>
-          {richtungen.length > 1 && (
-            <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-xs text-slate-400">{t("routes.direction")}</span>
-              <button onClick={() => setRichtung(null)} aria-pressed={richtung == null} className={pille(richtung == null)}>
-                {t("routes.anyDirection")}
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-xs text-slate-400">{t("routes.reliability")}</span>
+            {ZUVERLAESSIG.map((n) => (
+              <button key={n} onClick={() => setMinStarts(n)} aria-pressed={minStarts === n} className={pille(minStarts === n)}>
+                ≥ {n}×
               </button>
-              {richtungen.map((r) => (
-                <button key={r} onClick={() => setRichtung(r)} aria-pressed={richtung === r} className={pille(richtung === r)}>
-                  {richtungName(r)}
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="mb-3 flex flex-wrap gap-4">
-            {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
-            {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}
+            ))}
+            <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
+            <span className="text-xs text-slate-400">{t("routes.riders")}</span>
+            {FAHRER.map((n) => (
+              <button key={n} onClick={() => setMinFahrer(n)} aria-pressed={minFahrer === n} className={pille(minFahrer === n)}>
+                ≥ {n}
+              </button>
+            ))}
           </div>
-          {pos.length >= 2 && (
-            <div className="mb-3 flex flex-wrap items-end gap-4">
-              {regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
-              <div className="flex flex-1 flex-wrap items-center gap-4">
-                <label className="flex items-center gap-2 text-sm text-slate-200">
-                  <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
-                    className="h-4 w-4 accent-brand-500" />
-                  {t("routes.noCrossing")}
-                </label>
-                <label className="flex items-center gap-2 text-sm text-slate-200">
-                  <input type="checkbox" checked={rundkurs} onChange={(e) => setRundkurs(e.target.checked)}
-                    className="h-4 w-4 accent-brand-500" />
-                  {t("routes.roundtrip")}
-                </label>
-              </div>
-            </div>
-          )}
-          {!routen?.length ? (
-            <p className="text-sm text-slate-300">{t("routes.none", { n: pos.length })}</p>
+          {pos == null ? (
+            <p className="text-xs text-slate-400">…</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
-                    {([["empf", "#"], ["route", t("routes.colRoute")], ["meter", t("routes.colDistance")],
-                       ["legs", t("routes.colLegs")], ["kreuz", t("routes.colCrossings")],
-                       ["doppelt", t("routes.colDuplicates")]] as [Spalte | "route", string][]).map(([sp, text]) => (
-                      <th key={sp} className={`px-2 py-1 font-medium ${sp === "route" ? "" : "text-right"}`}>
-                        {sp === "route" ? text : (
-                          <button onClick={() => setSortierung((alt) => ({ nach: sp, ab: alt.nach === sp ? !alt.ab : false }))}
-                            className={`hover:text-slate-200 ${sortierung.nach === sp ? "text-slate-100" : ""}`}>
-                            {text}{sortierung.nach === sp ? (sortierung.ab ? " ▼" : " ▲") : ""}
-                          </button>
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {routen.map((r, i) => [
-                    <tr key={r.punkte.join("-")} onClick={() => setGewaehlt(gewaehlt === i ? null : i)}
-                      aria-selected={gewaehlt === i}
-                      className={`cursor-pointer border-b border-slate-800/60 ${gewaehlt === i
-                        ? "bg-brand-500/10 text-slate-100" : "text-slate-200 hover:bg-slate-800"}`}>
-                      <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{i + 1}</td>
-                      <td className="px-2 py-1.5 font-semibold tabular-nums">{r.punkte.map((q) => q + 1).join(" → ")}</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums">{Math.round(r.meter)} m</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums">{r.punkte.length - 1}</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums">{r.kreuzungen}</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums">{r.doppelt}</td>
-                    </tr>,
-                    gewaehlt === i && (
-                      <tr key={r.punkte.join("-") + "-details"} className="border-b border-slate-800/60 bg-brand-500/5">
-                        <td />
-                        <td colSpan={5} className="px-2 pb-2 pt-1">
-                          <div className="flex flex-wrap gap-1.5 text-xs">
-                            {abschnitte(r, pos).map((ab, k) => (
-                              <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 tabular-nums text-slate-200">
-                                <span className="h-2.5 w-2.5 rounded-full" style={{ background: ab.farbe }} aria-hidden />
-                                {ab.von + 1}→{ab.nach + 1} · {Math.round(ab.meter)} m
-                              </span>
-                            ))}
-                          </div>
-                        </td>
+            <>
+              <div className="mb-1 text-xs text-slate-400">{t("routes.startPoints")}</div>
+              <div className="mb-3 flex gap-2 overflow-x-auto pb-1 text-sm">
+                {pos.map((p, i) => {
+                  const lage = lageText(p, pos[0]);
+                  const raus = aus.has(i);
+                  return (
+                    <span key={i} title={t("routes.spotInfo", { name: platzName(i), starts: p.starts, sessions: p.sessions, fahrer: p.fahrer ?? "?" })}
+                      className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap ${pille(start === i)} ${raus ? "opacity-50" : ""}`}>
+                      {/* Haken = Startplatz wird angefahren; abhaken schliesst ihn aus (Jan). Der
+                          gewaehlte Start ist immer dabei. */}
+                      <input type="checkbox" checked={!raus} disabled={start === i}
+                        onChange={() => setAus((alt) => { const n = new Set(alt); if (n.has(i)) n.delete(i); else n.add(i); return n; })}
+                        aria-label={t(raus ? "routes.include" : "routes.exclude")} className="h-3.5 w-3.5 accent-slate-900" />
+                      <button onClick={() => { if (!raus) setStart(i); }} aria-pressed={start === i} disabled={raus}
+                        className={raus ? "line-through" : ""}>
+                        <span className="font-semibold">{platzName(i)}</span>
+                        {lage && <span className="ml-1">· {lage}</span>}
+                        <span className="ml-1 opacity-75">· {p.starts}×</span>
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="mb-3 flex flex-wrap gap-4">
+                {regler(t("routes.minDist"), minM, (v) => setMinM(Math.min(v, maxM)), 0, 1000)}
+                {regler(t("routes.maxDist"), maxM, (v) => setMaxM(Math.max(v, minM)), 50, 2000)}
+              </div>
+              {pos.length >= 2 && (
+                <div className="mb-3 flex flex-wrap items-end gap-4">
+                  {regler(t("routes.count"), Math.min(anzahl, pos.length), setAnzahl, 2, pos.length, "", 1)}
+                  <div className="flex flex-1 flex-wrap items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm text-slate-200">
+                      <input type="checkbox" checked={ohneKreuzung} onChange={(e) => setOhneKreuzung(e.target.checked)}
+                        className="h-4 w-4 accent-brand-500" />
+                      {t("routes.noCrossing")}
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-slate-200">
+                      <input type="checkbox" checked={rundkurs} onChange={(e) => setRundkurs(e.target.checked)}
+                        className="h-4 w-4 accent-brand-500" />
+                      {t("routes.roundtrip")}
+                    </label>
+                  </div>
+                </div>
+              )}
+              <button onClick={() => { setUeberlagert(null); setAnstoss((n) => n + 1); }}
+                className={`mb-3 rounded-lg px-4 py-2 text-sm font-semibold ${veraltet
+                  ? "bg-brand-500 text-slate-950 hover:bg-brand-400"
+                  : "border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"}`}>
+                {t("routes.compute")}
+              </button>
+
+              {richtungen.length > 1 && (
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-xs text-slate-400">{t("routes.direction")}</span>
+                  <button onClick={() => setRichtung(null)} aria-pressed={richtung == null} className={pille(richtung == null)}>
+                    {t("routes.anyDirection")}
+                  </button>
+                  {richtungen.map((r) => (
+                    <button key={r} onClick={() => setRichtung(r)} aria-pressed={richtung === r} className={pille(richtung === r)}>
+                      {richtungName(r)}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {ueberlagert && (
+                <div className="mb-3 rounded-lg border border-slate-700 bg-slate-900 p-2 text-sm text-slate-300">
+                  <p className="mb-1.5">{t("routes.changed")}</p>
+                  <Abschnitte pts={ueberlagert.punkte.map(([lat, lon]) => ({ lat, lon }))} namen={nummern(ueberlagert.punkte)} />
+                </div>
+              )}
+              {!routen.length ? (
+                ergebnis && <p className="text-sm text-slate-300">{t("routes.none", { n: pos.length })}</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-800 text-left text-xs text-slate-400">
+                        {([["empf", "#"], ["route", t("routes.colRoute")], ["meter", t("routes.colDistance")],
+                           ["legs", t("routes.colLegs")], ["kreuz", t("routes.colCrossings")],
+                           ["doppelt", t("routes.colDuplicates")]] as [Spalte | "route", string][]).map(([sp, text]) => (
+                          <th key={sp} className={`px-2 py-1 font-medium ${sp === "route" ? "" : "text-right"}`}>
+                            {sp === "route" ? text : (
+                              <button onClick={() => setSortierung((alt) => ({ nach: sp, ab: alt.nach === sp ? !alt.ab : false }))}
+                                className={`hover:text-slate-200 ${sortierung.nach === sp ? "text-slate-100" : ""}`}>
+                                {text}{sortierung.nach === sp ? (sortierung.ab ? " ▼" : " ▲") : ""}
+                              </button>
+                            )}
+                          </th>
+                        ))}
                       </tr>
-                    ),
-                  ])}
-                </tbody>
-              </table>
-            </div>
+                    </thead>
+                    <tbody>
+                      {routen.map((r, i) => {
+                        const schl = r.punkte.join("-");
+                        const an = gewaehlt === schl;
+                        return [
+                          <tr key={schl} onClick={() => { setGewaehlt(an ? null : schl); setMerkStatus(null); setUeberlagert(null); }}
+                            aria-selected={an}
+                            className={`cursor-pointer border-b border-slate-800/60 ${an
+                              ? "bg-brand-500/10 text-slate-100" : "text-slate-200 hover:bg-slate-800"}`}>
+                            <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{i + 1}</td>
+                            <td className="px-2 py-1.5 font-semibold tabular-nums">{r.punkte.map(platzName).join(" → ")}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{Math.round(r.meter)} m</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{r.punkte.length - 1}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{r.kreuzungen}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{r.doppelt}</td>
+                          </tr>,
+                          an && (
+                            <tr key={schl + "-details"} className="border-b border-slate-800/60 bg-brand-500/5">
+                              <td />
+                              <td colSpan={5} className="px-2 pb-2 pt-1">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <Abschnitte pts={r.punkte.map((q) => pos[q])} namen={r.punkte.map(platzName)} />
+                                  <button onClick={() => merken(r)} disabled={merkStatus === "…" || merkStatus === "ok"}
+                                    className="rounded-full border border-brand-500 bg-brand-500/15 px-3 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-500/25 disabled:opacity-70 dark:text-brand-300">
+                                    {merkStatus === "ok" ? t("routes.saved") : t("routes.save")}
+                                  </button>
+                                </div>
+                                {merkStatus === "limit" && <p className="mt-1 text-xs text-slate-400">{t("routes.limit")}</p>}
+                              </td>
+                            </tr>
+                          ),
+                        ];
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {ergebnis?.gekuerzt && <p className="mt-2 text-xs text-slate-400">{t("routes.cut")}</p>}
+              <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
+            </>
           )}
-          {ergebnis?.gekuerzt && <p className="mt-2 text-xs text-slate-400">{t("routes.cut")}</p>}
-          {gesamt > pos.length && (
-            <p className="mt-2 text-xs text-slate-400">{t("routes.capped", { n: pos.length, m: gesamt })}</p>
-          )}
-          <p className="mt-2 text-xs text-slate-400">{t("routes.hint", { n: pos.length })}</p>
         </>
       )}
     </div>
