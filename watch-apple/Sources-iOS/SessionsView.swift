@@ -17,6 +17,9 @@ struct SessionsView: View {
     @State private var spotNames: [String] = []
     @State private var spot = ""          // aktiver Spot (für .spot)
     @State private var spotIds: [String: Int] = [:]   // Name -> spot_id (Spot-Beschreibungen)
+    // Lage je Spot und Zustand der Panels „Heatmap & Routen" (ausserhalb der Listenzeile)
+    @State private var spotOrte: [String: (Double, Double)] = [:]
+    @State private var heatZustaende = SpotPanelSpeicher()
     @State private var spotLabels: [String: String] = [:]   // Name -> Gewaesser bzw. Steg/Ortslage
     @State private var loading = false
     // Zaehler je Abruf, s. `load()` — eine spaete Antwort eines alten Abrufs wird verworfen.
@@ -121,6 +124,7 @@ struct SessionsView: View {
         filterSection
         aussortiertErklaerung
         spotRecordsSection
+        spotHeatmapSection
         spotWeatherSection
         spotNotesSection
         if let error { Text(error).foregroundStyle(.secondary) }
@@ -145,6 +149,13 @@ struct SessionsView: View {
             // Rekorde folgen dem Sportarten-Filter; bei „alle" ein Kasten je Sportart (PWA a9725cb9).
             SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly,
                             sport: sport, sports: sports.map { $0.sport })
+        }
+    }
+
+    // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
+    @ViewBuilder private var spotHeatmapSection: some View {
+        if scope == .spot, let sid = spotIds[spot], let ort = spotOrte[spot] {
+            Section { SpotHeatmapPanel(z: heatZustaende.zustand(sid), lat: ort.0, lon: ort.1, sport: sport, lang: lang) }
         }
     }
 
@@ -213,6 +224,8 @@ struct SessionsView: View {
         if let karte = try? await Api.spotMap(accelOnly: false) {
             spotIds = Dictionary(karte.compactMap { m in m.spot_id.map { (m.spot, $0) } },
                                  uniquingKeysWith: { a, _ in a })
+            spotOrte = Dictionary(karte.filter { $0.lat != 0 || $0.lon != 0 }.map { ($0.spot, ($0.lat, $0.lon)) },
+                                  uniquingKeysWith: { a, _ in a })
             spotLabels = Dictionary(karte.compactMap { m -> (String, String)? in
                 guard let w = m.water, !w.isEmpty,
                       w.lowercased() != m.spot.lowercased() else { return nil }

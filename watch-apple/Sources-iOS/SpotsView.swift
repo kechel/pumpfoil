@@ -71,6 +71,8 @@ struct SpotsView: View {
     // weg — so liegt die Heatmap-Schicht auch ueber nichts mehr, was man antippen muesste.
     @State private var heatAnsicht = false
     @State private var heatZeitraum = "365d"
+    // „Auf dem Foil" / „Startpunkte" (Jan, 16.10.2026, wie Spots.tsx)
+    @State private var heatArt = "foil"
     private var heat: String? { heatAnsicht ? heatZeitraum : nil }
     @State private var heatDaten: HeatAntwort?
     // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing", PWA Spots.tsx). Default
@@ -176,11 +178,15 @@ struct SpotsView: View {
             .pickerStyle(.segmented)
             if heatAnsicht {
                 HStack(spacing: 8) {
+                    artKnopf("foil", "spots.heatFoil")
+                    artKnopf("start", "spots.heatStart")
+                }
+                HStack(spacing: 8) {
                     heatKnopf("30d")
                     heatKnopf("365d")
                 }
                 if let d = heatDaten {
-                    Text("\(Loc.t("spots.heatHint", lang)) · \(d.sessions) \(Loc.t("side.sessions", lang))")
+                    Text("\(Loc.t(heatArt == "start" ? "spots.heatHintStart" : "spots.heatHint", lang)) · \(d.sessions) \(Loc.t("side.sessions", lang))")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -193,6 +199,17 @@ struct SpotsView: View {
         let an: Bool = heatZeitraum == p
         return Button { heatZeitraum = p } label: {
             Text(Loc.t("period.\(p)", lang)).font(.subheadline)
+                .padding(.horizontal, 10).padding(.vertical, 4)
+                .foregroundStyle(an ? Color.black : Color.primary)
+                .background(Capsule().fill(an ? Color.accentColor : Color.secondary.opacity(0.15)))
+        }
+        .buttonStyle(.borderless)
+    }
+
+    private func artKnopf(_ a: String, _ key: String) -> some View {
+        let an: Bool = heatArt == a
+        return Button { heatArt = a } label: {
+            Text(Loc.t(key, lang)).font(.subheadline)
                 .padding(.horizontal, 10).padding(.vertical, 4)
                 .foregroundStyle(an ? Color.black : Color.primary)
                 .background(Capsule().fill(an ? Color.accentColor : Color.secondary.opacity(0.15)))
@@ -231,7 +248,7 @@ struct SpotsView: View {
         let s: Double = Swift.max(region.span.longitudeDelta / 20, 0.000_1)
         let la: Int = Int((region.center.latitude / s).rounded())
         let lo: Int = Int((region.center.longitude / s).rounded())
-        return "\(h)|\(kartenZoom(region, breite: kartenBreite))|\(la)|\(lo)"
+        return "\(h)|\(heatArt)|\(sport)|\(kartenZoom(region, breite: kartenBreite))|\(la)|\(lo)"
     }
 
     private func heatLaden() async {
@@ -243,7 +260,9 @@ struct SpotsView: View {
         let e: Double = r.center.longitude + r.span.longitudeDelta / 2
         let s: Double = r.center.latitude - r.span.latitudeDelta / 2
         let n: Double = r.center.latitude + r.span.latitudeDelta / 2
-        if let d = try? await Api.heatmap(period: h, z: kartenZoom(r, breite: kartenBreite), w: w, s: s, e: e, n: n),
+        // Sportart folgt dem Filter oben (seit 16.10. kennt die Heatmap alle Sportarten mit Laeufen)
+        if let d = try? await Api.heatmap(period: h, z: kartenZoom(r, breite: kartenBreite), w: w, s: s, e: e, n: n,
+                                          art: heatArt, sport: sport),
            !Task.isCancelled, heat == h {
             heatDaten = d
         }

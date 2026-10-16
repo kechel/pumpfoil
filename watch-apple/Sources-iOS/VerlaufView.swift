@@ -435,6 +435,7 @@ struct SpotProgressionView: View {
             SpotProgressMap(all: trs, current: trs[safe], speedRange: speedRange, regionKey: spot)
                 .frame(height: 300).clipShape(RoundedRectangle(cornerRadius: 12))
                 .mitKartenUmschalter()
+                .schutzgebietSteuerung(lang: lang)
             legend
             playbackControls(trs, safe)
             Text(statusText(trs, safe))
@@ -533,6 +534,7 @@ struct SpotProgressMap: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView(); map.delegate = context.coordinator
+        context.coordinator.schutz = SchutzLader(map: map)   // Schutzgebiete (Schutzgebiete.swift)
         map.isRotateEnabled = false; map.isPitchEnabled = false
         return map
     }
@@ -557,7 +559,7 @@ struct SpotProgressMap: UIViewRepresentable {
                 map.setRegion(sichereRegion(center, span), animated: false)   // s. SpotsView.swift
             }
         }
-        map.removeOverlays(map.overlays)
+        map.removeOverlays(map.overlays.filter { !($0 is SchutzPolygon) })
         co.colors.removeAll()
         // JE LAUF eine eigene Linie — zwischen zwei Laeufen wird NICHT verbunden.
         //
@@ -594,10 +596,15 @@ struct SpotProgressMap: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
-    final class Coordinator: NSObject, MKMapViewDelegate {
+    @MainActor final class Coordinator: NSObject, MKMapViewDelegate {
+
+        var schutz: SchutzLader?
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) { schutz?.ausschnittGeaendert() }
         var colors: [ObjectIdentifier: UIColor] = [:]
         var lastKey: String = ""
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let r = schutz?.renderer(for: overlay) { return r }
             guard let pl = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
             let r = MKPolylineRenderer(polyline: pl)
             r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue

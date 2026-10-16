@@ -1056,6 +1056,7 @@ struct SessionDetailView: View {
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
             .mitKartenUmschalter()
+            .schutzgebietSteuerung(lang: lang)
     }
 
     /// Knopf in der Kartenecke: oeffnet die Karte im Vollbild.
@@ -1892,6 +1893,7 @@ struct TrackMap: UIViewRepresentable {
         let map = MKMapView()
         map.showsScale = true   // dezente Maßstabsleiste (erscheint beim Zoomen), wie Web-Karte (#15)
         map.delegate = context.coordinator
+        context.coordinator.schutz = SchutzLader(map: map)   // Schutzgebiete (Schutzgebiete.swift)
         map.isRotateEnabled = false
         map.isPitchEnabled = false
         let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
@@ -1954,7 +1956,7 @@ struct TrackMap: UIViewRepresentable {
         if sig == co.signatur { return }
         co.signatur = sig
         map.mapType = MapTiles.typ(ebene)
-        map.removeOverlays(map.overlays)
+        map.removeOverlays(map.overlays.filter { !($0 is SchutzPolygon) })
         map.removeAnnotations(map.annotations)
         co.colors.removeAll(); co.widths.removeAll(); co.dashes.removeAll()
         co.points = points; co.segments = segments
@@ -2085,7 +2087,11 @@ struct TrackMap: UIViewRepresentable {
         return sichereRegion(center, span)   // Kappt zu grosse Spannen, s. SpotsView.swift
     }
 
-    final class Coordinator: NSObject, MKMapViewDelegate {
+    @MainActor final class Coordinator: NSObject, MKMapViewDelegate {
+
+        var schutz: SchutzLader?
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) { schutz?.ausschnittGeaendert() }
         var colors: [ObjectIdentifier: UIColor] = [:]
         var widths: [ObjectIdentifier: CGFloat] = [:]
         var dashes: [ObjectIdentifier: [NSNumber]] = [:]   // gestrichelt (Startversuche)
@@ -2095,6 +2101,8 @@ struct TrackMap: UIViewRepresentable {
         var onSelectRun: ((Int) -> Void)?
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+
+            if let r = schutz?.renderer(for: overlay) { return r }
             guard let pl = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
             let r = MKPolylineRenderer(polyline: pl)
             r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue

@@ -981,10 +981,58 @@ enum Api {
         return try await request("/api/community/spot-map?accel_only=\(accelOnly)&sport=\(sp)", method: "GET", body: nil, auth: true)
     }
 
-    /// Heatmap der Spot-Karte (app/heatmap.py): Zellen im Ausschnitt, fuer alle gleich.
-    static func heatmap(period: String, z: Int, w: Double, s: Double, e: Double, n: Double) async throws -> HeatAntwort {
-        try await request("/api/community/heatmap?period=\(period)&z=\(z)&w=\(w)&s=\(s)&e=\(e)&n=\(n)",
-                          method: "GET", body: nil, auth: true)
+    /// Heatmap (app/heatmap.py): Zellen im Ausschnitt, fuer alle gleich. `art` foil = auf dem Foil,
+    /// start = Startpunkte; `sport` all oder eine Sportart (seit 16.10. alle Sportarten mit Laeufen).
+    static func heatmap(period: String, z: Int, w: Double, s: Double, e: Double, n: Double,
+                        art: String = "foil", sport: String = "all") async throws -> HeatAntwort {
+        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        return try await request("/api/community/heatmap?period=\(period)&z=\(z)&w=\(w)&s=\(s)&e=\(e)&n=\(n)&art=\(art)&sport=\(sp)",
+                                 method: "GET", body: nil, auth: true)
+    }
+
+    // --- Routen planen (PWA SpotHeatmap.tsx, 16.10.2026) ------------------------------------------
+    /// Verlaessliche Startplaetze eines Spots; mit `umkreisKm` > 0 auch die der Spots im Umkreis.
+    static func spotStartpositionen(_ spotId: Int, minStarts: Int, minFahrer: Int, sport: String, umkreisKm: Int) async throws -> [Startposition] {
+        struct A: Decodable { let positionen: [Startposition] }
+        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let a: A = try await request("/api/community/spot/\(spotId)/startpositionen?min_starts=\(minStarts)&min_fahrer=\(minFahrer)&sport=\(sp)&umkreis_km=\(umkreisKm)",
+                                     method: "GET", body: nil, auth: true)
+        return a.positionen
+    }
+
+    /// Wo man selbst an diesem Spot schon gestartet ist (nur eigene Sessions) — gruen in der Planung.
+    static func spotMeineStarts(_ spotId: Int, sport: String) async throws -> [[Double]] {
+        struct A: Decodable { let starts: [[Double]] }
+        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let a: A = try await request("/api/community/spot/\(spotId)/meine_starts?sport=\(sp)", method: "GET", body: nil, auth: true)
+        return a.starts
+    }
+
+    /// Gemerkte Routen eines Spots — oeffentlich, nur Datum; `eigeneId` nur bei den eigenen.
+    static func spotRouten(_ spotId: Int) async throws -> [GemerkteRoute] {
+        try await request("/api/community/spot/\(spotId)/routen", method: "GET", body: nil, auth: true)
+    }
+
+    /// Alle gemerkten Routen aller Spots (Community), mit Spotname.
+    static func alleRouten() async throws -> [GemerkteRoute] {
+        try await request("/api/community/routen", method: "GET", body: nil, auth: true)
+    }
+
+    /// Route merken; wirft ApiError.http(409, …), wenn an diesem Spot schon 20 gemerkt sind.
+    static func spotRouteMerken(_ spotId: Int, punkte: [[Double]], einstellungen: [String: Any]) async throws {
+        struct A: Decodable { let id: Int? }
+        let _: A = try await request("/api/community/spot/\(spotId)/routen", method: "POST",
+                                     body: ["punkte": punkte, "einstellungen": einstellungen], auth: true)
+    }
+
+    static func spotRouteVergessen(_ spotId: Int, id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/community/spot/\(spotId)/routen/\(id)", method: "DELETE", body: nil, auth: true)
+    }
+
+    /// Naturschutz-/FFH-Gebiete und Bade-/Fahrverbote im Ausschnitt (Server holt sie aus OSM).
+    static func schutzgebiete(w: Double, s: Double, e: Double, n: Double) async throws -> SchutzAntwort {
+        try await request("/api/community/schutzgebiete?w=\(w)&s=\(s)&e=\(e)&n=\(n)", method: "GET", body: nil, auth: true)
     }
 
     // Gruene Spots „gerade aktiv" (PWA spotActive, 14.10.2026; Regeln: server devices.aktive_spots).
