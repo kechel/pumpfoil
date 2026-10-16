@@ -2205,7 +2205,6 @@ const fi: Record<string, string> = {
   "routes.reliability": "väh. lähtöjä",
   "routes.riders": "väh. kuskeja",
   "routes.radius": "Säde",
-  "routes.radiusSpot": "spotti",
   "routes.spotInfo": "{name}: {starts} lähtöä {sessions} sessiosta, {fahrer} kuskia",
   "routes.minDist": "Väli väh. per osuus",
   "routes.maxDist": "Väli enint. per osuus",

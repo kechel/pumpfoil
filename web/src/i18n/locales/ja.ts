@@ -2161,7 +2161,6 @@ const ja: Record<string, string> = {
   "routes.reliability": "最少スタート数",
   "routes.riders": "最少ライダー数",
   "routes.radius": "半径",
-  "routes.radiusSpot": "スポット",
   "routes.spotInfo": "{name}: {fahrer} 人のライダー、{sessions} セッションで {starts} 回スタート",
   "routes.minDist": "区間ごとの最小距離",
   "routes.maxDist": "区間ごとの最大距離",

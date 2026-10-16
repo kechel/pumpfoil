@@ -2161,7 +2161,6 @@ const ptPT: Record<string, string> = {
   "routes.reliability": "mín. partidas",
   "routes.riders": "mín. riders",
   "routes.radius": "Raio",
-  "routes.radiusSpot": "spot",
   "routes.spotInfo": "{name}: {starts} partidas em {sessions} sessões de {fahrer} riders",
   "routes.minDist": "Distância mín. por troço",
   "routes.maxDist": "Distância máx. por troço",

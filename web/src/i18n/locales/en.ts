@@ -782,7 +782,6 @@ const en: Record<string, string> = {
   "routes.reliability": "min. starts",
   "routes.riders": "min. riders",
   "routes.radius": "Radius",
-  "routes.radiusSpot": "spot",
   "routes.spotInfo": "{name}: {starts} starts from {sessions} sessions by {fahrer} riders",
   "routes.minDist": "Min. distance per leg",
   "routes.maxDist": "Max. distance per leg",
