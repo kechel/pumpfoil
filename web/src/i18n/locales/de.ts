@@ -805,7 +805,7 @@ const de: Record<string, string> = {
   "routes.reliability": "mind. Starts",
   "routes.riders": "mind. Fahrer",
   "routes.radius": "Umkreis",
-  "routes.radiusSpot": "nur Spot",
+  "routes.radiusSpot": "Spot",
   "routes.spotInfo": "{name}: {starts} Starts aus {sessions} Sessions von {fahrer} Fahrern",
   "routes.minDist": "Abstand min. je Abschnitt",
   "routes.maxDist": "Abstand max. je Abschnitt",

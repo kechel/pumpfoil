@@ -259,8 +259,8 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
 //      Datum (nie wer). Im Planungsmodus stellt ein Klick das Formular wie
 //      beim Merken ein, rechnet und waehlt die Route aus — damit sieht man alle Details.
 // Rechnung in lib/routen.ts, gemerkte Routen: /api/community/spot/{id}/routen.
-const ZUVERLAESSIG = [2, 3, 5, 10];
-const FAHRER = [1, 2, 3, 5];
+const ZUVERLAESSIG = [2, 3, 5];         // ≥ 10× und Fahrer ≥ 5 am 16.10. raus (Jan: zu eng in der Zeile)
+const FAHRER = [1, 2, 3];
 const UMKREIS = [0, 2, 5, 10, 20, 30];   // km; 0 = nur dieser Spot (Server: hoechstens 30 km, 50 Startplaetze)
 const NAH_M = 40;                // gemerkter Punkt == heutiger Startpunkt, wenn so nah
 type Spalte = "empf" | "meter" | "legs" | "kreuz" | "doppelt";
