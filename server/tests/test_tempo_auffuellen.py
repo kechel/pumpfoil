@@ -21,9 +21,14 @@ def test_echter_stillstand_bleibt_null():
 
 
 def test_minus_eins_heisst_kein_tempo():
-    g = _spur([-1, -1, -1], schritt=2e-6)
-    out = tempo_auffuellen(g)
-    assert out[0][3] == 0.0 and all(0 < r[3] < 0.5 for r in out[1:])
+    assert [r[3] for r in tempo_auffuellen(_spur([-1, -1, -1], schritt=2e-6))] == [0.0, 0.0, 0.0]
+    assert all(3.6 < r[3] < 3.8 for r in tempo_auffuellen(_spur([-1, -1, -1, -1])))
+
+
+def test_springende_positionen_bleiben_null():
+    """#486: beim Einrasten springt die Position hin und her — die 0 der Uhr ist dort richtig."""
+    hin_her = [[i * 1000, 61.4760 + (0.0001 if i % 2 else 0), 23.8885, 0] for i in range(6)]
+    assert [r[3] for r in tempo_auffuellen(hin_her)] == [0] * 6
 
 
 def test_ohne_position_oder_tempo_nichts_tun():

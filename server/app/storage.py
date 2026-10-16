@@ -375,26 +375,59 @@ def load_gps(session_uuid: str, roh: bool = False) -> list:
     return out if roh else tempo_auffuellen(out)
 
 
-# Ab diesem Positions-Tempo ist ein gemeldetes Tempo 0 kein Stillstand, sondern eine Luecke.
-# Stehen/Treiben bleibt darunter (Positionsrauschen im Stand liegt bei wenigen dm/s).
-TEMPO_LUECKE_MPS = 1.0
+# Auffuellen nur aus einer GERADEN, plausiblen Bewegung ueber ±2 Punkte (4 s). Ein Schritt von
+# Punkt zu Punkt reicht nicht: beim Einrasten des Empfaengers springen die Positionen hin und her
+# (#486: 21 / 7,5 / 13 / 15 m/s im Stand) — das Tempo 0 der Uhr ist dort richtig.
+# Beide Grenzen entscheiden nur „Luecke oder Stillstand", NICHT „Lauf oder nicht": das tun danach
+# wie immer Profil-Empfindlichkeit (Einstieg ab 2,2 m/s) und Grenzen je Sportart. Oben deshalb
+# keine Pumpfoil-Grenze (Wing/Kite fahren bis 70 km/h), sondern dieselbe Glitch-Grenze wie
+# `analysis.gps.GLITCH_SPEED_MPS` (Jan, 16.10.2026).
+TEMPO_LUECKE_MPS = 1.0       # darunter: Stand/Treiben, die 0 bleibt
+TEMPO_FUELL_MAX_MPS = 90.0 / 3.6
+TEMPO_GERADE_MIN = 0.8      # Luftlinie / gefahrener Weg ueber das Fenster
+TEMPO_FENSTER = 2
+
+
+def _meter(p, q) -> float:
+    dy = (float(q[1]) - float(p[1])) * 111320.0
+    dx = (float(q[2]) - float(p[2])) * 111320.0 * math.cos(math.radians(float(q[1])))
+    return math.hypot(dx, dy)
+
+
+def _tempo_aus_spur(samples: list, i: int) -> float | None:
+    """Tempo um Punkt i aus der Spur ±TEMPO_FENSTER — nur, wenn sie gerade und plausibel ist."""
+    lo, hi = max(0, i - TEMPO_FENSTER), min(len(samples) - 1, i + TEMPO_FENSTER)
+    pts = samples[lo:hi + 1]
+    if len(pts) < 3:
+        return None
+    try:
+        if any(len(q) < 3 or q[1] is None or q[2] is None for q in pts):
+            return None
+        weg = sum(_meter(pts[k - 1], pts[k]) for k in range(1, len(pts)))
+        luft = _meter(pts[0], pts[-1])
+        dt = (float(pts[-1][0]) - float(pts[0][0])) / 1000.0
+    except (TypeError, ValueError):
+        return None
+    if dt <= 0 or weg <= 0 or luft / weg < TEMPO_GERADE_MIN:
+        return None
+    v = luft / dt
+    return v if TEMPO_LUECKE_MPS <= v <= TEMPO_FUELL_MAX_MPS else None
 
 
 def tempo_auffuellen(samples: list) -> list:
-    """Fehlendes Uhr-Tempo (Feld 4) aus den Positionen ersetzen. Die Datei bleibt unberuehrt.
+    """Fehlendes Uhr-Tempo (Feld 4) aus der Spur ersetzen. Die Datei bleibt unberuehrt.
 
-    Das Tempo der Uhr ist Doppler-Tempo vom GPS-Chip und genauer als zwei Positionen — es bleibt
-    die Quelle, auf der auch die Modelle trainiert sind. Ersetzt wird nur, was KEINE Messung ist:
-      * negativ (Wear ab 1.2.42: -1 = „Geraet liefert kein Tempo") -> immer aus den Positionen;
-      * genau 0, waehrend die Positionen >= TEMPO_LUECKE_MPS zeigen -> aus den Positionen.
-    Befund 16.10.2026 (#16840, Xiaomi Watch 2 Pro, Wear 1.2.41, damals noch 0 statt -1): in 37 %
-    der Fahrsekunden Tempo 0 bei sauberer Spur. Die Erkennung teilte zwei Laeufe mittendrin,
-    Startpunkte lagen im Wasser, die Tempo-Faerbung zeigte Nullen. Mit Auffuellen: 7 statt 8
-    Laeufe, wie die Startzaehlung, und unveraenderte Laeufe in den Sessions davor."""
+    Das Tempo der Uhr ist Doppler-Tempo vom GPS-Chip und genauer als Positionen — es bleibt die
+    Quelle, auf der auch die Modelle trainiert sind. Ersetzt wird nur, was KEINE Messung ist:
+    0 oder negativ (Wear ab 1.2.42: -1 = „kein Tempo"; aeltere Fassungen schrieben dafuer 0),
+    und auch das nur bei gerader, plausibler Bewegung (s. `_tempo_aus_spur`). Sonst wird
+    negativ zu 0 — genau das, was die Erkennung von aelteren Fassungen kennt.
+    Befund 16.10.2026 (#16840, Xiaomi Watch 2 Pro, Wear 1.2.41): in 37 % der Fahrsekunden Tempo 0
+    bei sauberer Spur. Die Erkennung teilte zwei Laeufe mittendrin, Startpunkte lagen im Wasser,
+    die Tempo-Faerbung zeigte Nullen. Mit Auffuellen: 7 statt 8 Laeufe, wie die Startzaehlung."""
     out = samples
-    for i in range(1, len(samples)):
-        r = samples[i]
-        if len(r) < 4 or r[3] is None:
+    for i, r in enumerate(samples):
+        if len(r) < 4 or r[3] is None or isinstance(r[3], bool):
             continue
         try:
             v_uhr = float(r[3])
@@ -402,30 +435,16 @@ def tempo_auffuellen(samples: list) -> list:
             continue
         if v_uhr > 0:
             continue
-        p = samples[i - 1]
-        v_pos = None
-        try:
-            dt = (float(r[0]) - float(p[0])) / 1000.0
-            if dt > 0 and None not in (r[1], r[2], p[1], p[2]):
-                dy = (float(r[1]) - float(p[1])) * 111320.0
-                dx = (float(r[2]) - float(p[2])) * 111320.0 * math.cos(math.radians(float(r[1])))
-                v_pos = math.hypot(dx, dy) / dt
-        except (TypeError, ValueError, IndexError):
-            v_pos = None
-        if v_uhr < 0:
-            neu = round(v_pos, 3) if v_pos is not None else 0.0
-        elif v_pos is not None and v_pos >= TEMPO_LUECKE_MPS:
-            neu = round(v_pos, 3)
+        v = _tempo_aus_spur(samples, i)
+        if v is not None:
+            neu = round(v, 3)
+        elif v_uhr < 0:
+            neu = 0.0
         else:
             continue
         if out is samples:
             out = list(samples)
         out[i] = list(r[:3]) + [neu] + list(r[4:])
-    if out and len(out[0]) > 3 and out[0][3] is not None and isinstance(out[0][3], (int, float)) \
-            and out[0][3] < 0:
-        if out is samples:
-            out = list(samples)
-        out[0] = list(out[0][:3]) + [0.0] + list(out[0][4:])
     return out
 
 
