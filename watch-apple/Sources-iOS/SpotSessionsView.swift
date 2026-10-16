@@ -15,6 +15,8 @@ struct SpotSessionsView: View {
     /// Sportart-Filter der Spot-Karte (27.09.2026), damit die Liste dieselbe Menge zeigt wie die
     /// Zahl am Pin. nil = Endpunkt-Default (Einstieg aus Session/Vergleich, unveraendert).
     var sport: String? = nil
+    /// Gemerkte Route aus der Community-Liste: im Panel „Heatmap & Routen" direkt aufrufen.
+    var routeId: Int? = nil
     @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     @State private var items: [CommunityItem] = []
@@ -32,6 +34,9 @@ struct SpotSessionsView: View {
     @State private var weather: SpotWeather?
     // Sportarten fuer die Rekord-Kaesten, nur wenn die Karte „alle Sportarten" mitgab.
     @State private var sportarten: [String] = []
+    // „Heatmap & Routen": Zustand hier (nicht in der Listenzeile), Lage des Spots fuer die Karte
+    @State private var heatZustand: SpotPanelZustand? = nil
+    @State private var spotOrt: (Double, Double)? = nil
 
     var body: some View {
         List {
@@ -53,6 +58,10 @@ struct SpotSessionsView: View {
             // der Liste), bei „alle" ein Kasten je Sportart (PWA a9725cb9).
             SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true,
                             sport: sport ?? "pumpfoil", sports: sportarten)
+            // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
+            if let hz = heatZustand, let ort = spotOrt {
+                Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: sport ?? "all", lang: lang, routeAusLink: routeId) }
+            }
             if let sw = weather { Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") } }
             // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst
             // im Task uebernommen — nach dem Laden der Sessions — und bis dahin (oder wenn der
@@ -101,6 +110,10 @@ struct SpotSessionsView: View {
             weather = try? await w
             if let m = (try? await karte)?.first(where: { $0.spot == spot }) {
                 spotId = m.spot_id
+                if let sid = m.spot_id, m.lat != 0 || m.lon != 0 {
+                    spotOrt = (m.lat, m.lon)
+                    if heatZustand?.spotId != sid { heatZustand = SpotPanelZustand(spotId: sid) }
+                }
                 if let wn = m.water, !wn.isEmpty, wn.lowercased() != spot.lowercased() { spotLabel = wn }
             }
         }

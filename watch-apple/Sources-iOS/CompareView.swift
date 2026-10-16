@@ -229,6 +229,7 @@ struct CompareView: View {
                     .frame(height: 240)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .mitKartenUmschalter()
+                    .schutzgebietSteuerung(lang: lang)
                     .padding(.horizontal)
                 if mapMode != .rider && mapMode != .track { gradientLegend }
                 if let plan { syncBedienzeile(plan) }
@@ -318,6 +319,7 @@ struct CompareView: View {
             compareMap(tracks)
                 .ignoresSafeArea()
                 .mitKartenUmschalter()
+                .schutzgebietSteuerung(lang: lang)
             Button { mapFull = false } label: {
                 Image(systemName: "xmark.circle.fill").font(.title).foregroundStyle(.white, .black.opacity(0.5))
             }.padding()
@@ -764,6 +766,7 @@ struct CompareMap: UIViewRepresentable {
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
         map.delegate = context.coordinator
+        context.coordinator.schutz = SchutzLader(map: map)   // Schutzgebiete (Schutzgebiete.swift)
         map.isRotateEnabled = false
         map.isPitchEnabled = false
         return map
@@ -771,7 +774,7 @@ struct CompareMap: UIViewRepresentable {
 
     func updateUIView(_ map: MKMapView, context: Context) {
         map.mapType = MapTiles.typ(ebene)
-        map.removeOverlays(map.overlays)
+        map.removeOverlays(map.overlays.filter { !($0 is SchutzPolygon) })
         map.removeAnnotations(map.annotations)
         let co = context.coordinator
         co.colors.removeAll()
@@ -913,10 +916,15 @@ struct CompareMap: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
-    final class Coordinator: NSObject, MKMapViewDelegate {
+    @MainActor final class Coordinator: NSObject, MKMapViewDelegate {
+
+        var schutz: SchutzLader?
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) { schutz?.ausschnittGeaendert() }
         var colors: [ObjectIdentifier: UIColor] = [:]
         var breiten: [ObjectIdentifier: CGFloat] = [:]   // Gleitphasen breiter (10), sonst 4
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let r = schutz?.renderer(for: overlay) { return r }
             guard let pl = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
             let r = MKPolylineRenderer(polyline: pl)
             r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue

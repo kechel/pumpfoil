@@ -302,6 +302,7 @@ struct RecordView: View {
             LiveTrackMap(track: rec.track, onFoil: rec.isFoiling)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .mitKartenUmschalter()
+                .schutzgebietSteuerung(lang: lang)
         }
     }
 
@@ -330,6 +331,7 @@ private struct LiveTrackMap: UIViewRepresentable {
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
         map.delegate = context.coordinator
+        context.coordinator.schutz = SchutzLader(map: map)   // Schutzgebiete (Schutzgebiete.swift)
         map.isRotateEnabled = false
         map.isPitchEnabled = false
         map.pointOfInterestFilter = .excludingAll
@@ -340,7 +342,7 @@ private struct LiveTrackMap: UIViewRepresentable {
     func updateUIView(_ map: MKMapView, context: Context) {
         map.mapType = MapTiles.typ(ebene)
         context.coordinator.onFoil = onFoil
-        map.removeOverlays(map.overlays)
+        map.removeOverlays(map.overlays.filter { !($0 is SchutzPolygon) })
         guard track.count >= 2 else { return }
         let coords = track.map { CLLocationCoordinate2D(latitude: $0[0], longitude: $0[1]) }
         map.addOverlay(MKPolyline(coordinates: coords, count: coords.count))
@@ -352,9 +354,14 @@ private struct LiveTrackMap: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
-    final class Coordinator: NSObject, MKMapViewDelegate {
+    @MainActor final class Coordinator: NSObject, MKMapViewDelegate {
+
+        var schutz: SchutzLader?
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) { schutz?.ausschnittGeaendert() }
         var onFoil = false
         func mapView(_ m: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let r = schutz?.renderer(for: overlay) { return r }
             guard let pl = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
             let r = MKPolylineRenderer(polyline: pl)
             // Brand-Cyan (#22d3ee) beim Foilen, sonst neutrales Grau.
