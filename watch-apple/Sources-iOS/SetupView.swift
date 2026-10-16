@@ -33,6 +33,11 @@ struct SetupView: View {
     @State private var nbName = ""
     @State private var nbVol = ""
     @State private var nbLen = ""
+    // Board bearbeiten (Alert mit drei Feldern)
+    @State private var editBoard: BoardBrief?
+    @State private var ebName = ""
+    @State private var ebVol = ""
+    @State private var ebLen = ""
     @State private var loading = true
 
     var body: some View {
@@ -49,6 +54,13 @@ struct SetupView: View {
         }
         .navigationTitle(Loc.t("setup.title", lang))
         .task { await load() }
+        .alert(Loc.t("setup.boardEdit", lang), isPresented: editBoardOffen) {
+            TextField(Loc.t("setup.boardNamePlaceholder", lang), text: $ebName)
+            TextField(Loc.t("setup.boardVolPlaceholder", lang), text: $ebVol).keyboardType(.decimalPad)
+            TextField(Loc.t("setup.boardLenPlaceholder", lang), text: $ebLen).keyboardType(.decimalPad)
+            Button(Loc.t("common.save", lang)) { Task { await updateBoard() } }
+            Button(Loc.t("common.cancel", lang), role: .cancel) { editBoard = nil }
+        }
     }
 
     // MARK: - Stabilizer
@@ -217,6 +229,15 @@ struct SetupView: View {
                 Text(boardSpecs(b)).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
+            Button {
+                ebName = b.name
+                ebVol = b.volume_l.map { fmtNum($0) } ?? ""
+                ebLen = b.length_cm.map { fmtNum($0) } ?? ""
+                editBoard = b
+            } label: { Image(systemName: "pencil").foregroundStyle(Color.secondary) }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Loc.t("setup.boardEdit", lang))
+                .padding(.trailing, 8)
             Button(role: .destructive) {
                 Task { await deleteBoard(b) }
             } label: { Image(systemName: "trash") }
@@ -330,6 +351,22 @@ struct SetupView: View {
             boards.append(created)
             nbName = ""; nbVol = ""; nbLen = ""
         }
+    }
+
+    private var editBoardOffen: Binding<Bool> {
+        Binding(get: { editBoard != nil }, set: { if !$0 { editBoard = nil } })
+    }
+
+    private func updateBoard() async {
+        guard let b = editBoard else { return }
+        let n = ebName.trimmingCharacters(in: .whitespaces)
+        guard !n.isEmpty else { editBoard = nil; return }
+        let vol = Double(ebVol.replacingOccurrences(of: ",", with: "."))
+        let len = Double(ebLen.replacingOccurrences(of: ",", with: "."))
+        if let neu = try? await Api.boardUpdate(b.id, name: n, volumeL: vol, lengthCm: len) {
+            boards = boards.map { $0.id == neu.id ? neu : $0 }
+        }
+        editBoard = nil
     }
 
     private func deleteBoard(_ b: BoardBrief) async {

@@ -722,6 +722,16 @@ enum Api {
         return try await request("/api/boards", method: "POST", body: body, auth: true)
     }
 
+    /// Board nachtraeglich bearbeiten (Nutzer-Feedback 16.10.2026: zwei gleich benannte Boards).
+    static func boardUpdate(_ id: Int, name: String, volumeL: Double?, lengthCm: Double?) async throws -> BoardBrief {
+        let body: [String: Any] = [
+            "name": name,
+            "volume_l": volumeL.map { $0 as Any } ?? NSNull(),
+            "length_cm": lengthCm.map { $0 as Any } ?? NSNull(),
+        ]
+        return try await request("/api/boards/\(id)", method: "PUT", body: body, auth: true)
+    }
+
     static func boardDelete(_ id: Int) async throws {
         try await sendVoid("/api/boards/\(id)", method: "DELETE")
     }
