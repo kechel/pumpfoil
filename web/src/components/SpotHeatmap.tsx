@@ -330,6 +330,12 @@ function RoutenVorschlag({ spotId, karte, offen }: { spotId: number; karte: L.Ma
     const empf = (a: Route, b: Route) => (a.kreuzungen - b.kreuzungen) || (a.doppelt - b.doppelt) || (a.wertung - b.wertung);
     return ergebnis.routen.filter((r) => richtung == null || r.richtung === richtung).sort(empf).slice(0, 20).sort(vgl);
   })();
+  // Nach jeder Berechnung die erste Route direkt auswaehlen (Jan) — ausser beim Aufrufen einer
+  // gemerkten, die waehlt ihre eigene (Effekt oben).
+  const ersteRoute = routen[0]?.punkte.join("-") ?? null;
+  useEffect(() => {
+    if (!wieder) setGewaehlt(ersteRoute);
+  }, [ergebnis]);  // eslint-disable-line react-hooks/exhaustive-deps
   const gewaehlteRoute = veraltet ? null : routen.find((r) => r.punkte.join("-") === gewaehlt) ?? null;
 
   // Karte: Startpunkte (nummeriert; Klick = Start) und die gewaehlte bzw. ueberlagerte Route.
