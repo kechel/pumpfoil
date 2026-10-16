@@ -2134,6 +2134,8 @@ const ja: Record<string, string> = {
   "routes.include": "再び含める",
   "routes.startPoints": "スタート",
   "routes.direction": "出発方向",
+  "routes.target": "目的地",
+  "routes.whyTarget": "この設定では選んだ目的地に到達できません。別の目的地を選ぶか、距離や地点数を変更してください。",
   "routes.anyDirection": "指定なし",
   "routes.reliability": "最少スタート数",
   "routes.riders": "最少ライダー数",

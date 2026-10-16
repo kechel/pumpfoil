@@ -2023,6 +2023,8 @@ const it: Record<string, string> = {
   "routes.include": "Includi di nuovo",
   "routes.startPoints": "Partenza",
   "routes.direction": "Partire verso",
+  "routes.target": "Arrivo",
+  "routes.whyTarget": "Con queste impostazioni l'arrivo scelto non è raggiungibile – scegline un altro o cambia distanza/numero di punti.",
   "routes.anyDirection": "qualsiasi",
   "routes.reliability": "min. partenze",
   "routes.riders": "min. rider",

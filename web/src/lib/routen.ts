@@ -24,8 +24,9 @@ export type Route = { punkte: number[]; meter: number; wertung: number; erstesZi
 // die verschiedenen Startpunkte; in `Route.punkte` steht der Start dann am Ende noch einmal.
 // ausgeschlossen: Startplaetze, die keine Route anfahren soll (Jan: „wenn man weiss, dass ein
 // bestimmter Start nicht funktioniert oder man selber da nicht starten kann").
+// ziel: ohne Rundkurs der Startplatz, an dem die Route enden soll (Jan); undefined = beliebig.
 export type RoutenOptionen = { punkte: number; ohneKreuzung: boolean; rundkurs?: boolean; jeRichtung?: number;
-                               ausgeschlossen?: Set<number> };
+                               ausgeschlossen?: Set<number>; ziel?: number };
 export type RoutenErgebnis = { routen: Route[]; gekuerzt: boolean; genutzt: number };
 
 // Grenzen gegen kombinatorisches Wachstum an grossen Seen (Jan, 16.10.2026: „aus Performance-
@@ -127,8 +128,11 @@ export function routenVorschlagen(pos: Startposition[], start: number, minM: num
       if (liste.length > k) liste.pop();
       return;
     }
+    // Ziel (ohne Rundkurs): erst als letzter Punkt anfahren, und der letzte Punkt MUSS es sein
+    const mitZiel = !opt.rundkurs && opt.ziel != null && opt.ziel !== start;
     for (const j of nachbarn[i]) {
       if (besucht.has(j)) continue;
+      if (mitZiel && (j === opt.ziel) !== (weg.length === ziel - 1)) continue;
       if (opt.ohneKreuzung && kreuztFrueheren(i, j)) continue;
       const rr = weg.length === 1 ? j : r;
       const kk = kehre(i, j);
@@ -163,6 +167,7 @@ export type KeinGrund =
   | { grund: "rundkurs" }                                // offen ginge es, zurueck zum Start nicht
   | { grund: "kreuzung" }                                // nur mit Ueberschneidungen
   | { grund: "punkte"; hoechstens: number }              // mit weniger Punkten ginge es
+  | { grund: "ziel" }                                    // zum gewaehlten Ziel geht es nicht
   | { grund: "unbekannt" };
 
 export function warumKeine(pos: Startposition[], start: number, minM: number, maxM: number,
@@ -178,6 +183,7 @@ export function warumKeine(pos: Startposition[], start: number, minM: number, ma
   const geht = (o: Partial<RoutenOptionen>) =>
     routenVorschlagen(pos, start, minM, maxM, { ...opt, ...o, jeRichtung: 1 }).routen.length > 0;
   if (opt.rundkurs && geht({ rundkurs: false })) return { grund: "rundkurs" };
+  if (!opt.rundkurs && opt.ziel != null && geht({ ziel: undefined })) return { grund: "ziel" };
   if (opt.ohneKreuzung && geht({ ohneKreuzung: false })) return { grund: "kreuzung" };
   for (let n = opt.punkte - 1; n >= 2; n--) if (geht({ punkte: n })) return { grund: "punkte", hoechstens: n };
   return { grund: "unbekannt" };

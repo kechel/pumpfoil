@@ -751,6 +751,8 @@ const pl: Record<string, string> = {
   "routes.include": "Uwzględnij ponownie",
   "routes.startPoints": "Start",
   "routes.direction": "Ruszaj w kierunku",
+  "routes.target": "Cel",
+  "routes.whyTarget": "Z tymi ustawieniami nie da się dotrzeć do wybranego celu – wybierz inny lub zmień odległość/liczbę punktów.",
   "routes.anyDirection": "dowolnie",
   "routes.reliability": "min. startów",
   "routes.riders": "min. riderów",
