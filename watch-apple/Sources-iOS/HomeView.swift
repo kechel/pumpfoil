@@ -143,7 +143,10 @@ struct HomeView: View {
                 Spacer()
                 recordButton
             }
-            if session.profile?.social_allowed != false { FreundePumpenZeile() }
+            if session.profile?.social_allowed != false {
+                FreundePumpenZeile()
+                FreundesAnfragenKarte()
+            }
         }
         .padding(.top, 12)
     }

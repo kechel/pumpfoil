@@ -319,6 +319,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             // Freunde gerade am Pumpen (15.10.2026) — direkt unter dem Gruss, daneben ist auf dem
             // Handy kein Platz. Unter 13 gibt es keine Freunde.
             if (social) FreundePumpenZeile(onOpenSpot)
+            if (social) FreundesAnfragenKarte()
             Spacer(Modifier.height(10.dp))
 
             // Hinweis auf eingehende Session-Übertragungen (Details/Annehmen in „Meine Sessions").

@@ -221,15 +221,27 @@ struct FreundeView: View {
 
     @ViewBuilder private func eingehendSection(_ l: FreundeListe) -> some View {
         if !l.eingehend.isEmpty {
-            Section(Loc.t("friends.incoming", lang)) {
+            Section {
                 ForEach(l.eingehend) { f in
                     zeile(f) { unterText(f.am.map { datum($0) }) } aktion: {
+                        // Ablehnen direkt und still (Jan, 16.10.2026) — der andere erfaehrt es nicht.
+                        Button(Loc.t("friends.decline", lang)) {
+                            Task {
+                                _ = try? await Api.friendDecline(f.user_id)
+                                await laden()
+                            }
+                        }
+                        .buttonStyle(.bordered)
                         Button(Loc.t("friends.accept", lang)) {
                             offen = FreundDialog(art: .annehmen, userId: f.user_id, name: f.name ?? "—")
                         }
                         .buttonStyle(.borderedProminent)
                     }
                 }
+            } header: {
+                Text(Loc.t("friends.incoming", lang))
+            } footer: {
+                Text(Loc.t("friends.declineSilent", lang))
             }
         }
     }
@@ -420,5 +432,76 @@ struct FreundePumpenZeile: View {
             }
         }
         .foregroundStyle(g)
+    }
+}
+
+/// Anfragen an mich, ganz oben auf der Startseite (Jan, 16.10.2026: „sollte vermutlich auch in meinem
+/// home gleich ganz oben mit auftauchen"). Annehmen oeffnet den Dialog mit dem Wortlaut, Ablehnen geht
+/// sofort und still — der andere erfaehrt es nicht. Wie FreundesAnfragen in web/src/components/Freundschaft.tsx.
+/// Steht in einem ScrollView (keine List), daher teilen sich die Knoepfe keine Tippflaeche.
+struct FreundesAnfragenKarte: View {
+    @AppStorage("appLang") private var lang = "de"
+    @State private var liste: [FreundKurz] = []
+    @State private var offen: FreundDialog?
+    @State private var foiler: FreundeView.FoilerZiel?
+
+    var body: some View {
+        inhalt
+            .task { await laden() }
+            .sheet(item: $foiler) { z in FoilerSheet(userId: z.id) }
+            .freundschaftDialog($offen, lang: lang) { dd, ablehnen in
+                Task {
+                    _ = try? await freundAktion(dd, ablehnen: ablehnen)
+                    await laden()
+                }
+            }
+            .padding(.top, liste.isEmpty ? 0 : 8)
+    }
+
+    private func laden() async {
+        guard let n = try? await Api.friendsCount() else { return }
+        if n == 0 { liste = []; return }
+        if let l = try? await Api.friends() { liste = l.eingehend }
+    }
+
+    // Leer: eine Zeile der Hoehe 0, sonst liefe `.task` nie (swiftui-leere-group-laedt-nicht).
+    @ViewBuilder private var inhalt: some View {
+        if liste.isEmpty {
+            Color.clear.frame(height: 0)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(liste) { f in eintrag(f) }
+                Text(Loc.t("friends.declineSilent", lang)).font(.footnote).foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.12)))
+        }
+    }
+
+    private func eintrag(_ f: FreundKurz) -> some View {
+        let name: String = f.name ?? "—"
+        let text: String = Loc.t("friends.incomingFrom", lang).replacingOccurrences(of: "{name}", with: name)
+        return VStack(alignment: .leading, spacing: 6) {
+            Button { foiler = FreundeView.FoilerZiel(id: f.user_id) } label: {
+                Text(text).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+            }
+            .buttonStyle(.plain)
+            HStack(spacing: 8) {
+                Spacer()
+                Button(Loc.t("friends.decline", lang)) {
+                    Task {
+                        _ = try? await Api.friendDecline(f.user_id)
+                        await laden()
+                    }
+                }
+                .buttonStyle(.bordered)
+                Button(Loc.t("friends.accept", lang)) {
+                    offen = FreundDialog(art: .annehmen, userId: f.user_id, name: name)
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
     }
 }

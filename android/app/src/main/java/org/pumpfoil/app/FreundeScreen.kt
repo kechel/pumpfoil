@@ -229,11 +229,18 @@ fun FreundeScreen(onBack: () -> Unit, onOpenFoiler: (Int) -> Unit, onOpenSpot: (
                 Abschnitt(I18n.t("friends.incoming")) {
                     l.eingehend.forEach { f ->
                         FreundZeile(f, onOpenFoiler, unterText = f.am?.let { langDatum(it) }) {
+                            // Ablehnen direkt und still (Jan, 16.10.2026) — der andere erfaehrt es nicht.
+                            OutlinedButton(onClick = { ausfuehren { Api.friendDecline(f.userId) } }, enabled = !busy) {
+                                Text(I18n.t("friends.decline"), maxLines = 1)
+                            }
+                            Spacer(Modifier.width(6.dp))
                             Button(onClick = { offen = Triple(FreundArt.ANNEHMEN, f.userId, f.name ?: "—") }) {
                                 Text(I18n.t("friends.accept"))
                             }
                         }
                     }
+                    Text(I18n.t("friends.declineSilent"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                 }
             }
             Abschnitt(I18n.t("friends.list") + if (l.freunde.isNotEmpty()) " (${l.freunde.size})" else "") {
@@ -381,5 +388,55 @@ fun FreundePumpenZeile(onOpenSpot: (String) -> Unit) {
                 }
             }
         }
+    }
+}
+
+/**
+ * Anfragen an mich, ganz oben auf der Startseite (Jan, 16.10.2026: „sollte vermutlich auch in meinem
+ * home gleich ganz oben mit auftauchen"). Annehmen oeffnet den Dialog mit dem Wortlaut, Ablehnen geht
+ * sofort und still — der andere erfaehrt es nicht. Wie FreundesAnfragen in web/src/components/Freundschaft.tsx.
+ */
+@Composable
+fun FreundesAnfragenKarte() {
+    var liste by remember { mutableStateOf<List<FreundKurz>>(emptyList()) }
+    var offen by remember { mutableStateOf<FreundKurz?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    var tick by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
+    val oeffneFoiler = LocalOpenFoiler.current
+    LaunchedEffect(tick) {
+        liste = try { if (Api.friendsCount() > 0) Api.friends().eingehend else emptyList() } catch (_: Exception) { liste }
+    }
+    fun ausfuehren(call: suspend () -> String?) {
+        busy = true
+        scope.launch {
+            try { call(); offen = null; tick++ } catch (_: Exception) {}
+            busy = false
+        }
+    }
+    if (liste.isEmpty()) return
+    Card(Modifier.fillMaxWidth().padding(top = 8.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            liste.forEach { f ->
+                Text(I18n.t("friends.incomingFrom").replace("{name}", f.name ?: "—"),
+                    style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { oeffneFoiler?.invoke(f.userId) })
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    OutlinedButton(onClick = { ausfuehren { Api.friendDecline(f.userId) } }, enabled = !busy) {
+                        Text(I18n.t("friends.decline"), maxLines = 1)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = { offen = f }, enabled = !busy) { Text(I18n.t("friends.accept")) }
+                }
+            }
+            Text(I18n.t("friends.declineSilent"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+    offen?.let { f ->
+        FreundschaftDialog(FreundArt.ANNEHMEN, f.name ?: "—", busy, onClose = { offen = null },
+            onJa = { ausfuehren { Api.friendAccept(f.userId) } },
+            onAblehnen = { ausfuehren { Api.friendDecline(f.userId) } })
     }
 }
