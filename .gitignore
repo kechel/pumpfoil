@@ -109,3 +109,5 @@ social-media/scripts/shorts-ui/dist/
 # SuuntoPlus Editor: Build-Ausgabe (Store-Paket .dev) und Simulator-Reste, nicht ins Repo
 watch-suunto/app/build/
 watch-suunto/app-debug/build/
+watch-suunto/app/*.zip
+watch-suunto/app-debug/*.zip
