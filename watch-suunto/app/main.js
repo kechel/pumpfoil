@@ -704,7 +704,7 @@ Anzeige.prototype.zeigen = function (befehle, output) {
 };
 
 /** Prozentwert, auf 0,1 gerundet, als CSS-Text. */
-var ANZ_MITTE = 0.8;
+var ANZ_MITTE = 0.9;
 var anzProz = function (v) { return Math.round(v * 10) / 10 + "%"; };
 
 Anzeige.prototype.text = function (id, b, k, a) {
@@ -712,8 +712,8 @@ Anzeige.prototype.text = function (id, b, k, a) {
   if (e.txt !== b.txt) { e.txt = b.txt; setText(id, b.txt); }
   var ax = b.x / 10, ay = b.y / 10, h = ANZ_KLASSEN[k][1] * 100 / 466;
   this.stil(id, "left", anzProz(a === "l" ? ax : a === "r" ? ax - 100 : ax - 50));
-  // Schriftmitte liegt ~0,8 Klassenhoehen unter der Oberkante des Elements (Zeilenhoehe > Ziffernhoehe),
-  // gemessen im Simulator 17.10. an sp-d-m und sp-t-m (beide 0,8) — auf der Uhr nachpruefen
+  // Schriftmitte liegt ~0,9 Klassenhoehen unter der Oberkante des Elements (Zeilenhoehe > Ziffernhoehe),
+  // gemessen im Simulator 17.10. an sp-d-m und sp-t-m (zwei Screenshots) — auf der Uhr nachpruefen
   this.stil(id, "top", anzProz(ay - h * ANZ_MITTE));
   this.stil(id, "color", b.c || "#ffffff");
   this.stil(id, "visibility", "visible");
@@ -1228,7 +1228,7 @@ var wahr = function (v) { return v === true || v === "true" || v === "1" || v ==
 
 // Texte: Feld-Beschriftungen aus derselben Tabelle wie Amazfit (watch-zepp), in ext1.js, damit sie
 // nur beim Sprachwechsel Speicher belegen.
-var t = function (k) { return (tx && tx[k]) || k; };
+var t = function (k, d) { return (tx && tx[k]) || d || k; };
 var textLaden = function () {
   tx = undefined;
   tx = evalFile("{file_path}/ext1.js")(sprache);
@@ -1289,7 +1289,7 @@ var zustandKurz = function () { return pause ? "p" : st.foiling ? "on" : "off"; 
  *  (laut Referenz nicht; im Simulator nicht, 17.10.). Update-Hinweis deshalb auch in anzeigen(). */
 var startBefehle = function () {
   var gps = zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%";
-  var handy = t("h.phone") + (!sync ? " –" : fu.zustand === 5 ? " ✓" : " …");
+  var handy = t("h.phone", "Phone") + (!sync ? " –" : fu.zustand === 5 ? " ✓" : " …");
   var w = "#ffffff", g = "#d0d0d0";
   return [
     { k: "r", x: 0, y: 0, w: 1000, h: 1000, c: "#000000" },
@@ -1315,13 +1315,13 @@ var anzeigen = function (el, lokalS, output) {
     befehle = zeichne(r[seite], { dw: 1000, dh: 1000, s: st, el: el / 1000, t: t, jetzt: new Jetzt(lokalS), k: kf,
       idx: seite, anzahl: n, pausiert: !!pause, rund: true });
   }
-  var z = handyZeile(), handyOk = z === t("h.phone") + " ✓";
+  var z = handyZeile(), handyOk = z === t("h.phone", "Phone") + " ✓";
   // Den Startbildschirm sieht man auf Suunto nie: der App-Bildschirm kommt erst nach dem Start
   // (Referenz, Ablauf: onExerciseStart -> getUserInterface). Darum der Update-Hinweis hier, 15 s lang.
   if (laeuft && tAkt < 15000 && neuereVersion() && (!z || handyOk)) { z = "Update " + kfRoh.latestVersion; handyOk = false; }
   if (z && !handyOk || (!laeuft && fu.handyNimmtAuf())) {
     // oben statt unten: unten sitzen die Seitenpunkte (94 %), und der runde Rand schneidet ab (Simulator 17.10.)
-    befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || t("h.phone") + " REC!", b: false });
+    befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || t("h.phone", "Phone") + " REC!", b: false });
   }
   anz.zeigen(befehle, output);
 };
@@ -1382,7 +1382,7 @@ feld = function (s, id, el, tt, jetzt) {
 var handyZeile = function () {
   if (!sync) return "";
   var v = fu.verlorenS(), z;
-  var h = t("h.phone");
+  var h = t("h.phone", "Phone");
   if (fu.zustand !== 5) z = h + " …";
   else if (fu.handyNimmtAuf()) z = h + " REC!";       // das Handy nimmt selbst auf -> doppelt
   else if (fu.rueckstandS() > 5) z = h + " " + fu.rueckstandS() + " s";
@@ -1460,7 +1460,8 @@ function onExerciseEnd(input, output) {
 }
 
 function onEvent(input, output, id) {
-  // Tasten auf der App-Seite: 1 = hoch (vorige Seite), 2 = runter (naechste Seite)
+  // Untere Taste (2) = naechste Seite, im Kreis. 1 (vorige) belegt die Vorlage nicht: die obere Taste
+  // ist auf Suunto Start/Pause/Stopp und muss der Firmware bleiben.
   var n = laeuft ? ring(kf, zustandKurz()).length : 1;
   if (id === 1) seite = (seite + n - 1) % n;
   if (id === 2) seite = (seite + 1) % n;

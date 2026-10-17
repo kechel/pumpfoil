@@ -110,7 +110,7 @@ Anzeige.prototype.zeigen = function (befehle, output) {
 };
 
 /** Prozentwert, auf 0,1 gerundet, als CSS-Text. */
-var ANZ_MITTE = 0.8;
+var ANZ_MITTE = 0.9;
 var anzProz = function (v) { return Math.round(v * 10) / 10 + "%"; };
 
 Anzeige.prototype.text = function (id, b, k, a) {
@@ -118,8 +118,8 @@ Anzeige.prototype.text = function (id, b, k, a) {
   if (e.txt !== b.txt) { e.txt = b.txt; setText(id, b.txt); }
   var ax = b.x / 10, ay = b.y / 10, h = ANZ_KLASSEN[k][1] * 100 / 466;
   this.stil(id, "left", anzProz(a === "l" ? ax : a === "r" ? ax - 100 : ax - 50));
-  // Schriftmitte liegt ~0,8 Klassenhoehen unter der Oberkante des Elements (Zeilenhoehe > Ziffernhoehe),
-  // gemessen im Simulator 17.10. an sp-d-m und sp-t-m (beide 0,8) — auf der Uhr nachpruefen
+  // Schriftmitte liegt ~0,9 Klassenhoehen unter der Oberkante des Elements (Zeilenhoehe > Ziffernhoehe),
+  // gemessen im Simulator 17.10. an sp-d-m und sp-t-m (zwei Screenshots) — auf der Uhr nachpruefen
   this.stil(id, "top", anzProz(ay - h * ANZ_MITTE));
   this.stil(id, "color", b.c || "#ffffff");
   this.stil(id, "visibility", "visible");

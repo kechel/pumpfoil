@@ -201,7 +201,8 @@ export function vorlage() {
 ${texte}
   </div>
   <userInput>
-    <pushButton name="up" onClick="$.put('/Zapp/{zapp_index}/Event', 1, null, 'int32');" />
+    <!-- nur die untere Taste blaettert (wie Suuntos Beispiel MultiView); die obere bleibt Start/Pause/Stopp.
+         17.10.: mit „up" belegt liess sich die Aufnahme im Simulator nicht mehr anhalten. -->
     <pushButton name="down" onClick="$.put('/Zapp/{zapp_index}/Event', 2, null, 'int32');" />
   </userInput>
 </uiView>
