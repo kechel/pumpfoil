@@ -132,6 +132,16 @@ DFT (Hann, 4 s, Bins wie der Server) auf 10 Hz im Band 0,8–2 Hz, je Periode ei
 Zeitpunkt ist das Signal-Maximum der Periode (Parabel, Filterverzoegerung abgezogen). In Node gegen den Server-Zaehler
 auf echten Garmin-Laeufen geprueft (`watch-suunto/test/`).
 
+**Gegen die Brett-Wahrheit anderer Fahrer** (`scripts/suunto-pumpen-paare.py`, rein lesend, 17.10.2026):
+10 Paare Brett-Handy + Uhr mit Ausrichtung <= 400 ms (u2, u244, u683 mit Apple Watch Series 10 u. a.),
+36 Laeufe: Brett 2346, Server-Zaehler auf der Uhr 2353, **Suunto-Zaehler auf der Uhr 2365 (+0,8 %)**;
+Zeitpunkte je Brett-Pump zum naechsten Suunto-Pump median 0,067 s, p90 0,215 s, 92 % unter 0,25 s
+(inkl. Ausrichtungsfehler). **Foil Scoot** (u267, Brett #16729 + Uhr #16719, 8 Laeufe, 49 min): Brett
+4389, Server-auf-Uhr 4368, Suunto 4457 (+1,5 %) — dort nur die Anzahl, die Feinausrichtung scheitert
+(Brett und Arm bewegen sich beim Scooter anders). Einschraenkung: auch die „Brett-Wahrheit" zaehlt mit
+demselben Kadenz-Verfahren; der Vergleich zeigt, dass die Uhr den Server trifft, nicht mehr
+(Grenzen des Verfahrens: `docs/GROUND-TRUTH.md`).
+
 ## Code
 
 - `watch-suunto/quelle/` — main.js-Bausteine (ES5), `lauf.js` + `seiten.js` kommen aus
