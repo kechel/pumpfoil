@@ -1478,6 +1478,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **17.10. — Suunto-App (SuuntoPlus) gebaut, NIE auf Hardware gelaufen.** Plan + Protokoll + offene
+  Fragen: `docs/SUUNTO.md`. Uhr `watch-suunto/` (Datenseiten aus dem Profil, Lauf-Regeln/Alarme aus
+  watch-huawei/common, Pump-Zaehler + Pump-Marker in 5 Log-Kanaelen, Funk zum Handy), Bruecke Android
+  (`SuuntoBruecke.kt`) + iOS (`SuuntoBruecke.swift`, xcodegen!), Server-Dedup Cloud-Import vs. Bruecke.
+  **Naechste Schritte (Jan, Mac + Race/Vertical):** (1) Editor, `watch-suunto/app/` auf die Uhr, Systemlog:
+  kommen Beschleunigungswerte, welche Einheit, `onAccelerometer` oder `evaluate`? (2) BLE: wie viele
+  Schreibvorgaenge/s dauerhaft (25 vs 50 Hz), Rueckstand im Status? (3) Nimmt die Firmware `type:"device"`
+  mit sofortigem `con=1` ohne Geraet? (4) Ein echtes Workout: stehen die Log-Kanaele (pf_*) in der FIT der
+  Cloud-API? Dann Server-Import der Kanaele bauen (Weg 1). (5) Store-Einreichung ueber das Partnerprofil.
+  Offen im Code: STATUS-Paket (0x82) schicken die Handys noch nicht; freie Layouts (Canvas) erst nach
+  Hardware-Test; Rohdaten nur mit Handy in Reichweite (RAM ~80 s, localStorage zu klein).
+
 - **15.10. — „Gerade am Pumpen": Spot aus Uhr-Position und Upload. Server ✅ LIVE (8b958905), Uhren im
   Code.** Jans Vorgaben: die Uhr meldet im Startbildschirm beim ersten GPS-Fix einmal ihre Position;
   Spot <= 1 km -> dort aktiv, sonst zaehlt man NICHT (Emulator zu Hause). Ein Upload ersetzt den Spot;
