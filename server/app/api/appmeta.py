@@ -619,6 +619,8 @@ PRUEFER = {
     "Huawei Watch 5": "Huawei AppGallery",
     "Huawei Watch GT / Fit / D": "Huawei AppGallery",
     "Huawei Watch 3 / 4": "Huawei AppGallery",
+    # SuuntoPlus-App (watch-suunto/, docs/SUUNTO.md), seit 17.10.2026 unter coming next.
+    "Suunto": "the SuuntoPlus store",
 }
 
 
@@ -927,6 +929,14 @@ NAECHSTES: list[dict] = [
     # Huawei 1.0.2 (Watch 5) am 13.10. eingereicht -> IN_REVIEW.
     # Die beiden anderen Huawei-Linien, offen mit Stand (Jan, 13.10.2026). Code liegt in
     # watch-huawei/lite bzw. watch-huawei/wearable, im Simulator geprueft, nie auf Hardware.
+    # 17.10.2026 (Jan: „suunto darf dann auch unter coming next"): SuuntoPlus-App gebaut (watch-suunto/,
+    # Bruecken Android/iOS, Server), nie auf Hardware gelaufen — erst Test auf Race/Vertical, dann Einreichung.
+    {"name": "Suunto", "version": "1.00",
+     "items": [
+         "New: a Pumpfoil app for Suunto watches (Race, Vertical, 9 Peak Pro, Ocean) with your own data screens from your profile, run detection with vibration and speed alarms.",
+         "The watch counts your pumps itself and saves them in your Suunto workout, so pumps and cadence arrive even without your phone.",
+         "With the Pumpfoil phone app nearby, the watch also sends its full motion data, uploaded while you ride, during a pause and at the end.",
+     ]},
     {"name": "Huawei Watch GT / Fit / D", "version": "later",
      "spaeter": "comes after the Watch 5",
      "items": [
