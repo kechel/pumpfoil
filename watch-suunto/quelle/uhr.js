@@ -176,7 +176,7 @@ var anzeigen = function (el, lokalS, output) {
   if (laeuft && tAkt < 15000 && neuereVersion() && (!z || handyOk)) { z = "Update " + kfRoh.latestVersion; handyOk = false; }
   if (z && !handyOk || (!laeuft && fu.handyNimmtAuf())) {
     // oben statt unten: unten sitzen die Seitenpunkte (94 %), und der runde Rand schneidet ab (Simulator 17.10.)
-    befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || t("h.phone", "Phone") + " REC!", b: false });
+    befehle.push({ k: "t", x: 500, y: DEBUG ? 135 : 75, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || t("h.phone", "Phone") + " REC!", b: false });
   }
   if (DEBUG) {   // Zustand direkt auf dem Display: lauf/pause/foil, Seite, letztes Ereignis
     befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#ffcc00", a: "c", b: false,
