@@ -1,0 +1,20 @@
+<!-- Pumpfoil: Datenseite (3 Felder, belegt aus dem Profil, s. quelle/uhr.js anzeigen) -->
+<uiView>
+  <div id="suuntoplus">
+    <div class="cm-fg" style="width:100%;height:22%;">
+      <div id="t" class="sp-t-m p-hc" style="top:calc(62% - 50%e);">PUMPFOIL</div>
+    </div>
+    <div id="v1" class="sp-d-xl f-num p-hc" style="top:calc(38% - 50%e);">-</div>
+    <div id="l1" class="sp-t-s cm-mid p-hc" style="top:calc(51% - 50%e);">-</div>
+    <div class="cm-fg p-hc" style="top:57%;width:2px;height:24%;opacity:0.4;"></div>
+    <div id="v2" class="sp-d-s f-num" style="top:calc(65% - 50%e);left:calc(28% - 50%e);">-</div>
+    <div id="l2" class="sp-t-s cm-mid" style="top:calc(75% - 50%e);left:calc(28% - 50%e);">-</div>
+    <div id="v3" class="sp-d-s f-num" style="top:calc(65% - 50%e);left:calc(72% - 50%e);">-</div>
+    <div id="l3" class="sp-t-s cm-mid" style="top:calc(75% - 50%e);left:calc(72% - 50%e);">-</div>
+    <div id="s" class="sp-t-s sp-c-cyan p-hc" style="top:calc(88% - 50%e);">-</div>
+  </div>
+  <userInput>
+    <pushButton name="up" onClick="$.put('/Zapp/{zapp_index}/Event', 1, null, 'int32');" />
+    <pushButton name="down" onClick="$.put('/Zapp/{zapp_index}/Event', 2, null, 'int32');" />
+  </userInput>
+</uiView>
