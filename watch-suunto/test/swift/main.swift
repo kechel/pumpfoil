@@ -70,3 +70,15 @@ let seite: [Any] = [1, 0, [[1, 700, 120, 5, 0, 0, 20], [1, 300, 125, 5, 0, 0, 1]
                           [1, 500, 820, 3, 0, 0, 1]]]
 if SuuntoKonfig.seiteKurz(seite) != [2, 1, 20, 14, 12] { fail("Layout kurz: \(String(describing: SuuntoKonfig.seiteKurz(seite)))") }
 print("OK: freies Layout -> [2, 1, 20, 14, 12]")
+
+// 5) Standard-Layouts als std, Standardwerte weg (wie Kotlin-Test)
+let lay: [Any] = [[1, 0, [[1, 500, 300, 7, 0, 0, 1]]]]
+let cfg5: [String: Any] = ["pages": lay, "offFoilPages": lay, "pausePages": lay,
+                           "standardSeiten": ["pages", "offFoilPages"], "standardHash": NSNumber(value: Int64(2159656918)),
+                           "browseAll": true, "alarmRepeatS": 5, "speedHigh": 25, "hrZones": [95, 114, 133, 152, 171, 190]]
+let o5 = try! JSONSerialization.jsonObject(with: SuuntoKonfig.fuerUhr(cfg5, appSprache: "en", uhrStdHash: 2159656918).data(using: .utf8)!) as! [String: Any]
+if (o5["pages"] as? String) != "std" || (o5["offFoilPages"] as? String) != "std" || (o5["pausePages"] as? [Any])?.count != 1 { fail("std") }
+if o5["browseAll"] != nil || o5["alarmRepeatS"] != nil || o5["hrZones"] != nil || (o5["speedHigh"] as? Int) != 25 { fail("Standardwerte") }
+let o6 = try! JSONSerialization.jsonObject(with: SuuntoKonfig.fuerUhr(cfg5, appSprache: "en", uhrStdHash: 1).data(using: .utf8)!) as! [String: Any]
+if (o6["pages"] as? [Any])?.count != 1 { fail("andere Pruefsumme") }
+print("OK: Standard-Layouts als std, Standardwerte weggelassen")

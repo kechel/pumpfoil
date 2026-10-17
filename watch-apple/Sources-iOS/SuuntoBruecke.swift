@@ -208,7 +208,7 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
             guard let (d, r) = try? await URLSession.shared.data(for: req), (r as? HTTPURLResponse)?.statusCode == 200,
                   let cfg = (try? JSONSerialization.jsonObject(with: d)) as? [String: Any] else { konfigFuer = -1; return }
             let lang = UserDefaults.standard.string(forKey: "appLang")
-            warteschlange += SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, appSprache: lang)).map { Data($0) }
+            warteschlange += SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, appSprache: lang, uhrStdHash: h.stdHash)).map { Data($0) }
             quittungSenden(sofort: true)
         }
     }

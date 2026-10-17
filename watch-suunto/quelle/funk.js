@@ -31,6 +31,7 @@ var Funk = function (slots, gpsSlots) {
   this.inFlug = 0; this.flugS = 0; this.fehler = 0;
   this.handy = 0; this.offen = 0; // aus STATUS
   this.uhrId = 0; this.hz = 25; this.einheit = 0; this.display = 113; this.appVer = 0;
+  this.stdHash = 0;               // Pruefsumme der mitgebrachten Standard-Layouts (HALLO)
   this.position = null;           // [lat, lon] e7, einmal je App-Start
   this.pakete = 0;                // gesendet (Statistik)
 };
@@ -113,8 +114,8 @@ Funk.prototype.naechstes = function () {
   if (this.halloFaellig) {
     this.halloFaellig = 0;
     p = [1, FUNK_VER, this.hz, this.display, this.appVer & 255, (this.appVer >> 8) & 255, 0, 0, 0, 0, 0, 0, 0, 0,
-      (this.laeuft ? 1 : 0) | (this.pause ? 2 : 0), this.einheit];
-    funkI32(p, 6, this.uhrId); funkI32(p, 10, this.sitzung);
+      (this.laeuft ? 1 : 0) | (this.pause ? 2 : 0), this.einheit, 0, 0, 0, 0];
+    funkI32(p, 6, this.uhrId); funkI32(p, 10, this.sitzung); funkI32(p, 16, this.stdHash);
     return p;
   }
   for (i = 0; i < this.ereig.length; i++) {

@@ -149,11 +149,11 @@ object SuuntoBruecke {
     }
 
     /** Konfiguration der Uhr (Seiten, Alarme, Sprache) vom Server, gekuerzt und in KONFIG-Paketen. */
-    internal suspend fun konfigPakete(app: Context, uhrId: Long, label: String, appVer: Int): List<ByteArray>? {
+    internal suspend fun konfigPakete(app: Context, uhrId: Long, label: String, appVer: Int, stdHash: Long): List<ByteArray>? {
         val t = token(app, uhrId, label) ?: return null
         return try {
             val cfg = Ingest.get("/api/devices/config?p=suunto&v=" + "%d.%02d".format(appVer / 100, appVer % 100), t)
-            SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, I18n.lang))
+            SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, I18n.lang, stdHash))
         } catch (e: Exception) { Log.w(TAG, "konfig", e); null }
     }
 
@@ -397,7 +397,7 @@ class SuuntoDienst : Service() {
                 if (konfigFuer != h.uhrId) {
                     konfigFuer = h.uhrId
                     SuuntoBruecke.scope.launch {
-                        val k = SuuntoBruecke.konfigPakete(this@SuuntoDienst, h.uhrId, SuuntoAblage.modell(h.display), h.appVer)
+                        val k = SuuntoBruecke.konfigPakete(this@SuuntoDienst, h.uhrId, SuuntoAblage.modell(h.display), h.appVer, h.stdHash)
                         if (k == null) takt.execute { konfigFuer = -1L }   // naechstes HALLO versucht es erneut
                         else takt.execute { warteschlange.addAll(k); notifyWeiter() }
                     }

@@ -12,7 +12,7 @@ enum SuuntoProtokoll {
     static let accelScale = 2048
 
     struct Hallo { let ver: Int; let hz: Int; let display: Character; let appVer: Int; let uhrId: Int64
-                   let sitzung: Int64; let laeuft: Bool; let pause: Bool; let einheit: Int }
+                   let sitzung: Int64; let laeuft: Bool; let pause: Bool; let einheit: Int; let stdHash: Int64 }
     struct Block { let nr: Int64; let t: Int64; let werte: [Int16] }
     struct Gps { let nr: Int64; let sek: Int; let lat: Double; let lon: Double; let speed: Double
                  let hr: Int; let acc: Int?; let alt: Int }
@@ -59,7 +59,7 @@ final class SuuntoEmpfang {
         case 1 where p.count >= 16:
             hallo = .init(ver: p.u8(1), hz: p.u8(2), display: Character(UnicodeScalar(p[3])), appVer: p.u16(4),
                           uhrId: p.u32(6), sitzung: p.u32(10), laeuft: p.u8(14) & 1 != 0, pause: p.u8(14) & 2 != 0,
-                          einheit: p.u8(15))
+                          einheit: p.u8(15), stdHash: p.count >= 20 ? p.u32(16) : 0)
         case 2 where p.count >= 8:
             let nr = vollzaehler(p.u16(1), blockBis)
             if nr > blockBis {
@@ -394,13 +394,37 @@ enum SuuntoKonfig {
     static let spalte: [String: Int] = ["de": 0, "gsw": 1, "de-AT": 2, "en": 3, "fr": 4, "it": 5, "es": 6,
         "pt": 7, "pt-PT": 7, "id": 8, "ru": 9, "nl": 10, "fi": 11, "cs": 12, "ja": 13, "zh": 14]
 
-    static func fuerUhr(_ config: [String: Any], appSprache: String?) -> String {
+    /// Werte, die die Uhr ohnehin annimmt (lauf.js Konfig) — weggelassen, ihr Speicher ist ~2 KB klein.
+    static let standard: [String: String] = ["views": "[[1,2,0]]", "offFoilView": "[12,17,16]", "pauseView": "[12,20,2]",
+        "browseAll": "true", "layoutsOn": "true", "colorByValue": "false", "alarmEnabled": "false",
+        "alarmDefault": "\"foil\"", "speedLow": "0", "speedHigh": "0", "hrHigh": "0", "alarmPatternHigh": "\"short2\"",
+        "alarmPatternLow": "\"long2\"", "alarmPatternHr": "\"short1\"", "alarmRepeat": "\"once\"", "alarmRepeatS": "5",
+        "runDistM": "0", "runDistMode": "\"once\"", "alarmPatternDist": "\"short1\"", "runTimeS": "0",
+        "runTimeMode": "\"once\"", "alarmPatternTime": "\"short2\"", "latestVersion": "\"\"",
+        "hrZones": "[95,114,133,152,171,190]", "speedZones": "[8,12,16,20,24,28]", "foils": "[]"]
+
+    /// JSON-Text eines Werts zum Vergleich mit `standard` (JSONSerialization schreibt Bool als true/false).
+    static func jsonText(_ v: Any) -> String {
+        if let s = v as? String { return "\"" + s + "\"" }
+        if let d = try? JSONSerialization.data(withJSONObject: [v]), let t = String(data: d, encoding: .utf8) {
+            return String(t.dropFirst().dropLast())
+        }
+        return ""
+    }
+
+    static func fuerUhr(_ config: [String: Any], appSprache: String?, uhrStdHash: Int64 = 0) -> String {
         var o: [String: Any] = [:]
-        for s in schluessel { if let v = config[s] { o[s] = v } }
-        // Seiten vollstaendig: die Uhr zeichnet freie Layouts selbst (watch-suunto/quelle/anzeige.js)
-        for s in seiten { if let a = config[s] as? [Any], !a.isEmpty { o[s] = a } }
+        for s in schluessel { if let v = config[s], standard[s] != jsonText(v) { o[s] = v } }
+        var std = Set<String>()
+        if uhrStdHash != 0, (config["standardHash"] as? NSNumber)?.int64Value == uhrStdHash {
+            std = Set((config["standardSeiten"] as? [String]) ?? [])
+        }
+        // Seiten vollstaendig (die Uhr zeichnet freie Layouts selbst) oder „std" fuer die mitgebrachten
+        for s in seiten {
+            if std.contains(s) { o[s] = "std" } else if let a = config[s] as? [Any], !a.isEmpty { o[s] = a }
+        }
         if let fs = config["foils"] as? [[String: Any]] {
-            o["foils"] = fs.map { f -> [String: Any] in
+            o["foils"] = fs.isEmpty ? nil : fs.map { f -> [String: Any] in
                 ["id": f["id"] ?? NSNull(), "label": String(((f["label"] as? String) ?? "").prefix(24)),
                  "min": f["min"] ?? NSNull(), "max": f["max"] ?? NSNull()]
             }

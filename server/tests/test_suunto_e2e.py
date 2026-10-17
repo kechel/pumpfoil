@@ -64,3 +64,18 @@ def test_suunto_bruecke_aufnahme_kommt_an_und_cloud_import_doppelt_nicht(client)
         assert bruecken_session(db, s.user_id, s.started_at + timedelta(hours=1)) is None
     finally:
         db.close()
+
+
+def test_config_sagt_der_suunto_welche_seiten_standard_sind(client):
+    from app import standard_layouts as SL
+    jwt = client.post("/api/auth/register", json={"email": "suunto-std@b.de", "password": "supersecret"}).json()["access_token"]
+    tok = client.post("/api/devices/mint", params={"label": "Suunto Race"},
+                      headers={"Authorization": f"Bearer {jwt}"}).json()["device_token"]
+    c = client.get("/api/devices/config", params={"p": "suunto"}, headers={"X-Device-Token": tok}).json()
+    assert c["standardSeiten"] == ["pages", "offFoilPages", "pausePages"]
+    assert c["standardHash"] == SL.pruefsumme()
+    # andere Plattformen bekommen die Schluessel nicht
+    tok2 = client.post("/api/devices/mint", params={"label": "Garmin"},
+                       headers={"Authorization": f"Bearer {jwt}"}).json()["device_token"]
+    c2 = client.get("/api/devices/config", params={"p": "garmin"}, headers={"X-Device-Token": tok2}).json()
+    assert "standardSeiten" not in c2

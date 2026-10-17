@@ -163,6 +163,21 @@ class SuuntoKonfigTest {
         val o = JSONObject(SuuntoKonfig.fuerUhr(cfg.toString()))
         assertEquals(2, o.getJSONArray("pages").length())
         assertEquals(1, o.getJSONArray("pages").getJSONArray(0).getInt(0))   // unverkuerzt
-        assertEquals(true, o.getBoolean("layoutsOn"))
+        assertTrue(!o.has("layoutsOn"))   // true ist Standard und wird weggelassen
+    }
+
+    @Test fun standardLayoutsAlsStdUndStandardwerteWeg() {
+        val lay = org.json.JSONArray("[[1,0,[[1,500,300,7,0,0,1]]]]")
+        val cfg = JSONObject().put("pages", lay).put("offFoilPages", lay).put("pausePages", lay)
+            .put("standardSeiten", org.json.JSONArray("[\"pages\",\"offFoilPages\"]")).put("standardHash", 2159656918L)
+            .put("browseAll", true).put("alarmRepeatS", 5).put("speedHigh", 25).put("hrZones", org.json.JSONArray("[95,114,133,152,171,190]"))
+        val o = JSONObject(SuuntoKonfig.fuerUhr(cfg.toString(), "en", 2159656918L))
+        assertEquals("std", o.getString("pages")); assertEquals("std", o.getString("offFoilPages"))
+        assertEquals(1, o.getJSONArray("pausePages").length())   // selbst geaendert -> vollstaendig
+        assertTrue(!o.has("browseAll") && !o.has("alarmRepeatS") && !o.has("hrZones"))
+        assertEquals(25, o.getInt("speedHigh"))
+        // andere Pruefsumme (Uhr mit alten Standard-Layouts) -> alles vollstaendig
+        val alt = JSONObject(SuuntoKonfig.fuerUhr(cfg.toString(), "en", 1L))
+        assertEquals(1, alt.getJSONArray("pages").length())
     }
 }

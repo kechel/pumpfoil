@@ -164,6 +164,21 @@ demselben Kadenz-Verfahren; der Vergleich zeigt, dass die Uhr den Server trifft,
   Verbindung muss bei geoeffneter App zustande kommen; einmal verbunden, haelt sie im Hintergrund
   (`bluetooth-peripheral`).
 
+## Speicher der Uhr: wie gross ist die Konfiguration? (17.10.2026, gemessen)
+
+`localStorage`/`data.json` fasst laut Google-KI ~2 KB [UNKLAR]. Gemessen ueber alle 733 Nutzer (je das
+zuletzt benutzte Geraet), was das Handy schicken wuerde:
+- ungekuerzt mit freien Layouts: median 2.283 B (303 von 325 Nutzern haben exakt die **Standard-Layouts**
+  des Servers, 1.647 B), nur klassisch: median 629 B.
+- **Darum:** die Standard-Layouts bringt die App fest mit (`app/ext2.js` im Flash, aus
+  `server/app/data/standard_layouts.json`, Pruefsumme im HALLO wie `standard_layouts.pruefsumme()`); der
+  Server sagt fuer `p=suunto`, welche Saetze Standard sind (`standardSeiten`, `standardHash`), das Handy
+  schickt dafuer nur `"std"` — bei anderer Pruefsumme (Standard spaeter geaendert) alles vollstaendig.
+  Werte, die der Uhr-Standard ohnehin sind, laesst das Handy weg.
+- **Ergebnis:** median 164 B, p90 291 B, p99 1.152 B; ueber 2 KB nur noch 1 Nutzer (7,4 KB, sehr viele
+  Foils), ueber 1,5 KB 3. Passt es nicht, gilt die volle Konfiguration bis zum App-Neustart und
+  gespeichert wird sie ohne Layouts.
+
 ## Abgleich mit den anderen Uhren (17.10.2026)
 
 Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmin, Wear, Apple, Zepp, Huawei.

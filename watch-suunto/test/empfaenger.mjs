@@ -19,7 +19,8 @@ export class Empfaenger {
     const typ = p[0] & 15, dv = new DataView(Uint8Array.from(p).buffer);
     if (typ === 1) {
       this.hallo = { ver: p[1], hz: p[2], display: String.fromCharCode(p[3]), appVer: dv.getUint16(4, true),
-        uhrId: dv.getUint32(6, true), sitzung: dv.getUint32(10, true), flags: p[14], einheit: p[15] };
+        uhrId: dv.getUint32(6, true), sitzung: dv.getUint32(10, true), flags: p[14], einheit: p[15],
+        stdHash: p.length >= 20 ? dv.getUint32(16, true) : 0 };
     } else if (typ === 2) {
       const nr = this.voll(dv.getUint16(1, true)), n = p[7];
       const b = this.blockHolen(nr, n);
