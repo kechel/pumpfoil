@@ -125,6 +125,14 @@ class SuuntoAblageTest {
         assertEquals(90 * 25, accel)
         assertEquals(2, complete.getJSONArray("pauses").length().coerceAtMost(2))
         assertTrue(s.listFiles()!!.none { it.name.endsWith(".tmp") })
+        // Dieselben Dateien laedt der Server-Test hoch (server/tests/test_suunto_e2e.py): sie muessen
+        // zum committeten Stand passen. Nach einer gewollten Aenderung: Datei aus build/ uebernehmen.
+        val alle = JSONObject()
+        for (f in s.listFiles()!!.sortedBy { it.name }) if (f.name != "zustand.json") alle.put(f.name, f.readText())
+        val neu = alle.toString(1)
+        java.io.File("build/suunto-e2e-dateien.json").writeText(neu)
+        val fix = java.io.File("../../watch-suunto/test/fixtures/suunto-e2e-dateien.json")
+        if (fix.exists()) assertEquals("suunto-e2e-dateien.json veraltet (build/ uebernehmen)", fix.readText(), neu)
         dir.deleteRecursively()
     }
 }

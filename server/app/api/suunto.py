@@ -707,6 +707,10 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
                                 hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
         if not parsed.get("gps_samples") or parsed.get("started_at") is None:
             return False, "kein gps"
+        if bruecken_session(db, user.id, parsed["started_at"]) is not None:
+            # Die SuuntoPlus-App hat dieselbe Aufnahme schon mit Rohdaten ueber die Handy-Bruecke
+            # geschickt (docs/SUUNTO.md „Zusammenfuehren") — keine zweite Session ohne Beschleunigung.
+            return False, "doppelt"
         # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session zurueck
         # (nicht None) — das zaehlte bisher als Import. Bei Frederics Konto meldete der Sync
         # deshalb „2 importiert", obwohl genau eine Session ankam: das Workout lief einmal
@@ -724,6 +728,27 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
         # nur den Anfang „fehler", die Einordnung bleibt also gleich.
         log.exception("Suunto: Workout %s nicht importiert (user %s)", key, user.id)
         return False, "fehler %s: %s" % (type(e).__name__, e)
+
+
+BRUECKE_TOLERANZ_S = 180
+
+
+def bruecken_session(db: Session, user_id: int, started_at):
+    """Session derselben Aufnahme von der SuuntoPlus-App ueber die Handy-Bruecke, falls vorhanden.
+
+    Erkennbar am Geraet (Plattform `suunto`, gesetzt von der Bruecke per /config?p=suunto) und an
+    der Startzeit: beide kommen von der Uhr (`/Dev/Time` beim Start bzw. Suuntos eigener Start im
+    Workout) und liegen hoechstens Sekunden auseinander; 3 min Toleranz fangen eine Uhr ab, die
+    die Aufnahme erst nach dem Fix startet."""
+    if started_at is None:
+        return None
+    if started_at.tzinfo is None:          # FIT-Zeiten sind UTC
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    t = timedelta(seconds=BRUECKE_TOLERANZ_S)
+    return (db.query(models.Session).join(models.DeviceToken, models.Session.device_id == models.DeviceToken.id)
+            .filter(models.Session.user_id == user_id, models.DeviceToken.platform == "suunto",
+                    models.Session.started_at >= started_at - t, models.Session.started_at <= started_at + t)
+            .first())
 
 
 def _import_workout(db: Session, user: models.User, token: str, key: str) -> bool:
