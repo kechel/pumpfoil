@@ -14,7 +14,7 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekX, sekY, sekZ, sekXX, sekYY, sekZZ, sekN, sekPeak, sekStaerke, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz, lokalLetzt = 0, evalN = 0;
 
 /*
  * Log-Kanaele (docs/SUUNTO.md „Die Log-Kanaele"): hoechstens 5, je eine float32-Zahl pro Sekunde, gespeichert
@@ -76,6 +76,16 @@ var kalibrierBefehle = function () {
     b.push({ k: "l", x1: x, y1: y - 120, x2: x, y2: y + 120, w: 2, c: "#00ff00" });
   }
   return b;
+};
+
+/** Aufnahme abschliessen (einmal): Rest-Block und Ende-Ereignis ans Handy. Aus onExerciseEnd UND aus
+ *  getSummaryOutputs — im Simulator kommt bei Stop kein onExerciseEnd, nur Pause + Zusammenfassung. */
+var beenden = function () {
+  if (!laeuft) return;
+  if (blockWerte.length) { fu.accel(blockT, blockWerte); blockWerte = []; }
+  fu.ereignis(4, tAkt, Math.round(tAkt / 1000));
+  laeuft = 0;
+  fu.senden();                        // gleich los: danach entlaedt die Firmware die App
 };
 
 var sekNull = function () { sekPumps = 0; sekX = 0; sekY = 0; sekZ = 0; sekXX = 0; sekYY = 0; sekZZ = 0; sekN = 0; sekPeak = 0; sekStaerke = 0; };
@@ -194,7 +204,7 @@ var anzeigen = function (el, lokalS, output) {
   }
   if (DEBUG) {   // Zustand direkt auf dem Display: lauf/pause/foil, Seite, letztes Ereignis
     befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#ffcc00", a: "c", b: false,
-      txt: "L" + laeuft + " P" + pause + " F" + (st.foiling ? 1 : 0) + " S" + seite + " " + dbgLetzt });
+      txt: "L" + laeuft + " P" + pause + " F" + (st.foiling ? 1 : 0) + " S" + seite + " E" + evalN + " " + dbgLetzt });
   }
   anz.zeigen(befehle, output);
 };
@@ -328,6 +338,7 @@ function onExercisePause(input, output) {
   if (blockWerte.length) { fu.accel(blockT, blockWerte); blockWerte = []; }
   halbe = null;
   fu.ereignis(2, tAkt, Math.round(tAkt / 1000));
+  anzeigen(tAkt, lokalLetzt, output);
 }
 
 function onExerciseContinue(input, output) {
@@ -335,15 +346,12 @@ function onExerciseContinue(input, output) {
   if (!laeuft || !pause) return;
   pause = 0; seite = 0; versatzNeu = 1;
   fu.ereignis(3, tAkt, Math.round(tAkt / 1000));
+  anzeigen(tAkt, lokalLetzt, output);
 }
 
 function onExerciseEnd(input, output) {
   dbg("onExerciseEnd");
-  if (!laeuft) return;
-  if (blockWerte.length) { fu.accel(blockT, blockWerte); blockWerte = []; }
-  fu.ereignis(4, tAkt, Math.round(tAkt / 1000));
-  laeuft = 0;
-  fu.senden();                        // gleich los: nach diesem Rueckruf entlaedt die Firmware die App
+  beenden();
 }
 
 function onEvent(input, output, id) {
@@ -353,6 +361,9 @@ function onEvent(input, output, id) {
   if (id === 1) seite = (seite + n - 1) % n;
   if (id === 2) seite = (seite + 1) % n;
   dbg("onEvent " + id + " -> Seite " + seite + "/" + n);
+  // sofort neu zeichnen, nicht erst beim naechsten evaluate: im Simulator kommt in der Pause keins mehr
+  // (17.10.), und auch sonst laege bis zu 1 s zwischen Tastendruck und neuer Seite
+  anzeigen(tAkt, lokalLetzt, output);
 }
 
 function onLap(input, output) { dbg("onLap"); }
@@ -366,6 +377,7 @@ function evaluate(input, output) {
   var lat = fix ? pos.latitude / 1e7 : 0, lon = fix ? pos.longitude / 1e7 : 0;
   if (fix && !positionGemeldet && !laeuft) { positionGemeldet = 1; fu.position = [pos.latitude, pos.longitude]; }
   var lokalS = zahl(input.lt, 0);
+  lokalLetzt = lokalS; evalN++;
   if (laeuft && !pause) {
     tAkt = zahl(input.tmr, tAkt + 1000);
     var hrBpm = Math.round(zahl(input.hr, 0) * 60);
@@ -416,6 +428,7 @@ function getUserInterface(input, output) {
 
 function getSummaryOutputs(input, output) {
   dbg("getSummaryOutputs");
+  beenden();          // der Simulator ruft bei Stop nur Pause + Zusammenfassung, nie onExerciseEnd (17.10.)
   zeigeSeite = 0;
   return [
     { id: "l", name: t("f.runs"), format: "Count_Threedigits", value: st.runCount },
