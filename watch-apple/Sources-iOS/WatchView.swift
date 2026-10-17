@@ -65,6 +65,8 @@ struct WatchView: View {
             appleWatchSection
             // HUAWEI-Uhr (Beta, 07.10.2026) — erscheint nur mit eingebautem Wear-Engine-SDK.
             HuaweiKarte()
+            // Suunto-Uhr (Beta, 17.10.2026) — nur mit verknuepftem Suunto-Konto oder eingeschaltetem Empfang.
+            SuuntoKarte()
             // Die Verweise auf die anderen Seiten VOR der Uhren-Liste (Jan, 02.09., Android
             // genauso): wer viele Uhren gepairt hat, scrollte vorher an allen vorbei.
             navSection
