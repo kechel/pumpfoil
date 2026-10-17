@@ -174,7 +174,7 @@ export function manifest() {
 export function vorlage(debug = false) {
   const skript = lies("quelle/vorlage.js").replace(/^\s*\/\/.*$/gm, "").trim();
   if (skript.includes('"')) throw new Error("quelle/vorlage.js darf keine doppelten Anfuehrungszeichen enthalten");
-  const klassen = ["sp-d-xxl", "sp-d-xl", "sp-d-l", "sp-d-m", "sp-d-s", "sp-d-xs", "sp-t-m", "sp-t-s"];
+  const klassen = ["sp-d-xxl", "sp-d-xl", "sp-d-l", "sp-d-m", "sp-d-s", "sp-d-xs", "sp-t-m", "sp-t-s", "sp-t-l", "sp-b-l"];   // = anzeige.js ANZ_KLASSEN
   const abos = Array.from({ length: GRAFIKEN }, (_, i) =>
     `A.push($.subscribe('Zapp/{zapp_index}/Output/g${i}', function(v) { G[${i}] = v || 0; }));`).join("\n    ");
   // je Schriftklasse und Ausrichtung ein Vorrat (quelle/anzeige.js ANZ_JE): 100 % breit, fest ausgerichtet
