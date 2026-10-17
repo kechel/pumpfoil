@@ -287,3 +287,15 @@ test("freies Layout (vom Handy auf 6 Werte reduziert): 6-Felder-Vorlage, Felder 
   uhr.ruf("evaluate", { tmr: 5000, sp: 0.5, utc: 6, lt: 0 });
   assert.equal(uhr.vorlage, "d", "zurueck auf 3 Felder");
 });
+
+test("Update-Hinweis im Startbildschirm, wenn das Profil eine neuere Version meldet", () => {
+  const uhr = new Uhr({ einstellungen: { handy: "false" } });
+  uhr.speicher.set("konfig", { latestVersion: "1.02" });
+  uhr.ruf("onLoad"); uhr.ruf("getUserInterface");
+  uhr.ruf("evaluate", { utc: 1, lt: 0 });
+  assert.equal(uhr.texte["#l3"], "Update 1.02");
+  const gleich = new Uhr({ einstellungen: { handy: "false" } });
+  gleich.speicher.set("konfig", { latestVersion: "1.00" });
+  gleich.ruf("onLoad"); gleich.ruf("getUserInterface"); gleich.ruf("evaluate", { utc: 1, lt: 0 });
+  assert.equal(gleich.texte["#l3"], "Version");
+});
