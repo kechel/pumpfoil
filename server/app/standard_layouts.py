@@ -30,6 +30,16 @@ EIGENE_SCHLUESSEL = {
 
 
 @lru_cache(maxsize=1)
+def pruefsumme() -> int:
+    """Die ersten 4 Bytes von SHA-256 der Datei, als Zahl. Die Suunto-App bringt dieselben Layouts fest
+    mit (watch-suunto/bau.mjs rechnet genauso) und meldet die Summe; nur wenn sie gleich ist, schickt
+    das Handy statt der Layouts „std" (der Speicher der Uhr ist ~2 KB klein, docs/SUUNTO.md)."""
+    import hashlib
+    return int.from_bytes(hashlib.sha256((Path(__file__).parent / "data" / "standard_layouts.json")
+                                         .read_bytes()).digest()[:4], "big")
+
+
+@lru_cache(maxsize=1)
 def _daten() -> dict:
     return json.loads((Path(__file__).parent / "data" / "standard_layouts.json").read_text())
 

@@ -23,7 +23,7 @@ object SuuntoProtokoll {
     const val ACCEL_SCALE = 2048
 
     data class Hallo(val ver: Int, val hz: Int, val display: Char, val appVer: Int, val uhrId: Long,
-                     val sitzung: Long, val laeuft: Boolean, val pause: Boolean, val einheit: Int)
+                     val sitzung: Long, val laeuft: Boolean, val pause: Boolean, val einheit: Int, val stdHash: Long = 0)
     class Block(val nr: Long, val t: Long, val werte: ShortArray)
     data class Gps(val nr: Long, val sek: Int, val lat: Double, val lon: Double, val speed: Double,
                    val hr: Int, val acc: Int?, val alt: Int)
@@ -70,7 +70,7 @@ class SuuntoEmpfang(startBlock: Long = -1, startGps: Long = -1) {
         fun u32(i: Int) = b.getInt(i).toLong() and 0xFFFFFFFFL
         when (u8(0) and 15) {
             1 -> if (p.size >= 16) hallo = SuuntoProtokoll.Hallo(u8(1), u8(2), u8(3).toChar(), u16(4), u32(6), u32(10),
-                u8(14) and 1 != 0, u8(14) and 2 != 0, u8(15))
+                u8(14) and 1 != 0, u8(14) and 2 != 0, u8(15), if (p.size >= 20) u32(16) else 0L)
             2 -> if (p.size >= 8) {
                 val nr = voll(u16(1), blockBis)
                 if (nr > blockBis) {
@@ -421,12 +421,31 @@ object SuuntoKonfig {
     private val SPALTE = mapOf("de" to 0, "gsw" to 1, "de-AT" to 2, "en" to 3, "fr" to 4, "it" to 5, "es" to 6,
         "pt" to 7, "pt-PT" to 7, "id" to 8, "ru" to 9, "nl" to 10, "fi" to 11, "cs" to 12, "ja" to 13, "zh" to 14)
 
-    fun fuerUhr(config: String, appSprache: String? = null): String {
+    /** Werte, die die Uhr ohnehin annimmt (lauf.js `Konfig`) — weggelassen, ihr Speicher ist ~2 KB klein. */
+    private val STANDARD = mapOf("views" to "[[1,2,0]]", "offFoilView" to "[12,17,16]", "pauseView" to "[12,20,2]",
+        "browseAll" to "true", "layoutsOn" to "true", "colorByValue" to "false", "alarmEnabled" to "false",
+        "alarmDefault" to "\"foil\"", "speedLow" to "0", "speedHigh" to "0", "hrHigh" to "0",
+        "alarmPatternHigh" to "\"short2\"", "alarmPatternLow" to "\"long2\"", "alarmPatternHr" to "\"short1\"",
+        "alarmRepeat" to "\"once\"", "alarmRepeatS" to "5", "runDistM" to "0", "runDistMode" to "\"once\"",
+        "alarmPatternDist" to "\"short1\"", "runTimeS" to "0", "runTimeMode" to "\"once\"",
+        "alarmPatternTime" to "\"short2\"", "latestVersion" to "\"\"", "hrZones" to "[95,114,133,152,171,190]",
+        "speedZones" to "[8,12,16,20,24,28]", "foils" to "[]")
+
+    /**
+     * uhrStdHash: Pruefsumme der Standard-Layouts, die die Uhr mitbringt (HALLO). Gleich der vom Server
+     * (`standardHash`) -> fuer Seitensaetze, die der Nutzer nie geaendert hat (`standardSeiten`), nur „std".
+     */
+    fun fuerUhr(config: String, appSprache: String? = null, uhrStdHash: Long = 0): String {
         val k = JSONObject(config)
         val o = JSONObject()
-        for (s in SCHLUESSEL) if (k.has(s)) o.put(s, k.get(s))
-        // Seiten vollstaendig: die Uhr zeichnet freie Layouts wie die anderen Uhren (watch-suunto/quelle/anzeige.js)
-        for (s in SEITEN) k.optJSONArray(s)?.let { if (it.length() > 0) o.put(s, it) }
+        for (s in SCHLUESSEL) if (k.has(s) && STANDARD[s] != k.get(s).toString()) o.put(s, k.get(s))
+        val std = HashSet<String>()
+        if (uhrStdHash != 0L && k.optLong("standardHash", -1) == uhrStdHash)
+            k.optJSONArray("standardSeiten")?.let { for (i in 0 until it.length()) std.add(it.getString(i)) }
+        // Seiten vollstaendig (die Uhr zeichnet freie Layouts selbst) oder „std" fuer die mitgebrachten
+        for (s in SEITEN) {
+            if (s in std) o.put(s, "std") else k.optJSONArray(s)?.let { if (it.length() > 0) o.put(s, it) }
+        }
         o.optJSONArray("foils")?.let { fs ->
             val kurz = JSONArray()
             for (i in 0 until fs.length()) {
@@ -434,7 +453,7 @@ object SuuntoKonfig {
                 kurz.put(JSONObject().put("id", f.opt("id")).put("label", f.optString("label").take(24))
                     .put("min", f.opt("min")).put("max", f.opt("max")))
             }
-            o.put("foils", kurz)
+            if (kurz.length() > 0) o.put("foils", kurz) else o.remove("foils")
         }
         val lang = k.optString("language").ifBlank { appSprache ?: "" }
         SPALTE[lang]?.let { o.put("spr", it) }

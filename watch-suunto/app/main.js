@@ -797,6 +797,7 @@ var Funk = function (slots, gpsSlots) {
   this.inFlug = 0; this.flugS = 0; this.fehler = 0;
   this.handy = 0; this.offen = 0; // aus STATUS
   this.uhrId = 0; this.hz = 25; this.einheit = 0; this.display = 113; this.appVer = 0;
+  this.stdHash = 0;               // Pruefsumme der mitgebrachten Standard-Layouts (HALLO)
   this.position = null;           // [lat, lon] e7, einmal je App-Start
   this.pakete = 0;                // gesendet (Statistik)
 };
@@ -879,8 +880,8 @@ Funk.prototype.naechstes = function () {
   if (this.halloFaellig) {
     this.halloFaellig = 0;
     p = [1, FUNK_VER, this.hz, this.display, this.appVer & 255, (this.appVer >> 8) & 255, 0, 0, 0, 0, 0, 0, 0, 0,
-      (this.laeuft ? 1 : 0) | (this.pause ? 2 : 0), this.einheit];
-    funkI32(p, 6, this.uhrId); funkI32(p, 10, this.sitzung);
+      (this.laeuft ? 1 : 0) | (this.pause ? 2 : 0), this.einheit, 0, 0, 0, 0];
+    funkI32(p, 6, this.uhrId); funkI32(p, 10, this.sitzung); funkI32(p, 16, this.stdHash);
     return p;
   }
   for (i = 0; i < this.ereig.length; i++) {
@@ -1047,6 +1048,7 @@ Funk.prototype.rueckstandS = function () {
 };
 
 // ---- quelle/uhr.js ----
+var STD_HASH = 2159656918;   // server/app/data/standard_layouts.json, s. bau.mjs standard()
 /*
  * Pumpfoil fuer Suunto (SuuntoPlus-Sport-App) — Ablauf, Datenseiten, Log-Kanaele, Funk zum Handy.
  * Bau: watch-suunto/bau.mjs setzt main.js aus lauf.js (watch-huawei/common), Teilen von seiten.js,
@@ -1205,11 +1207,24 @@ var neuereVersion = function () {
   return v > 0 && Math.round(v * 100) > APP_VER;
 };
 
+/** „std" statt Seiten -> die mitgebrachten Standard-Layouts (ext2.js, im Flash, nicht im Speicher). */
+var mitStandard = function (k) {
+  var aus = {}, s, std = null, i, schl = ["pages", "offFoilPages", "pausePages"];
+  for (s in k) aus[s] = k[s];
+  for (i = 0; i < schl.length; i++) {
+    if (aus[schl[i]] === "std") {
+      if (!std) std = evalFile("{file_path}/ext2.js")();
+      aus[schl[i]] = std[schl[i]];
+    }
+  }
+  return aus;
+};
+
 var konfigAnwenden = function (text) {
   var k;
   try { k = JSON.parse(text); } catch (e) { return; }
   if (!k || typeof k !== "object") return;
-  kf = new Konfig(k); kfRoh = k;
+  kf = new Konfig(mitStandard(k)); kfRoh = k;
   // Die Suunto hat keine eigene Einstellungsseite fuer Alarm/Foil: das Profil gilt immer.
   aw.gesetzt = false;
   aw.vorbelegen(kf);
@@ -1259,13 +1274,13 @@ function onLoad(input, output) {
   try { var gk = localStorage.getObject("konfig"); if (gk && typeof gk.spr === "number") sprache = gk.spr; } catch (e) { sprache = sprache; }
   kf = new Konfig(null);
   kfRoh = null;
-  try { var k = localStorage.getObject("konfig"); if (k) { kf = new Konfig(k); kfRoh = k; } } catch (e) { kf = new Konfig(null); }
+  try { var k = localStorage.getObject("konfig"); if (k) { kf = new Konfig(mitStandard(k)); kfRoh = k; } } catch (e) { kf = new Konfig(null); }
   aw = new Auswahl(null);
   try { var a = localStorage.getObject("auswahl"); if (a) aw = new Auswahl(a); } catch (e) { aw = new Auswahl(null); }
   aw.vorbelegen(kf);
   st = new Stand(); al = new Alarm(); pu = new Pumpe(50);
   fu = new Funk(SLOTS_ACC, SLOTS_GPS);
-  fu.hz = hz; fu.appVer = APP_VER;
+  fu.hz = hz; fu.appVer = APP_VER; fu.stdHash = STD_HASH;
   var id = zahl(+einstellung("uhrId", "0"), 0);
   if (!id) {
     id = Math.floor(Math.random() * 4294967295) >>> 0 || 1;

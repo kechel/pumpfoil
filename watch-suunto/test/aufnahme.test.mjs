@@ -279,3 +279,20 @@ test("Update-Hinweis im Startbildschirm, wenn das Profil eine neuere Version mel
   gleich.ruf("onLoad"); gleich.ruf("getUserInterface"); gleich.ruf("evaluate", { utc: 1, lt: 0 });
   assert.ok(gleich.sichtbar().some((x) => x.txt === "Version 1.00"));
 });
+
+test("Standard-Layouts: das Handy schickt nur std, die Uhr nimmt ihre mitgebrachten (Pruefsumme im HALLO)", async () => {
+  const { standard } = await import("../bau.mjs");
+  const std = standard();
+  const db = drehbuch(1);
+  const { uhr } = abspielen(db);
+  assert.equal(uhr.empf.hallo.stdHash, std.hash, "Pruefsumme wie der Server");
+  const k = JSON.stringify({ pages: "std", offFoilPages: "std", pausePages: "std", spr: 3 });
+  const teile = [];
+  for (let i = 0; i < k.length; i += 15) teile.push(k.slice(i, i + 15));
+  teile.forEach((s, i) => uhr.handler(0, 106, [0x83, i, 0, teile.length, 0, ...Buffer.from(s, "ascii")]));
+  uhr.ruf("evaluate", { utc: 1, lt: 0 });
+  const erwartet = eval("(" + std.ext + ")")();
+  assert.deepEqual(JSON.parse(JSON.stringify(uhr.ctx.kf.offFoilPages)), erwartet.offFoilPages);
+  assert.equal(uhr.ctx.kf.pages[0][0], 1, "freies Layout");
+  assert.ok(JSON.stringify(uhr.speicher.get("konfig")).length < 120, "gespeichert wird nur std");
+});

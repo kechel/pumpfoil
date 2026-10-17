@@ -649,7 +649,19 @@ def device_config(
         # Koordinaten relativ 0…1000, Größe = Font-Stufe, Farbe = Palette-Index.
         "layoutsOn": layouts_on,
         **layout_block,
+        **_suunto_standard(device, p, settings),
     }
+
+
+def _suunto_standard(device: models.DeviceToken, p: str | None, settings: dict) -> dict:
+    """Nur fuer die Suunto-App (docs/SUUNTO.md): welche Seitensaetze die Standard-Layouts sind, und
+    deren Pruefsumme. Die App hat sie fest an Bord; ihr Speicher fasst die Layouts nicht."""
+    if (p or device.platform or "") != "suunto":
+        return {}
+    from .. import standard_layouts as SL
+    schl = {"on_foil": "pages", "off_foil": "offFoilPages", "pause": "pausePages"}
+    return {"standardSeiten": [schl[k] for k in SL.KATEGORIEN if SL.ist_standard(settings, k)],
+            "standardHash": SL.pruefsumme()}
 
 
 def _hr_zones_fuer_uhr(db: Session, user, settings: dict) -> list:

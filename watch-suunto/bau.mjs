@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import crypto from "node:crypto";
 
 const W = path.dirname(fileURLToPath(import.meta.url));
 const R = path.resolve(W, "..");
@@ -80,6 +81,18 @@ export function texte() {
     "    o[k] = v; if (k.indexOf('f.') === 0) o[k.substring(2)] = v; }\n  o.paused = o['rec.paused'];\n  return o;\n}\n";
 }
 
+/** Standard-Layouts des Servers (server/app/data/standard_layouts.json) fest in der App — der Speicher
+ *  der Uhr (~2 KB) fasst sie nicht; das Handy schickt dann nur „std" (s. SuuntoKonfig). Pruefsumme wie
+ *  server/app/standard_layouts.py `pruefsumme`: erste 4 Bytes SHA-256 der Datei. */
+export function standard() {
+  const roh = fs.readFileSync(path.join(R, "server/app/data/standard_layouts.json"));
+  const d = JSON.parse(roh.toString("utf8"));
+  const form = (k) => (d[k] || []).map((l) => [1, (l.bg_color | 0), l.elements || []]);
+  const seiten = { pages: form("on_foil"), offFoilPages: form("off_foil"), pausePages: form("pause") };
+  return { hash: crypto.createHash("sha256").update(roh).digest().readUInt32BE(0),
+    ext: "function () {\n  return " + JSON.stringify(seiten) + ";\n}\n" };
+}
+
 // Sprachen der Einstellung (Suunto-App) -> Spalte der Amazfit-Tabelle
 export const SPRACHEN = [["English", 3], ["Deutsch", 0], ["Schwiizerdütsch", 1], ["Österreichisch", 2],
   ["Français", 4], ["Italiano", 5], ["Español", 6], ["Português", 7], ["Bahasa Indonesia", 8], ["Русский", 9],
@@ -101,6 +114,7 @@ export function mainJs() {
     "// ---- quelle/pumpe.js ----", alsVar(lies("quelle/pumpe.js")),
     "// ---- quelle/funk.js ----", alsVar(lies("quelle/funk.js")),
     "// ---- quelle/uhr.js ----",
+    "var STD_HASH = " + standard().hash + ";   // server/app/data/standard_layouts.json, s. bau.mjs standard()",
     lies("quelle/uhr.js").replace("sprache = einstellung(\"sprache\", \"en\");",
       "sprache = [" + SPRACHEN.map((s) => s[1]).join(",") + "][+einstellung(\"sprache\", \"0\") | 0];\n  if (typeof sprache !== \"number\") sprache = 3;"),
   ].join("\n");
@@ -191,6 +205,7 @@ export function dateien() {
     "manifest.json": JSON.stringify(manifest(), null, 2) + "\n",
     "main.js": mainJs(),
     "ext1.js": texte(),
+    "ext2.js": standard().ext,
     "d.html": vorlage(),
     "data.json": JSON.stringify(dataJson(), null, 2) + "\n",
   };
