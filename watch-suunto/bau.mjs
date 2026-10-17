@@ -113,8 +113,8 @@ export function manifest() {
     out: [
       { name: "con" },
       { name: "pf_foil", log: true, shownName: "Pumpfoil run", format: "Count_Threedigits" },
-      { name: "pf_pumps", log: true, shownName: "Pumps", format: "Count_Twodigits" },
-      { name: "pf_kad", log: true, shownName: "Pump cadence [/min]", format: "Count_Threedigits" },
+      { name: "pf_p1", log: true, shownName: "Pump marker", format: "Count_Fivedigits" },
+      { name: "pf_p2", log: true, shownName: "Pump marker 2", format: "Count_Fivedigits" },
       { name: "pf_int", log: true, shownName: "Motion [mg]", format: "Count_Fourdigits" },
       { name: "pf_peak", log: true, shownName: "Peak [mg]", format: "Count_Fourdigits" },
       { name: "pumps", format: "Count_Fourdigits" },

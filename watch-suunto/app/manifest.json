@@ -69,16 +69,16 @@
       "format": "Count_Threedigits"
     },
     {
-      "name": "pf_pumps",
+      "name": "pf_p1",
       "log": true,
-      "shownName": "Pumps",
-      "format": "Count_Twodigits"
+      "shownName": "Pump marker",
+      "format": "Count_Fivedigits"
     },
     {
-      "name": "pf_kad",
+      "name": "pf_p2",
       "log": true,
-      "shownName": "Pump cadence [/min]",
-      "format": "Count_Threedigits"
+      "shownName": "Pump marker 2",
+      "format": "Count_Fivedigits"
     },
     {
       "name": "pf_int",

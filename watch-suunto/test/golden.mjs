@@ -7,7 +7,7 @@ import { Uhr } from "./firmware.mjs";
 import { WURZEL } from "./lade.mjs";
 
 const G = 9.80665;
-const uhr = new Uhr({ einstellungen: { handy: "true", hz: "0" } });
+const uhr = new Uhr({ einstellungen: { handy: "true", hz: "0", uhrId: "305419896" } });   // feste Uhr-ID: Testvektoren reproduzierbar
 const pakete = [];
 const orig = uhr.empf.paket.bind(uhr.empf);
 uhr.empf.paket = (p) => { pakete.push(Array.from(p)); orig(p); };

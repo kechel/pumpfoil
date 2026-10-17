@@ -62,6 +62,7 @@ function abspielen(db, { stoerung = () => false, ueberEvaluate = false, einstell
   uhr.ruf("getUserInterface");
   uhr.ruf("onExerciseStart", { utc });
   let aktiv = 0, accIdx = 0, pausiert = false;
+  const log = {}, zuletzt = {};
   for (let s = 0; s < db.sek.length; s++) {
     if (s === pauseBei) {
       uhr.ruf("onExercisePause"); pausiert = true;
@@ -88,6 +89,11 @@ function abspielen(db, { stoerung = () => false, ueberEvaluate = false, einstell
       inp.acc = { time: b.time, x: b.x.concat(batch[1].x), y: b.y.concat(batch[1].y), z: b.z.concat(batch[1].z) };
     }
     uhr.ruf("evaluate", inp);
+    // Log wie die Uhr: nur geaenderte Werte landen im Workout
+    for (const k of ["pf_foil", "pf_p1", "pf_p2", "pf_int", "pf_peak"]) {
+      const v = uhr.output[k];
+      if (v !== zuletzt[k]) { (log[k] = log[k] || []).push([s, v]); zuletzt[k] = v; }
+    }
   }
   // Ende wie auf der Uhr: erst Pause, dann ein paar Sekunden Menue, dann Ende
   uhr.handy(true);
@@ -96,7 +102,7 @@ function abspielen(db, { stoerung = () => false, ueberEvaluate = false, einstell
   uhr.ruf("onExerciseEnd");
   uhr.bis(t += 2000);
   const zusammenfassung = uhr.ruf("getSummaryOutputs");
-  return { uhr, zusammenfassung, pausiert };
+  return { uhr, zusammenfassung, pausiert, log };
 }
 
 /** Was die Uhr bei 25 Hz senden muesste: Paare gemittelt, int16 mit 2048 = 1 g. */
@@ -189,4 +195,36 @@ test("50 Hz: Bloecke mit 25 Werten je halbe Sekunde", () => {
   assert.equal(uhr.empf.hallo.hz, 50);
   assert.equal(b[1].t - b[0].t, 500);
   assert.equal(b.flatMap((x) => x.werte).length, (db.acc.length) * 3);
+});
+
+test("Pump-Marker im Workout-Log: jeder Pump einmal, mit Zeitpunkt", () => {
+  const db = drehbuch(3);
+  const { log, zusammenfassung } = abspielen(db);
+  // Server-Sicht: aus den geloggten Werten (Nummer + Versatz) die Pumps zurueckrechnen
+  const pumps = new Map();
+  for (const k of ["pf_p1", "pf_p2"]) for (const [s, v] of log[k] || []) {
+    if (!v) continue;
+    const nr = Math.floor(v + 1e-9), versatz = v - nr;
+    pumps.set(nr, s + 1 - (1 + versatz));      // Datenpunkt s liegt bei aktiver Sekunde s+1
+  }
+  const nrs = [...pumps.keys()].sort((a, b) => a - b);
+  assert.ok(nrs.length > 0);
+  assert.equal(nrs[0], 1, "Nummern beginnen bei 1");
+  const fehlend = nrs[nrs.length - 1] - nrs.length;
+  assert.ok(fehlend <= 2, "hoechstens vereinzelt ein dritter Pump je Sekunde verloren: " + fehlend);
+  // Pumps in den Laeufen (Server-Zeitpunkte, ins Drehbuch umgerechnet) finden sich im Log wieder
+  let start = 0, treffer = 0, gesamt = 0;
+  for (const g of db.genutzt) {
+    start += 30;
+    for (const t of g.l.server_zeiten_s) {
+      const tl = start + (t - g.l.vor / 25);
+      if (tl < start || tl > start + g.s) continue;
+      gesamt++;
+      let m = 1e9; for (const u of pumps.values()) m = Math.min(m, Math.abs(u - tl));
+      if (m < 0.25) treffer++;
+    }
+    start += g.s;
+  }
+  console.log(`Pump-Marker: ${nrs.length} im Log, ${treffer}/${gesamt} Server-Pumps innerhalb 0,25 s`);
+  assert.ok(treffer / gesamt > 0.8, `${treffer}/${gesamt}`);
 });

@@ -14,7 +14,26 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekSum, sekSumQ, sekN, sekPeak, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr;
+
+/**
+ * Pump-Marker fuer die Log-Kanaele (Jans Idee, 17.10.2026): je Pump „laufende Nummer + Versatz".
+ * Der Wert 1234.37 heisst: Pump Nr. 1234 lag 1,37 s vor diesem Datenpunkt — die Uhr erkennt einen
+ * Pump erst bis zu ~1 s spaeter (Periode + Filter), darum ist jeder Marker um genau 1 s verzoegert
+ * und der Bruchteil liegt immer in [0, 1). Die Nummer aendert sich bei jedem Pump, damit speichert
+ * die Uhr den Wert sicher (sie loggt nur Aenderungen) und der Server sieht fehlende Nummern.
+ * pf_p1 = neuester Pump der Sekunde, pf_p2 = der davor (bis 2 Hz); ein dritter faellt weg, seine
+ * Nummer fehlt dann. Zeitpunkt = echtes Signal-Maximum, auf Jans Laeufen median 0,04 s am Server.
+ */
+var pumpMarker = function (output) {
+  var jetzt = pu.schrittNr / 10, neu = [];
+  while (pu.zeiten.length && pu.zeiten[0] <= jetzt - 1) neu.push(pu.zeiten.shift());
+  if (!neu.length) return;
+  var wert = function (nr, t) { return nr + Math.min(0.999, Math.max(0, Math.round((jetzt - t - 1) * 1000) / 1000)); };
+  pumpNr += neu.length;
+  output.pf_p1 = wert(pumpNr, neu[neu.length - 1]);
+  if (neu.length >= 2) output.pf_p2 = wert(pumpNr - 1, neu[neu.length - 2]);
+};
 
 var summeLetzte = function (n) {
   var z = 0, i;
@@ -145,7 +164,7 @@ function onLoad(input, output) {
   lauefe = 0; pumpHist = []; pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false;
   sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0; blockWerte = []; blockT = 0; halbe = null;
   textLaden();
-  output.pf_foil = 0; output.pf_pumps = 0; output.pf_kad = 0; output.pf_int = 0; output.pf_peak = 0;
+  output.pf_foil = 0; output.pf_p1 = 0; output.pf_p2 = 0; output.pf_int = 0; output.pf_peak = 0; pumpNr = 0;
 }
 
 function onAccelerometer(input, output) { nimmAccel(input); }
@@ -225,8 +244,7 @@ function evaluate(input, output) {
     if (sync) fu.gpsSek(sek, fix ? pos.latitude : 0, fix ? pos.longitude : 0, sp, hrBpm, -1, zuletzt.alt);
     // Log-Kanaele (einmal je Sekunde ins Workout, docs/SUUNTO.md)
     output.pf_foil = st.foiling ? st.runCount + 1 : 0;
-    output.pf_pumps = sekPumps;
-    output.pf_kad = pu.kadenz();
+    pumpMarker(output);
     var m = sekN ? sekSum / sekN : 0;
     output.pf_int = sekN ? Math.round(1000 * Math.sqrt(Math.max(0, sekSumQ / sekN - m * m))) : 0;
     output.pf_peak = Math.round(1000 * sekPeak);

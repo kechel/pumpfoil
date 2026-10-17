@@ -56,3 +56,26 @@ for (const fs of [25, 50]) {
     assert.ok(Math.abs(summeUhr - summeRef) <= 0.05 * summeRef, `Summe ${summeUhr} vs ${summeRef}`);
   });
 }
+
+test("Pump-Zeitpunkte nah an den Peaks des Servers (50 Hz)", () => {
+  const fehler = [];
+  for (const l of laeufe) {
+    const w = auf50(werte(l));
+    const ctx = kontext(["quelle/pumpe.js"]);
+    const p = new ctx.Pumpe(50);
+    for (const x of w) p.wert(x[0], x[1], x[2]);
+    const uhr = Array.from(p.zeiten);
+    for (const t of l.server_zeiten_s) {
+      let m = 1e9;
+      for (const u of uhr) if (Math.abs(u - t) < Math.abs(m)) m = u - t;
+      fehler.push(m);
+    }
+  }
+  const abs = fehler.map(Math.abs).sort((a, b) => a - b);
+  const median = abs[abs.length >> 1], p90 = abs[Math.floor(abs.length * 0.9)];
+  const mittel = fehler.reduce((a, b) => a + b, 0) / fehler.length;
+  console.log(`Pump-Zeitpunkte: median ${median.toFixed(3)} s, p90 ${p90.toFixed(3)} s, Versatz ${mittel.toFixed(3)} s`);
+  assert.ok(median < 0.08, "median " + median);
+  assert.ok(p90 < 0.3, "p90 " + p90);
+  assert.ok(Math.abs(mittel) < 0.05, "systematischer Versatz " + mittel);
+});
