@@ -822,6 +822,16 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 17.10.2026 abends (Jans Meldung, Apizone „SuuntoPlus Sports Apps"-Konsole, Paket app/app.zip
+    # aus „Build SuuntoPlus App For All Languages", Version 1.00). Nie auf Hardware gelaufen (Jan hat keine
+    # Suunto; Tester nach Freigabe). Handy-Bruecke + Server-Import der Log-Kanaele sind NICHT Teil dieser
+    # Fassung -> Punkte bewusst ohne „Rohdaten uebers Handy" und ohne „Pumps kommen bei pumpfoil.org an".
+    {"name": "Suunto", "version": "1.00",
+     "eingereicht": "2026-10-17",
+     "items": [
+         "New: a Pumpfoil app for Suunto watches (Race, Vertical, 9 Peak Pro, Ocean) with Pumpfoil data screens, run detection with vibration and alarms for speed, heart rate, run distance and run time.",
+         "Every run is saved as a lap in your Suunto workout, and the watch counts your pumps and saves them with your motion in the workout too.",
+     ]},
     # iPhone + Apple Watch 1.1.50 (eingereicht 16.10., freigegeben 16.10.2026) -> LIVE, Punkte stehen im Changelog.
     # Garmin 1.0.93 (eingereicht + freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.48 (eingereicht 13.10., freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
@@ -931,12 +941,6 @@ NAECHSTES: list[dict] = [
     # watch-huawei/lite bzw. watch-huawei/wearable, im Simulator geprueft, nie auf Hardware.
     # 17.10.2026 (Jan: „suunto darf dann auch unter coming next"): SuuntoPlus-App gebaut (watch-suunto/,
     # Bruecken Android/iOS, Server), nie auf Hardware gelaufen — erst Test auf Race/Vertical, dann Einreichung.
-    {"name": "Suunto", "version": "1.00",
-     "items": [
-         "New: a Pumpfoil app for Suunto watches (Race, Vertical, 9 Peak Pro, Ocean) with your own data screens from your profile, run detection with vibration and speed alarms.",
-         "The watch counts your pumps itself and saves them in your Suunto workout, so pumps and cadence arrive even without your phone.",
-         "With the Pumpfoil phone app nearby, the watch also sends its full motion data, uploaded while you ride, during a pause and at the end.",
-     ]},
     {"name": "Huawei Watch GT / Fit / D", "version": "later",
      "spaeter": "comes after the Watch 5",
      "items": [
