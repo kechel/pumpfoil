@@ -183,16 +183,16 @@ Funk.prototype.empfang = function (d) {
     if ((f & 4) && funkNach(d[5], this.ereigQ)) this.ereigQ = d[5];
   } else if (d[0] === 0x82 && d.length >= 4) {
     this.handy = d[1]; this.offen = d[2] | (d[3] << 8);
-  } else if (d[0] === 0x83 && d.length >= 3) {
+  } else if (d[0] === 0x83 && d.length >= 5) {
     this.konfigTeil(d);
   }
 };
 
-/** KONFIG [0x83, nr, anzahl, bis zu 17 Zeichen ASCII-JSON] — Datenseiten/Alarme/Sprache aus dem Profil,
- *  vom Handy einmal je Verbindung geschickt. Fertig -> this.konfig (Text), this.konfigNeu = 1. */
+/** KONFIG [0x83, nr u16, anzahl u16, bis zu 15 Zeichen ASCII-JSON] — Datenseiten (auch freie Layouts),
+ *  Alarme, Sprache aus dem Profil, vom Handy einmal je Verbindung. Fertig -> this.konfig, this.konfigNeu = 1. */
 Funk.prototype.konfigTeil = function (d) {
-  var nr = d[1], n = d[2], i, s = "";
-  for (i = 3; i < d.length; i++) s += String.fromCharCode(d[i]);
+  var nr = d[1] | (d[2] << 8), n = d[3] | (d[4] << 8), i, s = "";
+  for (i = 5; i < d.length; i++) s += String.fromCharCode(d[i]);
   // Reihenfolge egal; ein Teil mit ANDEREM Inhalt an schon belegter Stelle = neue Sendung
   if (!this.kTeile || this.kAnzahl !== n || (this.kTeile[nr] !== undefined && this.kTeile[nr] !== s)) {
     this.kTeile = []; this.kAnzahl = n; this.kDa = 0;

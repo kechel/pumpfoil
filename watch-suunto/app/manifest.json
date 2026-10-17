@@ -93,20 +93,60 @@
       "format": "Count_Fourdigits"
     },
     {
-      "name": "pumps",
-      "format": "Count_Fourdigits"
+      "name": "g0"
     },
     {
-      "name": "laeufe",
-      "format": "Count_Threedigits"
+      "name": "g1"
+    },
+    {
+      "name": "g2"
+    },
+    {
+      "name": "g3"
+    },
+    {
+      "name": "g4"
+    },
+    {
+      "name": "g5"
+    },
+    {
+      "name": "g6"
+    },
+    {
+      "name": "g7"
+    },
+    {
+      "name": "g8"
+    },
+    {
+      "name": "g9"
+    },
+    {
+      "name": "g10"
+    },
+    {
+      "name": "g11"
+    },
+    {
+      "name": "g12"
+    },
+    {
+      "name": "g13"
+    },
+    {
+      "name": "g14"
+    },
+    {
+      "name": "g15"
+    },
+    {
+      "name": "gv"
     }
   ],
   "template": [
     {
       "name": "d.html"
-    },
-    {
-      "name": "f.html"
     }
   ],
   "settings": [

@@ -31,3 +31,14 @@ test("main.js: nur ES5, keine eigenen globalen function-Deklarationen", () => {
     "onExerciseEnd", "onEvent", "onAccelerometer", "getUserInterface", "getSummaryOutputs"]);
   for (const m of src.matchAll(/^function ([\w$]+)/gm)) assert.ok(erlaubt.has(m[1]), "globale function " + m[1]);
 });
+
+test("Vorlage d.html: Skript ist gueltiges ES5, Abos auf alle Grafik-Ausgaben, Elemente fuer alle Klassen", () => {
+  const html = fs.readFileSync(path.join(WURZEL, "app/d.html"), "utf8");
+  const onLoad = html.match(/onLoad="([^"]*)"/)[1];
+  assert.doesNotThrow(() => new Function(onLoad + "\nreturn zeichneSeite;"));
+  for (let i = 0; i < 16; i++) assert.ok(html.includes(`Output/g${i}'`), "Abo g" + i);
+  assert.ok(html.includes("Output/gv'"));
+  assert.equal((html.match(/id="k\d_\d"/g) || []).length, 24);
+  const m = manifest();
+  for (let i = 0; i < 16; i++) assert.ok(m.out.some((o) => o.name === "g" + i));
+});

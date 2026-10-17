@@ -393,20 +393,16 @@ class SuuntoAblage(val wurzel: File, private val jetzt: () -> Long = { System.cu
  * Konfiguration fuer die Suunto-Uhr: aus /api/devices/config nur, was die Uhr-App nutzt (klassische
  * Seiten, Foils, Alarme, Sprache) — ihr Speicher (data.json/localStorage) ist klein. Als ASCII-JSON
  * (Nicht-ASCII als \uXXXX, die Uhr setzt Bytes 1:1 in Zeichen um) in KONFIG-Paketen
- * [0x83, nr, anzahl, bis zu 17 Bytes]. Gegenstueck: watch-suunto/quelle/funk.js `konfigTeil`.
+ * [0x83, nr u16, anzahl u16, bis zu 15 Bytes]. Gegenstueck: watch-suunto/quelle/funk.js `konfigTeil`.
  */
 object SuuntoKonfig {
     private val SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
         "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
         "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime", "layoutsOn", "latestVersion")
+        "alarmPatternTime", "layoutsOn", "latestVersion", "colorByValue", "hrZones", "speedZones")
     private val SEITEN = listOf("pages", "offFoilPages", "pausePages")
 
-    /**
-     * Freies Layout [1, bg, [[typ,x,y,…,fid], …]] -> [2, f1..f6]: die Wert-Elemente (typ 1) in Lese-
-     * Reihenfolge (oben nach unten, links nach rechts), ohne Doppelte, hoechstens 6. Positionen kann
-     * eine SuuntoPlus-Vorlage nicht setzen; klassische Seiten [0,a,b,c] bleiben, wie sie sind.
-     */
+    /** Freies Layout -> [2, f1..f6] (Werte in Lese-Reihenfolge) — nur noch Rueckfall, die Uhr zeichnet Layouts selbst. */
     fun seiteKurz(seite: JSONArray): JSONArray? {
         val art = seite.optInt(0, -1)
         if (art == 0) return seite
@@ -429,11 +425,8 @@ object SuuntoKonfig {
         val k = JSONObject(config)
         val o = JSONObject()
         for (s in SCHLUESSEL) if (k.has(s)) o.put(s, k.get(s))
-        for (s in SEITEN) k.optJSONArray(s)?.let { a ->
-            val kurz = JSONArray()
-            for (i in 0 until a.length()) a.optJSONArray(i)?.let { seiteKurz(it) }?.let { kurz.put(it) }
-            if (kurz.length() > 0) o.put(s, kurz)
-        }
+        // Seiten vollstaendig: die Uhr zeichnet freie Layouts wie die anderen Uhren (watch-suunto/quelle/anzeige.js)
+        for (s in SEITEN) k.optJSONArray(s)?.let { if (it.length() > 0) o.put(s, it) }
         o.optJSONArray("foils")?.let { fs ->
             val kurz = JSONArray()
             for (i in 0 until fs.length()) {
@@ -454,13 +447,14 @@ object SuuntoKonfig {
         return b.toString()
     }
 
+    /** [0x83, nr u16, anzahl u16, bis zu 15 Bytes] — Layouts koennen einige KB gross sein. */
     fun pakete(text: String): List<ByteArray> {
         val bytes = text.toByteArray(Charsets.US_ASCII)
-        val n = (bytes.size + 16) / 17
-        require(n in 1..255) { "Konfiguration zu gross: ${bytes.size} Bytes" }
+        val n = (bytes.size + 14) / 15
+        require(n in 1..0xFFFF) { "Konfiguration zu gross: ${bytes.size} Bytes" }
         return (0 until n).map { i ->
-            val teil = bytes.copyOfRange(i * 17, minOf(bytes.size, (i + 1) * 17))
-            byteArrayOf(0x83.toByte(), i.toByte(), n.toByte()) + teil
+            val teil = bytes.copyOfRange(i * 15, minOf(bytes.size, (i + 1) * 15))
+            byteArrayOf(0x83.toByte(), i.toByte(), (i shr 8).toByte(), n.toByte(), (n shr 8).toByte()) + teil
         }
     }
 }

@@ -367,12 +367,12 @@ final class SuuntoAblage {
 }
 
 /// Konfiguration fuer die Suunto-Uhr — wie SuuntoKonfig in Kotlin: nur Seiten, Foils, Alarme und Sprache,
-/// als ASCII-JSON in KONFIG-Paketen [0x83, nr, anzahl, bis zu 17 Bytes].
+/// als ASCII-JSON in KONFIG-Paketen [0x83, nr u16, anzahl u16, bis zu 15 Bytes].
 enum SuuntoKonfig {
     static let schluessel = ["views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
         "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
         "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime", "layoutsOn", "latestVersion"]
+        "alarmPatternTime", "layoutsOn", "latestVersion", "colorByValue", "hrZones", "speedZones"]
     static let seiten = ["pages", "offFoilPages", "pausePages"]
 
     /// Freies Layout -> [2, f1..f6] (Wert-Elemente in Lese-Reihenfolge), klassisch bleibt — wie Kotlin.
@@ -397,12 +397,8 @@ enum SuuntoKonfig {
     static func fuerUhr(_ config: [String: Any], appSprache: String?) -> String {
         var o: [String: Any] = [:]
         for s in schluessel { if let v = config[s] { o[s] = v } }
-        for s in seiten {
-            if let a = config[s] as? [[Any]] {
-                let kurz = a.compactMap { seiteKurz($0) }
-                if !kurz.isEmpty { o[s] = kurz }
-            }
-        }
+        // Seiten vollstaendig: die Uhr zeichnet freie Layouts selbst (watch-suunto/quelle/anzeige.js)
+        for s in seiten { if let a = config[s] as? [Any], !a.isEmpty { o[s] = a } }
         if let fs = config["foils"] as? [[String: Any]] {
             o["foils"] = fs.map { f -> [String: Any] in
                 ["id": f["id"] ?? NSNull(), "label": String(((f["label"] as? String) ?? "").prefix(24)),
@@ -426,13 +422,13 @@ enum SuuntoKonfig {
 
     static func pakete(_ text: String) -> [[UInt8]] {
         let bytes = Array(text.utf8)
-        let n = (bytes.count + 16) / 17
-        guard n >= 1 && n <= 255 else { return [] }
+        let n = (bytes.count + 14) / 15
+        guard n >= 1 && n <= 0xFFFF else { return [] }
         var aus: [[UInt8]] = []
         for i in 0..<n {
-            var p: [UInt8] = [0x83, UInt8(i), UInt8(n)]
-            let bis = min(bytes.count, (i + 1) * 17)
-            p.append(contentsOf: bytes[(i * 17)..<bis])
+            var p: [UInt8] = [0x83, UInt8(i & 255), UInt8(i >> 8), UInt8(n & 255), UInt8(n >> 8)]
+            let bis = min(bytes.count, (i + 1) * 15)
+            p.append(contentsOf: bytes[(i * 15)..<bis])
             aus.append(p)
         }
         return aus

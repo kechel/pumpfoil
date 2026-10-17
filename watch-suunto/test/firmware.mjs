@@ -12,6 +12,7 @@ export class Uhr {
   constructor({ einstellungen = {}, latenzMs = 30 } = {}) {
     this.jetztMs = 0;
     this.texte = {};
+    this.stile = {};
     this.vibration = [];
     this.speicher = new Map(Object.entries(einstellungen));
     this.empf = new Empfaenger();
@@ -53,6 +54,7 @@ export class Uhr {
     this.ctx = vm.createContext({
       Math, JSON, Float32Array, Uint8Array, Int8Array, appConn, enabledZappId: 3, localStorage: ls,
       setText: (id, txt) => { uhr.texte[id] = String(txt); },
+      setStyle: (id, p, v) => { (uhr.stile[id] = uhr.stile[id] || {})[p] = v; },
       playIndication: (n) => uhr.vibration.push([uhr.jetztMs, n]),
       systemEvent: () => {},
       // unload("_cm"): Firmware laedt die App-Seite neu und fragt getUserInterface erneut
@@ -103,6 +105,12 @@ export class Uhr {
     this.jetztMs = ms;
     if (!this.handyDa) return;
     if (!this.verbunden && this.handler && !this.queue.length) this.versucheVerbinden();
+  }
+
+  /** Was gerade auf der Datenseite steht: sichtbare Texte mit Position/Farbe. */
+  sichtbar() {
+    return Object.keys(this.stile).filter((id) => this.stile[id].visibility === "visible")
+      .map((id) => ({ id, txt: this.texte[id], left: this.stile[id].left, top: this.stile[id].top, color: this.stile[id].color }));
   }
 
   ruf(name, input = {}, ...rest) {
