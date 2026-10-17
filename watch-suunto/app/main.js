@@ -1378,6 +1378,15 @@ feld = function (s, id, el, tt, jetzt) {
   return feldSeiten(s, id, el, tt, jetzt);
 };
 
+/**
+ * Stille Runde (Suunto-Lap-Typ 23: keine Rundenanzeige, keine Vibration) an Anfang und Ende jedes Laufs:
+ * die Suunto-App zeigt Laeufe und Pausen dazwischen als Runden, die FIT-Datei hat die Laufgrenzen —
+ * ohne einen der 5 Log-Kanaele. Grenzen liegen um die Erkennungs-Verzoegerung spaeter (Start ~4 s,
+ * Ende ~3 s; der Server rechnet sie aus pf_foil zurueck). Nur, wo die Uhr Typ 23 kennt (Compile-Token).
+ */
+var STILLE_RUNDE = "{{ HAS_SILENT_LAP }}" === "1";
+var runde = function () { if (STILLE_RUNDE) $.put("/Activity/Trigger", 23); };
+
 /** Statuszeile unten: Funk, Rueckstand, Verlust, Upload — Fehler nie stumm (Regel 13.09.). */
 var handyZeile = function () {
   if (!sync) return "";
@@ -1489,6 +1498,7 @@ function evaluate(input, output) {
     else if (st.foiling) pumpsLauf += sekPumps;
     if (wechsel) {
       seite = 0;
+      runde();
       if (st.foiling) playIndication("Confirm");
       else {
         playIndication("Info");

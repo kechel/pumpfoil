@@ -109,3 +109,12 @@ test("Update-Hinweis: in den ersten 15 s der Aufnahme oben (den Startbildschirm 
   for (let s = 13; s <= 20; s++) uhr.ruf("evaluate", { tmr: s * 1000, sp: 0.5, hr: 2.5, utc: s, lt: 36000 + s });
   assert.ok(!uhr.sichtbar().some((x) => x.txt === "Update 9.99"), "nach 15 s weg");
 });
+
+test("Runden: stille Runde (Typ 23) an Anfang und Ende jedes Laufs, nicht ohne Token", () => {
+  const uhr = aufnahme({});
+  for (let s = 13; s <= 30; s++) uhr.ruf("evaluate", { tmr: s * 1000, sp: 0.3, hr: 2.5, utc: s, lt: 36000 + s,
+    pos: { latitude: 470000000 + 12 * 400, longitude: 90000000 } });
+  const runden = uhr.puts.filter((p) => p[1] === "/Activity/Trigger");
+  assert.equal(runden.length, 2, JSON.stringify(uhr.puts));
+  assert.ok(runden.every((p) => p[2] === 23));
+});
