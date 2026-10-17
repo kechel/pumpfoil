@@ -1483,7 +1483,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Fragen: `docs/SUUNTO.md`. Uhr `watch-suunto/` (Datenseiten aus dem Profil, Lauf-Regeln/Alarme aus
   watch-huawei/common, Pump-Zaehler + Pump-Marker in 5 Log-Kanaelen, Funk zum Handy), Bruecke Android
   (`SuuntoBruecke.kt`) + iOS (`SuuntoBruecke.swift`, xcodegen!), Server-Dedup Cloud-Import vs. Bruecke.
-  **Naechste Schritte (Community-Tester mit Suunto + Win/macOS — Jan hat keine Suunto, 17.10.; Simulator bei Jan laeuft):** (1) Editor, `watch-suunto/app-debug/` auf die Uhr (gelbe Zustandszeile), Systemlog:
+  **Naechste Schritte (Community-Tester mit Suunto + Win/macOS — Jan hat keine Suunto, 17.10.; Simulator bei Jan laeuft):** (1) Editor, `watch-suunto/app-debug/` auf die Uhr (gelbe Zustandszeile; Foto der letzten Seite = Kalibrierung der Schrifthoehe, im Simulator 17.10. gemessen, `ANZ_MITTE`), Systemlog:
   kommen Beschleunigungswerte, welche Einheit, `onAccelerometer` oder `evaluate`? (2) BLE: wie viele
   Schreibvorgaenge/s dauerhaft (25 vs 50 Hz), Rueckstand im Status? (3) Nimmt die Firmware `type:"device"`
   mit sofortigem `con=1` ohne Geraet? (4) Ein echtes Workout: stehen die Log-Kanaele (pf_*) in der FIT der
