@@ -37,7 +37,8 @@ function anker(x) {
   const m = /^#k(\d)([lcr])_/.exec(x.id), k = +m[1], a = m[2];
   assert.ok(/^-?[\d.]+%$/.test(x.left) && /^-?[\d.]+%$/.test(x.top), "nur reine Prozente: " + x.left + " " + x.top);
   const l = parseFloat(x.left), t = parseFloat(x.top);
-  return { a, x: Math.round(10 * (a === "l" ? l : a === "r" ? l + 100 : l + 50)), y: Math.round(10 * (t + HOEHE[k] * 90 / 466)) };
+  const mitte = [0.77, 0.80, 0.81, 0.88, 0.92, 0.95, 0.94, 0.90][k];   // = anzeige.js ANZ_MITTE
+  return { a, x: Math.round(10 * (a === "l" ? l : a === "r" ? l + 100 : l + 50)), y: Math.round(10 * (t + HOEHE[k] * mitte * 100 / 466)) };
 }
 
 function aufnahme(konfig) {
