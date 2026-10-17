@@ -164,6 +164,30 @@ demselben Kadenz-Verfahren; der Vergleich zeigt, dass die Uhr den Server trifft,
   Verbindung muss bei geoeffneter App zustande kommen; einmal verbunden, haelt sie im Hintergrund
   (`bluetooth-peripheral`).
 
+## Abgleich mit den anderen Uhren (17.10.2026)
+
+Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmin, Wear, Apple, Zepp, Huawei.
+
+| Funktion | andere Uhren | Suunto |
+|---|---|---|
+| Datenseiten aus dem Profil | klassisch [a,b,c] + freie Layouts je Zustand | ✅ klassisch; freie Layouts als bis zu 6 Werte in Lese-Reihenfolge (Vorlage `f.html`) — Positionen, Farben, Grafiken kann eine SuuntoPlus-Vorlage nicht setzen |
+| Seiten je Zustand (auf dem Foil / dazwischen / Pause), „alle Seiten" | ✅ | ✅ (`ring` aus seiten.js), Blaettern mit hoch/runter |
+| Lauf-Erkennung live, Vibration bei Start/Ende, Sprung auf Seite 1 | ✅ | ✅ (lauf.js, `playIndication`) |
+| Tempo-/Puls-Alarm, Strecken-/Zeitmarken | ✅ | ✅ aus dem Profil; Muster auf Suunto-Toene abgebildet |
+| Foil-Auswahl auf der Uhr | Garmin/Zepp/Huawei | ❌ keine Einstellungsseite: es gilt das Profil (Standard-Foil, Alarm-Grenzen) |
+| Werte nach Zone einfaerben | `colorByValue` | ❌ `setText` aendert nur Text, Farben sind in der Vorlage fest |
+| Sprache | Profil, sonst Geraet | ✅ Profil (ueber das Handy), sonst Einstellung in der Suunto-App |
+| Positionsmeldung „gerade am Pumpen" | ✅ | ✅ ueber das Handy (erster Fix im Startzustand) |
+| App verlassen ohne Aufnahme (`/app-closed`) | Garmin/Wear/Apple | ✅ das Handy meldet es, wenn die Uhr im Startzustand die Verbindung verliert |
+| „Handy nimmt auf"-Hinweis | ✅ | ✅ ueber STATUS (auch im Startzustand) |
+| Upload waehrend / in der Pause (`/analyze`) / danach | ✅ | ✅ durch die Handy-Bruecke |
+| Puffer-Anzeige, Warnung vor Verlust | Garmin (Speicher) | ✅ Rueckstand und verlorene Sekunden in der Statuszeile (RAM-Ring ~80 s) |
+| Update-Hinweis | `latestVersion` | ✅ im Startbildschirm — braucht einen `suunto`-Eintrag in `appmeta._APP_META`, **erst bei der Store-Freigabe** |
+| Pause, Ende, Zusammenfassung | eigene Bildschirme | Suunto-eigene Bedienung; Zusammenfassung mit Laeufen, Pumps, laengstem Lauf |
+| Verwerfen | loescht lokal | ❌ die App erfaehrt nicht, ob der Nutzer speichert oder verwirft — die Bruecken-Session bleibt; der Nutzer loescht sie bei uns |
+| Auto-Start, Touch-Sperre, Stopp-Modus | eigene Einstellungen | Sache der Suunto-Firmware |
+| Pump-Zahl/-Zeitpunkte ohne Rohdaten | nein (nur Server) | ✅ Pump-Marker in den Log-Kanaelen (Uhr-Erkennung) |
+
 ## Was nur auf echter Hardware geklaert wird
 
 1. Kommen Beschleunigungswerte, in welcher Einheit, ueber welchen Aufruf, mit 25 oder 50 Werten?

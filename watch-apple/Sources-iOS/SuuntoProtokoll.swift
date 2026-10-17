@@ -372,7 +372,7 @@ enum SuuntoKonfig {
     static let schluessel = ["views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
         "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
         "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime", "layoutsOn"]
+        "alarmPatternTime", "layoutsOn", "latestVersion"]
     static let seiten = ["pages", "offFoilPages", "pausePages"]
 
     /// Freies Layout -> [2, f1..f6] (Wert-Elemente in Lese-Reihenfolge), klassisch bleibt — wie Kotlin.

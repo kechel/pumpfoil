@@ -798,7 +798,7 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekSum, sekSumQ, sekN, sekPeak, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, aktVorlage = "d";
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, aktVorlage = "d", kfRoh = null;
 
 /**
  * Pump-Marker fuer die Log-Kanaele (Jans Idee, 17.10.2026): je Pump „laufende Nummer + Versatz".
@@ -902,7 +902,9 @@ var anzeigen = function (el, lokalS) {
     setText("#v2", sync ? (fu.zustand === 5 ? "✓" : "…") : "–"); setText("#l2", "Handy");
     // wie die anderen Uhren („Handy nimmt auf"): zwei Recorder gleichzeitig ergeben zwei Sessions
     setText("#s", fu.handyNimmtAuf() ? "Handy nimmt auf!" : fu.handyOffline() ? "Handy offline" : "");
-    setText("#v3", "" + (APP_VER / 100).toFixed(2)); setText("#l3", "Version");
+    setText("#v3", "" + (APP_VER / 100).toFixed(2));
+    // Update-Hinweis wie die anderen Uhren: latestVersion aus /config (kommt mit der Konfiguration vom Handy)
+    setText("#l3", neuereVersion() ? "Update " + kfRoh.latestVersion : "Version");
     return;
   }
   var r = ring(kf, zustandKurz()), n = r.length;
@@ -932,11 +934,16 @@ var anzeigen = function (el, lokalS) {
  * SuuntoKonfig in SuuntoProtokoll.kt/.swift). Gespeichert, damit sie auch ohne Handy gilt; laeuft der
  * Speicher ueber (data.json ist klein), gilt sie bis zum Neustart der App.
  */
+var neuereVersion = function () {
+  var v = kfRoh && kfRoh.latestVersion ? parseFloat(kfRoh.latestVersion) : 0;
+  return v > 0 && Math.round(v * 100) > APP_VER;
+};
+
 var konfigAnwenden = function (text) {
   var k;
   try { k = JSON.parse(text); } catch (e) { return; }
   if (!k || typeof k !== "object") return;
-  kf = new Konfig(k);
+  kf = new Konfig(k); kfRoh = k;
   // Die Suunto hat keine eigene Einstellungsseite fuer Alarm/Foil: das Profil gilt immer.
   aw.gesetzt = false;
   aw.vorbelegen(kf);
@@ -969,7 +976,8 @@ function onLoad(input, output) {
   if (typeof sprache !== "number") sprache = 3;
   try { var gk = localStorage.getObject("konfig"); if (gk && typeof gk.spr === "number") sprache = gk.spr; } catch (e) { sprache = sprache; }
   kf = new Konfig(null);
-  try { var k = localStorage.getObject("konfig"); if (k) kf = new Konfig(k); } catch (e) { kf = new Konfig(null); }
+  kfRoh = null;
+  try { var k = localStorage.getObject("konfig"); if (k) { kf = new Konfig(k); kfRoh = k; } } catch (e) { kf = new Konfig(null); }
   aw = new Auswahl(null);
   try { var a = localStorage.getObject("auswahl"); if (a) aw = new Auswahl(a); } catch (e) { aw = new Auswahl(null); }
   aw.vorbelegen(kf);

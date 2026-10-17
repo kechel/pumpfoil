@@ -399,7 +399,7 @@ object SuuntoKonfig {
     private val SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
         "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
         "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime", "layoutsOn")
+        "alarmPatternTime", "layoutsOn", "latestVersion")
     private val SEITEN = listOf("pages", "offFoilPages", "pausePages")
 
     /**
