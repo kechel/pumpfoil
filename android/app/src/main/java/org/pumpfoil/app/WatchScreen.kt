@@ -84,6 +84,7 @@ fun WatchScreen(
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             WatchCard(ctx)
             HuaweiKarte()
+            SuuntoKarte()
             Spacer(Modifier.height(8.dp))
             // Die vier Verweise auf die anderen Seiten stehen VOR der Uhren-Liste (Jan, 02.09.):
             // wer viele Uhren gepairt hat, musste vorher an allen vorbeiscrollen, um zur
@@ -563,6 +564,71 @@ fun HuaweiKarte() {
                 Button(onClick = { (ctx as? android.app.Activity)?.let { HuaweiBruecke.verbinden(it) } }) {
                     Text(I18n.t("huawei.connect"))
                 }
+            }
+        }
+    }
+}
+
+// Suunto-Uhr (Beta, 17.10.2026): nur sichtbar, wenn ein Suunto-Konto verknuepft ist oder der
+// Empfang schon an ist. Die SuuntoPlus-App schickt Rohdaten ueber dieses Handy (SuuntoBruecke);
+// ohne Handy in Reichweite kommen nur GPS, Puls und die 5 Werte der Uhr ueber die Suunto-Cloud.
+@Composable
+fun SuuntoKarte() {
+    val ctx = LocalContext.current
+    val st by SuuntoBruecke.stand.collectAsState()
+    var verknuepft by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        SuuntoBruecke.start(ctx)
+        verknuepft = try { Api.integrationStatus("suunto").linked } catch (_: Exception) { false }
+    }
+    val rechte = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) {
+        SuuntoBruecke.einschalten(ctx)   // prueft selbst und meldet „rechte", wenn abgelehnt
+    }
+    if (!verknuepft && !st.an) return
+    Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            Text(I18n.t("suunto.title"), style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(I18n.t("suunto.body"), style = MaterialTheme.typography.bodyMedium)
+            if (st.an) {
+                Spacer(Modifier.height(6.dp))
+                val zeile = when {
+                    st.verbunden && st.aufnahme -> I18n.t("suunto.receiving").replace("{s}", (st.empfangenS / 60).toString())
+                    st.verbunden -> I18n.t("suunto.connected").replace("{uhr}", st.uhr.ifBlank { "Suunto" })
+                    st.werben -> I18n.t("suunto.waiting")
+                    else -> ""
+                }
+                if (zeile.isNotEmpty()) Text(zeile, style = MaterialTheme.typography.bodyMedium)
+                if (st.verlorenS > 0) Text(I18n.t("suunto.lost").replace("{s}", st.verlorenS.toString()),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            }
+            if (st.offen > 0 && !st.aufnahme) {
+                Spacer(Modifier.height(6.dp))
+                Text(I18n.t("huawei.pending").replace("{n}", st.offen.toString()), style = MaterialTheme.typography.bodyMedium)
+            }
+            val fehler = when {
+                st.fehler.isEmpty() -> ""
+                st.fehler == "rechte" -> I18n.t("suunto.errPerm")
+                st.fehler == "bt" -> I18n.t("suunto.errBt")
+                else -> I18n.t("huawei.errOther").replace("{f}", st.fehler)
+            }
+            if (fehler.isNotEmpty()) {
+                Spacer(Modifier.height(6.dp))
+                Text(fehler, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            }
+            Spacer(Modifier.height(8.dp))
+            if (st.offen > 0 && !st.laedt) {
+                OutlinedButton(onClick = { SuuntoBruecke.hochladen(ctx) }) { Text(I18n.t("huawei.retry")) }
+                Spacer(Modifier.height(4.dp))
+            }
+            if (st.an) {
+                OutlinedButton(onClick = { SuuntoBruecke.ausschalten(ctx) }) { Text(I18n.t("suunto.off")) }
+            } else {
+                Button(onClick = {
+                    val n = SuuntoBruecke.benoetigteRechte()
+                    if (n.isEmpty() || SuuntoBruecke.rechte(ctx)) SuuntoBruecke.einschalten(ctx) else rechte.launch(n)
+                }) { Text(I18n.t("suunto.on")) }
             }
         }
     }
