@@ -7,11 +7,15 @@ import { createRequire } from "node:module";
 import { WURZEL } from "./lade.mjs";
 import { dateien, manifest, GRAFIKEN } from "../bau.mjs";
 
-test("app/ ist aktuell", () => {
-  for (const [n, inhalt] of Object.entries(dateien())) {
-    const da = fs.readFileSync(path.join(WURZEL, "app", n), "utf8");
-    assert.equal(da, inhalt, `app/${n} veraltet — node bau.mjs`);
+test("app/ und app-debug/ sind aktuell, nur app-debug/ protokolliert", () => {
+  for (const [dir, debug] of [["app", false], ["app-debug", true]]) {
+    for (const [n, inhalt] of Object.entries(dateien(debug))) {
+      const da = fs.readFileSync(path.join(WURZEL, dir, n), "utf8");
+      assert.equal(da, inhalt, `${dir}/${n} veraltet — node bau.mjs`);
+    }
   }
+  assert.ok(fs.readFileSync(path.join(WURZEL, "app/main.js"), "utf8").includes("var DEBUG = 0;"));
+  assert.ok(!fs.readFileSync(path.join(WURZEL, "app/d.html"), "utf8").includes("systemEvent"));
 });
 
 test("Manifest haelt die Grenzen der Referenz ein", () => {
@@ -29,7 +33,7 @@ test("main.js: nur ES5, keine eigenen globalen function-Deklarationen", () => {
   assert.ok(!/^\s*(let|const)\s/m.test(src), "let/const");
   assert.ok(!/=>/.test(src.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")), "Pfeilfunktion");
   const erlaubt = new Set(["onLoad", "evaluate", "onExerciseStart", "onExercisePause", "onExerciseContinue",
-    "onExerciseEnd", "onEvent", "onAccelerometer", "getUserInterface", "getSummaryOutputs"]);
+    "onExerciseEnd", "onEvent", "onLap", "onAccelerometer", "getUserInterface", "getSummaryOutputs"]);
   for (const m of src.matchAll(/^function ([\w$]+)/gm)) assert.ok(erlaubt.has(m[1]), "globale function " + m[1]);
 });
 
@@ -51,11 +55,13 @@ test("Vorlage d.html: Skript ist gueltiges ES5, Abos auf alle Grafik-Ausgaben, E
 // Der Pruefer des SuuntoPlus Editors selbst (nicht im Repo; auf der VM unter ~/suuntoplus-editor, s. docs/SUUNTO.md).
 // Fing am 17.10. erst bei Jan: „Too many output resources" und „Nested function 'kan' is not allowed".
 const PRUEFER = path.join(process.env.HOME || "", "suuntoplus-editor/entpackt/extension/node_modules/@suunto-internal/suuntoplus-tools/lib/index.js");
-test("SuuntoPlus-Pruefer nimmt app/ an (main.js + Projekt)", { skip: !fs.existsSync(PRUEFER) && "Editor nicht installiert" }, async () => {
+test("SuuntoPlus-Pruefer nimmt app/ und app-debug/ an (main.js + Projekt)", { skip: !fs.existsSync(PRUEFER) && "Editor nicht installiert" }, async () => {
   const tools = createRequire(import.meta.url)(PRUEFER);
-  const fehler = [];
-  const ok = await tools.javascript.validateFile(path.join(WURZEL, "app/main.js"), () => {}, (l, c, n, m) => fehler.push(`${l}:${c} ${m}`));
-  assert.deepEqual(fehler, []);
-  assert.ok(ok);
-  assert.ok(await tools.validateProject(path.join(WURZEL, "app")));
+  for (const dir of ["app", "app-debug"]) {
+    const fehler = [];
+    const ok = await tools.javascript.validateFile(path.join(WURZEL, dir, "main.js"), () => {}, (l, c, n, m) => fehler.push(`${l}:${c} ${m}`));
+    assert.deepEqual(fehler, [], dir);
+    assert.ok(ok, dir);
+    assert.ok(await tools.validateProject(path.join(WURZEL, dir)), dir);
+  }
 });

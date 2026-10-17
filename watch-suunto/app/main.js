@@ -1236,6 +1236,11 @@ var kanalL = function () {
   return Math.min(180, Math.max(0, n)) * 1000 + ((r % 360) + 360) % 360;
 };
 
+// Debug-Fassung (app-debug/, bau.mjs setzt DEBUG = 1): Ablauf ins Systemlog des Editors/der Uhr.
+var DEBUG = 0;
+var dbgLetzt = "";
+var dbg = function (m) { if (DEBUG) { dbgLetzt = m; systemEvent("pf: " + m); } };
+
 var sekNull = function () { sekPumps = 0; sekX = 0; sekY = 0; sekZ = 0; sekXX = 0; sekYY = 0; sekZZ = 0; sekN = 0; sekPeak = 0; sekStaerke = 0; };
 
 var summeLetzte = function (n) {
@@ -1350,6 +1355,10 @@ var anzeigen = function (el, lokalS, output) {
     // oben statt unten: unten sitzen die Seitenpunkte (94 %), und der runde Rand schneidet ab (Simulator 17.10.)
     befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || t("h.phone", "Phone") + " REC!", b: false });
   }
+  if (DEBUG) {   // Zustand direkt auf dem Display: lauf/pause/foil, Seite, letztes Ereignis
+    befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#ffcc00", a: "c", b: false,
+      txt: "L" + laeuft + " P" + pause + " F" + (st.foiling ? 1 : 0) + " S" + seite + " " + dbgLetzt });
+  }
   anz.zeigen(befehle, output);
 };
 
@@ -1412,7 +1421,7 @@ feld = function (s, id, el, tt, jetzt) {
  * Ende ~3 s; der Server rechnet sie aus pf_e1 (Stelle L) zurueck). Nur, wo die Uhr Typ 23 kennt (Compile-Token).
  */
 var STILLE_RUNDE = "{{ HAS_SILENT_LAP }}" === "1";
-var runde = function () { if (STILLE_RUNDE) $.put("/Activity/Trigger", 23); };
+var runde = function () { dbg("Runde, Lauf " + (st.foiling ? "an" : "aus")); if (STILLE_RUNDE) $.put("/Activity/Trigger", 23); };
 
 /** Statuszeile unten: Funk, Rueckstand, Verlust, Upload — Fehler nie stumm (Regel 13.09.). */
 var handyZeile = function () {
@@ -1430,6 +1439,7 @@ var handyZeile = function () {
 var bleHandler = function (ch, e, d) { fu.ereignisBle(ch, e, d); };
 
 function onLoad(input, output) {
+  dbg("onLoad");
   output.con = 1;                     // „Suche"-Fenster sofort schliessen: die App laeuft auch ohne Handy
   laeuft = 0; pause = 0; seite = 0; zeigeSeite = 0; letzteAccZeit = null; versatz = 0; versatzNeu = 1;
   tAkt = 0; utcStart = 0; einheit = -1; faktor = 1; positionGemeldet = 0; startSeite = 1;
@@ -1464,6 +1474,7 @@ function onLoad(input, output) {
 function onAccelerometer(input, output) { nimmAccel(input); }
 
 function onExerciseStart(input, output) {
+  dbg("onExerciseStart");
   laeuft = 1; pause = 0; versatzNeu = 1; tAkt = 0;
   st.neu(); al = new Alarm(); pu = new Pumpe(50);
   pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false; blockWerte = []; halbe = null; pumpHist = [];
@@ -1474,6 +1485,7 @@ function onExerciseStart(input, output) {
 }
 
 function onExercisePause(input, output) {
+  dbg("onExercisePause");
   if (!laeuft || pause) return;
   pause = 1; seite = 0;
   if (blockWerte.length) { fu.accel(blockT, blockWerte); blockWerte = []; }
@@ -1482,12 +1494,14 @@ function onExercisePause(input, output) {
 }
 
 function onExerciseContinue(input, output) {
+  dbg("onExerciseContinue");
   if (!laeuft || !pause) return;
   pause = 0; seite = 0; versatzNeu = 1;
   fu.ereignis(3, tAkt, Math.round(tAkt / 1000));
 }
 
 function onExerciseEnd(input, output) {
+  dbg("onExerciseEnd");
   if (!laeuft) return;
   if (blockWerte.length) { fu.accel(blockT, blockWerte); blockWerte = []; }
   fu.ereignis(4, tAkt, Math.round(tAkt / 1000));
@@ -1501,7 +1515,10 @@ function onEvent(input, output, id) {
   var n = laeuft ? ring(kf, zustandKurz()).length : 1;
   if (id === 1) seite = (seite + n - 1) % n;
   if (id === 2) seite = (seite + 1) % n;
+  dbg("onEvent " + id + " -> Seite " + seite + "/" + n);
 }
+
+function onLap(input, output) { dbg("onLap"); }
 
 function evaluate(input, output) {
   nimmAccel(input);
@@ -1554,12 +1571,14 @@ function evaluate(input, output) {
 }
 
 function getUserInterface(input, output) {
+  dbg("getUserInterface");
   zeigeSeite = 1;
   anz = new Anzeige();          // Vorlage frisch geladen: alles neu setzen
   return { template: "d" };
 }
 
 function getSummaryOutputs(input, output) {
+  dbg("getSummaryOutputs");
   zeigeSeite = 0;
   return [
     { id: "l", name: t("f.runs"), format: "Count_Threedigits", value: st.runCount },

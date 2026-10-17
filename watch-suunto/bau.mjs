@@ -104,7 +104,7 @@ export const SPRACHEN = [["English", 3], ["Deutsch", 0], ["Schwiizerdütsch", 1]
   ["Français", 4], ["Italiano", 5], ["Español", 6], ["Português", 7], ["Bahasa Indonesia", 8], ["Русский", 9],
   ["Nederlands", 10], ["Suomi", 11], ["Čeština", 12], ["日本語", 13], ["中文", 14]];
 
-export function mainJs() {
+export function mainJs(debug = false) {
   const lauf = alsVar(ohneExport(fs.readFileSync(path.join(R, "watch-huawei/common/lauf.js"), "utf8")));
   const seitenSrc = fs.readFileSync(path.join(R, "watch-huawei/common/seiten.js"), "utf8");
   // Zeichner wie auf den Huawei-Uhren; `punkte` kommt aus quelle/anzeige.js (ein Befehl statt 12 Rechtecke)
@@ -171,7 +171,7 @@ export function manifest() {
 }
 
 /** Datenseiten-Vorlage: <canvas> fuer Grafik + je Schriftklasse 3 Text-Elemente (quelle/anzeige.js). */
-export function vorlage() {
+export function vorlage(debug = false) {
   const skript = lies("quelle/vorlage.js").replace(/^\s*\/\/.*$/gm, "").trim();
   if (skript.includes('"')) throw new Error("quelle/vorlage.js darf keine doppelten Anfuehrungszeichen enthalten");
   const klassen = ["sp-d-xxl", "sp-d-xl", "sp-d-l", "sp-d-m", "sp-d-s", "sp-d-xs", "sp-t-m", "sp-t-s"];
@@ -204,7 +204,10 @@ ${texte}
   <userInput>
     <!-- nur die untere Taste blaettert (wie Suuntos Beispiel MultiView); die obere bleibt Start/Pause/Stopp.
          17.10.: mit „up" belegt liess sich die Aufnahme im Simulator nicht mehr anhalten. -->
-    <pushButton name="down" onClick="$.put('/Zapp/{zapp_index}/Event', 2, null, 'int32');" />
+${debug ? `    <!-- DEBUG: jeden Tastendruck ins Systemlog (targetData: 0 lang-Start, 3 lang, 4 kurz …) -->
+    <pushButton name="down" onButtonEvent="systemEvent('pf: Taste down ' + targetData)" onClick="$.put('/Zapp/{zapp_index}/Event', 2, null, 'int32');" />
+${["up", "next", "upleft", "downleft"].map((b) => `    <pushButton name="${b}" onButtonEvent="systemEvent('pf: Taste ${b} ' + targetData)" />`).join("\n")}` :
+`    <pushButton name="down" onClick="$.put('/Zapp/{zapp_index}/Event', 2, null, 'int32');" />`}
   </userInput>
 </uiView>
 `;
@@ -212,20 +215,27 @@ ${texte}
 
 export function dataJson() { return { handy: "true", hz: "0", sprache: "0" }; }
 
-export function dateien() {
+/** debug = true: app-debug/ — Ablauf und jede Taste ins Systemlog, Name „Pumpfoil Debug". */
+export function dateien(debug = false) {
+  const m = manifest();
+  if (debug) m.name = "Pumpfoil Debug";
+  const js = mainJs();
+  if (debug && !js.includes("var DEBUG = 0;")) throw new Error("DEBUG-Schalter fehlt in main.js");
   return {
-    "manifest.json": JSON.stringify(manifest(), null, 2) + "\n",
-    "main.js": mainJs(),
+    "manifest.json": JSON.stringify(m, null, 2) + "\n",
+    "main.js": debug ? js.replace("var DEBUG = 0;", "var DEBUG = 1;") : js,
     "ext1.js": texte(),
     "ext2.js": standard().ext,
-    "d.html": vorlage(),
+    "d.html": vorlage(debug),
     "data.json": JSON.stringify(dataJson(), null, 2) + "\n",
   };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const ziel = path.join(W, "app");
-  fs.mkdirSync(ziel, { recursive: true });
-  for (const [n, inhalt] of Object.entries(dateien())) fs.writeFileSync(path.join(ziel, n), inhalt);
-  console.log("app/ geschrieben:", Object.keys(dateien()).join(", "));
+  for (const [dir, debug] of [["app", false], ["app-debug", true]]) {
+    const ziel = path.join(W, dir);
+    fs.mkdirSync(ziel, { recursive: true });
+    for (const [n, inhalt] of Object.entries(dateien(debug))) fs.writeFileSync(path.join(ziel, n), inhalt);
+    console.log(dir + "/ geschrieben:", Object.keys(dateien(debug)).join(", "));
+  }
 }

@@ -1,0 +1,175 @@
+{
+  "name": "Pumpfoil Debug",
+  "version": "1.00",
+  "author": "pumpfoil.org",
+  "description": "Runs, pumps and cadence on the watch; raw data to the Pumpfoil phone app",
+  "type": "device",
+  "usage": "workout",
+  "modificationTime": 1792195200,
+  "in": [
+    {
+      "name": "tmr",
+      "source": "Activity/ActivityTimer",
+      "type": "subscribe"
+    },
+    {
+      "name": "sp",
+      "source": "Activity/Current/Speed",
+      "type": "subscribe"
+    },
+    {
+      "name": "hr",
+      "source": "Activity/Move/-1/HeartRate/Current",
+      "type": "subscribe"
+    },
+    {
+      "name": "pos",
+      "source": "Fusion/Location/GeoCoordinates",
+      "type": "subscribe"
+    },
+    {
+      "name": "rdy",
+      "source": "Fusion/Location/Readiness",
+      "type": "subscribe"
+    },
+    {
+      "name": "acc",
+      "source": "Fusion/Zapp/Accelerometer",
+      "type": "subscribe"
+    },
+    {
+      "name": "utc",
+      "source": "Dev/Time",
+      "type": "subscribe"
+    },
+    {
+      "name": "lt",
+      "source": "Dev/Time/LocalTime/Min",
+      "type": "subscribe"
+    },
+    {
+      "name": "alt",
+      "source": "Fusion/Altitude",
+      "type": "subscribe"
+    },
+    {
+      "name": "asc",
+      "source": "Fusion/Altitude/Ascent",
+      "type": "subscribe"
+    }
+  ],
+  "out": [
+    {
+      "name": "con"
+    },
+    {
+      "name": "pf_e1",
+      "log": true,
+      "shownName": "Runs and pumps",
+      "format": "Count_Sixdigits"
+    },
+    {
+      "name": "pf_b1",
+      "log": true,
+      "shownName": "Motion per axis",
+      "format": "Count_Sixdigits"
+    },
+    {
+      "name": "pf_s1",
+      "log": true,
+      "shownName": "Peak and pump strength",
+      "format": "Count_Sixdigits"
+    },
+    {
+      "name": "pf_l1",
+      "log": true,
+      "shownName": "Arm position",
+      "format": "Count_Sixdigits"
+    },
+    {
+      "name": "g0"
+    },
+    {
+      "name": "g1"
+    },
+    {
+      "name": "g2"
+    },
+    {
+      "name": "g3"
+    },
+    {
+      "name": "g4"
+    },
+    {
+      "name": "g5"
+    },
+    {
+      "name": "g6"
+    },
+    {
+      "name": "g7"
+    },
+    {
+      "name": "g8"
+    },
+    {
+      "name": "g9"
+    },
+    {
+      "name": "g10"
+    },
+    {
+      "name": "g11"
+    },
+    {
+      "name": "g12"
+    },
+    {
+      "name": "gv"
+    }
+  ],
+  "template": [
+    {
+      "name": "d.html"
+    }
+  ],
+  "settings": [
+    {
+      "shownName": "Raw data to phone app",
+      "path": "handy",
+      "type": "boolean"
+    },
+    {
+      "shownName": "Raw data rate",
+      "path": "hz",
+      "type": "enum",
+      "values": [
+        "25 Hz",
+        "50 Hz"
+      ]
+    },
+    {
+      "shownName": "Language",
+      "path": "sprache",
+      "type": "enum",
+      "values": [
+        "English",
+        "Deutsch",
+        "Schwiizerdütsch",
+        "Österreichisch",
+        "Français",
+        "Italiano",
+        "Español",
+        "Português",
+        "Bahasa Indonesia",
+        "Русский",
+        "Nederlands",
+        "Suomi",
+        "Čeština",
+        "日本語",
+        "中文"
+      ]
+    }
+  ]
+}
