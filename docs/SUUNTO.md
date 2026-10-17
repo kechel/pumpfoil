@@ -96,7 +96,7 @@ Ein Block = die Werte eines Beschleunigungs-Aufrufs (50 Hz: 25 Werte = 150 Bytes
 |---|---|
 | `0x81` QUITTUNG | block u16 (Accel bis einschliesslich angekommen), nr u16 (GPS bis einschliesslich, laufende Nummer), ereignis u8 (Nummer des letzten Ereignisses), flags u8 (bit0/1/2: block/sek/ereignis gueltig) |
 | `0x82` STATUS | flags u8 (bit0 Konto verbunden, bit1 Server erreichbar, bit2 laedt hoch), offen u16 (Chunks, die noch zum Server muessen) |
-| `0x83` KONFIG | schluessel u8, wert … (Seiten, Alarme, Sprache — Teilstuecke wie bei Huawei `KONFIG_SCHLUESSEL`) |
+| `0x83` KONFIG | nr u8, anzahl u8, bis zu 17 Bytes ASCII-JSON (Teile in beliebiger Reihenfolge): klassische Seiten, Foils, Alarme, `spr` = Sprachspalte — aus `/api/devices/config?p=suunto`, gekuerzt von `SuuntoKonfig` (Kotlin/Swift); einmal je Verbindung, die Uhr speichert sie (`localStorage` „konfig") |
 
 Die Uhr haelt unquittierte Bloecke in einem Ringpuffer und schickt nach dem Wiederverbinden ab
 Quittung+1 nach. Durchsatz bei 50 Hz: ~18 Pakete/s, bei 25 Hz ~10 Pakete/s — **[UNKLAR], ob die

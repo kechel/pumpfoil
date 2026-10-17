@@ -17,7 +17,7 @@ Plan, Protokoll und offene Hardware-Fragen: [`docs/SUUNTO.md`](../docs/SUUNTO.md
 ```sh
 cd watch-suunto
 node bau.mjs          # nach jeder Aenderung an quelle/, vorlagen/ oder watch-huawei/common/
-node --test test/     # laeuft auch in der CI
+node --test test/*.test.mjs     # laeuft auch in der CI
 ```
 
 ## Auf die Uhr (Jan, Mac)

@@ -103,4 +103,4 @@ jobs:
           node-version: "20"
       # Keine Abhaengigkeiten: prueft Pump-Zaehler, Funkprotokoll (auch ueber Abbrueche) und dass
       # app/ zum Quellstand passt — auch wenn sich watch-huawei/common/lauf.js aendert.
-      - run: node --test test/
+      - run: node --test test/*.test.mjs

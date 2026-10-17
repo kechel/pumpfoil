@@ -388,3 +388,53 @@ class SuuntoAblage(val wurzel: File, private val jetzt: () -> Long = { System.cu
         } + " · SuuntoPlus"
     }
 }
+
+/**
+ * Konfiguration fuer die Suunto-Uhr: aus /api/devices/config nur, was die Uhr-App nutzt (klassische
+ * Seiten, Foils, Alarme, Sprache) — ihr Speicher (data.json/localStorage) ist klein. Als ASCII-JSON
+ * (Nicht-ASCII als \uXXXX, die Uhr setzt Bytes 1:1 in Zeichen um) in KONFIG-Paketen
+ * [0x83, nr, anzahl, bis zu 17 Bytes]. Gegenstueck: watch-suunto/quelle/funk.js `konfigTeil`.
+ */
+object SuuntoKonfig {
+    private val SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
+        "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
+        "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
+        "alarmPatternTime")
+    /** Sprache des Profils -> Spalte der Feld-Texte auf der Uhr (watch-suunto/bau.mjs SPRACHEN). */
+    private val SPALTE = mapOf("de" to 0, "gsw" to 1, "de-AT" to 2, "en" to 3, "fr" to 4, "it" to 5, "es" to 6,
+        "pt" to 7, "pt-PT" to 7, "id" to 8, "ru" to 9, "nl" to 10, "fi" to 11, "cs" to 12, "ja" to 13, "zh" to 14)
+
+    fun fuerUhr(config: String, appSprache: String? = null): String {
+        val k = JSONObject(config)
+        val o = JSONObject()
+        for (s in SCHLUESSEL) if (k.has(s)) o.put(s, k.get(s))
+        o.optJSONArray("foils")?.let { fs ->
+            val kurz = JSONArray()
+            for (i in 0 until fs.length()) {
+                val f = fs.optJSONObject(i) ?: continue
+                kurz.put(JSONObject().put("id", f.opt("id")).put("label", f.optString("label").take(24))
+                    .put("min", f.opt("min")).put("max", f.opt("max")))
+            }
+            o.put("foils", kurz)
+        }
+        val lang = k.optString("language").ifBlank { appSprache ?: "" }
+        SPALTE[lang]?.let { o.put("spr", it) }
+        return ascii(o.toString())
+    }
+
+    fun ascii(s: String): String {
+        val b = StringBuilder()
+        for (c in s) if (c.code < 128) b.append(c) else b.append("\\u%04x".format(c.code))
+        return b.toString()
+    }
+
+    fun pakete(text: String): List<ByteArray> {
+        val bytes = text.toByteArray(Charsets.US_ASCII)
+        val n = (bytes.size + 16) / 17
+        require(n in 1..255) { "Konfiguration zu gross: ${bytes.size} Bytes" }
+        return (0 until n).map { i ->
+            val teil = bytes.copyOfRange(i * 17, minOf(bytes.size, (i + 1) * 17))
+            byteArrayOf(0x83.toByte(), i.toByte(), n.toByte()) + teil
+        }
+    }
+}

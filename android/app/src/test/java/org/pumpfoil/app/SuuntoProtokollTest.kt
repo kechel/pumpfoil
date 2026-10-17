@@ -136,3 +136,21 @@ class SuuntoAblageTest {
         dir.deleteRecursively()
     }
 }
+
+class SuuntoKonfigTest {
+    @Test fun nurWasDieUhrBrauchtAlsAsciiInTeilen() {
+        val cfg = JSONObject().put("views", org.json.JSONArray("[[1,20,14]]")).put("pages", org.json.JSONArray("[[1,0,[]]]"))
+            .put("alarmEnabled", true).put("language", "de")
+            .put("foils", org.json.JSONArray().put(JSONObject().put("id", 7).put("label", "Gong Größe M").put("min", 10).put("max", 22).put("area", 1200)))
+        val t = SuuntoKonfig.fuerUhr(cfg.toString())
+        val o = JSONObject(t)
+        assertTrue(!o.has("pages"))
+        assertEquals(0, o.getInt("spr"))
+        assertEquals("Gong Größe M", o.getJSONArray("foils").getJSONObject(0).getString("label"))
+        assertTrue(!o.getJSONArray("foils").getJSONObject(0).has("area"))
+        assertTrue(t.all { it.code < 128 })
+        val p = SuuntoKonfig.pakete(t)
+        assertTrue(p.all { it.size <= 20 && it[0] == 0x83.toByte() && it[2].toInt() == p.size })
+        assertEquals(t, p.joinToString("") { String(it, 3, it.size - 3, Charsets.US_ASCII) })
+    }
+}

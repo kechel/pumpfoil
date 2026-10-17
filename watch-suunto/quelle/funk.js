@@ -182,7 +182,23 @@ Funk.prototype.empfang = function (d) {
     if ((f & 4) && funkNach(d[5], this.ereigQ)) this.ereigQ = d[5];
   } else if (d[0] === 0x82 && d.length >= 4) {
     this.handy = d[1]; this.offen = d[2] | (d[3] << 8);
+  } else if (d[0] === 0x83 && d.length >= 3) {
+    this.konfigTeil(d);
   }
+};
+
+/** KONFIG [0x83, nr, anzahl, bis zu 17 Zeichen ASCII-JSON] — Datenseiten/Alarme/Sprache aus dem Profil,
+ *  vom Handy einmal je Verbindung geschickt. Fertig -> this.konfig (Text), this.konfigNeu = 1. */
+Funk.prototype.konfigTeil = function (d) {
+  var nr = d[1], n = d[2], i, s = "";
+  for (i = 3; i < d.length; i++) s += String.fromCharCode(d[i]);
+  // Reihenfolge egal; ein Teil mit ANDEREM Inhalt an schon belegter Stelle = neue Sendung
+  if (!this.kTeile || this.kAnzahl !== n || (this.kTeile[nr] !== undefined && this.kTeile[nr] !== s)) {
+    this.kTeile = []; this.kAnzahl = n; this.kDa = 0;
+  }
+  if (nr >= n || this.kTeile[nr] !== undefined) return;
+  this.kTeile[nr] = s; this.kDa++;
+  if (this.kDa === n) { this.konfig = this.kTeile.join(""); this.konfigNeu = 1; this.kTeile = null; }
 };
 
 /** u16 aus der Quittung -> voller Zaehler: der groesste Wert < bis, der auf diese u16 endet (-1: keiner). */

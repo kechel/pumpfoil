@@ -683,7 +683,23 @@ Funk.prototype.empfang = function (d) {
     if ((f & 4) && funkNach(d[5], this.ereigQ)) this.ereigQ = d[5];
   } else if (d[0] === 0x82 && d.length >= 4) {
     this.handy = d[1]; this.offen = d[2] | (d[3] << 8);
+  } else if (d[0] === 0x83 && d.length >= 3) {
+    this.konfigTeil(d);
   }
+};
+
+/** KONFIG [0x83, nr, anzahl, bis zu 17 Zeichen ASCII-JSON] — Datenseiten/Alarme/Sprache aus dem Profil,
+ *  vom Handy einmal je Verbindung geschickt. Fertig -> this.konfig (Text), this.konfigNeu = 1. */
+Funk.prototype.konfigTeil = function (d) {
+  var nr = d[1], n = d[2], i, s = "";
+  for (i = 3; i < d.length; i++) s += String.fromCharCode(d[i]);
+  // Reihenfolge egal; ein Teil mit ANDEREM Inhalt an schon belegter Stelle = neue Sendung
+  if (!this.kTeile || this.kAnzahl !== n || (this.kTeile[nr] !== undefined && this.kTeile[nr] !== s)) {
+    this.kTeile = []; this.kAnzahl = n; this.kDa = 0;
+  }
+  if (nr >= n || this.kTeile[nr] !== undefined) return;
+  this.kTeile[nr] = s; this.kDa++;
+  if (this.kDa === n) { this.konfig = this.kTeile.join(""); this.konfigNeu = 1; this.kTeile = null; }
 };
 
 /** u16 aus der Quittung -> voller Zaehler: der groesste Wert < bis, der auf diese u16 endet (-1: keiner). */
@@ -896,6 +912,24 @@ var anzeigen = function (el, lokalS) {
   setText("#s", h);
 };
 
+/**
+ * Konfiguration vom Handy (aus /api/devices/config, gekuerzt auf das, was die Uhr nutzt — s.
+ * SuuntoKonfig in SuuntoProtokoll.kt/.swift). Gespeichert, damit sie auch ohne Handy gilt; laeuft der
+ * Speicher ueber (data.json ist klein), gilt sie bis zum Neustart der App.
+ */
+var konfigAnwenden = function (text) {
+  var k;
+  try { k = JSON.parse(text); } catch (e) { return; }
+  if (!k || typeof k !== "object") return;
+  kf = new Konfig(k);
+  // Die Suunto hat keine eigene Einstellungsseite fuer Alarm/Foil: das Profil gilt immer.
+  aw.gesetzt = false;
+  aw.vorbelegen(kf);
+  if (typeof k.spr === "number" && k.spr >= 0 && k.spr <= 14 && k.spr !== sprache) { sprache = k.spr; textLaden(); }
+  try { localStorage.setObject("konfig", k); } catch (e) { k = null; }
+  try { localStorage.setObject("auswahl", aw.daten()); } catch (e) { k = null; }
+};
+
 // --- Firmware-Rueckrufe ------------------------------------------------------------------
 var bleHandler = function (ch, e, d) { fu.ereignisBle(ch, e, d); };
 
@@ -905,7 +939,9 @@ function onLoad(input, output) {
   tAkt = 0; utcStart = 0; einheit = -1; faktor = 1; positionGemeldet = 0; startSeite = 1;
   sync = wahr(einstellung("handy", "true"));
   hz = einstellung("hz", "0") === "1" ? 50 : 25;
-  sprache = [3,0,1,2,4,5,6,7,8,9,10,11,12,13,14][+einstellung("sprache", "0") | 0] || 3;
+  sprache = [3,0,1,2,4,5,6,7,8,9,10,11,12,13,14][+einstellung("sprache", "0") | 0];
+  if (typeof sprache !== "number") sprache = 3;
+  try { var gk = localStorage.getObject("konfig"); if (gk && typeof gk.spr === "number") sprache = gk.spr; } catch (e) { sprache = sprache; }
   kf = new Konfig(null);
   try { var k = localStorage.getObject("konfig"); if (k) kf = new Konfig(k); } catch (e) { kf = new Konfig(null); }
   aw = new Auswahl(null);
@@ -1012,6 +1048,7 @@ function evaluate(input, output) {
   }
   output.pumps = pumpsLauf; output.laeufe = st.runCount;
   fu.takt(sync, bleHandler);
+  if (fu.konfigNeu) { fu.konfigNeu = 0; konfigAnwenden(fu.konfig); fu.konfig = null; }
   anzeigen(tAkt, lokalS);
 }
 

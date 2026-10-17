@@ -41,6 +41,8 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     private lazy var ablage = SuuntoAblage(wurzel: Self.wurzel)
     private var offeneQuittung: Data?
     private var letzteQuittung = Date.distantPast
+    private var warteschlange: [Data] = []     // Notify: Konfiguration; die Quittung geht immer vor
+    private var konfigFuer: Int64 = -1
     private var takt: Timer?
     private var laedtGerade = false
     private var sekunden = 0
@@ -126,6 +128,7 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     func peripheralManager(_ p: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom c: CBCharacteristic) {
         zentralen.removeAll { $0.identifier == central.identifier }
         stand.verbunden = !zentralen.isEmpty
+        if zentralen.isEmpty { warteschlange = []; konfigFuer = -1 }
     }
 
     func peripheralManager(_ p: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
@@ -150,7 +153,10 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
         let a = ablage.paket(p)
         if (p.first ?? 0) & 15 == 1 {
             let e = SuuntoEmpfang(); e.paket(p)
-            if let h = e.hallo { stand.uhr = SuuntoAblage.modell(h.display).components(separatedBy: " ·").first ?? "Suunto" }
+            if let h = e.hallo {
+                stand.uhr = SuuntoAblage.modell(h.display).components(separatedBy: " ·").first ?? "Suunto"
+                if konfigFuer != h.uhrId { konfigFuer = h.uhrId; konfigSenden(h) }
+            }
         }
         if let pos = a.position { position(uhrId: a.uhrId, lat: pos.0, lon: pos.1) }
         if let q = a.quittung { offeneQuittung = Data(q) }
@@ -167,12 +173,32 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
         } else { stand.aufnahme = false }
     }
 
-    /// Quittung hoechstens alle 250 ms (oder sofort).
+    /// Quittung hoechstens alle 250 ms (oder sofort); danach, was in der Warteschlange steht.
     private func quittungSenden(sofort: Bool) {
-        guard let q = offeneQuittung, let n = notifyChar, let p = pm, !zentralen.isEmpty else { return }
-        if !sofort && Date().timeIntervalSince(letzteQuittung) < 0.25 { return }
-        letzteQuittung = Date()
-        _ = p.updateValue(q, for: n, onSubscribedCentrals: zentralen)
+        guard let n = notifyChar, let p = pm, !zentralen.isEmpty else { return }
+        if let q = offeneQuittung, sofort || Date().timeIntervalSince(letzteQuittung) >= 0.25 {
+            letzteQuittung = Date()
+            if !p.updateValue(q, for: n, onSubscribedCentrals: zentralen) { return }   // voll: isReady ruft wieder
+        }
+        while let erstes = warteschlange.first {
+            if !p.updateValue(erstes, for: n, onSubscribedCentrals: zentralen) { return }
+            warteschlange.removeFirst()
+        }
+    }
+
+    /// Seiten, Alarme und Sprache aus dem Profil an die Uhr (einmal je Verbindung).
+    private func konfigSenden(_ h: SuuntoProtokoll.Hallo) {
+        Task { @MainActor in
+            guard let t = await token(h.uhrId, SuuntoAblage.modell(h.display)),
+                  let url = URL(string: Api.baseURL + "/api/devices/config?p=suunto&v=" + String(format: "%d.%02d", h.appVer / 100, h.appVer % 100))
+            else { konfigFuer = -1; return }
+            var req = URLRequest(url: url); req.setValue(t, forHTTPHeaderField: "X-Device-Token")
+            guard let (d, r) = try? await URLSession.shared.data(for: req), (r as? HTTPURLResponse)?.statusCode == 200,
+                  let cfg = (try? JSONSerialization.jsonObject(with: d)) as? [String: Any] else { konfigFuer = -1; return }
+            let lang = UserDefaults.standard.string(forKey: "appLang")
+            warteschlange += SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, appSprache: lang)).map { Data($0) }
+            quittungSenden(sofort: true)
+        }
     }
 
     // MARK: Server

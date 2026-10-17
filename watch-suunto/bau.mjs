@@ -84,7 +84,7 @@ export function mainJs() {
     "// ---- quelle/funk.js ----", alsVar(lies("quelle/funk.js")),
     "// ---- quelle/uhr.js ----",
     lies("quelle/uhr.js").replace("sprache = einstellung(\"sprache\", \"en\");",
-      "sprache = [" + SPRACHEN.map((s) => s[1]).join(",") + "][+einstellung(\"sprache\", \"0\") | 0] || 3;"),
+      "sprache = [" + SPRACHEN.map((s) => s[1]).join(",") + "][+einstellung(\"sprache\", \"0\") | 0];\n  if (typeof sprache !== \"number\") sprache = 3;"),
   ].join("\n");
 }
 
