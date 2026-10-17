@@ -152,6 +152,13 @@ demselben Kadenz-Verfahren; der Vergleich zeigt, dass die Uhr den Server trifft,
 - `watch-suunto/test/` — Node-Harness: laedt die echte main.js mit nachgebauten Firmware-Objekten
   (`appConn`, `evalFile`, `localStorage`, `playIndication`) und spielt Aufnahmen durch, inkl.
   vieler Verbindungsabbrueche.
+- **Suunto-eigener Pruefer und Build laufen auch auf der VM** (17.10.): die Erweiterung bringt
+  `@suunto-internal/suuntoplus-tools` mit Linux-Binaries mit. `test/bau.test.mjs` ruft deren
+  `validateFile`/`validateProject` auf (Test wird uebersprungen, wenn `~/suuntoplus-editor` fehlt, z. B.
+  in CI). Voller Build zu `.dev`-Paketen je Display: `node ~/suuntoplus-editor/entpackt/extension/node_modules/@suunto-internal/suuntoplus-tools/bin/build-app.js --appID zzpf0001 --input watch-suunto/app --output <ziel>`.
+  Regeln, die der Pruefer durchsetzt und die Referenz nicht nennt: hoechstens **20** Ausgaben, keine
+  verschachtelten `function`-Deklarationen (nur `var f = function …`), globale `function` nur fuer
+  Firmware-Callbacks.
 - iPhone: `SuuntoProtokoll.swift` (rein, auf Linux gegen dieselben Testvektoren UND die Dateien der
   Android-Ablage geprueft: `watch-suunto/test/swift/pruefen.sh`) und `SuuntoBruecke.swift`
   (`CBPeripheralManager`, Hintergrundmodus `bluetooth-peripheral`, Karte im Uhren-Bereich).

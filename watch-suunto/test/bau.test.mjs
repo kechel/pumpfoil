@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
 import { WURZEL } from "./lade.mjs";
 import { dateien, manifest, GRAFIKEN } from "../bau.mjs";
 
@@ -43,4 +44,16 @@ test("Vorlage d.html: Skript ist gueltiges ES5, Abos auf alle Grafik-Ausgaben, E
   for (let i = 0; i < GRAFIKEN; i++) assert.ok(m.out.some((o) => o.name === "g" + i));
   assert.ok(m.out.length <= 20, "Editor: hoechstens 20 Ausgaben, sind " + m.out.length);
   assert.ok(fs.readFileSync(path.join(WURZEL, "quelle/vorlage.js"), "utf8").includes("gi < " + GRAFIKEN), "vorlage.js G-Laenge = ANZ_GRAFIKEN");
+});
+
+// Der Pruefer des SuuntoPlus Editors selbst (nicht im Repo; auf der VM unter ~/suuntoplus-editor, s. docs/SUUNTO.md).
+// Fing am 17.10. erst bei Jan: „Too many output resources" und „Nested function 'kan' is not allowed".
+const PRUEFER = path.join(process.env.HOME || "", "suuntoplus-editor/entpackt/extension/node_modules/@suunto-internal/suuntoplus-tools/lib/index.js");
+test("SuuntoPlus-Pruefer nimmt app/ an (main.js + Projekt)", { skip: !fs.existsSync(PRUEFER) && "Editor nicht installiert" }, async () => {
+  const tools = createRequire(import.meta.url)(PRUEFER);
+  const fehler = [];
+  const ok = await tools.javascript.validateFile(path.join(WURZEL, "app/main.js"), () => {}, (l, c, n, m) => fehler.push(`${l}:${c} ${m}`));
+  assert.deepEqual(fehler, []);
+  assert.ok(ok);
+  assert.ok(await tools.validateProject(path.join(WURZEL, "app")));
 });

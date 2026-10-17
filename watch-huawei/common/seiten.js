@@ -131,7 +131,7 @@ function fuellgrad(k, fid, v) {
   return Math.max(0, Math.min(1, (v - g[0]) / (g[5] - g[0])));
 }
 function mische(c, bg, f) {
-  function kan(h, i) { return parseInt(h.substr(1 + 2 * i, 2), 16); }
+  var kan = function (h, i) { return parseInt(h.substr(1 + 2 * i, 2), 16); };   // keine verschachtelte function-Deklaration: der SuuntoPlus-Pruefer lehnt sie ab
   var out = "#";
   for (var i = 0; i < 3; i++) {
     var x = Math.round(kan(c, i) * f + kan(bg, i) * (1 - f));
