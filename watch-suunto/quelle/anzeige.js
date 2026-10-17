@@ -17,7 +17,10 @@ var ANZ_GRAFIKEN = 13;          // mehr Ausgaben erlaubt der Editor nicht (bau.m
 var ANZ_KLASSEN = [["sp-d-xxl", 155], ["sp-d-xl", 118], ["sp-d-l", 103], ["sp-d-m", 78], ["sp-d-s", 65],
   ["sp-d-xs", 46], ["sp-t-m", 33], ["sp-t-s", 27]];
 var ANZ_AUSR = ["c", "l", "r"];
-var ANZ_JE = { c: 3, l: 2, r: 2 };   // Elemente je Schriftklasse und Ausrichtung (bau.mjs baut sie in die Vorlage)
+// Elemente je Schriftklasse (Index wie ANZ_KLASSEN) und Ausrichtung; bau.mjs baut genau diese in die Vorlage.
+// Verteilt nach den Seiten, die es gibt: viele kleine/mittlere mittige Felder (Standard-Layout „All in betwene"
+// hat 7 Werte + 6 Beschriftungen in je einer Groesse), links/rechtsbuendig selten (17.10.: 15 Texte, 10 sichtbar).
+var ANZ_JE = { c: [2, 2, 3, 5, 7, 7, 7, 7], l: [0, 0, 1, 2, 2, 2, 2, 2], r: [0, 0, 1, 2, 2, 2, 2, 2] };
 
 /** Schriftklasse fuer eine Textgroesse s (Promille der Displaybreite, aus seiten.js groesse()). */
 var anzKlasse = function (s) {
@@ -82,11 +85,10 @@ Anzeige.prototype.zeigen = function (befehle, output) {
     if (b.k !== "t") { if (graf.length < ANZ_GRAFIKEN) graf.push(anzPacke(b)); continue; }
     if (!b.txt) continue;
     a = b.a === "l" || b.a === "r" ? b.a : "c";
-    k = anzKlasse(b.s);
-    // Klasse voll -> naechstkleinere mit freiem Platz; ganz voll -> mittig (falsch ausgerichtet statt weg)
-    while (k < ANZ_KLASSEN.length && frei[a][k] >= ANZ_JE[a]) k++;
-    if (k >= ANZ_KLASSEN.length && a !== "c") { a = "c"; k = anzKlasse(b.s); while (k < ANZ_KLASSEN.length && frei.c[k] >= ANZ_JE.c) k++; }
-    if (k >= ANZ_KLASSEN.length) continue;
+    k = anzFreieKlasse(frei, a, anzKlasse(b.s));
+    // keine Klasse frei -> mittig (falsch ausgerichtet statt weg)
+    if (k < 0 && a !== "c") { a = "c"; k = anzFreieKlasse(frei, a, anzKlasse(b.s)); }
+    if (k < 0) continue;
     id = "#k" + k + a + "_" + frei[a][k]++;
     benutzt[id] = 1;
     this.text(id, b, k, a);
@@ -95,7 +97,7 @@ Anzeige.prototype.zeigen = function (befehle, output) {
   for (ai = 0; ai < ANZ_AUSR.length; ai++) {
     a = ANZ_AUSR[ai];
     for (k = 0; k < ANZ_KLASSEN.length; k++) {
-      for (i = 0; i < ANZ_JE[a]; i++) {
+      for (i = 0; i < ANZ_JE[a][k]; i++) {
         id = "#k" + k + a + "_" + i;
         if (!benutzt[id]) this.stil(id, "visibility", "hidden");
       }
@@ -107,6 +109,15 @@ Anzeige.prototype.zeigen = function (befehle, output) {
     if (this.g[i] !== v) { this.g[i] = v; output["g" + i] = v; neu = true; }
   }
   if (neu) { this.gv = (this.gv + 1) % 1000000; output.gv = this.gv; }
+};
+
+/** Naechstliegende Klasse mit freiem Element: k, dann k+1, k-1, k+2, k-2 … (kleiner zuerst); -1 = keine. */
+var anzFreieKlasse = function (frei, a, k) {
+  for (var d = 0; d < ANZ_KLASSEN.length; d++) {
+    if (k + d < ANZ_KLASSEN.length && frei[a][k + d] < ANZ_JE[a][k + d]) return k + d;
+    if (d && k - d >= 0 && frei[a][k - d] < ANZ_JE[a][k - d]) return k - d;
+  }
+  return -1;
 };
 
 /** Prozentwert, auf 0,1 gerundet, als CSS-Text. */
