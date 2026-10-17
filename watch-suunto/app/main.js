@@ -259,6 +259,11 @@ Alarm.prototype.pruefe = function (k, a, kmh, hr, s, el, jetzt) {
 
 
 // ---- watch-huawei/common/seiten.js (Felder, Seiten) ----
+var PALETTE = ["#ffffff", "#d0d0d0", "#808080", "#000000", "#ff0000", "#ff5500", "#ffaa00", "#ffff00",
+  "#00ff00", "#00aa00", "#00ffff", "#22d3ee", "#0055ff", "#aa00ff", "#ff00aa"];
+var ZONEN = ["#3b82f6", "#22c55e", "#eab308", "#f97316", "#ef4444"];
+var AUTO_WERT = "#ffffff", AUTO_LABEL = "#d0d0d0", AUTO_LINIE = "#808080", CYAN = "#22d3ee";
+var TINTE_280 = [29, 46, 50, 61, 64, 82, 99, 146, 166];
 var pad = function (n) { return n < 10 ? "0" + n : "" + n; };
 
 var mmss = function (sec) { return Math.floor(sec / 60) + ":" + pad(Math.floor(sec % 60)); };
@@ -336,6 +341,266 @@ var ring = function (k, z) {
   if (z === "p" && k.browseAll) out = out.concat(satz(k, "on"), satz(k, "off"));
   return out.length ? out : [[0, 1, 0, 0]];
 };
+
+var farbe = function (i, ersatz) { i = i | 0; return i >= 1 && i <= PALETTE.length ? PALETTE[i - 1] : ersatz; };
+
+var groesse = function (stufe, dw) {
+  var i = Math.max(0, Math.min(TINTE_280.length - 1, stufe | 0));
+  return Math.max(7, Math.round(dw * TINTE_280[i] / 1.973 / 280));
+};
+
+var zone = function (v, g) { var z = 0; for (var i = 1; i < 5; i++) if (v >= g[i]) z = i; return z; };
+
+var istPuls = function (fid) { return fid === 2 || fid === 8 || fid === 9 || fid === 21; };
+
+var wertFarbe = function (k, fid, v) {
+  if (v === null || v === undefined) return null;
+  if (istPuls(fid)) return v > 0 ? ZONEN[zone(v, k.hrZones)] : null;
+  if (fid === 1 || fid === 5 || fid === 6 || fid === 7 || fid === 18 || fid === 19) return ZONEN[zone(v, k.speedZones)];
+  return null;
+};
+
+var fuellgrad = function (k, fid, v) {
+  var g = istPuls(fid) ? k.hrZones : k.speedZones;
+  if (v === null || v === undefined || !(g[5] > g[0])) return 0;
+  return Math.max(0, Math.min(1, (v - g[0]) / (g[5] - g[0])));
+};
+
+var mische = function (c, bg, f) {
+  function kan(h, i) { return parseInt(h.substr(1 + 2 * i, 2), 16); }
+  var out = "#";
+  for (var i = 0; i < 3; i++) {
+    var x = Math.round(kan(c, i) * f + kan(bg, i) * (1 - f));
+    out += (x < 16 ? "0" : "") + x.toString(16);
+  }
+  return out;
+};
+
+var zeichne = function (e, ctx) {
+  return e && e[0] === 1 ? layout(e, ctx) : klassik(e || [0, 1, 0, 0], ctx);
+};
+
+var klassik = function (e, c) {
+  var dw = c.dw, dh = c.dh, out = [{ k: "r", x: 0, y: 0, w: dw, h: dh, c: "#000000" }];
+  var ids = [], i;
+  for (i = 1; i < 4; i++) if ((e[i] | 0) > 0) ids.push(e[i] | 0);
+  if (!ids.length) ids = [1];
+  var zeile = dh * 0.78 / ids.length, y0 = dh * 0.12;
+  for (i = 0; i < ids.length; i++) {
+    var f = feld(c.s, ids[i], c.el, c.t, c.jetzt), y = y0 + zeile * i;
+    var col = c.k.colorByValue ? (wertFarbe(c.k, ids[i], feldZahl(c.s, ids[i], c.el)) || AUTO_WERT) : AUTO_WERT;
+    out.push({ k: "t", x: dw / 2, y: Math.round(y + zeile * 0.42), s: groesse(ids.length === 1 ? 8 : 6, dw), c: col, a: "c", txt: f[0], b: true });
+    out.push({ k: "t", x: dw / 2, y: Math.round(y + zeile * 0.82), s: groesse(1, dw), c: AUTO_LABEL, a: "c", txt: f[1], b: false });
+  }
+  if (c.pausiert) out.push({ k: "t", x: dw / 2, y: Math.round(dh * 0.07), s: groesse(2, dw), c: CYAN, a: "c", txt: c.t("paused"), b: true });
+  punkte(out, dw / 2, dh * 0.94, 0, c, AUTO_LABEL, "#000000");
+  return out;
+};
+
+var layout = function (e, c) {
+  var dw = c.dw, dh = c.dh, els = e[2] || [], bg = farbe(e[1] | 0, "#000000");
+  var out = [{ k: "r", x: 0, y: 0, w: dw, h: dh, c: bg }], vorne = [], hatPause = false, i;
+  for (i = 0; i < els.length; i++) {
+    var x = els[i];
+    if (!x || x.length < 6) continue;
+    var typ = x[0] | 0, ax = Math.round(dw * (x[1] | 0) / 1000), ay = Math.round(dh * (x[2] | 0) / 1000);
+    var st = x[3] | 0, ci = x[4] | 0, fl = x[5] | 0, fid = x.length > 6 ? (x[6] | 0) : 0;
+    var a = (fl & 1) ? "l" : ((fl & 2) ? "r" : "c");
+    if (typ === 4) {          // Linie — liegt hinter dem Text
+      out.push({ k: "l", x1: ax, y1: ay,
+        x2: Math.round(dw * (x.length > 6 ? (x[6] | 0) : (x[1] | 0)) / 1000),
+        y2: Math.round(dh * (x.length > 7 ? (x[7] | 0) : (x[2] | 0)) / 1000),
+        w: st < 1 ? 1 : st, c: farbe(ci, AUTO_LINIE) });
+    } else if (typ === 8 || typ === 9) {   // Wert-Grafik: Rand-Bogen bzw. Balken, hinter dem Text
+      grafik(out, x, typ, ax, ay, st, ci, fl, fid, c);
+    } else if (typ === 5) {   // REC: Punkt + Text
+      if (c.pausiert) continue;
+      var d = Math.max(4, Math.round(dw * 0.03)), fs = Math.max(7, Math.round(dw * 0.055));
+      var gap = Math.round(d / 2), tw = Math.round(fs * 0.62 * 3), tot = d + gap + tw;
+      var lx = a === "l" ? ax : (a === "r" ? ax - tot : ax - Math.round(tot / 2)), rc = farbe(ci, "#ff0000");
+      vorne.push({ k: "r", x: lx, y: ay - Math.round(d / 2), w: d, h: d, c: rc });
+      vorne.push({ k: "t", x: lx + d + gap, y: ay, s: fs, c: rc, a: "l", txt: "REC", b: false });
+    } else if (typ === 6) {
+      punkte(vorne, ax, ay, fl, c, farbe(ci, AUTO_LABEL), bg);
+    } else if (typ === 7) {   // „Pausiert" — nur, wenn wirklich pausiert
+      hatPause = true;
+      if (c.pausiert) vorne.push({ k: "t", x: ax, y: ay, s: groesse(st, dw), c: farbe(ci, CYAN), a: a, txt: c.t("paused"), b: true });
+    } else if (typ === 1 || typ === 2 || typ === 3) {
+      var txt = typ === 1 ? feld(c.s, fid, c.el, c.t, c.jetzt)[0]
+        : typ === 2 ? feld(c.s, fid, c.el, c.t, c.jetzt)[1]
+        : (x.length > 6 && x[6] !== null && x[6] !== undefined ? "" + x[6] : "");
+      if (!txt) continue;
+      var col = farbe(ci, typ === 1 ? AUTO_WERT : AUTO_LABEL);
+      if (typ === 1 && (fl & 4)) col = wertFarbe(c.k, fid, feldZahl(c.s, fid, c.el)) || col;
+      vorne.push({ k: "t", x: ax, y: ay, s: groesse(st, dw), c: col, a: a, txt: txt, b: typ === 1 });
+    }
+  }
+  if (c.pausiert && !hatPause) {
+    vorne.push({ k: "t", x: Math.round(dw / 2), y: Math.round(dh * 0.07), s: groesse(2, dw), c: CYAN, a: "c", txt: c.t("paused"), b: true });
+  }
+  return out.concat(vorne);
+};
+
+var grafik = function (out, x, typ, ax, ay, st, ci, fl, fid, c) {
+  var dw = c.dw, dh = c.dh;
+  var th = Math.max(2, Math.round(dw * 0.018 * Math.max(1, Math.min(4, st))));
+  var v = feldZahl(c.s, fid, c.el), f = fuellgrad(c.k, fid, v);
+  var grund = (fl & 1) && v !== null ? ZONEN[zone(v, istPuls(fid) ? c.k.hrZones : c.k.speedZones)] : farbe(ci, CYAN);
+  var leer = mische(grund, "#000000", 0.3);
+  if (typ === 8 && c.rund === false) {   // eckige Uhr: Rahmensegment wie Zepp layRandPolys (08.10.2026)
+    var lg = Math.max(0, Math.min(1000, x[2] | 0));
+    rahmen(out, dw, dh, th, x[1] | 0, lg, leer);
+    if (f > 0) rahmen(out, dw, dh, th, x[1] | 0, lg * f, grund);
+  } else if (typ === 8) {
+    var laenge = Math.max(0, Math.min(1000, x[2] | 0)), r = Math.min(dw, dh) / 2 - th / 2 - 1;
+    var a0 = -90 + ((x[1] | 0) % 1000) * 0.36;
+    out.push({ k: "a", cx: dw / 2, cy: dh / 2, r: r, w: th, a0: a0, a1: a0 + laenge * 0.36, c: leer });
+    if (f > 0) out.push({ k: "a", cx: dw / 2, cy: dh / 2, r: r, w: th, a0: a0, a1: a0 + laenge * 0.36 * f, c: grund });
+  } else {
+    var bw = Math.round(dw * Math.max(50, Math.min(1000, x.length > 7 ? (x[7] | 0) : 400)) / 1000);
+    var bx = ax - Math.round(bw / 2), by = ay - Math.round(th / 2);
+    out.push({ k: "r", x: bx, y: by, w: bw, h: th, c: leer });
+    if (f > 0) out.push({ k: "r", x: bx, y: by, w: Math.max(th, Math.round(bw * f)), h: th, c: grund });
+  }
+};
+
+var rahmen = function (out, dw, dh, th, start, laenge, col) {
+  var e = th / 2 + 1, bw = dw - 2 * e, bh = dh - 2 * e, u = 2 * (bw + bh);
+  var len = [bw / 2, bh, bw, bh, bw / 2];
+  var d0 = ((start % 1000) + 1000) % 1000 / 1000 * u, d1 = d0 + Math.max(0, Math.min(1000, laenge)) / 1000 * u;
+  for (var runde = 0; runde < 2; runde++) {
+    var pos = runde * u;
+    for (var i = 0; i < 5; i++) {
+      var a = Math.max(d0, pos) - pos, b = Math.min(d1, pos + len[i]) - pos, l = Math.max(1, b - a), h = th / 2;
+      if (b > a) {
+        var q = i === 0 ? [e + bw / 2 + a, e - h, l, th] : i === 1 ? [dw - e - h, e + a, th, l]
+          : i === 2 ? [dw - e - b, dh - e - h, l, th] : i === 3 ? [e - h, dh - e - b, th, l] : [e + a, e - h, l, th];
+        out.push({ k: "r", x: Math.round(q[0]), y: Math.round(q[1]), w: Math.round(q[2]), h: Math.round(q[3]), c: col });
+      }
+      pos += len[i];
+    }
+  }
+};
+// ---- quelle/anzeige.js ----
+/*
+ * Datenseiten wie auf den anderen Uhren: dieselben Zeichenbefehle wie Huawei (seiten.js `zeichne`, in
+ * Promille des Displays), auf die Mittel einer SuuntoPlus-Vorlage verteilt (Referenz „Native functions"):
+ *   Text   -> ein Element aus einem Vorrat je Schriftklasse; setText + setStyle (left/top/color/visibility)
+ *   Rechteck, Linie, Bogen, Seitenpunkte -> gepackt in die Ausgaben g0…g15 (je eine Zahl < 2^53); die
+ *          Vorlage abonniert sie ($.subscribe, Beispiel „DynamicIcons") und zeichnet sie auf ihr <canvas>
+ *          (quelle/vorlage.js), neu aufgebaut, wenn sich `gv` aendert.
+ * Gegenstueck beim Entpacken: quelle/vorlage.js — beide in Node gegeneinander geprueft (test/anzeige.test.mjs).
+ */
+var ANZ_GRAFIKEN = 16;
+// Schriftklassen der Vorlage mit ihrer Hoehe als Anteil der Displaybreite (Referenz „CSS classes for text
+// UI version 2", grosses Display 466 px; die sp-*-Klassen passen sich an n/o/q an). Je 3 Elemente.
+var ANZ_KLASSEN = [["sp-d-xxl", 155], ["sp-d-xl", 118], ["sp-d-l", 103], ["sp-d-m", 78], ["sp-d-s", 65],
+  ["sp-d-xs", 46], ["sp-t-m", 33], ["sp-t-s", 27]];
+var ANZ_JE_KLASSE = 3;
+
+/** Schriftklasse fuer eine Textgroesse s (Promille der Displaybreite, aus seiten.js groesse()). */
+var anzKlasse = function (s) {
+  var best = 0, d = 1e9, i, h;
+  for (i = 0; i < ANZ_KLASSEN.length; i++) {
+    h = ANZ_KLASSEN[i][1] * 1000 / 466;
+    if (Math.abs(h - s) < d) { d = Math.abs(h - s); best = i; }
+  }
+  return best;
+};
+
+/** #rrggbb -> 12 bit (4 je Kanal). */
+var anzFarbe = function (c) {
+  if (!c || c.charAt(0) !== "#" || c.length < 7) return 0xFFF;
+  var r = parseInt(c.substr(1, 2), 16) >> 4, g = parseInt(c.substr(3, 2), 16) >> 4, b = parseInt(c.substr(5, 2), 16) >> 4;
+  return (r << 8) | (g << 4) | b;
+};
+
+var anzBits = function (v, bits) { var m = Math.pow(2, bits) - 1; v = Math.round(v); return v < 0 ? 0 : v > m ? m : v; };
+
+/**
+ * Grafik-Befehl -> Zahl. Typ in den untersten 2 Bit; Koordinaten in Promille / 2 (9 bit = 0…1022).
+ *   0 Rechteck: x, y, w, h (je 9) + Farbe 12            = 50 bit
+ *   1 Linie:    x1, y1, x2, y2 (je 9) + Breite 3 + Farbe 12 = 53 bit
+ *   2 Bogen um die Mitte: r (9), a0+90 (9, Grad), Laenge (9, Grad), Breite 5 (Promille/2), Farbe 12 = 46 bit
+ *   3 Seitenpunkte: x, y (je 9), d 6, Anzahl 4, aktiv 4, Farbe 12 = 46 bit
+ * Rechnen mit Multiplikation statt Bit-Schieben: JS-Bitoperatoren koennen nur 32 bit.
+ */
+var anzPacke = function (g) {
+  var w = [], typ;
+  if (g.k === "r") { typ = 0; w = [[g.x / 2, 9], [g.y / 2, 9], [g.w / 2, 9], [g.h / 2, 9]]; }
+  else if (g.k === "l") { typ = 1; w = [[g.x1 / 2, 9], [g.y1 / 2, 9], [g.x2 / 2, 9], [g.y2 / 2, 9], [g.w / 2, 3]]; }
+  else if (g.k === "a") { typ = 2; w = [[g.r / 2, 9], [((g.a0 + 90) % 360 + 360) % 360, 9], [g.a1 - g.a0, 9], [g.w / 2, 5]]; }
+  else if (g.k === "d") { typ = 3; w = [[g.x / 2, 9], [g.y / 2, 9], [g.d / 2, 6], [g.n, 4], [g.idx, 4]]; }
+  else return 0;
+  var z = anzFarbe(g.c), f = 4096, i;
+  for (i = 0; i < w.length; i++) { z += anzBits(w[i][0], w[i][1]) * f; f *= Math.pow(2, w[i][1]); }
+  return z * 4 + typ + 1;     // +1: 0 heisst „kein Befehl"
+};
+
+/**
+ * Seiten-Punkte als EIN Befehl (statt bis zu 12 Rechtecken wie in seiten.js) — ersetzt dort `punkte`
+ * (bau.mjs nimmt diese Fassung statt der aus seiten.js). Gleiche Geometrie, die Vorlage malt sie aus.
+ */
+var punkte = function (out, ax, ay, fl, c, col, bg) {
+  var n = Math.max(1, Math.min(12, c.anzahl | 0));
+  if (n <= 1) return;
+  var d = Math.max(3, Math.round(c.dw * 0.022)), total = (n - 1) * d * 2;
+  var x0 = (fl & 1) ? ax + d / 2 : (fl & 2) ? ax - total - d / 2 : ax - total / 2;
+  out.push({ k: "d", x: x0, y: ay, d: d, n: n, idx: c.idx, c: col });
+};
+
+/** Zustand der Anzeige (was schon gesetzt ist — setStyle/setText nur bei Aenderung). */
+var Anzeige = function () { this.el = {}; this.gv = 0; this.g = []; };
+
+Anzeige.prototype.zeigen = function (befehle, output) {
+  var graf = [], frei = [], i, k, id, e, b;
+  for (k = 0; k < ANZ_KLASSEN.length; k++) frei.push(0);
+  var benutzt = {};
+  for (i = 0; i < befehle.length; i++) {
+    b = befehle[i];
+    if (b.k !== "t") { if (graf.length < ANZ_GRAFIKEN) graf.push(anzPacke(b)); continue; }
+    if (!b.txt) continue;
+    k = anzKlasse(b.s);
+    // Klasse voll -> naechstkleinere mit freiem Platz
+    while (k < ANZ_KLASSEN.length && frei[k] >= ANZ_JE_KLASSE) k++;
+    if (k >= ANZ_KLASSEN.length) continue;
+    id = "#k" + k + "_" + frei[k]++;
+    benutzt[id] = 1;
+    this.text(id, b);
+  }
+  // uebrige Elemente verstecken
+  for (k = 0; k < ANZ_KLASSEN.length; k++) {
+    for (i = 0; i < ANZ_JE_KLASSE; i++) {
+      id = "#k" + k + "_" + i;
+      if (!benutzt[id]) this.stil(id, "visibility", "hidden");
+    }
+  }
+  var neu = false;
+  for (i = 0; i < ANZ_GRAFIKEN; i++) {
+    var v = i < graf.length ? graf[i] : 0;
+    if (this.g[i] !== v) { this.g[i] = v; output["g" + i] = v; neu = true; }
+  }
+  if (neu) { this.gv = (this.gv + 1) % 1000000; output.gv = this.gv; }
+};
+
+Anzeige.prototype.text = function (id, b) {
+  var e = this.el[id] || (this.el[id] = {});
+  if (e.txt !== b.txt) { e.txt = b.txt; setText(id, b.txt); }
+  var ax = b.x / 10, ay = b.y / 10;
+  var links = b.a === "l" ? ax + "%" : b.a === "r" ? "calc(" + ax + "% - 100%e)" : "calc(" + ax + "% - 50%e)";
+  this.stil(id, "left", links);
+  this.stil(id, "top", "calc(" + ay + "% - 50%e)");
+  this.stil(id, "color", b.c || "#ffffff");
+  this.stil(id, "visibility", "visible");
+};
+
+Anzeige.prototype.stil = function (id, p, v) {
+  var e = this.el[id] || (this.el[id] = {});
+  if (e[p] === v) return;
+  e[p] = v;
+  setStyle(id, p, v);
+};
+
 // ---- quelle/pumpe.js ----
 /*
  * Pump-Zaehler auf der Uhr — Streaming-Fassung von server/app/ml/pumps.py:find_pumps_cadence.
@@ -684,16 +949,16 @@ Funk.prototype.empfang = function (d) {
     if ((f & 4) && funkNach(d[5], this.ereigQ)) this.ereigQ = d[5];
   } else if (d[0] === 0x82 && d.length >= 4) {
     this.handy = d[1]; this.offen = d[2] | (d[3] << 8);
-  } else if (d[0] === 0x83 && d.length >= 3) {
+  } else if (d[0] === 0x83 && d.length >= 5) {
     this.konfigTeil(d);
   }
 };
 
-/** KONFIG [0x83, nr, anzahl, bis zu 17 Zeichen ASCII-JSON] — Datenseiten/Alarme/Sprache aus dem Profil,
- *  vom Handy einmal je Verbindung geschickt. Fertig -> this.konfig (Text), this.konfigNeu = 1. */
+/** KONFIG [0x83, nr u16, anzahl u16, bis zu 15 Zeichen ASCII-JSON] — Datenseiten (auch freie Layouts),
+ *  Alarme, Sprache aus dem Profil, vom Handy einmal je Verbindung. Fertig -> this.konfig, this.konfigNeu = 1. */
 Funk.prototype.konfigTeil = function (d) {
-  var nr = d[1], n = d[2], i, s = "";
-  for (i = 3; i < d.length; i++) s += String.fromCharCode(d[i]);
+  var nr = d[1] | (d[2] << 8), n = d[3] | (d[4] << 8), i, s = "";
+  for (i = 5; i < d.length; i++) s += String.fromCharCode(d[i]);
   // Reihenfolge egal; ein Teil mit ANDEREM Inhalt an schon belegter Stelle = neue Sendung
   if (!this.kTeile || this.kAnzahl !== n || (this.kTeile[nr] !== undefined && this.kTeile[nr] !== s)) {
     this.kTeile = []; this.kAnzahl = n; this.kDa = 0;
@@ -798,7 +1063,7 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekSum, sekSumQ, sekN, sekPeak, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, aktVorlage = "d", kfRoh = null;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz;
 
 /**
  * Pump-Marker fuer die Log-Kanaele (Jans Idee, 17.10.2026): je Pump „laufende Nummer + Versatz".
@@ -893,46 +1158,47 @@ var nimmAccel = function (input) {
 // --- Datenseiten -------------------------------------------------------------------------
 var zustandKurz = function () { return pause ? "p" : st.foiling ? "on" : "off"; };
 
-var anzeigen = function (el, lokalS) {
+/** Startbildschirm (vor dem Start der Aufnahme) als Zeichenbefehle wie eine Datenseite. */
+var startBefehle = function () {
+  var gps = zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%";
+  var handy = !sync ? "Handy –" : fu.zustand === 5 ? "Handy ✓" : "Handy …";
+  var w = "#ffffff", g = "#d0d0d0";
+  return [
+    { k: "r", x: 0, y: 0, w: 1000, h: 1000, c: "#000000" },
+    { k: "t", x: 500, y: 150, s: groesse(1, 1000), c: "#22d3ee", a: "c", txt: "PUMPFOIL", b: true },
+    { k: "t", x: 500, y: 380, s: groesse(6, 1000), c: w, a: "c", txt: gps, b: true },
+    { k: "t", x: 500, y: 590, s: groesse(4, 1000), c: w, a: "c", txt: handy, b: true },
+    { k: "t", x: 500, y: 760, s: groesse(1, 1000), c: g, a: "c",
+      txt: neuereVersion() ? "Update " + kfRoh.latestVersion : "Version " + (APP_VER / 100).toFixed(2), b: false }
+  ];
+};
+
+/**
+ * Datenseiten wie auf den anderen Uhren: seiten.js `zeichne` liefert klassische Seiten und freie Layouts
+ * aus dem Profil als Befehle (Promille), quelle/anzeige.js verteilt sie auf Vorlage und canvas.
+ */
+var anzeigen = function (el, lokalS, output) {
   if (!zeigeSeite) return;
-  if (!laeuft) {
-    setText("#t", "PUMPFOIL");
-    setText("#v1", zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%");
-    setText("#l1", "");
-    setText("#v2", sync ? (fu.zustand === 5 ? "✓" : "…") : "–"); setText("#l2", "Handy");
-    // wie die anderen Uhren („Handy nimmt auf"): zwei Recorder gleichzeitig ergeben zwei Sessions
-    setText("#s", fu.handyNimmtAuf() ? "Handy nimmt auf!" : fu.handyOffline() ? "Handy offline" : "");
-    setText("#v3", "" + (APP_VER / 100).toFixed(2));
-    // Update-Hinweis wie die anderen Uhren: latestVersion aus /config (kommt mit der Konfiguration vom Handy)
-    setText("#l3", neuereVersion() ? "Update " + kfRoh.latestVersion : "Version");
-    return;
+  var befehle;
+  if (!laeuft) befehle = startBefehle();
+  else {
+    var r = ring(kf, zustandKurz()), n = r.length;
+    if (seite >= n) seite = 0;
+    befehle = zeichne(r[seite], { dw: 1000, dh: 1000, s: st, el: el / 1000, t: t, jetzt: new Jetzt(lokalS), k: kf,
+      idx: seite, anzahl: n, pausiert: !!pause, rund: true });
   }
-  var r = ring(kf, zustandKurz()), n = r.length;
-  if (seite >= n) seite = 0;
-  var s = r[seite], jetzt = new Jetzt(lokalS), i, f, felder;
-  // [0,a,b,c] klassisch (3 Felder) · [2,f1..f6] freies Layout, vom Handy auf seine Werte reduziert
-  // (SuuntoKonfig.fuerUhr) · [1,…] (unreduziert, sollte nicht ankommen) -> Standard
-  if (s[0] === 0) felder = [s[1], s[2], s[3]];
-  else if (s[0] === 2) felder = s.slice(1, 7);
-  else felder = [1, 20, 14];
-  var vorlage = felder.length > 3 ? "f" : "d";
-  if (vorlage !== aktVorlage) { aktVorlage = vorlage; unload("_cm"); return; }   // getUserInterface neu
-  for (i = 0; i < (vorlage === "f" ? 6 : 3); i++) {
-    var fid = felder[i] | 0;
-    f = fid ? feld(st, fid, el / 1000, t, jetzt) : ["", ""];
-    if (fid === 10) f = [zuletzt.alt === null ? "–" : "" + Math.round(zuletzt.alt), "m"];
-    if (fid === 13) f = [zuletzt.asc === null ? "–" : "" + Math.round(zuletzt.asc), "m ↑"];
-    setText("#v" + (i + 1), f[0] || " "); setText("#l" + (i + 1), f[1] || " ");
+  var z = handyZeile();
+  if (z && z !== "Handy ✓" || (!laeuft && fu.handyNimmtAuf())) {
+    befehle.push({ k: "t", x: 500, y: 960, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || "Handy nimmt auf!", b: false });
   }
-  setText("#t", pause ? t("rec.paused") : st.foiling ? t("f.runActive") + " " + (st.runCount + 1)
-    : (n > 1 ? (seite + 1) + "/" + n : ""));
-  setText("#s", handyZeile());
+  anz.zeigen(befehle, output);
 };
 
 /**
  * Konfiguration vom Handy (aus /api/devices/config, gekuerzt auf das, was die Uhr nutzt — s.
- * SuuntoKonfig in SuuntoProtokoll.kt/.swift). Gespeichert, damit sie auch ohne Handy gilt; laeuft der
- * Speicher ueber (data.json ist klein), gilt sie bis zum Neustart der App.
+ * SuuntoKonfig in SuuntoProtokoll.kt/.swift). Gespeichert, damit sie auch ohne Handy gilt. Passt sie
+ * nicht in den kleinen Speicher (data.json), wird sie ohne die freien Layouts gespeichert — die gelten
+ * dann bis zum Neustart der App, danach die klassischen Seiten, bis das Handy sie wieder schickt.
  */
 var neuereVersion = function () {
   var v = kfRoh && kfRoh.latestVersion ? parseFloat(kfRoh.latestVersion) : 0;
@@ -948,8 +1214,24 @@ var konfigAnwenden = function (text) {
   aw.gesetzt = false;
   aw.vorbelegen(kf);
   if (typeof k.spr === "number" && k.spr >= 0 && k.spr <= 14 && k.spr !== sprache) { sprache = k.spr; textLaden(); }
-  try { localStorage.setObject("konfig", k); } catch (e) { k = null; }
-  try { localStorage.setObject("auswahl", aw.daten()); } catch (e) { k = null; }
+  if (!speichern("konfig", k)) {
+    var kurz = {}, s;
+    for (s in k) if (s !== "pages" && s !== "offFoilPages" && s !== "pausePages") kurz[s] = k[s];
+    speichern("konfig", kurz);
+  }
+  speichern("auswahl", aw.daten());
+};
+
+var speichern = function (key, obj) {
+  try { localStorage.setObject(key, obj); return true; } catch (e) { return false; }
+};
+
+// Hoehe und Anstieg (Felder 10/13) kennt seiten.js nicht (Wear/Apple zeigen „–"), die Suunto schon.
+var feldSeiten = feld;
+feld = function (s, id, el, tt, jetzt) {
+  if (id === 10) return [zuletzt.alt === null ? "–" : "" + Math.round(zuletzt.alt), "m"];
+  if (id === 13) return [zuletzt.asc === null ? "–" : "" + Math.round(zuletzt.asc), "m ↑"];
+  return feldSeiten(s, id, el, tt, jetzt);
 };
 
 /** Statuszeile unten: Funk, Rueckstand, Verlust, Upload — Fehler nie stumm (Regel 13.09.). */
@@ -994,6 +1276,7 @@ function onLoad(input, output) {
   lauefe = 0; pumpHist = []; pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false;
   sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0; blockWerte = []; blockT = 0; halbe = null;
   textLaden();
+  anz = new Anzeige();
   output.pf_foil = 0; output.pf_p1 = 0; output.pf_p2 = 0; output.pf_int = 0; output.pf_peak = 0; pumpNr = 0;
 }
 
@@ -1080,15 +1363,15 @@ function evaluate(input, output) {
     output.pf_peak = Math.round(1000 * sekPeak);
     sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0;
   }
-  output.pumps = pumpsLauf; output.laeufe = st.runCount;
   fu.takt(sync, bleHandler);
   if (fu.konfigNeu) { fu.konfigNeu = 0; konfigAnwenden(fu.konfig); fu.konfig = null; }
-  anzeigen(tAkt, lokalS);
+  anzeigen(tAkt, lokalS, output);
 }
 
 function getUserInterface(input, output) {
   zeigeSeite = 1;
-  return { template: aktVorlage || "d" };
+  anz = new Anzeige();          // Vorlage frisch geladen: alles neu setzen
+  return { template: "d" };
 }
 
 function getSummaryOutputs(input, output) {

@@ -56,12 +56,12 @@ let cfg: [String: Any] = ["views": [[1, 20, 14]], "pages": [[1, 0, []]], "alarmE
                           "foils": [["id": 7, "label": "Gong Größe M", "min": 10, "max": 22, "area": 1200]]]
 let kt = SuuntoKonfig.fuerUhr(cfg, appSprache: nil)
 let ko = try! JSONSerialization.jsonObject(with: kt.data(using: .utf8)!) as! [String: Any]
-if ko["pages"] != nil || (ko["spr"] as? Int) != 0 { fail("Konfig Schluessel") }
+if ko["pages"] == nil || (ko["spr"] as? Int) != 0 { fail("Konfig Schluessel") }
 if ((ko["foils"] as! [[String: Any]])[0]["label"] as! String) != "Gong Größe M" { fail("Konfig Umlaut") }
 if kt.utf8.contains(where: { $0 >= 128 }) { fail("Konfig nicht ASCII") }
 let kp = SuuntoKonfig.pakete(kt)
-if kp.contains(where: { $0.count > 20 || $0[0] != 0x83 || Int($0[2]) != kp.count }) { fail("Konfig Pakete") }
-if String(decoding: kp.flatMap { $0.dropFirst(3) }, as: UTF8.self) != kt { fail("Konfig zusammensetzen") }
+if kp.contains(where: { $0.count > 20 || $0[0] != 0x83 || (Int($0[3]) | Int($0[4]) << 8) != kp.count }) { fail("Konfig Pakete") }
+if String(decoding: kp.flatMap { $0.dropFirst(5) }, as: UTF8.self) != kt { fail("Konfig zusammensetzen") }
 print("OK: Konfiguration \(kt.utf8.count) Bytes in \(kp.count) Paketen")
 
 // 4) freies Layout -> Werte in Lese-Reihenfolge (wie Kotlin-Test)

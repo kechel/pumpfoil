@@ -14,7 +14,7 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekSum, sekSumQ, sekN, sekPeak, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, aktVorlage = "d", kfRoh = null;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz;
 
 /**
  * Pump-Marker fuer die Log-Kanaele (Jans Idee, 17.10.2026): je Pump „laufende Nummer + Versatz".
@@ -109,46 +109,47 @@ var nimmAccel = function (input) {
 // --- Datenseiten -------------------------------------------------------------------------
 var zustandKurz = function () { return pause ? "p" : st.foiling ? "on" : "off"; };
 
-var anzeigen = function (el, lokalS) {
+/** Startbildschirm (vor dem Start der Aufnahme) als Zeichenbefehle wie eine Datenseite. */
+var startBefehle = function () {
+  var gps = zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%";
+  var handy = !sync ? "Handy –" : fu.zustand === 5 ? "Handy ✓" : "Handy …";
+  var w = "#ffffff", g = "#d0d0d0";
+  return [
+    { k: "r", x: 0, y: 0, w: 1000, h: 1000, c: "#000000" },
+    { k: "t", x: 500, y: 150, s: groesse(1, 1000), c: "#22d3ee", a: "c", txt: "PUMPFOIL", b: true },
+    { k: "t", x: 500, y: 380, s: groesse(6, 1000), c: w, a: "c", txt: gps, b: true },
+    { k: "t", x: 500, y: 590, s: groesse(4, 1000), c: w, a: "c", txt: handy, b: true },
+    { k: "t", x: 500, y: 760, s: groesse(1, 1000), c: g, a: "c",
+      txt: neuereVersion() ? "Update " + kfRoh.latestVersion : "Version " + (APP_VER / 100).toFixed(2), b: false }
+  ];
+};
+
+/**
+ * Datenseiten wie auf den anderen Uhren: seiten.js `zeichne` liefert klassische Seiten und freie Layouts
+ * aus dem Profil als Befehle (Promille), quelle/anzeige.js verteilt sie auf Vorlage und canvas.
+ */
+var anzeigen = function (el, lokalS, output) {
   if (!zeigeSeite) return;
-  if (!laeuft) {
-    setText("#t", "PUMPFOIL");
-    setText("#v1", zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%");
-    setText("#l1", "");
-    setText("#v2", sync ? (fu.zustand === 5 ? "✓" : "…") : "–"); setText("#l2", "Handy");
-    // wie die anderen Uhren („Handy nimmt auf"): zwei Recorder gleichzeitig ergeben zwei Sessions
-    setText("#s", fu.handyNimmtAuf() ? "Handy nimmt auf!" : fu.handyOffline() ? "Handy offline" : "");
-    setText("#v3", "" + (APP_VER / 100).toFixed(2));
-    // Update-Hinweis wie die anderen Uhren: latestVersion aus /config (kommt mit der Konfiguration vom Handy)
-    setText("#l3", neuereVersion() ? "Update " + kfRoh.latestVersion : "Version");
-    return;
+  var befehle;
+  if (!laeuft) befehle = startBefehle();
+  else {
+    var r = ring(kf, zustandKurz()), n = r.length;
+    if (seite >= n) seite = 0;
+    befehle = zeichne(r[seite], { dw: 1000, dh: 1000, s: st, el: el / 1000, t: t, jetzt: new Jetzt(lokalS), k: kf,
+      idx: seite, anzahl: n, pausiert: !!pause, rund: true });
   }
-  var r = ring(kf, zustandKurz()), n = r.length;
-  if (seite >= n) seite = 0;
-  var s = r[seite], jetzt = new Jetzt(lokalS), i, f, felder;
-  // [0,a,b,c] klassisch (3 Felder) · [2,f1..f6] freies Layout, vom Handy auf seine Werte reduziert
-  // (SuuntoKonfig.fuerUhr) · [1,…] (unreduziert, sollte nicht ankommen) -> Standard
-  if (s[0] === 0) felder = [s[1], s[2], s[3]];
-  else if (s[0] === 2) felder = s.slice(1, 7);
-  else felder = [1, 20, 14];
-  var vorlage = felder.length > 3 ? "f" : "d";
-  if (vorlage !== aktVorlage) { aktVorlage = vorlage; unload("_cm"); return; }   // getUserInterface neu
-  for (i = 0; i < (vorlage === "f" ? 6 : 3); i++) {
-    var fid = felder[i] | 0;
-    f = fid ? feld(st, fid, el / 1000, t, jetzt) : ["", ""];
-    if (fid === 10) f = [zuletzt.alt === null ? "–" : "" + Math.round(zuletzt.alt), "m"];
-    if (fid === 13) f = [zuletzt.asc === null ? "–" : "" + Math.round(zuletzt.asc), "m ↑"];
-    setText("#v" + (i + 1), f[0] || " "); setText("#l" + (i + 1), f[1] || " ");
+  var z = handyZeile();
+  if (z && z !== "Handy ✓" || (!laeuft && fu.handyNimmtAuf())) {
+    befehle.push({ k: "t", x: 500, y: 960, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || "Handy nimmt auf!", b: false });
   }
-  setText("#t", pause ? t("rec.paused") : st.foiling ? t("f.runActive") + " " + (st.runCount + 1)
-    : (n > 1 ? (seite + 1) + "/" + n : ""));
-  setText("#s", handyZeile());
+  anz.zeigen(befehle, output);
 };
 
 /**
  * Konfiguration vom Handy (aus /api/devices/config, gekuerzt auf das, was die Uhr nutzt — s.
- * SuuntoKonfig in SuuntoProtokoll.kt/.swift). Gespeichert, damit sie auch ohne Handy gilt; laeuft der
- * Speicher ueber (data.json ist klein), gilt sie bis zum Neustart der App.
+ * SuuntoKonfig in SuuntoProtokoll.kt/.swift). Gespeichert, damit sie auch ohne Handy gilt. Passt sie
+ * nicht in den kleinen Speicher (data.json), wird sie ohne die freien Layouts gespeichert — die gelten
+ * dann bis zum Neustart der App, danach die klassischen Seiten, bis das Handy sie wieder schickt.
  */
 var neuereVersion = function () {
   var v = kfRoh && kfRoh.latestVersion ? parseFloat(kfRoh.latestVersion) : 0;
@@ -164,8 +165,24 @@ var konfigAnwenden = function (text) {
   aw.gesetzt = false;
   aw.vorbelegen(kf);
   if (typeof k.spr === "number" && k.spr >= 0 && k.spr <= 14 && k.spr !== sprache) { sprache = k.spr; textLaden(); }
-  try { localStorage.setObject("konfig", k); } catch (e) { k = null; }
-  try { localStorage.setObject("auswahl", aw.daten()); } catch (e) { k = null; }
+  if (!speichern("konfig", k)) {
+    var kurz = {}, s;
+    for (s in k) if (s !== "pages" && s !== "offFoilPages" && s !== "pausePages") kurz[s] = k[s];
+    speichern("konfig", kurz);
+  }
+  speichern("auswahl", aw.daten());
+};
+
+var speichern = function (key, obj) {
+  try { localStorage.setObject(key, obj); return true; } catch (e) { return false; }
+};
+
+// Hoehe und Anstieg (Felder 10/13) kennt seiten.js nicht (Wear/Apple zeigen „–"), die Suunto schon.
+var feldSeiten = feld;
+feld = function (s, id, el, tt, jetzt) {
+  if (id === 10) return [zuletzt.alt === null ? "–" : "" + Math.round(zuletzt.alt), "m"];
+  if (id === 13) return [zuletzt.asc === null ? "–" : "" + Math.round(zuletzt.asc), "m ↑"];
+  return feldSeiten(s, id, el, tt, jetzt);
 };
 
 /** Statuszeile unten: Funk, Rueckstand, Verlust, Upload — Fehler nie stumm (Regel 13.09.). */
@@ -209,6 +226,7 @@ function onLoad(input, output) {
   lauefe = 0; pumpHist = []; pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false;
   sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0; blockWerte = []; blockT = 0; halbe = null;
   textLaden();
+  anz = new Anzeige();
   output.pf_foil = 0; output.pf_p1 = 0; output.pf_p2 = 0; output.pf_int = 0; output.pf_peak = 0; pumpNr = 0;
 }
 
@@ -295,15 +313,15 @@ function evaluate(input, output) {
     output.pf_peak = Math.round(1000 * sekPeak);
     sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0;
   }
-  output.pumps = pumpsLauf; output.laeufe = st.runCount;
   fu.takt(sync, bleHandler);
   if (fu.konfigNeu) { fu.konfigNeu = 0; konfigAnwenden(fu.konfig); fu.konfig = null; }
-  anzeigen(tAkt, lokalS);
+  anzeigen(tAkt, lokalS, output);
 }
 
 function getUserInterface(input, output) {
   zeigeSeite = 1;
-  return { template: aktVorlage || "d" };
+  anz = new Anzeige();          // Vorlage frisch geladen: alles neu setzen
+  return { template: "d" };
 }
 
 function getSummaryOutputs(input, output) {

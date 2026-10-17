@@ -142,7 +142,6 @@ test("ohne Stoerung: jeder Beschleunigungswert kommt an, Laeufe und Pumps stimme
   console.log(`Pumps Uhr ${pumps}, Server ${ref}`);
   assert.ok(Math.abs(pumps - ref) <= 0.12 * ref, `Pumps ${pumps} vs Server ${ref}`);
   assert.ok(uhr.vibration.length >= 8, "Vibration bei Laufbeginn und -ende");
-  assert.match(uhr.texte["#s"], /Handy/);
 });
 
 test("Werte ueber evaluate statt onAccelerometer (Forum) — gleiches Ergebnis", () => {
@@ -236,11 +235,11 @@ test("Konfiguration vom Handy: Seiten, Alarm und Sprache gelten sofort und bleib
   for (let i = 0; i < 4; i++) { uhr.bis(t += 1000); uhr.ruf("evaluate", { utc: 1, lt: 0 }); }
   const k = JSON.stringify({ views: [[20, 1, 2]], offFoilView: [12, 17, 16], alarmEnabled: true, speedHigh: 25, spr: 0 });
   const teile = [];
-  for (let i = 0; i < k.length; i += 17) teile.push(k.slice(i, i + 17));
+  for (let i = 0; i < k.length; i += 15) teile.push(k.slice(i, i + 15));
   // in falscher Reihenfolge und mit einer Wiederholung
   const reihe = teile.map((s, i) => [i, s]).reverse();
   reihe.push(reihe[0]);
-  for (const [i, s] of reihe) uhr.handler(0, 106, [0x83, i, teile.length, ...Buffer.from(s, "ascii")]);
+  for (const [i, s] of reihe) uhr.handler(0, 106, [0x83, i & 255, i >> 8, teile.length & 255, teile.length >> 8, ...Buffer.from(s, "ascii")]);
   uhr.bis(t += 1000); uhr.ruf("evaluate", { utc: 1, lt: 0 });
   assert.deepEqual(JSON.parse(JSON.stringify(uhr.ctx.kf.views)), [[20, 1, 2]]);
   assert.equal(uhr.ctx.aw.alarm, true);
@@ -269,33 +268,14 @@ test("Statuszeile: Rueckstand, verlorene Sekunden, Upload und ein Handy, das sel
   assert.match(uhr.ctx.handyZeile(), /offline/);
 });
 
-test("freies Layout (vom Handy auf 6 Werte reduziert): 6-Felder-Vorlage, Felder in Reihenfolge", () => {
-  const uhr = new Uhr({ einstellungen: { handy: "false" } });
-  uhr.speicher.set("konfig", { layoutsOn: true, pages: [[2, 1, 2, 20, 14, 7, 12]], views: [[1, 2, 0]] });
-  uhr.ruf("onLoad");
-  uhr.ruf("getUserInterface");
-  uhr.ruf("onExerciseStart", { utc: 1 });
-  uhr.ruf("evaluate", { tmr: 1000, sp: 0.5, utc: 2, lt: 0 });   // zwischen den Laeufen: off-Seiten
-  uhr.ruf("evaluate", { tmr: 2000, sp: 0.5, utc: 3, lt: 0 });
-  // „off" zeigt offFoilView (klassisch) + mit browseAll die On-Foil-Seiten; auf Seite 2 blaettern
-  uhr.ruf("onEvent", {}, 2);
-  uhr.ruf("evaluate", { tmr: 3000, sp: 0.5, utc: 4, lt: 0 });
-  assert.equal(uhr.vorlage, "f", "auf die 6-Felder-Vorlage gewechselt");
-  uhr.ruf("evaluate", { tmr: 4000, sp: 0.5, utc: 5, lt: 0 });
-  assert.equal(uhr.texte["#l6"], "Clock", JSON.stringify(uhr.texte));   // Feld 12, Sprache Englisch (Standard)
-  uhr.ruf("onEvent", {}, 1);
-  uhr.ruf("evaluate", { tmr: 5000, sp: 0.5, utc: 6, lt: 0 });
-  assert.equal(uhr.vorlage, "d", "zurueck auf 3 Felder");
-});
-
 test("Update-Hinweis im Startbildschirm, wenn das Profil eine neuere Version meldet", () => {
   const uhr = new Uhr({ einstellungen: { handy: "false" } });
   uhr.speicher.set("konfig", { latestVersion: "1.02" });
   uhr.ruf("onLoad"); uhr.ruf("getUserInterface");
   uhr.ruf("evaluate", { utc: 1, lt: 0 });
-  assert.equal(uhr.texte["#l3"], "Update 1.02");
+  assert.ok(uhr.sichtbar().some((x) => x.txt === "Update 1.02"), JSON.stringify(uhr.sichtbar()));
   const gleich = new Uhr({ einstellungen: { handy: "false" } });
   gleich.speicher.set("konfig", { latestVersion: "1.00" });
   gleich.ruf("onLoad"); gleich.ruf("getUserInterface"); gleich.ruf("evaluate", { utc: 1, lt: 0 });
-  assert.equal(gleich.texte["#l3"], "Version");
+  assert.ok(gleich.sichtbar().some((x) => x.txt === "Version 1.00"));
 });

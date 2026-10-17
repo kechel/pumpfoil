@@ -42,6 +42,19 @@ export function funktionen(src, namen) {
   return out.join("\n\n");
 }
 
+/** Top-Level-`var NAME = …;` (bis zur Zeile, die mit `;` endet). */
+export function variablen(src, namen) {
+  const zeilen = src.split("\n"), out = [];
+  for (const n of namen) {
+    const i = zeilen.findIndex((z) => z.startsWith("var " + n + " ") || z.startsWith("var " + n + "="));
+    if (i < 0) throw new Error("Variable fehlt: " + n);
+    let j = i;
+    while (!/;\s*(\/\/.*)?$/.test(zeilen[j])) j++;
+    out.push(zeilen.slice(i, j + 1).join("\n"));
+  }
+  return out.join("\n");
+}
+
 function ohneExport(src) { return src.replace(/\nexport default[\s\S]*$/, "\n"); }
 
 /** Feld-Texte (Amazfit-Tabelle, 15 Sprachspalten) als ext-Funktion: (sprache) -> {schluessel: text}. */
@@ -64,7 +77,7 @@ export function texte() {
   // Schluessel wie seiten.js feld() sie anfragt (ohne „f."), plus die eigenen mit „f."/„rec."
   return "function (sp) {\n  var T = " + JSON.stringify(kurz) + ";\n" +
     "  var o = {}, k, v;\n  for (k in T) { v = T[k]; v = typeof v === 'string' ? v : (v[sp] || v[3]);\n" +
-    "    o[k] = v; if (k.indexOf('f.') === 0) o[k.substring(2)] = v; }\n  return o;\n}\n";
+    "    o[k] = v; if (k.indexOf('f.') === 0) o[k.substring(2)] = v; }\n  o.paused = o['rec.paused'];\n  return o;\n}\n";
 }
 
 // Sprachen der Einstellung (Suunto-App) -> Spalte der Amazfit-Tabelle
@@ -74,12 +87,17 @@ export const SPRACHEN = [["English", 3], ["Deutsch", 0], ["Schwiizerdütsch", 1]
 
 export function mainJs() {
   const lauf = alsVar(ohneExport(fs.readFileSync(path.join(R, "watch-huawei/common/lauf.js"), "utf8")));
-  const seiten = alsVar(funktionen(fs.readFileSync(path.join(R, "watch-huawei/common/seiten.js"), "utf8"),
-    ["pad", "mmss", "distVal", "distUnit", "feldZahl", "feld", "klassisch", "satz", "ring"]));
+  const seitenSrc = fs.readFileSync(path.join(R, "watch-huawei/common/seiten.js"), "utf8");
+  // Zeichner wie auf den Huawei-Uhren; `punkte` kommt aus quelle/anzeige.js (ein Befehl statt 12 Rechtecke)
+  const seiten = variablen(seitenSrc, ["PALETTE", "ZONEN", "AUTO_WERT", "TINTE_280"]) + "\n" +
+    alsVar(funktionen(seitenSrc, ["pad", "mmss", "distVal", "distUnit", "feldZahl", "feld", "klassisch", "satz", "ring",
+      "farbe", "groesse", "zone", "istPuls", "wertFarbe", "fuellgrad", "mische", "zeichne", "klassik", "layout",
+      "grafik", "rahmen"]));
   const kopf = "// ERZEUGT von watch-suunto/bau.mjs — nicht von Hand aendern, Quellen in watch-suunto/quelle/.\n";
   return kopf + [
     "// ---- watch-huawei/common/lauf.js ----", lauf,
     "// ---- watch-huawei/common/seiten.js (Felder, Seiten) ----", seiten,
+    "// ---- quelle/anzeige.js ----", alsVar(lies("quelle/anzeige.js")),
     "// ---- quelle/pumpe.js ----", alsVar(lies("quelle/pumpe.js")),
     "// ---- quelle/funk.js ----", alsVar(lies("quelle/funk.js")),
     "// ---- quelle/uhr.js ----",
@@ -117,16 +135,53 @@ export function manifest() {
       { name: "pf_p2", log: true, shownName: "Pump marker 2", format: "Count_Fivedigits" },
       { name: "pf_int", log: true, shownName: "Motion [mg]", format: "Count_Fourdigits" },
       { name: "pf_peak", log: true, shownName: "Peak [mg]", format: "Count_Fourdigits" },
-      { name: "pumps", format: "Count_Fourdigits" },
-      { name: "laeufe", format: "Count_Threedigits" },
+      // Grafik-Befehle der Datenseite (quelle/anzeige.js) + Zaehler, auf den die Vorlage neu zeichnet
+      ...Array.from({ length: 16 }, (_, i) => ({ name: "g" + i })),
+      { name: "gv" },
     ],
-    template: [{ name: "d.html" }, { name: "f.html" }],
+    template: [{ name: "d.html" }],
     settings: [
       { shownName: "Raw data to phone app", path: "handy", type: "boolean" },
       { shownName: "Raw data rate", path: "hz", type: "enum", values: ["25 Hz", "50 Hz"] },
       { shownName: "Language", path: "sprache", type: "enum", values: SPRACHEN.map((s) => s[0]) },
     ],
   };
+}
+
+/** Datenseiten-Vorlage: <canvas> fuer Grafik + je Schriftklasse 3 Text-Elemente (quelle/anzeige.js). */
+export function vorlage() {
+  const skript = lies("quelle/vorlage.js").replace(/^\s*\/\/.*$/gm, "").trim();
+  if (skript.includes('"')) throw new Error("quelle/vorlage.js darf keine doppelten Anfuehrungszeichen enthalten");
+  const klassen = ["sp-d-xxl", "sp-d-xl", "sp-d-l", "sp-d-m", "sp-d-s", "sp-d-xs", "sp-t-m", "sp-t-s"];
+  const abos = Array.from({ length: 16 }, (_, i) =>
+    `A.push($.subscribe('Zapp/{zapp_index}/Output/g${i}', function(v) { G[${i}] = v || 0; }));`).join("\n    ");
+  const texte = klassen.flatMap((k, ki) => [0, 1, 2].map((i) =>
+    `    <div id="k${ki}_${i}" class="${k}${k.startsWith("sp-d") ? " f-num" : ""}" style="top:0;left:0;visibility:hidden;">-</div>`)).join("\n");
+  return `<!-- ERZEUGT von watch-suunto/bau.mjs. Datenseite wie auf den anderen Uhren: Grafik auf dem canvas,
+     Texte aus dem Vorrat je Schriftklasse, gesetzt von main.js (quelle/anzeige.js). -->
+<uiView
+  onLoad="
+    ${skript.split("\n").join("\n    ")}
+    var A = [];
+  "
+  onActivate="
+    ${abos}
+    A.push($.subscribe('Zapp/{zapp_index}/Output/gv', function(v) { control('#cv', 'REFRESH'); }));
+  "
+  onDeactivate="
+    for (var i = 0; i < A.length; i++) { $.unsubscribe(A[i]); }
+    A = [];
+  ">
+  <div id="suuntoplus">
+    <object id="cv" type="canvas" build="ctx => zeichneSeite(ctx)" style="position:absolute;left:0;top:0;width:100%;height:100%;" />
+${texte}
+  </div>
+  <userInput>
+    <pushButton name="up" onClick="$.put('/Zapp/{zapp_index}/Event', 1, null, 'int32');" />
+    <pushButton name="down" onClick="$.put('/Zapp/{zapp_index}/Event', 2, null, 'int32');" />
+  </userInput>
+</uiView>
+`;
 }
 
 export function dataJson() { return { handy: "true", hz: "0", sprache: "0" }; }
@@ -136,8 +191,7 @@ export function dateien() {
     "manifest.json": JSON.stringify(manifest(), null, 2) + "\n",
     "main.js": mainJs(),
     "ext1.js": texte(),
-    "d.html": lies("vorlagen/d.html"),
-    "f.html": lies("vorlagen/f.html"),
+    "d.html": vorlage(),
     "data.json": JSON.stringify(dataJson(), null, 2) + "\n",
   };
 }

@@ -3,5 +3,6 @@ function (sp) {
   var o = {}, k, v;
   for (k in T) { v = T[k]; v = typeof v === 'string' ? v : (v[sp] || v[3]);
     o[k] = v; if (k.indexOf('f.') === 0) o[k.substring(2)] = v; }
+  o.paused = o['rec.paused'];
   return o;
 }

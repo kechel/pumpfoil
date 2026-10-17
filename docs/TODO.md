@@ -1487,8 +1487,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Schreibvorgaenge/s dauerhaft (25 vs 50 Hz), Rueckstand im Status? (3) Nimmt die Firmware `type:"device"`
   mit sofortigem `con=1` ohne Geraet? (4) Ein echtes Workout: stehen die Log-Kanaele (pf_*) in der FIT der
   Cloud-API? Dann Server-Import der Kanaele bauen (Weg 1). (5) Store-Einreichung ueber das Partnerprofil.
-  Abgleich mit den anderen Uhren: `docs/SUUNTO.md` (Tabelle). Bewusst nicht moeglich: Foil-Auswahl auf
-  der Uhr, Zonenfarben, „Verwerfen" erkennen; freie Layouts nur als 6 Werte. Rohdaten nur mit Handy in
+  Abgleich mit den anderen Uhren: `docs/SUUNTO.md` (Tabelle). Freie Layouts + Zonenfarben werden gezeichnet
+  wie auf den anderen Uhren (setStyle + canvas) — ob die Firmware `calc(…%e)` in setStyle annimmt, zeigt
+  erst die Uhr. Nicht moeglich: Foil-Auswahl auf der Uhr, „Verwerfen" erkennen. Rohdaten nur mit Handy in
   Reichweite (RAM ~80 s). Bei der Store-Freigabe: `suunto` in `appmeta._APP_META` (Update-Hinweis).
 
 - **15.10. — „Gerade am Pumpen": Spot aus Uhr-Position und Upload. Server ✅ LIVE (8b958905), Uhren im

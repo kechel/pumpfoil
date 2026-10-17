@@ -96,7 +96,7 @@ Ein Block = die Werte eines Beschleunigungs-Aufrufs (50 Hz: 25 Werte = 150 Bytes
 |---|---|
 | `0x81` QUITTUNG | block u16 (Accel bis einschliesslich angekommen), nr u16 (GPS bis einschliesslich, laufende Nummer), ereignis u8 (Nummer des letzten Ereignisses), flags u8 (bit0/1/2: block/sek/ereignis gueltig) |
 | `0x82` STATUS | flags u8 (bit0 Konto verbunden, bit1 Server erreichbar, bit2 laedt hoch), offen u16 (Chunks, die noch zum Server muessen) |
-| `0x83` KONFIG | nr u8, anzahl u8, bis zu 17 Bytes ASCII-JSON (Teile in beliebiger Reihenfolge): klassische Seiten, Foils, Alarme, `spr` = Sprachspalte — aus `/api/devices/config?p=suunto`, gekuerzt von `SuuntoKonfig` (Kotlin/Swift); einmal je Verbindung, die Uhr speichert sie (`localStorage` „konfig") |
+| `0x83` KONFIG | nr u16, anzahl u16, bis zu 15 Bytes ASCII-JSON (Teile in beliebiger Reihenfolge): Seiten (klassisch UND freie Layouts), Zonen, Foils, Alarme, `spr` = Sprachspalte — aus `/api/devices/config?p=suunto`, gekuerzt von `SuuntoKonfig` (Kotlin/Swift); einmal je Verbindung, die Uhr speichert sie (`localStorage` „konfig") |
 
 Die Uhr haelt unquittierte Bloecke in einem Ringpuffer und schickt nach dem Wiederverbinden ab
 Quittung+1 nach. Durchsatz bei 50 Hz: ~18 Pakete/s, bei 25 Hz ~10 Pakete/s — **[UNKLAR], ob die
@@ -170,12 +170,12 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
 
 | Funktion | andere Uhren | Suunto |
 |---|---|---|
-| Datenseiten aus dem Profil | klassisch [a,b,c] + freie Layouts je Zustand | ✅ klassisch; freie Layouts als bis zu 6 Werte in Lese-Reihenfolge (Vorlage `f.html`) — Positionen, Farben, Grafiken kann eine SuuntoPlus-Vorlage nicht setzen |
+| Datenseiten aus dem Profil | klassisch [a,b,c] + freie Layouts je Zustand | ✅ beides, mit demselben Zeichner wie Huawei (`seiten.js zeichne`): Texte als Elemente mit `setText`/`setStyle` (Position, Farbe, Schriftklasse), Linien/Balken/Rand-Boegen/Seitenpunkte auf dem `<canvas>` der Vorlage (`quelle/anzeige.js` packt, `quelle/vorlage.js` zeichnet). Grenzen: 24 Texte (je Schriftklasse 3), 16 Grafik-Befehle je Seite, Schrift in 8 Stufen statt frei |
 | Seiten je Zustand (auf dem Foil / dazwischen / Pause), „alle Seiten" | ✅ | ✅ (`ring` aus seiten.js), Blaettern mit hoch/runter |
 | Lauf-Erkennung live, Vibration bei Start/Ende, Sprung auf Seite 1 | ✅ | ✅ (lauf.js, `playIndication`) |
 | Tempo-/Puls-Alarm, Strecken-/Zeitmarken | ✅ | ✅ aus dem Profil; Muster auf Suunto-Toene abgebildet |
 | Foil-Auswahl auf der Uhr | Garmin/Zepp/Huawei | ❌ keine Einstellungsseite: es gilt das Profil (Standard-Foil, Alarm-Grenzen) |
-| Werte nach Zone einfaerben | `colorByValue` | ❌ `setText` aendert nur Text, Farben sind in der Vorlage fest |
+| Werte nach Zone einfaerben | `colorByValue` | ✅ per `setStyle(…, 'color', …)` |
 | Sprache | Profil, sonst Geraet | ✅ Profil (ueber das Handy), sonst Einstellung in der Suunto-App |
 | Positionsmeldung „gerade am Pumpen" | ✅ | ✅ ueber das Handy (erster Fix im Startzustand) |
 | App verlassen ohne Aufnahme (`/app-closed`) | Garmin/Wear/Apple | ✅ das Handy meldet es, wenn die Uhr im Startzustand die Verbindung verliert |
