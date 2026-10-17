@@ -78,6 +78,9 @@ export function texte() {
     if (!tab[k]) throw new Error("Text fehlt in watch-zepp: " + k);
     kurz[k] = tab[k];
   }
+  // eigene Texte der Suunto-App (Spalten wie SPRACHEN: de, gsw, de-AT, en, fr, it, es, pt, id, ru, nl, fi, cs, ja, zh)
+  kurz["h.phone"] = ["Handy", "Handy", "Handy", "Phone", "Tél.", "Telefono", "Móvil", "Telemóvel", "HP", "Телефон",
+    "Telefoon", "Puhelin", "Telefon", "スマホ", "手机"];
   // Schluessel wie seiten.js feld() sie anfragt (ohne „f."), plus die eigenen mit „f."/„rec."
   return "function (sp) {\n  var T = " + JSON.stringify(kurz) + ";\n" +
     "  var o = {}, k, v;\n  for (k in T) { v = T[k]; v = typeof v === 'string' ? v : (v[sp] || v[3]);\n" +

@@ -704,6 +704,7 @@ Anzeige.prototype.zeigen = function (befehle, output) {
 };
 
 /** Prozentwert, auf 0,1 gerundet, als CSS-Text. */
+var ANZ_MITTE = 0.8;
 var anzProz = function (v) { return Math.round(v * 10) / 10 + "%"; };
 
 Anzeige.prototype.text = function (id, b, k, a) {
@@ -711,7 +712,9 @@ Anzeige.prototype.text = function (id, b, k, a) {
   if (e.txt !== b.txt) { e.txt = b.txt; setText(id, b.txt); }
   var ax = b.x / 10, ay = b.y / 10, h = ANZ_KLASSEN[k][1] * 100 / 466;
   this.stil(id, "left", anzProz(a === "l" ? ax : a === "r" ? ax - 100 : ax - 50));
-  this.stil(id, "top", anzProz(ay - h / 2));
+  // Schriftmitte liegt ~0,8 Klassenhoehen unter der Oberkante des Elements (Zeilenhoehe > Ziffernhoehe),
+  // gemessen im Simulator 17.10. an sp-d-m und sp-t-m (beide 0,8) — auf der Uhr nachpruefen
+  this.stil(id, "top", anzProz(ay - h * ANZ_MITTE));
   this.stil(id, "color", b.c || "#ffffff");
   this.stil(id, "visibility", "visible");
 };
@@ -1285,7 +1288,7 @@ var zustandKurz = function () { return pause ? "p" : st.foiling ? "on" : "off"; 
 /** Startbildschirm (vor dem Start der Aufnahme) als Zeichenbefehle wie eine Datenseite. */
 var startBefehle = function () {
   var gps = zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%";
-  var handy = !sync ? "Handy –" : fu.zustand === 5 ? "Handy ✓" : "Handy …";
+  var handy = t("h.phone") + (!sync ? " –" : fu.zustand === 5 ? " ✓" : " …");
   var w = "#ffffff", g = "#d0d0d0";
   return [
     { k: "r", x: 0, y: 0, w: 1000, h: 1000, c: "#000000" },
@@ -1311,9 +1314,10 @@ var anzeigen = function (el, lokalS, output) {
     befehle = zeichne(r[seite], { dw: 1000, dh: 1000, s: st, el: el / 1000, t: t, jetzt: new Jetzt(lokalS), k: kf,
       idx: seite, anzahl: n, pausiert: !!pause, rund: true });
   }
-  var z = handyZeile();
-  if (z && z !== "Handy ✓" || (!laeuft && fu.handyNimmtAuf())) {
-    befehle.push({ k: "t", x: 500, y: 960, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || "Handy nimmt auf!", b: false });
+  var z = handyZeile(), handyOk = z === t("h.phone") + " ✓";
+  if (z && !handyOk || (!laeuft && fu.handyNimmtAuf())) {
+    // oben statt unten: unten sitzen die Seitenpunkte (94 %), und der runde Rand schneidet ab (Simulator 17.10.)
+    befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || t("h.phone") + " REC!", b: false });
   }
   anz.zeigen(befehle, output);
 };
@@ -1374,10 +1378,11 @@ feld = function (s, id, el, tt, jetzt) {
 var handyZeile = function () {
   if (!sync) return "";
   var v = fu.verlorenS(), z;
-  if (fu.zustand !== 5) z = "Handy …";
-  else if (fu.handyNimmtAuf()) z = "Handy nimmt auf!";
-  else if (fu.rueckstandS() > 5) z = "Handy " + fu.rueckstandS() + " s";
-  else z = fu.handyOffline() ? "Handy offline" : (fu.handy & 4) && fu.offen ? "Handy ✓ ↑" + fu.offen : "Handy ✓";
+  var h = t("h.phone");
+  if (fu.zustand !== 5) z = h + " …";
+  else if (fu.handyNimmtAuf()) z = h + " REC!";       // das Handy nimmt selbst auf -> doppelt
+  else if (fu.rueckstandS() > 5) z = h + " " + fu.rueckstandS() + " s";
+  else z = fu.handyOffline() ? h + " offline" : (fu.handy & 4) && fu.offen ? h + " ✓ ↑" + fu.offen : h + " ✓";
   return v > 0 ? z + " · −" + v + " s" : z;
 };
 
