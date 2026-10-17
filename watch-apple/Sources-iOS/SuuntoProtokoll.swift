@@ -372,13 +372,37 @@ enum SuuntoKonfig {
     static let schluessel = ["views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
         "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
         "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime"]
+        "alarmPatternTime", "layoutsOn"]
+    static let seiten = ["pages", "offFoilPages", "pausePages"]
+
+    /// Freies Layout -> [2, f1..f6] (Wert-Elemente in Lese-Reihenfolge), klassisch bleibt — wie Kotlin.
+    static func seiteKurz(_ seite: [Any]) -> [Int]? {
+        guard let art = seite.first as? Int else { return nil }
+        if art == 0 { return seite.compactMap { $0 as? Int } }
+        guard art == 1, seite.count > 2, let els = seite[2] as? [[Any]] else { return nil }
+        var werte: [(Int, Int, Int)] = []
+        for e in els where e.count > 6 {
+            if (e[0] as? Int) == 1, let fid = e[6] as? Int, fid > 0 {
+                werte.append(((e[2] as? Int) ?? 0, (e[1] as? Int) ?? 0, fid))
+            }
+        }
+        werte.sort { ($0.0 / 60, $0.1) < ($1.0 / 60, $1.1) }
+        var fids: [Int] = []
+        for w in werte where !fids.contains(w.2) && fids.count < 6 { fids.append(w.2) }
+        return fids.isEmpty ? nil : [2] + fids
+    }
     static let spalte: [String: Int] = ["de": 0, "gsw": 1, "de-AT": 2, "en": 3, "fr": 4, "it": 5, "es": 6,
         "pt": 7, "pt-PT": 7, "id": 8, "ru": 9, "nl": 10, "fi": 11, "cs": 12, "ja": 13, "zh": 14]
 
     static func fuerUhr(_ config: [String: Any], appSprache: String?) -> String {
         var o: [String: Any] = [:]
         for s in schluessel { if let v = config[s] { o[s] = v } }
+        for s in seiten {
+            if let a = config[s] as? [[Any]] {
+                let kurz = a.compactMap { seiteKurz($0) }
+                if !kurz.isEmpty { o[s] = kurz }
+            }
+        }
         if let fs = config["foils"] as? [[String: Any]] {
             o["foils"] = fs.map { f -> [String: Any] in
                 ["id": f["id"] ?? NSNull(), "label": String(((f["label"] as? String) ?? "").prefix(24)),

@@ -55,6 +55,8 @@ export class Uhr {
       setText: (id, txt) => { uhr.texte[id] = String(txt); },
       playIndication: (n) => uhr.vibration.push([uhr.jetztMs, n]),
       systemEvent: () => {},
+      // unload("_cm"): Firmware laedt die App-Seite neu und fragt getUserInterface erneut
+      unload: () => { uhr.vorlage = uhr.ctx.getUserInterface({}, uhr.output || {}).template; },
       evalFile: (f) => {
         const name = f.replace("{file_path}/", "");
         return vm.runInContext("(" + fs.readFileSync(path.join(WURZEL, "app", name), "utf8") + ")", uhr.ctx);

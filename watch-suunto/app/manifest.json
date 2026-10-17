@@ -104,6 +104,9 @@
   "template": [
     {
       "name": "d.html"
+    },
+    {
+      "name": "f.html"
     }
   ],
   "settings": [

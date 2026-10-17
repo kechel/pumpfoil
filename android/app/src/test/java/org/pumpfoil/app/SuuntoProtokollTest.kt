@@ -144,7 +144,7 @@ class SuuntoKonfigTest {
             .put("foils", org.json.JSONArray().put(JSONObject().put("id", 7).put("label", "Gong Größe M").put("min", 10).put("max", 22).put("area", 1200)))
         val t = SuuntoKonfig.fuerUhr(cfg.toString())
         val o = JSONObject(t)
-        assertTrue(!o.has("pages"))
+        assertTrue(!o.has("pages"))   // [1,0,[]] ohne Werte faellt weg
         assertEquals(0, o.getInt("spr"))
         assertEquals("Gong Größe M", o.getJSONArray("foils").getJSONObject(0).getString("label"))
         assertTrue(!o.getJSONArray("foils").getJSONObject(0).has("area"))
@@ -152,5 +152,16 @@ class SuuntoKonfigTest {
         val p = SuuntoKonfig.pakete(t)
         assertTrue(p.all { it.size <= 20 && it[0] == 0x83.toByte() && it[2].toInt() == p.size })
         assertEquals(t, p.joinToString("") { String(it, 3, it.size - 3, Charsets.US_ASCII) })
+    }
+
+    @Test fun freiesLayoutWirdAufSeineWerteReduziert() {
+        // Werte bei y=120 (rechts, links), y=500, y=800; ein Label (typ 2) und eine Linie zaehlen nicht
+        val seite = org.json.JSONArray("[1,0,[[1,700,120,5,0,0,20],[1,300,125,5,0,0,1],[2,300,200,2,0,0,1],[4,0,300,1,0,1000,300],[1,500,500,7,0,0,14],[1,500,800,3,0,0,12],[1,500,820,3,0,0,1]]]")
+        val k = SuuntoKonfig.seiteKurz(seite)!!
+        assertEquals("[2,1,20,14,12]", k.toString())
+        val cfg = JSONObject().put("layoutsOn", true).put("pages", org.json.JSONArray().put(seite).put(org.json.JSONArray("[0,1,2,3]")))
+        val o = JSONObject(SuuntoKonfig.fuerUhr(cfg.toString()))
+        assertEquals("[[2,1,20,14,12],[0,1,2,3]]", o.getJSONArray("pages").toString())
+        assertEquals(true, o.getBoolean("layoutsOn"))
     }
 }

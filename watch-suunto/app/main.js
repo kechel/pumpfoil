@@ -543,6 +543,7 @@ Funk.prototype.neu = function () {
   this.blockS = 0;                // naechster zu sendender Block
   this.teil = 0;                  // Teil des Blocks, der als naechstes geht
   this.sek = 0; this.sekQ = -1; this.sekS = 0;
+  this.verloren = 0;              // Accel-Bloecke, die der Ring aufgeben musste (Handy zu lange weg)
   this.ereig = []; this.ereigNr = 0; this.ereigQ = -1;
   this.sitzung = 0; this.laeuft = 0; this.pause = 0;
   this.halloFaellig = 1;
@@ -564,7 +565,7 @@ Funk.prototype.accel = function (tMs, werte) {
   }
   this.block++;
   // Ring voll: den aeltesten aufgeben (nicht quittiert, aber ueberschrieben)
-  if (this.block - 1 - this.blockQ > this.slots) this.blockQ = this.block - 1 - this.slots;
+  if (this.block - 1 - this.blockQ > this.slots) { this.blockQ = this.block - 1 - this.slots; this.verloren++; }
   if (this.blockS <= this.blockQ) { this.blockS = this.blockQ + 1; this.teil = 0; }
 };
 
@@ -768,6 +769,13 @@ Funk.prototype.senden = function () {
   appConn.writeChar(this.verbindung, 1, p);
 };
 
+/** Verlorene Rohdaten in Sekunden (Ring uebergelaufen). */
+Funk.prototype.verlorenS = function () { return Math.round(this.verloren * 25 / this.hz); };
+
+/** STATUS-Flags vom Handy: bit0 Konto, bit1 Server erreichbar, bit2 laedt hoch, bit3 Handy nimmt selbst auf. */
+Funk.prototype.handyNimmtAuf = function () { return this.zustand === 5 && (this.handy & 8) !== 0; };
+Funk.prototype.handyOffline = function () { return this.zustand === 5 && (this.handy & 1) !== 0 && (this.handy & 2) === 0; };
+
 /** Rueckstand in Sekunden (fuer die Anzeige): unquittierte Accel-Bloecke. */
 Funk.prototype.rueckstandS = function () {
   return Math.round((this.block - 1 - this.blockQ) * 25 / this.hz);
@@ -790,7 +798,7 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekSum, sekSumQ, sekN, sekPeak, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist, pumpNr;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, aktVorlage = "d";
 
 /**
  * Pump-Marker fuer die Log-Kanaele (Jans Idee, 17.10.2026): je Pump „laufende Nummer + Versatz".
@@ -892,24 +900,31 @@ var anzeigen = function (el, lokalS) {
     setText("#v1", zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%");
     setText("#l1", "");
     setText("#v2", sync ? (fu.zustand === 5 ? "✓" : "…") : "–"); setText("#l2", "Handy");
+    // wie die anderen Uhren („Handy nimmt auf"): zwei Recorder gleichzeitig ergeben zwei Sessions
+    setText("#s", fu.handyNimmtAuf() ? "Handy nimmt auf!" : fu.handyOffline() ? "Handy offline" : "");
     setText("#v3", "" + (APP_VER / 100).toFixed(2)); setText("#l3", "Version");
-    setText("#s", "");
     return;
   }
   var r = ring(kf, zustandKurz()), n = r.length;
   if (seite >= n) seite = 0;
-  var s = r[seite], jetzt = new Jetzt(lokalS), i, f;
-  if (s[0] !== 0) s = [0, 1, 20, 14];   // freie Layouts: erst auf echter Uhr (docs/SUUNTO.md)
-  for (i = 1; i <= 3; i++) {
-    f = s[i] ? feld(st, s[i], el / 1000, t, jetzt) : ["", ""];
-    if (s[i] === 10) f = [zuletzt.alt === null ? "–" : "" + Math.round(zuletzt.alt), "m"];
-    if (s[i] === 13) f = [zuletzt.asc === null ? "–" : "" + Math.round(zuletzt.asc), "m ↑"];
-    setText("#v" + i, f[0]); setText("#l" + i, f[1]);
+  var s = r[seite], jetzt = new Jetzt(lokalS), i, f, felder;
+  // [0,a,b,c] klassisch (3 Felder) · [2,f1..f6] freies Layout, vom Handy auf seine Werte reduziert
+  // (SuuntoKonfig.fuerUhr) · [1,…] (unreduziert, sollte nicht ankommen) -> Standard
+  if (s[0] === 0) felder = [s[1], s[2], s[3]];
+  else if (s[0] === 2) felder = s.slice(1, 7);
+  else felder = [1, 20, 14];
+  var vorlage = felder.length > 3 ? "f" : "d";
+  if (vorlage !== aktVorlage) { aktVorlage = vorlage; unload("_cm"); return; }   // getUserInterface neu
+  for (i = 0; i < (vorlage === "f" ? 6 : 3); i++) {
+    var fid = felder[i] | 0;
+    f = fid ? feld(st, fid, el / 1000, t, jetzt) : ["", ""];
+    if (fid === 10) f = [zuletzt.alt === null ? "–" : "" + Math.round(zuletzt.alt), "m"];
+    if (fid === 13) f = [zuletzt.asc === null ? "–" : "" + Math.round(zuletzt.asc), "m ↑"];
+    setText("#v" + (i + 1), f[0] || " "); setText("#l" + (i + 1), f[1] || " ");
   }
   setText("#t", pause ? t("rec.paused") : st.foiling ? t("f.runActive") + " " + (st.runCount + 1)
     : (n > 1 ? (seite + 1) + "/" + n : ""));
-  var h = !sync ? "" : fu.zustand !== 5 ? "Handy …" : fu.rueckstandS() > 5 ? "Handy " + fu.rueckstandS() + " s" : "Handy ✓";
-  setText("#s", h);
+  setText("#s", handyZeile());
 };
 
 /**
@@ -928,6 +943,17 @@ var konfigAnwenden = function (text) {
   if (typeof k.spr === "number" && k.spr >= 0 && k.spr <= 14 && k.spr !== sprache) { sprache = k.spr; textLaden(); }
   try { localStorage.setObject("konfig", k); } catch (e) { k = null; }
   try { localStorage.setObject("auswahl", aw.daten()); } catch (e) { k = null; }
+};
+
+/** Statuszeile unten: Funk, Rueckstand, Verlust, Upload — Fehler nie stumm (Regel 13.09.). */
+var handyZeile = function () {
+  if (!sync) return "";
+  var v = fu.verlorenS(), z;
+  if (fu.zustand !== 5) z = "Handy …";
+  else if (fu.handyNimmtAuf()) z = "Handy nimmt auf!";
+  else if (fu.rueckstandS() > 5) z = "Handy " + fu.rueckstandS() + " s";
+  else z = fu.handyOffline() ? "Handy offline" : (fu.handy & 4) && fu.offen ? "Handy ✓ ↑" + fu.offen : "Handy ✓";
+  return v > 0 ? z + " · −" + v + " s" : z;
 };
 
 // --- Firmware-Rueckrufe ------------------------------------------------------------------
@@ -1054,7 +1080,7 @@ function evaluate(input, output) {
 
 function getUserInterface(input, output) {
   zeigeSeite = 1;
-  return { template: "d" };
+  return { template: aktVorlage || "d" };
 }
 
 function getSummaryOutputs(input, output) {

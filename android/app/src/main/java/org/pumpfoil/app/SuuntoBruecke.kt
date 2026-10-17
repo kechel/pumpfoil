@@ -157,6 +157,24 @@ object SuuntoBruecke {
         } catch (e: Exception) { Log.w(TAG, "konfig", e); null }
     }
 
+    /** Uhr-App ohne Aufnahme verlassen (Funk weg im Startzustand) — wie Garmin/Wear/Apple POST /devices/app-closed. */
+    internal fun appGeschlossen(app: Context, uhrId: Long) {
+        scope.launch {
+            val key = "suunto_token_" + java.lang.Long.toHexString(uhrId)
+            val t = prefs(app).getString(key, null) ?: return@launch   // nie gemeldet -> nichts zu schliessen
+            try { Ingest.post("/api/devices/app-closed", "{}", t) } catch (e: Exception) { Log.w(TAG, "app-closed", e) }
+        }
+    }
+
+    /** STATUS fuer die Uhr: bit0 Konto, bit1 online, bit2 laedt hoch, bit3 Handy nimmt selbst auf; offen = wartende Aufnahmen. */
+    internal fun statusPaket(app: Context): ByteArray {
+        val st = _stand.value
+        val f = (if (Api.token != null) 1 else 0) or (if (Ingest.isOnline(app)) 2 else 0) or
+            (if (st.laedt || st.offen > 0) 4 else 0) or (if (Recorder.isRecording()) 8 else 0)
+        val n = st.offen.coerceIn(0, 0xFFFF)
+        return byteArrayOf(0x82.toByte(), f.toByte(), n.toByte(), (n shr 8).toByte())
+    }
+
     /** Erster GPS-Fix der Uhr im Startzustand -> „gerade am Pumpen" (wie alle Uhren, POST /devices/position). */
     internal fun position(app: Context, uhrId: Long, lat: Double, lon: Double) {
         scope.launch {
@@ -240,6 +258,7 @@ class SuuntoDienst : Service() {
     private val warteschlange = ArrayDeque<ByteArray>()
     private var sendetNotify = false
     private var konfigFuer = -1L          // Uhr, die in dieser Verbindung die Konfiguration bekommen hat
+    private var halloUhr = 0L; private var halloOhneAufnahme = false
     private var schleife: Job? = null
 
     override fun onBind(i: Intent?): IBinder? = null
@@ -254,7 +273,14 @@ class SuuntoDienst : Service() {
                 var n = 0
                 while (isActive) {
                     delay(1000)
-                    takt.execute { quittungSenden(true); if (ablage.pruefen()) SuuntoBruecke.hochladen(this@SuuntoDienst) }
+                    val status = if (n % 5 == 0) SuuntoBruecke.statusPaket(this@SuuntoDienst) else null
+                    takt.execute {
+                        if (status != null && geraet != null && notifyAn) {
+                            warteschlange.removeAll { it.isNotEmpty() && it[0] == 0x82.toByte() }
+                            warteschlange.addLast(status); notifyWeiter()
+                        }
+                        quittungSenden(true); if (ablage.pruefen()) SuuntoBruecke.hochladen(this@SuuntoDienst)
+                    }
                     if (++n % 20 == 0) SuuntoBruecke.hochladen(this@SuuntoDienst)   // laufend hochladen
                 }
             }
@@ -322,6 +348,9 @@ class SuuntoDienst : Service() {
                 else if (device == geraet) {
                     geraet = null; notifyAn = false; SuuntoBruecke.meldeVerbindung(false)
                     warteschlange.clear(); sendetNotify = false; konfigFuer = -1L
+                    // Funk weg, waehrend die Uhr im Startzustand war: App verlassen, ohne aufzunehmen
+                    if (halloOhneAufnahme && ablage.aktuell == null) SuuntoBruecke.appGeschlossen(this@SuuntoDienst, halloUhr)
+                    halloOhneAufnahme = false
                 }
             }
         }
@@ -363,6 +392,7 @@ class SuuntoDienst : Service() {
         if ((p[0].toInt() and 15) == 1) {
             val h = SuuntoEmpfang().also { it.paket(p) }.hallo
             if (h != null) {
+                halloUhr = h.uhrId; halloOhneAufnahme = h.sitzung == 0L
                 SuuntoBruecke.meldeUhr(SuuntoAblage.modell(h.display).substringBefore(" ·"))
                 if (konfigFuer != h.uhrId) {
                     konfigFuer = h.uhrId
