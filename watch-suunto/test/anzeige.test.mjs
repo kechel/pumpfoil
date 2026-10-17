@@ -32,12 +32,12 @@ const LAYOUT = [1, 4, [
 
 // Ankerpunkt eines Texts in Promille zurueckrechnen: Element-Id k<klasse><l|c|r>_<n>, left/top in Prozent
 // (quelle/anzeige.js Anzeige.text). Kein calc(… %e) mehr — der Simulator verwirft das.
-const HOEHE = [155, 118, 103, 78, 65, 46, 33, 27];
+const HOEHE = [155, 118, 103, 78, 65, 46, 33, 27, 52, 41];
 function anker(x) {
   const m = /^#k(\d)([lcr])_/.exec(x.id), k = +m[1], a = m[2];
   assert.ok(/^-?[\d.]+%$/.test(x.left) && /^-?[\d.]+%$/.test(x.top), "nur reine Prozente: " + x.left + " " + x.top);
   const l = parseFloat(x.left), t = parseFloat(x.top);
-  const mitte = [0.77, 0.80, 0.81, 0.88, 0.92, 0.95, 0.94, 0.90][k];   // = anzeige.js ANZ_MITTE
+  const mitte = [0.77, 0.80, 0.81, 0.88, 0.92, 0.95, 0.94, 0.90, 0.9, 0.9][k];   // = anzeige.js ANZ_MITTE
   return { a, x: Math.round(10 * (a === "l" ? l : a === "r" ? l + 100 : l + 50)), y: Math.round(10 * (t + HOEHE[k] * mitte * 100 / 466)) };
 }
 
@@ -127,4 +127,13 @@ test("ohne Konfiguration vom Handy: Standard-Layouts aus dem Build, nicht die kl
   const txt = uhr.sichtbar().map((x) => x.txt);
   assert.ok(txt.includes("LAST RUN"), "Standard-Layout zwischen den Laeufen: " + txt.join(" | "));
   assert.ok(!txt.includes("Clock"), "nicht die klassische Seite");
+});
+
+test("Buchstaben nie in einer Ziffernschrift (sp-d-*), Ziffern duerfen gross", () => {
+  const uhr = aufnahme({ layoutsOn: true, pages: [LAYOUT], browseAll: false });
+  uhr.ruf("onExercisePause", {});
+  const t = uhr.sichtbar();
+  const klasse = (x) => +/^#k(\d)/.exec(x.id)[1];
+  for (const x of t) if (/[A-Za-z]/.test(x.txt)) assert.ok([6, 7, 8, 9].includes(klasse(x)), x.txt + " in Klasse " + klasse(x));
+  assert.ok(t.some((x) => /^[0-9.:]+$/.test(x.txt) && klasse(x) <= 5), "Zahlen in Ziffernschrift");
 });

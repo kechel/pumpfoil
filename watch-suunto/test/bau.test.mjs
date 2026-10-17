@@ -43,7 +43,7 @@ test("Vorlage d.html: Skript ist gueltiges ES5, Abos auf alle Grafik-Ausgaben, E
   assert.doesNotThrow(() => new Function(onLoad + "\nreturn zeichneSeite;"));
   for (let i = 0; i < GRAFIKEN; i++) assert.ok(html.includes(`Output/g${i}'`), "Abo g" + i);
   assert.ok(html.includes("Output/gv'"));
-  assert.equal((html.match(/id="k\d[lcr]_\d"/g) || []).length, 40 + 11 + 11, "Vorrat wie anzeige.js ANZ_JE");
+  assert.equal((html.match(/id="k\d[lcr]_\d"/g) || []).length, 46 + 13 + 13, "Vorrat wie anzeige.js ANZ_JE");
   assert.ok(!/pushButton name="up"/.test(html), "obere Taste bleibt Start/Pause/Stopp der Firmware");
   assert.ok(!html.includes("%e"), "kein calc(… %e) — der Simulator verwirft es");
   const m = manifest();

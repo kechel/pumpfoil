@@ -65,15 +65,16 @@ var dbgLetzt = "";
 var dbg = function (m) { if (DEBUG) { dbgLetzt = m; systemEvent("pf: " + m); } };
 
 /** Nur Debug: letzte Seite = Kalibrierung. Je Schriftklasse eine „8" mittig auf einer Linie (Klassen 0–3
- *  bei y 30 %, 4–7 bei y 70 %, je Reihe von links nach rechts; 6 und 7 als „Hx"). Ein Screenshot zeigt, wie weit die Schrift
+ *  bei y 25 %, 4–7 bei 55 %, 8–9 bei 80 %, je Reihe von links nach rechts; Textklassen als „Hx"). Ein Screenshot zeigt, wie weit die Schrift
  *  jeder Klasse neben ihrem Sollpunkt landet (ANZ_MITTE / Versatz je Klasse, quelle/anzeige.js). */
 var kalibrierBefehle = function () {
   var b = [{ k: "r", x: 0, y: 0, w: 1000, h: 1000, c: "#000000" },
-    { k: "l", x1: 0, y1: 300, x2: 1000, y2: 300, w: 2, c: "#ff0000" }, { k: "l", x1: 0, y1: 700, x2: 1000, y2: 700, w: 2, c: "#ff0000" }];
+    { k: "l", x1: 0, y1: 250, x2: 1000, y2: 250, w: 2, c: "#ff0000" }, { k: "l", x1: 0, y1: 550, x2: 1000, y2: 550, w: 2, c: "#ff0000" },
+    { k: "l", x1: 0, y1: 800, x2: 1000, y2: 800, w: 2, c: "#ff0000" }];
   for (var i = 0; i < ANZ_KLASSEN.length; i++) {
-    var x = [170, 390, 610, 830][i % 4], y = i < 4 ? 300 : 700;
+    var x = [170, 390, 610, 830][i % 4], y = [250, 550, 800][Math.floor(i / 4)];
     b.push({ k: "t", x: x, y: y, s: ANZ_KLASSEN[i][1] * 1000 / 466, c: "#ffffff", a: "c", txt: i < 6 ? "8" : "Hx", b: true });
-    b.push({ k: "l", x1: x, y1: y - 120, x2: x, y2: y + 120, w: 2, c: "#00ff00" });
+    b.push({ k: "l", x1: x, y1: y - 90, x2: x, y2: y + 90, w: 2, c: "#00ff00" });
   }
   return b;
 };
