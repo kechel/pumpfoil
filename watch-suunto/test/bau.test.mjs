@@ -39,7 +39,8 @@ test("Vorlage d.html: Skript ist gueltiges ES5, Abos auf alle Grafik-Ausgaben, E
   assert.doesNotThrow(() => new Function(onLoad + "\nreturn zeichneSeite;"));
   for (let i = 0; i < GRAFIKEN; i++) assert.ok(html.includes(`Output/g${i}'`), "Abo g" + i);
   assert.ok(html.includes("Output/gv'"));
-  assert.equal((html.match(/id="k\d_\d"/g) || []).length, 24);
+  assert.equal((html.match(/id="k\d[lcr]_\d"/g) || []).length, 8 * (3 + 2 + 2), "je Klasse 3 mittig, 2 links, 2 rechts (anzeige.js ANZ_JE)");
+  assert.ok(!html.includes("%e"), "kein calc(… %e) — der Simulator verwirft es");
   const m = manifest();
   for (let i = 0; i < GRAFIKEN; i++) assert.ok(m.out.some((o) => o.name === "g" + i));
   assert.ok(m.out.length <= 20, "Editor: hoechstens 20 Ausgaben, sind " + m.out.length);
