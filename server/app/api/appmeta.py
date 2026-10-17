@@ -209,7 +209,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.41",   # LIVE 2026-10-13: Play-Mail „Your update to Pumpfoil, created on Oct 9, 2026
+        "latest": "1.1.42",   # LIVE 2026-10-17: Play-Mail „Your update to Pumpfoil, created on Oct 13, 2026
+        # at 5:58 PM GMT, is live in the store" (Jans Meldung), gut 3 Tage Pruefung. Changelog-Seite in der App,
+        # START wieder erreichbar, Handgelenk/Stance, Lage-Phasen, POB-Taste, Chat-Antworten, Gleitphasen.
+        # ALT: "latest": "1.1.41",   # LIVE 2026-10-13: Play-Mail „Your update to Pumpfoil, created on Oct 9, 2026
         # at 3:44 PM GMT, is live in the store" (Jans Meldung), gut 3 Tage Pruefung. Ersetzt die abgelehnte
         # 1.1.40: Foil-Knoepfe, Rekord in km, Session-Seite aufgeraeumt, Portierung vom 09.10.
         # ALT: "latest": "1.1.37",   # LIVE 2026-10-02: Play-Mail „Your update to Pumpfoil, created on Oct 1, 2026
@@ -377,7 +380,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.41",   # LIVE 2026-10-13, dieselbe Play-Mail wie android. Uhr: GPS aus Health
+        "latest": "1.2.42",   # LIVE 2026-10-17, dieselbe Play-Mail wie android (1.1.42).
+        # ALT: "latest": "1.2.41",   # LIVE 2026-10-13, dieselbe Play-Mail wie android. Uhr: GPS aus Health
         # Services nach Google-Doku + GPS-Waechter, ACTIVITY_RECOGNITION, R8-Keep-Regel fuer protobuf-lite.
         # ALT: "latest": "1.2.37",   # LIVE 2026-10-02, dieselbe Play-Mail wie android. Uhr: Sammel-Upload,
         # GPS-Messzeit statt Zustellzeit (SM-L715F), Pause/Fortsetzen 2 s halten.
@@ -820,30 +824,8 @@ IN_REVIEW: list[dict] = [
     # Garmin 1.0.93 (eingereicht + freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.48 (eingereicht 13.10., freigegeben 14.10.2026) -> LIVE, Punkte stehen im Changelog.
     # iPhone + Apple Watch 1.1.49 (eingereicht + freigegeben 15.10.2026) -> LIVE, Punkte stehen im Changelog.
-    # 10.10.2026: Profilfelder Handgelenk/Stance (4cd0fb77), sortierbare Lauf-Tabelle (4cb9e81e, Wunsch
-    # PumpingCarbon), korrigierte Begriffe cs/nl/id/nb (e6660048). Web ist live; nicht gebumpt.
-    # EINGEREICHT 13.10.2026 abends (Jans Meldung, Play Console: Produktion 56 (1.1.42), Produktion (Wear OS)
-    # 1052 (1.2.42), Vorabpruefungen „noch maximal 14 Minuten"; Store-Screenshots Telefon + Wear mit geaendert).
-    {"name": "Android phone + Wear OS", "version": "1.1.42 / 1.2.42",
-     "eingereicht": "2026-10-13",
-     "items": [
-         # 12.10.2026 (Nutzer-Meldung): native Changelog-Seite, live vom Server, Link im Profil.
-         "The changelog is now in the app too, under Profile, always with the latest news — including versions you don't have yet.",
-         # 12.10.2026 (Meldung Roman, Samsung): START lag unter der Navigationsleiste (seit den
-         # zweizeiligen Foil-Knoepfen in 1.1.41), Aufnahme unmoeglich. Fix: Startseite scrollt.
-         "On smaller phones the recorder screen scrolls again, so the start button can always be reached.",
-         "In your profile you can set which wrist your watch is on and whether you ride regular or goofy.",
-         "Tap a column header in the run table of a session to sort the runs by it, tap again to reverse; # restores the run order.",
-         "Corrected wording in Czech, Dutch, Indonesian and Norwegian.",
-         # 13.10.2026 (Jan): Lage je Lauf im Vergleich, wie in der PWA (3c8b3e6a); Tabellen aus dem Speicher (91eb8278).
-         "Comparing sessions shows the board attitude of every run recorded with the phone on the board, also for other riders' sessions, and attitude tables open instantly.",
-         # 13.10.2026 (Jan): POB-Taste in der Sessionliste (c9822c27), Chat-Antworten (PWA a5e873d8).
-         "The session list has a POB button that shows only sessions recorded with the phone on the board.",
-         "In the chat you can reply to a message: hold it and choose Reply; tapping the quote jumps to the original.",
-         # 13.10.2026 (Jan: „den rest auch noch nachziehen"): Gleitphasen (420509c6), Lage mit Phasen.
-         "Glides can be shown on the session map and on the comparison map, and the comparison map shows pump markers too.",
-         "Board attitude per run shows each phase (stable phase, turns, straight, whole run), switchable between corrected and uncorrected, and the comparison table sorts by tapping a column header.",
-     ]},
+    # Android 1.1.42 / Wear 1.2.42 (eingereicht 13.10., freigegeben 17.10.2026) -> LIVE; 9 Punkte hatten schon
+    # iOS/Web-Zeilen im Changelog und tragen jetzt android/wear dazu, 1 neuer Punkt + Freigabe-Ereignis.
     # EINGEREICHT 13.10.2026 11:06 (Jans Meldung, AppGallery Connect „Under pre-review", 1.0.2 (1000002),
     # nur Smart watch = Watch 5, ohne Festland-China; signiert ueber signing.json im privaten Repo).
     {"name": "Huawei Watch 5", "version": "1.0.2",
