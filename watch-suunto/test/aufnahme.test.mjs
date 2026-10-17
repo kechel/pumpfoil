@@ -264,7 +264,7 @@ test("Statuszeile: Rueckstand, verlorene Sekunden, Upload und ein Handy, das sel
   assert.match(uhr.ctx.handyZeile(), /↑3/);
   assert.match(uhr.ctx.handyZeile(), /−\d+ s/);
   uhr.handler(0, 106, [0x82, 1 | 2 | 8, 0, 0]);
-  assert.match(uhr.ctx.handyZeile(), /nimmt auf/);
+  assert.match(uhr.ctx.handyZeile(), /REC!/);
   uhr.handler(0, 106, [0x82, 1, 0, 0]);
   assert.match(uhr.ctx.handyZeile(), /offline/);
 });
