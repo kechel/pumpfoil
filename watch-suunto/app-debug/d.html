@@ -1,0 +1,151 @@
+<!-- ERZEUGT von watch-suunto/bau.mjs. Datenseite wie auf den anderen Uhren: Grafik auf dem canvas,
+     Texte aus dem Vorrat je Schriftklasse, gesetzt von main.js (quelle/anzeige.js). -->
+<uiView
+  onLoad="
+    var G = [];
+    for (var gi = 0; gi < 13; gi++) G.push(0);   // = ANZ_GRAFIKEN (quelle/anzeige.js, Test prueft)
+    
+    function hexFarbe(c12) {
+      var h = '0123456789abcdef';
+      return '#' + h.charAt((c12 >> 8) & 15) + h.charAt((c12 >> 4) & 15) + h.charAt(c12 & 15);
+    }
+    
+    function dunkler(c12) {
+    
+      var r = Math.round(((c12 >> 8) & 15) * 0.35), g = Math.round(((c12 >> 4) & 15) * 0.35), b = Math.round((c12 & 15) * 0.35);
+      return (r << 8) | (g << 4) | b;
+    }
+    
+    function entpacke(v) {
+      if (!v) return null;
+      var n = v - 1, typ = n % 4, z = Math.floor(n / 4);
+      var c = z % 4096;
+      z = Math.floor(z / 4096);
+      var felder = typ === 0 ? [9, 9, 9, 9] : typ === 1 ? [9, 9, 9, 9, 3] : typ === 2 ? [9, 9, 9, 5] : [9, 9, 6, 4, 4];
+      var w = [], i, m;
+      for (i = 0; i < felder.length; i++) {
+        m = Math.pow(2, felder[i]);
+        w.push(z % m);
+        z = Math.floor(z / m);
+      }
+      return { typ: typ, c: c, w: w };
+    }
+    
+    function zeichneSeite(ctx) {
+      var sx = ctx.width / 500, sy = ctx.height / 500, i, b, k;   // Werte sind Promille / 2
+      for (i = 0; i < G.length; i++) {
+        b = entpacke(G[i]);
+        if (!b) continue;
+        if (b.typ === 0) {
+          ctx.fillStyle = hexFarbe(b.c);
+          ctx.fillRect(b.w[0] * sx, b.w[1] * sy, Math.max(1, b.w[2] * sx), Math.max(1, b.w[3] * sy));
+        } else if (b.typ === 1) {
+          ctx.strokeStyle = hexFarbe(b.c);
+          ctx.lineWidth = Math.max(1, b.w[4] * sx);
+          ctx.beginPath(); ctx.moveTo(b.w[0] * sx, b.w[1] * sy); ctx.lineTo(b.w[2] * sx, b.w[3] * sy); ctx.stroke();
+        } else if (b.typ === 2) {
+          var a0 = (b.w[1] - 90) * Math.PI / 180, a1 = a0 + b.w[2] * Math.PI / 180;
+          ctx.strokeStyle = hexFarbe(b.c);
+          ctx.lineWidth = Math.max(1, b.w[3] * sx);
+          ctx.beginPath(); ctx.arc(ctx.width / 2, ctx.height / 2, b.w[0] * sx, a0, a1); ctx.stroke();
+        } else {
+          var d = b.w[2] * sx;
+          for (k = 0; k < b.w[3]; k++) {
+            ctx.fillStyle = hexFarbe(k === b.w[4] ? b.c : dunkler(b.c));
+            ctx.fillRect(b.w[0] * sx + k * 2 * d - d / 2, b.w[1] * sy - d / 2, Math.max(1, d), Math.max(1, d));
+          }
+        }
+      }
+    }
+    var A = [];
+  "
+  onActivate="
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g0', function(v) { G[0] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g1', function(v) { G[1] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g2', function(v) { G[2] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g3', function(v) { G[3] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g4', function(v) { G[4] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g5', function(v) { G[5] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g6', function(v) { G[6] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g7', function(v) { G[7] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g8', function(v) { G[8] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g9', function(v) { G[9] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g10', function(v) { G[10] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g11', function(v) { G[11] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/g12', function(v) { G[12] = v || 0; }));
+    A.push($.subscribe('Zapp/{zapp_index}/Output/gv', function(v) { control('#cv', 'REFRESH'); }));
+  "
+  onDeactivate="
+    for (var i = 0; i < A.length; i++) { $.unsubscribe(A[i]); }
+    A = [];
+  ">
+  <div id="suuntoplus">
+    <object id="cv" type="canvas" build="ctx => zeichneSeite(ctx)" style="position:absolute;left:0;top:0;width:100%;height:100%;" />
+    <div id="k0c_0" class="sp-d-xxl f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k0c_1" class="sp-d-xxl f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k0c_2" class="sp-d-xxl f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k0l_0" class="sp-d-xxl f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k0l_1" class="sp-d-xxl f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k0r_0" class="sp-d-xxl f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k0r_1" class="sp-d-xxl f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k1c_0" class="sp-d-xl f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k1c_1" class="sp-d-xl f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k1c_2" class="sp-d-xl f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k1l_0" class="sp-d-xl f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k1l_1" class="sp-d-xl f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k1r_0" class="sp-d-xl f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k1r_1" class="sp-d-xl f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k2c_0" class="sp-d-l f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k2c_1" class="sp-d-l f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k2c_2" class="sp-d-l f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k2l_0" class="sp-d-l f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k2l_1" class="sp-d-l f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k2r_0" class="sp-d-l f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k2r_1" class="sp-d-l f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k3c_0" class="sp-d-m f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k3c_1" class="sp-d-m f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k3c_2" class="sp-d-m f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k3l_0" class="sp-d-m f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k3l_1" class="sp-d-m f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k3r_0" class="sp-d-m f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k3r_1" class="sp-d-m f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k4c_0" class="sp-d-s f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k4c_1" class="sp-d-s f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k4c_2" class="sp-d-s f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k4l_0" class="sp-d-s f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k4l_1" class="sp-d-s f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k4r_0" class="sp-d-s f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k4r_1" class="sp-d-s f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k5c_0" class="sp-d-xs f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k5c_1" class="sp-d-xs f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k5c_2" class="sp-d-xs f-num" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k5l_0" class="sp-d-xs f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k5l_1" class="sp-d-xs f-num" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k5r_0" class="sp-d-xs f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k5r_1" class="sp-d-xs f-num" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k6c_0" class="sp-t-m" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k6c_1" class="sp-t-m" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k6c_2" class="sp-t-m" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k6l_0" class="sp-t-m" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k6l_1" class="sp-t-m" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k6r_0" class="sp-t-m" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k6r_1" class="sp-t-m" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k7c_0" class="sp-t-s" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k7c_1" class="sp-t-s" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k7c_2" class="sp-t-s" style="top:0;left:0;width:100%;text-align:center;visibility:hidden;">-</div>
+    <div id="k7l_0" class="sp-t-s" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k7l_1" class="sp-t-s" style="top:0;left:0;width:100%;text-align:left;visibility:hidden;">-</div>
+    <div id="k7r_0" class="sp-t-s" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+    <div id="k7r_1" class="sp-t-s" style="top:0;left:0;width:100%;text-align:right;visibility:hidden;">-</div>
+  </div>
+  <userInput>
+    <!-- nur die untere Taste blaettert (wie Suuntos Beispiel MultiView); die obere bleibt Start/Pause/Stopp.
+         17.10.: mit „up" belegt liess sich die Aufnahme im Simulator nicht mehr anhalten. -->
+    <!-- DEBUG: jeden Tastendruck ins Systemlog (targetData: 0 lang-Start, 3 lang, 4 kurz …) -->
+    <pushButton name="down" onButtonEvent="systemEvent('pf: Taste down ' + targetData)" onClick="$.put('/Zapp/{zapp_index}/Event', 2, null, 'int32');" />
+    <pushButton name="up" onButtonEvent="systemEvent('pf: Taste up ' + targetData)" />
+    <pushButton name="next" onButtonEvent="systemEvent('pf: Taste next ' + targetData)" />
+    <pushButton name="upleft" onButtonEvent="systemEvent('pf: Taste upleft ' + targetData)" />
+    <pushButton name="downleft" onButtonEvent="systemEvent('pf: Taste downleft ' + targetData)" />
+  </userInput>
+</uiView>
