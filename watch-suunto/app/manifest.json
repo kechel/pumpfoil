@@ -63,34 +63,28 @@
       "name": "con"
     },
     {
-      "name": "pf_foil",
+      "name": "pf_e1",
       "log": true,
-      "shownName": "Pumpfoil run",
-      "format": "Count_Threedigits"
+      "shownName": "Runs and pumps",
+      "format": "Count_Sixdigits"
     },
     {
-      "name": "pf_p1",
+      "name": "pf_b1",
       "log": true,
-      "shownName": "Pump marker",
-      "format": "Count_Fivedigits"
+      "shownName": "Motion per axis",
+      "format": "Count_Sixdigits"
     },
     {
-      "name": "pf_p2",
+      "name": "pf_s1",
       "log": true,
-      "shownName": "Pump marker 2",
-      "format": "Count_Fivedigits"
+      "shownName": "Peak and pump strength",
+      "format": "Count_Sixdigits"
     },
     {
-      "name": "pf_int",
+      "name": "pf_l1",
       "log": true,
-      "shownName": "Motion [mg]",
-      "format": "Count_Fourdigits"
-    },
-    {
-      "name": "pf_peak",
-      "log": true,
-      "shownName": "Peak [mg]",
-      "format": "Count_Fourdigits"
+      "shownName": "Arm position",
+      "format": "Count_Sixdigits"
     },
     {
       "name": "g0"

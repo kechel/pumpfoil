@@ -91,7 +91,7 @@ function abspielen(db, { stoerung = () => false, ueberEvaluate = false, einstell
     }
     uhr.ruf("evaluate", inp);
     // Log wie die Uhr: nur geaenderte Werte landen im Workout
-    for (const k of ["pf_foil", "pf_p1", "pf_p2", "pf_int", "pf_peak"]) {
+    for (const k of ["pf_e1", "pf_b1", "pf_s1", "pf_l1"]) {
       const v = uhr.output[k];
       if (v !== zuletzt[k]) { (log[k] = log[k] || []).push([s, v]); zuletzt[k] = v; }
     }
@@ -183,9 +183,17 @@ test("mit Pause mitten in der Aufnahme: Zeitachse bleibt aktiv-zeitbasiert", () 
 
 test("Handy-Sync aus: kein Funk, Log-Kanaele trotzdem", () => {
   const db = drehbuch(2);
-  const { uhr } = abspielen(db, { einstellungen: { handy: "false" } });
+  const { uhr, log } = abspielen(db, { einstellungen: { handy: "false" } });
   assert.equal(uhr.writes, 0);
-  assert.ok(uhr.output.pf_int >= 0);
+  // pf_b1 = XX YY ZZ (2·√mg je Achse), pf_s1 = PPP SSS, pf_l1 = NNN RRR — alle <= 999.999 (float32 exakt)
+  for (const k of ["pf_e1", "pf_b1", "pf_s1", "pf_l1"]) for (const [, v] of log[k] || []) {
+    assert.ok(Number.isInteger(v) && v >= 0 && v <= 999999, k + "=" + v);
+    assert.equal(Math.fround(v), v, k + " exakt in float32");
+  }
+  const achsen = (log.pf_b1 || []).map(([, v]) => [Math.floor(v / 10000), Math.floor(v / 100) % 100, v % 100]);
+  assert.ok(achsen.some((a) => a.every((x) => x > 0)), "Bewegung auf allen drei Achsen");
+  assert.ok((log.pf_s1 || []).some(([, v]) => v % 1000 > 0), "Pump-Staerke");
+  for (const [, v] of log.pf_l1 || []) assert.ok(Math.floor(v / 1000) <= 180 && v % 1000 < 360, "Lage " + v);
 });
 
 test("50 Hz: Bloecke mit 25 Werten je halbe Sekunde", () => {
@@ -197,21 +205,27 @@ test("50 Hz: Bloecke mit 25 Werten je halbe Sekunde", () => {
   assert.equal(b.flatMap((x) => x.werte).length, (db.acc.length) * 3);
 });
 
-test("Pump-Marker im Workout-Log: jeder Pump einmal, mit Zeitpunkt", () => {
+test("Pump-Marker im Workout-Log (pf_e1): jeder Pump einmal, mit Zeitpunkt", () => {
   const db = drehbuch(3);
-  const { log, zusammenfassung } = abspielen(db);
-  // Server-Sicht: aus den geloggten Werten (Nummer + Versatz) die Pumps zurueckrechnen
-  const pumps = new Map();
-  for (const k of ["pf_p1", "pf_p2"]) for (const [s, v] of log[k] || []) {
-    if (!v) continue;
-    const nr = Math.floor(v + 1e-9), versatz = v - nr;
-    pumps.set(nr, s + 1 - (1 + versatz));      // Datenpunkt s liegt bei aktiver Sekunde s+1
+  const { log, uhr } = abspielen(db);
+  // Server-Sicht: pf_e1 = L Z AA BB zurueckrechnen (Vorlage fuer den Server-Import)
+  const pumps = [], laeufe = new Set();
+  let zVor = 0, verloren = 0;
+  for (const [s, v] of log.pf_e1 || []) {
+    const L = Math.floor(v / 100000), Z = Math.floor(v / 10000) % 10, AA = Math.floor(v / 100) % 100, BB = v % 100;
+    if (L) laeufe.add(L);
+    const n = (Z - zVor + 10) % 10; zVor = Z;
+    const da = (AA ? 1 : 0) + (BB ? 1 : 0);
+    assert.ok(n >= da, `Zaehler ${n} < Marker ${da} bei ${s}`);
+    verloren += n - da;
+    // Datenpunkt s liegt bei aktiver Sekunde s+1; Marker um 1 s verzoegert
+    if (BB) pumps.push(s + 1 - (1 + BB / 100));
+    if (AA) pumps.push(s + 1 - (1 + AA / 100));
   }
-  const nrs = [...pumps.keys()].sort((a, b) => a - b);
-  assert.ok(nrs.length > 0);
-  assert.equal(nrs[0], 1, "Nummern beginnen bei 1");
-  const fehlend = nrs[nrs.length - 1] - nrs.length;
-  assert.ok(fehlend <= 2, "hoechstens vereinzelt ein dritter Pump je Sekunde verloren: " + fehlend);
+  assert.ok(pumps.length > 0);
+  assert.ok(laeufe.size >= 2, "Laeufe in Stelle L: " + [...laeufe]);
+  assert.ok(verloren <= 2, "hoechstens vereinzelt ein dritter Pump je Sekunde verloren: " + verloren);
+  assert.equal(zVor, uhr.ctx.pumpNr % 10, "Z = alle Pumps mod 10");
   // Pumps in den Laeufen (Server-Zeitpunkte, ins Drehbuch umgerechnet) finden sich im Log wieder
   let start = 0, treffer = 0, gesamt = 0;
   for (const g of db.genutzt) {
@@ -220,12 +234,12 @@ test("Pump-Marker im Workout-Log: jeder Pump einmal, mit Zeitpunkt", () => {
       const tl = start + (t - g.l.vor / 25);
       if (tl < start || tl > start + g.s) continue;
       gesamt++;
-      let m = 1e9; for (const u of pumps.values()) m = Math.min(m, Math.abs(u - tl));
+      let m = 1e9; for (const u of pumps) m = Math.min(m, Math.abs(u - tl));
       if (m < 0.25) treffer++;
     }
     start += g.s;
   }
-  console.log(`Pump-Marker: ${nrs.length} im Log, ${treffer}/${gesamt} Server-Pumps innerhalb 0,25 s`);
+  console.log(`Pump-Marker: ${pumps.length} im Log, ${treffer}/${gesamt} Server-Pumps innerhalb 0,25 s`);
   assert.ok(treffer / gesamt > 0.8, `${treffer}/${gesamt}`);
 });
 

@@ -774,6 +774,7 @@ var Pumpe = function (fs) {
   this.gesamt = 0;
   this.schrittNr = 0;              // 10-Hz-Schritte seit dem Start (Zeitachse der Pumps: schrittNr / 10 s)
   this.zeiten = [];                // erkannte Pumps (s), aufsteigend, vom Aufrufer abzuholen
+  this.staerken = [];              // je Pump der Ausschlag am Maximum (g, gefiltert, gegen die Schwerkraft)
   this.letzteZeit = -1;
 };
 
@@ -828,12 +829,12 @@ Pumpe.prototype.zeitenSetzen = function (neu) {
     }
     var t = bestS, a = this.wertBei(bestS - 1), c = this.wertBei(bestS + 1), d = a - 2 * best + c;
     if (a !== null && c !== null && d < 0) t += 0.5 * (a - c) / d;
-    neue.unshift(t / PUMPE_DEZ_HZ - spaet);
+    neue.unshift([t / PUMPE_DEZ_HZ - spaet, best]);
   }
   for (j = 0; j < neue.length; j++) {
-    var z = neue[j];
+    var z = neue[j][0];
     if (this.letzteZeit >= 0 && z < this.letzteZeit + 0.45) z = this.letzteZeit + 0.45;
-    this.zeiten.push(z); this.letzteZeit = z;
+    this.zeiten.push(z); this.staerken.push(neue[j][1]); this.letzteZeit = z;
   }
 };
 
@@ -1189,27 +1190,53 @@ var SLOTS_ACC = 80, SLOTS_GPS = 150;
 var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
-var sekPumps, sekSum, sekSumQ, sekN, sekPeak, blockWerte, blockT, halbe, startSeite;
+var sekPumps, sekX, sekY, sekZ, sekXX, sekYY, sekZZ, sekN, sekPeak, sekStaerke, blockWerte, blockT, halbe, startSeite;
 var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz;
 
-/**
- * Pump-Marker fuer die Log-Kanaele (Jans Idee, 17.10.2026): je Pump „laufende Nummer + Versatz".
- * Der Wert 1234.37 heisst: Pump Nr. 1234 lag 1,37 s vor diesem Datenpunkt — die Uhr erkennt einen
- * Pump erst bis zu ~1 s spaeter (Periode + Filter), darum ist jeder Marker um genau 1 s verzoegert
- * und der Bruchteil liegt immer in [0, 1). Die Nummer aendert sich bei jedem Pump, damit speichert
- * die Uhr den Wert sicher (sie loggt nur Aenderungen) und der Server sieht fehlende Nummern.
- * pf_p1 = neuester Pump der Sekunde, pf_p2 = der davor (bis 2 Hz); ein dritter faellt weg, seine
- * Nummer fehlt dann. Zeitpunkt = echtes Signal-Maximum, auf Jans Laeufen median 0,04 s am Server.
+/*
+ * Log-Kanaele (docs/SUUNTO.md „Die Log-Kanaele"): hoechstens 5, je eine float32-Zahl pro Sekunde, gespeichert
+ * nur bei Aenderung. Darum mehrere Werte je Kanal als Dezimalstellen, immer <= 999.999 (exakt in float32,
+ * passt in Count_Sixdigits). Der NAME traegt die Version: aendert sich die Bedeutung, bekommt der Kanal einen
+ * neuen Namen (pf_e1 -> pf_e2) — der Server liest, was eine Uhr schickt, aeltere Uhren stoeren nicht.
+ *
+ * pf_e1 = L Z AA BB  (Jans Idee, 17.10.2026)
+ *   L  Lauf: 0 zwischen den Laeufen, sonst (Laufnummer mod 9) + 1 — auch direkt aufeinanderfolgende
+ *      Laeufe bleiben unterscheidbar
+ *   Z  Zahl aller Pumps mod 10 — aendert sich bei jedem Pump, sonst wuerden zwei Sekunden mit gleichem
+ *      Versatz als „keine Aenderung" nicht geloggt; der Server sieht daran auch verlorene Pumps
+ *   AA neuester Pump dieser Sekunde, BB der davor: 01–99 = 0,01–0,99 s vor dem Datenpunkt, 00 = keiner.
+ *      Die Uhr erkennt einen Pump erst bis ~1 s spaeter, darum ist jeder Marker um genau 1 s verzoegert
+ *      (Pump-Zeit = Datenpunkt − 1 s − Versatz). Zeitpunkt = echtes Signal-Maximum (median 0,04 s am Server).
  */
-var pumpMarker = function (output) {
-  var jetzt = pu.schrittNr / 10, neu = [];
-  while (pu.zeiten.length && pu.zeiten[0] <= jetzt - 1) neu.push(pu.zeiten.shift());
-  if (!neu.length) return;
-  var wert = function (nr, t) { return nr + Math.min(0.999, Math.max(0, Math.round((jetzt - t - 1) * 1000) / 1000)); };
+var pumpMarker = function () {
+  var jetzt = pu.schrittNr / 10, neu = [], i;
+  while (pu.zeiten.length && pu.zeiten[0] <= jetzt - 1) {
+    neu.push(pu.zeiten.shift());
+    var st1 = pu.staerken.shift();
+    if (st1 > sekStaerke) sekStaerke = st1;
+  }
+  var vers = function (t) { return Math.min(99, Math.max(1, Math.round((jetzt - t - 1) * 100))); };
   pumpNr += neu.length;
-  output.pf_p1 = wert(pumpNr, neu[neu.length - 1]);
-  if (neu.length >= 2) output.pf_p2 = wert(pumpNr - 1, neu[neu.length - 2]);
+  i = neu.length;
+  return (pumpNr % 10) * 10000 + (i ? vers(neu[i - 1]) * 100 : 0) + (i >= 2 ? vers(neu[i - 2]) : 0);
 };
+
+/** pf_b1 = XX YY ZZ: Bewegungsstaerke je Achse der Uhr (Streuung in der Sekunde), je 2·√mg (mg = W²/4):
+ *  10 = 25 mg, 20 = 100 mg, 99 = 2,45 g — ruhiges Gleiten und kraeftiges Pumpen in einem Kanal, ~10 % genau. */
+var kanalB = function () {
+  var c = function (s, q) { var m = s / sekN; return Math.min(99, Math.round(2 * Math.sqrt(1000 * Math.sqrt(Math.max(0, q / sekN - m * m))))); };
+  return c(sekX, sekXX) * 10000 + c(sekY, sekYY) * 100 + c(sekZ, sekZZ);
+};
+
+/** pf_l1 = NNN RRR: Armhaltung aus der mittleren Schwerkraft der Sekunde — Neigung + 90 (0–180°),
+ *  Drehung um die Laengsachse (0–359°). Achsen wie die Uhr sie liefert (am Server deuten). */
+var kanalL = function () {
+  var x = sekX / sekN, y = sekY / sekN, z = sekZ / sekN, g = 180 / Math.PI;
+  var n = Math.round(Math.atan2(-x, Math.sqrt(y * y + z * z)) * g) + 90, r = Math.round(Math.atan2(y, z) * g);
+  return Math.min(180, Math.max(0, n)) * 1000 + ((r % 360) + 360) % 360;
+};
+
+var sekNull = function () { sekPumps = 0; sekX = 0; sekY = 0; sekZ = 0; sekXX = 0; sekYY = 0; sekZZ = 0; sekN = 0; sekPeak = 0; sekStaerke = 0; };
 
 var summeLetzte = function (n) {
   var z = 0, i;
@@ -1268,7 +1295,7 @@ var nimmAccel = function (input) {
     var p = pu.wert(x, y, z);
     sekPumps += p;
     b = Math.sqrt(x * x + y * y + z * z);
-    sekSum += b; sekSumQ += b * b; sekN++;
+    sekX += x; sekY += y; sekZ += z; sekXX += x * x; sekYY += y * y; sekZZ += z * z; sekN++;
     if (Math.abs(b - 1) > sekPeak) sekPeak = Math.abs(b - 1);
     if (!sync) continue;
     var ts = t0 + i * schritt;
@@ -1382,7 +1409,7 @@ feld = function (s, id, el, tt, jetzt) {
  * Stille Runde (Suunto-Lap-Typ 23: keine Rundenanzeige, keine Vibration) an Anfang und Ende jedes Laufs:
  * die Suunto-App zeigt Laeufe und Pausen dazwischen als Runden, die FIT-Datei hat die Laufgrenzen —
  * ohne einen der 5 Log-Kanaele. Grenzen liegen um die Erkennungs-Verzoegerung spaeter (Start ~4 s,
- * Ende ~3 s; der Server rechnet sie aus pf_foil zurueck). Nur, wo die Uhr Typ 23 kennt (Compile-Token).
+ * Ende ~3 s; der Server rechnet sie aus pf_e1 (Stelle L) zurueck). Nur, wo die Uhr Typ 23 kennt (Compile-Token).
  */
 var STILLE_RUNDE = "{{ HAS_SILENT_LAP }}" === "1";
 var runde = function () { if (STILLE_RUNDE) $.put("/Activity/Trigger", 23); };
@@ -1428,10 +1455,10 @@ function onLoad(input, output) {
   fu.uhrId = id;
   zuletzt = { rdy: 0, alt: null, asc: null };
   lauefe = 0; pumpHist = []; pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false;
-  sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0; blockWerte = []; blockT = 0; halbe = null;
+  sekNull(); blockWerte = []; blockT = 0; halbe = null;
   textLaden();
   anz = new Anzeige();
-  output.pf_foil = 0; output.pf_p1 = 0; output.pf_p2 = 0; output.pf_int = 0; output.pf_peak = 0; pumpNr = 0;
+  output.pf_e1 = 0; output.pf_b1 = 0; output.pf_s1 = 0; output.pf_l1 = 0; pumpNr = 0;
 }
 
 function onAccelerometer(input, output) { nimmAccel(input); }
@@ -1512,12 +1539,14 @@ function evaluate(input, output) {
     var sek = Math.round(tAkt / 1000);
     if (sync) fu.gpsSek(sek, fix ? pos.latitude : 0, fix ? pos.longitude : 0, sp, hrBpm, -1, zuletzt.alt);
     // Log-Kanaele (einmal je Sekunde ins Workout, docs/SUUNTO.md)
-    output.pf_foil = st.foiling ? st.runCount + 1 : 0;
-    pumpMarker(output);
-    var m = sekN ? sekSum / sekN : 0;
-    output.pf_int = sekN ? Math.round(1000 * Math.sqrt(Math.max(0, sekSumQ / sekN - m * m))) : 0;
-    output.pf_peak = Math.round(1000 * sekPeak);
-    sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0;
+    output.pf_e1 = (st.foiling ? st.runCount % 9 + 1 : 0) * 100000 + pumpMarker();
+    if (sekN) {
+      output.pf_b1 = kanalB();
+      output.pf_l1 = kanalL();
+      // pf_s1 = PPP SSS: staerkster Ausschlag |a|−1 g (10 mg) und staerkster Pump der Sekunde (mg)
+      output.pf_s1 = Math.min(999, Math.round(100 * sekPeak)) * 1000 + Math.min(999, Math.round(1000 * sekStaerke));
+    }
+    sekNull();
   }
   fu.takt(sync, bleHandler);
   if (fu.konfigNeu) { fu.konfigNeu = 0; konfigAnwenden(fu.konfig); fu.konfig = null; }
