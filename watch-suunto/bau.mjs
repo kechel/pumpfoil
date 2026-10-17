@@ -213,7 +213,9 @@ ${["up", "next", "upleft", "downleft"].map((b) => `    <pushButton name="${b}" o
 `;
 }
 
-export function dataJson() { return { handy: "true", hz: "0", sprache: "0" }; }
+// handy: aus, solange die Handy-Bruecke in keiner veroeffentlichten Android-/iOS-Version steckt (17.10.) —
+// sonst saehe jeder dauerhaft „Phone …" und die Uhr suchte vergeblich. Mit Bruecke im Store auf "true".
+export function dataJson() { return { handy: "false", hz: "0", sprache: "0" }; }
 
 /** debug = true: app-debug/ — Ablauf und jede Taste ins Systemlog, Name „Pumpfoil Debug". */
 export function dateien(debug = false) {

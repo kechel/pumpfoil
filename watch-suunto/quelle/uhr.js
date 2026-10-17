@@ -291,7 +291,7 @@ function onLoad(input, output) {
   output.con = 1;                     // „Suche"-Fenster sofort schliessen: die App laeuft auch ohne Handy
   laeuft = 0; pause = 0; seite = 0; zeigeSeite = 0; letzteAccZeit = null; versatz = 0; versatzNeu = 1;
   tAkt = 0; utcStart = 0; einheit = -1; faktor = 1; positionGemeldet = 0; startSeite = 1;
-  sync = wahr(einstellung("handy", "true"));
+  sync = wahr(einstellung("handy", "false"));   // Voreinstellung wie data.json (bau.mjs)
   hz = einstellung("hz", "0") === "1" ? 50 : 25;
   sprache = einstellung("sprache", "en");
   var gk = konfigGespeichert();
