@@ -63,3 +63,10 @@ let kp = SuuntoKonfig.pakete(kt)
 if kp.contains(where: { $0.count > 20 || $0[0] != 0x83 || Int($0[2]) != kp.count }) { fail("Konfig Pakete") }
 if String(decoding: kp.flatMap { $0.dropFirst(3) }, as: UTF8.self) != kt { fail("Konfig zusammensetzen") }
 print("OK: Konfiguration \(kt.utf8.count) Bytes in \(kp.count) Paketen")
+
+// 4) freies Layout -> Werte in Lese-Reihenfolge (wie Kotlin-Test)
+let seite: [Any] = [1, 0, [[1, 700, 120, 5, 0, 0, 20], [1, 300, 125, 5, 0, 0, 1], [2, 300, 200, 2, 0, 0, 1],
+                          [4, 0, 300, 1, 0, 1000, 300], [1, 500, 500, 7, 0, 0, 14], [1, 500, 800, 3, 0, 0, 12],
+                          [1, 500, 820, 3, 0, 0, 1]]]
+if SuuntoKonfig.seiteKurz(seite) != [2, 1, 20, 14, 12] { fail("Layout kurz: \(String(describing: SuuntoKonfig.seiteKurz(seite)))") }
+print("OK: freies Layout -> [2, 1, 20, 14, 12]")

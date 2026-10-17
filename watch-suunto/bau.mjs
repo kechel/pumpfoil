@@ -120,7 +120,7 @@ export function manifest() {
       { name: "pumps", format: "Count_Fourdigits" },
       { name: "laeufe", format: "Count_Threedigits" },
     ],
-    template: [{ name: "d.html" }],
+    template: [{ name: "d.html" }, { name: "f.html" }],
     settings: [
       { shownName: "Raw data to phone app", path: "handy", type: "boolean" },
       { shownName: "Raw data rate", path: "hz", type: "enum", values: ["25 Hz", "50 Hz"] },
@@ -137,6 +137,7 @@ export function dateien() {
     "main.js": mainJs(),
     "ext1.js": texte(),
     "d.html": lies("vorlagen/d.html"),
+    "f.html": lies("vorlagen/f.html"),
     "data.json": JSON.stringify(dataJson(), null, 2) + "\n",
   };
 }

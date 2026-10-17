@@ -43,6 +43,8 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     private var letzteQuittung = Date.distantPast
     private var warteschlange: [Data] = []     // Notify: Konfiguration; die Quittung geht immer vor
     private var konfigFuer: Int64 = -1
+    private var halloUhr: Int64 = 0
+    private var halloOhneAufnahme = false
     private var takt: Timer?
     private var laedtGerade = false
     private var sekunden = 0
@@ -74,6 +76,10 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     }
 
     private func sekunde() {
+        if sekunden % 5 == 0 && !zentralen.isEmpty {
+            warteschlange.removeAll { $0.first == 0x82 }
+            warteschlange.append(statusPaket())
+        }
         quittungSenden(sofort: true)
         if ablage.pruefen() { melden(); hochladen() }
         sekunden += 1
@@ -128,7 +134,12 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     func peripheralManager(_ p: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom c: CBCharacteristic) {
         zentralen.removeAll { $0.identifier == central.identifier }
         stand.verbunden = !zentralen.isEmpty
-        if zentralen.isEmpty { warteschlange = []; konfigFuer = -1 }
+        if zentralen.isEmpty {
+            warteschlange = []; konfigFuer = -1
+            // Funk weg, waehrend die Uhr im Startzustand war: App verlassen, ohne aufzunehmen
+            if halloOhneAufnahme && ablage.aktuell == nil { appGeschlossen(halloUhr) }
+            halloOhneAufnahme = false
+        }
     }
 
     func peripheralManager(_ p: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
@@ -154,6 +165,7 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
         if (p.first ?? 0) & 15 == 1 {
             let e = SuuntoEmpfang(); e.paket(p)
             if let h = e.hallo {
+                halloUhr = h.uhrId; halloOhneAufnahme = h.sitzung == 0
                 stand.uhr = SuuntoAblage.modell(h.display).components(separatedBy: " ·").first ?? "Suunto"
                 if konfigFuer != h.uhrId { konfigFuer = h.uhrId; konfigSenden(h) }
             }
@@ -219,6 +231,22 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
             _ = try? await URLSession.shared.data(for: req)
         }
         return t
+    }
+
+    /// STATUS fuer die Uhr: bit0 Konto, bit1 Server erreichbar, bit2 laedt hoch, bit3 iPhone nimmt selbst auf.
+    private func statusPaket() -> Data {
+        let konto = Api.token != nil
+        let online = !stand.fehler.hasPrefix("upload")
+        let f = (konto ? 1 : 0) | (online ? 2 : 0) | (stand.laedt || stand.offen > 0 ? 4 : 0)
+            | (PhoneRecorder.shared.recording ? 8 : 0)
+        let n = min(max(stand.offen, 0), 0xFFFF)
+        return Data([0x82, UInt8(f), UInt8(n & 255), UInt8(n >> 8)])
+    }
+
+    /// Uhr-App ohne Aufnahme verlassen — wie die anderen Uhren POST /devices/app-closed (nur mit vorhandenem Token).
+    private func appGeschlossen(_ uhrId: Int64) {
+        guard let t = UserDefaults.standard.string(forKey: "suunto_token_" + String(uhrId, radix: 16)) else { return }
+        Task { _ = try? await Self.post("/api/devices/app-closed", [:], t) }
     }
 
     /// Erster GPS-Fix der Uhr im Startzustand -> „gerade am Pumpen" (POST /devices/position).

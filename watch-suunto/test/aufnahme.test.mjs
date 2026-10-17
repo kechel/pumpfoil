@@ -254,3 +254,36 @@ test("Konfiguration vom Handy: Seiten, Alarm und Sprache gelten sofort und bleib
   assert.deepEqual(JSON.parse(JSON.stringify(zwei.ctx.kf.views)), [[20, 1, 2]]);
   assert.equal(zwei.ctx.sprache, 0);
 });
+
+test("Statuszeile: Rueckstand, verlorene Sekunden, Upload und ein Handy, das selbst aufnimmt", () => {
+  const db = drehbuch(4);
+  const { uhr } = abspielen(db, { stoerung: (s) => s >= 30 && s < 200 });
+  // 170 s weg, Ring haelt 80 -> ~90 s verloren, das steht da
+  assert.ok(uhr.ctx.fu.verlorenS() > 60, "verloren " + uhr.ctx.fu.verlorenS());
+  uhr.handler(0, 106, [0x82, 1 | 2 | 4, 3, 0]);
+  assert.match(uhr.ctx.handyZeile(), /↑3/);
+  assert.match(uhr.ctx.handyZeile(), /−\d+ s/);
+  uhr.handler(0, 106, [0x82, 1 | 2 | 8, 0, 0]);
+  assert.match(uhr.ctx.handyZeile(), /nimmt auf/);
+  uhr.handler(0, 106, [0x82, 1, 0, 0]);
+  assert.match(uhr.ctx.handyZeile(), /offline/);
+});
+
+test("freies Layout (vom Handy auf 6 Werte reduziert): 6-Felder-Vorlage, Felder in Reihenfolge", () => {
+  const uhr = new Uhr({ einstellungen: { handy: "false" } });
+  uhr.speicher.set("konfig", { layoutsOn: true, pages: [[2, 1, 2, 20, 14, 7, 12]], views: [[1, 2, 0]] });
+  uhr.ruf("onLoad");
+  uhr.ruf("getUserInterface");
+  uhr.ruf("onExerciseStart", { utc: 1 });
+  uhr.ruf("evaluate", { tmr: 1000, sp: 0.5, utc: 2, lt: 0 });   // zwischen den Laeufen: off-Seiten
+  uhr.ruf("evaluate", { tmr: 2000, sp: 0.5, utc: 3, lt: 0 });
+  // „off" zeigt offFoilView (klassisch) + mit browseAll die On-Foil-Seiten; auf Seite 2 blaettern
+  uhr.ruf("onEvent", {}, 2);
+  uhr.ruf("evaluate", { tmr: 3000, sp: 0.5, utc: 4, lt: 0 });
+  assert.equal(uhr.vorlage, "f", "auf die 6-Felder-Vorlage gewechselt");
+  uhr.ruf("evaluate", { tmr: 4000, sp: 0.5, utc: 5, lt: 0 });
+  assert.equal(uhr.texte["#l6"], "Clock", JSON.stringify(uhr.texte));   // Feld 12, Sprache Englisch (Standard)
+  uhr.ruf("onEvent", {}, 1);
+  uhr.ruf("evaluate", { tmr: 5000, sp: 0.5, utc: 6, lt: 0 });
+  assert.equal(uhr.vorlage, "d", "zurueck auf 3 Felder");
+});

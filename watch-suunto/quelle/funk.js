@@ -42,6 +42,7 @@ Funk.prototype.neu = function () {
   this.blockS = 0;                // naechster zu sendender Block
   this.teil = 0;                  // Teil des Blocks, der als naechstes geht
   this.sek = 0; this.sekQ = -1; this.sekS = 0;
+  this.verloren = 0;              // Accel-Bloecke, die der Ring aufgeben musste (Handy zu lange weg)
   this.ereig = []; this.ereigNr = 0; this.ereigQ = -1;
   this.sitzung = 0; this.laeuft = 0; this.pause = 0;
   this.halloFaellig = 1;
@@ -63,7 +64,7 @@ Funk.prototype.accel = function (tMs, werte) {
   }
   this.block++;
   // Ring voll: den aeltesten aufgeben (nicht quittiert, aber ueberschrieben)
-  if (this.block - 1 - this.blockQ > this.slots) this.blockQ = this.block - 1 - this.slots;
+  if (this.block - 1 - this.blockQ > this.slots) { this.blockQ = this.block - 1 - this.slots; this.verloren++; }
   if (this.blockS <= this.blockQ) { this.blockS = this.blockQ + 1; this.teil = 0; }
 };
 
@@ -266,6 +267,13 @@ Funk.prototype.senden = function () {
   this.inFlug = 1; this.flugS = 0; this.pakete++;
   appConn.writeChar(this.verbindung, 1, p);
 };
+
+/** Verlorene Rohdaten in Sekunden (Ring uebergelaufen). */
+Funk.prototype.verlorenS = function () { return Math.round(this.verloren * 25 / this.hz); };
+
+/** STATUS-Flags vom Handy: bit0 Konto, bit1 Server erreichbar, bit2 laedt hoch, bit3 Handy nimmt selbst auf. */
+Funk.prototype.handyNimmtAuf = function () { return this.zustand === 5 && (this.handy & 8) !== 0; };
+Funk.prototype.handyOffline = function () { return this.zustand === 5 && (this.handy & 1) !== 0 && (this.handy & 2) === 0; };
 
 /** Rueckstand in Sekunden (fuer die Anzeige): unquittierte Accel-Bloecke. */
 Funk.prototype.rueckstandS = function () {

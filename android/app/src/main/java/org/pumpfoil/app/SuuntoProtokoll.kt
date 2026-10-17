@@ -399,7 +399,28 @@ object SuuntoKonfig {
     private val SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
         "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
         "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime")
+        "alarmPatternTime", "layoutsOn")
+    private val SEITEN = listOf("pages", "offFoilPages", "pausePages")
+
+    /**
+     * Freies Layout [1, bg, [[typ,x,y,…,fid], …]] -> [2, f1..f6]: die Wert-Elemente (typ 1) in Lese-
+     * Reihenfolge (oben nach unten, links nach rechts), ohne Doppelte, hoechstens 6. Positionen kann
+     * eine SuuntoPlus-Vorlage nicht setzen; klassische Seiten [0,a,b,c] bleiben, wie sie sind.
+     */
+    fun seiteKurz(seite: JSONArray): JSONArray? {
+        val art = seite.optInt(0, -1)
+        if (art == 0) return seite
+        if (art != 1) return null
+        val els = seite.optJSONArray(2) ?: return null
+        val werte = ArrayList<Triple<Int, Int, Int>>()
+        for (i in 0 until els.length()) {
+            val e = els.optJSONArray(i) ?: continue
+            if (e.length() > 6 && e.optInt(0) == 1 && e.optInt(6) > 0) werte.add(Triple(e.optInt(2), e.optInt(1), e.optInt(6)))
+        }
+        val fids = werte.sortedWith(compareBy({ it.first / 60 }, { it.second })).map { it.third }.distinct().take(6)
+        if (fids.isEmpty()) return null
+        return JSONArray().put(2).apply { fids.forEach { put(it) } }
+    }
     /** Sprache des Profils -> Spalte der Feld-Texte auf der Uhr (watch-suunto/bau.mjs SPRACHEN). */
     private val SPALTE = mapOf("de" to 0, "gsw" to 1, "de-AT" to 2, "en" to 3, "fr" to 4, "it" to 5, "es" to 6,
         "pt" to 7, "pt-PT" to 7, "id" to 8, "ru" to 9, "nl" to 10, "fi" to 11, "cs" to 12, "ja" to 13, "zh" to 14)
@@ -408,6 +429,11 @@ object SuuntoKonfig {
         val k = JSONObject(config)
         val o = JSONObject()
         for (s in SCHLUESSEL) if (k.has(s)) o.put(s, k.get(s))
+        for (s in SEITEN) k.optJSONArray(s)?.let { a ->
+            val kurz = JSONArray()
+            for (i in 0 until a.length()) a.optJSONArray(i)?.let { seiteKurz(it) }?.let { kurz.put(it) }
+            if (kurz.length() > 0) o.put(s, kurz)
+        }
         o.optJSONArray("foils")?.let { fs ->
             val kurz = JSONArray()
             for (i in 0 until fs.length()) {
