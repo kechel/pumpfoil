@@ -715,7 +715,11 @@ var anzFreieKlasse = function (frei, a, k) {
 };
 
 /** Prozentwert, auf 0,1 gerundet, als CSS-Text. */
-var ANZ_MITTE = 0.9;
+// Schriftmitte unter der Element-Oberkante, in Klassenhoehen, je Klasse (Index wie ANZ_KLASSEN). Gemessen im
+// Simulator (9 Peak Pro) am 17.10. auf der Kalibrierseite von app-debug: mit einheitlich 0,9 lagen die Klassen
+// 0/1/2/3/4/5/6/7 um −4,3/−2,5/−1,9/−0,4/+0,3/+0,5/+0,3/0 % neben der Linie (Suuntos Build setzt je
+// Ziffernklasse ein eigenes Text-Polster). Auf der Uhr nachmessen: dieselbe Seite, ein Foto.
+var ANZ_MITTE = [0.77, 0.80, 0.81, 0.88, 0.92, 0.95, 0.94, 0.90];
 var anzProz = function (v) { return Math.round(v * 10) / 10 + "%"; };
 
 Anzeige.prototype.text = function (id, b, k, a) {
@@ -723,9 +727,7 @@ Anzeige.prototype.text = function (id, b, k, a) {
   if (e.txt !== b.txt) { e.txt = b.txt; setText(id, b.txt); }
   var ax = b.x / 10, ay = b.y / 10, h = ANZ_KLASSEN[k][1] * 100 / 466;
   this.stil(id, "left", anzProz(a === "l" ? ax : a === "r" ? ax - 100 : ax - 50));
-  // Schriftmitte liegt ~0,9 Klassenhoehen unter der Oberkante des Elements (Zeilenhoehe > Ziffernhoehe),
-  // gemessen im Simulator 17.10. an sp-d-m und sp-t-m (zwei Screenshots) — auf der Uhr nachpruefen
-  this.stil(id, "top", anzProz(ay - h * ANZ_MITTE));
+  this.stil(id, "top", anzProz(ay - h * ANZ_MITTE[k]));
   this.stil(id, "color", b.c || "#ffffff");
   this.stil(id, "visibility", "visible");
 };
