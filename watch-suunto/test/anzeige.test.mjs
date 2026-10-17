@@ -102,3 +102,10 @@ test("Packen und Entpacken: jeder Befehl kommt mit Werten auf ~2 Promille an", (
   // groesster Linien-Befehl bleibt eine sichere Ganzzahl
   assert.ok(Number.isSafeInteger(uhr.ctx.anzPacke({ k: "l", x1: 1022, y1: 1022, x2: 1022, y2: 1022, w: 14, c: "#ffffff" })));
 });
+
+test("Update-Hinweis: in den ersten 15 s der Aufnahme oben (den Startbildschirm zeigt Suunto nie)", () => {
+  const uhr = aufnahme({ latestVersion: "9.99" });
+  assert.ok(uhr.sichtbar().some((x) => x.txt === "Update 9.99"), JSON.stringify(uhr.sichtbar()));
+  for (let s = 13; s <= 20; s++) uhr.ruf("evaluate", { tmr: s * 1000, sp: 0.5, hr: 2.5, utc: s, lt: 36000 + s });
+  assert.ok(!uhr.sichtbar().some((x) => x.txt === "Update 9.99"), "nach 15 s weg");
+});

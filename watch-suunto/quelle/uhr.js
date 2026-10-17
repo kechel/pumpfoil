@@ -109,7 +109,8 @@ var nimmAccel = function (input) {
 // --- Datenseiten -------------------------------------------------------------------------
 var zustandKurz = function () { return pause ? "p" : st.foiling ? "on" : "off"; };
 
-/** Startbildschirm (vor dem Start der Aufnahme) als Zeichenbefehle wie eine Datenseite. */
+/** Startbildschirm als Zeichenbefehle — erscheint nur, falls die Firmware die App-Seite doch vor dem Start zeigt
+ *  (laut Referenz nicht; im Simulator nicht, 17.10.). Update-Hinweis deshalb auch in anzeigen(). */
 var startBefehle = function () {
   var gps = zuletzt.rdy >= 100 ? "GPS ✓" : "GPS " + Math.round(zuletzt.rdy) + "%";
   var handy = t("h.phone") + (!sync ? " –" : fu.zustand === 5 ? " ✓" : " …");
@@ -139,6 +140,9 @@ var anzeigen = function (el, lokalS, output) {
       idx: seite, anzahl: n, pausiert: !!pause, rund: true });
   }
   var z = handyZeile(), handyOk = z === t("h.phone") + " ✓";
+  // Den Startbildschirm sieht man auf Suunto nie: der App-Bildschirm kommt erst nach dem Start
+  // (Referenz, Ablauf: onExerciseStart -> getUserInterface). Darum der Update-Hinweis hier, 15 s lang.
+  if (laeuft && tAkt < 15000 && neuereVersion() && (!z || handyOk)) { z = "Update " + kfRoh.latestVersion; handyOk = false; }
   if (z && !handyOk || (!laeuft && fu.handyNimmtAuf())) {
     // oben statt unten: unten sitzen die Seitenpunkte (94 %), und der runde Rand schneidet ab (Simulator 17.10.)
     befehle.push({ k: "t", x: 500, y: 75, s: groesse(0, 1000), c: "#22d3ee", a: "c", txt: z || t("h.phone") + " REC!", b: false });
