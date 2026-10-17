@@ -105,6 +105,20 @@ waehlbar), und die Uhr meldet den gemessenen Rueckstand im HALLO/Status.
 
 ## Die 5 Log-Kanaele (Weg 1)
 
+**Datentyp (17.10. aus der Referenz, „Technical details"):** jeder Kanal ist eine Zahl, gespeichert als
+Probe `{ChannelId, Value}` mit eigenem Zeitstempel (ms), einmal je `evaluate` und **nur wenn sich der
+Wert aendert**. Die Beispielwerte der Referenz sind float32 (`1.7058346271514893`, `156.39999389648438`)
+-> 24 Bit Mantisse: Ganzzahlen exakt bis 16.777.216, bei 5000 bleibt ~0,0005 Aufloesung. `format`
+(z. B. `Count_Fivedigits`) betrifft nur Anzeige/Graph in der Suunto-App, nicht den gespeicherten Wert
+[Vermutung, an einer echten FIT pruefen]. Zwei Werte in einem Kanal gehen also nur bis 24 Bit zusammen
+(z. B. 2 x 12 Bit = je 0…4095). Daneben: `getSummaryOutputs` (Werte am Ende, im Kopf der Aufzeichnung,
+praktisch 4–5) und stille Runden.
+
+**Runden:** an Anfang und Ende jedes Laufs eine stille Runde (`$.put("/Activity/Trigger", 23)`, keine
+Anzeige, keine Vibration; nur wo `{{ HAS_SILENT_LAP }}` = 1, also UI2-Uhren). Laeufe und Pausen erscheinen
+in der Suunto-App als Runden und in der FIT als Lap-Grenzen, um die Erkennungs-Verzoegerung spaeter
+(~4 s Start, ~3 s Ende).
+
 | Name | Inhalt | warum |
 |---|---|---|
 | `pf_foil` | Laufnummer, solange die Uhr einen Lauf erkennt (GPS-Regeln aller Uhren), sonst 0 | Lauf-Grenzen ohne Rohdaten; der Server kann mit den anderen Kanaelen neu entscheiden |

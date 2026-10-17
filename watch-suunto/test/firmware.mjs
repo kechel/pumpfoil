@@ -14,6 +14,7 @@ export class Uhr {
     this.texte = {};
     this.stile = {};
     this.vibration = [];
+    this.puts = [];                  // $.put(pfad, wert) aus main.js, z. B. Runden
     this.speicher = new Map(Object.entries(einstellungen));
     this.empf = new Empfaenger();
     this.latenz = latenzMs;
@@ -57,6 +58,7 @@ export class Uhr {
       setStyle: (id, p, v) => { (uhr.stile[id] = uhr.stile[id] || {})[p] = v; },
       playIndication: (n) => uhr.vibration.push([uhr.jetztMs, n]),
       systemEvent: () => {},
+      $: { put: (pfad, wert) => uhr.puts.push([uhr.jetztMs, pfad, wert]) },
       // unload("_cm"): Firmware laedt die App-Seite neu und fragt getUserInterface erneut
       unload: () => { uhr.vorlage = uhr.ctx.getUserInterface({}, uhr.output || {}).template; },
       evalFile: (f) => {
@@ -64,7 +66,10 @@ export class Uhr {
         return vm.runInContext("(" + fs.readFileSync(path.join(WURZEL, "app", name), "utf8") + ")", uhr.ctx);
       },
     });
-    vm.runInContext(fs.readFileSync(path.join(WURZEL, "app/main.js"), "utf8"), this.ctx, { filename: "main.js" });
+    // Compile-Tokens ersetzt Suuntos Build (Handlebars); hier wie fuer eine Race/Vertical (UI2)
+    const tokens = { HAS_SILENT_LAP: "1", HAS_ON_EVENT: "1", HAS_SETTINGS: "1", DISPLAY_ID: "q", ...(this.tokens || {}) };
+    const src = fs.readFileSync(path.join(WURZEL, "app/main.js"), "utf8").replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) => (k in tokens ? tokens[k] : m));
+    vm.runInContext(src, this.ctx, { filename: "main.js" });
     // Quittung vom Handy alle 250 ms, Status alle 2 s
     this.naechsteQuittung = 250;
   }
