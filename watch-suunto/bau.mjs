@@ -11,6 +11,9 @@ import crypto from "node:crypto";
 const W = path.dirname(fileURLToPath(import.meta.url));
 const R = path.resolve(W, "..");
 const lies = (p) => fs.readFileSync(path.resolve(W, p), "utf8");
+// Grafik-Ausgaben g0…g(n-1): die Zahl steht EINMAL in quelle/anzeige.js. Der Editor erlaubt hoechstens
+// 20 Ausgaben (Fehler beim Bauen, 17.10.; die Referenz sagt noch 25): con + 5 Log-Kanaele + 13 + gv.
+export const GRAFIKEN = Number(/var ANZ_GRAFIKEN = (\d+);/.exec(lies("quelle/anzeige.js"))[1]);
 
 /** Top-level `function X(…) {…}` -> `var X = function (…) {…};` (Firmware-Regel, s. uhr.js). */
 export function alsVar(src) {
@@ -151,7 +154,7 @@ export function manifest() {
       { name: "pf_int", log: true, shownName: "Motion [mg]", format: "Count_Fourdigits" },
       { name: "pf_peak", log: true, shownName: "Peak [mg]", format: "Count_Fourdigits" },
       // Grafik-Befehle der Datenseite (quelle/anzeige.js) + Zaehler, auf den die Vorlage neu zeichnet
-      ...Array.from({ length: 16 }, (_, i) => ({ name: "g" + i })),
+      ...Array.from({ length: GRAFIKEN }, (_, i) => ({ name: "g" + i })),
       { name: "gv" },
     ],
     template: [{ name: "d.html" }],
@@ -168,7 +171,7 @@ export function vorlage() {
   const skript = lies("quelle/vorlage.js").replace(/^\s*\/\/.*$/gm, "").trim();
   if (skript.includes('"')) throw new Error("quelle/vorlage.js darf keine doppelten Anfuehrungszeichen enthalten");
   const klassen = ["sp-d-xxl", "sp-d-xl", "sp-d-l", "sp-d-m", "sp-d-s", "sp-d-xs", "sp-t-m", "sp-t-s"];
-  const abos = Array.from({ length: 16 }, (_, i) =>
+  const abos = Array.from({ length: GRAFIKEN }, (_, i) =>
     `A.push($.subscribe('Zapp/{zapp_index}/Output/g${i}', function(v) { G[${i}] = v || 0; }));`).join("\n    ");
   const texte = klassen.flatMap((k, ki) => [0, 1, 2].map((i) =>
     `    <div id="k${ki}_${i}" class="${k}${k.startsWith("sp-d") ? " f-num" : ""}" style="top:0;left:0;visibility:hidden;">-</div>`)).join("\n");

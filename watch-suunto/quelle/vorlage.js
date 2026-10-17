@@ -1,8 +1,8 @@
 // Skript der Datenseiten-Vorlage (laeuft in der VORLAGE, nicht in main.js): entpackt die Grafik-Befehle
-// g0…g15 (quelle/anzeige.js anzPacke) und zeichnet sie auf das <canvas> der Seite. bau.mjs setzt diese
+// g0…g12 (quelle/anzeige.js anzPacke) und zeichnet sie auf das <canvas> der Seite. bau.mjs setzt diese
 // Datei in das onLoad-Attribut von d.html — darum KEINE doppelten Anfuehrungszeichen hier (Test prueft das).
 var G = [];
-for (var gi = 0; gi < 16; gi++) G.push(0);
+for (var gi = 0; gi < 13; gi++) G.push(0);   // = ANZ_GRAFIKEN (quelle/anzeige.js, Test prueft)
 
 function hexFarbe(c12) {
   var h = '0123456789abcdef';

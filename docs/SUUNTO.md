@@ -195,7 +195,7 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
 
 | Funktion | andere Uhren | Suunto |
 |---|---|---|
-| Datenseiten aus dem Profil | klassisch [a,b,c] + freie Layouts je Zustand | ✅ beides, mit demselben Zeichner wie Huawei (`seiten.js zeichne`): Texte als Elemente mit `setText`/`setStyle` (Position, Farbe, Schriftklasse), Linien/Balken/Rand-Boegen/Seitenpunkte auf dem `<canvas>` der Vorlage (`quelle/anzeige.js` packt, `quelle/vorlage.js` zeichnet). Grenzen: 24 Texte (je Schriftklasse 3), 16 Grafik-Befehle je Seite, Schrift in 8 Stufen statt frei |
+| Datenseiten aus dem Profil | klassisch [a,b,c] + freie Layouts je Zustand | ✅ beides, mit demselben Zeichner wie Huawei (`seiten.js zeichne`): Texte als Elemente mit `setText`/`setStyle` (Position, Farbe, Schriftklasse), Linien/Balken/Rand-Boegen/Seitenpunkte auf dem `<canvas>` der Vorlage (`quelle/anzeige.js` packt, `quelle/vorlage.js` zeichnet). Grenzen: 24 Texte (je Schriftklasse 3), 13 Grafik-Befehle je Seite (der Editor erlaubt nur 20 Ausgaben statt der 25 aus der Referenz; die Seiten brauchen bisher hoechstens 8), Schrift in 8 Stufen statt frei |
 | Seiten je Zustand (auf dem Foil / dazwischen / Pause), „alle Seiten" | ✅ | ✅ (`ring` aus seiten.js), Blaettern mit hoch/runter |
 | Lauf-Erkennung live, Vibration bei Start/Ende, Sprung auf Seite 1 | ✅ | ✅ (lauf.js, `playIndication`) |
 | Tempo-/Puls-Alarm, Strecken-/Zeitmarken | ✅ | ✅ aus dem Profil; Muster auf Suunto-Toene abgebildet |

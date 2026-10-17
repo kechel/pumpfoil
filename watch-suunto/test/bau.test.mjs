@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { WURZEL } from "./lade.mjs";
-import { dateien, manifest } from "../bau.mjs";
+import { dateien, manifest, GRAFIKEN } from "../bau.mjs";
 
 test("app/ ist aktuell", () => {
   for (const [n, inhalt] of Object.entries(dateien())) {
@@ -36,9 +36,11 @@ test("Vorlage d.html: Skript ist gueltiges ES5, Abos auf alle Grafik-Ausgaben, E
   const html = fs.readFileSync(path.join(WURZEL, "app/d.html"), "utf8");
   const onLoad = html.match(/onLoad="([^"]*)"/)[1];
   assert.doesNotThrow(() => new Function(onLoad + "\nreturn zeichneSeite;"));
-  for (let i = 0; i < 16; i++) assert.ok(html.includes(`Output/g${i}'`), "Abo g" + i);
+  for (let i = 0; i < GRAFIKEN; i++) assert.ok(html.includes(`Output/g${i}'`), "Abo g" + i);
   assert.ok(html.includes("Output/gv'"));
   assert.equal((html.match(/id="k\d_\d"/g) || []).length, 24);
   const m = manifest();
-  for (let i = 0; i < 16; i++) assert.ok(m.out.some((o) => o.name === "g" + i));
+  for (let i = 0; i < GRAFIKEN; i++) assert.ok(m.out.some((o) => o.name === "g" + i));
+  assert.ok(m.out.length <= 20, "Editor: hoechstens 20 Ausgaben, sind " + m.out.length);
+  assert.ok(fs.readFileSync(path.join(WURZEL, "quelle/vorlage.js"), "utf8").includes("gi < " + GRAFIKEN), "vorlage.js G-Laenge = ANZ_GRAFIKEN");
 });

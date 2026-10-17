@@ -3,7 +3,7 @@
 <uiView
   onLoad="
     var G = [];
-    for (var gi = 0; gi < 16; gi++) G.push(0);
+    for (var gi = 0; gi < 13; gi++) G.push(0);   // = ANZ_GRAFIKEN (quelle/anzeige.js, Test prueft)
     
     function hexFarbe(c12) {
       var h = '0123456789abcdef';
@@ -73,9 +73,6 @@
     A.push($.subscribe('Zapp/{zapp_index}/Output/g10', function(v) { G[10] = v || 0; }));
     A.push($.subscribe('Zapp/{zapp_index}/Output/g11', function(v) { G[11] = v || 0; }));
     A.push($.subscribe('Zapp/{zapp_index}/Output/g12', function(v) { G[12] = v || 0; }));
-    A.push($.subscribe('Zapp/{zapp_index}/Output/g13', function(v) { G[13] = v || 0; }));
-    A.push($.subscribe('Zapp/{zapp_index}/Output/g14', function(v) { G[14] = v || 0; }));
-    A.push($.subscribe('Zapp/{zapp_index}/Output/g15', function(v) { G[15] = v || 0; }));
     A.push($.subscribe('Zapp/{zapp_index}/Output/gv', function(v) { control('#cv', 'REFRESH'); }));
   "
   onDeactivate="

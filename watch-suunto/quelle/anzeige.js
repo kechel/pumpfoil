@@ -2,12 +2,12 @@
  * Datenseiten wie auf den anderen Uhren: dieselben Zeichenbefehle wie Huawei (seiten.js `zeichne`, in
  * Promille des Displays), auf die Mittel einer SuuntoPlus-Vorlage verteilt (Referenz „Native functions"):
  *   Text   -> ein Element aus einem Vorrat je Schriftklasse; setText + setStyle (left/top/color/visibility)
- *   Rechteck, Linie, Bogen, Seitenpunkte -> gepackt in die Ausgaben g0…g15 (je eine Zahl < 2^53); die
+ *   Rechteck, Linie, Bogen, Seitenpunkte -> gepackt in die Ausgaben g0…g12 (je eine Zahl < 2^53); die
  *          Vorlage abonniert sie ($.subscribe, Beispiel „DynamicIcons") und zeichnet sie auf ihr <canvas>
  *          (quelle/vorlage.js), neu aufgebaut, wenn sich `gv` aendert.
  * Gegenstueck beim Entpacken: quelle/vorlage.js — beide in Node gegeneinander geprueft (test/anzeige.test.mjs).
  */
-var ANZ_GRAFIKEN = 16;
+var ANZ_GRAFIKEN = 13;          // mehr Ausgaben erlaubt der Editor nicht (bau.mjs); Seiten brauchen bisher <= 8
 // Schriftklassen der Vorlage mit ihrer Hoehe als Anteil der Displaybreite (Referenz „CSS classes for text
 // UI version 2", grosses Display 466 px; die sp-*-Klassen passen sich an n/o/q an). Je 3 Elemente.
 var ANZ_KLASSEN = [["sp-d-xxl", 155], ["sp-d-xl", 118], ["sp-d-l", 103], ["sp-d-m", 78], ["sp-d-s", 65],
