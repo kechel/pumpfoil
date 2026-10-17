@@ -7,7 +7,8 @@ Plan, Protokoll und offene Hardware-Fragen: [`docs/SUUNTO.md`](../docs/SUUNTO.md
 | `quelle/uhr.js` | Ablauf, Datenseiten, Log-Kanaele, Firmware-Rueckrufe |
 | `quelle/pumpe.js` | Pump-Zaehler (Streaming-Fassung des Server-Zaehlers) |
 | `quelle/funk.js` | Funk zur Handy-App (Ringpuffer, Quittungen, Wiederverbinden) |
-| `vorlagen/d.html` | Datenseite (3 Felder, Belegung aus dem Profil) |
+| `quelle/anzeige.js` | Datenseiten: Zeichenbefehle von seiten.js -> Texte (setText/setStyle) + gepackte Grafik |
+| `quelle/vorlage.js` | Skript der Vorlage: entpackt die Grafik und zeichnet sie auf das canvas (bau.mjs erzeugt daraus `app/d.html`) |
 | `bau.mjs` | setzt `app/` zusammen, inkl. `watch-huawei/common/lauf.js` und Teilen von `seiten.js` |
 | `app/` | **erzeugt** — das, was der SuuntoPlus Editor oeffnet |
 | `test/` | Node-Tests: Pump-Zaehler gegen den Server, ganze Aufnahmen durch die echte `app/main.js` in einer nachgebauten Firmware (BLE mit Abbruechen) |
@@ -16,7 +17,7 @@ Plan, Protokoll und offene Hardware-Fragen: [`docs/SUUNTO.md`](../docs/SUUNTO.md
 
 ```sh
 cd watch-suunto
-node bau.mjs          # nach jeder Aenderung an quelle/, vorlagen/ oder watch-huawei/common/
+node bau.mjs          # nach jeder Aenderung an quelle/ oder watch-huawei/common/
 node --test test/*.test.mjs     # laeuft auch in der CI
 ```
 
