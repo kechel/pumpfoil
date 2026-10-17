@@ -21,7 +21,7 @@ FIT-Datei, keine Beschleunigung. Die App kommt **dazu**, sie ersetzt den Import 
 | Lebenszyklus | `onLoad` → `evaluate` jede Sekunde (auch VOR dem Start) → `onExerciseStart/Pause/Continue/End`, `getUserInterface`, `getSummaryOutputs` [DOK]. Die App laeuft nur waehrend einer Aktivitaet. |
 | Beschleunigung | Quelle `Fusion/Zapp/Accelerometer`, 50 Hz, x/y/z je 25 Werte alle ~0,5 s, `time` des ersten Werts [DOK]. Laut Forum kommt `onAccelerometer` auf echten Uhren NICHT, die Werte stehen stattdessen in `input` beim `evaluate` [FORUM, brechtvb]. Einheit nicht dokumentiert; der Simulator wuerfelt Werte um 6/7/8 (|a|≈12) und `time` in ms [SIM] → vermutlich m/s². **Die App nimmt beide Wege und erkennt die Einheit selbst** (Median von |a| im Stand ≈ 9,8 → m/s², ≈ 1 → g, ≈ 1000 → mg). |
 | Eingaenge | hoechstens 10 `in`-Quellen; eine nicht existierende Quelle laesst die App gar nicht laden [DOK] → nur dokumentierte Pfade. |
-| Ausgaenge | hoechstens 25 `out`; davon hoechstens **5 mit `log:true`**, einmal je Sekunde ins Workout geschrieben, in der Suunto-App als Kurve [DOK]. Dazu hoechstens 8 (praktisch 4–5) Werte in der Zusammenfassung [DOK]. |
+| Ausgaenge | hoechstens 25 `out` laut Referenz, der Editor erlaubt nur **20**; davon hoechstens **5 mit `log:true`**, einmal je Sekunde ins Workout geschrieben, in der Suunto-App als Kurve [DOK]. Dazu hoechstens 8 (praktisch 4–5) Werte in der Zusammenfassung [DOK]. |
 | Anzeige | HTML-Vorlagen mit `<eval>` (Formatierer `script`, `keyValue`), `setText`, eingeschraenktes `<canvas>` (Linien, Boegen, `fillText`), hoechstens 2 PNG [DOK]. Mehrere Seiten ueber `getUserInterface` + `unload("_cm")` [DOK]. |
 | Tasten | `<userInput><pushButton name="up|down" onClick="$.put('/Zapp/{zapp_index}/Event', n…)"/>` → `onEvent` [DOK]. **Nur `down` belegen** (blaettert im Kreis, wie Suuntos Beispiel MultiView): `up` ist Start/Pause/Stopp — mit `up` belegt liess sich die Aufnahme im Simulator nicht anhalten (17.10.). Vibration/Ton: `playIndication` [DOK]. |
 | Einstellungen | `data.json` + `settings` im Manifest, bearbeitet in der **Suunto-Handy-App** [DOK]. Dazu `localStorage` (Strings + Objekte) auf der Uhr [DOK]. |
@@ -262,3 +262,7 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
    ueberbrueckt ~80 s.
 5. Stehen die Log-Kanaele in der FIT-Datei der Cloud-API?
 6. Laeuft die App bei dunklem Display weiter (bei Suunto ueblich, da Teil der Aktivitaet)?
+7. Wie lange laeuft die App nach `onExerciseEnd` noch (Zusammenfassung)? Die App lebt nur innerhalb einer
+   Aufnahme: nach dem Ende wird sie entladen, ihr RAM-Ring ist weg. Was bis dahin nicht beim Handy ist,
+   fehlt — ausser `evaluate` laeuft in der Zusammenfassung weiter und der Funk schickt den Rest. Im Log
+   eines Testers nachsehen (Debug-Fassung: `pf: onExerciseEnd`, danach noch Ereignisse?).
