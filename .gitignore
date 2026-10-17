@@ -105,3 +105,7 @@ social-media/musik/*
 !social-media/musik/README.md
 social-media/scripts/shorts-ui/node_modules/
 social-media/scripts/shorts-ui/dist/
+
+# SuuntoPlus Editor: Build-Ausgabe (Store-Paket .dev) und Simulator-Reste, nicht ins Repo
+watch-suunto/app/build/
+watch-suunto/app-debug/build/
