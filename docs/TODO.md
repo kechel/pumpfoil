@@ -1487,7 +1487,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   kommen Beschleunigungswerte, welche Einheit, `onAccelerometer` oder `evaluate`? (2) BLE: wie viele
   Schreibvorgaenge/s dauerhaft (25 vs 50 Hz), Rueckstand im Status? (3) Nimmt die Firmware `type:"device"`
   mit sofortigem `con=1` ohne Geraet? (4) Ein echtes Workout: stehen die Log-Kanaele (pf_*) in der FIT der
-  Cloud-API? Dann Server-Import der Kanaele bauen (Weg 1). (5) Store-Einreichung ueber das Partnerprofil.
+  Cloud-API? Dann Server-Import der Kanaele bauen (Weg 1). (5) Store-Einreichung ueber das Partnerprofil (Jan, 17.10.: einreichen ohne Hardware-Test, Tester nach Freigabe ueber die Community): Editor „SuuntoPlus: Create Source Package" auf `watch-suunto/app/` (NICHT app-debug; auf der VM probeweise erzeugt, 6 Dateien, 34 KB). „Raw data to phone app" steht bis zur Store-Freigabe der Handy-Bruecke auf AUS (bau.mjs dataJson) — dann umdrehen.
   Abgleich mit den anderen Uhren: `docs/SUUNTO.md` (Tabelle). Freie Layouts + Zonenfarben werden gezeichnet
   wie auf den anderen Uhren (setStyle + canvas) — ob die Firmware `calc(…%e)` in setStyle annimmt, zeigt
   erst die Uhr. Nicht moeglich: Foil-Auswahl auf der Uhr, „Verwerfen" erkennen. Rohdaten nur mit Handy in
