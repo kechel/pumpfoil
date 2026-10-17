@@ -51,7 +51,7 @@ export class Uhr {
       readChar() {},
     };
     this.ctx = vm.createContext({
-      Math, Float32Array, Uint8Array, Int8Array, appConn, enabledZappId: 3, localStorage: ls,
+      Math, JSON, Float32Array, Uint8Array, Int8Array, appConn, enabledZappId: 3, localStorage: ls,
       setText: (id, txt) => { uhr.texte[id] = String(txt); },
       playIndication: (n) => uhr.vibration.push([uhr.jetztMs, n]),
       systemEvent: () => {},

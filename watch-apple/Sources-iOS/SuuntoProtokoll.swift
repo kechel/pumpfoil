@@ -365,3 +365,52 @@ final class SuuntoAblage {
         }
     }
 }
+
+/// Konfiguration fuer die Suunto-Uhr — wie SuuntoKonfig in Kotlin: nur Seiten, Foils, Alarme und Sprache,
+/// als ASCII-JSON in KONFIG-Paketen [0x83, nr, anzahl, bis zu 17 Bytes].
+enum SuuntoKonfig {
+    static let schluessel = ["views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
+        "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
+        "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
+        "alarmPatternTime"]
+    static let spalte: [String: Int] = ["de": 0, "gsw": 1, "de-AT": 2, "en": 3, "fr": 4, "it": 5, "es": 6,
+        "pt": 7, "pt-PT": 7, "id": 8, "ru": 9, "nl": 10, "fi": 11, "cs": 12, "ja": 13, "zh": 14]
+
+    static func fuerUhr(_ config: [String: Any], appSprache: String?) -> String {
+        var o: [String: Any] = [:]
+        for s in schluessel { if let v = config[s] { o[s] = v } }
+        if let fs = config["foils"] as? [[String: Any]] {
+            o["foils"] = fs.map { f -> [String: Any] in
+                ["id": f["id"] ?? NSNull(), "label": String(((f["label"] as? String) ?? "").prefix(24)),
+                 "min": f["min"] ?? NSNull(), "max": f["max"] ?? NSNull()]
+            }
+        }
+        var lang = (config["language"] as? String) ?? ""
+        if lang.isEmpty { lang = appSprache ?? "" }
+        if let s = spalte[lang] { o["spr"] = s }
+        let d = (try? JSONSerialization.data(withJSONObject: o)) ?? Data("{}".utf8)
+        return ascii(String(decoding: d, as: UTF8.self))
+    }
+
+    static func ascii(_ s: String) -> String {
+        var b = ""
+        for u in s.utf16 {
+            if u < 128 { b.append(Character(UnicodeScalar(u)!)) } else { b += String(format: "\\u%04x", u) }
+        }
+        return b
+    }
+
+    static func pakete(_ text: String) -> [[UInt8]] {
+        let bytes = Array(text.utf8)
+        let n = (bytes.count + 16) / 17
+        guard n >= 1 && n <= 255 else { return [] }
+        var aus: [[UInt8]] = []
+        for i in 0..<n {
+            var p: [UInt8] = [0x83, UInt8(i), UInt8(n)]
+            let bis = min(bytes.count, (i + 1) * 17)
+            p.append(contentsOf: bytes[(i * 17)..<bis])
+            aus.append(p)
+        }
+        return aus
+    }
+}

@@ -148,6 +148,15 @@ object SuuntoBruecke {
         } catch (e: Exception) { Log.e(TAG, "mint", e); null }
     }
 
+    /** Konfiguration der Uhr (Seiten, Alarme, Sprache) vom Server, gekuerzt und in KONFIG-Paketen. */
+    internal suspend fun konfigPakete(app: Context, uhrId: Long, label: String, appVer: Int): List<ByteArray>? {
+        val t = token(app, uhrId, label) ?: return null
+        return try {
+            val cfg = Ingest.get("/api/devices/config?p=suunto&v=" + "%d.%02d".format(appVer / 100, appVer % 100), t)
+            SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, I18n.lang))
+        } catch (e: Exception) { Log.w(TAG, "konfig", e); null }
+    }
+
     /** Erster GPS-Fix der Uhr im Startzustand -> „gerade am Pumpen" (wie alle Uhren, POST /devices/position). */
     internal fun position(app: Context, uhrId: Long, lat: Double, lon: Double) {
         scope.launch {
@@ -227,6 +236,10 @@ class SuuntoDienst : Service() {
     private lateinit var ablage: SuuntoAblage
     private var letzteQuittung = 0L
     private var offeneQuittung: ByteArray? = null
+    // Notify nacheinander: Android verlangt onNotificationSent vor dem naechsten Paket.
+    private val warteschlange = ArrayDeque<ByteArray>()
+    private var sendetNotify = false
+    private var konfigFuer = -1L          // Uhr, die in dieser Verbindung die Konfiguration bekommen hat
     private var schleife: Job? = null
 
     override fun onBind(i: Intent?): IBinder? = null
@@ -306,7 +319,10 @@ class SuuntoDienst : Service() {
         override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
             takt.execute {
                 if (newState == BluetoothProfile.STATE_CONNECTED) { geraet = device; SuuntoBruecke.meldeVerbindung(true) }
-                else if (device == geraet) { geraet = null; notifyAn = false; SuuntoBruecke.meldeVerbindung(false) }
+                else if (device == geraet) {
+                    geraet = null; notifyAn = false; SuuntoBruecke.meldeVerbindung(false)
+                    warteschlange.clear(); sendetNotify = false; konfigFuer = -1L
+                }
             }
         }
 
@@ -331,6 +347,10 @@ class SuuntoDienst : Service() {
             }
         }
 
+        override fun onNotificationSent(device: BluetoothDevice, status: Int) {
+            takt.execute { sendetNotify = false; notifyWeiter() }
+        }
+
         @SuppressLint("MissingPermission")
         override fun onCharacteristicReadRequest(device: BluetoothDevice, requestId: Int, offset: Int, c: BluetoothGattCharacteristic) {
             server?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, offeneQuittung ?: ByteArray(0))
@@ -342,7 +362,17 @@ class SuuntoDienst : Service() {
         val a = try { ablage.paket(p) } catch (e: Exception) { Log.e("SuuntoDienst", "paket", e); return }
         if ((p[0].toInt() and 15) == 1) {
             val h = SuuntoEmpfang().also { it.paket(p) }.hallo
-            if (h != null) SuuntoBruecke.meldeUhr(SuuntoAblage.modell(h.display).substringBefore(" ·"))
+            if (h != null) {
+                SuuntoBruecke.meldeUhr(SuuntoAblage.modell(h.display).substringBefore(" ·"))
+                if (konfigFuer != h.uhrId) {
+                    konfigFuer = h.uhrId
+                    SuuntoBruecke.scope.launch {
+                        val k = SuuntoBruecke.konfigPakete(this@SuuntoDienst, h.uhrId, SuuntoAblage.modell(h.display), h.appVer)
+                        if (k == null) takt.execute { konfigFuer = -1L }   // naechstes HALLO versucht es erneut
+                        else takt.execute { warteschlange.addAll(k); notifyWeiter() }
+                    }
+                }
+            }
         }
         a.position?.let { SuuntoBruecke.position(this, a.uhrId, it.first, it.second) }
         if (a.quittung != null) offeneQuittung = a.quittung
@@ -351,19 +381,30 @@ class SuuntoDienst : Service() {
         quittungSenden(false)
     }
 
-    /** Quittung hoechstens alle 250 ms (oder sofort, wenn `jetzt`). */
-    @SuppressLint("MissingPermission")
+    /** Quittung hoechstens alle 250 ms (oder sofort, wenn `jetzt`) — als juengste in der Warteschlange. */
     private fun quittungSenden(jetzt: Boolean) {
         val q = offeneQuittung ?: return
-        val d = geraet ?: return
-        val n = notify ?: return
-        if (!notifyAn) return
+        if (geraet == null || !notifyAn) return
         val t = System.currentTimeMillis()
         if (!jetzt && t - letzteQuittung < 250) return
         letzteQuittung = t
+        warteschlange.removeAll { it.isNotEmpty() && it[0] == 0x81.toByte() }   // nur die neueste zaehlt
+        warteschlange.addFirst(q)
+        notifyWeiter()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun notifyWeiter() {
+        if (sendetNotify) return
+        val d = geraet ?: return
+        val n = notify ?: return
         val s = server ?: return
-        if (Build.VERSION.SDK_INT >= 33) s.notifyCharacteristicChanged(d, n, false, q)
-        else { @Suppress("DEPRECATION") n.value = q; @Suppress("DEPRECATION") s.notifyCharacteristicChanged(d, n, false) }
+        if (!notifyAn) return
+        val p = warteschlange.removeFirstOrNull() ?: return
+        sendetNotify = true
+        val ok = if (Build.VERSION.SDK_INT >= 33) s.notifyCharacteristicChanged(d, n, false, p) == BluetoothGatt.GATT_SUCCESS
+        else { @Suppress("DEPRECATION") n.value = p; @Suppress("DEPRECATION") s.notifyCharacteristicChanged(d, n, false) }
+        if (!ok) { sendetNotify = false; if (p[0] != 0x81.toByte()) warteschlange.addFirst(p) }
     }
 
     private fun benachrichtigung(): Notification {

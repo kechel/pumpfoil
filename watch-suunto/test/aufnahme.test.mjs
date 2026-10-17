@@ -228,3 +228,29 @@ test("Pump-Marker im Workout-Log: jeder Pump einmal, mit Zeitpunkt", () => {
   console.log(`Pump-Marker: ${nrs.length} im Log, ${treffer}/${gesamt} Server-Pumps innerhalb 0,25 s`);
   assert.ok(treffer / gesamt > 0.8, `${treffer}/${gesamt}`);
 });
+
+test("Konfiguration vom Handy: Seiten, Alarm und Sprache gelten sofort und bleiben gespeichert", () => {
+  const uhr = new Uhr({ einstellungen: { handy: "true" } });
+  uhr.ruf("onLoad");
+  let t = 0;
+  for (let i = 0; i < 4; i++) { uhr.bis(t += 1000); uhr.ruf("evaluate", { utc: 1, lt: 0 }); }
+  const k = JSON.stringify({ views: [[20, 1, 2]], offFoilView: [12, 17, 16], alarmEnabled: true, speedHigh: 25, spr: 0 });
+  const teile = [];
+  for (let i = 0; i < k.length; i += 17) teile.push(k.slice(i, i + 17));
+  // in falscher Reihenfolge und mit einer Wiederholung
+  const reihe = teile.map((s, i) => [i, s]).reverse();
+  reihe.push(reihe[0]);
+  for (const [i, s] of reihe) uhr.handler(0, 106, [0x83, i, teile.length, ...Buffer.from(s, "ascii")]);
+  uhr.bis(t += 1000); uhr.ruf("evaluate", { utc: 1, lt: 0 });
+  assert.deepEqual(JSON.parse(JSON.stringify(uhr.ctx.kf.views)), [[20, 1, 2]]);
+  assert.equal(uhr.ctx.aw.alarm, true);
+  assert.equal(uhr.ctx.sprache, 0);
+  assert.equal(uhr.ctx.t("f.runs"), "Läufe");
+  assert.ok(uhr.speicher.get("konfig"), "gespeichert");
+  // neuer App-Start ohne Handy: gespeicherte Konfiguration gilt
+  const zwei = new Uhr({ einstellungen: { handy: "false" } });
+  zwei.speicher.set("konfig", uhr.speicher.get("konfig"));
+  zwei.ruf("onLoad");
+  assert.deepEqual(JSON.parse(JSON.stringify(zwei.ctx.kf.views)), [[20, 1, 2]]);
+  assert.equal(zwei.ctx.sprache, 0);
+});
