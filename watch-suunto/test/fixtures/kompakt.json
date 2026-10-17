@@ -1,0 +1,368 @@
+[
+ {
+  "name": "Standard-Layouts, sonst nichts eingestellt",
+  "std": 2159656918,
+  "cfg": {
+   "views": [
+    [
+     1,
+     2,
+     0
+    ]
+   ],
+   "browseAll": true,
+   "layoutsOn": true,
+   "pages": [
+    [
+     1,
+     0,
+     []
+    ]
+   ],
+   "offFoilPages": [
+    [
+     1,
+     0,
+     []
+    ]
+   ],
+   "pausePages": [
+    [
+     1,
+     0,
+     []
+    ]
+   ],
+   "standardSeiten": [
+    "pages",
+    "offFoilPages",
+    "pausePages"
+   ],
+   "standardHash": 2159656918,
+   "language": "de",
+   "hrZones": [
+    95,
+    114,
+    133,
+    152,
+    171,
+    190
+   ]
+  },
+  "uhr": {
+   "pages": "std",
+   "offFoilPages": "std",
+   "pausePages": "std",
+   "spr": 0
+  },
+  "kompakt": "{\"P\":\"s\",\"F\":\"s\",\"Q\":\"s\",\"s\":0}"
+ },
+ {
+  "name": "eigenes Layout mit Freitext, Pause Standard",
+  "std": 2159656918,
+  "cfg": {
+   "pages": [
+    [
+     1,
+     4,
+     [
+      [
+       1,
+       500,
+       300,
+       7,
+       0,
+       4,
+       1
+      ],
+      [
+       2,
+       500,
+       420,
+       1,
+       0,
+       0,
+       1
+      ],
+      [
+       4,
+       150,
+       500,
+       2,
+       3,
+       0,
+       850,
+       500
+      ],
+      [
+       8,
+       750,
+       500,
+       2,
+       0,
+       1,
+       1
+      ],
+      [
+       9,
+       500,
+       560,
+       2,
+       9,
+       0,
+       2,
+       600
+      ],
+      [
+       3,
+       500,
+       80,
+       1,
+       12,
+       0,
+       "GO, GO; GO"
+      ],
+      [
+       6,
+       500,
+       920,
+       1,
+       0,
+       0
+      ]
+     ]
+    ],
+    [
+     0,
+     1,
+     20,
+     14
+    ]
+   ],
+   "offFoilPages": [
+    [
+     0,
+     12,
+     17,
+     16
+    ]
+   ],
+   "pausePages": [
+    [
+     1,
+     0,
+     []
+    ]
+   ],
+   "standardSeiten": [
+    "pausePages"
+   ],
+   "standardHash": 2159656918,
+   "colorByValue": true,
+   "speedZones": [
+    6,
+    10,
+    14,
+    18,
+    22,
+    26
+   ],
+   "language": "en"
+  },
+  "uhr": {
+   "pages": [
+    [
+     1,
+     4,
+     [
+      [
+       1,
+       500,
+       300,
+       7,
+       0,
+       4,
+       1
+      ],
+      [
+       2,
+       500,
+       420,
+       1,
+       0,
+       0,
+       1
+      ],
+      [
+       4,
+       150,
+       500,
+       2,
+       3,
+       0,
+       850,
+       500
+      ],
+      [
+       8,
+       750,
+       500,
+       2,
+       0,
+       1,
+       1
+      ],
+      [
+       9,
+       500,
+       560,
+       2,
+       9,
+       0,
+       2,
+       600
+      ],
+      [
+       3,
+       500,
+       80,
+       1,
+       12,
+       0,
+       "GO  GO  GO"
+      ],
+      [
+       6,
+       500,
+       920,
+       1,
+       0,
+       0
+      ]
+     ]
+    ],
+    [
+     0,
+     1,
+     20,
+     14
+    ]
+   ],
+   "offFoilPages": [
+    [
+     0,
+     12,
+     17,
+     16
+    ]
+   ],
+   "pausePages": "std",
+   "colorByValue": true,
+   "speedZones": [
+    6,
+    10,
+    14,
+    18,
+    22,
+    26
+   ],
+   "spr": 3
+  },
+  "kompakt": "{\"cv\":true,\"sz\":[6,10,14,18,22,26],\"P\":[\"1,4;1,dw,8c,7,0,4,1;2,dw,bo,1,0,0,1;4,46,dw,2,3,0,nm,dw;8,ku,dw,2,0,1,1;9,dw,fk,2,9,0,2,go;3,dw,28,1,c,0,~GO  GO  GO;6,dw,pk,1,0,0\",\"0,1,k,e\"],\"F\":[\"0,c,h,g\"],\"Q\":\"s\",\"s\":3}"
+ },
+ {
+  "name": "klassisch mit Alarm und Foils (nur das erste geht mit)",
+  "std": 2159656918,
+  "cfg": {
+   "views": [
+    [
+     1,
+     20,
+     14
+    ],
+    [
+     2,
+     3,
+     4
+    ]
+   ],
+   "alarmEnabled": true,
+   "speedHigh": 24,
+   "alarmRepeat": "continuous",
+   "alarmRepeatS": 8,
+   "foils": [
+    {
+     "id": 7,
+     "label": "Gong Größe M",
+     "min": 10,
+     "max": 22,
+     "area": 1200
+    },
+    {
+     "id": 8,
+     "label": "B",
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "latestVersion": "1.02"
+  },
+  "uhr": {
+   "views": [
+    [
+     1,
+     20,
+     14
+    ],
+    [
+     2,
+     3,
+     4
+    ]
+   ],
+   "alarmEnabled": true,
+   "speedHigh": 24,
+   "alarmRepeat": "continuous",
+   "alarmRepeatS": 8,
+   "foils": [
+    {
+     "id": 7,
+     "label": "Gong Größe M",
+     "min": 10,
+     "max": 22
+    }
+   ],
+   "latestVersion": "1.02"
+  },
+  "kompakt": "{\"v\":[[1,20,14],[2,3,4]],\"f\":[{\"i\":7,\"l\":\"Gong Gr\\u00f6\\u00dfe M\",\"a\":10,\"b\":22}],\"ae\":true,\"sh\":24,\"ar\":\"continuous\",\"as\":8,\"lv\":\"1.02\"}"
+ },
+ {
+  "name": "Uhr mit anderen Standard-Layouts: Seiten vollstaendig",
+  "std": 1,
+  "cfg": {
+   "pages": [
+    [
+     0,
+     1,
+     2,
+     3
+    ]
+   ],
+   "standardSeiten": [
+    "pages"
+   ],
+   "standardHash": 2159656918
+  },
+  "uhr": {
+   "pages": [
+    [
+     0,
+     1,
+     2,
+     3
+    ]
+   ]
+  },
+  "kompakt": "{\"P\":[\"0,1,2,3\"]}"
+ }
+]

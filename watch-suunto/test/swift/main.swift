@@ -51,34 +51,9 @@ for (name, inhalt) in fix {
 try? FileManager.default.removeItem(at: dir)
 print("OK: \(bl.count) Bloecke, \(gp.count) GPS, \(er.count) Ereignisse, \(n) Dateien wie Android")
 
-// 3) Konfiguration: nur was die Uhr nutzt, ASCII, in Teilen <= 20 Bytes
-let cfg: [String: Any] = ["views": [[1, 20, 14]], "pages": [[1, 0, []]], "alarmEnabled": true, "language": "de",
-                          "foils": [["id": 7, "label": "Gong Größe M", "min": 10, "max": 22, "area": 1200]]]
-let kt = SuuntoKonfig.fuerUhr(cfg, appSprache: nil)
-let ko = try! JSONSerialization.jsonObject(with: kt.data(using: .utf8)!) as! [String: Any]
-if ko["pages"] == nil || (ko["spr"] as? Int) != 0 { fail("Konfig Schluessel") }
-if ((ko["foils"] as! [[String: Any]])[0]["label"] as! String) != "Gong Größe M" { fail("Konfig Umlaut") }
-if kt.utf8.contains(where: { $0 >= 128 }) { fail("Konfig nicht ASCII") }
+// 3) Konfiguration: Server-Text in Teilen <= 20 Bytes, wieder zusammensetzbar
+let kt = String(repeating: "{\"P\":[\"1,4;1,dw,8c,7,0,4,1\"],\"F\":\"s\",\"sh\":24}", count: 5)
 let kp = SuuntoKonfig.pakete(kt)
 if kp.contains(where: { $0.count > 20 || $0[0] != 0x83 || (Int($0[3]) | Int($0[4]) << 8) != kp.count }) { fail("Konfig Pakete") }
 if String(decoding: kp.flatMap { $0.dropFirst(5) }, as: UTF8.self) != kt { fail("Konfig zusammensetzen") }
 print("OK: Konfiguration \(kt.utf8.count) Bytes in \(kp.count) Paketen")
-
-// 4) freies Layout -> Werte in Lese-Reihenfolge (wie Kotlin-Test)
-let seite: [Any] = [1, 0, [[1, 700, 120, 5, 0, 0, 20], [1, 300, 125, 5, 0, 0, 1], [2, 300, 200, 2, 0, 0, 1],
-                          [4, 0, 300, 1, 0, 1000, 300], [1, 500, 500, 7, 0, 0, 14], [1, 500, 800, 3, 0, 0, 12],
-                          [1, 500, 820, 3, 0, 0, 1]]]
-if SuuntoKonfig.seiteKurz(seite) != [2, 1, 20, 14, 12] { fail("Layout kurz: \(String(describing: SuuntoKonfig.seiteKurz(seite)))") }
-print("OK: freies Layout -> [2, 1, 20, 14, 12]")
-
-// 5) Standard-Layouts als std, Standardwerte weg (wie Kotlin-Test)
-let lay: [Any] = [[1, 0, [[1, 500, 300, 7, 0, 0, 1]]]]
-let cfg5: [String: Any] = ["pages": lay, "offFoilPages": lay, "pausePages": lay,
-                           "standardSeiten": ["pages", "offFoilPages"], "standardHash": NSNumber(value: Int64(2159656918)),
-                           "browseAll": true, "alarmRepeatS": 5, "speedHigh": 25, "hrZones": [95, 114, 133, 152, 171, 190]]
-let o5 = try! JSONSerialization.jsonObject(with: SuuntoKonfig.fuerUhr(cfg5, appSprache: "en", uhrStdHash: 2159656918).data(using: .utf8)!) as! [String: Any]
-if (o5["pages"] as? String) != "std" || (o5["offFoilPages"] as? String) != "std" || (o5["pausePages"] as? [Any])?.count != 1 { fail("std") }
-if o5["browseAll"] != nil || o5["alarmRepeatS"] != nil || o5["hrZones"] != nil || (o5["speedHigh"] as? Int) != 25 { fail("Standardwerte") }
-let o6 = try! JSONSerialization.jsonObject(with: SuuntoKonfig.fuerUhr(cfg5, appSprache: "en", uhrStdHash: 1).data(using: .utf8)!) as! [String: Any]
-if (o6["pages"] as? [Any])?.count != 1 { fail("andere Pruefsumme") }
-print("OK: Standard-Layouts als std, Standardwerte weggelassen")

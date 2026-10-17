@@ -366,84 +366,9 @@ final class SuuntoAblage {
     }
 }
 
-/// Konfiguration fuer die Suunto-Uhr — wie SuuntoKonfig in Kotlin: nur Seiten, Foils, Alarme und Sprache,
-/// als ASCII-JSON in KONFIG-Paketen [0x83, nr u16, anzahl u16, bis zu 15 Bytes].
+/// Konfiguration fuer die Suunto-Uhr: kommt schon klein vom Server (`/api/devices/config-kompakt`); das
+/// iPhone teilt den ASCII-Text nur in KONFIG-Pakete [0x83, nr u16, anzahl u16, bis zu 15 Bytes].
 enum SuuntoKonfig {
-    static let schluessel = ["views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
-        "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
-        "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime", "layoutsOn", "latestVersion", "colorByValue", "hrZones", "speedZones"]
-    static let seiten = ["pages", "offFoilPages", "pausePages"]
-
-    /// Freies Layout -> [2, f1..f6] (Wert-Elemente in Lese-Reihenfolge), klassisch bleibt — wie Kotlin.
-    static func seiteKurz(_ seite: [Any]) -> [Int]? {
-        guard let art = seite.first as? Int else { return nil }
-        if art == 0 { return seite.compactMap { $0 as? Int } }
-        guard art == 1, seite.count > 2, let els = seite[2] as? [[Any]] else { return nil }
-        var werte: [(Int, Int, Int)] = []
-        for e in els where e.count > 6 {
-            if (e[0] as? Int) == 1, let fid = e[6] as? Int, fid > 0 {
-                werte.append(((e[2] as? Int) ?? 0, (e[1] as? Int) ?? 0, fid))
-            }
-        }
-        werte.sort { ($0.0 / 60, $0.1) < ($1.0 / 60, $1.1) }
-        var fids: [Int] = []
-        for w in werte where !fids.contains(w.2) && fids.count < 6 { fids.append(w.2) }
-        return fids.isEmpty ? nil : [2] + fids
-    }
-    static let spalte: [String: Int] = ["de": 0, "gsw": 1, "de-AT": 2, "en": 3, "fr": 4, "it": 5, "es": 6,
-        "pt": 7, "pt-PT": 7, "id": 8, "ru": 9, "nl": 10, "fi": 11, "cs": 12, "ja": 13, "zh": 14]
-
-    /// Werte, die die Uhr ohnehin annimmt (lauf.js Konfig) — weggelassen, ihr Speicher ist ~2 KB klein.
-    static let standard: [String: String] = ["views": "[[1,2,0]]", "offFoilView": "[12,17,16]", "pauseView": "[12,20,2]",
-        "browseAll": "true", "layoutsOn": "true", "colorByValue": "false", "alarmEnabled": "false",
-        "alarmDefault": "\"foil\"", "speedLow": "0", "speedHigh": "0", "hrHigh": "0", "alarmPatternHigh": "\"short2\"",
-        "alarmPatternLow": "\"long2\"", "alarmPatternHr": "\"short1\"", "alarmRepeat": "\"once\"", "alarmRepeatS": "5",
-        "runDistM": "0", "runDistMode": "\"once\"", "alarmPatternDist": "\"short1\"", "runTimeS": "0",
-        "runTimeMode": "\"once\"", "alarmPatternTime": "\"short2\"", "latestVersion": "\"\"",
-        "hrZones": "[95,114,133,152,171,190]", "speedZones": "[8,12,16,20,24,28]", "foils": "[]"]
-
-    /// JSON-Text eines Werts zum Vergleich mit `standard` (JSONSerialization schreibt Bool als true/false).
-    static func jsonText(_ v: Any) -> String {
-        if let s = v as? String { return "\"" + s + "\"" }
-        if let d = try? JSONSerialization.data(withJSONObject: [v]), let t = String(data: d, encoding: .utf8) {
-            return String(t.dropFirst().dropLast())
-        }
-        return ""
-    }
-
-    static func fuerUhr(_ config: [String: Any], appSprache: String?, uhrStdHash: Int64 = 0) -> String {
-        var o: [String: Any] = [:]
-        for s in schluessel { if let v = config[s], standard[s] != jsonText(v) { o[s] = v } }
-        var std = Set<String>()
-        if uhrStdHash != 0, (config["standardHash"] as? NSNumber)?.int64Value == uhrStdHash {
-            std = Set((config["standardSeiten"] as? [String]) ?? [])
-        }
-        // Seiten vollstaendig (die Uhr zeichnet freie Layouts selbst) oder „std" fuer die mitgebrachten
-        for s in seiten {
-            if std.contains(s) { o[s] = "std" } else if let a = config[s] as? [Any], !a.isEmpty { o[s] = a }
-        }
-        if let fs = config["foils"] as? [[String: Any]] {
-            o["foils"] = fs.isEmpty ? nil : fs.map { f -> [String: Any] in
-                ["id": f["id"] ?? NSNull(), "label": String(((f["label"] as? String) ?? "").prefix(24)),
-                 "min": f["min"] ?? NSNull(), "max": f["max"] ?? NSNull()]
-            }
-        }
-        var lang = (config["language"] as? String) ?? ""
-        if lang.isEmpty { lang = appSprache ?? "" }
-        if let s = spalte[lang] { o["spr"] = s }
-        let d = (try? JSONSerialization.data(withJSONObject: o)) ?? Data("{}".utf8)
-        return ascii(String(decoding: d, as: UTF8.self))
-    }
-
-    static func ascii(_ s: String) -> String {
-        var b = ""
-        for u in s.utf16 {
-            if u < 128 { b.append(Character(UnicodeScalar(u)!)) } else { b += String(format: "\\u%04x", u) }
-        }
-        return b
-    }
-
     static func pakete(_ text: String) -> [[UInt8]] {
         let bytes = Array(text.utf8)
         let n = (bytes.count + 14) / 15

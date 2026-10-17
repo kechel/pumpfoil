@@ -152,8 +152,9 @@ object SuuntoBruecke {
     internal suspend fun konfigPakete(app: Context, uhrId: Long, label: String, appVer: Int, stdHash: Long): List<ByteArray>? {
         val t = token(app, uhrId, label) ?: return null
         return try {
-            val cfg = Ingest.get("/api/devices/config?p=suunto&v=" + "%d.%02d".format(appVer / 100, appVer % 100), t)
-            SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, I18n.lang, stdHash))
+            val text = Ingest.get("/api/devices/config-kompakt?p=suunto&std=$stdHash&v=" +
+                "%d.%02d".format(appVer / 100, appVer % 100), t)
+            SuuntoKonfig.pakete(text.trim())
         } catch (e: Exception) { Log.w(TAG, "konfig", e); null }
     }
 

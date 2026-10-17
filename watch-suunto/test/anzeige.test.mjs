@@ -8,6 +8,7 @@ import path from "node:path";
 import vm from "node:vm";
 import { Uhr } from "./firmware.mjs";
 import { WURZEL } from "./lade.mjs";
+import { kompaktVon } from "./kompakt-hilfe.mjs";
 
 function vorlage() {
   const ctx = vm.createContext({ Math });
@@ -31,7 +32,7 @@ const LAYOUT = [1, 4, [
 
 function aufnahme(konfig) {
   const uhr = new Uhr({ einstellungen: { handy: "false" } });
-  uhr.speicher.set("konfig", konfig);
+  uhr.speicher.set("k", kompaktVon(konfig));
   uhr.ruf("onLoad"); uhr.ruf("getUserInterface"); uhr.ruf("onExerciseStart", { utc: 1 });
   for (let s = 1; s <= 12; s++) uhr.ruf("evaluate", { tmr: s * 1000, sp: s > 3 ? 4.5 : 0.5, hr: 2.5, utc: s, lt: 36000 + s,
     pos: { latitude: 470000000 + s * 400, longitude: 90000000 } });

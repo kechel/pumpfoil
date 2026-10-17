@@ -170,7 +170,17 @@ demselben Kadenz-Verfahren; der Vergleich zeigt, dass die Uhr den Server trifft,
 zuletzt benutzte Geraet), was das Handy schicken wuerde:
 - ungekuerzt mit freien Layouts: median 2.283 B (303 von 325 Nutzern haben exakt die **Standard-Layouts**
   des Servers, 1.647 B), nur klassisch: median 629 B.
-- **Darum:** die Standard-Layouts bringt die App fest mit (`app/ext2.js` im Flash, aus
+- **Kompaktes Format** (`GET /api/devices/config-kompakt?p=suunto&std=<Pruefsumme>`,
+  `server/app/kompakt_config.py`): kurze Codes, ohne Standardwerte, Seiten als Text mit Zahlen zur Basis 36,
+  nur das Standard-Foil. Das Handy leitet den Text nur weiter; die Uhr liest ihn (`quelle/kompakt.js`) und
+  speichert ihn so, wie er kam. Gemessen: median 133 B, p99 805 B. Andere Uhren koennen den Endpunkt
+  genauso nutzen.
+- **Speicher-Budget auf der Uhr:** eine Abfrage des belegten Platzes gibt es nicht (nur set/getItem,
+  set/getObject). Die App zaehlt ihre eigenen Schluessel (`speicherBelegt`) und speichert die Konfiguration
+  nur, wenn sie in 2.000 − 200 Bytes passt — sonst gekuerzt: Pausen-Seiten, Zwischen-Seiten, Foils, freie
+  Layouts -> klassisch, zuletzt ohne Seiten. Scheitert `setItem`, stuerzt nichts ab; die volle
+  Konfiguration gilt bis zum Neustart der App.
+- **Dazu:** die Standard-Layouts bringt die App fest mit (`app/ext2.js` im Flash, aus
   `server/app/data/standard_layouts.json`, Pruefsumme im HALLO wie `standard_layouts.pruefsumme()`); der
   Server sagt fuer `p=suunto`, welche Saetze Standard sind (`standardSeiten`, `standardHash`), das Handy
   schickt dafuer nur `"std"` — bei anderer Pruefsumme (Standard spaeter geaendert) alles vollstaendig.
