@@ -595,7 +595,11 @@ var kompaktSpeichern = function (text) {
 /*
  * Datenseiten wie auf den anderen Uhren: dieselben Zeichenbefehle wie Huawei (seiten.js `zeichne`, in
  * Promille des Displays), auf die Mittel einer SuuntoPlus-Vorlage verteilt (Referenz „Native functions"):
- *   Text   -> ein Element aus einem Vorrat je Schriftklasse; setText + setStyle (left/top/color/visibility)
+ *   Text   -> ein Element aus einem Vorrat je Schriftklasse UND Ausrichtung (l/c/r); setText + setStyle
+ *          (left/top/color/visibility). Die Elemente sind 100 % breit und fest ausgerichtet (text-align in
+ *          der Vorlage), left/top in reinen Prozent — KEIN calc(… %e): der Simulator setzt setStyle als
+ *          Browser-CSS und verwirft %e (17.10., Texte klebten oben links), Suuntos eigene Vorlagen setzen
+ *          per setStyle auch nur einfache Werte ('13%', '-50px').
  *   Rechteck, Linie, Bogen, Seitenpunkte -> gepackt in die Ausgaben g0…g12 (je eine Zahl < 2^53); die
  *          Vorlage abonniert sie ($.subscribe, Beispiel „DynamicIcons") und zeichnet sie auf ihr <canvas>
  *          (quelle/vorlage.js), neu aufgebaut, wenn sich `gv` aendert.
@@ -606,7 +610,8 @@ var ANZ_GRAFIKEN = 13;          // mehr Ausgaben erlaubt der Editor nicht (bau.m
 // UI version 2", grosses Display 466 px; die sp-*-Klassen passen sich an n/o/q an). Je 3 Elemente.
 var ANZ_KLASSEN = [["sp-d-xxl", 155], ["sp-d-xl", 118], ["sp-d-l", 103], ["sp-d-m", 78], ["sp-d-s", 65],
   ["sp-d-xs", 46], ["sp-t-m", 33], ["sp-t-s", 27]];
-var ANZ_JE_KLASSE = 3;
+var ANZ_AUSR = ["c", "l", "r"];
+var ANZ_JE = { c: 3, l: 2, r: 2 };   // Elemente je Schriftklasse und Ausrichtung (bau.mjs baut sie in die Vorlage)
 
 /** Schriftklasse fuer eine Textgroesse s (Promille der Displaybreite, aus seiten.js groesse()). */
 var anzKlasse = function (s) {
@@ -663,26 +668,31 @@ var punkte = function (out, ax, ay, fl, c, col, bg) {
 var Anzeige = function () { this.el = {}; this.gv = 0; this.g = []; };
 
 Anzeige.prototype.zeigen = function (befehle, output) {
-  var graf = [], frei = [], i, k, id, e, b;
-  for (k = 0; k < ANZ_KLASSEN.length; k++) frei.push(0);
+  var graf = [], frei = {}, i, k, id, b, a, ai;
+  for (ai = 0; ai < ANZ_AUSR.length; ai++) { frei[ANZ_AUSR[ai]] = []; for (k = 0; k < ANZ_KLASSEN.length; k++) frei[ANZ_AUSR[ai]].push(0); }
   var benutzt = {};
   for (i = 0; i < befehle.length; i++) {
     b = befehle[i];
     if (b.k !== "t") { if (graf.length < ANZ_GRAFIKEN) graf.push(anzPacke(b)); continue; }
     if (!b.txt) continue;
+    a = b.a === "l" || b.a === "r" ? b.a : "c";
     k = anzKlasse(b.s);
-    // Klasse voll -> naechstkleinere mit freiem Platz
-    while (k < ANZ_KLASSEN.length && frei[k] >= ANZ_JE_KLASSE) k++;
+    // Klasse voll -> naechstkleinere mit freiem Platz; ganz voll -> mittig (falsch ausgerichtet statt weg)
+    while (k < ANZ_KLASSEN.length && frei[a][k] >= ANZ_JE[a]) k++;
+    if (k >= ANZ_KLASSEN.length && a !== "c") { a = "c"; k = anzKlasse(b.s); while (k < ANZ_KLASSEN.length && frei.c[k] >= ANZ_JE.c) k++; }
     if (k >= ANZ_KLASSEN.length) continue;
-    id = "#k" + k + "_" + frei[k]++;
+    id = "#k" + k + a + "_" + frei[a][k]++;
     benutzt[id] = 1;
-    this.text(id, b);
+    this.text(id, b, k, a);
   }
   // uebrige Elemente verstecken
-  for (k = 0; k < ANZ_KLASSEN.length; k++) {
-    for (i = 0; i < ANZ_JE_KLASSE; i++) {
-      id = "#k" + k + "_" + i;
-      if (!benutzt[id]) this.stil(id, "visibility", "hidden");
+  for (ai = 0; ai < ANZ_AUSR.length; ai++) {
+    a = ANZ_AUSR[ai];
+    for (k = 0; k < ANZ_KLASSEN.length; k++) {
+      for (i = 0; i < ANZ_JE[a]; i++) {
+        id = "#k" + k + a + "_" + i;
+        if (!benutzt[id]) this.stil(id, "visibility", "hidden");
+      }
     }
   }
   var neu = false;
@@ -693,13 +703,15 @@ Anzeige.prototype.zeigen = function (befehle, output) {
   if (neu) { this.gv = (this.gv + 1) % 1000000; output.gv = this.gv; }
 };
 
-Anzeige.prototype.text = function (id, b) {
+/** Prozentwert, auf 0,1 gerundet, als CSS-Text. */
+var anzProz = function (v) { return Math.round(v * 10) / 10 + "%"; };
+
+Anzeige.prototype.text = function (id, b, k, a) {
   var e = this.el[id] || (this.el[id] = {});
   if (e.txt !== b.txt) { e.txt = b.txt; setText(id, b.txt); }
-  var ax = b.x / 10, ay = b.y / 10;
-  var links = b.a === "l" ? ax + "%" : b.a === "r" ? "calc(" + ax + "% - 100%e)" : "calc(" + ax + "% - 50%e)";
-  this.stil(id, "left", links);
-  this.stil(id, "top", "calc(" + ay + "% - 50%e)");
+  var ax = b.x / 10, ay = b.y / 10, h = ANZ_KLASSEN[k][1] * 100 / 466;
+  this.stil(id, "left", anzProz(a === "l" ? ax : a === "r" ? ax - 100 : ax - 50));
+  this.stil(id, "top", anzProz(ay - h / 2));
   this.stil(id, "color", b.c || "#ffffff");
   this.stil(id, "visibility", "visible");
 };

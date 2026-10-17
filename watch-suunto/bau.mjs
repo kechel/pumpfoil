@@ -173,8 +173,11 @@ export function vorlage() {
   const klassen = ["sp-d-xxl", "sp-d-xl", "sp-d-l", "sp-d-m", "sp-d-s", "sp-d-xs", "sp-t-m", "sp-t-s"];
   const abos = Array.from({ length: GRAFIKEN }, (_, i) =>
     `A.push($.subscribe('Zapp/{zapp_index}/Output/g${i}', function(v) { G[${i}] = v || 0; }));`).join("\n    ");
-  const texte = klassen.flatMap((k, ki) => [0, 1, 2].map((i) =>
-    `    <div id="k${ki}_${i}" class="${k}${k.startsWith("sp-d") ? " f-num" : ""}" style="top:0;left:0;visibility:hidden;">-</div>`)).join("\n");
+  // je Schriftklasse und Ausrichtung ein Vorrat (quelle/anzeige.js ANZ_JE): 100 % breit, fest ausgerichtet
+  const je = JSON.parse(/var ANZ_JE = (\{[^}]*\});/.exec(lies("quelle/anzeige.js"))[1].replace(/(\w):/g, '"$1":'));
+  const ausr = { c: "center", l: "left", r: "right" };
+  const texte = klassen.flatMap((k, ki) => Object.keys(je).flatMap((a) => Array.from({ length: je[a] }, (_, i) =>
+    `    <div id="k${ki}${a}_${i}" class="${k}${k.startsWith("sp-d") ? " f-num" : ""}" style="top:0;left:0;width:100%;text-align:${ausr[a]};visibility:hidden;">-</div>`))).join("\n");
   return `<!-- ERZEUGT von watch-suunto/bau.mjs. Datenseite wie auf den anderen Uhren: Grafik auf dem canvas,
      Texte aus dem Vorrat je Schriftklasse, gesetzt von main.js (quelle/anzeige.js). -->
 <uiView

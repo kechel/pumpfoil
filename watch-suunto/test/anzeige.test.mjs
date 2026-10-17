@@ -30,6 +30,16 @@ const LAYOUT = [1, 4, [
   [8, 750, 500, 2, 0, 1, 1], [9, 500, 560, 2, 9, 0, 2, 600], [5, 150, 120, 1, 0, 1], [6, 500, 920, 1, 0, 0],
   [1, 300, 700, 4, 0, 0, 20], [1, 700, 700, 4, 11, 0, 14]]];
 
+// Ankerpunkt eines Texts in Promille zurueckrechnen: Element-Id k<klasse><l|c|r>_<n>, left/top in Prozent
+// (quelle/anzeige.js Anzeige.text). Kein calc(… %e) mehr — der Simulator verwirft das.
+const HOEHE = [155, 118, 103, 78, 65, 46, 33, 27];
+function anker(x) {
+  const m = /^#k(\d)([lcr])_/.exec(x.id), k = +m[1], a = m[2];
+  assert.ok(/^-?[\d.]+%$/.test(x.left) && /^-?[\d.]+%$/.test(x.top), "nur reine Prozente: " + x.left + " " + x.top);
+  const l = parseFloat(x.left), t = parseFloat(x.top);
+  return { a, x: Math.round(10 * (a === "l" ? l : a === "r" ? l + 100 : l + 50)), y: Math.round(10 * (t + HOEHE[k] * 50 / 466)) };
+}
+
 function aufnahme(konfig) {
   const uhr = new Uhr({ einstellungen: { handy: "false" } });
   uhr.speicher.set("k", kompaktVon(konfig));
@@ -42,16 +52,16 @@ function aufnahme(konfig) {
 test("freies Layout: Texte an ihrer Position, in ihrer Farbe; Grafik auf dem canvas", () => {
   const uhr = aufnahme({ layoutsOn: true, pages: [LAYOUT], speedZones: [8, 12, 16, 20, 24, 28], browseAll: false });
   const t = uhr.sichtbar();
-  const tempo = t.find((x) => x.top === "calc(30% - 50%e)" && x.left === "calc(50% - 50%e)");
+  const tempo = t.find((x) => { const p = anker(x); return p.a === "c" && p.x === 500 && p.y === 300; });
   assert.ok(tempo, JSON.stringify(t));
   assert.match(tempo.txt, /^\d+\.\d$/);
   assert.equal(tempo.color, "#eab308", "16,2 km/h -> Zone 3 von 5 (gelb), wie seiten.js wertFarbe");
-  assert.ok(t.some((x) => x.txt === "0" && x.left === "calc(30% - 50%e)" && x.top === "calc(70% - 50%e)"), "Laeufe unten links (erster Lauf laeuft noch)");
-  assert.ok(t.some((x) => x.left === "calc(70% - 50%e)" && x.color === "#00ffff"), "Laufzeit in Palettenfarbe 11 (seiten.js PALETTE[10])");
+  assert.ok(t.some((x) => { const p = anker(x); return x.txt === "0" && p.x === 300 && p.y === 700; }), "Laeufe unten links (erster Lauf laeuft noch)");
+  assert.ok(t.some((x) => anker(x).x === 700 && x.color === "#00ffff"), "Laufzeit in Palettenfarbe 11 (seiten.js PALETTE[10])");
   assert.ok(t.some((x) => x.txt === "REC"), "REC");
   // Grafik: entpacken und zeichnen wie die Vorlage
   const V = vorlage(), c = leinwand();
-  for (let i = 0; i < 16; i++) V.G[i] = uhr.output["g" + i] || 0;
+  for (let i = 0; i < 13; i++) V.G[i] = uhr.output["g" + i] || 0;
   V.zeichneSeite(c);
   const arten = c.ops.map((o) => o[0]);
   assert.ok(arten.includes("arc"), "Rand-Bogen");
@@ -66,9 +76,9 @@ test("freies Layout: Texte an ihrer Position, in ihrer Farbe; Grafik auf dem can
 test("klassische Seite: drei Felder untereinander wie auf den anderen Uhren, Seitenpunkte als ein Befehl", () => {
   const uhr = aufnahme({ views: [[1, 20, 14], [2, 3, 4]], browseAll: false });
   const t = uhr.sichtbar();
-  assert.equal(t.filter((x) => x.left === "calc(50% - 50%e)").length, 6, JSON.stringify(t));
+  assert.equal(t.filter((x) => { const p = anker(x); return p.a === "c" && p.x === 500; }).length, 6, JSON.stringify(t));
   const V = vorlage(), c = leinwand();
-  for (let i = 0; i < 16; i++) V.G[i] = uhr.output["g" + i] || 0;
+  for (let i = 0; i < 13; i++) V.G[i] = uhr.output["g" + i] || 0;
   V.zeichneSeite(c);
   // 2 Seiten -> 2 Punkte (aktiv + gedimmt)
   assert.equal(c.ops.filter((o) => o[0] === "fillRect").length, 1 + 2);
