@@ -151,11 +151,12 @@ export function manifest() {
     ],
     out: [
       { name: "con" },
-      { name: "pf_foil", log: true, shownName: "Pumpfoil run", format: "Count_Threedigits" },
-      { name: "pf_p1", log: true, shownName: "Pump marker", format: "Count_Fivedigits" },
-      { name: "pf_p2", log: true, shownName: "Pump marker 2", format: "Count_Fivedigits" },
-      { name: "pf_int", log: true, shownName: "Motion [mg]", format: "Count_Fourdigits" },
-      { name: "pf_peak", log: true, shownName: "Peak [mg]", format: "Count_Fourdigits" },
+      // Bedeutung + Versionierung: quelle/uhr.js vor pumpMarker, docs/SUUNTO.md „Die Log-Kanaele".
+      // Hoechstens 5 Kanaele: einer ist frei fuer spaeter.
+      { name: "pf_e1", log: true, shownName: "Runs and pumps", format: "Count_Sixdigits" },
+      { name: "pf_b1", log: true, shownName: "Motion per axis", format: "Count_Sixdigits" },
+      { name: "pf_s1", log: true, shownName: "Peak and pump strength", format: "Count_Sixdigits" },
+      { name: "pf_l1", log: true, shownName: "Arm position", format: "Count_Sixdigits" },
       // Grafik-Befehle der Datenseite (quelle/anzeige.js) + Zaehler, auf den die Vorlage neu zeichnet
       ...Array.from({ length: GRAFIKEN }, (_, i) => ({ name: "g" + i })),
       { name: "gv" },

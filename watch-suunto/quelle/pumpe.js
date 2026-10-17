@@ -45,6 +45,7 @@ var Pumpe = function (fs) {
   this.gesamt = 0;
   this.schrittNr = 0;              // 10-Hz-Schritte seit dem Start (Zeitachse der Pumps: schrittNr / 10 s)
   this.zeiten = [];                // erkannte Pumps (s), aufsteigend, vom Aufrufer abzuholen
+  this.staerken = [];              // je Pump der Ausschlag am Maximum (g, gefiltert, gegen die Schwerkraft)
   this.letzteZeit = -1;
 };
 
@@ -99,12 +100,12 @@ Pumpe.prototype.zeitenSetzen = function (neu) {
     }
     var t = bestS, a = this.wertBei(bestS - 1), c = this.wertBei(bestS + 1), d = a - 2 * best + c;
     if (a !== null && c !== null && d < 0) t += 0.5 * (a - c) / d;
-    neue.unshift(t / PUMPE_DEZ_HZ - spaet);
+    neue.unshift([t / PUMPE_DEZ_HZ - spaet, best]);
   }
   for (j = 0; j < neue.length; j++) {
-    var z = neue[j];
+    var z = neue[j][0];
     if (this.letzteZeit >= 0 && z < this.letzteZeit + 0.45) z = this.letzteZeit + 0.45;
-    this.zeiten.push(z); this.letzteZeit = z;
+    this.zeiten.push(z); this.staerken.push(neue[j][1]); this.letzteZeit = z;
   }
 };
 

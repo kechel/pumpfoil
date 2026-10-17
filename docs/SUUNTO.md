@@ -119,13 +119,28 @@ Anzeige, keine Vibration; nur wo `{{ HAS_SILENT_LAP }}` = 1, also UI2-Uhren). La
 in der Suunto-App als Runden und in der FIT als Lap-Grenzen, um die Erkennungs-Verzoegerung spaeter
 (~4 s Start, ~3 s Ende).
 
-| Name | Inhalt | warum |
-|---|---|---|
-| `pf_foil` | Laufnummer, solange die Uhr einen Lauf erkennt (GPS-Regeln aller Uhren), sonst 0 | Lauf-Grenzen ohne Rohdaten; der Server kann mit den anderen Kanaelen neu entscheiden |
-| `pf_p1` | Pump-Marker: laufende Nummer + Versatz, 1234.37 = Pump Nr. 1234 lag 1,37 s vor dem Datenpunkt | jeder Pump mit Zeitpunkt (~0,04 s genau) -> Position, Gleitphasen, Kadenz |
-| `pf_p2` | der Pump davor, falls zwei in derselben Sekunde (bis 2 Hz) | Kadenz liegt meist bei 1,4–1,9 Hz |
-| `pf_int` | Bewegungsstaerke: Std. von |a| in der Sekunde (mg) | Pumpen vs. Gleiten vs. Paddeln |
-| `pf_peak` | groesste Abweichung von 1 g in der Sekunde (mg) | Stuerze, Aufsetzen, Wasserstart |
+**Versionierung (Jan, 17.10.):** der Kanal-NAME traegt die Bedeutung samt Version. Aendert sich ein
+Format, kommt ein neuer Name (`pf_e1` -> `pf_e2`); der Server erkennt Kanaele am `VariableId` im Kopf der
+Aufzeichnung und liest, was da ist — aeltere Uhren schicken eben weniger, nichts wird falsch gedeutet.
+Mehrere Werte je Kanal als Dezimalstellen, immer ganzzahlig <= 999.999 (exakt in float32, passt in
+`Count_Sixdigits`, falls die Uhr auf die Formatgrenze kappt). Ein Kanal ist frei.
+
+| Name | Stellen | Inhalt | warum |
+|---|---|---|---|
+| `pf_e1` | `L Z AA BB` | L = Lauf (0 dazwischen, sonst Laufnummer mod 9 + 1) · Z = alle Pumps mod 10 · AA = neuester Pump der Sekunde, BB = der davor: 01–99 = 0,01–0,99 s vor dem Datenpunkt minus 1 s Erkennungsverzoegerung, 00 = keiner | Laufgrenzen und jeder Pump mit Zeitpunkt (~0,04 s am Server). Z aendert sich bei jedem Pump — sonst fehlten zwei Sekunden mit gleichem Versatz (geloggt wird nur bei Aenderung), und verlorene dritte Pumps je Sekunde sind zaehlbar |
+| `pf_b1` | `XX YY ZZ` | Bewegungsstaerke je Uhr-Achse (Streuung in der Sekunde), je 2·√mg: mg = W²/4 (10 = 25 mg, 20 = 100 mg, 99 = 2,45 g) | Pumpen vs. Gleiten vs. Paddeln, Richtung der Bewegung |
+| `pf_s1` | `PPP SSS` | PPP = groesste Abweichung von 1 g (10 mg), SSS = staerkster Pump der Sekunde (Ausschlag am Maximum, mg) | Aufsetzen/Stuerze/Wasserstart; Pump-Kraft und Ermuedung |
+| `pf_l1` | `NNN RRR` | Armhaltung aus der mittleren Schwerkraft: NNN = Neigung + 90 (0–180°), RRR = Drehung um die Laengsachse (0–359°), Achsen wie die Uhr sie liefert | Uhr am Arm oder am Brett, Haltung im Lauf |
+
+Referenz-Dekoder: `watch-suunto/test/aufnahme.test.mjs` („Pump-Marker im Workout-Log (pf_e1)"). Gegen die
+vorige Fassung (getrennte Kanaele, 0,001 s) gleich genau: 84/100 Server-Pumps innerhalb 0,25 s.
+
+**Zeitzuordnung:** jede Probe hat laut Referenz einen eigenen Zeitstempel (`TimeISO8601` mit ms, UTC),
+Suunto ordnet also selbst zu — wir schicken keine Zeit mit. Die Pump-Versaetze beziehen sich auf diesen
+Datenpunkt. OFFEN: ob die FIT der Cloud-API die ms behaelt oder auf Sekunden rundet. Rundet sie, verschiebt
+sich jeder Pump um denselben Bruchteil (Phase von `evaluate` zur vollen Sekunde) — Abstaende zwischen Pumps
+und die Kadenz bleiben richtig, die absolute Lage um < 1 s unsicher [Vermutung, an der ersten echten FIT
+pruefen].
 
 Pump-Marker (Jans Idee, 17.10.2026): die Uhr erkennt einen Pump erst bis zu ~1 s spaeter (Periode +
 Filter), darum ist jeder Marker um genau 1 s verzoegert, der Bruchteil liegt immer in [0, 1). Die
