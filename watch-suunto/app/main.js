@@ -1174,7 +1174,7 @@ Funk.prototype.rueckstandS = function () {
 };
 
 // ---- quelle/uhr.js ----
-var STD_HASH = 2159656918;   // server/app/data/standard_layouts.json, s. bau.mjs standard()
+var STD_HASH = 2448089911;   // server/app/data/standard_layouts.json, s. bau.mjs standard()
 /*
  * Pumpfoil fuer Suunto (SuuntoPlus-Sport-App) — Ablauf, Datenseiten, Log-Kanaele, Funk zum Handy.
  * Bau: watch-suunto/bau.mjs setzt main.js aus lauf.js (watch-huawei/common), Teilen von seiten.js,
