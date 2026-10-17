@@ -171,23 +171,22 @@ var mitStandard = function (k) {
 
 var konfigAnwenden = function (text) {
   var k;
-  try { k = JSON.parse(text); } catch (e) { return; }
+  try { k = kompaktLesen(text); } catch (e) { return; }
   if (!k || typeof k !== "object") return;
   kf = new Konfig(mitStandard(k)); kfRoh = k;
   // Die Suunto hat keine eigene Einstellungsseite fuer Alarm/Foil: das Profil gilt immer.
   aw.gesetzt = false;
   aw.vorbelegen(kf);
   if (typeof k.spr === "number" && k.spr >= 0 && k.spr <= 14 && k.spr !== sprache) { sprache = k.spr; textLaden(); }
-  if (!speichern("konfig", k)) {
-    var kurz = {}, s;
-    for (s in k) if (s !== "pages" && s !== "offFoilPages" && s !== "pausePages") kurz[s] = k[s];
-    speichern("konfig", kurz);
-  }
-  speichern("auswahl", aw.daten());
+  kompaktSpeichern(text);     // gekuerzt, wenn der Speicher nicht reicht (quelle/kompakt.js)
 };
 
-var speichern = function (key, obj) {
-  try { localStorage.setObject(key, obj); return true; } catch (e) { return false; }
+/** Gespeicherte Konfiguration (kompakter Text) oder null. */
+var konfigGespeichert = function () {
+  var t = null;
+  try { t = localStorage.getItem(KOMPAKT_KEY); } catch (e) { t = null; }
+  if (!t) return null;
+  try { return kompaktLesen(t); } catch (e2) { return null; }
 };
 
 // Hoehe und Anstieg (Felder 10/13) kennt seiten.js nicht (Wear/Apple zeigen „–"), die Suunto schon.
@@ -219,12 +218,12 @@ function onLoad(input, output) {
   sync = wahr(einstellung("handy", "true"));
   hz = einstellung("hz", "0") === "1" ? 50 : 25;
   sprache = einstellung("sprache", "en");
-  try { var gk = localStorage.getObject("konfig"); if (gk && typeof gk.spr === "number") sprache = gk.spr; } catch (e) { sprache = sprache; }
+  var gk = konfigGespeichert();
+  if (gk && typeof gk.spr === "number") sprache = gk.spr;
   kf = new Konfig(null);
   kfRoh = null;
-  try { var k = localStorage.getObject("konfig"); if (k) { kf = new Konfig(mitStandard(k)); kfRoh = k; } } catch (e) { kf = new Konfig(null); }
-  aw = new Auswahl(null);
-  try { var a = localStorage.getObject("auswahl"); if (a) aw = new Auswahl(a); } catch (e) { aw = new Auswahl(null); }
+  if (gk) { kf = new Konfig(mitStandard(gk)); kfRoh = gk; }
+  aw = new Auswahl(null);      // ohne Einstellungsseite auf der Uhr: immer aus dem Profil, nicht gespeichert
   aw.vorbelegen(kf);
   st = new Stand(); al = new Alarm(); pu = new Pumpe(50);
   fu = new Funk(SLOTS_ACC, SLOTS_GPS);

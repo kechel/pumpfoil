@@ -201,36 +201,17 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     /// Seiten, Alarme und Sprache aus dem Profil an die Uhr (einmal je Verbindung).
     private func konfigSenden(_ h: SuuntoProtokoll.Hallo) {
         Task { @MainActor in
+            let v = String(format: "%d.%02d", h.appVer / 100, h.appVer % 100)
             guard let t = await token(h.uhrId, SuuntoAblage.modell(h.display)),
-                  let url = URL(string: Api.baseURL + "/api/devices/config?p=suunto&v=" + String(format: "%d.%02d", h.appVer / 100, h.appVer % 100))
+                  let url = URL(string: Api.baseURL + "/api/devices/config-kompakt?p=suunto&std=\(h.stdHash)&v=" + v)
             else { konfigFuer = -1; return }
             var req = URLRequest(url: url); req.setValue(t, forHTTPHeaderField: "X-Device-Token")
-            guard let (d, r) = try? await URLSession.shared.data(for: req), (r as? HTTPURLResponse)?.statusCode == 200,
-                  let cfg = (try? JSONSerialization.jsonObject(with: d)) as? [String: Any] else { konfigFuer = -1; return }
-            let lang = UserDefaults.standard.string(forKey: "appLang")
-            warteschlange += SuuntoKonfig.pakete(SuuntoKonfig.fuerUhr(cfg, appSprache: lang, uhrStdHash: h.stdHash)).map { Data($0) }
+            guard let (d, r) = try? await URLSession.shared.data(for: req), (r as? HTTPURLResponse)?.statusCode == 200
+            else { konfigFuer = -1; return }
+            let text = String(decoding: d, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            warteschlange += SuuntoKonfig.pakete(text).map { Data($0) }
             quittungSenden(sofort: true)
         }
-    }
-
-    // MARK: Server
-
-    private static func offen() -> Int {
-        ((try? FileManager.default.contentsOfDirectory(at: wurzel, includingPropertiesForKeys: nil)) ?? [])
-            .filter { FileManager.default.fileExists(atPath: $0.appendingPathComponent("meta.json").path) }.count
-    }
-
-    /// Ein Token je Uhr, einmal gemintet; danach /config?p=suunto, damit der Server die Plattform kennt.
-    private func token(_ uhrId: Int64, _ label: String) async -> String? {
-        let key = "suunto_token_" + String(uhrId, radix: 16)
-        if let t = UserDefaults.standard.string(forKey: key) { return t }
-        guard let t = try? await Api.mintDeviceToken(label: String(label.prefix(60))) else { return nil }
-        UserDefaults.standard.set(t, forKey: key)
-        if let url = URL(string: Api.baseURL + "/api/devices/config?p=suunto&v=100") {
-            var req = URLRequest(url: url); req.setValue(t, forHTTPHeaderField: "X-Device-Token")
-            _ = try? await URLSession.shared.data(for: req)
-        }
-        return t
     }
 
     /// STATUS fuer die Uhr: bit0 Konto, bit1 Server erreichbar, bit2 laedt hoch, bit3 iPhone nimmt selbst auf.

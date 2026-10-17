@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { WURZEL } from "./lade.mjs";
 import { Uhr } from "./firmware.mjs";
+import { kompaktVon } from "./kompakt-hilfe.mjs";
 
 const G = 9.80665;
 const laeufe = JSON.parse(fs.readFileSync(path.join(WURZEL, "test/fixtures/laeufe-jan.json"), "utf8"));
@@ -233,7 +234,7 @@ test("Konfiguration vom Handy: Seiten, Alarm und Sprache gelten sofort und bleib
   uhr.ruf("onLoad");
   let t = 0;
   for (let i = 0; i < 4; i++) { uhr.bis(t += 1000); uhr.ruf("evaluate", { utc: 1, lt: 0 }); }
-  const k = JSON.stringify({ views: [[20, 1, 2]], offFoilView: [12, 17, 16], alarmEnabled: true, speedHigh: 25, spr: 0 });
+  const k = kompaktVon({ views: [[20, 1, 2]], offFoilView: [12, 17, 16], alarmEnabled: true, speedHigh: 25, spr: 0 });
   const teile = [];
   for (let i = 0; i < k.length; i += 15) teile.push(k.slice(i, i + 15));
   // in falscher Reihenfolge und mit einer Wiederholung
@@ -245,10 +246,10 @@ test("Konfiguration vom Handy: Seiten, Alarm und Sprache gelten sofort und bleib
   assert.equal(uhr.ctx.aw.alarm, true);
   assert.equal(uhr.ctx.sprache, 0);
   assert.equal(uhr.ctx.t("f.runs"), "Läufe");
-  assert.ok(uhr.speicher.get("konfig"), "gespeichert");
+  assert.ok(uhr.speicher.get("k"), "gespeichert");
   // neuer App-Start ohne Handy: gespeicherte Konfiguration gilt
   const zwei = new Uhr({ einstellungen: { handy: "false" } });
-  zwei.speicher.set("konfig", uhr.speicher.get("konfig"));
+  zwei.speicher.set("k", uhr.speicher.get("k"));
   zwei.ruf("onLoad");
   assert.deepEqual(JSON.parse(JSON.stringify(zwei.ctx.kf.views)), [[20, 1, 2]]);
   assert.equal(zwei.ctx.sprache, 0);
@@ -270,12 +271,12 @@ test("Statuszeile: Rueckstand, verlorene Sekunden, Upload und ein Handy, das sel
 
 test("Update-Hinweis im Startbildschirm, wenn das Profil eine neuere Version meldet", () => {
   const uhr = new Uhr({ einstellungen: { handy: "false" } });
-  uhr.speicher.set("konfig", { latestVersion: "1.02" });
+  uhr.speicher.set("k", kompaktVon({ latestVersion: "1.02" }));
   uhr.ruf("onLoad"); uhr.ruf("getUserInterface");
   uhr.ruf("evaluate", { utc: 1, lt: 0 });
   assert.ok(uhr.sichtbar().some((x) => x.txt === "Update 1.02"), JSON.stringify(uhr.sichtbar()));
   const gleich = new Uhr({ einstellungen: { handy: "false" } });
-  gleich.speicher.set("konfig", { latestVersion: "1.00" });
+  gleich.speicher.set("k", kompaktVon({ latestVersion: "1.00" }));
   gleich.ruf("onLoad"); gleich.ruf("getUserInterface"); gleich.ruf("evaluate", { utc: 1, lt: 0 });
   assert.ok(gleich.sichtbar().some((x) => x.txt === "Version 1.00"));
 });
@@ -286,7 +287,7 @@ test("Standard-Layouts: das Handy schickt nur std, die Uhr nimmt ihre mitgebrach
   const db = drehbuch(1);
   const { uhr } = abspielen(db);
   assert.equal(uhr.empf.hallo.stdHash, std.hash, "Pruefsumme wie der Server");
-  const k = JSON.stringify({ pages: "std", offFoilPages: "std", pausePages: "std", spr: 3 });
+  const k = kompaktVon({ pages: "std", offFoilPages: "std", pausePages: "std", spr: 3 });
   const teile = [];
   for (let i = 0; i < k.length; i += 15) teile.push(k.slice(i, i + 15));
   teile.forEach((s, i) => uhr.handler(0, 106, [0x83, i, 0, teile.length, 0, ...Buffer.from(s, "ascii")]));
@@ -294,5 +295,5 @@ test("Standard-Layouts: das Handy schickt nur std, die Uhr nimmt ihre mitgebrach
   const erwartet = eval("(" + std.ext + ")")();
   assert.deepEqual(JSON.parse(JSON.stringify(uhr.ctx.kf.offFoilPages)), erwartet.offFoilPages);
   assert.equal(uhr.ctx.kf.pages[0][0], 1, "freies Layout");
-  assert.ok(JSON.stringify(uhr.speicher.get("konfig")).length < 120, "gespeichert wird nur std");
+  assert.ok(uhr.speicher.get("k").length < 60, "gespeichert wird nur std");
 });

@@ -110,6 +110,7 @@ export function mainJs() {
   return kopf + [
     "// ---- watch-huawei/common/lauf.js ----", lauf,
     "// ---- watch-huawei/common/seiten.js (Felder, Seiten) ----", seiten,
+    "// ---- quelle/kompakt.js ----", alsVar(lies("quelle/kompakt.js")),
     "// ---- quelle/anzeige.js ----", alsVar(lies("quelle/anzeige.js")),
     "// ---- quelle/pumpe.js ----", alsVar(lies("quelle/pumpe.js")),
     "// ---- quelle/funk.js ----", alsVar(lies("quelle/funk.js")),

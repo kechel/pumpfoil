@@ -390,82 +390,11 @@ class SuuntoAblage(val wurzel: File, private val jetzt: () -> Long = { System.cu
 }
 
 /**
- * Konfiguration fuer die Suunto-Uhr: aus /api/devices/config nur, was die Uhr-App nutzt (klassische
- * Seiten, Foils, Alarme, Sprache) — ihr Speicher (data.json/localStorage) ist klein. Als ASCII-JSON
- * (Nicht-ASCII als \uXXXX, die Uhr setzt Bytes 1:1 in Zeichen um) in KONFIG-Paketen
- * [0x83, nr u16, anzahl u16, bis zu 15 Bytes]. Gegenstueck: watch-suunto/quelle/funk.js `konfigTeil`.
+ * Konfiguration fuer die Suunto-Uhr: der Server liefert sie schon klein (`/api/devices/config-kompakt`,
+ * server/app/kompakt_config.py — Codes, ohne Standardwerte, Standard-Layouts als "s"); das Handy gibt den
+ * ASCII-Text nur in KONFIG-Paketen weiter. Gegenstueck: watch-suunto/quelle/funk.js `konfigTeil`.
  */
 object SuuntoKonfig {
-    private val SCHLUESSEL = listOf("views", "offFoilView", "pauseView", "browseAll", "foils", "alarmEnabled",
-        "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh", "alarmPatternLow", "alarmPatternHr",
-        "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode", "alarmPatternDist", "runTimeS", "runTimeMode",
-        "alarmPatternTime", "layoutsOn", "latestVersion", "colorByValue", "hrZones", "speedZones")
-    private val SEITEN = listOf("pages", "offFoilPages", "pausePages")
-
-    /** Freies Layout -> [2, f1..f6] (Werte in Lese-Reihenfolge) — nur noch Rueckfall, die Uhr zeichnet Layouts selbst. */
-    fun seiteKurz(seite: JSONArray): JSONArray? {
-        val art = seite.optInt(0, -1)
-        if (art == 0) return seite
-        if (art != 1) return null
-        val els = seite.optJSONArray(2) ?: return null
-        val werte = ArrayList<Triple<Int, Int, Int>>()
-        for (i in 0 until els.length()) {
-            val e = els.optJSONArray(i) ?: continue
-            if (e.length() > 6 && e.optInt(0) == 1 && e.optInt(6) > 0) werte.add(Triple(e.optInt(2), e.optInt(1), e.optInt(6)))
-        }
-        val fids = werte.sortedWith(compareBy({ it.first / 60 }, { it.second })).map { it.third }.distinct().take(6)
-        if (fids.isEmpty()) return null
-        return JSONArray().put(2).apply { fids.forEach { put(it) } }
-    }
-    /** Sprache des Profils -> Spalte der Feld-Texte auf der Uhr (watch-suunto/bau.mjs SPRACHEN). */
-    private val SPALTE = mapOf("de" to 0, "gsw" to 1, "de-AT" to 2, "en" to 3, "fr" to 4, "it" to 5, "es" to 6,
-        "pt" to 7, "pt-PT" to 7, "id" to 8, "ru" to 9, "nl" to 10, "fi" to 11, "cs" to 12, "ja" to 13, "zh" to 14)
-
-    /** Werte, die die Uhr ohnehin annimmt (lauf.js `Konfig`) — weggelassen, ihr Speicher ist ~2 KB klein. */
-    private val STANDARD = mapOf("views" to "[[1,2,0]]", "offFoilView" to "[12,17,16]", "pauseView" to "[12,20,2]",
-        "browseAll" to "true", "layoutsOn" to "true", "colorByValue" to "false", "alarmEnabled" to "false",
-        "alarmDefault" to "\"foil\"", "speedLow" to "0", "speedHigh" to "0", "hrHigh" to "0",
-        "alarmPatternHigh" to "\"short2\"", "alarmPatternLow" to "\"long2\"", "alarmPatternHr" to "\"short1\"",
-        "alarmRepeat" to "\"once\"", "alarmRepeatS" to "5", "runDistM" to "0", "runDistMode" to "\"once\"",
-        "alarmPatternDist" to "\"short1\"", "runTimeS" to "0", "runTimeMode" to "\"once\"",
-        "alarmPatternTime" to "\"short2\"", "latestVersion" to "\"\"", "hrZones" to "[95,114,133,152,171,190]",
-        "speedZones" to "[8,12,16,20,24,28]", "foils" to "[]")
-
-    /**
-     * uhrStdHash: Pruefsumme der Standard-Layouts, die die Uhr mitbringt (HALLO). Gleich der vom Server
-     * (`standardHash`) -> fuer Seitensaetze, die der Nutzer nie geaendert hat (`standardSeiten`), nur „std".
-     */
-    fun fuerUhr(config: String, appSprache: String? = null, uhrStdHash: Long = 0): String {
-        val k = JSONObject(config)
-        val o = JSONObject()
-        for (s in SCHLUESSEL) if (k.has(s) && STANDARD[s] != k.get(s).toString()) o.put(s, k.get(s))
-        val std = HashSet<String>()
-        if (uhrStdHash != 0L && k.optLong("standardHash", -1) == uhrStdHash)
-            k.optJSONArray("standardSeiten")?.let { for (i in 0 until it.length()) std.add(it.getString(i)) }
-        // Seiten vollstaendig (die Uhr zeichnet freie Layouts selbst) oder „std" fuer die mitgebrachten
-        for (s in SEITEN) {
-            if (s in std) o.put(s, "std") else k.optJSONArray(s)?.let { if (it.length() > 0) o.put(s, it) }
-        }
-        o.optJSONArray("foils")?.let { fs ->
-            val kurz = JSONArray()
-            for (i in 0 until fs.length()) {
-                val f = fs.optJSONObject(i) ?: continue
-                kurz.put(JSONObject().put("id", f.opt("id")).put("label", f.optString("label").take(24))
-                    .put("min", f.opt("min")).put("max", f.opt("max")))
-            }
-            if (kurz.length() > 0) o.put("foils", kurz) else o.remove("foils")
-        }
-        val lang = k.optString("language").ifBlank { appSprache ?: "" }
-        SPALTE[lang]?.let { o.put("spr", it) }
-        return ascii(o.toString())
-    }
-
-    fun ascii(s: String): String {
-        val b = StringBuilder()
-        for (c in s) if (c.code < 128) b.append(c) else b.append("\\u%04x".format(c.code))
-        return b.toString()
-    }
-
     /** [0x83, nr u16, anzahl u16, bis zu 15 Bytes] — Layouts koennen einige KB gross sein. */
     fun pakete(text: String): List<ByteArray> {
         val bytes = text.toByteArray(Charsets.US_ASCII)

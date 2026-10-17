@@ -7,6 +7,7 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 
+from fastapi.responses import PlainTextResponse
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, text as sa_text
 from sqlalchemy.orm import Session
@@ -651,6 +652,30 @@ def device_config(
         **layout_block,
         **_suunto_standard(device, p, settings),
     }
+
+
+@router.get("/config-kompakt", response_class=PlainTextResponse)
+def device_config_kompakt(
+    device: models.DeviceToken = Depends(current_device),
+    db: Session = Depends(get_db),
+    v: str | None = Query(None),
+    p: str | None = Query(None),
+    std: int | None = Query(None),   # Pruefsumme der Standard-Layouts, die die Uhr mitbringt
+    foils: int = Query(1, ge=0, le=50),   # wie viele Foils (Suunto: nur das Standard-Foil)
+) -> str:
+    """Dieselbe Konfiguration wie /config, klein fuer Uhren mit wenig Speicher (zuerst Suunto,
+    ~2 KB): kurze Codes, ohne Standardwerte, Standard-Layouts als "s" (app/kompakt_config.py)."""
+    from .. import kompakt_config
+    cfg = device_config(device=device, db=db, v=v, p=p, pn=None, canary=None, lay=None, sf=None, kb=None,
+                        crash=None, mem=None, memtot=None)
+    if "standardHash" not in cfg:
+        cfg = {**cfg, **_suunto_standard(device, "suunto", _einstellungen(db, device))}
+    return kompakt_config.kompakt(cfg, std, foils)
+
+
+def _einstellungen(db: Session, device: models.DeviceToken) -> dict:
+    user = db.get(models.User, device.user_id)
+    return json.loads(user.settings_json) if user and user.settings_json else {}
 
 
 def _suunto_standard(device: models.DeviceToken, p: str | None, settings: dict) -> dict:
