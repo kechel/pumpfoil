@@ -54,6 +54,18 @@ object Ingest {
             JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks).toString()); Unit
     }
 
+    /** GET mit Geraete-Token (Suunto-Bruecke: /devices/config?p=suunto nach dem Minten). */
+    fun get(path: String, token: String): String {
+        val c = URL(Api.BASE + path).openConnection() as HttpURLConnection
+        try {
+            c.connectTimeout = 15000; c.readTimeout = 30000
+            c.setRequestProperty("X-Device-Token", token)
+            val code = c.responseCode
+            if (code !in 200..299) throw IngestException(code, "GET $path")
+            return c.inputStream.bufferedReader().use { it.readText() }
+        } finally { c.disconnect() }
+    }
+
     /** `token`: welches Geraet hochlaedt — Standard das Handy; Huawei-Uhren haben je ein eigenes
      *  (HuaweiBruecke), damit ihre Sessions unter der Uhr erscheinen, nicht unter „Phone". */
     fun post(path: String, body: String, token: String? = deviceToken): String {

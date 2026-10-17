@@ -134,7 +134,10 @@ auf echten Garmin-Laeufen geprueft (`watch-suunto/test/`).
 - `watch-suunto/test/` — Node-Harness: laedt die echte main.js mit nachgebauten Firmware-Objekten
   (`appConn`, `evalFile`, `localStorage`, `playIndication`) und spielt Aufnahmen durch, inkl.
   vieler Verbindungsabbrueche.
-- Handy: `SuuntoBruecke.kt` (Android, `BluetoothGattServer` + Vordergrund-Dienst),
+- Handy: `SuuntoProtokoll.kt` (Android, rein: Empfang, Chunks, Ablage — Unit-Tests gegen die Pakete
+  der echten Uhr-App aus `watch-suunto/test/golden.mjs`) und `SuuntoBruecke.kt` (`BluetoothGattServer`
+  + Vordergrund-Dienst `connectedDevice`, Upload laufend/Pause/Ende, Positionsmeldung, Karte im
+  Uhren-Bereich, nur sichtbar mit verknuepftem Suunto-Konto),
   `SuuntoBruecke.swift` (iOS, `CBPeripheralManager`). **iOS-Grenze [DOK Apple]:** im Hintergrund
   wirbt iOS Service-UUIDs nur im „Overflow"-Bereich, den eine Suunto-Uhr nicht sieht → die
   Verbindung muss bei geoeffneter App zustande kommen; einmal verbunden, haelt sie im Hintergrund
@@ -146,5 +149,10 @@ auf echten Garmin-Laeufen geprueft (`watch-suunto/test/`).
 2. Nimmt die Firmware `type:"device"` mit sofort gesetztem `con` hin, ohne dass ein Geraet da ist?
 3. Wie viele 20-Byte-Schreibvorgaenge je Sekunde schafft die Uhr dauerhaft (30–60 min)?
 4. Wie viel Speicher bleibt fuer den Ringpuffer (`/Ui/Script/MemoryPool/Peak` im Editor-Log)?
+   `localStorage` taugt NICHT als Zwischenspeicher: laut einer Google-KI-Uebersicht (Jan, 17.10.)
+   ist `data.json` auf < 2.100 Bytes begrenzt [UNKLAR, nicht in der Referenz, Quelle nicht
+   nachgeprueft] — so oder so viel zu klein fuer Rohdaten (1 h bei 25 Hz ≈ 540 KB). Rohdaten gibt es
+   also nur mit dem Handy in Bluetooth-Reichweite (am Koerper, wasserdichte Tasche); der RAM-Ring
+   ueberbrueckt ~80 s.
 5. Stehen die Log-Kanaele in der FIT-Datei der Cloud-API?
 6. Laeuft die App bei dunklem Display weiter (bei Suunto ueblich, da Teil der Aktivitaet)?
