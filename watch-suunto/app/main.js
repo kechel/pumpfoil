@@ -382,6 +382,9 @@ var Pumpe = function (fs) {
   this.rhythmS = 0;                // Dauer des laufenden rhythmischen Abschnitts (s)
   this.phase = 0;
   this.gesamt = 0;
+  this.schrittNr = 0;              // 10-Hz-Schritte seit dem Start (Zeitachse der Pumps: schrittNr / 10 s)
+  this.zeiten = [];                // erkannte Pumps (s), aufsteigend, vom Aufrufer abzuholen
+  this.letzteZeit = -1;
 };
 
 /** Ein Wert (in g). Gibt die Zahl der in diesem Schritt gezaehlten Pumps zurueck (meist 0). */
@@ -399,6 +402,7 @@ Pumpe.prototype.wert = function (ax, ay, az) {
     this.ring[this.rPos] = this.dzSum / this.dzN; this.rPos = (this.rPos + 1) % this.ring.length;
     if (this.rVoll < this.ring.length) this.rVoll++;
     this.dzSum = 0; this.dzN = 0;
+    this.schrittNr++;
     if (++this.schritt >= PUMPE_DEZ_HZ / 2) { this.schritt = 0; this.schaetzen(); }
     if (this.f > 0) {
       var dt = 1 / PUMPE_DEZ_HZ;
@@ -411,9 +415,60 @@ Pumpe.prototype.wert = function (ax, ay, az) {
         neu = Math.floor(this.phase); this.phase -= neu;
       }
     } else { this.rhythmS = 0; this.phase = 0; }
+    if (neu > 0) this.zeitenSetzen(neu);
   }
   this.gesamt += neu;
   return neu;
+};
+
+/**
+ * Zeitpunkte der eben gezaehlten Pumps: wie der Server das ECHTE Maximum je Pump-Periode — vom
+ * neuesten Schritt aus je eine Periode zurueck, Parabel durch die Nachbarn, abzueglich der
+ * Verzoegerung der Filter bei der aktuellen Kadenz. Hoechstens alle 0,45 s ein Pump (Server
+ * MIN_PEAK_DISTANCE_S).
+ */
+Pumpe.prototype.zeitenSetzen = function (neu) {
+  var L = this.ring.length, T = Math.max(3, Math.round(PUMPE_DEZ_HZ / (this.f || 1.5)));
+  var spaet = this.verzoegerungS(this.f || 1.5), neue = [], j, k;
+  for (j = 0; j < neu; j++) {
+    var ende = this.schrittNr - 1 - j * T, best = -1e9, bestS = ende;
+    for (k = 0; k < T && ende - k > this.schrittNr - L; k++) {
+      var v = this.ring[((this.rPos - 1 - (this.schrittNr - 1 - (ende - k))) % L + L) % L];
+      if (v > best) { best = v; bestS = ende - k; }
+    }
+    var t = bestS, a = this.wertBei(bestS - 1), c = this.wertBei(bestS + 1), d = a - 2 * best + c;
+    if (a !== null && c !== null && d < 0) t += 0.5 * (a - c) / d;
+    neue.unshift(t / PUMPE_DEZ_HZ - spaet);
+  }
+  for (j = 0; j < neue.length; j++) {
+    var z = neue[j];
+    if (this.letzteZeit >= 0 && z < this.letzteZeit + 0.45) z = this.letzteZeit + 0.45;
+    this.zeiten.push(z); this.letzteZeit = z;
+  }
+};
+
+/** Wert des 10-Hz-Rings bei Schritt s (null, wenn nicht mehr/noch nicht da). */
+Pumpe.prototype.wertBei = function (s) {
+  var L = this.ring.length;
+  if (s > this.schrittNr - 1 || s <= this.schrittNr - 1 - L) return null;
+  return this.ring[((this.rPos - 1 - (this.schrittNr - 1 - s)) % L + L) % L];
+};
+
+/** Phasenverzoegerung (s) der Kette Schwerkraft-Abzug + Hochpass 0,3 + Tiefpass 3 Hz + Mittelung bei f. */
+Pumpe.prototype.verzoegerungS = function (f) {
+  var w = 2 * Math.PI * f / this.fs, re = Math.cos(w), im = -Math.sin(w), re2 = Math.cos(2 * w), im2 = -Math.sin(2 * w);
+  var ph = function (q) {
+    var nr = q.b0 + q.b1 * re + q.b2 * re2, ni = q.b1 * im + q.b2 * im2;
+    var dr = 1 + q.a1 * re + q.a2 * re2, di = q.a1 * im + q.a2 * im2;
+    return Math.atan2(ni, nr) - Math.atan2(di, dr);
+  };
+  // 1 - Tiefpass(1. Ordnung): (1 - z^-1)(1-α)... als H = (1-α)(1 - z^-1)/(1 - (1-α) z^-1)
+  var al = this.alpha, nr = (1 - al) * (1 - re), ni = -(1 - al) * im, dr = 1 - (1 - al) * re, di = -(1 - al) * im;
+  var p = Math.atan2(ni, nr) - Math.atan2(di, dr) + ph(this.hp) + ph(this.lp);
+  while (p > Math.PI) p -= 2 * Math.PI;
+  while (p < -Math.PI) p += 2 * Math.PI;
+  // Ring-Schritt s mittelt die Rohwerte s*dez … s*dez+dez-1: Mitte liegt (dez-1)/2 Werte nach s/10
+  return -p / w / this.fs - (this.dez - 1) / 2 / this.fs;
 };
 
 Pumpe.prototype.schaetzen = function () {
@@ -719,7 +774,26 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekSum, sekSumQ, sekN, sekPeak, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr;
+
+/**
+ * Pump-Marker fuer die Log-Kanaele (Jans Idee, 17.10.2026): je Pump „laufende Nummer + Versatz".
+ * Der Wert 1234.37 heisst: Pump Nr. 1234 lag 1,37 s vor diesem Datenpunkt — die Uhr erkennt einen
+ * Pump erst bis zu ~1 s spaeter (Periode + Filter), darum ist jeder Marker um genau 1 s verzoegert
+ * und der Bruchteil liegt immer in [0, 1). Die Nummer aendert sich bei jedem Pump, damit speichert
+ * die Uhr den Wert sicher (sie loggt nur Aenderungen) und der Server sieht fehlende Nummern.
+ * pf_p1 = neuester Pump der Sekunde, pf_p2 = der davor (bis 2 Hz); ein dritter faellt weg, seine
+ * Nummer fehlt dann. Zeitpunkt = echtes Signal-Maximum, auf Jans Laeufen median 0,04 s am Server.
+ */
+var pumpMarker = function (output) {
+  var jetzt = pu.schrittNr / 10, neu = [];
+  while (pu.zeiten.length && pu.zeiten[0] <= jetzt - 1) neu.push(pu.zeiten.shift());
+  if (!neu.length) return;
+  var wert = function (nr, t) { return nr + Math.min(0.999, Math.max(0, Math.round((jetzt - t - 1) * 1000) / 1000)); };
+  pumpNr += neu.length;
+  output.pf_p1 = wert(pumpNr, neu[neu.length - 1]);
+  if (neu.length >= 2) output.pf_p2 = wert(pumpNr - 1, neu[neu.length - 2]);
+};
 
 var summeLetzte = function (n) {
   var z = 0, i;
@@ -850,7 +924,7 @@ function onLoad(input, output) {
   lauefe = 0; pumpHist = []; pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false;
   sekPumps = 0; sekSum = 0; sekSumQ = 0; sekN = 0; sekPeak = 0; blockWerte = []; blockT = 0; halbe = null;
   textLaden();
-  output.pf_foil = 0; output.pf_pumps = 0; output.pf_kad = 0; output.pf_int = 0; output.pf_peak = 0;
+  output.pf_foil = 0; output.pf_p1 = 0; output.pf_p2 = 0; output.pf_int = 0; output.pf_peak = 0; pumpNr = 0;
 }
 
 function onAccelerometer(input, output) { nimmAccel(input); }
@@ -930,8 +1004,7 @@ function evaluate(input, output) {
     if (sync) fu.gpsSek(sek, fix ? pos.latitude : 0, fix ? pos.longitude : 0, sp, hrBpm, -1, zuletzt.alt);
     // Log-Kanaele (einmal je Sekunde ins Workout, docs/SUUNTO.md)
     output.pf_foil = st.foiling ? st.runCount + 1 : 0;
-    output.pf_pumps = sekPumps;
-    output.pf_kad = pu.kadenz();
+    pumpMarker(output);
     var m = sekN ? sekSum / sekN : 0;
     output.pf_int = sekN ? Math.round(1000 * Math.sqrt(Math.max(0, sekSumQ / sekN - m * m))) : 0;
     output.pf_peak = Math.round(1000 * sekPeak);

@@ -107,11 +107,18 @@ waehlbar), und die Uhr meldet den gemessenen Rueckstand im HALLO/Status.
 
 | Name | Inhalt | warum |
 |---|---|---|
-| `pf_foil` | Laufnummer, solange die Uhr einen Lauf erkennt, sonst 0 | Lauf-Grenzen ohne Rohdaten |
-| `pf_pumps` | Pumps in dieser Sekunde | Pump-Zahl, Positionen auf 1 s genau |
-| `pf_kad` | Pump-Kadenz (/min, gleitend 4 s) | Kadenz-Kurve |
+| `pf_foil` | Laufnummer, solange die Uhr einen Lauf erkennt (GPS-Regeln aller Uhren), sonst 0 | Lauf-Grenzen ohne Rohdaten; der Server kann mit den anderen Kanaelen neu entscheiden |
+| `pf_p1` | Pump-Marker: laufende Nummer + Versatz, 1234.37 = Pump Nr. 1234 lag 1,37 s vor dem Datenpunkt | jeder Pump mit Zeitpunkt (~0,04 s genau) -> Position, Gleitphasen, Kadenz |
+| `pf_p2` | der Pump davor, falls zwei in derselben Sekunde (bis 2 Hz) | Kadenz liegt meist bei 1,4–1,9 Hz |
 | `pf_int` | Bewegungsstaerke: Std. von |a| in der Sekunde (mg) | Pumpen vs. Gleiten vs. Paddeln |
 | `pf_peak` | groesste Abweichung von 1 g in der Sekunde (mg) | Stuerze, Aufsetzen, Wasserstart |
+
+Pump-Marker (Jans Idee, 17.10.2026): die Uhr erkennt einen Pump erst bis zu ~1 s spaeter (Periode +
+Filter), darum ist jeder Marker um genau 1 s verzoegert, der Bruchteil liegt immer in [0, 1). Die
+Nummer aendert sich bei jedem Pump — die Uhr speichert einen Log-Wert nur, wenn er sich aendert
+[DOK], so geht keiner verloren, und ein dritter Pump in einer Sekunde faellt als fehlende Nummer auf.
+Werte sind Gleitkomma [DOK, „Value": 1.7058…]; bei ~5000 Pumps bleibt ~1/2000 s Aufloesung.
+Was die Uhr als Pump erkennt, laesst sich nachtraeglich NICHT verbessern — nur mit Rohdaten (Weg 2).
 
 Ob diese Kanaele in der FIT-Datei stehen, die wir ueber `/v2/workout/exportFit` holen, ist
 **[UNKLAR]** — erst am ersten echten Workout pruefen.
@@ -121,7 +128,8 @@ Ob diese Kanaele in der FIT-Datei stehen, die wir ueber `/v2/workout/exportFit` 
 Streaming-Fassung von `server/app/ml/pumps.py:find_pumps_cadence`: Schwerkraft je Achse per
 Tiefpass (0,25 Hz), dynamische Beschleunigung auf die Schwerkraft projiziert (wie
 `vertical_against_gravity`), Bandpass 0,3–3 Hz, RMS-Gate 0,008 g ueber 4 s, Kadenz per
-Autokorrelation auf 10 Hz im Band 0,8–2 Hz, je Periode ein Peak. In Node gegen den Server-Zaehler
+DFT (Hann, 4 s, Bins wie der Server) auf 10 Hz im Band 0,8–2 Hz, je Periode ein Pump; dessen
+Zeitpunkt ist das Signal-Maximum der Periode (Parabel, Filterverzoegerung abgezogen). In Node gegen den Server-Zaehler
 auf echten Garmin-Laeufen geprueft (`watch-suunto/test/`).
 
 ## Code
