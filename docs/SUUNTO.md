@@ -262,7 +262,7 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
    ueberbrueckt ~80 s.
 5. Stehen die Log-Kanaele in der FIT-Datei der Cloud-API?
 6. Laeuft die App bei dunklem Display weiter (bei Suunto ueblich, da Teil der Aktivitaet)?
-7. Wie lange laeuft die App nach `onExerciseEnd` noch (Zusammenfassung)? Die App lebt nur innerhalb einer
+7. Wie lange laeuft die App nach dem Ende noch (Zusammenfassung)? Im Simulator kommt bei Stop KEIN `onExerciseEnd`, nur `onExercisePause` + `getSummaryOutputs` (17.10.) — die App schliesst darum auch in `getSummaryOutputs` ab (`beenden`, einmalig). In der Pause ruft der Simulator kein `evaluate` mehr; die App zeichnet darum nach jedem Ereignis sofort neu. Die App lebt nur innerhalb einer
    Aufnahme: nach dem Ende wird sie entladen, ihr RAM-Ring ist weg. Was bis dahin nicht beim Handy ist,
    fehlt — ausser `evaluate` laeuft in der Zusammenfassung weiter und der Funk schickt den Rest. Im Log
    eines Testers nachsehen (Debug-Fassung: `pf: onExerciseEnd`, danach noch Ereignisse?).

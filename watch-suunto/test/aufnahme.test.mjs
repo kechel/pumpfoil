@@ -51,7 +51,7 @@ function drehbuch(nLaeufe) {
 }
 
 /** Spielt das Drehbuch ab. stoerung(sekunde) -> true = Handy in dieser Sekunde weg. */
-function abspielen(db, { stoerung = () => false, ueberEvaluate = false, einstellungen = {}, pauseBei = -1 } = {}) {
+function abspielen(db, { stoerung = () => false, ueberEvaluate = false, einstellungen = {}, pauseBei = -1, ohneEnde = false } = {}) {
   const uhr = new Uhr({ einstellungen: { handy: "true", hz: "0", ...einstellungen } });
   uhr.ruf("onLoad");
   let utc = 1792200000, t = 0;
@@ -100,7 +100,7 @@ function abspielen(db, { stoerung = () => false, ueberEvaluate = false, einstell
   uhr.handy(true);
   uhr.ruf("onExercisePause");
   for (let k = 0; k < 15; k++) { uhr.bis(t += 1000); uhr.ruf("evaluate", { utc: utc + 9999, lt: utc }); }
-  uhr.ruf("onExerciseEnd");
+  if (!ohneEnde) uhr.ruf("onExerciseEnd");      // ohneEnde: wie der Simulator bei Stop (nur Pause + Zusammenfassung)
   uhr.bis(t += 2000);
   const zusammenfassung = uhr.ruf("getSummaryOutputs");
   return { uhr, zusammenfassung, pausiert, log };
@@ -179,6 +179,17 @@ test("mit Pause mitten in der Aufnahme: Zeitachse bleibt aktiv-zeitbasiert", () 
   for (let i = 1; i < b.length; i++) assert.equal(b[i].t - b[i - 1].t, 1000, "Block " + i);
   const arten = [...uhr.empf.ereignisse.values()].map((x) => x.art);
   assert.deepEqual(arten, [1, 2, 3, 2, 4]);
+});
+
+test("Ende auch ohne onExerciseEnd (Simulator: Stop = Pause + Zusammenfassung): Ende-Ereignis genau einmal", () => {
+  const db = drehbuch(1);
+  const { uhr } = abspielen(db, { ohneEnde: true });
+  uhr.bis(uhr.jetztMs + 3000);
+  const arten = [...uhr.empf.ereignisse.values()].map((x) => x.art);
+  assert.equal(arten.filter((a) => a === 4).length, 1, JSON.stringify(arten));
+  uhr.ruf("onExerciseEnd");       // kommt es doch noch: nicht doppelt
+  uhr.bis(uhr.jetztMs + 3000);
+  assert.equal([...uhr.empf.ereignisse.values()].filter((x) => x.art === 4).length, 1);
 });
 
 test("Handy-Sync aus: kein Funk, Log-Kanaele trotzdem", () => {
