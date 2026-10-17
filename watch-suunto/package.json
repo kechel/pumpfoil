@@ -1,0 +1,6 @@
+{
+  "name": "pumpfoil-suunto",
+  "private": true,
+  "type": "module",
+  "scripts": { "bau": "node bau.mjs", "test": "node --test test/" }
+}

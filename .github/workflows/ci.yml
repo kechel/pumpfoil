@@ -89,3 +89,18 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew :app:compileDebugKotlin :wear:compileDebugKotlin --no-daemon --stacktrace
+
+  suunto:
+    name: Suunto-App (node --test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: watch-suunto
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # Keine Abhaengigkeiten: prueft Pump-Zaehler, Funkprotokoll (auch ueber Abbrueche) und dass
+      # app/ zum Quellstand passt — auch wenn sich watch-huawei/common/lauf.js aendert.
+      - run: node --test test/

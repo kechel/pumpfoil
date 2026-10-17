@@ -1,0 +1,105 @@
+/*
+ * Pump-Zaehler auf der Uhr — Streaming-Fassung von server/app/ml/pumps.py:find_pumps_cadence.
+ *
+ * Server (offline, ganzer Lauf): Schwerkraft je Achse per Tiefpass 0,25 Hz, dynamische Beschleunigung
+ * auf die Schwerkraft projiziert (vertical_against_gravity), Bandpass 0,3–3 Hz, in rhythmischen
+ * Abschnitten (RMS >= 0,008 g ueber 4 s, mindestens 1 s lang) je lokaler Pump-Periode ein Peak.
+ * Die Zahl der Peaks ist damit im Kern „Dauer der rhythmischen Abschnitte x lokale Kadenz".
+ *
+ * Hier (kausal, je Wert): dieselbe Kette mit IIR-Filtern, Kadenz per DFT (Hann) auf 10 Hz
+ * ueber 4 s im Band 0,8–2 Hz, alle 0,5 s neu geschaetzt; eine Phase laeuft mit der Kadenz mit und
+ * jeder volle Umlauf ist ein Pump. Ein Abschnitt zaehlt erst nach 1 s — dann wird diese erste
+ * Sekunde nachgezaehlt, wie beim Server.
+ *
+ * ES5 fuer Duktape (SuuntoPlus): nur Float32Array, kein Date. In Node gegen den Server-Zaehler
+ * geprueft (test/pumpe.test.mjs).
+ */
+var PUMPE_GATE_G = 0.008, PUMPE_WIN_S = 4, PUMPE_DEZ_HZ = 10, PUMPE_MIN_S = 1;
+var PUMPE_BIN_MIN = 4, PUMPE_BIN_MAX = 8;          // Bin k = k/4 Hz -> 1,0 … 2,0 Hz (Band 0,8–2)
+
+var pumpeBiquad = function (typ, fs, fc) {
+  // RBJ-Biquad, Q = 1/sqrt(2) (Butterworth 2. Ordnung)
+  var w = 2 * Math.PI * fc / fs, cs = Math.cos(w), al = Math.sin(w) / (2 * 0.7071067811865476);
+  var b0, b1, b2, a0 = 1 + al;
+  if (typ === 0) { b0 = (1 - cs) / 2; b1 = 1 - cs; b2 = b0; } else { b0 = (1 + cs) / 2; b1 = -(1 + cs); b2 = b0; }
+  return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: -2 * cs / a0, a2: (1 - al) / a0, x1: 0, x2: 0, y1: 0, y2: 0 };
+};
+var pumpeFilter = function (f, x) {
+  var y = f.b0 * x + f.b1 * f.x1 + f.b2 * f.x2 - f.a1 * f.y1 - f.a2 * f.y2;
+  f.x2 = f.x1; f.x1 = x; f.y2 = f.y1; f.y1 = y;
+  return y;
+};
+
+var Pumpe = function (fs) {
+  this.fs = fs;
+  this.alpha = 1 - Math.exp(-2 * Math.PI * 0.25 / fs);   // Schwerkraft-Tiefpass 0,25 Hz
+  this.gx = 0; this.gy = 0; this.gz = 1; this.n = 0;
+  this.hp = pumpeBiquad(1, fs, 0.3); this.lp = pumpeBiquad(0, fs, 3.0);
+  this.dez = Math.max(1, Math.round(fs / PUMPE_DEZ_HZ));
+  this.dzSum = 0; this.dzN = 0;
+  this.ring = new Float32Array(PUMPE_WIN_S * PUMPE_DEZ_HZ); this.rPos = 0; this.rVoll = 0;
+  this.schritt = 0;                // 10-Hz-Schritte seit der letzten Kadenz-Schaetzung
+  this.f = 0;                      // aktuelle Kadenz (Hz), 0 = kein Rhythmus
+  this.rhythmS = 0;                // Dauer des laufenden rhythmischen Abschnitts (s)
+  this.phase = 0;
+  this.gesamt = 0;
+};
+
+/** Ein Wert (in g). Gibt die Zahl der in diesem Schritt gezaehlten Pumps zurueck (meist 0). */
+Pumpe.prototype.wert = function (ax, ay, az) {
+  var a = this.alpha;
+  if (this.n === 0) { this.gx = ax; this.gy = ay; this.gz = az; }
+  else { this.gx += a * (ax - this.gx); this.gy += a * (ay - this.gy); this.gz += a * (az - this.gz); }
+  this.n++;
+  var gn = Math.sqrt(this.gx * this.gx + this.gy * this.gy + this.gz * this.gz) || 1;
+  var v = ((ax - this.gx) * this.gx + (ay - this.gy) * this.gy + (az - this.gz) * this.gz) / gn;
+  v = pumpeFilter(this.lp, pumpeFilter(this.hp, v));
+  this.dzSum += v; this.dzN++;
+  var neu = 0;
+  if (this.dzN >= this.dez) {
+    this.ring[this.rPos] = this.dzSum / this.dzN; this.rPos = (this.rPos + 1) % this.ring.length;
+    if (this.rVoll < this.ring.length) this.rVoll++;
+    this.dzSum = 0; this.dzN = 0;
+    if (++this.schritt >= PUMPE_DEZ_HZ / 2) { this.schritt = 0; this.schaetzen(); }
+    if (this.f > 0) {
+      var dt = 1 / PUMPE_DEZ_HZ;
+      var vorher = this.rhythmS;
+      this.rhythmS += dt;
+      this.phase += this.f * dt;
+      if (vorher < PUMPE_MIN_S && this.rhythmS >= PUMPE_MIN_S) {
+        neu = Math.floor(this.phase); this.phase -= neu;      // erste Sekunde nachzaehlen
+      } else if (this.rhythmS >= PUMPE_MIN_S && this.phase >= 1) {
+        neu = Math.floor(this.phase); this.phase -= neu;
+      }
+    } else { this.rhythmS = 0; this.phase = 0; }
+  }
+  this.gesamt += neu;
+  return neu;
+};
+
+Pumpe.prototype.schaetzen = function () {
+  var n = this.rVoll, L = this.ring.length;
+  if (n < L) { this.f = 0; return; }
+  var s = 0, i, k, x = this.puffer || (this.puffer = new Float32Array(L));
+  for (i = 0; i < L; i++) { x[i] = this.ring[(this.rPos + i) % L]; s += x[i] * x[i]; }
+  if (Math.sqrt(s / L) < PUMPE_GATE_G) { this.f = 0; return; }
+  // Wie der Server (_dom_pump_freq): Hann-Fenster ueber 4 s, staerkster DFT-Bin im Band 0,8–2 Hz.
+  // 4 s -> Bins im Abstand 0,25 Hz (1,0 / 1,25 / … / 2,0) — dieselbe Rasterung wie dort.
+  var best = 0, bestK = 0, w = this.hann || (this.hann = pumpeHann(L));
+  for (k = PUMPE_BIN_MIN; k <= PUMPE_BIN_MAX; k++) {
+    var re = 0, im = 0, c = 2 * Math.PI * k / L;
+    for (i = 0; i < L; i++) { var y = x[i] * w[i]; re += y * Math.cos(c * i); im -= y * Math.sin(c * i); }
+    var p = re * re + im * im;
+    if (p > best) { best = p; bestK = k; }
+  }
+  this.f = bestK ? bestK * PUMPE_DEZ_HZ / L : 0;
+};
+
+var pumpeHann = function (L) {
+  var w = new Float32Array(L), i;
+  for (i = 0; i < L; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (L - 1));
+  return w;
+};
+
+/** Kadenz in Pumps je Minute (0 ohne Rhythmus). */
+Pumpe.prototype.kadenz = function () { return this.rhythmS >= PUMPE_MIN_S ? Math.round(this.f * 60) : 0; };

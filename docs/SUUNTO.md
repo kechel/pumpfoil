@@ -83,8 +83,8 @@ Alle Zahlen little-endian. Byte 0 = Pakettyp.
 | `0x01` HALLO | ver u8, hz u8, display u8 (`n`/`o`/`q` als ASCII), appVer u16 (×100), uhrId u32 (Zufall, einmal in `localStorage`), sitzung u32 (Startzeit, Unix-s; 0 = noch keine Aufnahme), flags u8 (bit0 Aufnahme laeuft, bit1 Pause), einheit u8 (0 m/s², 1 g, 2 mg) |
 | `0x02` ACCEL-Kopf | block u16, t_ms u32 (aktive Zeit seit Start), n u8 (Werte im Block), dann bis zu 12 Bytes Nutzdaten |
 | `0x03` ACCEL-Teil | block u8 (unteres Byte), teil u8, 18 Bytes Nutzdaten |
-| `0x04` GPS | sek u16 (aktive Sekunde), lat i32, lon i32 (Grad·1e7), speed u16 (cm/s, 0xFFFF = unbekannt), hr u8 (0 = keiner), acc u8 (m, 255 = unbekannt), alt i16 (m) — 19 Bytes |
-| `0x05` EREIGNIS | art u8 (1 Start, 2 Pause, 3 Weiter, 4 Ende, 5 Verwerfen), t_ms u32, sek u16 |
+| `0x04` GPS | sek u16 (aktive Sekunde), lat i32, lon i32 (Grad·1e7), speed u16 (cm/s, 0xFFFF = unbekannt), hr u8 (0 = keiner), acc u8 (m, 255 = unbekannt), alt i16 (m), nr u16 (laufende Nummer, die quittiert wird), frei u8 — 20 Bytes |
+| `0x05` EREIGNIS | nr u8 (laufend, umlaufend), art u8 (1 Start, 2 Pause, 3 Weiter, 4 Ende, 5 Verwerfen), t_ms u32, sek u16 |
 | `0x06` POSITION | lat i32, lon i32 — erster Fix im Startzustand, einmal je App-Start |
 
 Ein Block = die Werte eines Beschleunigungs-Aufrufs (50 Hz: 25 Werte = 150 Bytes = Kopf + 8 Teile;
@@ -94,7 +94,7 @@ Ein Block = die Werte eines Beschleunigungs-Aufrufs (50 Hz: 25 Werte = 150 Bytes
 
 | Typ | Inhalt |
 |---|---|
-| `0x81` QUITTUNG | block u16 (alles bis einschliesslich ist angekommen), sek u16 (GPS bis einschliesslich) |
+| `0x81` QUITTUNG | block u16 (Accel bis einschliesslich angekommen), nr u16 (GPS bis einschliesslich, laufende Nummer), ereignis u8 (Nummer des letzten Ereignisses), flags u8 (bit0/1/2: block/sek/ereignis gueltig) |
 | `0x82` STATUS | flags u8 (bit0 Konto verbunden, bit1 Server erreichbar, bit2 laedt hoch), offen u16 (Chunks, die noch zum Server muessen) |
 | `0x83` KONFIG | schluessel u8, wert … (Seiten, Alarme, Sprache — Teilstuecke wie bei Huawei `KONFIG_SCHLUESSEL`) |
 
