@@ -118,3 +118,12 @@ test("Runden: stille Runde (Typ 23) an Anfang und Ende jedes Laufs, nicht ohne T
   assert.equal(runden.length, 2, JSON.stringify(uhr.puts));
   assert.ok(runden.every((p) => p[2] === 23));
 });
+
+test("ohne Konfiguration vom Handy: Standard-Layouts aus dem Build, nicht die klassischen Seiten", () => {
+  const uhr = new Uhr({ einstellungen: { handy: "false" } });
+  uhr.ruf("onLoad"); uhr.ruf("getUserInterface"); uhr.ruf("onExerciseStart", { utc: 1 });
+  uhr.ruf("evaluate", { tmr: 1000, sp: 0, hr: 1.1, utc: 2, lt: 36000 });
+  const txt = uhr.sichtbar().map((x) => x.txt);
+  assert.ok(txt.includes("LAST RUN"), "Standard-Layout zwischen den Laeufen: " + txt.join(" | "));
+  assert.ok(!txt.includes("Clock"), "nicht die klassische Seite");
+});

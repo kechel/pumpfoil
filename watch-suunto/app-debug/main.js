@@ -1449,9 +1449,10 @@ function onLoad(input, output) {
   if (typeof sprache !== "number") sprache = 3;
   var gk = konfigGespeichert();
   if (gk && typeof gk.spr === "number") sprache = gk.spr;
-  kf = new Konfig(null);
-  kfRoh = null;
-  if (gk) { kf = new Konfig(mitStandard(gk)); kfRoh = gk; }
+  // Ohne Konfiguration vom Handy (frisch installiert, nie verbunden): die Standard-Layouts aus dem Build
+  // (ext2.js, dieselben wie /config fuer neue Nutzer) statt der klassischen Drei-Felder-Seiten.
+  kf = new Konfig(mitStandard(gk || { pages: "std", offFoilPages: "std", pausePages: "std" }));
+  kfRoh = gk || null;
   aw = new Auswahl(null);      // ohne Einstellungsseite auf der Uhr: immer aus dem Profil, nicht gespeichert
   aw.vorbelegen(kf);
   st = new Stand(); al = new Alarm(); pu = new Pumpe(50);
