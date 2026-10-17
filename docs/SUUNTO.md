@@ -214,7 +214,7 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
 | „Handy nimmt auf"-Hinweis | ✅ | ✅ ueber STATUS (auch im Startzustand) |
 | Upload waehrend / in der Pause (`/analyze`) / danach | ✅ | ✅ durch die Handy-Bruecke |
 | Puffer-Anzeige, Warnung vor Verlust | Garmin (Speicher) | ✅ Rueckstand und verlorene Sekunden in der Statuszeile (RAM-Ring ~80 s) |
-| Update-Hinweis | `latestVersion` | ✅ im Startbildschirm — braucht einen `suunto`-Eintrag in `appmeta._APP_META`, **erst bei der Store-Freigabe** |
+| Update-Hinweis | `latestVersion` | ✅ die ersten 15 s der Aufnahme oben (einen Startbildschirm zeigt Suunto nicht: die App-Seite kommt laut Referenz erst nach dem Start, im Simulator bestaetigt) — braucht einen `suunto`-Eintrag in `appmeta._APP_META`, **erst bei der Store-Freigabe** |
 | Pause, Ende, Zusammenfassung | eigene Bildschirme | Suunto-eigene Bedienung; Zusammenfassung mit Laeufen, Pumps, laengstem Lauf |
 | Verwerfen | loescht lokal | ❌ die App erfaehrt nicht, ob der Nutzer speichert oder verwirft — die Bruecken-Session bleibt; der Nutzer loescht sie bei uns |
 | Auto-Start, Touch-Sperre, Stopp-Modus | eigene Einstellungen | Sache der Suunto-Firmware |
