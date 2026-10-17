@@ -37,7 +37,7 @@ function anker(x) {
   const m = /^#k(\d)([lcr])_/.exec(x.id), k = +m[1], a = m[2];
   assert.ok(/^-?[\d.]+%$/.test(x.left) && /^-?[\d.]+%$/.test(x.top), "nur reine Prozente: " + x.left + " " + x.top);
   const l = parseFloat(x.left), t = parseFloat(x.top);
-  return { a, x: Math.round(10 * (a === "l" ? l : a === "r" ? l + 100 : l + 50)), y: Math.round(10 * (t + HOEHE[k] * 80 / 466)) };
+  return { a, x: Math.round(10 * (a === "l" ? l : a === "r" ? l + 100 : l + 50)), y: Math.round(10 * (t + HOEHE[k] * 90 / 466)) };
 }
 
 function aufnahme(konfig) {
