@@ -67,8 +67,11 @@ targets:
         # „Record on Phone": Hintergrund-Aufnahme GPS + Bewegung (freigegeben, kein Beta).
         NSLocationAlwaysAndWhenInUseUsageDescription: "Zeichnet den GPS-Track deiner Session auf — auch im Hintergrund, wenn das Handy in der Tasche ist."
         NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung während der Aufnahme."
+        NSBluetoothAlwaysUsageDescription: "Empfängt die Aufnahme deiner Suunto-Uhr (Pumpfoil-App auf der Uhr) und lädt sie hoch."
         UIBackgroundModes:
           - location
+          # Suunto-Bruecke (SuuntoBruecke.swift): GATT-Peripheral fuer die SuuntoPlus-App
+          - bluetooth-peripheral
         # Ruecksprung aus dem Systembrowser nach einer Anbieter-Anmeldung (Facebook & Co.).
         # `ASWebAuthenticationSession` braucht das Schema hier angemeldet, sonst findet iOS den
         # Weg zurueck in die App nicht. Der Server leitet auf `pumpfoil://auth#token=...`.

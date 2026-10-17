@@ -142,6 +142,9 @@ auf echten Garmin-Laeufen geprueft (`watch-suunto/test/`).
 - `watch-suunto/test/` — Node-Harness: laedt die echte main.js mit nachgebauten Firmware-Objekten
   (`appConn`, `evalFile`, `localStorage`, `playIndication`) und spielt Aufnahmen durch, inkl.
   vieler Verbindungsabbrueche.
+- iPhone: `SuuntoProtokoll.swift` (rein, auf Linux gegen dieselben Testvektoren UND die Dateien der
+  Android-Ablage geprueft: `watch-suunto/test/swift/pruefen.sh`) und `SuuntoBruecke.swift`
+  (`CBPeripheralManager`, Hintergrundmodus `bluetooth-peripheral`, Karte im Uhren-Bereich).
 - Handy: `SuuntoProtokoll.kt` (Android, rein: Empfang, Chunks, Ablage — Unit-Tests gegen die Pakete
   der echten Uhr-App aus `watch-suunto/test/golden.mjs`) und `SuuntoBruecke.kt` (`BluetoothGattServer`
   + Vordergrund-Dienst `connectedDevice`, Upload laufend/Pause/Ende, Positionsmeldung, Karte im
