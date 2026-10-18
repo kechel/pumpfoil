@@ -829,6 +829,49 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 18.10.2026 (Jans Meldung, Play Console „Änderungen, die überprüft werden — Schnelle
+    # Vorabprüfungen", Produktion 58 (1.1.43), Produktion (Wear OS) 1054 (1.2.43)). 57/1053 waren am 14.10.
+    # schon fuer Jans Test hochgeladen (verbraucht).
+    {"name": "Android phone + Wear OS", "version": "1.1.43 / 1.2.43",
+     "eingereicht": "2026-10-18",
+     "items": [
+         "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
+         "Home shows when your phone is recording and which of your watches is probably recording right now.",
+         "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
+         "While recording, the stop button always stays on screen, the title bar is gone to give the map more room, and the map no longer flickers while you hold stop.",
+         "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
+         "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
+         # 15.10.2026: Brett-Automatik (Server 700eb422), Hinweis wie in der PWA.
+         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
+         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
+         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
+         "The session list and the Community page have a Friends view with only you and your friends.",
+         "Home shows which of your friends are pumping right now and where.",
+         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
+         # 16.10.2026: Heatmap & Routen auf der Spot-Seite, Routen in der Community, Schutzgebiete
+         # (Android 0fecf406/f9f7de2a/38b89b0c, iOS 871a5329 + Folgecommit; PWA seit 16.10.).
+         "Every spot page has a heatmap of where riders pump or start, and you can plan freefoiling routes from the start spots riders really use there, as round trips or from A to B, including start spots of neighbouring spots within a radius you choose.",
+         "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
+         "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
+         "Home links to your home spot, and wind directions use your app language.",
+         # 16.10.2026 abends (4b079268, fa8d11e4, f131cefa), wie die PWA.
+         "Friend requests show at the top of Home, where you can accept them directly or decline them quietly.",
+         "You can edit the name, volume and length of your boards in your setup afterwards.",
+         "Runs on the maps are always drawn as one line, and short GPS gaps in a run are bridged with a curve.",
+         # 18.10.2026: Abgleich vor dem Release (PWA seit 14.-17.10.).
+         "After you enter the code from your watch, the app only says connected once the watch has really picked up the connection, and tells you what to do if it does not.",
+         "Notifications about friends can be switched off in your settings.",
+         "The Suunto account card tells you which mode to record with.",
+         "The privacy section now also explains live uploads during a recording and the green active spots.",
+         # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
+         "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
+         # --- Wear OS 1.2.43 ---
+         "The watch start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
+         # 15.10.2026 (deb99c81): Waechter riss die Uebung ab, wenn die Uhr eine Weile im Wasser war (#16671).
+         "Heart rate and the more accurate GPS keep recording after your watch has been underwater for a few minutes.",
+         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
+     ]},
     # EINGEREICHT 18.10.2026 09:32 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.51 (58),
     # Kennung 8f57a373-d157-42b2-91db-51355d3b9b97). Build 57 war vorher schon hochgeladen (verbraucht).
     {"name": "iPhone + Apple Watch", "version": "1.1.51",
@@ -983,50 +1026,11 @@ NAECHSTES: list[dict] = [
     # 14.10.2026: Live-Upload (5c36ed35), Live-Anzeigen + gerade am Pumpen + Aufnahme-Bildschirm
     # (08339c1c). Android-Phone fuer Jans Test auf 1.1.43 gebumpt; iOS nicht (erst beim Release).
     # Dazu am 14.10. abends: Pulsabfall-Spalten + gruene Spots (Android 0a1e3e64, iOS 03ab0213).
-    {"name": "Android phone", "version": "1.1.43",
-     "items": [
-         "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
-         "Home shows when your phone is recording and which of your watches is probably recording right now.",
-         "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
-         "While recording, the stop button always stays on screen, the title bar is gone to give the map more room, and the map no longer flickers while you hold stop.",
-         "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
-         "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
-         # 15.10.2026: Brett-Automatik (Server 700eb422), Hinweis wie in der PWA.
-         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
-         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
-         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
-         "The session list and the Community page have a Friends view with only you and your friends.",
-         "Home shows which of your friends are pumping right now and where.",
-         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
-         # 16.10.2026: Heatmap & Routen auf der Spot-Seite, Routen in der Community, Schutzgebiete
-         # (Android 0fecf406/f9f7de2a/38b89b0c, iOS 871a5329 + Folgecommit; PWA seit 16.10.).
-         "Every spot page has a heatmap of where riders pump or start, and you can plan freefoiling routes from the start spots riders really use there, as round trips or from A to B, including start spots of neighbouring spots within a radius you choose.",
-         "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
-         "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
-         "Home links to your home spot, and wind directions use your app language.",
-         # 16.10.2026 abends (4b079268, fa8d11e4, f131cefa), wie die PWA.
-         "Friend requests show at the top of Home, where you can accept them directly or decline them quietly.",
-         "You can edit the name, volume and length of your boards in your setup afterwards.",
-         "Runs on the maps are always drawn as one line, and short GPS gaps in a run are bridged with a curve.",
-         # 18.10.2026: Abgleich vor dem Release (PWA seit 14.-17.10.).
-         "After you enter the code from your watch, the app only says connected once the watch has really picked up the connection, and tells you what to do if it does not.",
-         "Notifications about friends can be switched off in your settings.",
-         "The Suunto account card tells you which mode to record with.",
-         "The privacy section now also explains live uploads during a recording and the green active spots.",
-         # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
-         "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
-     ]},
+    # Android phone am 18.10. eingereicht -> IN_REVIEW (zusammen mit Wear OS).
     # iPhone + Apple Watch 1.1.51 am 18.10. eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.50 am 16.10. eingereicht -> IN_REVIEW.
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
-    {"name": "Wear OS", "version": "1.2.43",
-     "items": [
-         "The watch start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
-         # 15.10.2026 (deb99c81): Waechter riss die Uebung ab, wenn die Uhr eine Weile im Wasser war (#16671).
-         "Heart rate and the more accurate GPS keep recording after your watch has been underwater for a few minutes.",
-         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-     ]},
+    # Wear OS am 18.10. eingereicht -> IN_REVIEW (zusammen mit Android phone).
     {"name": "Huawei Watch 5", "version": "1.0.3",
      "items": [
          "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
