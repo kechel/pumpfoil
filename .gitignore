@@ -111,3 +111,10 @@ watch-suunto/app/build/
 watch-suunto/app-debug/build/
 watch-suunto/app/*.zip
 watch-suunto/app-debug/*.zip
+watch-suunto/app/*.dev
+watch-suunto/app-debug/*.dev
+
+# Zepp: von zepp.mjs erzeugt (DEV_FAKE_GPS), nie versionieren. Steht auch in watch-zepp/.gitignore,
+# aber das Zepp-Werkzeug auf dem Mac schreibt jene Datei neu und wirft die Zeile raus (10.10. und
+# 18.10. dieselbe Aenderung) -> hier oben ist sie davor sicher.
+watch-zepp/page/devflags.js
