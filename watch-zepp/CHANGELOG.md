@@ -10,7 +10,11 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
-## Unreleased (naechste: 1.0.14, noch nicht gebumpt)
+## 1.0.14 — gebumpt am 18.10.2026 (code 17), zur Einreichung
+
+- **Spot-Meldung beim ersten GPS-Fix** (`81b91fef`, 15.10.2026, wie Garmin 1.0.94): im Startbildschirm
+  einmal je App-Start `POSITION` ueber die App-Side -> `POST /api/devices/position` (nur der Spot <= 1 km
+  wird gespeichert); bei Netzfehler beim naechsten Fix erneut, bei 2xx/4xx nicht mehr.
 
 - **Speicher voll an den Server melden** (`fc953a91`): `sf`/`kb` im CONFIG wie Garmin.
 - **Wie Garmin 1.0.93** (15.10.2026): Startseite zeigt statt „Verbunden ✓" „Handy nimmt auf" bzw.
