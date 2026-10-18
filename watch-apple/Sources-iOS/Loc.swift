@@ -4603,7 +4603,20 @@ static let nlOverlay: [String: String] = {
         "id": "Jam ini sudah terhubung.",
         "nb": "Denne klokka er allerede koblet til.",
     ]
+    // 18.10.2026 (Jan): Kurztexte fuer die Knopfreihe der Spot-Heatmap, damit sie in eine Zeile passt.
+    private static let _neu3_heat_chipFoil: [String: String] = ["de": "Foil", "gsw": "Foil", "de-AT": "Foil", "en": "Foil", "fr": "Foil", "it": "Foil", "es": "Foil", "fi": "Foil", "nl": "Foil", "cs": "Foil", "pl": "Foil", "pt": "Foil", "pt-PT": "Foil", "ja": "フォイル", "zh": "水翼", "ru": "Фойл", "id": "Foil", "nb": "Foil"]
+    private static let _neu3_heat_chipStart: [String: String] = ["de": "Starts", "gsw": "Starts", "de-AT": "Starts", "en": "Starts", "fr": "Départs", "it": "Partenze", "es": "Salidas", "fi": "Lähdöt", "nl": "Starts", "cs": "Starty", "pl": "Starty", "pt": "Saídas", "pt-PT": "Partidas", "ja": "スタート", "zh": "起点", "ru": "Старты", "id": "Start", "nb": "Starter"]
+    private static let _neu3_heat_chip1y: [String: String] = ["de": "1 J", "gsw": "1 J", "de-AT": "1 J", "en": "1y", "fr": "1 an", "it": "1 a", "es": "1 a", "fi": "1 v", "nl": "1 j", "cs": "1 r", "pl": "1 r", "pt": "1 a", "pt-PT": "1 a", "ja": "1年", "zh": "1年", "ru": "1 г", "id": "1 th", "nb": "1 år"]
+    private static let _neu3_heat_chip30d: [String: String] = ["de": "30 T", "gsw": "30 T", "de-AT": "30 T", "en": "30d", "fr": "30 j", "it": "30 g", "es": "30 d", "fi": "30 pv", "nl": "30 d", "cs": "30 d", "pl": "30 d", "pt": "30 d", "pt-PT": "30 d", "ja": "30日", "zh": "30天", "ru": "30 д", "id": "30 h", "nb": "30 d"]
+    private static let _neu3_heat_chipOff: [String: String] = ["de": "Aus", "gsw": "Us", "de-AT": "Aus", "en": "Off", "fr": "Off", "it": "Off", "es": "No", "fi": "Pois", "nl": "Uit", "cs": "Vyp", "pl": "Wył", "pt": "Off", "pt-PT": "Off", "ja": "オフ", "zh": "关", "ru": "Выкл", "id": "Mati", "nb": "Av"]
+    private static let _neu3_heat_chipRoute: [String: String] = ["de": "Route", "gsw": "Route", "de-AT": "Route", "en": "Route", "fr": "Route", "it": "Percorso", "es": "Ruta", "fi": "Reitti", "nl": "Route", "cs": "Trasa", "pl": "Trasa", "pt": "Rota", "pt-PT": "Rota", "ja": "ルート", "zh": "路线", "ru": "Маршрут", "id": "Rute", "nb": "Rute"]
     static let neuTexte3: [String: [String: String]] = [
+        "heat.chipFoil": _neu3_heat_chipFoil,
+        "heat.chipStart": _neu3_heat_chipStart,
+        "heat.chip1y": _neu3_heat_chip1y,
+        "heat.chip30d": _neu3_heat_chip30d,
+        "heat.chipOff": _neu3_heat_chipOff,
+        "heat.chipRoute": _neu3_heat_chipRoute,
         "account.claimAlready": _neu3_account_claimAlready,
         "notif.typeFriend": _neu3_notif_typeFriend,
         "settings.suunto.activity": _neu3_settings_suunto_activity,

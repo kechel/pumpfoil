@@ -164,4 +164,11 @@ internal val NEU: Map<String, Map<String, String>> = mapOf(
         "id" to "Jam ini sudah terhubung.",
         "nb" to "Denne klokka er allerede koblet til.",
     ),
+    // 18.10.2026 (Jan): Kurztexte fuer die Knopfreihe der Spot-Heatmap, damit sie in eine Zeile passt.
+    "heat.chipFoil" to mapOf("de" to "Foil", "gsw" to "Foil", "de-AT" to "Foil", "en" to "Foil", "fr" to "Foil", "it" to "Foil", "es" to "Foil", "fi" to "Foil", "nl" to "Foil", "cs" to "Foil", "pl" to "Foil", "pt" to "Foil", "pt-PT" to "Foil", "ja" to "フォイル", "zh" to "水翼", "ru" to "Фойл", "id" to "Foil", "nb" to "Foil"),
+    "heat.chipStart" to mapOf("de" to "Starts", "gsw" to "Starts", "de-AT" to "Starts", "en" to "Starts", "fr" to "Départs", "it" to "Partenze", "es" to "Salidas", "fi" to "Lähdöt", "nl" to "Starts", "cs" to "Starty", "pl" to "Starty", "pt" to "Saídas", "pt-PT" to "Partidas", "ja" to "スタート", "zh" to "起点", "ru" to "Старты", "id" to "Start", "nb" to "Starter"),
+    "heat.chip1y" to mapOf("de" to "1 J", "gsw" to "1 J", "de-AT" to "1 J", "en" to "1y", "fr" to "1 an", "it" to "1 a", "es" to "1 a", "fi" to "1 v", "nl" to "1 j", "cs" to "1 r", "pl" to "1 r", "pt" to "1 a", "pt-PT" to "1 a", "ja" to "1年", "zh" to "1年", "ru" to "1 г", "id" to "1 th", "nb" to "1 år"),
+    "heat.chip30d" to mapOf("de" to "30 T", "gsw" to "30 T", "de-AT" to "30 T", "en" to "30d", "fr" to "30 j", "it" to "30 g", "es" to "30 d", "fi" to "30 pv", "nl" to "30 d", "cs" to "30 d", "pl" to "30 d", "pt" to "30 d", "pt-PT" to "30 d", "ja" to "30日", "zh" to "30天", "ru" to "30 д", "id" to "30 h", "nb" to "30 d"),
+    "heat.chipOff" to mapOf("de" to "Aus", "gsw" to "Us", "de-AT" to "Aus", "en" to "Off", "fr" to "Off", "it" to "Off", "es" to "No", "fi" to "Pois", "nl" to "Uit", "cs" to "Vyp", "pl" to "Wył", "pt" to "Off", "pt-PT" to "Off", "ja" to "オフ", "zh" to "关", "ru" to "Выкл", "id" to "Mati", "nb" to "Av"),
+    "heat.chipRoute" to mapOf("de" to "Route", "gsw" to "Route", "de-AT" to "Route", "en" to "Route", "fr" to "Route", "it" to "Percorso", "es" to "Ruta", "fi" to "Reitti", "nl" to "Route", "cs" to "Trasa", "pl" to "Trasa", "pt" to "Rota", "pt-PT" to "Rota", "ja" to "ルート", "zh" to "路线", "ru" to "Маршрут", "id" to "Rute", "nb" to "Rute"),
 )

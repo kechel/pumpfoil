@@ -113,13 +113,13 @@ struct SpotHeatmapPanel: View {
 
     private var knoepfe: some View {
         FoilerFliessReihe(abstand: 6) {
-            Pille(text: Loc.t("spots.heatFoil", lang), aktiv: art == "foil") { art = "foil" }
-            Pille(text: Loc.t("spots.heatStart", lang), aktiv: art == "start") { art = "start" }
-            Pille(text: Loc.t("period.365d", lang), aktiv: wahl == "365d") { wahl = "365d" }
-            Pille(text: Loc.t("period.30d", lang), aktiv: wahl == "30d") { wahl = "30d" }
-            Pille(text: Loc.t("spots.heatOff", lang), aktiv: wahl == "off") { wahl = "off" }
+            Pille(text: Loc.t("heat.chipFoil", lang), aktiv: art == "foil") { art = "foil" }
+            Pille(text: Loc.t("heat.chipStart", lang), aktiv: art == "start") { art = "start" }
+            Pille(text: Loc.t("heat.chip1y", lang), aktiv: wahl == "365d") { wahl = "365d" }
+            Pille(text: Loc.t("heat.chip30d", lang), aktiv: wahl == "30d") { wahl = "30d" }
+            Pille(text: Loc.t("heat.chipOff", lang), aktiv: wahl == "off") { wahl = "off" }
             // Routen planen: hervorgehoben (Jan)
-            Pille(text: Loc.t("routes.plan", lang), aktiv: z.planen, betont: true) { z.planen.toggle() }
+            Pille(text: Loc.t("heat.chipRoute", lang), aktiv: z.planen, betont: true) { z.planen.toggle() }
         }
     }
 
