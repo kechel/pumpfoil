@@ -578,14 +578,16 @@ fun SuuntoKarte() {
     val st by SuuntoBruecke.stand.collectAsState()
     var verknuepft by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        SuuntoBruecke.start(ctx)
-        verknuepft = try { Api.integrationStatus("suunto").linked } catch (_: Exception) { false }
+        // Bruecke nur mit verknuepftem Suunto-Konto (Jan, 18.10.2026); offline gilt der letzte Stand.
+        val konto = try { Api.integrationStatus("suunto").linked } catch (_: Exception) { null }
+        SuuntoBruecke.start(ctx, konto)
+        verknuepft = SuuntoBruecke.verknuepft(ctx)
     }
     val rechte = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) {
         SuuntoBruecke.einschalten(ctx)   // prueft selbst und meldet „rechte", wenn abgelehnt
     }
-    if (!verknuepft && !st.an) return
+    if (!verknuepft) return
     Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Column(Modifier.padding(16.dp)) {
             Text(I18n.t("suunto.title"), style = MaterialTheme.typography.titleMedium)
