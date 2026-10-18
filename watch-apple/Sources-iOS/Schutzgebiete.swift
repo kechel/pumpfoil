@@ -47,6 +47,9 @@ final class SchutzLader {
     private var aufgabe: Task<Void, Never>? = nil
     private var versuche = 0
     private var gestoppt = false
+    // Bereich (w, s, e, n), fuer den schon alles geladen ist (Sicht + Rand). Liegt die neue Sicht darin,
+    // wird nicht neu gefragt — die Aufnahme-Karte verschiebt sich je GPS-Punkt (wie Android, 18.10.2026).
+    private var geladen: (w: Double, s: Double, e: Double, n: Double)?
 
     init(map: MKMapView) {
         self.map = map
@@ -77,6 +80,7 @@ final class SchutzLader {
         let r = map.region
         let w = r.center.longitude - r.span.longitudeDelta / 2, e = r.center.longitude + r.span.longitudeDelta / 2
         let s = r.center.latitude - r.span.latitudeDelta / 2, n = r.center.latitude + r.span.latitudeDelta / 2
+        if let g = geladen, w >= g.w, e <= g.e, s >= g.s, n <= g.n { return }
         guard let a = try? await Api.schutzgebiete(w: w, s: s, e: e, n: n), !gestoppt, !Task.isCancelled else { return }
         var neu: [SchutzPolygon] = []
         for f in a.flaechen where !da.contains(f.id) {
@@ -97,6 +101,10 @@ final class SchutzLader {
         polygone += neu
         if SchutzZustand.shared.an { map.addOverlays(neu, level: .aboveRoads) }
         SchutzZustand.shared.gezeichnet = arten
+        if !a.unvollstaendig {
+            let rw = r.span.longitudeDelta * 0.3, rh = r.span.latitudeDelta * 0.3
+            geladen = (w - rw, s - rh, e + rw, n + rh)
+        }
         if a.unvollstaendig && versuche < 6 {
             versuche += 1
             try? await Task.sleep(nanoseconds: 6_000_000_000)

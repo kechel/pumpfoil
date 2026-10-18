@@ -340,12 +340,15 @@ private struct LiveTrackMap: UIViewRepresentable {
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
-        map.mapType = MapTiles.typ(ebene)
+        let typ = MapTiles.typ(ebene)
+        if map.mapType != typ { map.mapType = typ }   // nur bei echtem Wechsel
         context.coordinator.onFoil = onFoil
-        map.removeOverlays(map.overlays.filter { !($0 is SchutzPolygon) })
         guard track.count >= 2 else { return }
+        // Neue Linie ERST anlegen, dann die alte entfernen — sonst blinkt sie kurz weg (Jan, 18.10.2026).
+        let alt = map.overlays.filter { $0 is MKPolyline && !($0 is SchutzPolygon) }
         let coords = track.map { CLLocationCoordinate2D(latitude: $0[0], longitude: $0[1]) }
         map.addOverlay(MKPolyline(coordinates: coords, count: coords.count))
+        map.removeOverlays(alt)
         if let last = coords.last {
             map.setRegion(MKCoordinateRegion(center: last, latitudinalMeters: 500, longitudinalMeters: 500),
                           animated: true)
