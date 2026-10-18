@@ -272,13 +272,13 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
             Text(I18n.t("spots.heatmapRoutes"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(6.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Pille(I18n.t("spots.heatFoil"), art == "foil") { art = "foil"; prefs.edit().putString("spot_heatmap_art", "foil").apply() }
-                Pille(I18n.t("spots.heatStart"), art == "start") { art = "start"; prefs.edit().putString("spot_heatmap_art", "start").apply() }
-                Pille(I18n.t("period.365d"), wahl == "365d") { wahl = "365d"; prefs.edit().putString("spot_heatmap", "365d").apply() }
-                Pille(I18n.t("period.30d"), wahl == "30d") { wahl = "30d"; prefs.edit().putString("spot_heatmap", "30d").apply() }
-                Pille(I18n.t("spots.heatOff"), wahl == "off") { wahl = "off"; prefs.edit().putString("spot_heatmap", "off").apply() }
+                Pille(I18n.t("heat.chipFoil"), art == "foil") { art = "foil"; prefs.edit().putString("spot_heatmap_art", "foil").apply() }
+                Pille(I18n.t("heat.chipStart"), art == "start") { art = "start"; prefs.edit().putString("spot_heatmap_art", "start").apply() }
+                Pille(I18n.t("heat.chip1y"), wahl == "365d") { wahl = "365d"; prefs.edit().putString("spot_heatmap", "365d").apply() }
+                Pille(I18n.t("heat.chip30d"), wahl == "30d") { wahl = "30d"; prefs.edit().putString("spot_heatmap", "30d").apply() }
+                Pille(I18n.t("heat.chipOff"), wahl == "off") { wahl = "off"; prefs.edit().putString("spot_heatmap", "off").apply() }
                 // Routen planen: hervorgehoben (Jan)
-                Pille(I18n.t("routes.plan"), planen, betont = true) { planen = !planen }
+                Pille(I18n.t("heat.chipRoute"), planen, betont = true) { planen = !planen }
             }
             Spacer(Modifier.height(8.dp))
             MapTiles.MitUmschalter(Modifier.fillMaxWidth().height(280.dp).clip(RoundedCornerShape(10.dp)), legende = true) { ebeneWahl ->
