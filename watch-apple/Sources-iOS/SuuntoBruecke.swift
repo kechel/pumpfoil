@@ -48,6 +48,7 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     private var takt: Timer?
     private var laedtGerade = false
     private var sekunden = 0
+    private var iphoneNimmtAuf = false     // PhoneRecorder ist @MainActor -> je Sekunde hierher gespiegelt
 
     func start() {
         stand.offen = Self.offen()
@@ -76,6 +77,7 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     }
 
     private func sekunde() {
+        Task { @MainActor in self.iphoneNimmtAuf = PhoneRecorder.shared.recording }
         if sekunden % 5 == 0 && !zentralen.isEmpty {
             warteschlange.removeAll { $0.first == 0x82 }
             warteschlange.append(statusPaket())
@@ -219,7 +221,7 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
         let konto = Api.token != nil
         let online = !stand.fehler.hasPrefix("upload")
         let f = (konto ? 1 : 0) | (online ? 2 : 0) | (stand.laedt || stand.offen > 0 ? 4 : 0)
-            | (PhoneRecorder.shared.recording ? 8 : 0)
+            | (iphoneNimmtAuf ? 8 : 0)
         let n = min(max(stand.offen, 0), 0xFFFF)
         return Data([0x82, UInt8(f), UInt8(n & 255), UInt8(n >> 8)])
     }
@@ -236,6 +238,26 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
             guard let t = await token(uhrId, "Suunto") else { return }
             _ = try? await Self.post("/api/devices/position", ["lat": lat, "lon": lon], t)
         }
+    }
+
+    /// Sessions, die noch (ganz oder teilweise) zum Server muessen.
+    private static func offen() -> Int {
+        ((try? FileManager.default.contentsOfDirectory(at: wurzel, includingPropertiesForKeys: nil)) ?? [])
+            .filter { FileManager.default.fileExists(atPath: $0.appendingPathComponent("meta.json").path) }.count
+    }
+
+    /// Ein Token je Uhr, einmal gemintet; danach /config?p=suunto, damit der Server die Plattform kennt
+    /// (wie SuuntoBruecke.kt `token`). Schluessel wie in `appGeschlossen`.
+    private func token(_ uhrId: Int64, _ label: String) async -> String? {
+        let key = "suunto_token_" + String(uhrId, radix: 16)
+        if let t = UserDefaults.standard.string(forKey: key) { return t }
+        guard let t = try? await Api.mintDeviceToken(label: String(label.prefix(60))) else { return nil }
+        UserDefaults.standard.set(t, forKey: key)
+        if let url = URL(string: Api.baseURL + "/api/devices/config?p=suunto&v=1.00") {
+            var req = URLRequest(url: url); req.setValue(t, forHTTPHeaderField: "X-Device-Token")
+            _ = try? await URLSession.shared.data(for: req)
+        }
+        return t
     }
 
     func hochladen() {
