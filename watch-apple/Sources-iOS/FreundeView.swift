@@ -132,13 +132,14 @@ struct FreundschaftKnopf: View {
             }
     }
 
+    // Volle Breite, Inhalt mittig (Jan, 18.10.2026: Knopf sass links in der Zeile).
     @ViewBuilder private var knopf: some View {
         let tippen = { offen = FreundDialog(art: art, userId: userId, name: name) }
         if status == nil || status == "eingehend" {
-            Button(action: tippen) { Label(label, systemImage: "person.badge.plus") }
+            Button(action: tippen) { Label(label, systemImage: "person.badge.plus").frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent)
         } else {
-            Button(action: tippen) { Label(label, systemImage: status == "freund" ? "person.2.fill" : "clock") }
+            Button(action: tippen) { Label(label, systemImage: status == "freund" ? "person.2.fill" : "clock").frame(maxWidth: .infinity) }
                 .buttonStyle(.bordered)
         }
     }
