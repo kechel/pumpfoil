@@ -70,6 +70,12 @@ struct LinkedAccountsView: View {
                         if busy == p.id, let stand, stand.laeuft { balken(stand) }
                         // Nur COROS: welchen Modus man auf der Uhr waehlt, und was der Export
                         // NICHT liefert. Pumpfoil gibt es auf keiner COROS-Uhr als Sportart.
+                        // Suunto: welchen Modus man waehlt (Web seit 17.10.2026) — die Sportart bestimmen wir selbst.
+                        if p.id == "suunto" {
+                            Text(Loc.t("settings.suunto.activity", lang))
+                                .font(.caption).foregroundStyle(.secondary)
+                                .padding(.top, 6)
+                        }
                         if p.id == "coros" && st.linked {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(Loc.t("accounts.coros.best", lang))

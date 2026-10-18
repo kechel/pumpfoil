@@ -448,7 +448,9 @@ enum Api {
     }
 
     // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.
-    struct ClaimResponse: Decodable { let ok: Bool }
+    /// `device_id`: zum Warten auf die Uhr (pairConfirmed); `already`: war schon verbunden.
+    struct ClaimResponse: Decodable { let ok: Bool; let already: Bool?; let device_id: Int? }
+    struct PairConfirmed: Decodable { let confirmed: Bool }
     /// `label` = die Marke, die der Nutzer im Assistenten gewaehlt hat. Stand hier bis 11.09.2026
     /// fest auf "Garmin" — dadurch trugen 20 Apple Watches, 5 Amazfit und eine Wear-Uhr den Namen
     /// "Garmin" in der Geraeteliste und unter jeder ihrer Aufnahmen im Feed. Der Server korrigiert
@@ -469,15 +471,22 @@ enum Api {
         (try? await request("/api/auth/oauth/providers", method: "GET", body: nil, auth: false)) ?? []
     }
 
-    static func pairClaim(code: String, label: String = "Garmin") async throws {
+    @discardableResult
+    static func pairClaim(code: String, label: String = "Garmin") async throws -> ClaimResponse {
         do {
-            let _: ClaimResponse = try await request(
+            return try await request(
                 "/api/devices/pair-claim", method: "POST",
                 body: ["code": code.trimmingCharacters(in: .whitespaces).uppercased(), "label": label], auth: true)
         } catch ApiError.http(400, _) {
             // Code falsch oder abgelaufen: lesbar sagen statt roher Serverantwort (wie PWA account.claimBad).
             throw ClaimFehler(text: Loc.t("account.claimBad", Api.uiLang))
         }
+    }
+
+    /// Hat die Uhr das Token abgeholt? Erst dann gilt sie als verbunden (wie PWA PairWarten, 14.10.2026).
+    static func pairConfirmed(_ deviceId: Int) async throws -> Bool {
+        let r: PairConfirmed = try await request("/api/devices/pair-confirmed/\(deviceId)", method: "GET", body: nil, auth: true)
+        return r.confirmed
     }
 
     struct ClaimFehler: LocalizedError {

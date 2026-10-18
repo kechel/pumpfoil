@@ -52,6 +52,7 @@ fun GarminPairScreen(onBack: () -> Unit) {
     var code by remember { mutableStateOf("") }
     var claimBusy by remember { mutableStateOf(false) }
     var claimMsg by remember { mutableStateOf<String?>(null) }
+    var warteId by remember { mutableStateOf<Int?>(null) }
     var genBusy by remember { mutableStateOf(false) }
     var genCode by remember { mutableStateOf<String?>(null) }
     var genMsg by remember { mutableStateOf<String?>(null) }
@@ -103,13 +104,23 @@ fun GarminPairScreen(onBack: () -> Unit) {
                         enabled = !claimBusy && code.trim().length >= 4,
                         onClick = {
                             scope.launch {
-                                claimBusy = true; claimMsg = null
-                                try { Api.pairClaim(code); claimMsg = I18n.t("garmin.claimOk"); code = "" }
+                                claimBusy = true; claimMsg = null; warteId = null
+                                try {
+                                    val r = Api.pairClaim(code)
+                                    // Erst „verbunden", wenn die Uhr das Token abgeholt hat (PairWarten).
+                                    if (!r.already && r.deviceId != null) warteId = r.deviceId
+                                    else claimMsg = I18n.t(if (r.already) "account.claimAlready" else "garmin.claimOk")
+                                    code = ""
+                                }
                                 catch (e: Exception) { claimMsg = e.message ?: "?" }
                                 finally { claimBusy = false }
                             }
                         },
                     ) { Text(if (claimBusy) "…" else I18n.t("garmin.claimBtn")) }
+                    warteId?.let { id ->
+                        Spacer(Modifier.height(8.dp))
+                        PairWarten(id)
+                    }
                     claimMsg?.let {
                         Spacer(Modifier.height(8.dp))
                         Text(it, style = MaterialTheme.typography.bodySmall)

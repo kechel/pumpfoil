@@ -12,6 +12,7 @@ struct GarminPairView: View {
     @State private var code = ""
     @State private var claimBusy = false
     @State private var claimMsg: String?
+    @State private var warteId: Int?
     @State private var genBusy = false
     @State private var genCode: String?
     @State private var genMsg: String?
@@ -56,6 +57,7 @@ struct GarminPairView: View {
                 Text(claimButtonText)
             }
             .disabled(claimDisabled)
+            if let id = warteId { PairWartenView(deviceId: id, lang: lang) }
             if let m = claimMsg { Text(m).font(.footnote).foregroundStyle(.secondary) }
         } header: {
             Text(Loc.t("garmin.claimTitle", lang))
@@ -93,8 +95,14 @@ struct GarminPairView: View {
 
     private func claim() {
         Task {
-            claimBusy = true; claimMsg = nil
-            do { try await Api.pairClaim(code: code); claimMsg = Loc.t("garmin.claimOk", lang); code = "" }
+            claimBusy = true; claimMsg = nil; warteId = nil
+            do {
+                let r = try await Api.pairClaim(code: code)
+                // Erst „verbunden", wenn die Uhr das Token abgeholt hat (PairWartenView).
+                if r.already != true, let id = r.device_id { warteId = id }
+                else { claimMsg = Loc.t(r.already == true ? "account.claimAlready" : "garmin.claimOk", lang) }
+                code = ""
+            }
             catch { claimMsg = error.localizedDescription }
             claimBusy = false
         }
@@ -106,6 +114,45 @@ struct GarminPairView: View {
             do { genCode = try await Api.generatePairingCode().code }
             catch { genMsg = error.localizedDescription }
             genBusy = false
+        }
+    }
+}
+
+/// Nach dem Einloesen eines Uhren-Codes: erst „verbunden" melden, wenn die UHR das Token abgeholt hat
+/// (GET /api/devices/pair-confirmed/{id}) — Port von web/src/components/PairWarten.tsx (Jan, 14.10.2026).
+/// Pollt alle 2 s, solange der Code gilt (15 min); nach 30 s der Hinweis, was man an der Uhr tun kann.
+struct PairWartenView: View {
+    let deviceId: Int
+    let lang: String
+    @State private var ok = false
+    @State private var langsam = false
+
+    var body: some View {
+        Group {
+            if ok {
+                Text(Loc.t("account.claimOk", lang)).font(.callout).foregroundStyle(Color.green)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        ProgressView().controlSize(.small)
+                        Text(Loc.t("account.claimWaiting", lang)).font(.callout)
+                    }
+                    if langsam {
+                        Text(Loc.t("account.claimSlow", lang)).font(.callout).foregroundStyle(Color.orange)
+                    }
+                }
+            }
+        }
+        .task(id: deviceId) { await warten() }
+    }
+
+    private func warten() async {
+        let start = Date()
+        while Date().timeIntervalSince(start) < 15 * 60 {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            if Task.isCancelled { return }
+            if Date().timeIntervalSince(start) > 30 { langsam = true }
+            if (try? await Api.pairConfirmed(deviceId)) == true { ok = true; return }
         }
     }
 }

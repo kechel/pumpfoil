@@ -51,7 +51,7 @@ fun ImpressumScreen(onBack: () -> Unit) {
 
             Section("imp.publicTitle", null, listOf("imp.public1", "imp.public2"), null)
             Section("imp.communityTitle", "imp.communityIntro", listOf("imp.community1", "imp.community2", "imp.community3", "imp.community4"), "imp.communityNote")
-            Section("imp.ownerTitle", null, listOf("imp.owner1", "imp.owner2", "imp.owner3", "imp.owner4"), null)
+            Section("imp.ownerTitle", null, listOf("imp.owner1", "imp.owner2", "imp.owner3", "imp.owner4", "imp.owner5", "imp.owner6"), null)
             Section("imp.operatorTitle", null, listOf("imp.operator1", "imp.operator2"), null)
             Section("imp.hostTitle", null, listOf("imp.host1", "imp.host2"), null)   // Server + Hosting (29.09.2026, wie PWA)
             Section("imp.googleTitle", "imp.googleIntro", listOf("imp.google1", "imp.google2", "imp.google3", "imp.google4"), "imp.googleNote")

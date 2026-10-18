@@ -80,6 +80,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     var nAnalyzed by remember { mutableStateOf(true) }
     var nRecord by remember { mutableStateOf(true) }
     var nChat by remember { mutableStateOf(true) }
+    var nFriend by remember { mutableStateOf(true) }
     var theme by remember { mutableStateOf(ThemeState.mode) }
     var lang by remember { mutableStateOf(I18n.lang) }
     var pwCur by remember { mutableStateOf("") }
@@ -114,6 +115,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 nAnalyzed = np["analyzed"]?.jsonPrimitive?.booleanOrNull ?: true
                 nRecord = np["record"]?.jsonPrimitive?.booleanOrNull ?: true
                 nChat = np["chat"]?.jsonPrimitive?.booleanOrNull ?: true
+                nFriend = np["friend"]?.jsonPrimitive?.booleanOrNull ?: true
             }
         } catch (_: Exception) {}
         try {
@@ -142,7 +144,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                         // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern
                         // von hier hat die im Web gesetzte Chat-Einstellung also still geloescht.
                         put("like", nLike); put("analyzed", nAnalyzed); put("record", nRecord)
-                        put("chat", nChat)
+                        put("chat", nChat); put("friend", nFriend)
                     })
                 })
                 saved = true
@@ -356,6 +358,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             ToggleRow(I18n.t("settings.nAnalyzed"), nAnalyzed) { nAnalyzed = it; saved = false }
             ToggleRow(I18n.t("settings.nRecord"), nRecord) { nRecord = it; saved = false }
             ToggleRow(I18n.t("settings.nChat"), nChat) { nChat = it; saved = false }
+            ToggleRow(I18n.t("notif.typeFriend"), nFriend) { nFriend = it; saved = false }
             Spacer(Modifier.height(20.dp))
 
             // Passwort ändern (wie PWA-Settings).

@@ -1585,11 +1585,22 @@ object Api {
     // dadurch trugen fremde Uhren den Namen "Garmin" in der Geraeteliste und unter jeder ihrer
     // Aufnahmen im Feed (dieselbe Zeile gab es in der iOS-App). Der Server korrigiert das seit
     // dem 12.09. anhand der gemeldeten Plattform (naming.geraete_label); hier steht die Wurzel.
-    suspend fun pairClaim(code: String, label: String = "Garmin"): Unit = withContext(Dispatchers.IO) {
+    /** Antwort auf pair-claim: `deviceId` zum Warten auf die Uhr (pairConfirmed), `already` = war schon verbunden. */
+    data class Claim(val deviceId: Int?, val already: Boolean)
+
+    suspend fun pairClaim(code: String, label: String = "Garmin"): Claim = withContext(Dispatchers.IO) {
         val body = buildJsonObject { put("code", code.trim().uppercase()); put("label", label) }.toString()
         // 400 = Code falsch oder abgelaufen: lesbar sagen statt „Serverfehler (400)" (wie PWA account.claimBad).
-        try { http("POST", "/api/devices/pair-claim", body, auth = true) }
+        val text = try { http("POST", "/api/devices/pair-claim", body, auth = true) }
         catch (e: RuntimeException) { if (e.message?.contains("(400)") == true) throw RuntimeException(I18n.t("account.claimBad")) else throw e }
+        val o = try { json.parseToJsonElement(text).jsonObject } catch (_: Exception) { null }
+        Claim(o?.get("device_id")?.jsonPrimitive?.intOrNull, o?.get("already")?.jsonPrimitive?.booleanOrNull ?: false)
+    }
+
+    /** Hat die Uhr das Token abgeholt? Erst dann gilt sie als verbunden (wie PWA PairWarten, 14.10.2026). */
+    suspend fun pairConfirmed(deviceId: Int): Boolean = withContext(Dispatchers.IO) {
+        val o = json.parseToJsonElement(http("GET", "/api/devices/pair-confirmed/$deviceId", null, auth = true)).jsonObject
+        o["confirmed"]?.jsonPrimitive?.booleanOrNull ?: false
     }
 
     // Anzeigename zur gewaehlten Marke (gleiche Tabelle wie server-seitig).

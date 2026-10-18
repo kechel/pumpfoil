@@ -982,6 +982,15 @@ NAECHSTES: list[dict] = [
          "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
          "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
          "Home links to your home spot, and wind directions use your app language.",
+         # 16.10.2026 abends (4b079268, fa8d11e4, f131cefa), wie die PWA.
+         "Friend requests show at the top of Home, where you can accept them directly or decline them quietly.",
+         "You can edit the name, volume and length of your boards in your setup afterwards.",
+         "Runs on the maps are always drawn as one line, and short GPS gaps in a run are bridged with a curve.",
+         # 18.10.2026: Abgleich vor dem Release (PWA seit 14.-17.10.).
+         "After you enter the code from your watch, the app only says connected once the watch has really picked up the connection, and tells you what to do if it does not.",
+         "Notifications about friends can be switched off in your settings.",
+         "The Suunto account card tells you which mode to record with.",
+         "The privacy section now also explains live uploads during a recording and the green active spots.",
          # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
          "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
      ]},
@@ -993,6 +1002,14 @@ NAECHSTES: list[dict] = [
          "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
          "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
          "Home links to your home spot, and wind directions use your app language.",
+         # 16.10.2026 abends (4b079268, fa8d11e4, f131cefa), wie die PWA.
+         "Friend requests show at the top of Home, where you can accept them directly or decline them quietly.",
+         "You can edit the name, volume and length of your boards in your setup afterwards.",
+         "Runs on the maps are always drawn as one line, and short GPS gaps in a run are bridged with a curve.",
+         # 18.10.2026: Abgleich vor dem Release (PWA seit 14.-17.10.).
+         "After you enter the code from your watch, the app only says connected once the watch has really picked up the connection, and tells you what to do if it does not.",
+         "Notifications about friends can be switched off in your settings.",
+         "The Suunto account card tells you which mode to record with.",
          # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
          "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
      ]},
