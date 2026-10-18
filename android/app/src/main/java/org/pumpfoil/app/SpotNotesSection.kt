@@ -21,7 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -114,31 +117,28 @@ fun SpotNotesSection(spotId: Int) {
                                 try { Api.deleteSpotNotePhoto(spotId, pid); laden() } catch (_: Exception) {}
                                 busy = false } })
                     }
-                    // JE AKTION EINE ZEILE, wie auf iOS seit 4fa63196. Drei beschriftete Knoepfe
-                    // passen auf einem Handy nicht nebeneinander: „Aus meinen Session-Fotos"
-                    // brach in vier Zeilen und wurde zu einem Kreis (Jan, 07.09.2026, mit
-                    // Screenshot). Volle Breite statt nebeneinander, dann steht der Text.
-                    Column(
+                    // Drei Aktionen als Icon-Knoepfe in EINER Zeile (Jan, 18.10.2026). Vorher je eine Zeile mit
+                    // Text, weil drei beschriftete Knoepfe nicht nebeneinander passten („Aus meinen Session-Fotos"
+                    // brach in vier Zeilen, 07.09.2026) — ohne Text passen sie; die Beschriftung bleibt als
+                    // contentDescription fuer die Bedienhilfe.
+                    Row(
                         Modifier.fillMaxWidth().padding(top = 6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         OutlinedButton(
                             onClick = { editText = meine?.text ?: "" },
                             enabled = !busy,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Text(if (meine == null) I18n.t("spotnote.write") else I18n.t("spotnote.edit"))
+                            Icon(Icons.Filled.Edit,
+                                contentDescription = if (meine == null) I18n.t("spotnote.write") else I18n.t("spotnote.edit"))
                         }
                         if ((meine?.photos?.size ?: 0) < d.max_photos) {
                             OutlinedButton(
                                 onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                 enabled = !busy,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text(I18n.t("spotnote.addPhoto"))
-                            }
+                                modifier = Modifier.weight(1f),
+                            ) { Icon(Icons.Filled.AddAPhoto, contentDescription = I18n.t("spotnote.addPhoto")) }
                             OutlinedButton(
                                 onClick = {
                                     scope.launch {
@@ -148,8 +148,8 @@ fun SpotNotesSection(spotId: Int) {
                                     }
                                 },
                                 enabled = !busy,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { Text(I18n.t("spotnote.fromSession")) }
+                                modifier = Modifier.weight(1f),
+                            ) { Icon(Icons.Filled.PhotoLibrary, contentDescription = I18n.t("spotnote.fromSession")) }
                         }
                     }
                 }
