@@ -143,7 +143,7 @@ object SuuntoBruecke {
         return try {
             val t = Api.mintDeviceToken(label.take(60))
             prefs(app).edit().putString(key, t).apply()
-            try { Ingest.get("/api/devices/config?p=suunto&v=100", t) } catch (e: Exception) { Log.w(TAG, "config", e) }
+            try { Ingest.get("/api/devices/config?p=suunto&v=1.00", t) } catch (e: Exception) { Log.w(TAG, "config", e) }
             t
         } catch (e: Exception) { Log.e(TAG, "mint", e); null }
     }

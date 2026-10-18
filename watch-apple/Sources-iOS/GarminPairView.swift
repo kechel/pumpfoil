@@ -146,7 +146,7 @@ struct PairWartenView: View {
         .task(id: deviceId) { await warten() }
     }
 
-    private func warten() async {
+    @MainActor private func warten() async {
         let start = Date()
         while Date().timeIntervalSince(start) < 15 * 60 {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
