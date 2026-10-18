@@ -1139,15 +1139,15 @@ function Studio() {
     if (u && d.videos.includes(u)) pickVideo(u);
   }, [pickVideo]);
 
-  const togglePlay = useCallback(
+  // Spur starten, immer von vorn und zusammen mit dem Video. Bewusst OHNE
+  // Umschalt-Logik: die Plattform-Knoepfe unten tragen fast immer dieselbe
+  // Spur (freie Musik gilt fuer alle vier), ein Umschalter hat dort jeden
+  // zweiten Klick als "aus" verschluckt.
+  const spieleTrack = useCallback(
     (t: Track) => {
       const music = musicRef.current;
       const vid = vidRef.current;
       if (!music) return;
-      if (curPlay === t.rel) {
-        stopMusic();
-        return;
-      }
       setCurPlay(t.rel);
       music.src = "/media/musik/" + encPath(t.rel);
       music.volume = Math.pow(10, gain / 20);
@@ -1160,7 +1160,19 @@ function Studio() {
         void vid.play();
       }
     },
-    [curPlay, gain, stopMusic, trim.start],
+    [gain, trim.start],
+  );
+
+  // In der Spurliste schaltet ein Klick auf die laufende Spur sie ab.
+  const togglePlay = useCallback(
+    (t: Track) => {
+      if (curPlay === t.rel) {
+        stopMusic();
+        return;
+      }
+      spieleTrack(t);
+    },
+    [curPlay, spieleTrack, stopMusic],
   );
 
   // Pfeiltasten im Musik-Reiter: eine Spur weiter oder zurueck, und sie laeuft
@@ -1213,9 +1225,9 @@ function Studio() {
         return;
       }
       const track = state?.tracks.find((t) => t.rel === rel);
-      if (track) togglePlay(track);
+      if (track) spieleTrack(track);
     },
-    [sel, state, stopMusic, togglePlay, trim.start],
+    [sel, state, spieleTrack, stopMusic, trim.start],
   );
 
   const selectTrack = useCallback((pf: PvPlatform, rel: string) => {
