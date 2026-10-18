@@ -67,7 +67,15 @@ interface Coverage {
 }
 const de = (n: number) => n.toLocaleString("de-DE");
 
-const DAY_MS = 24 * 3600 * 1000;
+// Einen Kalendertag weiter, OHNE die Uhrzeit zu verschieben. Schlicht 24 h
+// draufzurechnen ist falsch: ueber die Zeitumstellung hinweg wird aus 05:00
+// dann 04:00 (Jan, 18.10.2026 — die Termine nach dem 25.10. lagen eine
+// Stunde zu frueh, und jeder Folgetermin erbte den Versatz).
+const plusTag = (t: number, tage = 1) => {
+  const d = new Date(t);
+  d.setDate(d.getDate() + tage);
+  return d.getTime();
+};
 const vidNum = (name: string) => {
   const m = name.match(/^(\d{1,3})-/);
   return m ? +m[1] : 1e9;
@@ -114,8 +122,8 @@ function nextSlots(exports: ExportItem[], up: UpState, aufYt: Set<number>): Reco
   ];
   const out: Record<string, string> = {};
   reihe.forEach((e, i) => {
-    let t = base + (i + 1) * DAY_MS;
-    while (t < Date.now() + 10 * 60000) t += DAY_MS;   // nie in der Vergangenheit
+    let t = plusTag(base, i + 1);
+    while (t < Date.now() + 10 * 60000) t = plusTag(t);   // nie in der Vergangenheit
     out[e.name] = toLocalInput(new Date(t));
   });
   return out;
