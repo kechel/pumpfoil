@@ -543,6 +543,13 @@ _APP_META: dict[str, dict[str, str]] = {
         "min_supported": "",
         "store_url": "",
     },
+    # SuuntoPlus-App (watch-suunto/): die Uhr fragt ueber die Handy-Bruecke `config-kompakt?p=suunto`
+    # (devices._plat_fuer_hinweis -> "suunto"). Ohne Bruecke sieht sie keinen Update-Hinweis.
+    "suunto": {
+        "latest": "",       # 1.00 eingereicht 17.10.2026, s. IN_REVIEW — erst bei der Freigabe setzen
+        "min_supported": "",
+        "store_url": "",
+    },
 }
 
 
@@ -688,7 +695,7 @@ GRUPPEN = [
     (("zepp",), "Amazfit"),
     (("huawei-watch5",), "Huawei Watch 5"),
     (("huawei-gt",), "Huawei Watch GT / Fit / D"),
-    (("huawei-watch34",), "Huawei Watch 3 / 4"),
+    (("huawei-watch34",), "Huawei Watch 3 / 4"),    (("suunto",), "Suunto"),
 ]
 
 # Anzeigename je EINZELNER Plattform — fuer die Marke an einem Changelog-Punkt. Anders als
@@ -707,7 +714,7 @@ PLATTFORM_NAMEN = {
     "apple": "iPhone + Apple Watch",
     "huawei-watch5": "Huawei Watch 5",
     "huawei-gt": "Huawei Watch GT / Fit / D",
-    "huawei-watch34": "Huawei Watch 3 / 4",
+    "huawei-watch34": "Huawei Watch 3 / 4",    "suunto": "Suunto",
 }
 
 # `items` sind die Aenderungen der jeweiligen Fassung — schon so formuliert, wie sie spaeter
@@ -975,6 +982,8 @@ NAECHSTES: list[dict] = [
          "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
          "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
          "Home links to your home spot, and wind directions use your app language.",
+         # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
+         "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.51",
      "items": [
@@ -984,6 +993,8 @@ NAECHSTES: list[dict] = [
          "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
          "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
          "Home links to your home spot, and wind directions use your app language.",
+         # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
+         "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
      ]},
     # iPhone + Apple Watch 1.1.50 am 16.10. eingereicht -> IN_REVIEW.
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
