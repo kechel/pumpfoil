@@ -829,6 +829,16 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 18.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
+    # Vor der Einreichung im Simulator (npm run dev-echt): Positionsmeldung 200, app-closed 200, Upload
+    # komplett; nicht auf Hardware. Neu in der Geraeteliste: T-Rex Dual Solar (11403520/11403521).
+    {"name": "Amazfit", "version": "1.0.14",
+     "eingereicht": "2026-10-18",
+     "items": [
+         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
+         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905), wie Garmin/Wear/Apple.
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
+     ]},
     # EINGEREICHT 18.10.2026 (Jans Meldung, Play Console „Änderungen, die überprüft werden — Schnelle
     # Vorabprüfungen", Produktion 58 (1.1.43), Produktion (Wear OS) 1054 (1.2.43)). 57/1053 waren am 14.10.
     # schon fuer Jans Test hochgeladen (verbraucht).
@@ -1041,12 +1051,6 @@ NAECHSTES: list[dict] = [
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
-    {"name": "Amazfit", "version": "1.0.14",
-     "items": [
-         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
-         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905), wie Garmin/Wear/Apple.
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
