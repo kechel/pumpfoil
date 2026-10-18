@@ -4,6 +4,7 @@ aber nicht erratbar. EXIF wird beim Re-Encode entfernt (inkl. Geo-Tags).
 Das Original wird nie persistiert — nur die verkleinerte WebP-Fassung (spart Platte)."""
 from __future__ import annotations
 
+import hashlib
 import io
 import uuid
 
@@ -27,6 +28,29 @@ def thumb_url(url: str | None) -> str | None:
     if not url or not url.endswith(".webp") or url.endswith(".t.webp"):
         return url
     return url[:-len(".webp")] + ".t.webp"
+
+
+_inhalt_cache: dict[str, str | None] = {}
+
+
+def inhalt_hash(url: str | None) -> str | None:
+    """Pruefsumme der abgelegten Datei hinter einer /media-URL, oder None.
+
+    Derselbe Upload ergibt beim Re-Encode byte-gleiche WebP-Dateien — wer ein Bild an mehrere
+    Sessions haengt, hat also mehrere Dateien mit gleichem Hash (18.10.: Pete.g, ein Bild an vier
+    Sessions, stand viermal in „Neueste Medien"). Dateinamen sind UUIDs und werden nie
+    ueberschrieben, deshalb darf der Wert je URL gemerkt werden."""
+    if not url or not url.startswith("/media/"):
+        return None
+    if url in _inhalt_cache:
+        return _inhalt_cache[url]
+    try:
+        h = hashlib.sha256((settings.media_dir / url[len("/media/"):]).read_bytes()).hexdigest()
+    except OSError:
+        h = None
+    if len(_inhalt_cache) < 20000:
+        _inhalt_cache[url] = h
+    return h
 
 
 def reencode_image(raw: bytes, max_dim: int = 1600) -> bytes:

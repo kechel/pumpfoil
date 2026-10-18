@@ -24,7 +24,7 @@ from .. import models
 from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import is_new_account
 from ..db import get_db
-from ..media import thumb_url as _thumb
+from ..media import inhalt_hash, thumb_url as _thumb
 from ..naming import geraete_label, owner_label, owner_label_sql
 from .. import ortverbergen
 from ..freunde import freund_ids, nur_freunde
@@ -1101,7 +1101,8 @@ def latest_photos(
     limit: int = 5, user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Neueste Community-Medien (Fotos UND verlinkte Videos), neueste zuerst.
-    Pro Session höchstens ein Foto- und ein Video-Eintrag. Inkl. Like-/Melde-Status."""
+    Pro Session höchstens ein Foto- und ein Video-Eintrag; dasselbe Bild (gleicher Datei-Hash)
+    an mehreren Sessions nur einmal. Inkl. Like-/Melde-Status."""
     P = models.SessionPhoto
     lim = min(max(limit, 1), 20)
     items: list[dict] = []
@@ -1119,10 +1120,16 @@ def latest_photos(
         .order_by(P.id.desc()).limit(80).all()
     )
     seenp: set[int] = set()
+    seenh: set[str] = set()   # gleiches Bild an mehreren Sessions nur einmal (neueste gewinnt)
     for pid, url, cts, sid, sts, name, avatar, place, caption, lat, lon, uid in prows:
         if sid in seenp:
             continue
+        h = inhalt_hash(_thumb(url)) or inhalt_hash(url)
+        if h and h in seenh:
+            continue
         seenp.add(sid)
+        if h:
+            seenh.add(h)
         items.append({"kind": "photo", "_ts": cts or sts, "photo_id": pid, "url": url,
                       "thumb_url": _thumb(url), "youtube_url": None,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
