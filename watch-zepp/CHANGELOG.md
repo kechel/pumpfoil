@@ -12,6 +12,8 @@ This changelog covers the Zepp OS watch app only.
 
 ## 1.0.14 — gebumpt am 18.10.2026 (code 17), zur Einreichung
 
+- **Test-Zweig `TESTUPLOAD` aus der App-Side entfernt** (18.10.2026): toter Rest vom 02.07. mit fest
+  eingetragenem Device-Token (Jans Konto, id 34) im oeffentlichen Repo; Token am selben Tag widerrufen.
 - **Spot-Meldung beim ersten GPS-Fix** (`81b91fef`, 15.10.2026, wie Garmin 1.0.94): im Startbildschirm
   einmal je App-Start `POSITION` ueber die App-Side -> `POST /api/devices/position` (nur der Spot <= 1 km
   wird gespeichert); bei Netzfehler beim naechsten Fix erneut, bei 2xx/4xx nicht mehr.
