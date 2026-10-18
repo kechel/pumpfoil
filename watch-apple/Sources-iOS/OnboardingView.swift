@@ -42,6 +42,7 @@ struct OnboardingView: View {
     @State private var wahl: String?
     @State private var code = ""
     @State private var claimMeldung: (ok: Bool, text: String)?
+    @State private var warteId: Int?
     @State private var kontoStatus: Api.IntegrationStatus?
 
     private let schritte = ["lang", "level", "sport", "foil", "watch", "done"]
@@ -250,6 +251,7 @@ struct OnboardingView: View {
         TextField(t("onb.x.claimPh"), text: $code).textInputAutocapitalization(.characters)
         Button(t("onb.x.claimBtn")) { Task { await claim() } }
             .disabled(code.trimmingCharacters(in: .whitespaces).count < 4)
+        if let id = warteId { PairWartenView(deviceId: id, lang: lang) }
         if let m = claimMeldung {
             Text(m.text).font(.caption).foregroundStyle(m.ok ? Color.green : Color.red)
         }
@@ -419,11 +421,14 @@ struct OnboardingView: View {
 
     private func claim() async {
         do {
-            try await Api.pairClaim(code: code.trimmingCharacters(in: .whitespaces).uppercased(),
-                                    label: Api.markeLabel(wahl))
+            warteId = nil; claimMeldung = nil
+            let r = try await Api.pairClaim(code: code.trimmingCharacters(in: .whitespaces).uppercased(),
+                                            label: Api.markeLabel(wahl))
             code = ""
             geraete = ((try? await Api.myDevices()) ?? []).filter { $0.revoked_at == nil }
-            claimMeldung = (true, t("onb.x.claimOk"))
+            // Erst „verbunden", wenn die Uhr das Token abgeholt hat (PairWartenView, wie PWA).
+            if r.already != true, let id = r.device_id { warteId = id }
+            else { claimMeldung = (true, t(r.already == true ? "account.claimAlready" : "onb.x.claimOk")) }
         } catch {
             claimMeldung = (false, "\(error)")
         }

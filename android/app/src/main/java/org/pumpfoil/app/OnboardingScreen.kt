@@ -437,6 +437,7 @@ private fun UhrKarte(ctx: Context, geraete: List<PairedDevice>, setGeraete: (Lis
     var code by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var meldung by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
+    var warteId by remember { mutableStateOf<Int?>(null) }
     val uhren = listOf("garmin" to "Garmin", "apple" to "Apple Watch", "wear" to "Wear OS", "amazfit" to "Amazfit")
     val konten = listOf("polar" to "Polar", "coros" to "COROS", "suunto" to "Suunto")
 
@@ -473,16 +474,20 @@ private fun UhrKarte(ctx: Context, geraete: List<PairedDevice>, setGeraete: (Lis
                     Button(enabled = !busy && code.trim().length >= 4, onClick = {
                         busy = true
                         scope.launch {
+                            warteId = null
                             meldung = try {
-                                Api.pairClaim(code.trim().uppercase(), Api.markeLabel(wahl))
+                                val r = Api.pairClaim(code.trim().uppercase(), Api.markeLabel(wahl))
                                 code = ""
                                 setGeraete(try { Api.myDevices().filter { it.revokedAt == null } } catch (_: Exception) { geraete })
-                                true to I18n.t("onb.x.claimOk")
+                                // Erst „verbunden", wenn die Uhr das Token abgeholt hat (PairWarten, wie PWA).
+                                if (!r.already && r.deviceId != null) { warteId = r.deviceId; null }
+                                else true to I18n.t(if (r.already) "account.claimAlready" else "onb.x.claimOk")
                             } catch (e: Exception) { false to (e.message ?: "?") }
                             busy = false
                         }
                     }) { Text(I18n.t("onb.x.claimBtn")) }
                 }
+                warteId?.let { id -> PairWarten(id) }
                 meldung?.let { (ok, txt) ->
                     Text(txt, style = MaterialTheme.typography.bodySmall,
                         color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)

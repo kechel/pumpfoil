@@ -197,6 +197,12 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                         stand?.let { fort -> if (busy == p.id && fort.laeuft) Fortschritt(fort) }
                         // Nur COROS: welchen Modus man auf der Uhr wählt, und was der Export
                         // NICHT liefert. Pumpfoil gibt es auf keiner COROS-Uhr als Sportart.
+                        // Suunto: welchen Modus man waehlt (Web seit 17.10.2026) — die Sportart bestimmen wir selbst.
+                        if (p.id == "suunto") {
+                            Text(I18n.t("settings.suunto.activity"), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 8.dp))
+                        }
                         if (p.id == "coros" && st.linked) {
                             Text(I18n.t("accounts.coros.best"), style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
