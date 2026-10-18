@@ -458,16 +458,17 @@ private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Mod
                 },
                 update = { map ->
                     if (eingefroren) return@AndroidView   // STOPP wird gehalten: nichts neu zeichnen
-                    MapTiles.anwenden(map, ebene)
-                    map.overlays.clear()
-                    Schutzgebiete.anhaengen(map)   // Schutzgebiete wieder einhaengen (Schutzgebiete.kt)
+                    MapTiles.anwenden(map, ebene)       // nur bei echtem Ebenen-Wechsel
+                    Schutzgebiete.anhaengen(map)        // einmal je Karte, danach nur einhaengen
                     if (track.size >= 2) {
+                        // EINE Linie, nur ihre Punkte aendern sich — nicht je GPS-Punkt alle Ebenen
+                        // loeschen und neu anlegen (Flackern, Jan 18.10.2026).
+                        val linie = map.overlays.filterIsInstance<Polyline>().firstOrNull()
+                            ?: Polyline(map).also { map.overlays.add(it) }
+                        linie.outlinePaint.color = lineColor
+                        linie.outlinePaint.strokeWidth = 6f * density
                         val gpts = track.map { GeoPoint(it[0], it[1]) }
-                        map.overlays.add(Polyline(map).apply {
-                            setPoints(gpts)
-                            outlinePaint.color = lineColor
-                            outlinePaint.strokeWidth = 6f * density
-                        })
+                        linie.setPoints(gpts)
                         map.controller.setCenter(gpts.last())   // der aktuellen Position folgen
                     }
                     map.invalidate()

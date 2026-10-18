@@ -110,9 +110,17 @@ object Schutzgebiete {
             map.invalidate()
         }
 
+        // Bereich, fuer den schon alles geladen ist (Sicht + Rand). Liegt die neue Sicht darin, wird nicht
+        // neu gefragt — die Aufnahme-Karte verschiebt sich je GPS-Punkt und fragte sonst jede Sekunde.
+        private var geladen: org.osmdroid.util.BoundingBox? = null
+
         private fun laden() {
             if (tot || map.repository == null || map.zoomLevelDouble < AB_ZOOM || map.width == 0) return
             val bb = map.boundingBox
+            geladen?.let { g ->
+                if (bb.latNorth <= g.latNorth && bb.latSouth >= g.latSouth &&
+                    bb.lonEast <= g.lonEast && bb.lonWest >= g.lonWest) return
+            }
             job?.cancel()
             job = scope.launch {
                 val r = try { Api.schutzgebiete(bb.lonWest, bb.latSouth, bb.lonEast, bb.latNorth) } catch (_: Exception) { return@launch }
@@ -148,6 +156,7 @@ object Schutzgebiete {
                     arten.add(f.art)
                 }
                 gezeichnet = arten.toSet()
+                if (!r.unvollstaendig) geladen = bb.increaseByScale(1.6f)
                 ordner.isEnabled = an
                 map.invalidate()
                 if (r.unvollstaendig && versuche < 6) { versuche++; delay(6000); if (map.repository != null) laden() }
