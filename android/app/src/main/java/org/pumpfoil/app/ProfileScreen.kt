@@ -179,8 +179,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                             .getBoolean("phone_live_upload", true))
                     }
                     ListItem(
-                        headlineContent = { Text(I18n.t("profile.phoneLive")) },
-                        supportingContent = { Text(I18n.t("profile.phoneLiveSub")) },
+                        headlineContent = { Text(I18n.t("profile.phoneLive")) },   // ohne Erklaertext (Jan, 18.10.2026)
                         trailingContent = {
                             Switch(checked = live, onCheckedChange = {
                                 live = it

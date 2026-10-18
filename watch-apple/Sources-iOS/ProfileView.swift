@@ -133,12 +133,8 @@ struct ProfileView: View {
     // Live-Upload waehrend der Aufnahme (PhoneRecorder.liveLoop), Standard an.
     @ViewBuilder private var liveUploadToggle: some View {
         if phoneRecEnabled {
-            Toggle(isOn: $phoneLiveUpload) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(Loc.t("profile.phoneLive", lang))
-                    Text(Loc.t("profile.phoneLiveSub", lang)).font(.caption).foregroundStyle(.secondary)
-                }
-            }
+            // ohne Erklaertext (Jan, 18.10.2026)
+            Toggle(Loc.t("profile.phoneLive", lang), isOn: $phoneLiveUpload)
         }
     }
 
