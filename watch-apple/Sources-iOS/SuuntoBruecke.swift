@@ -50,13 +50,25 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
     private var sekunden = 0
     private var iphoneNimmtAuf = false     // PhoneRecorder ist @MainActor -> je Sekunde hierher gespiegelt
 
-    func start() {
+    /// Zuletzt bekannter Stand: ist ein Suunto-Konto verknuepft?
+    var verknuepft: Bool { UserDefaults.standard.bool(forKey: "suunto_konto") }
+
+    /// Uhren-Bereich offen: die Bruecke laeuft NUR mit verknuepftem Suunto-Konto (Jan, 18.10.2026) — ohne
+    /// Konto kein Bluetooth-Dienst, keine Werbung, kein Takt. `konto`: Antwort des Servers, nil = nicht
+    /// erreichbar (dann gilt der letzte Stand, nichts wird abgeschaltet).
+    func start(konto: Bool?) {
+        if let k = konto { UserDefaults.standard.set(k, forKey: "suunto_konto") }
         stand.offen = Self.offen()
+        guard verknuepft else {
+            if stand.an || pm != nil { ausschalten() }
+            return
+        }
         if stand.an { einschalten() }
-        hochladen()
+        if stand.offen > 0 { hochladen() }
     }
 
     func einschalten() {
+        guard verknuepft else { return }
         UserDefaults.standard.set(true, forKey: "suunto_an")
         stand.an = true
         if pm == nil {
@@ -179,12 +191,18 @@ final class SuuntoBruecke: NSObject, ObservableObject, CBPeripheralManagerDelega
         quittungSenden(sofort: false)
     }
 
+    /// Je Paket gerufen (bis ~18/s): `stand` nur anfassen, wenn sich etwas aendert — jede Zuweisung an
+    /// das @Published-Feld zeichnet die Karte neu, auch mit gleichem Wert.
     private func melden() {
+        var s = stand
         if let l = ablage.aktuell {
-            stand.aufnahme = true
-            stand.empfangenS = Int(l.sammler.blockGesichert + 1) * 25 / max(1, l.hz)
-            stand.verlorenS = Int(l.verloren) * 25 / max(1, l.hz)
-        } else { stand.aufnahme = false }
+            s.aufnahme = true
+            s.empfangenS = Int(l.sammler.blockGesichert + 1) * 25 / max(1, l.hz)
+            s.verlorenS = Int(l.verloren) * 25 / max(1, l.hz)
+        } else { s.aufnahme = false }
+        if s.aufnahme != stand.aufnahme || s.empfangenS / 60 != stand.empfangenS / 60 || s.verlorenS != stand.verlorenS {
+            stand = s
+        }
     }
 
     /// Quittung hoechstens alle 250 ms (oder sofort); danach, was in der Warteschlange steht.
@@ -347,7 +365,7 @@ struct SuuntoKarte: View {
 
     var body: some View {
         Group {
-            if verknuepft || b.stand.an {
+            if verknuepft {
                 Section(SuuntoTexte.t("suunto.title", lang)) {
                     Text(SuuntoTexte.t("suunto.body", lang)).font(.callout)
                     zustand
@@ -357,8 +375,10 @@ struct SuuntoKarte: View {
             }
         }
         .task {
-            b.start()
-            verknuepft = ((try? await Api.integrationStatus("suunto"))?.linked) ?? false
+            // Bruecke nur mit verknuepftem Suunto-Konto (Jan, 18.10.2026); offline gilt der letzte Stand.
+            let konto = (try? await Api.integrationStatus("suunto"))?.linked
+            b.start(konto: konto)
+            verknuepft = b.verknuepft
         }
     }
 

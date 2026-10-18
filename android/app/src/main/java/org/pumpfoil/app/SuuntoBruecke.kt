@@ -62,6 +62,7 @@ import java.util.concurrent.Executors
 object SuuntoBruecke {
     private const val TAG = "SuuntoBruecke"
     private const val PREF_AN = "suunto_an"
+    private const val PREF_KONTO = "suunto_konto"
     private val ID = Regex("^suunto-[0-9a-f]{1,8}-\\d{1,12}$")
 
     data class Stand(
@@ -90,12 +91,26 @@ object SuuntoBruecke {
 
     fun istAn(ctx: Context) = prefs(ctx).getBoolean(PREF_AN, false)
 
-    /** Beim App-Start: Dienst nur, wenn der Nutzer den Empfang schon eingeschaltet hat. */
-    fun start(ctx: Context) {
+    /** Ist ein Suunto-Konto verknuepft? Zuletzt bekannter Stand — der Dienst fragt das beim Neustart
+     *  durch Android (START_STICKY) ab, ohne Netz. */
+    fun verknuepft(ctx: Context) = prefs(ctx).getBoolean(PREF_KONTO, false)
+
+    /**
+     * Uhren-Bereich offen: die Bruecke laeuft NUR mit verknuepftem Suunto-Konto (Jan, 18.10.2026) — ohne
+     * Konto kein Dienst, keine Werbung, kein Upload-Takt. `konto`: true/false vom Server, null = nicht
+     * erreichbar (dann bleibt der letzte Stand, nichts wird abgeschaltet).
+     */
+    fun start(ctx: Context, konto: Boolean?) {
         val app = ctx.applicationContext
+        if (konto != null) prefs(app).edit().putBoolean(PREF_KONTO, konto).apply()
+        if (!verknuepft(app)) {
+            if (istAn(app)) ausschalten(app)
+            setze { it.copy(an = false, offen = offen(app)) }
+            return
+        }
         setze { it.copy(an = istAn(app), offen = offen(app)) }
         if (istAn(app) && rechte(app)) SuuntoDienst.start(app)
-        hochladen(app)
+        if (offen(app) > 0) hochladen(app)
     }
 
     fun benoetigteRechte(): Array<String> =
@@ -110,6 +125,7 @@ object SuuntoBruecke {
     fun einschalten(ctx: Context) {
         val app = ctx.applicationContext
         if (!rechte(app)) { setze { it.copy(fehler = "rechte") }; return }
+        if (!verknuepft(app)) return
         prefs(app).edit().putBoolean(PREF_AN, true).apply()
         setze { it.copy(an = true, fehler = "") }
         SuuntoDienst.start(app)
@@ -125,8 +141,14 @@ object SuuntoBruecke {
     internal fun meldeVerbindung(verbunden: Boolean) = setze { it.copy(verbunden = verbunden) }
     internal fun meldeWerben(an: Boolean, fehler: String = "") =
         setze { it.copy(werben = an, fehler = if (fehler.isNotEmpty()) fehler else if (it.fehler == "werben" || it.fehler == "bt") "" else it.fehler) }
+    @Volatile private var zuletztGemeldet = 0L
+    /** Je Paket gerufen (bis ~18/s) — an die Oberflaeche hoechstens einmal je Sekunde, sonst zeichnet
+     *  die Karte im Uhren-Bereich bei jedem Paket neu. Wechsel Aufnahme an/aus geht sofort durch. */
     internal fun meldeAufnahme(a: SuuntoAblage) {
         val l = a.aktuell
+        val jetzt = System.currentTimeMillis()
+        if ((l != null) == stand.value.aufnahme && jetzt - zuletztGemeldet < 1000) return
+        zuletztGemeldet = jetzt
         setze { it.copy(aufnahme = l != null, letztesPaketMs = System.currentTimeMillis(),
             empfangenS = l?.let { x -> (x.sammler.blockGesichert + 1).toInt() * 25 / x.hz } ?: it.empfangenS,
             verlorenS = l?.let { x -> (x.verloren * 25 / x.hz).toInt() } ?: it.verlorenS) }
@@ -247,7 +269,9 @@ object SuuntoBruecke {
 
 /** Vordergrund-Dienst: GATT-Server + Werbung, solange der Suunto-Empfang an ist. */
 class SuuntoDienst : Service() {
-    private val takt = Executors.newSingleThreadExecutor()
+    private val taktPool = Executors.newSingleThreadExecutor()
+    // Rueckrufe, die nach onDestroy noch eintreffen, verwerfen statt mit RejectedExecutionException abzustuerzen.
+    private val takt = java.util.concurrent.Executor { r -> if (!taktPool.isShutdown) try { taktPool.execute(r) } catch (_: java.util.concurrent.RejectedExecutionException) {} }
     private var server: BluetoothGattServer? = null
     private var notify: BluetoothGattCharacteristic? = null
     private var geraet: BluetoothDevice? = null
@@ -267,6 +291,9 @@ class SuuntoDienst : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (Build.VERSION.SDK_INT >= 34) startForeground(3, benachrichtigung(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
         else startForeground(3, benachrichtigung())
+        // Neustart durch Android (START_STICKY) ohne verknuepftes Suunto-Konto oder mit ausgeschaltetem
+        // Empfang: sofort wieder weg (Jan, 18.10.2026: nur aktiv, wenn es ueberhaupt eine Suunto gibt).
+        if (!SuuntoBruecke.verknuepft(this) || !SuuntoBruecke.istAn(this)) { stopSelf(); return START_NOT_STICKY }
         if (server == null) {
             ablage = SuuntoAblage(SuuntoBruecke.wurzel(this))
             starten()
@@ -292,7 +319,7 @@ class SuuntoDienst : Service() {
     override fun onDestroy() {
         schleife?.cancel()
         stoppen()
-        takt.shutdown()
+        taktPool.shutdown()
         super.onDestroy()
     }
 
