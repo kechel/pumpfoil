@@ -72,7 +72,11 @@ object MapTiles {
     /** Setzt die Kachelquelle passend zur Wahl. Von jeder Karte in `factory` UND `update`
      *  aufrufen — sonst bleibt eine schon gebaute Karte auf der alten Ebene stehen. */
     fun anwenden(map: MapView, wahl: String) {
-        map.setTileSource(if (wahl == SATELLIT) ESRI else TileSourceFactory.MAPNIK)
+        val quelle = if (wahl == SATELLIT) ESRI else TileSourceFactory.MAPNIK
+        // Nur bei echtem Wechsel: setTileSource verwirft alle geladenen Kacheln und zeichnet neu. Karten,
+        // die das in `update` je GPS-Punkt riefen, flackerten dadurch (Aufnahme-Karte, Jan 18.10.2026).
+        if (map.tileProvider.tileSource.name() == quelle.name()) return
+        map.setTileSource(quelle)
     }
 
     /**
