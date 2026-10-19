@@ -426,6 +426,7 @@ def _store_token(link: models.SuuntoLink, tok: dict) -> None:
     # Suunto liefert den Username im Token-Response (Feld "user") — für die Webhook-Zuordnung.
     if tok.get("user"):
         link.suunto_username = str(tok["user"])
+    link.zugang_abgelehnt_at = None     # frische Tokens (Erneuern oder Neu-Verbinden) -> Zugang steht
 
 
 def _basic(cid: str, secret: str) -> str:
@@ -467,6 +468,13 @@ def _fresh_token(link: models.SuuntoLink, db: Session) -> str:
     if r.status_code == 200:
         _store_token(link, r.json())
         db.commit()
+    elif "invalid_grant" in (r.text or ""):
+        # Erneuerungs-Token abgelehnt (19.10.2026): lebt 180 Tage und wird bei jedem Erneuern neu
+        # ausgestellt, laeuft also praktisch nur ab, wenn der Nutzer den Zugang in der Suunto-App
+        # entzieht. Bis heute wurde das stumm uebergangen und die Karte zeigte weiter „Verbunden“.
+        log.warning("Suunto: Zugang abgelehnt (uid=%s)", link.user_id)
+        link.zugang_abgelehnt_at = link.zugang_abgelehnt_at or datetime.now(timezone.utc)
+        db.commit()
     return link.access_token
 
 
@@ -479,6 +487,7 @@ def status_(user: models.User = Depends(current_user), db: Session = Depends(get
         "available": available,
         "linked": link is not None,
         "last_sync_at": link.last_sync_at.isoformat() if link and link.last_sync_at else None,
+        "expired": bool(link is not None and link.zugang_abgelehnt_at),
     }
 
 

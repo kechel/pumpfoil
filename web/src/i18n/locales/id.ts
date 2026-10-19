@@ -1508,7 +1508,7 @@ const id: Record<string, string> = {
   "settings.coros.title": "Impor COROS",
   "settings.coros.hint": "Hubungkan akun COROS-mu (Open API). Workout baru diimpor otomatis sebagai sesi.",
   "settings.coros.expired": "Koneksi kedaluwarsa",
-  "settings.coros.expiredHint": "COROS mengakhiri otorisasi. Hubungkan akunmu lagi agar latihan baru masuk kembali.",
+  "settings.coros.expiredHint": "Penyedia mengakhiri otorisasi. Hubungkan akunmu lagi agar latihan baru masuk kembali.",
   "settings.coros.reconnect": "Hubungkan lagi",
   "settings.coros.connect": "Hubungkan COROS",
   "settings.coros.connected": "Terhubung — impor otomatis",

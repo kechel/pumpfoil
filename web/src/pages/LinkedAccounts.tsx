@@ -147,12 +147,7 @@ function CorosCard() {
       </div>
       {/* COROS hat die Erneuerung abgelehnt (19.10.2026): ehrlich sagen und neu verbinden lassen,
           statt weiter „Verbunden" zu zeigen. Neu verbinden ersetzt die Tokens am selben Link. */}
-      {st.linked && st.expired && (
-        <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
-          <p className="font-medium text-amber-800 dark:text-amber-200">{t("settings.coros.expired")}</p>
-          <p className="mt-1 text-sm text-slate-300">{t("settings.coros.expiredHint")}</p>
-        </div>
-      )}
+      {st.linked && st.expired && <AbgelaufenKasten />}
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.coros.connect")}</Button>
       ) : st.expired ? (
@@ -380,9 +375,21 @@ function SportAuswahl({ provider, aktualisieren = 0 }:
 
 // Polar AccessLink: Konto verknüpfen + Trainings importieren. Nur sichtbar, wenn
 // serverseitig konfiguriert (status.available).
+/** Anbieter hat den Zugang abgelehnt (19.10.2026; COROS, Polar, Suunto): statt „Verbunden" ehrlich
+ *  sagen, dass neue Trainings nicht mehr ankommen. Der Knopf daneben heisst „Neu verbinden". */
+function AbgelaufenKasten() {
+  const { t } = useI18n();
+  return (
+    <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
+      <p className="font-medium text-amber-800 dark:text-amber-200">{t("settings.coros.expired")}</p>
+      <p className="mt-1 text-sm text-slate-300">{t("settings.coros.expiredHint")}</p>
+    </div>
+  );
+}
+
 function PolarCard() {
   const { t } = useI18n();
-  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
+  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null; expired?: boolean } | null>(null);
   const [msg, setMsg] = useState("");
   const load = () => api.polarStatus().then(setSt).catch(() => setSt(null));
   useEffect(() => { load(); }, []);
@@ -407,10 +414,16 @@ function PolarCard() {
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
           <img src="/polar-logo.jpg" alt="Polar Flow" className="h-5 w-auto" />
         </a>
-        {st.linked && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.polar.connected")}</span>}
+        {st.linked && !st.expired && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.polar.connected")}</span>}
       </div>
+      {st.linked && st.expired && <AbgelaufenKasten />}
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.polar.connect")}</Button>
+      ) : st.expired ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={connect}>{t("settings.coros.reconnect")}</Button>
+          <Button variant="ghost" onClick={unlink}>{t("settings.polar.unlink")}</Button>
+        </div>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={fort.starten} disabled={fort.laeuft}>
@@ -430,7 +443,7 @@ function PolarCard() {
 // serverseitig konfiguriert (status.available).
 function SuuntoCard() {
   const { t } = useI18n();
-  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
+  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null; expired?: boolean } | null>(null);
   const [msg, setMsg] = useState("");
   const load = () => api.suuntoStatus().then(setSt).catch(() => setSt(null));
   useEffect(() => { load(); }, []);
@@ -456,14 +469,20 @@ function SuuntoCard() {
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
           <img src="/suunto-logo.png" alt="Suunto" className="h-10 w-auto" />
         </a>
-        {st.linked && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.suunto.connected")}</span>}
+        {st.linked && !st.expired && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.suunto.connected")}</span>}
       </div>
       {/* Störungshinweis war vom 19.07. bis 28.07.2026 hier (Suunto verweigerte den Token-Tausch);
           wieder entfernt, nachdem eine Verknüpfung samt Workout-Abruf durchgelaufen ist. Der i18n-Key
           settings.suunto.broken bleibt in allen Sprachen liegen — falls es wiederkommt, reicht dieser
           Block erneut, ohne 16 Übersetzungen. */}
+      {st.linked && st.expired && <AbgelaufenKasten />}
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.suunto.connect")}</Button>
+      ) : st.expired ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={connect}>{t("settings.coros.reconnect")}</Button>
+          <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
+        </div>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={fort.starten} disabled={fort.laeuft}>

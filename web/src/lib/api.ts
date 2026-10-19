@@ -998,7 +998,7 @@ export const api = {
       body: JSON.stringify({ email, password, display_name, language }),
     }),
   getProfile: () => req<Profile>("/api/auth/me"),
-  polarStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/polar/status"),
+  polarStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null; expired?: boolean }>("/api/integrations/polar/status"),
   polarConnect: () => req<{ authorize_url: string }>("/api/integrations/polar/connect"),
   // Release-Stand fuer die Tabelle oben auf /changelog. Die Live-Spalte kommt aus derselben
   // Quelle wie der Update-Hinweis in den Apps (appmeta), damit beides nicht auseinanderlaeuft.
@@ -1132,7 +1132,7 @@ export const api = {
       quality: { take: number; n: number; cadence_hz: number; coverage: number; recall: number | null; jitter_ms: number | null; plausible: boolean }[];
     }>(`/api/sessions/${id}/pump-truth/compare${runIdx != null ? `?run_idx=${runIdx}` : ""}`),
 
-  suuntoStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/suunto/status"),
+  suuntoStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null; expired?: boolean }>("/api/integrations/suunto/status"),
   suuntoConnect: () => req<{ authorize_url: string }>("/api/integrations/suunto/connect"),
   // `reasons`: warum etwas NICHT importiert wurde, je Fall gezaehlt (s. `suunto._grund_code`).
   suuntoSync: () => req<SyncStart>("/api/integrations/suunto/sync", { method: "POST" }),

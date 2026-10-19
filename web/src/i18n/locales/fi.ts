@@ -1598,7 +1598,7 @@ const fi: Record<string, string> = {
   "settings.coros.title": "COROS-tuonti",
   "settings.coros.hint": "Yhdistä COROS-tilisi (Open API). Uudet harjoitukset tuodaan automaattisesti sessioiksi.",
   "settings.coros.expired": "Yhteys vanhentunut",
-  "settings.coros.expiredHint": "COROS lopetti valtuutuksen. Yhdistä tilisi uudelleen, jotta uudet treenit tulevat taas perille.",
+  "settings.coros.expiredHint": "Palveluntarjoaja lopetti valtuutuksen. Yhdistä tilisi uudelleen, jotta uudet treenit tulevat taas perille.",
   "settings.coros.reconnect": "Yhdistä uudelleen",
   "settings.coros.connect": "Yhdistä COROSiin",
   "settings.coros.connected": "Yhdistetty — automaattinen tuonti",

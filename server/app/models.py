@@ -1083,6 +1083,10 @@ class PolarLink(Base):
     # hart gescheitert ist (s. polar._pull_import). Nach MAX_OFFENE_VERSUCHE geben wir sie
     # trotzdem frei, damit die Warteschlange nicht dauerhaft klemmt.
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    # Anbieter hat den Zugang endgueltig abgelehnt (19.10.2026, wie COROS): Nutzer hat ihn dort
+    # entzogen o. ae. Gesetzt beim Ablehnen, geleert bei jedem Erfolg und beim Neu-Verbinden.
+    # /status meldet dann expired -> Oberflaeche zeigt „Verbindung abgelaufen“ + Neu verbinden.
+    zugang_abgelehnt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class SyncProgress(Base):
@@ -1227,6 +1231,10 @@ class SuuntoLink(Base):
     suunto_username: Mapped[str | None] = mapped_column(String(128), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Anbieter hat den Zugang endgueltig abgelehnt (19.10.2026, wie COROS): Nutzer hat ihn dort
+    # entzogen o. ae. Gesetzt beim Ablehnen, geleert bei jedem Erfolg und beim Neu-Verbinden.
+    # /status meldet dann expired -> Oberflaeche zeigt „Verbindung abgelaufen“ + Neu verbinden.
+    zugang_abgelehnt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class SuuntoPending(Base):

@@ -1505,7 +1505,7 @@ const ptPT: Record<string, string> = {
   "settings.coros.title": "Importação COROS",
   "settings.coros.hint": "Liga a tua conta COROS (Open API). Novos treinos são importados automaticamente como sessões.",
   "settings.coros.expired": "Ligação expirada",
-  "settings.coros.expiredHint": "A COROS terminou a autorização. Volta a ligar a tua conta para que os novos treinos voltem a chegar.",
+  "settings.coros.expiredHint": "O fornecedor terminou a autorização. Volta a ligar a tua conta para que os novos treinos voltem a chegar.",
   "settings.coros.reconnect": "Voltar a ligar",
   "settings.coros.connect": "Ligar COROS",
   "settings.coros.connected": "Ligado — importação automática",

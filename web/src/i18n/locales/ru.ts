@@ -1508,7 +1508,7 @@ const ru: Record<string, string> = {
   "settings.coros.title": "Импорт COROS",
   "settings.coros.hint": "Подключите свой аккаунт COROS (Open API). Новые тренировки импортируются автоматически как сессии.",
   "settings.coros.expired": "Подключение истекло",
-  "settings.coros.expiredHint": "COROS завершил авторизацию. Подключи аккаунт заново, чтобы новые тренировки снова поступали.",
+  "settings.coros.expiredHint": "Сервис завершил авторизацию. Подключи аккаунт заново, чтобы новые тренировки снова поступали.",
   "settings.coros.reconnect": "Подключить заново",
   "settings.coros.connect": "Подключить COROS",
   "settings.coros.connected": "Подключено — автоматический импорт",
