@@ -6,6 +6,7 @@ import { Button, Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
 import { ChevronIcon, StarIcon, FoilIcon, EditIcon } from "../components/Icons";
 import { useT } from "../i18n";
+import { EquipmentJeSport } from "../components/EquipmentJeSport";
 
 // Detailed Setup: Stab (Katalog), Mastlänge, Shim-Winkel und Boards — jede Komponente
 // verhält sich wie die Foils: „meine" markieren, eine als Standard (Stern), je Session
@@ -305,6 +306,9 @@ export default function Setup() {
           <Button onClick={addBoard} className="text-sm">{t("setup.addValue")}</Button>
         </div>
       </Card>
+
+      {/* Ausruestung je Sportart (19.10.2026) */}
+      <EquipmentJeSport stabs={stabs} boards={boards} myStabs={myStabs} myMasts={myMasts} />
 
       {/* Stabs (Katalog + eigene Bezeichnungen) */}
       <h3 className="mb-1 font-semibold">{t("setup.stabTitle")}</h3>

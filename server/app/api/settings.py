@@ -124,6 +124,10 @@ DEFAULTS = {
     # Wer überwiegend Wingfoil aufzeichnet, lädt damit direkt in die richtige Kategorie hoch und muss
     # nichts nachträglich zuordnen. Wirkt nur beim Anlegen; bestehende Sessions bleiben unberührt.
     "default_sport_class": "pumpfoil",
+    # Equipment je Sportart (19.10.2026, app/equipment_sport.py): {sportart: {foil_id, board_id,
+    # stab_id, mast_len_cm}}. Greift beim Anlegen und beim Umstellen der Sportart, nur fuer
+    # Felder, die niemand von Hand gesetzt hat.
+    "equipment_je_sport": {},
     # Not-Aus für die dynamischen Layouts auf der Uhr (Stufe 3 des Sicherheitsnetzes, pro Nutzer).
     # Aus = die Uhr fährt die alte statische Logik, ohne App-Update.
     "layouts_enabled": True,
@@ -588,6 +592,10 @@ def update_settings(
                 if k in v:
                     aktuell[k] = bool(v[k])
             current["public_profile"] = aktuell
+    if "equipment_je_sport" in patch:
+        from ..equipment_sport import bereinigen
+        from .sessions import SPORTS
+        current["equipment_je_sport"] = bereinigen(patch["equipment_je_sport"], SPORTS)
     if "hide_location" in patch:
         current["hide_location"] = bool(patch["hide_location"])
     if "weight_hidden" in patch:
