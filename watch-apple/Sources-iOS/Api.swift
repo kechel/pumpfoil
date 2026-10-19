@@ -1245,7 +1245,13 @@ enum Api {
     }
 
     static func releaseStand() async throws -> ReleaseStand {
-        try await request("/api/app/releases", method: "GET", body: nil, auth: false)
+        // ohne_sport=1: den Sportarten-Stand zeigt die App als eigenen Abschnitt (sportStand()).
+        try await request("/api/app/releases?ohne_sport=1", method: "GET", body: nil, auth: false)
+    }
+
+    /// Stand der Auswertung je Sportart fuer die Changelog-Seite (19.10.2026).
+    static func sportStand() async throws -> SportStand {
+        try await request("/api/app/sport-status", method: "GET", body: nil, auth: false)
     }
 
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog.

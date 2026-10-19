@@ -48,7 +48,6 @@ struct HomeView: View {
     // selbst gewaehlt hat: 10 Tage -> 30 Tage -> 1 Jahr -> Allzeit (PWA 30.08.).
     static let standardZeitraum = "10d"
     private let rueckfall = ["10d", "30d", "365d", "all"]
-    @State private var showFeedback = false
     // News-Banner DB-gesteuert (wie PWA): der AppStorage-Wert = zuletzt weggeklickte VERSION.
     @AppStorage("foil_banner_v1") private var newsVerStored = 0
     @State private var news: NewsBanner?
@@ -79,13 +78,8 @@ struct HomeView: View {
                     SessionDetailView(id: d.id, dataVersion: d.dataVersion)
                 }
                 .navigationTitle(Loc.t("nav.home", lang))
-                .brandToolbar(Loc.t("nav.home", lang))
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { showFeedback = true } label: { Image(systemName: "envelope") }
-                    }
-                }
-                .sheet(isPresented: $showFeedback) { FeedbackView(lang: lang) }
+                // Feedback-Knopf kommt jetzt aus brandToolbar (auf jeder Seite, mit Seiten-URL).
+                .brandToolbar(Loc.t("nav.home", lang), feedbackUrl: "/")
                 .fullScreenCover(isPresented: $showRecord) { RecordView() }
                 .sheet(isPresented: $showRating) { ratingSheet }
                 .overlay { if loading && stats == nil { ProgressView() } }

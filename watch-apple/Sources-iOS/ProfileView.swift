@@ -313,10 +313,12 @@ struct ChangelogView: View {
     @State private var tage: [ChangelogTag]?
     @State private var fehler = false
     @State private var stand: ReleaseStand?
+    @State private var sport: SportStand?
 
     var body: some View {
         List {
             standSections
+            if let sp = sport { ChangelogSportSection(stand: sp) }
             ladeZeile
             ForEach(tage ?? []) { tag in
                 ChangelogTagSection(tag: tag)
@@ -325,6 +327,7 @@ struct ChangelogView: View {
         .listStyle(.insetGrouped)
         .navigationTitle(Loc.t("nav.changelog", lang))
         .navigationBarTitleDisplayMode(.inline)
+        .feedbackToolbar("/changelog")
         .task { await laden() }
     }
 
@@ -351,9 +354,12 @@ struct ChangelogView: View {
     private func laden() async {
         async let s: ReleaseStand? = try? Api.releaseStand()
         async let a: ChangelogAntwort? = try? Api.changelog()
+        async let sp: SportStand? = try? Api.sportStand()
         let st: ReleaseStand? = await s
         let an: ChangelogAntwort? = await a
+        let spd: SportStand? = await sp
         stand = st
+        sport = spd
         if let an { tage = an.days ?? [] } else { fehler = true }
     }
 }
@@ -373,6 +379,103 @@ private func changelogTagLang(_ iso: String) -> String {
     aus.locale = Locale(identifier: "en_US_POSIX")
     aus.dateFormat = "MMMM d, yyyy"
     return aus.string(from: d)
+}
+
+// „Analysis by sport" (19.10.2026) — wie der Abschnitt im Web (Changelog.tsx `SportStand`): je
+// Sportart eine aufklappbare Zeile mit Zaehlern, aufgeklappt jedes Merkmal mit Status und Satz.
+// Englisch wie die ganze Seite. Kleine Teil-Views, damit der Type-Checker nicht haengt.
+private func sportStatusFarbe(_ st: String) -> Color {
+    switch st {
+    case "live": return .green
+    case "teilweise": return .blue
+    case "geplant": return Color(red: 0.76, green: 0.25, blue: 0)
+    default: return .secondary
+    }
+}
+
+private struct SportStatusChip: View {
+    let text: String
+    let status: String
+
+    var body: some View {
+        Text(text).font(.caption.weight(.medium))
+            .padding(.horizontal, 7).padding(.vertical, 2)
+            .foregroundStyle(sportStatusFarbe(status))
+            .background(Capsule().fill(sportStatusFarbe(status).opacity(0.14)))
+    }
+}
+
+private struct ChangelogSportSection: View {
+    let stand: SportStand
+    private let reihe = ["live", "teilweise", "geplant"]
+
+    var body: some View {
+        Section {
+            legende
+            ForEach(stand.sportarten ?? [], id: \.id) { sp in
+                ChangelogSportZeile(sp: sp, stand: stand)
+            }
+        } header: {
+            Text("Analysis by sport")
+        } footer: {
+            Text("The analysis started with pumpfoil. This shows what is already tuned for each sport and what is planned. As of \(changelogTagLang(stand.stand ?? "")).")
+        }
+    }
+
+    private var legende: some View {
+        HStack(spacing: 6) {
+            ForEach(reihe, id: \.self) { st in
+                SportStatusChip(text: stand.status?[st] ?? st, status: st)
+            }
+            Text("basic = works, not tuned yet").font(.caption).foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct ChangelogSportZeile: View {
+    let sp: SportStandSport
+    let stand: SportStand
+    private let reihe = ["live", "teilweise", "geplant"]
+
+    private func zahl(_ st: String) -> Int { (sp.merkmale ?? []).filter { $0.status == st }.count }
+
+    var body: some View {
+        DisclosureGroup {
+            ForEach(sp.merkmale ?? [], id: \.id) { m in
+                merkmalZeile(m)
+            }
+        } label: {
+            kopf
+        }
+    }
+
+    private var kopf: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Text(sp.name ?? sp.id).font(.subheadline.weight(.medium))
+                Text(sp.gruppe ?? "").font(.subheadline).foregroundStyle(.secondary)
+            }
+            HStack(spacing: 4) {
+                ForEach(reihe.filter { zahl($0) > 0 }, id: \.self) { st in
+                    SportStatusChip(text: "\(zahl(st)) \(stand.status?[st] ?? st)", status: st)
+                }
+            }
+        }
+    }
+
+    private func merkmalZeile(_ m: SportStandMerkmal) -> some View {
+        let name: String = (stand.merkmale ?? []).first { $0.id == m.id }?.name ?? m.id
+        let st: String = m.status ?? "nein"
+        let seit: String = (m.seit != nil && st != "geplant") ? " Since \(changelogTagLang(m.seit ?? ""))." : ""
+        return VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Text(name).font(.subheadline)
+                SportStatusChip(text: stand.status?[st] ?? st, status: st)
+            }
+            Text((m.text ?? "") + seit).font(.subheadline).foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 2)
+    }
 }
 
 // Bekannte Probleme — Warnbox ueber dem Release-Stand (Web `BekannteProbleme`).

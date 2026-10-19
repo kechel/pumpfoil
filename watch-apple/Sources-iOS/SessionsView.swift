@@ -66,7 +66,7 @@ struct SessionsView: View {
             List { listContent }
                 .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
                 .navigationTitle(title)
-                .brandToolbar(title)
+                .brandToolbar(title, feedbackUrl: "/sessions")
                 .toolbar {
                     // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/SpotSessions).
                     if scope == .spot, !spot.isEmpty { spotChatItem }

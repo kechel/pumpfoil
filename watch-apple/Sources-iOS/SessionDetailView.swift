@@ -115,6 +115,7 @@ struct SessionDetailView: View {
             .navigationTitle(Loc.t("sd.title", lang))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarItems }
+            .feedbackToolbar("/sessions/\(sid)")
             .confirmationDialog(Loc.t("sd.deleteTitle", lang), isPresented: $confirmDelete, titleVisibility: .visible) {
                 deleteDialogActions
             }

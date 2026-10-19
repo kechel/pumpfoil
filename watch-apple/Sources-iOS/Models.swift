@@ -677,6 +677,27 @@ struct BekanntesProblem: Codable {
     let note: String?
 }
 
+// Stand je Sportart (19.10.2026) — GET /api/app/sport-status, Quelle server/app/data/sportarten_stand.json.
+struct SportStand: Codable {
+    let stand: String?
+    let status: [String: String]?
+    let merkmale: [SportMerkmalName]?
+    let sportarten: [SportStandSport]?
+}
+struct SportMerkmalName: Codable { let id: String; let name: String? }
+struct SportStandSport: Codable {
+    let id: String
+    let name: String?
+    let gruppe: String?
+    let merkmale: [SportStandMerkmal]?
+}
+struct SportStandMerkmal: Codable {
+    let id: String
+    let status: String?
+    let text: String?
+    let seit: String?
+}
+
 struct ReleaseStand: Codable {
     let live: [ReleaseZeile]?
     let review: [ReleaseZeile]?

@@ -1496,7 +1496,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Android GEBAUT (19.10., noch nicht released):** `FeedbackKnopf.kt` (LocalFeedbackUrl aus MainActivity: Session ->
   `/sessions/<id>`, Foiler -> `/foiler/<id>`, Spot -> `/sessions?spot=…`, sonst `android:<route>`), in PumpfoilTopBar + allen
   TopAppBars (ausser Aufnahme/Einrichtung), Kopfleisten-Symbole navy statt cyan. Im Emulator geprueft (Home, Session, Dialog).
-  **iOS offen:** dasselbe (`HomeView.swift:85` nur auf Home; FeedbackView braucht `url`-Parameter, Api.submitFeedback auch).
+  **iOS GEBAUT (19.10., 1.1.52 Build 59 gebumpt, nur swiftc -parse):** `FeedbackToolbarKnopf` in Branding.swift, ueber
+  `brandToolbar(_:feedbackUrl:)` auf allen Marken-Seiten + `.feedbackToolbar(url)` auf Session/Foiler/Changelog.
+  (1) Changelog-Abschnitt „Analysis by sport“: **Android + iOS GEBAUT** (19.10.); Android im Emulator geprueft.
 
 - **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
   Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf

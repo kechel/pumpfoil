@@ -91,7 +91,9 @@ extension View {
     // Horizontales Marken-Wortmarken-Logo in der Navigationsleiste (theme-adaptiv, wie PWA/Android).
     // Nav-Bar-Cyan wird global via UINavigationBarAppearance gesetzt (PumpfoilApp.init) — NICHT
     // per-View toolbarBackground, das in NavigationStacks Update-Zyklen auslösen kann.
-    func brandToolbar(_ title: String) -> some View {
+    // Mit Feedback-Knopf oben rechts (19.10.2026, Jan: „im header oben rechts … aber halt auf allen
+    // seiten"). `feedbackUrl` = die Seite fuer die Meldung; ohne Angabe "ios:<Titel>".
+    func brandToolbar(_ title: String, feedbackUrl: String? = nil) -> some View {
         self.navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -100,6 +102,35 @@ extension View {
                         .foregroundStyle(Color(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255))
                         .accessibilityLabel("Pumpfoil.org — \(title)")
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    FeedbackToolbarKnopf(url: feedbackUrl ?? ("ios:" + title))
+                }
             }
+    }
+
+    /// Nur der Feedback-Knopf, fuer Seiten ohne brandToolbar (Session, Foiler, Changelog).
+    func feedbackToolbar(_ url: String) -> some View {
+        self.toolbar {
+            ToolbarItem(placement: .topBarTrailing) { FeedbackToolbarKnopf(url: url) }
+        }
+    }
+}
+
+// Feedback-Knopf in der Kopfleiste JEDER Seite (19.10.2026, Jan: „ziel war es doch das der auf jeder
+// seite zu sehen ist und wir die url mitbekommen wo es ein feedback zu gab"). Bis 1.1.51 stand er nur
+// auf Home und schickte immer "ios-app". Navy wie das Wortmarken-Logo, damit er auf dem cyanen Balken
+// sichtbar ist (Android hatte dort cyan auf cyan).
+struct FeedbackToolbarKnopf: View {
+    let url: String
+    @AppStorage("appLang") private var lang = "de"
+    @State private var offen = false
+
+    var body: some View {
+        Button { offen = true } label: {
+            Image(systemName: "envelope")
+                .foregroundStyle(Color(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255))
+        }
+        .accessibilityLabel(Loc.t("feedback.title", lang))
+        .sheet(isPresented: $offen) { FeedbackView(lang: lang, url: url) }
     }
 }

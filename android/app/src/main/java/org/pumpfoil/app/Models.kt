@@ -1462,6 +1462,29 @@ data class BekanntesProblem(
     val note: String? = null,
 )
 
+// Stand je Sportart (19.10.2026) — GET /api/app/sport-status, Quelle server/app/data/sportarten_stand.json.
+@Serializable
+data class SportStand(
+    val stand: String = "",
+    val status: Map<String, String> = emptyMap(),
+    val merkmale: List<SportMerkmalName> = emptyList(),
+    val sportarten: List<SportStandSport> = emptyList(),
+)
+
+@Serializable
+data class SportMerkmalName(val id: String = "", val name: String = "")
+
+@Serializable
+data class SportStandSport(
+    val id: String = "",
+    val name: String = "",
+    val gruppe: String = "",
+    val merkmale: List<SportStandMerkmal> = emptyList(),
+)
+
+@Serializable
+data class SportStandMerkmal(val id: String = "", val status: String = "nein", val text: String = "", val seit: String? = null)
+
 @Serializable
 data class ReleaseStand(
     val live: List<ReleaseZeile> = emptyList(),

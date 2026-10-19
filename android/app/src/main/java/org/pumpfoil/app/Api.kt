@@ -1186,7 +1186,13 @@ object Api {
     }
 
     suspend fun releaseStand(): ReleaseStand = withContext(Dispatchers.IO) {
-        json.decodeFromString(ReleaseStand.serializer(), http("GET", "/api/app/releases", null, auth = false))
+        // ohne_sport=1: den Sportarten-Stand zeigt die App als eigenen Abschnitt (sportStand()).
+        json.decodeFromString(ReleaseStand.serializer(), http("GET", "/api/app/releases?ohne_sport=1", null, auth = false))
+    }
+
+    // Stand der Auswertung je Sportart fuer die Changelog-Seite (19.10.2026).
+    suspend fun sportStand(): SportStand = withContext(Dispatchers.IO) {
+        json.decodeFromString(SportStand.serializer(), http("GET", "/api/app/sport-status", null, auth = false))
     }
 
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog:

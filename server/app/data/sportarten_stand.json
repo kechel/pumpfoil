@@ -525,6 +525,19 @@
         "alle"
       ],
       "merkmal": "-",
+      "was": "Abschnitt 'Analysis by sport' auf der Changelog-Seite der Apps (Android + iOS, /api/app/sport-status); iOS 1.1.52 zur Einreichung, Android mit dem naechsten Release.",
+      "wo": [
+        "android",
+        "ios"
+      ],
+      "version": "iOS 1.1.52"
+    },
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "-",
       "was": "Stand je Sportart kurz als Textzeile in 'Coming next' fuer die ausgelieferten Apps probiert und wieder entfernt (Jan: 'so ist das quatsch'). Kommt mit dem naechsten App-Release als eigener Abschnitt.",
       "wo": [
         "server"
