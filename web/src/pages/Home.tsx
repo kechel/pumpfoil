@@ -367,7 +367,11 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period:
         )}
       </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {LEADER_KINDS.map((k) => (
+        {/* Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
+            dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher. */}
+        {LEADER_KINDS.filter((k) => !(
+          (WIND_SPORTS.includes(sport) && (k.key === "pumps" || k.key === "runs"))
+          || (MOTOR_SPORTS.includes(sport) && k.key === "pumps"))).map((k) => (
           <div key={k.key}>
             <div className="mb-1.5 text-[11px] uppercase tracking-wide text-slate-300">{t(k.labelKey)}</div>
             <LeaderList rows={data[k.key]} field={k.field} unit={t(k.unitKey)} />
