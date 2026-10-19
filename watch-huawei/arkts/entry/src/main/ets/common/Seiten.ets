@@ -516,7 +516,10 @@ export class Auswahl {
     this.layouts = typeof d.layouts === 'boolean' ? d.layouts : null;
     this.sperre = typeof d.sperre === 'boolean' ? d.sperre : null;
     this.start = typeof d.start === 'boolean' ? d.start : null;
-    this.sport = typeof d.sport === 'string' && d.sport !== '' ? d.sport : null;
+    // Sportart NICHT aus auswahl.json uebernehmen: jede App-Sitzung beginnt mit der Standard-Sportart,
+    // wie auf allen anderen Uhren (Jan, 19.10.2026: „ja alle uhren identisch bitte"). Gewechselt wird
+    // im Menue und gilt bis die App schliesst.
+    this.sport = null;
   }
 
   vorbelegen(k: Konfig): void {
@@ -606,11 +609,9 @@ export class Auswahl {
   }
 
   daten(): AuswahlDaten {
+    // Die Sportart wird nicht gespeichert (s. Konstruktor) — daten() bleibt damit gleich zu lauf.js.
     const d: AuswahlDaten = { gesetzt: this.gesetzt, alarm: this.alarm, quelle: this.quelle, foilId: this.foilId,
       layouts: this.layouts, sperre: this.sperre, start: this.start };
-    if (this.sport !== null) {
-      d.sport = this.sport;   // nur wenn gewaehlt: so bleibt daten() ohne Sportart gleich zu lauf.js (Test)
-    }
     return d;
   }
 }
