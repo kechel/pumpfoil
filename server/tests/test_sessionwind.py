@@ -23,3 +23,27 @@ def test_cache_und_ohne_ort(monkeypatch, tmp_path):
     a = sessionwind.session_wind(1, 51.7, 3.8, t, t)
     b = sessionwind.session_wind(1, 51.7, 3.8, t, t)
     assert a == b and a["mittel"]["richtung"] == 70 and len(aufrufe) == 1   # zweiter Aufruf aus dem Cache
+
+
+def test_manoever_wende_und_halse():
+    """Synthetisch: Ost-West-Schlaege bei Nordwind. Drehung ueber Nord = Wende, ueber Sued = Halse."""
+    import math
+    from app.manoever import erkennen
+    t, lat, lon = [], [], []
+    x = y = 0.0
+    v = 6.0   # m/s ~ 21.6 km/h
+    def fahre(kurs, sek):
+        nonlocal x, y
+        for _ in range(sek):
+            x += v * math.sin(math.radians(kurs)); y += v * math.cos(math.radians(kurs))
+            t.append(len(t) * 1000); lat.append(47.0 + y / 111320.0); lon.append(9.0 + x / (111320.0 * math.cos(math.radians(47))))
+    fahre(90, 30)
+    for k in range(90, -91, -30): fahre(k % 360, 1)    # links herum ueber Nord (Bug durch den Wind)
+    fahre(270, 30)
+    for k in range(270, 450, 30): fahre(k % 360, 1)    # rechts herum ueber Nord -> Wende
+    fahre(90, 30)
+    for k in range(90, 271, 30): fahre(k % 360, 1)     # rechts herum ueber Sued (Heck durch den Wind)
+    fahre(270, 30)
+    m = erkennen(t, lat, lon, lambda _t: 0.0)          # Wind AUS Norden
+    assert [x["typ"] for x in m] == ["wende", "wende", "halse"]
+    assert all(x["durch"] for x in m)

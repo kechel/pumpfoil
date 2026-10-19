@@ -552,6 +552,13 @@ export default function SessionDetail() {
     if (profil?.gruppe !== "wind" || !session?.id) return;
     api.sessionWind(session.id).then((r) => setWind(r.wind)).catch(() => {});
   }, [session?.id, profil?.gruppe]);
+  // Wenden/Halsen (nur Anzeige, wie Carves): Zaehler in der Wind-Box, Marken auf der Karte.
+  const [manoever, setManoever] = useState<Awaited<ReturnType<typeof api.sessionManoever>> | null>(null);
+  useEffect(() => {
+    setManoever(null);
+    if (profil?.gruppe !== "wind" || !session?.id) return;
+    api.sessionManoever(session.id).then(setManoever).catch(() => {});
+  }, [session?.id, profil?.gruppe]);
   const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
@@ -1356,6 +1363,15 @@ export default function SessionDetail() {
         L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: selectedRun != null ? 0.35 : 0.9, interactive: false }).addTo(lg);
       }
     }
+    // Wenden (violett) und Halsen (orange); voll = auf dem Foil durchgefahren, hohl = abgesetzt/gestuerzt.
+    if (manoever?.items?.length && selectedRun == null) {
+      manoever.items.forEach((mv) => {
+        const p = coords[mv.i];
+        if (!p) return;
+        const farbe = mv.typ === "wende" ? "#a855f7" : "#f97316";
+        L.circleMarker(p, { radius: 5, color: farbe, weight: 2, fillColor: farbe, fillOpacity: mv.durch ? 0.95 : 0, interactive: false }).addTo(lg);
+      });
+    }
     // Carves als feine 25-Hz-Bögen (Catmull-Rom-geglättet) über dem grauen Basis-Track.
     // Jedes Teilstück nach seiner Kurvenlage-g eingefärbt -> Verlauf feiner als GPS-Punkt.
     if (colorMode === "turns" && carveData?.arcs) {
@@ -1424,7 +1440,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, manoever]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -2018,6 +2034,21 @@ export default function SessionDetail() {
             </span>
           </div>
           <div className="mt-0.5 text-slate-400">{t("sd.windNote")}</div>
+          {manoever?.zahlen && (
+            <>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-200">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#a855f7]" />
+                  <b>{t("sd.tacks")}</b> {manoever.zahlen.wende.durch} / {manoever.zahlen.wende.durch + manoever.zahlen.wende.ab} {t("sd.onFoil")}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#f97316]" />
+                  <b>{t("sd.jibes")}</b> {manoever.zahlen.halse.durch} / {manoever.zahlen.halse.durch + manoever.zahlen.halse.ab} {t("sd.onFoil")}
+                </span>
+              </div>
+              <div className="mt-0.5 text-slate-400">{t("sd.manoeverNote")}</div>
+            </>
+          )}
         </div>
       )}
 
