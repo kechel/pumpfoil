@@ -1144,6 +1144,8 @@ data class SessionDetail(
     @SerialName("sport_source") val sportSource: String? = null,
     // Begründung der automatischen Erkennung (nur Besitzer/Admin, nur solange sie gilt).
     @SerialName("sport_auto") val sportAuto: SportAuto? = null,
+    // Hinweis „sieht nach Wind aus" (19.10.2026): nur Besitzer; wegklickbar ohne Aenderung.
+    @SerialName("wind_vorschlag") val windVorschlag: WindVorschlag? = null,
     // Anzahl menschlicher Meldungen (nur Besitzer/Admin) — steuert, ob der Widerspruchs-Knopf
     // erscheint: beim reinen Maschinen-Urteil (flag_count == 0) wählt man einfach „Pumpfoil".
     @SerialName("flag_count") val flagCount: Int = 0,
@@ -1616,3 +1618,12 @@ data class ChangelogTag(val date: String = "", val items: List<ChangelogPunkt> =
 
 @Serializable
 data class ChangelogAntwort(val days: List<ChangelogTag> = emptyList(), val latest: String? = null)
+
+
+// Hinweis „sieht nach einer Wind-Session aus" (19.10.2026, SessionOut.wind_vorschlag)
+@Serializable
+data class WindRegel(@SerialName("dauer_med") val dauerMed: Double? = null, @SerialName("tempo_med") val tempoMed: Double? = null,
+                     @SerialName("anteil_foil") val anteilFoil: Double? = null, @SerialName("flaeche_km") val flaecheKm: Double? = null)
+
+@Serializable
+data class WindVorschlag(val sportarten: List<String> = emptyList(), val regel: WindRegel? = null)

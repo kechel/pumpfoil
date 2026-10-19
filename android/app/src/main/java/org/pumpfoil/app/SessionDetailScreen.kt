@@ -760,6 +760,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // Sportart-Klassifikation (docs/sport-classification.md): der Besitzer ordnet selbst zu,
         // Fremde können nur bitten. Der amber Kasten erscheint, solange eine Bitte offen ist.
         if (s.owned) ClassificationNotice(s, scope, onReload)
+        if (s.owned && s.windVorschlag != null) WindHinweis(s, scope, onReload)
 
         // Festes 2-spaltiges Grid: Videos (falls verlinkt) + Fotos, alle Kacheln gleich groß (16:9).
         val shownVideos = videos.filter { youtubeId(it.youtubeUrl) != null }
@@ -2541,6 +2542,39 @@ private fun ReportRow(sessionId: Int) {
             Spacer(Modifier.width(6.dp))
             Text(if (v?.my_inappropriate == true) I18n.t("sd.reported") else I18n.t("sd.inappropriate"))
             if ((v?.inappropriate_count ?: 0) > 0) { Spacer(Modifier.width(6.dp)); Text("${v?.inappropriate_count}") }
+        }
+    }
+}
+
+// Hinweis „sieht nach einer Wind-Session aus" (19.10.2026, wie im Web): Knopf je Wind-Sportart oder
+// „Nein, passt so" — blendet ihn fuer diese Session auf allen Geraeten aus, ohne etwas zu aendern.
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun WindHinweis(s: SessionDetail, scope: kotlinx.coroutines.CoroutineScope, onReload: () -> Unit) {
+    val v = s.windVorschlag ?: return
+    var weg by remember(s.id) { mutableStateOf(false) }
+    if (weg) return
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val amber = if (dark) AmberOnDark else AmberOnLight
+    val rg = v.regel
+    val warum = I18n.t("cls.ruleWhyWind").replace("{dur}", Math.round(rg?.dauerMed ?: 0.0).toString())
+        .replace("{kmh}", "%.1f".format(rg?.tempoMed ?: 0.0)).replace("{foil}", Math.round((rg?.anteilFoil ?: 0.0) * 100).toString())
+        .replace("{fl}", "%.1f".format(rg?.flaecheKm ?: 0.0))
+    Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(I18n.t("cls.windHint"), color = amber, fontWeight = FontWeight.SemiBold)
+            Text(warum, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                v.sportarten.forEach { sp ->
+                    Button(onClick = {
+                        scope.launch { try { Api.setClassification(s.id, sport = sp); onReload() } catch (_: Exception) {} }
+                    }) { Text(I18n.t("cls.sport.$sp")) }
+                }
+                OutlinedButton(onClick = {
+                    weg = true
+                    scope.launch { try { Api.windHinweisWeg(s.id) } catch (_: Exception) {} }
+                }) { Text(I18n.t("cls.windHintNo")) }
+            }
         }
     }
 }

@@ -808,6 +808,9 @@ enum Api {
         try await sendVoid("/api/sessions/\(id)/not-pumpfoil", method: "POST", body: body)
     }
 
+    static func windHinweisWeg(_ id: Int) async throws {
+        let _: [String: Bool] = try await request("/api/sessions/\(id)/wind-hinweis-weg", method: "POST", body: nil, auth: true)
+    }
     static func setClassification(_ id: Int, sport: String? = nil, dataQuality: String? = nil) async throws {
         var body: [String: Any] = [:]
         if let s = sport { body["sport"] = s }
