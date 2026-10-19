@@ -304,8 +304,8 @@ _HINWEIS_SCHLUESSEL = {"huawei": "huawei-watch5"}
 
 
 def sportarten_fuer_uhr(db: Session, user_id: int, settings: dict) -> list[dict]:
-    """Auswahlliste fuer die Uhr: Standard-Sportart zuerst, dann die im letzten Jahr gefahrenen
-    (haeufigste zuerst), hoechstens 6 — eine lange Liste ist auf der Uhr muehsam. Englische
+    """Auswahlliste fuer die Uhr: Standard-Sportart zuerst, dann die im Profil gewaehlten
+    („my_sports"), ohne Auswahl die im letzten Jahr gefahrenen (haeufigste zuerst), hoechstens 6 — eine lange Liste ist auf der Uhr muehsam. Englische
     Namen; uebersetzt wird auf der Uhr nicht (Platz), die Namen sind kurz."""
     from datetime import timedelta
     from sqlalchemy import func as _f
@@ -314,6 +314,11 @@ def sportarten_fuer_uhr(db: Session, user_id: int, settings: dict) -> list[dict]
              "surf_downwind": "Downwind", "surf_wave": "Wave", "sup_paddle": "SUP", "wakethief": "Wake thief",
              "towed": "Towed", "efoil": "eFoil", "foildrive": "Foildrive", "foil_scoot": "Foil Scoot"}
     std = settings.get("default_sport_class") or "pumpfoil"
+    eigene = [x for x in (settings.get("my_sports") or []) if isinstance(x, str)]
+    if eigene:
+        # Im Profil gewaehlt („Meine Sportarten"): Standard zuerst, dann die gewaehlten.
+        ids = [std] + [x for x in eigene if x != std and x in namen]
+        return [{"id": i, "name": namen.get(i, i)} for i in ids[:6] if i in SPORTS]
     seit = datetime.now(timezone.utc) - timedelta(days=365)
     rows = (db.query(models.Session.sport_class, _f.count())
             .filter(models.Session.user_id == user_id, models.Session.deleted.isnot(True),

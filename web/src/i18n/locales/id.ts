@@ -1944,6 +1944,8 @@ const id: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Olahraga bawaan untuk sesi baru",
   "foils.defaultSportHint": "Hanya berlaku untuk rekaman berikutnya — sesi yang sudah ada tetap seperti apa adanya. Memilihnya di jam akan menyusul.",
+  "foils.mySports": "Olahraga di jam",
+  "foils.mySportsHint": "Pilih olahraga yang bisa kamu pilih di jam sebelum mulai. Olahraga bawaanmu selalu disertakan.",
   "foils.missingCta": "Minta kami menambahkannya",
   "foils.missingFoil": "Merek atau ukuranmu tidak ada di daftar?",
   "foils.noSpecs": "Produsen belum menerbitkan ukurannya",

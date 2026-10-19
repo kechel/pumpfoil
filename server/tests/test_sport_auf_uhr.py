@@ -38,3 +38,13 @@ def test_gewaehlte_sportart_und_equipment(client):
     r = client.post("/api/ingest/session", headers=dev, json={
         "session_uuid": "uhrsport2", "started_at": datetime.now(timezone.utc).isoformat(), "sport_class": "quatsch"})
     assert r.status_code == 200
+
+
+def test_meine_sportarten_aus_dem_profil(client):
+    auth, dev = _konto(client, "meinesport")
+    client.put("/api/settings", headers=auth, json={"default_sport_class": "pumpfoil",
+                                                    "my_sports": ["wingfoil", "quatsch", "pumpfoil", "kitefoil"]})
+    st = client.get("/api/settings", headers=auth).json()
+    assert st["my_sports"] == ["wingfoil", "pumpfoil", "kitefoil"]
+    ids = [x["id"] for x in client.get("/api/devices/config?p=wear&sp=1", headers=dev).json()["sports"]]
+    assert ids == ["pumpfoil", "wingfoil", "kitefoil"]

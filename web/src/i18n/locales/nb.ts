@@ -1410,6 +1410,8 @@ const nb: Record<string, string> = {
   "foils.title": "Mine foiler",
   "foils.defaultSport": "Standardsport for nye økter",
   "foils.defaultSportHint": "Gjelder bare fremtidige opptak — eksisterende økter forblir som de er. Valg på klokka kommer senere.",
+  "foils.mySports": "Sporter på klokka",
+  "foils.mySportsHint": "Velg hvilke sporter du kan velge på klokka før start. Standardsporten din er alltid med.",
   "foils.hint": "Merk foilene dine og velg én som standard (★). Standarden kan overstyres per økt.",
   "foils.search": "Søk foil…",
   "foils.none": "Ingen treff.",

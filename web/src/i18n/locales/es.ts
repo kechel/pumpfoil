@@ -1776,6 +1776,8 @@ const es: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Deporte por defecto para sesiones nuevas",
   "foils.defaultSportHint": "Vale solo para futuras grabaciones — las sesiones existentes se quedan como están. Elegirlo en el reloj llegará más adelante.",
+  "foils.mySports": "Deportes en el reloj",
+  "foils.mySportsHint": "Elige qué deportes puedes seleccionar en el reloj antes de empezar. Tu deporte predeterminado siempre está incluido.",
   "foils.missingCta": "Pídenos que lo añadamos",
   "foils.missingFoil": "¿Falta tu marca o tamaño en la lista?",
   "foils.noSpecs": "El fabricante aún no ha publicado las medidas",
