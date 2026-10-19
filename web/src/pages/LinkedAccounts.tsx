@@ -89,7 +89,7 @@ export default function LinkedAccounts() {
 // wenn serverseitig konfiguriert (status.available).
 function CorosCard() {
   const { t } = useI18n();
-  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
+  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null; expired?: boolean } | null>(null);
   // Zwei Wege zu COROS: der MCP-Server (seit 04.09. offen, ohne Partner-Vertrag) und die
   // klassische Partner-API (Antrag laeuft). Der MCP-Weg hat Vorrang, sobald er eingerichtet
   // ist; nur wenn er es NICHT ist, zeigt die Karte den alten Weg. So steht nie beides da.
@@ -138,15 +138,28 @@ function CorosCard() {
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
           <img src="/coros-logo.png" alt="COROS" className="h-7 w-auto" />
         </a>
-        {st.linked && (
+        {st.linked && !st.expired && (
           <span className="inline-flex items-center gap-1 text-sm font-medium text-success">
             <CheckIcon className="h-4 w-4" />
             {mcp ? t("settings.polar.connected") : t("settings.coros.connected")}
           </span>
         )}
       </div>
+      {/* COROS hat die Erneuerung abgelehnt (19.10.2026): ehrlich sagen und neu verbinden lassen,
+          statt weiter „Verbunden" zu zeigen. Neu verbinden ersetzt die Tokens am selben Link. */}
+      {st.linked && st.expired && (
+        <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
+          <p className="font-medium text-amber-800 dark:text-amber-200">{t("settings.coros.expired")}</p>
+          <p className="mt-1 text-sm text-slate-300">{t("settings.coros.expiredHint")}</p>
+        </div>
+      )}
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.coros.connect")}</Button>
+      ) : st.expired ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={connect}>{t("settings.coros.reconnect")}</Button>
+          <Button variant="ghost" onClick={unlink}>{t("settings.coros.unlink")}</Button>
+        </div>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           {mcp && (

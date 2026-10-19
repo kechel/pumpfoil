@@ -125,11 +125,25 @@ def _tokens_speichern(link: models.CorosMcpLink, daten: dict) -> None:
     link.expires_at = datetime.now(timezone.utc) + timedelta(seconds=max(sek - 60, 60))
 
 
-def _frischer_token(link: models.CorosMcpLink, db: Session) -> str:
-    if link.expires_at and link.expires_at > datetime.now(timezone.utc):
-        return link.access_token
-    if not link.refresh_token:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "COROS link expired, please reconnect")
+# Rechtzeitig erneuern (19.10.2026). COROS gibt Zugangstokens mit 30 Tagen Laufzeit aus. Bis
+# heute erneuerten wir erst NACH Ablauf — und genau dann lehnte COROS mit `invalid_grant` ab:
+# alle drei Verbindungen vom September rissen exakt 30 Tage nach dem Verbinden ab, ohne dass es
+# jemand merkte (Status zeigte weiter „Verbunden"). Vermutung, nicht belegt: das Erneuerungs-Token
+# lebt nicht laenger als das Zugangstoken. Deshalb erneuern wir, sobald weniger als
+# FRUEH_ERNEUERN uebrig ist — der taegliche Konten-Sync (kontensync.py) ruft das ohne
+# Nutzerzutun auf. Jan: „wir brauchen einen Timer der das innerhalb von 30 tagen erneuern kann".
+FRUEH_ERNEUERN = timedelta(days=25)
+
+
+def ist_abgelaufen(link: models.CorosMcpLink) -> bool:
+    """COROS hat die Erneuerung endgueltig abgelehnt (refresh_token geleert) -> neu verbinden."""
+    return not link.refresh_token
+
+
+def _erneuern(link: models.CorosMcpLink, db: Session) -> bool:
+    """Ein Erneuerungsversuch. True = neue Tokens gespeichert. Bei `invalid_grant` wird die
+    Verbindung als abgelaufen markiert (refresh_token leer), damit Status und Oberflaeche es
+    sagen koennen; andere Fehler (COROS kurz weg) lassen alles, wie es ist."""
     try:
         r = httpx.post(TOKEN_URL, data={
             "grant_type": "refresh_token",
@@ -137,13 +151,36 @@ def _frischer_token(link: models.CorosMcpLink, db: Session) -> str:
             "client_id": _client_id(),
         }, timeout=30)
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "COROS unreachable") from exc
+        log.warning("coros-mcp: refresh nicht erreichbar (user %s): %s", link.user_id, exc)
+        return False
     if r.status_code != 200:
+        # Jedes Mal melden, nicht nur einmal (CLAUDE.md, Qualitaet vor Tempo).
         log.warning("coros-mcp: refresh fehlgeschlagen (user %s): %s %s", link.user_id, r.status_code, r.text[:200])
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "COROS link expired, please reconnect")
+        if r.status_code in (400, 401) and "invalid_grant" in r.text:
+            link.refresh_token = ""
+            db.commit()
+        return False
+    vorher = link.expires_at
     _tokens_speichern(link, r.json())
     db.commit()
-    return link.access_token
+    log.info("coros-mcp: refresh ok (user %s): Ablauf %s -> %s", link.user_id, vorher, link.expires_at)
+    return True
+
+
+def _frischer_token(link: models.CorosMcpLink, db: Session) -> str:
+    jetzt = datetime.now(timezone.utc)
+    gueltig = link.expires_at is not None and link.expires_at > jetzt
+    if gueltig and link.expires_at - jetzt > FRUEH_ERNEUERN:
+        return link.access_token
+    if ist_abgelaufen(link):
+        if gueltig:
+            return link.access_token
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "COROS link expired, please reconnect")
+    if _erneuern(link, db):
+        return link.access_token
+    if gueltig:
+        return link.access_token      # frueher Versuch gescheitert — das alte Token gilt noch
+    raise HTTPException(status.HTTP_400_BAD_REQUEST, "COROS link expired, please reconnect")
 
 
 # --------------------------------------------------------------------------------------
@@ -284,10 +321,18 @@ def _inhalt_json(res: dict):
 def status_(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     verfuegbar = bool((os.environ.get("OAUTH_COROS_MCP_CLIENT_ID") or "").strip())
     link = db.query(models.CorosMcpLink).filter_by(user_id=user.id).first() if verfuegbar else None
+    # Abgelaufen, aber noch nicht versucht: hier einmal erneuern, damit der Status die Wahrheit
+    # sagt (sonst stuende bis zum naechsten Sync „Verbunden" da, obwohl nichts mehr geht).
+    if link is not None and not ist_abgelaufen(link) and (
+            link.expires_at is None or link.expires_at <= datetime.now(timezone.utc)):
+        _erneuern(link, db)
     return {
         "available": verfuegbar,
         "linked": link is not None,
         "last_sync_at": link.last_sync_at.isoformat() if link and link.last_sync_at else None,
+        # COROS hat die Erneuerung abgelehnt -> Oberflaeche zeigt „Verbindung abgelaufen" + Neu verbinden.
+        "expired": bool(link is not None and ist_abgelaufen(link)
+                        and (link.expires_at is None or link.expires_at <= datetime.now(timezone.utc))),
     }
 
 
