@@ -27,7 +27,7 @@ object SessionCache {
     // `etag`: zum billigen Nachfragen beim Server (304, s. Api.sessionPruefen).
     @Serializable private data class Entry(val version: Long, val detail: SessionDetail,
                                            val schema: Int = 0, val etag: String? = null)
-    private const val SCHEMA = 7   // 3: Metrics.modelSkipped (07.10.2026) · 4: Segment.glides (13.10.2026) · 5: placementQuelle (15.10.2026) · 6: sportProfil (19.10.2026) · 7: Analysis.sportZahlen (19.10.2026)
+    private const val SCHEMA = 8   // 3: Metrics.modelSkipped (07.10.2026) · 4: Segment.glides (13.10.2026) · 5: placementQuelle (15.10.2026) · 6: sportProfil (19.10.2026) · 7: Analysis.sportZahlen (19.10.2026) · 8: SportZahlen.wellen + Fahrt.ab_* (19.10.2026)
 
     // Cache-Treffer nur, wenn version == erwarteter data_version (aus der Liste); aktualisiert
     // die mtime (LRU) und gibt das Detail zurück, sonst null (-> laden).

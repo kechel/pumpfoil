@@ -1054,6 +1054,11 @@ struct StartSuccess: Codable {
 }
 struct SSWindow: Codable { let total: Int; let success: Int; let failed: Int; let rate: Int? }
 struct CarveStats: Codable { let windows: [String: CarveWin] }
+
+/// Jahresbilanz je Sportart (19.10.2026, GET /api/sessions/jahresbilanz)
+struct BilanzSport: Codable { let sport: String; let sessions: Int; let stunden: Double; let km: Double; let foil_km: Double }
+struct BilanzJahr: Codable { let jahr: Int; let sportarten: [BilanzSport] }
+struct Jahresbilanz: Codable { let jahre: [BilanzJahr] }
 struct CarveWin: Codable { let s: Int; let m: Int; let l: Int }
 
 // Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
@@ -1129,12 +1134,19 @@ struct Analysis: Codable {
     var sport_zahlen: SportZahlen? = nil
 }
 
-struct Fahrt: Codable { let laeufe: Int; let dauer_s: Double; let strecke_m: Double; let foil_m: Double }
+struct Fahrt: Codable {
+    let laeufe: Int; let dauer_s: Double; let strecke_m: Double; let foil_m: Double
+    // nur Downwind (19.10.2026): Luftlinie A->B, Tempo darauf, Anteil auf dem Foil
+    let ab_m: Double?; let ab_kmh: Double?; let foil_anteil: Double?
+}
+/// nur Wave (19.10.2026): jeder Lauf ist eine Welle
+struct Wellen: Codable { let anzahl: Int; let laengste_s: Double; let laengste_m: Double; let reiten_s: Double; let paddeln_s: Double? }
 struct SportZahlen: Codable {
     let fahrzeit_s: Double?
     let tempo_kmh: Double?
     let foil_anteil: Double?
     let fahrten: [Fahrt]?
+    let wellen: Wellen?
 }
 
 // Session-weite Kennzahlen (metrics_json) — Basis für den Stats-Block in der Liste.

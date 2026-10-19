@@ -363,6 +363,9 @@ object Api {
     suspend fun carveStats(): CarveStats = withContext(Dispatchers.IO) {
         json.decodeFromString(CarveStats.serializer(), http("GET", "/api/community/carve-stats", null, auth = true))
     }
+    suspend fun jahresbilanz(): Jahresbilanz = withContext(Dispatchers.IO) {
+        json.decodeFromString(Jahresbilanz.serializer(), http("GET", "/api/sessions/jahresbilanz", null, auth = true))
+    }
 
     // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail. Mit dem Filter der
     // Liste, aus der man kam (s. NachbarFilter) — ohne Angaben antwortet der Server wie bisher:

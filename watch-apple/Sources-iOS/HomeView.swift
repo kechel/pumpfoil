@@ -42,6 +42,8 @@ struct HomeView: View {
     @State private var community: Api.CommunityStats?
     @State private var startSuccess: StartSuccess?   // persönliche Home-Stats (unten)
     @State private var carveStats: CarveStats?
+    @State private var bilanz: Jahresbilanz?
+    @State private var bilanzJahr: Int?
     // Zeitfenster wie PWA: heute / 10 T / 30 T / 1 J / gesamt.
     private let statWindows: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     // Vorgabefenster und die Kette, auf die zurueckgefallen wird, solange der Nutzer nicht
@@ -113,6 +115,7 @@ struct HomeView: View {
             if let st = stats { recordsSection(st) }
             if let ss = startSuccess { startSuccessSection(ss) }
             if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
+            if let b = bilanz, !b.jahre.isEmpty { bilanzSection(b) }
             // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
             BrettLageStartseite(lang: lang)
         }
@@ -549,6 +552,7 @@ struct HomeView: View {
         incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
         startSuccess = try? await Api.startSuccess()
         carveStats = try? await Api.carveStats()
+        bilanz = try? await Api.jahresbilanz()
     }
 
     // --- Persönliche Home-Stats (unten), wie PWA PersonalHome ---
@@ -597,6 +601,41 @@ struct HomeView: View {
         let s: Int = w?.success ?? 0
         let t: Int = w?.total ?? 0
         return "\(s)/\(t)"
+    }
+
+    // Jahresbilanz je Sportart (19.10.2026, wie im Web): Jahr waehlen, je Sportart eine Zeile.
+    @ViewBuilder private func bilanzSection(_ b: Jahresbilanz) -> some View {
+        let gewaehlt: BilanzJahr = b.jahre.first(where: { $0.jahr == bilanzJahr }) ?? b.jahre[0]
+        VStack(alignment: .leading, spacing: 6) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    Text(Loc.t("phome.ybTitle", lang)).font(.headline)
+                    ForEach(Array(b.jahre.prefix(5)), id: \.jahr) { j in
+                        Button { bilanzJahr = j.jahr } label: {
+                            Text(String(j.jahr)).font(.caption)
+                                .padding(.horizontal, 10).padding(.vertical, 4)
+                                .background(Capsule().fill(j.jahr == gewaehlt.jahr ? Color.accentColor : Color.secondary.opacity(0.15)))
+                                .foregroundStyle(j.jahr == gewaehlt.jahr ? Color.black : Color.primary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(gewaehlt.sportarten, id: \.sport) { x in
+                    Text(Loc.t("cls.sport.\(x.sport)", lang)).font(.subheadline.weight(.semibold))
+                    Text(bilanzZeile(x)).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.08)))
+        }
+    }
+
+    private func bilanzZeile(_ x: BilanzSport) -> String {
+        "\(x.sessions) \(Loc.t("phome.ybSessions", lang)) · " + String(format: "%.1f h · %.1f km · %.1f km ", x.stunden, x.km, x.foil_km)
+            + Loc.t("home.foiling", lang)
     }
 
     @ViewBuilder private func carveStatsSection(_ cs: CarveStats) -> some View {

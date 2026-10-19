@@ -110,6 +110,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
     var startSuccess by remember { mutableStateOf<StartSuccess?>(null) }
     var carveStats by remember { mutableStateOf<CarveStats?>(null) }
+    var bilanz by remember { mutableStateOf<Jahresbilanz?>(null) }
     var loading by remember { mutableStateOf(true) }
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
@@ -205,6 +206,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         community = try { Api.communityStats() } catch (_: Exception) { community }
         startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
         carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
+        bilanz = try { Api.jahresbilanz() } catch (_: Exception) { bilanz }
         val einst = try { Api.settings() } catch (_: Exception) { null }
         val hs = einst?.get("homespot")?.jsonPrimitive?.contentOrNull
         // Link auf den Homespot in der Zeile „Letzte Sessions" (Jan, 16.10.2026): wie die PWA mit
@@ -503,6 +505,10 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                     CarveStatsSection(cs)
                 }
             }
+            bilanz?.takeIf { it.jahre.isNotEmpty() }?.let { b ->
+                Spacer(Modifier.height(10.dp))
+                JahresbilanzSection(b)
+            }
             // Lage des Bretts je Lauflaenge — nur, wenn es Aufnahmen mit dem Handy am Brett gibt.
             BrettLageStartseite()
 
@@ -610,6 +616,35 @@ private fun CarveStatsSection(cs: CarveStats) {
                 Text("90–180°: ${w?.s ?: 0}", style = MaterialTheme.typography.bodySmall)
                 Text("180–360°: ${w?.m ?: 0}", style = MaterialTheme.typography.bodySmall)
                 Text(">360°: ${w?.l ?: 0}", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+// Jahresbilanz je Sportart (19.10.2026, wie im Web): Jahr waehlen, je Sportart eine Zeile.
+@Composable
+private fun JahresbilanzSection(b: Jahresbilanz) {
+    var jahr by remember(b) { mutableStateOf(b.jahre.first().jahr) }
+    val zeile = b.jahre.firstOrNull { it.jahr == jahr } ?: b.jahre.first()
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.horizontalScroll(rememberScrollState())) {
+        Text(I18n.t("phome.ybTitle"), style = MaterialTheme.typography.titleMedium)
+        b.jahre.take(5).forEach { j ->
+            val an = j.jahr == zeile.jahr
+            Text("${j.jahr}", style = MaterialTheme.typography.labelMedium,
+                color = if (an) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.background(if (an) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    RoundedCornerShape(50)).clickable { jahr = j.jahr }.padding(horizontal = 10.dp, vertical = 4.dp))
+        }
+    }
+    Spacer(Modifier.height(6.dp))
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            zeile.sportarten.forEach { x ->
+                Text(I18n.t("cls.sport.${x.sport}"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text("${x.sessions} ${I18n.t("phome.ybSessions")} · %.1f h · %.1f km · ".format(x.stunden, x.km) +
+                    "%.1f km ${I18n.t("home.foiling")}".format(x.foilKm),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
