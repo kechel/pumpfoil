@@ -649,6 +649,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                     IconButton(onClick = { confirmLeave = true }) {
                         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = I18n.t("chat.leave"))
                     }
+                    FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
                 },
             )
         },

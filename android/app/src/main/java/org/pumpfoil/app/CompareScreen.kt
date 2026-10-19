@@ -195,6 +195,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                 },
                 actions = {
                     if (selected.isNotEmpty()) TextButton(onClick = { CompareStore.clear(); onBack() }) { Text(I18n.t("compare.clear")) }
+                    FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
                 },
             )
         },

@@ -209,6 +209,7 @@ fun SetupScreen(onBack: () -> Unit) {
             navigationIcon = {
                 IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
             },
+            actions = { FeedbackKnopf() },
         )
     }) { pad ->
         val list = stabs

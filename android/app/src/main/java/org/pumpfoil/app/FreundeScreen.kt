@@ -188,6 +188,7 @@ fun FreundeScreen(onBack: () -> Unit, onOpenFoiler: (Int) -> Unit, onOpenSpot: (
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back"))
                 }
             },
+            actions = { FeedbackKnopf() },
         )
     }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),

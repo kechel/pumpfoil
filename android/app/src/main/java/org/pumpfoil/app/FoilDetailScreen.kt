@@ -80,6 +80,7 @@ fun FoilDetailScreen(foil: FoilStat, onBack: () -> Unit, onOpen: (Int) -> Unit) 
             navigationIcon = {
                 IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = null) }
             },
+            actions = { FeedbackKnopf() },
         )
     }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize()) {

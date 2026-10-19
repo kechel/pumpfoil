@@ -191,6 +191,7 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             TopAppBar(
                 title = { Text(I18n.t("profile.datafields")) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) } },
+                actions = { FeedbackKnopf() },
             )
         },
     ) { pad ->

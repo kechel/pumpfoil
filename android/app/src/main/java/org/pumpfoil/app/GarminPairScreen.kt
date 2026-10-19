@@ -61,6 +61,7 @@ fun GarminPairScreen(onBack: () -> Unit) {
         TopAppBar(
             title = { Text(I18n.t("garmin.title")) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
+            actions = { FeedbackKnopf() },
         )
     }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {

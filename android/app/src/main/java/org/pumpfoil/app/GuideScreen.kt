@@ -47,6 +47,7 @@ fun GuideScreen(onBack: () -> Unit) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                 }
             },
+            actions = { FeedbackKnopf() },
         )
     }) { pad ->
         Column(

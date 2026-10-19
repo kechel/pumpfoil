@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -25,13 +26,15 @@ fun SyncIndicator() {
     LaunchedEffect(Unit) { WatchSync.refreshConnection(ctx) }
     IconButton(onClick = { WatchSync.sync(ctx) }) {
         if (syncing) {
-            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            // Steht nur in der cyanen Kopfleiste (PumpfoilTopBar): Farbe von dort (Navy) statt primary,
+            // das auf dem Balken unsichtbar war (19.10.2026).
+            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = LocalContentColor.current)
         } else {
             Icon(
                 Icons.Filled.Refresh,
                 contentDescription = "Sync",
-                tint = if (connected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (connected) LocalContentColor.current
+                else LocalContentColor.current.copy(alpha = 0.45f),
             )
         }
     }

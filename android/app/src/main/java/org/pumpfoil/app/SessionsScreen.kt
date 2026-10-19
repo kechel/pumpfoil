@@ -309,7 +309,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/iOS).
                 if (scope == Scope.SPOT && spot.isNotBlank()) {
                     IconButton(onClick = { onSpotChat(spot) }) {
-                        Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"))   // erbt Navy der Kopfleiste
                     }
                 }
                 SyncIndicator()

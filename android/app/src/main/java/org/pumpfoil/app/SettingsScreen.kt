@@ -158,6 +158,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(I18n.t("settings.title")) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
+                actions = { FeedbackKnopf() },
             )
         },
         snackbarHost = { SnackbarHost(snackHost) },

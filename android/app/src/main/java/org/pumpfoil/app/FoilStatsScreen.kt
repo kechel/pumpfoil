@@ -68,6 +68,7 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
             actions = {
                 // Wie im Web: oben rechts zur jeweils anderen Statistik.
                 TextButton(onClick = onWatchStats) { Text(I18n.t("watchStats.title")) }
+                FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
             },
         )
     }) { pad ->
