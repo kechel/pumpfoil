@@ -18,7 +18,7 @@ die GPS-Zustandsmaschine von v2 mit Schwellen JE SESSION aus der Tempoverteilung
 - Start = Schwelle (begrenzt SCHWELLE_MIN..SCHWELLE_MAX), Ende = naeher an der langsamen Haeufung
   (ENDE_ANTEIL des Abstands), damit eine Halse auf dem Foil (gemessen 10-13 km/h, Feedback #202/
   #203) den Lauf nicht beendet; Ende-Verweildauer ENDE_HALTE_S.
-- Ohne klare Luecke feste Werte (FEST_START / FEST_ENDE).
+- Ohne klare Luecke feste Werte (FEST_START / FEST_ENDE), Start wie bisher 10 km/h.
 """
 from __future__ import annotations
 
@@ -32,7 +32,9 @@ SCHWELLE_MIN, SCHWELLE_MAX = 7.0, 25.0
 ENDE_ANTEIL = 0.4         # Ende = langsam + 0,4 x (Schwelle - langsam)
 ENDE_MIN_KMH = 5.0
 ENDE_HALTE_S = 5.0
-FEST_START, FEST_ENDE = 12.0, 8.0   # km/h; aus der Auswertung 19.10. (12/8 hielt die Foil-Zeit gleich)
+FEST_START, FEST_ENDE = 10.0, 8.0   # km/h; ohne klare Luecke wie das bisherige GPS (Start 10 km/h).
+# Erst 12/8 — im Vergleich ueber 1378 Sessions fielen damit zwei langsame Leichtwind-Sessions
+# (hoechstens 11-12 km/h, #15117/#9515) auf 0 Laeufe.
 VERSION = "wind-1"
 
 
