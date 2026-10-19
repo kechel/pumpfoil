@@ -20,6 +20,12 @@ Erkennung rein aus GPS + Windrichtung:
    die Spur, dann mit DURCH_SPUR_KMH, weil sie in Kurven zu niedrig misst.
    Vergleichsdaten: server/data/wahrheit/manoever.jsonl (gitignored), pruefen mit
    scripts/manoever-pruefen.py — vor jeder Aenderung an den Schwellen laufen lassen.
+   SEIT 19.10.2026 abends entscheidet zuerst der LAUF: auf dem Foil = die Drehung liegt in einem
+   erkannten Lauf, und der endet nicht innerhalb von LAUF_ENDE_S danach. Alex (u43) hat in #13942
+   jede Halse markiert: drei langsame (Doppler 10-12 km/h) waren auf dem Foil — „I was riding
+   pumpfoil, so it was possible to turn at very low speed" —, zwei schnelle endeten 7 bzw. 12 s
+   spaeter mit dem Lauf. Tempo-Regel: 0 von 5 richtig, Lauf-Regel: 5 von 5. Ohne Laeufe gilt weiter
+   die Tempo-Regel.
 
 Windrichtung: Modellwert am Spot je Stunde (`sessionwind`), keine Messung — bei drehendem Wind oder
 Abdeckung am Ufer kann eine einzelne Einordnung daneben liegen. Das steht so in der Anzeige.
@@ -35,6 +41,7 @@ MIN_FAHRT_KMH = 6.0
 DREHUNG_MIN_GRAD = 100.0
 DURCHGEFAHREN_KMH = 12.0
 DURCH_SPUR_KMH = 10.0     # Rueckfall ohne Doppler-Tempo (Spur misst in der Kurve zu niedrig)
+LAUF_ENDE_S = 15.0        # endet der Lauf so kurz nach der Drehung, war sie mit Absetzen
 ABSTAND_S = 20.0
 
 
@@ -52,7 +59,9 @@ def _ueberstreicht(start: float, drehung: float, ziel: float) -> bool:
     return 0 < ((-d) % 360.0) < -drehung
 
 
-def erkennen(t_ms, lat, lon, wind_von, doppler_mps=None) -> list[dict]:
+def erkennen(t_ms, lat, lon, wind_von, doppler_mps=None, laeufe=None) -> list[dict]:
+    """`laeufe`: [(t_start_ms, t_end_ms)] der erkannten Laeufe in derselben Zeitbasis wie t_ms; dann
+    entscheidet der Lauf ueber „auf dem Foil" (s. Modul-Doku), sonst das Tempo."""
     """t_ms/lat/lon: gleich lange Folgen (getrimmt, Track-Index = Position). `wind_von`: Funktion
     t_ms -> Windrichtung (Grad, woher) oder None. Rueckgabe: je Manoever {i, t_ms, typ, durch,
     drehung, kurs_vor, kurs_nach}; typ "wende" | "halse"."""
@@ -63,7 +72,13 @@ def erkennen(t_ms, lat, lon, wind_von, doppler_mps=None) -> list[dict]:
     dop = None
     if doppler_mps is not None and len(doppler_mps) == n:
         dop = np.array([float(v) * 3.6 if v is not None else np.nan for v in doppler_mps])
-    return _manoever(t, kurs, tempo, t_ms, wind_von, dop)
+    out = _manoever(t, kurs, tempo, t_ms, wind_von, dop)
+    if laeufe:
+        for m in out:
+            tm = m["t_ms"]
+            lauf = next(((a, b) for a, b in laeufe if a <= tm <= b), None)
+            m["durch"] = bool(lauf is not None and (lauf[1] - tm) > LAUF_ENDE_S * 1000)
+    return out
 
 
 def _kurs_tempo(t_ms, lat, lon):

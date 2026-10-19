@@ -172,3 +172,30 @@ def test_windfenster_ohne_sessions(client):
     auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
     d = client.get("/api/community/spot/999999/windfenster", headers=auth).json()
     assert d["sessions"] == 0 and len(d["sektoren"]) == 8 and d["kmh_p25"] is None
+
+
+def test_manoever_durch_aus_dem_lauf():
+    """Seit 19.10. abends: auf dem Foil = in einem Lauf, der nicht binnen 15 s danach endet
+    (Alex' Markierungen in #13942: 5/5). Das Tempo spielt dann keine Rolle."""
+    import math
+    from app.manoever import erkennen
+    t, lat, lon = [], [], []
+    x = y = 0.0
+    def fahre(kurs, sek, v=6.0):
+        nonlocal x, y
+        for _ in range(sek):
+            x += v * math.sin(math.radians(kurs)); y += v * math.cos(math.radians(kurs))
+            t.append(len(t) * 1000); lat.append(47.0 + y / 111320.0); lon.append(9.0 + x / (111320.0 * math.cos(math.radians(47))))
+    fahre(90, 30)
+    for k in range(90, 271, 30): fahre(k % 360, 1, v=3.0)   # langsame, gepumpte Halse
+    fahre(270, 30)
+    wind = lambda _t: 0.0
+    langsam = [2.5] * len(t)                                    # Doppler 9 km/h — Tempo-Regel: abgesetzt
+    i = erkennen(t, lat, lon, wind, langsam)[0]
+    assert i["durch"] is False
+    lang = erkennen(t, lat, lon, wind, langsam, [(0, 66_000)])  # Lauf geht weiter
+    assert lang[0]["durch"] is True
+    kurz = erkennen(t, lat, lon, wind, [4.0] * len(t), [(0, lang[0]["t_ms"] + 7_000)])   # Lauf endet 7 s danach
+    assert kurz[0]["durch"] is False
+    draussen = erkennen(t, lat, lon, wind, [4.0] * len(t), [(60_000, 66_000)])          # nicht in einem Lauf
+    assert draussen[0]["durch"] is False

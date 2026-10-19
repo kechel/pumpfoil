@@ -3716,7 +3716,17 @@ def session_manoever(
         return min(pkt, key=lambda p: abs(p[0] - (t0 + t_ms)))[1]
     lat = [float(r[1]) if r[1] is not None else float("nan") for r in gps]
     lon = [float(r[2]) if r[2] is not None else float("nan") for r in gps]
-    items = erkennen([r[0] for r in gps], lat, lon, wind_von, [r[3] for r in gps])
+    # Laeufe in Session-ms (wie die Spur): v2 traegt t_start_session_ms; sonst re-basiert auf den Trim.
+    _laeufe = []
+    _res = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+    try:
+        for g_ in (json.loads(_res.segments_json) if _res and _res.segments_json else []):
+            a_ = g_.get("t_start_session_ms", (g_.get("t_start_ms") or 0) + (s.trim_start_ms or 0))
+            b_ = g_.get("t_end_session_ms", (g_.get("t_end_ms") or 0) + (s.trim_start_ms or 0))
+            _laeufe.append((float(a_), float(b_)))
+    except (ValueError, TypeError):
+        _laeufe = []
+    items = erkennen([r[0] for r in gps], lat, lon, wind_von, [r[3] for r in gps], _laeufe)
     zahlen = {typ: {"durch": sum(1 for m in items if m["typ"] == typ and m["durch"]),
                     "ab": sum(1 for m in items if m["typ"] == typ and not m["durch"])}
               for typ in ("wende", "halse")}
