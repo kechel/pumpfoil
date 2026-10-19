@@ -1425,28 +1425,6 @@ private fun TrackMap(
                             Color(0xFFEF4444), dens, hohl = false))
                     }
                 }
-                // Wind-Sportarten: die GANZE Fahrt dezent grau darunter, damit langsame Stuecke, Wenden
-                // und Wasserstarts nicht als Luecke erscheinen (Oerni #17478). Eine Linie je
-                // zusammenhaengendem Stueck (Spruenge > 200 m trennen), nicht anklickbar.
-                if (ganzeFahrt && segments.isNotEmpty()) {
-                    var stueck = ArrayList<GeoPoint>()
-                    fun abschliessen() {
-                        if (stueck.size >= 2) map.overlays.add(Polyline(map).apply {
-                            setPoints(stueck)
-                            outlinePaint.color = android.graphics.Color.argb(140, 0x64, 0x74, 0x8B)
-                            outlinePaint.strokeWidth = 3f * dens
-                            isEnabled = true
-                            infoWindow = null
-                        })
-                        stueck = ArrayList()
-                    }
-                    for (i in pts.indices) {
-                        val p = GeoPoint(pts[i].second, pts[i].first)
-                        if (stueck.isNotEmpty() && stueck.last().distanceToAsDouble(p) > 200.0) abschliessen()
-                        stueck.add(p); allPts.add(p)
-                    }
-                    abschliessen()
-                }
                 segments.forEachIndexed { runIdx, seg ->
                     val dim = selectedRun != null && runIdx != selectedRun   // anderer Lauf -> ausgegraut
                     val start = seg.iStart.coerceIn(0, pts.size - 1)
@@ -1494,6 +1472,30 @@ private fun TrackMap(
                                 setOnMarkerClickListener { _, _ -> true }
                             })
                         }
+                    }
+                }
+                // Wind-Sportarten („Ganze Fahrt"): auch die Stuecke AUSSERHALB der Laeufe, gefaerbt wie
+                // die Laeufe — langsame Stuecke erscheinen blau statt als Luecke (Jan, 19.10.2026;
+                // vorher grau darunter, kaum zu sehen). Mit ausgewaehltem Lauf gedimmt.
+                // NACH den Laeufen -> obendrauf: die langsamen Stuecke liegen fast alle an Lauf-Anfang/-Ende.
+                if (ganzeFahrt && segments.isNotEmpty()) {
+                    val imLauf = BooleanArray(pts.size)
+                    segments.forEach { g ->
+                        for (k in g.iStart.coerceAtLeast(0)..g.iEnd.coerceAtMost(pts.size - 1)) imLauf[k] = true
+                    }
+                    for (i in 0 until pts.size - 1) {
+                        if (imLauf[i] && imLauf[i + 1]) continue
+                        val pa = GeoPoint(pts[i].second, pts[i].first)
+                        val pb = GeoPoint(pts[i + 1].second, pts[i + 1].first)
+                        if (pa.distanceToAsDouble(pb) > 200.0) continue
+                        map.overlays.add(Polyline(map).apply {
+                            setPoints(listOf(pa, pb))
+                            outlinePaint.color = if (selectedRun != null) android.graphics.Color.argb(110, 0x64, 0x74, 0x8B)
+                                                 else colorAt(i + 1).toArgb()
+                            outlinePaint.strokeWidth = 4f * dens
+                            infoWindow = null
+                        })
+                        allPts.add(pa); allPts.add(pb)
                     }
                 }
                 // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track,

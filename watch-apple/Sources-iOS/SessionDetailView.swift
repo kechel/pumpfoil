@@ -2053,20 +2053,31 @@ struct TrackMap: UIViewRepresentable {
                 map.addAnnotation(EndPunkt(CLLocationCoordinate2D(latitude: letzte[1], longitude: letzte[0]), start: false))
             }
         }
-        // Wind-Sportarten: die GANZE Fahrt dezent grau darunter, damit langsame Stuecke, Wenden und
-        // Wasserstarts nicht als Luecke erscheinen (Oerni #17478). Gleiche Sprungschwelle wie oben.
+        // Wind-Sportarten („Ganze Fahrt"): auch die Stuecke AUSSERHALB der Laeufe, gefaerbt wie die
+        // Laeufe — langsame Stuecke erscheinen blau statt als Luecke (Jan, 19.10.2026; vorher grau
+        // darunter, auf dem Satellitenbild kaum zu sehen). Mit ausgewaehltem Lauf gedimmt.
+        // Eigene Liste, die NACH den Laeufen angehaengt wird -> liegt obendrauf (die langsamen Stuecke
+        // sind fast alle an Lauf-Anfang/-Ende, darunter waren sie nicht zu sehen).
+        var basis: [Strich] = []
         if ganzeFahrt && !segments.isEmpty {
-            let grau = UIColor.systemGray.withAlphaComponent(0.55)
+            var imLauf = [Bool](repeating: false, count: points.count)
+            for g in segments {
+                let lo = max(0, g.i_start), hi = min(points.count - 1, g.i_end)
+                if lo <= hi { for k in lo...hi { imLauf[k] = true } }
+            }
+            let grau = UIColor.systemGray.withAlphaComponent(0.5)
             var i = 0
             while i < points.count - 1 {
-                let a = points[i], b = points[i + 1]
-                let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
-                let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
-                let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
-                    .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
-                if gap <= 200 {
-                    Strich.anfuegen(&striche, ca, cb, grau, 3)
-                    all.append(ca); all.append(cb)
+                if !(imLauf[i] && imLauf[i + 1]) {
+                    let a = points[i], b = points[i + 1]
+                    let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
+                    let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
+                    let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
+                        .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
+                    if gap <= 200 {
+                        Strich.anfuegen(&basis, ca, cb, selectedRun != nil ? grau : colorAt(i + 1), 4)
+                        all.append(ca); all.append(cb)
+                    }
                 }
                 i += 1
             }
@@ -2095,6 +2106,7 @@ struct TrackMap: UIViewRepresentable {
                 }
             }
         }
+        striche += basis   // ganze Fahrt obendrauf, s. oben
         var linien: [MKPolyline] = []
         for st in striche {
             let pl = MKPolyline(coordinates: st.coords, count: st.coords.count)
