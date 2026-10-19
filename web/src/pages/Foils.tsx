@@ -21,6 +21,8 @@ export default function Foils() {
   // Standard-Sportart für NEUE Sessions (docs/sport-classification.md) — steht hier, weil es
   // derselbe Gedanke wie das Standard-Foil ist (Jan: „ist ja wie mein default-foil").
   const [defSport, setDefSport] = useState("pumpfoil");
+  // Sportarten an der Uhr (19.10.2026): Standard-Sportart immer dabei, die uebrigen hier anwaehlen.
+  const [mySports, setMySports] = useState<string[]>([]);
 
   useEffect(() => {
     api.foils().then(setFoils).catch(() => setFoils([]));
@@ -29,6 +31,7 @@ export default function Foils() {
       setMine((s.my_foils as number[]) ?? []);
       setDef((s.foil_id as number) ?? null);
       setDefSport((s.default_sport_class as string) ?? "pumpfoil");
+      setMySports((s.my_sports as string[]) ?? []);
     }).catch(() => {});
   }, []);
 
@@ -127,6 +130,28 @@ export default function Foils() {
         </select>
         <span className="mt-1 block text-sm text-slate-400">{t("foils.defaultSportHint")}</span>
       </label>
+
+      {/* Sportarten, die man an der Uhr vor dem Start waehlen kann (19.10.2026). */}
+      <div className="mb-4">
+        <div className="text-sm text-slate-200">{t("foils.mySports")}</div>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {SPORTS.filter((k) => k !== "other").map((k) => {
+            const an = k === defSport || mySports.includes(k);
+            return (
+              <button key={k} type="button" disabled={k === defSport}
+                onClick={() => {
+                  const neu = mySports.includes(k) ? mySports.filter((x) => x !== k) : [...mySports, k];
+                  setMySports(neu);
+                  api.saveSettings({ my_sports: neu }).catch(() => {});
+                }}
+                className={`rounded-full px-3 py-1 text-sm ${an ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"} ${k === defSport ? "opacity-80" : ""}`}>
+                {t(`cls.sport.${k}`)}
+              </button>
+            );
+          })}
+        </div>
+        <span className="mt-1 block text-sm text-slate-400">{t("foils.mySportsHint")}</span>
+      </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("foils.search")}

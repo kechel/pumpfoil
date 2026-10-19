@@ -2001,6 +2001,8 @@ const cs: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Výchozí sport pro nové vyjížďky",
   "foils.defaultSportHint": "Platí jen pro budoucí nahrávky — stávající vyjížďky zůstávají, jak jsou. Volba přímo v hodinkách přijde později.",
+  "foils.mySports": "Sporty na hodinkách",
+  "foils.mySportsHint": "Vyber, které sporty můžeš zvolit na hodinkách před startem. Tvůj výchozí sport je vždy zahrnut.",
   "foils.missingCta": "Požádej nás o doplnění",
   "foils.missingFoil": "Chybí tvoje značka nebo velikost v seznamu?",
   "foils.noSpecs": "Výrobce rozměry zatím nezveřejnil",

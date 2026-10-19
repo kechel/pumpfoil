@@ -1966,6 +1966,8 @@ const fi: Record<string, string> = {
   "dm.tabBot": "Botti",
   "foils.defaultSport": "Uusien sessioiden oletuslaji",
   "foils.defaultSportHint": "Koskee vain tulevia tallennuksia — olemassa olevat sessiot pysyvät ennallaan. Valinta kellossa tulee myöhemmin.",
+  "foils.mySports": "Lajit kellossa",
+  "foils.mySportsHint": "Valitse, mitkä lajit voit valita kellosta ennen aloitusta. Oletuslajisi on aina mukana.",
   "foils.missingCta": "Pyydä meitä lisäämään se",
   "foils.missingFoil": "Puuttuuko merkkisi tai kokosi listalta?",
   "foils.noSpecs": "Valmistaja ei ole vielä julkaissut mittoja",

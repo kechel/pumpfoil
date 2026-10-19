@@ -1583,6 +1583,8 @@ const en: Record<string, string> = {
   "foils.title": "My foils",
   "foils.defaultSport": "Default sport for new sessions",
   "foils.defaultSportHint": "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.",
+  "foils.mySports": "Sports on the watch",
+  "foils.mySportsHint": "Choose which sports you can pick on the watch before you start. Your default sport is always included.",
   "foils.hint": "Mark your foils and pick one as default (★). The default is overridable per session.",
   "foils.search": "Search foil…",
   "foils.none": "No matches.",

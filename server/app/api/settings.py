@@ -128,6 +128,10 @@ DEFAULTS = {
     # stab_id, mast_len_cm}}. Greift beim Anlegen und beim Umstellen der Sportart, nur fuer
     # Felder, die niemand von Hand gesetzt hat.
     "equipment_je_sport": {},
+    # Sportarten, die man an der Uhr waehlen kann (19.10.2026, Jan: „wo kann ich einstellen dass ich
+    # auch wingfoil als Auswahl haben moechte"). Die Standard-Sportart ist immer dabei. Leer = wie
+    # bisher die im letzten Jahr gefahrenen (devices.sportarten_fuer_uhr).
+    "my_sports": [],
     # Not-Aus für die dynamischen Layouts auf der Uhr (Stufe 3 des Sicherheitsnetzes, pro Nutzer).
     # Aus = die Uhr fährt die alte statische Logik, ohne App-Update.
     "layouts_enabled": True,
@@ -592,6 +596,13 @@ def update_settings(
                 if k in v:
                     aktuell[k] = bool(v[k])
             current["public_profile"] = aktuell
+    if "my_sports" in patch and isinstance(patch["my_sports"], list):
+        from .sessions import SPORTS
+        _ms = []
+        for x in patch["my_sports"]:
+            if isinstance(x, str) and x in SPORTS and x != "other" and x not in _ms:
+                _ms.append(x)
+        current["my_sports"] = _ms[:12]
     if "equipment_je_sport" in patch:
         from ..equipment_sport import bereinigen
         from .sessions import SPORTS

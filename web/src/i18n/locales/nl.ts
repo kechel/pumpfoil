@@ -2002,6 +2002,8 @@ const nl: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Standaardsport voor nieuwe sessies",
   "foils.defaultSportHint": "Geldt alleen voor toekomstige opnames — bestaande sessies blijven zoals ze zijn. Kiezen op het horloge komt later.",
+  "foils.mySports": "Sporten op het horloge",
+  "foils.mySportsHint": "Kies welke sporten je op het horloge kunt kiezen voor de start. Je standaardsport zit er altijd bij.",
   "foils.missingCta": "Vraag ons om hem toe te voegen",
   "foils.missingFoil": "Staat jouw merk of maat niet in de lijst?",
   "foils.noSpecs": "Fabrikant heeft de maten nog niet gepubliceerd",

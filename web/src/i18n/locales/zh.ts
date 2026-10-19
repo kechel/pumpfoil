@@ -1918,6 +1918,8 @@ const zh: Record<string, string> = {
   "dm.tabBot": "机器人",
   "foils.defaultSport": "新会话的默认运动",
   "foils.defaultSportHint": "仅对今后的记录生效——已有会话保持不变。在手表上选择的功能稍后推出。",
+  "foils.mySports": "手表上的运动",
+  "foils.mySportsHint": "选择开始前可在手表上选择的运动。你的默认运动始终包含在内。",
   "foils.missingCta": "请我们补充",
   "foils.missingFoil": "列表里没有你的品牌或尺寸？",
   "foils.noSpecs": "厂商尚未公布尺寸",

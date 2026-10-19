@@ -1518,6 +1518,8 @@ const pl: Record<string, string> = {
   "foils.title": "Moje foile",
   "foils.defaultSport": "Domyślny sport dla nowych sesji",
   "foils.defaultSportHint": "Dotyczy tylko przyszłych nagrań — istniejące sesje zostają bez zmian. Wybór na zegarku pojawi się później.",
+  "foils.mySports": "Sporty na zegarku",
+  "foils.mySportsHint": "Wybierz, które sporty możesz wybrać na zegarku przed startem. Twój domyślny sport jest zawsze uwzględniony.",
   "foils.hint": "Zaznacz swoje foile i wybierz jeden jako domyślny (★). Domyślny można nadpisać w każdej sesji.",
   "foils.search": "Szukaj foila…",
   "foils.none": "Brak wyników.",

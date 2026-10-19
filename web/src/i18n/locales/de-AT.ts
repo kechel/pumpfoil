@@ -1792,6 +1792,8 @@ const deAT: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Standard-Sportart für neue Sessions",
   "foils.defaultSportHint": "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie san. Auf der Uhr wählbar wird das später.",
+  "foils.mySports": "Sportarten an der Uhr",
+  "foils.mySportsHint": "Wähl, welche Sportarten du an der Uhr vorm Start aussuchen kannst. Deine Standard-Sportart is immer dabei.",
   "foils.missingCta": "Nachtragen lassen",
   "foils.missingFoil": "Deine Marke oder Größe fehlt im Katalog?",
   "foils.noSpecs": "Maße vom Hersteller no nicht veröffentlicht",

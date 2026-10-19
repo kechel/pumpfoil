@@ -1915,6 +1915,8 @@ const ja: Record<string, string> = {
   "dm.tabBot": "ボット",
   "foils.defaultSport": "新しいセッションの既定競技",
   "foils.defaultSportHint": "今後の記録にのみ適用されます — 既存のセッションはそのままです。時計上での選択は後日対応します。",
+  "foils.mySports": "時計で選べるスポーツ",
+  "foils.mySportsHint": "開始前に時計で選べるスポーツを選びます。標準のスポーツは常に含まれます。",
   "foils.missingCta": "追加を依頼する",
   "foils.missingFoil": "お使いのブランドやサイズが一覧にありませんか？",
   "foils.noSpecs": "メーカーがまだ寸法を公表していません",

@@ -1704,6 +1704,8 @@ const de: Record<string, string> = {
   "foils.title": "Meine Foils",
   "foils.defaultSport": "Standard-Sportart für neue Sessions",
   "foils.defaultSportHint": "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.",
+  "foils.mySports": "Sportarten an der Uhr",
+  "foils.mySportsHint": "Wähle, welche Sportarten du an der Uhr vor dem Start auswählen kannst. Deine Standard-Sportart ist immer dabei.",
   "foils.hint": "Merke deine Foils und wähle eines als Standard (★). Der Standard ist je Session überschreibbar.",
   "foils.search": "Foil suchen…",
   "foils.none": "Keine Treffer.",

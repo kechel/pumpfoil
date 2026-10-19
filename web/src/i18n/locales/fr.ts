@@ -1778,6 +1778,8 @@ const fr: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Sport par défaut pour les nouvelles sessions",
   "foils.defaultSportHint": "S'applique uniquement aux futurs enregistrements — les sessions existantes restent telles quelles. Le choix sur la montre viendra plus tard.",
+  "foils.mySports": "Sports sur la montre",
+  "foils.mySportsHint": "Choisis les sports que tu peux sélectionner sur la montre avant de démarrer. Ton sport par défaut est toujours inclus.",
   "foils.missingCta": "Demande-nous de l'ajouter",
   "foils.missingFoil": "Ta marque ou ta taille manque dans la liste ?",
   "foils.noSpecs": "Le fabricant n'a pas encore publié les mesures",

@@ -1938,6 +1938,8 @@ const ptPT: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Desporto predefinido para novas sessões",
   "foils.defaultSportHint": "Vale só para gravações futuras — as sessões existentes ficam como estão. Escolher no relógio vem mais tarde.",
+  "foils.mySports": "Desportos no relógio",
+  "foils.mySportsHint": "Escolhe que desportos podes selecionar no relógio antes de começar. O teu desporto predefinido está sempre incluído.",
   "foils.missingCta": "Peça para adicionarmos",
   "foils.missingFoil": "A tua marca ou tamanho não está na lista?",
   "foils.noSpecs": "O fabricante ainda não publicou as medidas",
