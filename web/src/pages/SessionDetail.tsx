@@ -1936,7 +1936,8 @@ export default function SessionDetail() {
         <Stat label={t("stat.foilingTime")} value={fmtMMSS(a?.foiling_time_s)} sub="min:s" />
         <RunsStartsStat runs={segs.length} attempts={istPumpfoil ? (a?.start_attempts ?? null) : null} />
         <Stat label={t("sd.avgSpeed")} value={kmh(m?.avg_speed_mps)} sub="km/h" />
-        {session.foil?.span_cm && session.foil?.area_cm2 && session.foil?.thickness_mm && (
+        {/* Theoretische Leistung rechnet die Pump-Physik (Kadenz, Tempo) — nur, wo gepumpt wird. */}
+        {pumpzahlen && session.foil?.span_cm && session.foil?.area_cm2 && session.foil?.thickness_mm && (
           <FoilPowerStat
             foil={{
               brand: session.foil.brand, model: session.foil.model, size: session.foil.size,
@@ -2266,7 +2267,7 @@ export default function SessionDetail() {
         {/* 2b. Gleitphasen als Liste (Jan, 03.10.2026: „jeden Glide mit Uhrzeit und Dauer unter der
             Karte, auch wenn die Anzeige in der Karte nicht aktiviert ist"). Ein Tipp waehlt den Lauf
             und blendet die Gleitphasen auf der Karte ein. Uhrzeit = Wanduhr (Pausen eingerechnet). */}
-        {!fullscreen && (() => {
+        {!fullscreen && pumpzahlen && (() => {
           const segsG: any[] = session?.analysis?.segments ?? [];
           const alle = segsG.flatMap((g: any, ri: number) =>
             ((g.glides ?? []) as number[][]).map((x) => ({ lauf: ri, d: x[2], t: x.length > 3 ? x[3] : null })));

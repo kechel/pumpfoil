@@ -525,7 +525,7 @@
         "alle"
       ],
       "merkmal": "-",
-      "was": "Stand je Sportart auch fuer die ausgelieferten Apps: als erste Zeile in 'Coming next' (releases ohne ohne_sport=1).",
+      "was": "Stand je Sportart kurz als Textzeile in 'Coming next' fuer die ausgelieferten Apps probiert und wieder entfernt (Jan: 'so ist das quatsch'). Kommt mit dem naechsten App-Release als eigener Abschnitt.",
       "wo": [
         "server"
       ]

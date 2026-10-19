@@ -50,11 +50,8 @@ def test_profil_gruppen_wie_im_buch():
     assert {sp["id"]: sp["gruppe"] for sp in buch["sportarten"]} == GRUPPE
 
 
-def test_releases_traegt_sportstand_fuer_alte_apps(client):
-    """Alte Apps kennen den Abschnitt nicht -> erste „Coming next"-Zeile; das Web laesst sie weg."""
-    alt = client.get("/api/app/releases").json()
-    assert alt["next"][0]["name"] == "Analysis by sport"
-    assert any(p.startswith("Wingfoil (wind)") for p in alt["next"][0]["items"])
-    web = client.get("/api/app/releases?ohne_sport=1").json()
-    assert all(z["name"] != "Analysis by sport" for z in web["next"])
-    assert len(alt["next"]) == len(web["next"]) + 1
+
+def test_releases_ohne_sportzeile(client):
+    """Die Ersatzzeile fuer alte Apps ist wieder raus (Jan 19.10.); `ohne_sport` stoert nicht."""
+    for url in ("/api/app/releases", "/api/app/releases?ohne_sport=1"):
+        assert all(z["name"] != "Analysis by sport" for z in client.get(url).json()["next"])
