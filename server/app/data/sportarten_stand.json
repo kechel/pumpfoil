@@ -462,7 +462,7 @@
         "eigene_erkennung": {
           "status": "geplant",
           "en": "Own detection for the wind sports instead of the pumpfoil model, once there is reference data such as rides with the phone on the board.",
-          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz."
+          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Jans Ansatz (Physik): langsam = Brett im Wasser, schnell = on-foil, die Luecke dazwischen haengt von Wind und Foil ab (z. B. 4 vs >10 km/h bei Leichtwind, 8 vs >15 bei kleinem Foil und viel Wind); „das pump detection model hat vermutlich garnichts zu suchen bei nicht pump-sportarten“. Gemessen (284 Wind-Sessions, rein lesend, Otsu auf 3-s-Median-Tempo >= 2 km/h): zwei Haeufungen, langsam Median 6,5 / schnell 22 km/h; Schwelle je Session Median 15 km/h (p10 12, p90 22, Leichtwind bis 7); klare Luecke (Tal < 0,3 x kleinerer Gipfel) bei 59 %. Feste 10 km/h liegen meist UNTER der Luecke -> wohl zu viel on-foil bei viel Wind (Vermutung). Plan: kein Pump-Modell; Schwelle je Session aus der Luecke, Hysterese, Grenzen ~7-25 km/h; ohne klare Luecke feste Werte."
         }
       }
     },
@@ -581,7 +581,7 @@
         "eigene_erkennung": {
           "status": "geplant",
           "en": "Own detection for wave and downwind riding instead of the pumpfoil model, once there is reference data.",
-          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz."
+          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Gleicher Ansatz wie Wind pruefen (Jan: Pump-Modell gehoert nicht zu Nicht-Pump-Sportarten)."
         }
       }
     },
@@ -715,7 +715,7 @@
         "eigene_erkennung": {
           "status": "geplant",
           "en": "Own detection for motor and towed riding instead of the pumpfoil model, once there is reference data.",
-          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz."
+          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Gleicher Ansatz wie Wind pruefen (Jan: Pump-Modell gehoert nicht zu Nicht-Pump-Sportarten)."
         }
       }
     }
@@ -1105,6 +1105,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wind"
+      ],
+      "merkmal": "eigene_erkennung",
+      "was": "Ansatz notiert: Schwelle je Session aus der Tempo-Luecke zwischen Brett-im-Wasser und on-foil, ohne Pump-Modell; Messung an 284 Sessions.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
