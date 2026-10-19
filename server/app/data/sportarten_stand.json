@@ -674,6 +674,18 @@
       "sport": [
         "alle"
       ],
+      "merkmal": "equipment_je_sport",
+      "was": "Equipment je Sportart: Standard je Sportart (Foil/Board/Stab/Mast) beim Anlegen und beim Umstellen der Sportart, ohne Handgewaehltes zu ueberschreiben; Einstellung im Web (/setup).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
       "merkmal": "sport_auf_uhr, equipment_je_sport, lauf_sportart",
       "was": "Abschnitt 'All sports' fuer sportartuebergreifende Punkte; Foil je Sportart -> Equipment je Sportart (Vorauswahl + Standard).",
       "wo": [
@@ -984,9 +996,14 @@
         "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
       },
       "equipment_je_sport": {
-        "status": "geplant",
-        "en": "Each sport remembers its own equipment (foil, board, stab, mast) as default, and the lists on the watch and in the apps show that sport's equipment first.",
-        "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert). Jan 19.10.: in den Abschnitt fuer alle Sportarten, als „Equipment per sport Vorauswahl + default“ — nicht nur das Foil."
+        "status": "live",
+        "en": "Each sport can have its own default foil, board, stab and mast; new sessions of that sport get it, and switching a session's sport swaps equipment you did not change yourself. Ordering the lists on the watch by sport follows later",
+        "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert). Jan 19.10.: in den Abschnitt fuer alle Sportarten, als „Equipment per sport Vorauswahl + default“ — nicht nur das Foil. 19.10.: app/equipment_sport.py (settings equipment_je_sport), greift in ingest (Uhr), Datei-Import und set_classification; nur Felder, die leer sind oder dem Standard der vorigen Sportart entsprechen. Einstellung: Web /setup Karte „Ausruestung je Sportart“. Offen: Einstellung in den Apps, Uhr-Listen je Sportart sortiert (braucht sport_auf_uhr).",
+        "plattformen": {
+          "web": "2026-10-19",
+          "android": "",
+          "ios": ""
+        }
       },
       "lauf_sportart": {
         "status": "geplant",

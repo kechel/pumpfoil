@@ -28,6 +28,7 @@ from ..schemas import (
     SessionStartOut,
 )
 from ..setup_snapshot import standard_setup
+from ..equipment_sport import beim_anlegen as _equipment
 from .deps import current_device
 
 router = APIRouter(prefix="/api/ingest", tags=["ingest"])
@@ -147,11 +148,12 @@ def start_session(
             accel_hz=body.accel_hz,
             accel_scale=body.accel_scale,
             status="recording",
-            foil_id=_foil,
-            # Restliches Setup (Stab/Board/Mast/Shim) als Schnappschuss aus dem Profil — sonst
+            # Foil + restliches Setup (Stab/Board/Mast/Shim) als Schnappschuss aus dem Profil — sonst
             # erbt die Session es beim LESEN und der Stern im Profil wirkt rueckwirkend auf die
-            # ganze Historie (s. app/setup_snapshot.py).
-            **standard_setup(db, _uu),
+            # ganze Historie (s. app/setup_snapshot.py). Angepasst an die Sportart (Equipment je
+            # Sportart, 19.10.2026): wo der Wert dem allgemeinen Standard entspricht, gilt der der
+            # Sportart; ein auf der Uhr bewusst anders gewaehltes Foil bleibt.
+            **_equipment(_uu, _sport_class, {"foil_id": _foil, **standard_setup(db, _uu)}),
             sport_class=_sport_class,
             **({"sport_source": _sport_source} if _sport_source else {}),
             placement=(body.placement or None),

@@ -419,6 +419,11 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
     )
 
 
+def _equipment_beim_anlegen(user, sport, werte: dict) -> dict:
+    from ..equipment_sport import beim_anlegen
+    return beim_anlegen(user, sport, werte)
+
+
 def _user_default_foil_id(user: models.User | None) -> int | None:
     """Standard-Foil aus den Nutzer-Einstellungen (settings_json.foil_id)."""
     if user and user.settings_json:
@@ -647,8 +652,10 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         accel_hz=accel_hz,
         status="complete",
         total_chunks=1,
-        foil_id=_user_default_foil_id(user),   # Standard-Foil fest zuordnen
-        **standard_setup(db, user),            # Stab/Board/Mast/Shim ebenso (s. setup_snapshot)
+        # Standard-Foil + Stab/Board/Mast/Shim fest zuordnen (s. setup_snapshot), angepasst an die
+        # Sportart (Equipment je Sportart, 19.10.2026).
+        **_equipment_beim_anlegen(user, (_dsc if _dsc in SPORTS else "pumpfoil"),
+                                  {"foil_id": _user_default_foil_id(user), **standard_setup(db, user)}),
     )
     db.add(s)
     db.commit()
@@ -3916,8 +3923,13 @@ def set_classification(
             and (sport in (None, "pumpfoil")) and (dq in (None, "ok"))):
         raise HTTPException(status.HTTP_409_CONFLICT,
                             "Bitte Widerspruch einlegen — das entscheidet ein Admin")
+    _alt_sport = s.sport_class
     if sport is not None:
         s.sport_class = sport
+        # Equipment je Sportart (19.10.2026): unberuehrte Felder auf den Standard der neuen
+        # Sportart — Oerni stellte Wing-Sessions um und musste jedes Mal das Foil nachtragen.
+        from ..equipment_sport import umstellen
+        umstellen(s, s.user, _alt_sport, sport)
     if dq is not None:
         s.data_quality = dq
     s.sport_source = "admin" if is_admin else "owner"
