@@ -265,6 +265,76 @@ function tagLang(iso: string): string {
 // bisherigen Importstellen am Leben.
 export { CHANGELOG_SEEN_KEY };
 
+// „Detection by sport" (19.10.2026, Jan: „damit jeder sehen kann was gerade der stand der
+// Erkennungsmodi ist"). Das Buch fuehrt der Server (`server/app/data/sportarten_stand.json`), hier
+// nur die Anzeige: je Sportart eine aufklappbare Zeile, zu bis man sie oeffnet — die Uebersicht
+// soll auf einen Blick zeigen, wie weit jede Sportart ist, nicht 13 x 11 Zeilen auf einmal.
+// Farben je Status in beiden Modi (Nicht-slate kippt nicht von selbst, s. check-contrast).
+const STATUS_FARBE: Record<string, string> = {
+  live: "bg-emerald-600/15 text-emerald-700 dark:text-emerald-300",
+  teilweise: "bg-sky-600/15 text-sky-700 dark:text-sky-300",
+  geplant: "bg-orange-600/15 text-[#c24100] dark:text-[#ff8a4c]",
+  nein: "bg-slate-800/60 text-slate-400",
+};
+const STATUS_REIHE = ["live", "teilweise", "geplant"];
+
+function SportStand() {
+  const [d, setD] = useState<Awaited<ReturnType<typeof api.sportStatus>> | null>(null);
+  useEffect(() => { api.sportStatus().then(setD).catch(() => setD(null)); }, []);
+  if (!d) return null;
+  const namen = Object.fromEntries(d.merkmale.map((m) => [m.id, m.name]));
+  return (
+    <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <h2 className="mb-1 text-sm font-bold text-slate-100">Analysis by sport</h2>
+      <p className="mb-3 text-sm text-slate-400">
+        The analysis started with pumpfoil. This shows what is already tuned for each sport and what is
+        planned. <span className="whitespace-nowrap">As of {tagLang(d.stand)}.</span>
+      </p>
+      <div className="mb-2 flex flex-wrap gap-1.5 text-xs">
+        {STATUS_REIHE.map((st) => (
+          <span key={st} className={`rounded-full px-2 py-0.5 font-medium ${STATUS_FARBE[st]}`}>{d.status[st]}</span>
+        ))}
+        <span className="text-slate-400">basic = works, but not tuned for this sport yet</span>
+      </div>
+      <div className="text-sm">
+        {d.sportarten.map((sp) => {
+          const zahl = (st: string) => sp.merkmale.filter((m) => m.status === st).length;
+          return (
+            <details key={sp.id} className="group border-t border-slate-800/70 py-2">
+              <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 [&::-webkit-details-marker]:hidden">
+                <ChevronIcon className="h-3.5 w-3.5 shrink-0 text-brand-400 transition-transform group-open:rotate-90" />
+                <span className="font-medium text-slate-200">{sp.name}</span>
+                <span className="text-slate-400">{sp.gruppe}</span>
+                <span className="ml-auto flex gap-1 text-xs">
+                  {STATUS_REIHE.filter((st) => zahl(st) > 0).map((st) => (
+                    <span key={st} className={`rounded-full px-2 py-0.5 font-medium ${STATUS_FARBE[st]}`}>
+                      {zahl(st)} {d.status[st]}
+                    </span>
+                  ))}
+                </span>
+              </summary>
+              <ul className="mt-2 space-y-1.5 pl-5">
+                {sp.merkmale.map((m) => (
+                  <li key={m.id} className="sm:grid sm:grid-cols-[11rem_5.5rem_1fr] sm:gap-x-2">
+                    <span className="text-slate-300">{namen[m.id]}</span>{" "}
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-center text-xs font-medium ${STATUS_FARBE[m.status] ?? STATUS_FARBE.nein}`}>
+                      {d.status[m.status] ?? m.status}
+                    </span>
+                    <span className="block text-slate-400 sm:inline">
+                      {m.text}
+                      {m.seit && m.status !== "geplant" && <span className="whitespace-nowrap"> Since {tagLang(m.seit)}.</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function Changelog() {
   const t = useT();
   const [tage, setTage] = useState<Entry[] | null>(null);
@@ -287,6 +357,7 @@ export default function Changelog() {
       <h1 className="mb-4 mt-4 text-xl font-bold">{t("nav.changelog")}</h1>
 
       <ReleaseStatus />
+      <SportStand />
 
       {tage === null && !fehler && (
         <p className="text-sm text-slate-400">{t("common.loading")}</p>

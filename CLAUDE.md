@@ -165,6 +165,9 @@ dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
 - [`docs/UX-IA.md`](docs/UX-IA.md) — Informationsarchitektur über bestehende + geplante Features.
 - [`docs/TODO.md`](docs/TODO.md) — **einzige Quelle für offene Arbeit** (TODOs + Backlog-Ideen + R&D,
   git-abgeglichen). Neue spontane TODOs dort in die 📥 Inbox. (`docs/IDEAS.md` ist nur noch ein Pointer.)
+- [`server/app/data/sportarten_stand.json`](server/app/data/sportarten_stand.json) — **Stand-Buch je Sportart**: was die
+  Auswertung je Sportart kann (Erkennung, Grenzen, Karte, Kennzahlen, Rekorde …), Stufenplan, Verlauf mit Datum/Version.
+  Oeffentlich auf /changelog („Analysis by sport“). Bei JEDER sportartbezogenen Aenderung mitpflegen.
 - [`docs/PARITY-AUDIT.md`](docs/PARITY-AUDIT.md) — Feature-Parität Web ↔ Watch/Apps (✅/⚠️/❌/🐛). **Oben die
   CHECKLISTE für jede Aufnahme-Funktion auf den Uhren** (alle vier, jeder Zustand inkl. Pause) —
   vor dem Commit abhaken.

@@ -996,6 +996,14 @@ export const api = {
     review: { name: string; version: string; note: string; items?: string[] }[];
     next: { name: string; version: string; note: string; items?: string[] }[];
   }>("/api/app/releases"),
+  // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
+  sportStatus: () => req<{
+    stand: string;
+    status: Record<string, string>;
+    merkmale: { id: string; name: string }[];
+    sportarten: { id: string; name: string; gruppe: string;
+                  merkmale: { id: string; status: string; text: string; seit: string | null }[] }[];
+  }>("/api/app/sport-status"),
 
   /** Oeffentliche Foiler-Seite eines Nutzers. Anmeldung noetig; was drin steht, entscheidet
    *  der Server nach den Schaltern des Nutzers (`public_profile` in den Einstellungen). */
