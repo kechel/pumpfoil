@@ -1110,7 +1110,7 @@ export const api = {
   corosConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/connect"),
   corosUnlink: () => req<{ ok: boolean }>("/api/integrations/coros", { method: "DELETE" }),
   // COROS ueber den MCP-Server: der Weg ohne Partner-Vertrag (server/app/api/coros_mcp.py).
-  corosMcpStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/mcp/status"),
+  corosMcpStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null; expired?: boolean }>("/api/integrations/coros/mcp/status"),
   corosMcpConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/mcp/connect"),
   corosMcpSync: () => req<SyncStart>("/api/integrations/coros/mcp/sync", { method: "POST" }),
   corosMcpUnlink: () => req<{ ok: boolean }>("/api/integrations/coros/mcp", { method: "DELETE" }),
