@@ -1289,6 +1289,35 @@ def _noch_offen(abgelehnt: dict, live: list[dict]) -> bool:
 _SPORT_STAND = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "sportarten_stand.json")
 
 
+def _datum_lang(iso: str) -> str:
+    from datetime import date
+    d = date.fromisoformat(iso)
+    return f"{d.strftime('%B')} {d.day}, {d.year}"
+
+
+def _plattform_zeile(pl: dict) -> str:
+    """{"web": "2026-10-19", "android": "1.1.44", "ios": ""} -> „website since October 19, 2026,
+    Android 1.1.44 (coming next), iOS coming next". Ob eine App-Version schon im Store ist, entscheidet
+    `_APP_META[...]["latest"]` — so faellt „(coming next)" von selbst weg, sobald sie live ist."""
+    teile = []
+    for key, name in (("web", "website"), ("android", "Android"), ("ios", "iOS")):
+        if key not in pl:
+            continue
+        v = (pl.get(key) or "").strip()
+        if not v:
+            teile.append(f"{name} coming next")
+        elif key == "web":
+            teile.append(f"{name} since {_datum_lang(v)}")
+        else:
+            live = (_APP_META.get(key) or {}).get("latest") or ""
+            try:
+                da = tuple(int(x) for x in live.split(".")) >= tuple(int(x) for x in v.split("."))
+            except ValueError:
+                da = False
+            teile.append(f"{name} {v}" + ("" if da else " (coming next)"))
+    return ", ".join(teile)
+
+
 def sport_stand_aufgeloest() -> dict:
     """Jede Sportart mit ALLEN Merkmalen: Gruppenstand, darueber die eigenen Abweichungen."""
     with open(_SPORT_STAND, encoding="utf-8") as f:
@@ -1301,8 +1330,14 @@ def sport_stand_aufgeloest() -> dict:
         for m in merkmale:
             e = dict(gruppe["merkmale"].get(m["id"]) or {})
             e.update((sp.get("merkmale") or {}).get(m["id"]) or {})
-            werte.append({"id": m["id"], "status": e.get("status", "nein"), "text": e.get("en", ""),
-                          "seit": e.get("seit")})
+            text, seit = e.get("en", ""), e.get("seit")
+            if e.get("plattformen"):
+                # Je Oberflaeche konkret (Jan, 19.10.2026: „total distance … : website since <date>,
+                # android 1.2.3, iOS 2.3.4"). Der Satz entsteht HIER, damit auch Apps, die nur `text`
+                # anzeigen, ihn vollstaendig zeigen; `seit` entfaellt dann (stuende doppelt).
+                text = text.rstrip(".") + ": " + _plattform_zeile(e["plattformen"]) + "."
+                seit = None
+            werte.append({"id": m["id"], "status": e.get("status", "nein"), "text": text, "seit": seit})
         sportarten.append({"id": sp["id"], "name": sp["en"], "gruppe": gruppe["en"], "merkmale": werte})
     return {"stand": buch["stand"], "status": buch["status_en"],
             "merkmale": [{"id": m["id"], "name": m["en"]} for m in merkmale], "sportarten": sportarten}

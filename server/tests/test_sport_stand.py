@@ -55,3 +55,11 @@ def test_releases_ohne_sportzeile(client):
     """Die Ersatzzeile fuer alte Apps ist wieder raus (Jan 19.10.); `ohne_sport` stoert nicht."""
     for url in ("/api/app/releases", "/api/app/releases?ohne_sport=1"):
         assert all(z["name"] != "Analysis by sport" for z in client.get(url).json()["next"])
+
+
+def test_plattform_zeile():
+    from app.api.appmeta import _APP_META, _plattform_zeile
+    live = _APP_META["android"]["latest"]
+    z = _plattform_zeile({"web": "2026-10-19", "android": live, "ios": ""})
+    assert z == f"website since October 19, 2026, Android {live}, iOS coming next"
+    assert _plattform_zeile({"ios": "99.0.0"}) == "iOS 99.0.0 (coming next)"
