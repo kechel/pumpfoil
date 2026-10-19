@@ -70,3 +70,27 @@ def test_hoehe_vmg():
     assert 0.4 <= h["am_wind_anteil"] <= 0.6
     assert 200 <= h["hoehe_m"] <= 280                   # ~6 m/s * cos45 * 60 s = 255 m
     assert hoehe(t[:10], lat[:10], lon[:10], lambda _t: 0.0) is None
+
+
+def test_manoever_durch_mit_doppler():
+    """Feedback #202/#203: in der Kurve misst die geglaettete Spur zu niedrig. Mit Doppler-Tempo
+    entscheidet das gemessene Tempo; ohne Doppler die Spur mit 10 km/h."""
+    import math
+    from app.manoever import erkennen
+    t, lat, lon = [], [], []
+    x = y = 0.0
+    def fahre(kurs, sek, v=6.0):
+        nonlocal x, y
+        for _ in range(sek):
+            x += v * math.sin(math.radians(kurs)); y += v * math.cos(math.radians(kurs))
+            t.append(len(t) * 1000); lat.append(47.0 + y / 111320.0); lon.append(9.0 + x / (111320.0 * math.cos(math.radians(47))))
+    fahre(90, 30)
+    for k in range(90, 271, 30): fahre(k % 360, 1, v=3.0)   # enge Halse ueber Sued, Spur sehr langsam
+    fahre(270, 30)
+    wind = lambda _t: 0.0
+    ohne = erkennen(t, lat, lon, wind)
+    assert [m["typ"] for m in ohne] == ["halse"] and ohne[0]["durch"] is False
+    mit = erkennen(t, lat, lon, wind, [4.0] * len(t))          # Doppler 14,4 km/h durchgehend
+    assert mit[0]["durch"] is True
+    langsam = erkennen(t, lat, lon, wind, [2.5] * len(t))      # Doppler 9 km/h -> abgesetzt
+    assert langsam[0]["durch"] is False

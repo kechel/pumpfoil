@@ -13,6 +13,11 @@ Erkennung rein aus GPS + Windrichtung:
    nur ein Kurswechsel ohne Wind-Durchgang und zaehlt nicht.
 4. „Durchgefahren" = waehrend der Drehung (±4 s) nie unter 12 km/h — also auf dem Foil geblieben.
    Sonst gilt sie als mit Absetzen/Sturz (zaehlt, aber nicht als durchgefahren).
+   Gemessen wird mit dem GPS-Tempo der Uhr (Doppler). Bis 19.10.2026 nahm die Regel das Tempo aus
+   der geglaetteten Spur — die schneidet in der Kurve die Ecke ab (Sehne statt Bogen) und lag in den
+   Halsen 2-4 km/h zu tief. Feedback #202/#203 (Nutzer 43): „11 successful jibes … only 4/13" bzw.
+   „12 … only 4/15"; mit Doppler >= 12 km/h 11/13 und 13/15. Ohne Doppler (manche Importe) bleibt
+   die Spur, dann mit DURCH_SPUR_KMH, weil sie in Kurven zu niedrig misst.
 
 Windrichtung: Modellwert am Spot je Stunde (`sessionwind`), keine Messung — bei drehendem Wind oder
 Abdeckung am Ufer kann eine einzelne Einordnung daneben liegen. Das steht so in der Anzeige.
@@ -27,6 +32,7 @@ import numpy as np
 MIN_FAHRT_KMH = 6.0
 DREHUNG_MIN_GRAD = 100.0
 DURCHGEFAHREN_KMH = 12.0
+DURCH_SPUR_KMH = 10.0     # Rueckfall ohne Doppler-Tempo (Spur misst in der Kurve zu niedrig)
 ABSTAND_S = 20.0
 
 
@@ -44,7 +50,7 @@ def _ueberstreicht(start: float, drehung: float, ziel: float) -> bool:
     return 0 < ((-d) % 360.0) < -drehung
 
 
-def erkennen(t_ms, lat, lon, wind_von) -> list[dict]:
+def erkennen(t_ms, lat, lon, wind_von, doppler_mps=None) -> list[dict]:
     """t_ms/lat/lon: gleich lange Folgen (getrimmt, Track-Index = Position). `wind_von`: Funktion
     t_ms -> Windrichtung (Grad, woher) oder None. Rueckgabe: je Manoever {i, t_ms, typ, durch,
     drehung, kurs_vor, kurs_nach}; typ "wende" | "halse"."""
@@ -52,7 +58,10 @@ def erkennen(t_ms, lat, lon, wind_von) -> list[dict]:
     n = len(t)
     if n < 30:
         return []
-    return _manoever(t, kurs, tempo, t_ms, wind_von)
+    dop = None
+    if doppler_mps is not None and len(doppler_mps) == n:
+        dop = np.array([float(v) * 3.6 if v is not None else np.nan for v in doppler_mps])
+    return _manoever(t, kurs, tempo, t_ms, wind_von, dop)
 
 
 def _kurs_tempo(t_ms, lat, lon):
@@ -86,7 +95,7 @@ def _kurs_tempo(t_ms, lat, lon):
     return t, kurs, tempo
 
 
-def _manoever(t, kurs, tempo, t_ms, wind_von) -> list[dict]:
+def _manoever(t, kurs, tempo, t_ms, wind_von, dop=None) -> list[dict]:
     n = len(t)
 
     def mittel_kurs(a: float, b: float, um: int):
@@ -129,8 +138,13 @@ def _manoever(t, kurs, tempo, t_ms, wind_von) -> list[dict]:
             typ = "halse"
         else:
             continue
-        um = (t >= t[i] - 4) & (t <= t[i] + 4) & ~np.isnan(tempo)
-        durch = bool(um.any() and float(np.nanmin(tempo[um])) >= DURCHGEFAHREN_KMH)
+        fenster = (t >= t[i] - 4) & (t <= t[i] + 4)
+        um_d = fenster & ~np.isnan(dop) if dop is not None else None
+        if um_d is not None and um_d.sum() >= max(3, fenster.sum() // 2):
+            durch = bool(float(np.nanmin(dop[um_d])) >= DURCHGEFAHREN_KMH)
+        else:
+            um = fenster & ~np.isnan(tempo)
+            durch = bool(um.any() and float(np.nanmin(tempo[um])) >= DURCH_SPUR_KMH)
         out.append({"i": int(i), "t_ms": int(t_ms[i]), "typ": typ, "durch": durch,
                     "drehung": round(float(drehung)), "kurs_vor": round(vor), "kurs_nach": round(nach)})
     return out
