@@ -1322,7 +1322,9 @@ export default function SessionDetail() {
           .addTo(lg);
       }
       // Start (grün) & Ende (rot) nur für den aktiven Lauf. start_pt/end_pt = [lon, lat].
-      if (!dim) {
+      // NICHT in der Ansicht „Ganze Fahrt" (Wind/eFoil), ausser ein Lauf ist ausgewaehlt: dort sind
+      // Lauf-Anfang/-Ende Pumpfoil-Begriffe, jede abgesetzte Halse waere ein rotes Ende (Jan, 19.10.2026).
+      if (!dim && (!zeigeGanz || selectedRun != null)) {
         const startLL = seg.start_pt ? [seg.start_pt[1], seg.start_pt[0]] : coords[seg.i_start];
         const endLL = seg.end_pt ? [seg.end_pt[1], seg.end_pt[0]] : coords[seg.i_end];
         if (startLL)
