@@ -245,6 +245,19 @@ final class SuuntoAblage {
         if typ == 6 { vorab.paket(p); pos = vorab.position; vorab.position = nil }
         guard let a = aktuell else { return .init(quittung: nil, position: pos, uhrId: hallo?.uhrId ?? 0, geaendert: false) }
         a.letztPaket = jetzt()
+        // SPORT (Typ 7, 19.10.2026): Suunto-Sportmodus der Uhr (Activity ID, u16 LE) -> meta.json, der
+        // Server ordnet ihn ueber die Einstellung des Nutzers einer Sportart zu (docs/SUUNTO.md).
+        if typ == 7 {
+            if p.count >= 3 {
+                let id: Int = Int(p[1]) | (Int(p[2]) << 8)
+                let url = a.dir.appendingPathComponent("meta.json")
+                if id > 0, var m = Self.lies(url), (m["suunto_aktivitaet"] as? Int) != id {
+                    m["suunto_aktivitaet"] = id
+                    schreibe(url, m)
+                }
+            }
+            return .init(quittung: nil, position: pos, uhrId: a.uhrId, geaendert: false)
+        }
         a.empfang.paket(p)
         var chunks: [[String: Any]] = []
         let bl = a.empfang.abholenBloecke()

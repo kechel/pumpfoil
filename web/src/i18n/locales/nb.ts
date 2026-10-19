@@ -1559,6 +1559,8 @@ const nb: Record<string, string> = {
   "settings.sports.hint": "Bare modusene kontoen din faktisk har levert. En ny importeres automatisk til du fjerner haken. Gjelder framtidige importer.",
   "settings.sports.none": "Ingen ennå. Så snart en aktivitet kommer inn, vises modusen her.",
   "settings.sports.saved": "Lagret",
+  "settings.sports.countsAs": "teller som",
+  "settings.sports.countsDefault": "standardsport",
   "settings.coros.help2": "På klokka: ta opp en utendørsaktivitet med GPS. Etter våre målinger gir «Flatwater» de beste dataene (ett punkt per sekund, komplett fart og puls). Innendørs / uten GPS hoppes over.",
   "settings.coros.help3": "Pumpeanalysen er begrenset: COROS-eksporten har ingen rå akselerometerdata — GPS + puls analyseres.",
   "settings.coros.help4": "Koble fra når du vil (trekker tilbake tilgangen og stopper importen).",

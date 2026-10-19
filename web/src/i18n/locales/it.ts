@@ -1262,6 +1262,8 @@ const it: Record<string, string> = {
   "settings.sports.hint": "Solo le modalità che il tuo account ha effettivamente fornito. Una nuova viene importata automaticamente finché non la deselezioni. Vale per i futuri import.",
   "settings.sports.none": "Nessuna ancora. Appena arriva un'attività, la sua modalità appare qui.",
   "settings.sports.saved": "Salvato",
+  "settings.sports.countsAs": "conta come",
+  "settings.sports.countsDefault": "sport predefinito",
   "settings.coros.help2": "Sull'orologio registra un'attività outdoor con GPS. Dalle nostre misurazioni „Flatwater“ dà i dati migliori (un punto al secondo, velocità e frequenza cardiaca complete). Indoor/senza GPS viene saltato.",
   "settings.coros.help3": "L'analisi pump è limitata: l'export COROS non ha il flusso accel grezzo — vengono analizzati GPS + FC.",
   "settings.coros.help4": "Scollega quando vuoi (revoca l'accesso e ferma l'import).",

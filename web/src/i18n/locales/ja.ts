@@ -1519,6 +1519,8 @@ const ja: Record<string, string> = {
   "settings.sports.hint": "実際にアカウントから届いたモードのみが表示されます。新しいモードはチェックを外すまで自動で取り込まれます。今後の取り込みに適用されます。",
   "settings.sports.none": "まだありません。アクティビティが届くと、そのモードがここに表示されます。",
   "settings.sports.saved": "保存しました",
+  "settings.sports.countsAs": "扱い",
+  "settings.sports.countsDefault": "標準のスポーツ",
   "settings.coros.help2": "時計では GPS 付きのアウトドアアクティビティで記録してください。計測した限りでは「Flatwater」が最も良いデータになります（1秒ごとに1点、速度と心拍が欠けなし）。屋内・GPS なしはスキップされます。",
   "settings.coros.help3": "ポンプ解析は制限されます：COROS エクスポートには生の加速度ストリームがありません — GPS + 心拍数が解析されます。",
   "settings.coros.help4": "いつでも連携解除できます（アクセスを取り消し、インポートを停止します）。",

@@ -1609,6 +1609,8 @@ const fi: Record<string, string> = {
   "settings.sports.hint": "Vain tilit, jotka tilisi on todella toimittanut. Uusi tuodaan automaattisesti, kunnes poistat valinnan. Koskee tulevia tuonteja.",
   "settings.sports.none": "Ei vielä yhtään. Heti kun aktiviteetti saapuu, sen tila näkyy tässä.",
   "settings.sports.saved": "Tallennettu",
+  "settings.sports.countsAs": "lasketaan lajiksi",
+  "settings.sports.countsDefault": "oletuslaji",
   "settings.coros.help2": "Tallenna kellossa ulkoaktiviteetti GPS:llä. Mittaustemme mukaan „Flatwater“ antaa parhaat tiedot (piste sekunnissa, nopeus ja syke täydellisinä). Sisä-/GPS:tön ohitetaan.",
   "settings.coros.help3": "Pump-analyysi on rajallinen: COROS-vienti ei toimita raakaa kiihtyvyysvirtaa — analysoidaan GPS + syke.",
   "settings.coros.help4": "Katkaisu mahdollista milloin vain (poistaa pääsyn ja pysäyttää tuonnin).",

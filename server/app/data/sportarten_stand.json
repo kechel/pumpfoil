@@ -758,6 +758,21 @@
       "sport": [
         "alle"
       ],
+      "merkmal": "sport_auf_uhr",
+      "was": "Suunto: Sportmodus -> Sportart je Nutzer (Einstellung unter Verknuepfte Konten), wirkt im Cloud-Import sofort und ueber die Bruecke ab Suunto-App nach 1.00 + Android 1.1.44 / iOS 1.1.52.",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios",
+        "uhren"
+      ]
+    },
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
       "merkmal": "sport_auf_uhr, modell_brett",
       "was": "Sportart-Wahl auf Garmin (Vollbuild), Amazfit, Huawei Watch 5 gebaut; Suunto ueber den Sportmodus vorbereitet; Profil-Einstellung „Sportarten an der Uhr“. Geplant: neues Modell aus Phone-on-Board-Sessions.",
       "wo": [
@@ -1237,7 +1252,7 @@
       "sport_auf_uhr": {
         "status": "live",
         "en": "Pick the sport on the watch before you start (default sport preselected, change it in the same menu as the foil); which sports appear is set under My foils. Wear OS 1.2.44, Apple Watch 1.1.52, Garmin, Amazfit and Huawei Watch 5 with their next versions; Suunto takes the sport from the Suunto sport mode you start",
-        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner. 19.10.: Server fertig — /api/devices/config?sp=1 liefert sports (Standard zuerst, im letzten Jahr gefahrene, max 6; ohne sp kein Byte mehr), Ingest-Start nimmt sport_class an (owner, Equipment je Sportart greift). Offen: UI in Garmin/Wear/Apple/Amazfit/Huawei/Suunto (Store-Releases). 19.10.: Wear OS gebaut (Einstellungen „Sportart\" ueber den Foils, Anzeige „Wingfoil · Foil: …\" auf dem Start, meta sport_class), kompiliert, NICHT im Emulator angesehen — vor Einreichung im R8-Release-Build pruefen (Memory wear-emulator-testing). Offen: Garmin, Apple Watch, Amazfit, Huawei, Suunto. 19.10.: Apple Watch gebaut (Sheet „Sportart\" ganz oben, Startknopf-Zeile „Wingfoil · Foil: …\", meta sport_class), nur swiftc -parse. 19.10. Stand: Server + Profil „Sportarten an der Uhr“ (my_sports) live. Uhren gebaut, nicht eingereicht: Wear, Apple Watch, Garmin (nur Vollbuild; 96/128-KB-Builds nicht), Amazfit (Seite Foil & Alarm), Huawei Watch 5 (Lite + Watch 3/4 nicht: Heap/Bruecke). Suunto: keine Auswahl moeglich (App-Seite erst nach Aktivitaetsstart) -> Sportmodus (Activity ID) per $.get, Paket 0x07; offen: Server-Zuordnung Suunto-Modus -> Sportart je Nutzer + Bruecken (s. docs/SUUNTO.md)."
+        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner. 19.10.: Server fertig — /api/devices/config?sp=1 liefert sports (Standard zuerst, im letzten Jahr gefahrene, max 6; ohne sp kein Byte mehr), Ingest-Start nimmt sport_class an (owner, Equipment je Sportart greift). Offen: UI in Garmin/Wear/Apple/Amazfit/Huawei/Suunto (Store-Releases). 19.10.: Wear OS gebaut (Einstellungen „Sportart\" ueber den Foils, Anzeige „Wingfoil · Foil: …\" auf dem Start, meta sport_class), kompiliert, NICHT im Emulator angesehen — vor Einreichung im R8-Release-Build pruefen (Memory wear-emulator-testing). Offen: Garmin, Apple Watch, Amazfit, Huawei, Suunto. 19.10.: Apple Watch gebaut (Sheet „Sportart\" ganz oben, Startknopf-Zeile „Wingfoil · Foil: …\", meta sport_class), nur swiftc -parse. 19.10. Stand: Server + Profil „Sportarten an der Uhr“ (my_sports) live. Uhren gebaut, nicht eingereicht: Wear, Apple Watch, Garmin (nur Vollbuild; 96/128-KB-Builds nicht), Amazfit (Seite Foil & Alarm), Huawei Watch 5 (Lite + Watch 3/4 nicht: Heap/Bruecke). Suunto: keine Auswahl moeglich (App-Seite erst nach Aktivitaetsstart) -> Sportmodus (Activity ID) per $.get, Paket 0x07; offen: Server-Zuordnung Suunto-Modus -> Sportart je Nutzer + Bruecken (s. docs/SUUNTO.md). 19.10. Suunto komplett: Bruecken (Android/iOS) schreiben Paket 7 als meta suunto_aktivitaet, Ingest uebersetzt Uhr->Cloud-Nummer (UHR_ZU_CLOUD) und nimmt settings.suunto_sport_je_modus; Cloud-Import ebenso (import_parsed_session sport_override). Einstellung „zaehlt als …“ je Suunto-Modus unter Verknuepfte Konten (Web)."
       },
       "equipment_je_sport": {
         "status": "live",

@@ -1646,6 +1646,8 @@ const nl: Record<string, string> = {
   "settings.sports.hint": "Alleen de modi die je account tot nu toe echt heeft geleverd. Een nieuwe wordt automatisch geïmporteerd tot je hem uitvinkt. Geldt voor toekomstige imports.",
   "settings.sports.none": "Nog geen. Zodra er een activiteit binnenkomt, verschijnt de modus hier.",
   "settings.sports.saved": "Opgeslagen",
+  "settings.sports.countsAs": "telt als",
+  "settings.sports.countsDefault": "standaardsport",
   "settings.coros.help2": "Neem op het horloge een outdoor-activiteit met GPS op. Uit onze metingen levert ‘Flatwater' de beste data (één punt per seconde, snelheid en hartslag volledig). Indoor/zonder GPS wordt overgeslagen.",
   "settings.coros.help3": "Pompanalyse is beperkt: de COROS-export levert geen ruwe accelerometer-stream — geanalyseerd worden GPS + hartslag.",
   "settings.coros.help4": "Verbreken kan altijd (trekt de toegang in en stopt de import).",

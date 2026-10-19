@@ -1667,6 +1667,8 @@ const pl: Record<string, string> = {
   "settings.sports.hint": "Tylko tryby, które Twoje konto rzeczywiście dostarczyło. Nowy jest importowany automatycznie, dopóki go nie odznaczysz. Dotyczy przyszłych importów.",
   "settings.sports.none": "Jeszcze żadnych. Gdy pojawi się aktywność, jej tryb znajdzie się tutaj.",
   "settings.sports.saved": "Zapisano",
+  "settings.sports.countsAs": "liczy się jako",
+  "settings.sports.countsDefault": "domyślny sport",
   "settings.coros.help2": "Na zegarku nagraj aktywność na zewnątrz z GPS. Według naszych pomiarów „Flatwater” daje najlepsze dane (jeden punkt na sekundę, pełna prędkość i puls). Aktywności bez GPS/w pomieszczeniu są pomijane.",
   "settings.coros.help3": "Analiza pomp jest ograniczona: eksport z COROS nie zawiera strumienia surowego akcelerometru — analizowane są GPS i tętno.",
   "settings.coros.help4": "Rozłącz w każdej chwili (odbiera dostęp i zatrzymuje import).",

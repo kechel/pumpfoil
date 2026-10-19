@@ -718,7 +718,8 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
         # wirklich etwas Neues entstanden ist, statt die Dedup-Logik zu verdoppeln.
         vorher = db.query(func.max(models.Session.id)).scalar() or 0
         s = import_parsed_session(db, user, fr.content, parsed,
-                                  src_label="suunto-import", uuid_prefix="suunto-")
+                                  src_label="suunto-import", uuid_prefix="suunto-",
+                                  sport_override=sport_fuer_modus(user, sport_key))
         if s is None or (s.id or 0) <= vorher:
             return False, "doppelt"
         return True, None
@@ -728,6 +729,27 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
         # nur den Anfang „fehler", die Einordnung bleibt also gleich.
         log.exception("Suunto: Workout %s nicht importiert (user %s)", key, user.id)
         return False, "fehler %s: %s" % (type(e).__name__, e)
+
+
+# Suunto nummeriert die Sportmodi auf der UHR anders als in der Cloud-API (abgeglichen ueber die
+# Namen, 19.10.2026, docs/SUUNTO.md). Die Zuordnung des Nutzers haengt an der Cloud-Nummer — die
+# kennt er aus der Modusliste in den Kontoeinstellungen.
+UHR_ZU_CLOUD = {86: 86, 91: 87, 54: 91, 89: 61, 13: 71, 14: 72, 72: 82, 15: 15, 83: 85}
+
+
+def sport_fuer_modus(user, cloud_key) -> str | None:
+    """Sportart, die der Nutzer diesem Suunto-Modus zugeordnet hat (settings.suunto_sport_je_modus),
+    oder None (dann gilt wie bisher die Standard-Sportart)."""
+    import json as _json
+    from .sessions import SPORTS
+    if cloud_key is None:
+        return None
+    try:
+        zu = (_json.loads(user.settings_json or "{}") or {}).get("suunto_sport_je_modus") or {}
+    except ValueError:
+        return None
+    sp = zu.get(str(cloud_key))
+    return sp if sp in SPORTS else None
 
 
 BRUECKE_TOLERANZ_S = 180
