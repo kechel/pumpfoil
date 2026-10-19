@@ -1317,7 +1317,7 @@ struct SessionDetailView: View {
                 }
             }
             if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, lang: lang) }
-            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, lang: lang) }
+            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, lang: lang) }
             excludedSection(s)
             poweredSection(s)
             excludeErrorRow
@@ -1933,6 +1933,7 @@ private struct WindKarte: View {
     let w: WindMittel
     let z: ManoeverZahlen?
     var h: Hoehe? = nil
+    var vorhersage: Bool = false
     let lang: String
 
     private var pfeil: String {
@@ -1950,6 +1951,7 @@ private struct WindKarte: View {
             }
             Text(boeenZeile).font(.subheadline)
             Text(Loc.t("sd.windNote", lang)).font(.footnote).foregroundStyle(.secondary)
+            if vorhersage { Text(Loc.t("sd.windForecast", lang)).font(.footnote).foregroundStyle(.orange) }
             if let z { zahlen(z) }
             if let h { hoeheZeilen(h) }
         }

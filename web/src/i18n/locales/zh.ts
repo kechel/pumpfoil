@@ -619,6 +619,7 @@ const zh: Record<string, string> = {
   "sd.windGusts": "阵风",
   "sd.windFrom": "来自",
   "sd.windNote": "此地点的天气模型（Open-Meteo），每小时 — 非水面实测。",
+  "sd.windForecast": "部分仍为预报，之后会被实测天气替换。",
   "sd.tacks": "迎风转向",
   "sd.jibes": "顺风转向",
   "sd.onFoil": "在水翼上",

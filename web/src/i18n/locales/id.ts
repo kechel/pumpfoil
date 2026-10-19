@@ -619,6 +619,7 @@ const id: Record<string, string> = {
   "sd.windGusts": "hembusan",
   "sd.windFrom": "dari",
   "sd.windNote": "Model cuaca untuk spot ini (Open-Meteo), per jam — tidak diukur di air.",
+  "sd.windForecast": "Sebagian masih prakiraan, nanti diganti dengan cuaca yang teramati.",
   "sd.tacks": "Tack",
   "sd.jibes": "Jibe",
   "sd.onFoil": "di atas foil",

@@ -660,6 +660,7 @@ const en: Record<string, string> = {
   "sd.windGusts": "gusts",
   "sd.windFrom": "from",
   "sd.windNote": "Weather model for this spot (Open-Meteo), hourly — not measured on the water.",
+  "sd.windForecast": "Partly still a forecast, replaced later by the observed weather.",
   "sd.tacks": "Tacks",
   "sd.jibes": "Jibes",
   "sd.onFoil": "on the foil",

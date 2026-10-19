@@ -643,6 +643,7 @@ const cs: Record<string, string> = {
   "sd.windGusts": "nárazy",
   "sd.windFrom": "od",
   "sd.windNote": "Meteorologický model pro tento spot (Open-Meteo), po hodinách — neměřeno na vodě.",
+  "sd.windForecast": "Zčásti ještě předpověď, později ji nahradí skutečné počasí.",
   "sd.tacks": "Obraty",
   "sd.jibes": "Přehozy",
   "sd.onFoil": "na foilu",

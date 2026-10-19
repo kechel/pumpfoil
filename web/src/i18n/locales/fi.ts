@@ -626,6 +626,7 @@ const fi: Record<string, string> = {
   "sd.windGusts": "puuskat",
   "sd.windFrom": "suunnasta",
   "sd.windNote": "Sääennuste tälle spotille (Open-Meteo), tunneittain — ei mitattu vedeltä.",
+  "sd.windForecast": "Osittain vielä ennuste, korvataan myöhemmin havaitulla säällä.",
   "sd.tacks": "Vendat",
   "sd.jibes": "Jiippaukset",
   "sd.onFoil": "foililla",

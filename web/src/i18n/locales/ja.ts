@@ -619,6 +619,7 @@ const ja: Record<string, string> = {
   "sd.windGusts": "突風",
   "sd.windFrom": "風向",
   "sd.windNote": "このスポットの気象モデル（Open-Meteo）、1時間ごと — 水上での実測ではありません。",
+  "sd.windForecast": "一部はまだ予報です。後で実際の気象データに置き換わります。",
   "sd.tacks": "タック",
   "sd.jibes": "ジャイブ",
   "sd.onFoil": "フォイル上",

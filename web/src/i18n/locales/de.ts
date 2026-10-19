@@ -683,6 +683,7 @@ const de: Record<string, string> = {
   "sd.windGusts": "Böen",
   "sd.windFrom": "aus",
   "sd.windNote": "Wettermodell für diesen Spot (Open-Meteo), stündlich — nicht am Wasser gemessen.",
+  "sd.windForecast": "Teils noch Vorhersage, wird später durch die gemessene Wetterlage ersetzt.",
   "sd.tacks": "Wenden",
   "sd.jibes": "Halsen",
   "sd.onFoil": "auf dem Foil",

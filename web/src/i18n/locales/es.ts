@@ -546,6 +546,7 @@ const es: Record<string, string> = {
   "sd.windGusts": "rachas",
   "sd.windFrom": "de",
   "sd.windNote": "Modelo meteorológico para este spot (Open-Meteo), por horas — no medido en el agua.",
+  "sd.windForecast": "En parte todavía es una previsión; se sustituye después por el tiempo observado.",
   "sd.tacks": "Viradas",
   "sd.jibes": "Trasluchadas",
   "sd.onFoil": "sobre el foil",
