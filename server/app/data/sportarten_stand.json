@@ -352,23 +352,23 @@
           ]
         },
         "spruenge": {
-          "status": "vorschlag",
+          "status": "geplant",
           "en": "Detect jumps from the motion data (height and airtime), mainly for kitefoil.",
-          "notiz": "Accel-Freifall + Landestoss; Kite eher als Wing. Nur mit Accel am Handgelenk/Brett, nicht GPS-only."
+          "notiz": "Accel-Freifall + Landestoss; Kite eher als Wing. Nur mit Accel am Handgelenk/Brett, nicht GPS-only. Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
         },
         "wellen": {
           "status": "nein",
           "en": "Does not apply."
         },
         "hoehe": {
-          "status": "vorschlag",
+          "status": "geplant",
           "en": "How well you gain ground against the wind (upwind speed, VMG) per ride, from the GPS track and the model wind.",
-          "notiz": "Claude 19.10.: mit wind_am_spot vorhanden — Geschwindigkeitsanteil gegen den Wind je Schlag (VMG), bester Am-Wind-Winkel. Typische Fortschrittszahl beim Wingen. Nur Anzeige wie Wenden/Halsen."
+          "notiz": "Claude 19.10.: mit wind_am_spot vorhanden — Geschwindigkeitsanteil gegen den Wind je Schlag (VMG), bester Am-Wind-Winkel. Typische Fortschrittszahl beim Wingen. Nur Anzeige wie Wenden/Halsen. Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
         },
         "tempo_je_wind": {
-          "status": "vorschlag",
+          "status": "geplant",
           "en": "Your speeds next to the wind strength, so sessions on light and strong days can be compared.",
-          "notiz": "Claude 19.10.: Tempo/Strecke je Windstaerke-Band ueber die eigenen Sessions (Verlauf), Grundlage wind_am_spot (Modell!)."
+          "notiz": "Claude 19.10.: Tempo/Strecke je Windstaerke-Band ueber die eigenen Sessions (Verlauf), Grundlage wind_am_spot (Modell!). Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
         },
         "downwind_strecke": {
           "status": "nein",
@@ -453,9 +453,9 @@
           "en": "Does not apply."
         },
         "wellen": {
-          "status": "vorschlag",
+          "status": "geplant",
           "en": "Count the waves you rode and show the longest one.",
-          "notiz": "Bei Welle/Downwind ist ein Lauf ~ eine Welle bzw. ein Glide; Zaehlen + laengste/schnellste Welle als eigene Kennzahlen, Pump-Zahlen behalten (beim Downwind wird gepumpt)."
+          "notiz": "Bei Welle/Downwind ist ein Lauf ~ eine Welle bzw. ein Glide; Zaehlen + laengste/schnellste Welle als eigene Kennzahlen, Pump-Zahlen behalten (beim Downwind wird gepumpt). Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
         },
         "hoehe": {
           "status": "nein",
@@ -466,9 +466,9 @@
           "en": "Does not apply."
         },
         "downwind_strecke": {
-          "status": "vorschlag",
+          "status": "geplant",
           "en": "Downwind runs shown as A-to-B distance with average speed, and the total downwind distance of a session.",
-          "notiz": "Claude 19.10.: Downwind ist eher eine Strecke als Kreise; Luftlinie Start-Ziel je Lauf + Summe als eigene Kennzahl."
+          "notiz": "Claude 19.10.: Downwind ist eher eine Strecke als Kreise; Luftlinie Start-Ziel je Lauf + Summe als eigene Kennzahl. Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
         }
       }
     },
@@ -633,9 +633,9 @@
       "gruppe": "pump",
       "merkmale": {
         "rekorde": {
-          "status": "teilweise",
-          "en": "Own list via the sport filter; whether it should also count in the pumpfoil records is still open.",
-          "notiz": "ThermikDreher 16./18.10.: Scooter in den Standard-Rekorden mitzaehlen. Jan: nur wenn automatisch verlaesslich trennbar; Alternative Stufe 4 = eigene Wertung."
+          "status": "live",
+          "en": "Own records and leaderboards via the sport filter, kept separate from pumpfoil.",
+          "notiz": "Jan 19.10.: „ich wuerde es lieber getrennt lassen“ — Foil Scoot zaehlt NICHT in den Pumpfoil-Standardrekorden (ThermikDreher-Frage entschieden)."
         }
       }
     },
@@ -743,6 +743,22 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "foil_scoot",
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "surf_wave",
+        "surf_downwind"
+      ],
+      "merkmal": "rekorde, spruenge, wellen, hoehe, tempo_je_wind, downwind_strecke",
+      "was": "Foil Scoot bleibt in eigener Wertung (Jan). Alle bisherigen Vorschlaege als geplante Ideen vermerkt (Jan: Details spaeter).",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
