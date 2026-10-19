@@ -81,6 +81,7 @@ struct SessionDetailView: View {
     @State private var ganzeFahrt = true
     // Wind am Spot + Wenden/Halsen (nur Wind-Sportarten, 19.10.2026).
     @State private var windInfo: SessionWindInfo?
+    @State private var windVergleich: WindVergleich?
     @State private var manoever: ManoeverAntwort?
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
@@ -1317,7 +1318,7 @@ struct SessionDetailView: View {
                 }
             }
             if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, lang: lang) }
-            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, lang: lang) }
+            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, lang: lang) }
             excludedSection(s)
             poweredSection(s)
             excludeErrorRow
@@ -1666,7 +1667,8 @@ struct SessionDetailView: View {
     private func ladeWind() async {
         windInfo = nil; manoever = nil
         guard session?.sport_profil?.gruppe == "wind" else { return }
-        windInfo = (try? await Api.sessionWind(sid))?.wind
+        let wa = try? await Api.sessionWind(sid)
+        windInfo = wa?.wind; windVergleich = wa?.vergleich
         manoever = try? await Api.sessionManoever(sid)
     }
 
@@ -1934,6 +1936,7 @@ private struct WindKarte: View {
     let z: ManoeverZahlen?
     var h: Hoehe? = nil
     var vorhersage: Bool = false
+    var vg: WindVergleich? = nil
     let lang: String
 
     private var pfeil: String {
@@ -1952,12 +1955,22 @@ private struct WindKarte: View {
             Text(boeenZeile).font(.subheadline)
             Text(Loc.t("sd.windNote", lang)).font(.footnote).foregroundStyle(.secondary)
             if vorhersage { Text(Loc.t("sd.windForecast", lang)).font(.footnote).foregroundStyle(.orange) }
+            if let vg { Text(vergleichText(vg)).font(.footnote) }
             if let z { zahlen(z) }
             if let h { hoeheZeilen(h) }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+    }
+
+    private func vergleichText(_ v: WindVergleich) -> String {
+        Loc.t("sd.windCompare", lang)
+            .replacingOccurrences(of: "{a}", with: String(v.wind_von))
+            .replacingOccurrences(of: "{b}", with: String(v.wind_bis))
+            .replacingOccurrences(of: "{m}", with: String(format: "%.1f", v.foil_kmh_mittel))
+            .replacingOccurrences(of: "{n}", with: String(v.sessions))
+            .replacingOccurrences(of: "{e}", with: String(format: "%.1f", v.foil_kmh))
     }
 
     private var boeenZeile: String {

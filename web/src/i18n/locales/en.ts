@@ -660,6 +660,7 @@ const en: Record<string, string> = {
   "sd.windGusts": "gusts",
   "sd.windFrom": "from",
   "sd.windNote": "Weather model for this spot (Open-Meteo), hourly — not measured on the water.",
+  "sd.windCompare": "At similar wind ({a}–{b} km/h) this rider averages {m} km/h on the foil ({n} sessions); here {e} km/h.",
   "spot.windTitle": "Wind window",
   "spot.windText": "{n} wind sessions, mostly at {a}–{b} km/h",
   "spot.windNote": "Where the wind came from during wing, kite and parawing sessions at this spot (model wind).",

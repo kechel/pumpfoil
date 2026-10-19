@@ -3682,7 +3682,42 @@ def session_wind(
     if _ort_verborgen(s):
         return {"wind": None}
     from ..sessionwind import session_wind as _wind
-    return {"wind": _wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)}
+    w = _wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)
+    return {"wind": w, "vergleich": _tempo_je_wind(db, s, w)}
+
+
+# Tempo je Windstaerke (19.10.2026, Stand-Buch: tempo_je_wind): wie schnell derselbe Fahrer bei
+# AEHNLICHEM Wind sonst auf dem Foil faehrt. Nur aus dem Wind-Cache (holt nichts), nur Sessions
+# derselben Sportart-Gruppe (Wind) und nur mit nennenswerter Foil-Zeit. Erst ab VERGLEICH_MIN.
+VERGLEICH_SPANNE_KMH = 3.0
+VERGLEICH_MIN = 3
+
+
+def _tempo_je_wind(db, s, w) -> dict | None:
+    if not w or not w.get("mittel") or sportprofil.profil(s.sport_class)["gruppe"] != "wind":
+        return None
+    from ..sessionwind import session_wind as _wind
+    wind_kmh = float(w["mittel"]["kmh_mittel"])
+    wind_sports = [k for k, g in sportprofil.GRUPPE.items() if g == "wind"]
+    S, A = models.Session, models.AnalysisResult
+    rows = (db.query(S.id, S.place_lat, S.place_lon, S.started_at, S.ended_at,
+                     A.foiling_distance_m, A.foiling_time_s)
+            .join(A, A.session_id == S.id)
+            .filter(S.user_id == s.user_id, S.id != s.id, S.sport_class.in_(wind_sports),
+                    S.deleted.isnot(True), S.place_lat.isnot(None), A.foiling_time_s > 60,
+                    or_(S.data_quality.is_(None), S.data_quality == "ok"))
+            .all())
+    tempi = []
+    for sid, lat, lon, st, en, fm, ft in rows:
+        ow = _wind(sid, lat, lon, st, en, abrufen=False)
+        if ow and ow.get("mittel") and abs(float(ow["mittel"]["kmh_mittel"]) - wind_kmh) <= VERGLEICH_SPANNE_KMH:
+            tempi.append(float(fm) / float(ft) * 3.6)
+    res = db.query(A.foiling_distance_m, A.foiling_time_s).filter(A.session_id == s.id).first()
+    eigen = (float(res[0]) / float(res[1]) * 3.6) if res and res[1] and res[1] > 60 and res[0] else None
+    if len(tempi) < VERGLEICH_MIN or eigen is None:
+        return None
+    return {"wind_von": round(max(0.0, wind_kmh - VERGLEICH_SPANNE_KMH)), "wind_bis": round(wind_kmh + VERGLEICH_SPANNE_KMH),
+            "sessions": len(tempi), "foil_kmh_mittel": round(sum(tempi) / len(tempi), 1), "foil_kmh": round(eigen, 1)}
 
 
 @router.get("/{session_id}/manoever")

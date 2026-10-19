@@ -643,6 +643,7 @@ const cs: Record<string, string> = {
   "sd.windGusts": "nárazy",
   "sd.windFrom": "od",
   "sd.windNote": "Meteorologický model pro tento spot (Open-Meteo), po hodinách — neměřeno na vodě.",
+  "sd.windCompare": "Při podobném větru ({a}–{b} km/h) jezdí tento jezdec na foilu v průměru {m} km/h ({n} session); tady {e} km/h.",
   "spot.windTitle": "Větrné okno",
   "spot.windText": "{n} větrných session, většinou při {a}–{b} km/h",
   "spot.windNote": "Odkud foukal vítr při wing, kite a parawing session na tomto spotu (modelový vítr).",
