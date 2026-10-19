@@ -682,6 +682,17 @@
     {
       "datum": "2026-10-19",
       "sport": [
+        "alle"
+      ],
+      "merkmal": "sport_auf_uhr",
+      "was": "Server-Seite fuer die Sportart-Wahl an der Uhr: Auswahlliste in der Uhr-Config (nur mit sp=1), sport_class im Ingest-Start. Uhren-Apps folgen.",
+      "wo": [
+        "server"
+      ]
+    },
+    {
+      "datum": "2026-10-19",
+      "sport": [
         "wingfoil",
         "kitefoil",
         "parawing",
@@ -1019,8 +1030,8 @@
     "merkmale": {
       "sport_auf_uhr": {
         "status": "geplant",
-        "en": "Pick the sport on the watch before you start, like the foil today.",
-        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
+        "en": "Pick the sport on the watch before you start, like the foil today. The server side is ready; the watch apps follow with their next versions",
+        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner. 19.10.: Server fertig — /api/devices/config?sp=1 liefert sports (Standard zuerst, im letzten Jahr gefahrene, max 6; ohne sp kein Byte mehr), Ingest-Start nimmt sport_class an (owner, Equipment je Sportart greift). Offen: UI in Garmin/Wear/Apple/Amazfit/Huawei/Suunto (Store-Releases)."
       },
       "equipment_je_sport": {
         "status": "live",

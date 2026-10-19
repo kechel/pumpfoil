@@ -146,6 +146,9 @@ class SessionStartIn(BaseModel):
     accel_hz: int = 25
     accel_scale: int = 2048
     foil_id: int | None = None   # auf der Uhr für diese Session gewähltes Foil (Override)
+    # Auf der Uhr gewaehlte Sportart (19.10.2026, Stand-Buch: sport_auf_uhr). None = nicht gewaehlt
+    # -> Standard-Sportart des Profils wie bisher.
+    sport_class: str | None = None
     placement: str | None = None  # "phone" = Handy-Recorder (Tasche/Hüfte); sonst Uhr am Handgelenk
     device_model: str | None = None  # Modell + OS (z. B. "Pixel 7 · Android 14") — nur zur Fehlersuche
     expected_chunks: int | None = None  # erwartete Gesamt-Chunk-Zahl (gps+accel) für Upload-Fortschritt

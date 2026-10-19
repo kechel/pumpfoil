@@ -133,6 +133,11 @@ def start_session(
             except ValueError:
                 _sport_class = "pumpfoil"
         _sport_source = None
+        # Auf der Uhr gewaehlte Sportart (19.10.2026): eine Einzelwahl des Nutzers -> „owner",
+        # genau wie eine Zuordnung von Hand. Unbekannte Werte werden ignoriert.
+        from .sessions import SPORTS as _SPORTS
+        if body.sport_class and body.sport_class in _SPORTS:
+            _sport_class, _sport_source = body.sport_class, "owner"
         # Tanz-Variante der Garmin-App (watch-dance/, Jan 16.10.2026): eine andere Sportart, die der
         # Nutzer mit der Wahl der App selbst getroffen hat -> „other" wie von Hand zugeordnet. Damit
         # steht die Session in der normalen Liste statt bei den Aussortierten und erzeugt keinen Spot.
