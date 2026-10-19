@@ -1061,6 +1061,12 @@ NAECHSTES: list[dict] = [
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
+    # 19.10.2026: Sportart-Wahl auf der Uhr (Jan: „bitte umsetzen auf alle uhren und in coming next").
+    # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
+    {"name": "Amazfit", "version": "1.0.15",
+     "items": [
+         "You can pick the sport before you start, on the Foil & Alarm page.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

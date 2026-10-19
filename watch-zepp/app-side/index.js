@@ -67,7 +67,8 @@ async function handle(req) {
     const qmt = req.memtot ? "&memtot=" + encodeURIComponent(req.memtot) : "";
     // Speicher voll (Uhr ab 1.0.14): dieselben Parameter wie Garmin, der Server zaehlt entprellt.
     const qsf = req.sfKb ? "&sf=1&kb=" + encodeURIComponent(req.sfKb) : "";
-    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql + qm + qc + qmem + qmt + qsf, method: "GET", headers: { "X-Device-Token": req.token } });
+    // `sp=1`: Server liefert `sports` (bis 6 x {id, name}, Standard zuerst) fuer die Sportart-Wahl.
+    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp&sp=1" + qv + ql + qm + qc + qmem + qmt + qsf, method: "GET", headers: { "X-Device-Token": req.token } });
     const code = r.status || 0;
     if (code === 401) return { paired: false, revoked: true };
     if (code < 200 || code >= 300) return { paired: true };
@@ -107,7 +108,10 @@ async function handle(req) {
       // (Sprache/Update-Hinweis/Layouts waren schon einmal aus demselben Grund unsichtbar).
       hrZones: b && b.hrZones, speedZones: b && b.speedZones,
       // Handy-Recorder desselben Kontos (Uhr ab 1.0.14) — auch hier gilt die Warnung oben.
-      phone_rec: b && b.phone_rec };
+      phone_rec: b && b.phone_rec,
+      // Sportart-Wahl vor dem Start (nur id + name, Standard zuerst) — Warnung oben gilt auch hier.
+      sports: b && Array.isArray(b.sports)
+        ? b.sports.slice(0, 6).map((x) => ({ id: x && x.id, name: x && x.name })) : undefined };
   }
 
   // --- App beendet (Uhr ab 1.0.14): nicht mehr als „gerade am Pumpen" zaehlen ---
@@ -135,6 +139,8 @@ async function handle(req) {
     const body = { session_uuid: m.session_uuid, started_at: iso(m.started_at_ms), sport: m.sport, gps_hz: m.gps_hz, accel_hz: m.accel_hz, accel_scale: m.accel_scale };
     if (m.app_version) body.app_version = m.app_version;
     if (m.foil_id != null) body.foil_id = m.foil_id;
+    // Sportart nur, wenn die Uhr sie mitschickt (= der Nutzer hatte eine Wahl; Uhr nach 1.0.14).
+    if (typeof m.sport_class === "string" && m.sport_class) body.sport_class = m.sport_class;
     const r = await authPost(req.token, "/api/ingest/session", body);
     return { ok: true, http: r.status, url: BASE + "/api/ingest/session", body: (typeof r.body === "string" ? r.body.slice(0, 50) : JSON.stringify(r.body).slice(0, 50)) };
   }

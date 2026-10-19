@@ -279,6 +279,40 @@ function istNeuer(a, b) {
   for (let i = 0; i < 3; i++) { if (pa[i] !== pb[i]) return pa[i] > pb[i]; }
   return false;
 }
+
+// ---- Sportart vor dem Start waehlen (wie die Foil) ---------------------------------------------
+// Der Server liefert mit `sp=1` im CONFIG bis zu sechs Sportarten `{id, name}`, den Profil-Standard
+// ZUERST. Nur id + Name behalten (der Profil-Stand wird ganz gesichert, s. `_configSichern`).
+// Mitgeschickt wird `sport_class` NUR, wenn es eine Wahl gab (mehr als eine Sportart) — sonst
+// entscheidet der Server wie bisher selbst.
+function sportListe(roh) {
+  if (!Array.isArray(roh)) return [];
+  const out = [];
+  for (let i = 0; i < roh.length && out.length < 6; i++) {
+    const x = roh[i];
+    if (!x || typeof x.id !== "string" || !x.id) continue;
+    out.push({ id: x.id, name: (typeof x.name === "string" && x.name) ? x.name : x.id });
+  }
+  return out;
+}
+// Vorwahl: der Standard (erster Eintrag), ausser der Nutzer hat in diesem App-Lauf schon eine
+// andere gewaehlt und die gibt es noch.
+function sportWahl(liste, aktuell, gewaehlt) {
+  if (!liste.length) return null;
+  if (gewaehlt && aktuell != null && liste.some((x) => x.id === aktuell)) return aktuell;
+  return liste[0].id;
+}
+// Tippen: naechste Sportart, am Ende wieder von vorn (anders als die Foil gibt es kein „keine").
+function sportNaechster(liste, aktuell) {
+  if (!liste.length) return null;
+  const i = liste.findIndex((x) => x.id === aktuell);
+  return liste[(i + 1) % liste.length].id;
+}
+// Was in die Session geht: nur bei echter Wahl, sonst null (= Feld weglassen).
+function sportKlasse(liste, id) {
+  if (!Array.isArray(liste) || liste.length < 2 || id == null) return null;
+  return liste.some((x) => x.id === id) ? id : null;
+}
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
 // Tastenzahl des Modells (API_LEVEL 2.0). Sie entscheidet, ob die Touch-Sperre automatisch greift:
@@ -630,6 +664,9 @@ const S = {
   "fm.thresholds":   ["Schwellen", "Schwelle", "Schwellen", "Thresholds", "Seuils", "Soglie", "Umbrales", "Limites", "Ambang", "Пороги", "Drempels", "Kynnykset", "Prahy", "しきい値", "阈值"],
   "fm.autoFoil":     ["Auto (Foil)", "Auto (Foil)", "Auto (Foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Авто (фойл)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "自動(フォイル)", "自动(水翼)"],
   "fm.manual":       ["Manuell", "Manuell", "Manuell", "Manual", "Manuel", "Manuale", "Manual", "Manual", "Manual", "Вручную", "Handmatig", "Manuaalinen", "Ručně", "手動", "手动"],
+  // Sportart-Wahl vor dem Start (Knopf auf der Foil-Seite). Namen der Sportarten kommen englisch
+  // vom Server. pt = Brasilianisch (die Tabelle hat keine pt-PT-Spalte).
+  "sport.label":     ["Sportart", "Sportart", "Sportart", "Sport", "Sport", "Sport", "Deporte", "Esporte", "Olahraga", "Вид спорта", "Sport", "Laji", "Sport", "スポーツ", "运动"],
   "foil.prefix":     ["Foil: ", "Foil: ", "Foil: ", "Foil: ", "Foil : ", "Foil: ", "Foil: ", "Foil: ", "Foil: ", "Фойл: ", "Foil: ", "Foil: ", "Foil: ", "フォイル: ", "水翼: "],
   // Kurzform von menu.layouts ("Eigene Layouts" waere auf dem 300-px-Button zu lang).
   "lay.short":       ["Layouts", "Layouts", "Layouts", "Layouts", "Layouts", "Layout", "Diseños", "Layouts", "Tata letak", "Макеты", "Layouts", "Asettelut", "Rozvržení"],
@@ -712,6 +749,7 @@ const PL = {
   "fm.thresholds": "Progi",
   "fm.title": "Foil i alarm",
   "foil.prefix": "Foil: ",
+  "sport.label": "Sport",
   "gps.searching": "Szukam GPS…",
   "lay.short": "Układy",
   "menu.connect": "Połącz",
@@ -790,6 +828,7 @@ const NB = {
   "fm.autoFoil": "Auto (foil)",
   "fm.manual": "Manuell",
   "foil.prefix": "Foil: ",
+  "sport.label": "Sport",
   "lay.short": "Oppsett",
   "common.on": "På",
   "common.off": "Av",
@@ -956,6 +995,8 @@ Page(
       // etwas, der nichts einstellt.
       waterLockServer: "auto",
       // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
+      // Sportart: Liste vom Server, Auswahl (bis App-Ende), recSport = beim START eingefroren.
+      sports: [], sportId: null, _sportPicked: false, recSport: null,
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
       // Puls-Grenze (0 = aus) + Vibrationsmuster je Grenze + Wiederholung. Kamen bis
       // 18.09.2026 gar nicht an der Uhr an (s. app-side/index.js).
@@ -1620,6 +1661,13 @@ Page(
         s._ringKey = null; s.w.layKey = null;
         // Foil-/Alarm-Config übernehmen; Default-Auswahl einmalig (bis App-Ende).
         if (r && Array.isArray(r.foils)) s.foils = r.foils.map((f) => ({ id: f.id, label: f.label, min: f.min, max: f.max }));
+        // Sportarten (Server mit sp=1). Fehlt der Schluessel (aelterer Stand), bleibt alles, wie es
+        // ist. Die laufende Aufnahme ist davon nicht betroffen: sie hat ihre Sportart beim START
+        // eingefroren (`recSport`).
+        if (r && Array.isArray(r.sports)) {
+          s.sports = sportListe(r.sports);
+          s.sportId = sportWahl(s.sports, s.sportId, s._sportPicked);
+        }
         if (r) { s.almLow = r.speedLow || 0; s.almHigh = r.speedHigh || 0; }
         if (r) {
           // Puls-Grenze, Muster und Wiederholung. Die Vorgaben stehen im Zustand, ein
@@ -2244,16 +2292,24 @@ Page(
       const s = this.state, w = s.w;
       this._clearFoilBtns();
       const round = DW >= 450;
+      // Sportart-Knopf nur, wenn es eine Wahl gibt (mehr als eine Sportart vom Server).
+      const mitSport = s.sports.length > 1;
       // FUENF Knoepfe (die Touch-Sperre ist dazugekommen) -> engere Staffelung. Rund: bei y 84 ist
       // die Kreisbreite noch 364 px (Halbsehne sqrt(240^2-156^2)), der Knopf braucht 320 -- passt.
       // Eckig: die Status-Bar ist abgeschaltet, also steht die volle Hoehe zur Verfuegung.
-      const ys = round
-        ? [px(84), px(150), px(216), px(282), px(348)]
-        : [0.04, 0.215, 0.39, 0.565, 0.74].map((f) => Math.round(DH * f));
+      // SECHS Knoepfe (mit Sportart): niedriger und dichter. Rund: oberste Kante y 70 -> Halbsehne
+      // sqrt(240^2-170^2) = 169, also 338 px Platz fuer 320; unterste Kante y 406 -> 346 px. Passt.
+      // Eckig: 6 x 11,5 % + 5 Luecken, unterste Kante bei 92 %.
+      const ys = mitSport
+        ? (round ? [px(70), px(128), px(186), px(244), px(302), px(360)]
+                 : [0.03, 0.185, 0.34, 0.495, 0.65, 0.805].map((f) => Math.round(DH * f)))
+        : (round ? [px(84), px(150), px(216), px(282), px(348)]
+                 : [0.04, 0.215, 0.39, 0.565, 0.74].map((f) => Math.round(DH * f)));
+      const bh = mitSport ? (round ? px(46) : Math.round(DH * 0.115)) : (round ? px(52) : Math.round(DH * 0.13));
       const mk = (y, text, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
         x: round ? px(80) : px(24), y: y, w: round ? DW - px(160) : DW - px(48),
-        h: round ? px(52) : Math.round(DH * 0.13), radius: round ? px(26) : Math.round(DH * 0.065),
-        text: text, text_size: px(25), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
+        h: bh, radius: Math.round(bh / 2),
+        text: text, text_size: mitSport ? px(23) : px(25), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
       // Vierter Knopf: eigene Layouts, dreistufig Automatisch/An/Aus wie im Garmin-Menue. Anders
       // als die drei darueber wird DIESE Wahl persistiert (store), damit sie einen App-Start
       // ueberlebt -- der Server-Wert ist nur die Vorbelegung, nicht ein Veto.
@@ -2266,13 +2322,17 @@ Page(
       const lockTxt = s.touchLockPref === null
         ? t("common.auto") + " (" + onOff(this._useTouchLock()) + ")"
         : onOff(s.touchLockPref);
-      w.foilBtns = [
-        mk(ys[0], t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }),
-        mk(ys[1], t("fm.thresholds") + ": " + (s.almSrc === "foil" ? t("fm.autoFoil") : t("fm.manual")), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
-        mk(ys[2], t("foil.prefix") + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
-        mk(ys[3], t("lay.short") + ": " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
-        mk(ys[4], t("menu.touchLock") + ": " + lockTxt, () => { this._cycleTouchLockPref(); this.renderIdle(); }),
+      // Reihenfolge wie bisher; die Sportart steht direkt UEBER der Foil (beides „womit fahre ich").
+      const knoepfe = [
+        [t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }],
+        [t("fm.thresholds") + ": " + (s.almSrc === "foil" ? t("fm.autoFoil") : t("fm.manual")), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }],
       ];
+      if (mitSport) knoepfe.push([t("sport.label") + ": " + this._sportName(), () => { this._cycleSport(); this.renderIdle(); }]);
+      knoepfe.push(
+        [t("foil.prefix") + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }],
+        [t("lay.short") + ": " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }],
+        [t("menu.touchLock") + ": " + lockTxt, () => { this._cycleTouchLockPref(); this.renderIdle(); }]);
+      w.foilBtns = knoepfe.map((k, i) => mk(ys[i], k[0], k[1]));
     },
     /**
      * Die AKTIONSSEITE (ganz aussen): oben blau die Pause, darunter rot das Verwerfen.
@@ -2366,6 +2426,17 @@ Page(
       s.touchLockPref = s.touchLockPref === null ? true : (s.touchLockPref ? false : null);
       store.setItem("touchLockPref", s.touchLockPref === null ? "" : (s.touchLockPref ? "1" : "0"));
       if (s.recording) { if (this._useTouchLock()) this._lockTouch(); else this._disableTouchLock(); }
+    },
+    // Sportart zyklisch (Tippen wie bei der Foil). Gilt bis App-Ende, wie die Foil-Wahl.
+    _cycleSport() {
+      const s = this.state;
+      s.sportId = sportNaechster(s.sports, s.sportId);
+      s._sportPicked = true;
+    },
+    _sportName() {
+      const s = this.state;
+      const x = s.sports.find((v) => v.id === s.sportId);
+      return x ? x.name : "—";
     },
     _cycleFoil() {
       const s = this.state;
@@ -3301,7 +3372,7 @@ Page(
         // wurde bei jedem zehnten Punkt vollstaendig neu geschrieben (nach zwei Stunden 287 KB,
         // alle zehn Sekunden). Jetzt haengt die Groesse dieses Eintrags nicht mehr an der Laenge
         // der Aufnahme.
-        const a = { uuid: s.uuid, startedAtMs: s.startedAtMs, foilId: s.foilId,
+        const a = { uuid: s.uuid, startedAtMs: s.startedAtMs, foilId: s.foilId, sportClass: s.recSport,
           accelFile: s.accelFile, accelSamples: s.accelSamples, accelHz: this._accelHz(),
           accelChunkT0: s.accelChunkT0, gpsLastMs: s.gpsLastMs };
         if (s.gpsFile) { a.gpsFile = s.gpsFile; a.gpsCount = s.gpsCount; }
@@ -3364,7 +3435,7 @@ Page(
           t0s.push(t0s.length ? t0s[t0s.length - 1] + schritt : 0);
         }
         const eintrag = { uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end,
-          foilId: a.foilId, accelFile: a.accelFile, accelSamples: samples,
+          foilId: a.foilId, sportClass: a.sportClass || null, accelFile: a.accelFile, accelSamples: samples,
           accelHz: hz, accelChunkT0: t0s };
         if (altGps) eintrag.gps = altGps;
         else { eintrag.gpsFile = a.gpsFile; eintrag.gpsCount = gpsCount; }
@@ -3386,6 +3457,7 @@ Page(
       if (!s.fix || s.uploading) return;
       this._setBrightMode("recording");
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
+      s.recSport = sportKlasse(s.sports, s.sportId);   // nur Metadaten, s. sportKlasse
       s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = ERSTE_DATENSEITE; s.autoTicks = 0; s.upStatus = "";
       s.paused = false; s.pausedMs = 0; s.pauseStartMs = 0; s.pauseBeiMs = 0;
       s.pauseListe = []; s._teilUploadLaeuft = false;
@@ -3542,7 +3614,7 @@ Page(
       s._teilUploadLaeuft = true;
       s.upStatus = t("up.running");
       if (this._istVerwerfen(s.page)) this._buildAktionBtns();
-      const sess = { uuid: s.uuid, startedAtMs: s.startedAtMs, foilId: s.foilId,
+      const sess = { uuid: s.uuid, startedAtMs: s.startedAtMs, foilId: s.foilId, sportClass: s.recSport,
         accelFile: s.accelFile, accelSamples: s.accelSamples, accelHz: this._accelHz(),
         accelChunkT0: s.accelChunkT0.slice(), gpsFile: s.gpsFile, gpsCount: s.gpsCount,
         gps: s.gpsFile ? null : s.gps.slice(), teil: true };
@@ -3581,7 +3653,7 @@ Page(
       if (this._gpsGesamt()) {
         s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.keepOpen");
         const eintrag = { uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
-          foilId: s.foilId, accelFile: s.accelFile, accelSamples: s.accelSamples,
+          foilId: s.foilId, sportClass: s.recSport, accelFile: s.accelFile, accelSamples: s.accelSamples,
           accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice(),
           pauses: s.pauseListe.slice() };
         if (s.gpsFile) { eintrag.gpsFile = s.gpsFile; eintrag.gpsCount = s.gpsCount; }
@@ -3612,6 +3684,7 @@ Page(
       const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil",
         gps_hz: GPS_HZ, accel_hz: accelHz, accel_scale: hasAccel ? ACCEL_SCALE : 0, app_version: APP_VERSION };
       if (sess.foilId != null) meta.foil_id = sess.foilId;   // gewählte Foil (Metadaten)
+      if (sess.sportClass) meta.sport_class = sess.sportClass;   // gewählte Sportart (nur bei Wahl)
       // Seit 1.0.10 liegt die Spur in einer Datei. Der alte Weg ueber das Array bleibt drin:
       // Aufnahmen, die vor dem Update gemacht wurden, warten noch in der Warteschlange (Cesar hat
       // genau so eine) und muessen weiter hochgehen.
