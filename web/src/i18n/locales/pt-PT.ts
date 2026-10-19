@@ -1551,6 +1551,10 @@ const ptPT: Record<string, string> = {
   "profile.calculator": "Calculadora de foil",
 
   "phome.hello": "Oi, {name}",
+  "phome.ybTitle": "O teu ano em números",
+  "phome.ybSessions": "Sessões",
+  "phome.ybHours": "Horas",
+  "phome.ybKm": "km no total",
   "banner.msg": "está acabadinho de sair (desde 23 de junho de 2026) — novas funcionalidades e foils quase todos os dias. Diz-me o que gostas (e o que não gostas): é só tocar no ✉️ à direita →",
   "dm.title": "Chats",
   "dm.back": "Voltar",

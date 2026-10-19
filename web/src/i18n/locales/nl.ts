@@ -1682,6 +1682,10 @@ const nl: Record<string, string> = {
   "profile.calculator": "Foil-calculator",
 
   "phome.hello": "Hallo, {name}",
+  "phome.ybTitle": "Jaar in cijfers",
+  "phome.ybSessions": "Sessies",
+  "phome.ybHours": "Uren",
+  "phome.ybKm": "km totaal",
   "banner.msg": "is spliksplinternieuw (sinds 23 juni 2026) — bijna dagelijks nieuwe features & foils. Laat me weten wat je bevalt (en wat niet): klik gewoon rechts op de ✉️ →",
   "banner.news": "Nieuwe updates voor de Android- en iOS-app in de store — nu bijwerken!",
   "banner.stats": "We zijn al §{foilers}§ pumpfoilers op §{spots}§ spots met §{sessions}§ sessies en samen §{pumps}§ pumps.",

@@ -1555,6 +1555,10 @@ const ja: Record<string, string> = {
   "profile.calculator": "フォイル計算機",
 
   "phome.hello": "こんにちは、{name} さん",
+  "phome.ybTitle": "年間の記録",
+  "phome.ybSessions": "セッション",
+  "phome.ybHours": "時間",
+  "phome.ybKm": "総距離 km",
   "banner.msg": "はできたばかりです（2026年6月23日から）— 新機能とフォイルがほぼ毎日追加されます。気に入った点（そうでない点も）を教えてください：右の ✉️ をタップするだけ →",
   "dm.title": "チャット",
   "dm.back": "戻る",

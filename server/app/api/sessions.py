@@ -1489,6 +1489,42 @@ def overall_stats(
     return out
 
 
+@router.get("/jahresbilanz")
+def jahresbilanz(
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Jahresbilanz je Sportart (19.10.2026, Stand-Buch: jahresbilanz): je Kalenderjahr und Sportart
+    Sessions, Stunden, Gesamtstrecke und Strecke auf dem Foil. Nur die eigenen, ohne geloeschte und
+    ohne als Muell/Doppel/Test markierte. Jahr nach UTC — eine Session um Mitternacht an Silvester
+    ist der einzige Fall, in dem das daneben liegen kann."""
+    from sqlalchemy import extract
+    jahr = extract("year", models.Session.started_at)
+    rows = (
+        db.query(jahr, models.Session.sport_class, func.count(models.Session.id),
+                 func.sum(func.extract("epoch", models.Session.ended_at - models.Session.started_at)),
+                 func.sum(models.AnalysisResult.total_distance_m),
+                 func.sum(models.AnalysisResult.foiling_distance_m))
+        .outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                models.Session.started_at.isnot(None),
+                or_(models.Session.data_quality.is_(None), models.Session.data_quality == "ok"))
+        .group_by(jahr, models.Session.sport_class)
+        .all()
+    )
+    out: dict[int, list] = {}
+    for j, sport, n, sek, gesamt_m, foil_m in rows:
+        out.setdefault(int(j), []).append({
+            "sport": sport or "pumpfoil", "sessions": int(n),
+            "stunden": round(float(sek or 0) / 3600.0, 1),
+            "km": round(float(gesamt_m or 0) / 1000.0, 1),
+            "foil_km": round(float(foil_m or 0) / 1000.0, 1),
+        })
+    for liste in out.values():
+        liste.sort(key=lambda x: (-x["sessions"], x["sport"]))
+    return {"jahre": [{"jahr": j, "sportarten": out[j]} for j in sorted(out, reverse=True)]}
+
+
 @router.get("/longest-runs")
 def my_longest_runs(
     n: int = Query(5, ge=1, le=20),

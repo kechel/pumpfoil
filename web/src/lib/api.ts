@@ -1022,6 +1022,8 @@ export const api = {
     hoehe?: null | { vmg_max_kmh: number; vmg_mittel_kmh: number | null; am_wind_anteil: number | null; hoehe_m: number; winkel_med: number | null };
   }>(`/api/sessions/${id}/manoever`),
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
+  // Jahresbilanz je Sportart (19.10.2026): eigene Sessions je Kalenderjahr.
+  jahresbilanz: () => req<{ jahre: { jahr: number; sportarten: { sport: string; sessions: number; stunden: number; km: number; foil_km: number }[] }[] }>("/api/sessions/jahresbilanz"),
   sportStatus: () => req<{
     stand: string;
     status: Record<string, string>;

@@ -1645,6 +1645,10 @@ const fi: Record<string, string> = {
   "profile.calculator": "Foil-laskuri",
 
   "phome.hello": "Hei, {name}",
+  "phome.ybTitle": "Vuosi numeroina",
+  "phome.ybSessions": "Sessiot",
+  "phome.ybHours": "Tunnit",
+  "phome.ybKm": "km yhteensä",
   "banner.msg": "on ihan uusi (23. kesäkuuta 2026 lähtien) — melkein päivittäin uusia ominaisuuksia ja foileja. Kerro, mistä pidät (ja mistä et): klikkaa vain oikealla olevaa ✉️ →",
   "banner.news": "Uudet päivitykset Android- ja iOS-sovellukseen kaupassa — päivitä nyt!",
   "banner.stats": "Meitä on jo §{foilers}§ pumpfoilaajaa §{spots}§ spotilla §{sessions}§ sessiolla ja yhteensä §{pumps}§ pumppauksella.",

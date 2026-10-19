@@ -758,9 +758,9 @@
       "gruppe": "pump",
       "merkmale": {
         "rekorde": {
-          "status": "vorschlag",
-          "en": "Longest ride behind the boat as its own record.",
-          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
+          "status": "live",
+          "en": "Own records and leaderboards via the sport filter; the longest run is the longest ride behind the boat.",
+          "notiz": "Claude-Vorschlag 19.10. erledigt sich: der Rekord 'laengster Lauf' gibt es je Sportart schon (Sportfilter)."
         }
       }
     },
@@ -1064,6 +1064,18 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "jahresbilanz",
+      "was": "Jahresbilanz je Sportart auf der Startseite (Web).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
@@ -1644,9 +1656,19 @@
         "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Uhr muss Seiten je waehlbarer Sportart beim Config-Abruf bekommen (Wahl erst auf der Uhr, oft offline)."
       },
       "jahresbilanz": {
-        "status": "vorschlag",
-        "en": "Kilometres, hours and sessions per sport and year in your profile.",
-        "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
+        "status": "live",
+        "en": "Sessions, hours, total and on-foil kilometres per sport and calendar year on your home page.",
+        "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. 19.10. gebaut: GET /api/sessions/jahresbilanz, Tabelle auf PersonalHome unter den Carves.",
+        "seit": "2026-10-19",
+        "wo": [
+          "server",
+          "web"
+        ],
+        "plattformen": {
+          "web": "2026-10-19",
+          "android": "",
+          "ios": ""
+        }
       }
     }
   },

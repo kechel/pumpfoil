@@ -1555,6 +1555,10 @@ const zh: Record<string, string> = {
   "profile.calculator": "水翼计算器",
 
   "phome.hello": "你好，{name}",
+  "phome.ybTitle": "年度数据",
+  "phome.ybSessions": "次数",
+  "phome.ybHours": "小时",
+  "phome.ybKm": "总公里",
   "banner.msg": "全新上线（自 2026 年 6 月 23 日起）—— 几乎每天都有新功能和新水翼。告诉我你喜欢什么（和不喜欢什么）：点击右侧的 ✉️ 即可 →",
   "dm.title": "聊天",
   "dm.back": "返回",

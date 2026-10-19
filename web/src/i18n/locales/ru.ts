@@ -1555,6 +1555,10 @@ const ru: Record<string, string> = {
   "profile.calculator": "Калькулятор фойлов",
 
   "phome.hello": "Привет, {name}",
+  "phome.ybTitle": "Год в цифрах",
+  "phome.ybSessions": "Сессии",
+  "phome.ybHours": "Часы",
+  "phome.ybKm": "км всего",
   "banner.msg": "совсем новый (с 23 июня 2026) — новые функции и фойлы почти каждый день. Расскажите, что вам нравится (и что нет): просто нажмите ✉️ справа →",
   "dm.title": "Чаты",
   "dm.back": "Назад",

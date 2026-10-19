@@ -16,7 +16,7 @@ import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
-import { CommunityIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
+import { CommunityIcon, FoilIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
 import { FreundesAnfragen } from "../components/Freundschaft";
@@ -172,6 +172,53 @@ function CarveStatsSection() {
                 {PERIODS.map(([k]) => (
                   <td key={k} className="px-3 py-2 text-right tabular-nums text-brand-400">{data.windows[k]?.[key] ?? 0}</td>
                 ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// Jahresbilanz je Sportart (19.10.2026, Stand-Buch: jahresbilanz): je Jahr eine Zeile pro Sportart.
+function JahresbilanzSection() {
+  const t = useT();
+  const [data, setData] = useState<Awaited<ReturnType<typeof api.jahresbilanz>> | null>(null);
+  const [jahr, setJahr] = useState<number | null>(null);
+  useEffect(() => { api.jahresbilanz().then((d) => { setData(d); setJahr(d.jahre[0]?.jahr ?? null); }).catch(() => {}); }, []);
+  if (!data || !data.jahre.length || jahr == null) return null;
+  const zeile = data.jahre.find((j) => j.jahr === jahr) ?? data.jahre[0];
+  return (
+    <div className="mt-8">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <h2 className="text-xl font-bold">{t("phome.ybTitle")}</h2>
+        {data.jahre.slice(0, 5).map((j) => (
+          <button key={j.jahr} onClick={() => setJahr(j.jahr)}
+            className={`rounded-full px-3 py-1 text-sm ${j.jahr === zeile.jahr ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300"}`}>
+            {j.jahr}
+          </button>
+        ))}
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <table className="w-full min-w-[360px] text-sm">
+          <thead>
+            <tr className="bg-slate-900/70 text-slate-300">
+              <th className="px-3 py-2 text-left font-medium"></th>
+              <th className="px-3 py-2 text-right font-medium">{t("phome.ybSessions")}</th>
+              <th className="px-3 py-2 text-right font-medium">{t("phome.ybHours")}</th>
+              <th className="px-3 py-2 text-right font-medium">{t("phome.ybKm")}</th>
+              <th className="px-3 py-2 text-right font-medium"><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> km</th>
+            </tr>
+          </thead>
+          <tbody>
+            {zeile.sportarten.map((x) => (
+              <tr key={x.sport} className="border-t border-slate-800">
+                <td className="px-3 py-2 text-slate-300">{t(`cls.sport.${x.sport}`)}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-brand-400">{x.sessions}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-brand-400">{x.stunden.toFixed(1)}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-brand-400">{x.km.toFixed(1)}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-brand-400">{x.foil_km.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>
@@ -510,6 +557,7 @@ export default function PersonalHome() {
 
       <StartSuccessSection />
       <CarveStatsSection />
+      <JahresbilanzSection />
       <BoardAttitudeSection />
 
       {/* Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026: „ganz unten einen Button … erstmal
