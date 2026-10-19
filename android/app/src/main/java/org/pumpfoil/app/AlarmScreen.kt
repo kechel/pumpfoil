@@ -136,6 +136,7 @@ fun AlarmScreen(onBack: () -> Unit) {
         TopAppBar(
             title = { Text(I18n.t("alarm.title")) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
+            actions = { FeedbackKnopf() },
         )
     }) { pad ->
         if (!loaded) {

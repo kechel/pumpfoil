@@ -117,6 +117,7 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                     if (social) IconButton(onClick = { onSpotChat(spot) }) {
                         Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
                     }
+                    FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
                 },
             )
         },

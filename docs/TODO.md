@@ -1490,9 +1490,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   `server/app/sportprofil.py`): Wind = ganze Fahrt grau unter den Laeufen + Schalter „nur on-foil / ganze Fahrt“,
   Gesamtstrecke + Dauer vorn, Pump-Kacheln/-Faerbung/-Marker weg; ohne Profil = bisheriges Verhalten. Vorbild
   `web/src/pages/SessionDetail.tsx` (Suche „sport_profil“). Danach Buch `sportarten_stand.json` auf Apps ziehen.
-  (3) **Android: Feedback-Knopf kaum zu finden** (Jan 19.10.: „finde den feedback-button garnicht in meiner android-version“).
-  Heute nur unbeschriftetes Briefumschlag-Symbol oben rechts auf Home (`HomeScreen.kt:245`), iOS ebenso (`HomeView.swift:85`).
-  Web hat das globale Feedback-Fenster. Vorschlag: zusaetzlich ein beschrifteter Eintrag im Profil/Menue und auf der Changelog-Seite.
+  (3) **Feedback-Knopf auf JEDER Seite, oben rechts in der Kopfleiste, mit Seiten-URL** (Jan 19.10.: „finde den feedback-button
+  garnicht“, „ziel war es doch das der auf jeder seite zu sehen ist und wir die url mitbekommen“, „im header oben rechts …
+  aber halt auf allen seiten“). Bis 1.1.43 nur auf Home, cyan auf cyan, url immer „android-app“/„ios-app“.
+  **Android GEBAUT (19.10., noch nicht released):** `FeedbackKnopf.kt` (LocalFeedbackUrl aus MainActivity: Session ->
+  `/sessions/<id>`, Foiler -> `/foiler/<id>`, Spot -> `/sessions?spot=…`, sonst `android:<route>`), in PumpfoilTopBar + allen
+  TopAppBars (ausser Aufnahme/Einrichtung), Kopfleisten-Symbole navy statt cyan. Im Emulator geprueft (Home, Session, Dialog).
+  **iOS offen:** dasselbe (`HomeView.swift:85` nur auf Home; FeedbackView braucht `url`-Parameter, Api.submitFeedback auch).
 
 - **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
   Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf

@@ -67,6 +67,7 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
             actions = {
                 // Wie im Web: oben rechts zur jeweils anderen Statistik.
                 TextButton(onClick = onFoilStats) { Text(I18n.t("profile.stats")) }
+                FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
             },
         )
     }) { pad ->

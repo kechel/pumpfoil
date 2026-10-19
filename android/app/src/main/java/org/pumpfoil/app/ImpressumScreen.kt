@@ -37,6 +37,7 @@ fun ImpressumScreen(onBack: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("common.back")) }
                 },
+                actions = { FeedbackKnopf() },
             )
         },
     ) { pad ->

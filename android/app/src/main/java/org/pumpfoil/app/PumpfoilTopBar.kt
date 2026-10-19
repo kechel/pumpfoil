@@ -43,6 +43,8 @@ fun PumpfoilTopBar(
             )
             Spacer(Modifier.weight(1f).width(8.dp))
             actions()
+            // Feedback oben rechts auf jedem Haupt-Tab (FeedbackKnopf.kt); erbt das Navy des Balkens.
+            FeedbackKnopf()
         }
     }
 }

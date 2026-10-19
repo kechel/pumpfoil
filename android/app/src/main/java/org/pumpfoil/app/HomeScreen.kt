@@ -127,13 +127,11 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         mutableStateOf(ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).getString("foil_banner_v1", "0")?.toIntOrNull() ?: 0)
     }
     val showBanner = news?.let { it.enabled && it.version > newsVer } ?: false
-    var showFeedback by remember { mutableStateOf(false) }
     var showRating by remember { mutableStateOf(false) }
     var incomingXfer by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
     val tick by WatchSync.tick.collectAsState()
 
-    if (showFeedback) FeedbackDialog(onDismiss = { showFeedback = false })
     if (showRating) {
         val prefsR = ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
         val snooze14 = { prefsR.edit().putLong("rating_snooze", System.currentTimeMillis() + 14L * 24 * 3600 * 1000).apply() }
@@ -242,9 +240,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
 
     Scaffold(topBar = {
         PumpfoilTopBar(I18n.t("nav.home")) {
-            IconButton(onClick = { showFeedback = true }) {
-                Icon(Icons.Outlined.MailOutline, contentDescription = I18n.t("feedback.title"), tint = MaterialTheme.colorScheme.primary)
-            }
+            // Feedback: steht jetzt in PumpfoilTopBar selbst, auf jeder Seite (FeedbackKnopf.kt).
             SyncIndicator()
         }
     }) { pad ->
@@ -908,7 +904,7 @@ private fun versionNewer(latest: String, current: String): Boolean {
 // nicht selbst formulieren muss. In der PWA macht das das Event „open-feedback" mit detail-Text.
 // internal, weil der Dialog von den Katalog-Listen (Foils/Setup) aus geöffnet wird.
 @Composable
-internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "") {
+internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "", url: String = "android-app") {
     val scope = rememberCoroutineScope()
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var text by remember { mutableStateOf(prefill) }
@@ -972,7 +968,7 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "") {
                         busy = true; fehler = ""
                         scope.launch {
                             try {
-                                val id = Api.submitFeedback(text.trim())
+                                val id = Api.submitFeedback(text.trim(), url)
                                 // Ein fehlgeschlagener Anhang darf die Meldung selbst nicht
                                 // entwerten — die ist dann schon beim Server. Nur melden.
                                 for ((name, uri) in dateien) {

@@ -366,7 +366,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(I18n.t("sd.title")) },
+                title = { Text(I18n.t("sd.title"), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back"))
@@ -439,6 +439,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                         }
                     }
                     // Trimmen/Löschen sind selten gebraucht -> nicht mehr oben, sondern unten im Body.
+                    FeedbackKnopf()   // ganz rechts; schickt /sessions/<id> mit (FeedbackKnopf.kt)
                 },
             )
         },

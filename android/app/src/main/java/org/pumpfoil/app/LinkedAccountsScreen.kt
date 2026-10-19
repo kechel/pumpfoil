@@ -114,6 +114,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) }
                 },
+                actions = { FeedbackKnopf() },
             )
         },
     ) { pad ->

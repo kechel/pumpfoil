@@ -114,6 +114,7 @@ fun FoilerScreen(
                             Text(I18n.t("foiler.chat"))
                         }
                     }
+                    FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
                 },
             )
         },

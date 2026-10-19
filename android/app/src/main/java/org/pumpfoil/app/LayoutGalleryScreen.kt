@@ -68,6 +68,7 @@ fun LayoutGalleryScreen(onBack: () -> Unit) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
+                actions = { FeedbackKnopf() },
             )
         },
     ) { pad ->
