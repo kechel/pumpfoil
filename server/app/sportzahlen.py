@@ -12,7 +12,13 @@ die Erkennung bleibt unangetastet, keine Neuberechnung noetig, gilt sofort fuer 
 - **Tempo ueber die ganze Fahrt**: Gesamtstrecke / Fahrzeit in Bewegung.
 - **On-Foil-Anteil**: Foiling-Zeit / Fahrzeit in Bewegung.
 
-Nur fuer Wind und Motor (sportprofil.GRUPPE) — beim Pumpen sind Laeufe die richtige Einheit.
+Nur fuer Wind, Motor und Welle (sportprofil.GRUPPE) — beim Pumpen sind Laeufe die richtige Einheit.
+
+Welle (19.10.2026, Stand-Buch wellen / welle_paddeln / downwind_strecke / downwind_verbunden):
+- **Wave**: jeder Lauf ist eine Welle -> Zahl der Wellen, laengste Welle (Zeit + Strecke), Zeit auf
+  der Welle gegen die uebrige Fahrzeit in Bewegung (= Rauspaddeln/Zurueck).
+- **Downwind**: Fahrten wie bei Wind, je Fahrt zusaetzlich die Luftlinie von A nach B, das Tempo
+  darauf und der Anteil der Strecke auf dem Foil (wie gut die Wellen verbunden wurden).
 """
 from __future__ import annotations
 
@@ -20,7 +26,7 @@ import math
 
 FAHRT_PAUSE_S = 300.0
 BEWEGT_KMH = 4.0
-GRUPPEN = ("wind", "motor")
+GRUPPEN = ("wind", "motor", "welle")
 
 
 def _schritt(a, b) -> float:
@@ -30,8 +36,14 @@ def _schritt(a, b) -> float:
     return d if d <= 200.0 else 0.0   # Spruenge (GPS-Luecke) nicht mitzaehlen, wie die Karte
 
 
+def _luftlinie(a, b) -> float:
+    x = (b[0] - a[0]) * 111320.0 * math.cos(math.radians(a[1]))
+    y = (b[1] - a[1]) * 111320.0
+    return math.hypot(x, y)
+
+
 def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
-              total_m: float | None, foil_s: float | None) -> dict | None:
+              total_m: float | None, foil_s: float | None, sport: str | None = None) -> dict | None:
     if gruppe not in GRUPPEN or not track:
         return None
     coords = (track.get("geometry") or {}).get("coordinates") or []
@@ -47,7 +59,15 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
             out["tempo_kmh"] = round(total_m / fahrzeit * 3.6, 1)
         if foil_s is not None:
             out["foil_anteil"] = round(min(1.0, foil_s / fahrzeit), 3)
-    if gruppe == "wind" and segments:
+    if sport == "surf_wave" and segments:
+        dauer = [float(g.get("duration_s") or 0) for g in segments]
+        strecke = [float(g.get("distance_m") or 0) for g in segments]
+        i = max(range(len(dauer)), key=lambda k: dauer[k])
+        reiten = sum(dauer)
+        out["wellen"] = {"anzahl": len(segments), "laengste_s": round(dauer[i]), "laengste_m": round(strecke[i]),
+                         "reiten_s": round(reiten),
+                         "paddeln_s": round(max(0.0, fahrzeit - reiten)) if fahrzeit else None}
+    if (gruppe == "wind" or sport == "surf_downwind") and segments:
         segs = sorted(segments, key=lambda g: g.get("t_start_ms") or 0)
         fahrten: list[list[dict]] = []
         for g in segs:
@@ -72,6 +92,12 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
                 "strecke_m": round(strecke), "foil_m": round(sum(x.get("distance_m") or 0 for x in f)),
                 "foil_s": round(sum(x.get("duration_s") or 0 for x in f)),
             })
+            if sport == "surf_downwind":
+                ab = _luftlinie(coords[i0], coords[i1])
+                d = liste[-1]
+                d["ab_m"] = round(ab)
+                d["ab_kmh"] = round(ab / d["dauer_s"] * 3.6, 1) if d["dauer_s"] > 0 else None
+                d["foil_anteil"] = round(min(1.0, d["foil_m"] / strecke), 3) if strecke > 0 else None
         out["fahrten"] = liste
         out["fahrt_pause_s"] = int(FAHRT_PAUSE_S)
     return out or None

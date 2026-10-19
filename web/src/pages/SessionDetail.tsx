@@ -1971,6 +1971,10 @@ export default function SessionDetail() {
         {a?.sport_zahlen?.fahrzeit_s != null && <Stat label={t("sd.movingTime")} value={fmtMMSS(a.sport_zahlen.fahrzeit_s)} sub="min:s" />}
         {a?.sport_zahlen?.tempo_kmh != null && <Stat label={t("sd.avgSpeedRide")} value={a.sport_zahlen.tempo_kmh.toFixed(1)} sub="km/h" />}
         {a?.sport_zahlen?.foil_anteil != null && <Stat label={t("sd.foilShare")} value={String(Math.round(a.sport_zahlen.foil_anteil * 100))} sub="%" />}
+        {/* Wave (19.10.2026): jeder Lauf ist eine Welle; Rauspaddeln = uebrige Fahrzeit in Bewegung. */}
+        {a?.sport_zahlen?.wellen && <Stat label={t("sd.waves")} value={String(a.sport_zahlen.wellen.anzahl)} />}
+        {a?.sport_zahlen?.wellen && <Stat label={t("sd.longestWave")} value={fmtMMSS(a.sport_zahlen.wellen.laengste_s)} sub={`min:s · ${a.sport_zahlen.wellen.laengste_m} m`} />}
+        {a?.sport_zahlen?.wellen?.paddeln_s != null && <Stat label={t("sd.paddleTime")} value={fmtMMSS(a.sport_zahlen.wellen.paddeln_s)} sub="min:s" />}
         <Stat label={t("stat.foiling")}
           value={a?.foiling_distance_m == null ? "–" : a.foiling_distance_m < 1000 ? String(Math.round(a.foiling_distance_m)) : (a.foiling_distance_m / 1000).toFixed(2)}
           sub={a?.foiling_distance_m != null && a.foiling_distance_m < 1000 ? "m" : "km"} />
@@ -2030,6 +2034,13 @@ export default function SessionDetail() {
               <span className="inline-flex items-center gap-1 text-slate-400">
                 (<FoilIcon className="h-3.5 w-3.5" aria-label={t("sd.foilShare")} />{(f.foil_m / 1000).toFixed(1)} km · {t("sd.rideRuns", { n: String(f.laeufe) })})
               </span>
+              {/* Downwind: Luftlinie A->B mit Tempo und Anteil auf dem Foil (wie gut verbunden). */}
+              {f.ab_m != null && f.ab_kmh != null && (
+                <span className="tabular-nums text-slate-300">
+                  {t("sd.aToB", { km: (f.ab_m / 1000).toFixed(1), v: f.ab_kmh.toFixed(1) })}
+                  {f.foil_anteil != null && <> · <FoilIcon className="inline h-3.5 w-3.5" aria-label={t("sd.foilShare")} /> {Math.round(f.foil_anteil * 100)} %</>}
+                </span>
+              )}
             </div>
           ))}
           <div className="mt-0.5 text-slate-400">{t("sd.ridesNote")}</div>

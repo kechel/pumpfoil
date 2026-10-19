@@ -229,13 +229,13 @@ def _sport_zahlen(session, result, segments, foil_s):
     (Laengen haengen nicht an „Ort verbergen")."""
     from ..sportzahlen import berechnen
     gruppe = sportprofil.profil(session.sport_class)["gruppe"]
-    if gruppe not in ("wind", "motor"):
+    if gruppe not in ("wind", "motor", "welle"):
         return None
     try:
         track = json.loads(result.track_geojson) if isinstance(result.track_geojson, str) else result.track_geojson
     except ValueError:
         return None
-    return berechnen(gruppe, segments, track, result.total_distance_m, foil_s)
+    return berechnen(gruppe, segments, track, result.total_distance_m, foil_s, session.sport_class)
 
 
 def _attempt_count(result: models.AnalysisResult) -> int | None:

@@ -286,7 +286,9 @@ export interface Analysis {
   // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor, nur Detail.
   sport_zahlen?: null | {
     fahrzeit_s?: number; tempo_kmh?: number; foil_anteil?: number; fahrt_pause_s?: number;
-    fahrten?: { laeufe: number; lauf_von: number; lauf_bis: number; t_start_ms: number; dauer_s: number; strecke_m: number; foil_m: number; foil_s: number }[];
+    fahrten?: { laeufe: number; lauf_von: number; lauf_bis: number; t_start_ms: number; dauer_s: number; strecke_m: number; foil_m: number; foil_s: number;
+      ab_m?: number; ab_kmh?: number | null; foil_anteil?: number | null }[];   // ab_*: nur Downwind
+    wellen?: { anzahl: number; laengste_s: number; laengste_m: number; reiten_s: number; paddeln_s: number | null };   // nur Wave
   };
   foiling_distance_m: number | null;
   foiling_time_s: number | null;

@@ -27,3 +27,22 @@ def test_nicht_fuer_pumpfoil_und_motor_ohne_fahrten():
     assert berechnen("pump", segs, _spur(100), 600.0, 60.0) is None
     m = berechnen("motor", segs, _spur(100), 600.0, 60.0)
     assert "fahrten" not in m and m["fahrzeit_s"] == 100
+
+
+def test_wave_wellen_und_paddeln():
+    from app.sportzahlen import berechnen
+    segs = [{"t_start_ms": 0, "duration_s": 12, "distance_m": 80, "i_start": 0, "i_end": 12},
+            {"t_start_ms": 100_000, "duration_s": 25, "distance_m": 150, "i_start": 100, "i_end": 125}]
+    z = berechnen("welle", segs, _spur(200), 1200.0, 37.0, "surf_wave")
+    assert z["wellen"] == {"anzahl": 2, "laengste_s": 25, "laengste_m": 150, "reiten_s": 37, "paddeln_s": 163}
+    assert "fahrten" not in z
+
+
+def test_downwind_a_nach_b():
+    from app.sportzahlen import berechnen
+    segs = [{"t_start_ms": 0, "duration_s": 100, "distance_m": 450, "i_start": 0, "i_end": 100}]
+    z = berechnen("welle", segs, _spur(120), 720.0, 100.0, "surf_downwind")
+    f = z["fahrten"][0]
+    assert abs(f["ab_m"] - 600) <= 2 and abs(f["ab_kmh"] - 21.6) < 0.2   # gerade nach Norden, 6 m/s
+    assert abs(f["foil_anteil"] - 0.75) < 0.01
+    assert "wellen" not in z

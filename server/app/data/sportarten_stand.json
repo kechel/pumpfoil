@@ -794,12 +794,76 @@
     {
       "id": "surf_wave",
       "en": "Ocean wave",
-      "gruppe": "welle"
+      "gruppe": "welle",
+      "merkmale": {
+        "wellen": {
+          "status": "live",
+          "en": "Number of waves ridden and the longest wave (time and distance).",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          },
+          "notiz": "sportzahlen.wellen (jeder Lauf = Welle), nur Anzeige."
+        },
+        "welle_paddeln": {
+          "status": "live",
+          "en": "Time riding waves next to time paddling back out.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          },
+          "notiz": "sportzahlen.wellen.paddeln_s = Fahrzeit in Bewegung - Wellenzeit."
+        }
+      }
     },
     {
       "id": "surf_downwind",
       "en": "Downwind",
-      "gruppe": "welle"
+      "gruppe": "welle",
+      "merkmale": {
+        "downwind_strecke": {
+          "status": "live",
+          "en": "Each downwind ride with its A-to-B distance and speed.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          },
+          "notiz": "sportzahlen: Fahrten (5 min) + ab_m/ab_kmh (Luftlinie Start-Ende der Fahrt)."
+        },
+        "downwind_verbunden": {
+          "status": "live",
+          "en": "Share of each downwind ride on the foil, i.e. how well the bumps were linked.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          },
+          "notiz": "sportzahlen: foil_anteil je Fahrt = foil_m / Strecke der Fahrt."
+        }
+      }
     },
     {
       "id": "efoil",
@@ -869,6 +933,19 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "surf_wave",
+        "surf_downwind"
+      ],
+      "merkmal": "wellen",
+      "was": "Wave: Wellen, laengste Welle, Rauspaddeln; Downwind: Fahrten mit A-B-Strecke, Tempo und Foil-Anteil (Web, nur Anzeige).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
