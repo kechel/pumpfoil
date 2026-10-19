@@ -825,6 +825,14 @@
             "ios": ""
           },
           "notiz": "sportzahlen.wellen.paddeln_s = Fahrzeit in Bewegung - Wellenzeit."
+        },
+        "downwind_strecke": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_verbunden": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -862,6 +870,14 @@
             "ios": ""
           },
           "notiz": "sportzahlen: foil_anteil je Fahrt = foil_m / Strecke der Fahrt."
+        },
+        "wellen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "welle_paddeln": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
