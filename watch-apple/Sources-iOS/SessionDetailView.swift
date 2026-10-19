@@ -79,6 +79,9 @@ struct SessionDetailView: View {
     // Wind-Sportarten (Profil karte="ganz"): ganze Fahrt grau unter den Laeufen, umschaltbar auf
     // „nur on-foil". Bewusst NICHT gemerkt (wie im Web) — jede Session startet mit der ganzen Fahrt.
     @State private var ganzeFahrt = true
+    // Wind am Spot + Wenden/Halsen (nur Wind-Sportarten, 19.10.2026).
+    @State private var windInfo: SessionWindInfo?
+    @State private var manoever: ManoeverAntwort?
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
     @State private var showTrim = false
@@ -137,6 +140,7 @@ struct SessionDetailView: View {
                 Text(Loc.t("sd.excludeConfirm", lang))
             }
             .task(id: sid) { await load() }
+            .task(id: "\(sid)-\(session?.sport_profil?.gruppe ?? "")") { await ladeWind() }
             // Versuche erst holen, wenn sie gebraucht werden — der Server rechnet sie frisch.
             .task(id: "\(sid)-\(showAttempts)") { await ladeVersuche() }
             .task(id: session?.status) { await pollWhileLive() }
@@ -1075,7 +1079,8 @@ struct SessionDetailView: View {
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
                         attempts: showAttempts && pumpzahlen ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax,
-                        ganzeFahrt: karteGanzMoeglich && ganzeFahrt, tempoSkala: tempoSkala)
+                        ganzeFahrt: karteGanzMoeglich && ganzeFahrt, tempoSkala: tempoSkala,
+                        manoever: manoever?.items ?? [])
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
             .mitKartenUmschalter()
@@ -1311,6 +1316,7 @@ struct SessionDetailView: View {
                     }
                 }
             }
+            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, lang: lang) }
             excludedSection(s)
             poweredSection(s)
             excludeErrorRow
@@ -1642,6 +1648,14 @@ struct SessionDetailView: View {
         return out
     }
 
+    /// Wind am Spot + Wenden/Halsen holen — nur fuer Wind-Sportarten (Profil gruppe=wind).
+    private func ladeWind() async {
+        windInfo = nil; manoever = nil
+        guard session?.sport_profil?.gruppe == "wind" else { return }
+        windInfo = (try? await Api.sessionWind(sid))?.wind
+        manoever = try? await Api.sessionManoever(sid)
+    }
+
     /// Misslungene Startversuche fuer die Karte. Nur einmal je Session, und nur wenn der
     /// Schalter an ist; `attempts == []` heisst „geholt, es gibt keine" und blendet ihn aus.
     private func ladeVersuche() async {
@@ -1857,6 +1871,58 @@ private func uiSpeedColor(_ kmh: Double, _ skala: (Double, Double) = (8, 25)) ->
 private class PumpDot: NSObject, MKAnnotation { let coordinate: CLLocationCoordinate2D
     init(_ c: CLLocationCoordinate2D) { coordinate = c } }
 
+/// Wende oder Halse (nur Wind-Sportarten); `durch` = auf dem Foil durchgefahren (voll gezeichnet).
+private class ManoeverPunkt: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+    let wende: Bool
+    let durch: Bool
+    init(_ c: CLLocationCoordinate2D, wende: Bool, durch: Bool) { coordinate = c; self.wende = wende; self.durch = durch }
+}
+
+// Wind am Spot (Modellwert, keine Messung am Wasser) + Wenden/Halsen — wie die Wind-Box im Web.
+private struct WindKarte: View {
+    let w: WindMittel
+    let z: ManoeverZahlen?
+    let lang: String
+
+    private var pfeil: String {
+        let pfeile = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
+        let wohin = (w.richtung + 180) % 360
+        return pfeile[((wohin + 22) % 360) / 45]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Text(Loc.t("sd.wind", lang)).font(.subheadline.weight(.semibold))
+                Text(String(format: "%.0f–%.0f km/h (%.0f–%.0f kn)", w.kmh_min, w.kmh_max, w.kmh_min / 1.852, w.kmh_max / 1.852))
+                    .font(.subheadline)
+            }
+            Text(boeenZeile).font(.subheadline)
+            Text(Loc.t("sd.windNote", lang)).font(.footnote).foregroundStyle(.secondary)
+            if let z { zahlen(z) }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+    }
+
+    private var boeenZeile: String {
+        var t = ""
+        if let b = w.boeen_max_kmh { t += Loc.t("sd.windGusts", lang) + String(format: " %.0f km/h · ", b) }
+        return t + Loc.t("sd.windFrom", lang) + " \(w.richtung)° " + pfeil
+    }
+
+    @ViewBuilder private func zahlen(_ z: ManoeverZahlen) -> some View {
+        let wende: String = "\(Loc.t("sd.tacks", lang)) \(z.wende.durch) / \(z.wende.durch + z.wende.ab) \(Loc.t("sd.onFoil", lang))"
+        let halse: String = "\(Loc.t("sd.jibes", lang)) \(z.halse.durch) / \(z.halse.durch + z.halse.ab) \(Loc.t("sd.onFoil", lang))"
+        HStack(spacing: 6) { Circle().fill(Color(red: 0.66, green: 0.33, blue: 0.97)).frame(width: 9, height: 9); Text(wende).font(.subheadline) }
+            .padding(.top, 4)
+        HStack(spacing: 6) { Circle().fill(Color(red: 0.98, green: 0.45, blue: 0.09)).frame(width: 9, height: 9); Text(halse).font(.subheadline) }
+        Text(Loc.t("sd.manoeverNote", lang)).font(.footnote).foregroundStyle(.secondary)
+    }
+}
+
 /// Start- bzw. Endpunkt der Spur — nur, wenn keine Laeufe erkannt wurden (dann gibt es keine
 /// andere Orientierung auf der Karte).
 private class EndPunkt: NSObject, MKAnnotation {
@@ -1951,6 +2017,8 @@ struct TrackMap: UIViewRepresentable {
     var ganzeFahrt: Bool = false
     /// Tempo-Faerbung in km/h (Profil `tempo_skala`, Standard 8-25 wie bisher).
     var tempoSkala: (Double, Double) = (8, 25)
+    /// Wenden (violett) / Halsen (orange); voll = auf dem Foil durchgefahren.
+    var manoever: [Manoever] = []
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -1991,7 +2059,7 @@ struct TrackMap: UIViewRepresentable {
         let segs: String = segments.map { "\($0.i_start)-\($0.i_end)-\(($0.pump_idx ?? []).count)" }.joined(separator: ",")
         let a: [Double] = points.first ?? [], b: [Double] = points.last ?? []
         return "\(ebene)|\(points.count)|\(a)|\(b)|\(segs)|\(mode)|\(hrRange.0)-\(hrRange.1)|\(pumpRange.0)-\(pumpRange.1)|"
-            + "\(showPumps)|\(showGlides)|\(ganzeFahrt)|\(tempoSkala.0)-\(tempoSkala.1)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
+            + "\(showPumps)|\(showGlides)|\(ganzeFahrt)|\(tempoSkala.0)-\(tempoSkala.1)|\(manoever.count)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
     }
 
     /// Gleitphasen in Marken-Cyan ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA).
@@ -2107,6 +2175,14 @@ struct TrackMap: UIViewRepresentable {
             }
         }
         striche += basis   // ganze Fahrt obendrauf, s. oben
+        // Wenden/Halsen als Marken (nur ohne ausgewaehlten Lauf).
+        if selectedRun == nil {
+            for mv in manoever where points.indices.contains(mv.i) {
+                let p = points[mv.i]
+                map.addAnnotation(ManoeverPunkt(CLLocationCoordinate2D(latitude: p[1], longitude: p[0]),
+                                                wende: mv.typ == "wende", durch: mv.durch))
+            }
+        }
         var linien: [MKPolyline] = []
         for st in striche {
             let pl = MKPolyline(coordinates: st.coords, count: st.coords.count)
@@ -2214,6 +2290,21 @@ struct TrackMap: UIViewRepresentable {
                 v.layer.cornerRadius = 6
                 v.layer.borderColor = UIColor.white.cgColor
                 v.layer.borderWidth = 1.5
+                v.isEnabled = false
+                return v
+            }
+            if let m = annotation as? ManoeverPunkt {
+                let id = "manoever"
+                let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
+                    ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
+                v.annotation = annotation
+                let farbe: UIColor = m.wende ? UIColor(red: 0.66, green: 0.33, blue: 0.97, alpha: 1)
+                                             : UIColor(red: 0.98, green: 0.45, blue: 0.09, alpha: 1)
+                v.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
+                v.backgroundColor = m.durch ? farbe : .clear
+                v.layer.cornerRadius = 5
+                v.layer.borderColor = farbe.cgColor
+                v.layer.borderWidth = 2
                 v.isEnabled = false
                 return v
             }

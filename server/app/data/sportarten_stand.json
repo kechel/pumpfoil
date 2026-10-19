@@ -337,12 +337,14 @@
           "notiz": "Voraussetzung fuer Wenden/Halsen und fuer Vergleiche (Tempo je Windstaerke). Quelle: Open-Meteo-Archiv/Historical (weather.py nutzt bisher nur forecast). Kein Dritt-Skript im Browser — Abruf serverseitig, wie spot_weather. 19.10.: GET /api/sessions/{id}/wind (app/sessionwind.py), Datei-Cache data/wind/<id>.json, Forecast-API <=80 Tage sonst Archiv (ERA5); bei Ort verbergen nichts. #17478: 7-18 km/h aus 70 Grad, Schlaege NW-SO = Halbwind -> plausibel.",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           },
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ]
         },
         "wenden_halsen": {
@@ -351,12 +353,14 @@
           "notiz": "Jan 19.10.: 'erkennung/zaehlen und anzeige fuer wenden & halsen ... braeuchte man aber auch die Windrichtung zu sessionzeit am spot'. Ansatz: Kursaenderung > ~90 Grad innerhalb weniger Sekunden; Wende vs. Halse ueber die Windrichtung (Bug durch den Wind vs. Heck durch den Wind). Windrichtung aus wind_am_spot, notfalls aus der Spur selbst (Kreuz-/Raumschotkurse: Achse der Zickzack-Schlaege). Gestuerzt/gehalten (Fuss blieb nicht drauf) ueber Tempoeinbruch unterscheidbar -> 'gelungene' Manoever. Jan 19.10.: „halsen & wenden sind planned auf jeden fall“. 19.10.: app/manoever.py + GET /api/sessions/{id}/manoever, nur Anzeige wie /carves. Kurs vor/nach (±4-10 s) dreht >= 100 Grad, je 20 s eine; Wende/Halse ueber Windrichtung (Modell je Stunde); durchgefahren = nie unter 12 km/h. #17478: Wenden 0/26, Halsen 78/92; #17384: 0/28, 128/146 — plausibel (Wenden auf dem Foil sind schwer). Synthetischer Test in tests/test_sessionwind.py.",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           },
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ]
         },
         "spruenge": {
@@ -740,6 +744,21 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "wind_am_spot, wenden_halsen",
+      "was": "Wind-Karte + Wenden/Halsen (Zaehler + Kartenmarken) in Android 1.1.44 und iOS 1.1.52. Android kompiliert, Server-Antworten gegen die Modelle geprueft (Sichttest im Emulator nicht geschafft); iOS swiftc -parse.",
+      "wo": [
+        "android",
+        "ios"
+      ],
+      "version": "iOS 1.1.52, Android 1.1.44"
+    },
     {
       "datum": "2026-10-19",
       "sport": [
