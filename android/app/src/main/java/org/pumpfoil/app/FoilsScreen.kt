@@ -71,6 +71,8 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
     // Standard-Sportart neuer Sessions (docs/sport-classification.md). Sitzt hier und nicht in den
     // Einstellungen, weil die PWA es auch hier hat (Foils.tsx) — gleiche Stelle, gleiche Erwartung.
     var defSport by remember { mutableStateOf("pumpfoil") }
+    // Sportarten an der Uhr (19.10.2026): Standard immer dabei, die uebrigen hier anwaehlen.
+    var mySports by remember { mutableStateOf<List<String>>(emptyList()) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -81,6 +83,7 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
             mine = (s["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()).toSet()
             def = s["foil_id"]?.jsonPrimitive?.intOrNull
             defSport = s["default_sport_class"]?.jsonPrimitive?.contentOrNull ?: "pumpfoil"
+            mySports = s["my_sports"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
         } catch (_: Exception) { foils = emptyList() }
     }
 
@@ -149,6 +152,28 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
                         }
                     }
                     Text(I18n.t("foils.defaultSportHint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                    // Sportarten an der Uhr (19.10.2026, wie das Web).
+                    Text(I18n.t("foils.mySports"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 12.dp))
+                    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        SPORTS.filter { it != "other" }.forEach { sp ->
+                            FilterChip(
+                                selected = sp == defSport || sp in mySports,
+                                enabled = sp != defSport,
+                                onClick = {
+                                    val neu = if (sp in mySports) mySports - sp else mySports + sp
+                                    mySports = neu
+                                    scope.launch {
+                                        try { Api.saveSettings(buildJsonObject { put("my_sports", kotlinx.serialization.json.buildJsonArray { neu.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) } }) }) }
+                                        catch (_: Exception) {}
+                                    }
+                                },
+                                label = { Text(I18n.t("cls.sport.$sp")) },
+                            )
+                        }
+                    }
+                    Text(I18n.t("foils.mySportsHint"), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                 }
             }

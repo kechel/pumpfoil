@@ -756,6 +756,19 @@
     {
       "datum": "2026-10-19",
       "sport": [
+        "alle"
+      ],
+      "merkmal": "sport_auf_uhr, modell_brett",
+      "was": "Sportart-Wahl auf Garmin (Vollbuild), Amazfit, Huawei Watch 5 gebaut; Suunto ueber den Sportmodus vorbereitet; Profil-Einstellung „Sportarten an der Uhr“. Geplant: neues Modell aus Phone-on-Board-Sessions.",
+      "wo": [
+        "server",
+        "web",
+        "uhren"
+      ]
+    },
+    {
+      "datum": "2026-10-19",
+      "sport": [
         "wingfoil",
         "kitefoil",
         "parawing",
@@ -1222,9 +1235,9 @@
     "en": "All sports",
     "merkmale": {
       "sport_auf_uhr": {
-        "status": "geplant",
-        "en": "Pick the sport on the watch before you start, like the foil today: Wear OS 1.2.44, Apple Watch 1.1.52; the other watches follow with their next versions",
-        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner. 19.10.: Server fertig — /api/devices/config?sp=1 liefert sports (Standard zuerst, im letzten Jahr gefahrene, max 6; ohne sp kein Byte mehr), Ingest-Start nimmt sport_class an (owner, Equipment je Sportart greift). Offen: UI in Garmin/Wear/Apple/Amazfit/Huawei/Suunto (Store-Releases). 19.10.: Wear OS gebaut (Einstellungen „Sportart\" ueber den Foils, Anzeige „Wingfoil · Foil: …\" auf dem Start, meta sport_class), kompiliert, NICHT im Emulator angesehen — vor Einreichung im R8-Release-Build pruefen (Memory wear-emulator-testing). Offen: Garmin, Apple Watch, Amazfit, Huawei, Suunto. 19.10.: Apple Watch gebaut (Sheet „Sportart\" ganz oben, Startknopf-Zeile „Wingfoil · Foil: …\", meta sport_class), nur swiftc -parse."
+        "status": "live",
+        "en": "Pick the sport on the watch before you start (default sport preselected, change it in the same menu as the foil); which sports appear is set under My foils. Wear OS 1.2.44, Apple Watch 1.1.52, Garmin, Amazfit and Huawei Watch 5 with their next versions; Suunto takes the sport from the Suunto sport mode you start",
+        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner. 19.10.: Server fertig — /api/devices/config?sp=1 liefert sports (Standard zuerst, im letzten Jahr gefahrene, max 6; ohne sp kein Byte mehr), Ingest-Start nimmt sport_class an (owner, Equipment je Sportart greift). Offen: UI in Garmin/Wear/Apple/Amazfit/Huawei/Suunto (Store-Releases). 19.10.: Wear OS gebaut (Einstellungen „Sportart\" ueber den Foils, Anzeige „Wingfoil · Foil: …\" auf dem Start, meta sport_class), kompiliert, NICHT im Emulator angesehen — vor Einreichung im R8-Release-Build pruefen (Memory wear-emulator-testing). Offen: Garmin, Apple Watch, Amazfit, Huawei, Suunto. 19.10.: Apple Watch gebaut (Sheet „Sportart\" ganz oben, Startknopf-Zeile „Wingfoil · Foil: …\", meta sport_class), nur swiftc -parse. 19.10. Stand: Server + Profil „Sportarten an der Uhr“ (my_sports) live. Uhren gebaut, nicht eingereicht: Wear, Apple Watch, Garmin (nur Vollbuild; 96/128-KB-Builds nicht), Amazfit (Seite Foil & Alarm), Huawei Watch 5 (Lite + Watch 3/4 nicht: Heap/Bruecke). Suunto: keine Auswahl moeglich (App-Seite erst nach Aktivitaetsstart) -> Sportmodus (Activity ID) per $.get, Paket 0x07; offen: Server-Zuordnung Suunto-Modus -> Sportart je Nutzer + Bruecken (s. docs/SUUNTO.md)."
       },
       "equipment_je_sport": {
         "status": "live",
@@ -1240,6 +1253,11 @@
         "status": "geplant",
         "en": "Mark single runs with their own sport, e.g. wake thief runs inside a pumpfoil session.",
         "notiz": "Stufe 5, gleicher Umbau wie Foil je Lauf (Oerni 04.10.: Wakethief-Laeufe in einer Pumpfoil-Session). Gleicher Umbau wie Foil je Lauf."
+      },
+      "modell_brett": {
+        "status": "geplant",
+        "en": "Train a new detection model as soon as there are enough sessions with the phone on the board",
+        "notiz": "Jan 19.10.: „ein neues model trainieren sobald genug phone on board sessions da sind“. Handy am Brett = Wahrheit fuer die Uhr (docs/GROUND-TRUTH.md, Memory ground-truth-handy-am-brett): Pump-Zaehlung und On-Foil je Sportart neu eichen, auch fuer Wind."
       }
     }
   },
@@ -1255,6 +1273,10 @@
     {
       "id": "lauf_sportart",
       "en": "Sport per run"
+    },
+    {
+      "id": "modell_brett",
+      "en": "New model from phone-on-board sessions"
     }
   ]
 }
