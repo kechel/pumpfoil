@@ -37,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -113,6 +114,14 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     // was accel/alle aendert, filtert dann auf Freunde. Die Statistikzeile oben bleibt global.
     // Ein reiner Filter, er gibt nichts frei (server app/freunde.py). Freunde zaehlen wie „alle".
     var freunde by remember { mutableStateOf(false) }
+    // Sportart wie im Web (19.10.2026): Rekorde und Bestenliste je Sportart; Standard Pumpfoil.
+    var sportart by remember { mutableStateOf("pumpfoil") }
+    var sportListe by remember { mutableStateOf<List<String>>(listOf("pumpfoil")) }
+    var sportMenue by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        sportListe = try { Api.communitySports().map { it.sport }.filter { it.isNotEmpty() }.ifEmpty { listOf("pumpfoil") } }
+                     catch (_: Exception) { listOf("pumpfoil") }
+    }
     val accelOnly = accelWahl && !freunde
     // Foil-Band („vergleichbare Foils") fuer Rekorde UND Bestenlisten — NICHT fuer Spots und
     // „Am besten bewertet" (Jans Vorgabe): dort geht es nicht um Vergleichbarkeit der Ausruestung.
@@ -122,6 +131,12 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var bandKey by remember { mutableStateOf("all") }
     val band = bands.firstOrNull { it.key == bandKey }
     var lbMetric by remember { mutableStateOf("sessions") }
+    // Ausgeblendete Kennzahl gewaehlt (z. B. Pumps, dann Wingfoil)? -> zurueck auf Sessions.
+    LaunchedEffect(sportart) {
+        val wind = sportart in setOf("wingfoil", "kitefoil", "parawing")
+        val motor = sportart in setOf("efoil", "foildrive", "towed")
+        if ((wind && lbMetric in setOf("pumps", "runs")) || (motor && lbMetric == "pumps")) lbMetric = "sessions"
+    }
     val scope = rememberCoroutineScope()
     // Der Social-Feed haelt seinen Zustand eine Schicht hoeher als seine Sektion: der Player ist
     // eine Vollbild-Ebene und wuerde als Teil eines LazyColumn-Eintrags abgeschnitten
@@ -132,7 +147,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     suspend fun loadBase() {
         loading = true
         try {
-            records = Api.communityRecords(accelOnly, bandKey, freunde = freunde); error = null
+            records = Api.communityRecords(accelOnly, bandKey, sport = sportart, freunde = freunde); error = null
             cstats = try { Api.communityStats() } catch (_: Exception) { cstats }
             media = try { Api.latestPhotos(freunde = freunde) } catch (_: Exception) { emptyList() }
             val sp = try { Api.spots(accelOnly = false, freunde = freunde) } catch (_: Exception) { null }
@@ -144,7 +159,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         } catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(accelOnly, bandKey, freunde) { loadBase() }
+    LaunchedEffect(accelOnly, bandKey, freunde, sportart) { loadBase() }
     LaunchedEffect(accelOnly, freunde) {
         bands = try { Api.foilBands(accelOnly, freunde) } catch (_: Exception) { emptyList() }
         // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
@@ -164,8 +179,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         onDispose { mediaOwner.lifecycle.removeObserver(obs) }
     }
     // Zeitraum- + accel-abhängig: Bestenliste, Best bewertet.
-    LaunchedEffect(period, accelOnly, bandKey, freunde) {
-        leaders = try { Api.leaders(period, accelOnly, bandKey, freunde) } catch (_: Exception) { leaders }
+    LaunchedEffect(period, accelOnly, bandKey, freunde, sportart) {
+        leaders = try { Api.leaders(period, accelOnly, bandKey, freunde, sport = sportart) } catch (_: Exception) { leaders }
         topLiked = try { Api.topLiked(period, freunde = freunde) } catch (_: Exception) { topLiked }
     }
     // Rekorde je gezeigtem Spot (Zeitraum + accel).
@@ -261,8 +276,22 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             }
                         }
 
+                        // Sportart (19.10.2026, wie das Web): nur zeigen, wenn es mehr als eine gibt.
+                        if (sportListe.size > 1) item {
+                            Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                                OutlinedButton(onClick = { sportMenue = true }) {
+                                    Text(I18n.t("cls.sport.$sportart") + " ▾")
+                                }
+                                DropdownMenu(expanded = sportMenue, onDismissRequest = { sportMenue = false }) {
+                                    sportListe.forEach { sp ->
+                                        DropdownMenuItem(text = { Text(I18n.t("cls.sport.$sp")) },
+                                            onClick = { sportMenue = false; sportart = sp })
+                                    }
+                                }
+                            }
+                        }
                         // Community-Rekorde (mit Nutzer/Spot), klickbar -> Session.
-                        item { RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp)) }
+                        item { RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp), sport = sportart) }
 
                         // Community-Social-Feed — bewusst UEBER "Neueste Medien" (Jan, 31.08.,
                         // dieselbe Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts
@@ -306,7 +335,11 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                     listOf(
                                         "sessions" to "leader.mostSessions", "runs" to "leader.mostRuns",
                                         "pumps" to "leader.mostPumps", "spots" to "leader.mostSpots",
-                                    ).forEach { (id, key) ->
+                                    ).filter { (id, _) ->
+                                        // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
+                                        !((sportart in setOf("wingfoil", "kitefoil", "parawing") && (id == "pumps" || id == "runs")) ||
+                                          (sportart in setOf("efoil", "foildrive", "towed") && id == "pumps"))
+                                    }.forEach { (id, key) ->
                                         FilterChip(selected = lbMetric == id, onClick = { lbMetric = id }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
                                     }
                                 }
