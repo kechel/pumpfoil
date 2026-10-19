@@ -667,8 +667,9 @@ enum Api {
         try await request("/api/auth/me/reanalysis", method: "GET", body: nil, auth: true)
     }
 
-    static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all", freunde: Bool = false) async throws -> Leaders {
-        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
+    static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all", freunde: Bool = false,
+                        sport: String = "pumpfoil") async throws -> Leaders {
+        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)&sport=\(sport)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
     static func latestPhotos(limit: Int = 8, freunde: Bool = false) async throws -> [MediaItem] {

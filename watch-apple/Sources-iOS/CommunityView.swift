@@ -42,6 +42,11 @@ struct CommunityView: View {
     @State private var freunde = false
     private var accelOnly: Bool { accelWahl && !freunde }
     @State private var lbMetric = "sessions"
+    // Sportart wie im Web (19.10.2026): Rekorde und Bestenliste je Sportart; Standard Pumpfoil.
+    @State private var sportart = "pumpfoil"
+    @State private var sportListe: [String] = ["pumpfoil"]
+    private var istWind: Bool { ["wingfoil", "kitefoil", "parawing"].contains(sportart) }
+    private var istMotor: Bool { ["efoil", "foildrive", "towed"].contains(sportart) }
 
     private let periods: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     private let gridCols = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
@@ -52,8 +57,10 @@ struct CommunityView: View {
         return " · " + bandLabel(b)
     }
     private var lbMetrics: [(String, String)] {
-        [("sessions", Loc.t("leader.mostSessions", lang)), ("runs", Loc.t("leader.mostRuns", lang)),
+        let alle: [(String, String)] = [("sessions", Loc.t("leader.mostSessions", lang)), ("runs", Loc.t("leader.mostRuns", lang)),
          ("pumps", Loc.t("leader.mostPumps", lang)), ("spots", Loc.t("leader.mostSpots", lang))]
+        // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
+        return alle.filter { !((istWind && ($0.0 == "pumps" || $0.0 == "runs")) || (istMotor && $0.0 == "pumps")) }
     }
     private func lbList(_ lb: Leaders) -> [LeaderEntry] {
         switch lbMetric { case "runs": return lb.runs ?? []; case "pumps": return lb.pumps ?? []
@@ -133,6 +140,13 @@ struct CommunityView: View {
             // .onChange fuer bandKey nicht existierte. Bewusst NICHT reloadAll(): das holt auch
             // die Bandliste und kann bandKey selbst zurueckstellen (Endlosschleife).
             .onChange(of: bandKey) { _ in Task { await reloadBand() } }
+            // Sportart gewechselt: Rekorde + Bestenliste neu; ausgeblendete Kennzahl zuruecksetzen.
+            .onChange(of: sportart) { _ in
+                if (istWind && (lbMetric == "pumps" || lbMetric == "runs")) || (istMotor && lbMetric == "pumps") { lbMetric = "sessions" }
+                Task { await reloadBand() }
+            }
+            .task { sportListe = ((try? await Api.communitySports()) ?? []).map { $0.sport }.filter { !$0.isEmpty }
+                    if sportListe.isEmpty { sportListe = ["pumpfoil"] } }
             .onChange(of: spotShown) { _ in Task { await loadSpotRecs() } }
         }
     }
@@ -151,7 +165,16 @@ struct CommunityView: View {
 
     @ViewBuilder private var recordsSection: some View {
         if records != nil {
-            Section { recordGrid(records?[period], showSpot: true) }
+            Section {
+                if sportListe.count > 1 { sportPicker }
+                recordGrid(records?[period], showSpot: true)
+            }
+        }
+    }
+
+    private var sportPicker: some View {
+        Picker(Loc.t("sport.choose", lang), selection: $sportart) {
+            ForEach(sportListe, id: \.self) { sp in Text(Loc.t("cls.sport.\(sp)", lang)).tag(sp) }
         }
     }
 
@@ -175,7 +198,7 @@ struct CommunityView: View {
     // `RecRow`/`rekordZeilen` stehen in SpotRecordsView.swift — dieselbe Datenlogik nutzt die
     // Spot-Ansicht (Jan, 07.09.: dort fehlten die Rekorde ganz). Nur die DARSTELLUNG ist hier
     // eigen, weil sie an `navPath` und die Avatar-/Track-Helfer dieser Ansicht haengt.
-    private func recordRows(_ r: PeriodRecords?) -> [RecRow] { rekordZeilen(r, lang: lang) }
+    private func recordRows(_ r: PeriodRecords?) -> [RecRow] { rekordZeilen(r, lang: lang, sport: sportart) }
 
     @ViewBuilder private func recordGrid(_ r: PeriodRecords?, showSpot: Bool) -> some View {
         let rows = recordRows(r)
@@ -497,7 +520,7 @@ struct CommunityView: View {
     private func loadBase() async {
         loading = true; defer { loading = false }
         do {
-            records = try await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, freunde: freunde); error = nil
+            records = try await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, sport: sportart, freunde: freunde); error = nil
             let bs = (try? await Api.foilBands(accelOnly: accelOnly, freunde: freunde)) ?? []
             bands = bs
             // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
@@ -518,12 +541,12 @@ struct CommunityView: View {
     /// Nur die bandabhaengigen Teile: Rekorde + Bestenlisten. Spots und Best-bewertet haengen
     /// bewusst NICHT am Band (dort ist der Spot der Vergleich, nicht das Foil).
     private func reloadBand() async {
-        records = (try? await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, freunde: freunde)) ?? records
-        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde)
+        records = (try? await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, sport: sportart, freunde: freunde)) ?? records
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart)
     }
 
     private func loadPeriod() async {
-        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde)
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart)
         topLiked = (try? await Api.topLiked(period: period, freunde: freunde)) ?? []
     }
 

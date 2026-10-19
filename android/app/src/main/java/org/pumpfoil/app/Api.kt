@@ -1005,8 +1005,10 @@ object Api {
         json.decodeFromString(ListSerializer(ChatRoom.serializer()), http("GET", "/api/chat/rooms", null, auth = true))
     }
 
-    suspend fun leaders(period: String = "all", accelOnly: Boolean = true, foilBand: String = "all", freunde: Boolean = false): Leaders = withContext(Dispatchers.IO) {
-        json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly&foil_band=$foilBand" + (if (freunde) "&friends=1" else ""), null, auth = true))
+    suspend fun leaders(period: String = "all", accelOnly: Boolean = true, foilBand: String = "all", freunde: Boolean = false,
+                        sport: String = "pumpfoil"): Leaders = withContext(Dispatchers.IO) {
+        json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly&foil_band=$foilBand" +
+            "&sport=" + java.net.URLEncoder.encode(sport, "UTF-8") + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
     suspend fun latestPhotos(limit: Int = 8, freunde: Boolean = false): List<MediaItem> = withContext(Dispatchers.IO) {

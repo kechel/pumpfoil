@@ -4632,7 +4632,9 @@ static let nlOverlay: [String: String] = {
     private static let _neu3_setup_colBoard: [String: String] = ["de": "Board", "gsw": "Board", "de-AT": "Board", "en": "Board", "fr": "Planche", "it": "Tavola", "es": "Tabla", "fi": "Lauta", "nl": "Board", "cs": "Prkno", "pl": "Deska", "pt": "Prancha", "pt-PT": "Prancha", "ja": "ボード", "zh": "板", "ru": "Доска", "id": "Papan", "nb": "Brett"]
     private static let _neu3_setup_colStab: [String: String] = ["de": "Stab", "gsw": "Stab", "de-AT": "Stab", "en": "Stab", "fr": "Stab", "it": "Stab", "es": "Stab", "fi": "Stab", "nl": "Stab", "cs": "Stab", "pl": "Stab", "pt": "Stab", "pt-PT": "Stab", "ja": "スタビ", "zh": "尾翼", "ru": "Стаб", "id": "Stab", "nb": "Stab"]
     private static let _neu3_setup_colMast: [String: String] = ["de": "Mast", "gsw": "Mast", "de-AT": "Mast", "en": "Mast", "fr": "Mât", "it": "Mast", "es": "Mástil", "fi": "Masto", "nl": "Mast", "cs": "Stěžeň", "pl": "Maszt", "pt": "Mastro", "pt-PT": "Mastro", "ja": "マスト", "zh": "桅杆", "ru": "Мачта", "id": "Mast", "nb": "Mast"]
+    private static let _neu3_sport_choose: [String: String] = ["de": "Sportart", "gsw": "Sportart", "de-AT": "Sportart", "en": "Sport", "fr": "Sport", "it": "Sport", "es": "Deporte", "fi": "Laji", "nl": "Sport", "cs": "Sport", "pl": "Sport", "pt": "Esporte", "pt-PT": "Desporto", "ja": "スポーツ", "zh": "运动", "ru": "Вид спорта", "id": "Olahraga", "nb": "Sport"]
     static let neuTexte3: [String: [String: String]] = [
+        "sport.choose": _neu3_sport_choose,
         "setup.perSportTitle": _neu3_setup_perSportTitle,
         "setup.perSportHint": _neu3_setup_perSportHint,
         "setup.perSportAdd": _neu3_setup_perSportAdd,
