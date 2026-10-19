@@ -33,14 +33,30 @@ def main():
         leser = db.query(models.User).filter_by(is_admin=True).first()
         abw = []
         print("Session  Typ    gesehen auf Foil | erkannt auf Foil / gesamt | Abweichung")
+        einzel_ok = einzel_n = 0
         for z in zeilen:
             r = session_manoever(z["session_id"], leser, db)
+            if z.get("einzeln"):
+                # Einzel-Labels (Zeitpunkt in Session-Sekunden): naechstes erkanntes Manoever binnen 15 s
+                for e in z["einzeln"]:
+                    kand = [m for m in r["items"] if m["typ"] == z["typ"] and abs(m["t_ms"] / 1000 - e["t_s"]) <= 15]
+                    einzel_n += 1
+                    if kand:
+                        m = min(kand, key=lambda m: abs(m["t_ms"] / 1000 - e["t_s"]))
+                        einzel_ok += int(m["durch"] == e["durch"])
+                        print(f"#{z['session_id']:<6} {z['typ']:6} bei {e['t_s']:>5} s: Fahrer {'auf Foil' if e['durch'] else 'abgesetzt':9} | "
+                              f"erkannt {'auf Foil' if m['durch'] else 'abgesetzt'}")
+                    else:
+                        print(f"#{z['session_id']:<6} {z['typ']:6} bei {e['t_s']:>5} s: nicht erkannt")
+                continue
             zahl = (r.get("zahlen") or {}).get(z["typ"]) or {"durch": 0, "ab": 0}
             gesamt = zahl["durch"] + zahl["ab"]
             d = zahl["durch"] - z["durch_gesehen"]
             abw.append(abs(d))
             print(f"#{z['session_id']:<6} {z['typ']:6} {z['durch_gesehen']:>15} | {zahl['durch']:>16} / {gesamt:<6} | {d:+d}"
                   + (f"   (gesamt gesehen {z['gesamt_gesehen']})" if z.get("gesamt_gesehen") else ""))
+        if einzel_n:
+            print(f"\nEinzel-Labels: {einzel_ok}/{einzel_n} richtig")
         if abw:
             treffer = sum(1 for a in abw if a <= TOLERANZ)
             print(f"\n{treffer}/{len(abw)} Sessions innerhalb +-{TOLERANZ}, mittlere Abweichung "
