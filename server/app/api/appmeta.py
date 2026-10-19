@@ -834,6 +834,25 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 19.10.2026 13:10 (Jans Meldung, ASC „Warten auf Prüfung“, Build 60,
+    # Übermittlung 48f47157-a1f1-4e62-a19e-1e2669daa38d). Build 59 war verbraucht. Jan hat alle
+    # Ansichten in Xcode geprüft; auf der VM nur swiftc -parse.
+    {"name": "iPhone + Apple Watch", "version": "1.1.52",
+     "eingereicht": "2026-10-19",
+     "items": [
+         "Every page has a feedback button at the top right, and your message tells us which session or page you mean.",
+         "The changelog page shows how far the analysis is tuned for each sport.",
+         "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
+         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
+         "The three buttons for your spot description sit in one row as icons.",
+         "On the Apple Watch you can pick the sport before you start, next to the foil.",
+         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
+         "The Community page can show records and leaderboards for each sport, like the website.",
+         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
+         "Under My foils you choose which sports you can pick on the watch.",
+         "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
+         "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
+     ]},
     # EINGEREICHT 18.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
     # Vor der Einreichung im Simulator (npm run dev-echt): Positionsmeldung 200, app-closed 200, Upload
     # komplett; nicht auf Hardware. Neu in der Geraeteliste: T-Rex Dual Solar (11403520/11403521).
@@ -991,21 +1010,6 @@ NAECHSTES: list[dict] = [
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
     # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
-    {"name": "iPhone + Apple Watch", "version": "1.1.52",
-     "items": [
-         "Every page has a feedback button at the top right, and your message tells us which session or page you mean.",
-         "The changelog page shows how far the analysis is tuned for each sport.",
-         "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
-         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
-         "The three buttons for your spot description sit in one row as icons.",
-         "On the Apple Watch you can pick the sport before you start, next to the foil.",
-         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
-         "The Community page can show records and leaderboards for each sport, like the website.",
-         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
-         "Under My foils you choose which sports you can pick on the watch.",
-         "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
-         "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
-     ]},
     {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
      "items": [
          "Every page has a feedback button at the top right, and your message tells us which session or page you mean; the icons in the top bar are easier to see.",
