@@ -542,6 +542,12 @@ class SessionRecorder {
     // Server layoutsOn=false (oder den Key gar nicht), fällt die Uhr auf die statische Logik
     // zurück — ohne App-Update.
     (:layouts) hidden function _layoutsFromConfig(data) {
+        // Sportarten VOR dem Layout-Ausstieg unten: sie haengen nicht an `layoutsOn`. Fehlt der
+        // Key (alter Server), bleibt der Cache.
+        if (data.hasKey("sports")) {
+            var sl = Sport.setze(data["sports"]);
+            if (sl != null) { _store("sports_config", sl); }
+        }
         if (!data.hasKey("layoutsOn")) { return; }
         var lay = {
             "on" => (data["layoutsOn"] == true),
@@ -557,6 +563,7 @@ class SessionRecorder {
     }
 
     (:layouts) hidden function _layoutsFromCache() {
+        Sport.setze(Storage.getValue("sports_config"));   // offline: gecachte Sportarten (Sport.mc)
         // Dreizustand: null = nie angefasst (dann gilt der Server-Wert), true/false = Wille des
         // Nutzers. Altbestand aus 1.0.66 (`layouts_off` = reiner Not-Aus) einmal übernehmen.
         layoutsPref = Storage.getValue("layouts_pref");
@@ -945,6 +952,7 @@ class SessionRecorder {
             // Uhren (128-KB-Klasse, z. B. fēnix 5) liefert der Server sie nur auf Anfrage aus.
             // Ohne das zeigte die fēnix 5 trotz Umschalten nichts — das Paket kam nie an.
             if (_layoutsRequested()) { params["lay"] = "1"; }
+            Sport.param(params);   // `sp=1` -> Sportarten-Liste; nur VOLL-Build, sonst No-Op (Sport.mc)
             Communications.makeWebRequest(
                 Config.baseUrl() + "/api/devices/config",
                 params,   // Version+Plattform+PartNo (+ Canary-Meldung)
@@ -2467,14 +2475,16 @@ class SessionRecorder {
     }
 
     function _persistMeta() {
-        _store("meta_" + _sessionUuid, {
+        var m = {
             "session_uuid" => _sessionUuid,
             "started_at" => _startedAt.value(),
             "gps_hz" => 1,
             "accel_hz" => _accelHz,
             "accel_scale" => ACCEL_SCALE,
             "foil_id" => sessionFoilId
-        });
+        };
+        Sport.meta(m);   // + "sport_class" (nur VOLL-Build mit Sportart-Wahl, Sport.mc)
+        _store("meta_" + _sessionUuid, m);
     }
 
     function _elapsedMs() {
