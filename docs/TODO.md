@@ -1483,6 +1483,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **19.10. — Fuer das NAECHSTE Android- und iOS-Release (Jan: „fuer die native apps dann bitte merken das entsprechend im naechsten release auch so zu machen“):**
+  (1) Changelog-Seite: eigener Abschnitt „Analysis by sport“ wie im Web (`GET /api/app/sport-status`) und dann
+  `/api/app/releases?ohne_sport=1` abfragen — sonst steht der Stand doppelt (bis dahin liefert der Server ihn den
+  ausgelieferten Apps als erste „Coming next“-Zeile). (2) Sportart-Profil Stufe 1 (`sport_profil` in der Session-Antwort,
+  `server/app/sportprofil.py`): Wind = ganze Fahrt grau unter den Laeufen + Schalter „nur on-foil / ganze Fahrt“,
+  Gesamtstrecke + Dauer vorn, Pump-Kacheln/-Faerbung/-Marker weg; ohne Profil = bisheriges Verhalten. Vorbild
+  `web/src/pages/SessionDetail.tsx` (Suche „sport_profil“). Danach Buch `sportarten_stand.json` auf Apps ziehen.
+  (3) **Android: Feedback-Knopf kaum zu finden** (Jan 19.10.: „finde den feedback-button garnicht in meiner android-version“).
+  Heute nur unbeschriftetes Briefumschlag-Symbol oben rechts auf Home (`HomeScreen.kt:245`), iOS ebenso (`HomeView.swift:85`).
+  Web hat das globale Feedback-Fenster. Vorschlag: zusaetzlich ein beschrifteter Eintrag im Profil/Menue und auf der Changelog-Seite.
+
 - **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
   Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf
   /changelog „Analysis by sport“ (`GET /api/app/sport-status`, ohne interne Notizen). **Naechster Schritt: Stufe 1 im Web fuer

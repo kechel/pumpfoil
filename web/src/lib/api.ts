@@ -365,6 +365,9 @@ export interface SessionSummary {
   // Menschliche Sportart-Klassifikation (docs/sport-classification.md). ACHTUNG: `sport` oben ist
   // der Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
   sport_class?: string | null;          // pumpfoil (Default) | wingfoil | foildrive | …
+  // Anzeige-Profil der Sportart (server/app/sportprofil.py, 19.10.2026). Fehlt es, gilt das bisherige
+  // Verhalten (= Pumpfoil): nur Laeufe auf der Karte, On-Foil-Zahlen vorn, Pump-Zahlen sichtbar.
+  sport_profil?: { gruppe: string; karte: "laeufe" | "ganz"; hauptzahl: "foil" | "gesamt"; pumpzahlen: boolean } | null;
   data_quality?: string | null;        // ok | false_data | duplicate | test
   sport_source?: string | null;        // default | auto | owner | admin
   needs_classification?: boolean;      // 2 Melder, noch nicht zugeordnet -> in keiner Auswertung
@@ -995,7 +998,7 @@ export const api = {
     live: { name: string; version: string; store_url: string; note?: string }[];
     review: { name: string; version: string; note: string; items?: string[] }[];
     next: { name: string; version: string; note: string; items?: string[] }[];
-  }>("/api/app/releases"),
+  }>("/api/app/releases?ohne_sport=1"),   // Web zeigt den Sportarten-Stand als eigenen Abschnitt
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
   sportStatus: () => req<{
     stand: string;

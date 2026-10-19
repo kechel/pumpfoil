@@ -26,4 +26,35 @@ def test_buch_vollstaendig_und_ohne_notizen(client):
     assert len(pf["merkmale"]) == len(ids)
     assert next(m for m in pf["merkmale"] if m["id"] == "erkennung")["status"] == "live"
     wing = next(s for s in d["sportarten"] if s["id"] == "wingfoil")
-    assert next(m for m in wing["merkmale"] if m["id"] == "karte")["status"] == "geplant"
+    assert next(m for m in wing["merkmale"] if m["id"] == "karte")["status"] == "live"
+
+
+def test_profil_pumpfoil_unveraendert_wind_ganz():
+    """Stufe 1: Pumpfoil (und alles Unbekannte) behaelt das bisherige Verhalten."""
+    from app.sportprofil import GRUPPE, profil
+    alt = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True}
+    for sc in (None, "", "pumpfoil", "unbekannt"):
+        p = profil(sc)
+        assert p["gruppe"] == "pump" and {k: p[k] for k in alt} == alt
+    for sc in ("wingfoil", "kitefoil", "parawing"):
+        assert profil(sc) == {"gruppe": "wind", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False}
+    for sc in ("foil_scoot", "wakethief", "surf_wave", "efoil"):
+        assert {k: profil(sc)[k] for k in alt} == alt
+
+
+def test_profil_gruppen_wie_im_buch():
+    import json
+    from app.api.appmeta import _SPORT_STAND
+    from app.sportprofil import GRUPPE
+    buch = json.load(open(_SPORT_STAND, encoding="utf-8"))
+    assert {sp["id"]: sp["gruppe"] for sp in buch["sportarten"]} == GRUPPE
+
+
+def test_releases_traegt_sportstand_fuer_alte_apps(client):
+    """Alte Apps kennen den Abschnitt nicht -> erste „Coming next"-Zeile; das Web laesst sie weg."""
+    alt = client.get("/api/app/releases").json()
+    assert alt["next"][0]["name"] == "Analysis by sport"
+    assert any(p.startswith("Wingfoil (wind)") for p in alt["next"][0]["items"])
+    web = client.get("/api/app/releases?ohne_sport=1").json()
+    assert all(z["name"] != "Analysis by sport" for z in web["next"])
+    assert len(alt["next"]) == len(web["next"]) + 1
