@@ -92,3 +92,37 @@ def setzen(db: Session, user_id: int, provider: str, wahl: dict[str, bool]) -> i
     if n:
         db.commit()
     return n
+
+
+# Modus -> Sportart je Anbieter (Suunto 19.10.2026, Polar + COROS am selben Tag nachgezogen —
+# Jan: „bei polar und coros nutzen die ja einfach andere Aktivitaeten, da geht die Vorauswahl
+# genauso nicht wie bei suunto"). Pumpfoil gibt es auf keiner Uhr als Modus; wer wingfoilt, nimmt
+# irgendeinen. Der Nutzer sagt je Modus, was er dort faehrt. Leer = Standard-Sportart wie bisher.
+ZUORDNUNG_ANBIETER = ("suunto", "polar", "coros")
+
+
+def zuordnung_schluessel(provider: str) -> str:
+    return f"{provider}_sport_je_modus"
+
+
+def sport_fuer_modus(user, provider: str, sport_key) -> str | None:
+    """Sportart, die der Nutzer diesem Modus zugeordnet hat (settings.<provider>_sport_je_modus),
+    oder None (dann gilt die Standard-Sportart)."""
+    import json as _json
+    from .api.sessions import SPORTS
+    if sport_key is None or provider not in ZUORDNUNG_ANBIETER:
+        return None
+    try:
+        zu = (_json.loads(user.settings_json or "{}") or {}).get(zuordnung_schluessel(provider)) or {}
+    except ValueError:
+        return None
+    sp = zu.get(str(sport_key)) if isinstance(zu, dict) else None
+    return sp if sp in SPORTS else None
+
+
+def zuordnung_bereinigen(roh, sports) -> dict:
+    """Eingabe aus den Einstellungen: nur bekannte Sportarten, kurze Schluessel (Suunto/COROS
+    sind Nummern, Polar Namen wie „OTHER_OUTDOOR")."""
+    if not isinstance(roh, dict):
+        return {}
+    return {str(k)[:64]: v for k, v in list(roh.items())[:100] if str(k).strip() and v in sports}

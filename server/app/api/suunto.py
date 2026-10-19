@@ -740,16 +740,8 @@ UHR_ZU_CLOUD = {86: 86, 91: 87, 54: 91, 89: 61, 13: 71, 14: 72, 72: 82, 15: 15, 
 def sport_fuer_modus(user, cloud_key) -> str | None:
     """Sportart, die der Nutzer diesem Suunto-Modus zugeordnet hat (settings.suunto_sport_je_modus),
     oder None (dann gilt wie bisher die Standard-Sportart)."""
-    import json as _json
-    from .sessions import SPORTS
-    if cloud_key is None:
-        return None
-    try:
-        zu = (_json.loads(user.settings_json or "{}") or {}).get("suunto_sport_je_modus") or {}
-    except ValueError:
-        return None
-    sp = zu.get(str(cloud_key))
-    return sp if sp in SPORTS else None
+    from .. import importsports
+    return importsports.sport_fuer_modus(user, "suunto", cloud_key)
 
 
 BRUECKE_TOLERANZ_S = 180

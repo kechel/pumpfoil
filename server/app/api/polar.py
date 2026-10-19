@@ -294,7 +294,8 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
                 log.info("polar: %s uebersprungen — keine GPS-Punkte in der Datei", url)
                 continue
             s = import_parsed_session(db, user, tcx.content, parsed,
-                                      src_label="polar-import", uuid_prefix="polar-")
+                                      src_label="polar-import", uuid_prefix="polar-",
+                                      sport_override=importsports.sport_fuer_modus(user, "polar", sport_key))
             if s is None:
                 skipped += 1  # war schon da bzw. bewusst geloescht
                 zaehl("doppelt")

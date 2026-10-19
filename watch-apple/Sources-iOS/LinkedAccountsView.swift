@@ -86,9 +86,7 @@ struct LinkedAccountsView: View {
                         }
                         if st.linked {
                             SportAuswahl(pfad: p.pfad, lang: lang, neuLaden: fertigZaehler)
-                            if p.id == "suunto" {
-                                SuuntoZuordnung(pfad: p.pfad, lang: lang, neuLaden: fertigZaehler)
-                            }
+                            ModusZuordnung(pfad: p.pfad, anbieter: p.id, lang: lang, neuLaden: fertigZaehler)
                         }
                     }
                 }
@@ -336,14 +334,15 @@ private struct SportAuswahl: View {
 }
 
 
-/// Nur Suunto (19.10.2026, wie im Web): Modus -> Sportart. Die Uhr meldet ihren Sportmodus, der
-/// Cloud-Import kennt ihn ohnehin; hier sagt der Nutzer, was er in diesem Modus faehrt
-/// (server: suunto.sport_fuer_modus, settings.suunto_sport_je_modus).
+/// Modus -> Sportart (19.10.2026, Suunto, Polar, COROS; wie im Web): Pumpfoil gibt es auf keiner
+/// Uhr als Modus, hier sagt der Nutzer, was er in welchem Modus faehrt
+/// (server: importsports.sport_fuer_modus, settings.<anbieter>_sport_je_modus).
 ///
 /// Bewusst NICHT in SportAuswahl: dort liegen alle Schalter in EINER List-Zeile, ein Menue dazu
 /// teilte sich die Tippflaeche mit ihnen. Hier bekommt jeder Modus eine eigene Zeile.
-private struct SuuntoZuordnung: View {
+private struct ModusZuordnung: View {
     let pfad: String
+    let anbieter: String
     let lang: String
     let neuLaden: Int
     @State private var modi: [Api.ImportSport] = []
@@ -379,7 +378,7 @@ private struct SuuntoZuordnung: View {
             let alle = (try? await Api.importSports(pfad)) ?? []
             modi = alle.filter { $0.importieren }
             if let s = try? await Api.settings() {
-                zuordnung = (s["suunto_sport_je_modus"] as? [String: String]) ?? [:]
+                zuordnung = (s["\(anbieter)_sport_je_modus"] as? [String: String]) ?? [:]
             }
             geladen = true
         }
@@ -389,7 +388,7 @@ private struct SuuntoZuordnung: View {
         var neu = zuordnung
         if let sport { neu[key] = sport } else { neu.removeValue(forKey: key) }
         zuordnung = neu
-        Task { try? await Api.saveSettings(["suunto_sport_je_modus": neu]) }
+        Task { try? await Api.saveSettings(["\(anbieter)_sport_je_modus": neu]) }
     }
 }
 
