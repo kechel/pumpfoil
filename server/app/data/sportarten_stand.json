@@ -432,9 +432,19 @@
           "en": "Does not apply."
         },
         "windfenster": {
-          "status": "vorschlag",
-          "en": "Which wind directions and strengths are ridden at each spot, from all sessions and the model wind, shown on the spot page.",
-          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus sessionwind (Modellwind je Session) + Spot; hilft Neuen am Spot."
+          "status": "live",
+          "en": "Spot pages show from which directions and at which wind strengths the wind sports were ridden there (model wind).",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus sessionwind (Modellwind je Session) + Spot; hilft Neuen am Spot. 19.10. gebaut: Wind-Cache je Spot+Tag, alle 1375 vergangenen Wind-Sessions nachgeholt (scripts/wind-nachholen.py, ~1380 Abrufe), GET /api/community/spot/{id}/windfenster nur aus dem Cache, Windrose ab 3 Sessions.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          }
         },
         "quote_verlauf": {
           "status": "vorschlag",
@@ -1095,6 +1105,20 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "windfenster",
+      "was": "Windfenster je Spot (Web) aus dem Modellwind aller Wind-Sessions; Wind fuer vergangene Sessions einmalig nachgeholt.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [

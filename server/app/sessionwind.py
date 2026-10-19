@@ -88,13 +88,23 @@ def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime, abrufen: b
         "start_date": min(fehlt).isoformat(), "end_date": max(fehlt).isoformat(),
         "wind_speed_unit": "kmh", "timezone": "UTC",
     }
-    try:
-        r = httpx.get(ARCHIVE if alt else FORECAST, params=params, headers=_UA, timeout=8.0)
-    except Exception:  # noqa: BLE001 — nicht erreichbar: mit dem weiter, was gespeichert ist
+    # Erst die passende Schnittstelle, dann die andere: die Forecast-API antwortet fuer manche Tage
+    # im 80-Tage-Fenster mit lauter leeren Werten (gemessen 19.10.2026 an 28 Wind-Sessions vom
+    # August/September, Finnland/Frankreich), das Archiv hat sie.
+    h: dict = {}
+    for url in ((ARCHIVE, FORECAST) if alt else (FORECAST, ARCHIVE)):
+        try:
+            r = httpx.get(url, params=params, headers=_UA, timeout=8.0)
+        except Exception:  # noqa: BLE001 — nicht erreichbar: die andere versuchen
+            continue
+        if r.status_code != 200:
+            continue
+        h = (r.json() or {}).get("hourly") or {}
+        if any(v is not None for v in h.get("wind_speed_10m", [])):
+            break
+        h = {}
+    if not h:
         return tage
-    if r.status_code != 200:
-        return tage
-    h = (r.json() or {}).get("hourly") or {}
     neu: dict = {}
     for ts_s, v, d, g in zip(h.get("time", []), h.get("wind_speed_10m", []),
                              h.get("wind_direction_10m", []), h.get("wind_gusts_10m", [])):
