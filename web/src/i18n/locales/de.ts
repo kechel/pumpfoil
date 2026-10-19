@@ -284,6 +284,7 @@ const de: Record<string, string> = {
   "rec.longestGlide": "Längste Gleitphase",
   "rec.mostRuns": "Meiste Läufe",
   "rec.sessionDistance": "Weiteste Session",
+  "rec.sessionTotal": "Längste Fahrt (gesamt)",
   "rec.sessionTime": "On-Foil-Zeit",
   "rec.sessionPumps": "Meiste Pumps",
   "rec.maxHr": "Max. Puls",

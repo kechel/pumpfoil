@@ -336,6 +336,7 @@ const nb: Record<string, string> = {
   "rec.longestGlide": "Lengste glid",
   "rec.mostRuns": "Flest runs",
   "rec.sessionDistance": "Lengste økt",
+  "rec.sessionTotal": "Lengste tur (totalt)",
   "rec.sessionTime": "Tid på foil",
   "rec.sessionPumps": "Flest pumper",
   "rec.maxHr": "Maks puls",

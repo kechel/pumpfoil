@@ -279,6 +279,7 @@ const en: Record<string, string> = {
   "rec.longestGlide": "Longest glide",
   "rec.mostRuns": "Most runs",
   "rec.sessionDistance": "Farthest session",
+  "rec.sessionTotal": "Longest ride (total)",
   "rec.sessionTime": "On-foil time",
   "rec.sessionPumps": "Most pumps",
   "rec.maxHr": "Max heart rate",

@@ -71,3 +71,12 @@ def test_plattform_zeile():
     z = _plattform_zeile({"web": "2026-10-19", "android": live, "ios": ""})
     assert z == f"website since October 19, 2026, Android {live}, iOS coming next"
     assert _plattform_zeile({"ios": "99.0.0"}) == "iOS 99.0.0"
+
+
+def test_rekorde_wind_mit_gesamtstrecke(client):
+    """Wind-Sportarten bekommen den Rekord „laengste Fahrt (gesamt)"; Pumpfoil bleibt wie es war."""
+    r = client.post("/api/auth/register", json={"email": "rekwind@t.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    w = client.get("/api/community/records?sport=wingfoil&period=all", headers=auth).json()
+    p = client.get("/api/community/records?sport=pumpfoil&period=all", headers=auth).json()
+    assert "session_total" in w["all"] and "session_total" not in p["all"]

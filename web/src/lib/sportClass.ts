@@ -31,3 +31,8 @@ export function classLabelKey(s: { sport_class?: string | null; data_quality?: s
   const sport = s.sport_class ?? "pumpfoil";
   return `cls.sport.${LABELED_SPORTS.includes(sport) ? sport : "other"}`;
 }
+
+// Sportart-Gruppen wie server/app/sportprofil.py GRUPPE (19.10.2026) — fuer Anzeigen, die vom
+// Server kein Profil mitbekommen (z. B. Rekord-Kacheln einer gewaehlten Sportart).
+export const WIND_SPORTS = ["wingfoil", "kitefoil", "parawing"];
+export const MOTOR_SPORTS = ["efoil", "foildrive", "towed"];

@@ -111,7 +111,13 @@ REC_COL = {
     "session_time": (AR.foiling_time_s, None),           # meiste On-Foil-Zeit einer Session
     "session_pumps": (AR.pump_count, None),              # meiste Pumps einer Session
     "max_hr": (_MAX_HR, None),                           # höchster Puls
+    # Laengste Fahrt als GESAMTSTRECKE (19.10.2026) — nur fuer Wind-Sportarten abgefragt (s.
+    # community_records), dort zaehlt die ganze Fahrt, nicht nur das On-Foil-Stueck.
+    "session_total": (AR.total_distance_m, None),
 }
+# Zusaetzliche Rekord-Arten je Sportart-Gruppe (app/sportprofil.py). Alte Clients ignorieren den
+# zusaetzlichen Schluessel im Zeitraum-Objekt; Pumpfoil bekommt nichts Neues.
+METRICS_JE_GRUPPE = {"wind": ("session_total",)}
 # Zeit-Rekorde (Early Bird / Night Owl) laufen NICHT über REC_COL, sondern Python-seitig
 # über die echte Spot-Zeitzone (inkl. Sommerzeit) — siehe _time_record().
 TIME_METRICS = ("early_bird", "night_owl")
@@ -912,9 +918,10 @@ def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_ban
     # EIN Cache fuer den ganzen Request: die Zeit-Metriken teilen sich damit ihre Basisdaten
     # ueber alle fuenf Zeitraeume (s. _time_rows).
     cache: dict = {}
+    extra = METRICS_JE_GRUPPE.get(sportprofil.profil(sport)["gruppe"], ()) if sport != "all" else ()
     out = {p: {m: _record_entry(db, m, _cutoff(p), spot=spot, viewer_id=_user.id,
                                 accel_only=accel_only, sport=sport,
-                                cache=cache, foil_band=foil_band) for m in METRICS}
+                                cache=cache, foil_band=foil_band) for m in METRICS + tuple(extra)}
            for p in zeitraeume}
 
     if not versteckt:

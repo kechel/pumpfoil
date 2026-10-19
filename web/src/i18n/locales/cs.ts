@@ -321,6 +321,7 @@ const cs: Record<string, string> = {
   "rec.longestGlide": "Nejdelší klouzání",
   "rec.mostRuns": "Nejvíce jízd",
   "rec.sessionDistance": "Nejdelší vyjížďka",
+  "rec.sessionTotal": "Nejdelší jízda (celkem)",
   "rec.sessionTime": "Čas na foilu",
   "rec.sessionPumps": "Nejvíce pumpnutí",
   "rec.maxHr": "Max. tep",

@@ -272,9 +272,14 @@
           "en": "Pumpfoil only."
         },
         "rekorde": {
-          "status": "teilweise",
-          "en": "Own list via the sport filter, but still with pumping record types; own ones (distance, top speed, longest on-foil) are planned.",
-          "notiz": "Stufe 4."
+          "status": "live",
+          "en": "Own record types: longest ride (total distance) first, plus longest and farthest run, top speed, on-foil time; no glide, pump or run-count records",
+          "notiz": "Stufe 4. 19.10.: community_records liefert fuer Wind zusaetzlich session_total (total_distance_m); Web RecordGrid filtert je Sportart (recItemsFuer). Offen: Wenden/Halsen als Rekord (braeuchte gespeicherte Zahlen), Apps.",
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          }
         },
         "einordnung": {
           "status": "teilweise",
@@ -476,7 +481,12 @@
         },
         "rekorde": {
           "status": "teilweise",
-          "en": "Own list via the sport filter, with the pumpfoil record types."
+          "en": "Own list via the sport filter, without glide and pump records",
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          }
         },
         "einordnung": {
           "status": "nein",
@@ -669,6 +679,23 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "efoil",
+        "foildrive",
+        "towed"
+      ],
+      "merkmal": "rekorde",
+      "was": "Rekorde je Sportart im Web: Wind mit 'Laengste Fahrt (gesamt)' zuerst und ohne Gleit-/Pump-/Laufzahl-/Carve-Rekorde; Motor ohne Gleit-/Pump-Rekorde.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [

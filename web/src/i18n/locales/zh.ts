@@ -315,6 +315,7 @@ const zh: Record<string, string> = {
   "rec.longestGlide": "最长滑行",
   "rec.mostRuns": "最多航段",
   "rec.sessionDistance": "最远记录",
+  "rec.sessionTotal": "最长骑行（总计）",
   "rec.sessionTime": "上翼时长",
   "rec.sessionPumps": "最多泵动",
   "rec.maxHr": "最高心率",
