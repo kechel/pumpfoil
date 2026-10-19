@@ -536,6 +536,15 @@ export default function SessionDetail() {
   // erklaeren. `sport_class` ist die MENSCHLICHE Klassifikation, nicht `sport` (Aktivitaetstyp
   // aus der Aufnahme) — 5272 traegt sport="pumpfoil" UND sport_class="wingfoil".
   const istPumpfoil = (session?.sport_class ?? "pumpfoil") === "pumpfoil";
+  // Anzeige-Profil der Sportart (Stufe 1, 19.10.2026). Ohne Profil (alter Server-Stand) oder bei
+  // Pumpfoil: alles wie bisher. Wind: ganze Fahrt grau unter den Laeufen (umschaltbar), Gesamt-
+  // strecke + Dauer vorn, keine Pump-Zahlen.
+  const profil = session?.sport_profil;
+  const karteGanzMoeglich = profil?.karte === "ganz";
+  const [ganzeFahrt, setGanzeFahrt] = useState(true);
+  const zeigeGanz = karteGanzMoeglich && ganzeFahrt;
+  const pumpzahlen = profil?.pumpzahlen !== false;
+  const hauptGesamt = profil?.hauptzahl === "gesamt";
   const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
@@ -738,8 +747,11 @@ export default function SessionDetail() {
   // Der automatische Rückfall auf "speed" (Modus in DIESER Session nicht verfügbar, s. unten)
   // schreibt bewusst mit: wer keine Puls-Daten hat, soll nicht bei jeder Session hängen bleiben.
   useEffect(() => {
+    // Sportarten ohne Pump-Zahlen (Wind) merken NICHTS: ihr Rueckfall von „Pump-Faerbung" auf Tempo
+    // soll die Ansicht der naechsten Pumpfoil-Session nicht verstellen (19.10.2026).
+    if (!pumpzahlen) return;
     merkeSessionView({ colorMode, win, showPumps, showAttempts, showGlides });
-  }, [colorMode, win, showPumps, showAttempts, showGlides]);
+  }, [colorMode, win, showPumps, showAttempts, showGlides, pumpzahlen]);
 
   // Startversuche erst holen, wenn der Schalter das erste Mal angeht (die Rechnung laeuft
   // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
@@ -833,8 +845,8 @@ export default function SessionDetail() {
 
   // Falls Pump-Modus aktiv, aber Session keine Pump-Daten hat -> zurück auf Speed.
   useEffect(() => {
-    if (colorMode === "pump" && !hasPump) setColorMode("speed");
-  }, [colorMode, hasPump]);
+    if (colorMode === "pump" && (!hasPump || !pumpzahlen)) setColorMode("speed");
+  }, [colorMode, hasPump, pumpzahlen]);
 
   // Carve-Erkennung: server-seitiges Accel-Zentripetal-g-Modell (nur Anzeige). Einmal je Session laden.
   const [carveData, setCarveData] = useState<CarveData | null>(null);
@@ -1263,6 +1275,16 @@ export default function SessionDetail() {
         L.circleMarker(coords[coords.length - 1], { radius: 5, color: "#450a0a", weight: 1.5, fillColor: "#ef4444", fillOpacity: 1 }).addTo(lg);
       }
     }
+    // Wind-Sportarten (Profil karte="ganz"): die GANZE Fahrt dezent grau darunter, damit langsame
+    // Stuecke, Wenden und Wasserstarts nicht als Luecke erscheinen (Oerni #17478, 19.10.2026).
+    // Gleiche Sprungschwelle wie der Ganz-Spur-Fall oben. Nicht anklickbar — die Laeufe darueber
+    // bleiben es.
+    if (zeigeGanz && segs.length > 0) {
+      for (let i = 0; i < coords.length - 1; i++) {
+        if (map.distance(coords[i], coords[i + 1]) > 200) continue;
+        L.polyline([coords[i], coords[i + 1]], { color: "#64748b", weight: 3, opacity: 0.55, interactive: false }).addTo(lg);
+      }
+    }
     segs.forEach((seg: any, idx: number) => {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
       const dim = selectedRun != null && idx !== selectedRun;
@@ -1272,7 +1294,7 @@ export default function SessionDetail() {
         let color: string;
         if (dim) {
           color = "#64748b";
-        } else if (showGlides) {
+        } else if (showGlides && pumpzahlen) {
           // Wie bei den Carves (Jan, 03.10.2026): Track dezent grau, nur die Gleitphasen farbig.
           color = "#334155";
         } else if (colorMode === "speed") {
@@ -1349,7 +1371,7 @@ export default function SessionDetail() {
     }
     // Gleitphasen (1,5-10 s ohne Pump, auch letzter Pump -> Laufende; server-seitig in `seg.glides`
     // als [Start-Index, End-Index, Dauer s, Start]) in Marken-Cyan auf grauem Track, UNTER den Pump-Markern.
-    if (showGlides) {
+    if (showGlides && pumpzahlen) {
       segs.forEach((seg: any, idx: number) => {
         if (selectedRun != null && idx !== selectedRun) return;
         for (const [i0, i1, d] of (seg.glides ?? []) as number[][]) {
@@ -1363,7 +1385,7 @@ export default function SessionDetail() {
     }
     // Pump-Marker GANZ OBEN (nach den Carve-Bögen, sonst verdecken die Bögen sie). Bei
     // gedimmten Läufen weglassen. Bleiben weiß.
-    if (showPumps) {
+    if (showPumps && pumpzahlen) {
       segs.forEach((seg: any, idx: number) => {
         if (selectedRun != null && idx !== selectedRun) return;
         for (const pidx of seg.pump_idx ?? []) {
@@ -1383,7 +1405,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -1493,7 +1515,7 @@ export default function SessionDetail() {
     const addSeg = (k: number) => {
       const a = playTimeline[k], b = playTimeline[k + 1];
       if (adj(k)) L.polyline([coords[a], coords[b]], { color: colorAt(b), weight: 5, opacity: 0.95 }).addTo(lg);
-      if (showPumps && pumpSet.has(b) && coords[b])
+      if (showPumps && pumpzahlen && pumpSet.has(b) && coords[b])
         L.circleMarker(coords[b], { pane: "pumpPane", radius: 3, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 1 }).addTo(lg);
     };
     const setPos = (ll: [number, number]) => {
@@ -1573,7 +1595,7 @@ export default function SessionDetail() {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen, carveData, zeigerTick]);
+  }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen, carveData, zeigerTick, pumpzahlen]);
 
   if (error) {
     // Öffentlicher Link ungültig/widerrufen -> freundliche Meldung + Auto-Redirect (siehe Effekt oben).
@@ -1893,6 +1915,21 @@ export default function SessionDetail() {
       )}
 
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+        {/* Wind (Profil hauptzahl="gesamt"): Gesamtstrecke und Dauer der ganzen Fahrt ZUERST, die
+            On-Foil-Zahlen folgen als zweite Angabe. Dauer = aktive Zeit im Zuschnitt (duration_ms,
+            nie ended_at - started_at, s. api.ts). */}
+        {hauptGesamt && (
+          <>
+            <Stat label={t("sd.totalDistance")}
+              value={a?.total_distance_m == null ? "–" : a.total_distance_m < 1000 ? String(Math.round(a.total_distance_m)) : (a.total_distance_m / 1000).toFixed(2)}
+              sub={a?.total_distance_m != null && a.total_distance_m < 1000 ? "m" : "km"} />
+            <Stat label={t("sd.duration")}
+              value={session.duration_ms != null
+                ? fmtMMSS(((session.trim_end_ms ?? session.duration_ms) - (session.trim_start_ms ?? 0)) / 1000)
+                : "–"}
+              sub="min:s" />
+          </>
+        )}
         <Stat label={t("stat.foiling")}
           value={a?.foiling_distance_m == null ? "–" : a.foiling_distance_m < 1000 ? String(Math.round(a.foiling_distance_m)) : (a.foiling_distance_m / 1000).toFixed(2)}
           sub={a?.foiling_distance_m != null && a.foiling_distance_m < 1000 ? "m" : "km"} />
@@ -1916,11 +1953,15 @@ export default function SessionDetail() {
           runIdx={maxSp.i} selected={selectedRun} onSelect={setSelectedRun} />
         <ClickStat label={t("sd.minSpeed", { win })} value={minSp.v != null ? (minSp.v * 3.6).toFixed(1) : "–"} sub="km/h"
           runIdx={minSp.i} selected={selectedRun} onSelect={setSelectedRun} />
-        <ClickStat label={t("sd.maxGlide")} value={maxGl.v != null ? maxGl.v.toFixed(1) : "–"} sub="s"
-          runIdx={maxGl.i} selected={selectedRun} onSelect={setSelectedRun} />
-        <Stat label={t("stat.pumps")} value={a?.pump_count != null ? String(a.pump_count) : "–"}
-          sub={hasPumpStats ? undefined : t("sd.phase2")} />
-        {hasPumpStats && (
+        {pumpzahlen && (
+          <>
+            <ClickStat label={t("sd.maxGlide")} value={maxGl.v != null ? maxGl.v.toFixed(1) : "–"} sub="s"
+              runIdx={maxGl.i} selected={selectedRun} onSelect={setSelectedRun} />
+            <Stat label={t("stat.pumps")} value={a?.pump_count != null ? String(a.pump_count) : "–"}
+              sub={hasPumpStats ? undefined : t("sd.phase2")} />
+          </>
+        )}
+        {pumpzahlen && hasPumpStats && (
           <>
             <PumpRateStat hz={m!.avg_pump_hz!} />
             <Stat label={t("sd.avgDistPerPump")}
@@ -1954,7 +1995,7 @@ export default function SessionDetail() {
           <span className="text-xs text-slate-400">{t("sd.coloring")}</span>
           <ModeButton active={colorMode === "speed"} onClick={() => setColorMode("speed")}>{t("sd.colorSpeed")}</ModeButton>
           <ModeButton active={colorMode === "hr"} onClick={() => setColorMode("hr")}>{t("sd.colorPulse")}</ModeButton>
-          {hasPump && (
+          {hasPump && pumpzahlen && (
             <ModeButton active={colorMode === "pump"} onClick={() => setColorMode("pump")}>{t("sd.colorPumpHz", { unit: pf.suffix })}</ModeButton>
           )}
           {optimalKmh != null && (
@@ -1977,14 +2018,23 @@ export default function SessionDetail() {
               ))}
             </>
           )}
+          {karteGanzMoeglich && (
+            <>
+              <span className="ml-2 text-xs text-slate-400">|</span>
+              <ModeButton active={!ganzeFahrt} onClick={() => setGanzeFahrt(false)}>{t("sd.mapOnFoil")}</ModeButton>
+              <ModeButton active={ganzeFahrt} onClick={() => setGanzeFahrt(true)}>{t("sd.mapWhole")}</ModeButton>
+            </>
+          )}
+          {pumpzahlen && (
           <button
             onClick={() => setShowPumps((v) => !v)}
             className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showPumps ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
           >
             <span className="inline-flex items-center gap-1">{t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
+          )}
           {/* Nur, wenn die Analyse Gleitphasen geliefert hat (ab der Fassung vom 03.10.2026). */}
-          {(session?.analysis?.segments ?? []).some((g: any) => g.glides?.length) && (
+          {pumpzahlen && (session?.analysis?.segments ?? []).some((g: any) => g.glides?.length) && (
             <button
               onClick={() => setShowGlides((v) => !v)}
               className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showGlides ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}

@@ -292,6 +292,9 @@ class SessionOut(BaseModel):
     # Menschliche Sportart-Klassifikation (docs/sport-classification.md). `sport` oben ist der
     # Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
     sport_class: str | None = None          # pumpfoil (Default) | wingfoil | foildrive | …
+    # Anzeige-Profil der Sportart (app/sportprofil.py, 19.10.2026): Kartenmodus, Hauptzahl, Pump-Zahlen.
+    # Zusaetzlich — aeltere Apps ignorieren es und zeigen wie bisher.
+    sport_profil: dict | None = None
     data_quality: str | None = None         # ok | false_data | duplicate | test
     sport_source: str | None = None         # default | auto | owner | admin
     needs_classification: bool = False      # 2 Melder, noch nicht zugeordnet -> in keiner Auswertung

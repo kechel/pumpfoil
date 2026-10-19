@@ -34,7 +34,7 @@ from ..schemas import (
     AnalysisOut, ExcludeRunIn, IncludeRangeIn, LabelIn, LabelOut, PumpTruthIn, RawDataOut,
     SessionMetaIn, SessionOut, SessionVideoIn, TrimIn,
 )
-from .. import ortverbergen
+from .. import ortverbergen, sportprofil
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
 from .community import _community, _spot_cond
@@ -358,6 +358,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         # und `appeal_text` nur für Besitzer/Admin: die Melder bleiben für den Betroffenen anonym,
         # aber wie viele es sind, darf er wissen.
         sport_class=getattr(s, "sport_class", None) or "pumpfoil",
+        sport_profil=sportprofil.profil(getattr(s, "sport_class", None)),
         data_quality=getattr(s, "data_quality", None) or "ok",
         sport_source=getattr(s, "sport_source", None) or "default",
         needs_classification=bool(getattr(s, "needs_classification", False)),
