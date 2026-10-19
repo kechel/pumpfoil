@@ -91,7 +91,8 @@ object Api {
         val v = if (version.isNotEmpty()) "&v=" + java.net.URLEncoder.encode(version, "UTF-8") else ""
         val lay = if (wantLayouts) "&lay=1" else ""
         val crash = if (laufAbgebrochen) "&crash=3" else ""
-        get("/api/devices/config?p=wear$v$lay$crash")
+        // sp=1: diese Uhr kann eine Sportart waehlen -> der Server liefert die Liste `sports` (19.10.2026).
+        get("/api/devices/config?p=wear$v$lay$crash&sp=1")
     }
 
     /** Laeuft der Handy-Recorder desselben Kontos? -> {"phone_rec": {"state": 0|1|2, "ago_min": n}} */
