@@ -802,12 +802,14 @@
           "seit": "2026-10-19",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.53"
           },
           "notiz": "sportzahlen.wellen (jeder Lauf = Welle), nur Anzeige."
         },
@@ -817,12 +819,14 @@
           "seit": "2026-10-19",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.53"
           },
           "notiz": "sportzahlen.wellen.paddeln_s = Fahrzeit in Bewegung - Wellenzeit."
         },
@@ -847,12 +851,14 @@
           "seit": "2026-10-19",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.53"
           },
           "notiz": "sportzahlen: Fahrten (5 min) + ab_m/ab_kmh (Luftlinie Start-Ende der Fahrt)."
         },
@@ -862,12 +868,14 @@
           "seit": "2026-10-19",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.53"
           },
           "notiz": "sportzahlen: foil_anteil je Fahrt = foil_m / Strecke der Fahrt."
         },
@@ -1662,12 +1670,14 @@
         "seit": "2026-10-19",
         "wo": [
           "server",
-          "web"
+          "web",
+          "android",
+          "ios"
         ],
         "plattformen": {
           "web": "2026-10-19",
-          "android": "",
-          "ios": ""
+          "android": "1.1.44",
+          "ios": "1.1.53"
         }
       }
     }

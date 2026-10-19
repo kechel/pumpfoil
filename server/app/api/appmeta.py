@@ -1014,6 +1014,8 @@ NAECHSTES: list[dict] = [
     {"name": "iPhone + Apple Watch", "version": "1.1.53",
      "items": [
          "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
+         "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
+         "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
      ]},
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
@@ -1032,6 +1034,8 @@ NAECHSTES: list[dict] = [
          "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
          "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
          "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
+         "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
+         "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.

@@ -1109,6 +1109,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     z.fahrzeitS?.let { add(StatItem(I18n.t("sd.movingTime"), mmssD(it))) }
                     z.tempoKmh?.let { add(StatItem(I18n.t("sd.avgSpeedRide"), "%.1f km/h".format(it))) }
                     z.foilAnteil?.let { add(StatItem(I18n.t("sd.foilShare"), "${kotlin.math.round(it * 100).toInt()} %")) }
+                    // Wave (19.10.2026, wie im Web): Wellen, laengste Welle, Rauspaddeln.
+                    z.wellen?.let { w ->
+                        add(StatItem(I18n.t("sd.waves"), "${w.anzahl}"))
+                        add(StatItem(I18n.t("sd.longestWave"), "${mmssD(w.laengsteS)} · ${w.laengsteM.toInt()} m"))
+                        w.paddelnS?.let { add(StatItem(I18n.t("sd.paddleTime"), mmssD(it))) }
+                    }
                 }
                 a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
                 a.foilingTimeS?.let { add(StatItem(I18n.t("compare.foilTime"), mmssD(it))) }
@@ -2090,6 +2096,12 @@ private fun FahrtenKarte(fahrten: List<Fahrt>) {
                 Text("${I18n.t("sd.ride")} ${i + 1}   ${fmtLaufDauer(f.dauerS)}   %.1f km".format(f.streckeM / 1000.0) +
                     "   (%.1f km · ".format(f.foilM / 1000.0) + I18n.t("sd.rideRuns").replace("{n}", "${f.laeufe}") + ")",
                     style = MaterialTheme.typography.bodyMedium)
+                // Downwind: Luftlinie A->B mit Tempo und Anteil auf dem Foil.
+                if (f.abM != null && f.abKmh != null) {
+                    Text(I18n.t("sd.aToB").replace("{km}", "%.1f".format(f.abM / 1000.0)).replace("{v}", "%.1f".format(f.abKmh)) +
+                        (f.foilAnteil?.let { " · ${I18n.t("sd.foilShare")} ${kotlin.math.round(it * 100).toInt()} %" } ?: ""),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             Text(I18n.t("sd.ridesNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

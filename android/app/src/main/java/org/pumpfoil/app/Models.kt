@@ -276,12 +276,32 @@ data class StartSuccess(
 data class SSWindow(val total: Int = 0, val success: Int = 0, val failed: Int = 0, val rate: Int? = null)
 @Serializable
 data class CarveStats(val windows: Map<String, CarveWin> = emptyMap())
+
+// Jahresbilanz je Sportart (19.10.2026, GET /api/sessions/jahresbilanz)
+@Serializable
+data class BilanzSport(val sport: String = "", val sessions: Int = 0, val stunden: Double = 0.0, val km: Double = 0.0,
+                       @SerialName("foil_km") val foilKm: Double = 0.0)
+
+@Serializable
+data class BilanzJahr(val jahr: Int = 0, val sportarten: List<BilanzSport> = emptyList())
+
+@Serializable
+data class Jahresbilanz(val jahre: List<BilanzJahr> = emptyList())
 @Serializable
 data class CarveWin(val s: Int = 0, val m: Int = 0, val l: Int = 0)
 
 @Serializable
 data class Fahrt(val laeufe: Int = 0, @SerialName("dauer_s") val dauerS: Double = 0.0,
-                 @SerialName("strecke_m") val streckeM: Double = 0.0, @SerialName("foil_m") val foilM: Double = 0.0)
+                 @SerialName("strecke_m") val streckeM: Double = 0.0, @SerialName("foil_m") val foilM: Double = 0.0,
+                 // nur Downwind (19.10.2026): Luftlinie A->B, Tempo darauf, Anteil auf dem Foil
+                 @SerialName("ab_m") val abM: Double? = null, @SerialName("ab_kmh") val abKmh: Double? = null,
+                 @SerialName("foil_anteil") val foilAnteil: Double? = null)
+
+// nur Wave (19.10.2026): jeder Lauf ist eine Welle
+@Serializable
+data class Wellen(val anzahl: Int = 0, @SerialName("laengste_s") val laengsteS: Double = 0.0,
+                  @SerialName("laengste_m") val laengsteM: Double = 0.0, @SerialName("reiten_s") val reitenS: Double = 0.0,
+                  @SerialName("paddeln_s") val paddelnS: Double? = null)
 
 @Serializable
 data class SportZahlen(
@@ -289,6 +309,7 @@ data class SportZahlen(
     @SerialName("tempo_kmh") val tempoKmh: Double? = null,
     @SerialName("foil_anteil") val foilAnteil: Double? = null,
     val fahrten: List<Fahrt>? = null,
+    val wellen: Wellen? = null,
 )
 
 @Serializable

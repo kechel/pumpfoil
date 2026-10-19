@@ -1625,6 +1625,12 @@ struct SessionDetailView: View {
             if let v = z.fahrzeit_s { out.append(StatItem(Loc.t("sd.movingTime", lang), mmssD(v))) }
             if let v = z.tempo_kmh { out.append(StatItem(Loc.t("sd.avgSpeedRide", lang), String(format: "%.1f km/h", v))) }
             if let v = z.foil_anteil { out.append(StatItem(Loc.t("sd.foilShare", lang), "\(Int((v * 100).rounded())) %")) }
+            // Wave (19.10.2026, wie im Web): Wellen, laengste Welle, Rauspaddeln.
+            if let w = z.wellen {
+                out.append(StatItem(Loc.t("sd.waves", lang), "\(w.anzahl)"))
+                out.append(StatItem(Loc.t("sd.longestWave", lang), mmssD(w.laengste_s) + " · \(Int(w.laengste_m)) m"))
+                if let p = w.paddeln_s { out.append(StatItem(Loc.t("sd.paddleTime", lang), mmssD(p))) }
+            }
         }
         if let v = a.foiling_distance_m { out.append(StatItem(Loc.t("home.foiling", lang), dist(v))) }
         if let v = a.foiling_time_s { out.append(StatItem(Loc.t("compare.foilTime", lang), mmssD(v))) }
@@ -1898,10 +1904,21 @@ private struct FahrtenKarte: View {
             + String(format: "%.1f km   (%.1f km · ", f.strecke_m / 1000.0, f.foil_m / 1000.0) + laeufe + ")"
     }
 
+    /// Downwind: Luftlinie A->B mit Tempo und Anteil auf dem Foil (nil bei anderen Sportarten).
+    private func abZeile(_ f: Fahrt) -> String? {
+        guard let ab = f.ab_m, let v = f.ab_kmh else { return nil }
+        var t = Loc.t("sd.aToB", lang)
+            .replacingOccurrences(of: "{km}", with: String(format: "%.1f", ab / 1000.0))
+            .replacingOccurrences(of: "{v}", with: String(format: "%.1f", v))
+        if let p = f.foil_anteil { t += " · " + Loc.t("sd.foilShare", lang) + " \(Int((p * 100).rounded())) %" }
+        return t
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             ForEach(Array(fahrten.enumerated()), id: \.offset) { i, f in
                 Text(zeile(i, f)).font(.subheadline)
+                if let ab = abZeile(f) { Text(ab).font(.footnote).foregroundStyle(.secondary) }
             }
             Text(Loc.t("sd.ridesNote", lang)).font(.footnote).foregroundStyle(.secondary)
         }
