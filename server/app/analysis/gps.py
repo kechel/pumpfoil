@@ -185,11 +185,12 @@ def _close_gaps(mask: np.ndarray, max_gap: int) -> np.ndarray:
 
 def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int,
                     enter_speed: float = ENTER_SPEED, exit_speed: float = EXIT_SPEED,
-                    max_foil: float = MAX_FOIL_SPEED) -> np.ndarray:
-    """GPS-State-Machine (Hysterese + Dwell) als Fallback, wenn kein ML-Modell da ist."""
+                    max_foil: float = MAX_FOIL_SPEED, exit_dwell_s: float = EXIT_DWELL_S) -> np.ndarray:
+    """GPS-State-Machine (Hysterese + Dwell) als Fallback, wenn kein ML-Modell da ist.
+    `exit_dwell_s` nur fuer die Wind-Erkennung (windlauf.py) abweichend; Standard = bisher."""
     n = speed_s.size
     enter_dwell = max(int(round(ENTER_DWELL_S * gps_hz)), 1)
-    exit_dwell = max(int(round(EXIT_DWELL_S * gps_hz)), 1)
+    exit_dwell = max(int(round(exit_dwell_s * gps_hz)), 1)
     mask = np.zeros(n, dtype=bool)
     foiling = False
     cand_streak = 0

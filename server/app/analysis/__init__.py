@@ -749,6 +749,17 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         _v2_kw = dict(_preset_kw or {})
         if am_brett:
             _v2_kw["use_model"] = False
+        # WIND-SPORTARTEN (Jans OK 19.10.2026, analysis/windlauf.py): KEIN Handgelenk-Modell (auf
+        # Pumpbewegungen trainiert), keine v3-Nachbearbeitung, keine Pumpfoil-Empfindlichkeit —
+        # GPS-Zustandsmaschine mit Schwellen je Session aus der Tempo-Luecke zwischen „Brett im
+        # Wasser" und on-foil. Alle anderen Sportarten laufen unveraendert.
+        from ..sportprofil import GRUPPE as _GRUPPE
+        _wind = _GRUPPE.get(session.sport_class or "pumpfoil") == "wind"
+        _wind_sw = None
+        if _wind:
+            from .windlauf import schwellen as _wind_schwellen, v2_parameter as _wind_param
+            _wind_sw = _wind_schwellen(gps_samples)
+            _v2_kw = _wind_param(_wind_sw)
         res = analyze_session_v2(session, judge_fremdkraft=_judge, **_v2_kw)
         # Erkennung v3 (Jans OK 30.09.2026, docs/DETECTION-V3.md): Nachbearbeitung der Laeufe mit
         # dem Erkennungsmodell — nur in der FINALEN Analyse, nur fuer Modell-Sessions am
@@ -756,8 +767,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         # gewinnt immer; was v3 wegnimmt, steht mit Grund in metrics.fremdkraft_laeufe (quelle v3)
         # und laesst sich dort zurueckholen. Faellt bei jedem Fehler auf das v2-Ergebnis zurueck.
         from .v3.nachbearbeitung import anwenden as _v3_anwenden, detector_v3_enabled
-        if final and accel_usable and detector_v3_enabled():
+        if final and accel_usable and detector_v3_enabled() and not _wind:
             res = _v3_anwenden(res, session, _judge, _sens)
+        if _wind_sw is not None:
+            res.setdefault("metrics", {})["wind_erkennung"] = _wind_sw
         res.pop("windows", None)
         res.pop("timebase", None)
         if detection == "none":
