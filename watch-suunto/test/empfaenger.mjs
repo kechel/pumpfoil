@@ -8,6 +8,8 @@ export class Empfaenger {
     this.gps = new Map();         // sek -> {...}
     this.ereignisse = new Map();  // nr -> {art, t, sek}
     this.position = null;
+    this.aktivitaet = null;       // SPORT (Typ 7): Suunto-Sportmodus der Aufnahme
+    this.sportPakete = 0;
     this.fertigBis = -1;          // Accel: alle Bloecke bis hier vollstaendig (oder aufgegeben)
     this.sekBis = -1;
     this.ereigBis = -1;
@@ -45,6 +47,8 @@ export class Empfaenger {
       this.ereignisse.set(p[1], { nr: p[1], art: p[2], t: dv.getUint32(3, true), sek: dv.getUint16(7, true) });
     } else if (typ === 6) {
       this.position = [dv.getInt32(1, true) / 1e7, dv.getInt32(5, true) / 1e7];
+    } else if (typ === 7 && p.length >= 3) {
+      this.aktivitaet = dv.getUint16(1, true); this.sportPakete++;
     }
     this.nachziehen();
   }

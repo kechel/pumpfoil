@@ -322,3 +322,67 @@ test("Standard-Layouts: das Handy schickt nur std, die Uhr nimmt ihre mitgebrach
   assert.equal(uhr.ctx.kf.pages[0][0], 1, "freies Layout");
   assert.ok(uhr.speicher.get("k").length < 60, "gespeichert wird nur std");
 });
+
+/** Kurze Aufnahme fuer den Sportmodus: 3 s vor dem Start, 60 s Aufnahme, Handy optional zwischendurch weg.
+ *  Gibt die Pakettypen in Empfangsreihenfolge mit (HALLO mit Sitzung als "1s"). */
+function kurzeAufnahme(opts, { wegVon = -1, wegBis = -1 } = {}) {
+  const uhr = new Uhr({ einstellungen: { handy: "true", hz: "0" }, ...opts });
+  const typen = [];
+  const orig = uhr.empf.paket.bind(uhr.empf);
+  uhr.empf.paket = (p) => { typen.push((p[0] & 15) === 1 && (p[10] | p[11] | p[12] | p[13]) ? "1s" : String(p[0] & 15)); orig(p); };
+  uhr.ruf("onLoad");
+  let t = 0, utc = 1792200000, aktiv = 0;
+  for (let i = 0; i < 3; i++) { uhr.bis(t += 1000); uhr.ruf("evaluate", { rdy: 100, pos: { latitude: 470000000, longitude: 90000000 }, utc: utc + i }); }
+  uhr.ruf("onExerciseStart", { utc });
+  for (let s = 0; s < 60; s++) {
+    uhr.handy(!(s >= wegVon && s < wegBis));
+    for (let h = 0; h < 2; h++) {
+      const x = [], y = [], z = [];
+      for (let k = 0; k < 25; k++) { x.push(0.1 * G); y.push(0.05 * G); z.push(0.99 * G + 0.02 * Math.sin(k + s)); }
+      uhr.bis(t += 500);
+      uhr.ruf("onAccelerometer", { acc: { time: 5000 + aktiv + h * 500, x, y, z } });
+    }
+    aktiv += 1000;
+    uhr.ruf("evaluate", { tmr: aktiv, sp: 0.5, hr: 2.0, pos: { latitude: 470000000 + s * 30, longitude: 90000000 }, rdy: 100, utc: utc + s });
+  }
+  uhr.handy(true);
+  uhr.ruf("onExerciseEnd");
+  uhr.bis(t += 3000);
+  return { uhr, typen };
+}
+
+test("Sportmodus (Windsurfen = 86): SPORT-Paket direkt nach dem HALLO der Aufnahme, vor allen Daten", () => {
+  const { uhr, typen } = kurzeAufnahme({ aktivitaet: 86 });
+  assert.equal(uhr.empf.aktivitaet, 86);
+  assert.ok(uhr.gets.some(([, p]) => p === "/Settings/Activity/Current/ActivityID"));
+  const iHallo = typen.indexOf("1s");
+  assert.ok(iHallo >= 0, "HALLO mit Sitzung");
+  assert.equal(typen[iHallo + 1], "7", "SPORT gleich nach dem HALLO: " + typen.slice(0, iHallo + 4).join(","));
+  assert.ok(typen.indexOf("7") < typen.indexOf("4") && typen.indexOf("7") < typen.indexOf("2"), "vor GPS und Accel");
+  // vor dem Start (Sitzung 0) geht kein SPORT raus
+  assert.ok(!typen.slice(0, iHallo).includes("7"));
+  assert.ok(uhr.empf.accelBloecke().length > 50, "Aufnahme selbst unveraendert vollstaendig");
+});
+
+test("Sportmodus: Antwort kommt erst 20 s nach dem Start -> SPORT wird nachgereicht", () => {
+  // evaluate fragt bei t=1 s, die Antwort kommt ~23 s spaeter (Start bei t=3 s)
+  const { uhr, typen } = kurzeAufnahme({ aktivitaet: 91, aktivitaetVerzoegerungMs: 23000 });
+  assert.equal(uhr.empf.aktivitaet, 91);
+  assert.ok(typen.includes("7"));
+});
+
+test("Sportmodus nach Verbindungsabbruch erneut (jedes HALLO bringt ein SPORT mit)", () => {
+  const { uhr } = kurzeAufnahme({ aktivitaet: 89 }, { wegVon: 20, wegBis: 30 });
+  assert.equal(uhr.empf.aktivitaet, 89);
+  assert.ok(uhr.empf.sportPakete >= 2, "SPORT-Pakete: " + uhr.empf.sportPakete);
+});
+
+test("Sportmodus unbekannt ($.get fehlt oder antwortet nicht): kein SPORT, Aufnahme wie bisher", () => {
+  for (const opts of [{ ohneGet: true }, {}]) {
+    const { uhr, typen } = kurzeAufnahme(opts);
+    assert.equal(uhr.empf.aktivitaet, null);
+    assert.ok(!typen.includes("7"));
+    assert.ok(uhr.empf.accelBloecke().length > 50);
+    assert.ok(uhr.empf.ereignisse.size >= 2);
+  }
+});

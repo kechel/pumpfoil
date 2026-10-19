@@ -948,6 +948,8 @@ var Funk = function (slots, gpsSlots) {
   this.uhrId = 0; this.hz = 25; this.einheit = 0; this.display = 113; this.appVer = 0;
   this.stdHash = 0;               // Pruefsumme der mitgebrachten Standard-Layouts (HALLO)
   this.position = null;           // [lat, lon] e7, einmal je App-Start
+  this.aktivitaet = 0;            // Suunto-Sportmodus, in dem die App laeuft (Uhr-Liste, 0 = unbekannt)
+  this.sportFaellig = 0;          // SPORT-Paket nach dem naechsten HALLO
   this.pakete = 0;                // gesendet (Statistik)
 };
 
@@ -1022,7 +1024,7 @@ var funkI32 = function (b, o, v) {
 
 // --- Naechstes Paket ------------------------------------------------------------------------
 
-/** Das naechste zu sendende Paket (Array von Bytes) oder null. Reihenfolge: Hallo, Ereignisse,
+/** Das naechste zu sendende Paket (Array von Bytes) oder null. Reihenfolge: Hallo, Sport, Ereignisse,
  *  Position, GPS, Accel. */
 Funk.prototype.naechstes = function () {
   var p, i;
@@ -1031,7 +1033,15 @@ Funk.prototype.naechstes = function () {
     p = [1, FUNK_VER, this.hz, this.display, this.appVer & 255, (this.appVer >> 8) & 255, 0, 0, 0, 0, 0, 0, 0, 0,
       (this.laeuft ? 1 : 0) | (this.pause ? 2 : 0), this.einheit, 0, 0, 0, 0];
     funkI32(p, 6, this.uhrId); funkI32(p, 10, this.sitzung); funkI32(p, 16, this.stdHash);
+    this.sportFaellig = 1;
     return p;
+  }
+  // SPORT [7, aktivitaet u16]: der Suunto-Sportmodus der Aufnahme, gleich nach jedem HALLO (das Handy
+  // legt die Session beim HALLO an und laedt erst mit dem ersten Chunk hoch -> kommt immer vorher an).
+  // Nur waehrend einer Aufnahme und nur, wenn die Uhr den Modus kennt. Aeltere Handys ignorieren Typ 7.
+  if (this.sportFaellig) {
+    this.sportFaellig = 0;
+    if (this.sitzung && this.aktivitaet > 0) return [7, this.aktivitaet & 255, (this.aktivitaet >> 8) & 255];
   }
   for (i = 0; i < this.ereig.length; i++) {
     var e = this.ereig[i];
@@ -1214,7 +1224,7 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekX, sekY, sekZ, sekXX, sekYY, sekZZ, sekN, sekPeak, sekStaerke, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz, lokalLetzt = 0, evalN = 0;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz, lokalLetzt = 0, evalN = 0, aktGefragt = 0;
 
 /*
  * Log-Kanaele (docs/SUUNTO.md „Die Log-Kanaele"): hoechstens 5, je eine float32-Zahl pro Sekunde, gespeichert
@@ -1295,6 +1305,25 @@ var summeLetzte = function (n) {
   var z = 0, i;
   for (i = Math.max(0, pumpHist.length - n); i < pumpHist.length; i++) z += pumpHist[i];
   return z;
+};
+
+/**
+ * Suunto-Sportmodus, in dem der Nutzer die App gestartet hat (Kitesurfen, Windsurfen, SUP …), Nummer aus
+ * der Liste „Activity ID" der Referenz (NICHT die activityId der Cloud-API, die zaehlt anders). Geht als
+ * SPORT-Paket ans Handy, der Server ordnet ihn je Nutzer einer Sportart zu (docs/SUUNTO.md „Sportart").
+ * Per `$.get` statt als `in`-Quelle: die 10 erlaubten Quellen sind belegt. Die Referenz nennt `$.get`
+ * fuer main.js nur in einem Nebensatz [UNKLAR auf der Uhr] — fehlt es oder scheitert es, bleibt 0 und
+ * alles laeuft wie bisher. Kein Speicher: nichts davon landet im localStorage.
+ */
+var aktLesen = function () {
+  try {
+    if (typeof $ === "undefined" || typeof $.get !== "function") return;
+    $.get("/Settings/Activity/Current/ActivityID", function (v) {
+      var n = typeof v === "number" ? v : v && typeof v.value === "number" ? v.value : 0;
+      n = Math.round(n);
+      if (n > 0 && n < 65536 && n !== fu.aktivitaet) { fu.aktivitaet = n; fu.sportFaellig = 1; dbg("Sportmodus " + n); }
+    });
+  } catch (e) { dbg("Sportmodus: " + e); }
 };
 
 // --- Hilfen -------------------------------------------------------------------------------
@@ -1512,6 +1541,7 @@ function onLoad(input, output) {
     try { localStorage.setItem("uhrId", "" + id); } catch (e) { id = id; }
   }
   fu.uhrId = id;
+  aktGefragt = 0;
   zuletzt = { rdy: 0, alt: null, asc: null };
   lauefe = 0; pumpHist = []; pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false;
   sekNull(); blockWerte = []; blockT = 0; halbe = null;
@@ -1531,6 +1561,7 @@ function onExerciseStart(input, output) {
   utcStart = zahl(input.utc, 0);
   fu.sitzung = utcStart;
   fu.ereignis(1, 0, 0);
+  if (!fu.aktivitaet) aktLesen();     // noch keine Antwort aus evaluate: beim Start nochmal fragen
 }
 
 function onExercisePause(input, output) {
@@ -1572,6 +1603,7 @@ function onLap(input, output) { dbg("onLap"); }
 
 function evaluate(input, output) {
   nimmAccel(input);
+  if (!aktGefragt) { aktGefragt = 1; aktLesen(); }   // einmal, nicht in onLoad (Referenz: dort nichts abonnieren)
   if (typeof input.rdy === "number") zuletzt.rdy = input.rdy;
   zuletzt.alt = typeof input.alt === "number" ? input.alt : zuletzt.alt;
   zuletzt.asc = typeof input.asc === "number" ? input.asc : zuletzt.asc;

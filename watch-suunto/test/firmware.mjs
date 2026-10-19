@@ -9,7 +9,10 @@ import { WURZEL } from "./lade.mjs";
 import { Empfaenger } from "./empfaenger.mjs";
 
 export class Uhr {
-  constructor({ einstellungen = {}, latenzMs = 30 } = {}) {
+  // aktivitaet: Suunto-Sportmodus fuer $.get("/Settings/Activity/Current/ActivityID") (Uhr-Liste der
+  // Referenz); undefined = keine Antwort (wie HTTP_CODE_NO_CONTENT), ohneGet = $.get fehlt ganz.
+  // aktivitaetVerzoegerungMs: Antwort kommt asynchron, so viel spaeter.
+  constructor({ einstellungen = {}, latenzMs = 30, aktivitaet, ohneGet = false, aktivitaetVerzoegerungMs = 0 } = {}) {
     this.jetztMs = 0;
     this.texte = {};
     this.stile = {};
@@ -24,6 +27,7 @@ export class Uhr {
     this.handler = null;
     this.writes = 0;
     this.notifyAn = false;
+    this.gets = [];                  // $.get(pfad) aus main.js
     const uhr = this;
     const ls = {
       getItem: (k) => (uhr.speicher.has(k) && typeof uhr.speicher.get(k) === "string" ? uhr.speicher.get(k) : null),
@@ -58,7 +62,14 @@ export class Uhr {
       setStyle: (id, p, v) => { (uhr.stile[id] = uhr.stile[id] || {})[p] = v; },
       playIndication: (n) => uhr.vibration.push([uhr.jetztMs, n]),
       systemEvent: () => {},
-      $: { put: (pfad, wert) => uhr.puts.push([uhr.jetztMs, pfad, wert]) },
+      $: Object.assign({ put: (pfad, wert) => uhr.puts.push([uhr.jetztMs, pfad, wert]) }, ohneGet ? {} : {
+        get: (pfad, cb) => {
+          uhr.gets.push([uhr.jetztMs, pfad]);
+          if (pfad === "/Settings/Activity/Current/ActivityID" && aktivitaet !== undefined) {
+            uhr.spaeter(aktivitaetVerzoegerungMs, () => cb(aktivitaet));
+          }
+        },
+      }),
       // unload("_cm"): Firmware laedt die App-Seite neu und fragt getUserInterface erneut
       unload: () => { uhr.vorlage = uhr.ctx.getUserInterface({}, uhr.output || {}).template; },
       evalFile: (f) => {
