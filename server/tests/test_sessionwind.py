@@ -161,7 +161,7 @@ def test_vorhersage_als_erster_wert_und_rueckfall(monkeypatch, tmp_path):
     jetzt["t"] = datetime(2026, 10, 18, 18, 30, tzinfo=timezone.utc)
     zustand["weg"] = True
     c = sessionwind.session_wind(2, 51.7, 3.8, spaeter, spaeter)
-    assert c["vorhersage"] is True and zustand["n"] == 2             # versucht, Rueckfall Vorhersage
+    assert c["vorhersage"] is True and zustand["n"] == 3             # beide Schnittstellen versucht, Rueckfall Vorhersage
     zustand["weg"] = False; zustand["kmh"] = 15.0
     d = sessionwind.session_wind(2, 51.7, 3.8, spaeter, spaeter)
     assert "vorhersage" not in d and d["stunden"][0]["kmh"] == 15.0  # echter Wert ersetzt Vorhersage
