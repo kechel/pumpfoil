@@ -91,6 +91,22 @@
     {
       "id": "wellen",
       "en": "Waves ridden"
+    },
+    {
+      "id": "windfenster",
+      "en": "Wind window of the spot"
+    },
+    {
+      "id": "quote_verlauf",
+      "en": "Tacks and jibes over time"
+    },
+    {
+      "id": "welle_paddeln",
+      "en": "Riding versus paddling out"
+    },
+    {
+      "id": "downwind_verbunden",
+      "en": "Share on the foil from A to B"
     }
   ],
   "gruppen": {
@@ -201,6 +217,22 @@
           "en": "Does not apply."
         },
         "downwind_strecke": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "windfenster": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "quote_verlauf": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "welle_paddeln": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_verbunden": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -378,6 +410,24 @@
         "downwind_strecke": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "windfenster": {
+          "status": "vorschlag",
+          "en": "Which wind directions and strengths are ridden at each spot, from all sessions and the model wind, shown on the spot page.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus sessionwind (Modellwind je Session) + Spot; hilft Neuen am Spot."
+        },
+        "quote_verlauf": {
+          "status": "vorschlag",
+          "en": "How many tacks and jibes stayed on the foil, as a trend over your sessions.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus manoever.py je Session (durch/gesamt), Verlauf im Profil oder auf der Foiler-Seite."
+        },
+        "welle_paddeln": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_verbunden": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -474,6 +524,24 @@
           "status": "geplant",
           "en": "Downwind runs shown as A-to-B distance with average speed, and the total downwind distance of a session.",
           "notiz": "Claude 19.10.: Downwind ist eher eine Strecke als Kreise; Luftlinie Start-Ziel je Lauf + Summe als eigene Kennzahl. Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
+        },
+        "welle_paddeln": {
+          "status": "vorschlag",
+          "en": "Time riding waves next to time paddling back out, per session.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Nur surf_wave sinnvoll; Laeufe = Wellen, Rest = Paddeln."
+        },
+        "downwind_verbunden": {
+          "status": "vorschlag",
+          "en": "How much of a downwind run from A to B was on the foil, i.e. how well the bumps were linked.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Nur surf_downwind; on-foil-Strecke / A-B-Strecke."
+        },
+        "windfenster": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "quote_verlauf": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -508,8 +576,9 @@
           ]
         },
         "kartenschalter": {
-          "status": "nein",
-          "en": "Not planned yet."
+          "status": "vorschlag",
+          "en": "Map switch between on-foil only and the whole ride, like the wind sports.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
         },
         "kennzahlen": {
           "status": "live",
@@ -555,8 +624,9 @@
           "en": "Set by the rider."
         },
         "fahrten": {
-          "status": "nein",
-          "en": "Does not apply."
+          "status": "vorschlag",
+          "en": "Rides instead of many short runs and the whole ride on the map, like the wind sports, since motor riding is continuous.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Profil wie wind (karte=ganz, hauptzahl=gesamt) fuer efoil/foildrive."
         },
         "wind_am_spot": {
           "status": "nein",
@@ -583,6 +653,22 @@
           "en": "Does not apply."
         },
         "downwind_strecke": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "windfenster": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "quote_verlauf": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "welle_paddeln": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_verbunden": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -646,6 +732,11 @@
           "status": "live",
           "en": "Own records and leaderboards via the sport filter, kept separate from pumpfoil.",
           "notiz": "Jan 19.10.: „ich wuerde es lieber getrennt lassen“ — Foil Scoot zaehlt NICHT in den Pumpfoil-Standardrekorden (ThermikDreher-Frage entschieden)."
+        },
+        "tempo": {
+          "status": "vorschlag",
+          "en": "Its own speed colour scale, since scooters ride faster than pumpfoilers.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
         }
       }
     },
@@ -653,7 +744,13 @@
       "id": "wakethief",
       "en": "Wake thief",
       "gruppe": "pump",
-      "merkmale": {}
+      "merkmale": {
+        "rekorde": {
+          "status": "vorschlag",
+          "en": "Longest ride behind the boat as its own record.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
+        }
+      }
     },
     {
       "id": "sup_paddle",
@@ -705,7 +802,14 @@
     {
       "id": "towed",
       "en": "Towed",
-      "gruppe": "motor"
+      "gruppe": "motor",
+      "merkmale": {
+        "kennzahlen": {
+          "status": "vorschlag",
+          "en": "Starts behind the boat or winch as the main number, since every tow is one run.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
+        }
+      }
     }
   ],
   "stufen": [
@@ -753,6 +857,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "vorschlaege",
+      "was": "Neue Vorschlaege zur Pruefung: Windfenster je Spot, Wenden/Halsen-Quote im Verlauf, Wave Reiten/Paddeln, Downwind A-B-Anteil, Motor mit Fahrten + ganzer Fahrt, Towed Starts als Hauptzahl, Wake-Thief-Rekord, Foil-Scoot-Tempo-Skala, Uhr-Seiten je Sportart, Jahresbilanz je Sportart.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
@@ -1273,6 +1388,16 @@
         "status": "geplant",
         "en": "Train a new detection model as soon as there are enough sessions with the phone on the board",
         "notiz": "Jan 19.10.: „ein neues model trainieren sobald genug phone on board sessions da sind“. Handy am Brett = Wahrheit fuer die Uhr (docs/GROUND-TRUTH.md, Memory ground-truth-handy-am-brett): Pump-Zaehlung und On-Foil je Sportart neu eichen, auch fuer Wind."
+      },
+      "uhr_je_sport": {
+        "status": "vorschlag",
+        "en": "Different watch pages per sport (e.g. no pump fields when winging) and run limits from the server, so a tack does not start a new run.",
+        "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Uhr muss Seiten je waehlbarer Sportart beim Config-Abruf bekommen (Wahl erst auf der Uhr, oft offline)."
+      },
+      "jahresbilanz": {
+        "status": "vorschlag",
+        "en": "Kilometres, hours and sessions per sport and year in your profile.",
+        "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
       }
     }
   },
@@ -1292,6 +1417,14 @@
     {
       "id": "modell_brett",
       "en": "New model from phone-on-board sessions"
+    },
+    {
+      "id": "uhr_je_sport",
+      "en": "Watch pages and run limits per sport"
+    },
+    {
+      "id": "jahresbilanz",
+      "en": "Year in numbers per sport"
     }
   ]
 }
