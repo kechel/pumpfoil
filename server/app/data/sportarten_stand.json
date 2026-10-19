@@ -25,6 +25,10 @@
       "en": "Run detection"
     },
     {
+      "id": "eigene_erkennung",
+      "en": "Own detection model"
+    },
+    {
       "id": "tempo",
       "en": "Speed limits"
     },
@@ -235,6 +239,10 @@
         "downwind_verbunden": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "eigene_erkennung": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -440,6 +448,11 @@
         "downwind_verbunden": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "eigene_erkennung": {
+          "status": "geplant",
+          "en": "Own detection for the wind sports instead of the pumpfoil model, once there is reference data such as rides with the phone on the board.",
+          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz."
         }
       }
     },
@@ -554,6 +567,11 @@
         "quote_verlauf": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "eigene_erkennung": {
+          "status": "geplant",
+          "en": "Own detection for wave and downwind riding instead of the pumpfoil model, once there is reference data.",
+          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz."
         }
       }
     },
@@ -683,6 +701,11 @@
         "downwind_verbunden": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "eigene_erkennung": {
+          "status": "geplant",
+          "en": "Own detection for motor and towed riding instead of the pumpfoil model, once there is reference data.",
+          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz."
         }
       }
     }
@@ -1072,6 +1095,19 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wind",
+        "welle",
+        "motor"
+      ],
+      "merkmal": "eigene_erkennung",
+      "was": "Eigenes Erkennungsmodell fuer die Sportarten ausser Pumpfoil als geplant vermerkt (spaeter, braucht Vergleichsdaten).",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
