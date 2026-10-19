@@ -33,6 +33,8 @@ var Funk = function (slots, gpsSlots) {
   this.uhrId = 0; this.hz = 25; this.einheit = 0; this.display = 113; this.appVer = 0;
   this.stdHash = 0;               // Pruefsumme der mitgebrachten Standard-Layouts (HALLO)
   this.position = null;           // [lat, lon] e7, einmal je App-Start
+  this.aktivitaet = 0;            // Suunto-Sportmodus, in dem die App laeuft (Uhr-Liste, 0 = unbekannt)
+  this.sportFaellig = 0;          // SPORT-Paket nach dem naechsten HALLO
   this.pakete = 0;                // gesendet (Statistik)
 };
 
@@ -107,7 +109,7 @@ var funkI32 = function (b, o, v) {
 
 // --- Naechstes Paket ------------------------------------------------------------------------
 
-/** Das naechste zu sendende Paket (Array von Bytes) oder null. Reihenfolge: Hallo, Ereignisse,
+/** Das naechste zu sendende Paket (Array von Bytes) oder null. Reihenfolge: Hallo, Sport, Ereignisse,
  *  Position, GPS, Accel. */
 Funk.prototype.naechstes = function () {
   var p, i;
@@ -116,7 +118,15 @@ Funk.prototype.naechstes = function () {
     p = [1, FUNK_VER, this.hz, this.display, this.appVer & 255, (this.appVer >> 8) & 255, 0, 0, 0, 0, 0, 0, 0, 0,
       (this.laeuft ? 1 : 0) | (this.pause ? 2 : 0), this.einheit, 0, 0, 0, 0];
     funkI32(p, 6, this.uhrId); funkI32(p, 10, this.sitzung); funkI32(p, 16, this.stdHash);
+    this.sportFaellig = 1;
     return p;
+  }
+  // SPORT [7, aktivitaet u16]: der Suunto-Sportmodus der Aufnahme, gleich nach jedem HALLO (das Handy
+  // legt die Session beim HALLO an und laedt erst mit dem ersten Chunk hoch -> kommt immer vorher an).
+  // Nur waehrend einer Aufnahme und nur, wenn die Uhr den Modus kennt. Aeltere Handys ignorieren Typ 7.
+  if (this.sportFaellig) {
+    this.sportFaellig = 0;
+    if (this.sitzung && this.aktivitaet > 0) return [7, this.aktivitaet & 255, (this.aktivitaet >> 8) & 255];
   }
   for (i = 0; i < this.ereig.length; i++) {
     var e = this.ereig[i];

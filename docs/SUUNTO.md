@@ -80,12 +80,13 @@ Alle Zahlen little-endian. Byte 0 = Pakettyp.
 
 | Typ | Inhalt |
 |---|---|
-| `0x01` HALLO | ver u8, hz u8, display u8 (`n`/`o`/`q` als ASCII), appVer u16 (×100), uhrId u32 (Zufall, einmal in `localStorage`), sitzung u32 (Startzeit, Unix-s; 0 = noch keine Aufnahme), flags u8 (bit0 Aufnahme laeuft, bit1 Pause), einheit u8 (0 m/s², 1 g, 2 mg) |
+| `0x01` HALLO | ver u8, hz u8, display u8 (`n`/`o`/`q` als ASCII), appVer u16 (×100), uhrId u32 (Zufall, einmal in `localStorage`), sitzung u32 (Startzeit, Unix-s; 0 = noch keine Aufnahme), flags u8 (bit0 Aufnahme laeuft, bit1 Pause), einheit u8 (0 m/s², 1 g, 2 mg), stdHash u32 (Pruefsumme der Standard-Layouts) — damit sind alle 20 Bytes belegt |
 | `0x02` ACCEL-Kopf | block u16, t_ms u32 (aktive Zeit seit Start), n u8 (Werte im Block), dann bis zu 12 Bytes Nutzdaten |
 | `0x03` ACCEL-Teil | block u8 (unteres Byte), teil u8, 18 Bytes Nutzdaten |
 | `0x04` GPS | sek u16 (aktive Sekunde), lat i32, lon i32 (Grad·1e7), speed u16 (cm/s, 0xFFFF = unbekannt), hr u8 (0 = keiner), acc u8 (m, 255 = unbekannt), alt i16 (m), nr u16 (laufende Nummer, die quittiert wird), frei u8 — 20 Bytes |
 | `0x05` EREIGNIS | nr u8 (laufend, umlaufend), art u8 (1 Start, 2 Pause, 3 Weiter, 4 Ende, 5 Verwerfen), t_ms u32, sek u16 |
 | `0x06` POSITION | lat i32, lon i32 — erster Fix im Startzustand, einmal je App-Start |
+| `0x07` SPORT | aktivitaet u16 — Suunto-Sportmodus der Aufnahme (Liste „Activity ID“ der Referenz, NICHT die Cloud-`activityId`), direkt nach jedem HALLO mit Sitzung ≠ 0; fehlt, wenn die Uhr den Modus nicht kennt. Aeltere Handys ignorieren Typ 7. Seit 19.10.2026 im Code (nach 1.00), s. „Sportart“ |
 
 Ein Block = die Werte eines Beschleunigungs-Aufrufs (50 Hz: 25 Werte = 150 Bytes = Kopf + 8 Teile;
 25 Hz: 13 Werte = 78 Bytes = Kopf + 4 Teile). Werte int16 x,y,z verschachtelt, 2048 = 1 g.
@@ -236,6 +237,7 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
 | Lauf-Erkennung live, Vibration bei Start/Ende, Sprung auf Seite 1 | ✅ | ✅ (lauf.js, `playIndication`) |
 | Tempo-/Puls-Alarm, Strecken-/Zeitmarken | ✅ | ✅ aus dem Profil; Muster auf Suunto-Toene abgebildet |
 | Foil-Auswahl auf der Uhr | Garmin/Zepp/Huawei | ❌ keine Einstellungsseite: es gilt das Profil (Standard-Foil, Alarm-Grenzen) |
+| Sportart je Session | Auswahl auf der Uhr (`sp=1`, `sport_class` beim Start) | ⚠️ keine Auswahl auf der Uhr, stattdessen der Suunto-Sportmodus (s. „Sportart“); Uhr-Seite fertig, Server/Handy offen |
 | Werte nach Zone einfaerben | `colorByValue` | ✅ per `setStyle(…, 'color', …)` |
 | Sprache | Profil, sonst Geraet | ✅ Profil (ueber das Handy), sonst Einstellung in der Suunto-App |
 | Positionsmeldung „gerade am Pumpen" | ✅ | ✅ ueber das Handy (erster Fix im Startzustand) |
@@ -248,6 +250,58 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
 | Verwerfen | loescht lokal | ❌ die App erfaehrt nicht, ob der Nutzer speichert oder verwirft — die Bruecken-Session bleibt; der Nutzer loescht sie bei uns |
 | Auto-Start, Touch-Sperre, Stopp-Modus | eigene Einstellungen | Sache der Suunto-Firmware |
 | Pump-Zahl/-Zeitpunkte ohne Rohdaten | nein (nur Server) | ✅ Pump-Marker in den Log-Kanaelen (Uhr-Erkennung) |
+
+## Sportart: Suunto-Sportmodus statt Auswahl auf der Uhr (Entscheidung 19.10.2026)
+
+Ziel: Wingfoil-, Pumpfoil- usw. Sessions von Suunto landen in der richtigen Sportart, wie bei den Uhren
+mit Auswahl vor dem Start.
+
+**(a) Auswahl auf der Uhr — verworfen.** Die App-Seite erscheint erst NACH dem Start (Referenz, im
+Simulator bestaetigt, s. Update-Hinweis oben); einen Startbildschirm, auf dem man waehlen koennte, gibt
+es nicht. Frei ist nur die untere Taste, und die blaettert schon die Seiten. Eine Wahl waehrend der
+Aufnahme waere fummelig und wuerde nur ueber die Handy-Bruecke reisen — ohne Handy (Weg 1, Cloud)
+ginge sie verloren. Eine Einstellung in der Suunto-App (`settings`, enum) waere eine feste Liste je
+Installation, also wieder „immer dasselbe“.
+
+**(b) Suunto-Sportmodus — gewaehlt.** Wer die SuuntoPlus-App nutzt, startet ohnehin einen Suunto-Modus
+(SUP, Kitesurfen, Windsurfen, Surfen …) und schaltet „Pumpfoil“ darin ein. Wer zwei Sportarten faehrt,
+legt die App in zwei Modi. Das ist die Bedienung, die Suunto-Nutzer kennen (Plattform-Standard).
+- **Uhr** [DOK]: `/Settings/Activity/Current/ActivityID` (Int32, Get/Subscribe), Werte aus der
+  Referenz-Liste „Activity ID“ (86 Windsurfing, 89 Standup paddling, 91 Kitesurfing / kiting,
+  54 Surfing, 13 Sailing, 1 Unspecified sport …). Der Simulator kennt den Pfad [SIM]. Gelesen per
+  `$.get` (Referenz: „Same kind of syntax works for get“), weil alle 10 `in`-Quellen belegt sind —
+  **[UNKLAR], ob `$.get` in main.js auf der Uhr antwortet**; ohne Antwort bleibt alles wie bisher.
+  Kein Byte im `localStorage`. Code: `quelle/uhr.js aktLesen`, `quelle/funk.js` (Paket `0x07` SPORT),
+  Tests in `test/aufnahme.test.mjs` („Sportmodus …“).
+- **Cloud-Import** (Weg 1) kennt den Modus schon heute: `activityId` in der Workout-Liste
+  (`server/app/api/suunto.py`, `AKTIVITAETEN`). Er wird bisher NICHT auf eine Sportart abgebildet —
+  `import_parsed_session` nimmt die Voreinstellung `default_sport_class`, ausser der FIT-Sport ist
+  `KEIN_FOILEN` (-> `other`) oder `UNKLAR_WASSER` (SUP/Kite/Wind/Segeln -> `needs_classification`,
+  wenn die Voreinstellung pumpfoil ist). `importsports` merkt sich je Nutzer nur „importieren ja/nein“.
+- **Achtung, zwei Nummernkreise:** die Uhr zaehlt anders als die Cloud-API. Gleiche Namen:
+  Uhr 86 = Cloud 86 Windsurfing, Uhr 91 = Cloud 87 Kitesurfing, Uhr 54 = Cloud 91 Surfing,
+  Uhr 89 = Cloud 61 Standup paddling, Uhr 13 = Cloud 71 Sailing, Uhr 14 = Cloud 72 Kayaking,
+  Uhr 72 = Cloud 82 Canoeing, Uhr 15 = Cloud 15 Rowing, Uhr 83 = Cloud 85 Openwater swimming.
+  Uhr 1 (Unspecified) hat kein Gegenstueck.
+- **Keine geratene Zuordnung:** „Kitesurfing“ kann Kitefoil oder Wingfoil sein, „SUP“ Pumpfoil oder
+  Downwind. Ohne Zuordnung des Nutzers gilt wie heute die Voreinstellung.
+
+**Noch offen (Server + Handy, nicht in watch-suunto/):**
+1. Je Nutzer „Suunto-Modus -> Sportart“ speichern, am besten an `ImportSportPref` (provider `suunto`,
+   `sport_key` = Cloud-`activityId`, neue Spalte `sport_class`, leer = Voreinstellung) und in den
+   Kontoeinstellungen neben „importieren ja/nein“ waehlbar.
+2. Cloud-Import: gibt es fuer die `activityId` eine Zuordnung, setzt `import_parsed_session`
+   `sport_class` daraus (`sport_source` „owner“, kein `needs_classification`).
+3. Ingest-Start: neues optionales Feld `suunto_aktivitaet` (Uhr-Nummer) in `SessionStartIn`; der Server
+   rechnet sie ueber die Tabelle oben in die Cloud-`activityId` um und nimmt die Zuordnung des Nutzers
+   (wie Punkt 2). Kommt das Feld erst bei einem spaeteren Start-Aufruf derselben Session (Antwort von
+   `$.get` verspaetet), nur nachziehen, solange `sport_source` nicht vom Nutzer stammt.
+4. Handy-Bruecken (`SuuntoProtokoll.kt`/`.swift`): Typ 7 lesen (`p.size >= 3`, u16 LE ab Byte 1) und
+   als `suunto_aktivitaet` in die `meta.json` der laufenden Aufnahme schreiben — die Bruecke laedt erst
+   mit dem ersten Chunk hoch, SPORT kommt direkt nach dem HALLO, also vorher. Testvektor: die
+   Golden-Datei (`test/golden.mjs`) bleibt unveraendert, weil der Harness dort keinen Modus liefert;
+   fuer einen Bruecken-Test `new Uhr({ aktivitaet: 86 })` nehmen.
+5. Kein neuer Code in `/config-kompakt` noetig (keine Sportliste auf der Uhr).
 
 ## Was nur auf echter Hardware geklaert wird
 
@@ -266,3 +320,4 @@ Grundlage: Feature-Inventar aus `docs/PARITY-AUDIT.md` und den Quellen von Garmi
    Aufnahme: nach dem Ende wird sie entladen, ihr RAM-Ring ist weg. Was bis dahin nicht beim Handy ist,
    fehlt — ausser `evaluate` laeuft in der Zusammenfassung weiter und der Funk schickt den Rest. Im Log
    eines Testers nachsehen (Debug-Fassung: `pf: onExerciseEnd`, danach noch Ereignisse?).
+8. Antwortet `$.get("/Settings/Activity/Current/ActivityID", …)` in main.js, und mit welcher Form (Zahl oder `{value}`; die App nimmt beides)? Debug-Fassung: `pf: Sportmodus N` im Log.

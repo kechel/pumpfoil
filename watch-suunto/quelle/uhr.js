@@ -14,7 +14,7 @@ var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk
 var laeuft, pause, seite, zeigeSeite, letzteAccZeit, versatz, versatzNeu, tAkt, utcStart;
 var einheit, faktor, sync, hz, sprache, lauefe, pumpsLauf, pumpsGesamt, bestLaufMs, foilAlt;
 var sekPumps, sekX, sekY, sekZ, sekXX, sekYY, sekZZ, sekN, sekPeak, sekStaerke, blockWerte, blockT, halbe, startSeite;
-var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz, lokalLetzt = 0, evalN = 0;
+var tx, positionGemeldet, zuletzt, pumpHist, pumpNr, kfRoh = null, anz, lokalLetzt = 0, evalN = 0, aktGefragt = 0;
 
 /*
  * Log-Kanaele (docs/SUUNTO.md „Die Log-Kanaele"): hoechstens 5, je eine float32-Zahl pro Sekunde, gespeichert
@@ -95,6 +95,25 @@ var summeLetzte = function (n) {
   var z = 0, i;
   for (i = Math.max(0, pumpHist.length - n); i < pumpHist.length; i++) z += pumpHist[i];
   return z;
+};
+
+/**
+ * Suunto-Sportmodus, in dem der Nutzer die App gestartet hat (Kitesurfen, Windsurfen, SUP …), Nummer aus
+ * der Liste „Activity ID" der Referenz (NICHT die activityId der Cloud-API, die zaehlt anders). Geht als
+ * SPORT-Paket ans Handy, der Server ordnet ihn je Nutzer einer Sportart zu (docs/SUUNTO.md „Sportart").
+ * Per `$.get` statt als `in`-Quelle: die 10 erlaubten Quellen sind belegt. Die Referenz nennt `$.get`
+ * fuer main.js nur in einem Nebensatz [UNKLAR auf der Uhr] — fehlt es oder scheitert es, bleibt 0 und
+ * alles laeuft wie bisher. Kein Speicher: nichts davon landet im localStorage.
+ */
+var aktLesen = function () {
+  try {
+    if (typeof $ === "undefined" || typeof $.get !== "function") return;
+    $.get("/Settings/Activity/Current/ActivityID", function (v) {
+      var n = typeof v === "number" ? v : v && typeof v.value === "number" ? v.value : 0;
+      n = Math.round(n);
+      if (n > 0 && n < 65536 && n !== fu.aktivitaet) { fu.aktivitaet = n; fu.sportFaellig = 1; dbg("Sportmodus " + n); }
+    });
+  } catch (e) { dbg("Sportmodus: " + e); }
 };
 
 // --- Hilfen -------------------------------------------------------------------------------
@@ -311,6 +330,7 @@ function onLoad(input, output) {
     try { localStorage.setItem("uhrId", "" + id); } catch (e) { id = id; }
   }
   fu.uhrId = id;
+  aktGefragt = 0;
   zuletzt = { rdy: 0, alt: null, asc: null };
   lauefe = 0; pumpHist = []; pumpsLauf = 0; pumpsGesamt = 0; bestLaufMs = 0; foilAlt = false;
   sekNull(); blockWerte = []; blockT = 0; halbe = null;
@@ -330,6 +350,7 @@ function onExerciseStart(input, output) {
   utcStart = zahl(input.utc, 0);
   fu.sitzung = utcStart;
   fu.ereignis(1, 0, 0);
+  if (!fu.aktivitaet) aktLesen();     // noch keine Antwort aus evaluate: beim Start nochmal fragen
 }
 
 function onExercisePause(input, output) {
@@ -371,6 +392,7 @@ function onLap(input, output) { dbg("onLap"); }
 
 function evaluate(input, output) {
   nimmAccel(input);
+  if (!aktGefragt) { aktGefragt = 1; aktLesen(); }   // einmal, nicht in onLoad (Referenz: dort nichts abonnieren)
   if (typeof input.rdy === "number") zuletzt.rdy = input.rdy;
   zuletzt.alt = typeof input.alt === "number" ? input.alt : zuletzt.alt;
   zuletzt.asc = typeof input.asc === "number" ? input.asc : zuletzt.asc;
