@@ -1317,7 +1317,7 @@ struct SessionDetailView: View {
                 }
             }
             if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, lang: lang) }
-            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, lang: lang) }
+            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, lang: lang) }
             excludedSection(s)
             poweredSection(s)
             excludeErrorRow
@@ -1915,6 +1915,7 @@ private struct FahrtenKarte: View {
 private struct WindKarte: View {
     let w: WindMittel
     let z: ManoeverZahlen?
+    var h: Hoehe? = nil
     let lang: String
 
     private var pfeil: String {
@@ -1933,6 +1934,7 @@ private struct WindKarte: View {
             Text(boeenZeile).font(.subheadline)
             Text(Loc.t("sd.windNote", lang)).font(.footnote).foregroundStyle(.secondary)
             if let z { zahlen(z) }
+            if let h { hoeheZeilen(h) }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1952,6 +1954,29 @@ private struct WindKarte: View {
             .padding(.top, 4)
         HStack(spacing: 6) { Circle().fill(Color(red: 0.98, green: 0.45, blue: 0.09)).frame(width: 9, height: 9); Text(halse).font(.subheadline) }
         Text(Loc.t("sd.manoeverNote", lang)).font(.footnote).foregroundStyle(.secondary)
+    }
+
+    // Hoehe laufen (19.10.2026, wie im Web): VMG zum Wind, nur Anzeige.
+    @ViewBuilder private func hoeheZeilen(_ h: Hoehe) -> some View {
+        Text(Loc.t("sd.upwind", lang)).font(.subheadline.weight(.semibold)).padding(.top, 4)
+        Text(hoeheText(h)).font(.subheadline)
+        Text(Loc.t("sd.upwindNote", lang)).font(.footnote).foregroundStyle(.secondary)
+    }
+
+    private func hoeheText(_ h: Hoehe) -> String {
+        var teile: [String] = []
+        teile.append(Loc.t("sd.vmgBest", lang).replacingOccurrences(of: "{v}", with: String(format: "%.1f", h.vmg_max_kmh)))
+        if let m = h.vmg_mittel_kmh {
+            teile.append(Loc.t("sd.vmgAvg", lang).replacingOccurrences(of: "{v}", with: String(format: "%.1f", m)))
+        }
+        if let a = h.am_wind_anteil {
+            teile.append(Loc.t("sd.upwindShare", lang).replacingOccurrences(of: "{p}", with: String(Int((a * 100).rounded()))))
+        }
+        teile.append(Loc.t("sd.heightGained", lang).replacingOccurrences(of: "{km}", with: String(format: "%.1f", Double(h.hoehe_m) / 1000.0)))
+        if let w = h.winkel_med {
+            teile.append(Loc.t("sd.angleToWind", lang).replacingOccurrences(of: "{a}", with: String(w)))
+        }
+        return teile.joined(separator: " · ")
     }
 }
 

@@ -1143,7 +1143,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it) }
-            windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen) }
+            windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
             val excluded = s.excludedRanges.orEmpty()
@@ -2098,7 +2098,7 @@ private fun FahrtenKarte(fahrten: List<Fahrt>) {
 
 // Wind am Spot (Modellwert, keine Messung am Wasser) + Wenden/Halsen — wie die Wind-Box im Web.
 @Composable
-private fun WindKarte(w: WindMittel, z: ManoeverZahlen?) {
+private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null) {
     Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2123,6 +2123,19 @@ private fun WindKarte(w: WindMittel, z: ManoeverZahlen?) {
                     Text("${I18n.t("sd.jibes")} ${z.halse.durch} / ${z.halse.durch + z.halse.ab} ${I18n.t("sd.onFoil")}")
                 }
                 Text(I18n.t("sd.manoeverNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            // Hoehe laufen (19.10.2026, wie im Web): VMG zum Wind, nur Anzeige.
+            if (h != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(I18n.t("sd.upwind"), fontWeight = FontWeight.SemiBold)
+                Text(buildList {
+                    add(I18n.t("sd.vmgBest").replace("{v}", "%.1f".format(h.vmgMaxKmh)))
+                    h.vmgMittelKmh?.let { add(I18n.t("sd.vmgAvg").replace("{v}", "%.1f".format(it))) }
+                    h.amWindAnteil?.let { add(I18n.t("sd.upwindShare").replace("{p}", Math.round(it * 100).toString())) }
+                    add(I18n.t("sd.heightGained").replace("{km}", "%.1f".format(h.hoeheM / 1000.0)))
+                    h.winkelMed?.let { add(I18n.t("sd.angleToWind").replace("{a}", it.toString())) }
+                }.joinToString(" · "))
+                Text(I18n.t("sd.upwindNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

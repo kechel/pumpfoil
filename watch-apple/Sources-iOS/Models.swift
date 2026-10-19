@@ -1089,7 +1089,15 @@ struct SessionWindAntwort: Codable { let wind: SessionWindInfo? }
 struct Manoever: Codable { let i: Int; let typ: String; let durch: Bool }
 struct ManoeverZahl: Codable { let durch: Int; let ab: Int }
 struct ManoeverZahlen: Codable { let wende: ManoeverZahl; let halse: ManoeverZahl }
-struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen? }
+/// Hoehe laufen (19.10.2026): VMG zum Wind aus Spur + Modellwind (server app/manoever.hoehe).
+struct Hoehe: Codable {
+    let vmg_max_kmh: Double
+    let vmg_mittel_kmh: Double?
+    let am_wind_anteil: Double?
+    let hoehe_m: Int
+    let winkel_med: Int?
+}
+struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen?; let hoehe: Hoehe? }
 
 struct CarveData: Codable {
     var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
