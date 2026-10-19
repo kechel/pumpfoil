@@ -8,7 +8,8 @@
     "Bei jeder Aenderung: Eintrag im Merkmal anpassen (status/seit/wo) UND eine Zeile in 'verlauf' (neueste oben). 'wo' = server | web | android | ios | uhren; 'version' = App-Version, wenn es eine App betrifft.",
     "Plan in Stufen (Gespraech 19.10.2026, Anlass Oerni u97 Wing-Session #17478 und ThermikDreher u267 Foil Scoot): s. 'stufen'.",
     "'plattformen' (optional) je Merkmal: {'web': Datum, 'android': Version, 'ios': Version}; leer = noch keine Version -> 'coming next'. Steht die Version fest, NUR die Nummer eintragen, egal ob released, im Review oder coming next (Jan 19.10.). Server haengt an: ': website since <Datum>, Android 1.1.44, iOS coming next'. Nur fuer Merkmale, die sich je Oberflaeche unterscheiden (Anzeige).",
-    "Status 'vorschlag' (oeffentlich 'proposal') = NUR Claudes EIGENE zusaetzliche Vorschlaege zur Pruefung durch Jan (Jan 19.10.: 'proposal sind die dinge die _du_ zusaetzlich vorschlaegst fuer mich zur pruefung'). Was von Jan oder aus Nutzer-Chats kommt, ist 'geplant'. Jan entscheidet -> geplant oder raus."
+    "Status 'vorschlag' (oeffentlich 'proposal') = NUR Claudes EIGENE zusaetzliche Vorschlaege zur Pruefung durch Jan (Jan 19.10.: 'proposal sind die dinge die _du_ zusaetzlich vorschlaegst fuer mich zur pruefung'). Was von Jan oder aus Nutzer-Chats kommt, ist 'geplant'. Jan entscheidet -> geplant oder raus.",
+    "'allgemein' + 'merkmale_allgemein' (19.10., Jan: 'die punkte die fuer alle Sportarten gelten in einen eigenen uebergeordneten punkt'): Merkmale, die fuer jede Sportart gleich gelten, stehen NUR dort, nicht je Gruppe. Oeffentlich als Abschnitt 'All sports' ueber den Sportarten."
   ],
   "stand": "2026-10-19",
   "status_en": {
@@ -78,18 +79,6 @@
     {
       "id": "wellen",
       "en": "Waves ridden"
-    },
-    {
-      "id": "sport_auf_uhr",
-      "en": "Choose the sport on the watch"
-    },
-    {
-      "id": "foil_je_sport",
-      "en": "Default foil per sport"
-    },
-    {
-      "id": "lauf_sportart",
-      "en": "Sport per run"
     }
   ],
   "gruppen": {
@@ -170,21 +159,6 @@
         "einordnung": {
           "status": "nein",
           "en": "Set by the rider."
-        },
-        "lauf_sportart": {
-          "status": "geplant",
-          "en": "Mark single runs with their own sport.",
-          "notiz": "Stufe 5, gleicher Umbau wie Foil je Lauf (Oerni 04.10.: Wakethief-Laeufe in einer Pumpfoil-Session)."
-        },
-        "sport_auf_uhr": {
-          "status": "geplant",
-          "en": "Pick the sport on the watch before you start, like the foil today.",
-          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
-        },
-        "foil_je_sport": {
-          "status": "geplant",
-          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
-          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
         },
         "fahrten": {
           "status": "nein",
@@ -311,21 +285,6 @@
           ],
           "notiz": "sportregel.py v6, nur Gegenprobe im Admin; Kite vs. Wing kann sie nicht trennen."
         },
-        "lauf_sportart": {
-          "status": "geplant",
-          "en": "Mark single runs with their own sport.",
-          "notiz": "Stufe 5."
-        },
-        "sport_auf_uhr": {
-          "status": "geplant",
-          "en": "Pick the sport on the watch before you start, like the foil today.",
-          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
-        },
-        "foil_je_sport": {
-          "status": "geplant",
-          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
-          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
-        },
         "fahrten": {
           "status": "geplant",
           "en": "Runs with a short break in between (fall, tack, waterstart) count as one ride; a ride ends only after a longer break on shore.",
@@ -434,20 +393,6 @@
             "server"
           ]
         },
-        "lauf_sportart": {
-          "status": "geplant",
-          "en": "Mark single runs with their own sport."
-        },
-        "sport_auf_uhr": {
-          "status": "geplant",
-          "en": "Pick the sport on the watch before you start, like the foil today.",
-          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
-        },
-        "foil_je_sport": {
-          "status": "geplant",
-          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
-          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
-        },
         "fahrten": {
           "status": "nein",
           "en": "Does not apply."
@@ -537,20 +482,6 @@
           "status": "nein",
           "en": "Set by the rider."
         },
-        "lauf_sportart": {
-          "status": "nein",
-          "en": "Not planned."
-        },
-        "sport_auf_uhr": {
-          "status": "geplant",
-          "en": "Pick the sport on the watch before you start, like the foil today.",
-          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
-        },
-        "foil_je_sport": {
-          "status": "geplant",
-          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
-          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
-        },
         "fahrten": {
           "status": "nein",
           "en": "Does not apply."
@@ -638,13 +569,7 @@
       "id": "wakethief",
       "en": "Wake thief",
       "gruppe": "pump",
-      "merkmale": {
-        "lauf_sportart": {
-          "status": "geplant",
-          "en": "Mark which runs were on the boat wave and which were pumped.",
-          "notiz": "Oerni 04.10.; Wakethiefer wollen Pumpanteile auf dem Rueckweg getrennt (Jan an ThermikDreher 18.10.)."
-        }
-      }
+      "merkmale": {}
     },
     {
       "id": "sup_paddle",
@@ -738,12 +663,26 @@
     },
     {
       "nr": 7,
-      "titel": "Standard-Foil je Sportart",
+      "titel": "Ausruestung je Sportart (Vorauswahl + Standard)",
       "status": "geplant",
-      "notiz": "Jan/Oerni 19.10. Profil: Default-Foil je Sportart; Uhr-Foil-Liste je Sportart sortiert; neue Session bekommt das Foil ihrer Sportart."
+      "notiz": "Jan/Oerni 19.10. Profil: Default-Foil je Sportart; Uhr-Foil-Liste je Sportart sortiert; neue Session bekommt das Foil ihrer Sportart. Jan 19.10.: nicht nur Foil, sondern Equipment (Foil, Board, Stab, Mast)."
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "sport_auf_uhr, equipment_je_sport, lauf_sportart",
+      "was": "Abschnitt 'All sports' fuer sportartuebergreifende Punkte; Foil je Sportart -> Equipment je Sportart (Vorauswahl + Standard).",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
@@ -1034,6 +973,40 @@
         "server"
       ],
       "commit": "0f29a211"
+    }
+  ],
+  "allgemein": {
+    "en": "All sports",
+    "merkmale": {
+      "sport_auf_uhr": {
+        "status": "geplant",
+        "en": "Pick the sport on the watch before you start, like the foil today.",
+        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
+      },
+      "equipment_je_sport": {
+        "status": "geplant",
+        "en": "Each sport remembers its own equipment (foil, board, stab, mast) as default, and the lists on the watch and in the apps show that sport's equipment first.",
+        "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert). Jan 19.10.: in den Abschnitt fuer alle Sportarten, als „Equipment per sport Vorauswahl + default“ — nicht nur das Foil."
+      },
+      "lauf_sportart": {
+        "status": "geplant",
+        "en": "Mark single runs with their own sport, e.g. wake thief runs inside a pumpfoil session.",
+        "notiz": "Stufe 5, gleicher Umbau wie Foil je Lauf (Oerni 04.10.: Wakethief-Laeufe in einer Pumpfoil-Session). Gleicher Umbau wie Foil je Lauf."
+      }
+    }
+  },
+  "merkmale_allgemein": [
+    {
+      "id": "sport_auf_uhr",
+      "en": "Choose the sport on the watch"
+    },
+    {
+      "id": "equipment_je_sport",
+      "en": "Equipment per sport: preselection and default"
+    },
+    {
+      "id": "lauf_sportart",
+      "en": "Sport per run"
     }
   ]
 }

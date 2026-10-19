@@ -1019,6 +1019,9 @@ export const api = {
     merkmale: { id: string; name: string }[];
     sportarten: { id: string; name: string; gruppe: string;
                   merkmale: { id: string; status: string; text: string; seit: string | null }[] }[];
+    // Fuer alle Sportarten gleich (19.10.2026), eigener Abschnitt ueber den Sportarten.
+    allgemein_titel?: string;
+    allgemein?: { id: string; name: string; status: string; text: string; seit: string | null }[];
   }>("/api/app/sport-status"),
 
   /** Oeffentliche Foiler-Seite eines Nutzers. Anmeldung noetig; was drin steht, entscheidet

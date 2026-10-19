@@ -412,6 +412,11 @@ private struct ChangelogSportSection: View {
     var body: some View {
         Section {
             legende
+            // Zuerst, was fuer ALLE Sportarten gleich gilt (Jan, 19.10.2026).
+            if let alle = stand.allgemein, !alle.isEmpty {
+                ChangelogSportZeile(sp: SportStandSport(id: "_alle", name: stand.allgemein_titel ?? "All sports",
+                                                        gruppe: "", merkmale: alle), stand: stand)
+            }
             ForEach(stand.sportarten ?? [], id: \.id) { sp in
                 ChangelogSportZeile(sp: sp, stand: stand)
             }
@@ -464,7 +469,7 @@ private struct ChangelogSportZeile: View {
     }
 
     private func merkmalZeile(_ m: SportStandMerkmal) -> some View {
-        let name: String = (stand.merkmale ?? []).first { $0.id == m.id }?.name ?? m.id
+        let name: String = m.name ?? (stand.merkmale ?? []).first { $0.id == m.id }?.name ?? m.id
         let st: String = m.status ?? "nein"
         let seit: String = (m.seit != nil && st != "geplant") ? " Since \(changelogTagLang(m.seit ?? ""))." : ""
         return VStack(alignment: .leading, spacing: 3) {

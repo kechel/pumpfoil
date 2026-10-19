@@ -284,6 +284,12 @@ function SportStand() {
   useEffect(() => { api.sportStatus().then(setD).catch(() => setD(null)); }, []);
   if (!d) return null;
   const namen = Object.fromEntries(d.merkmale.map((m) => [m.id, m.name]));
+  const zeilen = [
+    ...((d.allgemein?.length ?? 0) > 0
+      ? [{ id: "_alle", name: d.allgemein_titel ?? "All sports", gruppe: "", merkmale: d.allgemein! }]
+      : []),
+    ...d.sportarten.map((sp) => ({ ...sp, merkmale: sp.merkmale.map((m) => ({ ...m, name: namen[m.id] ?? m.id })) })),
+  ];
   return (
     <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
       <h2 className="mb-1 text-sm font-bold text-slate-100">Analysis by sport</h2>
@@ -298,7 +304,9 @@ function SportStand() {
         <span className="text-slate-400">basic = works, but not tuned for this sport yet</span>
       </div>
       <div className="text-sm">
-        {d.sportarten.map((sp) => {
+        {/* Zuerst, was fuer ALLE Sportarten gleich gilt (Jan, 19.10.2026) — als Zeile wie eine
+            Sportart, damit Aufklappen und Zaehler gleich funktionieren. */}
+        {zeilen.map((sp) => {
           const zahl = (st: string) => sp.merkmale.filter((m) => m.status === st).length;
           return (
             <details key={sp.id} className="group border-t border-slate-800/70 py-2">
@@ -317,7 +325,7 @@ function SportStand() {
               <ul className="mt-2 space-y-1.5 pl-5">
                 {sp.merkmale.map((m) => (
                   <li key={m.id} className="sm:grid sm:grid-cols-[11rem_5.5rem_1fr] sm:gap-x-2">
-                    <span className="text-slate-300">{namen[m.id]}</span>{" "}
+                    <span className="text-slate-300">{m.name}</span>{" "}
                     <span className={`inline-block rounded-full px-2 py-0.5 text-center text-xs font-medium ${STATUS_FARBE[m.status] ?? STATUS_FARBE.nein}`}>
                       {d.status[m.status] ?? m.status}
                     </span>

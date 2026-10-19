@@ -253,7 +253,7 @@ private fun SportChip(text: String, status: String) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SportKarte(d: SportStand) {
-    val namen = d.merkmale.associate { it.id to it.name }
+    val namen = d.merkmale.associate { it.id to it.name } + d.allgemein.associate { it.id to it.name }
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
         Column(Modifier.padding(14.dp)) {
             Text("Analysis by sport", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
@@ -265,6 +265,9 @@ private fun SportKarte(d: SportStand) {
                 Text("basic = works, not tuned yet", style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            // Zuerst, was fuer ALLE Sportarten gleich gilt (Jan, 19.10.2026).
+            if (d.allgemein.isNotEmpty())
+                SportZeile(SportStandSport(id = "_alle", name = d.allgemeinTitel, gruppe = "", merkmale = d.allgemein), d, namen)
             d.sportarten.forEach { sp -> SportZeile(sp, d, namen) }
         }
     }
