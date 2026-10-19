@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
+import androidx.compose.ui.res.painterResource
 import android.os.Looper
 import kotlin.math.sqrt
 import kotlinx.coroutines.Job
@@ -1435,9 +1436,14 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 if (foils.isNotEmpty() || canSync) {
                     Spacer(Modifier.height(3.dp))   // wenig Luft über „Foil wählen"
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        // Stift + „Foil" bzw. „Foil / Sportart", sobald es eine Sportart-Wahl gibt (Jan, 19.10.2026:
+                        // „bitte ersetzen durch set foil / sport oder ein Stift-icon"). Oeffnet dieselben Einstellungen.
                         if (foils.isNotEmpty()) CompactChip(
                             onClick = { showFoilPicker = true },
-                            label = { Text(I18n.t("rec.chooseFoil"), style = MaterialTheme.typography.caption2) })
+                            icon = { Icon(painterResource(R.drawable.ic_stift), contentDescription = null,
+                                modifier = Modifier.size(ChipDefaults.SmallIconSize)) },
+                            label = { Text(if (sports.size > 1) "Foil / ${I18n.t("sport.choose")}" else "Foil",
+                                style = MaterialTheme.typography.caption2) })
                         if (canSync) CompactChip(
                             onClick = { Recorder.drain(ctx) },
                             label = { Text(I18n.t("rec.syncNow"), style = MaterialTheme.typography.caption2) })
