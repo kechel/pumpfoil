@@ -1301,31 +1301,6 @@ def sport_status() -> dict:
     return sport_stand_aufgeloest()
 
 
-def sport_stand_als_zeile() -> dict | None:
-    """Das Stand-Buch als EINE Zeile im Release-Format — fuer Apps, die den neuen Abschnitt noch
-    nicht kennen (Jan, 19.10.2026: „die neue tabelle wird in den alten apps nicht angezeigt").
-
-    Die ausgelieferten Android-/iOS-Apps zeigen auf ihrer Changelog-Seite nur die Release-Gruppen
-    mit aufklappbaren Punkten. Also kommt der Stand dort als Zeile ganz oben in „Coming next",
-    je Sportart ein Punkt. Das Web zeigt die echte Tabelle und fragt mit `ohne_sport=1` ab."""
-    try:
-        d = sport_stand_aufgeloest()
-    except (OSError, ValueError, KeyError):
-        return None
-    namen = {m["id"]: m["name"][:1].lower() + m["name"][1:] for m in d["merkmale"]}
-    punkte = []
-    for sp in d["sportarten"]:
-        teile = []
-        for st in ("live", "teilweise", "geplant"):
-            ms = [namen[m["id"]] for m in sp["merkmale"] if m["status"] == st]
-            if ms:
-                teile.append(f"{d['status'][st]}: " + ", ".join(ms))
-        punkte.append(f"{sp['name']} ({sp['gruppe'].lower()}) \u2014 " + "; ".join(teile) + ".")
-    return {"name": "Analysis by sport", "version": f"as of {_datum(d['stand'])}",
-            "note": "what the analysis already does for each sport (ready), what works but is not tuned "
-                    "for it yet (basic), and what is planned",
-            "items": punkte}
-
 
 @router.get("/releases")
 def releases(ohne_sport: bool = False) -> dict:
@@ -1367,10 +1342,11 @@ def releases(ohne_sport: bool = False) -> dict:
     return {"live": live,
             "review": _mit_note(IN_REVIEW, "review"),
             "rejected": _mit_note(abgelehnt, "rejected"),
-            # Stand je Sportart als erste „Coming next"-Zeile fuer die ausgelieferten Apps (s.
-            # `sport_stand_als_zeile`); das Web zeigt den eigenen Abschnitt und laesst sie weg.
-            "next": ([] if ohne_sport else [z for z in [sport_stand_als_zeile()] if z])
-                    + _mit_note(NAECHSTES, "next"),
+            # Den Stand je Sportart bekommen die ausgelieferten Apps NICHT als Ersatzzeile: am 19.10.
+            # kurz probiert, als Textliste in „Coming next" — Jan: „so ist das quatsch". Er kommt mit
+            # dem naechsten App-Release als eigener Abschnitt (`/sport-status`). `ohne_sport` bleibt
+            # als Parameter erlaubt (das Web schickt ihn), wirkt aber nicht mehr.
+            "next": _mit_note(NAECHSTES, "next"),
             "ideen": IDEEN,
             "probleme": probleme}
 
