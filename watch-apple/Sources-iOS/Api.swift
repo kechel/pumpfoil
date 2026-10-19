@@ -1357,7 +1357,11 @@ enum Api {
         return data
     }
 
-    struct IntegrationStatus: Decodable { let available: Bool; let linked: Bool; let last_sync_at: String? }
+    struct IntegrationStatus: Decodable {
+        let available: Bool; let linked: Bool; let last_sync_at: String?
+        /// COROS (19.10.2026): Erneuerung abgelehnt -> „Verbindung abgelaufen“ + Neu verbinden. Aeltere Server: fehlt.
+        let expired: Bool?
+    }
     private struct ConnectResp: Decodable { let authorize_url: String }
 
     // Fremdkonten (Polar/COROS/Suunto). provider = "polar"|"coros"|"suunto".

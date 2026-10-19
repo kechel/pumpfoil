@@ -47,15 +47,23 @@ struct LinkedAccountsView: View {
                     if !st.available && !st.linked {
                         row(p.label, sub: Loc.t("accounts.notAvailable", lang), connected: false, logo: p.logo) { EmptyView() }
                     } else {
+                        let abgelaufen = st.linked && (st.expired ?? false)
                         row(p.label,
-                            sub: st.linked ? Loc.t(p.id == "coros" ? "accounts.corosNote"
+                            sub: abgelaufen ? Loc.t("settings.coros.expiredHint", lang)
+                               : st.linked ? Loc.t(p.id == "coros" ? "accounts.corosNote"
                                                     : (p.id == "polar" ? "accounts.polarNote"
                                                        : "accounts.connected"), lang)
                                            : Loc.t("accounts.sub", lang),
-                            connected: st.linked, logo: p.logo) {
+                            connected: st.linked && !abgelaufen, logo: p.logo) {
+                            // COROS hat die Erneuerung abgelehnt (19.10.2026, wie im Web): ehrlich sagen und
+                            // neu verbinden lassen statt „Verbunden“. Neu verbinden ersetzt die Tokens am Link.
+                            if abgelaufen {
+                                Text(Loc.t("settings.coros.expired", lang))
+                                    .font(.subheadline.weight(.semibold)).foregroundStyle(.orange)
+                            }
                             HStack {
-                                if !st.linked {
-                                    Button(Loc.t("accounts.connect", lang)) { connect(p) }
+                                if !st.linked || abgelaufen {
+                                    Button(Loc.t(abgelaufen ? "settings.coros.reconnect" : "accounts.connect", lang)) { connect(p) }
                                         .buttonStyle(.borderedProminent).controlSize(.small).disabled(busy != nil)
                                 } else {
                                     if p.canSync {
