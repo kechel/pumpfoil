@@ -1240,7 +1240,9 @@ object Api {
     }
 
     @kotlinx.serialization.Serializable
-    data class IntegrationStatus(val available: Boolean = false, val linked: Boolean = false, val last_sync_at: String? = null)
+    data class IntegrationStatus(val available: Boolean = false, val linked: Boolean = false, val last_sync_at: String? = null,
+                                 // COROS (19.10.2026): Erneuerung abgelehnt -> „Verbindung abgelaufen“ + Neu verbinden.
+                                 val expired: Boolean = false)
 
     @kotlinx.serialization.Serializable
     private data class ConnectResp(val authorize_url: String = "")

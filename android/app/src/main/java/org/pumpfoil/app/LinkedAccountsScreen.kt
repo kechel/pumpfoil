@@ -139,15 +139,23 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                         title = p.label,
                         logo = p.logo,
                         sub = when {
+                            st.linked && st.expired -> I18n.t("settings.coros.expiredHint")
                             st.linked && p.id == "coros" -> I18n.t("accounts.corosNote")
                             st.linked && p.id == "polar" -> I18n.t("accounts.polarNote")
                             st.linked -> I18n.t("accounts.connected")
                             else -> I18n.t("accounts.sub")
                         },
-                        connected = st.linked,
+                        connected = st.linked && !st.expired,
                     ) {
+                        // COROS hat die Erneuerung abgelehnt (19.10.2026, wie im Web): ehrlich sagen und
+                        // neu verbinden lassen statt „Verbunden“. Neu verbinden ersetzt die Tokens am Link.
+                        if (st.linked && st.expired) {
+                            Text(I18n.t("settings.coros.expired"), style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(bottom = 8.dp))
+                        }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (!st.linked) {
+                            if (!st.linked || st.expired) {
                                 Button(
                                     enabled = busy == null,
                                     onClick = {
@@ -160,7 +168,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                             busy = null
                                         }
                                     },
-                                ) { Text(I18n.t("accounts.connect")) }
+                                ) { Text(I18n.t(if (st.expired) "settings.coros.reconnect" else "accounts.connect")) }
                             } else {
                                 if (p.canSync) {
                                     Button(
