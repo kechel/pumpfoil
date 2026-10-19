@@ -861,7 +861,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
               needsClassification={!!s.needs_classification}
               stats={
                 <>
-                  {s.analysis && <SessionStats a={s.analysis} />}
+                  {s.analysis && <SessionStats a={s.analysis} profil={s.sport_profil} />}
                   {isInterim(s) && <ProcessingNote />}
                 </>
               }
@@ -913,7 +913,12 @@ export function renderCommunitySession(s: CommunitySession, t: (k: string) => st
       stats={
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
           <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {s.runs} {s.runs === 1 ? t("unit.run") : t("unit.runs")}</span>
-          <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{s.foiling_km.toFixed(1)}</b> km</span>
+          {/* Wind (Profil hauptzahl="gesamt", 19.10.2026): Gesamtstrecke zuerst, on-foil daneben. */}
+          {s.sport_profil?.hauptzahl === "gesamt" && s.gesamt_km != null && (
+            <span><b className="text-brand-400">{s.gesamt_km.toFixed(1)}</b> km {t("sd.totalDistance").toLowerCase()}</span>
+          )}
+          <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> {s.sport_profil?.hauptzahl === "gesamt"
+            ? <>{s.foiling_km.toFixed(1)}</> : <b className="text-brand-400">{s.foiling_km.toFixed(1)}</b>} km</span>
         </div>
       }
     />
@@ -1335,7 +1340,9 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll, board = false 
   );
 }
 
-export function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]> }) {
+// `profil` = Anzeige-Profil der Sportart (19.10.2026): Wind zeigt die Gesamtstrecke zuerst, Wind und
+// Motor ohne Pumps/Kadenz. Ohne Profil wie bisher.
+export function SessionStats({ a, profil }: { a: NonNullable<SessionSummary["analysis"]>; profil?: SessionSummary["sport_profil"] }) {
   const t = useT();
   const pf = usePumpFmt();
   const m = a.metrics;
@@ -1343,11 +1350,16 @@ export function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]>
   const dur = (s?: number | null) => fmtLaufDauer(s);
   return (
     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
-      <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b> km</span>
+      {profil?.hauptzahl === "gesamt" && a.total_distance_m != null && (
+        <span><b className="text-brand-400">{(a.total_distance_m / 1000).toFixed(2)}</b> km {t("sd.totalDistance").toLowerCase()}</span>
+      )}
+      <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> {profil?.hauptzahl === "gesamt"
+        ? <>{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</>
+        : <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b>} km</span>
       <span className="inline-flex items-center gap-1"><TimerIcon className="h-4 w-4 text-slate-400" /> {dur(a.foiling_time_s)}</span>
       {m?.num_segments != null && <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {m.num_segments} {m.num_segments === 1 ? t("unit.run") : t("unit.runs")}</span>}
       {m?.avg_speed_mps != null && <span>Ø {kmh(m.avg_speed_mps)} km/h</span>}
-      {a.pump_count != null && <span>↕ {a.pump_count}{m?.avg_pump_hz ? ` · ${pf.fmt(m.avg_pump_hz)}` : ""}</span>}
+      {profil?.pumpzahlen !== false && a.pump_count != null && <span>↕ {a.pump_count}{m?.avg_pump_hz ? ` · ${pf.fmt(m.avg_pump_hz)}` : ""}</span>}
       {m?.avg_hr != null && <span className="inline-flex items-center gap-1"><HeartPulseIcon className="h-4 w-4 text-slate-400" /> {m.avg_hr}{m?.max_hr ? `/${m.max_hr}` : ""}</span>}
       {m?.farthest_segment_m != null && m.farthest_segment_m > 0 && <span>{t("sessions.farAbbr")} {Math.round(m.farthest_segment_m)} m</span>}
       {m?.longest_segment_s != null && m.longest_segment_s > 0 && <span>{t("sessions.longAbbr")} {dur(m.longest_segment_s)}</span>}
