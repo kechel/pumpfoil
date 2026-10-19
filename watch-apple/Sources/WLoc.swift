@@ -124,6 +124,7 @@ enum WLoc {
         "rec.holdProgress": r("halten…", "halte…", "halten…", "hold…", "maintenir…", "tieni…", "mantén…"),
 
         // Alarm-/Foil-Auswahl
+        "sport.choose": r("Sportart", "Sportart", "Sportart", "Sport", "Sport", "Sport", "Deporte"),
         "foil.choose": r("Foil wählen", "Foil wähle", "Foil wählen", "Choose foil", "Choisir le foil", "Scegli foil", "Elegir foil"),
         "foil.chooseHelp": r(
             "Speichert deinen Foil zu dieser Session und legt die Alarm-Schwellen fest, wenn als Quelle Foil gewählt ist.",

@@ -309,7 +309,7 @@ final class Recorder: NSObject, ObservableObject {
     // Aufnahme startet rein lokal: KEIN Netz nötig (kein Pairing, kein Online).
     // Rohdaten werden persistent in den LocalStore geschrieben; der Upload passiert
     // später per drain(), sobald die Uhr gepairt + online ist.
-    func start(foilId: Int? = nil) async {
+    func start(foilId: Int? = nil, sportClass: String? = nil) async {
         guard !isRecording else { return }
         uuid = UUID().uuidString
         startedAt = Date()
@@ -336,6 +336,7 @@ final class Recorder: NSObject, ObservableObject {
             "device_model": Self.deviceModel(),
         ]
         if let foilId { meta["foil_id"] = foilId }   // für diese Session gewähltes Foil (Server-Override)
+        if let sportClass { meta["sport_class"] = sportClass }   // auf der Uhr gewaehlte Sportart (Server: owner)
         // Version, mit der aufgenommen wurde (wandert mit der Session, auch wenn der Upload
         // erst nach einem App-Update passiert). Leerer Wert würde die Server-Validierung
         // verletzen -> nur setzen, wenn das Bundle sie liefert.
