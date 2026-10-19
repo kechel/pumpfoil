@@ -545,6 +545,13 @@ export default function SessionDetail() {
   const zeigeGanz = karteGanzMoeglich && ganzeFahrt;
   const pumpzahlen = profil?.pumpzahlen !== false;
   const hauptGesamt = profil?.hauptzahl === "gesamt";
+  // Wind am Spot (Stand-Buch wind_am_spot, 19.10.2026): nur fuer Wind-Sportarten abrufen.
+  const [wind, setWind] = useState<Awaited<ReturnType<typeof api.sessionWind>>["wind"]>(null);
+  useEffect(() => {
+    setWind(null);
+    if (profil?.gruppe !== "wind" || !session?.id) return;
+    api.sessionWind(session.id).then((r) => setWind(r.wind)).catch(() => {});
+  }, [session?.id, profil?.gruppe]);
   const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
@@ -1989,6 +1996,30 @@ export default function SessionDetail() {
         <ClickStat label={t("rec.farthestRun")} value={farSeg.v != null ? fmtM(farSeg.v) : "–"} sub="m"
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
+
+      {/* Wind am Spot (Wind-Sportarten): Modellwerte, ausdruecklich keine Messung am Wasser. Der Pfeil
+          zeigt, WOHIN der Wind weht (Richtung + 180), die Gradzahl, woher er kommt (Konvention). */}
+      {wind?.mittel && (
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-200">
+            <span className="font-semibold">{t("sd.wind")}</span>
+            <span>
+              {Math.round(wind.mittel.kmh_min)}–{Math.round(wind.mittel.kmh_max)} km/h
+              <span className="text-slate-400"> ({(wind.mittel.kmh_min / 1.852).toFixed(0)}–{(wind.mittel.kmh_max / 1.852).toFixed(0)} kn)</span>
+            </span>
+            {wind.mittel.boeen_max_kmh != null && (
+              <span>{t("sd.windGusts")} {Math.round(wind.mittel.boeen_max_kmh)} km/h</span>
+            )}
+            <span className="inline-flex items-center gap-1">
+              {t("sd.windFrom")} {wind.mittel.richtung}°
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-brand-500" style={{ transform: `rotate(${wind.mittel.richtung + 180}deg)` }} aria-hidden="true">
+                <path d="M12 3l5 7h-3.5v11h-3V10H7z" fill="currentColor" />
+              </svg>
+            </span>
+          </div>
+          <div className="mt-0.5 text-slate-400">{t("sd.windNote")}</div>
+        </div>
+      )}
 
       {/* KEINE sichtbare Zeile mit dem Fahrergewicht (Jan, 27.08.: „das muss doch nicht noch extra
           zur Schau getragen werden"). Sie war nur solange sinnvoll, wie die Leistung mit dem

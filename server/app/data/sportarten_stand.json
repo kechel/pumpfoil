@@ -332,9 +332,18 @@
           "notiz": "Jan 19.10.: 'bei whole ride ist fast alles ... ein einziger run'. 845 Wing-Sessions: Laeufe/Session Median 16, Pausen Median 46 s, p90 160 s; Zusammenfassen bei <=120 s -> Median 3 Fahrten, <=300 s -> 1. Jans Wunsch -> geplant; Grenze offen (Jan gefragt: 2 oder 5 min). Ist Stufe 3 -> Analyse, nur mit Jans OK."
         },
         "wind_am_spot": {
-          "status": "geplant",
-          "en": "Wind speed and direction at the spot during the session, shown on the session page.",
-          "notiz": "Voraussetzung fuer Wenden/Halsen und fuer Vergleiche (Tempo je Windstaerke). Quelle: Open-Meteo-Archiv/Historical (weather.py nutzt bisher nur forecast). Kein Dritt-Skript im Browser — Abruf serverseitig, wie spot_weather."
+          "status": "live",
+          "en": "Wind speed, gusts and direction at the spot during the session (weather model, hourly, not measured on the water)",
+          "notiz": "Voraussetzung fuer Wenden/Halsen und fuer Vergleiche (Tempo je Windstaerke). Quelle: Open-Meteo-Archiv/Historical (weather.py nutzt bisher nur forecast). Kein Dritt-Skript im Browser — Abruf serverseitig, wie spot_weather. 19.10.: GET /api/sessions/{id}/wind (app/sessionwind.py), Datei-Cache data/wind/<id>.json, Forecast-API <=80 Tage sonst Archiv (ERA5); bei Ort verbergen nichts. #17478: 7-18 km/h aus 70 Grad, Schlaege NW-SO = Halbwind -> plausibel.",
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          },
+          "wo": [
+            "server",
+            "web"
+          ]
         },
         "wenden_halsen": {
           "status": "geplant",
@@ -722,6 +731,20 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "wind_am_spot",
+      "was": "Wind am Spot auf der Session-Seite (Web): Bereich km/h + kn, Boeen, Richtung mit Pfeil, Hinweis Modellwert. Endpunkt + Cache; Apps coming next.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
