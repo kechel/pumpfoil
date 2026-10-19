@@ -1017,6 +1017,7 @@ NAECHSTES: list[dict] = [
          "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
          "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
          "The wind box compares your speed on the foil with your other sessions at similar wind.",
+         "Home shows per month how many of your tacks and jibes stayed on the foil.",
      ]},
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
@@ -1038,6 +1039,7 @@ NAECHSTES: list[dict] = [
          "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
          "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
          "The wind box compares your speed on the foil with your other sessions at similar wind.",
+         "Home shows per month how many of your tacks and jibes stayed on the foil.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.

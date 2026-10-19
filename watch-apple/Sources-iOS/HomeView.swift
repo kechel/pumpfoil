@@ -44,6 +44,7 @@ struct HomeView: View {
     @State private var carveStats: CarveStats?
     @State private var bilanz: Jahresbilanz?
     @State private var bilanzJahr: Int?
+    @State private var manVerlauf: ManoeverVerlauf?
     // Zeitfenster wie PWA: heute / 10 T / 30 T / 1 J / gesamt.
     private let statWindows: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     // Vorgabefenster und die Kette, auf die zurueckgefallen wird, solange der Nutzer nicht
@@ -116,6 +117,7 @@ struct HomeView: View {
             if let ss = startSuccess { startSuccessSection(ss) }
             if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
             if let b = bilanz, !b.jahre.isEmpty { bilanzSection(b) }
+            if let mv = manVerlauf, mv.monate.contains(where: { $0.wende + $0.halse > 0 }) { manoeverSection(mv) }
             // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
             BrettLageStartseite(lang: lang)
         }
@@ -553,6 +555,7 @@ struct HomeView: View {
         startSuccess = try? await Api.startSuccess()
         carveStats = try? await Api.carveStats()
         bilanz = try? await Api.jahresbilanz()
+        manVerlauf = try? await Api.manoeverVerlauf()
     }
 
     // --- Persönliche Home-Stats (unten), wie PWA PersonalHome ---
@@ -601,6 +604,28 @@ struct HomeView: View {
         let s: Int = w?.success ?? 0
         let t: Int = w?.total ?? 0
         return "\(s)/\(t)"
+    }
+
+    // Wenden/Halsen auf dem Foil je Monat (19.10.2026, wie im Web), neueste oben, hoechstens 12.
+    @ViewBuilder private func manoeverSection(_ mv: ManoeverVerlauf) -> some View {
+        let monate: [ManoeverMonat] = Array(mv.monate.filter { $0.wende + $0.halse > 0 }.suffix(12).reversed())
+        VStack(alignment: .leading, spacing: 6) {
+            Text(Loc.t("phome.manTitle", lang)).font(.headline)
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(monate, id: \.monat) { m in
+                    Text(m.monat).font(.subheadline.weight(.semibold))
+                    Text(manoeverZeile(m)).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.08)))
+        }
+    }
+
+    private func manoeverZeile(_ m: ManoeverMonat) -> String {
+        func zelle(_ d: Int, _ n: Int) -> String { n > 0 ? "\(d) / \(n) (\(Int((100.0 * Double(d) / Double(n)).rounded())) %)" : "–" }
+        return "\(Loc.t("sd.jibes", lang)) \(zelle(m.halse_durch, m.halse)) · \(Loc.t("sd.tacks", lang)) \(zelle(m.wende_durch, m.wende))"
     }
 
     // Jahresbilanz je Sportart (19.10.2026, wie im Web): Jahr waehlen, je Sportart eine Zeile.

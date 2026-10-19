@@ -111,6 +111,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     var startSuccess by remember { mutableStateOf<StartSuccess?>(null) }
     var carveStats by remember { mutableStateOf<CarveStats?>(null) }
     var bilanz by remember { mutableStateOf<Jahresbilanz?>(null) }
+    var manVerlauf by remember { mutableStateOf<ManoeverVerlauf?>(null) }
     var loading by remember { mutableStateOf(true) }
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
@@ -207,6 +208,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
         carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
         bilanz = try { Api.jahresbilanz() } catch (_: Exception) { bilanz }
+        manVerlauf = try { Api.manoeverVerlauf() } catch (_: Exception) { manVerlauf }
         val einst = try { Api.settings() } catch (_: Exception) { null }
         val hs = einst?.get("homespot")?.jsonPrimitive?.contentOrNull
         // Link auf den Homespot in der Zeile „Letzte Sessions" (Jan, 16.10.2026): wie die PWA mit
@@ -509,6 +511,10 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 Spacer(Modifier.height(10.dp))
                 JahresbilanzSection(b)
             }
+            manVerlauf?.monate?.filter { it.wende + it.halse > 0 }?.takeIf { it.isNotEmpty() }?.let { m ->
+                Spacer(Modifier.height(10.dp))
+                ManoeverVerlaufSection(m.takeLast(12).reversed())
+            }
             // Lage des Bretts je Lauflaenge — nur, wenn es Aufnahmen mit dem Handy am Brett gibt.
             BrettLageStartseite()
 
@@ -616,6 +622,23 @@ private fun CarveStatsSection(cs: CarveStats) {
                 Text("90–180°: ${w?.s ?: 0}", style = MaterialTheme.typography.bodySmall)
                 Text("180–360°: ${w?.m ?: 0}", style = MaterialTheme.typography.bodySmall)
                 Text(">360°: ${w?.l ?: 0}", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+// Wenden/Halsen auf dem Foil je Monat (19.10.2026, wie im Web), neueste oben.
+@Composable
+private fun ManoeverVerlaufSection(monate: List<ManoeverMonat>) {
+    fun zelle(d: Int, n: Int) = if (n > 0) "$d / $n (${Math.round(100.0 * d / n)} %)" else "–"
+    Text(I18n.t("phome.manTitle"), style = MaterialTheme.typography.titleMedium)
+    Spacer(Modifier.height(6.dp))
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            monate.forEach { m ->
+                Text(m.monat, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text("${I18n.t("sd.jibes")} ${zelle(m.halseDurch, m.halse)} · ${I18n.t("sd.tacks")} ${zelle(m.wendeDurch, m.wende)}",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

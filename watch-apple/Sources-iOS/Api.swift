@@ -252,6 +252,9 @@ enum Api {
     static func carveStats() async throws -> CarveStats {
         try await request("/api/community/carve-stats", method: "GET", body: nil, auth: true)
     }
+    static func manoeverVerlauf() async throws -> ManoeverVerlauf {
+        try await request("/api/sessions/manoever-verlauf", method: "GET", body: nil, auth: true)
+    }
     static func jahresbilanz() async throws -> Jahresbilanz {
         try await request("/api/sessions/jahresbilanz", method: "GET", body: nil, auth: true)
     }

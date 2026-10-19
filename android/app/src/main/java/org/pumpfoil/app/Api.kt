@@ -363,6 +363,9 @@ object Api {
     suspend fun carveStats(): CarveStats = withContext(Dispatchers.IO) {
         json.decodeFromString(CarveStats.serializer(), http("GET", "/api/community/carve-stats", null, auth = true))
     }
+    suspend fun manoeverVerlauf(): ManoeverVerlauf = withContext(Dispatchers.IO) {
+        json.decodeFromString(ManoeverVerlauf.serializer(), http("GET", "/api/sessions/manoever-verlauf", null, auth = true))
+    }
     suspend fun jahresbilanz(): Jahresbilanz = withContext(Dispatchers.IO) {
         json.decodeFromString(Jahresbilanz.serializer(), http("GET", "/api/sessions/jahresbilanz", null, auth = true))
     }
