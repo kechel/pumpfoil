@@ -1939,6 +1939,8 @@ const nl: Record<string, string> = {
   "cls.autoWhy": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h — een pumping-run duurt gemiddeld 27 s.",
   "cls.autoWhyPulse": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h, en de hartslag reageerde nauwelijks ({hr} bpm).",
   "cls.ruleWhyWind": "Doorslaggevend: runs van {dur} s met gemiddeld {kmh} km/u, {foil} % van de tijd op de foil, verspreid over {fl} km water — het patroon van een windsport.",
+  "cls.windHint": "Deze sessie lijkt een windsessie. Sport wijzigen?",
+  "cls.windHintNo": "Nee, klopt zo",
   "cls.ruleWhyWave": "Doorslaggevend: korte ritten ({dur} s) met gemiddeld {kmh} km/u vlak bij zee, ertussen {zw} m terugpeddelen — het patroon van golfsurfen.",
   "cls.ruleWhyPump": "Doorslaggevend: korte runs ({dur} s) met gemiddeld {kmh} km/u, steeds vanaf hetzelfde startpunt — het patroon van pumpen.",
   "phome.emptyTitle": "Welkom! Zo komt je eerste sessie hier terecht",

@@ -1881,6 +1881,8 @@ const id: Record<string, string> = {
   "cls.autoWhy": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h — satu run pumping rata-rata 27 s.",
   "cls.autoWhyPulse": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h, dan detak jantung hampir tidak bereaksi ({hr} bpm).",
   "cls.ruleWhyWind": "Yang menentukan: run {dur} detik dengan rata-rata {kmh} km/j, {foil} % waktu di atas foil, tersebar di {fl} km perairan — pola olahraga angin.",
+  "cls.windHint": "Sesi ini tampak seperti sesi angin. Ubah olahraganya?",
+  "cls.windHintNo": "Tidak, sudah benar",
   "cls.ruleWhyWave": "Yang menentukan: ride pendek ({dur} detik) dengan rata-rata {kmh} km/j tepat di tepi laut, di antaranya mendayung kembali {zw} m — pola selancar ombak.",
   "cls.ruleWhyPump": "Yang menentukan: run pendek ({dur} detik) dengan rata-rata {kmh} km/j, selalu dari titik start yang sama — pola pumping.",
   "phome.emptyTitle": "Selamat datang! Begini cara sesi pertamamu sampai ke sini",

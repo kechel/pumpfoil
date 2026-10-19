@@ -1938,6 +1938,8 @@ const cs: Record<string, string> = {
   "cls.autoWhy": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h — pumpovací jízda trvá v průměru 27 s.",
   "cls.autoWhyPulse": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h a tep skoro nereagoval ({hr} bpm).",
   "cls.ruleWhyWind": "Rozhodlo: jízdy po {dur} s průměrně {kmh} km/h, {foil} % času na foilu, rozložené na {fl} km vody — vzorec větrného sportu.",
+  "cls.windHint": "Tahle session vypadá jako větrná. Změnit sport?",
+  "cls.windHintNo": "Ne, je to správně",
   "cls.ruleWhyWave": "Rozhodlo: krátké jízdy ({dur} s) průměrně {kmh} km/h přímo u moře, mezi nimi {zw} m pádlování zpět — vzorec surfování na vlnách.",
   "cls.ruleWhyPump": "Rozhodlo: krátké jízdy ({dur} s) průměrně {kmh} km/h, vždy ze stejného místa startu — vzorec pumpování.",
   "phome.emptyTitle": "Vítej! Takhle se sem dostane tvoje první session",

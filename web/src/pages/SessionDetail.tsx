@@ -1859,6 +1859,7 @@ export default function SessionDetail() {
         {!owned && !isPublic && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
       </div>
       {!isPublic && <ClassificationPanel session={session} owned={owned} onChange={uebernehmen} />}
+      {!isPublic && owned && session.wind_vorschlag && <WindHinweis session={session} onChange={uebernehmen} />}
         </div>
       </div>
 
@@ -3461,6 +3462,46 @@ function RunsTable({
 }
 
 // ---- Sportart-Klassifikation (docs/sport-classification.md) ----
+// Hinweis „sieht nach einer Wind-Session aus" (Jan, 19.10.2026: „Hinweis anbieten und wegklickbar
+// ohne zu akzeptieren"): Knopf je Wind-Sportart (die eigene zuerst) oder „Nein, passt so" — das blendet
+// ihn fuer diese Session auf allen Geraeten aus, ohne etwas zu aendern.
+function WindHinweis({ session, onChange }: { session: SessionSummary; onChange: (s: SessionSummary) => void }) {
+  const t = useT();
+  const [weg, setWeg] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const v = session.wind_vorschlag;
+  if (!v || weg) return null;
+  const rg = v.regel || {};
+  const nimm = (sport: string) => {
+    setBusy(true);
+    api.setClassification(session.id, { sport })
+      .then((r) => onChange({ ...session, sport_class: r.sport_class, data_quality: r.data_quality,
+                              sport_source: r.sport_source, needs_classification: false, wind_vorschlag: null }))
+      .catch(() => {}).finally(() => setBusy(false));
+  };
+  return (
+    <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 p-3">
+      <p className="mb-1 text-amber-800 dark:text-amber-200">{t("cls.windHint")}</p>
+      <p className="mb-2 text-sm text-amber-800/80 dark:text-amber-200/80">
+        {t("cls.ruleWhyWind", { dur: Math.round(rg.dauer_med ?? 0), kmh: (rg.tempo_med ?? 0).toFixed(1),
+                                foil: Math.round((rg.anteil_foil ?? 0) * 100), fl: (rg.flaeche_km ?? 0).toFixed(1) })}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {v.sportarten.map((sp) => (
+          <button key={sp} disabled={busy} onClick={() => nimm(sp)}
+            className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-slate-950 disabled:opacity-50">
+            {t(`cls.sport.${sp}`)}
+          </button>
+        ))}
+        <button disabled={busy} onClick={() => { setWeg(true); api.windHinweisWeg(session.id).catch(() => {}); }}
+          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300">
+          {t("cls.windHintNo")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Drei Rollen in einem Bauteil, weil sie dieselbe Sache betreffen:
 //   Besitzer + offene Frage -> freundliche Bitte, zuordnen ODER widersprechen
 //   Besitzer, nichts offen   -> Kategorie frei änderbar (unauffällig, kein Alarm)

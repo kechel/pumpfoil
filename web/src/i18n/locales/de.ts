@@ -2239,6 +2239,8 @@ const de: Record<string, string> = {
   "cls.autoWhy": "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h — beim Pumpen dauert ein Lauf im Mittel 27 s.",
   "cls.autoWhyPulse": "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h, und der Puls reagierte kaum ({hr} bpm).",
   "cls.ruleWhyWind": "Ausschlaggebend: Läufe von {dur} s bei Ø {kmh} km/h, {foil} % der Zeit auf dem Foil, über {fl} km Wasser verteilt — das Muster eines Windsports.",
+  "cls.windHint": "Diese Session sieht nach einer Wind-Session aus. Sportart ändern?",
+  "cls.windHintNo": "Nein, passt so",
   "cls.ruleWhyWave": "Ausschlaggebend: kurze Ritte ({dur} s) bei Ø {kmh} km/h direkt am Meer, dazwischen {zw} m zurückgepaddelt — das Muster des Wellenreitens.",
   "cls.ruleWhyPump": "Ausschlaggebend: kurze Läufe ({dur} s) bei Ø {kmh} km/h, immer vom selben Startpunkt — das Muster des Pumpens.",
   "cls.pickErr": "Konnte nicht gespeichert werden",

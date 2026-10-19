@@ -380,6 +380,8 @@ export interface SessionSummary {
   needs_classification?: boolean;      // 2 Melder, noch nicht zugeordnet -> in keiner Auswertung
   // Begründung der automatischen Erkennung (nur Besitzer/Admin, nur solange sie gilt). Der Text
   // wird HIER gebaut, nicht am Server: der Server schickt die Messwerte, die Sprache macht die App.
+  // Hinweis „sieht nach Wind aus" (19.10.2026): nur Besitzer, Einzelansicht.
+  wind_vorschlag?: null | { sportarten: string[]; regel: { dauer_med?: number; tempo_med?: number; anteil_foil?: number; flaeche_km?: number } };
   sport_auto?: {
     hinweis?: string;                  // auto.motor | auto.unklar | regel.wind | regel.welle | regel.pump
     grund?: string;                    // Klartext (deutsch) — nur für Admin/Support, nicht für die UI
@@ -1801,6 +1803,7 @@ export const api = {
   flagNotPumpfoil: (id: number, note?: string) =>
     req<{ ok: boolean; flags?: number; needs_classification?: boolean }>(
       `/api/sessions/${id}/not-pumpfoil`, { method: "POST", body: JSON.stringify({ note: note ?? null }) }),
+  windHinweisWeg: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}/wind-hinweis-weg`, { method: "POST" }),
   setClassification: (id: number, patch: { sport?: string; data_quality?: string }) =>
     req<{ ok: boolean; sport_class: string; data_quality: string; sport_source: string }>(
       `/api/sessions/${id}/classification`, { method: "PUT", body: JSON.stringify(patch) }),

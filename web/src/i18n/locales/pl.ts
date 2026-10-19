@@ -2242,6 +2242,8 @@ const pl: Record<string, string> = {
   "cls.autoWhy": "Co zdecydowało: najdłuższy przejazd {dur} s przy średnio {kmh} km/h — przejazd na pompowaniu trwa średnio 27 s.",
   "cls.autoWhyPulse": "Co zdecydowało: najdłuższy przejazd {dur} s przy średnio {kmh} km/h, a Twoje tętno prawie nie zareagowało ({hr} bpm).",
   "cls.ruleWhyWind": "Zadecydowało: przejazdy po {dur} s przy średnio {kmh} km/h, {foil} % czasu na foilu, rozłożone na {fl} km wody — wzorzec sportu wiatrowego.",
+  "cls.windHint": "Ta sesja wygląda na sesję z wiatrem. Zmienić sport?",
+  "cls.windHintNo": "Nie, jest dobrze",
   "cls.ruleWhyWave": "Zadecydowało: krótkie przejazdy ({dur} s) przy średnio {kmh} km/h tuż przy morzu, a pomiędzy nimi {zw} m wiosłowania z powrotem — wzorzec surfingu na falach.",
   "cls.ruleWhyPump": "Zadecydowało: krótkie przejazdy ({dur} s) przy średnio {kmh} km/h, zawsze z tego samego miejsca startu — wzorzec pumpingu.",
   "phome.emptyTitle": "Witaj! Tak trafi tu Twoja pierwsza sesja",

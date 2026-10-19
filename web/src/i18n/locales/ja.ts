@@ -1852,6 +1852,8 @@ const ja: Record<string, string> = {
   "cls.autoWhy": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h — パンプのランは平均 27 秒です。",
   "cls.autoWhyPulse": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h で、心拍がほとんど反応しませんでした（{hr} bpm）。",
   "cls.ruleWhyWind": "判定の決め手：平均 {kmh} km/h で {dur} 秒のラン、時間の {foil} % がフォイル上、{fl} km の水域に分散 — 風のスポーツのパターンです。",
+  "cls.windHint": "このセッションは風のスポーツのようです。スポーツを変更しますか？",
+  "cls.windHintNo": "いいえ、このままで",
   "cls.ruleWhyWave": "判定の決め手：海のすぐそばで平均 {kmh} km/h の短いライド（{dur} 秒）、その間に {zw} m パドルで戻る — 波乗りのパターンです。",
   "cls.ruleWhyPump": "判定の決め手：平均 {kmh} km/h の短いラン（{dur} 秒）、いつも同じスタート地点から — パンピングのパターンです。",
   "phome.emptyTitle": "ようこそ！最初のセッションはこうしてここに届きます",
