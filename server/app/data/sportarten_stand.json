@@ -58,6 +58,14 @@
       "en": "Automatic sport detection"
     },
     {
+      "id": "sport_auf_uhr",
+      "en": "Choose the sport on the watch"
+    },
+    {
+      "id": "foil_je_sport",
+      "en": "Default foil per sport"
+    },
+    {
       "id": "lauf_sportart",
       "en": "Sport per run"
     }
@@ -145,6 +153,16 @@
           "status": "geplant",
           "en": "Mark single runs with their own sport.",
           "notiz": "Stufe 5, gleicher Umbau wie Foil je Lauf (Oerni 04.10.: Wakethief-Laeufe in einer Pumpfoil-Session)."
+        },
+        "sport_auf_uhr": {
+          "status": "geplant",
+          "en": "Pick the sport on the watch before you start, like the foil today.",
+          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
+        },
+        "foil_je_sport": {
+          "status": "geplant",
+          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
+          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
         }
       }
     },
@@ -153,8 +171,8 @@
       "merkmale": {
         "erkennung": {
           "status": "teilweise",
-          "en": "Uses the pumpfoil detection with higher speed limits; slow parts and short GPS gaps split the ride into many runs.",
-          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions)."
+          "en": "Uses the pumpfoil detection with higher speed limits; slow parts and short GPS gaps still split the ride into many runs, a wind-specific detection that keeps a ride together is planned.",
+          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions). Jan 19.10.: „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr staendig unterbrochen wird … bei whole ride ist fast alles in so einer session dann ein einziger run“ -> Stufe 3."
         },
         "tempo": {
           "status": "live",
@@ -255,6 +273,16 @@
           "status": "geplant",
           "en": "Mark single runs with their own sport.",
           "notiz": "Stufe 5."
+        },
+        "sport_auf_uhr": {
+          "status": "geplant",
+          "en": "Pick the sport on the watch before you start, like the foil today.",
+          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
+        },
+        "foil_je_sport": {
+          "status": "geplant",
+          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
+          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
         }
       }
     },
@@ -321,6 +349,16 @@
         "lauf_sportart": {
           "status": "geplant",
           "en": "Mark single runs with their own sport."
+        },
+        "sport_auf_uhr": {
+          "status": "geplant",
+          "en": "Pick the sport on the watch before you start, like the foil today.",
+          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
+        },
+        "foil_je_sport": {
+          "status": "geplant",
+          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
+          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
         }
       }
     },
@@ -382,6 +420,16 @@
         "lauf_sportart": {
           "status": "nein",
           "en": "Not planned."
+        },
+        "sport_auf_uhr": {
+          "status": "geplant",
+          "en": "Pick the sport on the watch before you start, like the foil today.",
+          "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner."
+        },
+        "foil_je_sport": {
+          "status": "geplant",
+          "en": "Each sport remembers its own default foil, and the foil list on the watch shows that sport's foils first.",
+          "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert)."
         }
       }
     }
@@ -528,7 +576,7 @@
       "nr": 3,
       "titel": "Eigene On-Foil-Erkennung Wind",
       "status": "geplant",
-      "notiz": "Detektor -> nur mit Jans OK. Tempo-Schwelle + Haltezeit, GPS-Luecken innerhalb einer Fahrt ueberbruecken. Eichen an den Wing-Sessions, Regressions-Check: Pumpfoil-Zahlen unveraendert."
+      "notiz": "Detektor -> nur mit Jans OK, Befund + Fix + Regressions-Check vorlegen. Ziel (Jan 19.10.): eine Wing-Fahrt nicht staendig unterbrechen — kurze Stuerze, Wenden, Wasserstarts gehoeren zur Fahrt; eher „Fahrten“ als Pump-Laeufe. Ansatz: Lauf-Grenze ueber laengere Pausen (Minuten statt 15 s GAP_SPLIT), Tempo-Schwelle + Haltezeit fuer on-foil als zweite Zahl, Foil-Modell (Pumpen) fuer Wind nicht verwenden. Eichen an 868 Wing-Sessions (25 Fahrer), Beispiel #17478 (57 Laeufe). Pumpfoil-Zahlen muessen unveraendert bleiben."
     },
     {
       "nr": 4,
@@ -541,9 +589,32 @@
       "titel": "Sportart je Lauf",
       "status": "geplant",
       "notiz": "Segment-Sportart statt Session-Sportart, gleicher Umbau wie Foil je Lauf. Automatische Trennung erst, wenn verlaesslich."
+    },
+    {
+      "nr": 6,
+      "titel": "Sportart auf der Uhr waehlen",
+      "status": "geplant",
+      "notiz": "Oerni 19.10. Alle Uhren; Start-Auswahl wie das Foil, Server uebernimmt sie als sport_class (owner)."
+    },
+    {
+      "nr": 7,
+      "titel": "Standard-Foil je Sportart",
+      "status": "geplant",
+      "notiz": "Jan/Oerni 19.10. Profil: Default-Foil je Sportart; Uhr-Foil-Liste je Sportart sortiert; neue Session bekommt das Foil ihrer Sportart."
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "sport_auf_uhr, foil_je_sport, erkennung",
+      "was": "Ideen aus dem Chat mit Oerni aufgenommen (Sportart an der Uhr waehlen, Default-Foil je Sportart) und Jans Ziel fuer Stufe 3 (Wing-Fahrt nicht staendig unterbrechen).",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
