@@ -31,12 +31,21 @@ STANDARD = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True, "tempo_s
 # Nur Abweichungen vom Standard. Stufe 1: die Wind-Gruppe.
 JE_GRUPPE = {
     "wind": {"karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False, "tempo_skala": [10, 40]},
-    # Motor/Seil (19.10.2026): Pumps zaehlen dort nicht, die Kadenz waere Rauschen. Karte und Hauptzahl
-    # wie bisher (eine eFoil-Fahrt ist fast durchgehend on-foil).
-    "motor": {"pumpzahlen": False, "tempo_skala": [10, 40]},
+    # Motor/Seil (19.10.2026): Pumps zaehlen dort nicht, die Kadenz waere Rauschen. Skala 8-30 km/h:
+    # gemessen Hoechsttempo eFoil/Foildrive Median 22, p90 26 km/h (10-40 liess die Haelfte ungenutzt).
+    "motor": {"pumpzahlen": False, "tempo_skala": [8, 30]},
+}
+
+# Abweichungen einzelner Sportarten vom Gruppenstand.
+JE_SPORT = {
+    # eFoil/Foildrive fahren durchgehend wie Wind: ganze Fahrt + Schalter, Gesamtzahlen vorn, Fahrten
+    # (Stand-Buch: motor fahrten/kartenschalter, Claude-Vorschlag 19.10.). Towed bleibt bei Laeufen:
+    # jeder Zug ist ein eigener Lauf, die Rueckfahrt im Boot gehoert nicht auf die Karte.
+    "efoil": {"karte": "ganz", "hauptzahl": "gesamt"},
+    "foildrive": {"karte": "ganz", "hauptzahl": "gesamt"},
 }
 
 
 def profil(sport_class: str | None) -> dict:
     gruppe = GRUPPE.get(sport_class or "pumpfoil", "pump")
-    return {"gruppe": gruppe, **STANDARD, **JE_GRUPPE.get(gruppe, {})}
+    return {"gruppe": gruppe, **STANDARD, **JE_GRUPPE.get(gruppe, {}), **JE_SPORT.get(sport_class or "", {})}

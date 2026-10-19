@@ -568,7 +568,7 @@
         "tempo": {
           "status": "teilweise",
           "en": "Pumpfoil limits.",
-          "notiz": "eFoil faehrt oft 14-19 km/h gleichmaessig (MOTOR_TEMPO_KMH), passt ins Band; schnellere Boards nicht."
+          "notiz": "eFoil faehrt oft 14-19 km/h gleichmaessig (MOTOR_TEMPO_KMH), passt ins Band; schnellere Boards nicht. 19.10.: Farbskala der Apps 8-30 km/h (gemessen Max Median 22, p90 26)."
         },
         "autofahrt": {
           "status": "live",
@@ -746,9 +746,9 @@
           "notiz": "Jan 19.10.: „ich wuerde es lieber getrennt lassen“ — Foil Scoot zaehlt NICHT in den Pumpfoil-Standardrekorden (ThermikDreher-Frage entschieden)."
         },
         "tempo": {
-          "status": "vorschlag",
-          "en": "Its own speed colour scale, since scooters ride faster than pumpfoilers.",
-          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
+          "status": "nein",
+          "en": "Uses the pumpfoil speed scale; foil scooters ride at pumpfoil speeds.",
+          "notiz": "Claude-Vorschlag 19.10. zurueckgenommen nach Messung: Hoechsttempo Median 17,9 km/h (Pumpfoil 18,4), on-foil-Tempo 14,9 (14,8) -> keine eigene Skala noetig."
         }
       }
     },
@@ -884,12 +884,118 @@
     {
       "id": "efoil",
       "en": "eFoil",
-      "gruppe": "motor"
+      "gruppe": "motor",
+      "merkmale": {
+        "fahrten": {
+          "status": "live",
+          "en": "Runs are grouped into rides (a break of up to 5 minutes belongs to the ride), with moving time and speed over the whole ride.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          },
+          "notiz": "sportprofil.JE_SPORT + sportzahlen (Fahrten wie Wind). Apps zeigen Fahrten/ganze Fahrt seit 1.1.44/1.1.52 profilgesteuert."
+        },
+        "kartenschalter": {
+          "status": "live",
+          "en": "The whole ride on the map, coloured by speed, with a switch to on-foil only.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          },
+          "notiz": "sportprofil karte=ganz."
+        },
+        "kennzahlen": {
+          "status": "live",
+          "en": "Total distance and ride time first, on-foil as the second number.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          },
+          "notiz": "sportprofil hauptzahl=gesamt."
+        }
+      }
     },
     {
       "id": "foildrive",
       "en": "Foildrive",
-      "gruppe": "motor"
+      "gruppe": "motor",
+      "merkmale": {
+        "fahrten": {
+          "status": "live",
+          "en": "Runs are grouped into rides (a break of up to 5 minutes belongs to the ride), with moving time and speed over the whole ride.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          },
+          "notiz": "sportprofil.JE_SPORT + sportzahlen (Fahrten wie Wind). Apps zeigen Fahrten/ganze Fahrt seit 1.1.44/1.1.52 profilgesteuert."
+        },
+        "kartenschalter": {
+          "status": "live",
+          "en": "The whole ride on the map, coloured by speed, with a switch to on-foil only.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          },
+          "notiz": "sportprofil karte=ganz."
+        },
+        "kennzahlen": {
+          "status": "live",
+          "en": "Total distance and ride time first, on-foil as the second number.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          },
+          "notiz": "sportprofil hauptzahl=gesamt."
+        }
+      }
     },
     {
       "id": "towed",
@@ -900,6 +1006,15 @@
           "status": "vorschlag",
           "en": "Starts behind the boat or winch as the main number, since every tow is one run.",
           "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung."
+        },
+        "fahrten": {
+          "status": "nein",
+          "en": "Each tow is its own run.",
+          "notiz": "Bewusst nicht: Rueckfahrt im Boot gehoert nicht zur Fahrt."
+        },
+        "kartenschalter": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     }
@@ -949,6 +1064,21 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "efoil",
+        "foildrive",
+        "towed",
+        "foil_scoot"
+      ],
+      "merkmal": "fahrten",
+      "was": "eFoil/Foildrive: ganze Fahrt + Schalter, Gesamtzahlen vorn, Fahrten (wie Wind); Towed bleibt bei Laeufen. Motor-Farbskala 8-30 km/h. Foil-Scoot-Skala verworfen (gleich schnell wie Pumpfoil).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [

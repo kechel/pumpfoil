@@ -46,3 +46,10 @@ def test_downwind_a_nach_b():
     assert abs(f["ab_m"] - 600) <= 2 and abs(f["ab_kmh"] - 21.6) < 0.2   # gerade nach Norden, 6 m/s
     assert abs(f["foil_anteil"] - 0.75) < 0.01
     assert "wellen" not in z
+
+
+def test_fahrten_efoil_aber_nicht_towed():
+    from app.sportzahlen import berechnen
+    segs = [{"t_start_ms": 0, "duration_s": 60, "distance_m": 360, "i_start": 0, "i_end": 60}]
+    assert len(berechnen("motor", segs, _spur(100), 600.0, 60.0, "efoil")["fahrten"]) == 1
+    assert "fahrten" not in berechnen("motor", segs, _spur(100), 600.0, 60.0, "towed")
