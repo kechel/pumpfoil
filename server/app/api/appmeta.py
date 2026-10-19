@@ -1042,6 +1042,7 @@ NAECHSTES: list[dict] = [
          "The wind box compares your speed on the foil with your other sessions at similar wind.",
          "Home shows per month how many of your tacks and jibes stayed on the foil.",
          "A session that looks like a wind session offers you to change the sport; you can also dismiss the hint.",
+         "Choosing the foil, stab, mast, board or weight for a session in the setup editor is saved again; since the editor came in, a choice was reset to your default.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
