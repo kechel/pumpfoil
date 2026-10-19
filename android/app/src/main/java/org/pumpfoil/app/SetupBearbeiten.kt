@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -137,13 +138,18 @@ internal fun SetupBearbeitenDialog(
         val g = gewicht.trim()
         val kg = g.toIntOrNull()
         if (g.isNotEmpty() && (kg == null || kg !in 20..300)) { fehler = "20–300 kg"; return }
+        // NICHT `wert?.let { put(k, it) } ?: put(k, JsonNull)`: `put` gibt den VORIGEN Wert zurueck,
+        // beim ersten Eintragen also null — dann lief der ?:-Zweig immer mit und ueberschrieb jede
+        // Wahl mit „Standard" (Feedback #205, 19.10.2026: „es laesst sich nicht mehr speichern welches
+        // Foil verwendet wurde"; seit dem Setup-Popup vom 07.10. alle sechs Felder betroffen).
+        fun JsonObjectBuilder.feld(k: String, v: Number?) { if (v == null) put(k, JsonNull) else put(k, v) }
         val body = buildJsonObject {
-            if (foilId != startFoil) foilId?.let { put("foil_id", it) } ?: put("foil_id", JsonNull)
-            if (stabId != startStab) stabId?.let { put("stab_id", it) } ?: put("stab_id", JsonNull)
-            if (mast != startMast) mast?.let { put("mast_len_cm", it) } ?: put("mast_len_cm", JsonNull)
-            if (shim != startShim) shim?.let { put("shim_deg", it) } ?: put("shim_deg", JsonNull)
-            if (boardId != startBoard) boardId?.let { put("board_id", it) } ?: put("board_id", JsonNull)
-            if (g != startGewicht) kg?.let { put("rider_weight_kg", it) } ?: put("rider_weight_kg", JsonNull)
+            if (foilId != startFoil) feld("foil_id", foilId)
+            if (stabId != startStab) feld("stab_id", stabId)
+            if (mast != startMast) feld("mast_len_cm", mast)
+            if (shim != startShim) feld("shim_deg", shim)
+            if (boardId != startBoard) feld("board_id", boardId)
+            if (g != startGewicht) feld("rider_weight_kg", kg)
             if (bildtext.trim() != caption.trim()) put("caption", bildtext.trim())
         }
         busy = true
