@@ -1508,7 +1508,7 @@ const ja: Record<string, string> = {
   "settings.coros.title": "COROS インポート",
   "settings.coros.hint": "COROS アカウント（Open API）を連携します。新しいワークアウトは自動的にセッションとしてインポートされます。",
   "settings.coros.expired": "接続の有効期限切れ",
-  "settings.coros.expiredHint": "COROSが認可を終了しました。新しいワークアウトが再び届くよう、アカウントを再接続してください。",
+  "settings.coros.expiredHint": "提供元が認可を終了しました。新しいワークアウトが再び届くよう、アカウントを再接続してください。",
   "settings.coros.reconnect": "再接続",
   "settings.coros.connect": "COROS を連携",
   "settings.coros.connected": "連携済み — 自動インポート",

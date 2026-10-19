@@ -1167,7 +1167,7 @@ const gsw: Record<string, string> = {
   "settings.coros.title": "COROS-Import",
   "settings.coros.hint": "Verbinde dis COROS-Konto (Open API). Neui Trainings werded automatisch als Sessions importiert.",
   "settings.coros.expired": "Verbindig abglaufe",
-  "settings.coros.expiredHint": "COROS hät d Freigab beendet. Verbind dis Konto neu, damit neui Trainings wieder ahchömed.",
+  "settings.coros.expiredHint": "Dä Aabieter hät d Freigab beendet. Verbind dis Konto neu, damit neui Trainings wieder ahchömed.",
   "settings.coros.reconnect": "Neu verbinde",
   "settings.coros.connect": "Mit COROS verbinde",
   "settings.coros.connected": "Verbunde — automatische Import",

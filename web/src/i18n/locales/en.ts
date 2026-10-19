@@ -1727,7 +1727,7 @@ const en: Record<string, string> = {
   "settings.coros.title": "COROS import",
   "settings.coros.hint": "Connect your COROS account (Open API). New workouts are imported automatically as sessions.",
   "settings.coros.expired": "Connection expired",
-  "settings.coros.expiredHint": "COROS ended the authorization. Connect your account again so new workouts come in again.",
+  "settings.coros.expiredHint": "The provider ended the authorization. Connect your account again so new workouts come in again.",
   "settings.coros.reconnect": "Reconnect",
   "settings.coros.connect": "Connect COROS",
   "settings.coros.connected": "Connected — automatic import",

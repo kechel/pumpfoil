@@ -1656,7 +1656,7 @@ const pl: Record<string, string> = {
   "settings.coros.title": "Import z COROS",
   "settings.coros.hint": "Połącz swoje konto COROS (Open API). Nowe treningi importują się automatycznie jako sesje.",
   "settings.coros.expired": "Połączenie wygasło",
-  "settings.coros.expiredHint": "COROS zakończył autoryzację. Połącz konto ponownie, aby nowe treningi znów docierały.",
+  "settings.coros.expiredHint": "Dostawca zakończył autoryzację. Połącz konto ponownie, aby nowe treningi znów docierały.",
   "settings.coros.reconnect": "Połącz ponownie",
   "settings.coros.connect": "Połącz COROS",
   "settings.coros.connected": "Połączono — import automatyczny",

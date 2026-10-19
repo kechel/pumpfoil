@@ -1635,7 +1635,7 @@ const nl: Record<string, string> = {
   "settings.coros.title": "COROS-import",
   "settings.coros.hint": "Koppel je COROS-account (Open API). Nieuwe trainingen worden automatisch als sessies geïmporteerd.",
   "settings.coros.expired": "Verbinding verlopen",
-  "settings.coros.expiredHint": "COROS heeft de toestemming beëindigd. Verbind je account opnieuw zodat nieuwe trainingen weer binnenkomen.",
+  "settings.coros.expiredHint": "De aanbieder heeft de toestemming beëindigd. Verbind je account opnieuw zodat nieuwe trainingen weer binnenkomen.",
   "settings.coros.reconnect": "Opnieuw verbinden",
   "settings.coros.connect": "Met COROS verbinden",
   "settings.coros.connected": "Verbonden — automatische import",

@@ -85,6 +85,7 @@ def status_(user: models.User = Depends(current_user), db: Session = Depends(get
         "available": available,
         "linked": link is not None,
         "last_sync_at": link.last_sync_at.isoformat() if link and link.last_sync_at else None,
+        "expired": bool(link is not None and link.zugang_abgelehnt_at),
     }
 
 
@@ -186,6 +187,7 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
         link.polar_user_id = xuid
         link.access_token = access
         link.member_id = member_id
+    link.zugang_abgelehnt_at = None     # neu verbunden -> Ablauf-Hinweis erledigt
     db.commit()
     return _ok_redirect()
 
@@ -203,6 +205,14 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
         tr = httpx.post(base, headers=hdr, timeout=30)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Polar unreachable") from exc
+    if tr.status_code == 401:
+        # Token ungueltig: AccessLink-Tokens laufen nicht ab, das heisst fast immer „Nutzer hat den
+        # Zugang in Polar Flow entzogen". Merken (jedes Mal melden), damit die Karte es sagt.
+        log.warning("polar: Zugang abgelehnt (user %s): 401 %s", user.id, tr.text[:200])
+        link.zugang_abgelehnt_at = link.zugang_abgelehnt_at or datetime.now(timezone.utc)
+        db.commit()
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Polar link expired, please reconnect")
+    link.zugang_abgelehnt_at = None
     if tr.status_code == 204:  # keine neuen Trainings
         link.last_sync_at = datetime.now(timezone.utc)
         link.retry_count = 0   # nichts offen -> der Fehlversuchs-Zaehler ist erledigt

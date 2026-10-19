@@ -1635,7 +1635,7 @@ const cs: Record<string, string> = {
   "settings.coros.title": "COROS import",
   "settings.coros.hint": "Propoj svůj účet COROS (Open API). Nové tréninky se automaticky importují jako vyjížďky.",
   "settings.coros.expired": "Připojení vypršelo",
-  "settings.coros.expiredHint": "COROS ukončil autorizaci. Připoj účet znovu, aby nové tréninky zase přicházely.",
+  "settings.coros.expiredHint": "Poskytovatel ukončil autorizaci. Připoj účet znovu, aby nové tréninky zase přicházely.",
   "settings.coros.reconnect": "Znovu připojit",
   "settings.coros.connect": "Propojit s COROS",
   "settings.coros.connected": "Propojeno — automatický import",

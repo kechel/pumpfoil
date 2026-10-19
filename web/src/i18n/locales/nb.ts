@@ -1548,7 +1548,7 @@ const nb: Record<string, string> = {
   "settings.coros.title": "COROS-import",
   "settings.coros.hint": "Koble til COROS-kontoen din (Open API). Nye treninger importeres automatisk som økter.",
   "settings.coros.expired": "Tilkoblingen er utløpt",
-  "settings.coros.expiredHint": "COROS har avsluttet autorisasjonen. Koble til kontoen på nytt så nye treninger kommer inn igjen.",
+  "settings.coros.expiredHint": "Leverandøren har avsluttet autorisasjonen. Koble til kontoen på nytt så nye treninger kommer inn igjen.",
   "settings.coros.reconnect": "Koble til på nytt",
   "settings.coros.connect": "Koble til COROS",
   "settings.coros.connected": "Tilkoblet — automatisk import",

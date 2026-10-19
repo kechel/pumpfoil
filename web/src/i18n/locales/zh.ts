@@ -1508,7 +1508,7 @@ const zh: Record<string, string> = {
   "settings.coros.title": "COROS 导入",
   "settings.coros.hint": "连接你的 COROS 账号（Open API）。新训练会自动作为记录导入。",
   "settings.coros.expired": "连接已过期",
-  "settings.coros.expiredHint": "COROS 已结束授权。请重新连接账户，新的训练才会再次导入。",
+  "settings.coros.expiredHint": "服务提供方已结束授权。请重新连接账户，新的训练才会再次导入。",
   "settings.coros.reconnect": "重新连接",
   "settings.coros.connect": "连接 COROS",
   "settings.coros.connected": "已连接 —— 自动导入",

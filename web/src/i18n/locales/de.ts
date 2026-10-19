@@ -1848,7 +1848,7 @@ const de: Record<string, string> = {
   "settings.coros.title": "COROS-Import",
   "settings.coros.hint": "Verbinde dein COROS-Konto (Open API). Neue Trainings werden automatisch als Sessions importiert.",
   "settings.coros.expired": "Verbindung abgelaufen",
-  "settings.coros.expiredHint": "COROS hat die Freigabe beendet. Verbinde dein Konto neu, damit neue Trainings wieder ankommen.",
+  "settings.coros.expiredHint": "Der Anbieter hat die Freigabe beendet. Verbinde dein Konto neu, damit neue Trainings wieder ankommen.",
   "settings.coros.reconnect": "Neu verbinden",
   "settings.coros.connect": "Mit COROS verbinden",
   "settings.coros.connected": "Verbunden — automatischer Import",

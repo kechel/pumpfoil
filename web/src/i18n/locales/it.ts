@@ -1251,7 +1251,7 @@ const it: Record<string, string> = {
   "settings.coros.title": "Import COROS",
   "settings.coros.hint": "Collega il tuo account COROS (Open API). I nuovi allenamenti vengono importati automaticamente come sessioni.",
   "settings.coros.expired": "Connessione scaduta",
-  "settings.coros.expiredHint": "COROS ha terminato l'autorizzazione. Ricollega il tuo account perché i nuovi allenamenti arrivino di nuovo.",
+  "settings.coros.expiredHint": "Il fornitore ha terminato l'autorizzazione. Ricollega il tuo account perché i nuovi allenamenti arrivino di nuovo.",
   "settings.coros.reconnect": "Ricollega",
   "settings.coros.connect": "Collega COROS",
   "settings.coros.connected": "Collegato — import automatico",
