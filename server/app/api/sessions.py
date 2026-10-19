@@ -3617,6 +3617,44 @@ def session_wind(
     return {"wind": _wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)}
 
 
+@router.get("/{session_id}/manoever")
+def session_manoever(
+    session_id: int,
+    _user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Wenden und Halsen (nur Wind-Sportarten, NUR ANZEIGE wie /carves; app/manoever.py).
+
+    `items[].i` ist der Index in die getrimmte Spur (= track_geojson). Ohne Windrichtung (kein Ort,
+    Ort verborgen, Open-Meteo nicht erreichbar) gibt es keine Einordnung -> leer."""
+    leer = {"items": [], "zahlen": None}
+    s = _readable(db, session_id)
+    if sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s):
+        return leer
+    from ..manoever import erkennen, wind_funktion
+    from ..sessionwind import session_wind as _wind
+    pkt = wind_funktion(_wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at))
+    if not pkt or s.started_at is None:
+        return leer
+    gps = storage.load_gps(s.session_uuid)
+    if not gps:
+        return leer
+    # Trim wie /carves und die Analyse, sonst passen die Indizes nicht zur Karte.
+    lo = s.trim_start_ms if s.trim_start_ms is not None else gps[0][0]
+    hi = s.trim_end_ms if s.trim_end_ms is not None else gps[-1][0]
+    gps = [r for r in gps if lo <= r[0] <= hi]
+    t0 = s.started_at.timestamp() * 1000.0
+    def wind_von(t_ms):
+        return min(pkt, key=lambda p: abs(p[0] - (t0 + t_ms)))[1]
+    lat = [float(r[1]) if r[1] is not None else float("nan") for r in gps]
+    lon = [float(r[2]) if r[2] is not None else float("nan") for r in gps]
+    items = erkennen([r[0] for r in gps], lat, lon, wind_von)
+    zahlen = {typ: {"durch": sum(1 for m in items if m["typ"] == typ and m["durch"]),
+                    "ab": sum(1 for m in items if m["typ"] == typ and not m["durch"])}
+              for typ in ("wende", "halse")}
+    return {"items": items, "zahlen": zahlen}
+
+
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---
 MAX_PHOTOS_PER_SESSION = 12
 

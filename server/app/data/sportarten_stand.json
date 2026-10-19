@@ -346,9 +346,18 @@
           ]
         },
         "wenden_halsen": {
-          "status": "geplant",
-          "en": "Count tacks and jibes and show them on the map.",
-          "notiz": "Jan 19.10.: 'erkennung/zaehlen und anzeige fuer wenden & halsen ... braeuchte man aber auch die Windrichtung zu sessionzeit am spot'. Ansatz: Kursaenderung > ~90 Grad innerhalb weniger Sekunden; Wende vs. Halse ueber die Windrichtung (Bug durch den Wind vs. Heck durch den Wind). Windrichtung aus wind_am_spot, notfalls aus der Spur selbst (Kreuz-/Raumschotkurse: Achse der Zickzack-Schlaege). Gestuerzt/gehalten (Fuss blieb nicht drauf) ueber Tempoeinbruch unterscheidbar -> 'gelungene' Manoever. Jan 19.10.: „halsen & wenden sind planned auf jeden fall“."
+          "status": "live",
+          "en": "Tacks and jibes counted (how many stayed on the foil) and marked on the map, estimated from the GPS track and the model wind",
+          "notiz": "Jan 19.10.: 'erkennung/zaehlen und anzeige fuer wenden & halsen ... braeuchte man aber auch die Windrichtung zu sessionzeit am spot'. Ansatz: Kursaenderung > ~90 Grad innerhalb weniger Sekunden; Wende vs. Halse ueber die Windrichtung (Bug durch den Wind vs. Heck durch den Wind). Windrichtung aus wind_am_spot, notfalls aus der Spur selbst (Kreuz-/Raumschotkurse: Achse der Zickzack-Schlaege). Gestuerzt/gehalten (Fuss blieb nicht drauf) ueber Tempoeinbruch unterscheidbar -> 'gelungene' Manoever. Jan 19.10.: „halsen & wenden sind planned auf jeden fall“. 19.10.: app/manoever.py + GET /api/sessions/{id}/manoever, nur Anzeige wie /carves. Kurs vor/nach (±4-10 s) dreht >= 100 Grad, je 20 s eine; Wende/Halse ueber Windrichtung (Modell je Stunde); durchgefahren = nie unter 12 km/h. #17478: Wenden 0/26, Halsen 78/92; #17384: 0/28, 128/146 — plausibel (Wenden auf dem Foil sind schwer). Synthetischer Test in tests/test_sessionwind.py.",
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          },
+          "wo": [
+            "server",
+            "web"
+          ]
         },
         "spruenge": {
           "status": "vorschlag",
@@ -731,6 +740,20 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "wenden_halsen",
+      "was": "Wenden/Halsen im Web: Zaehler (auf dem Foil / gesamt) in der Wind-Box, Marken auf der Karte. Apps coming next.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
