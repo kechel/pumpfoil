@@ -1083,7 +1083,7 @@ NAECHSTES: list[dict] = [
     # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
     {"name": "Amazfit", "version": "1.0.15",
      "items": [
-         "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows at the start of the status line.",
+         "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows under the title on the start screen.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
