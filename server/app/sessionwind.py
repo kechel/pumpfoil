@@ -11,9 +11,15 @@ die Spot-Koordinate (auf 2 Nachkommastellen gerundet, ~1 km) und der Tag — wie
 - Sessions der letzten ~80 Tage: Forecast-API mit start_date/end_date (liefert Vergangenheit).
 - Aelter: Archiv-API (ERA5), die hinkt ein paar Tage hinterher.
 
-Das Ergebnis haengt nur an Ort und Zeit, aendert sich also nicht mehr -> Datei-Cache je Session
-unter data/wind/<id>.json. Ein leeres Ergebnis wird NICHT gespeichert (naechster Aufruf versucht
-es erneut, z. B. wenn das Archiv den Tag noch nicht hatte).
+Das Ergebnis haengt nur an Ort und Zeit, aendert sich also nicht mehr.
+
+Speicher je SPOT UND TAG (seit 19.10.2026, Jan: „muss ja nicht doppelt das gleiche abgerufen
+werden"): data/wind/tage/<lat>_<lon>_<JJJJ-MM-TT>.json mit allen 24 Stunden des UTC-Tages, die
+Koordinate auf 2 Nachkommastellen (dieselbe Rundung wie beim Abruf, ~1 km). Zwei Sessions am selben
+Spot und Tag teilen sich damit einen Abruf, und spaetere Auswertungen (Windfenster je Spot, Tempo
+je Windstaerke) finden den Wind vor. Gespeichert wird ein Tag nur, wenn er vorbei ist (UTC) und
+Werte hat — der laufende Tag und ein noch leerer Archivtag werden beim naechsten Mal neu geholt.
+Die alten Dateien je Session (data/wind/<id>.json, bis 19.10.) werden weiter zuerst gelesen.
 """
 from __future__ import annotations
 
@@ -37,29 +43,68 @@ def _cache_pfad(session_id: int):
     return d / f"{session_id}.json"
 
 
-def _abrufen(lat: float, lon: float, start: datetime, ende: datetime) -> list[dict]:
-    alt = (datetime.now(timezone.utc) - start) > timedelta(days=_FORECAST_TAGE)
+def _tag_pfad(lat: float, lon: float, tag):
+    d = get_settings().data_dir / "wind" / "tage"
+    d.mkdir(parents=True, exist_ok=True)
+    return d / f"{round(lat, 2):.2f}_{round(lon, 2):.2f}_{tag.isoformat()}.json"
+
+
+def _tage_holen(lat: float, lon: float, von_tag, bis_tag) -> dict:
+    """{tag: [stunden]} fuer die UTC-Tage von..bis — aus dem Speicher oder EIN Abruf fuer die fehlenden."""
+    heute = datetime.now(timezone.utc).date()
+    tage, fehlt = {}, []
+    t = von_tag
+    while t <= bis_tag:
+        try:
+            tage[t] = json.loads(_tag_pfad(lat, lon, t).read_text())
+        except (OSError, ValueError):
+            fehlt.append(t)
+        t += timedelta(days=1)
+    if not fehlt:
+        return tage
+    alt = (heute - min(fehlt)) > timedelta(days=_FORECAST_TAGE)
     params = {
         "latitude": round(lat, 2), "longitude": round(lon, 2),
         "hourly": "wind_speed_10m,wind_direction_10m,wind_gusts_10m",
-        "start_date": start.date().isoformat(), "end_date": ende.date().isoformat(),
+        "start_date": min(fehlt).isoformat(), "end_date": max(fehlt).isoformat(),
         "wind_speed_unit": "kmh", "timezone": "UTC",
     }
     r = httpx.get(ARCHIVE if alt else FORECAST, params=params, headers=_UA, timeout=8.0)
     if r.status_code != 200:
-        return []
+        return tage
     h = (r.json() or {}).get("hourly") or {}
-    out = []
+    neu: dict = {}
+    for ts_s, v, d, g in zip(h.get("time", []), h.get("wind_speed_10m", []),
+                             h.get("wind_direction_10m", []), h.get("wind_gusts_10m", [])):
+        if v is None or d is None:
+            continue
+        ts = datetime.fromisoformat(ts_s).replace(tzinfo=timezone.utc)
+        neu.setdefault(ts.date(), []).append({"t": ts.isoformat(), "kmh": round(float(v), 1), "richtung": round(float(d)),
+                                              "boeen_kmh": round(float(g), 1) if g is not None else None})
+    for tag, stunden in neu.items():
+        if tag not in fehlt:
+            continue
+        tage[tag] = stunden
+        if tag < heute:   # nur abgeschlossene Tage speichern
+            try:
+                _tag_pfad(lat, lon, tag).write_text(json.dumps(stunden))
+            except OSError:
+                pass
+    return tage
+
+
+def _abrufen(lat: float, lon: float, start: datetime, ende: datetime) -> list[dict]:
+    tage = _tage_holen(lat, lon, start.date(), ende.date())
     # Die volle Stunde VOR dem Start bis zur vollen Stunde NACH dem Ende — eine 40-min-Session
     # bekommt so mindestens zwei Werte.
     von = start.replace(minute=0, second=0, microsecond=0)
     bis = ende.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-    for t, v, d, g in zip(h.get("time", []), h.get("wind_speed_10m", []),
-                          h.get("wind_direction_10m", []), h.get("wind_gusts_10m", [])):
-        ts = datetime.fromisoformat(t).replace(tzinfo=timezone.utc)
-        if von <= ts <= bis and v is not None and d is not None:
-            out.append({"t": ts.isoformat(), "kmh": round(float(v), 1), "richtung": round(float(d)),
-                        "boeen_kmh": round(float(g), 1) if g is not None else None})
+    out = []
+    for tag in sorted(tage):
+        for s_ in tage[tag]:
+            ts = datetime.fromisoformat(s_["t"])
+            if von <= ts <= bis:
+                out.append(s_)
     return out
 
 
@@ -97,9 +142,24 @@ def session_wind(session_id: int, lat: float | None, lon: float | None,
         return None
     if not stunden:
         return None
-    erg = {"quelle": "Open-Meteo", "stunden": stunden, "mittel": _mittel(stunden)}
+    return {"quelle": "Open-Meteo", "stunden": stunden, "mittel": _mittel(stunden)}
+
+
+def vorholen(session_id: int) -> None:
+    """Wind fuer eine Wind-Session gleich holen und cachen (Jan, 19.10.2026: „wir holen die wenn eine
+    entsprechende session hochgeladen wird fuer einen spot … oder halt wenn jemand eine sportart auf
+    eine wind-sportart umstellt nachtraeglich"). NICHT auf Vorrat fuer alle Spots und Tage. Eigene
+    DB-Session, wirft nie — laeuft im Hintergrund nach Upload/Import/Umstellen."""
     try:
-        pfad.write_text(json.dumps(erg))
-    except OSError:
+        from . import models, sportprofil
+        from .db import SessionLocal
+        db = SessionLocal()
+        try:
+            s = db.get(models.Session, session_id)
+            if s is None or s.deleted or sportprofil.profil(s.sport_class)["gruppe"] != "wind":
+                return
+            session_wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)
+        finally:
+            db.close()
+    except Exception:  # noqa: BLE001 — best effort
         pass
-    return erg

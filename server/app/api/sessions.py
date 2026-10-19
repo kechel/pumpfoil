@@ -724,6 +724,10 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         db.refresh(s)
     except Exception:      # Overpass/Nominatim down -> Session bleibt gueltig, Ort kommt spaeter
         pass
+    # Wind-Sportart: Wind am Spot holen und cachen — in einem Faden, der Import wartet nicht darauf.
+    import threading
+    from ..sessionwind import vorholen
+    threading.Thread(target=vorholen, args=(s.id,), daemon=True).start()
     return s
 
 
@@ -3988,6 +3992,11 @@ def set_classification(
         # Sportart — Oerni stellte Wing-Sessions um und musste jedes Mal das Foil nachtragen.
         from ..equipment_sport import umstellen
         umstellen(s, s.user, _alt_sport, sport)
+        # Nachtraeglich auf eine Wind-Sportart umgestellt -> Wind am Spot holen und cachen.
+        if (background_tasks is not None and sportprofil.profil(sport)["gruppe"] == "wind"
+                and sportprofil.profil(_alt_sport)["gruppe"] != "wind"):
+            from ..sessionwind import vorholen
+            background_tasks.add_task(vorholen, s.id)
     if dq is not None:
         s.data_quality = dq
     s.sport_source = "admin" if is_admin else "owner"

@@ -493,6 +493,9 @@ def _analyze_in_background(session_id: int, final: bool = True) -> None:
         _geocode_place(session_id)
     except Exception:      # Geocoding darf die Analyse nie nachtraeglich scheitern lassen
         pass
+    # Wind-Sportart: Wind am Spot gleich holen und je Spot+Tag cachen (sessionwind.vorholen).
+    from ..sessionwind import vorholen
+    vorholen(session_id)
 
 
 @router.post("/session/{session_uuid}/analyze")
