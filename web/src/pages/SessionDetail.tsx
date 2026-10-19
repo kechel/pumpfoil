@@ -1275,16 +1275,6 @@ export default function SessionDetail() {
         L.circleMarker(coords[coords.length - 1], { radius: 5, color: "#450a0a", weight: 1.5, fillColor: "#ef4444", fillOpacity: 1 }).addTo(lg);
       }
     }
-    // Wind-Sportarten (Profil karte="ganz"): die GANZE Fahrt dezent grau darunter, damit langsame
-    // Stuecke, Wenden und Wasserstarts nicht als Luecke erscheinen (Oerni #17478, 19.10.2026).
-    // Gleiche Sprungschwelle wie der Ganz-Spur-Fall oben. Nicht anklickbar — die Laeufe darueber
-    // bleiben es.
-    if (zeigeGanz && segs.length > 0) {
-      for (let i = 0; i < coords.length - 1; i++) {
-        if (map.distance(coords[i], coords[i + 1]) > 200) continue;
-        L.polyline([coords[i], coords[i + 1]], { color: "#64748b", weight: 3, opacity: 0.55, interactive: false }).addTo(lg);
-      }
-    }
     segs.forEach((seg: any, idx: number) => {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
       const dim = selectedRun != null && idx !== selectedRun;
@@ -1337,6 +1327,28 @@ export default function SessionDetail() {
           }).addTo(lg);
       }
     });
+    // Wind-Sportarten (Profil karte="ganz", Schalter „Ganze Fahrt"): auch die Stuecke AUSSERHALB der
+    // Laeufe zeichnen, gefaerbt wie die Laeufe (Jan, 19.10.2026: „ganze fahrt soll entsprechend anders
+    // einfaerben"). Langsame Stuecke — Stuerze, Wasserstarts, Paddeln — erscheinen so blau statt als
+    // Luecke; vorher grau unter den Laeufen, auf dem Satellitenbild kaum zu sehen (#17478: 46 % der
+    // Punkte ausserhalb der Laeufe, aber nur 13,8 km). Ist ein Lauf ausgewaehlt, bleiben sie gedimmt.
+    // NACH den Laeufen gezeichnet, also obendrauf: die langsamen Stuecke liegen fast alle an Lauf-Anfang
+    // und -Ende, unter den Laeufen und den Start-/Ziel-Marken waren sie nicht zu sehen.
+    if (zeigeGanz && segs.length > 0) {
+      const imLauf = new Uint8Array(coords.length);
+      segs.forEach((g: any) => { for (let k = g.i_start; k <= g.i_end && k < coords.length; k++) imLauf[k] = 1; });
+      for (let i = 0; i < coords.length - 1; i++) {
+        if (imLauf[i] && imLauf[i + 1]) continue;   // gehoert zu einem Lauf, der kommt farbig darueber
+        if (map.distance(coords[i], coords[i + 1]) > 200) continue;
+        let color: string;
+        if (selectedRun != null) color = "#64748b";
+        else if (colorMode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
+        else if (colorMode === "hr") color = hrColor(hr[i + 1], hrRange);
+        else if (colorMode === "turns") color = "#334155";
+        else color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
+        L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: selectedRun != null ? 0.35 : 0.9, interactive: false }).addTo(lg);
+      }
+    }
     // Carves als feine 25-Hz-Bögen (Catmull-Rom-geglättet) über dem grauen Basis-Track.
     // Jedes Teilstück nach seiner Kurvenlage-g eingefärbt -> Verlauf feiner als GPS-Punkt.
     if (colorMode === "turns" && carveData?.arcs) {

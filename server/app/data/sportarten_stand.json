@@ -175,13 +175,13 @@
         },
         "karte": {
           "status": "live",
-          "en": "The whole ride in grey with the on-foil runs in colour on top",
+          "en": "The whole ride, slow parts between the runs coloured by speed like the runs",
           "wo": [
             "web",
             "android",
             "ios"
           ],
-          "notiz": "Stufe 1 Web (Profil karte=ganz, sportprofil.py). Android/iOS: Stufe 1 Apps offen. Apps: Tempo-Faerbung 10-40 km/h ueber Profil tempo_skala (vorher fest 8-25, Wing fast nur rot).",
+          "notiz": "Stufe 1 Web (Profil karte=ganz, sportprofil.py). Android/iOS: Stufe 1 Apps offen. Apps: Tempo-Faerbung 10-40 km/h ueber Profil tempo_skala (vorher fest 8-25, Wing fast nur rot). 19.10. nachmittags: statt grau unter den Laeufen jetzt die Stuecke AUSSERHALB der Laeufe nach Farbmodus gefaerbt und OBENDRAUF (lagen fast alle an Lauf-Anfang/-Ende, darunter unsichtbar; Jan: „ganze fahrt soll entsprechend anders einfaerben\").",
           "plattformen": {
             "web": "2026-10-19",
             "android": "1.1.44",
@@ -544,6 +544,22 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "karte",
+      "was": "'Ganze Fahrt' faerbt die Stuecke ausserhalb der Laeufe nach Tempo (langsam = blau), obendrauf statt grau darunter. Web live, Apps mit iOS 1.1.52 / Android 1.1.44.",
+      "wo": [
+        "web",
+        "android",
+        "ios"
+      ],
+      "version": "iOS 1.1.52, Android 1.1.44"
+    },
     {
       "datum": "2026-10-19",
       "sport": [
