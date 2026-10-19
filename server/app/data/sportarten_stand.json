@@ -250,9 +250,13 @@
       "en": "Wind",
       "merkmale": {
         "erkennung": {
-          "status": "teilweise",
-          "en": "Uses the pumpfoil detection with higher speed limits; runs are grouped into rides (a break of up to 5 minutes belongs to the ride)",
-          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions). Jan 19.10.: „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr staendig unterbrochen wird … bei whole ride ist fast alles in so einer session dann ein einziger run“ -> Stufe 3. 19.10.: das „staendig unterbrochen“ loesen jetzt die Fahrten (Anzeige); die Lauf-Erkennung selbst ist weiter die des Pumpfoils. 19.10. Auswertung Stufe 3 (scripts/wind-laeufe-pruefen.py, rein lesend, 1361 Wind-Sessions): heute Median 14 Laeufe (p90 35), on-foil 97 % der bewegten Zeit -> der Ausreisser #17478 (57) ist nicht typisch. Tempo-Regel 12/8 km/h + 8 s Haltezeit: Median 11 (p90 30), on-foil-Zeit gleich (1,00), 63 % der Sessions weniger Laeufe; 10/8 km/h + 12 s: Median 8 (p90 24), Zeit +4 %, 72 % weniger. Restliche Unterbrechungen meist GPS-Luecken > 15 s (Uhr unter Wasser = Sturz). Entscheidung bei Jan; die Fahrten (5 min) loesen das Zerstueckeln in der Anzeige schon."
+          "status": "live",
+          "en": "Own run detection without the pumpfoil model: each session finds its own speed gap between board in the water and on the foil; rides group runs with breaks of up to 5 minutes.",
+          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions). Jan 19.10.: „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr staendig unterbrochen wird … bei whole ride ist fast alles in so einer session dann ein einziger run“ -> Stufe 3. 19.10.: das „staendig unterbrochen“ loesen jetzt die Fahrten (Anzeige); die Lauf-Erkennung selbst ist weiter die des Pumpfoils. 19.10. Auswertung Stufe 3 (scripts/wind-laeufe-pruefen.py, rein lesend, 1361 Wind-Sessions): heute Median 14 Laeufe (p90 35), on-foil 97 % der bewegten Zeit -> der Ausreisser #17478 (57) ist nicht typisch. Tempo-Regel 12/8 km/h + 8 s Haltezeit: Median 11 (p90 30), on-foil-Zeit gleich (1,00), 63 % der Sessions weniger Laeufe; 10/8 km/h + 12 s: Median 8 (p90 24), Zeit +4 %, 72 % weniger. Restliche Unterbrechungen meist GPS-Luecken > 15 s (Uhr unter Wasser = Sturz). Entscheidung bei Jan; die Fahrten (5 min) loesen das Zerstueckeln in der Anzeige schon. 19.10. abends LIVE (Jans OK): analysis/windlauf.py, alle 1378 Wind-Sessions neu gerechnet (354 geaendert, 0 Fehler; Sicherung data/sicherung/vor-wind-erkennung-20261019-1754.dump, Protokoll wind-erkennung-reanalyse-20261019.jsonl).",
+          "seit": "2026-10-19",
+          "wo": [
+            "server"
+          ]
         },
         "tempo": {
           "status": "live",
@@ -383,7 +387,7 @@
         "wenden_halsen": {
           "status": "live",
           "en": "Tacks and jibes counted (how many stayed on the foil) and marked on the map, estimated from the GPS track and the model wind",
-          "notiz": "Jan 19.10.: 'erkennung/zaehlen und anzeige fuer wenden & halsen ... braeuchte man aber auch die Windrichtung zu sessionzeit am spot'. Ansatz: Kursaenderung > ~90 Grad innerhalb weniger Sekunden; Wende vs. Halse ueber die Windrichtung (Bug durch den Wind vs. Heck durch den Wind). Windrichtung aus wind_am_spot, notfalls aus der Spur selbst (Kreuz-/Raumschotkurse: Achse der Zickzack-Schlaege). Gestuerzt/gehalten (Fuss blieb nicht drauf) ueber Tempoeinbruch unterscheidbar -> 'gelungene' Manoever. Jan 19.10.: „halsen & wenden sind planned auf jeden fall“. 19.10.: app/manoever.py + GET /api/sessions/{id}/manoever, nur Anzeige wie /carves. Kurs vor/nach (±4-10 s) dreht >= 100 Grad, je 20 s eine; Wende/Halse ueber Windrichtung (Modell je Stunde); durchgefahren = nie unter 12 km/h. #17478: Wenden 0/26, Halsen 78/92; #17384: 0/28, 128/146 — plausibel (Wenden auf dem Foil sind schwer). Synthetischer Test in tests/test_sessionwind.py.",
+          "notiz": "Jan 19.10.: 'erkennung/zaehlen und anzeige fuer wenden & halsen ... braeuchte man aber auch die Windrichtung zu sessionzeit am spot'. Ansatz: Kursaenderung > ~90 Grad innerhalb weniger Sekunden; Wende vs. Halse ueber die Windrichtung (Bug durch den Wind vs. Heck durch den Wind). Windrichtung aus wind_am_spot, notfalls aus der Spur selbst (Kreuz-/Raumschotkurse: Achse der Zickzack-Schlaege). Gestuerzt/gehalten (Fuss blieb nicht drauf) ueber Tempoeinbruch unterscheidbar -> 'gelungene' Manoever. Jan 19.10.: „halsen & wenden sind planned auf jeden fall“. 19.10.: app/manoever.py + GET /api/sessions/{id}/manoever, nur Anzeige wie /carves. Kurs vor/nach (±4-10 s) dreht >= 100 Grad, je 20 s eine; Wende/Halse ueber Windrichtung (Modell je Stunde); durchgefahren = nie unter 12 km/h. #17478: Wenden 0/26, Halsen 78/92; #17384: 0/28, 128/146 — plausibel (Wenden auf dem Foil sind schwer). Synthetischer Test in tests/test_sessionwind.py. 19.10. abends: auf dem Foil entscheidet der Lauf (nicht das Tempo), gegen Alex' Einzel-Markierungen 5/5.",
           "plattformen": {
             "web": "2026-10-19",
             "android": "1.1.44",
@@ -459,9 +463,19 @@
           }
         },
         "quote_verlauf": {
-          "status": "vorschlag",
-          "en": "How many tacks and jibes stayed on the foil, as a trend over your sessions.",
-          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus manoever.py je Session (durch/gesamt), Verlauf im Profil oder auf der Foiler-Seite."
+          "status": "live",
+          "en": "Home shows per month how many of your tacks and jibes stayed on the foil.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus manoever.py je Session (durch/gesamt), Verlauf im Profil oder auf der Foiler-Seite.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          }
         },
         "welle_paddeln": {
           "status": "nein",
@@ -472,9 +486,13 @@
           "en": "Does not apply."
         },
         "eigene_erkennung": {
-          "status": "geplant",
-          "en": "Own detection for the wind sports instead of the pumpfoil model, once there is reference data such as rides with the phone on the board.",
-          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Jans Ansatz (Physik): langsam = Brett im Wasser, schnell = on-foil, die Luecke dazwischen haengt von Wind und Foil ab (z. B. 4 vs >10 km/h bei Leichtwind, 8 vs >15 bei kleinem Foil und viel Wind); „das pump detection model hat vermutlich garnichts zu suchen bei nicht pump-sportarten“. Gemessen (284 Wind-Sessions, rein lesend, Otsu auf 3-s-Median-Tempo >= 2 km/h): zwei Haeufungen, langsam Median 6,5 / schnell 22 km/h; Schwelle je Session Median 15 km/h (p10 12, p90 22, Leichtwind bis 7); klare Luecke (Tal < 0,3 x kleinerer Gipfel) bei 59 %. Feste 10 km/h liegen meist UNTER der Luecke -> wohl zu viel on-foil bei viel Wind (Vermutung). Plan: kein Pump-Modell; Schwelle je Session aus der Luecke, Hysterese, Grenzen ~7-25 km/h; ohne klare Luecke feste Werte."
+          "status": "live",
+          "en": "Detection for the wind sports from the speed gap of each session, without the pumpfoil model.",
+          "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Jans Ansatz (Physik): langsam = Brett im Wasser, schnell = on-foil, die Luecke dazwischen haengt von Wind und Foil ab (z. B. 4 vs >10 km/h bei Leichtwind, 8 vs >15 bei kleinem Foil und viel Wind); „das pump detection model hat vermutlich garnichts zu suchen bei nicht pump-sportarten“. Gemessen (284 Wind-Sessions, rein lesend, Otsu auf 3-s-Median-Tempo >= 2 km/h): zwei Haeufungen, langsam Median 6,5 / schnell 22 km/h; Schwelle je Session Median 15 km/h (p10 12, p90 22, Leichtwind bis 7); klare Luecke (Tal < 0,3 x kleinerer Gipfel) bei 59 %. Feste 10 km/h liegen meist UNTER der Luecke -> wohl zu viel on-foil bei viel Wind (Vermutung). Plan: kein Pump-Modell; Schwelle je Session aus der Luecke, Hysterese, Grenzen ~7-25 km/h; ohne klare Luecke feste Werte.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server"
+          ]
         }
       }
     },
@@ -1117,6 +1135,20 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "erkennung",
+      "was": "Eigene Wind-Erkennung live (Tempo-Luecke je Session, ohne Pump-Modell), alle Wind-Sessions neu gerechnet; Wenden/Halsen auf dem Foil aus dem Lauf; Quote je Monat auf der Startseite.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
