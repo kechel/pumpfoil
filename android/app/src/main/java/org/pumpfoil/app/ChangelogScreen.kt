@@ -78,6 +78,7 @@ fun ChangelogScreen(onBack: () -> Unit) {
     var tage by remember { mutableStateOf<List<ChangelogTag>?>(null) }
     var fehler by remember { mutableStateOf(false) }
     var stand by remember { mutableStateOf<ReleaseStand?>(null) }
+    var sport by remember { mutableStateOf<SportStand?>(null) }
 
     // Beide parallel laden, aber ZUSAMMEN zeigen (Jan, 12.10.2026): kamen die Tage zuerst, schob sich
     // die Release-Tabelle danach UEBER die Liste, die LazyColumn blieb am ersten Tag stehen — die
@@ -86,7 +87,9 @@ fun ChangelogScreen(onBack: () -> Unit) {
         kotlinx.coroutines.coroutineScope {
             val st = async { try { Api.releaseStand() } catch (_: Exception) { null } }
             val tg = async { try { Api.changelog().days } catch (_: Exception) { null } }
+            val sp = async { try { Api.sportStand() } catch (_: Exception) { null } }
             val (r, t) = st.await() to tg.await()
+            sport = sp.await()
             stand = r
             if (t == null) fehler = true else tage = t
         }
@@ -112,6 +115,7 @@ fun ChangelogScreen(onBack: () -> Unit) {
                 if (s.probleme.isNotEmpty()) item { ProblemBox(s.probleme) }
                 item { ReleaseKarte(s) }
             }
+            sport?.let { sp -> item { SportKarte(sp) } }
             if (tage == null && !fehler) item {
                 Text(I18n.t("common.loading"), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -219,6 +223,91 @@ private fun Aufklapper(punkte: List<String>) {
     if (offen) {
         Column(Modifier.padding(start = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             punkte.forEach { Aufzaehlung(it) }
+        }
+    }
+}
+
+// „Analysis by sport" (19.10.2026) — wie der Abschnitt im Web (Changelog.tsx `SportStand`): je
+// Sportart eine aufklappbare Zeile mit Zaehlern, aufgeklappt jedes Merkmal mit Status und Satz.
+private val SPORT_REIHE = listOf("live", "teilweise", "geplant")
+
+@Composable
+private fun sportFarbe(st: String): Color {
+    val dunkel = istDunkel()
+    return when (st) {
+        "live" -> if (dunkel) Color(0xFF6EE7B7) else Color(0xFF047857)        // emerald-300 / -700
+        "teilweise" -> if (dunkel) Color(0xFF7DD3FC) else Color(0xFF0369A1)   // sky-300 / -700
+        "geplant" -> if (dunkel) Color(0xFFFF8A4C) else Color(0xFFC24100)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+}
+
+@Composable
+private fun SportChip(text: String, status: String) {
+    val f = sportFarbe(status)
+    Text(text, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, color = f,
+        modifier = Modifier.clip(RoundedCornerShape(50)).background(f.copy(alpha = 0.14f))
+            .padding(horizontal = 8.dp, vertical = 2.dp))
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SportKarte(d: SportStand) {
+    val namen = d.merkmale.associate { it.id to it.name }
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
+        Column(Modifier.padding(14.dp)) {
+            Text("Analysis by sport", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+            Text("The analysis started with pumpfoil. This shows what is already tuned for each sport and what is planned. As of ${tagLang(d.stand)}.",
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                SPORT_REIHE.forEach { SportChip(d.status[it] ?: it, it) }
+                Text("basic = works, not tuned yet", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            d.sportarten.forEach { sp -> SportZeile(sp, d, namen) }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SportZeile(sp: SportStandSport, d: SportStand, namen: Map<String, String>) {
+    var offen by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+        Row(Modifier.fillMaxWidth().clickable { offen = !offen }, verticalAlignment = Alignment.CenterVertically) {
+            Icon(if (offen) Icons.Filled.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(4.dp))
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(sp.name, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.width(6.dp))
+                    Text(sp.gruppe, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SPORT_REIHE.forEach { st ->
+                        val n = sp.merkmale.count { it.status == st }
+                        if (n > 0) SportChip("$n ${d.status[st] ?: st}", st)
+                    }
+                }
+            }
+        }
+        if (offen) {
+            Column(Modifier.padding(start = 22.dp, top = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                sp.merkmale.forEach { m ->
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(namen[m.id] ?: m.id, style = MaterialTheme.typography.bodyMedium)
+                            Spacer(Modifier.width(6.dp))
+                            SportChip(d.status[m.status] ?: m.status, m.status)
+                        }
+                        val seit = if (m.seit != null && m.status != "geplant") " Since ${tagLang(m.seit)}." else ""
+                        Text(m.text + seit, style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
         }
     }
 }

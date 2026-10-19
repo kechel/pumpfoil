@@ -988,6 +988,19 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
+    # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
+    # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
+    {"name": "iPhone + Apple Watch", "version": "1.1.52",
+     "items": [
+         "Every page has a feedback button at the top right, and your message tells us which session or page you mean.",
+         "The changelog page shows how far the analysis is tuned for each sport.",
+     ]},
+    {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
+     "items": [
+         "Every page has a feedback button at the top right, and your message tells us which session or page you mean; the icons in the top bar are easier to see.",
+         "The changelog page shows how far the analysis is tuned for each sport.",
+     ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
     # 07.10.2026 (Roman, Handy am Brett, #13908): Android/iOS zeigten „nur ~47 Hz, braucht 15 Hz",

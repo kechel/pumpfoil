@@ -81,7 +81,8 @@ struct SpotSessionsView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .brandToolbar("📍 \(spot)" + (spotLabel.map { " · \($0)" } ?? ""))
+        .brandToolbar("📍 \(spot)" + (spotLabel.map { " · \($0)" } ?? ""),
+                      feedbackUrl: "/sessions?spot=" + (spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot))
         .toolbar {
             // Spot-Chat (scope "spot:<name>", wie Web/PWA) — bei Age-Gate (social_allowed=false) aus.
             if store.profile?.social_allowed != false {

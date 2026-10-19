@@ -8,6 +8,9 @@ struct FeedbackView: View {
     // Vorbelegter Text, z. B. „Deine Marke oder Größe fehlt im Katalog?" von den Katalog-Listen
     // (MissingHintRow) — wie das PWA-Widget, das per Event einen vorbelegten Text bekommt.
     var prefill: String = ""
+    // Seite, auf die sich die Meldung bezieht (19.10.2026): Session -> "/sessions/<id>" usw., damit
+    // im Admin klar ist, worum es geht. Bis 1.1.51 immer "ios-app".
+    var url: String = "ios-app"
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
     @State private var busy = false
@@ -98,7 +101,7 @@ struct FeedbackView: View {
         busy = true
         fehler = ""
         Task {
-            guard let id = try? await Api.submitFeedback(t) else { busy = false; return }
+            guard let id = try? await Api.submitFeedback(t, url: url) else { busy = false; return }
             // Ein fehlgeschlagener Anhang darf die Meldung selbst nicht entwerten — die ist
             // dann schon beim Server. Nur melden und weitermachen.
             for u in dateien {

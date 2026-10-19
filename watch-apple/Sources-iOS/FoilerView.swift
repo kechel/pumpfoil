@@ -66,6 +66,7 @@ struct FoilerView: View {
             .navigationTitle(titel)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { chatToolbar }
+            .feedbackToolbar("/foiler/\(userId)")
             // Auf dieser Seite fuehrt sein Profilbild nicht noch einmal hierher (PWA: pathname).
             .environment(\.foilerSeite, userId)
             .task(id: userId) { await laden() }

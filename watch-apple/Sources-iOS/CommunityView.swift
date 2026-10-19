@@ -118,7 +118,7 @@ struct CommunityView: View {
                 SessionDetailView(id: d.id, dataVersion: d.dataVersion)
             }
             .navigationTitle(Loc.t("nav.community", lang))
-            .brandToolbar(Loc.t("nav.community", lang))
+            .brandToolbar(Loc.t("nav.community", lang), feedbackUrl: "/community")
             .toolbar { communityToolbar }
             .overlay { if loading && records == nil { ProgressView() } }
             .refreshable { await reloadAll() }
