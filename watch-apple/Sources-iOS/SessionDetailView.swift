@@ -1316,6 +1316,7 @@ struct SessionDetailView: View {
                     }
                 }
             }
+            if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, lang: lang) }
             if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, lang: lang) }
             excludedSection(s)
             poweredSection(s)
@@ -1618,6 +1619,13 @@ struct SessionDetailView: View {
             let ms: Int = (s.trim_end_ms ?? d) - (s.trim_start_ms ?? 0)
             out.append(StatItem(Loc.t("sd.duration", lang), mmssD(Double(ms) / 1000)))
         }
+        // Zusatzzahlen je Sportart (19.10.2026): Fahrten, Fahrzeit, Tempo ganze Fahrt, On-Foil-Anteil.
+        if let z = a.sport_zahlen {
+            if let f = z.fahrten { out.append(StatItem(Loc.t("sd.rides", lang), "\(f.count)")) }
+            if let v = z.fahrzeit_s { out.append(StatItem(Loc.t("sd.movingTime", lang), mmssD(v))) }
+            if let v = z.tempo_kmh { out.append(StatItem(Loc.t("sd.avgSpeedRide", lang), String(format: "%.1f km/h", v))) }
+            if let v = z.foil_anteil { out.append(StatItem(Loc.t("sd.foilShare", lang), "\(Int((v * 100).rounded())) %")) }
+        }
         if let v = a.foiling_distance_m { out.append(StatItem(Loc.t("home.foiling", lang), dist(v))) }
         if let v = a.foiling_time_s { out.append(StatItem(Loc.t("compare.foilTime", lang), mmssD(v))) }
         // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst sieht
@@ -1877,6 +1885,30 @@ private class ManoeverPunkt: NSObject, MKAnnotation {
     let wende: Bool
     let durch: Bool
     init(_ c: CLLocationCoordinate2D, wende: Bool, durch: Bool) { coordinate = c; self.wende = wende; self.durch = durch }
+}
+
+// Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
+private struct FahrtenKarte: View {
+    let fahrten: [Fahrt]
+    let lang: String
+
+    private func zeile(_ i: Int, _ f: Fahrt) -> String {
+        let laeufe: String = Loc.t("sd.rideRuns", lang).replacingOccurrences(of: "{n}", with: "\(f.laeufe)")
+        return "\(Loc.t("sd.ride", lang)) \(i + 1)   \(fmtLaufDauer(f.dauer_s))   "
+            + String(format: "%.1f km   (%.1f km · ", f.strecke_m / 1000.0, f.foil_m / 1000.0) + laeufe + ")"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(Array(fahrten.enumerated()), id: \.offset) { i, f in
+                Text(zeile(i, f)).font(.subheadline)
+            }
+            Text(Loc.t("sd.ridesNote", lang)).font(.footnote).foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+    }
 }
 
 // Wind am Spot (Modellwert, keine Messung am Wasser) + Wenden/Halsen — wie die Wind-Box im Web.

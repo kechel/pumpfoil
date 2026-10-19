@@ -283,6 +283,11 @@ export interface Board {
 export interface Analysis {
   algo_version: string;
   total_distance_m: number | null;
+  // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor, nur Detail.
+  sport_zahlen?: null | {
+    fahrzeit_s?: number; tempo_kmh?: number; foil_anteil?: number; fahrt_pause_s?: number;
+    fahrten?: { laeufe: number; lauf_von: number; lauf_bis: number; t_start_ms: number; dauer_s: number; strecke_m: number; foil_m: number; foil_s: number }[];
+  };
   foiling_distance_m: number | null;
   foiling_time_s: number | null;
   max_speed_mps: number | null;

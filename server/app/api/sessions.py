@@ -220,7 +220,22 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         # laengste Lauf-Distanz bleibt die kanonische Spalte — das Preset-JSON fuehrt sie nicht.
         num_runs=(p["num_runs"] if (p and p.get("num_runs") is not None) else result.num_runs),
         best_distance_m=result.best_distance_m,
+        sport_zahlen=(None if slim or session is None else _sport_zahlen(session, result, segments, ft)),
     )
+
+
+def _sport_zahlen(session, result, segments, foil_s):
+    """Zusatzzahlen je Sportart (app/sportzahlen.py) — aus den Laeufen und der GESPEICHERTEN Spur
+    (Laengen haengen nicht an „Ort verbergen")."""
+    from ..sportzahlen import berechnen
+    gruppe = sportprofil.profil(session.sport_class)["gruppe"]
+    if gruppe not in ("wind", "motor"):
+        return None
+    try:
+        track = json.loads(result.track_geojson) if isinstance(result.track_geojson, str) else result.track_geojson
+    except ValueError:
+        return None
+    return berechnen(gruppe, segments, track, result.total_distance_m, foil_s)
 
 
 def _attempt_count(result: models.AnalysisResult) -> int | None:

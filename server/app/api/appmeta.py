@@ -1001,6 +1001,7 @@ NAECHSTES: list[dict] = [
          "On the Apple Watch you can pick the sport before you start, next to the foil.",
          "Each sport can have its own default foil, board, stab and mast, set in Setup.",
          "The Community page can show records and leaderboards for each sport, like the website.",
+         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
      ]},
     {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
      "items": [
@@ -1011,6 +1012,7 @@ NAECHSTES: list[dict] = [
          "On Wear OS you can pick the sport before you start, next to the foil.",
          "Each sport can have its own default foil, board, stab and mast, set in Setup.",
          "The Community page can show records and leaderboards for each sport, like the website.",
+         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
