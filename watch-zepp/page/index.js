@@ -308,6 +308,13 @@ function sportNaechster(liste, aktuell) {
   const i = liste.findIndex((x) => x.id === aktuell);
   return liste[(i + 1) % liste.length].id;
 }
+// Startbildschirm: Name der gewaehlten Sportart, wenn sie vom Standard (erster Eintrag) abweicht,
+// sonst null (Jan, 19.10.2026: „wenn es lokal etwas anderes ist als der default immer angezeigt").
+function sportAbweichend(liste, id) {
+  if (!Array.isArray(liste) || liste.length < 2 || id == null || id === liste[0].id) return null;
+  const x = liste.find((v) => v.id === id);
+  return x ? x.name : null;
+}
 // Was in die Session geht: nur bei echter Wahl, sonst null (= Feld weglassen).
 function sportKlasse(liste, id) {
   if (!Array.isArray(liste) || liste.length < 2 || id == null) return null;
@@ -2260,8 +2267,11 @@ Page(
         // Verbindung und die Zahl offener Aufnahmen mit dran — zusammen lief das weit ueber
         // den Rand hinaus (Jans Emulator-Runde 10.09.2026: "in einer zeile viiiiiiel zu lang
         // ueber den gesamten screen hinaus"). Der Rest ist eine Sekunde spaeter wieder da.
+        // Vom Standard abweichende Sportart steht vorn (wie Garmin ueber der Foil): sie entscheidet,
+        // wie die Aufnahme ausgewertet wird, und soll nicht nur auf der Foil-Seite stehen.
+        const abw = sportAbweichend(s.sports, s.sportId);
         const hint = s.idleHint ? s.idleHint : s.upStatus ? s.upStatus
-          : (((bleOk() && !getTok())
+          : (abw ? abw + " · " : "") + (((bleOk() && !getTok())
               ? (s.code ? s.code + " → pumpfoil.org" : t("up.notLinked") + " · → " + t("menu.connect"))
               : gps + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn)
              + (pend ? " · " + pend + " " + t("up.open") : ""));
