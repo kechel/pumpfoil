@@ -1484,6 +1484,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **19.10. — Garmin: KEINE eigenen Datenfelder (FitContributor) in der Garmin-Aktivitaet (Jan entschieden).**
+  Anlass: Suunto schreibt vier kodierte Kanaele ins Workout. Bei Garmin unnoetig: die FIT-Aktivitaet der Uhr
+  enthaelt per SensorLogger schon GPS + Puls + ROHE Beschleunigung, unabhaengig von unserem Object Store
+  (voll -> nur unsere Chunks fallen weg, Auto-GPS-only schaltet nur unseren Listener ab). `fitimport.py`
+  liest `accelerometer_data`. Jan: „wir kommen an die daten erst wenn garmin irgendwann den api-zugriff wieder
+  frei gibt, aber das ist nicht schlimm, und wem es wirklich wichtig ist, der kann das fit-file von garmin holen
+  und hochladen". **Wenn die Garmin-API wieder aufgeht:** abgeschnittene Sessions (Store voll) aus der
+  FIT-Aktivitaet vervollstaendigen statt eine zweite Session anzulegen. Ungeprueft: ob der SensorLogger nach
+  dem Umschalten auf GPS-only wirklich weiterschreibt.
 - **19.10. — COROS: haelt die Verbindung ueber 30 Tage? PRUEFEN AM 05.11.2026 (user 775/817), sonst 19.11. (user 2).** Bis heute rissen alle
   COROS-Verbindungen exakt 30 Tage nach dem Verbinden ab (wir erneuerten erst nach Ablauf -> `invalid_grant`).
   Seit `4c07bef3` erneuert der taegliche Konten-Sync, sobald < 25 Tage uebrig sind; abgelehnt -> Karte zeigt
