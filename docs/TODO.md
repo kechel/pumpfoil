@@ -1483,6 +1483,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **19.10. — COROS: haelt die Verbindung ueber 30 Tage? PRUEFEN AM 19.11.2026.** Bis heute rissen alle
+  COROS-Verbindungen exakt 30 Tage nach dem Verbinden ab (wir erneuerten erst nach Ablauf -> `invalid_grant`).
+  Seit `4c07bef3` erneuert der taegliche Konten-Sync, sobald < 25 Tage uebrig sind; abgelehnt -> Karte zeigt
+  „Verbindung abgelaufen" + „Neu verbinden". Belegt am 19.10. an Jans frisch verbundenem Konto (user 2): Erneuern
+  VOR Ablauf klappt, COROS rotiert das Erneuerungs-Token und setzt den Ablauf auf jetzt + 30 Tage; das neue Token
+  wird angenommen. NICHT belegt: ob das Erneuerungs-Token eine feste Hoechstdauer ab der ersten Freigabe hat
+  (dann risse es trotzdem nach 30 Tagen). Pruefen: `coros_mcp_links.expires_at` von user 2 muss am 19.11. NACH dem
+  18.11. liegen und `refresh_token` darf nicht leer sein; Log `coros-mcp: refresh ok/fehlgeschlagen`. Danach ggf.
+  das „Beta" an der COROS-Karte entfernen (Jan: „coros ist production wenn keine probleme aufgetaucht sind").
+  Offen: Hinweis auf der Startseite + Android/iOS-Anzeige des Ablaufs (Status liefert `expired`).
 - **19.10. — Fuer das NAECHSTE Android- und iOS-Release (Jan: „fuer die native apps dann bitte merken das entsprechend im naechsten release auch so zu machen“):**
   (1) Changelog-Seite: eigener Abschnitt „Analysis by sport“ wie im Web (`GET /api/app/sport-status`) und dann
   `/api/app/releases?ohne_sport=1` abfragen — sonst steht der Stand doppelt (bis dahin liefert der Server ihn den
