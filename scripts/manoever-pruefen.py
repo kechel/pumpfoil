@@ -3,7 +3,8 @@
 
 Vergleichsdaten: server/data/wahrheit/manoever.jsonl (gitignored, s. README dort). Je Session wird
 die aktuelle Erkennung (app/manoever.py ueber den /manoever-Endpunkt) neben das gestellt, was der
-Fahrer gesehen hat.
+Fahrer gesehen hat. Die Fahrer-Zahlen sind Schaetzungen (Jan: „nicht 100 % die Wahrheit"), deshalb
+gilt eine Abweichung bis TOLERANZ als Treffer.
 
     cd server && .venv/bin/python ../scripts/manoever-pruefen.py
 """
@@ -19,6 +20,7 @@ from app import models  # noqa: E402
 from app.api.sessions import session_manoever  # noqa: E402
 from app.db import SessionLocal  # noqa: E402
 
+TOLERANZ = 1
 DATEI = Path(__file__).resolve().parent.parent / "server" / "data" / "wahrheit" / "manoever.jsonl"
 
 
@@ -40,7 +42,9 @@ def main():
             print(f"#{z['session_id']:<6} {z['typ']:6} {z['durch_gesehen']:>15} | {zahl['durch']:>16} / {gesamt:<6} | {d:+d}"
                   + (f"   (gesamt gesehen {z['gesamt_gesehen']})" if z.get("gesamt_gesehen") else ""))
         if abw:
-            print(f"\nmittlere Abweichung {sum(abw) / len(abw):.1f} Manoever je Session ({len(abw)} Sessions)")
+            treffer = sum(1 for a in abw if a <= TOLERANZ)
+            print(f"\n{treffer}/{len(abw)} Sessions innerhalb +-{TOLERANZ}, mittlere Abweichung "
+                  f"{sum(abw) / len(abw):.1f} (Fahrer-Zahlen sind Schaetzungen)")
     finally:
         db.close()
 
