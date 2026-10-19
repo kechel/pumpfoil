@@ -104,7 +104,7 @@ private fun SpotRecordsSport(spot: String, accelOnly: Boolean, sport: String, la
                 )
             }
         }
-        RecordGrid(daten[wahl], showSpot = false, onOpen = onOpen)
+        RecordGrid(daten[wahl], showSpot = false, onOpen = onOpen, sport = sport)
     }
 }
 

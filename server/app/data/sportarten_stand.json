@@ -274,11 +274,11 @@
         "rekorde": {
           "status": "live",
           "en": "Own record types: longest ride (total distance) first, plus longest and farthest run, top speed, on-foil time; no glide, pump or run-count records",
-          "notiz": "Stufe 4. 19.10.: community_records liefert fuer Wind zusaetzlich session_total (total_distance_m); Web RecordGrid filtert je Sportart (recItemsFuer). Offen: Wenden/Halsen als Rekord (braeuchte gespeicherte Zahlen), Apps.",
+          "notiz": "Stufe 4. 19.10.: community_records liefert fuer Wind zusaetzlich session_total (total_distance_m); Web RecordGrid filtert je Sportart (recItemsFuer). Offen: Wenden/Halsen als Rekord (braeuchte gespeicherte Zahlen), Apps. Apps: Spot-Rekorde je Sportart (die Community-Seite der Apps hat keinen Sportart-Filter).",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           }
         },
         "einordnung": {
@@ -484,8 +484,8 @@
           "en": "Own list via the sport filter, without glide and pump records",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           }
         },
         "einordnung": {
@@ -679,6 +679,24 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "efoil",
+        "foildrive",
+        "towed"
+      ],
+      "merkmal": "rekorde",
+      "was": "Apps: Spot-Rekorde je Sportart wie im Web (Wind mit laengster Fahrt gesamt, ohne Pump-Rekordarten; Motor ohne Gleit/Pumps).",
+      "wo": [
+        "android",
+        "ios"
+      ],
+      "version": "iOS 1.1.52, Android 1.1.44"
+    },
     {
       "datum": "2026-10-19",
       "sport": [
