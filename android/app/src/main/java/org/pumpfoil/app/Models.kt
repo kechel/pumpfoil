@@ -1511,6 +1511,9 @@ data class SportStand(
     val status: Map<String, String> = emptyMap(),
     val merkmale: List<SportMerkmalName> = emptyList(),
     val sportarten: List<SportStandSport> = emptyList(),
+    // Fuer alle Sportarten gleich (19.10.2026): eigener Abschnitt ueber den Sportarten.
+    @SerialName("allgemein_titel") val allgemeinTitel: String = "All sports",
+    val allgemein: List<SportStandMerkmal> = emptyList(),
 )
 
 @Serializable
@@ -1525,7 +1528,8 @@ data class SportStandSport(
 )
 
 @Serializable
-data class SportStandMerkmal(val id: String = "", val status: String = "nein", val text: String = "", val seit: String? = null)
+data class SportStandMerkmal(val id: String = "", val status: String = "nein", val text: String = "", val seit: String? = null,
+                             val name: String = "")   // name nur im Abschnitt „All sports"
 
 @Serializable
 data class ReleaseStand(

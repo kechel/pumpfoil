@@ -27,6 +27,11 @@ def test_buch_vollstaendig_und_ohne_notizen(client):
     assert next(m for m in pf["merkmale"] if m["id"] == "erkennung")["status"] == "live"
     wing = next(s for s in d["sportarten"] if s["id"] == "wingfoil")
     assert next(m for m in wing["merkmale"] if m["id"] == "karte")["status"] == "live"
+    # Sportartuebergreifendes steht nur im Abschnitt „All sports", nicht je Sportart
+    allg = {m["id"] for m in d["allgemein"]}
+    assert {"sport_auf_uhr", "equipment_je_sport", "lauf_sportart"} <= allg
+    assert not allg & {m["id"] for m in wing["merkmale"]}
+    assert set(buch["allgemein"]["merkmale"]) == {m["id"] for m in buch["merkmale_allgemein"]}
 
 
 def test_profil_pumpfoil_unveraendert_wind_ganz():

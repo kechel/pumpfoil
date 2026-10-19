@@ -1339,8 +1339,18 @@ def sport_stand_aufgeloest() -> dict:
                 seit = None
             werte.append({"id": m["id"], "status": e.get("status", "nein"), "text": text, "seit": seit})
         sportarten.append({"id": sp["id"], "name": sp["en"], "gruppe": gruppe["en"], "merkmale": werte})
+    # Fuer alle Sportarten gleich (Jan, 19.10.2026): eigener Abschnitt ueber den Sportarten.
+    allgemein = []
+    for m in buch.get("merkmale_allgemein", []):
+        e = (buch.get("allgemein") or {}).get("merkmale", {}).get(m["id"]) or {}
+        text, seit = e.get("en", ""), e.get("seit")
+        if e.get("plattformen"):
+            text = text.rstrip(".") + ": " + _plattform_zeile(e["plattformen"]) + "."
+            seit = None
+        allgemein.append({"id": m["id"], "name": m["en"], "status": e.get("status", "nein"), "text": text, "seit": seit})
     return {"stand": buch["stand"], "status": buch["status_en"],
-            "merkmale": [{"id": m["id"], "name": m["en"]} for m in merkmale], "sportarten": sportarten}
+            "merkmale": [{"id": m["id"], "name": m["en"]} for m in merkmale], "sportarten": sportarten,
+            "allgemein_titel": (buch.get("allgemein") or {}).get("en", "All sports"), "allgemein": allgemein}
 
 
 @router.get("/sport-status")

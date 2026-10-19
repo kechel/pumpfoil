@@ -683,6 +683,9 @@ struct SportStand: Codable {
     let status: [String: String]?
     let merkmale: [SportMerkmalName]?
     let sportarten: [SportStandSport]?
+    // Fuer alle Sportarten gleich (19.10.2026): eigener Abschnitt ueber den Sportarten.
+    let allgemein_titel: String?
+    let allgemein: [SportStandMerkmal]?
 }
 struct SportMerkmalName: Codable { let id: String; let name: String? }
 struct SportStandSport: Codable {
@@ -696,6 +699,7 @@ struct SportStandMerkmal: Codable {
     let status: String?
     let text: String?
     let seit: String?
+    var name: String? = nil   // nur im Abschnitt „All sports"
 }
 
 struct ReleaseStand: Codable {
