@@ -1,0 +1,142 @@
+{
+  "_lies_mich": [
+    "Stand-Buch: was kann pumpfoil.org je Sportart, was fehlt noch (angelegt 19.10.2026, Jan: 'buch fuehren was wir fuer welche Sportart schon haben und was noch nicht ... damit wir spaeter weitermachen koennen lueckenlos').",
+    "Der Server liest die Datei bei JEDEM Aufruf frisch (GET /api/app/sport-status) -> eine Aenderung hier ist ohne Neustart auf /changelog sichtbar.",
+    "Aufbau: 'merkmale' = die Zeilen (was gibt es ueberhaupt). 'gruppen' = Standardstand je Gruppe. 'sportarten' = welche Sportart in welcher Gruppe, plus Abweichungen vom Gruppenstand. Nicht genannte Merkmale erben aus der Gruppe -> keine Luecken.",
+    "Status: live = fertig und online, teilweise = da, aber nicht auf diese Sportart abgestimmt, geplant = beschlossen, noch nicht gebaut, nein = gibt es nicht und ist nicht geplant (oder passt nicht zur Sportart).",
+    "'en' ist der oeffentliche Text auf /changelog (Englisch, ein Satz, kein IT-Jargon). 'notiz' ist intern und wird NICHT ausgeliefert.",
+    "Bei jeder Aenderung: Eintrag im Merkmal anpassen (status/seit/wo) UND eine Zeile in 'verlauf' (neueste oben). 'wo' = server | web | android | ios | uhren; 'version' = App-Version, wenn es eine App betrifft.",
+    "Plan in Stufen (Gespraech 19.10.2026, Anlass Oerni u97 Wing-Session #17478 und ThermikDreher u267 Foil Scoot): s. 'stufen'."
+  ],
+  "stand": "2026-10-19",
+  "status_en": {
+    "live": "ready",
+    "teilweise": "basic",
+    "geplant": "planned",
+    "nein": "—"
+  },
+  "merkmale": [
+    {"id": "erkennung", "en": "Run detection"},
+    {"id": "tempo", "en": "Speed limits"},
+    {"id": "autofahrt", "en": "Car trip removal"},
+    {"id": "karte", "en": "Map track"},
+    {"id": "kartenschalter", "en": "Map: on-foil only or whole ride"},
+    {"id": "kennzahlen", "en": "Main numbers"},
+    {"id": "pumps", "en": "Pumps and pump rate"},
+    {"id": "startversuche", "en": "Start attempts"},
+    {"id": "rekorde", "en": "Records and leaderboards"},
+    {"id": "einordnung", "en": "Automatic sport detection"},
+    {"id": "lauf_sportart", "en": "Sport per run"}
+  ],
+  "gruppen": {
+    "pump": {
+      "en": "Pumping",
+      "merkmale": {
+        "erkennung": {"status": "teilweise", "en": "Uses the pumpfoil detection.", "notiz": "v3-Erkennung (r4) ist auf Pumpfoil geeicht; andere Pump-Sportarten laufen nur mit."},
+        "tempo": {"status": "live", "en": "Pumpfoil limits (25 km/h band, runs up to 32 km/h).", "seit": "2026-10-04", "wo": ["server"], "notiz": "gps.py MAX_FOIL_SPEED / RUN_MAX_PLAUSIBLE_KMH, grenzen_fuer() Standard."},
+        "autofahrt": {"status": "live", "en": "Car trips are cut out above 55 km/h.", "seit": "2026-10-04", "wo": ["server"], "notiz": "autofahrt.py SPITZE_STANDARD (a313f971)."},
+        "karte": {"status": "live", "en": "Shows the runs.", "wo": ["web", "android", "ios"], "notiz": "Alle Clients zeichnen nur segments_json; ganze Spur nur bei 0 Laeufen."},
+        "kartenschalter": {"status": "nein", "en": "Not needed, the runs are what counts."},
+        "kennzahlen": {"status": "live", "en": "On-foil distance and time, runs, pumps.", "wo": ["web", "android", "ios"]},
+        "pumps": {"status": "live", "en": "Counted on the server.", "wo": ["server", "web", "android", "ios"], "notiz": "Zaehlung an EINEM Fahrer geeicht (docs/GROUND-TRUTH.md)."},
+        "startversuche": {"status": "nein", "en": "Pumpfoil only."},
+        "rekorde": {"status": "teilweise", "en": "Own list via the sport filter, with the pumpfoil record types.", "wo": ["web", "android", "ios"], "notiz": "community.py _community(sport=...) filtert sport_class; Standardansicht ist pumpfoil."},
+        "einordnung": {"status": "nein", "en": "Set by the rider."},
+        "lauf_sportart": {"status": "geplant", "en": "Mark single runs with their own sport.", "notiz": "Stufe 5, gleicher Umbau wie Foil je Lauf (Oerni 04.10.: Wakethief-Laeufe in einer Pumpfoil-Session)."}
+      }
+    },
+    "wind": {
+      "en": "Wind",
+      "merkmale": {
+        "erkennung": {"status": "teilweise", "en": "Uses the pumpfoil detection with higher speed limits; slow parts and short GPS gaps split the ride into many runs.", "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions)."},
+        "tempo": {"status": "live", "en": "Own limits for wind sports.", "seit": "2026-10-04", "wo": ["server"], "notiz": "SPORT_GRENZEN (8b9b3e2f)."},
+        "autofahrt": {"status": "live", "en": "Car trips are cut out above the sport's top speed.", "seit": "2026-10-04", "wo": ["server"]},
+        "karte": {"status": "geplant", "en": "Whole ride in grey, on-foil runs in colour on top.", "notiz": "Stufe 1. Heute nur die Laeufe -> Luecken (Oerni 18.10.)."},
+        "kartenschalter": {"status": "geplant", "en": "Switch between on-foil only and the whole ride.", "notiz": "Jan 19.10.: 'umschaltbar zwischen zeige nur on-foil und zeige gesamte fahrt'. Nach Stufe 1."},
+        "kennzahlen": {"status": "geplant", "en": "Total distance and ride time first, on-foil as a second number.", "notiz": "Stufe 1 (Anzeige) + Stufe 2 (Fahrzeit, Tempo ueber die ganze Fahrt, On-Foil-Anteil in metrics_json). total_distance_m gibt es schon, das Web zeigt es nicht."},
+        "pumps": {"status": "geplant", "en": "Pump numbers will be hidden, they do not fit wind sports.", "notiz": "Heute sichtbar, sobald Daten da sind (hasPumpStats prueft nur Daten, nicht die Sportart)."},
+        "startversuche": {"status": "nein", "en": "Pumpfoil only."},
+        "rekorde": {"status": "teilweise", "en": "Own list via the sport filter, but still with pumping record types; own ones (distance, top speed, longest on-foil) are planned.", "notiz": "Stufe 4."},
+        "einordnung": {"status": "teilweise", "en": "A rule spots wind sessions, applied by hand for now.", "seit": "2026-10-06", "wo": ["server"], "notiz": "sportregel.py v6, nur Gegenprobe im Admin; Kite vs. Wing kann sie nicht trennen."},
+        "lauf_sportart": {"status": "geplant", "en": "Mark single runs with their own sport.", "notiz": "Stufe 5."}
+      }
+    },
+    "welle": {
+      "en": "Waves",
+      "merkmale": {
+        "erkennung": {"status": "teilweise", "en": "Uses the pumpfoil detection.", "notiz": "Kein eigener Detektor."},
+        "tempo": {"status": "teilweise", "en": "Pumpfoil limits.", "notiz": "Kein eigener Eintrag in SPORT_GRENZEN."},
+        "autofahrt": {"status": "live", "en": "Car trips are cut out above 55 km/h.", "seit": "2026-10-04", "wo": ["server"]},
+        "karte": {"status": "live", "en": "Shows the runs.", "wo": ["web", "android", "ios"]},
+        "kartenschalter": {"status": "nein", "en": "Not planned yet."},
+        "kennzahlen": {"status": "teilweise", "en": "Same numbers as pumpfoil.", "notiz": "Noch nicht durchdacht: Wellen zaehlen? Paddelanteil?"},
+        "pumps": {"status": "teilweise", "en": "Counted like pumpfoil.", "notiz": "Downwind und Welle pumpen teilweise wirklich (PUMP_SPORTARTEN im Banner)."},
+        "startversuche": {"status": "nein", "en": "Pumpfoil only."},
+        "rekorde": {"status": "teilweise", "en": "Own list via the sport filter, with the pumpfoil record types."},
+        "einordnung": {"status": "teilweise", "en": "A rule spots wave sessions near the coast, applied by hand for now.", "seit": "2026-10-06", "wo": ["server"]},
+        "lauf_sportart": {"status": "geplant", "en": "Mark single runs with their own sport."}
+      }
+    },
+    "motor": {
+      "en": "Motor and towed",
+      "merkmale": {
+        "erkennung": {"status": "teilweise", "en": "Uses the pumpfoil detection.", "notiz": "Kein eigener Detektor."},
+        "tempo": {"status": "teilweise", "en": "Pumpfoil limits.", "notiz": "eFoil faehrt oft 14-19 km/h gleichmaessig (MOTOR_TEMPO_KMH), passt ins Band; schnellere Boards nicht."},
+        "autofahrt": {"status": "live", "en": "Car trips are cut out above 55 km/h.", "seit": "2026-10-04", "wo": ["server"]},
+        "karte": {"status": "live", "en": "Shows the runs.", "wo": ["web", "android", "ios"]},
+        "kartenschalter": {"status": "nein", "en": "Not planned yet."},
+        "kennzahlen": {"status": "teilweise", "en": "Same numbers as pumpfoil."},
+        "pumps": {"status": "teilweise", "en": "Shown if counted, though they do not fit motor sports.", "notiz": "Ausblenden gehoert zu Stufe 1, sobald das Profil steht."},
+        "startversuche": {"status": "nein", "en": "Pumpfoil only."},
+        "rekorde": {"status": "teilweise", "en": "Own list via the sport filter, with the pumpfoil record types."},
+        "einordnung": {"status": "nein", "en": "Set by the rider."},
+        "lauf_sportart": {"status": "nein", "en": "Not planned."}
+      }
+    }
+  },
+  "sportarten": [
+    {"id": "pumpfoil", "en": "Pumpfoil", "gruppe": "pump", "merkmale": {
+      "erkennung": {"status": "live", "en": "Own detection, tuned for pumping (version 3).", "seit": "2026-09-30", "wo": ["server"], "notiz": "DETECTOR_V3 r4 live seit 30.09., Brett-Regeln seit 10.10., Brett-Automatik seit 15.10. Fremdkraft-Pruefung nur hier (_judge)."},
+      "startversuche": {"status": "live", "en": "Failed starts are counted for a success rate.", "seit": "2026-07-24", "wo": ["server", "web", "android", "ios"], "notiz": "0f29a211, attempts-Preset."},
+      "rekorde": {"status": "live", "en": "Records, leaderboards and record notifications.", "wo": ["server", "web", "android", "ios"]},
+      "einordnung": {"status": "live", "en": "eFoil rides recorded as pumpfoil are recognised and moved.", "seit": "2026-08-01", "wo": ["server"], "notiz": "sportauto.py einordnen(), nur bei sport_source=default; setzt efoil oder needs_classification."}
+    }},
+    {"id": "foil_scoot", "en": "Foil Scoot", "gruppe": "pump", "merkmale": {
+      "rekorde": {"status": "teilweise", "en": "Own list via the sport filter; whether it should also count in the pumpfoil records is still open.", "notiz": "ThermikDreher 16./18.10.: Scooter in den Standard-Rekorden mitzaehlen. Jan: nur wenn automatisch verlaesslich trennbar; Alternative Stufe 4 = eigene Wertung."}
+    }},
+    {"id": "wakethief", "en": "Wake thief", "gruppe": "pump", "merkmale": {
+      "lauf_sportart": {"status": "geplant", "en": "Mark which runs were on the boat wave and which were pumped.", "notiz": "Oerni 04.10.; Wakethiefer wollen Pumpanteile auf dem Rueckweg getrennt (Jan an ThermikDreher 18.10.)."}
+    }},
+    {"id": "sup_paddle", "en": "SUP / paddling", "gruppe": "pump"},
+    {"id": "wingfoil", "en": "Wingfoil", "gruppe": "wind"},
+    {"id": "kitefoil", "en": "Kitefoil", "gruppe": "wind"},
+    {"id": "parawing", "en": "Parawing", "gruppe": "wind", "merkmale": {
+      "autofahrt": {"status": "teilweise", "en": "Car trips are cut out above 55 km/h, lower than for wingfoil.", "notiz": "Fehlt in autofahrt.SPITZE_JE_SPORT (steht aber in SPORT_GRENZEN) -> nachziehen."}
+    }},
+    {"id": "surf_wave", "en": "Ocean wave", "gruppe": "welle"},
+    {"id": "surf_downwind", "en": "Downwind", "gruppe": "welle"},
+    {"id": "efoil", "en": "eFoil", "gruppe": "motor"},
+    {"id": "foildrive", "en": "Foildrive", "gruppe": "motor"},
+    {"id": "towed", "en": "Towed", "gruppe": "motor"}
+  ],
+  "stufen": [
+    {"nr": 1, "titel": "Sportart-Profil, nur Anzeige", "status": "geplant", "notiz": "Profil je Sportart auf dem Server, an die Session gehaengt. Wind: ganze Spur grau + Laeufe farbig, Gesamtstrecke und Dauer oben, Pump-Zahlen weg. Pumpfoil unveraendert. Erst Web, dann Apps mit dem naechsten Release."},
+    {"nr": 2, "titel": "Zusatzzahlen", "status": "geplant", "notiz": "Fahrzeit, Tempo ueber die ganze Fahrt, On-Foil-Anteil -> metrics_json, nur zusaetzlich. Reanalyse nur Wind (868 Wing + 510 Kite), Ist-Stand vorher sichern."},
+    {"nr": 3, "titel": "Eigene On-Foil-Erkennung Wind", "status": "geplant", "notiz": "Detektor -> nur mit Jans OK. Tempo-Schwelle + Haltezeit, GPS-Luecken innerhalb einer Fahrt ueberbruecken. Eichen an den Wing-Sessions, Regressions-Check: Pumpfoil-Zahlen unveraendert."},
+    {"nr": 4, "titel": "Rekorde je Gruppe", "status": "geplant", "notiz": "Wind: laengste Strecke, Hoechsttempo, laengste Fahrt on-foil; keine Pump-Rekorde. Foil Scoot: eigene Wertung statt Mischen."},
+    {"nr": 5, "titel": "Sportart je Lauf", "status": "geplant", "notiz": "Segment-Sportart statt Session-Sportart, gleicher Umbau wie Foil je Lauf. Automatische Trennung erst, wenn verlaesslich."}
+  ],
+  "verlauf": [
+    {"datum": "2026-10-19", "sport": ["alle"], "merkmal": "-", "was": "Stand-Buch angelegt, Stufenplan 1-5 festgehalten.", "wo": ["server", "web"]},
+    {"datum": "2026-10-16", "sport": ["alle"], "merkmal": "karte", "was": "Laeufe durchgehend gezeichnet, GPS-Luecken im Lauf als Kurve ueberbrueckt (Web; Apps mit 1.1.51 / 1.1.43).", "wo": ["web", "android", "ios"], "version": "iOS 1.1.51, Android 1.1.43"},
+    {"datum": "2026-10-15", "sport": ["pumpfoil"], "merkmal": "erkennung", "was": "Brett-Automatik: Handy am Brett wird selbst erkannt.", "wo": ["server"], "commit": "700eb422"},
+    {"datum": "2026-10-10", "sport": ["pumpfoil"], "merkmal": "erkennung", "was": "Brett-Regeln fuer Pumps bei Handy-am-Brett-Sessions.", "wo": ["server"]},
+    {"datum": "2026-10-06", "sport": ["wingfoil", "kitefoil", "parawing", "surf_wave"], "merkmal": "einordnung", "was": "Sportart-Regel v6 als Gegenprobe im Admin, Anwenden von Hand.", "wo": ["server"], "commit": "8d5500a5"},
+    {"datum": "2026-10-04", "sport": ["wingfoil", "parawing", "kitefoil"], "merkmal": "tempo", "was": "Band und Lauf-Grenze je Sportart: Wing/Parawing 50/62, Kite 60/70 km/h.", "wo": ["server"], "commit": "8b9b3e2f"},
+    {"datum": "2026-10-04", "sport": ["alle"], "merkmal": "autofahrt", "was": "Autofahrten automatisch aussortiert, Grenze je Sportart (Kite 65, Wing 62, sonst 55 km/h).", "wo": ["server"], "commit": "a313f971"},
+    {"datum": "2026-09-30", "sport": ["pumpfoil"], "merkmal": "erkennung", "was": "Erkennung v3 live.", "wo": ["server"]},
+    {"datum": "2026-08-01", "sport": ["pumpfoil", "efoil"], "merkmal": "einordnung", "was": "Automatische Einordnung beim Import (eFoil erkannt).", "wo": ["server"], "commit": "395bc57d"},
+    {"datum": "2026-08-01", "sport": ["alle ausser pumpfoil"], "merkmal": "erkennung", "was": "Fremdkraft-Pruefung nur noch bei Pumpfoil.", "wo": ["server"], "commit": "8ef2cdb5"},
+    {"datum": "2026-07-24", "sport": ["pumpfoil"], "merkmal": "startversuche", "was": "Start-Erfolgsquote misst echte Fehlversuche.", "wo": ["server"], "commit": "0f29a211"}
+  ]
+}

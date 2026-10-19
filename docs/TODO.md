@@ -1483,6 +1483,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
+  Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf
+  /changelog „Analysis by sport“ (`GET /api/app/sport-status`, ohne interne Notizen). **Naechster Schritt: Stufe 1 im Web fuer
+  Wing/Kite** (ganze Spur grau + Laeufe farbig, Gesamtstrecke + Dauer oben, Pump-Zahlen weg), danach Kartenschalter
+  „nur on-foil / ganze Fahrt“ (Jan 19.10.). Stufe 3 (eigene Wind-Erkennung) = Detektor -> nur mit Jans OK. Bei jedem Schritt
+  das Buch nachziehen (Merkmal + Zeile in `verlauf`).
+
 - **17.10. — Suunto-App (SuuntoPlus) gebaut, NIE auf Hardware gelaufen.** Plan + Protokoll + offene
   Fragen: `docs/SUUNTO.md`. Uhr `watch-suunto/` (Datenseiten aus dem Profil, Lauf-Regeln/Alarme aus
   watch-huawei/common, Pump-Zaehler + Pump-Marker in 5 Log-Kanaelen, Funk zum Handy), Bruecke Android

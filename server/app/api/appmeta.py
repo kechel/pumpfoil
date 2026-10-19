@@ -1268,6 +1268,39 @@ def _noch_offen(abgelehnt: dict, live: list[dict]) -> bool:
     return any(_neuer_als(w, a) for a, w in zip(aus, weg))
 
 
+# ------------------------------------------------- Stand je Sportart (19.10.2026) ----
+# Das Buch liegt in `app/data/sportarten_stand.json` (Aufbau und Pflege-Regeln stehen dort oben in
+# `_lies_mich`). Frisch je Aufruf gelesen: eine Aenderung an der Datei steht ohne Neustart auf
+# /changelog. Ausgeliefert wird nur, was oeffentlich ist — `notiz`, `stufen` und `verlauf` bleiben
+# intern (Notizen nennen Session-Nummern und Nutzer).
+_SPORT_STAND = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "sportarten_stand.json")
+
+
+def sport_stand_aufgeloest() -> dict:
+    """Jede Sportart mit ALLEN Merkmalen: Gruppenstand, darueber die eigenen Abweichungen."""
+    with open(_SPORT_STAND, encoding="utf-8") as f:
+        buch = json.load(f)
+    merkmale = buch["merkmale"]
+    sportarten = []
+    for sp in buch["sportarten"]:
+        gruppe = buch["gruppen"][sp["gruppe"]]
+        werte = []
+        for m in merkmale:
+            e = dict(gruppe["merkmale"].get(m["id"]) or {})
+            e.update((sp.get("merkmale") or {}).get(m["id"]) or {})
+            werte.append({"id": m["id"], "status": e.get("status", "nein"), "text": e.get("en", ""),
+                          "seit": e.get("seit")})
+        sportarten.append({"id": sp["id"], "name": sp["en"], "gruppe": gruppe["en"], "merkmale": werte})
+    return {"stand": buch["stand"], "status": buch["status_en"],
+            "merkmale": [{"id": m["id"], "name": m["en"]} for m in merkmale], "sportarten": sportarten}
+
+
+@router.get("/sport-status")
+def sport_status() -> dict:
+    """Fuer /changelog: was kann die Auswertung je Sportart schon, was ist geplant."""
+    return sport_stand_aufgeloest()
+
+
 @router.get("/releases")
 def releases() -> dict:
     """Was ist live, was liegt im Review, was wurde abgelehnt, was kommt als Naechstes.
