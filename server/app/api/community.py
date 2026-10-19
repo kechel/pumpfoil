@@ -1766,6 +1766,43 @@ def spot_startpositionen(spot_id: int, min_starts: int = Query(3, ge=2, le=100),
     return {"positionen": [p for p in pos if km(p["lat"], p["lon"]) <= r][:POSITIONEN_MAX]}
 
 
+@router.get("/spot/{spot_id}/windfenster")
+def spot_windfenster(spot_id: int, user: models.User = Depends(current_user),
+                     db: Session = Depends(get_db)) -> dict:
+    """Bei welchem Wind an diesem Spot gefahren wird (19.10.2026, Stand-Buch: windfenster).
+
+    Aus den Wind-Sessions (Wing/Kite/Parawing) des Spots und dem Modellwind je Session — NUR aus dem
+    Cache (app/sessionwind.py), dieser Aufruf holt nichts. Je Himmelsrichtung (8 Sektoren, woher der
+    Wind kommt) die Zahl der Sessions und das mittlere Windtempo; dazu der Bereich ueber alle.
+    Zusammengefasst, keine Namen; Sessions mit verborgenem Ort zaehlen nicht."""
+    from .. import sportprofil
+    from ..sessionwind import session_wind
+    wind = [k for k, g in sportprofil.GRUPPE.items() if g == "wind"]
+    S = models.Session
+    rows = (db.query(S.id, S.place_lat, S.place_lon, S.started_at, S.ended_at, S.user_id)
+            .filter(S.spot_id == spot_id, S.sport_class.in_(wind), S.deleted.isnot(True),
+                    S.place_lat.isnot(None), S.started_at.isnot(None))
+            .all())
+    sektoren = [{"richtung": i * 45, "sessions": 0, "kmh": []} for i in range(8)]
+    alle_kmh, fahrer = [], set()
+    for sid, lat, lon, st, en, uid in rows:
+        w = session_wind(sid, lat, lon, st, en, abrufen=False)
+        m = (w or {}).get("mittel")
+        if not m:
+            continue
+        k = int(((m["richtung"] + 22.5) % 360) // 45)
+        sektoren[k]["sessions"] += 1
+        sektoren[k]["kmh"].append(m["kmh_mittel"])
+        alle_kmh.append(m["kmh_mittel"])
+        fahrer.add(uid)
+    for x in sektoren:
+        x["kmh"] = round(sum(x["kmh"]) / len(x["kmh"]), 1) if x["kmh"] else None
+    alle_kmh.sort()
+    n = len(alle_kmh)
+    return {"sessions": n, "fahrer": len(fahrer), "sektoren": sektoren,
+            "kmh_p25": alle_kmh[n // 4] if n else None, "kmh_p75": alle_kmh[(3 * n) // 4] if n else None}
+
+
 @router.get("/spot/{spot_id}/meine_starts")
 def spot_meine_starts(spot_id: int, sport: str = Query("all", max_length=40),
                       user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:

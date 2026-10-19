@@ -1230,6 +1230,9 @@ export const api = {
     req<{ z: number | null; cells: [number, number, number][]; max: number; stand: string | null; sessions: number }>(
       `/api/community/heatmap?period=${period}&z=${z}&w=${w}&s=${s}&e=${e}&n=${n}&art=${art}&sport=${encodeURIComponent(sport)}`),
   /** Verlaessliche Startpositionen eines Spots (>= minStarts Starts aus >= 2 Sessions), fuer Routen. */
+  // Windfenster je Spot (19.10.2026): Modellwind der Wind-Sessions des Spots, nur aus dem Cache.
+  spotWindfenster: (spotId: number) => req<{ sessions: number; fahrer: number; kmh_p25: number | null; kmh_p75: number | null;
+    sektoren: { richtung: number; sessions: number; kmh: number | null }[] }>(`/api/community/spot/${spotId}/windfenster`),
   spotStartpositionen: (spotId: number, minStarts: number, minFahrer = 1, sport = "all", umkreisKm = 0) =>
     req<{ positionen: { lat: number; lon: number; starts: number; sessions: number; fahrer: number; vom_spot?: boolean }[] }>(
       `/api/community/spot/${spotId}/startpositionen?min_starts=${minStarts}&min_fahrer=${minFahrer}&sport=${encodeURIComponent(sport)}&umkreis_km=${umkreisKm}`),

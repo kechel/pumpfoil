@@ -55,7 +55,7 @@ def _tag_pfad(lat: float, lon: float, tag):
     return d / f"{round(lat, 2):.2f}_{round(lon, 2):.2f}_{tag.isoformat()}.json"
 
 
-def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime) -> dict:
+def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime, abrufen: bool = True) -> dict:
     """{tag: [stunden]} fuer die UTC-Tage der Stunden von..bis. Aus dem Speicher, solange er jede
     gebrauchte (vergangene) Stunde hat; sonst EIN Abruf fuer die betroffenen Tage, Ergebnis gemerged
     und gleich gespeichert (nur vergangene Stunden)."""
@@ -79,7 +79,7 @@ def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime) -> dict:
                 break
             h += timedelta(hours=1)
         t += timedelta(days=1)
-    if not fehlt:
+    if not fehlt or not abrufen:
         return tage
     alt = (jetzt.date() - min(fehlt)) > timedelta(days=_FORECAST_TAGE)
     params = {
@@ -123,12 +123,12 @@ def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime) -> dict:
     return tage
 
 
-def _abrufen(lat: float, lon: float, start: datetime, ende: datetime) -> list[dict]:
+def _abrufen(lat: float, lon: float, start: datetime, ende: datetime, abrufen: bool = True) -> list[dict]:
     # Die volle Stunde VOR dem Start bis zur vollen Stunde NACH dem Ende — eine 40-min-Session
     # bekommt so mindestens zwei Werte.
     von = start.replace(minute=0, second=0, microsecond=0)
     bis = ende.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-    tage = _tage_holen(lat, lon, von, bis)
+    tage = _tage_holen(lat, lon, von, bis, abrufen)
     out = []
     for tag in sorted(tage):
         for s_ in tage[tag]:
@@ -152,7 +152,7 @@ def _mittel(stunden: list[dict]) -> dict | None:
 
 
 def session_wind(session_id: int, lat: float | None, lon: float | None,
-                 start: datetime | None, ende: datetime | None) -> dict | None:
+                 start: datetime | None, ende: datetime | None, abrufen: bool = True) -> dict | None:
     """{quelle, stunden: [...], mittel: {...}} oder None (kein Ort/keine Zeit/kein Ergebnis)."""
     if lat is None or lon is None or start is None:
         return None
@@ -167,7 +167,7 @@ def session_wind(session_id: int, lat: float | None, lon: float | None,
     if ende.tzinfo is None:
         ende = ende.replace(tzinfo=timezone.utc)
     try:
-        stunden = _abrufen(lat, lon, start.astimezone(timezone.utc), ende.astimezone(timezone.utc))
+        stunden = _abrufen(lat, lon, start.astimezone(timezone.utc), ende.astimezone(timezone.utc), abrufen)
     except Exception:  # noqa: BLE001  — best effort wie weather.py
         return None
     if not stunden:
