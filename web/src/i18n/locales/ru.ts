@@ -315,6 +315,7 @@ const ru: Record<string, string> = {
   "rec.longestGlide": "Самое долгое скольжение",
   "rec.mostRuns": "Больше всего заездов",
   "rec.sessionDistance": "Самая дальняя сессия",
+  "rec.sessionTotal": "Самая длинная поездка (всего)",
   "rec.sessionTime": "Время на фойле",
   "rec.sessionPumps": "Больше всего помпинга",
   "rec.maxHr": "Макс. пульс",

@@ -315,6 +315,7 @@ const id: Record<string, string> = {
   "rec.longestGlide": "Glide terpanjang",
   "rec.mostRuns": "Run terbanyak",
   "rec.sessionDistance": "Sesi terjauh",
+  "rec.sessionTotal": "Perjalanan terjauh (total)",
   "rec.sessionTime": "Waktu on-foil",
   "rec.sessionPumps": "Pump terbanyak",
   "rec.maxHr": "Detak jantung maks",

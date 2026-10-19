@@ -336,6 +336,7 @@ const pl: Record<string, string> = {
   "rec.longestGlide": "Najdłuższe szybowanie",
   "rec.mostRuns": "Najwięcej przejazdów",
   "rec.sessionDistance": "Najdalsza sesja",
+  "rec.sessionTotal": "Najdłuższa jazda (łącznie)",
   "rec.sessionTime": "Czas na foilu",
   "rec.sessionPumps": "Najwięcej pomp",
   "rec.maxHr": "Tętno maks.",

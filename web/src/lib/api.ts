@@ -486,6 +486,7 @@ export interface RecordSet {
   runs: StatRecord;
   // Fun-Rekorde (Session-bezogen); optional für ältere Server-Antworten.
   session_distance?: StatRecord;
+  session_total?: StatRecord;      // nur Wind-Sportarten (19.10.2026)
   session_time?: StatRecord;
   session_pumps?: StatRecord;
   max_hr?: StatRecord;

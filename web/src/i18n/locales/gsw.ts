@@ -296,6 +296,7 @@ const gsw: Record<string, string> = {
   "rec.longestGlide": "Längschti Gleitphase",
   "rec.mostRuns": "Meischti Läuf",
   "rec.sessionDistance": "Wiitesti Session",
+  "rec.sessionTotal": "Längschti Fahrt (total)",
   "rec.sessionTime": "On-Foil-Ziit",
   "rec.sessionPumps": "Meischti Pumps",
   "rec.maxHr": "Max. Puls",

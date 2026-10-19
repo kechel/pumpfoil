@@ -315,6 +315,7 @@ const pt: Record<string, string> = {
   "rec.longestGlide": "Planeio mais longo",
   "rec.mostRuns": "Mais voltas",
   "rec.sessionDistance": "Sessão mais longa",
+  "rec.sessionTotal": "Saída mais longa (total)",
   "rec.sessionTime": "Tempo on-foil",
   "rec.sessionPumps": "Mais pumps",
   "rec.maxHr": "FC máxima",

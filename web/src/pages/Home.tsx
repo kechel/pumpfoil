@@ -17,6 +17,7 @@ import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useT } from "../i18n";
+import { MOTOR_SPORTS, WIND_SPORTS } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
 
 function InstallButton() {
@@ -129,14 +130,29 @@ export const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: numbe
   { key: "night_owl", labelKey: "rec.nightOwl", fmt: (v) => hhmm(v % 86400) },
   // Gehört einem NUTZER, nicht einer Session (Summe im Zeitraum) -> ohne Datum/Spot/Link.
   { key: "carves180", labelKey: "rec.carves180", fmt: (v) => `${Math.round(v)}` },
+  // Nur Wind-Sportarten (19.10.2026): laengste Fahrt als Gesamtstrecke (der Server liefert sie nur dort).
+  { key: "session_total", labelKey: "rec.sessionTotal", fmt: (v) => `${(v / 1000).toFixed(1)} km` },
 ];
 
+// Welche Rekord-Arten je Sportart sinnvoll sind (19.10.2026, Stand-Buch „Rekorde je Gruppe").
+// Pumpfoil und alle nicht genannten: wie bisher (ohne session_total).
+function recItemsFuer(sport?: string) {
+  if (sport && WIND_SPORTS.includes(sport)) {
+    // Die ganze Fahrt zuerst — beim Wingen ist sie die Hauptzahl (wie auf der Session-Seite).
+    const rest = REC_ITEMS.filter((it) => !["glide", "session_pumps", "runs", "carves180", "session_total"].includes(it.key as string));
+    return [REC_ITEMS.find((it) => it.key === "session_total")!, ...rest];
+  }
+  if (sport && MOTOR_SPORTS.includes(sport))
+    return REC_ITEMS.filter((it) => !["glide", "session_pumps", "session_total"].includes(it.key as string));
+  return REC_ITEMS.filter((it) => it.key !== "session_total");
+}
+
 // Auch von der Foil-Detailseite benutzt — dieselben Kacheln, damit Rekorde ueberall gleich aussehen.
-export function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: boolean }) {
+export function RecordGrid({ rec, showSpot, sport }: { rec?: RecordSet | null; showSpot?: boolean; sport?: string }) {
   const t = useT();
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-      {REC_ITEMS.map((it) => {
+      {recItemsFuer(sport).map((it) => {
         const r = rec?.[it.key];
         // Der Carve-Rekord hängt an keiner Session (session_id ist null) — für ihn reicht ein Wert.
         const has = !!(r && r.value && (r.session_id || it.key === "carves180"));
@@ -561,7 +577,7 @@ function CommunitySection() {
       {band && bandInfo(band, t) && (
         <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
       )}
-      <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot />
+      <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot sport={sport} />
       {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern
           sich dabei nicht immer (accel war schon aus). */}
       <LatestMedia key={`m${freunde}`} />
@@ -709,7 +725,7 @@ function SpotSection({ period, accelOnly, sport = "pumpfoil" }: { period: string
           <div className="mb-1.5 flex items-center gap-2">
             <span className="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-300"><LocationIcon className="h-4 w-4" /> {selected}</span>
           </div>
-          <RecordGrid rec={recs[`${sport}:${accelOnly}:${period}:${selected}`]} />
+          <RecordGrid rec={recs[`${sport}:${accelOnly}:${period}:${selected}`]} sport={sport} />
           <SpotSessions spot={selected} accelOnly={accelOnly} />
         </div>
       )}

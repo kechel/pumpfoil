@@ -315,6 +315,7 @@ const ja: Record<string, string> = {
   "rec.longestGlide": "最長グライド",
   "rec.mostRuns": "最多ラン数",
   "rec.sessionDistance": "最長セッション",
+  "rec.sessionTotal": "最長ライド（合計）",
   "rec.sessionTime": "オンフォイル時間",
   "rec.sessionPumps": "最多ポンプ",
   "rec.maxHr": "最大心拍数",

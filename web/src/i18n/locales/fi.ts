@@ -308,6 +308,7 @@ const fi: Record<string, string> = {
   "rec.longestGlide": "Pisin liukuvaihe",
   "rec.mostRuns": "Eniten lenkkejä",
   "rec.sessionDistance": "Pisin sessio",
+  "rec.sessionTotal": "Pisin ajo (yhteensä)",
   "rec.sessionTime": "Foil-aika",
   "rec.sessionPumps": "Eniten pumppeja",
   "rec.maxHr": "Max. syke",

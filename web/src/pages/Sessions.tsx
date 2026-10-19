@@ -1491,7 +1491,7 @@ function SpotRecordsSport({ spot, accelOnly, sport }: { spot: string; accelOnly:
           </button>
         ))}
       </div>
-      <RecordGrid rec={data[period]} />
+      <RecordGrid rec={data[period]} sport={sport} />
     </Card>
   );
 }
