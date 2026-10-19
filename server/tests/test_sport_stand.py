@@ -62,4 +62,4 @@ def test_plattform_zeile():
     live = _APP_META["android"]["latest"]
     z = _plattform_zeile({"web": "2026-10-19", "android": live, "ios": ""})
     assert z == f"website since October 19, 2026, Android {live}, iOS coming next"
-    assert _plattform_zeile({"ios": "99.0.0"}) == "iOS 99.0.0 (coming next)"
+    assert _plattform_zeile({"ios": "99.0.0"}) == "iOS 99.0.0"
