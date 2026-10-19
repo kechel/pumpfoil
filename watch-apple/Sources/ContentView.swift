@@ -152,6 +152,9 @@ struct RecordView: View {
     @State private var letzteHrVibe = Date.distantPast
     @State private var wasHrHigh = false       // Puls über der Grenze? (eigener Zustand)
     @State private var foils: [Api.FoilOpt] = []
+    // Sportart-Wahl (19.10.2026): Liste vom Server (Standard zuerst), Auswahl je Session.
+    @State private var sports: [Api.SportOpt] = []
+    @State private var selectedSport: String?
     @State private var showFoilPicker = false
     @State private var selectedFoilId: Int?    // für diese Session gewähltes Foil (Server-Override)
     @State private var fixedLow = 0            // feste Alarm-Werte aus der Config (für „Feste Werte")
@@ -484,7 +487,8 @@ struct RecordView: View {
 
     private var foilButtonText: String {
         let prefix: String = WLoc.t("foil.prefix", lang)
-        return prefix + foilLabel
+        let sportName: String? = sports.count > 1 ? sports.first(where: { $0.id == selectedSport })?.name : nil
+        return (sportName.map { $0 + " · " } ?? "") + prefix + foilLabel
     }
 
     private var startButton: some View {
@@ -493,7 +497,9 @@ struct RecordView: View {
             // Ohne Standort-Freigabe gar nicht starten: es kaeme eine Aufnahme ohne einen
             // einzigen Punkt heraus (keine Strecke, keine Laeufe). Der Hinweis darunter sagt es.
             guard !rec.locDenied else { return }
-            Task { await rec.start(foilId: selectedFoilId) }   // Foil = Metadaten, unabhängig vom Alarm
+            // Foil = Metadaten, unabhängig vom Alarm; Sportart nur, wenn es eine Auswahl gibt.
+            let sport: String? = sports.count > 1 ? selectedSport : nil
+            Task { await rec.start(foilId: selectedFoilId, sportClass: sport) }
         }
         .tint(.green)
         .disabled(rec.locDenied)
@@ -562,6 +568,7 @@ struct RecordView: View {
     private var alarmSheet: some View {
         AlarmPickerSheet(
             foils: foils,
+            sports: sports, selectedSport: $selectedSport,
             alarm: $alarm, alarmSource: $alarmSource, selectedFoilId: $selectedFoilId,
             autoStart: $autoStart,
             layoutsPrefRaw: $layoutsPrefRaw,
@@ -862,6 +869,8 @@ struct RecordView: View {
         alarmDefault = c.alarmDefault ?? "foil"
         fixedLow = c.speedLow; fixedHigh = c.speedHigh
         foils = c.foils ?? []
+        sports = c.sports ?? []
+        if selectedSport == nil || !sports.contains(where: { $0.id == selectedSport }) { selectedSport = sports.first?.id }
         // Vibrationsmuster/Repeat immer aus der Config übernehmen.
         alarm.patHigh = c.alarmPatternHigh ?? "short2"
         alarm.patLow = c.alarmPatternLow ?? "long2"
@@ -1001,6 +1010,8 @@ struct RecordView: View {
 // Muster bleiben aus der Config erhalten.
 struct AlarmPickerSheet: View {
     let foils: [Api.FoilOpt]
+    var sports: [Api.SportOpt] = []
+    @Binding var selectedSport: String?
     @Binding var alarm: WatchAlarm
     @Binding var alarmSource: String
     @Binding var selectedFoilId: Int?
@@ -1016,6 +1027,7 @@ struct AlarmPickerSheet: View {
     // RecordView.body). Reihenfolge und Inhalte sind unveraendert.
     var body: some View {
         List {
+            sportSection
             autoStartSection
             layoutsSection
             alarmToggleSection
@@ -1083,6 +1095,22 @@ struct AlarmPickerSheet: View {
             }
             Stepper(value: $alarm.high, in: 0...80) {
                 Text(thresholdLabel("foil.max", alarm.high)).font(.footnote)
+            }
+        }
+    }
+
+    // Sportart (19.10.2026) — nur bei mehr als einer zur Wahl; ganz oben, weil sie bestimmt, wie die
+    // Session ausgewertet wird. Ein Tipp waehlt, das Sheet bleibt offen (Foil folgt darunter).
+    @ViewBuilder private var sportSection: some View {
+        if sports.count > 1 {
+            Section {
+                ForEach(sports) { sp in
+                    Button { selectedSport = sp.id } label: {
+                        Text((sp.id == selectedSport ? "✓ " : "") + sp.name)
+                    }
+                }
+            } header: {
+                Text(WLoc.t("sport.choose", lang))
             }
         }
     }

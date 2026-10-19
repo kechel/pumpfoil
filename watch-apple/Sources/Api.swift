@@ -101,6 +101,12 @@ enum Api {
         return try JSONDecoder().decode(PairPollResponse.self, from: data)
     }
 
+    /// Sportart zur Wahl auf der Uhr (Server-Config `sports`, 19.10.2026).
+    struct SportOpt: Codable, Identifiable, Equatable {
+        let id: String
+        let name: String
+    }
+
     struct FoilOpt: Codable, Identifiable, Equatable {
         let id: Int
         let label: String
@@ -130,6 +136,7 @@ enum Api {
         let alarmPatternTime: String?
         let alarmDefault: String?       // Uhr-Vorwahl: "foil" | "fixed"
         let foils: [FoilOpt]?   // Auto-Alarm je Foil (optional/abwärtskompatibel zum Cache)
+        let sports: [SportOpt]? // Sportart-Wahl (19.10.2026, nur mit sp=1; Standard zuerst)
         let offFoilView: [Int]? // Screen für off-foil (Auto-Umschaltung)
         let pauseView: [Int]?   // Pausen-Screen (Dümpeln zwischen den Läufen), optional
         let language: String?   // Profil-Sprache (de/gsw/de-AT/en/fr/it/es) für On-Device-Texte
@@ -180,6 +187,7 @@ enum Api {
         let lay = wantLayouts ? "&lay=1" : ""
         let q = (v.isEmpty ? "?p=apple"
             : "?v=\(v.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? v)&p=apple") + lay
+            + "&sp=1"   // diese Uhr kann eine Sportart waehlen -> Liste `sports` (19.10.2026)
         guard let url = URL(string: baseURL + "/api/devices/config" + q) else { throw err("Bad URL") }
         var req = URLRequest(url: url)
         req.timeoutInterval = 10   // nicht ewig warten — der Nutzer kann „Jetzt nicht" tippen

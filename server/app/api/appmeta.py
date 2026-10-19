@@ -998,6 +998,7 @@ NAECHSTES: list[dict] = [
          "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
          "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
          "The three buttons for your spot description sit in one row as icons.",
+         "On the Apple Watch you can pick the sport before you start, next to the foil.",
      ]},
     {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
      "items": [
