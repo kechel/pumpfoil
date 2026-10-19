@@ -20,6 +20,7 @@ import { SessionCard } from "../components/SessionCard";
 import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
 import { SpotWeather } from "../components/SpotWeather";
+import SpotWindfenster from "../components/SpotWindfenster";
 import { SpotHeatmap } from "../components/SpotHeatmap";
 import { SpotNotes } from "../components/SpotNotes";
 import { getLastSession, setLastSessionsSearch, setLastSessionsFilter, getLastListToggle, setLastListToggle } from "../lib/lastSession";
@@ -452,6 +453,7 @@ export default function Sessions() {
       {/* Heatmap des Spots zwischen Rekorden und Wetter (Jan, 16.10.2026) — nur bei echter Spot-id. */}
       {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} sport={sport} />}
       {spot && <SpotWeather spot={spot} />}
+      {spot && /^\d+$/.test(spot) && <SpotWindfenster spotId={Number(spot)} />}
       {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
           Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
           keine Spot-Zeile, an der eine Beschreibung haengen koennte. */}

@@ -165,3 +165,10 @@ def test_vorhersage_als_erster_wert_und_rueckfall(monkeypatch, tmp_path):
     zustand["weg"] = False; zustand["kmh"] = 15.0
     d = sessionwind.session_wind(2, 51.7, 3.8, spaeter, spaeter)
     assert "vorhersage" not in d and d["stunden"][0]["kmh"] == 15.0  # echter Wert ersetzt Vorhersage
+
+
+def test_windfenster_ohne_sessions(client):
+    r = client.post("/api/auth/register", json={"email": "windfenster@x.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    d = client.get("/api/community/spot/999999/windfenster", headers=auth).json()
+    assert d["sessions"] == 0 and len(d["sektoren"]) == 8 and d["kmh_p25"] is None
