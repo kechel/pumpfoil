@@ -303,6 +303,26 @@ def _plat_fuer_hinweis(p: str | None, device: models.DeviceToken) -> str:
 _HINWEIS_SCHLUESSEL = {"huawei": "huawei-watch5"}
 
 
+def sportarten_fuer_uhr(db: Session, user_id: int, settings: dict) -> list[dict]:
+    """Auswahlliste fuer die Uhr: Standard-Sportart zuerst, dann die im letzten Jahr gefahrenen
+    (haeufigste zuerst), hoechstens 6 — eine lange Liste ist auf der Uhr muehsam. Englische
+    Namen; uebersetzt wird auf der Uhr nicht (Platz), die Namen sind kurz."""
+    from datetime import timedelta
+    from sqlalchemy import func as _f
+    from .sessions import SPORTS
+    namen = {"pumpfoil": "Pumpfoil", "wingfoil": "Wingfoil", "kitefoil": "Kitefoil", "parawing": "Parawing",
+             "surf_downwind": "Downwind", "surf_wave": "Wave", "sup_paddle": "SUP", "wakethief": "Wake thief",
+             "towed": "Towed", "efoil": "eFoil", "foildrive": "Foildrive", "foil_scoot": "Foil Scoot"}
+    std = settings.get("default_sport_class") or "pumpfoil"
+    seit = datetime.now(timezone.utc) - timedelta(days=365)
+    rows = (db.query(models.Session.sport_class, _f.count())
+            .filter(models.Session.user_id == user_id, models.Session.deleted.isnot(True),
+                    models.Session.started_at >= seit)
+            .group_by(models.Session.sport_class).order_by(_f.count().desc()).all())
+    ids = [std] + [sc for sc, _n in rows if sc and sc != std and sc in namen]
+    return [{"id": i, "name": namen.get(i, i)} for i in ids[:6] if i in SPORTS]
+
+
 @router.get("/config")
 def device_config(
     device: models.DeviceToken = Depends(current_device),
@@ -317,6 +337,7 @@ def device_config(
     crash: int | None = Query(None),  # Lauf-Canary: Phase, in der der letzte App-Lauf starb (1-4)
     mem: int | None = Query(None, ge=0),      # Spitzen-Speicherverbrauch der App in KB
     memtot: int | None = Query(None, ge=0),   # Systemspeicher der Uhr in KB (Modell-Konstante)
+    sp: int | None = Query(None),   # 1 = die Uhr kann eine Sportart waehlen -> Liste mitliefern
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
@@ -542,7 +563,7 @@ def device_config(
     if is_garmin and (cat or {}).get("bpp") == 1:
         einfaerben = False
 
-    return {
+    cfg = {
         # Laeuft der Handy-Recorder desselben Kontos? Garmin 1.0.93 zeigt dann eine Zeile auf der
         # Startseite (nur dann, Jan 14.10.2026); aeltere Uhren ignorieren das Feld.
         "phone_rec": handy_rec_fuer_config(db, device),
@@ -652,6 +673,11 @@ def device_config(
         **layout_block,
         **_suunto_standard(device, p, settings),
     }
+    # Sportart-Wahl an der Uhr (19.10.2026, Stand-Buch: sport_auf_uhr): NUR fuer Uhren, die mit
+    # `sp=1` fragen — ausgelieferte Apps (Garmin mit wenig Speicher!) bekommen kein Byte mehr.
+    if sp:
+        cfg["sports"] = sportarten_fuer_uhr(db, device.user_id, settings)
+    return cfg
 
 
 @router.get("/config-kompakt", response_class=PlainTextResponse)
