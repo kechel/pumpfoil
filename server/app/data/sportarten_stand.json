@@ -211,8 +211,8 @@
       "merkmale": {
         "erkennung": {
           "status": "teilweise",
-          "en": "Uses the pumpfoil detection with higher speed limits; slow parts and short GPS gaps still split the ride into many runs, a wind-specific detection that keeps a ride together is planned.",
-          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions). Jan 19.10.: „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr staendig unterbrochen wird … bei whole ride ist fast alles in so einer session dann ein einziger run“ -> Stufe 3."
+          "en": "Uses the pumpfoil detection with higher speed limits; runs are grouped into rides (a break of up to 5 minutes belongs to the ride)",
+          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions). Jan 19.10.: „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr staendig unterbrochen wird … bei whole ride ist fast alles in so einer session dann ein einziger run“ -> Stufe 3. 19.10.: das „staendig unterbrochen“ loesen jetzt die Fahrten (Anzeige); die Lauf-Erkennung selbst ist weiter die des Pumpfoils."
         },
         "tempo": {
           "status": "live",
@@ -263,13 +263,13 @@
         },
         "kennzahlen": {
           "status": "live",
-          "en": "Total distance and ride time first, on-foil as a second number",
+          "en": "Total distance, ride time, moving time, speed over the whole ride and the share on the foil first, on-foil numbers second",
           "wo": [
             "web",
             "android",
             "ios"
           ],
-          "notiz": "total_distance_m + (trim_end|duration_ms - trim_start). Stufe 2 (Fahrzeit in Bewegung, Tempo ganze Fahrt, On-Foil-Anteil) offen. 19.10.: auch auf den Session-Karten der Listen (eigene + Community, Web): Gesamtstrecke zuerst, Pumps weg (Feed liefert gesamt_km + sport_profil).",
+          "notiz": "total_distance_m + (trim_end|duration_ms - trim_start). Stufe 2 (Fahrzeit in Bewegung, Tempo ganze Fahrt, On-Foil-Anteil) offen. 19.10.: auch auf den Session-Karten der Listen (eigene + Community, Web): Gesamtstrecke zuerst, Pumps weg (Feed liefert gesamt_km + sport_profil). Stufe 2 (Jan 19.10. „ja gerne“): Fahrzeit in Bewegung (>= 4 km/h), Tempo ganze Fahrt, On-Foil-Anteil — beim Ausliefern aus der Spur, nicht in der Analyse.",
           "plattformen": {
             "web": "2026-10-19",
             "android": "1.1.44",
@@ -315,9 +315,14 @@
           "notiz": "sportregel.py v6, nur Gegenprobe im Admin; Kite vs. Wing kann sie nicht trennen."
         },
         "fahrten": {
-          "status": "geplant",
-          "en": "Runs with a short break in between (fall, tack, waterstart) count as one ride; a ride ends only after a longer break on shore.",
-          "notiz": "Jan 19.10.: 'bei whole ride ist fast alles ... ein einziger run'. 845 Wing-Sessions: Laeufe/Session Median 16, Pausen Median 46 s, p90 160 s; Zusammenfassen bei <=120 s -> Median 3 Fahrten, <=300 s -> 1. Jans Wunsch -> geplant; Grenze offen (Jan gefragt: 2 oder 5 min). Ist Stufe 3 -> Analyse, nur mit Jans OK."
+          "status": "live",
+          "en": "Runs with a break of up to 5 minutes (fall, tack, waterstart) count as one ride; each ride with duration, total distance, on-foil distance and runs",
+          "notiz": "Jan 19.10.: 'bei whole ride ist fast alles ... ein einziger run'. 845 Wing-Sessions: Laeufe/Session Median 16, Pausen Median 46 s, p90 160 s; Zusammenfassen bei <=120 s -> Median 3 Fahrten, <=300 s -> 1. Jans Wunsch -> geplant; Grenze offen (Jan gefragt: 2 oder 5 min). Ist Stufe 3 -> Analyse, nur mit Jans OK. 19.10.: Jan „mach die pause auf 5min“. app/sportzahlen.py, beim Ausliefern berechnet (keine Neuberechnung, Erkennung unveraendert). #17478: 2 Fahrten (53 + 4 Laeufe).",
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          }
         },
         "wind_am_spot": {
           "status": "live",
@@ -507,9 +512,14 @@
           "en": "Not planned yet."
         },
         "kennzahlen": {
-          "status": "teilweise",
-          "en": "Same numbers as pumpfoil, without pump numbers; speed colours up to 40 km/h.",
-          "notiz": "Profil motor: tempo_skala 10-40."
+          "status": "live",
+          "en": "Moving time and speed over the whole ride added; no pump numbers; speed colours up to 40 km/h",
+          "notiz": "Profil motor: tempo_skala 10-40.",
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.52"
+          }
         },
         "pumps": {
           "status": "nein",
@@ -708,14 +718,14 @@
     {
       "nr": 2,
       "titel": "Zusatzzahlen",
-      "status": "geplant",
-      "notiz": "Fahrzeit, Tempo ueber die ganze Fahrt, On-Foil-Anteil -> metrics_json, nur zusaetzlich. Reanalyse nur Wind (868 Wing + 510 Kite), Ist-Stand vorher sichern."
+      "status": "live",
+      "notiz": "Fahrzeit, Tempo ueber die ganze Fahrt, On-Foil-Anteil -> metrics_json, nur zusaetzlich. Reanalyse nur Wind (868 Wing + 510 Kite), Ist-Stand vorher sichern. 19.10.: als Anzeige umgesetzt (app/sportzahlen.py), ohne Reanalyse."
     },
     {
       "nr": 3,
       "titel": "Eigene On-Foil-Erkennung Wind",
       "status": "geplant",
-      "notiz": "Detektor -> nur mit Jans OK, Befund + Fix + Regressions-Check vorlegen. Ziel (Jan 19.10.): eine Wing-Fahrt nicht staendig unterbrechen — kurze Stuerze, Wenden, Wasserstarts gehoeren zur Fahrt; eher „Fahrten“ als Pump-Laeufe. Ansatz: Lauf-Grenze ueber laengere Pausen (Minuten statt 15 s GAP_SPLIT), Tempo-Schwelle + Haltezeit fuer on-foil als zweite Zahl, Foil-Modell (Pumpen) fuer Wind nicht verwenden. Eichen an 868 Wing-Sessions (25 Fahrer), Beispiel #17478 (57 Laeufe). Pumpfoil-Zahlen muessen unveraendert bleiben."
+      "notiz": "Detektor -> nur mit Jans OK, Befund + Fix + Regressions-Check vorlegen. Ziel (Jan 19.10.): eine Wing-Fahrt nicht staendig unterbrechen — kurze Stuerze, Wenden, Wasserstarts gehoeren zur Fahrt; eher „Fahrten“ als Pump-Laeufe. Ansatz: Lauf-Grenze ueber laengere Pausen (Minuten statt 15 s GAP_SPLIT), Tempo-Schwelle + Haltezeit fuer on-foil als zweite Zahl, Foil-Modell (Pumpen) fuer Wind nicht verwenden. Eichen an 868 Wing-Sessions (25 Fahrer), Beispiel #17478 (57 Laeufe). Pumpfoil-Zahlen muessen unveraendert bleiben. 19.10.: Fahrten (5 min) loesen das Zerstueckeln in der Anzeige; eigene Wind-Lauferkennung bleibt offen."
     },
     {
       "nr": 4,
@@ -743,6 +753,26 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "efoil",
+        "foildrive",
+        "towed"
+      ],
+      "merkmal": "fahrten, kennzahlen",
+      "was": "Fahrten (Pause bis 5 min) und Zusatzzahlen (Fahrzeit in Bewegung, Tempo ganze Fahrt, On-Foil-Anteil) — Web live, Apps Android 1.1.44 / iOS 1.1.52 (Cache-Schema 7).",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios"
+      ],
+      "version": "iOS 1.1.52, Android 1.1.44"
+    },
     {
       "datum": "2026-10-19",
       "sport": [

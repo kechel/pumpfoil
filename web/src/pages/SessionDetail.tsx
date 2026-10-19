@@ -13,7 +13,7 @@ import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
-import { FoilOffIcon } from "../components/Icons";
+import { FoilIcon, FoilOffIcon } from "../components/Icons";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { invalidateSessionListCache, ProcessingNote, updateCachedSession } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
@@ -1965,6 +1965,12 @@ export default function SessionDetail() {
               sub="min:s" />
           </>
         )}
+        {/* Zusatzzahlen je Sportart (19.10.2026): Fahrten (Wind), Fahrzeit in Bewegung, Tempo ueber
+            die ganze Fahrt, On-Foil-Anteil — vom Server aus Laeufen und Spur berechnet. */}
+        {a?.sport_zahlen?.fahrten && <Stat label={t("sd.rides")} value={String(a.sport_zahlen.fahrten.length)} />}
+        {a?.sport_zahlen?.fahrzeit_s != null && <Stat label={t("sd.movingTime")} value={fmtMMSS(a.sport_zahlen.fahrzeit_s)} sub="min:s" />}
+        {a?.sport_zahlen?.tempo_kmh != null && <Stat label={t("sd.avgSpeedRide")} value={a.sport_zahlen.tempo_kmh.toFixed(1)} sub="km/h" />}
+        {a?.sport_zahlen?.foil_anteil != null && <Stat label={t("sd.foilShare")} value={String(Math.round(a.sport_zahlen.foil_anteil * 100))} sub="%" />}
         <Stat label={t("stat.foiling")}
           value={a?.foiling_distance_m == null ? "–" : a.foiling_distance_m < 1000 ? String(Math.round(a.foiling_distance_m)) : (a.foiling_distance_m / 1000).toFixed(2)}
           sub={a?.foiling_distance_m != null && a.foiling_distance_m < 1000 ? "m" : "km"} />
@@ -2012,6 +2018,23 @@ export default function SessionDetail() {
         <ClickStat label={t("rec.farthestRun")} value={farSeg.v != null ? fmtM(farSeg.v) : "–"} sub="m"
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
+
+      {/* Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe. */}
+      {(a?.sport_zahlen?.fahrten?.length ?? 0) > 0 && (
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm">
+          {a!.sport_zahlen!.fahrten!.map((f, i) => (
+            <div key={i} className="flex flex-wrap items-baseline gap-x-3 text-slate-200">
+              <span className="font-semibold">{t("sd.ride")} {i + 1}</span>
+              <span className="tabular-nums">{fmtMMSS(f.dauer_s)}</span>
+              <span className="tabular-nums">{(f.strecke_m / 1000).toFixed(1)} km</span>
+              <span className="inline-flex items-center gap-1 text-slate-400">
+                (<FoilIcon className="h-3.5 w-3.5" aria-label={t("sd.foilShare")} />{(f.foil_m / 1000).toFixed(1)} km · {t("sd.rideRuns", { n: String(f.laeufe) })})
+              </span>
+            </div>
+          ))}
+          <div className="mt-0.5 text-slate-400">{t("sd.ridesNote")}</div>
+        </div>
+      )}
 
       {/* Wind am Spot (Wind-Sportarten): Modellwerte, ausdruecklich keine Messung am Wasser. Der Pfeil
           zeigt, WOHIN der Wind weht (Richtung + 180), die Gradzahl, woher er kommt (Konvention). */}

@@ -1103,6 +1103,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 if (hauptGesamt) s.durationMs?.let { d ->
                     add(StatItem(I18n.t("sd.duration"), mmssD(((s.trimEndMs ?: d) - (s.trimStartMs ?: 0L)) / 1000.0)))
                 }
+                // Zusatzzahlen je Sportart (19.10.2026): Fahrten, Fahrzeit, Tempo ganze Fahrt, On-Foil-Anteil.
+                a.sportZahlen?.let { z ->
+                    z.fahrten?.let { add(StatItem(I18n.t("sd.rides"), "${it.size}")) }
+                    z.fahrzeitS?.let { add(StatItem(I18n.t("sd.movingTime"), mmssD(it))) }
+                    z.tempoKmh?.let { add(StatItem(I18n.t("sd.avgSpeedRide"), "%.1f km/h".format(it))) }
+                    z.foilAnteil?.let { add(StatItem(I18n.t("sd.foilShare"), "${kotlin.math.round(it * 100).toInt()} %")) }
+                }
                 a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
                 a.foilingTimeS?.let { add(StatItem(I18n.t("compare.foilTime"), mmssD(it))) }
                 // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst
@@ -1135,6 +1142,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
+            a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it) }
             windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
@@ -2072,6 +2080,21 @@ private fun clockAt(startedAt: String, tz: String?, offsetMs: Long): String {
 private data class StatItem(val label: String, val value: String, val runIdx: Int? = null,
                             /** Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt. */
                             val info: String? = null)
+
+// Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
+@Composable
+private fun FahrtenKarte(fahrten: List<Fahrt>) {
+    Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            fahrten.forEachIndexed { i, f ->
+                Text("${I18n.t("sd.ride")} ${i + 1}   ${fmtLaufDauer(f.dauerS)}   %.1f km".format(f.streckeM / 1000.0) +
+                    "   (%.1f km · ".format(f.foilM / 1000.0) + I18n.t("sd.rideRuns").replace("{n}", "${f.laeufe}") + ")",
+                    style = MaterialTheme.typography.bodyMedium)
+            }
+            Text(I18n.t("sd.ridesNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
 
 // Wind am Spot (Modellwert, keine Messung am Wasser) + Wenden/Halsen — wie die Wind-Box im Web.
 @Composable

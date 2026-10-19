@@ -280,6 +280,18 @@ data class CarveStats(val windows: Map<String, CarveWin> = emptyMap())
 data class CarveWin(val s: Int = 0, val m: Int = 0, val l: Int = 0)
 
 @Serializable
+data class Fahrt(val laeufe: Int = 0, @SerialName("dauer_s") val dauerS: Double = 0.0,
+                 @SerialName("strecke_m") val streckeM: Double = 0.0, @SerialName("foil_m") val foilM: Double = 0.0)
+
+@Serializable
+data class SportZahlen(
+    @SerialName("fahrzeit_s") val fahrzeitS: Double? = null,
+    @SerialName("tempo_kmh") val tempoKmh: Double? = null,
+    @SerialName("foil_anteil") val foilAnteil: Double? = null,
+    val fahrten: List<Fahrt>? = null,
+)
+
+@Serializable
 data class Analysis(
     @SerialName("total_distance_m") val totalDistanceM: Double? = null,
     @SerialName("foiling_distance_m") val foilingDistanceM: Double? = null,
@@ -295,6 +307,8 @@ data class Analysis(
     // sie seit 18.09.2026 mit (s. AnalysisOut) — vorher konnte kein Client die beiden anbieten.
     @SerialName("num_runs") val numRuns: Int? = null,
     @SerialName("best_distance_m") val bestDistanceM: Double? = null,
+    // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor.
+    @SerialName("sport_zahlen") val sportZahlen: SportZahlen? = null,
     @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
     // Foiling-Läufe (Index-Bereiche in track_geojson.coordinates) — nur diese werden gezeichnet.
     // Nullable: die schlanke Listen-Analyse liefert "segments": null (nicht nur fehlend).

@@ -243,6 +243,10 @@ class AnalysisOut(BaseModel):
     # Jan, 18.09.2026: „na dann bitte nachziehen, das ist doch quatsch."
     num_runs: int | None = None
     best_distance_m: float | None = None
+    # Zusatzzahlen je Sportart (19.10.2026, app/sportzahlen.py): Fahrten (Wind, Pause <= 5 min),
+    # Fahrzeit in Bewegung, Tempo ueber die ganze Fahrt, On-Foil-Anteil. Nur Detailansicht, nur
+    # Wind/Motor; sonst None. Aeltere Apps ignorieren das Feld.
+    sport_zahlen: dict | None = None
 
 
 class SessionOut(BaseModel):

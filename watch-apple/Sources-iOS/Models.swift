@@ -1117,6 +1117,16 @@ struct Analysis: Codable {
     // sie seit 18.09.2026 mit (AnalysisOut) — vorher konnte KEIN Client die beiden anbieten.
     let num_runs: Int?
     let best_distance_m: Double?
+    // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor.
+    var sport_zahlen: SportZahlen? = nil
+}
+
+struct Fahrt: Codable { let laeufe: Int; let dauer_s: Double; let strecke_m: Double; let foil_m: Double }
+struct SportZahlen: Codable {
+    let fahrzeit_s: Double?
+    let tempo_kmh: Double?
+    let foil_anteil: Double?
+    let fahrten: [Fahrt]?
 }
 
 // Session-weite Kennzahlen (metrics_json) — Basis für den Stats-Block in der Liste.
