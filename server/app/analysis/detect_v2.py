@@ -472,6 +472,7 @@ def detect_v2(
     min_segment_s: float = v1.MIN_SEGMENT_S, min_seg_avg_speed: float = v1.MIN_SEG_AVG_SPEED,
     use_model: bool = True, keep_windows: list | None = None, judge_fremdkraft: bool = True,
     max_foil_speed: float = v1.MAX_FOIL_SPEED, run_max_kmh: float = v1.RUN_MAX_PLAUSIBLE_KMH,
+    exit_dwell_s: float = v1.EXIT_DWELL_S,
 ) -> dict:
     """Rechnet die Erkennung v2 auf einer fertigen Zeitachse. Alle Zeiten im Ergebnis sind
     SESSION-Millisekunden. Schreibt nichts, liest nichts nach."""
@@ -562,7 +563,8 @@ def detect_v2(
         # WIE on-foil erkannt wird, sondern nur, was danach als Fremdkraft abgetrennt wird — und
         # genau das war der Auftrag. Die Fenster bleiben als Merkmale und für das Veto erhalten.
         cv = v1._running_cv(speed_s, win)
-        mask = v1._heuristic_mask(speed_s, cv, quality_ok, gps_hz, enter_speed, exit_speed, max_foil_speed)
+        mask = v1._heuristic_mask(speed_s, cv, quality_ok, gps_hz, enter_speed, exit_speed, max_foil_speed,
+                                  exit_dwell_s)
     mask &= ~veto
     # Dieselben physischen Böden wie v1 (gps.py): unter EXIT_SPEED trägt kein Foil, eine
     # unbrauchbare Position ist wertlos, und ohne echte Positionsbewegung gibt es keinen Vortrieb.
