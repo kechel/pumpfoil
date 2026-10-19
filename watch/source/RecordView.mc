@@ -510,7 +510,7 @@ class RecordView extends WatchUi.View {
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
         // Der Name kommt vom Nutzer -> NICHT umbrechen, sondern hinten kuerzen: ein mitten
         // durchgeschnittener Foil-Name liest sich schlechter als "Foil: Armstro…".
-        var hatFoils = (_rec.foils.size() >= 1 || _rec.manualAlarm);
+        var hatFoils = (_rec.foils.size() >= 1 || _rec.manualAlarm || Sport.wahl());
         if (hatFoils && y < mitteMax) {
             var lbl = _rec.activeAlarmLabel.equals("") ? "-" : _rec.activeAlarmLabel;
             var platz = _usableWidth(dc, y + fh / 2) - (_rec.alarmEnabled ? 22 : 0);
@@ -523,6 +523,9 @@ class RecordView extends WatchUi.View {
             }
             y += fh + luft;
         }
+        // Gewaehlte Sportart (nur VOLL-Build mit echter Wahl) — als eigene Zeile UNTER der Foil
+        // und nur, wenn sie oberhalb der START-Zeile in freien Platz passt (s. _sportZeile).
+        y = _sportZeile(dc, w, h, y, fh, luft, klein);
 
         // Unterer Block (dezente Hinweise) und START-Zeile teilen sich den Rest. Erst MESSEN,
         // dann entscheiden: die START-Zeile ist die wichtigste Zeile der Seite, also fallen im
@@ -1325,6 +1328,20 @@ class RecordView extends WatchUi.View {
         _drawWrap(dc, w / 2, h * 0.05, Graphics.FONT_XTINY, Strings.s("lay.fallback"), false);
     }
     (:nolayouts) hidden function _drawLayoutCrashHint(dc, w, h) as Void { }
+
+    // Sportart-Zeile auf dem Start-Screen. Darf NICHTS verdraengen: nicht auf kleinen Displays
+    // (`klein`) und nur, wenn sie ueber dem START-Anker (0,65 h, s. onUpdate) endet — sonst
+    // wuerde sie START nach unten schieben und die Hinweise unten fielen weg. Dann steht die
+    // Sportart eben nur im Menue. Name vom Server -> hinten kuerzen statt umbrechen.
+    (:layouts) hidden function _sportZeile(dc, w, h, y, fh, luft, klein) {
+        if (klein || !Sport.wahl() || y + fh + luft > h * 0.65) { return y; }
+        var xf = Graphics.FONT_XTINY;
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, y, xf, _kuerzen(dc, Sport.name(), xf, _usableWidth(dc, y + fh / 2)),
+            Graphics.TEXT_JUSTIFY_CENTER);
+        return y + fh + luft;
+    }
+    (:nolayouts) hidden function _sportZeile(dc, w, h, y, fh, luft, klein) { return y; }
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
     hidden function _drawBell(dc, cx, cy) {

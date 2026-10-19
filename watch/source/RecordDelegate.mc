@@ -187,7 +187,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Foil-/Alarm-Auswahl (wenn Foils/Website-Alarm vorhanden) -> Vorauswahl VOR dem Start.
     function onNextPage() as Lang.Boolean {
         if (_rec.isRecording()) { _view.nextScreen(); WatchUi.requestUpdate(); return true; }
-        if (_rec.manualAlarm || _rec.foils.size() >= 1) { _openFoilMenu(); return true; }
+        if (_rec.manualAlarm || _rec.foils.size() >= 1 || Sport.wahl()) { _openFoilMenu(); return true; }
         // Noch nicht verknüpft + nichts zu konfigurieren (keine Foils/Alarm ohne CONFIG):
         // DOWN öffnet stattdessen das Pairing, statt ins Leere zu laufen.
         if (!_rec.isPaired()) {
@@ -274,6 +274,9 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         var menu = new WatchUi.Menu2({:title => Strings.s("fm.title")});
         var idx = 0;
         var focusIdx = -1;
+        // Sportart ganz oben (nur VOLL-Build und nur mit echter Wahl, s. _sportItem).
+        if (focusId == :sport) { focusIdx = idx; }
+        if (FoilMenuDelegate._sportItem(menu, rec)) { idx++; }
         menu.addItem(new WatchUi.MenuItem(Strings.s("fm.alarm"), rec.alarmEnabled ? Strings.s("common.on") : Strings.s("common.off"), :alarm, {})); idx++;
         if (focusId == :source) { focusIdx = idx; }
         menu.addItem(new WatchUi.MenuItem(Strings.s("fm.thresholds"),
@@ -303,8 +306,24 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         FoilMenuDelegate.showFocused(_rec, focusId);
     }
 
+    // Sportart-Eintrag: Unterliste wie die Foil-Liste („> " = gewaehlt). VOLL-Build only — in
+    // LITE/ENG gibt es weder Liste noch Klasse SportMenuDelegate, dort sind das No-Ops.
+    (:layouts) static function _sportItem(menu, rec) {
+        if (!Sport.wahl()) { return false; }
+        menu.addItem(new WatchUi.MenuItem(Strings.s("fm.sport"), Sport.name(), :sport, {}));
+        return true;
+    }
+    (:nolayouts) static function _sportItem(menu, rec) { return false; }
+    (:layouts) hidden function _onSport(id) {
+        if (id != :sport) { return false; }
+        SportMenuDelegate.show(_rec);
+        return true;
+    }
+    (:nolayouts) hidden function _onSport(id) { return false; }
+
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
+        if (_onSport(id)) { return; }
         if (id == :alarm) {
             _rec.alarmEnabled = !_rec.alarmEnabled;      // An/Aus, unabhängig von Foil
             item.setSubLabel(_rec.alarmEnabled ? Strings.s("common.on") : Strings.s("common.off"));
@@ -336,6 +355,36 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         // Foil-Auswahl gesetzt -> zurück zum Start-Screen (Alarm-Zustand bleibt).
         WatchUi.popView(WatchUi.SLIDE_DOWN);
         WatchUi.requestUpdate();
+    }
+}
+
+// Sportart-Liste (Unterseite von „Foil & Alarm"). Auswahl -> zurueck ins Foil-Menue, Fokus auf
+// „Sportart", damit man sieht, was jetzt gilt (gleiches Muster wie Min/Max). BACK = Standard-
+// Verhalten von Menu2 (Liste schliessen, Auswahl bleibt). Namen kommen englisch vom Server.
+(:layouts)
+class SportMenuDelegate extends WatchUi.Menu2InputDelegate {
+    hidden var _rec;
+    function initialize(recorder) {
+        Menu2InputDelegate.initialize();
+        _rec = recorder;
+    }
+    static function show(rec) as Void {
+        var menu = new WatchUi.Menu2({:title => Strings.s("fm.sport")});
+        var focus = 0;
+        for (var i = 0; i < Sport.liste.size(); i++) {
+            var sel = (i == Sport.index());
+            if (sel) { focus = i; }
+            menu.addItem(new WatchUi.MenuItem((sel ? "> " : "") + Sport.liste[i]["name"], null, i, {}));
+        }
+        if (menu has :setFocus) { menu.setFocus(focus); }
+        WatchUi.pushView(menu, new SportMenuDelegate(rec), WatchUi.SLIDE_LEFT);
+    }
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        var id = item.getId();
+        if (id instanceof Lang.Number) { Sport.waehle(id); }
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // Sportart-Liste weg
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // altes Foil-Menue weg
+        FoilMenuDelegate.showFocused(_rec, :sport);
     }
 }
 
