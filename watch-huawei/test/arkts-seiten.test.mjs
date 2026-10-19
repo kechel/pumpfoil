@@ -128,15 +128,16 @@ test("ArkTS-Seiten: Sportart-Wahl vor dem Start (nur Watch 5, /devices/config?sp
   assert.equal("sport" in a.daten(), false, "Standard wird nicht gespeichert, folgt dem Profil");
   a.naechsterSport(k);
   assert.equal(a.sportId(k), "wingfoil"); assert.equal(a.sportName(k), "Wingfoil");
-  assert.equal(a.daten().sport, "wingfoil");
-  // gespeichert und wieder geladen (auswahl.json)
-  const b = new A.Auswahl(JSON.parse(JSON.stringify(a.daten())));
+  assert.equal("sport" in a.daten(), false, "Sportart wird nicht gespeichert");
+  // Neuer App-Start (auswahl.json geladen, auch mit einem alten sport darin): wieder der Standard
+  const b = new A.Auswahl({ ...JSON.parse(JSON.stringify(a.daten())), sport: "wingfoil" });
   b.vorbelegen(k);
-  assert.equal(b.sportId(k), "wingfoil");
+  assert.equal(b.sportId(k), "pumpfoil", "jede App-Sitzung beginnt mit der Standard-Sportart (Jan 19.10.)");
+  b.naechsterSport(k); assert.equal(b.sportId(k), "wingfoil");
   b.naechsterSport(k); assert.equal(b.sportId(k), "downwind");
   b.naechsterSport(k); assert.equal(b.sportId(k), "pumpfoil"); assert.equal(b.sport, null, "Umlauf zurueck auf Standard");
   // Wahl verschwindet aus dem Profil -> Standard; anderer Standard im Profil wird uebernommen
-  const c = new A.Auswahl({ sport: "kitefoil" });
+  const c = new A.Auswahl(null); c.sport = "kitefoil";
   assert.equal(c.sportId(k), "pumpfoil");
   const k2 = new A.Konfig({ sports: [sports[1], sports[0]] });
   assert.equal(new A.Auswahl(null).sportId(k2), "wingfoil");
