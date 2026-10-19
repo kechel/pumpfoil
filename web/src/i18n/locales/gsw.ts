@@ -519,7 +519,7 @@ const gsw: Record<string, string> = {
   "sd.tacks": "Wände",
   "sd.jibes": "Halse",
   "sd.onFoil": "uf em Foil",
-  "sd.manoeverNote": "Wändi = Bug dur dä Wind, Halse = Heck dur dä Wind. Di ersti Zahl isch uf em Foil blibe. Gschätzt us GPS-Spur und Modällwind.",
+  "sd.manoeverNote": "Wändi = Bug dur dä Wind, Halse = Heck dur dä Wind. Di ersti Zahl isch uf em Foil blibe. Gschätzt us GPS-Spur und Modällwind. Uf dr Charte: volle Punkt = uf em Foil, Ring = abgsetzt.",
   "sd.upwind": "Höchi laufe",
   "sd.vmgBest": "beschts VMG {v} km/h",
   "sd.vmgAvg": "Ø {v} km/h am Wind",

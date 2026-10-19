@@ -626,7 +626,7 @@ const id: Record<string, string> = {
   "sd.tacks": "Tack",
   "sd.jibes": "Jibe",
   "sd.onFoil": "di atas foil",
-  "sd.manoeverNote": "Tack = haluan melewati angin, jibe = buritan. Angka pertama tetap di atas foil. Perkiraan dari jejak GPS dan angin model.",
+  "sd.manoeverNote": "Tack = haluan melewati angin, jibe = buritan. Angka pertama tetap di atas foil. Perkiraan dari jejak GPS dan angin model. Di peta: titik penuh = tetap di foil, cincin = menyentuh air.",
   "sd.upwind": "Melawan angin",
   "sd.vmgBest": "VMG terbaik {v} km/h",
   "sd.vmgAvg": "rata-rata {v} km/h melawan angin",

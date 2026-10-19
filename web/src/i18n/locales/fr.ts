@@ -553,7 +553,7 @@ const fr: Record<string, string> = {
   "sd.tacks": "Virements",
   "sd.jibes": "Empannages",
   "sd.onFoil": "sur le foil",
-  "sd.manoeverNote": "Virement = l'avant passe dans le vent, empannage = l'arrière. Le premier nombre est resté sur le foil. Estimé à partir de la trace GPS et du vent modélisé.",
+  "sd.manoeverNote": "Virement = l'avant passe dans le vent, empannage = l'arrière. Le premier nombre est resté sur le foil. Estimé à partir de la trace GPS et du vent modélisé. Sur la carte : point plein = resté sur le foil, anneau = posé.",
   "sd.upwind": "Remontée au vent",
   "sd.vmgBest": "meilleure VMG {v} km/h",
   "sd.vmgAvg": "moy. {v} km/h au près",

@@ -626,7 +626,7 @@ const zh: Record<string, string> = {
   "sd.tacks": "迎风转向",
   "sd.jibes": "顺风转向",
   "sd.onFoil": "在水翼上",
-  "sd.manoeverNote": "迎风转向 = 船头穿过风，顺风转向 = 船尾。第一个数字为保持在水翼上的次数。根据GPS轨迹和模型风向估算。",
+  "sd.manoeverNote": "迎风转向 = 船头穿过风，顺风转向 = 船尾。第一个数字为保持在水翼上的次数。根据GPS轨迹和模型风向估算。 地图上：实心点 = 保持在水翼上，圆环 = 落水。",
   "sd.upwind": "迎风",
   "sd.vmgBest": "最佳 VMG {v} km/h",
   "sd.vmgAvg": "迎风平均 {v} km/h",

@@ -650,7 +650,7 @@ const cs: Record<string, string> = {
   "sd.tacks": "Obraty",
   "sd.jibes": "Přehozy",
   "sd.onFoil": "na foilu",
-  "sd.manoeverNote": "Obrat = příď proti větru, přehoz = záď po větru. První číslo zůstalo na foilu. Odhadnuto z GPS stopy a modelového větru.",
+  "sd.manoeverNote": "Obrat = příď proti větru, přehoz = záď po větru. První číslo zůstalo na foilu. Odhadnuto z GPS stopy a modelového větru. Na mapě: plná tečka = zůstal na foilu, kroužek = dosedl.",
   "sd.upwind": "Stoupání proti větru",
   "sd.vmgBest": "nejlepší VMG {v} km/h",
   "sd.vmgAvg": "průměr {v} km/h proti větru",

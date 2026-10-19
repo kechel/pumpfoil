@@ -641,7 +641,7 @@ const nb: Record<string, string> = {
   "sd.tacks": "Stagvendinger",
   "sd.jibes": "Jibber",
   "sd.onFoil": "på foilen",
-  "sd.manoeverNote": "Stagvending = baugen gjennom vinden, jibb = hekken. Første tall holdt seg på foilen. Anslått fra GPS-sporet og modellvinden.",
+  "sd.manoeverNote": "Stagvending = baugen gjennom vinden, jibb = hekken. Første tall holdt seg på foilen. Anslått fra GPS-sporet og modellvinden. På kartet: fylt prikk = ble på foilen, ring = satte seg.",
   "sd.upwind": "Kryss",
   "sd.vmgBest": "beste VMG {v} km/t",
   "sd.vmgAvg": "snitt {v} km/t på kryss",
