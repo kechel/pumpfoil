@@ -1418,8 +1418,14 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     Row(Modifier.clickable { showFoilPicker = true },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text((if (sports.size > 1 && sessionSport != null) "${sessionSport!!.name} · " else "") +
-                            "${I18n.t("foil.prefix")}$foilLabel", style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                        // Zwei Zeilen, ohne „Foil:"-Vorsatz (Jan, 19.10.2026, wie Apple Watch): oben die
+                        // Sportart (nur bei Auswahl), darunter das Foil.
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            if (sports.size > 1 && sessionSport != null) {
+                                Text(sessionSport!!.name, style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                            }
+                            Text(foilLabel, style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                        }
                         if (alarm.enabled) Text("🔔", style = MaterialTheme.typography.caption2)
                     }
                 }
