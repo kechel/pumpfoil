@@ -201,7 +201,11 @@ def vorholen(session_id: int) -> None:
             s = db.get(models.Session, session_id)
             if s is None or s.deleted or sportprofil.profil(s.sport_class)["gruppe"] != "wind":
                 return
-            session_wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)
+            if session_wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at):
+                # Wenden/Halsen gleich mit cachen, damit der Monats-Verlauf (manoever-verlauf) auch
+                # Sessions kennt, die noch niemand geoeffnet hat.
+                from .api.sessions import manoever_gecacht
+                manoever_gecacht(db, s)
         finally:
             db.close()
     except Exception:  # noqa: BLE001 — best effort
