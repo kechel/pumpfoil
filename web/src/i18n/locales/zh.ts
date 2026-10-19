@@ -619,6 +619,7 @@ const zh: Record<string, string> = {
   "sd.windGusts": "阵风",
   "sd.windFrom": "来自",
   "sd.windNote": "此地点的天气模型（Open-Meteo），每小时 — 非水面实测。",
+  "sd.windCompare": "在相近风力（{a}–{b} km/h）下，该骑手在水翼上平均 {m} km/h（{n} 次）；本次 {e} km/h。",
   "spot.windTitle": "风窗",
   "spot.windText": "{n} 次风力项目，多在 {a}–{b} km/h",
   "spot.windNote": "此处 wing、kite 和 parawing 项目时的风向（模型风）。",

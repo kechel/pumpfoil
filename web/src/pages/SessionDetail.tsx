@@ -547,10 +547,11 @@ export default function SessionDetail() {
   const hauptGesamt = profil?.hauptzahl === "gesamt";
   // Wind am Spot (Stand-Buch wind_am_spot, 19.10.2026): nur fuer Wind-Sportarten abrufen.
   const [wind, setWind] = useState<Awaited<ReturnType<typeof api.sessionWind>>["wind"]>(null);
+  const [windVergleich, setWindVergleich] = useState<Awaited<ReturnType<typeof api.sessionWind>>["vergleich"]>(null);
   useEffect(() => {
-    setWind(null);
+    setWind(null); setWindVergleich(null);
     if (profil?.gruppe !== "wind" || !session?.id) return;
-    api.sessionWind(session.id).then((r) => setWind(r.wind)).catch(() => {});
+    api.sessionWind(session.id).then((r) => { setWind(r.wind); setWindVergleich(r.vergleich ?? null); }).catch(() => {});
   }, [session?.id, profil?.gruppe]);
   // Wenden/Halsen (nur Anzeige, wie Carves): Zaehler in der Wind-Box, Marken auf der Karte.
   const [manoever, setManoever] = useState<Awaited<ReturnType<typeof api.sessionManoever>> | null>(null);
@@ -2071,6 +2072,13 @@ export default function SessionDetail() {
           </div>
           <div className="mt-0.5 text-slate-400">{t("sd.windNote")}</div>
           {wind.vorhersage && <div className="mt-0.5 text-amber-700 dark:text-amber-300">{t("sd.windForecast")}</div>}
+          {/* Tempo je Windstaerke (19.10.2026): dieselbe Person bei aehnlichem Wind, nur aus dem Wind-Cache. */}
+          {windVergleich && (
+            <div className="mt-1 text-slate-300">
+              {t("sd.windCompare", { a: String(windVergleich.wind_von), b: String(windVergleich.wind_bis),
+                m: windVergleich.foil_kmh_mittel.toFixed(1), n: String(windVergleich.sessions), e: windVergleich.foil_kmh.toFixed(1) })}
+            </div>
+          )}
           {manoever?.zahlen && (
             <>
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-200">

@@ -1064,8 +1064,14 @@ data class WindMittel(@SerialName("kmh_min") val kmhMin: Double = 0.0, @SerialNa
 data class SessionWindInfo(val quelle: String = "", val stunden: List<WindStunde> = emptyList(), val mittel: WindMittel? = null,
                            val vorhersage: Boolean = false)   // teils noch Vorhersage (19.10.2026)
 
+// Tempo je Windstaerke (19.10.2026): derselbe Fahrer bei aehnlichem Wind
 @Serializable
-data class SessionWindAntwort(val wind: SessionWindInfo? = null)
+data class WindVergleich(@SerialName("wind_von") val windVon: Int = 0, @SerialName("wind_bis") val windBis: Int = 0,
+                         val sessions: Int = 0, @SerialName("foil_kmh_mittel") val foilKmhMittel: Double = 0.0,
+                         @SerialName("foil_kmh") val foilKmh: Double = 0.0)
+
+@Serializable
+data class SessionWindAntwort(val wind: SessionWindInfo? = null, val vergleich: WindVergleich? = null)
 
 @Serializable
 data class Manoever(val i: Int = 0, @SerialName("t_ms") val tMs: Long = 0, val typ: String = "", val durch: Boolean = false,

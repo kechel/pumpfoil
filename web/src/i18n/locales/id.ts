@@ -619,6 +619,7 @@ const id: Record<string, string> = {
   "sd.windGusts": "hembusan",
   "sd.windFrom": "dari",
   "sd.windNote": "Model cuaca untuk spot ini (Open-Meteo), per jam — tidak diukur di air.",
+  "sd.windCompare": "Pada angin serupa ({a}–{b} km/h) rider ini rata-rata {m} km/h di foil ({n} sesi); di sini {e} km/h.",
   "spot.windTitle": "Jendela angin",
   "spot.windText": "{n} sesi angin, umumnya pada {a}–{b} km/h",
   "spot.windNote": "Dari mana angin datang saat sesi wing, kite, dan parawing di spot ini (angin model).",

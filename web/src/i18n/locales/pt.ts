@@ -619,6 +619,7 @@ const pt: Record<string, string> = {
   "sd.windGusts": "rajadas",
   "sd.windFrom": "de",
   "sd.windNote": "Modelo meteorológico para este spot (Open-Meteo), por hora — não medido na água.",
+  "sd.windCompare": "Com vento parecido ({a}–{b} km/h) este rider anda em média a {m} km/h no foil ({n} sessões); aqui {e} km/h.",
   "spot.windTitle": "Janela de vento",
   "spot.windText": "{n} sessões com vento, geralmente a {a}–{b} km/h",
   "spot.windNote": "De onde vinha o vento nas sessões de wing, kite e parawing neste spot (vento do modelo).",

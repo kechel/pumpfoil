@@ -512,6 +512,7 @@ const gsw: Record<string, string> = {
   "sd.windGusts": "Böe",
   "sd.windFrom": "us",
   "sd.windNote": "Wättermodäll für dä Spot (Open-Meteo), stündlich — nöd am Wasser gmässe.",
+  "sd.windCompare": "Bi ähnlichem Wind ({a}–{b} km/h) fahrt dä Fahrer im Schnitt {m} km/h uf em Foil ({n} Sessions), da {e} km/h.",
   "spot.windTitle": "Windfänschter",
   "spot.windText": "{n} Wind-Sessions, meischtens bi {a}–{b} km/h",
   "spot.windNote": "Vo wo dä Wind bi de Wing-, Kite- und Parawing-Sessions a däm Spot cho isch (Modällwind).",

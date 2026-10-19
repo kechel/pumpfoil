@@ -1015,7 +1015,7 @@ export const api = {
     stunden: { t: string; kmh: number; richtung: number; boeen_kmh: number | null }[];
     mittel: { kmh_min: number; kmh_max: number; kmh_mittel: number; richtung: number; boeen_max_kmh: number | null } | null;
     vorhersage?: boolean;   // teils noch Vorhersage (19.10.2026)
-  } }>(`/api/sessions/${id}/wind`),
+  }; vergleich?: null | { wind_von: number; wind_bis: number; sessions: number; foil_kmh_mittel: number; foil_kmh: number } }>(`/api/sessions/${id}/wind`),
   // Wenden/Halsen (Wind-Sportarten, nur Anzeige; server/app/manoever.py), 19.10.2026.
   sessionManoever: (id: number) => req<{
     items: { i: number; t_ms: number; typ: "wende" | "halse"; durch: boolean; drehung: number }[];

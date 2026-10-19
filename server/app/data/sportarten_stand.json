@@ -423,9 +423,21 @@
           }
         },
         "tempo_je_wind": {
-          "status": "geplant",
-          "en": "Your speeds next to the wind strength, so sessions on light and strong days can be compared.",
-          "notiz": "Claude 19.10.: Tempo/Strecke je Windstaerke-Band ueber die eigenen Sessions (Verlauf), Grundlage wind_am_spot (Modell!). Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
+          "status": "live",
+          "en": "The wind box of a session compares your speed on the foil with your other sessions at similar wind.",
+          "notiz": "Claude 19.10.: Tempo/Strecke je Windstaerke-Band ueber die eigenen Sessions (Verlauf), Grundlage wind_am_spot (Modell!). Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam. 19.10. gebaut: /wind liefert vergleich (gleicher Fahrer, Wind-Gruppe, Modellwind +-3 km/h, ab 3 Sessions, Foil-Tempo = Foil-Strecke/Foil-Zeit), nur aus dem Wind-Cache.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         },
         "downwind_strecke": {
           "status": "nein",
@@ -1105,6 +1117,22 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "tempo_je_wind",
+      "was": "Tempo je Windstaerke im Wind-Kasten: eigenes Foil-Tempo gegen die eigenen Sessions bei aehnlichem Wind (Web, Apps im naechsten Release).",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [

@@ -634,6 +634,7 @@ const nb: Record<string, string> = {
   "sd.windGusts": "kast",
   "sd.windFrom": "fra",
   "sd.windNote": "Værmodell for dette spotet (Open-Meteo), per time — ikke målt på vannet.",
+  "sd.windCompare": "Ved lignende vind ({a}–{b} km/t) kjører denne rideren i snitt {m} km/t på foilen ({n} økter); her {e} km/t.",
   "spot.windTitle": "Vindvindu",
   "spot.windText": "{n} vindøkter, oftest ved {a}–{b} km/t",
   "spot.windNote": "Hvor vinden kom fra under wing-, kite- og parawing-økter på denne spoten (modellvind).",

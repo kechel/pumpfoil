@@ -626,6 +626,7 @@ const fi: Record<string, string> = {
   "sd.windGusts": "puuskat",
   "sd.windFrom": "suunnasta",
   "sd.windNote": "Sääennuste tälle spotille (Open-Meteo), tunneittain — ei mitattu vedeltä.",
+  "sd.windCompare": "Samankaltaisessa tuulessa ({a}–{b} km/h) tämä kuljettaja ajaa foililla keskimäärin {m} km/h ({n} sessiota), tässä {e} km/h.",
   "spot.windTitle": "Tuuli-ikkuna",
   "spot.windText": "{n} tuulisessiota, yleensä {a}–{b} km/h",
   "spot.windNote": "Mistä tuuli tuli wing-, kite- ja parawing-sessioissa tällä spotilla (mallituuli).",

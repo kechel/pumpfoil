@@ -1090,7 +1090,9 @@ struct WindMittel: Codable {
     let boeen_max_kmh: Double?
 }
 struct SessionWindInfo: Codable { let quelle: String?; let mittel: WindMittel?; let vorhersage: Bool? }   // vorhersage: teils noch Vorhersage (19.10.2026)
-struct SessionWindAntwort: Codable { let wind: SessionWindInfo? }
+/// Tempo je Windstaerke (19.10.2026): derselbe Fahrer bei aehnlichem Wind
+struct WindVergleich: Codable { let wind_von: Int; let wind_bis: Int; let sessions: Int; let foil_kmh_mittel: Double; let foil_kmh: Double }
+struct SessionWindAntwort: Codable { let wind: SessionWindInfo?; let vergleich: WindVergleich? }
 struct Manoever: Codable { let i: Int; let typ: String; let durch: Bool }
 struct ManoeverZahl: Codable { let durch: Int; let ab: Int }
 struct ManoeverZahlen: Codable { let wende: ManoeverZahl; let halse: ManoeverZahl }

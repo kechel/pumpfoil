@@ -683,6 +683,7 @@ const de: Record<string, string> = {
   "sd.windGusts": "Böen",
   "sd.windFrom": "aus",
   "sd.windNote": "Wettermodell für diesen Spot (Open-Meteo), stündlich — nicht am Wasser gemessen.",
+  "sd.windCompare": "Bei ähnlichem Wind ({a}–{b} km/h) fährt dieser Fahrer im Schnitt {m} km/h auf dem Foil ({n} Sessions), hier {e} km/h.",
   "spot.windTitle": "Windfenster",
   "spot.windText": "{n} Wind-Sessions, meist bei {a}–{b} km/h",
   "spot.windNote": "Woher der Wind bei den Wing-, Kite- und Parawing-Sessions an diesem Spot kam (Modellwind).",

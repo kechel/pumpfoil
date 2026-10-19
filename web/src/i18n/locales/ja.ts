@@ -619,6 +619,7 @@ const ja: Record<string, string> = {
   "sd.windGusts": "突風",
   "sd.windFrom": "風向",
   "sd.windNote": "このスポットの気象モデル（Open-Meteo）、1時間ごと — 水上での実測ではありません。",
+  "sd.windCompare": "同程度の風（{a}–{b} km/h）では、このライダーのフォイル平均は {m} km/h（{n} セッション）。今回は {e} km/h。",
   "spot.windTitle": "風の傾向",
   "spot.windText": "風のセッション{n}回、主に {a}–{b} km/h",
   "spot.windNote": "このスポットでのウイング・カイト・パラウイングのセッション中の風向き（モデル風）。",
