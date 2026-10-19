@@ -23,7 +23,10 @@ def test_buch_vollstaendig_und_ohne_notizen(client):
     d = r.json()
     assert "notiz" not in r.text and "verlauf" not in d and "stufen" not in d
     pf = next(s for s in d["sportarten"] if s["id"] == "pumpfoil")
-    assert len(pf["merkmale"]) == len(ids)
+    # Status „nein" wird nicht ausgeliefert (Jan 19.10.: nur auflisten, was Sinn macht)
+    assert all(m["status"] != "nein" for sp in d["sportarten"] for m in sp["merkmale"])
+    assert all(m["status"] != "nein" for m in d["allgemein"])
+    assert 0 < len(pf["merkmale"]) <= len(ids)
     assert next(m for m in pf["merkmale"] if m["id"] == "erkennung")["status"] == "live"
     wing = next(s for s in d["sportarten"] if s["id"] == "wingfoil")
     assert next(m for m in wing["merkmale"] if m["id"] == "karte")["status"] == "live"
