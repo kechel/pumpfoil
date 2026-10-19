@@ -86,6 +86,9 @@ struct LinkedAccountsView: View {
                         }
                         if st.linked {
                             SportAuswahl(pfad: p.pfad, lang: lang, neuLaden: fertigZaehler)
+                            if p.id == "suunto" {
+                                SuuntoZuordnung(pfad: p.pfad, lang: lang, neuLaden: fertigZaehler)
+                            }
                         }
                     }
                 }
@@ -332,6 +335,63 @@ private struct SportAuswahl: View {
     }
 }
 
+
+/// Nur Suunto (19.10.2026, wie im Web): Modus -> Sportart. Die Uhr meldet ihren Sportmodus, der
+/// Cloud-Import kennt ihn ohnehin; hier sagt der Nutzer, was er in diesem Modus faehrt
+/// (server: suunto.sport_fuer_modus, settings.suunto_sport_je_modus).
+///
+/// Bewusst NICHT in SportAuswahl: dort liegen alle Schalter in EINER List-Zeile, ein Menue dazu
+/// teilte sich die Tippflaeche mit ihnen. Hier bekommt jeder Modus eine eigene Zeile.
+private struct SuuntoZuordnung: View {
+    let pfad: String
+    let lang: String
+    let neuLaden: Int
+    @State private var modi: [Api.ImportSport] = []
+    @State private var zuordnung: [String: String] = [:]
+    @State private var geladen = false
+
+    var body: some View {
+        Group {
+            // Ladehinweis wie in SportAuswahl: ohne Ausgabe liefe der `.task` nie.
+            if !geladen {
+                Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary)
+            } else {
+                ForEach(modi, id: \.sport_key) { m in
+                    Menu {
+                        Button(Loc.t("settings.sports.countsDefault", lang)) { zuordnen(m.sport_key, nil) }
+                        ForEach(SPORTS.filter { $0 != "other" }, id: \.self) { k in
+                            Button(Loc.t("cls.sport.\(k)", lang)) { zuordnen(m.sport_key, k) }
+                        }
+                    } label: {
+                        HStack {
+                            Text("\(m.label) · \(Loc.t("settings.sports.countsAs", lang))")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(zuordnung[m.sport_key].map { Loc.t("cls.sport.\($0)", lang) }
+                                 ?? Loc.t("settings.sports.countsDefault", lang))
+                        }
+                        .font(.callout)
+                    }
+                }
+            }
+        }
+        .task(id: neuLaden) {
+            let alle = (try? await Api.importSports(pfad)) ?? []
+            modi = alle.filter { $0.importieren }
+            if let s = try? await Api.settings() {
+                zuordnung = (s["suunto_sport_je_modus"] as? [String: String]) ?? [:]
+            }
+            geladen = true
+        }
+    }
+
+    private func zuordnen(_ key: String, _ sport: String?) {
+        var neu = zuordnung
+        if let sport { neu[key] = sport } else { neu.removeValue(forKey: key) }
+        zuordnung = neu
+        Task { try? await Api.saveSettings(["suunto_sport_je_modus": neu]) }
+    }
+}
 
 /// KI-Zugang (MCP) — Adresse zum Eintragen und wer gerade Zugriff hat (PWA LinkedAccounts.tsx
 /// McpCard). Die Liste ist der wichtigere Teil: man kann nur zumachen, was man sieht. Ein schon

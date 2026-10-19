@@ -50,6 +50,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.LaunchedEffect
 
@@ -364,8 +372,28 @@ private fun SportAuswahl(pfad: String, neuLaden: Int) {
     val scope = rememberCoroutineScope()
     var sports by remember(pfad) { mutableStateOf<List<Api.ImportSport>?>(null) }
 
+    // Nur Suunto (19.10.2026, wie im Web): Modus -> Sportart. Die Uhr meldet ihren Sportmodus, der
+    // Cloud-Import kennt ihn ohnehin; hier sagt der Nutzer, was er in diesem Modus faehrt.
+    var zuordnung by remember(pfad) { mutableStateOf<Map<String, String>>(emptyMap()) }
+
     LaunchedEffect(pfad, neuLaden) {
         sports = try { Api.importSports(pfad) } catch (_: Exception) { emptyList() }
+        if (pfad == "suunto") {
+            zuordnung = try {
+                Api.settings()["suunto_sport_je_modus"]?.let { it as? JsonObject }
+                    ?.mapNotNull { (k, v) -> v.jsonPrimitive.contentOrNull?.let { k to it } }?.toMap() ?: emptyMap()
+            } catch (_: Exception) { emptyMap() }
+        }
+    }
+
+    fun zuordnen(key: String, sport: String?) {
+        val neu = zuordnung.toMutableMap()
+        if (sport == null) neu.remove(key) else neu[key] = sport
+        zuordnung = neu
+        scope.launch {
+            try { Api.saveSettings(buildJsonObject { put("suunto_sport_je_modus", buildJsonObject { neu.forEach { (k, v) -> put(k, v) } }) }) }
+            catch (_: Exception) {}
+        }
     }
 
     val liste = sports ?: return
@@ -401,6 +429,28 @@ private fun SportAuswahl(pfad: String, neuLaden: Int) {
                             }
                         },
                     )
+                }
+                if (pfad == "suunto" && sp.importieren) {
+                    var offen by remember(sp.sport_key) { mutableStateOf(false) }
+                    val gewaehlt = zuordnung[sp.sport_key]
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 6.dp)) {
+                        Text(I18n.t("settings.sports.countsAs"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Box(Modifier.padding(start = 8.dp)) {
+                            OutlinedButton(onClick = { offen = true }) {
+                                Text(if (gewaehlt != null) I18n.t("cls.sport.$gewaehlt") else I18n.t("settings.sports.countsDefault"), maxLines = 1)
+                                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+                            }
+                            DropdownMenu(expanded = offen, onDismissRequest = { offen = false }) {
+                                DropdownMenuItem(text = { Text(I18n.t("settings.sports.countsDefault")) },
+                                    onClick = { offen = false; zuordnen(sp.sport_key, null) })
+                                SPORTS.filter { it != "other" }.forEach { k ->
+                                    DropdownMenuItem(text = { Text(I18n.t("cls.sport.$k")) },
+                                        onClick = { offen = false; zuordnen(sp.sport_key, k) })
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
