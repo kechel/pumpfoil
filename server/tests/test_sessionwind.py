@@ -128,3 +128,40 @@ def test_tag_teilweise_gespeichert_wird_ergaenzt(monkeypatch, tmp_path):
     b = sessionwind.session_wind(2, 51.7, 3.8, spaet, spaet)          # 15/16 Uhr fehlen -> ergaenzen
     assert len(aufrufe) == 1 and len(b["stunden"]) == 2
     assert len(_json.loads(pfad.read_text())) == 24                     # Datei jetzt vollstaendig
+
+
+def test_vorhersage_als_erster_wert_und_rueckfall(monkeypatch, tmp_path):
+    """Kommende Stunden kommen als Vorhersage mit; spaeter ersetzt der echte Wert sie. Ist Open-Meteo
+    weg, bleibt die Vorhersage stehen (markiert)."""
+    from types import SimpleNamespace
+    from app import sessionwind
+    monkeypatch.setattr(sessionwind, "get_settings", lambda: SimpleNamespace(data_dir=tmp_path))
+    jetzt = {"t": datetime(2026, 10, 18, 14, 30, tzinfo=timezone.utc)}
+    class Uhr(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return jetzt["t"]
+    monkeypatch.setattr(sessionwind, "datetime", Uhr)
+    zustand = {"weg": False, "kmh": 12.0, "n": 0}
+    def fake_get(url, params=None, **k):
+        zustand["n"] += 1
+        if zustand["weg"]:
+            raise RuntimeError("nicht erreichbar")
+        zeiten = [f"{params['start_date']}T{h:02d}:00" for h in range(24)]
+        return SimpleNamespace(status_code=200, json=lambda: {"hourly": {
+            "time": zeiten, "wind_speed_10m": [zustand["kmh"]] * 24, "wind_direction_10m": [70] * 24,
+            "wind_gusts_10m": [25.0] * 24}})
+    monkeypatch.setattr(sessionwind.httpx, "get", fake_get)
+    frueh = datetime(2026, 10, 18, 13, 10, tzinfo=timezone.utc)
+    a = sessionwind.session_wind(1, 51.7, 3.8, frueh, frueh)
+    assert "vorhersage" not in a and zustand["n"] == 1
+    spaeter = datetime(2026, 10, 18, 16, 10, tzinfo=timezone.utc)   # liegt noch in der Zukunft
+    b = sessionwind.session_wind(2, 51.7, 3.8, spaeter, spaeter)
+    assert b["vorhersage"] is True and zustand["n"] == 1             # erste Analyse aus der Vorhersage
+    jetzt["t"] = datetime(2026, 10, 18, 18, 30, tzinfo=timezone.utc)
+    zustand["weg"] = True
+    c = sessionwind.session_wind(2, 51.7, 3.8, spaeter, spaeter)
+    assert c["vorhersage"] is True and zustand["n"] == 2             # versucht, Rueckfall Vorhersage
+    zustand["weg"] = False; zustand["kmh"] = 15.0
+    d = sessionwind.session_wind(2, 51.7, 3.8, spaeter, spaeter)
+    assert "vorhersage" not in d and d["stunden"][0]["kmh"] == 15.0  # echter Wert ersetzt Vorhersage

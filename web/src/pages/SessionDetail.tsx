@@ -2068,6 +2068,7 @@ export default function SessionDetail() {
             </span>
           </div>
           <div className="mt-0.5 text-slate-400">{t("sd.windNote")}</div>
+          {wind.vorhersage && <div className="mt-0.5 text-amber-700 dark:text-amber-300">{t("sd.windForecast")}</div>}
           {manoever?.zahlen && (
             <>
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-200">

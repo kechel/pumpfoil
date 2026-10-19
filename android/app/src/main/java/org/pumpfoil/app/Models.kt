@@ -1061,7 +1061,8 @@ data class WindMittel(@SerialName("kmh_min") val kmhMin: Double = 0.0, @SerialNa
                       @SerialName("boeen_max_kmh") val boeenMaxKmh: Double? = null)
 
 @Serializable
-data class SessionWindInfo(val quelle: String = "", val stunden: List<WindStunde> = emptyList(), val mittel: WindMittel? = null)
+data class SessionWindInfo(val quelle: String = "", val stunden: List<WindStunde> = emptyList(), val mittel: WindMittel? = null,
+                           val vorhersage: Boolean = false)   // teils noch Vorhersage (19.10.2026)
 
 @Serializable
 data class SessionWindAntwort(val wind: SessionWindInfo? = null)

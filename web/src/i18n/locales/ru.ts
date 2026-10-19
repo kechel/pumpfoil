@@ -619,6 +619,7 @@ const ru: Record<string, string> = {
   "sd.windGusts": "порывы",
   "sd.windFrom": "с",
   "sd.windNote": "Погодная модель для этого спота (Open-Meteo), по часам — не измерено на воде.",
+  "sd.windForecast": "Частично это ещё прогноз, позже его заменят фактические данные.",
   "sd.tacks": "Повороты оверштаг",
   "sd.jibes": "Повороты фордевинд",
   "sd.onFoil": "на фойле",

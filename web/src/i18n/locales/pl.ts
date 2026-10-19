@@ -640,6 +640,7 @@ const pl: Record<string, string> = {
   "sd.windGusts": "porywy",
   "sd.windFrom": "z",
   "sd.windNote": "Model pogody dla tego spotu (Open-Meteo), co godzinę — nie mierzony na wodzie.",
+  "sd.windForecast": "Częściowo jeszcze prognoza, później zastąpiona przez obserwowaną pogodę.",
   "sd.tacks": "Zwroty przez sztag",
   "sd.jibes": "Zwroty przez rufę",
   "sd.onFoil": "na foilu",

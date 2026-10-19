@@ -626,6 +626,7 @@ const ptPT: Record<string, string> = {
   "sd.windGusts": "rajadas",
   "sd.windFrom": "de",
   "sd.windNote": "Modelo meteorológico para este spot (Open-Meteo), por hora — não medido na água.",
+  "sd.windForecast": "Em parte ainda é previsão; depois é substituída pelo tempo observado.",
   "sd.tacks": "Viragens",
   "sd.jibes": "Jibes",
   "sd.onFoil": "no foil",

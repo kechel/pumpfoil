@@ -643,6 +643,7 @@ const nl: Record<string, string> = {
   "sd.windGusts": "vlagen",
   "sd.windFrom": "uit",
   "sd.windNote": "Weermodel voor deze spot (Open-Meteo), per uur — niet op het water gemeten.",
+  "sd.windForecast": "Deels nog een voorspelling, wordt later vervangen door het waargenomen weer.",
   "sd.tacks": "Overstagen",
   "sd.jibes": "Gijpen",
   "sd.onFoil": "op de foil",

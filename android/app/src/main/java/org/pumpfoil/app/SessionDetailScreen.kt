@@ -1149,7 +1149,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it) }
-            windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe) }
+            windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe, windInfo?.vorhersage == true) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
             val excluded = s.excludedRanges.orEmpty()
@@ -2110,7 +2110,7 @@ private fun FahrtenKarte(fahrten: List<Fahrt>) {
 
 // Wind am Spot (Modellwert, keine Messung am Wasser) + Wenden/Halsen — wie die Wind-Box im Web.
 @Composable
-private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null) {
+private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null, vorhersage: Boolean = false) {
     Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2124,6 +2124,7 @@ private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null) {
                 append(windPfeil(w.richtung))
             })
             Text(I18n.t("sd.windNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (vorhersage) Text(I18n.t("sd.windForecast"), style = MaterialTheme.typography.bodySmall, color = Color(0xFFF59E0B))
             if (z != null) {
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {

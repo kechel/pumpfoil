@@ -512,6 +512,7 @@ const gsw: Record<string, string> = {
   "sd.windGusts": "Böe",
   "sd.windFrom": "us",
   "sd.windNote": "Wättermodäll für dä Spot (Open-Meteo), stündlich — nöd am Wasser gmässe.",
+  "sd.windForecast": "Teils no Vorhärsag, wird spöter dur di gmässni Wätterlag ersetzt.",
   "sd.tacks": "Wände",
   "sd.jibes": "Halse",
   "sd.onFoil": "uf em Foil",

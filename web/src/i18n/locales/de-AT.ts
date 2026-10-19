@@ -503,6 +503,7 @@ const deAT: Record<string, string> = {
   "sd.windGusts": "Böen",
   "sd.windFrom": "aus",
   "sd.windNote": "Wettermodell für den Spot (Open-Meteo), stündlich — net am Wasser g'messen.",
+  "sd.windForecast": "Teils noch Vorhersage, wird später durch die gemessene Wetterlage ersetzt.",
   "sd.tacks": "Wenden",
   "sd.jibes": "Halsen",
   "sd.onFoil": "am Foil",

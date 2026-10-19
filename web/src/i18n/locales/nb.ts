@@ -634,6 +634,7 @@ const nb: Record<string, string> = {
   "sd.windGusts": "kast",
   "sd.windFrom": "fra",
   "sd.windNote": "Værmodell for dette spotet (Open-Meteo), per time — ikke målt på vannet.",
+  "sd.windForecast": "Delvis fortsatt prognose, erstattes senere av observert vær.",
   "sd.tacks": "Stagvendinger",
   "sd.jibes": "Jibber",
   "sd.onFoil": "på foilen",

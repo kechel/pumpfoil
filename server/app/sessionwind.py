@@ -17,11 +17,14 @@ Speicher je SPOT UND TAG (seit 19.10.2026, Jan: „muss ja nicht doppelt das gle
 werden"): data/wind/tage/<lat>_<lon>_<JJJJ-MM-TT>.json mit allen 24 Stunden des UTC-Tages, die
 Koordinate auf 2 Nachkommastellen (dieselbe Rundung wie beim Abruf, ~1 km). Zwei Sessions am selben
 Spot und Tag teilen sich damit einen Abruf, und spaetere Auswertungen (Windfenster je Spot, Tempo
-je Windstaerke) finden den Wind vor. Gespeichert wird sofort, was schon da ist — aber nur Stunden,
-die VORBEI sind (fuer den laufenden Tag liefert die Forecast-API auch kommende Stunden, das waere
-Vorhersage). Braucht eine Session Stunden, die in der Datei noch fehlen, wird der Tag neu geholt und
-ergaenzt (Jan, 19.10.2026: „schauen ob eine session eine uhrzeit danach braucht und dann ggf.
-aktualisieren, und dafuer immer direkt speichern was wir schon haben").
+je Windstaerke) finden den Wind vor. Gespeichert wird sofort, was da ist (Jan, 19.10.2026: „schauen
+ob eine session eine uhrzeit danach braucht und dann ggf. aktualisieren, und dafuer immer direkt
+speichern was wir schon haben"). Kommende Stunden des laufenden Tages liefert die Forecast-API als
+Vorhersage — die werden mit `vorhersage: true` mitgespeichert (Jan: „waere dann die vorhersage nicht
+auch schon eine erste Analyse wert?"). Braucht eine Session eine vergangene Stunde, die fehlt ODER
+nur als Vorhersage vorliegt, wird der Tag neu geholt und gemerged; echte Werte ersetzen die
+Vorhersage. Ist Open-Meteo dann nicht erreichbar, bleibt die Vorhersage als Rueckfall stehen, und
+das Ergebnis traegt `vorhersage: true` (die Anzeige sagt es).
 Die alten Dateien je Session (data/wind/<id>.json, bis 19.10.) werden weiter zuerst gelesen.
 """
 from __future__ import annotations
@@ -66,7 +69,7 @@ def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime) -> dict:
         except (OSError, ValueError):
             gespeichert = []
         tage[t] = gespeichert
-        da = {s_["t"] for s_ in gespeichert}
+        da = {s_["t"] for s_ in gespeichert if not s_.get("vorhersage")}
         # gebrauchte Stunden dieses Tages, soweit sie schon vorbei sind
         h = max(von, datetime(t.year, t.month, t.day, tzinfo=timezone.utc))
         ende = min(bis, datetime(t.year, t.month, t.day, 23, tzinfo=timezone.utc), letzte_volle)
@@ -85,7 +88,10 @@ def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime) -> dict:
         "start_date": min(fehlt).isoformat(), "end_date": max(fehlt).isoformat(),
         "wind_speed_unit": "kmh", "timezone": "UTC",
     }
-    r = httpx.get(ARCHIVE if alt else FORECAST, params=params, headers=_UA, timeout=8.0)
+    try:
+        r = httpx.get(ARCHIVE if alt else FORECAST, params=params, headers=_UA, timeout=8.0)
+    except Exception:  # noqa: BLE001 — nicht erreichbar: mit dem weiter, was gespeichert ist
+        return tage
     if r.status_code != 200:
         return tage
     h = (r.json() or {}).get("hourly") or {}
@@ -95,16 +101,20 @@ def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime) -> dict:
         if v is None or d is None:
             continue
         ts = datetime.fromisoformat(ts_s).replace(tzinfo=timezone.utc)
-        if ts > letzte_volle:      # kommende Stunden = Vorhersage, nicht speichern und nicht zeigen
-            continue
-        neu.setdefault(ts.date(), {})[ts.isoformat()] = {"t": ts.isoformat(), "kmh": round(float(v), 1),
-                                                         "richtung": round(float(d)),
-                                                         "boeen_kmh": round(float(g), 1) if g is not None else None}
+        e = {"t": ts.isoformat(), "kmh": round(float(v), 1), "richtung": round(float(d)),
+             "boeen_kmh": round(float(g), 1) if g is not None else None}
+        if ts > letzte_volle:      # kommende Stunde: Vorhersage, als solche markiert
+            e["vorhersage"] = True
+        neu.setdefault(ts.date(), {})[ts.isoformat()] = e
     for tag in set(fehlt):
         if tag not in neu:
             continue
         zusammen = {s_["t"]: s_ for s_ in tage.get(tag, [])}
-        zusammen.update(neu[tag])
+        for k, e in neu[tag].items():
+            # Vorhersage ueberschreibt nie einen echten Wert
+            if e.get("vorhersage") and k in zusammen and not zusammen[k].get("vorhersage"):
+                continue
+            zusammen[k] = e
         tage[tag] = [zusammen[k] for k in sorted(zusammen)]
         try:
             _tag_pfad(lat, lon, tag).write_text(json.dumps(tage[tag]))
@@ -162,7 +172,10 @@ def session_wind(session_id: int, lat: float | None, lon: float | None,
         return None
     if not stunden:
         return None
-    return {"quelle": "Open-Meteo", "stunden": stunden, "mittel": _mittel(stunden)}
+    erg = {"quelle": "Open-Meteo", "stunden": stunden, "mittel": _mittel(stunden)}
+    if any(s_.get("vorhersage") for s_ in stunden):
+        erg["vorhersage"] = True
+    return erg
 
 
 def vorholen(session_id: int) -> None:
