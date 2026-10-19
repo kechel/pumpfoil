@@ -1519,6 +1519,8 @@ const id: Record<string, string> = {
   "settings.sports.hint": "Hanya mode yang benar-benar pernah dikirim akunmu. Mode baru diimpor otomatis sampai kamu hapus centangnya. Berlaku untuk impor berikutnya.",
   "settings.sports.none": "Belum ada. Begitu ada aktivitas masuk, modenya muncul di sini.",
   "settings.sports.saved": "Tersimpan",
+  "settings.sports.countsAs": "dihitung sebagai",
+  "settings.sports.countsDefault": "olahraga bawaan",
   "settings.coros.help2": "Di jam, rekam aktivitas luar ruang dengan GPS. Menurut pengukuran kami, „Flatwater“ memberi data terbaik (satu titik per detik, kecepatan dan detak jantung lengkap). Dalam ruang/tanpa GPS dilewati.",
   "settings.coros.help3": "Analisis pump terbatas: ekspor COROS tidak punya aliran akselerometer mentah — GPS + detak jantung dianalisis.",
   "settings.coros.help4": "Putuskan kapan saja (mencabut akses dan menghentikan impor).",

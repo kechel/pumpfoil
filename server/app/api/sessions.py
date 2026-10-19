@@ -603,7 +603,7 @@ _WATER_SPORTS = {
 
 
 def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str, uuid_prefix: str,
-                          filename: str | None = None):
+                          filename: str | None = None, sport_override: str | None = None):
     """Geparsten Track (aus FIT/TCX/GPX) als Session anlegen: Dup-Check (Hash ODER Startzeit,
     pro Nutzer, idempotent) -> Session + Rohdaten -> analysieren. Wiederverwendet von /upload-fit
     UND vom Polar-Import. Rückgabe: Session (neu oder bestehend) oder None (bewusst gelöscht)."""
@@ -654,6 +654,11 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
     # Session, weist auf der Startseite darauf hin und haelt sie so lange aus JEDER Auswertung
     # heraus (Jan, 05.09.: „needs classification find ich gut wenns nicht eindeutig ist").
     _unklar = _datei_sport in UNKLAR_WASSER and _dsc == "pumpfoil"
+    # Vom Nutzer zugeordneter Modus (Suunto, 19.10.2026: settings.suunto_sport_je_modus) schlaegt
+    # beides — er hat fuer genau diesen Modus gesagt, was er dort faehrt.
+    _quelle = None
+    if sport_override in SPORTS:
+        _dsc, _unklar, _quelle = sport_override, False, "owner"
     s = models.Session(
         session_uuid=session_uuid,
         user_id=user.id,
@@ -661,6 +666,7 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         sport=parsed["sport"],
         sport_class=(_dsc if _dsc in SPORTS else "pumpfoil"),
         needs_classification=_unklar,
+        **({"sport_source": _quelle} if _quelle else {}),
         started_at=started_at,
         ended_at=started_at + _ms(last_ms),
         gps_hz=1,

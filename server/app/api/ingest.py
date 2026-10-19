@@ -138,6 +138,18 @@ def start_session(
         from .sessions import SPORTS as _SPORTS
         if body.sport_class and body.sport_class in _SPORTS:
             _sport_class, _sport_source = body.sport_class, "owner"
+        elif body.suunto_aktivitaet:
+            # Suunto (19.10.2026): Sportmodus der Uhr -> Cloud-Nummer -> Zuordnung des Nutzers. Den
+            # Modus auch in die Modusliste der Kontoeinstellungen aufnehmen, damit er ihn dort
+            # zuordnen kann, selbst wenn er nie ueber die Cloud importiert hat.
+            from .suunto import AKTIVITAETEN, UHR_ZU_CLOUD, sport_fuer_modus
+            from .. import importsports
+            _cloud = UHR_ZU_CLOUD.get(int(body.suunto_aktivitaet))
+            if _uu is not None and _cloud is not None:
+                importsports.merken(db, _uu.id, "suunto", str(_cloud), label=AKTIVITAETEN.get(_cloud), hat_gps=True)
+                _zu = sport_fuer_modus(_uu, _cloud)
+                if _zu:
+                    _sport_class, _sport_source = _zu, "owner"
         # Tanz-Variante der Garmin-App (watch-dance/, Jan 16.10.2026): eine andere Sportart, die der
         # Nutzer mit der Wahl der App selbst getroffen hat -> „other" wie von Hand zugeordnet. Damit
         # steht die Session in der normalen Liste statt bei den Aussortierten und erzeugt keinen Spot.

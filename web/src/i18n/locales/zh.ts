@@ -1519,6 +1519,8 @@ const zh: Record<string, string> = {
   "settings.sports.hint": "这里只列出你的账户实际提供过的模式。新出现的模式会自动导入，直到你取消勾选。适用于今后的导入。",
   "settings.sports.none": "暂无。活动传入后，其模式会显示在这里。",
   "settings.sports.saved": "已保存",
+  "settings.sports.countsAs": "计为",
+  "settings.sports.countsDefault": "默认运动",
   "settings.coros.help2": "在手表上记录一次带 GPS 的户外活动。根据我们的实测，“Flatwater”的数据最好（每秒一个点，速度和心率完整）。室内/无 GPS 的会被跳过。",
   "settings.coros.help3": "泵动分析受限：COROS 导出没有原始加速度流 —— 会分析 GPS + 心率。",
   "settings.coros.help4": "可随时断开连接（撤销访问权限并停止导入）。",

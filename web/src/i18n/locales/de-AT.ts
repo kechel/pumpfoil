@@ -1124,6 +1124,8 @@ const deAT: Record<string, string> = {
   "settings.sports.hint": "Do stengan nur de Modi, de dei Konto bisher wirklich glifert hot — kummt a neuer dazua, wird er automatisch importiert, bis du eahm abwählst. Güt für kinftige Importe.",
   "settings.sports.none": "Nu kane. Sobald a Aktivität kummen is, erscheint ia Modus do.",
   "settings.sports.saved": "Gspeichert",
+  "settings.sports.countsAs": "zählt als",
+  "settings.sports.countsDefault": "Standard-Sportart",
   "settings.coros.help2": "Auf da Uhr a Outdoor-Aktivität mit GPS aufnehmen. Nach unsane Messungen liefat „Flatwater“ de bestn Datn (a Punkt pro Sekundn, Gschwindigkeit und Puls komplett). Indoor/ohne GPS wird übersprungen.",
   "settings.coros.help3": "Pump-Analyse is begrenzt: Da COROS-Export liefert kein Roh-Accel-Stream — ausgwertet werdn GPS + Puls.",
   "settings.coros.help4": "Trennen jederzeit möglich (entzieht'n Zugriff und stoppt'n Import).",

@@ -5,6 +5,7 @@ import { Card, Button } from "../components/ui";
 import { ChevronIcon, CheckIcon, LinkIcon } from "../components/Icons";
 import { PlatformSubline } from "../components/SupportedPlatforms";
 import { useI18n } from "../i18n";
+import { SPORTS } from "../lib/sportClass";
 
 /**
  * „0 importiert, 1 uebersprungen" ist eine Sackgasse — genau so kam es als Rueckmeldung
@@ -294,9 +295,24 @@ function SportAuswahl({ provider, aktualisieren = 0 }:
   const { t } = useI18n();
   const [sports, setSports] = useState<ImportSport[] | null>(null);
   const [msg, setMsg] = useState("");
+  // Nur Suunto (19.10.2026): Modus -> Sportart. Die Uhr meldet ihren Sportmodus, der Cloud-Import
+  // kennt ihn ohnehin; hier sagt der Nutzer, was er in diesem Modus faehrt (server: suunto.sport_fuer_modus).
+  const [zuordnung, setZuordnung] = useState<Record<string, string>>({});
   useEffect(() => {
     api.importSports(provider).then((r) => setSports(r.sports)).catch(() => setSports([]));
+    if (provider === "suunto") {
+      api.getSettings().then((s) => setZuordnung((s.suunto_sport_je_modus as Record<string, string>) ?? {})).catch(() => {});
+    }
   }, [provider, aktualisieren]);
+
+  function zuordnen(key: string, sport: string) {
+    const neu = { ...zuordnung };
+    if (sport) neu[key] = sport; else delete neu[key];
+    setZuordnung(neu);
+    api.saveSettings({ suunto_sport_je_modus: neu })
+      .then(() => { setMsg(t("settings.sports.saved")); window.setTimeout(() => setMsg(""), 2000); })
+      .catch((e) => setMsg(String(e)));
+  }
 
   async function umschalten(key: string, an: boolean) {
     // Erst anzeigen, dann speichern: ein Häkchen soll sofort reagieren.
@@ -332,6 +348,16 @@ function SportAuswahl({ provider, aktualisieren = 0 }:
                 <span>{sp.label}</span>
                 <span className="text-slate-500">({sp.gesehen}&times;)</span>
               </label>
+              {provider === "suunto" && sp.importieren && (
+                <label className="ml-6 mt-0.5 flex items-center gap-2 text-sm text-slate-400">
+                  {t("settings.sports.countsAs")}
+                  <select value={zuordnung[sp.sport_key] ?? ""} onChange={(e) => zuordnen(sp.sport_key, e.target.value)}
+                    className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100">
+                    <option value="">{t("settings.sports.countsDefault")}</option>
+                    {SPORTS.filter((k) => k !== "other").map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+                  </select>
+                </label>
+              )}
             </li>
           ))}
         </ul>

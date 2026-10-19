@@ -1646,6 +1646,8 @@ const cs: Record<string, string> = {
   "settings.sports.hint": "Jen režimy, které tvůj účet skutečně dodal. Nový se importuje automaticky, dokud ho neodškrtneš. Platí pro budoucí importy.",
   "settings.sports.none": "Zatím žádné. Až přijde aktivita, její režim se zobrazí tady.",
   "settings.sports.saved": "Uloženo",
+  "settings.sports.countsAs": "počítá se jako",
+  "settings.sports.countsDefault": "výchozí sport",
   "settings.coros.help2": "Na hodinkách zaznamenej outdoorovou aktivitu s GPS. Podle našich měření dává „Flatwater“ nejlepší data (jeden bod za sekundu, kompletní rychlost i puls). Indoor/bez GPS se přeskočí.",
   "settings.coros.help3": "Analýza pumpnutí je omezená: COROS export neposkytuje surový accelerometer stream — vyhodnocují se GPS + tep.",
   "settings.coros.help4": "Odpojení je kdykoli možné (odebere přístup a zastaví import).",

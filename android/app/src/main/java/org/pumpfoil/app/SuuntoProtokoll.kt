@@ -282,6 +282,19 @@ class SuuntoAblage(val wurzel: File, private val jetzt: () -> Long = { System.cu
         if (typ == 6) { vorab.paket(p); pos = vorab.position; vorab.position = null }
         val a = aktuell ?: return Antwort(null, pos, hallo?.uhrId ?: 0, false)
         a.letztPaket = jetzt()
+        // SPORT (Typ 7, 19.10.2026): Suunto-Sportmodus der Uhr (Activity ID, u16 LE) -> meta.json, der
+        // Server ordnet ihn ueber die Einstellung des Nutzers einer Sportart zu (docs/SUUNTO.md).
+        if (typ == 7) {
+            if (p.size >= 3) {
+                val id = (p[1].toInt() and 0xff) or ((p[2].toInt() and 0xff) shl 8)
+                val mf = File(a.dir, "meta.json")
+                if (id > 0 && mf.exists()) runCatching {
+                    val m = JSONObject(mf.readText())
+                    if (m.optInt("suunto_aktivitaet", 0) != id) { m.put("suunto_aktivitaet", id); schreibe(mf, m.toString()) }
+                }
+            }
+            return Antwort(null, pos, a.uhrId, false)
+        }
         a.empfang.paket(p)
         val chunks = ArrayList<JSONObject>()
         val bl = a.empfang.abholenBloecke()

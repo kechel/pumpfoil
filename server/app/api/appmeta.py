@@ -1069,6 +1069,10 @@ NAECHSTES: list[dict] = [
      "items": [
          "You can pick the sport before you start, at the top of Foil & Alarm (not on the small-memory watches such as Instinct 2 and Forerunner 55).",
      ]},
+    {"name": "Suunto", "version": "1.01",
+     "items": [
+         "The watch tells the phone which Suunto sport mode you started; under Linked accounts you set which sport each mode counts as.",
+     ]},
     # 19.10.2026: Sportart-Wahl auf der Uhr (Jan: „bitte umsetzen auf alle uhren und in coming next").
     # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
     {"name": "Amazfit", "version": "1.0.15",

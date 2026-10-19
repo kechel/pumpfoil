@@ -1738,6 +1738,8 @@ const en: Record<string, string> = {
   "settings.sports.hint": "Only the modes your account has actually delivered so far. A new one is imported automatically until you uncheck it. Applies to future imports.",
   "settings.sports.none": "None yet. As soon as an activity comes in, its mode shows up here.",
   "settings.sports.saved": "Saved",
+  "settings.sports.countsAs": "counts as",
+  "settings.sports.countsDefault": "default sport",
   "settings.coros.help2": "On the watch, record an outdoor activity with GPS. In our measurements „Flatwater“ gives the best data (one point per second, speed and heart rate complete). Indoor/no-GPS is skipped.",
   "settings.coros.help3": "Pump analysis is limited: the COROS export has no raw accelerometer stream — GPS + heart rate are analyzed.",
   "settings.coros.help4": "Disconnect anytime (revokes access and stops the import).",

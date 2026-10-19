@@ -149,6 +149,9 @@ class SessionStartIn(BaseModel):
     # Auf der Uhr gewaehlte Sportart (19.10.2026, Stand-Buch: sport_auf_uhr). None = nicht gewaehlt
     # -> Standard-Sportart des Profils wie bisher.
     sport_class: str | None = None
+    # Suunto: Sportmodus der Uhr (Activity ID der UHR, nicht der Cloud), von der Handy-Bruecke aus
+    # Paket 0x07 in meta.json geschrieben (19.10.2026). Server ordnet ihn per Nutzer-Einstellung zu.
+    suunto_aktivitaet: int | None = None
     placement: str | None = None  # "phone" = Handy-Recorder (Tasche/Hüfte); sonst Uhr am Handgelenk
     device_model: str | None = None  # Modell + OS (z. B. "Pixel 7 · Android 14") — nur zur Fehlersuche
     expected_chunks: int | None = None  # erwartete Gesamt-Chunk-Zahl (gps+accel) für Upload-Fortschritt

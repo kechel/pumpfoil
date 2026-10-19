@@ -132,6 +132,8 @@ DEFAULTS = {
     # auch wingfoil als Auswahl haben moechte"). Die Standard-Sportart ist immer dabei. Leer = wie
     # bisher die im letzten Jahr gefahrenen (devices.sportarten_fuer_uhr).
     "my_sports": [],
+    # Suunto (19.10.2026): Sportmodus (Cloud-activityId als Text) -> Sportart. Leer = Standard-Sportart.
+    "suunto_sport_je_modus": {},
     # Not-Aus für die dynamischen Layouts auf der Uhr (Stufe 3 des Sicherheitsnetzes, pro Nutzer).
     # Aus = die Uhr fährt die alte statische Logik, ohne App-Update.
     "layouts_enabled": True,
@@ -603,6 +605,10 @@ def update_settings(
             if isinstance(x, str) and x in SPORTS and x != "other" and x not in _ms:
                 _ms.append(x)
         current["my_sports"] = _ms[:12]
+    if "suunto_sport_je_modus" in patch and isinstance(patch["suunto_sport_je_modus"], dict):
+        from .sessions import SPORTS
+        current["suunto_sport_je_modus"] = {str(k): v for k, v in patch["suunto_sport_je_modus"].items()
+                                            if str(k).isdigit() and v in SPORTS}
     if "equipment_je_sport" in patch:
         from ..equipment_sport import bereinigen
         from .sessions import SPORTS
