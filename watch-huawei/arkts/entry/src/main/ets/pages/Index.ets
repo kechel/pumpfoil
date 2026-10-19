@@ -50,6 +50,7 @@ struct Index {
   @State zLayouts: string = '';
   @State zSperre: string = '';
   @State zStart: string = '';
+  @State zSport: string = '';   // gewaehlte Sportart; '' = nichts zu waehlen (< 2 im Profil), Zeile fehlt
   private zeigeAuswahl: boolean = false;
   // Koppeln mit pumpfoil.org (Direkt-Upload, seit 13.10.2026 der einzige Weg): Ansicht aus den
   // Einstellungen oder per Tipp auf die Infozeile, solange nicht gekoppelt
@@ -183,6 +184,7 @@ struct Index {
     // Balken nur ausserhalb der Aufnahme (waehrend der Fahrt zappelte er zwischen 0/1 und 1/1).
     this.balkenZeigen = z.modus === 'bereit' && z.offen > 0 && z.plan.gesamt > 0;
     this.balken = z.plan.gesamt > 0 ? Math.floor(100 * z.plan.fertig / z.plan.gesamt) : 0;
+    this.zSport = r.auswahl.sportName(k);
     this.seiten();
   }
 
@@ -399,6 +401,7 @@ struct Index {
     this.zSperre = this.stufe(a.sperre, k.waterLock === 'on');
     this.zStart = this.stufe(a.start, k.autoStart);
     this.zDirekt = r.gekoppelt() ? this.t($r('app.string.connected')) : this.t($r('app.string.connect'));
+    this.zSport = a.sportName(k);
   }
 
   private aendern(was: string): void {
@@ -415,6 +418,8 @@ struct Index {
       a.alarm = !a.alarm;
     } else if (was === 'quelle') {
       a.quelle = a.quelle === 'foil' ? 'manual' : 'foil';
+    } else if (was === 'sport') {
+      a.naechsterSport(r.konfigJetzt());
     } else if (was === 'foil') {
       a.naechstesFoil(r.konfigJetzt());
     } else if (was === 'start') {
@@ -426,6 +431,17 @@ struct Index {
     }
     r.auswahlAnwenden();
     this.auswahlTexte();
+  }
+
+  /** Sportart-Zeile auf dem Startbildschirm angetippt: weiterschalten wie in den Einstellungen. */
+  private sportTipp(): void {
+    const r: Recorder = Recorder.get();
+    if (r.modus !== 'bereit' || this.ansicht !== 'bereit') {
+      return;
+    }
+    r.auswahl.naechsterSport(r.konfigJetzt());
+    r.auswahlAnwenden();
+    this.zSport = r.auswahl.sportName(r.konfigJetzt());
   }
 
   // Wie lite pages/auswahl: Begriff grau oben, Wert weiss darunter (lange Foil-Namen zweizeilig).
@@ -450,6 +466,9 @@ struct Index {
   einstellungsListe() {
     Scroll() {
       Column() {
+        if (this.zSport !== '') {
+          this.zeile($r('app.string.sportClass'), this.zSport, 'sport')
+        }
         this.zeile($r('app.string.alarm'), this.zAlarm, 'alarm')
         this.zeile($r('app.string.thresholds'), this.zQuelle, 'quelle')
         this.zeile('Foil', this.zFoil, 'foil')
@@ -690,6 +709,13 @@ struct Index {
     Column() {
       if (this.ansicht === 'bereit') {
         Text('PUMPFOIL').fontSize(20).fontColor(CYAN).margin({ bottom: 4 })
+        if (this.zSport !== '') {
+          // Gewaehlte Sportart vor dem Start (nur bei Wahl im Profil); Antippen schaltet weiter
+          Text(this.zSport).fontSize(16).fontColor('#ffffff').maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis }).width(220).textAlign(TextAlign.Center)
+            .padding({ top: 4, bottom: 4 })
+            .onClick(() => this.sportTipp())
+        }
         Button(this.t($r('app.string.start'))).width(200).height(56).fontSize(20).fontColor('#ffffff')
           .backgroundColor(CYAN_DUNKEL).margin({ top: 8 })
           .onClick(() => this.starten())

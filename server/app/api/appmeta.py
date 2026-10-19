@@ -1056,6 +1056,8 @@ NAECHSTES: list[dict] = [
          "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
          # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
          "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
+         # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
+         "You can pick the sport before you start, in the settings or by tapping it on the start screen.",
      ]},
     # Garmin 1.0.94 (eingereicht + freigegeben 16.10.2026) -> LIVE, Punkt steht im Changelog.
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite

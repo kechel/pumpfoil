@@ -66,6 +66,7 @@ interface Meta {
   device_model: string;
   app_version: string;
   foil_id?: number;   // gewaehltes Foil (wie Zepp), nur wenn gewaehlt
+  sport_class?: string;   // gewaehlte Sportart, nur wenn es eine Wahl gab (>= 2 im Profil)
 }
 
 interface Ende {
@@ -598,6 +599,12 @@ export class Recorder {
     if (this.auswahl.foilId !== null) {
       meta.foil_id = this.auswahl.foilId;
     }
+    // Steht in der Meta-Datei auf der Uhr und geht von dort unveraendert in POST /api/ingest/session
+    // (K.direktUpload) — auch wenn die Session erst nach dem Koppeln oder Tage spaeter hochgeht.
+    const sport: string | null = this.auswahl.sportId(this.konfig);
+    if (sport !== null) {
+      meta.sport_class = sport;
+    }
     this.alarm = new Alarm();
     this.schreibe(K.dateiMeta(this.id), JSON.stringify(meta));
     this.planSichern();
@@ -920,7 +927,7 @@ export class Recorder {
     if (jetzt - this.direktKonfigZuletzt > KONFIG_ALLE_MS) {
       this.direktLaeuft = true;
       const tok: string = this.direktToken;
-      D.anfrage('GET', '/api/devices/config?p=huawei&v=' + APP_VERSION, '', tok).then((a: D.Antwort) => {
+      D.anfrage('GET', '/api/devices/config?p=huawei&sp=1&v=' + APP_VERSION, '', tok).then((a: D.Antwort) => {
         if (a.code === 401) {
           this.direktLaeuft = false;
           this.abgelehnt('config');
