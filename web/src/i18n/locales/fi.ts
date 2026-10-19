@@ -1650,6 +1650,8 @@ const fi: Record<string, string> = {
   "profile.calculator": "Foil-laskuri",
 
   "phome.hello": "Hei, {name}",
+  "phome.manTitle": "Vendat ja jiippaukset foililla",
+  "phome.manMonth": "Kuukausi",
   "phome.ybTitle": "Vuosi numeroina",
   "phome.ybSessions": "Sessiot",
   "phome.ybHours": "Tunnit",

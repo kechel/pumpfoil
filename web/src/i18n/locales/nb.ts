@@ -1599,6 +1599,8 @@ const nb: Record<string, string> = {
   "settings.strava.unlink": "Koble fra",
   "profile.calculator": "Foilkalkulator",
   "phome.hello": "Hei, {name}",
+  "phome.manTitle": "Stagvending & jibb på foilen",
+  "phome.manMonth": "Måned",
   "phome.ybTitle": "Året i tall",
   "phome.ybSessions": "Økter",
   "phome.ybHours": "Timer",

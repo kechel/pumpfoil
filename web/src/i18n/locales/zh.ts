@@ -1560,6 +1560,8 @@ const zh: Record<string, string> = {
   "profile.calculator": "水翼计算器",
 
   "phome.hello": "你好，{name}",
+  "phome.manTitle": "水翼上的迎风/顺风转向",
+  "phome.manMonth": "月份",
   "phome.ybTitle": "年度数据",
   "phome.ybSessions": "次数",
   "phome.ybHours": "小时",

@@ -1687,6 +1687,8 @@ const cs: Record<string, string> = {
   "profile.calculator": "Foil kalkulačka",
 
   "phome.hello": "Ahoj, {name}",
+  "phome.manTitle": "Obraty a přehozy na foilu",
+  "phome.manMonth": "Měsíc",
   "phome.ybTitle": "Rok v číslech",
   "phome.ybSessions": "Session",
   "phome.ybHours": "Hodiny",
