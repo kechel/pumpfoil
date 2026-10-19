@@ -1001,6 +1001,12 @@ export const api = {
     review: { name: string; version: string; note: string; items?: string[] }[];
     next: { name: string; version: string; note: string; items?: string[] }[];
   }>("/api/app/releases?ohne_sport=1"),   // Web zeigt den Sportarten-Stand als eigenen Abschnitt
+  // Wind am Spot waehrend der Session (Open-Meteo-Modell, server/app/sessionwind.py), 19.10.2026.
+  sessionWind: (id: number) => req<{ wind: null | {
+    quelle: string;
+    stunden: { t: string; kmh: number; richtung: number; boeen_kmh: number | null }[];
+    mittel: { kmh_min: number; kmh_max: number; kmh_mittel: number; richtung: number; boeen_max_kmh: number | null } | null;
+  } }>(`/api/sessions/${id}/wind`),
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
   sportStatus: () => req<{
     stand: string;

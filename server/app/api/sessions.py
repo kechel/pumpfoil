@@ -3601,6 +3601,22 @@ def delete_pump_truth(
     return {"ok": True, "deleted": n}
 
 
+@router.get("/{session_id}/wind")
+def session_wind(
+    session_id: int,
+    _user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Wind am Spot waehrend der Session (Open-Meteo-Modell, stuendlich; app/sessionwind.py).
+
+    Bei „Ort verbergen" nichts: die Windwerte einer Koordinate verraten grob den Ort."""
+    s = _readable(db, session_id)
+    if _ort_verborgen(s):
+        return {"wind": None}
+    from ..sessionwind import session_wind as _wind
+    return {"wind": _wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)}
+
+
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---
 MAX_PHOTOS_PER_SESSION = 12
 
