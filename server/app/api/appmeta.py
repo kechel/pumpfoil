@@ -1297,8 +1297,8 @@ def _datum_lang(iso: str) -> str:
 
 def _plattform_zeile(pl: dict) -> str:
     """{"web": "2026-10-19", "android": "1.1.44", "ios": ""} -> „website since October 19, 2026,
-    Android 1.1.44 (coming next), iOS coming next". Ob eine App-Version schon im Store ist, entscheidet
-    `_APP_META[...]["latest"]` — so faellt „(coming next)" von selbst weg, sobald sie live ist."""
+    Android 1.1.44, iOS coming next". Steht eine Version fest, kommt NUR die Nummer hinein — ob sie
+    schon im Store, im Review oder erst gebaut ist, spielt hier keine Rolle (Jan, 19.10.2026)."""
     teile = []
     for key, name in (("web", "website"), ("android", "Android"), ("ios", "iOS")):
         if key not in pl:
@@ -1309,12 +1309,7 @@ def _plattform_zeile(pl: dict) -> str:
         elif key == "web":
             teile.append(f"{name} since {_datum_lang(v)}")
         else:
-            live = (_APP_META.get(key) or {}).get("latest") or ""
-            try:
-                da = tuple(int(x) for x in live.split(".")) >= tuple(int(x) for x in v.split("."))
-            except ValueError:
-                da = False
-            teile.append(f"{name} {v}" + ("" if da else " (coming next)"))
+            teile.append(f"{name} {v}")
     return ", ".join(teile)
 
 

@@ -7,7 +7,7 @@
     "'en' ist der oeffentliche Text auf /changelog (Englisch, ein Satz, kein IT-Jargon). 'notiz' ist intern und wird NICHT ausgeliefert.",
     "Bei jeder Aenderung: Eintrag im Merkmal anpassen (status/seit/wo) UND eine Zeile in 'verlauf' (neueste oben). 'wo' = server | web | android | ios | uhren; 'version' = App-Version, wenn es eine App betrifft.",
     "Plan in Stufen (Gespraech 19.10.2026, Anlass Oerni u97 Wing-Session #17478 und ThermikDreher u267 Foil Scoot): s. 'stufen'.",
-    "'plattformen' (optional) je Merkmal: {'web': Datum, 'android': Version, 'ios': Version}; leer = noch keine Version. Der Server haengt daraus an den Text: ': website since <Datum>, Android 1.1.44 (coming next), iOS coming next' — '(coming next)', solange die Version ueber _APP_META latest liegt (Jan 19.10.). Nur fuer Merkmale, die sich je Oberflaeche unterscheiden (Anzeige), nicht fuer Server-Auswertung."
+    "'plattformen' (optional) je Merkmal: {'web': Datum, 'android': Version, 'ios': Version}; leer = noch keine Version -> 'coming next'. Steht die Version fest, NUR die Nummer eintragen, egal ob released, im Review oder coming next (Jan 19.10.). Server haengt an: ': website since <Datum>, Android 1.1.44, iOS coming next'. Nur fuer Merkmale, die sich je Oberflaeche unterscheiden (Anzeige)."
   ],
   "stand": "2026-10-19",
   "status_en": {
