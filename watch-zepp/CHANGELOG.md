@@ -10,6 +10,15 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## Unreleased (naechste Version nach 1.0.14)
+
+- **Sportart vor dem Start waehlen** (19.10.2026): Knopf „Sportart: …" auf der Seite „Foil & Alarm"
+  (nur wenn der Server mehr als eine Sportart liefert, `/config?sp=1` -> `sports`), Tippen schaltet
+  weiter; Vorauswahl = Standard-Sportart. `sportClass` wird wie `foilId` mit der Aufnahme gesichert
+  (laufender Kopf, Wiederherstellung, Upload in der Pause, Warteschlange) und geht als
+  `sport_class` ueber app-side START an den Server (Whitelist erweitert). Test tests/sport.test.mjs.
+  Nicht im Simulator/auf der Uhr gelaufen (6-Knopf-Layout pruefen).
+
 ## 1.0.14 — gebumpt am 18.10.2026 (code 17), zur Einreichung
 
 - **Test-Zweig `TESTUPLOAD` aus der App-Side entfernt** (18.10.2026): toter Rest vom 02.07. mit fest
