@@ -1361,7 +1361,11 @@ def _plattform_zeile(pl: dict) -> str:
 
 
 def sport_stand_aufgeloest() -> dict:
-    """Jede Sportart mit ALLEN Merkmalen: Gruppenstand, darueber die eigenen Abweichungen."""
+    """Jede Sportart mit ihren Merkmalen: Gruppenstand, darueber die eigenen Abweichungen.
+
+    Merkmale mit Status „nein" (passt nicht / nicht geplant) werden NICHT ausgeliefert (Jan,
+    19.10.2026: „'does not apply' bitte weglassen je sportart, einfach nur auflisten was auch sinn
+    macht und wenigstens proposed wurde"). Im Buch stehen sie weiter, damit es vollstaendig bleibt."""
     with open(_SPORT_STAND, encoding="utf-8") as f:
         buch = json.load(f)
     merkmale = buch["merkmale"]
@@ -1379,7 +1383,9 @@ def sport_stand_aufgeloest() -> dict:
                 # anzeigen, ihn vollstaendig zeigen; `seit` entfaellt dann (stuende doppelt).
                 text = text.rstrip(".") + ": " + _plattform_zeile(e["plattformen"]) + "."
                 seit = None
-            werte.append({"id": m["id"], "status": e.get("status", "nein"), "text": text, "seit": seit})
+            if e.get("status", "nein") == "nein":
+                continue
+            werte.append({"id": m["id"], "status": e["status"], "text": text, "seit": seit})
         sportarten.append({"id": sp["id"], "name": sp["en"], "gruppe": gruppe["en"], "merkmale": werte})
     # Fuer alle Sportarten gleich (Jan, 19.10.2026): eigener Abschnitt ueber den Sportarten.
     allgemein = []
@@ -1389,7 +1395,9 @@ def sport_stand_aufgeloest() -> dict:
         if e.get("plattformen"):
             text = text.rstrip(".") + ": " + _plattform_zeile(e["plattformen"]) + "."
             seit = None
-        allgemein.append({"id": m["id"], "name": m["en"], "status": e.get("status", "nein"), "text": text, "seit": seit})
+        if e.get("status", "nein") == "nein":
+            continue
+        allgemein.append({"id": m["id"], "name": m["en"], "status": e["status"], "text": text, "seit": seit})
     return {"stand": buch["stand"], "status": buch["status_en"],
             "merkmale": [{"id": m["id"], "name": m["en"]} for m in merkmale], "sportarten": sportarten,
             "allgemein_titel": (buch.get("allgemein") or {}).get("en", "All sports"), "allgemein": allgemein}
