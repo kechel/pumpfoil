@@ -18,6 +18,8 @@ Erkennung rein aus GPS + Windrichtung:
    Halsen 2-4 km/h zu tief. Feedback #202/#203 (Nutzer 43): „11 successful jibes … only 4/13" bzw.
    „12 … only 4/15"; mit Doppler >= 12 km/h 11/13 und 13/15. Ohne Doppler (manche Importe) bleibt
    die Spur, dann mit DURCH_SPUR_KMH, weil sie in Kurven zu niedrig misst.
+   Vergleichsdaten: server/data/wahrheit/manoever.jsonl (gitignored), pruefen mit
+   scripts/manoever-pruefen.py — vor jeder Aenderung an den Schwellen laufen lassen.
 
 Windrichtung: Modellwert am Spot je Stunde (`sessionwind`), keine Messung — bei drehendem Wind oder
 Abdeckung am Ufer kann eine einzelne Einordnung daneben liegen. Das steht so in der Anzeige.
