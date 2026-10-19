@@ -682,6 +682,19 @@
     {
       "datum": "2026-10-19",
       "sport": [
+        "alle"
+      ],
+      "merkmal": "equipment_je_sport",
+      "was": "Einstellung „Ausruestung je Sportart“ auch in Android (1.1.44) und iOS (1.1.52).",
+      "wo": [
+        "android",
+        "ios"
+      ],
+      "version": "iOS 1.1.52, Android 1.1.44"
+    },
+    {
+      "datum": "2026-10-19",
+      "sport": [
         "wingfoil",
         "kitefoil",
         "parawing",
@@ -1078,11 +1091,11 @@
       "equipment_je_sport": {
         "status": "live",
         "en": "Each sport can have its own default foil, board, stab and mast; new sessions of that sport get it, and switching a session's sport swaps equipment you did not change yourself. Ordering the lists on the watch by sport follows later",
-        "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert). Jan 19.10.: in den Abschnitt fuer alle Sportarten, als „Equipment per sport Vorauswahl + default“ — nicht nur das Foil. 19.10.: app/equipment_sport.py (settings equipment_je_sport), greift in ingest (Uhr), Datei-Import und set_classification; nur Felder, die leer sind oder dem Standard der vorigen Sportart entsprechen. Einstellung: Web /setup Karte „Ausruestung je Sportart“. Offen: Einstellung in den Apps, Uhr-Listen je Sportart sortiert (braucht sport_auf_uhr).",
+        "notiz": "Jan an Oerni 19.10.: „default-foil je sportart hinterlegen … in der auswahl erstmal die je sportart praeferierten sehen“. Erspart das nachtraegliche Aendern. Profil-Einstellung je Sportart + Uhr-Config (Foil-Liste je Sportart sortiert). Jan 19.10.: in den Abschnitt fuer alle Sportarten, als „Equipment per sport Vorauswahl + default“ — nicht nur das Foil. 19.10.: app/equipment_sport.py (settings equipment_je_sport), greift in ingest (Uhr), Datei-Import und set_classification; nur Felder, die leer sind oder dem Standard der vorigen Sportart entsprechen. Einstellung: Web /setup Karte „Ausruestung je Sportart“. Offen: Einstellung in den Apps, Uhr-Listen je Sportart sortiert (braucht sport_auf_uhr). Einstellung jetzt auch in den Apps (Android SetupScreen, iOS SetupView), Android kompiliert, iOS parse.",
         "plattformen": {
           "web": "2026-10-19",
-          "android": "",
-          "ios": ""
+          "android": "1.1.44",
+          "ios": "1.1.52"
         }
       },
       "lauf_sportart": {

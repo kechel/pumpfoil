@@ -999,6 +999,7 @@ NAECHSTES: list[dict] = [
          "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
          "The three buttons for your spot description sit in one row as icons.",
          "On the Apple Watch you can pick the sport before you start, next to the foil.",
+         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
      ]},
     {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
      "items": [
@@ -1007,6 +1008,7 @@ NAECHSTES: list[dict] = [
          "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
          "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
          "On Wear OS you can pick the sport before you start, next to the foil.",
+         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.

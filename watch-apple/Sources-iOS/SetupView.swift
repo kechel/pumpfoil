@@ -50,6 +50,8 @@ struct SetupView: View {
                 mastSection
                 shimSection
                 boardSection
+                // Ausruestung je Sportart (19.10.2026), wie im Web
+                EquipmentJeSportSection(stabs: stabs, boards: boards, myStabs: myStabs, myMasts: myMasts, lang: lang)
             }
         }
         .navigationTitle(Loc.t("setup.title", lang))
@@ -384,4 +386,126 @@ func fmtShimValue(_ v: Double) -> String {
 
 func fmtNum(_ v: Double) -> String {
     v == v.rounded() ? String(Int(v)) : String(v)
+}
+
+
+// Ausruestung je Sportart (19.10.2026, wie web/src/components/EquipmentJeSport.tsx): je Sportart ein
+// eigener Standard fuer Foil, Board, Stab und Mast. „—" = kein eigener Wert, es gilt der allgemeine
+// Standard (Stern). Der Server setzt ihn beim Anlegen und beim Umstellen der Sportart ein, aber nur
+// fuer Felder, die niemand von Hand gewaehlt hat (server/app/equipment_sport.py).
+struct EquipmentJeSportSection: View {
+    let stabs: [StabBrief]
+    let boards: [BoardBrief]
+    let myStabs: [Int]
+    let myMasts: [Int]
+    let lang: String
+
+    @State private var je: [String: [String: Int]] = [:]
+    @State private var myFoils: [Int] = []
+    @State private var foilNamen: [Int: String] = [:]
+    private static let felder: [String] = ["foil_id", "board_id", "stab_id", "mast_len_cm"]
+    private static let sportarten: [String] = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
+        "surf_wave", "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "foil_scoot"]
+
+    var body: some View {
+        Section {
+            ForEach(je.keys.sorted(), id: \.self) { sp in
+                sportBlock(sp)
+            }
+            neuMenu
+        } header: {
+            Text(Loc.t("setup.perSportTitle", lang))
+        } footer: {
+            Text(Loc.t("setup.perSportHint", lang))
+        }
+        .task { await laden() }
+    }
+
+    @ViewBuilder private func sportBlock(_ sp: String) -> some View {
+        HStack {
+            Text(Loc.t("cls.sport.\(sp)", lang)).font(.subheadline.weight(.semibold))
+            Spacer()
+            Button(role: .destructive) { var n = je; n[sp] = nil; Task { await speichern(n) } } label: {
+                Image(systemName: "xmark.circle")
+            }
+            .buttonStyle(.borderless)
+        }
+        ForEach(Self.felder, id: \.self) { f in
+            Picker(titel(f), selection: bindung(sp, f)) {
+                Text("— " + Loc.t("setup.perSportGeneral", lang)).tag(Int?.none)
+                ForEach(optionen(f), id: \.0) { o in Text(o.1).tag(Int?.some(o.0)) }
+            }
+        }
+    }
+
+    private var neuMenu: some View {
+        let frei: [String] = Self.sportarten.filter { je[$0] == nil }
+        return Menu(Loc.t("setup.perSportAdd", lang) + " …") {
+            ForEach(frei, id: \.self) { sp in
+                Button(Loc.t("cls.sport.\(sp)", lang)) { je[sp] = [:] }
+            }
+        }
+    }
+
+    private func titel(_ f: String) -> String {
+        switch f {
+        case "foil_id": return Loc.t("setup.colFoil", lang)
+        case "board_id": return Loc.t("setup.colBoard", lang)
+        case "stab_id": return Loc.t("setup.colStab", lang)
+        default: return Loc.t("setup.colMast", lang)
+        }
+    }
+
+    private func optionen(_ f: String) -> [(Int, String)] {
+        switch f {
+        case "foil_id": return myFoils.map { ($0, foilNamen[$0] ?? "#\($0)") }
+        case "board_id": return boards.map { ($0.id, $0.name) }
+        case "stab_id":
+            return myStabs.map { id in
+                let st: StabBrief? = stabs.first { $0.id == id }
+                return (id, st.map { "\($0.brand) \($0.model) \($0.size)" } ?? "#\(id)")
+            }
+        default: return myMasts.map { ($0, "\($0) cm") }
+        }
+    }
+
+    private func bindung(_ sp: String, _ f: String) -> Binding<Int?> {
+        Binding(get: { je[sp]?[f] }, set: { neu in
+            var n = je
+            var e: [String: Int] = n[sp] ?? [:]
+            e[f] = neu
+            n[sp] = e
+            Task { await speichern(n) }
+        })
+    }
+
+    private func laden() async {
+        guard let s = try? await Api.settings() else { return }
+        uebernehmen(s)
+        if let fs = try? await Api.foils() {
+            var m: [Int: String] = [:]
+            for f in fs { m[f.id] = "\(f.brand) \(f.model) \(f.size)" }
+            foilNamen = m
+        }
+    }
+
+    private func uebernehmen(_ s: [String: Any]) {
+        var out: [String: [String: Int]] = [:]
+        if let roh = s["equipment_je_sport"] as? [String: Any] {
+            for (sp, v) in roh {
+                guard let d = v as? [String: Any] else { continue }
+                var e: [String: Int] = [:]
+                for (k, x) in d { if let i = x as? Int { e[k] = i } }
+                out[sp] = e
+            }
+        }
+        je = out
+        myFoils = (s["my_foils"] as? [Int]) ?? []
+    }
+
+    private func speichern(_ n: [String: [String: Int]]) async {
+        je = n
+        try? await Api.saveSettings(["equipment_je_sport": n])
+        if let s = try? await Api.settings() { uebernehmen(s) }
+    }
 }

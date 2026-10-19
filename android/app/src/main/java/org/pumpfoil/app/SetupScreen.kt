@@ -230,6 +230,9 @@ fun SetupScreen(onBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
             }
 
+            // --- Ausruestung je Sportart (19.10.2026) ---
+            item { EquipmentJeSportKarte(stabs, boards, myStabs, myMasts) }
+
             // --- Stabilizer (Katalog wie bei den Foils) ---
             item { SectionTitle(I18n.t("setup.stabTitle")) }
             item {
