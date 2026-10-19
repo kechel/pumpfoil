@@ -3712,7 +3712,7 @@ def session_manoever(
         return min(pkt, key=lambda p: abs(p[0] - (t0 + t_ms)))[1]
     lat = [float(r[1]) if r[1] is not None else float("nan") for r in gps]
     lon = [float(r[2]) if r[2] is not None else float("nan") for r in gps]
-    items = erkennen([r[0] for r in gps], lat, lon, wind_von)
+    items = erkennen([r[0] for r in gps], lat, lon, wind_von, [r[3] for r in gps])
     zahlen = {typ: {"durch": sum(1 for m in items if m["typ"] == typ and m["durch"]),
                     "ab": sum(1 for m in items if m["typ"] == typ and not m["durch"])}
               for typ in ("wende", "halse")}
