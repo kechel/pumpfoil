@@ -685,6 +685,18 @@
         "alle"
       ],
       "merkmal": "sport_auf_uhr",
+      "was": "Wear OS: Sportart-Wahl in den Einstellungen der Uhr (Liste vom Server, Standard vorgewaehlt), geht als sport_class zum Server. Fuer Wear 1.2.44.",
+      "wo": [
+        "uhren"
+      ],
+      "version": "Wear 1.2.44"
+    },
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "sport_auf_uhr",
       "was": "Server-Seite fuer die Sportart-Wahl an der Uhr: Auswahlliste in der Uhr-Config (nur mit sp=1), sport_class im Ingest-Start. Uhren-Apps folgen.",
       "wo": [
         "server"
@@ -1030,8 +1042,8 @@
     "merkmale": {
       "sport_auf_uhr": {
         "status": "geplant",
-        "en": "Pick the sport on the watch before you start, like the foil today. The server side is ready; the watch apps follow with their next versions",
-        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner. 19.10.: Server fertig — /api/devices/config?sp=1 liefert sports (Standard zuerst, im letzten Jahr gefahrene, max 6; ohne sp kein Byte mehr), Ingest-Start nimmt sport_class an (owner, Equipment je Sportart greift). Offen: UI in Garmin/Wear/Apple/Amazfit/Huawei/Suunto (Store-Releases)."
+        "en": "Pick the sport on the watch before you start, like the foil today: Wear OS 1.2.44; the other watches follow with their next versions",
+        "notiz": "Oerni 19.10.: „zu Beginn der Session an der Uhr seine Sportart auswaehlen, so wie aktuell das genutzte Foil“. Alle Uhren (Garmin, Wear, Apple, Amazfit, Huawei, Suunto) -> sport im Ingest-Start; Server setzt sport_class mit sport_source=owner. 19.10.: Server fertig — /api/devices/config?sp=1 liefert sports (Standard zuerst, im letzten Jahr gefahrene, max 6; ohne sp kein Byte mehr), Ingest-Start nimmt sport_class an (owner, Equipment je Sportart greift). Offen: UI in Garmin/Wear/Apple/Amazfit/Huawei/Suunto (Store-Releases). 19.10.: Wear OS gebaut (Einstellungen „Sportart\" ueber den Foils, Anzeige „Wingfoil · Foil: …\" auf dem Start, meta sport_class), kompiliert, NICHT im Emulator angesehen — vor Einreichung im R8-Release-Build pruefen (Memory wear-emulator-testing). Offen: Garmin, Apple Watch, Amazfit, Huawei, Suunto."
       },
       "equipment_je_sport": {
         "status": "live",

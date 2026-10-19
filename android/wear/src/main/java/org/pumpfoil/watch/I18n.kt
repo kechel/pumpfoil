@@ -279,6 +279,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.repair" to row("Neu verbinden", "Neu verbinde", "Neu verbinden", "Reconnect", "Reconnecter", "Ricollega", "Reconectar"),
     "rec.switch" to row("Konto wechseln", "Konto wechsle", "Konto wechseln", "Switch account", "Changer de compte", "Cambia account", "Cambiar cuenta"),
 
+    // Sportart-Wahl (19.10.2026); die Namen der Sportarten kommen englisch vom Server.
+    "sport.choose" to row("Sportart", "Sportart", "Sportart", "Sport", "Sport", "Sport", "Deporte"),
     // Alarm-/Foil-Auswahl
     "foil.choose" to row("Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma"),
     "foil.prefix" to row("Foil: ", "Foil: ", "Foil: ", "Foil: ", "Foil : ", "Foil: ", "Foil: "),

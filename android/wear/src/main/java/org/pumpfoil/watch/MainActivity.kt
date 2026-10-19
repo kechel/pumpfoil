@@ -280,6 +280,9 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         var verworfen by remember { mutableStateOf(false) }
         var wasRecording by remember { mutableStateOf(false) }
         var showFoilPicker by remember { mutableStateOf(false) }
+        // Sportart-Wahl (19.10.2026): Liste vom Server (Standard zuerst); null = nicht gewaehlt.
+        var sports by remember { mutableStateOf<List<SportOpt>>(emptyList()) }
+        var sessionSport by remember { mutableStateOf<SportOpt?>(null) }
         var foilLabel by remember { mutableStateOf("") }        // gewählte Foil (Anzeige "Foil: <name>")
         var sessionFoilId by remember { mutableStateOf<Int?>(null) }   // Foil = Metadaten (+ Auto-Schwellen)
         var alarmSource by remember { mutableStateOf("foil") }         // "foil" | "manual" (Schwellen-Quelle)
@@ -385,6 +388,13 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 c.optInt("runTimeS", 0),
                 c.optString("runTimeMode", "once"),
                 c.optString("alarmPatternTime", "short2"))
+            val sa = c.optJSONArray("sports")
+            if (sa != null) {
+                sports = (0 until sa.length()).map { i -> sa.getJSONObject(i).let { SportOpt(it.optString("id"), it.optString("name")) } }
+                    .filter { it.id.isNotEmpty() }
+                // Vorauswahl = Standard-Sportart (erste), solange der Nutzer nichts anderes gewaehlt hat.
+                if (sessionSport == null || sports.none { it.id == sessionSport?.id }) sessionSport = sports.firstOrNull()
+            }
             val fa = c.optJSONArray("foils")
             if (fa != null) {
                 foils = (0 until fa.length()).map { i ->
@@ -539,6 +549,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         }
         // Gewählte Foil an den Recorder durchreichen (wird als foil_id ins Meta geschrieben).
         LaunchedEffect(sessionFoilId) { Recorder.sessionFoilId = sessionFoilId }
+        // Gewaehlte Sportart ebenso (nur wenn es eine Auswahl gibt; sonst entscheidet der Server).
+        LaunchedEffect(sessionSport, sports) { Recorder.sessionSportClass = if (sports.size > 1) sessionSport?.id else null }
         // Post-Stop-Screen einblenden, sobald die Aufnahme endet (Flanke recording true->false).
         // Verhindert, dass man direkt versehentlich wieder auf Start tippt (wie Garmin).
         LaunchedEffect(s.recording) {
@@ -1166,6 +1178,9 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                         manualLow = alarm.low,
                         manualHigh = alarm.high,
                         selectedFoilId = sessionFoilId,
+                        sports = sports,
+                        selectedSport = sessionSport?.id,
+                        onPickSport = { sp -> sessionSport = sp },
                         onToggleAlarm = { alarm = alarm.copy(enabled = !alarm.enabled) },
                         onToggleSource = { alarmSource = if (alarmSource == "foil") "manual" else "foil" },
                         onToggleAutoStart = { autoStart = !autoStart },
@@ -1403,7 +1418,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     Row(Modifier.clickable { showFoilPicker = true },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("${I18n.t("foil.prefix")}$foilLabel", style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                        Text((if (sports.size > 1 && sessionSport != null) "${sessionSport!!.name} · " else "") +
+                            "${I18n.t("foil.prefix")}$foilLabel", style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
                         if (alarm.enabled) Text("🔔", style = MaterialTheme.typography.caption2)
                     }
                 }
@@ -1924,6 +1940,8 @@ data class WatchAlarm(
 
 // Foil-Option für die Start-Auswahl (Auto-Alarm-Korridor min–max km/h).
 data class FoilOpt(val id: Int, val label: String, val min: Int, val max: Int)
+/** Sportart zur Wahl auf der Uhr (Server-Config `sports`, 19.10.2026). */
+data class SportOpt(val id: String, val name: String)
 
 // „Foil & Alarm" — drei unabhängige Achsen: Alarm An/Aus, Schwellen-Quelle (Auto aus Foil /
 // Manuell mit Min/Max direkt auf der Uhr), Foil-Auswahl (Metadaten). Muster/Auslösen: in den Apps.
@@ -1936,6 +1954,9 @@ fun FoilPicker(
     manualLow: Int,
     manualHigh: Int,
     selectedFoilId: Int?,
+    sports: List<SportOpt> = emptyList(),
+    selectedSport: String? = null,
+    onPickSport: (SportOpt) -> Unit = {},
     onToggleAlarm: () -> Unit,
     onToggleSource: () -> Unit,
     onToggleAutoStart: () -> Unit,
@@ -1964,6 +1985,19 @@ fun FoilPicker(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        // Sportart (19.10.2026) — nur, wenn es mehr als eine zur Wahl gibt. Ganz oben: sie bestimmt,
+        // wie die Session ausgewertet wird, und ihr Standard-Foil setzt der Server.
+        if (sports.size > 1) {
+            Text(I18n.t("sport.choose"), style = MaterialTheme.typography.title3)
+            sports.forEach { sp ->
+                Chip(
+                    onClick = { onPickSport(sp) },
+                    label = { Text((if (sp.id == selectedSport) "✓ " else "") + sp.name, maxLines = 1) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+        }
         Text(I18n.t("foil.choose"), style = MaterialTheme.typography.title3)
         // Auto-Start An/Aus (auf der Uhr umschaltbar) + Hinweis
         Chip(

@@ -1005,6 +1005,7 @@ NAECHSTES: list[dict] = [
          "The changelog page shows how far the analysis is tuned for each sport.",
          "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
          "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
+         "On Wear OS you can pick the sport before you start, next to the foil.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.

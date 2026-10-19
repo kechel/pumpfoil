@@ -369,6 +369,7 @@ object Recorder {
     // Rohdaten werden persistent in den LocalStore geschrieben; der Upload passiert
     // später per drain(), sobald die Uhr gepairt + online ist.
     var sessionFoilId: Int? = null   // auf der Uhr gewählte Foil (Metadaten) -> foil_id im Meta
+    var sessionSportClass: String? = null   // auf der Uhr gewaehlte Sportart (19.10.2026) -> sport_class im Meta
 
     fun start(ctx: Context) {
         if (running) return
@@ -402,6 +403,7 @@ object Recorder {
         // Leerer Wert würde die Server-Prüfung verletzen -> weglassen.
         appVersion(ctx).takeIf { it.isNotBlank() }?.let { meta.put("app_version", it) }
         sessionFoilId?.let { meta.put("foil_id", it) }   // gewählte Foil (Metadaten), unabhängig vom Alarm
+        sessionSportClass?.let { meta.put("sport_class", it) }   // gewaehlte Sportart; Server: owner
         LocalStore.writeMeta(ctx, uuid, meta)
         running = true
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
