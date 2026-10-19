@@ -3655,11 +3655,11 @@ def session_manoever(
 
     `items[].i` ist der Index in die getrimmte Spur (= track_geojson). Ohne Windrichtung (kein Ort,
     Ort verborgen, Open-Meteo nicht erreichbar) gibt es keine Einordnung -> leer."""
-    leer = {"items": [], "zahlen": None}
+    leer = {"items": [], "zahlen": None, "hoehe": None}
     s = _readable(db, session_id)
     if sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s):
         return leer
-    from ..manoever import erkennen, wind_funktion
+    from ..manoever import erkennen, hoehe, wind_funktion
     from ..sessionwind import session_wind as _wind
     pkt = wind_funktion(_wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at))
     if not pkt or s.started_at is None:
@@ -3680,7 +3680,8 @@ def session_manoever(
     zahlen = {typ: {"durch": sum(1 for m in items if m["typ"] == typ and m["durch"]),
                     "ab": sum(1 for m in items if m["typ"] == typ and not m["durch"])}
               for typ in ("wende", "halse")}
-    return {"items": items, "zahlen": zahlen}
+    # Hoehe laufen (Stand-Buch: hoehe): VMG zum Wind aus derselben Spur und Windrichtung.
+    return {"items": items, "zahlen": zahlen, "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von)}
 
 
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---

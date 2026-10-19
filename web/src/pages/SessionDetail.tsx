@@ -2072,6 +2072,20 @@ export default function SessionDetail() {
               <div className="mt-0.5 text-slate-400">{t("sd.manoeverNote")}</div>
             </>
           )}
+          {/* Hoehe laufen (19.10.2026, Stand-Buch: hoehe): VMG zum Wind aus Spur + Modellwind, nur Anzeige. */}
+          {manoever?.hoehe && (
+            <>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-200">
+                <b>{t("sd.upwind")}</b>
+                <span>{t("sd.vmgBest", { v: manoever.hoehe.vmg_max_kmh.toFixed(1) })}</span>
+                {manoever.hoehe.vmg_mittel_kmh != null && <span>{t("sd.vmgAvg", { v: manoever.hoehe.vmg_mittel_kmh.toFixed(1) })}</span>}
+                {manoever.hoehe.am_wind_anteil != null && <span>{t("sd.upwindShare", { p: String(Math.round(manoever.hoehe.am_wind_anteil * 100)) })}</span>}
+                <span>{t("sd.heightGained", { km: (manoever.hoehe.hoehe_m / 1000).toFixed(1) })}</span>
+                {manoever.hoehe.winkel_med != null && <span>{t("sd.angleToWind", { a: String(manoever.hoehe.winkel_med) })}</span>}
+              </div>
+              <div className="mt-0.5 text-slate-400">{t("sd.upwindNote")}</div>
+            </>
+          )}
         </div>
       )}
 

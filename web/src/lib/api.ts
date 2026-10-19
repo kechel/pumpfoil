@@ -1017,6 +1017,7 @@ export const api = {
   sessionManoever: (id: number) => req<{
     items: { i: number; t_ms: number; typ: "wende" | "halse"; durch: boolean; drehung: number }[];
     zahlen: null | { wende: { durch: number; ab: number }; halse: { durch: number; ab: number } };
+    hoehe?: null | { vmg_max_kmh: number; vmg_mittel_kmh: number | null; am_wind_anteil: number | null; hoehe_m: number; winkel_med: number | null };
   }>(`/api/sessions/${id}/manoever`),
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
   sportStatus: () => req<{
