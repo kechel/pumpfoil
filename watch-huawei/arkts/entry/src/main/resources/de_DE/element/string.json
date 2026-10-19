@@ -217,6 +217,10 @@
       "value": "Auto-Start"
     },
     {
+      "name": "sportClass",
+      "value": "Sportart"
+    },
+    {
       "name": "phoneRec",
       "value": "Handy nimmt auf"
     },

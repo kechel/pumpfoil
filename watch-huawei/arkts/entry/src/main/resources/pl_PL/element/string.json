@@ -217,6 +217,10 @@
       "value": "Autostart"
     },
     {
+      "name": "sportClass",
+      "value": "Sport"
+    },
+    {
       "name": "phoneRec",
       "value": "Telefon nagrywa"
     },

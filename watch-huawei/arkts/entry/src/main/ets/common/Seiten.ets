@@ -324,6 +324,7 @@ export interface KonfigDaten {
   autoStart?: boolean;
   waterLock?: string;
   foils?: Foil[];
+  sports?: Sport[];   // nur mit ?sp=1, Standard zuerst (bis zu 6)
   alarmEnabled?: boolean;
   alarmDefault?: string;
   speedLow?: number;
@@ -348,6 +349,27 @@ export interface Foil {
   label: string;
   min: number;
   max: number;
+}
+
+/** Eine Sportart der Auswahl vor dem Start (Server /api/devices/config?sp=1 „sports"), Standard zuerst. */
+export interface Sport {
+  id: string;
+  name: string;
+}
+
+/** Nur Eintraege mit Text-id und -Name; alles andere faellt weg (Server ist Quelle, Uhr bleibt robust). */
+function gueltigeSports(l: Sport[] | undefined): Sport[] {
+  const aus: Sport[] = [];
+  if (l === undefined || l === null) {
+    return aus;
+  }
+  for (let i = 0; i < l.length; i++) {
+    const x: Sport = l[i];
+    if (x !== null && x !== undefined && typeof x.id === 'string' && x.id !== '' && typeof x.name === 'string') {
+      aus.push({ id: x.id, name: x.name });
+    }
+  }
+  return aus;
 }
 
 function ganz(v: number | undefined): number {
@@ -384,6 +406,7 @@ export class Konfig {
   waterLock: string = 'auto';
   // Foils + Alarme (wie lauf.js)
   foils: Foil[] = [];
+  sports: Sport[] = [];   // Wahl erst ab 2 Eintraegen
   alarmEnabled: boolean = false;
   alarmDefault: string = 'foil';
   speedLow: number = 0;
@@ -439,6 +462,7 @@ export class Konfig {
     this.autoStart = k.autoStart === true;   // fehlt -> aus (wie Zepp/Wear/Apple)
     this.waterLock = k.waterLock === 'on' || k.waterLock === 'off' ? k.waterLock : 'auto';
     this.foils = k.foils !== undefined && k.foils !== null && k.foils.length > 0 ? k.foils : [];
+    this.sports = gueltigeSports(k.sports);
     this.alarmEnabled = k.alarmEnabled === true;
     this.alarmDefault = k.alarmDefault === 'fixed' ? 'fixed' : 'foil';
     this.speedLow = ganz(k.speedLow);
@@ -467,6 +491,7 @@ export interface AuswahlDaten {
   layouts?: boolean | null;
   sperre?: boolean | null;
   start?: boolean | null;
+  sport?: string | null;   // nur Watch 5 (ArkTS); fehlt = Standard des Profils
 }
 
 /** Wahl auf der Uhr (Einstellungsseite wie Zepp 4/4), einmal aus dem Profil vorbelegt (wie lauf.js Auswahl). */
@@ -478,6 +503,7 @@ export class Auswahl {
   layouts: boolean | null = null;
   sperre: boolean | null = null;
   start: boolean | null = null;   // Auto-Start: null = wie im Profil
+  sport: string | null = null;    // vom Nutzer gewaehlte Sportart; null = Standard (erster Eintrag)
 
   constructor(d: AuswahlDaten | null) {
     if (d === null || d === undefined) {
@@ -490,6 +516,7 @@ export class Auswahl {
     this.layouts = typeof d.layouts === 'boolean' ? d.layouts : null;
     this.sperre = typeof d.sperre === 'boolean' ? d.sperre : null;
     this.start = typeof d.start === 'boolean' ? d.start : null;
+    this.sport = typeof d.sport === 'string' && d.sport !== '' ? d.sport : null;
   }
 
   vorbelegen(k: Konfig): void {
@@ -534,9 +561,57 @@ export class Auswahl {
     this.foilId = k.foils[(i + 1) % n].id;
   }
 
+  /**
+   * Sportart fuer die Aufnahme: null, solange es nichts zu waehlen gibt (< 2 Eintraege) — dann schickt
+   * die Uhr kein sport_class. Sonst die Wahl, wenn sie noch in der Liste steht, sonst der Standard.
+   */
+  sportId(k: Konfig): string | null {
+    if (k.sports.length < 2) {
+      return null;
+    }
+    for (let i = 0; i < k.sports.length; i++) {
+      if (k.sports[i].id === this.sport) {
+        return this.sport;
+      }
+    }
+    return k.sports[0].id;
+  }
+
+  sportName(k: Konfig): string {
+    const id: string | null = this.sportId(k);
+    for (let i = 0; i < k.sports.length; i++) {
+      if (k.sports[i].id === id) {
+        return k.sports[i].name;
+      }
+    }
+    return '';
+  }
+
+  /** Weiterschalten; beim Standard (erster Eintrag) wird die Wahl geloescht, die Uhr folgt dann dem Profil. */
+  naechsterSport(k: Konfig): void {
+    const n: number = k.sports.length;
+    if (n < 2) {
+      this.sport = null;
+      return;
+    }
+    const jetzt: string | null = this.sportId(k);
+    let i: number = 0;
+    for (; i < n; i++) {
+      if (k.sports[i].id === jetzt) {
+        break;
+      }
+    }
+    const neu: number = (i + 1) % n;
+    this.sport = neu === 0 ? null : k.sports[neu].id;
+  }
+
   daten(): AuswahlDaten {
-    return { gesetzt: this.gesetzt, alarm: this.alarm, quelle: this.quelle, foilId: this.foilId,
+    const d: AuswahlDaten = { gesetzt: this.gesetzt, alarm: this.alarm, quelle: this.quelle, foilId: this.foilId,
       layouts: this.layouts, sperre: this.sperre, start: this.start };
+    if (this.sport !== null) {
+      d.sport = this.sport;   // nur wenn gewaehlt: so bleibt daten() ohne Sportart gleich zu lauf.js (Test)
+    }
+    return d;
   }
 }
 

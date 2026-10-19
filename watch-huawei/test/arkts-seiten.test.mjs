@@ -107,3 +107,39 @@ test("ArkTS-Seiten: Auswahl und Alarm wie lauf.js", { skip: ohneTsc }, async () 
     assert.deepEqual(la.pruefe(ka, aa, kmh, hr, sa, 5 + i, i * 1000), lj.pruefe(kj, aj, kmh, hr, sj, 5 + i, i * 1000), `Takt ${i}`);
   }
 });
+
+test("ArkTS-Seiten: Sportart-Wahl vor dem Start (nur Watch 5, /devices/config?sp=1)", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  const sports = [{ id: "pumpfoil", name: "Pumpfoil" }, { id: "wingfoil", name: "Wingfoil" }, { id: "downwind", name: "Downwind" }];
+  // ohne Liste oder mit nur einem Eintrag: keine Wahl, kein sport_class, daten() ohne Schluessel
+  for (const roh of [null, {}, { sports: [] }, { sports: [sports[1]] }, { sports: [{ id: 3 }, { name: "x" }, sports[1]] }]) {
+    const k = new A.Konfig(roh), a = new A.Auswahl(null);
+    a.vorbelegen(k);
+    assert.equal(a.sportId(k), null);
+    assert.equal(a.sportName(k), "");
+    a.naechsterSport(k);
+    assert.equal(a.sport, null);
+    assert.equal("sport" in a.daten(), false);
+  }
+  const k = new A.Konfig({ sports });
+  const a = new A.Auswahl(null);
+  a.vorbelegen(k);
+  assert.equal(a.sportId(k), "pumpfoil", "Standard = erster Eintrag");
+  assert.equal("sport" in a.daten(), false, "Standard wird nicht gespeichert, folgt dem Profil");
+  a.naechsterSport(k);
+  assert.equal(a.sportId(k), "wingfoil"); assert.equal(a.sportName(k), "Wingfoil");
+  assert.equal(a.daten().sport, "wingfoil");
+  // gespeichert und wieder geladen (auswahl.json)
+  const b = new A.Auswahl(JSON.parse(JSON.stringify(a.daten())));
+  b.vorbelegen(k);
+  assert.equal(b.sportId(k), "wingfoil");
+  b.naechsterSport(k); assert.equal(b.sportId(k), "downwind");
+  b.naechsterSport(k); assert.equal(b.sportId(k), "pumpfoil"); assert.equal(b.sport, null, "Umlauf zurueck auf Standard");
+  // Wahl verschwindet aus dem Profil -> Standard; anderer Standard im Profil wird uebernommen
+  const c = new A.Auswahl({ sport: "kitefoil" });
+  assert.equal(c.sportId(k), "pumpfoil");
+  const k2 = new A.Konfig({ sports: [sports[1], sports[0]] });
+  assert.equal(new A.Auswahl(null).sportId(k2), "wingfoil");
+  // Konfig nimmt nur id + name
+  assert.deepEqual(new A.Konfig({ sports: [{ id: "x", name: "X", extra: 1 }, sports[0]] }).sports, [{ id: "x", name: "X" }, sports[0]]);
+});
