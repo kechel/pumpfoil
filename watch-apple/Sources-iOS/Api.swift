@@ -226,6 +226,14 @@ enum Api {
         return r.attempts
     }
 
+    /// Wind am Spot + Wenden/Halsen (nur Wind-Sportarten), 19.10.2026.
+    static func sessionWind(_ id: Int) async throws -> SessionWindAntwort {
+        try await request("/api/sessions/\(id)/wind", method: "GET", body: nil, auth: true)
+    }
+    static func sessionManoever(_ id: Int) async throws -> ManoeverAntwort {
+        try await request("/api/sessions/\(id)/manoever", method: "GET", body: nil, auth: true)
+    }
+
     static func sessionCarves(_ id: Int) async throws -> CarveData {
         try await request("/api/sessions/\(id)/carves", method: "GET", body: nil, auth: true)
     }

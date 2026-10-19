@@ -1012,6 +1012,36 @@ data class SessionSetup(
     @SerialName("weight_is_default") val weightIsDefault: Boolean = true,
 )
 
+// Wind am Spot (GET /api/sessions/{id}/wind, Open-Meteo-Modell) und Wenden/Halsen
+// (GET /api/sessions/{id}/manoever, nur Anzeige) — 19.10.2026, nur Wind-Sportarten.
+@Serializable
+data class WindStunde(val t: String = "", val kmh: Double = 0.0, val richtung: Int = 0,
+                      @SerialName("boeen_kmh") val boeenKmh: Double? = null)
+
+@Serializable
+data class WindMittel(@SerialName("kmh_min") val kmhMin: Double = 0.0, @SerialName("kmh_max") val kmhMax: Double = 0.0,
+                      @SerialName("kmh_mittel") val kmhMittel: Double = 0.0, val richtung: Int = 0,
+                      @SerialName("boeen_max_kmh") val boeenMaxKmh: Double? = null)
+
+@Serializable
+data class SessionWindInfo(val quelle: String = "", val stunden: List<WindStunde> = emptyList(), val mittel: WindMittel? = null)
+
+@Serializable
+data class SessionWindAntwort(val wind: SessionWindInfo? = null)
+
+@Serializable
+data class Manoever(val i: Int = 0, @SerialName("t_ms") val tMs: Long = 0, val typ: String = "", val durch: Boolean = false,
+                    val drehung: Int = 0)
+
+@Serializable
+data class ManoeverZahl(val durch: Int = 0, val ab: Int = 0)
+
+@Serializable
+data class ManoeverZahlen(val wende: ManoeverZahl = ManoeverZahl(), val halse: ManoeverZahl = ManoeverZahl())
+
+@Serializable
+data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null)
+
 @Serializable
 data class SportProfil(
     val gruppe: String = "pump",

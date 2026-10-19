@@ -481,6 +481,16 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     var carve by remember(s.id) { mutableStateOf<CarveData?>(null) }
     LaunchedEffect(s.id) { carve = try { Api.sessionCarves(s.id) } catch (_: Exception) { null } }
     val hasCarves = carve?.carves?.isNotEmpty() == true
+    // Wind am Spot + Wenden/Halsen (19.10.2026) — nur Wind-Sportarten (Profil gruppe=wind).
+    val istWind = s.sportProfil?.gruppe == "wind"
+    var windInfo by remember(s.id) { mutableStateOf<SessionWindInfo?>(null) }
+    var manoever by remember(s.id) { mutableStateOf<ManoeverAntwort?>(null) }
+    LaunchedEffect(s.id, istWind) {
+        if (istWind) {
+            windInfo = try { Api.sessionWind(s.id).wind } catch (_: Exception) { null }
+            manoever = try { Api.sessionManoever(s.id) } catch (_: Exception) { null }
+        }
+    }
     // Skalen-Max: 0,6 g, aber höher wenn härter gecarvt (gedeckelt 1,0 g gegen GPS-Glitches).
     val carveGMax = remember(carve) {
         val vals = (carve?.g ?: emptyList()) + (carve?.arcs?.flatten()?.mapNotNull { it.getOrNull(2) } ?: emptyList())
@@ -984,7 +994,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala)
+                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty())
                         // Vollbild-Karte (PWA-Paritaet: dort ein Knopf "Vollbild" ueber der Karte
                         // bzw. die Taste F). Hier ein Knopf IN der Kartenecke — dasselbe Muster,
                         // das die Vergleichskarte dieser App schon nutzt.
@@ -1008,7 +1018,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala)
+                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty())
                             IconButton(
                                 onClick = { mapFull = false },
                                 // Karte bleibt randlos, das X nicht — sonst liegt es unter der Statusleiste.
@@ -1125,6 +1135,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
+            windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
             val excluded = s.excludedRanges.orEmpty()
@@ -1352,6 +1363,8 @@ private fun TrackMap(
     ganzeFahrt: Boolean = false,
     /** Tempo-Faerbung in km/h (Profil tempo_skala, Standard 8-25 wie bisher). */
     tempoSkala: Pair<Double, Double> = 8.0 to 25.0,
+    /** Wenden (violett) / Halsen (orange) als Marken; voll = auf dem Foil durchgefahren. */
+    manoever: List<Manoever> = emptyList(),
 ) {
     val pts = track.points
     val speeds = track.speedsFor(win)
@@ -1497,6 +1510,12 @@ private fun TrackMap(
                         })
                         allPts.add(pa); allPts.add(pb)
                     }
+                }
+                // Wenden/Halsen (nur Wind, nur ohne ausgewaehlten Lauf): violett/orange, hohl = abgesetzt.
+                if (selectedRun == null) manoever.forEach { mv ->
+                    val p = pts.getOrNull(mv.i) ?: return@forEach
+                    map.overlays.add(punktMarker(map, GeoPoint(p.second, p.first),
+                        if (mv.typ == "wende") Color(0xFFA855F7) else Color(0xFFF97316), dens, hohl = !mv.durch))
                 }
                 // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track,
                 // Startversuche ZULETZT in die Overlay-Liste: osmdroid zeichnet in dieser
@@ -2053,6 +2072,45 @@ private fun clockAt(startedAt: String, tz: String?, offsetMs: Long): String {
 private data class StatItem(val label: String, val value: String, val runIdx: Int? = null,
                             /** Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt. */
                             val info: String? = null)
+
+// Wind am Spot (Modellwert, keine Messung am Wasser) + Wenden/Halsen — wie die Wind-Box im Web.
+@Composable
+private fun WindKarte(w: WindMittel, z: ManoeverZahlen?) {
+    Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(I18n.t("sd.wind"), fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(8.dp))
+                Text("%.0f–%.0f km/h (%.0f–%.0f kn)".format(w.kmhMin, w.kmhMax, w.kmhMin / 1.852, w.kmhMax / 1.852))
+            }
+            Text(buildString {
+                w.boeenMaxKmh?.let { append(I18n.t("sd.windGusts") + " %.0f km/h · ".format(it)) }
+                append(I18n.t("sd.windFrom") + " ${w.richtung}° ")
+                append(windPfeil(w.richtung))
+            })
+            Text(I18n.t("sd.windNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (z != null) {
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("●", color = Color(0xFFA855F7)); Spacer(Modifier.width(4.dp))
+                    Text("${I18n.t("sd.tacks")} ${z.wende.durch} / ${z.wende.durch + z.wende.ab} ${I18n.t("sd.onFoil")}")
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("●", color = Color(0xFFF97316)); Spacer(Modifier.width(4.dp))
+                    Text("${I18n.t("sd.jibes")} ${z.halse.durch} / ${z.halse.durch + z.halse.ab} ${I18n.t("sd.onFoil")}")
+                }
+                Text(I18n.t("sd.manoeverNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+/** Pfeil in die Richtung, WOHIN der Wind weht (aus `richtung` + 180), als Unicode-Pfeil in 8 Stufen. */
+private fun windPfeil(richtungVon: Int): String {
+    val pfeile = listOf("↑", "↗", "→", "↘", "↓", "↙", "←", "↖")
+    val wohin = (richtungVon + 180) % 360
+    return pfeile[((wohin + 22) % 360) / 45]
+}
 
 @Composable
 private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (Int) -> Unit = {}) {

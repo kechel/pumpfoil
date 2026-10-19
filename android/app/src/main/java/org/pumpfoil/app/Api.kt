@@ -344,6 +344,14 @@ object Api {
         json.decodeFromJsonElement(ListSerializer(AttemptLine.serializer()), o)
     }
 
+    // Wind am Spot + Wenden/Halsen (nur Wind-Sportarten), 19.10.2026.
+    suspend fun sessionWind(id: Int): SessionWindAntwort = withContext(Dispatchers.IO) {
+        json.decodeFromString(SessionWindAntwort.serializer(), http("GET", "/api/sessions/$id/wind", null, auth = true))
+    }
+    suspend fun sessionManoever(id: Int): ManoeverAntwort = withContext(Dispatchers.IO) {
+        json.decodeFromString(ManoeverAntwort.serializer(), http("GET", "/api/sessions/$id/manoever", null, auth = true))
+    }
+
     suspend fun sessionCarves(id: Int): CarveData = withContext(Dispatchers.IO) {
         json.decodeFromString(CarveData.serializer(), http("GET", "/api/sessions/$id/carves", null, auth = true))
     }

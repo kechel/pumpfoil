@@ -996,6 +996,7 @@ NAECHSTES: list[dict] = [
          "Every page has a feedback button at the top right, and your message tells us which session or page you mean.",
          "The changelog page shows how far the analysis is tuned for each sport.",
          "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
+         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
          "The three buttons for your spot description sit in one row as icons.",
      ]},
     {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
@@ -1003,6 +1004,7 @@ NAECHSTES: list[dict] = [
          "Every page has a feedback button at the top right, and your message tells us which session or page you mean; the icons in the top bar are easier to see.",
          "The changelog page shows how far the analysis is tuned for each sport.",
          "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
+         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.

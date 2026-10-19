@@ -1070,6 +1070,22 @@ struct AttemptsAntwort: Decodable { var attempts: [AttemptLine] = [] }
 // Quelle fuer den Pulsabfall nach dem Lauf; nur brauchbar, wenn gleich lang wie die Koordinaten.
 struct TrackTimes: Decodable { var t_ms: [Int] = [] }
 
+// Wind am Spot (GET /api/sessions/{id}/wind, Open-Meteo-Modell) und Wenden/Halsen
+// (GET /api/sessions/{id}/manoever, nur Anzeige) — 19.10.2026, nur Wind-Sportarten.
+struct WindMittel: Codable {
+    let kmh_min: Double
+    let kmh_max: Double
+    let kmh_mittel: Double?
+    let richtung: Int
+    let boeen_max_kmh: Double?
+}
+struct SessionWindInfo: Codable { let quelle: String?; let mittel: WindMittel? }
+struct SessionWindAntwort: Codable { let wind: SessionWindInfo? }
+struct Manoever: Codable { let i: Int; let typ: String; let durch: Bool }
+struct ManoeverZahl: Codable { let durch: Int; let ab: Int }
+struct ManoeverZahlen: Codable { let wende: ManoeverZahl; let halse: ManoeverZahl }
+struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen? }
+
 struct CarveData: Codable {
     var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
     var carves: [Carve] = []
