@@ -274,9 +274,10 @@ const STATUS_FARBE: Record<string, string> = {
   live: "bg-emerald-600/15 text-emerald-700 dark:text-emerald-300",
   teilweise: "bg-sky-600/15 text-sky-700 dark:text-sky-300",
   geplant: "bg-orange-600/15 text-[#c24100] dark:text-[#ff8a4c]",
+  vorschlag: "bg-violet-600/15 text-violet-700 dark:text-violet-300",
   nein: "bg-slate-800/60 text-slate-400",
 };
-const STATUS_REIHE = ["live", "teilweise", "geplant"];
+const STATUS_REIHE = ["live", "teilweise", "geplant", "vorschlag"];
 
 function SportStand() {
   const [d, setD] = useState<Awaited<ReturnType<typeof api.sportStatus>> | null>(null);

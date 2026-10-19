@@ -31,6 +31,9 @@ STANDARD = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True, "tempo_s
 # Nur Abweichungen vom Standard. Stufe 1: die Wind-Gruppe.
 JE_GRUPPE = {
     "wind": {"karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False, "tempo_skala": [10, 40]},
+    # Motor/Seil (19.10.2026): Pumps zaehlen dort nicht, die Kadenz waere Rauschen. Karte und Hauptzahl
+    # wie bisher (eine eFoil-Fahrt ist fast durchgehend on-foil).
+    "motor": {"pumpzahlen": False, "tempo_skala": [10, 40]},
 }
 
 

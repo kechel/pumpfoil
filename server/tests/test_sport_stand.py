@@ -39,8 +39,10 @@ def test_profil_pumpfoil_unveraendert_wind_ganz():
     for sc in ("wingfoil", "kitefoil", "parawing"):
         assert profil(sc) == {"gruppe": "wind", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False,
                               "tempo_skala": [10, 40]}
-    for sc in ("foil_scoot", "wakethief", "surf_wave", "efoil"):
+    for sc in ("foil_scoot", "wakethief", "surf_wave"):
         assert {k: profil(sc)[k] for k in alt} == alt
+    for sc in ("efoil", "foildrive", "towed"):
+        assert profil(sc)["pumpzahlen"] is False and profil(sc)["karte"] == "laeufe"
 
 
 def test_profil_gruppen_wie_im_buch():
