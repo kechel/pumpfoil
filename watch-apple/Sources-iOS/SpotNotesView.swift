@@ -53,7 +53,7 @@ struct SpotNotesView: View {
                         .foregroundStyle(.secondary)
                     if d.can_write {
                         ownBlock(d)
-                        aktionen(d)   // eine Zeile mit drei Symbolen, s. Kommentar dort
+                        aktionen(d)   // Textlinks, s. Kommentar dort
                     }
                     ForEach(d.notes.filter { !$0.mine }) { n in noteBlock(n, own: false) }
                     if d.notes.filter({ !$0.mine }).isEmpty && !d.can_write {
@@ -66,6 +66,8 @@ struct SpotNotesView: View {
         }
         .task(id: spotId) { await load() }
         .onChange(of: pickerItem) { item in upload(item) }
+        // Bilderwaehler HIER oben neben den Sheets, nicht am Link (s. Kommentar an `aktionen`).
+        .photosPicker(isPresented: $zeigeWaehler, selection: $pickerItem, matching: .images)
         .sheet(isPresented: $editing) { editSheet() }
         .sheet(item: $gross) { b in FullBild(url: b.url) }
         .sheet(isPresented: Binding(get: { waehler != nil }, set: { if !$0 { waehler = nil } })) {
@@ -99,53 +101,58 @@ struct SpotNotesView: View {
         }
     }
 
-    /// Die drei Aktionen als SYMBOLE in EINER Zeile (Jan, 18.10.2026: „die drei Buttons fuer meine spot
-    /// description in eine zeile, edit-icon, upload-icon, select-image-icon"), wie Android.
+    /// Die drei Aktionen als TEXTLINKS in einer Zeile (Jan, 19.10.2026: „als layouteten text …
+    /// anstelle dieser iOS Buttons die irgendwas mit sich bringen was wir nicht wollen? so wie die
+    /// älter / neuer links"). Davor (18./19.10.) drei `.bordered`-Knoepfe: der erste reagierte erst
+    /// beim zweiten Tipp, der mittlere gar nicht.
     ///
-    /// ACHTUNG, Vorgeschichte vom 07.09.2026 (Memory swiftui-listenzeile-mehrere-knoepfe): mehrere
-    /// tippbare Elemente in EINER Listenzeile ohne eigenen Knopfstil machen die ganze Zeile zur
-    /// Tippflaeche — „Bearbeiten" oeffnete auch die Bilderauswahl. Deshalb hat JEDER Knopf hier
-    /// `.buttonStyle(.bordered)` (eigener Stil = eigene Tippflaeche). Und der Bilderwaehler bleibt
-    /// die explizite Form `Button` + `.photosPicker(isPresented:)` — die `PhotosPicker`-View blieb
-    /// stumm, weil die `.sheet` der Ansicht auf demselben Teilbaum hangen. Im Simulator pruefen: jedes
-    /// Symbol einzeln antippen, es darf nur seine eigene Aktion aufgehen. Klappt das nicht, zurueck
-    /// auf eine Zeile je Knopf (git log dieser Funktion).
+    /// Darum hier KEIN `Button`, sondern Text + `.onTapGesture`: ein `Button` in einer Listenzeile macht
+    /// die ganze Zeile zur Tippflaeche (Memory swiftui-listenzeile-mehrere-knoepfe, 07.09.), eine
+    /// Geste gilt nur fuer ihren eigenen Text. Der Bilderwaehler haengt NICHT mehr am Link, sondern
+    /// oben an der Ansicht neben den `.sheet` (die dort nachweislich funktionieren) — am Knopf in
+    /// der Zeile kam seine Darstellung nicht durch. Passt die Zeile nicht, stehen die Links untereinander.
     @ViewBuilder private func aktionen(_ d: SpotNotesOut) -> some View {
         let meine = d.notes.first(where: { $0.mine })
-        HStack(spacing: 10) {
-            Button {
-                draft = meine?.text ?? ""
-                editing = true
-            } label: {
-                Image(systemName: "square.and.pencil").frame(maxWidth: .infinity, minHeight: 30)
+        let fotos: Bool = (meine?.photos.count ?? 0) < d.max_photos
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 18) { aktionsLinks(meine, fotos: fotos) ; Spacer(minLength: 0) }
+            VStack(alignment: .leading, spacing: 10) { aktionsLinks(meine, fotos: fotos) }
+        }
+        .font(.subheadline)
+        .padding(.vertical, 2)
+        .opacity(busy ? 0.5 : 1)
+    }
+
+    @ViewBuilder private func aktionsLinks(_ meine: SpotNote?, fotos: Bool) -> some View {
+        aktionsLink(meine == nil ? Loc.t("spotnote.write", lang) : Loc.t("spotnote.edit", lang),
+                    symbol: "square.and.pencil") {
+            draft = meine?.text ?? ""
+            editing = true
+        }
+        if fotos {
+            aktionsLink(Loc.t("spotnote.addPhoto", lang), symbol: "photo.badge.plus") {
+                zeigeWaehler = true
             }
-            .buttonStyle(.bordered)
-            .accessibilityLabel(meine == nil ? Loc.t("spotnote.write", lang) : Loc.t("spotnote.edit", lang))
-            .disabled(busy)
-            if (meine?.photos.count ?? 0) < d.max_photos {
-                Button {
-                    zeigeWaehler = true
-                } label: {
-                    Image(systemName: "photo.badge.plus").frame(maxWidth: .infinity, minHeight: 30)
+            aktionsLink(Loc.t("spotnote.fromSession", lang), symbol: "photo.on.rectangle") {
+                Task {
+                    busy = true
+                    waehler = (try? await Api.mySpotSessionPhotos(spotId)) ?? []
+                    busy = false
                 }
-                .buttonStyle(.bordered)
-                .accessibilityLabel(Loc.t("spotnote.addPhoto", lang))
-                .disabled(busy)
-                .photosPicker(isPresented: $zeigeWaehler, selection: $pickerItem, matching: .images)
-                Button {
-                    Task {
-                        busy = true
-                        waehler = (try? await Api.mySpotSessionPhotos(spotId)) ?? []
-                        busy = false
-                    }
-                } label: {
-                    Image(systemName: "photo.on.rectangle").frame(maxWidth: .infinity, minHeight: 30)
-                }
-                .buttonStyle(.bordered)
-                .accessibilityLabel(Loc.t("spotnote.fromSession", lang))
-                .disabled(busy)
             }
         }
+    }
+
+    /// Ein Textlink: Symbol + Wort in Akzentfarbe, Tipp nur auf genau diesem Element.
+    private func aktionsLink(_ titel: String, symbol: String, _ aktion: @escaping () -> Void) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: symbol)
+            Text(titel).lineLimit(1)
+        }
+        .foregroundStyle(Color.accentColor)
+        .contentShape(Rectangle())
+        .onTapGesture { if !busy { aktion() } }
+        .accessibilityAddTraits(.isButton)
     }
 
     @ViewBuilder private func noteBlock(_ n: SpotNote, own: Bool) -> some View {
