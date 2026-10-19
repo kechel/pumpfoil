@@ -244,7 +244,7 @@
         "erkennung": {
           "status": "teilweise",
           "en": "Uses the pumpfoil detection with higher speed limits; runs are grouped into rides (a break of up to 5 minutes belongs to the ride)",
-          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions). Jan 19.10.: „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr staendig unterbrochen wird … bei whole ride ist fast alles in so einer session dann ein einziger run“ -> Stufe 3. 19.10.: das „staendig unterbrochen“ loesen jetzt die Fahrten (Anzeige); die Lauf-Erkennung selbst ist weiter die des Pumpfoils."
+          "notiz": "Kein eigener Detektor. Foil-Modell (foil_rf.pkl) ist auf Pumpfoil-Handgelenk trainiert; ENTER 2.8 / EXIT 2.5 m/s, GAP_SPLIT_S 15 fuer alle. Beispiel #17478: 62,8 km gesamt, 49,3 km on-foil, 57 Laeufe. Wing gesamt: 92 % der Strecke on-foil (856 Sessions). Jan 19.10.: „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr staendig unterbrochen wird … bei whole ride ist fast alles in so einer session dann ein einziger run“ -> Stufe 3. 19.10.: das „staendig unterbrochen“ loesen jetzt die Fahrten (Anzeige); die Lauf-Erkennung selbst ist weiter die des Pumpfoils. 19.10. Auswertung Stufe 3 (scripts/wind-laeufe-pruefen.py, rein lesend, 1361 Wind-Sessions): heute Median 14 Laeufe (p90 35), on-foil 97 % der bewegten Zeit -> der Ausreisser #17478 (57) ist nicht typisch. Tempo-Regel 12/8 km/h + 8 s Haltezeit: Median 11 (p90 30), on-foil-Zeit gleich (1,00), 63 % der Sessions weniger Laeufe; 10/8 km/h + 12 s: Median 8 (p90 24), Zeit +4 %, 72 % weniger. Restliche Unterbrechungen meist GPS-Luecken > 15 s (Uhr unter Wasser = Sturz). Entscheidung bei Jan; die Fahrten (5 min) loesen das Zerstueckeln in der Anzeige schon."
         },
         "tempo": {
           "status": "live",
@@ -344,7 +344,7 @@
           "wo": [
             "server"
           ],
-          "notiz": "sportregel.py v6, nur Gegenprobe im Admin; Kite vs. Wing kann sie nicht trennen."
+          "notiz": "sportregel.py v6, nur Gegenprobe im Admin; Kite vs. Wing kann sie nicht trennen. 19.10. Gezaehlt: Regel v6 sagt Wind bei 926 Sessions, die als Pumpfoil gespeichert sind (575 auto/9 Fahrer, 351 default/34 Fahrer); bei gespeicherten Wind-Sessions sagt sie zu 139/1379 Pump. Regel kennt nur 'Wind', nicht Wing/Kite/Parawing; von 42 betroffenen Fahrern haben 32 keine eigene Wind-Sportart. -> NICHT automatisch zuordnen (Risiko: beste Pumpfoil-Sessions aus den Bestenlisten); Vorschlag an Jan: Hinweis in der Session fuer den Besitzer."
         },
         "fahrten": {
           "status": "live",
