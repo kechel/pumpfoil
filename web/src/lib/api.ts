@@ -590,6 +590,8 @@ export interface CommunitySession {
   track_preview?: string | null;
   runs: number;
   foiling_km: number;
+  gesamt_km?: number | null;      // Gesamtstrecke (19.10.2026), Wind zeigt sie zuerst
+  sport_profil?: { gruppe: string; karte: string; hauptzahl: string; pumpzahlen: boolean } | null;
   max_speed_mps: number | null;
   detection: string | null;
   like_count?: number;

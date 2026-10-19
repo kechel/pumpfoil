@@ -421,7 +421,7 @@ export default function PersonalHome() {
               likeCount0={s.like_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}
-              stats={s.analysis && <SessionStats a={s.analysis} />}
+              stats={s.analysis && <SessionStats a={s.analysis} profil={s.sport_profil} />}
               statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} />}
               sportClass={s.sport_class}
               dataQuality={s.data_quality}

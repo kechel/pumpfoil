@@ -271,7 +271,7 @@
             "android",
             "ios"
           ],
-          "notiz": "total_distance_m + (trim_end|duration_ms - trim_start). Stufe 2 (Fahrzeit in Bewegung, Tempo ganze Fahrt, On-Foil-Anteil) offen.",
+          "notiz": "total_distance_m + (trim_end|duration_ms - trim_start). Stufe 2 (Fahrzeit in Bewegung, Tempo ganze Fahrt, On-Foil-Anteil) offen. 19.10.: auch auf den Session-Karten der Listen (eigene + Community, Web): Gesamtstrecke zuerst, Pumps weg (Feed liefert gesamt_km + sport_profil).",
           "plattformen": {
             "web": "2026-10-19",
             "android": "1.1.44",
@@ -722,6 +722,23 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "efoil",
+        "foildrive",
+        "towed"
+      ],
+      "merkmal": "kennzahlen, pumps",
+      "was": "Session-Karten in den Web-Listen nach Profil: Wind Gesamtstrecke zuerst, Wind/Motor ohne Pumps. Community-Feed liefert zusaetzlich gesamt_km + sport_profil.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [

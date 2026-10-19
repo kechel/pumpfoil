@@ -20,7 +20,7 @@ from sqlalchemy import Float, and_, cast, false, func, literal, not_, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
-from .. import models
+from .. import models, sportprofil
 from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import is_new_account
 from ..db import get_db
@@ -126,6 +126,9 @@ BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               # „Ort verbergen" je Aufnahme (None = folgt dem Profil des Besitzers, das `_brief`
               # ueber `_verbergende_nutzer` nachschlaegt).
               S.ort_sichtbarkeit,
+              # Gesamtstrecke der ganzen Fahrt (19.10.2026): Wind-Sportarten zeigen sie auf der Karte
+              # zuerst (Sportart-Profil). Vor place_lat/place_lon, s. naechster Satz.
+              AR.total_distance_m,
               # place_lat/place_lon MUESSEN die letzten beiden bleiben: sessions-grouped greift
               # positionsbasiert darauf zu (r[nb-2], r[nb-1]).
               S.place_lat, S.place_lon)
@@ -234,7 +237,7 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
            foil_id=None, author_created_at=None, device_id=None, ended=None, youtube=None,
            stab_id=None, board_id=None, mast_len_cm=None, owner_id=None, sport_class=None,
-           placement=None, ort_sichtbarkeit=None, lat=None, lon=None,
+           placement=None, ort_sichtbarkeit=None, gesamt_m=None, lat=None, lon=None,
            verbergende=frozenset()) -> dict:
     # „Ort verbergen": die Aufnahme entscheidet, sonst das Profil des Besitzers. Im Feed faellt
     # damit der Spotname weg — die Zeitzone ebenfalls, denn eine Ortszeit IST eine Ortsangabe
@@ -257,6 +260,9 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         "track_preview": track_preview or None,
         "runs": int(num_runs or 0),
         "foiling_km": round((fdist or 0) / 1000.0, 2),
+        # Zusaetzlich (19.10.2026): Gesamtstrecke + Anzeige-Profil der Sportart; aeltere Apps ignorieren es.
+        "gesamt_km": round(gesamt_m / 1000.0, 2) if gesamt_m is not None else None,
+        "sport_profil": sportprofil.profil(sport_class),
         "max_speed_mps": max_speed,
         "foil_id": foil_id,
         "foil": None,  # in _attach_social aufgelöst (nur wenn foil_id gesetzt)
