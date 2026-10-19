@@ -690,7 +690,7 @@ const de: Record<string, string> = {
   "sd.tacks": "Wenden",
   "sd.jibes": "Halsen",
   "sd.onFoil": "auf dem Foil",
-  "sd.manoeverNote": "Wende = Bug durch den Wind, Halse = Heck durch den Wind. Die erste Zahl blieb auf dem Foil. Geschätzt aus GPS-Spur und Modellwind.",
+  "sd.manoeverNote": "Wende = Bug durch den Wind, Halse = Heck durch den Wind. Die erste Zahl blieb auf dem Foil. Geschätzt aus GPS-Spur und Modellwind. Auf der Karte: voller Punkt = auf dem Foil, Ring = abgesetzt.",
   "sd.upwind": "Höhe laufen",
   "sd.vmgBest": "bestes VMG {v} km/h",
   "sd.vmgAvg": "Ø {v} km/h am Wind",

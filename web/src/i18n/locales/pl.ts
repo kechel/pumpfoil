@@ -647,7 +647,7 @@ const pl: Record<string, string> = {
   "sd.tacks": "Zwroty przez sztag",
   "sd.jibes": "Zwroty przez rufę",
   "sd.onFoil": "na foilu",
-  "sd.manoeverNote": "Zwrot przez sztag = dziób przez wiatr, przez rufę = rufa. Pierwsza liczba została na foilu. Szacowane z trasy GPS i modelu wiatru.",
+  "sd.manoeverNote": "Zwrot przez sztag = dziób przez wiatr, przez rufę = rufa. Pierwsza liczba została na foilu. Szacowane z trasy GPS i modelu wiatru. Na mapie: pełna kropka = na foilu, pierścień = przyziemienie.",
   "sd.upwind": "Halsowanie pod wiatr",
   "sd.vmgBest": "najlepsze VMG {v} km/h",
   "sd.vmgAvg": "śr. {v} km/h pod wiatr",

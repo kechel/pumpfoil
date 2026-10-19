@@ -650,7 +650,7 @@ const nl: Record<string, string> = {
   "sd.tacks": "Overstagen",
   "sd.jibes": "Gijpen",
   "sd.onFoil": "op de foil",
-  "sd.manoeverNote": "Overstag = boeg door de wind, gijp = hek door de wind. Het eerste getal bleef op de foil. Geschat uit het GPS-spoor en de modelwind.",
+  "sd.manoeverNote": "Overstag = boeg door de wind, gijp = hek door de wind. Het eerste getal bleef op de foil. Geschat uit het GPS-spoor en de modelwind. Op de kaart: volle stip = op de foil gebleven, ring = neergezet.",
   "sd.upwind": "Hoogte lopen",
   "sd.vmgBest": "beste VMG {v} km/h",
   "sd.vmgAvg": "gem. {v} km/h aan de wind",

@@ -553,7 +553,7 @@ const it: Record<string, string> = {
   "sd.tacks": "Virate",
   "sd.jibes": "Strambate",
   "sd.onFoil": "sul foil",
-  "sd.manoeverNote": "Virata = la prua passa nel vento, strambata = la poppa. Il primo numero è rimasto sul foil. Stimato da traccia GPS e vento del modello.",
+  "sd.manoeverNote": "Virata = la prua passa nel vento, strambata = la poppa. Il primo numero è rimasto sul foil. Stimato da traccia GPS e vento del modello. Sulla mappa: punto pieno = rimasto sul foil, anello = appoggiato.",
   "sd.upwind": "Bolina",
   "sd.vmgBest": "VMG migliore {v} km/h",
   "sd.vmgAvg": "media {v} km/h di bolina",

@@ -626,7 +626,7 @@ const ja: Record<string, string> = {
   "sd.tacks": "タック",
   "sd.jibes": "ジャイブ",
   "sd.onFoil": "フォイル上",
-  "sd.manoeverNote": "タック＝船首が風を横切る、ジャイブ＝船尾。最初の数はフォイルに乗ったまま。GPSと気象モデルの風から推定。",
+  "sd.manoeverNote": "タック＝船首が風を横切る、ジャイブ＝船尾。最初の数はフォイルに乗ったまま。GPSと気象モデルの風から推定。 地図：塗りつぶし＝フォイルのまま、輪＝着水。",
   "sd.upwind": "アップウィンド",
   "sd.vmgBest": "最高VMG {v} km/h",
   "sd.vmgAvg": "平均 {v} km/h（風上）",

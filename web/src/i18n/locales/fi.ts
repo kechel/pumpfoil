@@ -633,7 +633,7 @@ const fi: Record<string, string> = {
   "sd.tacks": "Vendat",
   "sd.jibes": "Jiippaukset",
   "sd.onFoil": "foililla",
-  "sd.manoeverNote": "Venda = keula tuulen läpi, jiippi = perä tuulen läpi. Ensimmäinen luku pysyi foililla. Arvioitu GPS-reitistä ja mallin tuulesta.",
+  "sd.manoeverNote": "Venda = keula tuulen läpi, jiippi = perä tuulen läpi. Ensimmäinen luku pysyi foililla. Arvioitu GPS-reitistä ja mallin tuulesta. Kartalla: täysi piste = pysyi foililla, rengas = laskeutui.",
   "sd.upwind": "Ylätuuleen",
   "sd.vmgBest": "paras VMG {v} km/h",
   "sd.vmgAvg": "keskim. {v} km/h ylätuuleen",

@@ -667,7 +667,7 @@ const en: Record<string, string> = {
   "sd.tacks": "Tacks",
   "sd.jibes": "Jibes",
   "sd.onFoil": "on the foil",
-  "sd.manoeverNote": "Tack = bow through the wind, jibe = stern through the wind. The first number stayed on the foil. Estimated from the GPS track and the model wind.",
+  "sd.manoeverNote": "Tack = bow through the wind, jibe = stern through the wind. The first number stayed on the foil. Estimated from the GPS track and the model wind. On the map: filled dot = stayed on the foil, ring = touched down.",
   "sd.upwind": "Upwind",
   "sd.vmgBest": "best VMG {v} km/h",
   "sd.vmgAvg": "avg {v} km/h upwind",

@@ -633,7 +633,7 @@ const ptPT: Record<string, string> = {
   "sd.tacks": "Viragens",
   "sd.jibes": "Jibes",
   "sd.onFoil": "no foil",
-  "sd.manoeverNote": "Viragem = a proa passa pelo vento, jibe = a popa. O primeiro número ficou no foil. Estimado a partir do trajeto GPS e do vento do modelo.",
+  "sd.manoeverNote": "Viragem = a proa passa pelo vento, jibe = a popa. O primeiro número ficou no foil. Estimado a partir do trajeto GPS e do vento do modelo. No mapa: ponto cheio = ficou no foil, anel = tocou a água.",
   "sd.upwind": "Contra o vento",
   "sd.vmgBest": "melhor VMG {v} km/h",
   "sd.vmgAvg": "média {v} km/h contra o vento",
