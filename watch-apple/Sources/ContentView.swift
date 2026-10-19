@@ -474,8 +474,13 @@ struct RecordView: View {
     @ViewBuilder private var foilPreselectButton: some View {
         if manualAlarm || !foils.isEmpty {
             Button { showFoilPicker = true } label: {
+                // Zwei Zeilen, ohne „Foil:"-Vorsatz (Jan, 19.10.2026: „das weiss jeder was die
+                // Bezeichnungen sind"): oben die Sportart (nur bei Auswahl), darunter das Foil.
                 HStack(spacing: 3) {
-                    Text(foilButtonText).lineLimit(1).minimumScaleFactor(0.6)
+                    VStack(spacing: 0) {
+                        if let sportName { Text(sportName).lineLimit(1).minimumScaleFactor(0.6) }
+                        Text(foilLabel).lineLimit(1).minimumScaleFactor(0.6)
+                    }
                     if alarm.enabled { Image(systemName: "bell.fill").foregroundStyle(.yellow) }
                 }
                 .font(.caption2)
@@ -485,10 +490,8 @@ struct RecordView: View {
         }
     }
 
-    private var foilButtonText: String {
-        let prefix: String = WLoc.t("foil.prefix", lang)
-        let sportName: String? = sports.count > 1 ? sports.first(where: { $0.id == selectedSport })?.name : nil
-        return (sportName.map { $0 + " · " } ?? "") + prefix + foilLabel
+    private var sportName: String? {
+        sports.count > 1 ? sports.first(where: { $0.id == selectedSport })?.name : nil
     }
 
     private var startButton: some View {
