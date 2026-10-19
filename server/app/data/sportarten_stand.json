@@ -473,8 +473,8 @@
           ],
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.53"
           }
         },
         "welle_paddeln": {

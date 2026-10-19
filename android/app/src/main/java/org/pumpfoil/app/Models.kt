@@ -287,6 +287,14 @@ data class BilanzJahr(val jahr: Int = 0, val sportarten: List<BilanzSport> = emp
 
 @Serializable
 data class Jahresbilanz(val jahre: List<BilanzJahr> = emptyList())
+
+// Wenden/Halsen auf dem Foil je Monat (19.10.2026, GET /api/sessions/manoever-verlauf)
+@Serializable
+data class ManoeverMonat(val monat: String = "", val sessions: Int = 0, @SerialName("wende_durch") val wendeDurch: Int = 0,
+                         val wende: Int = 0, @SerialName("halse_durch") val halseDurch: Int = 0, val halse: Int = 0)
+
+@Serializable
+data class ManoeverVerlauf(val monate: List<ManoeverMonat> = emptyList())
 @Serializable
 data class CarveWin(val s: Int = 0, val m: Int = 0, val l: Int = 0)
 

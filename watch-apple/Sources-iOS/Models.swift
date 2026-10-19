@@ -1059,6 +1059,9 @@ struct CarveStats: Codable { let windows: [String: CarveWin] }
 struct BilanzSport: Codable { let sport: String; let sessions: Int; let stunden: Double; let km: Double; let foil_km: Double }
 struct BilanzJahr: Codable { let jahr: Int; let sportarten: [BilanzSport] }
 struct Jahresbilanz: Codable { let jahre: [BilanzJahr] }
+/// Wenden/Halsen auf dem Foil je Monat (19.10.2026, GET /api/sessions/manoever-verlauf)
+struct ManoeverMonat: Codable { let monat: String; let sessions: Int; let wende_durch: Int; let wende: Int; let halse_durch: Int; let halse: Int }
+struct ManoeverVerlauf: Codable { let monate: [ManoeverMonat] }
 struct CarveWin: Codable { let s: Int; let m: Int; let l: Int }
 
 // Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
