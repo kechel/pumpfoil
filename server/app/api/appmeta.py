@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16, Apple-Mail eligible for distribution, 1.1.50 for iOS
+        "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.51 for iOS
+        # (Submission 8f57a373-d157-42b2-91db-51355d3b9b97, eingereicht 18.10. 09:32, Build 58).
+        # Inhalt: Heatmap & Routen, Schutzgebiete, Freundschaftsanfragen auf Home, Boards bearbeiten,
+        # durchgehende Laeufe, Warten auf die Uhr, Push Freunde, Suunto-Hinweis + Suunto-Bruecke (Beta).
+        # ALT: "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16, Apple-Mail eligible for distribution, 1.1.50 for iOS
         # (Jans Meldung, Submission 3612e127-51da-4d5e-9704-934972265f99, eingereicht 16.10. 00:04, Build 56).
         # Inhalt: Freunde, Freunde-Ansicht, Spot-Heatmap, Brett-Automatik-Hinweis, Watch meldet den Spot.
         # ALT: "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15, Apple-Mail eligible for distribution, 1.1.49 for iOS
@@ -426,7 +430,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.48",   # FREIGEGEBEN 2026-10-14 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.47",   # FREIGEGEBEN 2026-10-13 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -882,28 +887,7 @@ IN_REVIEW: list[dict] = [
          # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
          "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
      ]},
-    # EINGEREICHT 18.10.2026 09:32 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.51 (58),
-    # Kennung 8f57a373-d157-42b2-91db-51355d3b9b97). Build 57 war vorher schon hochgeladen (verbraucht).
-    {"name": "iPhone + Apple Watch", "version": "1.1.51",
-     "eingereicht": "2026-10-18",
-     "items": [
-         # 16.10.2026: Heatmap & Routen auf der Spot-Seite, Routen in der Community, Schutzgebiete
-         # (Android 0fecf406/f9f7de2a/38b89b0c, iOS 871a5329 + Folgecommit; PWA seit 16.10.).
-         "Every spot page has a heatmap of where riders pump or start, and you can plan freefoiling routes from the start spots riders really use there, as round trips or from A to B, including start spots of neighbouring spots within a radius you choose.",
-         "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
-         "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
-         "Home links to your home spot, and wind directions use your app language.",
-         # 16.10.2026 abends (4b079268, fa8d11e4, f131cefa), wie die PWA.
-         "Friend requests show at the top of Home, where you can accept them directly or decline them quietly.",
-         "You can edit the name, volume and length of your boards in your setup afterwards.",
-         "Runs on the maps are always drawn as one line, and short GPS gaps in a run are bridged with a curve.",
-         # 18.10.2026: Abgleich vor dem Release (PWA seit 14.-17.10.).
-         "After you enter the code from your watch, the app only says connected once the watch has really picked up the connection, and tells you what to do if it does not.",
-         "Notifications about friends can be switched off in your settings.",
-         "The Suunto account card tells you which mode to record with.",
-         # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
-         "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
-     ]},
+    # iPhone + Apple Watch 1.1.51 (eingereicht 18.10., freigegeben 19.10.2026) -> LIVE, Punkte stehen im Changelog.
     # EINGEREICHT 17.10.2026 abends (Jans Meldung, Apizone „SuuntoPlus Sports Apps"-Konsole, Paket app/app.zip
     # aus „Build SuuntoPlus App For All Languages", Version 1.00). Nie auf Hardware gelaufen (Jan hat keine
     # Suunto; Tester nach Freigabe). Handy-Bruecke + Server-Import der Log-Kanaele sind NICHT Teil dieser
