@@ -181,6 +181,42 @@ function CarveStatsSection() {
   );
 }
 
+// Wenden/Halsen auf dem Foil je Monat (19.10.2026, Stand-Buch: quote_verlauf) — nur fuer Fahrer mit
+// Wind-Sessions; die neuesten Monate oben, hoechstens 12.
+function ManoeverVerlaufSection() {
+  const t = useT();
+  const [d, setD] = useState<Awaited<ReturnType<typeof api.manoeverVerlauf>> | null>(null);
+  useEffect(() => { api.manoeverVerlauf().then(setD).catch(() => {}); }, []);
+  const monate = (d?.monate ?? []).filter((m) => m.wende + m.halse > 0).slice(-12).reverse();
+  if (!monate.length) return null;
+  const zelle = (durch: number, n: number) => (n ? `${durch} / ${n} (${Math.round((100 * durch) / n)} %)` : "–");
+  return (
+    <div className="mt-8">
+      <h2 className="mb-2 text-xl font-bold">{t("phome.manTitle")}</h2>
+      <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <table className="w-full min-w-[360px] text-sm">
+          <thead>
+            <tr className="bg-slate-900/70 text-slate-300">
+              <th className="px-3 py-2 text-left font-medium">{t("phome.manMonth")}</th>
+              <th className="px-3 py-2 text-right font-medium">{t("sd.jibes")}</th>
+              <th className="px-3 py-2 text-right font-medium">{t("sd.tacks")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {monate.map((m) => (
+              <tr key={m.monat} className="border-t border-slate-800">
+                <td className="px-3 py-2 text-slate-300">{m.monat}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-brand-400">{zelle(m.halse_durch, m.halse)}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-brand-400">{zelle(m.wende_durch, m.wende)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // Jahresbilanz je Sportart (19.10.2026, Stand-Buch: jahresbilanz): je Jahr eine Zeile pro Sportart.
 function JahresbilanzSection() {
   const t = useT();
@@ -558,6 +594,7 @@ export default function PersonalHome() {
       <StartSuccessSection />
       <CarveStatsSection />
       <JahresbilanzSection />
+      <ManoeverVerlaufSection />
       <BoardAttitudeSection />
 
       {/* Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026: „ganz unten einen Button … erstmal

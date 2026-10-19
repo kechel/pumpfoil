@@ -1023,6 +1023,8 @@ export const api = {
     hoehe?: null | { vmg_max_kmh: number; vmg_mittel_kmh: number | null; am_wind_anteil: number | null; hoehe_m: number; winkel_med: number | null };
   }>(`/api/sessions/${id}/manoever`),
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
+  // Wenden/Halsen-Quote im Verlauf (19.10.2026): je Monat, aus dem Manoever-Cache.
+  manoeverVerlauf: () => req<{ monate: { monat: string; sessions: number; wende_durch: number; wende: number; halse_durch: number; halse: number }[] }>("/api/sessions/manoever-verlauf"),
   // Jahresbilanz je Sportart (19.10.2026): eigene Sessions je Kalenderjahr.
   jahresbilanz: () => req<{ jahre: { jahr: number; sportarten: { sport: string; sessions: number; stunden: number; km: number; foil_km: number }[] }[] }>("/api/sessions/jahresbilanz"),
   sportStatus: () => req<{

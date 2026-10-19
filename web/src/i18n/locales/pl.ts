@@ -1707,6 +1707,8 @@ const pl: Record<string, string> = {
   "settings.strava.unlink": "Rozłącz",
   "profile.calculator": "Kalkulator foili",
   "phome.hello": "Cześć, {name}",
+  "phome.manTitle": "Zwroty przez sztag i rufę na foilu",
+  "phome.manMonth": "Miesiąc",
   "phome.ybTitle": "Rok w liczbach",
   "phome.ybSessions": "Sesje",
   "phome.ybHours": "Godziny",

@@ -1560,6 +1560,8 @@ const ru: Record<string, string> = {
   "profile.calculator": "Калькулятор фойлов",
 
   "phome.hello": "Привет, {name}",
+  "phome.manTitle": "Повороты оверштаг и фордевинд на фойле",
+  "phome.manMonth": "Месяц",
   "phome.ybTitle": "Год в цифрах",
   "phome.ybSessions": "Сессии",
   "phome.ybHours": "Часы",

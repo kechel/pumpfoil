@@ -1560,6 +1560,8 @@ const ja: Record<string, string> = {
   "profile.calculator": "フォイル計算機",
 
   "phome.hello": "こんにちは、{name} さん",
+  "phome.manTitle": "フォイル上のタック＆ジャイブ",
+  "phome.manMonth": "月",
   "phome.ybTitle": "年間の記録",
   "phome.ybSessions": "セッション",
   "phome.ybHours": "時間",

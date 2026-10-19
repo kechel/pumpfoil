@@ -1687,6 +1687,8 @@ const nl: Record<string, string> = {
   "profile.calculator": "Foil-calculator",
 
   "phome.hello": "Hallo, {name}",
+  "phome.manTitle": "Overstag & gijpen op de foil",
+  "phome.manMonth": "Maand",
   "phome.ybTitle": "Jaar in cijfers",
   "phome.ybSessions": "Sessies",
   "phome.ybHours": "Uren",

@@ -1493,6 +1493,34 @@ def overall_stats(
     return out
 
 
+@router.get("/manoever-verlauf")
+def manoever_verlauf(
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Wenden/Halsen-Quote im Verlauf (19.10.2026, Stand-Buch: quote_verlauf): je Monat, wie viele der
+    eigenen Wenden und Halsen auf dem Foil blieben. Nur aus dem Manoever-Cache (data/manoever/), der
+    beim Ansehen einer Session und per scripts/manoever-nachholen.py entsteht — dieser Aufruf rechnet nichts."""
+    wind = [k for k, g in sportprofil.GRUPPE.items() if g == "wind"]
+    rows = (db.query(models.Session)
+            .filter(models.Session.user_id == user.id, models.Session.sport_class.in_(wind),
+                    models.Session.deleted.isnot(True), models.Session.started_at.isnot(None))
+            .order_by(models.Session.started_at).all())
+    monate: dict[str, dict] = {}
+    for s in rows:
+        e = manoever_gecacht(db, s, nur_cache=True)
+        z = (e or {}).get("zahlen")
+        if not z:
+            continue
+        m = monate.setdefault(s.started_at.strftime("%Y-%m"), {"monat": s.started_at.strftime("%Y-%m"), "sessions": 0,
+                                                             "wende_durch": 0, "wende": 0, "halse_durch": 0, "halse": 0})
+        m["sessions"] += 1
+        for typ in ("wende", "halse"):
+            m[f"{typ}_durch"] += z[typ]["durch"]
+            m[typ] += z[typ]["durch"] + z[typ]["ab"]
+    return {"monate": list(monate.values())}
+
+
 @router.get("/jahresbilanz")
 def jahresbilanz(
     user: models.User = Depends(current_user),
@@ -3730,10 +3758,51 @@ def session_manoever(
 
     `items[].i` ist der Index in die getrimmte Spur (= track_geojson). Ohne Windrichtung (kein Ort,
     Ort verborgen, Open-Meteo nicht erreichbar) gibt es keine Einordnung -> leer."""
-    leer = {"items": [], "zahlen": None, "hoehe": None}
     s = _readable(db, session_id)
     if sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s):
-        return leer
+        return dict(MANOEVER_LEER)
+    return manoever_gecacht(db, s)
+
+
+MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None}
+# Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
+MANOEVER_VERSION = "m3-lauf"
+
+
+def _manoever_schluessel(s, res) -> str:
+    import hashlib
+    roh = f"{MANOEVER_VERSION}|{s.trim_start_ms}|{s.trim_end_ms}|{(res.segments_json if res else '') or ''}"
+    return hashlib.md5(roh.encode()).hexdigest()
+
+
+def manoever_gecacht(db, s, nur_cache: bool = False) -> dict | None:
+    """Ergebnis aus data/manoever/<id>.json, solange Laeufe/Trim/Version gleich sind; sonst neu rechnen
+    und speichern (bei `nur_cache` dann None). Fuer den Verlauf (manoever-verlauf) und die Anzeige."""
+    res = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+    schluessel = _manoever_schluessel(s, res)
+    from ..config import get_settings
+    d = get_settings().data_dir / "manoever"
+    pfad = d / f"{s.id}.json"
+    try:
+        c = json.loads(pfad.read_text())
+        if c.get("schluessel") == schluessel:
+            return c["ergebnis"]
+    except (OSError, ValueError):
+        pass
+    if nur_cache:
+        return None
+    erg = _manoever_berechnen(db, s, res)
+    if erg is not None and erg.get("zahlen") is not None:
+        try:
+            d.mkdir(parents=True, exist_ok=True)
+            pfad.write_text(json.dumps({"schluessel": schluessel, "ergebnis": erg}))
+        except OSError:
+            pass
+    return erg if erg is not None else dict(MANOEVER_LEER)
+
+
+def _manoever_berechnen(db, s, res) -> dict:
+    leer = dict(MANOEVER_LEER)
     from ..manoever import erkennen, hoehe, wind_funktion
     from ..sessionwind import session_wind as _wind
     pkt = wind_funktion(_wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at))
@@ -3753,9 +3822,8 @@ def session_manoever(
     lon = [float(r[2]) if r[2] is not None else float("nan") for r in gps]
     # Laeufe in Session-ms (wie die Spur): v2 traegt t_start_session_ms; sonst re-basiert auf den Trim.
     _laeufe = []
-    _res = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
     try:
-        for g_ in (json.loads(_res.segments_json) if _res and _res.segments_json else []):
+        for g_ in (json.loads(res.segments_json) if res and res.segments_json else []):
             a_ = g_.get("t_start_session_ms", (g_.get("t_start_ms") or 0) + (s.trim_start_ms or 0))
             b_ = g_.get("t_end_session_ms", (g_.get("t_end_ms") or 0) + (s.trim_start_ms or 0))
             _laeufe.append((float(a_), float(b_)))

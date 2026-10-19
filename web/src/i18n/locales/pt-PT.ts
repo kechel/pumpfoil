@@ -1556,6 +1556,8 @@ const ptPT: Record<string, string> = {
   "profile.calculator": "Calculadora de foil",
 
   "phome.hello": "Oi, {name}",
+  "phome.manTitle": "Viradas e jibes no foil",
+  "phome.manMonth": "Mês",
   "phome.ybTitle": "O teu ano em números",
   "phome.ybSessions": "Sessões",
   "phome.ybHours": "Horas",

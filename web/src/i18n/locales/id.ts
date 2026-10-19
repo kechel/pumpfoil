@@ -1560,6 +1560,8 @@ const id: Record<string, string> = {
   "profile.calculator": "Kalkulator foil",
 
   "phome.hello": "Hai, {name}",
+  "phome.manTitle": "Tack & jibe di atas foil",
+  "phome.manMonth": "Bulan",
   "phome.ybTitle": "Tahun dalam angka",
   "phome.ybSessions": "Sesi",
   "phome.ybHours": "Jam",

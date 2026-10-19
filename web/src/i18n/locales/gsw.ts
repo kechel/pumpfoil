@@ -1219,6 +1219,8 @@ const gsw: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Hoi, {name}",
+  "phome.manTitle": "Wände & Halse uf em Foil",
+  "phome.manMonth": "Monet",
   "phome.ybTitle": "Jahresbilanz",
   "phome.ybSessions": "Sessions",
   "phome.ybHours": "Stunde",

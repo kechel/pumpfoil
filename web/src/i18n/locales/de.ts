@@ -1901,6 +1901,8 @@ const de: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Hallo, {name}",
+  "phome.manTitle": "Wenden & Halsen auf dem Foil",
+  "phome.manMonth": "Monat",
   "phome.ybTitle": "Jahresbilanz",
   "phome.ybSessions": "Sessions",
   "phome.ybHours": "Stunden",

@@ -1303,6 +1303,8 @@ const es: Record<string, string> = {
   "profile.calculator": "Calculadora de foil",
 
   "phome.hello": "Hola, {name}",
+  "phome.manTitle": "Viradas y trasluchadas sobre el foil",
+  "phome.manMonth": "Mes",
   "phome.ybTitle": "Tu año en cifras",
   "phome.ybSessions": "Sesiones",
   "phome.ybHours": "Horas",
