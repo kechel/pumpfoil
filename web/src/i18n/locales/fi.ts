@@ -1902,6 +1902,8 @@ const fi: Record<string, string> = {
   "cls.autoWhy": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h — pumppausveto kestää keskimäärin 27 s.",
   "cls.autoWhyPulse": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h, eikä syke juuri reagoinut ({hr} bpm).",
   "cls.ruleWhyWind": "Ratkaisi: {dur} s:n ajot keskimäärin {kmh} km/h, {foil} % ajasta foililla, {fl} km:n alueella — tuulilajin kuvio.",
+  "cls.windHint": "Tämä sessio näyttää tuulisessiolta. Vaihdetaanko laji?",
+  "cls.windHintNo": "Ei, hyvä näin",
   "cls.ruleWhyWave": "Ratkaisi: lyhyet ajot ({dur} s) keskimäärin {kmh} km/h aivan meren rannalla, välissä {zw} m melontaa takaisin — aaltosurffauksen kuvio.",
   "cls.ruleWhyPump": "Ratkaisi: lyhyet ajot ({dur} s) keskimäärin {kmh} km/h, aina samasta lähtöpaikasta — pumppauksen kuvio.",
   "phome.emptyTitle": "Tervetuloa! Näin ensimmäinen sessiosi päätyy tänne",

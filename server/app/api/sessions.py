@@ -296,6 +296,46 @@ def _fremdkraft_keep(s: models.Session) -> list[list[int]]:
         return []
 
 
+WIND_HINWEIS_WEG_MAX = 500
+# Strenger als die Sportart-Regel v6 (die bei 27 % der juengsten Pumpfoil-Sessions „Wind" sagt): nur
+# schnell UND lange Laeufe. Gemessen 19.10.2026: Lauftempo-Median >= 19 km/h und Lauf-Median >= 60 s
+# trifft 2,1 % der Pumpfoil-Sessions (16 Fahrer) und 72 % der vom Menschen als Wind eingeordneten.
+WIND_HINWEIS_KMH = 19.0
+WIND_HINWEIS_DAUER_S = 60.0
+WIND_HINWEIS_BREMSE = 5    # so oft weggeklickt -> keine Hinweise mehr fuer diesen Fahrer
+
+
+def _wind_vorschlag(s: models.Session) -> dict | None:
+    """Hinweis „sieht nach einer Wind-Session aus" (Jan, 19.10.2026: „Hinweis anbieten und wegklickbar
+    ohne zu akzeptieren"). Bewusst NICHT automatisch umstellen: die Regel (analysis/sportregel.py) kennt
+    nur „Wind", nicht Wing/Kite/Parawing, und schlaegt bei schnellen Pumpfoilern auch mal falsch an.
+    Nur wenn die Regel Wind sagt, gespeichert etwas anderes steht, kein Mensch die Sportart gewaehlt hat
+    und der Besitzer den Hinweis fuer diese Session nicht weggeklickt hat."""
+    try:
+        if sportprofil.profil(s.sport_class)["gruppe"] == "wind":
+            return None
+        if (getattr(s, "sport_source", None) or "default") in ("owner", "admin"):
+            return None
+        if (getattr(s, "data_quality", None) or "ok") != "ok" or getattr(s, "needs_classification", False):
+            return None   # „Sportart klaeren" fragt dort schon — keine zweite Frage darunter
+        res = getattr(s, "result", None)
+        m = (json.loads(res.metrics_json) or {}).get("sportregel") if res and res.metrics_json else None
+        if not m:
+            return None
+        if (m.get("tempo_med") or 0) < WIND_HINWEIS_KMH or (m.get("dauer_med") or 0) < WIND_HINWEIS_DAUER_S:
+            return None
+        einst = json.loads(s.user.settings_json) if s.user and s.user.settings_json else {}
+        weg = einst.get("wind_hinweis_weg") or []
+        if s.id in weg or len(weg) >= WIND_HINWEIS_BREMSE:
+            return None
+        wind = ["wingfoil", "kitefoil", "parawing"]
+        vorne = [x for x in [einst.get("default_sport_class")] + list(einst.get("my_sports") or []) if x in wind]
+        reihe = list(dict.fromkeys(vorne + wind))
+        return {"sportarten": reihe, "regel": m}
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+
 def _sport_auto(s: models.Session) -> dict | None:
     """Begründung der automatischen Sportart-Erkennung — nur, solange sie auch gilt.
 
@@ -378,6 +418,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         sport_source=getattr(s, "sport_source", None) or "default",
         needs_classification=bool(getattr(s, "needs_classification", False)),
         sport_auto=(_sport_auto(s) if owned else None),
+        wind_vorschlag=(_wind_vorschlag(s) if (owned and not slim) else None),
         flag_count=(_flag_count(s) if owned else 0),
         appeal_text=(s.appeal_text if owned else None),
         started_at=s.started_at,
@@ -3695,6 +3736,27 @@ def delete_pump_truth(
     n = q.delete()
     db.commit()
     return {"ok": True, "deleted": n}
+
+
+@router.post("/{session_id}/wind-hinweis-weg")
+def wind_hinweis_weg(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Hinweis „sieht nach Wind aus" fuer diese Session ausblenden, ohne etwas zu aendern (nur Besitzer).
+    Gemerkt in den Einstellungen (wind_hinweis_weg), also auf allen Geraeten weg."""
+    s = db.get(models.Session, session_id)
+    if s is None or s.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    einst = json.loads(user.settings_json) if user.settings_json else {}
+    weg = [x for x in (einst.get("wind_hinweis_weg") or []) if isinstance(x, int)]
+    if session_id not in weg:
+        weg.append(session_id)
+    einst["wind_hinweis_weg"] = weg[-WIND_HINWEIS_WEG_MAX:]
+    user.settings_json = json.dumps(einst)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/{session_id}/wind")

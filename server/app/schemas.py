@@ -305,6 +305,9 @@ class SessionOut(BaseModel):
     # Anzeige-Profil der Sportart (app/sportprofil.py, 19.10.2026): Kartenmodus, Hauptzahl, Pump-Zahlen.
     # Zusaetzlich — aeltere Apps ignorieren es und zeigen wie bisher.
     sport_profil: dict | None = None
+    # Hinweis „sieht nach Wind aus" (19.10.2026): nur fuer den Besitzer, nur Einzelansicht. {sportarten:
+    # [vorgeschlagene Wind-Sportarten, beste zuerst], regel: Merkmale der Sportart-Regel} oder None.
+    wind_vorschlag: dict | None = None
     data_quality: str | None = None         # ok | false_data | duplicate | test
     sport_source: str | None = None         # default | auto | owner | admin
     needs_classification: bool = False      # 2 Melder, noch nicht zugeordnet -> in keiner Auswertung

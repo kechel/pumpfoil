@@ -1706,6 +1706,8 @@ const it: Record<string, string> = {
   "cls.autoWhy": "Elemento decisivo: run più lungo {dur} s a {kmh} km/h di media — un run di pumping dura in media 27 s.",
   "cls.autoWhyPulse": "Elemento decisivo: run più lungo {dur} s a {kmh} km/h di media, e la frequenza cardiaca non ha quasi reagito ({hr} bpm).",
   "cls.ruleWhyWind": "Cosa ha deciso: run da {dur} s a {kmh} km/h di media, {foil} % del tempo sul foil, distribuiti su {fl} km d’acqua — lo schema di uno sport del vento.",
+  "cls.windHint": "Questa sessione sembra una sessione col vento. Cambiare sport?",
+  "cls.windHintNo": "No, va bene così",
   "cls.ruleWhyWave": "Cosa ha deciso: onde brevi ({dur} s) a {kmh} km/h di media vicino al mare, con {zw} m di remata per tornare fuori tra l’una e l’altra — lo schema del surf da onda.",
   "cls.ruleWhyPump": "Cosa ha deciso: run brevi ({dur} s) a {kmh} km/h di media, sempre dallo stesso punto di partenza — lo schema del pumping.",
   "phome.emptyTitle": "Benvenuto! Ecco come arriva qui la tua prima sessione",

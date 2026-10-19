@@ -1706,6 +1706,8 @@ const es: Record<string, string> = {
   "cls.autoWhy": "Lo decisivo: run más largo {dur} s a {kmh} km/h de media — un run de pumping dura 27 s de media.",
   "cls.autoWhyPulse": "Lo decisivo: run más largo {dur} s a {kmh} km/h de media, y la frecuencia cardíaca apenas reaccionó ({hr} bpm).",
   "cls.ruleWhyWind": "Lo que decidió: tandas de {dur} s a {kmh} km/h de media, {foil} % del tiempo sobre el foil, repartidas en {fl} km de agua — el patrón de un deporte de viento.",
+  "cls.windHint": "Esta sesión parece de viento. ¿Cambiar el deporte?",
+  "cls.windHintNo": "No, está bien",
   "cls.ruleWhyWave": "Lo que decidió: olas cortas ({dur} s) a {kmh} km/h de media junto al mar, remando {zw} m de vuelta entre ellas — el patrón del surf de olas.",
   "cls.ruleWhyPump": "Lo que decidió: tandas cortas ({dur} s) a {kmh} km/h de media, siempre desde el mismo punto de salida — el patrón del pumping.",
   "phome.emptyTitle": "¡Bienvenido! Así llega aquí tu primera sesión",

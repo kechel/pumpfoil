@@ -2342,6 +2342,8 @@ const en: Record<string, string> = {
   "cls.autoWhy": "What decided it: longest run {dur} s at {kmh} km/h on average — a pumping run lasts 27 s on average.",
   "cls.autoWhyPulse": "What decided it: longest run {dur} s at {kmh} km/h on average, and your heart rate barely responded ({hr} bpm).",
   "cls.ruleWhyWind": "What decided it: runs of {dur} s at {kmh} km/h on average, {foil} % of the time on the foil, spread over {fl} km of water — the pattern of a wind sport.",
+  "cls.windHint": "This session looks like a wind session. Change the sport?",
+  "cls.windHintNo": "No, it's fine",
   "cls.ruleWhyWave": "What decided it: short rides ({dur} s) at {kmh} km/h on average right by the sea, paddling {zw} m back out in between — the pattern of wave riding.",
   "cls.ruleWhyPump": "What decided it: short runs ({dur} s) at {kmh} km/h on average, always from the same starting point — the pattern of pumping.",
   "phome.emptyTitle": "Welcome! Here's how your first session gets here",

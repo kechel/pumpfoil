@@ -2120,6 +2120,8 @@ const nb: Record<string, string> = {
   "cls.autoWhy": "Det som avgjorde: lengste run {dur} s med {kmh} km/h i snitt — et run med pumping varer 27 s i snitt.",
   "cls.autoWhyPulse": "Det som avgjorde: lengste run {dur} s med {kmh} km/h i snitt, og pulsen din reagerte nesten ikke ({hr} bpm).",
   "cls.ruleWhyWind": "Det som avgjorde: turer på {dur} s i snitt {kmh} km/t, {foil} % av tiden på foilen, spredt over {fl} km vann — mønsteret til en vindsport.",
+  "cls.windHint": "Denne økten ser ut som en vindøkt. Endre sport?",
+  "cls.windHintNo": "Nei, det stemmer",
   "cls.ruleWhyWave": "Det som avgjorde: korte ritt ({dur} s) i snitt {kmh} km/t helt ved havet, med {zw} m padling tilbake imellom — mønsteret til bølgesurfing.",
   "cls.ruleWhyPump": "Det som avgjorde: korte turer ({dur} s) i snitt {kmh} km/t, alltid fra samme startpunkt — mønsteret til pumping.",
   "phome.emptyTitle": "Velkommen! Slik får du den første økta hit",

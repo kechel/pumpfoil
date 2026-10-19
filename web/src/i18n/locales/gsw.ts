@@ -1722,6 +1722,8 @@ const gsw: Record<string, string> = {
   "cls.autoWhy": "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h — bim Pumpe duuret en Lauf im Schnitt 27 s.",
   "cls.autoWhyPulse": "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h, und de Puls het chuum reagiert ({hr} bpm).",
   "cls.ruleWhyWind": "Uusschlaggebend: Läuf vo {dur} s bi Ø {kmh} km/h, {foil} % vo de Ziit uf em Foil, über {fl} km Wasser verteilt — s Muster vo me Windsport.",
+  "cls.windHint": "Die Session gseht nach ere Wind-Session us. Sportart ändere?",
+  "cls.windHintNo": "Nei, passt so",
   "cls.ruleWhyWave": "Uusschlaggebend: churzi Ritt ({dur} s) bi Ø {kmh} km/h diräkt am Meer, derzwüsche {zw} m zruggpaddlet — s Muster vom Wällereite.",
   "cls.ruleWhyPump": "Uusschlaggebend: churzi Läuf ({dur} s) bi Ø {kmh} km/h, immer vom gliiche Startpunkt — s Muster vom Pumpe.",
   "phome.emptyTitle": "Willkomme! So chunnt dini ersti Session da ane",

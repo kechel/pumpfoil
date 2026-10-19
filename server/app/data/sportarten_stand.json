@@ -351,12 +351,12 @@
         },
         "einordnung": {
           "status": "teilweise",
-          "en": "A rule spots wind sessions, applied by hand for now.",
+          "en": "Sessions that look like a wind session (fast, long runs) offer the owner to change the sport; the hint can be dismissed without changing anything.",
           "seit": "2026-10-06",
           "wo": [
             "server"
           ],
-          "notiz": "sportregel.py v6, nur Gegenprobe im Admin; Kite vs. Wing kann sie nicht trennen. 19.10. Gezaehlt: Regel v6 sagt Wind bei 926 Sessions, die als Pumpfoil gespeichert sind (575 auto/9 Fahrer, 351 default/34 Fahrer); bei gespeicherten Wind-Sessions sagt sie zu 139/1379 Pump. Regel kennt nur 'Wind', nicht Wing/Kite/Parawing; von 42 betroffenen Fahrern haben 32 keine eigene Wind-Sportart. -> NICHT automatisch zuordnen (Risiko: beste Pumpfoil-Sessions aus den Bestenlisten); Vorschlag an Jan: Hinweis in der Session fuer den Besitzer."
+          "notiz": "sportregel.py v6, nur Gegenprobe im Admin; Kite vs. Wing kann sie nicht trennen. 19.10. Gezaehlt: Regel v6 sagt Wind bei 926 Sessions, die als Pumpfoil gespeichert sind (575 auto/9 Fahrer, 351 default/34 Fahrer); bei gespeicherten Wind-Sessions sagt sie zu 139/1379 Pump. Regel kennt nur 'Wind', nicht Wing/Kite/Parawing; von 42 betroffenen Fahrern haben 32 keine eigene Wind-Sportart. -> NICHT automatisch zuordnen (Risiko: beste Pumpfoil-Sessions aus den Bestenlisten); Vorschlag an Jan: Hinweis in der Session fuer den Besitzer. 19.10. Jan: „Hinweis anbieten und wegklickbar ohne zu akzeptieren“. Gebaut: SessionOut.wind_vorschlag (Lauftempo-Median >= 19 km/h und Lauf-Median >= 60 s; 2,1 % der Pumpfoil-Sessions, 72 % der Wind-Sessions), nicht bei owner/admin/needs_classification, POST wind-hinweis-weg, Bremse nach 5x weg. Web live, Apps folgen. Befund dabei: u887 (Suunto-Historie seit 2018) hat 714 Sessions im Modus generic als Pumpfoil (217 zaehlen in Auswertungen), Kite/SUP/Windsurf sind needs_classification."
         },
         "fahrten": {
           "status": "live",
