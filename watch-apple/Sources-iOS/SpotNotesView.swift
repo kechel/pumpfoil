@@ -53,7 +53,7 @@ struct SpotNotesView: View {
                         .foregroundStyle(.secondary)
                     if d.can_write {
                         ownBlock(d)
-                        aktionen(d)   // eigene Zeilen, s. Kommentar dort
+                        aktionen(d)   // eine Zeile mit drei Symbolen, s. Kommentar dort
                     }
                     ForEach(d.notes.filter { !$0.mine }) { n in noteBlock(n, own: false) }
                     if d.notes.filter({ !$0.mine }).isEmpty && !d.can_write {
@@ -99,54 +99,52 @@ struct SpotNotesView: View {
         }
     }
 
-    /// Die drei Aktionen als EIGENE Listenzeilen — je Zeile EIN tippbares Element.
+    /// Die drei Aktionen als SYMBOLE in EINER Zeile (Jan, 18.10.2026: „die drei Buttons fuer meine spot
+    /// description in eine zeile, edit-icon, upload-icon, select-image-icon"), wie Android.
     ///
-    /// Vorgeschichte, alles am 07.09.2026 von Jan im Simulator geprueft: erst standen sie
-    /// zusammen in einer `HStack` in EINER Zeile, dann machte SwiftUI die ganze Zeile
-    /// interaktiv und ein Tipp loeste mehrere aus („Bearbeiten" oeffnete den Text UND die
-    /// Bilderauswahl). Mit `.borderless` je Element war das behoben, aber der `PhotosPicker`
-    /// reagierte gar nicht mehr; mit `.plain` (im Repo bewiesen, s. `ProfileView`) ebenfalls
-    /// nicht. Eine eigene Zeile loest beides ohne Knopfstil: ein Element pro Zeile kann sich
-    /// mit keinem anderen streiten. Nebenbei bricht der Text nicht mehr um („Bearbei-ten").
-    ///
-    /// Der `PhotosPicker` als View blieb aber auch in seiner eigenen Zeile stumm — der Tipp kam an
-    /// (die Zeile leuchtete auf), nur oeffnete sich nichts. Der Grund liegt eine Ebene hoeher: die
-    /// Ansicht ist eine `Group`, und eine `Group` gibt ihre Modifier an JEDES Kind weiter — die drei
-    /// `.sheet` hangen damit an demselben Teilbaum, in dem der Picker steckt, und seine eigene
-    /// Darstellung kam nicht durch. Deshalb hier die explizite Form: ein normaler `Button` (die
-    /// funktionieren in dieser Zeile nachweislich) plus `.photosPicker(isPresented:…)`, also
-    /// dieselbe Mechanik wie bei den drei `.sheet`, die hier ebenfalls nachweislich funktionieren.
-    ///
-    /// Wer das wieder in eine Zeile packt oder zur `PhotosPicker`-View zurueckgeht, holt sich einen
-    /// der drei Fehler zurueck.
+    /// ACHTUNG, Vorgeschichte vom 07.09.2026 (Memory swiftui-listenzeile-mehrere-knoepfe): mehrere
+    /// tippbare Elemente in EINER Listenzeile ohne eigenen Knopfstil machen die ganze Zeile zur
+    /// Tippflaeche — „Bearbeiten" oeffnete auch die Bilderauswahl. Deshalb hat JEDER Knopf hier
+    /// `.buttonStyle(.bordered)` (eigener Stil = eigene Tippflaeche). Und der Bilderwaehler bleibt
+    /// die explizite Form `Button` + `.photosPicker(isPresented:)` — die `PhotosPicker`-View blieb
+    /// stumm, weil die `.sheet` der Ansicht auf demselben Teilbaum hangen. Im Simulator pruefen: jedes
+    /// Symbol einzeln antippen, es darf nur seine eigene Aktion aufgehen. Klappt das nicht, zurueck
+    /// auf eine Zeile je Knopf (git log dieser Funktion).
     @ViewBuilder private func aktionen(_ d: SpotNotesOut) -> some View {
         let meine = d.notes.first(where: { $0.mine })
-        Button {
-            draft = meine?.text ?? ""
-            editing = true
-        } label: {
-            Label(meine == nil ? Loc.t("spotnote.write", lang) : Loc.t("spotnote.edit", lang),
-                  systemImage: "square.and.pencil")
-        }
-        .disabled(busy)
-        if (meine?.photos.count ?? 0) < d.max_photos {
+        HStack(spacing: 10) {
             Button {
-                zeigeWaehler = true
+                draft = meine?.text ?? ""
+                editing = true
             } label: {
-                Label(Loc.t("spotnote.addPhoto", lang), systemImage: "photo.badge.plus")
+                Image(systemName: "square.and.pencil").frame(maxWidth: .infinity, minHeight: 30)
             }
+            .buttonStyle(.bordered)
+            .accessibilityLabel(meine == nil ? Loc.t("spotnote.write", lang) : Loc.t("spotnote.edit", lang))
             .disabled(busy)
-            .photosPicker(isPresented: $zeigeWaehler, selection: $pickerItem, matching: .images)
-            Button {
-                Task {
-                    busy = true
-                    waehler = (try? await Api.mySpotSessionPhotos(spotId)) ?? []
-                    busy = false
+            if (meine?.photos.count ?? 0) < d.max_photos {
+                Button {
+                    zeigeWaehler = true
+                } label: {
+                    Image(systemName: "photo.badge.plus").frame(maxWidth: .infinity, minHeight: 30)
                 }
-            } label: {
-                Label(Loc.t("spotnote.fromSession", lang), systemImage: "photo.on.rectangle")
+                .buttonStyle(.bordered)
+                .accessibilityLabel(Loc.t("spotnote.addPhoto", lang))
+                .disabled(busy)
+                .photosPicker(isPresented: $zeigeWaehler, selection: $pickerItem, matching: .images)
+                Button {
+                    Task {
+                        busy = true
+                        waehler = (try? await Api.mySpotSessionPhotos(spotId)) ?? []
+                        busy = false
+                    }
+                } label: {
+                    Image(systemName: "photo.on.rectangle").frame(maxWidth: .infinity, minHeight: 30)
+                }
+                .buttonStyle(.bordered)
+                .accessibilityLabel(Loc.t("spotnote.fromSession", lang))
+                .disabled(busy)
             }
-            .disabled(busy)
         }
     }
 

@@ -17,6 +17,15 @@ struct SessionDetailView: View {
     // Blaettern gibt es „Älter"/„Neuer".
     @State private var shownId: Int?
     private var sid: Int { shownId ?? id }
+    // Anzeige-Profil (19.10.2026): ohne Profil oder bei Pumpfoil alles wie bisher.
+    private var pumpzahlen: Bool { session?.sport_profil?.pumpzahlen != false }
+    private var karteGanzMoeglich: Bool { session?.sport_profil?.karte == "ganz" }
+    private var hauptGesamt: Bool { session?.sport_profil?.hauptzahl == "gesamt" }
+    /// Tempo-Faerbung (km/h): bisher fest 8-25, Wind 10-40 aus dem Profil.
+    private var tempoSkala: (Double, Double) {
+        let t: [Double] = session?.sport_profil?.tempo_skala ?? []
+        return t.count == 2 && t[1] > t[0] ? (t[0], t[1]) : (8, 25)
+    }
     @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
@@ -67,6 +76,9 @@ struct SessionDetailView: View {
     @AppStorage("sd_show_attempts") private var showAttempts = true
     @State private var attempts: [AttemptLine]?   // nil = noch nicht geholt
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
+    // Wind-Sportarten (Profil karte="ganz"): ganze Fahrt grau unter den Laeufen, umschaltbar auf
+    // „nur on-foil". Bewusst NICHT gemerkt (wie im Web) — jede Session startet mit der ganzen Fahrt.
+    @State private var ganzeFahrt = true
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
     @State private var showTrim = false
@@ -549,7 +561,8 @@ struct SessionDetailView: View {
             if s.owned == true { classificationNotice(s) }
             mediaSection(s)
             trackSection(s)
-            if let a = s.analysis, let foil = s.foil, hasSpecs(foil), weightKg > 0 {
+            // Theoretische Leistung rechnet die Pump-Physik — nur, wo gepumpt wird (Profil, 19.10.2026).
+            if pumpzahlen, let a = s.analysis, let foil = s.foil, hasSpecs(foil), weightKg > 0 {
                 PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
             }
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem Lauf.
@@ -952,7 +965,7 @@ struct SessionDetailView: View {
         // Accel) — dann gibt es weder Auswahlknopf noch Farben, die Karte waere grau. Zurueck
         // auf Speed, und zwar gemerkt: die PWA macht es genauso.
         .task(id: "\(sid)-\(v.hasHr)-\(v.hasPump)-\(v.hasCarves)-\(colorMode.rawValue)") {
-            if (colorMode == .hr && !v.hasHr) || (colorMode == .pump && !v.hasPump)
+            if (colorMode == .hr && !v.hasHr) || (colorMode == .pump && (!v.hasPump || !pumpzahlen))
                 || (colorMode == .turns && !v.hasCarves) { colorMode = .speed }
         })
     }
@@ -999,22 +1012,30 @@ struct SessionDetailView: View {
     // lesbar bleiben — vorher teilten sie sich die Zeile mit zwei Schaltern und wurden zu „S… P…"
     // (Jan, 07.10.2026). Die Schalter stehen jetzt rechtsbuendig in der Zeile darunter.
     @ViewBuilder private func modeRow(_ s: SessionDetail, _ v: TrackVals) -> some View {
-        if v.hasHr || v.hasPump || v.hasCarves {
+        if v.hasHr || (v.hasPump && pumpzahlen) || v.hasCarves {
             colorModePicker(v)
+        }
+        if karteGanzMoeglich {
+            Picker("", selection: $ganzeFahrt) {
+                Text(Loc.t("sd.mapOnFoil", lang)).tag(false)
+                Text(Loc.t("sd.mapWhole", lang)).tag(true)
+            }
+            .pickerStyle(.segmented)
         }
     }
 
     // Schalter fuer Pump-Marker und Startversuche (rechtsbuendig in der Glaettungs-Zeile).
     @ViewBuilder private func kartenSchalter(_ s: SessionDetail) -> some View {
-        if (s.analysis?.pump_count ?? 0) > 0 {
+        if pumpzahlen && (s.analysis?.pump_count ?? 0) > 0 {
             Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
         }
-        if (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
+        if pumpzahlen && (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
             Toggle(Loc.t("sd.glides", lang), isOn: $showGlides).font(.caption).fixedSize()
         }
         // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
         // der Schalter stehen, sonst koennte man ihn nie einschalten), leer = keine.
-        if attempts == nil || !(attempts?.isEmpty ?? true) {
+        // Startversuche gibt es nur beim Pumpen — bei Wind (Profil ohne Pump-Zahlen) kein Schalter, wie im Web.
+        if pumpzahlen && (attempts == nil || !(attempts?.isEmpty ?? true)) {
             Toggle(Loc.t("sd.showAttempts", lang), isOn: $showAttempts).font(.caption).fixedSize()
         }
     }
@@ -1024,7 +1045,7 @@ struct SessionDetailView: View {
         Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
             Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
             if v.hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
-            if v.hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
+            if v.hasPump && pumpzahlen { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
             if v.hasCarves { Text("Carves").tag(TrackColorMode.turns) }
         }
         .pickerStyle(.segmented)
@@ -1050,10 +1071,11 @@ struct SessionDetailView: View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
-                        showPumps: showPumps, showGlides: showGlides, selectedRun: selectedRun,
+                        showPumps: showPumps && pumpzahlen, showGlides: showGlides && pumpzahlen, selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
-                        attempts: showAttempts ? (attempts ?? []) : [],
-                        carveArcs: arcs, carveGMax: v.carveGMax)
+                        attempts: showAttempts && pumpzahlen ? (attempts ?? []) : [],
+                        carveArcs: arcs, carveGMax: v.carveGMax,
+                        ganzeFahrt: karteGanzMoeglich && ganzeFahrt, tempoSkala: tempoSkala)
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
             .mitKartenUmschalter()
@@ -1108,7 +1130,7 @@ struct SessionDetailView: View {
     // Farb-Legende (min→max Verlauf) für den gewählten Modus — wie PWA/Android.
     private func legendLabels(mode: TrackColorMode, hrRange: (Int, Int), pumpRange: (Double, Double)) -> (String, String) {
         switch mode {
-        case .speed: return ("8 km/h", "25 km/h")
+        case .speed: return ("\(Int(tempoSkala.0)) km/h", "\(Int(tempoSkala.1)) km/h")
         case .hr: return ("\(hrRange.0)", "\(hrRange.1) bpm")
         case .pump: return (PumpUnit.fmtLegend(pumpRange.0, lang, withUnit: false),
                             PumpUnit.fmtLegend(pumpRange.1, lang, withUnit: true))
@@ -1281,7 +1303,7 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func statsSection(_ s: SessionDetail) -> some View {
         if let a = s.analysis {
-            let stats = buildStats(a)
+            let stats = buildStats(a, s)
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(stats) { st in
                     StatTile(item: st, selected: st.runIdx != nil && st.runIdx == selectedRun) {
@@ -1571,7 +1593,7 @@ struct SessionDetailView: View {
         return "\(f.string(from: a))\(ocSuffix)"
     }
 
-    private func buildStats(_ a: Analysis) -> [StatItem] {
+    private func buildStats(_ a: Analysis, _ s: SessionDetail) -> [StatItem] {
         let segs = a.segments ?? []
         let m = a.metrics
         func dist(_ x: Double) -> String { x < 1000 ? "\(Int(x)) m" : String(format: "%.2f km", x / 1000) }
@@ -1584,6 +1606,12 @@ struct SessionDetailView: View {
 
         var out: [StatItem] = []
         if let v = a.total_distance_m { out.append(StatItem(Loc.t("compare.distance", lang), dist(v))) }
+        // Wind (Profil hauptzahl="gesamt"): Dauer der ganzen Fahrt direkt nach der Gesamtstrecke.
+        // Aktive Zeit im Zuschnitt (duration_ms), nie ended_at - started_at (Pausen).
+        if hauptGesamt, let d = s.duration_ms {
+            let ms: Int = (s.trim_end_ms ?? d) - (s.trim_start_ms ?? 0)
+            out.append(StatItem(Loc.t("sd.duration", lang), mmssD(Double(ms) / 1000)))
+        }
         if let v = a.foiling_distance_m { out.append(StatItem(Loc.t("home.foiling", lang), dist(v))) }
         if let v = a.foiling_time_s { out.append(StatItem(Loc.t("compare.foilTime", lang), mmssD(v))) }
         // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst sieht
@@ -1601,16 +1629,16 @@ struct SessionDetailView: View {
         }
         if let v = m?.avg_speed_mps { out.append(StatItem(Loc.t("sd.avgSpeed", lang), String(format: "%.1f km/h", v * 3.6))) }
         if let v = a.max_speed_mps { out.append(StatItem(Loc.t("home.topSpeed", lang), String(format: "%.1f km/h", v * 3.6), runIdx: bestSpeedIdx)) }
-        if let pc = a.pump_count {
+        if pumpzahlen, let pc = a.pump_count {
             out.append(StatItem(Loc.t("home.pumps", lang), "\(pc)"))
             if pc > 0, let fd = a.foiling_distance_m { out.append(StatItem(Loc.t("sd.avgDistPerPump", lang), String(format: "%.1f m", fd / Double(pc)))) }
         }
-        if let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), PumpUnit.fmt(v, lang))) }
+        if pumpzahlen, let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), PumpUnit.fmt(v, lang))) }
         if let v = m?.avg_hr, v > 0 { out.append(StatItem(Loc.t("sd.avgHr", lang), String(format: "%.0f", v))) }
         if let v = m?.max_hr, v > 0 { out.append(StatItem(Loc.t("sd.maxHr", lang), String(format: "%.0f", v))) }
         if let i = longestRunIdx, let v = segs[i].duration_s { out.append(StatItem(Loc.t("home.longestRun", lang), mmssD(v), runIdx: i)) }
         if let i = farthestRunIdx, let v = segs[i].distance_m { out.append(StatItem(Loc.t("home.farthestRun", lang), dist(v), runIdx: i)) }
-        if let i = bestGlideIdx, let v = segs[i].longest_glide_s, v > 0 { out.append(StatItem(Loc.t("home.longestGlide", lang), String(format: "%.1f s", v), runIdx: i)) }
+        if pumpzahlen, let i = bestGlideIdx, let v = segs[i].longest_glide_s, v > 0 { out.append(StatItem(Loc.t("home.longestGlide", lang), String(format: "%.1f s", v), runIdx: i)) }
         return out
     }
 
@@ -1821,7 +1849,9 @@ private func uiRampColor(_ t: Double) -> UIColor {
     return UIColor(hue: (1 - tt) * 240 / 360, saturation: 0.85, brightness: 0.95, alpha: 1)
 }
 // Speed -> Farbe (8..25 km/h), wie Web/Wear/Android.
-private func uiSpeedColor(_ kmh: Double) -> UIColor { uiRampColor((kmh - 8) / (25 - 8)) }
+private func uiSpeedColor(_ kmh: Double, _ skala: (Double, Double) = (8, 25)) -> UIColor {
+    uiRampColor((kmh - skala.0) / max(skala.1 - skala.0, 1))
+}
 
 // Annotation für einen Pump-Stoß (weißer Punkt auf dem Track).
 private class PumpDot: NSObject, MKAnnotation { let coordinate: CLLocationCoordinate2D
@@ -1917,6 +1947,10 @@ struct TrackMap: UIViewRepresentable {
     var attempts: [AttemptLine] = []
     var carveArcs: [[[Double]]] = []   // je Carve Punkte [lat,lon,g] — nur im TURNS-Modus
     var carveGMax: Double = 0.6
+    /// Wind (Profil karte="ganz"): die ganze Fahrt grau unter den Laeufen (19.10.2026).
+    var ganzeFahrt: Bool = false
+    /// Tempo-Faerbung in km/h (Profil `tempo_skala`, Standard 8-25 wie bisher).
+    var tempoSkala: (Double, Double) = (8, 25)
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -1935,7 +1969,7 @@ struct TrackMap: UIViewRepresentable {
     private func colorAt(_ i: Int) -> UIColor {
         switch mode {
         case .speed:
-            return uiSpeedColor((speedsMps.indices.contains(i) ? speedsMps[i] : 0) * 3.6)
+            return uiSpeedColor((speedsMps.indices.contains(i) ? speedsMps[i] : 0) * 3.6, tempoSkala)
         case .hr:
             // WEISS = hier wurde kein Puls gemessen (wie PWA und Android). Stehengebliebene
             // Werte nimmt die Analyse heraus, sie kommen also als nil an.
@@ -1957,7 +1991,7 @@ struct TrackMap: UIViewRepresentable {
         let segs: String = segments.map { "\($0.i_start)-\($0.i_end)-\(($0.pump_idx ?? []).count)" }.joined(separator: ",")
         let a: [Double] = points.first ?? [], b: [Double] = points.last ?? []
         return "\(ebene)|\(points.count)|\(a)|\(b)|\(segs)|\(mode)|\(hrRange.0)-\(hrRange.1)|\(pumpRange.0)-\(pumpRange.1)|"
-            + "\(showPumps)|\(showGlides)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
+            + "\(showPumps)|\(showGlides)|\(ganzeFahrt)|\(tempoSkala.0)-\(tempoSkala.1)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
     }
 
     /// Gleitphasen in Marken-Cyan ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA).
@@ -2017,6 +2051,24 @@ struct TrackMap: UIViewRepresentable {
             if let erste = points.first, let letzte = points.last, erste.count >= 2, letzte.count >= 2 {
                 map.addAnnotation(EndPunkt(CLLocationCoordinate2D(latitude: erste[1], longitude: erste[0]), start: true))
                 map.addAnnotation(EndPunkt(CLLocationCoordinate2D(latitude: letzte[1], longitude: letzte[0]), start: false))
+            }
+        }
+        // Wind-Sportarten: die GANZE Fahrt dezent grau darunter, damit langsame Stuecke, Wenden und
+        // Wasserstarts nicht als Luecke erscheinen (Oerni #17478). Gleiche Sprungschwelle wie oben.
+        if ganzeFahrt && !segments.isEmpty {
+            let grau = UIColor.systemGray.withAlphaComponent(0.55)
+            var i = 0
+            while i < points.count - 1 {
+                let a = points[i], b = points[i + 1]
+                let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
+                let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
+                let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
+                    .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
+                if gap <= 200 {
+                    Strich.anfuegen(&striche, ca, cb, grau, 3)
+                    all.append(ca); all.append(cb)
+                }
+                i += 1
             }
         }
         for (runIdx, seg) in segments.enumerated() {

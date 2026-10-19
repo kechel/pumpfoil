@@ -4610,7 +4610,12 @@ static let nlOverlay: [String: String] = {
     private static let _neu3_heat_chip30d: [String: String] = ["de": "30 T", "gsw": "30 T", "de-AT": "30 T", "en": "30d", "fr": "30 j", "it": "30 g", "es": "30 d", "fi": "30 pv", "nl": "30 d", "cs": "30 d", "pl": "30 d", "pt": "30 d", "pt-PT": "30 d", "ja": "30日", "zh": "30天", "ru": "30 д", "id": "30 h", "nb": "30 d"]
     private static let _neu3_heat_chipOff: [String: String] = ["de": "Aus", "gsw": "Us", "de-AT": "Aus", "en": "Off", "fr": "Off", "it": "Off", "es": "No", "fi": "Pois", "nl": "Uit", "cs": "Vyp", "pl": "Wył", "pt": "Off", "pt-PT": "Off", "ja": "オフ", "zh": "关", "ru": "Выкл", "id": "Mati", "nb": "Av"]
     private static let _neu3_heat_chipRoute: [String: String] = ["de": "Route", "gsw": "Route", "de-AT": "Route", "en": "Route", "fr": "Route", "it": "Percorso", "es": "Ruta", "fi": "Reitti", "nl": "Route", "cs": "Trasa", "pl": "Trasa", "pt": "Rota", "pt-PT": "Rota", "ja": "ルート", "zh": "路线", "ru": "Маршрут", "id": "Rute", "nb": "Rute"]
+    // 19.10.2026: Kartenschalter der Wind-Sportarten (Sportart-Profil karte="ganz").
+    private static let _neu3_sd_mapOnFoil: [String: String] = ["en": "On-foil only", "de": "Nur on-foil", "de-AT": "Nur am Foil", "gsw": "Nume on-foil", "fr": "Seulement sur le foil", "es": "Solo sobre el foil", "it": "Solo in volo", "pt": "Só no foil", "pt-PT": "Só no foil", "nl": "Alleen op de foil", "pl": "Tylko na foilu", "cs": "Jen na foilu", "fi": "Vain foililla", "nb": "Bare på foilen", "ru": "Только на фойле", "ja": "フォイル走行のみ", "zh": "仅离水滑行", "id": "Hanya saat foiling"]
+    private static let _neu3_sd_mapWhole: [String: String] = ["en": "Whole ride", "de": "Ganze Fahrt", "de-AT": "Die ganze Fahrt", "gsw": "Di ganzi Fahrt", "fr": "Toute la sortie", "es": "Toda la salida", "it": "Tutta l'uscita", "pt": "Saída inteira", "pt-PT": "Saída completa", "nl": "Hele rit", "pl": "Cała jazda", "cs": "Celá jízda", "fi": "Koko ajo", "nb": "Hele turen", "ru": "Вся поездка", "ja": "全行程", "zh": "全程", "id": "Seluruh perjalanan"]
     static let neuTexte3: [String: [String: String]] = [
+        "sd.mapOnFoil": _neu3_sd_mapOnFoil,
+        "sd.mapWhole": _neu3_sd_mapWhole,
         "heat.chipFoil": _neu3_heat_chipFoil,
         "heat.chipStart": _neu3_heat_chipStart,
         "heat.chip1y": _neu3_heat_chip1y,

@@ -32,12 +32,13 @@ def test_buch_vollstaendig_und_ohne_notizen(client):
 def test_profil_pumpfoil_unveraendert_wind_ganz():
     """Stufe 1: Pumpfoil (und alles Unbekannte) behaelt das bisherige Verhalten."""
     from app.sportprofil import GRUPPE, profil
-    alt = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True}
+    alt = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True, "tempo_skala": [8, 25]}
     for sc in (None, "", "pumpfoil", "unbekannt"):
         p = profil(sc)
         assert p["gruppe"] == "pump" and {k: p[k] for k in alt} == alt
     for sc in ("wingfoil", "kitefoil", "parawing"):
-        assert profil(sc) == {"gruppe": "wind", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False}
+        assert profil(sc) == {"gruppe": "wind", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False,
+                              "tempo_skala": [10, 40]}
     for sc in ("foil_scoot", "wakethief", "surf_wave", "efoil"):
         assert {k: profil(sc)[k] for k in alt} == alt
 

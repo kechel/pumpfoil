@@ -14,6 +14,8 @@ Felder:
   hauptzahl   "foil" = On-Foil-Strecke/-Zeit vorn (bisher) | "gesamt" = Gesamtstrecke + Dauer vorn,
               on-foil als zweite Zahl
   pumpzahlen  False = Pumps, Kadenz, Gleitphase ausblenden (passen nicht zur Sportart)
+  tempo_skala [von, bis] km/h der Tempo-Faerbung in den Apps (bisher fest 8-25, auf Pumpen
+              zugeschnitten; bei Wing war damit fast alles rot). Das Web skaliert selbst.
 """
 from __future__ import annotations
 
@@ -24,11 +26,11 @@ GRUPPE = {
     "efoil": "motor", "foildrive": "motor", "towed": "motor",
 }
 
-STANDARD = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True}
+STANDARD = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True, "tempo_skala": [8, 25]}
 
 # Nur Abweichungen vom Standard. Stufe 1: die Wind-Gruppe.
 JE_GRUPPE = {
-    "wind": {"karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False},
+    "wind": {"karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False, "tempo_skala": [10, 40]},
 }
 
 

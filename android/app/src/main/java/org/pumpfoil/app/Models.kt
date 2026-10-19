@@ -1013,9 +1013,21 @@ data class SessionSetup(
 )
 
 @Serializable
+data class SportProfil(
+    val gruppe: String = "pump",
+    val karte: String = "laeufe",       // "laeufe" | "ganz"
+    val hauptzahl: String = "foil",     // "foil" | "gesamt"
+    val pumpzahlen: Boolean = true,
+    @SerialName("tempo_skala") val tempoSkala: List<Double> = listOf(8.0, 25.0),   // km/h der Tempo-Faerbung
+)
+
+@Serializable
 data class SessionDetail(
     val id: Int,
     val sport: String = "",
+    // Anzeige-Profil der Sportart (server/app/sportprofil.py, 19.10.2026). Fehlt es, gilt das bisherige
+    // Verhalten (= Pumpfoil).
+    @SerialName("sport_profil") val sportProfil: SportProfil? = null,
     @SerialName("started_at") val startedAt: String = "",
     @SerialName("ended_at") val endedAt: String? = null,
     @SerialName("data_version") val dataVersion: Long? = null,   // Cache-Schlüssel

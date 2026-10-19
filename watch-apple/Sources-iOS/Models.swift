@@ -1193,9 +1193,20 @@ struct MergeSuggestion: Codable, Identifiable {
     var id: String { ids.map(String.init).joined(separator: "-") }
 }
 
+// Anzeige-Profil der Sportart (server/app/sportprofil.py, 19.10.2026). Fehlt es, gilt das bisherige
+// Verhalten (= Pumpfoil): nur Laeufe auf der Karte, On-Foil-Zahlen, Pump-Zahlen sichtbar.
+struct SportProfil: Codable {
+    let gruppe: String?
+    let karte: String?        // "laeufe" | "ganz"
+    let hauptzahl: String?    // "foil" | "gesamt"
+    let pumpzahlen: Bool?
+    let tempo_skala: [Double]?   // km/h der Tempo-Faerbung, fehlt = 8-25
+}
+
 struct SessionDetail: Codable, Identifiable {
     let id: Int
     let sport: String
+    var sport_profil: SportProfil? = nil
     let setup: SessionSetup?   // Stab/Mast/Shim/Board (geerbt oder je Session gesetzt)
     // Sportart-Klassifikation; appeal_text gesetzt = Widerspruch läuft (docs/sport-classification.md).
     let sport_class: String?

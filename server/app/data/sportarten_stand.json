@@ -177,52 +177,60 @@
           "status": "live",
           "en": "The whole ride in grey with the on-foil runs in colour on top",
           "wo": [
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
-          "notiz": "Stufe 1 Web (Profil karte=ganz, sportprofil.py). Android/iOS: Stufe 1 Apps offen.",
+          "notiz": "Stufe 1 Web (Profil karte=ganz, sportprofil.py). Android/iOS: Stufe 1 Apps offen. Apps: Tempo-Faerbung 10-40 km/h ueber Profil tempo_skala (vorher fest 8-25, Wing fast nur rot).",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           }
         },
         "kartenschalter": {
           "status": "live",
           "en": "Switch between on-foil only and the whole ride",
           "wo": [
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "notiz": "Schalter in der Kartenleiste, Standard ganze Fahrt, nicht gemerkt.",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           }
         },
         "kennzahlen": {
           "status": "live",
           "en": "Total distance and ride time first, on-foil as a second number",
           "wo": [
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "notiz": "total_distance_m + (trim_end|duration_ms - trim_start). Stufe 2 (Fahrzeit in Bewegung, Tempo ganze Fahrt, On-Foil-Anteil) offen.",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           }
         },
         "pumps": {
           "status": "nein",
           "en": "Hidden, pumps do not fit wind sports",
           "wo": [
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "notiz": "Profil pumpzahlen=false: Kacheln Gleitphase/Pumps/Kadenz/m pro Pump, Pump-Faerbung, Pump- und Gleit-Marker weg; Ansicht wird dort nicht gemerkt.",
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.52"
           }
         },
         "startversuche": {
@@ -507,8 +515,8 @@
     {
       "nr": 1,
       "titel": "Sportart-Profil, nur Anzeige",
-      "status": "teilweise",
-      "notiz": "Profil je Sportart auf dem Server, an die Session gehaengt. Wind: ganze Spur grau + Laeufe farbig, Gesamtstrecke und Dauer oben, Pump-Zahlen weg. Pumpfoil unveraendert. Erst Web, dann Apps mit dem naechsten Release. 19.10.: Server-Profil + Web live; Apps offen."
+      "status": "live",
+      "notiz": "Profil je Sportart auf dem Server, an die Session gehaengt. Wind: ganze Spur grau + Laeufe farbig, Gesamtstrecke und Dauer oben, Pump-Zahlen weg. Pumpfoil unveraendert. Erst Web, dann Apps mit dem naechsten Release. 19.10.: Server-Profil + Web live; Apps offen. 19.10.: Apps gebaut (iOS 1.1.52, Android 1.1.44), im Android-Emulator an #17478 + Pumpfoil-Gegenprobe geprueft."
     },
     {
       "nr": 2,
@@ -536,6 +544,22 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "karte, kartenschalter, kennzahlen, pumps",
+      "was": "Stufe 1 in den Apps: ganze Fahrt grau + Schalter, Gesamtstrecke + Dauer, keine Pump-Zahlen/Leistung/Startversuche, Tempo-Faerbung 10-40 km/h (Profil tempo_skala). Cache-Schema 6.",
+      "wo": [
+        "android",
+        "ios",
+        "server"
+      ],
+      "version": "iOS 1.1.52, Android 1.1.44"
+    },
     {
       "datum": "2026-10-19",
       "sport": [
