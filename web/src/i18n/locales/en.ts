@@ -1775,6 +1775,10 @@ const en: Record<string, string> = {
   "profile.calculator": "Foil calculator",
 
   "phome.hello": "Hi, {name}",
+  "phome.ybTitle": "Year in numbers",
+  "phome.ybSessions": "Sessions",
+  "phome.ybHours": "Hours",
+  "phome.ybKm": "km total",
   "banner.msg": "is brand-new (since 23 June 2026) — new features & foils almost daily. Tell me what you like (and what you don't): just tap the ✉️ on the right →",
   "dm.title": "Chats",
   "dm.back": "Back",

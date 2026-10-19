@@ -1555,6 +1555,10 @@ const id: Record<string, string> = {
   "profile.calculator": "Kalkulator foil",
 
   "phome.hello": "Hai, {name}",
+  "phome.ybTitle": "Tahun dalam angka",
+  "phome.ybSessions": "Sesi",
+  "phome.ybHours": "Jam",
+  "phome.ybKm": "km total",
   "banner.msg": "masih sangat baru (sejak 23 Juni 2026) — fitur & foil baru hampir tiap hari. Beri tahu aku yang kamu suka (dan yang tidak): cukup ketuk ✉️ di kanan →",
   "dm.title": "Chat",
   "dm.back": "Kembali",

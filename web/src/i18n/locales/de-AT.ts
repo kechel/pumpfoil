@@ -1154,6 +1154,10 @@ const deAT: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Servas, {name}",
+  "phome.ybTitle": "Jahresbilanz",
+  "phome.ybSessions": "Sessions",
+  "phome.ybHours": "Stunden",
+  "phome.ybKm": "km gesamt",
   "banner.msg": "is gaaanz frisch (seit 23. Juni 2026) — fost täglich neiche Features & Foils. Sog ma, wos da taugt (und wos ned): einfoch rechts aufs ✉️ klickn →",
   "dm.title": "Chats",
   "dm.back": "Zurück",

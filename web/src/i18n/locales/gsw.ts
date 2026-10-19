@@ -1214,6 +1214,10 @@ const gsw: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Hoi, {name}",
+  "phome.ybTitle": "Jahresbilanz",
+  "phome.ybSessions": "Sessions",
+  "phome.ybHours": "Stunde",
+  "phome.ybKm": "km total",
   "banner.msg": "isch ganz nöi (sit em 23. Juni 2026) — fascht jede Tag nöii Features & Foils. Säg mer, was der gfallt (und was nöd): eifach rächts ufs ✉️ klicke →",
   "dm.title": "Chats",
   "dm.back": "Zrugg",

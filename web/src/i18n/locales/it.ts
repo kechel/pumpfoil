@@ -1298,6 +1298,10 @@ const it: Record<string, string> = {
   "profile.calculator": "Calcolatore foil",
 
   "phome.hello": "Ciao, {name}",
+  "phome.ybTitle": "Il tuo anno in cifre",
+  "phome.ybSessions": "Sessioni",
+  "phome.ybHours": "Ore",
+  "phome.ybKm": "km totali",
   "banner.msg": "è nuovissimo (dal 23 giugno 2026) — nuove funzioni e nuovi foil quasi ogni giorno. Dimmi cosa ti piace (e cosa no): basta cliccare sul ✉️ a destra →",
   "dm.title": "Chat",
   "dm.back": "Indietro",

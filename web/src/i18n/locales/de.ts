@@ -1896,6 +1896,10 @@ const de: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Hallo, {name}",
+  "phome.ybTitle": "Jahresbilanz",
+  "phome.ybSessions": "Sessions",
+  "phome.ybHours": "Stunden",
+  "phome.ybKm": "km gesamt",
   "banner.msg": "ist gaaanz neu (seit 23. Juni 2026) — fast täglich neue Features & Foils. Sag mir, was dir gefällt (und was nicht): einfach rechts aufs ✉️ klicken →",
   "banner.news": "Neue Updates für die Android- und iOS-App im Store — jetzt aktualisieren!",
   "banner.stats": "Wir sind schon §{foilers}§ Pumpfoiler an §{spots}§ Spots mit §{sessions}§ Sessions und zusammen §{pumps}§ Pumps.",

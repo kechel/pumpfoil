@@ -1555,6 +1555,10 @@ const pt: Record<string, string> = {
   "profile.calculator": "Calculadora de foil",
 
   "phome.hello": "Oi, {name}",
+  "phome.ybTitle": "Seu ano em números",
+  "phome.ybSessions": "Sessões",
+  "phome.ybHours": "Horas",
+  "phome.ybKm": "km no total",
   "banner.msg": "está novinho em folha (desde 23 de junho de 2026) — novos recursos e foils quase todo dia. Me conta o que você curte (e o que não curte): é só tocar no ✉️ à direita →",
   "dm.title": "Chats",
   "dm.back": "Voltar",

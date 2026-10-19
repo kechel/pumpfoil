@@ -1682,6 +1682,10 @@ const cs: Record<string, string> = {
   "profile.calculator": "Foil kalkulačka",
 
   "phome.hello": "Ahoj, {name}",
+  "phome.ybTitle": "Rok v číslech",
+  "phome.ybSessions": "Session",
+  "phome.ybHours": "Hodiny",
+  "phome.ybKm": "km celkem",
   "banner.msg": "je úplně nový (od 23. června 2026) — skoro denně nové funkce a foily. Napiš mi, co se ti líbí (a co ne): stačí kliknout vpravo na ✉️ →",
   "banner.news": "Nové aktualizace pro Android a iOS aplikaci v obchodě — aktualizuj hned!",
   "banner.stats": "Už je nás §{foilers}§ pumpfoilerů na §{spots}§ spotech s §{sessions}§ vyjížďkami a dohromady §{pumps}§ pumpnutí.",
