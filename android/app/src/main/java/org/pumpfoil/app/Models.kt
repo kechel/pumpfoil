@@ -706,6 +706,8 @@ data class PeriodRecords(
     @SerialName("session_distance") val sessionDistance: CommunityRecordEntry? = null,
     @SerialName("session_time") val sessionTime: CommunityRecordEntry? = null,
     @SerialName("session_pumps") val sessionPumps: CommunityRecordEntry? = null,
+    // Nur Wind-Sportarten (19.10.2026): laengste Fahrt als Gesamtstrecke.
+    @SerialName("session_total") val sessionTotal: CommunityRecordEntry? = null,
     @SerialName("max_hr") val maxHr: CommunityRecordEntry? = null,
     @SerialName("early_bird") val earlyBird: CommunityRecordEntry? = null,   // Wert = s seit Mitternacht (Spot-Ortszeit)
     @SerialName("night_owl") val nightOwl: CommunityRecordEntry? = null,     // >24h möglich -> mod 24h anzeigen

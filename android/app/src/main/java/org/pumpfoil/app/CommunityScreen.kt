@@ -498,8 +498,19 @@ private fun hhmmOfDay(v: Double): String {
 // nichts aus diesem Bildschirm; die Helfer darunter (RecItem, fmtDurC, hhmmOfDay) bleiben
 // dateiprivat, weil nur dieses Raster sie braucht.
 @Composable
-fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
-    val items = buildList {
+fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier,
+               sport: String? = null) {
+    // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind ohne Gleit-/Pump-/Laufzahl-/Carve-
+    // Rekorde und mit der laengsten Fahrt zuerst; Motor ohne Gleit-/Pump-Rekorde. Sonst wie bisher.
+    val wind = sport in setOf("wingfoil", "kitefoil", "parawing")
+    val motor = sport in setOf("efoil", "foildrive", "towed")
+    val ohne = when {
+        wind -> setOf("rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180")
+        motor -> setOf("rec.longestGlide", "rec.sessionPumps")
+        else -> emptySet()
+    }
+    val alle = buildList {
+        if (wind) r?.sessionTotal?.let { add(RecItem(I18n.t("rec.sessionTotal"), "%.1f km".format(it.value / 1000.0), it)) }
         r?.distance?.let { add(RecItem(I18n.t("rec.farthestRun"), fmtDist(it.value), it)) }
         r?.duration?.let { add(RecItem(I18n.t("rec.longestRun"), fmtDurC(it.value), it)) }
         r?.speed?.let { add(RecItem(I18n.t("rec.topSpeed"), "%.1f km/h".format(it.value * 3.6), it)) }
@@ -516,6 +527,8 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
                         ohneSession = true))
         }
     }
+    val ohneTexte = ohne.map { I18n.t(it) }.toSet()
+    val items = alle.filter { it.label !in ohneTexte }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -389,6 +389,7 @@ struct PeriodRecords: Codable {
     let session_distance: CommunityRecordEntry?
     let session_time: CommunityRecordEntry?
     let session_pumps: CommunityRecordEntry?
+    var session_total: CommunityRecordEntry? = nil   // nur Wind-Sportarten (19.10.2026)
     let max_hr: CommunityRecordEntry?
     let early_bird: CommunityRecordEntry?   // Wert = s seit Mitternacht (Spot-Ortszeit)
     let night_owl: CommunityRecordEntry?    // >24h möglich -> mod 24h anzeigen

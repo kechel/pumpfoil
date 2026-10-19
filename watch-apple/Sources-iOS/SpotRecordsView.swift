@@ -20,7 +20,7 @@ struct RecRow: Identifiable {
 
 
 
-func rekordZeilen(_ r: PeriodRecords?, lang: String) -> [RecRow] {
+func rekordZeilen(_ r: PeriodRecords?, lang: String, sport: String? = nil) -> [RecRow] {
 // `ohneSession`: der Rekord gehoert einem NUTZER, nicht einer Session (bisher nur
 // „Meiste Carves >180°"). Dann reicht der WERT — ohne dieses Kennzeichen fiele die Kachel
 // durch die session_id-Pruefung und stuende dauerhaft auf „–".
@@ -39,7 +39,14 @@ func hhmm(_ v: Double) -> String {
     let s = ((Int(v) % 86400) + 86400) % 86400
     return String(format: "%02d:%02d", s / 3600, (s % 3600) / 60)
 }
-return [
+// Rekord-Arten je Sportart wie im Web (19.10.2026): Wind mit laengster Fahrt zuerst, ohne Gleit-,
+// Pump-, Laufzahl- und Carve-Rekorde; Motor ohne Gleit-/Pump-Rekorde; sonst wie bisher.
+let wind: Bool = ["wingfoil", "kitefoil", "parawing"].contains(sport ?? "")
+let motor: Bool = ["efoil", "foildrive", "towed"].contains(sport ?? "")
+let ohne: Set<String> = wind ? ["rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180"]
+    : (motor ? ["rec.longestGlide", "rec.sessionPumps"] : [])
+let kopf: [RecRow] = wind ? [row("rec.sessionTotal", r?.session_total) { String(format: "%.1f km", $0 / 1000.0) }] : []
+return kopf + [
     row("rec.farthestRun", r?.distance) { meterOderKm($0) },
     row("rec.longestRun", r?.duration) { dur($0) },
     row("rec.topSpeed", r?.speed) { String(format: "%.1f km/h", $0 * 3.6) },
@@ -52,7 +59,7 @@ return [
     row("rec.earlyBird", r?.early_bird) { hhmm($0) },
     row("rec.nightOwl", r?.night_owl) { hhmm($0) },
     row("rec.carves180", r?.carves180, ohneSession: true) { "\(Int($0.rounded()))" },
-]
+].filter { !ohne.contains($0.id) }
 }
 
 
@@ -158,10 +165,10 @@ struct SpotRecordsKasten: View {
 
     static func hatRekorde(_ alle: [String: PeriodRecords]?, lang: String) -> Bool {
         guard let alle else { return false }
-        return fenster.contains { !rekordZeilen(alle[$0], lang: lang).allSatisfy { $0.entry == nil } }
+        return fenster.contains { !rekordZeilen(alle[$0], lang: lang, sport: sport).allSatisfy { $0.entry == nil } }
     }
 
-    private var zeilen: [RecRow] { rekordZeilen(alle[fensterWahl], lang: lang) }
+    private var zeilen: [RecRow] { rekordZeilen(alle[fensterWahl], lang: lang, sport: sport) }
 
     private var titel: String {
         let t: String = Loc.t("rec.spotTitle", lang)
@@ -200,7 +207,7 @@ struct SpotRecordsKasten: View {
     private func ersteFensterWahl() {
         guard !selbstGewaehlt else { return }
         fensterWahl = Self.fenster.first {
-            !rekordZeilen(alle[$0], lang: lang).allSatisfy { $0.entry == nil }
+            !rekordZeilen(alle[$0], lang: lang, sport: sport).allSatisfy { $0.entry == nil }
         } ?? "all"
     }
 
