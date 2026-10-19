@@ -134,6 +134,9 @@ DEFAULTS = {
     "my_sports": [],
     # Suunto (19.10.2026): Sportmodus (Cloud-activityId als Text) -> Sportart. Leer = Standard-Sportart.
     "suunto_sport_je_modus": {},
+    # Polar + COROS genauso (19.10.2026): Modus (Polar: Name, COROS: sportType) -> Sportart.
+    "polar_sport_je_modus": {},
+    "coros_sport_je_modus": {},
     # Not-Aus für die dynamischen Layouts auf der Uhr (Stufe 3 des Sicherheitsnetzes, pro Nutzer).
     # Aus = die Uhr fährt die alte statische Logik, ohne App-Update.
     "layouts_enabled": True,
@@ -609,6 +612,11 @@ def update_settings(
         from .sessions import SPORTS
         current["suunto_sport_je_modus"] = {str(k): v for k, v in patch["suunto_sport_je_modus"].items()
                                             if str(k).isdigit() and v in SPORTS}
+    for _anb in ("polar", "coros"):
+        if f"{_anb}_sport_je_modus" in patch:
+            from ..importsports import zuordnung_bereinigen
+            from .sessions import SPORTS
+            current[f"{_anb}_sport_je_modus"] = zuordnung_bereinigen(patch[f"{_anb}_sport_je_modus"], SPORTS)
     if "equipment_je_sport" in patch:
         from ..equipment_sport import bereinigen
         from .sessions import SPORTS

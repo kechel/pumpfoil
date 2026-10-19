@@ -684,7 +684,8 @@ def _sync_lauf(db: Session, user: models.User, tage: int = 0) -> dict:
                 # bei Suunto am 05.09.: an der ID pruefen, ob wirklich etwas hinzugekommen ist.
                 vorher = db.query(func.max(models.Session.id)).scalar() or 0
                 s = import_parsed_session(db, user, roh, parsed,
-                                          src_label="coros-import", uuid_prefix="coros-")
+                                          src_label="coros-import", uuid_prefix="coros-",
+                                          sport_override=importsports.sport_fuer_modus(user, "coros", sportType))
                 if s is None or (s.id or 0) <= vorher:
                     skipped += 1        # war schon da bzw. bewusst geloescht
                 else:

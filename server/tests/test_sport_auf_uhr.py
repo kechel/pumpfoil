@@ -78,3 +78,28 @@ def test_suunto_sportmodus_zuordnung(client):
         assert (s.sport_class, s.sport_source) == ("kitefoil", "owner")
     finally:
         db.close()
+
+
+def test_polar_coros_zuordnung(client):
+    """Polar + COROS (19.10.2026): Zuordnung Modus -> Sportart wird gespeichert und beim Import gelesen."""
+    auth, _ = _konto(client, "polarcoros")
+    client.put("/api/settings", headers=auth, json={
+        "polar_sport_je_modus": {"OTHER_OUTDOOR": "wingfoil", "SURFING": "quatsch"},
+        "coros_sport_je_modus": {"10": "kitefoil", "": "wingfoil"},
+    })
+    st = client.get("/api/settings", headers=auth).json()
+    assert st["polar_sport_je_modus"] == {"OTHER_OUTDOOR": "wingfoil"}
+    assert st["coros_sport_je_modus"] == {"10": "kitefoil"}
+    from app import importsports
+    from app.db import SessionLocal
+    from app.models import User
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter_by(email="polarcoros@uhr.de").one()
+        assert importsports.sport_fuer_modus(u, "polar", "OTHER_OUTDOOR") == "wingfoil"
+        assert importsports.sport_fuer_modus(u, "polar", "RUNNING") is None
+        assert importsports.sport_fuer_modus(u, "coros", 10) == "kitefoil"
+        assert importsports.sport_fuer_modus(u, "suunto", 10) is None
+        assert importsports.sport_fuer_modus(u, "strava", "x") is None
+    finally:
+        db.close()

@@ -220,7 +220,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp))
                         }
-                        if (st.linked) SportAuswahl(p.pfad, fertigZaehler)
+                        if (st.linked) SportAuswahl(p.pfad, p.id, fertigZaehler)
                     }
                 }
             }
@@ -368,19 +368,20 @@ private fun ProviderCard(title: String, sub: String, connected: Boolean = false,
  * Angezeigt werden nur Modi mit Ortung — ein Hallenmodus wäre hier eine Zeile ohne Sinn.
  */
 @Composable
-private fun SportAuswahl(pfad: String, neuLaden: Int) {
+private fun SportAuswahl(pfad: String, anbieter: String, neuLaden: Int) {
     val scope = rememberCoroutineScope()
     var sports by remember(pfad) { mutableStateOf<List<Api.ImportSport>?>(null) }
 
-    // Nur Suunto (19.10.2026, wie im Web): Modus -> Sportart. Die Uhr meldet ihren Sportmodus, der
-    // Cloud-Import kennt ihn ohnehin; hier sagt der Nutzer, was er in diesem Modus faehrt.
+    // Modus -> Sportart (19.10.2026, Suunto, Polar, COROS; wie im Web): Pumpfoil gibt es auf keiner
+    // Uhr als Modus, hier sagt der Nutzer, was er in welchem Modus faehrt.
+    val zuordnungKey = "${anbieter}_sport_je_modus"
     var zuordnung by remember(pfad) { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     LaunchedEffect(pfad, neuLaden) {
         sports = try { Api.importSports(pfad) } catch (_: Exception) { emptyList() }
-        if (pfad == "suunto") {
+        run {
             zuordnung = try {
-                Api.settings()["suunto_sport_je_modus"]?.let { it as? JsonObject }
+                Api.settings()[zuordnungKey]?.let { it as? JsonObject }
                     ?.mapNotNull { (k, v) -> v.jsonPrimitive.contentOrNull?.let { k to it } }?.toMap() ?: emptyMap()
             } catch (_: Exception) { emptyMap() }
         }
@@ -391,7 +392,7 @@ private fun SportAuswahl(pfad: String, neuLaden: Int) {
         if (sport == null) neu.remove(key) else neu[key] = sport
         zuordnung = neu
         scope.launch {
-            try { Api.saveSettings(buildJsonObject { put("suunto_sport_je_modus", buildJsonObject { neu.forEach { (k, v) -> put(k, v) } }) }) }
+            try { Api.saveSettings(buildJsonObject { put(zuordnungKey, buildJsonObject { neu.forEach { (k, v) -> put(k, v) } }) }) }
             catch (_: Exception) {}
         }
     }
@@ -430,7 +431,7 @@ private fun SportAuswahl(pfad: String, neuLaden: Int) {
                         },
                     )
                 }
-                if (pfad == "suunto" && sp.importieren) {
+                if (sp.importieren) {
                     var offen by remember(sp.sport_key) { mutableStateOf(false) }
                     val gewaehlt = zuordnung[sp.sport_key]
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 6.dp)) {
