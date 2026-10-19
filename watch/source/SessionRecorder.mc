@@ -953,6 +953,7 @@ class SessionRecorder {
             // Ohne das zeigte die fēnix 5 trotz Umschalten nichts — das Paket kam nie an.
             if (_layoutsRequested()) { params["lay"] = "1"; }
             Sport.param(params);   // `sp=1` -> Sportarten-Liste; nur VOLL-Build, sonst No-Op (Sport.mc)
+            Mem.param(params);     // Speicher-Spitze (mem/memtot), reine Diagnose (Mem.mc)
             Communications.makeWebRequest(
                 Config.baseUrl() + "/api/devices/config",
                 params,   // Version+Plattform+PartNo (+ Canary-Meldung)
@@ -968,6 +969,7 @@ class SessionRecorder {
     }
 
     function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        Mem.messen();
         if (responseCode == 401) {
             // Server erreichbar, hat den Device-Token aber eindeutig verworfen (Verknüpfung
             // auf pumpfoil.org gelöscht/widerrufen) -> Pairing lokal zurücksetzen, damit die
@@ -1342,6 +1344,7 @@ class SessionRecorder {
 
     function stop() {
         if (!_recording) { return; }
+        Mem.messen(); Mem.sichern();
         // Aus der Pause heraus gestoppt: das offene Fenster noch schliessen, sonst endet die
         // Session am Server um diese Pause zu frueh.
         if (_paused) {

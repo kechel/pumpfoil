@@ -1075,7 +1075,8 @@ NAECHSTES: list[dict] = [
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
     {"name": "Garmin", "version": "1.0.95",
      "items": [
-         "You can pick the sport before you start, at the top of Foil & Alarm (not on the small-memory watches such as Instinct 2 and Forerunner 55).",
+         "You can pick the sport before you start, at the top of Foil & Alarm, and the start screen shows it above the foil (not on the small-memory watches such as Instinct 2 and Forerunner 55).",
+         "The start screen shows the foil name without the word Foil in front.",
      ]},
     {"name": "Suunto", "version": "1.01",
      "items": [
