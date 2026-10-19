@@ -46,7 +46,7 @@ let motor: Bool = ["efoil", "foildrive", "towed"].contains(sport ?? "")
 let ohne: Set<String> = wind ? ["rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180"]
     : (motor ? ["rec.longestGlide", "rec.sessionPumps"] : [])
 let kopf: [RecRow] = wind ? [row("rec.sessionTotal", r?.session_total) { String(format: "%.1f km", $0 / 1000.0) }] : []
-return kopf + [
+let alle: [RecRow] = [
     row("rec.farthestRun", r?.distance) { meterOderKm($0) },
     row("rec.longestRun", r?.duration) { dur($0) },
     row("rec.topSpeed", r?.speed) { String(format: "%.1f km/h", $0 * 3.6) },
@@ -59,7 +59,10 @@ return kopf + [
     row("rec.earlyBird", r?.early_bird) { hhmm($0) },
     row("rec.nightOwl", r?.night_owl) { hhmm($0) },
     row("rec.carves180", r?.carves180, ohneSession: true) { "\(Int($0.rounded()))" },
-].filter { !ohne.contains($0.id) }
+]
+// In Schritten statt in einem Ausdruck: der Type-Checker haengt sich sonst gern auf (Memory ios-swift-typecheck-hang).
+let gefiltert: [RecRow] = alle.filter { !ohne.contains($0.id) }
+return kopf + gefiltert
 }
 
 
@@ -99,7 +102,7 @@ struct SpotRecordsView: View {
     }
 
     private var mitRekorden: [String] {
-        liste.filter { SpotRecordsKasten.hatRekorde(jeSportart[$0], lang: lang) }
+        liste.filter { SpotRecordsKasten.hatRekorde(jeSportart[$0], lang: lang, sport: $0) }
     }
 
     var body: some View {
@@ -163,7 +166,7 @@ struct SpotRecordsKasten: View {
     @State private var fensterWahl = "10d"
     @State private var selbstGewaehlt = false
 
-    static func hatRekorde(_ alle: [String: PeriodRecords]?, lang: String) -> Bool {
+    static func hatRekorde(_ alle: [String: PeriodRecords]?, lang: String, sport: String) -> Bool {
         guard let alle else { return false }
         return fenster.contains { !rekordZeilen(alle[$0], lang: lang, sport: sport).allSatisfy { $0.entry == nil } }
     }
