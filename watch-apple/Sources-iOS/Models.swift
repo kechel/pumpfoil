@@ -1273,6 +1273,8 @@ struct SessionDetail: Codable, Identifiable {
     // geurteilt — dann erklärt sport_auto warum (nur Besitzer, nur solange das Urteil gilt).
     let sport_source: String?
     let sport_auto: SportAuto?
+    /// Hinweis „sieht nach Wind aus" (19.10.2026): nur Besitzer; wegklickbar ohne Aenderung.
+    let wind_vorschlag: WindVorschlag?
     // Anzahl menschlicher „nicht Pumpfoil"-Meldungen (nur Besitzer; Melder bleiben anonym).
     // 0 + sport_auto = reines Maschinen-Urteil -> Widerspruch unnötig (einfach Sportart wählen).
     let flag_count: Int?
@@ -1651,3 +1653,7 @@ func passtZu(_ q: String?, _ texte: String?...) -> Bool {
     let t = texte.map { suchform($0) }.joined(separator: " ")
     return ws.allSatisfy { t.contains($0) }
 }
+
+/// Hinweis „sieht nach einer Wind-Session aus" (19.10.2026, SessionOut.wind_vorschlag)
+struct WindRegel: Codable { let dauer_med: Double?; let tempo_med: Double?; let anteil_foil: Double?; let flaeche_km: Double? }
+struct WindVorschlag: Codable { let sportarten: [String]; let regel: WindRegel? }

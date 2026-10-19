@@ -82,6 +82,7 @@ struct SessionDetailView: View {
     // Wind am Spot + Wenden/Halsen (nur Wind-Sportarten, 19.10.2026).
     @State private var windInfo: SessionWindInfo?
     @State private var windVergleich: WindVergleich?
+    @State private var windHinweisWeg = false
     @State private var manoever: ManoeverAntwort?
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
@@ -564,6 +565,14 @@ struct SessionDetailView: View {
             // Eigene Session: Klassifikation bleibt oben (man ordnet die eigene Fahrt gleich ein).
             // Fremde Session: die MELDE-Knöpfe stehen ganz unten, s. reportSection.
             if s.owned == true { classificationNotice(s) }
+            if s.owned == true, let v = s.wind_vorschlag, !windHinweisWeg {
+                WindHinweisKasten(vorschlag: v, lang: lang, nimm: { sp in
+                    Task { try? await Api.setClassification(sid, sport: sp); await load() }
+                }, weg: {
+                    windHinweisWeg = true
+                    Task { try? await Api.windHinweisWeg(sid) }
+                })
+            }
             mediaSection(s)
             trackSection(s)
             // Theoretische Leistung rechnet die Pump-Physik — nur, wo gepumpt wird (Profil, 19.10.2026).
@@ -1665,7 +1674,7 @@ struct SessionDetailView: View {
 
     /// Wind am Spot + Wenden/Halsen holen — nur fuer Wind-Sportarten (Profil gruppe=wind).
     private func ladeWind() async {
-        windInfo = nil; manoever = nil
+        windInfo = nil; manoever = nil; windHinweisWeg = false
         guard session?.sport_profil?.gruppe == "wind" else { return }
         let wa = try? await Api.sessionWind(sid)
         windInfo = wa?.wind; windVergleich = wa?.vergleich
@@ -3070,5 +3079,40 @@ struct MergeLinkHinweisView: View {
     private var text: String {
         anzahl == 1 ? Loc.t("sd.mergeShareGone", lang)
             : Loc.t("sd.mergeShareGoneN", lang).replacingOccurrences(of: "{n}", with: String(anzahl))
+    }
+}
+
+
+/// Hinweis „sieht nach einer Wind-Session aus" (19.10.2026, wie im Web): Knopf je Wind-Sportart oder
+/// „Nein, passt so" — blendet ihn fuer diese Session auf allen Geraeten aus, ohne etwas zu aendern.
+private struct WindHinweisKasten: View {
+    let vorschlag: WindVorschlag
+    let lang: String
+    let nimm: (String) -> Void
+    let weg: () -> Void
+
+    private var warum: String {
+        let r = vorschlag.regel
+        return Loc.t("cls.ruleWhyWind", lang)
+            .replacingOccurrences(of: "{dur}", with: String(Int((r?.dauer_med ?? 0).rounded())))
+            .replacingOccurrences(of: "{kmh}", with: String(format: "%.1f", r?.tempo_med ?? 0))
+            .replacingOccurrences(of: "{foil}", with: String(Int(((r?.anteil_foil ?? 0) * 100).rounded())))
+            .replacingOccurrences(of: "{fl}", with: String(format: "%.1f", r?.flaeche_km ?? 0))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(Loc.t("cls.windHint", lang)).font(.subheadline.weight(.semibold)).foregroundStyle(.orange)
+            Text(warum).font(.footnote).foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                ForEach(vorschlag.sportarten, id: \.self) { sp in
+                    Button(Loc.t("cls.sport.\(sp)", lang)) { nimm(sp) }.buttonStyle(.borderedProminent).controlSize(.small)
+                }
+            }
+            Button(Loc.t("cls.windHintNo", lang)) { weg() }.buttonStyle(.bordered).controlSize(.small)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.orange.opacity(0.1)))
     }
 }

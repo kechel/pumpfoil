@@ -660,6 +660,9 @@ object Api {
         http("POST", "/api/sessions/$id/not-pumpfoil", body.toString(), auth = true)
     }
 
+    suspend fun windHinweisWeg(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/sessions/$id/wind-hinweis-weg", "{}", auth = true); Unit
+    }
     suspend fun setClassification(id: Int, sport: String? = null, dataQuality: String? = null): Unit =
         withContext(Dispatchers.IO) {
             val body = buildJsonObject {
