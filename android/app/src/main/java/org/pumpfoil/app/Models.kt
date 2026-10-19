@@ -1055,8 +1055,14 @@ data class ManoeverZahl(val durch: Int = 0, val ab: Int = 0)
 @Serializable
 data class ManoeverZahlen(val wende: ManoeverZahl = ManoeverZahl(), val halse: ManoeverZahl = ManoeverZahl())
 
+// Hoehe laufen (19.10.2026): VMG zum Wind aus Spur + Modellwind (server app/manoever.hoehe).
 @Serializable
-data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null)
+data class Hoehe(@SerialName("vmg_max_kmh") val vmgMaxKmh: Double = 0.0, @SerialName("vmg_mittel_kmh") val vmgMittelKmh: Double? = null,
+                 @SerialName("am_wind_anteil") val amWindAnteil: Double? = null, @SerialName("hoehe_m") val hoeheM: Int = 0,
+                 @SerialName("winkel_med") val winkelMed: Int? = null)
+
+@Serializable
+data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null, val hoehe: Hoehe? = null)
 
 @Serializable
 data class SportProfil(

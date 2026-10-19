@@ -404,12 +404,14 @@
           "seit": "2026-10-19",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
           "plattformen": {
             "web": "2026-10-19",
-            "android": "",
-            "ios": ""
+            "android": "1.1.44",
+            "ios": "1.1.53"
           }
         },
         "tempo_je_wind": {

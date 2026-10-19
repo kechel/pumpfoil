@@ -1010,6 +1010,11 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 19.10.2026: erste Punkte nach 1.1.52 (die liegt im Review). Version wird erst beim Release gebumpt.
+    {"name": "iPhone + Apple Watch", "version": "1.1.53",
+     "items": [
+         "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
+     ]},
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
     # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
@@ -1026,6 +1031,7 @@ NAECHSTES: list[dict] = [
          "Under My foils you choose which sports you can pick on the watch.",
          "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
          "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
+         "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
