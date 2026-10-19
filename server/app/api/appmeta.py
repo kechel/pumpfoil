@@ -1002,6 +1002,7 @@ NAECHSTES: list[dict] = [
          "Each sport can have its own default foil, board, stab and mast, set in Setup.",
          "The Community page can show records and leaderboards for each sport, like the website.",
          "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
+         "Under My foils you choose which sports you can pick on the watch.",
      ]},
     {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
      "items": [
@@ -1013,6 +1014,7 @@ NAECHSTES: list[dict] = [
          "Each sport can have its own default foil, board, stab and mast, set in Setup.",
          "The Community page can show records and leaderboards for each sport, like the website.",
          "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
+         "Under My foils you choose which sports you can pick on the watch.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
@@ -1063,6 +1065,10 @@ NAECHSTES: list[dict] = [
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
+    {"name": "Garmin", "version": "1.0.95",
+     "items": [
+         "You can pick the sport before you start, at the top of Foil & Alarm (not on the small-memory watches such as Instinct 2 and Forerunner 55).",
+     ]},
     # 19.10.2026: Sportart-Wahl auf der Uhr (Jan: „bitte umsetzen auf alle uhren und in coming next").
     # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
     {"name": "Amazfit", "version": "1.0.15",

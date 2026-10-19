@@ -7,6 +7,8 @@ struct FoilsView: View {
     // Standard-Sportart neuer Sessions (docs/sport-classification.md). Sitzt hier und nicht in
     // den Einstellungen, weil die PWA sie auch auf der Foil-Seite hat (Foils.tsx).
     @State private var defSport = "pumpfoil"
+    // Sportarten an der Uhr (19.10.2026): Standard immer dabei, die uebrigen hier anwaehlen.
+    @State private var mySports: [String] = []
     @State private var foils: [Foil] = []
     @State private var brands: [String] = []
     @State private var brand = ""
@@ -23,6 +25,15 @@ struct FoilsView: View {
         }
     }
 
+    private func sportBindung(_ sp: String) -> Binding<Bool> {
+        Binding(get: { sp == defSport || mySports.contains(sp) }, set: { an in
+            var neu = mySports.filter { $0 != sp }
+            if an { neu.append(sp) }
+            mySports = neu
+            Task { try? await Api.saveSettings(["my_sports": neu]) }
+        })
+    }
+
     var body: some View {
         Form {
             if let error { Text(error).foregroundStyle(.secondary) }
@@ -36,6 +47,13 @@ struct FoilsView: View {
                     Task { try? await Api.saveSettings(["default_sport_class": v]) }
                 }
                 Text(Loc.t("foils.defaultSportHint", lang)).font(.callout).foregroundStyle(.secondary)
+                // Sportarten an der Uhr (19.10.2026, wie das Web)
+                DisclosureGroup(Loc.t("foils.mySports", lang)) {
+                    ForEach(SPORTS.filter { $0 != "other" }, id: \.self) { sp in
+                        Toggle(Loc.t("cls.sport." + sp, lang), isOn: sportBindung(sp)).disabled(sp == defSport)
+                    }
+                    Text(Loc.t("foils.mySportsHint", lang)).font(.footnote).foregroundStyle(.secondary)
+                }
                 // Wie in der PWA (Foils.tsx:100): von hier geht es ins detaillierte Setup.
                 NavigationLink(Loc.t("foils.toSetup", lang)) { SetupView() }
             }
@@ -128,6 +146,7 @@ struct FoilsView: View {
                 else if let mf = s["my_foils"] as? [NSNumber] { mine = Set(mf.map(\.intValue)) }
                 def = (s["foil_id"] as? Int) ?? (s["foil_id"] as? NSNumber)?.intValue
                 if let ds = s["default_sport_class"] as? String, !ds.isEmpty { defSport = ds }
+                mySports = (s["my_sports"] as? [String]) ?? []
             }
             error = nil
         } catch { self.error = error.localizedDescription }
