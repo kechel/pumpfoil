@@ -10,19 +10,27 @@ def test_mittel_richtung_ueber_null():
     assert m["boeen_max_kmh"] == 20
 
 
-def test_cache_und_ohne_ort(monkeypatch, tmp_path):
+def test_cache_je_spot_und_tag(monkeypatch, tmp_path):
+    """Seit 19.10.2026: ein Abruf je Spot und UTC-Tag; zwei Sessions am selben Spot/Tag teilen ihn."""
+    from types import SimpleNamespace
     from app import sessionwind
-    monkeypatch.setattr(sessionwind, "_cache_pfad", lambda sid: tmp_path / f"{sid}.json")
+    monkeypatch.setattr(sessionwind, "get_settings", lambda: SimpleNamespace(data_dir=tmp_path))
     aufrufe = []
-    def fake(lat, lon, start, ende):
-        aufrufe.append(1)
-        return [{"t": "2026-10-18T11:00:00+00:00", "kmh": 12.0, "richtung": 70, "boeen_kmh": 25.0}]
-    monkeypatch.setattr(sessionwind, "_abrufen", fake)
-    t = datetime(2026, 10, 18, 11, 10, tzinfo=timezone.utc)
-    assert sessionwind.session_wind(1, None, 3.8, t, t) is None
-    a = sessionwind.session_wind(1, 51.7, 3.8, t, t)
-    b = sessionwind.session_wind(1, 51.7, 3.8, t, t)
-    assert a == b and a["mittel"]["richtung"] == 70 and len(aufrufe) == 1   # zweiter Aufruf aus dem Cache
+    def fake_get(url, params=None, **k):
+        aufrufe.append(params)
+        zeiten = [f"{params['start_date']}T{h:02d}:00" for h in range(24)]
+        return SimpleNamespace(status_code=200, json=lambda: {"hourly": {
+            "time": zeiten, "wind_speed_10m": [12.0] * 24, "wind_direction_10m": [70] * 24,
+            "wind_gusts_10m": [25.0] * 24}})
+    monkeypatch.setattr(sessionwind.httpx, "get", fake_get)
+    t1 = datetime(2026, 10, 18, 11, 10, tzinfo=timezone.utc)
+    t2 = datetime(2026, 10, 18, 15, 0, tzinfo=timezone.utc)
+    assert sessionwind.session_wind(1, None, 3.8, t1, t1) is None
+    a = sessionwind.session_wind(1, 51.701, 3.8, t1, t1)
+    b = sessionwind.session_wind(2, 51.699, 3.802, t2, t2)      # anderer Session, selber Spot (gerundet) + Tag
+    assert a["mittel"]["richtung"] == 70 and len(a["stunden"]) == 2 and len(b["stunden"]) == 2
+    assert len(aufrufe) == 1                                      # nur EIN Abruf fuer beide
+    assert (tmp_path / "wind" / "tage" / "51.70_3.80_2026-10-18.json").exists()
 
 
 def test_manoever_wende_und_halse():
