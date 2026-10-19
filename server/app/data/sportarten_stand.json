@@ -73,6 +73,18 @@
       "en": "Tacks and jibes"
     },
     {
+      "id": "hoehe",
+      "en": "Upwind progress"
+    },
+    {
+      "id": "tempo_je_wind",
+      "en": "Speed by wind strength"
+    },
+    {
+      "id": "downwind_strecke",
+      "en": "Downwind runs from A to B"
+    },
+    {
       "id": "spruenge",
       "en": "Jumps"
     },
@@ -177,6 +189,18 @@
           "en": "Does not apply."
         },
         "wellen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "hoehe": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "tempo_je_wind": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_strecke": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -335,6 +359,20 @@
         "wellen": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "hoehe": {
+          "status": "vorschlag",
+          "en": "How well you gain ground against the wind (upwind speed, VMG) per ride, from the GPS track and the model wind.",
+          "notiz": "Claude 19.10.: mit wind_am_spot vorhanden — Geschwindigkeitsanteil gegen den Wind je Schlag (VMG), bester Am-Wind-Winkel. Typische Fortschrittszahl beim Wingen. Nur Anzeige wie Wenden/Halsen."
+        },
+        "tempo_je_wind": {
+          "status": "vorschlag",
+          "en": "Your speeds next to the wind strength, so sessions on light and strong days can be compared.",
+          "notiz": "Claude 19.10.: Tempo/Strecke je Windstaerke-Band ueber die eigenen Sessions (Verlauf), Grundlage wind_am_spot (Modell!)."
+        },
+        "downwind_strecke": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -418,6 +456,19 @@
           "status": "vorschlag",
           "en": "Count the waves you rode and show the longest one.",
           "notiz": "Bei Welle/Downwind ist ein Lauf ~ eine Welle bzw. ein Glide; Zaehlen + laengste/schnellste Welle als eigene Kennzahlen, Pump-Zahlen behalten (beim Downwind wird gepumpt)."
+        },
+        "hoehe": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "tempo_je_wind": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_strecke": {
+          "status": "vorschlag",
+          "en": "Downwind runs shown as A-to-B distance with average speed, and the total downwind distance of a session.",
+          "notiz": "Claude 19.10.: Downwind ist eher eine Strecke als Kreise; Luftlinie Start-Ziel je Lauf + Summe als eigene Kennzahl."
         }
       }
     },
@@ -509,6 +560,18 @@
           "en": "Does not apply."
         },
         "wellen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "hoehe": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "tempo_je_wind": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_strecke": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -679,6 +742,21 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "surf_downwind",
+        "surf_wave"
+      ],
+      "merkmal": "hoehe, tempo_je_wind, downwind_strecke",
+      "was": "Eigene Vorschlaege (proposal) zur Pruefung: Hoehe laufen (VMG), Tempo je Windstaerke, Downwind-Strecke A->B.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
