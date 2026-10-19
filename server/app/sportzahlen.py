@@ -67,7 +67,7 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
         out["wellen"] = {"anzahl": len(segments), "laengste_s": round(dauer[i]), "laengste_m": round(strecke[i]),
                          "reiten_s": round(reiten),
                          "paddeln_s": round(max(0.0, fahrzeit - reiten)) if fahrzeit else None}
-    if (gruppe == "wind" or sport == "surf_downwind") and segments:
+    if (gruppe == "wind" or sport in ("surf_downwind", "efoil", "foildrive")) and segments:
         segs = sorted(segments, key=lambda g: g.get("t_start_ms") or 0)
         fahrten: list[list[dict]] = []
         for g in segs:
