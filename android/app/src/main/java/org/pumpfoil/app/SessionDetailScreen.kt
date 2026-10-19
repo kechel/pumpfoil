@@ -503,8 +503,21 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     }
     // Jede Aenderung merken — sie gilt dann auch fuer die naechste Session.
     LaunchedEffect(colorMode, win, showPumps, showAttempts, showGlides) {
-        SessionViewPrefs.merke(ctxPrefs, colorMode, win, showPumps, showAttempts, showGlides)
+        // Wind (ohne Pump-Zahlen) merkt nichts: der Rueckfall von Pump-Faerbung auf Tempo soll die
+        // naechste Pumpfoil-Session nicht verstellen (wie im Web).
+        if (s.sportProfil?.pumpzahlen != false)
+            SessionViewPrefs.merke(ctxPrefs, colorMode, win, showPumps, showAttempts, showGlides)
     }
+    // Anzeige-Profil der Sportart (19.10.2026). Ohne Profil oder bei Pumpfoil alles wie bisher.
+    // Wind: ganze Fahrt grau unter den Laeufen (umschaltbar, nicht gemerkt), Gesamtstrecke + Dauer
+    // vorn, keine Pump-Zahlen.
+    val pumpzahlen = s.sportProfil?.pumpzahlen != false
+    val karteGanzMoeglich = s.sportProfil?.karte == "ganz"
+    val hauptGesamt = s.sportProfil?.hauptzahl == "gesamt"
+    var ganzeFahrt by remember(s.id) { mutableStateOf(true) }
+    val zeigeGanz = karteGanzMoeglich && ganzeFahrt
+    // Tempo-Faerbung (km/h): bisher fest 8-25, Wind 10-40 aus dem Profil.
+    val tempoSkala = s.sportProfil?.tempoSkala?.takeIf { it.size == 2 && it[1] > it[0] }?.let { it[0] to it[1] } ?: (8.0 to 25.0)
     var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
     LaunchedEffect(selectedRun) { onRunSelected(selectedRun) }   // hoch melden -> Teilen-Vorauswahl (#37)
     var weightKg by remember { mutableStateOf(0.0) }
@@ -882,7 +895,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 // macht es genauso.
                 LaunchedEffect(hasHr, hasPump, hasCarves, colorMode) {
                     if ((colorMode == ColorMode.HR && !hasHr) ||
-                        (colorMode == ColorMode.PUMP && !hasPump) ||
+                        (colorMode == ColorMode.PUMP && (!hasPump || !pumpzahlen)) ||
                         (colorMode == ColorMode.TURNS && !hasCarves)) colorMode = ColorMode.SPEED
                 }
                 // Die Bedienzeilen ueber der Karte in EINEM Block mit engem Abstand: als
@@ -896,7 +909,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) }, colors = cyanChipColors())
                                 if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
-                                if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
+                                if (hasPump && pumpzahlen) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
                                 if (hasCarves) FilterChip(selected = colorMode == ColorMode.TURNS, onClick = { colorMode = ColorMode.TURNS }, label = { Text("Carves") }, colors = cyanChipColors())
                             }
                         }
@@ -911,12 +924,20 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         // vorher drei Zeilen (Jan, 07.10.2026: „Platz sparen"). FlowRow bricht nur um,
                         // wenn es wirklich nicht passt.
                         val pumpAnzahl = a?.pumpCount
-                        val zeigeMarker = pumpAnzahl != null && pumpAnzahl > 0
+                        val zeigeMarker = pumpzahlen && pumpAnzahl != null && pumpAnzahl > 0
                         // Startversuche nur anbieten, wenn es welche gibt (oder noch geladen wird).
                         // Bewusst NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den ausgewerteten
                         // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
-                        val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
-                        val zeigeGleitSchalter = segs.any { it.glides.isNotEmpty() }
+                        // Startversuche nur beim Pumpen — bei Wind (ohne Pump-Zahlen) kein Schalter, wie im Web.
+                        val zeigeVersuchsSchalter = pumpzahlen && (attempts == null || attempts!!.isNotEmpty())
+                        val zeigeGleitSchalter = pumpzahlen && segs.any { it.glides.isNotEmpty() }
+                        // Wind: Schalter „nur on-foil / ganze Fahrt" (Standard ganze Fahrt).
+                        if (karteGanzMoeglich) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                FilterChip(selected = !ganzeFahrt, onClick = { ganzeFahrt = false }, label = { Text(I18n.t("sd.mapOnFoil")) }, colors = cyanChipColors())
+                                FilterChip(selected = ganzeFahrt, onClick = { ganzeFahrt = true }, label = { Text(I18n.t("sd.mapWhole")) }, colors = cyanChipColors())
+                            }
+                        }
                         if (colorMode == ColorMode.SPEED || zeigeMarker || zeigeVersuchsSchalter || zeigeGleitSchalter) {
                             FlowRow(
                                 Modifier.fillMaxWidth(),
@@ -959,11 +980,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 Card(Modifier.fillMaxWidth()) {
                     Box {
-                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, showGlides, win,
-                        if (showAttempts) attempts.orEmpty() else emptyList(),
+                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen, win,
+                        if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                            Modifier.fillMaxWidth().height(300.dp))
+                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala)
                         // Vollbild-Karte (PWA-Paritaet: dort ein Knopf "Vollbild" ueber der Karte
                         // bzw. die Taste F). Hier ein Knopf IN der Kartenecke — dasselbe Muster,
                         // das die Vergleichskarte dieser App schon nutzt.
@@ -983,11 +1004,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Dialog(onDismissRequest = { mapFull = false },
                            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, showGlides, win,
-                                if (showAttempts) attempts.orEmpty() else emptyList(),
+                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen, win,
+                                if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                                Modifier.fillMaxSize())
+                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala)
                             IconButton(
                                 onClick = { mapFull = false },
                                 // Karte bleibt randlos, das X nicht — sonst liegt es unter der Statusleiste.
@@ -1043,13 +1064,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 // Farb-Legende (min→max) für den gewählten Modus — wie PWA.
                 if (colorMode == ColorMode.TURNS) CarveLegend(carve?.counts, carveGMax)
-                else ColorLegend(colorMode, hrRange, pumpRange)
+                else ColorLegend(colorMode, hrRange, pumpRange, tempoSkala)
             }
         }
         // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed). hasSpecs: Katalog-Einträge
         // ohne Herstellermaße stehen mit 0 in Fläche/Spannweite -> die Rechnung teilt durch 0 und
         // käme auf Unsinn. Solche Foils bleiben wählbar, die Leistungs-Karte fällt nur weg.
-        if (a != null && s.foil != null && s.foil.hasSpecs && s.foil.thicknessMm > 0 && weightKg > 0) {
+        // Theoretische Leistung rechnet die Pump-Physik — nur, wo gepumpt wird (Profil, 19.10.2026).
+        if (pumpzahlen && a != null && s.foil != null && s.foil.hasSpecs && s.foil.thicknessMm > 0 && weightKg > 0) {
             PowerCard(a, s.foil, weightKg)
         }
         if (a == null) {
@@ -1066,6 +1088,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             val bestGlideIdx = segList.indices.filter { segList[it].longestGlideS != null }.maxByOrNull { segList[it].longestGlideS ?: 0.0 }
             val stats = buildList {
                 a.totalDistanceM?.let { add(StatItem(I18n.t("compare.distance"), dist(it))) }
+                // Wind (hauptzahl="gesamt"): Dauer der ganzen Fahrt direkt nach der Gesamtstrecke —
+                // aktive Zeit im Zuschnitt (durationMs), nie endedAt - startedAt (Pausen).
+                if (hauptGesamt) s.durationMs?.let { d ->
+                    add(StatItem(I18n.t("sd.duration"), mmssD(((s.trimEndMs ?: d) - (s.trimStartMs ?: 0L)) / 1000.0)))
+                }
                 a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
                 a.foilingTimeS?.let { add(StatItem(I18n.t("compare.foilTime"), mmssD(it))) }
                 // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst
@@ -1084,16 +1111,16 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 (m?.avgSpeedMps)?.let { add(StatItem(I18n.t("sd.avgSpeed"), "%.1f km/h".format(it * 3.6))) }
                 a.maxSpeedMps?.let { add(StatItem(I18n.t("home.topSpeed"), "%.1f km/h".format(it * 3.6), bestSpeedIdx)) }
-                a.pumpCount?.let { pc ->
+                if (pumpzahlen) a.pumpCount?.let { pc ->
                     add(StatItem(I18n.t("home.pumps"), pc.toString()))
                     if (pc > 0 && a.foilingDistanceM != null) add(StatItem(I18n.t("sd.avgDistPerPump"), "%.1f m".format(a.foilingDistanceM / pc)))
                 }
-                (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(StatItem(I18n.t("sd.avgPump"), PumpUnit.fmt(it))) }
+                if (pumpzahlen) (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(StatItem(I18n.t("sd.avgPump"), PumpUnit.fmt(it))) }
                 (m?.avgHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.avgHr"), "$it")) }
                 (m?.maxHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.maxHr"), "$it")) }
                 longestRunIdx?.let { add(StatItem(I18n.t("home.longestRun"), mmssD(segList[it].durationS), it)) }
                 farthestRunIdx?.let { add(StatItem(I18n.t("home.farthestRun"), dist(segList[it].distanceM), it)) }
-                bestGlideIdx?.let { i -> segList[i].longestGlideS?.takeIf { it > 0 }?.let { add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(it), i)) } }
+                if (pumpzahlen) bestGlideIdx?.let { i -> segList[i].longestGlideS?.takeIf { it > 0 }?.let { add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(it), i)) } }
             }
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
             LageAnsicht(s, selectedRun)
@@ -1211,9 +1238,10 @@ fun carveColor(g: Double, gMax: Double = 0.6): Color {
 
 // Farb-Legende (horizontaler Verlauf min→max) für den gewählten Farbmodus — wie die PWA.
 @Composable
-private fun ColorLegend(mode: ColorMode, hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>) {
+private fun ColorLegend(mode: ColorMode, hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>,
+                        tempoSkala: Pair<Double, Double> = 8.0 to 25.0) {
     val (lo, hi) = when (mode) {
-        ColorMode.SPEED -> "8 km/h" to "25 km/h"     // feste Speed-Skala (wie speedColor)
+        ColorMode.SPEED -> "${tempoSkala.first.toInt()} km/h" to "${tempoSkala.second.toInt()} km/h"   // wie speedColor
         ColorMode.HR -> "${hrRange.first}" to "${hrRange.second} bpm"
         ColorMode.PUMP -> PumpUnit.fmtLegend(pumpRange.first, false) to PumpUnit.fmtLegend(pumpRange.second, true)
         ColorMode.TURNS -> "" to ""   // TURNS nutzt CarveLegend, nicht diese Funktion
@@ -1281,7 +1309,8 @@ fun rampColor(t: Double): Color {
     return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f)))
 }
 // Speed -> Farbe (8..25 km/h), wie Wear/Web.
-fun speedColor(kmh: Double): Color = rampColor((kmh - 8) / (25 - 8))
+fun speedColor(kmh: Double, skala: Pair<Double, Double> = 8.0 to 25.0): Color =
+    rampColor((kmh - skala.first) / (skala.second - skala.first).coerceAtLeast(1.0))
 
 val GRAY = Color(0xFF64748B)
 // Bernstein wie in der PWA (#f59e0b) fuer die Startversuche — klar unterscheidbar von den
@@ -1319,11 +1348,15 @@ private fun TrackMap(
     selectedRun: Int?, onSelectRun: (Int) -> Unit,
     carve: CarveData?, carveGMax: Double,
     modifier: Modifier = Modifier,
+    /** Wind (Profil karte="ganz"): die ganze Fahrt grau unter den Laeufen (19.10.2026). */
+    ganzeFahrt: Boolean = false,
+    /** Tempo-Faerbung in km/h (Profil tempo_skala, Standard 8-25 wie bisher). */
+    tempoSkala: Pair<Double, Double> = 8.0 to 25.0,
 ) {
     val pts = track.points
     val speeds = track.speedsFor(win)
     fun colorAt(i: Int): Color = when (mode) {
-        ColorMode.SPEED -> speedColor((speeds.getOrNull(i) ?: 0.0) * 3.6)
+        ColorMode.SPEED -> speedColor((speeds.getOrNull(i) ?: 0.0) * 3.6, tempoSkala)
         ColorMode.HR -> {
             val v = track.hr.getOrNull(i)
             val (lo, hi) = hrRange
@@ -1391,6 +1424,28 @@ private fun TrackMap(
                         map.overlays.add(punktMarker(map, GeoPoint(pts.last().second, pts.last().first),
                             Color(0xFFEF4444), dens, hohl = false))
                     }
+                }
+                // Wind-Sportarten: die GANZE Fahrt dezent grau darunter, damit langsame Stuecke, Wenden
+                // und Wasserstarts nicht als Luecke erscheinen (Oerni #17478). Eine Linie je
+                // zusammenhaengendem Stueck (Spruenge > 200 m trennen), nicht anklickbar.
+                if (ganzeFahrt && segments.isNotEmpty()) {
+                    var stueck = ArrayList<GeoPoint>()
+                    fun abschliessen() {
+                        if (stueck.size >= 2) map.overlays.add(Polyline(map).apply {
+                            setPoints(stueck)
+                            outlinePaint.color = android.graphics.Color.argb(140, 0x64, 0x74, 0x8B)
+                            outlinePaint.strokeWidth = 3f * dens
+                            isEnabled = true
+                            infoWindow = null
+                        })
+                        stueck = ArrayList()
+                    }
+                    for (i in pts.indices) {
+                        val p = GeoPoint(pts[i].second, pts[i].first)
+                        if (stueck.isNotEmpty() && stueck.last().distanceToAsDouble(p) > 200.0) abschliessen()
+                        stueck.add(p); allPts.add(p)
+                    }
+                    abschliessen()
                 }
                 segments.forEachIndexed { runIdx, seg ->
                     val dim = selectedRun != null && runIdx != selectedRun   // anderer Lauf -> ausgegraut
