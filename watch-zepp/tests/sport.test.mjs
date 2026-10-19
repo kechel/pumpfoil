@@ -20,7 +20,7 @@ function schneide(q, name) {
   }
   throw new Error(`${name} nicht abgeschlossen`);
 }
-const namen = ["sportListe", "sportWahl", "sportNaechster", "sportKlasse"];
+const namen = ["sportListe", "sportWahl", "sportNaechster", "sportKlasse", "sportAbweichend"];
 const S = new Function(`${namen.map((n) => schneide(quelle, n)).join("\n")}\nreturn { ${namen.join(", ")} };`)();
 
 let fehler = 0;
@@ -77,6 +77,16 @@ pruefe("uploadSession setzt meta.sport_class",
   const basis = { session_uuid: "u", started_at_ms: 0, sport: "pumpfoil", gps_hz: 1, accel_hz: 25, accel_scale: 1 };
   pruefe("mit sport_class -> im Body", bau(Object.assign({ sport_class: "wingfoil" }, basis), iso).sport_class === "wingfoil");
   pruefe("ohne -> fehlt im Body", !("sport_class" in bau(basis, iso)));
+}
+
+console.log("5) Startbildschirm: nur abweichende Sportart");
+{
+  const L2 = [{ id: "pumpfoil", name: "Pumpfoil" }, { id: "wingfoil", name: "Wingfoil" }];
+  pruefe("Standard -> nichts", S.sportAbweichend(L2, "pumpfoil") === null);
+  pruefe("abweichend -> Name", S.sportAbweichend(L2, "wingfoil") === "Wingfoil");
+  pruefe("keine Wahl -> nichts", S.sportAbweichend([{ id: "pumpfoil", name: "Pumpfoil" }], "pumpfoil") === null);
+  pruefe("unbekannt -> nichts", S.sportAbweichend(L2, "kite") === null && S.sportAbweichend(L2, null) === null);
+  pruefe("Hinweis-Zeile nutzt es", quelle.includes('(abw ? abw + " · " : "")'));
 }
 
 console.log(fehler ? `\n${fehler} Fehler` : "\nalles gruen");

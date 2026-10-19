@@ -1070,7 +1070,7 @@ NAECHSTES: list[dict] = [
          # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
          "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
          # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
-         "You can pick the sport before you start, in the settings or by tapping it on the start screen.",
+         "You can pick the sport before you start, in the settings or by tapping it on the start screen, and the start screen shows your foil below the sport.",
      ]},
     {"name": "Suunto", "version": "1.01",
      "items": [
@@ -1083,7 +1083,7 @@ NAECHSTES: list[dict] = [
     # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
     {"name": "Amazfit", "version": "1.0.15",
      "items": [
-         "You can pick the sport before you start, on the Foil & Alarm page.",
+         "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows at the start of the status line.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.

@@ -50,7 +50,10 @@ struct Index {
   @State zLayouts: string = '';
   @State zSperre: string = '';
   @State zStart: string = '';
-  @State zSport: string = '';   // gewaehlte Sportart; '' = nichts zu waehlen (< 2 im Profil), Zeile fehlt
+  @State zSport: string = '';
+  // Foil auf dem Startbildschirm unter der Sportart, ohne „Foil:" (Jan, 19.10.2026, wie Apple Watch);
+  // '' = keine Foils im Profil, Zeile fehlt.
+  @State zStartFoil: string = '';   // gewaehlte Sportart; '' = nichts zu waehlen (< 2 im Profil), Zeile fehlt
   private zeigeAuswahl: boolean = false;
   // Koppeln mit pumpfoil.org (Direkt-Upload, seit 13.10.2026 der einzige Weg): Ansicht aus den
   // Einstellungen oder per Tipp auf die Infozeile, solange nicht gekoppelt
@@ -185,6 +188,8 @@ struct Index {
     this.balkenZeigen = z.modus === 'bereit' && z.offen > 0 && z.plan.gesamt > 0;
     this.balken = z.plan.gesamt > 0 ? Math.floor(100 * z.plan.fertig / z.plan.gesamt) : 0;
     this.zSport = r.auswahl.sportName(k);
+    const sf: Foil | null = r.auswahl.foil(k);
+    this.zStartFoil = sf !== null ? sf.label : (k.foils !== undefined && k.foils !== null && k.foils.length > 0 ? '–' : '');
     this.seiten();
   }
 
@@ -715,6 +720,11 @@ struct Index {
             .textOverflow({ overflow: TextOverflow.Ellipsis }).width(220).textAlign(TextAlign.Center)
             .padding({ top: 4, bottom: 4 })
             .onClick(() => this.sportTipp())
+        }
+        if (this.zStartFoil !== '') {
+          Text(this.zStartFoil).fontSize(14).fontColor(CYAN).maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis }).width(220).textAlign(TextAlign.Center)
+            .padding({ bottom: 4 })
         }
         Button(this.t($r('app.string.start'))).width(200).height(56).fontSize(20).fontColor('#ffffff')
           .backgroundColor(CYAN_DUNKEL).margin({ top: 8 })
