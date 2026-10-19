@@ -47,3 +47,26 @@ def test_manoever_wende_und_halse():
     m = erkennen(t, lat, lon, lambda _t: 0.0)          # Wind AUS Norden
     assert [x["typ"] for x in m] == ["wende", "wende", "halse"]
     assert all(x["durch"] for x in m)
+
+
+def test_hoehe_vmg():
+    """Synthetisch, Wind AUS Norden: 60 s auf Kurs 45° (am Wind), 60 s auf 180° (raum, vor dem Wind)."""
+    import math
+    from app.manoever import hoehe
+    t, lat, lon = [], [], []
+    x = y = 0.0
+    v = 6.0   # m/s = 21,6 km/h
+    def fahre(kurs, sek):
+        nonlocal x, y
+        for _ in range(sek):
+            x += v * math.sin(math.radians(kurs)); y += v * math.cos(math.radians(kurs))
+            t.append(len(t) * 1000); lat.append(47.0 + y / 111320.0); lon.append(9.0 + x / (111320.0 * math.cos(math.radians(47))))
+    fahre(45, 60)
+    fahre(180, 60)
+    h = hoehe(t, lat, lon, lambda _t: 0.0)
+    soll = 21.6 * math.cos(math.radians(45))            # 15,3 km/h VMG
+    assert abs(h["vmg_max_kmh"] - soll) < 1.0
+    assert abs(h["winkel_med"] - 45) <= 3
+    assert 0.4 <= h["am_wind_anteil"] <= 0.6
+    assert 200 <= h["hoehe_m"] <= 280                   # ~6 m/s * cos45 * 60 s = 255 m
+    assert hoehe(t[:10], lat[:10], lon[:10], lambda _t: 0.0) is None

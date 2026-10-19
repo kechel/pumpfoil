@@ -398,9 +398,19 @@
           "en": "Does not apply."
         },
         "hoehe": {
-          "status": "geplant",
-          "en": "How well you gain ground against the wind (upwind speed, VMG) per ride, from the GPS track and the model wind.",
-          "notiz": "Claude 19.10.: mit wind_am_spot vorhanden — Geschwindigkeitsanteil gegen den Wind je Schlag (VMG), bester Am-Wind-Winkel. Typische Fortschrittszahl beim Wingen. Nur Anzeige wie Wenden/Halsen. Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam."
+          "status": "live",
+          "en": "Best and average speed towards the wind (VMG), share of time upwind, height gained and typical angle to the wind, from the GPS track and the model wind.",
+          "notiz": "Claude 19.10.: mit wind_am_spot vorhanden — Geschwindigkeitsanteil gegen den Wind je Schlag (VMG), bester Am-Wind-Winkel. Typische Fortschrittszahl beim Wingen. Nur Anzeige wie Wenden/Halsen. Jan 19.10.: erstmal als geplante Idee vermerken, Details spaeter gemeinsam. 19.10.: gebaut als Anzeige (manoever.hoehe, /manoever liefert hoehe), Web im Wind-Kasten. #17478: VMG max 22,9, Ø 8,5 km/h, 48 % am Wind, 9,1 km, 73°. Apps folgen.",
+          "seit": "2026-10-19",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "plattformen": {
+            "web": "2026-10-19",
+            "android": "",
+            "ios": ""
+          }
         },
         "tempo_je_wind": {
           "status": "geplant",
@@ -857,6 +867,20 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-19",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "hoehe",
+      "was": "Hoehe laufen (VMG zum Wind, Anteil am Wind, gewonnene Hoehe, typischer Winkel) im Wind-Kasten der Session (Web).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [

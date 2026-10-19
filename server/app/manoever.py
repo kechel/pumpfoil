@@ -48,12 +48,22 @@ def erkennen(t_ms, lat, lon, wind_von) -> list[dict]:
     """t_ms/lat/lon: gleich lange Folgen (getrimmt, Track-Index = Position). `wind_von`: Funktion
     t_ms -> Windrichtung (Grad, woher) oder None. Rueckgabe: je Manoever {i, t_ms, typ, durch,
     drehung, kurs_vor, kurs_nach}; typ "wende" | "halse"."""
+    t, kurs, tempo = _kurs_tempo(t_ms, lat, lon)
+    n = len(t)
+    if n < 30:
+        return []
+    return _manoever(t, kurs, tempo, t_ms, wind_von)
+
+
+def _kurs_tempo(t_ms, lat, lon):
+    """Kurs (Grad, nur ab MIN_FAHRT_KMH) und Tempo (km/h) je Punkt aus der geglaetteten Spur.
+    Eine Quelle fuer Wenden/Halsen UND Hoehe, damit beide dieselbe Spur sehen."""
     t = np.asarray(t_ms, dtype=float) / 1000.0
     la = np.asarray(lat, dtype=float)
     lo = np.asarray(lon, dtype=float)
     n = len(t)
     if n < 30:
-        return []
+        return t, np.full(n, np.nan), np.full(n, np.nan)
     m_lat = 111320.0
     m_lon = 111320.0 * math.cos(math.radians(float(np.nanmedian(la))))
     x = (lo - lo[0]) * m_lon
@@ -73,6 +83,11 @@ def erkennen(t_ms, lat, lon, wind_von) -> list[dict]:
         tempo[i] = v
         if v >= MIN_FAHRT_KMH:
             kurs[i] = (math.degrees(math.atan2(dx, dy)) + 360.0) % 360.0
+    return t, kurs, tempo
+
+
+def _manoever(t, kurs, tempo, t_ms, wind_von) -> list[dict]:
+    n = len(t)
 
     def mittel_kurs(a: float, b: float, um: int):
         sel = (t >= t[um] + a) & (t <= t[um] + b) & ~np.isnan(kurs)
@@ -128,3 +143,55 @@ def wind_funktion(wind: dict | None):
         return None
     pkt = [(datetime.fromisoformat(s["t"]).timestamp() * 1000.0, s["richtung"]) for s in wind["stunden"]]
     return pkt
+
+
+# --- Hoehe laufen (19.10.2026, Stand-Buch: hoehe) --------------------------------------------------
+# Ebenfalls NUR ANZEIGE. VMG zum Wind = Tempo * cos(Winkel zwischen Kurs und der Richtung, AUS der der
+# Wind kommt): positiv = man gewinnt Hoehe. Gezaehlt wird nur auf dem Foil (>= DURCHGEFAHREN_KMH).
+HOEHE_FENSTER_S = 10.0
+
+
+def hoehe(t_ms, lat, lon, wind_von) -> dict | None:
+    """Kennzahlen zum Hoehelaufen oder None (zu wenig Fahrt / keine Windrichtung):
+    vmg_max_kmh = bestes 10-s-Mittel der VMG zum Wind, vmg_mittel_kmh = mittlere VMG am Wind,
+    am_wind_anteil = Anteil der Foil-Zeit mit Kurs gegen den Wind, hoehe_m = gesamt gewonnene Hoehe
+    (Summe der positiven VMG), winkel_med = typischer Winkel zum Wind am Wind (kleiner = hoeher)."""
+    t, kurs, tempo = _kurs_tempo(t_ms, lat, lon)
+    n = len(t)
+    if n < 30:
+        return None
+    vmg = np.full(n, np.nan)
+    winkel = np.full(n, np.nan)
+    for i in range(n):
+        if np.isnan(kurs[i]) or np.isnan(tempo[i]) or tempo[i] < DURCHGEFAHREN_KMH:
+            continue
+        w = wind_von(t_ms[i])
+        if w is None:
+            continue
+        d = abs(_winkel_diff(kurs[i], w))
+        winkel[i] = d
+        vmg[i] = tempo[i] * math.cos(math.radians(d))
+    ok = ~np.isnan(vmg)
+    if ok.sum() < 30:
+        return None
+    dt = np.concatenate([[0.0], np.diff(t)])
+    dt = np.where((dt > 0) & (dt <= 5), dt, 0.0)
+    am_wind = ok & (vmg > 0)
+    zeit_foil = float(dt[ok].sum())
+    beste = 0.0
+    j = 0
+    for i in range(n):
+        if not ok[i]:
+            continue
+        while t[i] - t[j] > HOEHE_FENSTER_S:
+            j += 1
+        sel = ok[j:i + 1]
+        if t[i] - t[j] >= HOEHE_FENSTER_S * 0.8 and sel.sum() >= 5:
+            beste = max(beste, float(np.nanmean(vmg[j:i + 1][sel])))
+    return {
+        "vmg_max_kmh": round(beste, 1),
+        "vmg_mittel_kmh": round(float(np.mean(vmg[am_wind])), 1) if am_wind.any() else None,
+        "am_wind_anteil": round(float(dt[am_wind].sum()) / zeit_foil, 2) if zeit_foil > 0 else None,
+        "hoehe_m": int(round(float(np.sum(vmg[am_wind] / 3.6 * dt[am_wind])))),
+        "winkel_med": int(round(float(np.median(winkel[am_wind])))) if am_wind.any() else None,
+    }
