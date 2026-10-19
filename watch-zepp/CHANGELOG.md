@@ -19,7 +19,8 @@ This changelog covers the Zepp OS watch app only.
   `sport_class` ueber app-side START an den Server (Whitelist erweitert). Test tests/sport.test.mjs.
   Nicht im Simulator/auf der Uhr gelaufen (6-Knopf-Layout pruefen).
 - **Abweichende Sportart auf dem Startbildschirm** (19.10.2026, wie Garmin 1.0.95): weicht die Wahl vom
-  Standard ab, steht ihr Name vorn in der Statuszeile (`sportAbweichend`, Test in tests/sport.test.mjs).
+  Standard ab, steht ihr Name vorn in der Versionszeile unter dem Titel („Wingfoil · v1.0.15“; die
+  Statuszeile unten war schon allein knapp) (`sportAbweichend`, Test in tests/sport.test.mjs).
 
 ## 1.0.14 — gebumpt am 18.10.2026 (code 17), zur Einreichung
 

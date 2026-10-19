@@ -86,7 +86,8 @@ console.log("5) Startbildschirm: nur abweichende Sportart");
   pruefe("abweichend -> Name", S.sportAbweichend(L2, "wingfoil") === "Wingfoil");
   pruefe("keine Wahl -> nichts", S.sportAbweichend([{ id: "pumpfoil", name: "Pumpfoil" }], "pumpfoil") === null);
   pruefe("unbekannt -> nichts", S.sportAbweichend(L2, "kite") === null && S.sportAbweichend(L2, null) === null);
-  pruefe("Hinweis-Zeile nutzt es", quelle.includes('(abw ? abw + " · " : "")'));
+  pruefe("Versionszeile nutzt es", quelle.includes('text: abw ? abw + " · " + ver : ver'));
+  pruefe("Statuszeile bleibt ohne Sportart", !quelle.includes('(abw ? abw + " · " : "")'));
 }
 
 console.log(fehler ? `\n${fehler} Fehler` : "\nalles gruen");

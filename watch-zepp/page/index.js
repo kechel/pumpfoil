@@ -2235,9 +2235,15 @@ Page(
     _verText() {
       const s = this.state, w = s.w;
       if (!w.ver) return;
+      // Vom Standard abweichende Sportart steht vorn in DIESER Zeile (wie Garmin ueber der Foil), nicht
+      // in der Statuszeile unten: die war schon allein knapp (Jan, 19.10.2026: „lieber in 2 zeilen").
+      // Neben einer Sportart wird die Version kurz: nur noch der Update-Pfeil, sonst die eigene Nummer.
+      const abw = sportAbweichend(s.sports, s.sportId);
+      const ver = s.updateVersion ? (abw ? "→ " + s.updateVersion : "v" + APP_VERSION + " → " + s.updateVersion)
+        : "v" + APP_VERSION;
       w.ver.setProperty(hmUI.prop.MORE, {
-        text: s.updateVersion ? "v" + APP_VERSION + " → " + s.updateVersion : "v" + APP_VERSION,
-        color: s.updateVersion ? 0x22d3ee : 0x64748b,
+        text: abw ? abw + " · " + ver : ver,
+        color: (abw || s.updateVersion) ? 0x22d3ee : 0x64748b,
       });
     },
     renderIdle() {
@@ -2267,11 +2273,8 @@ Page(
         // Verbindung und die Zahl offener Aufnahmen mit dran — zusammen lief das weit ueber
         // den Rand hinaus (Jans Emulator-Runde 10.09.2026: "in einer zeile viiiiiiel zu lang
         // ueber den gesamten screen hinaus"). Der Rest ist eine Sekunde spaeter wieder da.
-        // Vom Standard abweichende Sportart steht vorn (wie Garmin ueber der Foil): sie entscheidet,
-        // wie die Aufnahme ausgewertet wird, und soll nicht nur auf der Foil-Seite stehen.
-        const abw = sportAbweichend(s.sports, s.sportId);
         const hint = s.idleHint ? s.idleHint : s.upStatus ? s.upStatus
-          : (abw ? abw + " · " : "") + (((bleOk() && !getTok())
+          : (((bleOk() && !getTok())
               ? (s.code ? s.code + " → pumpfoil.org" : t("up.notLinked") + " · → " + t("menu.connect"))
               : gps + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn)
              + (pend ? " · " + pend + " " + t("up.open") : ""));
