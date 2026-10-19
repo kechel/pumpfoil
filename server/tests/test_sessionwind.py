@@ -102,3 +102,29 @@ def test_manoever_durch_mit_doppler():
     assert mit[0]["durch"] is True
     langsam = erkennen(t, lat, lon, wind, [2.5] * len(t))      # Doppler 9 km/h -> abgesetzt
     assert langsam[0]["durch"] is False
+
+
+def test_tag_teilweise_gespeichert_wird_ergaenzt(monkeypatch, tmp_path):
+    """Gespeichert wird sofort, was da ist; fehlt einer Session eine Stunde, wird der Tag ergaenzt."""
+    import json as _json
+    from types import SimpleNamespace
+    from app import sessionwind
+    monkeypatch.setattr(sessionwind, "get_settings", lambda: SimpleNamespace(data_dir=tmp_path))
+    aufrufe = []
+    def fake_get(url, params=None, **k):
+        aufrufe.append(1)
+        zeiten = [f"{params['start_date']}T{h:02d}:00" for h in range(24)]
+        return SimpleNamespace(status_code=200, json=lambda: {"hourly": {
+            "time": zeiten, "wind_speed_10m": [12.0] * 24, "wind_direction_10m": [70] * 24,
+            "wind_gusts_10m": [25.0] * 24}})
+    monkeypatch.setattr(sessionwind.httpx, "get", fake_get)
+    pfad = sessionwind._tag_pfad(51.7, 3.8, datetime(2026, 10, 18).date())
+    pfad.write_text(_json.dumps([{"t": f"2026-10-18T{h:02d}:00:00+00:00", "kmh": 9.0, "richtung": 60, "boeen_kmh": None}
+                                 for h in (10, 11, 12)]))
+    frueh = datetime(2026, 10, 18, 11, 10, tzinfo=timezone.utc)
+    a = sessionwind.session_wind(1, 51.7, 3.8, frueh, frueh)          # 11 + 12 Uhr liegen vor
+    assert len(aufrufe) == 0 and a["stunden"][0]["kmh"] == 9.0
+    spaet = datetime(2026, 10, 18, 15, 0, tzinfo=timezone.utc)
+    b = sessionwind.session_wind(2, 51.7, 3.8, spaet, spaet)          # 15/16 Uhr fehlen -> ergaenzen
+    assert len(aufrufe) == 1 and len(b["stunden"]) == 2
+    assert len(_json.loads(pfad.read_text())) == 24                     # Datei jetzt vollstaendig

@@ -17,8 +17,11 @@ Speicher je SPOT UND TAG (seit 19.10.2026, Jan: „muss ja nicht doppelt das gle
 werden"): data/wind/tage/<lat>_<lon>_<JJJJ-MM-TT>.json mit allen 24 Stunden des UTC-Tages, die
 Koordinate auf 2 Nachkommastellen (dieselbe Rundung wie beim Abruf, ~1 km). Zwei Sessions am selben
 Spot und Tag teilen sich damit einen Abruf, und spaetere Auswertungen (Windfenster je Spot, Tempo
-je Windstaerke) finden den Wind vor. Gespeichert wird ein Tag nur, wenn er vorbei ist (UTC) und
-Werte hat — der laufende Tag und ein noch leerer Archivtag werden beim naechsten Mal neu geholt.
+je Windstaerke) finden den Wind vor. Gespeichert wird sofort, was schon da ist — aber nur Stunden,
+die VORBEI sind (fuer den laufenden Tag liefert die Forecast-API auch kommende Stunden, das waere
+Vorhersage). Braucht eine Session Stunden, die in der Datei noch fehlen, wird der Tag neu geholt und
+ergaenzt (Jan, 19.10.2026: „schauen ob eine session eine uhrzeit danach braucht und dann ggf.
+aktualisieren, und dafuer immer direkt speichern was wir schon haben").
 Die alten Dateien je Session (data/wind/<id>.json, bis 19.10.) werden weiter zuerst gelesen.
 """
 from __future__ import annotations
@@ -49,20 +52,33 @@ def _tag_pfad(lat: float, lon: float, tag):
     return d / f"{round(lat, 2):.2f}_{round(lon, 2):.2f}_{tag.isoformat()}.json"
 
 
-def _tage_holen(lat: float, lon: float, von_tag, bis_tag) -> dict:
-    """{tag: [stunden]} fuer die UTC-Tage von..bis — aus dem Speicher oder EIN Abruf fuer die fehlenden."""
-    heute = datetime.now(timezone.utc).date()
+def _tage_holen(lat: float, lon: float, von: datetime, bis: datetime) -> dict:
+    """{tag: [stunden]} fuer die UTC-Tage der Stunden von..bis. Aus dem Speicher, solange er jede
+    gebrauchte (vergangene) Stunde hat; sonst EIN Abruf fuer die betroffenen Tage, Ergebnis gemerged
+    und gleich gespeichert (nur vergangene Stunden)."""
+    jetzt = datetime.now(timezone.utc)
+    letzte_volle = jetzt.replace(minute=0, second=0, microsecond=0)
     tage, fehlt = {}, []
-    t = von_tag
-    while t <= bis_tag:
+    t = von.date()
+    while t <= bis.date():
         try:
-            tage[t] = json.loads(_tag_pfad(lat, lon, t).read_text())
+            gespeichert = json.loads(_tag_pfad(lat, lon, t).read_text())
         except (OSError, ValueError):
-            fehlt.append(t)
+            gespeichert = []
+        tage[t] = gespeichert
+        da = {s_["t"] for s_ in gespeichert}
+        # gebrauchte Stunden dieses Tages, soweit sie schon vorbei sind
+        h = max(von, datetime(t.year, t.month, t.day, tzinfo=timezone.utc))
+        ende = min(bis, datetime(t.year, t.month, t.day, 23, tzinfo=timezone.utc), letzte_volle)
+        while h <= ende:
+            if h.isoformat() not in da:
+                fehlt.append(t)
+                break
+            h += timedelta(hours=1)
         t += timedelta(days=1)
     if not fehlt:
         return tage
-    alt = (heute - min(fehlt)) > timedelta(days=_FORECAST_TAGE)
+    alt = (jetzt.date() - min(fehlt)) > timedelta(days=_FORECAST_TAGE)
     params = {
         "latitude": round(lat, 2), "longitude": round(lon, 2),
         "hourly": "wind_speed_10m,wind_direction_10m,wind_gusts_10m",
@@ -79,26 +95,30 @@ def _tage_holen(lat: float, lon: float, von_tag, bis_tag) -> dict:
         if v is None or d is None:
             continue
         ts = datetime.fromisoformat(ts_s).replace(tzinfo=timezone.utc)
-        neu.setdefault(ts.date(), []).append({"t": ts.isoformat(), "kmh": round(float(v), 1), "richtung": round(float(d)),
-                                              "boeen_kmh": round(float(g), 1) if g is not None else None})
-    for tag, stunden in neu.items():
-        if tag not in fehlt:
+        if ts > letzte_volle:      # kommende Stunden = Vorhersage, nicht speichern und nicht zeigen
             continue
-        tage[tag] = stunden
-        if tag < heute:   # nur abgeschlossene Tage speichern
-            try:
-                _tag_pfad(lat, lon, tag).write_text(json.dumps(stunden))
-            except OSError:
-                pass
+        neu.setdefault(ts.date(), {})[ts.isoformat()] = {"t": ts.isoformat(), "kmh": round(float(v), 1),
+                                                         "richtung": round(float(d)),
+                                                         "boeen_kmh": round(float(g), 1) if g is not None else None}
+    for tag in set(fehlt):
+        if tag not in neu:
+            continue
+        zusammen = {s_["t"]: s_ for s_ in tage.get(tag, [])}
+        zusammen.update(neu[tag])
+        tage[tag] = [zusammen[k] for k in sorted(zusammen)]
+        try:
+            _tag_pfad(lat, lon, tag).write_text(json.dumps(tage[tag]))
+        except OSError:
+            pass
     return tage
 
 
 def _abrufen(lat: float, lon: float, start: datetime, ende: datetime) -> list[dict]:
-    tage = _tage_holen(lat, lon, start.date(), ende.date())
     # Die volle Stunde VOR dem Start bis zur vollen Stunde NACH dem Ende — eine 40-min-Session
     # bekommt so mindestens zwei Werte.
     von = start.replace(minute=0, second=0, microsecond=0)
     bis = ende.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    tage = _tage_holen(lat, lon, von, bis)
     out = []
     for tag in sorted(tage):
         for s_ in tage[tag]:
