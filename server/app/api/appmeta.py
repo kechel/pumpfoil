@@ -297,7 +297,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.94",   # LIVE 2026-10-16: am Tag der Einreichung freigegeben; Store-API latestExternalVersion
+        "latest": "1.0.95",   # LIVE 2026-10-19: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf seine
+        # fenix installiert (Token 1577, Testsession #17564). Store-API zeigte um 14:20 noch 1.0.94 — Jan: „der store hat
+        # jetzt sicher schon nachgezogen starte den build". Inhalt: Sportart-Wahl (Vollbuild), Foil ohne „Foil:", mem/memtot.
+        # ALT: "latest": "1.0.94",   # LIVE 2026-10-16: am Tag der Einreichung freigegeben; Store-API latestExternalVersion
         # 1.0.94 / intern 49, Jan hat sie aus dem Store auf seine fenix installiert (Token 1577). Inhalt: Spot-Meldung
         # beim ersten GPS-Fix im Startbildschirm. watch/bin neu gebaut.
         # ALT: "latest": "1.0.93",   # LIVE 2026-10-14: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf
@@ -1069,19 +1072,13 @@ NAECHSTES: list[dict] = [
          # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
          "You can pick the sport before you start, in the settings or by tapping it on the start screen.",
      ]},
-    # Garmin 1.0.94 (eingereicht + freigegeben 16.10.2026) -> LIVE, Punkt steht im Changelog.
-    # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
-    # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
-    # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
-    {"name": "Garmin", "version": "1.0.95",
-     "items": [
-         "You can pick the sport before you start, at the top of Foil & Alarm, and the start screen shows it above the foil (not on the small-memory watches such as Instinct 2 and Forerunner 55).",
-         "The start screen shows the foil name without the word Foil in front.",
-     ]},
     {"name": "Suunto", "version": "1.01",
      "items": [
          "The watch tells the phone which Suunto sport mode you started; under Linked accounts you set which sport each mode counts as.",
      ]},
+    # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
+    # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
+    # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
     # 19.10.2026: Sportart-Wahl auf der Uhr (Jan: „bitte umsetzen auf alle uhren und in coming next").
     # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
     {"name": "Amazfit", "version": "1.0.15",
