@@ -1012,6 +1012,7 @@ NAECHSTES: list[dict] = [
          "SUP, wake thief and downwind sessions can switch the map between the whole session and only the time on the foil; SUP marks the paddle-up sprints with their number and shows your paddle strokes, wake thief marks the stretches on the wake.",
          "Wind sessions show per ride how many tacks and jibes stayed on the foil, the distance gained upwind, the best VMG and the wind at that time.",
          "New records per sport (for example best jibe share, best VMG, most paddle-ups onto the foil, longest stretch on the wake) for the community, per spot and per time window, and your own records per sport on Home and on your profile.",
+         "The history page shows your success on the foil per sport over time: jibes and tacks on the foil, paddle-ups onto the foil and the share on the wake.",
      ]},
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
@@ -1042,6 +1043,7 @@ NAECHSTES: list[dict] = [
          "SUP, wake thief and downwind sessions can switch the map between the whole session and only the time on the foil; SUP marks the paddle-up sprints with their number and shows your paddle strokes, wake thief marks the stretches on the wake.",
          "Wind sessions show per ride how many tacks and jibes stayed on the foil, the distance gained upwind, the best VMG and the wind at that time.",
          "New records per sport (for example best jibe share, best VMG, most paddle-ups onto the foil, longest stretch on the wake) for the community, per spot and per time window, and your own records per sport on Home and on your profile.",
+         "The history page shows your success on the foil per sport over time: jibes and tacks on the foil, paddle-ups onto the foil and the share on the wake.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.

@@ -4743,6 +4743,11 @@ static let nlOverlay: [String: String] = {
     // Rekorde je Sportart (20.10.2026) — eigene Tabelle, weil neuTexte4 sonst ueber 50 Eintraege kaeme
     // (Type-Checker, Memory ios-swift-typecheck-hang).
     private static let _neu5_rec_ofN: [String: String] = ["de": "{p} von {n}", "gsw": "{p} vo {n}", "de-AT": "{p} von {n}", "en": "{p} of {n}", "fr": "{p} sur {n}", "it": "{p} su {n}", "es": "{p} de {n}", "fi": "{p} / {n}", "nl": "{p} van {n}", "cs": "{p} z {n}", "pl": "{p} z {n}", "pt": "{p} de {n}", "pt-PT": "{p} de {n}", "ja": "{n} 回中 {p}", "zh": "{n} 次中 {p}", "ru": "{p} из {n}", "id": "{p} dari {n}", "nb": "{p} av {n}"]
+    private static let _neu5_history_foilSuccess: [String: String] = ["de": "Erfolg auf dem Foil", "gsw": "Erfolg uf em Foil", "de-AT": "Erfolg am Foil", "en": "Success on the foil", "fr": "Réussite sur le foil", "it": "Successo sul foil", "es": "Éxito sobre el foil", "fi": "Onnistuminen foililla", "nl": "Succes op de foil", "cs": "Úspěšnost na foilu", "pl": "Skuteczność na foilu", "pt": "Sucesso no foil", "pt-PT": "Sucesso no foil", "ja": "フォイル上の成功率", "zh": "水翼上的成功率", "ru": "Успех на фойле", "id": "Keberhasilan di foil", "nb": "Suksess på foilen"]
+    private static let _neu5_history_jibesOnFoil: [String: String] = ["de": "Halsen auf dem Foil", "gsw": "Halse uf em Foil", "de-AT": "Halsen am Foil", "en": "Jibes on the foil", "fr": "Empannages sur le foil", "it": "Strambate sul foil", "es": "Trasluchadas sobre el foil", "fi": "Jiipit foililla", "nl": "Gijpen op de foil", "cs": "Přehozy na foilu", "pl": "Zwroty przez rufę na foilu", "pt": "Jibes no foil", "pt-PT": "Jibes no foil", "ja": "フォイル上のジャイブ", "zh": "水翼上顺风转向", "ru": "Фордевинды на фойле", "id": "Jibe di atas foil", "nb": "Jibber på foilen"]
+    private static let _neu5_history_tacksOnFoil: [String: String] = ["de": "Wenden auf dem Foil", "gsw": "Wände uf em Foil", "de-AT": "Wenden am Foil", "en": "Tacks on the foil", "fr": "Virements sur le foil", "it": "Virate sul foil", "es": "Viradas sobre el foil", "fi": "Vendat foililla", "nl": "Overstagen op de foil", "cs": "Obraty na foilu", "pl": "Zwroty przez sztag na foilu", "pt": "Viradas no foil", "pt-PT": "Viragens no foil", "ja": "フォイル上のタック", "zh": "水翼上迎风转向", "ru": "Оверштаги на фойле", "id": "Tack di atas foil", "nb": "Stagvendinger på foilen"]
+    private static let _neu5_history_paddleUps: [String: String] = ["de": "Paddle-ups aufs Foil", "gsw": "Paddle-ups ufs Foil", "de-AT": "Paddle-ups aufs Foil", "en": "Paddle-ups onto the foil", "fr": "Paddle-ups réussis", "it": "Paddle-up riusciti", "es": "Paddle-ups logrados", "fi": "Onnistuneet paddle-upit", "nl": "Geslaagde paddle-ups", "cs": "Povedené paddle-upy", "pl": "Udane paddle-upy", "pt": "Paddle-ups bem-sucedidos", "pt-PT": "Paddle-ups bem-sucedidos", "ja": "パドルアップ成功", "zh": "划桨起飞成功", "ru": "Удачные paddle-up", "id": "Paddle-up berhasil", "nb": "Vellykkede paddle-ups"]
+    private static let _neu5_history_onWake: [String: String] = ["de": "Anteil auf der Welle", "gsw": "Aateil uf dr Wälle", "de-AT": "Anteil auf der Welle", "en": "Share on the wake", "fr": "Part sur la vague", "it": "Quota sull'onda", "es": "Parte en la ola", "fi": "Osuus aallolla", "nl": "Aandeel op de golf", "cs": "Podíl na vlně", "pl": "Udział na fali", "pt": "Parte na onda", "pt-PT": "Parte na onda", "ja": "ウェイク上の割合", "zh": "乘浪比例", "ru": "Доля на волне", "id": "Porsi di gelombang", "nb": "Andel på bølgen"]
     static let neuTexte5: [String: [String: String]] = [
         "rec.jibeQuote": _neu4_rec_jibeQuote,
         "rec.tackQuote": _neu4_rec_tackQuote,
@@ -4763,6 +4768,11 @@ static let nlOverlay: [String: String] = {
         "phome.sportRec": _neu4_phome_sportRec,
         "foiler.sportRec": _neu4_foiler_sportRec,
         "rec.ofN": _neu5_rec_ofN,
+        "history.foilSuccess": _neu5_history_foilSuccess,
+        "history.jibesOnFoil": _neu5_history_jibesOnFoil,
+        "history.tacksOnFoil": _neu5_history_tacksOnFoil,
+        "history.paddleUps": _neu5_history_paddleUps,
+        "history.onWake": _neu5_history_onWake,
     ]
     static let neuTexte3: [String: [String: String]] = [
         "settings.coros.expired": _neu3_settings_coros_expired,

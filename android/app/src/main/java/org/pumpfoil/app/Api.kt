@@ -1127,6 +1127,12 @@ object Api {
 
     // Oeffentliche Foiler-Seite EINES Nutzers. Was drinsteht, entscheidet der Server anhand der
     // Schalter des Nutzers (`zeigt`); die App filtert nichts nach.
+    // Erfolg auf dem Foil im Verlauf (20.10.2026): Zaehler je Session, flaches JSON (Schluessel je Sportart).
+    suspend fun sportVerlauf(): List<kotlinx.serialization.json.JsonObject> = withContext(Dispatchers.IO) {
+        json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(kotlinx.serialization.json.JsonObject.serializer()),
+            http("GET", "/api/sessions/sport-verlauf", null, auth = true))
+    }
+
     suspend fun sportRekorde(period: String = "all"): SportRekordeAntwort = withContext(Dispatchers.IO) {
         json.decodeFromString(SportRekordeAntwort.serializer(), http("GET", "/api/sessions/sport-rekorde?period=$period", null, auth = true))
     }
