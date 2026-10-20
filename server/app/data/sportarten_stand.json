@@ -111,6 +111,10 @@
     {
       "id": "downwind_verbunden",
       "en": "Share on the foil from A to B"
+    },
+    {
+      "id": "welle_pumpen",
+      "en": "Wake riding versus pumping"
     }
   ],
   "gruppen": {
@@ -241,6 +245,10 @@
           "en": "Does not apply."
         },
         "eigene_erkennung": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "welle_pumpen": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -493,6 +501,10 @@
           "wo": [
             "server"
           ]
+        },
+        "welle_pumpen": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -612,6 +624,10 @@
           "status": "geplant",
           "en": "Own detection for wave and downwind riding instead of the pumpfoil model, once there is reference data.",
           "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Gleicher Ansatz wie Wind pruefen (Jan: Pump-Modell gehoert nicht zu Nicht-Pump-Sportarten)."
+        },
+        "welle_pumpen": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -746,6 +762,10 @@
           "status": "geplant",
           "en": "Own detection for motor and towed riding instead of the pumpfoil model, once there is reference data.",
           "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Gleicher Ansatz wie Wind pruefen (Jan: Pump-Modell gehoert nicht zu Nicht-Pump-Sportarten)."
+        },
+        "welle_pumpen": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     }
@@ -824,6 +844,11 @@
           "status": "live",
           "en": "Own records and leaderboards via the sport filter; the longest run is the longest ride behind the boat.",
           "notiz": "Claude-Vorschlag 19.10. erledigt sich: der Rekord 'laengster Lauf' gibt es je Sportart schon (Sportfilter)."
+        },
+        "welle_pumpen": {
+          "status": "geplant",
+          "en": "Tell riding the boat wake apart from pumping between waves: time and distance on the wake and pumped shown separately, with the pump count only from the pumping part.",
+          "notiz": "Jan 20.10.2026 („erkennen wann man eine welle nutzt und wann man pumpt … eigener pump-zaehler dann nur in der pump-zeit“). Idee zur Umsetzung: Pump-Rhythmus aus dem Accel (v3 erkennt Pumps) — Abschnitte ohne Pumps bei gehaltenem Tempo = Welle, mit Pumps = gepumpt; Grenze je Lauf. Noch nicht gebaut, erst Daten ansehen (wenige wakethief-Sessions mit Accel)."
         }
       }
     },
@@ -1135,6 +1160,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "wakethief"
+      ],
+      "merkmal": "welle_pumpen",
+      "was": "Geplant: Welle und Pumpen trennen (Zeit/Strecke je Teil, Pumps nur aus dem gepumpten Teil).",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-19",
       "sport": [
