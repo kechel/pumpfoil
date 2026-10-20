@@ -1038,6 +1038,8 @@ NAECHSTES: list[dict] = [
          "Home shows per month how many of your tacks and jibes stayed on the foil.",
          "A session that looks like a wind session offers you to change the sport; you can also dismiss the hint.",
          "Choosing the foil, stab, mast, board or weight for a session in the setup editor is saved again; since the editor came in, a choice was reset to your default.",
+         # 20.10.2026: WakeLock fuer den normalen Accel (Samsung ohne Wake-up-Variante, 1.2.41/42 nur 7-39 %).
+         "On Wear OS watches without a wake-up motion sensor, such as Samsung Galaxy Watches, the motion sensor keeps recording while the screen is off.",
          "Session pages show the sport at the top as an orange badge, like the session list, and the wind, tack and upwind boxes show only the numbers, without explanation texts.",
          "SUP sessions show your paddle strokes and every paddle-up attempt with its sprint strokes and whether you got onto the foil.",
          "Wake thief sessions show time and distance on the wake and pumped separately, and count pumps only in the pumped part.",

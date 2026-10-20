@@ -22,6 +22,7 @@ import android.os.IBinder
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.health.services.client.ExerciseClient
 import androidx.health.services.client.ExerciseUpdateCallback
@@ -61,6 +62,8 @@ class RecorderService : Service(), SensorEventListener {
     /** Eigener Thread fuer die Beschleunigung: vorher lief sie auf dem Main-Looper, auf dem auch
      *  das GPS ankommt — mit der Wake-up-Variante waren das 118-220 Ereignisse je Sekunde. */
     private var accelThread: HandlerThread? = null
+    // CPU wach halten, solange der NORMALE Accel laeuft (Uhr ohne Wake-up-Variante, s. registerSensors).
+    private var wachHalten: PowerManager.WakeLock? = null
     @Volatile private var accelAusduenner = AccelAusduenner(40_000_000L)
     /** GPS kommt aus der Health-Services-Uebung (true) oder vom LocationManager (false). */
     @Volatile private var gpsUeberHs = false
@@ -126,6 +129,7 @@ class RecorderService : Service(), SensorEventListener {
             hsLeerenDann {
                 if (Recorder.state.value.recording && !Recorder.state.value.paused) {
                     sensors.unregisterListener(this)
+                    cpuSchlafenLassen()
                     stopHeartRate()   // beendet die Uebung — und damit auch das Health-Services-GPS
                     stopLocation()
                     Recorder.pause(applicationContext)
@@ -214,6 +218,21 @@ class RecorderService : Service(), SensorEventListener {
      * Abschaltbar vom Server (`accelBatch` = "off", s. api/devices.py), falls eine Uhr damit Aerger
      * macht — die normale Variante bleibt dann der Rueckfall.
      */
+    private fun cpuWachHalten() {
+        if (wachHalten?.isHeld == true) return
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wachHalten = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "pumpfoil:accel").apply {
+            setReferenceCounted(false)
+            acquire(WACH_MAX_MS)   // Obergrenze, falls ein Stopp verloren geht
+        }
+        Recorder.messwegWach = true
+    }
+
+    private fun cpuSchlafenLassen() {
+        try { wachHalten?.takeIf { it.isHeld }?.release() } catch (_: RuntimeException) {}
+        wachHalten = null
+    }
+
     private fun registerSensors() {
         // Modus "gps": kein Roh-Accel (minimaler Speicher); sonst Rate je Modus (full=25, lite=10).
         if (Recorder.recordMode != "gps") {
@@ -234,6 +253,11 @@ class RecorderService : Service(), SensorEventListener {
                 }
                 Recorder.messwegAccel = "normal"
                 android.util.Log.i("Pumpfoil", "Accel: normale Variante (${if (batch) "keine Wake-up-Variante" else "vom Server abgeschaltet"})")
+                // 20.10.2026: Ohne Wake-up-Variante liefert der normale Sensor nur, solange die CPU wach ist.
+                // Mit dem LocationManager-GPS (bis 1.2.39) weckte jede Position die CPU einmal je Sekunde;
+                // das Health-Services-GPS (ab 1.2.40) buendelt, die CPU schlaeft — auf Samsung kam der Accel
+                // danach nur noch zu 7-39 % der Session (u785/u477/u418/u708, 1.2.37 bei denselben 100 %).
+                cpuWachHalten()
             }
         }
         // Roher Puls-Sensor: bleibt als Rueckfall registriert (s. startHeartRate), kostet nichts.
@@ -625,6 +649,7 @@ class RecorderService : Service(), SensorEventListener {
 
     private fun stopEverything(save: Boolean = true) {
         sensors.unregisterListener(this)
+        cpuSchlafenLassen()
         accelThread?.quitSafely(); accelThread = null
         accelAusduenner.reset()
         waechter?.shutdownNow(); waechter = null
@@ -652,6 +677,7 @@ class RecorderService : Service(), SensorEventListener {
     }
     override fun onAccuracyChanged(s: Sensor?, a: Int) {}
     override fun onBind(i: Intent?): IBinder? = null
+    override fun onDestroy() { cpuSchlafenLassen(); super.onDestroy() }
 
     private fun notification(): Notification {
         val ch = "rec"
@@ -697,6 +723,7 @@ class RecorderService : Service(), SensorEventListener {
         /** Muss zwischen startForeground und OngoingActivity dieselbe sein. */
         const val NOTIF_ID = 1
         const val ACTION_STOP = "org.pumpfoil.watch.STOP"
+        private const val WACH_MAX_MS = 12 * 60 * 60 * 1000L
         const val ACTION_DISCARD = "org.pumpfoil.watch.DISCARD"
         const val ACTION_HR_ON = "org.pumpfoil.watch.HR_ON"
         const val ACTION_PAUSE = "org.pumpfoil.watch.PAUSE"

@@ -645,7 +645,7 @@ def complete_session(
         s.hr_source = body.hr_source[:16]
     if body.messweg:
         # Nur bekannte, kleine Felder — die Uhr schickt hier Diagnose, keinen Freitext.
-        mw = {k: body.messweg[k] for k in ("gps", "gps_neu", "gps_wechsel", "accel", "puls_neu", "puls_ende")
+        mw = {k: body.messweg[k] for k in ("gps", "gps_neu", "gps_wechsel", "accel", "puls_neu", "puls_ende", "wach")
               if k in body.messweg}
         if isinstance(mw.get("gps_wechsel"), str):
             mw["gps_wechsel"] = mw["gps_wechsel"][:60]

@@ -24,7 +24,9 @@ def test_complete_speichert_den_messweg(client):
         "messweg": {"gps": "lm", "gps_neu": 2, "gps_wechsel": "tethered" + "x" * 200,
                     "accel": "batch", "fremd": "wird verworfen",
                     # Wear 1.2.43: Puls-Waechter-Neustarts + Grund eines fremden Uebungsendes.
-                    "puls_neu": 3, "puls_ende": "ENDED/" + "9" * 100}})
+                    "puls_neu": 3, "puls_ende": "ENDED/" + "9" * 100,
+                    # Wear 1.2.44: CPU per WakeLock wach gehalten (normaler Accel).
+                    "wach": True}})
     assert r.status_code == 200, r.text
     db = SessionLocal()
     try:
@@ -35,6 +37,7 @@ def test_complete_speichert_den_messweg(client):
     assert mw["gps"] == "lm" and mw["gps_neu"] == 2 and mw["accel"] == "batch"
     assert "fremd" not in mw and len(mw["gps_wechsel"]) == 60
     assert mw["puls_neu"] == 3 and len(mw["puls_ende"]) == 40
+    assert mw["wach"] is True
 
 
 def test_ohne_messweg_bleibt_das_feld_leer(client):
