@@ -31,6 +31,7 @@ def test_schlaege_sprint_und_foil():
     assert [v["ergebnis"] for v in e["versuche"]] == ["foil", "nein"]
     assert e["auf_foil"] == 1 and e["versuche"][0]["foil_s"] == 40.0
     assert 5 <= e["versuche"][0]["schlaege"] <= 9
+    assert len(e["schlag_pkt"]) == e["schlaege"] and len(e["schlag_pkt"][0]) == 2
 
 
 def test_kurz_ohne_lauf():

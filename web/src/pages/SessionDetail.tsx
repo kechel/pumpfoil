@@ -1383,11 +1383,35 @@ export default function SessionDetail() {
         L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: selectedRun != null ? 0.35 : 0.9, interactive: false }).addTo(lg);
       }
     }
-    // SUP (20.10.2026): Paddle-up-Sprints bernsteinfarben, mit der Versuchsnummer aus der Tabelle.
+    // SUP (20.10.2026): Paddle-up-Sprints bernsteinfarben (ganze Fahrt) bzw. in der gewaehlten Faerbung
+    // (nur Foil), immer mit der Versuchsnummer aus der Tabelle.
     if (paddel?.versuche?.length && selectedRun == null) {
       paddel.versuche.forEach((v, i) => {
         const ln = v.linie ?? [];
-        if (ln.length >= 2) L.polyline(ln, { color: "#f59e0b", weight: 6, opacity: 0.9, interactive: false }).addTo(lg);
+        if (ln.length >= 2) {
+          if (zeigeGanz || !coords.length) {
+            L.polyline(ln, { color: "#f59e0b", weight: 6, opacity: 0.9, interactive: false }).addTo(lg);
+          } else {
+            // Ansicht „nur Foil" (Jan, 20.10.2026): der Sprint in der gewaehlten Faerbung (Tempo, Puls, …)
+            // statt bernsteinfarben. Die Punkte kommen aus derselben GPS-Spur -> naechsten Track-Punkt suchen.
+            const idx = ln.map(([la, lo]) => {
+              let best = 0, bd = Infinity;
+              for (let k = 0; k < coords.length; k++) {
+                const d = (coords[k][0] - la) ** 2 + (coords[k][1] - lo) ** 2;
+                if (d < bd) { bd = d; best = k; }
+              }
+              return best;
+            });
+            for (let k = 0; k < ln.length - 1; k++) {
+              const j = idx[k + 1];
+              const color = colorMode === "optimal" ? optimalColor((speeds[j] ?? 0) * 3.6, optimalKmh ?? 0)
+                : colorMode === "hr" ? hrColor(hr[j], hrRange)
+                : colorMode === "turns" ? "#334155"
+                : speedColor((speeds[j] ?? 0) * 3.6, speedMin, speedMax);
+              L.polyline([ln[k], ln[k + 1]], { color, weight: 6, opacity: 0.95, interactive: false }).addTo(lg);
+            }
+          }
+        }
         if (ln.length) {
           L.marker(ln[0], { interactive: false, icon: L.divIcon({ className: "",
             html: `<div style="background:#f59e0b;color:#0f172a;border-radius:9999px;font:600 11px/18px system-ui;width:18px;height:18px;text-align:center">${i + 1}</div>`,
@@ -1458,7 +1482,13 @@ export default function SessionDetail() {
     }
     // Pump-Marker GANZ OBEN (nach den Carve-Bögen, sonst verdecken die Bögen sie). Bei
     // gedimmten Läufen weglassen. Bleiben weiß.
-    if (showPumps && pumpzahlen) {
+    // SUP (Jan, 20.10.2026): der Knopf heisst dort „Paddelschlaege" und zeigt die Schlaege der Schlag-Erkennung
+    // (/paddel, server/app/paddel.py), nicht die Pumps der Pump-Erkennung.
+    if (showPumps && session.sport_class === "sup_paddle") {
+      if (selectedRun == null) (paddel?.schlag_pkt ?? []).forEach((p) => {
+        L.circleMarker(p, { radius: 2.5, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 0.9, interactive: false }).addTo(lg);
+      });
+    } else if (showPumps && pumpzahlen) {
       segs.forEach((seg: any, idx: number) => {
         if (selectedRun != null && idx !== selectedRun) return;
         for (const pidx of seg.pump_idx ?? []) {
@@ -1588,7 +1618,7 @@ export default function SessionDetail() {
     const addSeg = (k: number) => {
       const a = playTimeline[k], b = playTimeline[k + 1];
       if (adj(k)) L.polyline([coords[a], coords[b]], { color: colorAt(b), weight: 5, opacity: 0.95 }).addTo(lg);
-      if (showPumps && pumpzahlen && pumpSet.has(b) && coords[b])
+      if (showPumps && pumpzahlen && session?.sport_class !== "sup_paddle" && pumpSet.has(b) && coords[b])
         L.circleMarker(coords[b], { pane: "pumpPane", radius: 3, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 1 }).addTo(lg);
     };
     const setPos = (ll: [number, number]) => {
@@ -2278,7 +2308,8 @@ export default function SessionDetail() {
             onClick={() => setShowPumps((v) => !v)}
             className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showPumps ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
           >
-            <span className="inline-flex items-center gap-1">{t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
+            {/* SUP (Jan, 20.10.2026): dort sind es Paddelschlaege, keine Pumps. */}
+            <span className="inline-flex items-center gap-1">{session?.sport_class === "sup_paddle" ? t("sd.strokes") : t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
           )}
           {/* Nur, wenn die Analyse Gleitphasen geliefert hat (ab der Fassung vom 03.10.2026). */}

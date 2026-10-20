@@ -20,7 +20,7 @@ from __future__ import annotations
 import numpy as np
 
 # Hochzaehlen, wenn sich hier etwas aendert -> alle Cache-Eintraege (data/paddel/) ungueltig.
-VERSION = "p2"   # p2: Punkte je Sprint fuer die Karte (`linie`)
+VERSION = "p3"   # p2: Punkte je Sprint fuer die Karte (`linie`); p3: Ort je Schlag (`schlag_pkt`)
 
 BAND_HZ = (0.3, 3.0)        # Paddelschlaege liegen bei 0,7–1,7 Hz
 MIN_ABSTAND_S = 0.5          # zwei Schlaege nie dichter
@@ -115,7 +115,19 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
             e["ergebnis"] = "nein"
         versuche.append(e)
 
+    # Ort je gezaehltem Schlag fuer die Karte (Jan, 20.10.2026: der Knopf „Strokes" soll Schlaege aus DIESER
+    # Erkennung zeigen, nicht die Pumps der Pump-Erkennung). GPS linear auf den Schlag-Zeitpunkt interpoliert.
+    schlag_pkt = []
+    g = np.array([[r[0] / 1000.0, r[1], r[2]] for r in gps if r[1] is not None and r[2] is not None], float)
+    if len(g) >= 2:
+        ts = t_s[ausserhalb]
+        drin = (ts >= g[0, 0] - 5) & (ts <= g[-1, 0] + 5)   # bis 5 s am Rand: an den Randpunkt
+        la = np.interp(ts[drin], g[:, 0], g[:, 1])
+        lo_ = np.interp(ts[drin], g[:, 0], g[:, 2])
+        schlag_pkt = [[round(float(a_), 6), round(float(b_), 6)] for a_, b_ in zip(la, lo_)]
+
     return {
+        "schlag_pkt": schlag_pkt,
         "schlaege": int(len(ausserhalb)),
         "schlaege_pro_min": round(rate) if rate else None,
         "versuche": versuche,
