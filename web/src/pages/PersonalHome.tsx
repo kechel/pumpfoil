@@ -20,7 +20,7 @@ import { CommunityIcon, FoilIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon
 import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
 import { FreundesAnfragen } from "../components/Freundschaft";
-import { PERIODS } from "./Home";
+import { PERIODS, SportRekordeZeilen } from "./Home";
 
 // Voreingestelltes Zeitfenster der Kacheln. Einer der Werte aus PERIODS.
 const STANDARD_ZEITRAUM = "10d";
@@ -216,6 +216,14 @@ export function ManoeverVerlaufSection({ userId }: { userId?: number } = {}) {
       </div>
     </div>
   );
+}
+
+// Eigene Bestwerte je Sportart (20.10.2026), eine Zeile je Sportart; `userId` fuer die Admin-Ansicht.
+export function EigeneSportRekorde({ userId }: { userId?: number } = {}) {
+  const t = useT();
+  const [d, setD] = useState<{ sport: string; rekorde: Record<string, any> }[]>([]);
+  useEffect(() => { api.sportRekorde("all", userId).then((r) => setD(r.sportarten)).catch(() => {}); }, [userId]);
+  return <SportRekordeZeilen sportarten={d} titel={t("phome.sportRec")} />;
 }
 
 // Jahresbilanz je Sportart (19.10.2026, Stand-Buch: jahresbilanz): je Jahr eine Zeile pro Sportart.
@@ -594,6 +602,7 @@ export default function PersonalHome() {
 
       <StartSuccessSection />
       <CarveStatsSection />
+      <EigeneSportRekorde />
       <JahresbilanzSection />
       <ManoeverVerlaufSection />
       <BoardAttitudeSection />

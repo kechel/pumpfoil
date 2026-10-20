@@ -48,6 +48,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -532,7 +533,7 @@ private fun hhmmOfDay(v: Double): String {
 // dateiprivat, weil nur dieses Raster sie braucht.
 @Composable
 fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier,
-               sport: String? = null) {
+               sport: String? = null, nurSport: Boolean = false) {
     // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind ohne Gleit-/Pump-/Laufzahl-/Carve-
     // Rekorde und mit der laengsten Fahrt zuerst; Motor ohne Gleit-/Pump-Rekorde. Sonst wie bisher.
     val wind = sport in setOf("wingfoil", "kitefoil", "parawing")
@@ -561,7 +562,9 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
         }
     }
     val ohneTexte = ohne.map { I18n.t(it) }.toSet()
-    val items = alle.filter { it.label !in ohneTexte }
+    // Rekorde je Sportart (20.10.2026) ans Ende; `nurSport` = nur diese (eigene Zeile je Sportart).
+    val zusatz = sportRecItems(r, sport)
+    val items = if (nurSport) zusatz else alle.filter { it.label !in ohneTexte } + zusatz
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -625,6 +628,65 @@ private fun ytId(url: String?): String? {
     return Regex("""(?:v=|youtu\.be/|shorts/|embed/)([\w-]{11})""").find(url)?.groupValues?.get(1)
 }
 private fun fmtDurC(s: Double): String = fmtLaufDauer(s)
+
+private val SPORT_REC: Map<String, List<String>> = run {
+    val wind = listOf("jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest")
+    mapOf("wingfoil" to wind, "kitefoil" to wind, "parawing" to wind,
+          "sup_paddle" to listOf("paddle_success", "paddle_quote", "paddle_foil_longest"),
+          "wakethief" to listOf("wake_longest", "wake_time"),
+          "surf_downwind" to listOf("dw_ab", "dw_ab_speed"),
+          "surf_wave" to listOf("waves", "wave_longest"))
+}
+
+/** Rekorde je Sportart (20.10.2026, wie PWA SPORT_REC): Label, Format, Eintrag. */
+private fun sportRecItems(r: PeriodRecords?, sport: String?): List<RecItem> {
+    if (r == null) return emptyList()
+    val km = { v: Double -> "%.1f km".format(v / 1000.0) }
+    val pct = { v: Double -> "${(v * 100).roundToInt()} %" }
+    val n = { v: Double -> v.roundToInt().toString() }
+    val kmh = { v: Double -> "%.1f km/h".format(v) }
+    val dur = { v: Double -> fmtDurC(v) }
+    val def: Map<String, Triple<String, (Double) -> String, CommunityRecordEntry?>> = mapOf(
+        "jibe_quote" to Triple("rec.jibeQuote", pct, r.jibeQuote), "tack_quote" to Triple("rec.tackQuote", pct, r.tackQuote),
+        "vmg_best" to Triple("rec.vmgBest", kmh, r.vmgBest), "upwind_m" to Triple("rec.upwind", km, r.upwindM),
+        "jibes_foil" to Triple("rec.jibesFoil", n, r.jibesFoil), "ride_longest" to Triple("rec.rideLongest", dur, r.rideLongest),
+        "ride_farthest" to Triple("rec.rideFarthest", km, r.rideFarthest),
+        "paddle_success" to Triple("rec.paddleSuccess", n, r.paddleSuccess), "paddle_quote" to Triple("rec.paddleQuote", pct, r.paddleQuote),
+        "paddle_foil_longest" to Triple("rec.paddleFoilLongest", dur, r.paddleFoilLongest),
+        "wake_longest" to Triple("rec.wakeLongest", dur, r.wakeLongest), "wake_time" to Triple("rec.wakeTime", dur, r.wakeTime),
+        "dw_ab" to Triple("rec.dwAb", km, r.dwAb), "dw_ab_speed" to Triple("rec.dwAbSpeed", kmh, r.dwAbSpeed),
+        "waves" to Triple("rec.waves", n, r.waves), "wave_longest" to Triple("rec.waveLongest", dur, r.waveLongest),
+    )
+    return (SPORT_REC[sport] ?: emptyList()).mapNotNull { k ->
+        val (label, fmt, e) = def[k] ?: return@mapNotNull null
+        RecItem(I18n.t(label), fmt(e?.value ?: 0.0), e ?: CommunityRecordEntry())
+    }
+}
+
+/** Eigene Bestwerte je Sportart, eine abgesetzte Zeile je Sportart (Home + Foiler-Seite, 20.10.2026). */
+@Composable
+fun SportRekordeZeilen(zeilen: List<SportRekordeZeile>, titel: String, onOpen: (Int) -> Unit) {
+    if (zeilen.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(titel, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        zeilen.forEach { z ->
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Surface(color = Color(0xFFF59E0B).copy(alpha = 0.18f), shape = RoundedCornerShape(4.dp)) {
+                        Text(I18n.t("cls.sport.${z.sport}"), Modifier.padding(horizontal = 8.dp, vertical = 2.dp), color = Color(0xFFD97706))
+                    }
+                    val m = z.rekorde
+                    val pr = PeriodRecords(jibeQuote = m["jibe_quote"], tackQuote = m["tack_quote"], vmgBest = m["vmg_best"],
+                        upwindM = m["upwind_m"], jibesFoil = m["jibes_foil"], rideLongest = m["ride_longest"], rideFarthest = m["ride_farthest"],
+                        paddleSuccess = m["paddle_success"], paddleQuote = m["paddle_quote"], paddleFoilLongest = m["paddle_foil_longest"],
+                        wakeLongest = m["wake_longest"], wakeTime = m["wake_time"], dwAb = m["dw_ab"], dwAbSpeed = m["dw_ab_speed"],
+                        waves = m["waves"], waveLongest = m["wave_longest"])
+                    RecordGrid(pr, showSpot = true, onOpen = onOpen, sport = z.sport, nurSport = true)
+                }
+            }
+        }
+    }
+}
 // Kurzdatum dd.MM.yy jetzt zentral in TimeFmt.shortDate (Spot-Ortszeit via tz).
 
 /**

@@ -43,6 +43,7 @@ struct HomeView: View {
     @State private var startSuccess: StartSuccess?   // persönliche Home-Stats (unten)
     @State private var carveStats: CarveStats?
     @State private var bilanz: Jahresbilanz?
+    @State private var sportRek: [SportRekordeZeile] = []
     @State private var bilanzJahr: Int?
     @State private var manVerlauf: ManoeverVerlauf?
     // Zeitfenster wie PWA: heute / 10 T / 30 T / 1 J / gesamt.
@@ -116,6 +117,8 @@ struct HomeView: View {
             if let st = stats { recordsSection(st) }
             if let ss = startSuccess { startSuccessSection(ss) }
             if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
+            // Eigene Bestwerte je Sportart (20.10.2026), eine Zeile je Sportart.
+            if !sportRek.isEmpty { SportRekordeZeilenView(zeilen: sportRek, titel: Loc.t("phome.sportRec", lang), lang: lang) }
             if let b = bilanz, !b.jahre.isEmpty { bilanzSection(b) }
             if let mv = manVerlauf, mv.monate.contains(where: { $0.wende + $0.halse > 0 }) { manoeverSection(mv) }
             // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
@@ -555,6 +558,7 @@ struct HomeView: View {
         startSuccess = try? await Api.startSuccess()
         carveStats = try? await Api.carveStats()
         bilanz = try? await Api.jahresbilanz()
+        sportRek = (try? await Api.sportRekorde())?.sportarten ?? sportRek
         manVerlauf = try? await Api.manoeverVerlauf()
     }
 

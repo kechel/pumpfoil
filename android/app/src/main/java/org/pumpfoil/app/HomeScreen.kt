@@ -111,6 +111,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     var startSuccess by remember { mutableStateOf<StartSuccess?>(null) }
     var carveStats by remember { mutableStateOf<CarveStats?>(null) }
     var bilanz by remember { mutableStateOf<Jahresbilanz?>(null) }
+    var sportRek by remember { mutableStateOf<List<SportRekordeZeile>>(emptyList()) }
     var manVerlauf by remember { mutableStateOf<ManoeverVerlauf?>(null) }
     var loading by remember { mutableStateOf(true) }
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
@@ -208,6 +209,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
         carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
         bilanz = try { Api.jahresbilanz() } catch (_: Exception) { bilanz }
+        sportRek = try { Api.sportRekorde().sportarten } catch (_: Exception) { sportRek }
         manVerlauf = try { Api.manoeverVerlauf() } catch (_: Exception) { manVerlauf }
         val einst = try { Api.settings() } catch (_: Exception) { null }
         val hs = einst?.get("homespot")?.jsonPrimitive?.contentOrNull
@@ -506,6 +508,11 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                     Spacer(Modifier.height(10.dp))
                     CarveStatsSection(cs)
                 }
+            }
+            // Eigene Bestwerte je Sportart (20.10.2026), eine Zeile je Sportart.
+            if (sportRek.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                SportRekordeZeilen(sportRek, I18n.t("phome.sportRec")) { onOpen(it, null) }
             }
             bilanz?.takeIf { it.jahre.isNotEmpty() }?.let { b ->
                 Spacer(Modifier.height(10.dp))

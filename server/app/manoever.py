@@ -81,7 +81,10 @@ def erkennen(t_ms, lat, lon, wind_von, doppler_mps=None, laeufe=None) -> list[di
     return out
 
 
-def _kurs_tempo(t_ms, lat, lon):
+MAX_TEMPO_KMH = 80.0
+
+
+def _kurs_tempo(t_ms, lat, lon, max_kmh: float | None = None):
     """Kurs (Grad, nur ab MIN_FAHRT_KMH) und Tempo (km/h) je Punkt aus der geglaetteten Spur.
     Eine Quelle fuer Wenden/Halsen UND Hoehe, damit beide dieselbe Spur sehen."""
     t = np.asarray(t_ms, dtype=float) / 1000.0
@@ -106,6 +109,10 @@ def _kurs_tempo(t_ms, lat, lon):
             continue
         dx, dy = xs[i + 2] - xs[i - 2], ys[i + 2] - ys[i - 2]
         v = math.hypot(dx, dy) / dt * 3.6
+        # GPS-Spruenge (20.10.2026): #14111 ergab eine beste VMG von 3150 km/h und 22,9 km Hoehe. Kein Foil
+        # faehrt ueber 80 km/h (Kite-Spitzen liegen um 50-60) -> solche Punkte gar nicht werten.
+        if v > (min(MAX_TEMPO_KMH, max_kmh) if max_kmh else MAX_TEMPO_KMH):
+            continue
         tempo[i] = v
         if v >= MIN_FAHRT_KMH:
             kurs[i] = (math.degrees(math.atan2(dx, dy)) + 360.0) % 360.0
@@ -182,12 +189,14 @@ def wind_funktion(wind: dict | None):
 HOEHE_FENSTER_S = 10.0
 
 
-def hoehe(t_ms, lat, lon, wind_von) -> dict | None:
+def hoehe(t_ms, lat, lon, wind_von, max_kmh: float | None = None) -> dict | None:
     """Kennzahlen zum Hoehelaufen oder None (zu wenig Fahrt / keine Windrichtung):
     vmg_max_kmh = bestes 10-s-Mittel der VMG zum Wind, vmg_mittel_kmh = mittlere VMG am Wind,
     am_wind_anteil = Anteil der Foil-Zeit mit Kurs gegen den Wind, hoehe_m = gesamt gewonnene Hoehe
     (Summe der positiven VMG), winkel_med = typischer Winkel zum Wind am Wind (kleiner = hoeher)."""
-    t, kurs, tempo = _kurs_tempo(t_ms, lat, lon)
+    # `max_kmh` (20.10.2026): Obergrenze aus dem Hoechsttempo der Analyse. #14111 (Uhr lag 5,5 h fast
+    # still) hatte im GPS-Zittern Spur-Tempi bis 80 km/h und dadurch 77 km/h „beste VMG".
+    t, kurs, tempo = _kurs_tempo(t_ms, lat, lon, max_kmh)
     n = len(t)
     if n < 30:
         return None

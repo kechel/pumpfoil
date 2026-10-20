@@ -752,6 +752,24 @@ data class PeriodRecords(
     @SerialName("session_pumps") val sessionPumps: CommunityRecordEntry? = null,
     // Nur Wind-Sportarten (19.10.2026): laengste Fahrt als Gesamtstrecke.
     @SerialName("session_total") val sessionTotal: CommunityRecordEntry? = null,
+    // Rekorde je Sportart (20.10.2026, server/app/sportrekorde.py): nur bei der jeweiligen Sportart gefuellt.
+    @SerialName("jibe_quote") val jibeQuote: CommunityRecordEntry? = null,
+    @SerialName("tack_quote") val tackQuote: CommunityRecordEntry? = null,
+    @SerialName("vmg_best") val vmgBest: CommunityRecordEntry? = null,
+    @SerialName("upwind_m") val upwindM: CommunityRecordEntry? = null,
+    @SerialName("jibes_foil") val jibesFoil: CommunityRecordEntry? = null,
+    @SerialName("ride_longest") val rideLongest: CommunityRecordEntry? = null,
+    @SerialName("ride_farthest") val rideFarthest: CommunityRecordEntry? = null,
+    @SerialName("paddle_success") val paddleSuccess: CommunityRecordEntry? = null,
+    @SerialName("paddle_quote") val paddleQuote: CommunityRecordEntry? = null,
+    @SerialName("paddle_foil_longest") val paddleFoilLongest: CommunityRecordEntry? = null,
+    @SerialName("wake_longest") val wakeLongest: CommunityRecordEntry? = null,
+    @SerialName("wake_time") val wakeTime: CommunityRecordEntry? = null,
+    @SerialName("dw_ab") val dwAb: CommunityRecordEntry? = null,
+    @SerialName("dw_ab_speed") val dwAbSpeed: CommunityRecordEntry? = null,
+    @SerialName("waves") val waves: CommunityRecordEntry? = null,
+    @SerialName("wave_longest") val waveLongest: CommunityRecordEntry? = null,
+
     @SerialName("max_hr") val maxHr: CommunityRecordEntry? = null,
     @SerialName("early_bird") val earlyBird: CommunityRecordEntry? = null,   // Wert = s seit Mitternacht (Spot-Ortszeit)
     @SerialName("night_owl") val nightOwl: CommunityRecordEntry? = null,     // >24h möglich -> mod 24h anzeigen
@@ -1506,6 +1524,8 @@ data class FoilerProfil(
     val kanal: String? = null,                  // freigegebener YouTube-Kanal
     val foils: List<FoilBrief> = emptyList(),
     val rekorde: OverallStats? = null,
+    // Bestwerte je Sportart (20.10.2026), gleiches Zeitfenster wie `rekorde`.
+    @SerialName("sport_rekorde") val sportRekorde: List<SportRekordeZeile> = emptyList(),
     val medien: List<FoilerMedium> = emptyList(),
     @SerialName("spot_notizen") val spotNotizen: List<FoilerSpotNotiz> = emptyList(),
     // Rekorde, die er AKTUELL haelt (12 Monate): community-weit (basis accel|gps) und je Spot.
@@ -1660,3 +1680,11 @@ data class WindRegel(@SerialName("dauer_med") val dauerMed: Double? = null, @Ser
 
 @Serializable
 data class WindVorschlag(val sportarten: List<String> = emptyList(), val regel: WindRegel? = null)
+
+
+// Eigene Bestwerte je Sportart (GET /api/sessions/sport-rekorde, 20.10.2026): eine Zeile je Sportart.
+@Serializable
+data class SportRekordeZeile(val sport: String = "", val rekorde: Map<String, CommunityRecordEntry> = emptyMap())
+
+@Serializable
+data class SportRekordeAntwort(val sportarten: List<SportRekordeZeile> = emptyList())

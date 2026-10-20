@@ -132,11 +132,68 @@ export const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: numbe
   { key: "carves180", labelKey: "rec.carves180", fmt: (v) => `${Math.round(v)}` },
   // Nur Wind-Sportarten (19.10.2026): laengste Fahrt als Gesamtstrecke (der Server liefert sie nur dort).
   { key: "session_total", labelKey: "rec.sessionTotal", fmt: (v) => `${(v / 1000).toFixed(1)} km` },
+  // Rekorde je Sportart (20.10.2026, server/app/sportrekorde.py). Quoten kommen als Anteil 0..1.
+  { key: "jibe_quote", labelKey: "rec.jibeQuote", fmt: (v) => `${Math.round(v * 100)} %` },
+  { key: "tack_quote", labelKey: "rec.tackQuote", fmt: (v) => `${Math.round(v * 100)} %` },
+  { key: "vmg_best", labelKey: "rec.vmgBest", fmt: (v) => `${v.toFixed(1)} km/h` },
+  { key: "upwind_m", labelKey: "rec.upwind", fmt: (v) => `${(v / 1000).toFixed(1)} km` },
+  { key: "jibes_foil", labelKey: "rec.jibesFoil", fmt: (v) => `${Math.round(v)}` },
+  { key: "ride_longest", labelKey: "rec.rideLongest", fmt: (v) => fmtLaufDauer(v) },
+  { key: "ride_farthest", labelKey: "rec.rideFarthest", fmt: (v) => `${(v / 1000).toFixed(1)} km` },
+  { key: "paddle_success", labelKey: "rec.paddleSuccess", fmt: (v) => `${Math.round(v)}` },
+  { key: "paddle_quote", labelKey: "rec.paddleQuote", fmt: (v) => `${Math.round(v * 100)} %` },
+  { key: "paddle_foil_longest", labelKey: "rec.paddleFoilLongest", fmt: (v) => fmtLaufDauer(v) },
+  { key: "wake_longest", labelKey: "rec.wakeLongest", fmt: (v) => fmtLaufDauer(v) },
+  { key: "wake_time", labelKey: "rec.wakeTime", fmt: (v) => fmtLaufDauer(v) },
+  { key: "dw_ab", labelKey: "rec.dwAb", fmt: (v) => `${(v / 1000).toFixed(1)} km` },
+  { key: "dw_ab_speed", labelKey: "rec.dwAbSpeed", fmt: (v) => `${v.toFixed(1)} km/h` },
+  { key: "waves", labelKey: "rec.waves", fmt: (v) => `${Math.round(v)}` },
+  { key: "wave_longest", labelKey: "rec.waveLongest", fmt: (v) => fmtLaufDauer(v) },
 ];
+
+// Eigene Bestwerte je Sportart, eine abgesetzte Zeile je Sportart (Jan, 20.10.2026: „auch fuer einen selber im
+// eigenen home und auf der eigenen Profilseite, je sportart in einer eigenen zeile etwas abgegrenzt").
+export function SportRekordeZeilen({ sportarten, titel }: {
+  sportarten: { sport: string; rekorde: Record<string, any> }[]; titel: string;
+}) {
+  const t = useT();
+  if (!sportarten.length) return null;
+  return (
+    <div className="mt-8">
+      <h2 className="mb-2 text-xl font-bold">{titel}</h2>
+      <div className="space-y-4">
+        {sportarten.map((z) => (
+          <div key={z.sport} className="rounded-xl border border-slate-800 p-3">
+            <div className="mb-2 inline-flex rounded bg-amber-500/15 px-2 py-0.5 text-sm text-amber-700 dark:text-amber-300">{t(`cls.sport.${z.sport}`)}</div>
+            <RecordGrid rec={z.rekorde as RecordSet} sport={z.sport} nurSport showSpot />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Rekorde je Sportart (20.10.2026): welche Zusatz-Kacheln zu welcher Sportart gehoeren.
+export const SPORT_REC: Record<string, string[]> = {
+  wingfoil: ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+  kitefoil: ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+  parawing: ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+  sup_paddle: ["paddle_success", "paddle_quote", "paddle_foil_longest"],
+  wakethief: ["wake_longest", "wake_time"],
+  surf_downwind: ["dw_ab", "dw_ab_speed"],
+  surf_wave: ["waves", "wave_longest"],
+};
+const ALLE_SPORT_REC = new Set(Object.values(SPORT_REC).flat());
 
 // Welche Rekord-Arten je Sportart sinnvoll sind (19.10.2026, Stand-Buch „Rekorde je Gruppe").
 // Pumpfoil und alle nicht genannten: wie bisher (ohne session_total).
 function recItemsFuer(sport?: string) {
+  // Sportart-Rekorde ans Ende (20.10.2026); bei anderen Sportarten nie.
+  const zusatz = REC_ITEMS.filter((it) => (SPORT_REC[sport ?? ""] ?? []).includes(it.key as string));
+  return [...recItemsBasis(sport).filter((it) => !ALLE_SPORT_REC.has(it.key as string)), ...zusatz];
+}
+
+function recItemsBasis(sport?: string) {
   if (sport && WIND_SPORTS.includes(sport)) {
     // Die ganze Fahrt zuerst — beim Wingen ist sie die Hauptzahl (wie auf der Session-Seite).
     const rest = REC_ITEMS.filter((it) => !["glide", "session_pumps", "runs", "carves180", "session_total"].includes(it.key as string));
@@ -148,11 +205,13 @@ function recItemsFuer(sport?: string) {
 }
 
 // Auch von der Foil-Detailseite benutzt — dieselben Kacheln, damit Rekorde ueberall gleich aussehen.
-export function RecordGrid({ rec, showSpot, sport }: { rec?: RecordSet | null; showSpot?: boolean; sport?: string }) {
+export function RecordGrid({ rec, showSpot, sport, nurSport }: { rec?: RecordSet | null; showSpot?: boolean; sport?: string; nurSport?: boolean }) {
   const t = useT();
+  // `nurSport`: nur die Rekorde je Sportart (eigene Zeile je Sportart auf Home/Profil, 20.10.2026).
+  const items = nurSport ? REC_ITEMS.filter((it) => (SPORT_REC[sport ?? ""] ?? []).includes(it.key as string)) : recItemsFuer(sport);
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-      {recItemsFuer(sport).map((it) => {
+      {items.map((it) => {
         const r = rec?.[it.key];
         // Der Carve-Rekord hängt an keiner Session (session_id ist null) — für ihn reicht ein Wert.
         const has = !!(r && r.value && (r.session_id || it.key === "carves180"));

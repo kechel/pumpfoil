@@ -234,6 +234,10 @@ enum Api {
         try await request("/api/sessions/\(id)/manoever", method: "GET", body: nil, auth: true)
     }
 
+    static func sportRekorde(period: String = "all") async throws -> SportRekordeAntwort {
+        try await request("/api/sessions/sport-rekorde?period=\(period)", method: "GET", body: nil, auth: true)
+    }
+
     static func sessionWellePumpen(_ id: Int) async throws -> WellePumpen? {
         try await request("/api/sessions/\(id)/welle-pumpen", method: "GET", body: nil, auth: true)
     }

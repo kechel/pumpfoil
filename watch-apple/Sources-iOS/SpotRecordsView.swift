@@ -20,6 +20,119 @@ struct RecRow: Identifiable {
 
 
 
+/// Rekorde je Sportart (20.10.2026, wie PWA SPORT_REC): welche Zusatz-Kacheln zu welcher Sportart gehoeren.
+let SPORT_REC: [String: [String]] = [
+    "wingfoil": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+    "kitefoil": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+    "parawing": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+    "sup_paddle": ["paddle_success", "paddle_quote", "paddle_foil_longest"],
+    "wakethief": ["wake_longest", "wake_time"],
+    "surf_downwind": ["dw_ab", "dw_ab_speed"],
+    "surf_wave": ["waves", "wave_longest"],
+]
+
+/// Eine Zusatz-Kachel je Sportart: Eintrag, Label und Format. In Schritten (Type-Checker).
+func sportRekordZeile(_ key: String, _ r: PeriodRecords, lang: String) -> RecRow? {
+    let e: CommunityRecordEntry?
+    let label: String
+    let fmt: (Double) -> String
+    let km: (Double) -> String = { String(format: "%.1f km", $0 / 1000.0) }
+    let pct: (Double) -> String = { "\(Int(($0 * 100).rounded())) %" }
+    let anz: (Double) -> String = { "\(Int($0.rounded()))" }
+    let kmh: (Double) -> String = { String(format: "%.1f km/h", $0) }
+    let dauer: (Double) -> String = { fmtLaufDauer($0) }
+    switch key {
+    case "jibe_quote": e = r.jibe_quote; label = "rec.jibeQuote"; fmt = pct
+    case "tack_quote": e = r.tack_quote; label = "rec.tackQuote"; fmt = pct
+    case "vmg_best": e = r.vmg_best; label = "rec.vmgBest"; fmt = kmh
+    case "upwind_m": e = r.upwind_m; label = "rec.upwind"; fmt = km
+    case "jibes_foil": e = r.jibes_foil; label = "rec.jibesFoil"; fmt = anz
+    case "ride_longest": e = r.ride_longest; label = "rec.rideLongest"; fmt = dauer
+    case "ride_farthest": e = r.ride_farthest; label = "rec.rideFarthest"; fmt = km
+    case "paddle_success": e = r.paddle_success; label = "rec.paddleSuccess"; fmt = anz
+    case "paddle_quote": e = r.paddle_quote; label = "rec.paddleQuote"; fmt = pct
+    case "paddle_foil_longest": e = r.paddle_foil_longest; label = "rec.paddleFoilLongest"; fmt = dauer
+    case "wake_longest": e = r.wake_longest; label = "rec.wakeLongest"; fmt = dauer
+    case "wake_time": e = r.wake_time; label = "rec.wakeTime"; fmt = dauer
+    case "dw_ab": e = r.dw_ab; label = "rec.dwAb"; fmt = km
+    case "dw_ab_speed": e = r.dw_ab_speed; label = "rec.dwAbSpeed"; fmt = kmh
+    case "waves": e = r.waves; label = "rec.waves"; fmt = anz
+    case "wave_longest": e = r.wave_longest; label = "rec.waveLongest"; fmt = dauer
+    default: return nil
+    }
+    let da: Bool = e?.session_id != nil && (e?.value ?? 0) > 0
+    return RecRow(id: key, label: Loc.t(label, lang), value: da ? fmt(e?.value ?? 0) : "–", entry: da ? e : nil)
+}
+
+func sportRekordZeilen(_ r: PeriodRecords?, lang: String, sport: String?) -> [RecRow] {
+    guard let r = r else { return [] }
+    let keys: [String] = SPORT_REC[sport ?? ""] ?? []
+    return keys.compactMap { sportRekordZeile($0, r, lang: lang) }
+}
+
+/// Eigene Bestwerte je Sportart, eine abgesetzte Zeile je Sportart (Home + Foiler-Seite, 20.10.2026).
+/// Kacheln als NavigationLink(value:) — Home und Foiler-Seite registrieren SessionDest.
+struct SportRekordeZeilenView: View {
+    let zeilen: [SportRekordeZeile]
+    let titel: String
+    let lang: String
+    private let spalten = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(titel).font(.headline)
+            ForEach(zeilen, id: \.sport) { z in zeile(z) }
+        }
+    }
+
+    private func zeile(_ z: SportRekordeZeile) -> some View {
+        let rows: [RecRow] = sportRekordZeilen(periode(z.rekorde), lang: lang, sport: z.sport).filter { $0.entry != nil }
+        return VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("cls.sport.\(z.sport)", lang)).font(.subheadline)
+                .padding(.horizontal, 8).padding(.vertical, 2)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+            LazyVGrid(columns: spalten, spacing: 8) {
+                ForEach(rows) { t in kachel(t) }
+            }
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.3)))
+    }
+
+    @ViewBuilder private func kachel(_ t: RecRow) -> some View {
+        let inhalt = VStack(alignment: .leading, spacing: 3) {
+            Text(t.value).font(.title3).bold().foregroundStyle(Color.accentColor).lineLimit(1)
+            Text(t.label).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            if let e = t.entry {
+                let sub: String = [shortDate(e.started_at, e.tz), e.spot].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+                if !sub.isEmpty { Text(sub).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        if let sid = t.entry?.session_id {
+            NavigationLink(value: SessionDest(id: sid)) { inhalt }.buttonStyle(.plain)
+        } else {
+            inhalt
+        }
+    }
+
+    private func periode(_ m: [String: CommunityRecordEntry]) -> PeriodRecords {
+        var p = PeriodRecords(distance: nil, duration: nil, speed: nil, glide: nil, runs: nil,
+                              session_distance: nil, session_time: nil, session_pumps: nil,
+                              max_hr: nil, early_bird: nil, night_owl: nil, carves180: nil)
+        p.jibe_quote = m["jibe_quote"]; p.tack_quote = m["tack_quote"]; p.vmg_best = m["vmg_best"]
+        p.upwind_m = m["upwind_m"]; p.jibes_foil = m["jibes_foil"]; p.ride_longest = m["ride_longest"]
+        p.ride_farthest = m["ride_farthest"]; p.paddle_success = m["paddle_success"]; p.paddle_quote = m["paddle_quote"]
+        p.paddle_foil_longest = m["paddle_foil_longest"]; p.wake_longest = m["wake_longest"]; p.wake_time = m["wake_time"]
+        p.dw_ab = m["dw_ab"]; p.dw_ab_speed = m["dw_ab_speed"]; p.waves = m["waves"]; p.wave_longest = m["wave_longest"]
+        return p
+    }
+}
+
 func rekordZeilen(_ r: PeriodRecords?, lang: String, sport: String? = nil) -> [RecRow] {
 // `ohneSession`: der Rekord gehoert einem NUTZER, nicht einer Session (bisher nur
 // „Meiste Carves >180°"). Dann reicht der WERT — ohne dieses Kennzeichen fiele die Kachel
@@ -62,7 +175,9 @@ let alle: [RecRow] = [
 ]
 // In Schritten statt in einem Ausdruck: der Type-Checker haengt sich sonst gern auf (Memory ios-swift-typecheck-hang).
 let gefiltert: [RecRow] = alle.filter { !ohne.contains($0.id) }
-return kopf + gefiltert
+// Rekorde je Sportart ans Ende (20.10.2026).
+let zusatz: [RecRow] = sportRekordZeilen(r, lang: lang, sport: sport)
+return kopf + gefiltert + zusatz
 }
 
 
