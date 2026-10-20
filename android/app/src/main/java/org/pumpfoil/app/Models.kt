@@ -737,6 +737,7 @@ data class CommunityRecordEntry(
     // Mini-Track-Vorschau der Rekord-Session (dieselbe Form wie in den Session-Karten).
     // Fehlt bei Sessions ohne Vorschau in der Analyse -> dann wird nichts gezeichnet.
     @SerialName("track_preview") val trackPreview: String? = null,
+    val anzahl: Int? = null,              // Quoten-Rekorde: Anzahl Manoever/Versuche (20.10.2026)
 )
 
 @Serializable

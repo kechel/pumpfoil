@@ -313,6 +313,7 @@ const gsw: Record<string, string> = {
   "rec.dwAbSpeed": "Schnällschte Downwind A→B",
   "rec.waves": "Am meischte Wälle",
   "rec.waveLongest": "Längschti Wälle",
+  "rec.ofN": "{p} vo {n}",
   "phome.sportRec": "Mini Rekord je Sportart",
   "foiler.sportRec": "Rekord je Sportart",
   "rec.sessionTime": "On-Foil-Ziit",

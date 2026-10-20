@@ -4742,6 +4742,7 @@ static let nlOverlay: [String: String] = {
 
     // Rekorde je Sportart (20.10.2026) — eigene Tabelle, weil neuTexte4 sonst ueber 50 Eintraege kaeme
     // (Type-Checker, Memory ios-swift-typecheck-hang).
+    private static let _neu5_rec_ofN: [String: String] = ["de": "{p} von {n}", "gsw": "{p} vo {n}", "de-AT": "{p} von {n}", "en": "{p} of {n}", "fr": "{p} sur {n}", "it": "{p} su {n}", "es": "{p} de {n}", "fi": "{p} / {n}", "nl": "{p} van {n}", "cs": "{p} z {n}", "pl": "{p} z {n}", "pt": "{p} de {n}", "pt-PT": "{p} de {n}", "ja": "{n} 回中 {p}", "zh": "{n} 次中 {p}", "ru": "{p} из {n}", "id": "{p} dari {n}", "nb": "{p} av {n}"]
     static let neuTexte5: [String: [String: String]] = [
         "rec.jibeQuote": _neu4_rec_jibeQuote,
         "rec.tackQuote": _neu4_rec_tackQuote,
@@ -4761,6 +4762,7 @@ static let nlOverlay: [String: String] = {
         "rec.waveLongest": _neu4_rec_waveLongest,
         "phome.sportRec": _neu4_phome_sportRec,
         "foiler.sportRec": _neu4_foiler_sportRec,
+        "rec.ofN": _neu5_rec_ofN,
     ]
     static let neuTexte3: [String: [String: String]] = [
         "settings.coros.expired": _neu3_settings_coros_expired,

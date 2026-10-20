@@ -332,6 +332,7 @@ const zh: Record<string, string> = {
   "rec.dwAbSpeed": "最快顺风 A→B",
   "rec.waves": "最多浪数",
   "rec.waveLongest": "最长的浪",
+  "rec.ofN": "{n} 次中 {p}",
   "phome.sportRec": "我的各项运动纪录",
   "foiler.sportRec": "各项运动纪录",
   "rec.sessionTime": "上翼时长",

@@ -338,6 +338,7 @@ const nl: Record<string, string> = {
   "rec.dwAbSpeed": "Snelste downwind A→B",
   "rec.waves": "Meeste golven",
   "rec.waveLongest": "Langste golf",
+  "rec.ofN": "{p} van {n}",
   "phome.sportRec": "Mijn records per sport",
   "foiler.sportRec": "Records per sport",
   "rec.sessionTime": "On-foil-tijd",

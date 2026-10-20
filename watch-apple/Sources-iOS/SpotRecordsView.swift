@@ -61,7 +61,11 @@ func sportRekordZeile(_ key: String, _ r: PeriodRecords, lang: String) -> RecRow
     default: return nil
     }
     let da: Bool = e?.session_id != nil && (e?.value ?? 0) > 0
-    return RecRow(id: key, label: Loc.t(label, lang), value: da ? fmt(e?.value ?? 0) : "–", entry: da ? e : nil)
+    var text: String = da ? fmt(e?.value ?? 0) : "–"
+    if da, let n = e?.anzahl {   // Quoten mit Anzahl („100 % von 146", 20.10.2026)
+        text = Loc.t("rec.ofN", lang).replacingOccurrences(of: "{p}", with: text).replacingOccurrences(of: "{n}", with: String(n))
+    }
+    return RecRow(id: key, label: Loc.t(label, lang), value: text, entry: da ? e : nil)
 }
 
 func sportRekordZeilen(_ r: PeriodRecords?, lang: String, sport: String?) -> [RecRow] {

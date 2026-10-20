@@ -343,6 +343,7 @@ const ptPT: Record<string, string> = {
   "rec.dwAbSpeed": "Downwind A→B mais rápido",
   "rec.waves": "Mais ondas",
   "rec.waveLongest": "Onda mais longa",
+  "rec.ofN": "{p} de {n}",
   "phome.sportRec": "Os meus recordes por desporto",
   "foiler.sportRec": "Recordes por desporto",
   "rec.sessionTime": "Tempo on-foil",

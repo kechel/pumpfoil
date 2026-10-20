@@ -325,6 +325,7 @@ const fi: Record<string, string> = {
   "rec.dwAbSpeed": "Nopein downwind A→B",
   "rec.waves": "Eniten aaltoja",
   "rec.waveLongest": "Pisin aalto",
+  "rec.ofN": "{p} / {n}",
   "phome.sportRec": "Omat ennätykset lajeittain",
   "foiler.sportRec": "Ennätykset lajeittain",
   "rec.sessionTime": "Foil-aika",

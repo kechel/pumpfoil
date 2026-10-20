@@ -332,6 +332,7 @@ const ja: Record<string, string> = {
   "rec.dwAbSpeed": "最速ダウンウインド A→B",
   "rec.waves": "最多波数",
   "rec.waveLongest": "最長の波",
+  "rec.ofN": "{n} 回中 {p}",
   "phome.sportRec": "競技ごとの自己記録",
   "foiler.sportRec": "競技ごとの記録",
   "rec.sessionTime": "オンフォイル時間",

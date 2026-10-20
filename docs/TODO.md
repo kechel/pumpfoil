@@ -1485,7 +1485,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **20.10. — Sportart-Rekorde: Quoten-Rekorde (Halsen/Wenden auf dem Foil) sind oft 100 % (Jan: „lassen wir ruhig erstmal so").**
+- **20.10. — ✅ ERLEDIGT (Mindestzahl 50/20 + Anzahl in der Kachel, gleicher Tag) — Sportart-Rekorde: Quoten-Rekorde (Halsen/Wenden auf dem Foil) sind oft 100 %.**
   Ab 20 Halsen bzw. 10 Wenden gibt es viele Sessions mit 100 %; der Rekord geht dann an die 100-%-Session mit den
   meisten Manoevern (Gleichstand-Regel in `server/app/sportrekorde.py`) — liest sich eher als „die meisten ohne
   Absetzen". Moegliche spaetere Abhilfe: Mindestzahl hoeher (z. B. 50 Halsen / 20 Wenden) oder in der Kachel die

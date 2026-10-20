@@ -220,7 +220,10 @@ export function RecordGrid({ rec, showSpot, sport, nurSport }: { rec?: RecordSet
             {has && r!.track_preview && (
               <TrackPreview data={r!.track_preview} className="pointer-events-none absolute right-2 top-1/2 h-3/4 w-20 -translate-y-1/2 text-brand-400/70" />
             )}
-            <div className="text-lg font-bold tabular-nums text-brand-400">{has ? it.fmt(r!.value) : "–"}</div>
+            {/* Quoten mit Anzahl („100 % von 146", 20.10.2026): sonst sagt 100 % allein wenig. */}
+            <div className="text-lg font-bold tabular-nums text-brand-400">
+              {has ? ((r as any).anzahl ? t("rec.ofN", { p: it.fmt(r!.value), n: String((r as any).anzahl) }) : it.fmt(r!.value)) : "–"}
+            </div>
             <div className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-300">{t(it.labelKey)}</div>
             {has && (
               <div className="mt-0.5 text-[11px] text-slate-300">

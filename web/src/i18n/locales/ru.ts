@@ -332,6 +332,7 @@ const ru: Record<string, string> = {
   "rec.dwAbSpeed": "Самый быстрый даунвинд A→B",
   "rec.waves": "Больше всего волн",
   "rec.waveLongest": "Самая длинная волна",
+  "rec.ofN": "{p} из {n}",
   "phome.sportRec": "Мои рекорды по видам спорта",
   "foiler.sportRec": "Рекорды по видам спорта",
   "rec.sessionTime": "Время на фойле",

@@ -21,8 +21,10 @@ from typing import Callable
 
 from .config import get_settings
 
-MIN_HALSEN = 20
-MIN_WENDEN = 10
+# 20.10.2026 von 20/10 angehoben (Jan: „mach das so wie du es empfiehlst"): ab 20 Halsen hatten 128 Sessions 100 %,
+# ab 50 noch 50. Die Anzahl steht deshalb mit in der Kachel („100 % von 146"), Gleichstand = mehr Manoever.
+MIN_HALSEN = 50
+MIN_WENDEN = 20
 MIN_PADDLE_UP = 5
 MIN_DOWNWIND_M = 2000.0
 
@@ -32,6 +34,7 @@ class Metrik:
     key: str
     cache: str                                            # manoever | paddel | welle_pumpen | downwind
     wert: Callable[[dict], tuple[float, float] | None]    # (Wert, Gleichstand-Kriterium) oder None
+    quote: bool = False                                   # Anteil 0..1 -> Anzahl (`anzahl`) mit ausliefern
 
 
 def _quote(durch: int, n: int, minimum: int):
@@ -49,8 +52,8 @@ def _z(e, typ):
 
 
 WIND = (
-    Metrik("jibe_quote", "manoever", lambda e: _quote(*_z(e, "halse"), MIN_HALSEN)),
-    Metrik("tack_quote", "manoever", lambda e: _quote(*_z(e, "wende"), MIN_WENDEN)),
+    Metrik("jibe_quote", "manoever", lambda e: _quote(*_z(e, "halse"), MIN_HALSEN), quote=True),
+    Metrik("tack_quote", "manoever", lambda e: _quote(*_z(e, "wende"), MIN_WENDEN), quote=True),
     Metrik("vmg_best", "manoever", lambda e: ((e.get("hoehe") or {}).get("vmg_max_kmh") or None) and
            (float(e["hoehe"]["vmg_max_kmh"]), 0.0)),
     Metrik("upwind_m", "manoever", lambda e: ((e.get("hoehe") or {}).get("hoehe_m") or None) and
@@ -62,7 +65,7 @@ WIND = (
 SUP = (
     Metrik("paddle_success", "paddel", lambda e: (e.get("auf_foil") or None) and (float(e["auf_foil"]), 0.0)),
     Metrik("paddle_quote", "paddel", lambda e: _quote(int(e.get("auf_foil") or 0), len(e.get("versuche") or []),
-                                                     MIN_PADDLE_UP)),
+                                                     MIN_PADDLE_UP), quote=True),
     Metrik("paddle_foil_longest", "paddel", lambda e: _max([v for v in e.get("versuche") or []
                                                             if v.get("ergebnis") == "foil"], "foil_s")),
 )
@@ -169,10 +172,10 @@ def persoenlich(db, user_id: int, cut=None) -> list[dict]:
             b = bestes(db, m, zeilen, merk)
             if b is None:
                 continue
-            (wert, _n), (sid, ts, place, lat, lon, _sp) = b
+            (wert, n), (sid, ts, place, lat, lon, _sp) = b
             rek[m.key] = {"session_id": sid, "value": round(float(wert), 3),
                           "started_at": ts.isoformat() if ts else None, "spot": place or None,
-                          "tz": tz_name(lat, lon)}
+                          "tz": tz_name(lat, lon), "anzahl": int(n) if m.quote else None}
         if rek:
             out.append({"sport": sport, "rekorde": rek})
     return out
