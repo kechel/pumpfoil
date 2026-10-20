@@ -54,7 +54,8 @@ _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
         "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.52 for iOS
-        # (Submission 48f47157-a1f1-4e62-a19e-1e2669daa38d, eingereicht 19.10. 13:10, Build 60).
+        # (Submission 48f47157-a1f1-4e62-a19e-1e2669daa38d, eingereicht 19.10. 13:10, Build 60; Store-API de/us/ch
+        # 1.1.52, currentVersionReleaseDate 2026-10-19T22:02:14Z, gegengeprueft 20.10.).
         # Inhalt: Sportarten-Umbau (Wind-Sessions, Wenden/Halsen, Fahrten, Rekorde/Ausruestung je Sportart,
         # Sportart auf der Watch), Feedback-Knopf, „zaehlt als" je Modus, Ablauf-Hinweis verknuepfter Konten.
         # ALT: "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.51 for iOS
