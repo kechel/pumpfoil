@@ -1078,6 +1078,18 @@
         "welle_paddeln": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "kartenschalter": {
+          "status": "live",
+          "en": "Switch between the whole session and only the time on the foil.",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "notiz": "Jan 20.10. (wie SUP). sportprofil JE_SPORT surf_downwind karte=ganz; Apps lesen das Profil."
         }
       }
     },
@@ -1264,6 +1276,19 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "surf_downwind",
+        "alle ausser pumpfoil"
+      ],
+      "merkmal": "kartenschalter",
+      "was": "Downwind: Kartenschalter. Web: Sportart-Tabellen (Fahrten, Paddle-up-Versuche) sortierbar unter der Karte statt als Text darueber.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [

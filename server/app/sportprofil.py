@@ -49,6 +49,9 @@ JE_SPORT = {
     # Wake thief (Jan, 20.10.2026: „bei wake-thief das gleiche bitte"): Schalter wie SUP; die Wellenstuecke
     # zeichnet die Karte aus /welle-pumpen.
     "wakethief": {"karte": "ganz"},
+    # Downwind (Jan, 20.10.2026: „bei surf/downwind will ich auch wie beim SUP die ganze strecke sehen
+    # koennen"): Schalter ganze Fahrt / nur Foil.
+    "surf_downwind": {"karte": "ganz"},
 }
 
 
