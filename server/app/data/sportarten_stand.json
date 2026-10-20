@@ -9,7 +9,8 @@
     "Plan in Stufen (Gespraech 19.10.2026, Anlass Oerni u97 Wing-Session #17478 und ThermikDreher u267 Foil Scoot): s. 'stufen'.",
     "'plattformen' (optional) je Merkmal: {'web': Datum, 'android': Version, 'ios': Version}; leer = noch keine Version -> 'coming next'. Steht die Version fest, NUR die Nummer eintragen, egal ob released, im Review oder coming next (Jan 19.10.). Server haengt an: ': website since <Datum>, Android 1.1.44, iOS coming next'. Nur fuer Merkmale, die sich je Oberflaeche unterscheiden (Anzeige).",
     "Status 'vorschlag' (oeffentlich 'proposal') = NUR Claudes EIGENE zusaetzliche Vorschlaege zur Pruefung durch Jan (Jan 19.10.: 'proposal sind die dinge die _du_ zusaetzlich vorschlaegst fuer mich zur pruefung'). Was von Jan oder aus Nutzer-Chats kommt, ist 'geplant'. Jan entscheidet -> geplant oder raus.",
-    "'allgemein' + 'merkmale_allgemein' (19.10., Jan: 'die punkte die fuer alle Sportarten gelten in einen eigenen uebergeordneten punkt'): Merkmale, die fuer jede Sportart gleich gelten, stehen NUR dort, nicht je Gruppe. Oeffentlich als Abschnitt 'All sports' ueber den Sportarten."
+    "'allgemein' + 'merkmale_allgemein' (19.10., Jan: 'die punkte die fuer alle Sportarten gelten in einen eigenen uebergeordneten punkt'): Merkmale, die fuer jede Sportart gleich gelten, stehen NUR dort, nicht je Gruppe. Oeffentlich als Abschnitt 'All sports' ueber den Sportarten.",
+    "'oeffentlich': false an einem Merkmal (merkmale/merkmale_allgemein) = bleibt im Buch, wird auf /changelog nicht gezeigt (seit 20.10.2026, erstes: autofahrt)."
   ],
   "stand": "2026-10-19",
   "status_en": {
@@ -34,7 +35,8 @@
     },
     {
       "id": "autofahrt",
-      "en": "Car trip removal"
+      "en": "Car trip removal",
+      "oeffentlich": false
     },
     {
       "id": "karte",
@@ -1217,6 +1219,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "autofahrt",
+      "was": "Zeile aus der oeffentlichen Tabelle genommen (oeffentlich: false), bleibt im Buch.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [

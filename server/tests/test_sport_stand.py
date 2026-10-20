@@ -86,3 +86,11 @@ def test_rekorde_wind_mit_gesamtstrecke(client):
     w = client.get("/api/community/records?sport=wingfoil&period=all", headers=auth).json()
     p = client.get("/api/community/records?sport=pumpfoil&period=all", headers=auth).json()
     assert "session_total" in w["all"] and "session_total" not in p["all"]
+
+
+def test_nicht_oeffentliche_merkmale_fehlen():
+    """`oeffentlich: false` (20.10.2026): Merkmal bleibt im Buch, erscheint aber nirgends in der Ausgabe."""
+    from app.api.appmeta import sport_stand_aufgeloest
+    d = sport_stand_aufgeloest()
+    assert "autofahrt" not in {m["id"] for m in d["merkmale"]}
+    assert all(w["id"] != "autofahrt" for sp in d["sportarten"] for w in sp["merkmale"])
