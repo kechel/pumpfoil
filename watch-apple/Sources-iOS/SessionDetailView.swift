@@ -718,6 +718,7 @@ struct SessionDetailView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(dateText(s)).font(.title2).bold()
             ownerLine(s)
+            sportBadge(s)
             placeLine(s)
             waterLine(s)
         }
@@ -734,6 +735,20 @@ struct SessionDetailView: View {
     @ViewBuilder private func ownerLine(_ s: SessionDetail) -> some View {
         if s.owned != true, let on = s.owner_name, !on.isEmpty {
             Text(on).font(.body).foregroundStyle(Color.accentColor)
+        }
+    }
+
+    // Sportart-Badge ganz oben, fuer alle (Jan, 20.10.2026: „auch den owner dann halt doppelt"),
+    // orange wie in der PWA; nur wenn die Session nicht Pumpfoil ist oder offen.
+    @ViewBuilder private func sportBadge(_ s: SessionDetail) -> some View {
+        let text: String? = s.needs_classification == true ? Loc.t("cls.needsBadge", lang)
+            : isClassified(sportClass: s.sport_class, dataQuality: s.data_quality)
+                ? Loc.t(classLabelKey(sportClass: s.sport_class, dataQuality: s.data_quality), lang) : nil
+        if let text {
+            Text(text).font(.subheadline)
+                .padding(.horizontal, 8).padding(.vertical, 2)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
         }
     }
 

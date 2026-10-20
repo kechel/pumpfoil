@@ -14,7 +14,7 @@ import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilIcon, FoilOffIcon } from "../components/Icons";
-import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
+import { DATA_QUALITY, SPORTS, classLabelKey, isClassified } from "../lib/sportClass";
 import { invalidateSessionListCache, ProcessingNote, updateCachedSession } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { SessionUploadCard } from "../components/UploadProgressCard";
@@ -1836,6 +1836,13 @@ export default function SessionDetail() {
       </p>
       {/* Badges einheitlich hoch + horizontal ausgerichtet (flex, items-center). */}
       <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+        {/* Sportart-Badge wie auf den Session-Karten (Jan, 20.10.2026: „fuer alle ganz oben, auch
+            den owner dann halt doppelt" — der Besitzer hat zusaetzlich die Auswahl unten). */}
+        {session.needs_classification ? (
+          <span className="inline-flex items-center rounded bg-amber-500/15 px-2 py-1 text-amber-800 dark:text-amber-200">{t("cls.needsBadge")}</span>
+        ) : isClassified(session) && (
+          <span className="inline-flex items-center rounded bg-amber-500/15 px-2 py-1 text-amber-700 dark:text-amber-300">{t(classLabelKey(session))}</span>
+        )}
         {session.place_name && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><LocationIcon className="h-3.5 w-3.5" /> {session.place_name}</span>}
         {session.sport && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><WaveIcon className="h-3.5 w-3.5" /> {session.sport}</span>}
         {session.device_label && (
