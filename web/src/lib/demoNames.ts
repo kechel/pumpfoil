@@ -87,8 +87,17 @@ function pseudonym(i: number): string {
 /** Namen laden und Regeln bauen. Nur Admins dürfen die Nutzerliste holen. */
 async function regelnLaden(): Promise<void> {
   const { api } = await import("./api");
-  // Alle in einem Zug (der Endpunkt hat keine Obergrenze); nach id sortiert = stabile Nummern.
-  const users: AdminUser[] = await api.adminUsers("", 5000, 0, undefined, "id");
+  // SEITENWEISE: der Endpunkt liefert hoechstens 200 je Abruf (admin.py `list_users`). Bis 20.10.2026
+  // stand hier „alle in einem Zug (keine Obergrenze)" mit limit 5000 — angekommen sind nur die 200
+  // neuesten von 903 Konten, alle aelteren Namen blieben im Demo-Modus ECHT (Jan bemerkte es an
+  // seinen Freunden). Nach id sortiert = stabile Nummern.
+  const SEITE = 200;
+  const users: AdminUser[] = [];
+  for (let offset = 0; offset < 100_000; offset += SEITE) {
+    const teil = await api.adminUsers("", SEITE, offset, undefined, "id");
+    users.push(...teil);
+    if (teil.length < SEITE) break;
+  }
   const namen = users
     .map((u, i) => ({ name: (u.display_name || "").trim(), ersatz: pseudonym(i) }))
     // Leere Namen übergeht der Server schon selbst („User #<id>“), die sind anonym.
@@ -168,9 +177,10 @@ export function demoAnzahl(): number {
 // (negative ids: kein Konto, kein Link, s. FreundePumpen.tsx).
 const DEMO_START_MS = Date.parse("2026-10-04T13:05:00Z");
 const DEMO_DAUER_MIN = 40;
+const DEMO_NAMEN = ["John Doe", "Jane Doe"];   // Jan: „sowas wie Mustermann auf englisch"
 const DEMO_FREUNDE = [
-  { user_id: -1, name: "Rider 7", avatar_url: null, spot_id: -1, spot: "Lago Pumpino" },
-  { user_id: -2, name: "Rider 23", avatar_url: null, spot_id: -1, spot: "Lago Pumpino" },
+  { user_id: -1, name: DEMO_NAMEN[0], avatar_url: null, spot_id: -1, spot: "Lago Pumpino" },
+  { user_id: -2, name: DEMO_NAMEN[1], avatar_url: null, spot_id: -1, spot: "Lago Pumpino" },
 ];
 type DemoFreund = { user_id: number; name: string | null; avatar_url: string | null; spot_id: number; spot: string };
 type DemoLive = { spots: number[]; area: number[]; pumping_now: number; freunde: DemoFreund[] };
@@ -185,8 +195,12 @@ async function demoLiveDaten(): Promise<DemoLive | null> {
   try {
     const { api } = await import("./api");
     const roh = await api.adminDemoAktiv(t);
-    // /api/admin bleibt sonst unangetastet — die Freunde sind aber fuer die Seite, also Pseudonyme.
-    const daten = { ...roh, freunde: demoAnonymisieren(roh.freunde?.length ? roh.freunde : DEMO_FREUNDE, "/api/friends/active") };
+    // Echte Freunde behalten nur ihren Platz in der Wiederholung: feste Demo-Namen, kein Foto, kein
+    // Link (negative id) — ihre Profilseite zeigte sonst ein anderes Pseudonym als Home.
+    const freunde = roh.freunde?.length
+      ? roh.freunde.map((f, i) => ({ ...f, user_id: -(i + 1), name: DEMO_NAMEN[i % DEMO_NAMEN.length], avatar_url: null }))
+      : DEMO_FREUNDE;
+    const daten = { ...roh, freunde };
     liveCache = { bis: Date.now() + 60_000, daten };
     return daten;
   } catch {
