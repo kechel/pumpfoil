@@ -57,6 +57,7 @@ import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Surface
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -673,6 +674,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // Alles in derselben normalen Schriftgroesse (Jan, 07.10.2026); Zeit + Uhr in EINER Zeile,
             // solange es passt (FlowRow bricht sonst um), der Bildtext fett und nur, wenn es einen gibt.
             val normal = MaterialTheme.typography.bodyLarge
+            // Sportart-Badge ganz oben, fuer alle (Jan, 20.10.2026: „auch den owner dann halt doppelt"),
+            // orange wie in der PWA; nur wenn die Session nicht Pumpfoil ist oder offen.
+            val sportBadge = if (s.needsClassification) I18n.t("cls.needsBadge")
+                else if (isClassified(s.sportClass, s.dataQuality)) I18n.t(classLabelKey(s.sportClass, s.dataQuality)) else null
+            sportBadge?.let {
+                Surface(color = Color(0xFFF59E0B).copy(alpha = 0.18f), shape = RoundedCornerShape(4.dp)) {
+                    Text(it, Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = normal, color = Color(0xFFD97706))
+                }
+            }
             s.placeName?.takeIf { it.isNotBlank() }?.let {
                 Text(it, style = normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
