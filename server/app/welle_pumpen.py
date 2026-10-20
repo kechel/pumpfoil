@@ -29,11 +29,14 @@ import math
 import numpy as np
 
 # Hochzaehlen, wenn sich hier etwas aendert -> alle Cache-Eintraege (data/welle_pumpen/) ungueltig.
-VERSION = "w3"
+VERSION = "w5"
 
 BAND_HZ = (0.3, 3.0)
-RUHIG_FAKTOR = 0.5      # Huellkurve unter diesem Anteil des Pump-Niveaus (p90 im Lauf) = Welle (w2: vorher 0,35)
-BRUECKE_S = 8.0         # kuerzere Pumpstuecke ZWISCHEN zwei Wellenstuecken zaehlen zur Welle (w2)
+RUHIG_FAKTOR = 0.5      # mittlere Leistung (6 s) unter diesem Anteil des Pump-Niveaus (p90 im Lauf) = Welle
+LEISTUNG_S = 6.0        # w4: Mittel von f² statt Spitzen-Huellkurve (s. Kopf)
+BRUECKE_S = 10.0        # kuerzere Pumpstuecke ZWISCHEN zwei Wellenstuecken zaehlen zur Welle (w2: 8, w5: 10 nach #12816)
+TEMPO_GEHALTEN = 0.9    # w5: Wellenstueck nur, wenn das Tempo darin >= 90 % des Lauf-Medians bleibt — sonst ist es
+                        # das Ausrollen am Laufende (Pumpen hoert auf, Tempo faellt), keine Welle
 PUMP_PERZENTIL = 90
 MIN_WELLE_S = 5.0       # kuerzer ist ein normales Gleiten zwischen zwei Pumps
 MIN_LAUF_S = 5.0
@@ -47,6 +50,12 @@ def _meter(a, b) -> float:
     return 2 * r * math.asin(min(1.0, math.sqrt(h)))
 
 
+def _tempo(gps: list, lo_s: float, hi_s: float) -> float:
+    """Median-Tempo (m/s) der GPS-Punkte im Zeitraum; 0 ohne Punkte."""
+    v = [g[3] for g in gps if lo_s * 1000 <= g[0] <= hi_s * 1000 and len(g) > 3 and g[3] is not None]
+    return float(np.median(v)) if v else 0.0
+
+
 def _strecke(gps: list, lo_s: float, hi_s: float) -> float:
     pkt = [g for g in gps if lo_s * 1000 <= g[0] <= hi_s * 1000]
     return sum(_meter(p, q) for p, q in zip(pkt, pkt[1:]))
@@ -55,7 +64,7 @@ def _strecke(gps: list, lo_s: float, hi_s: float) -> float:
 def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list, laeufe: list[dict]) -> dict | None:
     """`t_s`: Session-Sekunden je Accel-Sample; `laeufe`: [{"lo": s, "hi": s, "pumps_t": [s, …]}] in
     Session-Sekunden (Pump-Zeitpunkte aus der Analyse). None ohne auswertbaren Lauf."""
-    from scipy.ndimage import maximum_filter1d, uniform_filter1d
+    from scipy.ndimage import uniform_filter1d
     from scipy.signal import butter, filtfilt
 
     if hz is None or hz < 8 or len(t_s) < hz * 10:
@@ -63,7 +72,13 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list, laeufe: 
     mag = np.linalg.norm(accel.astype(float), axis=1)
     b, a = butter(2, [BAND_HZ[0] / (hz / 2), BAND_HZ[1] / (hz / 2)], "band")
     f = filtfilt(b, a, mag - np.median(mag))
-    env = uniform_filter1d(maximum_filter1d(np.abs(f), max(int(hz * 1.5), 1)), max(int(hz * 3), 1))
+    # w4 (20.10.2026, Jan zu #12816: „war wirklich nur da auf welle oder vielleicht etwas mehr von diesem
+    # stueck?"): Die Spitzen-Huellkurve blieb hoch, sobald zwischendurch einzelne kraeftige Ausgleichs-Pumps
+    # kamen — #12816 zeigte nur 8 s Welle, obwohl 2160-2218 s der Rhythmus unregelmaessig wird, die
+    # Ausschlaege/min auf 50-80 fallen und das Tempo am hoechsten ist. Die MITTLERE Leistung (f² ueber 6 s)
+    # faellt dort auf 0,3-0,65 und erfasst das; bei durchgehendem Pumpen (#13843) bleibt sie >= 0,45 und nie
+    # 5 s darunter.
+    env = uniform_filter1d(f ** 2, max(int(hz * LEISTUNG_S), 1))
 
     welle_s = gepumpt_s = welle_m = gepumpt_m = 0.0
     pumps = 0
@@ -78,12 +93,13 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list, laeufe: 
             continue
         ausgewertet = True
         e = env[m]
+        lauf_tempo = _tempo(gps, lo, hi)
         ruhig = e < RUHIG_FAKTOR * float(np.percentile(e, PUMP_PERZENTIL))
         kanten = np.flatnonzero(np.diff(np.r_[0, ruhig.astype(np.int8), 0]))
         stuecke = []
         for x, y in zip(kanten[::2], kanten[1::2]):
             a_s, b_s = float(t_s[m[x]]), float(t_s[m[y - 1]])
-            if b_s - a_s >= MIN_WELLE_S:
+            if b_s - a_s >= MIN_WELLE_S and _tempo(gps, a_s, b_s) >= TEMPO_GEHALTEN * lauf_tempo:
                 if stuecke and a_s - stuecke[-1][1] <= BRUECKE_S:
                     stuecke[-1] = (stuecke[-1][0], b_s)      # kurzer Wellenwechsel -> bleibt Welle
                 else:
