@@ -1026,9 +1026,9 @@ export const api = {
   }>(`/api/sessions/${id}/manoever`),
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
   // Wenden/Halsen-Quote im Verlauf (19.10.2026): je Monat, aus dem Manoever-Cache.
-  manoeverVerlauf: () => req<{ monate: { monat: string; sessions: number; wende_durch: number; wende: number; halse_durch: number; halse: number }[] }>("/api/sessions/manoever-verlauf"),
+  manoeverVerlauf: (userId?: number) => req<{ monate: { monat: string; sessions: number; wende_durch: number; wende: number; halse_durch: number; halse: number }[] }>(`/api/sessions/manoever-verlauf${userId ? `?user_id=${userId}` : ""}`),
   // Jahresbilanz je Sportart (19.10.2026): eigene Sessions je Kalenderjahr.
-  jahresbilanz: () => req<{ jahre: { jahr: number; sportarten: { sport: string; sessions: number; stunden: number; km: number; foil_km: number }[] }[] }>("/api/sessions/jahresbilanz"),
+  jahresbilanz: (userId?: number) => req<{ jahre: { jahr: number; sportarten: { sport: string; sessions: number; stunden: number; km: number; foil_km: number }[] }[] }>(`/api/sessions/jahresbilanz${userId ? `?user_id=${userId}` : ""}`),
   sportStatus: () => req<{
     stand: string;
     status: Record<string, string>;

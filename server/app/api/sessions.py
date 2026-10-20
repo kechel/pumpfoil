@@ -1534,14 +1534,30 @@ def overall_stats(
     return out
 
 
+def _fahrer_fuer_admin(db: Session, user: models.User, user_id: int | None) -> models.User:
+    """Admin-Kontrollansicht (Jan, 20.10.2026: „das waere eine gute Kontrollfunktion fuer mich"):
+    ein Admin darf die Startseiten-Auswertungen eines anderen Fahrers abrufen (`?user_id=`), die
+    Foiler-Seite zeigt sie ihm orange umrandet. Alle anderen bekommen nur die eigenen."""
+    if user_id is None or user_id == user.id:
+        return user
+    if not user.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "admin only")
+    ziel = db.get(models.User, user_id)
+    if ziel is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "user not found")
+    return ziel
+
+
 @router.get("/manoever-verlauf")
 def manoever_verlauf(
+    user_id: int | None = Query(None),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
     """Wenden/Halsen-Quote im Verlauf (19.10.2026, Stand-Buch: quote_verlauf): je Monat, wie viele der
     eigenen Wenden und Halsen auf dem Foil blieben. Nur aus dem Manoever-Cache (data/manoever/), der
     beim Ansehen einer Session und per scripts/manoever-nachholen.py entsteht — dieser Aufruf rechnet nichts."""
+    user = _fahrer_fuer_admin(db, user, user_id)
     wind = [k for k, g in sportprofil.GRUPPE.items() if g == "wind"]
     rows = (db.query(models.Session)
             .filter(models.Session.user_id == user.id, models.Session.sport_class.in_(wind),
@@ -1564,6 +1580,7 @@ def manoever_verlauf(
 
 @router.get("/jahresbilanz")
 def jahresbilanz(
+    user_id: int | None = Query(None),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -1571,6 +1588,7 @@ def jahresbilanz(
     Sessions, Stunden, Gesamtstrecke und Strecke auf dem Foil. Nur die eigenen, ohne geloeschte und
     ohne als Muell/Doppel/Test markierte. Jahr nach UTC — eine Session um Mitternacht an Silvester
     ist der einzige Fall, in dem das daneben liegen kann."""
+    user = _fahrer_fuer_admin(db, user, user_id)
     from sqlalchemy import extract
     jahr = extract("year", models.Session.started_at)
     rows = (

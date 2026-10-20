@@ -183,10 +183,11 @@ function CarveStatsSection() {
 
 // Wenden/Halsen auf dem Foil je Monat (19.10.2026, Stand-Buch: quote_verlauf) — nur fuer Fahrer mit
 // Wind-Sessions; die neuesten Monate oben, hoechstens 12.
-function ManoeverVerlaufSection() {
+// `userId`: Admin-Kontrollansicht auf der Foiler-Seite (20.10.2026), sonst die eigenen.
+export function ManoeverVerlaufSection({ userId }: { userId?: number } = {}) {
   const t = useT();
   const [d, setD] = useState<Awaited<ReturnType<typeof api.manoeverVerlauf>> | null>(null);
-  useEffect(() => { api.manoeverVerlauf().then(setD).catch(() => {}); }, []);
+  useEffect(() => { api.manoeverVerlauf(userId).then(setD).catch(() => {}); }, [userId]);
   const monate = (d?.monate ?? []).filter((m) => m.wende + m.halse > 0).slice(-12).reverse();
   if (!monate.length) return null;
   const zelle = (durch: number, n: number) => (n ? `${durch} / ${n} (${Math.round((100 * durch) / n)} %)` : "–");
@@ -218,11 +219,11 @@ function ManoeverVerlaufSection() {
 }
 
 // Jahresbilanz je Sportart (19.10.2026, Stand-Buch: jahresbilanz): je Jahr eine Zeile pro Sportart.
-function JahresbilanzSection() {
+export function JahresbilanzSection({ userId }: { userId?: number } = {}) {
   const t = useT();
   const [data, setData] = useState<Awaited<ReturnType<typeof api.jahresbilanz>> | null>(null);
   const [jahr, setJahr] = useState<number | null>(null);
-  useEffect(() => { api.jahresbilanz().then((d) => { setData(d); setJahr(d.jahre[0]?.jahr ?? null); }).catch(() => {}); }, []);
+  useEffect(() => { api.jahresbilanz(userId).then((d) => { setData(d); setJahr(d.jahre[0]?.jahr ?? null); }).catch(() => {}); }, [userId]);
   if (!data || !data.jahre.length || jahr == null) return null;
   const zeile = data.jahre.find((j) => j.jahr === jahr) ?? data.jahre[0];
   return (
