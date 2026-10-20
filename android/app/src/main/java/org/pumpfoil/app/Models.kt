@@ -1112,7 +1112,8 @@ data class PaddelVersuch(@SerialName("t_ms") val tMs: Long = 0, @SerialName("spr
                          val schlaege: Int = 0, val staerke: Double = 0.0, @SerialName("max_kmh") val maxKmh: Double? = null,
                          val ergebnis: String = "nein", @SerialName("foil_s") val foilS: Double? = null,
                          @SerialName("schnell_s") val schnellS: Double? = null,
-                         val linie: List<List<Double>> = emptyList())
+                         val linie: List<List<Double>> = emptyList(),
+                         @SerialName("schlag_pkt") val schlagPkt: List<List<Double>> = emptyList())
 
 @Serializable
 data class PaddelAntwort(val schlaege: Int = 0, @SerialName("schlaege_pro_min") val schlaegeProMin: Int? = null,

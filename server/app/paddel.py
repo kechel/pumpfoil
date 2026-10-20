@@ -20,7 +20,7 @@ from __future__ import annotations
 import numpy as np
 
 # Hochzaehlen, wenn sich hier etwas aendert -> alle Cache-Eintraege (data/paddel/) ungueltig.
-VERSION = "p3"   # p2: Punkte je Sprint fuer die Karte (`linie`); p3: Ort je Schlag (`schlag_pkt`)
+VERSION = "p4"   # p2: Punkte je Sprint fuer die Karte (`linie`); p3: Ort je Schlag (`schlag_pkt`); p4: Orte der Sprintschlaege je Versuch
 
 BAND_HZ = (0.3, 3.0)        # Paddelschlaege liegen bei 0,7–1,7 Hz
 MIN_ABSTAND_S = 0.5          # zwei Schlaege nie dichter
@@ -88,6 +88,17 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
         else:
             fenster.append([lo, hi])
 
+    g_pos = np.array([[r[0] / 1000.0, r[1], r[2]] for r in gps if r[1] is not None and r[2] is not None], float)
+
+    def orte(ix: np.ndarray) -> list:
+        """Ort je Schlag-Index: GPS linear auf den Zeitpunkt interpoliert, bis 5 s ueber den Rand hinaus."""
+        if len(g_pos) < 2 or len(ix) == 0:
+            return []
+        ts = t_s[ix]
+        ts = ts[(ts >= g_pos[0, 0] - 5) & (ts <= g_pos[-1, 0] + 5)]
+        return [[round(float(a_), 6), round(float(b_), 6)]
+                for a_, b_ in zip(np.interp(ts, g_pos[:, 0], g_pos[:, 1]), np.interp(ts, g_pos[:, 0], g_pos[:, 2]))]
+
     versuche = []
     n = len(t_s)
     for lo, hi in fenster:
@@ -97,7 +108,8 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
         drin = np.flatnonzero(im_lauf[lo:hi])
         ende = lo + int(drin[0]) if len(drin) else hi
         sprint_s = float(t_s[ende - 1] - t_s[lo]) if ende > lo else 0.0
-        schlaege = int(((spitzen >= lo) & (spitzen < ende)).sum())
+        im_sprint = spitzen[(spitzen >= lo) & (spitzen < ende)]
+        schlaege = int(len(im_sprint))
         t_ende = t_s[ende - 1] if ende > lo else t_s[lo]
         lauf = next(((a_, b_) for a_, b_ in laeufe if a_ <= t_ende + LAUF_NACH_S and b_ >= t_s[lo]), None)
         bis = min(n, int(np.searchsorted(t_s, t_s[lo] + KURZ_FENSTER_S)))
@@ -105,6 +117,7 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
         # Fertige Punkte des Sprints fuer die Karte (wie Startversuche: keine Indizes, die verschiebt der Trim).
         linie = [[g[1], g[2]] for g in gps if t_s[lo] * 1000 <= g[0] <= t_ende * 1000]
         e = {"t_ms": int(round(t_s[lo] * 1000)), "sprint_s": round(sprint_s, 1), "schlaege": schlaege, "linie": linie,
+             "schlag_pkt": orte(im_sprint),   # p4: Karte „nur Foil" zeigt nur die Sprintschlaege
              "staerke": round(float(env[lo:max(ende, lo + 1)].mean() / grund), 1),
              "max_kmh": round(float(kmh[lo:bis].max()), 1) if bis > lo else None}
         if lauf is not None:
@@ -117,14 +130,7 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
 
     # Ort je gezaehltem Schlag fuer die Karte (Jan, 20.10.2026: der Knopf „Strokes" soll Schlaege aus DIESER
     # Erkennung zeigen, nicht die Pumps der Pump-Erkennung). GPS linear auf den Schlag-Zeitpunkt interpoliert.
-    schlag_pkt = []
-    g = np.array([[r[0] / 1000.0, r[1], r[2]] for r in gps if r[1] is not None and r[2] is not None], float)
-    if len(g) >= 2:
-        ts = t_s[ausserhalb]
-        drin = (ts >= g[0, 0] - 5) & (ts <= g[-1, 0] + 5)   # bis 5 s am Rand: an den Randpunkt
-        la = np.interp(ts[drin], g[:, 0], g[:, 1])
-        lo_ = np.interp(ts[drin], g[:, 0], g[:, 2])
-        schlag_pkt = [[round(float(a_), 6), round(float(b_), 6)] for a_, b_ in zip(la, lo_)]
+    schlag_pkt = orte(ausserhalb)
 
     return {
         "schlag_pkt": schlag_pkt,

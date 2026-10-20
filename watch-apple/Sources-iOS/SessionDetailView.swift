@@ -1111,7 +1111,8 @@ struct SessionDetailView: View {
                         ganzeFahrt: karteGanzMoeglich && ganzeFahrt, tempoSkala: tempoSkala,
                         manoever: manoever?.items ?? [],
                         sprints: (paddel?.versuche ?? []).map { $0.linie ?? [] },
-                        schlaege: paddel?.schlag_pkt ?? [],
+                        // Nur in den gezeigten Abschnitten: ganze Fahrt alle, „nur Foil" nur die Sprintschlaege (20.10.2026).
+                        schlaege: (karteGanzMoeglich && ganzeFahrt) ? (paddel?.schlag_pkt ?? []) : (paddel?.versuche ?? []).flatMap { $0.schlag_pkt ?? [] },
                         wellen: wellePumpen?.linien ?? [])
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
