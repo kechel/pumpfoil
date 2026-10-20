@@ -523,6 +523,8 @@ const gsw: Record<string, string> = {
   "sd.onWake": "Uf dr Wälle",
   "sd.pumpedPart": "Pumpet",
   "sd.longestT": "längschti {t}",
+  "sd.colHeight": "Höchi km",
+  "sd.colVmg": "Bescht VMG",
   "spot.windTitle": "Windfänschter",
   "spot.windText": "{n} Wind-Sessions, meischtens bi {a}–{b} km/h",
   "spot.windNote": "Vo wo dä Wind bi de Wing-, Kite- und Parawing-Sessions a däm Spot cho isch (Modällwind).",

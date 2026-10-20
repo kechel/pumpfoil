@@ -630,6 +630,8 @@ const zh: Record<string, string> = {
   "sd.onWake": "乘浪",
   "sd.pumpedPart": "泵动",
   "sd.longestT": "最长 {t}",
+  "sd.colHeight": "迎风 km",
+  "sd.colVmg": "最佳 VMG",
   "spot.windTitle": "风窗",
   "spot.windText": "{n} 次风力项目，多在 {a}–{b} km/h",
   "spot.windNote": "此处 wing、kite 和 parawing 项目时的风向（模型风）。",

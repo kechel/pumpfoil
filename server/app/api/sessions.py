@@ -3937,9 +3937,9 @@ def _accel_auswertung_gecacht(db, s, name: str, version: str, rechnen, nur_cache
     return erg
 
 
-MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None}
+MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None, "fahrten": []}
 # Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
-MANOEVER_VERSION = "m3-lauf"
+MANOEVER_VERSION = "m4-fahrt"   # m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026)
 
 
 def _manoever_schluessel(s, res) -> str:
@@ -4007,7 +4007,50 @@ def _manoever_berechnen(db, s, res) -> dict:
                     "ab": sum(1 for m in items if m["typ"] == typ and not m["durch"])}
               for typ in ("wende", "halse")}
     # Hoehe laufen (Stand-Buch: hoehe): VMG zum Wind aus derselben Spur und Windrichtung.
-    return {"items": items, "zahlen": zahlen, "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von)}
+    erg = {"items": items, "zahlen": zahlen, "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von)}
+    erg["fahrten"] = _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden=_wind(
+        s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at), t0=t0)
+    return erg
+
+
+def _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden, t0) -> list[dict]:
+    """Je Fahrt (sportzahlen, 5-Minuten-Regel): Wenden/Halsen auf dem Foil, gewonnene Hoehe, beste VMG und
+    der Modellwind zur Zeit der Fahrt (Jan, 20.10.2026: „bau die stats so mit ein"). `t_start_ms` wie in
+    `sport_zahlen.fahrten` (auf den Trim re-basiert) -> die Anzeige ordnet ueber diese Zeit zu."""
+    from ..manoever import hoehe
+    try:
+        segs = json.loads(res.segments_json) if res and res.segments_json else []
+        sz = _sport_zahlen(s, res, segs, None) if res is not None else None
+    except (ValueError, TypeError):
+        return []
+    fahrten = (sz or {}).get("fahrten") or []
+    off = s.trim_start_ms or 0
+    stunden = (wind_stunden or {}).get("stunden") or []
+    from datetime import datetime as _dt
+    std = [(_dt.fromisoformat(x["t"]).timestamp() * 1000.0, x.get("kmh")) for x in stunden if x.get("kmh") is not None]
+    out = []
+    for f in fahrten:
+        a = f["t_start_ms"] + off
+        b = a + 1000.0 * (f.get("dauer_s") or 0)
+        im = [m for m in items if a <= m["t_ms"] <= b]
+        idx = [k for k, r in enumerate(gps) if a <= r[0] <= b]
+        h = hoehe([gps[k][0] for k in idx], [lat[k] for k in idx], [lon[k] for k in idx], wind_von) if len(idx) >= 30 else None
+        # Modellwind: Mittel der Stunden, die in die Fahrt fallen; sonst die naechste Stunde zur Fahrtmitte.
+        ea, eb = t0 + a, t0 + b
+        drin = [k for t, k in std if ea - 1800e3 <= t <= eb + 1800e3]
+        if not drin and std:
+            drin = [min(std, key=lambda x: abs(x[0] - (ea + eb) / 2))[1]]
+        out.append({
+            "t_start_ms": f["t_start_ms"],
+            "wende_durch": sum(1 for m in im if m["typ"] == "wende" and m["durch"]),
+            "wende": sum(1 for m in im if m["typ"] == "wende"),
+            "halse_durch": sum(1 for m in im if m["typ"] == "halse" and m["durch"]),
+            "halse": sum(1 for m in im if m["typ"] == "halse"),
+            "hoehe_m": h["hoehe_m"] if h else None,
+            "vmg_max_kmh": h["vmg_max_kmh"] if h else None,
+            "wind_kmh": round(sum(drin) / len(drin), 1) if drin else None,
+        })
+    return out
 
 
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---

@@ -1137,7 +1137,13 @@ struct PaddelAntwort: Codable {
     let schlag_pkt: [[Double]]?
 }
 
-struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen?; let hoehe: Hoehe? }
+struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen?; let hoehe: Hoehe?; let fahrten: [ManoeverFahrt]? }
+/// Je Fahrt (20.10.2026), zugeordnet ueber t_start_ms wie in sport_zahlen.fahrten.
+struct ManoeverFahrt: Codable {
+    let t_start_ms: Int
+    let wende_durch: Int; let wende: Int; let halse_durch: Int; let halse: Int
+    let hoehe_m: Double?; let vmg_max_kmh: Double?; let wind_kmh: Double?
+}
 
 struct CarveData: Codable {
     var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
@@ -1173,6 +1179,7 @@ struct Fahrt: Codable {
     let laeufe: Int; let dauer_s: Double; let strecke_m: Double; let foil_m: Double
     // nur Downwind (19.10.2026): Luftlinie A->B, Tempo darauf, Anteil auf dem Foil
     let ab_m: Double?; let ab_kmh: Double?; let foil_anteil: Double?
+    let t_start_ms: Int?
 }
 /// nur Wave (19.10.2026): jeder Lauf ist eine Welle
 struct Wellen: Codable { let anzahl: Int; let laengste_s: Double; let laengste_m: Double; let reiten_s: Double; let paddeln_s: Double? }

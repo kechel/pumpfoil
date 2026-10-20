@@ -1174,7 +1174,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
-            a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it) }
+            a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it, manoever?.fahrten.orEmpty()) }
             paddel?.let { PaddelKarte(it) }
             wellePumpen?.let { WelleKarte(it) }
             windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe, windInfo?.vorhersage == true, windVergleich) }
@@ -2199,7 +2199,7 @@ private data class StatItem(val label: String, val value: String, val runIdx: In
 
 // Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
 @Composable
-private fun FahrtenKarte(fahrten: List<Fahrt>) {
+private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = emptyList()) {
     Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             fahrten.forEachIndexed { i, f ->
@@ -2211,6 +2211,16 @@ private fun FahrtenKarte(fahrten: List<Fahrt>) {
                     Text(I18n.t("sd.aToB").replace("{km}", "%.1f".format(f.abM / 1000.0)).replace("{v}", "%.1f".format(f.abKmh)) +
                         (f.foilAnteil?.let { " · ${I18n.t("sd.foilShare")} ${kotlin.math.round(it * 100).toInt()} %" } ?: ""),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                // Wind (20.10.2026, wie PWA): Wenden/Halsen auf dem Foil, Hoehe, beste VMG, Modellwind je Fahrt.
+                jeFahrt.firstOrNull { it.tStartMs == f.tStartMs }?.let { m ->
+                    Text(listOfNotNull(
+                        if (m.wende > 0) "${I18n.t("sd.tacks")} ${m.wendeDurch}/${m.wende}" else null,
+                        if (m.halse > 0) "${I18n.t("sd.jibes")} ${m.halseDurch}/${m.halse}" else null,
+                        m.hoeheM?.let { "${I18n.t("sd.colHeight")} %.1f".format(it / 1000.0) },
+                        m.vmgMaxKmh?.let { "${I18n.t("sd.colVmg")} %.1f km/h".format(it) },
+                        m.windKmh?.let { "${I18n.t("sd.wind")} %.0f km/h".format(it) },
+                    ).joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

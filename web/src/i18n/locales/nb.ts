@@ -645,6 +645,8 @@ const nb: Record<string, string> = {
   "sd.onWake": "På bølgen",
   "sd.pumpedPart": "Pumpet",
   "sd.longestT": "lengste {t}",
+  "sd.colHeight": "Mot vinden km",
+  "sd.colVmg": "Beste VMG",
   "spot.windTitle": "Vindvindu",
   "spot.windText": "{n} vindøkter, oftest ved {a}–{b} km/t",
   "spot.windNote": "Hvor vinden kom fra under wing-, kite- og parawing-økter på denne spoten (modellvind).",

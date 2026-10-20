@@ -671,6 +671,8 @@ const en: Record<string, string> = {
   "sd.onWake": "On the wake",
   "sd.pumpedPart": "Pumped",
   "sd.longestT": "longest {t}",
+  "sd.colHeight": "Upwind km",
+  "sd.colVmg": "Best VMG",
   "spot.windTitle": "Wind window",
   "spot.windText": "{n} wind sessions, mostly at {a}–{b} km/h",
   "spot.windNote": "Where the wind came from during wing, kite and parawing sessions at this spot (model wind).",

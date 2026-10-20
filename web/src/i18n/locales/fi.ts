@@ -637,6 +637,8 @@ const fi: Record<string, string> = {
   "sd.onWake": "Aallolla",
   "sd.pumpedPart": "Pumpaten",
   "sd.longestT": "pisin {t}",
+  "sd.colHeight": "Ylätuuli km",
+  "sd.colVmg": "Paras VMG",
   "spot.windTitle": "Tuuli-ikkuna",
   "spot.windText": "{n} tuulisessiota, yleensä {a}–{b} km/h",
   "spot.windNote": "Mistä tuuli tuli wing-, kite- ja parawing-sessioissa tällä spotilla (mallituuli).",

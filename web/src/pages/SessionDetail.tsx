@@ -2706,6 +2706,11 @@ export default function SessionDetail() {
       {(a?.sport_zahlen?.fahrten?.length ?? 0) > 0 && (() => {
         const fahrten = a!.sport_zahlen!.fahrten!;
         const ab = fahrten.some((f) => f.ab_m != null);
+        // Wind: Wenden/Halsen, Hoehe, beste VMG und Modellwind je Fahrt (20.10.2026) aus dem Manoever-Cache.
+        type F = typeof fahrten[number];
+        const mf = (f: F) => manoever?.fahrten?.find((x) => x.t_start_ms === f.t_start_ms) ?? null;
+        const mitWind = (manoever?.fahrten?.length ?? 0) > 0;
+        const quote = (d: number, n: number) => (n ? `${d} / ${n}` : "–");
         return (
           <SortTabelle titel={`${t(classLabelKey(session))} · ${t("sd.rides")}`} zeilen={fahrten} spalten={[
             { key: "dauer", rechts: true, label: t("sd.colDuration"), wert: (f) => f.dauer_s, zelle: (f) => fmtMMSS(f.dauer_s) },
@@ -2716,6 +2721,13 @@ export default function SessionDetail() {
               { key: "ab", rechts: true, label: "A→B", wert: (f: typeof fahrten[number]) => f.ab_m, zelle: (f: typeof fahrten[number]) => (f.ab_m != null ? `${(f.ab_m / 1000).toFixed(1)} km` : "–") },
               { key: "abv", rechts: true, label: "A→B km/h", wert: (f: typeof fahrten[number]) => f.ab_kmh, zelle: (f: typeof fahrten[number]) => (f.ab_kmh != null ? f.ab_kmh.toFixed(1) : "–") },
               { key: "anteil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> %</>, wert: (f: typeof fahrten[number]) => f.foil_anteil, zelle: (f: typeof fahrten[number]) => (f.foil_anteil != null ? `${Math.round(f.foil_anteil * 100)} %` : "–") },
+            ] : []),
+            ...(mitWind ? [
+              { key: "wenden", rechts: true, label: t("sd.tacks"), wert: (f: F) => mf(f)?.wende_durch, zelle: (f: F) => { const m = mf(f); return m ? quote(m.wende_durch, m.wende) : "–"; } },
+              { key: "halsen", rechts: true, label: t("sd.jibes"), wert: (f: F) => mf(f)?.halse_durch, zelle: (f: F) => { const m = mf(f); return m ? quote(m.halse_durch, m.halse) : "–"; } },
+              { key: "hoehe", rechts: true, label: t("sd.colHeight"), wert: (f: F) => mf(f)?.hoehe_m, zelle: (f: F) => { const v = mf(f)?.hoehe_m; return v != null ? (v / 1000).toFixed(1) : "–"; } },
+              { key: "vmg", rechts: true, label: `${t("sd.colVmg")} km/h`, wert: (f: F) => mf(f)?.vmg_max_kmh, zelle: (f: F) => { const v = mf(f)?.vmg_max_kmh; return v != null ? v.toFixed(1) : "–"; } },
+              { key: "wind", rechts: true, label: `${t("sd.wind")} km/h`, wert: (f: F) => mf(f)?.wind_kmh, zelle: (f: F) => { const v = mf(f)?.wind_kmh; return v != null ? v.toFixed(0) : "–"; } },
             ] : []),
           ]} />
         );

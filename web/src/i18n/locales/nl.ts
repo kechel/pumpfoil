@@ -654,6 +654,8 @@ const nl: Record<string, string> = {
   "sd.onWake": "Op de golf",
   "sd.pumpedPart": "Gepompt",
   "sd.longestT": "langste {t}",
+  "sd.colHeight": "Hoogte km",
+  "sd.colVmg": "Beste VMG",
   "spot.windTitle": "Windvenster",
   "spot.windText": "{n} windsessies, meestal bij {a}–{b} km/h",
   "spot.windNote": "Waar de wind vandaan kwam bij wing-, kite- en parawingsessies op deze spot (modelwind).",

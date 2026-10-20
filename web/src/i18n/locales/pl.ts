@@ -651,6 +651,8 @@ const pl: Record<string, string> = {
   "sd.onWake": "Na fali",
   "sd.pumpedPart": "Pompując",
   "sd.longestT": "najdłuższa {t}",
+  "sd.colHeight": "Pod wiatr km",
+  "sd.colVmg": "Najlepsze VMG",
   "spot.windTitle": "Okno wiatrowe",
   "spot.windText": "{n} sesji z wiatrem, głównie przy {a}–{b} km/h",
   "spot.windNote": "Skąd wiał wiatr podczas sesji wing, kite i parawing na tym spocie (wiatr z modelu).",

@@ -630,6 +630,8 @@ const ru: Record<string, string> = {
   "sd.onWake": "На волне",
   "sd.pumpedPart": "С пампингом",
   "sd.longestT": "самая долгая {t}",
+  "sd.colHeight": "Против ветра км",
+  "sd.colVmg": "Лучший VMG",
   "spot.windTitle": "Ветровое окно",
   "spot.windText": "{n} ветровых сессий, обычно при {a}–{b} км/ч",
   "spot.windNote": "Откуда дул ветер во время сессий вингфойла, кайта и паравинга на этом споте (модель ветра).",

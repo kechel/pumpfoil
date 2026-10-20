@@ -1347,7 +1347,7 @@ struct SessionDetailView: View {
                     }
                 }
             }
-            if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, lang: lang) }
+            if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, jeFahrt: manoever?.fahrten ?? [], lang: lang) }
             if let p = paddel { PaddelKarte(p: p, lang: lang) }
             if let w = wellePumpen { WelleKarte(w: w, lang: lang) }
             if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, lang: lang) }
@@ -2060,7 +2060,20 @@ private struct PaddelKarte: View {
 
 private struct FahrtenKarte: View {
     let fahrten: [Fahrt]
+    var jeFahrt: [ManoeverFahrt] = []
     let lang: String
+
+    /// Wind (20.10.2026, wie PWA): Wenden/Halsen auf dem Foil, Hoehe, beste VMG, Modellwind je Fahrt.
+    private func windZeile(_ f: Fahrt) -> String? {
+        guard let m = jeFahrt.first(where: { $0.t_start_ms == f.t_start_ms }) else { return nil }
+        var teile: [String] = []
+        if m.wende > 0 { teile.append("\(Loc.t("sd.tacks", lang)) \(m.wende_durch)/\(m.wende)") }
+        if m.halse > 0 { teile.append("\(Loc.t("sd.jibes", lang)) \(m.halse_durch)/\(m.halse)") }
+        if let h = m.hoehe_m { teile.append(Loc.t("sd.colHeight", lang) + String(format: " %.1f", h / 1000.0)) }
+        if let v = m.vmg_max_kmh { teile.append(Loc.t("sd.colVmg", lang) + String(format: " %.1f km/h", v)) }
+        if let w = m.wind_kmh { teile.append(Loc.t("sd.wind", lang) + String(format: " %.0f km/h", w)) }
+        return teile.isEmpty ? nil : teile.joined(separator: " · ")
+    }
 
     private func zeile(_ i: Int, _ f: Fahrt) -> String {
         let laeufe: String = Loc.t("sd.rideRuns", lang).replacingOccurrences(of: "{n}", with: "\(f.laeufe)")
@@ -2083,6 +2096,7 @@ private struct FahrtenKarte: View {
             ForEach(Array(fahrten.enumerated()), id: \.offset) { i, f in
                 Text(zeile(i, f)).font(.subheadline)
                 if let ab = abZeile(f) { Text(ab).font(.footnote).foregroundStyle(.secondary) }
+                if let wz = windZeile(f) { Text(wz).font(.footnote).foregroundStyle(.secondary) }
             }
         }
         .padding(12)

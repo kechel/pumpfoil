@@ -654,6 +654,8 @@ const cs: Record<string, string> = {
   "sd.onWake": "Na vlně",
   "sd.pumpedPart": "Pumpováním",
   "sd.longestT": "nejdelší {t}",
+  "sd.colHeight": "Proti větru km",
+  "sd.colVmg": "Nejlepší VMG",
   "spot.windTitle": "Větrné okno",
   "spot.windText": "{n} větrných session, většinou při {a}–{b} km/h",
   "spot.windNote": "Odkud foukal vítr při wing, kite a parawing session na tomto spotu (modelový vítr).",

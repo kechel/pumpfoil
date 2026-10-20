@@ -20,7 +20,7 @@ enum SessionCache {
     // Session, 07.10.2026), gelten alte Eintraege nicht mehr — sie wurden OHNE das Feld gespeichert und
     // wuerden es sonst verschweigen, bis sich die Session selbst aendert.
     private struct Entry: Codable { let version: Int; let detail: SessionDetail; let schema: Int? }
-    private static let schema = 9   // 3: Metrics.model_skipped (07.10.2026) · 4: Segment.glides (13.10.2026) · 5: placement_quelle (15.10.2026) · 6: sport_profil (19.10.2026) · 7: sport_zahlen (19.10.2026) · 8: wellen + Fahrt.ab_* (19.10.2026) · 9: wind_vorschlag (19.10.2026)
+    private static let schema = 10   // 10: Fahrt.t_start_ms (20.10.2026) · 3: Metrics.model_skipped (07.10.2026) · 4: Segment.glides (13.10.2026) · 5: placement_quelle (15.10.2026) · 6: sport_profil (19.10.2026) · 7: sport_zahlen (19.10.2026) · 8: wellen + Fahrt.ab_* (19.10.2026) · 9: wind_vorschlag (19.10.2026)
 
     // Cache-Treffer nur, wenn version == erwarteter data_version (aus der Liste). Aktualisiert
     // die mtime (LRU) und gibt das gecachte Detail zurück; sonst nil (-> laden).

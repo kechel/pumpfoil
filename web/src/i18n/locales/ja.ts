@@ -630,6 +630,8 @@ const ja: Record<string, string> = {
   "sd.onWake": "ウェイク上",
   "sd.pumpedPart": "パンプ",
   "sd.longestT": "最長 {t}",
+  "sd.colHeight": "風上 km",
+  "sd.colVmg": "最高 VMG",
   "spot.windTitle": "風の傾向",
   "spot.windText": "風のセッション{n}回、主に {a}–{b} km/h",
   "spot.windNote": "このスポットでのウイング・カイト・パラウイングのセッション中の風向き（モデル風）。",
