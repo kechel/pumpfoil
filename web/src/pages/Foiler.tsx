@@ -27,6 +27,7 @@ import { useI18n, useNumberFormat } from "../i18n";
 import { REC_ITEMS } from "./Home";
 import { fmtLaufDauer } from "../lib/dauer";
 import { FreundschaftKnopf } from "../components/Freundschaft";
+import { JahresbilanzSection, ManoeverVerlaufSection } from "./PersonalHome";
 
 // Bewusst dieselbe Formel wie auf der eigenen Startseite (`PersonalHome.fmtDur`) — eine zweite
 // Schreibweise fuer dieselbe Zahl liest sich wie ein anderer Wert.
@@ -87,6 +88,10 @@ export default function Foiler() {
   // Wie viele Kacheln gerendert sind. Waechst beim Scrollen nach rechts — bei 200 Medien
   // sonst 200 <img> auf einmal, und das Karussell ruckelt beim ersten Wischen.
   const [gezeigt, setGezeigt] = useState(24);
+  // Admin-Kontrollansicht (Jan, 20.10.2026): die Startseiten-Auswertungen des Fahrers, orange
+  // umrandet, damit klar ist, dass nur Admins sie sehen. Der Server prueft das selbst (?user_id=).
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
 
   useEffect(() => {
     setD(null); setFehler(false); setGezeigt(24); setGalerie(null); setVideo(null);
@@ -458,6 +463,16 @@ export default function Foiler() {
               />
             ))}
           </div>
+        </div>
+      )}
+
+      {isAdmin && !d.ich && (
+        <div className="mt-8 rounded-xl border-2 border-orange-500 p-3">
+          <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+            Admin-Ansicht: Startseiten-Auswertungen dieses Fahrers, nur für Admins sichtbar
+          </p>
+          <JahresbilanzSection userId={d.id} />
+          <ManoeverVerlaufSection userId={d.id} />
         </div>
       )}
 
