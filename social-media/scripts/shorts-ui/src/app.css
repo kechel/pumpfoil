@@ -140,7 +140,12 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 /* Trennlinie sitzt schon am Umschalter — nicht doppelt ziehen */
 .midtabs + .texts { border-top: none; margin-top: 0; padding-top: 4px; }
 
-.texts { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; border-top: 1px solid #8884; padding-top: 6px; }
+/* 20 Slots sind laenger als der Schirm: nur die Liste selbst scrollt, die
+   Reiter Texte/Reveal darueber und die Pegel-Abschnitte darunter bleiben
+   stehen (Jan, 20.10.). scrollbar-gutter haelt die Spaltenbreite ruhig,
+   damit die Zeilen beim Scrollen nicht springen. */
+.texts { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; border-top: 1px solid #8884; padding-top: 6px;
+  max-height: clamp(260px, 44vh, 520px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .txrow { display: flex; align-items: flex-start; gap: 4px; }
 .txrow textarea { width: 88px; font-size: 12px; padding: 2px 6px; line-height: 1.25; min-height: 0; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; resize: vertical; font-family: inherit; }
 .txrow .thold { width: 32px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }

@@ -7,7 +7,7 @@ import Publish from "./Publish";
 import Stats from "./Stats";
 
 // Muss zu den Server-Konstanten passen (TEXT_FADE/TEXT_HOLD/OUTRO_*)
-const TXN = 10;
+const TXN = 20;
 const TXF = 0.5;
 const TXH = 2.0;
 const TXS = 80;   // Standard-Schriftgroesse eines Textslots (Jan, 13.09.)
@@ -96,13 +96,22 @@ const DEFAULT_LAST_TEXT = "have fun\n\nkeep pumping!" + "\n".repeat(8);
 const DEFAULT_2ND_LAST_TEXT =
   "join our free community\nat https://pumpfoil.org\n\n"
   + "track, share and compare\nyour progress" + "\n".repeat(6);
+// Die beiden Standardbloecke haengen an FESTEN Plaetzen, nicht am Listenende:
+// Slot 9 ist der Community-Hinweis, Slot 10 "have fun / keep pumping!" (Jan,
+// 20.10.: "lass das have fun ruhig in slot 10, die haben ja eigene timings").
+// Am Ende aufgehaengt wuerden sie beim Vergroessern von TXN nach hinten
+// wandern und in jedem alten Rezept doppelt stehen -- einmal gespeichert auf
+// 8/9, einmal frisch als Default auf 18/19.
+const TX_SLOGAN = 9;
+const TX_COMMUNITY = 8;
+
 const emptyTexts = (): TextSlot[] =>
   Array.from({ length: TXN }, (_, i) => ({
     start: null,
-    text: i === TXN - 1 ? DEFAULT_LAST_TEXT
-      : i === TXN - 2 ? DEFAULT_2ND_LAST_TEXT : "",
-    zh: i === TXN - 1 ? ZH_DEFAULT_LAST_TEXT
-      : i === TXN - 2 ? ZH_DEFAULT_2ND_LAST_TEXT : "",
+    text: i === TX_SLOGAN ? DEFAULT_LAST_TEXT
+      : i === TX_COMMUNITY ? DEFAULT_2ND_LAST_TEXT : "",
+    zh: i === TX_SLOGAN ? ZH_DEFAULT_LAST_TEXT
+      : i === TX_COMMUNITY ? ZH_DEFAULT_2ND_LAST_TEXT : "",
     hold: TXH,
     size: TXS,
     style: "text",
