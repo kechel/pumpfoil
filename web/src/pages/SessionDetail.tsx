@@ -2642,7 +2642,9 @@ export default function SessionDetail() {
       {/* Sportart-Tabellen unter der Karte (Jan, 20.10.2026: „diese neuen Tabellen je sportart drunter"). */}
       {/* Wake thief (20.10.2026): Zeit/Strecke auf der Welle und gepumpt, nur fette Datenzeilen. */}
       {wellePumpen && (
-        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
+        <>
+        <h3 className="mt-5 mb-1 text-base font-semibold text-slate-200">{t(classLabelKey(session))}</h3>
+        <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
           <table className="tabular-nums">
             <tbody>
               <tr>
@@ -2666,6 +2668,7 @@ export default function SessionDetail() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026): nur fette Datenzeilen, je Versuch eine Zeile. */}
@@ -2690,7 +2693,7 @@ export default function SessionDetail() {
       )}
 
       {paddel && paddel.versuche.length > 0 && (
-        <SortTabelle zeilen={paddel.versuche} spalten={[
+        <SortTabelle titel={`${t(classLabelKey(session))} · ${t("sd.attempts")}`} zeilen={paddel.versuche} spalten={[
           { key: "schlaege", rechts: true, label: <><span className="mr-1.5 inline-block h-2.5 w-4 rounded-sm align-middle" style={{ background: "#f59e0b" }} />{t("sd.sprintStrokes")}</>,
             wert: (v) => v.schlaege, zelle: (v) => v.schlaege },
           { key: "ergebnis", label: t("sd.attempts"), wert: (v) => (v.ergebnis === "foil" ? 2 : v.ergebnis === "kurz" ? 1 : 0),
@@ -2704,7 +2707,7 @@ export default function SessionDetail() {
         const fahrten = a!.sport_zahlen!.fahrten!;
         const ab = fahrten.some((f) => f.ab_m != null);
         return (
-          <SortTabelle zeilen={fahrten} spalten={[
+          <SortTabelle titel={`${t(classLabelKey(session))} · ${t("sd.rides")}`} zeilen={fahrten} spalten={[
             { key: "dauer", rechts: true, label: t("sd.colDuration"), wert: (f) => f.dauer_s, zelle: (f) => fmtMMSS(f.dauer_s) },
             { key: "strecke", rechts: true, label: t("sd.colDistance"), wert: (f) => f.strecke_m, zelle: (f) => `${(f.strecke_m / 1000).toFixed(1)} km` },
             { key: "foil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> km</>, wert: (f) => f.foil_m, zelle: (f) => `${(f.foil_m / 1000).toFixed(1)} km` },
@@ -3139,7 +3142,7 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
 // fehlende Werte immer unten. Die Zeile behaelt ihre Nummer.
 type SortSpalte<T> = { key: string; label: React.ReactNode; wert?: (r: T) => number | null | undefined;
                       zelle: (r: T) => React.ReactNode; rechts?: boolean };
-function SortTabelle<T>({ zeilen, spalten }: { zeilen: T[]; spalten: SortSpalte<T>[] }) {
+function SortTabelle<T>({ zeilen, spalten, titel }: { zeilen: T[]; spalten: SortSpalte<T>[]; titel?: React.ReactNode }) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
   const order = zeilen.map((_, i) => i);
@@ -3168,7 +3171,10 @@ function SortTabelle<T>({ zeilen, spalten }: { zeilen: T[]; spalten: SortSpalte<
     );
   };
   return (
-    <Card className="mt-4 overflow-x-auto">
+    <>
+    {/* Ueberschrift mit der Sportart (Jan, 20.10.2026: „dann weiss man, dass hier spezifische Daten angezeigt werden"). */}
+    {titel && <h3 className="mt-5 mb-1 text-base font-semibold text-slate-200">{titel}</h3>}
+    <Card className={`${titel ? "" : "mt-4 "}overflow-x-auto`}>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
@@ -3188,6 +3194,7 @@ function SortTabelle<T>({ zeilen, spalten }: { zeilen: T[]; spalten: SortSpalte<
         </tbody>
       </table>
     </Card>
+    </>
   );
 }
 
