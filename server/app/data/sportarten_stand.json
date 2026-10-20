@@ -1190,6 +1190,17 @@
     {
       "datum": "2026-10-20",
       "sport": [
+        "alle"
+      ],
+      "merkmal": "lauf_sportart",
+      "was": "Plan geaendert: Sportart je Abschnitt (Anfang/Ende per Zeit oder Klick in die Karte) statt je Lauf, weil sie oft mitten im Lauf wechselt.",
+      "wo": [
+        "server"
+      ]
+    },
+    {
+      "datum": "2026-10-20",
+      "sport": [
         "sup_paddle"
       ],
       "merkmal": "paddeln_foil",
@@ -1855,8 +1866,8 @@
       },
       "lauf_sportart": {
         "status": "geplant",
-        "en": "Mark single runs with their own sport, e.g. wake thief runs inside a pumpfoil session.",
-        "notiz": "Stufe 5, gleicher Umbau wie Foil je Lauf (Oerni 04.10.: Wakethief-Laeufe in einer Pumpfoil-Session). Gleicher Umbau wie Foil je Lauf."
+        "en": "Mark a part of a session with its own sport, e.g. wake thief inside a pumpfoil session, by start and end time or by tapping start and end on the map, later automatically where possible; whole runs are not enough, because the sport often changes within a run.",
+        "notiz": "Jan 20.10.2026: „das oft innerhalb eines runs wechselt, sprich es bringt nichts wenn man runs einzelne markieren koennte, die richtige loesung waere anfang & ende per zeit oder klick in die karte zu markieren wenn das nicht automatisch geht spaeter“. Also ZEITABSCHNITTE (Session-ms, wie excluded_ranges), nicht Lauf-Indizes; ein Lauf kann geteilt werden. Automatik spaeter, z. B. aus welle_pumpen (wakethief). Frueher: Stufe 5, gleicher Umbau wie Foil je Lauf (Oerni 04.10.: Wakethief-Laeufe in einer Pumpfoil-Session)."
       },
       "modell_brett": {
         "status": "geplant",
@@ -1898,7 +1909,7 @@
     },
     {
       "id": "lauf_sportart",
-      "en": "Sport per run"
+      "en": "Sport per section"
     },
     {
       "id": "modell_brett",
