@@ -1097,6 +1097,13 @@ data class Hoehe(@SerialName("vmg_max_kmh") val vmgMaxKmh: Double = 0.0, @Serial
                  @SerialName("am_wind_anteil") val amWindAnteil: Double? = null, @SerialName("hoehe_m") val hoeheM: Int = 0,
                  @SerialName("winkel_med") val winkelMed: Int? = null)
 
+// Wake thief: Welle gegen gepumpt (GET /api/sessions/{id}/welle-pumpen, 20.10.2026; server/app/welle_pumpen.py).
+@Serializable
+data class WellePumpen(@SerialName("welle_s") val welleS: Int = 0, @SerialName("welle_m") val welleM: Int = 0,
+                       @SerialName("gepumpt_s") val gepumptS: Int = 0, @SerialName("gepumpt_m") val gepumptM: Int = 0,
+                       val pumps: Int = 0, @SerialName("pumps_pro_min") val pumpsProMin: Int? = null,
+                       @SerialName("laengste_welle_s") val laengsteWelleS: Int = 0)
+
 // Paddelschlaege + Paddle-up-Versuche (SUP, GET /api/sessions/{id}/paddel, 20.10.2026; server/app/paddel.py).
 @Serializable
 data class PaddelVersuch(@SerialName("t_ms") val tMs: Long = 0, @SerialName("sprint_s") val sprintS: Double = 0.0,

@@ -1008,6 +1008,7 @@ NAECHSTES: list[dict] = [
          "A session that looks like a wind session offers you to change the sport; you can also dismiss the hint.",
          "Session pages show the sport at the top as an orange badge, like the session list, and the wind, tack and upwind boxes show only the numbers, without explanation texts.",
          "SUP sessions show your paddle strokes and every paddle-up attempt with its sprint strokes and whether you got onto the foil.",
+         "Wake thief sessions show time and distance on the wake and pumped separately, and count pumps only in the pumped part.",
      ]},
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
@@ -1034,6 +1035,7 @@ NAECHSTES: list[dict] = [
          "Choosing the foil, stab, mast, board or weight for a session in the setup editor is saved again; since the editor came in, a choice was reset to your default.",
          "Session pages show the sport at the top as an orange badge, like the session list, and the wind, tack and upwind boxes show only the numbers, without explanation texts.",
          "SUP sessions show your paddle strokes and every paddle-up attempt with its sprint strokes and whether you got onto the foil.",
+         "Wake thief sessions show time and distance on the wake and pumped separately, and count pumps only in the pumped part.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.

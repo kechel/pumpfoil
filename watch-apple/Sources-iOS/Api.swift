@@ -234,6 +234,10 @@ enum Api {
         try await request("/api/sessions/\(id)/manoever", method: "GET", body: nil, auth: true)
     }
 
+    static func sessionWellePumpen(_ id: Int) async throws -> WellePumpen? {
+        try await request("/api/sessions/\(id)/welle-pumpen", method: "GET", body: nil, auth: true)
+    }
+
     /// nil = nichts auszuwerten (keine SUP-Session oder kein Accel; der Server antwortet `null`).
     static func sessionPaddel(_ id: Int) async throws -> PaddelAntwort? {
         try await request("/api/sessions/\(id)/paddel", method: "GET", body: nil, auth: true)

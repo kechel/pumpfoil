@@ -888,14 +888,27 @@
           "notiz": "Claude-Vorschlag 19.10. erledigt sich: der Rekord 'laengster Lauf' gibt es je Sportart schon (Sportfilter)."
         },
         "welle_pumpen": {
-          "status": "geplant",
-          "en": "Tell riding the boat wake apart from pumping between waves: time and distance on the wake and pumped shown separately, with the pump count only from the pumping part.",
-          "notiz": "Jan 20.10.2026 („erkennen wann man eine welle nutzt und wann man pumpt … eigener pump-zaehler dann nur in der pump-zeit“). Idee zur Umsetzung: Pump-Rhythmus aus dem Accel (v3 erkennt Pumps) — Abschnitte ohne Pumps bei gehaltenem Tempo = Welle, mit Pumps = gepumpt; Grenze je Lauf. Noch nicht gebaut, erst Daten ansehen (wenige wakethief-Sessions mit Accel). BEFUND 20.10. (rein lesend, server/data/analyse-notizen/2026-10-20-sup-wake/ (Plots + Skripte, gitignored)): 42 Sessions, 3 Fahrer (u157, u237, u389), 30 mit v3-Laeufen. Am Accel-Ausschlag sichtbar: #12741 (u389) laengster Lauf 526 s = ~40 s Pumpen, dann ~410 s fast ruhiger Accel bei 20-22 km/h (Welle), am Ende wieder Pumpen -> Trennung ueber die Huellkurve des Accel klar. #12539 (u157) wechselt blockweise, weniger deutlich. #13843 (u237) pumpt den ganzen 158-s-Lauf gleichmaessig bei ~15 km/h (keine Wellenphase erkennbar). Ansatz damit: Huellkurve (z. B. p95 je 5 s) gegen die eigene Pumpphase des Laufs + Tempo gehalten; Gleitphasen aus segments.glides taugen NICHT (Anteil Gleit >=3 s = 0 in allen Sessions)."
+          "status": "live",
+          "en": "Time and distance on the wake and pumped are shown separately, the wake stretches are marked on the map, and the pump count only comes from the pumped part.",
+          "notiz": "Jan 20.10.2026 („erkennen wann man eine welle nutzt und wann man pumpt … eigener pump-zaehler dann nur in der pump-zeit“). Idee zur Umsetzung: Pump-Rhythmus aus dem Accel (v3 erkennt Pumps) — Abschnitte ohne Pumps bei gehaltenem Tempo = Welle, mit Pumps = gepumpt; Grenze je Lauf. Noch nicht gebaut, erst Daten ansehen (wenige wakethief-Sessions mit Accel). BEFUND 20.10. (rein lesend, server/data/analyse-notizen/2026-10-20-sup-wake/ (Plots + Skripte, gitignored)): 42 Sessions, 3 Fahrer (u157, u237, u389), 30 mit v3-Laeufen. Am Accel-Ausschlag sichtbar: #12741 (u389) laengster Lauf 526 s = ~40 s Pumpen, dann ~410 s fast ruhiger Accel bei 20-22 km/h (Welle), am Ende wieder Pumpen -> Trennung ueber die Huellkurve des Accel klar. #12539 (u157) wechselt blockweise, weniger deutlich. #13843 (u237) pumpt den ganzen 158-s-Lauf gleichmaessig bei ~15 km/h (keine Wellenphase erkennbar). Ansatz damit: Huellkurve (z. B. p95 je 5 s) gegen die eigene Pumpphase des Laufs + Tempo gehalten; Gleitphasen aus segments.glides taugen NICHT (Anteil Gleit >=3 s = 0 in allen Sessions). UMGESETZT 20.10. (app/welle_pumpen.py VERSION w3, GET /api/sessions/{id}/welle-pumpen, Cache data/welle_pumpen/): Welle = Huellkurve < 0,5 x p90 des Laufs >= 5 s; Pumpstuecke <= 8 s zwischen zwei Wellenstuecken ueberbrueckt (Jan: leichtes Pumpen zum Gleichgewicht + kurze Wellenwechsel zaehlen zur Welle). Ergebnis 36 Sessions: u389 bis 67 % Welle (#12741, laengste 6:12), u157 meist 10-30 %, u237 fast immer < 5 % (pumpt durchgehend kraeftig, 110-119/min) ausser #2591/#11168 (40-46 %). Karte: Wellenstuecke als breites fuchsia Band (nur Web). NAECHSTER SCHRITT: Community-Feedback der drei Fahrer.",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         },
         "pumps": {
-          "status": "teilweise",
-          "en": "Pumps are also counted while riding the wake, so the pump count of wake sessions can be too high.",
-          "notiz": "Befund 20.10. (Claude, server/data/analyse-notizen/2026-10-20-sup-wake/ (Plots + Skripte, gitignored)): die v3-Zaehlung meldet in ruhigen Wellenphasen weiter ~85-91 Pumps/min (#12741: 581 von 793 Pumps in 2080-2490 s bei fast flachem Accel; #12539: 304 in 1100-1300 s). Pumps/min der wakethief-Sessions ~95-111, gleich wie Pumpfoil derselben Fahrer. Behebt sich mit welle_pumpen (Pumps nur im gepumpten Teil). Erkennungs-Aenderung nur mit Jans OK."
+          "status": "live",
+          "en": "Pumps are only counted in the pumped part, not while riding the wake.",
+          "seit": "2026-10-20",
+          "notiz": "20.10.: Anzeige (Kachel + Kasten) nimmt die Pumps ausserhalb der Wellenstuecke aus welle_pumpen; die gespeicherte v3-Zahl (analysis_results.pump_count) ist unveraendert und zaehlt auf der Welle weiter mit (Rekorde/Statistiken nutzen noch die). Vorher teilweise."
         }
       }
     },
@@ -1231,6 +1244,20 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "wakethief"
+      ],
+      "merkmal": "welle_pumpen",
+      "was": "Live: Welle gegen gepumpt (Zeit/Strecke, Karte), Pumps nur im gepumpten Teil (Web; Android 1.1.44, iOS 1.1.53).",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [

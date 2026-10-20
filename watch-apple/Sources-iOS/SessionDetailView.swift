@@ -85,6 +85,7 @@ struct SessionDetailView: View {
     @State private var windHinweisWeg = false
     @State private var manoever: ManoeverAntwort?
     @State private var paddel: PaddelAntwort?
+    @State private var wellePumpen: WellePumpen?
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
     @State private var showTrim = false
@@ -1345,6 +1346,7 @@ struct SessionDetailView: View {
             }
             if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, lang: lang) }
             if let p = paddel { PaddelKarte(p: p, lang: lang) }
+            if let w = wellePumpen { WelleKarte(w: w, lang: lang) }
             if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, lang: lang) }
             excludedSection(s)
             poweredSection(s)
@@ -1677,7 +1679,8 @@ struct SessionDetailView: View {
         }
         if let v = m?.avg_speed_mps { out.append(StatItem(Loc.t("sd.avgSpeed", lang), String(format: "%.1f km/h", v * 3.6))) }
         if let v = a.max_speed_mps { out.append(StatItem(Loc.t("home.topSpeed", lang), String(format: "%.1f km/h", v * 3.6), runIdx: bestSpeedIdx)) }
-        if pumpzahlen, let pc = a.pump_count {
+        // Wake thief: nur die Pumps im gepumpten Teil (20.10.2026).
+        if pumpzahlen, let pc = wellePumpen?.pumps ?? a.pump_count {
             out.append(StatItem(Loc.t("home.pumps", lang), "\(pc)"))
             if pc > 0, let fd = a.foiling_distance_m { out.append(StatItem(Loc.t("sd.avgDistPerPump", lang), String(format: "%.1f m", fd / Double(pc)))) }
         }
@@ -1692,7 +1695,8 @@ struct SessionDetailView: View {
 
     /// Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026).
     private func ladePaddel() async {
-        paddel = nil
+        paddel = nil; wellePumpen = nil
+        if session?.sport_class == "wakethief" { wellePumpen = (try? await Api.sessionWellePumpen(sid)) ?? nil }
         guard session?.sport_class == "sup_paddle" else { return }
         paddel = (try? await Api.sessionPaddel(sid)) ?? nil
     }
@@ -1930,6 +1934,45 @@ private class ManoeverPunkt: NSObject, MKAnnotation {
 }
 
 // Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
+// Wake thief (20.10.2026): auf der Welle gegen gepumpt, zwei buendige Zeilen wie im Web.
+private struct WelleKarte: View {
+    let w: WellePumpen
+    let lang: String
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
+            GridRow {
+                HStack(spacing: 6) {
+                    RoundedRectangle(cornerRadius: 2).fill(Color(red: 0.91, green: 0.47, blue: 0.98).opacity(0.7)).frame(width: 16, height: 8)
+                    Text(Loc.t("sd.onWake", lang)).font(.subheadline.weight(.semibold))
+                }
+                Text(mmss(w.welle_s)).gridColumnAlignment(.trailing)
+                Text(String(format: "%.1f km", Double(w.welle_m) / 1000)).gridColumnAlignment(.trailing)
+                Text(w.laengste_welle_s > 0 ? Loc.t("sd.longestT", lang).replacingOccurrences(of: "{t}", with: mmss(w.laengste_welle_s)) : "")
+                    .foregroundStyle(.secondary)
+            }
+            GridRow {
+                Text(Loc.t("sd.pumpedPart", lang)).font(.subheadline.weight(.semibold)).padding(.leading, 22)
+                Text(mmss(w.gepumpt_s))
+                Text(String(format: "%.1f km", Double(w.gepumpt_m) / 1000))
+                Text(pumpText).foregroundStyle(.secondary)
+            }
+        }
+        .font(.subheadline.monospacedDigit())
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+    }
+
+    private var pumpText: String {
+        var t = "\(w.pumps) " + Loc.t("home.pumps", lang)
+        if let r = w.pumps_pro_min { t += " · " + Loc.t("sd.perMin", lang).replacingOccurrences(of: "{n}", with: String(r)) }
+        return t
+    }
+
+    private func mmss(_ s: Int) -> String { String(format: "%d:%02d", s / 60, s % 60) }
+}
+
 // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026) — wie die Tabelle im Web, Spalten buendig.
 private struct PaddelKarte: View {
     let p: PaddelAntwort

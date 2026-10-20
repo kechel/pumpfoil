@@ -1024,6 +1024,11 @@ export const api = {
     zahlen: null | { wende: { durch: number; ab: number }; halse: { durch: number; ab: number } };
     hoehe?: null | { vmg_max_kmh: number; vmg_mittel_kmh: number | null; am_wind_anteil: number | null; hoehe_m: number; winkel_med: number | null };
   }>(`/api/sessions/${id}/manoever`),
+  // Wake thief: Welle gegen gepumpt, Pumps nur im gepumpten Teil (nur Anzeige; server/app/welle_pumpen.py), 20.10.2026.
+  sessionWellePumpen: (id: number) => req<null | {
+    welle_s: number; welle_m: number; gepumpt_s: number; gepumpt_m: number; pumps: number;
+    pumps_pro_min: number | null; laengste_welle_s: number; abschnitte: [number, number][]; linien: [number, number][][];
+  }>(`/api/sessions/${id}/welle-pumpen`),
   // Paddelschlaege + Paddle-up-Versuche (nur SUP mit Accel, nur Anzeige; server/app/paddel.py), 20.10.2026.
   sessionPaddel: (id: number) => req<null | {
     schlaege: number; schlaege_pro_min: number | null; auf_foil: number; kurz: number;

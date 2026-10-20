@@ -495,6 +495,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             manoever = try { Api.sessionManoever(s.id) } catch (_: Exception) { null }
         }
     }
+    // Wake thief: Welle gegen gepumpt (20.10.2026).
+    var wellePumpen by remember(s.id) { mutableStateOf<WellePumpen?>(null) }
+    LaunchedEffect(s.id, s.sportClass) {
+        wellePumpen = if (s.sportClass == "wakethief") try { Api.sessionWellePumpen(s.id) } catch (_: Exception) { null } else null
+    }
     // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026).
     var paddel by remember(s.id) { mutableStateOf<PaddelAntwort?>(null) }
     LaunchedEffect(s.id, s.sportClass) {
@@ -1153,7 +1158,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 (m?.avgSpeedMps)?.let { add(StatItem(I18n.t("sd.avgSpeed"), "%.1f km/h".format(it * 3.6))) }
                 a.maxSpeedMps?.let { add(StatItem(I18n.t("home.topSpeed"), "%.1f km/h".format(it * 3.6), bestSpeedIdx)) }
-                if (pumpzahlen) a.pumpCount?.let { pc ->
+                // Wake thief: nur die Pumps im gepumpten Teil (20.10.2026).
+                if (pumpzahlen) (wellePumpen?.pumps ?: a.pumpCount)?.let { pc ->
                     add(StatItem(I18n.t("home.pumps"), pc.toString()))
                     if (pc > 0 && a.foilingDistanceM != null) add(StatItem(I18n.t("sd.avgDistPerPump"), "%.1f m".format(a.foilingDistanceM / pc)))
                 }
@@ -1169,6 +1175,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it) }
             paddel?.let { PaddelKarte(it) }
+            wellePumpen?.let { WelleKarte(it) }
             windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe, windInfo?.vorhersage == true, windVergleich) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
@@ -2122,6 +2129,36 @@ private fun FahrtenKarte(fahrten: List<Fahrt>) {
                         (f.foilAnteil?.let { " · ${I18n.t("sd.foilShare")} ${kotlin.math.round(it * 100).toInt()} %" } ?: ""),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+            }
+        }
+    }
+}
+
+// Wake thief (20.10.2026): auf der Welle gegen gepumpt, als zwei buendige Zeilen wie im Web.
+@Composable
+private fun WelleKarte(w: WellePumpen) {
+    fun mmss(sek: Int) = "%d:%02d".format(sek / 60, sek % 60)
+    Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row {
+                Box(Modifier.padding(top = 6.dp).width(16.dp).height(8.dp).background(Color(0xFFE879F9).copy(alpha = 0.7f), RoundedCornerShape(2.dp)))
+                Spacer(Modifier.width(6.dp))
+                Text(I18n.t("sd.onWake"), Modifier.width(110.dp), fontWeight = FontWeight.SemiBold)
+                Text(mmss(w.welleS), Modifier.width(52.dp), textAlign = TextAlign.End)
+                Text("%.1f km".format(w.welleM / 1000.0), Modifier.width(64.dp), textAlign = TextAlign.End)
+                if (w.laengsteWelleS > 0) {
+                    Spacer(Modifier.width(12.dp))
+                    Text(I18n.t("sd.longestT").replace("{t}", mmss(w.laengsteWelleS)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Row {
+                Spacer(Modifier.width(22.dp))
+                Text(I18n.t("sd.pumpedPart"), Modifier.width(110.dp), fontWeight = FontWeight.SemiBold)
+                Text(mmss(w.gepumptS), Modifier.width(52.dp), textAlign = TextAlign.End)
+                Text("%.1f km".format(w.gepumptM / 1000.0), Modifier.width(64.dp), textAlign = TextAlign.End)
+                Spacer(Modifier.width(12.dp))
+                Text("${w.pumps} ${I18n.t("home.pumps")}" + (w.pumpsProMin?.let { " · " + I18n.t("sd.perMin").replace("{n}", "$it") } ?: ""),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

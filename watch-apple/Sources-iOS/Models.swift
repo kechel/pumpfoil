@@ -1107,6 +1107,17 @@ struct Hoehe: Codable {
     let hoehe_m: Int
     let winkel_med: Int?
 }
+// Wake thief: Welle gegen gepumpt (GET /api/sessions/{id}/welle-pumpen, 20.10.2026; server/app/welle_pumpen.py).
+struct WellePumpen: Codable {
+    let welle_s: Int
+    let welle_m: Int
+    let gepumpt_s: Int
+    let gepumpt_m: Int
+    let pumps: Int
+    let pumps_pro_min: Int?
+    let laengste_welle_s: Int
+}
+
 // Paddelschlaege + Paddle-up-Versuche (SUP, GET /api/sessions/{id}/paddel, 20.10.2026; server/app/paddel.py).
 struct PaddelVersuch: Codable {
     let t_ms: Int
