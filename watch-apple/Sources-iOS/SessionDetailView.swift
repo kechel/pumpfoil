@@ -1061,7 +1061,8 @@ struct SessionDetailView: View {
         if pumpzahlen && (s.analysis?.pump_count ?? 0) > 0 {
             Toggle(Loc.t(session?.sport_class == "sup_paddle" ? "sd.strokes" : "sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
         }
-        if pumpzahlen && (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
+        // SUP: kein Gleit-Schalter (Pumpfoil-Begriff, Jan 20.10.2026)
+        if pumpzahlen && s.sport_class != "sup_paddle" && (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
             Toggle(Loc.t("sd.glides", lang), isOn: $showGlides).font(.caption).fixedSize()
         }
         // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
@@ -1103,7 +1104,7 @@ struct SessionDetailView: View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
-                        showPumps: showPumps && pumpzahlen, showGlides: showGlides && pumpzahlen, selectedRun: selectedRun,
+                        showPumps: showPumps && pumpzahlen, showGlides: showGlides && pumpzahlen && session?.sport_class != "sup_paddle", selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
                         attempts: showAttempts && pumpzahlen ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax,

@@ -964,7 +964,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
                         // Startversuche nur beim Pumpen — bei Wind (ohne Pump-Zahlen) kein Schalter, wie im Web.
                         val zeigeVersuchsSchalter = pumpzahlen && (attempts == null || attempts!!.isNotEmpty())
-                        val zeigeGleitSchalter = pumpzahlen && segs.any { it.glides.isNotEmpty() }
+                        // SUP: kein Gleit-Schalter (Pumpfoil-Begriff, Jan 20.10.2026)
+                        val zeigeGleitSchalter = pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }
                         // Wind: Schalter „nur on-foil / ganze Fahrt" (Standard ganze Fahrt).
                         if (karteGanzMoeglich) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1015,7 +1016,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 Card(Modifier.fillMaxWidth()) {
                     Box {
-                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen, win,
+                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle", win,
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1039,7 +1040,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Dialog(onDismissRequest = { mapFull = false },
                            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen, win,
+                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle", win,
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
