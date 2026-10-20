@@ -84,6 +84,7 @@ struct SessionDetailView: View {
     @State private var windVergleich: WindVergleich?
     @State private var windHinweisWeg = false
     @State private var manoever: ManoeverAntwort?
+    @State private var paddel: PaddelAntwort?
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
     @State private var showTrim = false
@@ -143,6 +144,7 @@ struct SessionDetailView: View {
             }
             .task(id: sid) { await load() }
             .task(id: "\(sid)-\(session?.sport_profil?.gruppe ?? "")") { await ladeWind() }
+            .task(id: "\(sid)-\(session?.sport_class ?? "")") { await ladePaddel() }
             // Versuche erst holen, wenn sie gebraucht werden — der Server rechnet sie frisch.
             .task(id: "\(sid)-\(showAttempts)") { await ladeVersuche() }
             .task(id: session?.status) { await pollWhileLive() }
@@ -1342,6 +1344,7 @@ struct SessionDetailView: View {
                 }
             }
             if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, lang: lang) }
+            if let p = paddel { PaddelKarte(p: p, lang: lang) }
             if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, lang: lang) }
             excludedSection(s)
             poweredSection(s)
@@ -1687,6 +1690,13 @@ struct SessionDetailView: View {
         return out
     }
 
+    /// Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026).
+    private func ladePaddel() async {
+        paddel = nil
+        guard session?.sport_class == "sup_paddle" else { return }
+        paddel = (try? await Api.sessionPaddel(sid)) ?? nil
+    }
+
     /// Wind am Spot + Wenden/Halsen holen — nur fuer Wind-Sportarten (Profil gruppe=wind).
     private func ladeWind() async {
         windInfo = nil; manoever = nil; windHinweisWeg = false
@@ -1920,6 +1930,81 @@ private class ManoeverPunkt: NSObject, MKAnnotation {
 }
 
 // Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
+// Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026) — wie die Tabelle im Web, Spalten buendig.
+private struct PaddelKarte: View {
+    let p: PaddelAntwort
+    let lang: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 8) {
+                Text(Loc.t("sd.strokes", lang)).font(.subheadline.weight(.semibold))
+                Text(kopf).font(.subheadline)
+            }
+            if !p.versuche.isEmpty {
+                HStack(spacing: 8) {
+                    Text(Loc.t("sd.attempts", lang)).font(.subheadline.weight(.semibold))
+                    Text(versuchKopf).font(.subheadline)
+                }.padding(.top, 4)
+                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 2) {
+                    GridRow {
+                        Text("#").gridColumnAlignment(.trailing)
+                        Text(Loc.t("sd.sprintStrokes", lang)).gridColumnAlignment(.trailing)
+                        Text("")
+                        Text("").gridColumnAlignment(.trailing)
+                    }
+                    .font(.caption).foregroundStyle(.secondary)
+                    ForEach(Array(p.versuche.enumerated()), id: \.offset) { i, v in
+                        GridRow {
+                            Text("\(i + 1)").foregroundStyle(.secondary)
+                            Text("\(v.schlaege)")
+                            Text(ergebnis(v)).foregroundStyle(farbe(v))
+                            Text(v.ergebnis == "foil" ? dauer(v.foil_s ?? 0) : "").foregroundStyle(farbe(v))
+                        }
+                        .font(.subheadline.monospacedDigit())
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+    }
+
+    private var kopf: String {
+        var t = "\(p.schlaege)"
+        if let r = p.schlaege_pro_min { t += " · " + Loc.t("sd.perMin", lang).replacingOccurrences(of: "{n}", with: String(r)) }
+        return t
+    }
+
+    private var versuchKopf: String {
+        var t = "\(p.versuche.count) · " + Loc.t("sd.attOnFoil", lang).replacingOccurrences(of: "{n}", with: String(p.auf_foil))
+        if p.kurz > 0 { t += " · " + Loc.t("sd.attBrief", lang).replacingOccurrences(of: "{n}", with: String(p.kurz)) }
+        return t
+    }
+
+    private func ergebnis(_ v: PaddelVersuch) -> String {
+        switch v.ergebnis {
+        case "foil": return Loc.t("sd.onFoil", lang)
+        case "kurz": return Loc.t("sd.attShort", lang)
+        default: return Loc.t("sd.attNot", lang)
+        }
+    }
+
+    private func farbe(_ v: PaddelVersuch) -> Color {
+        switch v.ergebnis {
+        case "foil": return Color.accentColor
+        case "kurz": return .orange
+        default: return .secondary
+        }
+    }
+
+    private func dauer(_ s: Double) -> String {
+        let n = Int(s)
+        return String(format: "%d:%02d", n / 60, n % 60)
+    }
+}
+
 private struct FahrtenKarte: View {
     let fahrten: [Fahrt]
     let lang: String

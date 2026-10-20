@@ -3844,6 +3844,58 @@ def session_manoever(
     return manoever_gecacht(db, s)
 
 
+@router.get("/{session_id}/paddel")
+def session_paddel(
+    session_id: int,
+    _user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict | None:
+    """Paddelschlaege und Paddle-up-Versuche (nur SUP/Paddeln mit Accel, NUR ANZEIGE; app/paddel.py).
+    None, wenn es nichts auszuwerten gibt. Zeiten `versuche[].t_ms` in Session-ms."""
+    s = _readable(db, session_id)
+    if (s.sport_class or "pumpfoil") != "sup_paddle":
+        return None
+    return paddel_gecacht(db, s)
+
+
+def paddel_gecacht(db, s, nur_cache: bool = False) -> dict | None:
+    """Wie manoever_gecacht: data/paddel/<id>.json, gueltig solange Version/Trim/Laeufe gleich sind."""
+    import hashlib
+
+    from .. import paddel
+    from ..config import get_settings
+    res = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+    schluessel = hashlib.md5(f"{paddel.VERSION}|{s.trim_start_ms}|{s.trim_end_ms}|"
+                             f"{(res.segments_json if res else '') or ''}".encode()).hexdigest()
+    pfad = get_settings().data_dir / "paddel" / f"{s.id}.json"
+    try:
+        c = json.loads(pfad.read_text())
+        if c.get("schluessel") == schluessel:
+            return c["ergebnis"]
+    except (OSError, ValueError):
+        pass
+    if nur_cache:
+        return None
+    from ..analysis.timebase import build_timebase_for_session
+    try:
+        tb = build_timebase_for_session(s)
+    except Exception:  # noqa: BLE001 — fehlende/kaputte Rohdaten: nichts anzeigen statt 500
+        return None
+    if not tb.has_accel:
+        return None
+    # segments_json-Zeiten sind auf den Trim re-basiert (docs/DATA-PIPELINE.md) -> + trim_start = Session-ms.
+    off = (s.trim_start_ms or 0) / 1000.0
+    laeufe = [(g["t_start_ms"] / 1000.0 + off, g["t_end_ms"] / 1000.0 + off)
+              for g in json.loads((res.segments_json if res else None) or "[]") if g.get("t_start_ms") is not None]
+    erg = paddel.auswerten(tb.t_accel_ms / 1000.0, tb.accel, tb.accel_hz, tb.gps, laeufe)
+    try:
+        pfad.parent.mkdir(parents=True, exist_ok=True)
+        pfad.write_text(json.dumps({"schluessel": schluessel, "ergebnis": erg}))
+    except OSError:
+        pass
+    return erg
+
+
 MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None}
 # Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
 MANOEVER_VERSION = "m3-lauf"

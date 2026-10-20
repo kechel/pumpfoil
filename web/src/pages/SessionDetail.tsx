@@ -560,6 +560,13 @@ export default function SessionDetail() {
     if (profil?.gruppe !== "wind" || !session?.id) return;
     api.sessionManoever(session.id).then(setManoever).catch(() => {});
   }, [session?.id, profil?.gruppe]);
+  // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026; server/app/paddel.py).
+  const [paddel, setPaddel] = useState<Awaited<ReturnType<typeof api.sessionPaddel>>>(null);
+  useEffect(() => {
+    setPaddel(null);
+    if (session?.sport_class !== "sup_paddle" || !session?.id) return;
+    api.sessionPaddel(session.id).then(setPaddel).catch(() => {});
+  }, [session?.id, session?.sport_class]);
   const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
@@ -2034,6 +2041,48 @@ export default function SessionDetail() {
         <ClickStat label={t("rec.farthestRun")} value={farSeg.v != null ? fmtM(farSeg.v) : "–"} sub="m"
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
+
+      {/* Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026): nur fette Datenzeilen, je Versuch eine Zeile. */}
+      {paddel && (
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
+          <div className="flex flex-wrap items-center gap-x-3">
+            <b>{t("sd.strokes")}</b>
+            <span className="tabular-nums">{paddel.schlaege}{paddel.schlaege_pro_min != null && <> · {t("sd.perMin", { n: String(paddel.schlaege_pro_min) })}</>}</span>
+          </div>
+          {paddel.versuche.length > 0 && (
+            <>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3">
+                <b>{t("sd.attempts")}</b>
+                <span className="tabular-nums">
+                  {paddel.versuche.length} · {t("sd.attOnFoil", { n: String(paddel.auf_foil) })}
+                  {paddel.kurz > 0 && <> · {t("sd.attBrief", { n: String(paddel.kurz) })}</>}
+                </span>
+              </div>
+              <table className="mt-1 tabular-nums">
+                <thead>
+                  <tr className="text-xs text-slate-400">
+                    <th className="pr-3 text-right font-normal">#</th>
+                    <th className="pr-4 text-right font-normal">{t("sd.sprintStrokes")}</th>
+                    <th colSpan={2}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paddel.versuche.map((v, i) => (
+                    <tr key={v.t_ms}>
+                      <td className="pr-3 text-right text-slate-400">{i + 1}</td>
+                      <td className="pr-4 text-right">{v.schlaege}</td>
+                      <td className={`pr-3 ${v.ergebnis === "foil" ? "text-brand-400" : v.ergebnis === "kurz" ? "text-amber-700 dark:text-amber-300" : "text-slate-400"}`}>
+                        {v.ergebnis === "foil" ? t("sd.onFoil") : v.ergebnis === "kurz" ? t("sd.attShort") : t("sd.attNot")}
+                      </td>
+                      <td className="text-right text-brand-400">{v.ergebnis === "foil" ? fmtMMSS(v.foil_s ?? 0) : ""}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe. */}
       {(a?.sport_zahlen?.fahrten?.length ?? 0) > 0 && (

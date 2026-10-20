@@ -1097,6 +1097,18 @@ data class Hoehe(@SerialName("vmg_max_kmh") val vmgMaxKmh: Double = 0.0, @Serial
                  @SerialName("am_wind_anteil") val amWindAnteil: Double? = null, @SerialName("hoehe_m") val hoeheM: Int = 0,
                  @SerialName("winkel_med") val winkelMed: Int? = null)
 
+// Paddelschlaege + Paddle-up-Versuche (SUP, GET /api/sessions/{id}/paddel, 20.10.2026; server/app/paddel.py).
+@Serializable
+data class PaddelVersuch(@SerialName("t_ms") val tMs: Long = 0, @SerialName("sprint_s") val sprintS: Double = 0.0,
+                         val schlaege: Int = 0, val staerke: Double = 0.0, @SerialName("max_kmh") val maxKmh: Double? = null,
+                         val ergebnis: String = "nein", @SerialName("foil_s") val foilS: Double? = null,
+                         @SerialName("schnell_s") val schnellS: Double? = null)
+
+@Serializable
+data class PaddelAntwort(val schlaege: Int = 0, @SerialName("schlaege_pro_min") val schlaegeProMin: Int? = null,
+                         @SerialName("auf_foil") val aufFoil: Int = 0, val kurz: Int = 0,
+                         val versuche: List<PaddelVersuch> = emptyList())
+
 @Serializable
 data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null, val hoehe: Hoehe? = null)
 

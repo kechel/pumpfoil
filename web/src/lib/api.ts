@@ -1024,6 +1024,12 @@ export const api = {
     zahlen: null | { wende: { durch: number; ab: number }; halse: { durch: number; ab: number } };
     hoehe?: null | { vmg_max_kmh: number; vmg_mittel_kmh: number | null; am_wind_anteil: number | null; hoehe_m: number; winkel_med: number | null };
   }>(`/api/sessions/${id}/manoever`),
+  // Paddelschlaege + Paddle-up-Versuche (nur SUP mit Accel, nur Anzeige; server/app/paddel.py), 20.10.2026.
+  sessionPaddel: (id: number) => req<null | {
+    schlaege: number; schlaege_pro_min: number | null; auf_foil: number; kurz: number;
+    versuche: { t_ms: number; sprint_s: number; schlaege: number; staerke: number; max_kmh: number | null;
+                ergebnis: "foil" | "kurz" | "nein"; foil_s?: number; schnell_s?: number }[];
+  }>(`/api/sessions/${id}/paddel`),
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
   // Wenden/Halsen-Quote im Verlauf (19.10.2026): je Monat, aus dem Manoever-Cache.
   manoeverVerlauf: (userId?: number) => req<{ monate: { monat: string; sessions: number; wende_durch: number; wende: number; halse_durch: number; halse: number }[] }>(`/api/sessions/manoever-verlauf${userId ? `?user_id=${userId}` : ""}`),

@@ -1107,6 +1107,22 @@ struct Hoehe: Codable {
     let hoehe_m: Int
     let winkel_med: Int?
 }
+// Paddelschlaege + Paddle-up-Versuche (SUP, GET /api/sessions/{id}/paddel, 20.10.2026; server/app/paddel.py).
+struct PaddelVersuch: Codable {
+    let t_ms: Int
+    let sprint_s: Double?
+    let schlaege: Int
+    let ergebnis: String
+    let foil_s: Double?
+}
+struct PaddelAntwort: Codable {
+    let schlaege: Int
+    let schlaege_pro_min: Int?
+    let auf_foil: Int
+    let kurz: Int
+    let versuche: [PaddelVersuch]
+}
+
 struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen?; let hoehe: Hoehe? }
 
 struct CarveData: Codable {
