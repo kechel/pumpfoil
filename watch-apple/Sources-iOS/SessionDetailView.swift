@@ -1349,9 +1349,9 @@ struct SessionDetailView: View {
                     }
                 }
             }
-            if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, jeFahrt: manoever?.fahrten ?? [], lang: lang) }
-            if let p = paddel { PaddelKarte(p: p, lang: lang) }
-            if let w = wellePumpen { WelleKarte(w: w, lang: lang) }
+            if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, jeFahrt: manoever?.fahrten ?? [], sport: session?.sport_class, lang: lang) }
+            if let p = paddel { PaddelKarte(p: p, sport: session?.sport_class, lang: lang) }
+            if let w = wellePumpen { WelleKarte(w: w, sport: session?.sport_class, lang: lang) }
             if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, lang: lang) }
             excludedSection(s)
             poweredSection(s)
@@ -1946,12 +1946,97 @@ private class ManoeverPunkt: NSObject, MKAnnotation {
 }
 
 // Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
+/// Eine Spalte der Sportart-Tabellen: Sortierwert (nil = nicht sortierbar) und Zelltext je Zeile.
+private struct SortSpalte {
+    let label: String
+    let wert: ((Int) -> Double?)?
+    let zelle: (Int) -> String
+    var farbe: ((Int) -> Color)? = nil
+}
+
+/// Sortierbare Tabelle fuer die Sportart-Tabellen (Fahrten, Paddle-up-Versuche; 20.10.2026, wie PWA SortTabelle):
+/// Ueberschrift antippen -> aufsteigend, nochmal -> absteigend, „#" stellt die Reihenfolge wieder her; fehlende
+/// Werte immer unten. Die Zeile behaelt ihre Nummer. Breite Tabellen scrollen waagrecht.
+private struct SortTabelleView: View {
+    let titel: String
+    let n: Int
+    let spalten: [SortSpalte]
+    @State private var sortKey: Int? = nil
+    @State private var auf: Bool = true
+
+    private var reihen: [Int] {
+        var r: [Int] = Array(0..<n)
+        guard let k = sortKey, let f = spalten[k].wert else { return r }
+        r.sort { a, b in
+            let va: Double? = f(a), vb: Double? = f(b)
+            if va == nil && vb == nil { return a < b }
+            guard let x = va else { return false }
+            guard let y = vb else { return true }
+            if x == y { return a < b }
+            return auf ? x < y : x > y
+        }
+        return r
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(titel).font(.subheadline.weight(.semibold)).padding(.top, 8)
+            ScrollView(.horizontal, showsIndicators: false) {
+                Grid(alignment: .trailing, horizontalSpacing: 12, verticalSpacing: 3) {
+                    kopfZeile
+                    ForEach(reihen, id: \.self) { i in zeile(i) }
+                }
+                .padding(10)
+            }
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+        }
+    }
+
+    private var kopfZeile: some View {
+        GridRow {
+            Button { sortKey = nil; auf = true } label: { Text("#") }.buttonStyle(.plain)
+            ForEach(Array(spalten.enumerated()), id: \.offset) { k, sp in kopf(k, sp) }
+        }
+        .font(.caption).foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder private func kopf(_ k: Int, _ sp: SortSpalte) -> some View {
+        let aktiv: Bool = sortKey == k
+        let text: String = sp.label + (aktiv ? (auf ? " ▲" : " ▼") : "")
+        if sp.wert != nil {
+            Button { if aktiv { auf.toggle() } else { sortKey = k; auf = true } } label: {
+                Text(text).foregroundStyle(aktiv ? Color.accentColor : Color.secondary)
+            }.buttonStyle(.plain)
+        } else {
+            Text(text)
+        }
+    }
+
+    private func zeile(_ i: Int) -> some View {
+        GridRow {
+            Text("\(i + 1)").foregroundStyle(.secondary)
+            ForEach(Array(spalten.enumerated()), id: \.offset) { _, sp in
+                Text(sp.zelle(i)).foregroundStyle(sp.farbe?(i) ?? Color.primary)
+            }
+        }
+        .font(.subheadline.monospacedDigit())
+    }
+}
+
 // Wake thief (20.10.2026): auf der Welle gegen gepumpt, zwei buendige Zeilen wie im Web.
 private struct WelleKarte: View {
     let w: WellePumpen
+    var sport: String? = nil
     let lang: String
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(Loc.t("cls.sport.\(sport ?? "wakethief")", lang)).font(.subheadline.weight(.semibold)).padding(.top, 8)
+            tabelle
+        }
+    }
+
+    private var tabelle: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
             GridRow {
                 HStack(spacing: 6) {
@@ -1988,9 +2073,32 @@ private struct WelleKarte: View {
 // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026) — wie die Tabelle im Web, Spalten buendig.
 private struct PaddelKarte: View {
     let p: PaddelAntwort
+    var sport: String? = nil
     let lang: String
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            kasten
+            // Versuche als sortierbare Tabelle (20.10.2026, wie PWA).
+            if !p.versuche.isEmpty {
+                SortTabelleView(titel: Loc.t("cls.sport.\(sport ?? "sup_paddle")", lang) + " · " + Loc.t("sd.attempts", lang),
+                                n: p.versuche.count, spalten: versuchSpalten)
+            }
+        }
+    }
+
+    private var versuchSpalten: [SortSpalte] {
+        let v = p.versuche
+        return [
+            SortSpalte(label: Loc.t("sd.sprintStrokes", lang), wert: { Double(v[$0].schlaege) }, zelle: { "\(v[$0].schlaege)" }),
+            SortSpalte(label: Loc.t("sd.attempts", lang), wert: { v[$0].ergebnis == "foil" ? 2 : (v[$0].ergebnis == "kurz" ? 1 : 0) },
+                       zelle: { ergebnis(v[$0]) }, farbe: { farbe(v[$0]) }),
+            SortSpalte(label: "Foil", wert: { v[$0].ergebnis == "foil" ? (v[$0].foil_s ?? 0) : nil },
+                       zelle: { v[$0].ergebnis == "foil" ? dauer(v[$0].foil_s ?? 0) : "" }),
+        ]
+    }
+
+    private var kasten: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 8) {
                 Text(Loc.t("sd.strokes", lang)).font(.subheadline.weight(.semibold))
@@ -2001,24 +2109,6 @@ private struct PaddelKarte: View {
                     Text(Loc.t("sd.attempts", lang)).font(.subheadline.weight(.semibold))
                     Text(versuchKopf).font(.subheadline)
                 }.padding(.top, 4)
-                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 2) {
-                    GridRow {
-                        Text("#").gridColumnAlignment(.trailing)
-                        Text(Loc.t("sd.sprintStrokes", lang)).gridColumnAlignment(.trailing)
-                        Text("")
-                        Text("").gridColumnAlignment(.trailing)
-                    }
-                    .font(.caption).foregroundStyle(.secondary)
-                    ForEach(Array(p.versuche.enumerated()), id: \.offset) { i, v in
-                        GridRow {
-                            Text("\(i + 1)").foregroundStyle(.secondary)
-                            Text("\(v.schlaege)")
-                            Text(ergebnis(v)).foregroundStyle(farbe(v))
-                            Text(v.ergebnis == "foil" ? dauer(v.foil_s ?? 0) : "").foregroundStyle(farbe(v))
-                        }
-                        .font(.subheadline.monospacedDigit())
-                    }
-                }
             }
         }
         .padding(12)
@@ -2063,47 +2153,40 @@ private struct PaddelKarte: View {
 private struct FahrtenKarte: View {
     let fahrten: [Fahrt]
     var jeFahrt: [ManoeverFahrt] = []
+    var sport: String? = nil
     let lang: String
 
-    /// Wind (20.10.2026, wie PWA): Wenden/Halsen auf dem Foil, Hoehe, beste VMG, Modellwind je Fahrt.
-    private func windZeile(_ f: Fahrt) -> String? {
-        guard let m = jeFahrt.first(where: { $0.t_start_ms == f.t_start_ms }) else { return nil }
-        var teile: [String] = []
-        if m.wende > 0 { teile.append("\(Loc.t("sd.tacks", lang)) \(m.wende_durch)/\(m.wende)") }
-        if m.halse > 0 { teile.append("\(Loc.t("sd.jibes", lang)) \(m.halse_durch)/\(m.halse)") }
-        if let h = m.hoehe_m { teile.append(Loc.t("sd.colHeight", lang) + String(format: " %.1f", h / 1000.0)) }
-        if let v = m.vmg_max_kmh { teile.append(Loc.t("sd.colVmg", lang) + String(format: " %.1f km/h", v)) }
-        if let w = m.wind_kmh { teile.append(Loc.t("sd.wind", lang) + String(format: " %.0f km/h", w)) }
-        return teile.isEmpty ? nil : teile.joined(separator: " · ")
-    }
-
-    private func zeile(_ i: Int, _ f: Fahrt) -> String {
-        let laeufe: String = Loc.t("sd.rideRuns", lang).replacingOccurrences(of: "{n}", with: "\(f.laeufe)")
-        return "\(Loc.t("sd.ride", lang)) \(i + 1)   \(fmtLaufDauer(f.dauer_s))   "
-            + String(format: "%.1f km   (%.1f km · ", f.strecke_m / 1000.0, f.foil_m / 1000.0) + laeufe + ")"
-    }
-
-    /// Downwind: Luftlinie A->B mit Tempo und Anteil auf dem Foil (nil bei anderen Sportarten).
-    private func abZeile(_ f: Fahrt) -> String? {
-        guard let ab = f.ab_m, let v = f.ab_kmh else { return nil }
-        var t = Loc.t("sd.aToB", lang)
-            .replacingOccurrences(of: "{km}", with: String(format: "%.1f", ab / 1000.0))
-            .replacingOccurrences(of: "{v}", with: String(format: "%.1f", v))
-        if let p = f.foil_anteil { t += " · " + Loc.t("sd.foilShare", lang) + " \(Int((p * 100).rounded())) %" }
-        return t
-    }
-
+    // Sortierbare Tabelle unter der Karte (20.10.2026, wie PWA): Downwind mit A->B, Wind mit den Kennzahlen je Fahrt.
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            ForEach(Array(fahrten.enumerated()), id: \.offset) { i, f in
-                Text(zeile(i, f)).font(.subheadline)
-                if let ab = abZeile(f) { Text(ab).font(.footnote).foregroundStyle(.secondary) }
-                if let wz = windZeile(f) { Text(wz).font(.footnote).foregroundStyle(.secondary) }
-            }
+        SortTabelleView(titel: Loc.t("cls.sport.\(sport ?? "other")", lang) + " · " + Loc.t("sd.rides", lang),
+                        n: fahrten.count, spalten: spalten)
+    }
+
+    private func m(_ i: Int) -> ManoeverFahrt? { jeFahrt.first(where: { $0.t_start_ms == fahrten[i].t_start_ms }) }
+    private func km(_ v: Double?) -> String { v.map { String(format: "%.1f", $0 / 1000.0) } ?? "–" }
+
+    private var spalten: [SortSpalte] {
+        var sp: [SortSpalte] = [
+            SortSpalte(label: Loc.t("sd.colDuration", lang), wert: { fahrten[$0].dauer_s }, zelle: { fmtLaufDauer(fahrten[$0].dauer_s) }),
+            SortSpalte(label: Loc.t("sd.colDistance", lang) + " km", wert: { fahrten[$0].strecke_m }, zelle: { km(fahrten[$0].strecke_m) }),
+            SortSpalte(label: "Foil km", wert: { fahrten[$0].foil_m }, zelle: { km(fahrten[$0].foil_m) }),
+            SortSpalte(label: Loc.t("stat.runs", lang), wert: { Double(fahrten[$0].laeufe) }, zelle: { "\(fahrten[$0].laeufe)" }),
+        ]
+        if fahrten.contains(where: { $0.ab_m != nil }) {
+            sp.append(SortSpalte(label: "A→B km", wert: { fahrten[$0].ab_m }, zelle: { km(fahrten[$0].ab_m) }))
+            sp.append(SortSpalte(label: "A→B km/h", wert: { fahrten[$0].ab_kmh }, zelle: { fahrten[$0].ab_kmh.map { String(format: "%.1f", $0) } ?? "–" }))
+            sp.append(SortSpalte(label: "Foil %", wert: { fahrten[$0].foil_anteil }, zelle: { fahrten[$0].foil_anteil.map { "\(Int(($0 * 100).rounded())) %" } ?? "–" }))
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+        if !jeFahrt.isEmpty {
+            sp.append(SortSpalte(label: Loc.t("sd.tacks", lang), wert: { m($0).map { Double($0.wende_durch) } }, zelle: { i in
+                guard let x = m(i), x.wende > 0 else { return "–" }; return "\(x.wende_durch) / \(x.wende)" }))
+            sp.append(SortSpalte(label: Loc.t("sd.jibes", lang), wert: { m($0).map { Double($0.halse_durch) } }, zelle: { i in
+                guard let x = m(i), x.halse > 0 else { return "–" }; return "\(x.halse_durch) / \(x.halse)" }))
+            sp.append(SortSpalte(label: Loc.t("sd.colHeight", lang), wert: { m($0)?.hoehe_m }, zelle: { km(m($0)?.hoehe_m) }))
+            sp.append(SortSpalte(label: Loc.t("sd.colVmg", lang) + " km/h", wert: { m($0)?.vmg_max_kmh }, zelle: { m($0)?.vmg_max_kmh.map { String(format: "%.1f", $0) } ?? "–" }))
+            sp.append(SortSpalte(label: Loc.t("sd.wind", lang) + " km/h", wert: { m($0)?.wind_kmh }, zelle: { m($0)?.wind_kmh.map { String(format: "%.0f", $0) } ?? "–" }))
+        }
+        return sp
     }
 }
 
