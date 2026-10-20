@@ -1485,6 +1485,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **20.10. (Jan) — Fremdkraft INNERHALB von Pumpfoil-Laeufen erkennen (Welle, Lowkite, Boot) — Befund, noch nichts gebaut.**
+  Jan: „ob man aus pumpfoil-sessions nicht vielleicht automatisch stellen erkennen kann in denen eine 'external
+  force' wirkt … dann anzeigen und getrennte stats". Anlass: Skalda u157 (05.08., #1571) und Oerni u97 (04.10.,
+  #12797). Lesender Scan (Notizen/Plot: server/data/analyse-notizen/2026-10-20-fremdkraft/): Regel wie
+  welle_pumpen (Leistung f² 6 s) auf 227 zufaellige Pumpfoil-Sessions (Handgelenk, ab 15.08.) + 36 Wake thief.
+  Kandidat = ≥15 s ruhig (< 0,5 x p90 des Laufs), Tempo ≥ 90 % des Lauf-Medians, Ende ≥ 0,9 x Anfang:
+  **Pumpfoil 34/227 Sessions (15 %), 40 min; Wake thief 21/36 (58 %)**. Ab 30 s: 12 vs. 10 Sessions.
+  Konzentriert auf wenige Fahrer/Spots (u732 Skovshoved, u546 Richterswil, u389 Strandhill = 47 von 86 Stuecken)
+  — eher Spot/Sportart als Zufall. Kontrolle (#17591, #1572 durchgepumpt) ohne Treffer.
+  Offene Punkte: (1) Leistung relativ zum LAUF kippt, wenn der ganze Lauf Welle ist (#12797 Lauf 19, 384 s) ->
+  Bezug auf das Pump-Niveau der ganzen Session; (2) GPS-Tempo am Handgelenk zittert (#12797 5-23 km/h), Anfang/Ende
+  -Vergleich bricht -> geglaettetes Tempo; (3) voellig flacher Accel bei gehaltenem Tempo (#14927 77 s, #14060)
+  ist Lowkite/Schlepp ODER Boot/Uhr ab — nicht unterscheidbar; Welle/Kite/Boot generell nicht trennbar ->
+  neutral „ohne Pumpen (Welle, Kite, Boot)". Vorschlag: Stufe A nur Anzeige (Band auf der Karte, Anteil
+  gepumpt/geschoben je Lauf), Stufe B getrennte Stats/Rekorde = aendert Pumpfoil-Verhalten -> Jans Entscheidung.
+
 - **20.10. — ✅ ERLEDIGT (Mindestzahl 50/20 + Anzahl in der Kachel, gleicher Tag) — Sportart-Rekorde: Quoten-Rekorde (Halsen/Wenden auf dem Foil) sind oft 100 %.**
   Ab 20 Halsen bzw. 10 Wenden gibt es viele Sessions mit 100 %; der Rekord geht dann an die 100-%-Session mit den
   meisten Manoevern (Gleichstand-Regel in `server/app/sportrekorde.py`) — liest sich eher als „die meisten ohne
