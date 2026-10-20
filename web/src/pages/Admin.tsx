@@ -130,7 +130,9 @@ function DemoModusZeile() {
         Ersetzt wird schon in der API-Antwort, der echte Name kommt also nirgends in die Seite —
         auch nicht mitten in einer Chat-Nachricht. Gilt nur für dich, nur in diesem Browser
         (localStorage), und der Admin-Bereich ist bewusst ausgenommen, weil man sonst nicht mehr
-        moderieren könnte. {an ? `Aktiv, ${n} Namen erkannt.` : ""}
+        moderieren könnte. Dazu zeigen Spot-Karte, Spot-Seiten und „gerade am Pumpen“ eine Wiederholung
+        des bisher vollsten Moments (So 04.10.2026 ab 15:05, ~27 Spots), die ab dem Einschalten mitläuft.
+        {an ? ` Aktiv, ${n} Namen erkannt.` : ""}
       </p>
       {an && (
         <p className="mt-1 font-semibold text-amber-400">

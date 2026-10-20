@@ -1839,3 +1839,41 @@ def sportregel_anwenden(
     _log(db, admin, "sportregel_anwenden", "session", sid, f"{sport} ({gruppe}, {VERSION})")
     db.commit()
     return {"ok": True, "sport_class": s.sport_class, "sport_source": s.sport_source}
+
+
+# Demo-Modus (nur PWA, nur Admin; web/src/lib/demoNames.ts): gruene Spots + „gerade am Pumpen"
+# als Wiederholung eines vergangenen Zeitpunkts (Jan, 20.10.2026). Standard ist der bisher
+# vollste Moment: So 04.10.2026 13:05 UTC, 26-27 Spots / ~30 Fahrer gleichzeitig (ausgezaehlt
+# am 20.10. in 5-min-Schritten ueber alle Sessions mit Spot und Endzeit).
+DEMO_AKTIV_START = "2026-10-04T13:05:00+00:00"
+DEMO_AKTIV_DAUER_MIN = 40
+
+
+@router.get("/demo-aktiv")
+def demo_aktiv(t: str | None = None, _a: models.User = Depends(current_admin),
+               db: Session = Depends(get_db)) -> dict:
+    from datetime import datetime, timezone
+    from .devices import aktive_spots_um
+    try:
+        zeit = datetime.fromisoformat(t or DEMO_AKTIV_START)
+    except ValueError:
+        raise HTTPException(400, "t: ISO-Zeitpunkt")
+    if zeit.tzinfo is None:
+        zeit = zeit.replace(tzinfo=timezone.utc)
+    if zeit > datetime.now(timezone.utc):
+        raise HTTPException(400, "t liegt in der Zukunft")
+    d = aktive_spots_um(db, zeit)
+    # Dazu zwei echte Freunde des Admins „gerade am Pumpen" (Jan, 20.10.2026: „nimm halt meine echten
+    # freunde und lass in den daten 2 davon gerade irgendwo zusaetzlich am pumpen sein") — an zwei
+    # der in der Wiederholung gruenen Spots. Die Namen ersetzt der Demo-Modus im Browser.
+    from ..freunde import freund_ids
+    ziele = (d["spots"] or d["area"])[:2]
+    freunde = []
+    for uid, sid in zip(sorted(freund_ids(db, _a.id)), ziele * 2):
+        u, sp = db.get(models.User, uid), db.get(models.Spot, sid)
+        if u is not None and sp is not None:
+            freunde.append({"user_id": uid, "name": u.display_name, "avatar_url": u.avatar_url,
+                            "spot_id": sid, "spot": sp.name})
+        if len(freunde) == 2:
+            break
+    return {**d, "t": zeit.isoformat(), "friends": [], "freunde": freunde}
