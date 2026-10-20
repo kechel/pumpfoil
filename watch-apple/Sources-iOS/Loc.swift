@@ -4680,6 +4680,9 @@ static let nlOverlay: [String: String] = {
     private static let _neu4_sd_attShort: [String: String] = ["de": "kurz hoch?", "gsw": "churz ufe?", "de-AT": "kurz auffi?", "en": "briefly up?", "fr": "brièvement levé ?", "it": "sollevato per poco?", "es": "arriba un instante?", "fi": "hetken ylhäällä?", "nl": "kort omhoog?", "cs": "krátce nahoře?", "pl": "krótko w górze?", "pt": "subiu por um instante?", "pt-PT": "subiu por um instante?", "ja": "一瞬浮いた？", "zh": "短暂起飞？", "ru": "ненадолго поднялся?", "id": "sebentar naik?", "nb": "kort oppe?"]
     private static let _neu4_sd_attNot: [String: String] = ["de": "nicht hoch", "gsw": "nöd ufe", "de-AT": "net auffi", "en": "not up", "fr": "pas levé", "it": "non sollevato", "es": "no subió", "fi": "ei ylös", "nl": "niet omhoog", "cs": "nevstal", "pl": "bez wyjścia", "pt": "não subiu", "pt-PT": "não subiu", "ja": "浮かず", "zh": "未起飞", "ru": "не поднялся", "id": "tidak naik", "nb": "ikke oppe"]
     private static let _neu4_sd_sprintStrokes: [String: String] = ["de": "Sprintschläge", "gsw": "Sprintschläg", "de-AT": "Sprintschläge", "en": "Sprint strokes", "fr": "Coups de sprint", "it": "Pagaiate di sprint", "es": "Paladas de sprint", "fi": "Spurttivedot", "nl": "Sprintslagen", "cs": "Sprintové záběry", "pl": "Pociągnięcia sprintu", "pt": "Remadas de sprint", "pt-PT": "Remadas de sprint", "ja": "スプリント", "zh": "冲刺桨数", "ru": "Спринт-гребки", "id": "Kayuhan sprint", "nb": "Spurttak"]
+    private static let _neu4_sd_onWake: [String: String] = ["de": "Auf der Welle", "gsw": "Uf dr Wälle", "de-AT": "Auf der Welle", "en": "On the wake", "fr": "Sur la vague", "it": "Sull'onda", "es": "En la ola", "fi": "Aallolla", "nl": "Op de golf", "cs": "Na vlně", "pl": "Na fali", "pt": "Na onda", "pt-PT": "Na onda", "ja": "ウェイク上", "zh": "乘浪", "ru": "На волне", "id": "Di atas gelombang", "nb": "På bølgen"]
+    private static let _neu4_sd_pumpedPart: [String: String] = ["de": "Gepumpt", "gsw": "Pumpet", "de-AT": "Pumpt", "en": "Pumped", "fr": "En pompant", "it": "Pompando", "es": "Bombeando", "fi": "Pumpaten", "nl": "Gepompt", "cs": "Pumpováním", "pl": "Pompując", "pt": "Bombeando", "pt-PT": "A bombear", "ja": "パンプ", "zh": "泵动", "ru": "С пампингом", "id": "Memompa", "nb": "Pumpet"]
+    private static let _neu4_sd_longestT: [String: String] = ["de": "längste {t}", "gsw": "längschti {t}", "de-AT": "längste {t}", "en": "longest {t}", "fr": "la plus longue {t}", "it": "la più lunga {t}", "es": "la más larga {t}", "fi": "pisin {t}", "nl": "langste {t}", "cs": "nejdelší {t}", "pl": "najdłuższa {t}", "pt": "a mais longa {t}", "pt-PT": "a mais longa {t}", "ja": "最長 {t}", "zh": "最长 {t}", "ru": "самая долгая {t}", "id": "terlama {t}", "nb": "lengste {t}"]
     static let neuTexte4: [String: [String: String]] = [
         "cls.windHint": _neu4_cls_windHint,
         "cls.windHintNo": _neu4_cls_windHintNo,
@@ -4710,6 +4713,9 @@ static let nlOverlay: [String: String] = {
         "sd.attShort": _neu4_sd_attShort,
         "sd.attNot": _neu4_sd_attNot,
         "sd.sprintStrokes": _neu4_sd_sprintStrokes,
+        "sd.onWake": _neu4_sd_onWake,
+        "sd.pumpedPart": _neu4_sd_pumpedPart,
+        "sd.longestT": _neu4_sd_longestT,
     ]
     static let neuTexte3: [String: [String: String]] = [
         "settings.coros.expired": _neu3_settings_coros_expired,

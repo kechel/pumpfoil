@@ -61,5 +61,6 @@ def test_endpunkt_nur_sup(client):
     db.close()
     assert len(ids) == 2
     for sid in ids:
-        r = client.get(f"/api/sessions/{sid}/paddel", headers=auth)
-        assert r.status_code == 200 and r.json() is None   # ohne Accel bzw. nicht SUP: nichts
+        for pfad in ("paddel", "welle-pumpen"):
+            r = client.get(f"/api/sessions/{sid}/{pfad}", headers=auth)
+            assert r.status_code == 200 and r.json() is None   # ohne Accel bzw. falsche Sportart: nichts

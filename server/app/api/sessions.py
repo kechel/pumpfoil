@@ -3859,15 +3859,56 @@ def session_paddel(
 
 
 def paddel_gecacht(db, s, nur_cache: bool = False) -> dict | None:
-    """Wie manoever_gecacht: data/paddel/<id>.json, gueltig solange Version/Trim/Laeufe gleich sind."""
+    from .. import paddel
+
+    def rechnen(tb, res, off):
+        laeufe = [(g["t_start_ms"] / 1000.0 + off, g["t_end_ms"] / 1000.0 + off) for g in _laeufe(res)]
+        return paddel.auswerten(tb.t_accel_ms / 1000.0, tb.accel, tb.accel_hz, tb.gps, laeufe)
+    return _accel_auswertung_gecacht(db, s, "paddel", paddel.VERSION, rechnen, nur_cache)
+
+
+@router.get("/{session_id}/welle-pumpen")
+def session_welle_pumpen(
+    session_id: int,
+    _user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict | None:
+    """Wake thief: Zeit/Strecke auf der Welle gegen gepumpt, Pumps nur im gepumpten Teil (NUR ANZEIGE;
+    app/welle_pumpen.py). None, wenn es nichts auszuwerten gibt. `abschnitte` in Session-ms."""
+    s = _readable(db, session_id)
+    if (s.sport_class or "pumpfoil") != "wakethief":
+        return None
+    return welle_pumpen_gecacht(db, s)
+
+
+def welle_pumpen_gecacht(db, s, nur_cache: bool = False) -> dict | None:
+    from .. import welle_pumpen
+
+    def rechnen(tb, res, off):
+        tg = tb.t_gps_ms / 1000.0
+        laeufe = []
+        for g in _laeufe(res):
+            idx = [i for i in (g.get("pump_idx") or []) if 0 <= i < len(tg)]
+            laeufe.append({"lo": g["t_start_ms"] / 1000.0 + off, "hi": g["t_end_ms"] / 1000.0 + off,
+                           "pumps_t": [float(tg[i]) for i in idx]})
+        return welle_pumpen.auswerten(tb.t_accel_ms / 1000.0, tb.accel, tb.accel_hz, tb.gps, laeufe)
+    return _accel_auswertung_gecacht(db, s, "welle_pumpen", welle_pumpen.VERSION, rechnen, nur_cache)
+
+
+def _laeufe(res) -> list[dict]:
+    return [g for g in json.loads((res.segments_json if res else None) or "[]") if g.get("t_start_ms") is not None]
+
+
+def _accel_auswertung_gecacht(db, s, name: str, version: str, rechnen, nur_cache: bool = False) -> dict | None:
+    """Gemeinsamer Cache fuer Anzeige-Auswertungen aus dem Accel (paddel, welle_pumpen): data/<name>/<id>.json,
+    gueltig solange Version/Trim/Laeufe gleich sind. `rechnen(timebase, analysis_result, trim_offset_s)`."""
     import hashlib
 
-    from .. import paddel
     from ..config import get_settings
     res = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
-    schluessel = hashlib.md5(f"{paddel.VERSION}|{s.trim_start_ms}|{s.trim_end_ms}|"
+    schluessel = hashlib.md5(f"{version}|{s.trim_start_ms}|{s.trim_end_ms}|"
                              f"{(res.segments_json if res else '') or ''}".encode()).hexdigest()
-    pfad = get_settings().data_dir / "paddel" / f"{s.id}.json"
+    pfad = get_settings().data_dir / name / f"{s.id}.json"
     try:
         c = json.loads(pfad.read_text())
         if c.get("schluessel") == schluessel:
@@ -3884,10 +3925,7 @@ def paddel_gecacht(db, s, nur_cache: bool = False) -> dict | None:
     if not tb.has_accel:
         return None
     # segments_json-Zeiten sind auf den Trim re-basiert (docs/DATA-PIPELINE.md) -> + trim_start = Session-ms.
-    off = (s.trim_start_ms or 0) / 1000.0
-    laeufe = [(g["t_start_ms"] / 1000.0 + off, g["t_end_ms"] / 1000.0 + off)
-              for g in json.loads((res.segments_json if res else None) or "[]") if g.get("t_start_ms") is not None]
-    erg = paddel.auswerten(tb.t_accel_ms / 1000.0, tb.accel, tb.accel_hz, tb.gps, laeufe)
+    erg = rechnen(tb, res, (s.trim_start_ms or 0) / 1000.0)
     try:
         pfad.parent.mkdir(parents=True, exist_ok=True)
         pfad.write_text(json.dumps({"schluessel": schluessel, "ergebnis": erg}))

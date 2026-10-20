@@ -32,6 +32,9 @@ import { useT } from "../i18n";
 import { TransferPicker } from "../components/TransferPicker";
 import { CompareHrStrips } from "../components/CompareHrStrips";
 
+// Wake thief: Farbe der Wellenstuecke auf der Karte und im Kasten (20.10.2026).
+const WELLE_FARBE = "#e879f9";
+
 function fmtMMSS(s: number | null | undefined) {
   if (s == null) return "–";
   const total = Math.round(s);
@@ -560,6 +563,13 @@ export default function SessionDetail() {
     if (profil?.gruppe !== "wind" || !session?.id) return;
     api.sessionManoever(session.id).then(setManoever).catch(() => {});
   }, [session?.id, profil?.gruppe]);
+  // Wake thief: Welle gegen gepumpt (20.10.2026; server/app/welle_pumpen.py).
+  const [wellePumpen, setWellePumpen] = useState<Awaited<ReturnType<typeof api.sessionWellePumpen>>>(null);
+  useEffect(() => {
+    setWellePumpen(null);
+    if (session?.sport_class !== "wakethief" || !session?.id) return;
+    api.sessionWellePumpen(session.id).then(setWellePumpen).catch(() => {});
+  }, [session?.id, session?.sport_class]);
   // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026; server/app/paddel.py).
   const [paddel, setPaddel] = useState<Awaited<ReturnType<typeof api.sessionPaddel>>>(null);
   useEffect(() => {
@@ -1373,6 +1383,12 @@ export default function SessionDetail() {
         L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: selectedRun != null ? 0.35 : 0.9, interactive: false }).addTo(lg);
       }
     }
+    // Wake thief (20.10.2026): Wellenstuecke als breites, halbdurchsichtiges Band ueber dem Track.
+    if (wellePumpen?.linien?.length && selectedRun == null) {
+      wellePumpen.linien.forEach((ln) => {
+        L.polyline(ln, { color: WELLE_FARBE, weight: 10, opacity: 0.45, interactive: false }).addTo(lg);
+      });
+    }
     // Wenden (violett) und Halsen (orange); voll = auf dem Foil durchgefahren, hohl = abgesetzt/gestuerzt.
     if (manoever?.items?.length && selectedRun == null) {
       manoever.items.forEach((mv) => {
@@ -1450,7 +1466,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, manoever]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, manoever, wellePumpen]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -2022,7 +2038,8 @@ export default function SessionDetail() {
           <>
             <ClickStat label={t("sd.maxGlide")} value={maxGl.v != null ? maxGl.v.toFixed(1) : "–"} sub="s"
               runIdx={maxGl.i} selected={selectedRun} onSelect={setSelectedRun} />
-            <Stat label={t("stat.pumps")} value={a?.pump_count != null ? String(a.pump_count) : "–"}
+            {/* Wake thief: nur die Pumps im gepumpten Teil — auf der Welle zaehlt die Analyse sonst mit (20.10.2026). */}
+            <Stat label={t("stat.pumps")} value={wellePumpen ? String(wellePumpen.pumps) : a?.pump_count != null ? String(a.pump_count) : "–"}
               sub={hasPumpStats ? undefined : t("sd.phase2")} />
           </>
         )}
@@ -2041,6 +2058,34 @@ export default function SessionDetail() {
         <ClickStat label={t("rec.farthestRun")} value={farSeg.v != null ? fmtM(farSeg.v) : "–"} sub="m"
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
+
+      {/* Wake thief (20.10.2026): Zeit/Strecke auf der Welle und gepumpt, nur fette Datenzeilen. */}
+      {wellePumpen && (
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
+          <table className="tabular-nums">
+            <tbody>
+              <tr>
+                <td className="pr-4 font-bold">
+                  <span className="mr-1.5 inline-block h-2.5 w-4 rounded-sm align-middle" style={{ background: WELLE_FARBE, opacity: 0.7 }} />
+                  {t("sd.onWake")}
+                </td>
+                <td className="pr-4 text-right">{fmtMMSS(wellePumpen.welle_s)}</td>
+                <td className="pr-4 text-right">{(wellePumpen.welle_m / 1000).toFixed(1)} km</td>
+                <td className="text-slate-300">{wellePumpen.laengste_welle_s > 0 ? t("sd.longestT", { t: fmtMMSS(wellePumpen.laengste_welle_s) }) : ""}</td>
+              </tr>
+              <tr>
+                <td className="pr-4 font-bold">{t("sd.pumpedPart")}</td>
+                <td className="pr-4 text-right">{fmtMMSS(wellePumpen.gepumpt_s)}</td>
+                <td className="pr-4 text-right">{(wellePumpen.gepumpt_m / 1000).toFixed(1)} km</td>
+                <td className="text-slate-300">
+                  {wellePumpen.pumps} {t("stat.pumps")}
+                  {wellePumpen.pumps_pro_min != null && <> · {t("sd.perMin", { n: String(wellePumpen.pumps_pro_min) })}</>}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026): nur fette Datenzeilen, je Versuch eine Zeile. */}
       {paddel && (
