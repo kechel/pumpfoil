@@ -20,7 +20,7 @@ from __future__ import annotations
 import numpy as np
 
 # Hochzaehlen, wenn sich hier etwas aendert -> alle Cache-Eintraege (data/paddel/) ungueltig.
-VERSION = "p1"
+VERSION = "p2"   # p2: Punkte je Sprint fuer die Karte (`linie`)
 
 BAND_HZ = (0.3, 3.0)        # Paddelschlaege liegen bei 0,7–1,7 Hz
 MIN_ABSTAND_S = 0.5          # zwei Schlaege nie dichter
@@ -102,7 +102,9 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
         lauf = next(((a_, b_) for a_, b_ in laeufe if a_ <= t_ende + LAUF_NACH_S and b_ >= t_s[lo]), None)
         bis = min(n, int(np.searchsorted(t_s, t_s[lo] + KURZ_FENSTER_S)))
         schnell_s = float((kmh[lo:bis] >= KURZ_KMH).sum() / hz)
-        e = {"t_ms": int(round(t_s[lo] * 1000)), "sprint_s": round(sprint_s, 1), "schlaege": schlaege,
+        # Fertige Punkte des Sprints fuer die Karte (wie Startversuche: keine Indizes, die verschiebt der Trim).
+        linie = [[g[1], g[2]] for g in gps if t_s[lo] * 1000 <= g[0] <= t_ende * 1000]
+        e = {"t_ms": int(round(t_s[lo] * 1000)), "sprint_s": round(sprint_s, 1), "schlaege": schlaege, "linie": linie,
              "staerke": round(float(env[lo:max(ende, lo + 1)].mean() / grund), 1),
              "max_kmh": round(float(kmh[lo:bis].max()), 1) if bis > lo else None}
         if lauf is not None:

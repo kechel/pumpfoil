@@ -47,8 +47,11 @@ def test_profil_pumpfoil_unveraendert_wind_ganz():
     for sc in ("wingfoil", "kitefoil", "parawing"):
         assert profil(sc) == {"gruppe": "wind", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False,
                               "tempo_skala": [10, 40]}
-    for sc in ("foil_scoot", "wakethief", "surf_wave"):
+    for sc in ("foil_scoot", "surf_wave"):
         assert {k: profil(sc)[k] for k in alt} == alt
+    # SUP und Wake thief: nur der Kartenschalter weicht ab (20.10.2026)
+    for sc in ("sup_paddle", "wakethief"):
+        assert {k: profil(sc)[k] for k in alt} == {**alt, "karte": "ganz"}
     for sc in ("efoil", "foildrive", "towed"):
         assert profil(sc)["pumpzahlen"] is False and profil(sc)["tempo_skala"] == [8, 30]
     # eFoil/Foildrive fahren durchgehend (ganze Fahrt), Towed bleibt bei Laeufen (19.10.2026)
