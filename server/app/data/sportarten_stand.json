@@ -888,7 +888,12 @@
         "welle_pumpen": {
           "status": "geplant",
           "en": "Tell riding the boat wake apart from pumping between waves: time and distance on the wake and pumped shown separately, with the pump count only from the pumping part.",
-          "notiz": "Jan 20.10.2026 („erkennen wann man eine welle nutzt und wann man pumpt … eigener pump-zaehler dann nur in der pump-zeit“). Idee zur Umsetzung: Pump-Rhythmus aus dem Accel (v3 erkennt Pumps) — Abschnitte ohne Pumps bei gehaltenem Tempo = Welle, mit Pumps = gepumpt; Grenze je Lauf. Noch nicht gebaut, erst Daten ansehen (wenige wakethief-Sessions mit Accel)."
+          "notiz": "Jan 20.10.2026 („erkennen wann man eine welle nutzt und wann man pumpt … eigener pump-zaehler dann nur in der pump-zeit“). Idee zur Umsetzung: Pump-Rhythmus aus dem Accel (v3 erkennt Pumps) — Abschnitte ohne Pumps bei gehaltenem Tempo = Welle, mit Pumps = gepumpt; Grenze je Lauf. Noch nicht gebaut, erst Daten ansehen (wenige wakethief-Sessions mit Accel). BEFUND 20.10. (rein lesend, server/data/analyse-notizen/2026-10-20-sup-wake/ (Plots + Skripte, gitignored)): 42 Sessions, 3 Fahrer (u157, u237, u389), 30 mit v3-Laeufen. Am Accel-Ausschlag sichtbar: #12741 (u389) laengster Lauf 526 s = ~40 s Pumpen, dann ~410 s fast ruhiger Accel bei 20-22 km/h (Welle), am Ende wieder Pumpen -> Trennung ueber die Huellkurve des Accel klar. #12539 (u157) wechselt blockweise, weniger deutlich. #13843 (u237) pumpt den ganzen 158-s-Lauf gleichmaessig bei ~15 km/h (keine Wellenphase erkennbar). Ansatz damit: Huellkurve (z. B. p95 je 5 s) gegen die eigene Pumpphase des Laufs + Tempo gehalten; Gleitphasen aus segments.glides taugen NICHT (Anteil Gleit >=3 s = 0 in allen Sessions)."
+        },
+        "pumps": {
+          "status": "teilweise",
+          "en": "Pumps are also counted while riding the wake, so the pump count of wake sessions can be too high.",
+          "notiz": "Befund 20.10. (Claude, server/data/analyse-notizen/2026-10-20-sup-wake/ (Plots + Skripte, gitignored)): die v3-Zaehlung meldet in ruhigen Wellenphasen weiter ~85-91 Pumps/min (#12741: 581 von 793 Pumps in 2080-2490 s bei fast flachem Accel; #12539: 304 in 1100-1300 s). Pumps/min der wakethief-Sessions ~95-111, gleich wie Pumpfoil derselben Fahrer. Behebt sich mit welle_pumpen (Pumps nur im gepumpten Teil). Erkennungs-Aenderung nur mit Jans OK."
         }
       }
     },
@@ -900,12 +905,12 @@
         "paddeln_foil": {
           "status": "geplant",
           "en": "Distance and time paddling on the water and on the foil shown separately.",
-          "notiz": "Jan 20.10.2026 („strecke floated und strecke on-foil getrennt … da sollte das viel einfacher sein“). Ansatz: Tempo-Luecke wie windlauf.py (paddeln ~6-8 km/h, Foil ~12+), ohne Pump-Modell. Daten 20.10.: 17 Sessions, 6 Fahrer; Pump-Modell findet meist ~0 km Foil. VORSICHT: viele sind offenbar reines SUP ohne Foil (u277: 6 Sessions, keine Luecke ueber 7 km/h) — dort darf die Luecke paddeln/stehen NICHT als Foil gelten -> Mindest-Starttempo (~10 km/h) noetig. Nur 3 Sessions zeigen eine Luecke (#10051 8/5, #9334 20/11). Jan 20.10. (Praxis): Paddle-up ist schwierig, viele Anfaenger kommen noch gar nicht aufs Foil -> 0 km Foil ist meist RICHTIG, kein Erkennungsfehler. Wer hochkommt, oft nur ~1 s; laengeres Pumpen ist selten, kommt aber vor (Jan 20.10.: „es gibt schon leute die dann auch eine Minute lang pumpen“). Folge: GPS (1 Hz) loest 1-s-Fluege kaum auf -> fuer solche Momente eher Accel; die Auswertung soll 'kein Foil' als normalen Ausgang zeigen, nicht als Fehler."
+          "notiz": "Jan 20.10.2026 („strecke floated und strecke on-foil getrennt … da sollte das viel einfacher sein“). Ansatz: Tempo-Luecke wie windlauf.py (paddeln ~6-8 km/h, Foil ~12+), ohne Pump-Modell. Daten 20.10.: 17 Sessions, 6 Fahrer; Pump-Modell findet meist ~0 km Foil. VORSICHT: viele sind offenbar reines SUP ohne Foil (u277: 6 Sessions, keine Luecke ueber 7 km/h) — dort darf die Luecke paddeln/stehen NICHT als Foil gelten -> Mindest-Starttempo (~10 km/h) noetig. Nur 3 Sessions zeigen eine Luecke (#10051 8/5, #9334 20/11). Jan 20.10. (Praxis): Paddle-up ist schwierig, viele Anfaenger kommen noch gar nicht aufs Foil -> 0 km Foil ist meist RICHTIG, kein Erkennungsfehler. Wer hochkommt, oft nur ~1 s; laengeres Pumpen ist selten, kommt aber vor (Jan 20.10.: „es gibt schon leute die dann auch eine Minute lang pumpen“). Folge: GPS (1 Hz) loest 1-s-Fluege kaum auf -> fuer solche Momente eher Accel; die Auswertung soll 'kein Foil' als normalen Ausgang zeigen, nicht als Fehler. BEFUND 20.10.: #10051 hat die bestehende Erkennung (Pump-Modell) alle 10 Laeufe mit 13-15 km/h gefunden (2,0 km Foil); bei u744 ist 0 km richtig (nie ueber 8 km/h). Fuer echte Paddle-up-Laeufe mit Pumpen reicht also das Vorhandene; offen bleiben nur kurze Abheber ohne Pumpen."
         },
         "paddelschlaege": {
           "status": "geplant",
           "en": "Count paddle strokes from the watch motion data and recognise the hard sprint strokes of a paddle-up attempt, so attempts count even when the board only lifts for a second.",
-          "notiz": "Jan 20.10.2026: „beim paddle-up die 'strokes' herausfinden aus den Beschleunigungsdaten, das sind vermutlich klare eindeutige Ausschlaege wenn man das Paddel so durchs wasser reisst um aufs foil zu kommen“. Ergaenzt paddeln_foil: GPS loest 1-s-Fluege nicht auf, die Sprint-Schlaege davor schon (Uhr am Handgelenk = direkt am Paddel). Moegliche Ausgabe: Schlaege, Schlagrate, Paddle-up-Versuche (wie startversuche bei Pumpfoil), danach ob Tempo/Accel ein Abheben zeigt. DATEN 20.10.: nur 4 SUP-Sessions mit Accel (alle 25 Hz, #16892/#16646 u744, #10051 u257, #10926 u6 = Testkonto) -> erst Ausschlaege an diesen ansehen, Annahme ist unbelegt. Jan 20.10. (Ablauf): On-Foil kann NUR direkt nach/durch eine Sprint-Schlagserie beginnen und dauert, bis man reinfaellt oder in Pumpen uebergeht (manche pumpen dann eine Minute). Erkennungsidee: Schlagserie = moeglicher Start; danach kurzes Fenster auf Abheben pruefen; geht es in Pumpen ueber, uebernimmt die Pump-Erkennung bis zum Ende des Laufs. Ein Lauf ohne vorherige Schlagserie ist bei SUP kein Foil-Lauf (schliesst Fehlalarme aus reinem Paddeltempo aus)."
+          "notiz": "Jan 20.10.2026: „beim paddle-up die 'strokes' herausfinden aus den Beschleunigungsdaten, das sind vermutlich klare eindeutige Ausschlaege wenn man das Paddel so durchs wasser reisst um aufs foil zu kommen“. Ergaenzt paddeln_foil: GPS loest 1-s-Fluege nicht auf, die Sprint-Schlaege davor schon (Uhr am Handgelenk = direkt am Paddel). Moegliche Ausgabe: Schlaege, Schlagrate, Paddle-up-Versuche (wie startversuche bei Pumpfoil), danach ob Tempo/Accel ein Abheben zeigt. DATEN 20.10.: nur 4 SUP-Sessions mit Accel (alle 25 Hz, #16892/#16646 u744, #10051 u257, #10926 u6 = Testkonto) -> erst Ausschlaege an diesen ansehen, Annahme ist unbelegt. Jan 20.10. (Ablauf): On-Foil kann NUR direkt nach/durch eine Sprint-Schlagserie beginnen und dauert, bis man reinfaellt oder in Pumpen uebergeht (manche pumpen dann eine Minute). Erkennungsidee: Schlagserie = moeglicher Start; danach kurzes Fenster auf Abheben pruefen; geht es in Pumpen ueber, uebernimmt die Pump-Erkennung bis zum Ende des Laufs. Ein Lauf ohne vorherige Schlagserie ist bei SUP kein Foil-Lauf (schliesst Fehlalarme aus reinem Paddeltempo aus). BEFUND 20.10. (server/data/analyse-notizen/2026-10-20-sup-wake/ (Plots + Skripte, gitignored)): Schlaege im Accel klar zaehlbar (Band 0,3-3 Hz auf |a|, Spitzen >=0,5 s Abstand). Reines SUP u744 (#16892, #16646, nie ueber 8 km/h): 48 bzw. 50 Schlaege/min, gleichmaessig. Paddle-up u257 #10051: in den 10 s vor jedem der 10 Laeufe ~10 Schlaege mit 1,5-2x hoeherem Ausschlag als beim normalen Paddeln (p95 0,25-0,43 gegen 0,20), Tempo steigt in ~8 s von 2-3 auf 12+ km/h; die Schlagrate davor schwankt (31-100/min) -> Merkmal ist die STAERKE, nicht die Rate. Auf dem Foil 100-107 Takte/min bei 3x Ausschlag, 30-90 s lang, 13-15 km/h = Pumpen (oder Paddeln auf dem Foil — am Handgelenk nicht sicher unterscheidbar). 1-s-Fluege: in den Daten keiner vorhanden, Annahme ungeprueft. Datenbasis duenn: 1 Fahrer, der aufs Foil kommt."
         }
       }
     },
@@ -1212,6 +1217,18 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "sup_paddle",
+        "wakethief"
+      ],
+      "merkmal": "paddelschlaege",
+      "was": "Daten angesehen: SUP-Schlaege klar zaehlbar, Paddle-up-Sprint an der Staerke erkennbar; Wake thief: Wellenphasen am ruhigen Accel erkennbar, Pump-Zaehlung dort zu hoch (Tabelle: pumps teilweise).",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [
