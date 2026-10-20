@@ -1485,7 +1485,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **20.10. (Jan) — Fremdkraft INNERHALB von Pumpfoil-Laeufen erkennen (Welle, Lowkite, Boot) — Befund, noch nichts gebaut.**
+- **20.10. (Jan) — GEPARKT (Jan: „ist vermutlich noch zu unsicher bisher") — Fremdkraft INNERHALB von Pumpfoil-Laeufen erkennen (Welle, Lowkite, Boot) — Befund, nichts gebaut.**
+  Wieder aufnehmen erst mit belegten Faellen (Fahrer bestaetigt Welle/Kite/Boot an einer Stelle) oder Video.
   Jan: „ob man aus pumpfoil-sessions nicht vielleicht automatisch stellen erkennen kann in denen eine 'external
   force' wirkt … dann anzeigen und getrennte stats". Anlass: Skalda u157 (05.08., #1571) und Oerni u97 (04.10.,
   #12797). Lesender Scan (Notizen/Plot: server/data/analyse-notizen/2026-10-20-fremdkraft/): Regel wie
