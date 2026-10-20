@@ -1724,3 +1724,19 @@ struct SportRekordeZeile: Codable {
     let rekorde: [String: CommunityRecordEntry]
 }
 struct SportRekordeAntwort: Codable { let sportarten: [SportRekordeZeile] }
+
+
+/// Erfolg auf dem Foil im Verlauf (GET /api/sessions/sport-verlauf, 20.10.2026): Zaehler je Session.
+struct SportVerlaufPunkt: Codable {
+    let session_id: Int
+    let started_at: String
+    let sport: String
+    var halse_durch: Double? = nil
+    var halse: Double? = nil
+    var wende_durch: Double? = nil
+    var wende: Double? = nil
+    var paddle_durch: Double? = nil
+    var paddle: Double? = nil
+    var welle_s: Double? = nil
+    var lauf_s: Double? = nil
+}

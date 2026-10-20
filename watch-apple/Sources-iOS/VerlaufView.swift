@@ -17,6 +17,8 @@ struct VerlaufView: View {
     // fuer immer leer (Jans Screenshot vom 18.08.: Karte fehlte zwischen "Pumps" und der
     // Spot-Entwicklung). Diese Ansicht wird immer gerendert, also laedt sie zuverlaessig.
     @State private var hrDaten: HrProgress?
+    // Erfolg auf dem Foil je Sportart (20.10.2026), hier geladen aus demselben Grund wie hrDaten.
+    @State private var sportVerlauf: [SportVerlaufPunkt] = []
 
     // Gemeinsame Zeitachse (epoch s), chronologisch alt→neu.
     private var data: [(t: Double, h: HistoryPoint)] {
@@ -38,7 +40,15 @@ struct VerlaufView: View {
                 } else if let error {
                     Text(error).foregroundStyle(.secondary).padding()
                 } else if data.count < 2 {
-                    Text(Loc.t("verlauf.empty", lang)).foregroundStyle(.secondary).padding()
+                    // Wer (fast) nur Wind/SUP/Wake faehrt: den Erfolg auf dem Foil trotzdem zeigen (20.10.2026).
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(Loc.t("verlauf.empty", lang)).foregroundStyle(.secondary).padding(.vertical)
+                            modeChips
+                            SportErfolgView(punkte: sportVerlauf, mode: mode, lang: lang)
+                        }
+                        .padding(.horizontal, 12)
+                    }
                 } else {
                     chartsScroll
                 }
@@ -61,6 +71,7 @@ struct VerlaufView: View {
                 sumCharts
                 // Trainingskurve: eigene Abfrage (hr-progress), deshalb eigene Karte mit
                 // eigenem Ladezustand — sie haengt nicht am Zeitraum der uebrigen Diagramme.
+                SportErfolgView(punkte: sportVerlauf, mode: mode, lang: lang)
                 HrProgressCardView(lang: lang, daten: hrDaten)
                 SpotProgressionView(lang: lang)
             }
@@ -117,6 +128,7 @@ struct VerlaufView: View {
         loading = true; defer { loading = false }
         do { items = try await Api.history(); error = nil }
         catch { self.error = error.localizedDescription }
+        sportVerlauf = (try? await Api.sportVerlauf()) ?? sportVerlauf
         // Bewusst NACH den Verlaufsdaten und mit `try?`: schlaegt die Trainingskurve fehl, bleibt
         // der Rest der Ansicht heil — sie ist ein Zusatz, kein Kern.
         hrDaten = try? await Api.hrProgress(grid: true)
@@ -610,6 +622,118 @@ struct SpotProgressMap: UIViewRepresentable {
             r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue
             r.lineWidth = 4
             return r
+        }
+    }
+}
+
+
+// Erfolg auf dem Foil je Sportart (20.10.2026, wie PWA History.tsx): Quote je Fenster = Summe Erfolge / Summe
+// Versuche. Sessions ohne Erfolg zaehlen mit, Tage ohne Session behalten im Fenster den letzten Wert.
+private struct ErfolgsQuote: Identifiable {
+    let id: String
+    let labelKey: String
+    let color: Color
+    let wert: (SportVerlaufPunkt) -> (Double, Double)?   // (Erfolge, Versuche)
+}
+
+private func erfolgsQuoten(_ sport: String) -> [ErfolgsQuote] {
+    switch sport {
+    case "wingfoil", "kitefoil", "parawing":
+        return [
+            ErfolgsQuote(id: "halse", labelKey: "history.jibesOnFoil", color: Color(red: 0.98, green: 0.45, blue: 0.09)) { p in
+                guard let d = p.halse, d > 0 else { return nil }; return (p.halse_durch ?? 0, d) },
+            ErfolgsQuote(id: "wende", labelKey: "history.tacksOnFoil", color: Color(red: 0.66, green: 0.33, blue: 0.97)) { p in
+                guard let d = p.wende, d > 0 else { return nil }; return (p.wende_durch ?? 0, d) },
+        ]
+    case "sup_paddle":
+        return [ErfolgsQuote(id: "paddle", labelKey: "history.paddleUps", color: Color(red: 0.96, green: 0.62, blue: 0.04)) { p in
+            guard let d = p.paddle, d > 0 else { return nil }; return (p.paddle_durch ?? 0, d) }]
+    case "wakethief":
+        return [ErfolgsQuote(id: "welle", labelKey: "history.onWake", color: Color(red: 0.91, green: 0.47, blue: 0.98)) { p in
+            guard let d = p.lauf_s, d > 0 else { return nil }; return (p.welle_s ?? 0, d) }]
+    default:
+        return []
+    }
+}
+
+private func erfolgsSerie(_ daten: [(t: Double, n: Double, d: Double)], _ mode: VMode, _ domain: (Double, Double)) -> [VPt] {
+    if daten.count < 2 { return [] }
+    if mode == .cumulative {
+        var sn: Double = 0, sd: Double = 0
+        return daten.map { x in sn += x.n; sd += x.d; return VPt(t: x.t, v: sd > 0 ? sn / sd : 0) }
+    }
+    let w: Double = (mode == .w7 ? 7 : 30) * 86400
+    var letzter: Double = 0
+    var out: [VPt] = []
+    var tt: Double = domain.0
+    while true {
+        let ende: Double = min(tt, domain.1)
+        var sn: Double = 0, sd: Double = 0
+        for x in daten where x.t > ende - w && x.t <= ende { sn += x.n; sd += x.d }
+        let v: Double = sd > 0 ? sn / sd : letzter
+        letzter = v
+        out.append(VPt(t: ende, v: v))
+        if tt >= domain.1 { break }
+        tt += 86400
+    }
+    return out
+}
+
+struct SportErfolgView: View {
+    let punkte: [SportVerlaufPunkt]
+    let mode: VMode
+    let lang: String
+
+    private var jeSport: [(sport: String, liste: [(t: Double, p: SportVerlaufPunkt)])] {
+        // Mit und ohne Sekundenbruchteile (der Server liefert je nach Aufnahme beides).
+        let f = ISO8601DateFormatter()
+        let fb = ISO8601DateFormatter()
+        fb.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var m: [String: [(t: Double, p: SportVerlaufPunkt)]] = [:]
+        for p in punkte {
+            guard let d = f.date(from: p.started_at) ?? fb.date(from: p.started_at) else { continue }
+            m[p.sport, default: []].append((t: d.timeIntervalSince1970, p: p))
+        }
+        let sortiert: [(sport: String, liste: [(t: Double, p: SportVerlaufPunkt)])] = m.map { (sport: $0.key, liste: $0.value.sorted { $0.t < $1.t }) }
+        return sortiert.filter { !erfolgsQuoten($0.sport).isEmpty && $0.liste.count >= 2 }.sorted { $0.sport < $1.sport }
+    }
+
+    var body: some View {
+        let gruppen = jeSport
+        if !gruppen.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(Loc.t("history.foilSuccess", lang)).font(.title3).fontWeight(.semibold).padding(.top, 6)
+                ForEach(gruppen, id: \.sport) { g in block(g.sport, g.liste) }
+            }
+        }
+    }
+
+    private func block(_ sport: String, _ liste: [(t: Double, p: SportVerlaufPunkt)]) -> some View {
+        let domain: (Double, Double) = (liste.first?.t ?? 0, liste.last?.t ?? 1)
+        return VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("cls.sport.\(sport)", lang)).font(.subheadline)
+                .padding(.horizontal, 8).padding(.vertical, 2)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+            ForEach(erfolgsQuoten(sport)) { q in karte(q, liste, domain) }
+        }
+    }
+
+    @ViewBuilder private func karte(_ q: ErfolgsQuote, _ liste: [(t: Double, p: SportVerlaufPunkt)], _ domain: (Double, Double)) -> some View {
+        let daten: [(t: Double, n: Double, d: Double)] = liste.compactMap { x in q.wert(x.p).map { (t: x.t, n: $0.0, d: $0.1) } }
+        let pts: [VPt] = erfolgsSerie(daten, mode, domain)
+        if pts.count >= 2 {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(Loc.t(q.labelKey, lang)).font(.subheadline).fontWeight(.semibold)
+                    Spacer()
+                    Text("\(Int(((pts.last?.v ?? 0) * 100).rounded())) %").font(.subheadline).fontWeight(.semibold).foregroundStyle(q.color)
+                }
+                LineChartView(pts: pts, color: q.color, domain: domain, lang: lang).frame(height: 110)
+            }
+            .padding(12)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 }

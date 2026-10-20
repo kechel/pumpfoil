@@ -187,7 +187,18 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                 if (loading && items.isEmpty()) {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 } else if (data.size < 2) {
-                    Text(I18n.t("verlauf.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // Wer (fast) nur Wind/SUP/Wake faehrt, hat keine Pumpfoil-Kurven — den Erfolg auf dem Foil
+                    // trotzdem zeigen (20.10.2026).
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(I18n.t("verlauf.empty"), Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) }, colors = cyanChipColors())
+                            FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
+                            FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
+                        }
+                        SportErfolgKarten(mode)
+                    }
                 } else {
                     // Bewusst KEINE LazyColumn, sondern eine scrollende Column.
                     //
@@ -224,6 +235,7 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                                 modifier = Modifier.padding(top = 6.dp))
                         }
                         METRICS_SUM.forEach { m -> MetricChartCard(data, m, mode, domain) }
+                        SportErfolgKarten(mode)
                         // Trainingskurve: eigene Abfrage (hr-progress), deshalb eine eigene
                         // Karte mit eigenem Ladezustand — sie haengt nicht am History-Zeitraum.
                         HrProgressCard()
@@ -253,6 +265,86 @@ private fun MetricChartCard(data: List<Pair<Long, HistoryPoint>>, metric: HMetri
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(histDate(domain.first, shortSpan), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(histDate(domain.second, shortSpan), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+}
+
+// Erfolg auf dem Foil je Sportart (20.10.2026, wie PWA History.tsx SportErfolgSection): Quote je Fenster =
+// Summe Erfolge / Summe Versuche. Sessions ohne Erfolg zaehlen mit (0 von n), Tage ohne Session behalten im
+// Fenster den letzten Wert statt auf 0 % zu fallen. Ein Block je Sportart mit eigener Zeitachse.
+private class Quote(val labelKey: String, val color: Color, val num: String, val den: String)
+
+private val SPORT_ERFOLG: Map<String, List<Quote>> = run {
+    val wind = listOf(Quote("history.jibesOnFoil", Color(0xFFF97316), "halse_durch", "halse"),
+                      Quote("history.tacksOnFoil", Color(0xFFA855F7), "wende_durch", "wende"))
+    mapOf("wingfoil" to wind, "kitefoil" to wind, "parawing" to wind,
+          "sup_paddle" to listOf(Quote("history.paddleUps", Color(0xFFF59E0B), "paddle_durch", "paddle")),
+          "wakethief" to listOf(Quote("history.onWake", Color(0xFFE879F9), "welle_s", "lauf_s")))
+}
+
+private fun quoteSerie(daten: List<Triple<Long, Double, Double>>, mode: Mode, domain: Pair<Long, Long>): List<Pt> {
+    if (daten.size < 2) return emptyList()
+    if (mode == Mode.CUMULATIVE) {
+        var sn = 0.0; var sd = 0.0
+        return daten.map { (t, n, d) -> sn += n; sd += d; Pt(t, if (sd > 0) sn / sd else 0.0) }
+    }
+    val w = winMs(mode)
+    var letzter = 0.0
+    fun at(tt: Long): Pt {
+        var sn = 0.0; var sd = 0.0
+        for ((t, n, d) in daten) if (t > tt - w && t <= tt) { sn += n; sd += d }
+        val v = if (sd > 0) sn / sd else letzter
+        letzter = v
+        return Pt(tt, v)
+    }
+    val out = ArrayList<Pt>()
+    var tt = domain.first; while (tt < domain.second) { out.add(at(tt)); tt += DAY_MS }
+    out.add(at(domain.second)); return out
+}
+
+@Composable
+private fun SportErfolgKarten(mode: Mode) {
+    var roh by remember { mutableStateOf<List<kotlinx.serialization.json.JsonObject>>(emptyList()) }
+    LaunchedEffect(Unit) { roh = try { Api.sportVerlauf() } catch (_: Exception) { emptyList() } }
+    fun zahl(o: kotlinx.serialization.json.JsonObject, k: String): Double? =
+        (o[k] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toDoubleOrNull()
+    val je = remember(roh) {
+        roh.mapNotNull { o ->
+            val sp = (o["sport"] as? kotlinx.serialization.json.JsonPrimitive)?.content ?: return@mapNotNull null
+            val t = (o["started_at"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.let { epochMsIso(it) } ?: return@mapNotNull null
+            Triple(sp, t, o)
+        }.sortedBy { it.second }.groupBy { it.first }.filter { (sp, l) -> SPORT_ERFOLG.containsKey(sp) && l.size >= 2 }
+    }
+    if (je.isEmpty()) return
+    val suffix = when (mode) {
+        Mode.W7 -> " · 7 ${I18n.t("verlauf.daysAbbr")}"
+        Mode.W30 -> " · 30 ${I18n.t("verlauf.daysAbbr")}"
+        else -> ""
+    }
+    Text(I18n.t("history.foilSuccess") + suffix, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 6.dp))
+    je.forEach { (sp, liste) ->
+        val domain = liste.first().second to liste.last().second
+        Surface(color = Color(0xFFF59E0B).copy(alpha = 0.18f), shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)) {
+            Text(I18n.t("cls.sport.$sp"), Modifier.padding(horizontal = 8.dp, vertical = 2.dp), color = Color(0xFFD97706))
+        }
+        SPORT_ERFOLG[sp].orEmpty().forEach { q ->
+            val daten = liste.mapNotNull { (_, t, o) ->
+                val d = zahl(o, q.den) ?: return@mapNotNull null
+                val n = zahl(o, q.num) ?: 0.0
+                if (d > 0) Triple(t, n, d) else null
+            }
+            if (daten.size < 2) return@forEach
+            val pts = remember(daten, mode, domain) { quoteSerie(daten, mode, domain) }
+            val cur = pts.lastOrNull()?.v
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(I18n.t(q.labelKey), style = MaterialTheme.typography.titleSmall)
+                        Text(cur?.let { "${(it * 100).roundToInt()} %" } ?: "–", style = MaterialTheme.typography.titleSmall, color = q.color)
+                    }
+                    LineChart(pts, q.color, domain, Modifier.fillMaxWidth().height(110.dp).padding(top = 6.dp))
                 }
             }
         }
