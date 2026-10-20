@@ -8,7 +8,7 @@ import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData
 import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf, SELECT_SCHRUMPFT } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -1844,7 +1844,8 @@ export default function SessionDetail() {
           <span className="inline-flex items-center rounded bg-amber-500/15 px-2 py-1 text-amber-700 dark:text-amber-300">{t(classLabelKey(session))}</span>
         )}
         {session.place_name && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><LocationIcon className="h-3.5 w-3.5" /> {session.place_name}</span>}
-        {session.sport && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><WaveIcon className="h-3.5 w-3.5" /> {session.sport}</span>}
+        {/* Kein Chip mehr mit `session.sport` (Aktivitaetstyp aus der Datei/dem Recorder, Jan 20.10.2026:
+            „eigentlich irrelevant als was das beim Import bezeichnet war") — die Sportart zeigt das Badge oben. */}
         {session.device_label && (
           // App-Version der Aufnahme nur dem Besitzer zeigen (Fehlersuche: „mit welcher Version
           // war das?" liess sich vorher nicht beantworten). Fremde brauchen das nicht.
