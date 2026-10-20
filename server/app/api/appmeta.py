@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.51 for iOS
+        "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.52 for iOS
+        # (Submission 48f47157-a1f1-4e62-a19e-1e2669daa38d, eingereicht 19.10. 13:10, Build 60).
+        # Inhalt: Sportarten-Umbau (Wind-Sessions, Wenden/Halsen, Fahrten, Rekorde/Ausruestung je Sportart,
+        # Sportart auf der Watch), Feedback-Knopf, „zaehlt als" je Modus, Ablauf-Hinweis verknuepfter Konten.
+        # ALT: "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.51 for iOS
         # (Submission 8f57a373-d157-42b2-91db-51355d3b9b97, eingereicht 18.10. 09:32, Build 58).
         # Inhalt: Heatmap & Routen, Schutzgebiete, Freundschaftsanfragen auf Home, Boards bearbeiten,
         # durchgehende Laeufe, Warten auf die Uhr, Push Freunde, Suunto-Hinweis + Suunto-Bruecke (Beta).
@@ -433,7 +437,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.48",   # FREIGEGEBEN 2026-10-14 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -837,25 +842,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 19.10.2026 13:10 (Jans Meldung, ASC „Warten auf Prüfung“, Build 60,
-    # Übermittlung 48f47157-a1f1-4e62-a19e-1e2669daa38d). Build 59 war verbraucht. Jan hat alle
-    # Ansichten in Xcode geprüft; auf der VM nur swiftc -parse.
-    {"name": "iPhone + Apple Watch", "version": "1.1.52",
-     "eingereicht": "2026-10-19",
-     "items": [
-         "Every page has a feedback button at the top right, and your message tells us which session or page you mean.",
-         "The changelog page shows how far the analysis is tuned for each sport.",
-         "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
-         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
-         "The three buttons for your spot description sit in one row as icons.",
-         "On the Apple Watch you can pick the sport before you start, next to the foil.",
-         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
-         "The Community page can show records and leaderboards for each sport, like the website.",
-         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
-         "Under My foils you choose which sports you can pick on the watch.",
-         "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
-         "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
-     ]},
+    # iPhone + Apple Watch 1.1.52 (eingereicht 19.10., freigegeben 20.10.2026) -> LIVE, Punkte stehen im Changelog (ids 685-696).
     # EINGEREICHT 18.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
     # Vor der Einreichung im Simulator (npm run dev-echt): Positionsmeldung 200, app-closed 200, Upload
     # komplett; nicht auf Hardware. Neu in der Geraeteliste: T-Rex Dual Solar (11403520/11403521).
