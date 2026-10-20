@@ -1364,7 +1364,9 @@ def sport_stand_aufgeloest() -> dict:
     macht und wenigstens proposed wurde"). Im Buch stehen sie weiter, damit es vollstaendig bleibt."""
     with open(_SPORT_STAND, encoding="utf-8") as f:
         buch = json.load(f)
-    merkmale = buch["merkmale"]
+    # `"oeffentlich": false` am Merkmal: steht im Buch, erscheint aber nicht auf /changelog (Jan, 20.10.2026
+    # zur Autofahrt-Zeile: „ueberall raus aus der tabelle, das ist ueberall und auch nicht sonderlich interessant").
+    merkmale = [m for m in buch["merkmale"] if m.get("oeffentlich", True)]
     sportarten = []
     for sp in buch["sportarten"]:
         gruppe = buch["gruppen"][sp["gruppe"]]
@@ -1386,6 +1388,8 @@ def sport_stand_aufgeloest() -> dict:
     # Fuer alle Sportarten gleich (Jan, 19.10.2026): eigener Abschnitt ueber den Sportarten.
     allgemein = []
     for m in buch.get("merkmale_allgemein", []):
+        if not m.get("oeffentlich", True):
+            continue
         e = (buch.get("allgemein") or {}).get("merkmale", {}).get(m["id"]) or {}
         text, seit = e.get("en", ""), e.get("seit")
         if e.get("plattformen"):
