@@ -988,7 +988,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (zeigeMarker) {
-                                        Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
+                                        // SUP: dort sind es Paddelschlaege (Schlag-Erkennung), keine Pumps (20.10.2026).
+                                        Text(I18n.t(if (s.sportClass == "sup_paddle") "sd.strokes" else "sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Spacer(Modifier.width(4.dp))
                                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
@@ -1018,7 +1019,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty())
+                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = paddel?.schlagPkt.orEmpty(), wellen = wellePumpen?.linien.orEmpty())
                         // Vollbild-Karte (PWA-Paritaet: dort ein Knopf "Vollbild" ueber der Karte
                         // bzw. die Taste F). Hier ein Knopf IN der Kartenecke — dasselbe Muster,
                         // das die Vergleichskarte dieser App schon nutzt.
@@ -1042,7 +1043,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty())
+                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = paddel?.schlagPkt.orEmpty(), wellen = wellePumpen?.linien.orEmpty())
                             IconButton(
                                 onClick = { mapFull = false },
                                 // Karte bleibt randlos, das X nicht — sonst liegt es unter der Statusleiste.
@@ -1391,6 +1392,22 @@ private fun pumpDot(): android.graphics.drawable.Drawable {
     return android.graphics.drawable.BitmapDrawable(null, bmp)
 }
 
+/** Runde bernsteinfarbene Marke mit der Versuchsnummer (SUP-Sprints, wie PWA). */
+private fun nummerIcon(ctx: android.content.Context, nr: Int, dens: Float): android.graphics.drawable.BitmapDrawable {
+    val size = (18 * dens).toInt().coerceAtLeast(8)
+    val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+    val c = android.graphics.Canvas(bmp)
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+    paint.color = 0xFFF59E0B.toInt()
+    c.drawCircle(size / 2f, size / 2f, size / 2f, paint)
+    paint.color = 0xFF0F172A.toInt()
+    paint.textSize = 11 * dens
+    paint.typeface = android.graphics.Typeface.DEFAULT_BOLD
+    paint.textAlign = android.graphics.Paint.Align.CENTER
+    c.drawText("$nr", size / 2f, size / 2f - (paint.descent() + paint.ascent()) / 2f, paint)
+    return android.graphics.drawable.BitmapDrawable(ctx.resources, bmp)
+}
+
 @Composable
 private fun TrackMap(
     track: Track, segments: List<Segment>, mode: ColorMode,
@@ -1406,6 +1423,13 @@ private fun TrackMap(
     tempoSkala: Pair<Double, Double> = 8.0 to 25.0,
     /** Wenden (violett) / Halsen (orange) als Marken; voll = auf dem Foil durchgefahren. */
     manoever: List<Manoever> = emptyList(),
+    /** SUP (20.10.2026, wie PWA): Sprints je Versuch [[lat,lon],…]; bernsteinfarben bei ganzer Fahrt, sonst
+     *  in der gewaehlten Faerbung, mit Versuchsnummer. */
+    sprints: List<List<List<Double>>> = emptyList(),
+    /** SUP: Orte der Paddelschlaege (Schlag-Erkennung). Nicht leer -> ersetzt die Pump-Marker. */
+    schlaege: List<List<Double>> = emptyList(),
+    /** Wake thief: Wellenstuecke als breites, halbdurchsichtiges Band. */
+    wellen: List<List<List<Double>>> = emptyList(),
 ) {
     val pts = track.points
     val speeds = track.speedsFor(win)
@@ -1513,8 +1537,9 @@ private fun TrackMap(
                             })
                         }
                     }
-                    // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.
-                    if (showPumps && !dim) {
+                    // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte. Bei SUP stattdessen
+                    // die Paddelschlaege (unten), nicht die Pumps der Pump-Erkennung.
+                    if (showPumps && !dim && schlaege.isEmpty()) {
                         val dot = pumpDot()
                         for (idx in seg.pumpIdx) {
                             val p = pts.getOrNull(idx) ?: continue
@@ -1550,6 +1575,64 @@ private fun TrackMap(
                             infoWindow = null
                         })
                         allPts.add(pa); allPts.add(pb)
+                    }
+                }
+                // Wake thief (20.10.2026, wie PWA): Wellenstuecke als breites fuchsia Band.
+                if (selectedRun == null) for (ln in wellen) {
+                    val gp = ln.mapNotNull { if (it.size >= 2) GeoPoint(it[0], it[1]) else null }
+                    if (gp.size < 2) continue
+                    map.overlays.add(Polyline(map).apply {
+                        setPoints(gp)
+                        outlinePaint.color = Color(0xFFE879F9).copy(alpha = 0.45f).toArgb()
+                        outlinePaint.strokeWidth = 10f * dens
+                        outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                        infoWindow = null
+                    })
+                }
+                // SUP (20.10.2026, wie PWA): Sprints bernsteinfarben (ganze Fahrt) bzw. in der gewaehlten
+                // Faerbung (nur Foil, Farbe vom naechsten Track-Punkt), Versuchsnummer am Anfang.
+                if (selectedRun == null) sprints.forEachIndexed { nr, ln ->
+                    val gp = ln.mapNotNull { if (it.size >= 2) GeoPoint(it[0], it[1]) else null }
+                    if (gp.isEmpty()) return@forEachIndexed
+                    for (k in 0 until gp.size - 1) {
+                        val farbe = if (ganzeFahrt || pts.isEmpty()) Color(0xFFF59E0B) else {
+                            val q = gp[k + 1]
+                            var best = 0; var bd = Double.MAX_VALUE
+                            for (j in pts.indices) {
+                                val d = (pts[j].second - q.latitude) * (pts[j].second - q.latitude) +
+                                        (pts[j].first - q.longitude) * (pts[j].first - q.longitude)
+                                if (d < bd) { bd = d; best = j }
+                            }
+                            colorAt(best)
+                        }
+                        map.overlays.add(Polyline(map).apply {
+                            setPoints(listOf(gp[k], gp[k + 1]))
+                            outlinePaint.color = farbe.toArgb()
+                            outlinePaint.strokeWidth = 6f * dens
+                            outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                            infoWindow = null
+                        })
+                    }
+                    map.overlays.add(Marker(map).apply {
+                        position = gp[0]
+                        icon = nummerIcon(map.context, nr + 1, dens)
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        setInfoWindow(null)
+                        setOnMarkerClickListener { _, _ -> true }
+                    })
+                }
+                // SUP: Paddelschlaege als kleine Punkte (Knopf „Paddelschlaege"), nur ohne ausgewaehlten Lauf.
+                if (showPumps && selectedRun == null && schlaege.isNotEmpty()) {
+                    val dot = pumpDot()
+                    for (p in schlaege) {
+                        if (p.size < 2) continue
+                        map.overlays.add(Marker(map).apply {
+                            position = GeoPoint(p[0], p[1])
+                            icon = dot
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            setInfoWindow(null)
+                            setOnMarkerClickListener { _, _ -> true }
+                        })
                     }
                 }
                 // Wenden/Halsen (nur Wind, nur ohne ausgewaehlten Lauf): violett/orange, hohl = abgesetzt.

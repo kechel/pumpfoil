@@ -1116,6 +1116,7 @@ struct WellePumpen: Codable {
     let pumps: Int
     let pumps_pro_min: Int?
     let laengste_welle_s: Int
+    let linien: [[[Double]]]?
 }
 
 // Paddelschlaege + Paddle-up-Versuche (SUP, GET /api/sessions/{id}/paddel, 20.10.2026; server/app/paddel.py).
@@ -1125,6 +1126,7 @@ struct PaddelVersuch: Codable {
     let schlaege: Int
     let ergebnis: String
     let foil_s: Double?
+    let linie: [[Double]]?
 }
 struct PaddelAntwort: Codable {
     let schlaege: Int
@@ -1132,6 +1134,7 @@ struct PaddelAntwort: Codable {
     let auf_foil: Int
     let kurz: Int
     let versuche: [PaddelVersuch]
+    let schlag_pkt: [[Double]]?
 }
 
 struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen?; let hoehe: Hoehe? }

@@ -916,9 +916,16 @@
           "seit": "2026-10-20",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
-          "notiz": "Jan 20.10.: „bei wake-thief das gleiche bitte“ (wie SUP). sportprofil JE_SPORT wakethief karte=ganz; Wellenband aus /welle-pumpen nur im Web."
+          "notiz": "Jan 20.10.: „bei wake-thief das gleiche bitte“ (wie SUP). sportprofil JE_SPORT wakethief karte=ganz; Wellenband aus /welle-pumpen nur im Web. 20.10.: Markierungen auch in den Apps (Android osmdroid, iOS MapKit).",
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         }
       }
     },
@@ -955,9 +962,16 @@
           "seit": "2026-10-20",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
-          "notiz": "Jan 20.10.: „bei sup/paddling sollten wir in der karte auch die Sprints markieren und die on-foil die daraus folgten als eigene Ansicht“. sportprofil JE_SPORT sup_paddle karte=ganz (Schalter auch in den Apps, die das Profil lesen); Sprint-Linien aus /paddel (paddel.py p2 `linie`) nur im Web."
+          "notiz": "Jan 20.10.: „bei sup/paddling sollten wir in der karte auch die Sprints markieren und die on-foil die daraus folgten als eigene Ansicht“. sportprofil JE_SPORT sup_paddle karte=ganz (Schalter auch in den Apps, die das Profil lesen); Sprint-Linien aus /paddel (paddel.py p2 `linie`) nur im Web. 20.10.: Markierungen auch in den Apps (Android osmdroid, iOS MapKit).",
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         }
       }
     },
