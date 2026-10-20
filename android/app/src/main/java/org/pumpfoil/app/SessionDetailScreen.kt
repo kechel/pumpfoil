@@ -1175,9 +1175,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
-            a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it, manoever?.fahrten.orEmpty()) }
-            paddel?.let { PaddelKarte(it) }
-            wellePumpen?.let { WelleKarte(it) }
+            a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it, manoever?.fahrten.orEmpty(), s.sportClass) }
+            paddel?.let { PaddelKarte(it, s.sportClass) }
+            wellePumpen?.let { WelleKarte(it, s.sportClass) }
             windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe, windInfo?.vorhersage == true, windVergleich) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
@@ -2199,39 +2199,95 @@ private data class StatItem(val label: String, val value: String, val runIdx: In
                             val info: String? = null)
 
 // Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
+/** Eine Spalte der Sportart-Tabellen: Sortierwert (null = nicht sortierbar) und Zelltext je Zeile. */
+private class SortSpalte(val label: String, val breite: Int, val wert: ((Int) -> Double?)?, val zelle: (Int) -> String,
+                         val farbe: ((Int) -> Color?)? = null)
+
+/**
+ * Sortierbare Tabelle fuer die Sportart-Tabellen (Fahrten, Paddle-up-Versuche; 20.10.2026, wie PWA SortTabelle):
+ * Ueberschrift antippen -> aufsteigend, nochmal -> absteigend, „#" stellt die Reihenfolge wieder her; fehlende
+ * Werte immer unten. Die Zeile behaelt ihre Nummer. Breite Tabellen scrollen waagrecht.
+ */
 @Composable
-private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = emptyList()) {
-    Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            fahrten.forEachIndexed { i, f ->
-                Text("${I18n.t("sd.ride")} ${i + 1}   ${fmtLaufDauer(f.dauerS)}   %.1f km".format(f.streckeM / 1000.0) +
-                    "   (%.1f km · ".format(f.foilM / 1000.0) + I18n.t("sd.rideRuns").replace("{n}", "${f.laeufe}") + ")",
-                    style = MaterialTheme.typography.bodyMedium)
-                // Downwind: Luftlinie A->B mit Tempo und Anteil auf dem Foil.
-                if (f.abM != null && f.abKmh != null) {
-                    Text(I18n.t("sd.aToB").replace("{km}", "%.1f".format(f.abM / 1000.0)).replace("{v}", "%.1f".format(f.abKmh)) +
-                        (f.foilAnteil?.let { " · ${I18n.t("sd.foilShare")} ${kotlin.math.round(it * 100).toInt()} %" } ?: ""),
-                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun SortTabelle(titel: String, n: Int, spalten: List<SortSpalte>) {
+    var sortKey by remember { mutableStateOf<Int?>(null) }
+    var auf by remember { mutableStateOf(true) }
+    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    val reihen = (0 until n).toMutableList()
+    sortKey?.let { k ->
+        val f = spalten[k].wert ?: return@let
+        reihen.sortWith { a, b ->
+            val va = f(a); val vb = f(b)
+            when {
+                va == null && vb == null -> a - b
+                va == null -> 1
+                vb == null -> -1
+                else -> (if (auf) va.compareTo(vb) else vb.compareTo(va)).takeIf { it != 0 } ?: (a - b)
+            }
+        }
+    }
+    Text(titel, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 12.dp))
+    Card(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Column(Modifier.horizontalScroll(rememberScrollState()).padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Row {
+                Text("#", Modifier.width(28.dp).clickable { sortKey = null; auf = true }, textAlign = TextAlign.End,
+                    color = grau, style = MaterialTheme.typography.labelSmall)
+                spalten.forEachIndexed { k, sp ->
+                    val aktiv = sortKey == k
+                    Text(sp.label + (if (aktiv) (if (auf) " ▲" else " ▼") else ""),
+                        Modifier.width(sp.breite.dp).padding(start = 8.dp)
+                            .then(if (sp.wert != null) Modifier.clickable { if (aktiv) auf = !auf else { sortKey = k; auf = true } } else Modifier),
+                        textAlign = TextAlign.End, style = MaterialTheme.typography.labelSmall,
+                        color = if (aktiv) Color(0xFF22D3EE) else grau, maxLines = 2)
                 }
-                // Wind (20.10.2026, wie PWA): Wenden/Halsen auf dem Foil, Hoehe, beste VMG, Modellwind je Fahrt.
-                jeFahrt.firstOrNull { it.tStartMs == f.tStartMs }?.let { m ->
-                    Text(listOfNotNull(
-                        if (m.wende > 0) "${I18n.t("sd.tacks")} ${m.wendeDurch}/${m.wende}" else null,
-                        if (m.halse > 0) "${I18n.t("sd.jibes")} ${m.halseDurch}/${m.halse}" else null,
-                        m.hoeheM?.let { "${I18n.t("sd.colHeight")} %.1f".format(it / 1000.0) },
-                        m.vmgMaxKmh?.let { "${I18n.t("sd.colVmg")} %.1f km/h".format(it) },
-                        m.windKmh?.let { "${I18n.t("sd.wind")} %.0f km/h".format(it) },
-                    ).joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            reihen.forEach { i ->
+                Row {
+                    Text("${i + 1}", Modifier.width(28.dp), textAlign = TextAlign.End, color = grau)
+                    spalten.forEach { sp ->
+                        Text(sp.zelle(i), Modifier.width(sp.breite.dp).padding(start = 8.dp), textAlign = TextAlign.End,
+                            color = sp.farbe?.invoke(i) ?: MaterialTheme.colorScheme.onSurface)
+                    }
                 }
             }
         }
     }
 }
 
+@Composable
+private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = emptyList(), sport: String? = null) {
+    // Sortierbare Tabelle unter der Karte (20.10.2026, wie PWA): Downwind mit A->B, Wind mit den Kennzahlen je Fahrt.
+    val ab = fahrten.any { it.abM != null }
+    val m = fahrten.map { f -> jeFahrt.firstOrNull { it.tStartMs == f.tStartMs } }
+    val mitWind = m.any { it != null }
+    fun km(v: Double?) = v?.let { "%.1f".format(it / 1000.0) } ?: "–"
+    val spalten = buildList {
+        add(SortSpalte(I18n.t("sd.colDuration"), 60, { fahrten[it].dauerS }, { fmtLaufDauer(fahrten[it].dauerS) }))
+        add(SortSpalte(I18n.t("sd.colDistance") + " km", 66, { fahrten[it].streckeM }, { km(fahrten[it].streckeM) }))
+        add(SortSpalte("Foil km", 56, { fahrten[it].foilM }, { km(fahrten[it].foilM) }))
+        add(SortSpalte(I18n.t("stat.runs"), 48, { fahrten[it].laeufe.toDouble() }, { "${fahrten[it].laeufe}" }))
+        if (ab) {
+            add(SortSpalte("A→B km", 60, { fahrten[it].abM }, { km(fahrten[it].abM) }))
+            add(SortSpalte("A→B km/h", 66, { fahrten[it].abKmh }, { fahrten[it].abKmh?.let { v -> "%.1f".format(v) } ?: "–" }))
+            add(SortSpalte("Foil %", 50, { fahrten[it].foilAnteil }, { fahrten[it].foilAnteil?.let { v -> "${kotlin.math.round(v * 100).toInt()} %" } ?: "–" }))
+        }
+        if (mitWind) {
+            add(SortSpalte(I18n.t("sd.tacks"), 62, { m[it]?.wendeDurch?.toDouble() }, { m[it]?.let { x -> if (x.wende > 0) "${x.wendeDurch} / ${x.wende}" else "–" } ?: "–" }))
+            add(SortSpalte(I18n.t("sd.jibes"), 66, { m[it]?.halseDurch?.toDouble() }, { m[it]?.let { x -> if (x.halse > 0) "${x.halseDurch} / ${x.halse}" else "–" } ?: "–" }))
+            add(SortSpalte(I18n.t("sd.colHeight"), 64, { m[it]?.hoeheM }, { km(m[it]?.hoeheM) }))
+            add(SortSpalte(I18n.t("sd.colVmg") + " km/h", 76, { m[it]?.vmgMaxKmh }, { m[it]?.vmgMaxKmh?.let { v -> "%.1f".format(v) } ?: "–" }))
+            add(SortSpalte(I18n.t("sd.wind") + " km/h", 64, { m[it]?.windKmh }, { m[it]?.windKmh?.let { v -> "%.0f".format(v) } ?: "–" }))
+        }
+    }
+    SortTabelle("${I18n.t("cls.sport.${sport ?: "other"}")} · ${I18n.t("sd.rides")}", fahrten.size, spalten)
+}
+
 // Wake thief (20.10.2026): auf der Welle gegen gepumpt, als zwei buendige Zeilen wie im Web.
 @Composable
-private fun WelleKarte(w: WellePumpen) {
+private fun WelleKarte(w: WellePumpen, sport: String? = null) {
     fun mmss(sek: Int) = "%d:%02d".format(sek / 60, sek % 60)
+    Text(I18n.t("cls.sport.${sport ?: "wakethief"}"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(top = 12.dp))
     Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row {
@@ -2260,7 +2316,7 @@ private fun WelleKarte(w: WellePumpen) {
 
 // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026) — wie die Box im Web, nur Datenzeilen.
 @Composable
-private fun PaddelKarte(p: PaddelAntwort) {
+private fun PaddelKarte(p: PaddelAntwort, sport: String? = null) {
     Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row {
@@ -2273,31 +2329,21 @@ private fun PaddelKarte(p: PaddelAntwort) {
                     Text("${p.versuche.size} · " + I18n.t("sd.attOnFoil").replace("{n}", "${p.aufFoil}") +
                         (if (p.kurz > 0) " · " + I18n.t("sd.attBrief").replace("{n}", "${p.kurz}") else ""))
                 }
-                // Als Tabelle, Spalten buendig (Jan 20.10.: „etwas ordentlicher als tabelle / aligned").
-                val grau = MaterialTheme.colorScheme.onSurfaceVariant
-                Row(Modifier.padding(top = 4.dp)) {
-                    Text("#", Modifier.width(28.dp), textAlign = TextAlign.End, color = grau, style = MaterialTheme.typography.labelSmall)
-                    Text(I18n.t("sd.sprintStrokes"), Modifier.width(110.dp), textAlign = TextAlign.End, color = grau, style = MaterialTheme.typography.labelSmall)
-                }
-                p.versuche.forEachIndexed { i, v ->
-                    val (txt, farbe) = when (v.ergebnis) {
-                        "foil" -> I18n.t("sd.onFoil") to Color(0xFF22D3EE)
-                        "kurz" -> I18n.t("sd.attShort") to Color(0xFFF59E0B)
-                        else -> I18n.t("sd.attNot") to grau
-                    }
-                    Row {
-                        Text("${i + 1}", Modifier.width(28.dp), textAlign = TextAlign.End, color = grau)
-                        Text("${v.schlaege}", Modifier.width(110.dp), textAlign = TextAlign.End)
-                        Spacer(Modifier.width(16.dp))
-                        Text(txt, Modifier.width(130.dp), color = farbe)
-                        if (v.ergebnis == "foil") {
-                            val sek = (v.foilS ?: 0.0).toInt()
-                            Text("%d:%02d".format(sek / 60, sek % 60), Modifier.width(48.dp), textAlign = TextAlign.End, color = farbe)
-                        }
-                    }
-                }
             }
         }
+    }
+    // Versuche als sortierbare Tabelle (20.10.2026, wie PWA).
+    if (p.versuche.isNotEmpty()) {
+        val v = p.versuche
+        val grau = MaterialTheme.colorScheme.onSurfaceVariant
+        SortTabelle("${I18n.t("cls.sport.${sport ?: "sup_paddle"}")} · ${I18n.t("sd.attempts")}", v.size, listOf(
+            SortSpalte(I18n.t("sd.sprintStrokes"), 96, { v[it].schlaege.toDouble() }, { "${v[it].schlaege}" }),
+            SortSpalte(I18n.t("sd.attempts"), 110, { when (v[it].ergebnis) { "foil" -> 2.0; "kurz" -> 1.0; else -> 0.0 } },
+                { when (v[it].ergebnis) { "foil" -> I18n.t("sd.onFoil"); "kurz" -> I18n.t("sd.attShort"); else -> I18n.t("sd.attNot") } },
+                farbe = { when (v[it].ergebnis) { "foil" -> Color(0xFF22D3EE); "kurz" -> Color(0xFFF59E0B); else -> grau } }),
+            SortSpalte("Foil", 52, { if (v[it].ergebnis == "foil") v[it].foilS ?: 0.0 else null },
+                { if (v[it].ergebnis == "foil") (v[it].foilS ?: 0.0).toInt().let { x -> "%d:%02d".format(x / 60, x % 60) } else "" }),
+        ))
     }
 }
 
