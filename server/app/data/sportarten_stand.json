@@ -125,6 +125,10 @@
     {
       "id": "paddelschlaege",
       "en": "Paddle strokes"
+    },
+    {
+      "id": "sport_rekorde",
+      "en": "Sport-specific community records"
     }
   ],
   "gruppen": {
@@ -267,6 +271,10 @@
           "en": "Does not apply."
         },
         "paddelschlaege": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "sport_rekorde": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -531,6 +539,11 @@
         "paddelschlaege": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "sport_rekorde": {
+          "status": "geplant",
+          "en": "Records for the best share of tacks and jibes on the foil, the best VMG and the most distance gained upwind in a session.",
+          "notiz": "Jan 20.10.2026: „neue community-rekorde je sportart, z.b. Verhaeltnis erfolgreiche/nicht erfolgreiche jibes/tacks … auch best vmg und so klingen nach guten ideen“ -> Quote Wenden/Halsen + beste VMG = geplant (Jan). Claude-Vorschlaege dazu: meiste Hoehe je Session, meiste Halsen auf dem Foil je Session, laengste/weiteste Fahrt (5-Minuten-Regel). Quoten nur ab Mindestzahl (Vorschlag: >= 20 Halsen bzw. >= 10 Wenden), sonst gewinnt 1/1 = 100 %. VMG/Hoehe haengen am STUENDLICHEN Modellwind (keine Messung) -> als geschaetzt kennzeichnen. Quelle: Manoever-Cache (m4-fahrt)."
         }
       }
     },
@@ -660,6 +673,10 @@
           "en": "Does not apply."
         },
         "paddelschlaege": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "sport_rekorde": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -808,6 +825,10 @@
         "paddelschlaege": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "sport_rekorde": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     }
@@ -926,6 +947,11 @@
             "android": "1.1.44",
             "ios": "1.1.53"
           }
+        },
+        "sport_rekorde": {
+          "status": "vorschlag",
+          "en": "Records for the longest stretch on the wake and the most time on the wake in a session.",
+          "notiz": "Claude-Vorschlag 20.10.2026 (Jan bat um Vorschlaege). Quelle data/welle_pumpen/; erst nach Community-Feedback zur Erkennung sinnvoll."
         }
       }
     },
@@ -972,6 +998,11 @@
             "android": "1.1.44",
             "ios": "1.1.53"
           }
+        },
+        "sport_rekorde": {
+          "status": "geplant",
+          "en": "Records for the most paddle-up attempts that got onto the foil in a session and the best share of successful attempts.",
+          "notiz": "Jan 20.10.2026: „bei paddle-up die max-anzahl erfolgreicher versuche, sowie das beste Verhaeltnis tries vs. erfolg“. Quote ab Mindestzahl (Vorschlag >= 5 Versuche). Zaehlt nur 'foil', nicht 'kurz' (unbelegt). Claude-Vorschlag dazu: laengste Foil-Zeit nach einem Paddle-up. Quelle: data/paddel/ (nur Sessions mit Accel)."
         }
       }
     },
@@ -1043,6 +1074,11 @@
         "downwind_verbunden": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "sport_rekorde": {
+          "status": "vorschlag",
+          "en": "Records for the most waves in a session and the longest wave.",
+          "notiz": "Claude-Vorschlag 20.10.2026. Quelle sportzahlen.wellen; nur 3 Fahrer."
         }
       }
     },
@@ -1104,6 +1140,11 @@
             "ios"
           ],
           "notiz": "Jan 20.10. (wie SUP). sportprofil JE_SPORT surf_downwind karte=ganz; Apps lesen das Profil."
+        },
+        "sport_rekorde": {
+          "status": "vorschlag",
+          "en": "Records for the longest downwind from A to B and the fastest A to B over at least 2 km.",
+          "notiz": "Claude-Vorschlag 20.10.2026. Quelle sportzahlen.fahrten ab_m/ab_kmh; nur 2 Fahrer."
         }
       }
     },
@@ -1290,6 +1331,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "alle ausser pumpfoil"
+      ],
+      "merkmal": "sport_rekorde",
+      "was": "Sportart-Rekorde: Wind (Quote Wenden/Halsen, beste VMG) und SUP (erfolgreiche Paddle-ups, Quote) geplant; Wake/Welle/Downwind als Vorschlag.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [
