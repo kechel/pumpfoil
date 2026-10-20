@@ -541,9 +541,21 @@
           "en": "Does not apply."
         },
         "sport_rekorde": {
-          "status": "geplant",
-          "en": "Records for the best share of tacks and jibes on the foil, the best VMG and the most distance gained upwind in a session.",
-          "notiz": "Jan 20.10.2026: „neue community-rekorde je sportart, z.b. Verhaeltnis erfolgreiche/nicht erfolgreiche jibes/tacks … auch best vmg und so klingen nach guten ideen“ -> Quote Wenden/Halsen + beste VMG = geplant (Jan). Claude-Vorschlaege dazu: meiste Hoehe je Session, meiste Halsen auf dem Foil je Session, laengste/weiteste Fahrt (5-Minuten-Regel). Quoten nur ab Mindestzahl (Vorschlag: >= 20 Halsen bzw. >= 10 Wenden), sonst gewinnt 1/1 = 100 %. VMG/Hoehe haengen am STUENDLICHEN Modellwind (keine Messung) -> als geschaetzt kennzeichnen. Quelle: Manoever-Cache (m4-fahrt)."
+          "status": "live",
+          "en": "Records for the best share of jibes and of tacks on the foil (from 20 jibes / 10 tacks), the best VMG, the most distance gained upwind, the most jibes on the foil and the longest and farthest ride, for the community, per spot and per time window, and your own per sport on Home and your profile.",
+          "notiz": "Jan 20.10.2026: „neue community-rekorde je sportart, z.b. Verhaeltnis erfolgreiche/nicht erfolgreiche jibes/tacks … auch best vmg und so klingen nach guten ideen“ -> Quote Wenden/Halsen + beste VMG = geplant (Jan). Claude-Vorschlaege dazu: meiste Hoehe je Session, meiste Halsen auf dem Foil je Session, laengste/weiteste Fahrt (5-Minuten-Regel). Quoten nur ab Mindestzahl (Vorschlag: >= 20 Halsen bzw. >= 10 Wenden), sonst gewinnt 1/1 = 100 %. VMG/Hoehe haengen am STUENDLICHEN Modellwind (keine Messung) -> als geschaetzt kennzeichnen. Quelle: Manoever-Cache (m4-fahrt). UMGESETZT 20.10. alle (Jan: „die rekorde gerne alle einbauen, auch deine vorgeschlagenen … community und per spot und je zeitfenster … im eigenen home und auf der eigenen Profilseite“). app/sportrekorde.py liest die Anzeige-Caches; GPS-Spruenge > 80 km/h vorher raus (manoever m6, #14111 hatte 3150 km/h VMG).",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         }
       }
     },
@@ -949,9 +961,21 @@
           }
         },
         "sport_rekorde": {
-          "status": "vorschlag",
+          "status": "live",
           "en": "Records for the longest stretch on the wake and the most time on the wake in a session.",
-          "notiz": "Claude-Vorschlag 20.10.2026 (Jan bat um Vorschlaege). Quelle data/welle_pumpen/; erst nach Community-Feedback zur Erkennung sinnvoll."
+          "notiz": "Claude-Vorschlag 20.10.2026 (Jan bat um Vorschlaege). Quelle data/welle_pumpen/; erst nach Community-Feedback zur Erkennung sinnvoll. UMGESETZT 20.10. (Jan: alle einbauen).",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         }
       }
     },
@@ -1000,9 +1024,21 @@
           }
         },
         "sport_rekorde": {
-          "status": "geplant",
-          "en": "Records for the most paddle-up attempts that got onto the foil in a session and the best share of successful attempts.",
-          "notiz": "Jan 20.10.2026: „bei paddle-up die max-anzahl erfolgreicher versuche, sowie das beste Verhaeltnis tries vs. erfolg“. Quote ab Mindestzahl (Vorschlag >= 5 Versuche). Zaehlt nur 'foil', nicht 'kurz' (unbelegt). Claude-Vorschlag dazu: laengste Foil-Zeit nach einem Paddle-up. Quelle: data/paddel/ (nur Sessions mit Accel)."
+          "status": "live",
+          "en": "Records for the most paddle-ups onto the foil in a session, the best share of successful paddle-ups (from 5 attempts) and the longest foil after a paddle-up.",
+          "notiz": "Jan 20.10.2026: „bei paddle-up die max-anzahl erfolgreicher versuche, sowie das beste Verhaeltnis tries vs. erfolg“. Quote ab Mindestzahl (Vorschlag >= 5 Versuche). Zaehlt nur 'foil', nicht 'kurz' (unbelegt). Claude-Vorschlag dazu: laengste Foil-Zeit nach einem Paddle-up. Quelle: data/paddel/ (nur Sessions mit Accel). UMGESETZT 20.10. (Jan: alle einbauen).",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         }
       }
     },
@@ -1076,9 +1112,21 @@
           "en": "Does not apply."
         },
         "sport_rekorde": {
-          "status": "vorschlag",
+          "status": "live",
           "en": "Records for the most waves in a session and the longest wave.",
-          "notiz": "Claude-Vorschlag 20.10.2026. Quelle sportzahlen.wellen; nur 3 Fahrer."
+          "notiz": "Claude-Vorschlag 20.10.2026. Quelle sportzahlen.wellen; nur 3 Fahrer. UMGESETZT 20.10. (Jan: alle einbauen).",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         }
       }
     },
@@ -1142,9 +1190,21 @@
           "notiz": "Jan 20.10. (wie SUP). sportprofil JE_SPORT surf_downwind karte=ganz; Apps lesen das Profil."
         },
         "sport_rekorde": {
-          "status": "vorschlag",
+          "status": "live",
           "en": "Records for the longest downwind from A to B and the fastest A to B over at least 2 km.",
-          "notiz": "Claude-Vorschlag 20.10.2026. Quelle sportzahlen.fahrten ab_m/ab_kmh; nur 2 Fahrer."
+          "notiz": "Claude-Vorschlag 20.10.2026. Quelle sportzahlen.fahrten ab_m/ab_kmh; nur 2 Fahrer. UMGESETZT 20.10. (Jan: alle einbauen).",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-10-20",
+            "android": "1.1.44",
+            "ios": "1.1.53"
+          }
         }
       }
     },
@@ -1331,6 +1391,20 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "alle ausser pumpfoil"
+      ],
+      "merkmal": "sport_rekorde",
+      "was": "Rekorde je Sportart live: Community, je Spot, je Zeitraum; eigene je Sportart auf Home und Profil (Web; Apps im naechsten Release).",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [

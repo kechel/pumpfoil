@@ -1127,6 +1127,10 @@ object Api {
 
     // Oeffentliche Foiler-Seite EINES Nutzers. Was drinsteht, entscheidet der Server anhand der
     // Schalter des Nutzers (`zeigt`); die App filtert nichts nach.
+    suspend fun sportRekorde(period: String = "all"): SportRekordeAntwort = withContext(Dispatchers.IO) {
+        json.decodeFromString(SportRekordeAntwort.serializer(), http("GET", "/api/sessions/sport-rekorde?period=$period", null, auth = true))
+    }
+
     suspend fun foilerProfil(userId: Int): FoilerProfil = withContext(Dispatchers.IO) {
         json.decodeFromString(FoilerProfil.serializer(), http("GET", "/api/community/foiler/$userId", null, auth = true))
     }

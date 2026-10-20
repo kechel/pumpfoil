@@ -390,6 +390,24 @@ struct PeriodRecords: Codable {
     let session_time: CommunityRecordEntry?
     let session_pumps: CommunityRecordEntry?
     var session_total: CommunityRecordEntry? = nil   // nur Wind-Sportarten (19.10.2026)
+    // Rekorde je Sportart (20.10.2026, server/app/sportrekorde.py): nur bei der jeweiligen Sportart gefuellt.
+    var jibe_quote: CommunityRecordEntry? = nil
+    var tack_quote: CommunityRecordEntry? = nil
+    var vmg_best: CommunityRecordEntry? = nil
+    var upwind_m: CommunityRecordEntry? = nil
+    var jibes_foil: CommunityRecordEntry? = nil
+    var ride_longest: CommunityRecordEntry? = nil
+    var ride_farthest: CommunityRecordEntry? = nil
+    var paddle_success: CommunityRecordEntry? = nil
+    var paddle_quote: CommunityRecordEntry? = nil
+    var paddle_foil_longest: CommunityRecordEntry? = nil
+    var wake_longest: CommunityRecordEntry? = nil
+    var wake_time: CommunityRecordEntry? = nil
+    var dw_ab: CommunityRecordEntry? = nil
+    var dw_ab_speed: CommunityRecordEntry? = nil
+    var waves: CommunityRecordEntry? = nil
+    var wave_longest: CommunityRecordEntry? = nil
+
     let max_hr: CommunityRecordEntry?
     let early_bird: CommunityRecordEntry?   // Wert = s seit Mitternacht (Spot-Ortszeit)
     let night_owl: CommunityRecordEntry?    // >24h möglich -> mod 24h anzeigen
@@ -968,6 +986,7 @@ struct FoilerProfil: Decodable {
     let kanal: String?            // freigegebener YouTube-Kanal
     let foils: [FoilerFoil]?
     let rekorde: OverallStats?    // eigene Rekorde + Summen, fest 12 Monate
+    var sport_rekorde: [SportRekordeZeile]? = nil   // Bestwerte je Sportart (20.10.2026), gleiches Zeitfenster
     let medien: [FoilerMedium]?
     let spot_notizen: [FoilerSpotNotiz]?
     let titel: [FoilerTitel]?
@@ -1695,3 +1714,11 @@ func passtZu(_ q: String?, _ texte: String?...) -> Bool {
 /// Hinweis „sieht nach einer Wind-Session aus" (19.10.2026, SessionOut.wind_vorschlag)
 struct WindRegel: Codable { let dauer_med: Double?; let tempo_med: Double?; let anteil_foil: Double?; let flaeche_km: Double? }
 struct WindVorschlag: Codable { let sportarten: [String]; let regel: WindRegel? }
+
+
+/// Eigene Bestwerte je Sportart (GET /api/sessions/sport-rekorde, 20.10.2026): eine Zeile je Sportart.
+struct SportRekordeZeile: Codable {
+    let sport: String
+    let rekorde: [String: CommunityRecordEntry]
+}
+struct SportRekordeAntwort: Codable { let sportarten: [SportRekordeZeile] }

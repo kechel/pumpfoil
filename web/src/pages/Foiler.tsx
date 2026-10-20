@@ -24,7 +24,7 @@ import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
 import { foilLabel } from "../lib/foilLabel";
 import { useI18n, useNumberFormat } from "../i18n";
-import { REC_ITEMS } from "./Home";
+import { REC_ITEMS, SportRekordeZeilen } from "./Home";
 import { fmtLaufDauer } from "../lib/dauer";
 import { FreundschaftKnopf } from "../components/Freundschaft";
 import { JahresbilanzSection, ManoeverVerlaufSection } from "./PersonalHome";
@@ -465,6 +465,9 @@ export default function Foiler() {
           </div>
         </div>
       )}
+
+      {/* Rekorde je Sportart (20.10.2026), gleiches Zeitfenster wie die Rekorde oben (12 Monate). */}
+      {(d as any).sport_rekorde?.length > 0 && <SportRekordeZeilen sportarten={(d as any).sport_rekorde} titel={t("foiler.sportRec")} />}
 
       {isAdmin && !d.ich && (
         <div className="mt-8 rounded-xl border-2 border-orange-500 p-3">

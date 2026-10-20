@@ -1581,6 +1581,21 @@ def manoever_verlauf(
     return {"monate": list(monate.values())}
 
 
+@router.get("/sport-rekorde")
+def sport_rekorde(
+    period: str = "all",
+    user_id: int | None = Query(None),
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Eigene Bestwerte je Sportart (20.10.2026, app/sportrekorde.py): eine Zeile je Sportart mit Daten.
+    `user_id` nur fuer Admins (Kontrollansicht); fremde Profile bekommen sie ueber die Foiler-Seite."""
+    from .. import sportrekorde
+    from .community import PERIODS, _cutoff
+    user = _fahrer_fuer_admin(db, user, user_id)
+    return {"sportarten": sportrekorde.persoenlich(db, user.id, _cutoff(period) if period in PERIODS else None)}
+
+
 @router.get("/jahresbilanz")
 def jahresbilanz(
     user_id: int | None = Query(None),
@@ -3939,7 +3954,7 @@ def _accel_auswertung_gecacht(db, s, name: str, version: str, rechnen, nur_cache
 
 MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None, "fahrten": []}
 # Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
-MANOEVER_VERSION = "m4-fahrt"   # m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026)
+MANOEVER_VERSION = "m7-fahrt"   # m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
 
 
 def _manoever_schluessel(s, res) -> str:
@@ -4007,13 +4022,15 @@ def _manoever_berechnen(db, s, res) -> dict:
                     "ab": sum(1 for m in items if m["typ"] == typ and not m["durch"])}
               for typ in ("wende", "halse")}
     # Hoehe laufen (Stand-Buch: hoehe): VMG zum Wind aus derselben Spur und Windrichtung.
-    erg = {"items": items, "zahlen": zahlen, "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von)}
+    # Obergrenze fuers Spur-Tempo: Hoechsttempo der Analyse (gefiltert) + 20 % + 3 km/h Spielraum.
+    cap = (float(res.max_speed_mps) * 3.6 * 1.2 + 3.0) if res is not None and res.max_speed_mps else None
+    erg = {"items": items, "zahlen": zahlen, "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von, cap)}
     erg["fahrten"] = _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden=_wind(
-        s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at), t0=t0)
+        s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at), t0=t0, cap=cap)
     return erg
 
 
-def _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden, t0) -> list[dict]:
+def _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden, t0, cap=None) -> list[dict]:
     """Je Fahrt (sportzahlen, 5-Minuten-Regel): Wenden/Halsen auf dem Foil, gewonnene Hoehe, beste VMG und
     der Modellwind zur Zeit der Fahrt (Jan, 20.10.2026: „bau die stats so mit ein"). `t_start_ms` wie in
     `sport_zahlen.fahrten` (auf den Trim re-basiert) -> die Anzeige ordnet ueber diese Zeit zu."""
@@ -4034,7 +4051,7 @@ def _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden, t0)
         b = a + 1000.0 * (f.get("dauer_s") or 0)
         im = [m for m in items if a <= m["t_ms"] <= b]
         idx = [k for k, r in enumerate(gps) if a <= r[0] <= b]
-        h = hoehe([gps[k][0] for k in idx], [lat[k] for k in idx], [lon[k] for k in idx], wind_von) if len(idx) >= 30 else None
+        h = hoehe([gps[k][0] for k in idx], [lat[k] for k in idx], [lon[k] for k in idx], wind_von, cap) if len(idx) >= 30 else None
         # Modellwind: Mittel der Stunden, die in die Fahrt fallen; sonst die naechste Stunde zur Fahrtmitte.
         ea, eb = t0 + a, t0 + b
         drin = [k for t, k in std if ea - 1800e3 <= t <= eb + 1800e3]
@@ -4042,6 +4059,7 @@ def _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden, t0)
             drin = [min(std, key=lambda x: abs(x[0] - (ea + eb) / 2))[1]]
         out.append({
             "t_start_ms": f["t_start_ms"],
+            "dauer_s": f.get("dauer_s"), "strecke_m": f.get("strecke_m"),
             "wende_durch": sum(1 for m in im if m["typ"] == "wende" and m["durch"]),
             "wende": sum(1 for m in im if m["typ"] == "wende"),
             "halse_durch": sum(1 for m in im if m["typ"] == "halse" and m["durch"]),

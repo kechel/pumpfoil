@@ -504,6 +504,12 @@ export interface RecordSet {
   // Einziger Rekord OHNE Session: Summe der Carves > 180° eines NUTZERS im Zeitraum.
   // session_id/started_at/spot/track_preview sind hier immer null -> Kachel verlinkt nicht.
   carves180?: StatRecord;
+  // Rekorde je Sportart (20.10.2026, server/app/sportrekorde.py) — der Server liefert nur die der Sportart.
+  jibe_quote?: StatRecord; tack_quote?: StatRecord; vmg_best?: StatRecord; upwind_m?: StatRecord;
+  jibes_foil?: StatRecord; ride_longest?: StatRecord; ride_farthest?: StatRecord;
+  paddle_success?: StatRecord; paddle_quote?: StatRecord; paddle_foil_longest?: StatRecord;
+  wake_longest?: StatRecord; wake_time?: StatRecord; dw_ab?: StatRecord; dw_ab_speed?: StatRecord;
+  waves?: StatRecord; wave_longest?: StatRecord;
 }
 
 export type SyncStart = { gestartet?: boolean; laeuft?: boolean };
@@ -1041,6 +1047,8 @@ export const api = {
   // Stand je Sportart (19.10.2026) — Abschnitt auf /changelog, Quelle server/app/data/sportarten_stand.json.
   // Wenden/Halsen-Quote im Verlauf (19.10.2026): je Monat, aus dem Manoever-Cache.
   manoeverVerlauf: (userId?: number) => req<{ monate: { monat: string; sessions: number; wende_durch: number; wende: number; halse_durch: number; halse: number }[] }>(`/api/sessions/manoever-verlauf${userId ? `?user_id=${userId}` : ""}`),
+  // Eigene Bestwerte je Sportart (20.10.2026): eine Zeile je Sportart.
+  sportRekorde: (period = "all", userId?: number) => req<{ sportarten: { sport: string; rekorde: Record<string, { session_id: number; value: number; started_at: string | null; spot: string | null; tz: string | null }> }[] }>(`/api/sessions/sport-rekorde?period=${period}${userId ? `&user_id=${userId}` : ""}`),
   // Jahresbilanz je Sportart (19.10.2026): eigene Sessions je Kalenderjahr.
   jahresbilanz: (userId?: number) => req<{ jahre: { jahr: number; sportarten: { sport: string; sessions: number; stunden: number; km: number; foil_km: number }[] }[] }>(`/api/sessions/jahresbilanz${userId ? `?user_id=${userId}` : ""}`),
   sportStatus: () => req<{

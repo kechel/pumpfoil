@@ -226,6 +226,11 @@ private fun FoilerInhalt(
             }
         }
 
+        // Rekorde je Sportart (20.10.2026), gleiches Zeitfenster.
+        if (d.zeigt.records && d.sportRekorde.isNotEmpty()) {
+            SportRekordeZeilen(d.sportRekorde, I18n.t("foiler.sportRec"), onOpenSession)
+        }
+
         // Persoenliche Rekorde + Summen — dieselben Kacheln und Formeln wie im Web, damit dieselbe
         // Zahl nicht mit zwei Schreibweisen dasteht. Jede Kachel fuehrt in ihre Session.
         val s = d.rekorde

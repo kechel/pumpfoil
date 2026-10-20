@@ -102,6 +102,7 @@ struct FoilerView: View {
             freundSection(d)
             angaben(d)
             rekordeSection(d)
+            sportRekordeSection(d)
             titelSection(d)
             medienSection(d)
             spotNotizenSection(d)
@@ -326,6 +327,15 @@ struct FoilerView: View {
                     ForEach(kacheln(s)) { k in kachelKnopf(k) }
                 }
                 .padding(.vertical, 4)
+            }
+        }
+    }
+
+    // Rekorde je Sportart (20.10.2026), gleiches Zeitfenster wie die Rekorde darueber.
+    @ViewBuilder private func sportRekordeSection(_ d: FoilerProfil) -> some View {
+        if d.zeigt.records == true, let z = d.sport_rekorde, !z.isEmpty {
+            Section {
+                SportRekordeZeilenView(zeilen: z, titel: Loc.t("foiler.sportRec", lang), lang: lang)
             }
         }
     }

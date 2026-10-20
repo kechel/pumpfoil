@@ -114,10 +114,15 @@ REC_COL = {
     # Laengste Fahrt als GESAMTSTRECKE (19.10.2026) — nur fuer Wind-Sportarten abgefragt (s.
     # community_records), dort zaehlt die ganze Fahrt, nicht nur das On-Foil-Stueck.
     "session_total": (AR.total_distance_m, None),
+    # Wave (20.10.2026): jeder Lauf ist eine Welle -> dieselben Spalten unter eigenem Namen.
+    "waves": (AR.num_runs, None),
+    "wave_longest": (AR.best_duration_s, AR.best_duration_idx),
 }
 # Zusaetzliche Rekord-Arten je Sportart-Gruppe (app/sportprofil.py). Alte Clients ignorieren den
 # zusaetzlichen Schluessel im Zeitraum-Objekt; Pumpfoil bekommt nichts Neues.
 METRICS_JE_GRUPPE = {"wind": ("session_total",)}
+# Je Sportart (20.10.2026): Spalten-Rekorde einzelner Sportarten.
+METRICS_JE_SPORT = {"surf_wave": ("waves", "wave_longest")}
 # Zeit-Rekorde (Early Bird / Night Owl) laufen NICHT über REC_COL, sondern Python-seitig
 # über die echte Spot-Zeitzone (inkl. Sommerzeit) — siehe _time_record().
 TIME_METRICS = ("early_bird", "night_owl")
@@ -918,11 +923,12 @@ def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_ban
     # EIN Cache fuer den ganzen Request: die Zeit-Metriken teilen sich damit ihre Basisdaten
     # ueber alle fuenf Zeitraeume (s. _time_rows).
     cache: dict = {}
-    extra = METRICS_JE_GRUPPE.get(sportprofil.profil(sport)["gruppe"], ()) if sport != "all" else ()
+    extra = _extra_metriken(sport)
     out = {p: {m: _record_entry(db, m, _cutoff(p), spot=spot, viewer_id=_user.id,
                                 accel_only=accel_only, sport=sport,
                                 cache=cache, foil_band=foil_band) for m in METRICS + tuple(extra)}
            for p in zeitraeume}
+    _sport_rekorde_dazu(db, out, sport, spot, _user.id, accel_only, foil_band)
 
     if not versteckt:
         with _rec_lock:
@@ -934,6 +940,43 @@ def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_ban
                     _rec_cache.clear()
             _rec_cache[key] = (jetzt, out)
     return out
+
+
+def _extra_metriken(sport: str) -> tuple:
+    """Spalten-Rekorde, die nur fuer eine Sportart-Gruppe bzw. Sportart gelten (session_total, Wellen)."""
+    if sport == "all":
+        return ()
+    return tuple(METRICS_JE_GRUPPE.get(sportprofil.profil(sport)["gruppe"], ())) + tuple(METRICS_JE_SPORT.get(sport, ()))
+
+
+def _sport_rekorde_dazu(db: Session, out: dict, sport: str, spot: str | None, viewer_id: int,
+                        accel_only: bool, foil_band: str, perioden: dict | None = None) -> None:
+    """Rekorde je Sportart aus den Anzeige-Caches (app/sportrekorde.py) in `out[periode]` einhaengen.
+    Dieselben Sichtbarkeits-Filter wie alle Rekorde (`_community`), dieselben Zeitraeume und Spots."""
+    from .. import sportrekorde
+    metriken = sportrekorde.JE_SPORT.get(sport)
+    if not metriken:
+        return
+    q = _community(db.query(S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
+                            S.place_lat, S.place_lon, U.id), viewer_id, accel_only, sport)
+    q = _band_filter(db, q, foil_band, viewer_id or 0)
+    if spot is not None:
+        q = q.filter(_spot_cond(spot, db))
+    zeilen = q.all()
+    merk: dict = {}
+    for p in out:
+        cut = (perioden or {}).get(p, _cutoff(p)) if perioden else _cutoff(p)
+        auswahl = [z for z in zeilen if cut is None or (z[1] is not None and z[1] >= cut)]
+        for m in metriken:
+            b = sportrekorde.bestes(db, m, auswahl, merk)
+            if b is None:
+                out[p][m.key] = dict(_EMPTY_REC)
+                continue
+            (wert, _n), (sid, ts, name, place, avatar, preview, lat, lon, uid) = b
+            out[p][m.key] = {"session_id": sid, "value": round(float(wert), 3),
+                             "started_at": ts.isoformat() if ts else None, "run_idx": None,
+                             "name": name, "avatar_url": avatar, "user_id": uid, "spot": place or None,
+                             "track_preview": preview or None, "tz": tz_name(lat, lon)}
 
 
 @router.get("/start-success")
@@ -1083,8 +1126,12 @@ def spot_records(
 ) -> dict:
     cut = _cutoff(period)
     cache: dict = {}   # s. _time_rows: Early Bird + Night Owl teilen sich die Basisdaten
-    return {m: _record_entry(db, m, cut, spot=spot, viewer_id=_user.id, accel_only=accel_only, sport=sport, cache=cache)
-            for m in METRICS}
+    out = {m: _record_entry(db, m, cut, spot=spot, viewer_id=_user.id, accel_only=accel_only, sport=sport, cache=cache)
+           for m in METRICS + tuple(_extra_metriken(sport))}
+    # Rekorde je Sportart auch am Spot (20.10.2026), gleiche Form wie /records ohne Zeitraum-Ebene.
+    tmp = {period: out}
+    _sport_rekorde_dazu(db, tmp, sport, spot, _user.id, accel_only, "all", perioden={period: cut})
+    return tmp[period]
 
 
 # ------------------------------------------------------------------- Leaders ----
@@ -2103,6 +2150,9 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Zeitfenster fest 12 Monate (Vorgabe Jan, 08.09.2026), kein Umschalter auf der Seite.
         raus["rekorde"] = compute_overall_stats(
             db, u.id, False, sens=(u.foil_sensitivity or "normal"), period="365d")
+        # Bestwerte je Sportart (20.10.2026), gleiches Zeitfenster.
+        from .. import sportrekorde
+        raus["sport_rekorde"] = sportrekorde.persoenlich(db, u.id, _cutoff("365d"))
 
     # Sichtbarkeit der Sessions dieses Nutzers — dieselben Riegel wie im Feed (`latest_photos`):
     # geloescht, gemeldet, gesperrtes Konto, laufende Aufnahme und Nicht-Pumpfoil fallen raus.
