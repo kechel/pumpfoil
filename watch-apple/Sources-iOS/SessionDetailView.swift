@@ -1059,7 +1059,7 @@ struct SessionDetailView: View {
     // Schalter fuer Pump-Marker und Startversuche (rechtsbuendig in der Glaettungs-Zeile).
     @ViewBuilder private func kartenSchalter(_ s: SessionDetail) -> some View {
         if pumpzahlen && (s.analysis?.pump_count ?? 0) > 0 {
-            Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
+            Toggle(Loc.t(session?.sport_class == "sup_paddle" ? "sd.strokes" : "sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
         }
         if pumpzahlen && (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
             Toggle(Loc.t("sd.glides", lang), isOn: $showGlides).font(.caption).fixedSize()
@@ -1108,7 +1108,10 @@ struct SessionDetailView: View {
                         attempts: showAttempts && pumpzahlen ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax,
                         ganzeFahrt: karteGanzMoeglich && ganzeFahrt, tempoSkala: tempoSkala,
-                        manoever: manoever?.items ?? [])
+                        manoever: manoever?.items ?? [],
+                        sprints: (paddel?.versuche ?? []).map { $0.linie ?? [] },
+                        schlaege: paddel?.schlag_pkt ?? [],
+                        wellen: wellePumpen?.linien ?? [])
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
             .mitKartenUmschalter()
@@ -1925,6 +1928,13 @@ private func uiSpeedColor(_ kmh: Double, _ skala: (Double, Double) = (8, 25)) ->
 private class PumpDot: NSObject, MKAnnotation { let coordinate: CLLocationCoordinate2D
     init(_ c: CLLocationCoordinate2D) { coordinate = c } }
 
+/// SUP: Versuchsnummer am Anfang eines Sprints (bernsteinfarbene runde Marke, wie PWA).
+private class NummerPunkt: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+    let nr: Int
+    init(_ c: CLLocationCoordinate2D, nr: Int) { coordinate = c; self.nr = nr }
+}
+
 /// Wende oder Halse (nur Wind-Sportarten); `durch` = auf dem Foil durchgefahren (voll gezeichnet).
 private class ManoeverPunkt: NSObject, MKAnnotation {
     let coordinate: CLLocationCoordinate2D
@@ -2256,6 +2266,11 @@ struct TrackMap: UIViewRepresentable {
     var tempoSkala: (Double, Double) = (8, 25)
     /// Wenden (violett) / Halsen (orange); voll = auf dem Foil durchgefahren.
     var manoever: [Manoever] = []
+    /// SUP (20.10.2026, wie PWA): Sprints je Versuch [[lat,lon],…]; Paddelschlaege [lat,lon] (ersetzen die Pump-Marker).
+    var sprints: [[[Double]]] = []
+    var schlaege: [[Double]] = []
+    /// Wake thief: Wellenstuecke als breites fuchsia Band.
+    var wellen: [[[Double]]] = []
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -2296,7 +2311,7 @@ struct TrackMap: UIViewRepresentable {
         let segs: String = segments.map { "\($0.i_start)-\($0.i_end)-\(($0.pump_idx ?? []).count)" }.joined(separator: ",")
         let a: [Double] = points.first ?? [], b: [Double] = points.last ?? []
         return "\(ebene)|\(points.count)|\(a)|\(b)|\(segs)|\(mode)|\(hrRange.0)-\(hrRange.1)|\(pumpRange.0)-\(pumpRange.1)|"
-            + "\(showPumps)|\(showGlides)|\(ganzeFahrt)|\(tempoSkala.0)-\(tempoSkala.1)|\(manoever.count)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
+            + "\(showPumps)|\(showGlides)|\(ganzeFahrt)|\(tempoSkala.0)-\(tempoSkala.1)|\(manoever.count)|\(sprints.count)|\(schlaege.count)|\(wellen.count)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
     }
 
     /// Gleitphasen in Marken-Cyan ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA).
@@ -2317,6 +2332,54 @@ struct TrackMap: UIViewRepresentable {
                 map.addOverlay(pl)
             }
         }
+    }
+
+    /// SUP-Sprints mit Nummer, Paddelschlaege und Wake-thief-Wellenband (20.10.2026, wie PWA/Android).
+    /// Nur ohne ausgewaehlten Lauf. Sprints bernsteinfarben bei ganzer Fahrt, sonst in der gewaehlten
+    /// Faerbung (Farbe vom naechsten Track-Punkt).
+    private func zeichneSportMarken(_ map: MKMapView, _ co: Coordinator) {
+        guard selectedRun == nil else { return }
+        let fuchsia = UIColor(red: 0.91, green: 0.47, blue: 0.98, alpha: 0.45)
+        for ln in wellen {
+            let cs: [CLLocationCoordinate2D] = ln.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[0], longitude: $0[1]) : nil }
+            if cs.count < 2 { continue }
+            let pl = MKPolyline(coordinates: cs, count: cs.count)
+            co.colors[ObjectIdentifier(pl)] = fuchsia
+            co.widths[ObjectIdentifier(pl)] = 10
+            map.addOverlay(pl)
+        }
+        let bernstein = UIColor(red: 0.96, green: 0.62, blue: 0.04, alpha: 0.9)
+        for (nr, ln) in sprints.enumerated() {
+            let cs: [CLLocationCoordinate2D] = ln.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[0], longitude: $0[1]) : nil }
+            guard let erste = cs.first else { continue }
+            if cs.count >= 2 {
+                for k in 0..<(cs.count - 1) {
+                    let farbe: UIColor = (ganzeFahrt || points.isEmpty) ? bernstein : colorAt(naechsterPunkt(cs[k + 1]))
+                    let pl = MKPolyline(coordinates: [cs[k], cs[k + 1]], count: 2)
+                    co.colors[ObjectIdentifier(pl)] = farbe
+                    co.widths[ObjectIdentifier(pl)] = 6
+                    map.addOverlay(pl)
+                }
+            }
+            map.addAnnotation(NummerPunkt(erste, nr: nr + 1))
+        }
+        if showPumps {
+            for p in schlaege where p.count >= 2 {
+                map.addAnnotation(PumpDot(CLLocationCoordinate2D(latitude: p[0], longitude: p[1])))
+            }
+        }
+    }
+
+    private func naechsterPunkt(_ c: CLLocationCoordinate2D) -> Int {
+        var best: Int = 0
+        var bd: Double = .greatestFiniteMagnitude
+        for (j, p) in points.enumerated() where p.count >= 2 {
+            let dla: Double = p[1] - c.latitude
+            let dlo: Double = p[0] - c.longitude
+            let d: Double = dla * dla + dlo * dlo
+            if d < bd { bd = d; best = j }
+        }
+        return best
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
@@ -2403,8 +2466,9 @@ struct TrackMap: UIViewRepresentable {
                 if !dim { sel.append(linie[0]); sel.append(linie[linie.count - 1]) }
                 i += 1
             }
-            // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.
-            if showPumps && !dim {
+            // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte. Bei SUP stattdessen
+            // die Paddelschlaege (zeichneSportMarken), nicht die Pumps der Pump-Erkennung.
+            if showPumps && !dim && schlaege.isEmpty {
                 for idx in (seg.pump_idx ?? []) where points.indices.contains(idx) {
                     let p = points[idx]
                     map.addAnnotation(PumpDot(CLLocationCoordinate2D(latitude: p[1], longitude: p[0])))
@@ -2430,6 +2494,7 @@ struct TrackMap: UIViewRepresentable {
         map.addOverlays(linien)
         striche.removeAll()
         zeichneGleiten(map, co)
+        zeichneSportMarken(map, co)
         // Startversuche NACH den Laeufen, damit sie darueber liegen: ihre Linien sind duenner,
         // ein Lauf wuerde sie sonst verdecken. Gestrichelt und bernsteinfarben wie in PWA und
         // Android; ausserhalb des ausgewerteten Bereichs feiner gestrichelt und blasser.
@@ -2542,6 +2607,24 @@ struct TrackMap: UIViewRepresentable {
                 v.layer.cornerRadius = 5
                 v.layer.borderColor = farbe.cgColor
                 v.layer.borderWidth = 2
+                v.isEnabled = false
+                return v
+            }
+            if let n = annotation as? NummerPunkt {
+                let id = "nummer"
+                let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
+                    ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
+                v.annotation = annotation
+                v.subviews.forEach { $0.removeFromSuperview() }
+                v.frame = CGRect(x: 0, y: 0, width: 18, height: 18)
+                v.backgroundColor = UIColor(red: 0.96, green: 0.62, blue: 0.04, alpha: 1)
+                v.layer.cornerRadius = 9
+                let l = UILabel(frame: v.bounds)
+                l.text = "\(n.nr)"
+                l.textAlignment = .center
+                l.font = .systemFont(ofSize: 11, weight: .semibold)
+                l.textColor = UIColor(red: 0.06, green: 0.09, blue: 0.16, alpha: 1)
+                v.addSubview(l)
                 v.isEnabled = false
                 return v
             }

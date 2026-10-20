@@ -1102,19 +1102,22 @@ data class Hoehe(@SerialName("vmg_max_kmh") val vmgMaxKmh: Double = 0.0, @Serial
 data class WellePumpen(@SerialName("welle_s") val welleS: Int = 0, @SerialName("welle_m") val welleM: Int = 0,
                        @SerialName("gepumpt_s") val gepumptS: Int = 0, @SerialName("gepumpt_m") val gepumptM: Int = 0,
                        val pumps: Int = 0, @SerialName("pumps_pro_min") val pumpsProMin: Int? = null,
-                       @SerialName("laengste_welle_s") val laengsteWelleS: Int = 0)
+                       @SerialName("laengste_welle_s") val laengsteWelleS: Int = 0,
+                       val linien: List<List<List<Double>>> = emptyList())
 
 // Paddelschlaege + Paddle-up-Versuche (SUP, GET /api/sessions/{id}/paddel, 20.10.2026; server/app/paddel.py).
 @Serializable
 data class PaddelVersuch(@SerialName("t_ms") val tMs: Long = 0, @SerialName("sprint_s") val sprintS: Double = 0.0,
                          val schlaege: Int = 0, val staerke: Double = 0.0, @SerialName("max_kmh") val maxKmh: Double? = null,
                          val ergebnis: String = "nein", @SerialName("foil_s") val foilS: Double? = null,
-                         @SerialName("schnell_s") val schnellS: Double? = null)
+                         @SerialName("schnell_s") val schnellS: Double? = null,
+                         val linie: List<List<Double>> = emptyList())
 
 @Serializable
 data class PaddelAntwort(val schlaege: Int = 0, @SerialName("schlaege_pro_min") val schlaegeProMin: Int? = null,
                          @SerialName("auf_foil") val aufFoil: Int = 0, val kurz: Int = 0,
-                         val versuche: List<PaddelVersuch> = emptyList())
+                         val versuche: List<PaddelVersuch> = emptyList(),
+                         @SerialName("schlag_pkt") val schlagPkt: List<List<Double>> = emptyList())
 
 @Serializable
 data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null, val hoehe: Hoehe? = null)
