@@ -972,8 +972,10 @@ def _sport_rekorde_dazu(db: Session, out: dict, sport: str, spot: str | None, vi
             if b is None:
                 out[p][m.key] = dict(_EMPTY_REC)
                 continue
-            (wert, _n), (sid, ts, name, place, avatar, preview, lat, lon, uid) = b
+            (wert, n), (sid, ts, name, place, avatar, preview, lat, lon, uid) = b
             out[p][m.key] = {"session_id": sid, "value": round(float(wert), 3),
+                             # Quoten: Anzahl der Manoever/Versuche dazu („100 % von 146", 20.10.2026)
+                             "anzahl": int(n) if m.quote else None,
                              "started_at": ts.isoformat() if ts else None, "run_idx": None,
                              "name": name, "avatar_url": avatar, "user_id": uid, "spot": place or None,
                              "track_preview": preview or None, "tz": tz_name(lat, lon)}

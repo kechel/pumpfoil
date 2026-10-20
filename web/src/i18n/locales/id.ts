@@ -332,6 +332,7 @@ const id: Record<string, string> = {
   "rec.dwAbSpeed": "Downwind A→B tercepat",
   "rec.waves": "Gelombang terbanyak",
   "rec.waveLongest": "Gelombang terpanjang",
+  "rec.ofN": "{p} dari {n}",
   "phome.sportRec": "Rekor saya per olahraga",
   "foiler.sportRec": "Rekor per olahraga",
   "rec.sessionTime": "Waktu on-foil",

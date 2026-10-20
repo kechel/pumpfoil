@@ -353,6 +353,7 @@ const nb: Record<string, string> = {
   "rec.dwAbSpeed": "Raskeste downwind A→B",
   "rec.waves": "Flest bølger",
   "rec.waveLongest": "Lengste bølge",
+  "rec.ofN": "{p} av {n}",
   "phome.sportRec": "Mine rekorder per sport",
   "foiler.sportRec": "Rekorder per sport",
   "rec.sessionTime": "Tid på foil",

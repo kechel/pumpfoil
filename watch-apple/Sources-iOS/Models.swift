@@ -377,6 +377,8 @@ struct CommunityRecordEntry: Codable {
     let track_preview: String?
     // Rekordhalter — fuer Online-Punkt und Tipp aufs Profilbild (Server additiv seit 01.10.2026).
     let user_id: Int?
+    // Quoten-Rekorde: Anzahl Manoever/Versuche („100 % von 146", 20.10.2026).
+    var anzahl: Int? = nil
 }
 
 struct PeriodRecords: Codable {

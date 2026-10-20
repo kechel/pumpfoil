@@ -659,7 +659,9 @@ private fun sportRecItems(r: PeriodRecords?, sport: String?): List<RecItem> {
     )
     return (SPORT_REC[sport] ?: emptyList()).mapNotNull { k ->
         val (label, fmt, e) = def[k] ?: return@mapNotNull null
-        RecItem(I18n.t(label), fmt(e?.value ?: 0.0), e ?: CommunityRecordEntry())
+        // Quoten mit Anzahl („100 % von 146", 20.10.2026)
+        val text = fmt(e?.value ?: 0.0).let { w -> e?.anzahl?.let { I18n.t("rec.ofN").replace("{p}", w).replace("{n}", "$it") } ?: w }
+        RecItem(I18n.t(label), text, e ?: CommunityRecordEntry())
     }
 }
 

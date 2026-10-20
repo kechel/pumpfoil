@@ -312,6 +312,7 @@ const it: Record<string, string> = {
   "rec.dwAbSpeed": "Downwind A→B più veloce",
   "rec.waves": "Più onde",
   "rec.waveLongest": "Onda più lunga",
+  "rec.ofN": "{p} su {n}",
   "phome.sportRec": "I miei record per sport",
   "foiler.sportRec": "Record per sport",
   "rec.sessionTime": "Tempo on-foil",

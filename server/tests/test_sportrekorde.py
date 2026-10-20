@@ -14,11 +14,11 @@ def _z(halse_durch, halse_ab, wende_durch=0, wende_ab=0):
 
 
 def test_quote_erst_ab_mindestzahl_und_gleichstand_nach_anzahl():
-    # 5/5 = 100 % zaehlt nicht (unter 20 Halsen); 30/30 und 40/40 sind beide 100 % -> mehr Halsen gewinnt
-    w = _bestes("jibe_quote", {1: _z(5, 0), 2: _z(30, 0), 3: _z(40, 0), 4: _z(45, 5)})
+    # 30/30 = 100 % zaehlt nicht (unter 50 Halsen); 60/60 und 80/80 sind beide 100 % -> mehr Halsen gewinnt
+    w = _bestes("jibe_quote", {1: _z(30, 0), 2: _z(60, 0), 3: _z(80, 0), 4: _z(90, 5)})
     assert w == (1.0, 3)
-    assert _bestes("jibe_quote", {1: _z(5, 0)}) is None
-    assert _bestes("tack_quote", {1: _z(0, 0, 9, 0), 2: _z(0, 0, 10, 2)}) == (10 / 12, 2)
+    assert _bestes("jibe_quote", {1: _z(30, 0)}) is None
+    assert _bestes("tack_quote", {1: _z(0, 0, 19, 0), 2: _z(0, 0, 20, 2)}) == (20 / 22, 2)
 
 
 def test_paddle_up_quote_und_anzahl():
