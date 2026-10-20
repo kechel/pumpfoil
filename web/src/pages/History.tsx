@@ -25,6 +25,9 @@ type Agg = {
   key: string; field?: keyof HistoryPoint | null; kind: "sum" | "avg" | "count" | "ratio" | "max";
   num?: keyof HistoryPoint; den?: keyof HistoryPoint | "count";
   // nf = sprachabhaengige Zahl-Gruppierung (nur die Summen brauchen sie).
+  // Quoten (20.10.2026): `mitNull` = Sessions ohne Erfolg zaehlen mit (0 von n), `halten` = Tage ohne Session
+  // behalten im Fenster den letzten Wert statt auf 0 % zu fallen.
+  mitNull?: boolean; halten?: boolean;
   labelKey: string; fmt: (v: number, pf: PumpFmt, nf: (n: number) => string) => string; color: string;
 };
 // Oben (Einzel-Werte je Fenster/kumuliert): Mittel + Verhältnis, neben den Bestwerten.
@@ -54,7 +57,7 @@ function aggSeries(data: HistoryPoint[], m: Agg, mode: Mode, domain: [number, nu
       .map((d) => ({ t: new Date(d.started_at).getTime(), num: Number((d as any)[m.num!]), den: m.den === "count" ? 1 : Number((d as any)[m.den!]), sid: d.session_id }))
       // Nur Sessions, die die Kennzahl wirklich haben (z. B. Pumps>0): sonst würden
       // GPS-only-Sessions ohne Pump-Daten den Schnitt verwässern.
-      .filter((b) => Number.isFinite(b.num) && b.num > 0 && Number.isFinite(b.den) && b.den > 0)
+      .filter((b) => Number.isFinite(b.num) && (m.mitNull ? b.num >= 0 : b.num > 0) && Number.isFinite(b.den) && b.den > 0)
       .sort((a, b) => a.t - b.t);
     if (valid.length < 2) return [];
     if (mode === "cumulative") {
@@ -63,11 +66,14 @@ function aggSeries(data: HistoryPoint[], m: Agg, mode: Mode, domain: [number, nu
     }
     const winMs = (mode === "window7" ? 7 : 30) * DAY_MS;
     let lastSid = valid[0].sid;
+    let lastV = 0;
     const at = (tt: number): Pt => {
       let sn = 0, sd = 0, sid = lastSid;
       for (const b of valid) if (b.t > tt - winMs && b.t <= tt) { sn += b.num; sd += b.den; sid = b.sid; }
       if (sd > 0) lastSid = sid;
-      return { t: tt, v: sd ? sn / sd : 0, sid, run: null };
+      const v = sd ? sn / sd : (m.halten ? lastV : 0);
+      lastV = v;
+      return { t: tt, v, sid, run: null };
     };
     const out: Pt[] = [];
     for (let tt = domain[0]; tt < domain[1]; tt += DAY_MS) out.push(at(tt));
@@ -118,6 +124,58 @@ function AggMetricChart({ data, metric, mode, onPick, domain }: { data: HistoryP
       </div>
       <LineChart pts={pts} color={metric.color} fmt={fmt} onPick={onPick} domain={domain} />
     </Card>
+  );
+}
+
+// Erfolg auf dem Foil je Sportart (Jan, 20.10.2026: „die %zahl der on-foil erfolgreichen dinge (wingfoil/kite-foil/
+// paddle-up)"). Quelle /api/sessions/sport-verlauf (Zaehler je Session aus den Anzeige-Caches), Quote je Fenster
+// = Summe Erfolge / Summe Versuche. Ein Block je Sportart, eigene Zeitachse (nur deren Sessions).
+const PCT = (v: number) => `${Math.round(v * 100)} %`;
+const SPORT_ERFOLG: Record<string, Agg[]> = (() => {
+  const wind: Agg[] = [
+    { key: "halse", kind: "ratio", num: "halse_durch" as any, den: "halse" as any, mitNull: true, halten: true, labelKey: "history.jibesOnFoil", fmt: PCT, color: "#f97316" },
+    { key: "wende", kind: "ratio", num: "wende_durch" as any, den: "wende" as any, mitNull: true, halten: true, labelKey: "history.tacksOnFoil", fmt: PCT, color: "#a855f7" },
+  ];
+  return {
+    wingfoil: wind, kitefoil: wind, parawing: wind,
+    sup_paddle: [{ key: "paddle", kind: "ratio", num: "paddle_durch" as any, den: "paddle" as any, mitNull: true, halten: true, labelKey: "history.paddleUps", fmt: PCT, color: "#f59e0b" }],
+    wakethief: [{ key: "welle", kind: "ratio", num: "welle_s" as any, den: "lauf_s" as any, mitNull: true, halten: true, labelKey: "history.onWake", fmt: PCT, color: "#e879f9" }],
+  };
+})();
+
+function SportErfolgSection({ mode, onPick }: { mode: Mode; onPick: (p: Pt) => void }) {
+  const t = useT();
+  const [pts, setPts] = useState<any[]>([]);
+  useEffect(() => { api.sportVerlauf().then(setPts).catch(() => {}); }, []);
+  const je = useMemo(() => {
+    const m: Record<string, any[]> = {};
+    for (const p of pts) (m[p.sport] ||= []).push(p);
+    return Object.entries(m).filter(([sp, l]) => SPORT_ERFOLG[sp] && l.length >= 2);
+  }, [pts]);
+  if (!je.length) return null;
+  return (
+    <div className="mt-8">
+      <h3 className="mb-3 text-lg font-bold">
+        {t("history.foilSuccess")}
+        {mode !== "cumulative" ? ` · ${t(mode === "window7" ? "history.window7" : "history.window30")}` : ""}
+      </h3>
+      <div className="space-y-4">
+        {je.map(([sp, liste]) => {
+          const zeiten = liste.map((d) => new Date(d.started_at).getTime());
+          const dom: [number, number] = [Math.min(...zeiten), Math.max(...zeiten)];
+          return (
+            <div key={sp}>
+              <div className="mb-2 inline-flex rounded bg-amber-500/15 px-2 py-0.5 text-sm text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</div>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {SPORT_ERFOLG[sp].filter((m) => liste.some((d) => (d as any)[m.den as string] > 0)).map((m) => (
+                  <AggMetricChart key={m.key} data={liste as any} metric={m} mode={mode} onPick={onPick} domain={dom} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -180,6 +238,8 @@ export default function History() {
           </div>
         </>
       )}
+
+      <SportErfolgSection mode={mode} onPick={pick} />
 
       {/* Trainingskurve: Höchstpuls nach 1/2/5 Minuten Lauf über die Sessions. Gehört hierher und
           nicht auf die Startseite (Jan, 17.08.) — es ist eine Verlaufs-Aussage, keine Momentaufnahme.

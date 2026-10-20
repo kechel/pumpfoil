@@ -59,3 +59,9 @@ def test_endpunkte(client):
     assert "jibe_quote" not in rec   # Pumpfoil bleibt wie es war
     sp = client.get("/api/community/spot-records?spot=x&sport=sup_paddle", headers=auth).json()
     assert "paddle_quote" in sp
+
+
+def test_sport_verlauf_leer(client):
+    r = client.post("/api/auth/register", json={"email": "sportverlauf@x.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    assert client.get("/api/sessions/sport-verlauf", headers=auth).json() == []

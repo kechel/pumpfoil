@@ -1778,6 +1778,52 @@ def has_accel(user: models.User = Depends(current_user), db: Session = Depends(g
     return {"has_accel": row is not None}
 
 
+@router.get("/sport-verlauf")
+def sport_verlauf(
+    user_id: int | None = Query(None),
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """Erfolg auf dem Foil im Verlauf (Jan, 20.10.2026: „Verlaufsansicht … die %zahl der on-foil erfolgreichen
+    dinge (wingfoil/kite-foil/paddle-up)"): je eigener Session der Sportarten mit Anzeige-Cache die Zaehler,
+    aus denen /verlauf die Quoten je Fenster rechnet (Summe Zaehler / Summe Nenner). Nur aus den Caches
+    (app/sportrekorde.py), rechnet nichts nach."""
+    from .. import sportrekorde
+    user = _fahrer_fuer_admin(db, user, user_id)
+    S = models.Session
+    rows = (db.query(S.id, S.started_at, S.sport_class)
+            .filter(S.user_id == user.id, S.deleted.isnot(True), S.flagged.isnot(True),
+                    S.status.notin_(("recording", "live")), S.sport_class.in_(list(sportrekorde.JE_SPORT)),
+                    or_(S.data_quality.is_(None), S.data_quality == "ok"), S.started_at.isnot(None))
+            .order_by(S.started_at.asc()).all())
+    out = []
+    for sid, ts, sport in rows:
+        p = {"session_id": sid, "started_at": ts.isoformat(), "sport": sport}
+        gruppe = sportprofil.profil(sport)["gruppe"]
+        if gruppe == "wind":
+            e = sportrekorde._lies("manoever", sid) or {}
+            z = e.get("zahlen") or {}
+            if not z:
+                continue
+            for typ in ("halse", "wende"):
+                d = int((z.get(typ) or {}).get("durch") or 0)
+                p[f"{typ}_durch"], p[typ] = d, d + int((z.get(typ) or {}).get("ab") or 0)
+        elif sport == "sup_paddle":
+            e = sportrekorde._lies("paddel", sid) or {}
+            if not e.get("versuche"):
+                continue
+            p["paddle_durch"], p["paddle"] = int(e.get("auf_foil") or 0), len(e["versuche"])
+        elif sport == "wakethief":
+            e = sportrekorde._lies("welle_pumpen", sid) or {}
+            if not e:
+                continue
+            p["welle_s"], p["lauf_s"] = int(e.get("welle_s") or 0), int(e.get("welle_s") or 0) + int(e.get("gepumpt_s") or 0)
+        else:
+            continue
+        out.append(p)
+    return out
+
+
 @router.get("/history")
 def history(
     user: models.User = Depends(current_user), db: Session = Depends(get_db)

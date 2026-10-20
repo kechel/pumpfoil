@@ -499,7 +499,7 @@
         "quote_verlauf": {
           "status": "live",
           "en": "Home shows per month how many of your tacks and jibes stayed on the foil.",
-          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus manoever.py je Session (durch/gesamt), Verlauf im Profil oder auf der Foiler-Seite.",
+          "notiz": "Claude-Vorschlag 19.10.2026 (Jan: „welche zusaetzlichen ideen hast du fuer die einzelnen Sportarten?“), zur Pruefung. Aus manoever.py je Session (durch/gesamt), Verlauf im Profil oder auf der Foiler-Seite. 20.10.2026: zusaetzlich als Grafik auf /verlauf („Erfolg auf dem Foil“, Quote je Fenster/kumuliert), GET /api/sessions/sport-verlauf; dort auch SUP (Paddle-ups aufs Foil) und Wake thief (Anteil auf der Welle).",
           "seit": "2026-10-19",
           "wo": [
             "server",
@@ -1391,6 +1391,22 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "sup_paddle",
+        "wakethief"
+      ],
+      "merkmal": "quote_verlauf",
+      "was": "Verlauf (/verlauf): Grafik Erfolg auf dem Foil je Sportart (Halsen/Wenden auf dem Foil, Paddle-ups, Anteil auf der Welle).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [
