@@ -1,6 +1,6 @@
 // Schmaler API-Client. JWT im localStorage.
 import { downscaleImage } from "./downscaleImage";
-import { demoAnonymisieren } from "./demoNames";
+import { demoAnonymisieren, demoLive } from "./demoNames";
 
 const TOKEN_KEY = "foil_jwt";
 
@@ -67,7 +67,7 @@ async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   // DEMO-MODUS (nur Admin, nur PWA): echte Nutzernamen werden HIER abgefangen, bevor irgendeine
   // Komponente sie sieht — auch in Freitexten wie Chat-Nachrichten. Aus = unveraendert
   // durchgereicht, kostet also nur einen Vergleich. Siehe lib/demoNames.ts.
-  return demoAnonymisieren((await res.json()) as T, path);
+  return demoLive(demoAnonymisieren((await res.json()) as T, path), path);
 }
 
 async function uploadFile<T>(path: string, file: File): Promise<T> {
@@ -1246,6 +1246,10 @@ export const api = {
   },
   // Gruene Spots „gerade aktiv" (Regeln: server devices.aktive_spots).
   // `friends`: Freunde, die gerade pumpen, mit ihrem Spot (je Betrachter, s. app/freunde.py).
+  /** Demo-Modus: gruene Spots + „gerade am Pumpen" zu einem vergangenen Zeitpunkt (nur Admin). */
+  adminDemoAktiv: (t: string) =>
+    req<{ spots: number[]; area: number[]; pumping_now: number; friends: [];
+      freunde: { user_id: number; name: string | null; avatar_url: string | null; spot_id: number; spot: string }[] }>(`/api/admin/demo-aktiv?t=${encodeURIComponent(t)}`),
   spotActive: () => req<{ spots: number[]; area: number[]; friends?: AktiverFreund[] }>(`/api/community/spot-active`),
 
   // Freunde (15.10.2026): Liste + Anfragen, Regeln in server/app/freunde.py.

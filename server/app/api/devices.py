@@ -1968,16 +1968,28 @@ def aktive_spots(db: Session) -> dict:
     global _AKTIV_CACHE
     if _AKTIV_CACHE is not None and time.monotonic() - _AKTIV_CACHE[0] < 60:
         return _AKTIV_CACHE[1]
-    jetzt = datetime.now(timezone.utc)
-    spots = {sp.id: sp for sp in db.query(models.Spot)
-             .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
-                     models.Spot.lon.isnot(None)).all()}
+    spots = _spots_mit_ort(db)
+    nutzer_spots = []
+    for uid in _aktive_nutzer(db):
+        if not _zeigt_sich(db.get(models.User, uid)):
+            continue
+        sid = _spot_des_nutzers(db, uid, spots)
+        if sid is not None:
+            nutzer_spots.append(sid)
+    daten = _gruen(db, spots, nutzer_spots, datetime.now(timezone.utc))
+    _AKTIV_CACHE = (time.monotonic(), daten)
+    return daten
 
+
+def _gruen(db: Session, spots: dict[int, models.Spot], nutzer_spots: list[int], jetzt: datetime) -> dict:
+    """Die Regeln oben (einzeln gruen ab SPOT_MIN_FAHRER, sonst nur die Kachel) auf eine Liste von
+    Spots angewandt — einer je aktivem Nutzer. Die Fahrer-Fenster zaehlen ab `jetzt`."""
     def fahrer(tage: int) -> dict[int, set[int]]:
         out: dict[int, set[int]] = {}
         for sid, uid in (db.query(models.Session.spot_id, models.Session.user_id)
                          .filter(models.Session.deleted.isnot(True), models.Session.spot_id.isnot(None),
-                                 models.Session.started_at >= jetzt - timedelta(days=tage))
+                                 models.Session.started_at >= jetzt - timedelta(days=tage),
+                                 models.Session.started_at <= jetzt)
                          .distinct().all()):
             out.setdefault(sid, set()).add(uid)
         return out
@@ -1988,19 +2000,15 @@ def aktive_spots(db: Session) -> dict:
     kachel_spots: dict[tuple[int, int], list[int]] = {}
     for sid, u in fahrer(KACHEL_FENSTER_TAGE).items():
         if sid in spots and sid not in gross:
-            k = _kachel(spots[sid].lat, spots[sid].lon)
-            kachel_fahrer.setdefault(k, set()).update(u)
+            kachel_fahrer.setdefault(_kachel(spots[sid].lat, spots[sid].lon), set()).update(u)
     for sid, sp in spots.items():
         if sid not in gross:
             kachel_spots.setdefault(_kachel(sp.lat, sp.lon), []).append(sid)
 
     gruen: set[int] = set()
     kacheln: set[tuple[int, int]] = set()
-    for uid in _aktive_nutzer(db):
-        if not _zeigt_sich(db.get(models.User, uid)):
-            continue
-        sid = _spot_des_nutzers(db, uid, spots)
-        if sid is None:
+    for sid in nutzer_spots:
+        if sid not in spots:
             continue
         if sid in gross:
             gruen.add(sid)
@@ -2008,10 +2016,29 @@ def aktive_spots(db: Session) -> dict:
             k = _kachel(spots[sid].lat, spots[sid].lon)
             if len(kachel_fahrer.get(k, ())) > KACHEL_MIN_FAHRER:
                 kacheln.add(k)
-    daten = {"spots": sorted(gruen),
-             "area": sorted(s for k in kacheln for s in kachel_spots.get(k, []))}
-    _AKTIV_CACHE = (time.monotonic(), daten)
-    return daten
+    return {"spots": sorted(gruen),
+            "area": sorted(s for k in kacheln for s in kachel_spots.get(k, []))}
+
+
+def aktive_spots_um(db: Session, zeit: datetime) -> dict:
+    """Gruene Spots und „gerade am Pumpen" zu einem Zeitpunkt in der VERGANGENHEIT — fuer den
+    Demo-Modus (Jan, 20.10.2026: „ein paar aktive spots … replayen … als gerade viele spots
+    gleichzeitig aktiv waren"). Dieselben Regeln wie live (`_gruen`, Profil-Schalter
+    „auf der Spot-Karte zeigen"); aktiv ist hier, wer zu `zeit` eine Session laufen hatte —
+    die Signale der Live-Regel (Positionsmeldung, App verlassen) gibt es rueckwirkend nicht."""
+    S = models.Session
+    spots = _spots_mit_ort(db)
+    laufend = (db.query(S.user_id, S.spot_id)
+               .filter(S.deleted.isnot(True), S.merged_into.is_(None), S.started_at <= zeit, S.ended_at > zeit,
+                       S.ended_at - S.started_at < timedelta(hours=6),
+                       (S.data_quality.is_(None)) | (S.data_quality == "ok"))
+               .order_by(S.started_at).all())
+    je_nutzer: dict[int, int | None] = {}
+    for uid, sid in laufend:
+        je_nutzer[uid] = sid             # spaeter begonnene gewinnt
+    nutzer_spots = [sid for uid, sid in ((u, _bis_ziel(db, s, spots)) for u, s in je_nutzer.items())
+                    if sid is not None and _zeigt_sich(db.get(models.User, uid))]
+    return {**_gruen(db, spots, nutzer_spots, zeit), "pumping_now": len(je_nutzer)}
 
 
 @router.post("/app-closed")
