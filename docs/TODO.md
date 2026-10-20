@@ -1485,6 +1485,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **20.10. — Sportart-Rekorde: Quoten-Rekorde (Halsen/Wenden auf dem Foil) sind oft 100 % (Jan: „lassen wir ruhig erstmal so").**
+  Ab 20 Halsen bzw. 10 Wenden gibt es viele Sessions mit 100 %; der Rekord geht dann an die 100-%-Session mit den
+  meisten Manoevern (Gleichstand-Regel in `server/app/sportrekorde.py`) — liest sich eher als „die meisten ohne
+  Absetzen". Moegliche spaetere Abhilfe: Mindestzahl hoeher (z. B. 50 Halsen / 20 Wenden) oder in der Kachel die
+  Anzahl mit anzeigen („98 % von 120"). Stand 20.10.: Wing 100 % #11401 / #11454, Kite 100 % #13154 / #13277.
+  Ebenfalls dort vermerkt: VMG/Hoehe haengen am stuendlichen Modellwind und am GPS-Tempo (gedeckelt auf
+  Hoechsttempo der Analyse +20 %, nach #14111 mit 3150 bzw. 77 km/h „VMG" aus GPS-Zittern einer stillen Uhr).
+
 - **19.10. — Garmin: KEINE eigenen Datenfelder (FitContributor) in der Garmin-Aktivitaet (Jan entschieden).**
   Anlass: Suunto schreibt vier kodierte Kanaele ins Workout. Bei Garmin unnoetig: die FIT-Aktivitaet der Uhr
   enthaelt per SensorLogger schon GPS + Puls + ROHE Beschleunigung, unabhaengig von unserem Object Store
