@@ -909,6 +909,16 @@
           "en": "Pumps are only counted in the pumped part, not while riding the wake.",
           "seit": "2026-10-20",
           "notiz": "20.10.: Anzeige (Kachel + Kasten) nimmt die Pumps ausserhalb der Wellenstuecke aus welle_pumpen; die gespeicherte v3-Zahl (analysis_results.pump_count) ist unveraendert und zaehlt auf der Welle weiter mit (Rekorde/Statistiken nutzen noch die). Vorher teilweise."
+        },
+        "kartenschalter": {
+          "status": "live",
+          "en": "Switch between the whole session and only the time on the foil; the stretches on the wake are marked on the map.",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "notiz": "Jan 20.10.: „bei wake-thief das gleiche bitte“ (wie SUP). sportprofil JE_SPORT wakethief karte=ganz; Wellenband aus /welle-pumpen nur im Web."
         }
       }
     },
@@ -938,6 +948,16 @@
             "android": "1.1.44",
             "ios": "1.1.53"
           }
+        },
+        "kartenschalter": {
+          "status": "live",
+          "en": "Switch between the whole session and only the time on the foil; paddle-up sprints are marked on the map with their attempt number.",
+          "seit": "2026-10-20",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "notiz": "Jan 20.10.: „bei sup/paddling sollten wir in der karte auch die Sprints markieren und die on-foil die daraus folgten als eigene Ansicht“. sportprofil JE_SPORT sup_paddle karte=ganz (Schalter auch in den Apps, die das Profil lesen); Sprint-Linien aus /paddel (paddel.py p2 `linie`) nur im Web."
         }
       }
     },
@@ -1244,6 +1264,30 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "wakethief"
+      ],
+      "merkmal": "kartenschalter",
+      "was": "Karte: Schalter ganze Session / nur Foil, Wellenstuecke als Band (Web).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "sup_paddle"
+      ],
+      "merkmal": "kartenschalter",
+      "was": "Karte: Schalter ganze Session / nur Foil, Sprints bernsteinfarben mit Versuchsnummer (Web).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [

@@ -1383,6 +1383,18 @@ export default function SessionDetail() {
         L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: selectedRun != null ? 0.35 : 0.9, interactive: false }).addTo(lg);
       }
     }
+    // SUP (20.10.2026): Paddle-up-Sprints bernsteinfarben, mit der Versuchsnummer aus der Tabelle.
+    if (paddel?.versuche?.length && selectedRun == null) {
+      paddel.versuche.forEach((v, i) => {
+        const ln = v.linie ?? [];
+        if (ln.length >= 2) L.polyline(ln, { color: "#f59e0b", weight: 6, opacity: 0.9, interactive: false }).addTo(lg);
+        if (ln.length) {
+          L.marker(ln[0], { interactive: false, icon: L.divIcon({ className: "",
+            html: `<div style="background:#f59e0b;color:#0f172a;border-radius:9999px;font:600 11px/18px system-ui;width:18px;height:18px;text-align:center">${i + 1}</div>`,
+            iconSize: [18, 18], iconAnchor: [9, 9] }) }).addTo(lg);
+        }
+      });
+    }
     // Wake thief (20.10.2026): Wellenstuecke als breites, halbdurchsichtiges Band ueber dem Track.
     if (wellePumpen?.linien?.length && selectedRun == null) {
       wellePumpen.linien.forEach((ln) => {
@@ -1466,7 +1478,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, manoever, wellePumpen]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, manoever, wellePumpen, paddel]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -2107,7 +2119,10 @@ export default function SessionDetail() {
                 <thead>
                   <tr className="text-xs text-slate-400">
                     <th className="pr-3 text-right font-normal">#</th>
-                    <th className="pr-4 text-right font-normal">{t("sd.sprintStrokes")}</th>
+                    <th className="pr-4 text-right font-normal">
+                      <span className="mr-1.5 inline-block h-2.5 w-4 rounded-sm align-middle" style={{ background: "#f59e0b" }} />
+                      {t("sd.sprintStrokes")}
+                    </th>
                     <th colSpan={2}></th>
                   </tr>
                 </thead>

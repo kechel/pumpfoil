@@ -43,6 +43,12 @@ JE_SPORT = {
     # jeder Zug ist ein eigener Lauf, die Rueckfahrt im Boot gehoert nicht auf die Karte.
     "efoil": {"karte": "ganz", "hauptzahl": "gesamt"},
     "foildrive": {"karte": "ganz", "hauptzahl": "gesamt"},
+    # SUP/Paddeln (Jan, 20.10.2026: „die on-foil die daraus folgten als eigene Ansicht, derzeit nur der
+    # gesamte track"): Schalter ganze Fahrt / nur Foil; die Sprints zeichnet die Karte aus /paddel.
+    "sup_paddle": {"karte": "ganz"},
+    # Wake thief (Jan, 20.10.2026: „bei wake-thief das gleiche bitte"): Schalter wie SUP; die Wellenstuecke
+    # zeichnet die Karte aus /welle-pumpen.
+    "wakethief": {"karte": "ganz"},
 }
 
 
