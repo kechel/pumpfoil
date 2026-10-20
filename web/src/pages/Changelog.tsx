@@ -326,7 +326,7 @@ function SportStand() {
                 {sp.merkmale.map((m) => (
                   <li key={m.id} className="sm:grid sm:grid-cols-[11rem_5.5rem_1fr] sm:gap-x-2">
                     <span className="text-slate-300">{m.name}</span>{" "}
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-center text-xs font-medium ${STATUS_FARBE[m.status] ?? STATUS_FARBE.nein}`}>
+                    <span className={`inline-block self-start rounded-full px-2 py-0.5 text-center text-xs font-medium ${STATUS_FARBE[m.status] ?? STATUS_FARBE.nein}`}>
                       {d.status[m.status] ?? m.status}
                     </span>
                     <span className="block text-slate-400 sm:inline">
