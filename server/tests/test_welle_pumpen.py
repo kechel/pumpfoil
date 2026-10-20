@@ -57,3 +57,9 @@ def test_leichtes_pumpen_auf_der_welle():
     t, acc, gps = _lauf([(40, 0.6, 15), (60, 0.2, 20), (30, 0.6, 15)])
     e = welle_pumpen.auswerten(t, acc, HZ, gps, [{"lo": 0.0, "hi": 130.0, "pumps_t": []}])
     assert e["welle_s"] >= 50
+
+
+def test_ausrollen_am_laufende_ist_keine_welle():
+    t, acc, gps = _lauf([(60, 0.6, 16), (8, 0.03, 9)])
+    e = welle_pumpen.auswerten(t, acc, HZ, gps, [{"lo": 0.0, "hi": 68.0, "pumps_t": []}])
+    assert e["welle_s"] == 0
