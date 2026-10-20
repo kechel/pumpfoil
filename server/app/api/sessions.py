@@ -147,7 +147,9 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #   5 = Uhrzeit je Lauf (`t_start_clock_ms`) + `duration_ms` + `pause_windows` (10.09.). Ohne
 #       Bump zeigten geladene Sessions weiter die zu frueh berechneten Lauf-Zeiten.
 #   6 = Gleitphasen je Lauf (`segments[].glides`) + Pumps bei Handy am Brett (03.10.2026).
-_OUT_VERSION = 6
+#   7 = `sport_profil.karte` = "ganz" fuer SUP/Wake thief (20.10.2026). Ohne Bump fehlte der Kartenschalter:
+#       die Session selbst aendert sich dabei nicht, also antwortete der Server weiter mit 304.
+_OUT_VERSION = 7
 
 
 def _ort_verborgen(s: models.Session) -> bool:
