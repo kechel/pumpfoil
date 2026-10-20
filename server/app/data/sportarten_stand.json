@@ -12,7 +12,7 @@
     "'allgemein' + 'merkmale_allgemein' (19.10., Jan: 'die punkte die fuer alle Sportarten gelten in einen eigenen uebergeordneten punkt'): Merkmale, die fuer jede Sportart gleich gelten, stehen NUR dort, nicht je Gruppe. Oeffentlich als Abschnitt 'All sports' ueber den Sportarten.",
     "'oeffentlich': false an einem Merkmal (merkmale/merkmale_allgemein) = bleibt im Buch, wird auf /changelog nicht gezeigt (seit 20.10.2026, erstes: autofahrt)."
   ],
-  "stand": "2026-10-19",
+  "stand": "2026-10-20",
   "status_en": {
     "live": "ready",
     "teilweise": "basic",
