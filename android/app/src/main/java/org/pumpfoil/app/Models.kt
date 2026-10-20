@@ -303,7 +303,8 @@ data class Fahrt(val laeufe: Int = 0, @SerialName("dauer_s") val dauerS: Double 
                  @SerialName("strecke_m") val streckeM: Double = 0.0, @SerialName("foil_m") val foilM: Double = 0.0,
                  // nur Downwind (19.10.2026): Luftlinie A->B, Tempo darauf, Anteil auf dem Foil
                  @SerialName("ab_m") val abM: Double? = null, @SerialName("ab_kmh") val abKmh: Double? = null,
-                 @SerialName("foil_anteil") val foilAnteil: Double? = null)
+                 @SerialName("foil_anteil") val foilAnteil: Double? = null,
+                 @SerialName("t_start_ms") val tStartMs: Long = 0)
 
 // nur Wave (19.10.2026): jeder Lauf ist eine Welle
 @Serializable
@@ -1120,7 +1121,16 @@ data class PaddelAntwort(val schlaege: Int = 0, @SerialName("schlaege_pro_min") 
                          @SerialName("schlag_pkt") val schlagPkt: List<List<Double>> = emptyList())
 
 @Serializable
-data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null, val hoehe: Hoehe? = null)
+data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null, val hoehe: Hoehe? = null,
+                           val fahrten: List<ManoeverFahrt> = emptyList())
+
+// Je Fahrt (20.10.2026), zugeordnet ueber t_start_ms wie in sport_zahlen.fahrten.
+@Serializable
+data class ManoeverFahrt(@SerialName("t_start_ms") val tStartMs: Long = 0,
+                         @SerialName("wende_durch") val wendeDurch: Int = 0, val wende: Int = 0,
+                         @SerialName("halse_durch") val halseDurch: Int = 0, val halse: Int = 0,
+                         @SerialName("hoehe_m") val hoeheM: Double? = null, @SerialName("vmg_max_kmh") val vmgMaxKmh: Double? = null,
+                         @SerialName("wind_kmh") val windKmh: Double? = null)
 
 @Serializable
 data class SportProfil(

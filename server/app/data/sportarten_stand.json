@@ -386,8 +386,8 @@
         },
         "fahrten": {
           "status": "live",
-          "en": "Runs with a break of up to 5 minutes (fall, tack, waterstart) count as one ride; each ride with duration, total distance, on-foil distance and runs",
-          "notiz": "Jan 19.10.: 'bei whole ride ist fast alles ... ein einziger run'. 845 Wing-Sessions: Laeufe/Session Median 16, Pausen Median 46 s, p90 160 s; Zusammenfassen bei <=120 s -> Median 3 Fahrten, <=300 s -> 1. Jans Wunsch -> geplant; Grenze offen (Jan gefragt: 2 oder 5 min). Ist Stufe 3 -> Analyse, nur mit Jans OK. 19.10.: Jan „mach die pause auf 5min“. app/sportzahlen.py, beim Ausliefern berechnet (keine Neuberechnung, Erkennung unveraendert). #17478: 2 Fahrten (53 + 4 Laeufe).",
+          "en": "Runs with a break of up to 5 minutes (fall, tack, waterstart) count as one ride; each ride with duration, total distance, on-foil distance and runs; per ride also tacks and jibes on the foil, distance gained upwind, best VMG and the model wind at the time.",
+          "notiz": "Jan 19.10.: 'bei whole ride ist fast alles ... ein einziger run'. 845 Wing-Sessions: Laeufe/Session Median 16, Pausen Median 46 s, p90 160 s; Zusammenfassen bei <=120 s -> Median 3 Fahrten, <=300 s -> 1. Jans Wunsch -> geplant; Grenze offen (Jan gefragt: 2 oder 5 min). Ist Stufe 3 -> Analyse, nur mit Jans OK. 19.10.: Jan „mach die pause auf 5min“. app/sportzahlen.py, beim Ausliefern berechnet (keine Neuberechnung, Erkennung unveraendert). #17478: 2 Fahrten (53 + 4 Laeufe). 20.10.2026 (Jan: „bau die stats so mit ein\"): je Fahrt Wenden/Halsen, Hoehe, beste VMG, Modellwind aus dem Manoever-Cache (MANOEVER_VERSION m4-fahrt, `fahrten`, Zuordnung ueber t_start_ms). Web: sortierbare Tabelle unter der Karte; Apps 1.1.44/1.1.53 als Zeile je Fahrt.",
           "plattformen": {
             "web": "2026-10-19",
             "android": "1.1.44",
@@ -1290,6 +1290,22 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing"
+      ],
+      "merkmal": "fahrten",
+      "was": "Fahrten-Tabelle: je Fahrt Wenden/Halsen auf dem Foil, Hoehe, beste VMG, Modellwind (Web; Apps im naechsten Release).",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [

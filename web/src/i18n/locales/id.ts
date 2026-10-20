@@ -630,6 +630,8 @@ const id: Record<string, string> = {
   "sd.onWake": "Di atas gelombang",
   "sd.pumpedPart": "Memompa",
   "sd.longestT": "terlama {t}",
+  "sd.colHeight": "Lawan angin km",
+  "sd.colVmg": "VMG terbaik",
   "spot.windTitle": "Jendela angin",
   "spot.windText": "{n} sesi angin, umumnya pada {a}–{b} km/h",
   "spot.windNote": "Dari mana angin datang saat sesi wing, kite, dan parawing di spot ini (angin model).",

@@ -1023,6 +1023,9 @@ export const api = {
     items: { i: number; t_ms: number; typ: "wende" | "halse"; durch: boolean; drehung: number }[];
     zahlen: null | { wende: { durch: number; ab: number }; halse: { durch: number; ab: number } };
     hoehe?: null | { vmg_max_kmh: number; vmg_mittel_kmh: number | null; am_wind_anteil: number | null; hoehe_m: number; winkel_med: number | null };
+    // Je Fahrt (20.10.2026), zugeordnet ueber t_start_ms wie in sport_zahlen.fahrten.
+    fahrten?: { t_start_ms: number; wende_durch: number; wende: number; halse_durch: number; halse: number;
+                hoehe_m: number | null; vmg_max_kmh: number | null; wind_kmh: number | null }[];
   }>(`/api/sessions/${id}/manoever`),
   // Wake thief: Welle gegen gepumpt, Pumps nur im gepumpten Teil (nur Anzeige; server/app/welle_pumpen.py), 20.10.2026.
   sessionWellePumpen: (id: number) => req<null | {

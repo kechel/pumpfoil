@@ -514,6 +514,8 @@ const deAT: Record<string, string> = {
   "sd.onWake": "Auf der Welle",
   "sd.pumpedPart": "Pumpt",
   "sd.longestT": "längste {t}",
+  "sd.colHeight": "Höhe km",
+  "sd.colVmg": "Beste VMG",
   "spot.windTitle": "Windfenster",
   "spot.windText": "{n} Wind-Sessions, meist bei {a}–{b} km/h",
   "spot.windNote": "Woher der Wind bei den Wing-, Kite- und Parawing-Sessions an diesem Spot kam (Modellwind).",

@@ -4683,6 +4683,8 @@ static let nlOverlay: [String: String] = {
     private static let _neu4_sd_onWake: [String: String] = ["de": "Auf der Welle", "gsw": "Uf dr Wälle", "de-AT": "Auf der Welle", "en": "On the wake", "fr": "Sur la vague", "it": "Sull'onda", "es": "En la ola", "fi": "Aallolla", "nl": "Op de golf", "cs": "Na vlně", "pl": "Na fali", "pt": "Na onda", "pt-PT": "Na onda", "ja": "ウェイク上", "zh": "乘浪", "ru": "На волне", "id": "Di atas gelombang", "nb": "På bølgen"]
     private static let _neu4_sd_pumpedPart: [String: String] = ["de": "Gepumpt", "gsw": "Pumpet", "de-AT": "Pumpt", "en": "Pumped", "fr": "En pompant", "it": "Pompando", "es": "Bombeando", "fi": "Pumpaten", "nl": "Gepompt", "cs": "Pumpováním", "pl": "Pompując", "pt": "Bombeando", "pt-PT": "A bombear", "ja": "パンプ", "zh": "泵动", "ru": "С пампингом", "id": "Memompa", "nb": "Pumpet"]
     private static let _neu4_sd_longestT: [String: String] = ["de": "längste {t}", "gsw": "längschti {t}", "de-AT": "längste {t}", "en": "longest {t}", "fr": "la plus longue {t}", "it": "la più lunga {t}", "es": "la más larga {t}", "fi": "pisin {t}", "nl": "langste {t}", "cs": "nejdelší {t}", "pl": "najdłuższa {t}", "pt": "a mais longa {t}", "pt-PT": "a mais longa {t}", "ja": "最長 {t}", "zh": "最长 {t}", "ru": "самая долгая {t}", "id": "terlama {t}", "nb": "lengste {t}"]
+    private static let _neu4_sd_colHeight: [String: String] = ["de": "Höhe km", "gsw": "Höchi km", "de-AT": "Höhe km", "en": "Upwind km", "fr": "Remontée km", "it": "Bolina km", "es": "Ceñida km", "fi": "Ylätuuli km", "nl": "Hoogte km", "cs": "Proti větru km", "pl": "Pod wiatr km", "pt": "Contra o vento km", "pt-PT": "Contra o vento km", "ja": "風上 km", "zh": "迎风 km", "ru": "Против ветра км", "id": "Lawan angin km", "nb": "Mot vinden km"]
+    private static let _neu4_sd_colVmg: [String: String] = ["de": "Beste VMG", "gsw": "Bescht VMG", "de-AT": "Beste VMG", "en": "Best VMG", "fr": "Meilleure VMG", "it": "Miglior VMG", "es": "Mejor VMG", "fi": "Paras VMG", "nl": "Beste VMG", "cs": "Nejlepší VMG", "pl": "Najlepsze VMG", "pt": "Melhor VMG", "pt-PT": "Melhor VMG", "ja": "最高 VMG", "zh": "最佳 VMG", "ru": "Лучший VMG", "id": "VMG terbaik", "nb": "Beste VMG"]
     static let neuTexte4: [String: [String: String]] = [
         "cls.windHint": _neu4_cls_windHint,
         "cls.windHintNo": _neu4_cls_windHintNo,
@@ -4716,6 +4718,8 @@ static let nlOverlay: [String: String] = {
         "sd.onWake": _neu4_sd_onWake,
         "sd.pumpedPart": _neu4_sd_pumpedPart,
         "sd.longestT": _neu4_sd_longestT,
+        "sd.colHeight": _neu4_sd_colHeight,
+        "sd.colVmg": _neu4_sd_colVmg,
     ]
     static let neuTexte3: [String: [String: String]] = [
         "settings.coros.expired": _neu3_settings_coros_expired,
