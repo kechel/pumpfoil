@@ -2246,7 +2246,7 @@ private fun SortTabelle(titel: String, n: Int, spalten: List<SortSpalte>) {
                     Text("${i + 1}", Modifier.width(28.dp), textAlign = TextAlign.End, color = grau)
                     spalten.forEach { sp ->
                         Text(sp.zelle(i), Modifier.width(sp.breite.dp).padding(start = 8.dp), textAlign = TextAlign.End,
-                            color = sp.farbe?.invoke(i) ?: MaterialTheme.colorScheme.onSurface)
+                            color = sp.farbe?.invoke(i) ?: MaterialTheme.colorScheme.onSurface, maxLines = 1, softWrap = false)
                     }
                 }
             }
@@ -2262,7 +2262,7 @@ private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = em
     val mitWind = m.any { it != null }
     fun km(v: Double?) = v?.let { "%.1f".format(it / 1000.0) } ?: "–"
     val spalten = buildList {
-        add(SortSpalte(I18n.t("sd.colDuration"), 60, { fahrten[it].dauerS }, { fmtLaufDauer(fahrten[it].dauerS) }))
+        add(SortSpalte(I18n.t("sd.colDuration"), 76, { fahrten[it].dauerS }, { fmtLaufDauer(fahrten[it].dauerS) }))
         add(SortSpalte(I18n.t("sd.colDistance") + " km", 66, { fahrten[it].streckeM }, { km(fahrten[it].streckeM) }))
         add(SortSpalte("Foil km", 56, { fahrten[it].foilM }, { km(fahrten[it].foilM) }))
         add(SortSpalte(I18n.t("stat.runs"), 48, { fahrten[it].laeufe.toDouble() }, { "${fahrten[it].laeufe}" }))
@@ -2272,8 +2272,8 @@ private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = em
             add(SortSpalte("Foil %", 50, { fahrten[it].foilAnteil }, { fahrten[it].foilAnteil?.let { v -> "${kotlin.math.round(v * 100).toInt()} %" } ?: "–" }))
         }
         if (mitWind) {
-            add(SortSpalte(I18n.t("sd.tacks"), 62, { m[it]?.wendeDurch?.toDouble() }, { m[it]?.let { x -> if (x.wende > 0) "${x.wendeDurch} / ${x.wende}" else "–" } ?: "–" }))
-            add(SortSpalte(I18n.t("sd.jibes"), 66, { m[it]?.halseDurch?.toDouble() }, { m[it]?.let { x -> if (x.halse > 0) "${x.halseDurch} / ${x.halse}" else "–" } ?: "–" }))
+            add(SortSpalte(I18n.t("sd.tacks"), 72, { m[it]?.wendeDurch?.toDouble() }, { m[it]?.let { x -> if (x.wende > 0) "${x.wendeDurch}/${x.wende}" else "–" } ?: "–" }))
+            add(SortSpalte(I18n.t("sd.jibes"), 80, { m[it]?.halseDurch?.toDouble() }, { m[it]?.let { x -> if (x.halse > 0) "${x.halseDurch}/${x.halse}" else "–" } ?: "–" }))
             add(SortSpalte(I18n.t("sd.colHeight"), 64, { m[it]?.hoeheM }, { km(m[it]?.hoeheM) }))
             add(SortSpalte(I18n.t("sd.colVmg") + " km/h", 76, { m[it]?.vmgMaxKmh }, { m[it]?.vmgMaxKmh?.let { v -> "%.1f".format(v) } ?: "–" }))
             add(SortSpalte(I18n.t("sd.wind") + " km/h", 64, { m[it]?.windKmh }, { m[it]?.windKmh?.let { v -> "%.0f".format(v) } ?: "–" }))
@@ -2296,20 +2296,17 @@ private fun WelleKarte(w: WellePumpen, sport: String? = null) {
                 Text(I18n.t("sd.onWake"), Modifier.width(110.dp), fontWeight = FontWeight.SemiBold)
                 Text(mmss(w.welleS), Modifier.width(52.dp), textAlign = TextAlign.End)
                 Text("%.1f km".format(w.welleM / 1000.0), Modifier.width(64.dp), textAlign = TextAlign.End)
-                if (w.laengsteWelleS > 0) {
-                    Spacer(Modifier.width(12.dp))
-                    Text(I18n.t("sd.longestT").replace("{t}", mmss(w.laengsteWelleS)), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
             }
+            if (w.laengsteWelleS > 0) Text(I18n.t("sd.longestT").replace("{t}", mmss(w.laengsteWelleS)),
+                Modifier.padding(start = 22.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row {
                 Spacer(Modifier.width(22.dp))
                 Text(I18n.t("sd.pumpedPart"), Modifier.width(110.dp), fontWeight = FontWeight.SemiBold)
                 Text(mmss(w.gepumptS), Modifier.width(52.dp), textAlign = TextAlign.End)
                 Text("%.1f km".format(w.gepumptM / 1000.0), Modifier.width(64.dp), textAlign = TextAlign.End)
-                Spacer(Modifier.width(12.dp))
-                Text("${w.pumps} ${I18n.t("home.pumps")}" + (w.pumpsProMin?.let { " · " + I18n.t("sd.perMin").replace("{n}", "$it") } ?: ""),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            Text("${w.pumps} ${I18n.t("home.pumps")}" + (w.pumpsProMin?.let { " · " + I18n.t("sd.perMin").replace("{n}", "$it") } ?: ""),
+                Modifier.padding(start = 22.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -2338,7 +2335,7 @@ private fun PaddelKarte(p: PaddelAntwort, sport: String? = null) {
         val grau = MaterialTheme.colorScheme.onSurfaceVariant
         SortTabelle("${I18n.t("cls.sport.${sport ?: "sup_paddle"}")} · ${I18n.t("sd.attempts")}", v.size, listOf(
             SortSpalte(I18n.t("sd.sprintStrokes"), 96, { v[it].schlaege.toDouble() }, { "${v[it].schlaege}" }),
-            SortSpalte(I18n.t("sd.attempts"), 110, { when (v[it].ergebnis) { "foil" -> 2.0; "kurz" -> 1.0; else -> 0.0 } },
+            SortSpalte("", 150, { when (v[it].ergebnis) { "foil" -> 2.0; "kurz" -> 1.0; else -> 0.0 } },
                 { when (v[it].ergebnis) { "foil" -> I18n.t("sd.onFoil"); "kurz" -> I18n.t("sd.attShort"); else -> I18n.t("sd.attNot") } },
                 farbe = { when (v[it].ergebnis) { "foil" -> Color(0xFF22D3EE); "kurz" -> Color(0xFFF59E0B); else -> grau } }),
             SortSpalte("Foil", 52, { if (v[it].ergebnis == "foil") v[it].foilS ?: 0.0 else null },
