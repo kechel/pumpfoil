@@ -547,6 +547,9 @@ export default function SessionDetail() {
   const [ganzeFahrt, setGanzeFahrt] = useState(true);
   const zeigeGanz = karteGanzMoeglich && ganzeFahrt;
   const pumpzahlen = profil?.pumpzahlen !== false;
+  // Gleitphasen zwischen zwei Pumps sind ein Pumpfoil-Begriff. Bei SUP verwirrte der Schalter (Jan, 20.10.2026:
+  // die Foil-Laeufe wurden grau, nur die Sprints blieben farbig) -> dort kein Gleit-Schalter.
+  const gleitenMoeglich = pumpzahlen && session?.sport_class !== "sup_paddle";
   const hauptGesamt = profil?.hauptzahl === "gesamt";
   // Wind am Spot (Stand-Buch wind_am_spot, 19.10.2026): nur fuer Wind-Sportarten abrufen.
   const [wind, setWind] = useState<Awaited<ReturnType<typeof api.sessionWind>>["wind"]>(null);
@@ -1316,7 +1319,7 @@ export default function SessionDetail() {
         let color: string;
         if (dim) {
           color = "#64748b";
-        } else if (showGlides && pumpzahlen) {
+        } else if (showGlides && gleitenMoeglich) {
           // Wie bei den Carves (Jan, 03.10.2026): Track dezent grau, nur die Gleitphasen farbig.
           color = "#334155";
         } else if (colorMode === "speed") {
@@ -1468,7 +1471,7 @@ export default function SessionDetail() {
     }
     // Gleitphasen (1,5-10 s ohne Pump, auch letzter Pump -> Laufende; server-seitig in `seg.glides`
     // als [Start-Index, End-Index, Dauer s, Start]) in Marken-Cyan auf grauem Track, UNTER den Pump-Markern.
-    if (showGlides && pumpzahlen) {
+    if (showGlides && gleitenMoeglich) {
       segs.forEach((seg: any, idx: number) => {
         if (selectedRun != null && idx !== selectedRun) return;
         for (const [i0, i1, d] of (seg.glides ?? []) as number[][]) {
@@ -1508,7 +1511,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, manoever, wellePumpen, paddel]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, gleitenMoeglich, manoever, wellePumpen, paddel]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -2217,7 +2220,7 @@ export default function SessionDetail() {
           </button>
           )}
           {/* Nur, wenn die Analyse Gleitphasen geliefert hat (ab der Fassung vom 03.10.2026). */}
-          {pumpzahlen && (session?.analysis?.segments ?? []).some((g: any) => g.glides?.length) && (
+          {gleitenMoeglich && (session?.analysis?.segments ?? []).some((g: any) => g.glides?.length) && (
             <button
               onClick={() => setShowGlides((v) => !v)}
               className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showGlides ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
