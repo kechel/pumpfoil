@@ -2106,7 +2106,6 @@ private fun FahrtenKarte(fahrten: List<Fahrt>) {
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Text(I18n.t("sd.ridesNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -2126,7 +2125,6 @@ private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null, vorhe
                 append(I18n.t("sd.windFrom") + " ${w.richtung}° ")
                 append(windPfeil(w.richtung))
             })
-            Text(I18n.t("sd.windNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (vorhersage) Text(I18n.t("sd.windForecast"), style = MaterialTheme.typography.bodySmall, color = Color(0xFFF59E0B))
             vg?.let {
                 Text(I18n.t("sd.windCompare").replace("{a}", "${it.windVon}").replace("{b}", "${it.windBis}")
@@ -2143,7 +2141,6 @@ private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null, vorhe
                     Text("●", color = Color(0xFFF97316)); Spacer(Modifier.width(4.dp))
                     Text("${I18n.t("sd.jibes")} ${z.halse.durch} / ${z.halse.durch + z.halse.ab} ${I18n.t("sd.onFoil")}")
                 }
-                Text(I18n.t("sd.manoeverNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             // Hoehe laufen (19.10.2026, wie im Web): VMG zum Wind, nur Anzeige.
             if (h != null) {
@@ -2156,7 +2153,6 @@ private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null, vorhe
                     add(I18n.t("sd.heightGained").replace("{km}", "%.1f".format(h.hoeheM / 1000.0)))
                     h.winkelMed?.let { add(I18n.t("sd.angleToWind").replace("{a}", it.toString())) }
                 }.joinToString(" · "))
-                Text(I18n.t("sd.upwindNote"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

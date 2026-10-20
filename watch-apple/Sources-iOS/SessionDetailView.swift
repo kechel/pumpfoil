@@ -1931,7 +1931,6 @@ private struct FahrtenKarte: View {
                 Text(zeile(i, f)).font(.subheadline)
                 if let ab = abZeile(f) { Text(ab).font(.footnote).foregroundStyle(.secondary) }
             }
-            Text(Loc.t("sd.ridesNote", lang)).font(.footnote).foregroundStyle(.secondary)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1962,7 +1961,6 @@ private struct WindKarte: View {
                     .font(.subheadline)
             }
             Text(boeenZeile).font(.subheadline)
-            Text(Loc.t("sd.windNote", lang)).font(.footnote).foregroundStyle(.secondary)
             if vorhersage { Text(Loc.t("sd.windForecast", lang)).font(.footnote).foregroundStyle(.orange) }
             if let vg { Text(vergleichText(vg)).font(.footnote) }
             if let z { zahlen(z) }
@@ -1994,14 +1992,12 @@ private struct WindKarte: View {
         HStack(spacing: 6) { Circle().fill(Color(red: 0.66, green: 0.33, blue: 0.97)).frame(width: 9, height: 9); Text(wende).font(.subheadline) }
             .padding(.top, 4)
         HStack(spacing: 6) { Circle().fill(Color(red: 0.98, green: 0.45, blue: 0.09)).frame(width: 9, height: 9); Text(halse).font(.subheadline) }
-        Text(Loc.t("sd.manoeverNote", lang)).font(.footnote).foregroundStyle(.secondary)
     }
 
     // Hoehe laufen (19.10.2026, wie im Web): VMG zum Wind, nur Anzeige.
     @ViewBuilder private func hoeheZeilen(_ h: Hoehe) -> some View {
         Text(Loc.t("sd.upwind", lang)).font(.subheadline.weight(.semibold)).padding(.top, 4)
         Text(hoeheText(h)).font(.subheadline)
-        Text(Loc.t("sd.upwindNote", lang)).font(.footnote).foregroundStyle(.secondary)
     }
 
     private func hoeheText(_ h: Hoehe) -> String {

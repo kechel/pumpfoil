@@ -2047,7 +2047,6 @@ export default function SessionDetail() {
               )}
             </div>
           ))}
-          <div className="mt-0.5 text-slate-400">{t("sd.ridesNote")}</div>
         </div>
       )}
 
@@ -2071,7 +2070,6 @@ export default function SessionDetail() {
               </svg>
             </span>
           </div>
-          <div className="mt-0.5 text-slate-400">{t("sd.windNote")}</div>
           {wind.vorhersage && <div className="mt-0.5 text-amber-700 dark:text-amber-300">{t("sd.windForecast")}</div>}
           {/* Tempo je Windstaerke (19.10.2026): dieselbe Person bei aehnlichem Wind, nur aus dem Wind-Cache. */}
           {windVergleich && (
@@ -2092,7 +2090,6 @@ export default function SessionDetail() {
                   <b>{t("sd.jibes")}</b> {manoever.zahlen.halse.durch} / {manoever.zahlen.halse.durch + manoever.zahlen.halse.ab} {t("sd.onFoil")}
                 </span>
               </div>
-              <div className="mt-0.5 text-slate-400">{t("sd.manoeverNote")}</div>
             </>
           )}
           {/* Hoehe laufen (19.10.2026, Stand-Buch: hoehe): VMG zum Wind aus Spur + Modellwind, nur Anzeige. */}
@@ -2106,7 +2103,6 @@ export default function SessionDetail() {
                 <span>{t("sd.heightGained", { km: (manoever.hoehe.hoehe_m / 1000).toFixed(1) })}</span>
                 {manoever.hoehe.winkel_med != null && <span>{t("sd.angleToWind", { a: String(manoever.hoehe.winkel_med) })}</span>}
               </div>
-              <div className="mt-0.5 text-slate-400">{t("sd.upwindNote")}</div>
             </>
           )}
         </div>
