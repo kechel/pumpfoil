@@ -1127,6 +1127,7 @@ struct PaddelVersuch: Codable {
     let ergebnis: String
     let foil_s: Double?
     let linie: [[Double]]?
+    let schlag_pkt: [[Double]]?
 }
 struct PaddelAntwort: Codable {
     let schlaege: Int

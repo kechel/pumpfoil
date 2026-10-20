@@ -1020,7 +1020,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = paddel?.schlagPkt.orEmpty(), wellen = wellePumpen?.linien.orEmpty())
+                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty())
                         // Vollbild-Karte (PWA-Paritaet: dort ein Knopf "Vollbild" ueber der Karte
                         // bzw. die Taste F). Hier ein Knopf IN der Kartenecke — dasselbe Muster,
                         // das die Vergleichskarte dieser App schon nutzt.
@@ -1044,7 +1044,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = paddel?.schlagPkt.orEmpty(), wellen = wellePumpen?.linien.orEmpty())
+                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty())
                             IconButton(
                                 onClick = { mapFull = false },
                                 // Karte bleibt randlos, das X nicht — sonst liegt es unter der Statusleiste.

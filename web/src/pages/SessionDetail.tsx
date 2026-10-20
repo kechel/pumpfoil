@@ -1488,7 +1488,9 @@ export default function SessionDetail() {
     // SUP (Jan, 20.10.2026): der Knopf heisst dort „Paddelschlaege" und zeigt die Schlaege der Schlag-Erkennung
     // (/paddel, server/app/paddel.py), nicht die Pumps der Pump-Erkennung.
     if (showPumps && session.sport_class === "sup_paddle") {
-      if (selectedRun == null) (paddel?.schlag_pkt ?? []).forEach((p) => {
+      // Nur in den gezeigten Abschnitten (Jan, 20.10.2026): ganze Fahrt alle, „nur Foil" nur die Sprintschlaege.
+      const pkte = zeigeGanz ? (paddel?.schlag_pkt ?? []) : (paddel?.versuche ?? []).flatMap((v) => v.schlag_pkt ?? []);
+      if (selectedRun == null) pkte.forEach((p) => {
         L.circleMarker(p, { radius: 2.5, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 0.9, interactive: false }).addTo(lg);
       });
     } else if (showPumps && pumpzahlen) {
