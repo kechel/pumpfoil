@@ -35,7 +35,7 @@ export default function Friends() {
     <div className="flex items-center gap-3 border-t border-slate-800 py-2.5 first:border-t-0">
       <Avatar name={name} url={avatar} seed={id} userId={id} size={36} />
       <div className="min-w-0 flex-1">
-        <Link to={`/foiler/${id}`} className="block truncate font-semibold hover:text-brand-400">{name ?? "—"}</Link>
+        <Link to={`/foiler/${id}`} className="pf-name block truncate font-semibold hover:text-brand-400">{name ?? "—"}</Link>
         {unter && <div className="text-sm text-slate-400">{unter}</div>}
       </div>
       <div className="flex shrink-0 flex-wrap justify-end gap-2">{children}</div>

@@ -25,8 +25,8 @@ function Eintrag({ f }: { f: AktiverFreund }) {
     <span className="whitespace-nowrap">
       {/* Negative ids = erfundene Demo-Freunde (lib/demoNames.ts): ohne Link, es gibt keine Seite dazu. */}
       {f.user_id < 0
-        ? <span className="font-semibold">{f.name ?? "—"}</span>
-        : <Link to={`/foiler/${f.user_id}`} className="font-semibold hover:underline">{f.name ?? "—"}</Link>}
+        ? <span className="pf-name font-semibold">{f.name ?? "—"}</span>
+        : <Link to={`/foiler/${f.user_id}`} className="pf-name font-semibold hover:underline">{f.name ?? "—"}</Link>}
       {f.spot && f.spot_id != null && f.spot_id < 0 && <> @ {f.spot}</>}
       {f.spot && f.spot_id != null && f.spot_id >= 0 && (
         <> @ <Link to={`/sessions?scope=all&spot=${f.spot_id}`} className="hover:underline">{f.spot}</Link></>

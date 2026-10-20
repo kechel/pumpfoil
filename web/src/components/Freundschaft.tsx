@@ -120,7 +120,7 @@ export function FreundesAnfragen() {
         <div key={f.user_id} className="flex flex-wrap items-center gap-2 py-1">
           <span className="min-w-0 flex-1">
             {t("friends.incomingFrom", { name: "\u0000" }).split("\u0000").map((teil, i) => (
-              <span key={i}>{i > 0 && <Link to={`/foiler/${f.user_id}`} className="font-semibold hover:underline">{f.name ?? "—"}</Link>}{teil}</span>
+              <span key={i}>{i > 0 && <Link to={`/foiler/${f.user_id}`} className="pf-name font-semibold hover:underline">{f.name ?? "—"}</Link>}{teil}</span>
             ))}
           </span>
           <button onClick={() => ausfuehren(api.friendDecline(f.user_id))} disabled={busy}
