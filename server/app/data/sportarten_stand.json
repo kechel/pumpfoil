@@ -119,6 +119,10 @@
     {
       "id": "paddeln_foil",
       "en": "Paddling versus on the foil"
+    },
+    {
+      "id": "paddelschlaege",
+      "en": "Paddle strokes"
     }
   ],
   "gruppen": {
@@ -257,6 +261,10 @@
           "en": "Does not apply."
         },
         "paddeln_foil": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "paddelschlaege": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -517,6 +525,10 @@
         "paddeln_foil": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "paddelschlaege": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -642,6 +654,10 @@
           "en": "Does not apply."
         },
         "paddeln_foil": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "paddelschlaege": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -786,6 +802,10 @@
         "paddeln_foil": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "paddelschlaege": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     }
@@ -881,6 +901,11 @@
           "status": "geplant",
           "en": "Distance and time paddling on the water and on the foil shown separately.",
           "notiz": "Jan 20.10.2026 („strecke floated und strecke on-foil getrennt … da sollte das viel einfacher sein“). Ansatz: Tempo-Luecke wie windlauf.py (paddeln ~6-8 km/h, Foil ~12+), ohne Pump-Modell. Daten 20.10.: 17 Sessions, 6 Fahrer; Pump-Modell findet meist ~0 km Foil. VORSICHT: viele sind offenbar reines SUP ohne Foil (u277: 6 Sessions, keine Luecke ueber 7 km/h) — dort darf die Luecke paddeln/stehen NICHT als Foil gelten -> Mindest-Starttempo (~10 km/h) noetig. Nur 3 Sessions zeigen eine Luecke (#10051 8/5, #9334 20/11). Jan 20.10. (Praxis): Paddle-up ist schwierig, viele Anfaenger kommen noch gar nicht aufs Foil -> 0 km Foil ist meist RICHTIG, kein Erkennungsfehler. Wer hochkommt, oft nur ~1 s; laengeres Pumpen wie beim Pumpfoil kommt praktisch nicht vor. Folge: GPS (1 Hz) loest 1-s-Fluege kaum auf -> fuer solche Momente eher Accel; die Auswertung soll 'kein Foil' als normalen Ausgang zeigen, nicht als Fehler."
+        },
+        "paddelschlaege": {
+          "status": "geplant",
+          "en": "Count paddle strokes from the watch motion data and recognise the hard sprint strokes of a paddle-up attempt, so attempts count even when the board only lifts for a second.",
+          "notiz": "Jan 20.10.2026: „beim paddle-up die 'strokes' herausfinden aus den Beschleunigungsdaten, das sind vermutlich klare eindeutige Ausschlaege wenn man das Paddel so durchs wasser reisst um aufs foil zu kommen“. Ergaenzt paddeln_foil: GPS loest 1-s-Fluege nicht auf, die Sprint-Schlaege davor schon (Uhr am Handgelenk = direkt am Paddel). Moegliche Ausgabe: Schlaege, Schlagrate, Paddle-up-Versuche (wie startversuche bei Pumpfoil), danach ob Tempo/Accel ein Abheben zeigt. DATEN 20.10.: nur 4 SUP-Sessions mit Accel (alle 25 Hz, #16892/#16646 u744, #10051 u257, #10926 u6 = Testkonto) -> erst Ausschlaege an diesen ansehen, Annahme ist unbelegt."
         }
       }
     },
@@ -1187,6 +1212,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "sup_paddle"
+      ],
+      "merkmal": "paddelschlaege",
+      "was": "Geplant: Paddelschlaege und Paddle-up-Versuche aus dem Accel.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [
