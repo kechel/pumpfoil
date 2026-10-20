@@ -115,6 +115,10 @@
     {
       "id": "welle_pumpen",
       "en": "Wake riding versus pumping"
+    },
+    {
+      "id": "paddeln_foil",
+      "en": "Paddling versus on the foil"
     }
   ],
   "gruppen": {
@@ -249,6 +253,10 @@
           "en": "Does not apply."
         },
         "welle_pumpen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "paddeln_foil": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -505,6 +513,10 @@
         "welle_pumpen": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "paddeln_foil": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     },
@@ -626,6 +638,10 @@
           "notiz": "Jan 19.10.2026: „ein eigenes model fuer die anderen, ja das als planned vermerken, machen wir aber andermal“. Grundlage: Vergleichsdaten (z. B. Handy am Brett je Sportart). Auswertung Tempo-Regel Wind s. erkennung-Notiz. 19.10. Gleicher Ansatz wie Wind pruefen (Jan: Pump-Modell gehoert nicht zu Nicht-Pump-Sportarten)."
         },
         "welle_pumpen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "paddeln_foil": {
           "status": "nein",
           "en": "Does not apply."
         }
@@ -766,6 +782,10 @@
         "welle_pumpen": {
           "status": "nein",
           "en": "Does not apply."
+        },
+        "paddeln_foil": {
+          "status": "nein",
+          "en": "Does not apply."
         }
       }
     }
@@ -855,7 +875,14 @@
     {
       "id": "sup_paddle",
       "en": "SUP / paddling",
-      "gruppe": "pump"
+      "gruppe": "pump",
+      "merkmale": {
+        "paddeln_foil": {
+          "status": "geplant",
+          "en": "Distance and time paddling on the water and on the foil shown separately.",
+          "notiz": "Jan 20.10.2026 („strecke floated und strecke on-foil getrennt … da sollte das viel einfacher sein“). Ansatz: Tempo-Luecke wie windlauf.py (paddeln ~6-8 km/h, Foil ~12+), ohne Pump-Modell. Daten 20.10.: 17 Sessions, 6 Fahrer; Pump-Modell findet meist ~0 km Foil. VORSICHT: viele sind offenbar reines SUP ohne Foil (u277: 6 Sessions, keine Luecke ueber 7 km/h) — dort darf die Luecke paddeln/stehen NICHT als Foil gelten -> Mindest-Starttempo (~10 km/h) noetig. Nur 3 Sessions zeigen eine Luecke (#10051 8/5, #9334 20/11)."
+        }
+      }
     },
     {
       "id": "wingfoil",
@@ -1160,6 +1187,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-20",
+      "sport": [
+        "sup_paddle"
+      ],
+      "merkmal": "paddeln_foil",
+      "was": "Geplant: Strecke/Zeit paddelnd und auf dem Foil getrennt.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [
