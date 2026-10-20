@@ -50,7 +50,7 @@ def test_profil_pumpfoil_unveraendert_wind_ganz():
     for sc in ("foil_scoot", "surf_wave"):
         assert {k: profil(sc)[k] for k in alt} == alt
     # SUP und Wake thief: nur der Kartenschalter weicht ab (20.10.2026)
-    for sc in ("sup_paddle", "wakethief"):
+    for sc in ("sup_paddle", "wakethief", "surf_downwind"):
         assert {k: profil(sc)[k] for k in alt} == {**alt, "karte": "ganz"}
     for sc in ("efoil", "foildrive", "towed"):
         assert profil(sc)["pumpzahlen"] is False and profil(sc)["tempo_skala"] == [8, 30]

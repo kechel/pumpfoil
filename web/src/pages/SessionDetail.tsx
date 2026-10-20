@@ -2101,102 +2101,6 @@ export default function SessionDetail() {
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
 
-      {/* Wake thief (20.10.2026): Zeit/Strecke auf der Welle und gepumpt, nur fette Datenzeilen. */}
-      {wellePumpen && (
-        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
-          <table className="tabular-nums">
-            <tbody>
-              <tr>
-                <td className="pr-4 font-bold">
-                  <span className="mr-1.5 inline-block h-2.5 w-4 rounded-sm align-middle" style={{ background: WELLE_FARBE, opacity: 0.7 }} />
-                  {t("sd.onWake")}
-                </td>
-                <td className="pr-4 text-right">{fmtMMSS(wellePumpen.welle_s)}</td>
-                <td className="pr-4 text-right">{(wellePumpen.welle_m / 1000).toFixed(1)} km</td>
-                <td className="text-slate-300">{wellePumpen.laengste_welle_s > 0 ? t("sd.longestT", { t: fmtMMSS(wellePumpen.laengste_welle_s) }) : ""}</td>
-              </tr>
-              <tr>
-                <td className="pr-4 font-bold">{t("sd.pumpedPart")}</td>
-                <td className="pr-4 text-right">{fmtMMSS(wellePumpen.gepumpt_s)}</td>
-                <td className="pr-4 text-right">{(wellePumpen.gepumpt_m / 1000).toFixed(1)} km</td>
-                <td className="text-slate-300">
-                  {wellePumpen.pumps} {t("stat.pumps")}
-                  {wellePumpen.pumps_pro_min != null && <> · {t("sd.perMin", { n: String(wellePumpen.pumps_pro_min) })}</>}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026): nur fette Datenzeilen, je Versuch eine Zeile. */}
-      {paddel && (
-        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
-          <div className="flex flex-wrap items-center gap-x-3">
-            <b>{t("sd.strokes")}</b>
-            <span className="tabular-nums">{paddel.schlaege}{paddel.schlaege_pro_min != null && <> · {t("sd.perMin", { n: String(paddel.schlaege_pro_min) })}</>}</span>
-          </div>
-          {paddel.versuche.length > 0 && (
-            <>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3">
-                <b>{t("sd.attempts")}</b>
-                <span className="tabular-nums">
-                  {paddel.versuche.length} · {t("sd.attOnFoil", { n: String(paddel.auf_foil) })}
-                  {paddel.kurz > 0 && <> · {t("sd.attBrief", { n: String(paddel.kurz) })}</>}
-                </span>
-              </div>
-              <table className="mt-1 tabular-nums">
-                <thead>
-                  <tr className="text-xs text-slate-400">
-                    <th className="pr-3 text-right font-normal">#</th>
-                    <th className="pr-4 text-right font-normal">
-                      <span className="mr-1.5 inline-block h-2.5 w-4 rounded-sm align-middle" style={{ background: "#f59e0b" }} />
-                      {t("sd.sprintStrokes")}
-                    </th>
-                    <th colSpan={2}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paddel.versuche.map((v, i) => (
-                    <tr key={v.t_ms}>
-                      <td className="pr-3 text-right text-slate-400">{i + 1}</td>
-                      <td className="pr-4 text-right">{v.schlaege}</td>
-                      <td className={`pr-3 ${v.ergebnis === "foil" ? "text-brand-400" : v.ergebnis === "kurz" ? "text-amber-700 dark:text-amber-300" : "text-slate-400"}`}>
-                        {v.ergebnis === "foil" ? t("sd.onFoil") : v.ergebnis === "kurz" ? t("sd.attShort") : t("sd.attNot")}
-                      </td>
-                      <td className="text-right text-brand-400">{v.ergebnis === "foil" ? fmtMMSS(v.foil_s ?? 0) : ""}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe. */}
-      {(a?.sport_zahlen?.fahrten?.length ?? 0) > 0 && (
-        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm">
-          {a!.sport_zahlen!.fahrten!.map((f, i) => (
-            <div key={i} className="flex flex-wrap items-baseline gap-x-3 text-slate-200">
-              <span className="font-semibold">{t("sd.ride")} {i + 1}</span>
-              <span className="tabular-nums">{fmtMMSS(f.dauer_s)}</span>
-              <span className="tabular-nums">{(f.strecke_m / 1000).toFixed(1)} km</span>
-              <span className="inline-flex items-center gap-1 text-slate-400">
-                (<FoilIcon className="h-3.5 w-3.5" aria-label={t("sd.foilShare")} />{(f.foil_m / 1000).toFixed(1)} km · {t("sd.rideRuns", { n: String(f.laeufe) })})
-              </span>
-              {/* Downwind: Luftlinie A->B mit Tempo und Anteil auf dem Foil (wie gut verbunden). */}
-              {f.ab_m != null && f.ab_kmh != null && (
-                <span className="tabular-nums text-slate-300">
-                  {t("sd.aToB", { km: (f.ab_m / 1000).toFixed(1), v: f.ab_kmh.toFixed(1) })}
-                  {f.foil_anteil != null && <> · <FoilIcon className="inline h-3.5 w-3.5" aria-label={t("sd.foilShare")} /> {Math.round(f.foil_anteil * 100)} %</>}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Wind am Spot (Wind-Sportarten): Modellwerte, ausdruecklich keine Messung am Wasser. Der Pfeil
           zeigt, WOHIN der Wind weht (Richtung + 180), die Gradzahl, woher er kommt (Konvention). */}
       {wind?.mittel && (
@@ -2735,6 +2639,85 @@ export default function SessionDetail() {
         </div>
       </div>
 
+      {/* Sportart-Tabellen unter der Karte (Jan, 20.10.2026: „diese neuen Tabellen je sportart drunter"). */}
+      {/* Wake thief (20.10.2026): Zeit/Strecke auf der Welle und gepumpt, nur fette Datenzeilen. */}
+      {wellePumpen && (
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
+          <table className="tabular-nums">
+            <tbody>
+              <tr>
+                <td className="pr-4 font-bold">
+                  <span className="mr-1.5 inline-block h-2.5 w-4 rounded-sm align-middle" style={{ background: WELLE_FARBE, opacity: 0.7 }} />
+                  {t("sd.onWake")}
+                </td>
+                <td className="pr-4 text-right">{fmtMMSS(wellePumpen.welle_s)}</td>
+                <td className="pr-4 text-right">{(wellePumpen.welle_m / 1000).toFixed(1)} km</td>
+                <td className="text-slate-300">{wellePumpen.laengste_welle_s > 0 ? t("sd.longestT", { t: fmtMMSS(wellePumpen.laengste_welle_s) }) : ""}</td>
+              </tr>
+              <tr>
+                <td className="pr-4 font-bold">{t("sd.pumpedPart")}</td>
+                <td className="pr-4 text-right">{fmtMMSS(wellePumpen.gepumpt_s)}</td>
+                <td className="pr-4 text-right">{(wellePumpen.gepumpt_m / 1000).toFixed(1)} km</td>
+                <td className="text-slate-300">
+                  {wellePumpen.pumps} {t("stat.pumps")}
+                  {wellePumpen.pumps_pro_min != null && <> · {t("sd.perMin", { n: String(wellePumpen.pumps_pro_min) })}</>}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026): nur fette Datenzeilen, je Versuch eine Zeile. */}
+      {paddel && (
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
+          <div className="flex flex-wrap items-center gap-x-3">
+            <b>{t("sd.strokes")}</b>
+            <span className="tabular-nums">{paddel.schlaege}{paddel.schlaege_pro_min != null && <> · {t("sd.perMin", { n: String(paddel.schlaege_pro_min) })}</>}</span>
+          </div>
+          {paddel.versuche.length > 0 && (
+            <>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3">
+                <b>{t("sd.attempts")}</b>
+                <span className="tabular-nums">
+                  {paddel.versuche.length} · {t("sd.attOnFoil", { n: String(paddel.auf_foil) })}
+                  {paddel.kurz > 0 && <> · {t("sd.attBrief", { n: String(paddel.kurz) })}</>}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {paddel && paddel.versuche.length > 0 && (
+        <SortTabelle zeilen={paddel.versuche} spalten={[
+          { key: "schlaege", rechts: true, label: <><span className="mr-1.5 inline-block h-2.5 w-4 rounded-sm align-middle" style={{ background: "#f59e0b" }} />{t("sd.sprintStrokes")}</>,
+            wert: (v) => v.schlaege, zelle: (v) => v.schlaege },
+          { key: "ergebnis", label: t("sd.attempts"), wert: (v) => (v.ergebnis === "foil" ? 2 : v.ergebnis === "kurz" ? 1 : 0),
+            zelle: (v) => <span className={v.ergebnis === "foil" ? "text-brand-400" : v.ergebnis === "kurz" ? "text-amber-700 dark:text-amber-300" : "text-slate-400"}>
+              {v.ergebnis === "foil" ? t("sd.onFoil") : v.ergebnis === "kurz" ? t("sd.attShort") : t("sd.attNot")}</span> },
+          { key: "foil", rechts: true, label: <FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} />,
+            wert: (v) => (v.ergebnis === "foil" ? v.foil_s ?? 0 : null), zelle: (v) => (v.ergebnis === "foil" ? fmtMMSS(v.foil_s ?? 0) : "") },
+        ]} />
+      )}
+      {(a?.sport_zahlen?.fahrten?.length ?? 0) > 0 && (() => {
+        const fahrten = a!.sport_zahlen!.fahrten!;
+        const ab = fahrten.some((f) => f.ab_m != null);
+        return (
+          <SortTabelle zeilen={fahrten} spalten={[
+            { key: "dauer", rechts: true, label: t("sd.colDuration"), wert: (f) => f.dauer_s, zelle: (f) => fmtMMSS(f.dauer_s) },
+            { key: "strecke", rechts: true, label: t("sd.colDistance"), wert: (f) => f.strecke_m, zelle: (f) => `${(f.strecke_m / 1000).toFixed(1)} km` },
+            { key: "foil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> km</>, wert: (f) => f.foil_m, zelle: (f) => `${(f.foil_m / 1000).toFixed(1)} km` },
+            { key: "laeufe", rechts: true, label: t("stat.runs"), wert: (f) => f.laeufe, zelle: (f) => f.laeufe },
+            ...(ab ? [
+              { key: "ab", rechts: true, label: "A→B", wert: (f: typeof fahrten[number]) => f.ab_m, zelle: (f: typeof fahrten[number]) => (f.ab_m != null ? `${(f.ab_m / 1000).toFixed(1)} km` : "–") },
+              { key: "abv", rechts: true, label: "A→B km/h", wert: (f: typeof fahrten[number]) => f.ab_kmh, zelle: (f: typeof fahrten[number]) => (f.ab_kmh != null ? f.ab_kmh.toFixed(1) : "–") },
+              { key: "anteil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> %</>, wert: (f: typeof fahrten[number]) => f.foil_anteil, zelle: (f: typeof fahrten[number]) => (f.foil_anteil != null ? `${Math.round(f.foil_anteil * 100)} %` : "–") },
+            ] : []),
+          ]} />
+        );
+      })()}
+
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
         trimStartMs={session.trim_start_ms ?? null} pausen={session.pause_windows ?? []}
         hr={session.analysis?.track_geojson?.properties?.hr ?? []}
@@ -3146,6 +3129,64 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
           </button>
         )}
       </div>
+    </Card>
+  );
+}
+
+// Sortierbare Tabelle fuer die Sportart-Tabellen unter der Karte (Fahrten, Paddle-up-Versuche; Jan 20.10.2026:
+// „schoener alignen bitte, spalten sortierbar wie immer"). Gleiches Aussehen und Sortierverhalten wie die
+// Lauf-Tabelle: erster Klick aufsteigend, zweiter absteigend, „#" stellt die Reihenfolge wieder her,
+// fehlende Werte immer unten. Die Zeile behaelt ihre Nummer.
+type SortSpalte<T> = { key: string; label: React.ReactNode; wert?: (r: T) => number | null | undefined;
+                      zelle: (r: T) => React.ReactNode; rechts?: boolean };
+function SortTabelle<T>({ zeilen, spalten }: { zeilen: T[]; spalten: SortSpalte<T>[] }) {
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortAsc, setSortAsc] = useState(true);
+  const order = zeilen.map((_, i) => i);
+  const sp = spalten.find((c) => c.key === sortKey);
+  if (sp?.wert) {
+    const f = sp.wert;
+    order.sort((a, b) => {
+      const va = f(zeilen[a]), vb = f(zeilen[b]);
+      if (va == null || vb == null) return va == null ? (vb == null ? a - b : 1) : -1;
+      return (sortAsc ? va - vb : vb - va) || a - b;
+    });
+  }
+  const sortBy = (k: string | null) => {
+    if (k === null) { setSortKey(null); setSortAsc(true); return; }
+    if (sortKey === k) setSortAsc((v) => !v); else { setSortKey(k); setSortAsc(true); }
+  };
+  const kopf = (k: string | null, label: React.ReactNode, rechts = false) => {
+    const aktiv = k !== null && sortKey === k;
+    return (
+      <th key={k ?? "nr"} className={`px-3 py-2 font-medium ${rechts ? "text-right" : ""}`} aria-sort={aktiv ? (sortAsc ? "ascending" : "descending") : undefined}>
+        <button type="button" onClick={() => sortBy(k)}
+          className={`inline-flex items-center gap-0.5 uppercase tracking-wide hover:text-slate-200 ${aktiv ? "text-brand-600 dark:text-brand-300" : ""}`}>
+          {label}{aktiv && <span aria-hidden>{sortAsc ? "▲" : "▼"}</span>}
+        </button>
+      </th>
+    );
+  };
+  return (
+    <Card className="mt-4 overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
+            {kopf(null, "#", true)}
+            {spalten.map((c) => kopf(c.wert ? c.key : null, c.label, c.rechts))}
+          </tr>
+        </thead>
+        <tbody>
+          {order.map((i) => (
+            <tr key={i} className="border-b border-slate-800/60 last:border-0">
+              <td className="px-3 py-2 text-right tabular-nums text-slate-400">{i + 1}</td>
+              {spalten.map((c) => (
+                <td key={c.key} className={`px-3 py-2 tabular-nums ${c.rechts ? "text-right" : ""}`}>{c.zelle(zeilen[i])}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 }
