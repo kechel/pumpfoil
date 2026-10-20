@@ -352,6 +352,12 @@ object Api {
         json.decodeFromString(ManoeverAntwort.serializer(), http("GET", "/api/sessions/$id/manoever", null, auth = true))
     }
 
+    // null = nichts auszuwerten (keine SUP-Session oder kein Accel); der Server antwortet dann mit `null`.
+    suspend fun sessionPaddel(id: Int): PaddelAntwort? = withContext(Dispatchers.IO) {
+        val roh = http("GET", "/api/sessions/$id/paddel", null, auth = true).trim()
+        if (roh == "null" || roh.isEmpty()) null else json.decodeFromString(PaddelAntwort.serializer(), roh)
+    }
+
     suspend fun sessionCarves(id: Int): CarveData = withContext(Dispatchers.IO) {
         json.decodeFromString(CarveData.serializer(), http("GET", "/api/sessions/$id/carves", null, auth = true))
     }

@@ -101,6 +101,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -493,6 +494,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             windInfo = wa?.wind; windVergleich = wa?.vergleich
             manoever = try { Api.sessionManoever(s.id) } catch (_: Exception) { null }
         }
+    }
+    // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026).
+    var paddel by remember(s.id) { mutableStateOf<PaddelAntwort?>(null) }
+    LaunchedEffect(s.id, s.sportClass) {
+        paddel = if (s.sportClass == "sup_paddle") try { Api.sessionPaddel(s.id) } catch (_: Exception) { null } else null
     }
     // Skalen-Max: 0,6 g, aber höher wenn härter gecarvt (gedeckelt 1,0 g gegen GPS-Glitches).
     val carveGMax = remember(carve) {
@@ -1162,6 +1168,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it) }
+            paddel?.let { PaddelKarte(it) }
             windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe, windInfo?.vorhersage == true, windVergleich) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
@@ -2114,6 +2121,49 @@ private fun FahrtenKarte(fahrten: List<Fahrt>) {
                     Text(I18n.t("sd.aToB").replace("{km}", "%.1f".format(f.abM / 1000.0)).replace("{v}", "%.1f".format(f.abKmh)) +
                         (f.foilAnteil?.let { " · ${I18n.t("sd.foilShare")} ${kotlin.math.round(it * 100).toInt()} %" } ?: ""),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+}
+
+// Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026) — wie die Box im Web, nur Datenzeilen.
+@Composable
+private fun PaddelKarte(p: PaddelAntwort) {
+    Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row {
+                Text(I18n.t("sd.strokes"), fontWeight = FontWeight.SemiBold); Spacer(Modifier.width(8.dp))
+                Text("${p.schlaege}" + (p.schlaegeProMin?.let { " · " + I18n.t("sd.perMin").replace("{n}", "$it") } ?: ""))
+            }
+            if (p.versuche.isNotEmpty()) {
+                Row(Modifier.padding(top = 4.dp)) {
+                    Text(I18n.t("sd.attempts"), fontWeight = FontWeight.SemiBold); Spacer(Modifier.width(8.dp))
+                    Text("${p.versuche.size} · " + I18n.t("sd.attOnFoil").replace("{n}", "${p.aufFoil}") +
+                        (if (p.kurz > 0) " · " + I18n.t("sd.attBrief").replace("{n}", "${p.kurz}") else ""))
+                }
+                // Als Tabelle, Spalten buendig (Jan 20.10.: „etwas ordentlicher als tabelle / aligned").
+                val grau = MaterialTheme.colorScheme.onSurfaceVariant
+                Row(Modifier.padding(top = 4.dp)) {
+                    Text("#", Modifier.width(28.dp), textAlign = TextAlign.End, color = grau, style = MaterialTheme.typography.labelSmall)
+                    Text(I18n.t("sd.sprintStrokes"), Modifier.width(110.dp), textAlign = TextAlign.End, color = grau, style = MaterialTheme.typography.labelSmall)
+                }
+                p.versuche.forEachIndexed { i, v ->
+                    val (txt, farbe) = when (v.ergebnis) {
+                        "foil" -> I18n.t("sd.onFoil") to Color(0xFF22D3EE)
+                        "kurz" -> I18n.t("sd.attShort") to Color(0xFFF59E0B)
+                        else -> I18n.t("sd.attNot") to grau
+                    }
+                    Row {
+                        Text("${i + 1}", Modifier.width(28.dp), textAlign = TextAlign.End, color = grau)
+                        Text("${v.schlaege}", Modifier.width(110.dp), textAlign = TextAlign.End)
+                        Spacer(Modifier.width(16.dp))
+                        Text(txt, Modifier.width(130.dp), color = farbe)
+                        if (v.ergebnis == "foil") {
+                            val sek = (v.foilS ?: 0.0).toInt()
+                            Text("%d:%02d".format(sek / 60, sek % 60), Modifier.width(48.dp), textAlign = TextAlign.End, color = farbe)
+                        }
+                    }
                 }
             }
         }
