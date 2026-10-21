@@ -408,8 +408,9 @@ class RecordView extends WatchUi.View {
         var y = titleY + titleH + 2;
         if (!klein) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, y, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
-            y += dc.getFontHeight(Graphics.FONT_XTINY);
+            // DANCE (Jan, 21.10.): Version und „bereit" groesser
+            dc.drawText(w / 2, y, Graphics.FONT_SMALL, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+            y += dc.getFontHeight(Graphics.FONT_SMALL);
         }
         // Update-Hinweis: kurz nach App-Start einblenden, wenn der Server eine neuere IQ-Store-
         // Version meldet (Config-Abruf setzt updateHintUntilMs). Ganz oben, brand-cyan.
@@ -459,7 +460,8 @@ class RecordView extends WatchUi.View {
             if (puffer != null) { teile = _rec.autoStartOn() ? [Strings.s("gps.ready"), auto, puffer, rl]
                                                             : [Strings.s("gps.ready"), puffer, rl]; }
             teile = (puffer != null) ? ["bereit", puffer] : ["bereit"];   // DANCE: kein GPS, kein Auto-Start
-            y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teile), false) + luft;
+            var bf = klein ? xf : Graphics.FONT_SMALL;   // DANCE (Jan, 21.10.): groesser
+            y += _drawWrap(dc, w / 2, y, bf, _zusammen(dc, bf, mw, teile), false) + luft;
         } else {
             dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
             var teileS = (puffer != null) ? [Strings.s("gps.searching"), puffer, rl]
