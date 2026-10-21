@@ -1485,6 +1485,40 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **21.10. (Jan, via Cowork-Claude) — IDEEN/WUNSCHLISTE Tanz: von der Sideload-App zur Tanz-Community. Nichts gebaut, nichts beschlossen — Sammelliste.**
+  Anlass: `watch-dance/` existiert (nur Jans Garmin, Sideload), Tanzerkennung-Vorbefund vom 15.10.
+  (Walzer/Jive aus Spektrum, von Jan bestaetigt) traegt. Jans Fernbild: **eine Tanz-Community wie
+  pumpfoil.org, nur fuer Taenzer** — seine Worte: Kartenansicht „wo gerade getanzt wird und welche
+  Taenze, aber nicht 'exakt' sondern eher in welcher Stadt oder ggf. welchem Ortsteil", ein „wo kann
+  ich heute tanzen" (um dann bei Google gezielter zu suchen), regelmaessige Tanzorte identifizieren,
+  Austausch zwischen Taenzern, spaeter Tanzpartnersuche.
+  Einzelideen, grob nach Ausbaustufe:
+  1. **Recorder-Basics (watch-dance):** Tanzstunden-Bilanz pro Jahr/Monat („wie viel tanze ich
+     wirklich"); Tanzabend-Zeitleiste je Session (Walzer 20 min, Jive 15 min, Pausen) aus der
+     Spektral-Erkennung; Taenze-pro-Abend als Zaehler analog Laeufen; Puls-Zonen je Tanzart.
+  2. **Orte:** regelmaessige Tanzorte aus wiederkehrenden Sessions erkennen (analog Spots) —
+     braucht Ortsinfo, obwohl die Tanz-App bewusst OHNE GPS laeuft -> Optionen: einmaliger
+     Grob-Fix beim Start (dann GPS aus), Handy-Standort beim Upload, oder manuelle Ort-Wahl.
+     **Privacy by design wie bei pumpfoil, nur strenger:** Aufloesung von vornherein nur
+     Stadt/Ortsteil, nie Koordinaten — Taenzer sind oft in privaten Raeumen/Vereinen, und
+     „wer wann wo tanzt" ist sensibler als ein See-Spot.
+  3. **Community-Karte:** „wo wird gerade getanzt + welche Taenze" auf Stadt-/Ortsteil-Ebene
+     (Pendant zu den gruenen Spots, aber grob-geo); „wo kann ich heute tanzen"-Ansicht aus den
+     regelmaessigen Orten der Community (Wochentag+Uhrzeit-Muster: „in Ravensburg wird mittwochs
+     20-22 Uhr getanzt, ueberwiegend Standard/Latein") als Einstieg fuer die eigene Google-Suche.
+  4. **Menschen:** Austausch zwischen Taenzern (Chat/Feed wie pumpfoil-Community); spaeter
+     Tanzpartnersuche — Markt ist belegt kaputt (Jans eigene Boersen-Erfahrung 10/2026), eine
+     Suche MIT echten Tanzdaten (welche Taenze, wie oft, welche Orte, welches Niveau indirekt)
+     waere das erste Angebot mit Substanz statt Selbstauskunft.
+  5. **Fernziele:** Figuren-Erkennung aus Gyro+Accel (Fuehrungshand!); Takt-Training (Metronom-
+     Abgleich: tanzt das Paar AUF dem Schlag?); Session-Vergleich Paar (zwei Uhren, wie das
+     Dual-Watch-Experiment).
+  Offene Grundsatzfragen VOR jedem Bau: (a) eigenes Produkt/Domain oder Teil von pumpfoil.org?
+  (Harte Regel bleibt: Code nur Pumpfoil->Tanz, Server-Auswertung nur eigene Module fuer
+  `sport=="dance"`); (b) GPS-Wiedereinbau widerspricht dem aktuellen watch-dance-Design -> erst
+  Konzept, dann Code; (c) Tanzerkennung braucht beschriftete Daten mehrerer Paare (steht schon
+  im 15.10.-Eintrag). Alles -> Jans Entscheidung, Reihenfolge frei.
+
 - **20.10. (Jan) — GEPARKT (Jan: „ist vermutlich noch zu unsicher bisher") — Fremdkraft INNERHALB von Pumpfoil-Laeufen erkennen (Welle, Lowkite, Boot) — Befund, nichts gebaut.**
   Wieder aufnehmen erst mit belegten Faellen (Fahrer bestaetigt Welle/Kite/Boot an einer Stelle) oder Video.
   Jan: „ob man aus pumpfoil-sessions nicht vielleicht automatisch stellen erkennen kann in denen eine 'external
