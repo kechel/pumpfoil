@@ -392,6 +392,9 @@ def parse_fit_bytes(data: bytes) -> dict:
         "accel_bytes": accel_bytes,
         "accel_hz": accel_hz,
         "started_at": t0,
+        # Dauer aus den Record-Zeitstempeln: traegt eine Session OHNE GPS-Punkte (Suunto-Workout
+        # ohne Fix, 21.10.2026), deren Ende sonst aus dem letzten GPS-Punkt kaeme.
+        "dauer_ms": int((max(times) - t0).total_seconds() * 1000),
         "sport": sport,
         "foil_status": foil_status,
         # Gesetzt, wenn die Datei nur bis zu einer Stelle lesbar war (abgebrochene Aufzeichnung,
