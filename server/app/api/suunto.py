@@ -714,7 +714,14 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
             importsports.merken(db, user.id, "suunto", sport_key,
                                 label=(parsed.get("sport") or None),
                                 hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
-        if not parsed.get("gps_samples") or parsed.get("started_at") is None:
+        # OHNE GPS trotzdem als Session anlegen (21.10.2026, Jan: „der user darf die schon als
+        # aussortierte sehen … ich sehe meine testsessions doch auch" / „waere auch ein besseres
+        # Gefuehl fuer die tester"). Anlass: der Aufruf an die Suunto-Fahrer, die SuuntoPlus-App
+        # 2-3 min zu Hause zu testen — oft ohne Fix. Bisher fiel so ein Workout hier still weg,
+        # samt FIT-Datei, die als einzige zeigt, ob die Log-Kanaele der App in der Cloud-FIT
+        # stehen (docs/SUUNTO.md, Hardware-Frage 5). Mit Session liegt das Original daneben.
+        # Nur wenn die Datei gar keine Zeitstempel hat, gibt es nichts anzulegen.
+        if parsed.get("started_at") is None:
             return False, "kein gps"
         if bruecken_session(db, user.id, parsed["started_at"]) is not None:
             # Die SuuntoPlus-App hat dieselbe Aufnahme schon mit Rohdaten ueber die Handy-Bruecke

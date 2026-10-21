@@ -679,7 +679,8 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
     accel_bytes = parsed["accel_bytes"]
     accel_hz = parsed["accel_hz"] or 25
     session_uuid = uuid_prefix + uuid.uuid4().hex
-    last_ms = samples[-1][0]
+    # Ohne GPS-Punkte (Suunto-Workout ohne Fix) traegt die Dauer aus den Record-Zeitstempeln.
+    last_ms = samples[-1][0] if samples else int(parsed.get("dauer_ms") or 0)
     # Standard-Sportart des Nutzers auch beim Datei-Import anwenden (sonst wäre die Voreinstellung
     # nur für Uhr-Uploads da und der Import wäre die Ausnahme, die niemand erwartet).
     try:
