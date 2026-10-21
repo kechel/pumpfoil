@@ -217,9 +217,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
             :verbinden, {}));
         menu.addItem(new WatchUi.MenuItem(
             Strings.s("menu.upload"), Strings.s("menu.uploadSub"), :upload, {}));
-        menu.addItem(new WatchUi.MenuItem(
-            Strings.s("menu.autostart"), _rec.autoStartOn() ? Strings.s("common.on") : Strings.s("common.off"), :autostart, {}));
-        _addLayoutItem(menu);
+        // DANCE: kein Auto-Start (haengt am GPS-Tempo) und keine eigenen Layouts (gibt es fuers Tanzen
+        // noch nicht) — Jan, 21.10.2026. Nur Verbinden + Upload.
         WatchUi.pushView(menu, new MenuDelegate(_rec), WatchUi.SLIDE_UP);
         return true;
     }
