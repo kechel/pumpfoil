@@ -71,6 +71,13 @@ def main():
                 rows.append({"start_ms": mv, "ende_ms": mb, "vorschlag": ta.vorschlag(ws), "gewaehlt": key,
                              "quelle": "marker_ohne_erkennung", "tempo": int(m["tempo"]), "dreh": m["dreh"]})
         rows.sort(key=lambda r: r["start_ms"])
+        # Jans Korrekturen im Web bleiben stehen (Zeile mit ueberwiegender Ueberlappung uebernimmt sie).
+        for k in [r for r in (alt.get("abschnitte") or []) if r.get("quelle") == "web"]:
+            kb = k.get("ende_ms") or k["start_ms"]
+            for r in rows:
+                o = min(r["ende_ms"], kb) - max(r["start_ms"], k["start_ms"])
+                if o > 0.5 * (r["ende_ms"] - r["start_ms"]):
+                    r["gewaehlt"], r["quelle"] = k["gewaehlt"], "web"
         ok = sum(1 for r in rows if r["gewaehlt"] and r["gewaehlt"] == r["vorschlag"])
         mit = sum(1 for r in rows if r["gewaehlt"])
         print(f"\n#{sid} ({s.caption or '-'}): {len(rows)} Abschnitte, Vorschlag richtig {ok}/{mit}")

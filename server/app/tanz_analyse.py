@@ -160,15 +160,30 @@ def vorschlag(ws: list[dict], erlaubt: set[str] | None = None) -> str | None:
 
 
 def marker_deuten(marker: list[tuple[int, str]], fs: list[dict]) -> list[tuple[int, int, str]]:
-    """Jan setzt den Marker NACH dem Tanz (21.10.2026). Deutung: der Tanz lief zwischen dem vorigen
-    Marker (bzw. Sessionbeginn) und diesem; ruhige Fenster an beiden Enden werden abgeschnitten.
-    Rueckgabe (start_ms, ende_ms, tanz) je Marker mit erkennbarer Bewegung. Nur EINE Deutung — andere
-    Fahrer markieren anders (vorher/zwischendurch), dafuer bleiben die Marker roh gespeichert."""
+    """Jan setzt den Marker NACH dem Tanz (21.10.2026), aber nicht nach jedem — davor koennen
+    unmarkierte Taenze liegen. Deutung deshalb: der Marker gilt fuer den LETZTEN zusammenhaengenden Tanz
+    davor: ruhiges Ende (hoechstens 1 min) ueberspringen, dann rueckwaerts alle bewegten Fenster bis zu
+    einer Pause von 20 s (2 ruhige Fenster) bzw. bis zum vorigen Marker. Rueckgabe (start_ms, ende_ms,
+    tanz). Nur EINE Deutung — andere markieren anders, die Marker bleiben roh gespeichert."""
     out, vorher = [], 0
     for ms, key in sorted(marker):
         drin = [f for f in fs if f["t_ms"] >= vorher and f["t_ms"] + N * 40 <= ms + 5000]
-        bewegt = [f for f in drin if f["akt"] >= AKT_G]
-        if bewegt and key:
-            out.append((bewegt[0]["t_ms"], bewegt[-1]["t_ms"] + N * 40, key))
+        i = len(drin) - 1
+        ruhig = 0
+        while i >= 0 and drin[i]["akt"] < AKT_G and ruhig < 6:
+            i -= 1
+            ruhig += 1
+        ende = drin[i]["t_ms"] + N * 40 if i >= 0 else None
+        start, luecke = None, 0
+        while i >= 0:
+            if drin[i]["akt"] >= AKT_G:
+                start, luecke = drin[i]["t_ms"], 0
+            else:
+                luecke += 1
+                if luecke >= 2:
+                    break
+            i -= 1
+        if key and start is not None and ende is not None:
+            out.append((start, ende, key))
         vorher = ms
     return out

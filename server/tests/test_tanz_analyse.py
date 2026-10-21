@@ -42,10 +42,13 @@ def test_drehung_und_abschnitt():
 
 def test_marker_nach_dem_tanz():
     from app import tanz_analyse as ta
-    fs = [{"t_ms": i * 10000, "akt": 0.2 if i < 5 or 8 <= i < 12 else 0.01, "tempo": 60, "klar": 0.5,
-           "quer": 0.5, "umdr": None} for i in range(15)]
-    d = ta.marker_deuten([(65000, "lw"), (125000, "jive")], fs)
-    assert d == [(0, 50000, "lw"), (80000, 120000, "jive")]
+    # bewegt: 0-50 s, 80-120 s, 150-200 s; Marker nach 50 s (lw) und nach 200 s (jive) — der Tanz bei
+    # 80-120 s ist unmarkiert und darf NICHT als Jive zaehlen.
+    bew = set(range(0, 5)) | set(range(8, 12)) | set(range(15, 20))
+    fs = [{"t_ms": i * 10000, "akt": 0.2 if i in bew else 0.01, "tempo": 60, "klar": 0.5,
+           "quer": 0.5, "umdr": None} for i in range(22)]
+    d = ta.marker_deuten([(65000, "lw"), (205000, "jive")], fs)
+    assert d == [(0, 50000, "lw"), (150000, 200000, "jive")]
 
 
 def test_muster_auf_der_uhr_wie_in_der_json():
