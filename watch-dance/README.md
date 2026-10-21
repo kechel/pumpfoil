@@ -4,6 +4,9 @@ Kopie von `watch/` (Stand Garmin 1.0.94, 16.10.2026), damit die Pumpfoil-App Bit
 bleibt. **Nicht im Store, nicht in `watch/bin`** (das ist die Live-Auslieferung der Website).
 Korrekturen an `watch/` wandern NICHT automatisch mit.
 
+**HARTE REGEL (Jan, 21.10.2026): nur Pumpfoil -> Tanz, NIE umgekehrt.** Aenderungen aus `watch/` duerfen
+hierher uebernommen werden; nichts von hier geht je nach `watch/`. Tanz-Funktionen bleiben hier.
+
 Unterschiede zu Pumpfoil (im Code mit `DANCE` markiert):
 - eigene App-ID und Name „Dance", nur `fenix7xpro` im Manifest; eigene Kopplung per Code
 - kein GPS, Start ohne Fix; Speicher-Sparen aus (haengt am GPS-Tempo)
