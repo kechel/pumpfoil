@@ -15,7 +15,7 @@ module Config {
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
     // (HR-/Speed-Zonen, Erfolg-Gruen, Warn-Orange, Fehler-Rot) bleiben bewusst mehrfarbig.
-    const BRAND_CYAN = 0x22D3EE;
+    const BRAND_CYAN = 0xE879F9;   // DANCE: Tanz-Marke Fuchsia (brand-dance/), Name bleibt fuer die Uebernahme
 
     // Server-Basis-URL (per -D base_url=... im Build überschreibbar).
     function baseUrl() {

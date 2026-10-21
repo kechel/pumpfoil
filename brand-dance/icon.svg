@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Tanz-Marke: zwei Figuren (Kopf + Bogen) drehen sich umeinander. Keine Verlaeufe. -->
+  <rect width="1024" height="1024" rx="230" fill="#1a0b1f"/>
+  <g fill="none" stroke-linecap="round" stroke-width="78">
+    <path d="M 512 300 A 212 212 0 0 1 724 512" stroke="#e879f9"/>
+    <path d="M 512 724 A 212 212 0 0 1 300 512" stroke="#ffffff"/>
+    <path d="M 724 512 C 724 640 610 700 512 640" stroke="#e879f9"/>
+    <path d="M 300 512 C 300 384 414 324 512 384" stroke="#ffffff"/>
+  </g>
+  <circle cx="512" cy="196" r="62" fill="#e879f9"/>
+  <circle cx="512" cy="828" r="62" fill="#ffffff"/>
+</svg>
