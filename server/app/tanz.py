@@ -19,7 +19,7 @@ from . import storage
 
 TAENZE = ("lw", "tango", "ww", "slowfox", "quickstep", "samba", "chacha", "rumba", "paso", "jive",
           "salsa", "bachata", "discofox", "boogie", "kein")
-# 4/5 seit 21.10.: Jan markiert NACH dem Tanz -> gilt fuer das gerade Vergangene bzw. nur ein Marker.
+# 4 nur Tanz-App 0.4; 5 = Marker (ab 0.5 jede Bestaetigung): nur ein Hinweis, gedeutet wird hier, nicht auf der Uhr.
 QUELLEN_UHR = {0: "auto", 1: "bestaetigt", 2: "geaendert", 3: "manuell", 4: "nachtraeglich", 5: "marker"}
 MAX_ABSCHNITTE = 500
 

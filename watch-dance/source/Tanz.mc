@@ -16,15 +16,15 @@ using Toybox.System;
 // Abschnitt beginnt, wenn 3 der letzten 4 Fenster tanzend sind, endet nach 4 ruhigen in Folge.
 // Bedienung (Jan, 21.10.): der Datenbildschirm zeigt NUR Uhrzeit + erkannten Tanz. HOCH/RUNTER waehlt
 // einen anderen Tanz, START kurz = bestaetigen („passt"); START halten bleibt Stopp.
-// Bestaetigt wird, was gerade laeuft — oder, ohne offenen Abschnitt, was GERADE VORBEI ist (Jan, 21.10.:
-// „der manuelle marker war natuerlich nicht waehrend des Tanzes sondern kurz danach"): ein erkannter
-// Abschnitt, der vor hoechstens 3 min endete; sonst die letzte bewegte Strecke aus dem Verlauf der
-// letzten 10 min; findet sich gar nichts, bleibt ein Marker an dieser Stelle.
+// Jede Bestaetigung ist ein MARKER (Zeitpunkt + Tanz) und sonst nichts (Jan, 21.10.: „die marker
+// koennen vorher oder hinterher oder zwischen Taenzen gesetzt werden, das wird jeder anders machen,
+// also ist das nur ein Indikator"). Die Uhr deutet NICHT, wofuer er gilt — das macht der Server.
+// Laeuft gerade ein erkannter Abschnitt, bekommt er die Wahl zusaetzlich als `gewaehlt`.
 // Zu Beginn eines erkannten Abschnitts vibriert die Uhr kurz. Befunde: docs/TODO.md Inbox 21.10.
 //
 // Speicher: Abschnitte in Storage "tz_<uuid>" als
 //   [start_ms, ende_ms (-1 = laeuft), vorschlag (null bei manuell), gewaehlt (null),
-//    quelle 0 auto|1 bestaetigt|2 geaendert|3 manuell (alt)|4 nachtraeglich|5 nur Marker,
+//    quelle 0 auto|1 bestaetigt|2 geaendert|3 manuell (nur 0.1-0.3)|4 nachtraeglich (nur 0.4)|5 Marker,
 //    tempo_median, dreh_anteil_prozent]
 // Uploader schickt die Liste im /complete als "tanz" mit (Server: app/tanz.py).
 module Tanz {
@@ -60,7 +60,7 @@ module Tanz {
     var _offen = false;
     var _abschnitte = [];
     var _letzter = null;         // zuletzt bestaetigter Tanz (Vorrang bei gleichem Tempo)
-    var _verlauf = [];           // letzte 60 Fenster (10 min): [start_ms, bewegt 0/1, tempo, gedreht]
+    var _marker = [];            // Marker, getrennt von den Abschnitten (die letzte Zeile dort ist der offene)
     var _ebenText = null;        // kurze Rueckmeldung nach nachtraeglicher Bestaetigung
     var _ebenBis = 0;
     var _jetzt = 0;              // letzte Session-ms aus add()
@@ -70,7 +70,7 @@ module Tanz {
     function start(uuid) as Void {
         _uuid = uuid; _n = 0; _sx = 0.0; _sy = 0.0; _sz = 0.0;
         _gx = []; _gy = []; _gz = [];
-        _folge = 0; _kand = []; _offen = false; _abschnitte = []; _hist = []; _verlauf = []; _ebenText = null;
+        _folge = 0; _kand = []; _offen = false; _abschnitte = []; _marker = []; _hist = []; _ebenText = null;
         _wahl = -1; _jetzt = 0;
     }
 
@@ -136,8 +136,6 @@ module Tanz {
         var w = [ms - 10000, tempo, gedreht];
         _hist.add(tanzt ? 1 : 0);
         if (_hist.size() > 4) { _hist = _hist.slice(1, null); }
-        _verlauf.add([ms - 10000, (akt >= AKT_G) ? 1 : 0, tempo, gedreht]);
-        if (_verlauf.size() > 60) { _verlauf = _verlauf.slice(1, null); }
         if (!_offen) {
             if (tanzt) { _kand.add(w); }
             var summe = 0;
@@ -224,7 +222,10 @@ module Tanz {
 
     function _speichern() as Void {
         if (_uuid == null) { return; }
-        try { Storage.setValue("tz_" + _uuid, _abschnitte); } catch (e) {}
+        var alle = [];
+        alle.addAll(_abschnitte);
+        alle.addAll(_marker);
+        try { Storage.setValue("tz_" + _uuid, alle); } catch (e) {}
     }
 
     // --- Bedienung auf dem Datenbildschirm ---
@@ -265,7 +266,7 @@ module Tanz {
         _wahlBis = System.getTimer() + 15000;   // ohne Bestaetigung nach 15 s zurueck
     }
 
-    // START kurz: das Gezeigte bestaetigen. Rueckgabe false = nichts zu bestaetigen.
+    // START kurz: das Gezeigte bestaetigen = Marker setzen. Rueckgabe false = nichts zu bestaetigen.
     function bestaetigen() as Lang.Boolean {
         var z = _anzeige();
         var key = z[0];
@@ -275,46 +276,16 @@ module Tanz {
             var a = _abschnitte[_abschnitte.size() - 1];
             a[3] = key;
             a[4] = (a[2] != null && key.equals(a[2])) ? 1 : 2;
-            _speichern();
-        } else {
-            _nachtraeglich(key);
         }
+        // Marker immer, mit dem, was die Uhr in dem Moment zeigte (Vorschlag), als Hinweis fuer den Server.
+        var gezeigt = null;
+        if (_offen && _abschnitte.size() > 0) { gezeigt = _abschnitte[_abschnitte.size() - 1][2]; }
+        _marker.add([_jetzt, _jetzt, gezeigt, key, 5, 0, 0]);
+        _speichern();
         if (!key.equals("kein")) { _letzter = key; }
+        _eben(key);
         _vibrieren();
         return true;
-    }
-
-    // Ohne offenen Abschnitt: gilt fuer das, was gerade vorbei ist.
-    function _nachtraeglich(key) as Void {
-        var n = _abschnitte.size();
-        if (n > 0 && _abschnitte[n - 1][1] >= 0 && _abschnitte[n - 1][1] >= _jetzt - 180000) {
-            var a = _abschnitte[n - 1];
-            a[3] = key; a[4] = 4;
-            _speichern();
-            _eben(key);
-            return;
-        }
-        // Rueckwaerts durch den Verlauf: ruhige Fenster am Ende ueberspringen (hoechstens 1 min), dann
-        // die bewegten sammeln, bis zwei ruhige in Folge kommen.
-        var i = _verlauf.size() - 1;
-        var ruhig = 0;
-        while (i >= 0 && _verlauf[i][1] == 0 && ruhig < 6) { i--; ruhig++; }
-        var ende = (i >= 0) ? _verlauf[i][0] + 10000 : -1;
-        var ws = [];
-        var luecke = 0;
-        while (i >= 0) {
-            if (_verlauf[i][1] == 1) { ws.add([_verlauf[i][0], _verlauf[i][2], _verlauf[i][3]]); luecke = 0; }
-            else { luecke++; if (luecke >= 2) { break; } }
-            i--;
-        }
-        if (ws.size() >= 2 && (n == 0 || ws[ws.size() - 1][0] >= _abschnitte[n - 1][1])) {
-            var start = ws[ws.size() - 1][0];
-            _abschnitte.add([start, ende, _vorschlag(ws), key, 4, _median(ws), _drehProzent(ws)]);
-        } else {
-            _abschnitte.add([_jetzt, _jetzt, null, key, 5, 0, 0]);   // nur Marker
-        }
-        _speichern();
-        _eben(key);
     }
 
     function _eben(key) as Void {
@@ -334,7 +305,7 @@ module Tanz {
         var z = _anzeige();
         var text; var farbe; var unten = null;
         if (z[1] == :nichts && _ebenText != null) {
-            text = _ebenText; farbe = Graphics.COLOR_WHITE; unten = "eben getanzt: gespeichert";
+            text = _ebenText; farbe = Graphics.COLOR_WHITE; unten = "Marker gesetzt";
         } else if (z[1] == :nichts) {
             text = "kein Tanz"; farbe = Graphics.COLOR_LT_GRAY; unten = "HOCH/RUNTER = Tanz wählen";
         } else if (z[1] == :ok) {
