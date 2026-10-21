@@ -668,6 +668,8 @@ class SessionSyncJob {
         var b = { "total_chunks" => _gpsTotal, "pauses" => _pauses };
         var tz = Storage.getValue("tz_" + _uuid);
         if (tz instanceof Lang.Array) { b["tanz"] = tz; }
+        var tv = Storage.getValue("tv_" + _uuid);   // Rhythmus/Merkmale je 10-s-Fenster (Tanz.mc)
+        if (tv instanceof Lang.Dictionary) { b["tanz_fenster"] = tv; }
         return b;
     }
 
@@ -694,6 +696,7 @@ class SessionSyncJob {
         for (var i = 0; i < _accelTotal; i++) { Storage.deleteValue("cy_" + _uuid + "_" + i); }
         Storage.deleteValue("sy_" + _uuid);
         Storage.deleteValue("tz_" + _uuid);   // DANCE: Tanz-Abschnitte
+        Storage.deleteValue("tv_" + _uuid);   // DANCE: Tanz-Fenster
         Storage.deleteValue("state_" + _uuid);
         Storage.deleteValue("meta_" + _uuid);
         Storage.deleteValue("sa_" + _uuid);

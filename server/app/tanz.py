@@ -56,6 +56,25 @@ def aus_uhr(roh) -> list[dict]:
     return out
 
 
+def fenster_entpacken(roh) -> dict | None:
+    """Rhythmus-Verlauf der Uhr (Tanz.mc _packen): {"t0": ms, "w": [zahl, ...]} -> Liste je 10-s-Fenster
+    {t_ms, tempo, klar, quer, umdr} — zum Abgleich Uhr gegen Server-Rechnung und fuer spaetere Auswertung."""
+    if not isinstance(roh, dict) or not isinstance(roh.get("w"), list):
+        return None
+    t0 = _int(roh.get("t0"), 0)
+    if t0 is None:
+        return None
+    out = []
+    for i, z in enumerate(roh["w"][:2000]):
+        z = _int(z, 0, 2 ** 31 - 1)
+        if z is None:
+            continue
+        u = (z >> 23) & 0xFF
+        out.append({"t_ms": t0 + i * 10000, "tempo": z & 0xFF, "klar": ((z >> 8) & 0x7F) / 100,
+                    "quer": ((z >> 15) & 0xFF) / 100, "umdr": None if u == 254 else u / 100})
+    return {"fenster": out}
+
+
 def laden(uuid: str) -> dict | None:
     p = storage.session_dir(uuid) / "tanz.json"
     try:
@@ -64,9 +83,13 @@ def laden(uuid: str) -> dict | None:
         return None
 
 
-def speichern(uuid: str, abschnitte: list[dict], quelle: str) -> dict:
+def speichern(uuid: str, abschnitte: list[dict], quelle: str, fenster_uhr: list | None = None) -> dict:
     d = {"abschnitte": abschnitte, "quelle": quelle, "stand": datetime.now(timezone.utc).isoformat()}
     alt = laden(uuid)
+    if fenster_uhr is not None:
+        d["fenster_uhr"] = fenster_uhr
+    elif alt and alt.get("fenster_uhr") is not None:
+        d["fenster_uhr"] = alt["fenster_uhr"]
     if alt and alt.get("uhr") is not None:
         d["uhr"] = alt["uhr"]                       # Original der Uhr bleibt fuer den Vergleich erhalten
     elif quelle == "uhr":

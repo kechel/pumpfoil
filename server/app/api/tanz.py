@@ -13,7 +13,9 @@ router = APIRouter(prefix="/api/sessions", tags=["tanz"])
 
 def _eigene_tanz_session(db, sid: int, user) -> models.Session:
     s = db.get(models.Session, sid)
-    if s is None or s.deleted or s.user_id != user.id or (s.sport or "") != "dance":
+    # Auch aeltere Tanz-Sessions aus der Pumpfoil-App (vor der Tanz-App), sobald es eine Auswertung gibt.
+    if s is None or s.deleted or s.user_id != user.id or (
+            (s.sport or "") != "dance" and tanz.laden(s.session_uuid) is None):
         raise HTTPException(404, "Keine eigene Tanz-Session")
     return s
 

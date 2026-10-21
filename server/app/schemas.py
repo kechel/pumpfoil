@@ -222,6 +222,8 @@ class SessionCompleteIn(BaseModel):
     # Tanz-Abschnitte der Tanz-App (watch-dance/Tanz.mc, 21.10.2026), nur bei sport == "dance":
     # [[start_ms, ende_ms, vorschlag, gewaehlt, quelle, tempo, dreh], …] — s. app/tanz.py.
     tanz: list | None = None
+    # Rhythmus/Merkmale je 10-s-Fenster, gepackt (Tanz.mc _packen): {"t0": ms, "w": [zahl, ...]}
+    tanz_fenster: dict | None = None
 
 
 # --- Sessions / Analysis ---
