@@ -47,9 +47,9 @@ module Tanz {
     const NAMEN = ["Langsamer Walzer", "Tango", "Wiener Walzer", "Slowfox", "Quickstep", "Samba", "Cha-Cha-Cha",
                    "Rumba", "Paso Doble", "Jive", "Salsa", "Bachata", "Disco-Fox", "Boogie"];
     // MUSTER-BEGINN (erzeugt: scripts/tanz_muster_ableiten.py --uhr; nicht von Hand aendern)
-    const M_TEMPO = [113, 70, 60, 58, 107, 97, 63, 48, 60, 123, 79, 66, 125, 131];
-    const M_QUER = [871, 840, 666, -1, 702, 789, 848, 796, -1, 831, 667, -1, -1, 722];     // x1000, -1 = keine Daten
-    const M_UMDR = [-1, 341, 495, -1, 423, 174, 218, 364, -1, 272, 380, -1, -1, 204];     // Umdrehungen je 10 s x1000, -1 = keine Daten
+    const M_TEMPO = [113, 65, 60, 58, 107, 97, 63, 48, 60, 123, 79, 66, 125, 131];
+    const M_QUER = [871, 739, 666, -1, 702, 789, 848, 796, -1, 831, 667, -1, -1, 722];     // x1000, -1 = keine Daten
+    const M_UMDR = [-1, 420, 495, -1, 423, 174, 218, 364, -1, 272, 422, -1, -1, 204];     // Umdrehungen je 10 s x1000, -1 = keine Daten
     const M_GESCH = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0];   // 1 = geschaetzt (ohne eigene Daten)
     // MUSTER-ENDE
     const S_TEMPO = 0.15; const S_QUER = 0.15; const S_UMDR = 0.2;   // wie tanz_analyse.py

@@ -25,9 +25,14 @@ def test_tanz_session_ohne_gps(client):
     hr = [[i * 1000, 95 + (i % 30)] for i in range(n)]
     assert client.post(f"/api/ingest/session/{uuid}/chunk", headers=uhr, json={
         "index": 0, "kind": "hr", "encoding": "json", "data": hr}).status_code == 200
-    # kaputte Puls-Zeilen werden abgelehnt
+    # kaputte Puls-Zeilen werden abgelehnt (ohne Zeit, Text statt Zahl)
+    for kaputt in ([[None, 90]], [[0, "90"]], [[0]], [5]):
+        assert client.post(f"/api/ingest/session/{uuid}/chunk", headers=uhr, json={
+            "index": 1, "kind": "hr", "encoding": "json", "data": kaputt}).status_code == 400
+    # ab Tanz-App 0.6: [t_ms, puls, kurs, kadenz, schritte], fehlende Werte null (TanzSensoren.mc)
     assert client.post(f"/api/ingest/session/{uuid}/chunk", headers=uhr, json={
-        "index": 1, "kind": "hr", "encoding": "json", "data": [[0, None]]}).status_code == 400
+        "index": 1, "kind": "hr", "encoding": "json",
+        "data": [[n * 1000, None, None, None, 4711], [n * 1000 + 1000, 120, 271, 96, 4712]]}).status_code == 200
     vals = []
     for i in range(n * 25):
         t = i / 25.0
@@ -45,7 +50,7 @@ def test_tanz_session_ohne_gps(client):
     assert (s.sport, s.sport_class, s.sport_source) == ("dance", "other", "owner")
     assert s.status == "analyzed" and s.spot_id is None
     # Endzeit aus dem letzten Puls-Zeitstempel (ohne GPS gaebe es sonst keine)
-    assert (s.ended_at - s.started_at).total_seconds() == (n - 1)
+    assert (s.ended_at - s.started_at).total_seconds() == n + 1   # letzte Zeile: Chunk 1, auch ohne Puls
     assert json.loads((storage.session_dir(uuid) / "hr" / "0.json").read_text()) == hr
     kinds = {k for (k,) in db.query(models.IngestChunk.kind).filter_by(session_id=s.id)}
     assert kinds == {"hr", "accel", "gyro"}

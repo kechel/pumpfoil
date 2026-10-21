@@ -75,6 +75,24 @@ def fenster_entpacken(roh) -> dict | None:
     return {"fenster": out}
 
 
+def orte_entpacken(roh) -> list[dict] | None:
+    """GPS-Fixe der Tanz-App (TanzSensoren.mc, alle 30 min ein Einzel-Fix, 21.10.2026):
+    `[[t_ms, lat, lon, genauigkeit], ...]`. Liegen NUR hier (tanz.json, Besitzer), nie im GPS-Kanal —
+    keine Karte, kein Spot; Jans Fernbild ist ohnehin nur Stadt/Ortsteil."""
+    if not isinstance(roh, list):
+        return None
+    out = []
+    for z in roh[:200]:
+        if not (isinstance(z, list) and len(z) >= 3 and all(isinstance(x, (int, float)) for x in z[:3])):
+            continue
+        t, lat, lon = int(z[0]), float(z[1]), float(z[2])
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180) or (lat == 0 and lon == 0):
+            continue
+        q = z[3] if len(z) > 3 and isinstance(z[3], int) else None
+        out.append({"t_ms": t, "lat": round(lat, 6), "lon": round(lon, 6), "genauigkeit": q})
+    return out
+
+
 def laden(uuid: str) -> dict | None:
     p = storage.session_dir(uuid) / "tanz.json"
     try:
@@ -83,9 +101,14 @@ def laden(uuid: str) -> dict | None:
         return None
 
 
-def speichern(uuid: str, abschnitte: list[dict], quelle: str, fenster_uhr: list | None = None) -> dict:
+def speichern(uuid: str, abschnitte: list[dict], quelle: str, fenster_uhr: list | None = None,
+              orte: list | None = None) -> dict:
     d = {"abschnitte": abschnitte, "quelle": quelle, "stand": datetime.now(timezone.utc).isoformat()}
     alt = laden(uuid)
+    if orte is not None:
+        d["orte"] = orte
+    elif alt and alt.get("orte") is not None:
+        d["orte"] = alt["orte"]
     if fenster_uhr is not None:
         d["fenster_uhr"] = fenster_uhr
     elif alt and alt.get("fenster_uhr") is not None:
