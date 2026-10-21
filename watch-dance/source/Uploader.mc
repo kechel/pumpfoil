@@ -657,10 +657,18 @@ class SessionSyncJob {
         _phase = :complete;
         _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
-            { "total_chunks" => _gpsTotal, "pauses" => _pauses },
+            _completeBody(),
             _opts(),
             method(:onFinal)
         );
+    }
+
+    // DANCE: Tanz-Abschnitte (Tanz.mc) gehen im /complete mit.
+    hidden function _completeBody() as Lang.Dictionary {
+        var b = { "total_chunks" => _gpsTotal, "pauses" => _pauses };
+        var tz = Storage.getValue("tz_" + _uuid);
+        if (tz instanceof Lang.Array) { b["tanz"] = tz; }
+        return b;
     }
 
     // Teil-Upload fertig: KEIN _cleanup (die Session laeuft weiter und braucht ihren State).
@@ -685,6 +693,7 @@ class SessionSyncJob {
         for (var i = 0; i < _gpsTotal; i++) { Storage.deleteValue("cg_" + _uuid + "_" + i); }
         for (var i = 0; i < _accelTotal; i++) { Storage.deleteValue("cy_" + _uuid + "_" + i); }
         Storage.deleteValue("sy_" + _uuid);
+        Storage.deleteValue("tz_" + _uuid);   // DANCE: Tanz-Abschnitte
         Storage.deleteValue("state_" + _uuid);
         Storage.deleteValue("meta_" + _uuid);
         Storage.deleteValue("sa_" + _uuid);
