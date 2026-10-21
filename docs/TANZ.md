@@ -92,6 +92,11 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
 - **Langsamer Walzer allein ist für die Uhr fast unsichtbar** (#17689, 4:10–7:20 zwischen Cha-Cha- und
   den beiden LW-Markern): Bewegung 0,06–0,13 g um die Schwelle 0,08, fast nie ein klarer Rhythmus; nur
   einzelne Fenster (5:49 Tempo 58, passt zu LW). Kein Abschnitt erkannt, nicht nur „falsch erkannt“.
+- **Erste 0.6-Session #17695** (21.10., 4 min am Schreibtisch): Uhr-Rechnung = Server-Rechnung (23/23
+  Fenster, Abweichung nur in der 2. Nachkommastelle), keine Lücken → Echtzeit reicht. Puls/Kompass/Schritte
+  gefüllt, **Kadenz immer leer** (Cardio-Training liefert keine `currentCadence`; Ersatz: Schritt-Differenzen).
+  Ort: Fix nach 12 s, Qualität „gut“. **Fehlalarm**: 2:50–3:10 drei Fenster mit 0,1 g und Tempo 83/70/207
+  → „Samba“. Kandidat für später: Abschnitt nur bei ähnlichem Tempo in den Startfenstern.
 - **Kurs (Paar) ≠ allein**: Haltung und Drehung unterscheiden sich; Muster aus beiden mischen.
 - Prüfung „ohne eigene Quelle“ (`tanz_muster_ableiten.py`): nur Salsa 2/2; die meisten Tänze haben
   erst **eine** Quelle und sind damit nicht unabhängig prüfbar. Die Nachanalyse-Tabellen sind mit
