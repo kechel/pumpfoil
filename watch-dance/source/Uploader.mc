@@ -517,6 +517,7 @@ class SessionSyncJob {
 
     // Callback für /session und jeden Chunk: bestätigt den vorherigen Chunk, schickt den nächsten.
     function onStep(responseCode as Lang.Number, data as WebData) as Void {
+        Mem.messen();
         if (responseCode != 200) {
             Uploader.noteResult(responseCode);
             Uploader.sessionDone(); return;   // Puffer bleibt -> später fortsetzen
@@ -669,6 +670,7 @@ class SessionSyncJob {
     }
 
     function onFinal(responseCode as Lang.Number, data as WebData) as Void {
+        Mem.messen();
         Uploader.noteResult(responseCode);
         if (responseCode == 200) {
             _cleanup();   // vollständig hochgeladen + abgeschlossen -> lokal aufräumen

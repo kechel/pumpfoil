@@ -48,6 +48,7 @@ class RecordView extends WatchUi.View {
     function prevScreen() { screenIdx = (screenIdx + _pageCount() - 1) % _pageCount(); }
 
     function onUpdate(dc) {
+        Mem.messen();
         // Start-Marke loeschen, sobald ein Bild nachweislich fertig geworden ist: wir sind ein
         // ZWEITES Mal hier, also hat der erste Durchlauf ueberlebt. Absichtlich nicht am Ende von
         // onUpdate — der Weg dorthin hat mehrere fruehe returns, und ein Absturz mitten im
@@ -507,14 +508,18 @@ class RecordView extends WatchUi.View {
             y += _drawWrap(dc, w / 2, y, xf, prz, false) + luft;
         }
 
+        // Gewaehlte Sportart (nur VOLL-Build mit echter Wahl) als eigene Zeile UEBER der Foil,
+        // wie auf der Apple Watch (Jan, 19.10.2026: „in zwei zeilen und ohne das label foil").
+        var hatFoils = (_rec.foils.size() >= 1 || _rec.manualAlarm || Sport.wahl());
+        y = _sportZeile(dc, w, h, y, fh, luft, klein, mitteMax);
+
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
-        // Der Name kommt vom Nutzer -> NICHT umbrechen, sondern hinten kuerzen: ein mitten
-        // durchgeschnittener Foil-Name liest sich schlechter als "Foil: Armstro…".
-        var hatFoils = (_rec.foils.size() >= 1 || _rec.manualAlarm);
+        // Der Name kommt vom Nutzer -> NICHT umbrechen, sondern hinten kuerzen. Ohne „Foil:"-
+        // Vorsatz (s. oben); keine Foil gewaehlt -> "-" wie „—" auf der Apple Watch.
         if (hatFoils && y < mitteMax) {
             var lbl = _rec.activeAlarmLabel.equals("") ? "-" : _rec.activeAlarmLabel;
             var platz = _usableWidth(dc, y + fh / 2) - (_rec.alarmEnabled ? 22 : 0);
-            var txt = _kuerzen(dc, Strings.s("foil.prefix") + lbl, xf, platz);
+            var txt = _kuerzen(dc, lbl, xf, platz);
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, y, xf, txt, Graphics.TEXT_JUSTIFY_CENTER);
             if (_rec.alarmEnabled) {
@@ -1325,6 +1330,24 @@ class RecordView extends WatchUi.View {
         _drawWrap(dc, w / 2, h * 0.05, Graphics.FONT_XTINY, Strings.s("lay.fallback"), false);
     }
     (:nolayouts) hidden function _drawLayoutCrashHint(dc, w, h) as Void { }
+
+    // Sportart-Zeile auf dem Start-Screen, UEBER der Foil-Zeile. Zwei Faelle (Jan, 19.10.2026: „das
+    // sollte wenn es lokal etwas anderes ist als der default immer angezeigt werden"):
+    //  * vom Standard ABWEICHEND gewaehlt -> immer zeigen, auch auf kleinen Displays. Fehlt dann
+    //    Platz, rutscht START etwas nach unten und die Hinweise unten fallen weg (zuerst
+    //    „DOWN: Foil & Alarm"), genau wie bei jeder anderen Zusatzzeile. Grenze bleibt mitteMax.
+    //  * Standard-Sportart -> nur, wenn sie MIT der Foil-Zeile ueber den START-Anker (0,65 h) passt.
+    // Name vom Server -> hinten kuerzen statt umbrechen.
+    (:layouts) hidden function _sportZeile(dc, w, h, y, fh, luft, klein, mitteMax) {
+        if (!Sport.wahl() || y >= mitteMax) { return y; }
+        if (Sport.index() <= 0 && (klein || y + 2 * (fh + luft) > h * 0.65)) { return y; }
+        var xf = Graphics.FONT_XTINY;
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, y, xf, _kuerzen(dc, Sport.name(), xf, _usableWidth(dc, y + fh / 2)),
+            Graphics.TEXT_JUSTIFY_CENTER);
+        return y + fh + luft;
+    }
+    (:nolayouts) hidden function _sportZeile(dc, w, h, y, fh, luft, klein, mitteMax) { return y; }
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
     hidden function _drawBell(dc, cx, cy) {
