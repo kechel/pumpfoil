@@ -6,7 +6,8 @@ oder aendert ihn am Handgelenk oder spaeter im Web — gesammelt wird die Wahrhe
 Erkennung. Abgelegt als data/<uuid>/tanz.json (keine DB-Spalte: create_all legt keine Spalten an).
 
 Format je Abschnitt: start_ms, ende_ms (Session-ms, wie die Accel-Zeitachse), vorschlag (Uhr, oder
-None bei manuell), gewaehlt (None = unbestaetigt), quelle (auto|bestaetigt|geaendert|manuell|web),
+None bei manuell), gewaehlt (None = unbestaetigt),
+quelle (auto|bestaetigt|geaendert|manuell|nachtraeglich|marker|web),
 tempo (Auf-und-ab-Bewegungen je min, Median), dreh (Anteil gedrehter Fenster in %).
 """
 from __future__ import annotations
@@ -18,7 +19,8 @@ from . import storage
 
 TAENZE = ("lw", "tango", "ww", "slowfox", "quickstep", "samba", "chacha", "rumba", "paso", "jive",
           "salsa", "bachata", "discofox", "boogie", "kein")
-QUELLEN_UHR = {0: "auto", 1: "bestaetigt", 2: "geaendert", 3: "manuell"}
+# 4/5 seit 21.10.: Jan markiert NACH dem Tanz -> gilt fuer das gerade Vergangene bzw. nur ein Marker.
+QUELLEN_UHR = {0: "auto", 1: "bestaetigt", 2: "geaendert", 3: "manuell", 4: "nachtraeglich", 5: "marker"}
 MAX_ABSCHNITTE = 500
 
 

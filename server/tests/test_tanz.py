@@ -25,6 +25,8 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
     tz = [[30000, 330000, "tango", "boogie", 2, 126, 0],
           [400000, -1, "lw", None, 0, 92, 10],
           [500000, 600000, None, "salsa", 3, 0, 0],
+          [700000, 760000, "lw", "ww", 4, 90, 60],
+          [800000, 800000, None, "jive", 5, 0, 0],
           [1, 2, "quatsch", "<script>", 7, 9999, 500],
           "kaputt"]
     r = client.post("/api/ingest/session/tanz-abschn-1/complete", headers=uhr, json={"total_chunks": 1, "tanz": tz})
@@ -32,12 +34,13 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
     sid = r.json()["session_id"]
     d = client.get(f"/api/sessions/{sid}/tanz", headers=auth).json()
     a = d["abschnitte"]
-    assert len(a) == 4
+    assert len(a) == 6
+    assert a[3]["quelle"] == "nachtraeglich" and a[4]["quelle"] == "marker"
     assert a[0] == {"start_ms": 30000, "ende_ms": 330000, "vorschlag": "tango", "gewaehlt": "boogie",
                     "quelle": "geaendert", "tempo": 126, "dreh": 0}
     assert a[1]["ende_ms"] is None and a[1]["quelle"] == "auto"
     assert a[2]["quelle"] == "manuell" and a[2]["vorschlag"] is None
-    assert a[3]["vorschlag"] is None and a[3]["gewaehlt"] is None and a[3]["tempo"] is None and a[3]["dreh"] is None
+    assert a[5]["vorschlag"] is None and a[5]["gewaehlt"] is None and a[5]["tempo"] is None and a[5]["dreh"] is None
     # Korrektur im Web: Abschnitt 1 ist Langsamer Walzer
     d = client.put(f"/api/sessions/{sid}/tanz", headers=auth,
                    json={"abschnitte": [{"index": 1, "gewaehlt": "lw"}, {"index": 99, "gewaehlt": "jive"}]}).json()

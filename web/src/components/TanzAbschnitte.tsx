@@ -11,7 +11,8 @@ const NAMEN: Record<string, string> = {
 };
 const QUELLE: Record<string, string> = {
   auto: "nur erkannt", bestaetigt: "an der Uhr bestätigt", geaendert: "an der Uhr geändert",
-  manuell: "an der Uhr gewählt", web: "hier korrigiert",
+  manuell: "an der Uhr gewählt", nachtraeglich: "danach an der Uhr gewählt", marker: "nur Marker (nichts erkannt)",
+  web: "hier korrigiert",
 };
 
 function uhrzeit(startedAt: string, ms: number) {
