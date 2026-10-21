@@ -654,7 +654,8 @@ def complete_session(
         s.messweg_json = _json_mod.dumps(mw)
     if body.tanz is not None and (s.sport or "") == "dance":
         from .. import tanz as _tanz   # Tanz-App (21.10.2026), nur sport == "dance"
-        _tanz.speichern(s.session_uuid, _tanz.aus_uhr(body.tanz), "uhr")
+        fu = _tanz.fenster_entpacken(body.tanz_fenster)
+        _tanz.speichern(s.session_uuid, _tanz.aus_uhr(body.tanz), "uhr", (fu or {}).get("fenster"))
     s.status = "complete"
     db.commit()
 

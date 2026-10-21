@@ -17,6 +17,16 @@ def _session(client, uhr, uuid, sport="dance"):
         "index": 0, "kind": "hr", "encoding": "json", "data": hr}).status_code == 200
 
 
+def db_uuid(client, sid):
+    from app.db import SessionLocal
+    from app import models
+    db = SessionLocal()
+    try:
+        return db.get(models.Session, sid).session_uuid
+    finally:
+        db.close()
+
+
 def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
     from app.db import SessionLocal
     from app import models
@@ -29,11 +39,17 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
           [800000, 800000, None, "jive", 5, 0, 0],
           [1, 2, "quatsch", "<script>", 7, 9999, 500],
           "kaputt"]
-    r = client.post("/api/ingest/session/tanz-abschn-1/complete", headers=uhr, json={"total_chunks": 1, "tanz": tz})
+    gepackt = 126 + (40 << 8) + (75 << 15) + (21 << 23)
+    r = client.post("/api/ingest/session/tanz-abschn-1/complete", headers=uhr, json={
+        "total_chunks": 1, "tanz": tz, "tanz_fenster": {"t0": 20000, "w": [gepackt, 60 + (254 << 23), "x"]}})
     assert r.status_code == 200, r.text
     sid = r.json()["session_id"]
     d = client.get(f"/api/sessions/{sid}/tanz", headers=auth).json()
     a = d["abschnitte"]
+    from app import tanz as _tz
+    fu = _tz.laden(db_uuid(client, sid))["fenster_uhr"]
+    assert fu[0] == {"t_ms": 20000, "tempo": 126, "klar": 0.4, "quer": 0.75, "umdr": 0.21}
+    assert fu[1]["umdr"] is None and fu[1]["t_ms"] == 30000 and len(fu) == 2
     assert len(a) == 6
     assert a[3]["quelle"] == "nachtraeglich" and a[4]["quelle"] == "marker"
     assert a[0] == {"start_ms": 30000, "ende_ms": 330000, "vorschlag": "tango", "gewaehlt": "boogie",

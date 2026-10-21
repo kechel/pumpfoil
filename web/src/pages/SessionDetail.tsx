@@ -2742,7 +2742,7 @@ export default function SessionDetail() {
         );
       })()}
 
-      {owned && !isPublic && session.sport === "dance" && session.started_at && (
+      {owned && !isPublic && (session.sport === "dance" || session.sport_class === "other") && session.started_at && (
         <TanzAbschnitte sessionId={session.id} startedAt={session.started_at} />
       )}
 

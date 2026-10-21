@@ -8,11 +8,15 @@ using Toybox.System;
 // DANCE (Jan, 21.10.2026): Tanzerkennung auf der Uhr mit Bestaetigen/Aendern. NUR Tanz-App — nichts
 // davon geht je nach watch/ (Regel „nur Pumpfoil -> Tanz", CLAUDE.md).
 //
+// DIESELBE Rechnung wie server/app/tanz_analyse.py (dort ausfuehrlich, inkl. Nachanalyse und Pruefung).
 // Je 10 s (250 Werte bei 25 Hz) ein Fenster:
 //   Bewegung  = Streuung des Accel-Betrags (g); tanzend ab 0,08 g und klarem Rhythmus
-//   Tempo     = Autokorrelation des Betrags, Abstand 6..21 Werte (71..250 /min); der kleinste Abstand
+//   Tempo     = Autokorrelation der SENKRECHTEN Beschleunigung, Abstand 6..37 Werte (40..250 /min; seit
+//               21.10. ab 40 statt 71 — Wiener Walzer ~57, Rumba ~48 lagen darunter); der kleinste Abstand
 //               mit >= 85 % der staerksten Korrelation gewinnt (Schlag statt Takt)
+//   Quer      = Streuung waagrecht / senkrecht (Arm fuehrt seitlich vs. federt)
 //   Drehung   = Kreisel um die Senkrechte (Schwerkraft aus dem Accel-Mittel), netto in Umdrehungen
+// Vorschlag = naechstes Muster (tanz_muster.json -> Konstanten unten), gemeinsame Streuung je Merkmal.
 // Abschnitt beginnt, wenn 3 der letzten 4 Fenster tanzend sind, endet nach 4 ruhigen in Folge.
 // Bedienung (Jan, 21.10.): der Datenbildschirm zeigt NUR Uhrzeit + erkannten Tanz. HOCH/RUNTER waehlt
 // einen anderen Tanz, START kurz = bestaetigen („passt"); START halten bleibt Stopp.
@@ -30,7 +34,7 @@ using Toybox.System;
 module Tanz {
     const N = 250;
     const MIN_LAG = 6;
-    const MAX_LAG = 21;
+    const MAX_LAG = 37;
     const AKT_G = 0.08;
     const KLAR = 0.15;        // 21.10.: 0,3 erkannte im Boogie nur 11 von 58 min, 0,15 ~41
     const DREH_WIN = 0.8;      // Umdrehungen je 10 s, ab dann zaehlt das Fenster als „gedreht" (Samba P90 0,77)
@@ -42,14 +46,27 @@ module Tanz {
                   "salsa", "bachata", "discofox", "boogie"];
     const NAMEN = ["Langsamer Walzer", "Tango", "Wiener Walzer", "Slowfox", "Quickstep", "Samba", "Cha-Cha-Cha",
                    "Rumba", "Paso Doble", "Jive", "Salsa", "Bachata", "Disco-Fox", "Boogie"];
-    // Erste Schaetzung: Tempo der Auf-und-ab-Bewegung am Handgelenk je Tanz (/min), aus Jans Sessions
-    // 14.-19.10. (LW ~92, Samba ~96, Salsa ~87, Jive ~117-132, Boogie ~126) und Musiktempi. Grob — die
-    // Bestaetigungen sind die eigentliche Wahrheit, der Server lernt daraus.
-    const VON = [80, 118, 0, 100, 95, 88, 115, 95, 115, 112, 78, 65, 112, 120];
-    const BIS = [100, 135, 0, 115, 110, 102, 132, 110, 128, 138, 95, 82, 130, 134];
+    // MUSTER-BEGINN (erzeugt: scripts/tanz_muster_ableiten.py --uhr; nicht von Hand aendern)
+    const M_TEMPO = [113, 70, 60, 58, 107, 97, 63, 48, 60, 123, 79, 66, 125, 131];
+    const M_QUER = [871, 840, 666, -1, 702, 789, 848, 796, -1, 831, 667, -1, -1, 722];     // x1000, -1 = keine Daten
+    const M_UMDR = [-1, 341, 495, -1, 423, 174, 218, 364, -1, 272, 380, -1, -1, 204];     // Umdrehungen je 10 s x1000, -1 = keine Daten
+    const M_GESCH = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0];   // 1 = geschaetzt (ohne eigene Daten)
+    // MUSTER-ENDE
+    const S_TEMPO = 0.15; const S_QUER = 0.15; const S_UMDR = 0.2;   // wie tanz_analyse.py
 
     var _uuid = null;
-    var _x = new [N];
+    var _ax = new [N]; var _ay = new [N]; var _az = new [N];
+    var _x = new [N];            // Arbeitspuffer (senkrecht), wird ueber mehrere Pakete ausgewertet
+    // Autokorrelation verteilt: je Sensorpaket (~1 s) hoechstens LAGS_JE_PAKET Abstaende, damit ein
+    // Aufruf nie in die Zeitsperre (Watchdog) laeuft. Ergebnis ~4 s nach Fensterende.
+    const LAGS_JE_PAKET = 9;
+    var _lag = -1;               // naechster zu rechnender Abstand, -1 = nichts offen
+    var _r = new [MAX_LAG + 2];
+    var _p = null;               // [ms, akt, quer, umdr, r0] des Fensters in Arbeit
+    var _bpm = 0;                // letzter gemessener Rhythmus (/min), fuer die Anzeige
+    var _bpmZeit = 0;            // System-ms dazu
+    var _verlaufUhr = [];        // je Fenster EINE Zahl (s. _packen); Fenster liegen lueckenlos ab _verlaufT0
+    var _verlaufT0 = -1;
     var _n = 0;
     var _sx = 0.0; var _sy = 0.0; var _sz = 0.0;
     var _yaw = [];               // Drehraten (Grad/s) je Accel-Wert des Fensters, fuer die Senkrechte
@@ -71,6 +88,7 @@ module Tanz {
         _uuid = uuid; _n = 0; _sx = 0.0; _sy = 0.0; _sz = 0.0;
         _gx = []; _gy = []; _gz = [];
         _folge = 0; _kand = []; _offen = false; _abschnitte = []; _marker = []; _hist = []; _ebenText = null;
+        _lag = -1; _p = null; _bpm = 0; _verlaufUhr = []; _verlaufT0 = -1;
         _wahl = -1; _jetzt = 0;
     }
 
@@ -78,11 +96,12 @@ module Tanz {
     function add(a, g, ms) as Void {
         if (_uuid == null || a == null || a.x == null) { return; }
         _jetzt = ms;
+        if (_lag >= 0) { _lagsRechnen(); }
         var k = a.x.size();
         var mitG = (g != null && g.x != null && g.x.size() == k);
         for (var i = 0; i < k; i++) {
             var x = a.x[i] / 1000.0; var y = a.y[i] / 1000.0; var z = a.z[i] / 1000.0;
-            _x[_n] = Math.sqrt(x * x + y * y + z * z);
+            _ax[_n] = x; _ay[_n] = y; _az[_n] = z;
             _sx += x; _sy += y; _sz += z;
             if (mitG) { _gx.add(g.x[i]); _gy.add(g.y[i]); _gz.add(g.z[i]); }
             _n++;
@@ -94,46 +113,93 @@ module Tanz {
     }
 
     function _fenster(ms) as Void {
-        var m = 0.0;
-        for (var i = 0; i < N; i++) { m += _x[i]; }
-        m = m / N;
-        for (var i = 0; i < N; i++) { _x[i] = _x[i] - m; }
+        if (_lag >= 0) { _lagsFertig(); }    // voriges Fenster noch offen: abschliessen, BEVOR _x neu belegt wird
+        // Schwerkraft-Richtung = Mittel des Fensters
+        var nn = Math.sqrt(_sx * _sx + _sy * _sy + _sz * _sz);
+        if (nn <= 0) { return; }
+        var ux = _sx / nn; var uy = _sy / nn; var uz = _sz / nn;
+        // Betrag (fuer die Bewegung), senkrecht (Tempo), waagrecht (Quer)
+        var mb = 0.0; var mb2 = 0.0; var mv = 0.0; var mh = 0.0; var mh2 = 0.0;
+        for (var i = 0; i < N; i++) {
+            var x = _ax[i]; var y = _ay[i]; var z = _az[i];
+            var b = Math.sqrt(x * x + y * y + z * z);
+            var v = x * ux + y * uy + z * uz;
+            var hx = x - v * ux; var hy = y - v * uy; var hz = z - v * uz;
+            var h = Math.sqrt(hx * hx + hy * hy + hz * hz);
+            mb += b; mb2 += b * b; mh += h; mh2 += h * h;
+            _x[i] = v; mv += v;
+        }
+        mb = mb / N; mv = mv / N; mh = mh / N;
+        var vb = mb2 / N - mb * mb;
+        var akt = (vb > 0) ? Math.sqrt(vb) : 0.0;
+        var vh = mh2 / N - mh * mh;
+        for (var i = 0; i < N; i++) { _x[i] = _x[i] - mv; }
         var r0 = 0.0;
         for (var i = 0; i < N; i++) { r0 += _x[i] * _x[i]; }
-        var akt = Math.sqrt(r0 / N);
-        var r = new [MAX_LAG + 2];
-        var best = 0.0;
-        for (var L = MIN_LAG - 1; L <= MAX_LAG + 1; L++) {
+        var sv = Math.sqrt(r0 / N);
+        var quer = (sv > 0 && vh > 0) ? Math.sqrt(vh) / sv : 0.0;
+        var umdr = -1.0;     // -1 = kein Kreisel
+        if (_gx.size() > 0) {
+            var grad = 0.0;
+            for (var i = 0; i < _gx.size(); i++) { grad += _gx[i] * ux + _gy[i] * uy + _gz[i] * uz; }
+            umdr = (grad * 0.04) / 360.0;
+            if (umdr < 0) { umdr = -umdr; }
+        }
+        _p = [ms, akt, quer, umdr, r0];
+        _lag = MIN_LAG - 1;
+    }
+
+    // Ein Fenster als eine Zahl (spart Speicher und Upload): tempo 0..255 | klar% 0..127 << 8 |
+    // quer% 0..255 << 15 | umdr% 0..253 (254 = kein Kreisel) << 23 — bleibt unter 2^31. Server: app/tanz.py fenster_entpacken.
+    function _packen(tempo, klar, quer, umdr) {
+        var t = (tempo > 255) ? 255 : tempo;
+        var k = (klar * 100).toNumber(); if (k > 127) { k = 127; } if (k < 0) { k = 0; }
+        var q = (quer * 100).toNumber(); if (q > 255) { q = 255; }
+        var u = (umdr < 0) ? 254 : (umdr * 100).toNumber(); if (u > 253) { u = 253; }
+        return t + (k << 8) + (q << 15) + (u << 23);
+    }
+
+    function _lagsRechnen() as Void {
+        var bis = _lag + LAGS_JE_PAKET;
+        if (bis > MAX_LAG + 1) { bis = MAX_LAG + 1; }
+        for (var L = _lag; L <= bis; L++) {
             var s = 0.0;
             for (var i = L; i < N; i++) { s += _x[i] * _x[i - L]; }
-            r[L] = s;
-            if (L >= MIN_LAG && L <= MAX_LAG && s > best) { best = s; }
+            _r[L] = s;
         }
+        _lag = bis + 1;
+        if (_lag > MAX_LAG + 1) { _lagsFertig(); }
+    }
+
+    function _lagsFertig() as Void {
+        while (_lag >= 0 && _lag <= MAX_LAG + 1) {   // Rest am Stueck (nur im Notfall)
+            var s = 0.0;
+            for (var i = _lag; i < N; i++) { s += _x[i] * _x[i - _lag]; }
+            _r[_lag] = s; _lag++;
+        }
+        _lag = -1;
+        var ms = _p[0]; var akt = _p[1]; var quer = _p[2]; var umdr = _p[3]; var r0 = _p[4];
+        var r = _r;
+        var best = 0.0;
+        for (var L = MIN_LAG; L <= MAX_LAG; L++) { if (r[L] > best) { best = r[L]; } }
         var lag = -1;
         for (var L = MIN_LAG; L <= MAX_LAG; L++) {
             if (r[L] >= 0.85 * best && r[L] >= r[L - 1] && r[L] >= r[L + 1]) { lag = L; break; }
         }
-        var klar = (r0 > 0 && lag > 0) ? r[lag] / r0 : 0.0;
+        var klar = (r0 > 0 && lag > 0 && best > 0) ? r[lag] / r0 : 0.0;
         var tempo = 0;
-        if (lag > 0) {
+        if (lag > 0 && best > 0) {
             var d = r[lag - 1] - 2 * r[lag] + r[lag + 1];
             var lf = lag + ((d != 0) ? 0.5 * (r[lag - 1] - r[lag + 1]) / d : 0.0);
             tempo = (1500.0 / lf).toNumber();
         }
-        var gedreht = 0;
-        if (_gx.size() > 0) {
-            var nn = Math.sqrt(_sx * _sx + _sy * _sy + _sz * _sz);
-            if (nn > 0) {
-                var ux = _sx / nn; var uy = _sy / nn; var uz = _sz / nn;
-                var grad = 0.0;
-                for (var i = 0; i < _gx.size(); i++) { grad += _gx[i] * ux + _gy[i] * uy + _gz[i] * uz; }
-                var umdr = (grad * 0.04) / 360.0;
-                if (umdr < 0) { umdr = -umdr; }
-                if (umdr >= DREH_WIN) { gedreht = 1; }
-            }
-        }
+        var gedreht = (umdr >= DREH_WIN) ? 1 : 0;
+        if (akt >= AKT_G && klar >= KLAR && tempo > 0) { _bpm = tempo; _bpmZeit = System.getTimer(); }
+        if (_verlaufT0 < 0) { _verlaufT0 = ms - 10000; }
+        if (_verlaufUhr.size() < 1080) { _verlaufUhr.add(_packen(tempo, klar, quer, umdr)); }   // bis 3 h
+        if (_verlaufUhr.size() % 6 == 0) { _speichern(); }   // jede Minute sichern
         var tanzt = akt >= AKT_G && klar >= KLAR;
-        var w = [ms - 10000, tempo, gedreht];
+        var w = [ms - 10000, tempo, gedreht, quer, umdr, (akt >= AKT_G && klar >= KLAR) ? 1 : 0];
         _hist.add(tanzt ? 1 : 0);
         if (_hist.size() > 4) { _hist = _hist.slice(1, null); }
         if (!_offen) {
@@ -171,7 +237,9 @@ module Tanz {
 
     // Laufender Abschnitt bei Stopp der Aufnahme schliessen (SessionRecorder).
     function stopp(ms) as Void {
+        if (_lag >= 0) { _lagsFertig(); }
         if (_offen) { _beenden(ms); }
+        _speichern();
     }
 
     function _median(ws) {
@@ -194,22 +262,44 @@ module Tanz {
         return (100 * n) / ws.size();
     }
 
-    // Vorschlag: viel Drehung -> Wiener Walzer; sonst Taenze, deren Tempo-Bereich passt (der zuletzt
-    // bestaetigte zuerst), sonst der mit der naechsten Bereichsmitte.
+    // Median einer Spalte (nur Fenster mit Wert >= 0)
+    function _medianSp(ws, sp) {
+        var t = [];
+        for (var i = 0; i < ws.size(); i++) { if (ws[i][sp] >= 0) { t.add(ws[i][sp]); } }
+        if (t.size() == 0) { return -1; }
+        for (var i = 1; i < t.size(); i++) {
+            var v = t[i]; var j = i - 1;
+            while (j >= 0 && t[j] > v) { t[j + 1] = t[j]; j--; }
+            t[j + 1] = v;
+        }
+        return t[t.size() / 2];
+    }
+
+    // Vorschlag = Muster mit dem kleinsten Abstand (wie tanz_analyse.bewerten). Der zuletzt bestaetigte
+    // Tanz gewinnt, wenn er hoechstens 1,0 schlechter ist (gleiches Lied, gleicher Tanz).
     function _vorschlag(ws) {
-        if (ws.size() >= 6 && _drehProzent(ws) >= 50) { return "ww"; }
         var t = _median(ws);
-        if (_letzter != null) {
-            var li = KEYS.indexOf(_letzter);
-            if (li >= 0 && VON[li] > 0 && t >= VON[li] && t <= BIS[li]) { return _letzter; }
-        }
-        var besterI = 0; var besterD = 99999;
+        var q = _medianSp(ws, 3);
+        var u = _medianSp(ws, 4);
+        var besterI = 0; var besterD = 1.0e9; var letzterD = 1.0e9;
         for (var i = 0; i < KEYS.size(); i++) {
-            if (VON[i] == 0) { continue; }
-            var mitte = (VON[i] + BIS[i]) / 2;
-            var d = (t >= VON[i] && t <= BIS[i]) ? 0 : ((t < mitte) ? mitte - t : t - mitte);
+            var d = 0.0;
+            if (t > 0 && M_TEMPO[i] > 0) {
+                var lt = Math.ln(t) - Math.ln(M_TEMPO[i]);
+                var d0 = (lt / S_TEMPO) * (lt / S_TEMPO);
+                var lo = (lt - 0.6931) / S_TEMPO; var hi = (lt + 0.6931) / S_TEMPO;
+                var d1 = lo * lo + 1.0; var d2 = hi * hi + 1.0;
+                d += (d0 < d1) ? ((d0 < d2) ? d0 : d2) : ((d1 < d2) ? d1 : d2);
+            } else { d += 4.0; }
+            if (M_QUER[i] >= 0) { var dq = (q - M_QUER[i] / 1000.0) / S_QUER; d += dq * dq; } else { d += 1.5; }
+            if (u >= 0) {
+                if (M_UMDR[i] >= 0) { var du = (u - M_UMDR[i] / 1000.0) / S_UMDR; d += du * du; } else { d += 1.5; }
+            }
+            if (M_GESCH[i] == 1) { d += 1.0; }
             if (d < besterD) { besterD = d; besterI = i; }
+            if (_letzter != null && KEYS[i].equals(_letzter)) { letzterD = d; }
         }
+        if (_letzter != null && letzterD <= besterD + 1.0) { return _letzter; }
         return KEYS[besterI];
     }
 
@@ -226,6 +316,7 @@ module Tanz {
         alle.addAll(_abschnitte);
         alle.addAll(_marker);
         try { Storage.setValue("tz_" + _uuid, alle); } catch (e) {}
+        try { Storage.setValue("tv_" + _uuid, { "t0" => _verlaufT0, "w" => _verlaufUhr }); } catch (e) {}
     }
 
     // --- Bedienung auf dem Datenbildschirm ---
@@ -309,8 +400,14 @@ module Tanz {
         var c = System.getClockTime();
         var zeit = c.hour.format("%02d") + ":" + c.min.format("%02d");
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 27 / 100, Graphics.FONT_NUMBER_HOT, zeit,
+        dc.drawText(w / 2, h * 24 / 100, Graphics.FONT_NUMBER_HOT, zeit,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        // Rhythmus der Uhr (Auf-und-ab je min, letzte 30 s) — Jan, 21.10.: „die aktuelle bpm die erkannt wird"
+        if (_bpm > 0 && System.getTimer() - _bpmZeit < 30000) {
+            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 39 / 100, Graphics.FONT_XTINY, _bpm.toString() + " /min",
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
         var z = _anzeige();
         var kopf; var text; var farbe; var aktion;
         if (z[1] == :wahl) {
@@ -328,9 +425,9 @@ module Tanz {
         }
         var xt = Graphics.FONT_XTINY;
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 47 / 100, xt, kopf, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(w / 2, h * 49 / 100, xt, kopf, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(farbe, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 59 / 100, Graphics.FONT_MEDIUM, text,
+        dc.drawText(w / 2, h * 60 / 100, Graphics.FONT_MEDIUM, text,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 72 / 100, xt, aktion, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);

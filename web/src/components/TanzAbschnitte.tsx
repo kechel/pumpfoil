@@ -11,8 +11,9 @@ const NAMEN: Record<string, string> = {
 };
 const QUELLE: Record<string, string> = {
   auto: "nur erkannt", bestaetigt: "an der Uhr bestätigt", geaendert: "an der Uhr geändert",
-  manuell: "an der Uhr gewählt", nachtraeglich: "danach an der Uhr gewählt", marker: "Marker an der Uhr",
-  web: "hier korrigiert",
+  manuell: "an der Uhr gewählt", nachtraeglich: "danach an der Uhr gewählt", marker: "laut deinem Marker",
+  web: "hier korrigiert", nachanalyse: "neu ausgewertet", beschreibung: "neu ausgewertet · laut Beschreibung",
+  marker_ohne_erkennung: "dein Marker, Uhr erkannte nichts",
 };
 
 function uhrzeit(startedAt: string, ms: number) {
@@ -46,7 +47,7 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
           <tr className="text-left text-slate-400">
             <th className="py-1 pr-2 font-medium">Zeit</th>
             <th className="py-1 pr-2 font-medium">Tanz</th>
-            <th className="py-1 pr-2 font-medium">Uhr meinte</th>
+            <th className="py-1 pr-2 font-medium">Erkennung</th>
             <th className="py-1 font-medium">Stand</th>
           </tr>
         </thead>
