@@ -2179,7 +2179,9 @@ export default function SessionDetail() {
           paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)",
         } : undefined}
       >
-        <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 p-2" : ""}`}>
+        {/* Ohne eine einzige Position (Hinweis darunter) Karte samt Leisten ausblenden — sonst bleibt
+            nur eine leere Flaeche (Jan, 21.10.2026). Ausgeblendet statt entfernt: Leaflet haengt am mapRef. */}
+        <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 p-2" : ""} ${ohneOrtung ? "hidden" : ""}`}>
           <span className="text-xs text-slate-400">{t("sd.coloring")}</span>
           <ModeButton active={colorMode === "speed"} onClick={() => setColorMode("speed")}>{t("sd.colorSpeed")}</ModeButton>
           <ModeButton active={colorMode === "hr"} onClick={() => setColorMode("hr")}>{t("sd.colorPulse")}</ModeButton>
@@ -2270,7 +2272,7 @@ export default function SessionDetail() {
 
         {/* KEINE Card (backdrop-blur = Containing-Block). Vollbild: Karte füllt den
             flex-1-Bereich; Karte selbst nur height:100% (kein position-Hack). */}
-        <div className={`relative ${fullscreen ? "min-h-0 flex-1" : "overflow-hidden rounded-2xl border border-slate-800"}`}>
+        <div className={`relative ${fullscreen ? "min-h-0 flex-1" : "overflow-hidden rounded-2xl border border-slate-800"} ${ohneOrtung ? "hidden" : ""}`}>
           <div
             ref={mapRef}
             style={{ width: "100%", height: fullscreen ? "100%" : "60vh", minHeight: fullscreen ? undefined : 320 }}
@@ -2405,7 +2407,7 @@ export default function SessionDetail() {
         })()}
 
         {/* 2. Skala der Farbverteilung + Geschwindigkeitsanzeige. */}
-        <div className={`flex flex-wrap items-center gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"}`}>
+        <div className={`flex flex-wrap items-center gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"} ${ohneOrtung ? "hidden" : ""}`}>
           {colorMode === "turns" ? (
             // Kurvenlage-Farbverlauf + Carve-Zähler nach Drehung (nur Anzeige, NICHT Rekorde/Stats).
             // Untere Hälfte fix (grün 0,1 → gelb 0,35 → rot 0,6), oberhalb 0,6 g bis zum Lauf-Max
