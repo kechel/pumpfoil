@@ -12,7 +12,7 @@ import { FontScaleSelect } from "../components/FontScaleSelect";
 import { PumpUnitSelect } from "../components/PumpUnitSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { PlatformSubline } from "../components/SupportedPlatforms";
-import { MyFoilsSubline } from "../components/MyFoilsSubline";
+import { MyFoilsSubline, MySportsSubline } from "../components/MyFoilsSubline";
 import { NotificationsToggle } from "../components/NotificationsToggle";
 import { ZonesCard } from "../components/ZonesCard";
 import { PublicProfileCard } from "../components/PublicProfileCard";
@@ -184,7 +184,8 @@ export default function Settings() {
         <span className="flex items-center gap-3">
           <FoilIcon className="h-6 w-6 text-brand-400" />
           <span className="min-w-0">
-            <span className="block font-medium text-slate-100">{t("foils.title")}</span>
+            <span className="block font-medium text-slate-100">{t("foils.cardTitle")}</span>
+            <MySportsSubline />
             <MyFoilsSubline />
           </span>
         </span>

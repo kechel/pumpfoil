@@ -1630,6 +1630,8 @@ const en: Record<string, string> = {
   "spots.search": "Search spot…",
 
   "foils.title": "My foils",
+
+  "foils.cardTitle": "My foils & sports",
   "foils.defaultSport": "Default sport for new sessions",
   "foils.defaultSportHint": "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.",
   "foils.mySports": "Sports on the watch",

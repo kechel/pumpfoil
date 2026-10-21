@@ -1419,6 +1419,8 @@ const pt: Record<string, string> = {
   "spots.search": "Buscar spot…",
 
   "foils.title": "Meus foils",
+
+  "foils.cardTitle": "Meus foils e esportes",
   "foils.hint": "Marque seus foils e escolha um como padrão (★). O padrão pode ser trocado por sessão.",
   "foils.search": "Buscar foil…",
   "foils.none": "Sem resultados.",

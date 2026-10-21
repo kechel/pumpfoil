@@ -1565,6 +1565,7 @@ const pl: Record<string, string> = {
   "spots.none": "Jeszcze żadnych spotów na mapie.",
   "spots.search": "Szukaj spotu…",
   "foils.title": "Moje foile",
+  "foils.cardTitle": "Moje foile i sporty",
   "foils.defaultSport": "Domyślny sport dla nowych sesji",
   "foils.defaultSportHint": "Dotyczy tylko przyszłych nagrań — istniejące sesje zostają bez zmian. Wybór na zegarku pojawi się później.",
   "foils.mySports": "Sporty na zegarku",

@@ -1457,6 +1457,7 @@ const nb: Record<string, string> = {
   "spots.none": "Ingen spots på kartet ennå.",
   "spots.search": "Søk spot…",
   "foils.title": "Mine foiler",
+  "foils.cardTitle": "Mine foiler og sporter",
   "foils.defaultSport": "Standardsport for nye økter",
   "foils.defaultSportHint": "Gjelder bare fremtidige opptak — eksisterende økter forblir som de er. Valg på klokka kommer senere.",
   "foils.mySports": "Sporter på klokka",

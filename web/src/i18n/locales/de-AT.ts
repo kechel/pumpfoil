@@ -1029,6 +1029,7 @@ const deAT: Record<string, string> = {
   "spots.none": "No kane Spots auf da Kartn.",
   "spots.search": "Spot suachn…",
   "foils.title": "Meine Foils",
+  "foils.cardTitle": "Meine Foils & Sportarten",
   "foils.hint": "Merk dir deine Foils und wähl ans als Standard (★). Der Standard is je Session überschreibbar.",
   "foils.search": "Foil suachn…",
   "foils.none": "Kane Treffer.",

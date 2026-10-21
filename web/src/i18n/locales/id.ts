@@ -1419,6 +1419,8 @@ const id: Record<string, string> = {
   "spots.search": "Cari spot…",
 
   "foils.title": "Foil saya",
+
+  "foils.cardTitle": "Foil & olahraga saya",
   "foils.hint": "Tandai foil-mu dan pilih satu sebagai bawaan (★). Bawaan bisa ditimpa per sesi.",
   "foils.search": "Cari foil…",
   "foils.none": "Tidak ada hasil.",

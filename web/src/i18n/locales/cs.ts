@@ -1546,6 +1546,8 @@ const cs: Record<string, string> = {
   "spots.search": "Hledat spot…",
 
   "foils.title": "Moje foily",
+
+  "foils.cardTitle": "Moje foily a sporty",
   "foils.hint": "Ulož si své foily a vyber jeden jako výchozí (★). Výchozí lze přepsat u každé vyjížďky.",
   "foils.search": "Hledat foil…",
   "foils.none": "Žádné výsledky.",
