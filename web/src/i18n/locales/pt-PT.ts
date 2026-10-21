@@ -1417,6 +1417,8 @@ const ptPT: Record<string, string> = {
   "spots.search": "Buscar spot…",
 
   "foils.title": "Meus foils",
+
+  "foils.cardTitle": "Meus foils e desportos",
   "foils.hint": "Marca os teus foils e escolhe um como predefinição (★). A predefinição pode ser trocada por sessão.",
   "foils.search": "Buscar foil…",
   "foils.none": "Sem resultados.",

@@ -1419,6 +1419,8 @@ const ja: Record<string, string> = {
   "spots.search": "スポットを検索…",
 
   "foils.title": "マイフォイル",
+
+  "foils.cardTitle": "マイフォイルとスポーツ",
   "foils.hint": "自分のフォイルをマークし、1つをデフォルト（★）に選びます。デフォルトはセッションごとに上書きできます。",
   "foils.search": "フォイルを検索…",
   "foils.none": "該当なし。",

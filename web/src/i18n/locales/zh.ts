@@ -1419,6 +1419,8 @@ const zh: Record<string, string> = {
   "spots.search": "搜索地点…",
 
   "foils.title": "我的水翼",
+
+  "foils.cardTitle": "我的水翼与运动",
   "foils.hint": "标记你的水翼并选择一个作为默认 (★)。默认值可按每次记录覆盖。",
   "foils.search": "搜索水翼…",
   "foils.none": "没有匹配结果。",

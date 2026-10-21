@@ -1165,6 +1165,8 @@ const it: Record<string, string> = {
   "spots.search": "Cerca spot…",
 
   "foils.title": "I miei foil",
+
+  "foils.cardTitle": "I miei foil e sport",
   "foils.hint": "Segna i tuoi foil e scegline uno come predefinito (★). Sovrascrivibile per sessione.",
   "foils.search": "Cerca foil…",
   "foils.none": "Nessun risultato.",

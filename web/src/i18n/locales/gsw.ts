@@ -1081,6 +1081,8 @@ const gsw: Record<string, string> = {
   "spots.search": "Spot sueche…",
 
   "foils.title": "Mini Foils",
+
+  "foils.cardTitle": "Mini Foils & Sportarte",
   "foils.hint": "Merk dini Foils und wähl eis als Standard (★). Je Session überschribbar.",
   "foils.search": "Foil sueche…",
   "foils.none": "Kei Träffer.",

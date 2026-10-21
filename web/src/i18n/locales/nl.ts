@@ -1546,6 +1546,8 @@ const nl: Record<string, string> = {
   "spots.search": "Spot zoeken…",
 
   "foils.title": "Mijn foils",
+
+  "foils.cardTitle": "Mijn foils & sporten",
   "foils.hint": "Bewaar je foils en kies er één als standaard (★). De standaard is per sessie te overschrijven.",
   "foils.search": "Foil zoeken…",
   "foils.none": "Geen resultaten.",

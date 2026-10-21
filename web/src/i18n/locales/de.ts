@@ -1751,6 +1751,8 @@ const de: Record<string, string> = {
   "spots.search": "Spot suchen…",
 
   "foils.title": "Meine Foils",
+
+  "foils.cardTitle": "Meine Foils & Sportarten",
   "foils.defaultSport": "Standard-Sportart für neue Sessions",
   "foils.defaultSportHint": "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.",
   "foils.mySports": "Sportarten an der Uhr",

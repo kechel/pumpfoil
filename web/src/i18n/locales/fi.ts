@@ -1512,6 +1512,8 @@ const fi: Record<string, string> = {
   "spots.search": "Hae spotti…",
 
   "foils.title": "Omat foilit",
+
+  "foils.cardTitle": "Omat foilit ja lajit",
   "foils.hint": "Merkitse foilisi ja valitse yksi oletukseksi (★). Oletus on ohitettavissa sessiokohtaisesti.",
   "foils.search": "Hae foil…",
   "foils.none": "Ei tuloksia.",
