@@ -56,6 +56,10 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
 - **21.10.** „Kompass und Schrittzähler und GPS, aber ohne warten, einfach brauchen wir eigentlich nur einen
   Fix alle 30 Minuten oder so … der Kadenz-Zähler der Uhr ist sicher eine gute / alternative Datenquelle,
   die wir abgleichen können“ → Tanz-App 0.6 (`TanzSensoren.mc`).
+- **21.10.** „die Tänze gibt es alle in unterschiedlichen Geschwindigkeiten, langsamer Wiener Walzer,
+  schneller Langsamer Walzer, Cha-Cha-Cha zackig oder lahm … also nur das Timing kann sicher nicht
+  entscheidend sein für die Zuordnung, aber eben einer von vielen Hinweisen“ → Tempo nicht als
+  Hauptmerkmal behandeln; heute wiegt es mit S_TEMPO 0,15 (±15 %) am stärksten — offen, s. unten.
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
 
@@ -100,6 +104,9 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   Sammelliste in `docs/TODO.md` (Inbox, 21.10.) — nichts beschlossen.
 
 - Mehrere Abende je Tanz, im Kurs (Paar) und allein, jeweils mit Markern.
+- Tempo entwerten (Jan 21.10.): S_TEMPO breiter und Merkmale dazu, die nicht vom Tempo abhängen —
+  Takt, Form der Bewegung je Schlag (federnd/gleitend/zackig), Richtung (Kompass ab 0.6), Kadenz-Abgleich.
+  Erst prüfen, wenn mehr markierte Abende da sind; mit heutigen Daten nicht belastbar.
 - Takt (3/4 gegen 4/4) als Merkmal (erste Sichtung 15.10.: Walzer-Fenster mit Dreier-Muster).
 - Mehrere Tänze ohne Pause werden als EIN Abschnitt erkannt; am Server an Markern geteilt, auf der Uhr nicht.
 - Ob die verteilte Rechnung auf der Uhr (je Paket ≤ 10 Abstände) in Echtzeit mitkommt: an `tanz_fenster`
