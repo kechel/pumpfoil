@@ -2263,7 +2263,8 @@ export default function SessionDetail() {
             haben AUSSCHLIESSLICH solche — sechs davon nach einem einzigen Versuch. Für die
             entscheidet genau diese Seite, ob sie es nochmal probieren. Also sagen wir, was
             passiert ist, statt sie ratlos vor einer grauen Fläche zu lassen. */}
-        {ohneOrtung && (
+        {/* Tanz zeichnet absichtlich ohne GPS auf — dort waere der Hinweis „warte auf GPS" falsch. */}
+        {ohneOrtung && session.sport !== "dance" && (
           <div className="mb-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">
             <p className="font-semibold">{t("sd.noFix.title")}</p>
             <p className="mt-1">{t("sd.noFix.text")}</p>
