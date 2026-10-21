@@ -219,6 +219,9 @@ class SessionCompleteIn(BaseModel):
     # "accel": "batch"|"normal"} — woher das GPS kam, wie oft es neu angefordert werden musste und
     # wie die Beschleunigung lief. Ohne das ist ein GPS-Abbruch wie bei u818 nur zu erraten.
     messweg: dict | None = None
+    # Tanz-Abschnitte der Tanz-App (watch-dance/Tanz.mc, 21.10.2026), nur bei sport == "dance":
+    # [[start_ms, ende_ms, vorschlag, gewaehlt, quelle, tempo, dreh], …] — s. app/tanz.py.
+    tanz: list | None = None
 
 
 # --- Sessions / Analysis ---

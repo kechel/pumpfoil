@@ -1001,6 +1001,12 @@ export type BoardKlasse = {
   takt_hz: number | null; takt_laeufe: number; hub_cm: number | null; hub_laeufe: number;
 };
 
+export interface TanzAbschnitt {
+  start_ms: number; ende_ms: number | null; vorschlag: string | null; gewaehlt: string | null;
+  quelle: string; tempo: number | null; dreh: number | null;
+}
+export interface TanzDaten { abschnitte: TanzAbschnitt[]; taenze: string[] }
+
 export const api = {
   register: (email: string, password: string, display_name?: string, language?: string) =>
     req<{ access_token: string }>("/api/auth/register", {
@@ -1139,6 +1145,10 @@ export const api = {
                            : `/api/integrations/${provider}/sports`,
       { method: "PUT", body: JSON.stringify(wahl) }),
   polarUnlink: () => req<{ ok: boolean }>("/api/integrations/polar", { method: "DELETE" }),
+  // Tanz-App (21.10.2026): Abschnitte einer eigenen Tanz-Session (sport == "dance") lesen/korrigieren.
+  tanzAbschnitte: (sid: number) => req<TanzDaten>(`/api/sessions/${sid}/tanz`),
+  tanzKorrigieren: (sid: number, abschnitte: { index: number; gewaehlt: string | null }[]) =>
+    req<TanzDaten>(`/api/sessions/${sid}/tanz`, { method: "PUT", body: JSON.stringify({ abschnitte }) }),
 
   corosStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/status"),
   corosConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/connect"),
