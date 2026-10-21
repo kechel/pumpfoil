@@ -1486,6 +1486,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **21.10. — 🔴 SUUNTO: Token-Endpunkt lehnt UNSERE App-Zugangsdaten ab (`401 invalid_client`), seit heute zwischen 05:00 und 13:38.**
+  Nachtsync ~04:45 lief noch (last_sync_at der Links). Erster Fehler 13:38 (refresh u848), dann u70 (17:53) und u763
+  (11 Verbindungsversuche 17:34-17:57, alle gescheitert). Probe mit unsinnigem refresh_token -> ebenfalls `invalid_client`
+  (bei gueltigem Client kaeme `invalid_grant`) -> es liegt am Client, nicht an Nutzer-Tokens. `.env` unveraendert seit 02.10.
+  Folgen: keine neuen Verbindungen, und da Suunto-Tokens taeglich ablaufen, bricht der Import fuer alle 26 Links. Unser Code
+  markiert bei `invalid_client` niemanden als abgelaufen (nur bei `invalid_grant`) -> Nutzer sehen keinen falschen
+  „Neu verbinden"-Hinweis. **Jan: Apizone pruefen** (Client-Secret abgelaufen/neu erzeugt? App-Status geaendert?), neues
+  Secret in `server/.env`, Neustart, dann u763 Bescheid geben.
+
 - **21.10. (Jan, via Cowork-Claude) — IDEEN/WUNSCHLISTE Tanz: von der Sideload-App zur Tanz-Community. Nichts gebaut, nichts beschlossen — Sammelliste.**
   Anlass: `watch-dance/` existiert (nur Jans Garmin, Sideload), Tanzerkennung-Vorbefund vom 15.10.
   (Walzer/Jive aus Spektrum, von Jan bestaetigt) traegt. Jans Fernbild: **eine Tanz-Community wie
