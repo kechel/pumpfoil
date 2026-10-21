@@ -61,8 +61,8 @@ module Tanz {
     var _abschnitte = [];
     var _letzter = null;         // zuletzt bestaetigter Tanz (Vorrang bei gleichem Tempo)
     var _marker = [];            // Marker, getrennt von den Abschnitten (die letzte Zeile dort ist der offene)
-    var _ebenText = null;        // kurze Rueckmeldung nach nachtraeglicher Bestaetigung
-    var _ebenBis = 0;
+    var _ebenText = null;        // letzter Marker: Anzeige-Text „14:32 Boogie"
+    var _ebenBis = 0;            // bis dahin hervorgehoben (frisch gesetzt)
     var _jetzt = 0;              // letzte Session-ms aus add()
     var _wahl = -1;              // Index in KEYS (+ KEYS.size() = „Kein Tanz") beim Blaettern, -1 = nicht
     var _wahlBis = 0;            // System-ms, ab dann faellt eine unbestaetigte Wahl zurueck
@@ -242,7 +242,6 @@ module Tanz {
     function _anzeige() {
         if (_wahl >= 0 && System.getTimer() > _wahlBis) { _wahl = -1; }
         if (_wahl >= 0) { return [_wahlKey(_wahl), :wahl]; }
-        if (_ebenText != null && System.getTimer() > _ebenBis) { _ebenText = null; }
         if (_offen && _abschnitte.size() > 0) {
             var a = _abschnitte[_abschnitte.size() - 1];
             if (a[3] != null) { return [a[3], :ok]; }
@@ -289,38 +288,56 @@ module Tanz {
     }
 
     function _eben(key) as Void {
-        _ebenText = name(key);
+        var c = System.getClockTime();
+        _ebenText = c.hour.format("%02d") + ":" + c.min.format("%02d") + " " + name(key);
         _ebenBis = System.getTimer() + 6000;
     }
 
-    // Datenbildschirm: Uhrzeit gross, darunter der Tanz.
+    // ZURUECK: laufende Auswahl verwerfen. Rueckgabe false = es gab keine.
+    function abbrechen() as Lang.Boolean {
+        if (_wahl < 0) { return false; }
+        _wahl = -1;
+        return true;
+    }
+
+    // Datenbildschirm: Uhrzeit gross; darunter, was die UHR erkennt (klar getrennt von Jans Markern),
+    // was eine Taste jetzt tut, und ganz unten der letzte Marker (Jan, 21.10.: „es sollte ersichtlich
+    // sein ob das noch manuell ist oder erkannt wurde, sprich ob man etwas bestaetigen koennte").
     function zeichnen(dc) as Void {
         var w = dc.getWidth(); var h = dc.getHeight();
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK); dc.clear();
         var c = System.getClockTime();
         var zeit = c.hour.format("%02d") + ":" + c.min.format("%02d");
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 30 / 100, Graphics.FONT_NUMBER_HOT, zeit,
+        dc.drawText(w / 2, h * 27 / 100, Graphics.FONT_NUMBER_HOT, zeit,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         var z = _anzeige();
-        var text; var farbe; var unten = null;
-        if (z[1] == :nichts && _ebenText != null) {
-            text = _ebenText; farbe = Graphics.COLOR_WHITE; unten = "Marker gesetzt";
-        } else if (z[1] == :nichts) {
-            text = "kein Tanz"; farbe = Graphics.COLOR_LT_GRAY; unten = "HOCH/RUNTER = Tanz wählen";
-        } else if (z[1] == :ok) {
-            text = name(z[0]); farbe = Graphics.COLOR_WHITE; unten = "bestätigt";   // kein ✓: nicht in jeder Uhr-Schrift
+        var kopf; var text; var farbe; var aktion;
+        if (z[1] == :wahl) {
+            kopf = "Auswahl"; text = name(z[0]); farbe = Config.BRAND_CYAN;
+            aktion = "START = Marker  ZURÜCK = weg";
         } else if (z[1] == :auto) {
-            text = name(z[0]) + "?"; farbe = Config.BRAND_CYAN; unten = "START = passt";
+            kopf = "Uhr erkennt"; text = name(z[0]) + "?"; farbe = Config.BRAND_CYAN;
+            aktion = "START = passt";
+        } else if (z[1] == :ok) {
+            kopf = "Uhr erkennt"; text = name(z[0]); farbe = Graphics.COLOR_WHITE;
+            aktion = "bestätigt";
         } else {
-            text = name(z[0]); farbe = Config.BRAND_CYAN; unten = "START = bestätigen";
+            kopf = "Uhr erkennt"; text = "nichts"; farbe = Graphics.COLOR_LT_GRAY;
+            aktion = "HOCH/RUNTER = Marker setzen";
         }
+        var xt = Graphics.FONT_XTINY;
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 47 / 100, xt, kopf, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(farbe, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 62 / 100, Graphics.FONT_MEDIUM, text,
+        dc.drawText(w / 2, h * 59 / 100, Graphics.FONT_MEDIUM, text,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        if (unten != null) {
-            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 78 / 100, Graphics.FONT_XTINY, unten,
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 72 / 100, xt, aktion, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        if (_ebenText != null) {
+            var frisch = System.getTimer() < _ebenBis;
+            dc.setColor(frisch ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 84 / 100, xt, (frisch ? "Marker gesetzt: " : "Marker ") + _ebenText,
                         Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
     }
