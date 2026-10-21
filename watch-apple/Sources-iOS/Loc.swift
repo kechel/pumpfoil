@@ -71,6 +71,7 @@ enum Loc {
             "home.spotPick": "Vybrat spot …",
             "spots.onlyWithNotes": "Jen s popisem",
             "spots.autoHint": "Spoty nemusíš zakládat: vznikají automaticky, jakmile někdo nahraje session z nového místa. Názvy míst a vod pocházejí z OpenStreetMap — těsně po nahrání může název pár minut chybět.",
+            "profile.foilsSports": "Moje foily a sporty",
         ]
 static let csOverlay: [String: String] = {
         var d: [String: String] = [:]
@@ -1281,6 +1282,7 @@ static let csOverlay: [String: String] = {
             "home.spotPick": "Spot kiezen …",
             "spots.onlyWithNotes": "Alleen met beschrijving",
             "spots.autoHint": "Spots hoef je niet aan te maken: ze verschijnen automatisch zodra iemand op een nieuwe plek een sessie uploadt. Plaats- en waternamen komen uit OpenStreetMap — direct na een upload kan de naam nog een paar minuten ontbreken.",
+            "profile.foilsSports": "Mijn foils & sporten",
         ]
 static let nlOverlay: [String: String] = {
         var d: [String: String] = [:]
@@ -4861,6 +4863,7 @@ static let nlOverlay: [String: String] = {
             "home.spotPick": "Valitse spotti …",
             "spots.onlyWithNotes": "Vain kuvauksen kanssa",
             "spots.autoHint": "Spotteja ei tarvitse luoda itse: ne syntyvät automaattisesti heti, kun joku lataa session uudesta paikasta. Paikkojen ja vesistöjen nimet tulevat OpenStreetMapista — heti latauksen jälkeen nimi voi puuttua muutaman minuutin.",
+            "profile.foilsSports": "Omat foilit ja lajit",
         ]
 static let fiOverlay: [String: String] = {
         var d: [String: String] = [:]
@@ -6751,6 +6754,7 @@ static let fiOverlay: [String: String] = {
         "login.continueWith": r("Weiter mit {provider}", "Wiiter mit {provider}", "Weiter mit {provider}", "Continue with {provider}", "Continuer avec {provider}", "Continua con {provider}", "Continuar con {provider}"),
         "login.google": r("Mit Google anmelden", "Mit Google aamelde", "Mit Google anmelden", "Sign in with Google", "Se connecter avec Google", "Accedi con Google", "Iniciar sesión con Google"),
         "profile.foils": r("Foils", "Foils", "Foils", "Foils", "Foils", "Foils", "Foils"),
+        "profile.foilsSports": r("Meine Foils & Sportarten", "Mini Foils & Sportarte", "Meine Foils & Sportarten", "My foils & sports", "Mes foils et sports", "I miei foil e sport", "Mis foils y deportes"),
         "profile.foilsSub": r("Katalog · meine & Standard", "Katalog · myni & Standard", "Katalog · meine & Standard", "Catalog · mine & default", "Catalogue · les miens & défaut", "Catalogo · i miei & predefinito", "Catálogo · míos & predet."),
         "profile.calc": r("Foil-Rechner", "Foil-Rächner", "Foil-Rechner", "Foil calculator", "Calculateur de foil", "Calcolatore foil", "Calculadora de foil"),
         "profile.calcSub": r("Foils vergleichen & Pump-Leistung", "Foils vergliiche & Pump-Leischtig", "Foils vergleichen & Pump-Leistung", "Compare foils & pump power", "Comparer foils & puissance", "Confronta foil & potenza", "Comparar foils & potencia"),

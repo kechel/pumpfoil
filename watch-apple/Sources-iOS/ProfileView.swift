@@ -15,6 +15,9 @@ struct ProfileView: View {
     // Datenauskunft: fertige JSON-Datei fuer das System-Teilen-Blatt (iOS hat keinen Download).
     @State private var exportURL: ExportItem?
     @State private var exportBusy = false
+    // „Meine Foils & Sportarten" (Jan, 21.10.2026, wie im Web): Standard vorn und hervorgehoben.
+    @State private var meineSportarten: [ProfilEintrag] = []
+    @State private var meineFoils: [ProfilEintrag] = []
 
     // Der Body ist bewusst KURZ: Swifts Type-Checker loest einen ViewBuilder als EINEN Ausdruck
     // auf, und der Aufwand waechst ueberproportional mit Kindern + Modifiern. Dieser Body war
@@ -33,6 +36,7 @@ struct ProfileView: View {
                 debugSections
             }
             .listStyle(.insetGrouped)
+            .task { await ausruestungLaden() }
             .navigationTitle(Loc.t("nav.profile", lang))
             .brandToolbar(Loc.t("nav.profile", lang))
             .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
@@ -101,8 +105,47 @@ struct ProfileView: View {
         NavigationLink {
             FoilsView()
         } label: {
-            Label { Text(Loc.t("profile.foils", lang)) } icon: { FoilIcon(tint: .accentColor).frame(width: 22, height: 22) }
+            Label { foilsRowText } icon: { FoilIcon(tint: .accentColor).frame(width: 22, height: 22) }
         }
+    }
+
+    private var foilsRowText: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(Loc.t("profile.foilsSports", lang))
+            if !meineSportarten.isEmpty { profilZeile(meineSportarten) }
+            if !meineFoils.isEmpty { profilZeile(meineFoils) }
+        }
+    }
+
+    private func profilZeile(_ eintraege: [ProfilEintrag]) -> some View {
+        var t: Text = Text("")
+        for (i, e) in eintraege.enumerated() {
+            if i > 0 { t = t + Text(" · ") }
+            let teil: Text = e.standard ? Text(e.text).foregroundColor(.accentColor) : Text(e.text)
+            t = t + teil
+        }
+        return t.font(.caption).foregroundColor(.secondary)
+    }
+
+    private func ausruestungLaden() async {
+        guard let s = try? await Api.settings() else { return }
+        let defRoh: String = (s["default_sport_class"] as? String) ?? ""
+        let def: String = defRoh.isEmpty ? "pumpfoil" : defRoh
+        let mine: [String] = (s["my_sports"] as? [String]) ?? []
+        var sp: [ProfilEintrag] = [ProfilEintrag(text: Loc.t("cls.sport." + def, lang), standard: true)]
+        for k in SPORTS where k != def && mine.contains(k) {
+            sp.append(ProfilEintrag(text: Loc.t("cls.sport." + k, lang), standard: false))
+        }
+        meineSportarten = sp
+        let ids: [Int] = ((s["my_foils"] as? [NSNumber]) ?? []).map { $0.intValue }
+        let defFoil: Int? = (s["foil_id"] as? NSNumber)?.intValue
+        guard !ids.isEmpty, let katalog = try? await Api.foils() else { return }
+        var fs: [ProfilEintrag] = []
+        for id in ids {
+            guard let f = katalog.first(where: { $0.id == id }) else { continue }
+            fs.append(ProfilEintrag(text: foilLabel(f.brand, f.model, f.size, f.aspect_ratio), standard: f.id == defFoil))
+        }
+        meineFoils = fs.filter { $0.standard } + fs.filter { !$0.standard }
     }
 
     // Social-Kanäle (wie im Web-Menü): öffnen in Safari/der jeweiligen App.
@@ -712,4 +755,10 @@ private struct ChangelogPunktZeile: View {
             .padding(.leading, 14)
         }
     }
+}
+
+/// Ein Eintrag der Profil-Zeile „Meine Foils & Sportarten" (Sportart oder Foil; Standard hervorgehoben).
+struct ProfilEintrag {
+    let text: String
+    let standard: Bool
 }

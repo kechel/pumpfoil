@@ -14,6 +14,7 @@ import Foundation
         "home.spotPick": "Escolha um spot …",
         "spots.onlyWithNotes": "Só com descrição",
         "spots.autoHint": "Você não precisa criar spots: eles aparecem automaticamente assim que alguém envia uma sessão em um lugar novo. Os nomes de lugares e águas vêm do OpenStreetMap — logo após o envio, o nome pode demorar alguns minutos.",
+        "profile.foilsSports": "Meus foils e esportes",
     ]
 let ptOverlay: [String: String] = {
     var d: [String: String] = [:]
@@ -1255,6 +1256,7 @@ private let _ptOverlayP10s2: [String: String] = [
         "home.spotPick": "スポットを選択 …",
         "spots.onlyWithNotes": "説明があるものだけ",
         "spots.autoHint": "スポットを自分で作る必要はありません。誰かが新しい場所でセッションをアップロードすると自動的に作成されます。地名や水域名は OpenStreetMap から取得され、アップロード直後は表示まで数分かかることがあります。",
+        "profile.foilsSports": "マイフォイルとスポーツ",
     ]
 let jaOverlay: [String: String] = {
     var d: [String: String] = [:]
@@ -2496,6 +2498,7 @@ private let _jaOverlayP10s2: [String: String] = [
         "home.spotPick": "选择一个地点 …",
         "spots.onlyWithNotes": "仅显示有说明的",
         "spots.autoHint": "无需自己创建 spot：只要有人在新地点上传 session，spot 就会自动出现。地名和水域名称来自 OpenStreetMap——上传后名称可能需要几分钟才会显示。",
+        "profile.foilsSports": "我的水翼与运动",
     ]
 let zhOverlay: [String: String] = {
     var d: [String: String] = [:]
@@ -3737,6 +3740,7 @@ private let _zhOverlayP10s2: [String: String] = [
         "home.spotPick": "Выберите спот …",
         "spots.onlyWithNotes": "Только с описанием",
         "spots.autoHint": "Споты не нужно создавать: они появляются автоматически, как только кто-то загружает сессию в новом месте. Названия мест и водоёмов берутся из OpenStreetMap — сразу после загрузки название может появиться через несколько минут.",
+        "profile.foilsSports": "Мои фойлы и виды спорта",
     ]
 let ruOverlay: [String: String] = {
     var d: [String: String] = [:]
@@ -4978,6 +4982,7 @@ private let _ruOverlayP10s2: [String: String] = [
         "home.spotPick": "Pilih spot …",
         "spots.onlyWithNotes": "Hanya yang ada deskripsi",
         "spots.autoHint": "Kamu tidak perlu membuat spot: spot muncul otomatis begitu seseorang mengunggah sesi di tempat baru. Nama tempat dan perairan berasal dari OpenStreetMap — sesaat setelah unggahan, namanya bisa butuh beberapa menit.",
+        "profile.foilsSports": "Foil & olahraga saya",
     ]
 let idOverlay: [String: String] = {
     var d: [String: String] = [:]
@@ -6218,6 +6223,7 @@ private let _idOverlayP10s2: [String: String] = [
         "home.spotPick": "Velg en spot …",
         "spots.onlyWithNotes": "Kun med beskrivelse",
         "spots.autoHint": "Du oppretter aldri spots selv: de dukker opp automatisk så snart noen laster opp en økt fra et nytt sted. Navn på steder og vann kommer fra OpenStreetMap — rett etter en opplasting kan det ta et par minutter før navnet vises.",
+        "profile.foilsSports": "Mine foiler og sporter",
     ]
 let nbOverlay: [String: String] = {
     var d: [String: String] = [:]
@@ -7487,6 +7493,7 @@ private let _nbOverlayP10s2: [String: String] = [
         "home.spotPick": "Wybierz spot …",
         "spots.onlyWithNotes": "Tylko z opisem",
         "spots.autoHint": "Spotów nigdy nie tworzysz sam: pojawiają się automatycznie, gdy tylko ktoś wyśle sesję z nowego miejsca. Nazwy miejsc i akwenów pochodzą z OpenStreetMap — zaraz po wysyłce nazwa może pojawić się dopiero po kilku minutach.",
+        "profile.foilsSports": "Moje foile i sporty",
     ]
 let plOverlay: [String: String] = {
     var d: [String: String] = [:]
@@ -8740,6 +8747,7 @@ private let _plOverlayP6: [String: String] = [
         "home.spotPick": "Escolhe um spot …",
         "spots.onlyWithNotes": "Só com descrição",
         "spots.autoHint": "Não precisas de criar spots: aparecem automaticamente assim que alguém envia uma sessão num sítio novo. Os nomes de lugares e águas vêm do OpenStreetMap — logo após o envio, o nome pode demorar alguns minutos.",
+        "profile.foilsSports": "Meus foils e desportos",
     ]
 let ptptOverlay: [String: String] = {
     var d: [String: String] = [:]
