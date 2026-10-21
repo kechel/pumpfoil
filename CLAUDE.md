@@ -89,6 +89,12 @@ dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
 
 ## Konventionen
 
+- **Tanz-App (`watch-dance/`) — HARTE REGEL (Jan, 21.10.2026):** Code fliesst **nur Pumpfoil -> Tanz**
+  (`watch/` -> `watch-dance/`), **NIE umgekehrt**. Tanz-Arbeit aendert nie die Pumpfoil-App — keine
+  gemeinsamen Bausteine, keine Vorbereitung in `watch/`. Tanz-Auswertung am Server nur fuer
+  `sport == "dance"` in eigenen Modulen. Die Tanz-App ist nur fuer Jans Garmin (Sideload per USB),
+  nie Store, nie `watch/bin`. Details: `watch-dance/README.md`.
+
 - **Release-Tabelle auf `/changelog`:** die oeffentliche Changelog-Seite zeigt oben, welche
   App-Version im Store ist, welche im Review liegt und was als Naechstes kommt. Live kommt aus
   `appmeta._APP_META`; **`IN_REVIEW` und `NAECHSTES` in `server/app/api/appmeta.py` bei jeder
