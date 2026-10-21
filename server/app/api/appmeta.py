@@ -843,7 +843,8 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 21.10.2026 (Jans Meldung), Build 61; vorher alle Ansichten auf dem iPhone und Uhr im Simulator getestet.
+    # EINGEREICHT 21.10.2026 05:59 (Jans Meldung, App Store Connect „Warten auf Prüfung", Übermittlung fcc5031b), Build 61;
+    # vorher alle Ansichten auf dem iPhone und Uhr im Simulator getestet (#17681-17683 sauber).
     {"name": "iPhone + Apple Watch", "version": "1.1.53",
      "eingereicht": "2026-10-21",
      "items": [
