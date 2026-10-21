@@ -77,6 +77,9 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
 - **Salsa ist über Tage stabil** (Kurs 15.10. und allein 21.10. beide ~87) — bisher der einzige Tanz,
   der von einer Quelle auf eine andere wiedererkannt wird.
 - **Langsamer Walzer schwankt** (Kurs 92, allein 56–66). Wiener Walzer: am meisten Drehung.
+- **Langsamer Walzer allein ist für die Uhr fast unsichtbar** (#17689, 4:10–7:20 zwischen Cha-Cha- und
+  den beiden LW-Markern): Bewegung 0,06–0,13 g um die Schwelle 0,08, fast nie ein klarer Rhythmus; nur
+  einzelne Fenster (5:49 Tempo 58, passt zu LW). Kein Abschnitt erkannt, nicht nur „falsch erkannt“.
 - **Kurs (Paar) ≠ allein**: Haltung und Drehung unterscheiden sich; Muster aus beiden mischen.
 - Prüfung „ohne eigene Quelle“ (`tanz_muster_ableiten.py`): nur Salsa 2/2; die meisten Tänze haben
   erst **eine** Quelle und sind damit nicht unabhängig prüfbar. Die Nachanalyse-Tabellen sind mit
