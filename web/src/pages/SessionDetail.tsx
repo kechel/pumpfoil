@@ -31,6 +31,7 @@ import { abschnitt } from "../lib/kurve";
 import { useT } from "../i18n";
 import { TransferPicker } from "../components/TransferPicker";
 import { CompareHrStrips } from "../components/CompareHrStrips";
+import { TanzAbschnitte } from "../components/TanzAbschnitte";
 
 // Wake thief: Farbe der Wellenstuecke auf der Karte und im Kasten (20.10.2026).
 const WELLE_FARBE = "#e879f9";
@@ -2737,6 +2738,10 @@ export default function SessionDetail() {
           ]} />
         );
       })()}
+
+      {owned && !isPublic && session.sport === "dance" && session.started_at && (
+        <TanzAbschnitte sessionId={session.id} startedAt={session.started_at} />
+      )}
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
         trimStartMs={session.trim_start_ms ?? null} pausen={session.pause_windows ?? []}

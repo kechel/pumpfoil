@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, friends, health as health_api, ingest, layouts, mcp, mcp_dateien, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
 from . import landing
 from .api.deps import require_social
+from .api import tanz as tanz_api
 from .config import get_settings
 from .db import init_db
 
@@ -488,6 +489,7 @@ app.include_router(foils.router)
 app.include_router(stabs.router)
 app.include_router(boards.router)
 app.include_router(layouts.router)
+app.include_router(tanz_api.router)   # Tanz-App, nur sport == "dance" (21.10.2026)
 app.include_router(chat.router, dependencies=[Depends(require_social)])
 app.include_router(transfers.router, dependencies=[Depends(require_social)])
 app.include_router(friends.router, dependencies=[Depends(require_social)])
