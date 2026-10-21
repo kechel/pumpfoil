@@ -1583,6 +1583,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **iOS GEBAUT (19.10., 1.1.52 Build 59 gebumpt, nur swiftc -parse):** `FeedbackToolbarKnopf` in Branding.swift, ueber
   `brandToolbar(_:feedbackUrl:)` auf allen Marken-Seiten + `.feedbackToolbar(url)` auf Session/Foiler/Changelog.
   (1) Changelog-Abschnitt „Analysis by sport“: **Android + iOS GEBAUT** (19.10.); Android im Emulator geprueft.
+  (4) **Profil-Zeile „Meine Foils & Sportarten“** (Jan 21.10., wie im Web 4be79af8): Titel `profile.foilsSports`, darunter
+  Sportarten (Standard vorn, hervorgehoben, dann `my_sports`) und eigene Foils (Standard vorn). **Android + iOS GEBAUT** (21.10.):
+  Android kompiliert, nicht im Emulator angesehen; iOS nur `swiftc -parse`, Uebersetzungen in den `…OverlaySpotsSuche`-Tabellen (die grossen stehen an der 50er-Grenze).
 
 - **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
   Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf

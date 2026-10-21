@@ -11,6 +11,13 @@ import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -85,6 +92,27 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
     var exportBusy by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         profile = try { Api.me() } catch (e: Exception) { null }
+    }
+    // „Meine Foils & Sportarten" (Jan, 21.10.2026, wie im Web): Standard vorn und hervorgehoben,
+    // dann die an der Uhr waehlbaren Sportarten bzw. die eigenen Foils.
+    var meineSportarten by remember { mutableStateOf<List<Pair<String, Boolean>>>(emptyList()) }
+    var meineFoils by remember { mutableStateOf<List<Pair<String, Boolean>>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        try {
+            val st = Api.settings()
+            val def = (st["default_sport_class"] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() } ?: "pumpfoil"
+            val mine = (st["my_sports"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull } ?: emptyList()
+            meineSportarten = listOf(I18n.t("cls.sport.$def") to true) +
+                SPORTS.filter { it != def && it in mine }.map { I18n.t("cls.sport.$it") to false }
+            val foilIds = (st["my_foils"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.intOrNull } ?: emptyList()
+            val defFoil = (st["foil_id"] as? JsonPrimitive)?.intOrNull
+            if (foilIds.isNotEmpty()) {
+                val byId = Api.foils().associateBy { it.id }
+                meineFoils = foilIds.mapNotNull { byId[it] }
+                    .map { foilLabel(it.brand, it.model, it.size, it.aspectRatio) to (it.id == defFoil) }
+                    .sortedBy { !it.second }
+            }
+        } catch (_: Exception) {}
     }
     val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) scope.launch {
@@ -234,8 +262,21 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             )
             ListItem(
                 modifier = Modifier.clickable { onFoils() },
-                headlineContent = { Text(I18n.t("profile.foils")) },
-                supportingContent = { Text(I18n.t("profile.foilsSub")) },
+                headlineContent = { Text(I18n.t("profile.foilsSports")) },
+                supportingContent = {
+                    if (meineSportarten.isEmpty() && meineFoils.isEmpty()) Text(I18n.t("profile.foilsSub"))
+                    else Column {
+                        val hervor = MaterialTheme.colorScheme.primary
+                        listOf(meineSportarten, meineFoils).filter { it.isNotEmpty() }.forEach { zeile ->
+                            Text(buildAnnotatedString {
+                                zeile.forEachIndexed { i, (txt, std) ->
+                                    if (i > 0) append(" · ")
+                                    if (std) withStyle(SpanStyle(color = hervor)) { append(txt) } else append(txt)
+                                }
+                            })
+                        }
+                    }
+                },
                 leadingContent = { FoilIcon(tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
