@@ -10,7 +10,7 @@ module Config {
     // aus dem Profil, expected_chunks im Upload, gesaeuberter Max-Speed + Lauf-Zusammenfuehrung,
     // „Gespeichert" nicht mehr doppelt und mit 10-s-Ablauf.
     // 1.0.94: Spot-Meldung beim ersten GPS-Fix im Startbildschirm (PhoneRec.meldePosition, 15.10.2026).
-    const VERSION = "0.5.0";   // DANCE-Variante (watch-dance/), unabhaengig von Pumpfoil
+    const VERSION = "0.6.0";   // DANCE-Variante (watch-dance/), unabhaengig von Pumpfoil
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen

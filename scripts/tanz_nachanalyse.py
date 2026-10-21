@@ -87,6 +87,9 @@ def main():
         if "--schreiben" in sys.argv:
             d = {"abschnitte": rows, "quelle": "nachanalyse", "uhr": uhr if uhr else None,
                  "muster": "app/data/tanz_muster.json"}
+            for k in ("fenster_uhr", "orte"):   # Rohwerte der Uhr nie verlieren
+                if alt.get(k) is not None:
+                    d[k] = alt[k]
             p = storage.ensure_session_dir(s.session_uuid) / "tanz.json"
             p.write_text(json.dumps(d, ensure_ascii=False))
     if "--schreiben" in sys.argv:

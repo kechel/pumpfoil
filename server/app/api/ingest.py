@@ -303,10 +303,13 @@ def _chunk_speichern(db: Session, s: "models.Session", session_uuid: str, body: 
         n = storage.save_gyro_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
     elif body.kind == "hr":
         # Puls ohne Position (Tanz-Variante der Garmin-App, s. storage.save_hr_chunk).
+        # Ab Tanz-App 0.6 (21.10.2026) [t_ms, puls, kurs, kadenz, schritte], jeder Wert ausser t_ms
+        # darf null sein (TanzSensoren.mc); bis 0.5 nur [t_ms, puls].
         if not isinstance(body.data, list) or not all(
-                isinstance(r, list) and len(r) >= 2 and all(isinstance(x, (int, float)) for x in r[:2])
+                isinstance(r, list) and len(r) >= 2 and isinstance(r[0], (int, float))
+                and all(x is None or isinstance(x, (int, float)) for x in r[1:])
                 for r in body.data):
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, "hr data must be a list of [t_ms, bpm]")
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "hr data must be a list of [t_ms, bpm, ...]")
         n = storage.save_hr_chunk(session_uuid, body.index, body.data)
     elif body.kind == "mag":
         # Magnetfeld (Kompass), nur von den Handy-Recordern. Fuer vorn/hinten am Brett (s.
@@ -655,7 +658,8 @@ def complete_session(
     if body.tanz is not None and (s.sport or "") == "dance":
         from .. import tanz as _tanz   # Tanz-App (21.10.2026), nur sport == "dance"
         fu = _tanz.fenster_entpacken(body.tanz_fenster)
-        _tanz.speichern(s.session_uuid, _tanz.aus_uhr(body.tanz), "uhr", (fu or {}).get("fenster"))
+        _tanz.speichern(s.session_uuid, _tanz.aus_uhr(body.tanz), "uhr", (fu or {}).get("fenster"),
+                        _tanz.orte_entpacken(body.tanz_orte))
     s.status = "complete"
     db.commit()
 

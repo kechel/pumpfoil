@@ -1246,6 +1246,7 @@ class SessionRecorder {
         _gZ = [[], [], 0, 0, 0, 0, false, false, [], 0, {}, 0];   // DANCE: Sparen braucht GPS-Tempo -> aus
         Dance.reset();
         Tanz.start(_sessionUuid);   // DANCE: Tanzerkennung (Tanz.mc)
+        TanzSensoren.start(_sessionUuid);   // DANCE: Kompass/Kadenz/Schritte + GPS-Fix alle 30 min
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1325,6 +1326,7 @@ class SessionRecorder {
         if (!_recording) { return; }
         Mem.messen(); Mem.sichern();
         Tanz.stopp(_elapsedMs());   // DANCE: offenen Tanz-Abschnitt schliessen
+        TanzSensoren.halt();        // DANCE: laufende GPS-Suche beenden
         // Aus der Pause heraus gestoppt: das offene Fenster noch schliessen, sonst endet die
         // Session am Server um diese Pause zu frueh.
         if (_paused) {
@@ -1396,6 +1398,7 @@ class SessionRecorder {
         _paused = true;
         _pauseStartedMs = System.getTimer();
         _pauseBeiMs = _elapsedMs();   // Position der Pause auf der Sample-Achse (s. _pauseListe)
+        TanzSensoren.halt();   // DANCE: GPS-Suche beenden (die Zeile darunter schaltet Position ohnehin ab)
         try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
         if (_accelOn) {
             try { Sensor.unregisterSensorDataListener(); } catch (e) {}
@@ -2104,13 +2107,11 @@ class SessionRecorder {
         try {
             if (_paused) { return; }   // pausiert: keine Rohdaten sammeln (Sicherung; Listener ist eh ab)
             if (sensorData == null || sensorData.accelerometerData == null) { return; }
-            // DANCE: je Paket (~1 s) eine Puls-Zeile [t_ms, bpm] (geht als Kanal „hr" hoch) und die
-            // Drehraten desselben Pakets in den Gyro-Puffer (gleicher Takt, gleiche Chunk-Grenzen).
-            var info = Activity.getActivityInfo();
-            if (info != null && info.currentHeartRate != null) {
-                _gpsBuf.add([_elapsedMs(), info.currentHeartRate]);
-                _flushGps(false);
-            }
+            // DANCE: je Paket (~1 s) eine Zeile [t_ms, puls, kurs, kadenz, schritte] (Kanal „hr",
+            // TanzSensoren.mc) und die Drehraten desselben Pakets in den Gyro-Puffer (gleicher Takt,
+            // gleiche Chunk-Grenzen).
+            _gpsBuf.add(TanzSensoren.zeile(_elapsedMs()));
+            _flushGps(false);
             if ((sensorData has :gyroscopeData) && sensorData.gyroscopeData != null) {
                 Dance.addGyro(sensorData.gyroscopeData);
             }

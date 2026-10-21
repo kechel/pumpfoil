@@ -41,7 +41,8 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
           "kaputt"]
     gepackt = 126 + (40 << 8) + (75 << 15) + (21 << 23)
     r = client.post("/api/ingest/session/tanz-abschn-1/complete", headers=uhr, json={
-        "total_chunks": 1, "tanz": tz, "tanz_fenster": {"t0": 20000, "w": [gepackt, 60 + (254 << 23), "x"]}})
+        "total_chunks": 1, "tanz": tz, "tanz_fenster": {"t0": 20000, "w": [gepackt, 60 + (254 << 23), "x"]},
+        "tanz_orte": [[1000, 47.781234567, 9.612345, 3], [1801000, 0, 0, 2], [5, 95.0, 1.0], "x"]})
     assert r.status_code == 200, r.text
     sid = r.json()["session_id"]
     d = client.get(f"/api/sessions/{sid}/tanz", headers=auth).json()
@@ -62,6 +63,9 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
                    json={"abschnitte": [{"index": 1, "gewaehlt": "lw"}, {"index": 99, "gewaehlt": "jive"}]}).json()
     assert d["abschnitte"][1]["gewaehlt"] == "lw" and d["abschnitte"][1]["quelle"] == "web"
     assert d["abschnitte"][0]["gewaehlt"] == "boogie"
+    # GPS-Fixe (alle 30 min) liegen nur in tanz.json und ueberstehen die Web-Korrektur; Unsinn faellt raus
+    assert _tz.laden(db_uuid(client, sid))["orte"] == [
+        {"t_ms": 1000, "lat": 47.781235, "lon": 9.612345, "genauigkeit": 3}]
     # fremde Nutzer sehen nichts
     fremd, _ = _konto(client, "tanz-fremd@b.de")
     assert client.get(f"/api/sessions/{sid}/tanz", headers=fremd).status_code == 404

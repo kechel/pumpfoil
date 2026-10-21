@@ -9,10 +9,12 @@ hierher uebernommen werden; nichts von hier geht je nach `watch/`. Tanz-Funktion
 
 Unterschiede zu Pumpfoil (im Code mit `DANCE` markiert):
 - eigene App-ID und Name „Dance", nur `fenix7xpro` im Manifest; eigene Kopplung per Code
-- kein GPS, Start ohne Fix; Speicher-Sparen aus (haengt am GPS-Tempo)
+- kein GPS-Track, Start ohne Fix; ab 0.6 nur ein Einzel-Fix beim Start und alle 30 min (`TanzSensoren.mc`,
+  im /complete als `tanz_orte`, Server nur `tanz.json`); Speicher-Sparen aus (haengt am GPS-Tempo)
 - Accel immer 25 Hz, dazu Gyro (falls die Uhr ihn liefert) im selben Takt -> `kind=gyro`
   (Grad/s -> rad/s x 1024), gleiche Chunk-Grenzen und t0 wie der Accel
-- Puls je Sensorpaket (~1 s) als `[t_ms, bpm]` -> `kind=hr` (ueber die alte GPS-Schiene `cg_`)
+- je Sensorpaket (~1 s) `[t_ms, puls, kurs, kadenz, schritte]` (ab 0.6; bis 0.5 `[t_ms, bpm]`) -> `kind=hr`
+  (ueber die alte GPS-Schiene `cg_`)
 - FIT: Cardio-Training mit Name „Dance" (Connect IQ kennt keinen Typ Tanzen)
 - Upload mit `sport = "dance"` -> Server ordnet als „other" ein (normale Liste, kein Spot)
 - kein Update-Hinweis auf die Pumpfoil-Version

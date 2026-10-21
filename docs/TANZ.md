@@ -53,6 +53,9 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   lösen, vielleicht auch nicht“ → Verwechslung Jive/Boogie ist erwartet, kein Fehler der Merkmale
   (#17689: Jive mit Tempo 65 als Boogie erkannt). Erst mit deutlich mehr Daten an ein Modell denken.
 - **21.10.** Aktuelle bpm (Rhythmus der Uhr) in der Anzeige und alle x Sekunden speichern; Puls dazu.
+- **21.10.** „Kompass und Schrittzähler und GPS, aber ohne warten, einfach brauchen wir eigentlich nur einen
+  Fix alle 30 Minuten oder so … der Kadenz-Zähler der Uhr ist sicher eine gute / alternative Datenquelle,
+  die wir abgleichen können“ → Tanz-App 0.6 (`TanzSensoren.mc`).
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
 
@@ -64,6 +67,11 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
 - **Quer** = Streuung waagrecht / senkrecht (Arm führt seitlich vs. federt).
 - **Drehung** = Kreisel um die Senkrechte, Umdrehungen je 10 s (Kreisel seit Tanz-App 16.10.).
 - **Puls** = eigener Kanal `hr`, ~1 Wert/s, auch ohne GPS (seit 16.10.).
+- **Kompass, Kadenz, Schritte** (ab 0.6) je Sekunde im Kanal `hr`: `[t_ms, puls, kurs_grad, kadenz, schritte]`,
+  jeder Wert außer t_ms kann null sein. Kurs = Kompass (Sensor.Info.heading), Kadenz = Uhr-Schrittfrequenz,
+  Schritte = Tageszähler (nur Differenzen nutzen). Noch nicht ausgewertet — Abgleich mit unserem Tempo offen.
+- **Ort** (ab 0.6): beim Start und alle 30 min ein GPS-Einzel-Fix, der Start wartet nie, Suche nach 5 min
+  abgebrochen. NICHT im GPS-Kanal (keine Karte/Spot, Sessions sind öffentlich), nur `tanz.json` → `orte`.
 - Ab Tanz-App 0.5 speichert die Uhr diese Werte je Fenster (`tanz_fenster`, gepackt) → Abgleich
   Uhr-Rechnung gegen Server-Rechnung möglich.
 - Abschnitt: Beginn bei 3 von 4 tanzenden Fenstern (≥ 30 s Tanz, Anzeige nach 30–40 s), Ende nach
