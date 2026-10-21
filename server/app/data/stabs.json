@@ -1691,5 +1691,11 @@
     "brand": "Naish",
     "model": "2D Stabilizer",
     "size": "250"
+  },
+  {
+    "brand": "Stabless",
+    "model": "no stab",
+    "size": "",
+    "aliases": "ohne Stab|kein Stab|stabless"
   }
 ]

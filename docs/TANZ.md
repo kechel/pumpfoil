@@ -49,6 +49,9 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   Marker immer NACH dem Tanz. Die Uhr hatte mehrmals Falsches erkannt.
 - **21.10.** „wir wollen alles nutzen was wir können, ggf. auch Unterscheidung vertikal vs.
   horizontal“, Muster festhalten, Hinweise merken für spätere Anpassungen und Verifizierungen.
+- **21.10.** „Jive und Boogie sind sich sehr ähnlich … können wir vielleicht irgendwann mit einem Modell
+  lösen, vielleicht auch nicht“ → Verwechslung Jive/Boogie ist erwartet, kein Fehler der Merkmale
+  (#17689: Jive mit Tempo 65 als Boogie erkannt). Erst mit deutlich mehr Daten an ein Modell denken.
 - **21.10.** Aktuelle bpm (Rhythmus der Uhr) in der Anzeige und alle x Sekunden speichern; Puls dazu.
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
