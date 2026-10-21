@@ -88,6 +88,9 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
 
 ## Offene Fragen / nächste Schritte
 
+- Fernbild Tanz-Community (Karte grob nach Stadt/Ortsteil, „wo kann ich heute tanzen“, Tanzpartnersuche):
+  Sammelliste in `docs/TODO.md` (Inbox, 21.10.) — nichts beschlossen.
+
 - Mehrere Abende je Tanz, im Kurs (Paar) und allein, jeweils mit Markern.
 - Takt (3/4 gegen 4/4) als Merkmal (erste Sichtung 15.10.: Walzer-Fenster mit Dreier-Muster).
 - Mehrere Tänze ohne Pause werden als EIN Abschnitt erkannt; am Server an Markern geteilt, auf der Uhr nicht.
