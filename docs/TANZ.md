@@ -40,6 +40,11 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   „die marker können vorher oder hinterher oder zwischen Tänzen gesetzt werden, das wird jeder anders
   machen, also ist das nur ein Indikator“ → **Uhr speichert Marker roh, deutet nicht.** Die Deutung
   („Jan markiert danach“) steckt nur am Server (`tanz_analyse.marker_deuten`) und gilt für Jan.
+- **21.10.** „nicht immer marker, kann sein dass davor auch noch andere / mehrere Tänze waren“ und
+  „in der letzten Testsession habe ich mich glaube nur einmal vertan“ → ein Marker gilt nur für den
+  LETZTEN zusammenhängenden Tanz davor (bis zu einer Pause von 20 s), nicht für alles seit dem vorigen
+  Marker. Korrekturen in der Web-Tabelle (quelle „web“) sind die stärkste Wahrheit, gehen in die Muster
+  ein und werden von der Nachanalyse nicht überschrieben.
 - **21.10.** #17689: allein zur Musik getanzt, Arm „in Tanzhaltung und so wie beim Führen“ bewegt;
   Marker immer NACH dem Tanz. Die Uhr hatte mehrmals Falsches erkannt.
 - **21.10.** „wir wollen alles nutzen was wir können, ggf. auch Unterscheidung vertikal vs.

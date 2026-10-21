@@ -29,21 +29,39 @@ def lade(sid):
     return s, ta.fenster(a, g)
 
 
+def web_korrekturen(sid):
+    """Jans Korrekturen in der Tabelle „Taenze" (quelle web) — die staerkste Wahrheit."""
+    s = SessionLocal().get(models.Session, sid)
+    d = tanz.laden(s.session_uuid) or {}
+    return [(r["start_ms"], r.get("ende_ms") or r["start_ms"], r["gewaehlt"]) for r in d.get("abschnitte") or []
+            if r.get("quelle") == "web" and r.get("gewaehlt") and r["gewaehlt"] != "kein"]
+
+
 def quellen():
-    """[(quelle_id, tanz, fenster)] aus Wahrheit + Marker-Sessions."""
+    """[(quelle_id, tanz, fenster)] aus Wahrheit + Marker-Sessions; Web-Korrekturen gehen vor."""
     w = json.loads((DATA / "tanz_wahrheit.json").read_text())
     out = []
+    ids = [e["id"] for e in w["sessions"]] + [e["id"] for e in w["marker_sessions"]] + [e["id"] for e in w["nur_auswahl"]]
+    korr = {sid: web_korrekturen(sid) for sid in ids}
+    def frei(sid, fs):   # Fenster, die keine Web-Korrektur abdeckt
+        return [f for f in fs if not any(v <= f["t_ms"] < b for v, b, _k in korr[sid])]
     for e in w["sessions"]:
         _s, fs = lade(e["id"])
         for i, (von, bis, key) in enumerate(e["abschnitte"]):
-            teil = [f for f in fs if f["t_ms"] >= von and (bis is None or f["t_ms"] + 10000 <= bis)]
+            teil = [f for f in frei(e["id"], fs) if f["t_ms"] >= von and (bis is None or f["t_ms"] + 10000 <= bis)]
             out.append((f"{e['id']}#{i}", key, teil))
     for e in w["marker_sessions"]:
         s, fs = lade(e["id"])
         d = tanz.laden(s.session_uuid) or {}
         mk = [(m["start_ms"], m["gewaehlt"]) for m in (d.get("uhr") or d.get("abschnitte") or []) if m.get("quelle") == "marker"]
         for i, (von, bis, key) in enumerate(ta.marker_deuten(mk, fs)):
-            out.append((f"{e['id']}m{i}", key, [f for f in fs if von <= f["t_ms"] < bis]))
+            out.append((f"{e['id']}m{i}", key, [f for f in frei(e["id"], fs) if von <= f["t_ms"] < bis]))
+    for sid, ks in korr.items():
+        if not ks:
+            continue
+        _s, fs = lade(sid)
+        for i, (von, bis, key) in enumerate(ks):
+            out.append((f"{sid}w{i}", key, [f for f in fs if von <= f["t_ms"] < bis]))
     return out
 
 
