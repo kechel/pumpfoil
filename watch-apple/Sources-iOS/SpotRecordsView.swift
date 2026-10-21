@@ -109,7 +109,7 @@ struct SportRekordeZeilenView: View {
             Text(t.value).font(.title3).bold().foregroundStyle(Color.accentColor).lineLimit(1)
             Text(t.label).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             if let e = t.entry {
-                let sub: String = [shortDate(e.started_at, e.tz), e.spot].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+                let sub: String = [TimeFmt.shortDate(e.started_at, e.tz), e.spot].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
                 if !sub.isEmpty { Text(sub).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
             }
         }
