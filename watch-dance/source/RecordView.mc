@@ -553,7 +553,7 @@ class RecordView extends WatchUi.View {
             _drawWrap(dc, w / 2, sy, Graphics.FONT_SMALL, Strings.s("start.rec"), false);
             var yh = sy + sf + 2;
             dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
-            if (yh + _wrapHoehe(dc, yh, xf, Strings.s("start.menu"), false) <= unten) {
+            if (false && yh + _wrapHoehe(dc, yh, xf, Strings.s("start.menu"), false) <= unten) {   // DANCE: kein MENU-Hinweis
                 yh += _drawWrap(dc, w / 2, yh, xf, Strings.s("start.menu"), false) + 2;
             }
             if (hatFoils && yh + _wrapHoehe(dc, yh, xf, Strings.s("start.chooseAlarm"), false) <= unten) {
@@ -562,7 +562,7 @@ class RecordView extends WatchUi.View {
             return;
         }
         var yb = h * 0.95;
-        var h1 = _wrapHoehe(dc, yb, xf, Strings.s("start.menu"), true);
+        var h1 = 0;   // DANCE: kein „MENU: Einstellungen"-Hinweis (Jan, 21.10.)
         var h2 = hatFoils ? _wrapHoehe(dc, yb - h1 - 2, xf, Strings.s("start.chooseAlarm"), true) : 0;
         if (sy + sf > yb - h1 - h2 - 4) { h2 = 0; }
         if (sy + sf > yb - h1 - 4) { h1 = 0; }
