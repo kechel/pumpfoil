@@ -10,12 +10,12 @@ module Config {
     // aus dem Profil, expected_chunks im Upload, gesaeuberter Max-Speed + Lauf-Zusammenfuehrung,
     // „Gespeichert" nicht mehr doppelt und mit 10-s-Ablauf.
     // 1.0.94: Spot-Meldung beim ersten GPS-Fix im Startbildschirm (PhoneRec.meldePosition, 15.10.2026).
-    const VERSION = "0.2.0";   // DANCE-Variante (watch-dance/), unabhaengig von Pumpfoil
+    const VERSION = "0.3.0";   // DANCE-Variante (watch-dance/), unabhaengig von Pumpfoil
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
     // (HR-/Speed-Zonen, Erfolg-Gruen, Warn-Orange, Fehler-Rot) bleiben bewusst mehrfarbig.
-    const BRAND_CYAN = 0xE879F9;   // DANCE: Tanz-Marke Fuchsia (brand-dance/), Name bleibt fuer die Uebernahme
+    const BRAND_CYAN = 0xC026D3;   // DANCE: Tanz-Marke Fuchsia (brand-dance/), Name bleibt fuer die Uebernahme
 
     // Server-Basis-URL (per -D base_url=... im Build überschreibbar).
     function baseUrl() {

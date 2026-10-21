@@ -189,6 +189,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Foil-/Alarm-Auswahl (wenn Foils/Website-Alarm vorhanden) -> Vorauswahl VOR dem Start.
     function onNextPage() as Lang.Boolean {
         if (_rec.isRecording()) { Tanz.blaettern(1); WatchUi.requestUpdate(); return true; }   // DANCE: Tanz waehlen
+        if (true) { return true; }   // DANCE: RUNTER im Startbildschirm tut nichts (Verbinden/Upload ueber MENU)
         if (_rec.manualAlarm || _rec.foils.size() >= 1 || Sport.wahl()) { _openFoilMenu(); return true; }
         // Noch nicht verknüpft + nichts zu konfigurieren (keine Foils/Alarm ohne CONFIG):
         // DOWN öffnet stattdessen das Pairing, statt ins Leere zu laufen.
