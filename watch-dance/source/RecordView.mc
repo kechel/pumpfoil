@@ -402,7 +402,7 @@ class RecordView extends WatchUi.View {
         // Kleines Telefon-Icon oben, wenn eine aktive Verbindung zum Handy besteht.
         if (Uploader.phoneConnected() && !klein) { _drawPhone(dc, w / 2, h * 0.115); }
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, titleY, Graphics.FONT_MEDIUM, "Pumpfoil", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, titleY, Graphics.FONT_MEDIUM, "Dance", Graphics.TEXT_JUSTIFY_CENTER);   // DANCE
         // Version anhand der echten Titel-Font-Höhe darunter -> kein Überlappen (geräteunabhängig).
         var titleH = dc.getFontHeight(Graphics.FONT_MEDIUM);
         var y = titleY + titleH + 2;
@@ -458,6 +458,7 @@ class RecordView extends WatchUi.View {
                                            : [Strings.s("gps.ready"), rl];
             if (puffer != null) { teile = _rec.autoStartOn() ? [Strings.s("gps.ready"), auto, puffer, rl]
                                                             : [Strings.s("gps.ready"), puffer, rl]; }
+            teile = (puffer != null) ? ["bereit", puffer] : ["bereit"];   // DANCE: kein GPS, kein Auto-Start
             y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teile), false) + luft;
         } else {
             dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
@@ -514,7 +515,7 @@ class RecordView extends WatchUi.View {
 
         // Gewaehlte Sportart (nur VOLL-Build mit echter Wahl) als eigene Zeile UEBER der Foil,
         // wie auf der Apple Watch (Jan, 19.10.2026: „in zwei zeilen und ohne das label foil").
-        var hatFoils = (_rec.foils.size() >= 1 || _rec.manualAlarm || Sport.wahl());
+        var hatFoils = false;   // DANCE: keine Foils/Alarme/Sportart auf dem Startbildschirm
         y = _sportZeile(dc, w, h, y, fh, luft, klein, mitteMax);
 
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.

@@ -10,7 +10,7 @@ Arbeitsname: **Dance** (Name auf der Uhr). Ein endgueltiger Name ist offen.
 
 | Rolle | Wert |
 |---|---|
-| Akzent / Icon-Grund | Fuchsia **#e879f9** |
+| Akzent / Icon-Grund | Fuchsia **#c026d3** (21.10.: dunkler als das erste #e879f9, Jan: „zu hell") |
 | Dunkel / Hintergrund | Pflaume **#1a0b1f** |
 | Inhalt | Weiss **#ffffff** |
 
