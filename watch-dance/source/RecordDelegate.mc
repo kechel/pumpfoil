@@ -93,6 +93,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
             var kurz = System.getTimer() - _rec.stopHoldStartMs < _rec.STOP_HOLD_MS;
             _cancelHold();
+            // DANCE: kurzer Druck bestaetigt den gezeigten Tanz (Tanz.mc); Halten bleibt Stopp.
+            if (kurz && Tanz.bestaetigen()) { WatchUi.requestUpdate(); return true; }
             // Profil-Einstellung „ein Druck statt 2 s halten": beim LOSLASSEN ausloesen, nicht
             // beim Druecken. Damit bleibt das Halten daneben erhalten (es hat den Ring schon
             // gefuellt und oben in onHoldTick ausgeloest) — wer die Einstellung umstellt,
@@ -186,7 +188,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // UP/DOWN -> während Aufnahme zwischen den Datenansichten. Im Idle öffnet DOWN die
     // Foil-/Alarm-Auswahl (wenn Foils/Website-Alarm vorhanden) -> Vorauswahl VOR dem Start.
     function onNextPage() as Lang.Boolean {
-        if (_rec.isRecording()) { _view.nextScreen(); WatchUi.requestUpdate(); return true; }
+        if (_rec.isRecording()) { Tanz.blaettern(1); WatchUi.requestUpdate(); return true; }   // DANCE: Tanz waehlen
         if (_rec.manualAlarm || _rec.foils.size() >= 1 || Sport.wahl()) { _openFoilMenu(); return true; }
         // Noch nicht verknüpft + nichts zu konfigurieren (keine Foils/Alarm ohne CONFIG):
         // DOWN öffnet stattdessen das Pairing, statt ins Leere zu laufen.
@@ -198,7 +200,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         return false;
     }
     function onPreviousPage() as Lang.Boolean {
-        if (_rec.isRecording()) { _view.prevScreen(); WatchUi.requestUpdate(); return true; }
+        if (_rec.isRecording()) { Tanz.blaettern(-1); WatchUi.requestUpdate(); return true; }   // DANCE: Tanz waehlen
         return false;
     }
 

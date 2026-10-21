@@ -93,10 +93,14 @@ class RecordView extends WatchUi.View {
         // Datenfelder werden komplett ausgeblendet (auf schwarzem Grund), auch wenn die
         // Uhr gerade noch „on-foil" denkt — sonst blitzen sie hinter dem Ring durch.
         var spHold = _rec.stopHoldProgress();
-        if (spHold > 0.0) {
+        // DANCE: START kurz = Tanz bestaetigen -> den Stop-Ring erst nach mehr als einem Klick zeigen
+        // (Jan, 21.10.: „den beenden screen erst anzeigen wenn auch laenger gedrueckt wurde").
+        if (spHold > 0.0 && spHold * _rec.STOP_HOLD_MS > 500) {
             _drawStopHold(dc, dc.getWidth(), dc.getHeight(), spHold);
             return;
         }
+        // DANCE: waehrend der Aufnahme nur Uhrzeit + Tanz (Tanz.mc); die Pause behaelt ihren Bildschirm.
+        if (!_rec.isPaused()) { Tanz.zeichnen(dc); return; }
 
         // ================= Zustandsmaschine (F3) =================
         // Drei Zustände, jeder mit EIGENEM Seiten-Satz; geblättert wird innerhalb des Zustands

@@ -1245,6 +1245,7 @@ class SessionRecorder {
         // Session an (#14076).
         _gZ = [[], [], 0, 0, 0, 0, false, false, [], 0, {}, 0];   // DANCE: Sparen braucht GPS-Tempo -> aus
         Dance.reset();
+        Tanz.start(_sessionUuid);   // DANCE: Tanzerkennung (Tanz.mc)
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
         // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
@@ -1323,6 +1324,7 @@ class SessionRecorder {
     function stop() {
         if (!_recording) { return; }
         Mem.messen(); Mem.sichern();
+        Tanz.stopp(_elapsedMs());   // DANCE: offenen Tanz-Abschnitt schliessen
         // Aus der Pause heraus gestoppt: das offene Fenster noch schliessen, sonst endet die
         // Session am Server um diese Pause zu frueh.
         if (_paused) {
@@ -2113,6 +2115,8 @@ class SessionRecorder {
                 Dance.addGyro(sensorData.gyroscopeData);
             }
             var a = sensorData.accelerometerData;
+            // DANCE: Tanzerkennung mit demselben Paket (Tanz.mc)
+            Tanz.add(a, ((sensorData has :gyroscopeData) ? sensorData.gyroscopeData : null), _elapsedMs());
             var roh = a.x.size();
             var z = _gZ;
             // 10 Hz („Sparsam"): der Sensor laeuft IMMER mit 25 Hz, ausgeduennt wird hier — 10 of 25 Werten,
