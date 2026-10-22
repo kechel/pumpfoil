@@ -547,6 +547,15 @@ def callback(code: str | None = None, state: str | None = None, error: str | Non
         db.add(link)
     _store_token(link, tok)
     db.commit()
+    # Gleich einmal abgleichen (22.10.2026, Jan: „warum wurde die nicht direkt importiert als er verbunden
+    # hat?"). Suuntos Benachrichtigungen kommen nur fuer Workouts NACH dem Verbinden — ein Workout von kurz
+    # vorher (Maese u763: gefahren 08:49, verbunden 09:19) wartete sonst bis zum naechtlichen Abgleich.
+    # Im Hintergrund, die Weiterleitung wartet nicht; die Seite zeigt den Stand ueber /sync-progress.
+    try:
+        from .. import syncprogress
+        syncprogress.anstossen(db, uid, "suunto", _sync_lauf, warten=False)
+    except Exception as exc:  # noqa: BLE001 — Verbinden ist erledigt, der Abgleich kommt notfalls nachts
+        log.warning("Suunto: Abgleich nach dem Verbinden nicht gestartet (uid=%s): %s", uid, exc)
     return _redir("connected")
 
 
@@ -809,9 +818,14 @@ def _workouts_holen(hdr: dict) -> list:
 
     if not _v3_aktiv():
         return seite(_workouts_url())
+    # Nur ab importsports.IMPORT_AB (1.1.2026) anfragen — Suunto v3 versteht `since` (ms), am 22.10.2026 an
+    # einem echten Konto gemessen: ~2000 Workouts ohne, 616 mit, aeltestes 02.01.2026. Ohne das kam jedes
+    # Mal die ganze Historie, aussortiert wurde erst danach (`_vorfilter`, bleibt als Netz stehen).
+    from .. import importsports
+    ab = int(importsports.IMPORT_AB.timestamp() * 1000)
     aus: list = []
     for i in range(V3_MAX_SEITEN):
-        teil = seite(f"{_workouts_url()}?limit={V3_SEITE}&offset={i * V3_SEITE}")
+        teil = seite(f"{_workouts_url()}?since={ab}&limit={V3_SEITE}&offset={i * V3_SEITE}")
         aus.extend(teil)
         if len(teil) < V3_SEITE:        # letzte Seite
             break
