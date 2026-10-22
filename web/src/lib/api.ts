@@ -1001,6 +1001,22 @@ export type BoardKlasse = {
   takt_hz: number | null; takt_laeufe: number; hub_cm: number | null; hub_laeufe: number;
 };
 
+export interface BewertungAntworten {
+  sterne?: number;
+  laeufe?: "alle" | "fehlen" | "zuviele" | "zerstueckelt";
+  laeufe_echt?: number;
+  pumps?: "wenig" | "passt" | "viel" | "weiss_nicht";
+  tempo_ok?: boolean;
+  probleme?: boolean;
+  probleme_art?: string[];
+}
+export interface Bewertung {
+  antworten: BewertungAntworten;
+  kommentar: string;
+  schnappschuss: Record<string, unknown>;
+  aktualisiert: string | null;
+}
+
 export interface TanzAbschnitt {
   start_ms: number; ende_ms: number | null; vorschlag: string | null; gewaehlt: string | null;
   quelle: string; tempo: number | null; dreh: number | null;
@@ -1146,6 +1162,11 @@ export const api = {
       { method: "PUT", body: JSON.stringify(wahl) }),
   polarUnlink: () => req<{ ok: boolean }>("/api/integrations/polar", { method: "DELETE" }),
   // Tanz-App (21.10.2026): Abschnitte einer eigenen Tanz-Session (sport == "dance") lesen/korrigieren.
+  // „Rate this analysis" (22.10.2026): nur Besitzer; Admin-Liste unter /api/admin/bewertungen.
+  bewertung: (sid: number) => req<{ bewertung: Bewertung | null; laeufe_jetzt: number | null }>(`/api/sessions/${sid}/bewertung`),
+  bewertungSpeichern: (sid: number, antworten: BewertungAntworten, kommentar: string) =>
+    req<{ bewertung: Bewertung }>(`/api/sessions/${sid}/bewertung`, { method: "PUT", body: JSON.stringify({ antworten, kommentar }) }),
+  adminBewertungen: () => req<(Bewertung & { session_id: number; user_id: number; name: string | null; gefahren: string | null })[]>("/api/admin/bewertungen"),
   tanzAbschnitte: (sid: number) => req<TanzDaten>(`/api/sessions/${sid}/tanz`),
   tanzKorrigieren: (sid: number, abschnitte: { index: number; gewaehlt: string | null }[]) =>
     req<TanzDaten>(`/api/sessions/${sid}/tanz`, { method: "PUT", body: JSON.stringify({ abschnitte }) }),

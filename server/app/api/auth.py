@@ -306,6 +306,9 @@ def export_me(user: models.User = Depends(current_user), db: Session = Depends(g
             ],
             "photos": [p.url for p in db.query(models.SessionPhoto).filter_by(session_id=s.id).all()],
             "videos": [v.youtube_url for v in db.query(models.SessionVideo).filter_by(session_id=s.id).all()],
+            # „Rate this analysis" (eigene Bewertung der Auswertung), s. api/bewertung.py
+            "rating": next(({"answers": _j(b.antworten_json), "comment": b.kommentar}
+                            for b in db.query(models.SessionBewertung).filter_by(session_id=s.id, user_id=user.id).all()), None),
         })
     return {
         "exported_at": datetime.now(timezone.utc).isoformat(),

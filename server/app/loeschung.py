@@ -25,7 +25,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from sqlalchemy import delete, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from . import models, storage
@@ -49,6 +49,54 @@ def _verweise_auf_users() -> list[tuple[object, object]]:
     return raus
 
 
+def _verweise_auf_sessions() -> list[tuple[object, object]]:
+    """Alle (Tabelle, Spalte), die auf `sessions.id` zeigen — wie `_verweise_auf_users` abgeleitet."""
+    raus = []
+    for tabelle in models.Base.metadata.sorted_tables:
+        if tabelle.name == "sessions":
+            continue
+        for spalte in tabelle.columns:
+            for fk in spalte.foreign_keys:
+                if fk.column.table.name == "sessions":
+                    raus.append((tabelle, spalte))
+    return raus
+
+
+def _abhaengige_weg(db: Session, tabelle, bedingung) -> None:
+    """Zeilen anderer Tabellen, die per Fremdschluessel auf die (gleich geloeschten) Zeilen von
+    `tabelle` zeigen, die `bedingung` erfuellen: nullbar -> leeren, sonst loeschen."""
+    pk = list(tabelle.primary_key.columns)
+    if len(pk) != 1:
+        return
+    ids = select(pk[0]).where(bedingung)
+    for andere in models.Base.metadata.sorted_tables:
+        if andere is tabelle:
+            continue
+        for spalte in andere.columns:
+            for fk in spalte.foreign_keys:
+                if fk.column.table is tabelle:
+                    if spalte.nullable:
+                        db.execute(update(andere).where(spalte.in_(ids)).values({spalte.name: None}))
+                    else:
+                        db.execute(delete(andere).where(spalte.in_(ids)))
+
+
+def session_verweise_weg(db: Session, session_id: int) -> None:
+    """Alles, was auf EINE Session zeigt, abraeumen (nullbare Verweise leeren, sonst Zeile loeschen).
+
+    Anlass 22.10.2026: `Session.chunks` ist eine Beziehung OHNE Kaskade. `db.delete(session)` setzte
+    deshalb `ingest_chunks.session_id` auf NULL -> NotNullViolation. Jede Loeschung eines Kontos (bzw.
+    harte Admin-Loeschung) mit einer per Uhr hochgeladenen Session scheiterte daran; die Tests legten
+    nie Bloecke an. Vorher wurden hier nur 5 von 14 Verweis-Tabellen aufgezaehlt.
+    Fotos (Dateien) raeumt der Aufrufer vorher selbst ab.
+    """
+    for tabelle, spalte in _verweise_auf_sessions():
+        if spalte.nullable:
+            db.execute(update(tabelle).where(spalte == session_id).values({spalte.name: None}))
+        else:
+            db.execute(delete(tabelle).where(spalte == session_id))
+
+
 def konto_loeschen(db: Session, user: models.User) -> dict:
     """Konto + alle Daten entfernen. Gibt eine kleine Bilanz zurueck (fuers Protokoll).
 
@@ -66,6 +114,7 @@ def konto_loeschen(db: Session, user: models.User) -> dict:
         db.query(models.SessionLike).filter_by(session_id=sid).delete()
         db.query(models.SessionVote).filter_by(session_id=sid).delete()
         db.query(models.SessionVideo).filter_by(session_id=sid).delete()
+        db.query(models.SessionBewertung).filter_by(session_id=sid).delete()
         for p in db.query(models.SessionPhoto).filter_by(session_id=sid).all():
             medien.append(p.url)
             db.delete(p)
@@ -75,6 +124,8 @@ def konto_loeschen(db: Session, user: models.User) -> dict:
                 dateien.append(d)
         except ValueError:
             pass
+        session_verweise_weg(db, sid)
+        db.expire(s)   # die (jetzt leeren) Beziehungen nicht aus dem Cache nachziehen
         db.delete(s)
 
     # 2) Eigene Spot-Beschreibungen mit ihren Bildern (eigener Weg wegen der Dateien).
@@ -98,6 +149,10 @@ def konto_loeschen(db: Session, user: models.User) -> dict:
         if spalte.nullable:
             r = db.execute(update(tabelle).where(spalte == uid).values({spalte.name: None}))
         else:
+            # Erst, was auf die gleich geloeschten Zeilen zeigt (eine Ebene tiefer). Anlass 22.10.2026:
+            # device_contacts -> device_tokens (seit ed6483cf, 14.10.) liess jede Loeschung eines
+            # Kontos mit gekoppelter Uhr an einer ForeignKeyViolation scheitern.
+            _abhaengige_weg(db, tabelle, spalte == uid)
             r = db.execute(delete(tabelle).where(spalte == uid))
         if r.rowcount:
             geleert[f"{tabelle.name}.{spalte.name}"] = int(r.rowcount)

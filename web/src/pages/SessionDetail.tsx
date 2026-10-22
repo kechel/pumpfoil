@@ -1,3 +1,4 @@
+import { SessionBewertungKachel } from "../components/SessionBewertung";
 import { KorrekturUmschalter, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
@@ -2105,6 +2106,8 @@ export default function SessionDetail() {
           runIdx={longSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
         <ClickStat label={t("rec.farthestRun")} value={farSeg.v != null ? fmtM(farSeg.v) : "–"} sub="m"
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
+        {/* „Rate this analysis" (22.10.2026): nur der Besitzer, Antworten nur fuer ihn + Admin */}
+        {owned && !isPublic && <SessionBewertungKachel sessionId={session.id} />}
       </div>
 
       {/* Wind am Spot (Wind-Sportarten): Modellwerte, ausdruecklich keine Messung am Wasser. Der Pfeil

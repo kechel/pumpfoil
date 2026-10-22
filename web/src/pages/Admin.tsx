@@ -2,13 +2,13 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
-import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
+import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon, StarIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
 import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
-type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks" | "social" | "system";
+type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "bewertungen" | "news" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
@@ -23,6 +23,7 @@ const TABS: [Tab, string][] = [
   ["sessions", "adm.tab.sessions"],
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
+  ["bewertungen", "adm.tab.bewertungen"],
   ["news", "adm.tab.news"],
   ["social", "adm.tab.social"],
   ["blocks", "adm.tab.blocks"],
@@ -85,6 +86,7 @@ export default function Admin() {
       {tab === "chat" && <ChatModTab />}
       {tab === "spots" && <SpotsTab />}
       {tab === "feedback" && <FeedbackTab />}
+      {tab === "bewertungen" && <BewertungenTab />}
       {tab === "news" && <NewsTab />}
       {tab === "system" && <SystemTab />}
       {tab === "social" && <SocialTab />}
@@ -1507,6 +1509,48 @@ function PhotosTab() {
 }
 
 // --------------------------------------------------------------- Feedback ----
+// „Rate this analysis" (22.10.2026): alle Bewertungen, neueste zuerst. Echte Laufzahl gegen unsere
+// Zahl beim Bewerten (Schnappschuss) — die Abweichung ist das Interessante fuer die Lauferkennung.
+function BewertungenTab() {
+  const t = useT();
+  const { data, error } = useAsync(() => api.adminBewertungen());
+  if (error) return <ErrorBox message={error} />;
+  if (!data) return <Spinner />;
+  if (data.length === 0) return <Card className="p-8 text-center text-slate-300">{t("adm.noBewertungen")}</Card>;
+  return (
+    <div className="space-y-2">
+      {data.map((b) => {
+        const a = b.antworten;
+        const s = b.schnappschuss as { laeufe?: number | null; pumps?: number | null; algo?: string | null; geraet?: string | null; app?: string | null };
+        const teile: string[] = [];
+        if (a.laeufe) teile.push(`${t("rate.runs")}: ${t(`rate.runs.${a.laeufe}`)}`);
+        if (a.laeufe_echt != null) teile.push(`${t("rate.runsReal")} ${a.laeufe_echt} (${t("adm.bewWir")} ${s.laeufe ?? "?"})`);
+        if (a.pumps) teile.push(`${t("rate.pumps")}: ${t(`rate.pumps.${a.pumps}`)} (${s.pumps ?? "?"})`);
+        if (a.tempo_ok != null) teile.push(`${t("rate.speedOk")} ${a.tempo_ok ? t("rate.yes") : t("rate.no")}`);
+        if (a.probleme != null) teile.push(`${t("rate.problems")} ${a.probleme ? t("rate.yes") : t("rate.no")}${(a.probleme_art ?? []).length ? ": " + (a.probleme_art ?? []).map((k) => t(`rate.prob.${k}`)).join(", ") : ""}`);
+        return (
+          <Card key={`${b.session_id}-${b.user_id}`} className="p-3">
+            <div className="mb-1 flex flex-wrap items-baseline gap-2 text-xs text-slate-400">
+              <span className="font-medium text-brand-600 dark:text-brand-300">{b.name ?? `u${b.user_id}`}</span>
+              <a href={`/sessions/${b.session_id}`} className="underline hover:text-slate-200">#{b.session_id}</a>
+              <span>{b.gefahren ? new Date(b.gefahren).toLocaleDateString() : ""}</span>
+              <span>{b.aktualisiert ? new Date(b.aktualisiert).toLocaleString() : ""}</span>
+              <span>{[s.geraet, s.app, s.algo].filter(Boolean).join(" · ")}</span>
+            </div>
+            {a.sterne != null && (
+              <div className="mb-1 flex text-brand-400">
+                {Array.from({ length: 5 }, (_, i) => <StarIcon key={i} className="h-4 w-4" filled={i < (a.sterne ?? 0)} />)}
+              </div>
+            )}
+            {teile.length > 0 && <ul className="text-sm text-slate-200">{teile.map((x, i) => <li key={i}>{x}</li>)}</ul>}
+            {b.kommentar && <div className="mt-1 whitespace-pre-wrap text-sm text-slate-100">„{b.kommentar}“</div>}
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
 function FeedbackTab() {
   const t = useT();
   const { data, error, setData } = useAsync<AdminFeedback[]>(() => api.adminFeedback());

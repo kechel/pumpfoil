@@ -83,3 +83,38 @@ def test_verweise_werden_aus_den_modellen_abgeleitet():
                      "push_subscriptions.user_id", "social_channels.user_id"):
         assert erwartet in namen, erwartet
     assert len(verweise) >= 40, f"nur {len(verweise)} Verweise gefunden — Metadaten unvollstaendig?"
+
+
+def test_loescht_konto_mit_hochgeladener_session_und_uhr(client):
+    """22.10.2026: zwei Fehler, die JEDE Loeschung eines echten Uhr-Kontos scheitern liessen —
+    ingest_chunks (Session.chunks ohne Kaskade -> NotNullViolation) und device_contacts -> device_tokens
+    (ForeignKeyViolation). Die frueheren Tests legten weder Bloecke noch Geraete-Kontakte an."""
+    from app.db import SessionLocal
+    from app import models
+    tok = client.post("/api/auth/register", json={"email": "loesch-uhr@b.de", "password": "supersecret"}).json()["access_token"]
+    auth = {"Authorization": "Bearer " + tok}
+    uhr = {"X-Device-Token": client.post("/api/devices/mint?label=Uhr", headers=auth).json()["device_token"]}
+    client.get("/api/devices/config?p=garmin&v=1.0.95", headers=uhr)          # legt Geraete-Kontakt an
+    assert client.post("/api/ingest/session", headers=uhr, json={
+        "session_uuid": "loesch-uhr-1", "started_at": "2026-10-21T19:00:00Z", "sport": "pumpfoil",
+        "gps_hz": 1, "accel_hz": 25, "accel_scale": 1000}).status_code == 200
+    gps = [[i * 1000, 47.0 + i * 1e-5, 9.0, 4.0, 120, 5.0] for i in range(30)]
+    assert client.post("/api/ingest/session/loesch-uhr-1/chunk", headers=uhr, json={
+        "index": 0, "kind": "gps", "encoding": "json", "data": gps}).status_code == 200
+    sid = client.post("/api/ingest/session/loesch-uhr-1/complete", headers=uhr, json={"total_chunks": 1}).json()["session_id"]
+    db = SessionLocal()
+    try:
+        assert db.query(models.IngestChunk).filter_by(session_id=sid).count() == 1
+        uid = db.get(models.Session, sid).user_id
+    finally:
+        db.close()
+    r = client.request("DELETE", "/api/auth/me", headers=auth)
+    assert r.status_code in (200, 204), r.text
+    db = SessionLocal()
+    try:
+        assert db.get(models.User, uid) is None
+        assert db.get(models.Session, sid) is None
+        assert db.query(models.IngestChunk).filter_by(session_id=sid).count() == 0
+        assert db.query(models.DeviceToken).filter_by(user_id=uid).count() == 0
+    finally:
+        db.close()
