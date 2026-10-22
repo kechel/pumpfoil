@@ -84,3 +84,20 @@ def test_tanz_nur_bei_dance_sessions(client):
                     json={"total_chunks": 1, "tanz": [[0, 1000, "lw", None, 0, 90, 0]]})
     assert r.status_code == 200
     assert client.get(f"/api/sessions/{r.json()['session_id']}/tanz", headers=auth).status_code == 404
+
+
+def test_tanz_json_unlesbar_wird_nicht_ueberschrieben(tmp_path, monkeypatch):
+    """22.10.2026 #18834: eine halb geschriebene tanz.json las sich als leer und wurde ohne die Rohwerte der
+    Uhr zurueckgeschrieben. Jetzt: atomar schreiben, und eine unlesbare Datei nie ueberschreiben."""
+    import pytest
+    from app import storage, tanz
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(exist_ok=True) or tmp_path / u)
+    tanz.speichern("x", [], "uhr", orte=[{"t_ms": 1}])
+    with tanz.sperre("x"):
+        tanz.speichern("x", [], "web")
+    assert tanz.laden("x")["orte"] == [{"t_ms": 1}]
+    (tmp_path / "x" / "tanz.json").write_text('{"abschnitte": [] }"}')
+    with pytest.raises(RuntimeError):
+        tanz.speichern("x", [], "web")
+    assert (tmp_path / "x" / "tanz.json").read_text().endswith('"}')

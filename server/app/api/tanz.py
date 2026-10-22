@@ -53,7 +53,8 @@ def tanz_lesen(sid: int, db: Session = Depends(get_db), user=Depends(current_use
 @router.put("/{sid}/tanz")
 def tanz_korrigieren(sid: int, body: dict = Body(...), db: Session = Depends(get_db), user=Depends(current_user)):
     s = _eigene_tanz_session(db, sid, user)
-    alt = (tanz.laden(s.session_uuid) or {}).get("abschnitte") or []
-    neu = tanz.aus_web(body.get("abschnitte"), alt)
-    d = tanz.speichern(s.session_uuid, neu, "web")
+    with tanz.sperre(s.session_uuid):
+        alt = (tanz.laden(s.session_uuid) or {}).get("abschnitte") or []
+        neu = tanz.aus_web(body.get("abschnitte"), alt)
+        d = tanz.speichern(s.session_uuid, neu, "web")
     return _antwort(s, d["abschnitte"])
