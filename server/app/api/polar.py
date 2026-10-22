@@ -189,6 +189,17 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
         link.member_id = member_id
     link.zugang_abgelehnt_at = None     # neu verbunden -> Ablauf-Hinweis erledigt
     db.commit()
+    # Gleich einmal abgleichen, wie bei Suunto (Jan 22.10.2026: „nach verknüpfen direkt importieren
+    # natuerlich"). Im Hintergrund, die Weiterleitung wartet nicht; Stand ueber /sync-progress.
+    try:
+        from .. import syncprogress
+
+        def arbeit(d, u):
+            l = d.query(models.PolarLink).filter_by(user_id=u.id).first()
+            return _pull_import(d, u, l) if l else {}
+        syncprogress.anstossen(db, uid, "polar", arbeit, warten=False)
+    except Exception as exc:  # noqa: BLE001 — Verbinden ist erledigt, der Abgleich kommt mit dem naechsten Lauf
+        log.warning("Polar: Abgleich nach dem Verbinden nicht gestartet (uid=%s): %s", uid, exc)
     return _ok_redirect()
 
 

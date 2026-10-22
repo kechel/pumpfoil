@@ -390,6 +390,13 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
         db.add(link)
     _tokens_speichern(link, r.json())
     db.commit()
+    # Gleich einmal abgleichen, wie bei Suunto (Jan 22.10.2026: „nach verknüpfen direkt importieren
+    # natuerlich"). Im Hintergrund, die Weiterleitung wartet nicht; Stand ueber /sync-progress.
+    try:
+        from .. import syncprogress
+        syncprogress.anstossen(db, user.id, "coros", lambda d, u: _sync_lauf(d, u, 0), warten=False)
+    except Exception as exc:  # noqa: BLE001 — Verbinden ist erledigt, der Abgleich kommt mit dem naechsten Lauf
+        log.warning("coros-mcp: Abgleich nach dem Verbinden nicht gestartet (uid=%s): %s", user.id, exc)
     return RedirectResponse("/konten?coros=connected", status_code=302)
 
 
