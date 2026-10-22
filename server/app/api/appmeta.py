@@ -510,7 +510,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.13",  # FREIGEGEBEN 2026-10-10 (Zepp-Mail „The application Pumpfoil (1.0.13) you submitted has been approved", Jans Meldung; eingereicht 01.10., neun Tage).
+        "latest": "1.0.14",  # FREIGEGEBEN 2026-10-22 (Zepp-Mail „The application Pumpfoil (1.0.14) you submitted has been approved", Jans Meldung; eingereicht 18.10., vier Tage). Changelog: 596/597/598/628 + zepp, Ereignis.
+        # ALT: "latest": "1.0.13",  # FREIGEGEBEN 2026-10-10 (Zepp-Mail „The application Pumpfoil (1.0.13) you submitted has been approved", Jans Meldung; eingereicht 01.10., neun Tage).
         # ALT: "latest": "1.0.12",  # FREIGEGEBEN 2026-09-30 (Zepp-Mail: „The application Pumpfoil
         # (1.0.12) you submitted has been approved and added to the ZEPP app store", Jans Meldung).
         # Eingereicht 24.09. — sechs Tage. Inhalt: Vibration an Strecken-/Zeitmarken, Bildschirm
@@ -860,16 +861,7 @@ IN_REVIEW: list[dict] = [
     # iPhone + Apple Watch 1.1.53 am 22.10. FREIGEGEBEN -> raus (s. _APP_META["ios"]/["apple"]); Punkte im
     # Changelog: ids 669/670/677/680/683/684/698/699/701-707 tragen jetzt ios/apple 1.1.53, Ereignis 709.
     # iPhone + Apple Watch 1.1.52 (eingereicht 19.10., freigegeben 20.10.2026) -> LIVE, Punkte stehen im Changelog (ids 685-696).
-    # EINGEREICHT 18.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
-    # Vor der Einreichung im Simulator (npm run dev-echt): Positionsmeldung 200, app-closed 200, Upload
-    # komplett; nicht auf Hardware. Neu in der Geraeteliste: T-Rex Dual Solar (11403520/11403521).
-    {"name": "Amazfit", "version": "1.0.14",
-     "eingereicht": "2026-10-18",
-     "items": [
-         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
-         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905), wie Garmin/Wear/Apple.
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-     ]},
+    # Amazfit 1.0.14 am 22.10. FREIGEGEBEN -> raus (s. _APP_META["zepp"]); Punkte 596/597/598/628 tragen zepp 1.0.14.
     # EINGEREICHT 18.10.2026 (Jans Meldung, Play Console „Änderungen, die überprüft werden — Schnelle
     # Vorabprüfungen", Produktion 58 (1.1.43), Produktion (Wear OS) 1054 (1.2.43)). 57/1053 waren am 14.10.
     # schon fuer Jans Test hochgeladen (verbraucht).
