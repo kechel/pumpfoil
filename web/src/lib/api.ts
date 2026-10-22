@@ -1012,14 +1012,15 @@ export interface BewertungAntworten {
 }
 export type BewertungStatus = "offen" | "rueckfrage" | "erledigt";
 export interface AdminBewertung extends Bewertung {
-  id: number; session_id: number; user_id: number; name: string | null; gefahren: string | null;
-  status: BewertungStatus; status_notiz: string; status_at: string | null;
+  id: number; session_id: number; user_id: number; name: string | null; sprache: string | null; gefahren: string | null;
+  status: BewertungStatus; status_notiz: string; status_at: string | null; antwort_fahrer: string;
 }
 export interface Bewertung {
   antworten: BewertungAntworten;
   kommentar: string;
   schnappschuss: Record<string, unknown>;
   aktualisiert: string | null;
+  rueckfrage?: { text: string; am: string | null } | null;   // unsere Rueckfrage, bis neu bewertet
 }
 
 export interface TanzAbschnitt {
@@ -1173,8 +1174,8 @@ export const api = {
   bewertungSpeichern: (sid: number, antworten: BewertungAntworten, kommentar: string) =>
     req<{ bewertung: Bewertung }>(`/api/sessions/${sid}/bewertung`, { method: "PUT", body: JSON.stringify({ antworten, kommentar }) }),
   adminBewertungen: (erledigte = false) => req<{ bewertungen: AdminBewertung[]; anzahl_erledigt: number }>(`/api/admin/bewertungen${erledigte ? "?erledigte=true" : ""}`),
-  adminBewertungStatus: (id: number, status: BewertungStatus, notiz?: string) =>
-    req<{ id: number; status: BewertungStatus; status_notiz: string }>(`/api/admin/bewertungen/${id}`, { method: "PUT", body: JSON.stringify({ status, notiz }) }),
+  adminBewertungStatus: (id: number, status: BewertungStatus, notiz?: string, antwort?: string) =>
+    req<{ id: number; status: BewertungStatus; status_notiz: string; antwort_fahrer: string }>(`/api/admin/bewertungen/${id}`, { method: "PUT", body: JSON.stringify({ status, notiz, antwort }) }),
   adminBewertungLoeschen: (id: number) => req<{ ok: boolean }>(`/api/admin/bewertungen/${id}`, { method: "DELETE" }),
   tanzAbschnitte: (sid: number) => req<TanzDaten>(`/api/sessions/${sid}/tanz`),
   tanzKorrigieren: (sid: number, abschnitte: { index: number; gewaehlt: string | null }[]) =>

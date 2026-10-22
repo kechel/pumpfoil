@@ -1518,12 +1518,19 @@ function BewertungenTab() {
   if (error) return <ErrorBox message={error} />;
   if (!data) return <Spinner />;
   const setzen = (b: AdminBewertung, status: BewertungStatus) => {
-    const notiz = status === "offen" ? undefined : window.prompt(t("adm.bewNotiz"), b.status_notiz) ?? undefined;
-    if (notiz === undefined && status !== "offen") return Promise.resolve();
-    return api.adminBewertungStatus(b.id, status, notiz).then((r) => setData({
+    // erledigt: interne Notiz. Zurueck an Fahrer: Nachricht an ihn (1:1 + an seiner Bewertung), Pflicht.
+    let notiz: string | undefined, antwort: string | undefined;
+    if (status === "erledigt") {
+      notiz = window.prompt(t("adm.bewNotiz"), b.status_notiz) ?? undefined;
+      if (notiz === undefined) return Promise.resolve();
+    } else if (status === "rueckfrage") {
+      antwort = window.prompt(t("adm.bewAntwort"), b.antwort_fahrer)?.trim() || undefined;
+      if (!antwort) return Promise.resolve();
+    }
+    return api.adminBewertungStatus(b.id, status, notiz, antwort).then((r) => setData({
       anzahl_erledigt: data.anzahl_erledigt + (r.status === "erledigt" ? 1 : 0) - (b.status === "erledigt" ? 1 : 0),
       bewertungen: data.bewertungen
-        .map((x) => (x.id === b.id ? { ...x, status: r.status, status_notiz: r.status_notiz } : x))
+        .map((x) => (x.id === b.id ? { ...x, status: r.status, status_notiz: r.status_notiz, antwort_fahrer: r.antwort_fahrer } : x))
         .filter((x) => erledigte || x.status !== "erledigt"),
     }));
   };
@@ -1551,6 +1558,7 @@ function BewertungenTab() {
           <Card key={b.id} className={`p-3 ${b.status === "erledigt" ? "opacity-60" : b.status === "rueckfrage" ? "border-amber-500/50" : ""}`}>
             <div className="mb-1 flex flex-wrap items-baseline gap-2 text-xs text-slate-400">
               <span className="font-medium text-brand-600 dark:text-brand-300">{b.name ?? `u${b.user_id}`}</span>
+              <span>u{b.user_id}{b.sprache ? ` · ${b.sprache}` : ""}</span>
               <a href={`/sessions/${b.session_id}`} className="underline hover:text-slate-200">#{b.session_id}</a>
               <span>{b.gefahren ? new Date(b.gefahren).toLocaleDateString() : ""}</span>
               <span>{b.aktualisiert ? new Date(b.aktualisiert).toLocaleString() : ""}</span>
@@ -1567,6 +1575,7 @@ function BewertungenTab() {
             {teile.length > 0 && <ul className="text-sm text-slate-200">{teile.map((x, i) => <li key={i}>{x}</li>)}</ul>}
             {b.kommentar && <div className="mt-1 whitespace-pre-wrap text-sm text-slate-100">„{b.kommentar}“</div>}
             {b.status_notiz && <div className="mt-1 text-sm text-slate-300">{t("adm.bewNotizLabel")} {b.status_notiz}</div>}
+            {b.antwort_fahrer && <div className="mt-1 whitespace-pre-wrap text-sm text-slate-300">{t("adm.bewAntwortLabel")} {b.antwort_fahrer}</div>}
             <div className="mt-2 flex flex-wrap gap-2">
               {b.status !== "erledigt" && <Act tone="green" onClick={() => setzen(b, "erledigt")}>{t("adm.bewErledigt")}</Act>}
               {b.status !== "rueckfrage" && <Act tone="amber" onClick={() => setzen(b, "rueckfrage")}>{t("adm.bewRueckfrage")}</Act>}

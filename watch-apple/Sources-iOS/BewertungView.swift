@@ -52,6 +52,7 @@ struct BewertungKachel: View {
     @State private var antworten: BewAntworten = BewAntworten()
     @State private var kommentar: String = ""
     @State private var laeufeJetzt: Int? = nil
+    @State private var rueckfrage: String? = nil   // unsere Rueckfrage („Back to rider"), bis neu bewertet
     @State private var offen: Bool = false
 
     var body: some View {
@@ -60,8 +61,8 @@ struct BewertungKachel: View {
             .task(id: sessionId) { await laden() }
             .sheet(isPresented: $offen) {
                 BewertungSheet(sessionId: sessionId, lang: lang, alt: antworten, altKommentar: kommentar,
-                               laeufeJetzt: laeufeJetzt) { neu, k in
-                    antworten = neu; kommentar = k; hat = true; offen = false
+                               laeufeJetzt: laeufeJetzt, rueckfrage: rueckfrage) { neu, k in
+                    antworten = neu; kommentar = k; hat = true; rueckfrage = nil; offen = false
                 }
             }
     }
@@ -69,12 +70,18 @@ struct BewertungKachel: View {
     private var inhalt: some View {
         VStack(alignment: .leading, spacing: 4) {
             sterneZeile
-            Text(Loc.t(hat ? "rate.rated" : "rate.tile", lang)).font(.caption).foregroundStyle(.secondary)
+            Text(Loc.t(kachelText, lang)).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.orange, lineWidth: rueckfrage == nil ? 0 : 1))
         .opacity(geladen ? 1 : 0.4)
+    }
+
+    private var kachelText: String {
+        if rueckfrage != nil { return "rate.recheckTile" }
+        return hat ? "rate.rated" : "rate.tile"
     }
 
     @ViewBuilder private var sterneZeile: some View {
@@ -98,6 +105,7 @@ struct BewertungKachel: View {
         hat = b != nil
         antworten = BewAntworten(b?["antworten"] as? [String: Any])
         kommentar = (b?["kommentar"] as? String) ?? ""
+        rueckfrage = (b?["rueckfrage"] as? [String: Any])?["text"] as? String
         geladen = true
     }
 }
@@ -108,6 +116,7 @@ private struct BewertungSheet: View {
     let alt: BewAntworten
     let altKommentar: String
     let laeufeJetzt: Int?
+    let rueckfrage: String?
     let onSaved: (BewAntworten, String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var a: BewAntworten = BewAntworten()
@@ -121,6 +130,12 @@ private struct BewertungSheet: View {
         NavigationStack {
             Form {
                 Section { Text(Loc.t("rate.intro", lang)).font(.footnote).foregroundStyle(.secondary) }
+                if let rf = rueckfrage {
+                    Section {
+                        Text(Loc.t("rate.recheck", lang)).font(.subheadline.weight(.semibold)).foregroundStyle(Color.orange)
+                        Text(rf).font(.callout)
+                    }
+                }
                 Section(Loc.t("rate.stars", lang)) { sterneWahl }
                 Section(Loc.t("rate.runs", lang)) { chips(bewLaeufe, "rate.runs.", a.laeufe) { a.laeufe = a.laeufe == $0 ? nil : $0 } }
                 Section(Loc.t("rate.runsReal", lang)) { echtFeld }

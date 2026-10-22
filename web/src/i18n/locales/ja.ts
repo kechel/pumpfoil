@@ -749,6 +749,8 @@ const ja: Record<string, string> = {
   "sd.runN": "· ラン {n}",
   "rate.tile": "解析を評価",
   "rate.rated": "あなたの評価",
+  "rate.recheckTile": "もう一度評価して",
+  "rate.recheck": "評価を確認し、改善しました。分析を確認して、もう一度評価してください。",
   "rate.title": "解析を評価",
   "rate.intro": "ランとパンプの検出改善に役立ちます。すべて任意で、見られるのはあなたと pumpfoil.org チームだけです。",
   "rate.stars": "解析はセッションにどのくらい合っていますか？",

@@ -756,6 +756,8 @@ const fi: Record<string, string> = {
   "sd.runN": "· Lenkki {n}",
   "rate.tile": "Arvioi analyysi",
   "rate.rated": "Arviosi",
+  "rate.recheckTile": "Arvioi uudelleen",
+  "rate.recheck": "Kävimme arviosi läpi ja paransimme jotain. Tarkista analyysi ja arvioi se uudelleen.",
   "rate.title": "Arvioi analyysi",
   "rate.intro": "Auttaa meitä parantamaan ajojen ja pumppausten tunnistusta. Kaikki on vapaaehtoista, ja sen näkevät vain sinä ja pumpfoil.org-tiimi.",
   "rate.stars": "Kuinka hyvin analyysi vastaa sessiotasi?",

@@ -770,6 +770,8 @@ const pl: Record<string, string> = {
   "sd.runN": "· przejazd {n}",
   "rate.tile": "Oceń analizę",
   "rate.rated": "Twoja ocena",
+  "rate.recheckTile": "Oceń ponownie",
+  "rate.recheck": "Przejrzeliśmy twoją ocenę i coś poprawiliśmy. Sprawdź analizę i oceń ją ponownie.",
   "rate.title": "Oceń analizę",
   "rate.intro": "Pomaga nam ulepszyć rozpoznawanie przejazdów i pumpów. Wszystko jest dobrowolne i widzisz to tylko ty i zespół pumpfoil.org.",
   "rate.stars": "Jak dobrze analiza pasuje do twojej sesji?",

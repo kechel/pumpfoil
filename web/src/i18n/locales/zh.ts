@@ -749,6 +749,8 @@ const zh: Record<string, string> = {
   "sd.runN": "· 航段 {n}",
   "rate.tile": "评价分析",
   "rate.rated": "你的评价",
+  "rate.recheckTile": "请重新评价",
+  "rate.recheck": "我们查看了你的评价并做了改进。请检查分析结果并重新评价。",
   "rate.title": "评价分析",
   "rate.intro": "帮助我们改进航段和 pump 的识别。全部可选，只有你和 pumpfoil.org 团队能看到。",
   "rate.stars": "分析与你的训练相符程度如何？",

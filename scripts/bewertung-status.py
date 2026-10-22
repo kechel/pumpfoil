@@ -6,6 +6,11 @@ auf offen. Ohne --echt nur anzeigen.
 
     cd server && .venv/bin/python ../scripts/bewertung-status.py                       # offene zeigen
     cd server && .venv/bin/python ../scripts/bewertung-status.py --id 3 --status erledigt --notiz "Fix 1.0.97" --echt
+    cd server && .venv/bin/python ../scripts/bewertung-status.py --id 3 --status rueckfrage --antwort-datei text.txt --echt
+
+„rueckfrage" schickt die Nachricht (in der Sprache des Fahrers schreiben!) als 1:1 vom Assistenten-Konto
+(BOT_EMAIL, Memory chat-account-claude) an den Fahrer und zeigt sie an seiner Bewertung. Text per Datei,
+nicht auf der Kommandozeile (deutsche Anfuehrungszeichen, Memory german-quotes-in-scripts).
 """
 import argparse
 import json
@@ -19,6 +24,7 @@ def main() -> None:
     ap.add_argument("--id", type=int)
     ap.add_argument("--status", choices=("offen", "rueckfrage", "erledigt"))
     ap.add_argument("--notiz")
+    ap.add_argument("--antwort-datei", help="Nachricht an den Fahrer (nur bei rueckfrage)")
     ap.add_argument("--echt", action="store_true")
     args = ap.parse_args()
     if not os.path.exists(".env"):
@@ -40,7 +46,22 @@ def main() -> None:
         return
     if not args.status:
         sys.exit("--status fehlt")
-    b = status_setzen(db, args.id, args.status, args.notiz)
+    antwort, absender = None, None
+    if args.status == "rueckfrage":
+        if not args.antwort_datei:
+            sys.exit("rueckfrage braucht --antwort-datei")
+        antwort = pathlib.Path(args.antwort_datei).read_text(encoding="utf-8").strip()
+        env = dict(l.split("=", 1) for l in open(".env") if "=" in l and not l.startswith("#"))
+        mail = (env.get("BOT_EMAIL") or "").strip().strip('"')
+        absender = db.query(models.User).filter_by(email=mail).one_or_none()
+        if absender is None:
+            sys.exit("Assistenten-Konto (BOT_EMAIL) nicht gefunden")
+        b = db.get(models.SessionBewertung, args.id)
+        print(f"  an u{b.user_id if b else '?'} von u{absender.id}:\n{antwort}\n")
+        if not args.echt:
+            print("TROCKENLAUF — nichts geschrieben, nichts verschickt. Mit --echt senden.")
+            return
+    b = status_setzen(db, args.id, args.status, args.notiz, antwort, absender)
     print(f"  id {b.id} #{b.session_id} -> {b.status} ({b.status_notiz or '-'})")
     if args.echt:
         db.commit()

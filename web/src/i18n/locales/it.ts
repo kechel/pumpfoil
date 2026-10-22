@@ -674,6 +674,8 @@ const it: Record<string, string> = {
   "sd.runN": "· run {n}",
   "rate.tile": "Valuta l'analisi",
   "rate.rated": "La tua valutazione",
+  "rate.recheckTile": "Valuta di nuovo",
+  "rate.recheck": "Abbiamo esaminato la tua valutazione e migliorato qualcosa. Controlla l'analisi e valutala di nuovo.",
   "rate.title": "Valuta l'analisi",
   "rate.intro": "Ci aiuta a migliorare il riconoscimento di run e pump. Tutto è facoltativo e lo vedete solo tu e il team di pumpfoil.org.",
   "rate.stars": "Quanto corrisponde l'analisi alla tua sessione?",

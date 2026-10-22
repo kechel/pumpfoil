@@ -1029,6 +1029,12 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
+    # 1.1.44 bzw. 1.1.54 liegen im Review (Memory versionen-erst-bei-release).
+    {"name": "Android phone + Wear OS", "version": "1.1.45 / 1.2.45",
+     "items": ["Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again."]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.55",
+     "items": ["Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again."]},
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
     # Garmin 1.0.96 am 22.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.96.
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.

@@ -103,6 +103,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status VARCHAR(12) DEFAULT 'offen'",
         "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status_notiz TEXT",
         "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status_at TIMESTAMPTZ",
+        "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS antwort_fahrer TEXT",
+        "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS antwort_at TIMESTAMPTZ",
         # Verknuepfte Konten: Zugang vom Anbieter abgelehnt (19.10.2026, s. models.PolarLink).
         "ALTER TABLE polar_links ADD COLUMN IF NOT EXISTS zugang_abgelehnt_at TIMESTAMPTZ",
         "ALTER TABLE suunto_links ADD COLUMN IF NOT EXISTS zugang_abgelehnt_at TIMESTAMPTZ",

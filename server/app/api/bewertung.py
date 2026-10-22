@@ -23,6 +23,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..config import get_settings
 from ..db import get_db
 from .deps import current_admin, current_user
 
@@ -88,9 +89,12 @@ def _schnappschuss(db: Session, s: models.Session) -> dict:
 def _aus(b: models.SessionBewertung | None) -> dict | None:
     if b is None:
         return None
+    rf = b.status == "rueckfrage" and b.antwort_fahrer
     return {"antworten": json.loads(b.antworten_json or "{}"), "kommentar": b.kommentar or "",
             "schnappschuss": json.loads(b.schnappschuss_json or "{}"),
-            "aktualisiert": b.updated_at.isoformat() if b.updated_at else None}
+            "aktualisiert": b.updated_at.isoformat() if b.updated_at else None,
+            # Unsere Rueckfrage an den Fahrer, solange er nicht neu bewertet hat (Kachel zeigt sie an).
+            "rueckfrage": {"text": b.antwort_fahrer, "am": b.antwort_at.isoformat() if b.antwort_at else None} if rf else None}
 
 
 @router.get("/api/sessions/{sid}/bewertung")
@@ -126,39 +130,54 @@ def admin_liste(limit: int = 200, erledigte: bool = False, db: Session = Depends
     """Neueste zuerst, mit Nutzername und Session-Daten (Admin-Tab „Bewertungen"). Erledigte nur auf
     Wunsch; `anzahl_erledigt` sagt, wie viele ausgeblendet sind."""
     B = models.SessionBewertung
-    q = (db.query(B, models.User.display_name, models.Session.started_at)
+    q = (db.query(B, models.User.display_name, models.Session.started_at, models.User.language)
          .join(models.User, B.user_id == models.User.id)
          .join(models.Session, B.session_id == models.Session.id))
     if not erledigte:
         q = q.filter(B.status != "erledigt")
     rows = q.order_by(B.updated_at.desc()).limit(max(1, min(limit, 1000))).all()
-    return {"bewertungen": [{"id": b.id, "session_id": b.session_id, "user_id": b.user_id, "name": name,
+    return {"bewertungen": [{"id": b.id, "session_id": b.session_id, "user_id": b.user_id, "name": name, "sprache": sprache,
                              "gefahren": st.isoformat() if st else None, "status": b.status or "offen",
-                             "status_notiz": b.status_notiz or "",
+                             "status_notiz": b.status_notiz or "", "antwort_fahrer": b.antwort_fahrer or "",
                              "status_at": b.status_at.isoformat() if b.status_at else None, **(_aus(b) or {})}
-                            for b, name, st in rows],
+                            for b, name, st, sprache in rows],
             "anzahl_erledigt": db.query(B).filter(B.status == "erledigt").count()}
 
 
-def status_setzen(db: Session, bid: int, status: str, notiz: str | None = None) -> models.SessionBewertung:
+def status_setzen(db: Session, bid: int, status: str, notiz: str | None = None,
+                  antwort: str | None = None, absender: models.User | None = None) -> models.SessionBewertung:
     """Auch fuer Skripte (scripts/bewertung-status.py): Claude setzt erledigt/rueckfrage, wenn ein
-    gemeldetes Problem gefixt bzw. an den Fahrer zurueckgegeben ist (Jan, 22.10.2026)."""
+    gemeldetes Problem gefixt bzw. an den Fahrer zurueckgegeben ist (Jan, 22.10.2026).
+    „rueckfrage" braucht `antwort` (an den Fahrer) und `absender`: die Nachricht geht als 1:1 von ihm an
+    den Fahrer, mit Link zur Session, und steht bis zur Neubewertung an dessen Bewertung."""
     if status not in STATUS:
         raise HTTPException(400, "Unbekannter Status")
     b = db.get(models.SessionBewertung, bid)
     if b is None:
         raise HTTPException(404, "Keine Bewertung")
-    b.status, b.status_at = status, datetime.now(timezone.utc)
+    text = (antwort or "").strip()[:MAX_KOMMENTAR]
+    if status == "rueckfrage" and (not text or absender is None):
+        raise HTTPException(400, "Rueckfrage braucht eine Nachricht an den Fahrer")
+    jetzt = datetime.now(timezone.utc)
+    b.status, b.status_at = status, jetzt
     if notiz is not None:
         b.status_notiz = notiz.strip()[:MAX_KOMMENTAR] or None
+    if status == "rueckfrage":
+        b.antwort_fahrer, b.antwort_at = text, jetzt
+        db.flush()
+        if absender.id != b.user_id:
+            from .chat import PostIn, post_message   # gleicher Weg wie jede DM: Sperren, Push, Posteingang
+            a, z = sorted([absender.id, b.user_id])
+            post_message(PostIn(text=f"{text}\n\n{get_settings().base_url}/sessions/{b.session_id}"),
+                         scope=f"dm:{a}-{z}", user=absender, db=db)
     return b
 
 
 @router.put("/api/admin/bewertungen/{bid}")
-def admin_status(bid: int, body: dict = Body(...), db: Session = Depends(get_db), _a=Depends(current_admin)):
-    b = status_setzen(db, bid, str(body.get("status") or ""), body.get("notiz"))
+def admin_status(bid: int, body: dict = Body(...), db: Session = Depends(get_db), admin=Depends(current_admin)):
+    b = status_setzen(db, bid, str(body.get("status") or ""), body.get("notiz"), body.get("antwort"), admin)
     db.commit()
-    return {"id": b.id, "status": b.status, "status_notiz": b.status_notiz or ""}
+    return {"id": b.id, "status": b.status, "status_notiz": b.status_notiz or "", "antwort_fahrer": b.antwort_fahrer or ""}
 
 
 @router.delete("/api/admin/bewertungen/{bid}")
