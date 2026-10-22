@@ -1487,6 +1487,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **22.10. — BESCHLOSSEN (Jan), noch nicht gebaut: In der Pause alle 10 min deutlich vibrieren + „Pausiert – fortsetzen?“.**
+  Anlass Bartosz u354 (#17726, Apple Watch 1.1.52): Pause um 17:09 trotz 2-s-Halten (vermutlich Wasser/Aermel), erst
+  85 min spaeter aus der Pause gestoppt, alle Laeufe danach verloren; die Uhr gab beim Pausieren nur EINEN Klick.
+  Jan: „die vibration in der pause alle 10min aber sollte reichen, halte ich fuer eine gute idee". Fuer ALLE Uhren
+  (Garmin, Apple Watch, Wear OS, Amazfit, Huawei, Suunto) — Paritaets-Checkliste (docs/PARITY-AUDIT.md), Aufnahmepfad
+  -> lange Tests. Nebenbei: Wassersperre „Immer an“ als Tipp fuer Apple-Watch-Nutzer (Bartosz am 22.10. so beraten).
+
 - **22.10. — WIEDERVORLAGE (Jan): Kommt Mäse (u763) mit Suunto rein?** Er versuchte am 21.10. 17:34–17:57 ~40-mal zu
   verbinden (invalid_client-Stoerung, behoben 22.10.). DM von Konto 230 am 22.10. (id 3047). Pruefen: liest er sie /
   hat er einen `suunto_links`-Eintrag? Wenn nicht -> Jan schreibt ihn EINMALIG per E-Mail an.
