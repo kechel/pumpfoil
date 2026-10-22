@@ -53,7 +53,8 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
     assert fu[1]["umdr"] is None and fu[1]["t_ms"] == 30000 and len(fu) == 2
     assert len(a) == 6
     assert a[3]["quelle"] == "nachtraeglich" and a[4]["quelle"] == "marker"
-    assert a[0] == {"start_ms": 30000, "ende_ms": 330000, "vorschlag": "tango", "gewaehlt": "boogie",
+    assert d["server_version"] == "s1" and all(r["server_vorschlag"] is None for r in a)   # keine Accel-Daten
+    assert {k: v for k, v in a[0].items() if k != "server_vorschlag"} == {"start_ms": 30000, "ende_ms": 330000, "vorschlag": "tango", "gewaehlt": "boogie",
                     "quelle": "geaendert", "tempo": 126, "dreh": 0}
     assert a[1]["ende_ms"] is None and a[1]["quelle"] == "auto"
     assert a[2]["quelle"] == "manuell" and a[2]["vorschlag"] is None

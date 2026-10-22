@@ -63,3 +63,19 @@ def test_muster_auf_der_uhr_wie_in_der_json():
     assert block == tma.uhr_block(muster), "Tanz.mc-Muster veraltet: scripts/tanz_muster_ableiten.py --uhr"
     keys = re.search(r"const KEYS = \[(.*?)\];", mc, re.S).group(1)
     assert [k.strip().strip('"') for k in keys.replace("\n", "").split(",")] == tma.UHR_KEYS
+
+
+def test_server_vorschlag_s1():
+    """Server-Variante (app/tanz_server.py): Spektrum-Anteile und Vorschlag je Tabellenzeile."""
+    from app import tanz_server as ts
+    muster = json.loads((ROOT / "server" / "app" / "data" / "tanz_muster_server.json").read_text())
+    assert muster["version"] == ts.VERSION
+    a, g = _signal(84)                       # 1,4 Hz -> Band b1
+    fs = ts.fenster(a, g)
+    assert fs[0]["b1"] > 0.7 and fs[0]["b2"] < 0.05
+    assert ts.vorschlag(fs) == "salsa"
+    b, gb = _signal(131)
+    fb = ts.fenster(b, gb, t0_ms=60000)
+    rows = [{"start_ms": 0, "ende_ms": 60000}, {"start_ms": 60000, "ende_ms": 120000},
+            {"start_ms": 500000, "ende_ms": None}]
+    assert ts.vorschlaege(fs + fb, rows) == ["salsa", "boogie", None]
