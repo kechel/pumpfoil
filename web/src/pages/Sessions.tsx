@@ -358,6 +358,7 @@ export default function Sessions() {
       </div>
 
       <UploadProgressCard />
+      {isMine && <NeuBewertenHinweis />}
 
       {/* Scope-Umschalter + Spotsuche */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -867,7 +868,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
                   {isInterim(s) && <ProcessingNote />}
                 </>
               }
-              statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} />}
+              statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} neuBewerten={s.neu_bewerten} />}
             />
           ))}
         </div>
@@ -1377,11 +1378,38 @@ export function SessionStats({ a, profil }: { a: NonNullable<SessionSummary["ana
 // sessions / meine gehe"), weil die Startseite nur `status` abfragte. Das Feld `transfer_to`
 // liefert derselbe Endpunkt fuer beide, es wurde schlicht nicht gelesen. Zwei Abschriften
 // desselben Markups waren die Ursache — jetzt ist es eine.
-export function EigeneAbzeichen({ transferTo, status }: { transferTo?: string | null; status: string }) {
+// Oben in „Meine Sessions" und auf Home: Sessions, an deren Bewertung wir nachgefragt haben. Die betroffene
+// Session kann alt sein und tief unten in der Liste stehen (Jan, 22.10.2026).
+export function NeuBewertenHinweis() {
   const t = useT();
-  if (!transferTo && status === "analyzed") return null;
+  const [liste, setListe] = useState<{ session_id: number; gefahren: string | null }[]>([]);
+  useEffect(() => { api.neuBewerten().then(setListe).catch(() => {}); }, []);
+  if (liste.length === 0) return null;
+  return (
+    <div className="mb-4 rounded-xl border border-amber-500/60 bg-amber-500/10 p-3 text-sm text-slate-100">
+      <div className="font-medium text-amber-700 dark:text-amber-300">{t("rate.recheckBanner")}</div>
+      <div className="mt-1 flex flex-wrap gap-2">
+        {liste.map((x) => (
+          <Link key={x.session_id} to={`/sessions/${x.session_id}`} className="underline hover:text-brand-600 dark:hover:text-brand-300">
+            {x.gefahren ? new Date(x.gefahren).toLocaleDateString() : `#${x.session_id}`}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function EigeneAbzeichen({ transferTo, status, neuBewerten }: { transferTo?: string | null; status: string; neuBewerten?: boolean | null }) {
+  const t = useT();
+  if (!transferTo && status === "analyzed" && !neuBewerten) return null;
   return (
     <div className="flex items-center gap-1.5">
+      {/* Rueckfrage an der eigenen Bewertung (Admin „Back to rider"), bis neu bewertet. */}
+      {neuBewerten && (
+        <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-700 dark:text-amber-300">
+          {t("rate.recheckTile")}
+        </span>
+      )}
       {transferTo && (
         <span title={t("transfer.pending", { name: transferTo })}
           className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-700 dark:text-amber-300">

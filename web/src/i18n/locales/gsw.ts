@@ -624,6 +624,7 @@ const gsw: Record<string, string> = {
   "rate.rated": "Dini Bewärtig",
   "rate.recheckTile": "Bitte nomal bewärte",
   "rate.recheck": "Mir händ eus dini Bewärtig aagluegt und öppis verbesseret. Bitte prüef d Uswärtig und bewärt sie nomal.",
+  "rate.recheckBanner": "Bitte nomal bewärte: Mir händ bi dene Sessions öppis verbesseret und wänd wüsse, öb's jetzt passt.",
   "rate.title": "Uswärtig bewärte",
   "rate.intro": "Hilft eus, d Lauf- und Pump-Erkennig z verbessere. Alles isch freiwillig und nur für di und s pumpfoil.org-Team sichtbar.",
   "rate.stars": "Wie guet passt d Uswärtig zu dinere Session?",

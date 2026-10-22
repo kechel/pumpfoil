@@ -10,7 +10,7 @@ import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { EigeneAbzeichen, SessionStats } from "./Sessions";
+import { EigeneAbzeichen, NeuBewertenHinweis, SessionStats } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
@@ -436,6 +436,7 @@ export default function PersonalHome() {
 
       {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
       <UploadProgressCard />
+      <NeuBewertenHinweis />
       <UhrenLiveStatus />
 
       <TransferHint />
@@ -514,7 +515,7 @@ export default function PersonalHome() {
               liked0={!!s.liked}
               trackPreview={s.track_preview}
               stats={s.analysis && <SessionStats a={s.analysis} profil={s.sport_profil} />}
-              statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} />}
+              statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} neuBewerten={s.neu_bewerten} />}
               sportClass={s.sport_class}
               dataQuality={s.data_quality}
               needsClassification={!!s.needs_classification}

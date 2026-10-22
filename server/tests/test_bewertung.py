@@ -118,6 +118,10 @@ def test_rueckfrage_schickt_dm_an_den_fahrer(client):
         db.close()
     b = client.get(f"/api/sessions/{sid}/bewertung", headers=fahrer).json()["bewertung"]
     assert b["rueckfrage"]["text"] == "Wir haben die Lauferkennung verbessert."
+    assert [x["session_id"] for x in client.get("/api/bewertungen/neu-bewerten", headers=fahrer).json()] == [sid]
+    liste = client.get("/api/sessions?filter=other", headers=fahrer).json() + client.get("/api/sessions", headers=fahrer).json()
+    assert next(x for x in liste if x["id"] == sid)["neu_bewerten"] is True
     # Neubewertung: Rueckfrage verschwindet aus der Kachel, Status wieder offen
     b = client.put(f"/api/sessions/{sid}/bewertung", headers=fahrer, json={"antworten": {"laeufe": "alle"}}).json()["bewertung"]
     assert b["rueckfrage"] is None
+    assert client.get("/api/bewertungen/neu-bewerten", headers=fahrer).json() == []

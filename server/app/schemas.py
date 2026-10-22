@@ -325,6 +325,8 @@ class SessionOut(BaseModel):
     appeal_text: str | None = None           # Widerspruch des Besitzers (Besitzer/Admin)
     tz: str | None = None           # IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
     device_label: str | None = None  # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht)
+    # Eigene Liste: Rueckfrage an der Bewertung (Back to rider) -> Hinweis 'Bitte neu bewerten'.
+    neu_bewerten: bool | None = None
     device_model: str | None = None  # Aufnahme-Gerät (Modell + OS) — nur Detailansicht, additiv
     # Kam ein Kreisel mit? Nur die Handy-Recorder liefern einen — Uhren nicht. Gate für die
     # Lage-Ansicht: ohne Kreisel gäbe es dort nur eine verrauschte Neigung und gar kein Gieren.
