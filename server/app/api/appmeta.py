@@ -930,7 +930,15 @@ IN_REVIEW: list[dict] = [
     # iPhone + Apple Watch 1.1.49 (eingereicht + freigegeben 15.10.2026) -> LIVE, Punkte stehen im Changelog.
     # Android 1.1.42 / Wear 1.2.42 (eingereicht 13.10., freigegeben 17.10.2026) -> LIVE; 9 Punkte hatten schon
     # iOS/Web-Zeilen im Changelog und tragen jetzt android/wear dazu, 1 neuer Punkt + Freigabe-Ereignis.
-    # Huawei Watch 5 1.0.2 am 22.10. ABGELEHNT -> raus, steht in ABGELEHNT.
+    # Huawei Watch 5 1.0.2 am 22.10. ABGELEHNT (steht in ABGELEHNT) und am selben Tag 11:04 UNVERAENDERT neu
+    # eingereicht (Jans Meldung): jetzt mit Festland-China („all countries", Server nicht in China), Status
+    # „Under pre-review". Gleiche Punkte wie zuvor.
+    {"name": "Huawei Watch 5", "version": "1.0.2",
+     "eingereicht": "2026-10-22",
+     "items": [
+         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
+         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
+     ]},
     # iPhone + Apple Watch 1.1.47 am 13.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt im Changelog mit ios/apple.
     # iPhone + Apple Watch 1.1.46 am 12.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple.
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
