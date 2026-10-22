@@ -1562,6 +1562,32 @@ enum Api {
         guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
     }
 
+    // „Rate this analysis" (22.10.2026, wie Web): nur Besitzer. Antwort {bewertung: {...}|null, laeufe_jetzt}.
+    static func bewertung(_ sessionId: Int) async throws -> [String: Any] {
+        guard let url = URL(string: baseURL + "/api/sessions/\(sessionId)/bewertung") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 20
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+        return (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+    }
+
+    static func bewertungSpeichern(_ sessionId: Int, antworten: [String: Any], kommentar: String) async throws {
+        guard let url = URL(string: baseURL + "/api/sessions/\(sessionId)/bewertung") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = "PUT"
+        req.timeoutInterval = 20
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = ["antworten": antworten, "kommentar": kommentar]
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+    }
+
     // Settings sind freies Key/Value -> als Dictionary; der Aufrufer pickt weight_kg / my_foils.
     static func settings() async throws -> [String: Any] {
         guard let url = URL(string: baseURL + "/api/settings") else { throw ApiError.badURL }

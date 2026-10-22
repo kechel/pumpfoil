@@ -1622,6 +1622,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Android kompiliert, nicht im Emulator angesehen; iOS nur `swiftc -parse`, Uebersetzungen in den `…OverlaySpotsSuche`-Tabellen (die grossen stehen an der 50er-Grenze).
   (5) **Foil-/Stab-Suche findet Zweitnamen** (22.10., Hendrik fand „SDW-360“ = Sabfoil Downwind Kraken 360 nicht): `aliases`
   in Foil/StabBrief (Android + iOS), Suche in Setup, Foils, Foil-Rechner. Web schon live (9977f429). Android kompiliert, iOS nur parse.
+  (6) **„Auswertung bewerten“** (22.10., wie Web 89a19c10): Kachel unter den Zahlen nur auf eigenen Sessions, Dialog mit
+  Sternen, Laeufen, echter Laufzahl, Pumps, Tempo, Problemen + Kommentar (Android `Bewertung.kt`, iOS `BewertungView.swift`
+  -> **xcodegen generate**). Texte de/gsw/de-AT/en, sonst Englisch. Dazu Gleit-Fix Android (Spur grau ohne Gleitphasen).
 
 - **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
   Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf

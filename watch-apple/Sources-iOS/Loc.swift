@@ -4776,6 +4776,77 @@ static let nlOverlay: [String: String] = {
         "history.paddleUps": _neu5_history_paddleUps,
         "history.onWake": _neu5_history_onWake,
     ]
+    // „Rate this analysis" (22.10.2026) — eigene Tabelle (je Eintrag ein typisiertes Literal, <= 50 Eintraege,
+    // Memory ios-swift-typecheck-hang). Wortgleich aus web/src/i18n/locales (de, gsw, de-AT, en; sonst Englisch).
+    private static let _neu6_rate_cancel: [String: String] = ["de": "Abbrechen", "gsw": "Abbräche", "de-AT": "Abbrechen", "en": "Cancel"]
+    private static let _neu6_rate_comment: [String: String] = ["de": "Kommentar", "gsw": "Kommentar", "de-AT": "Kommentar", "en": "Comment"]
+    private static let _neu6_rate_commentPh: [String: String] = ["de": "Was sollten wir sonst noch wissen?", "gsw": "Was sötted mir suscht no wüsse?", "de-AT": "Was sollten wir sonst noch wissen?", "en": "Anything else we should know?"]
+    private static let _neu6_rate_error: [String: String] = ["de": "Speichern hat nicht geklappt, bitte nochmal versuchen.", "gsw": "Spichere hät nöd klappt, bitte nomal probiere.", "de-AT": "Speichern hat nicht geklappt, bitte nochmal versuchen.", "en": "Could not save, please try again."]
+    private static let _neu6_rate_intro: [String: String] = ["de": "Hilft uns, die Lauf- und Pump-Erkennung zu verbessern. Alles ist freiwillig und nur für dich und das pumpfoil.org-Team sichtbar.", "gsw": "Hilft eus, d Lauf- und Pump-Erkennig z verbessere. Alles isch freiwillig und nur für di und s pumpfoil.org-Team sichtbar.", "de-AT": "Hilft uns, die Lauf- und Pump-Erkennung zu verbessern. Alles ist freiwillig und nur für dich und das pumpfoil.org-Team sichtbar.", "en": "Helps us improve run and pump detection. Everything is optional and only you and the pumpfoil.org team can see it."]
+    private static let _neu6_rate_no: [String: String] = ["de": "nein", "gsw": "nei", "de-AT": "nein", "en": "no"]
+    private static let _neu6_rate_prob_abbruch: [String: String] = ["de": "Aufnahme brach ab", "gsw": "Ufnahm abbroche", "de-AT": "Aufnahme brach ab", "en": "recording stopped"]
+    private static let _neu6_rate_prob_akku: [String: String] = ["de": "Akku", "gsw": "Akku", "de-AT": "Akku", "en": "battery"]
+    private static let _neu6_rate_prob_bedienung: [String: String] = ["de": "Bedienung mit nassen Fingern", "gsw": "Bedienig mit nasse Finger", "de-AT": "Bedienung mit nassen Fingern", "en": "hard to use with wet hands"]
+    private static let _neu6_rate_prob_gps: [String: String] = ["de": "GPS-Probleme", "gsw": "GPS-Problem", "de-AT": "GPS-Probleme", "en": "GPS problems"]
+    private static let _neu6_rate_prob_pause: [String: String] = ["de": "von selbst pausiert", "gsw": "vo sälber pausiert", "de-AT": "von selbst pausiert", "en": "paused by itself"]
+    private static let _neu6_rate_prob_sonstiges: [String: String] = ["de": "Sonstiges", "gsw": "Suscht öppis", "de-AT": "Sonstiges", "en": "something else"]
+    private static let _neu6_rate_prob_upload: [String: String] = ["de": "Upload fehlte oder hing", "gsw": "Upload fehlt oder hanget", "de-AT": "Upload fehlte oder hing", "en": "upload missing or stuck"]
+    private static let _neu6_rate_problems: [String: String] = ["de": "Probleme mit Uhr oder App bei dieser Aufnahme?", "gsw": "Problem mit Uhr oder App bi dere Ufnahm?", "de-AT": "Probleme mit Uhr oder App bei dieser Aufnahme?", "en": "Problems with the watch or app during this recording?"]
+    private static let _neu6_rate_pumps: [String: String] = ["de": "Pump-Zahl", "gsw": "Pump-Zahl", "de-AT": "Pump-Zahl", "en": "Pump count"]
+    private static let _neu6_rate_pumps_passt: [String: String] = ["de": "passt ungefähr", "gsw": "passt öppe", "de-AT": "passt ungefähr", "en": "about right"]
+    private static let _neu6_rate_pumps_viel: [String: String] = ["de": "zu viele", "gsw": "z vill", "de-AT": "zu viele", "en": "too many"]
+    private static let _neu6_rate_pumps_weiss_nicht: [String: String] = ["de": "weiß nicht", "gsw": "weiss nöd", "de-AT": "weiß nicht", "en": "don't know"]
+    private static let _neu6_rate_pumps_wenig: [String: String] = ["de": "zu wenige", "gsw": "z wenig", "de-AT": "zu wenige", "en": "too few"]
+    private static let _neu6_rate_rated: [String: String] = ["de": "Deine Bewertung", "gsw": "Dini Bewärtig", "de-AT": "Deine Bewertung", "en": "Your rating"]
+    private static let _neu6_rate_runs: [String: String] = ["de": "Läufe", "gsw": "Läuf", "de-AT": "Läufe", "en": "Runs"]
+    private static let _neu6_rate_runs_alle: [String: String] = ["de": "alle erkannt", "gsw": "alli erkannt", "de-AT": "alle erkannt", "en": "all detected"]
+    private static let _neu6_rate_runs_fehlen: [String: String] = ["de": "Läufe fehlen", "gsw": "Läuf fehled", "de-AT": "Läufe fehlen", "en": "runs missing"]
+    private static let _neu6_rate_runs_zerstueckelt: [String: String] = ["de": "zerstückelt", "gsw": "versplitteret", "de-AT": "zerstückelt", "en": "split into pieces"]
+    private static let _neu6_rate_runs_zuviele: [String: String] = ["de": "zu viele (z. B. Paddeln gezählt)", "gsw": "z vill (z. B. Paddle zellt)", "de-AT": "zu viele (z. B. Paddeln gezählt)", "en": "too many (e.g. paddling counted)"]
+    private static let _neu6_rate_runsReal: [String: String] = ["de": "Wie viele Läufe bist du wirklich gefahren?", "gsw": "Wie vill Läuf bisch würkli gfahre?", "de-AT": "Wie viele Läufe bist du wirklich gefahren?", "en": "How many runs did you really do?"]
+    private static let _neu6_rate_runsRealHint: [String: String] = ["de": "wir haben {n} gezählt", "gsw": "mir händ {n} zellt", "de-AT": "wir haben {n} gezählt", "en": "we counted {n}"]
+    private static let _neu6_rate_send: [String: String] = ["de": "Senden", "gsw": "Schicke", "de-AT": "Senden", "en": "Send"]
+    private static let _neu6_rate_speedOk: [String: String] = ["de": "Geschwindigkeit und Strecke plausibel?", "gsw": "Gschwindigkeit und Strecki plausibel?", "de-AT": "Geschwindigkeit und Strecke plausibel?", "en": "Speed and distance plausible?"]
+    private static let _neu6_rate_stars: [String: String] = ["de": "Wie gut passt die Auswertung zu deiner Session?", "gsw": "Wie guet passt d Uswärtig zu dinere Session?", "de-AT": "Wie gut passt die Auswertung zu deiner Session?", "en": "How well does the analysis match your session?"]
+    private static let _neu6_rate_tile: [String: String] = ["de": "Auswertung bewerten", "gsw": "Uswärtig bewärte", "de-AT": "Auswertung bewerten", "en": "Rate this analysis"]
+    private static let _neu6_rate_title: [String: String] = ["de": "Auswertung bewerten", "gsw": "Uswärtig bewärte", "de-AT": "Auswertung bewerten", "en": "Rate this analysis"]
+    private static let _neu6_rate_yes: [String: String] = ["de": "ja", "gsw": "ja", "de-AT": "ja", "en": "yes"]
+    static let neuTexte6: [String: [String: String]] = [
+        "rate.cancel": _neu6_rate_cancel,
+        "rate.comment": _neu6_rate_comment,
+        "rate.commentPh": _neu6_rate_commentPh,
+        "rate.error": _neu6_rate_error,
+        "rate.intro": _neu6_rate_intro,
+        "rate.no": _neu6_rate_no,
+        "rate.prob.abbruch": _neu6_rate_prob_abbruch,
+        "rate.prob.akku": _neu6_rate_prob_akku,
+        "rate.prob.bedienung": _neu6_rate_prob_bedienung,
+        "rate.prob.gps": _neu6_rate_prob_gps,
+        "rate.prob.pause": _neu6_rate_prob_pause,
+        "rate.prob.sonstiges": _neu6_rate_prob_sonstiges,
+        "rate.prob.upload": _neu6_rate_prob_upload,
+        "rate.problems": _neu6_rate_problems,
+        "rate.pumps": _neu6_rate_pumps,
+        "rate.pumps.passt": _neu6_rate_pumps_passt,
+        "rate.pumps.viel": _neu6_rate_pumps_viel,
+        "rate.pumps.weiss_nicht": _neu6_rate_pumps_weiss_nicht,
+        "rate.pumps.wenig": _neu6_rate_pumps_wenig,
+        "rate.rated": _neu6_rate_rated,
+        "rate.runs": _neu6_rate_runs,
+        "rate.runs.alle": _neu6_rate_runs_alle,
+        "rate.runs.fehlen": _neu6_rate_runs_fehlen,
+        "rate.runs.zerstueckelt": _neu6_rate_runs_zerstueckelt,
+        "rate.runs.zuviele": _neu6_rate_runs_zuviele,
+        "rate.runsReal": _neu6_rate_runsReal,
+        "rate.runsRealHint": _neu6_rate_runsRealHint,
+        "rate.send": _neu6_rate_send,
+        "rate.speedOk": _neu6_rate_speedOk,
+        "rate.stars": _neu6_rate_stars,
+        "rate.tile": _neu6_rate_tile,
+        "rate.title": _neu6_rate_title,
+        "rate.yes": _neu6_rate_yes,
+    ]
+
     static let neuTexte3: [String: [String: String]] = [
         "settings.coros.expired": _neu3_settings_coros_expired,
         "settings.coros.expiredHint": _neu3_settings_coros_expiredHint,
@@ -4831,6 +4902,7 @@ static let nlOverlay: [String: String] = {
         if let row = neuTexte3[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte4[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte5[key], let v = row[lang] ?? row["en"] { return v }
+        if let row = neuTexte6[key], let v = row[lang] ?? row["en"] { return v }
         if lang == "fi", let v = fiOverlay[key] { return v }   // fi-Overlay (aus web fi.ts); sonst Englisch
         if lang == "nl", let v = nlOverlay[key] { return v }   // nl-Overlay (aus web nl.ts); sonst Englisch
         if lang == "cs", let v = csOverlay[key] { return v }   // cs-Overlay (aus web cs.ts); sonst Englisch

@@ -1544,6 +1544,16 @@ object Api {
         json.decodeFromString(WatchQuality.serializer(), http("GET", "/api/app/watch-quality", null, auth = false))
     }
 
+    // „Rate this analysis" (22.10.2026, wie Web): nur Besitzer. Antwort {bewertung: {...}|null, laeufe_jetzt}.
+    suspend fun bewertung(sessionId: Int): JsonObject = withContext(Dispatchers.IO) {
+        json.parseToJsonElement(http("GET", "/api/sessions/$sessionId/bewertung", null, auth = true)).jsonObject
+    }
+
+    suspend fun bewertungSpeichern(sessionId: Int, antworten: JsonObject, kommentar: String): JsonObject = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("antworten", antworten); put("kommentar", kommentar) }
+        json.parseToJsonElement(http("PUT", "/api/sessions/$sessionId/bewertung", body.toString(), auth = true)).jsonObject
+    }
+
     // Settings sind ein freies Key/Value-Objekt -> als JsonObject zurückgeben, der
     // Aufrufer pickt my_foils / weight_kg heraus.
     suspend fun settings(): JsonObject = withContext(Dispatchers.IO) {
