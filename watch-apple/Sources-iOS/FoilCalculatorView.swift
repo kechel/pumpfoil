@@ -46,7 +46,7 @@ struct FoilCalculatorView: View {
         guard sucheAktiv else { return [] }
         return foils.filter { f in
             (brand.isEmpty || f.brand == brand) &&
-            (query.isEmpty || gearMatches("\(f.brand) \(f.model) \(f.size)", query)) &&
+            (query.isEmpty || gearMatches("\(f.brand) \(f.model) \(f.size) \(f.aliases ?? "")", query)) &&
             !selected.contains(f.id)
         }
     }

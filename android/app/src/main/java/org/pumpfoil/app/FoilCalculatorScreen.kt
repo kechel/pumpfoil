@@ -121,7 +121,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
         val sucheAktiv = query.isNotBlank() || brand.isNotEmpty()
         val treffer = if (!sucheAktiv) emptyList() else list.filter { f ->
             (brand.isEmpty() || f.brand == brand) &&
-                (query.isBlank() || gearMatches("${f.brand} ${f.model} ${f.size}", query)) &&
+                (query.isBlank() || gearMatches("${f.brand} ${f.model} ${f.size} ${f.aliases ?: ""}", query)) &&
                 !selected.contains(f.id)
         }
         val MAX_TREFFER = 40

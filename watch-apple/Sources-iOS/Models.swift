@@ -809,6 +809,8 @@ struct Foil: Codable, Identifiable {
     // Wiegt schwerer als die geschätzte Dicke: an beiden hängt die ganze Leistungsrechnung.
     let specs_estimated: Bool?
     let aspect_ratio: Double?
+    // Zweitbezeichnungen („|"-getrennt), NUR fuer die Suche, nicht zum Anzeigen (wie im Web).
+    var aliases: String? = nil
 }
 
 struct SessionPhoto: Codable, Identifiable {
@@ -1426,6 +1428,8 @@ struct StabBrief: Codable, Identifiable {
     let span_cm: Double?
     let area_cm2: Double?
     let specs_estimated: Bool?
+    // Zweitbezeichnungen („SDW/360"), nur fuer die Suche (22.10.2026: Nutzer fand „SDW-360" nicht).
+    var aliases: String? = nil
 }
 
 struct BoardBrief: Codable, Identifiable {
