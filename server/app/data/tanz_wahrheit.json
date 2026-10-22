@@ -1,16 +1,85 @@
 {
   "_zweck": "Beschriftete Tanz-Daten (nur Jans Sessions, seine Angaben) als Grundlage fuer tanz_muster.json. Siehe docs/TANZ.md. Marker-Sessions (Tanz-App >= 0.4) werden aus ihren Markern gedeutet und muessen hier nicht stehen.",
   "sessions": [
-    {"id": 16753, "abschnitte": [[0, 3360000, "lw"], [3360000, null, "jive"]], "quelle": "Jan 15.10.2026: erste Stunde Langsamer Walzer, danach Jive (Tanzkurs, Paar)"},
-    {"id": 16863, "abschnitte": [[0, null, "salsa"]], "quelle": "Beschreibung „Salsa“ (Kurs, Paar)"},
-    {"id": 16976, "abschnitte": [[0, null, "boogie"]], "quelle": "Beschreibung „Boogie“ (Kurs, Paar)"},
-    {"id": 17604, "abschnitte": [[0, null, "samba"]], "quelle": "Beschreibung „Samba“ (Kurs, Paar)"}
+    {
+      "id": 16753,
+      "abschnitte": [
+        [
+          0,
+          3360000,
+          "lw"
+        ],
+        [
+          3360000,
+          null,
+          "jive"
+        ]
+      ],
+      "quelle": "Jan 15.10.2026: erste Stunde Langsamer Walzer, danach Jive (Tanzkurs, Paar)"
+    },
+    {
+      "id": 16863,
+      "abschnitte": [
+        [
+          0,
+          null,
+          "salsa"
+        ]
+      ],
+      "quelle": "Beschreibung „Salsa“ (Kurs, Paar)"
+    },
+    {
+      "id": 16976,
+      "abschnitte": [
+        [
+          0,
+          null,
+          "boogie"
+        ]
+      ],
+      "quelle": "Beschreibung „Boogie“ (Kurs, Paar)"
+    },
+    {
+      "id": 17604,
+      "abschnitte": [
+        [
+          0,
+          null,
+          "samba"
+        ]
+      ],
+      "quelle": "Beschreibung „Samba“ (Kurs, Paar)"
+    }
   ],
   "nur_auswahl": [
-    {"id": 16875, "taenze": ["discofox", "boogie", "bachata"], "quelle": "Beschreibung „Disco-Fox, Boogy, Bachata“, Reihenfolge/Zeiten unbekannt"},
-    {"id": 17613, "taenze": ["chacha", "lw", "tango", "ww"], "quelle": "Beschreibung „chacha, lgs. wlz, tango, w wlz“, Reihenfolge/Zeiten unbekannt"}
+    {
+      "id": 16875,
+      "taenze": [
+        "discofox",
+        "boogie",
+        "bachata"
+      ],
+      "quelle": "Beschreibung „Disco-Fox, Boogy, Bachata“, Reihenfolge/Zeiten unbekannt"
+    },
+    {
+      "id": 17613,
+      "taenze": [
+        "chacha",
+        "lw",
+        "tango",
+        "ww"
+      ],
+      "quelle": "Beschreibung „chacha, lgs. wlz, tango, w wlz“, Reihenfolge/Zeiten unbekannt"
+    }
   ],
   "marker_sessions": [
-    {"id": 17689, "quelle": "Tanz-App 0.4, 21.10.2026 morgens, allein zur Musik, Arm wie in Tanzhaltung/beim Fuehren; Marker jeweils NACH dem Tanz"}
+    {
+      "id": 17689,
+      "quelle": "Tanz-App 0.4, 21.10.2026 morgens, allein zur Musik, Arm wie in Tanzhaltung/beim Fuehren; Marker jeweils NACH dem Tanz"
+    },
+    {
+      "id": 18834,
+      "quelle": "Tanz-App 0.6, 22.10.2026 abends 18:58-20:13, Salsa tanzen (mit Partnerin/Paar unbekannt); 6 Marker, alle Salsa"
+    }
   ]
 }
