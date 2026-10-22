@@ -60,13 +60,13 @@ private val PUMPS = listOf("wenig", "passt", "viel", "weiss_nicht")
 private val PROBLEME = listOf("abbruch", "pause", "gps", "upload", "akku", "bedienung", "sonstiges")
 
 /** Antworten als einfache Felder (statt JsonObject), damit der Dialog sie bequem aendern kann. */
-private data class Antworten(
+internal data class Antworten(
     val sterne: Int? = null, val laeufe: String? = null, val laeufeEcht: Int? = null,
     val pumps: String? = null, val tempoOk: Boolean? = null, val probleme: Boolean? = null,
     val problemeArt: List<String> = emptyList(),
 )
 
-private fun ausJson(o: JsonObject?): Antworten {
+internal fun ausJson(o: JsonObject?): Antworten {
     if (o == null) return Antworten()
     fun s(k: String) = (o[k] as? JsonPrimitive)?.contentOrNull
     fun i(k: String) = (o[k] as? JsonPrimitive)?.intOrNull
@@ -75,7 +75,7 @@ private fun ausJson(o: JsonObject?): Antworten {
         (o["probleme_art"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull } ?: emptyList())
 }
 
-private fun zuJson(a: Antworten): JsonObject = buildJsonObject {
+internal fun zuJson(a: Antworten): JsonObject = buildJsonObject {
     a.sterne?.let { put("sterne", it) }
     a.laeufe?.let { put("laeufe", it) }
     a.laeufeEcht?.let { put("laeufe_echt", it) }
