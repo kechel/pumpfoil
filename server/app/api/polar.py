@@ -298,6 +298,10 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
             if sport_key is not None:
                 importsports.merken(db, user.id, "polar", sport_key,
                                     hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
+            if importsports.konto_import_grund(parsed) == "zu alt":
+                skipped += 1  # vor 2026 (Regel importsports.IMPORT_AB, Jan 22.10.2026)
+                zaehl("gefiltert")
+                continue
             if not parsed.get("gps_samples") or parsed.get("started_at") is None:
                 skipped += 1  # z. B. Indoor-Training ohne GPS — daran wird sich nie etwas aendern
                 zaehl("kein_gps")

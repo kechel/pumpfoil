@@ -582,6 +582,12 @@ def _vorfilter(wo: dict) -> str | None:
         return None
     dist = zahl("totalDistance", "distance")
     dur = zahl("totalTime", "duration", "totalDuration")
+    # Vor 2026 gar nicht erst holen (spart Kontingent; Regel: importsports.IMPORT_AB).
+    st = wo.get("startTime")
+    if isinstance(st, (int, float)) and st > 0:
+        from .. import importsports
+        if importsports.zu_alt(datetime.fromtimestamp(st / 1000.0, tz=timezone.utc)):
+            return "zu alt"
     if dist is not None and dist > MAX_DIST_M:
         return "Distanz %.1f km" % (dist / 1000.0)
     if dur is not None and dur < MIN_DUR_S:
@@ -608,7 +614,7 @@ def _quota_weg(r: httpx.Response) -> bool:
 #                 waehrend ein anderes Workout desselben Nutzers durchlief: also eine
 #                 Eigenschaft des einzelnen Workouts, nicht des Zugangs. Bleibt dauerhaft.
 #   „doppelt"   — haben wir schon
-ENDGUELTIG = ("kein gps", "doppelt", "http 403", "http 404", "http 410")
+ENDGUELTIG = ("kein gps", "zu alt", "doppelt", "http 403", "http 404", "http 410")
 
 
 def _endgueltig(grund: str | None) -> bool:
@@ -626,7 +632,7 @@ def _grund_code(grund: str | None) -> str:
     g = (grund or "").lower()
     if g.startswith("dauer"):
         return "zu_kurz"
-    if g.startswith(("distanz", "schnitt")):
+    if g.startswith(("distanz", "schnitt", "zu alt")):
         return "gefiltert"
     if g == "kein gps":
         return "kein_gps"
@@ -714,15 +720,13 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
             importsports.merken(db, user.id, "suunto", sport_key,
                                 label=(parsed.get("sport") or None),
                                 hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
-        # OHNE GPS trotzdem als Session anlegen (21.10.2026, Jan: „der user darf die schon als
-        # aussortierte sehen … ich sehe meine testsessions doch auch" / „waere auch ein besseres
-        # Gefuehl fuer die tester"). Anlass: der Aufruf an die Suunto-Fahrer, die SuuntoPlus-App
-        # 2-3 min zu Hause zu testen — oft ohne Fix. Bisher fiel so ein Workout hier still weg,
-        # samt FIT-Datei, die als einzige zeigt, ob die Log-Kanaele der App in der Cloud-FIT
-        # stehen (docs/SUUNTO.md, Hardware-Frage 5). Mit Session liegt das Original daneben.
-        # Nur wenn die Datei gar keine Zeitstempel hat, gibt es nichts anzulegen.
-        if parsed.get("started_at") is None:
-            return False, "kein gps"
+        # Ohne GPS oder vor 2026 -> keine Session (importsports.konto_import_grund, Jan 22.10.2026).
+        # Am 21.10. durften Workouts ohne GPS kurz Sessions werden (d08cf5b2, fuer die SuuntoPlus-
+        # Tester) — der naechste Abgleich legte einem Nutzer seine ganze Indoor-Historie an.
+        from .. import importsports
+        grund = importsports.konto_import_grund(parsed)
+        if grund:
+            return False, grund
         if bruecken_session(db, user.id, parsed["started_at"]) is not None:
             # Die SuuntoPlus-App hat dieselbe Aufnahme schon mit Rohdaten ueber die Handy-Bruecke
             # geschickt (docs/SUUNTO.md „Zusammenfuehren") — keine zweite Session ohne Beschleunigung.

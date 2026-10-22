@@ -220,8 +220,9 @@ async def push(request: Request, db: Session = Depends(get_db)) -> dict:
                     storage.quarantaene_ablegen(r.content, quelle="coros", user_id=user.id,
                                                 grund=f"{type(exc).__name__}: {exc}")
                     raise
-                if not parsed.get("gps_samples") or parsed.get("started_at") is None:
-                    continue   # z. B. Indoor ohne GPS
+                from .. import importsports
+                if importsports.konto_import_grund(parsed):
+                    continue   # ohne GPS (Indoor) oder vor 2026 (importsports.IMPORT_AB)
                 s = import_parsed_session(db, user, r.content, parsed,
                                           src_label="coros-import", uuid_prefix="coros-")
                 if s is not None:

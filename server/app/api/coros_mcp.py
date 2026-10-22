@@ -720,8 +720,8 @@ def _sync_lauf(db: Session, user: models.User, tage: int = 0) -> dict:
                                                 grund=f"{type(exc).__name__}: {exc}",
                                                 filename=f"{labelId}.fit")
                     raise
-                if not parsed.get("gps_samples") or parsed.get("started_at") is None:
-                    skipped += 1        # z. B. Indoor-Training ohne GPS
+                if importsports.konto_import_grund(parsed):
+                    skipped += 1        # ohne GPS (Indoor) oder vor 2026 (importsports.IMPORT_AB)
                     continue
                 # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session
                 # zurueck (nicht None) — das zaehlte hier als Import. Der Sync meldete deshalb

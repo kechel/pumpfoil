@@ -1,4 +1,4 @@
-"""Suunto-Workout OHNE GPS wird trotzdem eine Session (21.10.2026).
+"""Suunto-Workout OHNE GPS: FIT-Dauer lesen ja, Session NEIN (21.10. kurz erlaubt, 22.10. wieder zurueck).
 
 Anlass: Aufruf an die Suunto-Fahrer, die SuuntoPlus-App 2-3 min zu Hause zu testen — oft ohne Fix.
 Bis dahin fiel so ein Workout im Import still weg, samt FIT-Datei. Jetzt entsteht eine Session mit
@@ -53,15 +53,16 @@ def test_fit_ohne_gps_liefert_start_und_dauer():
     assert p["dauer_ms"] == 149_000
 
 
-def test_suunto_workout_ohne_gps_wird_session_mit_original(client, monkeypatch):
-    from app import models, storage
+def test_suunto_workout_ohne_gps_wird_keine_session(client, monkeypatch):
+    """Seit 22.10.2026 wieder: aus Kontoverknuepfungen keine Session ohne GPS (Jan; d08cf5b2 legte
+    am 21.10. einem Nutzer 907 Indoor-Sessions an)."""
+    from app import models
     from app.api import suunto
     from app.db import SessionLocal
 
     jwt = client.post("/api/auth/register", json={"email": "suunto-ohne-gps@b.de", "password": "supersecret"}).json()["access_token"]
     me = client.get("/api/auth/me", headers={"Authorization": f"Bearer {jwt}"}).json()
-    start = datetime(2026, 10, 21, 8, 0, 0, tzinfo=timezone.utc)
-    roh = _fit_ohne_gps(start, 150)
+    roh = _fit_ohne_gps(datetime(2026, 10, 21, 8, 0, 0, tzinfo=timezone.utc), 150)
 
     class _Antwort:
         status_code = 200
@@ -75,17 +76,22 @@ def test_suunto_workout_ohne_gps_wird_session_mit_original(client, monkeypatch):
     try:
         user = db.get(models.User, me["id"])
         ok, grund = suunto._hole_workout(db, user, "tok", "wk-ohne-gps-1")
-        assert ok, grund
-        s = db.query(models.Session).filter_by(user_id=user.id).one()
-        assert s.session_uuid.startswith("suunto-")
-        assert s.started_at == start
-        assert (s.ended_at - s.started_at).total_seconds() == 149
-        assert any(storage.session_dir(s.session_uuid).glob("original*"))
-        # Analyse laeuft ohne GPS durch; Kitesurfen = unklarer Wassersport -> Nutzer wird gefragt
-        assert s.status == "analyzed" and s.needs_classification
-        # derselbe Workout ein zweites Mal -> keine zweite Session
-        ok2, grund2 = suunto._hole_workout(db, user, "tok", "wk-ohne-gps-1")
-        assert not ok2 and grund2 == "doppelt"
-        assert db.query(models.Session).filter_by(user_id=user.id).count() == 1
+        assert not ok and grund == "kein gps"
+        assert db.query(models.Session).filter_by(user_id=user.id).count() == 0
     finally:
         db.close()
+
+
+def test_kontoimport_nichts_vor_2026_und_nichts_ohne_gps():
+    from app import importsports
+    from app.api import suunto
+    gps = [[0, 47.0, 9.0, 1.0, None, 5.0]]
+    alt = datetime(2025, 12, 31, 23, 59, tzinfo=timezone.utc)
+    neu = datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc)
+    assert importsports.konto_import_grund({"gps_samples": gps, "started_at": alt}) == "zu alt"
+    assert importsports.konto_import_grund({"gps_samples": gps, "started_at": neu}) is None
+    assert importsports.konto_import_grund({"gps_samples": [], "started_at": neu}) == "kein gps"
+    # Suunto holt alte Workouts gar nicht erst (Kontingent)
+    assert suunto._vorfilter({"startTime": int(alt.timestamp() * 1000), "totalTime": 3600}) == "zu alt"
+    assert suunto._vorfilter({"startTime": int(neu.timestamp() * 1000), "totalTime": 3600}) is None
+    assert suunto._grund_code("zu alt") == "gefiltert"

@@ -245,8 +245,9 @@ def sync(water_only: bool = True, user: models.User = Depends(current_user),
                 skipped += 1
                 continue
             parsed = _parsed_from_streams(act, sr.json())
-            if parsed is None:
-                skipped += 1
+            from .. import importsports
+            if parsed is None or importsports.konto_import_grund(parsed):
+                skipped += 1        # ohne GPS oder vor 2026 (importsports.IMPORT_AB)
                 continue
             raw = f"strava-{act['id']}".encode()   # stabiler Hash -> idempotent
             s = import_parsed_session(db, user, raw, parsed,
