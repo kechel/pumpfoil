@@ -44,7 +44,7 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
 | Sprung auf Seite 1 + Vibration beim Pausieren/Fortsetzen | ✅ | ✅ | ✅ | ✅ (Klick) |
 | „Pausiert" auf jeder Seite (Typ 7 oder eingeblendet) | ✅ | ✅ | ✅ gekruemmt oben | ✅ oben mittig |
 | „Pausiert" im Daemmerbild | — (MIP) | — | ✅ | Systemverhalten |
-| Pause-Erinnerung alle 10 min (immer an, Jan 22.10.): kraeftig vibrieren + Sprung auf den Fortsetzen-Bildschirm — Huawei: ArkTS + Lite/Wearable ✅ 22.10. `5ed3fe82`; Suunto bewusst nicht (Pause gehoert der Firmware); Garmin Lite kann nicht pausieren | ✅ 22.10. `d504cacb` Pausen-Menue (nur Voll-Build, Simulator offen) | ✅ 22.10. `cdbe2cfc` Test `pausemahnung.test.mjs` | ✅ 22.10. `192fc745` System-Wecker, im Emulator 10:00 gemessen | ✅ 22.10. `5310d6f2` (nur parse) |
+| Pause-Erinnerung alle 10 min (immer an, Jan 22.10.): kraeftig vibrieren + Sprung auf den Fortsetzen-Bildschirm — Huawei: ArkTS + Lite/Wearable ✅ 22.10. `5ed3fe82`; Suunto bewusst nicht (Pause gehoert der Firmware); Garmin Lite kann nicht pausieren | ✅ 22.10. `d504cacb` Pausen-Menue (nur Voll-Build; Jans Simulator 22.10.: nach genau 10 min Menue + Vibration + Licht) | ✅ 22.10. `cdbe2cfc` Test `pausemahnung.test.mjs` | ✅ 22.10. `192fc745` System-Wecker, im Emulator 10:00 gemessen | ✅ 22.10. `5310d6f2` (nur parse) |
 | Ausgeliefert | 1.0.x live | **nicht** in 1.0.12 (Review) | **nicht** in 1.2.32 (live) | **nicht** in 1.1.37 (live) |
 
 | Datenfelder 22/23 „alle Läufe: Strecke/Zeit" (Stand 29.09.) | Garmin | Zepp | Wear OS | Apple Watch |
