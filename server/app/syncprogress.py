@@ -128,7 +128,7 @@ WARTEN_S = 10.0
 _POOL = None
 
 
-def anstossen(db: Session, user_id: int, provider: str, arbeit) -> dict:
+def anstossen(db: Session, user_id: int, provider: str, arbeit, warten: bool = True) -> dict:
     """Lauf starten, bis zu `WARTEN_S` auf sein Ergebnis warten, sonst asynchron weiterlaufen.
 
     Rueckgabe: das echte Ergebnis (alte Apps verstehen es) oder `{"gestartet": True}`. Die
@@ -145,6 +145,8 @@ def anstossen(db: Session, user_id: int, provider: str, arbeit) -> dict:
         return {"laeuft": True}
     start(db, user_id, provider, 0, "verbinde")
     fut = _POOL.submit(im_hintergrund, provider, user_id, arbeit)
+    if not warten:                          # z. B. direkt nach dem Verbinden: Weiterleitung nicht aufhalten
+        return {"gestartet": True}
     try:
         fut.result(timeout=WARTEN_S)
     except _cf.TimeoutError:
