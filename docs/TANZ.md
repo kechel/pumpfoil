@@ -97,6 +97,11 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   gefüllt, **Kadenz immer leer** (Cardio-Training liefert keine `currentCadence`; Ersatz: Schritt-Differenzen).
   Ort: Fix nach 12 s, Qualität „gut“. **Fehlalarm**: 2:50–3:10 drei Fenster mit 0,1 g und Tempo 83/70/207
   → „Samba“. Kandidat für später: Abschnitt nur bei ähnlichem Tempo in den Startfenstern.
+- **#18834** (22.10. abends, 75 min Salsa, Tanz-App 0.6, 6 Marker alle Salsa): Echtzeit über 75 min ok (447/447
+  Fenster, keine Lücke), Kompass/Schritte/Puls jede Sekunde, **Kadenz auch beim Tanzen immer leer** (Cardio liefert sie nicht —
+  endgültig: Schritt-Differenzen nehmen; 1871 Schritte in 75 min). GPS-Fixe bei 0,3 / 30,3 / 60,6 min, alle „gut“.
+  Erkennung: 12 Abschnitte, Tempo meist 78–88 (Salsa-Muster 79), Vorschlag aber oft Samba (97) — Salsa nur 2×. Kandidat für
+  die Auswertung nach der Sammelphase (Gewichtung Quer/Drehung gegen Tempo).
 - **Kurs (Paar) ≠ allein**: Haltung und Drehung unterscheiden sich; Muster aus beiden mischen.
 - Prüfung „ohne eigene Quelle“ (`tanz_muster_ableiten.py`): nur Salsa 2/2; die meisten Tänze haben
   erst **eine** Quelle und sind damit nicht unabhängig prüfbar. Die Nachanalyse-Tabellen sind mit
