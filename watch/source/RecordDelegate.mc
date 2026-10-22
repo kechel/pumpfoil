@@ -29,8 +29,36 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
 
     function onTick() as Void {
         _rec.tick();
+        _pauseMahnen();
         WatchUi.requestUpdate();
     }
+
+    // Pause-Erinnerung (PauseMahner.mc): alle 10 min drei lange Pulse, Licht an und das Pausen-Menue
+    // (Fortsetzen / Abbrechen / Ende & speichern, oben „Pausiert"). Ist schon ein anderes Menue offen
+    // (z. B. dieses), nur vibrieren — nichts uebereinander stapeln.
+    (:full)
+    hidden function _pauseMahnen() as Void {
+        if (!PauseMahner.faellig(_rec.isPaused())) { return; }
+        if (Toybox has :Attention) {
+            if (Attention has :vibrate) {
+                try {
+                    Attention.vibrate([new Attention.VibeProfile(100, 400), new Attention.VibeProfile(0, 250),
+                                       new Attention.VibeProfile(100, 400), new Attention.VibeProfile(0, 250),
+                                       new Attention.VibeProfile(100, 400)]);
+                } catch (e) {}
+            }
+            if (Attention has :backlight) { try { Attention.backlight(true); } catch (e) {} }
+        }
+        if (WatchUi has :getCurrentView) {
+            var cv = WatchUi.getCurrentView();
+            if (cv != null && cv[0] != null && !(cv[0] instanceof RecordView)) { return; }
+        }
+        _pauseAction();
+    }
+
+    // (:lite) — 96-KB-Uhren koennen nicht pausieren, also nichts zu erinnern.
+    (:lite)
+    hidden function _pauseMahnen() as Void {}
 
     // Tastendruck: START kurz = starten; START gedrückt halten (im Betrieb) = Stop-Halten.
     function onKeyPressed(evt as WatchUi.KeyEvent) as Lang.Boolean {
