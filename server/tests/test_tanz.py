@@ -17,12 +17,12 @@ def _session(client, uhr, uuid, sport="dance"):
         "index": 0, "kind": "hr", "encoding": "json", "data": hr}).status_code == 200
 
 
-def db_uuid(client, sid):
+def tanz_laden(sid):
     from app.db import SessionLocal
-    from app import models
+    from app import tanz
     db = SessionLocal()
     try:
-        return db.get(models.Session, sid).session_uuid
+        return tanz.laden(db, sid)
     finally:
         db.close()
 
@@ -48,7 +48,7 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
     d = client.get(f"/api/sessions/{sid}/tanz", headers=auth).json()
     a = d["abschnitte"]
     from app import tanz as _tz
-    fu = _tz.laden(db_uuid(client, sid))["fenster_uhr"]
+    fu = tanz_laden(sid)["fenster_uhr"]
     assert fu[0] == {"t_ms": 20000, "tempo": 126, "klar": 0.4, "quer": 0.75, "umdr": 0.21}
     assert fu[1]["umdr"] is None and fu[1]["t_ms"] == 30000 and len(fu) == 2
     assert len(a) == 6
@@ -65,7 +65,7 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
     assert d["abschnitte"][1]["gewaehlt"] == "lw" and d["abschnitte"][1]["quelle"] == "web"
     assert d["abschnitte"][0]["gewaehlt"] == "boogie"
     # GPS-Fixe (alle 30 min) liegen nur in tanz.json und ueberstehen die Web-Korrektur; Unsinn faellt raus
-    assert _tz.laden(db_uuid(client, sid))["orte"] == [
+    assert tanz_laden(sid)["orte"] == [
         {"t_ms": 1000, "lat": 47.781235, "lon": 9.612345, "genauigkeit": 3}]
     # fremde Nutzer sehen nichts
     fremd, _ = _konto(client, "tanz-fremd@b.de")
@@ -86,18 +86,29 @@ def test_tanz_nur_bei_dance_sessions(client):
     assert client.get(f"/api/sessions/{r.json()['session_id']}/tanz", headers=auth).status_code == 404
 
 
-def test_tanz_json_unlesbar_wird_nicht_ueberschrieben(tmp_path, monkeypatch):
-    """22.10.2026 #18834: eine halb geschriebene tanz.json las sich als leer und wurde ohne die Rohwerte der
-    Uhr zurueckgeschrieben. Jetzt: atomar schreiben, und eine unlesbare Datei nie ueberschreiben."""
-    import pytest
-    from app import storage, tanz
-    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
-    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(exist_ok=True) or tmp_path / u)
-    tanz.speichern("x", [], "uhr", orte=[{"t_ms": 1}])
-    with tanz.sperre("x"):
-        tanz.speichern("x", [], "web")
-    assert tanz.laden("x")["orte"] == [{"t_ms": 1}]
-    (tmp_path / "x" / "tanz.json").write_text('{"abschnitte": [] }"}')
-    with pytest.raises(RuntimeError):
-        tanz.speichern("x", [], "web")
-    assert (tmp_path / "x" / "tanz.json").read_text().endswith('"}')
+
+def test_tanz_in_der_db_uhr_bleibt_und_loeschung(client):
+    """Seit 22.10.2026 in Tabellen statt tanz.json: Uhr-Original, Fenster und Orte ueberstehen Korrekturen,
+    und die Konto-Loeschung raeumt alles mit ab (Verweise auf sessions.id)."""
+    from app.db import SessionLocal
+    from app import loeschung, models
+    auth, uhr = _konto(client, "tanz-db@b.de")
+    _session(client, uhr, "tanz-db-1")
+    r = client.post("/api/ingest/session/tanz-db-1/complete", headers=uhr, json={
+        "total_chunks": 1, "tanz": [[0, 60000, "lw", None, 0, 90, 0], [70000, 90000, "jive", None, 0, 120, 0]],
+        "tanz_fenster": {"t0": 0, "w": [90]}, "tanz_orte": [[1000, 47.5, 9.5, 3]]})
+    sid = r.json()["session_id"]
+    for i, k in ((0, "ww"), (1, "salsa"), (0, "tango")):
+        assert client.put(f"/api/sessions/{sid}/tanz", headers=auth,
+                          json={"abschnitte": [{"index": i, "gewaehlt": k}]}).status_code == 200
+    d = tanz_laden(sid)
+    assert [a["gewaehlt"] for a in d["abschnitte"]] == ["tango", "salsa"]
+    assert [a["gewaehlt"] for a in d["uhr"]] == [None, None] and d["uhr"][0]["quelle"] == "auto"
+    assert len(d["fenster_uhr"]) == 1 and d["orte"][0]["lat"] == 47.5
+    db = SessionLocal()
+    try:
+        loeschung.konto_loeschen(db, db.query(models.User).filter_by(email="tanz-db@b.de").one())
+        for M in (models.TanzSession, models.TanzAbschnitt, models.TanzFenster, models.TanzOrt):
+            assert db.query(M).filter_by(session_id=sid).count() == 0
+    finally:
+        db.close()

@@ -1,6 +1,6 @@
 """Jans Tanz-Sessions so auswerten, als haette die aktuelle Erkennung (app/tanz_analyse.py = Tanz.mc)
-sie schon auf der Uhr gemacht, und das Ergebnis als Tabelle „Taenze" ablegen (data/<uuid>/tanz.json).
-Schreibt NUR diese Datei; das Original der Uhr bleibt unter "uhr" erhalten. Keine DB-Schreibzugriffe.
+sie schon auf der Uhr gemacht, und das Ergebnis als Tabelle „Taenze" ablegen (Tabelle tanz_abschnitte).
+Schreibt NUR die aktuelle Tanz-Tabelle; Uhr-Original, Fenster und Orte bleiben erhalten.
 Jan, 21.10.2026: „tu einfach so als waeren meine vergangenen sessions schon mit der neuen version
 analysiert worden, dann sehen wir doch was die erkannt haette in der tabelle".
 
@@ -32,7 +32,7 @@ def main():
         g = storage.load_gyro(s.session_uuid).astype(float)
         g = g[:len(a)] / 1024 * 180 / math.pi if len(g) else None
         fs = ta.fenster(a, g)
-        alt = tanz.laden(s.session_uuid) or {}
+        alt = tanz.laden(db, sid) or {}
         uhr = alt.get("uhr") or ([] if alt.get("quelle") == "nachanalyse" else alt.get("abschnitte")) or []
         marker = [(m["start_ms"], m["gewaehlt"]) for m in uhr if m.get("quelle") == "marker" and m.get("gewaehlt")]
         gedeutet = ta.marker_deuten(marker, fs)
@@ -85,13 +85,9 @@ def main():
             print(f"   {r['start_ms']/60000:6.1f}-{(r['ende_ms'] or 0)/60000:6.1f} min  Uhr: {r['vorschlag'] or '-':10} "
                   f"wahr: {r['gewaehlt'] or '-':10} {r['quelle']:22} tempo {r['tempo']} dreh {r['dreh']}")
         if "--schreiben" in sys.argv:
-            d = {"abschnitte": rows, "quelle": "nachanalyse", "uhr": uhr if uhr else None,
-                 "muster": "app/data/tanz_muster.json"}
-            for k in ("fenster_uhr", "orte"):   # Rohwerte der Uhr nie verlieren
-                if alt.get(k) is not None:
-                    d[k] = alt[k]
-            p = storage.ensure_session_dir(s.session_uuid) / "tanz.json"
-            p.write_text(json.dumps(d, ensure_ascii=False))
+            # Uhr-Original, Fenster und Orte bleiben (speichern ersetzt nur die aktuelle Tabelle)
+            tanz.speichern(db, sid, rows, "nachanalyse", uhr=uhr if uhr and not alt.get("uhr") else None)
+            db.commit()
     if "--schreiben" in sys.argv:
         print("\ngeschrieben.")
 

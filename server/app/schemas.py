@@ -224,7 +224,7 @@ class SessionCompleteIn(BaseModel):
     tanz: list | None = None
     # Rhythmus/Merkmale je 10-s-Fenster, gepackt (Tanz.mc _packen): {"t0": ms, "w": [zahl, ...]}
     tanz_fenster: dict | None = None
-    # GPS-Fixe der Tanz-App (alle 30 min, [[t_ms, lat, lon, genauigkeit], …]) — nur tanz.json.
+    # GPS-Fixe der Tanz-App (alle 30 min, [[t_ms, lat, lon, genauigkeit], …]) — nur Tabelle tanz_orte.
     tanz_orte: list | None = None
 
 

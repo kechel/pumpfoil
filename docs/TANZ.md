@@ -14,6 +14,7 @@ Tanz-Arbeit ändert nie die Pumpfoil-App; am Server nur eigene Module, nur für 
 | Pumpfoil-Änderungen übernehmen | `watch-dance/pumpfoil-uebernehmen.sh` (Stand in `watch-dance/PUMPFOIL_STAND`) |
 | Erkennung am Server (gleiche Rechnung) | `server/app/tanz_analyse.py` |
 | Abschnitte/Marker speichern, Web-Korrektur | `server/app/tanz.py`, `server/app/api/tanz.py`, `web/src/components/TanzAbschnitte.tsx` |
+| **Ablage** (seit 22.10.2026 in der DB) | Tabellen `tanz_sessions` (Kopf + Sperre), `tanz_abschnitte` (`uhr` = Original der Uhr / aktuelle Tabelle), `tanz_fenster`, `tanz_orte`. Vorher `data/<uuid>/tanz.json` — einmal übernommen mit `scripts/tanz_json_in_db.py`, Dateien liegen als Sicherung noch da. Anlass: vier gleichzeitige Korrekturen haben #18834s Datei zerschrieben (Uhr-Rhythmus-Werte und GPS-Fixe verloren, Uhr-Original aus den Zeilen zurückgebaut). |
 | **Wahrheit** (Jans Angaben je Session) | `server/app/data/tanz_wahrheit.json` |
 | **Muster** je Tanz (abgeleitet) | `server/app/data/tanz_muster.json` — nie von Hand, neu ableiten |
 | Muster ableiten + prüfen | `scripts/tanz_muster_ableiten.py` (`--schreiben`, `--uhr` = Block für Tanz.mc) |
@@ -79,7 +80,7 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   jeder Wert außer t_ms kann null sein. Kurs = Kompass (Sensor.Info.heading), Kadenz = Uhr-Schrittfrequenz,
   Schritte = Tageszähler (nur Differenzen nutzen). Noch nicht ausgewertet — Abgleich mit unserem Tempo offen.
 - **Ort** (ab 0.6): beim Start und alle 30 min ein GPS-Einzel-Fix, der Start wartet nie, Suche nach 5 min
-  abgebrochen. NICHT im GPS-Kanal (keine Karte/Spot, Sessions sind öffentlich), nur `tanz.json` → `orte`.
+  abgebrochen. NICHT im GPS-Kanal (keine Karte/Spot, Sessions sind öffentlich), nur Tabelle `tanz_orte`.
 - Ab Tanz-App 0.5 speichert die Uhr diese Werte je Fenster (`tanz_fenster`, gepackt) → Abgleich
   Uhr-Rechnung gegen Server-Rechnung möglich.
 - Abschnitt: Beginn bei 3 von 4 tanzenden Fenstern (≥ 30 s Tanz, Anzeige nach 30–40 s), Ende nach
@@ -116,7 +117,7 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
 
 Auftrag Jan: Regeln für Salsa, zunächst nur am Server, Version als eigene Spalte. Gerechnet wird je
 Tabellenzeile beim Abruf (`GET /api/sessions/{id}/tanz` → `server_vorschlag`, `server_version`), nichts
-wird in `tanz.json` geschrieben. Quelle für Salsa: #16863 (Kurs), #17689 (Marker), **#18834 ganz**
+wird in die Tanz-Tabellen geschrieben. Quelle für Salsa: #16863 (Kurs), #17689 (Marker), **#18834 ganz**
 (`"ganz": "salsa"` in der Wahrheit — gilt nur für die Server-Muster, die Uhr-Muster lesen es nicht).
 
 - **Befund:** Salsa hat viel Energie bei 1,0–1,5 Hz der senkrechten Beschleunigung (Anteil am

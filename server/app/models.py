@@ -1819,3 +1819,70 @@ class GemerkteRoute(Base):
     einstellungen_json: Mapped[str] = mapped_column(Text, default="{}")
     meter: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+# --- Tanz-App (watch-dance/, nur sport == "dance", Regel „nur Pumpfoil -> Tanz") ---------------------------
+# Bis 22.10.2026 lag das als data/<uuid>/tanz.json. An dem Abend lasen vier gleichzeitige Web-Korrekturen
+# an #18834 eine halb geschriebene Datei als leer und schrieben sie ohne Uhr-Original, Rhythmus-Werte und
+# GPS-Fixe zurueck. Jan: „da kommen viele daten, mit json zu hantieren macht keinen sinn". Jetzt Tabellen,
+# Schreiben in einer Transaktion unter Zeilensperre (app/tanz.py). Alles zeigt direkt auf sessions.id,
+# damit loeschung.session_verweise_weg es von selbst mit abraeumt.
+
+
+class TanzSession(Base):
+    """Kopf je Tanz-Session: woher die aktuelle Tabelle stammt (uhr|web|nachanalyse) und wann.
+    Die Zeile ist auch der Sperr-Anker fuer Lesen-Aendern-Schreiben (SELECT … FOR UPDATE)."""
+
+    __tablename__ = "tanz_sessions"
+
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), primary_key=True)
+    quelle: Mapped[str] = mapped_column(String(20))
+    stand: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+    notiz: Mapped[str | None] = mapped_column(Text)
+
+
+class TanzAbschnitt(Base):
+    """Eine Zeile der Tabelle „Taenze". `uhr` = True: das Original der Uhr (bleibt fuer den Vergleich,
+    wird nie geaendert); False: die aktuelle Tabelle mit Jans Korrekturen. `pos` = Reihenfolge (die
+    Web-Korrektur adressiert Zeilen per Index). Zeiten in Session-ms wie die Accel-Achse."""
+
+    __tablename__ = "tanz_abschnitte"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    uhr: Mapped[bool] = mapped_column(Boolean, default=False)
+    pos: Mapped[int] = mapped_column(Integer)
+    start_ms: Mapped[int] = mapped_column(BigInteger)
+    ende_ms: Mapped[int | None] = mapped_column(BigInteger)
+    vorschlag: Mapped[str | None] = mapped_column(String(20))
+    gewaehlt: Mapped[str | None] = mapped_column(String(20))
+    quelle: Mapped[str] = mapped_column(String(30))
+    tempo: Mapped[int | None] = mapped_column(Integer)
+    dreh: Mapped[int | None] = mapped_column(Integer)
+
+
+class TanzFenster(Base):
+    """Rhythmus-Werte der UHR je 10-s-Fenster (Tanz.mc), zum Abgleich mit der Server-Rechnung."""
+
+    __tablename__ = "tanz_fenster"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    t_ms: Mapped[int] = mapped_column(BigInteger)
+    tempo: Mapped[int] = mapped_column(Integer)
+    klar: Mapped[float] = mapped_column(Float)
+    quer: Mapped[float] = mapped_column(Float)
+    umdr: Mapped[float | None] = mapped_column(Float)
+
+
+class TanzOrt(Base):
+    """GPS-Einzel-Fix der Tanz-App (alle 30 min). Nur fuer den Besitzer, nie Karte/Spot."""
+
+    __tablename__ = "tanz_orte"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    t_ms: Mapped[int] = mapped_column(BigInteger)
+    lat: Mapped[float] = mapped_column(Float)
+    lon: Mapped[float] = mapped_column(Float)
+    genauigkeit: Mapped[int | None] = mapped_column(Integer)
