@@ -1502,7 +1502,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   `cdbe2cfc` (Node-Test), Huawei `5ed3fe82` (build-all ok; Lite-Snapshot-Literalgrenze umschifft). Huawei ArkTS:
   STOPP-Seite zeigt jetzt „Pausiert“. Kommt mit den naechsten Uhren-Versionen; Changelog-Punkt erst dann.
 
-- **22.10. — WIEDERVORLAGE (Jan): Kommt Mäse (u763) mit Suunto rein?** Er versuchte am 21.10. 17:34–17:57 ~40-mal zu
+- **22.10. — ✅ ERLEDIGT (gleicher Tag): Mäse (u763) hat Suunto um 09:19 selbst verbunden** (DM ungelesen), keine Mail noetig. War: **WIEDERVORLAGE (Jan): Kommt Mäse (u763) mit Suunto rein?** Er versuchte am 21.10. 17:34–17:57 ~40-mal zu
   verbinden (invalid_client-Stoerung, behoben 22.10.). DM von Konto 230 am 22.10. (id 3047). Pruefen: liest er sie /
   hat er einen `suunto_links`-Eintrag? Wenn nicht -> Jan schreibt ihn EINMALIG per E-Mail an.
 - **22.10. — Kontoverknuepfungen: keine Sessions ohne GPS, nichts vor 1.1.2026** (Jan; `importsports.konto_import_grund`,
