@@ -551,7 +551,12 @@ export default function SessionDetail() {
   const pumpzahlen = profil?.pumpzahlen !== false;
   // Gleitphasen zwischen zwei Pumps sind ein Pumpfoil-Begriff. Bei SUP verwirrte der Schalter (Jan, 20.10.2026:
   // die Foil-Laeufe wurden grau, nur die Sprints blieben farbig) -> dort kein Gleit-Schalter.
-  const gleitenMoeglich = pumpzahlen && session?.sport_class !== "sup_paddle";
+  // Gleitphasen-Modus nur, wenn diese Session auch Gleitphasen HAT (22.10.2026): `showGlides` wird ueber
+  // Sessions hinweg gemerkt, der Knopf erscheint aber nur bei vorhandenen Gleitphasen. Ohne diese Bedingung
+  // war die Spur einer Session ohne Gleitphasen ganz grau — nichts farbig und kein Knopf zum Ausschalten
+  // (Jans #17417). Der gemerkte Wunsch bleibt, er wirkt wieder, sobald eine Session Gleitphasen hat.
+  const gleitenMoeglich = pumpzahlen && session?.sport_class !== "sup_paddle"
+    && (session?.analysis?.segments ?? []).some((g: any) => g.glides?.length);
   const hauptGesamt = profil?.hauptzahl === "gesamt";
   // Wind am Spot (Stand-Buch wind_am_spot, 19.10.2026): nur fuer Wind-Sportarten abrufen.
   const [wind, setWind] = useState<Awaited<ReturnType<typeof api.sessionWind>>["wind"]>(null);

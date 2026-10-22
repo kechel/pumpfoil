@@ -1057,6 +1057,13 @@ struct SessionDetailView: View {
     }
 
     // Schalter fuer Pump-Marker und Startversuche (rechtsbuendig in der Glaettungs-Zeile).
+    /// Gleitmodus nur, wenn die Session Gleitphasen HAT (22.10.2026): `showGlides` ist gemerkt (AppStorage), der
+    /// Schalter erscheint aber nur mit Gleitphasen — sonst war die Spur ganz grau und nicht abschaltbar.
+    private var hatGleitphasen: Bool {
+        let segs: [Segment] = session?.analysis?.segments ?? []
+        return segs.contains(where: { !($0.glides ?? []).isEmpty })
+    }
+
     @ViewBuilder private func kartenSchalter(_ s: SessionDetail) -> some View {
         if pumpzahlen && (s.analysis?.pump_count ?? 0) > 0 {
             Toggle(Loc.t(session?.sport_class == "sup_paddle" ? "sd.strokes" : "sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
@@ -1104,7 +1111,7 @@ struct SessionDetailView: View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
-                        showPumps: showPumps && pumpzahlen, showGlides: showGlides && pumpzahlen && session?.sport_class != "sup_paddle", selectedRun: selectedRun,
+                        showPumps: showPumps && pumpzahlen, showGlides: showGlides && pumpzahlen && session?.sport_class != "sup_paddle" && hatGleitphasen, selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
                         attempts: showAttempts && pumpzahlen ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax,
