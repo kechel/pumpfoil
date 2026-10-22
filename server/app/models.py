@@ -1506,6 +1506,12 @@ class SessionBewertung(Base):
     antworten_json: Mapped[str] = mapped_column(Text, default="{}")
     kommentar: Mapped[str | None] = mapped_column(Text)
     schnappschuss_json: Mapped[str | None] = mapped_column(Text)
+    # Bearbeitung durch uns (Jan, 22.10.2026): offen | rueckfrage (zurueck an den Fahrer mit Bitte um
+    # Kontrolle und Neubewertung) | erledigt (gefixt oder geklaert, im Admin-Tab ausgeblendet).
+    # Bewertet der Fahrer neu, springt der Status auf offen. `status_notiz` = was wir getan haben.
+    status: Mapped[str] = mapped_column(String(12), default="offen", server_default="offen")
+    status_notiz: Mapped[str | None] = mapped_column(Text)
+    status_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
