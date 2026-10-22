@@ -1495,6 +1495,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   -> lange Tests. Nebenbei: Wassersperre „Immer an“ als Tipp fuer Apple-Watch-Nutzer (Bartosz am 22.10. so beraten).
   Entschieden 22.10.: Erinnerung kommt IMMER, nicht abschaltbar (Jan: „wenn man das nicht will kann man ja speichern
   und spaeter neu starten“); dabei direkt auf den Bildschirm zum Fortsetzen/Beenden wechseln. Erst planen, dann bauen.
+  **GEBAUT 22.10.** (Suunto weggelassen, Garmin Lite ohne Pause — Jan): Garmin `d504cacb` (Testbuilds 5 Varianten,
+  Simulator-Test 10+ min Pause auf Jans Mac offen), Apple Watch `5310d6f2` (nur parse, Xcode offen), Wear `192fc745`
+  (Emulator: Erinnerung 10:00 nach Pause, Bildschirm aus; Absage bei Verwerfen nur im Code, nicht getestet), Amazfit
+  `cdbe2cfc` (Node-Test), Huawei `5ed3fe82` (build-all ok; Lite-Snapshot-Literalgrenze umschifft). Huawei ArkTS:
+  STOPP-Seite zeigt jetzt „Pausiert“. Kommt mit den naechsten Uhren-Versionen; Changelog-Punkt erst dann.
 
 - **22.10. — WIEDERVORLAGE (Jan): Kommt Mäse (u763) mit Suunto rein?** Er versuchte am 21.10. 17:34–17:57 ~40-mal zu
   verbinden (invalid_client-Stoerung, behoben 22.10.). DM von Konto 230 am 22.10. (id 3047). Pruefen: liest er sie /
