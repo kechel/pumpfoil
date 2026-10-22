@@ -2158,6 +2158,7 @@ const deAT: Record<string, string> = {
   "spots.onlyActive": "Gerade aktiv",
   "spots.heatmap": "Heatmap",
   "spots.heatmapRoutes": "Heatmap & Routen",
+  "spots.heatNoRecent": "Hier hat's im letzten Jahr keine Läufe gegeben, deshalb sind Heatmap und Routenvorschläge leer. Gespeicherte Routen und eigene Punkte gehen trotzdem.",
   "spots.heatHint": "Farbe = wie viele Sessions dort gefahren sind (nur die Läufe), täglich aktualisiert.",
   "spots.heatOff": "Aus",
   "spots.heatFoil": "Auf dem Foil",

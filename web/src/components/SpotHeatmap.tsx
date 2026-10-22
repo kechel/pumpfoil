@@ -48,6 +48,9 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
   const karte = useRef<{ m: L.Map; grp: L.LayerGroup; renderer: L.Renderer } | null>(null);
   const [mitte, setMitte] = useState<{ lat: number; lon: number } | null>(null);
   const [leer, setLeer] = useState(false);
+  // Im letzten Jahr keine Laeufe (22.10.2026, Jans Alcossebre: nur Sessions von 2021): die Karte trotzdem
+  // zeigen, auf den Spot zentriert, mit Hinweis — vorher verschwand der ganze Block samt Routenplanung.
+  const [ohneDaten, setOhneDaten] = useState(false);
   const [bereit, setBereit] = useState(false);
   const [wahl, setWahlRoh] = useState<Wahl>(gemerkteWahl);
   const setWahl = (w: Wahl) => {
@@ -106,7 +109,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
     api.heatmap("365d", 15, mitte.lon - u * 1.5, mitte.lat - u, mitte.lon + u * 1.5, mitte.lat + u)
       .then((r) => {
         if (weg) return;
-        if (r.z == null || !r.cells.length) { setLeer(true); return; }
+        if (r.z == null || !r.cells.length) { setOhneDaten(true); setBereit(true); return; }
         const { lon, lat } = zellKanten(r.z);
         const xs = r.cells.map((c) => c[0]), ys = r.cells.map((c) => c[1]);
         m.fitBounds([[lat(Math.max(...ys) + 1), lon(Math.min(...xs))],
@@ -115,7 +118,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
         setBereit(true);
       })
       .catch(() => setLeer(true));
-    return () => { weg = true; setBereit(false); karte.current = null; m.remove(); };
+    return () => { weg = true; setBereit(false); setOhneDaten(false); karte.current = null; m.remove(); };
   }, [mitte]);
 
   // Zellen fuer Ausschnitt und Zeitraum nachladen, bei jeder Bewegung (kurz entprellt).
@@ -239,6 +242,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
           </button>
         </div>
       </div>
+      {ohneDaten && <p className="mt-2 text-sm text-slate-300">{t("spots.heatNoRecent")}</p>}
       <div ref={box} className="mt-2 h-64 w-full overflow-hidden rounded-lg sm:h-80" />
       {/* Ohne Planung stehen die gemerkten Routen direkt unter der Karte, mit Planung ganz unten
           ueber der Legende (Jan) */}
