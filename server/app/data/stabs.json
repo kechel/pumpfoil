@@ -1251,7 +1251,9 @@
     "brand": "Sabfoil",
     "model": "Downwind Kraken",
     "size": "360",
-    "aliases": "SDW/360|SDW360"
+    "aliases": "SDW/360|SDW360",
+    "span_cm": 36.0,
+    "area_cm2": 110.0
   },
   {
     "brand": "Sabfoil",
