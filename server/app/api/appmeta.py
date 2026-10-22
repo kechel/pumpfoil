@@ -223,7 +223,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.42",   # LIVE 2026-10-17: Play-Mail „Your update to Pumpfoil, created on Oct 13, 2026
+        "latest": "1.1.43",   # LIVE 2026-10-22: Play-Mail „Your update to Pumpfoil, created on Oct 18, 2026
+        # at 7:34 AM GMT, is live in the store" (Jans Meldung), gut 4 Tage Pruefung. Live-Upload des
+        # Handy-Recorders, gerade am Pumpen, Freunde, Heatmap & Routen, Schutzgebiete, Suunto-Bruecke (Beta).
+        # ALT: "latest": "1.1.42",   # LIVE 2026-10-17: Play-Mail „Your update to Pumpfoil, created on Oct 13, 2026
         # at 5:58 PM GMT, is live in the store" (Jans Meldung), gut 3 Tage Pruefung. Changelog-Seite in der App,
         # START wieder erreichbar, Handgelenk/Stance, Lage-Phasen, POB-Taste, Chat-Antworten, Gleitphasen.
         # ALT: "latest": "1.1.41",   # LIVE 2026-10-13: Play-Mail „Your update to Pumpfoil, created on Oct 9, 2026
@@ -399,7 +402,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.42",   # LIVE 2026-10-17, dieselbe Play-Mail wie android (1.1.42).
+        "latest": "1.2.43",   # LIVE 2026-10-22, dieselbe Play-Mail wie android (1.1.43). Uhr: Handy-Recorder-Zeile,
+        # Puls/GPS nach Unterwasser (Waechter), Spot-Meldung beim ersten GPS-Fix.
+        # ALT: "latest": "1.2.42",   # LIVE 2026-10-17, dieselbe Play-Mail wie android (1.1.42).
         # ALT: "latest": "1.2.41",   # LIVE 2026-10-13, dieselbe Play-Mail wie android. Uhr: GPS aus Health
         # Services nach Google-Doku + GPS-Waechter, ACTIVITY_RECOGNITION, R8-Keep-Regel fuer protobuf-lite.
         # ALT: "latest": "1.2.37",   # LIVE 2026-10-02, dieselbe Play-Mail wie android. Uhr: Sammel-Upload,
@@ -876,49 +881,8 @@ IN_REVIEW: list[dict] = [
     # Changelog: ids 669/670/677/680/683/684/698/699/701-707 tragen jetzt ios/apple 1.1.53, Ereignis 709.
     # iPhone + Apple Watch 1.1.52 (eingereicht 19.10., freigegeben 20.10.2026) -> LIVE, Punkte stehen im Changelog (ids 685-696).
     # Amazfit 1.0.14 am 22.10. FREIGEGEBEN -> raus (s. _APP_META["zepp"]); Punkte 596/597/598/628 tragen zepp 1.0.14.
-    # EINGEREICHT 18.10.2026 (Jans Meldung, Play Console „Änderungen, die überprüft werden — Schnelle
-    # Vorabprüfungen", Produktion 58 (1.1.43), Produktion (Wear OS) 1054 (1.2.43)). 57/1053 waren am 14.10.
-    # schon fuer Jans Test hochgeladen (verbraucht).
-    {"name": "Android phone + Wear OS", "version": "1.1.43 / 1.2.43",
-     "eingereicht": "2026-10-18",
-     "items": [
-         "The phone recorder uploads while you are still recording, so you can see on another device that it is running, and it can be switched off in your profile.",
-         "Home shows when your phone is recording and which of your watches is probably recording right now.",
-         "The stats line and the sessions list show how many riders are currently pumping, and the sessions list counts today's new sessions.",
-         "While recording, the stop button always stays on screen, the title bar is gone to give the map more room, and the map no longer flickers while you hold stop.",
-         "The run table shows how far your heart rate drops 60 and 120 seconds after each run.",
-         "The spot map turns spots green where someone is probably pumping right now, a spot page says so too, and you can switch yourself off in your profile.",
-         # 15.10.2026: Brett-Automatik (Server 700eb422), Hinweis wie in der PWA.
-         "When a session was marked as phone on the board automatically, the session page says so, and unticking it keeps it off for good.",
-         # 15.10.2026: Freunde wie in der PWA (c9adcea8).
-         "You can become friends with other riders on their rider page and manage your friends in your profile; friends see your full rider page, your weight and where you are pumping right now.",
-         "The session list and the Community page have a Friends view with only you and your friends.",
-         "Home shows which of your friends are pumping right now and where.",
-         "The spot map has a heatmap of where riders pump, for the last 30 days or the last year.",
-         # 16.10.2026: Heatmap & Routen auf der Spot-Seite, Routen in der Community, Schutzgebiete
-         # (Android 0fecf406/f9f7de2a/38b89b0c, iOS 871a5329 + Folgecommit; PWA seit 16.10.).
-         "Every spot page has a heatmap of where riders pump or start, and you can plan freefoiling routes from the start spots riders really use there, as round trips or from A to B, including start spots of neighbouring spots within a radius you choose.",
-         "You can add your own points on the map, start spots where you have started before show in green, and good routes can be saved for everyone; the Community page lists all saved routes.",
-         "Nature reserves, Natura 2000 sites and marked no-swimming or no-boating areas are drawn on the maps, with a legend and a button to hide them.",
-         "Home links to your home spot, and wind directions use your app language.",
-         # 16.10.2026 abends (4b079268, fa8d11e4, f131cefa), wie die PWA.
-         "Friend requests show at the top of Home, where you can accept them directly or decline them quietly.",
-         "You can edit the name, volume and length of your boards in your setup afterwards.",
-         "Runs on the maps are always drawn as one line, and short GPS gaps in a run are bridged with a curve.",
-         # 18.10.2026: Abgleich vor dem Release (PWA seit 14.-17.10.).
-         "After you enter the code from your watch, the app only says connected once the watch has really picked up the connection, and tells you what to do if it does not.",
-         "Notifications about friends can be switched off in your settings.",
-         "The Suunto account card tells you which mode to record with.",
-         "The privacy section now also explains live uploads during a recording and the green active spots.",
-         # 17.10.2026: Suunto-Bruecke (Android 09b40b7a, iOS dfec0e83), Karte nur mit verknuepftem Suunto-Konto.
-         "With the Pumpfoil app on a Suunto watch and \u201cRaw data to phone app\u201d turned on there, the phone app receives the raw motion data while you ride and uploads it, so your pumps are analysed like on the other watches (beta).",
-         # --- Wear OS 1.2.43 ---
-         "The watch start screen tells you when your phone recorder is running, and closing the app lets the website know you are done.",
-         # 15.10.2026 (deb99c81): Waechter riss die Uebung ab, wenn die Uhr eine Weile im Wasser war (#16671).
-         "Heart rate and the more accurate GPS keep recording after your watch has been underwater for a few minutes.",
-         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-     ]},
+    # Android 1.1.43 / Wear 1.2.43 (eingereicht 18.10., freigegeben 22.10.2026) -> LIVE; 22 Punkte hatten schon
+    # iOS/Web-Zeilen im Changelog und tragen jetzt android/wear dazu (628 nur wear), 4 neue Punkte + Ereignis (721-725).
     # iPhone + Apple Watch 1.1.51 (eingereicht 18.10., freigegeben 19.10.2026) -> LIVE, Punkte stehen im Changelog.
     # EINGEREICHT 17.10.2026 abends (Jans Meldung, Apizone „SuuntoPlus Sports Apps"-Konsole, Paket app/app.zip
     # aus „Build SuuntoPlus App For All Languages", Version 1.00). Nie auf Hardware gelaufen (Jan hat keine
