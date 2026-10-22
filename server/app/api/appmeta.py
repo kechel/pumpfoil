@@ -53,7 +53,12 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.52 for iOS
+        "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.53 for iOS
+        # (Submission fcc5031b-bc3b-4e05-8a7c-a62827451ff7, eingereicht 21.10. 05:59, Build 61; Store-API de/us/ch
+        # 1.1.53, currentVersionReleaseDate 2026-10-21T20:01:27Z, gegengeprueft 22.10.).
+        # Inhalt: Wind-/Wellen-/Downwind-Kennzahlen, Jahreszahlen je Sportart, SUP/Wake-Thief-Auswertung,
+        # Kartenschalter, Fahrten-Tabelle, Rekorde und Verlauf je Sportart. Changelog ids 669-707 (+ios/apple), 709.
+        # ALT: "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.52 for iOS
         # (Submission 48f47157-a1f1-4e62-a19e-1e2669daa38d, eingereicht 19.10. 13:10, Build 60; Store-API de/us/ch
         # 1.1.52, currentVersionReleaseDate 2026-10-19T22:02:14Z, gegengeprueft 20.10.).
         # Inhalt: Sportarten-Umbau (Wind-Sessions, Wenden/Halsen, Fahrten, Rekorde/Ausruestung je Sportart,
@@ -438,7 +443,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.49",   # FREIGEGEBEN 2026-10-15 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -843,25 +849,8 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 21.10.2026 05:59 (Jans Meldung, App Store Connect „Warten auf Prüfung", Übermittlung fcc5031b), Build 61;
-    # vorher alle Ansichten auf dem iPhone und Uhr im Simulator getestet (#17681-17683 sauber).
-    {"name": "iPhone + Apple Watch", "version": "1.1.53",
-     "eingereicht": "2026-10-21",
-     "items": [
-         "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
-         "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
-         "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
-         "The wind box compares your speed on the foil with your other sessions at similar wind.",
-         "Home shows per month how many of your tacks and jibes stayed on the foil.",
-         "A session that looks like a wind session offers you to change the sport; you can also dismiss the hint.",
-         "Session pages show the sport at the top as an orange badge, like the session list, and the wind, tack and upwind boxes show only the numbers, without explanation texts.",
-         "SUP sessions show your paddle strokes and every paddle-up attempt with its sprint strokes and whether you got onto the foil.",
-         "Wake thief sessions show time and distance on the wake and pumped separately, and count pumps only in the pumped part.",
-         "SUP, wake thief and downwind sessions can switch the map between the whole session and only the time on the foil; SUP marks the paddle-up sprints with their number and shows your paddle strokes, wake thief marks the stretches on the wake.",
-         "Wind sessions show per ride how many tacks and jibes stayed on the foil, the distance gained upwind, the best VMG and the wind at that time; rides and paddle-up attempts are sortable tables below the map, headed with the sport.",
-         "New records per sport (for example best jibe share, best VMG, most paddle-ups onto the foil, longest stretch on the wake) for the community, per spot and per time window, and your own records per sport on Home and on your profile.",
-         "The history page shows your success on the foil per sport over time: jibes and tacks on the foil, paddle-ups onto the foil and the share on the wake.",
-     ]},
+    # iPhone + Apple Watch 1.1.53 am 22.10. FREIGEGEBEN -> raus (s. _APP_META["ios"]/["apple"]); Punkte im
+    # Changelog: ids 669/670/677/680/683/684/698/699/701-707 tragen jetzt ios/apple 1.1.53, Ereignis 709.
     # iPhone + Apple Watch 1.1.52 (eingereicht 19.10., freigegeben 20.10.2026) -> LIVE, Punkte stehen im Changelog (ids 685-696).
     # EINGEREICHT 18.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
     # Vor der Einreichung im Simulator (npm run dev-echt): Positionsmeldung 200, app-closed 200, Upload
