@@ -230,6 +230,11 @@ final class Recorder: NSObject, ObservableObject {
     //     der Accel-Achse, und die gemessene Rate liefe ueber die Pause hinweg.
     //  2. DIE PAUSE IST DIE GELEGENHEIT ZUM HOCHLADEN — s. `teilUpload()`.
     @Published var isPaused = false
+    /// Zaehlt hoch, wenn eine Pause wieder 10 min alt ist (Jan, 22.10.2026: Erinnerung IMMER, nicht
+    /// abschaltbar). ContentView reagiert darauf mit Vibration + Sprung auf die Aktionsseite. Anlass
+    /// #17726: eine Pause (vermutlich Wasser/Aermel) blieb 85 min unbemerkt, die Laeufe danach fehlten.
+    @Published var pauseMahnung = 0
+    private var pauseMahnungenBisher = 0
     private var pausedMs = 0
     private var pauseStart = Date()
     private var pauseBeiMs = 0
@@ -241,9 +246,20 @@ final class Recorder: NSObject, ObservableObject {
         return Int(Date().timeIntervalSince(startedAt) * 1000) - pausedMs
     }
 
+    /// Alle 10 min in der Pause einmal `pauseMahnung` hochzaehlen (Takt: der 1-s-Timer laeuft weiter).
+    private func pauseMahnungPruefen() {
+        guard isRecording, isPaused else { return }
+        let n = Int(Date().timeIntervalSince(pauseStart) / 600)
+        if n > pauseMahnungenBisher {
+            pauseMahnungenBisher = n
+            pauseMahnung += 1
+        }
+    }
+
     /// Aufnahme PAUSIEREN: Sensoren aus, Session offen, Bisheriges darf hochgehen.
     func pause() {
         guard isRecording, !isPaused else { return }
+        pauseMahnungenBisher = 0
         pauseBeiMs = elapsedMs()        // Position auf der aktiven Achse, VOR dem Anhalten
         isPaused = true
         pauseStart = Date()
@@ -359,6 +375,7 @@ final class Recorder: NSObject, ObservableObject {
             Task { @MainActor in
                 self.elapsed = Date().timeIntervalSince(self.startedAt)
                 self.updateFoiling()
+                self.pauseMahnungPruefen()
             }
         }
         flushTask = Task { await self.flushLoop() }
