@@ -658,8 +658,9 @@ def complete_session(
     if body.tanz is not None and (s.sport or "") == "dance":
         from .. import tanz as _tanz   # Tanz-App (21.10.2026), nur sport == "dance"
         fu = _tanz.fenster_entpacken(body.tanz_fenster)
-        _tanz.speichern(s.session_uuid, _tanz.aus_uhr(body.tanz), "uhr", (fu or {}).get("fenster"),
-                        _tanz.orte_entpacken(body.tanz_orte))
+        with _tanz.sperre(s.session_uuid):
+            _tanz.speichern(s.session_uuid, _tanz.aus_uhr(body.tanz), "uhr", (fu or {}).get("fenster"),
+                            _tanz.orte_entpacken(body.tanz_orte))
     s.status = "complete"
     db.commit()
 

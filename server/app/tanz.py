@@ -12,7 +12,10 @@ tempo (Auf-und-ab-Bewegungen je min, Median), dreh (Anteil gedrehter Fenster in 
 """
 from __future__ import annotations
 
+import fcntl
 import json
+import os
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from . import storage
@@ -101,10 +104,25 @@ def laden(uuid: str) -> dict | None:
         return None
 
 
+@contextmanager
+def sperre(uuid: str):
+    """Lesen-Aendern-Schreiben exklusiv ueber alle Worker. 22.10.2026: vier gleichzeitige Web-Korrekturen
+    (#18834) lasen eine halb geschriebene Datei als leer und schrieben sie ohne uhr/fenster_uhr/orte zurueck."""
+    with open(storage.ensure_session_dir(uuid) / "tanz.lock", "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
 def speichern(uuid: str, abschnitte: list[dict], quelle: str, fenster_uhr: list | None = None,
               orte: list | None = None) -> dict:
     d = {"abschnitte": abschnitte, "quelle": quelle, "stand": datetime.now(timezone.utc).isoformat()}
     alt = laden(uuid)
+    p = storage.ensure_session_dir(uuid) / "tanz.json"
+    if alt is None and p.exists():
+        raise RuntimeError(f"tanz.json von {uuid} unlesbar — nicht ueberschreiben (Rohwerte der Uhr gingen verloren)")
     if orte is not None:
         d["orte"] = orte
     elif alt and alt.get("orte") is not None:
@@ -117,8 +135,9 @@ def speichern(uuid: str, abschnitte: list[dict], quelle: str, fenster_uhr: list 
         d["uhr"] = alt["uhr"]                       # Original der Uhr bleibt fuer den Vergleich erhalten
     elif quelle == "uhr":
         d["uhr"] = abschnitte
-    p = storage.ensure_session_dir(uuid) / "tanz.json"
-    p.write_text(json.dumps(d, ensure_ascii=False))
+    tmp = p.with_name(f"tanz.json.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(d, ensure_ascii=False))
+    os.replace(tmp, p)                              # Leser sehen nie eine halbe Datei
     return d
 
 
