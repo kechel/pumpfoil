@@ -26,6 +26,32 @@ from . import models
 log = logging.getLogger(__name__)
 
 
+# Was aus KONTOVERKNUEPFUNGEN (Suunto, Polar, COROS, Strava) ueberhaupt eine Session wird (Jan, 22.10.2026):
+# „aus Kontoverknuepfungen sollten wir generell keine Sessions importieren ohne GPS, das brauche ja nur ich fuer
+# meine Tanz-Idee, und vielleicht sollten wir auch nichts importieren was aelter als 1.1.2026 ist, einfach generell".
+# Anlass: am 21.10. durften Suunto-Workouts ohne GPS kurz Sessions werden (d08cf5b2) — der naechste Abgleich legte
+# einem Nutzer 907 Yoga-/Dehn-/Meditations-Sessions bis zurueck 2019 an. Der manuelle FIT-Upload ist NICHT betroffen.
+IMPORT_AB = datetime(2026, 1, 1, tzinfo=timezone.utc)
+
+
+def zu_alt(started_at) -> bool:
+    """Liegt der Start vor `IMPORT_AB`? Ohne Zeit -> nein (dann entscheidet der GPS-Test)."""
+    if started_at is None:
+        return False
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    return started_at < IMPORT_AB
+
+
+def konto_import_grund(parsed: dict) -> str | None:
+    """None = importieren. Sonst „kein gps" bzw. „zu alt" (interne Gruende wie bei Suunto)."""
+    if not parsed.get("gps_samples") or parsed.get("started_at") is None:
+        return "kein gps"
+    if zu_alt(parsed.get("started_at")):
+        return "zu alt"
+    return None
+
+
 def merken(db: Session, user_id: int, provider: str, sport_key: str,
            label: str | None = None, hat_gps: bool | None = None,
            label_erzwingen: bool = False, zaehlen: bool = True) -> models.ImportSportPref:

@@ -1487,6 +1487,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **22.10. — WIEDERVORLAGE (Jan): Kommt Mäse (u763) mit Suunto rein?** Er versuchte am 21.10. 17:34–17:57 ~40-mal zu
+  verbinden (invalid_client-Stoerung, behoben 22.10.). DM von Konto 230 am 22.10. (id 3047). Pruefen: liest er sie /
+  hat er einen `suunto_links`-Eintrag? Wenn nicht -> Jan schreibt ihn EINMALIG per E-Mail an.
+- **22.10. — Kontoverknuepfungen: keine Sessions ohne GPS, nichts vor 1.1.2026** (Jan; `importsports.konto_import_grund`,
+  Suunto/Polar/COROS/COROS-MCP/Strava; manueller FIT-Upload unberuehrt). d08cf5b2 (21.10., Suunto ohne GPS -> Session)
+  damit zurueck: ein Abgleich hatte u848 907 Indoor-Sessions bis 2019 angelegt. 1008 Suunto-Sessions ohne GPS geloescht
+  (Jans OK), Sicherung `/opt/foil/backups/pumpfoil.org/manuell-20261022-suunto-ohne-gps/` (db.dump vorher,
+  session-ordner.tar.gz, geloeschte-sessions.json). Keine enthielt pf_-Kanaele der SuuntoPlus-App.
+
 - **21.10. — ✅ BEHOBEN 22.10. — SUUNTO: Token-Endpunkt lehnte UNSERE App-Zugangsdaten ab (`401 invalid_client`), seit 21.10. zwischen 05:00 und 13:38.** Behebung: Jan hat im Portal (Production API → Authorization) ein Client Secret (64 Zeichen) eingetragen, das in `server/.env` ersetzt (vorher 37 Zeichen, Sicherung `.env.bak-20261022`), Neustart, Probe -> `invalid_grant` = Client gueltig. Ursache bei Suunto unbekannt (wie am 28.07. vermutlich Portal-Daten verloren). Nachholen: Workouts von u848/u70 aus der Stoerung (naechster Nachtsync), u763 erneut verbinden lassen.
   Nachtsync ~04:45 lief noch (last_sync_at der Links). Erster Fehler 13:38 (refresh u848), dann u70 (17:53) und u763
   (11 Verbindungsversuche 17:34-17:57, alle gescheitert). Probe mit unsinnigem refresh_token -> ebenfalls `invalid_client`
