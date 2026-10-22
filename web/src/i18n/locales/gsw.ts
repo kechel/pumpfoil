@@ -2153,6 +2153,7 @@ const gsw: Record<string, string> = {
   "spots.onlyActive": "Grad aktiv",
   "spots.heatmap": "Heatmap",
   "spots.heatmapRoutes": "Heatmap & Route",
+  "spots.heatNoRecent": "Do häts im letschte Johr kei Läuf gäh, drum sind Heatmap und Routevorschläg leer. Gspichereti Route und eigeni Pünkt gönd trotzdem.",
   "spots.heatHint": "Farb = wie vill Sessions det gfahre worde sind (nur d Läuf), täglich aktualisiert.",
   "spots.heatOff": "Us",
   "spots.heatFoil": "Uf em Foil",
