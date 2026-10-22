@@ -8,7 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Up
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from .. import kontensync, models
+from .. import kontensync, models, tanz
 from ..config import get_settings
 from ..accounts import ist_store_roboter_adresse
 from .. import loeschung
@@ -309,6 +309,8 @@ def export_me(user: models.User = Depends(current_user), db: Session = Depends(g
             # „Rate this analysis" (eigene Bewertung der Auswertung), s. api/bewertung.py
             "rating": next(({"answers": _j(b.antworten_json), "comment": b.kommentar}
                             for b in db.query(models.SessionBewertung).filter_by(session_id=s.id, user_id=user.id).all()), None),
+            # Tanz-App: Abschnitte, Uhr-Original, Rhythmus-Werte, GPS-Fixe (app/tanz.py), nur bei Tanz-Sessions
+            "dance": tanz.laden(db, s.id),
         })
     return {
         "exported_at": datetime.now(timezone.utc).isoformat(),

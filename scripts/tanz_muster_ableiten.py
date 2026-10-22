@@ -31,8 +31,7 @@ def lade(sid):
 
 def web_korrekturen(sid):
     """Jans Korrekturen in der Tabelle „Taenze" (quelle web) — die staerkste Wahrheit."""
-    s = SessionLocal().get(models.Session, sid)
-    d = tanz.laden(s.session_uuid) or {}
+    d = tanz.laden(SessionLocal(), sid) or {}
     return [(r["start_ms"], r.get("ende_ms") or r["start_ms"], r["gewaehlt"]) for r in d.get("abschnitte") or []
             if r.get("quelle") == "web" and r.get("gewaehlt") and r["gewaehlt"] != "kein"]
 
@@ -52,7 +51,7 @@ def quellen():
             out.append((f"{e['id']}#{i}", key, teil))
     for e in w["marker_sessions"]:
         s, fs = lade(e["id"])
-        d = tanz.laden(s.session_uuid) or {}
+        d = tanz.laden(SessionLocal(), e["id"]) or {}
         mk = [(m["start_ms"], m["gewaehlt"]) for m in (d.get("uhr") or d.get("abschnitte") or []) if m.get("quelle") == "marker"]
         for i, (von, bis, key) in enumerate(ta.marker_deuten(mk, fs)):
             out.append((f"{e['id']}m{i}", key, [f for f in frei(e["id"], fs) if von <= f["t_ms"] < bis]))

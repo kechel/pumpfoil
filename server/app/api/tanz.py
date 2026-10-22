@@ -18,7 +18,7 @@ def _eigene_tanz_session(db, sid: int, user) -> models.Session:
     s = db.get(models.Session, sid)
     # Auch aeltere Tanz-Sessions aus der Pumpfoil-App (vor der Tanz-App), sobald es eine Auswertung gibt.
     if s is None or s.deleted or s.user_id != user.id or (
-            (s.sport or "") != "dance" and tanz.laden(s.session_uuid) is None):
+            (s.sport or "") != "dance" and db.get(models.TanzSession, s.id) is None):
         raise HTTPException(404, "Keine eigene Tanz-Session")
     return s
 
@@ -46,15 +46,16 @@ def _antwort(s: models.Session, abschnitte: list[dict]) -> dict:
 @router.get("/{sid}/tanz")
 def tanz_lesen(sid: int, db: Session = Depends(get_db), user=Depends(current_user)):
     s = _eigene_tanz_session(db, sid, user)
-    d = tanz.laden(s.session_uuid) or {"abschnitte": []}
+    d = tanz.laden(db, s.id) or {"abschnitte": []}
     return _antwort(s, d.get("abschnitte") or [])
 
 
 @router.put("/{sid}/tanz")
 def tanz_korrigieren(sid: int, body: dict = Body(...), db: Session = Depends(get_db), user=Depends(current_user)):
     s = _eigene_tanz_session(db, sid, user)
-    with tanz.sperre(s.session_uuid):
-        alt = (tanz.laden(s.session_uuid) or {}).get("abschnitte") or []
-        neu = tanz.aus_web(body.get("abschnitte"), alt)
-        d = tanz.speichern(s.session_uuid, neu, "web")
+    if tanz.sperren(db, s.id) is None:          # Zeilensperre bis zum Commit (parallele Korrekturen warten)
+        return _antwort(s, [])
+    alt = tanz.laden(db, s.id)["abschnitte"]
+    d = tanz.speichern(db, s.id, tanz.aus_web(body.get("abschnitte"), alt), "web")
+    db.commit()
     return _antwort(s, d["abschnitte"])

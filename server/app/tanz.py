@@ -3,7 +3,8 @@
 NUR fuer Sessions mit sport == "dance". Nichts hier beruehrt die Pumpfoil-Auswertung (Regel „nur
 Pumpfoil -> Tanz", CLAUDE.md). Die Uhr erkennt Abschnitte und schlaegt einen Tanz vor, Jan bestaetigt
 oder aendert ihn am Handgelenk oder spaeter im Web — gesammelt wird die Wahrheit fuer eine bessere
-Erkennung. Abgelegt als data/<uuid>/tanz.json (keine DB-Spalte: create_all legt keine Spalten an).
+Erkennung. Abgelegt in den Tabellen tanz_sessions/tanz_abschnitte/tanz_fenster/tanz_orte (models.py);
+bis 22.10.2026 als data/<uuid>/tanz.json (uebernommen von scripts/tanz_json_in_db.py, Dateien bleiben liegen).
 
 Format je Abschnitt: start_ms, ende_ms (Session-ms, wie die Accel-Zeitachse), vorschlag (Uhr, oder
 None bei manuell), gewaehlt (None = unbestaetigt),
@@ -12,19 +13,16 @@ tempo (Auf-und-ab-Bewegungen je min, Median), dreh (Anteil gedrehter Fenster in 
 """
 from __future__ import annotations
 
-import fcntl
-import json
-import os
-from contextlib import contextmanager
 from datetime import datetime, timezone
 
-from . import storage
+from . import models
 
 TAENZE = ("lw", "tango", "ww", "slowfox", "quickstep", "samba", "chacha", "rumba", "paso", "jive",
           "salsa", "bachata", "discofox", "boogie", "kein")
 # 4 nur Tanz-App 0.4; 5 = Marker (ab 0.5 jede Bestaetigung): nur ein Hinweis, gedeutet wird hier, nicht auf der Uhr.
 QUELLEN_UHR = {0: "auto", 1: "bestaetigt", 2: "geaendert", 3: "manuell", 4: "nachtraeglich", 5: "marker"}
 MAX_ABSCHNITTE = 500
+_ZEILE = ("start_ms", "ende_ms", "vorschlag", "gewaehlt", "quelle", "tempo", "dreh")
 
 
 def _key(v):
@@ -80,7 +78,7 @@ def fenster_entpacken(roh) -> dict | None:
 
 def orte_entpacken(roh) -> list[dict] | None:
     """GPS-Fixe der Tanz-App (TanzSensoren.mc, alle 30 min ein Einzel-Fix, 21.10.2026):
-    `[[t_ms, lat, lon, genauigkeit], ...]`. Liegen NUR hier (tanz.json, Besitzer), nie im GPS-Kanal —
+    `[[t_ms, lat, lon, genauigkeit], ...]`. Liegen NUR hier (tanz_orte, Besitzer), nie im GPS-Kanal —
     keine Karte, kein Spot; Jans Fernbild ist ohnehin nur Stadt/Ortsteil."""
     if not isinstance(roh, list):
         return None
@@ -96,49 +94,62 @@ def orte_entpacken(roh) -> list[dict] | None:
     return out
 
 
-def laden(uuid: str) -> dict | None:
-    p = storage.session_dir(uuid) / "tanz.json"
-    try:
-        return json.loads(p.read_text())
-    except (OSError, ValueError):
+def laden(db, session_id: int) -> dict | None:
+    """Alles zu einer Tanz-Session in der frueheren Form: abschnitte, uhr, fenster_uhr, orte, quelle, stand.
+    None, wenn es keine Tanz-Auswertung gibt."""
+    kopf = db.get(models.TanzSession, session_id)
+    if kopf is None:
         return None
+    ab = db.query(models.TanzAbschnitt).filter_by(session_id=session_id).order_by(models.TanzAbschnitt.pos).all()
+    fe = db.query(models.TanzFenster).filter_by(session_id=session_id).order_by(models.TanzFenster.t_ms).all()
+    orte = db.query(models.TanzOrt).filter_by(session_id=session_id).order_by(models.TanzOrt.t_ms).all()
+    zeile = lambda a: {k: getattr(a, k) for k in _ZEILE}
+    uhr = [zeile(a) for a in ab if a.uhr]
+    return {
+        "abschnitte": [zeile(a) for a in ab if not a.uhr],
+        "uhr": uhr or None,
+        "fenster_uhr": [{"t_ms": f.t_ms, "tempo": f.tempo, "klar": f.klar, "quer": f.quer, "umdr": f.umdr}
+                        for f in fe] or None,
+        "orte": [{"t_ms": o.t_ms, "lat": o.lat, "lon": o.lon, "genauigkeit": o.genauigkeit} for o in orte] or None,
+        "quelle": kopf.quelle, "stand": kopf.stand.isoformat() if kopf.stand else None, "notiz": kopf.notiz,
+    }
 
 
-@contextmanager
-def sperre(uuid: str):
-    """Lesen-Aendern-Schreiben exklusiv ueber alle Worker. 22.10.2026: vier gleichzeitige Web-Korrekturen
-    (#18834) lasen eine halb geschriebene Datei als leer und schrieben sie ohne uhr/fenster_uhr/orte zurueck."""
-    with open(storage.ensure_session_dir(uuid) / "tanz.lock", "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+def sperren(db, session_id: int) -> models.TanzSession | None:
+    """Kopfzeile mit SELECT … FOR UPDATE: gleichzeitige Korrekturen warten bis zum Commit aufeinander
+    (22.10.2026: vier parallele Web-Korrekturen haben die fruehere tanz.json zerschrieben)."""
+    return db.query(models.TanzSession).filter_by(session_id=session_id).with_for_update().one_or_none()
 
 
-def speichern(uuid: str, abschnitte: list[dict], quelle: str, fenster_uhr: list | None = None,
-              orte: list | None = None) -> dict:
-    d = {"abschnitte": abschnitte, "quelle": quelle, "stand": datetime.now(timezone.utc).isoformat()}
-    alt = laden(uuid)
-    p = storage.ensure_session_dir(uuid) / "tanz.json"
-    if alt is None and p.exists():
-        raise RuntimeError(f"tanz.json von {uuid} unlesbar — nicht ueberschreiben (Rohwerte der Uhr gingen verloren)")
-    if orte is not None:
-        d["orte"] = orte
-    elif alt and alt.get("orte") is not None:
-        d["orte"] = alt["orte"]
+def speichern(db, session_id: int, abschnitte: list[dict], quelle: str, fenster_uhr: list | None = None,
+              orte: list | None = None, uhr: list | None = None) -> dict:
+    """Aktuelle Tabelle ersetzen; das Uhr-Original wird nur beim ersten Mal geschrieben (bzw. mit `uhr`
+    ausdruecklich), Fenster und Orte nur, wenn mitgegeben. Committet NICHT — das macht der Aufrufer."""
+    kopf = sperren(db, session_id)
+    if kopf is None:
+        kopf = models.TanzSession(session_id=session_id, quelle=quelle)
+        db.add(kopf)
+    kopf.quelle = quelle
+    kopf.stand = datetime.now(timezone.utc)
+    T = models.TanzAbschnitt
+    hat_uhr = db.query(T.id).filter_by(session_id=session_id, uhr=True).first() is not None
+    if uhr is None and not hat_uhr and quelle == "uhr":
+        uhr = abschnitte
+    if uhr is not None:
+        db.query(T).filter_by(session_id=session_id, uhr=True).delete()
+        db.add_all(T(session_id=session_id, uhr=True, pos=i, **{k: a.get(k) for k in _ZEILE}) for i, a in enumerate(uhr))
+    db.query(T).filter_by(session_id=session_id, uhr=False).delete()
+    db.add_all(T(session_id=session_id, uhr=False, pos=i, **{k: a.get(k) for k in _ZEILE}) for i, a in enumerate(abschnitte))
     if fenster_uhr is not None:
-        d["fenster_uhr"] = fenster_uhr
-    elif alt and alt.get("fenster_uhr") is not None:
-        d["fenster_uhr"] = alt["fenster_uhr"]
-    if alt and alt.get("uhr") is not None:
-        d["uhr"] = alt["uhr"]                       # Original der Uhr bleibt fuer den Vergleich erhalten
-    elif quelle == "uhr":
-        d["uhr"] = abschnitte
-    tmp = p.with_name(f"tanz.json.{os.getpid()}.tmp")
-    tmp.write_text(json.dumps(d, ensure_ascii=False))
-    os.replace(tmp, p)                              # Leser sehen nie eine halbe Datei
-    return d
+        db.query(models.TanzFenster).filter_by(session_id=session_id).delete()
+        db.add_all(models.TanzFenster(session_id=session_id, **{k: f.get(k) for k in ("t_ms", "tempo", "klar", "quer", "umdr")})
+                   for f in fenster_uhr)
+    if orte is not None:
+        db.query(models.TanzOrt).filter_by(session_id=session_id).delete()
+        db.add_all(models.TanzOrt(session_id=session_id, **{k: o.get(k) for k in ("t_ms", "lat", "lon", "genauigkeit")})
+                   for o in orte)
+    db.flush()
+    return laden(db, session_id)
 
 
 def aus_web(neu, alt: list[dict]) -> list[dict]:
