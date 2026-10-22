@@ -751,6 +751,7 @@ const pt: Record<string, string> = {
   "rate.rated": "Sua avaliação",
   "rate.recheckTile": "Avalie de novo",
   "rate.recheck": "Analisamos sua avaliação e melhoramos algo. Confira a análise e avalie de novo.",
+  "rate.recheckBanner": "Avalie de novo: melhoramos algo nestas sessões e queremos saber se agora está certo.",
   "rate.title": "Avaliar a análise",
   "rate.intro": "Ajuda a melhorar a detecção de voltas e pumps. Tudo é opcional e só você e a equipe do pumpfoil.org podem ver.",
   "rate.stars": "Quanto a análise combina com a sua sessão?",

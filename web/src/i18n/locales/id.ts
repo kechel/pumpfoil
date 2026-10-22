@@ -751,6 +751,7 @@ const id: Record<string, string> = {
   "rate.rated": "Penilaianmu",
   "rate.recheckTile": "Nilai lagi",
   "rate.recheck": "Kami sudah melihat penilaianmu dan memperbaiki sesuatu. Silakan cek analisisnya dan nilai lagi.",
+  "rate.recheckBanner": "Nilai lagi: kami memperbaiki sesuatu pada sesi-sesi ini dan ingin tahu apakah sekarang sudah pas.",
   "rate.title": "Nilai analisis",
   "rate.intro": "Membantu kami memperbaiki deteksi run dan pump. Semuanya opsional dan hanya kamu serta tim pumpfoil.org yang bisa melihatnya.",
   "rate.stars": "Seberapa cocok analisis dengan sesimu?",

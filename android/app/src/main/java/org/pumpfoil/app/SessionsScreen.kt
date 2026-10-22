@@ -327,6 +327,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                      accelOnly = accelOnly, sport = sport, board = brett, freunde = scope == Scope.FRIENDS)
             // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
             UploadProgressCard(onOpen = { onOpen(it, null) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+            if (scope == Scope.MINE) NeuBewertenHinweis(onOpen = { onOpen(it, null) })
             // Scope-Umschalter + Accel/alle-Umschalter in EINER umbrechenden Zeile.
             //
             // Vorher: die Scope-Chips lagen in einem waagerecht scrollbaren Row mit `weight(1f)`,
@@ -595,9 +596,9 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
             name = null, spot = s.placeName, sportLabel = null,
             kennzahlen = if (a != null) sessionStatsTeile(a, m) else emptyList(),
             liked = s.liked, likeCount = s.likeCount, modifier = modifier,
-            abzeichen = if (s.transferTo != null || s.status != "analyzed") {
+            abzeichen = if (s.neuBewerten == true || s.transferTo != null || s.status != "analyzed") {
                 {
-                    Text(if (s.transferTo != null) I18n.t("transfer.badge") else statusLabel(s.status),
+                    Text(if (s.neuBewerten == true) I18n.t("rate.recheckTile") else if (s.transferTo != null) I18n.t("transfer.badge") else statusLabel(s.status),
                         style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary,
                         maxLines = 1, softWrap = false)
                 }
@@ -674,8 +675,16 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
             Box(Modifier.padding(start = 50.dp)) { VergleichKnopf(s.id, inCompare) }
             // Fußzeile für Transfer-/Status-/Klassifikations-Badge (Like ist unter dem Avatar).
             val classified = isClassified(s.sportClass, s.dataQuality)
-            if (s.transferTo != null || s.status != "analyzed" || classified || s.needsClassification) {
+            if (s.neuBewerten == true || s.transferTo != null || s.status != "analyzed" || classified || s.needsClassification) {
                 Row(Modifier.fillMaxWidth().padding(top = 6.dp, start = 50.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Rueckfrage an der eigenen Bewertung („Back to rider"), bis neu bewertet — wie Web.
+                    if (s.neuBewerten == true) {
+                        Surface(color = Color(0x33F59E0B), shape = RoundedCornerShape(4.dp)) {
+                            Text(I18n.t("rate.recheckTile"), Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall, color = Color(0xFFB45309))
+                        }
+                        Spacer(Modifier.width(8.dp))
+                    }
                     // Sportart/Datenqualität, sobald sie von Pumpfoil abweicht — damit man auf der
                     // Karte sieht, warum die Session in keiner Auswertung auftaucht. „Bitte zuordnen"
                     // hat Vorrang: da ist noch nichts entschieden.
@@ -704,6 +713,27 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
                         Text(statusLabel(s.status), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.tertiary)
                     }
+                }
+            }
+        }
+    }
+}
+
+// Oben in „Meine Sessions": Sessions, an deren Bewertung wir nachgefragt haben (wie Web NeuBewertenHinweis).
+// Die betroffene Session kann alt sein und tief unten stehen.
+@Composable
+internal fun NeuBewertenHinweis(onOpen: (Int) -> Unit) {
+    var ids by remember { mutableStateOf<List<Int>>(emptyList()) }
+    LaunchedEffect(Unit) { ids = try { Api.neuBewerten() } catch (_: Exception) { emptyList() } }
+    if (ids.isEmpty()) return
+    Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+        border = BorderStroke(1.dp, Color(0xFFF59E0B))) {
+        Column(Modifier.padding(12.dp)) {
+            Text(I18n.t("rate.recheckBanner"), style = MaterialTheme.typography.bodyMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ids.forEach { id ->
+                    Text("#$id", color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { onOpen(id) }.padding(top = 6.dp))
                 }
             }
         }

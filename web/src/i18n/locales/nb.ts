@@ -766,6 +766,7 @@ const nb: Record<string, string> = {
   "rate.rated": "Din vurdering",
   "rate.recheckTile": "Vurder på nytt",
   "rate.recheck": "Vi har sett på vurderingen din og forbedret noe. Sjekk analysen og vurder den på nytt.",
+  "rate.recheckBanner": "Vurder på nytt: vi har forbedret noe på disse øktene og vil gjerne vite om det stemmer nå.",
   "rate.title": "Vurder analysen",
   "rate.intro": "Hjelper oss å forbedre gjenkjenningen av runs og pumps. Alt er frivillig, og bare du og pumpfoil.org-teamet kan se det.",
   "rate.stars": "Hvor godt passer analysen til økten din?",

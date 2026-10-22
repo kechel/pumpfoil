@@ -989,8 +989,16 @@ def list_sessions(
             lbl = dmap.get(s.device_id) if s.device_id else None
             if lbl:
                 o.device_label = lbl.split("/")[0].strip()
-    # Vorschaubilder (neuestes Foto je Session) in einem Rutsch nachladen (kein N+1).
+    # Rueckfrage an der eigenen Bewertung (api/bewertung.py) -> Hinweis in der Liste, im Batch.
     ids = [s.id for s in rows]
+    if ids:
+        nb = {sid for (sid,) in db.query(models.SessionBewertung.session_id).filter(
+            models.SessionBewertung.session_id.in_(ids), models.SessionBewertung.user_id == user.id,
+            models.SessionBewertung.status == "rueckfrage")}
+        for o in outs:
+            if o.id in nb:
+                o.neu_bewerten = True
+    # Vorschaubilder (neuestes Foto je Session) in einem Rutsch nachladen (kein N+1).
     if ids:
         thumb: dict[int, str] = {}
         count: dict[int, int] = {}

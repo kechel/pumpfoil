@@ -1545,6 +1545,12 @@ object Api {
     }
 
     // „Rate this analysis" (22.10.2026, wie Web): nur Besitzer. Antwort {bewertung: {...}|null, laeufe_jetzt}.
+    // Eigene Sessions mit Rueckfrage an der Bewertung („Back to rider") — Hinweis oben in der Liste.
+    suspend fun neuBewerten(): List<Int> = withContext(Dispatchers.IO) {
+        json.parseToJsonElement(http("GET", "/api/bewertungen/neu-bewerten", null, auth = true)).jsonArray
+            .mapNotNull { (it.jsonObject["session_id"] as? JsonPrimitive)?.intOrNull }
+    }
+
     suspend fun bewertung(sessionId: Int): JsonObject = withContext(Dispatchers.IO) {
         json.parseToJsonElement(http("GET", "/api/sessions/$sessionId/bewertung", null, auth = true)).jsonObject
     }

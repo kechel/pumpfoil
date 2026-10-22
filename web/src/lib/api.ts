@@ -411,6 +411,7 @@ export interface SessionSummary {
   video_url?: string | null;   // erstes Video jeder Plattform (nur anzeige-fähige Clients)
   thumb_url?: string | null;
   device_label?: string | null;
+  neu_bewerten?: boolean | null;   // eigene Liste: Rueckfrage an der Bewertung
   device_model?: string | null;
   // Kam ein Kreisel mit? Nur die Handy-Recorder liefern einen, Uhren nicht — Gate fuer die
   // Lage-Ansicht (ohne Kreisel gaebe es dort nur eine verrauschte Neigung und kein Gieren).
@@ -1176,6 +1177,7 @@ export const api = {
   adminBewertungen: (erledigte = false) => req<{ bewertungen: AdminBewertung[]; anzahl_erledigt: number }>(`/api/admin/bewertungen${erledigte ? "?erledigte=true" : ""}`),
   adminBewertungStatus: (id: number, status: BewertungStatus, notiz?: string, antwort?: string) =>
     req<{ id: number; status: BewertungStatus; status_notiz: string; antwort_fahrer: string }>(`/api/admin/bewertungen/${id}`, { method: "PUT", body: JSON.stringify({ status, notiz, antwort }) }),
+  neuBewerten: () => req<{ session_id: number; gefahren: string | null }[]>("/api/bewertungen/neu-bewerten"),
   adminBewertungLoeschen: (id: number) => req<{ ok: boolean }>(`/api/admin/bewertungen/${id}`, { method: "DELETE" }),
   tanzAbschnitte: (sid: number) => req<TanzDaten>(`/api/sessions/${sid}/tanz`),
   tanzKorrigieren: (sid: number, abschnitte: { index: number; gewaehlt: string | null }[]) =>

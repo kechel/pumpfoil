@@ -125,6 +125,7 @@ struct SessionSummary: Codable, Identifiable {
     let placement: String?     // "board" = Handy war am Brett -> Abzeichen hervorgehoben
     let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
     let transfer_to: String?   // offene Übertragung → Badge
+    let neu_bewerten: Bool?    // Rueckfrage an der eigenen Bewertung → Badge „Bitte neu bewerten“
     // Sportart-Klassifikation durch Menschen (docs/sport-classification.md) — NICHT `sport`,
     // das ist der Aktivitätstyp aus der Aufnahmedatei.
     let sport_class: String?

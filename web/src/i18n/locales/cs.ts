@@ -775,6 +775,7 @@ const cs: Record<string, string> = {
   "rate.rated": "Tvoje hodnocení",
   "rate.recheckTile": "Ohodnoť znovu",
   "rate.recheck": "Podívali jsme se na tvoje hodnocení a něco jsme vylepšili. Zkontroluj prosím analýzu a ohodnoť ji znovu.",
+  "rate.recheckBanner": "Ohodnoť znovu: u těchto sessions jsme něco vylepšili a rádi bychom věděli, jestli to teď sedí.",
   "rate.title": "Ohodnotit analýzu",
   "rate.intro": "Pomáhá nám zlepšit rozpoznávání jízd a pumpů. Vše je nepovinné a vidíš to jen ty a tým pumpfoil.org.",
   "rate.stars": "Jak dobře analýza odpovídá tvé session?",

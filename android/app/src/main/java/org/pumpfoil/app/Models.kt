@@ -183,6 +183,7 @@ data class SessionSummary(
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
     val placement: String? = null,   // "board" = Handy war am Brett -> Abzeichen hervorgehoben
     @SerialName("transfer_to") val transferTo: String? = null,      // offene Übertragung → Badge
+    @SerialName("neu_bewerten") val neuBewerten: Boolean? = null,  // Rueckfrage an der eigenen Bewertung → Badge
     // Sportart-Klassifikation durch Menschen (docs/sport-classification.md) — NICHT `sport`, das ist
     // der Aktivitätstyp aus der Aufnahmedatei.
     @SerialName("sport_class") val sportClass: String? = null,

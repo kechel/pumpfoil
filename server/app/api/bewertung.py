@@ -125,6 +125,18 @@ def speichern(sid: int, body: dict = Body(...), db: Session = Depends(get_db), u
     return {"bewertung": _aus(b)}
 
 
+@router.get("/api/bewertungen/neu-bewerten")
+def neu_bewerten(db: Session = Depends(get_db), user=Depends(current_user)):
+    """Eigene Sessions, an deren Bewertung wir nachgefragt haben — fuer den Hinweis oben in der
+    Sessionliste (die betroffene Session kann alt sein und tief unten stehen)."""
+    rows = (db.query(models.SessionBewertung.session_id, models.Session.started_at)
+            .join(models.Session, models.SessionBewertung.session_id == models.Session.id)
+            .filter(models.SessionBewertung.user_id == user.id, models.SessionBewertung.status == "rueckfrage",
+                    models.Session.deleted.isnot(True))
+            .order_by(models.Session.started_at.desc()).all())
+    return [{"session_id": sid, "gefahren": st.isoformat() if st else None} for sid, st in rows]
+
+
 @router.get("/api/admin/bewertungen")
 def admin_liste(limit: int = 200, erledigte: bool = False, db: Session = Depends(get_db), _a=Depends(current_admin)):
     """Neueste zuerst, mit Nutzername und Session-Daten (Admin-Tab „Bewertungen"). Erledigte nur auf
