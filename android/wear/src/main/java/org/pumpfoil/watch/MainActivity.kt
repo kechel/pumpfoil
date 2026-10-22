@@ -755,6 +755,10 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 pager.scrollToPage(firstData)
                 vibrate(ctx, 200)
             }
+            // Pause wieder 10 min alt (PauseMahnung, vibriert selbst): auf die Aktionsseite mit „Fortsetzen".
+            LaunchedEffect(s.pauseMahnung) {
+                if (s.pauseMahnung > 0 && s.paused) pager.scrollToPage(0)
+            }
             // Lauf beginnt / endet: anderer Satz -> vorne anfangen und vibrieren, wie Garmin. Aber
             // NUR, wer gerade Daten ansieht: auf Garmin ist das Aktionsmenue eine eigene Ansicht,
             // die ein Lauf-Wechsel nicht anfasst. In der Pause haengt der Satz nicht am Lauf.
