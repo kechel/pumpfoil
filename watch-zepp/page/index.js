@@ -65,6 +65,9 @@ const UNLOCK_MS = 10000;
 // `_letzteSeite`. Als Konstante, weil zwei Stellen darauf zuruecksetzen und ein vergessenes
 // Nachziehen den Fahrer nach jedem Zustandswechsel auf dem Stopp-Bildschirm abliefern wuerde.
 const ERSTE_DATENSEITE = 2;
+// Erinnerung in der Pause (Jan, 22.10.2026): alle 10 min drei lange Stoesse + Sprung auf die Aktionsseite
+// (Fortsetzen, „Pausiert"). IMMER, nicht abschaltbar. Anlass #17726: Pause 85 min unbemerkt (Apple Watch).
+const PAUSE_MAHNUNG_MS = 600000;
 
 // Obergrenze fuer den gesicherten Profil-Stand (s. `_configSichern`). Ein volles Profil mit
 // eigenen Layouts liegt weit darunter; die Grenze ist da, damit ein unerwartet grosser Server-
@@ -2782,6 +2785,7 @@ Page(
       const L = VIBRATOR_SCENE_DURATION_LONG, K = VIBRATOR_SCENE_SHORT_MIDDLE;
       const folge = muster === "short1" ? [K]
                   : muster === "long2"  ? [L, L]
+                  : muster === "long3"  ? [L, L, L]
                   : muster === "lsl"    ? [L, K, L]
                   : [K, K];                        // short2 (Vorgabe)
       if (s._almPattTimer) { clearTimeout(s._almPattTimer); s._almPattTimer = null; }
@@ -3316,6 +3320,7 @@ Page(
         // PAUSE: kein Punkt, keine Distanz, keine Lauf-Erkennung. `_aktivMs()` steht still —
         // saemtliche Punkte der Pause haetten denselben Zeitstempel bekommen. Gezeichnet wird
         // weiter, damit die Upload-Meldung auf der Pause-Seite sichtbar bleibt.
+        this._pauseMahnen();
         this.renderRecording();
       } else if (s.recording) {
         const el = this._aktivMs();
@@ -3570,6 +3575,7 @@ Page(
       s.pauseBeiMs = this._aktivMs();   // Position auf der aktiven Achse, VOR dem Anhalten
       s.paused = true;
       s.pauseStartMs = Date.now();
+      s.pauseMahnungen = 0;
       this._stopGps();
       this._stopAccel();
       this.persistActive();
@@ -3577,6 +3583,24 @@ Page(
       this._zustandGewechselt();
       this.applyButton(); this.renderRecording();
       this._teilUpload();
+    },
+
+    /**
+     * Alle PAUSE_MAHNUNG_MS in der Pause: drei lange Stoesse und auf die Aktionsseite (Seite 0, oben der
+     * Knopf „Fortsetzen", „Pausiert" daneben). Takt: die 1-Hz-Schleife `sample` laeuft in der Pause weiter.
+     */
+    _pauseMahnen() {
+      const s = this.state;
+      if (!s.recording || !s.paused || !s.pauseStartMs) return;
+      const n = Math.floor((Date.now() - s.pauseStartMs) / PAUSE_MAHNUNG_MS);
+      if (n <= (s.pauseMahnungen || 0)) return;
+      s.pauseMahnungen = n;
+      this._vibratePattern("long3");
+      if (s.page !== 0) {
+        this._cancelStopBack();
+        s.page = 0;
+        this.applyButton();
+      }
     },
 
     /** Aufnahme FORTSETZEN: Pausendauer aufaddieren, Sensoren wieder scharf. */
