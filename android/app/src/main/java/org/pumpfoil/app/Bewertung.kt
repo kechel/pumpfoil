@@ -122,7 +122,7 @@ fun BewertungKachel(sessionId: Int, modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
-    if (offen) BewertungDialog(sessionId, antworten, kommentar, laeufeJetzt, hatEcht = antworten.laeufeEcht != null,
+    if (offen) BewertungDialog(sessionId, antworten, kommentar, laeufeJetzt,
         onDismiss = { offen = false },
         onSaved = { a, k -> antworten = a; kommentar = k; hat = true; offen = false })
 }
@@ -130,13 +130,13 @@ fun BewertungKachel(sessionId: Int, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BewertungDialog(
-    sessionId: Int, alt: Antworten, altKommentar: String, laeufeJetzt: Int?, hatEcht: Boolean,
+    sessionId: Int, alt: Antworten, altKommentar: String, laeufeJetzt: Int?,
     onDismiss: () -> Unit, onSaved: (Antworten, String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var a by remember { mutableStateOf(alt) }
-    var echt by remember { mutableStateOf(alt.laeufeEcht?.toString() ?: laeufeJetzt?.toString() ?: "") }
-    var echtGeaendert by remember { mutableStateOf(hatEcht) }
+    // Leer starten, unsere Zahl nur als Hinweis (22.10.2026, wie Web): was drinsteht, wird gespeichert.
+    var echt by remember { mutableStateOf(alt.laeufeEcht?.toString() ?: "") }
     var kommentar by remember { mutableStateOf(altKommentar) }
     var busy by remember { mutableStateOf(false) }
     var fehler by remember { mutableStateOf(false) }
@@ -173,7 +173,8 @@ private fun BewertungDialog(
                 }
                 Titel("rate.runsReal")
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(value = echt, onValueChange = { v -> echt = v.filter { it.isDigit() }.take(3); echtGeaendert = true },
+                    OutlinedTextField(value = echt, onValueChange = { v -> echt = v.filter { it.isDigit() }.take(3) },
+                        placeholder = { laeufeJetzt?.let { Text(it.toString()) } },
                         singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.width(96.dp))
                     laeufeJetzt?.let {
@@ -218,7 +219,7 @@ private fun BewertungDialog(
         confirmButton = {
             TextButton(enabled = !busy, onClick = {
                 val n = echt.toIntOrNull()
-                val senden = a.copy(laeufeEcht = if (echtGeaendert && n != null) n else null,
+                val senden = a.copy(laeufeEcht = n,
                     problemeArt = if (a.probleme == true) a.problemeArt else emptyList())
                 busy = true; fehler = false
                 scope.launch {
