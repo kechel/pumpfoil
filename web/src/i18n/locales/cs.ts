@@ -773,6 +773,8 @@ const cs: Record<string, string> = {
   "sd.runN": "· Jízda {n}",
   "rate.tile": "Ohodnotit analýzu",
   "rate.rated": "Tvoje hodnocení",
+  "rate.recheckTile": "Ohodnoť znovu",
+  "rate.recheck": "Podívali jsme se na tvoje hodnocení a něco jsme vylepšili. Zkontroluj prosím analýzu a ohodnoť ji znovu.",
   "rate.title": "Ohodnotit analýzu",
   "rate.intro": "Pomáhá nám zlepšit rozpoznávání jízd a pumpů. Vše je nepovinné a vidíš to jen ty a tým pumpfoil.org.",
   "rate.stars": "Jak dobře analýza odpovídá tvé session?",

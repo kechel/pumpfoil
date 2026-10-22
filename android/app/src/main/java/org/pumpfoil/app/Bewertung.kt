@@ -1,5 +1,9 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -92,6 +96,8 @@ fun BewertungKachel(sessionId: Int, modifier: Modifier = Modifier) {
     var antworten by remember(sessionId) { mutableStateOf(Antworten()) }
     var kommentar by remember(sessionId) { mutableStateOf("") }
     var laeufeJetzt by remember(sessionId) { mutableStateOf<Int?>(null) }
+    // Unsere Rueckfrage („Back to rider" im Admin-Tab), bis neu bewertet wird — wie im Web.
+    var rueckfrage by remember(sessionId) { mutableStateOf<String?>(null) }
     var offen by remember { mutableStateOf(false) }
     LaunchedEffect(sessionId) {
         try {
@@ -101,11 +107,13 @@ fun BewertungKachel(sessionId: Int, modifier: Modifier = Modifier) {
             hat = b != null
             antworten = ausJson(b?.get("antworten")?.jsonObject)
             kommentar = (b?.get("kommentar") as? JsonPrimitive)?.contentOrNull ?: ""
+            rueckfrage = ((b?.get("rueckfrage") as? JsonObject)?.get("text") as? JsonPrimitive)?.contentOrNull
         } catch (_: Exception) {}
         geladen = true
     }
     if (!geladen) return
-    Card(modifier.clickable { offen = true }) {
+    Card(modifier.clickable { offen = true },
+        border = if (rueckfrage != null) BorderStroke(1.dp, Color(0xFFF59E0B)) else null) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val st = antworten.sterne
@@ -118,19 +126,19 @@ fun BewertungKachel(sessionId: Int, modifier: Modifier = Modifier) {
                     else -> Icon(Icons.Outlined.StarOutline, null, tint = MaterialTheme.colorScheme.primary)
                 }
             }
-            Text(I18n.t(if (hat) "rate.rated" else "rate.tile"), style = MaterialTheme.typography.bodySmall,
+            Text(I18n.t(if (rueckfrage != null) "rate.recheckTile" else if (hat) "rate.rated" else "rate.tile"), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
-    if (offen) BewertungDialog(sessionId, antworten, kommentar, laeufeJetzt,
+    if (offen) BewertungDialog(sessionId, antworten, kommentar, laeufeJetzt, rueckfrage,
         onDismiss = { offen = false },
-        onSaved = { a, k -> antworten = a; kommentar = k; hat = true; offen = false })
+        onSaved = { a, k -> antworten = a; kommentar = k; hat = true; rueckfrage = null; offen = false })
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BewertungDialog(
-    sessionId: Int, alt: Antworten, altKommentar: String, laeufeJetzt: Int?,
+    sessionId: Int, alt: Antworten, altKommentar: String, laeufeJetzt: Int?, rueckfrage: String?,
     onDismiss: () -> Unit, onSaved: (Antworten, String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -158,6 +166,13 @@ private fun BewertungDialog(
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 Text(I18n.t("rate.intro"), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (rueckfrage != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Column(Modifier.border(1.dp, Color(0xFFF59E0B), RoundedCornerShape(8.dp)).padding(8.dp)) {
+                        Text(I18n.t("rate.recheck"), style = MaterialTheme.typography.labelLarge, color = Color(0xFFF59E0B))
+                        Text(rueckfrage, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
                 Titel("rate.stars")
                 Row {
                     (1..5).forEach { n ->

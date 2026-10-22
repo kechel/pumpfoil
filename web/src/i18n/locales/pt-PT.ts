@@ -756,6 +756,8 @@ const ptPT: Record<string, string> = {
   "sd.runN": "· volta {n}",
   "rate.tile": "Avaliar a análise",
   "rate.rated": "A tua avaliação",
+  "rate.recheckTile": "Avalia de novo",
+  "rate.recheck": "Analisámos a tua avaliação e melhorámos algo. Verifica a análise e avalia-a de novo.",
   "rate.title": "Avaliar a análise",
   "rate.intro": "Ajuda-nos a melhorar a deteção de voltas e pumps. Tudo é opcional e só tu e a equipa do pumpfoil.org podem ver.",
   "rate.stars": "Quanto corresponde a análise à tua sessão?",

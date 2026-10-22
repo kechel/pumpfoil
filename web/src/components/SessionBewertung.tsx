@@ -44,7 +44,7 @@ export function SessionBewertungKachel({ sessionId }: { sessionId: number }) {
   return (
     <>
       <button type="button" onClick={() => setOffen(true)}
-        className="overflow-hidden rounded-xl border border-dashed border-slate-700 bg-slate-900/60 p-1.5 text-left hover:border-brand-500">
+        className={`overflow-hidden rounded-xl border bg-slate-900/60 p-1.5 text-left hover:border-brand-500 ${b?.rueckfrage ? "border-amber-500" : "border-dashed border-slate-700"}`}>
         <div className="flex items-baseline gap-0.5 leading-none text-brand-400">
           {b
             ? (sterne
@@ -53,7 +53,7 @@ export function SessionBewertungKachel({ sessionId }: { sessionId: number }) {
             : <StarIcon className="h-5 w-5" />}
         </div>
         <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">
-          {b ? t("rate.rated") : t("rate.tile")}
+          {b?.rueckfrage ? t("rate.recheckTile") : b ? t("rate.rated") : t("rate.tile")}
         </div>
       </button>
       {offen && (
@@ -107,6 +107,13 @@ function BewertungDialog({ sessionId, alt, laeufeJetzt, onClose, onSaved }: {
           <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
         </div>
         <p className="mb-3 text-xs text-slate-400">{t("rate.intro")}</p>
+        {/* Rueckfrage von uns („Back to rider" im Admin-Tab), bis neu bewertet wird. */}
+        {alt?.rueckfrage && (
+          <div className="mb-3 rounded-lg border border-amber-500/60 bg-amber-500/10 p-2 text-sm text-slate-100">
+            <div className="font-medium text-amber-700 dark:text-amber-300">{t("rate.recheck")}</div>
+            <div className="mt-1 whitespace-pre-wrap">{alt.rueckfrage.text}</div>
+          </div>
+        )}
 
         <Frage titel={t("rate.stars")}>
           {[1, 2, 3, 4, 5].map((n) => (

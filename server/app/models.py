@@ -1512,6 +1512,10 @@ class SessionBewertung(Base):
     status: Mapped[str] = mapped_column(String(12), default="offen", server_default="offen")
     status_notiz: Mapped[str | None] = mapped_column(Text)
     status_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Bei „rueckfrage": unsere Nachricht an den Fahrer — geht als 1:1 raus und steht an seiner Bewertung,
+    # bis er neu bewertet. `status_notiz` bleibt intern.
+    antwort_fahrer: Mapped[str | None] = mapped_column(Text)
+    antwort_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 

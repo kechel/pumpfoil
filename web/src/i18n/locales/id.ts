@@ -749,6 +749,8 @@ const id: Record<string, string> = {
   "sd.runN": "· run {n}",
   "rate.tile": "Nilai analisis",
   "rate.rated": "Penilaianmu",
+  "rate.recheckTile": "Nilai lagi",
+  "rate.recheck": "Kami sudah melihat penilaianmu dan memperbaiki sesuatu. Silakan cek analisisnya dan nilai lagi.",
   "rate.title": "Nilai analisis",
   "rate.intro": "Membantu kami memperbaiki deteksi run dan pump. Semuanya opsional dan hanya kamu serta tim pumpfoil.org yang bisa melihatnya.",
   "rate.stars": "Seberapa cocok analisis dengan sesimu?",

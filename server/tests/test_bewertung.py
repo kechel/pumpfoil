@@ -66,7 +66,11 @@ def test_bewertung_besitzer_admin_und_loeschen(client):
     assert next(x for x in d["bewertungen"] if x["id"] == bid)["status_notiz"] == "gefixt"
     assert client.put(f"/api/admin/bewertungen/{bid}", headers=auth, json={"status": "quatsch"}).status_code == 400
     # Rueckfrage an den Fahrer; seine Neubewertung macht sie wieder offen
-    client.put(f"/api/admin/bewertungen/{bid}", headers=auth, json={"status": "rueckfrage"})
+    assert client.put(f"/api/admin/bewertungen/{bid}", headers=auth, json={"status": "rueckfrage"}).status_code == 400
+    assert client.put(f"/api/admin/bewertungen/{bid}", headers=auth,
+                      json={"status": "rueckfrage", "antwort": "Bitte nochmal pruefen"}).status_code == 200
+    rf = client.get(f"/api/sessions/{sid}/bewertung", headers=auth).json()["bewertung"]["rueckfrage"]
+    assert rf["text"] == "Bitte nochmal pruefen"
     client.put(f"/api/sessions/{sid}/bewertung", headers=auth, json={"antworten": {"sterne": 5}})
     assert next(x for x in client.get("/api/admin/bewertungen", headers=auth).json()["bewertungen"]
                 if x["id"] == bid)["status"] == "offen"
@@ -81,3 +85,39 @@ def test_bewertung_besitzer_admin_und_loeschen(client):
         assert db.query(models.SessionBewertung).filter_by(session_id=sid).count() == 0
     finally:
         db.close()
+
+
+def test_rueckfrage_schickt_dm_an_den_fahrer(client):
+    """„Back to rider": die Nachricht geht als 1:1 vom Admin an den Fahrer, mit Link zur Session."""
+    from app.db import SessionLocal
+    from app import models
+    fahrer, uhr = _konto(client, "bew-fahrer@b.de")
+    admin, _ = _konto(client, "bew-admin@b.de")
+    sid = _session(client, uhr, "bewertung-dm")
+    client.put(f"/api/sessions/{sid}/bewertung", headers=fahrer, json={"antworten": {"laeufe": "fehlen"}})
+    db = SessionLocal()
+    try:
+        a = db.query(models.User).filter_by(email="bew-admin@b.de").one()
+        f = db.query(models.User).filter_by(email="bew-fahrer@b.de").one()
+        a.is_admin = True
+        db.commit()
+        aid, fid = a.id, f.id
+    finally:
+        db.close()
+    bid = next(x["id"] for x in client.get("/api/admin/bewertungen", headers=admin).json()["bewertungen"]
+               if x["session_id"] == sid)
+    r = client.put(f"/api/admin/bewertungen/{bid}", headers=admin,
+                   json={"status": "rueckfrage", "antwort": "Wir haben die Lauferkennung verbessert."})
+    assert r.status_code == 200, r.text
+    lo, hi = sorted([aid, fid])
+    db = SessionLocal()
+    try:
+        m = db.query(models.ChatMessage).filter_by(scope=f"dm:{lo}-{hi}").one()
+        assert m.user_id == aid and "Lauferkennung" in m.text and f"/sessions/{sid}" in m.text
+    finally:
+        db.close()
+    b = client.get(f"/api/sessions/{sid}/bewertung", headers=fahrer).json()["bewertung"]
+    assert b["rueckfrage"]["text"] == "Wir haben die Lauferkennung verbessert."
+    # Neubewertung: Rueckfrage verschwindet aus der Kachel, Status wieder offen
+    b = client.put(f"/api/sessions/{sid}/bewertung", headers=fahrer, json={"antworten": {"laeufe": "alle"}}).json()["bewertung"]
+    assert b["rueckfrage"] is None

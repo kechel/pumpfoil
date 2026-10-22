@@ -583,6 +583,8 @@ const deAT: Record<string, string> = {
   "sd.runN": "· Lauf {n}",
   "rate.tile": "Auswertung bewerten",
   "rate.rated": "Deine Bewertung",
+  "rate.recheckTile": "Bitte neu bewerten",
+  "rate.recheck": "Wir haben uns deine Bewertung angeschaut und etwas verbessert. Bitte prüf die Auswertung und bewerte sie neu.",
   "rate.title": "Auswertung bewerten",
   "rate.intro": "Hilft uns, die Lauf- und Pump-Erkennung zu verbessern. Alles ist freiwillig und nur für dich und das pumpfoil.org-Team sichtbar.",
   "rate.stars": "Wie gut passt die Auswertung zu deiner Session?",
