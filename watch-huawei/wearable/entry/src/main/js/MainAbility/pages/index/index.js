@@ -66,7 +66,7 @@ export default {
     this.tStart = this.tx.start;
     this.tFertig = this.tx.done;
     this.dw = 466; this.dh = 466; this.lite = true;
-    this.seite = 2; this.zustandVorher = ""; this.haltAktion = ""; this.wegScharf = false;
+    this.seite = 2; this.zustandVorher = ""; this.haltAktion = ""; this.wegScharf = false; this.mahnVorher = R ? R.mahnung : 0;
     var that0 = this;
     device.getInfo({ success: function (d) {
       if (d.windowWidth > 0) { that0.dw = d.windowWidth; that0.dh = d.windowHeight; }
@@ -132,6 +132,8 @@ export default {
       if (this.zustandVorher === "p" || c.zustand === "p") this.seite = 2;
       this.zustandVorher = c.zustand;
     }
+    // Pause-Erinnerung (recorder.js pauseMahnen, vibriert selbst): auf die Aktionsseite mit „Fortsetzen"
+    if (R.mahnung !== this.mahnVorher) { this.mahnVorher = R.mahnung; if (c.zustand === "p" && R.mahnung > 0) this.seite = 0; }
     var ring = S.ring(c.k, c.zustand);
     var gesamt = ring.length + 4;
     if (this.seite > gesamt - 1) this.seite = gesamt - 1;

@@ -82,6 +82,7 @@ struct Index {
   @State gesperrt: boolean = false;
   @State sperrHinweis: boolean = false;
   private seite: number = 2;
+  private mahnungVorher: number = 0;   // Recorder.pauseMahnung beim letzten Zeichnen
   private zustandVorher: string = '';
   private texte: Map<string, string> = new Map<string, string>();
   private leinwandBereit: boolean = false;
@@ -169,6 +170,13 @@ struct Index {
     const z: Zustand = r.zustand();
     const k: Konfig = r.konfigJetzt();
     const pausiert: boolean = z.modus === 'pause';
+    // Pause-Erinnerung (Recorder.pauseMahnungPruefen, vibriert selbst): auf die Aktionsseite mit „Fortsetzen".
+    if (r.pauseMahnung !== this.mahnungVorher) {
+      this.mahnungVorher = r.pauseMahnung;
+      if (pausiert && !this.sperre()) {
+        this.seite = 0;
+      }
+    }
     // Frueher „Paused 1:43" in einer Zeile: ragte auf dem runden Display ueber den Rand und las
     // sich wie die Pausendauer (war aber die Fahrzeit). Jetzt in der Pause nur „Paused" wie Garmin.
     this.zeit = zeitText(z.ms);
@@ -767,6 +775,9 @@ struct Index {
           .margin({ top: 8 })
           .onClick(() => this.verwerfenTipp())
       } else {
+        if (this.pausiertKopf !== '') {   // STOPP-Seite in der Pause: wie auf allen anderen Uhren sichtbar
+          Text(this.pausiertKopf).fontSize(20).fontColor(CYAN).maxLines(1)
+        }
         Text(this.zeit).fontSize(28).fontColor('#ffffff')
         Text(this.strecke).fontSize(24).fontColor('#ffffff')
         this.knopf(this.tStopp, ROT, 'stopp')
