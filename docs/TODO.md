@@ -1489,6 +1489,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **22.10. — PRUEFEN (Apple Watch): Vorab-Upload in der Pause lief im Simulator nicht.** #18807 (Jans Watch-Simulator, 1.1.54):
+  Pause 17:29:21, laut Server-Log KEINE Anfrage der Watch bis zum Stopp 17:40:05 (dann alles vollstaendig, 4/4). Nach dem Code
+  (`Recorder.pause` -> `teilUpload`: flushAll, startSession, Bloecke, /analyze) haette sie sofort senden muessen, auch halbvoll.
+  Nicht aus den Aenderungen vom 22.10. Beim naechsten Pausieren mit der ECHTEN Watch pruefen, ob waehrend der Pause etwas ankommt.
+
 - **22.10. — BESCHLOSSEN (Jan), noch nicht gebaut: In der Pause alle 10 min deutlich vibrieren + „Pausiert – fortsetzen?“.**
   Anlass Bartosz u354 (#17726, Apple Watch 1.1.52): Pause um 17:09 trotz 2-s-Halten (vermutlich Wasser/Aermel), erst
   85 min spaeter aus der Pause gestoppt, alle Laeufe danach verloren; die Uhr gab beim Pausieren nur EINEN Klick.
