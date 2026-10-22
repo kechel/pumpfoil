@@ -262,6 +262,7 @@ struct RecordView: View {
         }
         .onChange(of: rec.isFoiling) { _ in onFoilingChanged() }
         .onChange(of: rec.isPaused) { _ in onPausedChanged() }
+        .onChange(of: rec.pauseMahnung) { _ in onPauseMahnung() }
         .overlay(alignment: .top) { topBadges }
     }
 
@@ -324,6 +325,17 @@ struct RecordView: View {
     private func onPausedChanged() {
         page = 2
         WKInterfaceDevice.current().play(.click)
+    }
+
+    /// Pause wieder 10 min alt (Recorder.pauseMahnung): drei kraeftige Haptiken und auf die Aktionsseite
+    /// (Seite 0, Knopf „Fortsetzen", oben „Pausiert"). Immer, nicht abschaltbar (Jan, 22.10.2026).
+    private func onPauseMahnung() {
+        guard rec.isPaused else { return }
+        page = 0
+        let geraet = WKInterfaceDevice.current()
+        geraet.play(.notification)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { geraet.play(.notification) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) { geraet.play(.notification) }
     }
 
     /// Lauf beginnt / endet: anderer Satz -> vorne anfangen und klicken, wie Garmin. Aber NUR, wenn
