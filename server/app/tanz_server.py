@@ -95,10 +95,17 @@ def vorschlag(ws: list[dict], mu_alle: dict | None = None) -> str | None:
 
 
 def vorschlaege(fs: list[dict], abschnitte: list[dict]) -> list[str | None]:
-    """Je Zeile der Tabelle (start_ms/ende_ms in Session-ms) der Server-Vorschlag; None ohne Daten."""
+    """Je Zeile der Tabelle (start_ms/ende_ms in Session-ms) der Server-Vorschlag; None ohne Daten.
+    Marker-Zeilen haben keine Laenge (Zeitpunkt der Bestaetigung an der Uhr) — fuer sie gilt dieselbe
+    Deutung wie beim Lernen: der letzte zusammenhaengende Tanz davor (tanz_analyse.marker_deuten)."""
     out = []
     for r in abschnitte:
-        bis = r.get("ende_ms") or r["start_ms"]
-        ws = [f for f in fs if r["start_ms"] <= f["t_ms"] < bis]
+        von, bis = r["start_ms"], r.get("ende_ms")
+        if bis is None:                      # Abschnitt lief bis zum Ende der Aufnahme
+            bis = 10 ** 12
+        elif bis <= von:
+            d = ta.marker_deuten([(von, "x")], fs)
+            von, bis = d[0][:2] if d else (von, von)
+        ws = [f for f in fs if von <= f["t_ms"] < bis]
         out.append(vorschlag(ws) if ws else None)
     return out
