@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon, StarIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -1513,13 +1513,32 @@ function PhotosTab() {
 // Zahl beim Bewerten (Schnappschuss) — die Abweichung ist das Interessante fuer die Lauferkennung.
 function BewertungenTab() {
   const t = useT();
-  const { data, error } = useAsync(() => api.adminBewertungen());
+  const [erledigte, setErledigte] = useState(false);
+  const { data, error, setData } = useAsync(() => api.adminBewertungen(erledigte), [erledigte]);
   if (error) return <ErrorBox message={error} />;
   if (!data) return <Spinner />;
-  if (data.length === 0) return <Card className="p-8 text-center text-slate-300">{t("adm.noBewertungen")}</Card>;
+  const setzen = (b: AdminBewertung, status: BewertungStatus) => {
+    const notiz = status === "offen" ? undefined : window.prompt(t("adm.bewNotiz"), b.status_notiz) ?? undefined;
+    if (notiz === undefined && status !== "offen") return Promise.resolve();
+    return api.adminBewertungStatus(b.id, status, notiz).then((r) => setData({
+      anzahl_erledigt: data.anzahl_erledigt + (r.status === "erledigt" ? 1 : 0) - (b.status === "erledigt" ? 1 : 0),
+      bewertungen: data.bewertungen
+        .map((x) => (x.id === b.id ? { ...x, status: r.status, status_notiz: r.status_notiz } : x))
+        .filter((x) => erledigte || x.status !== "erledigt"),
+    }));
+  };
+  const loeschen = (b: AdminBewertung) => api.adminBewertungLoeschen(b.id).then(() => setData({
+    anzahl_erledigt: data.anzahl_erledigt - (b.status === "erledigt" ? 1 : 0),
+    bewertungen: data.bewertungen.filter((x) => x.id !== b.id),
+  }));
   return (
     <div className="space-y-2">
-      {data.map((b) => {
+      <label className="flex items-center justify-end gap-2 text-sm text-slate-300">
+        <input type="checkbox" checked={erledigte} onChange={(e) => setErledigte(e.target.checked)} />
+        {t("adm.bewZeigeErledigt", { n: data.anzahl_erledigt })}
+      </label>
+      {data.bewertungen.length === 0 && <Card className="p-8 text-center text-slate-300">{t("adm.noBewertungen")}</Card>}
+      {data.bewertungen.map((b) => {
         const a = b.antworten;
         const s = b.schnappschuss as { laeufe?: number | null; pumps?: number | null; algo?: string | null; geraet?: string | null; app?: string | null };
         const teile: string[] = [];
@@ -1529,13 +1548,16 @@ function BewertungenTab() {
         if (a.tempo_ok != null) teile.push(`${t("rate.speedOk")} ${a.tempo_ok ? t("rate.yes") : t("rate.no")}`);
         if (a.probleme != null) teile.push(`${t("rate.problems")} ${a.probleme ? t("rate.yes") : t("rate.no")}${(a.probleme_art ?? []).length ? ": " + (a.probleme_art ?? []).map((k) => t(`rate.prob.${k}`)).join(", ") : ""}`);
         return (
-          <Card key={`${b.session_id}-${b.user_id}`} className="p-3">
+          <Card key={b.id} className={`p-3 ${b.status === "erledigt" ? "opacity-60" : b.status === "rueckfrage" ? "border-amber-500/50" : ""}`}>
             <div className="mb-1 flex flex-wrap items-baseline gap-2 text-xs text-slate-400">
               <span className="font-medium text-brand-600 dark:text-brand-300">{b.name ?? `u${b.user_id}`}</span>
               <a href={`/sessions/${b.session_id}`} className="underline hover:text-slate-200">#{b.session_id}</a>
               <span>{b.gefahren ? new Date(b.gefahren).toLocaleDateString() : ""}</span>
               <span>{b.aktualisiert ? new Date(b.aktualisiert).toLocaleString() : ""}</span>
               <span>{[s.geraet, s.app, s.algo].filter(Boolean).join(" · ")}</span>
+              {b.status !== "offen" && (
+                <span className="rounded bg-slate-800 px-1.5 py-0.5 font-medium text-amber-700 dark:text-amber-300">{t(`adm.bewStatus.${b.status}`)}</span>
+              )}
             </div>
             {a.sterne != null && (
               <div className="mb-1 flex text-brand-400">
@@ -1544,6 +1566,13 @@ function BewertungenTab() {
             )}
             {teile.length > 0 && <ul className="text-sm text-slate-200">{teile.map((x, i) => <li key={i}>{x}</li>)}</ul>}
             {b.kommentar && <div className="mt-1 whitespace-pre-wrap text-sm text-slate-100">„{b.kommentar}“</div>}
+            {b.status_notiz && <div className="mt-1 text-sm text-slate-300">{t("adm.bewNotizLabel")} {b.status_notiz}</div>}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {b.status !== "erledigt" && <Act tone="green" onClick={() => setzen(b, "erledigt")}>{t("adm.bewErledigt")}</Act>}
+              {b.status !== "rueckfrage" && <Act tone="amber" onClick={() => setzen(b, "rueckfrage")}>{t("adm.bewRueckfrage")}</Act>}
+              {b.status !== "offen" && <Act tone="slate" onClick={() => setzen(b, "offen")}>{t("adm.bewOffen")}</Act>}
+              <Act tone="red" confirm={t("adm.bewLoeschenConfirm")} onClick={() => loeschen(b)}>{t("adm.bewLoeschen")}</Act>
+            </div>
           </Card>
         );
       })}

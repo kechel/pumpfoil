@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import json
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -30,6 +32,7 @@ LAEUFE = ("alle", "fehlen", "zuviele", "zerstueckelt")
 PUMPS = ("wenig", "passt", "viel", "weiss_nicht")
 PROBLEME = ("abbruch", "pause", "gps", "upload", "akku", "bedienung", "sonstiges")
 MAX_KOMMENTAR = 2000
+STATUS = ("offen", "rueckfrage", "erledigt")
 
 
 def _eigene(db: Session, sid: int, user: models.User) -> models.Session:
@@ -111,17 +114,59 @@ def speichern(sid: int, body: dict = Body(...), db: Session = Depends(get_db), u
     b.antworten_json = json.dumps(antworten)
     b.kommentar = kommentar
     b.schnappschuss_json = json.dumps(_schnappschuss(db, s))
+    if b.status != "offen":     # neu bewertet (z. B. nach unserer Rueckfrage) -> wieder ansehen
+        b.status, b.status_at = "offen", datetime.now(timezone.utc)
     db.commit()
     db.refresh(b)
     return {"bewertung": _aus(b)}
 
 
 @router.get("/api/admin/bewertungen")
-def admin_liste(limit: int = 200, db: Session = Depends(get_db), _a=Depends(current_admin)):
-    """Neueste zuerst, mit Nutzername und Session-Daten (Admin-Tab „Bewertungen")."""
-    rows = (db.query(models.SessionBewertung, models.User.display_name, models.Session.started_at)
-            .join(models.User, models.SessionBewertung.user_id == models.User.id)
-            .join(models.Session, models.SessionBewertung.session_id == models.Session.id)
-            .order_by(models.SessionBewertung.updated_at.desc()).limit(max(1, min(limit, 1000))).all())
-    return [{"session_id": b.session_id, "user_id": b.user_id, "name": name,
-             "gefahren": st.isoformat() if st else None, **(_aus(b) or {})} for b, name, st in rows]
+def admin_liste(limit: int = 200, erledigte: bool = False, db: Session = Depends(get_db), _a=Depends(current_admin)):
+    """Neueste zuerst, mit Nutzername und Session-Daten (Admin-Tab „Bewertungen"). Erledigte nur auf
+    Wunsch; `anzahl_erledigt` sagt, wie viele ausgeblendet sind."""
+    B = models.SessionBewertung
+    q = (db.query(B, models.User.display_name, models.Session.started_at)
+         .join(models.User, B.user_id == models.User.id)
+         .join(models.Session, B.session_id == models.Session.id))
+    if not erledigte:
+        q = q.filter(B.status != "erledigt")
+    rows = q.order_by(B.updated_at.desc()).limit(max(1, min(limit, 1000))).all()
+    return {"bewertungen": [{"id": b.id, "session_id": b.session_id, "user_id": b.user_id, "name": name,
+                             "gefahren": st.isoformat() if st else None, "status": b.status or "offen",
+                             "status_notiz": b.status_notiz or "",
+                             "status_at": b.status_at.isoformat() if b.status_at else None, **(_aus(b) or {})}
+                            for b, name, st in rows],
+            "anzahl_erledigt": db.query(B).filter(B.status == "erledigt").count()}
+
+
+def status_setzen(db: Session, bid: int, status: str, notiz: str | None = None) -> models.SessionBewertung:
+    """Auch fuer Skripte (scripts/bewertung-status.py): Claude setzt erledigt/rueckfrage, wenn ein
+    gemeldetes Problem gefixt bzw. an den Fahrer zurueckgegeben ist (Jan, 22.10.2026)."""
+    if status not in STATUS:
+        raise HTTPException(400, "Unbekannter Status")
+    b = db.get(models.SessionBewertung, bid)
+    if b is None:
+        raise HTTPException(404, "Keine Bewertung")
+    b.status, b.status_at = status, datetime.now(timezone.utc)
+    if notiz is not None:
+        b.status_notiz = notiz.strip()[:MAX_KOMMENTAR] or None
+    return b
+
+
+@router.put("/api/admin/bewertungen/{bid}")
+def admin_status(bid: int, body: dict = Body(...), db: Session = Depends(get_db), _a=Depends(current_admin)):
+    b = status_setzen(db, bid, str(body.get("status") or ""), body.get("notiz"))
+    db.commit()
+    return {"id": b.id, "status": b.status, "status_notiz": b.status_notiz or ""}
+
+
+@router.delete("/api/admin/bewertungen/{bid}")
+def admin_loeschen(bid: int, db: Session = Depends(get_db), _a=Depends(current_admin)):
+    """Endgueltig weg — gedacht fuer Testbewertungen."""
+    b = db.get(models.SessionBewertung, bid)
+    if b is None:
+        raise HTTPException(404, "Keine Bewertung")
+    db.delete(b)
+    db.commit()
+    return {"ok": True}

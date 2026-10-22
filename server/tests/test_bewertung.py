@@ -54,8 +54,26 @@ def test_bewertung_besitzer_admin_und_loeschen(client):
         u.is_admin = True; db.commit()
     finally:
         db.close()
-    liste = client.get("/api/admin/bewertungen", headers=auth).json()
-    assert any(x["session_id"] == sid and x["antworten"] == {"laeufe": "alle"} for x in liste)
+    liste = client.get("/api/admin/bewertungen", headers=auth).json()["bewertungen"]
+    eintrag = next(x for x in liste if x["session_id"] == sid)
+    assert eintrag["antworten"] == {"laeufe": "alle"} and eintrag["status"] == "offen"
+    bid = eintrag["id"]
+    # erledigt -> ausgeblendet, mit Schalter wieder da
+    assert client.put(f"/api/admin/bewertungen/{bid}", headers=auth, json={"status": "erledigt", "notiz": "gefixt"}).status_code == 200
+    d = client.get("/api/admin/bewertungen", headers=auth).json()
+    assert all(x["id"] != bid for x in d["bewertungen"]) and d["anzahl_erledigt"] >= 1
+    d = client.get("/api/admin/bewertungen?erledigte=true", headers=auth).json()
+    assert next(x for x in d["bewertungen"] if x["id"] == bid)["status_notiz"] == "gefixt"
+    assert client.put(f"/api/admin/bewertungen/{bid}", headers=auth, json={"status": "quatsch"}).status_code == 400
+    # Rueckfrage an den Fahrer; seine Neubewertung macht sie wieder offen
+    client.put(f"/api/admin/bewertungen/{bid}", headers=auth, json={"status": "rueckfrage"})
+    client.put(f"/api/sessions/{sid}/bewertung", headers=auth, json={"antworten": {"sterne": 5}})
+    assert next(x for x in client.get("/api/admin/bewertungen", headers=auth).json()["bewertungen"]
+                if x["id"] == bid)["status"] == "offen"
+    # Admin loescht eine Testbewertung
+    assert client.delete(f"/api/admin/bewertungen/{bid}", headers=auth).status_code == 200
+    assert client.delete(f"/api/admin/bewertungen/{bid}", headers=auth).status_code == 404
+    client.put(f"/api/sessions/{sid}/bewertung", headers=auth, json={"kommentar": "nochmal"})
     # Konto loeschen: Bewertung faellt mit, kein Fremdschluessel-Fehler
     assert client.request("DELETE", "/api/auth/me", headers=auth).status_code in (200, 204)
     db = SessionLocal()

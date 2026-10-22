@@ -99,6 +99,10 @@ def _migrate_add_indexes() -> None:
         # (eigene Nachricht, DSGVO) darf nie an einer Antwort haengen bleiben; fehlt das Original,
         # zeigt die Antwort „nicht mehr verfuegbar".
         "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS reply_to_id INTEGER",
+        # Bewertungen: Bearbeitungsstand (22.10.2026, s. models.SessionBewertung).
+        "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status VARCHAR(12) DEFAULT 'offen'",
+        "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status_notiz TEXT",
+        "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status_at TIMESTAMPTZ",
         # Verknuepfte Konten: Zugang vom Anbieter abgelehnt (19.10.2026, s. models.PolarLink).
         "ALTER TABLE polar_links ADD COLUMN IF NOT EXISTS zugang_abgelehnt_at TIMESTAMPTZ",
         "ALTER TABLE suunto_links ADD COLUMN IF NOT EXISTS zugang_abgelehnt_at TIMESTAMPTZ",

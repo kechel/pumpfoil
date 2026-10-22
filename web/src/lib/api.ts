@@ -1010,6 +1010,11 @@ export interface BewertungAntworten {
   probleme?: boolean;
   probleme_art?: string[];
 }
+export type BewertungStatus = "offen" | "rueckfrage" | "erledigt";
+export interface AdminBewertung extends Bewertung {
+  id: number; session_id: number; user_id: number; name: string | null; gefahren: string | null;
+  status: BewertungStatus; status_notiz: string; status_at: string | null;
+}
 export interface Bewertung {
   antworten: BewertungAntworten;
   kommentar: string;
@@ -1167,7 +1172,10 @@ export const api = {
   bewertung: (sid: number) => req<{ bewertung: Bewertung | null; laeufe_jetzt: number | null }>(`/api/sessions/${sid}/bewertung`),
   bewertungSpeichern: (sid: number, antworten: BewertungAntworten, kommentar: string) =>
     req<{ bewertung: Bewertung }>(`/api/sessions/${sid}/bewertung`, { method: "PUT", body: JSON.stringify({ antworten, kommentar }) }),
-  adminBewertungen: () => req<(Bewertung & { session_id: number; user_id: number; name: string | null; gefahren: string | null })[]>("/api/admin/bewertungen"),
+  adminBewertungen: (erledigte = false) => req<{ bewertungen: AdminBewertung[]; anzahl_erledigt: number }>(`/api/admin/bewertungen${erledigte ? "?erledigte=true" : ""}`),
+  adminBewertungStatus: (id: number, status: BewertungStatus, notiz?: string) =>
+    req<{ id: number; status: BewertungStatus; status_notiz: string }>(`/api/admin/bewertungen/${id}`, { method: "PUT", body: JSON.stringify({ status, notiz }) }),
+  adminBewertungLoeschen: (id: number) => req<{ ok: boolean }>(`/api/admin/bewertungen/${id}`, { method: "DELETE" }),
   tanzAbschnitte: (sid: number) => req<TanzDaten>(`/api/sessions/${sid}/tanz`),
   tanzKorrigieren: (sid: number, abschnitte: { index: number; gewaehlt: string | null }[]) =>
     req<TanzDaten>(`/api/sessions/${sid}/tanz`, { method: "PUT", body: JSON.stringify({ abschnitte }) }),
