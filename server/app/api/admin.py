@@ -569,15 +569,19 @@ def _purge_session(db: Session, s: models.Session) -> None:
     db.query(models.SessionLike).filter_by(session_id=sid).delete()
     db.query(models.SessionVote).filter_by(session_id=sid).delete()
     db.query(models.SessionVideo).filter_by(session_id=sid).delete()
+    db.query(models.SessionBewertung).filter_by(session_id=sid).delete()
     for p in db.query(models.SessionPhoto).filter_by(session_id=sid).all():
         delete_media(p.url)
         db.delete(p)
+    from ..loeschung import session_verweise_weg
+    session_verweise_weg(db, sid)   # alle 14 Verweis-Tabellen, u. a. ingest_chunks (s. dort)
     try:
         d = storage.session_dir(s.session_uuid)
         if d.exists():
             shutil.rmtree(d, ignore_errors=True)
     except ValueError:
         pass
+    db.expire(s)
     db.delete(s)
 
 

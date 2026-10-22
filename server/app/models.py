@@ -1488,6 +1488,28 @@ class RecordEvent(Base):
     pushed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
 
+class SessionBewertung(Base):
+    """„Rate this analysis" — der Besitzer bewertet die Auswertung SEINER Session (Jan, 22.10.2026).
+
+    Nur fuer den Besitzer und den Admin sichtbar (nie oeffentlich, nie in Listen). Eine Bewertung je
+    Session, aenderbar. `antworten_json` = die angetippten Antworten (s. api/bewertung.py), `schnappschuss_json`
+    = was wir beim Bewerten angezeigt haben (Laeufe, Pumps, Auswertungs-Version, Uhr) — damit eine spaetere
+    Neuauswertung gegen die Antwort des Fahrers gestellt werden kann (echte Laufzahl = Vergleichsdaten).
+    """
+
+    __tablename__ = "session_bewertungen"
+    __table_args__ = (UniqueConstraint("session_id", "user_id", name="uq_session_bewertung_user"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    antworten_json: Mapped[str] = mapped_column(Text, default="{}")
+    kommentar: Mapped[str | None] = mapped_column(Text)
+    schnappschuss_json: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
+
 class SessionFlag(Base):
     """„Sieht nicht nach Pumpfoil aus" — EINE Meldung eines Nutzers zu EINER Session.
 

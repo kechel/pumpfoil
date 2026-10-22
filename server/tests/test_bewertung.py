@@ -1,0 +1,65 @@
+"""„Rate this analysis" (22.10.2026): nur Besitzer, Antworten geprueft, Schnappschuss, Admin-Liste, Loeschung."""
+
+
+def _konto(client, mail):
+    tok = client.post("/api/auth/register", json={"email": mail, "password": "supersecret"}).json()["access_token"]
+    auth = {"Authorization": "Bearer " + tok}
+    uhr = {"X-Device-Token": client.post("/api/devices/mint?label=Uhr", headers=auth).json()["device_token"]}
+    return auth, uhr
+
+
+def _session(client, uhr, uuid):
+    assert client.post("/api/ingest/session", headers=uhr, json={
+        "session_uuid": uuid, "started_at": "2026-10-21T19:00:00Z", "sport": "pumpfoil",
+        "gps_hz": 1, "accel_hz": 25, "accel_scale": 1000}).status_code == 200
+    gps = [[i * 1000, 47.0 + i * 1e-5, 9.0, 4.0, 120, 5.0] for i in range(60)]
+    assert client.post(f"/api/ingest/session/{uuid}/chunk", headers=uhr, json={
+        "index": 0, "kind": "gps", "encoding": "json", "data": gps}).status_code == 200
+    r = client.post(f"/api/ingest/session/{uuid}/complete", headers=uhr, json={"total_chunks": 1})
+    assert r.status_code == 200, r.text
+    return r.json()["session_id"]
+
+
+def test_bewertung_besitzer_admin_und_loeschen(client):
+    from app.db import SessionLocal
+    from app import models
+    auth, uhr = _konto(client, "bewertung@b.de")
+    sid = _session(client, uhr, "bewertung-1")
+    assert client.get(f"/api/sessions/{sid}/bewertung", headers=auth).json()["bewertung"] is None
+    # leer -> 400
+    assert client.put(f"/api/sessions/{sid}/bewertung", headers=auth, json={"antworten": {}}).status_code == 400
+    r = client.put(f"/api/sessions/{sid}/bewertung", headers=auth, json={
+        "antworten": {"sterne": 4, "laeufe": "fehlen", "laeufe_echt": 9, "pumps": "wenig", "tempo_ok": True,
+                      "probleme": True, "probleme_art": ["gps", "quatsch", "pause", "gps"], "sterne_x": 9},
+        "kommentar": "  zwei Laeufe fehlen  "})
+    assert r.status_code == 200, r.text
+    b = r.json()["bewertung"]
+    assert b["antworten"] == {"sterne": 4, "laeufe": "fehlen", "laeufe_echt": 9, "pumps": "wenig",
+                              "tempo_ok": True, "probleme": True, "probleme_art": ["pause", "gps"]}
+    assert b["kommentar"] == "zwei Laeufe fehlen"
+    assert "laeufe" in b["schnappschuss"] and "algo" in b["schnappschuss"]
+    # Ungueltiges faellt weg, nicht 400
+    r = client.put(f"/api/sessions/{sid}/bewertung", headers=auth, json={
+        "antworten": {"sterne": 7, "laeufe": "alle", "laeufe_echt": True}})
+    assert r.json()["bewertung"]["antworten"] == {"laeufe": "alle"}
+    # fremde Nutzer sehen und setzen nichts
+    fremd, _ = _konto(client, "bewertung-fremd@b.de")
+    assert client.get(f"/api/sessions/{sid}/bewertung", headers=fremd).status_code == 404
+    assert client.put(f"/api/sessions/{sid}/bewertung", headers=fremd, json={"kommentar": "x"}).status_code == 404
+    # Admin-Liste nur fuer Admins
+    assert client.get("/api/admin/bewertungen", headers=auth).status_code == 403
+    db = SessionLocal()
+    try:
+        u = db.query(models.User).filter_by(email="bewertung@b.de").one()
+        u.is_admin = True; db.commit()
+    finally:
+        db.close()
+    liste = client.get("/api/admin/bewertungen", headers=auth).json()
+    assert any(x["session_id"] == sid and x["antworten"] == {"laeufe": "alle"} for x in liste)
+    # Konto loeschen: Bewertung faellt mit, kein Fremdschluessel-Fehler
+    assert client.request("DELETE", "/api/auth/me", headers=auth).status_code in (200, 204)
+    db = SessionLocal()
+    try:
+        assert db.query(models.SessionBewertung).filter_by(session_id=sid).count() == 0
+    finally:
+        db.close()
