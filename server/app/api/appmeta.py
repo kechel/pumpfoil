@@ -307,7 +307,9 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.95",   # LIVE 2026-10-19: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf seine
+        "latest": "1.0.96",   # LIVE 2026-10-22: am Tag der Einreichung freigegeben (Jans Meldung, Uhr aus dem Store aktualisiert,
+        # meldet v=1.0.96). Inhalt: Pause-Erinnerung alle 10 min (nur Voll-Build). .iq aus 5c11417d, 218 Varianten.
+        # ALT: "latest": "1.0.95",   # LIVE 2026-10-19: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf seine
         # fenix installiert (Token 1577, Testsession #17564). Store-API zeigte um 14:20 noch 1.0.94 — Jan: „der store hat
         # jetzt sicher schon nachgezogen starte den build". Inhalt: Sportart-Wahl (Vollbuild), Foil ohne „Foil:", mem/memtot.
         # ALT: "latest": "1.0.94",   # LIVE 2026-10-16: am Tag der Einreichung freigegeben; Store-API latestExternalVersion
@@ -858,6 +860,18 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 22.10.2026 17:56 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung“, 1.1.54 (62),
+    # Übermittlung 70e1f479-5f57-4878-9846-51f81d1d0685). Vorher iPhone + Watch im Simulator getestet (Bewertung, Profil,
+    # Zweitnamen, Gleit-Fix, Pause-Erinnerung #18807).
+    {"name": "iPhone + Apple Watch", "version": "1.1.54",
+     "eingereicht": "2026-10-22",
+     "items": [
+         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
+         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
+         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
+         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
+         "While a recording is paused, the Apple Watch vibrates every 10 minutes and shows the resume button, so an accidental pause does not go unnoticed.",
+     ]},
     # iPhone + Apple Watch 1.1.53 am 22.10. FREIGEGEBEN -> raus (s. _APP_META["ios"]/["apple"]); Punkte im
     # Changelog: ids 669/670/677/680/683/684/698/699/701-707 tragen jetzt ios/apple 1.1.53, Ereignis 709.
     # iPhone + Apple Watch 1.1.52 (eingereicht 19.10., freigegeben 20.10.2026) -> LIVE, Punkte stehen im Changelog (ids 685-696).
@@ -1046,20 +1060,7 @@ NAECHSTES: list[dict] = [
          "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
          "While a recording is paused, the Wear OS watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
      ]},
-    # iPhone + Apple Watch nach 1.1.53 (22.10.2026): c5d9819e, 232d8255, 8bcf07b2, bde48b9b, 5310d6f2.
-    {"name": "iPhone + Apple Watch", "version": "1.1.54",
-     "items": [
-         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
-         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
-         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
-         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
-         "While a recording is paused, the Apple Watch vibrates every 10 minutes and shows the resume button, so an accidental pause does not go unnoticed.",
-     ]},
-    # Garmin nach 1.0.95 (22.10.2026): d504cacb — nur Voll-Build, Lite (Instinct 2 u. a.) kann nicht pausieren.
-    {"name": "Garmin", "version": "1.0.96",
-     "items": [
-         "While a recording is paused, the watch vibrates every 10 minutes and opens the pause menu, so an accidental pause does not go unnoticed; watches with little memory such as the Instinct 2 cannot pause and are not affected.",
-     ]},
+    # Garmin 1.0.96 am 22.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.96.
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
     # 07.10.2026 (Roman, Handy am Brett, #13908): Android/iOS zeigten „nur ~47 Hz, braucht 15 Hz",
