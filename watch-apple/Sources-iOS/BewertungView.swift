@@ -112,7 +112,6 @@ private struct BewertungSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var a: BewAntworten = BewAntworten()
     @State private var echt: String = ""
-    @State private var echtGeaendert: Bool = false
     @State private var kommentar: String = ""
     @State private var busy: Bool = false
     @State private var fehler: Bool = false
@@ -146,7 +145,7 @@ private struct BewertungSheet: View {
         bereit = true
         a = alt
         kommentar = altKommentar
-        if let v = alt.laeufeEcht { echt = String(v); echtGeaendert = true } else if let n = laeufeJetzt { echt = String(n) }
+        if let v = alt.laeufeEcht { echt = String(v) }   // sonst leer, unsere Zahl nur als Hinweis (wie Web)
     }
 
     private var sterneWahl: some View {
@@ -162,10 +161,9 @@ private struct BewertungSheet: View {
 
     private var echtFeld: some View {
         HStack {
-            TextField("", text: $echt)
+            TextField(laeufeJetzt.map { String($0) } ?? "", text: $echt)
                 .keyboardType(.numberPad)
                 .frame(width: 70)
-                .onChange(of: echt) { _ in echtGeaendert = true }
             if let n = laeufeJetzt {
                 Text(Loc.t("rate.runsRealHint", lang).replacingOccurrences(of: "{n}", with: String(n)))
                     .font(.footnote).foregroundStyle(.secondary)
@@ -226,7 +224,7 @@ private struct BewertungSheet: View {
     private func senden() async {
         var s: BewAntworten = a
         let n: Int? = Int(echt.trimmingCharacters(in: .whitespaces))
-        s.laeufeEcht = (echtGeaendert && n != nil) ? n : nil
+        s.laeufeEcht = n
         if s.probleme != true { s.problemeArt = [] }
         let k: String = kommentar.trimmingCharacters(in: .whitespacesAndNewlines)
         busy = true; fehler = false

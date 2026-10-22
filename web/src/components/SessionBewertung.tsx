@@ -71,9 +71,9 @@ function BewertungDialog({ sessionId, alt, laeufeJetzt, onClose, onSaved }: {
   const t = useT();
   useCloseOnBack(true, onClose);
   const [a, setA] = useState<BewertungAntworten>(alt?.antworten ?? {});
-  const [echt, setEcht] = useState<string>(
-    alt?.antworten.laeufe_echt != null ? String(alt.antworten.laeufe_echt) : laeufeJetzt != null ? String(laeufeJetzt) : "");
-  const [echtGeaendert, setEchtGeaendert] = useState(alt?.antworten.laeufe_echt != null);
+  // Leer starten, unsere Zahl nur als Hinweis (22.10.2026: vorbelegt + „nur bei Aenderung speichern" verlor
+  // jede BESTAETIGTE Zahl). Was drinsteht, wird gespeichert.
+  const [echt, setEcht] = useState<string>(alt?.antworten.laeufe_echt != null ? String(alt.antworten.laeufe_echt) : "");
   const [kommentar, setKommentar] = useState(alt?.kommentar ?? "");
   const [busy, setBusy] = useState(false);
   const [fehler, setFehler] = useState(false);
@@ -84,7 +84,7 @@ function BewertungDialog({ sessionId, alt, laeufeJetzt, onClose, onSaved }: {
   async function senden() {
     const antworten: BewertungAntworten = { ...a };
     const n = parseInt(echt, 10);
-    if (echtGeaendert && Number.isFinite(n) && n >= 0) antworten.laeufe_echt = n;
+    if (echt.trim() !== "" && Number.isFinite(n) && n >= 0) antworten.laeufe_echt = n;
     else delete antworten.laeufe_echt;
     if (antworten.probleme !== true) delete antworten.probleme_art;
     setBusy(true); setFehler(false);
@@ -123,7 +123,8 @@ function BewertungDialog({ sessionId, alt, laeufeJetzt, onClose, onSaved }: {
         <div className="mb-3">
           <label className="mb-1 block text-sm font-medium text-slate-200" htmlFor="rate-echt">{t("rate.runsReal")}</label>
           <input id="rate-echt" type="number" min={0} max={500} inputMode="numeric" value={echt}
-            onChange={(e) => { setEcht(e.target.value); setEchtGeaendert(true); }}
+            placeholder={laeufeJetzt != null ? String(laeufeJetzt) : ""}
+            onChange={(e) => setEcht(e.target.value)}
             className="w-24 rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-slate-100" />
           {laeufeJetzt != null && <span className="ml-2 text-xs text-slate-400">{t("rate.runsRealHint", { n: laeufeJetzt })}</span>}
         </div>
