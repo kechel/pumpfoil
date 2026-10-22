@@ -152,6 +152,11 @@ export class Recorder {
   }
 
   modus: string = 'bereit';   // bereit | laeuft | pause
+  // Pause-Erinnerung (Jan, 22.10.2026): alle 10 min drei lange Stoesse; die Seite springt auf die Aktionsseite,
+  // sobald `pauseMahnung` hochzaehlt. IMMER, nicht abschaltbar. Anlass #17726: Pause 85 min unbemerkt.
+  pauseMahnung: number = 0;
+  private pauseSeit: number = 0;
+  private pauseMahnungen: number = 0;
   private ctx: common.UIAbilityContext | null = null;
   private dir: string = '';
   private id: string = '';
@@ -557,6 +562,36 @@ export class Recorder {
     });
   }
 
+  /** Alle 10 min in der Pause (Takt: der 3-s-Sendetakt, laeuft im Hintergrund weiter). */
+  private pauseMahnungPruefen(): void {
+    if (this.modus !== 'pause') {
+      return;
+    }
+    const jetzt: number = Date.now();
+    if (this.pauseSeit === 0) {   // z. B. nach Neustart der App mitten in der Pause
+      this.pauseSeit = jetzt;
+      return;
+    }
+    const n: number = Math.floor((jetzt - this.pauseSeit) / 600000);
+    if (n > this.pauseMahnungen) {
+      this.pauseMahnungen = n;
+      this.pauseMahnung++;
+      this.langVibrieren(3);
+    }
+  }
+
+  private langVibrieren(rest: number): void {
+    if (rest <= 0) {
+      return;
+    }
+    try {
+      vibrator.startVibration({ type: 'time', duration: 500 }, { id: 0, usage: 'alarm' });
+    } catch (e) {
+      // ohne Vibration geht es auch
+    }
+    setTimeout(() => this.langVibrieren(rest - 1), 750);
+  }
+
   private kurzVibrieren(): void {
     try {
       vibrator.startVibration({ type: 'time', duration: 60 }, { id: 0, usage: 'touch' });
@@ -624,6 +659,8 @@ export class Recorder {
     this.restSchreiben();
     this.achse.pause(Date.now());
     this.modus = 'pause';
+    this.pauseSeit = Date.now();
+    this.pauseMahnungen = 0;
     this.kurzVibrieren();
     this.laufSichern();
   }
@@ -817,6 +854,7 @@ export class Recorder {
    * der Uhr (Plan + Dateien), bis der Nutzer koppelt — dann holt direktTakt auch die alten Sessions.
    */
   private senden(): void {
+    this.pauseMahnungPruefen();
     if (this.direktToken !== '') {
       this.direktTakt();
     }

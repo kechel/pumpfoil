@@ -37,6 +37,7 @@ var HALLO_ALLE_MS = 30 * 60 * 1000;   // Seiten-Konfiguration halbstuendlich neu
 
 var R = {
   modus: "bereit",            // bereit | laeuft | pause
+  mahnung: 0,                 // Pause-Erinnerungen in dieser Pause (s. senden)
   id: "",
   achse: null, sammler: null, anzeige: null,
   plan: new K.Sendeplan(),
@@ -194,6 +195,7 @@ R.pause = function () {
   restSchreiben();
   R.achse.pause(Date.now());
   R.modus = "pause";
+  R.mahnung = 0;
   log("Pause, Bloecke " + R.sammler.index);
   R.accelLetzt = 0;
   laufSichern();
@@ -345,7 +347,12 @@ function konfigTeil(text) {
   file.writeText({ uri: KONFIG, text: ganz, fail: function (d, code) { fehler("speicher", "Speicher " + code + " Konfig"); } });
 }
 
+// Pause-Erinnerung alle 10 min (Jan 22.10.2026, immer an): zweimal long2, die Seite springt auf die
+// Aktionsseite. Bewusst knapp — der app.js-Snapshot der Lite-Uhren steht an seiner Grenze.
 function senden() {
+  if (R.modus === "pause" && Date.now() - R.achse.pauseSeit >= (R.mahnung + 1) * 6e5) {
+    R.mahnung++; vibrieren("long2", 0); vibrieren("long2", 1500);
+  }
   if (!WE) return;   // zwischen zwei Seiten (Wechsel zur Einstellungsseite) gibt es keine Wear Engine
   if (!R.schlange.darf(Date.now())) return;
   if (offenDatei) { teilSenden(); return; }
