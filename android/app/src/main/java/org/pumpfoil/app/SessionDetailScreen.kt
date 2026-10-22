@@ -1016,7 +1016,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 Card(Modifier.fillMaxWidth()) {
                     Box {
-                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle", win,
+                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1040,7 +1040,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Dialog(onDismissRequest = { mapFull = false },
                            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle", win,
+                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1175,6 +1175,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
             LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
+            // „Rate this analysis" (22.10.2026, wie Web): nur auf eigenen Sessions, halbe Breite wie eine Kachel.
+            if (s.owned) {
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BewertungKachel(s.id, Modifier.weight(1f))
+                    Spacer(Modifier.weight(1f))
+                }
+            }
             a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it, manoever?.fahrten.orEmpty(), s.sportClass) }
             paddel?.let { PaddelKarte(it, s.sportClass) }
             wellePumpen?.let { WelleKarte(it, s.sportClass) }

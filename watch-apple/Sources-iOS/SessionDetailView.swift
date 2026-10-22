@@ -1355,6 +1355,8 @@ struct SessionDetailView: View {
                         if let r = st.runIdx { selectedRun = (selectedRun == r) ? nil : r }
                     }
                 }
+                // „Rate this analysis" (22.10.2026, wie Web): nur auf eigenen Sessions
+                if s.owned == true { BewertungKachel(sessionId: s.id, lang: lang) }
             }
             if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, jeFahrt: manoever?.fahrten ?? [], sport: session?.sport_class, lang: lang) }
             if let p = paddel { PaddelKarte(p: p, sport: session?.sport_class, lang: lang) }
