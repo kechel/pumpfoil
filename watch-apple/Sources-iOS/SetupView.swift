@@ -71,7 +71,7 @@ struct SetupView: View {
         let q = query.trimmingCharacters(in: .whitespaces).lowercased()
         return stabs.filter { st in
             (brand.isEmpty || st.brand == brand)
-                && (q.isEmpty || gearMatches("\(st.brand) \(st.model) \(st.size)", q))
+                && (q.isEmpty || gearMatches("\(st.brand) \(st.model) \(st.size) \(st.aliases ?? "")", q))
         }
     }
 

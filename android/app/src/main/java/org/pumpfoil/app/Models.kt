@@ -964,6 +964,8 @@ data class Foil(
     // Leistungsrechnung hängt. Eigenes Kennzeichen im Katalog, wie in der PWA.
     @SerialName("specs_estimated") val specsEstimated: Boolean = false,
     @SerialName("aspect_ratio") val aspectRatio: Double? = null,
+    // Zweitbezeichnungen („|"-getrennt), NUR fuer die Suche, nicht zum Anzeigen (wie im Web).
+    val aliases: String? = null,
 ) {
     // Neu erschienene Modelle stehen mit 0 im Katalog, solange der Hersteller keine Maße
     // veröffentlicht hat (die Spalten sind NOT NULL). Auswählbar bleiben sie überall — aber
@@ -1053,6 +1055,8 @@ data class StabBrief(
     @SerialName("span_cm") val spanCm: Double? = null,
     @SerialName("area_cm2") val areaCm2: Double? = null,
     @SerialName("specs_estimated") val specsEstimated: Boolean = false,
+    // Zweitbezeichnungen („SDW/360"), nur fuer die Suche (22.10.2026: Nutzer fand „SDW-360" nicht).
+    val aliases: String? = null,
 )
 
 @Serializable

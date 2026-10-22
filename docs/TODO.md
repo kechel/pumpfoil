@@ -1605,6 +1605,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (4) **Profil-Zeile „Meine Foils & Sportarten“** (Jan 21.10., wie im Web 4be79af8): Titel `profile.foilsSports`, darunter
   Sportarten (Standard vorn, hervorgehoben, dann `my_sports`) und eigene Foils (Standard vorn). **Android + iOS GEBAUT** (21.10.):
   Android kompiliert, nicht im Emulator angesehen; iOS nur `swiftc -parse`, Uebersetzungen in den `…OverlaySpotsSuche`-Tabellen (die grossen stehen an der 50er-Grenze).
+  (5) **Foil-/Stab-Suche findet Zweitnamen** (22.10., Hendrik fand „SDW-360“ = Sabfoil Downwind Kraken 360 nicht): `aliases`
+  in Foil/StabBrief (Android + iOS), Suche in Setup, Foils, Foil-Rechner. Web schon live (9977f429). Android kompiliert, iOS nur parse.
 
 - **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
   Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf
