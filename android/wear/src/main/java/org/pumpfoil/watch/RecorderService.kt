@@ -133,12 +133,14 @@ class RecorderService : Service(), SensorEventListener {
                     stopHeartRate()   // beendet die Uebung — und damit auch das Health-Services-GPS
                     stopLocation()
                     Recorder.pause(applicationContext)
+                    PauseMahnung.planen(applicationContext)   // alle 10 min erinnern (PauseMahnung.kt)
                 }
             }
             return START_STICKY
         }
         if (intent?.action == ACTION_RESUME) {
             nachLeeren {
+                PauseMahnung.absagen(applicationContext)
                 Recorder.resume(applicationContext)
                 registerSensors()
                 ortSeitMs = SystemClock.elapsedRealtime(); letzterOrtMs = 0L
@@ -648,6 +650,7 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     private fun stopEverything(save: Boolean = true) {
+        PauseMahnung.absagen(applicationContext)
         sensors.unregisterListener(this)
         cpuSchlafenLassen()
         accelThread?.quitSafely(); accelThread = null

@@ -39,6 +39,8 @@ object Recorder {
 
     data class State(
         val recording: Boolean = false,
+        // Zaehlt in der Pause alle 10 min hoch (PauseMahnung); MainActivity springt dann auf die Aktionsseite.
+        val pauseMahnung: Int = 0,
         val starting: Boolean = false,    // Startphase (GPS/Session) — Start-Button ausblenden
         val elapsedSec: Long = 0,
         val speedKmh: Double = 0.0,       // aktuell
@@ -434,6 +436,12 @@ object Recorder {
     }
 
     /** Aufnahme FORTSETZEN: Pausendauer aufaddieren, Fenster festhalten. */
+    /** Aus PauseMahnung: die Pause ist wieder 10 min alt. */
+    fun pauseMahnen() {
+        if (!running || !paused) return
+        _state.value = _state.value.copy(pauseMahnung = _state.value.pauseMahnung + 1)
+    }
+
     fun resume(ctx: Context) {
         if (!running || !paused) return
         val dauer = System.currentTimeMillis() - pauseStartMs
@@ -443,7 +451,7 @@ object Recorder {
         }
         paused = false
         LocalStore.setzeLaufMarke(ctx)
-        _state.value = _state.value.copy(paused = false, status = I18n.t("rec.recording"))
+        _state.value = _state.value.copy(paused = false, status = I18n.t("rec.recording"), pauseMahnung = 0)
     }
 
     /**
