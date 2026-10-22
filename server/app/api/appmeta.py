@@ -1039,6 +1039,26 @@ NAECHSTES: list[dict] = [
          "Wind sessions show per ride how many tacks and jibes stayed on the foil, the distance gained upwind, the best VMG and the wind at that time; rides and paddle-up attempts are sortable tables below the map, headed with the sport.",
          "New records per sport (for example best jibe share, best VMG, most paddle-ups onto the foil, longest stretch on the wake) for the community, per spot and per time window, and your own records per sport on Home and on your profile.",
          "The history page shows your success on the foil per sport over time: jibes and tacks on the foil, paddle-ups onto the foil and the share on the wake.",
+         # 22.10.2026: Bewertung, Profil-Zeile, Zweitnamen, Gleit-Fix (8bcf07b2, 232d8255, c5d9819e) + Wear-Pause-Erinnerung (192fc745)
+         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
+         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
+         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
+         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
+         "While a recording is paused, the Wear OS watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
+     ]},
+    # iPhone + Apple Watch nach 1.1.53 (22.10.2026): c5d9819e, 232d8255, 8bcf07b2, bde48b9b, 5310d6f2.
+    {"name": "iPhone + Apple Watch", "version": "1.1.54",
+     "items": [
+         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
+         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
+         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
+         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
+         "While a recording is paused, the Apple Watch vibrates every 10 minutes and shows the resume button, so an accidental pause does not go unnoticed.",
+     ]},
+    # Garmin nach 1.0.95 (22.10.2026): d504cacb — nur Voll-Build, Lite (Instinct 2 u. a.) kann nicht pausieren.
+    {"name": "Garmin", "version": "1.0.96",
+     "items": [
+         "While a recording is paused, the watch vibrates every 10 minutes and opens the pause menu, so an accidental pause does not go unnoticed; watches with little memory such as the Instinct 2 cannot pause and are not affected.",
      ]},
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
@@ -1084,6 +1104,9 @@ NAECHSTES: list[dict] = [
          "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
          # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
          "You can pick the sport before you start, in the settings or by tapping it on the start screen, and the start screen shows your foil below the sport.",
+         # 22.10.2026: Pause-Erinnerung + STOPP-Seite zeigt Pausiert (5ed3fe82)
+         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
+         "The stop screen also shows when the recording is paused.",
      ]},
     {"name": "Suunto", "version": "1.01",
      "items": [
@@ -1097,6 +1120,8 @@ NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.15",
      "items": [
          "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows under the title on the start screen.",
+         # 22.10.2026: Pause-Erinnerung (cdbe2cfc)
+         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
