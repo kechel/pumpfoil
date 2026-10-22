@@ -865,6 +865,50 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
+    # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
+    # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
+    # EINGEREICHT 22.10.2026 abends (Jans Meldung „reiche ich so ein"), Phone 1.1.44 (59) + Wear 1.2.44 (1055), aus
+    # fbbed631 ff. Getestet: Jan im Emulator (Phone: Setup-Editor #18841, Bewertung, Sportart-Ansichten Wind/SUP/
+    # Wake thief/Kite, Feedback, Gleitmodus; Wear: #18838-18841 Sportart-Wahl, Pause, wach=true). NICHT getestet:
+    # echte Samsung (WakeLock, Community nach Freigabe), Pause-Erinnerung nach 10 min auf Wear.
+    {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
+     "eingereicht": "2026-10-22",
+     "items": [
+         "Every page has a feedback button at the top right, and your message tells us which session or page you mean; the icons in the top bar are easier to see.",
+         "The changelog page shows how far the analysis is tuned for each sport.",
+         "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
+         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
+         "On Wear OS you can pick the sport before you start, next to the foil.",
+         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
+         "The Community page can show records and leaderboards for each sport, like the website.",
+         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
+         "Under My foils you choose which sports you can pick on the watch.",
+         "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
+         "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
+         "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
+         "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
+         "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
+         "The wind box compares your speed on the foil with your other sessions at similar wind.",
+         "Home shows per month how many of your tacks and jibes stayed on the foil.",
+         "A session that looks like a wind session offers you to change the sport; you can also dismiss the hint.",
+         "Choosing the foil, stab, mast, board or weight for a session in the setup editor is saved again; since the editor came in, a choice was reset to your default.",
+         # 20.10.2026: WakeLock fuer den normalen Accel (Samsung ohne Wake-up-Variante, 1.2.41/42 nur 7-39 %).
+         "On Wear OS watches without a wake-up motion sensor, such as Samsung Galaxy Watches, the motion sensor keeps recording while the screen is off.",
+         "Session pages show the sport at the top as an orange badge, like the session list, and the wind, tack and upwind boxes show only the numbers, without explanation texts.",
+         "SUP sessions show your paddle strokes and every paddle-up attempt with its sprint strokes and whether you got onto the foil.",
+         "Wake thief sessions show time and distance on the wake and pumped separately, and count pumps only in the pumped part.",
+         "SUP, wake thief and downwind sessions can switch the map between the whole session and only the time on the foil; SUP marks the paddle-up sprints with their number and shows your paddle strokes, wake thief marks the stretches on the wake.",
+         "Wind sessions show per ride how many tacks and jibes stayed on the foil, the distance gained upwind, the best VMG and the wind at that time; rides and paddle-up attempts are sortable tables below the map, headed with the sport.",
+         "New records per sport (for example best jibe share, best VMG, most paddle-ups onto the foil, longest stretch on the wake) for the community, per spot and per time window, and your own records per sport on Home and on your profile.",
+         "The history page shows your success on the foil per sport over time: jibes and tacks on the foil, paddle-ups onto the foil and the share on the wake.",
+         # 22.10.2026: Bewertung, Profil-Zeile, Zweitnamen, Gleit-Fix (8bcf07b2, 232d8255, c5d9819e) + Wear-Pause-Erinnerung (192fc745)
+         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
+         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
+         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
+         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
+         "While a recording is paused, the Wear OS watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
+     ]},
     # EINGEREICHT 22.10.2026 17:56 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung“, 1.1.54 (62),
     # Übermittlung 70e1f479-5f57-4878-9846-51f81d1d0685). Vorher iPhone + Watch im Simulator getestet (Bewertung, Profil,
     # Zweitnamen, Gleit-Fix, Pause-Erinnerung #18807).
@@ -985,45 +1029,7 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
-    # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
-    # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
-    {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
-     "items": [
-         "Every page has a feedback button at the top right, and your message tells us which session or page you mean; the icons in the top bar are easier to see.",
-         "The changelog page shows how far the analysis is tuned for each sport.",
-         "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
-         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
-         "On Wear OS you can pick the sport before you start, next to the foil.",
-         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
-         "The Community page can show records and leaderboards for each sport, like the website.",
-         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
-         "Under My foils you choose which sports you can pick on the watch.",
-         "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
-         "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
-         "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
-         "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
-         "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
-         "The wind box compares your speed on the foil with your other sessions at similar wind.",
-         "Home shows per month how many of your tacks and jibes stayed on the foil.",
-         "A session that looks like a wind session offers you to change the sport; you can also dismiss the hint.",
-         "Choosing the foil, stab, mast, board or weight for a session in the setup editor is saved again; since the editor came in, a choice was reset to your default.",
-         # 20.10.2026: WakeLock fuer den normalen Accel (Samsung ohne Wake-up-Variante, 1.2.41/42 nur 7-39 %).
-         "On Wear OS watches without a wake-up motion sensor, such as Samsung Galaxy Watches, the motion sensor keeps recording while the screen is off.",
-         "Session pages show the sport at the top as an orange badge, like the session list, and the wind, tack and upwind boxes show only the numbers, without explanation texts.",
-         "SUP sessions show your paddle strokes and every paddle-up attempt with its sprint strokes and whether you got onto the foil.",
-         "Wake thief sessions show time and distance on the wake and pumped separately, and count pumps only in the pumped part.",
-         "SUP, wake thief and downwind sessions can switch the map between the whole session and only the time on the foil; SUP marks the paddle-up sprints with their number and shows your paddle strokes, wake thief marks the stretches on the wake.",
-         "Wind sessions show per ride how many tacks and jibes stayed on the foil, the distance gained upwind, the best VMG and the wind at that time; rides and paddle-up attempts are sortable tables below the map, headed with the sport.",
-         "New records per sport (for example best jibe share, best VMG, most paddle-ups onto the foil, longest stretch on the wake) for the community, per spot and per time window, and your own records per sport on Home and on your profile.",
-         "The history page shows your success on the foil per sport over time: jibes and tacks on the foil, paddle-ups onto the foil and the share on the wake.",
-         # 22.10.2026: Bewertung, Profil-Zeile, Zweitnamen, Gleit-Fix (8bcf07b2, 232d8255, c5d9819e) + Wear-Pause-Erinnerung (192fc745)
-         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
-         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
-         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
-         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
-         "While a recording is paused, the Wear OS watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
-     ]},
+    # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
     # Garmin 1.0.96 am 22.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.96.
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
