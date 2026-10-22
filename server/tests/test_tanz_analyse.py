@@ -77,5 +77,6 @@ def test_server_vorschlag_s1():
     b, gb = _signal(131)
     fb = ts.fenster(b, gb, t0_ms=60000)
     rows = [{"start_ms": 0, "ende_ms": 60000}, {"start_ms": 60000, "ende_ms": 120000},
-            {"start_ms": 500000, "ende_ms": None}]
-    assert ts.vorschlaege(fs + fb, rows) == ["salsa", "boogie", None]
+            {"start_ms": 500000, "ende_ms": None}, {"start_ms": 61000, "ende_ms": 61000}]
+    # Marker-Zeile ohne Laenge (61 s): gilt fuer den Tanz davor
+    assert ts.vorschlaege(fs + fb, rows) == ["salsa", "boogie", None, "salsa"]
