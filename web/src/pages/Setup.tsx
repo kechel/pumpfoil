@@ -140,7 +140,7 @@ export default function Setup() {
     const ql = q.trim().toLowerCase();
     return stabs.filter((s) =>
       (!brand || s.brand === brand) &&
-      (!ql || gearMatches(`${s.brand} ${s.model} ${s.size}`, ql)));
+      (!ql || gearMatches(`${s.brand} ${s.model} ${s.size} ${s.aliases ?? ""}`, ql)));
   }, [stabs, brand, q]);
   const mineList = useMemo(
     () => filtered.filter((s) => myStabs.includes(s.id)).sort((a, b) => (a.id === stabId ? -1 : b.id === stabId ? 1 : 0)),

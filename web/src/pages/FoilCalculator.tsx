@@ -59,7 +59,7 @@ export default function FoilCalculator() {
     const ql = q.trim().toLowerCase();
     return foils.filter((f) =>
       (!brand || f.brand === brand) &&
-      (!ql || gearMatches(`${f.brand} ${f.model} ${f.size}`, ql)));
+      (!ql || gearMatches(`${f.brand} ${f.model} ${f.size} ${f.aliases ?? ""}`, ql)));
   }, [foils, brand, q]);
 
   function toggle(id: number) {
