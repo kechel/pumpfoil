@@ -1020,8 +1020,9 @@ export interface Bewertung {
 export interface TanzAbschnitt {
   start_ms: number; ende_ms: number | null; vorschlag: string | null; gewaehlt: string | null;
   quelle: string; tempo: number | null; dreh: number | null;
+  server_vorschlag?: string | null;   // Server-Erkennung (server/app/tanz_server.py), Version in TanzDaten
 }
-export interface TanzDaten { abschnitte: TanzAbschnitt[]; taenze: string[] }
+export interface TanzDaten { abschnitte: TanzAbschnitt[]; taenze: string[]; server_version?: string }
 
 export const api = {
   register: (email: string, password: string, display_name?: string, language?: string) =>

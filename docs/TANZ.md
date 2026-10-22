@@ -18,6 +18,7 @@ Tanz-Arbeit ändert nie die Pumpfoil-App; am Server nur eigene Module, nur für 
 | **Muster** je Tanz (abgeleitet) | `server/app/data/tanz_muster.json` — nie von Hand, neu ableiten |
 | Muster ableiten + prüfen | `scripts/tanz_muster_ableiten.py` (`--schreiben`, `--uhr` = Block für Tanz.mc) |
 | Sessions neu auswerten (Tabelle „Tänze“) | `scripts/tanz_nachanalyse.py --schreiben` |
+| **Server-Erkennung** (eigene Spalte „Server s1“, Uhr egal) | `server/app/tanz_server.py`, Muster `server/app/data/tanz_muster_server.json` aus `scripts/tanz_server_ableiten.py --schreiben` |
 | Marke | `brand-dance/` (Fuchsia #c026d3, Pflaume #1a0b1f) |
 
 Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sessions` eintragen) →
@@ -60,6 +61,9 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   schneller Langsamer Walzer, Cha-Cha-Cha zackig oder lahm … also nur das Timing kann sicher nicht
   entscheidend sein für die Zuordnung, aber eben einer von vielen Hinweisen“ → Tempo nicht als
   Hauptmerkmal behandeln; heute wiegt es mit S_TEMPO 0,15 (±15 %) am stärksten — offen, s. unten.
+- **22.10.** #18834: „heute war nur Salsa, mit natürlich langsamerem Üben und nicht soo schneller Musik dann zum Üben“ →
+  Salsa auch deutlich unter Party-Tempo; ganze Session = Salsa (Marker bestätigen). Auftrag: Regeln für Salsa finden, zunächst
+  NUR am Server, als eigene Spalte mit Versionsnummer in der Tabelle; Uhr egal.
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
 
@@ -107,6 +111,38 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   erst **eine** Quelle und sind damit nicht unabhängig prüfbar. Die Nachanalyse-Tabellen sind mit
   Mustern aus denselben Daten gerechnet → **zu gut**, nur zum Ansehen.
 - Ohne eigene Daten (aus Musiktempo geschätzt, schwach gewichtet): Slowfox, Paso Doble, Disco-Fox, Bachata.
+
+### Server-Erkennung s1 (22.10.2026, nur Server)
+
+Auftrag Jan: Regeln für Salsa, zunächst nur am Server, Version als eigene Spalte. Gerechnet wird je
+Tabellenzeile beim Abruf (`GET /api/sessions/{id}/tanz` → `server_vorschlag`, `server_version`), nichts
+wird in `tanz.json` geschrieben. Quelle für Salsa: #16863 (Kurs), #17689 (Marker), **#18834 ganz**
+(`"ganz": "salsa"` in der Wahrheit — gilt nur für die Server-Muster, die Uhr-Muster lesen es nicht).
+
+- **Befund:** Salsa hat viel Energie bei 1,0–1,5 Hz der senkrechten Beschleunigung (Anteil am
+  Spektrum 0,3–8 Hz, Median 0,21–0,27 in beiden Salsa-Abenden) gegen 0,10–0,13 bei Samba, Boogie,
+  Jive, Langsamem Walzer — auch dort, wo das gefundene Tempo (78–88) dicht an Samba (97) liegt.
+  Boogie/Jive dafür viel bei 2,0–2,5 Hz. Neue Merkmale `b1`, `b2`; Rest wie auf der Uhr (Tempo, quer),
+  Streuung auf 1-min-Stücken.
+- **Nicht geholfen:** Takt-Struktur über die Autokorrelation bei 2/3/4 Schlägen (Salsa: 3 Schritte +
+  Pause) — kein Gewinn. Gewichte per Regression (sklearn) — nicht besser als das einfache Muster.
+- **s1 kennt nur Tänze mit ≥ 5 min Daten** (Boogie, Jive, LW, Salsa, Samba). Mit den kurzen Strecken
+  aus #17689 (3–9 Fenster) und den geschätzten Tänzen kippte die Prüfung (Salsa 14/42).
+- **Prüfung je 1-min-Stück** (Salsa: ganze Session raus; andere Tänze haben nur eine Quelle, dort
+  andere Hälfte lernen — nur Stabilität). Uhr = Tanz.mc mit auf allen Daten gelernten Mustern (eher zu gut):
+
+  | Tanz | s1 | Uhr |
+  |---|---|---|
+  | Salsa (2 Abende, unabhängig) | **30/42** | 19/42 |
+  | Samba | 13/22 | 10/22 |
+  | Boogie | 35/46 | 27/46 |
+  | Jive | 2/11 | 4/11 |
+  | LW | 2/11 | 2/11 |
+
+  Salsa fälschlich vorgeschlagen: 5 von 90 Stücken anderer Tänze. Jive/LW bleiben schwach (eine
+  Quelle, ein Abend). Die Spalte in der Tabelle ist mit Mustern aus denselben Daten gerechnet → zu gut.
+- Neue Version (s2 …) = `VERSION` in `tanz_server.py` hochzählen und Muster neu ableiten; die Spalte
+  zeigt die Nummer.
 
 ## Offene Fragen / nächste Schritte
 

@@ -1,10 +1,13 @@
 """Tanz-Abschnitte ansehen und korrigieren (nur Besitzer, nur sport == "dance"). Siehe app/tanz.py."""
 from __future__ import annotations
 
+import math
+from functools import lru_cache
+
 from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, tanz
+from .. import models, storage, tanz, tanz_server
 from ..db import get_db
 from .deps import current_user
 
@@ -20,11 +23,31 @@ def _eigene_tanz_session(db, sid: int, user) -> models.Session:
     return s
 
 
+@lru_cache(maxsize=8)
+def _server_fenster(uuid: str, scale: int, _bloecke: int) -> tuple:
+    a = storage.load_accel(uuid).astype(float) / scale
+    g = storage.load_gyro(uuid).astype(float)
+    g = g[:len(a)] / 1024 * 180 / math.pi if len(g) else None
+    return tuple(tanz_server.fenster(a, g)) if len(a) else ()
+
+
+def _antwort(s: models.Session, abschnitte: list[dict]) -> dict:
+    """Tabelle plus Server-Vorschlag (app/tanz_server.py) je Zeile — eigene Spalte neben der Uhr."""
+    try:
+        bloecke = len(list((storage.session_dir(s.session_uuid) / "accel").glob("*.bin")))
+        fs = list(_server_fenster(s.session_uuid, s.accel_scale or 1000, bloecke))
+        sv = tanz_server.vorschlaege(fs, abschnitte) if fs else [None] * len(abschnitte)
+    except (OSError, ValueError):
+        sv = [None] * len(abschnitte)
+    rows = [{**r, "server_vorschlag": v} for r, v in zip(abschnitte, sv)]
+    return {"abschnitte": rows, "taenze": list(tanz.TAENZE), "server_version": tanz_server.VERSION}
+
+
 @router.get("/{sid}/tanz")
 def tanz_lesen(sid: int, db: Session = Depends(get_db), user=Depends(current_user)):
     s = _eigene_tanz_session(db, sid, user)
     d = tanz.laden(s.session_uuid) or {"abschnitte": []}
-    return {"abschnitte": d.get("abschnitte") or [], "taenze": list(tanz.TAENZE)}
+    return _antwort(s, d.get("abschnitte") or [])
 
 
 @router.put("/{sid}/tanz")
@@ -33,4 +56,4 @@ def tanz_korrigieren(sid: int, body: dict = Body(...), db: Session = Depends(get
     alt = (tanz.laden(s.session_uuid) or {}).get("abschnitte") or []
     neu = tanz.aus_web(body.get("abschnitte"), alt)
     d = tanz.speichern(s.session_uuid, neu, "web")
-    return {"abschnitte": d["abschnitte"], "taenze": list(tanz.TAENZE)}
+    return _antwort(s, d["abschnitte"])

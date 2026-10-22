@@ -23,10 +23,11 @@ function uhrzeit(startedAt: string, ms: number) {
 export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; startedAt: string }) {
   const [abschnitte, setAbschnitte] = useState<TanzAbschnitt[] | null>(null);
   const [taenze, setTaenze] = useState<string[]>([]);
+  const [version, setVersion] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
 
   useEffect(() => {
-    api.tanzAbschnitte(sessionId).then((d) => { setAbschnitte(d.abschnitte); setTaenze(d.taenze); })
+    api.tanzAbschnitte(sessionId).then((d) => { setAbschnitte(d.abschnitte); setTaenze(d.taenze); setVersion(d.server_version ?? null); })
       .catch(() => setAbschnitte([]));
   }, [sessionId]);
 
@@ -42,12 +43,16 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
   return (
     <section className="rounded-xl border border-slate-800 p-4">
       <h3 className="font-semibold mb-2">Tänze</h3>
+      <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-slate-400">
             <th className="py-1 pr-2 font-medium">Zeit</th>
             <th className="py-1 pr-2 font-medium">Tanz</th>
             <th className="py-1 pr-2 font-medium">Erkennung</th>
+            <th className="py-1 pr-2 font-medium" title="Erkennung nur am Server, mit Versionsnummer des Verfahrens">
+              Server{version ? ` ${version}` : ""}
+            </th>
             <th className="py-1 font-medium">Stand</th>
           </tr>
         </thead>
@@ -68,11 +73,16 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
                 {a.vorschlag ? NAMEN[a.vorschlag] ?? a.vorschlag : "–"}
                 {a.tempo ? ` · ${a.tempo}/min` : ""}
               </td>
+              <td className={"py-1.5 pr-2 " + (a.server_vorschlag && a.gewaehlt && a.server_vorschlag === a.gewaehlt
+                ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400")}>
+                {a.server_vorschlag ? NAMEN[a.server_vorschlag] ?? a.server_vorschlag : "–"}
+              </td>
               <td className="py-1.5 text-slate-400">{QUELLE[a.quelle] ?? a.quelle}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
       {fehler && <p className="mt-2 text-sm text-red-700 dark:text-red-400">{fehler}</p>}
     </section>
   );
