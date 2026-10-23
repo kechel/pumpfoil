@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.54 for iOS
+        "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.55 for iOS
+        # (Submission 38a4b866-75ff-4c78-b946-aa143280596a, eingereicht 22.10. 23:04 PDT = 23.10. 08:04, Build 63).
+        # Inhalt: Pause-Upload der Watch (meta.json), Rueckfrage an der Bewertung, Abzeichen „Bitte neu bewerten".
+        # ALT: "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.54 for iOS
         # (Submission 70e1f479-5f57-4878-9846-51f81d1d0685, eingereicht 22.10. 08:56 PDT, Build 62). Inhalt: Auswertung
         # bewerten, Meine Foils & Sportarten, Zweitnamen-Suche, Gleit-Fix, Pause-Erinnerung (Watch). Changelog 713-716
         # (+ios/apple), 730, Ereignis 731.
@@ -454,7 +457,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -870,12 +874,8 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 23.10.2026 08:04 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung“, 1.1.55 (63),
-    # Übermittlung 38a4b866-75ff-4c78-b946-aa143280596a). Pause-Upload der Watch im Simulator bestanden (#18857).
-    {"name": "iPhone + Apple Watch", "version": "1.1.55",
-     "eingereicht": "2026-10-23",
-     # 23.10.2026: Teil-Upload in der Pause las die falsche Datei und schickte nie etwas (TODO 23.10.).
-     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year.", "While a recording is paused, the Apple Watch now really uploads what it has recorded so far; until now it waited for the end of the session.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list."]},
+    # iPhone + Apple Watch 1.1.55 am 23.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 728/729 tragen ios/apple 1.1.55,
+    # neu: Pause-Upload der Watch. Der Supporter-Badge war NICHT drin (erst nach dem Build gebaut) -> NAECHSTES 1.1.56.
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
     # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
@@ -1030,6 +1030,9 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 23.10.2026: Supporter-Badge am Profilbild + auf der Profilseite (07ab3141, db30426a) — nach 1.1.55 gebaut.
+    {"name": "iPhone + Apple Watch", "version": "1.1.56",
+     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year."]},
     # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
     # 1.1.44 lag im Review, 1.1.54 war gerade freigegeben (Memory versionen-erst-bei-release).
     {"name": "Android phone + Wear OS", "version": "1.1.45 / 1.2.45",
