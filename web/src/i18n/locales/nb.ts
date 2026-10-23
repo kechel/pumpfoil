@@ -965,7 +965,7 @@ const nb: Record<string, string> = {
   "sup.badge": "Takk for verdifulle tilbakemeldinger de siste 4 ukene",
   "sup.level2": "ivrig hjelper",
   "sup.level3": "en av våre mest aktive hjelpere",
-  "sup.profile1": "Supporter: hjalp oss med tilbakemeldinger de siste 4 ukene",
+  "sup.profile1": "Hjalp oss med tilbakemeldinger de siste 4 ukene",
   "sup.profile2": "Ivrig hjelper: tilbakemeldinger på 5 eller flere dager i år, sist de siste 4 ukene",
   "sup.profile3": "En av våre mest aktive hjelpere: tilbakemeldinger på 15 eller flere dager i år, sist de siste 4 ukene",
   "online.title": "Pålogget-prikk",

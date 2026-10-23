@@ -1066,7 +1066,7 @@ const pl: Record<string, string> = {
   "sup.badge": "Dzięki za cenne opinie w ostatnich 4 tygodniach",
   "sup.level2": "częsty pomocnik",
   "sup.level3": "jeden z naszych najaktywniejszych pomocników",
-  "sup.profile1": "Supporter: pomógł nam swoimi opiniami w ostatnich 4 tygodniach",
+  "sup.profile1": "Pomógł nam swoimi opiniami w ostatnich 4 tygodniach",
   "sup.profile2": "Częsty pomocnik: opinie w 5 lub więcej dni w tym roku, ostatnio w ostatnich 4 tygodniach",
   "sup.profile3": "Jeden z naszych najaktywniejszych pomocników: opinie w 15 lub więcej dni w tym roku, ostatnio w ostatnich 4 tygodniach",
   "online.title": "Kropka online",

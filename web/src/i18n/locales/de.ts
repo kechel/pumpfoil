@@ -1109,7 +1109,7 @@ const de: Record<string, string> = {
   "sup.badge": "Danke für wertvolles Feedback in den letzten 4 Wochen",
   "sup.level2": "fleißige Hilfe",
   "sup.level3": "eine unserer aktivsten Hilfen",
-  "sup.profile1": "Supporter: hat uns in den letzten 4 Wochen mit Feedback geholfen",
+  "sup.profile1": "Hat uns in den letzten 4 Wochen mit Feedback geholfen",
   "sup.profile2": "Fleißige Hilfe: Feedback an 5 oder mehr Tagen in diesem Jahr, zuletzt in den letzten 4 Wochen",
   "sup.profile3": "Eine unserer aktivsten Hilfen: Feedback an 15 oder mehr Tagen in diesem Jahr, zuletzt in den letzten 4 Wochen",
   "online.title": "Online-Punkt",

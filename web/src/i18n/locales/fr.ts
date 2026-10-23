@@ -844,7 +844,7 @@ const fr: Record<string, string> = {
   "sup.badge": "Merci pour tes retours précieux ces 4 dernières semaines",
   "sup.level2": "aide régulière",
   "sup.level3": "l'une de nos aides les plus actives",
-  "sup.profile1": "Supporter : nous a aidés avec ses retours ces 4 dernières semaines",
+  "sup.profile1": "Nous a aidés avec ses retours ces 4 dernières semaines",
   "sup.profile2": "Aide régulière : des retours sur 5 jours ou plus cette année, dont les 4 dernières semaines",
   "sup.profile3": "L'une de nos aides les plus actives : des retours sur 15 jours ou plus cette année, dont les 4 dernières semaines",
   "online.title": "Point en ligne",

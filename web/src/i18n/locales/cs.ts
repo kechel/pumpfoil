@@ -975,7 +975,7 @@ const cs: Record<string, string> = {
   "sup.badge": "Díky za cennou zpětnou vazbu za poslední 4 týdny",
   "sup.level2": "pilný pomocník",
   "sup.level3": "jeden z našich nejaktivnějších pomocníků",
-  "sup.profile1": "Supporter: pomohl nám zpětnou vazbou za poslední 4 týdny",
+  "sup.profile1": "Pomohl nám zpětnou vazbou za poslední 4 týdny",
   "sup.profile2": "Pilný pomocník: zpětná vazba v 5 a více dnech letos, naposledy za poslední 4 týdny",
   "sup.profile3": "Jeden z našich nejaktivnějších pomocníků: zpětná vazba v 15 a více dnech letos, naposledy za poslední 4 týdny",
   "online.title": "Online tečka",

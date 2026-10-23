@@ -951,7 +951,7 @@ const pt: Record<string, string> = {
   "sup.badge": "Obrigado pelo feedback valioso nas últimas 4 semanas",
   "sup.level2": "ajuda frequente",
   "sup.level3": "uma das nossas ajudas mais ativas",
-  "sup.profile1": "Supporter: nos ajudou com feedback nas últimas 4 semanas",
+  "sup.profile1": "Nos ajudou com feedback nas últimas 4 semanas",
   "sup.profile2": "Ajuda frequente: feedback em 5 ou mais dias neste ano, o último nas últimas 4 semanas",
   "sup.profile3": "Uma das nossas ajudas mais ativas: feedback em 15 ou mais dias neste ano, o último nas últimas 4 semanas",
   "online.title": "Ponto online",

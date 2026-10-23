@@ -975,7 +975,7 @@ const nl: Record<string, string> = {
   "sup.badge": "Bedankt voor waardevolle feedback in de afgelopen 4 weken",
   "sup.level2": "vaste helper",
   "sup.level3": "een van onze actiefste helpers",
-  "sup.profile1": "Supporter: hielp ons met feedback in de afgelopen 4 weken",
+  "sup.profile1": "Hielp ons met feedback in de afgelopen 4 weken",
   "sup.profile2": "Vaste helper: feedback op 5 of meer dagen dit jaar, het laatst in de afgelopen 4 weken",
   "sup.profile3": "Een van onze actiefste helpers: feedback op 15 of meer dagen dit jaar, het laatst in de afgelopen 4 weken",
   "online.title": "Online-stip",
