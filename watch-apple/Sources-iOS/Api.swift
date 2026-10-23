@@ -1208,6 +1208,16 @@ enum Api {
     // --- 1:1-Direktnachrichten + Blockieren ---
     /// Welche dieser Nutzer sind gerade online? (gruener Punkt am Profilbild, OnlinePunkt.swift).
     /// Der Server nimmt hoechstens 200 IDs und laesst weg, wer den Punkt abgeschaltet hat.
+    /// Supporter-Badge (23.10.2026): Stufe 1-3 je sichtbarem Supporter unter diesen IDs.
+    static func supporterStufen(ids: [Int]) async throws -> [Int: Int] {
+        struct R: Decodable { let stufen: [String: Int] }
+        let q: String = ids.map { String($0) }.joined(separator: ",")
+        let r: R = try await request("/api/supporter?ids=\(q)", method: "GET", body: nil, auth: true)
+        var out: [Int: Int] = [:]
+        for (k, v) in r.stufen { if let i = Int(k) { out[i] = v } }
+        return out
+    }
+
     static func chatOnline(ids: [Int]) async throws -> [Int] {
         struct R: Decodable { let online: [Int] }
         let q: String = ids.map { String($0) }.joined(separator: ",")

@@ -37,6 +37,9 @@ def submit(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leeres Feedback")
     fb = models.Feedback(user_id=user.id, text=text[:MAX_LEN], url=(body.url or "")[:255] or None)
     db.add(fb)
+    db.flush()
+    from .. import supporter
+    supporter.merke(db, user, "feedback", str(fb.id), f"{fb.url or ''} {text[:120]}")   # Supporter-Badge
     db.commit()
     # id mitgeben: die Oberflaeche haengt danach die Dateien an DIESE Meldung.
     return {"ok": True, "id": fb.id}

@@ -1516,6 +1516,9 @@ data class McpStatus(val url: String = "", val verbunden: List<McpVerbindung> = 
 // wird es nicht gezeigt. `aus` liefert er nur dem Besitzer (sonst waere „ist abgeschaltet" selbst
 // eine Auskunft ueber ein fremdes Konto).
 @Serializable
+data class FoilerSupporter(val stufe: Int = 0, @SerialName("tage_jahr") val tageJahr: Int = 0)
+
+@Serializable
 data class FoilerProfil(
     val id: Int,
     val name: String? = null,
@@ -1527,6 +1530,7 @@ data class FoilerProfil(
     val homespot: String? = null,
     @SerialName("homespot_id") val homespotId: Int? = null,
     val uhren: List<String> = emptyList(),
+    val supporter: FoilerSupporter? = null,     // Supporter-Badge (23.10.2026), nur wenn gerade sichtbar
     val kanal: String? = null,                  // freigegebener YouTube-Kanal
     val foils: List<FoilBrief> = emptyList(),
     val rekorde: OverallStats? = null,

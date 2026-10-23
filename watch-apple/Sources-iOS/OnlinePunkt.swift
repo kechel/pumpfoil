@@ -26,6 +26,11 @@ final class OnlineStore: ObservableObject {
 
     /// IDs, die der letzte Abruf als online gemeldet hat.
     @Published private(set) var online: Set<Int> = []
+    /// Supporter-Stufe 1-3 je sichtbarem Supporter (Web lib/supporter.ts, 23.10.2026) — seltener gefragt:
+    /// neue IDs mit dem naechsten Abruf, sonst alle 10 min (die Stufe aendert sich hoechstens taeglich).
+    @Published private(set) var stufen: [Int: Int] = [:]
+    private var supporterGefragt: Set<Int> = []
+    private var supporterZeit: Date = .distantPast
 
     private var angemeldet: [Int: Int] = [:]   // id -> Zahl der sichtbaren Profilbilder
     private var gefragt: Set<Int> = []          // was der letzte Abruf schon enthielt
@@ -36,6 +41,11 @@ final class OnlineStore: ObservableObject {
     private static let taktNs: UInt64 = 60_000_000_000
     private static let buendelNs: UInt64 = 400_000_000
 
+    func stufe(_ id: Int?) -> Int {
+        guard let id, id > 0 else { return 0 }
+        return stufen[id] ?? 0
+    }
+
     func istOnline(_ id: Int?) -> Bool {
         guard let id, id > 0 else { return false }
         return online.contains(id)
@@ -44,7 +54,7 @@ final class OnlineStore: ObservableObject {
     func anmelden(_ id: Int) {
         angemeldet[id, default: 0] += 1
         // Neue ID -> bald fragen; eine schon bekannte wartet auf den naechsten Takt.
-        if !gefragt.contains(id) { planen(sofort: false) }
+        if !gefragt.contains(id) || !supporterGefragt.contains(id) { planen(sofort: false) }
     }
 
     func abmelden(_ id: Int) {
@@ -99,6 +109,13 @@ final class OnlineStore: ObservableObject {
         } catch {
             // Netz weg oder abgemeldet: die Punkte bleiben, wie sie sind (wie die PWA). Der naechste
             // Takt fragt wieder — ein fehlender gruener Punkt ist kein Datenverlust.
+        }
+        if !Set(ids).isSubset(of: supporterGefragt) || Date().timeIntervalSince(supporterZeit) > 600 {
+            if let s: [Int: Int] = try? await Api.supporterStufen(ids: ids) {
+                supporterGefragt = Set(ids)
+                supporterZeit = Date()
+                if s != stufen { stufen = s }
+            }
         }
     }
 }
@@ -172,7 +189,7 @@ struct ProfilbildExtras: ViewModifier {
     private var punktGroesse: CGFloat { max(8, (size * 0.28).rounded()) }
 
     func body(content: Content) -> some View {
-        mitLink(content.overlay(alignment: .bottomTrailing) { punkt })
+        mitLink(content.overlay(alignment: .bottomTrailing) { punkt }.overlay(alignment: .bottomLeading) { supporter })
             .onAppear { erschienen = true; abgleichen() }
             .onDisappear { erschienen = false; abgleichen() }
             .onChange(of: userId) { _ in abgleichen() }
@@ -194,6 +211,31 @@ struct ProfilbildExtras: ViewModifier {
                 .accessibilityLabel(Loc.t("presence.online", lang))
                 .allowsHitTesting(false)
         }
+    }
+
+    // Supporter-Badge unten LINKS (rechts der Online-Punkt), 40 % des Bildes, Ring in Hintergrundfarbe.
+    // Bilder: Assets Supporter1-3 (brand/badges/supporter.svg in drei Farben).
+    @ViewBuilder private var supporter: some View {
+        let st: Int = store.stufe(id)
+        if st > 0 {
+            let b: CGFloat = max(11, (size * 0.4).rounded())
+            Image("Supporter\(st)")
+                .resizable()
+                .frame(width: b, height: b)
+                .padding(1)
+                .background(Circle().fill(Color(.systemBackground)))
+                .offset(x: -2, y: 2)
+                .accessibilityElement()
+                .accessibilityLabel(supText(st))
+                .allowsHitTesting(false)
+        }
+    }
+
+    private func supText(_ st: Int) -> String {
+        let basis: String = Loc.t("sup.badge", lang)
+        if st >= 3 { return basis + " · " + Loc.t("sup.level3", lang) }
+        if st == 2 { return basis + " · " + Loc.t("sup.level2", lang) }
+        return basis
     }
 
     // Als Sheet mit eigenem NavigationStack statt als Push: Profilbilder sitzen in Listenzeilen,

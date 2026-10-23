@@ -57,6 +57,14 @@ object OnlineStatus {
     private val _online = MutableStateFlow<Set<Int>>(emptySet())
     val online: StateFlow<Set<Int>> = _online
 
+    // Supporter-Badge (Web lib/supporter.ts, 23.10.2026): gleiche angemeldete IDs, aber seltener abgefragt —
+    // die Stufe aendert sich hoechstens taeglich. Neue IDs sofort mit dem naechsten Abruf, sonst alle 10 min.
+    private const val SUPPORTER_MS = 10 * 60_000L
+    private var supporterGefragt: Set<Int> = emptySet()
+    private var supporterZeit = 0L
+    private val _stufen = MutableStateFlow<Map<Int, Int>>(emptyMap())
+    val stufen: StateFlow<Map<Int, Int>> = _stufen
+
     /**
      * App im Vordergrund? Liest auch `Api.http`: im Hintergrund (Upload-Worker, Recorder) geht
      * `X-Foil-Sichtbar: 0` mit, damit ein Upload in der Hosentasche niemanden „online" macht —
@@ -87,6 +95,14 @@ object OnlineStatus {
             gefragt = ids.toSet()
             _online.value = r.toSet()
         } catch (_: Exception) { /* offline oder abgemeldet: Punkte bleiben, wie sie sind */ }
+        val jetzt = System.currentTimeMillis()
+        if (!supporterGefragt.containsAll(ids) || jetzt - supporterZeit > SUPPORTER_MS) {
+            try {
+                _stufen.value = Api.supporterStufen(ids)
+                supporterGefragt = ids.toSet()
+                supporterZeit = jetzt
+            } catch (_: Exception) { /* Badges bleiben, wie sie sind */ }
+        }
     }
 
     private fun planen(sofort: Boolean = false) {
@@ -100,7 +116,7 @@ object OnlineStatus {
     // Aufrufe kommen aus DisposableEffect, also immer vom Main-Thread — keine Sperre noetig.
     fun anmelden(id: Int) {
         angemeldet[id] = (angemeldet[id] ?: 0) + 1
-        if (id !in gefragt && vordergrund) planen()
+        if ((id !in gefragt || id !in supporterGefragt) && vordergrund) planen()
     }
 
     fun abmelden(id: Int) {
@@ -119,6 +135,13 @@ fun rememberOnline(userId: Int?): Boolean {
     }
     val alle by OnlineStatus.online.collectAsState()
     return id != null && id in alle
+}
+
+/** Supporter-Stufe 1-3 dieses Nutzers, 0 = kein Badge (Anmeldung laeuft ueber rememberOnline). */
+@Composable
+fun rememberSupporter(userId: Int?): Int {
+    val alle by OnlineStatus.stufen.collectAsState()
+    return userId?.let { alle[it] } ?: 0
 }
 
 /**
@@ -152,6 +175,7 @@ fun ProfilbildRahmen(
     content: @Composable () -> Unit,
 ) {
     val online = rememberOnline(userId)
+    val stufe = rememberSupporter(userId)
     val oeffnen = LocalOpenFoiler.current
     val id = userId?.takeIf { it > 0 }
     val verlinkt = link && id != null && oeffnen != null
@@ -161,6 +185,18 @@ fun ProfilbildRahmen(
             .then(if (verlinkt) Modifier.clickable(role = Role.Button) { oeffnen!!(id!!) } else Modifier),
     ) {
         content()
+        if (stufe > 0) {
+            // Supporter-Badge unten LINKS (rechts unten der Online-Punkt), 40 % des Bildes, Ring in Hintergrundfarbe.
+            val b = maxOf(11.dp, size * 0.4f)
+            val text = I18n.t("sup.badge") + when (stufe) { 3 -> " · " + I18n.t("sup.level3"); 2 -> " · " + I18n.t("sup.level2"); else -> "" }
+            Box(
+                Modifier.align(Alignment.BottomStart).size(b)
+                    .clip(CircleShape).background(MaterialTheme.colorScheme.surface).padding(1.dp)
+                    .semantics { contentDescription = text },
+            ) {
+                androidx.compose.foundation.Image(supporterIcon(stufe), contentDescription = null)
+            }
+        }
         if (online) {
             // 28 % des Bildes, mindestens 8 dp (wie Web). Der Rand in Hintergrundfarbe trennt den
             // Punkt vom Bild — ohne ihn verschwimmt er auf einem gruenen Foto.
@@ -175,4 +211,28 @@ fun ProfilbildRahmen(
             )
         }
     }
+}
+
+
+// Supporter-Badge „Welle + Herz" (brand/badges/supporter.svg), drei Stufen wie Web components/SupporterBadge.tsx:
+// 1 Cyan, 2 Smaragd, 3 Gold. Keine Verlaeufe.
+private val SUP_FARBE = mapOf(
+    1 to (Color(0xFF22D3EE) to Color(0xFF0E7490)),
+    2 to (Color(0xFF34D399) to Color(0xFF047857)),
+    3 to (Color(0xFFFBBF24) to Color(0xFFB45309)),
+)
+private val supCache = HashMap<Int, androidx.compose.ui.graphics.vector.ImageVector>()
+
+internal fun supporterIcon(stufe: Int): androidx.compose.ui.graphics.vector.ImageVector = supCache.getOrPut(stufe) {
+    val (fuell, rand) = SUP_FARBE[stufe] ?: SUP_FARBE.getValue(1)
+    val navy = androidx.compose.ui.graphics.SolidColor(Color(0xFF020617))
+    androidx.compose.ui.graphics.vector.ImageVector.Builder("supporter$stufe", 24.dp, 24.dp, 24f, 24f).apply {
+        addPath(androidx.compose.ui.graphics.vector.addPathNodes("M12 2.4a9.6 9.6 0 1 0 0 19.2a9.6 9.6 0 1 0 0-19.2z"),
+            fill = androidx.compose.ui.graphics.SolidColor(fuell),
+            stroke = androidx.compose.ui.graphics.SolidColor(rand), strokeLineWidth = 1.6f)
+        addPath(androidx.compose.ui.graphics.vector.addPathNodes("M5 16.4c1.2-.9 2.3-.9 3.5 0s2.3.9 3.5 0 2.3-.9 3.5 0 2.3.9 3.5 0"),
+            stroke = navy, strokeLineWidth = 1.5f, strokeLineCap = androidx.compose.ui.graphics.StrokeCap.Round)
+        addPath(androidx.compose.ui.graphics.vector.addPathNodes("M12 13.4c-2.5-1.7-3.6-2.9-3.6-4.4a1.9 1.9 0 0 1 3.6-1 1.9 1.9 0 0 1 3.6 1c0 1.5-1.1 2.7-3.6 4.4z"),
+            fill = navy)
+    }.build()
 }

@@ -1097,6 +1097,7 @@ export const api = {
   /** Oeffentliche Foiler-Seite eines Nutzers. Anmeldung noetig; was drin steht, entscheidet
    *  der Server nach den Schaltern des Nutzers (`public_profile` in den Einstellungen). */
   foilerProfil: (id: number) => req<{
+    supporter?: { stufe: number; tage_jahr: number };   // Supporter-Badge (23.10.2026)
     id: number; name: string | null; avatar_url: string | null;
     ich: boolean; aus: boolean;
     // Aus Sicht des Betrachters (Freunde, 15.10.2026) + Gewicht nur fuer Freunde und einen selbst.
