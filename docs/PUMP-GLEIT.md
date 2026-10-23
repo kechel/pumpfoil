@@ -84,3 +84,47 @@ Eingang je Session: Uhr-Accel (Raster wie Stufe 11, `gemeinsam.uhr_daten`), GPS,
 `modell_gesamt.pkl`: `clf`, `sp`, `theta`, `puffer_s`, `klassen`) → `merkmale.ableiten(..., theta)` liefert je Lauf
 `pump_ms`, `gleit` [(Start, Ende) Session-ms], `ende`, `longest`. Für eine Admin-Vorschau (`?pumpgleit=1` analog
 `?v3=`) müsste das Modell nach `server/app/analysis/` (mit Jans OK), rein lesend in `get_session`.
+
+## Kontrolle gegen Wahrheiten außerhalb des Trainings (23.10.2026, `kontrolle.py`, `korpus.py --kontrolle`)
+
+Sessions eines Trainingsfahrers wurden mit dem Modell OHNE diesen Fahrer gerechnet.
+
+| Quelle | heute | neu (hgb_7) |
+|---|---|---|
+| Tap-Pumps #295 (u2, 54 Konsens-Taps, 4 Takes), ±250 ms Treffer/verpasst/extra | 42 / 12 / 12 (54 gezählt) | 34 / 20 / 9 (43) |
+| Tap-Pumps #354 (u2, 47 Taps, 5 Takes) | 34 / 13 / 12 (46) | 28 / 19 / 8 (36) |
+| Label „glide“ #254 (3 s) | keine Gleitphase, 4 Pumps | 3 s gleiten, 0 Pumps |
+| Label „pump“ #479 (39,5 s) | 58 Pumps, keine Gleitphase | 58 Pumps, 86 % pumpen / 3 % gleiten |
+| Label-App `run_pumps` u2 (30 Läufe, 1431) | 1767, rel. Fehler 40 % | 1307, rel. Fehler 13 % |
+| `run_pumps` u460 (10 lange Läufe, 8674) | 8698, 3,5 % | 8397, 7,2 % |
+| `run_pumps` u717 (34 kurze Läufe, 894) | 993, 72 % | 525, 59 % |
+
+Taps: #763 hat keine Accel-Daten, #295 ist (vom Besitzer) gelöscht, die Rohdaten sind noch da. Die Taps liegen auf
+der Zuschnitt-Basis (`t_start_ms`), nicht in Session-ms. Labels: 11 der 13 Sessions sind FR55 mit 2,5 Hz oder ohne
+Daten. `run_pumps`: der Lauf liegt am ENDE des Label-App-Laps; `start_time + run_duration` (so rechnet
+`server/scripts/pump_calibrate.py`) trifft meist das Treiben davor (Lap 2 von 23296854256: Lap ab 0 s, Lauf ab 1296 s).
+Hier über das längste `foil_status`-Stück im Lap gesucht (Länge auf 5 s gleich `run_duration`). Die Werte
+1,04 / 0,83 aus dem Juli stammen aus dem alten Fenster. `run_pumps` ist der Zähler einer anderen App, also nur ein
+Vergleichswert.
+
+Befund: bei den Taps (u2, Juni) zählt heute fast genau, und neu verliert 15–20 % der Pumps. Bei `run_pumps` u2 ist
+neu klar besser, bei u460 und u717 nicht eindeutig. Die Trefferquote des neuen Modells hängt am Fahrer.
+
+**Laufende bis zum Ende einer anschließenden Gleitphase verlängern** (höchstens 5 s, Gleitphase beginnt im Lauf,
+GPS-Tempo ≥ max(1,4 m/s, 0,5 × Laufmedian), kein Sprung > 2 m/s): Brett-Paare 3 von 58 Läufen um 0,4–0,6 s, keiner
+über das Aufsetzen hinaus, Fehler je Fahrer praktisch unverändert (u2 MAE 3,42 → 3,38 s). Bestand: 2882 von 33 461
+Läufen (8,6 %), Median +0,6 s, Foil-Zeit +0,5 h von 412 h, Strecke +5,7 km, kein Rekordhalter wechselt (Dauer #2
++0,9 s). Die Uhr-Enden liegen meist schon HINTER dem Aufsetzen (u683 +7 s, u574 +3,3 s); die Verlängerung bringt
+fast nichts. Laufstart: Uhr 1–2 s vor dem Brett (u244 +0,9 s), Verlängern wäre falsch, Kürzen nicht untersucht.
+
+**Gleitphasen ≥ 12 s** (Hinweis statt Obergrenze): 209 in 121 Sessions (Pumpfoil 63, 51 Fahrer; efoil 30,
+wingfoil 9, foildrive 8, wakethief 7). Bei 166 von 207 nimmt das GPS-Tempo kaum ab (Steigung > −0,05 m/s je s), nur
+16 gleiten erkennbar aus (< −0,15). Das spricht in der Regel für Welle, Fremdkraft oder verpasste Pumps, nicht für
+echtes Gleiten. Beispiele: #12509, #8398, #1982, #1245 (Pumpfoil), #828, #1231 (efoil), #3235 (wakethief).
+
+**Nicht genutzte Labelquellen:** `foil_status.json` in 134 FIT-Importen (Label-App, je Sekunde auf dem Foil →
+Laufende), dazu 40 `original.fit` mit Laps; `analyse/fits` (Mast-Uhr P3/P4, 42 s, 10 Hz); `analyse/ground-truth-
+sessions.json` (Nicht-Pumpfoil als Negativbeispiele); `data/ml/laeufe_an_land.json` (146 Läufe an Land) und
+`land_urteil_sicht.json` (Negativbeispiele, dort darf es keine Pumps geben); `data/ml/v3/labels_fortsetzung.json`
+(9 Sessions langsames Weiterpumpen); `data/wahrheit/manoever.jsonl` (Wing-Halsen, teils mit Zeitpunkten: Carve-
+Wahrheit für Wing); 7 Brett-Sessions ohne Uhr (Carve-Definition am Brett); `session_bewertungen` (heute 0 Zeilen).
