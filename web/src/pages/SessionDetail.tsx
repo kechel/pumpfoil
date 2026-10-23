@@ -3528,7 +3528,6 @@ function RunsTable({
             <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="px-3 py-2 font-medium" title={t("compare.add")}><CompareIcon className="h-4 w-4" /></th>
               {th(null, "#")}
-              {canEdit && <th className="px-1 py-2 font-medium" aria-label={t("sd.runActions")} />}
               {th("start", t("sd.colStart"))}
               {th("distance", t("sd.colDistance"))}
               {th("duration", t("sd.colDuration"))}
@@ -3547,6 +3546,7 @@ function RunsTable({
               {hasDrop && th("hrDrop60", t("sd.colHrDrop", { s: 60 }))}
               {hasDrop && th("hrDrop120", t("sd.colHrDrop", { s: 120 }))}
               {th("glide", t("sd.colGlide"))}
+              {canEdit && <th className="px-3 py-2 font-medium" aria-label={t("sd.runActions")} />}
             </tr>
           </thead>
           <tbody>
@@ -3577,8 +3577,36 @@ function RunsTable({
                   <td className="px-3 py-2 tabular-nums">
                     {i + 1}{best && <span className="ml-1 inline-flex align-middle text-brand-400" title={t("sd.farthestRunTitle")}><StarIcon className="h-3.5 w-3.5" filled /></span>}
                   </td>
+                  <td className="px-3 py-2 tabular-nums text-slate-300">{runClock(s)}</td>
+                  <td className="px-3 py-2 tabular-nums">{Math.round(s.distance_m)} m</td>
+                  <td className="px-3 py-2 tabular-nums">{fmtMMSS(s.duration_s)}</td>
+                  <td className="px-3 py-2 tabular-nums">{s.avg_speed_mps != null ? (s.avg_speed_mps * 3.6).toFixed(1) : "–"}</td>
+                  <td className="px-3 py-2 tabular-nums">{val(s, "max")}</td>
+                  <td className="px-3 py-2 tabular-nums">{val(s, "min")}</td>
+                  {showPower && (
+                    <td className="px-3 py-2 tabular-nums text-brand-400">
+                      {(() => { const w = powerFor!(s.avg_speed_mps, s.avg_pump_hz); return w != null ? `${w} W` : "–"; })()}
+                    </td>
+                  )}
+                  <td className="px-3 py-2 tabular-nums">{s.pumps ?? "–"}</td>
+                  {hasPump && <td className="px-3 py-2 tabular-nums">{s.pumps ? `${(s.distance_m / s.pumps).toFixed(1)} m` : "–"}</td>}
+                  {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
+                  {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
+                  {hasHr && (() => {
+                    const w = hrWerte(s);
+                    const avg = w.length ? w.reduce((a, b) => a + b, 0) / w.length : null;
+                    return (<>
+                      <td className="px-3 py-2 tabular-nums">{bpm(w.length ? w[0] : null)}</td>
+                      <td className="px-3 py-2 tabular-nums">{bpm(avg)}</td>
+                      <td className="px-3 py-2 tabular-nums">{bpm(maxHr(s))}</td>
+                      <td className="px-3 py-2 tabular-nums">{bpm(w.length ? w[w.length - 1] : null)}</td>
+                    </>);
+                  })()}
+                  {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 60))}</td>}
+                  {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 120))}</td>}
+                  <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
                   {canEdit && (
-                    <td className="px-1 py-2" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
                       {/* „⋯"-Menü (23.10.2026): Aussortieren wie bisher + Anfang/Ende kürzen (seltener Fall,
                           deshalb nicht als eigener Knopf in jeder Zeile). */}
                       <button
@@ -3613,34 +3641,6 @@ function RunsTable({
                       </>, document.body)}
                     </td>
                   )}
-                  <td className="px-3 py-2 tabular-nums text-slate-300">{runClock(s)}</td>
-                  <td className="px-3 py-2 tabular-nums">{Math.round(s.distance_m)} m</td>
-                  <td className="px-3 py-2 tabular-nums">{fmtMMSS(s.duration_s)}</td>
-                  <td className="px-3 py-2 tabular-nums">{s.avg_speed_mps != null ? (s.avg_speed_mps * 3.6).toFixed(1) : "–"}</td>
-                  <td className="px-3 py-2 tabular-nums">{val(s, "max")}</td>
-                  <td className="px-3 py-2 tabular-nums">{val(s, "min")}</td>
-                  {showPower && (
-                    <td className="px-3 py-2 tabular-nums text-brand-400">
-                      {(() => { const w = powerFor!(s.avg_speed_mps, s.avg_pump_hz); return w != null ? `${w} W` : "–"; })()}
-                    </td>
-                  )}
-                  <td className="px-3 py-2 tabular-nums">{s.pumps ?? "–"}</td>
-                  {hasPump && <td className="px-3 py-2 tabular-nums">{s.pumps ? `${(s.distance_m / s.pumps).toFixed(1)} m` : "–"}</td>}
-                  {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
-                  {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
-                  {hasHr && (() => {
-                    const w = hrWerte(s);
-                    const avg = w.length ? w.reduce((a, b) => a + b, 0) / w.length : null;
-                    return (<>
-                      <td className="px-3 py-2 tabular-nums">{bpm(w.length ? w[0] : null)}</td>
-                      <td className="px-3 py-2 tabular-nums">{bpm(avg)}</td>
-                      <td className="px-3 py-2 tabular-nums">{bpm(maxHr(s))}</td>
-                      <td className="px-3 py-2 tabular-nums">{bpm(w.length ? w[w.length - 1] : null)}</td>
-                    </>);
-                  })()}
-                  {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 60))}</td>}
-                  {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 120))}</td>}
-                  <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
                 </tr>
               );
             })}
