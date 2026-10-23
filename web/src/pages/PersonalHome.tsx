@@ -10,7 +10,7 @@ import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { EigeneAbzeichen, NeuBewertenHinweis, SessionStats } from "./Sessions";
+import { EigeneAbzeichen, SessionStats } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
@@ -436,7 +436,6 @@ export default function PersonalHome() {
 
       {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
       <UploadProgressCard />
-      <NeuBewertenHinweis />
       <UhrenLiveStatus />
 
       <TransferHint />

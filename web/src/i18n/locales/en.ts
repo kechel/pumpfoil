@@ -792,7 +792,6 @@ const en: Record<string, string> = {
   "rate.rated": "Your rating",
   "rate.recheckTile": "Please rate again",
   "rate.recheck": "We looked into your rating and improved something. Please check the analysis and rate it again.",
-  "rate.recheckBanner": "Please rate again: we improved something on these sessions and would like to know if it fits now.",
   "rate.title": "Rate this analysis",
   "rate.intro": "Helps us improve run and pump detection. Everything is optional and only you and the pumpfoil.org team can see it.",
   "rate.stars": "How well does the analysis match your session?",

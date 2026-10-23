@@ -1563,19 +1563,6 @@ enum Api {
     }
 
     // „Rate this analysis" (22.10.2026, wie Web): nur Besitzer. Antwort {bewertung: {...}|null, laeufe_jetzt}.
-    /// Eigene Sessions mit Rueckfrage an der Bewertung („Back to rider") — Hinweis oben in der Liste.
-    static func neuBewerten() async throws -> [Int] {
-        guard let url = URL(string: baseURL + "/api/bewertungen/neu-bewerten") else { throw ApiError.badURL }
-        var req = URLRequest(url: url)
-        req.timeoutInterval = 20
-        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
-        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
-        let liste = (try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]) ?? []
-        return liste.compactMap { ($0["session_id"] as? NSNumber)?.intValue }
-    }
-
     static func bewertung(_ sessionId: Int) async throws -> [String: Any] {
         guard let url = URL(string: baseURL + "/api/sessions/\(sessionId)/bewertung") else { throw ApiError.badURL }
         var req = URLRequest(url: url)

@@ -775,7 +775,6 @@ const nl: Record<string, string> = {
   "rate.rated": "Jouw beoordeling",
   "rate.recheckTile": "Beoordeel opnieuw",
   "rate.recheck": "We hebben je beoordeling bekeken en iets verbeterd. Controleer de analyse en beoordeel hem opnieuw.",
-  "rate.recheckBanner": "Beoordeel opnieuw: we hebben iets verbeterd bij deze sessies en willen weten of het nu klopt.",
   "rate.title": "Analyse beoordelen",
   "rate.intro": "Helpt ons de herkenning van runs en pumps te verbeteren. Alles is vrijwillig en alleen jij en het pumpfoil.org-team zien het.",
   "rate.stars": "Hoe goed past de analyse bij je sessie?",

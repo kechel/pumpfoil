@@ -258,7 +258,6 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp)) {
             // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
             UploadProgressCard(onOpen = { onOpen(it, null) })
-            NeuBewertenHinweis(onOpen = { onOpen(it, null) })
             UhrenLiveStatus()
             val uv = updateVer
             if (uv != null && !updateDismissed) {

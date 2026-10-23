@@ -358,7 +358,6 @@ export default function Sessions() {
       </div>
 
       <UploadProgressCard />
-      {isMine && <NeuBewertenHinweis />}
 
       {/* Scope-Umschalter + Spotsuche */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -1378,27 +1377,6 @@ export function SessionStats({ a, profil }: { a: NonNullable<SessionSummary["ana
 // sessions / meine gehe"), weil die Startseite nur `status` abfragte. Das Feld `transfer_to`
 // liefert derselbe Endpunkt fuer beide, es wurde schlicht nicht gelesen. Zwei Abschriften
 // desselben Markups waren die Ursache — jetzt ist es eine.
-// Oben in „Meine Sessions" und auf Home: Sessions, an deren Bewertung wir nachgefragt haben. Die betroffene
-// Session kann alt sein und tief unten in der Liste stehen (Jan, 22.10.2026).
-export function NeuBewertenHinweis() {
-  const t = useT();
-  const [liste, setListe] = useState<{ session_id: number; gefahren: string | null }[]>([]);
-  useEffect(() => { api.neuBewerten().then(setListe).catch(() => {}); }, []);
-  if (liste.length === 0) return null;
-  return (
-    <div className="mb-4 rounded-xl border border-amber-500/60 bg-amber-500/10 p-3 text-sm text-slate-100">
-      <div className="font-medium text-amber-700 dark:text-amber-300">{t("rate.recheckBanner")}</div>
-      <div className="mt-1 flex flex-wrap gap-2">
-        {liste.map((x) => (
-          <Link key={x.session_id} to={`/sessions/${x.session_id}`} className="underline hover:text-brand-600 dark:hover:text-brand-300">
-            {x.gefahren ? new Date(x.gefahren).toLocaleDateString() : `#${x.session_id}`}
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function EigeneAbzeichen({ transferTo, status, neuBewerten }: { transferTo?: string | null; status: string; neuBewerten?: boolean | null }) {
   const t = useT();
   if (!transferTo && status === "analyzed" && !neuBewerten) return null;

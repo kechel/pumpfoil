@@ -758,7 +758,6 @@ const ptPT: Record<string, string> = {
   "rate.rated": "A tua avaliação",
   "rate.recheckTile": "Avalia de novo",
   "rate.recheck": "Analisámos a tua avaliação e melhorámos algo. Verifica a análise e avalia-a de novo.",
-  "rate.recheckBanner": "Avalia de novo: melhorámos algo nestas sessões e queremos saber se agora está certo.",
   "rate.title": "Avaliar a análise",
   "rate.intro": "Ajuda-nos a melhorar a deteção de voltas e pumps. Tudo é opcional e só tu e a equipa do pumpfoil.org podem ver.",
   "rate.stars": "Quanto corresponde a análise à tua sessão?",

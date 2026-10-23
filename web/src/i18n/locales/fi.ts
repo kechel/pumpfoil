@@ -758,7 +758,6 @@ const fi: Record<string, string> = {
   "rate.rated": "Arviosi",
   "rate.recheckTile": "Arvioi uudelleen",
   "rate.recheck": "Kävimme arviosi läpi ja paransimme jotain. Tarkista analyysi ja arvioi se uudelleen.",
-  "rate.recheckBanner": "Arvioi uudelleen: paransimme jotain näissä sessioissa ja haluaisimme tietää, onko se nyt kohdallaan.",
   "rate.title": "Arvioi analyysi",
   "rate.intro": "Auttaa meitä parantamaan ajojen ja pumppausten tunnistusta. Kaikki on vapaaehtoista, ja sen näkevät vain sinä ja pumpfoil.org-tiimi.",
   "rate.stars": "Kuinka hyvin analyysi vastaa sessiotasi?",
