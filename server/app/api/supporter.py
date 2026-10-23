@@ -9,11 +9,25 @@ from sqlalchemy.orm import Session
 
 from .. import models, supporter
 from ..db import get_db
-from .deps import current_admin
+from .deps import current_admin, current_user
 
 router = APIRouter(tags=["supporter"])
 QUELLEN = ("feedback", "chat_jan", "dank", "meldung", "spot_info", "brett", "bewertung", "git",
            "mail", "katalog", "test", "github", "chat", "hand")
+
+
+@router.get("/api/supporter")
+def stufen(ids: str = "", db: Session = Depends(get_db), _u=Depends(current_user)):
+    """Badge am Profilbild (wie /api/chat/online): Stufe 1-3 je sichtbarem Supporter unter diesen IDs.
+    Nur wer gerade sichtbar ist, steht drin — der Rest hat keinen Badge."""
+    try:
+        wunsch = list({int(x) for x in ids.split(",") if x.strip()})[:200]
+    except ValueError:
+        raise HTTPException(400, "ids: Zahlen, kommagetrennt")
+    if not wunsch:
+        return {"stufen": {}}
+    ueb = supporter.uebersicht(db, wunsch)
+    return {"stufen": {str(uid): d["stufe"] for uid, d in ueb.items() if d["sichtbar"] and d["stufe"]}}
 
 
 @router.get("/api/admin/supporter")

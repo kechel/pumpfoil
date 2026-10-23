@@ -28,6 +28,7 @@ def test_stufen_und_admin(client):
     assert client.post("/api/admin/supporter", headers=admin, json={"user_id": fid, "quelle": "mail", "notiz": "Mail"}).status_code == 200
     d = supporter.uebersicht(SessionLocal(), [fid])[fid]
     assert d["sichtbar"] and d["stufe"] == 2                       # 7 Tage, juengster heute
+    assert client.get(f"/api/supporter?ids={fid},999999", headers=admin).json() == {"stufen": {str(fid): 2}}
     liste = client.get("/api/admin/supporter", headers=admin).json()["nutzer"]
     assert next(r for r in liste if r["user_id"] == fid)["quellen"] == {"chat_jan": 6, "mail": 1}
     det = client.get(f"/api/admin/supporter/{fid}", headers=admin).json()
