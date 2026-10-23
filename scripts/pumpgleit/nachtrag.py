@@ -5,7 +5,9 @@ Schreibt je Session in EINER kurzen Transaktion (Zeile mit FOR UPDATE gesperrt, 
 nicht ueberschrieben wird): analysis_results.pg_version/pg_pump_count/pg_avg_cadence_hz/pg_best_glide_s/
 pg_best_glide_idx, je Lauf `pg_*` in segments_json, metrics_json.pumpgleit — ueber analysis/pumpgleit.stufe,
 dieselbe Funktion wie die Live-Pipeline. Alle bisherigen Felder bleiben unveraendert. Kein run_analysis.
-Wiederholbar: Sessions mit derselben pg_version werden uebersprungen (ausser --neu).
+Wiederholbar: Sessions mit derselben pg_version werden uebersprungen (ausser --neu). Fehlt pg nur in den
+Empfindlichkeits-Presets (sensitivity_json, Nachtrag vom 23.10. vor dem Preset-Fix), werden NUR diese ergaenzt
+(Status „presets"), mit Pruefung, dass alle bisherigen Preset-Schluessel gleich bleiben.
 
 `sessions.updated_at` bleibt standardmaessig unberuehrt: das ETag der Detailantwort enthaelt den Anzeige-Schalter
 (app/pumpgleit_anzeige.etag_teil), beim Einschalten werden also alle Clients ohnehin frisch. Nur wenn der Schalter
@@ -42,6 +44,27 @@ def _init(trocken, neu, stempel):
     TROCKEN, NEU, STEMPEL = trocken, neu, stempel
 
 
+def _presets_ohne_pg(sj):
+    """sensitivity_json ohne alle pg-Schluessel (fuer die Pruefung, dass Bisheriges gleich bleibt)."""
+    try:
+        c = json.loads(sj or "null")
+    except ValueError:
+        return sj
+    if not isinstance(c, dict):
+        return c
+    return {k: ({kk: (vv if kk != "segments" else [{a: b for a, b in g.items() if not a.startswith("pg_")} for g in vv])
+                 for kk, vv in p.items() if not kk.startswith("pg_")} if isinstance(p, dict) else p)
+            for k, p in c.items()}
+
+
+def _presets_fehlen(r, version) -> bool:
+    try:
+        c = json.loads(r.sensitivity_json or "null") or {}
+    except ValueError:
+        return False
+    return any(isinstance(p, dict) and p.get("segments") and p.get("pg_version") != version for p in c.values())
+
+
 def eine(sid: int) -> dict:
     from app import models
     from app.db import SessionLocal
@@ -56,10 +79,20 @@ def eine(sid: int) -> dict:
         zust = PG.zustaendig(s, r)
         if not zust and r.pg_version is None:
             return {"id": sid, "status": "nicht_zustaendig"}
+        nur_presets = False
         if zust and r.pg_version == PG.VERSION and not NEU:
-            return {"id": sid, "status": "schon_da"}
+            if not _presets_fehlen(r, PG.VERSION):
+                return {"id": sid, "status": "schon_da"}
+            nur_presets = True
         alt = (r.segments_json, r.pump_count, r.best_glide_s)
-        PG.stufe(s, r, rechnen=True)
+        alt_presets = _presets_ohne_pg(r.sensitivity_json)
+        if nur_presets:
+            PG.presets(s, r)
+        else:
+            PG.stufe(s, r, rechnen=True)
+        if _presets_ohne_pg(r.sensitivity_json) != alt_presets:
+            db.rollback()
+            return {"id": sid, "status": "fehler", "grund": "bisherige Preset-Felder veraendert"}
         # Sicherheitsnetz: die bisherigen Felder muessen gleich bleiben (je Lauf alle Nicht-pg-Schluessel)
         a = json.loads(alt[0] or "[]"); n = json.loads(r.segments_json or "[]")
         gleich = len(a) == len(n) and all({k: v for k, v in x.items() if not k.startswith("pg_")} ==
@@ -67,7 +100,8 @@ def eine(sid: int) -> dict:
         if not gleich or (r.pump_count, r.best_glide_s) != alt[1:]:
             db.rollback()
             return {"id": sid, "status": "fehler", "grund": "bisherige Felder veraendert"}
-        erg = {"id": sid, "status": "geschrieben" if r.pg_version else "geleert", "pg_pumps": r.pg_pump_count,
+        erg = {"id": sid, "status": ("presets" if nur_presets else "geschrieben") if r.pg_version else "geleert",
+               "pg_pumps": r.pg_pump_count,
                "alt_pumps": r.pump_count, "pg_best": r.pg_best_glide_s, "alt_best": r.best_glide_s}
         if TROCKEN:
             db.rollback()

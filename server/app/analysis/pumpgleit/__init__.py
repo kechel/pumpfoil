@@ -245,7 +245,28 @@ PG_FELDER = ("pumps", "pump_idx", "avg_pump_hz", "pumps_per_min", "dist_per_pump
              "glides", "num_glides", "avg_glide_s", "longest_glide_s")
 
 
+def _presets_leeren(result) -> None:
+    if not result.sensitivity_json:
+        return
+    try:
+        cache = json.loads(result.sensitivity_json) or {}
+    except ValueError:
+        return
+    geaendert = False
+    for p in cache.values():
+        if not isinstance(p, dict):
+            continue
+        for k in [k for k in p if k.startswith("pg_")]:
+            p.pop(k); geaendert = True
+        for g in p.get("segments") or []:
+            for k in [k for k in g if k.startswith("pg_")]:
+                g.pop(k); geaendert = True
+    if geaendert:
+        result.sensitivity_json = json.dumps(cache)
+
+
 def _leeren(result) -> None:
+    _presets_leeren(result)
     result.pg_version = None
     result.pg_pump_count = None
     result.pg_avg_cadence_hz = None
@@ -303,4 +324,65 @@ def stufe(s, result, rechnen: bool = True) -> bool:
     m["pumpgleit"] = {"version": VERSION, "gleit_s": erg["gleit_s"], "hinschauen": erg["hinschauen"],
                       "avg_pump_hz": result.pg_avg_cadence_hz}
     result.metrics_json = json.dumps(m)
+    presets(s, result, segs, len(track))
+    return True
+
+
+def _grenzen(gs):
+    return [(g.get("t_start_session_ms"), g.get("t_end_session_ms")) for g in gs]
+
+
+def presets(s, result, kanon_segs: list[dict] | None = None, n_track: int | None = None) -> bool:
+    """pg-1 auch fuer die Empfindlichkeits-Presets in sensitivity_json (light/attempts …): die eigene Ansicht des
+    Besitzers zeigt deren Laeufe. Je Preset je Lauf `pg_*`, dazu pg_pump_count/pg_avg_cadence_hz/pg_best_glide_s/
+    pg_best_glide_idx. Gleiche Laufgrenzen wie die kanonischen Laeufe (der Normalfall: die kanonische Auswertung
+    IST die des Besitzer-Presets) -> pg-Schluessel uebernommen; sonst eigen gerechnet. Bisherige Schluessel bleiben."""
+    if not result.sensitivity_json:
+        return False
+    try:
+        cache = json.loads(result.sensitivity_json) or {}
+    except ValueError:
+        return False
+    if kanon_segs is None:
+        kanon_segs = json.loads(result.segments_json or "[]")
+    if n_track is None:
+        n_track = len((json.loads(result.track_geojson or "{}").get("geometry") or {}).get("coordinates") or [])
+    for p in cache.values():
+        if not isinstance(p, dict) or not p.get("segments"):
+            continue
+        ps = p["segments"]
+        for g in ps:
+            for k in [k for k in g if k.startswith("pg_")]:
+                g.pop(k)
+        for k in [k for k in p if k.startswith("pg_")]:
+            p.pop(k)
+        if _grenzen(ps) == _grenzen(kanon_segs):
+            quelle = kanon_segs
+        else:
+            erg = segmente_ueberlagern(s, ps, n_track)
+            if erg is None:
+                continue
+            quelle = []
+            for n in erg["segments"]:
+                q = {}
+                if n.get("pumpgleit") == VERSION:
+                    q = {"pg_" + k: n.get(k) for k in PG_FELDER}
+                    q["pg_hinschauen"] = n.get("hinschauen") or []
+                quelle.append(q)
+        for g, q in zip(ps, quelle):
+            for k, v in q.items():
+                if k.startswith("pg_"):
+                    g[k] = v
+        anz = [(g["pg_pumps"] if g.get("pg_pumps") is not None else g.get("pumps")) for g in ps]
+        if any(x is not None for x in anz):
+            pc = int(sum(int(x or 0) for x in anz))
+            ft = float(p.get("foiling_time_s") or 0.0)
+            lang = [(float(g["pg_longest_glide_s"] if g.get("pg_pumps") is not None else (g.get("longest_glide_s") or 0.0)
+                           or 0.0), j) for j, g in enumerate(ps)]
+            best = max(lang, default=(0.0, None))
+            p.update({"pg_version": VERSION, "pg_pump_count": pc,
+                      "pg_avg_cadence_hz": round(pc / ft, 3) if ft > 0 else None,
+                      "pg_best_glide_s": best[0] if best[0] > 0 else 0.0,
+                      "pg_best_glide_idx": best[1] if best[0] > 0 else None})
+    result.sensitivity_json = json.dumps(cache)
     return True

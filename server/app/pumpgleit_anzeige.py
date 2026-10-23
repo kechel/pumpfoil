@@ -49,19 +49,33 @@ def _pg_da(ar) -> bool:
     return AN and ar is not None and getattr(ar, "pg_version", None) is not None
 
 
-def pump_count(ar):
+def _preset_pg(p) -> bool:
+    return AN and isinstance(p, dict) and p.get("pg_version") is not None
+
+
+def pump_count(ar, preset: dict | None = None):
+    """`preset` = der Eintrag aus sensitivity_json, wenn die Ansicht die Preset-Laeufe zeigt (eigene Ansicht bei
+    Empfindlichkeit light/attempts) — dann die pg-Werte DIESES Presets, damit Summe und Laeufe zusammenpassen."""
+    if _preset_pg(preset):
+        return preset.get("pg_pump_count")
     return ar.pg_pump_count if _pg_da(ar) else (ar.pump_count if ar is not None else None)
 
 
-def avg_cadence_hz(ar):
+def avg_cadence_hz(ar, preset: dict | None = None):
+    if _preset_pg(preset):
+        return preset.get("pg_avg_cadence_hz")
     return ar.pg_avg_cadence_hz if _pg_da(ar) else (ar.avg_cadence_hz if ar is not None else None)
 
 
-def best_glide_s(ar):
+def best_glide_s(ar, preset: dict | None = None):
+    if _preset_pg(preset):
+        return preset.get("pg_best_glide_s")
     return ar.pg_best_glide_s if _pg_da(ar) else (ar.best_glide_s if ar is not None else None)
 
 
-def best_glide_idx(ar):
+def best_glide_idx(ar, preset: dict | None = None):
+    if _preset_pg(preset):
+        return preset.get("pg_best_glide_idx")
     return ar.pg_best_glide_idx if _pg_da(ar) else (ar.best_glide_idx if ar is not None else None)
 
 
