@@ -205,7 +205,7 @@ private fun FoilerInhalt(
             })
             // Supporter-Badge oeffentlich, mit Text fuer genau diese Stufe (Jan, 23.10.2026), unter Uhr und Foil.
             d.supporter?.takeIf { it.stufe in 1..3 }?.let { sup ->
-                add(Triple(Icons.Filled.Favorite, "Supporter") {
+                add(Triple(Icons.Filled.Favorite, I18n.t("sup.label")) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         androidx.compose.foundation.Image(supporterIcon(sup.stufe), contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))

@@ -282,7 +282,7 @@ struct FoilerView: View {
         if let st = d.supporter?.stufe, (1...3).contains(st) {
             HStack(alignment: .top, spacing: 8) {
                 Image("Supporter\(st)").resizable().frame(width: 18, height: 18).frame(width: 20)
-                Text("Supporter").foregroundStyle(.secondary)
+                Text(Loc.t("sup.label", lang)).foregroundStyle(.secondary)
                 Spacer(minLength: 8)
                 Text(Loc.t("sup.profile\(st)", lang)).fontWeight(.semibold).multilineTextAlignment(.trailing)
             }

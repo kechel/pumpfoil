@@ -227,7 +227,7 @@ export default function Foiler() {
         {/* Supporter-Badge oeffentlich, mit Text fuer genau diese Stufe (Jan, 23.10.2026), unter Uhr und Foil. */}
         {d.supporter && (
           <>
-            <span className="flex items-center gap-1.5 text-slate-400"><SupporterBadge stufe={d.supporter.stufe} size={16} />Supporter:</span>
+            <span className="flex items-center gap-1.5 text-slate-400"><SupporterBadge stufe={d.supporter.stufe} size={16} />{t("sup.label")}:</span>
             <span className="font-semibold text-slate-200">{t(`sup.profile${d.supporter.stufe}`)}</span>
           </>
         )}
