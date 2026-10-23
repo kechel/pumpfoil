@@ -870,6 +870,12 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 23.10.2026 08:04 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung“, 1.1.55 (63),
+    # Übermittlung 38a4b866-75ff-4c78-b946-aa143280596a). Pause-Upload der Watch im Simulator bestanden (#18857).
+    {"name": "iPhone + Apple Watch", "version": "1.1.55",
+     "eingereicht": "2026-10-23",
+     # 23.10.2026: Teil-Upload in der Pause las die falsche Datei und schickte nie etwas (TODO 23.10.).
+     "items": ["While a recording is paused, the Apple Watch now really uploads what it has recorded so far; until now it waited for the end of the session.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list."]},
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
     # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
@@ -1028,9 +1034,7 @@ NAECHSTES: list[dict] = [
     # 1.1.44 lag im Review, 1.1.54 war gerade freigegeben (Memory versionen-erst-bei-release).
     {"name": "Android phone + Wear OS", "version": "1.1.45 / 1.2.45",
      "items": ["Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list."]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.55",
-     # 23.10.2026: Teil-Upload in der Pause las die falsche Datei und schickte nie etwas (TODO 23.10.).
-     "items": ["While a recording is paused, the Apple Watch now really uploads what it has recorded so far; until now it waited for the end of the session.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list."]},
+    # iPhone + Apple Watch 1.1.55 am 23.10. eingereicht -> IN_REVIEW.
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
     # Garmin 1.0.96 am 22.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.96.
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
