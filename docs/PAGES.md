@@ -56,6 +56,7 @@ heraus und von der Startseite verlinkt.
 | `/nerd-analysen` | `NerdAnalysen.tsx` | Teil 1: Dual-Watch-Pumpfoil-Experiment (2026-06-27). 7 Sprachen (`nerd1.i18n.ts`). |
 | `/nerd-analysen-2` | `NerdAnalysen2.tsx` | Teil 2: Wie die Erkennung funktioniert (Signalverarbeitung/ML hinter Pump-/On-Foil-/Start-Ende-/Gleit-Erkennung). Selbstgezeichnete SVGs. |
 | `/nerd-analysen-3` | `NerdAnalysen3.tsx` | Teil 3: zweite Doppeluhr-Messung mit echten Fotos + Mess-Plots (`web/public/nerd3/`, same-origin). 8 Sprachen. |
+| `/nerd-analysen-6` | `NerdAnalysen6.tsx` | Teil 6 (ENTWURF, nicht verlinkt, noindex): Pump- und Gleit-Erkennung pg-1 gegen das Brett (`docs/PUMP-GLEIT.md`). Bilder `web/public/nerd6/` aus `scripts/pumpgleit/nerd6_bilder.py`. Nur de/en (`nerd6.i18n.ts`), Rückfall en. |
 | `/systemarchitektur` | `Systemarchitektur.tsx` | Realer Server-Aufbau, prüfbar für IT-Interessierte. Nur Deutsch. **Keine Secrets** (Verfahren/Design, keine Keys/Hosts/IPs). |
 
 ## Admin
