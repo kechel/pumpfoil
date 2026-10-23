@@ -1493,6 +1493,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **23.10. — Web-Bundle per Code-Splitting verkleinern.** `index-*.js` ist 5,26 MB (eine Datei, alles drin) und riss die
+  Precache-Grenze von 5 MiB — CI-Web-Build rot ab 6be5001e (lokal knapp darunter, deshalb nicht bemerkt). Grenze auf 8 MiB
+  gehoben (`web/vite.config.ts`), das ist nur Aufschub. Kandidaten fuer `lazy()`: Admin, Nerd-Seiten, Changelog, Karten-
+  und Diagramm-Teile. Jede Lade-Verkleinerung hilft auch dem ersten Seitenaufruf.
+
 - **🟢 23.10. URSACHE GEFUNDEN + BEHOBEN (fuer iOS/Watch 1.1.55):** `Recorder.teilUpload` las `session.json`, LocalStore schreibt `meta.json` -> `guard … else { return }` brach still ab, die Pause schickte NIE etwas (seit Einfuehrung der Pause, d252d17a). Zweiter Simulator-Lauf 23.10. 06:38-06:43 (Pause nach 4:39 min): wieder kein einziger Aufruf am Server. Fix: `meta.json`. **Im Simulator bestanden (Jan, 23.10., #18857):** Pause nach 56 s -> sofort `/session`, `/chunks` (6 GPS-Bloecke), `/analyze`, Status live mit Teil-Auswertung; Stopp aus der Pause -> nur `/session` + `/complete`, nichts doppelt gesendet, 6/6 ohne Luecke, Pause [56375, 33458] und Ende 07:06:39 stimmen, 56 GPS-Punkte in 56 s. Offen: echte Watch (mit Accel).
 - **22.10. — PRUEFEN (Apple Watch): Vorab-Upload in der Pause lief im Simulator nicht.** #18807 (Jans Watch-Simulator, 1.1.54):
   Pause 17:29:21, laut Server-Log KEINE Anfrage der Watch bis zum Stopp 17:40:05 (dann alles vollstaendig, 4/4). Nach dem Code
