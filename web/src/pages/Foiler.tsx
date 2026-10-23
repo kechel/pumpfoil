@@ -13,6 +13,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
+import { SupporterBadge } from "../components/SupporterBadge";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { SessionCard } from "../components/SessionCard";
 import { openDmOverlay } from "../components/DmWidget";
@@ -221,6 +222,13 @@ export default function Foiler() {
           <>
             <span className="flex items-center gap-1.5 text-slate-400"><FoilIcon className="h-4 w-4" />{t("foiler.foil")}:</span>
             <span className="font-semibold text-slate-200">{d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}</span>
+          </>
+        )}
+        {/* Supporter-Badge oeffentlich, mit Text fuer genau diese Stufe (Jan, 23.10.2026), unter Uhr und Foil. */}
+        {d.supporter && (
+          <>
+            <span className="flex items-center gap-1.5 text-slate-400"><SupporterBadge stufe={d.supporter.stufe} size={16} />Supporter:</span>
+            <span className="font-semibold text-slate-200">{t(`sup.profile${d.supporter.stufe}`)}</span>
           </>
         )}
         {d.kanal && (

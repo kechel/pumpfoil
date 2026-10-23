@@ -1120,6 +1120,12 @@ object Api {
     // --- 1:1-Direktnachrichten + Blockieren ---
     // Gruener Online-Punkt (OnlineStatus in Online.kt): welche dieser Nutzer sind gerade online?
     // Hoechstens 200 IDs je Aufruf (Server-Grenze). Blockierte, Abgeschaltete, unter 13 meldet er nie.
+    // Supporter-Badge (23.10.2026): Stufe 1-3 je sichtbarem Supporter unter diesen IDs.
+    suspend fun supporterStufen(ids: List<Int>): Map<Int, Int> = withContext(Dispatchers.IO) {
+        val r = json.parseToJsonElement(http("GET", "/api/supporter?ids=${ids.joinToString(",")}", null, auth = true)).jsonObject
+        r["stufen"]?.jsonObject?.mapNotNull { (k, v) -> k.toIntOrNull()?.let { it to (v.jsonPrimitive.intOrNull ?: 0) } }?.toMap() ?: emptyMap()
+    }
+
     suspend fun chatOnline(ids: List<Int>): List<Int> = withContext(Dispatchers.IO) {
         val r = json.parseToJsonElement(http("GET", "/api/chat/online?ids=${ids.joinToString(",")}", null, auth = true)).jsonObject
         r["online"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()

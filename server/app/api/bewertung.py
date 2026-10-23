@@ -120,6 +120,10 @@ def speichern(sid: int, body: dict = Body(...), db: Session = Depends(get_db), u
     b.schnappschuss_json = json.dumps(_schnappschuss(db, s))
     if b.status != "offen":     # neu bewertet (z. B. nach unserer Rueckfrage) -> wieder ansehen
         b.status, b.status_at = "offen", datetime.now(timezone.utc)
+    db.flush()
+    # Supporter-Badge: eine Bewertung zaehlt als Beitrag, je Bewertung und Tag einmal (Jan, 23.10.2026).
+    from .. import supporter
+    supporter.merke(db, user, "bewertung", f"{b.id}:{datetime.now(timezone.utc).date()}", f"#{s.id}")
     db.commit()
     db.refresh(b)
     return {"bewertung": _aus(b)}

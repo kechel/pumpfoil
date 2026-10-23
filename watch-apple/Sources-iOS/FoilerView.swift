@@ -226,7 +226,7 @@ struct FoilerView: View {
         let hs: Bool = !(d.homespot ?? "").isEmpty
         let uhr: Bool = !(d.uhren ?? []).isEmpty
         let foil: Bool = !(d.foils ?? []).isEmpty
-        return hs || uhr || foil || d.kanal != nil || d.gewicht_kg != nil
+        return hs || uhr || foil || d.kanal != nil || d.gewicht_kg != nil || d.supporter != nil
     }
 
     @ViewBuilder private func angaben(_ d: FoilerProfil) -> some View {
@@ -236,6 +236,7 @@ struct FoilerView: View {
                 gewichtZeile(d)
                 uhrZeile(d)
                 foilZeile(d)
+                supporterZeile(d)
                 kanalZeile(d)
             }
         }
@@ -273,6 +274,18 @@ struct FoilerView: View {
         let foils: [FoilerFoil] = d.foils ?? []
         if !foils.isEmpty {
             angabeZeile(nil, Loc.t("foiler.foil", lang), foilText(foils))
+        }
+    }
+
+    // Supporter-Badge oeffentlich, mit Text fuer genau diese Stufe (Jan, 23.10.2026), unter Uhr und Foil.
+    @ViewBuilder private func supporterZeile(_ d: FoilerProfil) -> some View {
+        if let st = d.supporter?.stufe, (1...3).contains(st) {
+            HStack(alignment: .top, spacing: 8) {
+                Image("Supporter\(st)").resizable().frame(width: 18, height: 18).frame(width: 20)
+                Text("Supporter").foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Text(Loc.t("sup.profile\(st)", lang)).fontWeight(.semibold).multilineTextAlignment(.trailing)
+            }
         }
     }
 

@@ -39,3 +39,16 @@ def uebersicht(db, user_ids: list[int] | None = None) -> dict[int, dict]:
         out[uid] = {"tage_jahr": tage, "beitraege": n, "zuletzt": zuletzt, "sichtbar": sichtbar,
                     "stufe": stufe_fuer(tage) if sichtbar else 0}
     return out
+
+
+def merke(db, user, quelle: str, ref: str, notiz: str | None = None, at: datetime | None = None) -> None:
+    """Beitrag sofort festhalten (Feedback-Formular, Bewertung — Jan 23.10.2026: „session-rating soll auch
+    mitzaehlen automatisch"). Gleiche quelle+ref wie scripts/feedback-beitraege.py, also kein Doppel.
+    Admins (Jan) und versteckte Konten (Testkonten) zaehlen nicht. Committet NICHT."""
+    if user is None or getattr(user, "is_admin", False) or getattr(user, "hidden", False):
+        return
+    B = models.FeedbackBeitrag
+    if db.query(B.id).filter_by(quelle=quelle, ref=str(ref)[:80]).first() is not None:
+        return
+    db.add(B(user_id=user.id, quelle=quelle, ref=str(ref)[:80], at=at or datetime.now(timezone.utc),
+             notiz=(notiz or "")[:300] or None))

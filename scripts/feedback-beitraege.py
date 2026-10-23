@@ -126,7 +126,7 @@ def main() -> None:
         for s in db.query(models.Session).filter(models.Session.placement == "board", models.Session.deleted.isnot(True)).all():
             merke(s.user_id, "brett", s.id, s.started_at, f"#{s.id}")
         for b in db.query(models.SessionBewertung).all():
-            merke(b.user_id, "bewertung", b.id, b.created_at, f"#{b.session_id}")
+            merke(b.user_id, "bewertung", f"{b.id}:{b.created_at.date()}", b.created_at, f"#{b.session_id}")
         if a.git:
             _git(db, models, merke, intern)
         neu[:] = [n for n in neu if n.user_id not in intern]

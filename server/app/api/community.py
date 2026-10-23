@@ -2066,6 +2066,11 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Darf hier ueberhaupt eine Anfrage gestellt werden? (Altersgrenze, Sperre, Testkonto)
         "freundschaft_moeglich": _freundschaft_moeglich(db, user, u),
     }
+    # Supporter-Badge oeffentlich auf der Profilseite, mit Text fuer genau diese Stufe (Jan, 23.10.2026).
+    from .. import supporter as _sup
+    _st = _sup.uebersicht(db, [u.id]).get(u.id) or {}
+    if _st.get("sichtbar") and _st.get("stufe"):
+        raus["supporter"] = {"stufe": _st["stufe"], "tage_jahr": _st["tage_jahr"]}
     # Gewicht nur fuer Freunde (und einen selbst), auch wenn „Gewicht verbergen" an ist.
     if freund or u.id == user.id:
         try:

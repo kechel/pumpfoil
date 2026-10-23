@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Place
@@ -202,6 +203,16 @@ private fun FoilerInhalt(
             if (d.foils.isNotEmpty()) add(Triple(Icons.Filled.Waves, I18n.t("foiler.foil")) {
                 Text(d.foils.joinToString(" · ") { "${it.brand} ${it.model} ${it.size}".trim() }, fontWeight = FontWeight.SemiBold)
             })
+            // Supporter-Badge oeffentlich, mit Text fuer genau diese Stufe (Jan, 23.10.2026), unter Uhr und Foil.
+            d.supporter?.takeIf { it.stufe in 1..3 }?.let { sup ->
+                add(Triple(Icons.Filled.Favorite, "Supporter") {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.foundation.Image(supporterIcon(sup.stufe), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(I18n.t("sup.profile${sup.stufe}"), fontWeight = FontWeight.SemiBold)
+                    }
+                })
+            }
             d.kanal?.takeIf { it.isNotBlank() }?.let { k ->
                 add(Triple(Icons.Filled.PlayArrow, "YouTube") {
                     // Angezeigt wird der Kanal-Name (@handle), nicht die ganze URL.

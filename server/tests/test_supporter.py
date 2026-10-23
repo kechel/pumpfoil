@@ -39,3 +39,21 @@ def test_stufen_und_admin(client):
     db = SessionLocal()
     assert db.query(models.FeedbackBeitrag).filter_by(user_id=fid).count() == 0
     db.close()
+
+
+def test_bewertung_und_feedback_zaehlen_sofort(client):
+    """Formular-Feedback und Session-Bewertung landen ohne Skript in feedback_beitraege (Jan, 23.10.2026)."""
+    auth = {"Authorization": "Bearer " + client.post("/api/auth/register", json={"email": "sup-auto@b.de", "password": "supersecret"}).json()["access_token"]}
+    uhr = {"X-Device-Token": client.post("/api/devices/mint?label=Uhr", headers=auth).json()["device_token"]}
+    client.post("/api/ingest/session", headers=uhr, json={"session_uuid": "sup-auto-1", "started_at": "2026-10-21T19:00:00Z",
+                "sport": "pumpfoil", "gps_hz": 1, "accel_hz": 25, "accel_scale": 1000})
+    client.post("/api/ingest/session/sup-auto-1/chunk", headers=uhr, json={"index": 0, "kind": "gps", "encoding": "json",
+                "data": [[i * 1000, 47.0 + i * 1e-5, 9.0, 4.0, 120, 5.0] for i in range(30)]})
+    sid = client.post("/api/ingest/session/sup-auto-1/complete", headers=uhr, json={"total_chunks": 1}).json()["session_id"]
+    assert client.post("/api/feedback", headers=auth, json={"text": "Toll!", "url": "/x"}).status_code == 200
+    for _ in range(2):   # zweimal am selben Tag bewertet -> ein Beitrag
+        assert client.put(f"/api/sessions/{sid}/bewertung", headers=auth, json={"antworten": {"sterne": 4}}).status_code == 200
+    db = SessionLocal()
+    uid = db.query(models.User).filter_by(email="sup-auto@b.de").one().id
+    assert sorted(q for (q,) in db.query(models.FeedbackBeitrag.quelle).filter_by(user_id=uid)) == ["bewertung", "feedback"]
+    db.close()
