@@ -1146,6 +1146,13 @@ IDEEN: list[str] = [
     "Tell which way you started each run: running or dock start, drop start, dead start, maybe "
     "even from the knees.",
     "Pick the foil per run, not just per session — most of us swap gear during a session.",
+    # Wunsch Lukáš (u836, Feedback #208 mit fertigem Prompt, Session #18864, nur GPS), 23.10.2026. Kuerzen ist
+    # gebaut (Web, „Trim start/end", steht im Changelog). Offen: VERLAENGERN braucht feste Laufgrenzen in der
+    # Auswertung (Analyse-Pipeline, Jans OK); dazu „zurueck auf erkannt" im Dialog nach dem Speichern und, nur
+    # fuer Sessions mit Accel, Pump-Marker/Pumptakt im Editor. Android/iOS bewusst nicht (seltener Fall).
+    "Extend a run at its start or end, too, not only shorten it — for runs the detection cut off too early.",
+    "Reset a trimmed run back to its detected start and end with one tap in the trim window.",
+    "Show pump markers and pump cadence in the run trim window, for sessions recorded with motion data.",
     # Wunsch PumpingCarbon (Feedback 09.10.2026): „wie weit man geschwommen ist … da man diese ja so
     # weit wie es geht reduzieren moechte". Ohne Zusage (Jan, 12.10.). Offen: Schwimmen vom Treiben
     # unterscheiden; unter Wasser gibt es oft kein GPS (s. Amazfit-Feldtest 12.10.).
