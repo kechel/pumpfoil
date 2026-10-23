@@ -1,4 +1,5 @@
 import { SessionBewertungKachel } from "../components/SessionBewertung";
+import { LaufKuerzen } from "../components/LaufKuerzen";
 import { KorrekturUmschalter, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
@@ -2758,6 +2759,7 @@ export default function SessionDetail() {
         trimStartMs={session.trim_start_ms ?? null} pausen={session.pause_windows ?? []}
         hr={session.analysis?.track_geojson?.properties?.hr ?? []}
         zeiten={trackZeiten && trackZeiten.length === (session.analysis?.track_geojson?.geometry?.coordinates?.length ?? -1) ? trackZeiten : null}
+        speeds={session.analysis?.track_geojson?.properties?.speeds?.[win] ?? session.analysis?.track_geojson?.properties?.speeds_mps ?? []}
         excluded={session.excluded_ranges ?? []}
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
@@ -3247,6 +3249,7 @@ function RunsTable({
   poweredRuns = [],
   hr = [],
   zeiten = null,
+  speeds = [],
   keptWindows = [],
   canEdit = false,
   onSaved,
@@ -3282,6 +3285,8 @@ function RunsTable({
   // Ohne sie keine Pulsabfall-Spalten: Auto-Pausen lassen Punkte aus, „Index + 60" ist dann
   // nicht 60 s.
   zeiten?: number[] | null;
+  // Tempo je Track-Punkt (m/s, gleiche Laenge wie `zeiten`) — nur fuer den Kürzen-Dialog.
+  speeds?: number[];
   canEdit?: boolean;
   onSaved?: (s: SessionSummary) => void;
 }) {
@@ -3290,6 +3295,10 @@ function RunsTable({
   const t = useT();
   const pf = usePumpFmt();
   const [busy, setBusy] = useState(false);
+  // Offenes „⋯"-Menü: Laufindex + Position. `fixed`, weil die Tabelle in einer overflow-Karte steckt und ein
+  // absolutes Menü an der letzten Zeile abgeschnitten wuerde.
+  const [menu, setMenu] = useState<{ i: number; x: number; y: number } | null>(null);
+  const [kuerzen, setKuerzen] = useState<number | null>(null);  // Lauf im Kürzen-Dialog
   // Sortieren per Klick auf die Spaltenueberschrift (Wunsch PumpingCarbon, 10.10.2026). Erster Klick
   // aufsteigend, zweiter absteigend; „#" stellt die Laufreihenfolge wieder her. Die Zeilen behalten
   // ihre Laufnummer — Auswahl, Vergleich und Aussortieren haengen am Lauf, nicht an der Position.
@@ -3596,16 +3605,37 @@ function RunsTable({
                   {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 120))}</td>}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
                   {canEdit && (
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                      {/* „⋯"-Menü (23.10.2026): Aussortieren wie bisher + Anfang/Ende kürzen (seltener Fall,
+                          deshalb nicht als eigener Knopf in jeder Zeile). */}
                       <button
-                        onClick={(e) => { e.stopPropagation(); doExclude(i); }}
+                        onClick={(e) => {
+                          const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          setMenu(menu?.i === i ? null : { i, x: r.right, y: r.bottom });
+                        }}
                         disabled={busy}
-                        title={t("sd.excludeRun")}
-                        aria-label={t("sd.excludeRun")}
-                        className="text-slate-400 hover:text-amber-700 disabled:opacity-50 dark:hover:text-amber-300"
+                        title={t("sd.runActions")}
+                        aria-label={t("sd.runActions")}
+                        className="rounded px-1.5 text-lg leading-none text-slate-400 hover:bg-slate-800 hover:text-slate-200 disabled:opacity-50"
                       >
-                        <FoilOffIcon className="h-4 w-4" />
+                        ⋯
                       </button>
+                      {menu?.i === i && (<>
+                        <div className="fixed inset-0 z-[1500]" onClick={() => setMenu(null)} />
+                        <div className="fixed z-[1501] w-56 rounded-lg border border-slate-700 bg-slate-900 py-1 text-left shadow-xl"
+                          style={{ left: Math.max(8, menu.x - 224), top: Math.min(menu.y + 4, window.innerHeight - 100) }}>
+                          <button type="button" onClick={() => { setMenu(null); doExclude(i); }}
+                            className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800">
+                            <FoilOffIcon className="h-4 w-4" /> {t("sd.excludeRun")}
+                          </button>
+                          {zeiten && s.t_start_ms != null && s.t_end_ms != null && (
+                            <button type="button" onClick={() => { setMenu(null); setKuerzen(i); }}
+                              className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800">
+                              <span aria-hidden className="w-4 text-center">↔</span> {t("sd.trimRun")}
+                            </button>
+                          )}
+                        </div>
+                      </>)}
                     </td>
                   )}
                 </tr>
@@ -3613,6 +3643,12 @@ function RunsTable({
             })}
           </tbody>
         </table>
+        {kuerzen != null && zeiten && segments[kuerzen] && (
+          <LaufKuerzen sessionId={sessionId} nr={kuerzen + 1}
+            vonMs={segments[kuerzen].t_start_ms + (trimStartMs ?? 0)} bisMs={segments[kuerzen].t_end_ms + (trimStartMs ?? 0)}
+            zeiten={zeiten} speeds={speeds} hr={hr}
+            onClose={() => setKuerzen(null)} onSaved={after} />
+        )}
       </Card>
       )}
       {/* Gehoert zur Lauf-Tabelle, nicht unter die Lage-Tabelle (Jan, 08.10.2026). */}
