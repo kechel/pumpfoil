@@ -189,6 +189,8 @@ dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
 - [`deploy/README.md`](deploy/README.md) — Apache/systemd-Deploy.
 - [`brand/README.md`](brand/README.md) — Marken-/Store-/Social-Assets + Generator (`brand/master/`); Zuordnungs-Karte.
 - [`analyse/README.md`](analyse/README.md) + [`FINDINGS.md`](analyse/FINDINGS.md) — Dual-Watch-Experiment (Pump-Wahrheit).
+- [`docs/PIPELINE-KARTE.md`](docs/PIPELINE-KARTE.md) — **was beeinflusst was** in der Analyse (v2, v3-Modell,
+  Brett-Regeln, Sportart, Auto-Zuschnitt, Rekorde), in Reihenfolge mit Auslösern. Vor jeder Arbeit an Modell oder Regeln lesen.
 - [`docs/GROUND-TRUTH.md`](docs/GROUND-TRUTH.md) — **worauf Pump-/Gleit-Erkennung wirklich steht**
   (gemessen): Pump-Zählung auf EINEM Fahrer geeicht, Gleit-Erkennung existiert nicht. Warum das
   Handy am Brett die Wahrheit für die Uhr ist, welche Datenmengen es braucht (drei Fragen, drei
