@@ -16,6 +16,7 @@ brand/
 ├─ app-icons/     App-Icon-Master (1024 light|dark) + plattform-spezifische (COROS, Zepp, Android-512)
 ├─ stores/        Store-Listing-Grafiken + Screenshots (pro Store)
 ├─ social/        YouTube-Banner, …
+├─ badges/        Abzeichen am Profilbild (supporter.svg „Welle + Herz“, 23.10.2026)
 └─ _old/          abgelöste/duplizierte Dateien (Sicherheitsnetz, nicht gelöscht)
 ```
 
