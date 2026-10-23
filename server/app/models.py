@@ -1896,3 +1896,23 @@ class TanzOrt(Base):
     lat: Mapped[float] = mapped_column(Float)
     lon: Mapped[float] = mapped_column(Float)
     genauigkeit: Mapped[int | None] = mapped_column(Integer)
+
+
+class SpotTrennung(Base):
+    """Zwei Spots, die NIE automatisch zusammengelegt werden duerfen (Jan, 23.10.2026).
+
+    Anlass Roman u244: zwei Anlegestellen 350 m auseinander, durch eine Landzunge getrennt. Die Track-Puffer
+    (je 500 m, spots.SAME_SPOT_GAP_M) ueberlappen, also landeten Sessions vom zweiten Steg im ersten Spot.
+    Von Hand getrennt (scripts/spot-trennen.py); `spots._auto_mergeable` und `dubletten_zusammenfuehren`
+    fragen diese Tabelle, und `assign_one` ordnet eine Session dann dem Spot mit dem naeheren Steg zu.
+    Bewusst ohne Fremdschluessel: Spot-Zeilen werden beim Aufraeumen geloescht/gemerged.
+    """
+
+    __tablename__ = "spot_trennungen"
+    __table_args__ = (UniqueConstraint("spot_a", "spot_b", name="uq_spot_trennung"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    spot_a: Mapped[int] = mapped_column(Integer, index=True)   # immer die kleinere id
+    spot_b: Mapped[int] = mapped_column(Integer, index=True)
+    notiz: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
