@@ -44,9 +44,11 @@ export default defineConfig({
         // Das App-Bundle hat 2026-07-26 die Workbox-Standardgrenze von 2 MiB überschritten →
         // Build brach ab und der SW wäre ohne App-Shell ausgeliefert worden (kein Offline).
         // Grenze hochgezogen; TODO bleibt: das Bundle per Code-Splitting kleiner machen.
-        // 23.10.2026: 5 MiB gerissen (5,26 MB) — CI-Web-Build rot ab 6be5001e, lokal knapp darunter.
-        // Auf 8 MiB, bis das Code-Splitting kommt (docs/TODO.md).
-        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        // 23.10.2026: 5 MiB gerissen (5,26 MB, CI-Web-Build rot). Danach Code-Splitting (Seiten per
+        // React.lazy in main.tsx, Sprachen per ladeSprache in i18n): index.js 1,85 MB. Grenze bewusst
+        // eng als Waechter — reisst sie wieder, gehoert etwas Neues in eine eigene Datei, nicht die
+        // Grenze hoch.
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         importScripts: ["/push-sw.js"],   // Web-Push-Handler
         navigateFallback: "/index.html",
         // /demo + die OAuth-Brücken (…-oauth) liefert der Server selbst aus —

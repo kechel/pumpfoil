@@ -4,24 +4,11 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { kartenSprache, kartenTexte } from "../lib/mapTiles";
 import { api, getToken } from "../lib/api";
+// Nur Deutsch und Englisch stecken im Haupt-Bundle (beide sind Rueckfall-Stufen von t()). Die uebrigen
+// 16 Sprachen laedt `ladeSprache` bei Bedarf als eigene Datei — vorher lagen alle 18 (rund 3 MB Quelltext)
+// in index.js, das riss am 23.10.2026 die Precache-Grenze von 5 MiB (CI-Web-Build rot).
 import de from "./locales/de";
-import gsw from "./locales/gsw";
-import pl from "./locales/pl";
-import deAT from "./locales/de-AT";
 import en from "./locales/en";
-import fr from "./locales/fr";
-import it from "./locales/it";
-import es from "./locales/es";
-import fi from "./locales/fi";
-import nl from "./locales/nl";
-import cs from "./locales/cs";
-import pt from "./locales/pt";
-import ptPT from "./locales/pt-PT";
-import ja from "./locales/ja";
-import zh from "./locales/zh";
-import ru from "./locales/ru";
-import id from "./locales/id";
-import nb from "./locales/nb";
 
 export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs"
   | "pl" | "pt" | "pt-PT" | "ja" | "zh" | "ru" | "id" | "nb";
@@ -50,7 +37,15 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "nb", flag: "🇳🇴", native: "Norsk" },
 ];
 
-const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pl, pt, "pt-PT": ptPT, ja, zh, ru, id, nb };
+const DICTS: Partial<Record<Lang, Dict>> = { de, en };
+const NACHLADEN: Record<Exclude<Lang, "de" | "en">, () => Promise<{ default: Dict }>> = {
+  gsw: () => import("./locales/gsw"), "de-AT": () => import("./locales/de-AT"), fr: () => import("./locales/fr"),
+  it: () => import("./locales/it"), es: () => import("./locales/es"), fi: () => import("./locales/fi"),
+  nl: () => import("./locales/nl"), cs: () => import("./locales/cs"), pl: () => import("./locales/pl"),
+  pt: () => import("./locales/pt"), "pt-PT": () => import("./locales/pt-PT"), ja: () => import("./locales/ja"),
+  zh: () => import("./locales/zh"), ru: () => import("./locales/ru"), id: () => import("./locales/id"),
+  nb: () => import("./locales/nb"),
+};
 
 // Sprachen, deren Rueckfall NICHT Englisch ist: Mundarten fallen auf ihre Hochsprache.
 // gsw und de-AT sind Mundart-Faerbungen und decken nur einen Teil der Keys ab.
@@ -61,7 +56,21 @@ const BRUECKE: Partial<Record<Lang, Lang>> = { gsw: "de", "de-AT": "de", "pt-PT"
 const LS_KEY = "foil_lang";
 
 function isLang(x: string | null): x is Lang {
-  return !!x && x in DICTS;
+  return !!x && LANGS.some((l) => l.code === x);
+}
+
+/** Sprache (und ihre Bruecke, z. B. gsw -> de, pt-PT -> pt) laden, falls noch nicht da. main.tsx wartet
+ *  darauf vor dem ersten Rendern, damit niemand kurz Englisch sieht. Scheitert das Laden (offline ohne
+ *  Cache), bleibt der Rueckfall auf Englisch/Deutsch — nie eine leere Seite. */
+export async function ladeSprache(l: Lang): Promise<void> {
+  const noetig = [l, BRUECKE[l]].filter((x): x is Lang => !!x && !DICTS[x]);
+  await Promise.all(noetig.map(async (x) => {
+    try {
+      DICTS[x] = (await NACHLADEN[x as keyof typeof NACHLADEN]()).default;
+    } catch {
+      /* Rueckfall auf en/de */
+    }
+  }));
 }
 
 // HTML-lang-Attribut (Dialekte auf passende BCP-47-Codes mappen).
@@ -132,6 +141,14 @@ const Ctx = createContext<I18nCtx | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(detectInitialLang);
+  // Zaehler, damit t() nach dem Nachladen einer Sprache neu gebaut wird.
+  const [geladen, setGeladen] = useState(0);
+  useEffect(() => {
+    if (DICTS[lang] && (!BRUECKE[lang] || DICTS[BRUECKE[lang]!])) return;
+    let aktiv = true;
+    ladeSprache(lang).then(() => { if (aktiv) setGeladen((n) => n + 1); });
+    return () => { aktiv = false; };
+  }, [lang]);
 
   useEffect(() => {
     document.documentElement.lang = htmlLang(lang);
@@ -156,8 +173,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       // NICHT: er ging zuerst auf Englisch, also sahen Schweizer und oesterreichische Nutzer
       // rund 500 Texte auf Englisch statt auf Deutsch (gefunden 31.08. beim Sprachdurchgang).
       const bruecke = BRUECKE[lang];
-      let s = DICTS[lang][key] ?? (bruecke ? DICTS[bruecke][key] : undefined)
-              ?? DICTS.en[key] ?? DICTS.de[key] ?? key;
+      let s = DICTS[lang]?.[key] ?? (bruecke ? DICTS[bruecke]?.[key] : undefined)
+              ?? en[key] ?? de[key] ?? key;
       if (vars) {
         for (const k of Object.keys(vars)) {
           s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(vars[k]));
@@ -165,7 +182,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
       return s;
     },
-    [lang]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lang, geladen]
   );
 
   // Offene Karten mitnehmen (Knoepfe, Schutzgebiet-Fenster) — s. lib/mapTiles.ts kartenSprache
