@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.53 for iOS
+        "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.54 for iOS
+        # (Submission 70e1f479-5f57-4878-9846-51f81d1d0685, eingereicht 22.10. 08:56 PDT, Build 62). Inhalt: Auswertung
+        # bewerten, Meine Foils & Sportarten, Zweitnamen-Suche, Gleit-Fix, Pause-Erinnerung (Watch). Changelog 713-716
+        # (+ios/apple), 730, Ereignis 731.
+        # ALT: "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.53 for iOS
         # (Submission fcc5031b-bc3b-4e05-8a7c-a62827451ff7, eingereicht 21.10. 05:59, Build 61; Store-API de/us/ch
         # 1.1.53, currentVersionReleaseDate 2026-10-21T20:01:27Z, gegengeprueft 22.10.).
         # Inhalt: Wind-/Wellen-/Downwind-Kennzahlen, Jahreszahlen je Sportart, SUP/Wake-Thief-Auswertung,
@@ -450,7 +454,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.51",   # FREIGEGEBEN 2026-10-19 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.50",   # FREIGEGEBEN 2026-10-16 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -909,18 +914,8 @@ IN_REVIEW: list[dict] = [
          "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
          "While a recording is paused, the Wear OS watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
      ]},
-    # EINGEREICHT 22.10.2026 17:56 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung“, 1.1.54 (62),
-    # Übermittlung 70e1f479-5f57-4878-9846-51f81d1d0685). Vorher iPhone + Watch im Simulator getestet (Bewertung, Profil,
-    # Zweitnamen, Gleit-Fix, Pause-Erinnerung #18807).
-    {"name": "iPhone + Apple Watch", "version": "1.1.54",
-     "eingereicht": "2026-10-22",
-     "items": [
-         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
-         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
-         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
-         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
-         "While a recording is paused, the Apple Watch vibrates every 10 minutes and shows the resume button, so an accidental pause does not go unnoticed.",
-     ]},
+    # iPhone + Apple Watch 1.1.54 am 23.10. FREIGEGEBEN -> raus (s. _APP_META["ios"]/["apple"]); Punkte 713-716 tragen
+    # ios/apple 1.1.54, neu 730 (Watch-Pause-Erinnerung), Ereignis 731.
     # iPhone + Apple Watch 1.1.53 am 22.10. FREIGEGEBEN -> raus (s. _APP_META["ios"]/["apple"]); Punkte im
     # Changelog: ids 669/670/677/680/683/684/698/699/701-707 tragen jetzt ios/apple 1.1.53, Ereignis 709.
     # iPhone + Apple Watch 1.1.52 (eingereicht 19.10., freigegeben 20.10.2026) -> LIVE, Punkte stehen im Changelog (ids 685-696).
@@ -1030,7 +1025,7 @@ IN_REVIEW: list[dict] = [
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
     # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
-    # 1.1.44 bzw. 1.1.54 liegen im Review (Memory versionen-erst-bei-release).
+    # 1.1.44 lag im Review, 1.1.54 war gerade freigegeben (Memory versionen-erst-bei-release).
     {"name": "Android phone + Wear OS", "version": "1.1.45 / 1.2.45",
      "items": ["Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list, and Home and the session list say so at the top."]},
     {"name": "iPhone + Apple Watch", "version": "1.1.55",
