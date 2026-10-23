@@ -329,7 +329,7 @@ def dubletten_zusammenfuehren(db, apply: bool = False) -> dict:
                                               for a in grp for b in grp), 1),
                    "from": [{"id": x.id, "name": x.name, "sessions": counts.get(x.id, 0)}
                             for x in sources]}
-        if len(besetzt) > 1 and len(stamme) > 1:
+        if (len(besetzt) > 1 and len(stamme) > 1) or getrennt(db, [x.id for x in grp]):
             rep["needs_review"].append(eintrag)
             continue
         rep["merged"].append(eintrag)
@@ -732,6 +732,16 @@ def namensstamm(name: str | None) -> str:
     return re.sub(r"\s+([2-9]|[1-4][0-9])$", "", (name or "").strip()).casefold()
 
 
+def getrennt(db, ids) -> bool:
+    """Ist irgendein Paar dieser Spots von Hand getrennt (models.SpotTrennung)?"""
+    from . import models
+    ids = sorted({i for i in ids if i is not None})
+    if len(ids) < 2:
+        return False
+    return db.query(models.SpotTrennung.id).filter(
+        models.SpotTrennung.spot_a.in_(ids), models.SpotTrennung.spot_b.in_(ids)).first() is not None
+
+
 def _auto_mergeable(db, group) -> bool:
     """Darf diese Gruppe überlappender Spots automatisch verschmolzen werden?
 
@@ -741,6 +751,8 @@ def _auto_mergeable(db, group) -> bool:
     aufgeblasen (real gesehen: „Cala Longa" ↔ „Tizzano" auf Korsika). Solche Fälle sind eine
     inhaltliche Entscheidung und gehören in den Admin-Review, nicht in die Automatik.
     """
+    if getrennt(db, [sp.id for sp in group]):
+        return False            # von Hand getrennt -> nie automatisch zusammen
     populated = [sp for sp in group if _session_count(db, sp.id) > 0]
     if len(populated) <= 1:
         return True
@@ -844,11 +856,14 @@ def assign_one(db, s, erzwingen: bool = False):
         # foilt an DIESEM Spot, auch wenn die Fahrt bis zum Nachbarspot reicht.
         from shapely.geometry import Point as _Point
         start_m = _Point(_project([g.start], lat0)[0])
-        home = None
-        for sp in hits:
-            if _wkt_to_m(sp.poly_wkt, lat0).contains(start_m):
-                home = sp
-                break
+        # Liegt der Start in MEHREREN Spots (eng benachbarte, von Hand getrennte Stege: die Puffer
+        # ueberlappen), entscheidet der naechste Steg (Mittel der Startpunkte, sonst Spot-Koordinate).
+        drin = [sp for sp in hits if _wkt_to_m(sp.poly_wkt, lat0).contains(start_m)]
+
+        def _steg_abstand(sp):
+            p = steg_punkt(db, sp.id) or (sp.lat, sp.lon)
+            return abstand_m(p[0], p[1], g.start[0], g.start[1])
+        home = min(drin, key=_steg_abstand) if drin else None
         if home is None:
             # Start liegt in keinem Spot -> echte Traverse: nur Gewässername, kein Spot.
             _, _, w = name_for(*g.start)
@@ -910,3 +925,49 @@ def assign_one(db, s, erzwingen: bool = False):
                 s.place_name = name
             s.place_water = water
     db.commit()
+
+
+def trennen(db, alt_id: int, session_ids: list[int], name: str | None = None, notiz: str | None = None):
+    """Sessions aus einem Spot in einen NEUEN Spot verschieben und das Paar dauerhaft trennen.
+
+    Beide Polygone werden aus den jeweils eigenen Sessions neu gebaut, der neue Spot liegt auf dem ersten
+    Startpunkt seiner Sessions. Name: `name` (dann manual) oder automatisch (`name_for`, eindeutig).
+    Committet NICHT. Rueckgabe: der neue Spot."""
+    from . import models
+    alt = db.get(models.Spot, alt_id)
+    if alt is None or alt.merged_into is not None:
+        raise ValueError(f"Spot {alt_id} gibt es nicht (oder ist gemerged)")
+    sess = (db.query(models.Session).filter(models.Session.id.in_(session_ids), models.Session.spot_id == alt_id)
+            .order_by(models.Session.started_at).all())
+    if len(sess) != len(set(session_ids)):
+        raise ValueError("nicht alle Sessions liegen in diesem Spot")
+    geoms = [g for g in (_session_geom(db, s) for s in sess) if g is not None]
+    if not geoms:
+        raise ValueError("keine Geometrie")
+    lat0 = geoms[0].start[0]
+    poly = unary_union([_poly_m(g.points or [g.start], lat0) for g in geoms])
+    if name:
+        nm, src = _unique_name(db, name.strip()), "manual"
+        water = name_for(*geoms[0].start)[2]
+    else:
+        nm, src, water = name_for(*geoms[0].start)
+        nm = _unique_name(db, nm) if nm else None
+    neu = models.Spot(name=nm, name_source=src, water_name=water, lat=geoms[0].start[0], lon=geoms[0].start[1],
+                      poly_wkt=_m_to_wkt(poly, lat0))
+    db.add(neu)
+    db.flush()
+    for s in sess:
+        s.spot_id = neu.id
+        s.place_name = neu.name or s.place_name
+        s.place_water = neu.water_name
+    # altes Polygon nur noch aus seinen verbliebenen Sessions
+    rest = [g for g in (_session_geom(db, s) for s in
+                        db.query(models.Session).filter(models.Session.spot_id == alt_id,
+                                                        models.Session.deleted.isnot(True)).all()) if g is not None]
+    if rest:
+        alt.poly_wkt = _m_to_wkt(unary_union([_poly_m(g.points or [g.start], alt.lat or lat0) for g in rest]),
+                                 alt.lat or lat0)
+    a, b = sorted([alt_id, neu.id])
+    db.add(models.SpotTrennung(spot_a=a, spot_b=b, notiz=notiz))
+    db.flush()
+    return neu
