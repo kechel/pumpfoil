@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import logging
 import os
+from contextvars import ContextVar
 from pathlib import Path
 
 import numpy as np
@@ -50,6 +51,16 @@ VERSION = "v3-r4-mild-2"
 # VERSION hochzaehlen.
 MODELLE = Path(__file__).resolve().parent / "modelle"
 MODELL, REF = MODELLE / "stufe_a_r4.pkl", MODELLE / "stufe_a_r3.pkl"
+# Vorschau eines Kandidaten (Admin, `?v3=<name>`, api/v3_vorschau.py): eigene Modellpfade nur fuer DIESEN
+# Aufruf (ContextVar, also je Request/Thread getrennt) — die Live-Pfade oben bleiben unberuehrt.
+_VORSCHAU: ContextVar = ContextVar("v3_vorschau", default=None)
+
+
+def _pfade() -> tuple[Path, Path, str]:
+    v = _VORSCHAU.get()
+    return v if v else (MODELL, REF, VERSION)
+
+
 TIEF_KW = {"enter_speed": 1.4, "exit_speed": 1.1, "min_segment_s": 3, "min_seg_avg_speed": 1.4,
            "use_model": False}
 # (theta fuer `teil`, tau fuer das Veto) und die Schwelle fuer kurze Stuecke, je Empfindlichkeit
@@ -121,8 +132,9 @@ def laeufe(tb, v2_segmente, tief_segmente, sens: str, keep=None):
     """Kern (rein, testbar): -> (Lauf-Intervalle in Session-ms, unberuehrte v2-Laeufe, p je GPS-Sample).
     Mit `keep` beruehrte v2-Laeufe werden unveraendert durchgereicht."""
     from . import stufe_a
-    p_ref = stufe_a.wahrscheinlichkeit(tb, REF)
-    p = stufe_a.wahrscheinlichkeit(tb, MODELL, p_ref=p_ref)
+    modell, ref, _v = _pfade()
+    p_ref = stufe_a.wahrscheinlichkeit(tb, ref)
+    p = stufe_a.wahrscheinlichkeit(tb, modell, p_ref=p_ref)
     if p is None:
         return None
     t = tb.t_gps_ms.astype(float)
@@ -181,7 +193,7 @@ def _segmente(L, v2_segmente, session, off):
         # Start-/Endpunkt fuer die Karten-Marker wie bei v2 ([lon, lat])
         seg["start_pt"] = [round(float(lon[i[0]]), 6), round(float(lat[i[0]]), 6)]
         seg["end_pt"] = [round(float(lon[i[-1]]), 6), round(float(lat[i[-1]]), 6)]
-        seg["v3"] = VERSION
+        seg["v3"] = _pfade()[2]
         neu.append(seg)
     neu, _ = v1._gate_implausible_runs(neu, *reversed(v1.grenzen_fuer(getattr(session, "sport_class", None))))
     return sorted(gleich + neu, key=lambda s: s["t_start_session_ms"])
@@ -296,7 +308,7 @@ def anwenden(res: dict, session, judge: bool, sens: str) -> dict:
         return _anwenden(res, session, judge, sens)
     except Exception:
         log.exception("v3-Nachbearbeitung fehlgeschlagen fuer Session %s — v2-Ergebnis bleibt", session.id)
-        res.setdefault("metrics", {})["v3"] = {"version": VERSION, "fehler": True}
+        res.setdefault("metrics", {})["v3"] = {"version": _pfade()[2], "fehler": True}
         return res
 
 
@@ -305,7 +317,7 @@ def _anwenden(res, session, judge, sens):
     from ..detect_v2 import analyze_session_v2
     from ..timebase import build_timebase_for_session
     from . import merkmale as M
-    if not MODELL.exists() or not REF.exists():
+    if not _pfade()[0].exists() or not _pfade()[1].exists():
         log.warning("v3: Modelle fehlen unter %s — v2-Ergebnis bleibt", MODELLE)
         return res
     v2 = res["segments"]
@@ -349,7 +361,7 @@ def _anwenden(res, session, judge, sens):
                 "t_start_ms": int(a), "t_end_ms": int(b),
                 "dauer_s": round(float(s.get("duration_s") or 0), 1),
                 "kmh": round(float((s.get("avg_speed_mps") or 0) * 3.6), 1),
-                "quelle": "v3", "modell": VERSION,
+                "quelle": "v3", "modell": _pfade()[2],
                 "v3_p": None if pm is None else round(pm, 2),
                 "grund": (f"{(s.get('duration_s') or 0):.0f} s bei {(s.get('avg_speed_mps') or 0) * 3.6:.1f} km/h — "
                           f"das Erkennungsmodell sieht hier kein Foilen (p {pm:.2f})" if pm is not None else
@@ -364,7 +376,7 @@ def _anwenden(res, session, judge, sens):
     m["longest_segment_s"] = round(max((s["duration_s"] for s in segs), default=0.0), 1)
     m["farthest_segment_m"] = round(max((s["distance_m"] for s in segs), default=0.0), 1)
     m["fremdkraft_laeufe"] = list(m.get("fremdkraft_laeufe") or []) + verworfen
-    m["v3"] = {"version": VERSION, "laeufe_v2": len(v2), "laeufe_v3": len(segs), "verworfen": len(verworfen),
+    m["v3"] = {"version": _pfade()[2], "laeufe_v2": len(v2), "laeufe_v3": len(segs), "verworfen": len(verworfen),
                "neu": sum(1 for s in segs if s.get("v3")), "empfindlichkeit": sens}
     if ohne_rand:
         m["v3"]["randschnitt"] = False
