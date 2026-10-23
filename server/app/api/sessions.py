@@ -2333,6 +2333,7 @@ def get_session(
     response: Response,
     brett: str | None = Query(None),
     v3: str | None = Query(None),
+    pumpgleit: str | None = Query(None),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> SessionOut:
@@ -2340,6 +2341,8 @@ def get_session(
     brett_neu = brett == "neu" and user.is_admin
     # `?v3=<kandidat>` (nur Admin): Analyse mit einem v3-Kandidatenmodell, nur lesend, s. v3_vorschau.py.
     v3_name = v3 if (v3 and user.is_admin) else None
+    # `?pumpgleit=1` (nur Admin): Pumps/Gleitphasen nach pg-1 ueberlagert, nichts gespeichert, s. pumpgleit_vorschau.py.
+    pg_neu = pumpgleit == "1" and user.is_admin
     # Admin darf alles sehen (auch gelöschte) — sonst kann er Wiederherstellung nicht beurteilen.
     if user.is_admin:
         s = db.get(models.Session, session_id)
@@ -2413,7 +2416,7 @@ def get_session(
     import zlib as _zlib
     _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id)],
                        sort_keys=True, default=str)
-    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}"'
+    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
@@ -2460,6 +2463,9 @@ def get_session(
     if v3_name:
         from .v3_vorschau import ueberlagern as v3_ueberlagern
         v3_ueberlagern(s, out, v3_name, _session_out)
+    if pg_neu:
+        from .pumpgleit_vorschau import ueberlagern as pg_ueberlagern
+        pg_ueberlagern(db, s, out)
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "private, no-cache"
     return out

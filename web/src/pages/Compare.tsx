@@ -117,6 +117,7 @@ interface Item {
 function riderName(r: CompareRef, s: SessionSummary | null, hatNeu: Set<number>): string {
   const n = s?.owner_name ?? "?";
   if (r.modell === "neu") return `${n} · Brett-Regeln neu`;
+  if (r.modell === "pg") return `${n} · Pump/Gleit neu`;
   if (r.modell?.startsWith("v3:")) return `${n} · Modell ${r.modell.slice(3)}`;
   return hatNeu.has(r.sessionId) ? `${n} · bisher` : n;
 }
@@ -131,6 +132,11 @@ export default function Compare() {
   const [suche] = useSearchParams();
   useEffect(() => {
     const v3 = suche.get("v3"), ids = (suche.get("s") || "").split(",").map(Number).filter((n) => n > 0);
+    // /vergleich?s=<ids>&pg=1: je Session bisher gegen die Pump-/Gleit-Erkennung pg-1 (Admin, ?pumpgleit=1)
+    if (suche.get("pg") === "1" && ids.length) {
+      setCompare(ids.flatMap((id) => [{ sessionId: id, runIdx: null }, { sessionId: id, runIdx: null, modell: "pg" as const }]));
+      return;
+    }
     if (!v3 || !ids.length || !/^[a-z0-9_]{1,40}$/.test(v3)) return;
     const alt = suche.get("alt");
     setCompare(ids.flatMap((id) => [
@@ -194,6 +200,7 @@ export default function Compare() {
     // gespeicherte Fassung daneben soll nicht so lange auf „–" stehen.
     Promise.all(missing.map(([k, r]) =>
       (r.modell === "neu" ? api.sessionBrettNeu(r.sessionId)
+        : r.modell === "pg" ? api.sessionPumpgleit(r.sessionId)
         : r.modell?.startsWith("v3:") ? api.sessionV3(r.sessionId, r.modell.slice(3)) : api.session(r.sessionId))
         .catch(() => null)
         .then((s) => { unterwegs.current.delete(k); setSessions((prev) => ({ ...prev, [k]: s })); }),
