@@ -232,3 +232,53 @@ def ableiten(tw, p, S, laeufe, puffer_s=5.0, theta=0.5, glaett=3):
 
 
 GLEIT_MIN_S, GLEIT_MAX_S = 1.5, 15.0
+
+
+def laufende_verlaengern(abl_lauf: dict, a: float, b: float, naechster: float, gps: np.ndarray,
+                         max_s: float = 5.0, min_mps: float = 1.4, anteil: float = 0.5, sprung_mps: float = 2.0):
+    """Variante (Jan, 23.10.2026): Laufende = Ende einer Gleitphase, die schon IM Lauf beginnt und
+    lueckenlos ueber das Laufende hinaus geht — hoechstens `max_s`, gekappt am naechsten Lauf. GPS muss
+    mitspielen: jeder Punkt im Verlaengerungsstueck >= max(min_mps, anteil x Lauf-Median-Tempo), kein
+    Tempo-Sprung > `sprung_mps` zwischen zwei Punkten; sonst endet die Verlaengerung am letzten guten Punkt.
+    -> (Verlaengerung s, Zusatzstrecke m)."""
+    kand = [g for g in abl_lauf.get("gleit") or [] if g[0] <= b and g[1] > b + 250]
+    if not kand or gps.shape[0] < 3:
+        return 0.0, 0.0
+    ziel = min(kand[0][1], b + max_s * 1000.0, naechster)
+    t, v = gps[:, 0], gps[:, 3]
+    drin = (t >= a) & (t <= b) & np.isfinite(v)
+    if drin.sum() < 3:
+        return 0.0, 0.0
+    grenze = max(min_mps, anteil * float(np.median(v[drin])))
+    vor = v[(t <= b) & np.isfinite(v)]
+    letztes = float(vor[-1]) if vor.size else np.nan
+    ende = b
+    for ti, vi in zip(t[(t > b) & (t <= ziel)], v[(t > b) & (t <= ziel)]):
+        if not np.isfinite(vi) or vi < grenze or (np.isfinite(letztes) and abs(vi - letztes) > sprung_mps):
+            break
+        ende, letztes = float(ti), float(vi)
+    else:
+        # alle Punkte gut: bis zum Ziel (auch zwischen zwei Punkten)
+        if ende >= b and np.isfinite(letztes) and letztes >= grenze:
+            ende = ziel
+    if ende <= b:
+        return 0.0, 0.0
+    tt = np.linspace(b, ende, 20)
+    m = float(np.trapezoid(np.interp(tt, t, np.nan_to_num(v)), tt / 1000.0))
+    return (ende - b) / 1000.0, m
+
+
+def lange_gleit_tempo(abl_lauf: dict, gps: np.ndarray, ab_s: float = 12.0) -> list:
+    """Je Gleitphase >= `ab_s`: Dauer, mittleres/kleinstes Tempo, Tempo-Steigung (m/s je s)."""
+    out = []
+    for x, y in abl_lauf.get("gleit") or []:
+        if (y - x) / 1000.0 < ab_s:
+            continue
+        m = (gps[:, 0] >= x) & (gps[:, 0] <= y) & np.isfinite(gps[:, 3])
+        if m.sum() < 3:
+            out.append({"s": round((y - x) / 1000.0, 1)}); continue
+        tt, vv = gps[m, 0] / 1000.0, gps[m, 3]
+        out.append({"s": round((y - x) / 1000.0, 1), "v_mittel": round(float(vv.mean()), 2),
+                    "v_min": round(float(vv.min()), 2), "steigung": round(float(np.polyfit(tt, vv, 1)[0]), 3),
+                    "t0": round(x)})
+    return out

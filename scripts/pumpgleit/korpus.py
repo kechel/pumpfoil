@@ -53,7 +53,10 @@ def eine(sid: int) -> dict:
         tw, X, li, puf = M.merkmale(S, laeufe, MOD["puffer_s"])
         p = MOD["clf"].predict_proba(X[:, MOD["sp"]]) if X.shape[0] else np.zeros((0, 3))
         abl = M.ableiten(tw, p, S, laeufe, MOD["puffer_s"], theta=MOD["theta"])
-        for g, a in zip(segs, abl):
+        for k, (g, a) in enumerate(zip(segs, abl)):
+            la, lb = laeufe[k]
+            nxt = laeufe[k + 1][0] if k + 1 < len(laeufe) else np.inf
+            ext_s, ext_m = M.laufende_verlaengern(a, la, lb, nxt, U["gps"], MOD["puffer_s"])
             heute_gl = [x[2] for x in (g.get("glides") or [])]
             leer = g.get("pumps") is None
             out["laeufe"].append({
@@ -62,7 +65,10 @@ def eine(sid: int) -> dict:
                 "gn_h": len(heute_gl), "gn_n": None if leer else len(a["gleit"]),
                 "gs_h": round(sum(heute_gl), 1), "gs_n": None if leer else round(sum((y - x) / 1000 for x, y in a["gleit"]), 1),
                 "lg_h": g.get("longest_glide_s"), "lg_n": None if leer else a["longest"],
-                "ende_verl": round((a["ende"] - float(g["t_end_session_ms"])) / 1000.0, 2)})
+                "ende_verl": round((a["ende"] - float(g["t_end_session_ms"])) / 1000.0, 2),
+                "m": round(float(g.get("distance_m") or 0), 1),
+                "ext_s": None if leer else round(ext_s, 2), "ext_m": None if leer else round(ext_m, 1),
+                "lang": [] if leer else M.lange_gleit_tempo(a, U["gps"])})
         return out
     except Exception as e:  # pragma: no cover
         return {"id": sid, "fehler": repr(e)[:200]}
@@ -172,12 +178,80 @@ def main():
     ap.add_argument("--aus", default=str(G.AUS / "korpus.jsonl"))
     ap.add_argument("--nur", default="")
     ap.add_argument("--bericht", action="store_true")
+    ap.add_argument("--kontrolle", action="store_true", help="Bericht Laufende-Variante + Gleitphasen >= 12 s")
     a = ap.parse_args()
     aus = pathlib.Path(a.aus)
+    if a.kontrolle:
+        bericht_kontrolle(aus); return
     if a.bericht:
         bericht(aus); return
     nur = [int(x) for x in a.nur.split(",") if x]
     rechnen(min(a.jobs, 8), aus, nur)
+
+
+
+def bericht_kontrolle(aus):
+    """Laufende-Verlaengerung (Folgen im Bestand) und Gleitphasen >= 12 s (Hinweis statt Obergrenze)."""
+    from collections import defaultdict
+    from sqlalchemy import or_
+    Z = [json.loads(z) for z in aus.read_text().splitlines()]
+    ok = [z for z in Z if "fehler" not in z]
+    L = [(z, l) for z in ok for l in z["laeufe"] if l.get("ext_s") is not None]
+    verl = [(z, l) for z, l in L if l["ext_s"] > 0]
+    print(f"Laufende-Variante: {len(verl)} von {len(L)} Laeufen verlaengert ({len(verl) / max(len(L), 1):.1%}), "
+          f"in {len({z['id'] for z, _ in verl})} Sessions; Foil-Zeit +{sum(l['ext_s'] for _, l in verl) / 3600:.2f} h "
+          f"(von {sum(l['dauer'] for _, l in L) / 3600:.1f} h), Strecke +{sum(l['ext_m'] for _, l in verl) / 1000:.1f} km; "
+          f"je verlaengertem Lauf Median {np.median([l['ext_s'] for _, l in verl]):.2f} s / {np.median([l['ext_m'] for _, l in verl]):.1f} m")
+    best = {}
+    for z in ok:
+        ls = z["laeufe"]
+        if not ls:
+            continue
+        bd_h = max(l["dauer"] for l in ls); bd_n = max(l["dauer"] + (l.get("ext_s") or 0) for l in ls)
+        bm_h = max(l.get("m") or 0 for l in ls); bm_n = max((l.get("m") or 0) + (l.get("ext_m") or 0) for l in ls)
+        best[z["id"]] = (bd_h, bd_n, bm_h, bm_n)
+    ch_d = sum(1 for v in best.values() if v[1] > v[0] + 0.01); ch_m = sum(1 for v in best.values() if v[3] > v[2] + 0.01)
+    print(f"best_duration_s steigt in {ch_d} Sessions, best_distance_m in {ch_m} (Nachbau aus Laufdauer/-strecke)")
+    db = G.db_lesend()
+    try:
+        from app import models
+        S, R, Us = models.Session, models.AnalysisResult, models.User
+        q = (db.query(S.id, S.user_id, R.best_duration_s, R.best_distance_m).select_from(R).join(S, R.session_id == S.id)
+             .join(Us, S.user_id == Us.id)
+             .filter(S.deleted.isnot(True), S.flagged.isnot(True), Us.blocked.isnot(True), Us.hidden.isnot(True),
+                     S.status.notin_(("recording", "live")), S.is_pumpfoil.is_(True), S.needs_classification.isnot(True),
+                     or_(S.sport_class.is_(None), S.sport_class == "pumpfoil"),
+                     or_(S.data_quality.is_(None), S.data_quality == "ok"), R.detection == "model"))
+        rows = q.all()
+    finally:
+        db.rollback(); db.close()
+    for name, i_db, i_h, i_n in (("Dauer", 2, 0, 1), ("Strecke", 3, 2, 3)):
+        h = sorted(rows, key=lambda r: -(r[i_db] or 0))[:5]
+        n = sorted(rows, key=lambda r: -((r[i_db] or 0) + ((best[r[0]][i_n] - best[r[0]][i_h]) if r[0] in best else 0)))[:5]
+        print(f"Rekord {name} heute: {[(r[0], f'u{r[1]}', round(r[i_db] or 0, 1)) for r in h]}")
+        print(f"Rekord {name} neu  : {[(r[0], f'u{r[1]}', round((r[i_db] or 0) + ((best[r[0]][i_n] - best[r[0]][i_h]) if r[0] in best else 0), 1)) for r in n]}")
+    # Gleitphasen >= 12 s
+    lang = [(z, l, g) for z in ok for l in z["laeufe"] for g in (l.get("lang") or [])]
+    ses = defaultdict(list)
+    for z, l, g in lang:
+        ses[z["id"]].append((z, g))
+    pf = {i for i, v in ses.items() if (v[0][0]["sport_class"] or "pumpfoil") == "pumpfoil"}
+    print(f"Gleitphasen >= 12 s: {len(lang)} in {len(ses)} Sessions (pumpfoil {len(pf)}, Fahrer "
+          f"{len({v[0][0]['user'] for v in ses.values()})})")
+    mit = [g for _, _, g in lang if "steigung" in g]
+    verd = [g for g in mit if g["steigung"] > -0.05]
+    print(f"  mit GPS {len(mit)}: Tempo nimmt kaum ab (Steigung > -0,05 m/s je s, Verdacht Welle/Fremdkraft/Pumps verpasst) "
+          f"{len(verd)}; echtes Ausgleiten (< -0,15) {sum(1 for g in mit if g['steigung'] < -0.15)}; "
+          f"Tempo Median {np.median([g['v_mittel'] for g in mit]):.1f} m/s")
+    sc = defaultdict(int)
+    for i, v in ses.items():
+        sc[v[0][0]["sport_class"] or "pumpfoil"] += 1
+    print("  Sessions je Sportart:", dict(sc))
+    bsp = sorted(lang, key=lambda x: -x[2]["s"])[:12]
+    print("  Beispiele (Session, Fahrer, Sportart, Dauer s, Tempo mittel/min m/s, Steigung):")
+    for z, l, g in bsp:
+        print(f"   #{z['id']} u{z['user']} {z['sport_class']} {g['s']} s, {g.get('v_mittel')}/{g.get('v_min')} m/s, "
+              f"{g.get('steigung')} (Start Session-ms {g.get('t0')})")
 
 
 if __name__ == "__main__":
