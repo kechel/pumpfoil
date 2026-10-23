@@ -1493,7 +1493,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **23.10. — Web-Bundle per Code-Splitting verkleinern.** `index-*.js` ist 5,26 MB (eine Datei, alles drin) und riss die
+- **🟢 23.10. ERLEDIGT (selber Tag): Seiten per `React.lazy` (main.tsx, 41 Seiten), 16 Sprachen per `ladeSprache` (nur de/en im Haupt-Bundle; main.tsx laedt die Besuchersprache vor dem ersten Rendern). index.js 5,26 MB -> 1,85 MB, Grenze wieder 3 MiB als Waechter. Headless geprueft: /, /fr/, /changelog, /impressum, /nerd-analysen ohne Konsolenfehler.** Urspruenglich: `index-*.js` ist 5,26 MB (eine Datei, alles drin) und riss die
   Precache-Grenze von 5 MiB — CI-Web-Build rot ab 6be5001e (lokal knapp darunter, deshalb nicht bemerkt). Grenze auf 8 MiB
   gehoben (`web/vite.config.ts`), das ist nur Aufschub. Kandidaten fuer `lazy()`: Admin, Nerd-Seiten, Changelog, Karten-
   und Diagramm-Teile. Jede Lade-Verkleinerung hilft auch dem ersten Seitenaufruf.

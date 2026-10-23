@@ -10,7 +10,7 @@ import { api, getToken, setToken } from "./lib/api";
 import { APP_BUILD } from "./buildInfo";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { applyFontScale, getFontScale } from "./lib/fontscale";
-import { I18nProvider, langAusPfad} from "./i18n";
+import { I18nProvider, langAusPfad, ladeSprache, detectInitialLang } from "./i18n";
 
 // Chunk-/Modul-Ladefehler nach einem Deploy (alte Chunk-URL nach PWA-Update) -> einmal pro
 // Session frisch neu laden statt Blank-Screen. Ergänzt den Watchdog (public/app-watchdog.js).
@@ -48,48 +48,64 @@ window.addEventListener("beforeinstallprompt", (e) => {
   window.dispatchEvent(new Event("bip-ready"));
 });
 window.addEventListener("appinstalled", () => { (window as any).__bip = null; });
-import Login from "./pages/Login";
-import Account from "./pages/Account";
-import Onboarding from "./pages/Onboarding";
-import Home from "./pages/Home";
-import History from "./pages/History";
-import Settings from "./pages/Settings";
-import LinkedAccounts from "./pages/LinkedAccounts";
-import OAuthConsent from "./pages/OAuthConsent";
-import Sessions from "./pages/Sessions";
-import CurrentFeedbackRequest from "./pages/CurrentFeedbackRequest";
-import AllSessionsRedirect from "./pages/AllSessionsRedirect";
-import SessionDetail from "./pages/SessionDetail";
-import PublicSession from "./pages/PublicSession";
-import Compare from "./pages/Compare";
-import Labeling from "./pages/Labeling";
-import Impressum from "./pages/Impressum";
-import Datenloeschung from "./pages/Datenloeschung";
-import Changelog from "./pages/Changelog";
-import Import from "./pages/Import";
-import Foiler from "./pages/Foiler";
-import LaengsteLaeufe from "./pages/LaengsteLaeufe";
-import Spots from "./pages/Spots";
-import Foils from "./pages/Foils";
-import Setup from "./pages/Setup";
-import Layouts from "./pages/Layouts";
-import LayoutEditor from "./pages/LayoutEditor";
-import LayoutGallery from "./pages/LayoutGallery";
-import FoilStats from "./pages/FoilStats";
-import FoilDetail from "./pages/FoilDetail";
-import WatchStats from "./pages/WatchStats";
-import Friends from "./pages/Friends";
-import FoilCalculator from "./pages/FoilCalculator";
-import PersonalHome from "./pages/PersonalHome";
-import Admin from "./pages/Admin";
-import NerdAnalysen from "./pages/NerdAnalysen";
-import NerdAnalysen2 from "./pages/NerdAnalysen2";
-import NerdAnalysen3 from "./pages/NerdAnalysen3";
-import NerdAnalysen4 from "./pages/NerdAnalysen4";
-import NerdAnalysen5 from "./pages/NerdAnalysen5";
-import Systemarchitektur from "./pages/Systemarchitektur";
-import Reset from "./pages/Reset";
 import App from "./App";
+
+// Seiten als eigene Dateien, geladen beim ersten Aufruf (Code-Splitting, 23.10.2026). Vorher steckte die ganze
+// App in EINER index.js (5,26 MB), das riss die Precache-Grenze des Service Workers. Der Service Worker
+// cacht die Teile weiterhin alle (globPatterns js), offline aendert sich also nichts — nur der erste
+// Seitenaufruf laedt weniger. Ladefehler nach einem Deploy faengt `vite:preloadError` oben ab.
+function seite(laden: () => Promise<{ default: React.ComponentType }>) {
+  const Teil = React.lazy(laden);
+  return function Seite() {
+    return (
+      <React.Suspense fallback={<div className="flex justify-center py-16"><div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" /></div>}>
+        <Teil />
+      </React.Suspense>
+    );
+  };
+}
+const Login = seite(() => import("./pages/Login"));
+const Account = seite(() => import("./pages/Account"));
+const Onboarding = seite(() => import("./pages/Onboarding"));
+const Home = seite(() => import("./pages/Home"));
+const History = seite(() => import("./pages/History"));
+const Settings = seite(() => import("./pages/Settings"));
+const LinkedAccounts = seite(() => import("./pages/LinkedAccounts"));
+const OAuthConsent = seite(() => import("./pages/OAuthConsent"));
+const Sessions = seite(() => import("./pages/Sessions"));
+const CurrentFeedbackRequest = seite(() => import("./pages/CurrentFeedbackRequest"));
+const AllSessionsRedirect = seite(() => import("./pages/AllSessionsRedirect"));
+const SessionDetail = seite(() => import("./pages/SessionDetail"));
+const PublicSession = seite(() => import("./pages/PublicSession"));
+const Compare = seite(() => import("./pages/Compare"));
+const Labeling = seite(() => import("./pages/Labeling"));
+const Impressum = seite(() => import("./pages/Impressum"));
+const Datenloeschung = seite(() => import("./pages/Datenloeschung"));
+const Changelog = seite(() => import("./pages/Changelog"));
+const Import = seite(() => import("./pages/Import"));
+const Foiler = seite(() => import("./pages/Foiler"));
+const LaengsteLaeufe = seite(() => import("./pages/LaengsteLaeufe"));
+const Spots = seite(() => import("./pages/Spots"));
+const Foils = seite(() => import("./pages/Foils"));
+const Setup = seite(() => import("./pages/Setup"));
+const Layouts = seite(() => import("./pages/Layouts"));
+const LayoutEditor = seite(() => import("./pages/LayoutEditor"));
+const LayoutGallery = seite(() => import("./pages/LayoutGallery"));
+const FoilStats = seite(() => import("./pages/FoilStats"));
+const FoilDetail = seite(() => import("./pages/FoilDetail"));
+const WatchStats = seite(() => import("./pages/WatchStats"));
+const Friends = seite(() => import("./pages/Friends"));
+const FoilCalculator = seite(() => import("./pages/FoilCalculator"));
+const PersonalHome = seite(() => import("./pages/PersonalHome"));
+const Admin = seite(() => import("./pages/Admin"));
+const NerdAnalysen = seite(() => import("./pages/NerdAnalysen"));
+const NerdAnalysen2 = seite(() => import("./pages/NerdAnalysen2"));
+const NerdAnalysen3 = seite(() => import("./pages/NerdAnalysen3"));
+const NerdAnalysen4 = seite(() => import("./pages/NerdAnalysen4"));
+const NerdAnalysen5 = seite(() => import("./pages/NerdAnalysen5"));
+const Systemarchitektur = seite(() => import("./pages/Systemarchitektur"));
+const Reset = seite(() => import("./pages/Reset"));
+
 import Landing from "./pages/Landing";
 import { PwaStatus } from "./components/PwaStatus";
 
@@ -216,14 +232,18 @@ const router = createBrowserRouter([
 // Moment, ein wartendes Update anzuwenden (die alte Ansicht wird ohnehin verlassen).
 router.subscribe(() => window.dispatchEvent(new Event("foil:navigate")));
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <I18nProvider>
-      <PwaStatus />
-      <RouterProvider router={router} />
-    </I18nProvider>
-  </React.StrictMode>
-);
+// Erst die Sprache des Besuchers laden (eigene Datei, s. i18n/index.tsx), dann rendern — sonst stuende
+// die Seite einen Moment auf Englisch. Scheitert das Laden, rendert sie trotzdem (Rueckfall en/de).
+ladeSprache(detectInitialLang()).finally(() => {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <I18nProvider>
+        <PwaStatus />
+        <RouterProvider router={router} />
+      </I18nProvider>
+    </React.StrictMode>
+  );
+});
 
 // Einen Seitenaufruf melden — EINMAL je Laden der Seite, fuer JEDEN Besucher. Bewusst HIER und
 // nicht in `App`: die App-Huelle rendert nur fuer Angemeldete, Gaeste bekommen `Landing` — ein
