@@ -24,6 +24,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from datetime import datetime, timedelta, timezone
 
 BASIS = os.environ.get("FOIL_BASE_URL", "http://localhost:8090")
 
@@ -98,11 +99,20 @@ def main() -> None:
     # Antwort dieselbe Auskunft ein zweites Mal geschickt, weil der Verlauf erst NACH dem Senden
     # ausgegeben wurde. Jetzt bricht das Skript ab, wenn dieses Konto in dem Scope schon geschrieben
     # hat — bewusst uebersteuerbar, aber nicht mehr aus Versehen.
+    # Seit 23.10.2026 (Jan) nur noch, wenn die letzte eigene Nachricht juenger als 24 h ist: ein neues
+    # Thema Tage spaeter (z. B. Spot-Trennung nach einer Foil-Antwort) ist keine Doppel-Antwort.
     eigene = [m for m in nachrichten if (m.get("name") or "") == ich.get("display_name")]
-    if eigene and not args.nochmal:
-        letzte = eigene[-1]
+    letzte = eigene[-1] if eigene else None
+    try:
+        zeit = datetime.fromisoformat(str(letzte.get("created_at")).replace("Z", "+00:00")) if letzte else None
+        if zeit is not None and zeit.tzinfo is None:
+            zeit = zeit.replace(tzinfo=timezone.utc)
+    except ValueError:
+        zeit = None             # unlesbar -> lieber wie frisch behandeln (abbrechen)
+    frisch = letzte is not None and (zeit is None or datetime.now(timezone.utc) - zeit < timedelta(hours=24))
+    if frisch and not args.nochmal:
         sys.exit(
-            f"ABBRUCH: hier wurde schon geantwortet ({len(eigene)} eigene Nachricht(en), "
+            f"ABBRUCH: hier wurde in den letzten 24 h schon geantwortet ({len(eigene)} eigene Nachricht(en), "
             f"letzte am {str(letzte.get('created_at'))[:16]}):\n"
             f"   {(letzte.get('text') or '')[:300]}\n"
             f"Wenn es trotzdem raus soll: --nochmal anhaengen.")
