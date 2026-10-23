@@ -160,3 +160,20 @@ Gesamtmodell: `server/data/ml/pumpgleit/beste.pkl` (`clf`, `sp`, `theta`, `prior
 `puffer_s`). Ein-/Ausgabe: `beste.ableiten(mod, U, laeufe)` mit `U = gemeinsam.uhr_daten(db, id)` und den
 gespeicherten Läufen in Session-ms → je Lauf `pump_ms`, `gleit`, `hinschauen` [(Start, Ende) Session-ms], `ende`,
 `longest`. Laufgrenzen bleiben unverändert.
+
+## Vorschau `?pumpgleit=1` (pg-1, 23.10.2026, nichts live)
+
+Paket `server/app/analysis/pumpgleit/` (merkmale.py, takt.py, `__init__.py`: `VERSION = "pg-1"`, `ableiten`,
+`segmente_ueberlagern`), Modell `server/app/analysis/pumpgleit/modelle/beste.pkl` (Bäume, Schwellen, keine
+Fahrer-IDs; .gitignore-Ausnahme wie v3). Nur pumpfoil/efoil/foildrive mit `detection == model`, nicht am Brett.
+`GET /api/sessions/{id}?pumpgleit=1` (nur Admin, `api/pumpgleit_vorschau.py`) überlagert die Antwort: je Lauf
+`pumps`, `pump_idx`, Kadenz-Felder, `glides`, `num_glides`, `avg_glide_s`, `longest_glide_s` (alte Werte in
+`*_vorher`, dazu `hinschauen`), `pump_count`, `metrics.pumpgleit` = {version, hinschauen, best_glide_s, gleit_s};
+ETag mit `-pg`. Nichts wird gespeichert, `run_analysis` ist unverändert. Web: `/sessions/<id>?pumpgleit=1`,
+Vergleich `/vergleich?s=<ids>&pg=1` („Pump/Gleit neu"). Pumps zählen nur im Lauf, der 5-s-Puffer dient
+Gleitphasen und Ende.
+
+„Genauer hinschauen" strenger: Gleitphase ≥ 10 s UND GPS-Tempo-Steigung > −0,02 m/s je s. Bestand
+(`scripts/pumpgleit/vorschau_bestand.py`): 120 Stellen in 69 Sessions (69 Stellen Pumpfoil, Rest efoil/foildrive),
+statt 855 in 450. Pumps im Lauf 2 083 299 → 1 964 747, Gleitphasen 14 109 → 36 918, `best_glide_s` Median
+1,7 → 3,6 s (3158 Sessions mit Ergebnis).

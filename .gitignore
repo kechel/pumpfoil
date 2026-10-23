@@ -45,6 +45,9 @@ server/media/promo/*
 # nicht dass das verloren geht"). Geprueft: nur Merkmalsnamen, Einstellungen und Entscheidungsbaeume
 # mit Bin-Grenzen — keine Sessions, keine IDs, keine Mail-Adressen. Wie foil_rf.pkl.
 !server/app/analysis/v3/modelle/*.pkl
+# Ebenso das Pump-/Gleit-Modell pg-1 (Admin-Vorschau, docs/PUMP-GLEIT.md): Gradient-Boosting-Baeume, Merkmalsnamen,
+# Schwellen — keine Sessions, keine Fahrer-IDs.
+!server/app/analysis/pumpgleit/modelle/*.pkl
 
 # Node / web
 node_modules/

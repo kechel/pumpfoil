@@ -9,8 +9,9 @@ export interface CompareRef {
   owned?: boolean;   // gehoert mir? (fuer Merge-Angebot in Vergleichen)
   date?: string;     // YYYY-MM-DD (Start), fuer „gleiches Datum"-Merge
   // "neu" = dieselbe Session nach den Brett-Regeln (nur Admin, `?brett=neu`, s. brett_vorschau.py);
-  // "v3:<name>" = mit einem v3-Kandidatenmodell gerechnet (nur Admin, `?v3=<name>`, s. api/v3_vorschau.py).
-  modell?: "neu" | `v3:${string}`;
+  // "v3:<name>" = mit einem v3-Kandidatenmodell gerechnet (nur Admin, `?v3=<name>`, s. api/v3_vorschau.py);
+  // "pg" = Pumps/Gleitphasen nach der Pump-/Gleit-Erkennung pg-1 (nur Admin, `?pumpgleit=1`, s. api/pumpgleit_vorschau.py).
+  modell?: "neu" | "pg" | `v3:${string}`;
 }
 
 const KEY = "foil_compare";
@@ -29,7 +30,7 @@ function read(): CompareRef[] {
     return arr
       .filter((x) => x && typeof x.sessionId === "number")
       .map((x) => ({ sessionId: x.sessionId, runIdx: x.runIdx ?? null, owned: x.owned, date: x.date,
-        ...(x.modell === "neu" || (typeof x.modell === "string" && /^v3:[a-z0-9_]{1,40}$/.test(x.modell))
+        ...(x.modell === "neu" || x.modell === "pg" || (typeof x.modell === "string" && /^v3:[a-z0-9_]{1,40}$/.test(x.modell))
           ? { modell: x.modell as CompareRef["modell"] } : {}) }));
   } catch {
     return [];
