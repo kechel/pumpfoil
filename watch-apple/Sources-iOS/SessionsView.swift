@@ -120,7 +120,6 @@ struct SessionsView: View {
 
     @ViewBuilder private var listContent: some View {
         uploadCardSection
-        if scope == .mine { NeuBewertenHinweis(lang: lang) }
         if scope == .mine { transfersAndSuggestions }
         filterSection
         aussortiertErklaerung
@@ -1531,36 +1530,3 @@ private struct HeuteNeu: View {
     }
 }
 
-
-/// Oben in „Meine Sessions" und auf Home: Sessions, an deren Bewertung wir nachgefragt haben (wie
-/// Web/Android). Die betroffene Session kann alt sein und tief unten stehen (Jan, 22.10.2026).
-/// `inListe`: als Section in der Sessionliste, sonst als Karte (Home, VStack).
-struct NeuBewertenHinweis: View {
-    let lang: String
-    var inListe: Bool = true
-    @State private var ids: [Int] = []
-
-    var body: some View {
-        Group {
-            if ids.isEmpty {
-                // Nie eine leere Group: die laedt nicht, und .task liefe nie (Memory swiftui-leere-group-laedt-nicht).
-                Color.clear.frame(height: 0).listRowBackground(Color.clear).listRowSeparator(.hidden)
-            } else if inListe {
-                Section { inhalt }
-            } else {
-                VStack(alignment: .leading, spacing: 6) { inhalt }
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.orange, lineWidth: 1))
-            }
-        }
-        .task { ids = (try? await Api.neuBewerten()) ?? [] }
-    }
-
-    @ViewBuilder private var inhalt: some View {
-        Text(Loc.t("rate.recheckBanner", lang)).font(.subheadline).foregroundStyle(Color.orange)
-        ForEach(ids, id: \.self) { sid in
-            NavigationLink { SessionDetailView(id: sid) } label: { Text("#\(sid)") }
-        }
-    }
-}

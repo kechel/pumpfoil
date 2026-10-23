@@ -103,7 +103,6 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
             UploadProgressCard()
-            NeuBewertenHinweis(lang: lang, inListe: false)
             UhrenLiveStatus()
             updateBannerIfAny
             newsBannerIfAny
