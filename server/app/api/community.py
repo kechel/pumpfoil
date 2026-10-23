@@ -549,7 +549,10 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
         q = q.filter(S.started_at >= cut)
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
-    row = q.order_by(valcol.desc()).first()
+    # Gleichstand: wer den Wert ZUERST gefahren ist, haelt den Rekord. Ohne zweites Sortierkriterium
+    # waehlte Postgres beliebig — der volle Satz und `period=X` lieferten verschiedene Halter
+    # (CI rot am 23.10.2026, test_einzelner_zeitraum_ist_inhaltlich_derselbe, zwei Sessions mit 3 Laeufen).
+    row = q.order_by(valcol.desc(), S.started_at.asc(), S.id.asc()).first()
     if row is None:
         return dict(_EMPTY_REC)
     val, idx, sid, ts, name, place, avatar, preview, lat, lon, uid = row
@@ -1537,7 +1540,7 @@ def spot_compare(period: str = "all", accel_only: bool = False,
         ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "", valcol > 0)
         if cut is not None:
             hq = hq.filter(S.started_at >= cut)
-        hq = hq.distinct(S.place_name).order_by(S.place_name, valcol.desc())
+        hq = hq.distinct(S.place_name).order_by(S.place_name, valcol.desc(), S.started_at.asc(), S.id.asc())
         return {r[0]: r for r in hq.all()}
 
     lr = _holders(AR.best_distance_m, AR.best_distance_idx)
@@ -2277,7 +2280,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         spot_titel: list[dict] = []
         for m in REC_COL:
             valcol, _ = REC_COL[m]
-            rn = func.row_number().over(partition_by=S.spot_id, order_by=valcol.desc()).label("rn")
+            rn = func.row_number().over(partition_by=S.spot_id, order_by=(valcol.desc(), S.started_at.asc(), S.id.asc())).label("rn")
             sub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
                                       valcol.label("val"), S.started_at.label("st"),
                                       S.id.label("session_id"), rn),
