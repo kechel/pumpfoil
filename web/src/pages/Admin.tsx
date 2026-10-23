@@ -1611,13 +1611,20 @@ function SupporterTab() {
   const stufen = [1, 2, 3].map((n) => data.nutzer.filter((r) => r.stufe === n).length);
   return (
     <div className="space-y-3">
-      <Card className="p-3 text-sm text-slate-300">
-        Badge sichtbar, wer in den letzten {data.fenster_tage} Tagen etwas beigetragen hat. Stufe nach Beitragstagen
-        im Jahr: <SupporterBadge stufe={1} /> ab 1 · <SupporterBadge stufe={2} /> ab {data.stufen["2"]} ·{" "}
-        <SupporterBadge stufe={3} /> ab {data.stufen["3"]}. Jetzt sichtbar: {stufen[0]} / {stufen[1]} / {stufen[2]}.
-        <label className="ml-3 inline-flex items-center gap-1">
-          <input type="checkbox" checked={nurSichtbar} onChange={(e) => setNurSichtbar(e.target.checked)} /> nur sichtbare
-        </label>
+      <Card className="space-y-1 p-3 text-sm text-slate-300">
+        <div className="text-base font-semibold text-slate-100">
+          {stufen[0] + stufen[1] + stufen[2]} Supporter sichtbar
+          <span className="ml-2 text-sm font-normal text-slate-400">von {data.nutzer.length} Nutzern mit Beiträgen · {rows.length} in der Liste</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>Sichtbar bei Beitrag in den letzten {data.fenster_tage} Tagen, Stufe nach Beitragstagen im Jahr:</span>
+          <span className="inline-flex items-center gap-1 whitespace-nowrap"><SupporterBadge stufe={1} /> ab 1 ({stufen[0]})</span>
+          <span className="inline-flex items-center gap-1 whitespace-nowrap"><SupporterBadge stufe={2} /> ab {data.stufen["2"]} ({stufen[1]})</span>
+          <span className="inline-flex items-center gap-1 whitespace-nowrap"><SupporterBadge stufe={3} /> ab {data.stufen["3"]} ({stufen[2]})</span>
+          <label className="ml-auto inline-flex items-center gap-1 whitespace-nowrap">
+            <input type="checkbox" checked={nurSichtbar} onChange={(e) => setNurSichtbar(e.target.checked)} /> nur sichtbare
+          </label>
+        </div>
       </Card>
       <Card className="flex flex-wrap items-end gap-2 p-3 text-sm">
         <span className="font-medium text-slate-200">Von Hand nachtragen:</span>
