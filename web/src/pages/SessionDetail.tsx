@@ -783,9 +783,11 @@ export default function SessionDetail() {
 
   useEffect(() => {
     setAttemptSegs(null);   // Linien der vorigen Session verwerfen (Indizes gelten je Session)
-    const p = isPublic ? api.publicSession(token!) : api.session(Number(id));
+    // `?v3=<kandidat>` (nur Admin, Server prueft): Session mit einem v3-Kandidatenmodell gerechnet, nur lesend.
+    const v3 = searchParams.get("v3");
+    const p = isPublic ? api.publicSession(token!) : v3 ? api.sessionV3(Number(id), v3) : api.session(Number(id));
     p.then(setSession).catch((e) => setError(String(e)));
-  }, [id, token, isPublic]);
+  }, [id, token, isPublic, searchParams.get("v3")]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Jede Änderung an der Ansicht merken — sie gilt dann auch für die nächste Session.
   // Der automatische Rückfall auf "speed" (Modus in DIESER Session nicht verfügbar, s. unten)

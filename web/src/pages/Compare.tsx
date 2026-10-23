@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
 import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor } from "../lib/foilPhysics";
-import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey } from "../lib/compare";
+import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey, setCompare } from "../lib/compare";
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
 import { CompareHrStrips, HrStripItem } from "../components/CompareHrStrips";
 import { invalidateSessionListCache } from "./Sessions";
@@ -117,6 +117,7 @@ interface Item {
 function riderName(r: CompareRef, s: SessionSummary | null, hatNeu: Set<number>): string {
   const n = s?.owner_name ?? "?";
   if (r.modell === "neu") return `${n} · Brett-Regeln neu`;
+  if (r.modell?.startsWith("v3:")) return `${n} · Modell ${r.modell.slice(3)}`;
   return hatNeu.has(r.sessionId) ? `${n} · bisher` : n;
 }
 
@@ -124,7 +125,19 @@ export default function Compare() {
   const t = useT();
   const pf = usePumpFmt();   // Pump-Kadenz-Einheit (Hz | /min) aus dem Profil
   const refs = useCompare();
-  const hatNeu = useMemo(() => new Set(refs.filter((r) => r.modell === "neu").map((r) => r.sessionId)), [refs]);
+  const hatNeu = useMemo(() => new Set(refs.filter((r) => !!r.modell).map((r) => r.sessionId)), [refs]);
+  // Admin-Vorschau per Link (23.10.2026): /vergleich?s=16666,13909&v3=r5[&alt=live] stellt je Session „bisher"
+  // (gespeichert, oder mit `alt` frisch gerechnet) neben das Kandidatenmodell.
+  const [suche] = useSearchParams();
+  useEffect(() => {
+    const v3 = suche.get("v3"), ids = (suche.get("s") || "").split(",").map(Number).filter((n) => n > 0);
+    if (!v3 || !ids.length || !/^[a-z0-9_]{1,40}$/.test(v3)) return;
+    const alt = suche.get("alt");
+    setCompare(ids.flatMap((id) => [
+      { sessionId: id, runIdx: null, ...(alt && /^[a-z0-9_]{1,40}$/.test(alt) ? { modell: `v3:${alt}` as const } : {}) },
+      { sessionId: id, runIdx: null, modell: `v3:${v3}` as const },
+    ]));
+  }, [suche]);
   const nav = useNavigate();
   const [merging, setMerging] = useState(false);
   const [mergeErr, setMergeErr] = useState<string | null>(null);
@@ -180,7 +193,8 @@ export default function Compare() {
     // Jede Session eintragen, sobald sie da ist: die Brett-Regeln-Vorschau rechnet ~10 s, die
     // gespeicherte Fassung daneben soll nicht so lange auf „–" stehen.
     Promise.all(missing.map(([k, r]) =>
-      (r.modell === "neu" ? api.sessionBrettNeu(r.sessionId) : api.session(r.sessionId))
+      (r.modell === "neu" ? api.sessionBrettNeu(r.sessionId)
+        : r.modell?.startsWith("v3:") ? api.sessionV3(r.sessionId, r.modell.slice(3)) : api.session(r.sessionId))
         .catch(() => null)
         .then((s) => { unterwegs.current.delete(k); setSessions((prev) => ({ ...prev, [k]: s })); }),
     )).finally(() => setLoading(unterwegs.current.size > 0));
