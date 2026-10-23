@@ -18,6 +18,17 @@ Aufruf (aus server/): nice -n 15 .venv/bin/python ../scripts/v3/training_a.py --
                Tempo-Schwellen von v2 nach (Guillaume: langsames Weiterpumpen nur zu 26 % erkannt).
   --gewichte   unabhaengige Wahrheiten staerker: fremd x3, brett/fortsetzung/sicht x5, fit_neg x2
   --brett PKL  Brett-Wahrheit (brett_training.daten(), gepickelt) als eigene Quelle je Uhr-Sekunde
+
+Neubau r7 (23.10.2026), alles nur ueber Schalter (Standard wie bisher):
+  --ds-extra DIR[,DIR]      weitere Datensatz-Verzeichnisse (z. B. data/ml/v3/r7/ds); die Haltung je
+                            Verzeichnis aus --ds-h-extra (gleiche Reihenfolge)
+  --baseline-extra B        weitere Baseline (Fahrer je Session fuer die neuen Sessions)
+  --haltung3                nur die 3 Haltungs-Merkmale von r4 (ohne Konstanz, wie r4 trainiert wurde)
+  --brett-max-streuung MS   nur Brett-Paare mit Ausrichtungs-Streuung <= MS (brett_daten_r7.py)
+  --brett-nur QUAL[,QUAL]   nur Brett-Paare dieser Qualitaet (gut, mittel, schwach)
+  --brett-qualitaet         Gewicht je Brett-Paar aus seiner Qualitaet (gut 5, mittel 3, schwach 1)
+                            statt pauschal 5
+  ds-Dateien „negs-<id>.npz" = geloeschte Negativbeispiele (datensatz.py --negativ-sessionen), Quelle mensch
 """
 import argparse
 import glob
@@ -43,9 +54,9 @@ RUHE_ANTEIL = 0.12      # Stillstand ist trivial und riesig — verduennen
 ACHSEN = ["vert_rms", "hor_rms", "vert_anteil", "dreh_grad_s", "neigung_grad", "tempo_trend"]
 
 
-def spalten(auswahl, mit_haltung=False):
+def spalten(auswahl, mit_haltung=False, haltung3=False):
     from app.analysis.v3 import haltung as HA
-    extra = list(HA.NAMEN) if mit_haltung else []
+    extra = (list(HA.NAMEN)[:3] if haltung3 else list(HA.NAMEN)) if mit_haltung else []
     return _spalten(auswahl) + extra
 
 
@@ -60,15 +71,20 @@ def _spalten(auswahl):
 GEWICHT = {"fremd": 3.0, "brett": 5.0, "fortsetzung": 5.0, "sicht": 5.0, "fit_neg": 2.0}
 
 
-def laden(namen, ohne=(), rand_s=0, brett=None, lauf_nur_wasser=False):
+def laden(namen, ohne=(), rand_s=0, brett=None, lauf_nur_wasser=False, ds_extra=(), baseline_extra=""):
     from app.analysis.v3 import haltung as HA
     alle = list(M.NAMEN) + list(HA.NAMEN)
     b = {s["id"]: s for s in json.load(gzip.open(sorted(ML.glob("baseline-*.json.gz"))[-1]))}
+    if baseline_extra:
+        for s in json.load(gzip.open(baseline_extra)):
+            b.setdefault(s["id"], s)
+    verzeichnisse = [(ML / "v3" / "ds", ML / "v3" / "ds_h")] + [(pathlib.Path(x), pathlib.Path(y)) for x, y in ds_extra]
     sp = [alle.index(n) for n in namen]
     mit_h = any(n in HA.NAMEN for n in namen)
     Xs, ys, qs, gs, ls, ss = [], [], [], [], [], []
     rng = np.random.default_rng(0)
-    for f in sorted(glob.glob(str(ML / "v3" / "ds" / "*.npz"))):
+    dateien = [(f, hdir) for dsdir, hdir in verzeichnisse for f in sorted(glob.glob(str(dsdir / "*.npz")))]
+    for f, hdir in dateien:
         stamm = pathlib.Path(f).stem
         d = np.load(f)
         if d["X"].shape[1] != len(M.NAMEN):
@@ -77,6 +93,8 @@ def laden(namen, ohne=(), rand_s=0, brett=None, lauf_nur_wasser=False):
         if stamm.startswith("neg-"):
             sid, uid = -1, int(d["user_id"])
             q[:] = Q.index("fit_neg")
+        elif stamm.startswith("negs-"):
+            sid, uid = -int(stamm[5:]), int(d["user_id"])
         else:
             sid = int(stamm)
             uid = b[sid]["user_id"]
@@ -109,7 +127,7 @@ def laden(namen, ohne=(), rand_s=0, brett=None, lauf_nur_wasser=False):
             continue
         X0 = d["X"]
         if mit_h:
-            hf = ML / "v3" / "ds_h" / f"{stamm}.npz"
+            hf = hdir / f"{stamm}.npz"
             H = np.load(hf)["H"] if hf.exists() else np.full((X0.shape[0], len(HA.NAMEN)), np.nan, np.float32)
             X0 = np.hstack([X0, H])
         Xk = M.mit_kontext(X0[:, sp])     # Kontext je Session bilden, dann auswaehlen
@@ -165,20 +183,42 @@ def main():
     ap.add_argument("--brett", default="")
     ap.add_argument("--lauf-nur-wasser", dest="lauf_nur_wasser", action="store_true")
     ap.add_argument("--haltung", action="store_true", help="Haltung relativ zur Session (ds_h/, s. datensatz_haltung.py)")
+    ap.add_argument("--haltung3", action="store_true")
+    ap.add_argument("--ds-extra", dest="ds_extra", default="")
+    ap.add_argument("--ds-h-extra", dest="ds_h_extra", default="")
+    ap.add_argument("--baseline-extra", dest="baseline_extra", default="")
+    ap.add_argument("--brett-max-streuung", dest="brett_max_streuung", type=float, default=None)
+    ap.add_argument("--brett-nur", dest="brett_nur", default="")
+    ap.add_argument("--brett-qualitaet", dest="brett_qualitaet", action="store_true")
     a = ap.parse_args()
     if a.name in ("", "r1"):
         raise SystemExit("r1 ist die erste Fassung und bleibt unangetastet — anderen --name waehlen")
     from sklearn.model_selection import GroupKFold
-    namen = spalten(a.merkmale, a.haltung)
+    namen = spalten(a.merkmale, a.haltung, a.haltung3)
     ohne = [x for x in a.ohne.split(",") if x]
     brett = None
+    brett_gew = {}
     if a.brett:
-        brett = {d["paar"][1]: (np.asarray(d["t"], float), np.asarray(d["z"])) for d in pickle.load(open(a.brett, "rb"))}
-    X, y, q, g, heute, sid = laden(namen, ohne, a.rand, brett, a.lauf_nur_wasser)
+        roh = pickle.load(open(a.brett, "rb"))
+        if a.brett_max_streuung is not None:
+            roh = [d for d in roh if d.get("streuung_ms") is not None and d["streuung_ms"] <= a.brett_max_streuung]
+        if a.brett_nur:
+            roh = [d for d in roh if d.get("qualitaet") in a.brett_nur.split(",")]
+        brett = {d["paar"][1]: (np.asarray(d["t"], float), np.asarray(d["z"])) for d in roh}
+        brett_gew = {d["paar"][1]: float(d.get("gewicht", GEWICHT["brett"])) for d in roh}
+        print(f"Brett-Paare im Training: {sorted(brett)}", flush=True)
+    ds_extra = list(zip([x for x in a.ds_extra.split(",") if x], [x for x in a.ds_h_extra.split(",") if x]))
+    X, y, q, g, heute, sid = laden(namen, ohne, a.rand, brett, a.lauf_nur_wasser, ds_extra, a.baseline_extra)
     w = np.ones(y.size, np.float32)
     if a.gewichte:
         for n, f in GEWICHT.items():
             w[q == Q.index(n)] = f
+    if a.brett_qualitaet and brett_gew:
+        for s_, f in brett_gew.items():
+            w[(q == Q.index("brett")) & (sid == s_)] = f
+    if brett:
+        print("Brett-Sekunden je Uhr-Session im Training:",
+              {int(s_): int(((q == Q.index("brett")) & (sid == s_)).sum()) for s_ in brett}, flush=True)
     print(f"[{a.name}] Zeilen {len(y)} Merkmale {X.shape[1]} ({len(namen)} je Sekunde) Fahrer "
           f"{len(np.unique(g))} ohne {ohne or '-'} · iter {a.iter} Blaetter {a.blaetter} · Rand {a.rand} s"
           f" · Gewichte {'ja' if a.gewichte else 'nein'} · Brett {'ja' if brett else 'nein'}", flush=True)
@@ -215,7 +255,9 @@ def main():
     # Fahrer NIE gesehen hat — sonst misst der Vergleich Auswendiglernen (Sichtpruefung, Labels).
     (ML / "v3").mkdir(parents=True, exist_ok=True)
     meta = {"namen": namen, "kontext_r": M.KONTEXT_R, "ohne": ohne, "iter": a.iter, "blaetter": a.blaetter,
-            "rand": a.rand, "gewichte": a.gewichte, "brett": bool(brett)}
+            "rand": a.rand, "gewichte": a.gewichte, "brett": bool(brett),
+            "brett_paare": sorted(int(x) for x in brett) if brett else [], "brett_qualitaet": a.brett_qualitaet,
+            "ds_extra": [x for x, _ in ds_extra]}
     with open(ML / "v3" / f"stufe_a_{a.name}_falten.pkl", "wb") as f:
         pickle.dump(dict(meta, falten=falten, fahrer_falte=fahrer_falte), f)
     bericht(f"Stufe A [{a.name}], Fahrer herausgehalten (heute = heutiger Lauf an derselben Sekunde)",

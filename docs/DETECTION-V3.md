@@ -466,3 +466,54 @@ Laufzahlen): Laeufe 20 969 -> 21 393 (+2,0 %), Foil-Zeit 264,9 -> 266,0 h (+0,4 
 unter den Grenzen (452 bei „normal": 118 unter 5 s, Rest zu langsam, die laengsten 68 s bei 5 km/h).
 Negativbeispiele 0 -> 0. Brett-Paare 77/81 -> 78/84 bestaetigt. Erste Probe ohne Grenzen: +6,8 %,
 55 % der neuen Laeufe unter 8 s — deshalb die Grenzen.
+
+## Neubau-Kandidat r7 mit allen Brett-Paaren (23.10.2026, nichts live)
+
+Jans Auftrag: alle Brett-Paare neu, Datensatz bis heute, „alles rein mit Labels, das Modell soll entscheiden",
+Regression gegen r4. Name **r7**, weil `stufe_a_r5/r6` vom 30.09. schon belegt sind. Daten unter
+`server/data/ml/v3/r7/` (nicht im Repo), Modelle `server/data/ml/v3/stufe_a_r7s.pkl` / `stufe_a_r7a.pkl`
+(+ `_falten`), Referenz r3 wie live. Vorschau: `?v3=r7a` (api/v3_vorschau.py).
+
+**Paare** (`paare_ausrichten.py --mit-ohne-accel --aus data/ml/v3/paare-2026-10-23.json`, jetzt mit Labels je
+Uhr: Geraet, App, gemessene Rate, time_base, detection): 25 Paare, 7 Fahrer; 3 davon mit Uhr OHNE Accel (u460,
+nur gelistet). Qualitaet (`brett_daten_r7.py`): **gut** (Streuung <= 400 ms, >= 2 Laeufe, r >= 0,35) 10 Uhr-Sessions
+(u2 6, u244, u683 2, u574 1), **mittel** 4, **schwach** 6 (alle Wear-OS-Paare von u574 bis 1.2.37: 6,7-8,4 Hz
+oder unplausible 36/220 Hz `measured_rate`, r 0,12-0,22 — Ausrichtung nicht belegt). Zwei dieser Uhren laufen live
+als gps_only (< 8 Hz) und koennen das Handgelenk-Modell weder lernen noch nutzen; ab Wear 1.2.42 (exact_chunks,
+26,7 Hz) richtet sich u574 sauber aus (360 ms).
+
+**Datensatz:** Phase 0 neu (`detektor-v3-phase0.py --aus data/ml/v3/r7`), 1396 neue Sessions seit 29.09. nach
+`r7/ds` — „lauf"-Labels an FRISCH gerechneten v2-Laeufen (`datensatz.py --lauf-v2`; die gespeicherten sind seit
+30.09. r4-Laeufe, daran zu lernen hiesse r4 nachlernen), Wasser JRC neu, p_r3 + Haltung (`datensatz_haltung.py
+--p-ref-rechnen`), dazu die drei geloeschten Negativbeispiele (`--negativ-sessionen`). Zusammen 2,30 Mio. Zeilen,
+364 Fahrer. Training wie r4 (`--haltung --haltung3 --rand 3 --gewichte`): **r7s** nur gute Paare (Gewicht 5),
+**r7a** alle Paare mit Gewicht nach Qualitaet (5/3/1).
+
+**Fahrer herausgehalten** (`messen_r7.py`, r4 mit seinen Falten vom 30.09. auf demselben Weg):
+
+| Live-Weg, Teilmodelle ohne den Fahrer | r4 | r7s | r7a |
+|---|---|---|---|
+| Brett je Sekunde Praez. / Treffer (alle Paare) | 0,848 / 0,926 | 0,855 / 0,922 | 0,854 / 0,924 |
+| Brett „gut" | 0,860 / 0,931 | 0,871 / 0,924 | 0,866 / 0,928 |
+| Brett-Laeufe gefunden · Uhr-Laeufe bestaetigt | 94/129 · 91/104 | 94/129 · 91/101 | 94/129 · 91/101 |
+| u350 Fortsetzung (s von 771) | 289 | 230 | 243 |
+| Laeufe an Land (Sicht) noch da | 21/82 | 22/82 | 21/82 |
+| Negativbeispiele (Laeufe) | 0 | 0 | 0 |
+
+Je Fahrer (Brett, Praez./Treffer): u2 0,839/0,914 -> 0,829/0,914 (r7a) · u13 0,960/0,993 -> 0,960/0,995 ·
+u244 0,922/0,899 -> 0,903/0,895 · u574 0,822/0,886 -> 0,839/0,880 · u683 0,816/0,944 -> 0,834/0,940.
+Je Sekunde ueber den ganzen Datensatz praktisch gleich (fremd 0,958/0,994 alle drei). **Befund: Plateau wie am
+30.09.** — die neuen Paare verschieben die Zahlen im Bereich von Hundertsteln; der Gewinn an Praezision kostet
+etwas Trefferquote und das langsame Weiterpumpen von u350.
+
+**Regression ueber den Bestand** (`regression_r7.py`, 3937 Sessions mit `metrics.v3` + 3 Negativbeispiele, 0 Fehler;
+Nachbau r4 trifft Laufzahl 3913/3937, Pumps exakt 3809 bzw. +-2 % 3911 — Pumps/Gleiten auf den neuen Grenzen NEU
+gezaehlt): r7a Laeufe 32 851 -> 32 459 (-1,2 %), Foil-Zeit 382,7 -> 381,2 h (-0,4 %), Pumps -0,2 %. 997 Laeufe fallen
+weg (79 % unter 8 s), 612 kommen dazu (72 % unter 8 s). Foil-Zeit je Session: 1338 unveraendert, 2339 innerhalb 2 s,
+376 um mehr als 5 %. is_pumpfoil: 8 verlieren, 19 gewinnen. Community-Rekorde: nur „meiste Laeufe" wechselt
+(#14868 u514 81 -> #18833 u146 77), alle anderen Halter bleiben. sportauto-240-s: #13890 (Wear-Emulator-Session
+u38, 2 Laeufe -> 0) und #12509 (s. unten). Brett-Parallelfahrten: Uhr-Laeufe bestaetigt 103/114 -> 105/108.
+
+Offen fuer Jan: #12509 (u752) wird bei r7 zu einem 587-s-Lauf bei 0 Pumps (vorher 4 Laeufe, 378 s) — genau der Fall,
+in dem r4 die Mitte verwarf; #14868 (Pixel Watch 5, „attempts") verliert 16 von 81 Laeufen und damit den
+Laeufe-Rekord. Empfehlung, wenn ueberhaupt: r7a als Vorschau ansehen; live nur nach Sichtpruefung der Beispiele.

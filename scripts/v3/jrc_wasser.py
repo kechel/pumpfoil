@@ -32,7 +32,13 @@ def kachel_name(lat, lon):
 
 
 def main():
-    d = np.load(ML / "punkte.npz")
+    # 23.10.2026: --punkte P --aus W (Neubau r7, eigene Dateien); Standard wie bisher
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--punkte", default=str(ML / "punkte.npz"))
+    ap.add_argument("--aus", default=str(ML / "wasser.npz"))
+    args = ap.parse_args()
+    d = np.load(args.punkte)
     lat, lon = d["lat"], d["lon"]
     ok = np.isfinite(lat) & np.isfinite(lon) & ~((np.abs(lat) < 1e-6) & (np.abs(lon) < 1e-6))
     occ = np.full(lat.size, -1, dtype=np.int16)      # -1 = nicht bestimmbar
@@ -74,7 +80,7 @@ def main():
                 occ_max[k] = mx[a, b_]
                 occ_min[k] = np.where(mn[a, b_] <= 100, mn[a, b_], -1)
         print(f"{lo_s}_{la_s}: {len(idx)} Punkte", flush=True)
-    np.savez_compressed(ML / "wasser.npz", occ=occ, occ_max=occ_max, occ_min=occ_min)
+    np.savez_compressed(args.aus, occ=occ, occ_max=occ_max, occ_min=occ_min)
     print("bestimmt", int((occ >= 0).sum()), "von", lat.size,
           "· Wasser (occ>=50)", int((occ >= 50).sum()), "· Land (occ_max==0)", int((occ_max == 0).sum()))
 

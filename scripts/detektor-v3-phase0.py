@@ -12,7 +12,9 @@ Schreibt NUR nach server/data/ml/ (gitignored, liegt im Backup) — nie in die D
 Plan und Entscheidungen: docs/DETECTION-V3.md.
 
 Aufruf (aus server/, DATABASE_URL muss im Env stehen — s. CLAUDE.md):
-  DATABASE_URL="$(sed -n 's/^DATABASE_URL=//p' .env)" .venv/bin/python ../scripts/detektor-v3-phase0.py
+  DATABASE_URL="$(sed -n 's/^DATABASE_URL=//p' .env)" .venv/bin/python ../scripts/detektor-v3-phase0.py [--aus DIR]
+  --aus DIR  in ein eigenes Verzeichnis schreiben (23.10.2026, Neubau r7: data/ml/v3/r7/) — sonst
+             wird der neue Stand zum „neuesten" fuer alle Skripte, die baseline-*.json.gz per glob nehmen.
 """
 import datetime as dt
 import gzip
@@ -43,6 +45,9 @@ def _j(s, leer):
 
 
 def main() -> None:
+    global AUS
+    if "--aus" in sys.argv:
+        AUS = pathlib.Path(sys.argv[sys.argv.index("--aus") + 1]).resolve()
     url = os.environ.get("DATABASE_URL")
     if not url:
         sys.exit("DATABASE_URL fehlt (s. CLAUDE.md)")
@@ -140,7 +145,7 @@ def main() -> None:
         roh = json.dumps(obj, ensure_ascii=False, default=str).encode()
         with gzip.open(p, "wb") as f:
             f.write(roh)
-        print(f"{p.relative_to(WURZEL)}  {len(roh) / 1e6:.1f} MB roh  sha256 {hashlib.sha256(roh).hexdigest()[:16]}")
+        print(f"{p}  {len(roh) / 1e6:.1f} MB roh  sha256 {hashlib.sha256(roh).hexdigest()[:16]}")
 
     schreiben("baseline", baseline)
     schreiben("labels", labels)
