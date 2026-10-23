@@ -17,6 +17,16 @@ Woher die Labels kommen (Vertrauen absteigend) — Regeln und Begruendung in doc
 Alles andere ist unsicher: auf Wasser in Fahrt ohne Lauf (vielleicht ein verpasster Lauf).
 
 Aufruf (aus server/): DATABASE_URL=... .venv/bin/python ../scripts/v3/datensatz.py [--jobs 20]
+
+Neubau r7 (23.10.2026) — alle Standardwerte wie bisher, neu nur ueber Schalter:
+  --baseline/--labels/--punkte/--wasser  eigene Eingaben (data/ml/v3/r7/...)
+  --ds DIR        Ausgabe-Verzeichnis (statt data/ml/v3/ds)
+  --ohne-ds DIR   Sessions, die in DIR schon liegen, ueberspringen (alter Datensatz vom 29.09.)
+  --lauf-v2       „lauf"/„land"/„ruhe" an FRISCH gerechneten v2-Laeufen (ganze Aufnahme, Empfindlichkeit
+                  des Besitzers) statt an den gespeicherten: seit 30.09. sind die gespeicherten Laeufe
+                  v3-r4 — daran zu lernen hiesse, r4 nachzulernen. Der alte Datensatz stand auf v2.
+  --negativ-sessionen  die geloeschten Negativbeispiele aus data/ml/v3/negativ_sessions/ (LIESMICH dort)
+                  als y=0 (Quelle „mensch") nach <ds>/negs-<id>.npz
 """
 import os
 # EIN Rechen-Thread je Prozess: sonst vervielfacht sich die interne Parallelitaet von
@@ -41,16 +51,19 @@ DS = ML / "v3" / "ds"
 QUELLEN = ["mensch", "sicht", "fremd", "lauf", "land", "ruhe", "fortsetzung"]
 
 
+CFG = {"baseline": "", "labels": "", "punkte": "", "wasser": "", "ds": "", "lauf_v2": False}
+
+
 def _laden():
-    b = json.load(gzip.open(sorted(ML.glob("baseline-*.json.gz"))[-1]))
-    L = json.load(gzip.open(sorted(ML.glob("labels-*.json.gz"))[-1]))
+    b = json.load(gzip.open(CFG["baseline"] or sorted(ML.glob("baseline-*.json.gz"))[-1]))
+    L = json.load(gzip.open(CFG["labels"] or sorted(ML.glob("labels-*.json.gz"))[-1]))
     sicht = json.loads((ML / "land_urteil_sicht.json").read_text())
     an_land = {}
     for x in json.loads((ML / "laeufe_an_land.json").read_text()):
         an_land.setdefault(x[0], []).append((x[3], x[4]))
     ausg = {x["session"]: x["bereiche"] for x in L["nutzer_aussortiert"]}
-    p = np.load(ML / "punkte.npz")
-    w = np.load(ML / "wasser.npz")
+    p = np.load(CFG["punkte"] or ML / "punkte.npz")
+    w = np.load(CFG["wasser"] or ML / "wasser.npz")
     fp = ML / "v3" / "labels_fortsetzung.json"
     fort = {int(k): v["bereiche_ms"] for k, v in json.loads(fp.read_text())["sessions"].items()} if fp.exists() else {}
     return b, sicht, an_land, ausg, p, w, fort
@@ -59,7 +72,12 @@ def _laden():
 G = {}
 
 
-def _init():
+def _init(cfg=None):
+    if cfg:
+        CFG.update(cfg)
+        global DS
+        if CFG["ds"]:
+            DS = pathlib.Path(CFG["ds"])
     G["b"], G["sicht"], G["an_land"], G["ausg"], p, w, G["fort"] = _laden()
     ses = p["session"]
     u, idx = np.unique(ses, return_index=True)
@@ -96,7 +114,20 @@ def eine(s):
         y[m] = wert
         q[m] = QUELLEN.index(quelle)
     im_lauf = np.zeros(t.size, bool)
-    for r in s["runs"]:
+    runs = s["runs"]
+    if CFG["lauf_v2"]:
+        from app.analysis import detect_v2
+        from app.analysis.gps import SENSITIVITY_PRESETS
+        sens = s.get("sensitivity") or "normal"
+        kw = dict(SENSITIVITY_PRESETS.get(sens) or {}) if sens != "normal" else {}
+        try:
+            res = detect_v2.analyze_session_v2(M.ganze_aufnahme(s), rebase=False,
+                                               judge_fremdkraft=(s.get("sport_class") or "pumpfoil") == "pumpfoil", **kw)
+            runs = [{"t0": x.get("t_start_session_ms", x["t_start_ms"]), "t1": x.get("t_end_session_ms", x["t_end_ms"])}
+                    for x in res["segments"]]
+        except Exception as e:
+            return (sid, "fehler", "v2: " + str(e)[:120])
+    for r in runs:
         im_lauf |= (t >= r["t0"]) & (t <= r["t1"])
     sicht = G["sicht"]
     # 1) Mensch: aussortiert
@@ -136,16 +167,47 @@ def eine(s):
     return (sid, "ok", int((y == 1).sum()), int((y == 0).sum()), int((y == -1).sum()))
 
 
+def negativ_sessionen(ds):
+    """Geloeschte Negativbeispiele (Rohdaten-Kopie unter data/ml/v3/negativ_sessions/<id>/) -> y=0."""
+    from app.analysis.timebase import build_timebase_for_session
+    from app.analysis.v3 import merkmale as M
+    ds.mkdir(parents=True, exist_ok=True)
+    for d in sorted((ML / "v3" / "negativ_sessions").iterdir()):
+        mf = d / "meta.json"
+        if not mf.exists():
+            continue
+        m = json.loads(mf.read_text())
+        tb = build_timebase_for_session(M.ganze_aufnahme({"uuid": m["session_uuid"], "accel_hz": m.get("accel_hz")}))
+        t, X = M.merkmale(tb)
+        y = np.zeros(t.size, dtype=np.int8)
+        q = np.full(t.size, QUELLEN.index("mensch"), dtype=np.int8)
+        np.savez_compressed(ds / f"negs-{m['session_id']}.npz", t=t, X=X.astype(np.float32), y=y, q=q,
+                            im_lauf=np.zeros(t.size, bool), occ=np.full(t.size, -1, np.int16),
+                            user_id=np.int32(m["user_id"]))
+        print(f"  #{m['session_id']}: {t.size} s als 'kein Pumpfoil' ({tb.accel_hz:.0f} Hz)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jobs", type=int, default=20)
     ap.add_argument("--fit-negativ", action="store_true")
+    for k in ("baseline", "labels", "punkte", "wasser", "ds"):
+        ap.add_argument(f"--{k}", default="")
+    ap.add_argument("--ohne-ds", dest="ohne_ds", default="")
+    ap.add_argument("--lauf-v2", dest="lauf_v2", action="store_true")
+    ap.add_argument("--negativ-sessionen", dest="negativ_sessionen", action="store_true")
     a = ap.parse_args()
+    cfg = {k: getattr(a, k) for k in ("baseline", "labels", "punkte", "wasser", "ds", "lauf_v2")}
+    CFG.update(cfg)
+    if a.negativ_sessionen:
+        negativ_sessionen(pathlib.Path(a.ds) if a.ds else DS)
+        return
     b, *_ = _laden()
+    schon = {p.stem for p in pathlib.Path(a.ohne_ds).glob("*.npz")} if a.ohne_ds else set()
     auswahl = [s for s in b if (s["accel_hz"] or 0) >= 15 and s["detection"] == "model"
-               and s.get("placement") != "board" and s.get("uuid")]
+               and s.get("placement") != "board" and s.get("uuid") and str(s["id"]) not in schon]
     print("Sessions:", len(auswahl), flush=True)
-    with Pool(a.jobs, initializer=_init) as pool:
+    with Pool(a.jobs, initializer=_init, initargs=(cfg,)) as pool:
         res = [r for r in pool.imap_unordered(eine, auswahl, chunksize=4) if r]
     ok = [r for r in res if r[1] == "ok"]
     fehl = [r for r in res if r[1] == "fehler"]

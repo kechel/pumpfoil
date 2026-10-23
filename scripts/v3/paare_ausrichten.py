@@ -21,6 +21,12 @@ Ausrichtung — die Auswertungen nehmen nur Paare mit Streuung <= 400 ms.
 
 Aufruf (aus server/): DATABASE_URL=... .venv/bin/python ../scripts/v3/paare_ausrichten.py [--liste]
   --liste   nur die gefundenen Paare und Brett-Sessions ohne Uhr zeigen, nichts ausrichten/schreiben
+  --aus P   Ausgabe nach P statt data/ml/v3/paare.json (23.10.2026, Neubau r7: paare-2026-10-23.json)
+  --mit-ohne-accel  auch Uhren OHNE Beschleunigung (gps_only, z. B. FR55 lite) als Paar fuehren —
+            ohne Feinausrichtung (nur Wanduhr), Merkmal `uhr_accel: false`; fuers Handgelenk-Modell
+            unbrauchbar, aber in der Liste sichtbar
+Jedes Paar traegt seit 23.10.2026 Labels der Uhr-Session (Geraet, App-Version, Sportart, angeforderte
+und gemessene Accel-Rate, time_base, detection) — die Auswertungen filtern danach, nicht die Liste.
 """
 import os
 os.environ.setdefault("OMP_NUM_THREADS", "1")
@@ -74,7 +80,7 @@ ANDERE_SPORTART = {
            "Lauf ab 3774 s: Accel 14 s eingefroren (std 0). Fehlstart-Session #16709 (7 s) ignorieren.",
 }
 
-def paare_finden(db) -> tuple[list[tuple[int, int]], list[int]]:
+def paare_finden(db, mit_ohne_accel: bool = False) -> tuple[list[tuple[int, int]], list[int]]:
     """(Paare (Brett, Uhr), Brett-Sessions ohne Uhr) aus der Datenbank. Liest nur."""
     from datetime import timedelta
     from app import models, storage
@@ -101,7 +107,8 @@ def paare_finden(db) -> tuple[list[tuple[int, int]], list[int]]:
                 .order_by(S.id).all())
         treffer = [u.id for u in kand
                    if (u.placement or "") != "board" and u.result is not None
-                   and spanne(u)[1] > ba and storage.chunk_laengen(u.session_uuid, "accel")]
+                   and spanne(u)[1] > ba
+                   and (mit_ohne_accel or storage.chunk_laengen(u.session_uuid, "accel"))]
         paare += [(b.id, u) for u in treffer]
         if not treffer:
             ohne.append(b.id)
@@ -184,23 +191,61 @@ def ausrichten(B, U):
             "streuung_ms": round(float(np.std(fein))), "laeufe_partner": len(d)}
 
 
+def etiketten(db, sid) -> dict:
+    """Labels einer Session fuer die Paar-Liste (nur lesen)."""
+    from app import models, storage
+    s = db.get(models.Session, sid)
+    m = {}
+    if s.result is not None and s.result.metrics_json:
+        try:
+            m = json.loads(s.result.metrics_json) or {}
+        except ValueError:
+            m = {}
+    return {"user": s.user_id, "device_model": s.device_model, "app_version": s.app_version,
+            "sport_class": s.sport_class, "placement": s.placement, "accel_hz": s.accel_hz,
+            "accel_hz_measured": m.get("accel_hz_measured"), "accel_hz_effective": m.get("accel_hz_effective"),
+            "time_base": m.get("time_base"), "accel_axis": m.get("accel_axis"),
+            "detection": s.result.detection if s.result is not None else None,
+            "num_runs": s.result.num_runs if s.result is not None else None,
+            "v3": (m.get("v3") or {}).get("version"),
+            "accel_chunks": len(storage.chunk_laengen(s.session_uuid, "accel") or []),
+            "started_at": s.started_at.isoformat() if s.started_at else None}
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--liste", action="store_true")
+    ap.add_argument("--aus", default="")
+    ap.add_argument("--mit-ohne-accel", dest="mit_ohne_accel", action="store_true")
     args = ap.parse_args()
     from app import db
     S = db.SessionLocal()
     out = []
     try:
-        paare, ohne = paare_finden(S)
+        paare, ohne = paare_finden(S, args.mit_ohne_accel)
         print(f"{len(paare)} Paare: {paare}", flush=True)
         print(f"Brett ohne Uhr: {ohne} · ausgeschlossen: {sorted(AUSGESCHLOSSEN)}", flush=True)
         if args.liste:
             return
         for b_id, u_id in paare:
+            eu = etiketten(S, u_id)
+            if not eu["accel_chunks"]:
+                # Uhr ohne Beschleunigung: keine Feinausrichtung moeglich, nur die Wanduhr
+                from app import models as _m
+                bs, us = S.get(_m.Session, b_id), S.get(_m.Session, u_id)
+                erg = {"brett": b_id, "uhr": u_id, "uhr_accel": False, "versatz_ms": None,
+                       "grob_ms": round(us.started_at.timestamp() * 1000 - bs.started_at.timestamp() * 1000),
+                       "fahrer_brett": bs.user_id, "fahrer_uhr": us.user_id, "brett_modell": bs.device_model,
+                       "uhr_modell": us.device_model, "uhr_etiketten": eu, "brett_etiketten": etiketten(S, b_id)}
+                out.append(erg)
+                print(f"#{b_id} + #{u_id} (u{us.user_id}, {us.device_model or 'Garmin'}): Uhr OHNE Accel — nur gelistet", flush=True)
+                continue
             B, U = laden(S, b_id), laden(S, u_id)
             erg = ausrichten(B, U)
+            erg["uhr_accel"] = True
+            erg["uhr_etiketten"] = eu
+            erg["brett_etiketten"] = etiketten(S, b_id)
             erg.update({"brett": b_id, "uhr": u_id, "fahrer_brett": B["user"], "fahrer_uhr": U["user"],
                         "brett_modell": B["model"], "uhr_modell": U["model"],
                         "brett_laeufe": len(B["laeufe"]), "uhr_laeufe": len(U["laeufe"])})
@@ -214,8 +259,10 @@ def main():
         S.rollback(); S.close()
     if args.liste:
         return
-    (ML / "v3").mkdir(parents=True, exist_ok=True)
-    (ML / "v3" / "paare.json").write_text(json.dumps(out, indent=1))
+    ziel = pathlib.Path(args.aus) if args.aus else ML / "v3" / "paare.json"
+    ziel.parent.mkdir(parents=True, exist_ok=True)
+    ziel.write_text(json.dumps(out, indent=1))
+    print("geschrieben:", ziel)
 
 
 if __name__ == "__main__":
