@@ -784,7 +784,7 @@ const gsw: Record<string, string> = {
   "sup.badge": "Merci für wertvolls Feedback i de letschte 4 Wuche",
   "sup.level2": "flissigi Hilf",
   "sup.level3": "eini vo eusne aktivste Hilfe",
-  "sup.profile1": "Supporter: het eus i de letschte 4 Wuche mit Feedback ghulfe",
+  "sup.profile1": "Het eus i de letschte 4 Wuche mit Feedback ghulfe",
   "sup.profile2": "Flissigi Hilf: Feedback a 5 oder meh Täg i dem Johr, zletscht i de letschte 4 Wuche",
   "sup.profile3": "Eini vo eusne aktivste Hilfe: Feedback a 15 oder meh Täg i dem Johr, zletscht i de letschte 4 Wuche",
   "online.title": "Online-Pünktli",

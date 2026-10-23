@@ -844,7 +844,7 @@ const it: Record<string, string> = {
   "sup.badge": "Grazie per il prezioso feedback nelle ultime 4 settimane",
   "sup.level2": "aiuto assiduo",
   "sup.level3": "uno dei nostri aiuti più attivi",
-  "sup.profile1": "Supporter: ci ha aiutato con il suo feedback nelle ultime 4 settimane",
+  "sup.profile1": "Ci ha aiutato con il suo feedback nelle ultime 4 settimane",
   "sup.profile2": "Aiuto assiduo: feedback in 5 o più giorni quest'anno, l'ultimo nelle ultime 4 settimane",
   "sup.profile3": "Uno dei nostri aiuti più attivi: feedback in 15 o più giorni quest'anno, l'ultimo nelle ultime 4 settimane",
   "online.title": "Punto online",

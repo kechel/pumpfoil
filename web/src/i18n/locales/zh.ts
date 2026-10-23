@@ -951,7 +951,7 @@ const zh: Record<string, string> = {
   "sup.badge": "感谢你在过去 4 周提供的宝贵反馈",
   "sup.level2": "热心帮手",
   "sup.level3": "最活跃的帮手之一",
-  "sup.profile1": "支持者：在过去 4 周提供过反馈",
+  "sup.profile1": "在过去 4 周提供过反馈",
   "sup.profile2": "热心帮手：今年有 5 天或以上提供反馈，最近一次在过去 4 周内",
   "sup.profile3": "最活跃的帮手之一：今年有 15 天或以上提供反馈，最近一次在过去 4 周内",
   "online.title": "在线标记",

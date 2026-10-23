@@ -958,7 +958,7 @@ const fi: Record<string, string> = {
   "sup.badge": "Kiitos arvokkaasta palautteesta viimeisten 4 viikon aikana",
   "sup.level2": "ahkera auttaja",
   "sup.level3": "yksi aktiivisimmista auttajistamme",
-  "sup.profile1": "Supporter: auttoi meitä palautteella viimeisten 4 viikon aikana",
+  "sup.profile1": "Auttoi meitä palautteella viimeisten 4 viikon aikana",
   "sup.profile2": "Ahkera auttaja: palautetta vähintään 5 päivänä tänä vuonna, viimeksi viimeisten 4 viikon aikana",
   "sup.profile3": "Yksi aktiivisimmista auttajistamme: palautetta vähintään 15 päivänä tänä vuonna, viimeksi viimeisten 4 viikon aikana",
   "online.title": "Paikalla-piste",

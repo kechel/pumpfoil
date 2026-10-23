@@ -1086,7 +1086,7 @@ const en: Record<string, string> = {
   "sup.badge": "Thanks for valuable feedback within the last 4 weeks",
   "sup.level2": "frequent helper",
   "sup.level3": "one of our most active helpers",
-  "sup.profile1": "Supporter: helped us with feedback in the last 4 weeks",
+  "sup.profile1": "Helped us with feedback in the last 4 weeks",
   "sup.profile2": "Frequent helper: feedback on 5 or more days this year, most recently in the last 4 weeks",
   "sup.profile3": "One of our most active helpers: feedback on 15 or more days this year, most recently in the last 4 weeks",
   "online.title": "Online dot",
