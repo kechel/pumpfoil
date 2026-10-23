@@ -117,14 +117,15 @@ Jede Zahl traegt, woher sie kommt. Achte darauf, bevor du sie deutest:
   wie: `exact_chunks` (aus echten Blockzeiten, genau) oder `measured_rate` (eine
   Durchschnittsrate, Probe 0 bei t=0). Bei `measured_rate` sind Aussagen zu einzelnen Zeitpunkten
   unsicher, Aussagen ueber Verteilungen bleiben brauchbar.
-* `longest_glide_s` ist die laengste LUECKE ZWISCHEN ZWEI ERKANNTEN PUMPS, keine gemessene
-  Gleitphase. Ein hoher Wert heisst in der Praxis meist „hier wurden Pumps nicht erkannt" und
-  gerade NICHT „hier wurde lange geglitten". Benutze ihn nicht als Leistungsmass.
-* Die Pumpzaehlung ist an EINEM Fahrer geeicht und unterzaehlt ungefaehr um das Doppelte. Sie
-  taugt fuer den Vergleich einer Aufnahme mit einer anderen desselben Fahrers, nicht als
-  absolute Zahl.
-* Eine Gleit-Erkennung gibt es NICHT. Wo „Gleiten" steht, ist immer die Luecke zwischen Pumps
-  gemeint.
+* Pumps und Gleitphasen kommen seit 23.10.2026 aus der Erkennung pg-1, geprueft gegen Aufnahmen
+  mit dem Handy am Brett (5 Fahrer): Pumps aus dem Bewegungsrhythmus (Doppelzaehlungen
+  entfernt, schwache Pumps im Takt ergaenzt), Gleitphasen aus einem kleinen Modell. Am Brett
+  gemessen findet sie ~93 % der echten Pumps, der Fehler der Pumpzahl je Lauf liegt bei ~11 %;
+  von echten Gleitphasen findet sie etwa die Haelfte, und etwa die Haelfte der gemeldeten ist
+  echt. `longest_glide_s` ist damit eine erkannte Gleitphase (1,5 bis 15 s), aber unsicher — als
+  grober Hinweis brauchbar, nicht als genaues Leistungsmass. Die Eichung steht auf nur 5 Fahrern.
+* Sessions ohne pg-1 (andere Sportarten, Handy am Brett, aeltere Fassung) tragen noch die alte
+  Zaehlung; dort ist `longest_glide_s` nur die Luecke zwischen zwei erkannten Pumps.
 * `detection` sagt, worauf die Lauferkennung stand: `gps_only` heisst, es gab keine brauchbaren
   Beschleunigungsdaten — dann sind Pumps und Takt nicht vorhanden, nicht null.
 
