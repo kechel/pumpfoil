@@ -301,7 +301,10 @@ final class Recorder: NSObject, ObservableObject {
         guard isPaused, Api.deviceToken != nil else { return }
         await flushAll()
         let dir = LocalStore.dir(uuid)
-        guard let start = LocalStore.readJSON(dir.appendingPathComponent("session.json")) else { return }
+        // meta.json, wie LocalStore.writeMeta sie schreibt. Bis 23.10.2026 stand hier "session.json" — die Datei
+        // gibt es nicht, der Teil-Upload brach still ab und schickte in der Pause nie etwas (Simulator #18807,
+        // 23.10.: Pause nach 4:39 min, kein einziger Aufruf am Server).
+        guard let start = LocalStore.readJSON(dir.appendingPathComponent("meta.json")) else { return }
         do {
             try await Api.startSession(start)
             // In Sammel-Anfragen (s. Api.uploadChunks); nach jeder pruefen, ob fortgesetzt wurde.
