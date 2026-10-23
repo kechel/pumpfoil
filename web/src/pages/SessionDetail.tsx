@@ -1,5 +1,6 @@
 import { SessionBewertungKachel } from "../components/SessionBewertung";
 import { LaufKuerzen } from "../components/LaufKuerzen";
+import { createPortal } from "react-dom";
 import { KorrekturUmschalter, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
@@ -3527,6 +3528,7 @@ function RunsTable({
             <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="px-3 py-2 font-medium" title={t("compare.add")}><CompareIcon className="h-4 w-4" /></th>
               {th(null, "#")}
+              {canEdit && <th className="px-1 py-2 font-medium" aria-label={t("sd.runActions")} />}
               {th("start", t("sd.colStart"))}
               {th("distance", t("sd.colDistance"))}
               {th("duration", t("sd.colDuration"))}
@@ -3545,7 +3547,6 @@ function RunsTable({
               {hasDrop && th("hrDrop60", t("sd.colHrDrop", { s: 60 }))}
               {hasDrop && th("hrDrop120", t("sd.colHrDrop", { s: 120 }))}
               {th("glide", t("sd.colGlide"))}
-              {canEdit && <th className="px-3 py-2 font-medium" title={t("sd.excludeRun")}><FoilOffIcon className="h-4 w-4" /></th>}
             </tr>
           </thead>
           <tbody>
@@ -3576,6 +3577,42 @@ function RunsTable({
                   <td className="px-3 py-2 tabular-nums">
                     {i + 1}{best && <span className="ml-1 inline-flex align-middle text-brand-400" title={t("sd.farthestRunTitle")}><StarIcon className="h-3.5 w-3.5" filled /></span>}
                   </td>
+                  {canEdit && (
+                    <td className="px-1 py-2" onClick={(e) => e.stopPropagation()}>
+                      {/* „⋯"-Menü (23.10.2026): Aussortieren wie bisher + Anfang/Ende kürzen (seltener Fall,
+                          deshalb nicht als eigener Knopf in jeder Zeile). */}
+                      <button
+                        onClick={(e) => {
+                          const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          setMenu(menu?.i === i ? null : { i, x: r.right, y: r.bottom });
+                        }}
+                        disabled={busy}
+                        title={t("sd.runActions")}
+                        aria-label={t("sd.runActions")}
+                        className="rounded-md border border-slate-700 px-2 py-0.5 text-base font-bold leading-none text-slate-200 hover:border-brand-500 hover:bg-slate-800 disabled:opacity-50"
+                      >
+                        ⋯
+                      </button>
+                      {menu?.i === i && createPortal(<>
+                        {/* Ins <body> (Portal): in der Karte verschob ein Vorfahr mit transform das `fixed`-Menue
+                            um eine Zeile nach unten und rechts aus dem Bild (Jan, 23.10.2026). */}
+                        <div className="fixed inset-0 z-[1500]" onClick={() => setMenu(null)} />
+                        <div className="fixed z-[1501] w-60 rounded-xl border border-brand-500/60 bg-slate-900 py-1 text-left shadow-2xl"
+                          style={{ left: Math.max(8, Math.min(menu.x - 240, window.innerWidth - 248)), top: Math.min(menu.y + 4, window.innerHeight - 110) }}>
+                          <button type="button" onClick={() => { setMenu(null); doExclude(i); }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800">
+                            <FoilOffIcon className="h-4 w-4" /> {t("sd.excludeRun")}
+                          </button>
+                          {zeiten && s.t_start_ms != null && s.t_end_ms != null && (
+                            <button type="button" onClick={() => { setMenu(null); setKuerzen(i); }}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800">
+                              <span aria-hidden className="w-4 text-center">↔</span> {t("sd.trimRun")}
+                            </button>
+                          )}
+                        </div>
+                      </>, document.body)}
+                    </td>
+                  )}
                   <td className="px-3 py-2 tabular-nums text-slate-300">{runClock(s)}</td>
                   <td className="px-3 py-2 tabular-nums">{Math.round(s.distance_m)} m</td>
                   <td className="px-3 py-2 tabular-nums">{fmtMMSS(s.duration_s)}</td>
@@ -3604,40 +3641,6 @@ function RunsTable({
                   {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 60))}</td>}
                   {hasDrop && <td className="px-3 py-2 tabular-nums">{drop(hrDrop(s, 120))}</td>}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
-                  {canEdit && (
-                    <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
-                      {/* „⋯"-Menü (23.10.2026): Aussortieren wie bisher + Anfang/Ende kürzen (seltener Fall,
-                          deshalb nicht als eigener Knopf in jeder Zeile). */}
-                      <button
-                        onClick={(e) => {
-                          const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                          setMenu(menu?.i === i ? null : { i, x: r.right, y: r.bottom });
-                        }}
-                        disabled={busy}
-                        title={t("sd.runActions")}
-                        aria-label={t("sd.runActions")}
-                        className="rounded px-1.5 text-lg leading-none text-slate-400 hover:bg-slate-800 hover:text-slate-200 disabled:opacity-50"
-                      >
-                        ⋯
-                      </button>
-                      {menu?.i === i && (<>
-                        <div className="fixed inset-0 z-[1500]" onClick={() => setMenu(null)} />
-                        <div className="fixed z-[1501] w-56 rounded-lg border border-slate-700 bg-slate-900 py-1 text-left shadow-xl"
-                          style={{ left: Math.max(8, menu.x - 224), top: Math.min(menu.y + 4, window.innerHeight - 100) }}>
-                          <button type="button" onClick={() => { setMenu(null); doExclude(i); }}
-                            className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800">
-                            <FoilOffIcon className="h-4 w-4" /> {t("sd.excludeRun")}
-                          </button>
-                          {zeiten && s.t_start_ms != null && s.t_end_ms != null && (
-                            <button type="button" onClick={() => { setMenu(null); setKuerzen(i); }}
-                              className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800">
-                              <span aria-hidden className="w-4 text-center">↔</span> {t("sd.trimRun")}
-                            </button>
-                          )}
-                        </div>
-                      </>)}
-                    </td>
-                  )}
                 </tr>
               );
             })}
