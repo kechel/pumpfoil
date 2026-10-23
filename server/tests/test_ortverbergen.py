@@ -13,6 +13,10 @@ from app.ortverbergen import NEMO_LAT, NEMO_LON, ist_verborgen, versetzen
 _R = 6_371_000.0
 
 
+# Erfundene Spot-id, die es in der Test-DB nie gibt. Vorher stand hier 42 — dann bekam ein spaeter
+# angelegter echter Spot genau diese id und erbte die Sessions dieser Datei (test_spot_trennen, 23.10.2026).
+FREMDE_SPOT_ID = 900042
+
 def _meter(a: tuple[float, float], b: tuple[float, float]) -> float:
     dlat = math.radians(b[0] - a[0])
     dlon = math.radians(b[1] - a[1]) * math.cos(math.radians((a[0] + b[0]) / 2))
@@ -103,7 +107,7 @@ def _session_mit_spur(uid, **f):
                            ended_at=datetime.now(timezone.utc) - timedelta(hours=1),
                            sport="pumpfoil", is_pumpfoil=True, status="done",
                            place_name="Jettkofen", place_water="Federsee",
-                           place_lat=48.07, place_lon=9.35, spot_id=f.pop("spot_id", 42), **f)
+                           place_lat=48.07, place_lon=9.35, spot_id=f.pop("spot_id", FREMDE_SPOT_ID), **f)
         db.add(s); db.flush()
         db.add(models.AnalysisResult(
             # `num_runs`/`detection` gesetzt, sonst faellt die Aufnahme aus dem Community-Feed:
@@ -128,7 +132,7 @@ def test_sichtbar_solange_niemand_etwas_umstellt(client):
     kopf = _konto(client, "ort-normal@b.de")
     uid = client.get("/api/auth/me", headers=kopf).json()["id"]
     d = _detail(client, kopf, _session_mit_spur(uid))
-    assert d["place_name"] == "Jettkofen" and d["spot_id"] == 42
+    assert d["place_name"] == "Jettkofen" and d["spot_id"] == FREMDE_SPOT_ID
     assert d["ort_verborgen"] is False
     assert d["analysis"]["track_geojson"]["coordinates"][0] == [9.35, 48.07]
 
