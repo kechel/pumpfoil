@@ -16,6 +16,7 @@ from . import landing
 from .api.deps import require_social
 from .api import tanz as tanz_api
 from .api import bewertung as bewertung_api
+from .api import supporter as supporter_api
 from .config import get_settings
 from .db import init_db
 
@@ -492,6 +493,7 @@ app.include_router(boards.router)
 app.include_router(layouts.router)
 app.include_router(tanz_api.router)   # Tanz-App, nur sport == "dance" (21.10.2026)
 app.include_router(bewertung_api.router)   # „Rate this analysis" (22.10.2026), nur Besitzer + Admin
+app.include_router(supporter_api.router)   # Supporter-Beitraege (23.10.2026), Admin
 app.include_router(chat.router, dependencies=[Depends(require_social)])
 app.include_router(transfers.router, dependencies=[Depends(require_social)])
 app.include_router(friends.router, dependencies=[Depends(require_social)])

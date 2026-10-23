@@ -1485,6 +1485,7 @@ const de: Record<string, string> = {
   "feedback.open": "Feedback geben",
   "adm.tab.feedback": "Feedback",
   "adm.tab.bewertungen": "Bewertungen",
+  "adm.tab.supporter": "Supporter",
   "adm.noBewertungen": "Noch keine Bewertungen.",
   "adm.bewWir": "wir:",
   "adm.bewZeigeErledigt": "Erledigte zeigen ({n})",

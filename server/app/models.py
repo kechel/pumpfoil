@@ -1916,3 +1916,25 @@ class SpotTrennung(Base):
     spot_b: Mapped[int] = mapped_column(Integer, index=True)
     notiz: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class FeedbackBeitrag(Base):
+    """Ein Beitrag eines Nutzers, der uns geholfen hat — egal aus welcher Quelle (Jan, 23.10.2026).
+
+    Grundlage fuer den Supporter-Badge („Welle + Herz", brand/badges/supporter.svg): wer in den letzten
+    4 Wochen etwas beigetragen hat, bekommt ihn am Profilbild; die Zahl der Beitragstage bestimmt die Stufe.
+    Quellen u. a.: Feedback-Formular, 1:1 an Jan, Foil-/Stab-Hinweise (Katalog), Spot-Namen, Meldungen
+    „kein Pumpfoil", Spot-Infos, Handy-am-Brett-Sessions, Bewertungen, Tests, Mails (von Hand).
+    `quelle` + `ref` sind eindeutig, damit das Nachtragen (scripts/feedback-beitraege.py) wiederholbar ist.
+    """
+
+    __tablename__ = "feedback_beitraege"
+    __table_args__ = (UniqueConstraint("quelle", "ref", name="uq_feedback_beitrag"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    quelle: Mapped[str] = mapped_column(String(24), index=True)
+    ref: Mapped[str] = mapped_column(String(80))
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    notiz: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
