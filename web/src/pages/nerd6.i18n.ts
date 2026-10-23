@@ -92,7 +92,7 @@ const en: N6 = {
       "**Five riders.** The learning curve has not flattened yet. Every rider with a phone on the board makes the glide part better.",
       "**Glides are still the hard part.** Half of the real glides are found, and every second reported glide is real. That is a start, not the end.",
       "**Carves need more data.** The board also sees turns. 42 carves in the recordings so far are far too few for their own detection — roughly 110 more from more riders would be needed.",
-      "**Live since 24 October.** All recordings were recalculated; the old numbers are kept in the background, and the records follow the new ones.",
+      "**Live since 23 October.** All recordings were recalculated; the old numbers are kept in the background, and the records follow the new ones.",
     ],
   },
 
@@ -180,7 +180,7 @@ const de: N6 = {
       "**Fünf Fahrer.** Die Lernkurve ist noch nicht flach. Jeder Fahrer mit Handy am Brett macht den Gleit-Teil besser.",
       "**Gleiten ist noch der schwere Teil.** Die Hälfte der echten Gleitphasen wird gefunden, und jede zweite gemeldete ist echt. Ein Anfang, nicht das Ende.",
       "**Carves brauchen mehr Daten.** Das Brett sieht auch Kurven. 42 Carves in den bisherigen Aufnahmen sind viel zu wenig für eine eigene Erkennung — es bräuchte grob 110 mehr, von mehr Fahrern.",
-      "**Seit 24. Oktober live.** Alle Aufnahmen wurden neu gerechnet; die alten Zahlen bleiben im Hintergrund erhalten, die Rekorde folgen den neuen.",
+      "**Seit 23. Oktober live.** Alle Aufnahmen wurden neu gerechnet; die alten Zahlen bleiben im Hintergrund erhalten, die Rekorde folgen den neuen.",
     ],
   },
 
@@ -268,7 +268,7 @@ const deAT: N6 = {
       "**Fünf Fahrer.** Die Lernkurve is no ned flach. Jeder Fahrer mit Handy am Board macht den Gleit-Teil besser.",
       "**Gleiten is no der schwere Teil.** Die Hälfte der echten Gleitphasen wird g’funden, und jede zweite g’meldete is echt. A Anfang, ned das Ende.",
       "**Carves brauchen mehr Daten.** Das Board sieht a Kurven. 42 Carves in den bisherigen Aufnahmen san viel zu wenig für a eigene Erkennung — es bräuchat grob 110 mehr, von mehr Fahrern.",
-      "**Seit 24. Oktober live.** Alle Aufnahmen san neu g’rechnet worden; die alten Zahlen bleiben im Hintergrund erhalten, die Rekorde folgen den neuen.",
+      "**Seit 23. Oktober live.** Alle Aufnahmen san neu g’rechnet worden; die alten Zahlen bleiben im Hintergrund erhalten, die Rekorde folgen den neuen.",
     ],
   },
 
@@ -356,7 +356,7 @@ const gsw: N6 = {
       "**Füf Fahrer.** D Lernkurve isch no nöd flach. Jede Fahrer mit Händy am Board macht de Glit-Teil besser.",
       "**Glite isch no de schwär Teil.** D Hälfti vo de ächte Glitphase wird gfunde, und jedi zweiti gmäldeti isch ächt. En Aafang, nöd s Ändi.",
       "**Carves bruuched meh Date.** S Board gseht au Kurve. 42 Carves i de bisherige Ufnahme sind vill z wenig für e eigeti Erkennig — es bruuchti öppe 110 meh, vo meh Fahrer.",
-      "**Sit em 24. Oktober live.** Alli Ufnahme sind nöi grächnet worde; di alte Zahle bliibed im Hintergrund erhalte, d Rekord folged de nöie.",
+      "**Sit em 23. Oktober live.** Alli Ufnahme sind nöi grächnet worde; di alte Zahle bliibed im Hintergrund erhalte, d Rekord folged de nöie.",
     ],
   },
 
@@ -444,7 +444,7 @@ const fr: N6 = {
       "**Cinq riders.** La courbe d’apprentissage n’est pas encore plate. Chaque rider avec un téléphone sur la planche améliore la partie glisse.",
       "**La glisse reste la partie difficile.** La moitié des vraies glisses est trouvée, et une glisse signalée sur deux est réelle. C’est un début, pas une fin.",
       "**Les carves demandent plus de données.** La planche voit aussi les virages. 42 carves dans les enregistrements actuels, c’est bien trop peu pour une détection à part — il en faudrait environ 110 de plus, venant de plus de riders.",
-      "**En ligne depuis le 24 octobre.** Tous les enregistrements ont été recalculés ; les anciens chiffres sont conservés en arrière-plan, et les records suivent les nouveaux.",
+      "**En ligne depuis le 23 octobre.** Tous les enregistrements ont été recalculés ; les anciens chiffres sont conservés en arrière-plan, et les records suivent les nouveaux.",
     ],
   },
 
@@ -532,7 +532,7 @@ const it: N6 = {
       "**Cinque rider.** La curva di apprendimento non si è ancora appiattita. Ogni rider con un telefono sulla tavola migliora la parte della planata.",
       "**La planata resta la parte difficile.** Metà delle planate reali viene trovata, e una planata segnalata su due è reale. È un inizio, non la fine.",
       "**I carve hanno bisogno di più dati.** La tavola vede anche le curve. 42 carve nelle registrazioni finora sono troppo pochi per un rilevamento a sé — ne servirebbero circa 110 in più, da più rider.",
-      "**Online dal 24 ottobre.** Tutte le registrazioni sono state ricalcolate; i vecchi numeri restano conservati sullo sfondo, e i record seguono i nuovi.",
+      "**Online dal 23 ottobre.** Tutte le registrazioni sono state ricalcolate; i vecchi numeri restano conservati sullo sfondo, e i record seguono i nuovi.",
     ],
   },
 
@@ -620,7 +620,7 @@ const es: N6 = {
       "**Cinco riders.** La curva de aprendizaje aún no se ha aplanado. Cada rider con un móvil en la tabla mejora la parte del planeo.",
       "**El planeo sigue siendo la parte difícil.** Se encuentra la mitad de los planeos reales, y uno de cada dos planeos señalados es real. Es un comienzo, no el final.",
       "**Los carves necesitan más datos.** La tabla también ve los giros. 42 carves en las grabaciones hasta ahora son demasiado pocos para una detección propia — harían falta unos 110 más, de más riders.",
-      "**En marcha desde el 24 de octubre.** Todas las grabaciones se han recalculado; las cifras antiguas se conservan en segundo plano y los récords siguen a las nuevas.",
+      "**En marcha desde el 23 de octubre.** Todas las grabaciones se han recalculado; las cifras antiguas se conservan en segundo plano y los récords siguen a las nuevas.",
     ],
   },
 
@@ -708,7 +708,7 @@ const pt: N6 = {
       "**Cinco riders.** A curva de aprendizado ainda não se achatou. Cada rider com celular na prancha melhora a parte do planeio.",
       "**O planeio ainda é a parte difícil.** Metade dos planeios reais é encontrada, e um em cada dois planeios apontados é real. É um começo, não o fim.",
       "**Carves precisam de mais dados.** A prancha também vê as curvas. 42 carves nas gravações até agora são pouquíssimos para uma detecção própria — seriam necessários uns 110 a mais, de mais riders.",
-      "**No ar desde 24 de outubro.** Todas as gravações foram recalculadas; os números antigos continuam guardados em segundo plano, e os recordes seguem os novos.",
+      "**No ar desde 23 de outubro.** Todas as gravações foram recalculadas; os números antigos continuam guardados em segundo plano, e os recordes seguem os novos.",
     ],
   },
 
@@ -796,7 +796,7 @@ const ptPT: N6 = {
       "**Cinco riders.** A curva de aprendizagem ainda não estabilizou. Cada rider com telemóvel na prancha melhora a parte do planeio.",
       "**O planeio continua a ser a parte difícil.** Metade dos planeios reais é encontrada, e um em cada dois planeios assinalados é real. É um começo, não o fim.",
       "**Os carves precisam de mais dados.** A prancha também vê as curvas. 42 carves nas gravações até agora são demasiado poucos para uma deteção própria — seriam precisos cerca de 110 a mais, de mais riders.",
-      "**Em funcionamento desde 24 de outubro.** Todas as gravações foram recalculadas; os números antigos ficam guardados em segundo plano, e os recordes seguem os novos.",
+      "**Em funcionamento desde 23 de outubro.** Todas as gravações foram recalculadas; os números antigos ficam guardados em segundo plano, e os recordes seguem os novos.",
     ],
   },
 
@@ -884,7 +884,7 @@ const nl: N6 = {
       "**Vijf riders.** De leercurve is nog niet vlak. Elke rider met een telefoon op het board maakt het glijdeel beter.",
       "**Glijden is nog het moeilijke deel.** De helft van de echte glijfases wordt gevonden, en elke tweede gemelde is echt. Een begin, niet het eind.",
       "**Carves hebben meer data nodig.** Het board ziet ook bochten. 42 carves in de opnames tot nu toe zijn veel te weinig voor een eigen detectie — er zouden er zo’n 110 meer nodig zijn, van meer riders.",
-      "**Live sinds 24 oktober.** Alle opnames zijn opnieuw berekend; de oude getallen blijven op de achtergrond bewaard, en de records volgen de nieuwe.",
+      "**Live sinds 23 oktober.** Alle opnames zijn opnieuw berekend; de oude getallen blijven op de achtergrond bewaard, en de records volgen de nieuwe.",
     ],
   },
 
@@ -972,7 +972,7 @@ const nb: N6 = {
       "**Fem ryttere.** Læringskurven har ikke flatet ut ennå. Hver rytter med telefon på brettet gjør glidedelen bedre.",
       "**Gli er fortsatt den vanskelige delen.** Halvparten av de ekte glidene blir funnet, og hvert andre meldte gli er ekte. En start, ikke slutten.",
       "**Carves trenger mer data.** Brettet ser også svinger. 42 carves i opptakene så langt er altfor få til en egen gjenkjenning — det trengs rundt 110 til, fra flere ryttere.",
-      "**Live siden 24. oktober.** Alle opptak er regnet på nytt; de gamle tallene tas vare på i bakgrunnen, og rekordene følger de nye.",
+      "**Live siden 23. oktober.** Alle opptak er regnet på nytt; de gamle tallene tas vare på i bakgrunnen, og rekordene følger de nye.",
     ],
   },
 
@@ -1060,7 +1060,7 @@ const fi: N6 = {
       "**Viisi ajajaa.** Oppimiskäyrä ei ole vielä tasaantunut. Jokainen ajaja, jolla on puhelin laudalla, parantaa liukuosaa.",
       "**Liuku on yhä vaikea osa.** Puolet oikeista liu’uista löydetään, ja joka toinen ilmoitettu liuku on oikea. Alku, ei loppu.",
       "**Carvet tarvitsevat lisää dataa.** Lauta näkee myös käännökset. 42 carvea tähänastisissa tallenteissa on aivan liian vähän omaan tunnistukseen — tarvittaisiin noin 110 lisää, useammalta ajajalta.",
-      "**Käytössä 24. lokakuuta alkaen.** Kaikki tallenteet on laskettu uudelleen; vanhat luvut säilyvät taustalla, ja ennätykset seuraavat uusia.",
+      "**Käytössä 23. lokakuuta alkaen.** Kaikki tallenteet on laskettu uudelleen; vanhat luvut säilyvät taustalla, ja ennätykset seuraavat uusia.",
     ],
   },
 
@@ -1148,7 +1148,7 @@ const cs: N6 = {
       "**Pět jezdců.** Křivka učení se ještě nezploštila. Každý jezdec s telefonem na prkně zlepší část o klouzání.",
       "**Klouzání je stále tou těžkou částí.** Najde se polovina skutečných klouzání a každé druhé ohlášené je skutečné. Začátek, ne konec.",
       "**Carvy potřebují víc dat.** Prkno vidí i oblouky. 42 carvů v dosavadních nahrávkách je na vlastní rozpoznávání příliš málo — bylo by jich potřeba zhruba o 110 víc, od více jezdců.",
-      "**V provozu od 24. října.** Všechny nahrávky byly přepočítány; stará čísla zůstávají uložena na pozadí a rekordy se řídí novými.",
+      "**V provozu od 23. října.** Všechny nahrávky byly přepočítány; stará čísla zůstávají uložena na pozadí a rekordy se řídí novými.",
     ],
   },
 
@@ -1236,7 +1236,7 @@ const pl: N6 = {
       "**Pięciu riderów.** Krzywa uczenia się jeszcze się nie spłaszczyła. Każdy rider z telefonem na desce poprawia część o ślizgu.",
       "**Ślizg wciąż jest trudną częścią.** Znajdowana jest połowa prawdziwych ślizgów, a co drugi zgłoszony jest prawdziwy. To początek, nie koniec.",
       "**Carvy potrzebują więcej danych.** Deska widzi też skręty. 42 carvy w dotychczasowych nagraniach to zdecydowanie za mało na osobne rozpoznawanie — potrzeba by ich około 110 więcej, od większej liczby riderów.",
-      "**Działa od 24 października.** Wszystkie nagrania zostały przeliczone; stare liczby są zachowane w tle, a rekordy idą za nowymi.",
+      "**Działa od 23 października.** Wszystkie nagrania zostały przeliczone; stare liczby są zachowane w tle, a rekordy idą za nowymi.",
     ],
   },
 
@@ -1324,7 +1324,7 @@ const ru: N6 = {
       "**Пять райдеров.** Кривая обучения ещё не вышла на плато. Каждый райдер с телефоном на доске делает часть про глайд лучше.",
       "**Глайд всё ещё самая трудная часть.** Находится половина настоящих глайдов, и каждый второй отмеченный глайд настоящий. Это начало, а не конец.",
       "**Карвам нужно больше данных.** Доска видит и повороты. 42 карва в имеющихся записях — слишком мало для отдельного распознавания: понадобилось бы ещё примерно 110, от большего числа райдеров.",
-      "**Работает с 24 октября.** Все записи пересчитаны; старые числа сохраняются в фоне, а рекорды следуют новым.",
+      "**Работает с 23 октября.** Все записи пересчитаны; старые числа сохраняются в фоне, а рекорды следуют новым.",
     ],
   },
 
@@ -1412,7 +1412,7 @@ const id: N6 = {
       "**Lima rider.** Kurva belajarnya belum mendatar. Setiap rider dengan ponsel di papan membuat bagian meluncur makin baik.",
       "**Meluncur masih bagian yang sulit.** Separuh fase meluncur sebenarnya ditemukan, dan satu dari dua yang dilaporkan memang nyata. Ini awal, bukan akhir.",
       "**Carve butuh lebih banyak data.** Papan juga melihat belokan. 42 carve dalam rekaman sejauh ini terlalu sedikit untuk deteksi tersendiri — dibutuhkan sekitar 110 lagi, dari lebih banyak rider.",
-      "**Aktif sejak 24 Oktober.** Semua rekaman sudah dihitung ulang; angka lama tetap disimpan di latar belakang, dan rekor mengikuti angka baru.",
+      "**Aktif sejak 23 Oktober.** Semua rekaman sudah dihitung ulang; angka lama tetap disimpan di latar belakang, dan rekor mengikuti angka baru.",
     ],
   },
 
@@ -1500,7 +1500,7 @@ const ja: N6 = {
       "**ライダーは5人。** 学習曲線はまだ頭打ちになっていません。ボードにスマホを付けたライダーが一人増えるたびに、グライドの部分が良くなります。",
       "**グライドはまだ難しい部分。** 本物のグライドの半分が見つかり、報告したグライドの二つに一つが本物です。これは始まりで、終わりではありません。",
       "**カービングにはもっとデータが必要。** ボードはターンも捉えます。これまでの記録にあるカービングは42回で、独自の検出には少なすぎます — より多くのライダーから、あと約110回必要です。",
-      "**10月24日から本番稼働。** すべての記録を再計算しました。古い数字は裏で保存され、記録(レコード)は新しい数字に従います。",
+      "**10月23日から本番稼働。** すべての記録を再計算しました。古い数字は裏で保存され、記録(レコード)は新しい数字に従います。",
     ],
   },
 
@@ -1588,7 +1588,7 @@ const zh: N6 = {
       "**只有五位骑手。** 学习曲线还没有走平。每多一位在板上装手机的骑手，滑翔部分就会更好。",
       "**滑翔仍是难点。** 能找到一半的真实滑翔，报告的滑翔中每两个有一个是真实的。这是开始，不是结束。",
       "**转弯需要更多数据。** 板子也能看到转弯。目前记录中只有42次转弯，远不够单独检测——还需要来自更多骑手的约110次。",
-      "**10月24日起上线。** 所有记录都已重新计算；旧数字保留在后台，纪录以新数字为准。",
+      "**10月23日起上线。** 所有记录都已重新计算；旧数字保留在后台，纪录以新数字为准。",
     ],
   },
 
