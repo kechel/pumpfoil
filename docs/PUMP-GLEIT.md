@@ -200,3 +200,10 @@ statt 855 in 450. Pumps im Lauf 2 083 299 → 1 964 747, Gleitphasen 14 109 → 
 - **Rekord-Pushes:** `records.run_record_snapshot` pusht nur für Aufnahmen ≤ 3 Tage alt (`PUSH_FRISCH_TAGE`). Nach
   dem Umschalten einmal `run_record_snapshot(db, do_push=False)` laufen lassen, damit auch frische neue Halter
   durch den Wechsel nicht gepusht werden.
+
+**Presets (23.10.2026, abends):** die eigene Ansicht bei Empfindlichkeit light/attempts zeigt die Läufe aus
+`sensitivity_json[stufe]`. `stufe` rechnet pg jetzt auch dort (`pumpgleit.presets`): je Preset je Lauf `pg_*`
+(bei gleichen Laufgrenzen von den kanonischen übernommen, sonst eigen gerechnet) und `pg_pump_count`,
+`pg_avg_cadence_hz`, `pg_best_glide_s/idx` je Preset. `PA.pump_count/avg_cadence_hz/best_glide_*` nehmen bei
+Preset-Ansicht diese Werte; ebenso Startseiten-Statistik und beste Läufe. Nachtrag: dieselbe Skript-Zeile
+ergänzt bei schon nachgetragenen Sessions nur die Presets (Status „presets").

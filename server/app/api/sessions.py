@@ -192,6 +192,8 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         metrics = {**metrics, "num_segments": p["num_runs"]}
     if PA.an() and metrics and (metrics.get("pumpgleit") or {}).get("avg_pump_hz") is not None and result.pg_version:
         metrics = {**metrics, "avg_pump_hz": metrics["pumpgleit"]["avg_pump_hz"]}
+    if PA.an() and metrics is not None and p and p.get("pg_version"):
+        metrics = {**metrics, "avg_pump_hz": p.get("pg_avg_cadence_hz")}
     segments = None
     if not slim:
         segments = p["segments"] if p else (json.loads(result.segments_json) if result.segments_json else None)
@@ -208,8 +210,8 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         foiling_distance_m=fd,
         foiling_time_s=ft,
         max_speed_mps=result.max_speed_mps,
-        pump_count=PA.pump_count(result),
-        avg_cadence_hz=PA.avg_cadence_hz(result),
+        pump_count=PA.pump_count(result, p),
+        avg_cadence_hz=PA.avg_cadence_hz(result, p),
         metrics=metrics,
         # Die Spur ist das Einzige hier, was Koordinaten traegt. Bei „Ort verbergen" wandert sie
         # formtreu nach Point Nemo (s. app/ortverbergen.py) — Laengen und Form bleiben, der Ort
@@ -1290,6 +1292,8 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
             fdist = preset.get("foiling_distance_m", fdist)
             ftime = preset.get("foiling_time_s", ftime)
             sj = json.dumps(preset.get("segments") or [])
+            if PA.an() and preset.get("pg_version"):
+                pumps = preset.get("pg_pump_count")      # pg-1 des Presets (passt zu dessen Laeufen)
             is_pump = (preset.get("num_runs") or 0) > 0
             n_runs = preset.get("num_runs") or 0
         else:

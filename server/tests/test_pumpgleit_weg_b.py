@@ -212,3 +212,51 @@ def test_nachtrag_wiederholbar(sitzung):
     db, s, r = _laden(sid)
     assert r.segments_json == erst
     db.close()
+
+
+def test_preset_ansicht_liefert_pg(client, sitzung, monkeypatch):
+    """Empfindlichkeit light/attempts: die eigene Ansicht zeigt die Preset-Laeufe (sensitivity_json) — auch dort
+    pg-Werte, Summe passend zu den Laeufen. Ein Preset mit anderen Laufgrenzen wird eigen gerechnet."""
+    from app import models
+    from app.analysis import pumpgleit as PG
+    sid, auth, mail = sitzung
+    db, s, r = _laden(sid)
+    seg = _lauf_einsetzen(r, s)
+    kurz = dict(seg, t_end_session_ms=80000, t_end_ms=80000 - int(s.trim_start_ms or 0), i_end=80, duration_s=66.0)
+    r.sensitivity_json = json.dumps({
+        "light": {"foiling_time_s": 92.0, "foiling_distance_m": 380.0, "num_runs": 1, "segments": [seg]},
+        "attempts": {"foiling_time_s": 66.0, "foiling_distance_m": 270.0, "num_runs": 1, "segments": [kurz]}})
+    u = db.query(models.User).filter_by(email=mail).one(); u.foil_sensitivity = "light"
+    assert PG.stufe(s, r, rechnen=True)
+    c = json.loads(r.sensitivity_json)
+    assert c["light"]["pg_pump_count"] == r.pg_pump_count and c["light"]["segments"][0]["pg_pumps"] == r.pg_pump_count
+    assert c["attempts"]["pg_version"] == PG.VERSION and c["attempts"]["segments"][0]["pg_pumps"] < r.pg_pump_count
+    assert {k: v for k, v in c["light"]["segments"][0].items() if not k.startswith("pg_")} == seg   # alt gleich
+    db.commit(); db.close()
+    monkeypatch.setattr(PA, "AN", True)
+    a = client.get(f"/api/sessions/{sid}", headers=auth).json()["analysis"]
+    assert a["pump_count"] == c["light"]["pg_pump_count"]
+    assert a["segments"][0]["pumps"] == c["light"]["segments"][0]["pg_pumps"]
+    assert a["segments"][0]["glides"] == c["light"]["segments"][0]["pg_glides"]
+    monkeypatch.setattr(PA, "AN", False)
+    b = client.get(f"/api/sessions/{sid}", headers=auth).json()["analysis"]
+    assert b["segments"][0]["pumps"] == 120
+
+
+def test_nachtrag_ergaenzt_nur_presets(sitzung):
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts" / "pumpgleit"))
+    import nachtrag
+    from app.analysis import pumpgleit as PG
+    sid, _, _ = sitzung
+    db, s, r = _laden(sid)
+    assert r.pg_version == PG.VERSION and r.sensitivity_json
+    PG._presets_leeren(r)                     # Stand vor dem Preset-Fix: kanonisch pg, Presets ohne
+    kanon = r.segments_json
+    db.commit(); db.close()
+    nachtrag._init(False, False, False)
+    a = nachtrag.eine(sid)
+    assert a["status"] == "presets", a
+    db, s, r = _laden(sid)
+    assert r.segments_json == kanon and json.loads(r.sensitivity_json)["light"]["pg_version"] == PG.VERSION
+    db.close()
+    assert nachtrag.eine(sid)["status"] == "schon_da"
