@@ -17,6 +17,7 @@ import { NERD2 } from "./pages/nerd2.i18n";
 import { NERD3 } from "./pages/nerd3.i18n";
 import { NERD4 } from "./pages/nerd4.i18n";
 import { NERD5 } from "./pages/nerd5.i18n";
+import { NERD6 } from "./pages/nerd6.i18n";
 import { CHANGELOG_SEEN_KEY, abonnieren, neuestesDatum } from "./lib/changelogLatest";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
@@ -45,6 +46,7 @@ const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIc
 // jetzt") — Teil 5 ist erschienen und traegt jetzt die Markierung.
 const NEU_BIS = Date.UTC(2026, 8, 30);   // 30. September 2026
 const NEU_BIS_5 = Date.UTC(2026, 9, 14); // Teil 5, erschienen 30.09.2026 — zwei Wochen „neu" wie Teil 4
+const NEU_BIS_6 = Date.UTC(2026, 10, 7); // Teil 6, erschienen 24.10.2026 — zwei Wochen „neu" wie Teil 4/5
 
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
 // fürs Menü-Badge (die Changelog-Seite selbst bleibt englisch). Fällt bei Fehler auf EN zurück.
@@ -323,6 +325,16 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           <span className="whitespace-nowrap">↳ {t("nerd.part").replace("{n}", "5")}: {t("nav.nerd5")}</span>
           {NEU_BIS_5 > Date.now() && (
+            <span title={t("badge.new")} aria-label={t("badge.new")}
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
+          )}
+        </NavLink>
+        <NavLink to="/nerd-analysen-6" end title={NERD6[lang]?.subtitle ?? NERD6.en?.subtitle}
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${
+            NEU_BIS_6 > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
+          }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          <span className="whitespace-nowrap">↳ {t("nerd.part").replace("{n}", "6")}: {t("nav.nerd6")}</span>
+          {NEU_BIS_6 > Date.now() && (
             <span title={t("badge.new")} aria-label={t("badge.new")}
               className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
           )}

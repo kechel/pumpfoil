@@ -1,13 +1,12 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FoilIcon } from "../components/Icons";
+import { NerdNav } from "../components/NerdNav";
 import { useI18n } from "../i18n";
 import { NERD6 } from "./nerd6.i18n";
 import { useSeo } from "../lib/seo";
 
-// Nerd-Analysen — Teil 6: Pump- und Gleit-Erkennung pg-1 (docs/PUMP-GLEIT.md). ENTWURF zum Gegenlesen
-// (Jan, 23.10.2026): bewusst NICHT verlinkt (keine Sidebar, kein NerdNav-Eintrag, keine Uebersicht, kein Changelog)
-// und mit noindex. Texte vorerst nur Deutsch/Englisch, Rueckfall Englisch.
+// Nerd-Analysen — Teil 6: Pump- und Gleit-Erkennung pg-1 (docs/PUMP-GLEIT.md). Von Jan am 24.10.2026 freigegeben,
+// verlinkt wie Teil 1-5 (Sidebar, NerdNav, Startseite, llms.txt). 18 Sprachen, Rueckfall Englisch.
 //
 // Die Bilder (web/public/nerd6/, same-origin -> CSP-konform) rechnet scripts/pumpgleit/nerd6_bilder.py aus den
 // Messungen. Signal- und Spurbilder nur aus Jans eigenen Aufnahmen; andere Fahrer nur anonym zusammengefasst.
@@ -54,20 +53,11 @@ function Fig({ src, caption }: { src: string; caption: string }) {
 export default function NerdAnalysen6() {
   useSeo("Pumps and glides — teaching the watch to count every pump once",
          "How pumpfoil.org rebuilt pump counting and glide detection against a phone on the board: rhythm physics, a deliberately small model, honest numbers.");
-  // Entwurf: nicht in Suchmaschinen (wieder entfernen, wenn Jan freigibt)
-  useEffect(() => {
-    const m = document.createElement("meta");
-    m.name = "robots";
-    m.content = "noindex";
-    document.head.appendChild(m);
-    return () => { m.remove(); };
-  }, []);
   const { lang } = useI18n();
   const c = NERD6[lang] ?? NERD6.en!;
   return (
     <div className="w-full">
       <Link to="/nerd-analysen-5" className="text-sm text-brand-400 hover:underline">{c.back}</Link>
-      <div className="mt-3 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">{c.entwurf}</div>
       <h1 className="mb-1 mt-4 flex items-center gap-2 text-2xl font-bold">
         <FoilIcon className="h-7 w-7 text-brand-400" /> {c.h1}
       </h1>
@@ -106,12 +96,14 @@ export default function NerdAnalysen6() {
       <H>{c.limits.h}</H>
       <List items={c.limits.li} />
 
-      <div className="mt-10 mb-10 rounded-xl border border-brand-700/50 bg-brand-500/10 p-4">
+      <div className="mt-10 rounded-xl border border-brand-700/50 bg-brand-500/10 p-4">
         <h2 className="text-lg font-bold text-brand-600 dark:text-brand-300">{c.help.h}</h2>
         <Pr>{c.help.p}</Pr>
         <List items={c.help.li} />
         <Pr>{c.help.p2}</Pr>
       </div>
+
+      <NerdNav current={6} />
     </div>
   );
 }

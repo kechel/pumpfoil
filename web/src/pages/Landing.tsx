@@ -656,7 +656,8 @@ export default function Landing() {
           <ul className="mt-4 space-y-2">
             {[["/nerd-analysen", "land.deep1"], ["/nerd-analysen-2", "land.deep2"],
               ["/nerd-analysen-3", "land.deep3"], ["/nerd-analysen-4", "land.deep5"],
-              ["/nerd-analysen-5", "land.deep6"], ["/systemarchitektur", "land.deep4"]].map(([zu, k]) => (
+              ["/nerd-analysen-5", "land.deep6"], ["/nerd-analysen-6", "land.deep7"],
+              ["/systemarchitektur", "land.deep4"]].map(([zu, k]) => (
               <li key={zu}>
                 <Link to={zu} className="text-brand-700 hover:underline dark:text-brand-300">
                   {t(k)}

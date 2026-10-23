@@ -38,6 +38,7 @@
 - [Two-watch experiment: what really happens when pump foiling](https://pumpfoil.org/nerd-analysen)
 - [Phone on the board: measured at the source](https://pumpfoil.org/nerd-analysen-4)
 - [A new on-foil detection, checked against every truth we have](https://pumpfoil.org/nerd-analysen-5)
+- [Pumps and glides: counting every pump once, detecting glides, checked against a phone on the board](https://pumpfoil.org/nerd-analysen-6)
 - [System architecture](https://pumpfoil.org/systemarchitektur)
 - [Changelog](https://pumpfoil.org/changelog)
 - [Source code (GitHub)](https://github.com/kechel/pumpfoil)
