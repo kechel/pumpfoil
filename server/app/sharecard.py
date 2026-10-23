@@ -91,7 +91,9 @@ HR_STOPS = [(34, 197, 94), (234, 179, 8), (249, 115, 22), (239, 68, 68)]    # gr
 # seg != None -> Stats EINES Laufs (Einzel-Lauf-Teilen): Werte aus dem Segment, und die
 # bei einem einzelnen Lauf sinnlosen/redundanten Stats (Läufe, Längster, Strecke=Foiling) aus.
 def stat_catalog(ar, seg=None, lang: str | None = None):
+    from . import pumpgleit_anzeige as PA
     if seg is not None:
+        seg = PA.seg(seg)   # pg-1 mit Anzeige-Schalter (app/pumpgleit_anzeige.py)
         dist = seg.get("distance_m") or 0
         dur = seg.get("duration_s") or 0
         pumps = int(seg.get("pumps") or 0)
@@ -112,8 +114,8 @@ def stat_catalog(ar, seg=None, lang: str | None = None):
             ("pumprate", _L("share.stat.pumprate", lang), _Z(ppm or 0, 0, lang), ppm is not None),
         ]
     ppm = None
-    if (ar.foiling_time_s or 0) > 0 and (ar.pump_count or 0) > 0:
-        ppm = round(ar.pump_count / (ar.foiling_time_s / 60.0))
+    if (ar.foiling_time_s or 0) > 0 and (PA.pump_count(ar) or 0) > 0:
+        ppm = round(PA.pump_count(ar) / (ar.foiling_time_s / 60.0))
     # Schnitt ueber die ganze Aufnahme: Foiling-Strecke durch Foil-ZEIT, also der Schnitt WAEHREND
     # des Foilens — nicht ueber die Aufnahme samt Pausen und Rueckwegen. Ein gespeichertes Feld
     # dafuer gibt es nicht, beide Summanden stehen aber in `ar`.
@@ -121,13 +123,13 @@ def stat_catalog(ar, seg=None, lang: str | None = None):
     items = [
         ("foiling", _L("share.stat.foiling", lang), _km(ar.foiling_distance_m, lang), (ar.foiling_distance_m or 0) > 0),
         ("runs", _L("share.stat.runs", lang), _Z(ar.num_runs or 0, 0, lang), (ar.num_runs or 0) > 0),
-        ("pumps", _L("share.stat.pumps", lang), _Z(ar.pump_count or 0, 0, lang), (ar.pump_count or 0) > 0),
+        ("pumps", _L("share.stat.pumps", lang), _Z(PA.pump_count(ar) or 0, 0, lang), (PA.pump_count(ar) or 0) > 0),
         ("avgspeed", _L("share.stat.avgspeed", lang), f"{_Z(avg * 3.6, 1, lang)} km/h", avg > 0),
         ("speed", _L("share.stat.speed", lang), f"{_Z((ar.max_speed_mps or 0) * 3.6, 1, lang)} km/h", (ar.max_speed_mps or 0) > 0),
         ("time", _L("share.stat.time", lang), _mmss(ar.foiling_time_s), (ar.foiling_time_s or 0) > 0),
         ("longest", _L("share.stat.longest", lang), _km(ar.best_distance_m, lang), (ar.best_distance_m or 0) > 0),
-        ("distance", _L("share.stat.distance", lang), _perpump(ar.foiling_distance_m, ar.pump_count, lang),
-         (ar.foiling_distance_m or 0) > 0 and (ar.pump_count or 0) > 0),
+        ("distance", _L("share.stat.distance", lang), _perpump(ar.foiling_distance_m, PA.pump_count(ar), lang),
+         (ar.foiling_distance_m or 0) > 0 and (PA.pump_count(ar) or 0) > 0),
         ("pumprate", _L("share.stat.pumprate", lang), _Z(ppm or 0, 0, lang), ppm is not None),
     ]
     return items

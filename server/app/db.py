@@ -457,6 +457,12 @@ def _migrate_add_columns() -> None:
             "carve_s": "INTEGER",
             "carve_m": "INTEGER",
             "carve_l": "INTEGER",
+            # Pump-/Gleit-Erkennung pg-1, zusaetzlich (app/pumpgleit_anzeige.py)
+            "pg_version": "VARCHAR(16)",
+            "pg_pump_count": "INTEGER",
+            "pg_avg_cadence_hz": "FLOAT",
+            "pg_best_glide_s": "FLOAT",
+            "pg_best_glide_idx": "INTEGER",
         },
     }
     want.setdefault("device_pairings", {})["old_token"] = "VARCHAR(64)"

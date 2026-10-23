@@ -177,3 +177,26 @@ Gleitphasen und Ende.
 (`scripts/pumpgleit/vorschau_bestand.py`): 120 Stellen in 69 Sessions (69 Stellen Pumpfoil, Rest efoil/foildrive),
 statt 855 in 450. Pumps im Lauf 2 083 299 → 1 964 747, Gleitphasen 14 109 → 36 918, `best_glide_s` Median
 1,7 → 3,6 s (3158 Sessions mit Ergebnis).
+
+## Weg B: pg-1 live zusätzlich gespeichert, Anzeige per Schalter (23.10.2026, Jans Entscheidung)
+
+- **Speichern:** `run_analysis` rechnet nach allen bisherigen Stufen (final) `analysis/pumpgleit.stufe` und setzt NUR
+  `analysis_results.pg_version/pg_pump_count/pg_avg_cadence_hz/pg_best_glide_s/pg_best_glide_idx`, je Lauf
+  `pg_pumps, pg_pump_idx, pg_avg_pump_hz, pg_pumps_per_min, pg_dist_per_pump_m, pg_t_to_first_pump_s, pg_glides,
+  pg_num_glides, pg_avg_glide_s, pg_longest_glide_s, pg_hinschauen` und `metrics.pumpgleit`. Bisherige Felder
+  bitgenau gleich (Test). Nicht zuständig (Sportart, Brett, ohne Accel, Zwischenanalyse): pg-Felder leer. Fehler
+  dort brechen die Analyse nie (try/except + Log).
+- **Anzeige:** `app/pumpgleit_anzeige.py`, env `PUMPGLEIT_ANZEIGE=1` (server/.env, Standard aus). An: alle Ausgaben
+  zeigen pg, wo vorhanden, sonst alt. Das ETag der Detailantwort trägt den Schalter (`-pgA`), Clients werden beim
+  Umschalten frisch. Umgeschaltet: `_session_out` (Detail und Listen: Läufe, `pump_count`, `avg_cadence_hz`,
+  `metrics.avg_pump_hz`), Startseiten-Statistik und Rekorde (`compute_overall_stats`), beste Läufe, Verlauf,
+  Community-Rekorde und Spot-Rekorde (`REC_COL` „glide"/„session_pumps", auch `records.py`-Snapshot), Feed-Gruppen-
+  Summe, Leaderboard-, Community-, Foil- und Board-Statistik-Summen, MCP (Sessions, Läufe, Summen, Hinweistext),
+  Sharecard, Bewertungs-Schnappschuss. Nicht umgeschaltet: `max/min_pump_hz` und die Kadenz-Färbung der Spur
+  (pg rechnet sie nicht), Empfindlichkeits-Presets (`sensitivity_json`, zeigen alt), Wellen-Auswertung (keine
+  zuständige Sportart), Datenexport (roh, enthält beide).
+- **Nachtrag:** `scripts/pumpgleit/nachtrag.py` (`--sicherung`, `--trocken`, `--jobs ≤ 6`, `--neu`, `--stempel`),
+  Zeile je Session mit FOR UPDATE, prüft, dass die bisherigen Felder gleich bleiben.
+- **Rekord-Pushes:** `records.run_record_snapshot` pusht nur für Aufnahmen ≤ 3 Tage alt (`PUSH_FRISCH_TAGE`). Nach
+  dem Umschalten einmal `run_record_snapshot(db, do_push=False)` laufen lassen, damit auch frische neue Halter
+  durch den Wechsel nicht gepusht werden.

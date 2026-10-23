@@ -722,6 +722,14 @@ class AnalysisResult(Base):
     best_speed_idx: Mapped[int | None] = mapped_column(Integer)
     best_glide_idx: Mapped[int | None] = mapped_column(Integer)
     max_pump_hz: Mapped[float | None] = mapped_column(Float)
+    # Pump-/Gleit-Erkennung pg-1 (Weg B, 23.10.2026): ZUSAETZLICH gespeichert, die Spalten oben bleiben die
+    # der bisherigen Zaehlung. Gesetzt von analysis/pumpgleit.stufe (nur zustaendige Sessions, sonst NULL);
+    # welche Zahl die Ausgaben zeigen, entscheidet app/pumpgleit_anzeige.py (env PUMPGLEIT_ANZEIGE).
+    pg_version: Mapped[str | None] = mapped_column(String(16))
+    pg_pump_count: Mapped[int | None] = mapped_column(Integer)
+    pg_avg_cadence_hz: Mapped[float | None] = mapped_column(Float)
+    pg_best_glide_s: Mapped[float | None] = mapped_column(Float)
+    pg_best_glide_idx: Mapped[int | None] = mapped_column(Integer)
 
     # Carve-Anzahl je Grad-Kategorie (s=90–180°, m=180–360°, l=>360°), lazy gecacht fürs
     # persönliche Home-Aggregat (/community/carve-stats). NULL = noch nicht berechnet -> beim

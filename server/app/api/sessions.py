@@ -35,6 +35,7 @@ from ..schemas import (
     SessionMetaIn, SessionOut, SessionVideoIn, TrimIn,
 )
 from .. import ortverbergen, sportprofil
+from .. import pumpgleit_anzeige as PA
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
 from .community import _community, _spot_cond
@@ -189,6 +190,8 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
     metrics = json.loads(result.metrics_json) if result.metrics_json else None
     if p and metrics is not None and p.get("num_runs") is not None:
         metrics = {**metrics, "num_segments": p["num_runs"]}
+    if PA.an() and metrics and (metrics.get("pumpgleit") or {}).get("avg_pump_hz") is not None and result.pg_version:
+        metrics = {**metrics, "avg_pump_hz": metrics["pumpgleit"]["avg_pump_hz"]}
     segments = None
     if not slim:
         segments = p["segments"] if p else (json.loads(result.segments_json) if result.segments_json else None)
@@ -197,14 +200,16 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         # (s. app/clockmap.py). `session` ist optional, damit alte Aufrufer nichts merken.
         if session is not None:
             segments = segmente_mit_uhrzeit(session, segments)
+        # pg-1 (Weg B): mit Schalter an die neuen Pumps/Gleitphasen je Lauf (app/pumpgleit_anzeige.py)
+        segments = PA.segs(segments)
     return AnalysisOut(
         algo_version=result.algo_version,
         total_distance_m=result.total_distance_m,
         foiling_distance_m=fd,
         foiling_time_s=ft,
         max_speed_mps=result.max_speed_mps,
-        pump_count=result.pump_count,
-        avg_cadence_hz=result.avg_cadence_hz,
+        pump_count=PA.pump_count(result),
+        avg_cadence_hz=PA.avg_cadence_hz(result),
         metrics=metrics,
         # Die Spur ist das Einzige hier, was Koordinaten traegt. Bei „Ort verbergen" wandert sie
         # formtreu nach Point Nemo (s. app/ortverbergen.py) — Laengen und Form bleiben, der Ort
@@ -1236,7 +1241,7 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
     q = (
         db.query(
             models.AnalysisResult.foiling_distance_m, models.AnalysisResult.foiling_time_s,
-            models.AnalysisResult.pump_count, models.AnalysisResult.metrics_json,
+            PA.col_pump_count(), models.AnalysisResult.metrics_json,
             models.AnalysisResult.segments_json, models.AnalysisResult.sensitivity_json,
             models.Session.id, models.Session.started_at,
             models.Session.place_lat, models.Session.place_lon,
@@ -1306,7 +1311,7 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
         bd = bdu = bs = bg = (0.0, None)  # (Wert, Lauf-Index) je Rekord
         if sj:
             try:
-                for j, seg in enumerate(json.loads(sj)):
+                for j, seg in enumerate(PA.segs(json.loads(sj))):
                     d = seg.get("distance_m") or 0.0
                     du = seg.get("duration_s") or 0.0
                     sp = seg.get("max_speed_mps") or 0.0
@@ -1697,7 +1702,7 @@ def my_longest_runs(
             is_pump = bool(metrics.get("is_pumpfoil"))
         if not is_pump or (accel_only and metrics.get("detection") != "model"):
             continue
-        for j, seg in enumerate(segs):
+        for j, seg in enumerate(PA.segs(segs)):
             laeufe.append({
                 "session_id": sid, "run_idx": j,
                 "started_at": ts.isoformat() if ts else None,
@@ -1848,7 +1853,7 @@ def history(
     rows = (
         db.query(
             models.AnalysisResult.metrics_json, models.AnalysisResult.segments_json,
-            models.AnalysisResult.foiling_distance_m, models.AnalysisResult.pump_count,
+            models.AnalysisResult.foiling_distance_m, PA.col_pump_count(),
             models.Session.id, models.Session.started_at,
         )
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
@@ -1875,7 +1880,7 @@ def history(
         seg_keys = {"distance": "distance_m", "duration": "duration_s", "speed": "max_speed_mps", "glide": "longest_glide_s"}
         if sj:
             try:
-                for j, seg in enumerate(json.loads(sj)):
+                for j, seg in enumerate(PA.segs(json.loads(sj))):
                     for k, sk in seg_keys.items():
                         v = seg.get(sk) or 0.0
                         if v > best[k][0]:
@@ -1890,7 +1895,8 @@ def history(
             "speed": round(best["speed"][0], 2),
             "glide": round(best["glide"][0], 2),
             "pump_hz": metrics.get("max_pump_hz"),
-            "avg_pump_hz": metrics.get("avg_pump_hz"),
+            "avg_pump_hz": ((metrics.get("pumpgleit") or {}).get("avg_pump_hz") or metrics.get("avg_pump_hz"))
+                           if PA.an() and metrics.get("pumpgleit") else metrics.get("avg_pump_hz"),
             "avg_speed": round(metrics["avg_speed_mps"], 2) if metrics.get("avg_speed_mps") is not None else None,
             "pumps": int(pumpcnt or 0),
             "runs": int(metrics.get("num_segments") or 0),
@@ -2416,7 +2422,7 @@ def get_session(
     import zlib as _zlib
     _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id)],
                        sort_keys=True, default=str)
-    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}"'
+    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}{PA.etag_teil()}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
