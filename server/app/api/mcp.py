@@ -37,6 +37,7 @@ from .. import models
 from ..suche import wort_bedingung as _such
 from ..db import get_db
 from .. import ortverbergen
+from .. import pumpgleit_anzeige as PA
 from ..ratelimit import enforce_user_tiers
 from ..tzlookup import tz_name
 from . import mcp_dateien
@@ -283,7 +284,7 @@ def _kurz(s: models.Session, ar: models.AnalysisResult | None) -> dict:
         "foil_strecke_m": (ar.foiling_distance_m if ar else None),
         "foil_zeit_s": (ar.foiling_time_s if ar else None),
         "max_speed_mps": (ar.max_speed_mps if ar else None),
-        "pumps": (ar.pump_count if ar else None),
+        "pumps": PA.pump_count(ar),
         "erkennung": (ar.detection if ar else None),
         # DER BESTE LAUF GEHOERT IN DIE ZEILE (25.09.2026). Jans Agent brauchte die laengste
         # Lauf-Dauer je Aufnahme, fand sie nur in `get_session` und rief deshalb ueber fuenfzig
@@ -409,7 +410,7 @@ def _laeufe(ar: models.AnalysisResult | None, off: int, puls=None) -> list[dict]
     except ValueError:
         return []
     aus = []
-    for i, g in enumerate(segmente):
+    for i, g in enumerate(PA.segs(segmente)):
         start = g.get("t_start_session_ms", (g.get("t_start_ms") or 0) + off)
         ende = g.get("t_end_session_ms", (g.get("t_end_ms") or 0) + off)
         aus.append({
@@ -423,8 +424,8 @@ def _laeufe(ar: models.AnalysisResult | None, off: int, puls=None) -> list[dict]
             "strecke_m": g.get("distance_m"),
             "max_speed_mps": g.get("max_speed_mps"),
             "avg_speed_mps": g.get("avg_speed_mps"),
-            "pumps": g.get("pump_count"),
-            "takt_hz": g.get("cadence_hz"),
+            "pumps": g.get("pumps"),
+            "takt_hz": g.get("avg_pump_hz"),
         })
         if puls is not None:
             z = _puls_zusammen(puls[0], puls[1], start, ende)
@@ -467,16 +468,19 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
         "geraet_etikett": etikett,
         "dauer_s": ((s.ended_at - s.started_at).total_seconds()
                     if s.ended_at and s.started_at else None),
-        "avg_cadence_hz": (ar.avg_cadence_hz if ar else None),
+        "avg_cadence_hz": PA.avg_cadence_hz(ar),
         "bester_lauf": {
             "strecke_m": (ar.best_distance_m if ar else None),
             "dauer_s": (ar.best_duration_s if ar else None),
             "max_speed_mps": (ar.best_speed_mps if ar else None),
-            "laengste_pumppause_s": (ar.best_glide_s if ar else None),
+            "laengste_pumppause_s": PA.best_glide_s(ar),
         },
-        "laengste_pumppause_s_hinweis":
+        "laengste_pumppause_s_hinweis": (
+            "Laengste Gleitphase nach der Pump-/Gleit-Erkennung pg-1 (Takt reisst ab und Energie faellt, "
+            "gegen ein Handy am Brett gemessen, 1,5-15 s). Eine Naeherung, keine Messung am Brett."
+            if PA.an() and ar is not None and ar.pg_version else
             "Luecke zwischen zwei ERKANNTEN Pumps, keine gemessene Gleitphase. Ein hoher Wert "
-            "heisst meist, dass Pumps nicht erkannt wurden.",
+            "heisst meist, dass Pumps nicht erkannt wurden."),
         # Aus den DATEN gezaehlt, nicht aus `sessions.hr_samples` (fast immer leer, s. _puls_reihe).
         "puls_proben": (int((~np.isnan(puls[1])).sum()) if puls is not None else 0),
         # Puls als ZAHLEN (26.09.2026). Bis dahin standen hier nur Quelle und Probenzahl — ein
@@ -638,7 +642,7 @@ def _get_stats(db: Session, user_id: int, arg: dict) -> dict:
     A = models.AnalysisResult
     z = (db.query(func.count(A.id), func.sum(A.num_runs), func.sum(A.total_distance_m),
                   func.sum(A.foiling_distance_m), func.sum(A.foiling_time_s),
-                  func.sum(A.pump_count), func.max(A.max_speed_mps),
+                  func.sum(PA.col_pump_count()), func.max(A.max_speed_mps),
                   func.max(A.best_distance_m), func.max(A.best_duration_s))
            .filter(A.session_id.in_(ids)).one())
     return {

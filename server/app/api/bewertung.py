@@ -23,6 +23,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from .. import models
+from .. import pumpgleit_anzeige as PA
 from ..config import get_settings
 from ..db import get_db
 from .deps import current_admin, current_user
@@ -78,7 +79,7 @@ def _schnappschuss(db: Session, s: models.Session) -> dict:
             laeufe = None
     return {
         "laeufe": laeufe,
-        "pumps": a.pump_count if a else None,
+        "pumps": PA.pump_count(a),
         "foil_m": round(a.foiling_distance_m) if a and a.foiling_distance_m is not None else None,
         "algo": a.algo_version if a else None,
         "geraet": s.device_model, "app": s.app_version,

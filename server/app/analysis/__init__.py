@@ -1177,6 +1177,17 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         except Exception:  # noqa: BLE001
             db.rollback()
             logging.getLogger(__name__).exception("Brett-Lage vorrechnen fuer Session %s", session.id)
+    # PUMP-/GLEIT-ERKENNUNG pg-1 (Weg B, Jans Entscheidung 23.10.2026): ZUSAETZLICH gespeichert (pg_*-Spalten,
+    # pg_*-Schluessel je Lauf, metrics.pumpgleit); alle bisherigen Felder bleiben, wie sie oben geschrieben
+    # wurden. Nur in der finalen Analyse gerechnet (Zwischenanalyse: pg-Felder leer). Welche Zahlen die
+    # Ausgaben zeigen, entscheidet app/pumpgleit_anzeige.py. Darf die Analyse nie brechen.
+    try:
+        from .pumpgleit import stufe as _pg_stufe
+        if _pg_stufe(session, result, rechnen=final):
+            db.commit()
+    except Exception:  # noqa: BLE001
+        db.rollback()
+        logging.getLogger(__name__).exception("Pump/Gleit pg-1 fuer Session %s", session.id)
     if not final:
         # „live" NUR setzen, solange kein Abschluss erreicht ist. `synchronize_session=False`
         # ist hier richtig: das ORM-Objekt traegt `status` nicht als geaenderte Spalte, es gibt

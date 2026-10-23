@@ -237,3 +237,70 @@ def segmente_ueberlagern(s, segmente: list[dict], n_track: int) -> dict | None:
     return {"segments": segs, "pump_count": pc, "best_glide_s": best[0], "best_glide_idx": best[1],
             "hinschauen": hin_alle,
             "gleit_s": round(sum(sum(x[2] for x in (g.get("glides") or [])) for g in segs), 1)}
+
+
+# ------------------------------------------------------------------ Speichern (Weg B, live)
+
+PG_FELDER = ("pumps", "pump_idx", "avg_pump_hz", "pumps_per_min", "dist_per_pump_m", "t_to_first_pump_s",
+             "glides", "num_glides", "avg_glide_s", "longest_glide_s")
+
+
+def _leeren(result) -> None:
+    result.pg_version = None
+    result.pg_pump_count = None
+    result.pg_avg_cadence_hz = None
+    result.pg_best_glide_s = None
+    result.pg_best_glide_idx = None
+    if result.metrics_json:
+        try:
+            m = json.loads(result.metrics_json)
+        except ValueError:
+            m = None
+        if isinstance(m, dict) and "pumpgleit" in m:
+            m.pop("pumpgleit")
+            result.metrics_json = json.dumps(m)
+
+
+def stufe(s, result, rechnen: bool = True) -> bool:
+    """pg-1 ZUSAETZLICH speichern: analysis_results.pg_*, je Lauf `pg_<feld>` + `pg_hinschauen` in segments_json,
+    metrics_json.pumpgleit. Die bisherigen Felder bleiben unveraendert. Nicht zustaendig (oder `rechnen` False,
+    z. B. Zwischenanalyse): pg-Felder geleert. Gibt True zurueck, wenn etwas zu speichern ist (immer, ausser
+    es gibt kein Ergebnis). Wirft bei Rechenfehlern — der Aufrufer faengt ab."""
+    if result is None:
+        return False
+    if not rechnen or not zustaendig(s, result) or not result.segments_json:
+        _leeren(result)
+        return True
+    segs = json.loads(result.segments_json)
+    # Alte pg-Schluessel aus einem frueheren Lauf entfernen (der Nachtrag kann wiederholt laufen)
+    for g in segs:
+        for k in [k for k in g if k.startswith("pg_")]:
+            g.pop(k)
+    track = (json.loads(result.track_geojson or "{}").get("geometry") or {}).get("coordinates") or []
+    erg = segmente_ueberlagern(s, segs, len(track))
+    if erg is None:
+        _leeren(result)
+        return True
+    for g, n in zip(segs, erg["segments"]):
+        if n.get("pumpgleit") != VERSION:
+            continue
+        for k in PG_FELDER:
+            g["pg_" + k] = n.get(k)
+        g["pg_hinschauen"] = n.get("hinschauen") or []
+    result.segments_json = json.dumps(segs)
+    ft = float(result.foiling_time_s or 0.0)
+    result.pg_version = VERSION
+    result.pg_pump_count = int(erg["pump_count"])
+    result.pg_avg_cadence_hz = round(erg["pump_count"] / ft, 3) if ft > 0 else None
+    result.pg_best_glide_s = float(erg["best_glide_s"])
+    result.pg_best_glide_idx = erg["best_glide_idx"]
+    m = {}
+    if result.metrics_json:
+        try:
+            m = json.loads(result.metrics_json) or {}
+        except ValueError:
+            m = {}
+    m["pumpgleit"] = {"version": VERSION, "gleit_s": erg["gleit_s"], "hinschauen": erg["hinschauen"],
+                      "avg_pump_hz": result.pg_avg_cadence_hz}
+    result.metrics_json = json.dumps(m)
+    return True

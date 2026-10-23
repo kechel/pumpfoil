@@ -27,6 +27,7 @@ from ..db import get_db
 from ..media import inhalt_hash, thumb_url as _thumb
 from ..naming import geraete_label, owner_label, owner_label_sql
 from .. import ortverbergen
+from .. import pumpgleit_anzeige as PA
 from ..freunde import freund_ids, nur_freunde
 from ..tzlookup import tz_name, tz_of
 from ..videos import client_wants_all_videos, filter_videos
@@ -101,7 +102,21 @@ def _spot_cond(spot: str, db: Session | None = None):
 # Max-Puls steckt (nur) in metrics_json -> JSONB-Extraktion; Tabelle ist klein, kein Index nötig.
 _MAX_HR = cast(func.nullif(func.jsonb_extract_path_text(cast(AR.metrics_json, JSONB), "max_hr"), ""), Float)
 
-REC_COL = {
+class _RecCol(dict):
+    """Rekord-Spalten. Mit dem pg-1-Anzeige-Schalter (app/pumpgleit_anzeige.py) liefern „glide" und
+    „session_pumps" die pg-Spalten mit Rueckfall auf die alten (coalesce) — zur Abfragezeit entschieden,
+    damit Rekorde, Snapshot (records.py) und Statistik immer dieselbe Quelle sehen wie die Detailseite."""
+
+    def __getitem__(self, k):
+        if PA.an():
+            if k == "glide":
+                return (PA.col_best_glide_s(), PA.col_best_glide_idx())
+            if k == "session_pumps":
+                return (PA.col_pump_count(), None)
+        return super().__getitem__(k)
+
+
+REC_COL = _RecCol({
     "distance": (AR.best_distance_m, AR.best_distance_idx),
     "duration": (AR.best_duration_s, AR.best_duration_idx),
     "speed": (AR.best_speed_mps, AR.best_speed_idx),
@@ -117,7 +132,7 @@ REC_COL = {
     # Wave (20.10.2026): jeder Lauf ist eine Welle -> dieselben Spalten unter eigenem Namen.
     "waves": (AR.num_runs, None),
     "wave_longest": (AR.best_duration_s, AR.best_duration_idx),
-}
+})
 # Zusaetzliche Rekord-Arten je Sportart-Gruppe (app/sportprofil.py). Alte Clients ignorieren den
 # zusaetzlichen Schluessel im Zeitraum-Objekt; Pumpfoil bekommt nichts Neues.
 METRICS_JE_GRUPPE = {"wind": ("session_total",)}
@@ -400,7 +415,8 @@ def spot_sessions(
 
 # Extra-Spalten fürs Tages-Gruppen-Aggregat (Σ On-Foil-Zeit + Σ Pumps): _brief liefert die
 # nicht mit, darum hinten anhängen und beim Entpacken abschneiden.
-GROUP_EXTRA = (S.user_id, AR.foiling_time_s, AR.pump_count)
+def _group_extra():
+    return (S.user_id, AR.foiling_time_s, PA.col_pump_count())
 # Sicherheits-Obergrenze fürs Voll-Scannen beim Gruppieren (Python-seitig, s.u.).
 _GROUP_SCAN_CAP = 6000
 
@@ -428,7 +444,7 @@ def sessions_grouped(
     oben, darin Nutzer-Cluster nach letzter Session" (weil started_at desc gescannt wird, ist die
     Einfüge-Reihenfolge bereits genau diese). Einzel-Session-Gruppen (count=1) rendert der Client
     als normale Kachel mit Direkt-Link; ab count≥2 als aufklappbares Akkordeon."""
-    q = _brett(_community(db.query(*BRIEF_COLS, *GROUP_EXTRA), user.id, accel_only, sport), board)
+    q = _brett(_community(db.query(*BRIEF_COLS, *_group_extra()), user.id, accel_only, sport), board)
     if name:
         q = q.filter(_such_alles(name, [U.display_name]))
     if spot:
@@ -1147,7 +1163,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         NAME, U.avatar_url, U.id,
         func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0),
         func.count(func.distinct(func.nullif(S.place_name, ""))),
-        func.coalesce(func.sum(AR.pump_count), 0),
+        func.coalesce(func.sum(PA.col_pump_count()), 0),
     ), _user.id, accel_only, sport)
     q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
@@ -1515,7 +1531,7 @@ def spot_compare(period: str = "all", accel_only: bool = False,
         S.place_name, func.max(S.spot_id),
         func.count(S.id),
         func.coalesce(func.sum(AR.num_runs), 0),
-        func.coalesce(func.sum(AR.pump_count), 0),
+        func.coalesce(func.sum(PA.col_pump_count()), 0),
         func.count(func.distinct(S.user_id)),
         func.coalesce(func.sum(AR.foiling_distance_m), 0.0),
         func.coalesce(func.sum(AR.foiling_time_s), 0.0),
@@ -1655,7 +1671,7 @@ def community_stats(
     row = _community(
         db.query(
             func.count(func.distinct(S.id)),
-            func.coalesce(func.sum(AR.pump_count), 0),
+            func.coalesce(func.sum(PA.col_pump_count()), 0),
         ),
         viewer_id=None, accel_only=False, sport="all",
     ).filter(or_(S.sport_class.is_(None), S.sport_class.in_(PUMP_SPORTARTEN))).first()
@@ -1700,10 +1716,10 @@ def foil_stats(only_board: bool = False, _user: models.User = Depends(current_us
             func.count(func.distinct(S.user_id)),
             func.sum(AR.foiling_distance_m),
             func.sum(AR.foiling_time_s),
-            func.sum(AR.pump_count),
+            func.sum(PA.col_pump_count()),
             func.max(AR.best_distance_m),
             func.max(AR.best_duration_s),
-            func.avg(AR.avg_cadence_hz),
+            func.avg(PA.col_avg_cadence_hz()),
         ), _user.id, accel_only=not only_board).filter(S.foil_id.isnot(None))
         .filter(S.placement == "board" if only_board else true())
         .group_by(S.foil_id).all()
@@ -2459,10 +2475,10 @@ def watch_stats(_user: models.User = Depends(current_user), db: Session = Depend
             func.count(func.distinct(S.user_id)),
             func.sum(AR.foiling_distance_m),
             func.sum(AR.foiling_time_s),
-            func.sum(AR.pump_count),
+            func.sum(PA.col_pump_count()),
             func.max(AR.best_distance_m),
             func.max(AR.best_speed_mps),
-            func.avg(AR.avg_cadence_hz),
+            func.avg(PA.col_avg_cadence_hz()),
         ), _user.id, sport="all", nur_foiling=False).join(DT, S.device_id == DT.id)
         .filter(S.device_id.isnot(None), DT.label.isnot(None))
         .group_by(DT.label).all()
