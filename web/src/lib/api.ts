@@ -1177,6 +1177,7 @@ export const api = {
   adminBewertungen: (erledigte = false) => req<{ bewertungen: AdminBewertung[]; anzahl_erledigt: number }>(`/api/admin/bewertungen${erledigte ? "?erledigte=true" : ""}`),
   adminBewertungStatus: (id: number, status: BewertungStatus, notiz?: string, antwort?: string) =>
     req<{ id: number; status: BewertungStatus; status_notiz: string; antwort_fahrer: string }>(`/api/admin/bewertungen/${id}`, { method: "PUT", body: JSON.stringify({ status, notiz, antwort }) }),
+  supporterStufen: (ids: number[]) => req<{ stufen: Record<string, number> }>(`/api/supporter?ids=${ids.join(",")}`),
   adminSupporter: () => req<{ nutzer: { user_id: number; name: string | null; tage_jahr: number; beitraege: number; zuletzt: string | null; sichtbar: boolean; stufe: number; quellen: Record<string, number> }[]; fenster_tage: number; stufen: Record<string, number>; quellen: string[] }>("/api/admin/supporter"),
   adminSupporterNutzer: (uid: number) => req<{ id: number; quelle: string; at: string; notiz: string }[]>(`/api/admin/supporter/${uid}`),
   adminSupporterHinzu: (b: { user_id: number; quelle: string; notiz: string; am?: string }) => req<{ id: number }>("/api/admin/supporter", { method: "POST", body: JSON.stringify(b) }),

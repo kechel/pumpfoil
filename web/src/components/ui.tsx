@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useT } from "../i18n";
 import { InfoIcon } from "./Icons";
 import { useOnline } from "../lib/online";
+import { useSupporter } from "../lib/supporter";
+import { SupporterBadge } from "./SupporterBadge";
 
 // „neu"-Badge für frische Konten (< 24 h) — sichtbar in Community & Chat.
 /**
@@ -160,12 +162,16 @@ export function Avatar(props: {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const online = useOnline(props.userId);
+  const stufe = useSupporter(props.userId);
   const bild = <AvatarBild {...props} />;
   const ziel = props.userId ? `/foiler/${props.userId}` : null;
   const verlinkt = !!ziel && props.link !== false && pathname !== ziel;
-  if (!online && !verlinkt) return bild;
+  if (!online && !verlinkt && !stufe) return bild;
   const size = props.size ?? 32;
   const punkt = Math.max(8, Math.round(size * 0.28));
+  // Supporter-Badge unten LINKS (rechts unten sitzt der Online-Punkt), Ring in Hintergrundfarbe.
+  const badge = Math.max(11, Math.round(size * 0.4));
+  const supTitel = stufe ? t("sup.badge") + (stufe >= 3 ? ` · ${t("sup.level3")}` : stufe === 2 ? ` · ${t("sup.level2")}` : "") : "";
   const oeffnen = (e: React.SyntheticEvent) => {
     e.preventDefault(); e.stopPropagation();
     navigate(ziel!);
@@ -180,6 +186,11 @@ export function Avatar(props: {
       } : {})}
     >
       {bild}
+      {stufe > 0 && (
+        <span className="absolute -bottom-0.5 -left-0.5 flex rounded-full bg-white dark:bg-slate-900" title={supTitel}>
+          <SupporterBadge stufe={stufe} size={badge} title={supTitel} />
+        </span>
+      )}
       {online && (
         <span
           role="img" aria-label={t("presence.online")} title={t("presence.online")}
