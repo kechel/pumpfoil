@@ -1395,6 +1395,7 @@ const en: Record<string, string> = {
   "feedback.open": "Give feedback",
   "adm.tab.feedback": "Feedback",
   "adm.tab.bewertungen": "Ratings",
+  "adm.tab.supporter": "Supporters",
   "adm.noBewertungen": "No ratings yet.",
   "adm.bewWir": "we:",
   "adm.bewZeigeErledigt": "Show done ({n})",

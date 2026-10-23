@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { SupporterBadge } from "../components/SupporterBadge";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
@@ -8,7 +9,7 @@ import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
-type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "bewertungen" | "news" | "blocks" | "social" | "system";
+type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
@@ -24,6 +25,7 @@ const TABS: [Tab, string][] = [
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
   ["bewertungen", "adm.tab.bewertungen"],
+  ["supporter", "adm.tab.supporter"],
   ["news", "adm.tab.news"],
   ["social", "adm.tab.social"],
   ["blocks", "adm.tab.blocks"],
@@ -87,6 +89,7 @@ export default function Admin() {
       {tab === "spots" && <SpotsTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "bewertungen" && <BewertungenTab />}
+      {tab === "supporter" && <SupporterTab />}
       {tab === "news" && <NewsTab />}
       {tab === "system" && <SystemTab />}
       {tab === "social" && <SocialTab />}
@@ -1585,6 +1588,93 @@ function BewertungenTab() {
           </Card>
         );
       })}
+    </div>
+  );
+}
+
+// Supporter (23.10.2026): wer uns wann geholfen hat (Tabelle feedback_beitraege, alle Quellen), Badge-Stufe,
+// Beitraege je Nutzer ansehen/loeschen und von Hand nachtragen (Mail, Test, GitHub …). Nur Deutsch (Admin).
+function SupporterTab() {
+  const { data, error, reload } = useAsync(() => api.adminSupporter());
+  const [nurSichtbar, setNurSichtbar] = useState(true);
+  const [offen, setOffen] = useState<number | null>(null);
+  const [details, setDetails] = useState<{ id: number; quelle: string; at: string; notiz: string }[]>([]);
+  const [neu, setNeu] = useState({ user_id: "", quelle: "mail", notiz: "", am: "" });
+  if (error) return <ErrorBox message={error} />;
+  if (!data) return <Spinner />;
+  const zeigen = (uid: number) => {
+    if (offen === uid) { setOffen(null); return; }
+    setOffen(uid); setDetails([]);
+    api.adminSupporterNutzer(uid).then(setDetails).catch(() => {});
+  };
+  const rows = data.nutzer.filter((r) => !nurSichtbar || r.sichtbar);
+  const stufen = [1, 2, 3].map((n) => data.nutzer.filter((r) => r.stufe === n).length);
+  return (
+    <div className="space-y-3">
+      <Card className="p-3 text-sm text-slate-300">
+        Badge sichtbar, wer in den letzten {data.fenster_tage} Tagen etwas beigetragen hat. Stufe nach Beitragstagen
+        im Jahr: <SupporterBadge stufe={1} /> ab 1 · <SupporterBadge stufe={2} /> ab {data.stufen["2"]} ·{" "}
+        <SupporterBadge stufe={3} /> ab {data.stufen["3"]}. Jetzt sichtbar: {stufen[0]} / {stufen[1]} / {stufen[2]}.
+        <label className="ml-3 inline-flex items-center gap-1">
+          <input type="checkbox" checked={nurSichtbar} onChange={(e) => setNurSichtbar(e.target.checked)} /> nur sichtbare
+        </label>
+      </Card>
+      <Card className="flex flex-wrap items-end gap-2 p-3 text-sm">
+        <span className="font-medium text-slate-200">Von Hand nachtragen:</span>
+        <input className="w-20 rounded border border-slate-700 bg-slate-900 px-2 py-1" placeholder="User-ID" value={neu.user_id}
+          onChange={(e) => setNeu({ ...neu, user_id: e.target.value })} />
+        <select className="rounded border border-slate-700 bg-slate-900 px-2 py-1" value={neu.quelle}
+          onChange={(e) => setNeu({ ...neu, quelle: e.target.value })}>
+          {data.quellen.map((q) => <option key={q} value={q}>{q}</option>)}
+        </select>
+        <input className="min-w-0 flex-1 rounded border border-slate-700 bg-slate-900 px-2 py-1" placeholder="Notiz (was?)" value={neu.notiz}
+          onChange={(e) => setNeu({ ...neu, notiz: e.target.value })} />
+        <input type="date" className="rounded border border-slate-700 bg-slate-900 px-2 py-1" value={neu.am}
+          onChange={(e) => setNeu({ ...neu, am: e.target.value })} />
+        <Act tone="green" onClick={() => api.adminSupporterHinzu({ user_id: Number(neu.user_id), quelle: neu.quelle, notiz: neu.notiz, am: neu.am || undefined })
+          .then(() => { setNeu({ ...neu, notiz: "" }); reload(); })}>Eintragen</Act>
+      </Card>
+      <Card className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm">
+          <thead>
+            <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
+              <th className="px-3 py-2">Badge</th><th className="px-3 py-2">Nutzer</th><th className="px-3 py-2">Tage/Jahr</th>
+              <th className="px-3 py-2">Beiträge</th><th className="px-3 py-2">zuletzt</th><th className="px-3 py-2">Quellen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (<Fragment key={r.user_id}>
+              <tr onClick={() => zeigen(r.user_id)} className="cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50">
+                <td className="px-3 py-2">{r.stufe ? <SupporterBadge stufe={r.stufe} size={18} /> : <span className="text-slate-500">–</span>}</td>
+                <td className="px-3 py-2"><a href={`/foiler/${r.user_id}`} onClick={(e) => e.stopPropagation()} className="underline">{r.name ?? "?"}</a> <span className="text-slate-500">u{r.user_id}</span></td>
+                <td className="px-3 py-2 tabular-nums">{r.tage_jahr}</td>
+                <td className="px-3 py-2 tabular-nums">{r.beitraege}</td>
+                <td className="px-3 py-2 tabular-nums">{r.zuletzt ? new Date(r.zuletzt).toLocaleDateString() : "–"}</td>
+                <td className="px-3 py-2 text-xs text-slate-400">{Object.entries(r.quellen).map(([q, n]) => `${q} ${n}`).join(" · ")}</td>
+              </tr>
+              {offen === r.user_id && (
+                <tr className="border-b border-slate-800/50 bg-slate-900/60">
+                  <td colSpan={6} className="px-3 py-2">
+                    {details.length === 0 ? <Spinner /> : (
+                      <ul className="space-y-1 text-xs text-slate-300">
+                        {details.map((d) => (
+                          <li key={d.id} className="flex items-start gap-2">
+                            <span className="w-20 shrink-0 tabular-nums">{new Date(d.at).toLocaleDateString()}</span>
+                            <span className="w-20 shrink-0 font-medium text-slate-200">{d.quelle}</span>
+                            <span className="min-w-0 flex-1 truncate">{d.notiz}</span>
+                            <Act tone="red" confirm="Diesen Beitrag löschen?" onClick={() => api.adminSupporterWeg(d.id)
+                              .then(() => { setDetails(details.filter((x) => x.id !== d.id)); reload(); })}>×</Act>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </td>
+                </tr>
+              )}
+            </Fragment>))}
+          </tbody>
+        </table>
+      </Card>
     </div>
   );
 }
