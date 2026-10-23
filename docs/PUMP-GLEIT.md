@@ -128,3 +128,35 @@ sessions.json` (Nicht-Pumpfoil als Negativbeispiele); `data/ml/laeufe_an_land.js
 `land_urteil_sicht.json` (Negativbeispiele, dort darf es keine Pumps geben); `data/ml/v3/labels_fortsetzung.json`
 (9 Sessions langsames Weiterpumpen); `data/wahrheit/manoever.jsonl` (Wing-Halsen, teils mit Zeitpunkten: Carve-
 Wahrheit für Wing); 7 Brett-Sessions ohne Uhr (Carve-Definition am Brett); `session_bewertungen` (heute 0 Zeilen).
+
+## Tuning-Runde: Gleiten behalten, keine echten Pumps wegwerfen (23.10.2026, `tuning.py`, `tuning2.py`, `beste.py`)
+
+Bewertung: Brett-Wahrheit je Fahrer herausgehalten (entscheidend), Jans Taps (#295/#354; heute zählt dort 5 bzw. 7
+Doppelte im Abstand < 0,2 s mit, darum zusätzlich „wirklich fehlend" = getippt − erkannt ohne Doppelte, Treffer
+mit dem Tap-Versatz der Session). FIT `run_pumps` nicht mehr als Kriterium.
+
+| Variante | Pump-F1 | Treffer ±250 / ±400 | Präz. | Anzahl je Lauf | Kadenz | Treffer an Kadenzwechseln | Gleit P / R (F1) | Gleit-s P / R | längste MAE | Taps #295 / #354: erkannt, fehlend, Treffer ±400 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| heute | 0,830 | 0,885 / 0,931 | 0,783 | 17 % | 0,21 Hz | 0,890 | 0,21 / 0,00 (0,00) | 0,21 / 0,04 | 2,42 s | 55 (5 doppelt), +4, 50 · 48 (7 doppelt), +6, 38 |
+| hgb_7 (erstes Modell) | 0,844 | 0,852 / 0,895 | 0,838 | 11 % | 0,14 Hz | 0,859 | 0,45 / 0,54 (0,47) | 0,40 / 0,57 | 2,60 s | 44, +12, 40 · 37, +16, 31 |
+| Doppel-Klassifikator + Gleit-Zustand | 0,862 | 0,873 / 0,920 | 0,853 | 10 % | 0,13 Hz | 0,873 | 0,46 / 0,43 (0,42) | 0,43 / 0,46 | 2,41 s | 52, +5, 48 · 42, +10, 38 |
+| Takt-Verfolger allein (PLL) | 0,845 | 0,843 / 0,886 | 0,854 | 17 % | 0,22 Hz | 0,825 | 0,39 / 0,35 (0,35) | 0,41 / 0,41 | 2,20 s | 56, −2, 51 · 48, −1, 46 |
+| Takt-Filter (Doppel weg, Lücken im Takt füllen) | 0,884 | 0,922 / 0,969 | 0,851 | 14 % | 0,17 Hz | 0,930 | 0,14 / 0,04 (0,06) | 0,15 / 0,09 | 2,01 s | 53, +1, 50 · 41, +6, 40 |
+| Takt-Filter + Gleit-Zustand (Median / HMM / 5 s / 5 s+HMM / kleines Netz) | 0,884 | gleich | | | | | F1 0,00 / 0,09 / 0,04 / 0,10 / 0,04 | | | gleich |
+| Takt-Filter, schwache Pumps im Gleiten weg (0,4), 5 s + HMM | 0,895 | 0,912 / 0,961 | 0,879 | 9 % | 0,11 Hz | 0,919 | 0,50 / 0,50 (0,48) | 0,43 / 0,52 | 1,44 s | 53, +1, 50 · 40, +7, 39 |
+| **Takt-Filter ∪ Takt-Verfolger, schwach 0,4, 5 s + HMM** | **0,897** | **0,931 / 0,980** | 0,867 | 11 % | 0,13 Hz | **0,946** | **0,54 / 0,51 (0,50)** | 0,47 / 0,51 | 1,47 s | **55, −1, 51 · 47, 0, 44** |
+
+Je Fahrer (Treffer ±250, empfohlen gegen heute): u2 0,93/0,86, u13 0,92/0,90, u244 0,97/0,93, u574 0,83/0,78,
+u683 1,00/0,95 — kein Fahrer verliert Pumps; Präzision überall höher. „Genauer hinschauen" (≥ 4 s ohne Tempoabfall)
+ändert die Paare kaum (Gleit-P 0,50 → 0,51). Ohne Position-im-Lauf-Merkmale gleich gut wie mit → ohne genommen.
+Das kleine Netz auf Rohsignalen (MLP 16, kein torch auf der VM) ist schlechter als hgb_7.
+
+Bestand (empfohlene Variante, 3990 Sessions, Pumpfoil 31 464 Läufe): Pumps +0,9 % (je Lauf P10/P50/P90 −10 / +2 /
++31 %), Gleitphasen 12 958 → 30 890, Gleit-s 21 745 → 76 625 (6,1 % der Foil-Zeit), längste je Lauf Median 1,3 → 1,6 s
+(P90 1,7 → 3,8), `best_glide_s` Median 1,6 → 3,2 s. Rekord „längste Gleitphase“: heute #16824 14,85 s, neu #10176
+(u31) 14,14 s — keine Gleichstände an der 15-s-Grenze mehr. „Genauer hinschauen“: 855 Stellen in 450 Pumpfoil-Sessions.
+
+Gesamtmodell: `server/data/ml/pumpgleit/beste.pkl` (`clf`, `sp`, `theta`, `prior`, `takt`, `pll`, `schwach`,
+`puffer_s`). Ein-/Ausgabe: `beste.ableiten(mod, U, laeufe)` mit `U = gemeinsam.uhr_daten(db, id)` und den
+gespeicherten Läufen in Session-ms → je Lauf `pump_ms`, `gleit`, `hinschauen` [(Start, Ende) Session-ms], `ende`,
+`longest`. Laufgrenzen bleiben unverändert.
