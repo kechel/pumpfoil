@@ -9,7 +9,9 @@ die Erkennung bleibt unangetastet, keine Neuberechnung noetig, gilt sofort fuer 
   Wenden und Wasserstarts zerlegen eine Wing-Ausfahrt sonst in Dutzende Laeufe (#17478: 57).
   845 Wing-Sessions: bei 5 min im Median 1 Fahrt je Session.
 - **Fahrzeit in Bewegung**: Sekunden mit Tempo >= BEWEGT_KMH (Spur ist 1 Hz).
-- **Tempo ueber die ganze Fahrt**: Gesamtstrecke / Fahrzeit in Bewegung.
+- **Tempo ueber die ganze Fahrt**: Strecke IN Bewegung / Fahrzeit in Bewegung. Bis 24.10.2026 stand hier die
+  Gesamtstrecke im Zaehler — bei #18978 (iPhone 7,4 h, meist liegend) summierte das GPS-Zittern im Stand 20,6 km
+  gegen 1698 s Bewegung: 43,6 km/h Schnitt bei 24,3 km/h Maximum (PumpingCarbon). Jetzt 4,4 km -> 9,3 km/h.
 - **On-Foil-Anteil**: Foiling-Zeit / Fahrzeit in Bewegung.
 
 Nur fuer Wind, Motor und Welle (sportprofil.GRUPPE) — beim Pumpen sind Laeufe die richtige Einheit.
@@ -55,8 +57,12 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
     out: dict = {}
     if fahrzeit:
         out["fahrzeit_s"] = int(fahrzeit)
-        if total_m:
-            out["tempo_kmh"] = round(total_m / fahrzeit * 3.6, 1)
+        # Zaehler und Nenner aus denselben Sekunden: Schritt i -> i+1 zaehlt, wenn das Tempo am Ziel bewegt ist
+        # (wie die Faerbung der Karte, speeds[i + 1]).
+        bewegt_m = sum(_schritt(coords[i], coords[i + 1]) for i in range(min(len(coords), len(speeds)) - 1)
+                       if speeds[i + 1] is not None and speeds[i + 1] * 3.6 >= BEWEGT_KMH)
+        if bewegt_m:
+            out["tempo_kmh"] = round(bewegt_m / fahrzeit * 3.6, 1)
         if foil_s is not None:
             out["foil_anteil"] = round(min(1.0, foil_s / fahrzeit), 3)
     if sport == "surf_wave" and segments:

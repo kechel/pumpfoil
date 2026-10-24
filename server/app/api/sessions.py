@@ -151,7 +151,9 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #   7 = `sport_profil.karte` = "ganz" fuer SUP/Wake thief (20.10.2026). Ohne Bump fehlte der Kartenschalter:
 #       die Session selbst aendert sich dabei nicht, also antwortete der Server weiter mit 304.
 #   8 = dasselbe fuer Downwind (20.10.2026).
-_OUT_VERSION = 8
+#   9 = `sport_zahlen.tempo_kmh` nur noch aus der Strecke IN Bewegung (24.10.2026, #18978: 43,6 statt 9,3 km/h).
+#       Gerechnet beim Ausliefern, die Session aendert sich nicht — ohne Bump bekamen Clients 304 mit dem alten Wert.
+_OUT_VERSION = 9
 
 
 def _ort_verborgen(s: models.Session) -> bool:

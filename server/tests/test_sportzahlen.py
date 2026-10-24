@@ -53,3 +53,16 @@ def test_fahrten_efoil_aber_nicht_towed():
     segs = [{"t_start_ms": 0, "duration_s": 60, "distance_m": 360, "i_start": 0, "i_end": 60}]
     assert len(berechnen("motor", segs, _spur(100), 600.0, 60.0, "efoil")["fahrten"]) == 1
     assert "fahrten" not in berechnen("motor", segs, _spur(100), 600.0, 60.0, "towed")
+
+
+def test_tempo_ohne_gps_zittern_im_stand():
+    """#18978 (24.10.2026): stundenlang liegendes Handy summiert GPS-Zittern zu Kilometern; Schnitt nur aus Bewegung."""
+    from app.sportzahlen import berechnen
+    t = _spur(101, 5.0)                                         # 100 s mit 5 m/s
+    c, v = t["geometry"]["coordinates"], t["properties"]["speeds_mps"]
+    for i in range(3000):                                       # danach 3000 s Stand mit 8 m Zittern je Sekunde
+        c.append([c[-1][0], c[-1][1] + (8 if i % 2 == 0 else -8) / 111320.0])
+        v.append(0.3)
+    z = berechnen("wind", [{"t_start_ms": 0, "duration_s": 100, "distance_m": 500, "i_start": 0, "i_end": 100}],
+                  t, 24500.0, 100.0)
+    assert z["fahrzeit_s"] == 101 and abs(z["tempo_kmh"] - 18.0) < 0.5
