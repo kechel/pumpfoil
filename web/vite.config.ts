@@ -29,9 +29,14 @@ export default defineConfig({
       } },
     react(),
     VitePWA({
-      // prompt: neuer SW wartet, ein sichtbares Banner meldet "Neue Version verfügbar"
-      // + "Aktualisieren"-Button (skipWaiting -> Reload erst auf Klick). Der Nutzer sieht so
-      // klar, wann es was Neues gibt (autoUpdate griff hier unzuverlässig).
+      // registerType "prompt" (Registrierung + Reload-Steuerung in PwaStatus), ABER seit 24.10.2026
+      // skipWaiting + clientsClaim: eine neue Fassung wird SOFORT aktiv. Anlass: Jans installierte PWA
+      // blieb weiss haengen — eine kaputte alte Huelle zeigt kein Update-Banner, also wartete die
+      // neue Fassung ewig, und jedes Neuladen kam wieder aus dem alten Cache. sw.js holt der Browser
+      // bei jedem Start ungecacht; das ist der einzige Weg, festgefahrene Apps aus der Ferne zu
+      // erreichen. Den Seiten-Reload danach macht PwaStatus erst beim naechsten Seitenwechsel (nie
+      // mitten beim Tippen); fehlt einer offenen Seite danach ein alter Chunk, liefert der Server ihn
+      // aus dem Asset-Archiv (scripts/assets-archiv.mjs) bzw. app-watchdog.js startet hart neu.
       registerType: "prompt",
       injectRegister: false,        // Registrierung via useRegisterSW (PwaStatus)
       manifest: false,              // wir behalten public/manifest.webmanifest
@@ -49,6 +54,9 @@ export default defineConfig({
         // eng als Waechter — reisst sie wieder, gehoert etwas Neues in eine eigene Datei, nicht die
         // Grenze hoch.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         importScripts: ["/push-sw.js"],   // Web-Push-Handler
         navigateFallback: "/index.html",
         // /demo + die OAuth-Brücken (…-oauth) liefert der Server selbst aus —
