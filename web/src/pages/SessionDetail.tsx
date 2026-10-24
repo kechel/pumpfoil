@@ -1385,20 +1385,38 @@ export default function SessionDetail() {
     // Punkte ausserhalb der Laeufe, aber nur 13,8 km). Ist ein Lauf ausgewaehlt, bleiben sie gedimmt.
     // NACH den Laeufen gezeichnet, also obendrauf: die langsamen Stuecke liegen fast alle an Lauf-Anfang
     // und -Ende, unter den Laeufen und den Start-/Ziel-Marken waren sie nicht zu sehen.
+    // Leistung (24.10.2026, #18978: iPhone 7,4 h, ~24 000 Punkte ausserhalb der Laeufe -> je Punktpaar eine SVG-Linie,
+    // Zoomen haengte): Canvas statt SVG, und aufeinanderfolgende Stuecke gleicher Farbe als EINE Linie.
     if (zeigeGanz && segs.length > 0) {
       const imLauf = new Uint8Array(coords.length);
       segs.forEach((g: any) => { for (let k = g.i_start; k <= g.i_end && k < coords.length; k++) imLauf[k] = 1; });
+      const leinwand = L.canvas({ padding: 0.5 });
+      const opts = { weight: 4, opacity: selectedRun != null ? 0.35 : 0.9, interactive: false, renderer: leinwand };
+      let linie: L.LatLngExpression[] = [];
+      let farbe = "";
+      const zeichnen = () => {
+        if (linie.length >= 2) L.polyline(linie, { ...opts, color: farbe }).addTo(lg);
+        linie = [];
+      };
       for (let i = 0; i < coords.length - 1; i++) {
-        if (imLauf[i] && imLauf[i + 1]) continue;   // gehoert zu einem Lauf, der kommt farbig darueber
-        if (map.distance(coords[i], coords[i + 1]) > 200) continue;
+        if ((imLauf[i] && imLauf[i + 1]) || map.distance(coords[i], coords[i + 1]) > 200) {
+          zeichnen();   // gehoert zu einem Lauf (kommt farbig darueber) bzw. GPS-Sprung
+          continue;
+        }
         let color: string;
         if (selectedRun != null) color = "#64748b";
         else if (colorMode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
         else if (colorMode === "hr") color = hrColor(hr[i + 1], hrRange);
         else if (colorMode === "turns") color = "#334155";
         else color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
-        L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: selectedRun != null ? 0.35 : 0.9, interactive: false }).addTo(lg);
+        if (color !== farbe || !linie.length) {
+          zeichnen();
+          farbe = color;
+          linie = [coords[i]];
+        }
+        linie.push(coords[i + 1]);
       }
+      zeichnen();
     }
     // SUP (20.10.2026): Paddle-up-Sprints bernsteinfarben (ganze Fahrt) bzw. in der gewaehlten Faerbung
     // (nur Foil), immer mit der Versuchsnummer aus der Tabelle.
