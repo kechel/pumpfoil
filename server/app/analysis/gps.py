@@ -271,7 +271,7 @@ def hacc_platzhalter_weg(hacc: np.ndarray) -> np.ndarray:
     return out
 
 
-def clean_speed_series(speed: np.ndarray, gps_hz: int) -> np.ndarray:
+def clean_speed_series(speed: np.ndarray, gps_hz: int, despike_roh: bool = False) -> np.ndarray:
     """Alle gemessenen GPS-Glitch-Regeln in EINER Funktion — die einzige Stelle, an der die
     Geschwindigkeit von Doppler-Muell befreit wird. v1 (analyze_gps) und v2 (detect_v2) rufen
     beide hier herein.
@@ -321,7 +321,9 @@ def clean_speed_series(speed: np.ndarray, gps_hz: int) -> np.ndarray:
     if n >= 2:
         cleaned = speed.copy()
         for i in range(n):
-            prev = cleaned[i - 1] if i > 0 else speed[i + 1]
+            # despike_roh (24.10.2026, Befund „Despike-Kaskade", nur fuer den Regressions-Vergleich): linker Nachbar
+            # ROH statt bereinigt — sonst zieht ein gehaltener Sprung auf > SPIKE_ABS_MIN den ganzen Abschnitt herunter.
+            prev = (speed[i - 1] if despike_roh else cleaned[i - 1]) if i > 0 else speed[i + 1]
             nxt = speed[i + 1] if i < n - 1 else cleaned[i - 1]
             ref = prev if prev < nxt else nxt
             if speed[i] > ref + SPIKE_JUMP_MPS and speed[i] > SPIKE_ABS_MIN_MPS:
