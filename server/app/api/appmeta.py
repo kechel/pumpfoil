@@ -317,7 +317,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.96",   # LIVE 2026-10-22: am Tag der Einreichung freigegeben (Jans Meldung, Uhr aus dem Store aktualisiert,
+        "latest": "1.0.97",   # LIVE 2026-10-24: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
+        # Testsession #18928 meldet v=1.0.97). Inhalt: Einstellungsmenue per Display halten (vívoactive 6, Venu 4, Venu X1
+        # ohne MENU-Taste). .iq aus 8bb0030c, 218 Varianten.
+        # ALT: "latest": "1.0.96",   # LIVE 2026-10-22: am Tag der Einreichung freigegeben (Jans Meldung, Uhr aus dem Store aktualisiert,
         # meldet v=1.0.96). Inhalt: Pause-Erinnerung alle 10 min (nur Voll-Build). .iq aus 5c11417d, 218 Varianten.
         # ALT: "latest": "1.0.95",   # LIVE 2026-10-19: am Tag der Einreichung freigegeben; Jan hat sie aus dem Store auf seine
         # fenix installiert (Token 1577, Testsession #17564). Store-API zeigte um 14:20 noch 1.0.94 — Jan: „der store hat
@@ -1030,10 +1033,6 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 24.10.2026: vívoactive 6 / Venu 4 / Venu X1 haben keine MENU-Taste und kamen nie ins Einstellungsmenü
-    # (Nutzer-DM). Bildschirm halten oeffnet es, Hinweis „HOLD: settings". Nicht gebumpt (1.0.96 gerade live).
-    {"name": "Garmin", "version": "1.0.97",
-     "items": ["On the vívoactive 6, Venu 4 and Venu X1, holding the screen before you start opens the settings, because these watches have no menu button."]},
     # 23.10.2026: Supporter-Badge am Profilbild + auf der Profilseite (07ab3141, db30426a) — nach 1.1.55 gebaut.
     {"name": "iPhone + Apple Watch", "version": "1.1.56",
      "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year."]},
@@ -1043,6 +1042,7 @@ NAECHSTES: list[dict] = [
      "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list."]},
     # iPhone + Apple Watch 1.1.55 am 23.10. eingereicht -> IN_REVIEW.
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
+    # Garmin 1.0.97 am 24.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.97.
     # Garmin 1.0.96 am 22.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.96.
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
