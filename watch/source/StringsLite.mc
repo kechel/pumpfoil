@@ -36,6 +36,7 @@ module Strings {
         if (key.equals("start.rec"))      { return "START: record"; }
         if (key.equals("start.chooseAlarm")) { return "DOWN: Foil & alarm"; }
         if (key.equals("start.menu"))     { return "MENU: settings"; }
+        if (key.equals("start.menuHold")) { return "HOLD: settings"; }
         if (key.equals("alarm.prefix"))   { return "Alarm: "; }
         if (key.equals("foil.prefix"))    { return "Foil: "; }
         if (key.equals("alarm.off"))      { return "off"; }
