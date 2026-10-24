@@ -1495,6 +1495,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 24.10. — Brett-Paare per GPS-Tempo nachpruefen (Ausrichtung).** Beim Scoot-Paar #16729/#16719 lag die
+  Accel-Ausrichtung 15 s daneben (GPS-Tempo-Korrelation r 0,93 gibt −8 s statt −23,2 s); Pump-F1 ~0,75 entsteht bei
+  JEDEM Versatz und beweist nichts. Die 14 Pumpfoil-Paare, auf denen pg-1 steht, genauso gegenpruefen (dort gut/mittel
+  ausgerichtet, also vermutlich ok — aber nicht belegt). Vorlage im Scratch der Sitzung (scoot_gps_sync.py), gehoert
+  dann nach `scripts/pumpgleit/`.
+- **📥 24.10. — pg-scoot-1: Feedback ThermikDreher (u267) abwarten, mehr Scoot-Brett-Paare.** Gleiten = Pump-Pause
+  ≥ 2,5 s, auf EINEM Paar gewaehlt (F1 0,69). Naechster Physik-Baustein, falls zu viel gemeldet wird: GPS-Tempo muss im
+  Gleiten fallen. docs/PUMP-GLEIT.md „Foil Scoot: pg-scoot-1".
 - **📥 24.10. — pg-1 bei Handy in der Tasche (`placement = phone`) messen.** Laeuft live (227 Pumpfoil-Sessions, ~35
   Fahrer), gelernt nur am Handgelenk. Auffaellig ist nichts (Gleit-Anteil 7,1 % gegen 6,4 %, Median laengste Gleitphase
   4,7 s gegen 3,6 s, Pumps −1,7 % gegen −5,1 %), belegt aber auch nicht. Braucht EINE Session: Handy in der Tasche +

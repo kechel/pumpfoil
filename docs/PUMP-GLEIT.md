@@ -166,10 +166,20 @@ gespeicherten Läufen in Session-ms → je Lauf `pump_ms`, `gleit`, `hinschauen`
 Paket `server/app/analysis/pumpgleit/` (merkmale.py, takt.py, `__init__.py`: `VERSION = "pg-1"`, `ableiten`,
 `segmente_ueberlagern`), Modell `server/app/analysis/pumpgleit/modelle/beste.pkl` (Bäume, Schwellen, keine
 Fahrer-IDs; .gitignore-Ausnahme wie v3). Nur pumpfoil/efoil/foildrive/foil_scoot mit `detection == model`, nicht am Brett. Seit 24.10.2026 (Jan) ersetzt pg-1
-bei efoil/foildrive/foil_scoot (`NUR_PUMPS`) nur die Pumps; Gleitphasen, `longest_glide_s`, `pg_best_glide_s` und
-„genauer hinschauen" bleiben dort leer bzw. beim alten Stand. Grund Foil Scoot: am fahrerfremden Brett-Paar
-#16729/#16719 Pumpzahl-Fehler je Lauf 2,7 % (heute 4,9 %), Gleit-Präzision nur 19 % — Hand am Lenker, halbe
-Amplitude, sieht für das Gleit-Modell wie Gleiten aus (`scripts/pumpgleit/scoot_paar.py`, Ausrichtung schwach).
+bei efoil/foildrive (`NUR_PUMPS`) nur die Pumps; Gleitphasen, `longest_glide_s`, `pg_best_glide_s` und
+„genauer hinschauen" bleiben dort leer bzw. beim alten Stand.
+
+**Foil Scoot: pg-scoot-1 (24.10.2026 abends, Jan: „100 % getrennt von pg-1", Anlass ThermikDreher u267).** Pumps aus
+pg-1, Gleiten aus eigener Regel `server/app/analysis/pumpgleit_scoot.py`: Pause zwischen erkannten Pumps ≥ 2,5 s
+(Ränder um 0,3 s gekürzt) plus letzter Pump bis Stufen-Ende, 1,5–15 s, kein „genauer hinschauen". Gespeichert mit
+`pg_version = "pg-scoot-1"` (`pumpgleit.version(s)`), sonst dieselben `pg_*`-Felder. Messung am Brett-Paar
+#16729/#16719: die Accel-Ausrichtung (−23,2 s, r je Lauf 0,07–0,15) lag **15 s daneben**; die GPS-Tempo-Korrelation
+beider Geräte (r 0,93) gibt −8 s, dort zeigen die Gleit-Kennzahlen einen scharfen Gipfel (Pump-F1 bleibt bei jedem
+Versatz ~0,75 — Takt 0,69 s, ±250 ms trifft zufällig, beweist also keine Ausrichtung). Mit −8 s: pg-1-Modell
+Gleitphasen F1 0,57 (93 s erkannt / 62 s Brett), pg-scoot-1 F1 0,69 (P 0,67 R 0,71, 62/62 s); Schwelle 2,0–3,0 s
+alle 0,65–0,69. Die frühere Zahl „Gleit-Präzision 19 %" war ein Ausrichtungsfehler. Grenzen: EIN Paar, 17 Brett-
+Gleitphasen, Schwelle darauf gewählt. Bestand: 47 Sessions, Gleitanteil 3,6–7 % je Fahrer (Brett-Paar 2 %).
+Sicherung `server/data/sicherung/vor-pg-scoot1-2026-10-24-1829.dump`.
 `GET /api/sessions/{id}?pumpgleit=1` (nur Admin, `api/pumpgleit_vorschau.py`) überlagert die Antwort: je Lauf
 `pumps`, `pump_idx`, Kadenz-Felder, `glides`, `num_glides`, `avg_glide_s`, `longest_glide_s` (alte Werte in
 `*_vorher`, dazu `hinschauen`), `pump_count`, `metrics.pumpgleit` = {version, hinschauen, best_glide_s, gleit_s};

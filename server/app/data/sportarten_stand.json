@@ -922,7 +922,7 @@
         },
         "pumps": {
           "status": "teilweise",
-          "en": "Pumps counted with the board-checked method; glide phases not yet, because a hand on the handlebar looks like gliding to the watch.",
+          "en": "Pumps counted with the board-checked method; glide phases found where the pumping rhythm stops, checked on one session with a phone on the board, so glides are still a first rough version.",
           "seit": "2026-10-24",
           "wo": [
             "server",
@@ -930,7 +930,7 @@
             "android",
             "ios"
           ],
-          "notiz": "pg-1 NUR_PUMPS (Jan 24.10.). Brett-Paar #16729/#16719 (u267, fahrerfremd, Ausrichtung schwach): Pumpzahl-Fehler 2,7 % (alt 4,9 %), Gleit-Praezision 19 %. Mehr Scoot-Paare noetig. scripts/pumpgleit/scoot_paar.py"
+          "notiz": "Pumps pg-1, Gleiten pg-scoot-1 (Jan 24.10. abends, analysis/pumpgleit_scoot.py): Pause zwischen Pumps >= 2,5 s + letzter Pump bis Aufsetzen. Brett-Paar #16729/#16719 (u267) mit GPS-Versatz -8 s (die Accel-Ausrichtung lag 15 s daneben, die fruehere Zahl 'Gleit-Praezision 19 %' war ein Ausrichtungsfehler): Gleitphasen F1 0,69 (P 0,67 R 0,71), 62/62 s; pg-1-Modell dort 0,57. Pumpzahl-Fehler 2,7 %. EIN Paar, Schwelle darauf gewaehlt -> Feedback ThermikDreher, mehr Scoot-Paare."
         }
       }
     },
@@ -1415,6 +1415,17 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-24",
+      "sport": [
+        "foil_scoot"
+      ],
+      "merkmal": "pumps",
+      "was": "Eigene Gleit-Erkennung pg-scoot-1: Gleiten, wo der Pump-Takt abreisst (am Brett-Paar geprueft); 47 Aufnahmen neu gerechnet.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-24",
       "sport": [
