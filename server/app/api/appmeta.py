@@ -877,6 +877,11 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 24.10.2026 12:30 (Jans Meldung, Uebermittlung d64c961d-815f-431d-97b6-142880a6be8c), 1.1.56 (64) aus
+    # 9921c75e. Inhalt: Supporter-Badge (07ab3141, bbec1a2f, db30426a). Getestet: Jan, Badges vor der Einreichung.
+    {"name": "iPhone + Apple Watch", "version": "1.1.56",
+     "eingereicht": "2026-10-24",
+     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year."]},
     # iPhone + Apple Watch 1.1.55 am 23.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 728/729 tragen ios/apple 1.1.55,
     # neu: Pause-Upload der Watch. Der Supporter-Badge war NICHT drin (erst nach dem Build gebaut) -> NAECHSTES 1.1.56.
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
@@ -1033,9 +1038,7 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 23.10.2026: Supporter-Badge am Profilbild + auf der Profilseite (07ab3141, db30426a) — nach 1.1.55 gebaut.
-    {"name": "iPhone + Apple Watch", "version": "1.1.56",
-     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year."]},
+    # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
     # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
     # 1.1.44 lag im Review, 1.1.54 war gerade freigegeben (Memory versionen-erst-bei-release).
     {"name": "Android phone + Wear OS", "version": "1.1.45 / 1.2.45",
