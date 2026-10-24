@@ -68,8 +68,9 @@ TASCHE = {
            "Uhr #16735 (FR55, 1.0.92, record_mode lite -> 0 Accel-Chunks, nur GPS)",
 }
 
-# Handy AM BRETT bei einer ANDEREN Sportart als Pumpfoil — Wahrheit fuer Sportart-/Antriebs-Erkennung,
-# NICHT fuer Pump-Zaehlung/Gleiten (dort wuerde der Antrieb als Pumpen gelernt). `paare_finden`
+# Handy AM BRETT bei einer ANDEREN Sportart als Pumpfoil — nicht in die Pumpfoil-Trainingswahrheit (bei
+# Antrieb wuerde der Motor als Pumpen gelernt; Foil Scoot hat KEINEN Motor, aber die Uhr-Hand liegt am Lenker
+# und das Handgelenk-Signal ist anders, s. scripts/pumpgleit/scoot_paar.py). `paare_finden`
 # ueberspringt sie (und jede Brett-Session mit sport_class != pumpfoil) — seit 15.10.2026 noetig,
 # weil die Brett-Automatik #16729 auf „board" gestellt hat.
 # {Handy-Session: Vermerk}

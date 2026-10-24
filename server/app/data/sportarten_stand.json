@@ -12,7 +12,7 @@
     "'allgemein' + 'merkmale_allgemein' (19.10., Jan: 'die punkte die fuer alle Sportarten gelten in einen eigenen uebergeordneten punkt'): Merkmale, die fuer jede Sportart gleich gelten, stehen NUR dort, nicht je Gruppe. Oeffentlich als Abschnitt 'All sports' ueber den Sportarten.",
     "'oeffentlich': false an einem Merkmal (merkmale/merkmale_allgemein) = bleibt im Buch, wird auf /changelog nicht gezeigt (seit 20.10.2026, erstes: autofahrt)."
   ],
-  "stand": "2026-10-20",
+  "stand": "2026-10-24",
   "status_en": {
     "live": "ready",
     "teilweise": "basic",
@@ -890,6 +890,18 @@
             "server"
           ],
           "notiz": "sportauto.py einordnen(), nur bei sport_source=default; setzt efoil oder needs_classification."
+        },
+        "pumps": {
+          "status": "live",
+          "en": "Pumps and glide phases from a method checked against phones on the board.",
+          "seit": "2026-10-23",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "notiz": "pg-1 (analysis/pumpgleit, docs/PUMP-GLEIT.md), Weg B pg_*-Felder, Schalter PUMPGLEIT_ANZEIGE."
         }
       }
     },
@@ -907,6 +919,18 @@
           "status": "nein",
           "en": "Uses the pumpfoil speed scale; foil scooters ride at pumpfoil speeds.",
           "notiz": "Claude-Vorschlag 19.10. zurueckgenommen nach Messung: Hoechsttempo Median 17,9 km/h (Pumpfoil 18,4), on-foil-Tempo 14,9 (14,8) -> keine eigene Skala noetig."
+        },
+        "pumps": {
+          "status": "teilweise",
+          "en": "Pumps counted with the board-checked method; glide phases not yet, because a hand on the handlebar looks like gliding to the watch.",
+          "seit": "2026-10-24",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "notiz": "pg-1 NUR_PUMPS (Jan 24.10.). Brett-Paar #16729/#16719 (u267, fahrerfremd, Ausrichtung schwach): Pumpzahl-Fehler 2,7 % (alt 4,9 %), Gleit-Praezision 19 %. Mehr Scoot-Paare noetig. scripts/pumpgleit/scoot_paar.py"
         }
       }
     },
@@ -1391,6 +1415,28 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-24",
+      "sport": [
+        "foil_scoot"
+      ],
+      "merkmal": "pumps",
+      "was": "Pumps nach pg-1 (am Brett-Paar geprueft), Gleitphasen bleiben beim alten Stand.",
+      "wo": [
+        "server"
+      ]
+    },
+    {
+      "datum": "2026-10-23",
+      "sport": [
+        "pumpfoil"
+      ],
+      "merkmal": "pumps",
+      "was": "Pump- und Gleit-Erkennung pg-1 live, gegen Handys am Brett geprueft; alle Aufnahmen neu gerechnet.",
+      "wo": [
+        "server"
+      ]
+    },
     {
       "datum": "2026-10-20",
       "sport": [
