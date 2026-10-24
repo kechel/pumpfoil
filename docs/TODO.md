@@ -1495,11 +1495,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **📥 24.10. — Brett-Paare per GPS-Tempo nachpruefen (Ausrichtung).** Beim Scoot-Paar #16729/#16719 lag die
-  Accel-Ausrichtung 15 s daneben (GPS-Tempo-Korrelation r 0,93 gibt −8 s statt −23,2 s); Pump-F1 ~0,75 entsteht bei
-  JEDEM Versatz und beweist nichts. Die 14 Pumpfoil-Paare, auf denen pg-1 steht, genauso gegenpruefen (dort gut/mittel
-  ausgerichtet, also vermutlich ok — aber nicht belegt). Vorlage im Scratch der Sitzung (scoot_gps_sync.py), gehoert
-  dann nach `scripts/pumpgleit/`.
+- **📥 24.10. — Brett-Paare: Ausrichtung bei 9 von 14 Trainings-Paaren 2–4 s daneben (GEPRUEFT, Entscheidung offen).**
+  Drei Proben (rein lesend): GPS-Tempo-Korrelation (breit, nur grob), Laufstarts Brett/Uhr, und taktfrei die
+  Einhuellende der Uhr-Armbewegung (1,5-s-RMS) gegen Brett-Zustand „pumpt" (Kontrolle Scoot-Paar: Gipfel −8,4 s, GPS −8 s).
+  Gut/mittel ausgerichtete Paare (= pg-1-Training): stimmig (≤ 0,2 s) #9529, #10250, #13909, #15003, #16666;
+  2–4 s daneben (Einhuellende + GPS + Laufstarts in dieselbe Richtung) #9534 +2,5, #9649 +3,2, #10194 +2,0, #10326 +3,8,
+  #10873 +3,8, #10969 +4,0, #12608 +3,5, #17638 +3,5; grob falsch #12722 (u2) +69 s. Vermutlich Alias der
+  Takt-Feinausrichtung (3,5 s ≈ 5 Pump-Perioden). Folge: pg-1-Gleit-Labels dort um ~eine halbe Gleitphase
+  verschoben, Gleit-Zahlen von pg-1 eher unterschaetzt. Naechster Schritt mit Jans OK: Feinausrichtung um die
+  Einhuellende ergaenzen, pg-1 auf korrigierten Paaren neu bewerten, ggf. neu lernen. Skripte
+  `scripts/pumpgleit/ausrichtung_*.py` (aus server/, rein lesend).
 - **📥 24.10. — pg-scoot-1: Feedback ThermikDreher (u267) abwarten, mehr Scoot-Brett-Paare.** Gleiten = Pump-Pause
   ≥ 2,5 s, auf EINEM Paar gewaehlt (F1 0,69). Naechster Physik-Baustein, falls zu viel gemeldet wird: GPS-Tempo muss im
   Gleiten fallen. docs/PUMP-GLEIT.md „Foil Scoot: pg-scoot-1".
