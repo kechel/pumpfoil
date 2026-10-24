@@ -1493,6 +1493,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 24.10. — pg-1 bei Handy in der Tasche (`placement = phone`) messen.** Laeuft live (227 Pumpfoil-Sessions, ~35
+  Fahrer), gelernt nur am Handgelenk. Auffaellig ist nichts (Gleit-Anteil 7,1 % gegen 6,4 %, Median laengste Gleitphase
+  4,7 s gegen 3,6 s, Pumps −1,7 % gegen −5,1 %), belegt aber auch nicht. Braucht EINE Session: Handy in der Tasche +
+  zweites Handy am Brett, dann wie `scripts/pumpgleit/scoot_paar.py`. pg-1 in Zwischenanalysen: bewusst NICHT (Jan 24.10.).
 - **📥 24.10. (Jan: „vorerst nicht") — pg-1 fuer SUP/Paddle-up erst mit Wahrheit.** Nur #10051 (u257) hat Foil-Laeufe;
   pg-1 im Speicher: Pumps 893 -> 776 (−13 %), lange Gleitphasen 5–11 s am Laufende bis in den Puffer (Ausgleiten oder
   schon im Wasser? unbelegt). Pumpen vs. Paddeln auf dem Foil am Handgelenk nicht trennbar. Weiter erst mit einer
