@@ -1030,6 +1030,10 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 24.10.2026: vívoactive 6 / Venu 4 / Venu X1 haben keine MENU-Taste und kamen nie ins Einstellungsmenü
+    # (Nutzer-DM). Bildschirm halten oeffnet es, Hinweis „HOLD: settings". Nicht gebumpt (1.0.96 gerade live).
+    {"name": "Garmin", "version": "1.0.97",
+     "items": ["On the vívoactive 6, Venu 4 and Venu X1, holding the screen before you start opens the settings, because these watches have no menu button."]},
     # 23.10.2026: Supporter-Badge am Profilbild + auf der Profilseite (07ab3141, db30426a) — nach 1.1.55 gebaut.
     {"name": "iPhone + Apple Watch", "version": "1.1.56",
      "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year."]},

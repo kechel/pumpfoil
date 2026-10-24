@@ -230,6 +230,16 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         return false;
     }
 
+    // Bildschirm HALTEN (Touch) -> dasselbe Menü wie MENU. vívoactive 6, Venu 4 (41/45 mm) und Venu X1 haben
+    // nur zwei Tasten (Start/Stopp, Zurück) und laut SDK KEINEN Weg zu onMenu — das Einstellungsmenü
+    // (Verbinden, Upload/Sync, Autostart, Layouts) war dort unerreichbar (Nutzer-Meldung vívoactive 6,
+    // 24.10.2026). Bildschirm halten = Menü ist der Garmin-Standard auf Touch-Uhren (vívoactive 3/4).
+    // Nur vor dem Start; während der Aufnahme bleibt das Halten frei (nasse Finger, Brett).
+    function onHold(evt as WatchUi.ClickEvent) as Lang.Boolean {
+        if (_rec.isRecording()) { return false; }
+        return onMenu();
+    }
+
     // MENU (Mitte-links halten) -> App-Einstellungen, wie "Laufen Einstellungen" bei
     // nativen Aktivitäten. Nur im Idle (vor dem Start): Verbinden + Upload/Sync.
     // Während der Aufnahme ist beides nicht möglich -> Menü unterdrücken.

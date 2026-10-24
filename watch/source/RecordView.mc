@@ -1,3 +1,4 @@
+using Toybox.Lang;
 using Toybox.WatchUi;
 using Toybox.Graphics;
 using Toybox.System;
@@ -477,7 +478,7 @@ class RecordView extends WatchUi.View {
             // "MENU: Einstellungen" nur, wenn es in dieselbe Zeile passt — der Hinweis steht
             // ohnehin unten auf der Seite.
             y += _drawWrap(dc, w / 2, y, xf,
-                _zusammen(dc, xf, mw, [Strings.s("up.notLinked"), Strings.s("start.menu")]),
+                _zusammen(dc, xf, mw, [Strings.s("up.notLinked"), _menuText()]),
                 false) + luft;
         } else {
             var pn = Uploader.pendingCount();
@@ -548,8 +549,8 @@ class RecordView extends WatchUi.View {
             _drawWrap(dc, w / 2, sy, Graphics.FONT_SMALL, Strings.s("start.rec"), false);
             var yh = sy + sf + 2;
             dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
-            if (yh + _wrapHoehe(dc, yh, xf, Strings.s("start.menu"), false) <= unten) {
-                yh += _drawWrap(dc, w / 2, yh, xf, Strings.s("start.menu"), false) + 2;
+            if (yh + _wrapHoehe(dc, yh, xf, _menuText(), false) <= unten) {
+                yh += _drawWrap(dc, w / 2, yh, xf, _menuText(), false) + 2;
             }
             if (hatFoils && yh + _wrapHoehe(dc, yh, xf, Strings.s("start.chooseAlarm"), false) <= unten) {
                 _drawWrap(dc, w / 2, yh, xf, Strings.s("start.chooseAlarm"), false);
@@ -557,13 +558,13 @@ class RecordView extends WatchUi.View {
             return;
         }
         var yb = h * 0.95;
-        var h1 = _wrapHoehe(dc, yb, xf, Strings.s("start.menu"), true);
+        var h1 = _wrapHoehe(dc, yb, xf, _menuText(), true);
         var h2 = hatFoils ? _wrapHoehe(dc, yb - h1 - 2, xf, Strings.s("start.chooseAlarm"), true) : 0;
         if (sy + sf > yb - h1 - h2 - 4) { h2 = 0; }
         if (sy + sf > yb - h1 - 4) { h1 = 0; }
         dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
         if (h1 > 0) {
-            _drawWrap(dc, w / 2, yb, xf, Strings.s("start.menu"), true);
+            _drawWrap(dc, w / 2, yb, xf, _menuText(), true);
             if (h2 > 0) { _drawWrap(dc, w / 2, yb - h1 - 2, xf, Strings.s("start.chooseAlarm"), true); }
         }
         // START-Zeile: normalerweise auf 0,65 wie bisher; sie rutscht nur nach unten, wenn die
@@ -875,6 +876,16 @@ class RecordView extends WatchUi.View {
     //   nachOben = true  -> y ist die UNTERKANTE, der Block waechst nach oben (fuer Zeilen, die
     //                       am unteren Displayrand kleben)
     // Rueckgabe: gezeichnete Hoehe in Pixeln, damit der Aufrufer weiterstapeln kann.
+    // Hinweis aufs Einstellungsmenü. Uhren ohne MENU-Taste (vívoactive 6, Venu 4, Venu X1: nur Start/Stopp +
+    // Zurück) öffnen es per Bildschirm halten (RecordDelegate.onHold) — dort stand vorher „MENU: …" für eine
+    // Taste, die es nicht gibt. `inputButtons` = die PHYSISCHEN Tasten laut Gerät.
+    hidden function _menuText() as Lang.String {
+        var ds = System.getDeviceSettings();
+        var ohneTaste = ds.isTouchScreen && (ds has :inputButtons)
+            && (ds.inputButtons & System.BUTTON_INPUT_MENU) == 0;
+        return Strings.s(ohneTaste ? "start.menuHold" : "start.menu");
+    }
+
     hidden function _drawWrap(dc, cx, y, font, text, nachOben) {
         if (text == null || text.equals("")) { return 0; }
         var fh = dc.getFontHeight(font);
