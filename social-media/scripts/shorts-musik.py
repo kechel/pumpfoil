@@ -2080,7 +2080,7 @@ def caption_prompt(title: str, prefix: str = "", texte: list = None) -> str:
                    f'danach folgt der übersetzte Titel.' if prefix else "")
     texte_block = ("\n\nDie Texte, die IM VIDEO eingeblendet werden, in dieser Reihenfolge:\n"
                    + "\n".join(f"- {t}" for t in texte)
-                   + "\nMehr ist über den Inhalt nicht bekannt."
+                   + "\nArbeitstitel und diese Texte zusammen sind alles, was über den Inhalt bekannt ist."
                    if texte else "")
     return f"""Du bist Social-Media-Redakteur für pumpfoil.org (Pumpfoiling/Dockstart-Wassersport, Tracking-App).
 Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem Arbeitstitel "{title}" erzeuge Metadaten.{texte_block}
