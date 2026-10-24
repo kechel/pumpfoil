@@ -2040,7 +2040,37 @@ def title_prefix(name: str) -> str:
     return f"{m.group(1)} Pumpfoil {m.group(3)}" if m else ""
 
 
-def caption_prompt(title: str, prefix: str = "") -> str:
+def rezept_texte(name: str) -> list[str]:
+    """Die Overlay-Texte des Renders, in Reihenfolge der Einblendung.
+
+    Der Caption-Prompt bekam bis zum 24.10.2026 NUR den Arbeitstitel aus dem
+    Dateinamen. Bei "head dive" waren das neun Zeichen fuer 18 Sprachen und drei
+    Plattform-Captions -- das Modell musste den Rest erfinden, und tat es: 209
+    bewarb achtzehnsprachig eine "sauber vermessene" Gleitphase, die es laut
+    docs/GROUND-TRUTH.md gar nicht gibt. Die Texte, die im Video stehen, sind
+    die ehrlichste Quelle dafuer, worum es geht.
+
+    Die beiden Standardbloecke (Spruch, Community-Hinweis) bleiben draussen:
+    die stehen in jedem Video und sagen ueber dieses nichts.
+    """
+    p = REZEPT_DIR / (export_key(name) + ".json")
+    if not p.is_file():
+        return []
+    roh = ((_load_json(p, {}).get("studio") or {}).get("texts") or [])
+    gesetzt = [t for t in roh
+               if isinstance(t, dict) and t.get("start") is not None
+               and str(t.get("text") or "").strip()]
+    gesetzt.sort(key=lambda t: t["start"])
+    raus = []
+    for t in gesetzt:
+        zeile = " ".join(str(t["text"]).split())
+        if "keep pumping" in zeile.lower() or "pumpfoil.org" in zeile.lower():
+            continue
+        raus.append(zeile)
+    return raus
+
+
+def caption_prompt(title: str, prefix: str = "", texte: list = None) -> str:
     # Instagram, Facebook und TikTok haben nur EIN Textfeld fuer alle Laender —
     # anders als YouTube, wo jede Sprache ihre eigene Lokalisierung bekommt.
     # Deshalb dort ausschliesslich Englisch: das Publikum ist laengst
@@ -2048,8 +2078,12 @@ def caption_prompt(title: str, prefix: str = "") -> str:
     # Caption-Sprache steuert die Ausspielung nachweislich nicht.
     prefix_rule = (f'\n- JEDER Titel beginnt exakt mit "{prefix} " (unübersetzt), '
                    f'danach folgt der übersetzte Titel.' if prefix else "")
+    texte_block = ("\n\nDie Texte, die IM VIDEO eingeblendet werden, in dieser Reihenfolge:\n"
+                   + "\n".join(f"- {t}" for t in texte)
+                   + "\nMehr ist über den Inhalt nicht bekannt."
+                   if texte else "")
     return f"""Du bist Social-Media-Redakteur für pumpfoil.org (Pumpfoiling/Dockstart-Wassersport, Tracking-App).
-Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem Arbeitstitel "{title}" erzeuge Metadaten.
+Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem Arbeitstitel "{title}" erzeuge Metadaten.{texte_block}
 
 Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) in exakt dieser Struktur:
 {{"titles": {{{", ".join(f'"{lang}": "..."' for lang in CAPTION_LANGS)}}},
@@ -2068,6 +2102,17 @@ Fachbegriffe (WICHTIG, häufige Fehlerquelle):
   wird ohne Segel gefahren, solche Tags erreichen das falsche Publikum.
   Richtig sind z. B. #pumpfoil, #hydrofoil, #frontwing, #dockstart.
 
+Nichts dazuerfinden (WICHTIG, haeufigste Fehlerquelle):
+- Benutze NUR, was im Arbeitstitel und in den Video-Texten steht. Zahlen, Dauern, Entfernungen, Mengen, Orte und Tageszeiten NICHT erfinden — lieber weglassen als raten. (Aus "head dive" wurde einmal "the run lasted about three pumps"; die Zahl stand nirgends.)
+- KEINE Behauptungen ueber Messung oder Erkennung: die App zaehlt Pumps, eine Gleit-Erkennung gibt es NICHT. "vermessen", "measured", "erkannte Gleitphase", "praezise aufgezeichnet" und Entsprechungen sind verboten. (Video 209 bewarb achtzehnsprachig eine vermessene Gleitphase, die es nicht gibt.)
+- Lieber ein kurzer Satz, der stimmt, als zwei, die ausschmuecken.
+
+Uebersetzung (WICHTIG, zweite haeufige Fehlerquelle — die Fehler tauchen in de/en NIE auf):
+- Aufzaehlungen bleiben VOLLSTAENDIG: jede Liste hat in JEDER Sprache genau so viele Eintraege wie im Deutschen. Nichts zusammenziehen, nichts weglassen. (Bei Video 221 fiel "wake thief" in 16 von 18 Sprachen aus derselben Liste.)
+- Eigennamen von Sportarten bleiben in JEDER Sprache englisch: wake thief, paddle-up, wingfoil, kitefoil, foil scoot, parawing.
+- Englische Wendungen und Wortspiele NICHT woertlich uebersetzen, sondern den idiomatischen Begriff der Zielsprache nehmen. Achte besonders auf Woerter, die im Ziel ein Attribut brauchen: ein Drachen heisst russisch "воздушный змей" — "змей" allein heisst Schlange.
+- Jeder Titel und jeder Satz muss in der Zielsprache grammatisch vollstaendig sein: entweder ganzer Satz oder reine Nominalphrase, nie ein Praedikat ohne Kopula ("Herbst da" statt "Herbst ist da").
+
 Regeln:
 - titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.{prefix_rule}
 - Chinesisch (zh): Pumpfoil heisst 无动力水翼板 („antriebsloses Hydrofoil-Board"), kurz 水翼. Die Wortschoepfungen 泵翼 / 泵翼板 / 泵翼水翼板 sind VERBOTEN — die gibt es nicht und niemand sucht danach.
@@ -2078,12 +2123,12 @@ Regeln:
 """
 
 
-def generate_captions(title: str, prefix: str = "") -> dict:
+def generate_captions(title: str, prefix: str = "", texte: list = None) -> dict:
     env = {"HOME": str(Path.home()),
            "USER": Path.home().name,  # ohne USER findet die CLI ihre Keychain-Anmeldung nicht
            "PATH": "/opt/homebrew/bin:/usr/bin:/bin:" + str(Path.home() / ".local/bin")}
     proc = subprocess.run([CLAUDE_BIN, "--model", CLAUDE_MODEL, "-p",
-                           caption_prompt(title, prefix)],
+                           caption_prompt(title, prefix, texte)],
                           capture_output=True, text=True, timeout=300, env=env)
     if proc.returncode != 0:
         raise RuntimeError(f"claude-CLI fehlgeschlagen: {(proc.stderr or proc.stdout)[-300:]}")
@@ -2503,7 +2548,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Titel fehlt"}, 400)
             try:
                 name = str(req.get("name", ""))
-                caps = generate_captions(title, title_prefix(name))
+                caps = generate_captions(title, title_prefix(name),
+                                         rezept_texte(name))
                 if name:
                     save_captions_cache(name, caps)
                 caps = zh_begriffe(caps)
