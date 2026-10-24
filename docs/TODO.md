@@ -1495,16 +1495,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **📥 24.10. — Despike-Kaskade in `analysis/gps.clean_speed_series` (Befund, Fix nur mit Jans OK).** Regel 3
-  („isolierter Despike") vergleicht mit dem schon BEREINIGTEN linken Nachbarn: springt das Tempo um > 4 m/s auf
-  > 20 km/h und bleibt oben (nach GPS-Luecke, Wing/Kite, Autofahrt), wird der ganze Abschnitt auf das Ausgangstempo
-  gezogen. Test `test_despike_loescht_keinen_gehaltenen_abschnitt` (xfail). Erste Messung `scripts/despike-kaskade.py`:
-  876 von 2854 Sessions mit Unterschied, meist lange Abschnitte > 20 km/h (vermutlich Autofahrten) — NOCH NICHT sauber:
-  Nachbau gegen heute auf Gleichheit pruefen, auf Laeufe/Wind eingrenzen, dann Vorschlag + Regressions-Check.
-- **📥 24.10. — Lauf-Strecke bei kurzen Laeufen zu gross (Positions-Rauschen).** Strecke aus GPS-Positionen, Tempo aus
-  Doppler: bei der Uhr springen Positionen 10–20 m, kurze Laeufe bekommen so zu viel Strecke (#18962 Lauf 16: 51 m in
-  5 s bei 14 km/h Hoechst, ~19 m echt). `scripts/plausibel-bestand.py`: 64 Laeufe in 3000 Sessions ueber der
-  Toleranz. Betrifft Lauf-Strecke, Foil-Strecke, evtl. Strecken-Rekorde. Erkennung -> nur mit Jans OK.
+- **📥 24.10. — Despike-Kaskade in `analysis/gps.clean_speed_series` (GEMESSEN, Entscheidung Jan).** Regel 3 vergleicht
+  mit dem schon BEREINIGTEN linken Nachbarn: ein gehaltener Sprung um > 4 m/s auf > 20 km/h wird ganz auf das
+  Ausgangstempo gezogen. Test `test_despike_loescht_keinen_gehaltenen_abschnitt` (xfail), Vergleichsschalter
+  `despike_roh=True` (Standard aus). Regression `scripts/despike-regression.py` (v2 im Speicher, 1386 Sessions):
+  1346 gleich, 40 anders (2,9 %), alle Garmin, in beide Richtungen; die Beispiele sind fast nur Nicht-Foil-Aktivitaeten
+  (hiking/cycling, #18949: 1010 s mit 23–25 km/h = Auto/Rad), die die Kaskade heute zufaellig auf 0 drueckt.
+  Echte Foil-Laeufe kaum betroffen. Fix = semantisch richtig, Nutzen klein; vor einem Umschalten Autofahrt-Filter mitdenken.
+- **📥 24.10. — Lauf-Strecke: Zaehlfehler um einen Schritt (GEMESSEN, Fix mit Jans OK + Reanalyse).** `gps._seg_fields`:
+  Dauer `t[j-1]-t[i]` (n−1 Abstaende), Strecke `step[i:j].sum()` (n Schritte, inkl. des Schritts VOR dem ersten
+  Laufpunkt, Median 4,5 m). `scripts/laufstrecke-rauschen.py` (26 600 Laeufe): Strecke/Doppler P50 1,26 bei < 10 s,
+  1,13 bei 10–20 s, 1,06 bei 20–60 s; ohne den Vor-Schritt 1,06 / 1,04 / 1,03 — der Rest (3–6 %) ist echtes
+  Positions-Rauschen. Summe aller Laeufe +4,2 % gegen Doppler; bei 150 von 2125 Sessions waere der laengste Lauf nach
+  Doppler ein anderer. Fix-Kandidat `step[i+1:j]`; aendert gespeicherte Strecken/Rekorde -> Reanalyse noetig.
 - **🟢 24.10. — Brett-Paare: Ausrichtung geprueft, Waechter eingebaut, pg-2 verglichen (kein Gewinn, pg-1 bleibt).** Die erste Meldung
   „9 von 14 Trainingspaaren 2–4 s daneben" war FALSCH: ein Messfehler (Bewegung gegen Brett-Label „pumpt" — der Anlauf
   am Laufbeginn ist Bewegung ohne „pumpt"; ohne die ersten 8 s streuen die Werte −6..+1,8 s). Belastbar: Bewegung Brett
