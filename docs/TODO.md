@@ -1493,6 +1493,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 24.10. (Jan: „vorerst nicht") — pg-1 fuer SUP/Paddle-up erst mit Wahrheit.** Nur #10051 (u257) hat Foil-Laeufe;
+  pg-1 im Speicher: Pumps 893 -> 776 (−13 %), lange Gleitphasen 5–11 s am Laufende bis in den Puffer (Ausgleiten oder
+  schon im Wasser? unbelegt). Pumpen vs. Paddeln auf dem Foil am Handgelenk nicht trennbar. Weiter erst mit einer
+  Paddle-up-Session mit Handy am Brett, dann wie `scripts/pumpgleit/scoot_paar.py` messen.
 - **🟢 23.10. ERLEDIGT (selber Tag): Seiten per `React.lazy` (main.tsx, 41 Seiten), 16 Sprachen per `ladeSprache` (nur de/en im Haupt-Bundle; main.tsx laedt die Besuchersprache vor dem ersten Rendern). index.js 5,26 MB -> 1,85 MB, Grenze wieder 3 MiB als Waechter. Headless geprueft: /, /fr/, /changelog, /impressum, /nerd-analysen ohne Konsolenfehler.** Urspruenglich: `index-*.js` ist 5,26 MB (eine Datei, alles drin) und riss die
   Precache-Grenze von 5 MiB — CI-Web-Build rot ab 6be5001e (lokal knapp darunter, deshalb nicht bemerkt). Grenze auf 8 MiB
   gehoben (`web/vite.config.ts`), das ist nur Aufschub. Kandidaten fuer `lazy()`: Admin, Nerd-Seiten, Changelog, Karten-
