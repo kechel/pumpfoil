@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.55 for iOS
+        "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.56 for iOS
+        # (Submission d64c961d-815f-431d-97b6-142880a6be8c, eingereicht 24.10. 03:30 PDT = 12:30, Build 64).
+        # Inhalt: Supporter-Badge am Profilbild + Profilseite. Changelog 737 (+ios/apple), Ereignis 744.
+        # ALT: "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.55 for iOS
         # (Submission 38a4b866-75ff-4c78-b946-aa143280596a, eingereicht 22.10. 23:04 PDT = 23.10. 08:04, Build 63).
         # Inhalt: Pause-Upload der Watch (meta.json), Rueckfrage an der Bewertung, Abzeichen „Bitte neu bewerten".
         # ALT: "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.54 for iOS
@@ -460,7 +463,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.52",   # FREIGEGEBEN 2026-10-20 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -877,11 +881,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 24.10.2026 12:30 (Jans Meldung, Uebermittlung d64c961d-815f-431d-97b6-142880a6be8c), 1.1.56 (64) aus
-    # 9921c75e. Inhalt: Supporter-Badge (07ab3141, bbec1a2f, db30426a). Getestet: Jan, Badges vor der Einreichung.
-    {"name": "iPhone + Apple Watch", "version": "1.1.56",
-     "eingereicht": "2026-10-24",
-     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year."]},
+    # iPhone + Apple Watch 1.1.56 am 24.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt 737 traegt ios/apple 1.1.56.
     # iPhone + Apple Watch 1.1.55 am 23.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 728/729 tragen ios/apple 1.1.55,
     # neu: Pause-Upload der Watch. Der Supporter-Badge war NICHT drin (erst nach dem Build gebaut) -> NAECHSTES 1.1.56.
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
