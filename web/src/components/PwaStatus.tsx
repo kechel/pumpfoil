@@ -25,11 +25,15 @@ export function PwaStatus() {
   const [updating, setUpdating] = useState(false);
   const [newVer, setNewVer] = useState<string | null>(null);   // Build der wartenden neuen Version
   const [graceOver, setGraceOver] = useState(false);           // Banner erst nach Karenz (Fallback)
+  // Seit 24.10.2026 wird eine neue Fassung im Service Worker SOFORT aktiv (skipWaiting, vite.config.ts).
+  // Das Plugin meldet das ueber 'controlling' -> onNeedReload. Frueher wurde dann sofort neu geladen; jetzt
+  // NICHT mehr (Jan: „ich will ja nicht aus einer laufenden Session rausfliegen"): die Seite laeuft weiter
+  // (fehlende alte Chunks liefert der Server aus dem Asset-Archiv), Reload wie beim wartenden Update erst
+  // beim naechsten Seitenwechsel oder per Banner-Knopf.
+  const [aktiviert, setAktiviert] = useState(false);
 
-  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({
-    // Der Plugin-interne Reload beim 'controlling'-Event wird hierüber ersetzt -> wir
-    // kontrollieren den (einzigen) Reload selbst, siehe reloadOnce().
-    onNeedReload: reloadOnce,
+  const { needRefresh: [wartet], updateServiceWorker } = useRegisterSW({
+    onNeedReload: () => setAktiviert(true),
     // Aktiv nach Updates suchen, damit das Banner ohne manuelles Neuladen auftaucht:
     // stündlich + bei Tab-Fokus (gedrosselt).
     onRegisteredSW(_swUrl, r) {
@@ -51,9 +55,11 @@ export function PwaStatus() {
   // hinge der Spinner ewig). Der Guard in reloadOnce verhindert Doppel-Reloads.
   function applyUpdate() {
     setUpdating(true);
+    if (aktiviert) { reloadOnce(); return; }   // neue Fassung laeuft schon im SW -> nur neu laden
     updateServiceWorker(true);
     setTimeout(reloadOnce, 4000);
   }
+  const needRefresh = wartet || aktiviert;
 
   // Sobald ein Update wartet: Build der NEUEN Version holen (frisch, ohne Cache) für den Hinweis,
   // + Karenz starten, nach der das Fallback-Banner erscheinen darf.

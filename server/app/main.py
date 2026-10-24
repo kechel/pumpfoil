@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import (FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse,
+from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse,
                                Response)
 from fastapi.staticfiles import StaticFiles
 
@@ -506,9 +506,53 @@ app.mount("/media", StaticFiles(directory=settings.media_dir), name="media")
 
 # --- SPA-Auslieferung (Prod). Im Dev läuft das Frontend über den Vite-Dev-Server. ---
 if settings.web_dist.exists():
-    assets = settings.web_dist / "assets"
-    if assets.exists():
-        app.mount("/assets", StaticFiles(directory=assets), name="assets")
+    _ASSETS = settings.web_dist / "assets"
+    # Archiv der gehashten Dateien frueherer Builds (web/scripts/assets-archiv.mjs, 30 Tage). Vite leert bei
+    # jedem Build den Ausgabeordner; eine noch offene alte Seite (oder eine alte Huelle im PWA-Cache) fand
+    # ihre Dateien danach nicht mehr -> weisse Seite (Jans PWA, 24.10.2026).
+    _ARCHIV = settings.web_dist.parent / "assets-archiv"
+    _ASSET_NAME = re.compile(r"^[A-Za-z0-9_.-]+$")
+    _UNVERAENDERLICH = {"Cache-Control": "public, max-age=31536000, immutable"}
+    _NIE_CACHEN = {"Cache-Control": "no-store"}
+    # Fehlt eine alte Seiten-/Sprachdatei, passt keine neue an ihre Stelle (andere Namen der geteilten
+    # Teile). Dann dieses Skript: Service Worker + Caches weg, neu laden — hoechstens 2x in 5 min,
+    # derselbe Zaehler wie public/app-watchdog.js. `export default` haelt React.lazy bis dahin ruhig.
+    _RETTUNG = (
+        'try{var k="pf_neustart_ts",n=Date.now(),v=(JSON.parse(localStorage.getItem(k)||"[]")||[])'
+        '.filter(function(t){return n-t<300000});if(v.length<2&&navigator.onLine!==false){v.push(n);'
+        'localStorage.setItem(k,JSON.stringify(v));Promise.all([navigator.serviceWorker?navigator.serviceWorker'
+        '.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}):0,'
+        'self.caches?caches.keys().then(function(c){return Promise.all(c.map(function(x){return caches.delete(x)}))'
+        '}):0]).then(function(){location.reload()},function(){location.reload()})}}catch(e){}\n'
+        "export default function(){return null}\n"
+    )
+
+    def _aktueller_einstieg(endung: str) -> Path | None:
+        """Die Einstiegsdatei (index-*.js/.css), auf die die aktuelle index.html zeigt."""
+        try:
+            html = (settings.web_dist / "index.html").read_text()
+        except OSError:
+            return None
+        m = re.search(r'/assets/(index-[A-Za-z0-9_-]+\.' + endung + ')"', html)
+        return (_ASSETS / m.group(1)) if m and (_ASSETS / m.group(1)).is_file() else None
+
+    @app.get("/assets/{name}")
+    def asset(name: str):  # noqa: ANN202
+        if not _ASSET_NAME.match(name):
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
+        for ordner in (_ASSETS, _ARCHIV):
+            f = ordner / name
+            if f.is_file():
+                return FileResponse(f, headers=_UNVERAENDERLICH)
+        # Alte Einstiegsdatei -> die aktuelle (Jan, 24.10.2026: „die neuen einfach unter den alten Hash-Namen").
+        # Sie laedt nur aktuelle Teile nach, passt also zusammen. Nie cachen, sonst klebt das unter dem alten Namen.
+        if name.startswith("index-") and name.endswith((".js", ".css")):
+            f = _aktueller_einstieg(name.rsplit(".", 1)[1])
+            if f is not None:
+                return FileResponse(f, headers=_NIE_CACHEN)
+        if name.endswith(".js"):
+            return Response(_RETTUNG, media_type="text/javascript", headers=_NIE_CACHEN)
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
 
     # Diese Dateien MÜSSEN immer revalidiert werden — sonst hängt die PWA auf einer alten
     # Version fest, weil Browser/Proxy sie cachen und das Service-Worker-Update nie erkannt
@@ -550,8 +594,10 @@ if settings.web_dist.exists():
 
     @app.get("/{full_path:path}")
     def spa(full_path: str):  # noqa: ANN202
-        candidate = settings.web_dist / full_path
-        if full_path and candidate.is_file():
+        # resolve() + Pruefung, dass die Datei IN web/dist liegt: ohne sie las `/..%2F..%2Fserver%2F.env` jede
+        # Datei des Servers (gefunden 24.10.2026, bestand seit Anfang an).
+        candidate = (settings.web_dist / full_path).resolve()
+        if full_path and candidate.is_relative_to(settings.web_dist) and candidate.is_file():
             nc = candidate.name in _NO_CACHE or candidate.name.startswith("workbox-")
             return FileResponse(candidate, headers={"Cache-Control": "no-cache"} if nc else {})
         kopf = {"Cache-Control": "no-cache"}

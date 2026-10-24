@@ -12,14 +12,13 @@ import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { applyFontScale, getFontScale } from "./lib/fontscale";
 import { I18nProvider, langAusPfad, ladeSprache, detectInitialLang } from "./i18n";
 
-// Chunk-/Modul-Ladefehler nach einem Deploy (alte Chunk-URL nach PWA-Update) -> einmal pro
-// Session frisch neu laden statt Blank-Screen. Ergänzt den Watchdog (public/app-watchdog.js).
+// Chunk-/Modul-Ladefehler nach einem Deploy (alte Chunk-URL nach PWA-Update) -> harter Neustart statt
+// Blank-Screen: Service Worker + Caches weg, dann neu laden (public/app-watchdog.js, hoechstens 2 Versuche
+// in 5 min). Ein normales reload() bekaeme dieselbe alte Huelle aus dem Cache (24.10.2026).
 window.addEventListener("vite:preloadError", () => {
-  try {
-    if (sessionStorage.getItem("pf_blank_recover")) return;
-    sessionStorage.setItem("pf_blank_recover", "1");
-  } catch { /* ignore */ }
-  window.location.reload();
+  const neustart = (window as { pfNeustart?: (grund: string) => boolean }).pfNeustart;
+  if (neustart) neustart("preload");
+  else window.location.reload();
 });
 
 // Build-Stempel (ändert den Bundle-Hash -> löst SW-Update/Banner aus; auch in den Einstellungen sichtbar).

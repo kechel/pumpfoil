@@ -52,6 +52,7 @@ server/media/promo/*
 # Node / web
 node_modules/
 web/dist/
+web/assets-archiv/
 *.local
 
 # Zepp OS / Zeus (watch-zepp) — Build-Artefakte, nicht committen

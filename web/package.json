@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test:physics": "node scripts/verify-foil-physics.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "prebuild": "node scripts/check-contrast.mjs"
+    "prebuild": "node scripts/check-contrast.mjs && node scripts/assets-archiv.mjs",
+    "postbuild": "node scripts/assets-archiv.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
