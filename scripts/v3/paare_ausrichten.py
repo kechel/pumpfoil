@@ -7,6 +7,15 @@ Verfahren wie docs/GROUND-TRUTH.md §12a/§12d:
   3. fein je Lauf per Kreuzkorrelation der Pumpbewegung (Betrag der Beschleunigung, Pump-Band
      0,8-2,5 Hz) in ±1 s um den mittleren Versatz — ENG, weil der Pumptakt (~0,7 s) mehrdeutig
      ist (§12d: Nebenmaximum 3,5 Pumps daneben) —, dann Median ueber die Laeufe.
+WAECHTER 24.10.2026 (`ausrichten`, Fassung „huelle-1"): beim Scoot-Paar #16729/#16719 lag der Versatz 15 s daneben
+(belegt durch GPS-Tempo r 0,93, Laufstarts und Gleit-Kennzahlen), bei #12687/#12722 60-80 s (uneindeutig). Darum
+zusaetzlich TAKTFREI: Einhuellende der Bewegung (1,5-s-RMS des Betrags ohne 2-s-Mittel) von Brett UND Uhr, in den
+Brett-Laeufen ±8 s, Kreuzkorrelation ±90 s um die Wanduhr (`huelle_ms`, `huelle_r`, `huelle_r_neben` = bester Wert
+>= 3 s daneben). Die Feinausrichtung bleibt die bisherige (gegen die Einhuellende stimmt sie bei den guten Paaren auf
+±30 ms). Weicht sie mehr als HUELLE_TOLERANZ_MS ab, gilt sie nicht: mit eindeutiger Einhuellender (r >= 0,5 und
+>= 0,1 ueber dem Nebengipfel) Feinstufe ±0,35 s um die Einhuellende, sonst `versatz_ms = None` (Paar faellt raus).
+`waechter` sagt, was passiert ist; die alte Rechnung steht in `versatz_alt_ms`.
+Ein enger Feinschritt um die Einhuellende ALLEIN war schlechter: er griff bei #9534/#10194 eine Pump-Periode daneben.
 Ergebnis je Paar nach server/data/ml/v3/paare.json: Versatz (Uhr-Session-ms -> Brett-Session-ms),
 Streuung ueber die Laeufe, r je Lauf. Nur DERSELBE Fahrer (Brett-Handy + eigene Uhr).
 
@@ -146,7 +155,79 @@ def ausschnitt(d, a_ms, b_ms):
     return d["mag"][i0:i1] if i1 - i0 > 2 * HZ else None
 
 
+def _huelle(mag):
+    """Einhuellende der Bewegung: 1,5-s-RMS des Betrags nach Abzug des 2-s-Mittels (taktfrei)."""
+    if mag.size < 4 * HZ:
+        return mag * 0
+    hp = mag - np.convolve(mag, np.ones(int(2 * HZ)) / (2 * HZ), mode="same")
+    return np.sqrt(np.convolve(hp ** 2, np.ones(int(1.5 * HZ)) / (1.5 * HZ), mode="same"))
+
+
+def huelle_ausrichten(B, U, grob, weite_ms=90000.0):
+    """Versatz (Uhr-ms + v = Brett-ms) aus der Einhuellenden, in den Brett-Laeufen ±8 s. -> (v, r, r_neben) oder None."""
+    eb, eu = _huelle(B["mag"]), _huelle(U["mag"])
+    if eb.size == 0 or eu.size == 0 or not B["laeufe"]:
+        return None
+    tb = B["t0"] + np.arange(eb.size) / HZ * 1000
+    m = np.zeros(eb.size, bool)
+    for a, b in B["laeufe"]:
+        m |= (tb >= a - 8000) & (tb <= b + 8000)
+
+    def kurve(vs, schritt):
+        idx = np.flatnonzero(m)[::schritt]
+        out = []
+        for v in vs:
+            j = np.round((tb[idx] - v - U["t0"]) / 1000 * HZ).astype(int)
+            ok = (j >= 0) & (j < eu.size)
+            if ok.sum() < 30 * HZ / schritt:
+                out.append(np.nan); continue
+            out.append(np.corrcoef(eb[idx[ok]], eu[j[ok]])[0, 1])
+        return np.asarray(out)
+    vs = grob + np.arange(-weite_ms, weite_ms + 1, 200.0)
+    k = kurve(vs, 5)
+    if np.all(np.isnan(k)):
+        return None
+    v0 = vs[int(np.nanargmax(k))]
+    neben = np.nanmax(np.where(np.abs(vs - v0) >= 3000, k, np.nan)) if np.any(np.abs(vs - v0) >= 3000) else np.nan
+    vf = v0 + np.arange(-400, 401, 1000 / HZ)
+    kf = kurve(vf, 1)
+    i = int(np.nanargmax(kf))
+    return float(vf[i]), float(kf[i]), float(neben)
+
+
+HUELLE_TOLERANZ_MS = 1500.0
+
+
 def ausrichten(B, U):
+    """Fassung huelle-1 (24.10.2026): bisherige Feinausrichtung, bewacht durch die taktfreie Einhuellende."""
+    alt = ausrichten_alt(B, U)
+    erg = {**alt, "versatz_alt_ms": alt.get("versatz_ms"), "verfahren": "huelle-1"}
+    h = huelle_ausrichten(B, U, U["start"] - B["start"])
+    if h is None:
+        erg["waechter"] = "keine Einhuellende — alte Rechnung ungeprueft"
+        return erg
+    v, r, neben = h
+    erg.update({"huelle_ms": round(v), "huelle_r": round(r, 3),
+                "huelle_r_neben": round(neben, 3) if np.isfinite(neben) else None})
+    if alt.get("versatz_ms") is not None and abs(alt["versatz_ms"] - v) <= HUELLE_TOLERANZ_MS:
+        erg["waechter"] = "ok"
+        return erg
+    eindeutig = r >= 0.5 and (not np.isfinite(neben) or r - neben >= 0.1)
+    if not eindeutig:
+        erg.update({"versatz_ms": None, "waechter": "abweichend, Einhuellende uneindeutig — Paar faellt raus"})
+        return erg
+    fein = ausrichten_alt(B, U, um=v, suche_s=0.35)
+    erg.update({k: fein.get(k) for k in ("versatz_ms", "gemeinsam_ms", "fein_je_lauf_ms", "r_je_lauf", "streuung_ms")})
+    erg["alt"] = {k: alt.get(k) for k in ("gemeinsam_ms", "fein_je_lauf_ms", "r_je_lauf", "streuung_ms")}
+    erg["waechter"] = "abweichend — neu um die Einhuellende ausgerichtet"
+    if erg.get("versatz_ms") is None:
+        erg["versatz_ms"] = round(v)
+    return erg
+
+
+def ausrichten_alt(B, U, um=None, suche_s=3.0):
+    """Bisherige Rechnung (bis 23.10.2026). Mit `um` (Uhr-ms + um = Brett-ms) statt des Lauf-Mittels und enger Suche
+    nur noch die Feinstufe."""
     grob = U["start"] - B["start"]                     # Uhr-ms + grob = Brett-ms (Wanduhr)
     # mittel: Lauf-Partner
     d = []
@@ -156,16 +237,18 @@ def ausrichten(B, U):
             if abs(ca - a) <= 10000 and abs(ce - b) <= 10000:
                 d.append(a - ca)
     mittel = grob + (float(np.median(d)) if d else 0.0)
+    if um is not None:
+        mittel = float(um)
     # fein: je Brett-Lauf MIT 8 s Rand (Anfahrt und Sturz sind einmalig, der Pumptakt nicht) und
     # OHNE Bandpass (sonst verschwinden genau diese Stoesse), Suche ±3 s um den mittleren Versatz.
     # Zusaetzlich alle Laeufe GEMEINSAM: die Summe der Korrelationen je Versatz — ein falscher
     # Gipfel in einem Lauf setzt sich so nicht durch.
-    RAND_MS, SUCHE = 8000, int(3.0 * HZ)
+    RAND_MS, SUCHE = 8000, max(int(round(suche_s * HZ)), 1)
     fein, rs, summe = [], [], None
     lags = np.arange(-SUCHE, SUCHE + 1)
     for a, b in B["laeufe"]:
         xb = ausschnitt(B, a - RAND_MS, b + RAND_MS)
-        xu = ausschnitt(U, a - RAND_MS - mittel - 3500, b + RAND_MS - mittel + 3500)
+        xu = ausschnitt(U, a - RAND_MS - mittel - 3500, b + RAND_MS - mittel + 3500)   # Rand 3,5 s >= Suche
         if xb is None or xu is None:
             continue
         xb = xb - np.convolve(xb, np.ones(int(3 * HZ)) / (3 * HZ), mode="same")
@@ -255,7 +338,9 @@ def main():
             print(f"#{b_id} (u{B['user']}, {B['placement']}) + #{u_id} (u{U['user']}, {U['model'] or 'Garmin'}): "
                   f"Laeufe {len(B['laeufe'])}/{len(U['laeufe'])}, Partner {erg['laeufe_partner']} · "
                   f"mittel {erg['mittel_ms'] - erg['grob_ms']:+.0f} ms · fein je Lauf {f} r {erg.get('r_je_lauf')} "
-                  f"-> gemeinsam {erg.get('gemeinsam_ms')} ms, Streuung {erg.get('streuung_ms')} ms", flush=True)
+                  f"-> gemeinsam {erg.get('gemeinsam_ms')} ms, Streuung {erg.get('streuung_ms')} ms · "
+                  f"Versatz {erg.get('versatz_ms')} (alt {erg.get('versatz_alt_ms')}, Huelle {erg.get('huelle_ms')} r "
+                  f"{erg.get('huelle_r')} neben {erg.get('huelle_r_neben')}) Waechter: {erg.get('waechter')}", flush=True)
     finally:
         S.rollback(); S.close()
     if args.liste:

@@ -1495,16 +1495,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **📥 24.10. — Brett-Paare: Ausrichtung bei 9 von 14 Trainings-Paaren 2–4 s daneben (GEPRUEFT, Entscheidung offen).**
-  Drei Proben (rein lesend): GPS-Tempo-Korrelation (breit, nur grob), Laufstarts Brett/Uhr, und taktfrei die
-  Einhuellende der Uhr-Armbewegung (1,5-s-RMS) gegen Brett-Zustand „pumpt" (Kontrolle Scoot-Paar: Gipfel −8,4 s, GPS −8 s).
-  Gut/mittel ausgerichtete Paare (= pg-1-Training): stimmig (≤ 0,2 s) #9529, #10250, #13909, #15003, #16666;
-  2–4 s daneben (Einhuellende + GPS + Laufstarts in dieselbe Richtung) #9534 +2,5, #9649 +3,2, #10194 +2,0, #10326 +3,8,
-  #10873 +3,8, #10969 +4,0, #12608 +3,5, #17638 +3,5; grob falsch #12722 (u2) +69 s. Vermutlich Alias der
-  Takt-Feinausrichtung (3,5 s ≈ 5 Pump-Perioden). Folge: pg-1-Gleit-Labels dort um ~eine halbe Gleitphase
-  verschoben, Gleit-Zahlen von pg-1 eher unterschaetzt. Naechster Schritt mit Jans OK: Feinausrichtung um die
-  Einhuellende ergaenzen, pg-1 auf korrigierten Paaren neu bewerten, ggf. neu lernen. Skripte
-  `scripts/pumpgleit/ausrichtung_*.py` (aus server/, rein lesend).
+- **📥 24.10. — Despike-Kaskade in `analysis/gps.clean_speed_series` (Befund, Fix nur mit Jans OK).** Regel 3
+  („isolierter Despike") vergleicht mit dem schon BEREINIGTEN linken Nachbarn: springt das Tempo um > 4 m/s auf
+  > 20 km/h und bleibt oben (nach GPS-Luecke, Wing/Kite, Autofahrt), wird der ganze Abschnitt auf das Ausgangstempo
+  gezogen. Test `test_despike_loescht_keinen_gehaltenen_abschnitt` (xfail). Erste Messung `scripts/despike-kaskade.py`:
+  876 von 2854 Sessions mit Unterschied, meist lange Abschnitte > 20 km/h (vermutlich Autofahrten) — NOCH NICHT sauber:
+  Nachbau gegen heute auf Gleichheit pruefen, auf Laeufe/Wind eingrenzen, dann Vorschlag + Regressions-Check.
+- **📥 24.10. — Lauf-Strecke bei kurzen Laeufen zu gross (Positions-Rauschen).** Strecke aus GPS-Positionen, Tempo aus
+  Doppler: bei der Uhr springen Positionen 10–20 m, kurze Laeufe bekommen so zu viel Strecke (#18962 Lauf 16: 51 m in
+  5 s bei 14 km/h Hoechst, ~19 m echt). `scripts/plausibel-bestand.py`: 64 Laeufe in 3000 Sessions ueber der
+  Toleranz. Betrifft Lauf-Strecke, Foil-Strecke, evtl. Strecken-Rekorde. Erkennung -> nur mit Jans OK.
+- **🟢 24.10. — Brett-Paare: Ausrichtung geprueft, Waechter eingebaut, pg-2 verglichen (kein Gewinn, pg-1 bleibt).** Die erste Meldung
+  „9 von 14 Trainingspaaren 2–4 s daneben" war FALSCH: ein Messfehler (Bewegung gegen Brett-Label „pumpt" — der Anlauf
+  am Laufbeginn ist Bewegung ohne „pumpt"; ohne die ersten 8 s streuen die Werte −6..+1,8 s). Belastbar: Bewegung Brett
+  gegen Bewegung Uhr (taktfreie Einhuellende) bestaetigt alle guten Paare auf ±0,7 s; echte Fehler nur Scoot
+  #16729/#16719 (15 s) und #12687/#12722 (60–80 s, uneindeutig, war im pg-1-Training). `paare_ausrichten.ausrichten`
+  hat jetzt den Waechter „huelle-1" (> 1,5 s Abweichung -> neu ausrichten oder Paar raus), Liste
+  `paare-2026-10-24.json`. GPS-Tempo taugt nur grob (Geraete-Verzoegerung 2–3 s verschieden). Innerhalb der Sessions
+  (Accel gegen GPS, `ausrichtung_bestand.py`, 313 Sessions): Median −1,0 s, P10/P90 −2,3/+1,5 s, kein systematischer
+  Fehler.
+  **pg-2 = pg-1 ohne #12722** (`data/ml/pumpgleit2/`, Fahrer herausgehalten, beide auf denselben 13 Sessions bewertet,
+  `PG_TEST_OHNE`/`PG_AUS`/`PG_PAARE`): Pump-F1 0,897 / 0,897, Gleit-F1 0,50 / 0,51, Gleit-s P 0,47 / 0,48,
+  laengste MAE 1,49 / 1,58 s — kein messbarer Unterschied. pg-1 bleibt live, kein Neu-Lernen.
 - **📥 24.10. — pg-scoot-1: Feedback ThermikDreher (u267) abwarten, mehr Scoot-Brett-Paare.** Gleiten = Pump-Pause
   ≥ 2,5 s, auf EINEM Paar gewaehlt (F1 0,69). Naechster Physik-Baustein, falls zu viel gemeldet wird: GPS-Tempo muss im
   Gleiten fallen. docs/PUMP-GLEIT.md „Foil Scoot: pg-scoot-1".
