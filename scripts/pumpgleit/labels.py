@@ -35,6 +35,9 @@ def main():
     uebersicht = []
     try:
         for p in G.paare_beste():
+            if p.get("versatz_ms") is None:     # Waechter der Ausrichtung (paare_ausrichten huelle-1): Paar faellt raus
+                print(f"#{p['brett']}/#{p['uhr']}: ohne Versatz ({p.get('waechter')})", flush=True)
+                continue
             b_id, u_id, vers = p["brett"], p["uhr"], float(p["versatz_ms"])
             B = G.brett_wahrheit(db, b_id)
             if not B["ok"]:

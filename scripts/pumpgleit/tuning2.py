@@ -177,6 +177,8 @@ def main():
     lag = json.loads((G.AUS / "heute.json").read_text())["lag_ms"]
     D = MO.datensatz(laden(), PUFFER)
     T = [d for d in D if d["train"]]
+    # PG_TEST_OHNE (24.10.2026, pg-2): diese Uhr-Sessions nur trainieren, nicht bewerten (Vergleich auf gleicher Menge)
+    ohne = {int(x) for x in os.environ.get("PG_TEST_OHNE", "").split(",") if x}
     fahrer = sorted({d["fahrer"] for d in T})
     db = G.db_lesend()
     try:
@@ -199,7 +201,7 @@ def main():
     from sklearn.neural_network import MLPClassifier
     for f in fahrer:
         tr = [d for d in T if d["fahrer"] != f]
-        te = [d for d in T if d["fahrer"] == f]
+        te = [d for d in T if d["fahrer"] == f and d["P"]["meta"]["uhr"] not in ohne]
         # Physik-Parameter auf den Trainingsfahrern
         best = (-1, 0)
         for ci in range(len(kombis)):
@@ -299,8 +301,9 @@ def main():
                   + " · Versatz " + ", ".join(f"#{T_['sid']} {T_['off']:.0f} ms" for T_ in TAPS))
     txt = "\n".join(zeilen)
     print(txt)
-    (G.AUS / "tuning2.txt").write_text(txt)
-    (G.AUS / "tuning2.json").write_text(json.dumps(out, indent=1, default=float))
+    tag = os.environ.get("PG_TAG", "")
+    (G.AUS / f"tuning2{tag}.txt").write_text(txt)
+    (G.AUS / f"tuning2{tag}.json").write_text(json.dumps(out, indent=1, default=float))
 
 
 if __name__ == "__main__":

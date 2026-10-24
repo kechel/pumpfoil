@@ -22,8 +22,9 @@ import numpy as np
 
 WURZEL = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WURZEL / "server"))
-AUS = WURZEL / "server" / "data" / "ml" / "pumpgleit"
-PAARE = WURZEL / "server" / "data" / "ml" / "v3" / "paare-2026-10-23.json"
+# Umgebung (24.10.2026, pg-2): PG_AUS = eigener Ausgabeordner, PG_PAARE = andere Paarliste — die pg-1-Dateien bleiben.
+AUS = pathlib.Path(os.environ.get("PG_AUS") or WURZEL / "server" / "data" / "ml" / "pumpgleit")
+PAARE = pathlib.Path(os.environ.get("PG_PAARE") or WURZEL / "server" / "data" / "ml" / "v3" / "paare-2026-10-23.json")
 
 GLEIT_MIN_S, GLEIT_MAX_S = 1.5, 15.0
 
