@@ -27,7 +27,7 @@ def ueberlagern(db, s: models.Session, out) -> bool:
     ft = a.foiling_time_s or 0.0
     a.avg_cadence_hz = round(erg["pump_count"] / ft, 3) if ft > 0 else None
     a.metrics = {**(a.metrics or {}), "avg_pump_hz": a.avg_cadence_hz,
-                 "pumpgleit": {"version": PG.VERSION, "hinschauen": erg["hinschauen"],
+                 "pumpgleit": {"version": PG.version(s), "hinschauen": erg["hinschauen"],
                                "best_glide_s": erg["best_glide_s"], "best_glide_idx": erg["best_glide_idx"],
                                "gleit_s": erg["gleit_s"]}}
     return True

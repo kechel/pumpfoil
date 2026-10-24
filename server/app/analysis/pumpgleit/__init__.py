@@ -14,8 +14,8 @@ Je gespeichertem Lauf (Grenzen bleiben unveraendert), Zone = Lauf + 5 s Puffer (
      (Steigung > HIN_STEIGUNG m/s je s) — Welle, Fremdkraft oder verpasste Pumps. Zaehlen NICHT als Gleiten.
 Nur Sportarten in SPORTARTEN; Wind/Parawing/Rest: keine Aussage. NUR_PUMPS (Jan, 24.10.2026): dort ersetzt pg-1 nur die
 Pumps, Gleitphasen/laengste Gleitphase/„genauer hinschauen" bleiben beim alten Stand — eFoil/Foildrive (Antrieb, Gleiten
-aus dem Handgelenk ohne Aussage) und Foil Scoot (kein Motor, aber Hand am Lenker: Pumps 2,7 % Zaehlfehler, Gleiten nur
-19 % Praezision am fahrerfremden Brett-Paar #16729/#16719, scripts/pumpgleit/scoot_paar.py).
+aus dem Handgelenk ohne Aussage). Foil Scoot (Jan, 24.10.2026): Pumps aus pg-1, Gleiten aus der eigenen Regel
+`analysis/pumpgleit_scoot.py` (pg-scoot-1, Pump-Takt reisst ab), gespeicherte Version dann pg-scoot-1 (`version(s)`).
 """
 from __future__ import annotations
 
@@ -27,11 +27,12 @@ from pathlib import Path
 import numpy as np
 
 from . import merkmale as M
+from .. import pumpgleit_scoot as SC
 from . import takt as TK
 
 VERSION = "pg-1"
 SPORTARTEN = ("pumpfoil", "efoil", "foildrive", "foil_scoot")
-NUR_PUMPS = ("efoil", "foildrive", "foil_scoot")
+NUR_PUMPS = ("efoil", "foildrive")
 MODELL = Path(__file__).resolve().parent / "modelle" / "beste.pkl"
 PUFFER_S = 5.0
 GLEIT_MIN_S, GLEIT_MAX_S = 1.5, 15.0
@@ -170,6 +171,11 @@ def zustaendig(s, result) -> bool:
             and (s.sport_class or "pumpfoil") in SPORTARTEN and (s.placement or "") != "board")
 
 
+def version(s) -> str:
+    """Gespeicherte Fassung: pg-scoot-1 fuer Foil Scoot (eigene Gleit-Regel), sonst pg-1."""
+    return SC.VERSION if (s.sport_class or "pumpfoil") in SC.SPORTARTEN else VERSION
+
+
 def nur_pumps(s) -> bool:
     """pg-1 ersetzt hier nur die Pumps (NUR_PUMPS), Gleiten bleibt beim alten Stand."""
     return (s.sport_class or "pumpfoil") in NUR_PUMPS
@@ -207,6 +213,9 @@ def segmente_ueberlagern(s, segmente: list[dict], n_track: int) -> dict | None:
         return None
     laeufe = [(float(segs[i]["t_start_session_ms"]), float(segs[i]["t_end_session_ms"])) for i in alle]
     abl = ableiten(U, laeufe)
+    ver = version(s)
+    if ver == SC.VERSION:
+        abl = SC.gleiten(abl)
     nutz_abl = [(i, a) for i, a in zip(alle, abl) if segs[i].get("pumps") is not None]   # Laeufe ohne Accel bleiben
     tz = track_zeiten(s, n_track)
     off = float(s.trim_start_ms or 0)
@@ -232,7 +241,7 @@ def segmente_ueberlagern(s, segmente: list[dict], n_track: int) -> dict | None:
         g["pumps_per_min"] = round(len(pumps) / (dur / 60.0), 1) if dur > 0 and pumps else None
         g["dist_per_pump_m"] = round(g["distance_m"] / len(pumps), 1) if pumps and g.get("distance_m") else None
         g["t_to_first_pump_s"] = round((pumps[0] - a0) / 1000.0, 1) if pumps else None
-        g["pumpgleit"] = VERSION
+        g["pumpgleit"] = ver
         if nur_p:
             continue
         g["glides_vorher"] = g.get("glides")
@@ -318,8 +327,9 @@ def stufe(s, result, rechnen: bool = True) -> bool:
         _leeren(result)
         return True
     nur_p = bool(erg.get("nur_pumps"))
+    ver = version(s)
     for g, n in zip(segs, erg["segments"]):
-        if n.get("pumpgleit") != VERSION:
+        if n.get("pumpgleit") != ver:
             continue
         for k in (PUMP_FELDER if nur_p else PG_FELDER):
             g["pg_" + k] = n.get(k)
@@ -327,7 +337,7 @@ def stufe(s, result, rechnen: bool = True) -> bool:
             g["pg_hinschauen"] = n.get("hinschauen") or []
     result.segments_json = json.dumps(segs)
     ft = float(result.foiling_time_s or 0.0)
-    result.pg_version = VERSION
+    result.pg_version = ver
     result.pg_pump_count = int(erg["pump_count"])
     result.pg_avg_cadence_hz = round(erg["pump_count"] / ft, 3) if ft > 0 else None
     result.pg_best_glide_s = None if nur_p else float(erg["best_glide_s"])   # None = alter Wert gilt (Anzeige)
@@ -338,7 +348,7 @@ def stufe(s, result, rechnen: bool = True) -> bool:
             m = json.loads(result.metrics_json) or {}
         except ValueError:
             m = {}
-    m["pumpgleit"] = {"version": VERSION, "gleit_s": erg["gleit_s"], "hinschauen": erg["hinschauen"],
+    m["pumpgleit"] = {"version": ver, "gleit_s": erg["gleit_s"], "hinschauen": erg["hinschauen"],
                       "avg_pump_hz": result.pg_avg_cadence_hz}
     result.metrics_json = json.dumps(m)
     presets(s, result, segs, len(track))
@@ -363,6 +373,7 @@ def presets(s, result, kanon_segs: list[dict] | None = None, n_track: int | None
     if kanon_segs is None:
         kanon_segs = json.loads(result.segments_json or "[]")
     nur_p = nur_pumps(s)
+    ver = version(s)
     if n_track is None:
         n_track = len((json.loads(result.track_geojson or "{}").get("geometry") or {}).get("coordinates") or [])
     for p in cache.values():
@@ -383,7 +394,7 @@ def presets(s, result, kanon_segs: list[dict] | None = None, n_track: int | None
             quelle = []
             for n in erg["segments"]:
                 q = {}
-                if n.get("pumpgleit") == VERSION:
+                if n.get("pumpgleit") == ver:
                     q = {"pg_" + k: n.get(k) for k in (PUMP_FELDER if nur_p else PG_FELDER)}
                     if not nur_p:
                         q["pg_hinschauen"] = n.get("hinschauen") or []
@@ -399,7 +410,7 @@ def presets(s, result, kanon_segs: list[dict] | None = None, n_track: int | None
             lang = [(float((g.get("pg_longest_glide_s") if g.get("pg_pumps") is not None else g.get("longest_glide_s"))
                            or 0.0), j) for j, g in enumerate(ps)]
             best = max(lang, default=(0.0, None))
-            p.update({"pg_version": VERSION, "pg_pump_count": pc,
+            p.update({"pg_version": ver, "pg_pump_count": pc,
                       "pg_avg_cadence_hz": round(pc / ft, 3) if ft > 0 else None})
             if not nur_p:
                 p.update({"pg_best_glide_s": best[0] if best[0] > 0 else 0.0,

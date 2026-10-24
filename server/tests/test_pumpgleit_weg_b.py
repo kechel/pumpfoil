@@ -127,11 +127,11 @@ def test_zwischenanalyse_und_fremde_sportart_ohne_pg(sitzung):
 
 
 def test_nur_pumps_sportarten_lassen_gleiten_alt(sitzung, monkeypatch):
-    """eFoil/Foildrive/Foil Scoot (Jan, 24.10.2026): pg-1 ersetzt nur die Pumps, Gleiten bleibt beim alten Stand."""
+    """eFoil/Foildrive (Jan, 24.10.2026): pg-1 ersetzt nur die Pumps, Gleiten bleibt beim alten Stand."""
     from app.analysis import pumpgleit as PG
     sid, _, _ = sitzung
     db, s, r = _laden(sid)
-    for sport in ("foil_scoot", "efoil"):
+    for sport in ("efoil", "foildrive"):
         seg = _lauf_einsetzen(r, s)
         r.sensitivity_json = json.dumps({"light": {"segments": [dict(seg)], "foiling_time_s": 92.0}})
         s.sport_class = sport
@@ -153,6 +153,46 @@ def test_nur_pumps_sportarten_lassen_gleiten_alt(sitzung, monkeypatch):
     _lauf_einsetzen(r, s)
     PG.stufe(s, r, rechnen=True)
     assert r.pg_best_glide_s is not None
+    r.sensitivity_json = None
+    db.commit(); db.close()
+
+
+def test_scoot_regel_pause_und_laufende():
+    """pg-scoot-1: Pause >= 2,5 s zwischen Pumps und letzter Pump bis Stufen-Ende sind Gleiten, Raender gekuerzt."""
+    from app.analysis import pumpgleit_scoot as SC
+    pumps = [1000.0 + 700 * i for i in range(10)] + [10000.0 + 700 * i for i in range(5)]   # Pause 7300 -> 10000
+    a = SC.gleiten([{"pump_ms": pumps, "ende": 16000.0, "gleit": [(1.0, 2.0)]}])[0]
+    assert a["gleit"] == [(7600.0, 9700.0), (13100.0, 16000.0)]
+    assert a["hinschauen"] == [] and a["longest"] == 2.9
+    # kurze Pausen, zu lange Pausen und Laeufe ohne Pumps: kein Gleiten
+    assert SC.gleiten([{"pump_ms": [0.0, 2000.0, 22000.0], "ende": 23000.0}])[0]["gleit"] == []
+    assert SC.gleiten([{"pump_ms": [], "ende": 5000.0}])[0]["gleit"] == []
+
+
+def test_scoot_eigenes_gleiten(sitzung, monkeypatch):
+    """Foil Scoot (Jan, 24.10.2026): Pumps aus pg-1, Gleiten aus pg-scoot-1, gespeicherte Version pg-scoot-1."""
+    from app.analysis import pumpgleit as PG
+    from app.analysis import pumpgleit_scoot as SC
+    sid, _, _ = sitzung
+    db, s, r = _laden(sid)
+    seg = _lauf_einsetzen(r, s)
+    r.sensitivity_json = json.dumps({"light": {"segments": [dict(seg)], "foiling_time_s": 92.0}})
+    s.sport_class = "foil_scoot"
+    assert PG.stufe(s, r, rechnen=True)
+    g = json.loads(r.segments_json)[0]
+    assert r.pg_version == SC.VERSION and g["pg_pumps"] == r.pg_pump_count and r.pg_pump_count > 0
+    # Testsignal: Pumpen 15-50 s und 55-105 s -> eine Gleitphase in der Luecke um 50-55 s
+    assert g["pg_num_glides"] >= 1 and g["pg_hinschauen"] == []
+    assert any(48000 <= x[3] <= 52000 and 3.0 <= x[2] <= 5.5 for x in g["pg_glides"])
+    assert r.pg_best_glide_s == g["pg_longest_glide_s"] > 0
+    m = json.loads(r.metrics_json)["pumpgleit"]
+    assert m["version"] == SC.VERSION and m["hinschauen"] == []
+    pr = json.loads(r.sensitivity_json)["light"]
+    assert pr["pg_version"] == SC.VERSION and pr["pg_best_glide_s"] == r.pg_best_glide_s
+    s.sport_class = "pumpfoil"
+    _lauf_einsetzen(r, s)
+    PG.stufe(s, r, rechnen=True)
+    assert r.pg_version == PG.VERSION
     r.sensitivity_json = None
     db.commit(); db.close()
 

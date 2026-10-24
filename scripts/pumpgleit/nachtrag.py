@@ -80,8 +80,8 @@ def eine(sid: int) -> dict:
         if not zust and r.pg_version is None:
             return {"id": sid, "status": "nicht_zustaendig"}
         nur_presets = False
-        if zust and r.pg_version == PG.VERSION and not NEU:
-            if not _presets_fehlen(r, PG.VERSION):
+        if zust and r.pg_version == PG.version(s) and not NEU:
+            if not _presets_fehlen(r, PG.version(s)):
                 return {"id": sid, "status": "schon_da"}
             nur_presets = True
         alt = (r.segments_json, r.pump_count, r.best_glide_s)
@@ -118,8 +118,11 @@ def eine(sid: int) -> dict:
 
 
 def sicherung() -> pathlib.Path:
-    ziel = WURZEL / "server" / "data" / "sicherung" / f"vor-pg1-{datetime.date.today():%Y-%m-%d}.dump"
+    # Mit Uhrzeit und ohne Ueberschreiben: am 24.10.2026 hat die zweite Sicherung des Tages die erste ersetzt.
+    ziel = WURZEL / "server" / "data" / "sicherung" / f"vor-pg-{datetime.datetime.now():%Y-%m-%d-%H%M%S}.dump"
     ziel.parent.mkdir(parents=True, exist_ok=True)
+    if ziel.exists():
+        sys.exit(f"Sicherung {ziel} gibt es schon — nicht ueberschrieben.")
     from urllib.parse import unquote, urlsplit
     u = urlsplit(os.environ["DATABASE_URL"])
     # Zugangsdaten nur ueber die Umgebung an pg_dump (nie in der Kommandozeile: die ist in `ps` sichtbar)
