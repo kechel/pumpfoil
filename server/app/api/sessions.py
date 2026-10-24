@@ -247,7 +247,17 @@ def _sport_zahlen(session, result, segments, foil_s):
         track = json.loads(result.track_geojson) if isinstance(result.track_geojson, str) else result.track_geojson
     except ValueError:
         return None
-    return berechnen(gruppe, segments, track, result.total_distance_m, foil_s, session.sport_class)
+    # Zeit je Spurpunkt: die Spur ist NICHT immer 1 Hz (Garmin „Speicher sparen", Dropouts; #18983: 1061 Punkte in
+    # 82 min) — ohne Zeiten zaehlte die Fahrzeit Punkte statt Sekunden (24.10.2026).
+    zeiten = None
+    try:
+        from ..analysis.pumpgleit import track_zeiten
+        n = len(((track or {}).get("geometry") or {}).get("coordinates") or [])
+        zeiten = track_zeiten(session, n) if n else None
+    except Exception:   # nur Anzeige: ohne Zeiten bleibt es bei der 1-Hz-Annahme
+        zeiten = None
+    return berechnen(gruppe, segments, track, result.total_distance_m, foil_s, session.sport_class,
+                     zeiten_ms=None if zeiten is None else zeiten.tolist())
 
 
 def _attempt_count(result: models.AnalysisResult) -> int | None:

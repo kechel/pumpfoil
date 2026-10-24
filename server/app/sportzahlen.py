@@ -8,7 +8,10 @@ die Erkennung bleibt unangetastet, keine Neuberechnung noetig, gilt sofort fuer 
   geht man nicht an Land und wieder raus, dann hat es nur etwas laenger gedauert." Kurze Stuerze,
   Wenden und Wasserstarts zerlegen eine Wing-Ausfahrt sonst in Dutzende Laeufe (#17478: 57).
   845 Wing-Sessions: bei 5 min im Median 1 Fahrt je Session.
-- **Fahrzeit in Bewegung**: Sekunden mit Tempo >= BEWEGT_KMH (Spur ist 1 Hz).
+- **Fahrzeit in Bewegung**: Sekunden mit Tempo >= BEWEGT_KMH. Mit `zeiten_ms` (Zeit je Spurpunkt) die echte Zeit je
+  Schritt, hoechstens LUECKE_S — die Spur ist NICHT immer 1 Hz (Garmin „Speicher sparen", Dropouts; #18983: 1061
+  Punkte in 82 min, Punkte als Sekunden gezaehlt gab 42,7 km/h Schnitt bei 22,4 km/h Hoechsttempo). Ohne Zeiten
+  (aeltere Aufrufer) ein Punkt = eine Sekunde.
 - **Tempo ueber die ganze Fahrt**: Strecke IN Bewegung / Fahrzeit in Bewegung. Bis 24.10.2026 stand hier die
   Gesamtstrecke im Zaehler — bei #18978 (iPhone 7,4 h, meist liegend) summierte das GPS-Zittern im Stand 20,6 km
   gegen 1698 s Bewegung: 43,6 km/h Schnitt bei 24,3 km/h Maximum (PumpingCarbon). Jetzt 4,4 km -> 9,3 km/h.
@@ -28,6 +31,7 @@ import math
 
 FAHRT_PAUSE_S = 300.0
 BEWEGT_KMH = 4.0
+LUECKE_S = 10.0     # laengere Schritte sind Luecken (Pause, Dropout) und zaehlen nicht als Fahrzeit
 GRUPPEN = ("wind", "motor", "welle")
 
 
@@ -45,7 +49,8 @@ def _luftlinie(a, b) -> float:
 
 
 def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
-              total_m: float | None, foil_s: float | None, sport: str | None = None) -> dict | None:
+              total_m: float | None, foil_s: float | None, sport: str | None = None,
+              zeiten_ms: list[float] | None = None) -> dict | None:
     if gruppe not in GRUPPEN or not track:
         return None
     coords = (track.get("geometry") or {}).get("coordinates") or []
@@ -53,15 +58,29 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
     speeds = props.get("speeds_mps") or (props.get("speeds") or {}).get("1") or []
     if len(coords) < 2:
         return None
-    fahrzeit = sum(1 for v in speeds if v is not None and v * 3.6 >= BEWEGT_KMH) if speeds else None
+    if zeiten_ms is not None and len(zeiten_ms) != len(coords):
+        zeiten_ms = None
+    bewegt = lambda v: v is not None and v * 3.6 >= BEWEGT_KMH
+    if not speeds:
+        fahrzeit = None
+    elif zeiten_ms is None:
+        fahrzeit = sum(1 for v in speeds if bewegt(v))
+    else:
+        # Schritt i -> i+1 zaehlt mit seiner echten Dauer, wenn das Tempo am Ziel bewegt ist (wie die Kartenfarbe)
+        fahrzeit = sum(min(dt, LUECKE_S) for dt, v in
+                       (((zeiten_ms[i + 1] - zeiten_ms[i]) / 1000.0, speeds[i + 1])
+                        for i in range(min(len(coords), len(speeds)) - 1))
+                       if bewegt(v) and 0 < dt <= LUECKE_S)
     out: dict = {}
     if fahrzeit:
         out["fahrzeit_s"] = int(fahrzeit)
-        # Zaehler und Nenner aus denselben Sekunden: Schritt i -> i+1 zaehlt, wenn das Tempo am Ziel bewegt ist
-        # (wie die Faerbung der Karte, speeds[i + 1]).
-        bewegt_m = sum(_schritt(coords[i], coords[i + 1]) for i in range(min(len(coords), len(speeds)) - 1)
-                       if speeds[i + 1] is not None and speeds[i + 1] * 3.6 >= BEWEGT_KMH)
-        if bewegt_m:
+        # Zaehler und Nenner aus denselben Schritten (ohne Luecken, wenn Zeiten da sind)
+        def zaehlt(i):
+            if not bewegt(speeds[i + 1]):
+                return False
+            return zeiten_ms is None or 0 < zeiten_ms[i + 1] - zeiten_ms[i] <= LUECKE_S * 1000.0
+        bewegt_m = sum(_schritt(coords[i], coords[i + 1]) for i in range(min(len(coords), len(speeds)) - 1) if zaehlt(i))
+        if bewegt_m and fahrzeit >= 60:     # unter einer Minute ist der Schnitt GPS-Rauschen (#18878: 2 s)
             out["tempo_kmh"] = round(bewegt_m / fahrzeit * 3.6, 1)
         if foil_s is not None:
             out["foil_anteil"] = round(min(1.0, foil_s / fahrzeit), 3)
