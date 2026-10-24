@@ -56,8 +56,8 @@ neue Stücke müssen die Empfindlichkeit erfüllen, Zepp ohne Randschnitt, `frem
 - **Indirekt:** Pumps, Kadenz, Pumppausen (auf neuen Grenzen gezählt), alle `best_*`, `num_runs`, `pump_count`,
   **is_pumpfoil**, Auto-Zuschnitt, `sportauto` (240-s-Schwelle), `metrics.sportregel`, Brett-Automatik, Startversuche.
 - **Nicht nachgezogen (v2-Stand):** `avg_speed`, 5-s-Tempi, `powered_*`, `window_labels`, `track_geojson`, `total_distance_m`.
-- **Betroffen:** alle Uhr-Sessions mit Accel ≥ 8 Hz außer Wind-Sportarten, auch efoil/foil_scoot/wakethief/foildrive
-  (ohne Fremdkraft-Urteil), auch Handy-Sessions mit placement phone. **Nicht:** GPS-only, Brett-Sessions.
+- **Betroffen:** alle Uhr-Sessions mit Accel ≥ 8 Hz außer Wind-Sportarten, auch efoil/wakethief/foildrive
+  (ohne Fremdkraft-Urteil) und foil_scoot (Pump-Board mit Lenker, KEIN Motor), auch Handy-Sessions mit placement phone. **Nicht:** GPS-only, Brett-Sessions.
 - **Sportart ist getrennt** (`sportauto`, Regel v6), liest aber die Läufe nach v3.
 
 ## Rekorde [V]

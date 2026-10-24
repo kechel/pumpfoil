@@ -67,16 +67,23 @@ def avg_cadence_hz(ar, preset: dict | None = None):
     return ar.pg_avg_cadence_hz if _pg_da(ar) else (ar.avg_cadence_hz if ar is not None else None)
 
 
+# Gleiten: pg_best_glide_s fehlt auch bei pg-Sessions, wo pg-1 nur die Pumps ersetzt (eFoil/Foildrive/Foil Scoot,
+# analysis/pumpgleit.NUR_PUMPS) — dann gilt der alte Wert, wie in col_best_glide_s (coalesce).
+
 def best_glide_s(ar, preset: dict | None = None):
-    if _preset_pg(preset):
+    if _preset_pg(preset) and preset.get("pg_best_glide_s") is not None:
         return preset.get("pg_best_glide_s")
-    return ar.pg_best_glide_s if _pg_da(ar) else (ar.best_glide_s if ar is not None else None)
+    if _pg_da(ar) and ar.pg_best_glide_s is not None:
+        return ar.pg_best_glide_s
+    return ar.best_glide_s if ar is not None else None
 
 
 def best_glide_idx(ar, preset: dict | None = None):
-    if _preset_pg(preset):
+    if _preset_pg(preset) and preset.get("pg_best_glide_s") is not None:
         return preset.get("pg_best_glide_idx")
-    return ar.pg_best_glide_idx if _pg_da(ar) else (ar.best_glide_idx if ar is not None else None)
+    if _pg_da(ar) and ar.pg_best_glide_s is not None:
+        return ar.pg_best_glide_idx
+    return ar.best_glide_idx if ar is not None else None
 
 
 # ---- SQL-Ausdruecke (Rekorde, Summen, Statistik) ------------------------------------------------------

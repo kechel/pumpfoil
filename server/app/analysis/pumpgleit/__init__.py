@@ -12,7 +12,10 @@ Je gespeichertem Lauf (Grenzen bleiben unveraendert), Zone = Lauf + 5 s Puffer (
   4. Gleitphasen = Zustand gleiten, an Pumps geteilt, 1,5-15 s, nach dem ersten Pump, bis zum Aufsetzen.
   5. „genauer hinschauen": Gleitphasen >= HIN_MIN_S, in denen das GPS-Tempo praktisch nicht faellt
      (Steigung > HIN_STEIGUNG m/s je s) — Welle, Fremdkraft oder verpasste Pumps. Zaehlen NICHT als Gleiten.
-Nur Sportarten mit Pumpen ohne Fremdantrieb im Lauf-Sinn (SPORTARTEN); Wind/Parawing/Rest: keine Aussage.
+Nur Sportarten in SPORTARTEN; Wind/Parawing/Rest: keine Aussage. NUR_PUMPS (Jan, 24.10.2026): dort ersetzt pg-1 nur die
+Pumps, Gleitphasen/laengste Gleitphase/„genauer hinschauen" bleiben beim alten Stand — eFoil/Foildrive (Antrieb, Gleiten
+aus dem Handgelenk ohne Aussage) und Foil Scoot (kein Motor, aber Hand am Lenker: Pumps 2,7 % Zaehlfehler, Gleiten nur
+19 % Praezision am fahrerfremden Brett-Paar #16729/#16719, scripts/pumpgleit/scoot_paar.py).
 """
 from __future__ import annotations
 
@@ -27,7 +30,8 @@ from . import merkmale as M
 from . import takt as TK
 
 VERSION = "pg-1"
-SPORTARTEN = ("pumpfoil", "efoil", "foildrive")
+SPORTARTEN = ("pumpfoil", "efoil", "foildrive", "foil_scoot")
+NUR_PUMPS = ("efoil", "foildrive", "foil_scoot")
 MODELL = Path(__file__).resolve().parent / "modelle" / "beste.pkl"
 PUFFER_S = 5.0
 GLEIT_MIN_S, GLEIT_MAX_S = 1.5, 15.0
@@ -166,6 +170,11 @@ def zustaendig(s, result) -> bool:
             and (s.sport_class or "pumpfoil") in SPORTARTEN and (s.placement or "") != "board")
 
 
+def nur_pumps(s) -> bool:
+    """pg-1 ersetzt hier nur die Pumps (NUR_PUMPS), Gleiten bleibt beim alten Stand."""
+    return (s.sport_class or "pumpfoil") in NUR_PUMPS
+
+
 def track_zeiten(s, n_punkte: int) -> np.ndarray | None:
     """Zuschnitt-ms je Punkt der gespeicherten Spur (wie run_analysis: Zuschnitt + Ausschluss), sonst None."""
     from ... import storage
@@ -209,6 +218,7 @@ def segmente_ueberlagern(s, segmente: list[dict], n_track: int) -> dict | None:
         f = (ms - a0) / (b0 - a0) if b0 > a0 else 0.0
         return int(round(g["i_start"] + min(max(f, 0.0), 1.0) * (g["i_end"] - g["i_start"])))
 
+    nur_p = nur_pumps(s)
     hin_alle = []
     for i, a in nutz_abl:
         g = segs[i]
@@ -222,6 +232,9 @@ def segmente_ueberlagern(s, segmente: list[dict], n_track: int) -> dict | None:
         g["pumps_per_min"] = round(len(pumps) / (dur / 60.0), 1) if dur > 0 and pumps else None
         g["dist_per_pump_m"] = round(g["distance_m"] / len(pumps), 1) if pumps and g.get("distance_m") else None
         g["t_to_first_pump_s"] = round((pumps[0] - a0) / 1000.0, 1) if pumps else None
+        g["pumpgleit"] = VERSION
+        if nur_p:
+            continue
         g["glides_vorher"] = g.get("glides")
         g["glides"] = [[idx(x, g), idx(y, g), round((y - x) / 1000.0, 1), int(round(x))] for x, y in a["gleit"]]
         lang = [(y - x) / 1000.0 for x, y in a["gleit"]]
@@ -230,9 +243,11 @@ def segmente_ueberlagern(s, segmente: list[dict], n_track: int) -> dict | None:
         g["longest_glide_s_vorher"] = g.get("longest_glide_s")
         g["longest_glide_s"] = a["longest"]
         g["hinschauen"] = [[int(round(x)), round((y - x) / 1000.0, 1)] for x, y in a["hinschauen"]]
-        g["pumpgleit"] = VERSION
         hin_alle += [{"lauf": i, "start_ms": int(round(x)), "dauer_s": round((y - x) / 1000.0, 1)} for x, y in a["hinschauen"]]
     pc = int(sum(int(g.get("pumps") or 0) for g in segs))
+    if nur_p:
+        return {"segments": segs, "pump_count": pc, "best_glide_s": None, "best_glide_idx": None,
+                "hinschauen": [], "gleit_s": None, "nur_pumps": True}
     best = max(((float(g.get("longest_glide_s") or 0.0), j) for j, g in enumerate(segs)), default=(0.0, None))
     return {"segments": segs, "pump_count": pc, "best_glide_s": best[0], "best_glide_idx": best[1],
             "hinschauen": hin_alle,
@@ -241,8 +256,8 @@ def segmente_ueberlagern(s, segmente: list[dict], n_track: int) -> dict | None:
 
 # ------------------------------------------------------------------ Speichern (Weg B, live)
 
-PG_FELDER = ("pumps", "pump_idx", "avg_pump_hz", "pumps_per_min", "dist_per_pump_m", "t_to_first_pump_s",
-             "glides", "num_glides", "avg_glide_s", "longest_glide_s")
+PUMP_FELDER = ("pumps", "pump_idx", "avg_pump_hz", "pumps_per_min", "dist_per_pump_m", "t_to_first_pump_s")
+PG_FELDER = PUMP_FELDER + ("glides", "num_glides", "avg_glide_s", "longest_glide_s")
 
 
 def _presets_leeren(result) -> None:
@@ -302,18 +317,20 @@ def stufe(s, result, rechnen: bool = True) -> bool:
     if erg is None:
         _leeren(result)
         return True
+    nur_p = bool(erg.get("nur_pumps"))
     for g, n in zip(segs, erg["segments"]):
         if n.get("pumpgleit") != VERSION:
             continue
-        for k in PG_FELDER:
+        for k in (PUMP_FELDER if nur_p else PG_FELDER):
             g["pg_" + k] = n.get(k)
-        g["pg_hinschauen"] = n.get("hinschauen") or []
+        if not nur_p:
+            g["pg_hinschauen"] = n.get("hinschauen") or []
     result.segments_json = json.dumps(segs)
     ft = float(result.foiling_time_s or 0.0)
     result.pg_version = VERSION
     result.pg_pump_count = int(erg["pump_count"])
     result.pg_avg_cadence_hz = round(erg["pump_count"] / ft, 3) if ft > 0 else None
-    result.pg_best_glide_s = float(erg["best_glide_s"])
+    result.pg_best_glide_s = None if nur_p else float(erg["best_glide_s"])   # None = alter Wert gilt (Anzeige)
     result.pg_best_glide_idx = erg["best_glide_idx"]
     m = {}
     if result.metrics_json:
@@ -345,6 +362,7 @@ def presets(s, result, kanon_segs: list[dict] | None = None, n_track: int | None
         return False
     if kanon_segs is None:
         kanon_segs = json.loads(result.segments_json or "[]")
+    nur_p = nur_pumps(s)
     if n_track is None:
         n_track = len((json.loads(result.track_geojson or "{}").get("geometry") or {}).get("coordinates") or [])
     for p in cache.values():
@@ -366,8 +384,9 @@ def presets(s, result, kanon_segs: list[dict] | None = None, n_track: int | None
             for n in erg["segments"]:
                 q = {}
                 if n.get("pumpgleit") == VERSION:
-                    q = {"pg_" + k: n.get(k) for k in PG_FELDER}
-                    q["pg_hinschauen"] = n.get("hinschauen") or []
+                    q = {"pg_" + k: n.get(k) for k in (PUMP_FELDER if nur_p else PG_FELDER)}
+                    if not nur_p:
+                        q["pg_hinschauen"] = n.get("hinschauen") or []
                 quelle.append(q)
         for g, q in zip(ps, quelle):
             for k, v in q.items():
@@ -377,12 +396,13 @@ def presets(s, result, kanon_segs: list[dict] | None = None, n_track: int | None
         if any(x is not None for x in anz):
             pc = int(sum(int(x or 0) for x in anz))
             ft = float(p.get("foiling_time_s") or 0.0)
-            lang = [(float(g["pg_longest_glide_s"] if g.get("pg_pumps") is not None else (g.get("longest_glide_s") or 0.0)
+            lang = [(float((g.get("pg_longest_glide_s") if g.get("pg_pumps") is not None else g.get("longest_glide_s"))
                            or 0.0), j) for j, g in enumerate(ps)]
             best = max(lang, default=(0.0, None))
             p.update({"pg_version": VERSION, "pg_pump_count": pc,
-                      "pg_avg_cadence_hz": round(pc / ft, 3) if ft > 0 else None,
-                      "pg_best_glide_s": best[0] if best[0] > 0 else 0.0,
-                      "pg_best_glide_idx": best[1] if best[0] > 0 else None})
+                      "pg_avg_cadence_hz": round(pc / ft, 3) if ft > 0 else None})
+            if not nur_p:
+                p.update({"pg_best_glide_s": best[0] if best[0] > 0 else 0.0,
+                          "pg_best_glide_idx": best[1] if best[0] > 0 else None})
     result.sensitivity_json = json.dumps(cache)
     return True

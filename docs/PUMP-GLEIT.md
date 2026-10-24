@@ -165,7 +165,11 @@ gespeicherten Läufen in Session-ms → je Lauf `pump_ms`, `gleit`, `hinschauen`
 
 Paket `server/app/analysis/pumpgleit/` (merkmale.py, takt.py, `__init__.py`: `VERSION = "pg-1"`, `ableiten`,
 `segmente_ueberlagern`), Modell `server/app/analysis/pumpgleit/modelle/beste.pkl` (Bäume, Schwellen, keine
-Fahrer-IDs; .gitignore-Ausnahme wie v3). Nur pumpfoil/efoil/foildrive mit `detection == model`, nicht am Brett.
+Fahrer-IDs; .gitignore-Ausnahme wie v3). Nur pumpfoil/efoil/foildrive/foil_scoot mit `detection == model`, nicht am Brett. Seit 24.10.2026 (Jan) ersetzt pg-1
+bei efoil/foildrive/foil_scoot (`NUR_PUMPS`) nur die Pumps; Gleitphasen, `longest_glide_s`, `pg_best_glide_s` und
+„genauer hinschauen" bleiben dort leer bzw. beim alten Stand. Grund Foil Scoot: am fahrerfremden Brett-Paar
+#16729/#16719 Pumpzahl-Fehler je Lauf 2,7 % (heute 4,9 %), Gleit-Präzision nur 19 % — Hand am Lenker, halbe
+Amplitude, sieht für das Gleit-Modell wie Gleiten aus (`scripts/pumpgleit/scoot_paar.py`, Ausrichtung schwach).
 `GET /api/sessions/{id}?pumpgleit=1` (nur Admin, `api/pumpgleit_vorschau.py`) überlagert die Antwort: je Lauf
 `pumps`, `pump_idx`, Kadenz-Felder, `glides`, `num_glides`, `avg_glide_s`, `longest_glide_s` (alte Werte in
 `*_vorher`, dazu `hinschauen`), `pump_count`, `metrics.pumpgleit` = {version, hinschauen, best_glide_s, gleit_s};

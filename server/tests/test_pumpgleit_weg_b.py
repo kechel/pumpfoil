@@ -126,6 +126,37 @@ def test_zwischenanalyse_und_fremde_sportart_ohne_pg(sitzung):
     db.commit(); db.close()
 
 
+def test_nur_pumps_sportarten_lassen_gleiten_alt(sitzung, monkeypatch):
+    """eFoil/Foildrive/Foil Scoot (Jan, 24.10.2026): pg-1 ersetzt nur die Pumps, Gleiten bleibt beim alten Stand."""
+    from app.analysis import pumpgleit as PG
+    sid, _, _ = sitzung
+    db, s, r = _laden(sid)
+    for sport in ("foil_scoot", "efoil"):
+        seg = _lauf_einsetzen(r, s)
+        r.sensitivity_json = json.dumps({"light": {"segments": [dict(seg)], "foiling_time_s": 92.0}})
+        s.sport_class = sport
+        assert PG.stufe(s, r, rechnen=True)
+        g = json.loads(r.segments_json)[0]
+        assert r.pg_version == PG.VERSION and g["pg_pumps"] == r.pg_pump_count and r.pg_pump_count > 0
+        assert not any(k in g for k in ("pg_glides", "pg_num_glides", "pg_avg_glide_s", "pg_longest_glide_s",
+                                        "pg_hinschauen"))
+        assert r.pg_best_glide_s is None and r.pg_best_glide_idx is None
+        assert json.loads(r.metrics_json)["pumpgleit"]["hinschauen"] == []
+        pr = json.loads(r.sensitivity_json)["light"]
+        assert pr["pg_pump_count"] == r.pg_pump_count and "pg_best_glide_s" not in pr
+        assert "pg_longest_glide_s" not in pr["segments"][0]
+        monkeypatch.setattr(PA, "AN", True)
+        assert PA.seg(g)["longest_glide_s"] == 1.4 and PA.seg(g)["pumps"] == g["pg_pumps"]
+        assert PA.best_glide_s(r) == 1.4 and PA.pump_count(r) == r.pg_pump_count
+        monkeypatch.undo()
+    s.sport_class = "pumpfoil"
+    _lauf_einsetzen(r, s)
+    PG.stufe(s, r, rechnen=True)
+    assert r.pg_best_glide_s is not None
+    r.sensitivity_json = None
+    db.commit(); db.close()
+
+
 def test_schalter_an_und_aus(client, sitzung, monkeypatch):
     sid, auth, _ = sitzung
     db, s, r = _laden(sid)
