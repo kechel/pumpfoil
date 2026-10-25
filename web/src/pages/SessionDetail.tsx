@@ -1496,6 +1496,18 @@ export default function SessionDetail() {
         // verschieben ihn (das lag an #3157 daneben).
         // Seit 25.10.2026 nach GPS-Tempo eingefaerbt wie ein Lauf (Jan: „ich wuerde gerne auch startversuch-gps-speed
         // sehen"), gestrichelt bleibt das Erkennungszeichen. Ohne Tempo (alter Server) wie bisher bernsteinfarben.
+        // Start (gruen) & Ende (rot) wie bei den Laeufen, eine Spur kleiner (Jan, 25.10.2026).
+        L.circleMarker(v.points[0], {
+          pane: "attemptPane", radius: 4, color: "#052e16", weight: 1.5, fillColor: "#22c55e", fillOpacity: 1, interactive: false,
+        }).addTo(lg);
+        L.marker(v.points[v.points.length - 1], {
+          pane: "attemptPane", interactive: false,
+          icon: L.divIcon({
+            className: "",
+            html: '<div style="width:8px;height:8px;background:#ef4444;border:1.5px solid #450a0a;border-radius:1px"></div>',
+            iconSize: [8, 8], iconAnchor: [4, 4],
+          }),
+        }).addTo(lg);
         const sp = v.speeds;
         if (sp && sp.length === v.points.length && sp.some((x) => x != null)) {
           for (let i = 0; i < v.points.length - 1; i++) {
