@@ -1495,6 +1495,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **25.10. — Zusammenfuehren nimmt Kreisel/Magnetfeld/Puls-Kanal nicht mit** (`merge.py`, nur GPS + Accel; s.
+  docs/DATA-PIPELINE.md §9.5a). Betrifft nur Handy-Recorder (keine Uhr sammelt Kreisel). Bestand geprueft: 6 von 120
+  Zusammenfuehrungen mit Kreisel in einer Quelle, alle Handy in Tasche/Arm, keine am Brett -> nichts Sichtbares fehlt,
+  keine Reparatur noetig. Fuer kuenftige Brett-Aufnahmen die Spuren wie in `split._rohdaten_schreiben` mitnehmen. Eilt nicht.
 - **🟢 25.10. — Sportarten in den Apps (naechstes Release Android 1.1.45 / iOS, Code fertig):** Liste, Namen und Wind-Kacheln der 5 neuen
   Wind-Sportarten sind im Code (48624da2). Offen: (1) Web und Apps laden die Liste von `GET /api/app/sports` statt sie
   einzubauen (eingebaute Liste nur als Rueckfall), feste Wind-/Rekord-Tabellen ueber Gruppe/`rekorde` aus der Liste;
