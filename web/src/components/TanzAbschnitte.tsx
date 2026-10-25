@@ -58,18 +58,14 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
           <tr className="text-left text-slate-400">
             <th className="py-1 pr-2 font-medium">Zeit</th>
             <th className="py-1 pr-2 font-medium">Tanz</th>
-            {[1, 2, 3].map((p) => (
-              <th key={"u" + p} className="py-1 pr-2 font-medium whitespace-nowrap"
-                title="Was die Uhr-Rechnung (Tanz-App) zu diesem Abschnitt sagen würde, aus den Rohdaten; % = Sicherheit unter den bekannten Mustern">
-                Uhr {p}.
-              </th>
-            ))}
-            {[1, 2, 3].map((p) => (
-              <th key={"s" + p} className="py-1 pr-2 font-medium whitespace-nowrap"
-                title="Erkennung nur am Server, mit Versionsnummer des Verfahrens; % = Sicherheit unter den bekannten Mustern">
-                Server{version ? ` ${version}` : ""} {p}.
-              </th>
-            ))}
+            <th colSpan={2} className="py-1 pr-3 font-medium whitespace-nowrap"
+              title="Was die Uhr-Rechnung (Tanz-App) zu diesem Abschnitt sagen würde, aus den Rohdaten; % = Sicherheit unter den bekannten Mustern">
+              Uhr
+            </th>
+            <th colSpan={2} className="py-1 pr-3 font-medium whitespace-nowrap"
+              title="Erkennung nur am Server, mit Versionsnummer des Verfahrens; % = Sicherheit unter den bekannten Mustern">
+              Server{version ? ` ${version}` : ""}
+            </th>
             <th className="py-1 font-medium">Stand</th>
           </tr>
         </thead>
@@ -79,10 +75,10 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
             const wahl = auswahl(taenze, top);
             return (
             <tr key={i} className="border-t border-slate-800">
-              <td className="py-1.5 pr-2 whitespace-nowrap">
+              <td className="py-1.5 pr-2 whitespace-nowrap align-top">
                 {uhrzeit(startedAt, a.start_ms)}–{a.ende_ms != null ? uhrzeit(startedAt, a.ende_ms) : "…"}
               </td>
-              <td className="py-1.5 pr-2">
+              <td className="py-1.5 pr-2 align-top">
                 <select className="rounded border border-slate-700 bg-slate-900 px-1 py-0.5"
                   value={a.gewaehlt ?? ""} onChange={(e) => aendern(i, e.target.value || null)}>
                   <option value="">– offen –</option>
@@ -93,14 +89,21 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
                   {wahl.rest.map((k) => <option key={k} value={k}>{NAMEN[k] ?? k}</option>)}
                 </select>
               </td>
-              {[...[0, 1, 2].map((p) => ["u" + p, (a.uhr_top3 ?? [])[p]] as const),
-                ...[0, 1, 2].map((p) => ["s" + p, top[p]] as const)].map(([k, t]) => (
-                <td key={k} className={"py-1.5 pr-2 whitespace-nowrap " + (t && a.gewaehlt && t.tanz === a.gewaehlt
-                  ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400")}>
-                  {t ? `${NAMEN[t.tanz] ?? t.tanz} ${t.prozent} %` : "–"}
-                </td>
-              ))}
-              <td className="py-1.5 text-slate-400">{QUELLE[a.quelle] ?? a.quelle}</td>
+              {/* Je Verfahren zwei Spalten (Tanz | %), die drei besten untereinander (Jan, 25.10.2026) */}
+              {[a.uhr_top3 ?? [], top].map((liste, j) => {
+                const farbe = (k: string) => (a.gewaehlt && k === a.gewaehlt
+                  ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400");
+                return [
+                  <td key={j + "t"} className="py-1.5 pr-2 whitespace-nowrap align-top">
+                    {liste.length ? liste.map((t) => <div key={t.tanz} className={farbe(t.tanz)}>{NAMEN[t.tanz] ?? t.tanz}</div>)
+                      : <span className="text-slate-400">–</span>}
+                  </td>,
+                  <td key={j + "p"} className="py-1.5 pr-3 whitespace-nowrap align-top text-right tabular-nums">
+                    {liste.map((t) => <div key={t.tanz} className={farbe(t.tanz)}>{t.prozent} %</div>)}
+                  </td>,
+                ];
+              })}
+              <td className="py-1.5 text-slate-400 align-top">{QUELLE[a.quelle] ?? a.quelle}</td>
             </tr>
             );
           })}
