@@ -1030,6 +1030,7 @@ export interface TanzAbschnitt {
   quelle: string; tempo: number | null; dreh: number | null;
   server_vorschlag?: string | null;   // Server-Erkennung (server/app/tanz_server.py), Version in TanzDaten
   server_top3?: { tanz: string; prozent: number }[];   // die drei besten mit Sicherheit in % (25.10.2026)
+  uhr_top3?: { tanz: string; prozent: number }[];      // dasselbe nach der Uhr-Rechnung (Tanz.mc), aus den Rohdaten
 }
 export interface TanzDaten { abschnitte: TanzAbschnitt[]; taenze: string[]; server_version?: string }
 

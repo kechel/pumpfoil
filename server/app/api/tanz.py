@@ -36,13 +36,18 @@ def _antwort(s: models.Session, abschnitte: list[dict]) -> dict:
     try:
         bloecke = len(list((storage.session_dir(s.session_uuid) / "accel").glob("*.bin")))
         fs = list(_server_fenster(s.session_uuid, s.accel_scale or 1000, bloecke))
-        sv = tanz_server.vorschlaege(fs, abschnitte) if fs else [None] * len(abschnitte)
+        zf = tanz_server.zeilen_fenster(fs, abschnitte) if fs else [[] for _ in abschnitte]
     except (OSError, ValueError):
-        sv = [None] * len(abschnitte)
-    # server_vorschlag bleibt (Platz 1), server_top3 dazu: [{"tanz", "prozent"}] (Jan, 25.10.2026)
-    rows = [{**r, "server_vorschlag": v[0][0] if v else None,
-             "server_top3": [{"tanz": k, "prozent": p} for k, p in v] if v else []}
-            for r, v in zip(abschnitte, sv)]
+        zf = [[] for _ in abschnitte]
+    # Je Zeile die drei besten mit Sicherheit in % (Jan, 25.10.2026): was die Uhr-Rechnung (Tanz.mc) und was
+    # das Server-Modell sagen wuerde, beide aus den Rohdaten. server_vorschlag = Platz 1 (aeltere Clients).
+    def _liste(top):
+        return [{"tanz": k, "prozent": p} for k, p in top]
+    rows = []
+    for r, ws in zip(abschnitte, zf):
+        st = tanz_server.top3(ws) if ws else []
+        rows.append({**r, "server_vorschlag": st[0][0] if st else None, "server_top3": _liste(st),
+                     "uhr_top3": _liste(tanz_server.uhr_top3(ws)) if ws else []})
     return {"abschnitte": rows, "taenze": list(tanz.TAENZE), "server_version": tanz_server.VERSION}
 
 

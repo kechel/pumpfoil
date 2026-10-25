@@ -58,9 +58,14 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
           <tr className="text-left text-slate-400">
             <th className="py-1 pr-2 font-medium">Zeit</th>
             <th className="py-1 pr-2 font-medium">Tanz</th>
-            <th className="py-1 pr-2 font-medium">Erkennung</th>
             {[1, 2, 3].map((p) => (
-              <th key={p} className="py-1 pr-2 font-medium whitespace-nowrap"
+              <th key={"u" + p} className="py-1 pr-2 font-medium whitespace-nowrap"
+                title="Was die Uhr-Rechnung (Tanz-App) zu diesem Abschnitt sagen würde, aus den Rohdaten; % = Sicherheit unter den bekannten Mustern">
+                Uhr {p}.
+              </th>
+            ))}
+            {[1, 2, 3].map((p) => (
+              <th key={"s" + p} className="py-1 pr-2 font-medium whitespace-nowrap"
                 title="Erkennung nur am Server, mit Versionsnummer des Verfahrens; % = Sicherheit unter den bekannten Mustern">
                 Server{version ? ` ${version}` : ""} {p}.
               </th>
@@ -88,19 +93,13 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
                   {wahl.rest.map((k) => <option key={k} value={k}>{NAMEN[k] ?? k}</option>)}
                 </select>
               </td>
-              <td className="py-1.5 pr-2 text-slate-400">
-                {a.vorschlag ? NAMEN[a.vorschlag] ?? a.vorschlag : "–"}
-                {a.tempo ? ` · ${a.tempo}/min` : ""}
-              </td>
-              {[0, 1, 2].map((p) => {
-                const t = top[p];
-                return (
-                  <td key={p} className={"py-1.5 pr-2 whitespace-nowrap " + (t && a.gewaehlt && t.tanz === a.gewaehlt
-                    ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400")}>
-                    {t ? `${NAMEN[t.tanz] ?? t.tanz} ${t.prozent} %` : "–"}
-                  </td>
-                );
-              })}
+              {[...[0, 1, 2].map((p) => ["u" + p, (a.uhr_top3 ?? [])[p]] as const),
+                ...[0, 1, 2].map((p) => ["s" + p, top[p]] as const)].map(([k, t]) => (
+                <td key={k} className={"py-1.5 pr-2 whitespace-nowrap " + (t && a.gewaehlt && t.tanz === a.gewaehlt
+                  ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400")}>
+                  {t ? `${NAMEN[t.tanz] ?? t.tanz} ${t.prozent} %` : "–"}
+                </td>
+              ))}
               <td className="py-1.5 text-slate-400">{QUELLE[a.quelle] ?? a.quelle}</td>
             </tr>
             );

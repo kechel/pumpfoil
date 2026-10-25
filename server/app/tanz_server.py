@@ -103,11 +103,10 @@ def top3(ws: list[dict], mu_alle: dict | None = None) -> list[tuple[str, int]]:
     return ta.sicherheit(bewerten(merkmale(ws), mu_alle), teiler=SICHER_TEILER)
 
 
-def vorschlaege(fs: list[dict], abschnitte: list[dict]) -> list[list[tuple[str, int]] | None]:
-    """Je Zeile der Tabelle (start_ms/ende_ms in Session-ms) die drei besten Server-Vorschlaege mit
-    Sicherheit in %; None ohne Daten.
-    Marker-Zeilen haben keine Laenge (Zeitpunkt der Bestaetigung an der Uhr) — fuer sie gilt dieselbe
-    Deutung wie beim Lernen: der letzte zusammenhaengende Tanz davor (tanz_analyse.marker_deuten)."""
+def zeilen_fenster(fs: list[dict], abschnitte: list[dict]) -> list[list[dict]]:
+    """Je Zeile der Tabelle (start_ms/ende_ms in Session-ms) ihre 10-s-Fenster. Marker-Zeilen haben keine
+    Laenge (Zeitpunkt der Bestaetigung an der Uhr) — fuer sie gilt dieselbe Deutung wie beim Lernen: der
+    letzte zusammenhaengende Tanz davor (tanz_analyse.marker_deuten)."""
     out = []
     for r in abschnitte:
         von, bis = r["start_ms"], r.get("ende_ms")
@@ -116,6 +115,16 @@ def vorschlaege(fs: list[dict], abschnitte: list[dict]) -> list[list[tuple[str, 
         elif bis <= von:
             d = ta.marker_deuten([(von, "x")], fs)
             von, bis = d[0][:2] if d else (von, von)
-        ws = [f for f in fs if von <= f["t_ms"] < bis]
-        out.append((top3(ws) or None) if ws else None)
+        out.append([f for f in fs if von <= f["t_ms"] < bis])
     return out
+
+
+def uhr_top3(ws: list[dict]) -> list[tuple[str, int]]:
+    """Was die Uhr (Tanz.mc, Muster tanz_muster.json) zu diesen Fenstern sagen wuerde: die drei besten mit %.
+    Ohne den Vorrang des zuletzt bestaetigten Tanzes — der haengt am Verlauf am Handgelenk."""
+    return ta.sicherheit(ta.bewerten(ta.merkmale(ws)))
+
+
+def vorschlaege(fs: list[dict], abschnitte: list[dict]) -> list[list[tuple[str, int]] | None]:
+    """Je Zeile der Tabelle die drei besten Server-Vorschlaege mit Sicherheit in %; None ohne Daten."""
+    return [(top3(ws) or None) if ws else None for ws in zeilen_fenster(fs, abschnitte)]

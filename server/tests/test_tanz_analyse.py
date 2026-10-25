@@ -91,6 +91,11 @@ def test_server_vorschlag_s1():
     assert [v[0][0] if v else None for v in vs] == ["salsa", "boogie", None, "salsa"]
     # Top 3 mit Sicherheit in %, absteigend, Platz 1 klar vorn (Jan, 25.10.2026)
     assert len(vs[0]) == 3 and vs[0][0][1] >= vs[0][1][1] >= vs[0][2][1] and vs[0][0][1] > 50
+    # Uhr-Rechnung je Zeile (wie Tanz.mc): drei Eintraege, absteigend
+    zf = ts.zeilen_fenster(fs + fb, rows)
+    assert zf[2] == [] and len(zf[3]) > 0
+    u = ts.uhr_top3(zf[0])
+    assert len(u) == 3 and u[0][1] >= u[1][1] >= u[2][1]
 
 
 def test_sicherheit():

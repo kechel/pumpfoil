@@ -164,8 +164,10 @@ wird in die Tanz-Tabellen geschrieben. Quelle für Salsa: #16863 (Kurs), #17689 
   stehen (Marker kommt meist danach). Anzeige „Uhr erkennt · 62 %", in der Auswahl „Salsa 62 %".
   HOCH/RUNTER blättert: Top 3 → Rest alphabetisch (`ALPHA`, vom Test geprüft) → „Kein Tanz".
   Nicht hochgeladen — das Zeilenformat `tz_` bleibt gleich.
-- **Server/Web**: `GET /api/sessions/{id}/tanz` liefert je Zeile `server_top3` [{tanz, prozent}];
-  Tabelle mit Spalten „Server s1 1./2./3." in %, Auswahl dort: Top 3 der Server-Erkennung mit % zuerst,
+- **Server/Web**: `GET /api/sessions/{id}/tanz` liefert je Zeile `uhr_top3` (Uhr-Rechnung aus den Rohdaten,
+  `tanz_server.uhr_top3`, ohne den Vorrang des zuletzt bestätigten Tanzes) und `server_top3` [{tanz, prozent}].
+  Tabelle (Jan: keine bpm, sondern was Uhr und Server-Modell denken würden): Spalten „Uhr 1./2./3." und
+  „Server s1 1./2./3." in %; die alte Spalte „Erkennung" (Uhr-Vorschlag + /min) ist weg, Auswahl dort: Top 3 der Server-Erkennung mit % zuerst,
   dann alphabetisch, „Kein Tanz" zuletzt. s1 kennt nur fünf Tänze, die % verteilen sich auf diese.
 
 ## Offene Fragen / nächste Schritte
