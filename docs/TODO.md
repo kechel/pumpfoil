@@ -1495,6 +1495,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 25.10. — Startversuche zu wenig gezaehlt (u439, Amazfit Active 2, Front-Start, Mail; GEMESSEN, Entscheidung Jan).**
+  #12734 (26 min): ~18 GPS-Abschnitte >= 8 km/h, meist nur 1–2 Punkte (1 Hz), danach sofort langsam — kurze Starts
+  mit Sturz, KEIN belegter App-Fehler (meine erste Mail-Fassung „GPS-Bug 1.0.12" war voreilig). Angezeigt: 0. Zwei
+  Gruende: (1) `start_attempts_json` ist leer, wenn `is_pumpfoil` false ist — das Modell (Accel) erkennt kein Foilen,
+  also gilt die Session nicht als Pumpfoil; (2) das attempts-Preset (Median 3, >= 2 s ueber 8 km/h) findet auf der
+  Spur allein nur 3 der ~18 (3–4 s, 10–11 km/h). Profil steht auf normal; Anfaenger-Stufe aendert daran nichts.
+  Gleiches Bild vermutlich #3419 (Sept., Active 2, 1.0.6). Er bietet das Video der Saison an (Wahrheit fuer Starts).
+
 - **📥 24.10. — Despike-Kaskade in `analysis/gps.clean_speed_series` (GEMESSEN, Entscheidung Jan).** Regel 3 vergleicht
   mit dem schon BEREINIGTEN linken Nachbarn: ein gehaltener Sprung um > 4 m/s auf > 20 km/h wird ganz auf das
   Ausgangstempo gezogen. Test `test_despike_loescht_keinen_gehaltenen_abschnitt` (xfail), Vergleichsschalter
