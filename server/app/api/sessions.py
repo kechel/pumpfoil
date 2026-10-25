@@ -2288,6 +2288,44 @@ def unmerge_session_endpoint(
     return {"ids": [x.id for x in sources]}
 
 
+@router.post("/{session_id}/split")
+def split_session_endpoint(
+    session_id: int, body: dict, background_tasks: BackgroundTasks,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Eigene Session an `t_ms` (Session-ms) in zwei Sessions teilen (Nutzerwunsch 25.10.2026: Wingfoilen
+    und Pumpfoilen in einer Aufnahme). Original wird archiviert, s. app/split.py."""
+    from .. import split
+    s = _owned(db, user, session_id)
+    try:
+        t_ms = int(body.get("t_ms"))
+    except (TypeError, ValueError):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "t_ms fehlt")
+    geteilt = bool(s.share_token)
+    try:
+        sp = body.get("sports")
+        teile = split.split_session(db, s, t_ms, sp if isinstance(sp, list) else None)
+    except ValueError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
+    background_tasks.add_task(split.teile_auswerten, [t.id for t in teile])
+    return {"ids": [t.id for t in teile], "geteilter_link": geteilt}
+
+
+@router.post("/{session_id}/unsplit")
+def unsplit_session_endpoint(
+    session_id: int,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Teilung aufheben: Original zurueck, beide Teile weg."""
+    from .. import split
+    s = _owned(db, user, session_id)
+    try:
+        orig = split.unsplit_session(db, s)
+    except ValueError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
+    return {"id": orig.id}
+
+
 @router.get("/merge-suggestions")
 def merge_suggestions_endpoint(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -2485,6 +2523,11 @@ def get_session(
     out.liked = liked
     out.merged_count = int(db.query(func.count()).select_from(models.Session)
                            .filter(models.Session.merged_into == s.id).scalar() or 0)
+    out.split_from = s.split_from
+    if s.split_from is not None:
+        out.split_teile = [x.id for x in db.query(models.Session)
+                           .filter(models.Session.split_from == s.split_from, models.Session.deleted.is_(False))
+                           .order_by(models.Session.started_at).all()]
     if brett_neu:
         from .brett_vorschau import ueberlagern
         ueberlagern(db, s, out)
@@ -3551,6 +3594,24 @@ def get_track_times(
          if r[0] >= lo and (hi is None or r[0] <= hi)
          and not any(a <= r[0] <= b for a, b in aus)]
     return {"t_ms": t}
+
+
+@router.get("/{session_id}/raw-track")
+def get_raw_track(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Die GANZE Spur ohne Zuschnitt, ausgeduennt auf hoechstens ~1500 Punkte: [[t_session_ms, lat, lon], …].
+    Nur fuer den Besitzer — fuer die Skizze beim Zuschneiden und Teilen (Nutzerwunsch 25.10.2026: „beim
+    Trimmen fehlt die Referenz, auf welchen Teil der Karte sich die Position bezieht")."""
+    s = _owned(db, user, session_id)
+    gps = [r for r in storage.load_gps(s.session_uuid) if r[1] is not None and r[2] is not None]
+    schritt = max(1, len(gps) // 1500)
+    pts = gps[::schritt]
+    if gps and pts[-1] is not gps[-1]:
+        pts.append(gps[-1])
+    return {"punkte": [[int(r[0]), round(float(r[1]), 6), round(float(r[2]), 6)] for r in pts]}
 
 
 @router.get("/{session_id}/attempts")

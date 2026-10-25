@@ -402,6 +402,8 @@ export interface SessionSummary {
   flag_count?: number;                 // nur Besitzer/Admin (Melder bleiben anonym)
   appeal_text?: string | null;         // eigener Widerspruch
   merged_count?: number;   // >0 = zusammengeführt (auflösbar)
+  split_from?: number | null;   // Teil einer getrennten Session (auflösbar), s. server/app/split.py
+  split_teile?: number[];       // alle Teile dieser Trennung, zeitlich sortiert
   owner_name?: string | null;
   owner_avatar_url?: string | null;
   place_name?: string | null;
@@ -1879,6 +1881,13 @@ export const api = {
     req<{ id: number; geteilte_links?: number }>("/api/sessions/merge", { method: "POST", body: JSON.stringify({ session_ids: ids }) }),
   unmergeSession: (id: number) =>
     req<{ ids: number[] }>(`/api/sessions/${id}/unmerge`, { method: "POST" }),
+  // Session an einer Stelle (Session-ms) in zwei Sessions trennen; die Teile werden im Hintergrund ausgewertet.
+  splitSession: (id: number, tMs: number, sports?: (string | null)[]) =>
+    req<{ ids: number[]; geteilter_link: boolean }>(`/api/sessions/${id}/split`, { method: "POST", body: JSON.stringify({ t_ms: tMs, sports }) }),
+  unsplitSession: (id: number) =>
+    req<{ id: number }>(`/api/sessions/${id}/unsplit`, { method: "POST" }),
+  // Ganze Spur ohne Zuschnitt, ausgeduennt (nur Besitzer) — fuer die Skizze beim Zuschneiden/Trennen.
+  rawTrack: (id: number) => req<{ punkte: [number, number, number][] }>(`/api/sessions/${id}/raw-track`),
   getSettings: () => req<Record<string, any>>("/api/settings").then((r) => { setzeStandardSport(r?.default_sport_class); return r; }),
   // --- Sportart-Klassifikation (docs/sport-classification.md) ---
   flagNotPumpfoil: (id: number, note?: string) =>

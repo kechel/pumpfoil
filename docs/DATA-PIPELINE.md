@@ -632,6 +632,21 @@ Zwei Sicherheitsnetze im Reparatur-Skript: die rekonstruierte GPS-Spur muss zeic
 gespeicherten sein (sonst wird die Session nicht angefasst), und der alte `accel/`-Ordner wird nach
 `accel.vor-reparatur/` kopiert.
 
+### 9.5a Session trennen (`split.py`, 25.10.2026) — und was das Zusammenführen NICHT mitnimmt
+
+Gegenstück zum Zusammenführen: eine Session an einer Session-ms in zwei neue Sessions teilen (Nutzerwunsch:
+Wingfoilen und Pumpfoilen in einer Aufnahme). Das Original wird archiviert (`deleted=True`), die Teile tragen
+`split_from`. **Alle** Spuren werden geschnitten: GPS, Accel (Achse aus `timebase.py`, ohne Obergrenze am
+letzten GPS-Punkt), Kreisel und Magnetfeld (Achse aus `lage.zeitachse`), Puls-Kanal — jeweils als Chunks mit
+`t0`. Der zweite Teil beginnt bei Session-ms 0; seine `started_at` ist die WANDUHR der Schnittstelle
+(Pausen davor zählen mit), Pausen/Zuschnitt/`excluded_ranges`/`fremdkraft_keep` werden je Teil beschnitten
+und verschoben. Gegenprobe an #18978 (7 h, Apple Watch) und #18994 (Handy am Brett): die Summen der Teile
+sind je Spur gleich dem Original. Die Teile werden im Hintergrund ausgewertet (Status `complete` bis dahin).
+
+**Offener Befund:** `merge.py` übernimmt nur GPS und Accel — **Kreisel, Magnetfeld und Puls-Kanal fehlen
+in jeder zusammengeführten Session** (die Brett-Lage einer zusammengeführten Handy-Aufnahme ist damit weg).
+Die Quellen sind archiviert, nichts ist verloren; reparierbar wie §9.5.
+
 ### 9.6 Wasserflächen: große Seen fehlen — **bewusst** so (Entscheidung 2026-08-11)
 
 Zwei Stellen benutzen eine OSM-Wasserfläche: `_clip_ends_to_water` (`gps.py`, setzt ein an Land

@@ -297,6 +297,8 @@ class SessionOut(BaseModel):
     # Feld bewusst geleert: die Foiler-Seite verlangt eine Anmeldung, der Link liefe ins Leere.
     owner_id: int | None = None
     merged_count: int = 0  # >0 = aus so vielen Sessions zusammengeführt (auflösbar)
+    split_from: int | None = None  # Teil einer geteilten Session (auflösbar), s. app/split.py
+    split_teile: list[int] = []    # alle Teile dieser Teilung, zeitlich sortiert (Links zwischen den Teilen)
     place_name: str | None = None  # Spot-Name (Ufer-Venue bevorzugt, sonst Gewässer)
     place_water: str | None = None  # Gewässername als Zusatz-Label (wenn place_name ein Ufer-Venue ist)
     spot_id: int | None = None      # Spot-Cluster-ID (additiv; künftige Clients gruppieren darüber)

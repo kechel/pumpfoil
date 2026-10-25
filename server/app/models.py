@@ -599,6 +599,9 @@ class Session(Base):
     # Gehoert zu einer zusammengefuehrten Session: id der Ziel-Session (Quellen archiviert,
     # deleted=True). NULL = eigenstaendig. Siehe app/merge.py.
     merged_into: Mapped[int | None] = mapped_column(Integer)
+    # Teil einer GETEILTEN Session: id des Originals (archiviert, deleted=True). NULL = nicht geteilt.
+    # Siehe app/split.py.
+    split_from: Mapped[int | None] = mapped_column(Integer, index=True)
     # Spot-Cluster (Track-Ueberlappung, siehe app/spots.py). NULL = kein/mehrdeutiger Spot
     # (dann steht in place_name der Gewaessername). Spots sind review-/mergebar (spots-Tabelle).
     spot_id: Mapped[int | None] = mapped_column(Integer, index=True)

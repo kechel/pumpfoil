@@ -35,6 +35,7 @@ import { useT } from "../i18n";
 import { TransferPicker } from "../components/TransferPicker";
 import { CompareHrStrips } from "../components/CompareHrStrips";
 import { TanzAbschnitte } from "../components/TanzAbschnitte";
+import { ZeitSkizze } from "../components/ZeitSkizze";
 
 // Wake thief: Farbe der Wellenstuecke auf der Karte und im Kasten (20.10.2026).
 const WELLE_FARBE = "#e879f9";
@@ -528,6 +529,8 @@ export default function SessionDetail() {
   useCloseOnBack(fullscreen, () => setFullscreen(false));
   const [win, setWin] = useState<"1" | "3" | "5">(gemerkt.win);
   const [trimOpen, setTrimOpen] = useState(false);
+  const [splitOpen, setSplitOpen] = useState(false);
+  const [unsplitting, setUnsplitting] = useState(false);
   const [showPumps, setShowPumps] = useState(gemerkt.showPumps);
   // Startversuche auf der Karte (Jan, 02.09.): die Anlaeufe, aus denen KEIN Lauf wurde. Sie
   // stehen nicht in der Session-Antwort — Gespeichert sind nur ihre Distanzen; die Linien holt
@@ -865,7 +868,9 @@ export default function SessionDetail() {
   const pollStatus = session?.status;
   const pollFremd = isPublic || session?.owned === false;
   useEffect(() => {
-    if (pollFremd || (pollStatus !== "live" && pollStatus !== "recording")) return;
+    // „complete" dazu (25.10.2026): getrennte Teile (server/app/split.py) werden im Hintergrund
+    // ausgewertet und stehen bis dahin auf complete.
+    if (pollFremd || (pollStatus !== "live" && pollStatus !== "recording" && pollStatus !== "complete")) return;
     const iv = setInterval(() => {
       api.session(Number(id)).then((fresh) => {
         setSession((cur) => {
@@ -2917,6 +2922,29 @@ export default function SessionDetail() {
 
       {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
 
+      {owned && session.split_from != null && (
+        <div className="mt-8 flex flex-wrap items-center gap-2 text-sm text-slate-400">
+          <span>{t("split.info")}</span>
+          {(session.split_teile ?? []).map((pid, i) => pid === session.id
+            ? <span key={pid} className="font-semibold text-slate-200">{t("split.part", { n: i + 1 })}</span>
+            : <Link key={pid} to={`/sessions/${pid}`} className="text-brand-600 underline dark:text-brand-300">
+                {t("split.part", { n: i + 1 })}
+              </Link>)}
+          <button
+            onClick={async () => {
+              if (!confirm(t("split.undoConfirm"))) return;
+              setUnsplitting(true);
+              try { const r = await api.unsplitSession(session.id); await invalidateSessionListCache(); nav(`/sessions/${r.id}`); }
+              catch (e) { setUnsplitting(false); alert(String(e)); }
+            }}
+            disabled={unsplitting}
+            className="rounded-lg bg-slate-800 px-2.5 py-1 text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+          >
+            {unsplitting ? "…" : t("split.undo")}
+          </button>
+        </div>
+      )}
+
       {owned && (session.merged_count ?? 0) > 0 && (
         <div className="mt-8 flex flex-wrap items-center gap-2 text-sm text-slate-400">
           <span>{t("merge.mergedInfo", { n: session.merged_count ?? 0 })}</span>
@@ -2961,6 +2989,16 @@ export default function SessionDetail() {
                 <ScissorsIcon className="h-3.5 w-3.5" />
                 {t("sd.trim")}{(session.trim_start_ms != null || session.trim_end_ms != null) && <span className="ml-1 text-brand-400">{t("sd.trimActive")}</span>}
               </button>
+              {/* TRENNEN (Nutzerwunsch 25.10.2026: Wingfoilen und Pumpfoilen in einer Aufnahme). Nicht fuer
+                  zusammengefuehrte Sessions — die loest man erst auf (s. server/app/split.py). */}
+              {session.status === "analyzed" && !(session.merged_count ?? 0) && (
+                <button
+                  onClick={() => setSplitOpen((o) => !o)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+                >
+                  {t("split.button")}
+                </button>
+              )}
               <TransferPicker sessionId={session.id} />
               {/* ORT VERBERGEN je Aufnahme (Jan, 25.09.2026: „ich haette das ganz unten neben
                   diesen buttons erwartet"). Ein Auswahlfeld und kein Haken, weil es DREI
@@ -2986,6 +3024,9 @@ export default function SessionDetail() {
             </button>
           </div>
           {trimOpen && <TrimPanel session={session} onSaved={uebernehmen} onClose={() => setTrimOpen(false)} />}
+          {splitOpen && <SplitPanel session={session} onDone={async (ids) => {
+            await invalidateSessionListCache(); setSplitOpen(false); nav(`/sessions/${ids[0]}`);
+          }} />}
         </div>
       )}
       {/* ADMIN-VORSCHAU Brett-Regeln (Jan, 10.10.2026): dieselbe Session zweimal in den Vergleich,
@@ -3210,6 +3251,13 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
           onChange={(e) => setB(Math.max(Number(e.target.value), a + 1))}
           className="mt-1 w-full accent-brand-500" />
       </label>
+      {/* Bezugspunkt zum Regler (Nutzerwunsch 25.10.2026): ganze Spur, behaltener Teil farbig, die
+          beiden Reglerstellungen als Punkte. */}
+      {dauerBekannt && (
+        <ZeitSkizze sessionId={session.id}
+          farbe={(tt) => (tt >= a * 1000 && tt <= b * 1000 ? SKIZZE_FARBE_A : SKIZZE_FARBE_AUS)}
+          marken={[{ tMs: a * 1000, farbe: SKIZZE_FARBE_A }, { tMs: Math.min(b, totalSec) * 1000, farbe: SKIZZE_FARBE_A }]} />
+      )}
       <div className="flex flex-wrap gap-2">
         {/* Beide schreibenden Knoepfe sind gesperrt, solange die Laenge unbekannt ist — s.
             Kommentar oben. „Zuruecksetzen" bleibt IMMER benutzbar: wer schon in der Falle
@@ -3229,6 +3277,83 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
           </button>
         )}
       </div>
+    </Card>
+  );
+}
+
+const SKIZZE_FARBE_A = "#22d3ee";     // Markenfarbe: behaltener Teil / Teil 1
+const SKIZZE_FARBE_B = "#f59e0b";     // Teil 2
+const SKIZZE_FARBE_AUS = "#94a3b8";   // abgeschnitten
+
+/**
+ * Session TRENNEN (Nutzerwunsch 25.10.2026: „eine Session aus Wingfoilen und Pumpfoilen trennen und die
+ * Teile neu kategorisieren"). Eine Stelle waehlen, je Teil die Sportart; der Server legt zwei neue
+ * Sessions an, archiviert das Original und wertet die Teile im Hintergrund aus (server/app/split.py).
+ * Die Trennung laesst sich in jedem Teil wieder aufheben.
+ */
+function SplitPanel({ session, onDone }: { session: SessionSummary; onDone: (ids: number[]) => void }) {
+  const t = useT();
+  // Achse wie beim Zuschneiden: Session-ms (aktive Zeit), Laenge vom Server (s. TrimPanel).
+  const totalSec = Math.round((session.duration_ms ?? 0) / 1000);
+  const MIN = 60;                       // jeder Teil mindestens 1 min (server/app/split.py MIN_TEIL_MS)
+  const moeglich = totalSec > 2 * MIN;
+  const [cut, setCut] = useState(Math.round(totalSec / 2));
+  const startMs = new Date(session.started_at).getTime();
+  const clock = (sec: number) =>
+    fmtTime(new Date(startMs + wanduhrMs(session.pause_windows, sec * 1000)).toISOString(), session.tz,
+            { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const eigen = session.sport_class ?? "pumpfoil";
+  const [sp1, setSp1] = useState(eigen);
+  const [sp2, setSp2] = useState(eigen);
+  const [busy, setBusy] = useState(false);
+  const [fehler, setFehler] = useState<string | null>(null);
+  const wahl = (v: string, set: (s: string) => void, farbe: string, n: number) => (
+    <label className="flex items-center gap-2 text-sm text-slate-200">
+      <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: farbe }} />
+      {t("split.part", { n })}
+      <select value={v} onChange={(e) => set(e.target.value)} disabled={busy}
+        className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm">
+        {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+      </select>
+    </label>
+  );
+  async function trennen() {
+    if (!confirm(t("split.confirm", { at: clock(cut) }))) return;
+    setBusy(true); setFehler(null);
+    try {
+      // Sportart je Teil setzt der Server beim Trennen mit — so laeuft je Teil nur EINE Auswertung.
+      const r = await api.splitSession(session.id, cut * 1000, [sp1, sp2]);
+      onDone(r.ids);
+    } catch (e) {
+      setFehler(t("split.fail", { err: String((e as any)?.message ?? e) }));
+      setBusy(false);
+    }
+  }
+  return (
+    <Card className="space-y-4 p-4">
+      <p className="text-sm text-slate-300">{t("split.hint")}</p>
+      {!moeglich ? (
+        <p className="text-sm text-amber-700 dark:text-amber-300">{t("split.tooShort")}</p>
+      ) : (<>
+        <label className="block text-sm text-slate-200">
+          {t("split.at")} <span className="tabular-nums text-slate-100">{fmtMMSS(cut)}</span>
+          <span className="ml-2 tabular-nums text-slate-300">{clock(cut)}</span>
+          <input type="range" min={MIN} max={totalSec - MIN} value={cut} disabled={busy}
+            onChange={(e) => setCut(Number(e.target.value))} className="mt-1 w-full accent-brand-500" />
+        </label>
+        <ZeitSkizze sessionId={session.id}
+          farbe={(tt) => (tt < cut * 1000 ? SKIZZE_FARBE_A : SKIZZE_FARBE_B)}
+          marken={[{ tMs: cut * 1000, farbe: "#f8fafc" }]} />
+        <div className="flex flex-wrap gap-4">
+          {wahl(sp1, setSp1, SKIZZE_FARBE_A, 1)}
+          {wahl(sp2, setSp2, SKIZZE_FARBE_B, 2)}
+        </div>
+        <button disabled={busy} onClick={trennen}
+          className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+          {busy ? t("split.busy") : t("split.do")}
+        </button>
+        {fehler && <p className="text-sm text-red-700 dark:text-red-400">{fehler}</p>}
+      </>)}
     </Card>
   );
 }
