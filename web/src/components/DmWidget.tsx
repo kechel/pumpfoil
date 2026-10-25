@@ -71,7 +71,9 @@ export function DmWidget() {
   const dragRef = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
   const startDrag = (e: React.PointerEvent) => {
     if (window.innerWidth < 768 || gross) return;   // mobil bzw. Vollbild: kein Drag
-    if ((e.target as HTMLElement).closest("button,input")) return;
+    // Auch Links nicht schlucken: das Profilbild im Kopf ist ein role="link" — mit Pointer-Capture kam sein Klick nie an
+    // (Jan, 25.10.2026: Hand-Cursor, aber der Klick verschob nur das Fenster).
+    if ((e.target as HTMLElement).closest("button,input,a,[role=link]")) return;
     const cur = pos ?? { x: 16, y: 80 };   // Default = right-4 / bottom-20
     dragRef.current = { sx: e.clientX, sy: e.clientY, ox: cur.x, oy: cur.y };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
