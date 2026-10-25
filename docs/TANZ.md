@@ -200,3 +200,9 @@ die drei Schlusstaenze zu einem Abschnitt (74:21–86:14) zusammengefasst. Getei
 
 Die Grenzen sind also aus Takt und Bestaetigungen geschaetzt, nicht von Jan gesetzt. Auffaellig: Jive misst
 hier ~70 /min, nicht ~88 (halbe 176 bpm) — als Muster-Datenpunkt mit Vorsicht behandeln.
+
+**Nachtrag (Jan, 25.10.2026): Tango bewegt den Arm viel weniger als Jive.** In #19046 bestaetigt: Streuung
+des Beschleunigungsbetrags je 10-s-Fenster — Tango 74:20–77:30 **0,06–0,10 g** (ruhigste Phase des Abends,
+trotzdem rhythmisch ~60–64 /min), Jive 78:20–81:20 **0,22–0,35 g**, Samba 0,11–0,15 g, Quickstep 0,08–0,18 g.
+Die Armbewegung trennt Tango/Jive viel klarer als der Takt; weder Uhr-Rechnung noch Server s1 nutzen bisher
+eine Amplitude als Merkmal -> Kandidat fuer das naechste Merkmal (erst an mehr markierten Abenden pruefen).
