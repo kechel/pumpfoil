@@ -1495,6 +1495,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 25.10. — Sportarten in den Apps (naechstes Release Android 1.1.45 / iOS):** Liste, Namen und Wind-Kacheln der 5 neuen
+  Wind-Sportarten sind im Code (48624da2). Offen: (1) Web und Apps laden die Liste von `GET /api/app/sports` statt sie
+  einzubauen (eingebaute Liste nur als Rueckfall), feste Wind-/Rekord-Tabellen ueber Gruppe/`rekorde` aus der Liste;
+  (2) Sortierung in den Apps wie im Web (Standard zuerst, Rest alphabetisch nach Namen, `other` zuletzt);
+  (3) Apps: bei `sport_profil.foil == false` keine On-Foil-Begriffe/Foil-Anteil. Jan: „eilt nicht".
+  Danach: SUP ohne Foil + Rudern (Schlaege statt Pumps, paddel.py wiederverwenden).
+
 - **📥 25.10. — Startversuche zu wenig gezaehlt (u439, Amazfit Active 2, Front-Start, Mail; GEMESSEN, Entscheidung Jan).**
   #12734 (26 min): ~18 GPS-Abschnitte >= 8 km/h, meist nur 1–2 Punkte (1 Hz), danach sofort langsam — kurze Starts
   mit Sturz, KEIN belegter App-Fehler (meine erste Mail-Fassung „GPS-Bug 1.0.12" war voreilig). Angezeigt: 0. Zwei
