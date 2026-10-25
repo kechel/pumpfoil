@@ -45,8 +45,8 @@ struct CommunityView: View {
     // Sportart wie im Web (19.10.2026): Rekorde und Bestenliste je Sportart; Standard Pumpfoil.
     @State private var sportart = "pumpfoil"
     @State private var sportListe: [String] = ["pumpfoil"]
-    private var istWind: Bool { ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "sup"].contains(sportart) }
-    private var istMotor: Bool { ["efoil", "foildrive", "towed"].contains(sportart) }
+    private var istWind: Bool { Sportarten.windArtig(sportart) }   // Gruppe aus der Server-Liste (25.10.2026)
+    private var istMotor: Bool { Sportarten.motor(sportart) }
 
     private let periods: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     private let gridCols = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]

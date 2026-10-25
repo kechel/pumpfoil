@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
         SessionCache.init(applicationContext)   // Detail-Disk-Cache + Eviction (>90 T)
         ThemeState.load(applicationContext)
         I18n.load(applicationContext)
+        Sportarten.laden(applicationContext)   // Sportarten vom Server (gemerkt + frisch), 25.10.2026
         PumpUnit.load(applicationContext)   // Pump-Kadenz als Hz oder Pumps/min (Profil-Einstellung)
         ListenAnsicht.load(applicationContext)   // Session-Listen als Kacheln oder Zeilen
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen

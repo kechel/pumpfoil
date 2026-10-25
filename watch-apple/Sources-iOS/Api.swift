@@ -1280,6 +1280,11 @@ enum Api {
     }
 
     // Öffentlicher News-Banner (DB-gesteuert, kein Auth nötig).
+    // Sportarten-Liste (oeffentlich, server/app/data/sportarten.json) — SportClass.swift `Sportarten`, 25.10.2026.
+    static func appSports() async throws -> SportListe {
+        try await request("/api/app/sports", method: "GET", body: nil, auth: false)
+    }
+
     static func newsBanner() async throws -> NewsBanner {
         try await request("/api/app/news", method: "GET", body: nil, auth: false)
     }

@@ -15,6 +15,8 @@ struct PumpfoilApp: App {
         if UserDefaults.standard.string(forKey: "appLang") == nil {
             UserDefaults.standard.set(Loc.systemLang(), forKey: "appLang")
         }
+        // Sportarten-Liste vom Server holen (gemerkter Stand gilt sofort, 25.10.2026, SportClass.swift).
+        Task { @MainActor in await Sportarten.laden() }
 
         // Nav-Bar + Statusleisten-Bereich global in Marken-Cyan (dunkle Titel/Inhalte), einmalig
         // über die UIKit-Appearance — stabil, kein per-View toolbarBackground (das löste in

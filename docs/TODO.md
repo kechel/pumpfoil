@@ -1495,14 +1495,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **📥 25.10. — Sportarten in den Apps (naechstes Release Android 1.1.45 / iOS):** Liste, Namen und Wind-Kacheln der 5 neuen
+- **🟢 25.10. — Sportarten in den Apps (naechstes Release Android 1.1.45 / iOS, Code fertig):** Liste, Namen und Wind-Kacheln der 5 neuen
   Wind-Sportarten sind im Code (48624da2). Offen: (1) Web und Apps laden die Liste von `GET /api/app/sports` statt sie
   einzubauen (eingebaute Liste nur als Rueckfall), feste Wind-/Rekord-Tabellen ueber Gruppe/`rekorde` aus der Liste;
   (2) Sortierung in den Apps wie im Web (Standard zuerst, Rest alphabetisch nach Namen, `other` zuletzt);
   (3) Apps: bei `sport_profil.foil == false` keine On-Foil-Begriffe/Foil-Anteil. Jan: „eilt nicht".
   **Stand 25.10. abends:** (2) und (3) in beiden Apps erledigt (sortiereSports, ohneFoil), dazu SUP ohne Foil (Schlaege),
   Heatmap „Allzeit", Gruende „Autofahrt"/„zu schnell" bei aussortierten Laeufen, Einrichtung mit den neuen Sportarten,
-  Cache-Schema 11. Offen bleibt nur (1) Liste vom Server laden. Geht mit Android 1.1.45 / iOS raus (Version noch nicht gebumpt).
+  Cache-Schema 11. (1) ebenfalls erledigt: Android `Sportarten.kt`, iOS `SportClass.swift` laden `/api/app/sports` beim Start
+  (gemerkt in Prefs/UserDefaults, eingebaute Liste als Rueckfall); Namen unbekannter Sportarten aus der Server-Liste,
+  Wind/Motor-Gruppen und Rekord-Saetze ueber `gruppe`/`rekorde`. Geht mit Android 1.1.45 / iOS raus (Version noch nicht gebumpt).
   Danach: SUP ohne Foil + Rudern (Schlaege statt Pumps, paddel.py wiederverwenden).
 
 - **📥 25.10. — Startversuche zu wenig gezaehlt (u439, Amazfit Active 2, Front-Start, Mail; GEMESSEN, Entscheidung Jan).**

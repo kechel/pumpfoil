@@ -1222,6 +1222,9 @@ object Api {
     }
 
     // Öffentlicher News-Banner (DB-gesteuert, kein Auth nötig).
+    // Sportarten-Liste (oeffentlich, server/app/data/sportarten.json) — roh, Sportarten.kt parst und merkt sie.
+    suspend fun appSportsRoh(): String = withContext(Dispatchers.IO) { http("GET", "/api/app/sports", null, auth = false) }
+
     suspend fun newsBanner(): NewsBanner = withContext(Dispatchers.IO) {
         json.decodeFromString(NewsBanner.serializer(), http("GET", "/api/app/news", null, auth = false))
     }

@@ -42,8 +42,8 @@ import kotlinx.serialization.json.putJsonObject
 // Standard (Stern). Der Server setzt ihn beim Anlegen und beim Umstellen der Sportart ein, aber nur
 // fuer Felder, die niemand von Hand gewaehlt hat (server/app/equipment_sport.py).
 private val FELDER = listOf("foil_id", "board_id", "stab_id", "mast_len_cm")
-private val SPORTARTEN = listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "surf_wave",
-    "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "foil_scoot")
+// Nur Sportarten MIT Foil (Server-Liste, Sportarten.kt, 25.10.2026) — ohne Foil gibt es keine Foil-Ausruestung.
+private val SPORTARTEN: List<String> get() = sortiereSports(Sportarten.ids().filter { it != "other" && Sportarten.foil(it) })
 
 @Composable
 fun EquipmentJeSportKarte(stabs: List<StabBrief>?, boards: List<BoardBrief>, myStabs: List<Int>, myMasts: List<Int>) {

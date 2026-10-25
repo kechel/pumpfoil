@@ -404,8 +404,8 @@ struct EquipmentJeSportSection: View {
     @State private var myFoils: [Int] = []
     @State private var foilNamen: [Int: String] = [:]
     private static let felder: [String] = ["foil_id", "board_id", "stab_id", "mast_len_cm"]
-    private static let sportarten: [String] = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
-        "surf_wave", "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "foil_scoot"]
+    // Nur Sportarten MIT Foil (Server-Liste, SportClass.swift `Sportarten`, 25.10.2026) — ohne Foil keine Foil-Ausruestung.
+    private static var sportarten: [String] { Sportarten.ids().filter { $0 != "other" && Sportarten.foil($0) } }
 
     var body: some View {
         Section {

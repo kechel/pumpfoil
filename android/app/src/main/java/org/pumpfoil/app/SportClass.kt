@@ -11,9 +11,8 @@ package org.pumpfoil.app
 // wakethief = Welle eines FREMDEN Boots mitnehmen · towed = am Seil hinterm Boot · surf_wave =
 // Ozeanwelle am Strand. `wake` bleibt nur als Label fuer Altbestaende (nicht mehr auswaehlbar).
 // `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan).
-val SPORTS = listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "surf_downwind",
-                    "surf_wave", "sup_paddle", "sup", "wakethief", "towed", "efoil",
-                    "foildrive", "foil_scoot", "other")
+// Seit 25.10.2026 vom Server (Sportarten.kt, GET /api/app/sports); eingebaut nur als Rueckfall.
+val SPORTS: List<String> get() = Sportarten.ids()
 
 /** Datenqualität — Müll/Dopplung, zählt nirgends. */
 val DATA_QUALITY = listOf("ok", "false_data", "duplicate", "test")
@@ -25,7 +24,7 @@ fun isClassified(sportClass: String?, dataQuality: String?): Boolean =
 /** Beschriftbare Werte: auswaehlbare Sportarten + stillgelegte Altwerte. Der Server kann Kategorien
  *  hinzufuegen, bevor diese App das Update hat — was hier NICHT drinsteht, bekommt das Label von
  *  „andere Sportart" statt eines rohen i18n-Keys auf dem Bildschirm. */
-private val LABELED_SPORTS = SPORTS + listOf("wake")
+private val LABELED_SPORTS: List<String> get() = SPORTS + listOf("wake")
 
 /** i18n-Key des Anzeige-Labels; Datenqualität schlägt die Sportart, weil sie mehr aussagt. */
 fun classLabelKey(sportClass: String?, dataQuality: String?): String {

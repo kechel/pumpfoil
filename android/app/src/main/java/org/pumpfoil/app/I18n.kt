@@ -109,7 +109,8 @@ object I18n {
             PTPT[key]?.let { return it }
             PT[key]?.let { return it }
         }
-        val row = S[key] ?: return key
+        // Sportart, die diese App noch nicht kennt: Name aus der Server-Liste (Sportarten.kt, 25.10.2026)
+        val row = S[key] ?: return (if (key.startsWith("cls.sport.")) Sportarten.name(key.removePrefix("cls.sport."), lang) else null) ?: key
         val overlayLangs = setOf("fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl")
         val fallback = if (lang in overlayLangs) (row["en"] ?: row["de"]) else row["de"]
         return row[lang] ?: fallback ?: row["en"] ?: key

@@ -134,8 +134,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var lbMetric by remember { mutableStateOf("sessions") }
     // Ausgeblendete Kennzahl gewaehlt (z. B. Pumps, dann Wingfoil)? -> zurueck auf Sessions.
     LaunchedEffect(sportart) {
-        val wind = sportart in setOf("wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "sup")
-        val motor = sportart in setOf("efoil", "foildrive", "towed")
+        val wind = Sportarten.windArtig(sportart)
+        val motor = Sportarten.motor(sportart)
         if ((wind && lbMetric in setOf("pumps", "runs")) || (motor && lbMetric == "pumps")) lbMetric = "sessions"
     }
     val scope = rememberCoroutineScope()
@@ -338,8 +338,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                         "pumps" to "leader.mostPumps", "spots" to "leader.mostSpots",
                                     ).filter { (id, _) ->
                                         // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
-                                        !((sportart in setOf("wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "sup") && (id == "pumps" || id == "runs")) ||
-                                          (sportart in setOf("efoil", "foildrive", "towed") && id == "pumps"))
+                                        !((Sportarten.windArtig(sportart) && (id == "pumps" || id == "runs")) ||
+                                          (Sportarten.motor(sportart) && id == "pumps"))
                                     }.forEach { (id, key) ->
                                         FilterChip(selected = lbMetric == id, onClick = { lbMetric = id }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
                                     }
@@ -536,8 +536,8 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
                sport: String? = null, nurSport: Boolean = false) {
     // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind ohne Gleit-/Pump-/Laufzahl-/Carve-
     // Rekorde und mit der laengsten Fahrt zuerst; Motor ohne Gleit-/Pump-Rekorde. Sonst wie bisher.
-    val wind = sport in setOf("wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "sup")
-    val motor = sport in setOf("efoil", "foildrive", "towed")
+    val wind = Sportarten.windArtig(sport)
+    val motor = Sportarten.motor(sport)
     val ohne = when {
         wind -> setOf("rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180")
         motor -> setOf("rec.longestGlide", "rec.sessionPumps")
@@ -629,16 +629,19 @@ private fun ytId(url: String?): String? {
 }
 private fun fmtDurC(s: Double): String = fmtLaufDauer(s)
 
-private val SPORT_REC: Map<String, List<String>> = run {
-    val wind = listOf("jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest")
-    val windOhneFoil = listOf("vmg_best", "upwind_m", "ride_longest", "ride_farthest")   // Kitesurfen, Windsurfen … (25.10.2026)
-    mapOf("wingfoil" to wind, "kitefoil" to wind, "parawing" to wind,
-          "kitesurf" to windOhneFoil, "windsurf" to windOhneFoil, "snowkite" to windOhneFoil, "kite_atb" to windOhneFoil, "kitebuggy" to windOhneFoil,
-          "sup_paddle" to listOf("paddle_success", "paddle_quote", "paddle_foil_longest"),
-          "sup" to listOf("ride_longest", "ride_farthest"),   // SUP ohne Foil (25.10.2026)
-          "wakethief" to listOf("wake_longest", "wake_time"),
-          "surf_downwind" to listOf("dw_ab", "dw_ab_speed"),
-          "surf_wave" to listOf("waves", "wave_longest"))
+// Rekord-Arten je Sportart: der Rekord-SATZ kommt aus der Server-Liste (Feld `rekorde`, Sportarten.kt), welche Kacheln
+// zu einem Satz gehoeren, steht hier (wie PWA). Ozeanwelle hat keinen Server-Satz, aber eigene Kacheln.
+private val REK_SAETZE: Map<String, List<String>> = mapOf(
+    "wind" to listOf("jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"),
+    "wind_ohne_foil" to listOf("vmg_best", "upwind_m", "ride_longest", "ride_farthest"),
+    "sup" to listOf("paddle_success", "paddle_quote", "paddle_foil_longest"),
+    "paddel" to listOf("ride_longest", "ride_farthest"),
+    "wake" to listOf("wake_longest", "wake_time"),
+    "downwind" to listOf("dw_ab", "dw_ab_speed"),
+)
+private fun sportRek(sport: String?): List<String> = when {
+    sport == "surf_wave" -> listOf("waves", "wave_longest")
+    else -> Sportarten.eintrag(sport)?.rekorde?.let { REK_SAETZE[it] } ?: emptyList()
 }
 
 /** Rekorde je Sportart (20.10.2026, wie PWA SPORT_REC): Label, Format, Eintrag. */
@@ -660,7 +663,7 @@ private fun sportRecItems(r: PeriodRecords?, sport: String?): List<RecItem> {
         "dw_ab" to Triple("rec.dwAb", km, r.dwAb), "dw_ab_speed" to Triple("rec.dwAbSpeed", kmh, r.dwAbSpeed),
         "waves" to Triple("rec.waves", n, r.waves), "wave_longest" to Triple("rec.waveLongest", dur, r.waveLongest),
     )
-    return (SPORT_REC[sport] ?: emptyList()).mapNotNull { k ->
+    return sportRek(sport).mapNotNull { k ->
         val (label, fmt, e) = def[k] ?: return@mapNotNull null
         // Quoten mit Anzahl („100 % von 146", 20.10.2026)
         val text = fmt(e?.value ?: 0.0).let { w -> e?.anzahl?.let { I18n.t("rec.ofN").replace("{p}", w).replace("{n}", "$it") } ?: w }

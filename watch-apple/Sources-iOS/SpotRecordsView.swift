@@ -21,21 +21,21 @@ struct RecRow: Identifiable {
 
 
 /// Rekorde je Sportart (20.10.2026, wie PWA SPORT_REC): welche Zusatz-Kacheln zu welcher Sportart gehoeren.
-let SPORT_REC: [String: [String]] = [
-    "wingfoil": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
-    "kitefoil": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
-    "parawing": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
-    "kitesurf": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
-    "windsurf": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
-    "snowkite": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
-    "kite_atb": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
-    "kitebuggy": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
-    "sup_paddle": ["paddle_success", "paddle_quote", "paddle_foil_longest"],
-    "sup": ["ride_longest", "ride_farthest"],
-    "wakethief": ["wake_longest", "wake_time"],
-    "surf_downwind": ["dw_ab", "dw_ab_speed"],
-    "surf_wave": ["waves", "wave_longest"],
+// Der Rekord-SATZ kommt aus der Server-Liste (Feld `rekorde`, SportClass.swift `Sportarten`, 25.10.2026), welche Kacheln
+// zu einem Satz gehoeren, steht hier. Ozeanwelle hat keinen Server-Satz, aber eigene Kacheln.
+let REK_SAETZE: [String: [String]] = [
+    "wind": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+    "wind_ohne_foil": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+    "sup": ["paddle_success", "paddle_quote", "paddle_foil_longest"],
+    "paddel": ["ride_longest", "ride_farthest"],
+    "wake": ["wake_longest", "wake_time"],
+    "downwind": ["dw_ab", "dw_ab_speed"],
 ]
+func sportRek(_ sport: String?) -> [String] {
+    if sport == "surf_wave" { return ["waves", "wave_longest"] }
+    guard let satz = Sportarten.eintrag(sport)?.rekorde else { return [] }
+    return REK_SAETZE[satz] ?? []
+}
 
 /// Eine Zusatz-Kachel je Sportart: Eintrag, Label und Format. In Schritten (Type-Checker).
 func sportRekordZeile(_ key: String, _ r: PeriodRecords, lang: String) -> RecRow? {
@@ -76,7 +76,7 @@ func sportRekordZeile(_ key: String, _ r: PeriodRecords, lang: String) -> RecRow
 
 func sportRekordZeilen(_ r: PeriodRecords?, lang: String, sport: String?) -> [RecRow] {
     guard let r = r else { return [] }
-    let keys: [String] = SPORT_REC[sport ?? ""] ?? []
+    let keys: [String] = sportRek(sport)
     return keys.compactMap { sportRekordZeile($0, r, lang: lang) }
 }
 
@@ -164,8 +164,8 @@ func hhmm(_ v: Double) -> String {
 }
 // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind mit laengster Fahrt zuerst, ohne Gleit-,
 // Pump-, Laufzahl- und Carve-Rekorde; Motor ohne Gleit-/Pump-Rekorde; sonst wie bisher.
-let wind: Bool = ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "sup"].contains(sport ?? "")
-let motor: Bool = ["efoil", "foildrive", "towed"].contains(sport ?? "")
+let wind: Bool = Sportarten.windArtig(sport)
+let motor: Bool = Sportarten.motor(sport)
 let ohne: Set<String> = wind ? ["rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180"]
     : (motor ? ["rec.longestGlide", "rec.sessionPumps"] : [])
 let kopf: [RecRow] = wind ? [row("rec.sessionTotal", r?.session_total) { String(format: "%.1f km", $0 / 1000.0) }] : []

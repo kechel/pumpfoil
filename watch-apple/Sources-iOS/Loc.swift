@@ -4963,7 +4963,11 @@ static let nlOverlay: [String: String] = {
             if let v = ptptOverlay[key] { return v }
             if let v = ptOverlay[key] { return v }
         }
-        guard let row = table[key] else { return key }
+        // Sportart, die diese App noch nicht kennt: Name aus der Server-Liste (SportClass.swift `Sportarten`, 25.10.2026)
+        guard let row = table[key] else {
+            if key.hasPrefix("cls.sport."), let n = Sportarten.name(String(key.dropFirst("cls.sport.".count)), lang) { return n }
+            return key
+        }
         // Overlay-Sprachen fallen auf Englisch zurück (nicht Deutsch), wenn ein Key im Overlay fehlt.
         let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl"]
         let fallback = overlayLangs.contains(lang) ? (row["en"] ?? row["de"]) : row["de"]

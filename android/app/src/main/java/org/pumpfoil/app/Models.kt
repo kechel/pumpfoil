@@ -1139,15 +1139,15 @@ data class PaddelVersuch(@SerialName("t_ms") val tMs: Long = 0, @SerialName("spr
                          val ergebnis: String = "nein", @SerialName("foil_s") val foilS: Double? = null,
                          @SerialName("schnell_s") val schnellS: Double? = null,
                          val linie: List<List<Double>> = emptyList(),
-                         @SerialName("schlag_pkt") val schlagPkt: List<List<Double>> = emptyList(),
-                         // Strecke pro Schlag in m (SUP ohne Foil, 25.10.2026, server/app/paddel.py)
-                         @SerialName("m_pro_schlag") val mProSchlag: Double? = null)
+                         @SerialName("schlag_pkt") val schlagPkt: List<List<Double>> = emptyList())
 
 @Serializable
 data class PaddelAntwort(val schlaege: Int = 0, @SerialName("schlaege_pro_min") val schlaegeProMin: Int? = null,
                          @SerialName("auf_foil") val aufFoil: Int = 0, val kurz: Int = 0,
                          val versuche: List<PaddelVersuch> = emptyList(),
-                         @SerialName("schlag_pkt") val schlagPkt: List<List<Double>> = emptyList())
+                         @SerialName("schlag_pkt") val schlagPkt: List<List<Double>> = emptyList(),
+                         // Strecke pro Schlag in m (SUP ohne Foil, 25.10.2026, server/app/paddel.py)
+                         @SerialName("m_pro_schlag") val mProSchlag: Double? = null)
 
 @Serializable
 data class ManoeverAntwort(val items: List<Manoever> = emptyList(), val zahlen: ManoeverZahlen? = null, val hoehe: Hoehe? = null,
