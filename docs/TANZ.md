@@ -220,3 +220,26 @@ Zugeordnet nach Merkmalen (Armbewegung = Streuung des Beschleunigungsbetrags je 
 - Offen: 11:10 (0,7 min) und 88:10 (1,2 min), ruhig, zu kurz/unklar. Weitere ruhige, rhythmische Minuten liegen
   AUSSERHALB der Uhr-Abschnitte (z. B. 13', 38', 93'–96'): die Uhr erkennt so ruhiges Tanzen nicht als Tanzen —
   dort koennte der zweite Bachata stecken. Merkmal-Idee wie beim Tango: Amplitude trennt die ruhigen Taenze.
+
+## Schnittmenge je Merkmal (Jans Idee, 25.10.2026) — gemessen
+
+Idee: jedes Merkmal (Takt, Armbewegung `akt`, Quer, Drehung, b1/b2, Accel-Streuung je Uhr-Achse x/y/z, Drehrate je
+Achse) grenzt auf wenige Taenze ein, die Schnittmenge ist der Treffer. Skript `scripts/tanz_schnittmenge.py` (nur
+lesend). 93 beschriftete Abschnitte, 1481 Fenster, 8 Abende; je Tanz nur **1–3 Abende** (Jive, Salsa 3; Disco-Fox,
+Bachata, Cha-Cha 1).
+
+| Abschnitte richtig | gegen ANDERE Abende | gegen andere Abschnitte (auch desselben Abends) |
+|---|---|---|
+| Schnittmenge, alle 12 Merkmale | 8 % | **46 %** |
+| naechstes Muster (wie s1), alle 12 | 22 % | 32 % |
+| Schnittmenge, Takt/akt/Quer/Drehung/b1/b2 | 14 % | 34 % |
+| naechstes Muster, dieselben 6, je Abend normiert | 27 % | 36 % |
+
+(Raten bei ~9 Taenzen: ~11 %.) Auf Fenster-Ebene (10 s) traegt es nicht: jedes Merkmal laesst ~6 Taenze uebrig,
+die Schnittmenge ist in 47 % der Fenster leer — nur auf Abschnitten (Median) sinnvoll.
+**Befund:** Innerhalb bekannter Abende ist die Schnittmenge klar besser als das naechste Muster, und die Achsen
+(Accel x/y/z, Kreisel) helfen (46 % gegen 34 %). Ueber Abende hinweg bricht ALLES auf ~20 % ein: die Abende
+unterscheiden sich staerker als die Taenze (Kurs/allein, Partner, Tagesform), und je Tanz gibt es zu wenige Abende.
+Die frueheren s1-Zahlen (an denselben Zeilen geeicht) waren deshalb zu optimistisch.
+**Folgerung:** Engpass sind beschriftete ABENDE je Tanz (Ziel >= 4–5), nicht die Rechnung. Bis dahin jede neue
+Auswertung gegen andere Abende messen (leave-one-session-out), sonst taeuscht man sich.
