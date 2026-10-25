@@ -388,12 +388,22 @@ class SessionRecorder {
     //
     // Bewusst NUR Diagnose: anders als der Layout-Canary schaltet das nichts ab. Ein Geraet, das
     // `onStop` nicht zuverlaessig ruft, wuerde sonst seine eigenen Funktionen abklemmen.
+    //
+    // Die Meldung liegt bis zur Bestaetigung des Servers in "crash_pend" (25.10.2026): bis dahin wurde
+    // die Marke schon beim Start geloescht und die Phase nur im RAM gehalten. Kam beim Neustart am See
+    // kein /config durch und wurde die App danach beendet, war der Absturz verloren — eine FR965 stand
+    // so trotz belegtem Absturz (#18889) auf 0. Ein neuerer Absturz ueberschreibt die Phase.
     hidden function _runCanaryRead() {
         var rc = Storage.getValue("run_canary");
+        var pend = Storage.getValue("crash_pend");
         if (rc instanceof Lang.Number && rc > 0) {
-            crashPending = true;
-            crashPhase = rc;
+            pend = rc;
+            _store("crash_pend", rc);
             try { Storage.deleteValue("run_canary"); } catch (e) { }
+        }
+        if (pend instanceof Lang.Number && pend > 0) {
+            crashPending = true;
+            crashPhase = pend;
         }
     }
 
@@ -1089,7 +1099,10 @@ class SessionRecorder {
             _layoutsFromConfig(data);
             // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.
             canaryPending = false;
-            crashPending = false;
+            if (crashPending) {
+                crashPending = false;
+                try { Storage.deleteValue("crash_pend"); } catch (e4) { }
+            }
             // Dasselbe fuer die Speicher-Meldung. deleteValue braucht keinen Platz, geht also
             // auch bei vollem Store; trotzdem in try, damit ein Fehlschlag nichts beendet.
             if (storageFullPending) {
