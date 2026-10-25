@@ -11,7 +11,7 @@ import Foundation
 // Ozeanwelle am Strand. `wake` bleibt nur als Label für Altbestände (nicht mehr auswählbar).
 // `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan).
 let SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "surf_downwind",
-              "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
+              "surf_wave", "sup_paddle", "sup", "wakethief", "towed", "efoil",
               "foildrive", "foil_scoot", "other"]
 
 /// Datenqualität — Müll/Dopplung, zählt nirgends.

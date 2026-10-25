@@ -31,6 +31,7 @@ let SPORT_REC: [String: [String]] = [
     "kite_atb": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
     "kitebuggy": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
     "sup_paddle": ["paddle_success", "paddle_quote", "paddle_foil_longest"],
+    "sup": ["ride_longest", "ride_farthest"],
     "wakethief": ["wake_longest", "wake_time"],
     "surf_downwind": ["dw_ab", "dw_ab_speed"],
     "surf_wave": ["waves", "wave_longest"],
@@ -163,7 +164,7 @@ func hhmm(_ v: Double) -> String {
 }
 // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind mit laengster Fahrt zuerst, ohne Gleit-,
 // Pump-, Laufzahl- und Carve-Rekorde; Motor ohne Gleit-/Pump-Rekorde; sonst wie bisher.
-let wind: Bool = ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy"].contains(sport ?? "")
+let wind: Bool = ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "sup"].contains(sport ?? "")
 let motor: Bool = ["efoil", "foildrive", "towed"].contains(sport ?? "")
 let ohne: Set<String> = wind ? ["rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180"]
     : (motor ? ["rec.longestGlide", "rec.sessionPumps"] : [])

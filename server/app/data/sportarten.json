@@ -2,8 +2,9 @@
  "_lies_mich": [
   "EINE Liste der Sportarten fuer Server, Web, Apps und Uhren (Jan, 25.10.2026: „eigentlich sollte das eine einzige zentrale liste sein der sportarten fuer alle apps/uhren/web … mit flags welche detections / analysen / regeln gelten“).",
   "Gelesen von server/app/sportarten.py; ausgeliefert unter GET /api/app/sports. Reihenfolge = Anzeige-Reihenfolge, `other` bleibt letzter.",
-  "Felder: id (<= 16 Zeichen, DB-Spalte), gruppe (pump|wind|welle|motor; null = wie pump), foil (gibt es On-Foil-Fahren), uhr (Name auf der Uhr; fehlt = nicht auf der Uhr waehlbar), profil (Abweichungen vom Anzeige-Profil der Gruppe, s. standard_profil/gruppen_profil), grenzen (band_kmh = Bandgrenze der Lauferkennung, lauf_max_kmh = schnellster plausibler Lauf; fehlt = Pumpfoil-Werte), autofahrt_kmh (Spitze, ab der eine schnelle Strecke Autofahrt ist; null = keine Autofahrt-Erkennung; fehlt = Standard), rekorde (Rekord-Satz in sportrekorde.py), namen (Anzeigename je Sprache; fehlt eine Sprache, gilt en).",
-  "25.10.2026: kitesurf, windsurf, snowkite, kite_atb, kitebuggy dazu (Jan: „wie wingfoil/kitefoil behandelt, aber ganz ohne on-foil erkennung … jibes/tacks/vmg interessant“). Fahrten = Wind-Erkennung ueber die Tempo-Schwelle je Session; foil=false blendet Foil-Begriffe aus. Tempogrenzen sind ANNAHMEN (Rekorde der Disziplinen mit Abstand), noch nicht am Bestand gemessen — es gibt keine Sessions."
+  "Felder: id (<= 16 Zeichen, DB-Spalte), gruppe (pump|wind|welle|motor|paddel; null = wie pump), foil (gibt es On-Foil-Fahren), land (true = an Land/auf Schnee: keine Gewaessersuche fuer Spot-Namen und Start-/End-Marker; fehlt = Wassersport), uhr (Name auf der Uhr; fehlt = nicht auf der Uhr waehlbar), profil (Abweichungen vom Anzeige-Profil der Gruppe, s. standard_profil/gruppen_profil), grenzen (band_kmh = Bandgrenze der Lauferkennung, lauf_max_kmh = schnellster plausibler Lauf; fehlt = Pumpfoil-Werte), autofahrt_kmh (Spitze, ab der eine schnelle Strecke Autofahrt ist; null = keine Autofahrt-Erkennung; fehlt = Standard), rekorde (Rekord-Satz in sportrekorde.py), namen (Anzeigename je Sprache; fehlt eine Sprache, gilt en).",
+  "25.10.2026: kitesurf, windsurf, snowkite, kite_atb, kitebuggy dazu (Jan: „wie wingfoil/kitefoil behandelt, aber ganz ohne on-foil erkennung … jibes/tacks/vmg interessant“). Fahrten = Wind-Erkennung ueber die Tempo-Schwelle je Session; foil=false blendet Foil-Begriffe aus. Tempogrenzen sind ANNAHMEN (Rekorde der Disziplinen mit Abstand), noch nicht am Bestand gemessen — es gibt keine Sessions.",
+  "25.10.2026: sup (SUP ohne Foil) dazu, Gruppe paddel (Jan: „SUP (ohne foil) fehlt noch, das ist wie Rudern“). Fahrten = GPS-Zustandsmaschine ohne Modell ab 3 km/h (Ende unter 2 km/h nach 15 s), Schlaege aus app/paddel.py ueber die ganze Session, keine Paddle-up-Versuche. Tempogrenzen sind ANNAHMEN (SUP-Sprint ~12 km/h, Downwind ohne Foil schneller)."
  ],
  "standard_profil": {
   "karte": "laeufe",
@@ -29,6 +30,15 @@
    "tempo_skala": [
     8,
     30
+   ]
+  },
+  "paddel": {
+   "karte": "ganz",
+   "hauptzahl": "gesamt",
+   "pumpzahlen": false,
+   "tempo_skala": [
+    2,
+    12
    ]
   }
  },
@@ -223,6 +233,7 @@
    "id": "snowkite",
    "gruppe": "wind",
    "foil": false,
+   "land": true,
    "uhr": "Snowkite",
    "grenzen": {
     "band_kmh": 80.0,
@@ -255,6 +266,7 @@
    "id": "kite_atb",
    "gruppe": "wind",
    "foil": false,
+   "land": true,
    "uhr": "Kite ATB",
    "grenzen": {
     "band_kmh": 65.0,
@@ -287,6 +299,7 @@
    "id": "kitebuggy",
    "gruppe": "wind",
    "foil": false,
+   "land": true,
    "uhr": "Kite buggy",
    "grenzen": {
     "band_kmh": 85.0,
@@ -351,24 +364,24 @@
    "foil": true,
    "uhr": "Wave",
    "namen": {
-    "en": "Ocean wave (foil, surf)",
-    "de": "Ozeanwelle (Foil, Surfen)",
-    "de-AT": "Ozeanwelle (Foil, Surfen)",
-    "gsw": "Ozeanwälle (Foil, Surfe)",
-    "fr": "Vague océanique (foil, surf)",
-    "it": "Onda dell'oceano (foil, surf)",
-    "es": "Ola del océano (foil, surf)",
-    "pt": "Onda do oceano (foil, surf)",
-    "pt-PT": "Onda do oceano (foil, surf)",
-    "nl": "Oceaangolf (foil, surfen)",
-    "nb": "Havbølge (foil, surf)",
-    "fi": "Valtameren aalto (foil, surffaus)",
-    "cs": "Oceánská vlna (foil, surf)",
-    "pl": "Fala oceaniczna (foil, surfing)",
-    "ru": "Океанская волна (фойл, сёрф)",
-    "ja": "海のうねり（フォイル、サーフ）",
-    "zh": "海浪（水翼，冲浪）",
-    "id": "Ombak laut (foil, surf)"
+    "en": "Ocean wave (foil)",
+    "de": "Ozeanwelle (Foil)",
+    "de-AT": "Ozeanwelle (Foil)",
+    "gsw": "Ozeanwälle (Foil)",
+    "fr": "Vague océanique (foil)",
+    "it": "Onda dell'oceano (foil)",
+    "es": "Ola del océano (foil)",
+    "pt": "Onda do oceano (foil)",
+    "pt-PT": "Onda do oceano (foil)",
+    "nl": "Oceaangolf (foil)",
+    "nb": "Havbølge (foil)",
+    "fi": "Valtameren aalto (foil)",
+    "cs": "Oceánská vlna (foil)",
+    "pl": "Fala oceaniczna (foil)",
+    "ru": "Океанская волна (фойл)",
+    "ja": "海のうねり（フォイル）",
+    "zh": "海浪（水翼）",
+    "id": "Ombak laut (foil)"
    }
   },
   {
@@ -399,6 +412,38 @@
     "ja": "SUP／パドル（フォイル）",
     "zh": "SUP / 划桨（水翼）",
     "id": "SUP / mengayuh (foil)"
+   }
+  },
+  {
+   "id": "sup",
+   "gruppe": "paddel",
+   "foil": false,
+   "uhr": "SUP no foil",
+   "grenzen": {
+    "band_kmh": 15.0,
+    "lauf_max_kmh": 25.0
+   },
+   "autofahrt_kmh": 30.0,
+   "rekorde": "paddel",
+   "namen": {
+    "en": "SUP (no foil)",
+    "de": "SUP (ohne Foil)",
+    "de-AT": "SUP (ohne Foil)",
+    "gsw": "SUP (ohni Foil)",
+    "fr": "SUP (sans foil)",
+    "it": "SUP (senza foil)",
+    "es": "SUP (sin foil)",
+    "pt": "SUP (sem foil)",
+    "pt-PT": "SUP (sem foil)",
+    "nl": "SUP (zonder foil)",
+    "nb": "SUP (uten foil)",
+    "fi": "SUP (ilman foilia)",
+    "cs": "SUP (bez foilu)",
+    "pl": "SUP (bez foila)",
+    "ru": "SUP (без фойла)",
+    "ja": "SUP（フォイルなし）",
+    "zh": "桨板（无水翼）",
+    "id": "SUP (tanpa foil)"
    }
   },
   {

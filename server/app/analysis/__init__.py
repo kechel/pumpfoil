@@ -84,9 +84,10 @@ def _accel_spans_session(accel, scale) -> bool:
 def _gps_only_ok(sport, sport_class: str | None = None) -> bool:
     """GPS-only-Erkennung erlaubt? Ja bei einem Wassersport in der Datei — und bei Wind-Sportarten OHNE Foil
     (Kitesurfen, Snowkite, Kitebuggy …, 25.10.2026): dort sind die Fahrten Bewegung ueber einer Tempo-Schwelle, und die
-    Datei nennt oft etwas Unpassendes (Snowkite als „snowboarding", Buggy als „generic")."""
+    Datei nennt oft etwas Unpassendes (Snowkite als „snowboarding", Buggy als „generic"). Ebenso SUP ohne Foil (Gruppe
+    paddel, 25.10.2026)."""
     from ..sportarten import FOIL, GRUPPE
-    if sport_class and GRUPPE.get(sport_class) == "wind" and FOIL.get(sport_class) is False:
+    if sport_class and GRUPPE.get(sport_class) in ("wind", "paddel") and FOIL.get(sport_class) is False:
         return True
     return (sport or "").lower() in GPS_ONLY_SPORTS
 
@@ -731,7 +732,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         detection = "none"
     # OSM-Wasserfläche (gecacht je Ort) für die End-/Start-Marker-Korrektur. Nur in der
     # finalen Analyse (kein Netz im Live-Pfad); Fehler/kein Treffer -> None (keine Korrektur).
-    water_rings = _water_rings_cached(db, gps_samples) if final else None
+    # Land-Sportarten (Snowkite, Kite-ATB, Kitebuggy; sportarten.LAND, 25.10.2026): kein Wasser zu suchen.
+    from ..sportarten import LAND as _LAND
+    water_rings = (_water_rings_cached(db, gps_samples)
+                   if final and (session.sport_class or "pumpfoil") not in _LAND else None)
 
     # Die vom Besitzer gewählte Empfindlichkeit IST seine maßgebliche Analyse — überall gleich,
     # öffentlich wie privat (Community/Rekorde/Bestenlisten/Listen inklusive). normal =
@@ -772,6 +776,13 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
             from .windlauf import schwellen as _wind_schwellen, v2_parameter as _wind_param
             _wind_sw = _wind_schwellen(gps_samples)
             _v2_kw = _wind_param(_wind_sw)
+        # PADDELN OHNE FOIL (SUP, 25.10.2026, Jan: „das ist wie Rudern"): eine Fahrt ist Paddeln in Bewegung — dieselbe
+        # GPS-Zustandsmaschine ohne Modell mit festen, langsamen Schwellen (analysis/paddellauf.py).
+        _paddel = _GRUPPE.get(session.sport_class or "pumpfoil") == "paddel"
+        if _paddel:
+            from .paddellauf import SCHWELLEN as _paddel_sw, v2_parameter as _paddel_param
+            _wind_sw = dict(_paddel_sw)
+            _v2_kw = _paddel_param()
         res = analyze_session_v2(session, judge_fremdkraft=_judge, **_v2_kw)
         # Erkennung v3 (Jans OK 30.09.2026, docs/DETECTION-V3.md): Nachbearbeitung der Laeufe mit
         # dem Erkennungsmodell — nur in der FINALEN Analyse, nur fuer Modell-Sessions am
@@ -779,10 +790,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         # gewinnt immer; was v3 wegnimmt, steht mit Grund in metrics.fremdkraft_laeufe (quelle v3)
         # und laesst sich dort zurueckholen. Faellt bei jedem Fehler auf das v2-Ergebnis zurueck.
         from .v3.nachbearbeitung import anwenden as _v3_anwenden, detector_v3_enabled
-        if final and accel_usable and detector_v3_enabled() and not _wind:
+        if final and accel_usable and detector_v3_enabled() and not _wind and not _paddel:
             res = _v3_anwenden(res, session, _judge, _sens)
         if _wind_sw is not None:
-            res.setdefault("metrics", {})["wind_erkennung"] = _wind_sw
+            res.setdefault("metrics", {})["paddel_erkennung" if _paddel else "wind_erkennung"] = _wind_sw
         res.pop("windows", None)
         res.pop("timebase", None)
         if detection == "none":

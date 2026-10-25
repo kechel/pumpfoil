@@ -244,7 +244,7 @@ def _sport_zahlen(session, result, segments, foil_s):
     (Laengen haengen nicht an „Ort verbergen")."""
     from ..sportzahlen import berechnen
     gruppe = sportprofil.profil(session.sport_class)["gruppe"]
-    if gruppe not in ("wind", "motor", "welle"):
+    if gruppe not in ("wind", "motor", "welle", "paddel"):
         return None
     try:
         track = json.loads(result.track_geojson) if isinstance(result.track_geojson, str) else result.track_geojson
@@ -3979,7 +3979,7 @@ def session_paddel(
     """Paddelschlaege und Paddle-up-Versuche (nur SUP/Paddeln mit Accel, NUR ANZEIGE; app/paddel.py).
     None, wenn es nichts auszuwerten gibt. Zeiten `versuche[].t_ms` in Session-ms."""
     s = _readable(db, session_id)
-    if (s.sport_class or "pumpfoil") != "sup_paddle":
+    if (s.sport_class or "pumpfoil") not in ("sup_paddle", "sup"):
         return None
     return paddel_gecacht(db, s)
 
@@ -3987,10 +3987,13 @@ def session_paddel(
 def paddel_gecacht(db, s, nur_cache: bool = False) -> dict | None:
     from .. import paddel
 
+    # SUP ohne Foil (25.10.2026): die Fahrten SIND das Paddeln -> Schlaege ueber die ganze Session, keine Paddle-up-Versuche.
+    ohne_foil = (s.sport_class or "") == "sup"
+
     def rechnen(tb, res, off):
-        laeufe = [(g["t_start_ms"] / 1000.0 + off, g["t_end_ms"] / 1000.0 + off) for g in _laeufe(res)]
-        return paddel.auswerten(tb.t_accel_ms / 1000.0, tb.accel, tb.accel_hz, tb.gps, laeufe)
-    return _accel_auswertung_gecacht(db, s, "paddel", paddel.VERSION, rechnen, nur_cache)
+        laeufe = [] if ohne_foil else [(g["t_start_ms"] / 1000.0 + off, g["t_end_ms"] / 1000.0 + off) for g in _laeufe(res)]
+        return paddel.auswerten(tb.t_accel_ms / 1000.0, tb.accel, tb.accel_hz, tb.gps, laeufe, versuche=not ohne_foil)
+    return _accel_auswertung_gecacht(db, s, "paddel", paddel.VERSION + ("-ohne-foil" if ohne_foil else ""), rechnen, nur_cache)
 
 
 @router.get("/{session_id}/welle-pumpen")

@@ -48,10 +48,11 @@ def _tempo_kmh(t_s: np.ndarray, gps: list) -> np.ndarray:
 
 
 def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
-              laeufe: list[tuple[float, float]]) -> dict | None:
+              laeufe: list[tuple[float, float]], versuche: bool = True) -> dict | None:
     """`t_s`: Session-Sekunden je Accel-Sample, `accel`: (N, 3) in beliebiger, fester Einheit (nur
     Verhaeltnisse zaehlen), `laeufe`: erkannte Laeufe als (Beginn, Ende) in Session-Sekunden.
-    None, wenn zu wenig Daten fuer einen Grundausschlag da sind."""
+    None, wenn zu wenig Daten fuer einen Grundausschlag da sind. `versuche=False` (SUP ohne Foil): keine
+    Paddle-up-Versuche, nur die Schlaege."""
     from scipy.ndimage import maximum_filter1d, uniform_filter1d
     from scipy.signal import butter, filtfilt, find_peaks
 
@@ -99,9 +100,9 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
         return [[round(float(a_), 6), round(float(b_), 6)]
                 for a_, b_ in zip(np.interp(ts, g_pos[:, 0], g_pos[:, 1]), np.interp(ts, g_pos[:, 0], g_pos[:, 2]))]
 
-    versuche = []
+    liste = []
     n = len(t_s)
-    for lo, hi in fenster:
+    for lo, hi in (fenster if versuche else []):
         if t_s[hi - 1] - t_s[lo] < SPRINT_MIN_S or im_lauf[lo] or kmh[lo] > START_MAX_KMH:
             continue
         # Der Sprint endet, wo ein Lauf beginnt (danach ist es Pumpen/Fahren, keine Sprintschlaege mehr).
@@ -126,7 +127,7 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
             e.update(ergebnis="kurz", schnell_s=round(schnell_s, 1))
         else:
             e["ergebnis"] = "nein"
-        versuche.append(e)
+        liste.append(e)
 
     # Ort je gezaehltem Schlag fuer die Karte (Jan, 20.10.2026: der Knopf „Strokes" soll Schlaege aus DIESER
     # Erkennung zeigen, nicht die Pumps der Pump-Erkennung). GPS linear auf den Schlag-Zeitpunkt interpoliert.
@@ -136,7 +137,7 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
         "schlag_pkt": schlag_pkt,
         "schlaege": int(len(ausserhalb)),
         "schlaege_pro_min": round(rate) if rate else None,
-        "versuche": versuche,
-        "auf_foil": sum(1 for v in versuche if v["ergebnis"] == "foil"),
-        "kurz": sum(1 for v in versuche if v["ergebnis"] == "kurz"),
+        "versuche": liste,
+        "auf_foil": sum(1 for v in liste if v["ergebnis"] == "foil"),
+        "kurz": sum(1 for v in liste if v["ergebnis"] == "kurz"),
     }

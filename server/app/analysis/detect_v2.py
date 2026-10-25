@@ -472,7 +472,7 @@ def detect_v2(
     min_segment_s: float = v1.MIN_SEGMENT_S, min_seg_avg_speed: float = v1.MIN_SEG_AVG_SPEED,
     use_model: bool = True, keep_windows: list | None = None, judge_fremdkraft: bool = True,
     max_foil_speed: float = v1.MAX_FOIL_SPEED, run_max_kmh: float = v1.RUN_MAX_PLAUSIBLE_KMH,
-    exit_dwell_s: float = v1.EXIT_DWELL_S,
+    exit_dwell_s: float = v1.EXIT_DWELL_S, move_floor_mps: float = v1.MOVE_FLOOR_MPS,
 ) -> dict:
     """Rechnet die Erkennung v2 auf einer fertigen Zeitachse. Alle Zeiten im Ergebnis sind
     SESSION-Millisekunden. Schreibt nichts, liest nichts nach."""
@@ -568,7 +568,8 @@ def detect_v2(
     mask &= ~veto
     # Dieselben physischen Böden wie v1 (gps.py): unter EXIT_SPEED trägt kein Foil, eine
     # unbrauchbare Position ist wertlos, und ohne echte Positionsbewegung gibt es keinen Vortrieb.
-    mask &= (speed_s >= exit_speed) & quality_ok & (pos_speed_s >= v1.MOVE_FLOOR_MPS)
+    # `move_floor_mps` weicht nur beim Paddeln ohne Foil ab (analysis/paddellauf.py, 25.10.2026: SUP faehrt 5-8 km/h).
+    mask &= (speed_s >= exit_speed) & quality_ok & (pos_speed_s >= move_floor_mps)
 
     speeds = {"1": speed, "3": speed_s, "5": speed5}
     segments = v1._segments_from_mask(mask, t_ms, gps_hz, step, speeds,

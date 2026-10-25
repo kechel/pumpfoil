@@ -82,8 +82,13 @@ DOWNWIND = (
 # Welche Sportart welchen Satz hat, steht seit 25.10.2026 in der EINEN Liste (data/sportarten.json, Feld `rekorde`).
 # Wind ohne Foil (Kitesurfen, Windsurfen, Snowkite … — 25.10.2026): ohne die Quoten und Zahlen „on foil durchgefahren".
 WIND_OHNE_FOIL = tuple(m for m in WIND if m.key not in ("jibe_quote", "tack_quote", "jibes_foil"))
+# Paddeln ohne Foil (SUP, 25.10.2026): laengste und weiteste Fahrt aus sport_zahlen (Cache „downwind" = sport_zahlen).
+PADDEL = (
+    Metrik("ride_longest", "downwind", lambda e: _max(e.get("fahrten"), "dauer_s")),
+    Metrik("ride_farthest", "downwind", lambda e: _max(e.get("fahrten"), "strecke_m")),
+)
 SAETZE: dict[str, tuple[Metrik, ...]] = {"wind": WIND, "wind_ohne_foil": WIND_OHNE_FOIL, "sup": SUP, "wake": WAKE,
-                                         "downwind": DOWNWIND}
+                                         "downwind": DOWNWIND, "paddel": PADDEL}
 from .sportarten import REKORDE as _REKORDE  # noqa: E402
 JE_SPORT: dict[str, tuple[Metrik, ...]] = {sp: SAETZE[satz] for sp, satz in _REKORDE.items()}
 

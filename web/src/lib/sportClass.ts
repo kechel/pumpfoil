@@ -9,7 +9,7 @@
 // `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan) — ein Wert,
 // alle drei Namen im Label.
 export const SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "surf_downwind",
-                       "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
+                       "surf_wave", "sup_paddle", "sup", "wakethief", "towed", "efoil",
                        "foildrive", "foil_scoot", "other"] as const;
 /** Datenqualität — Müll/Dopplung, zählt nirgends. */
 export const DATA_QUALITY = ["ok", "false_data", "duplicate", "test"] as const;
@@ -36,6 +36,8 @@ export function classLabelKey(s: { sport_class?: string | null; data_quality?: s
 // Server kein Profil mitbekommen (z. B. Rekord-Kacheln einer gewaehlten Sportart).
 export const WIND_SPORTS = ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy"];
 export const MOTOR_SPORTS = ["efoil", "foildrive", "towed"];
+// Paddeln ohne Foil (SUP, 25.10.2026): Rekorde/Bestenlisten wie Wind — keine Pumps, Laeufe, Gleiten, Carves.
+export const PADDEL_SPORTS = ["sup"];
 
 // Sortierung aller Sportart-Listen (Jan, 25.10.2026: „die sportartenliste bitte immer alphabetisch sortieren, nur
 // pumpfoil (oder das eigene default) ganz oben"): eigene Standard-Sportart zuerst, „other" als Sammelposten zuletzt,

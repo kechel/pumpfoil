@@ -149,14 +149,18 @@ def _session_geom(db, s):
     return SessionGeom(sid=s.id, points=pts, dist_m=dist, start=pts[0])
 
 
-def name_for(lat, lon):
+def name_for(lat, lon, land: bool = False):
     """(name, source, water) für einen Punkt. Priorität (Locals benennen Spots nach dem ORT):
       1. Ortschaft (place=village/town/city) — z. B. „Immenstaad am Bodensee", „Vaires-sur-Marne"
       2. Ufer-Venue (leisure=sports_centre/marina/beach…) — falls kein Ort in Reichweite
       3. Gewässername
     Ort-zuerst ist auch am konsistentesten (die Venue-Abfrage ist flakiger). Gewässername kommt
-    IMMER als Label (water) mit. name=None -> nichts gefunden/Fehler (Aufrufer kann später erneut)."""
+    IMMER als Label (water) mit. name=None -> nichts gefunden/Fehler (Aufrufer kann später erneut).
+    `land` (Snowkite, Kite-ATB, Kitebuggy; 25.10.2026): nur Ortschaft — keine Gewaesser- und keine Ufer-Venue-Suche
+    (Marina/Strand/Badestelle waeren dort falsche Namen), water bleibt None."""
     from .places import lookup_place_name, lookup_shore_name, lookup_water_name
+    if land:
+        return _name_an_land(lat, lon)
     water = lookup_water_name(lat, lon)          # str | "" | None
     town = lookup_place_name(lat, lon)
     if town:
@@ -183,6 +187,35 @@ def name_for(lat, lon):
     if nah:
         return nah[0], "geonames", None
     return None, None, None
+
+
+def _name_an_land(lat, lon):
+    """Wie name_for, nur Ortschaft: Overpass, dann Nominatim (dessen Gewaessername verworfen), dann GeoNames offline."""
+    from .orte_offline import naechster_ort
+    from .places import lookup_place_name, lookup_place_nominatim
+    town = lookup_place_name(lat, lon)
+    if town:
+        return town, "town", None
+    ort, _ = lookup_place_nominatim(lat, lon)
+    if ort:
+        return ort, "town", None
+    nah = naechster_ort(lat, lon, max_km=40.0)
+    if nah:
+        return nah[0], "geonames", None
+    return None, None, None
+
+
+def ist_land(sport_class) -> bool:
+    from .sportarten import LAND
+    return (sport_class or "pumpfoil") in LAND
+
+
+def _land_spot(db, spot_id: int) -> bool:
+    """Ein Spot gilt als Land-Spot, wenn ALLE seine Sessions eine Land-Sportart haben (gemischte bleiben Wasser)."""
+    from . import models
+    arten = {sc for (sc,) in db.query(models.Session.sport_class)
+             .filter(models.Session.spot_id == spot_id, models.Session.deleted.isnot(True)).distinct()}
+    return bool(arten) and all(ist_land(sc) for sc in arten)
 
 
 def rebuild_all(db, apply: bool = False):
@@ -541,7 +574,7 @@ def name_pending_spots(db, max_spots: int | None = None) -> dict:
         q = q.limit(max_spots)
     named = pending = 0
     for sp in q.all():
-        name, src, water = name_for(sp.lat, sp.lon)
+        name, src, water = name_for(sp.lat, sp.lon, land=_land_spot(db, sp.id))
         if name is None and (sp.area_name or "").strip():
             # Letzter Rueckfall: die Ortslage. `name_for` verlangt Ortschaft/Venue/Gewaesser —
             # ein Bezirk oder County faellt dort durch, und der Spot bleibt fuer immer namenlos
@@ -819,10 +852,11 @@ def assign_one(db, s, erzwingen: bool = False):
     g = _session_geom(db, s)
     if g is None:
         return
+    land = ist_land(s.sport_class)
     # Spot nur fuer echte Pumpfoil-Sessions mit On-Foil. Sonst: nur Name (kein Spot).
     r = s.result
     if not erzwingen and not (s.is_pumpfoil and r and (r.num_runs or 0) > 0):
-        name, src, water = name_for(*g.start)
+        name, src, water = name_for(*g.start, land=land)
         s.spot_id = None
         if name:
             s.place_name = name
@@ -865,10 +899,12 @@ def assign_one(db, s, erzwingen: bool = False):
             return abstand_m(p[0], p[1], g.start[0], g.start[1])
         home = min(drin, key=_steg_abstand) if drin else None
         if home is None:
-            # Start liegt in keinem Spot -> echte Traverse: nur Gewässername, kein Spot.
-            _, _, w = name_for(*g.start)
+            # Start liegt in keinem Spot -> echte Traverse: nur Gewässername, kein Spot (an Land: der Ort).
+            n_, _, w = name_for(*g.start, land=land)
             s.spot_id = None
-            if w:
+            if land and n_:
+                s.place_name = n_; s.place_water = None
+            elif w:
                 s.place_name = w; s.place_water = w
         else:
             # Nur das Polygon des Heimat-Spots wächst mit — sonst würde die lange Fahrt die
@@ -908,7 +944,7 @@ def assign_one(db, s, erzwingen: bool = False):
                 s.place_name = sp.name
             s.place_water = sp.water_name
         else:
-            name, src, water = name_for(*g.start)
+            name, src, water = name_for(*g.start, land=land)
             if name:
                 name = _unique_name(db, name)
             sp = models.Spot(name=name, name_source=src, water_name=water,
@@ -946,11 +982,12 @@ def trennen(db, alt_id: int, session_ids: list[int], name: str | None = None, no
         raise ValueError("keine Geometrie")
     lat0 = geoms[0].start[0]
     poly = unary_union([_poly_m(g.points or [g.start], lat0) for g in geoms])
+    land = all(ist_land(s.sport_class) for s in sess)
     if name:
         nm, src = _unique_name(db, name.strip()), "manual"
-        water = name_for(*geoms[0].start)[2]
+        water = name_for(*geoms[0].start, land=land)[2]
     else:
-        nm, src, water = name_for(*geoms[0].start)
+        nm, src, water = name_for(*geoms[0].start, land=land)
         nm = _unique_name(db, nm) if nm else None
     neu = models.Spot(name=nm, name_source=src, water_name=water, lat=geoms[0].start[0], lon=geoms[0].start[1],
                       poly_wkt=_m_to_wkt(poly, lat0))

@@ -32,7 +32,8 @@ import math
 FAHRT_PAUSE_S = 300.0
 BEWEGT_KMH = 4.0
 LUECKE_S = 10.0     # laengere Schritte sind Luecken (Pause, Dropout) und zaehlen nicht als Fahrzeit
-GRUPPEN = ("wind", "motor", "welle")
+GRUPPEN = ("wind", "motor", "welle", "paddel")
+BEWEGT_KMH_PADDEL = 2.0   # Paddeln ohne Foil (SUP, 25.10.2026): 4 km/h waere langsames Touren schon „Pause"
 
 
 def _schritt(a, b) -> float:
@@ -60,7 +61,8 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
         return None
     if zeiten_ms is not None and len(zeiten_ms) != len(coords):
         zeiten_ms = None
-    bewegt = lambda v: v is not None and v * 3.6 >= BEWEGT_KMH
+    schwelle = BEWEGT_KMH_PADDEL if gruppe == "paddel" else BEWEGT_KMH
+    bewegt = lambda v: v is not None and v * 3.6 >= schwelle
     if not speeds:
         fahrzeit = None
     elif zeiten_ms is None:
@@ -92,7 +94,7 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
         out["wellen"] = {"anzahl": len(segments), "laengste_s": round(dauer[i]), "laengste_m": round(strecke[i]),
                          "reiten_s": round(reiten),
                          "paddeln_s": round(max(0.0, fahrzeit - reiten)) if fahrzeit else None}
-    if (gruppe == "wind" or sport in ("surf_downwind", "efoil", "foildrive")) and segments:
+    if (gruppe in ("wind", "paddel") or sport in ("surf_downwind", "efoil", "foildrive")) and segments:
         segs = sorted(segments, key=lambda g: g.get("t_start_ms") or 0)
         fahrten: list[list[dict]] = []
         for g in segs:

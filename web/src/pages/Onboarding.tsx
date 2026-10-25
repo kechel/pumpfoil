@@ -124,7 +124,7 @@ function schrittMerken(i: number | null) {
 }
 
 const SPORTARTEN = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb",
-                    "kitebuggy", "surf_downwind", "efoil", "foildrive", "other"];
+                    "kitebuggy", "surf_downwind", "sup", "efoil", "foildrive", "other"];
 
 export default function Onboarding() {
   const { t } = useI18n();

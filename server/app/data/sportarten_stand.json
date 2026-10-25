@@ -843,6 +843,167 @@
           "en": "Does not apply."
         }
       }
+    },
+    "paddel": {
+      "en": "Paddling (no foil)",
+      "merkmale": {
+        "erkennung": {
+          "status": "teilweise",
+          "en": "Rides are paddling in motion: from 3 km/h, ending after 15 seconds below 2 km/h, without the pumpfoil model.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "analysis/paddellauf.py (paddel-1); Schwellen sind Annahmen, an 12 sup_paddle-Sessions lesend probiert (Touren-Sessions u70/u277: lange Fahrten; u836 mit Foil-Versuchen zerfaellt in kurze)."
+        },
+        "tempo": {
+          "status": "live",
+          "en": "Own limits for paddling (band 15 km/h, runs up to 25 km/h).",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "data/sportarten.json; Annahmen."
+        },
+        "autofahrt": {
+          "status": "live",
+          "en": "Car trips are cut out above 30 km/h.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ]
+        },
+        "karte": {
+          "status": "live",
+          "en": "The whole session, coloured by speed.",
+          "seit": "2026-10-25",
+          "wo": [
+            "web",
+            "android",
+            "ios"
+          ]
+        },
+        "kartenschalter": {
+          "status": "nein",
+          "en": "Not needed, the whole session is shown."
+        },
+        "kennzahlen": {
+          "status": "live",
+          "en": "Total distance, time, moving time and speed first; no on-foil numbers.",
+          "seit": "2026-10-25",
+          "wo": [
+            "web"
+          ]
+        },
+        "pumps": {
+          "status": "nein",
+          "en": "Hidden, there are strokes instead."
+        },
+        "startversuche": {
+          "status": "nein",
+          "en": "Pumpfoil only."
+        },
+        "rekorde": {
+          "status": "teilweise",
+          "en": "Distance, duration and top speed like every sport; no glide, pump or run-count records.",
+          "seit": "2026-10-25",
+          "wo": [
+            "web"
+          ]
+        },
+        "einordnung": {
+          "status": "nein",
+          "en": "Not offered yet; the owner picks the sport."
+        },
+        "fahrten": {
+          "status": "live",
+          "en": "Paddling with breaks of up to 5 minutes counts as one ride, each with duration and distance.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "sportzahlen.py, Gruppe paddel, bewegt ab 2 km/h."
+        },
+        "wind_am_spot": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "wenden_halsen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "spruenge": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "wellen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "hoehe": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "tempo_je_wind": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_strecke": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "windfenster": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "quote_verlauf": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "welle_paddeln": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "downwind_verbunden": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "eigene_erkennung": {
+          "status": "live",
+          "en": "Own ride detection for paddling, without the pumpfoil model.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ]
+        },
+        "welle_pumpen": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "paddeln_foil": {
+          "status": "nein",
+          "en": "Does not apply."
+        },
+        "paddelschlaege": {
+          "status": "live",
+          "en": "Strokes and strokes per minute over the whole session, from the watch's motion data.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server",
+            "web"
+          ],
+          "notiz": "app/paddel.py mit versuche=False, Cache p4-ohne-foil."
+        },
+        "sport_rekorde": {
+          "status": "live",
+          "en": "Longest and farthest ride, for the community, per spot and per time window, and your own on Home and your profile.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server",
+            "web"
+          ]
+        }
+      }
     }
   },
   "sportarten": [
@@ -1065,6 +1226,11 @@
           }
         }
       }
+    },
+    {
+      "id": "sup",
+      "en": "SUP (no foil)",
+      "gruppe": "paddel"
     },
     {
       "id": "wingfoil",
@@ -1495,6 +1661,31 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-25",
+      "sport": [
+        "snowkite",
+        "kite_atb",
+        "kitebuggy"
+      ],
+      "merkmal": "erkennung",
+      "was": "Land-Sportarten: Spot-Name nur aus dem Ort (keine Gewaesser-/Ufer-Suche), keine Wasserflaechen fuer Start-/End-Marker.",
+      "wo": [
+        "server"
+      ]
+    },
+    {
+      "datum": "2026-10-25",
+      "sport": [
+        "sup"
+      ],
+      "merkmal": "erkennung",
+      "was": "Neu: SUP ohne Foil (Gruppe Paddeln, wie Rudern) — Fahrten ab 3 km/h ohne Pumpfoil-Modell, Schlaege ueber die ganze Session, laengste/weiteste Fahrt als Rekord.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-25",
       "sport": [

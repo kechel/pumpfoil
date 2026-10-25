@@ -503,7 +503,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     // Paddelschlaege + Paddle-up-Versuche (SUP, 20.10.2026).
     var paddel by remember(s.id) { mutableStateOf<PaddelAntwort?>(null) }
     LaunchedEffect(s.id, s.sportClass) {
-        paddel = if (s.sportClass == "sup_paddle") try { Api.sessionPaddel(s.id) } catch (_: Exception) { null } else null
+        paddel = if (s.sportClass == "sup_paddle" || s.sportClass == "sup") try { Api.sessionPaddel(s.id) } catch (_: Exception) { null } else null
     }
     // Skalen-Max: 0,6 g, aber höher wenn härter gecarvt (gedeckelt 1,0 g gegen GPS-Glitches).
     val carveGMax = remember(carve) {

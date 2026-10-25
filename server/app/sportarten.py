@@ -49,6 +49,10 @@ REKORDE: dict[str, str] = {e["id"]: e["rekorde"] for e in EINTRAEGE if e.get("re
 # Gibt es bei der Sportart On-Foil-Fahren? (False: keine Foil-Begriffe, kein Foil-Anteil, keine Foil-Ausruestung)
 FOIL: dict[str, bool] = {e["id"]: bool(e.get("foil", True)) for e in EINTRAEGE}
 
+# An Land / auf Schnee (Snowkite, Kite-ATB, Kitebuggy — Jan, 25.10.2026: „bei landsportarten … ist eine gewaessersuche nicht
+# angebracht"): Spot-Namen ohne Gewaesser/Ufer-Venue, keine Wasserflaechen fuer die Start-/End-Marker.
+LAND: frozenset[str] = frozenset(e["id"] for e in EINTRAEGE if e.get("land"))
+
 
 def name(sport_id: str, lang: str = "en") -> str:
     e = JE_ID.get(sport_id) or next((x for x in _DOC.get("stillgelegt", []) if x["id"] == sport_id), None)
@@ -62,7 +66,7 @@ def fuer_clients() -> dict:
     """Die Liste fuer Web, Apps und Uhren (GET /api/app/sports): je Sportart Gruppe, Kennzeichen, fertiges Anzeige-Profil
     und Namen in allen Sprachen. `version` aendert sich mit dem Inhalt (Cache-Schluessel der Clients)."""
     from .sportprofil import profil
-    sp = [{"id": e["id"], "gruppe": e.get("gruppe") or "pump", "foil": FOIL[e["id"]], "uhr": e.get("uhr"),
+    sp = [{"id": e["id"], "gruppe": e.get("gruppe") or "pump", "foil": FOIL[e["id"]], "land": e["id"] in LAND, "uhr": e.get("uhr"),
            "rekorde": e.get("rekorde"), "profil": profil(e["id"]), "namen": e.get("namen") or {}} for e in EINTRAEGE]
     alt = [{"id": e["id"], "namen": e.get("namen") or {}} for e in _DOC.get("stillgelegt", [])]
     import hashlib

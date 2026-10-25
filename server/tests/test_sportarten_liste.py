@@ -8,7 +8,7 @@ def test_liste_ist_gueltig():
     assert SA.SPORTS[-1] == "other"
     assert len(set(SA.SPORTS)) == len(SA.SPORTS)
     assert all(len(i) <= 16 for i in SA.SPORTS + SA.SPORTS_LEGACY)       # DB-Spalte String(16)
-    assert all(g in ("pump", "wind", "welle", "motor") for g in SA.GRUPPE.values())
+    assert all(g in ("pump", "wind", "welle", "motor", "paddel") for g in SA.GRUPPE.values())
     for e in SA.EINTRAEGE:
         assert set(e["namen"]) == SPRACHEN, (e["id"], SPRACHEN - set(e["namen"]))
         if e.get("rekorde"):

@@ -17,7 +17,7 @@ import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useT } from "../i18n";
-import { MOTOR_SPORTS, WIND_SPORTS, sortiereNachSport } from "../lib/sportClass";
+import { MOTOR_SPORTS, PADDEL_SPORTS, WIND_SPORTS, sortiereNachSport } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
 
 function InstallButton() {
@@ -184,6 +184,7 @@ export const SPORT_REC: Record<string, string[]> = {
   kite_atb: ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
   kitebuggy: ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
   sup_paddle: ["paddle_success", "paddle_quote", "paddle_foil_longest"],
+  sup: ["ride_longest", "ride_farthest"],
   wakethief: ["wake_longest", "wake_time"],
   surf_downwind: ["dw_ab", "dw_ab_speed"],
   surf_wave: ["waves", "wave_longest"],
@@ -199,7 +200,7 @@ function recItemsFuer(sport?: string) {
 }
 
 function recItemsBasis(sport?: string) {
-  if (sport && WIND_SPORTS.includes(sport)) {
+  if (sport && (WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport))) {
     // Die ganze Fahrt zuerst — beim Wingen ist sie die Hauptzahl (wie auf der Session-Seite).
     const rest = REC_ITEMS.filter((it) => !["glide", "session_pumps", "runs", "carves180", "session_total"].includes(it.key as string));
     return [REC_ITEMS.find((it) => it.key === "session_total")!, ...rest];
@@ -437,7 +438,7 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period:
         {/* Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
             dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher. */}
         {LEADER_KINDS.filter((k) => !(
-          (WIND_SPORTS.includes(sport) && (k.key === "pumps" || k.key === "runs"))
+          ((WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)) && (k.key === "pumps" || k.key === "runs"))
           || (MOTOR_SPORTS.includes(sport) && k.key === "pumps"))).map((k) => (
           <div key={k.key}>
             <div className="mb-1.5 text-[11px] uppercase tracking-wide text-slate-300">{t(k.labelKey)}</div>

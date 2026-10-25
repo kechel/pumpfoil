@@ -101,3 +101,33 @@ def test_nicht_oeffentliche_merkmale_fehlen():
     d = sport_stand_aufgeloest()
     assert "autofahrt" not in {m["id"] for m in d["merkmale"]}
     assert all(w["id"] != "autofahrt" for sp in d["sportarten"] for w in sp["merkmale"])
+
+
+def test_sup_ohne_foil_gruppe_paddel():
+    """SUP ohne Foil (25.10.2026): eigene Gruppe paddel, ganze Fahrt, keine Pumps, Fahrten-Erkennung ohne Modell."""
+    from app.analysis import _gps_only_ok
+    from app.analysis.paddellauf import v2_parameter
+    from app.sportprofil import profil
+    from app.sportrekorde import JE_SPORT
+    assert profil("sup") == {"gruppe": "paddel", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False,
+                             "tempo_skala": [2, 12], "foil": False}
+    assert profil("sup_paddle")["gruppe"] == "pump" and profil("sup_paddle")["foil"] is True
+    kw = v2_parameter()
+    assert kw["use_model"] is False and kw["move_floor_mps"] < 1.0 and kw["enter_speed"] < 1.0
+    assert _gps_only_ok("cycling", "sup") and not _gps_only_ok("cycling", "sup_paddle")
+    assert [m.key for m in JE_SPORT["sup"]] == ["ride_longest", "ride_farthest"]
+
+
+def test_land_sportarten_ohne_gewaessersuche(monkeypatch):
+    """Snowkite, Kite-ATB, Kitebuggy (25.10.2026): Spot-Name nur aus dem Ort, keine Gewaesser-/Ufer-Abfrage."""
+    from app import places, spots
+    from app.sportarten import LAND
+    assert LAND == {"snowkite", "kite_atb", "kitebuggy"}
+
+    def verboten(*a, **k):
+        raise AssertionError("Gewaessersuche bei Land-Sportart")
+    monkeypatch.setattr(places, "lookup_water_name", verboten)
+    monkeypatch.setattr(places, "lookup_shore_name", verboten)
+    monkeypatch.setattr(places, "lookup_place_name", lambda lat, lon, **k: "Sankt Peter-Ording")
+    assert spots.name_for(54.3, 8.6, land=True) == ("Sankt Peter-Ording", "town", None)
+    assert spots.ist_land("kitebuggy") and not spots.ist_land("kitesurf") and not spots.ist_land(None)

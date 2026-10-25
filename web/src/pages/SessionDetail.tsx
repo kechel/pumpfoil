@@ -562,6 +562,8 @@ export default function SessionDetail() {
   const gleitenMoeglich = pumpzahlen && session?.sport_class !== "sup_paddle"
     && (session?.analysis?.segments ?? []).some((g: any) => g.glides?.length);
   const hauptGesamt = profil?.hauptzahl === "gesamt";
+  // SUP mit und ohne Foil (ohne seit 25.10.2026): Paddelschlaege statt Pumps (server/app/paddel.py).
+  const schlagSport = session?.sport_class === "sup_paddle" || session?.sport_class === "sup";
   // Wind am Spot (Stand-Buch wind_am_spot, 19.10.2026): nur fuer Wind-Sportarten abrufen.
   const [wind, setWind] = useState<Awaited<ReturnType<typeof api.sessionWind>>["wind"]>(null);
   const [windVergleich, setWindVergleich] = useState<Awaited<ReturnType<typeof api.sessionWind>>["vergleich"]>(null);
@@ -588,7 +590,7 @@ export default function SessionDetail() {
   const [paddel, setPaddel] = useState<Awaited<ReturnType<typeof api.sessionPaddel>>>(null);
   useEffect(() => {
     setPaddel(null);
-    if (session?.sport_class !== "sup_paddle" || !session?.id) return;
+    if (!schlagSport || !session?.id) return;
     api.sessionPaddel(session.id).then(setPaddel).catch(() => {});
   }, [session?.id, session?.sport_class]);
   const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; speeds?: (number | null)[]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
@@ -1549,9 +1551,11 @@ export default function SessionDetail() {
     // gedimmten Läufen weglassen. Bleiben weiß.
     // SUP (Jan, 20.10.2026): der Knopf heisst dort „Paddelschlaege" und zeigt die Schlaege der Schlag-Erkennung
     // (/paddel, server/app/paddel.py), nicht die Pumps der Pump-Erkennung.
-    if (showPumps && session.sport_class === "sup_paddle") {
+    if (showPumps && schlagSport) {
       // Nur in den gezeigten Abschnitten (Jan, 20.10.2026): ganze Fahrt alle, „nur Foil" nur die Sprintschlaege.
-      const pkte = zeigeGanz ? (paddel?.schlag_pkt ?? []) : (paddel?.versuche ?? []).flatMap((v) => v.schlag_pkt ?? []);
+      // SUP ohne Foil hat kein „nur Foil" -> immer alle Schlaege.
+      const pkte = (zeigeGanz || session.sport_class === "sup") ? (paddel?.schlag_pkt ?? [])
+        : (paddel?.versuche ?? []).flatMap((v) => v.schlag_pkt ?? []);
       if (selectedRun == null) pkte.forEach((p) => {
         L.circleMarker(p, { radius: 2.5, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 0.9, interactive: false }).addTo(lg);
       });
@@ -2280,13 +2284,13 @@ export default function SessionDetail() {
               <ModeButton active={ganzeFahrt} onClick={() => setGanzeFahrt(true)}>{t("sd.mapWhole")}</ModeButton>
             </>
           )}
-          {pumpzahlen && (
+          {(pumpzahlen || schlagSport) && (
           <button
             onClick={() => setShowPumps((v) => !v)}
             className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showPumps ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
           >
             {/* SUP (Jan, 20.10.2026): dort sind es Paddelschlaege, keine Pumps. */}
-            <span className="inline-flex items-center gap-1">{session?.sport_class === "sup_paddle" ? t("sd.strokes") : t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
+            <span className="inline-flex items-center gap-1">{schlagSport ? t("sd.strokes") : t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
           )}
           {/* Nur, wenn die Analyse Gleitphasen geliefert hat (ab der Fassung vom 03.10.2026). */}

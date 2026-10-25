@@ -1711,7 +1711,7 @@ struct SessionDetailView: View {
     private func ladePaddel() async {
         paddel = nil; wellePumpen = nil
         if session?.sport_class == "wakethief" { wellePumpen = (try? await Api.sessionWellePumpen(sid)) ?? nil }
-        guard session?.sport_class == "sup_paddle" else { return }
+        guard session?.sport_class == "sup_paddle" || session?.sport_class == "sup" else { return }
         paddel = (try? await Api.sessionPaddel(sid)) ?? nil
     }
 

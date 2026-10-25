@@ -35,7 +35,7 @@ def test_trennen_bleibt_getrennt(client, monkeypatch):
     monkeypatch.setattr(spots, "_session_geom",
                         lambda _db, s: spots.SessionGeom(sid=s.id, points=geo[s.id], dist_m=200, start=geo[s.id][0])
                         if s.id in geo else None)
-    monkeypatch.setattr(spots, "name_for", lambda lat, lon: ("Ort", "venue", "Bucht"))
+    monkeypatch.setattr(spots, "name_for", lambda lat, lon, land=False: ("Ort", "venue", "Bucht"))
 
     def neu(start):
         s = _session(db, u.id, start)
