@@ -4,7 +4,8 @@
   "Gelesen von server/app/sportarten.py; ausgeliefert unter GET /api/app/sports. Reihenfolge = Anzeige-Reihenfolge, `other` bleibt letzter.",
   "Felder: id (<= 16 Zeichen, DB-Spalte), gruppe (pump|wind|welle|motor|paddel; null = wie pump), foil (gibt es On-Foil-Fahren), land (true = an Land/auf Schnee: keine Gewaessersuche fuer Spot-Namen und Start-/End-Marker; fehlt = Wassersport), uhr (Name auf der Uhr; fehlt = nicht auf der Uhr waehlbar), profil (Abweichungen vom Anzeige-Profil der Gruppe, s. standard_profil/gruppen_profil), grenzen (band_kmh = Bandgrenze der Lauferkennung, lauf_max_kmh = schnellster plausibler Lauf; fehlt = Pumpfoil-Werte), autofahrt_kmh (Spitze, ab der eine schnelle Strecke Autofahrt ist; null = keine Autofahrt-Erkennung; fehlt = Standard), rekorde (Rekord-Satz in sportrekorde.py), namen (Anzeigename je Sprache; fehlt eine Sprache, gilt en).",
   "25.10.2026: kitesurf, windsurf, snowkite, kite_atb, kitebuggy dazu (Jan: „wie wingfoil/kitefoil behandelt, aber ganz ohne on-foil erkennung … jibes/tacks/vmg interessant“). Fahrten = Wind-Erkennung ueber die Tempo-Schwelle je Session; foil=false blendet Foil-Begriffe aus. Tempogrenzen sind ANNAHMEN (Rekorde der Disziplinen mit Abstand), noch nicht am Bestand gemessen — es gibt keine Sessions.",
-  "25.10.2026: sup (SUP ohne Foil) dazu, Gruppe paddel (Jan: „SUP (ohne foil) fehlt noch, das ist wie Rudern“). Fahrten = GPS-Zustandsmaschine ohne Modell ab 3 km/h (Ende unter 2 km/h nach 15 s), Schlaege aus app/paddel.py ueber die ganze Session, keine Paddle-up-Versuche. Tempogrenzen sind ANNAHMEN (SUP-Sprint ~12 km/h, Downwind ohne Foil schneller)."
+  "25.10.2026: sup (SUP ohne Foil) dazu, Gruppe paddel (Jan: „SUP (ohne foil) fehlt noch, das ist wie Rudern“). Fahrten = GPS-Zustandsmaschine ohne Modell ab 3 km/h (Ende unter 2 km/h nach 15 s), Schlaege aus app/paddel.py ueber die ganze Session, keine Paddle-up-Versuche. Tempogrenzen sind ANNAHMEN (SUP-Sprint ~12 km/h, Downwind ohne Foil schneller).",
+  "25.10.2026: Autofahrt-Grenze Snowkite 115 -> 70, Kite-ATB 90 -> 60 km/h (Jan, nach #197: Autofahrt mit 87 km/h Spitze lief als Snowkite-Fahrt durch); Lauf-Spitze/Band mitgezogen (65/55 bzw. 55/50)."
  ],
  "standard_profil": {
   "karte": "laeufe",
@@ -236,10 +237,10 @@
    "land": true,
    "uhr": "Snowkite",
    "grenzen": {
-    "band_kmh": 80.0,
-    "lauf_max_kmh": 110.0
+    "band_kmh": 55.0,
+    "lauf_max_kmh": 65.0
    },
-   "autofahrt_kmh": 115.0,
+   "autofahrt_kmh": 70.0,
    "rekorde": "wind_ohne_foil",
    "namen": {
     "en": "Snowkite (land)",
@@ -269,10 +270,10 @@
    "land": true,
    "uhr": "Kite ATB",
    "grenzen": {
-    "band_kmh": 65.0,
-    "lauf_max_kmh": 85.0
+    "band_kmh": 50.0,
+    "lauf_max_kmh": 55.0
    },
-   "autofahrt_kmh": 90.0,
+   "autofahrt_kmh": 60.0,
    "rekorde": "wind_ohne_foil",
    "namen": {
     "en": "Kite mountainboard (land, ATB)",
