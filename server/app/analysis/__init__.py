@@ -547,6 +547,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     gps_samples = storage.load_gps(session.session_uuid)
     gps_roh = gps_samples   # ungeschnitten, Session-ms — fuer die Sportart-Regel (sportregel.py)
     accel = storage.load_accel(session.session_uuid)
+    accel_roh = accel   # ungeschnitten, vor dem Raster — fuer die Startversuche (startversuche.py)
 
     # Autofahrten aus den ROHEN Punkten (ganze Aufnahme), bevor irgendetwas zugeschnitten wird —
     # sie wirken danach wie aussortierte Fenster (analyse_ausschluss). Je Sportart eigene Schwelle,
@@ -657,9 +658,12 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # verbleibenden GPS-Punkten synchron. Kein Detektor-Parameter wird angefasst.
     _excl = analyse_ausschluss(session)
     if _excl and gps_fuer_versuche:
-        # Die Kopie ist NICHT re-based -> die Fenster gelten hier unveraendert (Session-ms).
+        # Die Kopie ist NICHT re-based -> die Fenster gelten hier unveraendert (Session-ms). Ausnahme: beim MANUELLEN
+        # Zuschnitt ist sie es doch (s. oben) — dann um den Zuschnitt verschieben (bis 25.10. fehlte das, die Fenster
+        # lagen dort um trim_start_ms daneben; betraf nur die Zahl der Startversuche).
+        _vo = float(lo) if (manuell_zugeschnitten and (ts0 is not None or ts1 is not None)) else 0.0
         gps_fuer_versuche = [x for x in gps_fuer_versuche
-                             if not any(a <= x[0] <= b for a, b in _excl)]
+                             if not any(a <= x[0] + _vo <= b for a, b in _excl)]
     if _excl and gps_samples:
         _off = (ts0 or 0) if (ts0 is not None or ts1 is not None) else 0  # GPS ist beim Trim auf 0 re-based
         _wins = [(a - _off, b - _off) for a, b in _excl]
@@ -1030,8 +1034,25 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # Felder/Stats an.
     # Startversuche NUR bei Pumpfoil (Jan, 12.10.2026): eine aussortierte Session zaehlte bis dahin
     # weiter ihre Versuche — in die Start-Erfolgsquote, obwohl sie gar nicht als Pumpfoil gilt.
-    result.start_attempts_json = (json.dumps(attempt_distances(gps_fuer_versuche, session.gps_hz))
-                                  if session.is_pumpfoil else json.dumps([]))
+    # Seit 25.10.2026 (startversuche-1, Jan: „fuer alle so aktivieren bei pumpfoil"): „Ruhe -> schnell -> Ruhe oder
+    # GPS-Abriss" aus GPS + Anlauf in der Beschleunigung, statt des attempts-Presets, das kurze Starts mit Sturz
+    # verpasste (#12734 Front-Start: 22 statt 0). Laeufe zaehlen immer als Versuch. Scheitert die neue Rechnung, gilt
+    # die alte — eine Anzeige darf die Analyse nie kosten.
+    if session.is_pumpfoil:
+        try:
+            from .startversuche import fuer_session as _versuche
+            _vs_off = float(lo) if manuell_zugeschnitten else 0.0
+            _vs_lauf = [((g.get("t_start_ms") or 0) / 1000.0 + (float(lo) - _vs_off) / 1000.0,
+                         float(g.get("distance_m") or 0.0)) for g in res["segments"]]
+            _vs = _versuche(session, gps_roh, accel_roh, gps_fuer_versuche, _vs_off, _vs_lauf)
+            if _vs is None:     # keine brauchbare Beschleunigung -> alte Zaehlung
+                _vs = attempt_distances(gps_fuer_versuche, session.gps_hz)
+        except Exception:
+            logging.getLogger(__name__).exception("Startversuche fehlgeschlagen fuer Session %s", session.id)
+            _vs = attempt_distances(gps_fuer_versuche, session.gps_hz)
+        result.start_attempts_json = json.dumps(_vs)
+    else:
+        result.start_attempts_json = json.dumps([])
     # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
     result.carve_s = result.carve_m = result.carve_l = None
     # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).

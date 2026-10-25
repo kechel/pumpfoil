@@ -3579,7 +3579,7 @@ def get_attempts(
     if len(gps) < 3:
         return leer
     from ..analysis import analyse_ausschluss
-    from ..analysis.gps import SENSITIVITY_PRESETS, analyze_gps
+    from ..analysis import startversuche as SV
 
     # Session-ms bleiben Session-ms: hier wird NICHT auf den Zuschnitt re-based (s. Docstring).
     punkte = [list(r) for r in gps]
@@ -3587,10 +3587,21 @@ def get_attempts(
         punkte = [r for r in punkte if not (a <= r[0] <= b)]
     if len(punkte) < 3:
         return leer
+    # Dieselben Versuche wie die Kachel (seit 25.10.2026 startversuche-1, run_analysis): die alte Zaehlung plus die
+    # durch einen Anlauf in der Beschleunigung belegten neuen, ohne Doppelte (SV.DOPPELT_S). Ohne Accel nur die alte.
     try:
-        res = analyze_gps(punkte, gps_hz=s.gps_hz or 1, **(SENSITIVITY_PRESETS.get("attempts") or {}))
+        versuche = SV.alte_versuche(punkte, s.gps_hz)
     except Exception:
         return leer
+    try:
+        anl = SV.anlaeufe_session(s, gps, storage.load_accel(s.session_uuid))
+        if anl:
+            for e in SV.startversuche(punkte, anl):
+                if not any(abs(e["t"] - v["t"]) < SV.DOPPELT_S for v in versuche):
+                    versuche.append(e)
+    except Exception:
+        import logging as _logging
+        _logging.getLogger(__name__).exception("Startversuche (Karte) fehlgeschlagen fuer Session %s", s.id)
 
     # Laeufe in SESSION-ms: die gespeicherten Segmente sind auf den Trim re-based
     # (docs/DATA-PIPELINE.md) -> Trim-Offset wieder draufrechnen.
@@ -3606,10 +3617,11 @@ def get_attempts(
     hi = int(s.trim_end_ms) if s.trim_end_ms is not None else None
 
     aus = []
-    for sg in (res.get("segments") or []):
-        a, b = int(sg["i_start"]), int(sg["i_end"])
+    for sg in sorted(versuche, key=lambda v: v["t"]):
+        a, b = int(sg["i0"]), int(sg["i1"])
         t0, t1 = int(punkte[a][0]), int(punkte[b][0])
-        if any(t0 <= r1 and t1 >= r0 for r0, r1 in laeufe):
+        if any(t0 <= r1 and t1 >= r0 for r0, r1 in laeufe) or any(
+                abs(sg["t"] * 1000.0 - r0) < SV.DOPPELT_S * 1000.0 for r0, _ in laeufe):
             continue                      # geglueckt -> das ist ein Lauf, den zeichnet die Karte
         linie = [[float(r[1]), float(r[2])] for r in punkte[a:b + 1]
                  if r[1] is not None and r[2] is not None]
@@ -3618,9 +3630,9 @@ def get_attempts(
         aus.append({
             "points": linie,
             "t_start_ms": t0,
-            "duration_s": float(sg.get("duration_s") or 0.0),
-            "distance_m": round(float(sg.get("distance_m") or 0.0), 1),
-            "avg_speed_mps": round(float(sg.get("avg_speed_mps") or 0.0), 2),
+            "duration_s": float(sg.get("dauer_s") or 0.0),
+            "distance_m": round(float(sg.get("strecke_m") or 0.0), 1),
+            "avg_speed_mps": round(float(sg["strecke_m"]) / sg["dauer_s"], 2) if sg.get("dauer_s") else 0.0,
             "outside_trim": bool((lo is not None and t1 < lo) or (hi is not None and t0 > hi)),
         })
     return {"attempts": aus}
