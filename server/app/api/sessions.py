@@ -153,7 +153,8 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #   8 = dasselbe fuer Downwind (20.10.2026).
 #   9 = `sport_zahlen.tempo_kmh` nur noch aus der Strecke IN Bewegung (24.10.2026, #18978: 43,6 statt 9,3 km/h).
 #       Gerechnet beim Ausliefern, die Session aendert sich nicht — ohne Bump bekamen Clients 304 mit dem alten Wert.
-_OUT_VERSION = 9
+#  10 = `analysis.start_attempts` aus der neuen Zaehlung startversuche-1 (25.10.2026, Front-Start #12734).
+_OUT_VERSION = 10
 
 
 def _ort_verborgen(s: models.Session) -> bool:
