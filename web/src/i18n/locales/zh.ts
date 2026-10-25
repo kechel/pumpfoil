@@ -67,7 +67,7 @@ const zh: Record<string, string> = {
   "board.rollHint": "倾斜、刻滑",
   "board.separate": "分开的图",
   "board.zoomReset": "重置缩放",
-  "board.zoomHint": "用鼠标拖选一段即可放大",
+  "board.zoomHint": "拖选一段即可放大（鼠标或手指）",
   "board.show": "姿态",
   "board.stats": "俯仰 ±{pitch}° · 侧倾 ±{roll}° · 偏航 {yaw}°/秒",
   "board.title": "板的姿态",

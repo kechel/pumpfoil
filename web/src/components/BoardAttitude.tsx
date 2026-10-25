@@ -123,28 +123,36 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
   const spanne = Math.max(1, t1 - t0);
   const idx = t_ms.length && pos != null ? Math.min(t_ms.length - 1, Math.round(pos * (t_ms.length - 1))) : 0;
   const x = Math.min(W - 1, Math.max(1, (pos ?? 0) * W));   // am Rand hineinziehen, sonst halb außerhalb
-  const bruch = (e: React.MouseEvent<SVGSVGElement>) => {
+  const bruch = (e: React.PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     return Math.min(1, Math.max(0, (e.clientX - r.left) / Math.max(1, r.width)));
   };
-  // ZOOM PER ZIEHEN (Nutzerwunsch 25.10.2026: Min/Max einzelner Pumps ablesen): mousedown merkt den
-  // Anfang, mouseup zoomt auf den Bereich. Ein blosser Klick (unter 1 % der Breite) zoomt nicht.
+  // ZOOM PER ZIEHEN (Nutzerwunsch 25.10.2026: Min/Max einzelner Pumps ablesen): Druck merkt den Anfang,
+  // Loslassen zoomt auf den Bereich. Ein blosser Klick (unter 1 % der Breite) zoomt nicht.
+  // Pointer-Events statt Maus-Events, damit es auch mit dem Finger geht (Jan am Handy: „zoom funktioniert
+  // nicht"); `touch-action: pan-y` laesst senkrechtes Wischen weiter die Seite scrollen — dann bricht der
+  // Browser die Geste mit pointercancel ab, und es wird nicht gezoomt.
   const [zieh, setZieh] = useState<{ a: number; b: number } | null>(null);
   const maus = {
-    onMouseDown: (e: React.MouseEvent<SVGSVGElement>) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      const p = bruch(e); setZieh({ a: p, b: p });
+    onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (e.pointerType === "mouse") e.preventDefault();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      const p = bruch(e); setZieh({ a: p, b: p }); onZeigen(p);
     },
-    onMouseMove: (e: React.MouseEvent<SVGSVGElement>) => {
+    onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
       const p = bruch(e); onZeigen(p);
       if (zieh) setZieh({ a: zieh.a, b: p });
     },
-    onMouseUp: () => {
+    onPointerUp: () => {
       if (zieh && Math.abs(zieh.b - zieh.a) > 0.01) onZoom(Math.min(zieh.a, zieh.b), Math.max(zieh.a, zieh.b));
       setZieh(null);
     },
-    onMouseLeave: () => { setZieh(null); onWeg(); },
+    onPointerCancel: () => setZieh(null),
+    onPointerLeave: () => { if (!zieh) onWeg(); },
+    // overscroll-behavior-x: waagrechtes Wischen mit zwei Fingern auf dem Touchpad loest sonst ueber dem
+    // Diagramm „Seite zurueck" aus (Jan sah nur einen angeflogenen Pfeil)
+    style: { touchAction: "pan-y", overscrollBehaviorX: "contain" } as React.CSSProperties,
   };
   const ziehRect = zieh && (
     <rect x={Math.min(zieh.a, zieh.b) * W} y={0} width={Math.abs(zieh.b - zieh.a) * W} height={H}
@@ -478,7 +486,7 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
             {t("board.zoomReset")}
           </button>
         ) : (
-          <span className="hidden text-xs text-slate-400 md:inline">{t("board.zoomHint")}</span>
+          <span className="text-xs text-slate-400">{t("board.zoomHint")}</span>
         )}
         <button onClick={() => setZusammen((v) => !v)}
           className={`rounded-lg px-2.5 py-1 text-xs font-medium ${zusammen

@@ -67,7 +67,7 @@ const es: Record<string, string> = {
   "board.rollHint": "Inclinación, carving",
   "board.separate": "Gráficos separados",
   "board.zoomReset": "Restablecer zoom",
-  "board.zoomHint": "Arrastra el ratón sobre un tramo para ampliarlo",
+  "board.zoomHint": "Arrastra sobre un tramo para ampliarlo (ratón o dedo)",
   "board.show": "Actitud",
   "board.stats": "Cabeceo ±{pitch}° · alabeo ±{roll}° · guiñada {yaw}°/s",
   "board.title": "Actitud de la tabla",

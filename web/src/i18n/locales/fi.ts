@@ -67,7 +67,7 @@ const fi: Record<string, string> = {
   "board.rollHint": "Kallistus, carvaus",
   "board.separate": "Erilliset kuvaajat",
   "board.zoomReset": "Palauta zoomaus",
-  "board.zoomHint": "Suurenna vetämällä hiirellä alueen yli",
+  "board.zoomHint": "Suurenna vetämällä alueen yli (hiiri tai sormi)",
   "board.show": "Asento",
   "board.stats": "Nyökkäys ±{pitch}° · kallistus ±{roll}° · kääntyminen {yaw}°/s",
   "board.title": "Laudan asento",

@@ -79,7 +79,7 @@ const ptPT: Record<string, string> = {
   "board.rollHint": "Inclinação, carving",
   "board.separate": "Gráficos separados",
   "board.zoomReset": "Repor zoom",
-  "board.zoomHint": "Arraste o rato sobre um intervalo para ampliar",
+  "board.zoomHint": "Arraste sobre um intervalo para ampliar (rato ou dedo)",
   "board.show": "Atitude",
   "board.stats": "Arfagem ±{pitch}° · rolamento ±{roll}° · guinada {yaw}°/s",
   "board.title": "Atitude da prancha",

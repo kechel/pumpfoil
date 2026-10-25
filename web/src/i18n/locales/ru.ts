@@ -67,7 +67,7 @@ const ru: Record<string, string> = {
   "board.rollHint": "Наклон, карвинг",
   "board.separate": "Отдельные графики",
   "board.zoomReset": "Сбросить масштаб",
-  "board.zoomHint": "Чтобы увеличить, выделите участок мышью",
+  "board.zoomHint": "Чтобы увеличить, проведите по участку (мышью или пальцем)",
   "board.show": "Положение",
   "board.stats": "Тангаж ±{pitch}° · крен ±{roll}° · рыскание {yaw}°/с",
   "board.title": "Положение доски",

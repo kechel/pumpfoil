@@ -59,7 +59,7 @@ const deAT: Record<string, string> = {
   "board.rigAssumed": "Rumpf {fuse} cm und d’Längspositionen san no gschätzt",
   "board.separate": "Getrennte Bilder",
   "board.zoomReset": "Zoom zurücksetzen",
-  "board.zoomHint": "Zum Vergrößern mit der Maus über einen Bereich ziehen",
+  "board.zoomHint": "Zum Vergrößern über einen Bereich ziehen (Maus oder Finger)",
   "board.zeroMid": "Nullpunkt ausm Mittelteil — kaan Lauf erkannt",
   "board.zeroRuns": "Nullpunkt aus de erkannten Läuf",
   "compare.short": "Vergleichen",

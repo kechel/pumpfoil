@@ -59,7 +59,7 @@ const gsw: Record<string, string> = {
   "board.rigAssumed": "Rumpf {fuse} cm und d Längsposizione sind no gschätzt",
   "board.separate": "Trennti Bilder",
   "board.zoomReset": "Zoom zrüggsetze",
-  "board.zoomHint": "Zum Vergrössere mit de Muus über en Bereich zieh",
+  "board.zoomHint": "Zum Vergrössere über en Bereich zieh (Muus oder Finger)",
   "board.zeroMid": "Nullpunkt us em Mittelteil — kein Lauf erkennt",
   "board.zeroRuns": "Nullpunkt us de erkennte Läuf",
   "compare.short": "Vergliiche",

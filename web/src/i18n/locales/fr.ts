@@ -67,7 +67,7 @@ const fr: Record<string, string> = {
   "board.rollHint": "Inclinaison, carving",
   "board.separate": "Graphiques séparés",
   "board.zoomReset": "Réinitialiser le zoom",
-  "board.zoomHint": "Faites glisser la souris sur une zone pour zoomer",
+  "board.zoomHint": "Faites glisser sur une zone pour zoomer (souris ou doigt)",
   "board.show": "Assiette",
   "board.stats": "Tangage ±{pitch}° · roulis ±{roll}° · lacet {yaw}°/s",
   "board.title": "Assiette de la planche",
