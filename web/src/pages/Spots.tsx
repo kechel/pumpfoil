@@ -56,7 +56,8 @@ export default function Spots() {
   // Oben ein Schalter „Spots | Heatmap" (Jan, 15.10.2026): bei Spots die Haken „gerade aktiv" /
   // „mit Beschreibung", bei Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins weg.
   const [ansicht, setAnsicht] = useState<"spots" | "heat">("spots");
-  const [heatZeitraum, setHeatZeitraum] = useState<"30d" | "365d">("365d");
+  // „Allzeit" statt „1 Jahr" (25.10.2026, server/app/heatmap.py ZEITRAEUME).
+  const [heatZeitraum, setHeatZeitraum] = useState<"30d" | "all">("all");
   // „Auf dem Foil" (die Laeufe) oder „Startpunkte" (wo die Laeufe beginnen) — Jan, 16.10.2026.
   const [heatArt, setHeatArt] = useState<"foil" | "start">("foil");
   const heat = ansicht === "heat" ? heatZeitraum : null;
@@ -300,7 +301,7 @@ export default function Spots() {
                 </button>
               ))}
               <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
-              {(["30d", "365d"] as const).map((p) => (
+              {(["30d", "all"] as const).map((p) => (
                 <button key={p} onClick={() => setHeatZeitraum(p)} aria-pressed={heatZeitraum === p}
                   className={`rounded-full border px-3 py-1 ${heatZeitraum === p
                     ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"

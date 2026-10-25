@@ -9,7 +9,7 @@ Jans Vorgaben:
     (Segmente `foiling`), nicht das Paddeln/Schwimmen dazwischen.
   * „Freunde / spezielle Rechte nicht beachten, exakt das gleiche fuer alle" — deshalb gibt es EINE
     Datei fuer alle, einmal taeglich vorgerechnet (scripts/heatmap-rechnen.py, Timer foil-heatmap).
-  * umschaltbar „letzte 30 Tage" / „letztes Jahr".
+  * umschaltbar „letzte 30 Tage" / „letztes Jahr" (seit 25.10.2026: „Allzeit" statt „letztes Jahr").
 
 RASTER: die Kacheln der Webkarte (Web-Mercator, wie OSM/Leaflet/osmdroid/MapKit). Feinste Stufe
 z=21: am Aequator 19 m, am Bodensee (47,7°) 13 m, in Mittelfinnland (61°) 9 m — feiner als das
@@ -35,7 +35,11 @@ import numpy as np
 
 Z_MAX = 21
 Z_MIN = 3
-ZEITRAEUME = {"30d": 30, "365d": 365}
+# „all" seit 25.10.2026 statt „365d" (Jan: „die heatmap sollte vielleicht auch eine all-time variante haben … die
+# ein-jahr variante kann dafuer weg" — Snowkiten im Winter, Pumpfoilen naechsten Sommer). None = ohne Grenze.
+ZEITRAEUME = {"30d": 30, "all": None}
+# Aeltere Apps fragen weiter „365d" ab (Knopf „1 Jahr" bis zum naechsten Release) -> bekommen Allzeit.
+ALIAS = {"365d": "all"}
 # Hoechstens so viele Zellen je Antwort; sonst eine Stufe groeber (s. `abfragen`).
 MAX_ZELLEN = 6000
 
@@ -153,7 +157,8 @@ def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
 
     jetzt = jetzt or datetime.now(timezone.utc)
     t0 = time.time()
-    seit = jetzt - timedelta(days=max(ZEITRAEUME.values()))
+    seit = (None if any(v is None for v in ZEITRAEUME.values())
+            else jetzt - timedelta(days=max(ZEITRAEUME.values())))
     # viewer_id=None: genau die Sessions, die die Community fuer ALLE zeigt (keine Freunde,
     # keine eigenen versteckten). accel_only=False: auch GPS-Aufnahmen haben Laeufe.
     # ALLE Sportarten (Jan, 16.10.2026, nach einem Hinweis aus dem Spot-Chat: die Scooter-Laeufe
@@ -165,7 +170,8 @@ def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
     rows = (_community(db.query(S.id, S.started_at, S.ort_sichtbarkeit, S.user_id, AR.id,
                                 AR.algo_version, func.length(AR.track_geojson), S.sport_class),
                        viewer_id=None, accel_only=False, sport="all", nur_foiling=False)
-            .filter(S.started_at >= seit, AR.track_geojson.isnot(None), AR.num_runs > 0,
+            .filter(S.started_at >= seit if seit is not None else S.started_at.isnot(None),
+                    AR.track_geojson.isnot(None), AR.num_runs > 0,
                     gueltig_fuer_spot(), S.needs_classification.isnot(True),
                     or_(S.sport_class.is_(None), S.sport_class != "other"))
             .all())
@@ -200,9 +206,9 @@ def rechnen(db, jetzt: datetime | None = None, log=print) -> dict:
     for art, spalte in (("foil", 1), ("start", 3)):
         for sport in ["all"] + sportarten:
             for name, tage in ZEITRAEUME.items():
-                grenze = jetzt - timedelta(days=tage)
+                grenze = jetzt - timedelta(days=tage) if tage is not None else None
                 listen = [e[spalte] for e in neu_cache.values()
-                          if e[2] >= grenze and len(e[spalte]) and (sport == "all" or e[4] == sport)]
+                          if (grenze is None or e[2] >= grenze) and len(e[spalte]) and (sport == "all" or e[4] == sport)]
                 if art == "foil":
                     ausgabe[f"n_{_praefix('foil', sport)}{name}"] = np.array([len(listen)])
                     if sport == "all":
@@ -256,6 +262,7 @@ def abfragen(zeitraum: str, zoom: int, w: float, s: float, e: float, n: float,
     vielen eine Stufe groeber. `max` ist die Skala fuer die Farbe: das 98. Perzentil der GANZEN
     Stufe, damit sich die Farben beim Verschieben nicht aendern."""
     d = _daten()
+    zeitraum = ALIAS.get(zeitraum, zeitraum)
     if d is None or zeitraum not in ZEITRAEUME or art not in ARTEN \
             or f"{_praefix(art, sport)}{zeitraum}_{Z_MAX}_k" not in d:
         return {"z": None, "cells": [], "max": 1, "stand": None, "sessions": 0}

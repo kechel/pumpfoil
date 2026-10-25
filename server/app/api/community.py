@@ -1783,7 +1783,7 @@ def _freundschaft_moeglich(db: Session, ich: models.User, anderer: models.User) 
 
 
 @router.get("/heatmap")
-def heatmap(period: str = Query("365d"), z: int = Query(10, ge=0, le=22),
+def heatmap(period: str = Query("all"), z: int = Query(10, ge=0, le=22),
             w: float = Query(-180), s: float = Query(-85), e: float = Query(180), n: float = Query(85),
             art: str = Query("foil"), sport: str = Query("all", max_length=40),
             user: models.User = Depends(current_user)) -> dict:

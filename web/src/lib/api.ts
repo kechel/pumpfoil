@@ -1306,7 +1306,7 @@ export const api = {
                        ausgehend: (FreundKurz & { am: string })[]; aktiv: AktiverFreund[] }>("/api/friends"),
   // Heatmap der Spot-Karte (app/heatmap.py): Kachel-Zellen (x, y, Sessions) auf Stufe `z`.
   /** `art`: „foil" = wo gefahren wird (die Laeufe), „start" = wo die Laeufe beginnen. */
-  heatmap: (period: "30d" | "365d", z: number, w: number, s: number, e: number, n: number,
+  heatmap: (period: "30d" | "all", z: number, w: number, s: number, e: number, n: number,
             art: "foil" | "start" = "foil", sport = "all") =>
     req<{ z: number | null; cells: [number, number, number][]; max: number; stand: string | null; sessions: number }>(
       `/api/community/heatmap?period=${period}&z=${z}&w=${w}&s=${s}&e=${e}&n=${n}&art=${art}&sport=${encodeURIComponent(sport)}`),

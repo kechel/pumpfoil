@@ -238,13 +238,53 @@ def _migrate_add_indexes() -> None:
     # exklusive Sperre auf users, wenn die Spalte laengst da ist — sie hielt bis zum Ende der Transaktion, und wartete sie
     # selbst hinter einer offenen Lese-Transaktion eines anderen Workers, stauten sich ALLE Anfragen dahinter (Minuten).
     # Jetzt: wer nicht binnen 2 s sperren kann, gibt auf — die Spalte existiert ja meistens; beim naechsten Start erneut.
+    # Zweiter Schritt am selben Tag (Neustart waehrend einer Reanalyse, 10:38): auch mit lock_timeout wartete JEDES
+    # der ~80 ALTERs 2 s hinter den Lese-Transaktionen der Reanalyse, vier Worker nacheinander -> Minuten Start, und
+    # waehrend jedes Wartens stauten sich die Leser von sessions dahinter. Darum erst nachsehen und nur schicken, was
+    # wirklich fehlt (_migration_noetig) — im Normalfall laeuft beim Start KEIN einziges ALTER mehr.
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
         conn.execute(text("SET lock_timeout = '2s'"))
+        stand = _schema_stand(conn)
         for s in stmts:
+            if not _migration_noetig(s, stand):
+                continue
             try:
                 conn.execute(text(s))
             except Exception:  # noqa: BLE001 — bereits vorhanden/nicht anwendbar/Sperre nicht bekommen; idempotent gemeint
                 pass
+
+
+def _schema_stand(conn) -> dict:
+    """Spalten (mit Typ/Nullbarkeit) und Indexnamen des Schemas public, in zwei billigen Katalog-Abfragen."""
+    from sqlalchemy import text
+    spalten = {(r[0], r[1]): (r[2], r[3]) for r in conn.execute(text(
+        "SELECT table_name, column_name, data_type, is_nullable FROM information_schema.columns "
+        "WHERE table_schema = 'public'"))}
+    indexe = {r[0] for r in conn.execute(text("SELECT indexname FROM pg_indexes WHERE schemaname = 'public'"))}
+    return {"spalten": spalten, "indexe": indexe}
+
+
+def _migration_noetig(stmt: str, stand: dict) -> bool:
+    """False, wenn die Anweisung nichts aendern wuerde (Spalte/Index schon da, Spalte schon weg, schon nullbar/TEXT).
+    Unbekannte Formen (UPDATE …) laufen weiter — die brauchen keine Tabellensperre."""
+    import re
+    sp, ix = stand["spalten"], stand["indexe"]
+    m = re.match(r"ALTER TABLE (\w+) ADD COLUMN IF NOT EXISTS (\w+)", stmt)
+    if m:
+        return (m.group(1), m.group(2)) not in sp
+    m = re.match(r"ALTER TABLE (\w+) DROP COLUMN IF EXISTS (\w+)", stmt)
+    if m:
+        return (m.group(1), m.group(2)) in sp
+    m = re.match(r"CREATE (?:UNIQUE )?INDEX IF NOT EXISTS (\w+)", stmt)
+    if m:
+        return m.group(1) not in ix
+    m = re.match(r"ALTER TABLE (\w+) ALTER COLUMN (\w+) DROP NOT NULL", stmt)
+    if m:
+        return sp.get((m.group(1), m.group(2)), (None, "YES"))[1] != "YES"
+    m = re.match(r"ALTER TABLE (\w+) ALTER COLUMN (\w+) TYPE TEXT", stmt)
+    if m:
+        return sp.get((m.group(1), m.group(2)), ("text", None))[0] != "text"
+    return True
 
 
 def _seed_foils() -> None:
@@ -487,13 +527,15 @@ def _migrate_add_columns() -> None:
                     # Snapshot die Spalte noch nicht sah) crasht mit DuplicateColumn -> "startup failed".
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {sqltype}"))
         # Eindeutigkeit des Anzeigenamens (mehrere NULL bleiben erlaubt).
-        if insp.has_table("users"):
+        # Nur anlegen, wenn er fehlt: CREATE INDEX IF NOT EXISTS holt sich die Tabellensperre VOR der Pruefung (25.10.2026).
+        vorhanden = _schema_stand(conn)["indexe"]
+        if insp.has_table("users") and "ix_users_display_name" not in vorhanden:
             conn.execute(text(
                 "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_display_name "
                 "ON users(display_name)"
             ))
         # Sortier-/Cutoff-Spalte für Feed/Rekorde/Verlauf/Monatsfilter.
-        if insp.has_table("sessions"):
+        if insp.has_table("sessions") and "ix_sessions_started_at" not in vorhanden:
             conn.execute(text(
                 "CREATE INDEX IF NOT EXISTS ix_sessions_started_at ON sessions(started_at)"
             ))

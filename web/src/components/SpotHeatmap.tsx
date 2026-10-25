@@ -21,14 +21,14 @@ import { useT } from "../i18n";
 const UMKREIS_GRAD = 0.02;      // ~2 km Breite; Laeufe liegen am Spot
 const SPEICHER = "spot_heatmap";
 const SPEICHER_ART = "spot_heatmap_art";
-type Wahl = "365d" | "30d" | "off";
+type Wahl = "all" | "30d" | "off";   // „all" statt „365d" seit 25.10.2026 (gemerktes „365d" -> all)
 type Art = "foil" | "start";
 
 function gemerkteWahl(): Wahl {
   try {
     const v = localStorage.getItem(SPEICHER);
-    return v === "30d" || v === "off" ? v : "365d";
-  } catch { return "365d"; }
+    return v === "30d" || v === "off" ? v : "all";
+  } catch { return "all"; }
 }
 
 function gemerkteArt(): Art {
@@ -106,7 +106,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
     let weg = false;
     const u = UMKREIS_GRAD;
     // Zoom 15 -> Zellen der Stufe 19 (~50 m): fein genug fuer einen engen Ausschnitt.
-    api.heatmap("365d", 15, mitte.lon - u * 1.5, mitte.lat - u, mitte.lon + u * 1.5, mitte.lat + u)
+    api.heatmap("all", 15, mitte.lon - u * 1.5, mitte.lat - u, mitte.lon + u * 1.5, mitte.lat + u)
       .then((r) => {
         if (weg) return;
         if (r.z == null || !r.cells.length) { setOhneDaten(true); setBereit(true); return; }
@@ -228,7 +228,7 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
           {knopf(art === "foil", t("spots.heatFoil"), () => setArt("foil"))}
           {knopf(art === "start", t("spots.heatStart"), () => setArt("start"))}
           <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
-          {knopf(wahl === "365d", t("period.365d"), () => setWahl("365d"))}
+          {knopf(wahl === "all", t("period.all"), () => setWahl("all"))}
           {knopf(wahl === "30d", t("period.30d"), () => setWahl("30d"))}
           {knopf(wahl === "off", t("spots.heatOff"), () => setWahl("off"))}
           <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden />
