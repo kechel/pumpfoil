@@ -88,8 +88,9 @@ class SessionRecorder {
     // Luecke gemeldet (meta accel_luecken), Accel-Vorlauf [[t0_ms, ByteArray, Samples], …],
     // gespeicherte Accel-Samples der Session (fuer Uploader.pendingKb, s. _saveState),
     // Chunk-Index -> Ende in ms (t1_ms, Ankunft des letzten Pakets; der Server erkennt daran die Luecken),
-    // Zaehler fuers Ausduennen 25 -> 10 Hz (s. onAccel)]
-    hidden var _gZ = [[], [], 0, 0, 0, 0, true, false, [], 0, {}, 0];
+    // Zaehler fuers Ausduennen 25 -> 10 Hz (s. onAccel),
+    // System.getTimer() der letzten Position (12), seit wann GPS schlecht ist (13, 0 = gut) — s. gpsPoor()]
+    hidden var _gZ = [[], [], 0, 0, 0, 0, true, false, [], 0, {}, 0, 0, 0];
 
     // Live-Stats
     hidden var _speedRing as Lang.Array<Lang.Float or Null> = new [SPEED_AVG_SAMPLES];
@@ -1257,9 +1258,10 @@ class SessionRecorder {
         // Speicher (S62, Server-Standard aus) sparte dann trotzdem, und unter 6 km/h kam eine LEERE
         // Session an (#14076).
         var gsp = Storage.getValue("gps_sparen");
-        _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}, 0];
-        // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
-        // der Fix bleibt gültig -> kein erneutes "GPS suchen".
+        // Zeit der letzten Position (12) mitnehmen: GPS laeuft seit App-Start, sie gilt weiter.
+        _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}, 0, _gZ[12], 0];
+        // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter. Ob er noch
+        // FRISCH ist, sagt hasGpsFix() (s. gpsPoor) — sonst „GPS suchen" mitten in der Aufnahme.
         _syncTickCounter = 0;
         _registerSession();
         _saveState(false);
@@ -1623,7 +1625,7 @@ class SessionRecorder {
     // Nicht direkt nach einem Stopp (stopped) und nur mit GPS-Fix; kurze Vibration als
     // Bestätigung, damit man weiß, dass jetzt aufgezeichnet wird.
     hidden function _maybeAutoStart() as Void {
-        if (!autoStart || stopped || !_hasGpsFix) { _autoStreak = 0; _idleTicks = 0; return; }
+        if (!autoStart || stopped || !hasGpsFix()) { _autoStreak = 0; _idleTicks = 0; return; }
         // Vorlauf: erst nach AUTO_START_LEAD s auf dem Start-Screen scharf schalten (Zeit, um
         // z.B. ins Einstellungs-Menü zu wechseln). Zähler wird bei Aufnahme/Stopp/GPS-Verlust
         // zurückgesetzt -> startet nach Session-Ende erneut.
@@ -1731,7 +1733,7 @@ class SessionRecorder {
     // Für den Start-Screen: ist Auto-Start aktiv (zum Einblenden des Hinweises)?
     function autoStartOn() { return autoStart; }
     // Auto-Start scharf (Vorlauf-Countdown durch)?
-    function autoArmed() { return _hasGpsFix && _idleTicks >= AUTO_START_LEAD; }
+    function autoArmed() { return hasGpsFix() && _idleTicks >= AUTO_START_LEAD; }
     // Verbleibende Vorlauf-Sekunden für die Countdown-Anzeige (0 = scharf).
     function autoLead() { var r = AUTO_START_LEAD - _idleTicks; return (r < 0) ? 0 : r; }
     // Auto-Start auf der Uhr umschalten (Einstellungs-Menü) + persistieren.
@@ -1969,7 +1971,10 @@ class SessionRecorder {
         // Abgesichert: ein fehlerhafter Positions-Callback darf die Aufnahme nicht beenden.
         try {
             _gnssOk = true;          // Events kommen an -> Wachhund entwarnen
-            if (info == null || info.position == null) { return; }
+            // Ein Event OHNE Position heisst „kein GPS" — die Qualitaet blieb sonst auf dem letzten
+            // guten Wert stehen, und die Uhr zeigte REC mit 0 km/h statt „GPS suchen" (Roman, 25.10.2026).
+            if (info == null || info.position == null) { _gpsQuality = 0; return; }
+            _gZ[12] = System.getTimer();
             // Erst ab brauchbarer Genauigkeit gilt GPS als "da" (Cold-Start abwarten).
             if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) {
                 _hasGpsFix = true;
@@ -2045,7 +2050,16 @@ class SessionRecorder {
                 z[8] = [];
             }
         }
-        if (!z[6]) { _gpsBufAdd(p); return; }   // abgeschaltet: jeden Punkt speichern
+        // Abgeschaltet ODER GPS schlecht: jeden Punkt speichern. Speicher sparen entscheidet am GPS-Tempo —
+        // ohne brauchbares GPS gilt man als stehend, und ein Lauf vor dem ersten guten Fix war komplett weg,
+        // samt Accel (Roman, #19003, 25.10.2026). Lieber zu viel speichern; den Vorlauf zuerst.
+        if (!z[6] || gpsPoor()) {
+            var vg = z[0];
+            for (var i0 = 0; i0 < vg.size(); i0++) { _gpsBufAdd(vg[i0]); }
+            z[0] = [];
+            _gpsBufAdd(p);
+            return;
+        }
         var v = z[1];
         v.add(spd);
         if (v.size() > 3) { v = v.slice(1, null); z[1] = v; }
@@ -2109,7 +2123,13 @@ class SessionRecorder {
         if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
     }
 
-    function hasGpsFix() { return _hasGpsFix; }
+    // GPS „da" = einmal brauchbar gewesen UND jetzt nicht schlecht — laenger als 3 s schlecht zeigt die
+    // Aufnahme wieder „GPS suchen" und der Start-Screen nicht mehr „GPS bereit" (Roman, 25.10.2026: der
+    // Fix blieb fuer immer gesetzt, die Uhr zeigte REC mit Nullen, der Lauf ging verloren). Die 3 s
+    // halten kurze Aussetzer aus, ohne dass die Ansicht flackert.
+    function hasGpsFix() {
+        return _hasGpsFix && !(gpsPoor() && System.getTimer() - _gZ[13] >= 3000);
+    }
 
     // Fuer die Warnung im Start-Screen: auf speicherarmen Uhren (~96 KB, z. B. Instinct 2)
     // reicht schon EINE wartende Session, um die naechste Aufnahme zu beschaedigen.
@@ -2146,7 +2166,21 @@ class SessionRecorder {
             // Speicher-Sparen: ausserhalb eines Abschnitts nur in den Vorlauf-Ring (s. _gpsPunkt). Dafuer
             // kurz in einen eigenen ByteArray schreiben — _appendI16 schreibt immer in _accelBuf.
             var n = 0;
-            if (z[6] && z[2] == 0 && z[5] == 0) {
+            // Ohne brauchbares GPS NICHT in den Ring, sondern speichern (s. _gpsPunkt, Roman 25.10.2026).
+            if (z[6] && z[2] == 0 && z[5] == 0 && !gpsPoor()) {
+                // GPS wieder gut, aber kein Abschnitt: den beim schlechten GPS angefangenen Chunk
+                // abschliessen — sonst dehnte der Server ihn ueber die folgende Luecke.
+                if (_accelCount > 0) {
+                    _flushAccel(true);
+                    if (!z[7]) {
+                        z[7] = true;
+                        var m3 = Storage.getValue("meta_" + _sessionUuid);
+                        if (m3 instanceof Lang.Dictionary) {
+                            m3["accel_luecken"] = true;
+                            _store("meta_" + _sessionUuid, m3);
+                        }
+                    }
+                }
                 var buf = _accelBuf;
                 _accelBuf = new [0]b;
                 for (var j = 0; j < roh; j++) {
@@ -2167,6 +2201,18 @@ class SessionRecorder {
                 if (weg > 0) { z[8] = ring.slice(weg, null); }
                 _accelBuf = buf;
                 return;
+            }
+            // Kommt der Accel aus dem Ring (Speicher sparen, GPS gerade schlecht geworden): dessen
+            // Vorlauf zuerst, paketweise mit eigener Startzeit — wie beim Abschnittsbeginn in _gpsPunkt.
+            var ar = z[8];
+            if (ar.size() > 0) {
+                for (var k = 0; k < ar.size(); k++) {
+                    if (_accelCount == 0) { _accelBufT0 = ar[k][0]; }
+                    _accelBuf.addAll(ar[k][1]);
+                    _accelCount += ar[k][2];
+                    if (_accelCount >= _accelChunkTarget()) { _flushAccel(false); }
+                }
+                z[8] = [];
             }
             if (_accelCount == 0 && roh > 0) { _accelBufT0 = _elapsedMs(); }
             for (var i = 0; i < roh; i++) {
@@ -2271,8 +2317,15 @@ class SessionRecorder {
     }
 
     // Weitere Live-Felder aus Activity.Info (alle null-sicher + Speed-Sanity).
+    // Schlecht = Qualitaet unter brauchbar ODER seit 60 s keine Position (manche Uhren melden bei Ausfall
+    // gar nichts mehr; 60 s statt weniger, weil die FR55 im Stehen nur alle paar Sekunden bis 50 s liefert,
+    // #14085). Merkt sich in _gZ[13], seit wann (fuer hasGpsFix).
     function gpsPoor() {
-        return _gpsQuality < Position.QUALITY_USABLE;
+        var z = _gZ;
+        var t = System.getTimer();
+        var p = _gpsQuality < Position.QUALITY_USABLE || z[12] == 0 || t - z[12] > 60000;
+        if (!p) { z[13] = 0; } else if (z[13] == 0) { z[13] = t; }
+        return p;
     }
     function currentSpeed() {
         if (gpsPoor()) { return 0.0; }
