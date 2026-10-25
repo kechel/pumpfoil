@@ -12,7 +12,7 @@
     "'allgemein' + 'merkmale_allgemein' (19.10., Jan: 'die punkte die fuer alle Sportarten gelten in einen eigenen uebergeordneten punkt'): Merkmale, die fuer jede Sportart gleich gelten, stehen NUR dort, nicht je Gruppe. Oeffentlich als Abschnitt 'All sports' ueber den Sportarten.",
     "'oeffentlich': false an einem Merkmal (merkmale/merkmale_allgemein) = bleibt im Buch, wird auf /changelog nicht gezeigt (seit 20.10.2026, erstes: autofahrt)."
   ],
-  "stand": "2026-10-24",
+  "stand": "2026-10-25",
   "status_en": {
     "live": "ready",
     "teilweise": "basic",
@@ -862,7 +862,7 @@
         },
         "startversuche": {
           "status": "live",
-          "en": "Failed starts are counted for a success rate.",
+          "en": "Failed starts are counted for a success rate, including short starts confirmed by the push-off in the motion data; shown on the map in speed colours.",
           "seit": "2026-07-24",
           "wo": [
             "server",
@@ -870,7 +870,7 @@
             "android",
             "ios"
           ],
-          "notiz": "0f29a211, attempts-Preset."
+          "notiz": "0f29a211 attempts-Preset; seit 25.10.2026 startversuche-1 (analysis/startversuche.py): alt + durch Anlauf belegte neue (Wege A/B/C), Laeufe zaehlen immer; ohne Accel alte Zaehlung."
         },
         "rekorde": {
           "status": "live",
@@ -1415,6 +1415,29 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-25",
+      "sport": [
+        "pumpfoil"
+      ],
+      "merkmal": "einordnung",
+      "was": "Kein Lauf, aber mindestens 5 durch Anlauf belegte Startversuche: nicht mehr aussortiert (34 Sessions von 17 Fahrern zurueck).",
+      "wo": [
+        "server"
+      ]
+    },
+    {
+      "datum": "2026-10-25",
+      "sport": [
+        "pumpfoil"
+      ],
+      "merkmal": "startversuche",
+      "was": "Startversuche startversuche-1: kurze Starts mit Anlauf in der Beschleunigung zaehlen mit (Front-Start #12734: 17 statt 0), Karte in Tempo-Farben mit Start/Ende; Bestand neu gezaehlt (+4,1 %).",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-24",
       "sport": [
