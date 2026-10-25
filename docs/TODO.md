@@ -1502,6 +1502,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   also gilt die Session nicht als Pumpfoil; (2) das attempts-Preset (Median 3, >= 2 s ueber 8 km/h) findet auf der
   Spur allein nur 3 der ~18 (3–4 s, 10–11 km/h). Profil steht auf normal; Anfaenger-Stufe aendert daran nichts.
   Gleiches Bild vermutlich #3419 (Sept., Active 2, 1.0.6). Er bietet das Video der Saison an (Wahrheit fuer Starts).
+  **Prototyp 25.10. (`scripts/frontstart/`, rein lesend):** `anlauf.py` (Accel: Ruhe -> 1,2-8 s Anlauf mit >= 3 Spitzen
+  > 3 g -> Ruhe; Betrag auf den Median normiert, weil Garmin ~1000/g bei accel_scale 2048 liefert), `startversuch.py`
+  (A: Rohpunkt >= 8 km/h aus der Ruhe + Anlauf oder >= 2 Punkte; C: Anlauf + 6-8 km/h; B: Anlauf + GPS-Abriss >= 5 s am
+  Steg = Median der A-Versuche, <= 15 m). Ergebnis: #12734 22 Versuche (heute 0, von Auge ~25), #3419 16 (heute 0).
+  Gegenprobe Jan (40 Handgelenk-Sessions): 139 von 145 erkannten Laeufen haben einen Versuch am Start, Versuche 324
+  statt heute 263. Nebenbefund: das heutige attempts-Preset verpasst auch klare 4-5-s-Starts mit 15 km/h (#9485 bei
+  1030 s). Naechster Schritt (Jan): vierte Empfindlichkeit fuer u439 oder neue Versuchs-Zaehlung fuer alle.
 
 - **📥 24.10. — Despike-Kaskade in `analysis/gps.clean_speed_series` (GEMESSEN, Entscheidung Jan).** Regel 3 vergleicht
   mit dem schon BEREINIGTEN linken Nachbarn: ein gehaltener Sprung um > 4 m/s auf > 20 km/h wird ganz auf das
