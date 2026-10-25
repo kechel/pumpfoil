@@ -38,11 +38,11 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
    Ohne GPS: Tempo „--" statt 0, sichtbarer Hinweis „GPS suchen" in der Aufnahme, Zeit laeuft weiter,
    und keine Logik darf ohne GPS Daten verwerfen.
 
-| GPS nach Frische (Stand 25.10.) | Garmin | Zepp | Wear OS | Apple Watch | Huawei | Handy Android | Handy iOS |
+| GPS nach Frische (Stand 25.10.; Zepp/Huawei/Suunto aus Code-Durchsicht, unveraendert) | Garmin | Zepp | Wear OS | Apple Watch | Huawei | Handy Android | Handy iOS |
 |---|---|---|---|---|---|---|---|
 | Start-Screen „bereit" nur mit frischem Fix | ✅ 92eeb429 | ✅ (3 s) | ✅ (10 s) | ✅ (10 s) | ✅ (5 s) | ✅ (10 s) | ✅ (10 s) |
 | Aufnahme: Hinweis „GPS suchen" + Tempo „--" | ✅ 92eeb429 | ✅ Statuszeile (Tempo 0.0) | ✅ Balken | ✅ Abzeichen | ✅ Infozeile (Tempo 0.0) | ✅ | ✅ |
-| Zeit laeuft ohne GPS weiter | ✅ | ✅ | ✅ (vorher nur mit GPS) | ✅ (Timer) | ✅ | ✅ (vorher nur mit GPS) | ✅ (vorher nur mit GPS) |
+| Zeit laeuft ohne GPS weiter | ✅ | nicht geprueft | ✅ (vorher nur mit GPS) | ✅ (Timer) | nicht geprueft | ✅ (vorher nur mit GPS) | ✅ (vorher nur mit GPS) |
 | Nichts wird ohne GPS verworfen | ✅ (Speicher sparen speichert dann alles) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 | Aufnahme: Pause (Stand 25.09., nach dem Umbau) | Garmin | Zepp | Wear OS | Apple Watch |
