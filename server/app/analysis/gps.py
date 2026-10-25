@@ -528,7 +528,11 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
         seg["end_pt"] = [round(float(lon[ie]), 6), round(float(lat[ie]), 6)]
 
     total_distance = float(step.sum())
-    foiling_distance = float(step[mask].sum())
+    # Ohne den Schritt VOR dem ersten Punkt jedes Laufs (wie _seg_fields, 25.10.2026) — sonst zaehlte er je Lauf mit.
+    _schritte = mask.copy()
+    for _sg in segments:
+        _schritte[_sg["i_start"]] = False
+    foiling_distance = float(step[_schritte].sum())
     foiling_time = float(sum(seg["t_end_ms"] - seg["t_start_ms"] for seg in segments) / 1000.0)
     # Hoechstgeschwindigkeit der Session ohne Samples mit unbrauchbarer GPS-Genauigkeit — sonst
     # setzt ein Positionssprung den Wert (Nutzer-Meldung #1020: 33,8 km/h nach einem Sturz, waehrend
@@ -692,7 +696,10 @@ def _seg_fields(i: int, j: int, t_ms: np.ndarray, step: np.ndarray, speeds: dict
         "t_start_ms": int(t_ms[i]),
         "t_end_ms": int(t_ms[j - 1]),
         "duration_s": round((t_ms[j - 1] - t_ms[i]) / 1000.0, 1),
-        "distance_m": round(float(step[i:j].sum()), 1),
+        # step[k] ist der Weg VON Punkt k-1 ZU Punkt k -> der Lauf [i, j) hat die Schritte i+1 .. j-1, genau wie die Dauer
+        # t[j-1]-t[i]. Bis 25.10.2026 stand hier step[i:j]: der Schritt VOR dem ersten Laufpunkt zaehlte mit (Median 4,5 m,
+        # kurze Laeufe ~20 % zu lang, alle Laeufe +4,2 % gegen Doppler; scripts/laufstrecke-rauschen.py, Jans OK 25.10.).
+        "distance_m": round(float(step[i + 1:j].sum()), 1),
         "avg_speed_mps": round(float(np.nanmean(speeds["3"][i:j])), 2),
         "max_speed_mps": round(float(np.nanmax(speeds["3"][i:j])), 2),
         "min_speed_mps": round(float(np.nanmin(speeds["3"][i:j])), 2),

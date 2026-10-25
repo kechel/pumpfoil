@@ -612,7 +612,11 @@ def detect_v2(
         _annotate_run(seg, wins)
 
     total_distance = float(step.sum())
-    foiling_distance = float(step[mask].sum())
+    # Ohne den Schritt VOR dem ersten Punkt jedes Laufs (wie _seg_fields, 25.10.2026) — sonst zaehlte er je Lauf mit.
+    _schritte = mask.copy()
+    for _sg in segments:
+        _schritte[_sg["i_start"]] = False
+    foiling_distance = float(step[_schritte].sum())
     foiling_time = float(sum(s["t_end_ms"] - s["t_start_ms"] for s in segments) / 1000.0)
     # Hoechstgeschwindigkeit NUR aus den erkannten LAEUFEN: der 3-s-Wert je Lauf, der ohnehin
     # schon berechnet und in der Lauf-Liste angezeigt wird. Vorher war es das schnellste
