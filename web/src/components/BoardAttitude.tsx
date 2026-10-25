@@ -109,20 +109,53 @@ function Randmarken({ t_ms, von, bis, W, H }: {
   );
 }
 
-function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, onZeigen, onWeg }: {
+function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, onZeigen, onWeg, onZoom, gezoomt }: {
   reihen: { name: string; werte: number[]; farbe: string; einheit: string }[];
-  t_ms: number[]; pos: number; zusammen: boolean; uhrzeit: (t: number) => string;
+  // pos = null: der Zeiger liegt ausserhalb des gezoomten Ausschnitts und wird nicht gezeichnet.
+  t_ms: number[]; pos: number | null; zusammen: boolean; uhrzeit: (t: number) => string;
   auswahlVon?: number | null; auswahlBis?: number | null;
   onZeigen: (p: number) => void; onWeg: () => void;
+  // Mit gedrueckter Maus aufgezogener Bereich, als Bruchteile 0..1 DIESER Ansicht.
+  onZoom: (a: number, b: number) => void; gezoomt: boolean;
 }) {
   const W = 1000, H = 150;
   const t0 = t_ms[0] ?? 0, t1 = t_ms[t_ms.length - 1] ?? 1;
   const spanne = Math.max(1, t1 - t0);
-  const idx = t_ms.length ? Math.min(t_ms.length - 1, Math.round(pos * (t_ms.length - 1))) : 0;
-  const x = Math.min(W - 1, Math.max(1, pos * W));   // am Rand hineinziehen, sonst halb außerhalb
-  const zeigen = (e: React.MouseEvent<SVGSVGElement>) => {
+  const idx = t_ms.length && pos != null ? Math.min(t_ms.length - 1, Math.round(pos * (t_ms.length - 1))) : 0;
+  const x = Math.min(W - 1, Math.max(1, (pos ?? 0) * W));   // am Rand hineinziehen, sonst halb außerhalb
+  const bruch = (e: React.MouseEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    onZeigen(Math.min(1, Math.max(0, (e.clientX - r.left) / Math.max(1, r.width))));
+    return Math.min(1, Math.max(0, (e.clientX - r.left) / Math.max(1, r.width)));
+  };
+  // ZOOM PER ZIEHEN (Nutzerwunsch 25.10.2026: Min/Max einzelner Pumps ablesen): mousedown merkt den
+  // Anfang, mouseup zoomt auf den Bereich. Ein blosser Klick (unter 1 % der Breite) zoomt nicht.
+  const [zieh, setZieh] = useState<{ a: number; b: number } | null>(null);
+  const maus = {
+    onMouseDown: (e: React.MouseEvent<SVGSVGElement>) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const p = bruch(e); setZieh({ a: p, b: p });
+    },
+    onMouseMove: (e: React.MouseEvent<SVGSVGElement>) => {
+      const p = bruch(e); onZeigen(p);
+      if (zieh) setZieh({ a: zieh.a, b: p });
+    },
+    onMouseUp: () => {
+      if (zieh && Math.abs(zieh.b - zieh.a) > 0.01) onZoom(Math.min(zieh.a, zieh.b), Math.max(zieh.a, zieh.b));
+      setZieh(null);
+    },
+    onMouseLeave: () => { setZieh(null); onWeg(); },
+  };
+  const ziehRect = zieh && (
+    <rect x={Math.min(zieh.a, zieh.b) * W} y={0} width={Math.abs(zieh.b - zieh.a) * W} height={H}
+      className="fill-brand-500" opacity={0.18} />
+  );
+  // Im Ausschnitt Tiefst- und Hoechstwert je Reihe zeigen — dafuer ist der Zoom da.
+  const minMax = (werte: number[], einheit: string) => {
+    if (!gezoomt || !werte.length) return null;
+    const lo = Math.min(...werte), hi = Math.max(...werte);
+    const f = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}${einheit}`;
+    return <span className="mr-2 tabular-nums text-slate-300">min {f(lo)} · max {f(hi)}</span>;
   };
   // Die Punktlisten aendern sich nur mit den DATEN, nicht mit dem Zeiger. Sie bei jedem Bild
   // neu zu bauen hiess vier Reihen à mehrere hundert Punkte, 60-mal je Sekunde — spuerbar
@@ -142,18 +175,19 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
   if (zusammen) {
     return (
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2">
-        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-44 w-full cursor-crosshair"
-          onMouseMove={zeigen} onMouseLeave={onWeg}>
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-44 w-full cursor-crosshair select-none"
+          {...maus}>
           <Randmarken t_ms={t_ms} von={auswahlVon} bis={auswahlBis} W={W} H={H} />
+          {ziehRect}
           <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
             vectorEffect="non-scaling-stroke" />
           {reihen.map((r, i) => (
             <polyline key={r.name} points={gerechnet[i].punkte} fill="none"
               stroke={r.farbe} strokeWidth={2} vectorEffect="non-scaling-stroke" />
           ))}
-          <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
-            vectorEffect="non-scaling-stroke" />
-          {reihen.map((r, i) => r.werte[idx] == null ? null : (
+          {pos != null && <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
+            vectorEffect="non-scaling-stroke" />}
+          {pos != null && reihen.map((r, i) => r.werte[idx] == null ? null : (
             <circle key={r.name} cx={x} cy={H / 2 - (r.werte[idx] / skala(i)) * (H / 2 - 6)}
               r={4} fill={r.farbe} className="stroke-slate-900" strokeWidth={1.5}
               vectorEffect="non-scaling-stroke" />
@@ -164,7 +198,8 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
             <span key={r.name} className="inline-flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: r.farbe }} />
               <span className="font-semibold" style={{ color: r.farbe }}>{r.name}</span>
-              {r.werte[idx] != null && (
+              {minMax(r.werte, r.einheit)}
+              {pos != null && r.werte[idx] != null && (
                 <span className="tabular-nums font-semibold text-slate-200">
                   {r.werte[idx] > 0 ? "+" : ""}{r.werte[idx].toFixed(1)}{r.einheit}
                 </span>
@@ -184,27 +219,29 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
     <div className="space-y-2">
       {reihen.map((r, ri) => {
         const max = skala(ri);
-        const wert = r.werte[idx];
+        const wert = pos != null ? r.werte[idx] : undefined;
         return (
           <div key={r.name} className="rounded-xl border border-slate-800 bg-slate-900/40 p-2">
             <div className="mb-1 flex items-baseline justify-between text-xs">
               <span className="font-semibold" style={{ color: r.farbe }}>{r.name}</span>
               <span className="tabular-nums text-slate-400">
+                {minMax(r.werte, r.einheit)}
                 {wert != null && <span className="mr-2 font-semibold text-slate-200">
                   {wert > 0 ? "+" : ""}{wert.toFixed(1)}{r.einheit}
                 </span>}
                 ±{max.toFixed(0)}{r.einheit}
               </span>
             </div>
-            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-20 w-full cursor-crosshair"
-              onMouseMove={zeigen} onMouseLeave={onWeg}>
+            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-20 w-full cursor-crosshair select-none"
+              {...maus}>
               <Randmarken t_ms={t_ms} von={auswahlVon} bis={auswahlBis} W={W} H={H} />
+              {ziehRect}
               <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
                 vectorEffect="non-scaling-stroke" />
               <polyline points={gerechnet[ri].punkte} fill="none" stroke={r.farbe} strokeWidth={2}
                 vectorEffect="non-scaling-stroke" />
-              <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
-                vectorEffect="non-scaling-stroke" />
+              {pos != null && <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
+                vectorEffect="non-scaling-stroke" />}
               {wert != null && (
                 <circle cx={x} cy={H / 2 - (wert / max) * (H / 2 - 6)} r={4} fill={r.farbe}
                   className="stroke-slate-900" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
@@ -261,6 +298,9 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const [maus, setMaus] = useState<number | null>(null);
   // Standard: alles in EINEM Bild (Jan, 21.09.) — der Vergleich der Kurven ist der Zweck.
   const [zusammen, setZusammen] = useState(true);
+  // Gezoomter Ausschnitt als Index-Bereich [i0, i1] in d.t_ms; null = alles. Neue Daten = kein Zoom.
+  const [zoom, setZoom] = useState<[number, number] | null>(null);
+  useEffect(() => setZoom(null), [d]);
 
   // HOEHE HALTEN beim Laufwechsel (Jan, 08.10.2026: „springt die anzeige … platzhalter mit der gleichen
   // groesse"): vor dem Neuladen die aktuelle Hoehe der Ansicht messen (fenster-/geraeteabhaengig) und den
@@ -322,12 +362,18 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     if (!onZeit) return;
     onZeit(maus != null && tMsAlle?.length ? tMsAlle[idx] : null);
   }, [maus, idx, tMsAlle, onZeit]);
-  // Stellung des Zeigers in DIESER Ansicht — aus dem Index, damit Linie und Zahl nie auseinander
-  // laufen koennen.
-  const pos = useMemo(() => {
-    const n = d?.t_ms?.length ?? 0;
-    return n > 1 ? idx / (n - 1) : 0;
-  }, [d, idx]);
+
+  // Ansicht = gezoomter Ausschnitt; `maus` bleibt ein Bruchteil der GANZEN Reihe, damit Karte und
+  // Zeiger weiter an derselben Stelle haengen.
+  const nAlle = d?.t_ms?.length ?? 0;
+  const [v0, v1] = zoom ?? [0, Math.max(0, nAlle - 1)];
+  const tMsAnsicht = useMemo(() => (d?.t_ms ?? []).slice(v0, v1 + 1), [d, v0, v1]);
+  const posAnsicht = idx < v0 || idx > v1 ? null : v1 > v0 ? (idx - v0) / (v1 - v0) : 0;
+  const mausAnsicht = (p: number) => setMaus(nAlle > 1 ? (v0 + p * (v1 - v0)) / (nAlle - 1) : 0);
+  const zoomen = (a: number, b: number) => {
+    const i0 = Math.round(v0 + a * (v1 - v0)), i1 = Math.round(v0 + b * (v1 - v0));
+    if (i1 - i0 >= 4) setZoom([i0, i1]);
+  };
 
   // ALLE Hooks stehen VOR den fruehen Returns. `reihen` hing zwischenzeitlich dahinter, und
   // React zaehlte beim naechsten Rendern einen Hook mehr — Fehler #310, die Seite war weg.
@@ -340,6 +386,8 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     { name: t("board.yaw"), werte: d?.gier_delta_deg ?? [], farbe: "#a78bfa", einheit: "°" },
     ...(hubReihe ? [{ name: t("board.height"), werte: hubReihe, farbe: "#34d399", einheit: " cm" }] : []),
   ], [d, hubReihe, t]);
+  const reihenAnsicht = useMemo(() => zoom ? reihen.map((r) => ({ ...r, werte: r.werte.slice(v0, v1 + 1) })) : reihen,
+    [reihen, zoom, v0, v1]);
 
   if (laden) {
     return (
@@ -417,13 +465,21 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
         </div>
       )}
 
-      <Kurven reihen={reihen} t_ms={tMs} pos={pos} zusammen={zusammen} uhrzeit={uhrzeit}
+      <Kurven reihen={reihenAnsicht} t_ms={tMsAnsicht} pos={posAnsicht} zusammen={zusammen} uhrzeit={uhrzeit}
         auswahlVon={d.auswahl_von_ms} auswahlBis={d.auswahl_bis_ms}
-        onZeigen={setMaus} onWeg={() => setMaus(null)} />
+        onZeigen={mausAnsicht} onWeg={() => setMaus(null)} onZoom={zoomen} gezoomt={zoom != null} />
 
       {/* Bedienelemente UNTER die Kurven (Jan, 20.09.): oben soll Karte, Animation und Kurve
           ohne Trenner hintereinander stehen, damit alles zusammen auf einen Bildschirm passt. */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
+        {zoom ? (
+          <button onClick={() => setZoom(null)}
+            className="rounded-lg bg-brand-500 px-2.5 py-1 text-xs font-medium text-slate-950">
+            {t("board.zoomReset")}
+          </button>
+        ) : (
+          <span className="hidden text-xs text-slate-400 md:inline">{t("board.zoomHint")}</span>
+        )}
         <button onClick={() => setZusammen((v) => !v)}
           className={`rounded-lg px-2.5 py-1 text-xs font-medium ${zusammen
             ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>

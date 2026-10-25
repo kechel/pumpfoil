@@ -68,6 +68,8 @@ const cs: Record<string, string> = {
   "board.roll": "Klonění",
   "board.rollHint": "Náklon, carving",
   "board.separate": "Samostatné grafy",
+  "board.zoomReset": "Zrušit přiblížení",
+  "board.zoomHint": "Pro přiblížení táhněte myší přes úsek",
   "board.show": "Poloha",
   "board.stats": "Klopení ±{pitch}° · klonění ±{roll}° · zatáčení {yaw}°/s",
   "board.title": "Poloha prkna",

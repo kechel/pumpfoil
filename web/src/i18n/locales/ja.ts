@@ -66,6 +66,8 @@ const ja: Record<string, string> = {
   "board.roll": "ロール",
   "board.rollHint": "傾き、カービング",
   "board.separate": "グラフを分ける",
+  "board.zoomReset": "ズームをリセット",
+  "board.zoomHint": "マウスで範囲をドラッグすると拡大します",
   "board.show": "姿勢",
   "board.stats": "ピッチ ±{pitch}° · ロール ±{roll}° · ヨー {yaw}°/秒",
   "board.title": "ボードの姿勢",

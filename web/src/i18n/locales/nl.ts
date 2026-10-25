@@ -68,6 +68,8 @@ const nl: Record<string, string> = {
   "board.roll": "Rollen",
   "board.rollHint": "Helling, carven",
   "board.separate": "Aparte grafieken",
+  "board.zoomReset": "Zoom herstellen",
+  "board.zoomHint": "Sleep met de muis over een stuk om in te zoomen",
   "board.show": "Stand",
   "board.stats": "Stampen ±{pitch}° · rollen ±{roll}° · gieren {yaw}°/s",
   "board.title": "Stand van de board",

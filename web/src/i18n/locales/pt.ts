@@ -66,6 +66,8 @@ const pt: Record<string, string> = {
   "board.roll": "Rolagem",
   "board.rollHint": "Inclinação, carving",
   "board.separate": "Gráficos separados",
+  "board.zoomReset": "Redefinir zoom",
+  "board.zoomHint": "Arraste o mouse sobre um trecho para ampliar",
   "board.show": "Atitude",
   "board.stats": "Arfagem ±{pitch}° · rolagem ±{roll}° · guinada {yaw}°/s",
   "board.title": "Atitude da prancha",

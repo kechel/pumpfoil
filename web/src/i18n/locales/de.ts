@@ -118,6 +118,8 @@ const de: Record<string, string> = {
   "board.height": "Höhe",
   "board.combined": "Alles in einem Bild",
   "board.separate": "Getrennte Bilder",
+  "board.zoomReset": "Zoom zurücksetzen",
+  "board.zoomHint": "Zum Vergrößern mit der Maus über einen Bereich ziehen",
   "board.heaveStat": "Hub {cm} cm (über {s} s ausgerichtet)",
   "board.heaveShaky": "Der Hub ist für diesen Lauf nicht belastbar: die Bewegung ist langsamer als das {s}-Sekunden-Fenster zulässt, und dann wird beim Umrechnen jeder kleine Fehler stark vergrößert. Beim Pumpen mit rund einer Bewegung pro Sekunde stimmt er.",
   "board.rigAssumed": "Rumpf {fuse} cm und die Längspositionen sind noch geschätzt",

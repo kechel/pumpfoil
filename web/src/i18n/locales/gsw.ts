@@ -58,6 +58,8 @@ const gsw: Record<string, string> = {
   "board.rig": "{foil} · {stab} · Mast {mast} cm · {board}",
   "board.rigAssumed": "Rumpf {fuse} cm und d Längsposizione sind no gschätzt",
   "board.separate": "Trennti Bilder",
+  "board.zoomReset": "Zoom zrüggsetze",
+  "board.zoomHint": "Zum Vergrössere mit de Muus über en Bereich zieh",
   "board.zeroMid": "Nullpunkt us em Mittelteil — kein Lauf erkennt",
   "board.zeroRuns": "Nullpunkt us de erkennte Läuf",
   "compare.short": "Vergliiche",

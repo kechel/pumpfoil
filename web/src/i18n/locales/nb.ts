@@ -66,6 +66,8 @@ const nb: Record<string, string> = {
   "board.roll": "Rulling",
   "board.rollHint": "Krengning, carving",
   "board.separate": "Separate diagrammer",
+  "board.zoomReset": "Tilbakestill zoom",
+  "board.zoomHint": "Dra musen over et område for å zoome inn",
   "board.show": "Stilling",
   "board.stats": "Stamping ±{pitch}° · rulling ±{roll}° · gir {yaw}°/s",
   "board.title": "Brettets stilling",

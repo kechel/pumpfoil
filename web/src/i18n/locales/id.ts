@@ -66,6 +66,8 @@ const id: Record<string, string> = {
   "board.roll": "Guling",
   "board.rollHint": "Kemiringan, carving",
   "board.separate": "Grafik terpisah",
+  "board.zoomReset": "Atur ulang zoom",
+  "board.zoomHint": "Seret mouse pada suatu rentang untuk memperbesar",
   "board.show": "Posisi",
   "board.stats": "Angguk ±{pitch}° · guling ±{roll}° · geleng {yaw}°/s",
   "board.title": "Posisi papan",

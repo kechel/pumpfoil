@@ -66,6 +66,8 @@ const it: Record<string, string> = {
   "board.roll": "Rollio",
   "board.rollHint": "Inclinazione, carving",
   "board.separate": "Grafici separati",
+  "board.zoomReset": "Reimposta zoom",
+  "board.zoomHint": "Trascina il mouse su un intervallo per ingrandire",
   "board.show": "Assetto",
   "board.stats": "Beccheggio ±{pitch}° · rollio ±{roll}° · imbardata {yaw}°/s",
   "board.title": "Assetto della tavola",

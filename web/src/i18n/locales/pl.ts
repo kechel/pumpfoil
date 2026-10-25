@@ -66,6 +66,8 @@ const pl: Record<string, string> = {
   "board.roll": "Przechył",
   "board.rollHint": "Przechylenie, carving",
   "board.separate": "Osobne wykresy",
+  "board.zoomReset": "Resetuj powiększenie",
+  "board.zoomHint": "Przeciągnij myszą po fragmencie, aby powiększyć",
   "board.show": "Położenie",
   "board.stats": "Pochylenie ±{pitch}° · przechył ±{roll}° · odchylenie {yaw}°/s",
   "board.title": "Położenie deski",

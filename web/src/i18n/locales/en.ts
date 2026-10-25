@@ -117,6 +117,8 @@ const en: Record<string, string> = {
   "board.height": "Height",
   "board.combined": "All in one chart",
   "board.separate": "Separate charts",
+  "board.zoomReset": "Reset zoom",
+  "board.zoomHint": "Drag across a range with the mouse to zoom in",
   "board.heaveStat": "heave {cm} cm (levelled over {s} s)",
   "board.heaveShaky": "Heave is not trustworthy for this run: the motion is slower than the {s}-second window allows, and then every small error gets blown up. With real pumping at about one stroke per second it holds.",
   "board.rigAssumed": "fuselage {fuse} cm and the fore-aft positions are still estimates",
