@@ -40,9 +40,9 @@ FENSTER_S = 10.0
 # Spitze, ab der eine schnelle Strecke als Fahrt gilt, je Sportart. Gemessen 04.10.2026 ueber 9945
 # Sessions: echte Kite-Laeufe bis 60 km/h (alle u741), Wing bis 55, Pumpfoil/Wakethief/E-Foil
 # deutlich darunter. NICHT fuer „other" (Rad/Laufen): ein Rad bergab ist legitim schnell.
-SPITZE_JE_SPORT = {"kitefoil": 65.0, "wingfoil": 62.0}
-SPITZE_STANDARD = 55.0
-OHNE_FAHRTERKENNUNG = {"other"}
+# Seit 25.10.2026 aus der EINEN Liste (data/sportarten.json, Feld `autofahrt_kmh`; null = ohne Erkennung).
+from ..sportarten import AUTOFAHRT_KMH as SPITZE_JE_SPORT, AUTOFAHRT_STANDARD_KMH as SPITZE_STANDARD  # noqa: E402
+from ..sportarten import OHNE_AUTOFAHRT as OHNE_FAHRTERKENNUNG  # noqa: E402
 
 
 def _abstand_m(la1, lo1, la2, lo2):

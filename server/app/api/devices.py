@@ -310,9 +310,7 @@ def sportarten_fuer_uhr(db: Session, user_id: int, settings: dict) -> list[dict]
     from datetime import timedelta
     from sqlalchemy import func as _f
     from .sessions import SPORTS
-    namen = {"pumpfoil": "Pumpfoil", "wingfoil": "Wingfoil", "kitefoil": "Kitefoil", "parawing": "Parawing",
-             "surf_downwind": "Downwind", "surf_wave": "Wave", "sup_paddle": "SUP", "wakethief": "Wake thief",
-             "towed": "Towed", "efoil": "eFoil", "foildrive": "Foildrive", "foil_scoot": "Foil Scoot"}
+    from ..sportarten import UHR_NAMEN as namen   # seit 25.10.2026 aus der EINEN Liste (data/sportarten.json, `uhr`)
     std = settings.get("default_sport_class") or "pumpfoil"
     eigene = [x for x in (settings.get("my_sports") or []) if isinstance(x, str)]
     if eigene:

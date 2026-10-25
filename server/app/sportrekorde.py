@@ -79,10 +79,10 @@ DOWNWIND = (
     Metrik("dw_ab_speed", "downwind", lambda e: _max([f for f in e.get("fahrten") or []
                                                       if (f.get("ab_m") or 0) >= MIN_DOWNWIND_M], "ab_kmh")),
 )
-JE_SPORT: dict[str, tuple[Metrik, ...]] = {
-    "wingfoil": WIND, "kitefoil": WIND, "parawing": WIND,
-    "sup_paddle": SUP, "wakethief": WAKE, "surf_downwind": DOWNWIND,
-}
+# Welche Sportart welchen Satz hat, steht seit 25.10.2026 in der EINEN Liste (data/sportarten.json, Feld `rekorde`).
+SAETZE: dict[str, tuple[Metrik, ...]] = {"wind": WIND, "sup": SUP, "wake": WAKE, "downwind": DOWNWIND}
+from .sportarten import REKORDE as _REKORDE  # noqa: E402
+JE_SPORT: dict[str, tuple[Metrik, ...]] = {sp: SAETZE[satz] for sp, satz in _REKORDE.items()}
 
 _cache: dict[str, tuple[float, dict | None]] = {}
 

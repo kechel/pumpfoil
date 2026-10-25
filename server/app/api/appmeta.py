@@ -1429,6 +1429,15 @@ def sport_stand_aufgeloest() -> dict:
             "allgemein_titel": (buch.get("allgemein") or {}).get("en", "All sports"), "allgemein": allgemein}
 
 
+@router.get("/sports")
+def sports() -> dict:
+    """Die EINE Sportartenliste (data/sportarten.json, 25.10.2026) fuer Web, Apps und Uhren: Reihenfolge, Gruppe,
+    Kennzeichen, fertiges Anzeige-Profil und Namen in allen Sprachen. Oeffentlich, ohne Anmeldung — die Clients laden
+    sie beim Start und behalten sie (Schluessel `version`); eine neue Sportart braucht so kein App-Update."""
+    from ..sportarten import fuer_clients
+    return fuer_clients()
+
+
 @router.get("/sport-status")
 def sport_status() -> dict:
     """Fuer /changelog: was kann die Auswertung je Sportart schon, was ist geplant."""

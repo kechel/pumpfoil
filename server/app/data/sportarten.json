@@ -1,0 +1,437 @@
+{
+ "_lies_mich": [
+  "EINE Liste der Sportarten fuer Server, Web, Apps und Uhren (Jan, 25.10.2026: „eigentlich sollte das eine einzige zentrale liste sein der sportarten fuer alle apps/uhren/web … mit flags welche detections / analysen / regeln gelten“).",
+  "Gelesen von server/app/sportarten.py; ausgeliefert unter GET /api/app/sports. Reihenfolge = Anzeige-Reihenfolge, `other` bleibt letzter.",
+  "Felder: id (<= 16 Zeichen, DB-Spalte), gruppe (pump|wind|welle|motor; null = wie pump), foil (gibt es On-Foil-Fahren), uhr (Name auf der Uhr; fehlt = nicht auf der Uhr waehlbar), profil (Abweichungen vom Anzeige-Profil der Gruppe, s. standard_profil/gruppen_profil), grenzen (band_kmh = Bandgrenze der Lauferkennung, lauf_max_kmh = schnellster plausibler Lauf; fehlt = Pumpfoil-Werte), autofahrt_kmh (Spitze, ab der eine schnelle Strecke Autofahrt ist; null = keine Autofahrt-Erkennung; fehlt = Standard), rekorde (Rekord-Satz in sportrekorde.py), namen (Anzeigename je Sprache; fehlt eine Sprache, gilt en)."
+ ],
+ "standard_profil": {
+  "karte": "laeufe",
+  "hauptzahl": "foil",
+  "pumpzahlen": true,
+  "tempo_skala": [
+   8,
+   25
+  ]
+ },
+ "gruppen_profil": {
+  "wind": {
+   "karte": "ganz",
+   "hauptzahl": "gesamt",
+   "pumpzahlen": false,
+   "tempo_skala": [
+    10,
+    40
+   ]
+  },
+  "motor": {
+   "pumpzahlen": false,
+   "tempo_skala": [
+    8,
+    30
+   ]
+  }
+ },
+ "autofahrt_standard_kmh": 55.0,
+ "sportarten": [
+  {
+   "id": "pumpfoil",
+   "gruppe": "pump",
+   "foil": true,
+   "uhr": "Pumpfoil",
+   "namen": {
+    "en": "Pumpfoil",
+    "de": "Pumpfoil",
+    "de-AT": "Pumpfoil",
+    "gsw": "Pumpfoil",
+    "fr": "Pumpfoil",
+    "it": "Pumpfoil",
+    "es": "Pumpfoil",
+    "pt": "Pumpfoil",
+    "pt-PT": "Pumpfoil",
+    "nl": "Pumpfoil",
+    "nb": "Pumpfoil",
+    "fi": "Pumpfoil",
+    "cs": "Pumpfoil",
+    "pl": "Pumpfoil",
+    "ru": "Пампфойл",
+    "ja": "パンプフォイル",
+    "zh": "Pumpfoil",
+    "id": "Pumpfoil"
+   }
+  },
+  {
+   "id": "wingfoil",
+   "gruppe": "wind",
+   "foil": true,
+   "uhr": "Wingfoil",
+   "grenzen": {
+    "band_kmh": 50.0,
+    "lauf_max_kmh": 62.0
+   },
+   "autofahrt_kmh": 62.0,
+   "rekorde": "wind",
+   "namen": {
+    "en": "Wingfoil",
+    "de": "Wingfoil",
+    "de-AT": "Wingfoil",
+    "gsw": "Wingfoil",
+    "fr": "Wingfoil",
+    "it": "Wingfoil",
+    "es": "Wingfoil",
+    "pt": "Wingfoil",
+    "pt-PT": "Wingfoil",
+    "nl": "Wingfoil",
+    "nb": "Wingfoil",
+    "fi": "Wingfoil",
+    "cs": "Wingfoil",
+    "pl": "Wingfoil",
+    "ru": "Вингфойл",
+    "ja": "ウイングフォイル",
+    "zh": "Wingfoil",
+    "id": "Wingfoil"
+   }
+  },
+  {
+   "id": "kitefoil",
+   "gruppe": "wind",
+   "foil": true,
+   "uhr": "Kitefoil",
+   "grenzen": {
+    "band_kmh": 60.0,
+    "lauf_max_kmh": 70.0
+   },
+   "autofahrt_kmh": 65.0,
+   "rekorde": "wind",
+   "namen": {
+    "en": "Kitefoil",
+    "de": "Kitefoil",
+    "de-AT": "Kitefoil",
+    "gsw": "Kitefoil",
+    "fr": "Kitefoil",
+    "it": "Kitefoil",
+    "es": "Kitefoil",
+    "pt": "Kitefoil",
+    "pt-PT": "Kitefoil",
+    "nl": "Kitefoil",
+    "nb": "Kitefoil",
+    "fi": "Kitefoil",
+    "cs": "Kitefoil",
+    "pl": "Kitefoil",
+    "ru": "Кайтфойл",
+    "ja": "カイトフォイル",
+    "zh": "Kitefoil",
+    "id": "Kitefoil"
+   }
+  },
+  {
+   "id": "parawing",
+   "gruppe": "wind",
+   "foil": true,
+   "uhr": "Parawing",
+   "grenzen": {
+    "band_kmh": 50.0,
+    "lauf_max_kmh": 62.0
+   },
+   "rekorde": "wind",
+   "namen": {
+    "en": "Parawing (pocketwing / lowkite)",
+    "de": "Parawing (Pocketwing / Lowkite)",
+    "de-AT": "Parawing (Pocketwing / Lowkite)",
+    "gsw": "Parawing (Pocketwing / Lowkite)",
+    "fr": "Parawing (pocketwing / lowkite)",
+    "it": "Parawing (pocketwing / lowkite)",
+    "es": "Parawing (pocketwing / lowkite)",
+    "pt": "Parawing (pocketwing / lowkite)",
+    "pt-PT": "Parawing (pocketwing / lowkite)",
+    "nl": "Parawing (pocketwing / lowkite)",
+    "nb": "Parawing (pocketwing / lowkite)",
+    "fi": "Parawing (pocketwing / lowkite)",
+    "cs": "Parawing (pocketwing / lowkite)",
+    "pl": "Parawing (pocketwing / lowkite)",
+    "ru": "Паравинг (покетвинг / лоукайт)",
+    "ja": "パラウィング（ポケットウィング／ローカイト）",
+    "zh": "Parawing (pocketwing / lowkite)",
+    "id": "Parawing (pocketwing / lowkite)"
+   }
+  },
+  {
+   "id": "surf_downwind",
+   "gruppe": "welle",
+   "foil": true,
+   "uhr": "Downwind",
+   "profil": {
+    "karte": "ganz"
+   },
+   "rekorde": "downwind",
+   "namen": {
+    "en": "Surf / downwind",
+    "de": "Surf / Downwind",
+    "de-AT": "Surf / Downwind",
+    "gsw": "Surf / Downwind",
+    "fr": "Surf / downwind",
+    "it": "Surf / downwind",
+    "es": "Surf / downwind",
+    "pt": "Surf / downwind",
+    "pt-PT": "Surf / downwind",
+    "nl": "Surf / downwind",
+    "nb": "Surf / downwind",
+    "fi": "Surffaus / downwind",
+    "cs": "Surf / downwind",
+    "pl": "Surf / downwind",
+    "ru": "Сёрф / даунвинд",
+    "ja": "サーフ／ダウンウィンド",
+    "zh": "冲浪 / 顺风",
+    "id": "Surf / downwind"
+   }
+  },
+  {
+   "id": "surf_wave",
+   "gruppe": "welle",
+   "foil": true,
+   "uhr": "Wave",
+   "namen": {
+    "en": "Ocean wave (surf)",
+    "de": "Ozeanwelle (Surfen)",
+    "de-AT": "Ozeanwelle (Surfen)",
+    "gsw": "Ozeanwälle (Surfe)",
+    "fr": "Vague océanique (surf)",
+    "it": "Onda dell'oceano (surf)",
+    "es": "Ola del océano (surf)",
+    "pt": "Onda do oceano (surf)",
+    "pt-PT": "Onda do oceano (surf)",
+    "nl": "Oceaangolf (surfen)",
+    "nb": "Havbølge (surf)",
+    "fi": "Valtameren aalto (surffaus)",
+    "cs": "Oceánská vlna (surf)",
+    "pl": "Fala oceaniczna (surfing)",
+    "ru": "Океанская волна (сёрф)",
+    "ja": "海のうねり（サーフ）",
+    "zh": "海浪（冲浪）",
+    "id": "Ombak laut (surf)"
+   }
+  },
+  {
+   "id": "sup_paddle",
+   "gruppe": "pump",
+   "foil": true,
+   "uhr": "SUP",
+   "profil": {
+    "karte": "ganz"
+   },
+   "rekorde": "sup",
+   "namen": {
+    "en": "SUP / paddling",
+    "de": "SUP / Paddeln",
+    "de-AT": "SUP / Paddeln",
+    "gsw": "SUP / Paddle",
+    "fr": "SUP / pagaie",
+    "it": "SUP / pagaiata",
+    "es": "SUP / remar",
+    "pt": "SUP / remada",
+    "pt-PT": "SUP / remada",
+    "nl": "SUP / peddelen",
+    "nb": "SUP / padling",
+    "fi": "SUP / melonta",
+    "cs": "SUP / pádlování",
+    "pl": "SUP / wiosłowanie",
+    "ru": "SUP / гребля",
+    "ja": "SUP／パドル",
+    "zh": "SUP / 划桨",
+    "id": "SUP / mengayuh"
+   }
+  },
+  {
+   "id": "wakethief",
+   "gruppe": "pump",
+   "foil": true,
+   "uhr": "Wake thief",
+   "profil": {
+    "karte": "ganz"
+   },
+   "rekorde": "wake",
+   "namen": {
+    "en": "Wake thief (wave of a passing boat)",
+    "de": "Wake Thief (Welle eines fremden Boots)",
+    "de-AT": "Wake Thief (Welle eines fremden Boots)",
+    "gsw": "Wake Thief (Wälle vo emene frömde Boot)",
+    "fr": "Wake thief (vague d'un bateau de passage)",
+    "it": "Wake thief (onda di una barca di passaggio)",
+    "es": "Wake thief (ola de un barco que pasa)",
+    "pt": "Wake thief (onda de um barco que passa)",
+    "pt-PT": "Wake thief (onda de um barco que passa)",
+    "nl": "Wake thief (golf van een passerende boot)",
+    "nb": "Wake thief (bølge fra en båt som passerer)",
+    "fi": "Wake thief (ohi ajavan veneen aalto)",
+    "cs": "Wake thief (vlna od projíždějící lodi)",
+    "pl": "Wake thief (fala przepływającej łodzi)",
+    "ru": "Wake thief (волна проходящего катера)",
+    "ja": "ウェイクシーフ（通過する船の航跡）",
+    "zh": "Wake thief（借过路船的浪）",
+    "id": "Wake thief (ombak kapal yang lewat)"
+   }
+  },
+  {
+   "id": "towed",
+   "gruppe": "motor",
+   "foil": true,
+   "uhr": "Towed",
+   "namen": {
+    "en": "Towed (rope behind a boat)",
+    "de": "Geschleppt (Seil hinter dem Boot)",
+    "de-AT": "Geschleppt (Seil hinter dem Boot)",
+    "gsw": "Gschleppt (Seil hinderem Boot)",
+    "fr": "Tracté (câble derrière un bateau)",
+    "it": "Trainato (cavo dietro una barca)",
+    "es": "Remolcado (cuerda tras un barco)",
+    "pt": "Rebocado (corda atrás de um barco)",
+    "pt-PT": "Rebocado (corda atrás de um barco)",
+    "nl": "Gesleept (lijn achter een boot)",
+    "nb": "Slept (tau bak en båt)",
+    "fi": "Hinauksessa (köysi veneen perässä)",
+    "cs": "Ve vleku (lano za lodí)",
+    "pl": "Na holu (lina za łodzią)",
+    "ru": "На буксире (трос за катером)",
+    "ja": "曳航（船の後ろでロープ）",
+    "zh": "被拖曳（船后拖绳）",
+    "id": "Ditarik (tali di belakang kapal)"
+   }
+  },
+  {
+   "id": "efoil",
+   "gruppe": "motor",
+   "foil": true,
+   "uhr": "eFoil",
+   "profil": {
+    "karte": "ganz",
+    "hauptzahl": "gesamt"
+   },
+   "namen": {
+    "en": "eFoil (motor in the board)",
+    "de": "eFoil (Motor im Board)",
+    "de-AT": "eFoil (Motor im Board)",
+    "gsw": "eFoil (Motor im Board)",
+    "fr": "eFoil (moteur dans la planche)",
+    "it": "eFoil (motore nella tavola)",
+    "es": "eFoil (motor en la tabla)",
+    "pt": "eFoil (motor na prancha)",
+    "pt-PT": "eFoil (motor na prancha)",
+    "nl": "eFoil (motor in het board)",
+    "nb": "eFoil (motor i brettet)",
+    "fi": "eFoil (moottori laudassa)",
+    "cs": "eFoil (motor v boardu)",
+    "pl": "eFoil (silnik w desce)",
+    "ru": "eFoil (мотор в доске)",
+    "ja": "eFoil（ボード内モーター）",
+    "zh": "eFoil（板内马达）",
+    "id": "eFoil (motor di board)"
+   }
+  },
+  {
+   "id": "foildrive",
+   "gruppe": "motor",
+   "foil": true,
+   "uhr": "Foildrive",
+   "profil": {
+    "karte": "ganz",
+    "hauptzahl": "gesamt"
+   },
+   "namen": {
+    "en": "Foildrive (motor on the mast)",
+    "de": "Foildrive (Motor am Mast)",
+    "de-AT": "Foildrive (Motor am Mast)",
+    "gsw": "Foildrive (Motor am Mascht)",
+    "fr": "Foildrive (moteur sur le mât)",
+    "it": "Foildrive (motore sull'albero)",
+    "es": "Foildrive (motor en el mástil)",
+    "pt": "Foildrive (motor no mastro)",
+    "pt-PT": "Foildrive (motor no mastro)",
+    "nl": "Foildrive (motor op de mast)",
+    "nb": "Foildrive (motor på masta)",
+    "fi": "Foildrive (moottori mastossa)",
+    "cs": "Foildrive (motor na stěžni)",
+    "pl": "Foildrive (silnik na maszcie)",
+    "ru": "Foildrive (мотор на мачте)",
+    "ja": "Foildrive（マストのモーター）",
+    "zh": "Foildrive（桅杆马达）",
+    "id": "Foildrive (motor di mast)"
+   }
+  },
+  {
+   "id": "foil_scoot",
+   "gruppe": "pump",
+   "foil": true,
+   "uhr": "Foil Scoot",
+   "namen": {
+    "en": "Foil Scoot",
+    "de": "Foil Scoot",
+    "de-AT": "Foil Scoot",
+    "gsw": "Foil Scoot",
+    "fr": "Foil Scoot",
+    "it": "Foil Scoot",
+    "es": "Foil Scoot",
+    "pt": "Foil Scoot",
+    "pt-PT": "Foil Scoot",
+    "nl": "Foil Scoot",
+    "nb": "Foil Scoot",
+    "fi": "Foil Scoot",
+    "cs": "Foil Scoot",
+    "pl": "Foil Scoot",
+    "ru": "Foil Scoot",
+    "ja": "Foil Scoot",
+    "zh": "Foil Scoot",
+    "id": "Foil Scoot"
+   }
+  },
+  {
+   "id": "other",
+   "gruppe": null,
+   "foil": false,
+   "autofahrt_kmh": null,
+   "namen": {
+    "en": "Another sport",
+    "de": "Andere Sportart",
+    "de-AT": "Andere Sportart",
+    "gsw": "Anderi Sportart",
+    "fr": "Autre sport",
+    "it": "Altro sport",
+    "es": "Otro deporte",
+    "pt": "Outro esporte",
+    "pt-PT": "Outro desporto",
+    "nl": "Andere sport",
+    "nb": "En annen sport",
+    "fi": "Muu laji",
+    "cs": "Jiný sport",
+    "pl": "Inny sport",
+    "ru": "Другой вид спорта",
+    "ja": "ほかの競技",
+    "zh": "其他运动",
+    "id": "Olahraga lain"
+   }
+  }
+ ],
+ "stillgelegt": [
+  {
+   "id": "wake",
+   "namen": {
+    "en": "Wake / boat (old category)",
+    "de": "Wake / Boot (alte Kategorie)",
+    "de-AT": "Wake / Boot (alte Kategorie)",
+    "gsw": "Wake / Boot (alti Kategorie)",
+    "fr": "Wake / bateau (ancienne catégorie)",
+    "it": "Wake / barca (categoria vecchia)",
+    "es": "Wake / barco (categoría antigua)",
+    "pt": "Wake / barco (categoria antiga)",
+    "pt-PT": "Wake / barco (categoria antiga)",
+    "nl": "Wake / boot (oude categorie)",
+    "nb": "Wake / båt (gammel kategori)",
+    "fi": "Wake / vene (vanha kategoria)",
+    "cs": "Wake / loď (stará kategorie)",
+    "pl": "Wake / łódź (stara kategoria)",
+    "ru": "Wake / катер (старая категория)",
+    "ja": "ウェイク／ボート（旧カテゴリー）",
+    "zh": "Wake / 船（旧分类）",
+    "id": "Wake / kapal (kategori lama)"
+   }
+  }
+ ]
+}

@@ -637,11 +637,8 @@ RUN_MAX_PLAUSIBLE_KMH = 32.0
 # 5-s-Werte ausserhalb erkannter Autofahrten): Wing bis 52, Kite bis 60 km/h. Fuer alle anderen
 # Sportarten bleibt es bei den Pumpfoil-Werten.
 #   Sportart -> (Bandgrenze m/s, Lauf-Spitze km/h)
-SPORT_GRENZEN: dict[str, tuple[float, float]] = {
-    "wingfoil": (50.0 / 3.6, 62.0),
-    "parawing": (50.0 / 3.6, 62.0),
-    "kitefoil": (60.0 / 3.6, 70.0),
-}
+# Seit 25.10.2026 aus der EINEN Liste (data/sportarten.json, Feld `grenzen`).
+from ..sportarten import GRENZEN as SPORT_GRENZEN  # noqa: E402
 
 
 def grenzen_fuer(sport_class: str | None) -> tuple[float, float]:

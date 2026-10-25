@@ -4328,12 +4328,13 @@ def delete_video(
 # Disziplin genau abgegrenzt ist, hat Jan nicht gesagt, und eine erfundene Klammer stuende in
 # 18 Sprachen falsch da (Regel: lieber Luecke als geraten). Einsortiert hinter `foildrive`,
 # damit `other` letzter bleibt.
-SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "surf_wave",
-          "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "foil_scoot", "other")
+# Seit 25.10.2026 aus der EINEN Liste (data/sportarten.json, app/sportarten.py) — hier nur noch durchgereicht, damit
+# die vielen `from .sessions import SPORTS` weiter gelten.
+from ..sportarten import SPORTS  # noqa: E402
 # Stillgelegte Werte: NICHT mehr zuordenbar (die Validierung prüft nur SPORTS), aber ihre
 # Altbestände bleiben sichtbar — Kategorie-Ansichten iterieren SPORTS + SPORTS_LEGACY, sonst
 # fielen bestehende Sessions bei einer Umbenennung stumm aus jeder Kategorie heraus.
-SPORTS_LEGACY = ("wake",)
+from ..sportarten import SPORTS_LEGACY  # noqa: E402
 DATA_QUALITY = ("ok", "false_data", "duplicate", "test")
 # Ab wie vielen Meldern eine Session unklassifiziert wird. Seit 2026-07-27 **1** (Jan): „mach mal das
 # bereits eine meldung 'nicht pumpfoil' ausreicht zum melden, ausblenden und im admin-bereich mir

@@ -19,40 +19,10 @@ Felder:
 """
 from __future__ import annotations
 
-GRUPPE = {
-    "pumpfoil": "pump", "foil_scoot": "pump", "wakethief": "pump", "sup_paddle": "pump",
-    "wingfoil": "wind", "kitefoil": "wind", "parawing": "wind",
-    "surf_wave": "welle", "surf_downwind": "welle",
-    "efoil": "motor", "foildrive": "motor", "towed": "motor",
-}
-
-STANDARD = {"karte": "laeufe", "hauptzahl": "foil", "pumpzahlen": True, "tempo_skala": [8, 25]}
-
-# Nur Abweichungen vom Standard. Stufe 1: die Wind-Gruppe.
-JE_GRUPPE = {
-    "wind": {"karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False, "tempo_skala": [10, 40]},
-    # Motor/Seil (19.10.2026): Pumps zaehlen dort nicht, die Kadenz waere Rauschen. Skala 8-30 km/h:
-    # gemessen Hoechsttempo eFoil/Foildrive Median 22, p90 26 km/h (10-40 liess die Haelfte ungenutzt).
-    "motor": {"pumpzahlen": False, "tempo_skala": [8, 30]},
-}
-
-# Abweichungen einzelner Sportarten vom Gruppenstand.
-JE_SPORT = {
-    # eFoil/Foildrive fahren durchgehend wie Wind: ganze Fahrt + Schalter, Gesamtzahlen vorn, Fahrten
-    # (Stand-Buch: motor fahrten/kartenschalter, Claude-Vorschlag 19.10.). Towed bleibt bei Laeufen:
-    # jeder Zug ist ein eigener Lauf, die Rueckfahrt im Boot gehoert nicht auf die Karte.
-    "efoil": {"karte": "ganz", "hauptzahl": "gesamt"},
-    "foildrive": {"karte": "ganz", "hauptzahl": "gesamt"},
-    # SUP/Paddeln (Jan, 20.10.2026: „die on-foil die daraus folgten als eigene Ansicht, derzeit nur der
-    # gesamte track"): Schalter ganze Fahrt / nur Foil; die Sprints zeichnet die Karte aus /paddel.
-    "sup_paddle": {"karte": "ganz"},
-    # Wake thief (Jan, 20.10.2026: „bei wake-thief das gleiche bitte"): Schalter wie SUP; die Wellenstuecke
-    # zeichnet die Karte aus /welle-pumpen.
-    "wakethief": {"karte": "ganz"},
-    # Downwind (Jan, 20.10.2026: „bei surf/downwind will ich auch wie beim SUP die ganze strecke sehen
-    # koennen"): Schalter ganze Fahrt / nur Foil.
-    "surf_downwind": {"karte": "ganz"},
-}
+# Seit 25.10.2026 aus der EINEN Liste (data/sportarten.json): Gruppe je Sportart, Standard-Profil, Abweichungen je Gruppe
+# und je Sportart. Die Begruendungen der einzelnen Werte (eFoil/Foildrive „ganz", SUP/Wake thief/Downwind Schalter,
+# Motor-Skala 8-30 km/h) stehen in der Git-Geschichte dieser Datei (bis Commit vor dem 25.10.) und im Stand-Buch.
+from .sportarten import GRUPPE, GRUPPEN_PROFIL as JE_GRUPPE, SPORT_PROFIL as JE_SPORT, STANDARD_PROFIL as STANDARD  # noqa: E402
 
 
 def profil(sport_class: str | None) -> dict:
