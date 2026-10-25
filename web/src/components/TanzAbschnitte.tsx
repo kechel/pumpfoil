@@ -70,7 +70,9 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
           </tr>
         </thead>
         <tbody>
-          {abschnitte.map((a, i) => {
+          {/* Nach Uhrzeit sortiert (Jan, 25.10.2026): Marker-Zeilen stehen in der DB hinter den Abschnitten;
+              die Korrektur geht weiter an den Index der DB-Reihenfolge */}
+          {abschnitte.map((a, i) => ({ a, i })).sort((x, y) => x.a.start_ms - y.a.start_ms || x.i - y.i).map(({ a, i }) => {
             const top = a.server_top3 ?? [];
             const wahl = auswahl(taenze, top);
             return (
