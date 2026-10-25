@@ -34,3 +34,21 @@ func classLabelKey(sportClass: String?, dataQuality: String?) -> String {
     let sport = sportClass ?? "pumpfoil"
     return "cls.sport.\(LABELED_SPORTS.contains(sport) ? sport : "other")"
 }
+
+// Sortierung aller Sportart-Listen wie im Web (web/src/lib/sportClass.ts, Jan 25.10.2026: „die sportartenliste bitte
+// immer alphabetisch sortieren, nur pumpfoil (oder das eigene default) ganz oben"): eigene Standard-Sportart zuerst,
+// „other" zuletzt, dazwischen nach dem ANGEZEIGTEN Namen in der gewaehlten Sprache. Die Standard-Sportart setzen die
+// Ansichten, die die Einstellungen laden (Profil, Foils, Einrichtung) — Pumpfoil als Rueckfall.
+var standardSport: String = "pumpfoil"
+
+func sortiereSports(_ ids: [String], lang: String, std: String? = nil) -> [String] {
+    let erster: String = std ?? standardSport
+    func rang(_ id: String) -> Int { id == erster ? 0 : (id == "other" ? 2 : 1) }
+    return ids.sorted { (a: String, b: String) -> Bool in
+        let ra: Int = rang(a), rb: Int = rang(b)
+        if ra != rb { return ra < rb }
+        let na: String = Loc.t("cls.sport." + a, lang).lowercased()
+        let nb: String = Loc.t("cls.sport." + b, lang).lowercased()
+        return na < nb
+    }
+}

@@ -52,7 +52,7 @@ struct SpotHeatmapPanel: View {
     let lang: String
     var routeAusLink: Int? = nil
 
-    @AppStorage("spot_heatmap") private var wahl = "365d"
+    @AppStorage("spot_heatmap") private var wahl = "all"
     @AppStorage("spot_heatmap_art") private var art = "foil"
     @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
     @State private var leer = false
@@ -115,7 +115,8 @@ struct SpotHeatmapPanel: View {
         FoilerFliessReihe(abstand: 6) {
             Pille(text: Loc.t("heat.chipFoil", lang), aktiv: art == "foil") { art = "foil" }
             Pille(text: Loc.t("heat.chipStart", lang), aktiv: art == "start") { art = "start" }
-            Pille(text: Loc.t("heat.chip1y", lang), aktiv: wahl == "365d") { wahl = "365d" }
+            // „Allzeit" statt „1 Jahr" seit 25.10.2026; ein gemerktes „365d" zaehlt als Allzeit.
+            Pille(text: Loc.t("period.all", lang), aktiv: wahl == "all" || wahl == "365d") { wahl = "all" }
             Pille(text: Loc.t("heat.chip30d", lang), aktiv: wahl == "30d") { wahl = "30d" }
             Pille(text: Loc.t("heat.chipOff", lang), aktiv: wahl == "off") { wahl = "off" }
             // Routen planen: hervorgehoben (Jan)
@@ -201,7 +202,7 @@ struct SpotHeatmapPanel: View {
     // MARK: Ablaeufe
     private func einpassenAufSpot() async {
         let u: Double = 0.02
-        guard let r = try? await Api.heatmap(period: "365d", z: 15, w: lon - u * 1.5, s: lat - u, e: lon + u * 1.5, n: lat + u),
+        guard let r = try? await Api.heatmap(period: "all", z: 15, w: lon - u * 1.5, s: lat - u, e: lon + u * 1.5, n: lat + u),
               let zz = r.z, !r.cells.isEmpty else { leer = true; return }
         let welt: Double = MKMapRect.world.size.width
         let zelle: Double = welt / pow(2.0, Double(zz))
@@ -217,7 +218,7 @@ struct SpotHeatmapPanel: View {
         heatAufgabe?.cancel()
         guard wahl != "off", let reg = region else { return }
         let (r, breite) = reg
-        let w = wahl, a = art, sp = sport
+        let w = (wahl == "365d" ? "all" : wahl), a = art, sp = sport
         heatAufgabe = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 250_000_000)
             if Task.isCancelled { return }

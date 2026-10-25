@@ -34,3 +34,13 @@ fun classLabelKey(sportClass: String?, dataQuality: String?): String {
     val sport = sportClass ?: "pumpfoil"
     return "cls.sport.${if (sport in LABELED_SPORTS) sport else "other"}"
 }
+
+// Sortierung aller Sportart-Listen wie im Web (web/src/lib/sportClass.ts, Jan 25.10.2026: „die sportartenliste bitte
+// immer alphabetisch sortieren, nur pumpfoil (oder das eigene default) ganz oben"): eigene Standard-Sportart zuerst,
+// „other" zuletzt, dazwischen nach dem ANGEZEIGTEN Namen in der gewaehlten Sprache. Die Standard-Sportart setzen die
+// Bildschirme, die die Einstellungen laden (Profil, Foils, Einrichtung) — Pumpfoil als Rueckfall.
+var standardSport: String = "pumpfoil"
+
+fun sortiereSports(ids: List<String>, std: String = standardSport): List<String> =
+    ids.sortedWith(compareBy<String>({ if (it == std) 0 else if (it == "other") 2 else 1 },
+                                     { I18n.t("cls.sport.$it").lowercase() }))

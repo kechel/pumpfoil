@@ -70,7 +70,7 @@ struct SpotsView: View {
     // aktiv"/„mit Beschreibung", bei Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins
     // weg — so liegt die Heatmap-Schicht auch ueber nichts mehr, was man antippen muesste.
     @State private var heatAnsicht = false
-    @State private var heatZeitraum = "365d"
+    @State private var heatZeitraum = "all"   // „all" statt „365d" seit 25.10.2026
     // „Auf dem Foil" / „Startpunkte" (Jan, 16.10.2026, wie Spots.tsx)
     @State private var heatArt = "foil"
     private var heat: String? { heatAnsicht ? heatZeitraum : nil }
@@ -183,7 +183,7 @@ struct SpotsView: View {
                 }
                 HStack(spacing: 8) {
                     heatKnopf("30d")
-                    heatKnopf("365d")
+                    heatKnopf("all")
                 }
                 if let d = heatDaten {
                     Text("\(Loc.t(heatArt == "start" ? "spots.heatHintStart" : "spots.heatHint", lang)) · \(d.sessions) \(Loc.t("side.sessions", lang))")

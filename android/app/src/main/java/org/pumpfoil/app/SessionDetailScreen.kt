@@ -538,6 +538,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     val pumpzahlen = s.sportProfil?.pumpzahlen != false
     val karteGanzMoeglich = s.sportProfil?.karte == "ganz"
     val hauptGesamt = s.sportProfil?.hauptzahl == "gesamt"
+    // Sportart ohne On-Foil-Fahren (25.10.2026, wie PWA): keine „on foil"-Begriffe, kein Foil-Anteil.
+    val ohneFoil = s.sportProfil?.foil == false
     var ganzeFahrt by remember(s.id) { mutableStateOf(true) }
     val zeigeGanz = karteGanzMoeglich && ganzeFahrt
     // Tempo-Faerbung (km/h): bisher fest 8-25, Wind 10-40 aus dem Profil.
@@ -958,7 +960,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         // vorher drei Zeilen (Jan, 07.10.2026: „Platz sparen"). FlowRow bricht nur um,
                         // wenn es wirklich nicht passt.
                         val pumpAnzahl = a?.pumpCount
-                        val zeigeMarker = pumpzahlen && pumpAnzahl != null && pumpAnzahl > 0
+                        // SUP ohne Foil (25.10.2026): keine Pump-Zahlen, aber Paddelschlaege -> Schalter trotzdem anbieten.
+                        val zeigeMarker = (pumpzahlen && pumpAnzahl != null && pumpAnzahl > 0) ||
+                            (s.sportClass == "sup" && !paddel?.schlagPkt.isNullOrEmpty())
                         // Startversuche nur anbieten, wenn es welche gibt (oder noch geladen wird).
                         // Bewusst NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den ausgewerteten
                         // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
@@ -969,7 +973,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         // Wind: Schalter „nur on-foil / ganze Fahrt" (Standard ganze Fahrt).
                         if (karteGanzMoeglich) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                FilterChip(selected = !ganzeFahrt, onClick = { ganzeFahrt = false }, label = { Text(I18n.t("sd.mapOnFoil")) }, colors = cyanChipColors())
+                                FilterChip(selected = !ganzeFahrt, onClick = { ganzeFahrt = false }, label = { Text(I18n.t(if (ohneFoil) "sd.rides" else "sd.mapOnFoil")) }, colors = cyanChipColors())
                                 FilterChip(selected = ganzeFahrt, onClick = { ganzeFahrt = true }, label = { Text(I18n.t("sd.mapWhole")) }, colors = cyanChipColors())
                             }
                         }
@@ -990,7 +994,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (zeigeMarker) {
                                         // SUP: dort sind es Paddelschlaege (Schlag-Erkennung), keine Pumps (20.10.2026).
-                                        Text(I18n.t(if (s.sportClass == "sup_paddle") "sd.strokes" else "sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
+                                        Text(I18n.t(if (s.sportClass == "sup_paddle" || s.sportClass == "sup") "sd.strokes" else "sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Spacer(Modifier.width(4.dp))
                                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
@@ -1016,7 +1020,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 Card(Modifier.fillMaxWidth()) {
                     Box {
-                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
+                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && (pumpzahlen || s.sportClass == "sup"), showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1040,7 +1044,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Dialog(onDismissRequest = { mapFull = false },
                            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && pumpzahlen, showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
+                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && (pumpzahlen || s.sportClass == "sup"), showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1134,7 +1138,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     z.fahrten?.let { add(StatItem(I18n.t("sd.rides"), "${it.size}")) }
                     z.fahrzeitS?.let { add(StatItem(I18n.t("sd.movingTime"), mmssD(it))) }
                     z.tempoKmh?.let { add(StatItem(I18n.t("sd.avgSpeedRide"), "%.1f km/h".format(it))) }
-                    z.foilAnteil?.let { add(StatItem(I18n.t("sd.foilShare"), "${kotlin.math.round(it * 100).toInt()} %")) }
+                    if (!ohneFoil) z.foilAnteil?.let { add(StatItem(I18n.t("sd.foilShare"), "${kotlin.math.round(it * 100).toInt()} %")) }
                     // Wave (19.10.2026, wie im Web): Wellen, laengste Welle, Rauspaddeln.
                     z.wellen?.let { w ->
                         add(StatItem(I18n.t("sd.waves"), "${w.anzahl}"))
@@ -1183,10 +1187,10 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Spacer(Modifier.weight(1f))
                 }
             }
-            a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it, manoever?.fahrten.orEmpty(), s.sportClass) }
+            a.sportZahlen?.fahrten?.takeIf { it.isNotEmpty() }?.let { FahrtenKarte(it, manoever?.fahrten.orEmpty(), s.sportClass, ohneFoil) }
             paddel?.let { PaddelKarte(it, s.sportClass) }
             wellePumpen?.let { WelleKarte(it, s.sportClass) }
-            windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe, windInfo?.vorhersage == true, windVergleich) }
+            windInfo?.mittel?.let { WindKarte(it, manoever?.zahlen, manoever?.hoehe, windInfo?.vorhersage == true, windVergleich, ohneFoil) }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
             val excluded = s.excludedRanges.orEmpty()
@@ -1891,6 +1895,11 @@ private fun RunsTable(
             // Vom Erkennungsmodell aussortiert: eigener Grund — „ohne eigene Kraft" waere fuer einen
             // Gang an Land falsch (wie PWA poweredWhy).
             if (r.quelle == "v3") return I18n.t("v3.sepWhy").replace("{dur}", dur).replace("{kmh}", kmh)
+            // Autofahrt (Spitze, Dauer in Minuten) und zu schnell fuer die Sportart (25.10.2026) — wie PWA poweredWhy.
+            if (r.quelle == "fahrt") return I18n.t("fahrt.sepWhy").replace("{kmh}", Math.round(r.kmh).toString())
+                .replace("{min}", maxOf(1L, Math.round(r.dauerS / 60.0)).toString())
+            if (r.quelle == "tempo") return I18n.t("tempo.sepWhy").replace("{kmh}", Math.round(r.kmh).toString())
+                .replace("{grenze}", Math.round(r.grenzeKmh ?: 0.0).toString())
             return if (hr != null)
                 I18n.t("v2.sepWhyPulse").replace("{dur}", dur).replace("{kmh}", kmh)
                     .replace("{hr}", (if (hr > 0) "+" else "") + Math.round(hr))
@@ -2263,7 +2272,8 @@ private fun SortTabelle(titel: String, n: Int, spalten: List<SortSpalte>) {
 }
 
 @Composable
-private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = emptyList(), sport: String? = null) {
+private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = emptyList(), sport: String? = null,
+                         ohneFoil: Boolean = false) {
     // Sortierbare Tabelle unter der Karte (20.10.2026, wie PWA): Downwind mit A->B, Wind mit den Kennzahlen je Fahrt.
     val ab = fahrten.any { it.abM != null }
     val m = fahrten.map { f -> jeFahrt.firstOrNull { it.tStartMs == f.tStartMs } }
@@ -2272,16 +2282,22 @@ private fun FahrtenKarte(fahrten: List<Fahrt>, jeFahrt: List<ManoeverFahrt> = em
     val spalten = buildList {
         add(SortSpalte(I18n.t("sd.colDuration"), 76, { fahrten[it].dauerS }, { fmtLaufDauer(fahrten[it].dauerS) }))
         add(SortSpalte(I18n.t("sd.colDistance") + " km", 66, { fahrten[it].streckeM }, { km(fahrten[it].streckeM) }))
-        add(SortSpalte("Foil km", 56, { fahrten[it].foilM }, { km(fahrten[it].foilM) }))
+        if (!ohneFoil) add(SortSpalte("Foil km", 56, { fahrten[it].foilM }, { km(fahrten[it].foilM) }))
         add(SortSpalte(I18n.t("stat.runs"), 48, { fahrten[it].laeufe.toDouble() }, { "${fahrten[it].laeufe}" }))
         if (ab) {
             add(SortSpalte("A→B km", 60, { fahrten[it].abM }, { km(fahrten[it].abM) }))
             add(SortSpalte("A→B km/h", 66, { fahrten[it].abKmh }, { fahrten[it].abKmh?.let { v -> "%.1f".format(v) } ?: "–" }))
-            add(SortSpalte("Foil %", 50, { fahrten[it].foilAnteil }, { fahrten[it].foilAnteil?.let { v -> "${kotlin.math.round(v * 100).toInt()} %" } ?: "–" }))
+            if (!ohneFoil) add(SortSpalte("Foil %", 50, { fahrten[it].foilAnteil }, { fahrten[it].foilAnteil?.let { v -> "${kotlin.math.round(v * 100).toInt()} %" } ?: "–" }))
         }
         if (mitWind) {
-            add(SortSpalte(I18n.t("sd.tacks"), 72, { m[it]?.wendeDurch?.toDouble() }, { m[it]?.let { x -> if (x.wende > 0) "${x.wendeDurch}/${x.wende}" else "–" } ?: "–" }))
-            add(SortSpalte(I18n.t("sd.jibes"), 80, { m[it]?.halseDurch?.toDouble() }, { m[it]?.let { x -> if (x.halse > 0) "${x.halseDurch}/${x.halse}" else "–" } ?: "–" }))
+            // Ohne Foil nur die Anzahl (es gibt kein „auf dem Foil durchgefahren")
+            if (ohneFoil) {
+                add(SortSpalte(I18n.t("sd.tacks"), 72, { m[it]?.wende?.toDouble() }, { m[it]?.let { x -> if (x.wende > 0) "${x.wende}" else "–" } ?: "–" }))
+                add(SortSpalte(I18n.t("sd.jibes"), 80, { m[it]?.halse?.toDouble() }, { m[it]?.let { x -> if (x.halse > 0) "${x.halse}" else "–" } ?: "–" }))
+            } else {
+                add(SortSpalte(I18n.t("sd.tacks"), 72, { m[it]?.wendeDurch?.toDouble() }, { m[it]?.let { x -> if (x.wende > 0) "${x.wendeDurch}/${x.wende}" else "–" } ?: "–" }))
+                add(SortSpalte(I18n.t("sd.jibes"), 80, { m[it]?.halseDurch?.toDouble() }, { m[it]?.let { x -> if (x.halse > 0) "${x.halseDurch}/${x.halse}" else "–" } ?: "–" }))
+            }
             add(SortSpalte(I18n.t("sd.colHeight"), 64, { m[it]?.hoeheM }, { km(m[it]?.hoeheM) }))
             add(SortSpalte(I18n.t("sd.colVmg") + " km/h", 76, { m[it]?.vmgMaxKmh }, { m[it]?.vmgMaxKmh?.let { v -> "%.1f".format(v) } ?: "–" }))
             add(SortSpalte(I18n.t("sd.wind") + " km/h", 64, { m[it]?.windKmh }, { m[it]?.windKmh?.let { v -> "%.0f".format(v) } ?: "–" }))
@@ -2354,7 +2370,8 @@ private fun PaddelKarte(p: PaddelAntwort, sport: String? = null) {
 
 // Wind am Spot (Modellwert, keine Messung am Wasser) + Wenden/Halsen — wie die Wind-Box im Web.
 @Composable
-private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null, vorhersage: Boolean = false, vg: WindVergleich? = null) {
+private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null, vorhersage: Boolean = false, vg: WindVergleich? = null,
+                      ohneFoil: Boolean = false) {
     Card(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2377,11 +2394,13 @@ private fun WindKarte(w: WindMittel, z: ManoeverZahlen?, h: Hoehe? = null, vorhe
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("●", color = Color(0xFFA855F7)); Spacer(Modifier.width(4.dp))
-                    Text("${I18n.t("sd.tacks")} ${z.wende.durch} / ${z.wende.durch + z.wende.ab} ${I18n.t("sd.onFoil")}")
+                    Text(if (ohneFoil) "${I18n.t("sd.tacks")} ${z.wende.durch + z.wende.ab}"
+                         else "${I18n.t("sd.tacks")} ${z.wende.durch} / ${z.wende.durch + z.wende.ab} ${I18n.t("sd.onFoil")}")
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("●", color = Color(0xFFF97316)); Spacer(Modifier.width(4.dp))
-                    Text("${I18n.t("sd.jibes")} ${z.halse.durch} / ${z.halse.durch + z.halse.ab} ${I18n.t("sd.onFoil")}")
+                    Text(if (ohneFoil) "${I18n.t("sd.jibes")} ${z.halse.durch + z.halse.ab}"
+                         else "${I18n.t("sd.jibes")} ${z.halse.durch} / ${z.halse.durch + z.halse.ab} ${I18n.t("sd.onFoil")}")
                 }
             }
             // Hoehe laufen (19.10.2026, wie im Web): VMG zum Wind, nur Anzeige.
@@ -2866,7 +2885,7 @@ private fun ClassificationNotice(s: SessionDetail, scope: kotlinx.coroutines.Cor
             // Der Besitzer ordnet die Sportart direkt hier zu (dasselbe Dropdown wie unten in
             // ClassificationPickers); solange die Bitte offen ist, steht ein Platzhalter drin.
             ClassDropdown(
-                options = SPORTS, selected = s.sportClass ?: "pumpfoil", keyPrefix = "cls.sport.",
+                options = sortiereSports(SPORTS), selected = s.sportClass ?: "pumpfoil", keyPrefix = "cls.sport.",
                 placeholder = if (s.needsClassification) I18n.t("cls.choose") else null,
                 onPick = { v ->
                     scope.launch {
@@ -2917,7 +2936,7 @@ private fun ClassificationPickers(s: SessionDetail, scope: kotlinx.coroutines.Co
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             ClassDropdown(
-                options = SPORTS, selected = s.sportClass ?: "pumpfoil", keyPrefix = "cls.sport.",
+                options = sortiereSports(SPORTS), selected = s.sportClass ?: "pumpfoil", keyPrefix = "cls.sport.",
                 onPick = { v ->
                     scope.launch {
                         try { Api.setClassification(s.id, sport = v); msg = null; onReload() }

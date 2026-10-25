@@ -145,7 +145,7 @@ struct CommunityView: View {
                 if (istWind && (lbMetric == "pumps" || lbMetric == "runs")) || (istMotor && lbMetric == "pumps") { lbMetric = "sessions" }
                 Task { await reloadBand() }
             }
-            .task { sportListe = ((try? await Api.communitySports()) ?? []).map { $0.sport }.filter { !$0.isEmpty }
+            .task { sportListe = sortiereSports(((try? await Api.communitySports()) ?? []).map { $0.sport }.filter { !$0.isEmpty }, lang: lang)
                     if sportListe.isEmpty { sportListe = ["pumpfoil"] } }
             .onChange(of: spotShown) { _ in Task { await loadSpotRecs() } }
         }

@@ -39,7 +39,7 @@ struct FoilsView: View {
             if let error { Text(error).foregroundStyle(.secondary) }
             Section {
                 Picker(Loc.t("foils.defaultSport", lang), selection: $defSport) {
-                    ForEach(SPORTS, id: \.self) { sp in
+                    ForEach(sortiereSports(SPORTS, lang: lang), id: \.self) { sp in
                         Text(Loc.t("cls.sport." + sp, lang)).tag(sp)
                     }
                 }
@@ -49,7 +49,7 @@ struct FoilsView: View {
                 Text(Loc.t("foils.defaultSportHint", lang)).font(.callout).foregroundStyle(.secondary)
                 // Sportarten an der Uhr (19.10.2026, wie das Web)
                 DisclosureGroup(Loc.t("foils.mySports", lang)) {
-                    ForEach(SPORTS.filter { $0 != "other" }, id: \.self) { sp in
+                    ForEach(sortiereSports(SPORTS.filter { $0 != "other" }, lang: lang), id: \.self) { sp in
                         Toggle(Loc.t("cls.sport." + sp, lang), isOn: sportBindung(sp)).disabled(sp == defSport)
                     }
                     Text(Loc.t("foils.mySportsHint", lang)).font(.footnote).foregroundStyle(.secondary)
@@ -145,7 +145,7 @@ struct FoilsView: View {
                 if let mf = s["my_foils"] as? [Int] { mine = Set(mf) }
                 else if let mf = s["my_foils"] as? [NSNumber] { mine = Set(mf.map(\.intValue)) }
                 def = (s["foil_id"] as? Int) ?? (s["foil_id"] as? NSNumber)?.intValue
-                if let ds = s["default_sport_class"] as? String, !ds.isEmpty { defSport = ds }
+                if let ds = s["default_sport_class"] as? String, !ds.isEmpty { defSport = ds; standardSport = ds }
                 mySports = (s["my_sports"] as? [String]) ?? []
             }
             error = nil

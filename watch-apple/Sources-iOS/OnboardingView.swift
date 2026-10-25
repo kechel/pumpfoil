@@ -174,9 +174,11 @@ struct OnboardingView: View {
     private var sportSection: some View {
         Section(t("onb.sport.title")) {
             Picker(t("onb.sport.title"), selection: $sport) {
-                ForEach(["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "efoil",
-                         "foildrive", "other"],
-                        id: \.self) { s in Text(t("onb.x.sport.\(s)")).tag(s) }
+                // Wie die PWA (25.10.2026): mit den Sportarten ohne Foil, alphabetisch, Pumpfoil zuerst, „other" zuletzt.
+                ForEach(sortiereSports(["pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite",
+                                        "kite_atb", "kitebuggy", "surf_downwind", "sup", "efoil", "foildrive", "other"],
+                                       lang: lang, std: "pumpfoil"),
+                        id: \.self) { s in Text(t("cls.sport.\(s)")).tag(s) }
             }
             .pickerStyle(.navigationLink)
             .onChange(of: sport) { neu in Task { try? await Api.saveSettings(["default_sport_class": neu]) } }
@@ -376,6 +378,7 @@ struct OnboardingView: View {
             let w = (s["weight_kg"] as? NSNumber)?.intValue ?? (s["weight_kg"] as? Int) ?? 0
             gewicht = w > 0 ? "\(w)" : ""
             sport = (s["default_sport_class"] as? String) ?? "pumpfoil"
+            standardSport = sport
             meineFoils = ((s["my_foils"] as? [Any]) ?? []).compactMap { ($0 as? NSNumber)?.intValue ?? $0 as? Int }
             standardFoil = (s["foil_id"] as? NSNumber)?.intValue ?? (s["foil_id"] as? Int)
         }

@@ -111,6 +111,7 @@ fun OnboardingScreen(onFertig: () -> Unit) {
             val w = s["weight_kg"]?.jsonPrimitive?.intOrNull ?: 0
             gewicht = if (w > 0) w.toString() else ""
             sport = s["default_sport_class"]?.jsonPrimitive?.contentOrNull ?: "pumpfoil"
+            standardSport = sport
             meineFoils = (s["my_foils"] as? JsonArray)?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
             standardFoil = s["foil_id"]?.jsonPrimitive?.intOrNull
         } catch (_: Exception) {}
@@ -360,15 +361,17 @@ private fun GewichtKarte(gewicht: String, onGewicht: (String) -> Unit) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SportKarte(sport: String, onSport: (String) -> Unit) {
-    val arten = listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "efoil",
-                       "foildrive", "other")
+    // Wie die PWA (25.10.2026): mit den Sportarten ohne Foil, alphabetisch nach Namen, Pumpfoil zuerst, „other" zuletzt —
+    // bewusst NICHT nach der gewaehlten Sportart sortiert, sonst springen die Knoepfe beim Antippen.
+    val arten = sortiereSports(listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite",
+                                      "kite_atb", "kitebuggy", "surf_downwind", "sup", "efoil", "foildrive", "other"), std = "pumpfoil")
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(I18n.t("onb.sport.title"), fontWeight = FontWeight.Bold)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 arten.forEach { s ->
                     FilterChip(selected = sport == s, onClick = { onSport(s) },
-                        label = { Text(I18n.t("onb.x.sport.$s")) })
+                        label = { Text(I18n.t("cls.sport.$s")) })
                 }
             }
         }

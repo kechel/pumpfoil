@@ -103,7 +103,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     // Schalter „Spots | Heatmap" (Jan, 15.10.2026, wie Spots.tsx): bei Spots die Haken, bei
     // Heatmap die Zeitraeume. In der Heatmap-Ansicht sind die Pins weg.
     var heatAnsicht by remember { mutableStateOf(false) }
-    var heatZeitraum by remember { mutableStateOf("365d") }
+    var heatZeitraum by remember { mutableStateOf("all") }   // „all" statt „365d" seit 25.10.2026
     // „Auf dem Foil" / „Startpunkte" (Jan, 16.10.2026, wie Spots.tsx)
     var heatArt by remember { mutableStateOf("foil") }
     val heat = if (heatAnsicht) heatZeitraum else null
@@ -229,7 +229,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                             FilterChip(selected = heatArt == a, onClick = { heatArt = a },
                                 label = { Text(I18n.t(k)) }, colors = cyanChipColors())
                         }
-                        listOf("30d", "365d").forEach { p ->
+                        listOf("30d", "all").forEach { p ->
                             FilterChip(selected = heatZeitraum == p, onClick = { heatZeitraum = p },
                                 label = { Text(I18n.t("period.$p")) }, colors = cyanChipColors())
                         }

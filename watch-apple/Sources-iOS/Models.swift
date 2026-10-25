@@ -1257,8 +1257,10 @@ struct PoweredRun: Codable {
     let dauer_s: Double?
     let kmh: Double?
     let puls_antwort_bpm: Double?
-    // "v3" = vom Erkennungsmodell aussortiert (Erkennung v3, 30.09.2026) statt Fremdkraft-Verdacht.
+    // "v3" = vom Erkennungsmodell aussortiert (Erkennung v3, 30.09.2026) statt Fremdkraft-Verdacht;
+    // "fahrt" = Autofahrt; "tempo" = zu schnell fuer die Sportart (25.10.2026, Grenze in grenze_kmh).
     let quelle: String?
+    let grenze_kmh: Double?
 }
 
 // Begründung der automatischen Sportart-Erkennung (Server: sessions._sport_auto, nur Besitzer und
@@ -1325,6 +1327,7 @@ struct SportProfil: Codable {
     let hauptzahl: String?    // "foil" | "gesamt"
     let pumpzahlen: Bool?
     let tempo_skala: [Double]?   // km/h der Tempo-Faerbung, fehlt = 8-25
+    let foil: Bool?              // false = Sportart ohne On-Foil-Fahren (25.10.2026); fehlt = true
 }
 
 struct SessionDetail: Codable, Identifiable {

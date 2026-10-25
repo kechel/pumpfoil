@@ -382,8 +382,10 @@ data class FremdkraftLauf(
     @SerialName("dauer_s") val dauerS: Double = 0.0,
     val kmh: Double = 0.0,
     @SerialName("puls_antwort_bpm") val pulsAntwortBpm: Double? = null,
-    // "v3" = vom Erkennungsmodell aussortiert (Erkennung v3, 30.09.2026) statt Fremdkraft-Verdacht.
+    // "v3" = vom Erkennungsmodell aussortiert (Erkennung v3, 30.09.2026) statt Fremdkraft-Verdacht;
+    // "fahrt" = Autofahrt (04.10.2026); "tempo" = zu schnell fuer die Sportart (25.10.2026, mit grenze_kmh).
     val quelle: String? = null,
+    @SerialName("grenze_kmh") val grenzeKmh: Double? = null,
 )
 
 @Serializable
@@ -1164,6 +1166,8 @@ data class SportProfil(
     val hauptzahl: String = "foil",     // "foil" | "gesamt"
     val pumpzahlen: Boolean = true,
     @SerialName("tempo_skala") val tempoSkala: List<Double> = listOf(8.0, 25.0),   // km/h der Tempo-Faerbung
+    // false = Sportart ohne On-Foil-Fahren (Kitesurfen, Windsurfen, Snowkite, SUP ohne Foil … — 25.10.2026, wie PWA)
+    val foil: Boolean = true,
 )
 
 @Serializable

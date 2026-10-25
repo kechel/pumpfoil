@@ -101,9 +101,10 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
         try {
             val st = Api.settings()
             val def = (st["default_sport_class"] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() } ?: "pumpfoil"
+            standardSport = def
             val mine = (st["my_sports"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull } ?: emptyList()
             meineSportarten = listOf(I18n.t("cls.sport.$def") to true) +
-                SPORTS.filter { it != def && it in mine }.map { I18n.t("cls.sport.$it") to false }
+                sortiereSports(SPORTS.filter { it != def && it in mine }).map { I18n.t("cls.sport.$it") to false }
             val foilIds = (st["my_foils"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.intOrNull } ?: emptyList()
             val defFoil = (st["foil_id"] as? JsonPrimitive)?.intOrNull
             if (foilIds.isNotEmpty()) {

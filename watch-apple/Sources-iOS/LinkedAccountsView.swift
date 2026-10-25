@@ -366,7 +366,7 @@ private struct ModusZuordnung: View {
                 ForEach(modi, id: \.sport_key) { m in
                     Menu {
                         Button(Loc.t("settings.sports.countsDefault", lang)) { zuordnen(m.sport_key, nil) }
-                        ForEach(SPORTS.filter { $0 != "other" }, id: \.self) { k in
+                        ForEach(sortiereSports(SPORTS.filter { $0 != "other" }, lang: lang), id: \.self) { k in
                             Button(Loc.t("cls.sport.\(k)", lang)) { zuordnen(m.sport_key, k) }
                         }
                     } label: {

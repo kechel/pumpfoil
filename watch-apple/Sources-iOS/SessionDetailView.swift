@@ -21,6 +21,8 @@ struct SessionDetailView: View {
     private var pumpzahlen: Bool { session?.sport_profil?.pumpzahlen != false }
     private var karteGanzMoeglich: Bool { session?.sport_profil?.karte == "ganz" }
     private var hauptGesamt: Bool { session?.sport_profil?.hauptzahl == "gesamt" }
+    // Sportart ohne On-Foil-Fahren (25.10.2026, wie PWA): keine „on foil"-Begriffe, kein Foil-Anteil.
+    private var ohneFoil: Bool { session?.sport_profil?.foil == false }
     /// Tempo-Faerbung (km/h): bisher fest 8-25, Wind 10-40 aus dem Profil.
     private var tempoSkala: (Double, Double) {
         let t: [Double] = session?.sport_profil?.tempo_skala ?? []
@@ -1049,7 +1051,7 @@ struct SessionDetailView: View {
         }
         if karteGanzMoeglich {
             Picker("", selection: $ganzeFahrt) {
-                Text(Loc.t("sd.mapOnFoil", lang)).tag(false)
+                Text(Loc.t(ohneFoil ? "sd.rides" : "sd.mapOnFoil", lang)).tag(false)
                 Text(Loc.t("sd.mapWhole", lang)).tag(true)
             }
             .pickerStyle(.segmented)
@@ -1065,8 +1067,9 @@ struct SessionDetailView: View {
     }
 
     @ViewBuilder private func kartenSchalter(_ s: SessionDetail) -> some View {
-        if pumpzahlen && (s.analysis?.pump_count ?? 0) > 0 {
-            Toggle(Loc.t(session?.sport_class == "sup_paddle" ? "sd.strokes" : "sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
+        // SUP ohne Foil (25.10.2026): keine Pump-Zahlen, aber Paddelschlaege -> Schalter trotzdem anbieten.
+        if (pumpzahlen && (s.analysis?.pump_count ?? 0) > 0) || (s.sport_class == "sup" && !(paddel?.schlag_pkt ?? []).isEmpty) {
+            Toggle(Loc.t(session?.sport_class == "sup_paddle" || session?.sport_class == "sup" ? "sd.strokes" : "sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
         }
         // SUP: kein Gleit-Schalter (Pumpfoil-Begriff, Jan 20.10.2026)
         if pumpzahlen && s.sport_class != "sup_paddle" && (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
@@ -1111,7 +1114,7 @@ struct SessionDetailView: View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
-                        showPumps: showPumps && pumpzahlen, showGlides: showGlides && pumpzahlen && session?.sport_class != "sup_paddle" && hatGleitphasen, selectedRun: selectedRun,
+                        showPumps: showPumps && (pumpzahlen || session?.sport_class == "sup"), showGlides: showGlides && pumpzahlen && session?.sport_class != "sup_paddle" && hatGleitphasen, selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
                         attempts: showAttempts && pumpzahlen ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax,
@@ -1258,7 +1261,7 @@ struct SessionDetailView: View {
     @ViewBuilder private func classificationPickers(_ s: SessionDetail) -> some View {
         let cols = [GridItem(.adaptive(minimum: 130), spacing: 12, alignment: .leading)]
         LazyVGrid(columns: cols, alignment: .leading, spacing: 6) {
-            classPicker(current: s.sport_class ?? "pumpfoil", options: SPORTS, prefix: "cls.sport.") { v in
+            classPicker(current: s.sport_class ?? "pumpfoil", options: sortiereSports(SPORTS, lang: lang), prefix: "cls.sport.") { v in
                 Task { await applyClass(sport: v) }
             }
             classPicker(current: s.data_quality ?? "ok", options: DATA_QUALITY, prefix: "cls.dq.") { v in
@@ -1358,10 +1361,10 @@ struct SessionDetailView: View {
                 // „Rate this analysis" (22.10.2026, wie Web): nur auf eigenen Sessions
                 if s.owned == true { BewertungKachel(sessionId: s.id, lang: lang) }
             }
-            if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, jeFahrt: manoever?.fahrten ?? [], sport: session?.sport_class, lang: lang) }
+            if let f = a.sport_zahlen?.fahrten, !f.isEmpty { FahrtenKarte(fahrten: f, jeFahrt: manoever?.fahrten ?? [], sport: session?.sport_class, ohneFoil: ohneFoil, lang: lang) }
             if let p = paddel { PaddelKarte(p: p, sport: session?.sport_class, lang: lang) }
             if let w = wellePumpen { WelleKarte(w: w, sport: session?.sport_class, lang: lang) }
-            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, lang: lang) }
+            if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, ohneFoil: ohneFoil, lang: lang) }
             excludedSection(s)
             poweredSection(s)
             excludeErrorRow
@@ -1551,6 +1554,50 @@ struct SessionDetailView: View {
         "nb": "{dur} s med snitt {kmh} km/t — gjenkjenningsmodellen ser ingen foiling her",
     ]
 
+    // Autofahrt (quelle "fahrt", 04.10.2026) und zu schnell fuer die Sportart (quelle "tempo", 25.10.2026), Wortlaut aus
+    // der PWA (fahrt.sepWhy / tempo.sepWhy) — eigene kleine Woerterbuecher wie v3Warum (Loc-Tabellen <= 50 Eintraege).
+    private static let fahrtWarum: [String: String] = [
+        "de": "Autofahrt — {min} min, bis {kmh} km/h",
+        "gsw": "Autofahrt — {min} min, bis {kmh} km/h",
+        "de-AT": "Autofahrt — {min} min, bis {kmh} km/h",
+        "en": "Car drive — {min} min, up to {kmh} km/h",
+        "fr": "Trajet en voiture — {min} min, jusqu'à {kmh} km/h",
+        "it": "Tragitto in auto — {min} min, fino a {kmh} km/h",
+        "es": "Trayecto en coche — {min} min, hasta {kmh} km/h",
+        "fi": "Automatka — {min} min, jopa {kmh} km/h",
+        "nl": "Autorit — {min} min, tot {kmh} km/u",
+        "cs": "Jízda autem — {min} min, až {kmh} km/h",
+        "pl": "Jazda samochodem — {min} min, do {kmh} km/h",
+        "pt": "Trajeto de carro — {min} min, até {kmh} km/h",
+        "pt-PT": "Viagem de carro — {min} min, até {kmh} km/h",
+        "ja": "車での移動 — {min}分、最高{kmh} km/h",
+        "zh": "开车 — {min} 分钟，最高 {kmh} km/h",
+        "ru": "Поездка на машине — {min} мин, до {kmh} км/ч",
+        "id": "Perjalanan mobil — {min} mnt, hingga {kmh} km/j",
+        "nb": "Biltur — {min} min, opptil {kmh} km/t",
+    ]
+
+    private static let tempoWarum: [String: String] = [
+        "de": "Zu schnell für diese Sportart — bis {kmh} km/h, Grenze {grenze} km/h",
+        "gsw": "Z schnäll für die Sportart — bis {kmh} km/h, Gränze {grenze} km/h",
+        "de-AT": "Zu schnell für diese Sportart — bis {kmh} km/h, Grenze {grenze} km/h",
+        "en": "Too fast for this sport — up to {kmh} km/h, limit {grenze} km/h",
+        "fr": "Trop rapide pour ce sport — jusqu'à {kmh} km/h, limite {grenze} km/h",
+        "it": "Troppo veloce per questo sport — fino a {kmh} km/h, limite {grenze} km/h",
+        "es": "Demasiado rápido para este deporte — hasta {kmh} km/h, límite {grenze} km/h",
+        "fi": "Liian nopea tähän lajiin — jopa {kmh} km/h, raja {grenze} km/h",
+        "nl": "Te snel voor deze sport — tot {kmh} km/h, grens {grenze} km/h",
+        "cs": "Na tento sport příliš rychlé — až {kmh} km/h, limit {grenze} km/h",
+        "pl": "Za szybko jak na ten sport — do {kmh} km/h, limit {grenze} km/h",
+        "pt": "Rápido demais para este esporte — até {kmh} km/h, limite {grenze} km/h",
+        "pt-PT": "Demasiado rápido para este desporto — até {kmh} km/h, limite {grenze} km/h",
+        "ja": "このスポーツには速すぎます — 最高 {kmh} km/h、上限 {grenze} km/h",
+        "zh": "对此运动来说太快 — 最高 {kmh} km/h，上限 {grenze} km/h",
+        "ru": "Слишком быстро для этого вида спорта — до {kmh} км/ч, предел {grenze} км/ч",
+        "id": "Terlalu cepat untuk olahraga ini — hingga {kmh} km/h, batas {grenze} km/h",
+        "nb": "For raskt for denne sporten — opptil {kmh} km/t, grense {grenze} km/t",
+    ]
+
     // Begründung lokalisiert aus den MESSWERTEN gebaut — metrics.grund ist deutscher Admin-Klartext
     // und wird nie angezeigt (wie PWA poweredWhy).
     private func poweredWhyText(_ r: PoweredRun) -> String {
@@ -1561,6 +1608,19 @@ struct SessionDetailView: View {
             return vorlage
                 .replacingOccurrences(of: "{dur}", with: dur)
                 .replacingOccurrences(of: "{kmh}", with: kmh)
+        }
+        if r.quelle == "fahrt" {
+            let vorlage: String = Self.fahrtWarum[lang] ?? Self.fahrtWarum["en"] ?? ""
+            let min: Int = max(1, Int(((r.dauer_s ?? 0) / 60.0).rounded()))
+            return vorlage
+                .replacingOccurrences(of: "{kmh}", with: String(Int((r.kmh ?? 0).rounded())))
+                .replacingOccurrences(of: "{min}", with: String(min))
+        }
+        if r.quelle == "tempo" {
+            let vorlage: String = Self.tempoWarum[lang] ?? Self.tempoWarum["en"] ?? ""
+            return vorlage
+                .replacingOccurrences(of: "{kmh}", with: String(Int((r.kmh ?? 0).rounded())))
+                .replacingOccurrences(of: "{grenze}", with: String(Int((r.grenze_kmh ?? 0).rounded())))
         }
         if let hr = r.puls_antwort_bpm {
             let hrTxt: String = (hr > 0 ? "+" : "") + String(Int(hr.rounded()))
@@ -1668,7 +1728,7 @@ struct SessionDetailView: View {
             if let f = z.fahrten { out.append(StatItem(Loc.t("sd.rides", lang), "\(f.count)")) }
             if let v = z.fahrzeit_s { out.append(StatItem(Loc.t("sd.movingTime", lang), mmssD(v))) }
             if let v = z.tempo_kmh { out.append(StatItem(Loc.t("sd.avgSpeedRide", lang), String(format: "%.1f km/h", v))) }
-            if let v = z.foil_anteil { out.append(StatItem(Loc.t("sd.foilShare", lang), "\(Int((v * 100).rounded())) %")) }
+            if let v = z.foil_anteil, !ohneFoil { out.append(StatItem(Loc.t("sd.foilShare", lang), "\(Int((v * 100).rounded())) %")) }
             // Wave (19.10.2026, wie im Web): Wellen, laengste Welle, Rauspaddeln.
             if let w = z.wellen {
                 out.append(StatItem(Loc.t("sd.waves", lang), "\(w.anzahl)"))
@@ -2163,6 +2223,7 @@ private struct FahrtenKarte: View {
     let fahrten: [Fahrt]
     var jeFahrt: [ManoeverFahrt] = []
     var sport: String? = nil
+    var ohneFoil: Bool = false   // Sportart ohne On-Foil-Fahren (25.10.2026): keine Foil-Spalten, nur Anzahl Wenden/Halsen
     let lang: String
 
     // Sortierbare Tabelle unter der Karte (20.10.2026, wie PWA): Downwind mit A->B, Wind mit den Kennzahlen je Fahrt.
@@ -2178,19 +2239,30 @@ private struct FahrtenKarte: View {
         var sp: [SortSpalte] = [
             SortSpalte(label: Loc.t("sd.colDuration", lang), wert: { fahrten[$0].dauer_s }, zelle: { fmtLaufDauer(fahrten[$0].dauer_s) }),
             SortSpalte(label: Loc.t("sd.colDistance", lang) + " km", wert: { fahrten[$0].strecke_m }, zelle: { km(fahrten[$0].strecke_m) }),
-            SortSpalte(label: "Foil km", wert: { fahrten[$0].foil_m }, zelle: { km(fahrten[$0].foil_m) }),
             SortSpalte(label: Loc.t("stat.runs", lang), wert: { Double(fahrten[$0].laeufe) }, zelle: { "\(fahrten[$0].laeufe)" }),
         ]
+        if !ohneFoil {
+            sp.insert(SortSpalte(label: "Foil km", wert: { fahrten[$0].foil_m }, zelle: { km(fahrten[$0].foil_m) }), at: 2)
+        }
         if fahrten.contains(where: { $0.ab_m != nil }) {
             sp.append(SortSpalte(label: "A→B km", wert: { fahrten[$0].ab_m }, zelle: { km(fahrten[$0].ab_m) }))
             sp.append(SortSpalte(label: "A→B km/h", wert: { fahrten[$0].ab_kmh }, zelle: { fahrten[$0].ab_kmh.map { String(format: "%.1f", $0) } ?? "–" }))
-            sp.append(SortSpalte(label: "Foil %", wert: { fahrten[$0].foil_anteil }, zelle: { fahrten[$0].foil_anteil.map { "\(Int(($0 * 100).rounded())) %" } ?? "–" }))
+            if !ohneFoil {
+                sp.append(SortSpalte(label: "Foil %", wert: { fahrten[$0].foil_anteil }, zelle: { fahrten[$0].foil_anteil.map { "\(Int(($0 * 100).rounded())) %" } ?? "–" }))
+            }
         }
         if !jeFahrt.isEmpty {
-            sp.append(SortSpalte(label: Loc.t("sd.tacks", lang), wert: { m($0).map { Double($0.wende_durch) } }, zelle: { i in
-                guard let x = m(i), x.wende > 0 else { return "–" }; return "\(x.wende_durch) / \(x.wende)" }))
-            sp.append(SortSpalte(label: Loc.t("sd.jibes", lang), wert: { m($0).map { Double($0.halse_durch) } }, zelle: { i in
-                guard let x = m(i), x.halse > 0 else { return "–" }; return "\(x.halse_durch) / \(x.halse)" }))
+            if ohneFoil {
+                sp.append(SortSpalte(label: Loc.t("sd.tacks", lang), wert: { m($0).map { Double($0.wende) } }, zelle: { i in
+                    guard let x = m(i), x.wende > 0 else { return "–" }; return "\(x.wende)" }))
+                sp.append(SortSpalte(label: Loc.t("sd.jibes", lang), wert: { m($0).map { Double($0.halse) } }, zelle: { i in
+                    guard let x = m(i), x.halse > 0 else { return "–" }; return "\(x.halse)" }))
+            } else {
+                sp.append(SortSpalte(label: Loc.t("sd.tacks", lang), wert: { m($0).map { Double($0.wende_durch) } }, zelle: { i in
+                    guard let x = m(i), x.wende > 0 else { return "–" }; return "\(x.wende_durch) / \(x.wende)" }))
+                sp.append(SortSpalte(label: Loc.t("sd.jibes", lang), wert: { m($0).map { Double($0.halse_durch) } }, zelle: { i in
+                    guard let x = m(i), x.halse > 0 else { return "–" }; return "\(x.halse_durch) / \(x.halse)" }))
+            }
             sp.append(SortSpalte(label: Loc.t("sd.colHeight", lang), wert: { m($0)?.hoehe_m }, zelle: { km(m($0)?.hoehe_m) }))
             sp.append(SortSpalte(label: Loc.t("sd.colVmg", lang) + " km/h", wert: { m($0)?.vmg_max_kmh }, zelle: { m($0)?.vmg_max_kmh.map { String(format: "%.1f", $0) } ?? "–" }))
             sp.append(SortSpalte(label: Loc.t("sd.wind", lang) + " km/h", wert: { m($0)?.wind_kmh }, zelle: { m($0)?.wind_kmh.map { String(format: "%.0f", $0) } ?? "–" }))
@@ -2206,6 +2278,7 @@ private struct WindKarte: View {
     var h: Hoehe? = nil
     var vorhersage: Bool = false
     var vg: WindVergleich? = nil
+    var ohneFoil: Bool = false   // Sportart ohne On-Foil-Fahren (25.10.2026): nur Anzahl Wenden/Halsen
     let lang: String
 
     private var pfeil: String {
@@ -2248,8 +2321,10 @@ private struct WindKarte: View {
     }
 
     @ViewBuilder private func zahlen(_ z: ManoeverZahlen) -> some View {
-        let wende: String = "\(Loc.t("sd.tacks", lang)) \(z.wende.durch) / \(z.wende.durch + z.wende.ab) \(Loc.t("sd.onFoil", lang))"
-        let halse: String = "\(Loc.t("sd.jibes", lang)) \(z.halse.durch) / \(z.halse.durch + z.halse.ab) \(Loc.t("sd.onFoil", lang))"
+        let wende: String = ohneFoil ? "\(Loc.t("sd.tacks", lang)) \(z.wende.durch + z.wende.ab)"
+            : "\(Loc.t("sd.tacks", lang)) \(z.wende.durch) / \(z.wende.durch + z.wende.ab) \(Loc.t("sd.onFoil", lang))"
+        let halse: String = ohneFoil ? "\(Loc.t("sd.jibes", lang)) \(z.halse.durch + z.halse.ab)"
+            : "\(Loc.t("sd.jibes", lang)) \(z.halse.durch) / \(z.halse.durch + z.halse.ab) \(Loc.t("sd.onFoil", lang))"
         HStack(spacing: 6) { Circle().fill(Color(red: 0.66, green: 0.33, blue: 0.97)).frame(width: 9, height: 9); Text(wende).font(.subheadline) }
             .padding(.top, 4)
         HStack(spacing: 6) { Circle().fill(Color(red: 0.98, green: 0.45, blue: 0.09)).frame(width: 9, height: 9); Text(halse).font(.subheadline) }

@@ -453,7 +453,7 @@ private fun SportAuswahl(pfad: String, anbieter: String, neuLaden: Int) {
                             DropdownMenu(expanded = offen, onDismissRequest = { offen = false }) {
                                 DropdownMenuItem(text = { Text(I18n.t("settings.sports.countsDefault")) },
                                     onClick = { offen = false; zuordnen(sp.sport_key, null) })
-                                SPORTS.filter { it != "other" }.forEach { k ->
+                                sortiereSports(SPORTS.filter { it != "other" }).forEach { k ->
                                     DropdownMenuItem(text = { Text(I18n.t("cls.sport.$k")) },
                                         onClick = { offen = false; zuordnen(sp.sport_key, k) })
                                 }

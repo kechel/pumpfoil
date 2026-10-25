@@ -120,7 +120,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var sportListe by remember { mutableStateOf<List<String>>(listOf("pumpfoil")) }
     var sportMenue by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        sportListe = try { Api.communitySports().map { it.sport }.filter { it.isNotEmpty() }.ifEmpty { listOf("pumpfoil") } }
+        sportListe = try { sortiereSports(Api.communitySports().map { it.sport }.filter { it.isNotEmpty() }).ifEmpty { listOf("pumpfoil") } }
                      catch (_: Exception) { listOf("pumpfoil") }
     }
     val accelOnly = accelWahl && !freunde

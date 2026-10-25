@@ -105,7 +105,8 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
     val spotId = z.spotId
     val ctx = LocalContext.current
     val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
-    var wahl by remember { mutableStateOf(prefs.getString("spot_heatmap", "365d").let { if (it == "30d" || it == "off") it else "365d" }) }
+    // „all" (Allzeit) statt „365d" seit 25.10.2026 (server/app/heatmap.py); ein gemerktes „365d" gilt als „all".
+    var wahl by remember { mutableStateOf(prefs.getString("spot_heatmap", "all").let { if (it == "30d" || it == "off") it else "all" }) }
     var art by remember { mutableStateOf(if (prefs.getString("spot_heatmap_art", "foil") == "start") "start" else "foil") }
     var leer by remember(spotId) { mutableStateOf(false) }
     var bereit by remember(spotId) { mutableStateOf(false) }
@@ -143,7 +144,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
     LaunchedEffect(spotId) {
         try {
             val u = UMKREIS_GRAD
-            val r = Api.heatmap("365d", 15, lon - u * 1.5, lat - u, lon + u * 1.5, lat + u)
+            val r = Api.heatmap("all", 15, lon - u * 1.5, lat - u, lon + u * 1.5, lat + u)
             val z = r.z
             if (z == null || r.cells.isEmpty()) { leer = true; return@LaunchedEffect }
             val n = (1L shl z).toDouble()
@@ -274,7 +275,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Pille(I18n.t("heat.chipFoil"), art == "foil") { art = "foil"; prefs.edit().putString("spot_heatmap_art", "foil").apply() }
                 Pille(I18n.t("heat.chipStart"), art == "start") { art = "start"; prefs.edit().putString("spot_heatmap_art", "start").apply() }
-                Pille(I18n.t("heat.chip1y"), wahl == "365d") { wahl = "365d"; prefs.edit().putString("spot_heatmap", "365d").apply() }
+                Pille(I18n.t("period.all"), wahl == "all") { wahl = "all"; prefs.edit().putString("spot_heatmap", "all").apply() }
                 Pille(I18n.t("heat.chip30d"), wahl == "30d") { wahl = "30d"; prefs.edit().putString("spot_heatmap", "30d").apply() }
                 Pille(I18n.t("heat.chipOff"), wahl == "off") { wahl = "off"; prefs.edit().putString("spot_heatmap", "off").apply() }
                 // Routen planen: hervorgehoben (Jan)

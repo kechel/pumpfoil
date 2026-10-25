@@ -83,6 +83,7 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
             mine = (s["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()).toSet()
             def = s["foil_id"]?.jsonPrimitive?.intOrNull
             defSport = s["default_sport_class"]?.jsonPrimitive?.contentOrNull ?: "pumpfoil"
+            standardSport = defSport
             mySports = s["my_sports"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
         } catch (_: Exception) { foils = emptyList() }
     }
@@ -139,7 +140,7 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(expanded = openSport, onDismissRequest = { openSport = false }) {
-                            SPORTS.forEach { sp ->
+                            sortiereSports(SPORTS).forEach { sp ->
                                 DropdownMenuItem(text = { Text(I18n.t("cls.sport.$sp")) }, onClick = {
                                     openSport = false
                                     defSport = sp
@@ -157,7 +158,7 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
                     Text(I18n.t("foils.mySports"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 12.dp))
                     @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
                     androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        SPORTS.filter { it != "other" }.forEach { sp ->
+                        sortiereSports(SPORTS.filter { it != "other" }).forEach { sp ->
                             FilterChip(
                                 selected = sp == defSport || sp in mySports,
                                 enabled = sp != defSport,

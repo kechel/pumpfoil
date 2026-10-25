@@ -131,9 +131,10 @@ struct ProfileView: View {
         guard let s = try? await Api.settings() else { return }
         let defRoh: String = (s["default_sport_class"] as? String) ?? ""
         let def: String = defRoh.isEmpty ? "pumpfoil" : defRoh
+        standardSport = def
         let mine: [String] = (s["my_sports"] as? [String]) ?? []
         var sp: [ProfilEintrag] = [ProfilEintrag(text: Loc.t("cls.sport." + def, lang), standard: true)]
-        for k in SPORTS where k != def && mine.contains(k) {
+        for k in sortiereSports(SPORTS, lang: lang) where k != def && mine.contains(k) {
             sp.append(ProfilEintrag(text: Loc.t("cls.sport." + k, lang), standard: false))
         }
         meineSportarten = sp
