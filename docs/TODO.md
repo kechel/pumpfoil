@@ -1517,14 +1517,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   statt heute 263. Nebenbefund: das heutige attempts-Preset verpasst auch klare 4-5-s-Starts mit 15 km/h (#9485 bei
   1030 s). Naechster Schritt (Jan): vierte Empfindlichkeit fuer u439 oder neue Versuchs-Zaehlung fuer alle.
 
-- **📥 24.10. — Despike-Kaskade in `analysis/gps.clean_speed_series` (GEMESSEN, Entscheidung Jan).** Regel 3 vergleicht
+- **🟢 24.10. — Despike-Kaskade in `analysis/gps.clean_speed_series` (GEMESSEN; Jan 25.10.: „vorerst nicht“, bleibt wie sie ist).** Regel 3 vergleicht
   mit dem schon BEREINIGTEN linken Nachbarn: ein gehaltener Sprung um > 4 m/s auf > 20 km/h wird ganz auf das
   Ausgangstempo gezogen. Test `test_despike_loescht_keinen_gehaltenen_abschnitt` (xfail), Vergleichsschalter
   `despike_roh=True` (Standard aus). Regression `scripts/despike-regression.py` (v2 im Speicher, 1386 Sessions):
   1346 gleich, 40 anders (2,9 %), alle Garmin, in beide Richtungen; die Beispiele sind fast nur Nicht-Foil-Aktivitaeten
   (hiking/cycling, #18949: 1010 s mit 23–25 km/h = Auto/Rad), die die Kaskade heute zufaellig auf 0 drueckt.
   Echte Foil-Laeufe kaum betroffen. Fix = semantisch richtig, Nutzen klein; vor einem Umschalten Autofahrt-Filter mitdenken.
-- **📥 24.10. — Lauf-Strecke: Zaehlfehler um einen Schritt (GEMESSEN, Fix mit Jans OK + Reanalyse).** `gps._seg_fields`:
+- **🟢 25.10. — Lauf-Strecke: Zaehlfehler um einen Schritt — ERLEDIGT (129b1698, Reanalyse aller 8 497 Sessions mit Laeufen; Foil-Strecke gesamt −0,94 %, Pumpfoil −1,33 %, je Lauf −4,7 m; Sicherung `~/foil-analysis-backups/analysis_results-vor-laufstrecke-fix-2026-10-25.dump`).** `gps._seg_fields`:
   Dauer `t[j-1]-t[i]` (n−1 Abstaende), Strecke `step[i:j].sum()` (n Schritte, inkl. des Schritts VOR dem ersten
   Laufpunkt, Median 4,5 m). `scripts/laufstrecke-rauschen.py` (26 600 Laeufe): Strecke/Doppler P50 1,26 bei < 10 s,
   1,13 bei 10–20 s, 1,06 bei 20–60 s; ohne den Vor-Schritt 1,06 / 1,04 / 1,03 — der Rest (3–6 %) ist echtes
