@@ -1501,7 +1501,9 @@ export default function SessionDetail() {
           for (let i = 0; i < v.points.length - 1; i++) {
             L.polyline([v.points[i], v.points[i + 1]], {
               pane: "attemptPane",
-              color: speedColor((sp[i + 1] ?? sp[i] ?? 0) * 3.6, speedMin, speedMax),
+              // Nie schwarz (Jan, 25.10.2026): unter der eingestellten Untergrenze in der niedrigsten Farbe, darueber in
+              // der hoechsten — ein Startversuch liegt oft bei 6-8 km/h und soll trotzdem durchgehend farbig sein.
+              color: speedColor(Math.min(Math.max((sp[i + 1] ?? sp[i] ?? 0) * 3.6, speedMin), speedMax), speedMin, speedMax),
               weight: 4, opacity: v.outside_trim ? 0.6 : 0.95,
               dashArray: v.outside_trim ? "2 6" : "6 4", interactive: false,
             }).addTo(lg);
