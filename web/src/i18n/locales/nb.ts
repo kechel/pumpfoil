@@ -660,6 +660,7 @@ const nb: Record<string, string> = {
   "sd.windCompare": "Ved lignende vind ({a}–{b} km/t) kjører denne rideren i snitt {m} km/t på foilen ({n} økter); her {e} km/t.",
   "sd.strokes": "Padletak",
   "sd.perMin": "{n}/min",
+  "sd.perStroke": "{m} m per tak",
   "sd.attempts": "Paddle-up-forsøk",
   "sd.attOnFoil": "{n} på foilen",
   "sd.attBrief": "{n} kort oppe?",

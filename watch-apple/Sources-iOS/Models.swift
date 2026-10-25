@@ -1166,6 +1166,7 @@ struct PaddelAntwort: Codable {
     let kurz: Int
     let versuche: [PaddelVersuch]
     let schlag_pkt: [[Double]]?
+    let m_pro_schlag: Double?   // Strecke pro Schlag in m (SUP ohne Foil, 25.10.2026)
 }
 
 struct ManoeverAntwort: Codable { let items: [Manoever]?; let zahlen: ManoeverZahlen?; let hoehe: Hoehe?; let fahrten: [ManoeverFahrt]? }

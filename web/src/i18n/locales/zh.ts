@@ -645,6 +645,7 @@ const zh: Record<string, string> = {
   "sd.windCompare": "在相近风力（{a}–{b} km/h）下，该骑手在水翼上平均 {m} km/h（{n} 次）；本次 {e} km/h。",
   "sd.strokes": "划桨次数",
   "sd.perMin": "{n}/分钟",
+  "sd.perStroke": "每桨 {m} 米",
   "sd.attempts": "划桨起飞尝试",
   "sd.attOnFoil": "{n} 次上水翼",
   "sd.attBrief": "{n} 次短暂起飞？",

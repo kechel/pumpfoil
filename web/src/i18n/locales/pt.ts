@@ -645,6 +645,7 @@ const pt: Record<string, string> = {
   "sd.windCompare": "Com vento parecido ({a}–{b} km/h) este rider anda em média a {m} km/h no foil ({n} sessões); aqui {e} km/h.",
   "sd.strokes": "Remadas",
   "sd.perMin": "{n}/min",
+  "sd.perStroke": "{m} m por remada",
   "sd.attempts": "Tentativas de paddle-up",
   "sd.attOnFoil": "{n} no foil",
   "sd.attBrief": "{n} subiu por um instante?",

@@ -2754,7 +2754,9 @@ export default function SessionDetail() {
         <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200">
           <div className="flex flex-wrap items-center gap-x-3">
             <b>{t("sd.strokes")}</b>
-            <span className="tabular-nums">{paddel.schlaege}{paddel.schlaege_pro_min != null && <> · {t("sd.perMin", { n: String(paddel.schlaege_pro_min) })}</>}</span>
+            <span className="tabular-nums">{paddel.schlaege}{paddel.schlaege_pro_min != null && <> · {t("sd.perMin", { n: String(paddel.schlaege_pro_min) })}</>}
+              {/* Strecke pro Schlag (SUP ohne Foil, 25.10.2026, server/app/paddel.py m_pro_schlag) */}
+              {session.sport_class === "sup" && paddel.m_pro_schlag != null && <> · {t("sd.perStroke", { m: paddel.m_pro_schlag.toFixed(1) })}</>}</span>
           </div>
           {paddel.versuche.length > 0 && (
             <>

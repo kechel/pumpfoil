@@ -669,6 +669,7 @@ const cs: Record<string, string> = {
   "sd.windCompare": "Při podobném větru ({a}–{b} km/h) jezdí tento jezdec na foilu v průměru {m} km/h ({n} session); tady {e} km/h.",
   "sd.strokes": "Záběry pádlem",
   "sd.perMin": "{n}/min",
+  "sd.perStroke": "{m} m na záběr",
   "sd.attempts": "Pokusy o paddle-up",
   "sd.attOnFoil": "{n} na foilu",
   "sd.attBrief": "{n} krátce nahoře?",

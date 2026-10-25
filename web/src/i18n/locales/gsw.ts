@@ -538,6 +538,7 @@ const gsw: Record<string, string> = {
   "sd.windCompare": "Bi ähnlichem Wind ({a}–{b} km/h) fahrt dä Fahrer im Schnitt {m} km/h uf em Foil ({n} Sessions), da {e} km/h.",
   "sd.strokes": "Paddelschläg",
   "sd.perMin": "{n}/min",
+  "sd.perStroke": "{m} m pro Schlag",
   "sd.attempts": "Paddle-up-Versüech",
   "sd.attOnFoil": "{n} uf em Foil",
   "sd.attBrief": "{n} churz ufe?",

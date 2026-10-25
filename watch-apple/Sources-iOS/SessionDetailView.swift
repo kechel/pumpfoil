@@ -2188,6 +2188,10 @@ private struct PaddelKarte: View {
     private var kopf: String {
         var t = "\(p.schlaege)"
         if let r = p.schlaege_pro_min { t += " · " + Loc.t("sd.perMin", lang).replacingOccurrences(of: "{n}", with: String(r)) }
+        // Strecke pro Schlag nur bei SUP ohne Foil (25.10.2026, wie PWA)
+        if sport == "sup", let m = p.m_pro_schlag {
+            t += " · " + Loc.t("sd.perStroke", lang).replacingOccurrences(of: "{m}", with: String(format: "%.1f", m))
+        }
         return t
     }
 

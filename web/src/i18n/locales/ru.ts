@@ -645,6 +645,7 @@ const ru: Record<string, string> = {
   "sd.windCompare": "При похожем ветре ({a}–{b} км/ч) этот райдер в среднем едет на фойле {m} км/ч ({n} сессий); здесь {e} км/ч.",
   "sd.strokes": "Гребки",
   "sd.perMin": "{n}/мин",
+  "sd.perStroke": "{m} м за гребок",
   "sd.attempts": "Попытки paddle-up",
   "sd.attOnFoil": "{n} на фойле",
   "sd.attBrief": "{n} ненадолго поднялся?",

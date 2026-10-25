@@ -652,6 +652,7 @@ const fi: Record<string, string> = {
   "sd.windCompare": "Samankaltaisessa tuulessa ({a}–{b} km/h) tämä kuljettaja ajaa foililla keskimäärin {m} km/h ({n} sessiota), tässä {e} km/h.",
   "sd.strokes": "Melonvedot",
   "sd.perMin": "{n}/min",
+  "sd.perStroke": "{m} m / veto",
   "sd.attempts": "Paddle-up-yritykset",
   "sd.attOnFoil": "{n} foililla",
   "sd.attBrief": "{n} hetken ylhäällä?",

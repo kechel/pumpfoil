@@ -645,6 +645,7 @@ const id: Record<string, string> = {
   "sd.windCompare": "Pada angin serupa ({a}–{b} km/h) rider ini rata-rata {m} km/h di foil ({n} sesi); di sini {e} km/h.",
   "sd.strokes": "Kayuhan",
   "sd.perMin": "{n}/mnt",
+  "sd.perStroke": "{m} m per kayuhan",
   "sd.attempts": "Percobaan paddle-up",
   "sd.attOnFoil": "{n} di atas foil",
   "sd.attBrief": "{n} sebentar naik?",

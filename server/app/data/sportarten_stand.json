@@ -986,13 +986,15 @@
         },
         "paddelschlaege": {
           "status": "live",
-          "en": "Strokes and strokes per minute over the whole session, from the watch's motion data.",
+          "en": "Strokes and strokes per minute over the whole session, plus the average distance per stroke, from the watch's motion data.",
           "seit": "2026-10-25",
           "wo": [
             "server",
-            "web"
+            "web",
+            "android",
+            "ios"
           ],
-          "notiz": "app/paddel.py mit versuche=False, Cache p4-ohne-foil."
+          "notiz": "app/paddel.py mit versuche=False, Cache p4-ohne-foil. 25.10.: Strecke pro Schlag (Jan) = GPS-Weg in Bewegung (>= 1,5 km/h, ohne Laeufe) / Schlaege in Bewegung (paddel.py p5 m_pro_schlag). Probe an 3 SUP-Sessions mit Accel: 1,2-1,4 m."
         },
         "sport_rekorde": {
           "status": "live",
@@ -1661,6 +1663,18 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-25",
+      "sport": [
+        "sup"
+      ],
+      "merkmal": "paddelschlaege",
+      "was": "Strecke pro Schlag (Durchschnitt) fuer SUP ohne Foil.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-25",
       "sport": [

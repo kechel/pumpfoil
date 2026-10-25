@@ -2342,7 +2342,9 @@ private fun PaddelKarte(p: PaddelAntwort, sport: String? = null) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row {
                 Text(I18n.t("sd.strokes"), fontWeight = FontWeight.SemiBold); Spacer(Modifier.width(8.dp))
-                Text("${p.schlaege}" + (p.schlaegeProMin?.let { " · " + I18n.t("sd.perMin").replace("{n}", "$it") } ?: ""))
+                Text("${p.schlaege}" + (p.schlaegeProMin?.let { " · " + I18n.t("sd.perMin").replace("{n}", "$it") } ?: "") +
+                     // Strecke pro Schlag nur bei SUP ohne Foil (25.10.2026, wie PWA)
+                     (p.mProSchlag?.takeIf { sport == "sup" }?.let { " · " + I18n.t("sd.perStroke").replace("{m}", "%.1f".format(it)) } ?: ""))
             }
             if (p.versuche.isNotEmpty()) {
                 Row(Modifier.padding(top = 4.dp)) {

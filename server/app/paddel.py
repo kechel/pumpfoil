@@ -20,7 +20,9 @@ from __future__ import annotations
 import numpy as np
 
 # Hochzaehlen, wenn sich hier etwas aendert -> alle Cache-Eintraege (data/paddel/) ungueltig.
-VERSION = "p4"   # p2: Punkte je Sprint fuer die Karte (`linie`); p3: Ort je Schlag (`schlag_pkt`); p4: Orte der Sprintschlaege je Versuch
+VERSION = "p5"   # p2: Punkte je Sprint fuer die Karte (`linie`); p3: Ort je Schlag (`schlag_pkt`); p4: Orte der Sprintschlaege je Versuch
+#                  p5: Strecke pro Schlag (`m_pro_schlag`, SUP ohne Foil, 25.10.2026)
+BEWEGT_KMH = 1.5             # Strecke pro Schlag: nur Schritte/Schlaege, bei denen das Brett faehrt
 
 BAND_HZ = (0.3, 3.0)        # Paddelschlaege liegen bei 0,7–1,7 Hz
 MIN_ABSTAND_S = 0.5          # zwei Schlaege nie dichter
@@ -133,7 +135,26 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list,
     # Erkennung zeigen, nicht die Pumps der Pump-Erkennung). GPS linear auf den Schlag-Zeitpunkt interpoliert.
     schlag_pkt = orte(ausserhalb)
 
+    # Strecke pro Schlag (Jan, 25.10.2026, SUP ohne Foil — „wie Rudern"): GPS-Weg in Bewegung durch die Schlaege in
+    # Bewegung. Beides nur, wo das Brett faehrt (>= BEWEGT_KMH), damit Stehen/Treiben den Wert nicht verduennt; Schlaege
+    # in Laeufen zaehlen nicht (dort pumpt man). Positionen roh, Schritte ueber 50 m (GPS-Sprung/Luecke) zaehlen nicht.
+    m_pro_schlag = None
+    if len(g_pos) >= 2:
+        g_kmh = np.interp(g_pos[:, 0], t_s, kmh) if len(t_s) else np.zeros(len(g_pos))
+        dy = np.diff(g_pos[:, 1]) * 111320.0
+        dx = np.diff(g_pos[:, 2]) * 111320.0 * np.cos(np.radians(g_pos[1:, 1]))
+        schritt = np.hypot(dx, dy)
+        ok = (schritt <= 50.0) & (g_kmh[1:] >= BEWEGT_KMH)
+        weg = float(schritt[ok].sum())
+        for lo_, hi_ in laeufe:   # Laeufe abziehen: dort wird nicht gepaddelt
+            drin = (g_pos[1:, 0] >= lo_) & (g_pos[1:, 0] <= hi_)
+            weg -= float(schritt[ok & drin].sum())
+        n_bewegt = int((kmh[ausserhalb] >= BEWEGT_KMH).sum())
+        if n_bewegt >= 50 and weg > 0:
+            m_pro_schlag = round(weg / n_bewegt, 2)
+
     return {
+        "m_pro_schlag": m_pro_schlag,
         "schlag_pkt": schlag_pkt,
         "schlaege": int(len(ausserhalb)),
         "schlaege_pro_min": round(rate) if rate else None,

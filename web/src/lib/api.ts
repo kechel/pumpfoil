@@ -1071,7 +1071,7 @@ export const api = {
   }>(`/api/sessions/${id}/welle-pumpen`),
   // Paddelschlaege + Paddle-up-Versuche (nur SUP mit Accel, nur Anzeige; server/app/paddel.py), 20.10.2026.
   sessionPaddel: (id: number) => req<null | {
-    schlaege: number; schlaege_pro_min: number | null; auf_foil: number; kurz: number; schlag_pkt?: [number, number][];
+    schlaege: number; schlaege_pro_min: number | null; m_pro_schlag?: number | null; auf_foil: number; kurz: number; schlag_pkt?: [number, number][];
     versuche: { t_ms: number; sprint_s: number; schlaege: number; staerke: number; max_kmh: number | null; linie?: [number, number][]; schlag_pkt?: [number, number][];
                 ergebnis: "foil" | "kurz" | "nein"; foil_s?: number; schnell_s?: number }[];
   }>(`/api/sessions/${id}/paddel`),

@@ -645,6 +645,7 @@ const ja: Record<string, string> = {
   "sd.windCompare": "同程度の風（{a}–{b} km/h）では、このライダーのフォイル平均は {m} km/h（{n} セッション）。今回は {e} km/h。",
   "sd.strokes": "パドルストローク",
   "sd.perMin": "{n}/分",
+  "sd.perStroke": "1ストローク {m} m",
   "sd.attempts": "パドルアップの試み",
   "sd.attOnFoil": "{n} 回フォイルに乗った",
   "sd.attBrief": "{n} 回 一瞬浮いた？",

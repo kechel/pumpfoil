@@ -529,6 +529,7 @@ const deAT: Record<string, string> = {
   "sd.windCompare": "Bei ähnlichem Wind ({a}–{b} km/h) fährt dieser Fahrer im Schnitt {m} km/h am Foil ({n} Sessions), hier {e} km/h.",
   "sd.strokes": "Paddelschläge",
   "sd.perMin": "{n}/min",
+  "sd.perStroke": "{m} m pro Schlag",
   "sd.attempts": "Paddle-up-Versuche",
   "sd.attOnFoil": "{n} am Foil",
   "sd.attBrief": "{n} kurz auffi?",

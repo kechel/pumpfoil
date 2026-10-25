@@ -669,6 +669,7 @@ const nl: Record<string, string> = {
   "sd.windCompare": "Bij vergelijkbare wind ({a}–{b} km/h) rijdt deze rider gemiddeld {m} km/h op de foil ({n} sessies); hier {e} km/h.",
   "sd.strokes": "Peddelslagen",
   "sd.perMin": "{n}/min",
+  "sd.perStroke": "{m} m per slag",
   "sd.attempts": "Paddle-up-pogingen",
   "sd.attOnFoil": "{n} op de foil",
   "sd.attBrief": "{n} kort omhoog?",
