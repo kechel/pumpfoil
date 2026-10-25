@@ -1383,7 +1383,7 @@ const fi: Record<string, string> = {
   "land.routes4Title": "Suojelualueet näkyvissä",
   "land.routes4Body": "Luonnonsuojelualueet, Natura 2000 -alueet ja OpenStreetMapiin merkityt uinti- ja veneilykiellot on piirretty jokaiseen karttaan.",
   "land.sportTitle": "Ei pelkkää pumppifoilausta",
-  "land.sportBody": "Pumpfoil huomaa, kun tallenne ei ollut pumppifoilausta, ja liität sen oikeaan lajiin yhdellä klikkauksella — omilla ennätyksillä ja tulostaulukoilla joka lajille.",
+  "land.sportBody": "Pumpfoil huomaa, kun tallenne ei ollut pumppifoilausta, ja liität sen oikeaan lajiin yhdellä klikkauksella — omilla ennätyksillä ja tulostaulukoilla joka lajille. Uutta: myös ilman foilia — leijalautailu, purjelautailu, SUP, lumileijailu, leija-mountainboard ja leijabuggy.",
   "land.sportMore": "Puuttuuko lajisi? Wakeboard, soutu tai jotain aivan muuta: tallenna se vain ja kerro sovelluksessa kohdassa ”Palaute”, mitä se oli. Katsomme oikeaa dataasi, ja heti kun lajista kertyy tarpeeksi tallenteita, koulutamme sille oman tunnistuksen.",
   "land.connectTitle": "Automaattinen tuonti tilin yhdistämisellä",
   "land.connectBody": "Yhdistä tilisi ja tuo treenisi automaattisesti sessioina — ilman erillistä sovellusta.",

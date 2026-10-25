@@ -1293,7 +1293,7 @@ const zh: Record<string, string> = {
   "land.routes4Title": "保护区一目了然",
   "land.routes4Body": "来自 OpenStreetMap 的自然保护区、Natura 2000 区域以及标注的禁止游泳和禁止行船区域都画在每张地图上。",
   "land.sportTitle": "不只是泵翼",
-  "land.sportBody": "当一条记录并不是泵翼时，Pumpfoil 会发现，你只需一键把它归入正确的运动——每项运动都有自己的纪录和排行榜。",
+  "land.sportBody": "当一条记录并不是泵翼时，Pumpfoil 会发现，你只需一键把它归入正确的运动——每项运动都有自己的纪录和排行榜。新增：无水翼的运动也支持 — 风筝冲浪、帆板、桨板、雪地风筝、风筝山地滑板和风筝越野车。",
   "land.sportMore": "没有你的运动？尾波板、赛艇或者完全不同的项目：直接记录下来，在应用的“反馈”里告诉我们是什么。我们会查看你的真实数据，一旦某项运动积累了足够的记录，就为它训练专属的识别。",
   "land.connectTitle": "通过账号关联自动导入",
   "land.connectBody": "关联你的账号，将骑行自动作为记录导入 —— 无需额外应用。",

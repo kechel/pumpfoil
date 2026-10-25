@@ -1417,7 +1417,7 @@ const cs: Record<string, string> = {
   "land.routes4Title": "Chráněná území na očích",
   "land.routes4Body": "Přírodní rezervace, lokality Natura 2000 a zakreslené zákazy koupání a plavby z OpenStreetMap jsou na každé mapě.",
   "land.sportTitle": "Nejen pump foil",
-  "land.sportBody": "Pumpfoil pozná, když záznam nebyl pump foil, a ty ho jedním kliknutím přiřadíš ke správnému sportu — s vlastními rekordy a žebříčky pro každý sport.",
+  "land.sportBody": "Pumpfoil pozná, když záznam nebyl pump foil, a ty ho jedním kliknutím přiřadíš ke správnému sportu — s vlastními rekordy a žebříčky pro každý sport. Novinka: i bez foilu — kitesurfing, windsurfing, SUP, snowkiting, kite mountainboard a kite buggy.",
   "land.sportMore": "Chybí tvůj sport? Wakeboard, veslování nebo něco úplně jiného: prostě ho nahraj a napiš nám v aplikaci přes „Zpětná vazba“, co to bylo. Podíváme se na tvoje skutečná data, a jakmile se pro nějaký sport nasbírá dost záznamů, natrénujeme pro něj vlastní rozpoznávání.",
   "land.connectTitle": "Automatický import přes propojení účtu",
   "land.connectBody": "Propoj svůj účet a importuj jízdy automaticky jako vyjížďky — úplně bez další aplikace.",

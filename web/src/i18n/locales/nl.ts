@@ -1417,7 +1417,7 @@ const nl: Record<string, string> = {
   "land.routes4Title": "Beschermde gebieden in beeld",
   "land.routes4Body": "Natuurreservaten, Natura 2000-gebieden en ingetekende zwem- en vaarverboden uit OpenStreetMap staan op elke kaart.",
   "land.sportTitle": "Niet alleen pumpfoilen",
-  "land.sportBody": "Pumpfoil merkt wanneer een opname geen pumpfoilen was, en jij wijst hem met één klik de juiste sport toe — met eigen records en ranglijsten per sport.",
+  "land.sportBody": "Pumpfoil merkt wanneer een opname geen pumpfoilen was, en jij wijst hem met één klik de juiste sport toe — met eigen records en ranglijsten per sport. Nieuw: ook zonder foil — kitesurfen, windsurfen, SUP, snowkiten, kite-mountainboard en kitebuggy.",
   "land.sportMore": "Mis je jouw sport? Wakeboarden, roeien of iets heel anders: neem het gewoon op en vertel ons in de app via „Feedback” wat het was. We bekijken je echte data, en zodra er voor een sport genoeg opnames zijn, trainen we er een eigen herkenning voor.",
   "land.connectTitle": "Automatische import via accountkoppeling",
   "land.connectBody": "Koppel je account en importeer je runs automatisch als sessies — helemaal zonder extra app.",

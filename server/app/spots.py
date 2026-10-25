@@ -222,12 +222,12 @@ def rebuild_all(db, apply: bool = False):
     """Alle (nicht gelöschten) Sessions mit Track zu Spots clustern. apply=True schreibt
     spots-Tabelle + sessions.spot_id/place_name/place_water. Rückgabe: Report-Liste."""
     from . import models
-    # Nur ECHTE Pumpfoil-Sessions mit On-Foil-Erkennung clustern (is_pumpfoil + num_runs>0) —
-    # aussortierte (is_pumpfoil=False) bekommen keinen Spot.
+    # Nur Sessions mit Laeufen, die Pumpfoil sind ODER einer anderen Sportart zugeordnet (spot_berechtigt) —
+    # aussortierte bekommen keinen Spot.
     rows = (db.query(models.Session)
             .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
             .filter(models.Session.deleted.isnot(True), models.Session.place_lat.isnot(None),
-                    models.Session.is_pumpfoil.is_(True),
+                    spot_berechtigt_cond(),
                     models.AnalysisResult.num_runs > 0)
             .all())
     geoms = [g for g in (_session_geom(db, s) for s in rows) if g and g.points]
@@ -383,7 +383,7 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
          einen echten Spot, werden sie dorthin gemerged, sonst entfernt.
       2. **Überlappende Spots** — zwei Zeilen für denselben Ort. Werden zusammengeführt
          (meiste Sessions gewinnt, Name/Gewässer werden übernommen).
-      3. **Sessions ohne Spot**, die einen bekommen müssten (`is_pumpfoil`, Läufe > 0, Track da).
+      3. **Sessions ohne Spot**, die einen bekommen müssten (`spot_berechtigt`, Läufe > 0, Track da).
          Nach 1.+2. greift `assign_one` wieder normal.
 
     NICHT angetastet wird die bewusste Regel „Track überschneidet ≥2 ECHTE (disjunkte) Spots ->
@@ -457,7 +457,7 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
     rows = (db.query(models.Session)
             .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
             .filter(models.Session.deleted.isnot(True), models.Session.spot_id.is_(None),
-                    models.Session.place_lat.isnot(None), models.Session.is_pumpfoil.is_(True),
+                    models.Session.place_lat.isnot(None), spot_berechtigt_cond(),
                     models.AnalysisResult.num_runs > 0)
             .order_by(models.Session.id.desc()).limit(reassign_limit).all())
     for s in rows:
@@ -516,7 +516,7 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
     total_missing = (db.query(models.Session)
                      .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
                      .filter(models.Session.deleted.isnot(True), models.Session.spot_id.is_(None),
-                             models.Session.place_lat.isnot(None), models.Session.is_pumpfoil.is_(True),
+                             models.Session.place_lat.isnot(None), spot_berechtigt_cond(),
                              models.AnalysisResult.num_runs > 0).count())
     rep["sessions_without_spot_total"] = total_missing
     if not apply:
@@ -685,6 +685,42 @@ def _notes_umhaengen(db, quelle_id: int, ziel_id: int) -> None:
     db.flush()
 
 
+# Andere Sportart, von einem Menschen oder ueber seine Einstellungen zugeordnet (Jan, 25.10.2026: „vergib ruhig spots wenn
+# es manuell (oder uebers profil) einer anderen sportart zugeordnet wurde, halt nur nicht fuer aussortierte oder noch
+# nicht zugeordnete die eindeutig kein pumpfoil sind"). owner/admin = von Hand, default = Standard-Sportart aus dem Profil
+# bzw. Auswahl auf der Uhr, file = Sportmodus-Zuordnung je Geraet. NICHT: auto (die Regel hat nur vorgeschlagen), offene
+# Zuordnungsfragen, Datenmuell, `other` (Sammelposten, dort waeren auch Rad und Laufen). Bis dahin bekam nur
+# `is_pumpfoil` einen Spot — schnelle Wing-/Kite-Sessions ohne Accel (gps_only, > 30 km/h) blieben ohne.
+ZUGEORDNET_QUELLEN = ("owner", "admin", "default", "file")
+
+
+def zugeordnet_cond():
+    """SQL-Bedingung: einer anderen Sportart zugeordnet (s. ZUGEORDNET_QUELLEN)."""
+    from sqlalchemy import and_, or_
+    from . import models
+    S = models.Session
+    return and_(S.sport_class.isnot(None), S.sport_class.notin_(("pumpfoil", "other")),
+                S.sport_source.in_(ZUGEORDNET_QUELLEN), S.needs_classification.isnot(True),
+                or_(S.data_quality.is_(None), S.data_quality == "ok"), S.pumpfoil_override.isnot(False))
+
+
+def ist_zugeordnet(s) -> bool:
+    """Python-Gegenstueck zu zugeordnet_cond() fuer eine geladene Session."""
+    return (s.sport_class not in (None, "pumpfoil", "other") and s.sport_source in ZUGEORDNET_QUELLEN
+            and not s.needs_classification and (s.data_quality in (None, "ok")) and s.pumpfoil_override is not False)
+
+
+def spot_berechtigt(s, num_runs) -> bool:
+    """Bekommt diese Session einen Spot? Laeufe UND (Erkennung sagt Pumpfoil ODER einer anderen Sportart zugeordnet)."""
+    return bool((num_runs or 0) > 0 and not s.deleted and (s.is_pumpfoil or ist_zugeordnet(s)))
+
+
+def spot_berechtigt_cond():
+    from sqlalchemy import or_
+    from . import models
+    return or_(models.Session.is_pumpfoil.is_(True), zugeordnet_cond())
+
+
 def gueltig_fuer_spot():
     """SQL-Bedingung: diese Session haelt einen Spot am Leben (Jan, 16.10.2026: „alle Spots, die
     irgendeine Session haben, die nicht aussortiert oder geloescht wurde" — die Spot-Karte zeigt
@@ -697,7 +733,8 @@ def gueltig_fuer_spot():
     return and_(S.deleted.isnot(True),
                 or_(S.is_pumpfoil.isnot(False),
                     and_(S.sport_source.in_(("owner", "admin")), S.sport_class.isnot(None),
-                         S.sport_class != "pumpfoil")))
+                         S.sport_class != "pumpfoil"),
+                    zugeordnet_cond()))
 
 
 def _session_count(db, spot_id: int) -> int:
@@ -855,7 +892,7 @@ def assign_one(db, s, erzwingen: bool = False):
     land = ist_land(s.sport_class)
     # Spot nur fuer echte Pumpfoil-Sessions mit On-Foil. Sonst: nur Name (kein Spot).
     r = s.result
-    if not erzwingen and not (s.is_pumpfoil and r and (r.num_runs or 0) > 0):
+    if not erzwingen and not (r and spot_berechtigt(s, r.num_runs)):
         name, src, water = name_for(*g.start, land=land)
         s.spot_id = None
         if name:

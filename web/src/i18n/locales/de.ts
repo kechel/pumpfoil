@@ -1650,7 +1650,7 @@ const de: Record<string, string> = {
   "land.routes4Title": "Schutzgebiete im Blick",
   "land.routes4Body": "Naturschutz- und FFH-Gebiete sowie eingetragene Bade- und Fahrverbote aus OpenStreetMap sind auf jeder Karte eingezeichnet.",
   "land.sportTitle": "Nicht nur Pumpfoil",
-  "land.sportBody": "Pumpfoil merkt, wenn eine Aufnahme kein Pumpfoilen war, und du ordnest sie mit einem Klick der richtigen Sportart zu — mit eigenen Rekorden und Bestenlisten je Sportart.",
+  "land.sportBody": "Pumpfoil merkt, wenn eine Aufnahme kein Pumpfoilen war, und du ordnest sie mit einem Klick der richtigen Sportart zu — mit eigenen Rekorden und Bestenlisten je Sportart. Neu: auch ohne Foil — Kitesurfen, Windsurfen, SUP, Snowkiten, Kite-Mountainboard und Kitebuggy.",
   "land.sportMore": "Deine Sportart fehlt? Wakeboard, Rudern oder etwas ganz anderes: nimm sie einfach auf und schreib uns in der App über „Feedback“, was es war. Wir schauen uns deine echten Daten an, und sobald für eine Sportart genug Aufnahmen zusammenkommen, trainieren wir dafür eine eigene Erkennung.",
   "land.connectTitle": "Automatischer Import via Kontoverknüpfung",
   "land.connectBody": "Verbinde dein Konto und importiere deine Läufe automatisch als Sessions — ganz ohne zusätzliche App.",

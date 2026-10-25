@@ -1298,7 +1298,7 @@ const ptPT: Record<string, string> = {
   "land.routes4Title": "Áreas protegidas à vista",
   "land.routes4Body": "Reservas naturais, sítios Natura 2000 e proibições de banho ou navegação registadas no OpenStreetMap estão desenhadas em todos os mapas.",
   "land.sportTitle": "Não só pump foil",
-  "land.sportBody": "O Pumpfoil percebe quando uma gravação não era pump foil, e tu atribuis-lhe o desporto certo com um clique — com recordes e classificações para cada desporto.",
+  "land.sportBody": "O Pumpfoil percebe quando uma gravação não era pump foil, e tu atribuis-lhe o desporto certo com um clique — com recordes e classificações para cada desporto. Novidade: também sem foil — kitesurf, windsurf, SUP, snowkite, mountainboard com kite e kite buggy.",
   "land.sportMore": "Falta o teu desporto? Wakeboard, remo ou algo completamente diferente: grava-o e diz-nos na app, em «Feedback», o que era. Analisamos os teus dados reais e, assim que houver gravações suficientes de um desporto, treinamos uma deteção própria para ele.",
   "land.connectTitle": "Importação automática por vínculo de conta",
   "land.connectBody": "Liga a tua conta e importa as tuas voltas automaticamente como sessões — sem app extra.",

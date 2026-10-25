@@ -2162,18 +2162,20 @@ def _spot_nachziehen(db: Session, s: models.Session) -> None:
     Namen (belegt an Session #2669, „Pasohlávky", 12 Laeufe).
 
     Deshalb nach JEDER Analyse: fehlt der Spot und qualifiziert die Session inzwischen, zuordnen.
-    Idempotent und billig — mit Spot passiert nichts.
+    Idempotent und billig — mit Spot passiert nichts. Seit 25.10.2026 auch fuer Sessions, die einer anderen Sportart
+    zugeordnet sind (spots.spot_berechtigt).
     """
+    from ..spots import ist_zugeordnet, spot_berechtigt
     if s.spot_id is not None:
         # Hat die Session einen Spot, aber ist inzwischen aussortiert (Detektor oder Admin), muss
         # der Spot geprueft werden: haengt keine gueltige Session mehr dran, ist er eine Waise.
-        if s.is_pumpfoil is False:
+        if s.is_pumpfoil is False and not ist_zugeordnet(s):
             _spot_aufraeumen(db, s.spot_id)
         return
     if s.place_lat is None:
         return
     ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
-    if not (s.is_pumpfoil and ar and (ar.num_runs or 0) > 0):
+    if not (ar and spot_berechtigt(s, ar.num_runs)):
         return
     try:
         from ..spots import assign_one

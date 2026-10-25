@@ -952,7 +952,7 @@ const gsw: Record<string, string> = {
   "land.routes4Title": "Schutzgebiet im Blick",
   "land.routes4Body": "Naturschutz- und FFH-Gebiet sowie iitreiti Bade- und Fahrverbot us OpenStreetMap sind uf jeder Charte iizeichnet.",
   "land.sportTitle": "Nöd nume Pumpfoil",
-  "land.sportBody": "Pumpfoil merkt, wenn e Ufzeichnig kei Pumpfoile gsi isch, und du ordnisch si mit eim Klick de richtige Sportart zue — mit eigete Rekord und Beschtelischte für jedi Sportart.",
+  "land.sportBody": "Pumpfoil merkt, wenn e Ufzeichnig kei Pumpfoile gsi isch, und du ordnisch si mit eim Klick de richtige Sportart zue — mit eigete Rekord und Beschtelischte für jedi Sportart. Neu: au ohni Foil — Kitesurfe, Windsurfe, SUP, Snowkite, Kite-Mountainboard und Kitebuggy.",
   "land.sportMore": "Dini Sportart fehlt? Wakeboard, Rudere oder öppis ganz anders: nimm si eifach uf und schriib eus i de App under „Feedback“, was es gsi isch. Mir luegid eus dini echte Date aa, und sobald für e Sportart gnueg Ufzeichnige zämechömed, trainiered mir defür e eigeti Erkennig.",
   "land.connectTitle": "Automatische Import via Konto-Verchnüpfig",
   "land.connectBody": "Verbind dis Konto und importier dini Läuf automatisch als Sessions — ganz ohni zuesätzlichi App.",

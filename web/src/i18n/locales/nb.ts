@@ -1357,7 +1357,7 @@ const nb: Record<string, string> = {
   "land.routes4Title": "Verneområder i sikte",
   "land.routes4Body": "Naturreservater, Natura 2000-områder og registrerte bade- og ferdselsforbud fra OpenStreetMap er tegnet inn på hvert kart.",
   "land.sportTitle": "Ikke bare pumpfoil",
-  "land.sportBody": "Pumpfoil merker når et opptak ikke var pumpfoiling, og du plasserer det i riktig sport med ett klikk — med egne rekorder og topplister for hver sport.",
+  "land.sportBody": "Pumpfoil merker når et opptak ikke var pumpfoiling, og du plasserer det i riktig sport med ett klikk — med egne rekorder og topplister for hver sport. Nytt: også uten foil — kitesurfing, brettseiling, SUP, snowkiting, kite-mountainboard og kitebuggy.",
   "land.sportMore": "Mangler sporten din? Wakeboard, roing eller noe helt annet: bare ta det opp og fortell oss i appen under «Tilbakemelding» hva det var. Vi ser på de ekte dataene dine, og så snart det finnes nok opptak av en sport, trener vi en egen gjenkjenning for den.",
   "land.connectTitle": "Automatisk import via kontokobling",
   "land.connectBody": "Koble til kontoen din og importer turene dine automatisk som økter — ingen ekstra app nødvendig.",

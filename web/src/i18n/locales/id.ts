@@ -1293,7 +1293,7 @@ const id: Record<string, string> = {
   "land.routes4Title": "Kawasan lindung terlihat",
   "land.routes4Body": "Cagar alam, kawasan Natura 2000, serta larangan berenang dan berperahu yang tercatat di OpenStreetMap digambar di setiap peta.",
   "land.sportTitle": "Bukan hanya pump foil",
-  "land.sportBody": "Pumpfoil tahu kalau sebuah rekaman bukan pump foil, dan kamu memasukkannya ke olahraga yang benar dengan satu klik — dengan rekor dan papan peringkat sendiri untuk tiap olahraga.",
+  "land.sportBody": "Pumpfoil tahu kalau sebuah rekaman bukan pump foil, dan kamu memasukkannya ke olahraga yang benar dengan satu klik — dengan rekor dan papan peringkat sendiri untuk tiap olahraga. Baru: juga tanpa foil — kitesurf, windsurf, SUP, snowkite, kite mountainboard dan kite buggy.",
   "land.sportMore": "Olahragamu belum ada? Wakeboard, dayung, atau yang benar-benar lain: rekam saja dan beri tahu kami di aplikasi lewat \"Masukan\" apa itu. Kami melihat data aslimu, dan begitu cukup banyak rekaman untuk satu olahraga, kami melatih deteksi khusus untuknya.",
   "land.connectTitle": "Impor otomatis lewat tautan akun",
   "land.connectBody": "Hubungkan akunmu dan impor luncuranmu otomatis sebagai sesi — tanpa aplikasi tambahan.",

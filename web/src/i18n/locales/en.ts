@@ -1529,7 +1529,7 @@ const en: Record<string, string> = {
   "land.routes4Title": "Protected areas in view",
   "land.routes4Body": "Nature reserves, Natura 2000 habitat sites and marked no-swimming or no-boating areas from OpenStreetMap are drawn on every map.",
   "land.sportTitle": "Not just pump foiling",
-  "land.sportBody": "Pumpfoil notices when a recording wasn’t pump foiling, and you assign it to the right sport with one click — with records and leaderboards for each sport.",
+  "land.sportBody": "Pumpfoil notices when a recording wasn’t pump foiling, and you assign it to the right sport with one click — with records and leaderboards for each sport. New: sports without a foil too — kitesurfing, windsurfing, SUP, snowkiting, kite mountainboarding and kite buggy.",
   "land.sportMore": "Your sport is missing? Wakeboarding, rowing or something else entirely: just record it and tell us in the app under “Feedback” what it was. We look at your real data, and as soon as enough recordings come together for a sport, we train a detection of its own for it.",
   "land.connectTitle": "Automatic import via account link",
   "land.connectBody": "Connect your account and import your rides automatically as sessions — no extra app needed.",
