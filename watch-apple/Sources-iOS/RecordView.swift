@@ -215,6 +215,10 @@ struct RecordView: View {
         VStack(spacing: 14) {
             Text(recordingStateText)
                 .font(.title3).foregroundStyle(recordingStateColor)
+            // GPS weg (PhoneRecorder.gpsWeg, 25.10.2026): deutlich, nicht nur „--" im Tempo.
+            if rec.gpsWeg {
+                Text(Loc.t("rec.gpsSearch", lang)).font(.headline).foregroundStyle(Color.red)
+            }
             statRow(Loc.t("rec.time", lang), mmss(rec.elapsedSec), Loc.t("rec.dist", lang), km(rec.distanceM))
             statRow(Loc.t("rec.speed", lang), speedText, Loc.t("rec.speedMax", lang), maxSpeedText)
             statRow(Loc.t("rec.runs", lang), runCountText, Loc.t("rec.runDur", lang), mmss(rec.runDurationMs / 1000))
@@ -232,7 +236,7 @@ struct RecordView: View {
     private var recordingStateColor: Color {
         rec.isFoiling ? Color.accentColor : Color.secondary
     }
-    private var speedText: String { String(format: "%.1f", rec.speedKmh) }
+    private var speedText: String { rec.gpsWeg ? "--" : String(format: "%.1f", rec.speedKmh) }
     private var maxSpeedText: String { String(format: "%.1f", rec.maxSpeedKmh) }
     private var runCountText: String { "\(rec.runCount)" }
 

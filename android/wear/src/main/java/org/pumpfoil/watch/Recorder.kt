@@ -1,5 +1,7 @@
 package org.pumpfoil.watch
 
+import android.os.SystemClock
+
 import android.content.Context
 import android.util.Base64
 import kotlinx.coroutines.CoroutineScope
@@ -78,6 +80,11 @@ object Recorder {
         // eine Aufnahme ohne Puls mit nach Hause traegt (Meldung 04.09.).
         val pulsMessung: Boolean = true,
         val gpsFixes: Int = 0,            // Anzahl empfangener Positionen (0 = kein Signal)
+        // elapsedRealtime der letzten Position bzw. der letzten GUTEN — daraus leitet die Anzeige „GPS weg"
+        // ab (gpsWeg). Ohne sie blieb der GPS-Zustand stehen, wenn keine Positionen mehr kamen, und die Uhr
+        // zeigte 0 km/h statt „GPS suchen" (Garmin-Fall Roman, 25.10.2026, hier nachgezogen).
+        val gpsLetzteMs: Long = 0L,
+        val gpsGutMs: Long = 0L,
         val speed3sKmh: Double = 0.0,     // 3-s-Mittel
         val avgSpeedKmh: Double = 0.0,    // Distanz/Zeit
         val maxSpeedKmh: Double = 0.0,
@@ -345,8 +352,9 @@ object Recorder {
     private var pauseBeiMs = 0
     private val pauseListe = mutableListOf<Pair<Int, Int>>()
 
-    /** AKTIVE Zeit seit dem Start. In der Pause steht sie still. */
-    private fun elapsedMs(): Int {
+    /** AKTIVE Zeit seit dem Start. In der Pause steht sie still. Oeffentlich fuer die Anzeige: `elapsedSec`
+     *  im Zustand zieht nur mit GPS-Positionen nach — ohne GPS stand die Zeit (25.10.2026). */
+    fun elapsedMs(): Int {
         if (paused) return pauseBeiMs
         return (System.currentTimeMillis() - startMs - pausedMs).toInt()
     }
@@ -886,6 +894,8 @@ object Recorder {
             gpsPoor = poor,
             gpsStale = stale,
             gpsFixes = _state.value.gpsFixes + 1,
+            gpsLetzteMs = SystemClock.elapsedRealtime(),
+            gpsGutMs = if (poor) _state.value.gpsGutMs else SystemClock.elapsedRealtime(),
             speedKmh = sp * 3.6,
             speed3sKmh = sp3 * 3.6,
             maxSpeedKmh = maxMps * 3.6,

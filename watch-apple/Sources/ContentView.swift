@@ -354,6 +354,11 @@ struct RecordView: View {
     /// Garmin `_drawPausedChrome`.
     @ViewBuilder private var topBadges: some View {
         HStack(spacing: 4) {
+            // GPS weg waehrend der Aufnahme (Recorder.gpsWeg, 25.10.2026): auf jeder Seite sichtbar.
+            if rec.isRecording && rec.gpsWeg {
+                Text(WLoc.t("gps.searching", lang))
+                    .font(.caption2.weight(.bold)).foregroundStyle(Color.orange)
+            }
             if showPausedBadge {
                 Text(WLoc.t("rec.paused", lang))
                     .font(.caption2.weight(.bold)).foregroundStyle(Color.cyan)

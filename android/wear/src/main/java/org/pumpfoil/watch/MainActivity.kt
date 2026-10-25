@@ -262,7 +262,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun RecordScreen(onWantPair: () -> Unit = {}) {
-        val s by Recorder.state.collectAsState()
+        val sRoh by Recorder.state.collectAsState()
+        // GPS WEG waehrend der Aufnahme (Garmin-Fall Roman, 25.10.2026): sekuendlich aus dem Alter der
+        // letzten Position abgeleitet — der Zustand selbst aendert sich nur, wenn Positionen KOMMEN. Ist
+        // GPS weg, gilt es fuer die ganze Ansicht als schlecht: Tempo „--" statt 0, Balken „GPS suchen".
+        var jetzt by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
+        LaunchedEffect(sRoh.recording) {
+            while (sRoh.recording) { delay(1000); jetzt = SystemClock.elapsedRealtime() }
+        }
+        val gpsWegJetzt = gpsWeg(sRoh, jetzt)
+        val s0 = if (sRoh.recording) sRoh.copy(elapsedSec = (Recorder.elapsedMs() / 1000).toLong().coerceAtLeast(sRoh.elapsedSec)) else sRoh
+        val s = if (gpsWegJetzt && !s0.gpsPoor) s0.copy(gpsPoor = true, speedKmh = 0.0, speed3sKmh = 0.0) else s0
         val ctx = LocalContext.current
         val scope = rememberCoroutineScope()
         // Konfigurierte Ansichten von der Web-App laden (Felder je Seite + Farbe/Alarm).
@@ -985,6 +995,24 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                         )
                     }
                   }
+                  // GPS weg/schlecht (s. gpsWeg): schmaler Balken, solange es fehlt — auch vor dem ersten Fix.
+                  if (gpsWegJetzt && !s.gpsStale) {
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .background(Color(0xFFFBBF24)).padding(top = 14.dp, bottom = 5.dp),
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        Text(
+                            I18n.t("gps.searching"),
+                            color = Color(0xFF0F172A),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp,
+                            modifier = Modifier.width(sichereBreite(14.dp)),
+                        )
+                    }
+                  }
                   // Eingefrorene Ortung, nachdem die ganzseitige Meldung weggetippt wurde:
                   // der schmale Balken bleibt, damit man es nicht vergisst.
                   if (s.gpsStale && staleWeggetippt) {
@@ -1216,10 +1244,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             // Session-Ende) -> das remember-State setzt sich zurück, der Countdown startet neu.
             var autoCountdown by remember { mutableStateOf(10) }
             var autoArmed by remember { mutableStateOf(false) }
-            // Bereit, sobald einmal ein brauchbarer Fix da war. Bleibt dann stehen (wie das
-            // Garmin-Pendant `_hasGpsFix`) — ein kurzes Aussetzen soll die Anzeige nicht
-            // flackern lassen.
+            // Bereit = brauchbarer, frischer Fix in den letzten 10 s. Blieb bis 25.10.2026 stehen, wenn
+            // keine Positionen mehr kamen (wie Garmins `_hasGpsFix`, dort derselbe Fehler: die Uhr meldete
+            // „bereit", Roman fuhr los, GPS war weg). 10 s halten kurze Aussetzer aus, ohne zu flackern.
             var gpsBereit by remember { mutableStateOf(false) }
+            var gpsBereitMs by remember { mutableStateOf(0L) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    delay(1000)
+                    if (gpsBereit && SystemClock.elapsedRealtime() - gpsBereitMs > 10_000) gpsBereit = false
+                }
+            }
             if (autoStart && !s.starting) {
                 LaunchedEffect(Unit) {
                     autoCountdown = 10; autoArmed = false
@@ -1269,6 +1304,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                         (SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) < 5_000_000_000L
                     if (l.hasAccuracy()) genau.sehen(l.accuracy.toDouble())
                     gpsBereit = l.hasAccuracy() && !genau.zuUngenau(l.accuracy.toDouble()) && frisch
+                    if (gpsBereit) gpsBereitMs = SystemClock.elapsedRealtime()
                     // Startbildschirm, erster brauchbarer Fix -> Spot-Meldung an den Server (Api).
                     if (gpsBereit && !Recorder.state.value.recording) Api.meldePosition(l.latitude, l.longitude)
                     if (!autoScharf.value) {
@@ -2302,3 +2338,9 @@ private fun ambientZeit(sek: Long): String = String.format("%d:%02d", sek / 60, 
 internal fun pulsRecht(): String =
     if (Build.VERSION.SDK_INT >= 35) "android.permission.health.READ_HEART_RATE"
     else Manifest.permission.BODY_SENSORS
+
+/** GPS waehrend der Aufnahme weg: noch kein Fix, seit 10 s keine Position, oder seit 3 s nur schlechte.
+ *  10 s statt weniger: Health Services liefert bei dunklem Display gebuendelt (s. RecorderService). */
+fun gpsWeg(s: Recorder.State, jetzt: Long): Boolean =
+    s.recording && !s.paused && !s.gpsOhneHardware && !s.gpsDenied &&
+        (s.gpsFixes == 0 || jetzt - s.gpsLetzteMs > 10_000 || (s.gpsPoor && jetzt - s.gpsGutMs > 3_000))

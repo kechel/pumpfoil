@@ -34,6 +34,13 @@ final class Recorder: NSObject, ObservableObject {
     // weder auf der Uhr noch auf dem Server zu retten. Jetzt laeuft der Empfaenger schon im
     // Ruhebild (`gpsVorwaermen`) und die Ansicht sagt, ob er bereit ist.
     @Published var gpsBereit: Bool = false
+    // GPS waehrend der Aufnahme weg (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): `gpsPoor` und das
+    // Tempo aenderten sich nur, wenn Positionen KOMMEN — ohne GPS blieb die Anzeige auf dem letzten Wert,
+    // und `gpsBereit` blieb fuer immer gesetzt. `gpsUhr` prueft jede Sekunde das Alter der letzten Position.
+    @Published var gpsWeg: Bool = false
+    private var letzteGpsZeit: Date?
+    private var letzteGuteGpsZeit: Date?
+    private var gpsUhr: Timer?
     /// Ab dieser Genauigkeit gilt der Fix als brauchbar — dieselbe Schwelle wie das
     /// Qualitaets-Gate weiter unten (`gpsPoor`), damit „bereit" und „Anzeige zeigt Tempo"
     /// nicht auseinanderlaufen.
@@ -336,6 +343,7 @@ final class Recorder: NSObject, ObservableObject {
         accel.removeAll(); gps.removeAll(); spWin.removeAll()
         prevLoc = nil; distAccum = 0; maxMps = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
         lastHRms = -1
+        gpsPoor = false   // stand sonst noch auf dem Wert der vorigen Aufnahme; gpsFrischePruefen setzt ihn neu
         // Aufzeichnungsmodus aus der (gecachten) Config — pro Konto, offline-tauglich.
         recordMode = UserDefaults.standard.string(forKey: "recordMode") ?? "full"
         accelHzActual = recordMode == "lite" ? Self.accelHzLite : Self.accelHz
@@ -735,6 +743,27 @@ final class Recorder: NSObject, ObservableObject {
         // die HKWorkoutSession die App + Standortupdates am Leben.
         location.delegate = self
         location.startUpdatingLocation()
+        if gpsUhr == nil {
+            gpsUhr = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.gpsFrischePruefen() }
+            }
+        }
+    }
+
+    /// „Bereit" nur mit frischem guten Fix (10 s); in der Aufnahme gilt GPS als weg ohne Position seit 5 s
+    /// oder ohne gute seit 3 s — dann Tempo „--" (gpsPoor) und Hinweis „GPS suchen" (ContentView.topBadges).
+    private func gpsFrischePruefen() {
+        let jetzt = Date()
+        let gutAlter = letzteGuteGpsZeit.map { jetzt.timeIntervalSince($0) } ?? .infinity
+        if gpsBereit && gutAlter > 10 { gpsBereit = false }
+        guard isRecording, !isPaused, !locDenied else { if gpsWeg { gpsWeg = false }; return }
+        let alter = letzteGpsZeit.map { jetzt.timeIntervalSince($0) } ?? .infinity
+        let weg = alter > 5 || gutAlter > 3
+        if weg != gpsWeg { gpsWeg = weg }
+        if weg {
+            gpsPoor = true
+            speedKmh = 0; speed3sKmh = 0
+        }
     }
 
     /// Vorwaermen im Ruhebild: GPS laeuft schon, bevor der Nutzer START drueckt.
@@ -863,8 +892,10 @@ extension Recorder: CLLocationManagerDelegate {
     nonisolated func locationManager(_ m: CLLocationManager, didUpdateLocations locs: [CLLocation]) {
         guard let loc = locs.last else { return }
         Task { @MainActor in
+            self.letzteGpsZeit = Date()
             // Bereitschaft gilt auch VOR der Aufnahme (Vorwaermen). hAcc <= 0 heisst „ungueltig".
             if loc.horizontalAccuracy > 0 && loc.horizontalAccuracy <= Self.gpsFixAccM {
+                self.letzteGuteGpsZeit = Date()
                 self.gpsBereit = true
                 // Startbildschirm, erster brauchbarer Fix -> Spot-Meldung an den Server (Api).
                 if !self.isRecording {

@@ -53,6 +53,10 @@ object Recorder {
         val maxSpeedKmh: Double = 0.0,
         val distanceM: Double = 0.0,
         val gpsFix: Boolean = false,
+        // elapsedRealtime der letzten bzw. letzten GENAUEN (<= 20 m) Position — daraus leitet die Anzeige
+        // „GPS weg" ab (RecordScreen.gpsWeg; Garmin-Fall Roman 25.10.2026: Tempo blieb stehen, kein Hinweis).
+        val gpsLetzteMs: Long = 0L,
+        val gpsGutMs: Long = 0L,
         val status: String = "",
         val uploading: Boolean = false,
         val uploadSent: Int = 0,
@@ -219,7 +223,8 @@ object Recorder {
         f.timeZone = TimeZone.getTimeZone("UTC")
         return f.format(java.util.Date())
     }
-    private fun elapsedMs() = (System.currentTimeMillis() - startMs).toInt()
+    /** Oeffentlich fuer die Anzeige: `elapsedSec` zieht nur mit GPS-Positionen nach (25.10.2026). */
+    fun elapsedMs() = (System.currentTimeMillis() - startMs).toInt()
     // Aufnahme-Gerät: "Google Pixel 7 · Android 14" (Fehlersuche). Herstellernamen groß führen.
     private fun deviceModel(): String {
         val mfr = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
@@ -533,6 +538,8 @@ object Recorder {
             avgSpeedKmh = distM / sec * 3.6,
             elapsedSec = (tMs / 1000).toLong(),
             gpsFix = true,
+            gpsLetzteMs = android.os.SystemClock.elapsedRealtime(),
+            gpsGutMs = if (accuracyM <= 20.0) android.os.SystemClock.elapsedRealtime() else _state.value.gpsGutMs,
             isFoiling = nowFoiling,
             runCount = runCount,
             track = trackSnap,

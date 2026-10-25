@@ -109,6 +109,14 @@ fun RecordScreen(onBack: () -> Unit) {
     var permGranted by remember { mutableStateOf(hasLocationPerm(ctx)) }
     var pendingStart by remember { mutableStateOf(false) }
     var gpsReady by remember { mutableStateOf(false) }
+    // „GPS bereit" nur mit frischem Fix (10 s) — blieb sonst stehen, wenn keine Positionen mehr kamen (25.10.2026).
+    var gpsReadyMs by remember { mutableStateOf(0L) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(1000)
+            if (gpsReady && android.os.SystemClock.elapsedRealtime() - gpsReadyMs > 10_000) gpsReady = false
+        }
+    }
 
     fun startRecording() { Recorder.sessionFoilId = foilId; RecorderService.start(ctx) }
 
@@ -160,6 +168,7 @@ fun RecordScreen(onBack: () -> Unit) {
             val listener = LocationListener { loc ->
                 val acc = if (loc.hasAccuracy()) loc.accuracy else 999f
                 gpsReady = acc <= 25f
+                if (gpsReady) gpsReadyMs = android.os.SystemClock.elapsedRealtime()
                 val spd = if (loc.hasSpeed()) loc.speed else 0f
                 if (autoStart && gpsReady) {
                     if (arm[0] < 10) { arm[0]++; arm[1] = 0 }          // Vorlauf abwarten
@@ -370,15 +379,26 @@ fun RecordScreen(onBack: () -> Unit) {
 
 @Composable
 private fun RecordingBody(st: Recorder.State) {
+    // GPS WEG (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): der Zustand aendert sich nur, wenn
+    // Positionen KOMMEN — Tempo und Zeit blieben sonst ohne GPS einfach stehen. Sekuendlich ableiten.
+    var jetzt by remember { mutableStateOf(android.os.SystemClock.elapsedRealtime()) }
+    LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(1000); jetzt = android.os.SystemClock.elapsedRealtime() } }
+    val gpsWeg = !st.gpsFix || jetzt - st.gpsLetzteMs > 5_000 || jetzt - st.gpsGutMs > 3_000
+    val sek = maxOf(st.elapsedSec, (Recorder.elapsedMs() / 1000).toLong())
     Spacer(Modifier.height(4.dp))
     Text(if (st.isFoiling) I18n.t("rec.onfoil") else I18n.t("rec.recording"),
         style = MaterialTheme.typography.titleMedium,
         color = if (st.isFoiling) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+    if (gpsWeg) {
+        Spacer(Modifier.height(6.dp))
+        Text(I18n.t("rec.gpsSearch"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.error)
+    }
     Spacer(Modifier.height(16.dp))
     val mmss = { s: Long -> "%d:%02d".format(s / 60, s % 60) }
     val km = { m: Double -> if (m >= 1000) "%.2f km".format(m / 1000) else "%d m".format(m.toInt()) }
-    StatRow(I18n.t("rec.time"), mmss(st.elapsedSec), I18n.t("rec.dist"), km(st.distanceM))
-    StatRow(I18n.t("rec.speed"), "%.1f".format(st.speedKmh), I18n.t("rec.speedMax"), "%.1f".format(st.maxSpeedKmh))
+    StatRow(I18n.t("rec.time"), mmss(sek), I18n.t("rec.dist"), km(st.distanceM))
+    StatRow(I18n.t("rec.speed"), if (gpsWeg) "--" else "%.1f".format(st.speedKmh), I18n.t("rec.speedMax"), "%.1f".format(st.maxSpeedKmh))
     StatRow(I18n.t("rec.runs"), st.runCount.toString(), I18n.t("rec.runDur"), mmss(st.runDurationMs / 1000))
     Spacer(Modifier.height(10.dp))
     if (st.uploading || st.pendingCount > 0 || st.uploadError.isNotEmpty()) {

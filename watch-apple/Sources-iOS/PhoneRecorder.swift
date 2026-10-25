@@ -21,6 +21,13 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var maxSpeedKmh = 0.0
     @Published var distanceM = 0.0
     @Published var gpsFix = false
+    // GPS waehrend der Aufnahme weg (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): Tempo und Zeit
+    // aenderten sich nur, wenn Positionen KAMEN — ohne GPS blieb beides stehen, ohne Hinweis. `gpsUhr`
+    // prueft jede Sekunde; ebenso „GPS bereit" im Ruhebild (nur mit frischem Fix, 10 s).
+    @Published var gpsWeg = false
+    private var letzteGpsZeit: Date?
+    private var letzteGuteGpsZeit: Date?
+    private var gpsUhr: Timer?
     @Published var isFoiling = false
     @Published var track: [[Double]] = []   // [lat, lon] fürs Live-Track-Canvas
     @Published var runCount = 0
@@ -208,6 +215,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         flushTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.flushAll() }
         }
+        gpsUhrStarten()
         liveTask?.cancel()
         let sid = uuid
         liveTask = Task { [weak self] in await self?.liveLoop(sid) }
@@ -287,10 +295,30 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         idleMonitoring = true; idleLead = 0; idleStreak = 0
         loc.requestWhenInUseAuthorization()
         loc.startUpdatingLocation()
+        gpsUhrStarten()
+    }
+    private func gpsUhrStarten() {
+        guard gpsUhr == nil else { return }
+        gpsUhr = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.gpsFrischePruefen() }
+        }
+    }
+    /// Ruhebild: „bereit" nur mit gutem Fix der letzten 10 s. Aufnahme: GPS weg ohne Position seit 5 s oder
+    /// ohne gute (<= 20 m) seit 3 s -> Tempo „--" und Hinweis; die Zeit laeuft auch ohne GPS weiter.
+    private func gpsFrischePruefen() {
+        let jetzt = Date()
+        let gutAlter = letzteGuteGpsZeit.map { jetzt.timeIntervalSince($0) } ?? .infinity
+        if gpsReady && gutAlter > 10 { gpsReady = false }
+        guard recording else { if gpsWeg { gpsWeg = false }; return }
+        elapsedSec = max(elapsedSec, elapsedMs() / 1000)
+        let alter = letzteGpsZeit.map { jetzt.timeIntervalSince($0) } ?? .infinity
+        let weg = alter > 5 || gutAlter > 3
+        if weg != gpsWeg { gpsWeg = weg }
+        if weg { speedKmh = 0; speed3sKmh = 0 }
     }
     func stopIdleMonitor() {
         idleMonitoring = false
-        if !recording { loc.stopUpdatingLocation(); gpsReady = false }
+        if !recording { loc.stopUpdatingLocation(); gpsReady = false; gpsUhr?.invalidate(); gpsUhr = nil }
     }
 
     private func elapsedMs() -> Int { Int(Date().timeIntervalSince1970 * 1000 - startMs) }
@@ -367,6 +395,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     func locationManager(_ m: CLLocationManager, didUpdateLocations locs: [CLLocation]) {
         // Idle (Start-Screen): nur GPS-Status + Autostart-Logik, keine Aufnahme.
+        if let l = locs.last {
+            letzteGpsZeit = Date()
+            if l.horizontalAccuracy >= 0 && l.horizontalAccuracy <= 20 { letzteGuteGpsZeit = Date() }
+        }
         if !recording {
             guard idleMonitoring, let l = locs.last else { return }
             gpsReady = l.horizontalAccuracy >= 0 && l.horizontalAccuracy <= 25
