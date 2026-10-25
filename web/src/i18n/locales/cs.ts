@@ -2040,6 +2040,7 @@ const cs: Record<string, string> = {
   "v2.sepWhy": "{dur} s v kuse při průměru {kmh} km/h",
   "v3.sepWhy": "{dur} s při průměru {kmh} km/h — model rozpoznávání tu nevidí foilování",
   "fahrt.sepWhy": "Jízda autem — {min} min, až {kmh} km/h",
+  "tempo.sepWhy": "Na tento sport příliš rychlé — až {kmh} km/h, limit {grenze} km/h",
   "v2.keep": "Počítá se — vrátit",
   "v2.keptLabel": "vrácená jízda",
   "v2.unkeep": "znovu odložit",

@@ -1983,6 +1983,7 @@ const pt: Record<string, string> = {
   "v2.sepWhy": "{dur} s seguidos a {kmh} km/h de média",
   "v3.sepWhy": "{dur} s a {kmh} km/h de média — o modelo de detecção não vê foil aqui",
   "fahrt.sepWhy": "Trajeto de carro — {min} min, até {kmh} km/h",
+  "tempo.sepWhy": "Rápido demais para este esporte — até {kmh} km/h, limite {grenze} km/h",
   "v2.keep": "Conta sim — recuperar",
   "v2.keptLabel": "run recuperado",
   "v2.unkeep": "separar de novo",

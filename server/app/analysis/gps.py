@@ -687,6 +687,15 @@ def _gate_implausible_runs(segments: list[dict], run_max_kmh: float = RUN_MAX_PL
     return kept, len(segments) - len(kept)
 
 
+def gate_mit_verworfenen(segments: list[dict], run_max_kmh: float = RUN_MAX_PLAUSIBLE_KMH,
+                         max_foil: float = MAX_FOIL_SPEED) -> tuple[list[dict], list[dict]]:
+    """Wie _gate_implausible_runs, liefert aber die verworfenen Laeufe selbst statt nur ihrer Zahl (25.10.2026: sie
+    sollen in die Liste „automatisch aussortiert" und per Tipp zurueckholbar sein, s. detect_v2)."""
+    kept, _n = _gate_implausible_runs(segments, run_max_kmh, max_foil)
+    behalten = {id(s) for s in kept}
+    return kept, [s for s in segments if id(s) not in behalten]
+
+
 def _seg_fields(i: int, j: int, t_ms: np.ndarray, step: np.ndarray, speeds: dict) -> dict:
     """Berechnet die Felder eines Segments [i, j) (Dauer, Distanz, Ø/Max/Min je 1/3/5 s)."""
     seg = {

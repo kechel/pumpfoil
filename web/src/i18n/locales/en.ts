@@ -2477,6 +2477,7 @@ const en: Record<string, string> = {
   "v2.sepWhy": "{dur} s non-stop at {kmh} km/h average",
   "v3.sepWhy": "{dur} s at {kmh} km/h average — the detection model sees no foiling here",
   "fahrt.sepWhy": "Car drive — {min} min, up to {kmh} km/h",
+  "tempo.sepWhy": "Too fast for this sport — up to {kmh} km/h, limit {grenze} km/h",
   "v2.keep": "It counts — bring it back",
   "v2.keptLabel": "restored run",
   "v2.unkeep": "set aside again",

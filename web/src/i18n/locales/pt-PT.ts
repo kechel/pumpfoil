@@ -1977,6 +1977,7 @@ const ptPT: Record<string, string> = {
   "v2.sepWhy": "{dur} s seguidos a {kmh} km/h de média",
   "v3.sepWhy": "{dur} s a {kmh} km/h de média — o modelo de deteção não vê foil aqui",
   "fahrt.sepWhy": "Viagem de carro — {min} min, até {kmh} km/h",
+  "tempo.sepWhy": "Demasiado rápido para este desporto — até {kmh} km/h, limite {grenze} km/h",
   "v2.keep": "Conta sim — recuperar",
   "v2.keptLabel": "run recuperado",
   "v2.unkeep": "separar de novo",

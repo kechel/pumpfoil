@@ -2004,6 +2004,7 @@ const fi: Record<string, string> = {
   "v2.sepWhy": "{dur} s putkeen keskinopeudella {kmh} km/h",
   "v3.sepWhy": "{dur} s keskinopeudella {kmh} km/h — tunnistusmalli ei näe tässä foilausta",
   "fahrt.sepWhy": "Automatka — {min} min, jopa {kmh} km/h",
+  "tempo.sepWhy": "Liian nopea tähän lajiin — jopa {kmh} km/h, raja {grenze} km/h",
   "v2.keep": "Kyllä se lasketaan — palauta",
   "v2.keptLabel": "palautettu veto",
   "v2.unkeep": "siirrä taas sivuun",

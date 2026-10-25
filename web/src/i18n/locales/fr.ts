@@ -1810,6 +1810,7 @@ const fr: Record<string, string> = {
   "v2.sepWhy": "{dur} s d'affilée à {kmh} km/h de moyenne",
   "v3.sepWhy": "{dur} s à {kmh} km/h de moyenne — le modèle de détection ne voit pas de foil ici",
   "fahrt.sepWhy": "Trajet en voiture — {min} min, jusqu'à {kmh} km/h",
+  "tempo.sepWhy": "Trop rapide pour ce sport — jusqu'à {kmh} km/h, limite {grenze} km/h",
   "v2.keep": "Ça compte — récupérer",
   "v2.keptLabel": "run récupéré",
   "v2.unkeep": "mettre de côté à nouveau",

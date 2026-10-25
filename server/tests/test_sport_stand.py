@@ -131,3 +131,12 @@ def test_land_sportarten_ohne_gewaessersuche(monkeypatch):
     monkeypatch.setattr(places, "lookup_place_name", lambda lat, lon, **k: "Sankt Peter-Ording")
     assert spots.name_for(54.3, 8.6, land=True) == ("Sankt Peter-Ording", "town", None)
     assert spots.ist_land("kitebuggy") and not spots.ist_land("kitesurf") and not spots.ist_land(None)
+
+
+def test_zu_schnelle_laeufe_bleiben_sichtbar():
+    """Physik-Schranke (25.10.2026): verworfene Laeufe kommen zurueck, damit sie in „automatisch aussortiert" stehen."""
+    from app.analysis.gps import gate_mit_verworfenen
+    ok = {"t_start_ms": 0, "t_end_ms": 10_000, "max_speed_mps": 10.0, "avg_speed_mps": 8.0}
+    schnell = {"t_start_ms": 20_000, "t_end_ms": 40_000, "max_speed_mps": 25.0, "avg_speed_mps": 15.0}
+    kept, weg = gate_mit_verworfenen([ok, schnell], run_max_kmh=65.0, max_foil=55.0 / 3.6)
+    assert kept == [ok] and weg == [schnell]

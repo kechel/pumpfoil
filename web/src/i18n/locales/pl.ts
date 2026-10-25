@@ -2359,6 +2359,7 @@ const pl: Record<string, string> = {
   "v2.sepWhy": "{dur} s bez przerwy przy średnio {kmh} km/h",
   "v3.sepWhy": "{dur} s przy średnio {kmh} km/h — model rozpoznawania nie widzi tu foilowania",
   "fahrt.sepWhy": "Jazda samochodem — {min} min, do {kmh} km/h",
+  "tempo.sepWhy": "Za szybko jak na ten sport — do {kmh} km/h, limit {grenze} km/h",
   "v2.keep": "To się liczy — przywróć",
   "v2.keptLabel": "przywrócony przejazd",
   "v2.unkeep": "odłóż z powrotem",

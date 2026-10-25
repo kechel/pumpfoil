@@ -2236,6 +2236,7 @@ const nb: Record<string, string> = {
   "v2.sepWhy": "{dur} s sammenhengende med {kmh} km/h i snitt",
   "v3.sepWhy": "{dur} s med snitt {kmh} km/t — gjenkjenningsmodellen ser ingen foiling her",
   "fahrt.sepWhy": "Biltur — {min} min, opptil {kmh} km/t",
+  "tempo.sepWhy": "For raskt for denne sporten — opptil {kmh} km/t, grense {grenze} km/t",
   "v2.keep": "Det teller — hent det tilbake",
   "v2.keptLabel": "gjenopprettet run",
   "v2.unkeep": "sett til side igjen",

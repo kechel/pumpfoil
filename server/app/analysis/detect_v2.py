@@ -585,7 +585,28 @@ def detect_v2(
     segments = v1._merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     segments = v1._repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
     segments = v1._trim_fall_tail(segments, lat, lon, t_ms, step, speeds, gps_hz)
-    segments, n_gated = v1._gate_implausible_runs(segments, run_max_kmh, max_foil_speed)
+    # Physik-Schranke (zu schnell fuer die Sportart). Seit 25.10.2026 nicht mehr still verworfen: die Laeufe stehen mit
+    # quelle "tempo" in fremdkraft_laeufe und ein Tipp holt sie zurueck (keep_windows) — Jan, nach dem Senken der
+    # Grenzen fuer Snowkite/ATB: echte schnelle Fahrten duerfen nicht unwiderruflich verschwinden.
+    segments, zu_schnell = v1.gate_mit_verworfenen(segments, run_max_kmh, max_foil_speed)
+    zurueck = [q for q in zu_schnell if keep_windows and any(ka < q["t_end_ms"] and kb > q["t_start_ms"]
+                                                                for ka, kb in keep_windows)]
+    if zurueck:
+        segments = sorted(segments + zurueck, key=lambda q: q["t_start_ms"])
+    n_gated = len(zu_schnell) - len(zurueck)
+    tempo_eintraege = []
+    for q in zu_schnell:
+        if q in zurueck:
+            continue
+        spitze = (q.get("max_speed_mps") or 0.0) * 3.6
+        schnitt = (q.get("avg_speed_mps") or 0.0) * 3.6
+        tempo_eintraege.append({
+            "t_start_ms": int(q["t_start_ms"]), "t_end_ms": int(q["t_end_ms"]),
+            "dauer_s": q.get("duration_s"), "kmh": round(spitze, 1), "schnitt_kmh": round(schnitt, 1),
+            "grenze_kmh": round(run_max_kmh, 1), "quelle": "tempo",
+            "grund": (f"Spitze {spitze:.0f} km/h ueber der Grenze {run_max_kmh:.0f} km/h" if spitze > run_max_kmh
+                      else f"Schnitt {schnitt:.0f} km/h ueber dem Band {max_foil_speed * 3.6:.0f} km/h"),
+        })
 
     # Fremdkraft-Entscheidung JE LAUF — erst hier, nicht im Fenster-Raster (Begründung in
     # `_fremdkraft_laeufe`). Vorgeschlagen, nicht verhängt: die betroffenen Läufe verlassen die
@@ -597,6 +618,7 @@ def detect_v2(
         # Session ist menschlich einer anderen Sportart zugeordnet -> Fremdkraft-Frage ist
         # beantwortet, alle Laeufe zaehlen fuer IHRE Sportart.
         fremd_laeufe = []
+    fremd_laeufe = fremd_laeufe + tempo_eintraege
 
     mask = np.zeros(t_ms.size, dtype=bool)
     for seg in segments:

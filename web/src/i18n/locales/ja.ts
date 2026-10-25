@@ -1954,6 +1954,7 @@ const ja: Record<string, string> = {
   "v2.sepWhy": "平均 {kmh} km/h で {dur} 秒連続",
   "v3.sepWhy": "{dur}秒・平均{kmh} km/h — 検出モデルはここでフォイルを認識していません",
   "fahrt.sepWhy": "車での移動 — {min}分、最高{kmh} km/h",
+  "tempo.sepWhy": "このスポーツには速すぎます — 最高 {kmh} km/h、上限 {grenze} km/h",
   "v2.keep": "カウントする — 戻す",
   "v2.keptLabel": "戻したラン",
   "v2.unkeep": "再び除外する",

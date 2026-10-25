@@ -3499,6 +3499,8 @@ function RunsTable({
     if (r.quelle === "v3") return t("v3.sepWhy", { dur, kmh });
     // Automatisch erkannte Autofahrt (04.10.2026): Spitze statt Schnitt, Dauer in Minuten.
     if (r.quelle === "fahrt") return t("fahrt.sepWhy", { kmh: Math.round(r.kmh ?? 0), min: Math.max(1, Math.round(dur / 60)) });
+    // Von der Physik-Schranke verworfen: schneller als die Lauf-Spitze der Sportart (25.10.2026, zurueckholbar).
+    if (r.quelle === "tempo") return t("tempo.sepWhy", { kmh: Math.round(r.kmh ?? 0), grenze: Math.round(r.grenze_kmh ?? 0) });
     return r.puls_antwort_bpm != null
       ? t("v2.sepWhyPulse", { dur, kmh, hr: (r.puls_antwort_bpm > 0 ? "+" : "") + Math.round(r.puls_antwort_bpm) })
       : t("v2.sepWhy", { dur, kmh });

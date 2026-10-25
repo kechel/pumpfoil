@@ -2041,6 +2041,7 @@ const nl: Record<string, string> = {
   "v2.sepWhy": "{dur} s aan één stuk met gemiddeld {kmh} km/h",
   "v3.sepWhy": "{dur} s bij gem. {kmh} km/h — het detectiemodel ziet hier geen foilen",
   "fahrt.sepWhy": "Autorit — {min} min, tot {kmh} km/u",
+  "tempo.sepWhy": "Te snel voor deze sport — tot {kmh} km/h, grens {grenze} km/h",
   "v2.keep": "Telt wél — terughalen",
   "v2.keptLabel": "teruggehaalde run",
   "v2.unkeep": "weer apart zetten",

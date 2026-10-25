@@ -1983,6 +1983,7 @@ const id: Record<string, string> = {
   "v2.sepWhy": "{dur} dtk nonstop dengan rata-rata {kmh} km/h",
   "v3.sepWhy": "{dur} dtk rata-rata {kmh} km/j — model deteksi tidak melihat foiling di sini",
   "fahrt.sepWhy": "Perjalanan mobil — {min} mnt, hingga {kmh} km/j",
+  "tempo.sepWhy": "Terlalu cepat untuk olahraga ini — hingga {kmh} km/h, batas {grenze} km/h",
   "v2.keep": "Tetap dihitung — kembalikan",
   "v2.keptLabel": "run yang dikembalikan",
   "v2.unkeep": "pisahkan lagi",
