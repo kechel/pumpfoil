@@ -134,6 +134,29 @@ export function DmWidget() {
     return () => { window.removeEventListener("pumpfoil:open-chat", h); window.removeEventListener("pumpfoil:open-dm", dm); };
   }, []);
 
+  // 1:1-Chat nur ueber den Scope geoeffnet (`openChatOverlay("dm:a-b")`, z. B. ein Chat ohne Nachrichten): dann fehlen
+  // Gegenueber, Profilbild und Link zur Profilseite im Kopf (Jan, 25.10.2026). Aus dem Scope nachholen — `chatDmOpen` mit
+  // der eigenen ID scheitert, mit der anderen liefert er genau diesen Scope.
+  useEffect(() => {
+    if (!active || active.otherId || !active.scope.startsWith("dm:")) return;
+    const ids = active.scope.slice(3).split("-").map(Number).filter((n) => n > 0);
+    let aus = false;
+    (async () => {
+      for (const id of ids) {
+        try {
+          const r = await api.chatDmOpen(id);
+          if (aus) return;
+          if (r.scope === active.scope && r.other) {
+            setActive((a) => a && a.scope === r.scope
+              ? { ...a, name: a.name || r.other.name, otherId: r.other.id, avatar: r.other.avatar_url, blocked: r.blocked } : a);
+            return;
+          }
+        } catch { /* eigene ID oder kein Zugriff: naechste probieren */ }
+      }
+    })();
+    return () => { aus = true; };
+  }, [active?.scope, active?.otherId]);
+
   // Globale Suche (unabhängig vom Tab): findet Personen (→ DM) UND Spots. Personensuche
   // nur Anzeigename, leicht entprellt; Spots werden clientseitig gefiltert (spotsShown).
   useEffect(() => {
