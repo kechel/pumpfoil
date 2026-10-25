@@ -206,3 +206,17 @@ des Beschleunigungsbetrags je 10-s-Fenster — Tango 74:20–77:30 **0,06–0,10
 trotzdem rhythmisch ~60–64 /min), Jive 78:20–81:20 **0,22–0,35 g**, Samba 0,11–0,15 g, Quickstep 0,08–0,18 g.
 Die Armbewegung trennt Tango/Jive viel klarer als der Takt; weder Uhr-Rechnung noch Server s1 nutzen bisher
 eine Amplitude als Merkmal -> Kandidat fuer das naechste Merkmal (erst an mehr markierten Abenden pruefen).
+
+## #16875 (15.10., „Disco-Fox, Boogy, Bachata") beschriftet (25.10.2026)
+
+Jan: nur diese drei Taenze, am meisten Disco-Fox, 1–2 Bachata, 1–2 Boogie/Jive, viele Pausen. **Bachata ist viel
+ruhiger als Disco-Fox — sieht fast aus wie eine Pause, nur rhythmisch; alles Schnellere ist Disco-Fox oder Boogie.**
+Zugeordnet nach Merkmalen (Armbewegung = Streuung des Beschleunigungsbetrags je 10 s):
+- Boogie (9,8 min): 28:00–31:00, 80:40–87:30 — hoher b2-Anteil (0,32/0,36), Tempo ~130, Server-Muster Boogie 83/92 %.
+- Disco-Fox (56,3 min, 13 Abschnitte): Armbewegung 0,10–0,25 g, Tempo meist 110–155 (bzw. halbe/Drittel-Werte).
+  Die vier langen Bloecke (4:20, 42:20, 69:40, 97:30) hat der Server als Salsa gesehen (bis 98 %) — gleiche
+  Schrittstruktur (drei Schritte + Pause); Disco-Fox fehlt dem Server als Muster, das erklaert die Verwechslung.
+- Bachata (1,3 min): 62:50–64:10 — Armbewegung 0,04–0,05 g (fast Ruhe), Takt 110–145, rhythmisch.
+- Offen: 11:10 (0,7 min) und 88:10 (1,2 min), ruhig, zu kurz/unklar. Weitere ruhige, rhythmische Minuten liegen
+  AUSSERHALB der Uhr-Abschnitte (z. B. 13', 38', 93'–96'): die Uhr erkennt so ruhiges Tanzen nicht als Tanzen —
+  dort koennte der zweite Bachata stecken. Merkmal-Idee wie beim Tango: Amplitude trennt die ruhigen Taenze.
