@@ -183,3 +183,20 @@ wird in die Tanz-Tabellen geschrieben. Quelle für Salsa: #16863 (Kurs), #17689 
 - Mehrere Tänze ohne Pause werden als EIN Abschnitt erkannt; am Server an Markern geteilt, auf der Uhr nicht.
 - Ob die verteilte Rechnung auf der Uhr (je Paket ≤ 10 Abstände) in Echtzeit mitkommt: an `tanz_fenster`
   (Lücken?) prüfen.
+
+## #19046: Schlussteil von Hand geteilt (25.10.2026)
+
+Jan: vor der Pause nur Wiener Walzer, danach nur Samba, am Ende Tango, Jive, Quickstep/Foxtrott; an der Uhr
+immer NACH jedem Tanz bestaetigt (bei Tango vergessen), zwischendurch auch mal ohne Wechsel. Die Uhr hatte
+die drei Schlusstaenze zu einem Abschnitt (74:21–86:14) zusammengefasst. Geteilt an den Tempo-Spruengen der
+10-s-Fenster (Server-Fenster, `tempo` = gefundener Takt /min):
+
+| Abschnitt | Tempo der Fenster | danach |
+|---|---|---|
+| Samba bis 72:20 | ~88 | Pause 72:50–74:10 (Tempo 0) |
+| Tango 74:20–77:40 | ~60–64, einzelne 120–128, hoher b2-Anteil | 77:40–78:10 kurz ~97, dann Pause |
+| Jive 78:20–81:20 | ~68–75, hoher b1-Anteil | Bestaetigung Jive 81:49 |
+| Quickstep 82:10–85:10 | sehr gleichmaessig ~94–100 | Bestaetigung Quickstep 85:37 |
+
+Die Grenzen sind also aus Takt und Bestaetigungen geschaetzt, nicht von Jan gesetzt. Auffaellig: Jive misst
+hier ~70 /min, nicht ~88 (halbe 176 bpm) — als Muster-Datenpunkt mit Vorsicht behandeln.
