@@ -199,3 +199,27 @@ def fuer_session(session, gps_roh: list, accel_roh: np.ndarray, gps_versuche: li
     anl = [(s0 - versatz_ms / 1000.0, s1 - versatz_ms / 1000.0) for s0, s1 in anl]
     alte = [(e["t"], e["strecke_m"]) for e in alte_versuche(gps_versuche, session.gps_hz)]
     return zaehlen(startversuche(gps_versuche, anl), alte, laeufe)
+
+
+# PUMPFOIL OHNE LAUF (Schritt 2, Jan 25.10.2026: „solche sessions nicht mehr aussortieren"): findet die Analyse keinen
+# Lauf, aber mindestens so viele durch einen Anlauf belegte Versuche aus Weg A oder B, gilt die Session als Pumpfoil —
+# mit 0 Laeufen und ihren Startversuchen (passt zu Jans Regel vom 12.10.: auch Sessions mit nur Startversuchen).
+# Weg C zaehlt hier NICHT: Anlauf + nur 6-8 km/h kommt auch bei Gehen/Schwimmen mit Armbewegung vor (#16961, Galaxy
+# Watch, GPS fast immer < 5 km/h, 9 von 12 Versuchen aus C). Trockenlauf 25.10. (scripts/frontstart/einordnung.py):
+# 34 von 337 aussortierten Pumpfoil-Sessions mit Accel, 17 Fahrer, darunter #12734/#3419 (Front-Start, u439).
+PUMPFOIL_MIN_VERSUCHE = 5
+
+
+def belegte_versuche(session, gps_roh: list, accel_roh: np.ndarray, gps_versuche: list,
+                     versatz_ms: float) -> list[dict] | None:
+    """Durch einen Anlauf belegte Versuche (alle Wege) auf `gps_versuche`; None ohne brauchbare Beschleunigung."""
+    anl = anlaeufe_session(session, gps_roh, accel_roh)
+    if anl is None:
+        return None
+    return startversuche(gps_versuche, [(s0 - versatz_ms / 1000.0, s1 - versatz_ms / 1000.0) for s0, s1 in anl])
+
+
+def pumpfoil_per_versuche(versuche: list[dict] | None) -> tuple[bool, int]:
+    """-> (gilt als Pumpfoil, Zahl der Versuche aus Weg A/B)."""
+    n = sum(1 for e in (versuche or []) if e["weg"] in ("A", "B"))
+    return n >= PUMPFOIL_MIN_VERSUCHE, n

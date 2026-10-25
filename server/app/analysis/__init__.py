@@ -854,6 +854,22 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
                 is_pumpfoil = True
         except Exception:  # noqa: BLE001 - die Zusatzpruefung darf die Analyse nie brechen
             logging.getLogger(__name__).exception("light-Pruefung fuer Session %s", session.id)
+    # Immer noch kein Pumpfoil und kein Lauf? Dann zaehlen die durch einen ANLAUF belegten Startversuche (Jan,
+    # 25.10.2026, Front-Start #12734: ~20 Starts, alle nach 1-3 s im Wasser, vom Modell nie als Foilen erkannt).
+    # Mindestzahl und Gruende in startversuche.py (PUMPFOIL_MIN_VERSUCHE). Nur mit Beschleunigung.
+    if (not is_pumpfoil and n_runs == 0 and detection == "model"
+            and (session.sport_class or "pumpfoil") == "pumpfoil"
+            and session.pumpfoil_override is None):
+        try:
+            from .startversuche import belegte_versuche, pumpfoil_per_versuche
+            _bv_off = float(lo) if manuell_zugeschnitten else 0.0
+            ok_v, n_v = pumpfoil_per_versuche(
+                belegte_versuche(session, gps_roh, accel_roh, gps_fuer_versuche, _bv_off))
+            res["metrics"]["pumpfoil_per_versuche"] = {"ja": bool(ok_v), "versuche": n_v}
+            if ok_v:
+                is_pumpfoil = True
+        except Exception:  # noqa: BLE001 - die Zusatzpruefung darf die Analyse nie brechen
+            logging.getLogger(__name__).exception("Versuchs-Pruefung fuer Session %s", session.id)
     # Admin-Override (z. B. „Aussortieren" aus der Verdachtsliste) schlägt den Detektor —
     # und überlebt so auch jede Reanalyse. NULL = automatisch.
     if session.pumpfoil_override is not None:

@@ -84,3 +84,10 @@ def test_zaehlen_alt_plus_neu_ohne_doppelte():
     assert SV.zaehlen(vs, alte, [(12.0, 120.0), (200.0, 80.0)]) == [120.0, 3.0, 80.0, 14.0, 13.0]
     assert SV.zaehlen([], [], [(5.0, 50.0)]) == [50.0]
     assert SV.zaehlen([], [], []) == []
+
+
+def test_pumpfoil_ohne_lauf_braucht_fuenf_belegte_versuche_ohne_weg_c():
+    v = lambda w: {"t": 0.0, "weg": w, "strecke_m": 0.0}   # noqa: E731
+    assert SV.pumpfoil_per_versuche([v("A")] * 4 + [v("B")]) == (True, 5)
+    assert SV.pumpfoil_per_versuche([v("A")] * 4 + [v("C")] * 6) == (False, 4)
+    assert SV.pumpfoil_per_versuche(None) == (False, 0)
