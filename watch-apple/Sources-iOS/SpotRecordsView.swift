@@ -25,6 +25,11 @@ let SPORT_REC: [String: [String]] = [
     "wingfoil": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
     "kitefoil": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
     "parawing": ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+    "kitesurf": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+    "windsurf": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+    "snowkite": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+    "kite_atb": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+    "kitebuggy": ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
     "sup_paddle": ["paddle_success", "paddle_quote", "paddle_foil_longest"],
     "wakethief": ["wake_longest", "wake_time"],
     "surf_downwind": ["dw_ab", "dw_ab_speed"],
@@ -158,7 +163,7 @@ func hhmm(_ v: Double) -> String {
 }
 // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind mit laengster Fahrt zuerst, ohne Gleit-,
 // Pump-, Laufzahl- und Carve-Rekorde; Motor ohne Gleit-/Pump-Rekorde; sonst wie bisher.
-let wind: Bool = ["wingfoil", "kitefoil", "parawing"].contains(sport ?? "")
+let wind: Bool = ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy"].contains(sport ?? "")
 let motor: Bool = ["efoil", "foildrive", "towed"].contains(sport ?? "")
 let ohne: Set<String> = wind ? ["rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180"]
     : (motor ? ["rec.longestGlide", "rec.sessionPumps"] : [])

@@ -1,5 +1,6 @@
 // Schmaler API-Client. JWT im localStorage.
 import { downscaleImage } from "./downscaleImage";
+import { setzeStandardSport } from "./sportClass";
 import { demoAnonymisieren, demoLive } from "./demoNames";
 
 const TOKEN_KEY = "foil_jwt";
@@ -374,7 +375,7 @@ export interface SessionSummary {
   sport_class?: string | null;          // pumpfoil (Default) | wingfoil | foildrive | …
   // Anzeige-Profil der Sportart (server/app/sportprofil.py, 19.10.2026). Fehlt es, gilt das bisherige
   // Verhalten (= Pumpfoil): nur Laeufe auf der Karte, On-Foil-Zahlen vorn, Pump-Zahlen sichtbar.
-  sport_profil?: { gruppe: string; karte: "laeufe" | "ganz"; hauptzahl: "foil" | "gesamt"; pumpzahlen: boolean } | null;
+  sport_profil?: { gruppe: string; karte: "laeufe" | "ganz"; hauptzahl: "foil" | "gesamt"; pumpzahlen: boolean; foil?: boolean } | null;
   data_quality?: string | null;        // ok | false_data | duplicate | test
   sport_source?: string | null;        // default | auto | owner | admin
   needs_classification?: boolean;      // 2 Melder, noch nicht zugeordnet -> in keiner Auswertung
@@ -608,7 +609,7 @@ export interface CommunitySession {
   runs: number;
   foiling_km: number;
   gesamt_km?: number | null;      // Gesamtstrecke (19.10.2026), Wind zeigt sie zuerst
-  sport_profil?: { gruppe: string; karte: string; hauptzahl: string; pumpzahlen: boolean } | null;
+  sport_profil?: { gruppe: string; karte: string; hauptzahl: string; pumpzahlen: boolean; foil?: boolean } | null;
   max_speed_mps: number | null;
   detection: string | null;
   like_count?: number;
@@ -1876,7 +1877,7 @@ export const api = {
     req<{ id: number; geteilte_links?: number }>("/api/sessions/merge", { method: "POST", body: JSON.stringify({ session_ids: ids }) }),
   unmergeSession: (id: number) =>
     req<{ ids: number[] }>(`/api/sessions/${id}/unmerge`, { method: "POST" }),
-  getSettings: () => req<Record<string, any>>("/api/settings"),
+  getSettings: () => req<Record<string, any>>("/api/settings").then((r) => { setzeStandardSport(r?.default_sport_class); return r; }),
   // --- Sportart-Klassifikation (docs/sport-classification.md) ---
   flagNotPumpfoil: (id: number, note?: string) =>
     req<{ ok: boolean; flags?: number; needs_classification?: boolean }>(
@@ -1915,7 +1916,7 @@ export const api = {
     req<Record<string, any>>("/api/settings", {
       method: "PUT",
       body: JSON.stringify(patch),
-    }),
+    }).then((r) => { setzeStandardSport(r?.default_sport_class); return r; }),
   mlStatus: () =>
     req<{ n_samples: number; n_sessions: number; classes: string[]; features: string[] }>(
       "/api/ml/status"

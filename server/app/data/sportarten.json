@@ -2,7 +2,8 @@
  "_lies_mich": [
   "EINE Liste der Sportarten fuer Server, Web, Apps und Uhren (Jan, 25.10.2026: „eigentlich sollte das eine einzige zentrale liste sein der sportarten fuer alle apps/uhren/web … mit flags welche detections / analysen / regeln gelten“).",
   "Gelesen von server/app/sportarten.py; ausgeliefert unter GET /api/app/sports. Reihenfolge = Anzeige-Reihenfolge, `other` bleibt letzter.",
-  "Felder: id (<= 16 Zeichen, DB-Spalte), gruppe (pump|wind|welle|motor; null = wie pump), foil (gibt es On-Foil-Fahren), uhr (Name auf der Uhr; fehlt = nicht auf der Uhr waehlbar), profil (Abweichungen vom Anzeige-Profil der Gruppe, s. standard_profil/gruppen_profil), grenzen (band_kmh = Bandgrenze der Lauferkennung, lauf_max_kmh = schnellster plausibler Lauf; fehlt = Pumpfoil-Werte), autofahrt_kmh (Spitze, ab der eine schnelle Strecke Autofahrt ist; null = keine Autofahrt-Erkennung; fehlt = Standard), rekorde (Rekord-Satz in sportrekorde.py), namen (Anzeigename je Sprache; fehlt eine Sprache, gilt en)."
+  "Felder: id (<= 16 Zeichen, DB-Spalte), gruppe (pump|wind|welle|motor; null = wie pump), foil (gibt es On-Foil-Fahren), uhr (Name auf der Uhr; fehlt = nicht auf der Uhr waehlbar), profil (Abweichungen vom Anzeige-Profil der Gruppe, s. standard_profil/gruppen_profil), grenzen (band_kmh = Bandgrenze der Lauferkennung, lauf_max_kmh = schnellster plausibler Lauf; fehlt = Pumpfoil-Werte), autofahrt_kmh (Spitze, ab der eine schnelle Strecke Autofahrt ist; null = keine Autofahrt-Erkennung; fehlt = Standard), rekorde (Rekord-Satz in sportrekorde.py), namen (Anzeigename je Sprache; fehlt eine Sprache, gilt en).",
+  "25.10.2026: kitesurf, windsurf, snowkite, kite_atb, kitebuggy dazu (Jan: „wie wingfoil/kitefoil behandelt, aber ganz ohne on-foil erkennung … jibes/tacks/vmg interessant“). Fahrten = Wind-Erkennung ueber die Tempo-Schwelle je Session; foil=false blendet Foil-Begriffe aus. Tempogrenzen sind ANNAHMEN (Rekorde der Disziplinen mit Abstand), noch nicht am Bestand gemessen — es gibt keine Sessions."
  ],
  "standard_profil": {
   "karte": "laeufe",
@@ -152,6 +153,166 @@
     "ja": "パラウィング（ポケットウィング／ローカイト）",
     "zh": "Parawing (pocketwing / lowkite)",
     "id": "Parawing (pocketwing / lowkite)"
+   }
+  },
+  {
+   "id": "kitesurf",
+   "gruppe": "wind",
+   "foil": false,
+   "uhr": "Kitesurf",
+   "grenzen": {
+    "band_kmh": 70.0,
+    "lauf_max_kmh": 90.0
+   },
+   "autofahrt_kmh": 95.0,
+   "rekorde": "wind_ohne_foil",
+   "namen": {
+    "en": "Kitesurf (no foil)",
+    "de": "Kitesurfen (ohne Foil)",
+    "de-AT": "Kitesurfen (ohne Foil)",
+    "gsw": "Kitesurfe (ohni Foil)",
+    "fr": "Kitesurf (sans foil)",
+    "it": "Kitesurf (senza foil)",
+    "es": "Kitesurf (sin foil)",
+    "pt": "Kitesurf (sem foil)",
+    "pt-PT": "Kitesurf (sem foil)",
+    "nl": "Kitesurfen (zonder foil)",
+    "nb": "Kitesurfing (uten foil)",
+    "fi": "Leijalautailu (ilman foilia)",
+    "cs": "Kitesurfing (bez foilu)",
+    "pl": "Kitesurfing (bez foila)",
+    "ru": "Кайтсёрфинг (без фойла)",
+    "ja": "カイトサーフィン（フォイルなし）",
+    "zh": "风筝冲浪（无水翼）",
+    "id": "Kitesurf (tanpa foil)"
+   }
+  },
+  {
+   "id": "windsurf",
+   "gruppe": "wind",
+   "foil": false,
+   "uhr": "Windsurf",
+   "grenzen": {
+    "band_kmh": 75.0,
+    "lauf_max_kmh": 100.0
+   },
+   "autofahrt_kmh": 105.0,
+   "rekorde": "wind_ohne_foil",
+   "namen": {
+    "en": "Windsurf (no foil)",
+    "de": "Windsurfen (ohne Foil)",
+    "de-AT": "Windsurfen (ohne Foil)",
+    "gsw": "Windsurfe (ohni Foil)",
+    "fr": "Planche à voile (sans foil)",
+    "it": "Windsurf (senza foil)",
+    "es": "Windsurf (sin foil)",
+    "pt": "Windsurf (sem foil)",
+    "pt-PT": "Windsurf (sem foil)",
+    "nl": "Windsurfen (zonder foil)",
+    "nb": "Brettseiling (uten foil)",
+    "fi": "Purjelautailu (ilman foilia)",
+    "cs": "Windsurfing (bez foilu)",
+    "pl": "Windsurfing (bez foila)",
+    "ru": "Виндсёрфинг (без фойла)",
+    "ja": "ウインドサーフィン（フォイルなし）",
+    "zh": "帆板（无水翼）",
+    "id": "Windsurf (tanpa foil)"
+   }
+  },
+  {
+   "id": "snowkite",
+   "gruppe": "wind",
+   "foil": false,
+   "uhr": "Snowkite",
+   "grenzen": {
+    "band_kmh": 80.0,
+    "lauf_max_kmh": 110.0
+   },
+   "autofahrt_kmh": 115.0,
+   "rekorde": "wind_ohne_foil",
+   "namen": {
+    "en": "Snowkite",
+    "de": "Snowkiten",
+    "de-AT": "Snowkiten",
+    "gsw": "Snowkite",
+    "fr": "Snowkite",
+    "it": "Snowkite",
+    "es": "Snowkite",
+    "pt": "Snowkite",
+    "pt-PT": "Snowkite",
+    "nl": "Snowkiten",
+    "nb": "Snowkiting",
+    "fi": "Lumileijailu",
+    "cs": "Snowkiting",
+    "pl": "Snowkiting",
+    "ru": "Сноукайтинг",
+    "ja": "スノーカイト",
+    "zh": "雪地风筝",
+    "id": "Snowkite"
+   }
+  },
+  {
+   "id": "kite_atb",
+   "gruppe": "wind",
+   "foil": false,
+   "uhr": "Kite ATB",
+   "grenzen": {
+    "band_kmh": 65.0,
+    "lauf_max_kmh": 85.0
+   },
+   "autofahrt_kmh": 90.0,
+   "rekorde": "wind_ohne_foil",
+   "namen": {
+    "en": "Kite mountainboard (ATB)",
+    "de": "Kite-Mountainboard (ATB)",
+    "de-AT": "Kite-Mountainboard (ATB)",
+    "gsw": "Kite-Mountainboard (ATB)",
+    "fr": "Mountainboard kite (ATB)",
+    "it": "Mountainboard con kite (ATB)",
+    "es": "Mountainboard con cometa (ATB)",
+    "pt": "Mountainboard com kite (ATB)",
+    "pt-PT": "Mountainboard com kite (ATB)",
+    "nl": "Kite-mountainboard (ATB)",
+    "nb": "Kite-mountainboard (ATB)",
+    "fi": "Leija-mountainboard (ATB)",
+    "cs": "Kite mountainboard (ATB)",
+    "pl": "Kite mountainboard (ATB)",
+    "ru": "Кайт-маунтинборд (ATB)",
+    "ja": "カイトマウンテンボード（ATB）",
+    "zh": "风筝山地滑板（ATB）",
+    "id": "Kite mountainboard (ATB)"
+   }
+  },
+  {
+   "id": "kitebuggy",
+   "gruppe": "wind",
+   "foil": false,
+   "uhr": "Kite buggy",
+   "grenzen": {
+    "band_kmh": 85.0,
+    "lauf_max_kmh": 120.0
+   },
+   "autofahrt_kmh": 125.0,
+   "rekorde": "wind_ohne_foil",
+   "namen": {
+    "en": "Kite buggy",
+    "de": "Kitebuggy",
+    "de-AT": "Kitebuggy",
+    "gsw": "Kitebuggy",
+    "fr": "Kite buggy",
+    "it": "Kite buggy",
+    "es": "Kite buggy",
+    "pt": "Kite buggy",
+    "pt-PT": "Kite buggy",
+    "nl": "Kitebuggy",
+    "nb": "Kitebuggy",
+    "fi": "Leijabuggy",
+    "cs": "Kite buggy",
+    "pl": "Kite buggy",
+    "ru": "Кайт-багги",
+    "ja": "カイトバギー",
+    "zh": "风筝越野车",
+    "id": "Kite buggy"
    }
   },
   {

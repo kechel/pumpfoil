@@ -46,7 +46,11 @@ def test_profil_pumpfoil_unveraendert_wind_ganz():
         assert p["gruppe"] == "pump" and {k: p[k] for k in alt} == alt
     for sc in ("wingfoil", "kitefoil", "parawing"):
         assert profil(sc) == {"gruppe": "wind", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False,
-                              "tempo_skala": [10, 40]}
+                              "tempo_skala": [10, 40], "foil": True}
+    # Wind ohne Foil (25.10.2026): gleiches Profil, nur foil=False
+    for sc in ("kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy"):
+        assert profil(sc) == {"gruppe": "wind", "karte": "ganz", "hauptzahl": "gesamt", "pumpzahlen": False,
+                              "tempo_skala": [10, 40], "foil": False}
     for sc in ("foil_scoot", "surf_wave"):
         assert {k: profil(sc)[k] for k in alt} == alt
     # SUP und Wake thief: nur der Kartenschalter weicht ab (20.10.2026)

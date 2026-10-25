@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { sortiereNachSport } from "../lib/sportClass";
 import { passtZu, suchform } from "../lib/suche";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
@@ -274,7 +275,7 @@ export default function Spots() {
           <select value={sport} onChange={(e) => setSport(e.target.value)}
             className="ml-auto min-w-0 max-w-full truncate rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
             <option value="all">{t("all.allSports")}</option>
-            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+            {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
           </select>
         )}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">

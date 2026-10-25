@@ -6,7 +6,7 @@ import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon, StarIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
 import { useT, useNumberFormat, LANGS } from "../i18n";
-import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
+import { DATA_QUALITY, SPORTS, sortiereSports } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
 type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "blocks" | "social" | "system";
@@ -1960,7 +1960,7 @@ function ClassifyTab() {
               onChange={(e) => { const v = e.target.value; if (v) act(r.session_id, () => api.setClassification(r.session_id, { sport: v })); }}
               className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
               <option value="">{t("adm.cls.setSport")}</option>
-              {SPORTS.filter((k) => k !== "pumpfoil").map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+              {sortiereSports(SPORTS.filter((k) => k !== "pumpfoil"), t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
             </select>
             <select value="" disabled={busy === r.session_id}
               onChange={(e) => { const v = e.target.value; if (v) act(r.session_id, () => api.setClassification(r.session_id, { data_quality: v })); }}
@@ -2131,7 +2131,7 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
         <select value={sport} onChange={(e) => setSport(e.target.value)} disabled={busy}
           className="rounded-lg border border-slate-700 bg-white px-2 py-1.5 text-sm text-slate-100 dark:bg-slate-900">
           <option value="">{t("adm.usport.pick")}</option>
-          {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+          {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
         </select>
         <button onClick={setDefault} disabled={busy || !sport}
           className="rounded-lg bg-brand-500 px-2.5 py-1.5 text-sm font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-40">
@@ -2285,7 +2285,7 @@ function Anhang({ a }: { a: { id: number; kind: string; filename: string | null;
 // Die Regel (ohne KI) gegen die aktuelle Einordnung. Die Liste aendert nichts; „Anwenden" ordnet ueber
 // den Auto-Weg ein, damit der Besitzer den Hinweis samt Begruendung sieht und ihn mit einem Klick
 // ueberstimmt (Jan, 06.10.2026). Besitzer-Urteile sind nicht anwendbar.
-const SR_WIND = ["wingfoil", "kitefoil", "parawing"];
+const SR_WIND = ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy"];
 function SportregelTab() {
   const t = useT();
   const [data, setData] = useState<Awaited<ReturnType<typeof api.adminSportregel>> | null>(null);

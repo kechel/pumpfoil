@@ -22,9 +22,12 @@ from __future__ import annotations
 # Seit 25.10.2026 aus der EINEN Liste (data/sportarten.json): Gruppe je Sportart, Standard-Profil, Abweichungen je Gruppe
 # und je Sportart. Die Begruendungen der einzelnen Werte (eFoil/Foildrive „ganz", SUP/Wake thief/Downwind Schalter,
 # Motor-Skala 8-30 km/h) stehen in der Git-Geschichte dieser Datei (bis Commit vor dem 25.10.) und im Stand-Buch.
-from .sportarten import GRUPPE, GRUPPEN_PROFIL as JE_GRUPPE, SPORT_PROFIL as JE_SPORT, STANDARD_PROFIL as STANDARD  # noqa: E402
+from .sportarten import FOIL, GRUPPE, GRUPPEN_PROFIL as JE_GRUPPE, SPORT_PROFIL as JE_SPORT, STANDARD_PROFIL as STANDARD  # noqa: E402
 
 
 def profil(sport_class: str | None) -> dict:
     gruppe = GRUPPE.get(sport_class or "pumpfoil", "pump")
-    return {"gruppe": gruppe, **STANDARD, **JE_GRUPPE.get(gruppe, {}), **JE_SPORT.get(sport_class or "", {})}
+    # `foil` (25.10.2026): False bei Sportarten ohne On-Foil-Fahren (Kitesurfen, Windsurfen, Snowkite …) — die Clients
+    # sagen dann „Fahrt" statt „on foil" und zeigen keinen Foil-Anteil.
+    return {"gruppe": gruppe, **STANDARD, **JE_GRUPPE.get(gruppe, {}), **JE_SPORT.get(sport_class or "", {}),
+            "foil": FOIL.get(sport_class or "pumpfoil", True)}

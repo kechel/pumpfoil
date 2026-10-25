@@ -7,7 +7,7 @@ import {
   CameraIcon, ShareIcon, LinkIcon, CompareIcon, SendIcon, WaveIcon, ShieldIcon,
 } from "../components/Icons";
 import { useT, useI18n } from "../i18n";
-import { SPORTS } from "../lib/sportClass";
+import { SPORTS, sortiereSports } from "../lib/sportClass";
 import { LanguageFlags } from "../components/LanguageSelect";
 import { useSeo } from "../lib/seo";
 import { InstallPwa } from "../components/InstallPwa";
@@ -99,7 +99,7 @@ export default function Landing() {
   );
   // Auswaehlbare Sportarten ausser „andere" — die Namen kommen aus cls.sport.* (schon in allen
   // Sprachen), dieselbe Quelle wie die Auswahl in der Session.
-  const sportarten = SPORTS.filter((k) => k !== "other");
+  const sportarten = sortiereSports(SPORTS.filter((k) => k !== "other"), t);
   const commPunkte = [
     { icon: StarIcon, k: "comm1" }, { icon: ListIcon, k: "comm2" },
     { icon: SpotsIcon, k: "comm3" }, { icon: ChatBubbleIcon, k: "comm4" },

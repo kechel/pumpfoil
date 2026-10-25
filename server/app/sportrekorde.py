@@ -80,7 +80,10 @@ DOWNWIND = (
                                                       if (f.get("ab_m") or 0) >= MIN_DOWNWIND_M], "ab_kmh")),
 )
 # Welche Sportart welchen Satz hat, steht seit 25.10.2026 in der EINEN Liste (data/sportarten.json, Feld `rekorde`).
-SAETZE: dict[str, tuple[Metrik, ...]] = {"wind": WIND, "sup": SUP, "wake": WAKE, "downwind": DOWNWIND}
+# Wind ohne Foil (Kitesurfen, Windsurfen, Snowkite … — 25.10.2026): ohne die Quoten und Zahlen „on foil durchgefahren".
+WIND_OHNE_FOIL = tuple(m for m in WIND if m.key not in ("jibe_quote", "tack_quote", "jibes_foil"))
+SAETZE: dict[str, tuple[Metrik, ...]] = {"wind": WIND, "wind_ohne_foil": WIND_OHNE_FOIL, "sup": SUP, "wake": WAKE,
+                                         "downwind": DOWNWIND}
 from .sportarten import REKORDE as _REKORDE  # noqa: E402
 JE_SPORT: dict[str, tuple[Metrik, ...]] = {sp: SAETZE[satz] for sp, satz in _REKORDE.items()}
 

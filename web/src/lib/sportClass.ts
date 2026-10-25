@@ -8,7 +8,7 @@
 // Ozeanwelle am Strand. `wake` bleibt nur als Label für Altbestände (nicht mehr auswählbar).
 // `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan) — ein Wert,
 // alle drei Namen im Label.
-export const SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
+export const SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "surf_downwind",
                        "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
                        "foildrive", "foil_scoot", "other"] as const;
 /** Datenqualität — Müll/Dopplung, zählt nirgends. */
@@ -34,5 +34,24 @@ export function classLabelKey(s: { sport_class?: string | null; data_quality?: s
 
 // Sportart-Gruppen wie server/app/sportprofil.py GRUPPE (19.10.2026) — fuer Anzeigen, die vom
 // Server kein Profil mitbekommen (z. B. Rekord-Kacheln einer gewaehlten Sportart).
-export const WIND_SPORTS = ["wingfoil", "kitefoil", "parawing"];
+export const WIND_SPORTS = ["wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy"];
 export const MOTOR_SPORTS = ["efoil", "foildrive", "towed"];
+
+// Sortierung aller Sportart-Listen (Jan, 25.10.2026: „die sportartenliste bitte immer alphabetisch sortieren, nur
+// pumpfoil (oder das eigene default) ganz oben"): eigene Standard-Sportart zuerst, „other" als Sammelposten zuletzt,
+// dazwischen nach dem ANGEZEIGTEN Namen in der gewaehlten Sprache. Die Standard-Sportart merkt sich der Browser beim
+// Laden/Speichern der Einstellungen (api.getSettings/saveSettings) — nur eine Bequemlichkeit, Pumpfoil als Rueckfall.
+let standardSport = (() => { try { return localStorage.getItem("foil_std_sport") || "pumpfoil"; } catch { return "pumpfoil"; } })();
+export function setzeStandardSport(s?: string | null) {
+  if (!s) return;
+  standardSport = s;
+  try { localStorage.setItem("foil_std_sport", s); } catch { /* privat: nur fuer diese Sitzung */ }
+}
+export function sortiereSports<T extends string>(ids: readonly T[], t: (k: string) => string): T[] {
+  const rang = (id: string) => (id === standardSport ? 0 : id === "other" ? 2 : 1);
+  return [...ids].sort((a, b) => rang(a) - rang(b) || t(`cls.sport.${a}`).localeCompare(t(`cls.sport.${b}`)));
+}
+export function sortiereNachSport<T>(liste: readonly T[], sp: (x: T) => string, t: (k: string) => string): T[] {
+  const ord = sortiereSports(liste.map(sp), t);
+  return [...liste].sort((a, b) => ord.indexOf(sp(a)) - ord.indexOf(sp(b)));
+}

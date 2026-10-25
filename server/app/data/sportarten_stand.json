@@ -1089,6 +1089,86 @@
       }
     },
     {
+      "id": "kitesurf",
+      "en": "Kitesurf (no foil)",
+      "gruppe": "wind",
+      "merkmale": {
+        "erkennung": {
+          "status": "teilweise",
+          "en": "Rides from a speed threshold per session; no on-foil detection.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "Wind-Erkennung (windlauf.py) ohne Foil-Begriffe; Tempogrenzen in data/sportarten.json sind Annahmen, ungemessen."
+        }
+      }
+    },
+    {
+      "id": "windsurf",
+      "en": "Windsurf (no foil)",
+      "gruppe": "wind",
+      "merkmale": {
+        "erkennung": {
+          "status": "teilweise",
+          "en": "Rides from a speed threshold per session; no on-foil detection.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "Wind-Erkennung (windlauf.py) ohne Foil-Begriffe; Tempogrenzen in data/sportarten.json sind Annahmen, ungemessen."
+        }
+      }
+    },
+    {
+      "id": "snowkite",
+      "en": "Snowkite",
+      "gruppe": "wind",
+      "merkmale": {
+        "erkennung": {
+          "status": "teilweise",
+          "en": "Rides from a speed threshold per session; no on-foil detection.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "Wind-Erkennung (windlauf.py) ohne Foil-Begriffe; Tempogrenzen in data/sportarten.json sind Annahmen, ungemessen."
+        }
+      }
+    },
+    {
+      "id": "kite_atb",
+      "en": "Kite mountainboard (ATB)",
+      "gruppe": "wind",
+      "merkmale": {
+        "erkennung": {
+          "status": "teilweise",
+          "en": "Rides from a speed threshold per session; no on-foil detection.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "Wind-Erkennung (windlauf.py) ohne Foil-Begriffe; Tempogrenzen in data/sportarten.json sind Annahmen, ungemessen."
+        }
+      }
+    },
+    {
+      "id": "kitebuggy",
+      "en": "Kite buggy",
+      "gruppe": "wind",
+      "merkmale": {
+        "erkennung": {
+          "status": "teilweise",
+          "en": "Rides from a speed threshold per session; no on-foil detection.",
+          "seit": "2026-10-25",
+          "wo": [
+            "server"
+          ],
+          "notiz": "Wind-Erkennung (windlauf.py) ohne Foil-Begriffe; Tempogrenzen in data/sportarten.json sind Annahmen, ungemessen."
+        }
+      }
+    },
+    {
       "id": "surf_wave",
       "en": "Ocean wave",
       "gruppe": "welle",
@@ -1415,6 +1495,22 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-10-25",
+      "sport": [
+        "kitesurf",
+        "windsurf",
+        "snowkite",
+        "kite_atb",
+        "kitebuggy"
+      ],
+      "merkmal": "erkennung",
+      "was": "Neu: Kitesurfen, Windsurfen, Snowkiten, Kite-Mountainboard (ATB), Kitebuggy — wie Wing/Kite (Fahrten, Halsen/Wenden, VMG, Wind, Rekorde), aber ohne On-Foil-Erkennung.",
+      "wo": [
+        "server",
+        "web"
+      ]
+    },
     {
       "datum": "2026-10-25",
       "sport": [

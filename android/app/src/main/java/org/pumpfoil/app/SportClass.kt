@@ -11,7 +11,7 @@ package org.pumpfoil.app
 // wakethief = Welle eines FREMDEN Boots mitnehmen · towed = am Seil hinterm Boot · surf_wave =
 // Ozeanwelle am Strand. `wake` bleibt nur als Label fuer Altbestaende (nicht mehr auswaehlbar).
 // `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan).
-val SPORTS = listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
+val SPORTS = listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy", "surf_downwind",
                     "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
                     "foildrive", "foil_scoot", "other")
 

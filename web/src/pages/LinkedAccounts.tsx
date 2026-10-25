@@ -5,7 +5,7 @@ import { Card, Button } from "../components/ui";
 import { ChevronIcon, CheckIcon, LinkIcon } from "../components/Icons";
 import { PlatformSubline } from "../components/SupportedPlatforms";
 import { useI18n } from "../i18n";
-import { SPORTS } from "../lib/sportClass";
+import { SPORTS, sortiereSports } from "../lib/sportClass";
 
 /**
  * „0 importiert, 1 uebersprungen" ist eine Sackgasse — genau so kam es als Rueckmeldung
@@ -360,7 +360,7 @@ function SportAuswahl({ provider, aktualisieren = 0 }:
                   <select value={zuordnung[sp.sport_key] ?? ""} onChange={(e) => zuordnen(sp.sport_key, e.target.value)}
                     className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100">
                     <option value="">{t("settings.sports.countsDefault")}</option>
-                    {SPORTS.filter((k) => k !== "other").map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+                    {sortiereSports(SPORTS.filter((k) => k !== "other"), t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
                   </select>
                 </label>
               )}

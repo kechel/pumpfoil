@@ -47,7 +47,8 @@ def test_meine_sportarten_aus_dem_profil(client):
     st = client.get("/api/settings", headers=auth).json()
     assert st["my_sports"] == ["wingfoil", "pumpfoil", "kitefoil"]
     ids = [x["id"] for x in client.get("/api/devices/config?p=wear&sp=1", headers=dev).json()["sports"]]
-    assert ids == ["pumpfoil", "wingfoil", "kitefoil"]
+    # Standard zuerst, Rest alphabetisch nach Namen (25.10.2026)
+    assert ids == ["pumpfoil", "kitefoil", "wingfoil"]
 
 
 def test_suunto_sportmodus_zuordnung(client):

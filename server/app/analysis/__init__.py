@@ -26,6 +26,8 @@ GPS_ONLY_SPORTS = {
     "surfing", "windsurfing", "kitesurfing", "wakeboarding", "wakesurfing",
     "sailing", "stand_up_paddleboarding", "paddling", "rowing", "kayaking",
     "open_water", "water_skiing", "generic", "pumpfoil", "foiling",
+    # Strava schreibt die Kurzformen (api/strava.py), bis 25.10.2026 fielen solche Importe ohne Accel hier durch.
+    "kitesurf", "windsurf",
 }
 
 
@@ -79,7 +81,13 @@ def _accel_spans_session(accel, scale) -> bool:
     return float(np.median(b[-3:])) / mid > 0.4
 
 
-def _gps_only_ok(sport) -> bool:
+def _gps_only_ok(sport, sport_class: str | None = None) -> bool:
+    """GPS-only-Erkennung erlaubt? Ja bei einem Wassersport in der Datei — und bei Wind-Sportarten OHNE Foil
+    (Kitesurfen, Snowkite, Kitebuggy …, 25.10.2026): dort sind die Fahrten Bewegung ueber einer Tempo-Schwelle, und die
+    Datei nennt oft etwas Unpassendes (Snowkite als „snowboarding", Buggy als „generic")."""
+    from ..sportarten import FOIL, GRUPPE
+    if sport_class and GRUPPE.get(sport_class) == "wind" and FOIL.get(sport_class) is False:
+        return True
     return (sport or "").lower() in GPS_ONLY_SPORTS
 
 
@@ -704,7 +712,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         # Präziser Start: nur starke Aufsprung-Impulse (Jump) zum Snappen verwenden.
         impulses = detect_jumps(accel, accel_hz, session.accel_scale)
         detection = "model"
-    elif am_brett or _gps_only_ok(session.sport) or _mensch_sagt_pumpfoil(session):
+    elif am_brett or _gps_only_ok(session.sport, session.sport_class) or _mensch_sagt_pumpfoil(session):
         # Wassersport-FIT ohne Beschleunigung (z. B. Surf-Modus): nur grobe GPS-
         # Heuristik (Speed-Band + Glätte). Über-/Untererkennung möglich -> Warnung.
         # Zweiter Weg hierher: ein Mensch hat die Session als Pumpfoil eingestuft, dann zaehlt

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, Board, Foil, Stab } from "../lib/api";
-import { SPORTS } from "../lib/sportClass";
+import { SPORTS, sortiereSports } from "../lib/sportClass";
 import { Card } from "./ui";
 import { CloseIcon } from "./Icons";
 import { useT } from "../i18n";
@@ -41,7 +41,7 @@ export function EquipmentJeSport({ stabs, boards, myStabs, myMasts }: {
     speichern({ ...je, [sp]: e });
   }
   const sportarten = Object.keys(je);
-  const frei = SPORTS.filter((sp) => sp !== "other" && !sportarten.includes(sp));
+  const frei = sortiereSports(SPORTS.filter((sp) => sp !== "other" && !sportarten.includes(sp)), t);
   const sel = "min-w-0 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100";
   const auswahl = (sp: string, f: Feld, opts: [number, string][]) => (
     <label className="block min-w-0">

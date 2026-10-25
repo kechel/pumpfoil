@@ -65,6 +65,12 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
 - **22.10.** #18834: „heute war nur Salsa, mit natürlich langsamerem Üben und nicht soo schneller Musik dann zum Üben“ →
   Salsa auch deutlich unter Party-Tempo; ganze Session = Salsa (Marker bestätigen). Auftrag: Regeln für Salsa finden, zunächst
   NUR am Server, als eigene Spalte mit Versionsnummer in der Tabelle; Uhr egal.
+- **25.10.** „die dance app sollte bei der erkennung eine 'zu x % sicher ist es tanz y' vornehmen, und dann die 3 besten
+  bei der auswahl entsprechend sortiert zuerst anzeigen, danach dann auch alphabetisch den rest, gerne auch in der
+  tanztabelle diesen wert aus dem server-algo mit anzeigen inkl. der 2. und 3., das gibt mir eine gute uebersicht wie gut
+  das model ist und welche taenze aehnlich aussehen, und auf der uhr eine einfachere auswahl falls 1. falsch ist aber
+  2 oder 3 stimmen“ → (1) Erkennung liefert Top 3 mit Sicherheit in %; (2) Tanztabelle: Spalten 1./2./3. mit %;
+  (3) Auswahl (Uhr und Server-Oberflaeche): Top 3 nach Sicherheit zuerst, Rest alphabetisch. Noch nicht gebaut.
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
 

@@ -123,8 +123,8 @@ function schrittMerken(i: number | null) {
   } catch { /* egal */ }
 }
 
-const SPORTARTEN = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "efoil",
-                    "foildrive", "other"];
+const SPORTARTEN = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb",
+                    "kitebuggy", "surf_downwind", "efoil", "foildrive", "other"];
 
 export default function Onboarding() {
   const { t } = useI18n();
@@ -466,7 +466,10 @@ function SportSchritt({ sport, onSport }: { sport: string; onSport: (v: string) 
     <Card className="p-5">
       <h3 className="mb-3 font-semibold">{t("onb.sport.title")}</h3>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {SPORTARTEN.map((s) => {
+        {/* Alphabetisch nach Namen, Pumpfoil zuerst, „other" zuletzt (25.10.2026) — bewusst NICHT nach der gerade
+            gewaehlten Sportart sortiert, sonst springen die Knoepfe beim Antippen. */}
+        {[...SPORTARTEN].sort((a, b) => ((a === "pumpfoil" ? 0 : a === "other" ? 2 : 1) - (b === "pumpfoil" ? 0 : b === "other" ? 2 : 1))
+            || t(`cls.sport.${a}`).localeCompare(t(`cls.sport.${b}`))).map((s) => {
           const aktiv = sport === s;
           return (
             <button key={s} type="button" onClick={() => onSport(s)} aria-pressed={aktiv}

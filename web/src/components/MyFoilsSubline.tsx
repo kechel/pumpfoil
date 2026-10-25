@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, Foil } from "../lib/api";
 import { foilLabel } from "../lib/foilLabel";
-import { SPORTS } from "../lib/sportClass";
+import { SPORTS, sortiereSports } from "../lib/sportClass";
 import { useT } from "../i18n";
 
 // Dezente Subzeile für den „Meine Foils"-Menüpunkt: die vom Nutzer gewählten Foils
@@ -47,7 +47,7 @@ export function MySportsSubline({ className = "" }: { className?: string }) {
         const def = (s.default_sport_class as string) || "pumpfoil";
         const alle = SPORTS as readonly string[];
         const mine = ((s.my_sports as string[]) ?? []).filter((k) => k !== def && alle.includes(k));
-        const sortiert = alle.filter((k) => mine.includes(k));
+        const sortiert = sortiereSports(alle.filter((k) => mine.includes(k)), t);
         setRows([{ key: def, def: true }, ...sortiert.map((k) => ({ key: k, def: false }))]);
       })
       .catch(() => setRows([]));

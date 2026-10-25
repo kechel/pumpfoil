@@ -17,7 +17,7 @@ import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useT } from "../i18n";
-import { MOTOR_SPORTS, WIND_SPORTS } from "../lib/sportClass";
+import { MOTOR_SPORTS, WIND_SPORTS, sortiereNachSport } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
 
 function InstallButton() {
@@ -178,6 +178,11 @@ export const SPORT_REC: Record<string, string[]> = {
   wingfoil: ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
   kitefoil: ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
   parawing: ["jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest"],
+  kitesurf: ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+  windsurf: ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+  snowkite: ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+  kite_atb: ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
+  kitebuggy: ["vmg_best", "upwind_m", "ride_longest", "ride_farthest"],
   sup_paddle: ["paddle_success", "paddle_quote", "paddle_foil_longest"],
   wakethief: ["wake_longest", "wake_time"],
   surf_downwind: ["dw_ab", "dw_ab_speed"],
@@ -619,7 +624,7 @@ function CommunitySection() {
         {sports.length > 1 && (
           <select value={sport} onChange={(e) => setSport(e.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
-            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+            {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
           </select>
         )}
         {/* Foil-Band. Reihenfolge kommt vom Server (Nützlichstes oben). Die Sessionzahl steht

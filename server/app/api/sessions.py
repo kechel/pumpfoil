@@ -125,7 +125,9 @@ KEIN_FOILEN = {
 # unsere Flotte (7,7 Laeufe, laengster 57 s gegen eigene 8,1 / 93 s). Wer dort nachfragt,
 # nervt die halbe Community wegen nichts.
 UNKLAR_WASSER = {"stand_up_paddleboarding", "kitesurfing", "sailing", "windsurfing",
-                 "wakeboarding", "water_skiing"}
+                 "wakeboarding", "water_skiing",
+                 # Strava-Kurzformen (api/strava.py) — bis 25.10.2026 bekamen sie nie „bitte zuordnen"
+                 "kitesurf", "windsurf"}
 
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
@@ -351,7 +353,8 @@ def _wind_vorschlag(s: models.Session) -> dict | None:
         weg = einst.get("wind_hinweis_weg") or []
         if s.id in weg or len(weg) >= WIND_HINWEIS_BREMSE:
             return None
-        wind = ["wingfoil", "kitefoil", "parawing"]
+        from ..sportarten import GRUPPE as _GR
+        wind = [sp for sp, g in _GR.items() if g == "wind"]   # aus der zentralen Liste (25.10.2026)
         vorne = [x for x in [einst.get("default_sport_class")] + list(einst.get("my_sports") or []) if x in wind]
         reihe = list(dict.fromkeys(vorne + wind))
         return {"sportarten": reihe, "regel": m}

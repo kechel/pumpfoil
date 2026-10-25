@@ -17,7 +17,7 @@ import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilIcon, FoilOffIcon } from "../components/Icons";
-import { DATA_QUALITY, SPORTS, classLabelKey, isClassified } from "../lib/sportClass";
+import { DATA_QUALITY, SPORTS, classLabelKey, isClassified, sortiereSports } from "../lib/sportClass";
 import { invalidateSessionListCache, ProcessingNote, updateCachedSession } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { SessionUploadCard } from "../components/UploadProgressCard";
@@ -547,6 +547,8 @@ export default function SessionDetail() {
   // Pumpfoil: alles wie bisher. Wind: ganze Fahrt grau unter den Laeufen (umschaltbar), Gesamt-
   // strecke + Dauer vorn, keine Pump-Zahlen.
   const profil = session?.sport_profil;
+  // Sportart ohne On-Foil-Fahren (Kitesurfen, Windsurfen, Snowkite … — 25.10.2026): keine „on foil"-Begriffe, kein Foil-Anteil.
+  const ohneFoil = profil?.foil === false;
   const karteGanzMoeglich = profil?.karte === "ganz";
   const [ganzeFahrt, setGanzeFahrt] = useState(true);
   const zeigeGanz = karteGanzMoeglich && ganzeFahrt;
@@ -2112,7 +2114,7 @@ export default function SessionDetail() {
         {a?.sport_zahlen?.fahrten && <Stat label={t("sd.rides")} value={String(a.sport_zahlen.fahrten.length)} />}
         {a?.sport_zahlen?.fahrzeit_s != null && <Stat label={t("sd.movingTime")} value={fmtMMSS(a.sport_zahlen.fahrzeit_s)} sub="min:s" />}
         {a?.sport_zahlen?.tempo_kmh != null && <Stat label={t("sd.avgSpeedRide")} value={a.sport_zahlen.tempo_kmh.toFixed(1)} sub="km/h" />}
-        {a?.sport_zahlen?.foil_anteil != null && <Stat label={t("sd.foilShare")} value={String(Math.round(a.sport_zahlen.foil_anteil * 100))} sub="%" />}
+        {a?.sport_zahlen?.foil_anteil != null && !ohneFoil && <Stat label={t("sd.foilShare")} value={String(Math.round(a.sport_zahlen.foil_anteil * 100))} sub="%" />}
         {/* Wave (19.10.2026): jeder Lauf ist eine Welle; Rauspaddeln = uebrige Fahrzeit in Bewegung. */}
         {a?.sport_zahlen?.wellen && <Stat label={t("sd.waves")} value={String(a.sport_zahlen.wellen.anzahl)} />}
         {a?.sport_zahlen?.wellen && <Stat label={t("sd.longestWave")} value={fmtMMSS(a.sport_zahlen.wellen.laengste_s)} sub={`min:s · ${a.sport_zahlen.wellen.laengste_m} m`} />}
@@ -2201,11 +2203,13 @@ export default function SessionDetail() {
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-200">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#a855f7]" />
-                  <b>{t("sd.tacks")}</b> {manoever.zahlen.wende.durch} / {manoever.zahlen.wende.durch + manoever.zahlen.wende.ab} {t("sd.onFoil")}
+                  <b>{t("sd.tacks")}</b> {ohneFoil ? manoever.zahlen.wende.durch + manoever.zahlen.wende.ab
+                    : <>{manoever.zahlen.wende.durch} / {manoever.zahlen.wende.durch + manoever.zahlen.wende.ab} {t("sd.onFoil")}</>}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#f97316]" />
-                  <b>{t("sd.jibes")}</b> {manoever.zahlen.halse.durch} / {manoever.zahlen.halse.durch + manoever.zahlen.halse.ab} {t("sd.onFoil")}
+                  <b>{t("sd.jibes")}</b> {ohneFoil ? manoever.zahlen.halse.durch + manoever.zahlen.halse.ab
+                    : <>{manoever.zahlen.halse.durch} / {manoever.zahlen.halse.durch + manoever.zahlen.halse.ab} {t("sd.onFoil")}</>}
                 </span>
               </div>
             </>
@@ -2272,7 +2276,7 @@ export default function SessionDetail() {
           {karteGanzMoeglich && (
             <>
               <span className="ml-2 text-xs text-slate-400">|</span>
-              <ModeButton active={!ganzeFahrt} onClick={() => setGanzeFahrt(false)}>{t("sd.mapOnFoil")}</ModeButton>
+              <ModeButton active={!ganzeFahrt} onClick={() => setGanzeFahrt(false)}>{t(ohneFoil ? "sd.rides" : "sd.mapOnFoil")}</ModeButton>
               <ModeButton active={ganzeFahrt} onClick={() => setGanzeFahrt(true)}>{t("sd.mapWhole")}</ModeButton>
             </>
           )}
@@ -2785,16 +2789,16 @@ export default function SessionDetail() {
           <SortTabelle titel={`${t(classLabelKey(session))} · ${t("sd.rides")}`} zeilen={fahrten} spalten={[
             { key: "dauer", rechts: true, label: t("sd.colDuration"), wert: (f) => f.dauer_s, zelle: (f) => fmtMMSS(f.dauer_s) },
             { key: "strecke", rechts: true, label: t("sd.colDistance"), wert: (f) => f.strecke_m, zelle: (f) => `${(f.strecke_m / 1000).toFixed(1)} km` },
-            { key: "foil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> km</>, wert: (f) => f.foil_m, zelle: (f) => `${(f.foil_m / 1000).toFixed(1)} km` },
+            ...(ohneFoil ? [] : [{ key: "foil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> km</>, wert: (f: F) => f.foil_m, zelle: (f: F) => `${(f.foil_m / 1000).toFixed(1)} km` }]),
             { key: "laeufe", rechts: true, label: t("stat.runs"), wert: (f) => f.laeufe, zelle: (f) => f.laeufe },
             ...(ab ? [
               { key: "ab", rechts: true, label: "A→B", wert: (f: typeof fahrten[number]) => f.ab_m, zelle: (f: typeof fahrten[number]) => (f.ab_m != null ? `${(f.ab_m / 1000).toFixed(1)} km` : "–") },
               { key: "abv", rechts: true, label: "A→B km/h", wert: (f: typeof fahrten[number]) => f.ab_kmh, zelle: (f: typeof fahrten[number]) => (f.ab_kmh != null ? f.ab_kmh.toFixed(1) : "–") },
-              { key: "anteil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> %</>, wert: (f: typeof fahrten[number]) => f.foil_anteil, zelle: (f: typeof fahrten[number]) => (f.foil_anteil != null ? `${Math.round(f.foil_anteil * 100)} %` : "–") },
+              ...(ohneFoil ? [] : [{ key: "anteil", rechts: true, label: <><FoilIcon className="inline h-4 w-4" aria-label={t("sd.foilShare")} /> %</>, wert: (f: typeof fahrten[number]) => f.foil_anteil, zelle: (f: typeof fahrten[number]) => (f.foil_anteil != null ? `${Math.round(f.foil_anteil * 100)} %` : "–") }]),
             ] : []),
             ...(mitWind ? [
-              { key: "wenden", rechts: true, label: t("sd.tacks"), wert: (f: F) => mf(f)?.wende_durch, zelle: (f: F) => { const m = mf(f); return m ? quote(m.wende_durch, m.wende) : "–"; } },
-              { key: "halsen", rechts: true, label: t("sd.jibes"), wert: (f: F) => mf(f)?.halse_durch, zelle: (f: F) => { const m = mf(f); return m ? quote(m.halse_durch, m.halse) : "–"; } },
+              { key: "wenden", rechts: true, label: t("sd.tacks"), wert: (f: F) => (ohneFoil ? mf(f)?.wende : mf(f)?.wende_durch), zelle: (f: F) => { const m = mf(f); return m ? (ohneFoil ? m.wende : quote(m.wende_durch, m.wende)) : "–"; } },
+              { key: "halsen", rechts: true, label: t("sd.jibes"), wert: (f: F) => (ohneFoil ? mf(f)?.halse : mf(f)?.halse_durch), zelle: (f: F) => { const m = mf(f); return m ? (ohneFoil ? m.halse : quote(m.halse_durch, m.halse)) : "–"; } },
               { key: "hoehe", rechts: true, label: t("sd.colHeight"), wert: (f: F) => mf(f)?.hoehe_m, zelle: (f: F) => { const v = mf(f)?.hoehe_m; return v != null ? (v / 1000).toFixed(1) : "–"; } },
               { key: "vmg", rechts: true, label: `${t("sd.colVmg")} km/h`, wert: (f: F) => mf(f)?.vmg_max_kmh, zelle: (f: F) => { const v = mf(f)?.vmg_max_kmh; return v != null ? v.toFixed(1) : "–"; } },
               { key: "wind", rechts: true, label: `${t("sd.wind")} km/h`, wert: (f: F) => mf(f)?.wind_kmh, zelle: (f: F) => { const v = mf(f)?.wind_kmh; return v != null ? v.toFixed(0) : "–"; } },
@@ -3849,7 +3853,7 @@ function ClassificationPanel({ session, owned, onChange }: {
         onChange={(e) => e.target.value && setClass({ sport: e.target.value })}
         className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
         {needs && <option value="">{t("cls.choose")}</option>}
-        {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+        {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
       </select>
       <select value={session.data_quality ?? "ok"} disabled={busy}
         onChange={(e) => setClass({ data_quality: e.target.value })}
@@ -4026,7 +4030,7 @@ function ClassPickers({ sessionId, compact = false }: { sessionId: number; compa
     <div className={`flex flex-wrap items-center gap-2 ${compact ? "" : "mb-4"}`}>
       <select value={needs ? "" : sport} disabled={busy} onChange={(e) => e.target.value && save({ sport: e.target.value })} className={cls}>
         {needs && <option value="">{t("cls.choose")}</option>}
-        {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+        {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
       </select>
       <select value={dq ?? "ok"} disabled={busy} onChange={(e) => save({ data_quality: e.target.value })} className={cls}>
         {DATA_QUALITY.map((k) => <option key={k} value={k}>{t(`cls.dq.${k}`)}</option>)}

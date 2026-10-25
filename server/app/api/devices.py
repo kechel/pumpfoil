@@ -315,14 +315,17 @@ def sportarten_fuer_uhr(db: Session, user_id: int, settings: dict) -> list[dict]
     eigene = [x for x in (settings.get("my_sports") or []) if isinstance(x, str)]
     if eigene:
         # Im Profil gewaehlt („Meine Sportarten"): Standard zuerst, dann die gewaehlten.
-        ids = [std] + [x for x in eigene if x != std and x in namen]
+        # Alphabetisch nach Namen, Standard zuerst (Jan, 25.10.2026: „sportartenliste immer alphabetisch").
+        ids = [std] + sorted((x for x in eigene if x != std and x in namen), key=lambda x: namen[x].lower())
         return [{"id": i, "name": namen.get(i, i)} for i in ids[:6] if i in SPORTS]
     seit = datetime.now(timezone.utc) - timedelta(days=365)
     rows = (db.query(models.Session.sport_class, _f.count())
             .filter(models.Session.user_id == user_id, models.Session.deleted.isnot(True),
                     models.Session.started_at >= seit)
             .group_by(models.Session.sport_class).order_by(_f.count().desc()).all())
-    ids = [std] + [sc for sc, _n in rows if sc and sc != std and sc in namen]
+    # die 5 haeufigsten des letzten Jahres (Auswahl nach Haeufigkeit), angezeigt alphabetisch hinter dem Standard
+    haeufig = [sc for sc, _n in rows if sc and sc != std and sc in namen and sc in SPORTS][:5]
+    ids = [std] + sorted(haeufig, key=lambda x: namen[x].lower())
     return [{"id": i, "name": namen.get(i, i)} for i in ids[:6] if i in SPORTS]
 
 

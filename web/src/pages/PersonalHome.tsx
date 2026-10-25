@@ -1,4 +1,5 @@
 import { TechnikUebersicht } from "../components/TechnikTabelle";
+import { sortiereNachSport } from "../lib/sportClass";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
@@ -546,7 +547,7 @@ export default function PersonalHome() {
         {sports.length > 1 && (
           <select value={sport} onChange={(e) => setSport(e.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
-            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+            {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
           </select>
         )}
       </div>

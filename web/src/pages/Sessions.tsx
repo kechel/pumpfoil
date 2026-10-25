@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { sortiereNachSport } from "../lib/sportClass";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
 import { foilLabel } from "../lib/foilLabel";
@@ -412,7 +413,7 @@ export default function Sessions() {
             {sport !== "all" && !sports.some((x) => x.sport === sport) && (
               <option value={sport}>{t(`cls.sport.${sport}`)}</option>
             )}
-            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+            {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
           </select>
         )}
         {spot && <SpotChatToggle spot={spotName} t={t} />}

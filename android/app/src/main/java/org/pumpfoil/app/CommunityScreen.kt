@@ -134,7 +134,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var lbMetric by remember { mutableStateOf("sessions") }
     // Ausgeblendete Kennzahl gewaehlt (z. B. Pumps, dann Wingfoil)? -> zurueck auf Sessions.
     LaunchedEffect(sportart) {
-        val wind = sportart in setOf("wingfoil", "kitefoil", "parawing")
+        val wind = sportart in setOf("wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy")
         val motor = sportart in setOf("efoil", "foildrive", "towed")
         if ((wind && lbMetric in setOf("pumps", "runs")) || (motor && lbMetric == "pumps")) lbMetric = "sessions"
     }
@@ -338,7 +338,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                         "pumps" to "leader.mostPumps", "spots" to "leader.mostSpots",
                                     ).filter { (id, _) ->
                                         // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
-                                        !((sportart in setOf("wingfoil", "kitefoil", "parawing") && (id == "pumps" || id == "runs")) ||
+                                        !((sportart in setOf("wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy") && (id == "pumps" || id == "runs")) ||
                                           (sportart in setOf("efoil", "foildrive", "towed") && id == "pumps"))
                                     }.forEach { (id, key) ->
                                         FilterChip(selected = lbMetric == id, onClick = { lbMetric = id }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
@@ -536,7 +536,7 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
                sport: String? = null, nurSport: Boolean = false) {
     // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind ohne Gleit-/Pump-/Laufzahl-/Carve-
     // Rekorde und mit der laengsten Fahrt zuerst; Motor ohne Gleit-/Pump-Rekorde. Sonst wie bisher.
-    val wind = sport in setOf("wingfoil", "kitefoil", "parawing")
+    val wind = sport in setOf("wingfoil", "kitefoil", "parawing", "kitesurf", "windsurf", "snowkite", "kite_atb", "kitebuggy")
     val motor = sport in setOf("efoil", "foildrive", "towed")
     val ohne = when {
         wind -> setOf("rec.longestGlide", "rec.sessionPumps", "rec.mostRuns", "rec.carves180")
@@ -631,7 +631,9 @@ private fun fmtDurC(s: Double): String = fmtLaufDauer(s)
 
 private val SPORT_REC: Map<String, List<String>> = run {
     val wind = listOf("jibe_quote", "tack_quote", "vmg_best", "upwind_m", "jibes_foil", "ride_longest", "ride_farthest")
+    val windOhneFoil = listOf("vmg_best", "upwind_m", "ride_longest", "ride_farthest")   // Kitesurfen, Windsurfen … (25.10.2026)
     mapOf("wingfoil" to wind, "kitefoil" to wind, "parawing" to wind,
+          "kitesurf" to windOhneFoil, "windsurf" to windOhneFoil, "snowkite" to windOhneFoil, "kite_atb" to windOhneFoil, "kitebuggy" to windOhneFoil,
           "sup_paddle" to listOf("paddle_success", "paddle_quote", "paddle_foil_longest"),
           "wakethief" to listOf("wake_longest", "wake_time"),
           "surf_downwind" to listOf("dw_ab", "dw_ab_speed"),

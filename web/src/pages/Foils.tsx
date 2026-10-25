@@ -6,7 +6,7 @@ import { Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
 import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
-import { SPORTS } from "../lib/sportClass";
+import { SPORTS, sortiereSports } from "../lib/sportClass";
 
 // Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern).
 export default function Foils() {
@@ -126,7 +126,7 @@ export default function Foils() {
         <select value={defSport}
           onChange={(e) => { const v = e.target.value; setDefSport(v); api.saveSettings({ default_sport_class: v }).catch(() => {}); }}
           className="mt-1 block rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
-          {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+          {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
         </select>
         <span className="mt-1 block text-sm text-slate-400">{t("foils.defaultSportHint")}</span>
       </label>
@@ -135,7 +135,7 @@ export default function Foils() {
       <div className="mb-4">
         <div className="text-sm text-slate-200">{t("foils.mySports")}</div>
         <div className="mt-1 flex flex-wrap gap-1.5">
-          {SPORTS.filter((k) => k !== "other").map((k) => {
+          {sortiereSports(SPORTS.filter((k) => k !== "other"), t).map((k) => {
             const an = k === defSport || mySports.includes(k);
             return (
               <button key={k} type="button" disabled={k === defSport}
