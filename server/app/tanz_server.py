@@ -27,6 +27,10 @@ VERSION = "s1"
 MUSTER_DATEI = Path(__file__).parent / "data" / "tanz_muster_server.json"
 BAENDER = {"b1": (1.0, 1.5), "b2": (2.0, 2.5)}
 _GESAMT = (0.3, 8.0)
+# Sicherheit in %: exp(-d/4) statt /2 wie auf der Uhr. Geeicht 25.10.2026 an 64 beschrifteten Zeilen (mittlere
+# Log-Wahrscheinlichkeit des richtigen Tanzes: /2 1,19 · /4 1,00 · /8 1,09) — mit /2 stand ein Wiener Walzer als
+# „Salsa 100 %" da. Muster aus denselben Daten -> eher noch zu sicher.
+SICHER_TEILER = 4.0
 _FR = np.fft.rfftfreq(ta.N, 1 / ta.HZ)
 _HANN = np.hanning(ta.N)
 
@@ -94,8 +98,14 @@ def vorschlag(ws: list[dict], mu_alle: dict | None = None) -> str | None:
     return b[0][0] if b else None
 
 
-def vorschlaege(fs: list[dict], abschnitte: list[dict]) -> list[str | None]:
-    """Je Zeile der Tabelle (start_ms/ende_ms in Session-ms) der Server-Vorschlag; None ohne Daten.
+def top3(ws: list[dict], mu_alle: dict | None = None) -> list[tuple[str, int]]:
+    """Die drei passendsten Taenze mit Sicherheit in % (Jan, 25.10.2026), Rechnung wie tanz_analyse.sicherheit."""
+    return ta.sicherheit(bewerten(merkmale(ws), mu_alle), teiler=SICHER_TEILER)
+
+
+def vorschlaege(fs: list[dict], abschnitte: list[dict]) -> list[list[tuple[str, int]] | None]:
+    """Je Zeile der Tabelle (start_ms/ende_ms in Session-ms) die drei besten Server-Vorschlaege mit
+    Sicherheit in %; None ohne Daten.
     Marker-Zeilen haben keine Laenge (Zeitpunkt der Bestaetigung an der Uhr) — fuer sie gilt dieselbe
     Deutung wie beim Lernen: der letzte zusammenhaengende Tanz davor (tanz_analyse.marker_deuten)."""
     out = []
@@ -107,5 +117,5 @@ def vorschlaege(fs: list[dict], abschnitte: list[dict]) -> list[str | None]:
             d = ta.marker_deuten([(von, "x")], fs)
             von, bis = d[0][:2] if d else (von, von)
         ws = [f for f in fs if von <= f["t_ms"] < bis]
-        out.append(vorschlag(ws) if ws else None)
+        out.append((top3(ws) or None) if ws else None)
     return out

@@ -159,6 +159,24 @@ def vorschlag(ws: list[dict], erlaubt: set[str] | None = None) -> str | None:
     return b[0][0] if b else None
 
 
+# Teiler im Gewicht exp(-d/TEILER), geeicht am 25.10.2026 an Jans beschrifteten Zeilen (69 mit Muster, mittlere
+# Log-Wahrscheinlichkeit des richtigen Tanzes am besten bei 2; Muster aus denselben Daten -> eher zu sicher).
+SICHER_TEILER = 2.0
+
+
+def sicherheit(bewertung: list[tuple[str, float]], n: int = 3, teiler: float = SICHER_TEILER) -> list[tuple[str, int]]:
+    """Abstaende (bewerten) -> die n besten Taenze mit Sicherheit in Prozent (Jan, 25.10.2026: „zu x % sicher
+    ist es tanz y"). Jeder Abstand ist eine Summe quadrierter Abweichungen in Streuungen, also wie bei einer
+    Normalverteilung Gewicht exp(-d/teiler), auf 100 % ueber ALLE Muster verteilt. Das ist eine relative Sicherheit
+    unter den bekannten Mustern, nicht geeicht: ein Tanz ohne Muster kann nicht vorkommen. Uhr: Tanz.mc _top."""
+    if not bewertung:
+        return []
+    d0 = bewertung[0][1]
+    gew = [(k, math.exp(-(d - d0) / teiler)) for k, d in bewertung]
+    summe = sum(g for _, g in gew)
+    return [(k, int(round(100 * g / summe))) for k, g in gew[:n]]
+
+
 def marker_deuten(marker: list[tuple[int, str]], fs: list[dict]) -> list[tuple[int, int, str]]:
     """Jan setzt den Marker NACH dem Tanz (21.10.2026), aber nicht nach jedem — davor koennen
     unmarkierte Taenze liegen. Deutung deshalb: der Marker gilt fuer den LETZTEN zusammenhaengenden Tanz

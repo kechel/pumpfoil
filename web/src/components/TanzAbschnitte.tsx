@@ -16,6 +16,15 @@ const QUELLE: Record<string, string> = {
   marker_ohne_erkennung: "dein Marker, Uhr erkannte nichts",
 };
 
+// Auswahl (Jan, 25.10.2026): die drei besten der Server-Erkennung nach Sicherheit zuerst, danach alle
+// anderen alphabetisch, „Kein Tanz" zuletzt.
+function auswahl(taenze: string[], top: { tanz: string; prozent: number }[]) {
+  const oben = top.filter((t) => taenze.includes(t.tanz));
+  const rest = taenze.filter((k) => k !== "kein" && !oben.some((t) => t.tanz === k))
+    .sort((a, b) => (NAMEN[a] ?? a).localeCompare(NAMEN[b] ?? b, "de"));
+  return { oben, rest: taenze.includes("kein") ? [...rest, "kein"] : rest };
+}
+
 function uhrzeit(startedAt: string, ms: number) {
   return new Date(new Date(startedAt).getTime() + ms).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 }
@@ -50,14 +59,20 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
             <th className="py-1 pr-2 font-medium">Zeit</th>
             <th className="py-1 pr-2 font-medium">Tanz</th>
             <th className="py-1 pr-2 font-medium">Erkennung</th>
-            <th className="py-1 pr-2 font-medium" title="Erkennung nur am Server, mit Versionsnummer des Verfahrens">
-              Server{version ? ` ${version}` : ""}
-            </th>
+            {[1, 2, 3].map((p) => (
+              <th key={p} className="py-1 pr-2 font-medium whitespace-nowrap"
+                title="Erkennung nur am Server, mit Versionsnummer des Verfahrens; % = Sicherheit unter den bekannten Mustern">
+                Server{version ? ` ${version}` : ""} {p}.
+              </th>
+            ))}
             <th className="py-1 font-medium">Stand</th>
           </tr>
         </thead>
         <tbody>
-          {abschnitte.map((a, i) => (
+          {abschnitte.map((a, i) => {
+            const top = a.server_top3 ?? [];
+            const wahl = auswahl(taenze, top);
+            return (
             <tr key={i} className="border-t border-slate-800">
               <td className="py-1.5 pr-2 whitespace-nowrap">
                 {uhrzeit(startedAt, a.start_ms)}–{a.ende_ms != null ? uhrzeit(startedAt, a.ende_ms) : "…"}
@@ -66,20 +81,30 @@ export function TanzAbschnitte({ sessionId, startedAt }: { sessionId: number; st
                 <select className="rounded border border-slate-700 bg-slate-900 px-1 py-0.5"
                   value={a.gewaehlt ?? ""} onChange={(e) => aendern(i, e.target.value || null)}>
                   <option value="">– offen –</option>
-                  {taenze.map((k) => <option key={k} value={k}>{NAMEN[k] ?? k}</option>)}
+                  {wahl.oben.map((t) => (
+                    <option key={t.tanz} value={t.tanz}>{NAMEN[t.tanz] ?? t.tanz} · {t.prozent} %</option>
+                  ))}
+                  {wahl.oben.length > 0 && <option disabled>──────</option>}
+                  {wahl.rest.map((k) => <option key={k} value={k}>{NAMEN[k] ?? k}</option>)}
                 </select>
               </td>
               <td className="py-1.5 pr-2 text-slate-400">
                 {a.vorschlag ? NAMEN[a.vorschlag] ?? a.vorschlag : "–"}
                 {a.tempo ? ` · ${a.tempo}/min` : ""}
               </td>
-              <td className={"py-1.5 pr-2 " + (a.server_vorschlag && a.gewaehlt && a.server_vorschlag === a.gewaehlt
-                ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400")}>
-                {a.server_vorschlag ? NAMEN[a.server_vorschlag] ?? a.server_vorschlag : "–"}
-              </td>
+              {[0, 1, 2].map((p) => {
+                const t = top[p];
+                return (
+                  <td key={p} className={"py-1.5 pr-2 whitespace-nowrap " + (t && a.gewaehlt && t.tanz === a.gewaehlt
+                    ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400")}>
+                    {t ? `${NAMEN[t.tanz] ?? t.tanz} ${t.prozent} %` : "–"}
+                  </td>
+                );
+              })}
               <td className="py-1.5 text-slate-400">{QUELLE[a.quelle] ?? a.quelle}</td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
       </div>

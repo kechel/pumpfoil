@@ -32,9 +32,16 @@ def test_foil_scoot_ist_zulaessig():
 def test_alle_vier_listen_sind_deckungsgleich():
     web = _liste_aus(Path("web/src/lib/sportClass.ts"),
                      r"export const SPORTS = \[(.*?)\] as const;")
-    android = _liste_aus(Path("android/app/src/main/java/org/pumpfoil/app/SportClass.kt"),
-                         r"listOf\((.*?)\)")
-    ios = _liste_aus(Path("watch-apple/Sources-iOS/SportClass.swift"), r"= \[(.*?)\]")
+    # Android holt die Liste seit 25.10.2026 vom Server; geprueft wird der eingebaute Rueckfall (Sportarten.kt).
+    text = (WURZEL / "android/app/src/main/java/org/pumpfoil/app/Sportarten.kt").read_text(encoding="utf-8")
+    block = re.search(r"EINGEBAUT: List<SportEintrag> = listOf\((.*?)\n    \)", text, re.S)
+    assert block, "EINGEBAUT nicht gefunden in Sportarten.kt"
+    android = re.findall(r'SportEintrag\("([a-z_]+)"', block.group(1))
+    # iOS ebenso: eingebauter Rueckfall `eingebaut` in SportClass.swift (enum Sportarten).
+    text = (WURZEL / "watch-apple/Sources-iOS/SportClass.swift").read_text(encoding="utf-8")
+    block = re.search(r"let eingebaut: \[SportEintrag\] = \[(.*?)\n    \]", text, re.S)
+    assert block, "eingebaut nicht gefunden in SportClass.swift"
+    ios = re.findall(r'\be\("([a-z_]+)"', block.group(1))
     assert web == list(SPORTS), web
     assert android == list(SPORTS), android
     assert ios == list(SPORTS), ios

@@ -39,7 +39,10 @@ def _antwort(s: models.Session, abschnitte: list[dict]) -> dict:
         sv = tanz_server.vorschlaege(fs, abschnitte) if fs else [None] * len(abschnitte)
     except (OSError, ValueError):
         sv = [None] * len(abschnitte)
-    rows = [{**r, "server_vorschlag": v} for r, v in zip(abschnitte, sv)]
+    # server_vorschlag bleibt (Platz 1), server_top3 dazu: [{"tanz", "prozent"}] (Jan, 25.10.2026)
+    rows = [{**r, "server_vorschlag": v[0][0] if v else None,
+             "server_top3": [{"tanz": k, "prozent": p} for k, p in v] if v else []}
+            for r, v in zip(abschnitte, sv)]
     return {"abschnitte": rows, "taenze": list(tanz.TAENZE), "server_version": tanz_server.VERSION}
 
 

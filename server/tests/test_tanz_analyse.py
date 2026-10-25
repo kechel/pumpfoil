@@ -65,6 +65,14 @@ def test_muster_auf_der_uhr_wie_in_der_json():
     assert [k.strip().strip('"') for k in keys.replace("\n", "").split(",")] == tma.UHR_KEYS
 
 
+def test_uhr_alpha_reihenfolge():
+    """Tanz.mc ALPHA = Indizes der NAMEN alphabetisch (Auswahl hinter den drei besten, 25.10.2026)."""
+    mc = (ROOT / "watch-dance" / "source" / "Tanz.mc").read_text()
+    namen = re.findall(r'"([^"]+)"', re.search(r"const NAMEN = \[(.*?)\];", mc, re.S).group(1))
+    alpha = [int(x) for x in re.search(r"const ALPHA = \[(.*?)\];", mc).group(1).split(",")]
+    assert alpha == sorted(range(len(namen)), key=lambda i: namen[i].lower())
+
+
 def test_server_vorschlag_s1():
     """Server-Variante (app/tanz_server.py): Spektrum-Anteile und Vorschlag je Tabellenzeile."""
     from app import tanz_server as ts
@@ -79,4 +87,21 @@ def test_server_vorschlag_s1():
     rows = [{"start_ms": 0, "ende_ms": 60000}, {"start_ms": 60000, "ende_ms": 120000},
             {"start_ms": 500000, "ende_ms": None}, {"start_ms": 61000, "ende_ms": 61000}]
     # Marker-Zeile ohne Laenge (61 s): gilt fuer den Tanz davor
-    assert ts.vorschlaege(fs + fb, rows) == ["salsa", "boogie", None, "salsa"]
+    vs = ts.vorschlaege(fs + fb, rows)
+    assert [v[0][0] if v else None for v in vs] == ["salsa", "boogie", None, "salsa"]
+    # Top 3 mit Sicherheit in %, absteigend, Platz 1 klar vorn (Jan, 25.10.2026)
+    assert len(vs[0]) == 3 and vs[0][0][1] >= vs[0][1][1] >= vs[0][2][1] and vs[0][0][1] > 50
+
+
+def test_sicherheit():
+    """Abstaende -> Prozent: exp(-d/2), auf alle Muster verteilt; gleiche Abstaende = gleiche Sicherheit."""
+    s = tma_sicherheit([("a", 0.0), ("b", 0.0), ("c", 50.0), ("d", 60.0)])
+    assert s == [("a", 50), ("b", 50), ("c", 0)]
+    s = tma_sicherheit([("a", 1.0), ("b", 1.0 + 2 * math.log(3))])   # Gewicht 3:1 bei Teiler 2
+    assert s == [("a", 75), ("b", 25)]
+    assert tma_sicherheit([]) == []
+
+
+def tma_sicherheit(b):
+    from app import tanz_analyse as ta
+    return ta.sicherheit(b)

@@ -46,6 +46,10 @@ module Tanz {
                   "salsa", "bachata", "discofox", "boogie"];
     const NAMEN = ["Langsamer Walzer", "Tango", "Wiener Walzer", "Slowfox", "Quickstep", "Samba", "Cha-Cha-Cha",
                    "Rumba", "Paso Doble", "Jive", "Salsa", "Bachata", "Disco-Fox", "Boogie"];
+    // Alphabetische Reihenfolge der NAMEN (Indizes in KEYS) fuer die Auswahl hinter den drei besten
+    // (Jan, 25.10.2026). Der Test test_tanz_analyse.py prueft sie gegen NAMEN.
+    const ALPHA = [11, 13, 6, 12, 9, 0, 8, 4, 7, 10, 5, 3, 1, 2];
+    const SICHER_TEILER = 2.0;   // Sicherheit = exp(-d/2), wie tanz_analyse.SICHER_TEILER
     // MUSTER-BEGINN (erzeugt: scripts/tanz_muster_ableiten.py --uhr; nicht von Hand aendern)
     const M_TEMPO = [113, 65, 60, 58, 107, 97, 63, 48, 60, 123, 79, 66, 125, 131];
     const M_QUER = [871, 739, 666, -1, 702, 789, 848, 796, -1, 831, 667, -1, -1, 722];     // x1000, -1 = keine Daten
@@ -83,13 +87,16 @@ module Tanz {
     var _jetzt = 0;              // letzte Session-ms aus add()
     var _wahl = -1;              // Index in KEYS (+ KEYS.size() = „Kein Tanz") beim Blaettern, -1 = nicht
     var _wahlBis = 0;            // System-ms, ab dann faellt eine unbestaetigte Wahl zurueck
+    // Die drei besten des zuletzt erkannten Abschnitts (laufend oder eben zu Ende): [[Index, Prozent], ...].
+    // Bleibt nach dem Ende stehen — Jan setzt den Marker meist NACH dem Tanz, dann gilt genau diese Liste.
+    var _top = [];
 
     function start(uuid) as Void {
         _uuid = uuid; _n = 0; _sx = 0.0; _sy = 0.0; _sz = 0.0;
         _gx = []; _gy = []; _gz = [];
         _folge = 0; _kand = []; _offen = false; _abschnitte = []; _marker = []; _hist = []; _ebenText = null;
         _lag = -1; _p = null; _bpm = 0; _verlaufUhr = []; _verlaufT0 = -1;
-        _wahl = -1; _jetzt = 0;
+        _wahl = -1; _jetzt = 0; _top = [];
     }
 
     // Ein Sensorpaket (~1 s). a = accelerometerData (milli-g), g = gyroscopeData (Grad/s) oder null.
@@ -277,11 +284,14 @@ module Tanz {
 
     // Vorschlag = Muster mit dem kleinsten Abstand (wie tanz_analyse.bewerten). Der zuletzt bestaetigte
     // Tanz gewinnt, wenn er hoechstens 1,0 schlechter ist (gleiches Lied, gleicher Tanz).
+    // Nebenbei: _top = die drei besten mit Sicherheit in % (Jan, 25.10.2026: „zu x % sicher ist es tanz y"),
+    // Gewicht exp(-d/2) auf alle Muster verteilt — wie tanz_analyse.sicherheit.
     function _vorschlag(ws) {
         var t = _median(ws);
         var q = _medianSp(ws, 3);
         var u = _medianSp(ws, 4);
         var besterI = 0; var besterD = 1.0e9; var letzterD = 1.0e9;
+        var alle = new [KEYS.size()];
         for (var i = 0; i < KEYS.size(); i++) {
             var d = 0.0;
             if (t > 0 && M_TEMPO[i] > 0) {
@@ -296,11 +306,45 @@ module Tanz {
                 if (M_UMDR[i] >= 0) { var du = (u - M_UMDR[i] / 1000.0) / S_UMDR; d += du * du; } else { d += 1.5; }
             }
             if (M_GESCH[i] == 1) { d += 1.0; }
+            alle[i] = d;
             if (d < besterD) { besterD = d; besterI = i; }
             if (_letzter != null && KEYS[i].equals(_letzter)) { letzterD = d; }
         }
+        _topAus(alle, besterD);
         if (_letzter != null && letzterD <= besterD + 1.0) { return _letzter; }
         return KEYS[besterI];
+    }
+
+    function _topAus(alle, d0) as Void {
+        var g = new [alle.size()];
+        var summe = 0.0;
+        for (var i = 0; i < alle.size(); i++) { g[i] = Math.pow(Math.E, -(alle[i] - d0) / SICHER_TEILER); summe += g[i]; }
+        var top = [];
+        for (var r = 0; r < 3; r++) {
+            var bi = -1;
+            for (var i = 0; i < g.size(); i++) { if (g[i] >= 0 && (bi < 0 || g[i] > g[bi])) { bi = i; } }
+            if (bi < 0) { break; }
+            top.add([bi, (100.0 * g[bi] / summe + 0.5).toNumber()]);
+            g[bi] = -1.0;
+        }
+        _top = top;
+    }
+
+    // Prozent eines Tanzes aus _top, -1 = nicht unter den drei besten.
+    function _prozent(key) {
+        if (key == null) { return -1; }
+        for (var i = 0; i < _top.size(); i++) { if (KEYS[_top[i][0]].equals(key)) { return _top[i][1]; } }
+        return -1;
+    }
+
+    // Reihenfolge der Auswahl (Jan, 25.10.2026): die drei besten nach Sicherheit, dann der Rest
+    // alphabetisch, „Kein Tanz" (= KEYS.size()) zuletzt. Eintraege sind Indizes in KEYS.
+    function _reihe() {
+        var r = [];
+        for (var i = 0; i < _top.size(); i++) { r.add(_top[i][0]); }
+        for (var i = 0; i < ALPHA.size(); i++) { if (r.indexOf(ALPHA[i]) < 0) { r.add(ALPHA[i]); } }
+        r.add(KEYS.size());
+        return r;
     }
 
     function name(key) as Lang.String {
@@ -343,16 +387,16 @@ module Tanz {
 
     function _wahlKey(i) { return (i >= KEYS.size()) ? "kein" : KEYS[i]; }
 
-    // HOCH/RUNTER: ab dem gerade gezeigten Tanz weiterblaettern (Liste + „Kein Tanz").
+    // HOCH/RUNTER: ab dem gerade gezeigten Tanz weiterblaettern, in der Reihenfolge von _reihe().
+    // Ohne erkannten Tanz beginnt RUNTER beim besten, HOCH bei „Kein Tanz".
     function blaettern(d) as Void {
-        var n = KEYS.size() + 1;
-        if (_wahl < 0) {
-            var k = _anzeige()[0];
-            var i = (k == null) ? -1 : (k.equals("kein") ? KEYS.size() : KEYS.indexOf(k));
-            _wahl = (i < 0) ? ((d > 0) ? 0 : n - 1) : (i + d + n) % n;
-        } else {
-            _wahl = (_wahl + d + n) % n;
-        }
+        var r = _reihe();
+        var n = r.size();
+        var k = (_wahl >= 0) ? _wahlKey(_wahl) : _anzeige()[0];
+        var i = (k == null) ? -1 : (k.equals("kein") ? KEYS.size() : KEYS.indexOf(k));
+        var pos = (i < 0) ? -1 : r.indexOf(i);
+        pos = (pos < 0) ? ((d > 0) ? 0 : n - 1) : (pos + d + n) % n;
+        _wahl = r[pos];
         _wahlBis = System.getTimer() + 15000;   // ohne Bestaetigung nach 15 s zurueck
     }
 
@@ -410,11 +454,13 @@ module Tanz {
         }
         var z = _anzeige();
         var kopf; var text; var farbe; var aktion;
+        var pz = _prozent(z[0]);
         if (z[1] == :wahl) {
-            kopf = "Auswahl"; text = name(z[0]); farbe = Config.BRAND_CYAN;
+            kopf = "Auswahl"; text = name(z[0]) + ((pz >= 0) ? " " + pz.toString() + " %" : ""); farbe = Config.BRAND_CYAN;
             aktion = "START = Marker  ZURÜCK = weg";
         } else if (z[1] == :auto) {
             kopf = "Uhr erkennt"; text = name(z[0]) + "?"; farbe = Config.BRAND_CYAN;
+            if (pz >= 0) { kopf = "Uhr erkennt · " + pz.toString() + " %"; }
             aktion = "START = passt";
         } else if (z[1] == :ok) {
             kopf = "Uhr erkennt"; text = name(z[0]); farbe = Graphics.COLOR_WHITE;

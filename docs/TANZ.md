@@ -70,7 +70,8 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   tanztabelle diesen wert aus dem server-algo mit anzeigen inkl. der 2. und 3., das gibt mir eine gute uebersicht wie gut
   das model ist und welche taenze aehnlich aussehen, und auf der uhr eine einfachere auswahl falls 1. falsch ist aber
   2 oder 3 stimmen“ → (1) Erkennung liefert Top 3 mit Sicherheit in %; (2) Tanztabelle: Spalten 1./2./3. mit %;
-  (3) Auswahl (Uhr und Server-Oberflaeche): Top 3 nach Sicherheit zuerst, Rest alphabetisch. Noch nicht gebaut.
+  (3) Auswahl (Uhr und Server-Oberflaeche): Top 3 nach Sicherheit zuerst, Rest alphabetisch. **Gebaut 25.10.**,
+  s. „Sicherheit in %" unten.
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
 
@@ -150,6 +151,22 @@ wird in die Tanz-Tabellen geschrieben. Quelle für Salsa: #16863 (Kurs), #17689 
   Quelle, ein Abend). Die Spalte in der Tabelle ist mit Mustern aus denselben Daten gerechnet → zu gut.
 - Neue Version (s2 …) = `VERSION` in `tanz_server.py` hochzählen und Muster neu ableiten; die Spalte
   zeigt die Nummer.
+
+### Sicherheit in % und Top 3 (25.10.2026)
+
+- Rechnung: jeder Abstand `d` aus `bewerten` ist eine Summe quadrierter Abweichungen in Streuungen →
+  Gewicht `exp(-d/T)`, auf 100 % über **alle** Muster verteilt (`tanz_analyse.sicherheit`). Das ist eine
+  relative Sicherheit unter den bekannten Mustern, nicht geeicht gegen „gar kein bekannter Tanz".
+- `T` an Jans beschrifteten Zeilen gewählt (mittlere Log-Wahrscheinlichkeit des richtigen Tanzes):
+  Uhr-Rechnung **T = 2** (69 Zeilen), Server s1 **T = 4** (64 Zeilen; /2 1,19 · /4 1,00 · /8 1,09). Mit /2
+  stand am Server ein Wiener Walzer als „Salsa 100 %" da. Muster aus denselben Daten → eher noch zu sicher.
+- **Uhr** (`Tanz.mc _topAus`): die drei besten des zuletzt erkannten Abschnitts; bleibt nach dessen Ende
+  stehen (Marker kommt meist danach). Anzeige „Uhr erkennt · 62 %", in der Auswahl „Salsa 62 %".
+  HOCH/RUNTER blättert: Top 3 → Rest alphabetisch (`ALPHA`, vom Test geprüft) → „Kein Tanz".
+  Nicht hochgeladen — das Zeilenformat `tz_` bleibt gleich.
+- **Server/Web**: `GET /api/sessions/{id}/tanz` liefert je Zeile `server_top3` [{tanz, prozent}];
+  Tabelle mit Spalten „Server s1 1./2./3." in %, Auswahl dort: Top 3 der Server-Erkennung mit % zuerst,
+  dann alphabetisch, „Kein Tanz" zuletzt. s1 kennt nur fünf Tänze, die % verteilen sich auf diese.
 
 ## Offene Fragen / nächste Schritte
 
