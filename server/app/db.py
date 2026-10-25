@@ -233,11 +233,17 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS num_runs_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS segments_personal_json",
     ]
-    with engine.begin() as conn:
+    # JEDE Anweisung einzeln (autocommit) und mit kurzem lock_timeout (25.10.2026, zwei Ausfaelle an einem Tag): vorher
+    # liefen alle ~100 Anweisungen in EINER Transaktion. Ein `ALTER TABLE users … IF NOT EXISTS` braucht auch dann die
+    # exklusive Sperre auf users, wenn die Spalte laengst da ist — sie hielt bis zum Ende der Transaktion, und wartete sie
+    # selbst hinter einer offenen Lese-Transaktion eines anderen Workers, stauten sich ALLE Anfragen dahinter (Minuten).
+    # Jetzt: wer nicht binnen 2 s sperren kann, gibt auf — die Spalte existiert ja meistens; beim naechsten Start erneut.
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(text("SET lock_timeout = '2s'"))
         for s in stmts:
             try:
                 conn.execute(text(s))
-            except Exception:  # noqa: BLE001 — bereits vorhanden/nicht anwendbar; idempotent gemeint
+            except Exception:  # noqa: BLE001 — bereits vorhanden/nicht anwendbar/Sperre nicht bekommen; idempotent gemeint
                 pass
 
 
@@ -469,6 +475,7 @@ def _migrate_add_columns() -> None:
     want.setdefault("device_tokens", {})["app_closed_at"] = "TIMESTAMP WITH TIME ZONE"
     insp = inspect(engine)
     with engine.begin() as conn:
+        conn.execute(text("SET LOCAL lock_timeout = '10s'"))   # nie unbegrenzt hinter einer fremden Transaktion warten
         for table, cols in want.items():
             if not insp.has_table(table):
                 continue
