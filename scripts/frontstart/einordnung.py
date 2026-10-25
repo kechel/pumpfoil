@@ -63,7 +63,11 @@ def main():
     print(f"{len(erg)} aussortierte Sessions mit Accel")
     for schwelle in (1, 3, 5, 8):
         w = [r for r in erg if r["n"] >= schwelle]
-        print(f"  >= {schwelle} Versuche: {len(w)} Sessions von {len({r['uid'] for r in w})} Fahrern")
+        o = [r for r in erg if r["n"] - r["weg"].get("C", 0) >= schwelle]
+        print(f"  >= {schwelle} Versuche: {len(w)} Sessions von {len({r['uid'] for r in w})} Fahrern"
+              f"  | ohne Weg C: {len(o)} Sessions von {len({r['uid'] for r in o})} Fahrern")
+    print("ohne C >= 5:", " ".join(f"#{r['id']}(u{r['uid']},{r['n'] - r['weg'].get('C', 0)})"
+                                   for r in erg if r["n"] - r["weg"].get("C", 0) >= 5))
     je = defaultdict(list)
     for r in erg:
         if r["n"] >= 3:

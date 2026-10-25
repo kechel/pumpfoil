@@ -1695,7 +1695,7 @@ export const api = {
   // Startversuche als Index-Bereiche fuer die Karte (nur die MISSLUNGENEN — die geglueckten sind
   // die Laeufe). Wird serverseitig frisch gerechnet, deshalb erst beim Einschalten des Schalters.
   sessionAttempts: (id: number) =>
-    req<{ attempts: { points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; avg_speed_mps: number; outside_trim: boolean }[] }>(
+    req<{ attempts: { points: [number, number][]; speeds?: (number | null)[]; t_start_ms: number; distance_m: number; duration_s: number; avg_speed_mps: number; outside_trim: boolean }[] }>(
       `/api/sessions/${id}/attempts`),
 
   // ECHTE Zeit je Punkt der Kartenspur (Session-ms). Ohne sie muss die Oberflaeche den Index

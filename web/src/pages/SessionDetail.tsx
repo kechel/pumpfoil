@@ -589,7 +589,7 @@ export default function SessionDetail() {
     if (session?.sport_class !== "sup_paddle" || !session?.id) return;
     api.sessionPaddel(session.id).then(setPaddel).catch(() => {});
   }, [session?.id, session?.sport_class]);
-  const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
+  const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; speeds?: (number | null)[]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
 
@@ -1494,6 +1494,20 @@ export default function SessionDetail() {
         // Der Server liefert fertige Punkte (lat/lon) — bewusst keine Indizes: Versuche VOR dem
         // Zuschnitt haben im getrimmten Track gar keinen Index, und aussortierte Bereiche
         // verschieben ihn (das lag an #3157 daneben).
+        // Seit 25.10.2026 nach GPS-Tempo eingefaerbt wie ein Lauf (Jan: „ich wuerde gerne auch startversuch-gps-speed
+        // sehen"), gestrichelt bleibt das Erkennungszeichen. Ohne Tempo (alter Server) wie bisher bernsteinfarben.
+        const sp = v.speeds;
+        if (sp && sp.length === v.points.length && sp.some((x) => x != null)) {
+          for (let i = 0; i < v.points.length - 1; i++) {
+            L.polyline([v.points[i], v.points[i + 1]], {
+              pane: "attemptPane",
+              color: speedColor((sp[i + 1] ?? sp[i] ?? 0) * 3.6, speedMin, speedMax),
+              weight: 4, opacity: v.outside_trim ? 0.6 : 0.95,
+              dashArray: v.outside_trim ? "2 6" : "6 4", interactive: false,
+            }).addTo(lg);
+          }
+          return;
+        }
         L.polyline(v.points, {
           pane: "attemptPane",
           color: "#f59e0b", weight: 3, opacity: v.outside_trim ? 0.6 : 0.85,

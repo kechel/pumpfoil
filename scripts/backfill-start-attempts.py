@@ -114,6 +114,10 @@ def main() -> int:
         groesste.append((s.id, alt, len(neu)))
         if args.scharf:
             ar.start_attempts_json = json.dumps(neu)
+            # Blockweise festschreiben: eine stundenlange offene Transaktion blockiert die Migrationen beim
+            # Server-Start (25.10.2026: Neustart hing ~2,5 min, Seite nicht erreichbar, bis der Lauf abgebrochen war).
+            if geaendert % 100 == 0:
+                db.commit()
 
     if args.scharf:
         db.commit()

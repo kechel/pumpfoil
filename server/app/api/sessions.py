@@ -3624,12 +3624,15 @@ def get_attempts(
         if any(t0 <= r1 and t1 >= r0 for r0, r1 in laeufe) or any(
                 abs(sg["t"] * 1000.0 - r0) < SV.DOPPELT_S * 1000.0 for r0, _ in laeufe):
             continue                      # geglueckt -> das ist ein Lauf, den zeichnet die Karte
-        linie = [[float(r[1]), float(r[2])] for r in punkte[a:b + 1]
-                 if r[1] is not None and r[2] is not None]
+        roh = [r for r in punkte[a:b + 1] if r[1] is not None and r[2] is not None]
+        linie = [[float(r[1]), float(r[2])] for r in roh]
         if len(linie) < 2:
             continue
         aus.append({
             "points": linie,
+            # GPS-Tempo je Punkt (m/s, wie `speeds_mps` im Track) — die Karte faerbt den Versuch damit wie einen Lauf
+            # (Jan, 25.10.2026: „ich wuerde gerne auch startversuch-gps-speed sehen").
+            "speeds": [round(float(r[3]), 2) if len(r) > 3 and r[3] is not None else None for r in roh],
             "t_start_ms": t0,
             "duration_s": float(sg.get("dauer_s") or 0.0),
             "distance_m": round(float(sg.get("strecke_m") or 0.0), 1),
