@@ -635,7 +635,8 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
                     // Sportart bekommt hier KEINEN Chip: eigene Sessions tragen das schon im
                     // Klassifikations-Badge in der Fußzeile (samt Datenqualität) — sonst doppelt.
                     SessionChips(sportClass = null, spot = s.placeName, foil = foilLabel,
-                        setup = s.setup, deviceLabel = s.deviceLabel, placement = s.placement)
+                        setup = s.setup, deviceLabel = s.deviceLabel, placement = s.placement,
+                        ohneFoil = !Sportarten.foil(s.sportClass))
                 }
                 // Track-Vorschau bleibt rechts im Kopf.
                 s.trackPreview?.let { tp ->
@@ -783,6 +784,8 @@ private fun Pill(text: String, accent: ChipAccent = ChipAccent.NORMAL) {
 // Mastlänge, Board, Uhr — dieselbe Reihenfolge wie die PWA (SessionCard.tsx). Jeder Teil
 // erscheint nur, wenn er hinterlegt ist; fehlt er, fällt der Chip weg statt leer dazustehen.
 // FlowRow statt Row, weil sieben Chips nicht in eine Zeile passen.
+// ohneFoil (26.10.2026, wie die PWA): Sportart ohne Foil (Kiten, Windsurfen, SUP …) -> kein Foil,
+// Stab, Mast; Board und Uhr bleiben.
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SessionChips(
@@ -792,6 +795,7 @@ private fun SessionChips(
     setup: SessionSetup?,
     deviceLabel: String?,
     placement: String? = null,
+    ohneFoil: Boolean = false,
 ) {
     val chips = buildList {
         // Sportart-Kennzeichen: die Liste „was ist neu" zeigt seit 2026-07-31 alle Sportarten,
@@ -800,10 +804,12 @@ private fun SessionChips(
             add(ChipSpec(I18n.t("cls.sport.$it"), ChipAccent.AMBER))
         }
         spot?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
-        foil?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
-        setup?.stab?.let { st -> listOf(st.brand, st.model, st.size).filter { it.isNotBlank() }.joinToString(" ") }
-            ?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
-        setup?.mastLenCm?.let { add(ChipSpec("$it cm")) }
+        if (!ohneFoil) {
+            foil?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
+            setup?.stab?.let { st -> listOf(st.brand, st.model, st.size).filter { it.isNotBlank() }.joinToString(" ") }
+                ?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
+            setup?.mastLenCm?.let { add(ChipSpec("$it cm")) }
+        }
         setup?.board?.name?.takeIf { it.isNotBlank() }?.let { name ->
             // Sonderfall Skateboard: Pumpen auf dem Skateboard ist kein Tippfehler, sondern
             // Trockentraining — das darf in Marken-Cyan auffallen (wie PWA, Vergleich ohne
@@ -1024,7 +1030,8 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                     }
                     val cFoil = c.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
                     SessionChips(sportClass = c.sportClass, spot = c.spot, foil = cFoil,
-                        setup = c.setup, deviceLabel = c.deviceLabel, placement = c.placement)
+                        setup = c.setup, deviceLabel = c.deviceLabel, placement = c.placement,
+                        ohneFoil = !Sportarten.foil(c.sportClass))
                 }
                 Spacer(Modifier.width(8.dp))
                 c.trackPreview?.let { tp ->

@@ -46,12 +46,18 @@ import kotlinx.serialization.json.put
 // Setup-Dropdowns einzeln in der Knopfzeile. Jetzt EINE Textzeile fuer alle (auch fuer Fremde, die
 // vorher gar nichts sahen), der Stift nur beim Besitzer. Gleiches Muster wie iOS (SetupBearbeiten.swift).
 
+// Sportart ohne Foil (26.10.2026, wie die PWA FoilSelect.tsx): Foil, Stab, Mast und Shim fallen weg —
+// in der Zeile und im Popup. Gespeicherte Werte bleiben (das Popup schickt nur Geaendertes).
+internal fun ohneFoil(s: SessionDetail): Boolean = s.sportProfil?.foil == false
+
 internal fun setupTeile(s: SessionDetail): List<String> = buildList {
-    s.foil?.let { add("${it.brand} ${it.model} ${it.size}".trim()) }
     val su = s.setup
-    su?.stab?.let { add("${it.brand} ${it.model} ${it.size}".trim()) }
-    su?.mastLenCm?.let { add("$it cm") }
-    su?.shimDeg?.let { add(shimText(it)) }
+    if (!ohneFoil(s)) {
+        s.foil?.let { add("${it.brand} ${it.model} ${it.size}".trim()) }
+        su?.stab?.let { add("${it.brand} ${it.model} ${it.size}".trim()) }
+        su?.mastLenCm?.let { add("$it cm") }
+        su?.shimDeg?.let { add(shimText(it)) }
+    }
     su?.board?.let { add(it.name) }
     su?.weightKg?.let { add("$it kg") }
 }
@@ -173,14 +179,15 @@ internal fun SetupBearbeitenDialog(
                 )
                 // Das gewaehlte Foil/den gewaehlten Stab mit in die eigene Gruppe (sonst steht er nur
                 // tief im Katalog) — dieselbe Regel wie bisher im Dropdown.
+                val mitFoil = !ohneFoil(s)
                 val fSchnell = foils.filter { it.id in meineFoils || it.id == foilId }
                 val fRest = foils.filter { f -> fSchnell.none { it.id == f.id } }
-                Auswahl(I18n.t("sd.foilOfSession"), foilId,
+                if (mitFoil) Auswahl(I18n.t("sd.foilOfSession"), foilId,
                     listOf<Pair<Int?, String>>(null to I18n.t("foil.useDefault")) +
                         fSchnell.map { it.id to "${it.brand} ${it.model} ${it.size}" } +
                         (if (fRest.isNotEmpty()) listOf<Pair<Int?, String>>(-1 to "") else emptyList()) +
                         fRest.map { it.id to "${it.brand} ${it.model} ${it.size}" }) { foilId = it }
-                if (stabs.isNotEmpty()) {
+                if (mitFoil && stabs.isNotEmpty()) {
                     val sSchnell = stabs.filter { it.id in meineStabs || it.id == stabId }
                     val sRest = stabs.filter { st -> sSchnell.none { it.id == st.id } }
                     Auswahl(I18n.t("setup.stabTitle"), stabId,
@@ -190,12 +197,12 @@ internal fun SetupBearbeitenDialog(
                             sRest.map { it.id to "${it.brand} ${it.model} ${it.size}".trim() }) { stabId = it }
                 }
                 val mastWahl = (masten + listOfNotNull(mast)).distinct()
-                if (mastWahl.isNotEmpty()) {
+                if (mitFoil && mastWahl.isNotEmpty()) {
                     Auswahl(I18n.t("setup.mastTitle"), mast,
                         listOf<Pair<Int?, String>>(null to inherit) + mastWahl.map { it to "$it cm" }) { mast = it }
                 }
                 val shimWahl = (shims + listOfNotNull(shim)).distinct()
-                if (shimWahl.isNotEmpty()) {
+                if (mitFoil && shimWahl.isNotEmpty()) {
                     Auswahl(I18n.t("setup.shimTitle"), shim,
                         listOf<Pair<Double?, String>>(null to inherit) + shimWahl.map { it to shimText(it) }) { shim = it }
                 }

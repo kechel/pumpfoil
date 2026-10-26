@@ -36,16 +36,22 @@ struct SetupZeile: View {
         return teile.joined(separator: " · ")
     }
 
+    /// Sportart ohne Foil (26.10.2026, wie die PWA FoilSelect.tsx): Foil, Stab, Mast und Shim fallen
+    /// weg — in der Zeile und im Popup. Gespeicherte Werte bleiben (das Popup schickt nur Geaendertes).
+    static func ohneFoil(_ s: SessionDetail) -> Bool { s.sport_profil?.foil == false }
+
     static func teile(_ s: SessionDetail) -> [String] {
         var out: [String] = []
-        if let f = s.foil {
-            out.append("\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces))
+        if !ohneFoil(s) {
+            if let f = s.foil {
+                out.append("\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces))
+            }
+            if let st = s.setup?.stab {
+                out.append("\(st.brand) \(st.model) \(st.size)".trimmingCharacters(in: .whitespaces))
+            }
+            if let cm = s.setup?.mast_len_cm { out.append("\(cm) cm") }
+            if let d = s.setup?.shim_deg { out.append(SetupZeile.shimText(d)) }
         }
-        if let st = s.setup?.stab {
-            out.append("\(st.brand) \(st.model) \(st.size)".trimmingCharacters(in: .whitespaces))
-        }
-        if let cm = s.setup?.mast_len_cm { out.append("\(cm) cm") }
-        if let d = s.setup?.shim_deg { out.append(SetupZeile.shimText(d)) }
         if let b = s.setup?.board { out.append(b.name) }
         if let kg = s.setup?.weight_kg { out.append("\(kg) kg") }
         return out
@@ -89,9 +95,11 @@ struct SetupBearbeitenSheet: View {
         NavigationStack {
             Form {
                 bildtextAbschnitt
-                foilAbschnitt
-                stabAbschnitt
-                mastShimAbschnitt
+                if !SetupZeile.ohneFoil(session) {
+                    foilAbschnitt
+                    stabAbschnitt
+                    mastShimAbschnitt
+                }
                 boardAbschnitt
                 gewichtAbschnitt
                 if let fehler { Text(fehler).foregroundStyle(.red) }

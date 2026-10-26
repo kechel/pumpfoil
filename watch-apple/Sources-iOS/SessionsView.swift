@@ -896,7 +896,8 @@ struct SessionRow: View {
     // steht bei eigenen Sessions schon als Abzeichen unten (classBadge) und fehlt hier absichtlich.
     private var chipItems: [SessionChipItem] {
         sessionChipItems(spot: session.place_name, foil: foilChipText,
-                         setup: session.setup, device: session.device_label, placement: session.placement)
+                         setup: session.setup, device: session.device_label, placement: session.placement,
+                         ohneFoil: !Sportarten.foil(session.sport_class))
     }
 
     private var foilChipText: String {
@@ -1284,8 +1285,11 @@ func geraeteAbzeichen(_ text: String, amBrett: Bool, schrift: Font = .caption2) 
 /// Board · Uhr. Je Teil nur, wenn hinterlegt — fehlt eines, fällt es weg (wie SessionCard.tsx).
 /// Das Board „Skateboard" wird hervorgehoben: Pumpen auf dem Skateboard ist kein Tippfehler,
 /// sondern Trockentraining, und das darf auffallen.
+/// `ohneFoil` (26.10.2026, wie die PWA): Sportart ohne Foil (Kiten, Windsurfen, SUP …) -> kein Foil,
+/// Stab, Mast; Board und Uhr bleiben.
 func sessionChipItems(sport: String? = nil, spot: String?, foil: String? = nil,
-                      setup: SessionSetup?, device: String?, placement: String? = nil) -> [SessionChipItem] {
+                      setup: SessionSetup?, device: String?, placement: String? = nil,
+                      ohneFoil: Bool = false) -> [SessionChipItem] {
     var out: [SessionChipItem] = []
     func add(_ raw: String, _ style: SessionChipStyle = .plain) {
         let t: String = raw.trimmingCharacters(in: .whitespaces)
@@ -1294,10 +1298,12 @@ func sessionChipItems(sport: String? = nil, spot: String?, foil: String? = nil,
     }
     add(sport ?? "", .sport)
     add(spot ?? "")
-    add(foil ?? "")
+    if !ohneFoil { add(foil ?? "") }
     if let s = setup {
-        add(stabChipText(s.stab))
-        if let m = s.mast_len_cm, m > 0 { add("\(m) cm") }
+        if !ohneFoil {
+            add(stabChipText(s.stab))
+            if let m = s.mast_len_cm, m > 0 { add("\(m) cm") }
+        }
         if let b = s.board { add(b.name, isDrylandBoard(b.name) ? .brand : .plain) }
     }
     // „Handy am Brett" soll man auf den ersten Blick sehen — wie das Skateboard in Marken-Cyan
