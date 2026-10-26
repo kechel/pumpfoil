@@ -282,5 +282,12 @@ Beschriftet nur, wo der **Kreisel** den Walzer zeigt (netto Umdrehungen je 10 s,
 Gesetzt (Wiener Walzer, quelle web): 52:00–57:40 (Uhr-Zeile), 60:00–62:00 (neue Zeile), 66:00–72:00 (Uhr-Zeile
 68:10–75:30 auf den gedrehten Teil gekuerzt). Rest offen, mit Jan besprechen. Sicherung:
 Scratchpad `tanz17613-vorher.json`.
+**Nachtrag (Jan, 26.10.2026): „in der tanzschule macht man haeufig den gleichen tanz hintereinander ohne ausnahme,
+also vom ersten erkannten wiener walzer an war sicher alles wiener walzer bis dann was anderes kam und kein weiterer
+wiener walzer".** Daraufhin auch 59:10–59:50 und 63:10–63:50 als Wiener Walzer gesetzt (Block 52:00–72:00; Sicherung
+`tanz17613-vorher2.json`). **Folge fuer die Erkennung:** in der Tanzschule kommen Taenze in BLOECKEN — ein Tanz
+mehrere Lieder am Stueck, danach kommt er nicht wieder. Ein Abend ist also eine Folge weniger Bloecke; die Erkennung
+koennte ganze Bloecke statt einzelner Abschnitte bewerten (mehr Fenster je Entscheidung), und ein Wechsel ist selten.
+Passt zur Auswahl-Reihenfolge 0.6.1 (heute bestaetigte zuerst).
 → Wiener Walzer erkennt man am Handgelenk am ehesten an **anhaltender Drehung** (> ~0,8 Umdr./10 s ueber Minuten),
 nicht am Takt.
