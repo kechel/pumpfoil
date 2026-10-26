@@ -158,20 +158,16 @@ def _segmente(L, v2_segmente, session, off):
     from ... import storage
     from .. import gps as v1
     from ..detect_v2 import _clean_speed
-    from ..gps import step_distances_m
     alt = [(float(s["t_start_session_ms"]), float(s["t_end_session_ms"]), s) for s in v2_segmente]
     g = storage.load_gps(session.session_uuid)
     t = np.array([float(x[0]) for x in g])
     lat = np.array([float(x[1]) for x in g]); lon = np.array([float(x[2]) for x in g])
     lat, lon = v1._fill_invalid_coords(lat, lon)
-    lat, lon = v1._repair_spikes(lat, lon)
-    step = step_distances_m(lat, lon)
-    step = np.where(step > v1.OUTLIER_STEP_M, 0.0, step)
+    lat, lon = v1._repair_spikes(lat, lon, t)
     hz = session.gps_hz or 1
-    dt = np.diff(t, prepend=t[0]) / 1000.0
-    dt = np.where(dt <= 0, 1.0 / max(hz, 1), dt)
+    step, v_pos = v1.plausible_steps(lat, lon, t, hz)     # wie v2 (26.10.2026, #19096)
     roh = np.array([float(x[3]) if len(x) > 3 and x[3] is not None else np.nan for x in g])
-    speed = _clean_speed(np.where(np.isnan(roh), step / dt, roh), hz)
+    speed = _clean_speed(np.where(np.isnan(roh), v_pos, roh), hz)
     win = max(int(round(v1.SMOOTH_WINDOW_S * hz)), 1)
     speeds = {"1": speed, "3": v1._running_median(speed, win),
               "5": v1._running_median(speed, max(int(round(5 * hz)), 1))}

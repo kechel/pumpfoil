@@ -26,7 +26,6 @@ import numpy as np
 from ..ml.pumps import MIN_RMS as PUMP_MIN_RMS_G   # 0,05 g — Begründung unten bei den Schwellen
 from ..ml.pumps import PUMP_BAND_RATIO             # 0,45  — dito
 from . import gps as v1
-from .geo import step_distances_m
 from .timebase import TimeBase, build_timebase_for_session
 from .windows import HOP_MS, WINDOW_MS, window_grid
 
@@ -505,13 +504,12 @@ def detect_v2(
     speed_raw = np.array([float(s[3]) if len(s) > 3 and s[3] is not None else np.nan for s in gps])
 
     lat, lon = v1._fill_invalid_coords(lat, lon)
-    lat, lon = v1._repair_spikes(lat, lon)
-    step = step_distances_m(lat, lon)
-    step = np.where(step > v1.OUTLIER_STEP_M, 0.0, step)
+    lat, lon = v1._repair_spikes(lat, lon, t_ms)
+    # Glitches nach Tempo statt nach 25 m je Schritt (26.10.2026, #19096 Smart Recording) — s. v1.plausible_steps.
+    step, speed_from_pos = v1.plausible_steps(lat, lon, t_ms, gps_hz)
 
     dt = np.diff(t_ms, prepend=t_ms[0]) / 1000.0
     dt = np.where(dt <= 0, 1.0 / max(gps_hz, 1), dt)
-    speed_from_pos = step / dt
     speed = _clean_speed(np.where(np.isnan(speed_raw), speed_from_pos, speed_raw), gps_hz)
 
     win = max(int(round(v1.SMOOTH_WINDOW_S * gps_hz)), 1)
@@ -625,7 +623,7 @@ def detect_v2(
         mask[seg["i_start"]: seg["i_end"] + 1] = True
 
     for seg in segments:
-        seg["end_type"], seg["end_decel_mps2"] = v1._classify_end(seg["i_end"], speed_s, step, gps_hz)
+        seg["end_type"], seg["end_decel_mps2"] = v1._classify_end(seg["i_end"], speed_s, v1._ende_step(step), gps_hz)
         st = seg.pop("_start_t_exact", None)
         st = float(t_ms[seg["i_start"]]) if st is None else st
         seg["start_pt"] = v1._interp_lonlat(t_ms, lat, lon, st)

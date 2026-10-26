@@ -37,6 +37,8 @@ GAP_SPLIT_S = 15           # GPS-Lücke darüber = Dropout (Sturz/Schwimmen) -> 
 MOVE_FLOOR_MPS = 2.0       # gps_only: Mindest-Positionsbewegung fürs Foilen (~7 km/h)
 MAX_STEP_M = 60.0         # Teleport-Ausreißer (GPS-Sprung) clampen
 OUTLIER_STEP_M = 25.0     # 1-s-Schritt darüber (~>90 km/h) = GPS-Glitch -> reparieren
+OUTLIER_SPEED_MPS = 25.0  # dasselbe als Tempo: gilt fuer JEDEN Punktabstand, nicht nur 1 s (plausible_steps)
+MAX_GLITCH_PUNKTE = 10    # so viele Punkte am Stueck unplausibel -> Bezugspunkt war falsch, neu ansetzen
 # Ein echter Lauf hält ~10-22 km/h; schnelles Gehen an Land nur ~7-8 km/h.
 # Segmente mit zu niedrigem Ø-Speed sind keine echten Foil-Läufe -> verwerfen.
 MIN_SEG_AVG_SPEED = 2.8   # ~10 km/h
@@ -122,20 +124,75 @@ def _fill_invalid_coords(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, 
     return lat, lon
 
 
-def _repair_spikes(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _repair_spikes(lat: np.ndarray, lon: np.ndarray, t_ms: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Einzelpunkt-GPS-Glitches glätten: springt ein Punkt weit von beiden Nachbarn weg,
     während die Nachbarn selbst nah beieinander liegen (raus-und-zurück), wird er durch
-    die Mitte der Nachbarn ersetzt. So verschwinden Karten-Spikes + Falsch-Distanzen."""
+    die Mitte der Nachbarn ersetzt. So verschwinden Karten-Spikes + Falsch-Distanzen.
+    Mit `t_ms` skalieren die Schwellen mit dem Punktabstand (Smart Recording, 2-8 s; #19096) —
+    bei 1 s sind sie genau die alten 25 m."""
     lat = lat.copy(); lon = lon.copy()
     n = lat.size
     for i in range(1, n - 1):
         d_prev = float(haversine_m(lat[i - 1], lon[i - 1], lat[i], lon[i]))
         d_next = float(haversine_m(lat[i], lon[i], lat[i + 1], lon[i + 1]))
         d_skip = float(haversine_m(lat[i - 1], lon[i - 1], lat[i + 1], lon[i + 1]))
-        if d_prev > OUTLIER_STEP_M and d_next > OUTLIER_STEP_M and d_skip < OUTLIER_STEP_M:
+        if t_ms is None:
+            g_prev = g_next = g_skip = OUTLIER_STEP_M
+        else:
+            g_prev = OUTLIER_STEP_M * max((t_ms[i] - t_ms[i - 1]) / 1000.0, 1.0)
+            g_next = OUTLIER_STEP_M * max((t_ms[i + 1] - t_ms[i]) / 1000.0, 1.0)
+            g_skip = OUTLIER_STEP_M / 2.0 * max((t_ms[i + 1] - t_ms[i - 1]) / 1000.0, 2.0)
+        if d_prev > g_prev and d_next > g_next and d_skip < g_skip:
             lat[i] = (lat[i - 1] + lat[i + 1]) / 2.0
             lon[i] = (lon[i - 1] + lon[i + 1]) / 2.0
     return lat, lon
+
+
+def plausible_steps(lat: np.ndarray, lon: np.ndarray, t_ms: np.ndarray, gps_hz: int = 1) -> tuple[np.ndarray, np.ndarray]:
+    """Schrittdistanzen ohne GPS-Glitches, plus Tempo aus der Position je Punkt.
+
+    Bis 26.10.2026 galt jeder Schritt ueber 25 m als Glitch und zaehlte 0 — gedacht fuer Punkte im
+    Sekundentakt. Smart Recording (Garmin-FIT, Punkte alle 2-8 s) verlor so jeden schnellen Schritt:
+    #19096 (Wing, u244) 8,3 von 28,1 km, obwohl Spur-Tempo und Doppler dort auf 1 % uebereinstimmen.
+    Jetzt: unplausibel ist ein Punkt, der vom letzten GUTEN Punkt schneller als 25 m/s entfernt ist;
+    er zaehlt nicht, und der naechste gute Punkt misst wieder vom letzten guten — die Strecke ueber
+    den Glitch ist die Gerade dazwischen. Die Glitch-Punkte bekommen das Tempo dieser Geraden.
+    Sind MAX_GLITCH_PUNKTE am Stueck unplausibel, war der Bezugspunkt selbst falsch: dort neu
+    ansetzen, der Sprung zaehlt 0 (wie frueher).
+    Nur bis GAP_SPLIT_S: eine laengere Luecke ist ein Aussetzer (Uhr unter Wasser, Pause, Auto) — die
+    Gerade dorthin waere keine gefahrene Strecke. Dort gilt die alte Regel (bis 25 m zaehlt, sonst 0),
+    sonst wuchs z. B. #491 (Pumpfoil, 1 Hz) im Probelauf von 3,4 auf 7,1 km."""
+    import math
+    n = lat.size
+    step = np.zeros(n)
+    v_pos = np.zeros(n)
+    dt_min = 1.0 / max(gps_hz, 1)
+    rad = math.radians
+    def dist(a: int, b: int) -> float:
+        p1, p2 = rad(lat[a]), rad(lat[b])
+        h = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(rad(lon[b] - lon[a]) / 2) ** 2
+        return 2 * 6371000.0 * math.asin(math.sqrt(min(max(h, 0.0), 1.0)))
+    g = 0
+    schlecht = 0
+    for i in range(1, n):
+        d = dist(g, i)
+        span = max((t_ms[i] - t_ms[g]) / 1000.0, dt_min)
+        if span > GAP_SPLIT_S:
+            if d <= OUTLIER_STEP_M:
+                step[i] = d
+                v_pos[i] = d / span
+            g, schlecht = i, 0
+            continue
+        if d > OUTLIER_STEP_M and d / span > OUTLIER_SPEED_MPS:
+            schlecht += 1
+            if schlecht < MAX_GLITCH_PUNKTE:
+                continue
+            g, schlecht = i, 0          # neu ansetzen: Sprung zaehlt nicht
+            continue
+        step[i] = d
+        v_pos[g + 1:i + 1] = d / span
+        g, schlecht = i, 0
+    return step, v_pos
 
 
 def _running_median(x: np.ndarray, win: int) -> np.ndarray:
@@ -396,14 +453,12 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     # Einzelschritte über OUTLIER_STEP_M (~>90 km/h in 1 s) sind unmöglich (GPS-Catch-up
     # z. B. beim Reinfallen) -> zählen nicht zur Distanz.
     lat, lon = _fill_invalid_coords(lat, lon)   # (180,180)-Sentinels & Rand/Folge-Glitches
-    lat, lon = _repair_spikes(lat, lon)
-    step = step_distances_m(lat, lon)
-    step = np.where(step > OUTLIER_STEP_M, 0.0, step)
+    lat, lon = _repair_spikes(lat, lon, t_ms)
+    step, speed_from_pos = plausible_steps(lat, lon, t_ms, gps_hz)
 
     # Fehlende Speed aus Position/Zeit ableiten.
     dt = np.diff(t_ms, prepend=t_ms[0]) / 1000.0
     dt = np.where(dt <= 0, 1.0 / max(gps_hz, 1), dt)
-    speed_from_pos = step / dt
     speed = np.where(np.isnan(speed_raw), speed_from_pos, speed_raw)
 
     speed = clean_speed_series(speed, gps_hz)
@@ -515,7 +570,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
 
     # Lauf-Ende klassifizieren: Sturz vs. kontrollierter Stopp (GPS-Speed danach).
     for seg in segments:
-        seg["end_type"], seg["end_decel_mps2"] = _classify_end(seg["i_end"], speed_s, step, gps_hz)
+        seg["end_type"], seg["end_decel_mps2"] = _classify_end(seg["i_end"], speed_s, _ende_step(step), gps_hz)
 
     # Start-/Ende-Punkt für die Karten-Marker. Start wird auf den exakten Aufsprung-
     # Zeitpunkt zwischen den GPS-Samples interpoliert (sonst auf das nächste Sample).
@@ -606,6 +661,13 @@ def _interp_lonlat(t_ms: np.ndarray, lat: np.ndarray, lon: np.ndarray, t: float)
         round(float(lon[j - 1] + f * (lon[j] - lon[j - 1])), 6),
         round(float(lat[j - 1] + f * (lat[j] - lat[j - 1])), 6),
     ]
+
+
+def _ende_step(step: np.ndarray) -> np.ndarray:
+    """Schritte fuer _classify_end wie vor plausible_steps (26.10.2026): ueber OUTLIER_STEP_M = 0. Damit
+    bleibt die Lauf-Ende-Einstufung unveraendert (ihr Zweig „GPS-Aussetzer nach dem Lauf" griff so nie);
+    ob er kuenftig greifen soll, ist eine eigene Entscheidung."""
+    return np.where(step > OUTLIER_STEP_M, 0.0, step)
 
 
 def _classify_end(i_end: int, speed_s: np.ndarray, step: np.ndarray, gps_hz: int) -> tuple[str, float]:

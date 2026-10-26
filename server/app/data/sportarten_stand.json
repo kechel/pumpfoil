@@ -421,7 +421,7 @@
         "wenden_halsen": {
           "status": "live",
           "en": "Tacks and jibes counted (how many stayed on the foil) and marked on the map, estimated from the GPS track and the model wind",
-          "notiz": "Jan 19.10.: 'erkennung/zaehlen und anzeige fuer wenden & halsen ... braeuchte man aber auch die Windrichtung zu sessionzeit am spot'. Ansatz: Kursaenderung > ~90 Grad innerhalb weniger Sekunden; Wende vs. Halse ueber die Windrichtung (Bug durch den Wind vs. Heck durch den Wind). Windrichtung aus wind_am_spot, notfalls aus der Spur selbst (Kreuz-/Raumschotkurse: Achse der Zickzack-Schlaege). Gestuerzt/gehalten (Fuss blieb nicht drauf) ueber Tempoeinbruch unterscheidbar -> 'gelungene' Manoever. Jan 19.10.: „halsen & wenden sind planned auf jeden fall“. 19.10.: app/manoever.py + GET /api/sessions/{id}/manoever, nur Anzeige wie /carves. Kurs vor/nach (±4-10 s) dreht >= 100 Grad, je 20 s eine; Wende/Halse ueber Windrichtung (Modell je Stunde); durchgefahren = nie unter 12 km/h. #17478: Wenden 0/26, Halsen 78/92; #17384: 0/28, 128/146 — plausibel (Wenden auf dem Foil sind schwer). Synthetischer Test in tests/test_sessionwind.py. 19.10. abends: auf dem Foil entscheidet der Lauf (nicht das Tempo), gegen Alex' Einzel-Markierungen 5/5.",
+          "notiz": "Jan 19.10.: 'erkennung/zaehlen und anzeige fuer wenden & halsen ... braeuchte man aber auch die Windrichtung zu sessionzeit am spot'. Ansatz: Kursaenderung > ~90 Grad innerhalb weniger Sekunden; Wende vs. Halse ueber die Windrichtung (Bug durch den Wind vs. Heck durch den Wind). Windrichtung aus wind_am_spot, notfalls aus der Spur selbst (Kreuz-/Raumschotkurse: Achse der Zickzack-Schlaege). Gestuerzt/gehalten (Fuss blieb nicht drauf) ueber Tempoeinbruch unterscheidbar -> 'gelungene' Manoever. Jan 19.10.: „halsen & wenden sind planned auf jeden fall“. 19.10.: app/manoever.py + GET /api/sessions/{id}/manoever, nur Anzeige wie /carves. Kurs vor/nach (±4-10 s) dreht >= 100 Grad, je 20 s eine; Wende/Halse ueber Windrichtung (Modell je Stunde); durchgefahren = nie unter 12 km/h. #17478: Wenden 0/26, Halsen 78/92; #17384: 0/28, 128/146 — plausibel (Wenden auf dem Foil sind schwer). Synthetischer Test in tests/test_sessionwind.py. 19.10. abends: auf dem Foil entscheidet der Lauf (nicht das Tempo), gegen die Einzel-Markierungen von u43 5/5.",
           "plattformen": {
             "web": "2026-10-19",
             "android": "1.1.44",
@@ -1676,7 +1676,7 @@
         "kitebuggy"
       ],
       "merkmal": "hoehe",
-      "was": "Beste VMG jetzt als bestes 3-s-Mittel („best VMG (3s)\", wie Max Speed (3s)) mit dem Doppler-Tempo statt dem Tempo aus der Spur; gewertet nur lueckenlos, mit stabilem Kurs (≤ 20°) und wenn Doppler und Spur zusammenpassen. Anlass Feedback #18998 (Alex): ein GPS-Sprung im Stand ergab 20,8 km/h — so viel wie das Hoechsttempo; jetzt 11,6. Probelauf 1438 Wind-Sessions: Median beste VMG 15,7 -> 16,7 km/h, VMG ueber 90 % des Hoechsttempos 13 wie vorher; Durchschnitt und Hoehe nutzen ebenfalls den Doppler (Median Hoehe 3142 -> 3187 m).",
+      "was": "Beste VMG jetzt als bestes 3-s-Mittel („best VMG (3s)\", wie Max Speed (3s)) mit dem Doppler-Tempo statt dem Tempo aus der Spur; gewertet nur lueckenlos, mit stabilem Kurs (≤ 20°) und wenn Doppler und Spur zusammenpassen. Anlass Feedback #18998 (u43): ein GPS-Sprung im Stand ergab 20,8 km/h — so viel wie das Hoechsttempo; jetzt 11,6. Probelauf 1438 Wind-Sessions: Median beste VMG 15,7 -> 16,7 km/h, VMG ueber 90 % des Hoechsttempos 13 wie vorher; Durchschnitt und Hoehe nutzen ebenfalls den Doppler (Median Hoehe 3142 -> 3187 m).",
       "wo": [
         "server",
         "web",
@@ -1697,7 +1697,7 @@
         "kitebuggy"
       ],
       "merkmal": "wenden_halsen",
-      "was": "Wenden/Halsen auf dem Foil je Lauf (Spalte in der Lauf-Tabelle) und „meiste am Stueck in einem Lauf\" in der Windkarte. Wunsch Alex (#19084: 16 Halsen in einem Lauf). Nur Web; Apps folgen.",
+      "was": "Wenden/Halsen auf dem Foil je Lauf (Spalte in der Lauf-Tabelle) und „meiste am Stueck in einem Lauf\" in der Windkarte. Wunsch u43 (#19084: 16 Halsen in einem Lauf). Nur Web; Apps folgen.",
       "wo": [
         "server",
         "web"
@@ -1716,7 +1716,7 @@
         "kitebuggy"
       ],
       "merkmal": "wenden_halsen",
-      "was": "Halsen mit kurzer Luecke im Kurs mitten in der Drehung (Spur kurz unter 6 km/h, Doppler weiter >= 8) zaehlen nicht mehr als Wende: die Drehrichtung kommt aus der Kurve vor und nach der Luecke statt aus dem kuerzesten Bogen. Anlass Feedback #19084 (Alex): 3 Wenden -> 1. Probelauf 183 Wind-Sessions: 28 geaendert, Wenden 752 -> 724. Dazu: wer mit weniger als 8 km/h in die Drehung faehrt (Doppler −10…−4 s), startet — das ist kein Manoever (#19084 bei 55:41). Probelauf: 126 von 5.221 weg, davon 32 auf dem Foil; #19084 jetzt 0 Wenden.",
+      "was": "Halsen mit kurzer Luecke im Kurs mitten in der Drehung (Spur kurz unter 6 km/h, Doppler weiter >= 8) zaehlen nicht mehr als Wende: die Drehrichtung kommt aus der Kurve vor und nach der Luecke statt aus dem kuerzesten Bogen. Anlass Feedback #19084 (u43): 3 Wenden -> 1. Probelauf 183 Wind-Sessions: 28 geaendert, Wenden 752 -> 724. Dazu: wer mit weniger als 8 km/h in die Drehung faehrt (Doppler −10…−4 s), startet — das ist kein Manoever (#19084 bei 55:41). Probelauf: 126 von 5.221 weg, davon 32 auf dem Foil; #19084 jetzt 0 Wenden.",
       "wo": [
         "server"
       ]
