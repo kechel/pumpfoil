@@ -701,6 +701,8 @@ const cs: Record<string, string> = {
   "sd.windForecast": "Zčásti ještě předpověď, později ji nahradí skutečné počasí.",
   "sd.tacks": "Obraty",
   "sd.jibes": "Přehozy",
+  "sd.colTurns": "Obraty / přehozy",
+  "sd.maxTurnsRun": "Nejvíc za sebou: {n} v jedné jízdě",
   "sd.onFoil": "na foilu",
   "sd.upwind": "Stoupání proti větru",
   "sd.vmgBest": "nejlepší VMG {v} km/h",

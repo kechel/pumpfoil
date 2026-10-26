@@ -718,6 +718,8 @@ const en: Record<string, string> = {
   "sd.windForecast": "Partly still a forecast, replaced later by the observed weather.",
   "sd.tacks": "Tacks",
   "sd.jibes": "Jibes",
+  "sd.colTurns": "Tacks / jibes",
+  "sd.maxTurnsRun": "Most in a row: {n} in one run",
   "sd.onFoil": "on the foil",
   "sd.upwind": "Upwind",
   "sd.vmgBest": "best VMG {v} km/h",

@@ -684,6 +684,8 @@ const ptPT: Record<string, string> = {
   "sd.windForecast": "Em parte ainda é previsão; depois é substituída pelo tempo observado.",
   "sd.tacks": "Viragens",
   "sd.jibes": "Jibes",
+  "sd.colTurns": "Viragens / jibes",
+  "sd.maxTurnsRun": "Mais seguidas: {n} num run",
   "sd.onFoil": "no foil",
   "sd.upwind": "Contra o vento",
   "sd.vmgBest": "melhor VMG {v} km/h",

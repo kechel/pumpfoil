@@ -4126,9 +4126,9 @@ def _accel_auswertung_gecacht(db, s, name: str, version: str, rechnen, nur_cache
     return erg
 
 
-MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None, "fahrten": []}
+MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None, "fahrten": [], "je_lauf": []}
 # Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
-MANOEVER_VERSION = "m9-einfahrt"   # m9: Einfahrt unter 10 km/h = Start, kein Manoever (#19084); m8: Drehrichtung ueber Kurs-Luecken (#19084, 26.10.2026); m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
+MANOEVER_VERSION = "m10-je-lauf"   # m10: Drehungen auf dem Foil je Lauf + max_je_lauf (Alex); m9: Einfahrt unter 10 km/h = Start, kein Manoever (#19084); m8: Drehrichtung ueber Kurs-Luecken (#19084, 26.10.2026); m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
 
 
 def _manoever_schluessel(s, res) -> str:
@@ -4198,7 +4198,15 @@ def _manoever_berechnen(db, s, res) -> dict:
     # Hoehe laufen (Stand-Buch: hoehe): VMG zum Wind aus derselben Spur und Windrichtung.
     # Obergrenze fuers Spur-Tempo: Hoechsttempo der Analyse (gefiltert) + 20 % + 3 km/h Spielraum.
     cap = (float(res.max_speed_mps) * 3.6 * 1.2 + 3.0) if res is not None and res.max_speed_mps else None
-    erg = {"items": items, "zahlen": zahlen, "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von, cap)}
+    # Drehungen am Stueck je Lauf (Alex, 26.10.2026: „turns / Run will be more interesting" als pro Fahrt):
+    # auf dem Foil heisst ohnehin „im Lauf, und der geht danach weiter" -> Manoever auf dem Foil je Lauf.
+    # Reihenfolge wie segments_json, damit die Lauf-Tabelle per Index zuordnet.
+    je_lauf = [{"wende": sum(1 for m in items if m["durch"] and m["typ"] == "wende" and a_ <= m["t_ms"] <= b_),
+                "halse": sum(1 for m in items if m["durch"] and m["typ"] == "halse" and a_ <= m["t_ms"] <= b_)}
+               for a_, b_ in _laeufe]
+    zahlen["max_je_lauf"] = max((x["wende"] + x["halse"] for x in je_lauf), default=0)
+    erg = {"items": items, "zahlen": zahlen, "je_lauf": je_lauf,
+           "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von, cap)}
     erg["fahrten"] = _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden=_wind(
         s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at), t0=t0, cap=cap)
     return erg

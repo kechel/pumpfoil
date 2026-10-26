@@ -558,6 +558,8 @@ const gsw: Record<string, string> = {
   "sd.windForecast": "Teils no Vorhärsag, wird spöter dur di gmässni Wätterlag ersetzt.",
   "sd.tacks": "Wände",
   "sd.jibes": "Halse",
+  "sd.colTurns": "Wände / Halse",
+  "sd.maxTurnsRun": "Am meischte am Stück: {n} i eim Lauf",
   "sd.onFoil": "uf em Foil",
   "sd.upwind": "Höchi laufe",
   "sd.vmgBest": "beschts VMG {v} km/h",

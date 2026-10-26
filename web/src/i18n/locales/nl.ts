@@ -701,6 +701,8 @@ const nl: Record<string, string> = {
   "sd.windForecast": "Deels nog een voorspelling, wordt later vervangen door het waargenomen weer.",
   "sd.tacks": "Overstagen",
   "sd.jibes": "Gijpen",
+  "sd.colTurns": "Overstag / gijpen",
+  "sd.maxTurnsRun": "Meeste achter elkaar: {n} in één run",
   "sd.onFoil": "op de foil",
   "sd.upwind": "Hoogte lopen",
   "sd.vmgBest": "beste VMG {v} km/h",

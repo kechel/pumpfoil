@@ -692,6 +692,8 @@ const nb: Record<string, string> = {
   "sd.windForecast": "Delvis fortsatt prognose, erstattes senere av observert vær.",
   "sd.tacks": "Stagvendinger",
   "sd.jibes": "Jibber",
+  "sd.colTurns": "Stagvendinger / jibber",
+  "sd.maxTurnsRun": "Flest på rad: {n} i én run",
   "sd.onFoil": "på foilen",
   "sd.upwind": "Kryss",
   "sd.vmgBest": "beste VMG {v} km/t",

@@ -677,6 +677,8 @@ const zh: Record<string, string> = {
   "sd.windForecast": "部分仍为预报，之后会被实测天气替换。",
   "sd.tacks": "迎风转向",
   "sd.jibes": "顺风转向",
+  "sd.colTurns": "迎风转向 / 顺风转向",
+  "sd.maxTurnsRun": "最多连续：一个航段内 {n} 次",
   "sd.onFoil": "在水翼上",
   "sd.upwind": "迎风",
   "sd.vmgBest": "最佳 VMG {v} km/h",

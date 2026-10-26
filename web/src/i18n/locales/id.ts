@@ -677,6 +677,8 @@ const id: Record<string, string> = {
   "sd.windForecast": "Sebagian masih prakiraan, nanti diganti dengan cuaca yang teramati.",
   "sd.tacks": "Tack",
   "sd.jibes": "Jibe",
+  "sd.colTurns": "Tack / jibe",
+  "sd.maxTurnsRun": "Terbanyak beruntun: {n} dalam satu run",
   "sd.onFoil": "di atas foil",
   "sd.upwind": "Melawan angin",
   "sd.vmgBest": "VMG terbaik {v} km/h",

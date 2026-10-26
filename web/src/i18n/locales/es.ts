@@ -592,6 +592,8 @@ const es: Record<string, string> = {
   "sd.windForecast": "En parte todavía es una previsión; se sustituye después por el tiempo observado.",
   "sd.tacks": "Viradas",
   "sd.jibes": "Trasluchadas",
+  "sd.colTurns": "Viradas / trasluchadas",
+  "sd.maxTurnsRun": "Más seguidas: {n} en un run",
   "sd.onFoil": "sobre el foil",
   "sd.upwind": "Ceñida",
   "sd.vmgBest": "mejor VMG {v} km/h",

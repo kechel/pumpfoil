@@ -2220,6 +2220,10 @@ export default function SessionDetail() {
                   <b>{t("sd.jibes")}</b> {ohneFoil ? manoever.zahlen.halse.durch + manoever.zahlen.halse.ab
                     : <>{manoever.zahlen.halse.durch} / {manoever.zahlen.halse.durch + manoever.zahlen.halse.ab} {t("sd.onFoil")}</>}
                 </span>
+                {/* Drehungen am Stueck (Alex, 26.10.2026: „turns / Run will be more interesting"). */}
+                {!ohneFoil && (manoever.zahlen.max_je_lauf ?? 0) > 1 && (
+                  <span>{t("sd.maxTurnsRun", { n: String(manoever.zahlen.max_je_lauf) })}</span>
+                )}
               </div>
             </>
           )}
@@ -2830,7 +2834,8 @@ export default function SessionDetail() {
         excluded={session.excluded_ranges ?? []}
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
-        canEdit={owned && !isPublic} onSaved={uebernehmen} laufKennz={laufKennz} />
+        canEdit={owned && !isPublic} onSaved={uebernehmen} laufKennz={laufKennz}
+        drehungen={!ohneFoil && manoever?.je_lauf?.length === (a?.segments?.length ?? -1) && manoever.je_lauf.some((x) => x.wende + x.halse > 0) ? manoever.je_lauf : null} />
 
       {/* Puls je Lauf — dieselbe Darstellung wie im Vergleich, hier nur fuer diese eine Session.
           Ohne Fahrer-Beschriftung (jede Zeile waere derselbe Name), nur mit der Lauf-Nummer.
@@ -3441,7 +3446,10 @@ function RunsTable({
   canEdit = false,
   onSaved,
   laufKennz = [],
+  drehungen = null,
 }: {
+  // Wenden/Halsen auf dem Foil je Lauf (Index wie segments) — nur Wind-Sessions mit Foil.
+  drehungen?: { wende: number; halse: number }[] | null;
   segments: any[];
   selected: number | null;
   onSelect: (i: number | null) => void;
@@ -3572,6 +3580,7 @@ function RunsTable({
     hrMax: (s) => maxHr(s), hrEnd: (s) => { const w = hrWerte(s); return w.length ? w[w.length - 1] : null; },
     hrDrop60: (s) => hrDrop(s, 60), hrDrop120: (s) => hrDrop(s, 120),
     glide: (s) => s.longest_glide_s,
+    turns: (s) => { const d = drehungen?.[segments.indexOf(s)]; return d ? d.wende + d.halse : null; },
   };
   const order = segments.map((_, i) => i);
   if (sortKey && SORT[sortKey]) {
@@ -3722,6 +3731,7 @@ function RunsTable({
               {th("avg", t("sd.colAvg"))}
               {th("max", t("sd.colMax", { win }))}
               {th("min", t("sd.colMin", { win }))}
+              {drehungen && th("turns", t("sd.colTurns"))}
               {showPower && th("power", t("sd.colPower"))}
               {th("pumps", t("sd.colPumps"))}
               {hasPump && th("distPerPump", t("sd.colDistPerPump"))}
@@ -3771,6 +3781,7 @@ function RunsTable({
                   <td className="px-3 py-2 tabular-nums">{s.avg_speed_mps != null ? (s.avg_speed_mps * 3.6).toFixed(1) : "–"}</td>
                   <td className="px-3 py-2 tabular-nums">{val(s, "max")}</td>
                   <td className="px-3 py-2 tabular-nums">{val(s, "min")}</td>
+                  {drehungen && <td className="px-3 py-2 tabular-nums">{drehungen[i] ? `${drehungen[i].wende} / ${drehungen[i].halse}` : "–"}</td>}
                   {showPower && (
                     <td className="px-3 py-2 tabular-nums text-brand-400">
                       {(() => { const w = powerFor!(s.avg_speed_mps, s.avg_pump_hz); return w != null ? `${w} W` : "–"; })()}

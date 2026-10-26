@@ -698,6 +698,8 @@ const pl: Record<string, string> = {
   "sd.windForecast": "Częściowo jeszcze prognoza, później zastąpiona przez obserwowaną pogodę.",
   "sd.tacks": "Zwroty przez sztag",
   "sd.jibes": "Zwroty przez rufę",
+  "sd.colTurns": "Zwroty / rufy",
+  "sd.maxTurnsRun": "Najwięcej z rzędu: {n} w jednym przejeździe",
   "sd.onFoil": "na foilu",
   "sd.upwind": "Halsowanie pod wiatr",
   "sd.vmgBest": "najlepsze VMG {v} km/h",

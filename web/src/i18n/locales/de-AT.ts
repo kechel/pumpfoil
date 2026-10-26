@@ -549,6 +549,8 @@ const deAT: Record<string, string> = {
   "sd.windForecast": "Teils noch Vorhersage, wird später durch die gemessene Wetterlage ersetzt.",
   "sd.tacks": "Wenden",
   "sd.jibes": "Halsen",
+  "sd.colTurns": "Wenden / Halsen",
+  "sd.maxTurnsRun": "Meiste am Stück: {n} in einem Lauf",
   "sd.onFoil": "am Foil",
   "sd.upwind": "Höhe laufen",
   "sd.vmgBest": "bestes VMG {v} km/h",

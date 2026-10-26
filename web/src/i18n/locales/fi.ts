@@ -684,6 +684,8 @@ const fi: Record<string, string> = {
   "sd.windForecast": "Osittain vielä ennuste, korvataan myöhemmin havaitulla säällä.",
   "sd.tacks": "Vendat",
   "sd.jibes": "Jiippaukset",
+  "sd.colTurns": "Vendat / jiipit",
+  "sd.maxTurnsRun": "Eniten peräkkäin: {n} yhdellä vedolla",
   "sd.onFoil": "foililla",
   "sd.upwind": "Ylätuuleen",
   "sd.vmgBest": "paras VMG {v} km/h",

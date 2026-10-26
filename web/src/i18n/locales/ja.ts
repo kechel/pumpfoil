@@ -677,6 +677,8 @@ const ja: Record<string, string> = {
   "sd.windForecast": "一部はまだ予報です。後で実際の気象データに置き換わります。",
   "sd.tacks": "タック",
   "sd.jibes": "ジャイブ",
+  "sd.colTurns": "タック / ジャイブ",
+  "sd.maxTurnsRun": "連続最多：1回のランで{n}回",
   "sd.onFoil": "フォイル上",
   "sd.upwind": "アップウィンド",
   "sd.vmgBest": "最高VMG {v} km/h",
