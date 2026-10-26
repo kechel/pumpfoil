@@ -289,5 +289,12 @@ wiener walzer".** Daraufhin auch 59:10–59:50 und 63:10–63:50 als Wiener Walz
 mehrere Lieder am Stueck, danach kommt er nicht wieder. Ein Abend ist also eine Folge weniger Bloecke; die Erkennung
 koennte ganze Bloecke statt einzelner Abschnitte bewerten (mehr Fenster je Entscheidung), und ein Wechsel ist selten.
 Passt zur Auswahl-Reihenfolge 0.6.1 (heute bestaetigte zuerst).
+**Nachtrag (Jan, 26.10.2026): Anfang „koennte ein cha-cha-cha gewesen sein"** → geprueft: 4–10' fast durchgehend
+getanzt, Takt im Mittel **126 /min** = Lehrbuch-Cha-Cha (30–32 Takte x 4), wenig Drehung (0,17). Einzige Cha-Cha-
+Referenz (9 Fenster, 1 Abend) misst Takt 63 (halber Takt) und mehr Arm/Quer — zu duenn, um zu widersprechen. Jan: ja →
+neue Zeile **4:00–10:00 Cha-Cha-Cha** (Uhr hatte vor 11:50 keinen Abschnitt). Weiter Jan: „davor haben wir halt ganz
+langsam wiener walzer figuren geuebt, aber das ist auch nicht 'richtiges tanzen'" — gemeint (so verstanden) die
+Strecke **30–52' vor dem Walzer-Block**: wenig Drehung, nur stellenweise tanzend, wechselnder Takt. Bleibt
+unbeschriftet; **Figuren-Ueben ist kein Tanz-Muster** und darf nicht ins Training (sonst lernt WW „kaum Drehung").
 → Wiener Walzer erkennt man am Handgelenk am ehesten an **anhaltender Drehung** (> ~0,8 Umdr./10 s ueber Minuten),
 nicht am Takt.
