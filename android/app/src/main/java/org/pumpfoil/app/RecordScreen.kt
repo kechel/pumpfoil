@@ -385,7 +385,6 @@ private fun RecordingBody(st: Recorder.State) {
     LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(1000); jetzt = android.os.SystemClock.elapsedRealtime() } }
     val gpsWeg = !st.gpsFix || jetzt - st.gpsLetzteMs > 5_000 || jetzt - st.gpsGutMs > 3_000
     val sek = maxOf(st.elapsedSec, (Recorder.elapsedMs() / 1000).toLong())
-    Spacer(Modifier.height(4.dp))
     Text(if (st.isFoiling) I18n.t("rec.onfoil") else I18n.t("rec.recording"),
         style = MaterialTheme.typography.titleMedium,
         color = if (st.isFoiling) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
@@ -394,7 +393,7 @@ private fun RecordingBody(st: Recorder.State) {
         Text(I18n.t("rec.gpsSearch"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.error)
     }
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(6.dp))
     val mmss = { s: Long -> "%d:%02d".format(s / 60, s % 60) }
     val km = { m: Double -> if (m >= 1000) "%.2f km".format(m / 1000) else "%d m".format(m.toInt()) }
     // Foil-Strecke (Summe aller Laeufe) statt Gesamtstrecke (Jan, 26.10.2026): „Gesamtstrecke will ich
@@ -403,12 +402,12 @@ private fun RecordingBody(st: Recorder.State) {
     StatRow(I18n.t("rec.time"), mmss(sek), I18n.t("rec.foilDist"), km(st.allRunsDistanceM))
     StatRow(I18n.t("rec.speed"), if (gpsWeg) "--" else "%.1f".format(st.speedKmh), I18n.t("rec.speedMax"), "%.1f".format(st.maxSpeedKmh))
     StatRow(I18n.t("rec.runs"), st.runCount.toString(), I18n.t("rec.runDur"), mmss(st.runDurationMs / 1000))
-    Spacer(Modifier.height(10.dp))
+    Spacer(Modifier.height(6.dp))
     // Eigene Uhr-Datenseiten live + die Laeufe zum Durchblaettern, ueber der Karte (LiveSeiten.kt).
     LiveUhrSeiten(st, liveWerte(st, sek, gpsWeg))
-    Spacer(Modifier.height(10.dp))
+    Spacer(Modifier.height(6.dp))
     LaeufeKarte(st.laeufe)
-    Spacer(Modifier.height(10.dp))
+    Spacer(Modifier.height(6.dp))
     if (st.uploading || st.pendingCount > 0 || st.uploadError.isNotEmpty()) {
         val txt = when {
             st.uploadError == "offline" -> I18n.t("rec.upOffline")
@@ -442,7 +441,8 @@ private fun SavedBody(st: Recorder.State, onBack: () -> Unit) {
 
 @Composable
 private fun StatRow(l1: String, v1: String, l2: String, v2: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    // Kompakter (Jan, 26.10.2026: „oben … sehr viel padding und margin").
+    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         StatCell(l1, v1, Modifier.weight(1f)); StatCell(l2, v2, Modifier.weight(1f))
     }
 }
@@ -450,8 +450,8 @@ private fun StatRow(l1: String, v1: String, l2: String, v2: String) {
 @Composable
 private fun StatCell(label: String, value: String, modifier: Modifier = Modifier) {
     Card(modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.padding(12.dp)) {
-            Text(value, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 7.dp)) {
+            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text(label, style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

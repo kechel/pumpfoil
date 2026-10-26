@@ -212,9 +212,10 @@ struct RecordView: View {
     // MARK: - Aufnahme
 
     private var recordingBody: some View {
-        VStack(spacing: 14) {
+        // Kompakter (Jan, 26.10.2026: „oben … sehr viel padding und margin") — Abstaende 14 -> 8.
+        VStack(spacing: 8) {
             Text(recordingStateText)
-                .font(.title3).foregroundStyle(recordingStateColor)
+                .font(.headline).foregroundStyle(recordingStateColor)
             // GPS weg (PhoneRecorder.gpsWeg, 25.10.2026): deutlich, nicht nur „--" im Tempo.
             if rec.gpsWeg {
                 Text(Loc.t("rec.gpsSearch", lang)).font(.headline).foregroundStyle(Color.red)
@@ -222,7 +223,7 @@ struct RecordView: View {
             // Scrollbereich ueber dem festen STOPP: Zahlen, Uhrseiten, Laeufe und Karte (26.10.2026) passen
             // auf kleinen iPhones nicht mehr untereinander — STOPP darf nie aus dem Bild rutschen.
             ScrollView {
-                VStack(spacing: 14) {
+                VStack(spacing: 8) {
                     // Foil-Strecke (Summe aller Laeufe) statt Gesamtstrecke (Jan, 26.10.2026): „Gesamtstrecke
                     // will ich garnicht haben … darunter wuerde ich intuitiv auch on foil verstehen".
                     statRow(Loc.t("rec.time", lang), mmss(rec.elapsedSec), Loc.t("rec.foilDist", lang), km(rec.allRunsDistanceM))
@@ -321,15 +322,15 @@ struct RecordView: View {
     }
 
     private func statRow(_ l1: String, _ v1: String, _ l2: String, _ v2: String) -> some View {
-        HStack(spacing: 12) { statCell(l1, v1); statCell(l2, v2) }
+        HStack(spacing: 8) { statCell(l1, v1); statCell(l2, v2) }
     }
     private func statCell(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(value).font(.system(size: 26, weight: .bold))
+        VStack(alignment: .leading, spacing: 0) {
+            Text(value).font(.system(size: 24, weight: .bold))
             Text(label).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(.horizontal, 12).padding(.vertical, 7)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.12)))
     }
 }
@@ -473,7 +474,7 @@ struct LiveUhrSeitenView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: alle.count > 1 ? .always : .never))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
-        .frame(height: 226)
+        .frame(height: 214)
         // Zustandswechsel (Lauf beginnt/endet) -> erste Seite des neuen Zustands, wie die Uhr.
         .onChange(of: rec.isFoiling) { _ in seite = 0 }
         .task { await laden() }
