@@ -447,6 +447,7 @@ const fr: Record<string, string> = {
 
   "sessions.title": "Sessions",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Valides",
   "sessions.filterOther": "Écartées",
   "sessions.filterOtherHint": "Sessions écartées (pas du pumpfoil) — visibles seulement par toi",
   "sessions.otherWhy": "Ces enregistrements n'ont pas été comptés comme du pumpfoil — le plus souvent parce qu'aucun run n'a été détecté, ou parce qu'un run a été aidé (remorquage, moteur, vague de bateau). Ils ne sont visibles que par toi.",

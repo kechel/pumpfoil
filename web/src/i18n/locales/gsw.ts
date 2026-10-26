@@ -446,6 +446,7 @@ const gsw: Record<string, string> = {
 
   "sessions.title": "Sessions",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Gültig",
   "sessions.filterOther": "Usghoble",
   "sessions.filterOtherHint": "Usghobeni Sessions (kei Pumpfoil) — nur für di sichtbar",
   "sessions.otherWhy": "Die Ufnahme sind nöd als Pumpfoile zählt worde — meischtens, wil kei Läuf erkennt worde sind oder wil en Lauf frömdi Chraft gha het (Schleppe, Motor, Schiffswelle). Si sind nur für dich sichtbar.",

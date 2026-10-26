@@ -479,6 +479,7 @@ const ja: Record<string, string> = {
 
   "sessions.title": "セッション",
   "sessions.filterPump": "パンプフォイル",
+  "sessions.filterValid": "有効",
   "sessions.filterOther": "除外済み",
   "sd.hotkeysTitle": "キーボード：1〜9 でラン選択 · 0 で全部 · ←/→ で移動 · F でフルスクリーン · スペースで再生/一時停止",
   "sessions.deleteAllOther": "すべて削除",

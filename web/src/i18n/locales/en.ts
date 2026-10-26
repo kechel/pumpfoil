@@ -506,6 +506,7 @@ const en: Record<string, string> = {
 
   "sessions.title": "Sessions",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Valid",
   "sessions.filterOther": "Filtered out",
   "sd.hotkeysTitle": "Keyboard: 1–9 select run · 0 all · ←/→ browse · F fullscreen · Space play/pause",
   "sessions.deleteAllOther": "Delete all",

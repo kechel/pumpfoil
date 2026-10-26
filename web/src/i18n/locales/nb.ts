@@ -495,6 +495,7 @@ const nb: Record<string, string> = {
   "unit.spots": "Spots",
   "sessions.title": "Økter",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Gyldige",
   "sessions.filterOther": "Sortert ut",
   "sd.hotkeysTitle": "Tastatur: 1–9 velg run · 0 alle · ←/→ bla · F fullskjerm · Mellomrom spill/pause",
   "sessions.deleteAllOther": "Slett alle",

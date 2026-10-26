@@ -479,6 +479,7 @@ const ru: Record<string, string> = {
 
   "sessions.title": "Сессии",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Действительные",
   "sessions.filterOther": "Отфильтровано",
   "sd.hotkeysTitle": "Клавиатура: 1–9 выбрать заезд · 0 все · ←/→ листать · F полный экран · Пробел воспр./пауза",
   "sessions.deleteAllOther": "Удалить все",

@@ -440,6 +440,7 @@ const deAT: Record<string, string> = {
 
   "sessions.title": "Sessions",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Gültig",
   "sessions.filterOther": "Aussortiert",
   "sessions.filterOtherHint": "Aussortierte Sessions (kei Pumpfoil) — nur für di sichtbar",
   "sessions.otherWhy": "Diese Aufnahmen wurden nicht als Pumpfoilen gezählt — meist, weil keine Läufe erkannt wurden oder weil ein Lauf fremde Kraft hatte (Schleppen, Motor, Schiffswelle). Sie sind nur für dich sichtbar.",

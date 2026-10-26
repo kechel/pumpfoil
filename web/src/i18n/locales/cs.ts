@@ -493,6 +493,7 @@ const cs: Record<string, string> = {
   // Sessions-Liste
   "sessions.title": "Vyjížďky",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Platné",
   "sessions.filterOther": "Vyřazené",
   "sd.hotkeysTitle": "Klávesnice: 1–9 vybrat jízdu · 0 vše · ←/→ listovat · F celá obrazovka · mezerník play/pauza",
   "sessions.deleteAllOther": "Smazat vše",

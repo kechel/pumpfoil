@@ -762,7 +762,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
     <div>
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="flex gap-1">
-          <button onClick={() => changeFilter("pump")} className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "pump" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>{t("sessions.filterPump")}</button>
+          <button onClick={() => changeFilter("pump")} className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "pump" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>{t("sessions.filterValid")}</button>
           {/* Aussortiert: Anzahl direkt am Tab, und amber hervorgehoben, solange etwas FRISCHES
               (letzte 7 Tage) darin liegt. Der Erklärungstext steht bewusst erst in der Ansicht
               selbst — auf der Übersicht soll kein Absatz stehen (Jan, 05.08.). */}

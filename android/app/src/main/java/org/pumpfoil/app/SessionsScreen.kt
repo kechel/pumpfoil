@@ -401,7 +401,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     FilterChip(selected = filter == "pump", onClick = { filter = "pump"; month = "" },
-                        label = { Text(I18n.t("sessions.filterPump")) }, colors = cyanChipColors())
+                        label = { Text(I18n.t("sessions.filterValid")) }, colors = cyanChipColors())
                     FilterChip(selected = filter == "other", onClick = { filter = "other"; month = "" },
                         label = { Text(I18n.t("sessions.filterOther")) }, colors = cyanChipColors())
                     MonthDropdown(months, month) { month = it }

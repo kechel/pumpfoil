@@ -480,6 +480,7 @@ const fi: Record<string, string> = {
   // Sessions-Liste
   "sessions.title": "Sessiot",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Kelvolliset",
   "sessions.filterOther": "Karsitut",
   "sessions.filterOtherHint": "Karsitut sessiot (ei pumpfoilia) — näkyvät vain sinulle",
   "sessions.otherWhy": "Näitä tallenteita ei laskettu pumpfoilaukseksi — yleensä siksi, ettei vetoja tunnistettu, tai koska veto sai apua muualta (hinaus, moottori, laivan aalto). Ne näkyvät vain sinulle.",

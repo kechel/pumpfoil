@@ -447,6 +447,7 @@ const es: Record<string, string> = {
 
   "sessions.title": "Sesiones",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Válidas",
   "sessions.filterOther": "Descartadas",
   "sessions.filterOtherHint": "Sesiones descartadas (no pumpfoil) — visibles solo para ti",
   "sessions.otherWhy": "Estas grabaciones no se contaron como pumpfoil — normalmente porque no se detectaron tramos o porque un tramo tuvo ayuda externa (remolque, motor, ola de un barco). Solo tú puedes verlas.",

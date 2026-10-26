@@ -447,6 +447,7 @@ const it: Record<string, string> = {
 
   "sessions.title": "Sessioni",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Valide",
   "sessions.filterOther": "Escluse",
   "sessions.filterOtherHint": "Sessioni escluse (non pumpfoil) — visibili solo a te",
   "sessions.otherWhy": "Queste registrazioni non sono state conteggiate come pumpfoil — di solito perché non è stato rilevato alcun tratto, o perché un tratto ha avuto una spinta esterna (traino, motore, onda di una barca). Sono visibili solo a te.",

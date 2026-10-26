@@ -493,6 +493,7 @@ const nl: Record<string, string> = {
   // Sessions-Liste
   "sessions.title": "Sessies",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Geldig",
   "sessions.filterOther": "Uitgefilterd",
   "sd.hotkeysTitle": "Toetsenbord: 1–9 run kiezen · 0 alle · ←/→ bladeren · F volledig scherm · spatie play/pauze",
   "sessions.deleteAllOther": "Alles verwijderen",

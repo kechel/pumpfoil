@@ -329,7 +329,7 @@ struct SessionsView: View {
 
     @ViewBuilder private var monthFilterRow: some View {
         HStack(spacing: 8) {
-            chip(Loc.t("sessions.filterPump", lang), filter == "pump") { filter = "pump"; month = "" }
+            chip(Loc.t("sessions.filterValid", lang), filter == "pump") { filter = "pump"; month = "" }
             chip(Loc.t("sessions.filterOther", lang), filter == "other") { filter = "other"; month = "" }
             Menu {
                 Button(Loc.t("sessions.allMonths", lang)) { month = "" }

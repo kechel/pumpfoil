@@ -479,6 +479,7 @@ const id: Record<string, string> = {
 
   "sessions.title": "Sesi",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Valid",
   "sessions.filterOther": "Tersaring keluar",
   "sd.hotkeysTitle": "Keyboard: 1–9 pilih run · 0 semua · ←/→ jelajah · F layar penuh · Space putar/jeda",
   "sessions.deleteAllOther": "Hapus semua",

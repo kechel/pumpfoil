@@ -519,6 +519,7 @@ const de: Record<string, string> = {
   // Sessions-Liste
   "sessions.title": "Sessions",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Gültig",
   "sessions.filterOther": "Aussortiert",
   "sd.hotkeysTitle": "Tastatur: 1–9 Lauf wählen · 0 alle · ←/→ blättern · F Vollbild · Leertaste Play/Pause",
   "sessions.deleteAllOther": "Alle löschen",

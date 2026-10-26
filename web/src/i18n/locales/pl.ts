@@ -495,6 +495,7 @@ const pl: Record<string, string> = {
   "unit.spots": "Spoty",
   "sessions.title": "Sesje",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Ważne",
   "sessions.filterOther": "Odfiltrowane",
   "sd.hotkeysTitle": "Klawiatura: 1–9 wybór przejazdu · 0 wszystkie · ←/→ przewijanie · F pełny ekran · Spacja odtwórz/pauza",
   "sessions.deleteAllOther": "Usuń wszystkie",

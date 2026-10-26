@@ -479,6 +479,7 @@ const zh: Record<string, string> = {
 
   "sessions.title": "记录",
   "sessions.filterPump": "泵翼",
+  "sessions.filterValid": "有效",
   "sessions.filterOther": "已筛除",
   "sd.hotkeysTitle": "键盘：1–9 选择航段 · 0 全部 · ←/→ 浏览 · F 全屏 · 空格 播放/暂停",
   "sessions.deleteAllOther": "全部删除",

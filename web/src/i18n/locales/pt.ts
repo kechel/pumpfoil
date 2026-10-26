@@ -479,6 +479,7 @@ const pt: Record<string, string> = {
 
   "sessions.title": "Sessões",
   "sessions.filterPump": "Pumpfoil",
+  "sessions.filterValid": "Válidas",
   "sessions.filterOther": "Filtradas",
   "sd.hotkeysTitle": "Teclado: 1–9 seleciona volta · 0 todas · ←/→ navegar · F tela cheia · Espaço play/pause",
   "sessions.deleteAllOther": "Excluir todas",
