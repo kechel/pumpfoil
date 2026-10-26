@@ -1496,6 +1496,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **26.10. — Foil Scoot: Gleiten ohne Tempoabfall = Indiz fuer Bein-Pumpen** (Jan: „ignorieren wir erstmal, merken als weiteres Indiz“). Bewertung 6, #18900 (u267): Gleitphase 16:46–16:56 (9,7 s) mit ruhigem Handgelenk, GPS aber konstant 12–16 km/h, Sturz erst 17:12; Lauf endet 5 s vor dem Sturz. Beim Scoot halten die Haende den Lenker, gepumpt wird mit den Beinen — pg-scoot-1 (Pausen der Handgelenk-Pumps) sieht das als Gleiten. Idee: Gleiten nur mit echtem Tempoabfall. Erst mit mehr Faellen, vorher ueber alle Scoot-Sessions rechnen.
 - **25.10. — Zusammenfuehren nimmt Kreisel/Magnetfeld/Puls-Kanal nicht mit** (`merge.py`, nur GPS + Accel; s.
   docs/DATA-PIPELINE.md §9.5a). Betrifft nur Handy-Recorder (keine Uhr sammelt Kreisel). Bestand geprueft: 6 von 120
   Zusammenfuehrungen mit Kreisel in einer Quelle, alle Handy in Tasche/Arm, keine am Brett -> nichts Sichtbares fehlt,
