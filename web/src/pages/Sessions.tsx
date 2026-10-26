@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { sortiereNachSport } from "../lib/sportClass";
+import { classLabelKey, sortiereNachSport } from "../lib/sportClass";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
 import { foilLabel } from "../lib/foilLabel";
@@ -846,6 +846,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
               spot={s.place_name}
               foil={s.foil ? foilLabel(s.foil) : null}
               ohneFoil={s.sport_profil?.foil === false}
+              sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(classLabelKey({ sport_class: s.sport_class })) : null}
               {...setupLabels(s)}
               deviceLabel={s.device_label}
               placement={s.placement}

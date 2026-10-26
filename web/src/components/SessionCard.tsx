@@ -240,7 +240,10 @@ export function SessionCard({
     <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-sm text-amber-800 dark:text-amber-200">
       {t("cls.needsBadge")}
     </span>
-  ) : isClassified({ sport_class: sportClass, data_quality: dataQuality }) ? (
+  ) : isClassified({ sport_class: sportClass, data_quality: dataQuality })
+      // Sportart steht schon als gelbes Label neben der Zeit (Feedback u244, 26.10.2026) — grau nur
+      // noch Datenqualitaet, sonst stuende dieselbe Sportart zweimal auf der Karte.
+      && !(sportLabel && (dataQuality ?? "ok") === "ok") ? (
     <span className="rounded-lg bg-slate-500/15 px-2 py-0.5 text-sm text-slate-300">
       {t(classLabelKey({ sport_class: sportClass, data_quality: dataQuality }))}
     </span>
