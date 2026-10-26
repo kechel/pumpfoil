@@ -9,6 +9,7 @@ Community-Layouts. Ausgewertet am 09.10.2026 (105 Layouts, 828 Nutzer, davon 705
               + am 26.10.2026 After a run (totals) von Jan (u2) als zweite Seite: Strecke/Zeit aller
                 Laeufe — der 10K-Versuch u897 (#17390) zeigte, dass die Foil-Summe sonst niemand sieht
     pause     Between runs (6)
+              + am 26.10.2026 Paused (totals): Kopie von After a run (totals) mit Pausiert-Hinweis (Jan)
 
 Die Layouts liegen als FESTE Kopie in `data/standard_layouts.json` — ein Verweis auf das Original
 haette den Standard fuer alle geaendert, sobald der Autor sein Layout bearbeitet oder loescht.

@@ -44,7 +44,7 @@ def _config(client, dev, pn):
 def test_daten_vollstaendig():
     assert [l["name"] for l in SL.liste("on_foil")] == ["While riding", "BPM + Speed", "All in"]
     assert [l["name"] for l in SL.liste("off_foil")] == ["After a run", "After a run (totals)", "All in betwene"]
-    assert [l["name"] for l in SL.liste("pause")] == ["Between runs"]
+    assert [l["name"] for l in SL.liste("pause")] == ["Between runs", "Paused (totals)"]
     for k in SL.KATEGORIEN:
         for l in SL.liste(k):
             assert l["elements"] and isinstance(l["autor_id"], int)
@@ -58,7 +58,7 @@ def test_neuer_nutzer_bekommt_standard_auf_der_uhr(client):
     assert len(c["pages"]) == 3 and all(p[0] == 1 for p in c["pages"])
     assert c["pages"][0] == SL.payload(SL.liste("on_foil")[0])
     assert len(c["offFoilPages"]) == 3 and c["offFoil"] == SL.payload(SL.liste("off_foil")[0])
-    assert c["pausePages"] == [SL.payload(SL.liste("pause")[0])]
+    assert c["pausePages"] == [SL.payload(l) for l in SL.liste("pause")]
 
 
 def test_uhr_ohne_layout_renderer_bekommt_umgerechnete_seiten(client):
