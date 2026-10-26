@@ -212,6 +212,9 @@ trotzdem rhythmisch ~60–64 /min), Jive 78:20–81:20 **0,22–0,35 g**, Samba 
 Die Armbewegung trennt Tango/Jive viel klarer als der Takt; weder Uhr-Rechnung noch Server s1 nutzen bisher
 eine Amplitude als Merkmal -> Kandidat fuer das naechste Merkmal (erst an mehr markierten Abenden pruefen).
 
+**Nachtrag (Jan, 26.10.2026): „gaaanz am anfang zum eintanzen gab es einen rumba gestern".** Die Rumba-Zeilen
+0:01–1:11 und der Marker bei 4:41 stimmen also; „vor der Pause nur Wiener Walzer" galt erst danach.
+
 ## #16875 (15.10., „Disco-Fox, Boogy, Bachata") beschriftet (25.10.2026)
 
 Jan: nur diese drei Taenze, am meisten Disco-Fox, 1–2 Bachata, 1–2 Boogie/Jive, viele Pausen. **Bachata ist viel
