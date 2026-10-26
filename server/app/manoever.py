@@ -234,12 +234,19 @@ def wind_funktion(wind: dict | None):
 # --- Hoehe laufen (19.10.2026, Stand-Buch: hoehe) --------------------------------------------------
 # Ebenfalls NUR ANZEIGE. VMG zum Wind = Tempo * cos(Winkel zwischen Kurs und der Richtung, AUS der der
 # Wind kommt): positiv = man gewinnt Hoehe. Gezaehlt wird nur auf dem Foil (>= DURCHGEFAHREN_KMH).
-HOEHE_FENSTER_S = 10.0
+# Tempo aus dem Doppler, Kurs weiter aus der Spur (26.10.2026, Alex #18998): das Spur-Tempo machte aus einem
+# GPS-Sprung im Stand (Doppler 3-5 km/h, Position 70 m gegen den Wind) eine „beste VMG" von 20,8 km/h — so hoch wie
+# das Hoechsttempo. Fenster 3 s wie „Max Speed (3s)". Ein so kurzes Fenster fing aber Halsen (Kurs dreht durch
+# den Wind, Tempo noch hoch, #18999) und Luecken (Doppler 33 / Spur 10 km/h, #13181) — gewertet wird es deshalb nur
+# lueckenlos, mit stabilem Kurs und wenn Doppler und Spur zusammenpassen. Probe ueber 1391 Wind-Sessions: VMG ueber
+# 90 % des Hoechsttempos 13 wie vorher, Median VMG/Hoechsttempo 0,48 -> 0,50.
+HOEHE_FENSTER_S = 3.0
+HOEHE_KURS_STREUUNG = 20.0     # Grad, Kurs im Bestfenster
 
 
-def hoehe(t_ms, lat, lon, wind_von, max_kmh: float | None = None) -> dict | None:
+def hoehe(t_ms, lat, lon, wind_von, max_kmh: float | None = None, doppler_mps=None) -> dict | None:
     """Kennzahlen zum Hoehelaufen oder None (zu wenig Fahrt / keine Windrichtung):
-    vmg_max_kmh = bestes 10-s-Mittel der VMG zum Wind, vmg_mittel_kmh = mittlere VMG am Wind,
+    vmg_max_kmh = bestes 3-s-Mittel der VMG zum Wind, vmg_mittel_kmh = mittlere VMG am Wind,
     am_wind_anteil = Anteil der Foil-Zeit mit Kurs gegen den Wind, hoehe_m = gesamt gewonnene Hoehe
     (Summe der positiven VMG), winkel_med = typischer Winkel zum Wind am Wind (kleiner = hoeher)."""
     # `max_kmh` (20.10.2026): Obergrenze aus dem Hoechsttempo der Analyse. #14111 (Uhr lag 5,5 h fast
@@ -248,6 +255,14 @@ def hoehe(t_ms, lat, lon, wind_von, max_kmh: float | None = None) -> dict | None
     n = len(t)
     if n < 30:
         return None
+    # Doppler je Punkt, wo vorhanden und plausibel (dieselbe Obergrenze wie die Spur); sonst Spur-Tempo.
+    einig = np.ones(n, dtype=bool)
+    if doppler_mps is not None and len(doppler_mps) == n:
+        grenze = min(MAX_TEMPO_KMH, max_kmh) if max_kmh else MAX_TEMPO_KMH
+        for i, v in enumerate(doppler_mps):
+            if v is not None and 0 <= float(v) * 3.6 <= grenze and not np.isnan(tempo[i]):
+                einig[i] = abs(float(v) * 3.6 - tempo[i]) <= max(5.0, 0.3 * float(v) * 3.6)
+                tempo[i] = float(v) * 3.6
     vmg = np.full(n, np.nan)
     winkel = np.full(n, np.nan)
     for i in range(n):
@@ -274,8 +289,14 @@ def hoehe(t_ms, lat, lon, wind_von, max_kmh: float | None = None) -> dict | None
         while t[i] - t[j] > HOEHE_FENSTER_S:
             j += 1
         sel = ok[j:i + 1]
-        if t[i] - t[j] >= HOEHE_FENSTER_S * 0.8 and sel.sum() >= 5:
-            beste = max(beste, float(np.nanmean(vmg[j:i + 1][sel])))
+        if t[i] - t[j] < HOEHE_FENSTER_S * 0.8 or sel.sum() < 3:
+            continue
+        if not sel.all() or not einig[j:i + 1].all() or sel.sum() < (t[i] - t[j]) + 1 - 0.01:
+            continue    # Luecke im Fenster oder Doppler/Spur uneinig
+        ks = kurs[j:i + 1]
+        if max(abs(_winkel_diff(a, ks[0])) for a in ks) > HOEHE_KURS_STREUUNG:
+            continue    # Kurve/Halse, kein Kurs am Wind
+        beste = max(beste, float(np.mean(vmg[j:i + 1])))
     return {
         "vmg_max_kmh": round(beste, 1),
         "vmg_mittel_kmh": round(float(np.mean(vmg[am_wind])), 1) if am_wind.any() else None,

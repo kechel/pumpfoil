@@ -1675,6 +1675,27 @@
         "kite_atb",
         "kitebuggy"
       ],
+      "merkmal": "hoehe",
+      "was": "Beste VMG jetzt als bestes 3-s-Mittel („best VMG (3s)\", wie Max Speed (3s)) mit dem Doppler-Tempo statt dem Tempo aus der Spur; gewertet nur lueckenlos, mit stabilem Kurs (≤ 20°) und wenn Doppler und Spur zusammenpassen. Anlass Feedback #18998 (Alex): ein GPS-Sprung im Stand ergab 20,8 km/h — so viel wie das Hoechsttempo; jetzt 11,6. Probelauf 1438 Wind-Sessions: Median beste VMG 15,7 -> 16,7 km/h, VMG ueber 90 % des Hoechsttempos 13 wie vorher; Durchschnitt und Hoehe nutzen ebenfalls den Doppler (Median Hoehe 3142 -> 3187 m).",
+      "wo": [
+        "server",
+        "web",
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "datum": "2026-10-26",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "kitesurf",
+        "windsurf",
+        "snowkite",
+        "kite_atb",
+        "kitebuggy"
+      ],
       "merkmal": "wenden_halsen",
       "was": "Wenden/Halsen auf dem Foil je Lauf (Spalte in der Lauf-Tabelle) und „meiste am Stueck in einem Lauf\" in der Windkarte. Wunsch Alex (#19084: 16 Halsen in einem Lauf). Nur Web; Apps folgen.",
       "wo": [

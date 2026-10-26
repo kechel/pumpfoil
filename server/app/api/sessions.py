@@ -4128,7 +4128,7 @@ def _accel_auswertung_gecacht(db, s, name: str, version: str, rechnen, nur_cache
 
 MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None, "fahrten": [], "je_lauf": []}
 # Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
-MANOEVER_VERSION = "m10-je-lauf"   # m10: Drehungen auf dem Foil je Lauf + max_je_lauf (Alex); m9: Einfahrt unter 10 km/h = Start, kein Manoever (#19084); m8: Drehrichtung ueber Kurs-Luecken (#19084, 26.10.2026); m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
+MANOEVER_VERSION = "m11-vmg-doppler"   # m11: VMG-Tempo aus dem Doppler, bestes 3-s-Fenster (Alex #18998); m10: Drehungen auf dem Foil je Lauf + max_je_lauf (Alex); m9: Einfahrt unter 10 km/h = Start, kein Manoever (#19084); m8: Drehrichtung ueber Kurs-Luecken (#19084, 26.10.2026); m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
 
 
 def _manoever_schluessel(s, res) -> str:
@@ -4206,7 +4206,7 @@ def _manoever_berechnen(db, s, res) -> dict:
                for a_, b_ in _laeufe]
     zahlen["max_je_lauf"] = max((x["wende"] + x["halse"] for x in je_lauf), default=0)
     erg = {"items": items, "zahlen": zahlen, "je_lauf": je_lauf,
-           "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von, cap)}
+           "hoehe": hoehe([r[0] for r in gps], lat, lon, wind_von, cap, [r[3] for r in gps])}
     erg["fahrten"] = _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden=_wind(
         s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at), t0=t0, cap=cap)
     return erg
@@ -4233,7 +4233,8 @@ def _manoever_je_fahrt(s, res, gps, lat, lon, wind_von, items, wind_stunden, t0,
         b = a + 1000.0 * (f.get("dauer_s") or 0)
         im = [m for m in items if a <= m["t_ms"] <= b]
         idx = [k for k, r in enumerate(gps) if a <= r[0] <= b]
-        h = hoehe([gps[k][0] for k in idx], [lat[k] for k in idx], [lon[k] for k in idx], wind_von, cap) if len(idx) >= 30 else None
+        h = hoehe([gps[k][0] for k in idx], [lat[k] for k in idx], [lon[k] for k in idx], wind_von, cap,
+                  [gps[k][3] for k in idx]) if len(idx) >= 30 else None
         # Modellwind: Mittel der Stunden, die in die Fahrt fallen; sonst die naechste Stunde zur Fahrtmitte.
         ea, eb = t0 + a, t0 + b
         drin = [k for t, k in std if ea - 1800e3 <= t <= eb + 1800e3]
