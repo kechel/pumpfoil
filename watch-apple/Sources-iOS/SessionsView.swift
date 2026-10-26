@@ -701,7 +701,7 @@ struct SessionRow: View {
                      avatarUserId: avatarUserId,
                      datum: TimeFmt.kurzDatum(session.started_at, session.tz) ?? "",
                      zeit: TimeFmt.timeOnly(session.started_at, session.tz) ?? "",
-                     name: showOwner ? session.owner_name : nil, spot: session.place_name,
+                     name: showOwner ? session.owner_name : nil, spot: session.place_name, abzeichen: sportLabel,
                      status: kompaktStatus, kennzahlen: statsText ?? "",
                      likeId: session.id, liked: session.liked ?? false, likeCount: session.like_count ?? 0)
     }
@@ -810,7 +810,8 @@ struct SessionRow: View {
                 .padding(.horizontal, 6).padding(.vertical, 2)
                 .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
-        } else if isClassified(sportClass: session.sport_class, dataQuality: session.data_quality) {
+        } else if let dq = session.data_quality, dq != "ok" {
+            // Sportart steht als gelber Chip oben (Wunsch u244, 26.10.2026) — grau nur Datenqualitaet.
             Text(Loc.t(classLabelKey(sportClass: session.sport_class, dataQuality: session.data_quality), lang))
                 .font(.caption2)
                 .padding(.horizontal, 6).padding(.vertical, 2)
@@ -892,10 +893,10 @@ struct SessionRow: View {
         return dateText
     }
 
-    // Spot · Foil · Stab · Mastlänge · Board · Uhr — je Teil nur, wenn hinterlegt. Die Sportart
-    // steht bei eigenen Sessions schon als Abzeichen unten (classBadge) und fehlt hier absichtlich.
+    // Sportart (gelb, nur wenn kein Pumpfoil, wie in „Alle") · Spot · Foil · Stab · Mastlänge ·
+    // Board · Uhr — je Teil nur, wenn hinterlegt.
     private var chipItems: [SessionChipItem] {
-        sessionChipItems(spot: session.place_name, foil: foilChipText,
+        sessionChipItems(sport: sportLabel, spot: session.place_name, foil: foilChipText,
                          setup: session.setup, device: session.device_label, placement: session.placement,
                          ohneFoil: !Sportarten.foil(session.sport_class))
     }
@@ -903,6 +904,11 @@ struct SessionRow: View {
     private var foilChipText: String {
         guard let f = session.foil else { return "" }
         return foilLabel(f.brand, f.model, f.size, f.aspect_ratio)
+    }
+
+    private var sportLabel: String? {
+        guard let sc = session.sport_class, !sc.isEmpty, sc != "pumpfoil" else { return nil }
+        return Loc.t(classLabelKey(sportClass: sc, dataQuality: nil), lang)
     }
 
     private var statsText: String? {

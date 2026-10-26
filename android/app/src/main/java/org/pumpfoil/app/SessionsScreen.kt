@@ -592,7 +592,8 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
         SessionZeile(
             sessionId = s.id, avatarName = s.ownerName, avatarUrl = s.ownerAvatarUrl, avatarUserId = avatarUserId,
             datum = zeilenDatum(s.startedAt, s.tz), uhrzeit = hhmm(s.startedAt, s.tz),
-            name = null, spot = s.placeName, sportLabel = null,
+            name = null, spot = s.placeName,
+            sportLabel = s.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t(classLabelKey(it, null)) },
             kennzahlen = if (a != null) sessionStatsTeile(a, m) else emptyList(),
             liked = s.liked, likeCount = s.likeCount, modifier = modifier,
             abzeichen = if (s.neuBewerten == true || s.transferTo != null || s.status != "analyzed") {
@@ -632,9 +633,9 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
                     }
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
-                    // Sportart bekommt hier KEINEN Chip: eigene Sessions tragen das schon im
-                    // Klassifikations-Badge in der Fußzeile (samt Datenqualität) — sonst doppelt.
-                    SessionChips(sportClass = null, spot = s.placeName, foil = foilLabel,
+                    // Sportart als gelber Chip wie in „Alle" (Wunsch u244, 26.10.2026); das Badge in
+                    // der Fußzeile zeigt dafür nur noch die Datenqualität.
+                    SessionChips(sportClass = s.sportClass, spot = s.placeName, foil = foilLabel,
                         setup = s.setup, deviceLabel = s.deviceLabel, placement = s.placement,
                         ohneFoil = !Sportarten.foil(s.sportClass))
                 }
@@ -674,7 +675,8 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
             }
             Box(Modifier.padding(start = 50.dp)) { VergleichKnopf(s.id, inCompare) }
             // Fußzeile für Transfer-/Status-/Klassifikations-Badge (Like ist unter dem Avatar).
-            val classified = isClassified(s.sportClass, s.dataQuality)
+            // Sportart steht als gelber Chip oben — grau nur noch abweichende Datenqualität.
+            val classified = (s.dataQuality ?: "ok") != "ok"
             if (s.neuBewerten == true || s.transferTo != null || s.status != "analyzed" || classified || s.needsClassification) {
                 Row(Modifier.fillMaxWidth().padding(top = 6.dp, start = 50.dp), verticalAlignment = Alignment.CenterVertically) {
                     // Rueckfrage an der eigenen Bewertung („Back to rider"), bis neu bewertet — wie Web.
