@@ -73,7 +73,16 @@ object Recorder {
         val lastRunDistanceM: Double = 0.0,
         val lastRunAvgSpeedKmh: Double = 0.0,
         val lastRunMaxSpeedKmh: Double = 0.0,
+        // Live geschaetzte Laeufe dieser Aufnahme (fertige, aelteste zuerst) und die Summe aller
+        // Laeufe inkl. des laufenden — wie die Uhr-Felder 22/23 (Marinas 10K, 26.10.2026: die App
+        // zeigte nur die Gesamtstrecke, sie hielt sie fuer die Foil-Strecke und hoerte zu frueh auf).
+        val laeufe: List<LiveLauf> = emptyList(),
+        val allRunsDistanceM: Double = 0.0,
+        val allRunsDurationMs: Long = 0,
     )
+
+    /** Ein live erkannter Lauf (GPS-Naeherung; der Server rechnet hinterher genauer). */
+    data class LiveLauf(val startSek: Long, val durMs: Long, val distM: Double, val avgKmh: Double, val maxKmh: Double)
 
     // Foil-/Lauf-Erkennung wie Garmin/Wear: rein ab ~10 km/h (4 s Dwell), raus unter ~9 km/h (3 s).
     private const val RUN_ENTER_DWELL = 4
@@ -94,6 +103,10 @@ object Recorder {
     private var lastRunDistM = 0.0
     private var lastRunAvgMps = 0.0
     private var lastRunMaxMps = 0.0
+    private val laeufeListe = ArrayList<LiveLauf>()
+    // Kilometerstand der letzten Sekunden: der Laufbeginn wird um RUN_ENTER_DWELL zurueckdatiert —
+    // die Zeit war es schon immer, die Strecke nicht (in Marinas Session 0,4 km auf 27 Laeufe).
+    private val distVerlauf = ArrayDeque<Pair<Long, Double>>()
 
     // Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py): BURST (mehr als
     // 5 m/s ueber dem 15-s-Median UND absolut ueber 28 km/h -> Median) und DECKEL (ueber 32 km/h
@@ -149,7 +162,8 @@ object Recorder {
                         if (lastRunMaxMps > runMaxMps) runMaxMps = lastRunMaxMps
                     } else {
                         runStartMs = tMs - RUN_ENTER_DWELL * 1000L
-                        runStartDist = dist
+                        runStartDist = distVerlauf.lastOrNull { it.first <= runStartMs + 500 }?.second
+                            ?: distVerlauf.firstOrNull()?.second ?: dist
                         runMaxMps = spdMaxClean
                     }
                 }
@@ -171,6 +185,9 @@ object Recorder {
                 lastRunDistM = distM
                 lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
                 lastRunMaxMps = runMaxMps
+                val lauf = LiveLauf(runStartMs / 1000, durMs, distM, lastRunAvgMps * 3.6, runMaxMps * 3.6)
+                if (runIstFortsetzung && laeufeListe.isNotEmpty()) laeufeListe[laeufeListe.size - 1] = lauf
+                else laeufeListe.add(lauf)
                 if (!runIstFortsetzung) runCount++
                 runIstFortsetzung = false
             }
@@ -267,6 +284,7 @@ object Recorder {
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        laeufeListe.clear(); distVerlauf.clear()
         _state.value = State(recording = true, status = "recording",
             pendingCount = RecStore.pendingCount(ctx))
         scope.launch { flushLoop() }
@@ -526,10 +544,16 @@ object Recorder {
         val sec = (tMs / 1000.0).coerceAtLeast(1.0)
         // MEDIAN statt Mittel — wie Garmin, Zepp und der Server (_running_median).
         val sp3 = if (spWin.isEmpty()) sp else spWin.map { it[1] }.sorted()[spWin.size / 2]
+        distVerlauf.addLast(tMs.toLong() to distM)
+        while (distVerlauf.size > 1 && tMs - distVerlauf.first().first > 8000) distVerlauf.removeFirst()
         val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
         val runDur = if (nowFoiling) (tMs.toLong() - runStartMs).coerceAtLeast(0) else lastRunDurMs
         val runDist = if (nowFoiling) (distM - runStartDist).coerceAtLeast(0.0) else lastRunDistM
         val runMax = if (nowFoiling) runMaxMps else lastRunMaxMps
+        // Eine Fortsetzung steckt schon im laufenden Lauf -> der letzte fertige zaehlt dann nicht extra.
+        val fertig = if (nowFoiling && runIstFortsetzung) laeufeListe.dropLast(1) else laeufeListe.toList()
+        val alleDist = fertig.sumOf { it.distM } + (if (nowFoiling) runDist else 0.0)
+        val alleDur = fertig.sumOf { it.durMs } + (if (nowFoiling) runDur else 0L)
         _state.value = _state.value.copy(
             speedKmh = sp * 3.6,
             speed3sKmh = sp3 * 3.6,
@@ -550,6 +574,9 @@ object Recorder {
             lastRunDistanceM = lastRunDistM,
             lastRunAvgSpeedKmh = lastRunAvgMps * 3.6,
             lastRunMaxSpeedKmh = lastRunMaxMps * 3.6,
+            laeufe = laeufeListe.toList(),
+            allRunsDistanceM = alleDist,
+            allRunsDurationMs = alleDur,
         )
     }
 

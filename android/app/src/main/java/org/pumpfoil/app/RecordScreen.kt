@@ -397,9 +397,17 @@ private fun RecordingBody(st: Recorder.State) {
     Spacer(Modifier.height(16.dp))
     val mmss = { s: Long -> "%d:%02d".format(s / 60, s % 60) }
     val km = { m: Double -> if (m >= 1000) "%.2f km".format(m / 1000) else "%d m".format(m.toInt()) }
-    StatRow(I18n.t("rec.time"), mmss(sek), I18n.t("rec.dist"), km(st.distanceM))
+    // Foil-Strecke (Summe aller Laeufe) statt Gesamtstrecke (Jan, 26.10.2026): „Gesamtstrecke will ich
+    // garnicht haben … darunter wuerde ich intuitiv auch on foil verstehen" — genau das passierte Marina
+    // beim 10K, sie hoerte bei angezeigten 10,2 km auf, auf dem Foil waren es 8,9.
+    StatRow(I18n.t("rec.time"), mmss(sek), I18n.t("rec.foilDist"), km(st.allRunsDistanceM))
     StatRow(I18n.t("rec.speed"), if (gpsWeg) "--" else "%.1f".format(st.speedKmh), I18n.t("rec.speedMax"), "%.1f".format(st.maxSpeedKmh))
     StatRow(I18n.t("rec.runs"), st.runCount.toString(), I18n.t("rec.runDur"), mmss(st.runDurationMs / 1000))
+    Spacer(Modifier.height(10.dp))
+    // Eigene Uhr-Datenseiten live + die Laeufe zum Durchblaettern, ueber der Karte (LiveSeiten.kt).
+    LiveUhrSeiten(st, liveWerte(st, sek, gpsWeg))
+    Spacer(Modifier.height(10.dp))
+    LaeufeKarte(st.laeufe)
     Spacer(Modifier.height(10.dp))
     if (st.uploading || st.pendingCount > 0 || st.uploadError.isNotEmpty()) {
         val txt = when {

@@ -182,8 +182,8 @@ private fun col(idx: Int, rolle: String): Color {
 }
 
 /** Farbe nach Wert (flags Bit2): dieselben Schwellen wie die Uhr/Web, nur für Speed und Puls. */
-private fun valueColor(fieldId: Int): Color? {
-    val v = MOCK_VALUE[fieldId]?.toFloatOrNull() ?: return null
+private fun valueColor(fieldId: Int, werte: Map<Int, String>?): Color? {
+    val v = wertText(fieldId, werte).toFloatOrNull() ?: return null
     if (fieldId in SPEED_FIELDS) return when {
         v < 12f -> Color(0xFF808080); v < 18f -> Color(0xFF00FFFF)
         v < 24f -> Color(0xFF00FF00); else -> Color(0xFFFFAA00)
@@ -194,6 +194,10 @@ private fun valueColor(fieldId: Int): Color? {
     }
     return null
 }
+
+/** Live-Wert (Handy-Recorder, 26.10.2026) oder — in der Vorschau — der Beispielwert. Live ohne Wert = „--". */
+private fun wertText(fieldId: Int, werte: Map<Int, String>?): String =
+    if (werte != null) werte[fieldId] ?: "--" else MOCK_VALUE[fieldId] ?: "--"
 
 private fun num(a: JsonArray, i: Int): Float =
     (a.getOrNull(i) as? JsonPrimitive)?.doubleOrNull?.toFloat() ?: 0f
@@ -212,6 +216,7 @@ private fun str(a: JsonArray, i: Int): String =
  * @param shape    "round" | "rect" | "semioctagon" — bestimmt die Maske.
  * @param w,h      Zielauflösung, nur fürs Seitenverhältnis.
  * @param px       Breite auf dem Bildschirm.
+ * @param werte    Live-Werte je Feld-ID (Handy-Recorder); null = Beispielwerte (Vorschau/Galerie).
  * @param pageCount/pageIndex  Für die Seiten-Punkte: die sind auf der Uhr DYNAMISCH. Wer den echten
  *        Wert kennt, gibt ihn mit — sonst lügt die Vorschau über die Anzahl (im Web real passiert:
  *        Vorschau 3 Punkte, Uhr 5).
@@ -231,6 +236,7 @@ fun WatchLayoutPreview(
     px: Dp = 120.dp,
     pageCount: Int = 3,
     pageIndex: Int = 0,
+    werte: Map<Int, String>? = null,
 ) {
     val messer = rememberTextMeasurer()
     val boxW = px
@@ -253,7 +259,7 @@ fun WatchLayoutPreview(
                 // auch bei kleinem Wert erkennbar bleibt.
                 elements.filter { int(it, 0) == EL_ARC || int(it, 0) == EL_BAR }.forEach { e ->
                     val fid = int(e, 6)
-                    val wert = MOCK_VALUE[fid]?.toFloatOrNull() ?: 0f
+                    val wert = wertText(fid, werte).toFloatOrNull() ?: 0f
                     val anteil = fuellgrad(fid, wert)
                     val nachSkala = int(e, 5) and 1 != 0
                     val farbe = if (nachSkala) ZONE_COLORS[zone(fid, wert)] else col(int(e, 4), "value")
@@ -290,9 +296,9 @@ fun WatchLayoutPreview(
                     when (typ) {
                         EL_VALUE -> {
                             val fid = int(e, 6)
-                            val farbe = (if (flags and 4 != 0) valueColor(fid) else null)
+                            val farbe = (if (flags and 4 != 0) valueColor(fid, werte) else null)
                                 ?: col(int(e, 4), "value")
-                            text(messer, MOCK_VALUE[fid] ?: "--", x, y, stufe(e), farbe, flags, true)
+                            text(messer, wertText(fid, werte), x, y, stufe(e), farbe, flags, true)
                         }
                         EL_LABEL -> text(messer, I18n.t("field.${int(e, 6)}"), x, y, stufe(e),
                             col(int(e, 4), "label"), flags, false)

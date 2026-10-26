@@ -219,12 +219,22 @@ struct RecordView: View {
             if rec.gpsWeg {
                 Text(Loc.t("rec.gpsSearch", lang)).font(.headline).foregroundStyle(Color.red)
             }
-            statRow(Loc.t("rec.time", lang), mmss(rec.elapsedSec), Loc.t("rec.dist", lang), km(rec.distanceM))
-            statRow(Loc.t("rec.speed", lang), speedText, Loc.t("rec.speedMax", lang), maxSpeedText)
-            statRow(Loc.t("rec.runs", lang), runCountText, Loc.t("rec.runDur", lang), mmss(rec.runDurationMs / 1000))
-            if rec.uploading { Text(Loc.t("rec.upRunning", lang)).font(.footnote).foregroundStyle(.secondary) }
-            // Live-Track des aktuellen Laufs füllt den Platz bis zum fixen STOPP-Button.
-            trackCanvas.frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Scrollbereich ueber dem festen STOPP: Zahlen, Uhrseiten, Laeufe und Karte (26.10.2026) passen
+            // auf kleinen iPhones nicht mehr untereinander — STOPP darf nie aus dem Bild rutschen.
+            ScrollView {
+                VStack(spacing: 14) {
+                    // Foil-Strecke (Summe aller Laeufe) statt Gesamtstrecke (Jan, 26.10.2026): „Gesamtstrecke
+                    // will ich garnicht haben … darunter wuerde ich intuitiv auch on foil verstehen".
+                    statRow(Loc.t("rec.time", lang), mmss(rec.elapsedSec), Loc.t("rec.foilDist", lang), km(rec.allRunsDistanceM))
+                    statRow(Loc.t("rec.speed", lang), speedText, Loc.t("rec.speedMax", lang), maxSpeedText)
+                    statRow(Loc.t("rec.runs", lang), runCountText, Loc.t("rec.runDur", lang), mmss(rec.runDurationMs / 1000))
+                    if rec.uploading { Text(Loc.t("rec.upRunning", lang)).font(.footnote).foregroundStyle(.secondary) }
+                    LiveUhrSeitenView(rec: rec, lang: lang)
+                    LaeufeKarteView(laeufe: rec.laeufe, lang: lang)
+                    // Live-Track des aktuellen Laufs.
+                    trackCanvas.frame(maxWidth: .infinity).frame(height: 280)
+                }
+            }
             Text(Loc.t("rec.holdStop", lang)).font(.footnote).foregroundStyle(.secondary)
             stopHoldButton
         }
@@ -377,6 +387,182 @@ private struct LiveTrackMap: UIViewRepresentable {
             r.lineWidth = 4
             r.lineCap = .round; r.lineJoin = .round
             return r
+        }
+    }
+}
+
+// MARK: - Live-Uhrseiten + Laeufe (26.10.2026)
+// Die eigenen Uhr-Datenseiten LIVE auf dem Handy-Recorder, ueber der Karte (Jan: „vielleicht auch einfach
+// die watch-faces verwenden zur anzeige live"). Anlass: Marinas 10K — die App zeigte nur die Gesamtstrecke,
+// sie hielt sie fuer die Foil-Strecke und hoerte zu frueh auf. Spiegel von Android LiveSeiten.kt.
+// `pages` waehrend eines Laufs, `off_foil_pages` sonst (das Handy kennt keine manuelle Pause); mit
+// „auch die anderen Seiten durchblaettern" haengen die Seiten des anderen Zustands hinten an.
+// Steht hier statt in einer eigenen Datei, damit das Xcode-Projekt nicht neu erzeugt werden muss.
+
+private enum LiveSeite {
+    case klassik([Int])
+    case layout(WatchLayoutBrief)
+}
+
+/// Ein Seiten-Satz aus den Einstellungen: Liste aus [a,b,c] (3 Felder) oder Zahl (Layout-ID).
+private func liveSeitenAus(_ s: [String: Any], _ key: String, _ legacy: String?,
+                           _ layouts: [Int: WatchLayoutBrief], _ mitLayouts: Bool) -> [LiveSeite] {
+    var out: [LiveSeite] = []
+    if let arr = s[key] as? [Any] {
+        for el in arr {
+            if let row = el as? [Any] {
+                let f: [Int] = row.map { ($0 as? NSNumber)?.intValue ?? 0 }
+                out.append(.klassik(Array(f.prefix(3))))
+            } else if let n = el as? NSNumber, mitLayouts, let l = layouts[n.intValue] {
+                out.append(.layout(l))
+            }
+        }
+    }
+    if !out.isEmpty { return out }
+    if let k = legacy, let alt = s[k] as? [Any] {
+        let f: [Int] = alt.map { ($0 as? NSNumber)?.intValue ?? 0 }
+        if f.count >= 3 { return [.klassik(Array(f.prefix(3)))] }
+    }
+    return []
+}
+
+/// Werte je Feld-ID wie die Uhr sie zeigt (Config.mc / RecordView.mc). Puls, Hoehe, Temperatur kennt
+/// der Handy-Recorder nicht -> fehlen (der Renderer zeigt dann „--").
+@MainActor private func liveWerte(_ r: PhoneRecorder) -> [Int: String] {
+    func dist(_ m: Double) -> String { m < 1000 ? "\(Int(m))" : String(format: "%.2f", m / 1000) }
+    func zeit(_ ms: Int) -> String {
+        let s = ms / 1000
+        if s >= 3600 { return String(format: "%d:%02d:%02d", s / 3600, s / 60 % 60, s % 60) }
+        return String(format: "%d:%02d", s / 60, s % 60)
+    }
+    func kmh(_ v: Double) -> String { String(format: "%.1f", v) }
+    let f = DateFormatter(); f.dateFormat = "HH:mm"
+    var w: [Int: String] = [:]
+    if !r.gpsWeg { w[1] = kmh(r.speed3sKmh); w[5] = kmh(r.speedKmh) }
+    w[6] = kmh(r.avgSpeedKmh); w[7] = kmh(r.maxSpeedKmh)
+    w[3] = zeit(r.elapsedSec * 1000); w[4] = dist(r.distanceM); w[12] = f.string(from: Date())
+    w[14] = zeit(r.runDurationMs); w[15] = dist(r.runDistanceM)
+    w[16] = zeit(r.lastRunDurationMs); w[17] = dist(r.lastRunDistanceM)
+    w[18] = kmh(r.lastRunAvgSpeedKmh); w[19] = kmh(r.lastRunMaxSpeedKmh)
+    w[20] = "\(r.runCount)"
+    w[22] = dist(r.allRunsDistanceM); w[23] = zeit(r.allRunsDurationMs)
+    return w
+}
+
+struct LiveUhrSeitenView: View {
+    @ObservedObject var rec: PhoneRecorder
+    let lang: String
+    @State private var foilSeiten: [LiveSeite] = [.klassik([1, 2, 0])]
+    @State private var sonstSeiten: [LiveSeite] = [.klassik([12, 17, 16])]
+    @State private var alleBlaettern = true
+    @State private var seite = 0
+
+    private var seiten: [LiveSeite] {
+        let eigene: [LiveSeite] = rec.isFoiling ? foilSeiten : sonstSeiten
+        let andere: [LiveSeite] = rec.isFoiling ? sonstSeiten : foilSeiten
+        return alleBlaettern ? eigene + andere : eigene
+    }
+
+    var body: some View {
+        let werte: [Int: String] = liveWerte(rec)
+        let alle: [LiveSeite] = seiten
+        TabView(selection: $seite) {
+            ForEach(0..<alle.count, id: \.self) { i in
+                seiteView(alle[i], i, alle.count, werte).tag(i)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: alle.count > 1 ? .always : .never))
+        .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .frame(height: 226)
+        // Zustandswechsel (Lauf beginnt/endet) -> erste Seite des neuen Zustands, wie die Uhr.
+        .onChange(of: rec.isFoiling) { _ in seite = 0 }
+        .task { await laden() }
+    }
+
+    @ViewBuilder private func seiteView(_ s: LiveSeite, _ i: Int, _ n: Int, _ werte: [Int: String]) -> some View {
+        switch s {
+        case .layout(let l):
+            WatchLayoutPreview(elements: l.elements ?? [], bgColor: l.bg_color ?? 0, shape: l.shape ?? "round",
+                               w: l.authored_w ?? 240, h: l.authored_h ?? 240, px: 190,
+                               pageCount: n, pageIndex: i, lang: lang, werte: werte)
+        case .klassik(let felder):
+            klassik(felder, werte)
+        }
+    }
+
+    /// Klassische 3-Feld-Seite: Wert gross, Feldname klein darueber — schwarz wie auf der Uhr.
+    private func klassik(_ felder: [Int], _ werte: [Int: String]) -> some View {
+        VStack(spacing: 6) {
+            ForEach(felder.filter { $0 != 0 }, id: \.self) { f in
+                VStack(spacing: 0) {
+                    Text(Loc.t("field.\(f)", lang)).font(.system(size: 10)).foregroundStyle(Color(white: 0.82)).lineLimit(1)
+                    Text(werte[f] ?? "--").font(.system(size: 26, weight: .bold)).foregroundStyle(.white).lineLimit(1)
+                }
+            }
+        }
+        .frame(width: 190, height: 190)
+        .background(Circle().fill(Color.black))
+    }
+
+    private func laden() async {
+        guard let s = try? await Api.settings() else { return }   // offline: Standardseiten
+        let zonen = (s["hr_zones"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue }
+        let spZonen = (s["speed_zones"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue }
+        LayoutScales.aus(hrZones: zonen, speedZones: spZonen)
+        let mitLayouts: Bool = (s["layouts_enabled"] as? Bool) ?? true
+        var layouts: [Int: WatchLayoutBrief] = [:]
+        if mitLayouts, let ls = try? await Api.watchLayouts() {
+            for l in ls { layouts[l.id] = l }
+        }
+        let a = liveSeitenAus(s, "pages", "views", layouts, mitLayouts)
+        if !a.isEmpty { foilSeiten = a }
+        let b = liveSeitenAus(s, "off_foil_pages", "off_foil_view", layouts, mitLayouts)
+        if !b.isEmpty { sonstSeiten = b }
+        alleBlaettern = (s["browse_all_pages"] as? Bool) ?? true
+    }
+}
+
+/// Die fertigen Laeufe dieser Aufnahme zum Durchblaettern (startet beim neuesten).
+struct LaeufeKarteView: View {
+    let laeufe: [LiveLauf]
+    let lang: String
+    @State private var idx = -1          // -1 = immer der neueste
+
+    private var i: Int { (idx < 0 || idx >= laeufe.count) ? laeufe.count - 1 : idx }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            if laeufe.isEmpty {
+                Text(Loc.t("rec.noRunYet", lang)).font(.subheadline).foregroundStyle(.secondary).padding(6)
+            } else {
+                HStack {
+                    Button { idx = max(0, i - 1) } label: { Image(systemName: "chevron.left") }
+                        .disabled(i == 0)
+                    Spacer()
+                    laufText(laeufe[i])
+                    Spacer()
+                    Button { idx = (i + 1 >= laeufe.count - 1) ? -1 : i + 1 } label: { Image(systemName: "chevron.right") }
+                        .disabled(i >= laeufe.count - 1)
+                }
+                .font(.title3)
+            }
+            Text(Loc.t("rec.liveHint", lang)).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.secondary.opacity(0.12)))
+        // Neuer Lauf: wer gerade den letzten ansah, springt mit.
+        .onChange(of: laeufe.count) { n in if idx == n - 2 { idx = -1 } }
+    }
+
+    private func laufText(_ l: LiveLauf) -> some View {
+        let km: String = l.distM >= 1000 ? String(format: "%.2f km", l.distM / 1000) : "\(Int(l.distM)) m"
+        let s: Int = l.durMs / 1000
+        let titel: String = Loc.t("rec.runOf", lang).replacingOccurrences(of: "{n}", with: "\(i + 1)")
+            .replacingOccurrences(of: "{m}", with: "\(laeufe.count)")
+        return VStack(spacing: 2) {
+            Text(titel).font(.footnote.weight(.semibold)).foregroundStyle(Color.accentColor)
+            Text("\(km) · \(String(format: "%d:%02d", s / 60, s % 60))").font(.title3.bold()).foregroundStyle(.primary)
+            Text(String(format: "Ø %.1f · max %.1f km/h", l.avgKmh, l.maxKmh)).font(.footnote).foregroundStyle(.secondary)
         }
     }
 }

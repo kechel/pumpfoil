@@ -34,6 +34,15 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var runDurationMs = 0
     @Published var lastRunDurationMs = 0
     @Published var lastRunDistanceM = 0.0
+    @Published var runDistanceM = 0.0
+    @Published var lastRunAvgSpeedKmh = 0.0
+    @Published var lastRunMaxSpeedKmh = 0.0
+    // Live geschaetzte Laeufe (fertige, aelteste zuerst) und die Summe aller Laeufe inkl. des laufenden —
+    // wie die Uhr-Felder 22/23 (Marinas 10K, 26.10.2026: die App zeigte nur die Gesamtstrecke, sie hielt
+    // sie fuer die Foil-Strecke und hoerte zu frueh auf).
+    @Published var laeufe: [LiveLauf] = []
+    @Published var allRunsDistanceM = 0.0
+    @Published var allRunsDurationMs = 0
     @Published var status = ""
     @Published var uploading = false
     @Published var uploadError = ""
@@ -136,6 +145,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         return w > 32.0 / 3.6 ? 0 : w
     }
     private var lastRunDurMs = 0.0, lastRunDistM = 0.0, lastRunMaxMps = 0.0
+    private var laeufeListe: [LiveLauf] = []
+    /// Kilometerstand der letzten Sekunden: der Laufbeginn wird um RUN_ENTER_DWELL zurueckdatiert —
+    /// die Zeit war es schon immer, die Strecke nicht (in Marinas Session 0,4 km auf 27 Laeufe).
+    private var distVerlauf: [(t: Double, d: Double)] = []
 
     override init() {
         super.init()
@@ -164,6 +177,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         runCnt = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunMaxMps = 0
         lastRunStartMs = 0; lastRunStartDist = 0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        laeufeListe = []; distVerlauf = []
         var meta: [String: Any] = [
             "session_uuid": uuid, "started_at": Self.nowIso(), "sport": "pumpfoil",
             "gps_hz": 1, "accel_hz": Int(ACCEL_HZ), "accel_scale": Int(ACCEL_SCALE),
@@ -177,6 +191,8 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         Store.writeMeta(uuid, meta)
         recording = true; status = "recording"; pendingCount = Store.pendingCount()
         elapsedSec = 0; speedKmh = 0; distanceM = 0; runCount = 0; isFoiling = false; track = []
+        runDistanceM = 0; lastRunDistanceM = 0; lastRunDurationMs = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0
+        laeufe = []; allRunsDistanceM = 0; allRunsDurationMs = 0
 
         loc.requestWhenInUseAuthorization()   // + Background-Mode „location" => Hintergrund-Track (blauer Balken)
         loc.startUpdatingLocation()
@@ -438,6 +454,8 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         // MEDIAN statt Mittel — wie Garmin, Zepp und der Server (_running_median).
         let sortiert = spWin.map { $0[1] }.sorted()
         let sp3 = sortiert.isEmpty ? sp : sortiert[sortiert.count / 2]
+        distVerlauf.append((t: Double(tMs), d: distM))
+        while distVerlauf.count > 1, let f = distVerlauf.first, Double(tMs) - f.t > 8000 { distVerlauf.removeFirst() }
         let nowFoiling = updateFoilingRun(sp3 * 3.6, Double(tMs), distM, sp)
         gpsFix = true
         speedKmh = sp * 3.6; speed3sKmh = sp3 * 3.6; maxSpeedKmh = maxMps * 3.6
@@ -445,6 +463,15 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         isFoiling = nowFoiling; runCount = runCnt
         runDurationMs = Int(nowFoiling ? max(0, Double(tMs) - runStartMs) : lastRunDurMs)
         lastRunDurationMs = Int(lastRunDurMs); lastRunDistanceM = lastRunDistM
+        let runDist: Double = nowFoiling ? max(0, distM - runStartDist) : lastRunDistM
+        runDistanceM = runDist
+        lastRunAvgSpeedKmh = lastRunDurMs > 0 ? lastRunDistM / (lastRunDurMs / 1000) * 3.6 : 0
+        lastRunMaxSpeedKmh = lastRunMaxMps * 3.6
+        // Eine Fortsetzung steckt schon im laufenden Lauf -> der letzte fertige zaehlt dann nicht extra.
+        let fertig: [LiveLauf] = (nowFoiling && runIstFortsetzung) ? Array(laeufeListe.dropLast()) : laeufeListe
+        allRunsDistanceM = fertig.reduce(0) { $0 + $1.distM } + (nowFoiling ? runDist : 0)
+        allRunsDurationMs = fertig.reduce(0) { $0 + $1.durMs } + (nowFoiling ? runDurationMs : 0)
+        if laeufe.count != laeufeListe.count || laeufe.last?.durMs != laeufeListe.last?.durMs { laeufe = laeufeListe }
         // Track fürs Canvas; bei >3000 Punkten jeden zweiten verwerfen (Form bleibt).
         track.append([l.coordinate.latitude, l.coordinate.longitude])
         if track.count > 3000 { track = track.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element } }
@@ -476,7 +503,9 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                         runStartMs = lastRunStartMs; runStartDist = lastRunStartDist
                         if lastRunMaxMps > runMaxMps { runMaxMps = lastRunMaxMps }
                     } else {
-                        runStartMs = tMs - Double(RUN_ENTER_DWELL) * 1000; runStartDist = dist; runMaxMps = spdMaxClean
+                        runStartMs = tMs - Double(RUN_ENTER_DWELL) * 1000
+                        runStartDist = distVerlauf.last(where: { $0.t <= runStartMs + 500 })?.d ?? distVerlauf.first?.d ?? dist
+                        runMaxMps = spdMaxClean
                     }
                 }
             }
@@ -495,6 +524,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                     lastRunStartMs = runStartMs; lastRunStartDist = runStartDist
                     lastRunDurMs = durMs
                     lastRunDistM = distM; lastRunMaxMps = runMaxMps
+                    let lauf = LiveLauf(startSek: Int(runStartMs / 1000), durMs: Int(durMs), distM: distM,
+                                        avgKmh: durMs > 0 ? distM / (durMs / 1000) * 3.6 : 0, maxKmh: runMaxMps * 3.6)
+                    if runIstFortsetzung, !laeufeListe.isEmpty { laeufeListe[laeufeListe.count - 1] = lauf }
+                    else { laeufeListe.append(lauf) }
                     if !runIstFortsetzung { runCnt += 1 }
                 }
                 runIstFortsetzung = false
@@ -666,4 +699,13 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                                        totalChunks: (comp?["total_chunks"] as? Int) ?? chunkIndex)
         Store.delete(sid)
     }
+}
+
+/// Ein live erkannter Lauf des Handy-Recorders (GPS-Naeherung; der Server rechnet hinterher genauer).
+struct LiveLauf: Equatable {
+    let startSek: Int
+    let durMs: Int
+    let distM: Double
+    let avgKmh: Double
+    let maxKmh: Double
 }

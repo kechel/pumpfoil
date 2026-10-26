@@ -158,8 +158,14 @@ private func farbe(_ idx: Int, _ rolle: String) -> Color {
 }
 
 /// Farbe nach Wert (flags Bit2): dieselben Schwellen wie Uhr/Web, nur Speed und Puls.
-private func wertFarbe(_ fieldId: Int) -> Color? {
-    guard let v = Double(MOCK_VALUE[fieldId] ?? "") else { return nil }
+/// Live-Wert (Handy-Recorder, 26.10.2026) oder — in der Vorschau — der Beispielwert. Live ohne Wert = „--".
+private func wertText(_ fieldId: Int, _ werte: [Int: String]?) -> String {
+    if let werte = werte { return werte[fieldId] ?? "--" }
+    return MOCK_VALUE[fieldId] ?? "--"
+}
+
+private func wertFarbe(_ fieldId: Int, _ werte: [Int: String]?) -> Color? {
+    guard let v = Double(wertText(fieldId, werte)) else { return nil }
     if SPEED_FIELDS.contains(fieldId) {
         if v < 12 { return Color(white: 0.502) }
         if v < 18 { return Color(red: 0, green: 1, blue: 1) }
@@ -192,6 +198,8 @@ struct WatchLayoutPreview: View {
     var pageCount: Int = 3
     var pageIndex: Int = 0
     var lang: String = "en"
+    /// Live-Werte je Feld-ID (Handy-Recorder); nil = Beispielwerte (Vorschau/Galerie).
+    var werte: [Int: String]? = nil
 
     private var boxH: CGFloat { px * (w > 0 ? CGFloat(h) / CGFloat(w) : 1) }
 
@@ -238,8 +246,8 @@ struct WatchLayoutPreview: View {
             switch typ {
             case EL_VALUE:
                 let fid = int(e, 6)
-                let c = (flags & 4 != 0 ? wertFarbe(fid) : nil) ?? farbe(int(e, 4), "value")
-                text(&ctx, MOCK_VALUE[fid] ?? "--", x, y, stufe(e), c, flags, size.width, true)
+                let c = (flags & 4 != 0 ? wertFarbe(fid, werte) : nil) ?? farbe(int(e, 4), "value")
+                text(&ctx, wertText(fid, werte), x, y, stufe(e), c, flags, size.width, true)
             case EL_LABEL:
                 text(&ctx, Loc.t("field.\(int(e, 6))", lang), x, y, stufe(e),
                      farbe(int(e, 4), "label"), flags, size.width, false)
@@ -275,7 +283,7 @@ struct WatchLayoutPreview: View {
     /// langen Ausdrücken in einem Canvas-Block schnell unbrauchbar langsam.
     private func grafik(_ ctx: inout GraphicsContext, _ e: [LayoutValue], _ size: CGSize) {
         let fid = int(e, 6)
-        let wert = Double(MOCK_VALUE[fid] ?? "") ?? 0
+        let wert = Double(wertText(fid, werte)) ?? 0
         let anteil = fuellgrad(fid, wert)
         let nachSkala = int(e, 5) & 1 != 0
         let grund: Color = nachSkala ? ZONE_COLORS[zone(fid, wert)] : farbe(int(e, 4), "value")

@@ -1042,7 +1042,11 @@ NAECHSTES: list[dict] = [
     # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
     # 1.1.44 lag im Review, 1.1.54 war gerade freigegeben (Memory versionen-erst-bei-release).
     {"name": "Android phone + Wear OS", "version": "1.1.45 / 1.2.45",
-     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list."]},
+     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list.", "The phone recorder shows your on-foil distance, the sum of all runs, instead of the total distance, shows your watch data pages live above the map and lets you page through the runs of the current session.", "Sessions of sports without a foil, such as kitesurfing, no longer show foil, stabilizer and mast; watch and board stay."]},
+    # 26.10.2026: Handy-Recorder (Marinas 10K) + Sportarten ohne Foil (8a4639d6) — iPhone 1.1.56 ist freigegeben,
+    # naechste Runde 1.1.57 (nicht gebumpt, Memory versionen-erst-bei-release). Code nur swiftc -parse.
+    {"name": "iPhone + Apple Watch", "version": "1.1.57",
+     "items": ["The phone recorder shows your on-foil distance, the sum of all runs, instead of the total distance, shows your watch data pages live above the map and lets you page through the runs of the current session.", "Sessions of sports without a foil, such as kitesurfing, no longer show foil, stabilizer and mast; watch and board stay."]},
     # iPhone + Apple Watch 1.1.55 am 23.10. eingereicht -> IN_REVIEW.
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
     # Garmin 1.0.97 am 24.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.97.
