@@ -108,6 +108,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     private var prevLat = Double.nan
     private var prevLon = Double.nan
+    private var prevT = 0.0
     private var distM = 0.0
     private var maxMps = 0.0
     private var spWin: [[Double]] = []   // [tMs, mps] für 3-s-Fenster
@@ -442,9 +443,12 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         if !prevLat.isNaN {
             let schritt = Self.haversine(prevLat, prevLon, l.coordinate.latitude, l.coordinate.longitude)
             let bewegt = l.speed >= 0 ? l.speed > Self.standMps : schritt >= Self.standSchrittM
-            if l.horizontalAccuracy <= 20, bewegt { distM += schritt }
+            // GPS-Sprung (schneller als 32 km/h zwischen zwei Fixes) zaehlt nicht — seit die Foil-Strecke
+            // die Hauptzahl ist (26.10.2026; im Simulator 6 km in 2:21 statt 1 km).
+            let plausibel = schritt / max(1.0, (Double(tMs) - prevT) / 1000.0) <= MAX_PLAUSIBLE_MPS
+            if l.horizontalAccuracy <= 20, bewegt, plausibel { distM += schritt }
         }
-        prevLat = l.coordinate.latitude; prevLon = l.coordinate.longitude
+        prevLat = l.coordinate.latitude; prevLon = l.coordinate.longitude; prevT = Double(tMs)
         spdMaxClean = maxKandidat(sp)
         if spdMaxClean > maxMps { maxMps = spdMaxClean }
         spWin.append([Double(tMs), sp])

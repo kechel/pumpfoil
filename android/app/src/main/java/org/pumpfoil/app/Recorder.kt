@@ -221,6 +221,7 @@ object Recorder {
     private val gps = ArrayList<DoubleArray>(256)
     private var prevLat = Double.NaN
     private var prevLon = Double.NaN
+    private var prevT = 0L
     private var distM = 0.0
     private var maxMps = 0.0
     private val spWin = ArrayList<DoubleArray>(8)
@@ -529,9 +530,12 @@ object Recorder {
                 // Anzeige — die Genauigkeitsgrenze steht deshalb hier, mit demselben Wert wie dort.
                 val brauchbar = accuracyM <= 20.0
                 val bewegt = if (speedMps >= 0.0) sp > STAND_MPS else schritt >= STAND_SCHRITT_M
-                if (brauchbar && bewegt) distM += schritt
+                // GPS-Sprung (schneller als 32 km/h zwischen zwei Fixes) zaehlt nicht — seit die
+                // Foil-Strecke die Hauptzahl ist (26.10.2026; im Simulator 6 km in 2:21 statt 1 km).
+                val plausibel = schritt / maxOf(1.0, (tMs - prevT) / 1000.0) <= MAX_PLAUSIBLE_MPS
+                if (brauchbar && bewegt && plausibel) distM += schritt
             }
-            prevLat = lat; prevLon = lon
+            prevLat = lat; prevLon = lon; prevT = tMs.toLong()
             spdMaxClean = maxKandidat(sp)
             if (spdMaxClean > maxMps) maxMps = spdMaxClean
             spWin.add(doubleArrayOf(tMs.toDouble(), sp))
