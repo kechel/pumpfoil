@@ -156,6 +156,8 @@ def _manoever(t, kurs, tempo, t_ms, wind_von, dop=None) -> list[dict]:
         sel = np.where((t >= t[i] - 6) & (t <= t[i] + 6) & ~np.isnan(kurs))[0]
         summe = sum(_winkel_diff(kurs[a], kurs[b]) for a, b in zip(sel, sel[1:]))
         drehung = summe if abs(summe) >= DREHUNG_MIN_GRAD else d
+        if abs(summe) < DREHUNG_MIN_GRAD:
+            drehung = _richtung_ueber_luecke(t, kurs, i, d, dop)
         if _ueberstreicht(vor, drehung, w):
             typ = "wende"
         elif _ueberstreicht(vor, drehung, (w + 180.0) % 360.0):
@@ -172,6 +174,33 @@ def _manoever(t, kurs, tempo, t_ms, wind_von, dop=None) -> list[dict]:
         out.append({"i": int(i), "t_ms": int(t_ms[i]), "typ": typ, "durch": durch,
                     "drehung": round(float(drehung)), "kurs_vor": round(vor), "kurs_nach": round(nach)})
     return out
+
+
+def _richtung_ueber_luecke(t, kurs, i: int, d: float, dop) -> float:
+    """Drehrichtung, wenn mitten in der Kurve Kurswerte fehlen (Spur-Tempo kurz unter MIN_FAHRT_KMH).
+    Dann kommt die aufsummierte Drehung nicht ueber DREHUNG_MIN_GRAD, und `d` (kuerzester Bogen zwischen
+    Kurs vorher und nachher) hat bei ~180° ein ZUFAELLIGES Vorzeichen — #19084 (Alex, 26.10.2026): zwei
+    Halsen, die ueber Nord drehten, liefen so rechnerisch durch den Wind und zaehlten als Wende.
+    Gekippt wird nur, wenn die Kurve VOR und NACH der groessten Luecke (±10 s) in dieselbe Richtung dreht
+    (je >= 10°) und das Doppler-Tempo dabei nie unter 8 km/h faellt (auf dem Foil geblieben). Bei einem
+    Stopp im Wasser sagt die Teilsumme nichts ueber die Drehung — dann bleibt es beim alten Bogen.
+    Probelauf 183 Wind-Sessions: 28 aendern sich, Wenden 752 -> 724."""
+    if dop is None:
+        return d
+    sel = np.where((t >= t[i] - 10) & (t <= t[i] + 10) & ~np.isnan(kurs))[0]
+    if len(sel) < 4:
+        return d
+    luecke, k = max((t[b] - t[a], j) for j, (a, b) in enumerate(zip(sel, sel[1:])))
+    if luecke <= 1.5:
+        return d
+    vor = sum(_winkel_diff(kurs[a], kurs[b]) for a, b in zip(sel[:k + 1], sel[1:k + 1]))
+    nach = sum(_winkel_diff(kurs[a], kurs[b]) for a, b in zip(sel[k + 1:], sel[k + 2:]))
+    fen = (t >= t[i] - 4) & (t <= t[i] + 4) & ~np.isnan(dop)
+    if fen.sum() < 3 or float(np.nanmin(dop[fen])) < 8.0:
+        return d
+    if abs(vor) >= 10 and abs(nach) >= 10 and (vor > 0) == (nach > 0) and (vor > 0) != (d > 0):
+        return d - math.copysign(360.0, d)
+    return d
 
 
 def wind_funktion(wind: dict | None):

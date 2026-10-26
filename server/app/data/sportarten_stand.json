@@ -1664,6 +1664,24 @@
   ],
   "verlauf": [
     {
+      "datum": "2026-10-26",
+      "sport": [
+        "wingfoil",
+        "kitefoil",
+        "parawing",
+        "kitesurf",
+        "windsurf",
+        "snowkite",
+        "kite_atb",
+        "kitebuggy"
+      ],
+      "merkmal": "wenden_halsen",
+      "was": "Halsen mit kurzer Luecke im Kurs mitten in der Drehung (Spur kurz unter 6 km/h, Doppler weiter >= 8) zaehlen nicht mehr als Wende: die Drehrichtung kommt aus der Kurve vor und nach der Luecke statt aus dem kuerzesten Bogen. Anlass Feedback #19084 (Alex): 3 Wenden -> 1. Probelauf 183 Wind-Sessions: 28 geaendert, Wenden 752 -> 724.",
+      "wo": [
+        "server"
+      ]
+    },
+    {
       "datum": "2026-10-25",
       "sport": [
         "sup"

@@ -4128,7 +4128,7 @@ def _accel_auswertung_gecacht(db, s, name: str, version: str, rechnen, nur_cache
 
 MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None, "fahrten": []}
 # Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
-MANOEVER_VERSION = "m7-fahrt"   # m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
+MANOEVER_VERSION = "m8-luecke"   # m8: Drehrichtung ueber Kurs-Luecken (#19084, 26.10.2026); m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
 
 
 def _manoever_schluessel(s, res) -> str:
