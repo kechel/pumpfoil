@@ -398,7 +398,7 @@ private fun RecordingBody(st: Recorder.State) {
     val mmss = { s: Long -> "%d:%02d".format(s / 60, s % 60) }
     val km = { m: Double -> if (m >= 1000) "%.2f km".format(m / 1000) else "%d m".format(m.toInt()) }
     // Foil-Strecke (Summe aller Laeufe) statt Gesamtstrecke (Jan, 26.10.2026): „Gesamtstrecke will ich
-    // garnicht haben … darunter wuerde ich intuitiv auch on foil verstehen" — genau das passierte Marina
+    // garnicht haben … darunter wuerde ich intuitiv auch on foil verstehen" — genau das passierte u897
     // beim 10K, sie hoerte bei angezeigten 10,2 km auf, auf dem Foil waren es 8,9.
     StatRow(I18n.t("rec.time"), mmss(sek), I18n.t("rec.foilDist"), km(st.allRunsDistanceM))
     StatRow(I18n.t("rec.speed"), if (gpsWeg) "--" else "%.1f".format(st.speedKmh), I18n.t("rec.speedMax"), "%.1f".format(st.maxSpeedKmh))

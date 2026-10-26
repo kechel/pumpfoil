@@ -393,7 +393,7 @@ private struct LiveTrackMap: UIViewRepresentable {
 
 // MARK: - Live-Uhrseiten + Laeufe (26.10.2026)
 // Die eigenen Uhr-Datenseiten LIVE auf dem Handy-Recorder, ueber der Karte (Jan: „vielleicht auch einfach
-// die watch-faces verwenden zur anzeige live"). Anlass: Marinas 10K — die App zeigte nur die Gesamtstrecke,
+// die watch-faces verwenden zur anzeige live"). Anlass: 10K-Versuch u897 (#17390) — die App zeigte nur die Gesamtstrecke,
 // sie hielt sie fuer die Foil-Strecke und hoerte zu frueh auf. Spiegel von Android LiveSeiten.kt.
 // `pages` waehrend eines Laufs, `off_foil_pages` sonst (das Handy kennt keine manuelle Pause); mit
 // „auch die anderen Seiten durchblaettern" haengen die Seiten des anderen Zustands hinten an.

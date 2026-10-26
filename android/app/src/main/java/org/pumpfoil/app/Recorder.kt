@@ -74,7 +74,7 @@ object Recorder {
         val lastRunAvgSpeedKmh: Double = 0.0,
         val lastRunMaxSpeedKmh: Double = 0.0,
         // Live geschaetzte Laeufe dieser Aufnahme (fertige, aelteste zuerst) und die Summe aller
-        // Laeufe inkl. des laufenden — wie die Uhr-Felder 22/23 (Marinas 10K, 26.10.2026: die App
+        // Laeufe inkl. des laufenden — wie die Uhr-Felder 22/23 (10K-Versuch u897 (#17390), 26.10.2026: die App
         // zeigte nur die Gesamtstrecke, sie hielt sie fuer die Foil-Strecke und hoerte zu frueh auf).
         val laeufe: List<LiveLauf> = emptyList(),
         val allRunsDistanceM: Double = 0.0,
@@ -105,7 +105,7 @@ object Recorder {
     private var lastRunMaxMps = 0.0
     private val laeufeListe = ArrayList<LiveLauf>()
     // Kilometerstand der letzten Sekunden: der Laufbeginn wird um RUN_ENTER_DWELL zurueckdatiert —
-    // die Zeit war es schon immer, die Strecke nicht (in Marinas Session 0,4 km auf 27 Laeufe).
+    // die Zeit war es schon immer, die Strecke nicht (in der Session #17390 0,4 km auf 27 Laeufe).
     private val distVerlauf = ArrayDeque<Pair<Long, Double>>()
 
     // Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py): BURST (mehr als

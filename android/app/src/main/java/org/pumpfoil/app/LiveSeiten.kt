@@ -46,7 +46,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
 // Die eigenen Uhr-Datenseiten LIVE auf dem Handy-Recorder (Jan, 26.10.2026: „vielleicht auch einfach
-// die watch-faces verwenden zur anzeige live … als zusatz-anzeige ueber der karte"). Anlass war Marinas
+// die watch-faces verwenden zur anzeige live … als zusatz-anzeige ueber der karte"). Anlass war u897s
 // 10K: die App zeigte nur die Gesamtstrecke, sie hielt sie fuer die Foil-Strecke und hoerte zu frueh auf.
 //
 // Dieselben Seiten wie auf der Uhr (Profil → Uhr-Ansichten): `pages` waehrend eines Laufs,
