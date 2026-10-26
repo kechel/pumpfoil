@@ -90,13 +90,17 @@ module Tanz {
     // Die drei besten des zuletzt erkannten Abschnitts (laufend oder eben zu Ende): [[Index, Prozent], ...].
     // Bleibt nach dem Ende stehen — Jan setzt den Marker meist NACH dem Tanz, dann gilt genau diese Liste.
     var _top = [];
+    // Heute schon bestaetigte Taenze, zuletzt bestaetigter zuerst (Indizes in KEYS). Im Kurs kommen dieselben
+    // Taenze immer wieder; an Jans 93 beschrifteten Abschnitten (8 Abende) brauchte die Liste damit im Mittel
+    // 1,6 statt 3,6 Tastendruecke, 82 % lagen in hoechstens 2 (Jan, 26.10.2026: „zig mal weiterscrollen").
+    var _heute = [];
 
     function start(uuid) as Void {
         _uuid = uuid; _n = 0; _sx = 0.0; _sy = 0.0; _sz = 0.0;
         _gx = []; _gy = []; _gz = [];
         _folge = 0; _kand = []; _offen = false; _abschnitte = []; _marker = []; _hist = []; _ebenText = null;
         _lag = -1; _p = null; _bpm = 0; _verlaufUhr = []; _verlaufT0 = -1;
-        _wahl = -1; _jetzt = 0; _top = [];
+        _wahl = -1; _jetzt = 0; _top = []; _heute = [];
     }
 
     // Ein Sensorpaket (~1 s). a = accelerometerData (milli-g), g = gyroscopeData (Grad/s) oder null.
@@ -337,11 +341,15 @@ module Tanz {
         return -1;
     }
 
-    // Reihenfolge der Auswahl (Jan, 25.10.2026): die drei besten nach Sicherheit, dann der Rest
-    // alphabetisch, „Kein Tanz" (= KEYS.size()) zuletzt. Eintraege sind Indizes in KEYS.
-    function _reihe() {
+    // Reihenfolge der Auswahl: der gerade gezeigte Tanz (Ausgangspunkt), die heute schon bestaetigten
+    // (zuletzt zuerst, 26.10.), die drei besten nach Sicherheit (25.10.), der Rest alphabetisch,
+    // „Kein Tanz" (= KEYS.size()) zuletzt. Eintraege sind Indizes in KEYS. RUNTER beginnt damit immer
+    // beim zuletzt getanzten, HOCH bei „Kein Tanz".
+    function _reihe(gezeigt) {
         var r = [];
-        for (var i = 0; i < _top.size(); i++) { r.add(_top[i][0]); }
+        if (gezeigt != null) { var g = KEYS.indexOf(gezeigt); if (g >= 0) { r.add(g); } }
+        for (var i = 0; i < _heute.size(); i++) { if (r.indexOf(_heute[i]) < 0) { r.add(_heute[i]); } }
+        for (var i = 0; i < _top.size(); i++) { if (r.indexOf(_top[i][0]) < 0) { r.add(_top[i][0]); } }
         for (var i = 0; i < ALPHA.size(); i++) { if (r.indexOf(ALPHA[i]) < 0) { r.add(ALPHA[i]); } }
         r.add(KEYS.size());
         return r;
@@ -387,10 +395,16 @@ module Tanz {
 
     function _wahlKey(i) { return (i >= KEYS.size()) ? "kein" : KEYS[i]; }
 
-    // HOCH/RUNTER: ab dem gerade gezeigten Tanz weiterblaettern, in der Reihenfolge von _reihe().
-    // Ohne erkannten Tanz beginnt RUNTER beim besten, HOCH bei „Kein Tanz".
+    // HOCH/RUNTER: weiterblaettern in der Reihenfolge von _reihe(). Die Reihe haengt am erkannten Tanz,
+    // nicht an der laufenden Wahl, damit sie sich beim Blaettern nicht verschiebt.
     function blaettern(d) as Void {
-        var r = _reihe();
+        // Auch kurz NACH dem Abschnitt (bis 2 min): Jan setzt den Marker meist erst nach dem Tanz.
+        var erkannt = null;
+        if (_abschnitte.size() > 0) {
+            var a = _abschnitte[_abschnitte.size() - 1];
+            if (_offen || _jetzt - a[1] < 120000) { erkannt = a[2]; }
+        }
+        var r = _reihe(erkannt);
         var n = r.size();
         var k = (_wahl >= 0) ? _wahlKey(_wahl) : _anzeige()[0];
         var i = (k == null) ? -1 : (k.equals("kein") ? KEYS.size() : KEYS.indexOf(k));
@@ -416,7 +430,11 @@ module Tanz {
         if (_offen && _abschnitte.size() > 0) { gezeigt = _abschnitte[_abschnitte.size() - 1][2]; }
         _marker.add([_jetzt, _jetzt, gezeigt, key, 5, 0, 0]);
         _speichern();
-        if (!key.equals("kein")) { _letzter = key; }
+        if (!key.equals("kein")) {
+            _letzter = key;
+            var ki = KEYS.indexOf(key);
+            if (ki >= 0) { _heute.remove(ki); _heute = [ki].addAll(_heute); }
+        }
         _eben(key);
         _vibrieren();
         return true;

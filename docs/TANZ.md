@@ -72,6 +72,10 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   2 oder 3 stimmen“ → (1) Erkennung liefert Top 3 mit Sicherheit in %; (2) Tanztabelle: Spalten 1./2./3. mit %;
   (3) Auswahl (Uhr und Server-Oberflaeche): Top 3 nach Sicherheit zuerst, Rest alphabetisch. **Gebaut 25.10.**,
   s. „Sicherheit in %" unten.
+- **26.10.** „ich will auch garkeine feinarbeit, aber wenn es moeglich ist schonmal eine bessere vorauswahl beim waehlen
+  des tanzes auf der uhr, gestern musste ich da zig mal weiterscrollen bis ich den aktuellen tanz gefunden hatte“ (am
+  25.10. lief noch 0.6.0 mit fester Liste — Session ab 17:19, Top 3 erst 17:27 committet) → **heute schon bestätigte
+  Tänze** in der Auswahl nach vorn, s. „Auswahl-Reihenfolge" unten. Tanz-App **0.6.1**.
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
 
@@ -163,6 +167,7 @@ wird in die Tanz-Tabellen geschrieben. Quelle für Salsa: #16863 (Kurs), #17689 
 - **Uhr** (`Tanz.mc _topAus`): die drei besten des zuletzt erkannten Abschnitts; bleibt nach dessen Ende
   stehen (Marker kommt meist danach). Anzeige „Uhr erkennt · 62 %", in der Auswahl „Salsa 62 %".
   HOCH/RUNTER blättert: Top 3 → Rest alphabetisch (`ALPHA`, vom Test geprüft) → „Kein Tanz".
+  **Ab 0.6.1 (26.10.)** davor die heute bestätigten Tänze, s. „Auswahl-Reihenfolge".
   Nicht hochgeladen — das Zeilenformat `tz_` bleibt gleich.
 - **Server/Web**: `GET /api/sessions/{id}/tanz` liefert je Zeile `uhr_top3` (Uhr-Rechnung aus den Rohdaten,
   `tanz_server.uhr_top3`, ohne den Vorrang des zuletzt bestätigten Tanzes) und `server_top3` [{tanz, prozent}].
@@ -243,3 +248,22 @@ unterscheiden sich staerker als die Taenze (Kurs/allein, Partner, Tagesform), un
 Die frueheren s1-Zahlen (an denselben Zeilen geeicht) waren deshalb zu optimistisch.
 **Folgerung:** Engpass sind beschriftete ABENDE je Tanz (Ziel >= 4–5), nicht die Rechnung. Bis dahin jede neue
 Auswertung gegen andere Abende messen (leave-one-session-out), sonst taeuscht man sich.
+
+## Auswahl-Reihenfolge auf der Uhr (26.10.2026, Tanz-App 0.6.1)
+
+Gemessen, wie viele Tastendrücke der richtige Tanz braucht (93 beschriftete Abschnitte, 8 Abende; Muster je Abend
+nur aus den anderen Abenden; Ausgangspunkt = erkannter Tanz, 0 = gleich START). Skript lag im Scratchpad, nicht im Repo.
+
+| Reihenfolge | Tasten im Mittel | höchstens 2 Tasten |
+|---|--:|--:|
+| alt (feste Liste, bis 0.6.0) | 3,3 | 40 % |
+| Top 3 + alphabetisch (25.10.) | 3,6 | 37 % |
+| Top 3 + heute getanzt + alphabetisch | 2,7 | 29 % |
+| **heute getanzt + Top 3 + alphabetisch (0.6.1)** | **1,6** | **82 %** |
+| … zusätzlich „an früheren Abenden oft" | 2,8 | 29 % |
+
+Top 3 allein hilft über Abende hinweg nicht (die Erkennung trifft dort nur ~14–22 %). Was hilft: im Kurs kommen
+dieselben Tänze immer wieder. `Tanz.mc _reihe`: erkannter Tanz → heute bestätigte (zuletzt zuerst) → Top 3 →
+alphabetisch → „Kein Tanz". RUNTER führt also zuerst zum zuletzt bestätigten Tanz, HOCH zu „Kein Tanz". Die Reihe
+hängt am erkannten Tanz, auch bis 2 min nach Abschnittsende (Marker kommt meist danach), und verschiebt sich beim
+Blättern nicht. „Heute" = diese Aufnahme. Test: `watch-dance/test/tanz-reihe.test.mjs`.
