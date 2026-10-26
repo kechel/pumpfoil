@@ -33,7 +33,7 @@ def web_korrekturen(sid):
     """Jans Korrekturen in der Tabelle „Taenze" (quelle web) — die staerkste Wahrheit."""
     d = tanz.laden(SessionLocal(), sid) or {}
     return [(r["start_ms"], r.get("ende_ms") or r["start_ms"], r["gewaehlt"]) for r in d.get("abschnitte") or []
-            if r.get("quelle") == "web" and r.get("gewaehlt") and r["gewaehlt"] != "kein"]
+            if r.get("quelle") == "web" and r.get("gewaehlt") and r["gewaehlt"] not in tanz.OHNE_TANZ]
 
 
 def quellen():

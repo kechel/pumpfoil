@@ -140,7 +140,7 @@ def main():
         if s is None or s.deleted:
             continue
         ab = [r for r in tanz.laden(db, s.id)["abschnitte"]
-              if r.get("gewaehlt") and r["gewaehlt"] != "kein" and (r["ende_ms"] is None or r["ende_ms"] > r["start_ms"])]
+              if r.get("gewaehlt") and r["gewaehlt"] not in tanz.OHNE_TANZ and (r["ende_ms"] is None or r["ende_ms"] > r["start_ms"])]
         if not ab:
             continue
         fs = fenster_der_session(s, storage, ts, ta)

@@ -18,7 +18,10 @@ from datetime import datetime, timezone
 from . import models
 
 TAENZE = ("lw", "tango", "ww", "slowfox", "quickstep", "samba", "chacha", "rumba", "paso", "jive",
-          "salsa", "bachata", "discofox", "boogie", "kein")
+          "salsa", "bachata", "discofox", "boogie", "ueben", "kein")
+# Kein Tanz-Muster: „Kein Tanz" und „Üben" (Jan, 26.10.2026: Figuren langsam oder ohne Musik ueben — „das ist auch
+# nicht 'richtiges tanzen'"). Solche Zeilen gehen nie in Muster oder Messungen.
+OHNE_TANZ = frozenset({"kein", "ueben"})
 # 4 nur Tanz-App 0.4; 5 = Marker (ab 0.5 jede Bestaetigung): nur ein Hinweis, gedeutet wird hier, nicht auf der Uhr.
 QUELLEN_UHR = {0: "auto", 1: "bestaetigt", 2: "geaendert", 3: "manuell", 4: "nachtraeglich", 5: "marker"}
 MAX_ABSCHNITTE = 500

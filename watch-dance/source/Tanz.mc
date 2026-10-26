@@ -85,7 +85,7 @@ module Tanz {
     var _ebenText = null;        // letzter Marker: Anzeige-Text „14:32 Boogie"
     var _ebenBis = 0;            // bis dahin hervorgehoben (frisch gesetzt)
     var _jetzt = 0;              // letzte Session-ms aus add()
-    var _wahl = -1;              // Index in KEYS (+ KEYS.size() = „Kein Tanz") beim Blaettern, -1 = nicht
+    var _wahl = -1;              // Index in KEYS (+ KEYS.size() = „Kein Tanz", + 1 = „Üben") beim Blaettern, -1 = nicht
     var _wahlBis = 0;            // System-ms, ab dann faellt eine unbestaetigte Wahl zurueck
     // Die drei besten des zuletzt erkannten Abschnitts (laufend oder eben zu Ende): [[Index, Prozent], ...].
     // Bleibt nach dem Ende stehen — Jan setzt den Marker meist NACH dem Tanz, dann gilt genau diese Liste.
@@ -343,14 +343,17 @@ module Tanz {
 
     // Reihenfolge der Auswahl: der gerade gezeigte Tanz (Ausgangspunkt), die heute schon bestaetigten
     // (zuletzt zuerst, 26.10.), die drei besten nach Sicherheit (25.10.), der Rest alphabetisch,
-    // „Kein Tanz" (= KEYS.size()) zuletzt. Eintraege sind Indizes in KEYS. RUNTER beginnt damit immer
-    // beim zuletzt getanzten, HOCH bei „Kein Tanz".
+    // „Üben" (= KEYS.size() + 1) und „Kein Tanz" (= KEYS.size()) zuletzt. Eintraege sind Indizes in KEYS.
+    // RUNTER beginnt damit immer beim zuletzt getanzten, HOCH bei „Kein Tanz", noch einmal HOCH bei „Üben".
+    // „Üben" (Jan, 26.10.2026): Figuren ueben, langsam oder ohne Musik — kein richtiges Tanzen; der Server
+    // haelt es wie „Kein Tanz" aus Mustern und Messungen heraus (tanz.OHNE_TANZ).
     function _reihe(gezeigt) {
         var r = [];
         if (gezeigt != null) { var g = KEYS.indexOf(gezeigt); if (g >= 0) { r.add(g); } }
         for (var i = 0; i < _heute.size(); i++) { if (r.indexOf(_heute[i]) < 0) { r.add(_heute[i]); } }
         for (var i = 0; i < _top.size(); i++) { if (r.indexOf(_top[i][0]) < 0) { r.add(_top[i][0]); } }
         for (var i = 0; i < ALPHA.size(); i++) { if (r.indexOf(ALPHA[i]) < 0) { r.add(ALPHA[i]); } }
+        r.add(KEYS.size() + 1);
         r.add(KEYS.size());
         return r;
     }
@@ -358,6 +361,7 @@ module Tanz {
     function name(key) as Lang.String {
         if (key == null) { return "?"; }
         if (key.equals("kein")) { return "Kein Tanz"; }
+        if (key.equals("ueben")) { return "Üben"; }
         var i = KEYS.indexOf(key);
         return (i >= 0) ? NAMEN[i] : key;
     }
@@ -393,7 +397,7 @@ module Tanz {
         return [null, :nichts];
     }
 
-    function _wahlKey(i) { return (i >= KEYS.size()) ? "kein" : KEYS[i]; }
+    function _wahlKey(i) { return (i > KEYS.size()) ? "ueben" : ((i == KEYS.size()) ? "kein" : KEYS[i]); }
 
     // HOCH/RUNTER: weiterblaettern in der Reihenfolge von _reihe(). Die Reihe haengt am erkannten Tanz,
     // nicht an der laufenden Wahl, damit sie sich beim Blaettern nicht verschiebt.
@@ -407,7 +411,7 @@ module Tanz {
         var r = _reihe(erkannt);
         var n = r.size();
         var k = (_wahl >= 0) ? _wahlKey(_wahl) : _anzeige()[0];
-        var i = (k == null) ? -1 : (k.equals("kein") ? KEYS.size() : KEYS.indexOf(k));
+        var i = (k == null) ? -1 : (k.equals("kein") ? KEYS.size() : (k.equals("ueben") ? KEYS.size() + 1 : KEYS.indexOf(k)));
         var pos = (i < 0) ? -1 : r.indexOf(i);
         pos = (pos < 0) ? ((d > 0) ? 0 : n - 1) : (pos + d + n) % n;
         _wahl = r[pos];
@@ -430,7 +434,7 @@ module Tanz {
         if (_offen && _abschnitte.size() > 0) { gezeigt = _abschnitte[_abschnitte.size() - 1][2]; }
         _marker.add([_jetzt, _jetzt, gezeigt, key, 5, 0, 0]);
         _speichern();
-        if (!key.equals("kein")) {
+        if (!key.equals("kein") && !key.equals("ueben")) {
             _letzter = key;
             var ki = KEYS.indexOf(key);
             if (ki >= 0) { _heute.remove(ki); _heute = [ki].addAll(_heute); }

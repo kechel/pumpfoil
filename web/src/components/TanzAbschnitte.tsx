@@ -7,7 +7,7 @@ import { api, type TanzAbschnitt } from "../lib/api";
 const NAMEN: Record<string, string> = {
   lw: "Langsamer Walzer", tango: "Tango", ww: "Wiener Walzer", slowfox: "Slowfox", quickstep: "Quickstep",
   samba: "Samba", chacha: "Cha-Cha-Cha", rumba: "Rumba", paso: "Paso Doble", jive: "Jive",
-  salsa: "Salsa", bachata: "Bachata", discofox: "Disco-Fox", boogie: "Boogie", kein: "Kein Tanz",
+  salsa: "Salsa", bachata: "Bachata", discofox: "Disco-Fox", boogie: "Boogie", ueben: "Üben", kein: "Kein Tanz",
 };
 const QUELLE: Record<string, string> = {
   auto: "nur erkannt", bestaetigt: "an der Uhr bestätigt", geaendert: "an der Uhr geändert",
@@ -17,12 +17,13 @@ const QUELLE: Record<string, string> = {
 };
 
 // Auswahl (Jan, 25.10.2026): die drei besten der Server-Erkennung nach Sicherheit zuerst, danach alle
-// anderen alphabetisch, „Kein Tanz" zuletzt.
+// anderen alphabetisch, „Üben" und „Kein Tanz" zuletzt (beide kein Tanz-Muster, Server: tanz.OHNE_TANZ).
+const OHNE_TANZ = ["ueben", "kein"];
 function auswahl(taenze: string[], top: { tanz: string; prozent: number }[]) {
   const oben = top.filter((t) => taenze.includes(t.tanz));
-  const rest = taenze.filter((k) => k !== "kein" && !oben.some((t) => t.tanz === k))
+  const rest = taenze.filter((k) => !OHNE_TANZ.includes(k) && !oben.some((t) => t.tanz === k))
     .sort((a, b) => (NAMEN[a] ?? a).localeCompare(NAMEN[b] ?? b, "de"));
-  return { oben, rest: taenze.includes("kein") ? [...rest, "kein"] : rest };
+  return { oben, rest: [...rest, ...OHNE_TANZ.filter((k) => taenze.includes(k))] };
 }
 
 function uhrzeit(startedAt: string, ms: number) {

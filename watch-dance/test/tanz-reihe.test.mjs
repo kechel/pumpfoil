@@ -1,5 +1,5 @@
 // Reihenfolge der Tanz-Auswahl (Tanz._reihe/blaettern, Jan 26.10.2026: „gestern musste ich da zig mal
-// weiterscrollen"): gezeigter Tanz, heute bestaetigte (zuletzt zuerst), Top 3, Rest alphabetisch, „Kein Tanz".
+// weiterscrollen"): gezeigter Tanz, heute bestaetigte (zuletzt zuerst), Top 3, Rest alphabetisch, „Üben" (26.10.), „Kein Tanz".
 // Monkey C laeuft nicht in Node — der Test stellt die Reihe nach und prueft die tragenden Zeilen im Quelltext.
 //   node --test watch-dance/test/
 import { test } from 'node:test';
@@ -18,6 +18,9 @@ test('tragende Zeilen stehen im Quelltext', () => {
   assert.match(quelle, /for \(var i = 0; i < _heute\.size\(\); i\+\+\) \{ if \(r\.indexOf\(_heute\[i\]\) < 0\) \{ r\.add\(_heute\[i\]\); \} \}/);
   assert.match(quelle, /if \(ki >= 0\) \{ _heute\.remove\(ki\); _heute = \[ki\]\.addAll\(_heute\); \}/);
   assert.match(quelle, /if \(_offen \|\| _jetzt - a\[1\] < 120000\) \{ erkannt = a\[2\]; \}/);
+  assert.match(quelle, /r\.add\(KEYS\.size\(\) \+ 1\);\n\s*r\.add\(KEYS\.size\(\)\);/);
+  assert.match(quelle, /return \(i > KEYS\.size\(\)\) \? "ueben" : \(\(i == KEYS\.size\(\)\) \? "kein" : KEYS\[i\]\);/);
+  assert.match(quelle, /if \(!key\.equals\("kein"\) && !key\.equals\("ueben"\)\) \{/);
 });
 
 test('ALPHA ist alphabetisch nach NAMEN', () => {
@@ -30,7 +33,7 @@ function reihe(gezeigt, heute, top) {
   const dazu = (i) => { if (!r.includes(i)) r.push(i); };
   if (gezeigt != null && KEYS.includes(gezeigt)) dazu(KEYS.indexOf(gezeigt));
   heute.forEach(dazu); top.forEach(dazu); ALPHA.forEach(dazu);
-  r.push(KEYS.length);
+  r.push(KEYS.length + 1, KEYS.length);                 // „Üben", „Kein Tanz"
   return r;
 }
 const k = (s) => KEYS.indexOf(s);
@@ -39,9 +42,10 @@ test('RUNTER fuehrt vom erkannten Tanz zuerst zu den heute getanzten', () => {
   const heute = [k('discofox'), k('boogie')];          // zuletzt Disco-Fox, davor Boogie
   const r = reihe('jive', heute, [k('jive'), k('quickstep'), k('samba')]);
   assert.deepEqual(r.slice(0, 5), [k('jive'), k('discofox'), k('boogie'), k('quickstep'), k('samba')]);
-  assert.equal(r.length, KEYS.length + 1);            // jeder Tanz genau einmal + „Kein Tanz"
+  assert.equal(r.length, KEYS.length + 2);            // jeder Tanz genau einmal + „Üben" + „Kein Tanz"
   assert.equal(new Set(r).size, r.length);
   assert.equal(r[r.length - 1], KEYS.length);          // HOCH vom erkannten = „Kein Tanz"
+  assert.equal(r[r.length - 2], KEYS.length + 1);      // noch einmal HOCH = „Üben"
 });
 
 test('ohne erkannten Tanz beginnt RUNTER beim zuletzt bestaetigten', () => {

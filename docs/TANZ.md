@@ -298,3 +298,12 @@ Strecke **30–52' vor dem Walzer-Block**: wenig Drehung, nur stellenweise tanze
 unbeschriftet; **Figuren-Ueben ist kein Tanz-Muster** und darf nicht ins Training (sonst lernt WW „kaum Drehung").
 → Wiener Walzer erkennt man am Handgelenk am ehesten an **anhaltender Drehung** (> ~0,8 Umdr./10 s ueber Minuten),
 nicht am Takt.
+
+## Marker „Üben" (26.10.2026, Tanz-App 0.6.2)
+
+Jan: „vielleicht waere es noch sinnvoll einen marker setzen zu koennen 'geuebt ohne musik' oder so .. kuerzer" →
+eigener Eintrag **„Üben"** (Schluessel `ueben`): Figuren langsam oder ohne Musik, kein richtiges Tanzen. Uhr: in der
+Auswahl vor „Kein Tanz" (HOCH = Kein Tanz, noch einmal HOCH = Üben), zaehlt nicht als „heute getanzt". Server:
+`tanz.TAENZE` + `tanz.OHNE_TANZ = {kein, ueben}`, Muster-Ableitung und Schnittmengen-Skript lassen beide weg.
+Web-Tabelle: „Üben" vor „Kein Tanz". Welcher Tanz geuebt wurde, steht nicht dabei (Variante 1, Jans OK) — meist
+folgt der Block dieses Tanzes direkt danach.

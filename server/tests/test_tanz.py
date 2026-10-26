@@ -37,6 +37,7 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
           [500000, 600000, None, "salsa", 3, 0, 0],
           [700000, 760000, "lw", "ww", 4, 90, 60],
           [800000, 800000, None, "jive", 5, 0, 0],
+          [900000, 900000, None, "ueben", 5, 0, 0],
           [1, 2, "quatsch", "<script>", 7, 9999, 500],
           "kaputt"]
     gepackt = 126 + (40 << 8) + (75 << 15) + (21 << 23)
@@ -51,14 +52,15 @@ def test_tanz_abschnitte_von_der_uhr_und_korrektur_im_web(client):
     fu = tanz_laden(sid)["fenster_uhr"]
     assert fu[0] == {"t_ms": 20000, "tempo": 126, "klar": 0.4, "quer": 0.75, "umdr": 0.21}
     assert fu[1]["umdr"] is None and fu[1]["t_ms"] == 30000 and len(fu) == 2
-    assert len(a) == 6
+    assert len(a) == 7
     assert a[3]["quelle"] == "nachtraeglich" and a[4]["quelle"] == "marker"
+    assert a[5]["gewaehlt"] == "ueben" and "ueben" in d["taenze"]       # Marker „Üben" (Tanz-App 0.6.2)
     assert d["server_version"] == "s1" and all(r["server_vorschlag"] is None and r["server_top3"] == [] and r["uhr_top3"] == [] for r in a)   # keine Accel-Daten
     assert {k: v for k, v in a[0].items() if k not in ("server_vorschlag", "server_top3", "uhr_top3")} == {"start_ms": 30000, "ende_ms": 330000, "vorschlag": "tango", "gewaehlt": "boogie",
                     "quelle": "geaendert", "tempo": 126, "dreh": 0}
     assert a[1]["ende_ms"] is None and a[1]["quelle"] == "auto"
     assert a[2]["quelle"] == "manuell" and a[2]["vorschlag"] is None
-    assert a[5]["vorschlag"] is None and a[5]["gewaehlt"] is None and a[5]["tempo"] is None and a[5]["dreh"] is None
+    assert a[6]["vorschlag"] is None and a[6]["gewaehlt"] is None and a[6]["tempo"] is None and a[6]["dreh"] is None
     # Korrektur im Web: Abschnitt 1 ist Langsamer Walzer
     d = client.put(f"/api/sessions/{sid}/tanz", headers=auth,
                    json={"abschnitte": [{"index": 1, "gewaehlt": "lw"}, {"index": 99, "gewaehlt": "jive"}]}).json()
