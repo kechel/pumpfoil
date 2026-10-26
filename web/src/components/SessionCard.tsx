@@ -25,7 +25,7 @@ export function SessionCard({
   sessionId, startedAt, endedAt, tz, spot, foil, sportLabel, stab, mast, board, deviceLabel, placement, caption,
   avatarName, avatarUrl, avatarUserId, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
-  sportClass, dataQuality, needsClassification = false,
+  sportClass, dataQuality, needsClassification = false, ohneFoil = false,
 }: {
   sessionId: number;
   owned?: boolean;   // eigene Session? -> Merge-Angebot in Vergleichen
@@ -34,6 +34,9 @@ export function SessionCard({
   tz?: string | null;   // Spot-Zeitzone -> Uhrzeiten in Ortszeit
   spot?: string | null;
   foil?: string | null;   // Foil-Label (nur wenn explizit gewählt)
+  // Sportart ohne Foil (sport_profil.foil === false, z. B. Kitesurfen, Tanz — Jan 26.10.2026): Foil, Stab und Mast
+  // ausblenden, Uhr und Board bleiben.
+  ohneFoil?: boolean;
   // Restliches Setup als fertige Labels — je Teil nur, wenn hinterlegt (sonst weglassen, nicht leer
   // anzeigen). Bewusst Strings statt Objekte: die Karte formatiert nichts, sie zeigt nur.
   // Sportart, wenn es KEIN Pumpfoilen war (die Liste "was ist neu" zeigt alle Sportarten).
@@ -308,9 +311,9 @@ export function SessionCard({
               {startedAt && endedAt && <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>}
               {sportLabel && <span className="ml-2 inline-flex items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{sportLabel}</span>}
               {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}
-              {foil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}
-              {stab && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><StabIcon className="h-3.5 w-3.5" /> {stab}</span>}
-              {mast && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><MastIcon className="h-3.5 w-3.5" /> {mast}</span>}
+              {foil && !ohneFoil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}
+              {stab && !ohneFoil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><StabIcon className="h-3.5 w-3.5" /> {stab}</span>}
+              {mast && !ohneFoil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><MastIcon className="h-3.5 w-3.5" /> {mast}</span>}
               {board && (
                 // Sonderbehandlung fuer das Skateboard: Pumpen auf dem Skateboard ist kein
                 // Tippfehler, sondern Trockentraining — das darf in Marken-Cyan auffallen.

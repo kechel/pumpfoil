@@ -845,6 +845,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
               endedAt={s.ended_at}
               spot={s.place_name}
               foil={s.foil ? foilLabel(s.foil) : null}
+              ohneFoil={s.sport_profil?.foil === false}
               {...setupLabels(s)}
               deviceLabel={s.device_label}
               placement={s.placement}
@@ -896,6 +897,7 @@ export function renderCommunitySession(s: CommunitySession, t: (k: string) => st
       endedAt={s.ended_at}
       spot={s.spot}
       foil={s.foil ? foilLabel(s.foil) : null}
+      ohneFoil={s.sport_profil?.foil === false}
       sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(`cls.sport.${s.sport_class}`) : null}
       {...setupLabels(s)}
       deviceLabel={s.device_label}

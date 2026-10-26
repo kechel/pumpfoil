@@ -451,6 +451,7 @@ export default function Foiler() {
                 tz={s.tz}
                 spot={s.place_name}
                 foil={s.foil ? foilLabel(s.foil) : null}
+                ohneFoil={s.sport_profil?.foil === false}
                 {...setupLabels(s)}
                 deviceLabel={s.device_label}
               placement={s.placement}

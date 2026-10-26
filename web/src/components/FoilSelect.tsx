@@ -38,6 +38,9 @@ export function FoilSelect({ session, owned, onMeta }: {
   const setup = session.setup;
   const fmtShim = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1).replace(/\.0$/, "")}°`;
   const stabLabel = (s: { brand: string; model: string; size: string }) => `${s.brand} ${s.model} ${s.size}`;
+  // Sportart ohne Foil (Kitesurfen, Tanz … — Jan 26.10.2026): Foil, Stab, Mast und Shim ausblenden; Board und
+  // Gewicht bleiben. Ein frueher gesetztes Foil bleibt in der Session gespeichert, es wird nur nicht gezeigt.
+  const ohneFoil = session.sport_profil?.foil === false;
 
   const chip = (text: string, key?: string) => (
     <span key={key} className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs text-slate-200">
@@ -48,9 +51,9 @@ export function FoilSelect({ session, owned, onMeta }: {
   // Alle gesetzten Setup-Teile als Chips (Anzeige für Fremde bzw. solange nichts wählbar ist).
   const setupChips = () => {
     const out = [];
-    if (setup?.stab) out.push(chip(stabLabel(setup.stab), "stab"));
-    if (setup?.mast_len_cm != null) out.push(chip(`${setup.mast_len_cm} cm`, "mast"));
-    if (setup?.shim_deg != null) out.push(chip(fmtShim(setup.shim_deg), "shim"));
+    if (setup?.stab && !ohneFoil) out.push(chip(stabLabel(setup.stab), "stab"));
+    if (setup?.mast_len_cm != null && !ohneFoil) out.push(chip(`${setup.mast_len_cm} cm`, "mast"));
+    if (setup?.shim_deg != null && !ohneFoil) out.push(chip(fmtShim(setup.shim_deg), "shim"));
     if (setup?.board) out.push(chip(setup.board.name, "board"));
     if (setup?.weight_kg) out.push(chip(`${setup.weight_kg} kg`, "weight"));
     return out;
@@ -60,7 +63,7 @@ export function FoilSelect({ session, owned, onMeta }: {
   if (!owned || !foils) {
     return (
       <>
-        {foil && chip(foilLabel(foil), "foil")}
+        {foil && !ohneFoil && chip(foilLabel(foil), "foil")}
         {setupChips()}
       </>
     );
@@ -93,7 +96,7 @@ export function FoilSelect({ session, owned, onMeta }: {
 
   return (
     <>
-      <select value={session.foil_id ?? ""} onChange={(e) => patch({ foil_id: e.target.value === "" ? null : Number(e.target.value) })}
+      {!ohneFoil && <select value={session.foil_id ?? ""} onChange={(e) => patch({ foil_id: e.target.value === "" ? null : Number(e.target.value) })}
         className={sel} title={t("foil.label")}>
         <option value="">{t("foil.useDefault")}</option>
         {mineFoils.length > 0 && (
@@ -104,9 +107,9 @@ export function FoilSelect({ session, owned, onMeta }: {
         <optgroup label={t("foils.allBrands")}>
           {others.map((f) => <option key={f.id} value={f.id}>{f.brand} {f.model} {f.size}</option>)}
         </optgroup>
-      </select>
+      </select>}
 
-      {stabs.length > 0 && (
+      {stabs.length > 0 && !ohneFoil && (
         <select value={explicitStab} onChange={(e) => patch({ stab_id: e.target.value === "" ? null : Number(e.target.value) })}
           className={sel} title={t("setup.stabTitle")}>
           <option value="">{setup?.stab ? stabLabel(setup.stab) : t("setup.stabTitle")}</option>
@@ -121,7 +124,7 @@ export function FoilSelect({ session, owned, onMeta }: {
         </select>
       )}
 
-      {myMasts.length > 0 && (
+      {myMasts.length > 0 && !ohneFoil && (
         <select value={explicitMast} onChange={(e) => patch({ mast_len_cm: e.target.value === "" ? null : Number(e.target.value) })}
           className={sel} title={t("setup.mastTitle")}>
           <option value="">{setup?.mast_len_cm != null ? `${setup.mast_len_cm} cm` : t("setup.mastTitle")}</option>
@@ -129,7 +132,7 @@ export function FoilSelect({ session, owned, onMeta }: {
         </select>
       )}
 
-      {myShims.length > 0 && (
+      {myShims.length > 0 && !ohneFoil && (
         <select value={explicitShim} onChange={(e) => patch({ shim_deg: e.target.value === "" ? null : Number(e.target.value) })}
           className={sel} title={t("setup.shimTitle")}>
           <option value="">{setup?.shim_deg != null ? fmtShim(setup.shim_deg) : t("setup.shimTitle")}</option>
