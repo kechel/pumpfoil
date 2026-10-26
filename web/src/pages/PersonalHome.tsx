@@ -1,5 +1,5 @@
 import { TechnikUebersicht } from "../components/TechnikTabelle";
-import { sortiereNachSport } from "../lib/sportClass";
+import { sortiereNachSport, classLabelKey } from "../lib/sportClass";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
@@ -502,6 +502,7 @@ export default function PersonalHome() {
               spot={s.place_name}
               foil={s.foil ? foilLabel(s.foil) : null}
               ohneFoil={s.sport_profil?.foil === false}
+              sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(classLabelKey({ sport_class: s.sport_class })) : null}
               {...setupLabels(s)}
               deviceLabel={s.device_label}
               placement={s.placement}

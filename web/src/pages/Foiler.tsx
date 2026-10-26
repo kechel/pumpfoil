@@ -29,6 +29,7 @@ import { REC_ITEMS, SportRekordeZeilen } from "./Home";
 import { fmtLaufDauer } from "../lib/dauer";
 import { FreundschaftKnopf } from "../components/Freundschaft";
 import { JahresbilanzSection, ManoeverVerlaufSection } from "./PersonalHome";
+import { classLabelKey } from "../lib/sportClass";
 
 // Bewusst dieselbe Formel wie auf der eigenen Startseite (`PersonalHome.fmtDur`) — eine zweite
 // Schreibweise fuer dieselbe Zahl liest sich wie ein anderer Wert.
@@ -452,6 +453,7 @@ export default function Foiler() {
                 spot={s.place_name}
                 foil={s.foil ? foilLabel(s.foil) : null}
                 ohneFoil={s.sport_profil?.foil === false}
+                sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(classLabelKey({ sport_class: s.sport_class })) : null}
                 {...setupLabels(s)}
                 deviceLabel={s.device_label}
               placement={s.placement}
