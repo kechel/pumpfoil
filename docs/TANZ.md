@@ -270,3 +270,17 @@ dieselben Tänze immer wieder. `Tanz.mc _reihe`: erkannter Tanz → heute bestä
 alphabetisch → „Kein Tanz". RUNTER führt also zuerst zum zuletzt bestätigten Tanz, HOCH zu „Kein Tanz". Die Reihe
 hängt am erkannten Tanz, auch bis 2 min nach Abschnittsende (Marker kommt meist danach), und verschiebt sich beim
 Blättern nicht. „Heute" = diese Aufnahme. Test: `watch-dance/test/tanz-reihe.test.mjs`.
+
+## #17613 (19.10.) teilweise beschriftet (26.10.2026)
+
+Jan (26.10.): „ja ich glaube wir hatten ab der haelfte/pause dann wiener walzer bis fast zum schluss". An der Uhr
+nichts bestaetigt; Server s1 (kennt nur LW/Jive/Samba/Salsa/Boogie) sagte bei den langsamen Stellen „LW".
+Beschriftet nur, wo der **Kreisel** den Walzer zeigt (netto Umdrehungen je 10 s, Median je 2 min): 52–58 bis 0,81,
+60–62 0,99, 66–72 1,15–1,28 (hoechste des Abends), Takt dort 48–63. Davor (30–52) kaum Drehung, danach (72–82)
+0,07–0,19 bei Takt 70, dann 211–236 → etwas anderes. Pause sichtbar bei 24–30 (kaum tanzend).
+
+Gesetzt (Wiener Walzer, quelle web): 52:00–57:40 (Uhr-Zeile), 60:00–62:00 (neue Zeile), 66:00–72:00 (Uhr-Zeile
+68:10–75:30 auf den gedrehten Teil gekuerzt). Rest offen, mit Jan besprechen. Sicherung:
+Scratchpad `tanz17613-vorher.json`.
+→ Wiener Walzer erkennt man am Handgelenk am ehesten an **anhaltender Drehung** (> ~0,8 Umdr./10 s ueber Minuten),
+nicht am Takt.
