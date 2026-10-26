@@ -1676,7 +1676,7 @@
         "kitebuggy"
       ],
       "merkmal": "wenden_halsen",
-      "was": "Halsen mit kurzer Luecke im Kurs mitten in der Drehung (Spur kurz unter 6 km/h, Doppler weiter >= 8) zaehlen nicht mehr als Wende: die Drehrichtung kommt aus der Kurve vor und nach der Luecke statt aus dem kuerzesten Bogen. Anlass Feedback #19084 (Alex): 3 Wenden -> 1. Probelauf 183 Wind-Sessions: 28 geaendert, Wenden 752 -> 724.",
+      "was": "Halsen mit kurzer Luecke im Kurs mitten in der Drehung (Spur kurz unter 6 km/h, Doppler weiter >= 8) zaehlen nicht mehr als Wende: die Drehrichtung kommt aus der Kurve vor und nach der Luecke statt aus dem kuerzesten Bogen. Anlass Feedback #19084 (Alex): 3 Wenden -> 1. Probelauf 183 Wind-Sessions: 28 geaendert, Wenden 752 -> 724. Dazu: wer mit weniger als 8 km/h in die Drehung faehrt (Doppler −10…−4 s), startet — das ist kein Manoever (#19084 bei 55:41). Probelauf: 126 von 5.221 weg, davon 32 auf dem Foil; #19084 jetzt 0 Wenden.",
       "wo": [
         "server"
       ]

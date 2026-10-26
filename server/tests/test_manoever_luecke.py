@@ -29,3 +29,11 @@ def test_stopp_im_wasser_bleibt_beim_alten_bogen():
     i = 20
     d = M._winkel_diff(75.0, 255.0)
     assert M._richtung_ueber_luecke(t, kurs, i, d, dop) == d
+
+
+def test_anfahrt_ist_kein_manoever():
+    # Langsam (6 km/h) hineingedreht und dann losgefahren -> Start, keine Wende/Halse.
+    t, kurs, tempo, _ = _halse_mit_luecke(12.0)
+    dop = np.where(t < 18, 6.0, 15.0)
+    out = M._manoever(t, kurs, tempo, (t * 1000).astype(int), lambda _t: 165.0, dop)
+    assert out == []

@@ -164,6 +164,8 @@ def _manoever(t, kurs, tempo, t_ms, wind_von, dop=None) -> list[dict]:
             typ = "halse"
         else:
             continue
+        if _anfahrt(t, i, dop):
+            continue
         fenster = (t >= t[i] - 4) & (t <= t[i] + 4)
         um_d = fenster & ~np.isnan(dop) if dop is not None else None
         if um_d is not None and um_d.sum() >= max(3, fenster.sum() // 2):
@@ -174,6 +176,23 @@ def _manoever(t, kurs, tempo, t_ms, wind_von, dop=None) -> list[dict]:
         out.append({"i": int(i), "t_ms": int(t_ms[i]), "typ": typ, "durch": durch,
                     "drehung": round(float(drehung)), "kurs_vor": round(vor), "kurs_nach": round(nach)})
     return out
+
+
+EINFAHRT_KMH = 8.0
+
+
+def _anfahrt(t, i: int, dop) -> bool:
+    """War das gar kein Manoever, sondern ein Start? Wer nicht mit Foil-Tempo hineinfaehrt (Doppler-Median
+    −10…−4 s unter EINFAHRT_KMH), dreht im Wasser Board und Wing in die neue Richtung und faehrt los — das
+    ist weder Wende noch Halse. #19084 (Alex, 26.10.2026) bei 55:41: 4-7 km/h davor, Drehung ueber Sued,
+    zaehlte als durchgefahrene Wende, weil dort der Lauf beginnt. 8 statt der zuerst probierten 10 km/h:
+    gepumpte Halsen mit ~9 km/h auf dem Foil sind echt (tests/test_sessionwind.py, Alex' Markierungen).
+    Probelauf 183 Wind-Sessions: 126 von 5.221 fallen weg, davon 32 „auf dem Foil" (bei 10 km/h: 162/18;
+    Stichprobe dort 4/6 klar Stopps/Anfahrten). #13942/#10472 unveraendert. Ohne Doppler: keine Pruefung."""
+    if dop is None:
+        return False
+    fen = (t >= t[i] - 10) & (t <= t[i] - 4) & ~np.isnan(dop)
+    return bool(fen.sum() >= 3 and float(np.nanmedian(dop[fen])) < EINFAHRT_KMH)
 
 
 def _richtung_ueber_luecke(t, kurs, i: int, d: float, dop) -> float:
