@@ -132,6 +132,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private var minSpeedSeitEnde = 99.0
     private var lastRunStartMs = 0.0, lastRunStartDist = 0.0   // Start des zuletzt beendeten Laufs
     private let MAX_PLAUSIBLE_MPS = 32.0 / 3.6   // darueber ist es kein Pumpfoil
+    private let SPRUNG_MPS = 80.0 / 3.6          // Live-Strecke: schneller = GPS-Sprung, fuer jede Sportart
     private let MIN_RUN_MS = 5000.0        // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
     private let MIN_RUN_AVG_MPS = 2.0      // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runIstFortsetzung = false
@@ -443,9 +444,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         if !prevLat.isNaN {
             let schritt = Self.haversine(prevLat, prevLon, l.coordinate.latitude, l.coordinate.longitude)
             let bewegt = l.speed >= 0 ? l.speed > Self.standMps : schritt >= Self.standSchrittM
-            // GPS-Sprung (schneller als 32 km/h zwischen zwei Fixes) zaehlt nicht — seit die Foil-Strecke
-            // die Hauptzahl ist (26.10.2026; im Simulator 6 km in 2:21 statt 1 km).
-            let plausibel = schritt / max(1.0, (Double(tMs) - prevT) / 1000.0) <= MAX_PLAUSIBLE_MPS
+            // GPS-Sprung (schneller als 80 km/h zwischen zwei Fixes) zaehlt nicht — seit die Foil-Strecke
+            // die Hauptzahl ist (26.10.2026; im Simulator 6 km in 2:21 statt 1 km). Bewusst NICHT die
+            // 32 km/h des Max-Tempos: der Recorder nimmt auch Wing/Kite auf.
+            let plausibel = schritt / max(1.0, (Double(tMs) - prevT) / 1000.0) <= SPRUNG_MPS
             if l.horizontalAccuracy <= 20, bewegt, plausibel { distM += schritt }
         }
         prevLat = l.coordinate.latitude; prevLon = l.coordinate.longitude; prevT = Double(tMs)

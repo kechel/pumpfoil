@@ -89,6 +89,7 @@ object Recorder {
     private const val RUN_EXIT_DWELL = 3
     private const val RUN_REARM_COOLDOWN_MS = 25000L
     private const val MAX_PLAUSIBLE_MPS = 32.0 / 3.6   // darueber ist es kein Pumpfoil
+    private const val SPRUNG_MPS = 80.0 / 3.6          // Live-Strecke: schneller = GPS-Sprung, fuer jede Sportart
     private const val MIN_RUN_MS = 5000L        // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
     private const val MIN_RUN_AVG_MPS = 2.0     // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runEndedMs = -100000L
@@ -530,9 +531,10 @@ object Recorder {
                 // Anzeige — die Genauigkeitsgrenze steht deshalb hier, mit demselben Wert wie dort.
                 val brauchbar = accuracyM <= 20.0
                 val bewegt = if (speedMps >= 0.0) sp > STAND_MPS else schritt >= STAND_SCHRITT_M
-                // GPS-Sprung (schneller als 32 km/h zwischen zwei Fixes) zaehlt nicht — seit die
+                // GPS-Sprung (schneller als 80 km/h zwischen zwei Fixes) zaehlt nicht — seit die
                 // Foil-Strecke die Hauptzahl ist (26.10.2026; im Simulator 6 km in 2:21 statt 1 km).
-                val plausibel = schritt / maxOf(1.0, (tMs - prevT) / 1000.0) <= MAX_PLAUSIBLE_MPS
+                // Bewusst NICHT die 32 km/h des Max-Tempos: der Recorder nimmt auch Wing/Kite auf.
+                val plausibel = schritt / maxOf(1.0, (tMs - prevT) / 1000.0) <= SPRUNG_MPS
                 if (brauchbar && bewegt && plausibel) distM += schritt
             }
             prevLat = lat; prevLon = lon; prevT = tMs.toLong()
