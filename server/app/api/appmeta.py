@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.56 for iOS
+        "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.57 for iOS
+        # (Submission daa3f3a9-93d2-4c10-bd04-17bf11de32cc, eingereicht 26.10. 08:09 PDT = 16:09, Build 65).
+        # Inhalt: Sportarten ohne Foil, Handy-Recorder, GPS-Verlust-Anzeige. Changelog 751/752/754/757/759/765 + 774/775 (+ios/apple), Ereignis 776.
+        # ALT: "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.56 for iOS
         # (Submission d64c961d-815f-431d-97b6-142880a6be8c, eingereicht 24.10. 03:30 PDT = 12:30, Build 64).
         # Inhalt: Supporter-Badge am Profilbild + Profilseite. Changelog 737 (+ios/apple), Ereignis 744.
         # ALT: "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.55 for iOS
@@ -463,7 +466,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.53",   # FREIGEGEBEN 2026-10-22 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -881,12 +885,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 26.10.2026 16:09 (Jans Meldung, ASC „Warten auf Pruefung", Uebermittlung daa3f3a9-93d2-4c10-bd04-17bf11de32cc). Welcher Commit gebaut wurde, ist nicht gemeldet (letzter iOS-Commit davor 0c5a3697, 15:48).
-    # 26.10.2026: Handy-Recorder (10K-Versuch u897 (#17390)) + Sportarten ohne Foil (8a4639d6) — iPhone 1.1.56 ist freigegeben,
-    # 1.1.57 (65) am 26.10. fuer das Release gebumpt (Jan). Enthaelt alles seit 9921c75e. Code nur swiftc -parse.
-    {"name": "iPhone + Apple Watch", "version": "1.1.57",
-     "eingereicht": "2026-10-26",
-     "items": ["You can pick the new sports without a foil: kitesurfing, windsurfing, snowkiting, kite mountainboarding, kite buggy and SUP.", "Sessions of sports without a foil show rides instead of on-foil figures and count tacks and jibes, and SUP sessions show your paddle strokes on the map.", "Sport lists start with your default sport and are otherwise sorted alphabetically.", "The heatmap can show all time instead of only the last year.", "Runs that were left out because they were too fast or a car drive now say why.", "The Apple Watch and the iPhone recorder show when the GPS signal is lost and keep the time running.", "The phone recorder shows your on-foil distance, the sum of all runs, instead of the total distance, shows your watch data pages live above the map and lets you page through the runs of the current session.", "Sessions of sports without a foil, such as kitesurfing, no longer show foil, stabilizer and mast; watch and board stay."]},
+    # iPhone + Apple Watch 1.1.57 am 26.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 751/752/754/757/759/765 + 774/775 tragen ios/apple 1.1.57.
     # iPhone + Apple Watch 1.1.56 am 24.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt 737 traegt ios/apple 1.1.56.
     # iPhone + Apple Watch 1.1.55 am 23.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 728/729 tragen ios/apple 1.1.55,
     # neu: Pause-Upload der Watch. Der Supporter-Badge war NICHT drin (erst nach dem Build gebaut) -> NAECHSTES 1.1.56.
@@ -1053,7 +1052,7 @@ NAECHSTES: list[dict] = [
     # iPhone NICHT gebumpt (1.1.57 liegt im Review). Code nur swiftc -parse.
     {"name": "iPhone + Apple Watch", "version": "1.1.58",
      "items": ["The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list."]},
-    # iPhone + Apple Watch 1.1.57 am 26.10. eingereicht -> IN_REVIEW.
+    # iPhone + Apple Watch 1.1.57 am 26.10. eingereicht -> IN_REVIEW, am 26.10. FREIGEGEBEN.
     # iPhone + Apple Watch 1.1.55 am 23.10. eingereicht -> IN_REVIEW.
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
     # Garmin 1.0.97 am 24.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.97.
