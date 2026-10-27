@@ -59,3 +59,19 @@ def test_voreinstellung_nach_gemessener_ablage(client):
     assert g["gps_sparen_standard"] is True and g["gps_sparen_moeglich"] is True
     r = client.put(f"/api/devices/{g['id']}/gps-sparen", headers=auth_b, json={"gps_sparen": False})
     assert r.status_code == 200 and _config(client, dev_b)["gpsSparen"] is False, "eigene Wahl schlaegt die Voreinstellung"
+
+
+def test_minimal_recorder_bekommt_nur_seine_schluessel(client):
+    """Garmin-Lite (96 KB) fragt mit min=1: nur die Schluessel, die die Uhr liest — und die Meldungen
+    der Uhr (Version, Absturz-Phase) werden trotzdem verbucht."""
+    auth, dev = _paar(client, "gs-min")
+    voll = _config(client, dev)
+    r = client.get("/api/devices/config?p=garmin&v=1.0.98&min=1&crash=2", headers=dev)
+    assert r.status_code == 200, r.text
+    klein = r.json()
+    assert set(klein) == {"autoStart", "gpsSparen", "gnssMode", "stopMode", "activityType",
+                          "storageBudgetKb", "latestVersion"}
+    assert all(klein[k] == voll[k] for k in klein)
+    assert len(voll) > 3 * len(klein)
+    g = client.get("/api/devices/list", headers=auth).json()[0]
+    assert g["app_version"] == "1.0.98"

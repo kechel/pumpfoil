@@ -31,9 +31,6 @@ module PhoneRec {
         if (alt != state) { WatchUi.requestUpdate(); }
     }
 
-    (:lite)
-    function lesen(pr) as Void {}
-
     // Zeile fuer die Startseite oder null (Normalfall: nichts anzeigen).
     (:full)
     function zeile() {
@@ -41,8 +38,6 @@ module PhoneRec {
         if (state == 2) { return Strings.s("phone.recStale") + " " + agoMin.toString() + " " + Strings.s("phone.recAgo"); }
         return null;
     }
-    (:lite)
-    function zeile() { return null; }
 
     // Vom 1-Hz-Tick, nur ohne laufende Aufnahme. Auf den 96-KB-Uhren (lite) aus.
     (:full)
@@ -78,7 +73,11 @@ module PhoneRec {
     // Beim Verlassen der App ohne laufende Aufnahme (FoilApp.onStop): der Server zeigt die Uhr dann
     // nicht mehr als „nimmt vermutlich auf". Best effort — ob Connect IQ die Anfrage beim Beenden
     // noch rausschickt, ist nur auf echter Uhr pruefbar.
-    function meldeAppZu() as Void {
+    // LITE (Minimal-Recorder, Jan 27.10.2026): weder Abmelden noch Spot-Meldung — die Website zaehlt
+    // dort nach der 2-h-Regel bzw. nach dem Upload (s. server/app/api/devices.py `_zustand`).
+    (:lite) function meldeAppZu() as Void {}
+
+    (:full) function meldeAppZu() as Void {
         var token = Config.getString("deviceToken");
         if (token == null || token.equals("") || !System.getDeviceSettings().phoneConnected) { return; }
         // Wie bei der Handy-Abfrage: nie neben einem laufenden Upload. Dann entfaellt die Abmeldung,
@@ -97,7 +96,7 @@ module PhoneRec {
             new Lang.Method(PhoneRec, :onLeer));
     }
 
-    function onLeer(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {}
+    (:full) function onLeer(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {}
 
     // Erster GPS-Fix im Startbildschirm -> einmal je App-Start an den Server (Jan, 15.10.2026).
     // Der Server sucht den Spot im Umkreis von 1 km und merkt sich NUR den Spot, nicht die Position;
@@ -107,7 +106,7 @@ module PhoneRec {
     var _pos = 0;
     var _posVersuche = 0;
 
-    function meldePosition(deg) as Void {
+    (:full) function meldePosition(deg) as Void {
         if (_pos != 0 || _posVersuche >= 3) { return; }
         var token = Config.getString("deviceToken");
         if (token == null || token.equals("") || !System.getDeviceSettings().phoneConnected) { return; }
@@ -126,7 +125,7 @@ module PhoneRec {
             new Lang.Method(PhoneRec, :onPos));
     }
 
-    function onPos(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+    (:full) function onPos(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
         // 4xx (Token weg, Position abgelehnt): nicht wiederholen. Netzfehler/5xx: beim naechsten Fix nochmal.
         _pos = (responseCode >= 200 && responseCode < 500) ? 2 : 0;
     }

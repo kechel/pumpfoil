@@ -357,7 +357,7 @@ class SessionRecorder {
     }
 
     // Fortschritt 0..1 des Verwerfen-Haltens Phase 2 (Ring 2, 3..6 s). 0 solange < 3 s.
-    function discardHoldProgress() as Lang.Float {
+    (:full) function discardHoldProgress() as Lang.Float {
         if (stopHoldStartMs == null) { return 0.0; }
         var e = System.getTimer() - stopHoldStartMs;
         if (e <= STOP_HOLD_MS) { return 0.0; }
@@ -420,7 +420,38 @@ class SessionRecorder {
         try { Storage.deleteValue("run_canary"); } catch (e) { }
     }
 
-    function reloadConfig() {
+    // LITE (96 KB, Instinct-2-Klasse) = MINIMAL-RECORDER (Jan, 27.10.2026: „lass uns auf den
+    // minimalversionen alles ueberfluessige rausnehmen … ein minimaler recorder, mit fix programmierten
+    // default-datenseiten die sinn ergeben"). Anlass: ab 1.0.94 kamen dort 5 von 7 Aufnahmen leer oder
+    // unvollstaendig an, bei nur ~7 KB Heap-Luft (Messung 14.10.). Was die Lite-Stufe noch kann:
+    // koppeln, aufnehmen (GPS, Speicher sparen), Lauferkennung fuer die festen Seiten (RecordView),
+    // hochladen, Auto-Start, Absturz- und Speicher-Meldung. NICHT mehr: Sprache, eigene Datenseiten,
+    // Werte-Farben, Alarme und Marken, Foil-Wahl, Spot-Meldung, Abmelden beim Verlassen, Pause.
+    // Der Server schickt dieser Stufe nur noch die paar Schluessel, die sie liest (`min=1`).
+    // Alte Caches der Vollfassung belegen hier nur Ablage, die der Aufnahme-Puffer braucht.
+    (:lite) function reloadConfig() {
+        var alt = ["views_config", "alarm_config", "foils_config", "offfoil_config", "pause_config",
+                   "hrzones_config", "speedzones_config", "colorByValue", "lang", "record_mode",
+                   "klassik_config", "layouts_config", "sports_config"];
+        for (var i = 0; i < alt.size(); i++) { try { Storage.deleteValue(alt[i]); } catch (e) { } }
+        var sfkb = Storage.getValue("storage_full_kb");
+        if (sfkb instanceof Lang.Number && sfkb >= 0) {
+            storageFullPending = true;
+            storageFullKb = sfkb;
+        }
+        var asv = Storage.getValue("auto_start");
+        autoStart = (asv == null) ? true : asv;
+        var sm = Storage.getValue("stop_mode");
+        stopMode = (sm instanceof Lang.String) ? sm : "hold";
+        var gm = Storage.getValue("gnss_mode");
+        gnssMode = (gm instanceof Lang.String) ? gm : "best";
+        var at = Storage.getValue("activity_type");
+        activityType = (at != null) ? at : "surfing";
+        var bk = Storage.getValue("storagebudget_kb");
+        if (bk instanceof Lang.Number && bk > 0) { storageBudgetKb = bk; }
+    }
+
+    (:full) function reloadConfig() {
         // Profil-Sprache (vom Server gecacht) anwenden — auch offline verfügbar.
         Strings.setLang(Storage.getValue("lang"));
         // Offene Speicher-Meldung? Der Fehlschlag passiert NACH dem Config-Abruf (syncAll laeuft
@@ -614,10 +645,7 @@ class SessionRecorder {
     }
     (:nolayouts) function bootCanaryClear() { }
 
-    // LITE (96 KB): nichts zu uebernehmen — die Stufe ist am Speicherlimit und darf nicht wachsen
-    // (Jan, 25.09.2026). Bis dahin standen hier `(:nolayouts)`-Stubs fuer LITE UND MITTELKLASSE.
-    (:lite) hidden function _layoutsFromConfig(data) { }
-    (:lite) hidden function _layoutsFromCache() { }
+    // LITE (96 KB): gibt es hier nicht — ihr reloadConfig/onConfig fragt gar nicht nach Seiten (s. dort).
 
     // MITTELKLASSE (128 KB, voller Build ohne Layout-Renderer, z. B. Instinct 3 Solar): die
     // KLASSISCHEN Seiten-Saetze und „alle Seiten" uebernehmen. Bis 25.09.2026 kamen beide hier nie
@@ -676,7 +704,7 @@ class SessionRecorder {
     // und die Farbe muss derselben Skala folgen wie ueberall sonst. Vorher hing das an
     // (:layouts), also haetten genau die kleinen Uhren weiter feste Stufen benutzt, waehrend das
     // Profil etwas anderes anzeigt. Die zwei Arrays und das Parsen kosten wenige hundert Byte.
-    hidden function _applyScales(data) {
+    (:full) hidden function _applyScales(data) {
         if (data.hasKey("hrZones") && data["hrZones"] instanceof Lang.Array
                 && data["hrZones"].size() == 6) {
             hrZones = data["hrZones"];
@@ -716,7 +744,12 @@ class SessionRecorder {
     // Uploader.pendingKb() rechnet (9 KB je Accel-Chunk = 1500 Samples x 3 Achsen x 2 B,
     // 5 KB je GPS-Chunk = 120 Samples bei 1 Hz):
     //   25 Hz -> 11,5 KB/min · 10 Hz -> 6,1 KB/min · nur GPS -> 2,5 KB/min
-    function kbPerMin() {
+    // LITE: immer nur GPS in 30er-Bloecken (s. _gpsChunkTarget).
+    (:lite) function kbPerMin() {
+        return (60.0 / GPS_CHUNK_SAMPLES_LOWMEM) * Uploader.KB_PER_GPS_CHUNK_LOWMEM;
+    }
+
+    (:full) function kbPerMin() {
         // waehrend der Aufnahme zaehlt, was WIRKLICH laeuft: nach dem Umschalten auf nur GPS (unter
         // 100 KB frei, s. _gpsPunkt) rechnet die Restzeit mit GPS allein
         var gpsOnly = recordMode.equals("gps") || _isLowMem() || (_recording && !_accelOn);
@@ -757,7 +790,7 @@ class SessionRecorder {
         return grenze.toNumber();
     }
 
-    hidden function _scalesFromCache() {
+    (:full) hidden function _scalesFromCache() {
         var bk = Storage.getValue("storagebudget_kb");
         if (bk instanceof Lang.Number && bk > 0) { storageBudgetKb = bk; }
         var hz = Storage.getValue("hrzones_config");
@@ -813,7 +846,7 @@ class SessionRecorder {
     (:nolayouts) hidden function _layoutsRequested() { return false; }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
-    hidden function _normView(v) {
+    (:full) hidden function _normView(v) {
         return [
             v.size() > 0 ? v[0] : Config.FIELD_NONE,
             v.size() > 1 ? v[1] : Config.FIELD_NONE,
@@ -934,7 +967,83 @@ class SessionRecorder {
     // Beim App-Start die auf der Website konfigurierten Ansichten laden (falls online).
     // Komplett abgesichert: ein Fehler hier (z. B. makeWebRequest) darf den App-Start
     // nicht crashen — die Aufnahme funktioniert auch ohne frische Config (Cache/Default).
-    function fetchConfig() {
+    // LITE: `min=1` -> der Server schickt nur, was onConfig unten liest. Die volle Antwort (~40
+    // Schluessel mit Alarmen, Foils und Seiten) lag beim Parsen komplett im Heap, gerade auf dem
+    // Startbildschirm, wo die 96-KB-Uhren abstuerzten (Phase 2). Ohne Canary/Layout/Sportart.
+    (:lite) function fetchConfig() {
+        try {
+            var token = Config.getString("deviceToken");
+            if (token == null || token.equals("")) { return; }
+            var pn = "";
+            var ds = System.getDeviceSettings();
+            if (ds != null && ds.partNumber != null) { pn = ds.partNumber; }
+            var params = { "v" => Config.VERSION, "p" => "garmin", "pn" => pn, "min" => "1" };
+            if (storageFullPending) {
+                params["sf"] = "1";
+                params["kb"] = storageFullKb.toString();
+            }
+            if (crashPending) { params["crash"] = crashPhase.toString(); }
+            Mem.param(params);
+            Communications.makeWebRequest(
+                Config.baseUrl() + "/api/devices/config",
+                params,
+                {
+                    :method => Communications.HTTP_REQUEST_METHOD_GET,
+                    :headers => { "X-Device-Token" => token },
+                    :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                },
+                method(:onConfig));
+        } catch (e) {
+        }
+    }
+
+    (:lite) function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        Mem.messen();
+        if (responseCode == 401) {
+            unpair();
+            WatchUi.requestUpdate();
+            return;
+        }
+        if (responseCode == 200 && data instanceof Lang.Dictionary) {
+          try {
+            var v = data["autoStart"];
+            if (v instanceof Lang.Boolean) {
+                if (!_presetsApplied) { autoStart = v; }
+                _store("auto_start", v);
+            }
+            v = data["gpsSparen"];
+            if (v instanceof Lang.Boolean) { _store("gps_sparen", v); }
+            v = data["gnssMode"];
+            if (v instanceof Lang.String && !v.equals(gnssMode)) {
+                gnssMode = v;
+                _store("gnss_mode", v);
+                try { enableGps(); } catch (eg) { }
+            }
+            v = data["stopMode"];
+            if (v instanceof Lang.String) { stopMode = v; _store("stop_mode", v); }
+            v = data["activityType"];
+            if (v instanceof Lang.String) { activityType = v; _store("activity_type", v); }
+            _applyStorageBudget(data);
+            if (crashPending) {
+                crashPending = false;
+                try { Storage.deleteValue("crash_pend"); } catch (e4) { }
+            }
+            if (storageFullPending) {
+                storageFullPending = false;
+                try { Storage.deleteValue("storage_full_kb"); } catch (e3) { }
+            }
+            if (_versionNewer(data["latestVersion"], Config.VERSION)) {
+                updateAvailable = true;
+                updateHintUntilMs = System.getTimer() + 5000;
+            }
+            _presetsApplied = true;
+            WatchUi.requestUpdate();
+          } catch (e) {
+          }
+        }
+    }
+
+    (:full) function fetchConfig() {
         try {
             var token = Config.getString("deviceToken");
             if (token == null || token.equals("")) { return; }
@@ -979,7 +1088,7 @@ class SessionRecorder {
         }
     }
 
-    function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+    (:full) function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
         Mem.messen();
         if (responseCode == 401) {
             // Server erreichbar, hat den Device-Token aber eindeutig verworfen (Verknüpfung
@@ -1157,14 +1266,14 @@ class SessionRecorder {
     // Auto-Alarm eines gewählten Foils für die Session setzen (min/max in km/h).
     // alarmRepeat bleibt unangetastet (Website-Default; auf der Uhr pro Session umstellbar).
     // Manuelle Schwellen setzen (Alarm-Quelle "manual"). Ändert alarmEnabled NICHT (entkoppelt).
-    function setManualThresholds(lo, hi) {
+    (:full) function setManualThresholds(lo, hi) {
         speedLowKmh = lo;
         speedHighKmh = hi;
     }
 
     // Effektive Alarm-Schwellen: bei "foil" aus der gewählten Foil, sonst die manuellen Werte.
     // Rückgabe [lo, hi]. Fällt auf die manuellen/Website-Werte zurück, wenn keine Foil passt.
-    function effThresholds() {
+    (:full) function effThresholds() {
         if (alarmSource.equals("foil") && sessionFoilId != null) {
             for (var i = 0; i < foils.size(); i++) {
                 if (foils[i]["id"] == sessionFoilId) {
@@ -1186,7 +1295,7 @@ class SessionRecorder {
     // Jetzt: die Foil wird IMMER vorgewählt (der Server sortiert den Profil-Standard nach vorne,
     // s. `_foil_alarm_list`), und nur die Alarm-QUELLE hängt an `alarmDefault`.
     // Master-Schalter für den Alarm selbst bleibt der Website-Alarm (manualAlarm).
-    function initAlarmSelection() {
+    (:full) function initAlarmSelection() {
         // Default (Foil/Alarm) nur bis zum ersten erfolgreichen CONFIG setzen — so wird nach dem
         // Pairing der Default-Foil noch gesetzt (auch wenn beim ungepairten Start mangels Foils "-"
         // stand), aber eine eigene on-watch-Auswahl (_foilChosen) NIE überschrieben.
@@ -1205,17 +1314,17 @@ class SessionRecorder {
     }
 
     // Nutzer hat on-watch selbst eine Foil (oder „keine") gewählt -> Default nie mehr überschreiben.
-    function markFoilChosen() { _foilChosen = true; }
+    (:full) function markFoilChosen() { _foilChosen = true; }
 
     // Von der Website geladene Ansichten übernehmen + cachen.
-    function setScreensFromConfig(views) {
+    (:full) function setScreensFromConfig(views) {
         if (!(views instanceof Lang.Array) || views.size() == 0) { return; }
         _store("views_config", views);
         screens = _buildScreens(views);
     }
 
     // views: Array von Ansichten (je Array von Feld-IDs). Leere Ansichten entfallen.
-    hidden function _buildScreens(views) {
+    (:full) hidden function _buildScreens(views) {
         var sc = [];
         for (var i = 0; i < views.size(); i++) {
             var v = views[i];
@@ -1233,10 +1342,84 @@ class SessionRecorder {
     }
 
     function isRecording() { return _recording; }
-    function sessionUuid() { return _sessionUuid; }
+    (:full) function sessionUuid() { return _sessionUuid; }
 
     // --- Start / Stop ---
-    function start() {
+    // LITE (Minimal-Recorder): nur GPS + FIT-Session — kein SensorLogger, kein Accel-Stream, keine Pause,
+    // kein Layout-Canary. Zeitachse, Meta und Chunks genau wie unten, der Server sieht keinen Unterschied
+    // zu einer GPS-only-Aufnahme der Vollfassung.
+    (:lite) function start() {
+        if (_recording) { return; }
+        stopped = false;
+        storageFull = false;
+        _sessionUuid = _genUuid();
+        _startedAt = Time.now();
+        storageDropped = 0;
+        _gpsChunkIndex = 0;
+        _gpsBuf = [];
+        var gsp = Storage.getValue("gps_sparen");
+        _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}, 0, 0, 0];
+        _registerSession();
+        _saveState(false);
+        if (storageFull) { return; }
+        runMark(PHASE_RECORD);
+        _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
+        _runEndedMs = -100000;
+        _runStartMs = 0; _runStartDist = 0.0; _runMaxSpeed = 0.0;
+        _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
+        _lastRunStartMs = 0; _lastRunStartDist = 0.0; _minSpeedSeitEnde = 99.0; _runIstFortsetzung = false;
+        _runMaxHr = 0; _lastRunMaxHr = 0;
+        _sumRunDurMs = 0; _sumRunDistM = 0.0;
+        // Aktivitaetstyp wie unten (Symbole per `has` pruefen, s. dort).
+        var sessOpts = { :name => "Pumpfoil" };
+        var owSub = (Activity has :SUB_SPORT_OPEN_WATER) ? Activity.SUB_SPORT_OPEN_WATER : null;
+        if (activityType.equals("pumpfoil")) {
+            sessOpts[:sport] = (Activity has :SPORT_GENERIC) ? Activity.SPORT_GENERIC : 0;
+            if (owSub != null) { sessOpts[:subSport] = owSub; }
+        } else if (activityType.equals("openwater")) {
+            if (Activity has :SPORT_SWIMMING) { sessOpts[:sport] = Activity.SPORT_SWIMMING; }
+            if (owSub != null) { sessOpts[:subSport] = owSub; }
+        } else {
+            if (Activity has :SPORT_SURFING) { sessOpts[:sport] = Activity.SPORT_SURFING; }
+        }
+        _fitSession = null;
+        try {
+            _fitSession = ActivityRecording.createSession(sessOpts);
+        } catch (e) {
+            _fitSession = null;
+        }
+        enableGps();
+        _persistMeta();
+        if (_fitSession != null) {
+            try { _fitSession.start(); } catch (e) { _fitSession = null; }
+        }
+        _recording = true;
+        Uploader.setRecording(true);
+        Uploader.setActiveSession(_sessionUuid);
+    }
+
+    (:lite) function stop() {
+        if (!_recording) { return; }
+        Mem.messen(); Mem.sichern();
+        // Rohdaten zuerst sicher schreiben (Vorlauf von Speicher sparen inklusive), FIT zuletzt — s. unten.
+        try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
+        var vl = _gZ[0];
+        for (var k = 0; k < vl.size(); k++) { _gpsBufAdd(vl[k]); }
+        _gZ[0] = [];
+        _flushGps(true);
+        _recording = false;
+        Uploader.setRecording(false);
+        Uploader.setActiveSession(null);
+        stopped = true;
+        stoppedAtMs = System.getTimer();
+        _saveState(true);
+        if (_fitSession != null) {
+            try { _fitSession.stop(); _fitSession.save(); } catch (e) {}
+            _fitSession = null;
+        }
+    }
+
+    (:full) function start() {
         if (_recording) { return; }
         stopped = false;
         storageFull = false;
@@ -1357,7 +1540,7 @@ class SessionRecorder {
         Uploader.setActiveSession(_sessionUuid);   // diese eine Session bleibt beim Sync draussen
     }
 
-    function stop() {
+    (:full) function stop() {
         if (!_recording) { return; }
         Mem.messen(); Mem.sichern();
         // Aus der Pause heraus gestoppt: das offene Fenster noch schliessen, sonst endet die
@@ -1402,7 +1585,7 @@ class SessionRecorder {
 
     // Aufnahme VERWERFEN (Phase-2-Halten, 6 s): stoppen OHNE zu speichern/hochladen und
     // alle bereits geschriebenen Rohdaten der laufenden Session löschen. Kein Erfolgs-Screen.
-    function discard() {
+    (:full) function discard() {
         if (!_recording) { return; }
         try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
         if (_accelOn) { try { Sensor.unregisterSensorDataListener(); } catch (e) {} }
@@ -1426,7 +1609,7 @@ class SessionRecorder {
     // Aufnahme PAUSIEREN: Sensoren aus + FIT-Timer anhalten, Session/Puffer offen lassen.
     // Bereits gepufferte Rohdaten werden geflusht; die Zeitbasis läuft über _pausedMs lückenlos
     // weiter (kein Loch im Accel-Stream). Fortsetzen mit resume().
-    function pause() {
+    (:full) function pause() {
         if (!_recording || _paused) { return; }
         _paused = true;
         _pauseStartedMs = System.getTimer();
@@ -1463,7 +1646,7 @@ class SessionRecorder {
 
     // Aufnahme FORTSETZEN: Pausendauer aufaddieren (Stream bleibt lückenlos), Sensoren + FIT-Timer
     // wieder scharf.
-    function resume() {
+    (:full) function resume() {
         if (!_recording || !_paused) { return; }
         var dauer = System.getTimer() - _pauseStartedMs;
         _pausedMs += dauer;
@@ -1484,7 +1667,7 @@ class SessionRecorder {
     }
 
     // Alle Storage-Keys der LAUFENDEN Session löschen + aus dem sessions-Index nehmen.
-    hidden function _purgeCurrent() as Void {
+    (:full) hidden function _purgeCurrent() as Void {
         if (_sessionUuid == null) { return; }
         for (var i = 0; i <= _accelChunkIndex; i++) { Storage.deleteValue("ca_" + _sessionUuid + "_" + i); }
         for (var i = 0; i <= _gpsChunkIndex; i++) { Storage.deleteValue("cg_" + _sessionUuid + "_" + i); }
@@ -1646,7 +1829,7 @@ class SessionRecorder {
 
     // Kurzlabel des Aufzeichnungsmodus für den Start-Screen (zeigt, ob die Config geladen wurde):
     // "25 Hz" (full) | "10 Hz" (lite/sparsam) | "GPS" (nur GPS, ohne Hz-Zahl).
-    function recordRateLabel() {
+    (:full) function recordRateLabel() {
         if (recordMode.equals("gps") || _isLowMem()) { return "GPS"; }
         var hz = recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ;
         return hz.format("%d") + " Hz";
@@ -1656,7 +1839,8 @@ class SessionRecorder {
     // FIT-Accel-Puffer sprengen beim Session-Start das Budget ("IQ!"-OOM) -> auf solchen
     // Geräten GPS-only erzwingen (Server wertet als gps_only, kein Pump — wie FR55).
     // Einmal geprüft + gecacht. Schwelle knapp über 96 KB (98304).
-    hidden function _isLowMem() {
+    (:lite) hidden function _isLowMem() { return true; }
+    (:full) hidden function _isLowMem() {
         if (_lowMem == null) {
             _lowMem = false;
             try {
@@ -1700,7 +1884,8 @@ class SessionRecorder {
     //
     // Preis: viermal so viele GPS-Round-Trips beim Upload auf diesen Uhren. Das ist der Tausch,
     // den wir eingehen — ein Round-Trip mehr kostet Sekunden, ein Absturz die ganze Session.
-    hidden function _gpsChunkTarget() {
+    (:lite) hidden function _gpsChunkTarget() { return GPS_CHUNK_SAMPLES_LOWMEM; }
+    (:full) hidden function _gpsChunkTarget() {
         if (_gpsTgt == null) {
             _gpsTgt = GPS_CHUNK_SAMPLES;
             try {
@@ -1715,7 +1900,7 @@ class SessionRecorder {
         return _gpsTgt;
     }
 
-    hidden function _accelChunkTarget() {
+    (:full) hidden function _accelChunkTarget() {
         if (_accelTgt == null) {
             _accelTgt = ACCEL_CHUNK_SAMPLES;   // Default 1500
             try {
@@ -1845,7 +2030,7 @@ class SessionRecorder {
     function isFoiling() { return _foiling; }
     function runCount() { return _runCount; }
     // Aktueller Lauf (live), sonst der letzte abgeschlossene.
-    function runDurationMs() {
+    (:full) function runDurationMs() {
         return _foiling ? (elapsedTimeMs() - _runStartMs) : _lastRunDurMs;
     }
     function runDistanceM() {
@@ -1853,14 +2038,14 @@ class SessionRecorder {
     }
     function lastRunDurationMs() { return _lastRunDurMs; }
     function lastRunDistanceM() { return _lastRunDistM; }
-    function lastRunAvgSpeed() { return _lastRunAvgSpeed; }
-    function lastRunMaxSpeed() { return _lastRunMaxSpeed; }
-    function lastRunMaxHr() { return _lastRunMaxHr; }
+    (:full) function lastRunAvgSpeed() { return _lastRunAvgSpeed; }
+    (:full) function lastRunMaxSpeed() { return _lastRunMaxSpeed; }
+    (:full) function lastRunMaxHr() { return _lastRunMaxHr; }
     // Alle Laeufe dieser Aufnahme, der laufende eingeschlossen (Felder 22/23).
-    function allRunsDurationMs() {
+    (:full) function allRunsDurationMs() {
         return _foiling ? _sumRunDurMs + (elapsedTimeMs() - _runStartMs) : _sumRunDurMs;
     }
-    function allRunsDistanceM() {
+    (:full) function allRunsDistanceM() {
         return _foiling ? _sumRunDistM + (distanceM() - _runStartDist) : _sumRunDistM;
     }
 
@@ -1948,7 +2133,7 @@ class SessionRecorder {
 
     // Welche Stufe tatsächlich aktiv wurde (0 = Geräte-Standard/GPS allein). Nur zur Diagnose
     // im Simulator/Feldtest — die Wirkung messen wir serverseitig an der GPS-Abdeckung.
-    function gnssStufe() { return _gnssStufe; }
+    (:full) function gnssStufe() { return _gnssStufe; }
 
     // Sicherheitsnetz: nimmt ein Gerät eine Konfiguration ENTGEGEN, liefert danach aber keine
     // Positions-Events (kein Fehler, nur Stille), stünde der Nutzer ohne GPS da — schlimmer als
@@ -1967,7 +2152,24 @@ class SessionRecorder {
         _gnssBei = 0;
     }
 
-    function onPosition(info as Position.Info) as Void {
+    // LITE: ohne Spot-Meldung und ohne die Ausfall-Uhr der Vollfassung (60 s ohne Position, s. gpsPoor):
+    // der Fix bleibt nach dem ersten brauchbaren Punkt stehen. Ein Event OHNE Position setzt die
+    // Qualitaet aber auch hier auf 0 — sonst speicherte Speicher sparen bei Ausfall nicht mehr alles.
+    (:lite) function onPosition(info as Position.Info) as Void {
+        try {
+            _gnssOk = true;
+            if (info == null || info.position == null) { _gpsQuality = 0; return; }
+            if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) { _hasGpsFix = true; }
+            _gpsQuality = info.accuracy == null ? 0 : info.accuracy;
+            _idleSpeed = info.speed == null ? 0.0 : info.speed;
+            if (!_recording) { return; }
+            var deg = info.position.toDegrees();
+            _gpsPunkt([_elapsedMs(), deg[0], deg[1], _idleSpeed, _currentHr, info.accuracy], _idleSpeed);
+        } catch (e) {
+        }
+    }
+
+    (:full) function onPosition(info as Position.Info) as Void {
         // Abgesichert: ein fehlerhafter Positions-Callback darf die Aufnahme nicht beenden.
         try {
             _gnssOk = true;          // Events kommen an -> Wachhund entwarnen
@@ -2025,7 +2227,49 @@ class SessionRecorder {
     // Offline durch den echten Server-Weg (v2 + v3 + Pumps), 141 Garmin-Sessions voll gegen gekuerzt:
     // Foil-Zeit −0,08 %, Pumps −0,2 %, 1365 von 1414 Laeufen gleich (der Rest Grenzfaelle 3–11 s).
     // Gespeichert ~49 % der Accel-Daten.
-    hidden function _gpsPunkt(p, spd) {
+    // LITE: Speicher sparen nur fuer GPS (Accel gibt es hier nicht) und ohne das Umschalten bei knappem
+    // Puffer. Dieselben Schwellen wie unten: rein ab 6 km/h fuer 3 s, raus unter 5 km/h fuer 3 s, 33 s
+    // Vorlauf (hoechstens 40 Punkte), 30 s Nachlauf. Ohne brauchbares GPS jeden Punkt speichern.
+    (:lite) hidden function _gpsPunkt(p, spd) {
+        var z = _gZ;
+        if (!z[6] || gpsPoor()) {
+            var vg = z[0];
+            for (var i0 = 0; i0 < vg.size(); i0++) { _gpsBufAdd(vg[i0]); }
+            z[0] = [];
+            _gpsBufAdd(p);
+            return;
+        }
+        var v = z[1];
+        v.add(spd);
+        if (v.size() > 3) { v = v.slice(1, null); z[1] = v; }
+        var a = v[0], b = (v.size() > 1) ? v[1] : a, c = (v.size() > 2) ? v[2] : b;
+        var v3 = (a > b) ? ((b > c) ? b : ((a > c) ? c : a)) : ((a > c) ? a : ((b > c) ? c : b));
+        z[3] = (v3 >= 1.667) ? z[3] + 1 : 0;
+        if (z[2] == 0 && z[3] >= 3) {
+            z[2] = 1;
+            z[4] = 0;
+            z[5] = 0;
+            var vor = z[0];
+            for (var i = 0; i < vor.size(); i++) { _gpsBufAdd(vor[i]); }
+            z[0] = [];
+        }
+        if (z[2] == 1) {
+            _gpsBufAdd(p);
+            z[4] = (v3 < 1.389) ? z[4] + 1 : 0;
+            if (z[4] >= 3) { z[2] = 0; z[5] = p[0] + 30000; }
+        } else if (z[5] > 0 && p[0] <= z[5]) {
+            _gpsBufAdd(p);
+        } else {
+            z[5] = 0;
+            var vl = z[0];
+            vl.add(p);
+            var weg = 0;
+            while (weg < vl.size() - 1 && (vl[weg][0] < p[0] - 33000 || vl.size() - weg > 40)) { weg++; }
+            if (weg > 0) { z[0] = vl.slice(weg, null); }
+        }
+    }
+
+    (:full) hidden function _gpsPunkt(p, spd) {
         var z = _gZ;
         // Der Puffer wird knapp (Jan, 09.10.2026: „automatisches aktivieren wenn der verbleibende freie
         // speicher unter 100kb gesunken ist waehrend der aufnahme"): ab hier fuer den Rest der Aufnahme
@@ -2127,15 +2371,16 @@ class SessionRecorder {
     // Aufnahme wieder „GPS suchen" und der Start-Screen nicht mehr „GPS bereit" (Roman, 25.10.2026: der
     // Fix blieb fuer immer gesetzt, die Uhr zeigte REC mit Nullen, der Lauf ging verloren). Die 3 s
     // halten kurze Aussetzer aus, ohne dass die Ansicht flackert.
-    function hasGpsFix() {
+    (:lite) function hasGpsFix() { return _hasGpsFix; }
+    (:full) function hasGpsFix() {
         return _hasGpsFix && !(gpsPoor() && System.getTimer() - _gZ[13] >= 3000);
     }
 
     // Fuer die Warnung im Start-Screen: auf speicherarmen Uhren (~96 KB, z. B. Instinct 2)
     // reicht schon EINE wartende Session, um die naechste Aufnahme zu beschaedigen.
-    function isLowMemWatch() { return _isLowMem(); }
+    (:full) function isLowMemWatch() { return _isLowMem(); }
 
-    function onAccel(sensorData as Sensor.SensorData) as Void {
+    (:full) function onAccel(sensorData as Sensor.SensorData) as Void {
         // Abgesichert: ein fehlerhaftes Accel-Paket darf die Aufnahme nicht beenden.
         try {
             if (_paused) { return; }   // pausiert: keine Rohdaten sammeln (Sicherung; Listener ist eh ab)
@@ -2261,7 +2506,7 @@ class SessionRecorder {
         return vals[(n - 1) / 2];
     }
 
-    function currentHr() { return _currentHr; }
+    (:full) function currentHr() { return _currentHr; }
 
     function distanceM() {
         var act = Activity.getActivityInfo();
@@ -2279,7 +2524,7 @@ class SessionRecorder {
     // Median der 15 gepufferten Werte OHNE Sortieren: der Wert, der genauso viele kleinere wie
     // groessere ueber sich hat. 15x15 Vergleiche pro Sekunde sind nichts, sparen aber den
     // Scratch-Array (auf den kleinen Uhren zaehlt jede Allokation).
-    hidden function _burstMedian() {
+    (:full) hidden function _burstMedian() {
         var n = 0;
         for (var i = 0; i < BURST_WIN; i++) { if (_burstRing[i] != null) { n++; } }
         if (n == 0) { return 0.0; }
@@ -2302,7 +2547,9 @@ class SessionRecorder {
     // Wert fuer den HOECHSTWERT saeubern (s. Konstanten oben). Die Anzeige des Momentanwerts
     // bleibt unangetastet — dort ist ein Ausreisser eine Sekunde lang zu sehen und wieder weg,
     // im Maximum bliebe er die ganze Session stehen.
-    hidden function _maxKandidat(v) {
+    // LITE zeigt keinen Hoechstwert (feste Seiten), also nichts zu saeubern.
+    (:lite) hidden function _maxKandidat(v) { return v; }
+    (:full) hidden function _maxKandidat(v) {
         _burstRing[_burstPos] = v;
         _burstPos = (_burstPos + 1) % BURST_WIN;
         var med = _burstMedian();
@@ -2320,7 +2567,8 @@ class SessionRecorder {
     // Schlecht = Qualitaet unter brauchbar ODER seit 60 s keine Position (manche Uhren melden bei Ausfall
     // gar nichts mehr; 60 s statt weniger, weil die FR55 im Stehen nur alle paar Sekunden bis 50 s liefert,
     // #14085). Merkt sich in _gZ[13], seit wann (fuer hasGpsFix).
-    function gpsPoor() {
+    (:lite) function gpsPoor() { return _gpsQuality < Position.QUALITY_USABLE; }
+    (:full) function gpsPoor() {
         var z = _gZ;
         var t = System.getTimer();
         var p = _gpsQuality < Position.QUALITY_USABLE || z[12] == 0 || t - z[12] > 60000;
@@ -2332,32 +2580,32 @@ class SessionRecorder {
         var act = Activity.getActivityInfo();
         return _saneSpeed(act != null ? act.currentSpeed : null);
     }
-    function avgSpeed() {
+    (:full) function avgSpeed() {
         var act = Activity.getActivityInfo();
         return _saneSpeed(act != null ? act.averageSpeed : null);
     }
-    function maxSpeed() {
+    (:full) function maxSpeed() {
         // Eigener Hoechstwert ueber die qualitaets-gegateten Ticks — act.maxSpeed wuerde einen
         // einzigen Cold-Start-Glitch (100 km/h am Steg) die ganze Session lang anzeigen.
         return _maxSpdSeen;
     }
-    function avgHr() {
+    (:full) function avgHr() {
         var act = Activity.getActivityInfo();
         return (act != null) ? act.averageHeartRate : null;
     }
-    function maxHr() {
+    (:full) function maxHr() {
         var act = Activity.getActivityInfo();
         return (act != null) ? act.maxHeartRate : null;
     }
-    function altitudeM() {
+    (:full) function altitudeM() {
         var act = Activity.getActivityInfo();
         return (act != null && act.altitude != null) ? act.altitude : null;
     }
-    function ascentM() {
+    (:full) function ascentM() {
         var act = Activity.getActivityInfo();
         return (act != null && act.totalAscent != null) ? act.totalAscent : null;
     }
-    function temperatureC() {
+    (:full) function temperatureC() {
         // Activity.Info hat kein temperature-Feld; ohne dedizierten Sensor null.
         return null;
     }
@@ -2373,7 +2621,7 @@ class SessionRecorder {
     const LOW_ALARM_WINDOW_KMH = 2.0;  // Min-Alarm nur im Fenster [min-2, min)
 
     // Muster-ID -> Folge von VibeProfiles (Vibration mit Pausen via Intensität 0).
-    hidden function _vibe(pattern) {
+    (:full) hidden function _vibe(pattern) {
         if (!(Toybox has :Attention)) { return; }
         var A = Toybox.Attention;
         var seq;
@@ -2390,7 +2638,11 @@ class SessionRecorder {
         A.vibrate(seq);
     }
 
-    function _checkAlarm(speedMps) {
+    // LITE: keine Alarme und keine Marken (Minimal-Recorder, s. reloadConfig).
+    (:lite) function _checkAlarm(speedMps) { }
+    (:lite) hidden function _checkMarks(dist, tMs) { }
+    (:lite) function resetMarks() { }
+    (:full) function _checkAlarm(speedMps) {
         if (!alarmEnabled) { return; }
         var eff = effThresholds();
         var effLow = eff[0];
@@ -2427,14 +2679,14 @@ class SessionRecorder {
 
     // Zählerstand eines Laufs zurücksetzen. NICHT bei einer Fortsetzung (Touchdown zwischen zwei
     // Pumps): das ist derselbe Lauf, sonst käme die 100-m-Marke ein zweites Mal.
-    function resetMarks() {
+    (:full) function resetMarks() {
         _markDistN = 0;
         _markTimeN = 0;
     }
 
     // Einmal je Tick, solange _foiling. Strecke und Zeit zählen ab Lauf-Start und können nur
     // wachsen — deshalb reicht der Vergleich mit der nächsten Marke, ohne Hysterese.
-    hidden function _checkMarks(dist, tMs) {
+    (:full) hidden function _checkMarks(dist, tMs) {
         if (!alarmEnabled) { return; }
         if (runDistM instanceof Lang.Number && runDistM > 0) {
             if (_markDistN == 0 || runDistMode.equals("every")) {
@@ -2458,7 +2710,7 @@ class SessionRecorder {
 
     // Wiederholabstand für "continuous" — aus dem Profil, mit Untergrenze 2 s (kürzer wäre ein
     // Dauerbrummen, das man nicht mehr zuordnen kann; der Server begrenzt genauso).
-    hidden function _wiederholAbstandS() {
+    (:full) hidden function _wiederholAbstandS() {
         var v = (alarmRepeatS instanceof Lang.Number) ? alarmRepeatS : ALARM_REPEAT_S_FALLBACK;
         if (v < 2) { v = 2; }
         return v;
@@ -2467,7 +2719,7 @@ class SessionRecorder {
     // Puls-Alarm: eigene Schwelle, eigenes Muster, eigener Zustand. Nur eine OBERE Grenze —
     // „zu langsam" merkt man selbst, „zu hoch im Puls" nicht (Jan, 10.09.2026). Ohne Puls-Wert
     // (kein Sensor, kein Kontakt) passiert nichts: `_currentHr` ist dann null oder 0.
-    hidden function _checkHrAlarm() {
+    (:full) hidden function _checkHrAlarm() {
         if (alarmHrHigh == null || alarmHrHigh <= 0) { _hrAlarmActive = false; _hrAlarmTick = 0; return; }
         var hr = _currentHr;
         if (hr == null || hr <= 0) { _hrAlarmActive = false; _hrAlarmTick = 0; return; }
@@ -2490,7 +2742,7 @@ class SessionRecorder {
     }
 
     // --- Puffer -> Storage ---
-    function _appendI16(value) {
+    (:full) function _appendI16(value) {
         var v = (value).toNumber();
         if (v > 32767) { v = 32767; } if (v < -32768) { v = -32768; }
         if (v < 0) { v += 65536; }
@@ -2498,7 +2750,7 @@ class SessionRecorder {
         _accelBuf.add((v >> 8) & 0xFF);
     }
 
-    function _flushAccel(force) {
+    (:full) function _flushAccel(force) {
         if (_accelCount == 0) { return; }
         if (!force && _accelCount < _accelChunkTarget()) { return; }
         if (!_store("ca_" + _sessionUuid + "_" + _accelChunkIndex, _accelBuf)) {

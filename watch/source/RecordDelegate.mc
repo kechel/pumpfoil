@@ -88,7 +88,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
 
     // Öffnet „Foil & Alarm" — drei unabhängige Achsen: Foil (Metadaten), Alarm An/Aus,
     // Schwellen-Quelle (Auto aus Foil / Manuell mit Min/Max auf der Uhr). Nur Auswahl, kein Start.
-    hidden function _openFoilMenu() as Void {
+    (:full) hidden function _openFoilMenu() as Void {
         FoilMenuDelegate.show(_rec);
     }
 
@@ -108,11 +108,9 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.pushView(pv, new PauseActionDelegate(_rec, pv), WatchUi.SLIDE_LEFT);
     }
 
-    // (:lite) — 96-KB-Uhren: kein Menü (spart Code+Heap), START setzt direkt fort wie bisher.
+    // (:lite) — 96-KB-Uhren koennen nicht pausieren (Minimal-Recorder, kein Menue), hier kommt man nie hin.
     (:lite)
-    hidden function _pauseAction() as Void {
-        _rec.resume();
-    }
+    hidden function _pauseAction() as Void {}
 
     // Loslassen: das Halten war der Weg zum Stop-Menü. Kürzer als STOP_HOLD_MS -> nichts
     // (Schutz gegen versehentliches Stoppen). Die Pause kommt hier nicht mehr vor, die wird
@@ -213,7 +211,17 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
 
     // UP/DOWN -> während Aufnahme zwischen den Datenansichten. Im Idle öffnet DOWN die
     // Foil-/Alarm-Auswahl (wenn Foils/Website-Alarm vorhanden) -> Vorauswahl VOR dem Start.
-    function onNextPage() as Lang.Boolean {
+    // LITE: keine Foil-/Alarm-Wahl (Minimal-Recorder) — im Idle oeffnet DOWN nur das Koppeln.
+    (:lite) function onNextPage() as Lang.Boolean {
+        if (_rec.isRecording()) { _view.nextScreen(); WatchUi.requestUpdate(); return true; }
+        if (!_rec.isPaired()) {
+            _rec.startPairing();
+            WatchUi.pushView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
+            return true;
+        }
+        return false;
+    }
+    (:full) function onNextPage() as Lang.Boolean {
         if (_rec.isRecording()) { _view.nextScreen(); WatchUi.requestUpdate(); return true; }
         if (_rec.manualAlarm || _rec.foils.size() >= 1 || Sport.wahl()) { _openFoilMenu(); return true; }
         // Noch nicht verknüpft + nichts zu konfigurieren (keine Foils/Alarm ohne CONFIG):
@@ -298,6 +306,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
 // Foil-Auswahl beim Start: gewähltes Foil setzt den Auto-Alarm, dann Aufnahme starten.
 // „Foil & Alarm"-Menü: Foil (Metadaten) + Alarm An/Aus + Schwellen-Quelle (Auto/Manuell)
 // mit Min/Max direkt auf der Uhr. Back (ohne Foil-Auswahl) behält die aktuelle Auswahl.
+(:full)
 class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
     hidden var _rec;
     function initialize(recorder) {
@@ -429,6 +438,7 @@ class SportMenuDelegate extends WatchUi.Menu2InputDelegate {
 // Eigene Min/Max-Ansicht statt WatchUi.Picker: fest schwarzer Hintergrund + weiße Schrift,
 // damit sie in JEDEM Uhr-Theme (hell/dunkel) lesbar ist. UP/DOWN ändert den Wert, START/ENTER
 // bestätigt, BACK bricht ab (Bereich 0..80 km/h).
+(:full)
 class MinMaxView extends WatchUi.View {
     hidden var _title, _val, _min, _max;
     function initialize(title, val, mn, mx) {
@@ -453,6 +463,7 @@ class MinMaxView extends WatchUi.View {
 }
 
 // Delegate für die Min/Max-Ansicht: UP/DOWN = +/-, START/ENTER = übernehmen, BACK = abbrechen.
+(:full)
 class MinMaxDelegate extends WatchUi.BehaviorDelegate {
     hidden var _rec, _isMin, _view;
     function initialize(recorder, isMin, view) {

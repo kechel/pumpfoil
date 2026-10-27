@@ -7,6 +7,8 @@ using Toybox.Lang;
 // Verwendet von BEIDEN sparsamen Stufen (s. monkey.jungle): dem LITE-Build der 96-KB-Uhren
 // (Instinct-2-Klasse) und der ENG-Stufe der 128-KB-Uhren (FR55/fenix 6/Venu Sq …).
 // Siehe memory garmin-instinct2-lowmem.
+// Gruppen mit `(:lite)`-Fassung: der LITE-Build (Minimal-Recorder, 27.10.2026) bekommt nur die Schluessel,
+// die er wirklich zeigt; die `(:full)`-Fassung ist die der ENG-Stufe. Neue Lite-Texte in BEIDE Fassungen.
 (:noi18n)
 module Strings {
 
@@ -26,7 +28,23 @@ module Strings {
         return key;
     }
 
-    function _e0(key as Lang.String) {
+    (:lite) function _e0(key as Lang.String) {
+        if (key.equals("gps.ready"))      { return "GPS ready"; }
+        if (key.equals("upd.store"))      { return "Update in store"; }
+        if (key.equals("auto.short"))     { return "auto-start"; }
+        if (key.equals("gps.searching"))  { return "GPS searching…"; }
+        if (key.equals("gps.searchBig"))  { return "Searching GPS"; }
+        if (key.equals("gps.sky"))        { return "please open sky"; }
+        if (key.equals("start.rec"))      { return "START: record"; }
+        if (key.equals("start.menu"))     { return "MENU: settings"; }
+        if (key.equals("err.storageSoon")) { return "min until storage is full – stop & sync"; }
+        if (key.equals("start.bufferMin")) { return "min buffer"; }
+        if (key.equals("err.storageFull")) { return "Storage full – upload first"; }
+        if (key.equals("err.dataLost")) { return "Storage full – losing data!"; }
+        if (key.equals("up.uploadFirst")) { return "upload first!"; }
+        return null;
+    }
+    (:full) function _e0(key as Lang.String) {
         if (key.equals("gps.ready"))      { return "GPS ready"; }
         if (key.equals("upd.store"))      { return "Update in store"; }
         if (key.equals("auto.short"))     { return "auto-start"; }
@@ -48,7 +66,14 @@ module Strings {
         return null;
     }
 
-    function _e1(key as Lang.String) {
+    (:lite) function _e1(key as Lang.String) {
+        if (key.equals("saved.title"))    { return "Saved"; }
+        if (key.equals("saved.upload"))   { return "Upload via Wi-Fi/phone"; }
+        if (key.equals("saved.newRec"))   { return "START = new recording"; }
+        if (key.equals("rec.holdMenu"))   { return "Hold: Save"; }
+        return null;
+    }
+    (:full) function _e1(key as Lang.String) {
         if (key.equals("saved.title"))    { return "Saved"; }
         if (key.equals("saved.upload"))   { return "Upload via Wi-Fi/phone"; }
         if (key.equals("saved.newRec"))   { return "START = new recording"; }
@@ -65,7 +90,12 @@ module Strings {
         return null;
     }
 
-    function _e2(key as Lang.String) {
+    (:lite) function _e2(key as Lang.String) {
+        if (key.equals("f.kmh3s"))   { return "km/h (3s)"; }
+        if (key.equals("f.clock"))   { return "Clock"; }
+        return null;
+    }
+    (:full) function _e2(key as Lang.String) {
         if (key.equals("f.kmh3s"))   { return "km/h (3s)"; }
         if (key.equals("f.bpm"))     { return "bpm"; }
         if (key.equals("f.time"))    { return "Time"; }
@@ -81,7 +111,15 @@ module Strings {
         return null;
     }
 
-    function _e3(key as Lang.String) {
+    (:lite) function _e3(key as Lang.String) {
+        if (key.equals("f.runActive")) { return "run active"; }
+        if (key.equals("f.run"))     { return "Run"; }
+        if (key.equals("f.lastRun")) { return "last run"; }
+        if (key.equals("f.last"))    { return "last"; }
+        if (key.equals("f.runs"))    { return "Runs"; }
+        return null;
+    }
+    (:full) function _e3(key as Lang.String) {
         if (key.equals("f.runActive")) { return "run active"; }
         if (key.equals("f.run"))     { return "Run"; }
         if (key.equals("f.lastRun")) { return "last run"; }
@@ -131,7 +169,14 @@ module Strings {
         return null;
     }
 
-    function _e7(key as Lang.String) {
+    (:lite) function _e7(key as Lang.String) {
+        if (key.equals("menu.settings")) { return "Settings"; }
+        if (key.equals("menu.autostart")) { return "Auto-start"; }
+        if (key.equals("common.on"))     { return "On"; }
+        if (key.equals("common.off"))    { return "Off"; }
+        return null;
+    }
+    (:full) function _e7(key as Lang.String) {
         if (key.equals("menu.settings")) { return "Settings"; }
         if (key.equals("menu.autostart")) { return "Auto-start"; }
         if (key.equals("common.on"))     { return "On"; }
@@ -146,7 +191,15 @@ module Strings {
         return null;
     }
 
-    function _e8(key as Lang.String) {
+    (:lite) function _e8(key as Lang.String) {
+        if (key.equals("pair.enterThere")) { return "enter it there"; }
+        if (key.equals("pair.generating")) { return "generating code…"; }
+        if (key.equals("pair.fetching")) { return "fetching code…"; }
+        if (key.equals("pair.done"))     { return "Connected!"; }
+        if (key.equals("common.error"))  { return "Error"; }
+        return null;
+    }
+    (:full) function _e8(key as Lang.String) {
         if (key.equals("fm.minKmh"))     { return "Min km/h"; }
         if (key.equals("fm.maxKmh"))     { return "Max km/h"; }
         if (key.equals("fm.noFoil"))     { return "No foil"; }
@@ -168,7 +221,8 @@ module Strings {
     // MERKE: jeder neue Key gehoert in BEIDE Module. Gegenprobe (muss leer bleiben):
     //   diff <(grep -oP 'key\.equals\("\K[^"]+' source/Strings.mc | sort) \
     //        <(grep -oP 'key\.equals\("\K[^"]+' source/StringsLite.mc | sort)
-    function _e9(key as Lang.String) {
+    (:lite) function _e9(key as Lang.String) { return null; }
+    (:full) function _e9(key as Lang.String) {
         if (key.equals("rec.cancel"))    { return "Cancel"; }
         if (key.equals("rec.endSave"))   { return "End & save"; }
         if (key.equals("f.bpmMaxLast"))  { return "bpm max last"; }

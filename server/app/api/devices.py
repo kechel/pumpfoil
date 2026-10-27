@@ -344,6 +344,7 @@ def device_config(
     mem: int | None = Query(None, ge=0),      # Spitzen-Speicherverbrauch der App in KB
     memtot: int | None = Query(None, ge=0),   # Systemspeicher der Uhr in KB (Modell-Konstante)
     sp: int | None = Query(None),   # 1 = die Uhr kann eine Sportart waehlen -> Liste mitliefern
+    minimal: int | None = Query(None, alias="min"),   # 1 = Garmin-Minimal-Recorder (96 KB), s. MINIMAL_KEYS
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
@@ -683,7 +684,18 @@ def device_config(
     # `sp=1` fragen — ausgelieferte Apps (Garmin mit wenig Speicher!) bekommen kein Byte mehr.
     if sp:
         cfg["sports"] = sportarten_fuer_uhr(db, device.user_id, settings)
+    if minimal == 1:
+        return {k: cfg[k] for k in MINIMAL_KEYS if k in cfg}
     return cfg
+
+
+# Garmin-MINIMAL-RECORDER (Lite-Build der 96-KB-Uhren, ab der Version nach 1.0.97, Jan 27.10.2026): die
+# Uhr fragt mit `min=1` und liest nur noch diese Schluessel (SessionRecorder.mc, `(:lite) onConfig`).
+# Die volle Antwort (~40 Schluessel: Alarme, Foils, Seiten, Zonen) lag beim Parsen komplett im Heap —
+# auf Uhren mit ~7 KB Luft, die genau auf dem Startbildschirm abstuerzten. Die Auswertung oben laeuft
+# trotzdem ganz (Version, Part-Number, Absturz-/Speichermeldung werden gespeichert).
+MINIMAL_KEYS = ("autoStart", "gpsSparen", "gnssMode", "stopMode", "activityType",
+                "storageBudgetKb", "latestVersion")
 
 
 @router.get("/config-kompakt", response_class=PlainTextResponse)

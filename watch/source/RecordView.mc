@@ -39,7 +39,8 @@ class RecordView extends WatchUi.View {
 
     // Seitenzahl des AKTUELLEN Zustands (F3) — es gibt keinen Übersichts-Slot mehr, jeder Zustand
     // hat seinen eigenen Ring. Wird auch von den Seiten-Punkten und dem Label-Boden gebraucht.
-    hidden function _pageCount() {
+    (:lite) hidden function _pageCount() { return 3; }
+    (:full) hidden function _pageCount() {
         var n = _ring(_state()).size();
         return n > 0 ? n : 1;
     }
@@ -48,7 +49,44 @@ class RecordView extends WatchUi.View {
     function nextScreen() { screenIdx = (screenIdx + 1) % _pageCount(); }
     function prevScreen() { screenIdx = (screenIdx + _pageCount() - 1) % _pageCount(); }
 
-    function onUpdate(dc) {
+    // LITE (96 KB, Minimal-Recorder, Jan 27.10.2026): drei FESTE Seiten statt der Seiten aus dem Profil,
+    // keine Pause, keine eigenen Layouts, keine Werte-Farben. Im Lauf steht die Lauf-Seite vorn,
+    // danach die Seite des letzten Laufs; UP/DOWN blaettert durch alle drei (s. _ring).
+    (:lite) function onUpdate(dc) {
+        Mem.messen();
+        var recording = _rec.isRecording();
+        if (!recording) { _rec.runMark(_rec.PHASE_IDLE); }
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+        if (recording && !_prevRecording) { screenIdx = 0; _prevState = null; }
+        _prevRecording = recording;
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+        if (!recording) {
+            if (_rec.stopped && _rec.stoppedAtMs > 0
+                    && System.getTimer() - _rec.stoppedAtMs > _rec.STOPPED_AUTO_BACK_MS) {
+                _rec.stopped = false;
+            }
+            if (_rec.stopped) { _drawStopped(dc); } else { _drawStartPage(dc, w, h); }
+            return;
+        }
+        if (!_rec.hasGpsFix()) { _drawGpsSearch(dc); return; }
+        var spHold = _rec.stopHoldProgress();
+        if (spHold > 0.0) { _drawStopHold(dc, w, h, spHold); return; }
+        var state = _state();
+        if (state != _prevState) {
+            screenIdx = 0;
+            if (_prevState != null) { _vibeSwitch(); }
+            _prevState = state;
+        }
+        if (screenIdx >= 3) { screenIdx = 0; }
+        _drawFieldPage(dc, _ring(state)[screenIdx], w, h);
+        _drawPageDots(dc, w, h, screenIdx, Graphics.COLOR_WHITE, Graphics.COLOR_DK_GRAY);
+        _drawRec(dc, w / 2, h * 0.085, FARBE_ROT);
+        _drawDataLossWarn(dc, w, h);
+    }
+
+    (:full) function onUpdate(dc) {
         Mem.messen();
         // Start-Marke loeschen, sobald ein Bild nachweislich fertig geworden ist: wir sind ein
         // ZWEITES Mal hier, also hat der erste Durchlauf ueberlebt. Absichtlich nicht am Ende von
@@ -201,7 +239,7 @@ class RecordView extends WatchUi.View {
 
     // Seiten-Ring des Zustands. Ohne dynamische Layouts sind es die klassischen Ansichten —
     // dieselbe Logik, nur mit [0,a,b,c]-Einträgen, damit Lite-Uhren nichts anderes tun.
-    hidden function _setFor(state) {
+    (:full) hidden function _setFor(state) {
         var dyn = (_rec.layoutsOn && _rec.pages.size() > 0);
         if (state == :onFoil) {
             if (dyn) { return _rec.pages; }
@@ -218,7 +256,16 @@ class RecordView extends WatchUi.View {
         return [[0, f[0], f[1], f[2]]];
     }
 
-    hidden function _ring(state) {
+    // LITE: die drei festen Seiten (je zwei Felder: auf 176 px gross lesbar, und das zweite Feld liegt
+    // unter dem runden Nebendisplay der Instinct). Reihenfolge je Zustand, die eigene Seite zuerst.
+    (:lite) hidden function _ring(state) {
+        var lauf = [Config.FIELD_SPEED3S, Config.FIELD_RUN_DISTANCE, Config.FIELD_NONE];
+        var nach = [Config.FIELD_LAST_RUN_DISTANCE, Config.FIELD_LAST_RUN_DURATION, Config.FIELD_NONE];
+        var mehr = [Config.FIELD_RUN_COUNT, Config.FIELD_CLOCK, Config.FIELD_NONE];
+        return (state == :onFoil) ? [lauf, nach, mehr] : [nach, lauf, mehr];
+    }
+
+    (:full) hidden function _ring(state) {
         var ring = _setFor(state);
         if (state == :onFoil || !_rec.browseAll) { return ring; }
         // „Auch die übrigen Seiten": erst die des Zustands, dann der Rest in fester Reihenfolge —
@@ -237,7 +284,7 @@ class RecordView extends WatchUi.View {
 
     // „Pausiert" + Fortsetzen-Hinweis als Chrome. `full` = klassische Seite (dort ist Platz oben),
     // sonst nur die knappe Zeile, damit ein eigenes Layout nicht zugedeckt wird.
-    hidden function _drawPausedChrome(dc, w, h, classic, showPaused, showResume) {
+    (:full) hidden function _drawPausedChrome(dc, w, h, classic, showPaused, showResume) {
         if (showPaused) {
             dc.setColor(FARBE_CYAN, Graphics.COLOR_BLACK);
             _drawWrap(dc, w / 2, h * 0.04, Graphics.FONT_XTINY, Strings.s("rec.paused"), false);
@@ -253,7 +300,7 @@ class RecordView extends WatchUi.View {
     }
 
     // Fortsetzen-Hinweis über einem eigenen Layout: nur die ersten Sekunden nach dem Pausieren.
-    hidden function _pauseHintDue() {
+    (:full) hidden function _pauseHintDue() {
         return _pausedAtMs != null && System.getTimer() - _pausedAtMs < PAUSE_HINT_MS;
     }
 
@@ -382,13 +429,64 @@ class RecordView extends WatchUi.View {
     // Garmin-Aktivitäten ("Laufen Einstellungen") — hinter MENU (Mitte-links halten),
     // erreichbar VOR dem Start der Aufnahme. Während der Aktivität ist Upload eh nicht
     // möglich, deshalb hat der laufende Screen keine Unterseiten mehr.
-    hidden function _drawIdle(dc) {
+    (:full) hidden function _drawIdle(dc) {
         var w = dc.getWidth();
         var h = dc.getHeight();
         _drawStartPage(dc, w, h);
     }
 
-    hidden function _drawStartPage(dc, w, h) {
+    // LITE: alle Lite-Uhren haben 176 px und damit die KLEINE Fassung unten (ohne Version, ohne
+    // Telefon-Symbol). Ohne Foil-Zeile und ohne Hz-Angabe (es ist immer GPS).
+    (:lite) hidden function _drawStartPage(dc, w, h) {
+        var xf = Graphics.FONT_XTINY;
+        var fh = dc.getFontHeight(xf);
+        var luft = h * 0.015;
+        var titleY = h * 0.10;
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, titleY, Graphics.FONT_MEDIUM, "Pumpfoil", Graphics.TEXT_JUSTIFY_CENTER);
+        var y = titleY + dc.getFontHeight(Graphics.FONT_MEDIUM) + 2;
+        if (_rec.updateAvailable && System.getTimer() < _rec.updateHintUntilMs) {
+            dc.setColor(FARBE_CYAN, Graphics.COLOR_TRANSPARENT);
+            _drawWrap(dc, w / 2, h * 0.05, xf, Strings.s("upd.store"), false);
+        }
+        var teile = [Strings.s(_rec.hasGpsFix() ? "gps.ready" : "gps.searching")];
+        if (_rec.hasGpsFix() && _rec.autoStartOn()) {
+            teile.add(Strings.s("auto.short") + (_rec.autoArmed() ? "" : " " + _rec.autoLead() + "s"));
+        }
+        if (!Uploader.phoneConnected()) {
+            var minLinks = _rec.storageMinutesLeft();
+            if (minLinks >= 0) { teile.add("~" + minLinks.toString() + " " + Strings.s("start.bufferMin")); }
+        }
+        dc.setColor(_rec.hasGpsFix() ? FARBE_GRUEN : FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
+        y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, _usableWidth(dc, y + fh / 2), teile), false) + luft;
+        // Eine Hinweiszeile nach Dringlichkeit: Speicher voll > nicht verbunden > wartende Uploads.
+        if (_rec.storageFull || Uploader.storageFull() || Config.storeFailed) {
+            dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
+            y += _drawWrap(dc, w / 2, y, xf, Strings.s("err.storageFull"), false) + luft;
+        } else if (!_rec.isPaired()) {
+            dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
+            y += _drawWrap(dc, w / 2, y, xf, Strings.s("up.notLinked"), false) + luft;
+        } else if (Uploader.pendingCount() > 0) {
+            // Auf 96 KB beschaedigt schon EINE wartende Session die naechste Aufnahme (Store voll).
+            dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
+            y += _drawWrap(dc, w / 2, y, xf,
+                Uploader.pendingCount() + " " + Strings.s("up.pendingN") + " - " + Strings.s("up.uploadFirst"), false) + luft;
+        }
+        var sf = dc.getFontHeight(Graphics.FONT_SMALL);
+        var unten = h * 0.99;
+        var sy = (y > h * 0.60) ? y : h * 0.60;
+        if (sy + sf > unten) { sy = unten - sf; }
+        if (sy < y) { sy = y; }
+        dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
+        _drawWrap(dc, w / 2, sy, Graphics.FONT_SMALL, Strings.s("start.rec"), false);
+        var yh = sy + sf + 2;
+        dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
+        if (yh + _wrapHoehe(dc, yh, xf, Strings.s("start.menu"), false) <= unten) {
+            _drawWrap(dc, w / 2, yh, xf, Strings.s("start.menu"), false);
+        }
+    }
+
+    (:full) hidden function _drawStartPage(dc, w, h) {
         // "Klein" heisst hier NICHT wenige Pixel, sondern wenige ZEILEN — darauf kommt es an.
         // Die fenix 5 hat 240 px, ihr FONT_XTINY ist aber 26 px gross: es passen 7 Zeilen aufs
         // Display, weniger als auf die 176-px-Instinct-2 (8,8). Die fenix 7X Pro (280 px, xtiny
@@ -689,7 +787,34 @@ class RecordView extends WatchUi.View {
 
     // Wert + Label + Farbe eines Datenfelds. EINE Quelle für die klassische 3-Feld-Ansicht
     // UND den Layout-Renderer — sonst driften Formatierung/Farb-Buckets auseinander.
-    hidden function _fieldParts(type) {
+    // LITE: nur die Felder der festen Seiten (s. _ring), ohne Werte-Farben.
+    (:lite) hidden function _fieldParts(type) {
+        var value = "--";
+        var label = "";
+        var color = Graphics.COLOR_WHITE;
+        if (type == Config.FIELD_SPEED3S) {
+            value = _rec.gpsPoor() ? "--" : (_rec.speed3s() * 3.6).format("%.1f");
+            label = Strings.s("f.kmh3s");
+        } else if (type == Config.FIELD_RUN_DISTANCE) {
+            var rd = _rec.runDistanceM();
+            value = _distVal(rd);
+            label = _distUnit(rd) + " " + (_rec.isFoiling() ? Strings.s("f.runActive") : Strings.s("f.run"));
+            if (_rec.isFoiling()) { color = FARBE_GRUEN; }
+        } else if (type == Config.FIELD_LAST_RUN_DISTANCE) {
+            var ld = _rec.lastRunDistanceM();
+            value = _distVal(ld); label = _distUnit(ld) + " " + Strings.s("f.last");
+        } else if (type == Config.FIELD_LAST_RUN_DURATION) {
+            value = _fmtTime(_rec.lastRunDurationMs()); label = Strings.s("f.lastRun");
+        } else if (type == Config.FIELD_RUN_COUNT) {
+            value = _rec.runCount().toString(); label = Strings.s("f.runs");
+        } else if (type == Config.FIELD_CLOCK) {
+            var c = System.getClockTime();
+            value = c.hour.format("%02d") + ":" + c.min.format("%02d"); label = Strings.s("f.clock");
+        }
+        return [value, label, color];
+    }
+
+    (:full) hidden function _fieldParts(type) {
         var value;
         var label;
         var color = Graphics.COLOR_WHITE;
@@ -879,7 +1004,7 @@ class RecordView extends WatchUi.View {
     // Hinweis aufs Einstellungsmenü. Uhren ohne MENU-Taste (vívoactive 6, Venu 4, Venu X1: nur Start/Stopp +
     // Zurück) öffnen es per Bildschirm halten (RecordDelegate.onHold) — dort stand vorher „MENU: …" für eine
     // Taste, die es nicht gibt. `inputButtons` = die PHYSISCHEN Tasten laut Gerät.
-    hidden function _menuText() as Lang.String {
+    (:full) hidden function _menuText() as Lang.String {
         var ds = System.getDeviceSettings();
         var ohneTaste = ds.isTouchScreen && (ds has :inputButtons)
             && (ds.inputButtons & System.BUTTON_INPUT_MENU) == 0;
@@ -1253,12 +1378,12 @@ class RecordView extends WatchUi.View {
 
     // Die sechs Grenzen, die fuer dieses Feld gelten — Puls und Geschwindigkeit sind seit 27.08.
     // gleich gebaut, deshalb reicht EINE Auswahl fuer Farbe, Zone und Fuellgrad.
-    hidden function _zonesFor(fid) {
+    (:full) hidden function _zonesFor(fid) {
         return _isHrFieldAll(fid) ? _rec.hrZones : _rec.speedZones;
     }
 
     // Puls-Feld? In JEDEM Build vorhanden — die Wert-FARBE gibt es auch ohne Layout-Renderer.
-    hidden function _isHrFieldAll(fid) {
+    (:full) hidden function _isHrFieldAll(fid) {
         return fid == Config.FIELD_HR || fid == Config.FIELD_AVG_HR
             || fid == Config.FIELD_MAX_HR || fid == Config.FIELD_LAST_RUN_MAX_HR;
     }
@@ -1276,11 +1401,11 @@ class RecordView extends WatchUi.View {
     }
 
     // Zone 0…4 auf den sechs Grenzen des Feldes.
-    hidden function _scaleZone(fid, v) {
+    (:full) hidden function _scaleZone(fid, v) {
         return _zoneOf(v, _zonesFor(fid));
     }
 
-    hidden function _zoneOf(v, grenzen) {
+    (:full) hidden function _zoneOf(v, grenzen) {
         var z = 0;
         for (var i = 1; i <= 4; i++) {
             if (v >= grenzen[i]) { z = i; }
@@ -1361,7 +1486,7 @@ class RecordView extends WatchUi.View {
     (:nolayouts) hidden function _sportZeile(dc, w, h, y, fh, luft, klein, mitteMax) { return y; }
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
-    hidden function _drawBell(dc, cx, cy) {
+    (:full) hidden function _drawBell(dc, cx, cy) {
         dc.setColor(FARBE_GELB, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(cx - 1, cy - 6, 2, 2);                                   // Griff oben
         dc.fillCircle(cx, cy - 3, 3);                                             // Kuppel
@@ -1371,7 +1496,7 @@ class RecordView extends WatchUi.View {
     }
 
     // Kleines Telefon-Icon (grün = aktive Handy-Verbindung).
-    hidden function _drawPhone(dc, cx, cy) {
+    (:full) hidden function _drawPhone(dc, cx, cy) {
         dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
         dc.fillRoundedRectangle(cx - 6, cy - 9, 12, 18, 2);                       // Gehäuse
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
@@ -1387,16 +1512,16 @@ class RecordView extends WatchUi.View {
     // 15 km/h hiess gruene Zahl UND gelber Ring auf derselben Seite.
     // Ohne Config-Sync gelten die Notnagel-Zonen aus SessionRecorder — die ersten drei
     // Geschwindigkeits-Grenzen sind dort 12/16/20, es sieht also aus wie vorher.
-    hidden function _speedColor(kmh) {
+    (:full) hidden function _speedColor(kmh) {
         return _zoneColorAll(_zoneOf(kmh, _rec.speedZones));
     }
-    hidden function _hrColor(hr) {
+    (:full) hidden function _hrColor(hr) {
         return _zoneColorAll(_zoneOf(hr, _rec.hrZones));
     }
 
     // Zonen-Farben Z1…Z5 in JEDEM Build (blau ruhig … rot maximal), damit die Wert-Farbe auch
     // auf den kleinen Uhren ohne Layout-Renderer dieselbe Bedeutung hat.
-    hidden function _zoneColorAll(z) {
+    (:full) hidden function _zoneColorAll(z) {
         if (z <= 0) { return FARBE_BLAU; }
         if (z == 1) { return FARBE_GRUEN; }
         if (z == 2) { return FARBE_GELB; }

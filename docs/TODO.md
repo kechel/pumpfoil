@@ -1516,6 +1516,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   eher Firmware/Ressource neben der Musik (vgl. fēnix-7-FW-27.18-Fall), Canary meldete nichts (crash_count 0).
   **Naechster Beleg:** Garmin ERA (Connect-IQ-Fehlerberichte der Store-Nutzer, Jans Entwicklerkonto) — Fehlerart
   (Out of Memory?) und Version je Absturz. Server-Log taugt nicht (22.10. nur 85 Zeilen).
+  **→ (A) umgesetzt 27.10. abends: LITE = MINIMAL-RECORDER** (Jan: „auf den minimalversionen alles ueberfluessige
+  rausnehmen, keine 'ich bin gerade am pumpen' meldung, kein gps-fix … mit fix programmierten default-datenseiten").
+  `instinct2` 80.636 -> **53.740 B** (-26,9 KB, kleiner als 1.0.64). Lite kann noch: koppeln, GPS-Aufnahme mit
+  Speicher sparen (nur GPS, ohne Umschalten bei knappem Puffer; bei schlechtem GPS alles speichern bleibt — eine
+  Bedingung, schuetzt den Lauf), Lauferkennung, hochladen, Auto-Start, Puffer-Restzeit, Absturz-/Speicher-Meldung,
+  Mem-Spitze (Diagnose genau fuer diesen Fall). RAUS: Spot-Meldung + Abmelden beim Verlassen, Ausfall-Uhr/3-s-Regel
+  aus 92eeb429 (Fix bleibt stehen), Sprache, Profil-Seiten, Werte-Farben, Alarme/Marken, Foil-Wahl (Server setzt
+  das Standard-Foil), Pause, Accel-Pfad, Hoechstwert-Saeuberung. **Feste Seiten** je 2 Felder: Lauf = km/h (3s) +
+  Laufstrecke · Nach dem Lauf = Strecke + Dauer des letzten Laufs · dritte Seite = Laeufe + Uhrzeit (UP/DOWN).
+  Config mit `min=1` -> Server schickt nur 7 Schluessel statt ~40 (`MINIMAL_KEYS`, devices.py). Alle anderen
+  Builds byte-gleich (Vergleich alt/neu ueber alle Geraete). Node-Test `watch/test/lite-minimal.test.mjs`.
+  **OFFEN vor Einreichung:** Jan im Simulator (instinct2): Startseite, Aufnahme lange (>15 min) inkl. Speicher-
+  Anzeige, die drei Seiten (Nebendisplay!), Stopp, Upload. Version erst beim Release bumpen.
 
 - **26.10. — Foil Scoot: Gleiten ohne Tempoabfall = Indiz fuer Bein-Pumpen** (Jan: „ignorieren wir erstmal, merken als weiteres Indiz“). Bewertung 6, #18900 (u267): Gleitphase 16:46–16:56 (9,7 s) mit ruhigem Handgelenk, GPS aber konstant 12–16 km/h, Sturz erst 17:12; Lauf endet 5 s vor dem Sturz. Beim Scoot halten die Haende den Lenker, gepumpt wird mit den Beinen — pg-scoot-1 (Pausen der Handgelenk-Pumps) sieht das als Gleiten. Idee: Gleiten nur mit echtem Tempoabfall. Erst mit mehr Faellen, vorher ueber alle Scoot-Sessions rechnen.
 - **25.10. — Zusammenfuehren nimmt Kreisel/Magnetfeld/Puls-Kanal nicht mit** (`merge.py`, nur GPS + Accel; s.

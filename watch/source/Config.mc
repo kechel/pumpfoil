@@ -27,12 +27,12 @@ module Config {
         return v == null ? "" : v;
     }
 
-    function getNumber(key, dflt) {
+    (:full) function getNumber(key, dflt) {
         var v = Application.Properties.getValue(key);
         return v == null ? dflt : v;
     }
 
-    function getBool(key, dflt) {
+    (:full) function getBool(key, dflt) {
         var v = Application.Properties.getValue(key);
         return v == null ? dflt : v;
     }
