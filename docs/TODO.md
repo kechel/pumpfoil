@@ -1497,6 +1497,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **27.10. — ThermikDreher (u267, FR965 1.0.97): Scoot-Brett-Paar + Fehlermeldung.** Brett #19235 (Samsung, auto board) parallel zu
+  vier Uhr-Sessions je Stab (#19244 Supra Trail S, #19250 Supra Trail L, #19262 Ultra Trail S, #19275 Supra Trail 3XL stabless),
+  alle Bloecke vollstaendig, 24,9 Hz -> in `ANDERE_SPORTART` (paare_ausrichten.py), Wahrheit fuer pg-scoot + Stab-Vergleich.
+  Meldung (Chat an Jan 17:28): (1) „ab dem fuenften Run“ zeigte die Nach-dem-Lauf-Seite die vergangenen Laeufe nicht mehr —
+  UNGEKLAERT; server-seitig je Uhr-Session 1-6 Laeufe, zwischen allen Laeufen echter Stopp (min 0 km/h), also keine
+  Fortsetzungs-Verschmelzung. (2) eigene Seiten + „Standard“-Seite gemischt = sein Schalter `browse_all_pages` (eigene
+  On/Off-Seiten 58/57 + klassische Pausen-Seite [12,20,2]) -> erwartet. (3) App beendet, Neustart -> „IQ“-Fehler, erst
+  Uhr-Neustart half, Upload danach ok — wie (C) unten; crash_count 0, weil 1.0.97 die Meldung verlor (21d92a50 erst in
+  1.0.98). Mit 1.0.98 abwarten, ob seine Uhr einen Absturz meldet; Rueckfrage: welche Uhr-Session / welcher Lauf, Musik an?
+
 - **27.10. — Garmin-Abstuerze: Befundsammlung, NOCH NICHTS GEAENDERT** (Jan: „erstmal nur sammeln").
   **(A) Lite-Build (Instinct 2/2S/2X, 92 KB) — Bruch ab 1.0.94, VERMUTUNG Speicher (unbelegt):** Lite-Sessions
   je Version leer/unvollstaendig: 1.0.91 0/25, 1.0.92 1/8, **1.0.94 5/7**, 1.0.95 1/2 (1.0.93 nie auf Lite-Uhren).

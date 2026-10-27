@@ -88,6 +88,11 @@ ANDERE_SPORTART = {
            "laut Lage in den Laeufen flach (Schwerkraft ~z, 6 von 8 Laeufen), Kreisel + Magnetfeld, "
            "53,5 Hz, 1 h 47 min, 8 Laeufe (bis 21 min lang); dazu Garmin #16719 (1.0.93, 24,9 Hz, 8 Laeufe). "
            "Lauf ab 3774 s: Accel 14 s eingefroren (std 0). Fehlstart-Session #16709 (7 s) ignorieren.",
+    19235: "u267 27.10.2026, foil_scoot, Handy am Brett (auto), Samsung 15:20-17:25; dazu Garmin FR965 1.0.97 je Stab eine "
+           "Session (Chat an Jan 17:54: „alle runs entsprechend mit dem jeweiligen stab beschriftet … sehr variabel gepumpt, "
+           "Carven, Langstrecke mit Doublepump, grosse Hube, glide and go, Sprunguebungen“): #19244 Sirus XL + Supra Trail S, "
+           "#19250 Sirus XL + Supra Trail L, #19262 Sirus XL + Ultra Trail S, #19275 (= #19264/19265/19267) Supra Trail 3XL "
+           "stabless; #19263 (9 s) ignorieren. Bloecke alle vollstaendig, 24,9 Hz. Wahrheit fuer Scoot-Pump/Gleit + Stab-Vergleich.",
 }
 
 def paare_finden(db, mit_ohne_accel: bool = False) -> tuple[list[tuple[int, int]], list[int]]:
