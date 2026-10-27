@@ -1664,6 +1664,17 @@
   ],
   "verlauf": [
     {
+      "datum": "2026-10-27",
+      "sport": [
+        "alle"
+      ],
+      "merkmal": "kennzahlen",
+      "was": "Strecke: ein GPS-Glitch wird jetzt am Tempo erkannt (> 25 m und > 25 m/s gegen den letzten guten Punkt, Lehrbuch-Speed-Filter) statt an festen 25 m je Schritt; die Strecke ueber den Glitch ist die Gerade. Die alte Regel verlor bei Smart Recording (Punkte alle 2-8 s) jeden schnellen Schritt. Anlass Feedback #19096 (u244, Wing): 19,9 statt 28,1 km, jetzt 28,2 (Doppler 28,0). Probelauf 693 betroffene Sessions: Foil-km 1567 -> 1910, Laeufe 8594 -> 8757; 5605 Sessions neu analysiert (Laeufe 73649 -> 73921, 0 Fehler; 11 Spot-Bestwerte wechseln, alle beim selben Fahrer). #10362 (u38, synthetische Testspur ohne Spot) bekommt jetzt einen 4,3-km-Lauf. Grenze: bei Punkten alle 8 s und mehr sind kurze Stopps grundsaetzlich nicht sichtbar, Laeufe koennen dort zusammenfliessen.",
+      "wo": [
+        "server"
+      ]
+    },
+    {
       "datum": "2026-10-26",
       "sport": [
         "wingfoil",
