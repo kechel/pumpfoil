@@ -323,7 +323,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.97",   # LIVE 2026-10-24: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
+        "latest": "1.0.98",   # LIVE 2026-10-27: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
+        # fenix 7X Pro Token 1577 + Testsession #19286 melden v=1.0.98; Store-Seite zeigte um 20:58 noch 1.0.97). Inhalt: Lite
+        # (96 KB) = Minimal-Recorder mit festen Seiten, GPS-Fix nicht mehr klebrig, Absturzmeldung bis zur Bestaetigung. .iq aus aea5cb58, 218 Varianten.
+        # ALT: "latest": "1.0.97",   # LIVE 2026-10-24: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
         # Testsession #18928 meldet v=1.0.97). Inhalt: Einstellungsmenue per Display halten (vívoactive 6, Venu 4, Venu X1
         # ohne MENU-Taste). .iq aus 8bb0030c, 218 Varianten.
         # ALT: "latest": "1.0.96",   # LIVE 2026-10-22: am Tag der Einreichung freigegeben (Jans Meldung, Uhr aus dem Store aktualisiert,
@@ -1055,6 +1058,7 @@ NAECHSTES: list[dict] = [
     # iPhone + Apple Watch 1.1.57 am 26.10. eingereicht -> IN_REVIEW, am 26.10. FREIGEGEBEN.
     # iPhone + Apple Watch 1.1.55 am 23.10. eingereicht -> IN_REVIEW.
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
+    # Garmin 1.0.98 am 27.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte 778-780 im Changelog mit garmin 1.0.98.
     # Garmin 1.0.97 am 24.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.97.
     # Garmin 1.0.96 am 22.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.96.
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
