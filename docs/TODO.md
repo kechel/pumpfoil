@@ -1496,6 +1496,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **27.10. — Garmin-Abstuerze: Befundsammlung, NOCH NICHTS GEAENDERT** (Jan: „erstmal nur sammeln").
+  **(A) Lite-Build (Instinct 2/2S/2X, 92 KB) — Bruch ab 1.0.94, VERMUTUNG Speicher (unbelegt):** Lite-Sessions
+  je Version leer/unvollstaendig: 1.0.91 0/25, 1.0.92 1/8, **1.0.94 5/7**, 1.0.95 1/2 (1.0.93 nie auf Lite-Uhren).
+  `.prg` instinct2 (`-r`, je Commit nachgebaut, scratchpad/memprobe): 1.0.91 73.804 · 1.0.92 77.164 · 1.0.93 78.140
+  · 1.0.94 78.668 (Spot-Meldung +528) · 1.0.95 79.548 (Mem +624) · 1.0.97 79.724 · **HEAD unveroeffentlicht 80.636
+  (+752 durch 92eeb429, +160 durch 21d92a50)**. Jans Simulator 14.10. (1.0.93-Testbuild 78 KB): Aufnahme-Spitze
+  ~85/91,8 KB -> ~7 KB Luft; seither +1,6 KB, mit HEAD +2,5 KB. Gemeldete Spitzen: u217 89, u942 88, u214 85 von 92
+  (Messpunkte nur Zeichnen/Upload/Config — der Absturz selbst erscheint nie). Kandidat Spot-Meldung
+  (`PhoneRec.meldePosition`, auch lite): `makeWebRequest` beim ersten Fix, also meist Sekunden vor START -> Antwort
+  kann in die Puffer-Anlage der Aufnahme fallen; u636 meldete 13:12:47, #17467 startete 13:13:28, 0/13 Bloecke.
+  Haengender Upload u217 (Status ok, ein Block, dann keiner, kein Fehler am Server) passt zu einem Request, der auf
+  der Uhr scheitert: negative Codes wertet `Uploader.noteResult` stumm als :offline. u214 (Instinct 2X): 25
+  Abstuerze Phase 2 (Startbildschirm), nie eine Aufnahme mit der App — Zeitpunkt unklar (Zaehler kumuliert).
+  **(B) Instinct E / Instinct 3 (123 KB, Build ~71 KB) — passt NICHT ins Speicherbild:** u920 (Instinct E 1.0.95,
+  Spitze 77/123) Absturz in der Aufnahme 22.10., #18772 + #18816 ohne Bloecke; u520 (gleiche Uhr/Version, selber
+  Tag/Ort) 49 min sauber. u244 (Instinct 3, 1.0.92) 13 Abstuerze Phase 3, Sessions trotzdem komplett.
+  **(C) FR965 u267 (763 KB, Spitze 142):** „IQ"-Bild + Neustart der ganzen Uhr, hoert dabei Musik ueber die Uhr ->
+  eher Firmware/Ressource neben der Musik (vgl. fēnix-7-FW-27.18-Fall), Canary meldete nichts (crash_count 0).
+  **Naechster Beleg:** Garmin ERA (Connect-IQ-Fehlerberichte der Store-Nutzer, Jans Entwicklerkonto) — Fehlerart
+  (Out of Memory?) und Version je Absturz. Server-Log taugt nicht (22.10. nur 85 Zeilen).
+
 - **26.10. — Foil Scoot: Gleiten ohne Tempoabfall = Indiz fuer Bein-Pumpen** (Jan: „ignorieren wir erstmal, merken als weiteres Indiz“). Bewertung 6, #18900 (u267): Gleitphase 16:46–16:56 (9,7 s) mit ruhigem Handgelenk, GPS aber konstant 12–16 km/h, Sturz erst 17:12; Lauf endet 5 s vor dem Sturz. Beim Scoot halten die Haende den Lenker, gepumpt wird mit den Beinen — pg-scoot-1 (Pausen der Handgelenk-Pumps) sieht das als Gleiten. Idee: Gleiten nur mit echtem Tempoabfall. Erst mit mehr Faellen, vorher ueber alle Scoot-Sessions rechnen.
 - **25.10. — Zusammenfuehren nimmt Kreisel/Magnetfeld/Puls-Kanal nicht mit** (`merge.py`, nur GPS + Accel; s.
   docs/DATA-PIPELINE.md §9.5a). Betrifft nur Handy-Recorder (keine Uhr sammelt Kreisel). Bestand geprueft: 6 von 120
