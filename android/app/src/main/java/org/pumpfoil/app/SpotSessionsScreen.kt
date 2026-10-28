@@ -141,7 +141,7 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
                         // trotzdem (s. docs/TODO.md).
                         item { SpotRecordsSection(spot, accelOnly = false, sport = sport, sports = sports, onOpen = onOpen,
-                                                  onAktiv = { rekordSport = it }) }
+                                                  onAktiv = { rekordSport = it }, onSport = { sport = it }) }
                         // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
                         val sid0 = spotId; val ort = spotOrt
                         if (sid0 != null && ort != null) item(key = "heatmap-$sid0") {
@@ -160,9 +160,7 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         item {
                             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
                                 verticalAlignment = Alignment.CenterVertically) {
-                                if (sports.size > 1 || sport != "all") {
-                                    SportDropdown(sports, sport) { sport = it }
-                                }
+                                // Kein Sportart-Dropdown mehr: die Knoepfe im Rekord-Kasten filtern die Seite (Jan, 28.10.2026).
                                 Spacer(Modifier.weight(1f))
                                 ListenAnsichtUmschalter()
                             }

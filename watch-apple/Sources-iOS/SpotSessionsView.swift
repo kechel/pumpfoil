@@ -34,9 +34,9 @@ struct SpotSessionsView: View {
     @State private var weather: SpotWeather?
     // Sportarten fuer Filter und Rekord-Umschalter (Server /api/community/sports).
     @State private var sportarten: [CommunitySport] = []
-    // Sportarten-Filter DIESER Seite (28.10.2026, wie Android SpotSessionsScreen und die PWA): startet
-    // mit der Vorgabe der Spot-Karte, sonst „alle"; hier umstellbar. Vorher gab es keinen Filter, und
-    // ohne Vorgabe standen die Rekorde fest auf Pumpfoil — der Sportart-Umschalter erschien nie.
+    // Sportarten-Filter DIESER Seite (28.10.2026): startet mit der Vorgabe der Spot-Karte, sonst „alle";
+    // umgestellt ueber die Knoepfe im Rekord-Kasten (wie PWA/Android). Vorher stand er ohne Vorgabe fest
+    // auf Pumpfoil, und der Sportart-Umschalter erschien nie.
     @State private var sportGewaehlt: String?
     private var aktSport: String { sportGewaehlt ?? sport ?? "all" }
     // Sportart, die der Rekord-Kasten gerade zeigt — die Heatmap folgt ihr (Jan, 28.10.2026).
@@ -67,7 +67,7 @@ struct SpotSessionsView: View {
             // mit Bewegungsdaten — an Spots mit vielen GPS-Aufnahmen (Cléder) blieb so nur SUP uebrig.
             SpotRecordsView(spot: spot, lang: lang, accelOnly: false,
                             sport: aktSport, sports: sportarten.map { $0.sport },
-                            onAktiv: { rekordSport = $0 })
+                            onAktiv: { rekordSport = $0 }, onSport: { sportWaehlen($0) })
             // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
             if let hz = heatZustand, let ort = spotOrt {
                 Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: aktSport != "all" ? aktSport : (rekordSport ?? "all"), lang: lang, routeAusLink: routeId) }
@@ -82,17 +82,9 @@ struct SpotSessionsView: View {
             // Kacheln / eine Zeile je Session (PWA 9160c6a2) — derselbe Merker wie alle Listen.
             // Sportart links (nur wenn es etwas zu waehlen gibt), rechts Kacheln / Zeilen — eine
             // Werkzeugzeile wie im Web und auf Android.
-            HStack {
-                if SportFilterMenu.zeigen(sport: aktSport, sports: sportarten) {
-                    SportFilterMenu(sport: aktSport, sports: sportarten, lang: lang) { neu in
-                        guard neu != aktSport else { return }
-                        sportGewaehlt = neu
-                        items = []; autoTried = false; showAll = false
-                        Task { await load() }
-                    }
-                }
-                Spacer()
-                if !items.isEmpty { ListenAnsichtUmschalter(lang: lang) }
+            // Kein Sportart-Menue: die Knoepfe im Rekord-Kasten filtern die Seite (Jan, 28.10.2026).
+            if !items.isEmpty {
+                HStack { Spacer(); ListenAnsichtUmschalter(lang: lang) }
             }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
@@ -139,6 +131,13 @@ struct SpotSessionsView: View {
                 if let wn = m.water, !wn.isEmpty, wn.lowercased() != spot.lowercased() { spotLabel = wn }
             }
         }
+    }
+
+    private func sportWaehlen(_ neu: String) {
+        guard neu != aktSport else { return }
+        sportGewaehlt = neu
+        items = []; autoTried = false; showAll = false
+        Task { await load() }
     }
 
     private func load() async {

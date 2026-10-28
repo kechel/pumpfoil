@@ -384,7 +384,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     // Sportart gleich daneben: sie gilt fuer jede Ansicht, nicht nur fuer „Meine".
                     // Der Monat zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
                     // Hoechstens 150 dp, wie die Spot-Auswahl daneben (PWA, 14.10.2026).
-                    SportDropdown(sports, sport, Modifier.widthIn(max = 150.dp)) { sel -> sport = sel; month = "" }
+                    // In der Spot-Ansicht NICHT: dort filtern die Sportart-Knoepfe im Rekord-Kasten (Jan, 28.10.2026).
+                    if (scope != Scope.SPOT) SportDropdown(sports, sport, Modifier.widthIn(max = 150.dp)) { sel -> sport = sel; month = "" }
                     if (scope == Scope.MINE) {
                         ImportFileButton({ neueId ->
                             if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
@@ -473,7 +474,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                             if (scope == Scope.SPOT) {
                                 if (spot.isNotBlank()) {
                                     item { SpotRecordsSection(spot, accelOnly, sport, sports, onOpen = { id -> onOpen(id, null) },
-                                                              onAktiv = { rekordSport = it }) }
+                                                              onAktiv = { rekordSport = it }, onSport = { sport = it; month = "" }) }
                                 }
                                 // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
                                 val sidH = spotIds[spot]; val ortH = spotOrte[spot]

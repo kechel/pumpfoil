@@ -151,7 +151,7 @@ struct SessionsView: View {
             // Rekorde folgen dem Sportarten-Filter; bei „alle" ein Kasten je Sportart (PWA a9725cb9).
             SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly,
                             sport: sport, sports: sports.map { $0.sport },
-                            onAktiv: { rekordSport = $0 })
+                            onAktiv: { rekordSport = $0 }, onSport: { neu in month = ""; sport = neu })
         }
     }
 
@@ -323,7 +323,8 @@ struct SessionsView: View {
     /// Die Zeile steht deshalb immer, auch ohne Sportart-Auswahl.
     private var sportFilterRow: some View {
         HStack {
-            if SportFilterMenu.zeigen(sport: sport, sports: sports) {
+            // In der Spot-Ansicht nicht: dort filtern die Knoepfe im Rekord-Kasten (Jan, 28.10.2026).
+            if scope != .spot, SportFilterMenu.zeigen(sport: sport, sports: sports) {
                 SportFilterMenu(sport: sport, sports: sports, lang: lang) { neu in month = ""; sport = neu }
             }
             Spacer()

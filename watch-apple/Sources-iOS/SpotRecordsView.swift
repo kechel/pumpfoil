@@ -210,8 +210,11 @@ struct SpotRecordsView: View {
     /// Meldet die gezeigte Sportart (nil = kein Kasten) — die Heatmap der Seite folgt ihr (28.10.2026).
     var onAktiv: (String?) -> Void = { _ in }
 
+    /// Sportarten-Filter der Seite setzen (Knopf „Alle" = "all").
+    var onSport: (String) -> Void = { _ in }
+
     private var gezeigt: String? {
-        guard geladen, mitRekorden.contains(aktiv) else { return nil }
+        guard geladen, mitRekorden.contains(aktiv) || sport != "all" else { return nil }
         return aktiv
     }
 
@@ -223,9 +226,10 @@ struct SpotRecordsView: View {
     // erscheinende Kasten stiesse es erneut an. Der erste Lauf je Schluessel gewinnt.
     @State private var geladenFuer: String?
 
+    /// IMMER alle Sportarten abfragen, nicht nur die gewaehlte — die Knopfzeile ist der Filter der
+    /// ganzen Spot-Seite und muss nach einem Klick weiter alle Sportarten mit Rekord kennen.
     private var liste: [String] {
-        if sport != "all" { return [sport] }
-        return sports.isEmpty ? ["pumpfoil"] : sports
+        sports.isEmpty ? ["pumpfoil"] : sports
     }
 
     /// Neu laden, sobald sich Spot, Filter oder die Liste der Sportarten aendert.
@@ -234,15 +238,18 @@ struct SpotRecordsView: View {
         return teile.joined(separator: "|")
     }
 
-    @State private var wahl: String?
-
-    /// Angezeigte Sportart: Filter der Seite, sonst eigene Wahl, sonst Pumpfoil, sonst die erste.
+    /// Angezeigte Sportart: Filter der Seite, bei „alle" Pumpfoil, sonst die erste mit Rekord.
     private var aktiv: String {
         if sport != "all" { return sport }
         let mit: [String] = mitRekorden
-        if let w = wahl, mit.contains(w) { return w }
         if mit.contains("pumpfoil") { return "pumpfoil" }
         return mit.first ?? "pumpfoil"
+    }
+
+    /// Knoepfe: Sportarten mit Rekord, dazu eine gewaehlte ohne Rekord (sonst kaeme man nicht zurueck).
+    private var knoepfe: [String] {
+        let mit: [String] = mitRekorden
+        return sport != "all" && !mit.contains(sport) ? mit + [sport] : mit
     }
 
     private var mitRekorden: [String] {
@@ -261,15 +268,16 @@ struct SpotRecordsView: View {
             if !geladen {
                 Section { Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("rec.spotTitle", lang)) }
-            } else if mitRekorden.isEmpty {
+            } else if mitRekorden.isEmpty && sport == "all" {
                 Section { Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("rec.spotTitle", lang)) }
             } else {
-                // EIN Kasten fuer EINE Sportart mit Umschalter (Jan, 28.10.2026; wie PWA/Android).
-                // `.id` setzt das Zeitfenster beim Sportart-Wechsel neu.
+                // EIN Kasten fuer EINE Sportart (Jan, 28.10.2026; wie PWA/Android). Die Knoepfe sind der
+                // Sportarten-Filter der ganzen Spot-Seite: „Alle" + Sportarten mit Rekord; ein Knopf setzt
+                // `sport` der Seite (Liste, Rekorde, Heatmap). `.id` setzt das Zeitfenster neu.
                 SpotRecordsKasten(sport: aktiv, alle: jeSportart[aktiv] ?? [:], lang: lang, ladeStand: ladeStand,
-                                  sportWahl: mitRekorden.count > 1 ? mitRekorden : [],
-                                  onSport: { wahl = $0 })
+                                  sportWahl: knoepfe.count > 1 || sport != "all" ? ["all"] + knoepfe : [],
+                                  gewaehlt: sport, onSport: onSport)
                     .id(aktiv)
             }
         }
@@ -312,8 +320,10 @@ struct SpotRecordsKasten: View {
     let alle: [String: PeriodRecords]
     let lang: String
     let ladeStand: Int
-    /// Sportarten zum Umschalten (leer = nur eine, kein Umschalter).
+    /// Knoepfe des Sportarten-Filters der Seite, "all" = alle (leer = keine Knopfzeile).
     var sportWahl: [String] = []
+    /// Gewaehlter Filter der Seite (hervorgehobener Knopf).
+    var gewaehlt: String = "all"
     var onSport: (String) -> Void = { _ in }
 
     static let fenster = ["10d", "30d", "365d", "all"]
@@ -385,9 +395,10 @@ struct SpotRecordsKasten: View {
     }
 
     private func sportKnopf(_ s: String) -> some View {
-        let an: Bool = s == sport
+        let an: Bool = s == gewaehlt
+        let text: String = s == "all" ? Loc.t("all.allSports", lang) : Loc.t("cls.sport.\(s)", lang)
         return Button { onSport(s) } label: {
-            Text(Loc.t("cls.sport.\(s)", lang)).font(.subheadline)
+            Text(text).font(.subheadline)
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .foregroundStyle(an ? Color.black : Color.primary)
                 .background(an ? Color.accentColor : Color(.secondarySystemBackground))
