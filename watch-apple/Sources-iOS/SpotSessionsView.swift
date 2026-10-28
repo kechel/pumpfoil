@@ -56,6 +56,10 @@ struct SpotSessionsView: View {
                     if let w = spotLabel, !w.isEmpty {
                         Text(w).font(.caption).foregroundStyle(.secondary)
                     }
+                    // Sportart-Knoepfe als Filter der Seite, ueber den Rekorden — in derselben Zeile wie der
+                    // Name statt einer eigenen Sektion, die zu viel Abstand brachte (Jan, 28.10.2026).
+                    SpotSportKnoepfe(spotSports: spotSports, sport: aktSport, lang: lang) { sportWaehlen($0) }
+                        .padding(.top, 6)
                 }
             }
             if let error { Text(error).foregroundStyle(.secondary) }
@@ -65,10 +69,6 @@ struct SpotSessionsView: View {
             // der Liste), bei „alle" ein Kasten je Sportart (PWA a9725cb9).
             // Rekorde ueber ALLE Sessions (wie Android SpotRecordsSection(accelOnly = false)): vorher nur die
             // mit Bewegungsdaten — an Spots mit vielen GPS-Aufnahmen (Cléder) blieb so nur SUP uebrig.
-            // Sportart-Knoepfe als Filter der Seite, ueber den Rekorden (Jan, 28.10.2026).
-            if !spotSports.isEmpty || aktSport != "all" {
-                Section { SpotSportKnoepfe(spotSports: spotSports, sport: aktSport, lang: lang) { sportWaehlen($0) } }
-            }
             if let rs = rekordSport {
                 SpotRecordsView(spot: spot, lang: lang, accelOnly: false, sport: rs, sports: [rs])
             }

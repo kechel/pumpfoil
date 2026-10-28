@@ -156,10 +156,6 @@ struct SessionsView: View {
     @ViewBuilder private var spotRecordsSection: some View {
         if scope == .spot, !spot.isEmpty {
             // Rekorde folgen dem Sportarten-Filter; bei „alle" ein Kasten je Sportart (PWA a9725cb9).
-            // Sportart-Knoepfe als Filter der Seite, ueber den Rekorden (Jan, 28.10.2026).
-            if !spotSports.isEmpty || sport != "all" {
-                Section { SpotSportKnoepfe(spotSports: spotSports, sport: sport, lang: lang) { neu in month = ""; sport = neu } }
-            }
             if let rs = rekordSport {
                 SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly, sport: rs, sports: [rs])
             }
@@ -307,6 +303,10 @@ struct SessionsView: View {
                     // Suche, den Homespot-Chip oder den Spot-Link einer Session. An seiner Stelle Sportart
                     // und Kacheln/Zeilen — eine Zeile weniger (Jan, 28.10.2026).
                     sportUndAnsicht
+                }
+                // Spot-Ansicht: Sportart-Knoepfe als Filter der Seite, in der Kopf-Sektion (Jan, 28.10.2026).
+                if scope == .spot {
+                    SpotSportKnoepfe(spotSports: spotSports, sport: sport, lang: lang) { neu in month = ""; sport = neu }
                 }
                 if scope == .mine { monthFilterRow }
             }
