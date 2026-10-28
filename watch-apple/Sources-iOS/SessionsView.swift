@@ -290,31 +290,27 @@ struct SessionsView: View {
                     chip("accel", accelOnly && !brett) { brett = false; chooseAccel(true) }
                     chip(Loc.t("side.all", lang), !accelOnly && !brett) { brett = false; chooseAccel(false) }
                     chip("POB", brett) { brett = true }
-                    Spacer()
+                    Spacer(minLength: 4)
                     // Kein Spot-Menue mehr (Jan, 28.10.2026, wie PWA/Android): Spots ueber die Spot-Karte mit
-                    // Suche, den Homespot-Chip oder den Spot-Link einer Session.
+                    // Suche, den Homespot-Chip oder den Spot-Link einer Session. An seiner Stelle Sportart
+                    // und Kacheln/Zeilen — eine Zeile weniger (Jan, 28.10.2026).
+                    sportUndAnsicht
                 }
-                sportFilterRow
                 if scope == .mine { monthFilterRow }
             }
             .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
         }
     }
 
-    /// Sportart-Auswahl, nur wenn es etwas zu waehlen gibt (s. SportFilterMenu). Die Monate zaehlen
-    /// je Sportart anders, deshalb faellt ein gewaehlter Monat beim Wechsel weg (wie die PWA).
-    /// Rechts in derselben Zeile der Umschalter Kacheln / eine Zeile je Session (PWA 9160c6a2,
-    /// dort in der Werkzeugzeile neben dem Accel-Umschalter) — gilt fuer Meine, Alle und den Spot.
-    /// Die Zeile steht deshalb immer, auch ohne Sportart-Auswahl.
-    private var sportFilterRow: some View {
-        HStack {
-            // In der Spot-Ansicht nicht: dort filtern die Knoepfe im Rekord-Kasten (Jan, 28.10.2026).
-            if scope != .spot, SportFilterMenu.zeigen(sport: sport, sports: sports) {
-                SportFilterMenu(sport: sport, sports: sports, lang: lang) { neu in month = ""; sport = neu }
-            }
-            Spacer()
-            ListenAnsichtUmschalter(lang: lang)
+    /// Sportart-Filter (Monat faellt beim Wechsel weg, wie die PWA) und rechts der Umschalter Kacheln /
+    /// eine Zeile je Session (PWA 9160c6a2) — rechts in der Zeile von accel/all/POB. Das Sportart-Menue
+    /// ist hier schmaler (110 pt), damit alles in eine Zeile passt. In der Spot-Ansicht kein Menue: dort
+    /// filtern die Knoepfe im Rekord-Kasten (Jan, 28.10.2026).
+    @ViewBuilder private var sportUndAnsicht: some View {
+        if scope != .spot, SportFilterMenu.zeigen(sport: sport, sports: sports) {
+            SportFilterMenu(sport: sport, sports: sports, lang: lang, maxBreite: 110) { neu in month = ""; sport = neu }
         }
+        ListenAnsichtUmschalter(lang: lang)
     }
 
     @ViewBuilder private var monthFilterRow: some View {
@@ -613,6 +609,7 @@ struct SportFilterMenu: View {
     let sport: String
     let sports: [CommunitySport]
     let lang: String
+    var maxBreite: CGFloat = 150
     let onSelect: (String) -> Void
 
     /// Nur zeigen, wenn es mehr als eine Sportart gibt oder schon eine gewaehlt ist.
@@ -644,7 +641,7 @@ struct SportFilterMenu: View {
                 Text(label(sport)).font(.subheadline).lineLimit(1).truncationMode(.tail)
                 Image(systemName: "chevron.down").font(.caption2)
             }
-            .frame(maxWidth: 150, alignment: .leading)
+            .frame(maxWidth: maxBreite, alignment: .leading)
         }
     }
 }
