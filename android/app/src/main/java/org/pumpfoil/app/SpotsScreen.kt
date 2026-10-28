@@ -324,7 +324,10 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     // Legende der gruenen Spots direkt unter der Karte (wie die PWA): ohne sie bleibt
                     // offen, warum ein Spot gruen ist — und warum ein kleiner nie allein gruen wird.
-                    if (!heatAnsicht) item {
+                    // Bei einer Suche NUR die Treffer, direkt unter der Karte. Vorher standen sie unter Legende,
+                    // Spot-Vergleich und Hinweis — beim Tippen nie zu sehen (Jan, 28.10.2026, wie auf iOS).
+                    val ohneSuche = suche.isBlank()
+                    if (!heatAnsicht && ohneSuche) item {
                         Row(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
                             Box(Modifier.padding(top = 4.dp).size(12.dp).clip(CircleShape).background(AKTIV_GRUEN))
                             Spacer(Modifier.width(8.dp))
@@ -332,14 +335,14 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                                  color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    if (items.isNotEmpty()) {
+                    if (items.isNotEmpty() && ohneSuche) {
                         // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
                         item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
                     }
                     // „Spots entstehen automatisch" — dritter Nutzer in Folge suchte in der PWA
                     // einen Knopf zum Anlegen, den es bewusst nicht gibt. Steht dort ueber der
                     // Karte; hier unten, weil oben schon Filter und Suchfeld sitzen.
-                    item {
+                    if (ohneSuche) item {
                         Text(I18n.t("spots.autoHint"), Modifier.padding(16.dp),
                              style = MaterialTheme.typography.bodySmall,
                              color = MaterialTheme.colorScheme.onSurfaceVariant)
