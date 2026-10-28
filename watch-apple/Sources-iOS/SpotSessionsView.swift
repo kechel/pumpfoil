@@ -61,7 +61,9 @@ struct SpotSessionsView: View {
             // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
             // Rekorde je Sportart wie die Liste darunter: ohne Vorgabe Pumpfoil (Endpunkt-Default
             // der Liste), bei „alle" ein Kasten je Sportart (PWA a9725cb9).
-            SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true,
+            // Rekorde ueber ALLE Sessions (wie Android SpotRecordsSection(accelOnly = false)): vorher nur die
+            // mit Bewegungsdaten — an Spots mit vielen GPS-Aufnahmen (Cléder) blieb so nur SUP uebrig.
+            SpotRecordsView(spot: spot, lang: lang, accelOnly: false,
                             sport: aktSport, sports: sportarten.map { $0.sport })
             // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
             if let hz = heatZustand, let ort = spotOrt {
