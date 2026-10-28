@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
@@ -995,10 +996,15 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "", url: St
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = text, onValueChange = { if (it.length <= 500) text = it },
+                        // Server nimmt hoechstens 500 Zeichen (api/feedback.py MAX_LEN). Eingefuegter
+                        // laengerer Text wird gekappt statt verworfen; der Zaehler zeigt die Grenze.
+                        value = text, onValueChange = { text = it.take(MAX_FEEDBACK_ZEICHEN) },
                         placeholder = { Text(I18n.t("feedback.placeholder")) },
                         minLines = 3, modifier = Modifier.fillMaxWidth(),
                     )
+                    Text("${text.length}/$MAX_FEEDBACK_ZEICHEN", style = MaterialTheme.typography.bodySmall,
+                        color = if (text.length >= MAX_FEEDBACK_ZEICHEN) Color(0xFFF59E0B) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
                     // Anhaenge: Bilder oder Logs. Die Auswahl filtert vor, die verbindliche
                     // Pruefung macht ohnehin der Server (Weissliste, 3 Dateien, Neukodierung).
                     Spacer(Modifier.height(8.dp))
@@ -1046,7 +1052,7 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "", url: St
                                     }
                                 }
                                 sent = true
-                            } catch (_: Exception) {}
+                            } catch (_: Exception) { fehler = I18n.t("feedback.failed") }
                             busy = false
                         }
                     },
@@ -1059,6 +1065,8 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "", url: St
 
 // Hoechstens drei Anhaenge — dieselbe Grenze wie im Server (MAX_ANHAENGE) und in der PWA.
 private const val MAX_FEEDBACK_DATEIEN = 3
+// Hoechstens 500 Zeichen — dieselbe Grenze wie im Server (MAX_LEN) und in der PWA.
+private const val MAX_FEEDBACK_ZEICHEN = 500
 
 // Vorfilter der Dateiauswahl. Deckungsgleich mit der Server-Weissliste; `text/*` faengt
 // .log/.csv/.ips mit ab, die je nach Geraet keinen eigenen MIME-Typ haben.

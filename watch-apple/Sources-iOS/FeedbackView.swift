@@ -23,6 +23,7 @@ struct FeedbackView: View {
 
     // Hoechstens drei Anhaenge — dieselbe Grenze wie im Server (MAX_ANHAENGE) und in der PWA.
     private let maxDateien = 3
+    private let maxZeichen = 500
     // Vorfilter der Dateiauswahl, deckungsgleich mit der Server-Weissliste (Bilder + Text/Logs).
     // `.plainText` deckt .txt/.log/.ips mit ab, wenn das Geraet keinen eigenen Typ dafuer kennt.
     private let typen: [UTType] = [.image, .plainText, .json, .commaSeparatedText, .xml, .yaml, .log]
@@ -44,6 +45,12 @@ struct FeedbackView: View {
                             }
                         }
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(.separator)))
+                        // Server nimmt hoechstens 500 Zeichen (api/feedback.py MAX_LEN). Ohne Grenze und
+                        // Zaehler schlug laengeres Feedback stumm fehl (u146, 28.10.2026).
+                        .onChange(of: text) { neu in if neu.count > maxZeichen { text = String(neu.prefix(maxZeichen)) } }
+                    Text("\(text.count)/\(maxZeichen)").font(.footnote).monospacedDigit()
+                        .foregroundStyle(text.count >= maxZeichen ? Color.orange : Color.secondary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     anhangBereich
                     Spacer()
                 }
@@ -101,7 +108,9 @@ struct FeedbackView: View {
         busy = true
         fehler = ""
         Task {
-            guard let id = try? await Api.submitFeedback(t, url: url) else { busy = false; return }
+            guard let id = try? await Api.submitFeedback(t, url: url) else {
+                fehler = Loc.t("feedback.failed", lang); busy = false; return
+            }
             // Ein fehlgeschlagener Anhang darf die Meldung selbst nicht entwerten — die ist
             // dann schon beim Server. Nur melden und weitermachen.
             for u in dateien {

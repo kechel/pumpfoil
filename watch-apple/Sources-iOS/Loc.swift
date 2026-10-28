@@ -237,6 +237,7 @@ static let csOverlay: [String: String] = {
         "map.satellite": "Satelit",
         "feedback.attach": "Přiložit soubor",
         "feedback.attachFailed": "Přílohu se nepodařilo nahrát",
+        "feedback.failed": "Zpětnou vazbu se nepodařilo odeslat, zkus to znovu",
         "social.title": "Feedy ze sociálních sítí",
         "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. <b>Zadej svůj YouTube kanál v profilu a tvoje videa se přidají.</b> (Instagram a TikTok to neumožňují.)",
     ]
@@ -1461,6 +1462,7 @@ static let nlOverlay: [String: String] = {
         "map.satellite": "Satelliet",
         "feedback.attach": "Bestand toevoegen",
         "feedback.attachFailed": "Bijlage kon niet worden geüpload",
+        "feedback.failed": "Feedback kon niet worden verzonden, probeer het opnieuw",
         "social.title": "Social-media-feeds",
         "social.hint": "Video's uit de community, op één plek en hier af te spelen — zonder algoritme ertussen. <b>Zet je YouTube-kanaal in je profiel, dan doen jouw video's mee.</b> (Instagram en TikTok staan dit niet toe.)",
     ]
@@ -5209,6 +5211,7 @@ static let fiOverlay: [String: String] = {
         "map.satellite": "Satelliitti",
         "feedback.attach": "Liitä tiedosto",
         "feedback.attachFailed": "Liitettä ei voitu ladata",
+        "feedback.failed": "Palautetta ei voitu lähettää, yritä uudelleen",
         "social.title": "Somevirrat",
         "social.hint": "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. <b>Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan.</b> (Instagram ja TikTok eivät salli tätä.)",
         "social.prev": "Edellinen",
@@ -6557,6 +6560,7 @@ static let fiOverlay: [String: String] = {
         "map.satellite": r("Satellit", "Satellit", "Satellit", "Satellite", "Satellite", "Satellite", "Satélite"),
         "feedback.attach": r("Datei anhängen", "Datei aahänke", "Datei anhängen", "Attach a file", "Joindre un fichier", "Allega un file", "Adjuntar archivo"),
         "feedback.attachFailed": r("Anhang konnte nicht hochgeladen werden", "Aahang het nöd chönne hochglade werde", "Anhang konnte nicht hochgeladen werden", "Attachment could not be uploaded", "L'ajout du fichier a échoué", "Impossibile caricare l'allegato", "No se pudo subir el archivo"),
+        "feedback.failed": r("Feedback konnte nicht gesendet werden, bitte nochmal versuchen", "Feedback het nöd chönne gschickt werde, bitte nomol probiere", "Feedback konnte nicht gesendet werden, bitte nochmal versuchen", "Feedback could not be sent, please try again", "Le message n'a pas pu être envoyé, réessaie", "Impossibile inviare il feedback, riprova", "No se pudo enviar el comentario, inténtalo de nuevo"),
         "social.title": r("Social-Media-Feeds", "Social-Media-Feeds", "Social-Media-Feeds", "Social media feeds", "Fils réseaux sociaux", "Feed social", "Feeds de redes sociales"),
         "social.hint": r("Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. <b>Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit.</b> (Instagram und TikTok erlauben das leider nicht.)", "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. <b>Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit.</b> (Instagram und TikTok erlaubed das leider nöd.)", "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. <b>Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit.</b> (Instagram und TikTok erlauben das leider nicht.)", "Videos from the community, gathered in one place and playable right here — no algorithm in between. <b>Add your YouTube channel in your profile and your videos join in.</b> (Instagram and TikTok do not allow this.)", "Les vidéos de la communauté, rassemblées ici et lisibles sur place — sans algorithme entre deux. <b>Ajoute ta chaîne YouTube dans ton profil et tes vidéos rejoignent le fil.</b> (Instagram et TikTok ne le permettent pas.)", "Video della community, raccolti in un posto e riproducibili qui — senza algoritmi di mezzo. <b>Aggiungi il tuo canale YouTube nel profilo e i tuoi video entrano nel feed.</b> (Instagram e TikTok non lo permettono.)", "Vídeos de la comunidad, reunidos en un sitio y reproducibles aquí mismo — sin algoritmo de por medio. <b>Añade tu canal de YouTube en tu perfil y tus vídeos se suman.</b> (Instagram y TikTok no lo permiten.)"),
         "social.prev": r("Zurück", "Zrugg", "Zurück", "Previous", "Précédent", "Indietro", "Anterior"),
