@@ -656,7 +656,7 @@ fun SpotProgression() {
                                         val quelle = if (tr.runs.isNotEmpty()) tr.runs.flatten() else tr.track
                                         quelle.forEach { p -> val la = p.getOrNull(0); val lo2 = p.getOrNull(1); if (la != null && lo2 != null) all.add(GeoPoint(la, lo2)) }
                                     }
-                                    if (all.isNotEmpty()) { val bb = BoundingBox.fromGeoPoints(all); map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) } }
+                                    if (all.isNotEmpty()) { val bb = BoundingBox.fromGeoPoints(all); map.einpassen(bb.increaseByScale(1.3f), 48) }
                                     fitted = true
                                 }
                                 map.overlays.clear()

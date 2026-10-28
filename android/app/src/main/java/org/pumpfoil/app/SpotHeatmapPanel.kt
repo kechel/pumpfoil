@@ -153,7 +153,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
             val xs = r.cells.map { it[0] }; val ys = r.cells.map { it[1] }
             val bb = BoundingBox(latY(ys.min().toDouble()), lonX(xs.max() + 1.0), latY(ys.max() + 1.0), lonX(xs.min().toDouble()))
             kotlinx.coroutines.delay(150)
-            karte.post { karte.zoomToBoundingBox(bb, false, 40, 17.0, null) }
+            karte.einpassen(bb, 40, 17.0)
             bereit = true
         } catch (_: Exception) { leer = true }
     }
@@ -186,7 +186,7 @@ fun SpotHeatmapPanel(z: SpotPanelZustand, lat: Double, lon: Double, sport: Strin
         if (plan.einpassen && p != null && p.isNotEmpty()) {
             plan.einpassen = false
             val bb = BoundingBox.fromGeoPoints(p.map { GeoPoint(it.lat, it.lon) })
-            karte.post { karte.zoomToBoundingBox(bb.increaseByScale(1.2f), false, 40, 16.0, null) }
+            karte.einpassen(bb.increaseByScale(1.2f), 40, 16.0)
         }
     }
     // Weicht die Planung von der aufgerufenen gemerkten Route ab, ist es nicht mehr sie

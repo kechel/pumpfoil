@@ -433,7 +433,7 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
                     }
                     if (all.isNotEmpty()) {
                         val bb = BoundingBox.fromGeoPoints(all)
-                        map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                        map.einpassen(bb.increaseByScale(1.3f), 48)
                     }
                     map.invalidate()
                     return@AndroidView
@@ -490,7 +490,7 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
                 }
                 if (all.isNotEmpty()) {
                     val bb = BoundingBox.fromGeoPoints(all)
-                    map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                    map.einpassen(bb.increaseByScale(1.3f), 48)
                 }
                 map.invalidate()
             },

@@ -131,3 +131,25 @@ object MapTiles {
         }
     }
 }
+
+/**
+ * Karte auf einen Ausschnitt einpassen, aber erst, wenn sie eine Groesse hat. osmdroid 6.1.18
+ * rechnet bei einer 0×0-Karte eine Weltgroesse von 0 und laeuft in `Projection.getCloserPixel` in
+ * eine Endlosschleife — die App friert ein (ANR). Gefunden am 28.10.2026 auf der Spot-Seite
+ * Illmensee: die Heatmap-Karte sitzt in einer LazyColumn, wird beim Runterscrollen schon vor dem
+ * Layout zusammengesetzt, und ihr `post { zoomToBoundingBox }` kam vor der ersten Groesse.
+ */
+fun MapView.einpassen(bb: org.osmdroid.util.BoundingBox, rand: Int, maxZoom: Double? = null) {
+    fun los() {
+        if (width <= 0 || height <= 0) return
+        zoomToBoundingBox(bb, false, rand, maxZoom ?: maxZoomLevel, null)
+    }
+    if (width > 0 && height > 0) { post { los() }; return }
+    addOnLayoutChangeListener(object : android.view.View.OnLayoutChangeListener {
+        override fun onLayoutChange(v: android.view.View, l: Int, t: Int, r: Int, b: Int, ol: Int, ot: Int, or: Int, ob: Int) {
+            if (r - l <= 0 || b - t <= 0) return
+            removeOnLayoutChangeListener(this)
+            post { los() }
+        }
+    })
+}

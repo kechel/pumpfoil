@@ -1695,7 +1695,7 @@ private fun TrackMap(
                 val fitPts = if (selectedRun != null && selPts.isNotEmpty()) selPts else allPts
                 if (fitPts.isNotEmpty()) {
                     val bb = BoundingBox.fromGeoPoints(fitPts)
-                    map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                    map.einpassen(bb.increaseByScale(1.3f), 48)
                 }
                 map.invalidate()
             },
