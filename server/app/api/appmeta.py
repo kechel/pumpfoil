@@ -236,7 +236,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.43",   # LIVE 2026-10-22: Play-Mail „Your update to Pumpfoil, created on Oct 18, 2026
+        "latest": "1.1.44",   # LIVE 2026-10-28: Play-Mail „Your update to Pumpfoil, created on Oct 22, 2026
+        # at 9:04 PM GMT, is live in the store" (Jans Meldung), knapp 6 Tage Pruefung. Feedback-Knopf, Sportarten
+        # (Wind/SUP/Wake thief/Downwind), Rekorde je Sportart, Bewertung, Setup-Editor-Fix.
+        # ALT: "latest": "1.1.43",   # LIVE 2026-10-22: Play-Mail „Your update to Pumpfoil, created on Oct 18, 2026
         # at 7:34 AM GMT, is live in the store" (Jans Meldung), gut 4 Tage Pruefung. Live-Upload des
         # Handy-Recorders, gerade am Pumpen, Freunde, Heatmap & Routen, Schutzgebiete, Suunto-Bruecke (Beta).
         # ALT: "latest": "1.1.42",   # LIVE 2026-10-17: Play-Mail „Your update to Pumpfoil, created on Oct 13, 2026
@@ -421,7 +424,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.43",   # LIVE 2026-10-22, dieselbe Play-Mail wie android (1.1.43). Uhr: Handy-Recorder-Zeile,
+        "latest": "1.2.44",   # LIVE 2026-10-28, dieselbe Play-Mail wie android (1.1.44). Uhr: Sportart-Wahl,
+        # WakeLock fuer den normalen Accel (Samsung ohne Wake-up-Variante), Pause-Erinnerung alle 10 min.
+        # ALT: "latest": "1.2.43",   # LIVE 2026-10-22, dieselbe Play-Mail wie android (1.1.43). Uhr: Handy-Recorder-Zeile,
         # Puls/GPS nach Unterwasser (Waechter), Spot-Meldung beim ersten GPS-Fix.
         # ALT: "latest": "1.2.42",   # LIVE 2026-10-17, dieselbe Play-Mail wie android (1.1.42).
         # ALT: "latest": "1.2.41",   # LIVE 2026-10-13, dieselbe Play-Mail wie android. Uhr: GPS aus Health
@@ -923,47 +928,8 @@ IN_REVIEW: list[dict] = [
     # 19.10.2026: Feedback-Knopf oben rechts auf jeder Seite mit Seiten-URL + Changelog-Abschnitt
     # „Analysis by sport" (Jan: „mach doch jetzt erstmal iOS & android ..., dann release ich iOS direkt").
     # iOS gebumpt auf 1.1.52 (59); Android nicht gebumpt, solange 1.1.43 im Review liegt.
-    # EINGEREICHT 22.10.2026 abends (Jans Meldung „reiche ich so ein"), Phone 1.1.44 (59) + Wear 1.2.44 (1055), aus
-    # fbbed631 ff. Getestet: Jan im Emulator (Phone: Setup-Editor #18841, Bewertung, Sportart-Ansichten Wind/SUP/
-    # Wake thief/Kite, Feedback, Gleitmodus; Wear: #18838-18841 Sportart-Wahl, Pause, wach=true). NICHT getestet:
-    # echte Samsung (WakeLock, Community nach Freigabe), Pause-Erinnerung nach 10 min auf Wear.
-    {"name": "Android phone + Wear OS", "version": "1.1.44 / 1.2.44",
-     "eingereicht": "2026-10-22",
-     "items": [
-         "Every page has a feedback button at the top right, and your message tells us which session or page you mean; the icons in the top bar are easier to see.",
-         "The changelog page shows how far the analysis is tuned for each sport.",
-         "Wingfoil, kitefoil and parawing sessions show the whole ride on the map with a switch to on-foil only, put total distance and ride time first, colour the speed up to 40 km/h and leave out the pump numbers.",
-         "Wind sessions show the wind at the spot during the session and count tacks and jibes, marked on the map.",
-         "On Wear OS you can pick the sport before you start, next to the foil.",
-         "Each sport can have its own default foil, board, stab and mast, set in Setup.",
-         "The Community page can show records and leaderboards for each sport, like the website.",
-         "Wind sessions group runs into rides (a break of up to 5 minutes belongs to the ride) and show moving time, speed over the whole ride and the share on the foil.",
-         "Under My foils you choose which sports you can pick on the watch.",
-         "Under Linked accounts you set which sport each Suunto, Polar or COROS mode counts as, like the website.",
-         "If a COROS, Polar or Suunto connection has run out, Linked accounts says so and offers to reconnect, instead of still showing it as connected.",
-         "Wind sessions show how well you gained ground against the wind (VMG, share upwind, height gained).",
-         "Wave sessions count your waves and show the longest one and the time spent paddling out; downwind rides show the distance from A to B, the speed on it and the share on the foil.",
-         "Home shows your year in numbers per sport: sessions, hours, total and on-foil kilometres.",
-         "The wind box compares your speed on the foil with your other sessions at similar wind.",
-         "Home shows per month how many of your tacks and jibes stayed on the foil.",
-         "A session that looks like a wind session offers you to change the sport; you can also dismiss the hint.",
-         "Choosing the foil, stab, mast, board or weight for a session in the setup editor is saved again; since the editor came in, a choice was reset to your default.",
-         # 20.10.2026: WakeLock fuer den normalen Accel (Samsung ohne Wake-up-Variante, 1.2.41/42 nur 7-39 %).
-         "On Wear OS watches without a wake-up motion sensor, such as Samsung Galaxy Watches, the motion sensor keeps recording while the screen is off.",
-         "Session pages show the sport at the top as an orange badge, like the session list, and the wind, tack and upwind boxes show only the numbers, without explanation texts.",
-         "SUP sessions show your paddle strokes and every paddle-up attempt with its sprint strokes and whether you got onto the foil.",
-         "Wake thief sessions show time and distance on the wake and pumped separately, and count pumps only in the pumped part.",
-         "SUP, wake thief and downwind sessions can switch the map between the whole session and only the time on the foil; SUP marks the paddle-up sprints with their number and shows your paddle strokes, wake thief marks the stretches on the wake.",
-         "Wind sessions show per ride how many tacks and jibes stayed on the foil, the distance gained upwind, the best VMG and the wind at that time; rides and paddle-up attempts are sortable tables below the map, headed with the sport.",
-         "New records per sport (for example best jibe share, best VMG, most paddle-ups onto the foil, longest stretch on the wake) for the community, per spot and per time window, and your own records per sport on Home and on your profile.",
-         "The history page shows your success on the foil per sport over time: jibes and tacks on the foil, paddle-ups onto the foil and the share on the wake.",
-         # 22.10.2026: Bewertung, Profil-Zeile, Zweitnamen, Gleit-Fix (8bcf07b2, 232d8255, c5d9819e) + Wear-Pause-Erinnerung (192fc745)
-         "Your own sessions have a “Rate this analysis” tile below the numbers: stars, whether your runs were detected, how many runs you really did, pumps, speed, problems and a comment, visible only to you and the pumpfoil.org team.",
-         "Under Profile, “My foils & sports” shows your sports and your foils, your defaults first.",
-         "Searching foils and stabs also finds their alternative names, such as SDW 360 for the Sabfoil Downwind Kraken 360.",
-         "The session map no longer turns completely grey on a session without glide phases when you had switched glides on for another session.",
-         "While a recording is paused, the Wear OS watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
-     ]},
+    # Android 1.1.44 / Wear 1.2.44 (eingereicht 22.10., freigegeben 28.10.2026) -> LIVE; 29 Punkte hatten schon
+    # iOS/Web-Zeilen im Changelog und tragen jetzt android/wear dazu, 4 neue Punkte (783-786, drei nur wear) + Ereignis 787.
     # iPhone + Apple Watch 1.1.54 am 23.10. FREIGEGEBEN -> raus (s. _APP_META["ios"]/["apple"]); Punkte 713-716 tragen
     # ios/apple 1.1.54, neu 730 (Watch-Pause-Erinnerung), Ereignis 731.
     # iPhone + Apple Watch 1.1.53 am 22.10. FREIGEGEBEN -> raus (s. _APP_META["ios"]/["apple"]); Punkte im
