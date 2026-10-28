@@ -257,6 +257,18 @@ export default function Sessions() {
   const [meineSpots, setMeineSpots] = useState<string[]>([]);
   const nameById = useMemo(() => Object.fromEntries(spots.map((s) => [String(s.id), s.name])), [spots]);
   const spotName = spot ? (nameById[spot] ?? spot) : "";
+  // Spot per NAME in der URL (Link aus einer Session ohne spot_id, z. B. Parawing ohne Foil-Zeit:
+  // SessionDetail verlinkt dann place_name) -> auf die id umstellen, sobald genau EIN Spot so heisst.
+  // Sonst gab es zwei Fassungen derselben Spot-Seite: per Name ohne Heatmap/Notizen und mit anderen
+  // Rekorden (Abfrage ueber place_name statt spot_id), per id die volle (Jan, 28.10.2026).
+  useEffect(() => {
+    if (!spot || /^\d+$/.test(spot) || !spots.length) return;
+    const treffer = spots.filter((x) => x.name.toLowerCase() === spot.toLowerCase());
+    if (treffer.length !== 1) return;
+    const n = new URLSearchParams(sp);
+    n.set("spot", String(treffer[0].id));
+    setSp(n, { replace: true });
+  }, [spot, spots]);   // eslint-disable-line react-hooks/exhaustive-deps
   const hsRef = homespotId != null ? String(homespotId) : homespot;   // Homespot als id, Fallback Name
   const [myName, setMyName] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);   // bump nach angenommener Übertragung → Liste neu laden
