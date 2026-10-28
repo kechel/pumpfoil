@@ -585,7 +585,8 @@ export class Recorder {
       return;
     }
     try {
-      vibrator.startVibration({ type: 'time', duration: 500 }, { id: 0, usage: 'alarm' });
+      vibrator.startVibration({ type: 'time', duration: 500 }, { id: 0, usage: 'alarm' })
+        .catch((e: BusinessError) => { console.warn('Pumpfoil Vibration ' + e.code); });
     } catch (e) {
       // ohne Vibration geht es auch
     }
@@ -594,7 +595,8 @@ export class Recorder {
 
   private kurzVibrieren(): void {
     try {
-      vibrator.startVibration({ type: 'time', duration: 60 }, { id: 0, usage: 'touch' });
+      vibrator.startVibration({ type: 'time', duration: 60 }, { id: 0, usage: 'touch' })
+        .catch((e: BusinessError) => { console.warn('Pumpfoil Vibration ' + e.code); });
     } catch (e) {
       // ohne Vibration geht es auch
     }
@@ -1253,7 +1255,8 @@ export class Recorder {
       const d: number = folge[i];
       setTimeout(() => {
         try {
-          vibrator.startVibration({ type: 'time', duration: d }, { id: 0, usage: 'alarm' });
+          vibrator.startVibration({ type: 'time', duration: d }, { id: 0, usage: 'alarm' })
+            .catch((e: BusinessError) => { console.warn('Pumpfoil Vibration ' + e.code); });
         } catch (e) {
           // ohne Vibration geht es auch
         }
