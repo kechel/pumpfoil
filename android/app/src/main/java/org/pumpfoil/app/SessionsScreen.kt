@@ -377,10 +377,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    SpotDropdown(spots, spotLabels, if (scope == Scope.SPOT) spot else "") { sel ->
-                        if (sel.isBlank()) { spot = ""; if (scope == Scope.SPOT) scope = Scope.ALL }
-                        else { spot = sel; scope = Scope.SPOT }
-                    }
+                    // Kein Spot-Auswahlfeld mehr (Jan, 28.10.2026, wie PWA/iOS): Spots ueber die Spot-Karte mit
+                    // Suche, den Homespot-Reiter oder den Spot-Link einer Session.
                     // Sportart gleich daneben: sie gilt fuer jede Ansicht, nicht nur fuer „Meine".
                     // Der Monat zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
                     // Hoechstens 150 dp, wie die Spot-Auswahl daneben (PWA, 14.10.2026).
@@ -1127,42 +1125,6 @@ internal fun SportDropdown(sports: List<SportRuns>, selected: String, modifier: 
             }
             sports.forEach { sr ->
                 DropdownMenuItem(text = { Text(label(sr.sport)) }, onClick = { onSelect(sr.sport); open = false })
-            }
-        }
-    }
-}
-
-// Spot-Auswahl (wie das PWA-<select>): „Alle Spots" + jeder Spot; ersetzt die Freitext-Suche.
-@Composable
-private fun SpotDropdown(spots: List<String>, labels: Map<String, String>, selected: String,
-                         onSelect: (String) -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    // Hoechstens 150 dp breit (PWA, Jan 14.10.2026): ein langer Spotname nahm sonst die halbe Zeile
-    // und schob Sportart und Ansicht in die naechste. Der volle Name steht in der Ueberschrift und
-    // aufgeklappt in der Liste.
-    Box(Modifier.widthIn(max = 150.dp)) {
-        AssistChip(
-            onClick = { open = true },
-            label = { Text(if (selected.isBlank()) I18n.t("all.allSpots") else "📍 $selected", maxLines = 1,
-                           overflow = TextOverflow.Ellipsis) },
-            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
-        )
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(text = { Text(I18n.t("all.allSpots")) }, onClick = { onSelect(""); open = false })
-            spots.forEach { s ->
-                DropdownMenuItem(
-                    text = {
-                        Column {
-                            Text(s)
-                            // Zweite Zeile: Gewaesser bzw. Steg — sonst sehen „Berlin 3" und
-                            // „Berlin 4" in der Liste identisch aus.
-                            labels[s]?.let {
-                                Text(it, style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    },
-                    onClick = { onSelect(s); open = false })
             }
         }
     }

@@ -14,7 +14,6 @@ struct SessionsView: View {
     @State private var groups: [CommunityGroup] = []   // Community/Spot: Tages-Gruppen
     @State private var scope: SessionScope = .mine
     @State private var homespot = ""
-    @State private var spotNames: [String] = []
     @State private var spot = ""          // aktiver Spot (für .spot)
     @State private var spotIds: [String: Int] = [:]   // Name -> spot_id (Spot-Beschreibungen)
     // Lage je Spot und Zustand der Panels „Heatmap & Routen" (ausserhalb der Listenzeile)
@@ -222,7 +221,6 @@ struct SessionsView: View {
         }
         suggestions = (try? await Api.mergeSuggestions()) ?? []
         sports = (try? await Api.communitySports()) ?? []
-        spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
         // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id (ein Aufruf; ein
         // eigener Endpunkt fuer denselben Zusammenhang waere Ballast).
         if let karte = try? await Api.spotMap(accelOnly: false) {
@@ -293,21 +291,8 @@ struct SessionsView: View {
                     chip(Loc.t("side.all", lang), !accelOnly && !brett) { brett = false; chooseAccel(false) }
                     chip("POB", brett) { brett = true }
                     Spacer()
-                    Menu {
-                        Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
-                        ForEach(spotNames, id: \.self) { s in
-                            // Zweite Zeile im Menue: sonst sind „Berlin 3" und „Berlin 4" gleich.
-                            Button { spot = s; scope = .spot } label: {
-                                if let w = spotLabels[s] { Text("\(s) · \(w)") } else { Text(s) }
-                            }
-                        }
-                    } label: {
-                        // Hoechstens 150 pt (PWA a10184b5/4648715d): ein langer Spotname schob sonst die
-                        // Chips aus der Zeile. Abgeschnitten wird hinten.
-                        Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
-                            .font(.subheadline).lineLimit(1).truncationMode(.tail)
-                            .frame(maxWidth: 150, alignment: .trailing)
-                    }
+                    // Kein Spot-Menue mehr (Jan, 28.10.2026, wie PWA/Android): Spots ueber die Spot-Karte mit
+                    // Suche, den Homespot-Chip oder den Spot-Link einer Session.
                 }
                 sportFilterRow
                 if scope == .mine { monthFilterRow }

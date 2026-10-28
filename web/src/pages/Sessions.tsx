@@ -253,10 +253,6 @@ export default function Sessions() {
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
   const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
-  // Eigene Spots (Namen) — im Auswahlfeld stehen sie in einer eigenen Gruppe OBEN. Gemeldet
-  // 22.08.: „unter Meine nur Spots mit eigenen Sessions, oder zumindest die eigenen oben".
-  // Bewusst nicht die anderen entfernen: das Feld ist auch der Sprung in fremde Spots.
-  const [meineSpots, setMeineSpots] = useState<string[]>([]);
   const nameById = useMemo(() => Object.fromEntries(spots.map((s) => [String(s.id), s.name])), [spots]);
   const spotName = spot ? (nameById[spot] ?? spot) : "";
   // Spot per NAME in der URL (Link aus einer Session ohne spot_id, z. B. Parawing ohne Foil-Zeit:
@@ -295,7 +291,6 @@ export default function Sessions() {
       setHomespot((s.homespot_effective as string) ?? (s.homespot as string) ?? "");
       setHomespotId((s.homespot_effective_id as number | null) ?? (s.homespot_id as number | null) ?? null);
     }).catch(() => {});
-    api.mySpots().then((l) => setMeineSpots(l.map((x) => x.spot))).catch(() => {});
     api.spotMap(false).then((m) => setSpots(   // alle Spots (auch GPS) als {id,name}
       // Gewaesser mitnehmen: „Berlin 3" und „Berlin 4" sind sonst im Auswahlfeld nicht
       // auseinanderzuhalten (Jan, 24.08.).
@@ -384,39 +379,9 @@ export default function Sessions() {
           <button className={tabCls(isFreunde)} onClick={() => setScope("friends")}>{t("friends.title")}</button>
           <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
         </div>
-        {/* `min-w-0` ist hier das Entscheidende: das Feld sitzt in einer Flex-Zeile, und ein
-            Flex-Kind hat `min-width: auto` — es schrumpft also NICHT unter seinen Inhalt, sondern
-            schiebt die ganze Seite auf. Die längste Spot-Beschriftung ist derzeit 48 Zeichen
-            („Peyrolles-en-Provence 3 · Plan d'eau de Plantain"), das sprengt jedes Handy (Jans
-            Meldung 01.09.). Dazu `max-w-full` + `truncate`, damit der Name zugeklappt abgeschnitten
-            wird statt überzulaufen — aufgeklappt zeigt der Browser ihn ohnehin vollständig. */}
-        <select
-          value={spot}
-          onChange={(e) => setScope("all", e.target.value)}
-          // 150 px breit (Jan, 14.10.2026): sonst nimmt die Spot-Auswahl die halbe Zeile. `w-`, nicht
-          // `max-w-`: das `max-w-full` aus SELECT_SCHRUMPFT stand im CSS spaeter und gewann;
-          // aufgeklappt zeigt der Browser die Namen trotzdem in voller Laenge.
-          className={`${SELECT_SCHRUMPFT} w-[150px] rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100`}
-        >
-          <option value="">{t("all.allSpots")}</option>
-          {(() => {
-            const eigene = spots.filter((s) => meineSpots.includes(s.name));
-            const rest = spots.filter((s) => !meineSpots.includes(s.name));
-            const opt = (s: { id: number; name: string; water?: string | null }) => (
-              <option key={s.id} value={String(s.id)}>
-                {s.name}{s.water && s.water !== s.name ? ` · ${s.water}` : ""}
-              </option>
-            );
-            // Ohne eigene Spots (neues Konto) gar keine Gruppen — sonst steht da eine leere Gruppe.
-            if (eigene.length === 0) return spots.map(opt);
-            return (
-              <>
-                <optgroup label={t("sessions.mySpots")}>{eigene.map(opt)}</optgroup>
-                <optgroup label={t("sessions.otherSpots")}>{rest.map(opt)}</optgroup>
-              </>
-            );
-          })()}
-        </select>
+        {/* Kein Spot-Auswahlfeld mehr (Jan, 28.10.2026: „das drop-down mit allen spotnamen eigentlich
+            auch"). Einen Spot findet man ueber die Spot-Karte mit Suche, den Homespot-Reiter oder den
+            Spot-Link einer Session. */}
         {/* „Alle Sportarten" steht immer oben und bleibt waehlbar, auch wenn gerade z. B. Wingfoil
             aktiv ist (Jan). Eine per Link gewaehlte Sportart ohne Laeufe fehlt in `sports` —
             dann trotzdem anzeigen, sonst stuende die Auswahl auf einem Wert, den es nicht gibt. */}
