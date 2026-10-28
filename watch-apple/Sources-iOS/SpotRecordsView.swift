@@ -221,10 +221,9 @@ struct SpotRecordsView: View {
     @State private var jeSportart: [String: [String: PeriodRecords]] = [:]
     @State private var geladen = false
     @State private var ladeStand = 0     // zaehlt Abrufe; die Kaesten waehlen danach ihr Fenster neu
-    // Fuer welchen Schluessel schon geladen wird/wurde. NOETIG: eine `Group` gibt ihre Modifier an
-    // JEDES Kind weiter — bei drei Sportart-Kaesten liefe `.task` dreimal, und jeder neu
-    // erscheinende Kasten stiesse es erneut an. Der erste Lauf je Schluessel gewinnt.
-    @State private var geladenFuer: String?
+    // Laufzaehler: eine `Group` gibt ihre Modifier an JEDES Kind weiter, `.task` kann also mehrfach und
+    // abgebrochen/neu starten. Schreiben darf nur der juengste Lauf (s. laden()).
+    @State private var lauf = 0
 
     /// IMMER alle Sportarten abfragen, nicht nur die gewaehlte — die Knopfzeile ist der Filter der
     /// ganzen Spot-Seite und muss nach einem Klick weiter alle Sportarten mit Rekord kennen.
@@ -268,7 +267,8 @@ struct SpotRecordsView: View {
             if !geladen {
                 Section { Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("rec.spotTitle", lang)) }
-            } else if mitRekorden.isEmpty && sport == "all" {
+            } else if mitRekorden.isEmpty {
+                // Keine leeren Kacheln: gibt es fuer die gewaehlte Sportart keinen Rekord, nur der Hinweis (Jan, 28.10.2026).
                 Section { Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("rec.spotTitle", lang)) }
             } else {
@@ -288,9 +288,13 @@ struct SpotRecordsView: View {
 
     /// Alle Sportarten nebeneinander abfragen; eine gescheiterte zaehlt als „keine Rekorde".
     private func laden() async {
+        // Laufzaehler statt „schon geladen"-Sperre (28.10.2026): die Sperre liess einen abgebrochenen und
+        // gleich neu gestarteten Lauf mit demselben Schluessel nicht wieder laden, und der abgebrochene
+        // durfte nichts schreiben -> leere Kacheln (Jan: Wingfoil in Cléder leer). Jetzt schreibt immer
+        // der JUENGSTE Lauf; doppelte Laeufe kosten nur einen Abruf mehr.
+        lauf += 1
+        let meiner: Int = lauf
         let schluessel: String = ladeSchluessel
-        guard geladenFuer != schluessel else { return }
-        geladenFuer = schluessel
         let spot: String = self.spot
         let only: Bool = accelOnly
         var neu: [String: [String: PeriodRecords]] = [:]
@@ -303,10 +307,9 @@ struct SpotRecordsView: View {
             }
             for await (s, r) in gruppe { neu[s] = r }
         }
-        // Ein ueberholter Lauf darf nichts mehr schreiben: kommt die Sportartenliste nach dem ersten
-        // Laden, startet `.task(id:)` neu und bricht den alten ab — dessen Abrufe scheitern dann
-        // (try? -> leer), und kam er NACH dem neuen an, stand „keine Rekorde" da (Jan, 28.10.2026).
-        guard geladenFuer == schluessel, !Task.isCancelled else { return }
+        // Ein ueberholter Lauf darf nichts mehr schreiben (abgebrochene Abrufe -> try? -> leer, und kam
+        // er nach dem neuen an, stand „keine Rekorde" da).
+        guard meiner == lauf, schluessel == ladeSchluessel else { return }
         jeSportart = neu
         geladen = true
         ladeStand += 1
