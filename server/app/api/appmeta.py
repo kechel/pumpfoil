@@ -1046,6 +1046,7 @@ NAECHSTES: list[dict] = [
     # Android 1.1.45 / Wear 1.2.45 am 28.10. eingereicht -> IN_REVIEW.
     # 26.10.2026 abends: Chip „Gültig" (ae2fab54) + gelbes Sportart-Label in eigenen Listen (Wunsch u244), nach dem Build von 1.1.57.
     # iPhone NICHT gebumpt (1.1.57 liegt im Review). Code nur swiftc -parse.
+    # 28.10.2026 gebumpt: iPhone + Apple Watch 1.1.58 (66) fuer Jans Simulator-Test (1.1.57 seit 26.10. live).
     {"name": "iPhone + Apple Watch", "version": "1.1.58",
      "items": ["The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list.", "The feedback form shows how many of the 2000 characters you have used, and says so if sending fails, instead of doing nothing.", "The records on a spot page show only the records that exist, without rows of empty tiles.", "Spot records show one sport at a time with a switch between the sports that have records there, and follow the sport filter of the page."]},
     # iPhone + Apple Watch 1.1.57 am 26.10. eingereicht -> IN_REVIEW, am 26.10. FREIGEGEBEN.
