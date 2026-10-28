@@ -113,9 +113,14 @@ struct SpotsView: View {
             VStack(spacing: 0) {
                 karteOben
                 List {
-                    kopfSection
-                    // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
-                    SpotCompareView()
+                    // Bei einer Suche NUR die Treffer, direkt unter der Karte. Vorher standen sie unter
+                    // Filterzeile, Erklaertext und dem ganzen Spot-Vergleich — beim Tippen nie zu sehen,
+                    // die Suche wirkte kaputt (Jan, 28.10.2026: „findet nichtmal illmensee").
+                    if suche.trimmingCharacters(in: .whitespaces).isEmpty {
+                        kopfSection
+                        // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
+                        SpotCompareView()
+                    }
                     listSection
                 }
                 .listStyle(.insetGrouped)
