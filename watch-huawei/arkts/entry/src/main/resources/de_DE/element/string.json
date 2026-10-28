@@ -227,6 +227,22 @@
     {
       "name": "phoneRecStale",
       "value": "Handy: Daten vor {n} min"
+    },
+    {
+      "name": "privacyTitle",
+      "value": "Datenschutz"
+    },
+    {
+      "name": "privacyText",
+      "value": "Während einer Aufnahme speichert Pumpfoil GPS-Position, Bewegungssensor und Puls auf der Uhr und lädt sie nach dem Koppeln zu pumpfoil.org hoch, um deine Session auszuwerten. Keine Werbung, kein Tracking. Sessions oder dein Konto kannst du jederzeit löschen."
+    },
+    {
+      "name": "agree",
+      "value": "ZUSTIMMEN"
+    },
+    {
+      "name": "decline",
+      "value": "Ablehnen"
     }
   ]
 }

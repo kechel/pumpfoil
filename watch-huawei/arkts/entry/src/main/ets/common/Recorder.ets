@@ -17,7 +17,7 @@
  * Was die ArkTS-Uhr mehr kann als Lite: GPS liefert Tempo (geht als `speed` mit), es gibt eine
  * Hintergrund-Aufgabe, und Dateien gehen synchron (fileIo).
  */
-import { common, wantAgent, WantAgent, abilityAccessCtrl } from '@kit.AbilityKit';
+import { common, wantAgent, WantAgent, abilityAccessCtrl, Permissions } from '@kit.AbilityKit';
 import { sensor, vibrator } from '@kit.SensorServiceKit';
 import { geoLocationManager } from '@kit.LocationKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
@@ -858,6 +858,41 @@ export class Recorder {
     if (this.direktToken !== '') {
       this.direktTakt();
     }
+  }
+
+  // --- Datenschutz beim ersten Start -------------------------------------------------------
+  //
+  // AppGallery-Pruefung 28.10.2026 (Regel 3.3): „The app does not have a privacy policy upon first
+  // launch." Bis zur Zustimmung zeigt die Seite nur den Hinweis, und die Berechtigungen werden erst
+  // danach erfragt (EntryAbility fragt nur, wenn schon zugestimmt war).
+
+  datenschutzOk(): boolean {
+    return this.lies('datenschutz.json') !== null;
+  }
+
+  datenschutzAnnehmen(): void {
+    this.schreibe('datenschutz.json', '{"t":' + Date.now() + '}');
+    this.berechtigungenFragen();
+  }
+
+  /**
+   * Berechtigungen, die der Nutzer erteilen muss (Standort, Puls). Der Beschleunigungssensor ist
+   * system_grant und braucht keinen Dialog. Fehlt eine, nimmt die App trotzdem auf, was geht —
+   * und die Fehlerzaehler auf der Uhr zeigen, was fehlt (Berechtigungen nie stumm scheitern).
+   */
+  berechtigungenFragen(): void {
+    if (this.ctx === null) {
+      return;
+    }
+    const fragen: Permissions[] = [
+      'ohos.permission.APPROXIMATELY_LOCATION',
+      'ohos.permission.LOCATION',
+      'ohos.permission.READ_HEALTH_DATA'
+    ];
+    abilityAccessCtrl.createAtManager().requestPermissionsFromUser(this.ctx, fragen)
+      .catch((e: BusinessError) => {
+        console.error('Pumpfoil Berechtigungen ' + e.code);
+      });
   }
 
   // --- Direkt zum Server (gekoppelt; Direkt.ets) -------------------------------------------

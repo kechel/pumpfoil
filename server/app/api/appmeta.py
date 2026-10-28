@@ -580,7 +580,7 @@ _APP_META: dict[str, dict[str, str]] = {
     # Die Watch 5 schickt `p=huawei` (1.0.2 ist so eingereicht) -> devices._plat_fuer_hinweis
     # bildet das auf "huawei-watch5" ab. `latest` erst bei bestaetigter Freigabe setzen.
     "huawei-watch5": {      # watch-huawei/arkts, HarmonyOS 5/6, laedt selbst hoch (seit 1.0.2)
-        "latest": "",       # 1.0.2 eingereicht 13.10.2026, s. IN_REVIEW
+        "latest": "",       # 1.0.2 zweimal abgelehnt (22.10., 28.10.), 1.0.3 in Arbeit
         "min_supported": "",
         "store_url": "",
     },
@@ -811,9 +811,14 @@ ABGELEHNT: list[dict] = [
      # Einziger Punkt (App Content): „We have noticed that the App you submitted is a watch app. Please select
      # China Mainland in released regions." Vorschlag: „Please optimize your upload method." Getestet auf
      # EMUI 12 (P30 Pro / P40 Pro). Am Code nichts beanstandet.
-     "abgelehnt": "2026-10-22",
-     "grund": "Huawei asks watch apps to be released in mainland China as well, nothing about the app itself; "
-              "we are checking what that requires"},
+     # ZWEITE Ablehnung derselben Fassung: am 22.10. 11:06 mit Festland-China neu eingereicht, Bericht
+     # 28.10.2026 09:33 (Jans Meldung), getestet auf HarmonyOS 7.0.0, HUAWEI Watch 6 Pro. Fehler 1 (Regel 3.1,
+     # blockiert): „The app does not support the watch crown rotation." Fehler 2 (Regel 3.3, nur Empfehlung):
+     # „The app does not have a privacy policy upon first launch." Beides in 1.0.3 eingebaut (Krone blaettert
+     # Seiten + Einstellungen, Datenschutz-Hinweis mit Zustimmen/Ablehnen beim ersten Start).
+     "abgelehnt": "2026-10-28",
+     "grund": "the watch crown could not be used to scroll; this is added in the next version, together "
+              "with a privacy notice on first launch"},
     {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
      # Google, 09.10.2026 (Jans Meldung): „Wear app functionality not working as described …
      # Your app crashed when testing", Version code 1050. Im Wear-Emulator mit dem R8-Release-Build
@@ -961,15 +966,8 @@ IN_REVIEW: list[dict] = [
     # iPhone + Apple Watch 1.1.49 (eingereicht + freigegeben 15.10.2026) -> LIVE, Punkte stehen im Changelog.
     # Android 1.1.42 / Wear 1.2.42 (eingereicht 13.10., freigegeben 17.10.2026) -> LIVE; 9 Punkte hatten schon
     # iOS/Web-Zeilen im Changelog und tragen jetzt android/wear dazu, 1 neuer Punkt + Freigabe-Ereignis.
-    # Huawei Watch 5 1.0.2 am 22.10. ABGELEHNT (steht in ABGELEHNT) und am selben Tag 11:04 UNVERAENDERT neu
-    # eingereicht (Jans Meldung): jetzt mit Festland-China („all countries", Server nicht in China), Status
-    # „Under pre-review". Gleiche Punkte wie zuvor.
-    {"name": "Huawei Watch 5", "version": "1.0.2",
-     "eingereicht": "2026-10-22",
-     "items": [
-         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
-         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
-     ]},
+    # Huawei Watch 5 1.0.2: am 22.10. 11:04 mit Festland-China neu eingereicht und am 28.10. ZUM ZWEITEN MAL
+    # ABGELEHNT (Krone, s. ABGELEHNT) -> raus; die beiden Punkte wandern nach NAECHSTES 1.0.3.
     # iPhone + Apple Watch 1.1.47 am 13.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt im Changelog mit ios/apple.
     # iPhone + Apple Watch 1.1.46 am 12.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte im Changelog mit ios/apple.
     # EINGEREICHT 09.10.2026 18:51 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.45 (51),
@@ -1100,6 +1098,12 @@ NAECHSTES: list[dict] = [
     # Wear OS am 18.10. eingereicht -> IN_REVIEW (zusammen mit Android phone).
     {"name": "Huawei Watch 5", "version": "1.0.3",
      "items": [
+         # aus der abgelehnten 1.0.2 (28.10.2026) uebernommen
+         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
+         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
+         # 28.10.2026: Huawei-Pruefung (Krone, Datenschutz beim ersten Start)
+         "Turn the crown to move between the data screens and to scroll through the settings.",
+         "On first start the watch shows a short privacy notice, which you can open again from the settings.",
          "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
          # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
          "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",

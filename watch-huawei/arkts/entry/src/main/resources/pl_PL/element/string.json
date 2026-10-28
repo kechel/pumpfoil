@@ -227,6 +227,22 @@
     {
       "name": "phoneRecStale",
       "value": "Telefon: dane sprzed {n} min"
+    },
+    {
+      "name": "privacyTitle",
+      "value": "Prywatność"
+    },
+    {
+      "name": "privacyText",
+      "value": "Podczas nagrywania Pumpfoil zapisuje na zegarku pozycję GPS, dane z czujnika ruchu i tętno, a po połączeniu zegarka przesyła je do pumpfoil.org w celu analizy sesji. Bez reklam, bez śledzenia. Sesje lub konto możesz usunąć w każdej chwili."
+    },
+    {
+      "name": "agree",
+      "value": "AKCEPTUJĘ"
+    },
+    {
+      "name": "decline",
+      "value": "Odrzuć"
     }
   ]
 }

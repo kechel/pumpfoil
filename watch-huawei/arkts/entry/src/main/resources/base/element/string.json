@@ -239,6 +239,22 @@
     {
       "name": "phoneRecStale",
       "value": "Phone: data {n} min ago"
+    },
+    {
+      "name": "privacyTitle",
+      "value": "Privacy"
+    },
+    {
+      "name": "privacyText",
+      "value": "During a recording, Pumpfoil stores GPS position, motion sensor data and heart rate on the watch and, once you link the watch, uploads them to pumpfoil.org to analyse your session. No ads, no tracking. You can delete sessions or your account at any time."
+    },
+    {
+      "name": "agree",
+      "value": "AGREE"
+    },
+    {
+      "name": "decline",
+      "value": "Decline"
     }
   ]
 }

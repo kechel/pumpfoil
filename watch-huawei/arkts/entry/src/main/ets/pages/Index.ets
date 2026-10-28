@@ -8,6 +8,8 @@
  */
 import { Recorder, Zustand, SeitenDaten, Letzte, Koppeln } from '../common/Recorder';
 import { APP_VERSION } from '../common/Konfig';
+import { common } from '@kit.AbilityKit';
+import { deviceInfo } from '@kit.BasicServicesKit';
 import { ring, zeichne, Seite, Befehl, ZeichenKontext, Konfig, Auswahl, Foil, dreistufig } from '../common/Seiten';
 
 // Feldbeschriftungen (Schluessel wie Seiten.ets feld) — Ressourcen f_<schluessel>.
@@ -20,6 +22,29 @@ const SPERRE_NACH_MS: number = 10000;
 const CYAN: string = '#22d3ee';
 const CYAN_DUNKEL: string = '#0e7490';
 const ROT: string = '#b91c1c';
+// Krone (AppGallery-Pruefung 28.10.2026, Regel 3.1: „does not support the watch crown rotation"):
+// so viele Grad Drehung sind ein Seitenwechsel, und so viele vp scrollt ein Grad in den Listen.
+// Annahme ohne Hardware: degree ist die Drehung SEIT DEM LETZTEN Ereignis, im Uhrzeigersinn positiv.
+const KRONE_SCHRITT_GRAD: number = 24;
+const KRONE_VP_JE_GRAD: number = 3;
+
+/**
+ * onDigitalCrown gibt es erst ab API 18, die App laeuft ab API 12. Ueber den Modifier wird der
+ * Aufruf zur Laufzeit geprueft, statt auf aelteren Uhren an einer fehlenden Methode zu sterben.
+ */
+class KronenModifier implements AttributeModifier<StackAttribute> {
+  private rueckruf: (e: CrownEvent) => void;
+
+  constructor(rueckruf: (e: CrownEvent) => void) {
+    this.rueckruf = rueckruf;
+  }
+
+  applyNormalAttribute(instance: StackAttribute): void {
+    if (deviceInfo.sdkApiVersion >= 18) {
+      instance.onDigitalCrown(this.rueckruf);
+    }
+  }
+}
 
 function zeitText(ms: number): string {
   const s: number = Math.floor(ms / 1000);
@@ -43,7 +68,7 @@ function art(p: number, gesamt: number): string {
 @Entry
 @Component
 struct Index {
-  @State ansicht: string = 'bereit';   // bereit | aktion | stopp | daten | fertig | auswahl
+  @State ansicht: string = 'bereit';   // bereit | aktion | stopp | daten | fertig | auswahl | koppeln | datenschutz
   @State zAlarm: string = '';
   @State zQuelle: string = '';
   @State zFoil: string = '';
@@ -55,6 +80,12 @@ struct Index {
   // '' = keine Foils im Profil, Zeile fehlt.
   @State zStartFoil: string = '';   // gewaehlte Sportart; '' = nichts zu waehlen (< 2 im Profil), Zeile fehlt
   private zeigeAuswahl: boolean = false;
+  // Datenschutz-Hinweis: beim ersten Start (bis zur Zustimmung) oder aus den Einstellungen geoeffnet
+  private zeigeDatenschutz: boolean = false;
+  @State dsErstStart: boolean = false;
+  private scroller: Scroller = new Scroller();
+  private kroneSumme: number = 0;
+  private kronen: KronenModifier = new KronenModifier((e: CrownEvent) => this.krone(e));
   // Koppeln mit pumpfoil.org (Direkt-Upload, seit 13.10.2026 der einzige Weg): Ansicht aus den
   // Einstellungen oder per Tipp auf die Infozeile, solange nicht gekoppelt
   private zeigeKoppeln: boolean = false;
@@ -131,6 +162,11 @@ struct Index {
     }
     if (this.zeigeFertig) {
       this.fertig();
+      return true;
+    }
+    if (this.zeigeDatenschutz) {
+      this.zeigeDatenschutz = false;   // zurueck in die Einstellungen
+      this.zeigen();
       return true;
     }
     if (this.zeigeKoppeln) {
@@ -253,8 +289,10 @@ struct Index {
     const r: Recorder = Recorder.get();
     if (r.modus === 'bereit') {
       const l: Letzte | null = r.letzte;
-      this.ansicht = this.zeigeFertig && l !== null ? 'fertig'
-        : (this.zeigeKoppeln ? 'koppeln' : (this.zeigeAuswahl ? 'auswahl' : 'bereit'));
+      this.dsErstStart = !r.datenschutzOk();
+      this.ansicht = this.dsErstStart || this.zeigeDatenschutz ? 'datenschutz'
+        : (this.zeigeFertig && l !== null ? 'fertig'
+        : (this.zeigeKoppeln ? 'koppeln' : (this.zeigeAuswahl ? 'auswahl' : 'bereit')));
       if (this.ansicht === 'auswahl') {
         this.auswahlTexte();
       }
@@ -380,7 +418,7 @@ struct Index {
   private blaettern(hoch: boolean): void {
     if (Recorder.get().modus === 'bereit') {
       // Startbildschirm: hoch = Einstellungen (wie Zepp-Seite 4/4), runter = zurueck
-      if (!this.zeigeFertig) {
+      if (!this.zeigeFertig && this.ansicht !== 'datenschutz') {
         this.zeigeAuswahl = hoch;
         this.zeigen();
       }
@@ -391,6 +429,90 @@ struct Index {
     }
     this.seite += hoch ? 1 : -1;   // ohne Umlauf; seiten() begrenzt
     this.zeigen();
+  }
+
+  /**
+   * Krone: in Einstellungen und Datenschutz scrollen (oben angekommen schliesst Zurueckdrehen die
+   * Einstellungen, wie Runterwischen), sonst je KRONE_SCHRITT_GRAD eine Seite wie Hoch-/Runterwischen.
+   */
+  private krone(e: CrownEvent): void {
+    if (deviceInfo.sdkApiVersion >= 18) {   // nur dort ruft der KronenModifier hierher
+      if (this.ansicht === 'auswahl' || this.ansicht === 'datenschutz') {
+        if (this.ansicht === 'auswahl' && e.degree < 0 && this.scroller.currentOffset().yOffset <= 0) {
+          this.kroneSumme += e.degree;
+          if (this.kroneSumme <= -KRONE_SCHRITT_GRAD) {
+            this.kroneSumme = 0;
+            this.blaettern(false);
+          }
+        } else {
+          this.scroller.scrollBy(0, e.degree * KRONE_VP_JE_GRAD);
+        }
+      } else {
+        this.kroneSumme += e.degree;
+        while (Math.abs(this.kroneSumme) >= KRONE_SCHRITT_GRAD) {
+          const hoch: boolean = this.kroneSumme > 0;
+          this.kroneSumme -= hoch ? KRONE_SCHRITT_GRAD : -KRONE_SCHRITT_GRAD;
+          this.blaettern(hoch);
+        }
+      }
+      if (e.action === CrownAction.END) {
+        this.kroneSumme = 0;
+      }
+      e.stopPropagation();
+    }
+  }
+
+  // --- Datenschutz ---------------------------------------------------------------------------
+  private datenschutzJa(): void {
+    const r: Recorder = Recorder.get();
+    if (!r.datenschutzOk()) {
+      r.datenschutzAnnehmen();
+    }
+    this.zeigeDatenschutz = false;
+    this.zeigen();
+  }
+
+  /** Abgelehnt: die App schliesst sich, beim naechsten Start kommt der Hinweis wieder. */
+  private datenschutzNein(): void {
+    const ctx: Context | undefined = this.getUIContext().getHostContext();
+    if (ctx !== undefined) {
+      try {
+        (ctx as common.UIAbilityContext).terminateSelf();
+      } catch (e) {
+        console.error('Pumpfoil terminateSelf');
+      }
+    }
+  }
+
+  @Builder
+  datenschutzSeite() {
+    Scroll(this.scroller) {
+      Column() {
+        Text($r('app.string.privacyTitle')).fontSize(20).fontColor(CYAN).margin({ bottom: 8 })
+        Text($r('app.string.privacyText')).fontSize(15).fontColor('#e2e8f0').textAlign(TextAlign.Center).width('80%')
+        Text('pumpfoil.org/impressum').fontSize(15).fontColor(CYAN).margin({ top: 8 })
+        if (this.dsErstStart) {
+          Button(this.t($r('app.string.agree'))).width(200).height(56).fontSize(20).fontColor('#ffffff')
+            .backgroundColor(CYAN_DUNKEL).margin({ top: 14 })
+            .onClick(() => this.datenschutzJa())
+          Button(this.t($r('app.string.decline'))).width(200).height(48).fontSize(18).fontColor('#ffffff')
+            .backgroundColor('#334155').margin({ top: 8 })
+            .onClick(() => this.datenschutzNein())
+        } else {
+          Button(this.t($r('app.string.done'))).width(200).height(56).fontSize(20).fontColor('#ffffff')
+            .backgroundColor(CYAN_DUNKEL).margin({ top: 14 })
+            .onClick(() => this.datenschutzJa())
+        }
+      }
+      .width('100%')
+      .padding({ top: 60, bottom: 70 })
+    }
+    .width('100%')
+    .height('100%')
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
+    .backgroundColor('#000000')
+    .focusable(false)   // die Krone faehrt die Wurzel (krone), sonst scrollte die Liste doppelt
   }
 
   // --- Einstellungen (wie lite pages/auswahl): jede Zeile tippen schaltet weiter ------------------
@@ -419,6 +541,12 @@ struct Index {
 
   private aendern(was: string): void {
     const r: Recorder = Recorder.get();
+    if (was === 'datenschutz') {
+      this.zeigeDatenschutz = true;
+      this.scroller.scrollTo({ xOffset: 0, yOffset: 0 });
+      this.zeigen();
+      return;
+    }
     if (was === 'direkt') {
       this.zeigeKoppeln = true;
       this.koppelnTick = 0;
@@ -477,7 +605,7 @@ struct Index {
   // greift hier nicht), zurueck geht es mit Rechts-Wischen (onBackPress) wie auf Lite.
   @Builder
   einstellungsListe() {
-    Scroll() {
+    Scroll(this.scroller) {
       Column() {
         if (this.zSport !== '') {
           this.zeile($r('app.string.sportClass'), this.zSport, 'sport')
@@ -489,6 +617,7 @@ struct Index {
         this.zeile($r('app.string.lock'), this.zSperre, 'sperre')
         this.zeile($r('app.string.autoStart'), this.zStart, 'start')
         this.zeile('pumpfoil.org', this.zDirekt, 'direkt')
+        this.zeile($r('app.string.privacyTitle'), 'pumpfoil.org/impressum', 'datenschutz')
       }
       .width('100%')
       .padding({ top: 70, bottom: 90 })
@@ -498,6 +627,7 @@ struct Index {
     .scrollBar(BarState.Off)
     .edgeEffect(EdgeEffect.Spring)
     .backgroundColor('#000000')
+    .focusable(false)   // die Krone faehrt die Wurzel (krone), sonst scrollte die Liste doppelt
   }
 
   /** Koppel-Ansicht: Code anzeigen und alle 5 s nachfragen, ob er auf pumpfoil.org eingeloest wurde. */
@@ -693,6 +823,8 @@ struct Index {
           })
       } else if (this.ansicht === 'auswahl') {
         this.einstellungsListe()
+      } else if (this.ansicht === 'datenschutz') {
+        this.datenschutzSeite()
       } else {
         this.bedienung()
       }
@@ -712,6 +844,11 @@ struct Index {
     .width('100%')
     .height('100%')
     .backgroundColor('#000000')
+    // Kronen-Ereignisse gehen an das Element mit Fokus und steigen nach oben: die Wurzel nimmt ihn
+    // beim Start, Kinder (Knoepfe) reichen sie hierher durch.
+    .focusable(true)
+    .defaultFocus(true)
+    .attributeModifier(this.kronen)
     .gesture(PanGesture({ direction: PanDirection.Vertical }).onActionEnd((e: GestureEvent) => {
       this.blaettern(e.offsetY < 0);
     }))

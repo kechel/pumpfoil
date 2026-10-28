@@ -5,7 +5,7 @@
  * dass Uhren mit Internet selbst hochladen). Die Handy-Kennungen (PHONE_PKG/PHONE_FP, IOS_*,
  * GEGENSTELLEN) sind deshalb hier raus; Lite braucht sie weiter (common/konfig.js).
  */
-export const APP_VERSION: string = '1.0.2';
+export const APP_VERSION: string = '1.0.3';
 /**
  * Direkt-Upload (Jan, 08.10.2026: „dann gehts ohne app und auch fuer leute mit iphone"): die Uhr
  * koppelt sich per Code wie Garmin (/api/devices/pair-init|pair-poll) und laedt selbst hoch.
