@@ -1501,6 +1501,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **28.10. — Huawei Watch 5: App-geschlossen-Meldung beim Wegwischen (für irgendwann, Jan: „da muss erstmal eine erste version durch das review kommen“).** Die Meldung kommt nur aus `onDestroy`, beim Wegwischen also nicht. Vorschlag: im `onBackground` schicken, wenn keine Aufnahme läuft. Dazu die Diagnosezeile `Pumpfoil krone` in `Index.ets` wieder entfernen. Erst nach der ersten Freigabe (1.0.3 im Review).
 - **28.10. — Android: Spot-Seite friert beim Runterscrollen ein, auch in der LIVE-Fassung 1.1.44** (Jan auf seinem Handy bestaetigt, Illmensee). Ursache: osmdroid-Endlosschleife bei `zoomToBoundingBox` auf einer 0×0-Karte (Heatmap-Karte in der LazyColumn). Fix `a5ba1c61` (`MapView.einpassen`), kommt mit 1.1.45 -> **1.1.45 zuegig einreichen.** Jan informiert die Community im Chat. iOS nicht betroffen (MapKit, kein osmdroid).
 - **27.10. — ThermikDreher (u267, FR965 1.0.97): Scoot-Brett-Paar + Fehlermeldung.** Brett #19235 (Samsung, auto board) parallel zu
   vier Uhr-Sessions je Stab (#19244 Supra Trail S, #19250 Supra Trail L, #19262 Ultra Trail S, #19275 Supra Trail 3XL stabless),
