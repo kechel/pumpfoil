@@ -28,24 +28,6 @@ const ROT: string = '#b91c1c';
 const KRONE_SCHRITT_GRAD: number = 24;
 const KRONE_VP_JE_GRAD: number = 3;
 
-/**
- * onDigitalCrown gibt es erst ab API 18, die App laeuft ab API 12. Ueber den Modifier wird der
- * Aufruf zur Laufzeit geprueft, statt auf aelteren Uhren an einer fehlenden Methode zu sterben.
- */
-class KronenModifier implements AttributeModifier<StackAttribute> {
-  private rueckruf: (e: CrownEvent) => void;
-
-  constructor(rueckruf: (e: CrownEvent) => void) {
-    this.rueckruf = rueckruf;
-  }
-
-  applyNormalAttribute(instance: StackAttribute): void {
-    if (deviceInfo.sdkApiVersion >= 18) {
-      instance.onDigitalCrown(this.rueckruf);
-    }
-  }
-}
-
 function zeitText(ms: number): string {
   const s: number = Math.floor(ms / 1000);
   const h: number = Math.floor(s / 3600);
@@ -85,7 +67,6 @@ struct Index {
   @State dsErstStart: boolean = false;
   private scroller: Scroller = new Scroller();
   private kroneSumme: number = 0;
-  private kronen: KronenModifier = new KronenModifier((e: CrownEvent) => this.krone(e));
   // Koppeln mit pumpfoil.org (Direkt-Upload, seit 13.10.2026 der einzige Weg): Ansicht aus den
   // Einstellungen oder per Tipp auf die Infozeile, solange nicht gekoppelt
   private zeigeKoppeln: boolean = false;
@@ -436,7 +417,7 @@ struct Index {
    * Einstellungen, wie Runterwischen), sonst je KRONE_SCHRITT_GRAD eine Seite wie Hoch-/Runterwischen.
    */
   private krone(e: CrownEvent): void {
-    if (deviceInfo.sdkApiVersion >= 18) {   // nur dort ruft der KronenModifier hierher
+    if (deviceInfo.sdkApiVersion >= 18) {   // nur dort haengt build() die Krone an
       if (this.ansicht === 'auswahl' || this.ansicht === 'datenschutz') {
         if (this.ansicht === 'auswahl' && e.degree < 0 && this.scroller.currentOffset().yOffset <= 0) {
           this.kroneSumme += e.degree;
@@ -810,7 +791,31 @@ struct Index {
       .onClick(() => this.infoTipp())
   }
 
+  // onDigitalCrown gibt es erst ab API 18, die App laeuft ab API 12. Ein AttributeModifier ging
+  // NICHT (Emulator 6.0.0, 28.10.2026: „undefined is not callable" — die Modifier-Instanz kennt die
+  // Methode nicht). Deshalb zwei Wurzeln: nur der Zweig ab API 18 ruft sie auf. Kronen-Ereignisse
+  // gehen an das Element mit Fokus und steigen nach oben; die Wurzel nimmt ihn beim Start.
   build() {
+    if (deviceInfo.sdkApiVersion >= 18) {
+      Stack() {
+        this.inhalt()
+      }
+      .width('100%')
+      .height('100%')
+      .focusable(true)
+      .defaultFocus(true)
+      .onDigitalCrown((e: CrownEvent) => this.krone(e))
+    } else {
+      Stack() {
+        this.inhalt()
+      }
+      .width('100%')
+      .height('100%')
+    }
+  }
+
+  @Builder
+  inhalt() {
     Stack() {
       if (this.ansicht === 'daten') {
         Canvas(this.leinwand)
@@ -844,11 +849,6 @@ struct Index {
     .width('100%')
     .height('100%')
     .backgroundColor('#000000')
-    // Kronen-Ereignisse gehen an das Element mit Fokus und steigen nach oben: die Wurzel nimmt ihn
-    // beim Start, Kinder (Knoepfe) reichen sie hierher durch.
-    .focusable(true)
-    .defaultFocus(true)
-    .attributeModifier(this.kronen)
     .gesture(PanGesture({ direction: PanDirection.Vertical }).onActionEnd((e: GestureEvent) => {
       this.blaettern(e.offsetY < 0);
     }))
