@@ -893,6 +893,29 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 28.10.2026 abends (Jans Meldung, Screenshot „Confirm release information": 1.0.3 (1000003),
+    # Festland-China + Europa/Afrika/Nahost/Kanada/Asien-Pazifik/Lateinamerika). Aus d0c2a02e. Geprueft im
+    # DevEco-Emulator 6.0.1 und 6.1.1: Start, Datenschutz-Hinweis, Berechtigungen, #19319 4/4, #19320 13/13.
+    # KRONE NICHT GEPRUEFT: keiner der beiden Emulatoren liefert Kronen-Ereignisse (Mausrad ueber dem Display
+    # = Wischgeste, ueber dem Knopf = nichts; Log ohne „Pumpfoil krone").
+    {"name": "Huawei Watch 5", "version": "1.0.3",
+     "eingereicht": "2026-10-28",
+     "items": [
+         # aus der abgelehnten 1.0.2 (28.10.2026) uebernommen
+         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
+         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
+         # 28.10.2026: Huawei-Pruefung (Krone, Datenschutz beim ersten Start)
+         "Turn the crown to move between the data screens and to scroll through the settings.",
+         "On first start the watch shows a short privacy notice, which you can open again from the settings.",
+         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
+         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
+         # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
+         "You can pick the sport before you start, in the settings or by tapping it on the start screen, and the start screen shows your foil below the sport.",
+         # 22.10.2026: Pause-Erinnerung + STOPP-Seite zeigt Pausiert (5ed3fe82)
+         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
+         "The stop screen also shows when the recording is paused.",
+     ]},
     # iPhone + Apple Watch 1.1.57 am 26.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 751/752/754/757/759/765 + 774/775 tragen ios/apple 1.1.57.
     # iPhone + Apple Watch 1.1.56 am 24.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt 737 traegt ios/apple 1.1.56.
     # iPhone + Apple Watch 1.1.55 am 23.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 728/729 tragen ios/apple 1.1.55,
@@ -1096,23 +1119,7 @@ NAECHSTES: list[dict] = [
     # iPhone + Apple Watch 1.1.50 am 16.10. eingereicht -> IN_REVIEW.
     # 14.10.2026 (ede16300 / 3971dc49): dieselbe Uhr-Seite wie Garmin 1.0.93.
     # Wear OS am 18.10. eingereicht -> IN_REVIEW (zusammen mit Android phone).
-    {"name": "Huawei Watch 5", "version": "1.0.3",
-     "items": [
-         # aus der abgelehnten 1.0.2 (28.10.2026) uebernommen
-         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
-         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
-         # 28.10.2026: Huawei-Pruefung (Krone, Datenschutz beim ersten Start)
-         "Turn the crown to move between the data screens and to scroll through the settings.",
-         "On first start the watch shows a short privacy notice, which you can open again from the settings.",
-         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
-         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-         # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
-         "You can pick the sport before you start, in the settings or by tapping it on the start screen, and the start screen shows your foil below the sport.",
-         # 22.10.2026: Pause-Erinnerung + STOPP-Seite zeigt Pausiert (5ed3fe82)
-         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
-         "The stop screen also shows when the recording is paused.",
-     ]},
+    # Huawei Watch 5 1.0.3 am 28.10. eingereicht -> IN_REVIEW.
     {"name": "Suunto", "version": "1.01",
      "items": [
          "The watch tells the phone which Suunto sport mode you started; under Linked accounts you set which sport each mode counts as.",
