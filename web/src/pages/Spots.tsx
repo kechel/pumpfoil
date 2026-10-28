@@ -90,6 +90,8 @@ export default function Spots() {
   // Lauf-Auswahl per Zifferntaste lahmgelegt.
   useEffect(() => () => { mapObj.current?.remove(); mapObj.current = null; }, []);
   const markers = useRef<L.LayerGroup | null>(null);
+  // Markierung des zuletzt gesuchten Spots (Ring + Name), bis zur naechsten Suche.
+  const gesucht = useRef<L.LayerGroup | null>(null);
   // Ausschnitt + Zoom fuer DIESE Sitzung merken (Wunsch Jan, 18.08.): wer einen Spot anschaut und
   // zurueckgeht, landete vorher wieder auf der Weltkarte, weil der Marker-Effekt jedes Mal
   // `fitBounds` ueber ALLE Spots gerufen hat.
@@ -119,7 +121,18 @@ export default function Spots() {
     const n = name.trim().toLowerCase();
     if (!n || !spots || !mapObj.current) return;
     const s = spots.find((x) => suchform(x.spot) === suchform(n)) || spots.find((x) => passtZu(x.spot, n));
-    if (s) mapObj.current.fitBounds(L.latLng(s.lat, s.lon).toBounds(100000));
+    if (!s) return;
+    // Gesuchten Spot markieren (Jan, 28.10.2026: „im moment muss man raten wo die mitte ist"):
+    // Ring in Markenfarbe um den Pin und der Name als feste Beschriftung darueber. Etwas enger
+    // als vorher (50 statt 100 km), damit der Spot nicht in der Flaeche verschwindet.
+    gesucht.current?.remove();
+    const ring = L.circleMarker([s.lat, s.lon], {
+      radius: 26, color: "#22d3ee", weight: 4, opacity: 0.95, fill: true, fillColor: "#22d3ee", fillOpacity: 0.12,
+      interactive: false,
+    }).bindTooltip(s.spot, { permanent: true, direction: "top", offset: [0, -26], className: "font-semibold" });
+    gesucht.current = L.layerGroup([ring]).addTo(mapObj.current);
+    ring.openTooltip();
+    mapObj.current.fitBounds(L.latLng(s.lat, s.lon).toBounds(50000));
   }
 
   useEffect(() => {
