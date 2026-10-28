@@ -248,6 +248,8 @@ export default function Sessions() {
   // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
   const sport = sp.get("sport") || "all";
   const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
+  // Sportart, die der Rekord-Kasten am Spot gerade zeigt — die Heatmap folgt ihr (28.10.2026).
+  const [rekordSport, setRekordSport] = useState<string | null>(null);
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
   const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
@@ -462,9 +464,11 @@ export default function Sessions() {
       {/* Rekorde an DIESEM Spot — ganz oben, ueber dem Wetter (Nutzer-Idee aus dem Feedback,
           Jan 06.09.). Dieselben Kacheln und dieselben Zeitfenster wie auf der Community-Seite,
           nur eben auf den Spot eingegrenzt. */}
-      {spot && <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} sports={sports.map((x) => x.sport)} />}
-      {/* Heatmap des Spots zwischen Rekorden und Wetter (Jan, 16.10.2026) — nur bei echter Spot-id. */}
-      {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} sport={sport} />}
+      {spot && <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} sports={sports.map((x) => x.sport)}
+                            onAktiv={setRekordSport} />}
+      {/* Heatmap des Spots zwischen Rekorden und Wetter (Jan, 16.10.2026) — nur bei echter Spot-id.
+          Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle". */}
+      {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} sport={sport !== "all" ? sport : (rekordSport ?? "all")} />}
       {spot && <SpotWeather spot={spot} />}
       {spot && /^\d+$/.test(spot) && <SpotWindfenster spotId={Number(spot)} />}
       {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
@@ -1472,8 +1476,8 @@ type SpotRecSatz = Awaited<ReturnType<typeof api.communityRecords>>;
  * ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord) — nur stehen die Sportarten jetzt
  * als Umschalter oben statt als Kaesten untereinander. Zur Wahl stehen nur Sportarten mit Rekord an
  * diesem Spot. Ist oben ein Sportarten-Filter gesetzt, zeigt der Kasten genau diese Sportart. */
-function SpotRecords({ spot, accelOnly, sport, sports }:
-    { spot: string; accelOnly: boolean; sport: string; sports: string[] }) {
+function SpotRecords({ spot, accelOnly, sport, sports, onAktiv }:
+    { spot: string; accelOnly: boolean; sport: string; sports: string[]; onAktiv?: (s: string | null) => void }) {
   const t = useT();
   const liste = sport !== "all" ? [sport] : (sports.length ? sports : ["pumpfoil"]);
   const schluessel = liste.join(",");
@@ -1499,7 +1503,10 @@ function SpotRecords({ spot, accelOnly, sport, sports }:
   });
   const aktiv = sport !== "all" ? sport
     : (wahl && mit.includes(wahl) ? wahl : (mit.includes("pumpfoil") ? "pumpfoil" : mit[0]));
-  if (!aktiv || !mit.includes(aktiv)) return null;
+  const gezeigt = aktiv && mit.includes(aktiv) ? aktiv : null;
+  // Der Seite melden, welche Sportart hier steht (die Heatmap folgt ihr); null = kein Kasten.
+  useEffect(() => { onAktiv?.(gezeigt); }, [gezeigt]);   // eslint-disable-line react-hooks/exhaustive-deps
+  if (!gezeigt) return null;
   return (
     <Card className="mb-3 p-4">
       <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${aktiv}`)}</h3>

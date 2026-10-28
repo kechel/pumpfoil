@@ -207,6 +207,13 @@ struct SpotRecordsView: View {
     var sport: String = "all"
     /// Sportarten fuer „alle" (Server /api/community/sports). Leer -> nur Pumpfoil, wie die PWA.
     var sports: [String] = []
+    /// Meldet die gezeigte Sportart (nil = kein Kasten) — die Heatmap der Seite folgt ihr (28.10.2026).
+    var onAktiv: (String?) -> Void = { _ in }
+
+    private var gezeigt: String? {
+        guard geladen, mitRekorden.contains(aktiv) else { return nil }
+        return aktiv
+    }
 
     @State private var jeSportart: [String: [String: PeriodRecords]] = [:]
     @State private var geladen = false
@@ -267,6 +274,7 @@ struct SpotRecordsView: View {
             }
         }
         .task(id: ladeSchluessel) { await laden() }
+        .onChange(of: gezeigt) { neu in onAktiv(neu) }
     }
 
     /// Alle Sportarten nebeneinander abfragen; eine gescheiterte zaehlt als „keine Rekorde".

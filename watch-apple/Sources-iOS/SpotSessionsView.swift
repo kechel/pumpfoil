@@ -39,6 +39,8 @@ struct SpotSessionsView: View {
     // ohne Vorgabe standen die Rekorde fest auf Pumpfoil — der Sportart-Umschalter erschien nie.
     @State private var sportGewaehlt: String?
     private var aktSport: String { sportGewaehlt ?? sport ?? "all" }
+    // Sportart, die der Rekord-Kasten gerade zeigt — die Heatmap folgt ihr (Jan, 28.10.2026).
+    @State private var rekordSport: String?
     // „Heatmap & Routen": Zustand hier (nicht in der Listenzeile), Lage des Spots fuer die Karte
     @State private var heatZustand: SpotPanelZustand? = nil
     @State private var spotOrt: (Double, Double)? = nil
@@ -64,10 +66,11 @@ struct SpotSessionsView: View {
             // Rekorde ueber ALLE Sessions (wie Android SpotRecordsSection(accelOnly = false)): vorher nur die
             // mit Bewegungsdaten — an Spots mit vielen GPS-Aufnahmen (Cléder) blieb so nur SUP uebrig.
             SpotRecordsView(spot: spot, lang: lang, accelOnly: false,
-                            sport: aktSport, sports: sportarten.map { $0.sport })
+                            sport: aktSport, sports: sportarten.map { $0.sport },
+                            onAktiv: { rekordSport = $0 })
             // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
             if let hz = heatZustand, let ort = spotOrt {
-                Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: aktSport, lang: lang, routeAusLink: routeId) }
+                Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: aktSport != "all" ? aktSport : (rekordSport ?? "all"), lang: lang, routeAusLink: routeId) }
             }
             if let sw = weather { Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") } }
             // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst

@@ -37,7 +37,8 @@ import androidx.compose.ui.unit.dp
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, sports: List<SportRuns>, onOpen: (Int) -> Unit) {
+fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, sports: List<SportRuns>, onOpen: (Int) -> Unit,
+                       onAktiv: (String?) -> Unit = {}) {
     // EIN Kasten fuer EINE Sportart mit Umschalter (Jan, 28.10.2026: „die rekorde bitte nur fuer eine
     // sportart und … zum umschalten"; wie die PWA). Je Sportart getrennt bleibt es (29.09.2026, Anlass
     // ein Foil-Scoot-Fahrer: ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord). Zur Wahl
@@ -60,6 +61,9 @@ fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, sports: 
     val mit = liste.filter { sp -> daten[sp]?.let { d -> fenster.any { hatRekorde(d[it]) } } == true }
     val aktiv = if (sport != "all") sport
                 else wahl?.takeIf { it in mit } ?: if ("pumpfoil" in mit) "pumpfoil" else mit.firstOrNull()
+    // Der Seite melden, welche Sportart hier steht — die Heatmap folgt ihr (Jan, 28.10.2026); null = kein Kasten.
+    val gezeigt = if (fertig) aktiv?.takeIf { it in mit } else null
+    LaunchedEffect(gezeigt) { onAktiv(gezeigt) }
 
     // WAEHREND DES LADENS die Ueberschrift schon zeigen, nicht nichts.
     //

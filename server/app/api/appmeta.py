@@ -1040,6 +1040,10 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 28.10.2026 abends, nach der Einreichung von 1.1.45: Heatmap folgt der Rekord-Sportart. Nicht gebumpt
+    # (1.1.45 liegt im Review, Memory versionen-erst-bei-release).
+    {"name": "Android phone + Wear OS", "version": "1.1.46 / 1.2.46",
+     "items": ["The heatmap on a spot page switches to the sport you pick for the records."]},
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
     # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
     # 1.1.44 lag im Review, 1.1.54 war gerade freigegeben (Memory versionen-erst-bei-release).
@@ -1048,7 +1052,7 @@ NAECHSTES: list[dict] = [
     # iPhone NICHT gebumpt (1.1.57 liegt im Review). Code nur swiftc -parse.
     # 28.10.2026 gebumpt: iPhone + Apple Watch 1.1.58 (66) fuer Jans Simulator-Test (1.1.57 seit 26.10. live).
     {"name": "iPhone + Apple Watch", "version": "1.1.58",
-     "items": ["The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list.", "The feedback form shows how many of the 2000 characters you have used, and says so if sending fails, instead of doing nothing.", "The records on a spot page show only the records that exist, without rows of empty tiles.", "Spot records show one sport at a time with a switch between the sports that have records there, and follow the sport filter of the page.", "Searching for a spot shows the matches right below the map instead of at the bottom of the page.", "The heatmap on a spot page no longer turns the whole map red when you open the spot right after starting the app."]},
+     "items": ["The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list.", "The feedback form shows how many of the 2000 characters you have used, and says so if sending fails, instead of doing nothing.", "The records on a spot page show only the records that exist, without rows of empty tiles.", "Spot records show one sport at a time with a switch between the sports that have records there, and follow the sport filter of the page.", "Searching for a spot shows the matches right below the map instead of at the bottom of the page.", "The heatmap on a spot page no longer turns the whole map red when you open the spot right after starting the app.", "The heatmap on a spot page switches to the sport you pick for the records."]},
     # iPhone + Apple Watch 1.1.57 am 26.10. eingereicht -> IN_REVIEW, am 26.10. FREIGEGEBEN.
     # iPhone + Apple Watch 1.1.55 am 23.10. eingereicht -> IN_REVIEW.
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.

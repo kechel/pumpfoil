@@ -48,6 +48,8 @@ struct SessionsView: View {
     // Uebersicht (Jan). Bleibt beim Wechsel Meine/Homespot/Alle/Spot stehen.
     @State private var sport = "all"
     @State private var sports: [CommunitySport] = []
+    // Sportart, die der Rekord-Kasten am Spot gerade zeigt — die Heatmap folgt ihr (28.10.2026).
+    @State private var rekordSport: String?
     @State private var weather: SpotWeather?
     // Datei-Import (FIT/TCX/GPX, auch ZIP) — in der PWA sitzt der Knopf seit dem 07.09.2026 in
     // „Meine Sessions" unter den Filtern. In den Apps fehlte der Import ganz (s. ImportFileButton
@@ -148,14 +150,16 @@ struct SessionsView: View {
         if scope == .spot, !spot.isEmpty {
             // Rekorde folgen dem Sportarten-Filter; bei „alle" ein Kasten je Sportart (PWA a9725cb9).
             SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly,
-                            sport: sport, sports: sports.map { $0.sport })
+                            sport: sport, sports: sports.map { $0.sport },
+                            onAktiv: { rekordSport = $0 })
         }
     }
 
     // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
     @ViewBuilder private var spotHeatmapSection: some View {
         if scope == .spot, let sid = spotIds[spot], let ort = spotOrte[spot] {
-            Section { SpotHeatmapPanel(z: heatZustaende.zustand(sid), lat: ort.0, lon: ort.1, sport: sport, lang: lang) }
+            Section { SpotHeatmapPanel(z: heatZustaende.zustand(sid), lat: ort.0, lon: ort.1,
+                                              sport: sport != "all" ? sport : (rekordSport ?? "all"), lang: lang) }
         }
     }
 

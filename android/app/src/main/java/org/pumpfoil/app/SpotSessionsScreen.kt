@@ -59,6 +59,8 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
     // Lage des Spots fuer „Heatmap & Routen" (SpotHeatmapPanel)
     var spotOrt by remember(spot) { mutableStateOf<Pair<Double, Double>?>(null) }
+    // Sportart, die der Rekord-Kasten gerade zeigt — die Heatmap folgt ihr (28.10.2026).
+    var rekordSport by remember(spot) { mutableStateOf<String?>(null) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val heatZustand = remember(spotId) { spotId?.let { SpotPanelZustand(ctx, it) } }
     LaunchedEffect(spot) {
@@ -138,11 +140,14 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         // `/sessions?spot=…`. Die beiden Android-Bildschirme sind auseinander-
                         // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
                         // trotzdem (s. docs/TODO.md).
-                        item { SpotRecordsSection(spot, accelOnly = false, sport = sport, sports = sports, onOpen = onOpen) }
+                        item { SpotRecordsSection(spot, accelOnly = false, sport = sport, sports = sports, onOpen = onOpen,
+                                                  onAktiv = { rekordSport = it }) }
                         // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
                         val sid0 = spotId; val ort = spotOrt
                         if (sid0 != null && ort != null) item(key = "heatmap-$sid0") {
-                            SpotHeatmapPanel(heatZustand ?: SpotPanelZustand(ctx, sid0), ort.first, ort.second, sport, routeId)
+                            // Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle".
+                            SpotHeatmapPanel(heatZustand ?: SpotPanelZustand(ctx, sid0), ort.first, ort.second,
+                                             if (sport != "all") sport else rekordSport ?: "all", routeId)
                         }
                         weather?.let { sw ->
                             item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") } }
