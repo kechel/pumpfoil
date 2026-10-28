@@ -32,8 +32,13 @@ struct SpotSessionsView: View {
     @State private var spotId: Int?
     @State private var spotLabel: String?      // Gewaesser bzw. Steg/Ortslage, fuer den Titel
     @State private var weather: SpotWeather?
-    // Sportarten fuer die Rekord-Kaesten, nur wenn die Karte „alle Sportarten" mitgab.
-    @State private var sportarten: [String] = []
+    // Sportarten fuer Filter und Rekord-Umschalter (Server /api/community/sports).
+    @State private var sportarten: [CommunitySport] = []
+    // Sportarten-Filter DIESER Seite (28.10.2026, wie Android SpotSessionsScreen und die PWA): startet
+    // mit der Vorgabe der Spot-Karte, sonst „alle"; hier umstellbar. Vorher gab es keinen Filter, und
+    // ohne Vorgabe standen die Rekorde fest auf Pumpfoil — der Sportart-Umschalter erschien nie.
+    @State private var sportGewaehlt: String?
+    private var aktSport: String { sportGewaehlt ?? sport ?? "all" }
     // „Heatmap & Routen": Zustand hier (nicht in der Listenzeile), Lage des Spots fuer die Karte
     @State private var heatZustand: SpotPanelZustand? = nil
     @State private var spotOrt: (Double, Double)? = nil
@@ -57,10 +62,10 @@ struct SpotSessionsView: View {
             // Rekorde je Sportart wie die Liste darunter: ohne Vorgabe Pumpfoil (Endpunkt-Default
             // der Liste), bei „alle" ein Kasten je Sportart (PWA a9725cb9).
             SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true,
-                            sport: sport ?? "pumpfoil", sports: sportarten)
+                            sport: aktSport, sports: sportarten.map { $0.sport })
             // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
             if let hz = heatZustand, let ort = spotOrt {
-                Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: sport ?? "all", lang: lang, routeAusLink: routeId) }
+                Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: aktSport, lang: lang, routeAusLink: routeId) }
             }
             if let sw = weather { Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") } }
             // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst
@@ -70,8 +75,19 @@ struct SpotSessionsView: View {
             // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist (s. SpotNotesView.swift).
             if let sid = spotId ?? vorgegebeneSpotId { SpotNamensVorschlag(spotId: sid, spotName: spot, lang: lang) }
             // Kacheln / eine Zeile je Session (PWA 9160c6a2) — derselbe Merker wie alle Listen.
-            if !items.isEmpty {
-                HStack { Spacer(); ListenAnsichtUmschalter(lang: lang) }
+            // Sportart links (nur wenn es etwas zu waehlen gibt), rechts Kacheln / Zeilen — eine
+            // Werkzeugzeile wie im Web und auf Android.
+            HStack {
+                if SportFilterMenu.zeigen(sport: aktSport, sports: sportarten) {
+                    SportFilterMenu(sport: aktSport, sports: sportarten, lang: lang) { neu in
+                        guard neu != aktSport else { return }
+                        sportGewaehlt = neu
+                        items = []; autoTried = false; showAll = false
+                        Task { await load() }
+                    }
+                }
+                Spacer()
+                if !items.isEmpty { ListenAnsichtUmschalter(lang: lang) }
             }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
@@ -103,8 +119,8 @@ struct SpotSessionsView: View {
         .task {
             if items.isEmpty { await load() }
             if spotId == nil { spotId = vorgegebeneSpotId }
-            if sport == "all", sportarten.isEmpty {
-                sportarten = ((try? await Api.communitySports()) ?? []).map { $0.sport }
+            if sportarten.isEmpty {
+                sportarten = (try? await Api.communitySports()) ?? []
             }
             async let w = Api.spotWeather(spot)
             async let karte = Api.spotMap(accelOnly: false)
@@ -126,7 +142,8 @@ struct SpotSessionsView: View {
             // Default wie die PWA (useAccelDefault): seit 31.08. IMMER „alle", auch wenn der
             // Nutzer selbst Accel-Läufe hat — s. AccelDefault.swift.
             let only = showAll ? false : await AccelDefault.preferred()
-            var rows = try await Api.spotSessions(spot, accelOnly: only, sport: sport)
+            let sp: String = aktSport
+            var rows = try await Api.spotSessions(spot, accelOnly: only, sport: sp)
             // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
             // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
             // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
@@ -135,13 +152,13 @@ struct SpotSessionsView: View {
             // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
             if only, !autoTried {
                 autoTried = true
-                let all = try await Api.spotSessions(spot, accelOnly: false, sport: sport)
+                let all = try await Api.spotSessions(spot, accelOnly: false, sport: sp)
                 if all.count > rows.count { showAll = true; rows = all }
             }
             items = rows
             // „Älter/neuer" im Detail soll an DIESEM Spot bleiben, über alle Fahrer — mit
             // demselben Accel-Filter, den diese Liste gerade zeigt (Jan, 17.09.2026).
-            NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot, sport: sport ?? "all",
+            NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot, sport: sp,
                                                   accelOnly: only && !showAll)
             error = nil
         } catch { self.error = error.localizedDescription }
