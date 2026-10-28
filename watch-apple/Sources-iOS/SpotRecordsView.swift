@@ -286,6 +286,10 @@ struct SpotRecordsView: View {
             }
             for await (s, r) in gruppe { neu[s] = r }
         }
+        // Ein ueberholter Lauf darf nichts mehr schreiben: kommt die Sportartenliste nach dem ersten
+        // Laden, startet `.task(id:)` neu und bricht den alten ab — dessen Abrufe scheitern dann
+        // (try? -> leer), und kam er NACH dem neuen an, stand „keine Rekorde" da (Jan, 28.10.2026).
+        guard geladenFuer == schluessel, !Task.isCancelled else { return }
         jeSportart = neu
         geladen = true
         ladeStand += 1

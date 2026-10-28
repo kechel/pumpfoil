@@ -107,6 +107,13 @@ export default function Spots() {
   // dieselbe Menge (s. `spot_map`).
   useEffect(() => { api.spotMap(false, sport).then(setAlle).catch(() => setAlle([])); }, [sport]);
 
+  // Treffer zur Eingabe (ohne Akzente, jedes Wort, auch im Gewaessernamen), staerkste Spots zuerst.
+  const treffer = useMemo(() => {
+    if (!q.trim() || !spots) return [];
+    return spots.filter((x) => passtZu(`${x.spot} ${x.water ?? ""}`, q))
+      .sort((a, b) => (b.sessions ?? 0) - (a.sessions ?? 0)).slice(0, 8);
+  }, [q, spots]);
+
   // Spot suchen -> zentrieren + ~50 km Radius (Quadrat 100 km) als Zoom.
   function focusSpot(name: string) {
     const n = name.trim().toLowerCase();
@@ -344,18 +351,29 @@ export default function Spots() {
       ) : (
         <>
           <div className="mb-3 flex flex-wrap gap-2">
-            <form onSubmit={(e) => { e.preventDefault(); focusSpot(q); }} className="max-w-sm flex-1">
+            {/* Eigene Trefferliste statt <datalist> (28.10.2026): die Vorschlaege einer datalist
+                rechnet der Browser selbst, MIT Akzenten — „cleder" fand Cléder nicht (Jan). Hier
+                dieselbe Suche wie ueberall (lib/suche: ohne Akzente, jedes Wort). */}
+            <form onSubmit={(e) => { e.preventDefault(); focusSpot(treffer[0]?.spot ?? q); setQ(""); }} className="relative max-w-sm flex-1">
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                onInput={(e) => { const v = (e.target as HTMLInputElement).value; if (spots.some((s) => s.spot === v)) focusSpot(v); }}
-                list="spot-list"
                 placeholder={t("spots.search")}
                 className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
               />
-              <datalist id="spot-list">
-                {spots.map((s) => <option key={s.spot} value={s.spot} />)}
-              </datalist>
+              {treffer.length > 0 && (
+                <ul className="absolute left-0 right-0 top-full z-[1100] mt-1 max-h-72 overflow-auto rounded-xl border border-slate-700 bg-slate-900 py-1 shadow-xl">
+                  {treffer.map((s) => (
+                    <li key={`${s.spot_id ?? s.spot}`}>
+                      <button type="button" onClick={() => { focusSpot(s.spot); setQ(""); }}
+                        className="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-sm text-slate-100 hover:bg-slate-800">
+                        <span className="min-w-0 truncate">{s.spot}{s.water && s.water !== s.spot ? <span className="text-slate-400"> · {s.water}</span> : null}</span>
+                        <span className="shrink-0 tabular-nums text-xs text-slate-400">{s.sessions}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </form>
             {/* Die Auswahlliste „Spot waehlen …" daneben ist am 14.10.2026 raus (Jan): sie tat dasselbe
                 wie das Suchfeld, und bei 578 Spots blaettert niemand mehr durch. Das Suchfeld zeigt die

@@ -85,6 +85,7 @@ struct SpotHeatmapPanel: View {
         .onChange(of: "\(wahl)-\(art)-\(sport)") { _ in heatLaden() }
         .onChange(of: "\(plan.gewaehlt ?? "")|\(plan.gerechnetMit)|\(plan.einstellungsSchluessel)|\(plan.ueberlagert?.schluessel ?? "")") { _ in abweichung() }
         .onChange(of: "\(bereit)-\(gemerkt.count)") { _ in linkAufrufen() }
+        .onChange(of: bereit) { b in if b { heatLaden() } }
         .confirmationDialog(Loc.t("routes.deleteConfirm", lang), isPresented: Binding(get: { loeschen != nil }, set: { if !$0 { loeschen = nil } }),
                             titleVisibility: .visible) {
             Button(Loc.t("routes.delete", lang), role: .destructive) {
@@ -216,7 +217,10 @@ struct SpotHeatmapPanel: View {
 
     private func heatLaden() {
         heatAufgabe?.cancel()
-        guard wahl != "off", let reg = region else { return }
+        // Erst nach dem Einpassen auf den Spot laden (wie Android: `if (bereit) heatZeitraum else null`).
+        // Vorher hat die Karte noch ihre grobe Startansicht; deren Zellen sind riesig und faerbten den
+        // ganzen Ausschnitt rot (Jan, 28.10.2026, Einstieg ueber Home direkt nach dem App-Start).
+        guard wahl != "off", bereit, let reg = region else { return }
         let (r, breite) = reg
         let w = (wahl == "365d" ? "all" : wahl), a = art, sp = sport
         heatAufgabe = Task { @MainActor in
