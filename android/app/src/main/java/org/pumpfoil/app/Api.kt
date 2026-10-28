@@ -1008,8 +1008,10 @@ object Api {
 
     // Sportarten mit mindestens einem sichtbaren Lauf (all time) — fuer die Sportart-Auswahl der
     // Sessions-Liste und der Spot-Karte (wie `api.communitySports` in der PWA).
-    suspend fun communitySports(): List<SportRuns> = withContext(Dispatchers.IO) {
-        json.decodeFromString(ListSerializer(SportRuns.serializer()), http("GET", "/api/community/sports", null, auth = true))
+    // `spot`: nur die Sportarten dieses Spots (Sessions statt Laeufe; Filter-Knoepfe der Spot-Seite, 28.10.2026).
+    suspend fun communitySports(spot: String? = null): List<SportRuns> = withContext(Dispatchers.IO) {
+        val q = spot?.let { "?spot=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        json.decodeFromString(ListSerializer(SportRuns.serializer()), http("GET", "/api/community/sports$q", null, auth = true))
     }
 
     // Spot-Vergleich (wie SpotCompare.tsx): accelOnly=false, damit GPS-only-Spots mitzaehlen —

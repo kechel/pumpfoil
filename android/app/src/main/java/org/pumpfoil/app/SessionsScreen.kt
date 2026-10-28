@@ -108,8 +108,15 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var spotOrte by remember { mutableStateOf<Map<String, Pair<Double, Double>>>(emptyMap()) }
     // Zustand der Spot-Panels ausserhalb der LazyColumn (s. SpotPanelZustand)
     val heatZustaende = remember { mutableMapOf<Int, SpotPanelZustand>() }
-    // Sportart, die der Rekord-Kasten am Spot gerade zeigt — die Heatmap folgt ihr (28.10.2026).
-    var rekordSport by remember { mutableStateOf<String?>(null) }
+    // Sportarten des gewaehlten Spots fuer die Filter-Knoepfe (28.10.2026, s. SpotSportKnoepfe) und daraus
+    // die Sportart von Rekorden und Heatmap (Filter, bei „Alle" Pumpfoil bzw. die erste des Spots).
+    var spotSports by remember { mutableStateOf<List<String>>(emptyList()) }
+    LaunchedEffect(scope, spot) {
+        spotSports = emptyList()
+        if (scope == Scope.SPOT && spot.isNotBlank()) {
+            spotSports = try { Api.communitySports(spot).map { it.sport } } catch (_: Exception) { emptyList() }
+        }
+    }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     // Name -> zweite Zeile (Gewaesser bzw. Steg/Ortslage), wie im Web hinter dem Spot-Namen.
     var spotLabels by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
@@ -137,6 +144,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
     // Gilt fuer Meine/Homespot/Alle/Spot gleichermassen und bleibt beim Wechsel stehen.
     var sport by remember { mutableStateOf("all") }
+    val rekordSport = rekordSportFuer(sport, spotSports)
     var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
     // EIN EIGENER Scrollzustand JE LISTE — nicht einer fuer alle mit einem Ruecksprung.
     //
@@ -364,35 +372,27 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
                 FilterChip(selected = scope == Scope.FRIENDS, onClick = { spot = ""; scope = Scope.FRIENDS }, label = { Text(I18n.t("friends.title")) }, colors = cyanChipColors())
                 AccelSeg(accelOnly, brett = brett, onBrett = { brett = true }) { brett = false; accel.set(it) }
-            }
-            }
-            // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte) — und rechts
-            // in derselben Zeile der Datei-Import, damit er keine eigene Zeile mehr kostet
-            // (Jan, 18.09.2026). Nur in „Meine": ein Import erzeugt immer eine EIGENE Session,
-            // und in einer fremden Liste waere der Knopf sinnlos.
-            Kompakt {
-                // FlowRow statt Row: mit der Sportart passen Spot, Sportart und Import auf dem Handy
-                // nicht mehr in eine Zeile — in einer Row wurde die Sportart zu „Kai…" gequetscht
-                // (Emulator, Finnisch). So bricht der Import-Knopf um, statt etwas abzuschneiden.
-                FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    // Kein Spot-Auswahlfeld mehr (Jan, 28.10.2026, wie PWA/iOS): Spots ueber die Spot-Karte mit
-                    // Suche, den Homespot-Reiter oder den Spot-Link einer Session.
-                    // Sportart gleich daneben: sie gilt fuer jede Ansicht, nicht nur fuer „Meine".
-                    // Der Monat zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
-                    // Hoechstens 150 dp, wie die Spot-Auswahl daneben (PWA, 14.10.2026).
-                    // In der Spot-Ansicht NICHT: dort filtern die Sportart-Knoepfe im Rekord-Kasten (Jan, 28.10.2026).
-                    if (scope != Scope.SPOT) SportDropdown(sports, sport, Modifier.widthIn(max = 150.dp)) { sel -> sport = sel; month = "" }
-                    if (scope == Scope.MINE) {
-                        ImportFileButton({ neueId ->
-                            if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
-                        })
-                    }
-                    // Kacheln / eine Zeile je Session (ListenAnsicht.kt) — in der Werkzeugzeile wie
-                    // im Web; gilt fuer Meine, Alle und die Spot-Ansicht zugleich.
-                    ListenAnsichtUmschalter(Modifier.align(Alignment.CenterVertically))
+                // Sportart, Import und Kacheln/Zeilen haengen hinten an dieselbe FlowRow (Jan, 28.10.2026:
+                // „alls sports und ansicht kompakt/normal mit in die zeile drueber") — sie fuellen die
+                // Zeile von accel/all/POB auf, statt eine eigene zu kosten; reicht der Platz nicht, brechen
+                // sie um. Das Spot-Auswahlfeld ist raus (Spots ueber Spot-Karte, Homespot, Session-Link).
+                // Sportart nicht in der Spot-Ansicht: dort filtern die Knoepfe darunter (SpotSportKnoepfe). Der Monat
+                // zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
+                if (scope != Scope.SPOT) SportDropdown(sports, sport, Modifier.widthIn(max = 150.dp).align(Alignment.CenterVertically)) { sel -> sport = sel; month = "" }
+                // Import nur in „Meine": er erzeugt immer eine EIGENE Session (Jan, 18.09.2026).
+                if (scope == Scope.MINE) {
+                    ImportFileButton({ neueId ->
+                        if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
+                    })
                 }
+                // Kacheln / eine Zeile je Session (ListenAnsicht.kt) — gilt fuer Meine, Alle und den Spot.
+                ListenAnsichtUmschalter(Modifier.align(Alignment.CenterVertically))
+            }
+            }
+            // Spot-Ansicht: Sportart-Knoepfe als Filter der Seite, fest ueber der Liste (Jan, 28.10.2026).
+            if (scope == Scope.SPOT) {
+                SpotSportKnoepfe(spotSports, sport, { sport = it; month = "" },
+                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp))
             }
             // Sportart-Filter + Monat (nur eigene, scrollbar) — wie PWA.
             if (scope == Scope.MINE) {
@@ -471,15 +471,14 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                             }
                             if (scope == Scope.SPOT) {
                                 if (spot.isNotBlank()) {
-                                    item { SpotRecordsSection(spot, accelOnly, sport, sports, onOpen = { id -> onOpen(id, null) },
-                                                              onAktiv = { rekordSport = it }, onSport = { sport = it; month = "" }) }
+                                    rekordSport?.let { rs -> item { SpotRecordsSection(spot, accelOnly, rs) { id -> onOpen(id, null) } } }
                                 }
                                 // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
                                 val sidH = spotIds[spot]; val ortH = spotOrte[spot]
                                 if (sidH != null && ortH != null) item(key = "heatmap-$sidH") {
                                     // Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle".
                                     SpotHeatmapPanel(heatZustaende.getOrPut(sidH) { SpotPanelZustand(ctx, sidH) }, ortH.first, ortH.second,
-                                                     if (sport != "all") sport else rekordSport ?: "all")
+                                                     rekordSport ?: "all")
                                 }
                                 weather?.let { sw ->
                                     item {

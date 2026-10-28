@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,8 +41,9 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     // Spot-Karte mit, damit Etikett (Zahl am Marker) und Klickziel dieselbe Menge meinen; hier
     // wieder umstellbar, „Alle Sportarten" bleibt immer waehlbar. Default „all".
     var sport by remember(spot, sport0) { mutableStateOf(sport0.ifBlank { "all" }) }
-    var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
-    LaunchedEffect(Unit) { sports = try { Api.communitySports() } catch (_: Exception) { emptyList() } }
+    // Sportarten DIESES Spots fuer die Filter-Knoepfe (28.10.2026, s. SpotSportKnoepfe).
+    var spotSports by remember(spot) { mutableStateOf<List<String>>(emptyList()) }
+    LaunchedEffect(spot) { spotSports = try { Api.communitySports(spot).map { it.sport } } catch (_: Exception) { emptyList() } }
     var items by remember(spot) { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -59,8 +61,8 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
     // Lage des Spots fuer „Heatmap & Routen" (SpotHeatmapPanel)
     var spotOrt by remember(spot) { mutableStateOf<Pair<Double, Double>?>(null) }
-    // Sportart, die der Rekord-Kasten gerade zeigt — die Heatmap folgt ihr (28.10.2026).
-    var rekordSport by remember(spot) { mutableStateOf<String?>(null) }
+    // Sportart von Rekorden und Heatmap (28.10.2026): Filter, bei „Alle" Pumpfoil bzw. die erste des Spots.
+    val rekordSport = rekordSportFuer(sport, spotSports)
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val heatZustand = remember(spotId) { spotId?.let { SpotPanelZustand(ctx, it) } }
     LaunchedEffect(spot) {
@@ -125,7 +127,9 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
         },
     ) { pad ->
         val scope = rememberCoroutineScope()
-        Box(Modifier.padding(pad)) {
+        Column(Modifier.padding(pad)) {
+            // Filter der Seite fest oben, die Liste darunter scrollt (Jan, 28.10.2026).
+            SpotSportKnoepfe(spotSports, sport, { sport = it }, Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp))
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
                 if (loading && items.isEmpty()) {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -140,14 +144,13 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         // `/sessions?spot=…`. Die beiden Android-Bildschirme sind auseinander-
                         // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
                         // trotzdem (s. docs/TODO.md).
-                        item { SpotRecordsSection(spot, accelOnly = false, sport = sport, sports = sports, onOpen = onOpen,
-                                                  onAktiv = { rekordSport = it }, onSport = { sport = it }) }
+                        rekordSport?.let { rs -> item { SpotRecordsSection(spot, accelOnly = false, sport = rs, onOpen = onOpen) } }
                         // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
                         val sid0 = spotId; val ort = spotOrt
                         if (sid0 != null && ort != null) item(key = "heatmap-$sid0") {
                             // Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle".
                             SpotHeatmapPanel(heatZustand ?: SpotPanelZustand(ctx, sid0), ort.first, ort.second,
-                                             if (sport != "all") sport else rekordSport ?: "all", routeId)
+                                             rekordSport ?: "all", routeId)
                         }
                         weather?.let { sw ->
                             item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") } }

@@ -1665,7 +1665,9 @@ export const api = {
    *  Oberflaeche duenne Gruppen ausblenden kann (ein Rekord aus zwei Fahrern ist keiner). */
   foilBands: (accelOnly = true, sport = "pumpfoil") =>
     req<FoilBand[]>(`/api/community/foil-bands?accel_only=${accelOnly}&sport=${sport}`),
-  communitySports: () => req<{ sport: string; runs: number }[]>("/api/community/sports"),
+  // `spot`: nur die Sportarten dieses Spots (Sessions statt Laeufe, Filter-Knoepfe der Spot-Seite, 28.10.2026).
+  communitySports: (spot?: string) => req<{ sport: string; runs: number; sessions?: number }[]>(
+    `/api/community/sports${spot ? `?spot=${encodeURIComponent(spot)}` : ""}`),
   // Lage-Zahlen aus Aufnahmen MIT DEM HANDY AM BRETT (`placement = "board"`). Leere `klassen`
   // heisst: der Nutzer hat keine solche Aufnahme — die Startseite zeigt den Abschnitt dann nicht.
   // Heisst NICHT `boardAttitude` — den Namen hat schon die Lage-Ansicht EINER Session (s. oben).

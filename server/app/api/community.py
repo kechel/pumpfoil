@@ -729,7 +729,8 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
 
 @router.get("/sports")
 def community_sports(
-    accel_only: bool = False, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+    accel_only: bool = False, spot: str | None = None,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Sportarten, für die es überhaupt etwas zu zeigen gibt: mindestens EIN Lauf, all time
     (Jans Vorgabe — „nur die mit mind. einem lauf all time in der selectbox mit anzeigen").
@@ -743,6 +744,18 @@ def community_sports(
     # wakethief/towed/surf_wave). Sie stehen weiter zur Auswahl, solange es dort Laeufe gibt.
     from .sessions import SPORTS, SPORTS_LEGACY
     out = []
+    if spot:
+        # `spot` (28.10.2026): die Sportarten DIESES Spots fuer die Filter-Knoepfe der Spot-Seite (Jan:
+        # „die buttons sind ja jetzt die generellen filter"). Gezaehlt werden SESSIONS ueber denselben
+        # Community-Filter und dieselbe Spot-Bedingung wie die Rekorde am Spot — nicht Laeufe: eine
+        # Lowkite-Session ohne Foil-Zeit hat 0 Laeufe, steht aber in den Rekorden (Puls, Fahrt) und
+        # soll sich filtern lassen.
+        cond = _spot_cond(spot, db)
+        for sp in (*SPORTS, *SPORTS_LEGACY):
+            n = (_community(db.query(func.count(S.id)), user.id, accel_only, sp).filter(cond).scalar() or 0)
+            if int(n) > 0:
+                out.append({"sport": sp, "runs": 0, "sessions": int(n)})
+        return out
     for sp in (*SPORTS, *SPORTS_LEGACY):
         n = (_community(db.query(func.coalesce(func.sum(AR.num_runs), 0)), user.id, accel_only, sp)
              .scalar() or 0)

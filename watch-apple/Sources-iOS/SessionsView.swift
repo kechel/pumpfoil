@@ -47,8 +47,10 @@ struct SessionsView: View {
     // Uebersicht (Jan). Bleibt beim Wechsel Meine/Homespot/Alle/Spot stehen.
     @State private var sport = "all"
     @State private var sports: [CommunitySport] = []
-    // Sportart, die der Rekord-Kasten am Spot gerade zeigt — die Heatmap folgt ihr (28.10.2026).
-    @State private var rekordSport: String?
+    // Sportarten des gewaehlten Spots fuer die Filter-Knoepfe (28.10.2026) und daraus die Sportart von
+    // Rekorden und Heatmap (Filter, bei „Alle" Pumpfoil bzw. die erste des Spots).
+    @State private var spotSports: [String] = []
+    private var rekordSport: String? { rekordSportFuer(sport, spotSports) }
     @State private var weather: SpotWeather?
     // Datei-Import (FIT/TCX/GPX, auch ZIP) — in der PWA sitzt der Knopf seit dem 07.09.2026 in
     // „Meine Sessions" unter den Filtern. In den Apps fehlte der Import ganz (s. ImportFileButton
@@ -98,6 +100,12 @@ struct SessionsView: View {
                 // man aufs Handy schaut (Befund 11.09.2026). Endet, sobald keine
                 // Zwischen-Session mehr in der Liste steht.
                 .task(id: laeuftNoch) { await pollWhileLive() }
+                // Sportarten des gewaehlten Spots fuer die Filter-Knoepfe (28.10.2026).
+                .task(id: scope == .spot ? spot : "") {
+                    spotSports = []
+                    guard scope == .spot, !spot.isEmpty else { return }
+                    spotSports = ((try? await Api.communitySports(spot: spot)) ?? []).map { $0.sport }
+                }
                 // Dateiauswahl: `.data` statt einer engeren Liste — .fit hat auf iOS keinen
                 // eigenen Typ, eine Filterung wuerde genau die Dateien ausgrauen, die gemeint
                 // sind. Geprueft wird serverseitig. Das deckt auch gepackte Dateien ab
@@ -148,9 +156,13 @@ struct SessionsView: View {
     @ViewBuilder private var spotRecordsSection: some View {
         if scope == .spot, !spot.isEmpty {
             // Rekorde folgen dem Sportarten-Filter; bei „alle" ein Kasten je Sportart (PWA a9725cb9).
-            SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly,
-                            sport: sport, sports: sports.map { $0.sport },
-                            onAktiv: { rekordSport = $0 }, onSport: { neu in month = ""; sport = neu })
+            // Sportart-Knoepfe als Filter der Seite, ueber den Rekorden (Jan, 28.10.2026).
+            if !spotSports.isEmpty || sport != "all" {
+                Section { SpotSportKnoepfe(spotSports: spotSports, sport: sport, lang: lang) { neu in month = ""; sport = neu } }
+            }
+            if let rs = rekordSport {
+                SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly, sport: rs, sports: [rs])
+            }
         }
     }
 

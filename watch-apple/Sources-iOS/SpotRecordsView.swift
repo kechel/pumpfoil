@@ -276,7 +276,8 @@ struct SpotRecordsView: View {
                 // Sportarten-Filter der ganzen Spot-Seite: „Alle" + Sportarten mit Rekord; ein Knopf setzt
                 // `sport` der Seite (Liste, Rekorde, Heatmap). `.id` setzt das Zeitfenster neu.
                 SpotRecordsKasten(sport: aktiv, alle: jeSportart[aktiv] ?? [:], lang: lang, ladeStand: ladeStand,
-                                  sportWahl: knoepfe.count > 1 || sport != "all" ? ["all"] + knoepfe : [],
+                                  // Keine Knoepfe mehr IM Kasten: sie stehen als Filter der Seite darueber (SpotSportKnoepfe).
+                                  sportWahl: [],
                                   gewaehlt: sport, onSport: onSport)
                     .id(aktiv)
             }
@@ -419,5 +420,52 @@ struct SpotRecordsKasten: View {
         .padding(10)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+
+/// Sportart von Rekorden und Heatmap der Spot-Seite: der Filter, bei „Alle" Pumpfoil, sonst die erste des Spots.
+func rekordSportFuer(_ sport: String, _ spotSports: [String]) -> String? {
+    if sport != "all" { return sport }
+    if spotSports.contains("pumpfoil") { return "pumpfoil" }
+    return spotSports.first
+}
+
+/// Sportart-Knoepfe = Filter der ganzen Spot-Seite (Liste, Rekorde, Heatmap), UEBER der Rekord-Ueberschrift
+/// (Jan, 28.10.2026: „die buttons sind ja jetzt die generellen filter"). „Alle" + die Sportarten dieses Spots
+/// (Server /api/community/sports?spot=); eine per Spot-Karte gewaehlte ohne Session hier steht trotzdem da,
+/// sonst kaeme man nicht zurueck. Bei nur einer Sportart und ohne Filter: keine Knoepfe.
+struct SpotSportKnoepfe: View {
+    let spotSports: [String]
+    let sport: String
+    let lang: String
+    let onSport: (String) -> Void
+
+    private var knoepfe: [String] {
+        let extra: [String] = sport != "all" && !spotSports.contains(sport) ? [sport] : []
+        return spotSports + extra
+    }
+
+    var body: some View {
+        if knoepfe.count > 1 || sport != "all" {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(["all"] + knoepfe, id: \.self) { s in knopf(s) }
+                }
+            }
+        }
+    }
+
+    private func knopf(_ s: String) -> some View {
+        let an: Bool = s == sport
+        let text: String = s == "all" ? Loc.t("all.allSports", lang) : Loc.t("cls.sport.\(s)", lang)
+        return Button { onSport(s) } label: {
+            Text(text).font(.subheadline)
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .foregroundStyle(an ? Color.black : Color.primary)
+                .background(an ? Color.accentColor : Color(.secondarySystemBackground))
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 }

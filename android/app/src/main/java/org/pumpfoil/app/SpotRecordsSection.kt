@@ -35,35 +35,39 @@ import androidx.compose.ui.unit.dp
  * Alle Fenster kommen in EINEM Aufruf (`communityRecords(spot = …)`); `spotRecords` liefert nur
  * eins und würde für den Rückfall vier Abrufe brauchen.
  */
+/** Sportart von Rekorden und Heatmap der Spot-Seite: der Filter, bei „Alle" Pumpfoil, sonst die erste des Spots. */
+fun rekordSportFuer(sport: String, spotSports: List<String>): String? =
+    if (sport != "all") sport else if ("pumpfoil" in spotSports) "pumpfoil" else spotSports.firstOrNull()
+
+/**
+ * Sportart-Knoepfe = Filter der ganzen Spot-Seite (Liste, Rekorde, Heatmap), fest UEBER der scrollenden
+ * Liste (Jan, 28.10.2026: „die buttons sind ja jetzt die generellen filter, sollten also ueber die
+ * 'records at this spot' ueberschrift und auch nicht mit scrollen"). „Alle" + die Sportarten dieses Spots
+ * (Server /api/community/sports?spot=); eine per Spot-Karte gewaehlte ohne Session hier steht trotzdem
+ * da, sonst kaeme man nicht zurueck. Bei nur einer Sportart und ohne Filter: keine Knoepfe.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, sports: List<SportRuns>, onOpen: (Int) -> Unit,
-                       onAktiv: (String?) -> Unit = {}, onSport: (String) -> Unit = {}) {
-    // EIN Kasten fuer EINE Sportart (Jan, 28.10.2026; wie die PWA). Je Sportart getrennt bleibt es
-    // (29.09.2026: ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord).
-    //
-    // Die Knoepfe sind der SPORTARTEN-FILTER DER GANZEN SPOT-SEITE (Dropdown dort raus, „Knoepfe filtern
-    // alles"): „Alle" plus die Sportarten mit Rekord an diesem Spot; ein Knopf setzt `sport` der Seite.
-    // Bei „Alle" zeigen die Rekorde Pumpfoil, sonst die erste Sportart mit Rekord. Abgefragt werden IMMER
-    // alle Sportarten — sonst kennte die Knopfzeile nach einem Klick nur noch die gewaehlte.
-    val liste = sports.map { it.sport }.filter { it.isNotBlank() }.ifEmpty { listOf("pumpfoil") }
-    var daten by remember(spot, accelOnly, liste) { mutableStateOf<Map<String, Map<String, PeriodRecords>>>(emptyMap()) }
-    var fertig by remember(spot, accelOnly, liste) { mutableStateOf(false) }
-    LaunchedEffect(spot, accelOnly, liste) {
-        val m = mutableMapOf<String, Map<String, PeriodRecords>>()
-        kotlinx.coroutines.coroutineScope {
-            liste.map { sp -> async { sp to (try { Api.communityRecords(accelOnly = accelOnly, spot = spot, sport = sp) } catch (_: Exception) { emptyMap() }) } }
-                .forEach { val (sp, d) = it.await(); m[sp] = d }
+fun SpotSportKnoepfe(spotSports: List<String>, sport: String, onSport: (String) -> Unit, modifier: Modifier = Modifier) {
+    val knoepfe = spotSports + if (sport != "all" && sport !in spotSports) listOf(sport) else emptyList()
+    if (knoepfe.size < 2 && sport == "all") return
+    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        (listOf("all") + knoepfe).forEach { sp ->
+            FilterChip(selected = sp == sport, onClick = { onSport(sp) },
+                label = { Text(if (sp == "all") I18n.t("all.allSports") else I18n.t("cls.sport.$sp")) },
+                colors = cyanChipColors())
         }
-        daten = m; fertig = true
     }
-    val fenster = listOf("10d", "30d", "365d", "all")
-    val mit = liste.filter { sp -> daten[sp]?.let { d -> fenster.any { hatRekorde(d[it]) } } == true }
-    val aktiv = if (sport != "all") sport else if ("pumpfoil" in mit) "pumpfoil" else mit.firstOrNull()
-    // Der Seite melden, welche Sportart hier steht — die Heatmap folgt ihr; null = kein Kasten.
-    val gezeigt = if (fertig) aktiv?.takeIf { it in mit || sport != "all" } else null
-    LaunchedEffect(gezeigt) { onAktiv(gezeigt) }
+}
 
+/** Rekorde am Spot fuer EINE Sportart (welche, bestimmen die Knoepfe darueber, s. SpotSportKnoepfe). */
+@Composable
+fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, onOpen: (Int) -> Unit) {
+    var daten by remember(spot, accelOnly, sport) { mutableStateOf<Map<String, PeriodRecords>?>(null) }
+    LaunchedEffect(spot, accelOnly, sport) {
+        daten = try { Api.communityRecords(accelOnly = accelOnly, spot = spot, sport = sport) } catch (_: Exception) { emptyMap() }
+    }
+    val titel = I18n.t("rec.spotTitle") + " · " + I18n.t("cls.sport.$sport")
     // WAEHREND DES LADENS die Ueberschrift schon zeigen, nicht nichts.
     //
     // Das ist kein Schoenheits-, sondern ein Anker-Problem gewesen. Dieser Abschnitt ist der
@@ -72,29 +76,19 @@ fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, sports: 
     // Kamen Rekorde, Wetter und Beschreibungen danach an, wuchsen sie OBERHALB des Ankers ein,
     // und die Ansicht stand ploetzlich mitten in der Sessionliste (Jan, 18.09.2026). Mit der
     // Ueberschrift ab dem ersten Bild hat der Eintrag von Anfang an Hoehe.
-    if (!fertig) {
-        Text(I18n.t("rec.spotTitle"), style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
+    val d = daten
+    if (d == null) {
+        Text(titel, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
         return
     }
-    // Kein Rekord und kein Filter -> der Block verschwindet ganz (eine Reihe „–" hilft niemandem).
-    if (gezeigt == null) return
-    // Eine per Spot-Karte gewaehlte Sportart ohne Rekord hier trotzdem als Knopf, sonst kaeme man nicht
-    // zurueck auf „Alle".
-    val knoepfe = mit + if (sport != "all" && sport !in mit) listOf(sport) else emptyList()
+    // Kein Rekord in dieser Sportart -> der Block verschwindet ganz (eine Reihe „–" hilft niemandem).
+    val fenster = listOf("10d", "30d", "365d", "all")
+    if (fenster.none { hatRekorde(d[it]) }) return
     Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-        Text(I18n.t("rec.spotTitle") + " · " + I18n.t("cls.sport.$gezeigt"), style = MaterialTheme.typography.titleSmall,
+        Text(titel, style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 4.dp))
-        if (knoepfe.size > 1 || sport != "all") {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 2.dp)) {
-                (listOf("all") + knoepfe).forEach { sp ->
-                    FilterChip(selected = sp == sport, onClick = { onSport(sp) },
-                        label = { Text(if (sp == "all") I18n.t("all.allSports") else I18n.t("cls.sport.$sp")) })
-                }
-            }
-        }
-        key(gezeigt) { SpotRecordsSport(daten[gezeigt] ?: emptyMap(), gezeigt, onOpen) }
+        key(sport) { SpotRecordsSport(d, sport, onOpen) }
     }
 }
 

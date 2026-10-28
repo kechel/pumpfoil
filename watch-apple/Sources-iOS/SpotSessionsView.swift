@@ -32,15 +32,15 @@ struct SpotSessionsView: View {
     @State private var spotId: Int?
     @State private var spotLabel: String?      // Gewaesser bzw. Steg/Ortslage, fuer den Titel
     @State private var weather: SpotWeather?
-    // Sportarten fuer Filter und Rekord-Umschalter (Server /api/community/sports).
-    @State private var sportarten: [CommunitySport] = []
     // Sportarten-Filter DIESER Seite (28.10.2026): startet mit der Vorgabe der Spot-Karte, sonst „alle";
     // umgestellt ueber die Knoepfe im Rekord-Kasten (wie PWA/Android). Vorher stand er ohne Vorgabe fest
     // auf Pumpfoil, und der Sportart-Umschalter erschien nie.
     @State private var sportGewaehlt: String?
     private var aktSport: String { sportGewaehlt ?? sport ?? "all" }
-    // Sportart, die der Rekord-Kasten gerade zeigt — die Heatmap folgt ihr (Jan, 28.10.2026).
-    @State private var rekordSport: String?
+    // Sportarten DIESES Spots fuer die Filter-Knoepfe (28.10.2026) und daraus die Sportart von Rekorden
+    // und Heatmap (Filter, bei „Alle" Pumpfoil bzw. die erste des Spots).
+    @State private var spotSports: [String] = []
+    private var rekordSport: String? { rekordSportFuer(aktSport, spotSports) }
     // „Heatmap & Routen": Zustand hier (nicht in der Listenzeile), Lage des Spots fuer die Karte
     @State private var heatZustand: SpotPanelZustand? = nil
     @State private var spotOrt: (Double, Double)? = nil
@@ -65,9 +65,13 @@ struct SpotSessionsView: View {
             // der Liste), bei „alle" ein Kasten je Sportart (PWA a9725cb9).
             // Rekorde ueber ALLE Sessions (wie Android SpotRecordsSection(accelOnly = false)): vorher nur die
             // mit Bewegungsdaten — an Spots mit vielen GPS-Aufnahmen (Cléder) blieb so nur SUP uebrig.
-            SpotRecordsView(spot: spot, lang: lang, accelOnly: false,
-                            sport: aktSport, sports: sportarten.map { $0.sport },
-                            onAktiv: { rekordSport = $0 }, onSport: { sportWaehlen($0) })
+            // Sportart-Knoepfe als Filter der Seite, ueber den Rekorden (Jan, 28.10.2026).
+            if !spotSports.isEmpty || aktSport != "all" {
+                Section { SpotSportKnoepfe(spotSports: spotSports, sport: aktSport, lang: lang) { sportWaehlen($0) } }
+            }
+            if let rs = rekordSport {
+                SpotRecordsView(spot: spot, lang: lang, accelOnly: false, sport: rs, sports: [rs])
+            }
             // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
             if let hz = heatZustand, let ort = spotOrt {
                 Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: aktSport != "all" ? aktSport : (rekordSport ?? "all"), lang: lang, routeAusLink: routeId) }
@@ -116,8 +120,8 @@ struct SpotSessionsView: View {
         .task {
             if items.isEmpty { await load() }
             if spotId == nil { spotId = vorgegebeneSpotId }
-            if sportarten.isEmpty {
-                sportarten = (try? await Api.communitySports()) ?? []
+            if spotSports.isEmpty {
+                spotSports = ((try? await Api.communitySports(spot: spot)) ?? []).map { $0.sport }
             }
             async let w = Api.spotWeather(spot)
             async let karte = Api.spotMap(accelOnly: false)

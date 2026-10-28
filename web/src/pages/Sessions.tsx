@@ -248,8 +248,19 @@ export default function Sessions() {
   // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
   const sport = sp.get("sport") || "all";
   const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
-  // Sportart, die der Rekord-Kasten am Spot gerade zeigt — die Heatmap folgt ihr (28.10.2026).
-  const [rekordSport, setRekordSport] = useState<string | null>(null);
+  // Sportarten DIESES Spots fuer die Filter-Knoepfe der Spot-Seite (Jan, 28.10.2026: „die buttons sind
+  // ja jetzt die generellen filter, sollten also ueber die 'records at this spot' ueberschrift").
+  const [spotSports, setSpotSports] = useState<string[]>([]);
+  useEffect(() => {
+    setSpotSports([]);
+    if (!spot) return;
+    let aktuell = true;
+    api.communitySports(spot).then((l) => { if (aktuell) setSpotSports(l.map((x) => x.sport)); }).catch(() => {});
+    return () => { aktuell = false; };
+  }, [spot]);
+  // Sportart von Rekorden und Heatmap: der Filter, bei „Alle" Pumpfoil, sonst die erste des Spots.
+  const rekordSport: string | null = sport !== "all" ? sport
+    : (spotSports.includes("pumpfoil") ? "pumpfoil" : (spotSports[0] ?? null));
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
   const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
@@ -431,11 +442,32 @@ export default function Sessions() {
       {/* Rekorde an DIESEM Spot — ganz oben, ueber dem Wetter (Nutzer-Idee aus dem Feedback,
           Jan 06.09.). Dieselben Kacheln und dieselben Zeitfenster wie auf der Community-Seite,
           nur eben auf den Spot eingegrenzt. */}
-      {spot && <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} sports={sports.map((x) => x.sport)}
-                            onAktiv={setRekordSport} onSport={setSport} />}
+      {/* Sportart-Knoepfe = Filter der ganzen Spot-Seite (Liste, Rekorde, Heatmap), UEBER den Rekorden
+          (Jan, 28.10.2026). „Alle" + die Sportarten dieses Spots; eine per Link gewaehlte ohne Session
+          hier steht trotzdem da, sonst kaeme man nicht zurueck. */}
+      {spot && (() => {
+        const knoepfe = [...spotSports, ...(sport !== "all" && !spotSports.includes(sport) ? [sport] : [])];
+        if (knoepfe.length < 2 && sport === "all") return null;
+        return (
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            {["all", ...knoepfe].map((s) => (
+              <button
+                key={s}
+                onClick={() => setSport(s)}
+                className={`rounded-full border px-3 py-1 text-sm ${s === sport
+                  ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+                  : "border-slate-700 text-slate-200 hover:border-slate-500"}`}
+              >
+                {s === "all" ? t("all.allSports") : t(`cls.sport.${s}`)}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+      {spot && rekordSport && <SpotRecords spot={spot} accelOnly={accelOnly} sport={rekordSport} />}
       {/* Heatmap des Spots zwischen Rekorden und Wetter (Jan, 16.10.2026) — nur bei echter Spot-id.
           Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle". */}
-      {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} sport={sport !== "all" ? sport : (rekordSport ?? "all")} />}
+      {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} sport={rekordSport ?? "all"} />}
       {spot && <SpotWeather spot={spot} />}
       {spot && /^\d+$/.test(spot) && <SpotWindfenster spotId={Number(spot)} />}
       {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
@@ -1438,66 +1470,26 @@ function hatRekorde(satz: unknown): boolean {
 
 type SpotRecSatz = Awaited<ReturnType<typeof api.communityRecords>>;
 
-/** Rekorde am Spot, EIN Kasten fuer EINE Sportart (Jan, 28.10.2026). Je Sportart getrennt bleibt es
- * (29.09.2026, Anlass ThermikDreher: ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord).
- *
- * Die Knoepfe oben sind der SPORTARTEN-FILTER DER GANZEN SPOT-SEITE (Jan, 28.10.2026: Dropdown in der
- * Spot-Ansicht raus, „Knoepfe filtern alles"): „Alle" plus die Sportarten mit Rekord an diesem Spot.
- * Ein Knopf setzt `sport` der Seite — Liste, Rekorde und Heatmap folgen. Bei „Alle" zeigen die Rekorde
- * Pumpfoil, sonst die erste Sportart mit Rekord. Dafuer werden IMMER alle Sportarten abgefragt, nicht
- * nur die gewaehlte — sonst kennte die Knopfzeile nach einem Klick nur noch diese eine. */
-function SpotRecords({ spot, accelOnly, sport, sports, onAktiv, onSport }:
-    { spot: string; accelOnly: boolean; sport: string; sports: string[]; onAktiv?: (s: string | null) => void;
-      onSport: (s: string) => void }) {
+/** Rekorde am Spot fuer EINE Sportart. Je Sportart getrennt (29.09.2026, Anlass ThermikDreher: ein
+ * Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord). Welche Sportart, bestimmen die
+ * Filter-Knoepfe der Spot-Seite darueber (Jan, 28.10.2026). */
+function SpotRecords({ spot, accelOnly, sport }: { spot: string; accelOnly: boolean; sport: string }) {
   const t = useT();
-  const liste = sports.length ? sports : ["pumpfoil"];
-  const schluessel = liste.join(",");
-  const [daten, setDaten] = useState<Record<string, SpotRecSatz | null>>({});
-
+  const [data, setData] = useState<SpotRecSatz | null>(null);
   useEffect(() => {
-    setDaten({});
+    setData(null);
     let aktuell = true;
-    for (const s of liste) {
-      api.communityRecords(accelOnly, s, "all", spot)
-        .then((d) => { if (aktuell) setDaten((alt) => ({ ...alt, [s]: d })); })
-        .catch(() => { if (aktuell) setDaten((alt) => ({ ...alt, [s]: null })); });
-    }
+    api.communityRecords(accelOnly, sport, "all", spot)
+      .then((d) => { if (aktuell) setData(d); }).catch(() => { if (aktuell) setData(null); });
     return () => { aktuell = false; };
-  }, [spot, accelOnly, schluessel]);   // eslint-disable-line react-hooks/exhaustive-deps
-
-  const mit = liste.filter((s) => {
-    const d = daten[s];
-    return !!d && SPOT_FENSTER.some((k) => hatRekorde((d as Record<string, unknown>)[k]));
-  });
-  const aktiv: string | undefined = sport !== "all" ? sport : (mit.includes("pumpfoil") ? "pumpfoil" : mit[0]);
-  const gezeigt = aktiv && (mit.includes(aktiv) || sport !== "all") ? aktiv : null;
-  // Der Seite melden, welche Sportart hier steht (die Heatmap folgt ihr); null = kein Kasten.
-  useEffect(() => { onAktiv?.(gezeigt); }, [gezeigt]);   // eslint-disable-line react-hooks/exhaustive-deps
-  // Eine per Link/Spot-Karte gewaehlte Sportart ohne Rekord hier trotzdem als Knopf, sonst kaeme man
-  // nicht zurueck auf „Alle". Ganz ohne Rekorde und ohne Filter: kein Kasten (Gourvieille, s. oben).
-  const knoepfe = [...mit, ...(sport !== "all" && !mit.includes(sport) ? [sport] : [])];
-  if (!gezeigt) return null;
-  const satz = daten[gezeigt];
+  }, [spot, accelOnly, sport]);
+  // Gar kein Rekord in dieser Sportart? Dann auch keinen Kasten — sonst stuenden zwoelf leere
+  // Kacheln ueber dem Wetter (an Gourvieille gesehen).
+  if (!data || !SPOT_FENSTER.some((k) => hatRekorde((data as Record<string, unknown>)[k]))) return null;
   return (
     <Card className="mb-3 p-4">
-      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${gezeigt}`)}</h3>
-      {(knoepfe.length > 1 || sport !== "all") && (
-        <div className="mb-2 flex flex-wrap items-center gap-1.5">
-          {["all", ...knoepfe].map((s) => (
-            <button
-              key={s}
-              onClick={() => onSport(s)}
-              className={`rounded-full border px-3 py-1 text-sm ${s === sport
-                ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
-                : "border-slate-700 text-slate-200 hover:border-slate-500"}`}
-            >
-              {s === "all" ? t("all.allSports") : t(`cls.sport.${s}`)}
-            </button>
-          ))}
-        </div>
-      )}
-      {satz ? <SpotRecordsSport key={gezeigt} sport={gezeigt} data={satz} />
-            : <RecordGrid rec={null} sport={gezeigt} />}
+      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${sport}`)}</h3>
+      <SpotRecordsSport key={sport} sport={sport} data={data} />
     </Card>
   );
 }

@@ -164,8 +164,11 @@ enum Api {
 
     // Sportarten mit mindestens einem Lauf (all time, Community-Filter) — Auswahl des
     // Sportart-Filters in Sessions-Liste und Spot-Karte (PWA api.communitySports).
-    static func communitySports() async throws -> [CommunitySport] {
-        try await request("/api/community/sports", method: "GET", body: nil, auth: true)
+    /// `spot`: nur die Sportarten dieses Spots (Sessions statt Laeufe; Filter-Knoepfe der Spot-Seite, 28.10.2026).
+    static func communitySports(spot: String? = nil) async throws -> [CommunitySport] {
+        var pfad = "/api/community/sports"
+        if let spot, !spot.isEmpty { pfad += "?spot=" + (spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot) }
+        return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
     /// Eigene Uhren, die vermutlich gerade aufnehmen (wie die PWA-Startseite).
