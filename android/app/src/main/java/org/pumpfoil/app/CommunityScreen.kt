@@ -533,7 +533,7 @@ private fun hhmmOfDay(v: Double): String {
 // dateiprivat, weil nur dieses Raster sie braucht.
 @Composable
 fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier,
-               sport: String? = null, nurSport: Boolean = false) {
+               sport: String? = null, nurSport: Boolean = false, nurBelegt: Boolean = false) {
     // Rekord-Arten je Sportart wie im Web (19.10.2026): Wind ohne Gleit-/Pump-/Laufzahl-/Carve-
     // Rekorde und mit der laengsten Fahrt zuerst; Motor ohne Gleit-/Pump-Rekorde. Sonst wie bisher.
     val wind = Sportarten.windArtig(sport)
@@ -564,7 +564,11 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
     val ohneTexte = ohne.map { I18n.t(it) }.toSet()
     // Rekorde je Sportart (20.10.2026) ans Ende; `nurSport` = nur diese (eigene Zeile je Sportart).
     val zusatz = sportRecItems(r, sport)
-    val items = if (nurSport) zusatz else alle.filter { it.label !in ohneTexte } + zusatz
+    val items0 = if (nurSport) zusatz else alle.filter { it.label !in ohneTexte } + zusatz
+    // `nurBelegt` (Spot-Ansicht, Jan 28.10.2026): nur Kacheln mit Rekord, keine Reihen aus „–".
+    // Hat das Zeitfenster gar keinen Rekord, bleiben die „–"-Kacheln (statt einer leeren Flaeche).
+    val belegt = if (nurBelegt && r != null) items0.filter { it.e.value > 0.0 && (it.e.sessionId != null || it.ohneSession) } else emptyList()
+    val items = belegt.ifEmpty { items0 }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

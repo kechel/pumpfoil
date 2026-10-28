@@ -211,10 +211,16 @@ function recItemsBasis(sport?: string) {
 }
 
 // Auch von der Foil-Detailseite benutzt — dieselben Kacheln, damit Rekorde ueberall gleich aussehen.
-export function RecordGrid({ rec, showSpot, sport, nurSport }: { rec?: RecordSet | null; showSpot?: boolean; sport?: string; nurSport?: boolean }) {
+export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?: RecordSet | null; showSpot?: boolean; sport?: string; nurSport?: boolean; nurBelegt?: boolean }) {
   const t = useT();
   // `nurSport`: nur die Rekorde je Sportart (eigene Zeile je Sportart auf Home/Profil, 20.10.2026).
-  const items = nurSport ? REC_ITEMS.filter((it) => (SPORT_REC[sport ?? ""] ?? []).includes(it.key as string)) : recItemsFuer(sport);
+  const alleItems = nurSport ? REC_ITEMS.filter((it) => (SPORT_REC[sport ?? ""] ?? []).includes(it.key as string)) : recItemsFuer(sport);
+  // `nurBelegt` (Spot-Ansicht, Jan 28.10.2026): nur Kacheln mit Rekord, keine Reihen aus „–".
+  // Hat das Zeitfenster gar keinen Rekord, bleiben die „–"-Kacheln (statt einer leeren Flaeche).
+  const belegt = nurBelegt && rec
+    ? alleItems.filter((it) => { const r = rec[it.key]; return !!(r && r.value && (r.session_id || it.key === "carves180")); })
+    : [];
+  const items = belegt.length ? belegt : alleItems;
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
       {items.map((it) => {

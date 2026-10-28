@@ -296,7 +296,13 @@ struct SpotRecordsKasten: View {
         return fenster.contains { !rekordZeilen(alle[$0], lang: lang, sport: sport).allSatisfy { $0.entry == nil } }
     }
 
-    private var zeilen: [RecRow] { rekordZeilen(alle[fensterWahl], lang: lang, sport: sport) }
+    // Nur Kacheln mit Rekord, keine Reihen aus „–" (Jan, 28.10.2026; wie PWA/Android). Hat das
+    // Zeitfenster gar keinen, bleiben die „–"-Kacheln statt einer leeren Flaeche.
+    private var zeilen: [RecRow] {
+        let alleZeilen: [RecRow] = rekordZeilen(alle[fensterWahl], lang: lang, sport: sport)
+        let belegt: [RecRow] = alleZeilen.filter { $0.entry != nil }
+        return belegt.isEmpty ? alleZeilen : belegt
+    }
 
     private var titel: String {
         let t: String = Loc.t("rec.spotTitle", lang)
