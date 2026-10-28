@@ -7,7 +7,7 @@ import { useT } from "../i18n";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 const MAX_DATEIEN = 3;   // gleiche Grenze wie im Server
-const MAX = 500;
+const MAX = 2000;   // = server/app/api/feedback.py MAX_LEN
 
 // Global sichtbares Feedback-Widget: kleiner Tab am rechten Rand (vertikal zentriert),
 // öffnet ein Panel mit Textfeld. Speichert die aktuelle URL mit.

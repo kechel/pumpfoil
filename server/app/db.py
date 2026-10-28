@@ -199,6 +199,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS pumpfoil_override BOOLEAN",
         # Feedback: ⭐-Markierung fürs Testimonial-Archiv (überlebt 'Alle löschen').
         "ALTER TABLE feedback ADD COLUMN IF NOT EXISTS starred BOOLEAN DEFAULT false",
+        # Feedback-Text: VARCHAR(500) -> TEXT (28.10.2026, Grenze jetzt 2000 in api/feedback.py MAX_LEN).
+        "ALTER TABLE feedback ALTER COLUMN text TYPE TEXT",
         "CREATE UNIQUE INDEX IF NOT EXISTS ix_sessions_share_token ON sessions (share_token)",
         # Reverse-Pairing: Uhr meldet ihre Plattform/Label bei pair-init -> beim Claim übernommen.
         "ALTER TABLE device_pairings ADD COLUMN IF NOT EXISTS label VARCHAR(120)",

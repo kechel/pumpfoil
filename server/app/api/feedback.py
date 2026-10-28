@@ -17,7 +17,8 @@ from .deps import current_user
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
 
-MAX_LEN = 500
+# 2000 statt 500 seit 28.10.2026 (u146: 500 reichte fuer einen Fehlerbericht nicht; Spalte ist TEXT).
+MAX_LEN = 2000
 
 
 class FeedbackIn(BaseModel):

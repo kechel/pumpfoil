@@ -989,7 +989,7 @@ class Feedback(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    text: Mapped[str] = mapped_column(String(500))
+    text: Mapped[str] = mapped_column(Text)   # TEXT seit 28.10.2026, Grenze in api/feedback.py MAX_LEN
     url: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     # ⭐ = fürs Testimonial-Archiv markiert (Werbe-Zitate): überlebt „Alle löschen".
