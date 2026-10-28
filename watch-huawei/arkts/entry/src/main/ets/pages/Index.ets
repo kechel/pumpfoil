@@ -418,6 +418,7 @@ struct Index {
    */
   private krone(e: CrownEvent): void {
     if (deviceInfo.sdkApiVersion >= 18) {   // nur dort haengt build() die Krone an
+      console.info('Pumpfoil krone ' + e.action + ' ' + e.degree.toFixed(1) + ' ' + this.ansicht);
       if (this.ansicht === 'auswahl' || this.ansicht === 'datenschutz') {
         if (this.ansicht === 'auswahl' && e.degree < 0 && this.scroller.currentOffset().yOffset <= 0) {
           this.kroneSumme += e.degree;
