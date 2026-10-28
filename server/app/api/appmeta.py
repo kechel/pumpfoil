@@ -1040,8 +1040,9 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 28.10.2026 abends, nach der Einreichung von 1.1.45: Heatmap folgt der Rekord-Sportart. Nicht gebumpt
-    # (1.1.45 liegt im Review, Memory versionen-erst-bei-release).
+    # 28.10.2026 abends, nach der Einreichung von 1.1.45: Heatmap folgt der Rekord-Sportart, Spot-Knoepfe,
+    # Spot-Auswahlfeld raus. Auf Jans Wunsch gebumpt auf Phone 1.1.46 (61) / Wear 1.2.46 (1057): er ersetzt
+    # die noch nicht freigegebene 1.1.45 in der Play-Pruefung.
     {"name": "Android phone + Wear OS", "version": "1.1.46 / 1.2.46",
      "items": ["The heatmap on a spot page switches to the sport you pick for the records.", "On a spot page the sport buttons above the records filter the whole page (sessions, records and heatmap) and replace the sport menu there; they show only the sports ridden at that spot.", "The session list no longer has a spot menu; you get to a spot through the spot map and its search, your homespot tab or the spot link of a session."]},
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
