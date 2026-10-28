@@ -195,7 +195,8 @@ return kopf + gefiltert + zusatz
 ///
 /// JE SPORTART (PWA a9725cb9, 29.09.2026; Anlass: ein Nutzer vermisste seine Foil-Scoot-Rekorde am
 /// Spot, abgefragt wurde fest Pumpfoil). Folgt dem Sportarten-Filter der Seite: eine Sportart
-/// gewaehlt -> nur deren Rekorde; „alle Sportarten" -> ein Kasten JE Sportart, nicht ein gemischter
+/// gewaehlt -> nur deren Rekorde; „alle Sportarten" -> EIN Kasten mit Umschalter je Sportart (seit
+/// 28.10.2026, vorher ein Kasten je Sportart untereinander), nie ein gemischter
 /// — ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord. Kaesten ohne Rekord fallen
 /// weg. Gibt es in KEINEM Kasten einen Rekord, steht EIN Hinweis da (s. unten, warum nicht nichts).
 struct SpotRecordsView: View {
@@ -226,6 +227,17 @@ struct SpotRecordsView: View {
         return teile.joined(separator: "|")
     }
 
+    @State private var wahl: String?
+
+    /// Angezeigte Sportart: Filter der Seite, sonst eigene Wahl, sonst Pumpfoil, sonst die erste.
+    private var aktiv: String {
+        if sport != "all" { return sport }
+        let mit: [String] = mitRekorden
+        if let w = wahl, mit.contains(w) { return w }
+        if mit.contains("pumpfoil") { return "pumpfoil" }
+        return mit.first ?? "pumpfoil"
+    }
+
     private var mitRekorden: [String] {
         liste.filter { SpotRecordsKasten.hatRekorde(jeSportart[$0], lang: lang, sport: $0) }
     }
@@ -246,9 +258,12 @@ struct SpotRecordsView: View {
                 Section { Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("rec.spotTitle", lang)) }
             } else {
-                ForEach(mitRekorden, id: \.self) { s in
-                    SpotRecordsKasten(sport: s, alle: jeSportart[s] ?? [:], lang: lang, ladeStand: ladeStand)
-                }
+                // EIN Kasten fuer EINE Sportart mit Umschalter (Jan, 28.10.2026; wie PWA/Android).
+                // `.id` setzt das Zeitfenster beim Sportart-Wechsel neu.
+                SpotRecordsKasten(sport: aktiv, alle: jeSportart[aktiv] ?? [:], lang: lang, ladeStand: ladeStand,
+                                  sportWahl: mitRekorden.count > 1 ? mitRekorden : [],
+                                  onSport: { wahl = $0 })
+                    .id(aktiv)
             }
         }
         .task(id: ladeSchluessel) { await laden() }
@@ -285,6 +300,9 @@ struct SpotRecordsKasten: View {
     let alle: [String: PeriodRecords]
     let lang: String
     let ladeStand: Int
+    /// Sportarten zum Umschalten (leer = nur eine, kein Umschalter).
+    var sportWahl: [String] = []
+    var onSport: (String) -> Void = { _ in }
 
     static let fenster = ["10d", "30d", "365d", "all"]
 
@@ -317,6 +335,15 @@ struct SpotRecordsKasten: View {
 
     var body: some View {
         Section {
+            if !sportWahl.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(sportWahl, id: \.self) { s in
+                            sportKnopf(s)
+                        }
+                    }
+                }
+            }
             Picker("", selection: wahl) {
                 ForEach(Self.fenster, id: \.self) { f in
                     Text(Loc.t("period.\(f)", lang)).tag(f)
@@ -343,6 +370,18 @@ struct SpotRecordsKasten: View {
         fensterWahl = Self.fenster.first {
             !rekordZeilen(alle[$0], lang: lang, sport: sport).allSatisfy { $0.entry == nil }
         } ?? "all"
+    }
+
+    private func sportKnopf(_ s: String) -> some View {
+        let an: Bool = s == sport
+        return Button { onSport(s) } label: {
+            Text(Loc.t("cls.sport.\(s)", lang)).font(.subheadline)
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .foregroundStyle(an ? Color.black : Color.primary)
+                .background(an ? Color.accentColor : Color(.secondarySystemBackground))
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     private func kachel(_ z: RecRow) -> some View {

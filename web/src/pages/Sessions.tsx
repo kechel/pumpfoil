@@ -1465,49 +1465,78 @@ function hatRekorde(satz: unknown): boolean {
     .some((r) => r && r.session_id != null);
 }
 
-/** Rekorde je Sportart (Jan, 29.09.2026, Anlass ThermikDreher: seine Foil-Scoot-Rekorde fehlten am
- * Spot, weil hier fest „pumpfoil" abgefragt wurde). Folgt dem Sportarten-Filter der Seite: eine
- * Sportart gewaehlt -> nur deren Rekorde; „alle Sportarten" -> ein Kasten JE Sportart, nicht ein
- * gemischter — ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord. Kaesten ohne
- * Rekord blenden sich selbst aus. */
+type SpotRecSatz = Awaited<ReturnType<typeof api.communityRecords>>;
+
+/** Rekorde am Spot, EIN Kasten fuer EINE Sportart (Jan, 28.10.2026: „die rekorde bitte nur fuer eine
+ * sportart und … zum umschalten"). Je Sportart getrennt bleibt es (29.09.2026, Anlass ThermikDreher:
+ * ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord) — nur stehen die Sportarten jetzt
+ * als Umschalter oben statt als Kaesten untereinander. Zur Wahl stehen nur Sportarten mit Rekord an
+ * diesem Spot. Ist oben ein Sportarten-Filter gesetzt, zeigt der Kasten genau diese Sportart. */
 function SpotRecords({ spot, accelOnly, sport, sports }:
     { spot: string; accelOnly: boolean; sport: string; sports: string[] }) {
-  const liste = sport !== "all" ? [sport] : (sports.length ? sports : ["pumpfoil"]);
-  return <>{liste.map((s) => <SpotRecordsSport key={s} spot={spot} accelOnly={accelOnly} sport={s} />)}</>;
-}
-
-function SpotRecordsSport({ spot, accelOnly, sport }: { spot: string; accelOnly: boolean; sport: string }) {
   const t = useT();
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.communityRecords>> | null>(null);
-  const [period, setPeriod] = useState("10d");
-  // Sobald der Nutzer selbst ein Fenster gewaehlt hat, wird es nicht mehr verschoben — sonst
-  // spraenge seine Wahl beim naechsten Laden zurueck.
-  const selbstGewaehlt = useRef(false);
+  const liste = sport !== "all" ? [sport] : (sports.length ? sports : ["pumpfoil"]);
+  const schluessel = liste.join(",");
+  const [daten, setDaten] = useState<Record<string, SpotRecSatz | null>>({});
+  const [wahl, setWahl] = useState<string | null>(null);
 
   useEffect(() => {
-    setData(null);
-    api.communityRecords(accelOnly, sport, "all", spot).then((d) => {
-      setData(d);
-      if (!selbstGewaehlt.current) {
-        // Erstes Fenster, in dem es etwas zu sehen gibt. Ohne das steht an ruhigeren Spots
-        // eine Wand aus leeren Kacheln, obwohl es Rekorde gibt — nur aeltere.
-        setPeriod(SPOT_FENSTER.find((k) => hatRekorde((d as Record<string, unknown>)[k])) ?? "all");
-      }
-    }).catch(() => setData(null));
-  }, [spot, accelOnly, sport]);
+    setDaten({});
+    let aktuell = true;
+    for (const s of liste) {
+      api.communityRecords(accelOnly, s, "all", spot)
+        .then((d) => { if (aktuell) setDaten((alt) => ({ ...alt, [s]: d })); })
+        .catch(() => { if (aktuell) setDaten((alt) => ({ ...alt, [s]: null })); });
+    }
+    return () => { aktuell = false; };
+  }, [spot, accelOnly, schluessel]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Gar nichts an diesem Spot? Dann auch keinen Kasten — an einem Spot ohne Sessions stuenden
-  // sonst zwoelf leere Kacheln ueber dem Wetter (an Gourvieille gesehen, wo ein Nutzer seine
-  // Aufzeichnungen geloescht hat).
-  if (!data || !SPOT_FENSTER.some((k) => hatRekorde((data as Record<string, unknown>)[k]))) return null;
+  // sonst zwoelf leere Kacheln ueber dem Wetter (an Gourvieille gesehen).
+  const mit = liste.filter((s) => {
+    const d = daten[s];
+    return !!d && SPOT_FENSTER.some((k) => hatRekorde((d as Record<string, unknown>)[k]));
+  });
+  const aktiv = sport !== "all" ? sport
+    : (wahl && mit.includes(wahl) ? wahl : (mit.includes("pumpfoil") ? "pumpfoil" : mit[0]));
+  if (!aktiv || !mit.includes(aktiv)) return null;
   return (
     <Card className="mb-3 p-4">
-      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${sport}`)}</h3>
+      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${aktiv}`)}</h3>
+      {mit.length > 1 && (
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          {mit.map((s) => (
+            <button
+              key={s}
+              onClick={() => setWahl(s)}
+              className={`rounded-full border px-3 py-1 text-sm ${s === aktiv
+                ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+                : "border-slate-700 text-slate-200 hover:border-slate-500"}`}
+            >
+              {t(`cls.sport.${s}`)}
+            </button>
+          ))}
+        </div>
+      )}
+      <SpotRecordsSport key={aktiv} sport={aktiv} data={daten[aktiv]!} />
+    </Card>
+  );
+}
+
+function SpotRecordsSport({ sport, data }: { sport: string; data: SpotRecSatz }) {
+  const t = useT();
+  // Erstes Fenster, in dem es etwas zu sehen gibt. Ohne das steht an ruhigeren Spots eine Wand
+  // aus leeren Kacheln, obwohl es Rekorde gibt — nur aeltere. Eigene Wahl gilt, bis die Sportart
+  // wechselt (key am Aufrufer).
+  const [period, setPeriod] = useState(
+    () => SPOT_FENSTER.find((k) => hatRekorde((data as Record<string, unknown>)[k])) ?? "all");
+  return (
+    <>
       <div className="mb-3 flex flex-wrap items-center gap-1">
         {PERIODS.map(([k, labelKey]) => (
           <button
             key={k}
-            onClick={() => { selbstGewaehlt.current = true; setPeriod(k); }}
+            onClick={() => setPeriod(k)}
             className={`rounded-lg px-2.5 py-1 text-xs ${period === k
               ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
           >
@@ -1516,6 +1545,6 @@ function SpotRecordsSport({ spot, accelOnly, sport }: { spot: string; accelOnly:
         ))}
       </div>
       <RecordGrid rec={data[period]} sport={sport} nurBelegt />
-    </Card>
+    </>
   );
 }
