@@ -1498,6 +1498,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **28.10. — Android: Spot-Seite friert beim Runterscrollen ein, auch in der LIVE-Fassung 1.1.44** (Jan auf seinem Handy bestaetigt, Illmensee). Ursache: osmdroid-Endlosschleife bei `zoomToBoundingBox` auf einer 0×0-Karte (Heatmap-Karte in der LazyColumn). Fix `a5ba1c61` (`MapView.einpassen`), kommt mit 1.1.45 -> **1.1.45 zuegig einreichen.** Jan informiert die Community im Chat. iOS nicht betroffen (MapKit, kein osmdroid).
 - **27.10. — ThermikDreher (u267, FR965 1.0.97): Scoot-Brett-Paar + Fehlermeldung.** Brett #19235 (Samsung, auto board) parallel zu
   vier Uhr-Sessions je Stab (#19244 Supra Trail S, #19250 Supra Trail L, #19262 Ultra Trail S, #19275 Supra Trail 3XL stabless),
   alle Bloecke vollstaendig, 24,9 Hz -> in `ANDERE_SPORTART` (paare_ausrichten.py), Wahrheit fuer pg-scoot + Stab-Vergleich.
