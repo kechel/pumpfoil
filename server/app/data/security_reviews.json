@@ -6,20 +6,62 @@
       "titel": "Security review",
       "text": "We went through the server, the website and the app interfaces looking for weaknesses. This is what we changed.",
       "punkte": [
-        {"bereich": "Hidden location", "text": "\"Hide location\" now holds everywhere: records, photos, spot comparison, share images, run details and what friends see while you ride."},
-        {"bereich": "Signing out", "text": "Changing or resetting your password signs you out on all other devices."},
-        {"bereich": "Passwords", "text": "Better protection against password guessing, and passwords are stored with stronger hashing, upgraded automatically at your next login."},
-        {"bereich": "Sign in with Google, Apple, Facebook", "text": "An existing account is only joined by e-mail address when the provider has confirmed that address."},
-        {"bereich": "Connected accounts", "text": "Connecting Polar, Suunto or COROS only completes for the account that started it, and their access keys are stored encrypted."},
-        {"bereich": "Watches", "text": "Pairing codes can no longer be tried out in bulk, and watch keys are stored only in a form that cannot be used if it ever leaked."},
-        {"bereich": "Uploads", "text": "Oversized or malformed files (archives, images, workout files, recordings) are rejected before they can strain the server."},
-        {"bereich": "Share links", "text": "Share links switch themselves off after four weeks."},
-        {"bereich": "Blocked photos", "text": "A blocked photo can no longer be opened through its direct link."},
-        {"bereich": "AI access", "text": "The consent page shows in large letters which service your recordings go to, and warns if it is not a known AI provider."},
-        {"bereich": "Software updates", "text": "Server and website libraries were updated and are checked automatically every week for known vulnerabilities."},
-        {"bereich": "Public code", "text": "An automatic check stops data files and secrets from being published to our public code repository."},
-        {"bereich": "Server", "text": "The server runs in a locked-down environment and can only write where it has to."},
-        {"bereich": "Smaller fixes", "text": "Technical API docs are no longer public, notification and admin functions were tightened and several checks were made stricter."}
+        {
+          "bereich": "Hidden location",
+          "text": "\"Hide location\" now holds everywhere: records, photos, spot comparison, share images, run details and what friends see while you ride."
+        },
+        {
+          "bereich": "Signing out",
+          "text": "Changing or resetting your password signs you out on all other devices."
+        },
+        {
+          "bereich": "Passwords",
+          "text": "Better protection against password guessing, and passwords are stored with stronger hashing, upgraded automatically at your next login."
+        },
+        {
+          "bereich": "Sign in with Google, Apple, Facebook",
+          "text": "An existing account is only joined by e-mail address when the provider has confirmed that address."
+        },
+        {
+          "bereich": "Connected accounts",
+          "text": "Connecting Polar, Suunto or COROS only completes for the account that started it, and their access keys are stored encrypted."
+        },
+        {
+          "bereich": "Watches",
+          "text": "Pairing codes can no longer be tried out in bulk, and watch keys are stored only in a form that cannot be used if it ever leaked."
+        },
+        {
+          "bereich": "Uploads",
+          "text": "Oversized or malformed files (archives, images, workout files, recordings) are rejected before they can strain the server."
+        },
+        {
+          "bereich": "Share links",
+          "text": "Share links switch themselves off after four weeks."
+        },
+        {
+          "bereich": "Blocked photos",
+          "text": "A blocked photo can no longer be opened through its direct link."
+        },
+        {
+          "bereich": "AI access",
+          "text": "The consent page shows in large letters which service your recordings go to, and warns if it is not a known AI provider."
+        },
+        {
+          "bereich": "Software updates",
+          "text": "Server and website libraries were updated and are checked automatically every week for known vulnerabilities."
+        },
+        {
+          "bereich": "Public code",
+          "text": "An automatic check stops data files and secrets from being published to our public code repository."
+        },
+        {
+          "bereich": "Server",
+          "text": "The server runs in a locked-down environment and can only write where it has to."
+        },
+        {
+          "bereich": "Smaller fixes",
+          "text": "Notification and admin functions were tightened and several checks were made stricter."
+        }
       ]
     }
   ]
