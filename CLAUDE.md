@@ -38,6 +38,9 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - `foil-backup-snapshot.timer` → **monatlich am 1., 04:00** (`OnCalendar=*-*-01`, am 21.09.2026
   gegen die Unit geprueft; hier stand vorher „Mi 04:00", das war nie so) → `backup-snapshot.sh`: `cp -al` → permanenter
   Hardlink-Snapshot unter `…/hardlink-snapshots/<stamp>`.
+- **Nur `jan` darf die Sicherungen lesen** (29.10.2026): `/opt/foil` steht auf 700, die Skripte setzen
+  `umask 077` und ziehen die Rechte bei jedem Lauf nach. Auf der VM gibt es weitere Nutzer (andere
+  Projekte); vorher waren alle DB-Dumps fuer sie lesbar. Der Pull von host17 laeuft als `jan`.
 - `backup-secrets.sh` (von `backup-latest.sh` mit aufgerufen): `server/.env` +
   `vapid_private.pem` + Garmin-`developer_key.der` **GPG-verschlüsselt an Jans Key**
   (Fingerprint im Skript gepinnt; nur Public-Key auf der VM) → `latest-backup/secrets.tar.gz.gpg`,

@@ -12,12 +12,16 @@
 # im latest-backup-Ordner und wandert damit automatisch durch die bestehende Pull-Kette
 # (VM -> jan-personal-agent -> host17). Aufgerufen am Ende von backup-latest.sh (täglich 03:30).
 set -euo pipefail
+# Nur jan darf die Sicherungen lesen (29.10.2026): auf der VM gibt es weitere Nutzer, und hier liegen
+# DB-Dumps, Rohdaten und Fotos. Der Pull von host17 laeuft als jan.
+umask 077
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(dirname "$HERE")"
 BASE="${BACKUP_BASE:-/opt/foil/backups/pumpfoil.org}"
 LATEST="$BASE/latest-backup"
 mkdir -p "$LATEST"
+case "$BASE" in /opt/foil/*) chmod 700 /opt/foil /opt/foil/backups "$BASE" ;; esac
 
 # Voller Fingerprint statt Key-ID oder Mail-Adresse: pinnt EXAKT den beabsichtigten Schlüssel
 # (Jans aktueller, gültig bis 2031); eine Mail-Adresse würde beim nächsten Import eines weiteren

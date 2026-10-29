@@ -4,6 +4,9 @@
 #   - Roh-Session-Daten + Medien als HARDLINKS (immutable -> ~0 Extra-Platz)
 # DATABASE_URL kommt aus dem systemd-EnvironmentFile (.env).
 set -euo pipefail
+# Nur jan darf die Sicherungen lesen (29.10.2026): auf der VM gibt es weitere Nutzer, und hier liegen
+# DB-Dumps, Rohdaten und Fotos. Der Pull von host17 laeuft als jan.
+umask 077
 
 # PROJECT robust aus dem Skript-Ort ableiten (Repo liegt unter /home/jan, nicht /opt).
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -11,6 +14,7 @@ PROJECT="$(dirname "$HERE")/server"
 BASE="${BACKUP_BASE:-/opt/foil/backups/pumpfoil.org}"
 LATEST="$BASE/latest-backup"
 mkdir -p "$LATEST"
+case "$BASE" in /opt/foil/*) chmod 700 /opt/foil /opt/foil/backups "$BASE" ;; esac
 
 : "${DATABASE_URL:?DATABASE_URL nicht gesetzt}"
 LIBPQ="${DATABASE_URL/postgresql+psycopg:/postgresql:}"
