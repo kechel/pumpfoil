@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Sperre gegen Nutzerdaten im oeffentlichen Repo.
 
-WARUM (29.10.2026): Am 31.08. ging ein Sicherungsordner aus `tmp/` mit in einen Commit —
-Session-Zeilen von 16 Nutzern samt Rohdaten (GPS, Beschleunigung). Das Repo ist oeffentlich, und
-was einmal gepusht ist, laesst sich nicht vollstaendig zurueckholen (Forks, Klone). Seitdem prueft
-dieses Skript jede neue oder geaenderte Datei, BEVOR sie das Repo verlaesst:
+WARUM (29.10.2026): Das Repo ist oeffentlich, und was einmal gepusht ist, laesst sich nicht
+vollstaendig zurueckholen (Forks, Klone). Arbeitsdateien wie Sicherungen oder Datenbank-Abzuege
+duerfen deshalb nie mit in einen Commit geraten. Dieses Skript prueft jede neue oder geaenderte
+Datei, BEVOR sie das Repo verlaesst:
 
   * pre-commit-Hook (scripts/git-hooks/pre-commit): `--staged`, haelt den Commit an.
   * CI (.github/workflows/ci.yml): `--range A..B`, faengt Commits ab, die ohne Hook entstanden sind.

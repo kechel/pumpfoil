@@ -147,8 +147,8 @@ export default function Impressum() {
             {li("imp.gh1")}
             {li("imp.gh2")}
             {li("imp.gh3")}
-            {/* 29.10.2026 (Jan): Restrisiko offen benennen, nachdem am 31.08. versehentlich ein
-                Sicherungsordner mit Rohdaten ins Repo ging. Gegenmassnahme: scripts/datenleck-pruefen.py. */}
+            {/* 29.10.2026 (Jan): Restrisiko der KI-gestuetzten Veroeffentlichung offen benennen.
+                Gegenmassnahme: scripts/datenleck-pruefen.py (pre-commit + CI). */}
             {li("imp.gh4")}
           </ul>
         </section>
