@@ -346,14 +346,14 @@ def status_(user: models.User = Depends(current_user), db: Session = Depends(get
 
 
 @router.get("/connect")
-def connect(user: models.User = Depends(current_user)) -> dict:
+def connect(app: bool = False, user: models.User = Depends(current_user)) -> dict:
     verifier, challenge = _pkce()
     q = urlencode({
         "response_type": "code",
         "client_id": _client_id(),
         "redirect_uri": _redirect_uri(),
         "scope": SCOPE,
-        "state": _state_for(user.id, verifier),
+        "state": verknuepfung.mit_app(_state_for(user.id, verifier), app),
         "code_challenge": challenge,
         "code_challenge_method": "S256",
     })

@@ -1,5 +1,6 @@
 import SwiftUI
 import SafariServices
+import AuthenticationServices
 
 // Verknüpfte Konten (Polar/COROS/Suunto): OAuth im In-App-Safari, Import/Trennen.
 // Spiegelt die Web-Seite „Verknüpfte Konten".
@@ -33,6 +34,7 @@ struct LinkedAccountsView: View {
     @State private var busy: String?
     @State private var safariURL: IdentifiedURL?
     @State private var syncMsg: String?
+    @State private var meldung: String?   // Ergebnis des Verknuepfens (KontoVerbinden)
     // Stand des laufenden Imports (nur einer zur Zeit, `busy` sagt welcher).
     @State private var stand: Api.SyncStand?
     // Zaehlt fertige Importe. Die Sportart-Liste haengt daran und holt sich neu — sonst
@@ -106,6 +108,9 @@ struct LinkedAccountsView: View {
         .brandToolbar(Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await refresh() }
+        .alert(meldung ?? "", isPresented: Binding(get: { meldung != nil }, set: { if !$0 { meldung = nil } })) {
+            Button("OK", role: .cancel) { meldung = nil }
+        }
         .sheet(item: $safariURL) { item in SafariView(url: item.url).ignoresSafeArea() .onDisappear { Task { await refresh() } } }
         .alert(Loc.t("accounts.import", lang), isPresented: Binding(get: { syncMsg != nil }, set: { if !$0 { syncMsg = nil } })) {
             Button("OK", role: .cancel) { syncMsg = nil }
@@ -131,7 +136,10 @@ struct LinkedAccountsView: View {
     private func connect(_ p: Provider) {
         busy = p.id
         Task {
-            if let s = try? await Api.integrationAuthorizeURL(p.pfad), let u = URL(string: s) { safariURL = IdentifiedURL(url: u) }
+            await KontoVerbinden.starten(p.pfad) { satz in
+                if !satz.isEmpty { meldung = satz }
+                Task { await refresh() }
+            }
             busy = nil
         }
     }
@@ -467,4 +475,65 @@ private struct McpSection: View {
     }
 
     private func laden() async { st = (try? await Api.mcpStatus()) ?? st }
+}
+
+
+/// Polar, Suunto, COROS verknuepfen mit Rueckweg IN die App (29.10.2026).
+///
+/// Vorher oeffnete die App den Hersteller im SFSafariViewController; der Rueckweg landete auf
+/// pumpfoil.org, wo niemand angemeldet ist, und seit S-014 (Security-Review) zeigt der Server dort
+/// eine Bestaetigungsseite. Jetzt wie die Anmeldung: `ASWebAuthenticationSession` mit unserem Schema,
+/// der Server leitet bei `connect?app=1` auf `pumpfoil://konten?verknuepfen=…&code=…&state=…`, und die
+/// App schliesst mit IHREM Token ab (`…/abschliessen`, fremder Link -> 403).
+@MainActor
+enum KontoVerbinden {
+    private static var sitzung: ASWebAuthenticationSession?
+    private static let anker = AuthAnker()
+    private static let pfade = ["polar": "polar", "suunto": "suunto", "strava": "strava",
+                                "coros": "coros", "coros-mcp": "coros/mcp"]
+    private static let texte: [String: [String: String]] = [
+        "ok": ["de": "Konto verbunden ✓", "gsw": "Konto verbunde ✓", "de-AT": "Konto verbunden ✓", "en": "Account connected ✓", "fr": "Compte connecté ✓", "it": "Account collegato ✓", "es": "Cuenta conectada ✓", "fi": "Tili yhdistetty ✓", "nl": "Account gekoppeld ✓", "cs": "Účet propojen ✓", "pl": "Konto połączone ✓", "pt": "Conta conectada ✓", "pt-PT": "Conta ligada ✓", "ja": "アカウントを連携しました ✓", "zh": "账户已关联 ✓", "ru": "Аккаунт подключён ✓", "id": "Akun terhubung ✓", "nb": "Konto koblet til ✓"],
+        "abgebrochen": ["de": "Verbinden abgebrochen.", "gsw": "Verbinde abbroche.", "de-AT": "Verbinden abgebrochen.", "en": "Connecting cancelled.", "fr": "Connexion annulée.", "it": "Collegamento annullato.", "es": "Conexión cancelada.", "fi": "Yhdistäminen peruttu.", "nl": "Koppelen geannuleerd.", "cs": "Propojení zrušeno.", "pl": "Łączenie anulowane.", "pt": "Conexão cancelada.", "pt-PT": "Ligação cancelada.", "ja": "連携をキャンセルしました。", "zh": "已取消关联。", "ru": "Подключение отменено.", "id": "Penghubungan dibatalkan.", "nb": "Tilkobling avbrutt."],
+        "fremd": ["de": "Dieser Verbinden-Link stammt von einem anderen Konto — es wurde nichts verknüpft.", "gsw": "Dä Verbinde-Link isch vomene andere Konto — es isch nüt verchnüpft worde.", "de-AT": "Dieser Verbinden-Link is von an anderen Konto — es is nix verknüpft worden.", "en": "This connect link came from a different account — nothing was linked.", "fr": "Ce lien de connexion vient d'un autre compte — rien n'a été associé.", "it": "Questo link di collegamento proviene da un altro account — non è stato collegato nulla.", "es": "Este enlace de conexión viene de otra cuenta; no se ha vinculado nada.", "fi": "Tämä yhdistämislinkki tuli toiselta tililtä — mitään ei yhdistetty.", "nl": "Deze koppellink komt van een ander account — er is niets gekoppeld.", "cs": "Tento odkaz k propojení pochází z jiného účtu — nic nebylo propojeno.", "pl": "Ten link do połączenia pochodzi z innego konta — nic nie zostało połączone.", "pt": "Este link de conexão veio de outra conta — nada foi vinculado.", "pt-PT": "Esta ligação de associação veio de outra conta — nada foi associado.", "ja": "この連携リンクは別のアカウントのものです。何も連携されていません。", "zh": "此关联链接来自另一个账户，没有进行任何关联。", "ru": "Эта ссылка для подключения от другого аккаунта — ничего не связано.", "id": "Tautan penghubung ini dari akun lain — tidak ada yang dihubungkan.", "nb": "Denne tilkoblingslenken kom fra en annen konto — ingenting ble koblet."],
+        "fehler": ["de": "Verbinden fehlgeschlagen — bitte erneut versuchen.", "gsw": "Verbinde fehlgschlage — bitte nomol probiere.", "de-AT": "Verbinden ist schiefgegangen — bitte nomal probieren.", "en": "Connection failed — please try again.", "fr": "Échec de la connexion — réessaie.", "it": "Collegamento non riuscito — riprova.", "es": "La conexión falló; inténtalo de nuevo.", "fi": "Yhdistäminen epäonnistui — yritä uudelleen.", "nl": "Koppelen mislukt — probeer het opnieuw.", "cs": "Propojení selhalo — zkus to prosím znovu.", "pl": "Połączenie nie udało się — spróbuj ponownie.", "pt": "Falha na conexão — tente novamente.", "pt-PT": "Falha na ligação — tenta novamente.", "ja": "連携に失敗しました。もう一度お試しください。", "zh": "关联失败，请重试。", "ru": "Не удалось подключить — попробуй ещё раз.", "id": "Koneksi gagal — silakan coba lagi.", "nb": "Tilkobling mislyktes — prøv igjen."],
+    ]
+
+    static func text(_ key: String) -> String {
+        let l = Api.uiLang
+        return texte[key]?[l] ?? texte[key]?["en"] ?? key
+    }
+
+    /// Oeffnet den Hersteller und meldet das Ergebnis als Satz (leer = Fenster ohne Ergebnis geschlossen).
+    static func starten(_ provider: String, fertig: @escaping @MainActor (String) -> Void) async {
+        guard let s = try? await Api.integrationAuthorizeURL(provider), let url = URL(string: s) else {
+            fertig(text("fehler")); return
+        }
+        let sz = ASWebAuthenticationSession(url: url, callbackURLScheme: "pumpfoil") { rueck, _ in
+            Task { @MainActor in
+                guard let rueck, let q = URLComponents(url: rueck, resolvingAgainstBaseURL: false)?.queryItems
+                else { fertig(""); return }
+                func wert(_ n: String) -> String? { q.first { $0.name == n }?.value }
+                let pfad = pfade[wert("verknuepfen") ?? ""] ?? provider
+                fertig(await abschliessen(pfad, code: wert("code"), state: wert("state"), error: wert("error")))
+            }
+        }
+        sz.presentationContextProvider = anker
+        sz.start()
+        sitzung = sz
+    }
+
+    private static func abschliessen(_ pfad: String, code: String?, state: String?, error: String?) async -> String {
+        do {
+            let r = try await Api.verknuepfungAbschliessen(pfad, code: code, state: state, error: error)
+            let w = r.weiter ?? ""
+            if w.contains("=connected") { return text("ok") }
+            if w.contains("=cancelled") { return text("abgebrochen") }
+            let teile = [r.titel, r.text].compactMap { $0 }.filter { !$0.isEmpty }
+            return teile.isEmpty ? text("fehler") : teile.joined(separator: " — ")
+        } catch ApiError.http(let status, _) where status == 403 {
+            return text("fremd")
+        } catch {
+            return text("fehler")
+        }
+    }
 }

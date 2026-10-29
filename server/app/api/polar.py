@@ -91,7 +91,7 @@ def status_(user: models.User = Depends(current_user), db: Session = Depends(get
 
 
 @router.get("/connect")
-def connect(user: models.User = Depends(current_user)) -> dict:
+def connect(app: bool = False, user: models.User = Depends(current_user)) -> dict:
     """Liefert die Polar-Authorize-URL; das Frontend leitet dorthin weiter."""
     cid, _ = _creds()
     params = {
@@ -99,7 +99,7 @@ def connect(user: models.User = Depends(current_user)) -> dict:
         "client_id": cid,
         "redirect_uri": _redirect_uri(),
         "scope": "accesslink.read_all",
-        "state": _state_for(user.id),
+        "state": verknuepfung.mit_app(_state_for(user.id), app),
     }
     return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
 

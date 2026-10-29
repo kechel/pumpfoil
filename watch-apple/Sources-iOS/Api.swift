@@ -1417,9 +1417,16 @@ enum Api {
     static func integrationStatus(_ provider: String) async throws -> IntegrationStatus {
         try await request("/api/integrations/\(provider)/status", method: "GET", body: nil, auth: true)
     }
+    /// app=1: der Hersteller-Rueckweg kommt als `pumpfoil://konten?…` in die App (KontoVerbinden).
     static func integrationAuthorizeURL(_ provider: String) async throws -> String {
-        let r: ConnectResp = try await request("/api/integrations/\(provider)/connect", method: "GET", body: nil, auth: true)
+        let r: ConnectResp = try await request("/api/integrations/\(provider)/connect?app=1", method: "GET", body: nil, auth: true)
         return r.authorize_url
+    }
+    struct AbschlussResp: Decodable { let weiter: String?; let titel: String?; let text: String? }
+    static func verknuepfungAbschliessen(_ provider: String, code: String?, state: String?,
+                                         error: String?) async throws -> AbschlussResp {
+        let body: [String: Any] = ["code": code ?? NSNull(), "state": state ?? NSNull(), "error": error ?? NSNull()]
+        return try await request("/api/integrations/\(provider)/abschliessen", method: "POST", body: body, auth: true)
     }
     struct SyncResp: Decodable { let imported: Int?; let skipped: Int?; let message: String? }
 

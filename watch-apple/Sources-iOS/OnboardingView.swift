@@ -268,9 +268,10 @@ struct OnboardingView: View {
             } else {
                 Text(t("onb.link.leaves")).font(.caption).foregroundStyle(.secondary)
                 Button(t("onb.x.\(d)Connect")) {
+                    // Rueckweg in die App (KontoVerbinden, LinkedAccountsView.swift), danach Stand neu holen.
                     Task {
-                        if let s = try? await Api.integrationAuthorizeURL(d), let u = URL(string: s) {
-                            await UIApplication.shared.open(u)
+                        await KontoVerbinden.starten(d) { _ in
+                            Task { kontoStatus = try? await Api.integrationStatus(d) }
                         }
                     }
                 }

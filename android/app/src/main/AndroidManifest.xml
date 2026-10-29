@@ -58,6 +58,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="pumpfoil" android:host="auth" />
+                <!-- Ruecksprung nach dem Verknuepfen von Polar/Suunto/COROS (29.10.2026):
+                     `pumpfoil://konten?verknuepfen=…` -> KontoRuecksprung (MainActivity.kt). -->
+                <data android:scheme="pumpfoil" android:host="konten" />
             </intent-filter>
         </activity>
 

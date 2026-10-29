@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -107,6 +108,9 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
             status[p.id] = try { Api.integrationStatus(p.pfad) } catch (_: Exception) { Api.IntegrationStatus() }
         }
     }
+    // Abschluss aus der App (pumpfoil://konten, KontoRuecksprung) fertig -> Stand neu holen.
+    val kontoFertig by KontoRuecksprung.fertig.collectAsState()
+    LaunchedEffect(kontoFertig) { if (kontoFertig > 0) refresh() }
     // Beim (Wieder-)Erscheinen laden — fängt die Rückkehr aus dem OAuth-Browser ab.
     val owner = LocalLifecycleOwner.current
     DisposableEffect(owner) {

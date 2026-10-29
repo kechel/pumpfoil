@@ -493,14 +493,14 @@ def status_(user: models.User = Depends(current_user), db: Session = Depends(get
 
 
 @router.get("/connect")
-def connect(user: models.User = Depends(current_user)) -> dict:
+def connect(app: bool = False, user: models.User = Depends(current_user)) -> dict:
     cid, _ = _creds()
     params = {
         "response_type": "code",
         "client_id": cid,
         "redirect_uri": _redirect_uri(),
         "scope": "workout",
-        "state": _state_for(user.id),   # signiertes JWT -> im /callback zurück -> user_id
+        "state": verknuepfung.mit_app(_state_for(user.id), app),   # signiertes JWT -> im /callback zurück -> user_id
         # In Suuntos Doku NICHT vorgesehen, aber ihre Login-Seite trägt genau diesen einen Parameter
         # über die Anmeldung hinweg weiter (`<form action="/uaa/login?subscription-key=…">`). Ohne Wert
         # bricht ihr Authorize-Schritt nach dem Login mit 400 ab (gemessen 2026-07-28), unser /callback

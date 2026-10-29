@@ -1356,9 +1356,20 @@ object Api {
     suspend fun integrationStatus(provider: String): IntegrationStatus = withContext(Dispatchers.IO) {
         json.decodeFromString(IntegrationStatus.serializer(), http("GET", "/api/integrations/$provider/status", null, auth = true))
     }
+    // app=1: der Rueckweg kommt als `pumpfoil://konten?…` in die App zurueck (KontoRuecksprung), die mit
+    // ihrem Token abschliesst — ohne Bestaetigungsseite im Browser (29.10.2026, server verknuepfung.py).
     suspend fun integrationAuthorizeUrl(provider: String): String = withContext(Dispatchers.IO) {
-        json.decodeFromString(ConnectResp.serializer(), http("GET", "/api/integrations/$provider/connect", null, auth = true)).authorize_url
+        json.decodeFromString(ConnectResp.serializer(), http("GET", "/api/integrations/$provider/connect?app=1", null, auth = true)).authorize_url
     }
+    @kotlinx.serialization.Serializable
+    data class AbschlussResp(val weiter: String? = null, val titel: String? = null, val text: String? = null)
+    suspend fun verknuepfungAbschliessen(provider: String, code: String?, state: String?, error: String?): AbschlussResp =
+        withContext(Dispatchers.IO) {
+            val body = buildJsonObject {
+                put("code", code); put("state", state); put("error", error)
+            }.toString()
+            json.decodeFromString(AbschlussResp.serializer(), http("POST", "/api/integrations/$provider/abschliessen", body, auth = true))
+        }
     suspend fun integrationSync(provider: String): SyncResp = withContext(Dispatchers.IO) {
         json.decodeFromString(SyncResp.serializer(), http("POST", "/api/integrations/$provider/sync", null, auth = true))
     }

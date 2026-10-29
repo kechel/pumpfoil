@@ -128,7 +128,7 @@ def status_(user: models.User = Depends(current_user), db: Session = Depends(get
 
 
 @router.get("/connect")
-def connect(user: models.User = Depends(current_user)) -> dict:
+def connect(app: bool = False, user: models.User = Depends(current_user)) -> dict:
     cid, _ = _creds()
     params = {
         "response_type": "code",
@@ -136,7 +136,7 @@ def connect(user: models.User = Depends(current_user)) -> dict:
         "redirect_uri": _redirect_uri(),
         "approval_prompt": "auto",
         "scope": "activity:read_all",
-        "state": _state_for(user.id),
+        "state": verknuepfung.mit_app(_state_for(user.id), app),
     }
     return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
 

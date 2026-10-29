@@ -83,6 +83,7 @@ class MainActivity : ComponentActivity() {
         ListenAnsicht.load(applicationContext)   // Session-Listen als Kacheln oder Zeilen
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
         OAuthRuecksprung.verarbeite(applicationContext, intent?.data)   // Kaltstart aus dem Browser
+        KontoRuecksprung.verarbeite(applicationContext, intent?.data)
         setContent { PumpfoilTheme { App() } }
     }
 
@@ -92,6 +93,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         OAuthRuecksprung.verarbeite(applicationContext, intent.data)
+        KontoRuecksprung.verarbeite(applicationContext, intent.data)
     }
 }
 
@@ -122,6 +124,42 @@ object OAuthRuecksprung {
         Api.saveToken(ctx, token)
         WatchSync.pushPairing(ctx)
         angemeldet.value = angemeldet.value + 1
+    }
+}
+
+/**
+ * Ruecksprung nach dem Verknuepfen von Polar, Suunto oder COROS (29.10.2026).
+ *
+ * Die App startet mit `…/connect?app=1`; der Server leitet den Hersteller-Rueckweg dann auf
+ * `pumpfoil://konten?verknuepfen=<anbieter>&code=…&state=…`. Hier schliessen wir mit UNSEREM Token ab
+ * (`…/abschliessen`) — der Server prueft, dass der Verbinden-Link von diesem Konto stammt (S-014).
+ * `fertig` zaehlt hoch, damit die Kontenseite neu laedt.
+ */
+object KontoRuecksprung {
+    val fertig = MutableStateFlow(0)
+    private val PFADE = mapOf("polar" to "polar", "suunto" to "suunto", "strava" to "strava",
+                              "coros" to "coros", "coros-mcp" to "coros/mcp")
+
+    fun verarbeite(ctx: android.content.Context, uri: Uri?) {
+        if (uri == null || uri.scheme != "pumpfoil" || uri.host != "konten") return
+        val pfad = PFADE[uri.getQueryParameter("verknuepfen") ?: ""] ?: return
+        val app = ctx.applicationContext
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            val text = try {
+                val r = Api.verknuepfungAbschliessen(pfad, uri.getQueryParameter("code"),
+                    uri.getQueryParameter("state"), uri.getQueryParameter("error"))
+                val w = r.weiter ?: ""
+                when {
+                    w.contains("=connected") -> I18n.t("kontolink.ok")
+                    w.contains("=cancelled") -> I18n.t("kontolink.abgebrochen")
+                    else -> listOfNotNull(r.titel, r.text).joinToString(" — ").ifBlank { I18n.t("kontolink.fehler") }
+                }
+            } catch (e: Exception) {
+                if (e.message?.contains("403") == true) I18n.t("kontolink.fremd") else I18n.t("kontolink.fehler")
+            }
+            android.widget.Toast.makeText(app, text, android.widget.Toast.LENGTH_LONG).show()
+            fertig.value = fertig.value + 1
+        }
     }
 }
 

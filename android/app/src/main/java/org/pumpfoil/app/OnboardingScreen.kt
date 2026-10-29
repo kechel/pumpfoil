@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -528,7 +529,9 @@ private fun KontoKarte(dienst: String) {
     val scope = rememberCoroutineScope()
     var status by remember { mutableStateOf<Api.IntegrationStatus?>(null) }
     var fehler by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(dienst) {
+    // Neu laden, sobald die App einen Abschluss (pumpfoil://konten, KontoRuecksprung) gemeldet hat.
+    val kontoFertig by KontoRuecksprung.fertig.collectAsState()
+    LaunchedEffect(dienst, kontoFertig) {
         status = try { Api.integrationStatus(dienst) } catch (_: Exception) { null }
     }
     Card(Modifier.fillMaxWidth()) {
