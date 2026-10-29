@@ -86,7 +86,8 @@ export default function Login() {
       // aufruft. NUR eigene Pfade: ein „next" mit Gegenstelle waere eine offene Weiterleitung,
       // mit der man von unserer Adresse aus auf eine fremde Seite schicken koennte.
       const ziel = new URLSearchParams(window.location.search).get("next") || "";
-      nav(ziel.startsWith("/") && !ziel.startsWith("//") ? ziel : "/home");
+      // Kein Backslash: Browser lesen „/\\evil.de" wie „//evil.de" (react-router 6, GHSA-wrjc-x8rr-h8h6).
+      nav(ziel.startsWith("/") && !ziel.startsWith("//") && !ziel.includes("\\") ? ziel : "/home");
     } catch (err) {
       setError(humanError(err, t));
     } finally {
