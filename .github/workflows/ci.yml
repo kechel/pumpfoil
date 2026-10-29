@@ -11,6 +11,27 @@ on:
 # `cd watch && SDK_HOME=… ./build-all.sh`.
 
 jobs:
+  datenleck:
+    # Zweite Linie hinter dem pre-commit-Hook (scripts/git-hooks/pre-commit): keine Nutzerdaten,
+    # Abzuege oder Geheimnisse in neuen/geaenderten Dateien. Anlass und Regeln: scripts/datenleck-pruefen.py.
+    name: Keine Nutzerdaten im Repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: datenleck-pruefen
+        env:
+          VORHER: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -o pipefail
+          # Neuer Zweig: `before` ist 000…; dann nur den letzten Commit pruefen.
+          case "$VORHER" in ""|0000000*) VORHER="${GITHUB_SHA}^" ;; esac
+          python3 scripts/datenleck-pruefen.py --range "$VORHER..$GITHUB_SHA" 2>&1 | tee /tmp/leck.log
+      - name: Fund als Annotation melden
+        if: failure()
+        run: echo "::error title=Datenleck-Sperre::$(sed ':a;N;$!ba;s/\n/%0A/g' /tmp/leck.log)"
+
   server:
     name: Server (pytest, Postgres)
     runs-on: ubuntu-latest

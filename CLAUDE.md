@@ -103,6 +103,10 @@ dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
   montags von `.github/workflows/audit.yml` gegen bekannte Luecken geprueft (Web: `web/scripts/audit.mjs`, mit
   begruendeten Ausnahmen). **Nach jeder Aenderung der venv neu schreiben** (Befehl im Kopf der Datei), sonst prueft
   die Action einen alten Stand.
+- **Datenleck-Sperre:** `scripts/datenleck-pruefen.py` laeuft als pre-commit-Hook (`core.hooksPath scripts/git-hooks`)
+  und in der CI. Sie sperrt tmp/- und Sicherungsordner, Archive/Abzuege/Rohdaten, Tabellenabzuege mit `user_id`,
+  grosse Dateien und Geheimnisse aus `server/.env`. Anlass: am 31.08.2026 ging ein Sicherungsordner mit Rohdaten von
+  16 Nutzern ins oeffentliche Repo. **Nie mit `--no-verify` umgehen**; echte Ausnahmen mit Grund in `.datenleck-ausnahmen`.
 - **Server neu starten** darf Claude jederzeit (Dev-Stadium): `sudo systemctl restart foil-server`.
   Nach `server/`-Code-Änderungen nötig; Web/Watch-Builds brauchen **keinen** Restart (frisch gelesen).
 - **Detektor-/Analyse-Pipeline** (`server/app/analysis/`): Änderungen erst mit Jans OK; Befund +
