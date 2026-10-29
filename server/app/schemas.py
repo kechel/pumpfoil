@@ -336,6 +336,7 @@ class SessionOut(BaseModel):
     # Montage-Drehung des Handys auf dem Brett (0/90/180/270), s. models.Session.
     attitude_rot_deg: int | None = None
     share_token: str | None = None    # öffentlicher Teilen-Token (nur dem Besitzer geliefert)
+    share_gueltig_bis: datetime | None = None   # Ablauf des Teilen-Links (nur Besitzer; None = dauerhaft/keiner)
     caption: str | None = None  # eigene Beschriftung des Besitzers
     youtube_url: str | None = None  # Legacy-Spiegel: erstes YOUTUBE-Video (alle Clients)
     video_url: str | None = None    # erstes Video jeder Plattform (nur anzeige-fähige Clients)

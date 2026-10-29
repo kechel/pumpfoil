@@ -649,6 +649,7 @@ function GeteilteAufnahmen() {
               {z.started_at ? fmtDate(z.started_at, z.tz) : `#${z.id}`}
             </Link>
             {z.place_name && <span className="text-sm text-slate-400">{z.place_name}</span>}
+            {z.gueltig_bis && <span className="text-sm text-slate-400">{t("share.validUntil", { d: fmtDate(z.gueltig_bis) })}</span>}
             <button
               type="button" disabled={busy === z.id}
               onClick={() => zuruecknehmen(z.id)}

@@ -154,13 +154,32 @@ def push(db: Session, an: int, art: str, url: str, **kw) -> None:
         log.exception("Freundes-Push an %s", an)
 
 
+def _spot_fuer_freunde(db: Session, u: models.User, spots: dict) -> int | None:
+    """Der Spot, den Freunde sehen — `None` bei „Ort verbergen" (S-037, Jan 29.10.2026).
+
+    Dann heisst es nur „pumpt gerade", ohne Spot, in Liste UND Push. Verborgen ist es, wenn das
+    Profil verbirgt oder eine Aufnahme aus dem Signal-Fenster selbst auf „verbergen" steht — der
+    Spot kommt aus genau diesen Aufnahmen (`devices._zustand`), und welche es war, sagt `_zustand`
+    nicht. Lieber einmal zu vorsichtig als den Ort einer verborgenen Session verraten."""
+    from . import ortverbergen
+    from .api.devices import SIGNAL_FENSTER_H, _spot_des_nutzers
+    if ortverbergen.profil_verbirgt(u):
+        return None
+    seit = datetime.now(timezone.utc) - timedelta(hours=SIGNAL_FENSTER_H)
+    if (db.query(models.Session.id)
+            .filter(models.Session.user_id == u.id, models.Session.ort_sichtbarkeit == "hide",
+                    models.Session.started_at > seit).first()) is not None:
+        return None
+    return _spot_des_nutzers(db, u.id, spots)
+
+
 def melden(db: Session, jetzt: datetime | None = None) -> int:
     """Den Freunden derer, die gerade pumpen, EINMAL je `MELDE_PAUSE` Bescheid geben.
 
     Laeuft im 5-Minuten-Timer (scripts/live-sessions-nachrechnen.py). „Pumpt gerade" ist dieselbe
     Schaetzung wie der Zaehler und die gruenen Spots (`devices._aktive_nutzer`), der Spot derselbe
     wie auf der Karte. Gibt die Zahl der gemeldeten Fahrer zurueck."""
-    from .api.devices import _aktive_nutzer, _spot_des_nutzers
+    from .api.devices import _aktive_nutzer
     jetzt = jetzt or datetime.now(timezone.utc)
     aktive = _aktive_nutzer(db)
     if not aktive:
@@ -183,7 +202,7 @@ def melden(db: Session, jetzt: datetime | None = None) -> int:
             spots = {sp.id: sp for sp in db.query(models.Spot)
                      .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
                              models.Spot.lon.isnot(None)).all()}
-        sid = _spot_des_nutzers(db, uid, spots)
+        sid = _spot_fuer_freunde(db, u, spots)
         name = u.display_name or "?"
         # Erst merken, dann schicken: faellt der Versand aus, soll der naechste Lauf nicht
         # dieselbe Nachricht noch einmal versuchen (lieber eine verpasst als zehn doppelt).
@@ -203,7 +222,7 @@ def melden(db: Session, jetzt: datetime | None = None) -> int:
 def aktive_freunde(db: Session, ich: int) -> list[dict]:
     """Meine Freunde, die gerade pumpen, mit Spot (Spot-Karte, Spot-Seite, Freunde-Seite).
     NICHT gecacht — die Antwort haengt am Betrachter."""
-    from .api.devices import _aktive_nutzer, _spot_des_nutzers
+    from .api.devices import _aktive_nutzer
     fids = freund_ids(db, ich)
     if not fids:
         return []
@@ -218,7 +237,7 @@ def aktive_freunde(db: Session, ich: int) -> list[dict]:
         u = db.get(models.User, uid)
         if not darf_freunde_haben(u):
             continue
-        sid = _spot_des_nutzers(db, uid, spots)
+        sid = _spot_fuer_freunde(db, u, spots)
         out.append({"user_id": uid, "name": u.display_name, "avatar_url": u.avatar_url,
                     "spot_id": sid, "spot": spots[sid].name if sid is not None else None})
     return out

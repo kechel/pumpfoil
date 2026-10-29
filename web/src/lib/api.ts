@@ -1045,6 +1045,10 @@ export const api = {
   getProfile: () => req<Profile>("/api/auth/me"),
   polarStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null; expired?: boolean }>("/api/integrations/polar/status"),
   polarConnect: () => req<{ authorize_url: string }>("/api/integrations/polar/connect"),
+  // S-014: Rueckweg vom Hersteller MIT Login abschliessen (s. server/app/api/verknuepfung.py).
+  verknuepfungAbschliessen: (pfad: string, body: { code: string | null; state: string | null; error: string | null }) =>
+    req<{ weiter: string | null; titel?: string | null; text?: string | null }>(
+      `/api/integrations/${pfad}/abschliessen`, { method: "POST", body: JSON.stringify(body) }),
   // Release-Stand fuer die Tabelle oben auf /changelog. Die Live-Spalte kommt aus derselben
   // Quelle wie der Update-Hinweis in den Apps (appmeta), damit beides nicht auseinanderlaeuft.
   appReleases: () => req<{
@@ -1828,13 +1832,14 @@ export const api = {
   sessionV3: (id: number, name: string) => req<SessionSummary>(`/api/sessions/${id}?v3=${encodeURIComponent(name)}`),
   sessionPumpgleit: (id: number) => req<SessionSummary>(`/api/sessions/${id}?pumpgleit=1`),
   // Öffentlicher Teilen-Link: erzeugen (idempotent) / widerrufen / anonym abrufen.
-  createShareLink: (id: number) => req<{ token: string; path: string }>(`/api/sessions/${id}/share`, { method: "POST" }),
+  // Links laufen nach 4 Wochen ab (`gueltig_bis`; null = dauerhaft), s. server/app/teilen.py.
+  createShareLink: (id: number) => req<{ token: string; path: string; gueltig_bis: string | null }>(`/api/sessions/${id}/share`, { method: "POST" }),
   revokeShareLink: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}/share`, { method: "DELETE" }),
   // Alle eigenen Aufnahmen, fuer die gerade ein Teilen-Link besteht. `share_token` ist NULL, bis
   // jemand den Teilen-Knopf drueckt — die Liste zeigt also wirklich Erzeugtes, nichts Moegliches.
   geteilteLinks: () => req<{ id: number; started_at: string | null; tz: string;
                              place_name: string | null; sport: string;
-                             path: string }[]>("/api/sessions/geteilte"),
+                             path: string; gueltig_bis: string | null }[]>("/api/sessions/geteilte"),
 
   // --- KI-Zugang (MCP) ---------------------------------------------------------------------
   // `url` ist die Adresse, die der Nutzer in seinem KI-Programm eintraegt; `verbunden` sind die

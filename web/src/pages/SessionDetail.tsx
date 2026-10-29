@@ -148,12 +148,16 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
   // Öffentlicher Teilen-Link (nur Besitzer): Popup mit Erklärung + Link + Kopieren/Deaktivieren.
   const [linkOpen, setLinkOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareBis, setShareBis] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   useCloseOnBack(linkOpen, () => setLinkOpen(false));
   const openShareLink = async () => {
     setLinkOpen(true); setCopied(false);
     if (!shareUrl) {
-      try { const r = await api.createShareLink(sessionId); setShareUrl(window.location.origin + r.path); }
+      try {
+        const r = await api.createShareLink(sessionId);
+        setShareUrl(window.location.origin + r.path); setShareBis(r.gueltig_bis);
+      }
       catch { setMetaErr(t("profile.error")); }
     }
   };
@@ -416,6 +420,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
                 {copied ? t("share.copied") : t("share.copy")}
               </button>
             </div>
+            {shareBis && <p className="mt-2 text-sm text-slate-300">{t("share.validUntil", { d: fmtDate(shareBis) })}</p>}
             <div className="mt-4 flex items-center justify-between">
               <button onClick={revoke} disabled={!shareUrl} className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">{t("share.revoke")}</button>
               <button onClick={() => setLinkOpen(false)} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">{t("common.close")}</button>

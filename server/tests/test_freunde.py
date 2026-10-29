@@ -187,3 +187,70 @@ def test_push_texte_sprache(art):
     de = freunde.text(SimpleNamespace(language="gsw"), art, n="Jan", s="Illmensee")
     en = freunde.text(SimpleNamespace(language="fr"), art, n="Jan", s="Illmensee")
     assert "Jan" in de and "Jan" in en and de != en
+
+
+@pytest.mark.parametrize("wie", ["profil", "session"])
+def test_ort_verbergen_zeigt_freunden_keinen_spot(client, monkeypatch, wie):
+    """S-037 (29.10.2026): wer seinen Ort verbirgt, „pumpt gerade" fuer Freunde ohne Spot —
+    in der Liste, auf der Spot-Seite und im Push."""
+    from app import freunde, models
+    from app.api import devices
+    from app.db import SessionLocal
+    k = secrets.token_hex(3)
+    a, b = _konto(client, f"fr-hide-a-{k}@t.de"), _konto(client, f"fr-hide-b-{k}@t.de")
+    _befreunden(client, a, b)
+    sid_b = _session(b[0], tage=0)
+    db = SessionLocal()
+    try:
+        sp = models.Spot(name="Geheimer See", lat=47.1, lon=9.1)
+        db.add(sp)
+        if wie == "profil":
+            db.get(models.User, b[0]).settings_json = '{"hide_location": true}'
+        else:
+            s = db.get(models.Session, sid_b)
+            s.ort_sichtbarkeit = "hide"
+            s.started_at = datetime.now(timezone.utc) - timedelta(hours=1)
+        db.commit()
+        spot_id = sp.id
+    finally:
+        db.close()
+    monkeypatch.setattr(devices, "_aktive_nutzer", lambda db: {b[0]})
+    monkeypatch.setattr(devices, "_spot_des_nutzers", lambda db, uid, spots: spot_id)
+    aktiv = client.get("/api/friends/active", headers=a[1]).json()
+    assert [(f["user_id"], f["spot_id"], f["spot"]) for f in aktiv] == [(b[0], None, None)]
+    fa = client.get("/api/community/spot-active", headers=a[1]).json()
+    assert fa["friends"] == []
+    hier = client.get(f"/api/community/sessions-today?since_ms=0&spot={spot_id}&sport=all", headers=a[1]).json()
+    assert not hier.get("friends_here")
+    gesendet = []
+    monkeypatch.setattr(freunde, "push", lambda db, an, art, url, **kw: gesendet.append((an, art, kw)))
+    db = SessionLocal()
+    try:
+        freunde.melden(db)
+    finally:
+        db.close()
+    assert gesendet == [(a[0], "pumpt_ohne", {"n": gesendet[0][2]["n"]})]
+
+
+def test_namenssuche_ohne_vollstaendige_sessionliste(client):
+    """S-043 (29.10.2026): ueber ?name= kommt man nicht an ALLE Sessions einer Person — hoechstens
+    5 je fremdem Fahrer und kein Weiterblaettern (wie die Foiler-Seite)."""
+    from app import models
+    from app.db import SessionLocal
+    k = secrets.token_hex(3)
+    such, kopf = _konto(client, f"ns-a-{k}@t.de")
+    ziel, _ = _konto(client, f"ns-b-{k}@t.de")
+    db = SessionLocal()
+    try:
+        db.get(models.User, ziel).display_name = f"Zielname{k}"
+        db.commit()
+    finally:
+        db.close()
+    for t in range(1, 9):
+        _session(ziel, tage=t)
+    r = client.get(f"/api/community/sessions?name=Zielname{k}&accel_only=false&limit=20", headers=kopf).json()
+    assert len(r) == 5 and {x["user_id"] for x in r} == {ziel}
+    assert client.get(f"/api/community/sessions?name=Zielname{k}&accel_only=false&offset=5",
+                      headers=kopf).json() == []
+    # Ohne Namen bleibt das normale Blaettern im Feed.
+    assert len(client.get("/api/community/sessions?accel_only=false&limit=3&offset=3", headers=kopf).json()) == 3

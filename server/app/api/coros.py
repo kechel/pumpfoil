@@ -34,6 +34,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..config import get_settings
 from ..db import get_db
+from . import verknuepfung
 from .deps import current_user
 
 router = APIRouter(prefix="/api/integrations/coros", tags=["coros"])
@@ -117,8 +118,7 @@ def connect(user: models.User = Depends(current_user)) -> dict:
     return {"authorize_url": f"{_base()}/oauth2/authorize?{urlencode(params)}"}
 
 
-@router.get("/callback")
-def callback(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
+def _callback_ausfuehren(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
     """COROS-Redirect (GET): Code -> Token (access/refresh/openId), Link speichern."""
     cid, secret = _creds()
     uid = _uid_from_state(state or "")
@@ -162,6 +162,20 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
         link.token_expires_at = expires_at
     db.commit()
     return RedirectResponse(f"{get_settings().base_url}/konten?coros=connected", status_code=303)
+
+
+# Rueckweg an die Anmeldung im Browser gebunden (S-014), s. verknuepfung.py. Der eigentliche Abschluss
+# ist `_callback_ausfuehren` (frueher der GET-Callback selbst).
+@router.get("/callback")
+def callback(request: Request):
+    return verknuepfung.zur_bestaetigung("coros", request)
+
+
+@router.post("/abschliessen")
+def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    return verknuepfung.abschliessen(user, _uid_from_state(body.state or ""),
+                                     lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
 @router.post("/push")

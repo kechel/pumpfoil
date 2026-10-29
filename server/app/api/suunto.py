@@ -38,6 +38,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..config import get_settings
 from ..db import SessionLocal, get_db
+from . import verknuepfung
 from .deps import current_user
 
 router = APIRouter(prefix="/api/integrations/suunto", tags=["suunto"])
@@ -509,8 +510,7 @@ def connect(user: models.User = Depends(current_user)) -> dict:
     return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
 
 
-@router.get("/callback")
-def callback(code: str | None = None, state: str | None = None, error: str | None = None,
+def _callback_ausfuehren(code: str | None = None, state: str | None = None, error: str | None = None,
              db: Session = Depends(get_db)):
     """Führt IMMER auf /konten zurück (nie roher JSON im Browser): ?suunto=connected|cancelled|error,
     die PWA zeigt dazu eine freundliche Meldung."""
@@ -577,6 +577,20 @@ MAX_DIST_M = 60_000
 MIN_DUR_S = 60             # unter einer Minute gibt es nichts zu analysieren
 FAST_AVG_MPS = 30 / 3.6    # 30 km/h Schnitt ueber >10 min = Auto/Rad/Boot, nicht gepumpt
 FAST_MIN_DUR_S = 600
+
+
+# Rueckweg an die Anmeldung im Browser gebunden (S-014), s. verknuepfung.py. Der eigentliche Abschluss
+# ist `_callback_ausfuehren` (frueher der GET-Callback selbst).
+@router.get("/callback")
+def callback(request: Request):
+    return verknuepfung.zur_bestaetigung("suunto", request)
+
+
+@router.post("/abschliessen")
+def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    return verknuepfung.abschliessen(user, _uid_from_state(body.state or ""),
+                                     lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db, error=body.error))
 
 
 def _vorfilter(wo: dict) -> str | None:

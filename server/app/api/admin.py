@@ -23,7 +23,7 @@ from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
 from ..naming import geraete_label
-from ..media import delete_media
+from ..media import delete_media, gesperrt_verschieben
 from ..security import hash_password
 from .deps import current_admin
 
@@ -632,6 +632,7 @@ def block_photo(photo_id: int, blocked: bool = Query(True), admin: models.User =
     p.blocked = blocked
     _log(db, admin, "photo_block" if blocked else "photo_unblock", "photo", photo_id)
     db.commit()
+    gesperrt_verschieben(p.url, blocked)   # Datei aus /media nehmen bzw. zurueck (S-043)
     return {"ok": True, "blocked": p.blocked}
 
 

@@ -357,6 +357,11 @@ def _brett(q, board: bool):
 
 
 
+NAMENSSUCHE_PRO_NUTZER = 5     # wie die Foiler-Seite (Memory no-per-user-session-lists)
+NAMENSSUCHE_VORRAT = 300       # so viele neueste Treffer werden fuer die Kappung gelesen
+S_USER_ID_IDX = next(i for i, c in enumerate(BRIEF_COLS) if c is S.user_id)   # Besitzer in einer Zeile
+
+
 @router.get("/sessions")
 def community_sessions(
     request: Request,
@@ -379,7 +384,26 @@ def community_sessions(
         q = q.filter(_spot_cond(spot, db))
     if foil_id:
         q = q.filter(S.foil_id == foil_id)
-    rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
+    limit = min(max(limit, 1), 100)
+    if name:
+        # Keine Sessionliste je Nutzer ueber die Namenssuche (S-043, Jan 29.10.2026): sonst blaettert
+        # man mit `offset` durch ALLE Sessions einer Person, obwohl die Foiler-Seite bewusst nur 5
+        # zeigt. Also: kein Weiterblaettern, und hoechstens PRO_NUTZER je fremdem Fahrer.
+        if offset > 0:
+            return []
+        je: dict[int, int] = {}
+        rows = []
+        for r in q.order_by(S.started_at.desc()).limit(NAMENSSUCHE_VORRAT).all():
+            owner = r[S_USER_ID_IDX]
+            if owner != user.id:
+                je[owner] = je.get(owner, 0) + 1
+                if je[owner] > NAMENSSUCHE_PRO_NUTZER:
+                    continue
+            rows.append(r)
+            if len(rows) >= limit:
+                break
+    else:
+        rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(limit).all()
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=_verbergende_nutzer(db)) for r in rows]), request)
 
 

@@ -34,7 +34,7 @@ from ..schemas import (
     AnalysisOut, ExcludeRunIn, IncludeRangeIn, LabelIn, LabelOut, PumpTruthIn, RawDataOut,
     SessionMetaIn, SessionOut, SessionVideoIn, TrimIn,
 )
-from .. import ortverbergen, sportprofil
+from .. import ortverbergen, sportprofil, teilen
 from .. import pumpgleit_anzeige as PA
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
@@ -2408,8 +2408,9 @@ def geteilte_links(user: models.User = Depends(current_user),
 
     `share_token` ist NULL, bis jemand den Teilen-Knopf drueckt — ein gesetzter Token heisst also
     wirklich „hier wurde ein Link erzeugt", nicht „koennte mal". Was wir NICHT wissen und deshalb
-    auch nicht behaupten: wann er erzeugt wurde (keine Spalte) und ob ihn je jemand geoeffnet hat
-    (kein Zugriffs-Protokoll, und eines dafuer anzulegen waere Tracking).
+    auch nicht behaupten: ob ihn je jemand geoeffnet hat (kein Zugriffs-Protokoll, und eines dafuer
+    anzulegen waere Tracking). Seit 29.10.2026 laeuft er nach teilen.GUELTIG ab; abgelaufene raeumt
+    diese Liste gleich mit ab.
 
     Der Token selbst geht MIT zurueck — der Besitzer soll den Link hier auch kopieren koennen,
     ohne erst die Session zu oeffnen. Oeffentlich ist er ohnehin nur fuer den, der ihn hat.
@@ -2419,6 +2420,7 @@ def geteilte_links(user: models.User = Depends(current_user),
                         models.Session.share_token.isnot(None),
                         models.Session.deleted.isnot(True))
                 .order_by(models.Session.started_at.desc()).all())
+    zeilen = [s for s in zeilen if not teilen.aufraeumen(db, s)]
     return [{
         "id": s.id,
         "started_at": s.started_at.isoformat() if s.started_at else None,
@@ -2426,6 +2428,7 @@ def geteilte_links(user: models.User = Depends(current_user),
         "place_name": s.place_name,
         "sport": s.sport,
         "path": f"/s/{s.share_token}",
+        "gueltig_bis": teilen.gueltig_bis(s).isoformat() if teilen.gueltig_bis(s) else None,
     } for s in zeilen]
 
 
@@ -2549,7 +2552,9 @@ def get_session(
     out.has_gyro = db.query(models.IngestChunk.id).filter(
         models.IngestChunk.session_id == s.id, models.IngestChunk.kind == "gyro").first() is not None
     if s.user_id == user.id:
+        teilen.aufraeumen(db, s)         # abgelaufener Link -> weg, als haette er ihn widerrufen
         out.share_token = s.share_token  # nur der Besitzer sieht den (ggf. gesetzten) Teilen-Token
+        out.share_gueltig_bis = teilen.gueltig_bis(s)
     # Endzeit für die Anzeige: viele (chunk-hochgeladene) Sessions haben kein ended_at.
     # Aus dem letzten GPS-Zeitstempel ableiten (nur Anzeige, nicht persistiert).
     if out.ended_at is None and s.started_at is not None:
@@ -2589,10 +2594,14 @@ def create_share_link(
     """Öffentlichen Teilen-Link für die EIGENE Session erzeugen (idempotent — bestehenden wiederverwenden).
     Jeder mit dem Link sieht die Session read-only ohne Login."""
     s = _owned(db, user, session_id)   # nur eigene Sessions (wirft 404 sonst)
+    teilen.aufraeumen(db, s)           # abgelaufen -> neu wuerfeln statt den alten wiederzubeleben
     if not s.share_token:
         s.share_token = secrets.token_urlsafe(12)
+        s.share_created_at = datetime.now(timezone.utc)
         db.commit()
-    return {"token": s.share_token, "path": f"/s/{s.share_token}"}
+    bis = teilen.gueltig_bis(s)
+    return {"token": s.share_token, "path": f"/s/{s.share_token}",
+            "gueltig_bis": bis.isoformat() if bis else None}
 
 
 @router.delete("/{session_id}/share")
@@ -2604,6 +2613,7 @@ def revoke_share_link(
     """Teilen-Link widerrufen — der Link funktioniert danach nicht mehr."""
     s = _owned(db, user, session_id)
     s.share_token = None
+    s.share_created_at = None
     db.commit()
     return {"ok": True}
 
@@ -2616,7 +2626,7 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
     s = (db.query(models.Session)
          .filter(models.Session.share_token == token, models.Session.deleted.isnot(True))
          .first())
-    if s is None:
+    if s is None or teilen.aufraeumen(db, s):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein geteilter Link (oder widerrufen)")
     out = _session_out(
         s, with_analysis=True, owned=False,
@@ -5306,7 +5316,7 @@ def public_board_lage(
     s = (db.query(models.Session)
          .filter(models.Session.share_token == token, models.Session.deleted.isnot(True))
          .first())
-    if s is None:
+    if s is None or teilen.aufraeumen(db, s):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein geteilter Link (oder widerrufen)")
     return _lage_antwort(db, s, **p)
 

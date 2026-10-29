@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..config import get_settings
 from ..db import get_db
+from . import verknuepfung
 from .deps import current_admin, current_user
 
 log = logging.getLogger(__name__)
@@ -124,11 +125,12 @@ background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'S
 text-decoration:none;padding:11px 20px;border-radius:12px">Zurück &amp; erneut verbinden</a>
   </div>
 </body></html>"""
-    return HTMLResponse(html, status_code=http_status)
+    resp = HTMLResponse(html, status_code=http_status)
+    resp.fehler = {"titel": headline, "text": why}   # fuer die PWA, s. verknuepfung.als_json
+    return resp
 
 
-@router.get("/callback")
-def callback(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
+def _callback_ausfuehren(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
     """Polar-Redirect (GET): Code -> Token, AccessLink-User registrieren, Link speichern.
 
     Robust gegen Browser-Prefetch/Doppelaufruf: Polar-Codes gelten nur EINMAL. Lädt der Browser
@@ -201,6 +203,20 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
     except Exception as exc:  # noqa: BLE001 — Verbinden ist erledigt, der Abgleich kommt mit dem naechsten Lauf
         log.warning("Polar: Abgleich nach dem Verbinden nicht gestartet (uid=%s): %s", uid, exc)
     return _ok_redirect()
+
+
+# Rueckweg an die Anmeldung im Browser gebunden (S-014), s. verknuepfung.py. Der eigentliche Abschluss
+# ist `_callback_ausfuehren` (frueher der GET-Callback selbst).
+@router.get("/callback")
+def callback(request: Request):
+    return verknuepfung.zur_bestaetigung("polar", request)
+
+
+@router.post("/abschliessen")
+def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    return verknuepfung.abschliessen(user, _uid_from_state(body.state or ""),
+                                     lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
 def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict:

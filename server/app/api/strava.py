@@ -22,13 +22,14 @@ from urllib.parse import urlencode
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..config import get_settings
 from ..db import get_db
+from . import verknuepfung
 from .deps import current_user
 
 router = APIRouter(prefix="/api/integrations/strava", tags=["strava"])
@@ -140,8 +141,7 @@ def connect(user: models.User = Depends(current_user)) -> dict:
     return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
 
 
-@router.get("/callback")
-def callback(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
+def _callback_ausfuehren(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
     cid, secret = _creds()
     uid = _uid_from_state(state or "")
     if not code or uid is None:
@@ -165,6 +165,20 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
     _store_token(link, tok)
     db.commit()
     return RedirectResponse(f"{get_settings().base_url}/konten?strava=connected", status_code=303)
+
+
+# Rueckweg an die Anmeldung im Browser gebunden (S-014), s. verknuepfung.py. Der eigentliche Abschluss
+# ist `_callback_ausfuehren` (frueher der GET-Callback selbst).
+@router.get("/callback")
+def callback(request: Request):
+    return verknuepfung.zur_bestaetigung("strava", request)
+
+
+@router.post("/abschliessen")
+def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    return verknuepfung.abschliessen(user, _uid_from_state(body.state or ""),
+                                     lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
 def _parsed_from_streams(act: dict, streams: dict) -> dict | None:

@@ -44,7 +44,7 @@ from urllib.parse import urlencode
 
 import httpx
 import jwt as pyjwt
-from fastapi import BackgroundTasks, APIRouter, Depends, HTTPException, status
+from fastapi import BackgroundTasks, APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -52,6 +52,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..config import get_settings
 from ..db import get_db
+from . import verknuepfung
 from .deps import current_user
 
 log = logging.getLogger(__name__)
@@ -352,16 +353,17 @@ def connect(user: models.User = Depends(current_user)) -> dict:
 
 
 def _fehlerseite(kopf: str, warum: str) -> HTMLResponse:
-    return HTMLResponse(
+    resp = HTMLResponse(
         f"<html><body style='font-family:sans-serif;padding:2rem'>"
         f"<h2>{kopf}</h2><p>{warum}</p>"
         f"<p><a href='/konten'>&larr; zurück</a></p></body></html>",
         status_code=status.HTTP_400_BAD_REQUEST,
     )
+    resp.fehler = {"titel": kopf, "text": warum}   # fuer die PWA, s. verknuepfung.als_json
+    return resp
 
 
-@router.get("/callback")
-def callback(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
+def _callback_ausfuehren(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
     if not code or not state:
         return RedirectResponse("/konten?coros=cancelled", status_code=302)
     uid, verifier = _state_lesen(state)
@@ -398,6 +400,20 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
     except Exception as exc:  # noqa: BLE001 — Verbinden ist erledigt, der Abgleich kommt mit dem naechsten Lauf
         log.warning("coros-mcp: Abgleich nach dem Verbinden nicht gestartet (uid=%s): %s", user.id, exc)
     return RedirectResponse("/konten?coros=connected", status_code=302)
+
+
+# Rueckweg an die Anmeldung im Browser gebunden (S-014), s. verknuepfung.py. Der eigentliche Abschluss
+# ist `_callback_ausfuehren` (frueher der GET-Callback selbst).
+@router.get("/callback")
+def callback(request: Request):
+    return verknuepfung.zur_bestaetigung("coros-mcp", request)
+
+
+@router.post("/abschliessen")
+def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    return verknuepfung.abschliessen(user, _state_lesen(body.state or "")[0],
+                                     lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
 @router.get("/tools")

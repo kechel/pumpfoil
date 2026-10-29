@@ -159,6 +159,10 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token VARCHAR(64)",
+        # Ablauf der Teilen-Links (app/teilen.py). Bestehende Links zaehlen ab dem Einspielen —
+        # das UPDATE trifft nur Zeilen mit Link und ohne Zeitpunkt, laeuft also genau einmal wirksam.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_created_at TIMESTAMPTZ",
+        "UPDATE sessions SET share_created_at = now() WHERE share_token IS NOT NULL AND share_created_at IS NULL",
         # Eigene Stab-Einträge (user_id NULL = globaler Katalog) — die Hersteller-Landschaft ist
         # zu groß/volatil für einen vollständigen Katalog, jeder darf seinen Stab selbst benennen.
         "ALTER TABLE stabs ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)",

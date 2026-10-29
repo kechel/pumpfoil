@@ -34,25 +34,56 @@ export default function LinkedAccounts() {
   // keine Rückmeldung, und `?coros=connected` blieb in der Adresszeile stehen: ein späterer
   // Aufruf derselben URL sah dann nach „verbunden" aus, obwohl der Zustand vom Server kommt
   // (`st.linked`). Aufgefallen am 04.09. an einer echten COROS-Verknüpfung.
-  const [banner, setBanner] = useState<"ok" | "cancelled" | "error" | null>(null);
+  const [banner, setBanner] = useState<"ok" | "cancelled" | "error" | "fremd" | null>(null);
+  const [fehlerText, setFehlerText] = useState<string | null>(null);
+  // Nach dem Abschluss die Karten neu aufbauen: sie lesen ihren Stand nur beim Aufbau.
+  const [runde, setRunde] = useState(0);
   useEffect(() => {
+    // Ergebnis (`?polar=connected` …) aus der Adresse lesen und sie danach saeubern.
+    const ergebnisZeigen = (suche: string) => {
+      const p = new URLSearchParams(suche);
+      let s: string | null = null;
+      for (const dienst of ["suunto", "coros", "polar", "strava"]) {
+        const v = p.get(dienst);
+        if (v) { s = v; p.delete(dienst); }
+      }
+      if (s === "connected") setBanner("ok");
+      else if (s === "cancelled") setBanner("cancelled");
+      else if (s === "error") setBanner("error");
+      return s;
+    };
     const p = new URLSearchParams(window.location.search);
-    let s: string | null = null;
-    for (const dienst of ["suunto", "coros", "polar", "strava"]) {
-      const v = p.get(dienst);
-      if (v) { s = v; p.delete(dienst); }
+    // Rueckweg vom Hersteller (S-014, 29.10.2026): der Server verknuepft erst, wenn WIR mit unserem
+    // Login bestaetigen, dass der Verbinden-Link von diesem Konto stammt. Code/State sofort aus der
+    // Adresszeile nehmen — sie gelten nur einmal und gehoeren nicht in den Verlauf.
+    const anbieter = p.get("verknuepfen");
+    if (anbieter) {
+      const pfad = { polar: "polar", suunto: "suunto", strava: "strava", coros: "coros", "coros-mcp": "coros/mcp" }[anbieter];
+      const body = { code: p.get("code"), state: p.get("state"), error: p.get("error") };
+      window.history.replaceState(null, "", window.location.pathname);
+      if (!pfad) { setBanner("error"); return; }
+      api.verknuepfungAbschliessen(pfad, body)
+        .then((r) => {
+          if (r.weiter) {
+            ergebnisZeigen(new URL(r.weiter, window.location.origin).search);
+            setRunde((n) => n + 1);
+          } else {
+            setBanner("error");
+            setFehlerText([r.titel, r.text].filter(Boolean).join(" — ") || null);
+          }
+        })
+        .catch((e: Error) => setBanner(e.message.startsWith("403") ? "fremd" : "error"));
+      return;
     }
-    if (s === "connected") setBanner("ok");
-    else if (s === "cancelled") setBanner("cancelled");
-    else if (s === "error") setBanner("error");
-    if (s) {
+    if (ergebnisZeigen(window.location.search)) {
+      ["suunto", "coros", "polar", "strava"].forEach((d) => p.delete(d));
       const q = p.toString();
       window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
     }
   }, []);
   const bannerCls = banner === "ok"
     ? "border-emerald-300 bg-emerald-500/10 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-300"
-    : banner === "error"
+    : banner === "error" || banner === "fremd"
     ? "border-red-400 bg-red-500/15 text-red-700 font-medium dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300"
     : "border-amber-400 bg-amber-500/15 text-amber-700 font-medium dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300";
   return (
@@ -64,11 +95,12 @@ export default function LinkedAccounts() {
       <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>
       {banner && (
         <div className={`mb-4 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-sm ${bannerCls}`}>
-          <span>{banner === "ok" ? t("linked.connectOk") : banner === "cancelled" ? t("linked.connectCancelled") : t("linked.connectError")}</span>
+          <span>{banner === "ok" ? t("linked.connectOk") : banner === "cancelled" ? t("linked.connectCancelled")
+            : banner === "fremd" ? t("linked.connectForeign") : (fehlerText || t("linked.connectError"))}</span>
           <button onClick={() => setBanner(null)} aria-label="×" className="shrink-0 px-1 text-lg opacity-70 hover:opacity-100">×</button>
         </div>
       )}
-      <div className="space-y-4">
+      <div key={runde} className="space-y-4">
         <PolarCard />
         <CorosCard />
         <SuuntoCard />

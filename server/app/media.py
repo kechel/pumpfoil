@@ -6,13 +6,16 @@ from __future__ import annotations
 
 import hashlib
 import io
+import logging
 import uuid
+from pathlib import Path
 
 from PIL import Image, ImageOps
 
 from .config import get_settings
 
 settings = get_settings()
+log = logging.getLogger(__name__)
 
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024  # 12 MB Roh-Upload-Limit
 # Hoechstens so viele Pixel (Security-Review 29.10.2026, Bild-Bombe): 12 MB komprimiert koennen ein
@@ -130,6 +133,31 @@ def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
     return f"/media/{subdir}/{stem}.webp"
 
 
+def gesperrt_verschieben(url: str | None, gesperrt: bool) -> None:
+    """Gesperrtes Foto aus dem oeffentlich ausgelieferten /media nehmen — und beim Entsperren zurueck.
+
+    WARUM (S-043, Jan 29.10.2026): `blocked` blendete das Foto nur in den Listen aus; die Datei lag
+    weiter unter ihrer /media-URL, und wer den Link kannte, sah sie. Jetzt liegt sie gesperrt unter
+    `data_dir/gesperrte-medien/` (nicht ausgeliefert, aber mitgesichert wie server/data), samt
+    Thumbnail. Die URL in der DB bleibt, damit Entsperren ohne Nacharbeit geht. Best effort: fehlt
+    eine Datei, wird nichts kaputt gemacht."""
+    if not url or not url.startswith("/media/"):
+        return
+    ablage = settings.data_dir / "gesperrte-medien"
+    rel = url[len("/media/"):]
+    for p in (rel, thumb_url(rel)):
+        if not p or ".." in Path(p).parts:
+            continue
+        von, nach = ((settings.media_dir / p, ablage / p) if gesperrt
+                     else (ablage / p, settings.media_dir / p))
+        try:
+            if von.exists():
+                nach.parent.mkdir(parents=True, exist_ok=True)
+                von.replace(nach)
+        except OSError:
+            log.exception("gesperrt_verschieben %s", p)
+
+
 def delete_media(url: str | None) -> None:
     """Entfernt eine zuvor gespeicherte /media-Datei (best effort) — inkl. Thumbnail-Sibling."""
     if not url or not url.startswith("/media/"):
@@ -138,7 +166,10 @@ def delete_media(url: str | None) -> None:
     for p in (rel, thumb_url(rel)):
         if not p:
             continue
-        try:
-            (settings.media_dir / p).unlink(missing_ok=True)
-        except OSError:
-            pass
+        # Auch die gesperrte Ablage (gesperrt_verschieben) — Loeschen muss ein gesperrtes Foto
+        # genauso entfernen (DSGVO-Loeschung).
+        for basis in (settings.media_dir, settings.data_dir / "gesperrte-medien"):
+            try:
+                (basis / p).unlink(missing_ok=True)
+            except OSError:
+                pass

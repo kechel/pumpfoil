@@ -66,3 +66,44 @@ def test_zuruecknehmen_verschwindet_aus_der_liste(client):
     assert sid in [z["id"] for z in client.get("/api/sessions/geteilte", headers=kopf).json()]
     assert client.request("DELETE", f"/api/sessions/{sid}/share", headers=kopf).status_code == 200
     assert sid not in [z["id"] for z in client.get("/api/sessions/geteilte", headers=kopf).json()]
+
+
+def _alter_link(sid, tage):
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        db.get(models.Session, sid).share_created_at = datetime.now(timezone.utc) - timedelta(days=tage)
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_link_laeuft_nach_vier_wochen_ab(client):
+    """Jan, 29.10.2026: Teilen-Links verschwinden nach 28 Tagen, als haette man sie widerrufen."""
+    kopf = _konto(client, f"teilen-ablauf-{secrets.token_hex(3)}@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    sid = _session(uid)
+    r = client.post(f"/api/sessions/{sid}/share", headers=kopf).json()
+    alt = r["token"]
+    bis = datetime.fromisoformat(r["gueltig_bis"])
+    assert timedelta(days=27) < bis - datetime.now(timezone.utc) <= timedelta(days=28)
+    assert client.get(f"/api/public/session/{alt}").status_code == 200
+
+    _alter_link(sid, 27)
+    assert client.get(f"/api/public/session/{alt}").status_code == 200
+    _alter_link(sid, 29)
+    assert client.get(f"/api/public/session/{alt}").status_code == 404
+    assert sid not in [z["id"] for z in client.get("/api/sessions/geteilte", headers=kopf).json()]
+    assert client.get(f"/api/sessions/{sid}", headers=kopf).json()["share_token"] is None
+    # Neu teilen gibt einen NEUEN Link — der alte lebt nicht wieder auf.
+    neu = client.post(f"/api/sessions/{sid}/share", headers=kopf).json()["token"]
+    assert neu != alt and client.get(f"/api/public/session/{alt}").status_code == 404
+
+
+def test_beispiel_link_laeuft_nie_ab():
+    from types import SimpleNamespace
+    from app import teilen
+    s = SimpleNamespace(id=9535, share_token="x",
+                        share_created_at=datetime.now(timezone.utc) - timedelta(days=400))
+    assert teilen.gueltig_bis(s) is None

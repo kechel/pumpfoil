@@ -518,6 +518,8 @@ class Session(Base):
     # Öffentlicher Teilen-Token (unguessbar): gesetzt = jeder mit dem Link sieht die Session read-only
     # (ohne Login). Nur vom Besitzer erzeugbar/widerrufbar. None = nicht öffentlich geteilt.
     share_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
+    # Wann der Teilen-Link erzeugt wurde — er laeuft nach teilen.GUELTIG ab (Jan, 29.10.2026).
+    share_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # "recording" → Chunks kommen rein; "complete" → Rohdaten persistiert; "analyzed".
     status: Mapped[str] = mapped_column(String(20), default="recording")
