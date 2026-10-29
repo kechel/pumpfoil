@@ -1,0 +1,58 @@
+name: Abhaengigkeiten pruefen
+
+# Woechentlich (und von Hand ausloesbar): bekannte Sicherheitsluecken in den Paketen, die wirklich laufen.
+#   * Server: server/requirements-prod.txt = pip freeze der Produktions-venv. Geprueft wird damit der
+#     echte Stand auf dem Server, nicht das, was pip heute frisch aufloesen wuerde.
+#   * Web: die ausgelieferten Pakete laut web/package-lock.json (ohne Build-Werkzeuge, --omit=dev),
+#     mit begruendeten Ausnahmen in web/scripts/audit.mjs.
+# Rot = es gibt eine bekannte Luecke; GitHub schickt dann die uebliche Mail. Die Liste steht als
+# Annotation oben am Lauf (ohne Anmeldung lesbar, s. ci.yml).
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"     # montags 05:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Server (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install pip-audit
+      - name: pip-audit
+        run: |
+          set -o pipefail
+          pip-audit --no-deps --disable-pip -r server/requirements-prod.txt 2>&1 | tee /tmp/audit.log
+      - name: Luecken als Annotation melden
+        if: failure()
+        run: |
+          ausschnitt=$(grep -vE "^(Name|----)" /tmp/audit.log | tail -40)
+          echo "::error title=pip-audit::$(printf '%s' "$ausschnitt" | sed ':a;N;$!ba;s/\n/%0A/g')"
+
+  web:
+    name: Web (npm audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: npm audit
+        run: |
+          set -o pipefail
+          node scripts/audit.mjs 2>&1 | tee /tmp/audit.log
+      - name: Luecken als Annotation melden
+        if: failure()
+        run: |
+          ausschnitt=$(grep -v "^akzeptiert" /tmp/audit.log | head -40)
+          echo "::error title=npm audit::$(printf '%s' "$ausschnitt" | sed ':a;N;$!ba;s/\n/%0A/g')"
