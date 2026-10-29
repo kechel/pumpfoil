@@ -1808,7 +1808,7 @@ def _freundschaft_moeglich(db: Session, ich: models.User, anderer: models.User) 
 
 
 @router.get("/heatmap")
-def heatmap(period: str = Query("all"), z: int = Query(10, ge=0, le=22),
+def heatmap(request: Request, period: str = Query("all"), z: int = Query(10, ge=0, le=22),
             w: float = Query(-180), s: float = Query(-85), e: float = Query(180), n: float = Query(85),
             art: str = Query("foil"), sport: str = Query("all", max_length=40),
             user: models.User = Depends(current_user)) -> dict:
@@ -1816,7 +1816,30 @@ def heatmap(period: str = Query("all"), z: int = Query(10, ge=0, le=22),
     `art`: „foil" = Laeufe, „start" = Startpunkte der Laeufe. `sport`: „all" oder eine Sportart.
     Fuer ALLE gleich (Jan: keine Freunde, keine Sonderrechte) — einmal taeglich vorgerechnet."""
     from ..heatmap import abfragen
+    if _android_heatmap_haenger(request, z, w, s, e, n):
+        return {"z": None, "cells": [], "max": 1, "stand": None, "sessions": 0}
     return abfragen(period, z, w, s, e, n, art, sport)
+
+
+# BEHELF bis Android 1.1.46 verbreitet ist (Jan, 29.10.2026) — DANACH WIEDER ENTFERNEN.
+# Android bis 1.1.45 friert auf Spot-Seiten ein (ANR): die Heatmap-Karte sitzt in einer LazyColumn, wird
+# beim Scrollen vor dem Layout gebaut, und ihr `zoomToBoundingBox` auf der 0x0-Karte laeuft in osmdroid
+# in eine Endlosschleife (Fix a5ba1c61 in 1.1.46). Ausgeloest wird das Einpassen von GENAU einer
+# Anfrage: SpotHeatmapPanel.kt fragt zuerst z=15 im festen Rechteck Spot +-0,03 deg Laenge / +-0,02 deg
+# Breite ab. Kommen darauf keine Zellen, setzt die App `leer` und blendet „Heatmap & Routen" aus —
+# es wird nichts eingepasst. Am 29.10. an Cléder (8 Sportarten, Karte weit unten) in 1.1.44 auf Jans
+# Handy bestaetigt. iOS, PWA, die Spot-Karte (andere Ausschnitte) und Android ab 1.1.46 unberuehrt.
+def _android_heatmap_haenger(request: Request | None, z: int, w: float, s: float, e: float, n: float) -> bool:
+    if request is None or z != 15 or abs((e - w) - 0.06) > 1e-6 or abs((n - s) - 0.04) > 1e-6:
+        return False
+    roh = (request.headers.get("X-Pumpfoil-Client") or "").strip().lower()
+    if not roh.startswith("android/"):
+        return False
+    try:
+        teile = tuple(int(x) for x in roh.split("/", 1)[1].split(".")[:3])
+    except ValueError:
+        return False
+    return teile < (1, 1, 46)
 
 
 @router.get("/spot/{spot_id}/startpositionen")

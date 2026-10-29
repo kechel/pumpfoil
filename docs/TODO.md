@@ -1501,6 +1501,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **29.10. — WIEDER ENTFERNEN, sobald Android 1.1.46 verbreitet ist: Server-Behelf gegen den Spot-Seiten-Hänger** (`_android_heatmap_haenger` in `server/app/api/community.py`). Android < 1.1.46 bekommt auf die erste Einpass-Anfrage der Spot-Heatmap (z=15, Spot ±0,03/±0,02°) leere Zellen -> „Heatmap & Routen“ ausgeblendet, kein `zoomToBoundingBox` auf der 0×0-Karte. Bestätigt: 1.1.44 hängt an Cléder (Jan, 29.10.). Prüfen über `client_seen`/Versionen der Android-Geräte, dann raus.
 - **28.10. — Huawei Watch 5: App-geschlossen-Meldung beim Wegwischen (für irgendwann, Jan: „da muss erstmal eine erste version durch das review kommen“).** Die Meldung kommt nur aus `onDestroy`, beim Wegwischen also nicht. Vorschlag: im `onBackground` schicken, wenn keine Aufnahme läuft. Dazu die Diagnosezeile `Pumpfoil krone` in `Index.ets` wieder entfernen. Erst nach der ersten Freigabe (1.0.3 im Review).
 - **28.10. — Android: Spot-Seite friert beim Runterscrollen ein, auch in der LIVE-Fassung 1.1.44** (Jan auf seinem Handy bestaetigt, Illmensee). Ursache: osmdroid-Endlosschleife bei `zoomToBoundingBox` auf einer 0×0-Karte (Heatmap-Karte in der LazyColumn). Fix `a5ba1c61` (`MapView.einpassen`), kommt mit 1.1.45 -> **1.1.45 zuegig einreichen.** Jan informiert die Community im Chat. iOS nicht betroffen (MapKit, kein osmdroid).
 - **27.10. — ThermikDreher (u267, FR965 1.0.97): Scoot-Brett-Paar + Fehlermeldung.** Brett #19235 (Samsung, auto board) parallel zu
