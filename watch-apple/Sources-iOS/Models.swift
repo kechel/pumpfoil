@@ -699,6 +699,17 @@ struct BekanntesProblem: Codable {
     let note: String?
 }
 
+// Security-Reviews (29.10.2026) — GET /api/app/security-reviews, Quelle server/app/data/security_reviews.json.
+// Nur was geaendert wurde (wie im Web, Changelog.tsx `SecurityReviews`). Alles optional.
+struct SecurityReviews: Codable { let reviews: [SecurityReview]? }
+struct SecurityReview: Codable {
+    let datum: String
+    let titel: String?
+    let text: String?
+    let punkte: [SecurityPunkt]?
+}
+struct SecurityPunkt: Codable { let bereich: String; let text: String? }
+
 // Stand je Sportart (19.10.2026) — GET /api/app/sport-status, Quelle server/app/data/sportarten_stand.json.
 struct SportStand: Codable {
     let stand: String?

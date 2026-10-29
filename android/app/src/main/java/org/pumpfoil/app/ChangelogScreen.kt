@@ -79,6 +79,7 @@ fun ChangelogScreen(onBack: () -> Unit) {
     var fehler by remember { mutableStateOf(false) }
     var stand by remember { mutableStateOf<ReleaseStand?>(null) }
     var sport by remember { mutableStateOf<SportStand?>(null) }
+    var security by remember { mutableStateOf<SecurityReviews?>(null) }
 
     // Beide parallel laden, aber ZUSAMMEN zeigen (Jan, 12.10.2026): kamen die Tage zuerst, schob sich
     // die Release-Tabelle danach UEBER die Liste, die LazyColumn blieb am ersten Tag stehen — die
@@ -88,8 +89,10 @@ fun ChangelogScreen(onBack: () -> Unit) {
             val st = async { try { Api.releaseStand() } catch (_: Exception) { null } }
             val tg = async { try { Api.changelog().days } catch (_: Exception) { null } }
             val sp = async { try { Api.sportStand() } catch (_: Exception) { null } }
+            val sec = async { try { Api.securityReviews() } catch (_: Exception) { null } }
             val (r, t) = st.await() to tg.await()
             sport = sp.await()
+            security = sec.await()
             stand = r
             if (t == null) fehler = true else tage = t
         }
@@ -116,6 +119,7 @@ fun ChangelogScreen(onBack: () -> Unit) {
                 item { ReleaseKarte(s) }
             }
             sport?.let { sp -> item { SportKarte(sp) } }
+            security?.reviews?.forEach { r -> item(key = "sec-${r.datum}") { SecurityKarte(r) } }
             if (tage == null && !fehler) item {
                 Text(I18n.t("common.loading"), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -223,6 +227,41 @@ private fun Aufklapper(punkte: List<String>) {
     if (offen) {
         Column(Modifier.padding(start = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             punkte.forEach { Aufzaehlung(it) }
+        }
+    }
+}
+
+// Security-Review (29.10.2026) — wie im Web (Changelog.tsx `SecurityReviews`): eine Karte, zu bis man
+// sie antippt. Nur was geaendert wurde; der Inhalt kommt vom Server.
+@Composable
+private fun SecurityKarte(r: SecurityReview) {
+    var offen by remember { mutableStateOf(false) }
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
+        Column(Modifier.padding(14.dp)) {
+            Row(Modifier.fillMaxWidth().clickable { offen = !offen }, verticalAlignment = Alignment.Top) {
+                Icon(if (offen) Icons.Filled.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(4.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("${r.titel} · ${tagLang(r.datum)}", fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall)
+                    Text(r.text, style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.width(6.dp))
+                SportChip("${r.punkte.size} changes", "live")
+            }
+            if (offen) {
+                Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    r.punkte.forEach { p ->
+                        Column {
+                            Text(p.bereich, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyMedium)
+                            Text(p.text, style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
         }
     }
 }

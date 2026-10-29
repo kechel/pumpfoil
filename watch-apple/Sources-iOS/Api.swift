@@ -1302,6 +1302,11 @@ enum Api {
         try await request("/api/app/releases?ohne_sport=1", method: "GET", body: nil, auth: false)
     }
 
+    /// Security-Reviews fuer die Changelog-Seite (29.10.2026) — nur Erledigtes.
+    static func securityReviews() async throws -> SecurityReviews {
+        try await request("/api/app/security-reviews", method: "GET", body: nil, auth: false)
+    }
+
     /// Stand der Auswertung je Sportart fuer die Changelog-Seite (19.10.2026).
     static func sportStand() async throws -> SportStand {
         try await request("/api/app/sport-status", method: "GET", body: nil, auth: false)

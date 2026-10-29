@@ -358,11 +358,13 @@ struct ChangelogView: View {
     @State private var fehler = false
     @State private var stand: ReleaseStand?
     @State private var sport: SportStand?
+    @State private var security: [SecurityReview] = []
 
     var body: some View {
         List {
             standSections
             if let sp = sport { ChangelogSportSection(stand: sp) }
+            ForEach(security, id: \.datum) { r in ChangelogSecuritySection(review: r) }
             ladeZeile
             ForEach(tage ?? []) { tag in
                 ChangelogTagSection(tag: tag)
@@ -399,11 +401,14 @@ struct ChangelogView: View {
         async let s: ReleaseStand? = try? Api.releaseStand()
         async let a: ChangelogAntwort? = try? Api.changelog()
         async let sp: SportStand? = try? Api.sportStand()
+        async let sec: SecurityReviews? = try? Api.securityReviews()
         let st: ReleaseStand? = await s
         let an: ChangelogAntwort? = await a
         let spd: SportStand? = await sp
+        let secd: SecurityReviews? = await sec
         stand = st
         sport = spd
+        security = secd?.reviews ?? []
         if let an { tage = an.days ?? [] } else { fehler = true }
     }
 }
@@ -423,6 +428,38 @@ private func changelogTagLang(_ iso: String) -> String {
     aus.locale = Locale(identifier: "en_US_POSIX")
     aus.dateFormat = "MMMM d, yyyy"
     return aus.string(from: d)
+}
+
+// Security-Review (29.10.2026) — wie im Web (Changelog.tsx `SecurityReviews`): eine aufklappbare
+// Zeile, zu bis man sie antippt. Nur was geaendert wurde; Inhalt vom Server, Englisch.
+private struct ChangelogSecuritySection: View {
+    let review: SecurityReview
+
+    var body: some View {
+        Section {
+            DisclosureGroup {
+                ForEach(review.punkte ?? [], id: \.bereich) { p in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(p.bereich).font(.subheadline.weight(.medium))
+                        Text(p.text ?? "").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+            } label: {
+                kopf
+            }
+        }
+    }
+
+    private var kopf: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Text("\(review.titel ?? "Security review") · \(changelogTagLang(review.datum))")
+                    .font(.subheadline.weight(.bold))
+                SportStatusChip(text: "\((review.punkte ?? []).count) changes", status: "live")
+            }
+            Text(review.text ?? "").font(.subheadline).foregroundStyle(.secondary)
+        }
+    }
 }
 
 // „Analysis by sport" (19.10.2026) — wie der Abschnitt im Web (Changelog.tsx `SportStand`): je

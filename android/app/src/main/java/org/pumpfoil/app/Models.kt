@@ -1633,6 +1633,22 @@ data class BekanntesProblem(
     val note: String? = null,
 )
 
+// Security-Reviews (29.10.2026) — GET /api/app/security-reviews, Quelle server/app/data/security_reviews.json.
+// Nur was geaendert wurde (wie im Web, Changelog.tsx `SecurityReviews`).
+@Serializable
+data class SecurityReviews(val reviews: List<SecurityReview> = emptyList())
+
+@Serializable
+data class SecurityReview(
+    val datum: String = "",
+    val titel: String = "",
+    val text: String = "",
+    val punkte: List<SecurityPunkt> = emptyList(),
+)
+
+@Serializable
+data class SecurityPunkt(val bereich: String = "", val text: String = "")
+
 // Stand je Sportart (19.10.2026) — GET /api/app/sport-status, Quelle server/app/data/sportarten_stand.json.
 @Serializable
 data class SportStand(

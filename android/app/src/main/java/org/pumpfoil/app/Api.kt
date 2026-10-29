@@ -1242,6 +1242,10 @@ object Api {
     }
 
     // Stand der Auswertung je Sportart fuer die Changelog-Seite (19.10.2026).
+    suspend fun securityReviews(): SecurityReviews = withContext(Dispatchers.IO) {
+        json.decodeFromString(SecurityReviews.serializer(), http("GET", "/api/app/security-reviews", null, auth = false))
+    }
+
     suspend fun sportStand(): SportStand = withContext(Dispatchers.IO) {
         json.decodeFromString(SportStand.serializer(), http("GET", "/api/app/sport-status", null, auth = false))
     }
