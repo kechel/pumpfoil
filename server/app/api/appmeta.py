@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.57 for iOS
+        "latest": "1.1.58",   # FREIGEGEBEN 2026-10-29 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.58 for iOS
+        # (Submission 10651bd1-1405-4973-903a-290de82a2f8b, eingereicht 28.10. 15:17 PDT = 23:17, Build 66).
+        # Inhalt: Spot-Seite (Sport-Knoepfe, Rekorde je Sportart, Suche unter der Karte, Heatmap), Filterzeile, Feedback n/2000.
+        # Changelog 771/772/789/790/794/795/796 (+ios), 4 neue Punkte am 29.10., Ereignis 29.10.
+        # ALT: "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.57 for iOS
         # (Submission daa3f3a9-93d2-4c10-bd04-17bf11de32cc, eingereicht 26.10. 08:09 PDT = 16:09, Build 65).
         # Inhalt: Sportarten ohne Foil, Handy-Recorder, GPS-Verlust-Anzeige. Changelog 751/752/754/757/759/765 + 774/775 (+ios/apple), Ereignis 776.
         # ALT: "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.56 for iOS
@@ -474,7 +478,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.58",   # FREIGEGEBEN 2026-10-29 — dieselbe Einreichung wie "ios" (ein Bundle; Watch-Code unveraendert seit 1.1.57).
+        # ALT: "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.55",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.54",   # FREIGEGEBEN 2026-10-23 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -898,12 +903,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 28.10.2026 23:17 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.58 (66),
-    # Kennung 10651bd1-1405-4973-903a-290de82a2f8b). Jan im Simulator getestet (Spot-Knoepfe, Rekord-Kacheln nach dem
-    # Laufzaehler-Fix 5b9379e9, Spotsuche, Heatmap). Auf der VM nur swiftc -parse. Watch-Code unveraendert seit 1.1.57.
-    {"name": "iPhone + Apple Watch", "version": "1.1.58",
-     "eingereicht": "2026-10-28",
-     "items": ["The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list.", "The feedback form shows how many of the 2000 characters you have used, and says so if sending fails, instead of doing nothing.", "The records on a spot page show only the records that exist, without rows of empty tiles.", "Spot records show one sport at a time with a switch between the sports that have records there, and follow the sport filter of the page.", "Searching for a spot shows the matches right below the map instead of at the bottom of the page.", "The heatmap on a spot page no longer turns the whole map red when you open the spot right after starting the app.", "The heatmap on a spot page switches to the sport you pick for the records.", "On a spot page the sport buttons above the records filter the whole page (sessions, records and heatmap) and replace the sport menu there; they show only the sports ridden at that spot, and on Android they stay at the top while the page scrolls.", "The session list no longer has a spot menu; you get to a spot through the spot map and its search, your homespot tab or the spot link of a session.", "The session list puts the sport menu and the tiles/rows switch into the row with accel, all and POB, so the filters take one line less."]},
+    # iPhone + Apple Watch 1.1.58 am 29.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 771/772/789/790/794/795/796 tragen ios 1.1.58, vier neue am 29.10.
     # EINGEREICHT 28.10.2026 spaet abends (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14
     # Minuten", Produktion 61 (1.1.46), Produktion (Wear OS) 1057 (1.2.46)). ERSETZT die am selben Abend eingereichte,
     # noch nicht freigegebene 1.1.45 (60/1056): Spot-Knoepfe als Filter, Heatmap nach Sportart, Spot-Auswahlfeld raus,
@@ -1054,7 +1054,7 @@ NAECHSTES: list[dict] = [
     # Android 1.1.45 / Wear 1.2.45 am 28.10. eingereicht -> IN_REVIEW.
     # 26.10.2026 abends: Chip „Gültig" (ae2fab54) + gelbes Sportart-Label in eigenen Listen (Wunsch u244), nach dem Build von 1.1.57.
     # iPhone NICHT gebumpt (1.1.57 liegt im Review). Code nur swiftc -parse.
-    # iPhone + Apple Watch 1.1.58 am 28.10. eingereicht -> IN_REVIEW.
+    # iPhone + Apple Watch 1.1.58 am 28.10. eingereicht -> IN_REVIEW, am 29.10. FREIGEGEBEN.
     # iPhone + Apple Watch 1.1.57 am 26.10. eingereicht -> IN_REVIEW, am 26.10. FREIGEGEBEN.
     # iPhone + Apple Watch 1.1.55 am 23.10. eingereicht -> IN_REVIEW.
     # Android 1.1.44 / Wear 1.2.44 am 22.10. eingereicht -> IN_REVIEW.
