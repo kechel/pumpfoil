@@ -181,6 +181,10 @@ def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(cur
                                      lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
+verknuepfung.routen_ohne_login(router, _uid_from_state,
+                               lambda b, db: _callback_ausfuehren(code=b.code, state=b.state, db=db))
+
+
 def _parsed_from_streams(act: dict, streams: dict) -> dict | None:
     """Strava-Aktivität + Streams -> parsed-Dict wie der FIT-Parser (gps_samples …)."""
     latlng = (streams.get("latlng") or {}).get("data") or []

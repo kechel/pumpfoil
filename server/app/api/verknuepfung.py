@@ -13,15 +13,20 @@ Jetzt in zwei Schritten:
   2. Die PWA ruft dort `POST …/abschliessen` MIT ihrem Login auf. Erst hier wird eingetauscht —
      und nur, wenn die angemeldete Person die aus dem `state` ist. Sonst 403, nichts passiert.
 
-Kein Cookie, kein zusaetzlicher Klick fuer die Nutzer. Die Apps starten das Verknuepfen nicht
-selbst (nur die PWA), deshalb braucht es keine Store-Version.
+Kein Cookie, kein zusaetzlicher Klick fuer angemeldete Nutzer.
+
+OHNE Anmeldung im Browser (29.10.2026, nachgezogen): die Apps oeffnen den Hersteller im externen
+Browser (Android) bzw. im In-App-Safari (iOS) — dort ist meist niemand bei pumpfoil.org angemeldet.
+Dann zeigt /konten eine Bestaetigung MIT dem Namen des Ziel-Kontos („Polar mit dem Pumpfoil-Konto
+‚X' verbinden?"), und erst der Klick schliesst ab (`…/abschliessen-bestaetigt`). Ein untergeschobener
+Link zeigt so den Namen des fremden Kontos — informierte Zustimmung statt blindem Verknuepfen.
 """
 from __future__ import annotations
 
 from typing import Callable
 from urllib.parse import urlencode, urlsplit
 
-from fastapi import HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, Field
 
@@ -64,3 +69,27 @@ def als_json(resp: Response) -> dict:
         return {"weiter": ziel.path + (f"?{ziel.query}" if ziel.query else "")}
     fehler = getattr(resp, "fehler", None) or {}
     return {"weiter": None, "titel": fehler.get("titel"), "text": fehler.get("text")}
+
+
+def routen_ohne_login(router: APIRouter, uid_aus_state: Callable[[str], int | None],
+                      ausfuehren: Callable[[AbschlussIn, object], Response]) -> None:
+    """Zwei Routen fuer den Rueckweg ohne Anmeldung (s. Kopf): wem gehoert der Link, und der
+    ausdruecklich bestaetigte Abschluss."""
+    from sqlalchemy.orm import Session as DbSession
+
+    from ..db import get_db
+    from ..ratelimit import rate_limit
+
+    @router.get("/ziel")
+    def ziel(state: str, db: DbSession = Depends(get_db),
+             _rl: None = Depends(rate_limit(60, 900, "verkn-ziel"))) -> dict:
+        uid = uid_aus_state(state or "")
+        u = db.get(models.User, uid) if uid is not None else None
+        if u is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "abgelaufen")
+        return {"name": u.display_name or "?", "avatar_url": u.avatar_url}
+
+    @router.post("/abschliessen-bestaetigt")
+    def abschliessen_bestaetigt(body: AbschlussIn, db: DbSession = Depends(get_db),
+                                _rl: None = Depends(rate_limit(20, 900, "verkn-bestaetigt"))) -> dict:
+        return als_json(ausfuehren(body, db))

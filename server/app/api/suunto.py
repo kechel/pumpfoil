@@ -593,6 +593,10 @@ def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(cur
                                      lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db, error=body.error))
 
 
+verknuepfung.routen_ohne_login(router, _uid_from_state,
+                               lambda b, db: _callback_ausfuehren(code=b.code, state=b.state, db=db, error=b.error))
+
+
 def _vorfilter(wo: dict) -> str | None:
     """None = holen. Sonst der Grund, warum wir es NICHT holen (fuers Log)."""
     if not isinstance(wo, dict):

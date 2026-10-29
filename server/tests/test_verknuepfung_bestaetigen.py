@@ -105,3 +105,23 @@ def test_abgelaufener_state_meldet_fehler_mit_text(client, polar_attrappe):
     assert r.status_code == 200
     d = r.json()
     assert d["weiter"] is None and d["titel"] and getauscht == []
+
+
+def test_ohne_login_ziel_zeigt_namen_und_bestaetigung_verknuepft(client, polar_attrappe):
+    """Rueckweg aus den Apps (Browser ohne Anmeldung): Name des Ziel-Kontos, dann Abschluss per Klick."""
+    from app import models
+    from app.db import SessionLocal
+    polar, getauscht = polar_attrappe
+    uid, _ = _konto(client)
+    db = SessionLocal()
+    try:
+        db.get(models.User, uid).display_name = "Zielkonto"
+        db.commit()
+    finally:
+        db.close()
+    state = polar._state_for(uid)
+    assert client.get(f"/api/integrations/polar/ziel?state={state}").json()["name"] == "Zielkonto"
+    assert client.get("/api/integrations/polar/ziel?state=kaputt").status_code == 404
+    r = client.post("/api/integrations/polar/abschliessen-bestaetigt", json={"code": "c", "state": state})
+    assert r.status_code == 200 and r.json()["weiter"] == "/konten?polar=connected"
+    assert getauscht and _polar_link(uid) is not None

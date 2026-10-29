@@ -108,6 +108,7 @@ const Systemarchitektur = seite(() => import("./pages/Systemarchitektur"));
 const Reset = seite(() => import("./pages/Reset"));
 
 import Landing from "./pages/Landing";
+import VerknuepfenOhneLogin from "./pages/VerknuepfenOhneLogin";
 import { PwaStatus } from "./components/PwaStatus";
 
 // "/" -> eingeloggt: App-Shell; Gast: öffentliche Landing-Page (statt Login-Redirect),
@@ -134,9 +135,16 @@ function SprachStartseite() {
  * und drinnen im App-Rahmen (fuer Angemeldete, mit Menue). Dieselbe Adresse, damit ein geteilter
  * Link fuer beide funktioniert. Markiert sind sie mit `handle: { text: true }`.
  */
+// Einmal beim Laden festgestellt: die Seite nimmt Code/State sofort aus der Adresszeile, ein spaeteres
+// Neu-Rendern des Rahmens saehe den Parameter sonst nicht mehr und zeigte die Startseite.
+const VERKNUEPFEN_RUECKWEG = window.location.pathname === "/konten"
+  && new URLSearchParams(window.location.search).has("verknuepfen");
+
 function Rahmen() {
   const textSeite = useMatches().some((m) => (m.handle as { text?: boolean } | undefined)?.text);
   if (getToken()) return <App />;
+  // Rueckweg vom Hersteller ohne Anmeldung in diesem Browser (aus den Apps): Bestaetigung statt Startseite.
+  if (VERKNUEPFEN_RUECKWEG) return <VerknuepfenOhneLogin />;
   if (!textSeite) return <Landing />;
   // Fuer Gaeste fehlt der App-Rahmen — und damit auch dessen Innenabstand und Breite. Ohne
   // eigenen Rahmen liefen die Nerd-Analysen randlos ueber die ganze Bildschirmbreite, waehrend

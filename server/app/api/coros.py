@@ -178,6 +178,10 @@ def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(cur
                                      lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
+verknuepfung.routen_ohne_login(router, _uid_from_state,
+                               lambda b, db: _callback_ausfuehren(code=b.code, state=b.state, db=db))
+
+
 @router.post("/push")
 async def push(request: Request, db: Session = Depends(get_db)) -> dict:
     """Workout Summary Data Push (5.3): COROS POSTet neue Workouts. client/secret im Header

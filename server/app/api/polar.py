@@ -219,6 +219,10 @@ def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(cur
                                      lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
+verknuepfung.routen_ohne_login(router, _uid_from_state,
+                               lambda b, db: _callback_ausfuehren(code=b.code, state=b.state, db=db))
+
+
 def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict:
     """Exercise-Transaktion abarbeiten: neue Trainings als TCX ziehen + importieren. Von /sync
     (manuell) UND vom Webhook (Auto-Import) genutzt."""

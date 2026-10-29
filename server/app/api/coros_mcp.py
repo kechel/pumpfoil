@@ -424,6 +424,10 @@ def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(cur
                                      lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
 
 
+verknuepfung.routen_ohne_login(router, lambda s: _state_lesen(s)[0],
+                               lambda b, db: _callback_ausfuehren(code=b.code, state=b.state, db=db))
+
+
 @router.get("/tools")
 def tools(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """Werkzeug-Liste des MCP-Servers — für die Diagnose.
