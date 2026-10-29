@@ -122,3 +122,6 @@ watch-suunto/app-debug/*.dev
 # aber das Zepp-Werkzeug auf dem Mac schreibt jene Datei neu und wirft die Zeile raus (10.10. und
 # 18.10. dieselbe Aenderung) -> hier oben ist sie davor sicher.
 watch-zepp/page/devflags.js
+
+# Lokale Arbeitsdateien gehoeren nicht ins Repo
+/tmp/
