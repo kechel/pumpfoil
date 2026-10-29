@@ -1718,6 +1718,7 @@ const es: Record<string, string> = {
   "imp.gh1": "El repositorio también contiene capturas de pantalla de las apps. Pueden mostrar lo que ven los miembros que han iniciado sesión, por ejemplo nombres visibles de riders en récords o como autores de layouts de reloj, y nombres de spots.",
   "imp.gh2": "Si no quieres que aparezca tu nombre, escríbenos y lo haremos irreconocible en los archivos actuales. Las versiones anteriores siguen en el historial del repositorio mientras no se reescriba.",
   "imp.gh3": "pumpfoil.org solo enlaza a GitHub y no carga nada de allí. En github.com rige la política de privacidad de GitHub.",
+  "imp.gh4": "Pumpfoil se desarrolla con la ayuda del asistente de IA Claude, que publica por sí mismo los cambios del código fuente en GitHub. Los datos de los usuarios no pertenecen allí y nunca se suben a propósito; cada publicación se comprueba automáticamente. Aun así, no se puede descartar que partes de ellos se hagan públicas por error, por ejemplo nombres visibles, lugares y horas de sesiones o datos de sensores (recorridos GPS, datos de movimiento, pulso). Lo que estuvo una vez en GitHub puede haber sido copiado por otros y ya no se puede retirar por completo. <b>Si no quieres asumir este riesgo, no grabes ni subas sesiones con Pumpfoil.</b>",
   "imp.google2": "<b>Uso (Data Usage):</b> exclusivamente para crear e iniciar sesión en tu cuenta de Pumpfoil y para mostrar tu nombre en la app.",
   "meta.errLen": "Máx. 30 caracteres.",
   "field.5": "Velocidad (actual)",

@@ -2226,6 +2226,7 @@ const en: Record<string, string> = {
   "imp.gh1": "The repository also contains screenshots of the apps. They can show what logged-in members see in the app, for example riders' display names in records or as authors of watch layouts, and spot names.",
   "imp.gh2": "If you don't want your name to appear there, write to us and we will make it unrecognisable in the current files. Older versions stay in the repository history unless that history is rewritten.",
   "imp.gh3": "pumpfoil.org only links to GitHub and loads nothing from there. When you open github.com, GitHub's own privacy statement applies.",
+  "imp.gh4": "Pumpfoil is developed with the help of the AI assistant Claude, which publishes changes to the source code on GitHub on its own. User data does not belong there and is never uploaded on purpose; every publication is checked for it automatically. Even so, it cannot be ruled out that parts of it become public by mistake, for example display names, places and times of sessions or sensor data (GPS tracks, motion data, heart rate). Anything that was once on GitHub may have been copied by others and can then no longer be fully taken back. <b>If you do not want to take this risk, please do not record or upload sessions with Pumpfoil.</b>",
   "imp.connIntro": "Optionally, and only on your explicit action, you can link a third-party account to import activities:",
   "imp.fbTitle": "Facebook sign-in (“Continue with Facebook”)",
   "imp.fbIntro": "If you sign in with your Facebook account, we process only the following data:",
