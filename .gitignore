@@ -125,3 +125,4 @@ watch-zepp/page/devflags.js
 
 # Lokale Arbeitsdateien gehoeren nicht ins Repo
 /tmp/
+analyse/sicherung-import-sportarten.csv

@@ -5701,7 +5701,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   nannten eine andere Sportart als die bei uns eingetragene. 130 zaehlten als Pumpfoil — darunter
   25 Radfahrten, 20 Laeufe, 4 Fussballspiele.
   **Korrigiert** mit `scripts/import-sportart-korrigieren.py`: 130 auf `other` umgestuft, bei 112
-  nur die Sportart nachgetragen. Ist-Zustand vorher gesichert (`analyse/sicherung-import-sportarten.csv`).
+  nur die Sportart nachgetragen. Ist-Zustand vorher gesichert (`analyse/sicherung-import-sportarten.csv`, nur lokal auf der VM).
   **Die Ausschlussliste ist BEWUSST eng** und enthaelt nur, was niemand als Ersatzmodus fuers
   Foilen waehlen wuerde. Nicht enthalten: `surfing`, `stand_up_paddleboarding`, `kitesurfing`,
   `sailing`, `windsurfing`, `open_water`. Der Grund ist gemessen, nicht vermutet: **unsere
