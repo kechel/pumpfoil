@@ -93,7 +93,19 @@ def _spot_cond(spot: str, db: Session | None = None):
     """
     if db is not None and str(spot) == ortverbergen.NEMO_NAME:
         return _verborgen_cond(db)
-    basis = S.spot_id == int(spot) if str(spot).isdigit() else S.place_name == spot
+    sid = int(spot) if str(spot).isdigit() else None
+    # NAME -> SPOT-NUMMER, wenn genau ein Spot so heisst (Jan, 29.10.2026: „nur Spot-Zuordnung"). Die Apps
+    # fragen die Spot-Seite per Namen ab, die PWA per Nummer. Per Name kamen auch Sessions OHNE Spot-
+    # Zuordnung mit (keine Foil-Zeit, nur der Ortsname passt) — in Illmensee 10 neben 374, darunter eine
+    # Lowkite-Session, die in den Apps einen Parawing-Knopf und Parawing-Rekorde erzeugte, in der PWA
+    # nicht. Jetzt meinen beide dieselbe Menge. Namen ohne (oder mit mehreren) Spot-Zeilen bleiben beim
+    # Ortsnamen — alte Ortsgruppen ohne Spot.
+    if sid is None and db is not None:
+        treffer = [i for (i,) in db.query(models.Spot.id).filter(
+            models.Spot.name == spot, models.Spot.merged_into.is_(None)).limit(2)]
+        if len(treffer) == 1:
+            sid = treffer[0]
+    basis = S.spot_id == sid if sid is not None else S.place_name == spot
     if db is None:
         return basis
     return and_(basis, not_(_verborgen_cond(db)))
