@@ -1449,6 +1449,17 @@ def sport_status() -> dict:
 
 
 
+_SECURITY = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "security_reviews.json")
+
+
+@router.get("/security-reviews")
+def security_reviews() -> dict:
+    """Fuer /changelog: was ein Security-Review geaendert hat (Jan, 29.10.2026). Bewusst NUR Erledigtes —
+    Offenes oder bewusst Belassenes gehoert nicht auf eine oeffentliche Seite. Pflege: data/security_reviews.json."""
+    with open(_SECURITY, encoding="utf-8") as f:
+        return {"reviews": json.load(f)["reviews"]}
+
+
 @router.get("/releases")
 def releases(ohne_sport: bool = False) -> dict:
     """Was ist live, was liegt im Review, was wurde abgelehnt, was kommt als Naechstes.

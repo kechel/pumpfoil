@@ -1094,6 +1094,9 @@ export const api = {
   sportRekorde: (period = "all", userId?: number) => req<{ sportarten: { sport: string; rekorde: Record<string, { session_id: number; value: number; started_at: string | null; spot: string | null; tz: string | null }> }[] }>(`/api/sessions/sport-rekorde?period=${period}${userId ? `&user_id=${userId}` : ""}`),
   // Jahresbilanz je Sportart (19.10.2026): eigene Sessions je Kalenderjahr.
   jahresbilanz: (userId?: number) => req<{ jahre: { jahr: number; sportarten: { sport: string; sessions: number; stunden: number; km: number; foil_km: number }[] }[] }>(`/api/sessions/jahresbilanz${userId ? `?user_id=${userId}` : ""}`),
+  // Security-Reviews fuer /changelog (server/app/data/security_reviews.json) — nur Erledigtes.
+  securityReviews: () => req<{ reviews: { datum: string; titel: string; text: string;
+                                          punkte: { bereich: string; text: string }[] }[] }>("/api/app/security-reviews"),
   sportStatus: () => req<{
     stand: string;
     status: Record<string, string>;

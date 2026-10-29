@@ -344,6 +344,43 @@ function SportStand() {
   );
 }
 
+// Security-Reviews (Jan, 29.10.2026): je Review ein Kasten wie „Analysis by sport", zu bis man ihn
+// oeffnet. Inhalt vom Server (`server/app/data/security_reviews.json`) — nur, was geaendert wurde.
+function SecurityReviews() {
+  const [d, setD] = useState<Awaited<ReturnType<typeof api.securityReviews>> | null>(null);
+  useEffect(() => { api.securityReviews().then(setD).catch(() => setD(null)); }, []);
+  if (!d || !d.reviews.length) return null;
+  return (
+    <>
+      {d.reviews.map((r) => (
+        <section key={r.datum} className="mb-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-start gap-2 [&::-webkit-details-marker]:hidden">
+              <ChevronIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-400 transition-transform group-open:rotate-90" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-slate-100">{r.titel} · {tagLang(r.datum)}</span>
+                <span className="block text-sm text-slate-400">{r.text}</span>
+              </span>
+              <span className="shrink-0 rounded-full bg-emerald-600/15 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                {r.punkte.length} changes
+              </span>
+            </summary>
+            <ul className="mt-3 space-y-2 text-sm">
+              {r.punkte.map((p) => (
+                <li key={p.bereich} className="border-t border-slate-800/70 pt-2 sm:grid sm:grid-cols-[11rem_1fr] sm:gap-x-3">
+                  <span className="font-medium text-slate-200">{p.bereich}</span>{" "}
+                  <span className="text-slate-300">{p.text}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </section>
+      ))}
+    </>
+  );
+}
+
+
 export default function Changelog() {
   const t = useT();
   const [tage, setTage] = useState<Entry[] | null>(null);
@@ -367,6 +404,7 @@ export default function Changelog() {
 
       <ReleaseStatus />
       <SportStand />
+      <SecurityReviews />
 
       {tage === null && !fehler && (
         <p className="text-sm text-slate-400">{t("common.loading")}</p>
