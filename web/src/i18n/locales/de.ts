@@ -1433,7 +1433,7 @@ const de: Record<string, string> = {
   "imp.operator1": "E-Mail-Adressen, alle Rohdaten, Geräte-Verknüpfungen und technische Server-Logs.",
   "imp.operator2": "Passwörter werden nur als gesalzener Hash (PBKDF2) gespeichert — auch ich sehe sie nicht im Klartext.",
   "imp.hostTitle": "Server und Hosting",
-  "imp.host1": "Der Server von pumpfoil.org wird von der <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> betrieben. Deren Geschäftsführer ist der Betreiber dieses Projekts; SmartKomm stellt den Server <b>unentgeltlich</b> zur Verfügung.",
+  "imp.host1": "Die <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> stellt den Server (eine virtuelle Maschine) <b>unentgeltlich</b> zur Verfügung; ihr Geschäftsführer betreibt dieses Projekt privat. Verantwortlich für pumpfoil.org und alle Daten ist allein der Betreiber laut Impressum.",
   "imp.host2": "Der Server steht bei der <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Mit Hetzner besteht ein <b>Vertrag zur Auftragsverarbeitung (AVV) nach Art. 28 DSGVO</b>.",
   "imp.privacyTitle": "Datenlöschung",
   "imp.privacyText": "Alle hochgeladenen Daten werden dauerhaft gespeichert. Zum Löschen nutze bitte den Button „Konto löschen“ in deinem Profil (Web-App oder iOS-/Android-App) — er entfernt dein Konto mit allen Sessions, Rohdaten und Fotos endgültig. Die Übertragung läuft verschlüsselt (HTTPS).",

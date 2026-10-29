@@ -1346,7 +1346,7 @@ const pl: Record<string, string> = {
   "imp.operator1": "Adresy e-mail, wszystkie surowe dane, powiązania urządzeń i techniczne logi serwera.",
   "imp.operator2": "Hasła są przechowywane wyłącznie jako solony skrót (PBKDF2) — nawet ja nie widzę ich w postaci jawnej.",
   "imp.hostTitle": "Serwer i hosting",
-  "imp.host1": "Serwer pumpfoil.org prowadzi <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. Jej prezes jest operatorem tego projektu; SmartKomm udostępnia serwer <b>bezpłatnie</b>.",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> udostępnia serwer (maszynę wirtualną) <b>bezpłatnie</b>; jej prezes prowadzi ten projekt prywatnie. Jedynym odpowiedzialnym za pumpfoil.org i wszystkie dane jest operator wskazany w nocie prawnej.",
   "imp.host2": "Serwer znajduje się w <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Z firmą Hetzner zawarta jest <b>umowa powierzenia przetwarzania danych zgodnie z art. 28 RODO</b>.",
   "imp.privacyTitle": "Usuwanie danych",
   "imp.privacyText": "Wszystkie wysłane dane są przechowywane trwale. Aby je usunąć, użyj przycisku „Usuń konto” w swoim profilu (aplikacja webowa albo iOS/Android) — trwale usuwa on Twoje konto ze wszystkimi sesjami, surowymi danymi i zdjęciami. Przesyłanie jest szyfrowane (HTTPS).",

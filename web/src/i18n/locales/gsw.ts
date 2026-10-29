@@ -1659,7 +1659,7 @@ const gsw: Record<string, string> = {
   "imp.operator1": "E-Mail-Adrässe, alli Rohdate, Geräte-Verchnüpfige und technischi Server-Logs.",
   "imp.operator2": "Passwörter werdet nur als gsalzene Hash (PBKDF2) gspycheret — au ich gseh si nöd im Klartext.",
   "imp.hostTitle": "Server und Hosting",
-  "imp.host1": "De Server vo pumpfoil.org wird vo de <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> betribe. Ihre Gschäftsfüehrer isch de Betriiber vo dem Projekt; SmartKomm stellt de Server <b>gratis</b> zur Verfüegig.",
+  "imp.host1": "D <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> stellt de Server (e virtuelli Maschine) <b>gratis</b> zur Verfüegig; ihre Gschäftsfüehrer betribt das Projekt privat. Verantwortlich für pumpfoil.org und alli Date isch nume de Betriiber laut Impressum.",
   "imp.host2": "De Server staht bi de <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Mit Hetzner gits en <b>Vertrag zur Uftragsverarbeitig (AVV) nach Art. 28 DSGVO</b>.",
   "imp.operatorTitle": "🛠 Nur de Betriiber (Jan)",
   "imp.owner1": "<b>Rohdate</b> vo dine Sessions (einzelni GPS-Pünkt, 25-Hz-Beschlünigung) — z. B. fürs Labele.",

@@ -1171,7 +1171,7 @@ const id: Record<string, string> = {
   "imp.operator1": "Alamat email, semua data mentah, tautan perangkat dan log server teknis.",
   "imp.operator2": "Kata sandi disimpan hanya sebagai hash bergaram (PBKDF2) — bahkan aku tidak bisa melihatnya dalam teks biasa.",
   "imp.hostTitle": "Server dan hosting",
-  "imp.host1": "Server pumpfoil.org dikelola oleh <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. Direktur pelaksananya adalah pengelola proyek ini; SmartKomm menyediakan server ini <b>tanpa biaya</b>.",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> menyediakan server (sebuah mesin virtual) secara <b>gratis</b>; direkturnya menjalankan proyek ini secara pribadi. Yang bertanggung jawab atas pumpfoil.org dan semua data hanyalah operator yang tercantum di impresum.",
   "imp.host2": "Server di-hosting oleh <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Dengan Hetzner telah dibuat <b>perjanjian pemrosesan data sesuai Pasal 28 GDPR</b>.",
   "imp.privacyTitle": "Penghapusan data",
   "imp.privacyText": "Semua data yang diunggah disimpan secara permanen. Untuk menghapusnya, gunakan tombol “Hapus akun” di profilmu (aplikasi web atau aplikasi iOS/Android) — ini menghapus permanen akunmu beserta semua sesi, data mentah dan foto. Transmisi terenkripsi (HTTPS).",

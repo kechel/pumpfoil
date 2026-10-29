@@ -1607,7 +1607,7 @@ const it: Record<string, string> = {
   "compare.clear": "Svuota",
   "imp.operator2": "Le password vengono memorizzate solo come hash con salt (PBKDF2) — nemmeno io le vedo in chiaro.",
   "imp.hostTitle": "Server e hosting",
-  "imp.host1": "Il server di pumpfoil.org è gestito da <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. Il suo amministratore è il gestore di questo progetto; SmartKomm mette a disposizione il server <b>gratuitamente</b>.",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> mette a disposizione il server (una macchina virtuale) <b>gratuitamente</b>; il suo amministratore gestisce questo progetto a titolo privato. L'unico responsabile di pumpfoil.org e di tutti i dati è il gestore indicato nelle note legali.",
   "imp.host2": "Il server è ospitato da <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Con Hetzner è in vigore un <b>accordo sul trattamento dei dati ai sensi dell’art. 28 GDPR</b>.",
   "imp.ytTitle": "Video YouTube incorporati",
   "imp.yt2": "Solo quando <b>clicchi</b> un video viene caricato il player YouTube (modalità « privacy avanzata », youtube-nocookie.com). Google/YouTube riceve allora il tuo indirizzo IP e può impostare cookie. Cliccando acconsenti a ciò.",

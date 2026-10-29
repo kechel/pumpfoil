@@ -1177,7 +1177,7 @@ const ptPT: Record<string, string> = {
   "imp.operator1": "Endereços de e-mail, todos os dados brutos, vínculos de dispositivo e logs técnicos do servidor.",
   "imp.operator2": "As palavras-passe são guardadas só como hash com sal (PBKDF2) — nem eu consigo vê-las em texto puro.",
   "imp.hostTitle": "Servidor e alojamento",
-  "imp.host1": "O servidor do pumpfoil.org é operado pela <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. O seu gerente é o responsável por este projeto; a SmartKomm cede o servidor <b>gratuitamente</b>.",
+  "imp.host1": "A <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> disponibiliza o servidor (uma máquina virtual) <b>gratuitamente</b>; o seu gerente gere este projeto a título privado. O único responsável pelo pumpfoil.org e por todos os dados é o operador indicado na ficha técnica.",
   "imp.host2": "O servidor está alojado na <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Existe com a Hetzner um <b>acordo de subcontratação nos termos do art. 28.º do RGPD</b>.",
   "imp.privacyTitle": "Exclusão de dados",
   "imp.privacyText": "Todos os dados enviados são armazenados permanentemente. Para os eliminares, usa o botão “Eliminar conta” no teu perfil (web app ou app iOS/Android) — remove permanentemente a tua conta com todas as sessões, dados em bruto e fotos. A transmissão é encriptada (HTTPS).",

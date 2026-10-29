@@ -1171,7 +1171,7 @@ const ja: Record<string, string> = {
   "imp.operator1": "メールアドレス、すべての生データ、デバイスの連携、技術的なサーバーログ。",
   "imp.operator2": "パスワードはソルト付きハッシュ（PBKDF2）としてのみ保存されます — 私でも平文では見られません。",
   "imp.hostTitle": "サーバーとホスティング",
-  "imp.host1": "pumpfoil.org のサーバーは <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> が運用しています。同社の代表者がこのプロジェクトの運営者で、SmartKomm はサーバーを<b>無償</b>で提供しています。",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> がサーバー（仮想マシン）を<b>無償</b>で提供しています。同社の代表者がこのプロジェクトを個人として運営しています。pumpfoil.org とすべてのデータの責任者は、運営者情報に記載された運営者のみです。",
   "imp.host2": "サーバーは <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b> にあります。Hetzner との間で<b>GDPR 第28条に基づくデータ処理契約</b>を締結しています。",
   "imp.privacyTitle": "データの削除",
   "imp.privacyText": "アップロードされたすべてのデータは永続的に保存されます。削除するには、プロフィールの「アカウントを削除」ボタン（ウェブアプリまたは iOS/Android アプリ）を使用してください — アカウントとすべてのセッション、生データ、写真が完全に削除されます。通信は暗号化されています（HTTPS）。",

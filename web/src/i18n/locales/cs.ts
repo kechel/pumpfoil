@@ -1215,7 +1215,7 @@ const cs: Record<string, string> = {
   "imp.operator1": "E-mailové adresy, všechna surová data, propojení zařízení a technické serverové logy.",
   "imp.operator2": "Hesla se ukládají jen jako solený hash (PBKDF2) — ani já je nevidím v čitelné podobě.",
   "imp.hostTitle": "Server a hosting",
-  "imp.host1": "Server pumpfoil.org provozuje <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. Její jednatel je provozovatelem tohoto projektu; SmartKomm poskytuje server <b>bezplatně</b>.",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> poskytuje server (virtuální stroj) <b>bezplatně</b>; její jednatel provozuje tento projekt soukromě. Za pumpfoil.org a všechna data odpovídá výhradně provozovatel uvedený v tiráži.",
   "imp.host2": "Server je umístěn u <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. S firmou Hetzner je uzavřena <b>smlouva o zpracování osobních údajů podle čl. 28 GDPR</b>.",
   "imp.privacyTitle": "Smazání dat",
   "imp.privacyText": "Všechna nahraná data se ukládají trvale. Ke smazání použij prosím tlačítko „Smazat účet“ ve svém profilu (webová aplikace nebo iOS/Android aplikace) — nadobro odstraní tvůj účet se všemi vyjížďkami, surovými daty a fotkami. Přenos probíhá šifrovaně (HTTPS).",

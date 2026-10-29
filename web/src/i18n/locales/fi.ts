@@ -1183,7 +1183,7 @@ const fi: Record<string, string> = {
   "imp.operator1": "Sähköpostiosoitteet, kaikki raakadata, laitelinkitykset ja tekniset palvelinlokit.",
   "imp.operator2": "Salasanat tallennetaan vain suolattuna hashina (PBKDF2) — en näe niitäkään selkokielisenä.",
   "imp.hostTitle": "Palvelin ja ylläpito",
-  "imp.host1": "pumpfoil.orgin palvelinta ylläpitää <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. Sen toimitusjohtaja on tämän projektin ylläpitäjä; SmartKomm tarjoaa palvelimen <b>maksutta</b>.",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> tarjoaa palvelimen (virtuaalikoneen) <b>maksutta</b>; sen toimitusjohtaja ylläpitää tätä projektia yksityisesti. Pumpfoil.orgista ja kaikista tiedoista vastaa yksinomaan julkaisutiedoissa mainittu ylläpitäjä.",
   "imp.host2": "Palvelin sijaitsee yrityksellä <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Hetznerin kanssa on tehty <b>GDPR:n 28 artiklan mukainen tietojenkäsittelysopimus</b>.",
   "imp.privacyTitle": "Tietojen poisto",
   "imp.privacyText": "Kaikki ladatut tiedot säilytetään pysyvästi. Poistaaksesi käytä profiilisi „Poista tili“ -painiketta (web-sovellus tai iOS-/Android-sovellus) — se poistaa tilisi kaikkine sessioineen, raakadatoineen ja kuvineen lopullisesti. Tiedonsiirto on salattua (HTTPS).",

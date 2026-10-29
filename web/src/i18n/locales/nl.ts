@@ -1215,7 +1215,7 @@ const nl: Record<string, string> = {
   "imp.operator1": "E-mailadressen, alle ruwe data, apparaatkoppelingen en technische serverlogs.",
   "imp.operator2": "Wachtwoorden worden alleen als gezouten hash (PBKDF2) opgeslagen — ook ik zie ze niet in klare tekst.",
   "imp.hostTitle": "Server en hosting",
-  "imp.host1": "De server van pumpfoil.org wordt beheerd door <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. De directeur daarvan is de beheerder van dit project; SmartKomm stelt de server <b>kosteloos</b> ter beschikking.",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> stelt de server (een virtuele machine) <b>gratis</b> beschikbaar; de directeur ervan beheert dit project privé. Alleen de beheerder uit het colofon is verantwoordelijk voor pumpfoil.org en alle gegevens.",
   "imp.host2": "De server staat bij <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Met Hetzner is een <b>verwerkersovereenkomst volgens art. 28 AVG</b> gesloten.",
   "imp.privacyTitle": "Gegevens verwijderen",
   "imp.privacyText": "Alle geüploade gegevens worden permanent opgeslagen. Om te verwijderen gebruik je de knop ‘Account verwijderen' in je profiel (web-app of iOS-/Android-app) — die verwijdert je account met alle sessies, ruwe data en foto's definitief. De overdracht verloopt versleuteld (HTTPS).",

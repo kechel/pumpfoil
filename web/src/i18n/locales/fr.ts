@@ -1706,7 +1706,7 @@ const fr: Record<string, string> = {
   "imp.operator1": "Adresses e-mail, toutes les données brutes, les liaisons d'appareils et les journaux techniques du serveur.",
   "imp.operator2": "Les mots de passe ne sont stockés que sous forme de hachage salé (PBKDF2) — même moi je ne les vois pas en clair.",
   "imp.hostTitle": "Serveur et hébergement",
-  "imp.host1": "Le serveur de pumpfoil.org est exploité par <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b>. Son gérant est l’exploitant de ce projet ; SmartKomm met le serveur à disposition <b>gratuitement</b>.",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> met le serveur (une machine virtuelle) à disposition <b>gratuitement</b> ; son gérant exploite ce projet à titre privé. Seul l'exploitant indiqué dans les mentions légales est responsable de pumpfoil.org et de toutes les données.",
   "imp.host2": "Le serveur est hébergé chez <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>. Un <b>contrat de sous-traitance selon l’art. 28 du RGPD</b> est conclu avec Hetzner.",
   "imp.operatorTitle": "🛠 Uniquement l'exploitant (Jan)",
   "imp.owner1": "<b>Données brutes</b> de tes sessions (points GPS individuels, accélération 25 Hz) — p. ex. pour le labeling.",

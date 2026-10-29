@@ -1171,7 +1171,7 @@ const zh: Record<string, string> = {
   "imp.operator1": "邮箱地址、所有原始数据、设备关联以及技术性服务器日志。",
   "imp.operator2": "密码仅以加盐哈希（PBKDF2）形式存储 —— 连我也看不到明文。",
   "imp.hostTitle": "服务器与托管",
-  "imp.host1": "pumpfoil.org 的服务器由 <b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> 运营。该公司的总经理即本项目的运营者；SmartKomm <b>免费</b>提供服务器。",
+  "imp.host1": "<b><a href=\"https://smartkomm.de/\" target=\"_blank\" rel=\"noopener noreferrer\">SmartKomm GmbH</a></b> <b>免费</b>提供服务器（一台虚拟机）；其总经理以个人身份运营本项目。pumpfoil.org 及所有数据的唯一责任人是版本说明中列出的运营者。",
   "imp.host2": "服务器托管于 <b><a href=\"https://www.hetzner.com\" target=\"_blank\" rel=\"noopener noreferrer\">Hetzner Online GmbH</a></b>。我们与 Hetzner 签订了<b>符合 GDPR 第 28 条的数据处理协议</b>。",
   "imp.privacyTitle": "数据删除",
   "imp.privacyText": "所有上传的数据将永久存储。要删除它们，请使用个人资料中的“删除账号”按钮（网页应用或 iOS/Android 应用）—— 它会永久移除你的账号及所有记录、原始数据和照片。传输经过加密（HTTPS）。",
