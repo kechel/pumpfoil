@@ -68,3 +68,23 @@ def enforce_user_tiers(db: Session, user_id: int, tiers: list[tuple[int, int]], 
                        msg: str = "Zu viele Nachrichten. Bitte kurz warten.") -> None:
     """Mehrstufiges Per-User-Limit (z. B. 5/10 s UND 30/5 min). Alle Stufen werden erst geprüft."""
     _check_and_hit(db, [(f"{scope}:u{user_id}:{i}", m, w) for i, (m, w) in enumerate(tiers)], msg)
+
+
+def fehlversuche_pruefen(db: Session, key: str, max_hits: int, window_s: int, msg: str) -> None:
+    """Nur PRUEFEN (kein Eintrag): sind fuer `key` schon `max_hits` Fehlversuche im Fenster? -> 429.
+    Gegenstueck `fehlversuch_merken`. Fuer Grenzen, die nur Fehlschlaege zaehlen sollen (Login je Konto),
+    damit ein richtiges Passwort nicht selbst das Kontingent verbraucht. Fenster hoechstens 2 h
+    (globale Aufraeumung in `_check_and_hit`)."""
+    now = _now()
+    cutoff = now - timedelta(seconds=window_s)
+    cnt = db.query(func.count(RateEvent.id)).filter(RateEvent.key == key, RateEvent.created_at >= cutoff).scalar() or 0
+    if cnt >= max_hits:
+        earliest = db.query(func.min(RateEvent.created_at)).filter(
+            RateEvent.key == key, RateEvent.created_at >= cutoff).scalar()
+        retry = int((earliest + timedelta(seconds=window_s) - now).total_seconds()) + 1 if earliest else window_s
+        raise _too_many(retry, msg)
+
+
+def fehlversuch_merken(db: Session, key: str) -> None:
+    db.add(RateEvent(key=key, created_at=_now()))
+    db.commit()

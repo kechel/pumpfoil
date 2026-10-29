@@ -36,7 +36,11 @@ def submit(
     text = body.text.strip()
     if not text:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leeres Feedback")
-    fb = models.Feedback(user_id=user.id, text=text[:MAX_LEN], url=(body.url or "")[:255] or None)
+    # Nur eigene Pfade oder http(s) — die URL wird im Admin-Bereich als Link gezeigt (Security-Review 29.10.2026).
+    url = (body.url or "").strip()[:255]
+    if url and not (url.startswith(("https://", "http://")) or (url.startswith("/") and not url.startswith("//"))):
+        url = ""
+    fb = models.Feedback(user_id=user.id, text=text[:MAX_LEN], url=url or None)
     db.add(fb)
     db.flush()
     from .. import supporter
@@ -93,7 +97,7 @@ async def anhang(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Hoechstens {MAX_ANHAENGE} Anhaenge")
 
     endung = _endung(file.filename or "")
-    roh = await file.read()
+    roh = await file.read(max(MAX_BILD_BYTES, MAX_TEXT_BYTES) + 1)  # nie mehr als die Grenze + 1 Byte in den Speicher (Security-Review 29.10.2026)
     if not roh:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leere Datei")
 

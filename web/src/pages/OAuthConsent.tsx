@@ -62,7 +62,23 @@ export default function OAuthConsent() {
         client_id: clientId, redirect_uri: redirectUri,
         code_challenge: challenge, resource: resource || undefined,
       });
-      zurueck({ code: r.code });
+      zurueck({ code: r.code ?? "" });
+    } catch (e) {
+      setFehler(e instanceof Error ? e.message : String(e));
+      setBusy(false);
+    }
+  }
+
+  // Ablehnen: Rueckkehr-Adresse erst vom Server pruefen lassen, sonst waere die Seite eine offene
+  // Weiterleitung auf jede beliebige URL (Security-Review 29.10.2026).
+  async function ablehnen() {
+    setBusy(true); setFehler(null);
+    try {
+      await api.mcpZustimmen({
+        client_id: clientId, redirect_uri: redirectUri,
+        code_challenge: challenge, resource: resource || undefined, ablehnen: true,
+      });
+      zurueck({ error: "access_denied" });
     } catch (e) {
       setFehler(e instanceof Error ? e.message : String(e));
       setBusy(false);
@@ -106,7 +122,8 @@ export default function OAuthConsent() {
         </Button>
         <button
           type="button"
-          onClick={() => zurueck({ error: "access_denied" })}
+          onClick={ablehnen}
+          disabled={busy}
           className="rounded-xl border border-slate-700 px-4 py-2 text-slate-200 hover:bg-slate-800"
         >
           {t("mcp.consentDenyBtn")}

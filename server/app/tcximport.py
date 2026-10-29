@@ -16,6 +16,11 @@ from __future__ import annotations
 
 import math
 import xml.etree.ElementTree as ET
+
+# Nutzer-Uploads nur ueber defusedxml lesen (Security-Review 29.10.2026): keine Entity-Vervielfachung, keine
+# externen Entities. Gleiche API und Elementtypen wie ElementTree; ET bleibt fuer ParseError.
+from defusedxml import DefusedXmlException
+from defusedxml.ElementTree import fromstring as _sicher_fromstring
 from datetime import datetime, timezone
 
 import numpy as np
@@ -61,8 +66,8 @@ def _haversine(lat1, lon1, lat2, lon2):
 
 def parse_track_bytes(data: bytes, filename: str | None = None) -> dict:
     try:
-        root = ET.fromstring(data)
-    except ET.ParseError as exc:
+        root = _sicher_fromstring(data)
+    except (ET.ParseError, DefusedXmlException) as exc:
         raise ValueError(f"Ungültige XML-Datei: {exc}")
 
     kind = _local(root.tag).lower()  # 'trainingcenterdatabase' (TCX) | 'gpx'

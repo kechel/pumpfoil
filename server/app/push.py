@@ -31,6 +31,27 @@ def wants(db: Session, user_id: int, ntype: str) -> bool:
     return bool(prefs.get(ntype, True))
 
 
+# Bekannte Web-Push-Dienste der Browser (Security-Review 29.10.2026). Vorher postete der Server an JEDE
+# angemeldete Adresse — ein Nutzer konnte damit interne Hosts ansprechen und Ports abtasten (blinde SSRF).
+# Bestand am 29.10.: nur fcm.googleapis.com, updates.push.services.mozilla.com, web.push.apple.com.
+PUSH_HOSTS = ("fcm.googleapis.com", "android.googleapis.com", "web.push.apple.com")
+PUSH_HOST_ENDUNGEN = (".push.services.mozilla.com", ".notify.windows.com", ".push.apple.com")
+
+
+def push_endpoint_ok(endpoint: str) -> bool:
+    """Nur https, Standard-Port, ohne Zugangsdaten, und nur an einen bekannten Push-Dienst."""
+    from urllib.parse import urlsplit
+    try:
+        u = urlsplit(endpoint or "")
+        port = u.port
+    except ValueError:
+        return False
+    host = (u.hostname or "").lower()
+    if u.scheme != "https" or u.username or u.password or port not in (None, 443) or "\\" in endpoint:
+        return False
+    return host in PUSH_HOSTS or any(host.endswith(e) for e in PUSH_HOST_ENDUNGEN)
+
+
 def send_push(db: Session, user_id: int, title: str, body: str, url: str = "/") -> int:
     """Push an alle Subscriptions eines Nutzers. Tote (404/410) werden gelöscht.
     Best-effort: Fehler werden geloggt, nie geworfen. Gibt die Anzahl Zustellungen."""
@@ -45,6 +66,8 @@ def send_push(db: Session, user_id: int, title: str, body: str, url: str = "/") 
     payload = json.dumps({"title": title, "body": body, "url": url})
     sent = 0
     for sub in subs:
+        if not push_endpoint_ok(sub.endpoint):
+            continue
         try:
             webpush(
                 subscription_info={"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},

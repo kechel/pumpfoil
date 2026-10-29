@@ -620,7 +620,19 @@ def update_settings(
     if "equipment_je_sport" in patch:
         from ..equipment_sport import bereinigen
         from .sessions import SPORTS
-        current["equipment_je_sport"] = bereinigen(patch["equipment_je_sport"], SPORTS)
+        eq = bereinigen(patch["equipment_je_sport"], SPORTS)
+        # Eigentuemer-Pruefung wie bei `board_id`/`stab_id` unten (Security-Review 29.10.2026): sonst
+        # erschienen Name/Masse FREMDER privater Boards/Stabs ueber den Sportwechsel im eigenen Setup.
+        boards = {i for (i,) in db.query(models.Board.id).filter(
+            models.Board.user_id == user.id,
+            models.Board.id.in_({e["board_id"] for e in eq.values() if "board_id" in e} or {-1}))}
+        stabs = _visible_stab_ids(db, user, {e.get("stab_id") for e in eq.values()})
+        for e in eq.values():
+            if "board_id" in e and e["board_id"] not in boards:
+                del e["board_id"]
+            if "stab_id" in e and e["stab_id"] not in stabs:
+                del e["stab_id"]
+        current["equipment_je_sport"] = {sp: e for sp, e in eq.items() if e}
     if "hide_location" in patch:
         current["hide_location"] = bool(patch["hide_location"])
     if "weight_hidden" in patch:

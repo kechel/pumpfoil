@@ -54,7 +54,8 @@ def _mittelpunkt(punkte: list[tuple[float, float]]) -> tuple[float, float]:
             sum(p[1] for p in punkte) / len(punkte))
 
 
-def versetzen(punkte: list[tuple[float, float]]) -> list[tuple[float, float]]:
+def versetzen(punkte: list[tuple[float, float]],
+              bezug: tuple[float, float] | None = None) -> list[tuple[float, float]]:
     """Eine Folge von (lat, lon) nach Point Nemo versetzen — formtreu und laengentreu.
 
     Der Mittelpunkt der Spur landet auf Point Nemo; jeder Punkt behaelt seinen Abstand und seine
@@ -65,10 +66,14 @@ def versetzen(punkte: list[tuple[float, float]]) -> list[tuple[float, float]]:
     EHRLICH GESAGT: das schuetzt vor dem beilaeufigen Blick, nicht vor einem entschlossenen
     Menschen. Wer die Form einer Spur mit einer Kuestenlinie abgleicht, kann einen bekannten Spot
     wiederfinden. Genau deshalb heisst der Schalter „Ort verbergen" und nicht „anonym".
+
+    `bezug` ersetzt den eigenen Mittelpunkt: Teile EINER Aufnahme (Startversuche, Carve-Boegen),
+    die neben der Spur auf der Karte liegen, muessen mit dem Mittelpunkt der SPUR versetzt werden,
+    sonst landen sie alle mitten auf Point Nemo statt an ihrer Stelle neben dem Lauf.
     """
     if not punkte:
         return []
-    m_lat, m_lon = _mittelpunkt(punkte)
+    m_lat, m_lon = bezug if bezug is not None else _mittelpunkt(punkte)
     # Meter je Grad am HERKUNFTSORT …
     m_je_grad_lat = math.pi * _ERDRADIUS_M / 180.0
     m_je_grad_lon_quelle = m_je_grad_lat * math.cos(math.radians(m_lat))
@@ -148,6 +153,30 @@ def _koordinaten_sammeln(knoten, aus: list) -> None:
         else:
             for k in knoten:
                 _koordinaten_sammeln(k, aus)
+
+
+def geojson_mittelpunkt(gj) -> tuple[float, float] | None:
+    """Der Mittelpunkt (lat, lon), den `geojson_versetzen` fuer diese Spur auf Point Nemo legt."""
+    if not gj:
+        return None
+    paare: list = []
+    _koordinaten_sammeln(gj, paare)
+    if not paare:
+        return None
+    return _mittelpunkt([(p[1], p[0]) for p in paare])
+
+
+def ort_fuer_ausgabe(verborgen: bool, place: str | None, lat, lon) -> tuple[str | None, str | None]:
+    """(Spotname, Zeitzone) so, wie sie den Server verlassen duerfen — EINE Stelle fuer alle Ausgaben.
+
+    Security-Review 29.10.2026: Rekorde, Fotos, Spot-Vergleich und Foiler-Titel gaben Ort und Zeitzone
+    verborgener Aufnahmen roh aus, weil jede Stelle die Regel selbst nachbauen musste. Die Zeitzone
+    gehoert dazu: eine Ortszeit verraet grob den Laengengrad (wie in `community._brief`).
+    """
+    from .tzlookup import tz_name
+    if verborgen:
+        return NEMO_NAME, "UTC"
+    return (place or None), tz_name(lat, lon)
 
 
 def geojson_versetzen(gj):

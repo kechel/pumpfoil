@@ -1845,8 +1845,8 @@ export const api = {
   mcpVerbindungSchliessen: (clientId: string) =>
     req<{ geschlossen: number; nachwirkzeit_s: number }>(
       `/api/mcp/verbindungen/${encodeURIComponent(clientId)}`, { method: "DELETE" }),
-  mcpZustimmen: (body: { client_id: string; redirect_uri: string; code_challenge: string; resource?: string }) =>
-    req<{ code: string; redirect_uri: string }>("/oauth/consent",
+  mcpZustimmen: (body: { client_id: string; redirect_uri: string; code_challenge: string; resource?: string; ablehnen?: boolean }) =>
+    req<{ code?: string; redirect_uri: string }>("/oauth/consent",
       { method: "POST", body: JSON.stringify(body) }),
   publicSession: (token: string) => req<SessionSummary>(`/api/public/session/${encodeURIComponent(token)}`),
   // „Älter/neuer" folgt dem Filter der Liste, aus der man kam (s. lastSession.ts). Ohne
@@ -2024,8 +2024,8 @@ export const api = {
     req<{ is_admin: boolean }>(`/api/admin/users/${id}/admin?is_admin=${isAdmin}`, { method: "POST" }),
   adminResetPassword: (id: number, password?: string) =>
     req<{ temp_password?: string; set?: boolean }>(
-      `/api/admin/users/${id}/reset-password${password ? "?password=" + encodeURIComponent(password) : ""}`,
-      { method: "POST" }),
+      `/api/admin/users/${id}/reset-password`,
+      { method: "POST", body: JSON.stringify(password ? { password } : {}) }),
   adminSetUserName: (id: number, name: string) =>
     req<{ display_name: string | null }>(`/api/admin/users/${id}/display-name?name=${encodeURIComponent(name)}`, { method: "POST" }),
   adminRemoveAvatar: (id: number) => req<{ ok: boolean }>(`/api/admin/users/${id}/remove-avatar`, { method: "POST" }),

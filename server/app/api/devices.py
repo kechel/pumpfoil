@@ -17,7 +17,7 @@ from .appmeta import _APP_META
 from ..config import get_settings
 from ..db import get_db
 from ..naming import geraete_label
-from ..ratelimit import rate_limit
+from ..ratelimit import enforce_user_tiers, rate_limit
 from ..schemas import (
     DeviceTokenOut,
     PairClaimIn,
@@ -1643,11 +1643,22 @@ def pair_claim(
     body: PairClaimIn,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
+    _rl: None = Depends(rate_limit(30, 900, "pair-claim-ip")),
 ) -> dict:
-    """Eingeloggter Web-Nutzer löst den auf der Uhr angezeigten Code ein -> verknüpft die Uhr."""
+    """Eingeloggter Web-Nutzer löst den auf der Uhr angezeigten Code ein -> verknüpft die Uhr.
+
+    Rate-Limit je Konto (Security-Review 29.10.2026): die Codes haben ~30 Bit und gelten 15 min; ohne
+    Grenze liessen sie sich durchprobieren, und ein Treffer koppelte eine FREMDE Uhr ans eigene Konto
+    (GPS, Puls und Position des Opfers landeten dort). Je IP zusaetzlich ueber `rate_limit` am Router."""
+    enforce_user_tiers(db, user.id, [(10, 900), (20, 3600)], "pair-claim",
+                       "Zu viele Versuche. Bitte kurz warten und erneut versuchen.")
     p = db.query(models.DevicePairing).filter_by(code=body.code.strip().upper()).first()
     now = datetime.now(timezone.utc)
     if p is None or _aware(p.expires_at) < now:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger oder abgelaufener Code")
+    if p.device_token is not None and p.user_id is not None and p.user_id != user.id:
+        # Frueher {ok: true, already: true} — das Opfer haette „verbunden" gelesen, waehrend seine Uhr
+        # an einem fremden Konto hing. Gleiche Meldung wie ein falscher Code: nichts verraten.
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger oder abgelaufener Code")
     if p.device_token is not None:
         vorhanden = db.query(models.DeviceToken).filter_by(token=p.device_token).first()

@@ -12,13 +12,22 @@ from .config import get_settings
 
 settings = get_settings()
 
-_PBKDF2_ROUNDS = 200_000
+# 600.000 nach OWASP (Security-Review 29.10.2026, vorher 200.000). Die Runden stehen im Hash: alte Hashes
+# gelten weiter und werden beim naechsten Login aufgefrischt (`needs_rehash`). Gemessen ~70 ms je Hash.
+_PBKDF2_ROUNDS = 600_000
 
 
 def hash_password(password: str) -> str:
     salt = secrets.token_bytes(16)
     dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _PBKDF2_ROUNDS)
     return f"pbkdf2_sha256${_PBKDF2_ROUNDS}${salt.hex()}${dk.hex()}"
+
+
+def needs_rehash(stored: str) -> bool:
+    try:
+        return int(stored.split("$")[1]) < _PBKDF2_ROUNDS
+    except (IndexError, ValueError, AttributeError):
+        return False
 
 
 def verify_password(password: str, stored: str) -> bool:

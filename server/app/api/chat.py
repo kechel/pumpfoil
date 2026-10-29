@@ -103,11 +103,15 @@ def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> st
         return _scope_label(scope)
     s = db.get(models.Session, sid)
     if s is not None:
+        # „Ort verbergen" (Security-Review 29.10.2026): das Label landet in Push-Nachrichten und Raumlisten.
+        from .. import ortverbergen
+        ort = (ortverbergen.NEMO_NAME
+               if ortverbergen.ist_verborgen(s, ortverbergen.profil_verbirgt(s.user)) else s.place_name)
         date = s.started_at.strftime("%d.%m.%y") if s.started_at else None
-        if s.place_name and date:
-            base = f"{s.place_name} · {date}"
-        elif s.place_name:
-            base = s.place_name
+        if ort and date:
+            base = f"{ort} · {date}"
+        elif ort:
+            base = ort
         elif date:
             base = date
         else:
@@ -447,7 +451,7 @@ async def upload_chat_photo(
     if not darf_chat_fotos(user):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Bilder im Chat sind noch nicht freigeschaltet")
     from ..media import ImageError, MAX_UPLOAD_BYTES, save_image, thumb_url
-    raw = await file.read()
+    raw = await file.read(MAX_UPLOAD_BYTES + 1)  # nie mehr als die Grenze + 1 Byte in den Speicher (Security-Review 29.10.2026)
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Bild zu gross")
     try:
@@ -497,6 +501,12 @@ def report_message(
     m = db.get(models.ChatMessage, message_id)
     if m is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden")
+    # DMs: nur die Beteiligten (Security-Review 29.10.2026) — sonst konnten drei fremde Konten eine
+    # 1:1-Nachricht per Meldung ausblenden lassen. Gleiche Antwort wie „gibt es nicht".
+    try:
+        _require_access(m.scope, user.id)
+    except HTTPException:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden") from None
     if db.query(models.ChatReport).filter_by(message_id=message_id, user_id=user.id).first() is None:
         db.add(models.ChatReport(message_id=message_id, user_id=user.id))
         m.report_count = (m.report_count or 0) + 1
@@ -515,6 +525,12 @@ def like_message(
     m = db.get(models.ChatMessage, message_id)
     if m is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden")
+    # DMs: nur die Beteiligten (Security-Review 29.10.2026) — sonst konnten drei fremde Konten eine
+    # 1:1-Nachricht per Meldung ausblenden lassen. Gleiche Antwort wie „gibt es nicht".
+    try:
+        _require_access(m.scope, user.id)
+    except HTTPException:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden") from None
     existing = db.query(models.ChatLike).filter_by(message_id=message_id, user_id=user.id).first()
     if existing is not None:
         db.delete(existing); liked = False

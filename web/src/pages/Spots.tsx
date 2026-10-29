@@ -129,7 +129,7 @@ export default function Spots() {
     const ring = L.circleMarker([s.lat, s.lon], {
       radius: 26, color: "#22d3ee", weight: 4, opacity: 0.95, fill: true, fillColor: "#22d3ee", fillOpacity: 0.12,
       interactive: false,
-    }).bindTooltip(s.spot, { permanent: true, direction: "top", offset: [0, -26], className: "font-semibold" });
+    }).bindTooltip(esc(s.spot), { permanent: true, direction: "top", offset: [0, -26], className: "font-semibold" });
     gesucht.current = L.layerGroup([ring]).addTo(mapObj.current);
     ring.openTooltip();
     mapObj.current.fitBounds(L.latLng(s.lat, s.lon).toBounds(50000));

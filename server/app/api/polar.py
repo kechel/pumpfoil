@@ -409,6 +409,9 @@ async def webhook(request: Request, db: Session = Depends(get_db)) -> dict:
     Nutzers. Antwortet immer schnell 200 (Webhook-Konvention)."""
     raw = await request.body()
     secret = _webhook_secret()
+    if not secret:
+        # Ohne Geheimnis nichts annehmen (Security-Review 29.10.2026; vorher ungeprueft durchgelassen).
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Webhook secret not configured")
     if secret:
         import hashlib
         import hmac

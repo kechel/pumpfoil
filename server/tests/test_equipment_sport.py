@@ -49,3 +49,29 @@ def test_settings_bereinigt(client):
     assert client.put("/api/settings", headers=auth, json={"equipment_je_sport": roh}).status_code == 200
     st = client.get("/api/settings", headers=auth).json()
     assert st["equipment_je_sport"] == {"wingfoil": {"foil_id": 3}}
+
+
+def test_fremdes_board_wird_nicht_uebernommen(client):
+    """Security-Review 29.10.2026: ueber equipment_je_sport liessen sich fremde private Boards ins eigene
+    Setup holen (Name/Volumen erschienen dann in setup.board)."""
+    from app import models
+    from app.db import SessionLocal
+
+    def konto(mail):
+        r = client.post("/api/auth/register", json={"email": mail, "password": "supersecret"})
+        kopf = {"Authorization": f"Bearer {r.json()['access_token']}"}
+        return kopf, client.get("/api/auth/me", headers=kopf).json()["id"]
+    ich, mein_id = konto("equip-ich@t.de")
+    _fremd, fremd_id = konto("equip-fremd@t.de")
+    db = SessionLocal()
+    try:
+        fremdes = models.Board(user_id=fremd_id, name="Geheimbrett")
+        eigenes = models.Board(user_id=mein_id, name="Mein Brett")
+        db.add_all([fremdes, eigenes]); db.commit()
+        f_id, e_id = fremdes.id, eigenes.id
+    finally:
+        db.close()
+    roh = {"wingfoil": {"board_id": f_id, "mast_len_cm": 90}, "kitefoil": {"board_id": e_id}}
+    assert client.put("/api/settings", headers=ich, json={"equipment_je_sport": roh}).status_code == 200
+    st = client.get("/api/settings", headers=ich).json()["equipment_je_sport"]
+    assert st == {"wingfoil": {"mast_len_cm": 90}, "kitefoil": {"board_id": e_id}}, st

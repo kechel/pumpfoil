@@ -219,7 +219,7 @@ async def add_photo(spot_id: int, file: UploadFile = File(...),
     if anz >= MAX_FOTOS_PRO_BESCHREIBUNG:
         raise HTTPException(status.HTTP_400_BAD_REQUEST,
                             f"Max. {MAX_FOTOS_PRO_BESCHREIBUNG} Fotos")
-    raw = await file.read()
+    raw = await file.read(MAX_UPLOAD_BYTES + 1)  # nie mehr als die Grenze + 1 Byte in den Speicher (Security-Review 29.10.2026)
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Bild zu gross")
     try:

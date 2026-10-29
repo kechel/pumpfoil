@@ -195,6 +195,18 @@ def _verbergende_nutzer(db: Session) -> frozenset:
     return _VERBERGER_CACHE["ids"]
 
 
+def _ist_verborgen(ort_sichtbarkeit, owner_id, verbergende) -> bool:
+    """`ortverbergen.ist_verborgen` fuer eine Ergebniszeile (ohne Session-Objekt)."""
+    return ort_sichtbarkeit == "hide" or (ort_sichtbarkeit != "show" and owner_id in verbergende)
+
+
+def _ort(db: Session, ort_sichtbarkeit, owner_id, place, lat, lon) -> tuple[str | None, str | None]:
+    """(Spotname, Zeitzone) einer Ergebniszeile fuer die Ausgabe — bei „Ort verbergen" Point Nemo/UTC.
+    Security-Review 29.10.2026: Rekorde, Fotos und Spot-Vergleich gaben beides roh aus."""
+    return ortverbergen.ort_fuer_ausgabe(
+        _ist_verborgen(ort_sichtbarkeit, owner_id, _verbergende_nutzer(db)), place, lat, lon)
+
+
 def _cutoff(period: str) -> datetime | None:
     days = PERIODS.get(period)
     if days is None:
@@ -280,8 +292,7 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
     # „Ort verbergen": die Aufnahme entscheidet, sonst das Profil des Besitzers. Im Feed faellt
     # damit der Spotname weg — die Zeitzone ebenfalls, denn eine Ortszeit IST eine Ortsangabe
     # (wer die Uhrzeit einer verborgenen Aufnahme in Spot-Zeit liest, kennt grob den Laengengrad).
-    verborgen = (ort_sichtbarkeit == "hide"
-                 or (ort_sichtbarkeit != "show" and owner_id in verbergende))
+    verborgen = _ist_verborgen(ort_sichtbarkeit, owner_id, verbergende)
     return {
         "session_id": sid,
         "ort_verborgen": verborgen,
@@ -570,7 +581,8 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
     q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
-                            S.place_lat, S.place_lon, U.id), viewer_id, accel_only, sport, nur_gps=nur_gps)
+                            S.place_lat, S.place_lon, U.id, S.ort_sichtbarkeit), viewer_id, accel_only, sport,
+                   nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(valcol > 0)
     if cut is not None:
@@ -583,12 +595,13 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     row = q.order_by(valcol.desc(), S.started_at.asc(), S.id.asc()).first()
     if row is None:
         return dict(_EMPTY_REC)
-    val, idx, sid, ts, name, place, avatar, preview, lat, lon, uid = row
+    val, idx, sid, ts, name, place, avatar, preview, lat, lon, uid, sicht = row
+    spot_aus, tz_aus = _ort(db, sicht, uid, place, lat, lon)
     return {
         "session_id": sid, "value": round(float(val), 2),
         "started_at": ts.isoformat() if ts else None, "run_idx": idx,
-        "name": name, "avatar_url": avatar, "user_id": uid, "spot": place or None, "track_preview": preview or None,
-        "tz": tz_name(lat, lon),
+        "name": name, "avatar_url": avatar, "user_id": uid, "spot": spot_aus, "track_preview": preview or None,
+        "tz": tz_aus,
     }
 
 
@@ -614,6 +627,9 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
                             NAME, S.place_name, U.avatar_url, AR.track_preview,
                             AR.segments_json), viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
+    # „Ort verbergen" (Security-Review 29.10.2026): Early Bird/Night Owl SIND Ortszeit — der Wert neben
+    # der UTC-Startzeit verraet den Laengengrad. Verborgene Aufnahmen halten deshalb keinen Zeit-Rekord.
+    q = q.filter(not_(_verborgen_cond(db)))
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
     rows: list[tuple] = []
@@ -1002,7 +1018,7 @@ def _sport_rekorde_dazu(db: Session, out: dict, sport: str, spot: str | None, vi
     if not metriken:
         return
     q = _community(db.query(S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
-                            S.place_lat, S.place_lon, U.id), viewer_id, accel_only, sport)
+                            S.place_lat, S.place_lon, U.id, S.ort_sichtbarkeit), viewer_id, accel_only, sport)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
@@ -1016,13 +1032,14 @@ def _sport_rekorde_dazu(db: Session, out: dict, sport: str, spot: str | None, vi
             if b is None:
                 out[p][m.key] = dict(_EMPTY_REC)
                 continue
-            (wert, n), (sid, ts, name, place, avatar, preview, lat, lon, uid) = b
+            (wert, n), (sid, ts, name, place, avatar, preview, lat, lon, uid, sicht) = b
+            spot_aus, tz_aus = _ort(db, sicht, uid, place, lat, lon)
             out[p][m.key] = {"session_id": sid, "value": round(float(wert), 3),
                              # Quoten: Anzahl der Manoever/Versuche dazu („100 % von 146", 20.10.2026)
                              "anzahl": int(n) if m.quote else None,
                              "started_at": ts.isoformat() if ts else None, "run_idx": None,
-                             "name": name, "avatar_url": avatar, "user_id": uid, "spot": place or None,
-                             "track_preview": preview or None, "tz": tz_name(lat, lon)}
+                             "name": name, "avatar_url": avatar, "user_id": uid, "spot": spot_aus,
+                             "track_preview": preview or None, "tz": tz_aus}
 
 
 @router.get("/start-success")
@@ -1220,14 +1237,14 @@ def latest_photos(
     # Fotos: je Session das neueste, nach Upload-Zeit.
     prows = (
         db.query(P.id, P.url, P.created_at, P.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
-                 S.place_lat, S.place_lon, U.id)
+                 S.place_lat, S.place_lon, U.id, S.ort_sichtbarkeit)
         .select_from(P).join(S, P.session_id == S.id).join(U, S.user_id == U.id)
         .filter(P.blocked.isnot(True), *_vis)
         .order_by(P.id.desc()).limit(80).all()
     )
     seenp: set[int] = set()
     seenh: set[str] = set()   # gleiches Bild an mehreren Sessions nur einmal (neueste gewinnt)
-    for pid, url, cts, sid, sts, name, avatar, place, caption, lat, lon, uid in prows:
+    for pid, url, cts, sid, sts, name, avatar, place, caption, lat, lon, uid, sicht in prows:
         if sid in seenp:
             continue
         h = inhalt_hash(_thumb(url)) or inhalt_hash(url)
@@ -1239,14 +1256,14 @@ def latest_photos(
         items.append({"kind": "photo", "_ts": cts or sts, "photo_id": pid, "url": url,
                       "thumb_url": _thumb(url), "youtube_url": None,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
-                      "avatar_url": avatar, "user_id": uid, "spot": place or None, "caption": caption or None,
-                      "tz": tz_name(lat, lon)})
+                      "avatar_url": avatar, "user_id": uid, "caption": caption or None,
+                      **dict(zip(("spot", "tz"), _ort(db, sicht, uid, place, lat, lon)))})
 
     # Videos: je Session das neueste verlinkte YouTube-Video, nach Verlink-Zeit.
     V = models.SessionVideo
     vrows = (
         db.query(V.youtube_url, V.created_at, V.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
-                 S.place_lat, S.place_lon, U.id)
+                 S.place_lat, S.place_lon, U.id, S.ort_sichtbarkeit)
         .select_from(V).join(S, V.session_id == S.id).join(U, S.user_id == U.id)
         # Nur YouTube im „Neueste Medien"-Feed: nur die haben ein einbettbares Vorschaubild
         # (img.youtube.com). Instagram/TikTok werden auf der Session verlinkt, aber nicht als
@@ -1255,14 +1272,14 @@ def latest_photos(
         .order_by(V.id.desc()).limit(80).all()
     )
     seenv: set[int] = set()
-    for yturl, cts, sid, sts, name, avatar, place, caption, lat, lon, uid in vrows:
+    for yturl, cts, sid, sts, name, avatar, place, caption, lat, lon, uid, sicht in vrows:
         if sid in seenv:
             continue
         seenv.add(sid)
         items.append({"kind": "video", "_ts": cts or sts, "url": None, "youtube_url": yturl,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
-                      "avatar_url": avatar, "user_id": uid, "spot": place or None, "caption": caption or None,
-                      "tz": tz_name(lat, lon)})
+                      "avatar_url": avatar, "user_id": uid, "caption": caption or None,
+                      **dict(zip(("spot", "tz"), _ort(db, sicht, uid, place, lat, lon)))})
 
     _floor = datetime.min.replace(tzinfo=timezone.utc)
     items.sort(key=lambda x: x["_ts"] or _floor, reverse=True)
@@ -1560,7 +1577,9 @@ def spot_compare(period: str = "all", accel_only: bool = False,
         func.count(func.distinct(S.user_id)),
         func.coalesce(func.sum(AR.foiling_distance_m), 0.0),
         func.coalesce(func.sum(AR.foiling_time_s), 0.0),
-    ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "")
+    ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "",
+                                    # „Ort verbergen": gehoert zu keinem echten Spot (wie _spot_cond).
+                                    not_(_verborgen_cond(db)))
     if cut is not None:
         aq = aq.filter(S.started_at >= cut)
     agg = {
@@ -1578,7 +1597,8 @@ def spot_compare(period: str = "all", accel_only: bool = False,
     def _holders(valcol, idxcol):
         hq = _community(db.query(
             S.place_name, valcol, idxcol, S.id, S.started_at, NAME, S.place_lat, S.place_lon,
-        ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "", valcol > 0)
+        ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "", valcol > 0,
+                                        not_(_verborgen_cond(db)))
         if cut is not None:
             hq = hq.filter(S.started_at >= cut)
         hq = hq.distinct(S.place_name).order_by(S.place_name, valcol.desc(), S.started_at.asc(), S.id.asc())
@@ -1618,6 +1638,10 @@ def spot_weather_endpoint(
     """Wetter (heute/morgen/übermorgen + aktuell) und nächster Pegel für einen Spot.
     Koordinaten = Mittel der community-sichtbaren Sessions an diesem Spot."""
     from ..spots import canon_spot_name
+    if str(spot) == ortverbergen.NEMO_NAME:
+        # Der Mittelwert ueber die verborgenen Aufnahmen waere der echte Ort (bei nur einem Verbergenden
+        # genau seiner) — Security-Review 29.10.2026. Point Nemo hat kein Wetter.
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot ohne Koordinaten")
     name = canon_spot_name(db, spot)   # id ODER Name -> kanonischer Name (Cache/Wassertemp teilen)
     now = time.monotonic()
     with _wx_lock:
@@ -1897,7 +1921,7 @@ def spot_windfenster(spot_id: int, user: models.User = Depends(current_user),
     S = models.Session
     rows = (db.query(S.id, S.place_lat, S.place_lon, S.started_at, S.ended_at, S.user_id)
             .filter(S.spot_id == spot_id, S.sport_class.in_(wind), S.deleted.isnot(True),
-                    S.place_lat.isnot(None), S.started_at.isnot(None))
+                    S.place_lat.isnot(None), S.started_at.isnot(None), not_(_verborgen_cond(db)))
             .all())
     sektoren = [{"richtung": i * 45, "sessions": 0, "kmh": []} for i in range(8)]
     alle_kmh, fahrer = [], set()
@@ -2354,7 +2378,9 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                                       valcol.label("val"), S.started_at.label("st"),
                                       S.id.label("session_id"), rn),
                              user.id, basis_accel, "pumpfoil")
-            sub = sub.filter(valcol > 0, S.spot_id.isnot(None))
+            # Verborgene Aufnahmen gehoeren zu keinem echten Spot (wie _spot_cond) — sonst verriete der
+            # Spot-Titel mit Link den echten Ort (Security-Review 29.10.2026).
+            sub = sub.filter(valcol > 0, S.spot_id.isnot(None), not_(_verborgen_cond(db)))
             if cut is not None:
                 sub = sub.filter(S.started_at >= cut)
             sub = sub.subquery()
@@ -2396,7 +2422,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         csub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
                                    carve_summe.label("val"), crn),
                           user.id, basis_accel, "pumpfoil")
-        csub = csub.filter(AR.carve_m.isnot(None), S.spot_id.isnot(None))
+        csub = csub.filter(AR.carve_m.isnot(None), S.spot_id.isnot(None), not_(_verborgen_cond(db)))
         if cut is not None:
             csub = csub.filter(S.started_at >= cut)
         csub = csub.group_by(S.spot_id, S.user_id).subquery()

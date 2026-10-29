@@ -29,7 +29,7 @@ from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
-from sqlalchemy import func
+from sqlalchemy import case, func, literal, not_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
@@ -57,6 +57,14 @@ MAX_SESSIONS = 50
 # Mit allen Laeufen einzeln wird eine Zeile schnell zehnmal so lang — eine Aufnahme mit 40 Laeufen
 # traegt 40 Bloecke. Deshalb ein eigenes, viel kleineres Limit fuer diesen Fall.
 MAX_MIT_LAEUFEN = 10
+
+
+def _verborgen_bed(db: Session, user_id: int):
+    """SQL: „Ort verbergen" gilt fuer diese eigene Aufnahme — Aufnahme schlaegt Profil (ortverbergen)."""
+    zustand = func.coalesce(models.Session.ort_sichtbarkeit, "")
+    if ortverbergen.profil_verbirgt(db.get(models.User, user_id)):
+        return zustand != "show"
+    return zustand == "hide"
 
 
 def _eigene(db: Session, user_id: int):
@@ -309,9 +317,15 @@ def _list_sessions(db: Session, user_id: int, arg: dict) -> dict:
     if arg.get("sportart"):
         q = q.filter(models.Session.sport == str(arg["sportart"])[:40])
     if arg.get("spot"):
-        bed = _such(str(arg["spot"])[:80], [models.Session.place_name])
-        if bed is not None:
-            q = q.filter(bed)
+        # „Ort verbergen" auch im Filter (Security-Review 29.10.2026): verborgene Aufnahmen heissen hier
+        # Point Nemo (wie in get_overview) und gehoeren zu keinem echten Ortsnamen mehr.
+        verborgen = _verborgen_bed(db, user_id)
+        if str(arg["spot"]).strip() == ortverbergen.NEMO_NAME:
+            q = q.filter(verborgen)
+        else:
+            bed = _such(str(arg["spot"])[:80], [models.Session.place_name])
+            if bed is not None:
+                q = q.filter(bed, not_(verborgen))
     gesamt = q.count()
     mit_laeufen = bool(arg.get("mit_laeufen"))
     obergrenze = MAX_MIT_LAEUFEN if mit_laeufen else MAX_SESSIONS
@@ -865,7 +879,9 @@ def _get_overview(db: Session, user_id: int, _arg: dict) -> dict:
         "je_jahr": [{"jahr": int(j), "aufnahmen": int(n)} for j, n in jahre],
         # Die Werte unten sind die FILTER von list_sessions — woertlich so uebergeben.
         "je_sportart": zaehlen(S.sport),
-        "je_spot": zaehlen(S.place_name),
+        # Verborgene Aufnahmen zaehlen als Point Nemo, nicht unter ihrem echten Ort (Security-Review 29.10.2026).
+        "je_spot": zaehlen(case((_verborgen_bed(db, user_id), literal(ortverbergen.NEMO_NAME)),
+                                else_=S.place_name)),
         "je_geraet": zaehlen(S.device_model),
         "am_brett_aufgenommen": am_brett,
         "je_erkennung": [{"wert": d, "aufnahmen": int(n)} for d, n in erkennung if d],
@@ -921,7 +937,8 @@ async def mcp(request: Request, db: Session = Depends(get_db)):
     if user_id is None:
         return _401()
     nutzer = db.get(models.User, user_id)
-    if nutzer is None or getattr(nutzer, "deleted", False):
+    # Gesperrte Konten lesen auch hier nichts mehr (Security-Review 29.10.2026; vorher nur `deleted`).
+    if nutzer is None or getattr(nutzer, "deleted", False) or nutzer.blocked:
         return _401()
 
     try:

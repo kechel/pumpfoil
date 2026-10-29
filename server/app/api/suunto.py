@@ -1008,6 +1008,10 @@ async def webhook(request: Request, background: BackgroundTasks) -> dict:
     """
     raw = await request.body()
     secret = os.environ.get("OAUTH_SUUNTO_NOTIFICATION_SECRET", "")
+    if not secret:
+        # Ohne Geheimnis nichts annehmen (Security-Review 29.10.2026; vorher ungeprueft durchgelassen).
+        log.warning("Suunto Webhook: OAUTH_SUUNTO_NOTIFICATION_SECRET fehlt — Meldung verworfen")
+        return {"ok": True}
     if secret:
         want = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
         got = request.headers.get("X-HMAC-SHA256-Signature", "")

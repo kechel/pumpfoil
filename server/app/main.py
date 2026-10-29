@@ -1,6 +1,7 @@
 """FastAPI-App. Liefert /api/* und (falls gebaut) die SPA aus web/dist."""
 from __future__ import annotations
 
+import os
 import re
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -48,6 +49,10 @@ async def lifespan(app: FastAPI):
         # Ohne die sieht man den Unterschied erst, wenn zufaellig etwas passiert.
         eigen.info("Log-Ausgabe fuer app.* aktiv (INFO)")
 
+    # Mit dem eingebauten Platzhalter-Geheimnis koennte jeder gueltige Tokens fuer jedes Konto bauen — dann
+    # lieber gar nicht starten (Security-Review 29.10.2026). Nur der Server prueft das, Skripte brauchen es nicht.
+    if settings.jwt_secret == "dev-insecure-change-me":
+        raise RuntimeError("JWT_SECRET fehlt (server/.env) — Start verweigert.")
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     init_db()
     # Auswertungen nachholen, die der letzte Neustart abgebrochen hat (s. app/nach_neustart.py).
@@ -56,11 +61,15 @@ async def lifespan(app: FastAPI):
     yield
 
 
+# API-Doku nur lokal auf Wunsch (FOIL_API_DOCS=1). Security-Review 29.10.2026: oeffentlich lieferte sie jedem die
+# vollstaendige Routenliste — der Code ist zwar offen, aber die Liste erleichtert automatisierte Angriffe.
+_API_DOCS = os.environ.get("FOIL_API_DOCS") == "1"
 app = FastAPI(
     title="Pump-Foil-Tracker API",
     version="0.1.0",
-    docs_url="/api/docs",
-    openapi_url="/api/openapi.json",
+    docs_url="/api/docs" if _API_DOCS else None,
+    redoc_url=None,
+    openapi_url="/api/openapi.json" if _API_DOCS else None,
     lifespan=lifespan,
 )
 

@@ -8,7 +8,7 @@ from .. import models
 from ..db import get_db
 from ..ml.dataset import FEATURE_NAMES, build_dataset
 from ..ml.train import cross_validate, save_model, train
-from .deps import current_user
+from .deps import current_admin, current_user
 
 router = APIRouter(prefix="/api/ml", tags=["ml"])
 
@@ -29,7 +29,8 @@ def status(
 
 @router.post("/train")
 def train_model(
-    user: models.User = Depends(current_user), db: Session = Depends(get_db)
+    # Nur Admins (Security-Review 29.10.2026): ueberschreibt die globale Modelldatei und kostet CPU.
+    user: models.User = Depends(current_admin), db: Session = Depends(get_db)
 ) -> dict:
     """Trainiert das Pump/Glide-Modell aus den gelabelten Daten des Nutzers und
     liefert den session-level CV-Report. Modell wird nur bei ausreichend Daten gespeichert."""

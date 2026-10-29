@@ -52,6 +52,9 @@ def _zugang_aktiv(db: Session, user_id: int) -> bool:
     """Hat der Nutzer noch einen nicht widerrufenen KI-Zugang? Sonst gilt kein Link mehr."""
     from .mcp_oauth import RESOURCE
     jetzt = datetime.now(timezone.utc)
+    u = db.get(models.User, user_id)
+    if u is None or u.blocked:          # gesperrt -> kein Link (Security-Review 29.10.2026)
+        return False
     return db.query(models.OAuthToken).filter(
         models.OAuthToken.user_id == user_id,
         models.OAuthToken.resource == RESOURCE,

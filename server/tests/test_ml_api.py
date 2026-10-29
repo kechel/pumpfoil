@@ -60,6 +60,16 @@ def test_ml_train_endpoint(client):
     assert set(st["classes"]) == {"pump", "glide"}
     assert st["n_samples"] >= 10
 
+    # Training nur fuer Admins (Security-Review 29.10.2026)
+    assert client.post("/api/ml/train", headers=auth).status_code == 403
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        db.query(models.User).filter_by(email="ml@b.de").one().is_admin = True
+        db.commit()
+    finally:
+        db.close()
     # Training: session-level CV-Report
     rep = client.post("/api/ml/train", headers=auth).json()
     assert rep["status"] == "ok", rep

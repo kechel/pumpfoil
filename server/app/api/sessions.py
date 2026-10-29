@@ -90,7 +90,15 @@ def _fit_bytes_from_upload(data: bytes, filename: str | None) -> bytes:
     fits = [n for n in zf.namelist() if n.lower().endswith(".fit")]
     if not fits:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "No .fit file inside ZIP")
-    return zf.read(fits[0])
+    # ZIP-BOMBE (Security-Review 29.10.2026): 25 MB ZIP konnten auf Gigabytes entpacken. Dieselbe Grenze wie
+    # bei gzip. Die Groesse im Verzeichnis kann luegen -> zusaetzlich hoechstens Grenze+1 Bytes lesen.
+    if zf.getinfo(fits[0]).file_size > MAX_ENTPACKT_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "FIT inside ZIP too large")
+    with zf.open(fits[0]) as f:
+        roh = f.read(MAX_ENTPACKT_BYTES + 1)
+    if len(roh) > MAX_ENTPACKT_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "FIT inside ZIP too large")
+    return roh
 
 
 # ... ABER die Datei schlägt die Voreinstellung, wenn sie etwas nennt, das mit Foilen nichts
@@ -173,6 +181,26 @@ def _spur_fuer_ausgabe(result: models.AnalysisResult, verbergen: bool):
         return None
     gj = json.loads(result.track_geojson)
     return ortverbergen.geojson_versetzen(gj) if verbergen else gj
+
+
+def _wie_spur_versetzen(s: models.Session, zeilen: list[list]) -> list[list]:
+    """[[lat, lon, …], …] mit DEMSELBEN Mittelpunkt versetzen wie die Spur der Aufnahme.
+
+    Security-Review 29.10.2026: `/attempts`, `/carves` und `/raw-track` gaben bei „Ort verbergen"
+    die echten Koordinaten aus. Der Bezug ist der Mittelpunkt von `track_geojson`, damit Versuche
+    und Carve-Boegen auf der versetzten Karte genau neben ihrem Lauf liegen. Ohne Spur (z. B. nichts
+    ausgewertet) gilt der Mittelpunkt der Punkte selbst. Weitere Spalten (Tempo, g) bleiben.
+    """
+    if not zeilen:
+        return zeilen
+    bezug = None
+    if s.result is not None and s.result.track_geojson:
+        try:
+            bezug = ortverbergen.geojson_mittelpunkt(json.loads(s.result.track_geojson))
+        except ValueError:
+            bezug = None
+    neu = ortverbergen.versetzen([(float(z[0]), float(z[1])) for z in zeilen], bezug)
+    return [[round(a, 6), round(b, 6), *z[2:]] for (a, b), z in zip(neu, zeilen)]
 
 
 def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal",
@@ -477,7 +505,8 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         spot_id=(None if _ort_verborgen(s) else s.spot_id),
         ort_verborgen=_ort_verborgen(s),
         ort_sichtbarkeit=s.ort_sichtbarkeit,
-        tz=tz_name(s.place_lat, s.place_lon),   # Ortszeit des Spots — Clients formatieren damit
+        # Ortszeit des Spots — Clients formatieren damit; bei „Ort verbergen" UTC (Ortszeit = Ortsangabe).
+        tz=ortverbergen.ort_fuer_ausgabe(_ort_verborgen(s), s.place_name, s.place_lat, s.place_lon)[1],
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
         # Erstes Video EGAL welcher Plattform (IG/TikTok/YouTube) — nur für anzeige-fähige
@@ -653,10 +682,19 @@ def _owned(db, user, session_id) -> models.Session:
     return s
 
 
-def _readable(db, session_id) -> models.Session:
-    """Lesezugriff für jeden eingeloggten Nutzer (Community-Ansicht, read-only)."""
+def _readable(db, session_id, viewer: models.User | None = None) -> models.Session:
+    """Lesezugriff für jeden eingeloggten Nutzer (Community-Ansicht, read-only).
+
+    Dieselben Riegel wie der Feed (`community._community`, Security-Review 29.10.2026): Aufnahmen
+    gesperrter oder versteckter Konten und gemeldete (`flagged`) Aufnahmen waren per fortlaufender ID
+    weiter lesbar. Besitzer und Admins sehen sie weiterhin."""
     s = db.get(models.Session, session_id)
     if s is None or s.deleted:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
+    if viewer is not None and (viewer.id == s.user_id or viewer.is_admin):
+        return s
+    besitzer = s.user
+    if s.flagged or (besitzer is not None and (besitzer.blocked or besitzer.hidden)):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     return s
 
@@ -812,7 +850,7 @@ async def upload_fit(
 
     Bulk-Import-Filter (optional): min_start='YYYY-MM-DD' überspringt ältere, water_only=true
     überspringt Nicht-Wassersport. Übersprungen -> {"skipped": grund} statt Session."""
-    data = await file.read()
+    data = await file.read(MAX_FIT_BYTES + 1)  # nie mehr als die Grenze + 1 Byte in den Speicher (Security-Review 29.10.2026)
     if len(data) == 0:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Empty file")
     if len(data) > MAX_FIT_BYTES:
@@ -2415,7 +2453,7 @@ def get_session(
         if s is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     else:
-        s = _readable(db, session_id)
+        s = _readable(db, session_id, user)
     # Age-Gate (unter 13): fremde Sessions NUR ansehen ist erlaubt (read-only, wie Spots) — gesperrt
     # sind Feed-Navigation (community.router), Likes/Votes (Schreiben) und Chaträume (chat.router).
     # ETag/304 (PWA-Caching): Stempel aus updated_at + Like-Zustand (Likes bumpen updated_at
@@ -2652,6 +2690,17 @@ def share_card(
     # "none" = bewusst KEINE Stat-Boxen (leer/None hieße Default=alle) — Fix „alle abgewählt → alle sichtbar".
     stat_keys = [] if stats == "none" else ([k for k in (stats.split(",") if stats else []) if k] or None)
     rings = _wasser_silhouette(db, ar)
+    if _ort_verborgen(s):
+        # „Ort verbergen" (Security-Review 29.10.2026): die Karte ist zum oeffentlichen Teilen da. Spur
+        # nach Point Nemo, Name Point Nemo, keine Wasser-Silhouette (die Uferform ist der Ort) — Kartenkacheln
+        # zeigen dort leeres Meer. Nur Kopien, gespeichert bleibt die Wahrheit.
+        from types import SimpleNamespace
+        ar = SimpleNamespace(**{**{c.key: getattr(ar, c.key) for c in models.AnalysisResult.__table__.columns},
+                                "track_geojson": json.dumps(_spur_fuer_ausgabe(ar, True))})
+        s = SimpleNamespace(**{c.key: getattr(s, c.key) for c in models.Session.__table__.columns},
+                            user=s.user)
+        s.place_name, s.place_water = ortverbergen.NEMO_NAME, None
+        rings = None
     ttl = (title or "").strip()[:40] or None
     sh = shade if shade in ("light", "dark") else "light"
     info: dict = {}
@@ -3224,7 +3273,12 @@ def _clean_youtube(raw: str | None) -> str | None:
         return None
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
-    host = (urlparse(url).hostname or "").lower()
+    # Backslash, Leerzeichen, Steuerzeichen und Zugangsdaten raus (Security-Review 29.10.2026): Browser lesen
+    # `https://evil.de\@youtube.com` als evil.de, urlparse als youtube.com.
+    teile = urlparse(url)
+    if any(c in url for c in "\\ \t\r\n") or teile.username or teile.password:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nur YouTube-, Instagram- oder TikTok-Links erlaubt")
+    host = (teile.hostname or "").lower()
     if not any(host == h or host.endswith("." + h) for h in _VIDEO_HOST_SUFFIXES):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nur YouTube-, Instagram- oder TikTok-Links erlaubt")
     return "https://" + url.split("://", 1)[1]
@@ -3582,7 +3636,7 @@ def get_track_times(
     Punkte der Spur und faellt auf ihre Schaetzung zurueck, wenn sie nicht passt; damit kann
     eine kuenftige Abweichung in der Pipeline hier nichts verschieben.
     """
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, user)
     gps = storage.load_gps(s.session_uuid)
     if not gps:
         return {"t_ms": []}
@@ -3611,7 +3665,10 @@ def get_raw_track(
     pts = gps[::schritt]
     if gps and pts[-1] is not gps[-1]:
         pts.append(gps[-1])
-    return {"punkte": [[int(r[0]), round(float(r[1]), 6), round(float(r[2]), 6)] for r in pts]}
+    zeilen = [[round(float(r[1]), 6), round(float(r[2]), 6), int(r[0])] for r in pts]
+    if _ort_verborgen(s):
+        zeilen = _wie_spur_versetzen(s, zeilen)
+    return {"punkte": [[z[2], z[0], z[1]] for z in zeilen]}
 
 
 @router.get("/{session_id}/attempts")
@@ -3640,7 +3697,8 @@ def get_attempts(
     ohnehin auf der Karte. `outside_trim` sagt, ob der Versuch ausserhalb des ausgewerteten
     Bereichs liegt (also in keiner Statistik der Session auftaucht).
     """
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, user)
+    verborgen = _ort_verborgen(s)
     leer: dict = {"attempts": []}
     gps = storage.load_gps(s.session_uuid)
     if len(gps) < 3:
@@ -3694,6 +3752,8 @@ def get_attempts(
         linie = [[float(r[1]), float(r[2])] for r in roh]
         if len(linie) < 2:
             continue
+        if verborgen:
+            linie = _wie_spur_versetzen(s, linie)
         aus.append({
             "points": linie,
             # GPS-Tempo je Punkt (m/s, wie `speeds_mps` im Track) — die Karte faerbt den Versuch damit wie einen Lauf
@@ -3721,7 +3781,7 @@ def get_carves(
     (enger/schneller Scheitel → höheres a). Kein Accel nötig → funktioniert auf jeder GPS-Session.
     Rückgabe: g je Track-Punkt (0 außerhalb Carves) + feine Catmull-Rom-Bögen je Carve + Grad-Buckets
     (90–180 / 180–360 / >360°)."""
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, user)
     empty = {"g": [], "carves": [], "arcs": [], "counts": {"s": 0, "m": 0, "l": 0}}
     gps = storage.load_gps(s.session_uuid)
     # TRIM wie die Analyse-Pipeline (__init__): nur [trim_start, trim_end]. Sonst scannt der
@@ -3788,6 +3848,8 @@ def get_carves(
     counts = {"s": 0, "m": 0, "l": 0}
     for cv in carves:
         counts[cv["bucket"]] += 1
+    if _ort_verborgen(s):
+        arcs = [_wie_spur_versetzen(s, arc) for arc in arcs]
     return {"g": [round(float(x), 2) for x in g_out], "carves": carves,
             "arcs": arcs, "counts": counts}
 
@@ -3975,7 +4037,7 @@ def session_wind(
     """Wind am Spot waehrend der Session (Open-Meteo-Modell, stuendlich; app/sessionwind.py).
 
     Bei „Ort verbergen" nichts: die Windwerte einer Koordinate verraten grob den Ort."""
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, _user)
     if _ort_verborgen(s):
         return {"wind": None}
     from ..sessionwind import session_wind as _wind
@@ -4027,7 +4089,7 @@ def session_manoever(
 
     `items[].i` ist der Index in die getrimmte Spur (= track_geojson). Ohne Windrichtung (kein Ort,
     Ort verborgen, Open-Meteo nicht erreichbar) gibt es keine Einordnung -> leer."""
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, _user)
     if sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s):
         return dict(MANOEVER_LEER)
     return manoever_gecacht(db, s)
@@ -4041,7 +4103,7 @@ def session_paddel(
 ) -> dict | None:
     """Paddelschlaege und Paddle-up-Versuche (nur SUP/Paddeln mit Accel, NUR ANZEIGE; app/paddel.py).
     None, wenn es nichts auszuwerten gibt. Zeiten `versuche[].t_ms` in Session-ms."""
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, _user)
     if (s.sport_class or "pumpfoil") not in ("sup_paddle", "sup"):
         return None
     return paddel_gecacht(db, s)
@@ -4067,7 +4129,7 @@ def session_welle_pumpen(
 ) -> dict | None:
     """Wake thief: Zeit/Strecke auf der Welle gegen gepumpt, Pumps nur im gepumpten Teil (NUR ANZEIGE;
     app/welle_pumpen.py). None, wenn es nichts auszuwerten gibt. `abschnitte` in Session-ms."""
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, _user)
     if (s.sport_class or "pumpfoil") != "wakethief":
         return None
     return welle_pumpen_gecacht(db, s)
@@ -4264,7 +4326,7 @@ def list_photos(
     _user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[dict]:
-    _readable(db, session_id)
+    _readable(db, session_id, _user)
     rows = (
         db.query(models.SessionPhoto)
         .filter_by(session_id=session_id, blocked=False).order_by(models.SessionPhoto.id).all()
@@ -4286,7 +4348,8 @@ async def upload_photo(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Max. {MAX_PHOTOS_PER_SESSION} Fotos")
     from ..media import ImageError, save_image
 
-    raw = await file.read()
+    from ..media import MAX_UPLOAD_BYTES
+    raw = await file.read(MAX_UPLOAD_BYTES + 1)  # nie mehr als die Grenze + 1 Byte in den Speicher (Security-Review 29.10.2026)
     try:
         url = save_image(raw, subdir="photos", max_dim=1600, thumb_dim=480)
     except ImageError as exc:
@@ -4328,7 +4391,7 @@ def list_videos(
     _user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[dict]:
-    _readable(db, session_id)
+    _readable(db, session_id, _user)
     rows = (
         db.query(models.SessionVideo)
         .filter_by(session_id=session_id, blocked=False).order_by(models.SessionVideo.id).all()
@@ -4953,7 +5016,7 @@ def board_lage(
     db: Session = Depends(get_db),
 ) -> dict:
     """Lage des Bretts fuer einen Lauf — fuer angemeldete Nutzer (s. `_lage_antwort`)."""
-    return _lage_antwort(db, _readable(db, session_id), **p)
+    return _lage_antwort(db, _readable(db, session_id, user), **p)
 
 
 # --- „Sass das Handy am Brett?" — Verdacht aus den Daten -----------------------------------------
@@ -5217,7 +5280,7 @@ def board_hint(session_id: int,
     Liefert `verdacht: false`, sobald die Aufnahme schon als Brett markiert ist: dann ist nichts
     mehr zu fragen.
     """
-    s = _readable(db, session_id)
+    s = _readable(db, session_id, user)
     if s.user_id != user.id or s.placement == "board":
         return {"verdacht": False}
     return _brett_verdacht(s)

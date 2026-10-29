@@ -35,7 +35,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status as http_status  # `status` ist unten ein Endpunkt-Name (def status) — sonst 500 statt 400 in zustimmen()
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -273,12 +273,16 @@ def zustimmen(body: dict,
     herausforderung = body.get("code_challenge") or ""
     client = _client_holen(db, client_id)
     if client is None or redirect_uri not in json.loads(client.redirect_uris):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Client oder Rueckkehr-Adresse stimmt nicht.")
+        raise HTTPException(http_status.HTTP_400_BAD_REQUEST, "Client oder Rueckkehr-Adresse stimmt nicht.")
     if not (43 <= len(herausforderung) <= 128):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "code_challenge fehlt.")
+        raise HTTPException(http_status.HTTP_400_BAD_REQUEST, "code_challenge fehlt.")
     ressource = (body.get("resource") or RESOURCE).rstrip("/")
     if ressource != RESOURCE:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Falsche Ressource.")
+        raise HTTPException(http_status.HTTP_400_BAD_REQUEST, "Falsche Ressource.")
+    if body.get("ablehnen"):
+        # „Ablehnen" springt nur an eine GEPRUEFTE Adresse zurueck (Security-Review 29.10.2026): vorher
+        # nahm die Seite redirect_uri ungeprueft aus der URL -> offene Weiterleitung. Kein Code.
+        return {"redirect_uri": redirect_uri}
 
     code = secrets.token_urlsafe(32)
     db.add(models.OAuthGrant(

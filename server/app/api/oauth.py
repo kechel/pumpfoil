@@ -282,14 +282,19 @@ def _decode_id_token(id_token: str) -> dict:
         return {}
 
 
-def _identity(provider: str, cfg: dict, token: dict) -> tuple[str, str | None, str | None]:
-    """(subject, email, name) aus Token-/Userinfo-Antwort des Providers ziehen."""
+def _email_bestaetigt(claims: dict) -> bool:
+    """Hat der Anbieter die E-Mail im id_token bestaetigt? Apple schickt den Wert als Text „true"."""
+    return claims.get("email_verified") in (True, "true", "True")
+
+
+def _identity(provider: str, cfg: dict, token: dict) -> tuple[str, str | None, str | None, bool]:
+    """(subject, email, name, email_bestaetigt) aus Token-/Userinfo-Antwort des Providers ziehen."""
     if provider in ("google", "apple"):
         claims = _decode_id_token(token.get("id_token", ""))
         sub = claims.get("sub") or ""
         # Nur VORNAME als Anzeigename — kein Nachname (Datenschutz).
         name = claims.get("given_name") or (claims.get("name") or "").split(" ")[0].strip() or None
-        return sub, claims.get("email"), name
+        return sub, claims.get("email"), name, _email_bestaetigt(claims)
     if provider == "facebook":
         # Graph API: Felder stehen schon in der `userinfo_url`. Nur VORNAME als Anzeigename
         # (kein Nachname) — dieselbe Regel wie bei Google/Apple.
@@ -302,12 +307,13 @@ def _identity(provider: str, cfg: dict, token: dict) -> tuple[str, str | None, s
             data = {}
         sub = str(data.get("id") or "")
         name = (data.get("first_name") or "").strip() or None
-        return sub, (data.get("email") or None), name
+        # Facebook gibt `email` nur heraus, wenn sie dort bestaetigt ist.
+        return sub, (data.get("email") or None), name, bool(data.get("email"))
     if provider == "strava":
         ath = token.get("athlete") or {}
         sub = str(ath.get("id") or "")
         name = (ath.get("firstname") or "").strip() or None  # nur Vorname, kein Nachname
-        return sub, None, name
+        return sub, None, name, False
     # garmin (+ generischer Fallback): User-ID separat abrufen
     access = token.get("access_token", "")
     sub = ""
@@ -319,7 +325,7 @@ def _identity(provider: str, cfg: dict, token: dict) -> tuple[str, str | None, s
                 sub = str(data.get("userId") or data.get("sub") or data.get("id") or "")
         except Exception:  # noqa: BLE001
             sub = ""
-    return sub, None, None
+    return sub, None, None, False
 
 
 def _fallback_display_name(db: Session) -> str:
@@ -374,11 +380,11 @@ async def callback(
     if "access_token" not in token and "id_token" not in token:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "No token from provider")
 
-    subject, email, name = _identity(provider, cfg, token)
+    subject, email, name, bestaetigt = _identity(provider, cfg, token)
     if not subject:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "No identity from provider")
 
-    user = _login_or_create(db, provider, subject, email, name, language=oauth_lang)
+    user = _login_or_create(db, provider, subject, email, name, language=oauth_lang, email_bestaetigt=bestaetigt)
     jwt = create_access_token(user.id)
     # 303 (See Other): erzwingt GET auf das Frontend. Wichtig bei Apple, dessen Callback
     # ein POST ist — ein 307 würde die Methode beibehalten -> POST auf "/" -> 405.
@@ -394,17 +400,35 @@ async def callback(
 
 # ---------------------------------------------------------------- Find-or-create ----
 def _login_or_create(db: Session, provider: str, subject: str, email: str | None, name: str | None,
-                     language: str | None = None) -> models.User:
+                     language: str | None = None, email_bestaetigt: bool = False) -> models.User:
     """Verknüpfte Identität finden oder Konto anlegen (E-Mail-Merge). Shared von
     Web-Redirect-Callback UND nativen Sign-in-Endpoints. `language` = gewünschte
-    Profilsprache (UI-Sprache bei der Registrierung); greift NUR bei NEUEN Konten."""
+    Profilsprache (UI-Sprache bei der Registrierung); greift NUR bei NEUEN Konten.
+
+    E-MAIL-MERGE (Security-Review 29.10.2026): Die Registrierung mit Passwort bestaetigt E-Mails nicht.
+    Wer fremd@… vorab mit eigenem Passwort registrierte, bekam frueher das Konto des echten Besitzers,
+    sobald der sich erstmals per Google/Apple anmeldete — mit Passwort des Angreifers, und alle
+    weiteren Aufnahmen des Opfers landeten dort. Jetzt:
+      * zusammengefuehrt wird nur, wenn der Anbieter die E-Mail BESTAETIGT hat (sonst fehlt der
+        Nachweis, dass sie dem Anmeldenden gehoert -> eigenes neues Konto);
+      * traegt das Konto noch KEINE Anbieter-Anmeldung, stammt sein Passwort aus der Zeit vor diesem
+        Nachweis. Es wird verworfen, alle Sitzungen enden, und der Besitzer bekommt eine Mail (wer
+        das Passwort selbst gesetzt hatte, setzt es per „Passwort vergessen" neu).
+    """
     ident = db.query(models.OAuthIdentity).filter_by(provider=provider, subject=subject).first()
     if ident:
         user = db.get(models.User, ident.user_id)
     else:
         user = None
-        if email:  # per verifizierter E-Mail einem bestehenden Konto zuordnen (Merge)
+        if email and email_bestaetigt:
             user = db.query(models.User).filter(func.lower(models.User.email) == email.lower()).first()
+            if user is not None and not user.blocked and db.query(models.OAuthIdentity).filter_by(
+                    user_id=user.id).first() is None:
+                _passwort_vor_nachweis_verwerfen(db, user, provider)
+        if user is None and email and db.query(models.User).filter(
+                func.lower(models.User.email) == email.lower()).first() is not None:
+            # E-Mail vergeben, aber unbestaetigt -> eigenes Konto mit Ersatzadresse (eindeutige Spalte).
+            email = None
         if user is None:  # neues Konto
             login_email = (email or f"{provider}_{subject}@oauth.local").lower()
             # Echten (Vor-)Namen übernehmen; bei Kollision automatisch durchnummerieren
@@ -428,6 +452,27 @@ def _login_or_create(db: Session, provider: str, subject: str, email: str | None
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account unavailable")
     db.commit()
     return user
+
+
+def _passwort_vor_nachweis_verwerfen(db: Session, user: models.User, provider: str) -> None:
+    """S. `_login_or_create`: Passwort ungueltig machen, alle Sitzungen beenden, Besitzer informieren."""
+    from .. import sitzungen
+    from ..mailer import send_email
+    user.password_hash = hash_password(secrets.token_urlsafe(24))
+    sitzungen.alle_beenden(db, user)
+    anbieter = {"google": "Google", "apple": "Apple", "facebook": "Facebook"}.get(provider, provider)
+    try:
+        send_email(
+            user.email, "Pumpfoil: Anmeldung verknüpft / sign-in linked",
+            f"Hallo,\n\ndein Pumpfoil-Konto ist jetzt mit deiner {anbieter}-Anmeldung verknüpft. Zur Sicherheit "
+            "wurde das bisherige Passwort deaktiviert und alle Geräte wurden abgemeldet. Du kannst dich weiter "
+            f"mit {anbieter} anmelden oder unter „Passwort vergessen“ ein neues Passwort setzen.\n\n"
+            f"Hi,\n\nyour Pumpfoil account is now linked to your {anbieter} sign-in. For your security the "
+            "previous password was deactivated and all devices were signed out. Keep signing in with "
+            f"{anbieter}, or set a new password via “Forgot password”.\n")
+    except Exception:  # noqa: BLE001 — die Anmeldung haengt nicht an der Mail
+        import logging
+        logging.getLogger(__name__).exception("Mail nach Konto-Verknuepfung fehlgeschlagen (u%s)", user.id)
 
 
 # ------------------------------------------------------------- Native Sign-in ----
@@ -479,7 +524,8 @@ def native_apple(body: NativeAuthIn, db: Session = Depends(get_db)) -> TokenOut:
     claims = _verify_id_token(body.id_token, _APPLE_JWKS, _apple_audiences())
     if claims.get("iss") != _APPLE_ISS or not claims.get("sub"):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Apple token")
-    user = _login_or_create(db, "apple", claims["sub"], claims.get("email"), body.name, language=body.language)
+    user = _login_or_create(db, "apple", claims["sub"], claims.get("email"), body.name, language=body.language,
+                            email_bestaetigt=_email_bestaetigt(claims))
     return TokenOut(access_token=create_access_token(user.id))
 
 
@@ -491,7 +537,8 @@ def native_google(body: NativeAuthIn, db: Session = Depends(get_db)) -> TokenOut
     claims = _verify_id_token(body.id_token, _GOOGLE_JWKS, auds)
     if claims.get("iss") not in _GOOGLE_ISS or not claims.get("sub"):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Google token")
-    user = _login_or_create(db, "google", claims["sub"], claims.get("email"), body.name or claims.get("name"), language=body.language)
+    user = _login_or_create(db, "google", claims["sub"], claims.get("email"), body.name or claims.get("name"),
+                            language=body.language, email_bestaetigt=_email_bestaetigt(claims))
     return TokenOut(access_token=create_access_token(user.id))
 
 

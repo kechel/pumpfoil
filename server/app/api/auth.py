@@ -4,14 +4,14 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Response, UploadFile, status
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from .. import kontensync, models, tanz
 from ..config import get_settings
 from ..accounts import ist_store_roboter_adresse
-from .. import loeschung
+from .. import loeschung, sitzungen
 import logging
 
 from ..db import get_db
@@ -19,8 +19,11 @@ from ..media import delete_media
 from ..mailer import send_email
 from .admin import _purge_session
 from ..schemas import AgeRangeIn, ForgotIn, LoginIn, PasswordChangeIn, ProfileIn, ProfileOut, RegisterIn, ResetIn, TokenOut
-from ..ratelimit import rate_limit
-from ..security import create_access_token, hash_password, new_token, verify_password
+from ..ratelimit import fehlversuch_merken, fehlversuche_pruefen, rate_limit
+from ..security import create_access_token, hash_password, needs_rehash, new_token, verify_password
+
+# Fester Vergleichs-Hash fuer unbekannte E-Mails (s. login). Einmal beim Import gerechnet.
+_DUMMY_HASH = hash_password("kein-konto-" + new_token(8))
 from .deps import current_user
 
 log = logging.getLogger(__name__)
@@ -389,21 +392,41 @@ def reset_password(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Konto nicht verfügbar")
     user.password_hash = hash_password(body.new_password)
     pr.used_at = now
+    # Wer sein Passwort zuruecksetzt, vermutet oft einen Fremden im Konto: alle Sitzungen, die
+    # uebrigen Reset-Links und Agenten-Zugaenge beenden (Security-Review 29.10.2026, app/sitzungen.py).
+    frisch = sitzungen.alle_beenden(db, user)
     db.commit()
-    return TokenOut(access_token=create_access_token(user.id))
+    return TokenOut(access_token=frisch)
 
 
 @router.patch("/me/password")
 @router.put("/me/password")  # PUT-Alias: native Clients (HttpURLConnection) koennen kein PATCH
 def change_password(
-    body: PasswordChangeIn, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+    body: PasswordChangeIn, response: Response, user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
 ) -> dict:
-    """Self-Service: eigenes Passwort ändern (aktuelles Passwort zur Bestätigung)."""
+    """Self-Service: eigenes Passwort ändern (aktuelles Passwort zur Bestätigung).
+
+    Beendet alle ANDEREN Anmeldungen (Security-Review 29.10.2026). Dieses Geraet bleibt angemeldet:
+    das frische Token kommt in `X-Refresh-Token`, das alle Clients (PWA, Android, iOS) schon bei jeder
+    Antwort uebernehmen — auch die bereits veroeffentlichten Apps, ohne neue Version."""
     if not verify_password(body.current_password, user.password_hash):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Aktuelles Passwort falsch")
     user.password_hash = hash_password(body.new_password)
+    response.headers["X-Refresh-Token"] = sitzungen.alle_beenden(db, user)
     db.commit()
     return {"ok": True}
+
+
+@router.post("/logout-all")
+def logout_all(response: Response, user: models.User = Depends(current_user),
+               db: Session = Depends(get_db)) -> dict:
+    """„Ueberall abmelden": alle anderen Geraete und Agenten-Zugaenge (MCP) melden sich ab, dieses
+    bleibt angemeldet (frisches Token in `X-Refresh-Token` und im Body). Gekoppelte Uhren bleiben."""
+    frisch = sitzungen.alle_beenden(db, user)
+    db.commit()
+    response.headers["X-Refresh-Token"] = frisch
+    return {"ok": True, "access_token": frisch}
 
 
 @router.post("/me/avatar", response_model=ProfileOut)
@@ -412,7 +435,8 @@ async def upload_avatar(
 ) -> ProfileOut:
     from ..media import ImageError, delete_media, save_image
 
-    raw = await file.read()
+    from ..media import MAX_UPLOAD_BYTES
+    raw = await file.read(MAX_UPLOAD_BYTES + 1)  # nie mehr als die Grenze + 1 Byte in den Speicher (Security-Review 29.10.2026)
     try:
         url = save_image(raw, subdir="avatars", max_dim=256, square=True)
     except ImageError as exc:
@@ -430,9 +454,21 @@ def login(
     body: LoginIn, background: BackgroundTasks, db: Session = Depends(get_db),
     _rl: None = Depends(rate_limit(10, 300, "login")),
 ) -> TokenOut:
-    user = db.query(models.User).filter_by(email=body.email.lower()).first()
+    # Je KONTO hoechstens 30 Fehlversuche in 15 min (Security-Review 29.10.2026): das IP-Limit oben allein
+    # liess verteilte Versuche (viele IPs/IPv6) unbegrenzt zu. Gezaehlt werden nur Fehlschlaege.
+    mail = body.email.lower()
+    fehlversuche_pruefen(db, f"login-mail:{mail}", 30, 900,
+                         "Zu viele Versuche. Bitte kurz warten und erneut versuchen.")
+    user = db.query(models.User).filter_by(email=mail).first()
+    # Unbekannte E-Mail: trotzdem einen Hash rechnen, sonst verraet die Antwortzeit, ob es das Konto gibt.
+    if user is None:
+        verify_password(body.password, _DUMMY_HASH)
     if user is None or not verify_password(body.password, user.password_hash):
+        fehlversuch_merken(db, f"login-mail:{mail}")
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+    if needs_rehash(user.password_hash):     # alte Hashes mit weniger Runden beim Anmelden auffrischen
+        user.password_hash = hash_password(body.password)
+        db.commit()
     if user.blocked:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Konto gesperrt")
     # Verknuepfte Konten beim Anmelden mitnehmen (Jan, 06.09.). Im Hintergrund: die Anmeldung

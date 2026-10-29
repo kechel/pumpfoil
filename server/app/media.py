@@ -15,6 +15,22 @@ from .config import get_settings
 settings = get_settings()
 
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024  # 12 MB Roh-Upload-Limit
+# Hoechstens so viele Pixel (Security-Review 29.10.2026, Bild-Bombe): 12 MB komprimiert koennen ein
+# Bild von 178 MP sein, ~0,5 GB Speicher je Anfrage. 110 MP laesst 108-MP-Handykameras durch.
+MAX_PIXEL = 110_000_000
+
+
+def _oeffnen(raw: bytes, max_dim: int):
+    """Bild oeffnen, Groesse pruefen BEVOR dekodiert wird, JPEG gleich verkleinert dekodieren
+    (`draft`: 1/2, 1/4, 1/8 — spart bei Handyfotos den Grossteil des Speichers)."""
+    img = Image.open(io.BytesIO(raw))
+    if img.width * img.height > MAX_PIXEL:
+        raise ValueError("Bild zu gross")
+    if img.format == "JPEG":
+        img.draft("RGB", (max_dim * 2, max_dim * 2))
+    img = ImageOps.exif_transpose(img)
+    img.load()
+    return img
 THUMB_DIM = 480  # Kantenlänge des kleinen Vorschaubilds (deckt Cards/Strip/Feed inkl. Retina)
 
 
@@ -64,9 +80,7 @@ def reencode_image(raw: bytes, max_dim: int = 1600) -> bytes:
     if len(raw) > MAX_UPLOAD_BYTES:
         raise ImageError("Datei zu groß")
     try:
-        img = Image.open(io.BytesIO(raw))
-        img = ImageOps.exif_transpose(img)
-        img.load()
+        img = _oeffnen(raw, max_dim)
     except Exception as exc:  # noqa: BLE001
         raise ImageError("Kein gültiges Bild") from exc
     if img.mode != "RGB":
@@ -90,9 +104,7 @@ def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
     if len(raw) > MAX_UPLOAD_BYTES:
         raise ImageError("Datei zu groß (max. 12 MB)")
     try:
-        img = Image.open(io.BytesIO(raw))
-        img = ImageOps.exif_transpose(img)  # Aufnahme-Orientierung anwenden
-        img.load()
+        img = _oeffnen(raw, max_dim)   # inkl. Aufnahme-Orientierung
     except Exception as exc:  # noqa: BLE001
         raise ImageError("Kein gültiges Bild") from exc
 

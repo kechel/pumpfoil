@@ -18,7 +18,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy import and_, case, func, literal, or_, select
 from sqlalchemy.orm import Session
 
-from .. import models, storage
+from .. import models, sitzungen, storage
 from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
@@ -515,21 +515,25 @@ def set_admin(user_id: int, is_admin: bool = Query(...), admin: models.User = De
 
 @router.post("/users/{user_id}/reset-password")
 def reset_password(
-    user_id: int, password: str | None = Query(None),
+    user_id: int, body: dict | None = Body(None),
     admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> dict:
-    """Setzt ein vom Admin gewähltes Passwort (password=) ODER generiert ein Temp-PW.
-    Überschreibt das alte Passwort unwiderruflich."""
+    """Setzt ein vom Admin gewähltes Passwort ({"password": …} im Body) ODER generiert ein Temp-PW.
+    Überschreibt das alte Passwort unwiderruflich. Frueher als Query-Parameter — der landete in
+    Zugriffsprotokollen (Security-Review 29.10.2026)."""
+    password = (body or {}).get("password") or None
     u = _get_user(db, user_id)
     if password is not None:
         if len(password) < 8:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Mindestens 8 Zeichen")
         u.password_hash = hash_password(password)
+        sitzungen.alle_beenden(db, u)   # alte Anmeldungen gelten nicht mehr (Security-Review 29.10.2026)
         _log(db, admin, "user_set_pw", "user", user_id)
         db.commit()
         return {"ok": True, "set": True}
     temp = secrets.token_urlsafe(9)
     u.password_hash = hash_password(temp)
+    sitzungen.alle_beenden(db, u)
     _log(db, admin, "user_reset_pw", "user", user_id)
     db.commit()
     return {"ok": True, "temp_password": temp}
