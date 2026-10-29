@@ -36,6 +36,7 @@ const deAT: Record<string, string> = {
   "mcp.consentGrantTitle": "S Programm derf",
   "mcp.consentIntro": "A Programm mecht deine Pumpfoil-Aufnahmen lesen. Lies kurz, was des heisst — und was net.",
   "mcp.consentProgram": "D'Daten gengan an",
+  "mcp.consentUnknownHost": "{host} is ka bekannter KI-Anbieter. Stimm nur zu, wennst den Zugang grad selber in deinem KI-Programm eingerichtet hast und die Adresse dazugehört.",
   "mcp.consentRevoke": "Du kannst'n Zugriff jederzeit unter „Verknuepfte Konten\" wieder beenden.",
   "mcp.consentTitle": "Zugriff auf deine Aufnahmen",
   "mcp.copied": "Kopiert",

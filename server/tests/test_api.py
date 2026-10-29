@@ -1,6 +1,8 @@
 """End-to-End-Test: Register -> Pairing -> Ingest -> Analyse -> Anzeige -> Label."""
 from __future__ import annotations
 
+from app.security import token_hash as _th   # Geraete-Tokens stehen gehasht in der DB (S-016)
+
 import base64
 import math
 
@@ -295,7 +297,7 @@ def test_upload_zaehlt_nicht_als_pumpen(client):
     from datetime import datetime, timedelta, timezone
     from app import models as _m
     db = SessionLocal()
-    for d in db.query(_m.DeviceToken).filter(_m.DeviceToken.token == uhr["X-Device-Token"]).all():
+    for d in db.query(_m.DeviceToken).filter(_m.DeviceToken.token == _th(uhr["X-Device-Token"])).all():
         if d.app_closed_at is not None:
             d.last_seen_at = datetime.now(timezone.utc) - timedelta(minutes=40)
             d.app_closed_at = datetime.now(timezone.utc) - timedelta(minutes=40)

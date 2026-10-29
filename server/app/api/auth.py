@@ -20,7 +20,8 @@ from ..mailer import send_email
 from .admin import _purge_session
 from ..schemas import AgeRangeIn, ForgotIn, LoginIn, PasswordChangeIn, ProfileIn, ProfileOut, RegisterIn, ResetIn, TokenOut
 from ..ratelimit import fehlversuch_merken, fehlversuche_pruefen, rate_limit
-from ..security import create_access_token, hash_password, needs_rehash, new_token, verify_password
+from ..security import (create_access_token, hash_password, needs_rehash, new_token, token_hash,
+                        token_kandidaten, verify_password)
 
 # Fester Vergleichs-Hash fuer unbekannte E-Mails (s. login). Einmal beim Import gerechnet.
 _DUMMY_HASH = hash_password("kein-konto-" + new_token(8))
@@ -188,6 +189,9 @@ def _profile_hinweise(db: Session, user_id: int, user: models.User | None = None
             "onboarding_due": onboarding_faellig(user) if user is not None else False}
 
 
+REGISTER_VERGEBEN_MAX = 30
+
+
 @router.post("/register", response_model=TokenOut)
 def register(
     body: RegisterIn, db: Session = Depends(get_db),
@@ -195,6 +199,13 @@ def register(
 ) -> TokenOut:
     existing = db.query(models.User).filter_by(email=body.email.lower()).first()
     if existing:
+        # „Schon vergeben" verraet, dass es ein Konto gibt (S-017). Die Meldung bleibt (Jan, 29.10.2026:
+        # gute Bedienung), aber gebremst: je IP ohnehin 5/h (oben), und ueber ALLE IPs zusammen
+        # hoechstens REGISTER_VERGEBEN_MAX solcher Antworten je Stunde — gegen Durchprobieren von
+        # Adresslisten ueber viele IPs. Im Alltag kommt das ein paar Mal am Tag vor.
+        fehlversuche_pruefen(db, "register-vergeben", REGISTER_VERGEBEN_MAX, 3600,
+                             "Zu viele Versuche. Bitte spaeter erneut versuchen.")
+        fehlversuch_merken(db, "register-vergeben")
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
     name = _create_display_name(db, body.display_name)   # bei Kollision automatisch durchnummerieren
     user = models.User(
@@ -365,7 +376,7 @@ def forgot_password(
     if user and not user.blocked:
         token = new_token(32)
         db.add(models.PasswordReset(
-            user_id=user.id, token=token,
+            user_id=user.id, token=token_hash(token),   # nur der Hash in der DB (S-016)
             expires_at=datetime.now(timezone.utc) + timedelta(minutes=RESET_TTL_MIN)))
         db.commit()
         link = f"{get_settings().base_url}/reset?token={token}"
@@ -382,7 +393,8 @@ def reset_password(
     _rl: None = Depends(rate_limit(10, 900, "reset")),
 ) -> TokenOut:
     """Passwort per gültigem Token setzen. Token wird verbraucht; direkt eingeloggt."""
-    pr = db.query(models.PasswordReset).filter_by(token=body.token).first()
+    pr = (db.query(models.PasswordReset)
+          .filter(models.PasswordReset.token.in_(token_kandidaten(body.token))).first())
     now = datetime.now(timezone.utc)
     exp = pr.expires_at.replace(tzinfo=timezone.utc) if pr and pr.expires_at.tzinfo is None else (pr.expires_at if pr else None)
     if pr is None or pr.used_at is not None or exp < now:

@@ -3,6 +3,8 @@
 um (Speicher sparen, Ablage-Budget und GPS-only sind Garmin-Automatiken). Erst messen, dann entscheiden."""
 from __future__ import annotations
 
+from app.security import token_hash as _th   # Geraete-Tokens stehen gehasht in der DB (S-016)
+
 
 def _paar(client, kennung: str):
     # Eigene Kopie statt `from tests.test_gps_sparen import _paar`: `tests` ist kein Paket, das
@@ -29,7 +31,7 @@ def test_zepp_meldet_speicher_voll(client):
     _zepp(client, dev, "&sf=1&kb=300")          # kleinerer Wert ueberschreibt nicht
     db = SessionLocal()
     try:
-        d = db.query(models.DeviceToken).filter_by(token=dev["X-Device-Token"]).one()
+        d = db.query(models.DeviceToken).filter_by(token=_th(dev["X-Device-Token"])).one()
         assert d.platform == "zepp"
         assert d.storage_full_kb == 464
         assert d.storage_full_count == 1, "zwei Meldungen kurz hintereinander = ein Ereignis (entprellt)"

@@ -37,6 +37,7 @@ const cs: Record<string, string> = {
   "mcp.consentGrantTitle": "Program smí",
   "mcp.consentIntro": "Program chce číst tvoje pumpfoilové nahrávky. Přečti si krátce, co to znamená — a co ne.",
   "mcp.consentProgram": "Data jdou na",
+  "mcp.consentUnknownHost": "{host} není známý poskytovatel AI. Souhlas dej jen tehdy, když jsi přístup právě sám nastavil ve svém AI programu a tato adresa k němu patří.",
   "mcp.consentRevoke": "Přístup můžeš kdykoli ukončit v „Propojené účty“.",
   "mcp.consentTitle": "Přístup k tvým nahrávkám",
   "mcp.copied": "Zkopírováno",

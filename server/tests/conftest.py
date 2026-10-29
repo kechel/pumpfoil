@@ -11,6 +11,10 @@ from __future__ import annotations
 
 import atexit
 import os
+
+# Fester Test-Schluessel fuer die verschluesselten Anbieter-Tokens (app/geheim.py). FEST, weil die
+# Test-DB zwischen Laeufen erhalten bleibt — ein zufaelliger Schluessel machte alte Zeilen unlesbar.
+os.environ.setdefault("FOIL_TOKEN_KEY", "dGVzdC1zY2hsdWVzc2VsLW51ci1mdWVyLXB5dGVzdC0=")
 import shutil
 import tempfile
 

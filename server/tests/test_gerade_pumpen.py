@@ -3,6 +3,7 @@
 Positionsmeldung der Uhr beim ersten GPS-Fix (<= 1 km um einen Spot, sonst zaehlt er nicht), der
 Spot der hochgeladenen Session ersetzt sie, und 0 Laeufe oder Loeschen nimmt ihn sofort heraus.
 """
+from app.security import token_hash as _th   # Geraete-Tokens stehen gehasht in der DB (S-016)
 from datetime import datetime, timedelta, timezone
 
 
@@ -90,7 +91,7 @@ def test_position_wird_nicht_gespeichert_und_geprueft(client):
     assert client.post("/api/devices/position", json={"lat": 1, "lon": 1}).status_code == 401
     client.post("/api/devices/position", headers=uhr, json={"lat": -70.0, "lon": 100.0})
     db = SessionLocal()
-    d = db.query(models.DeviceToken).filter_by(token=uhr["X-Device-Token"]).one()
+    d = db.query(models.DeviceToken).filter_by(token=_th(uhr["X-Device-Token"])).one()
     assert d.pos_at is not None and d.pos_spot_id is not None
     assert not hasattr(d, "pos_lat")      # Koordinaten werden nicht gespeichert
     db.close()
@@ -160,7 +161,7 @@ def test_verwaister_spot_zaehlt_nicht(client):
     assert _zustand(uid) == (False, None)
     # eine schon gespeicherte Zuordnung zu einem Spot, der danach verwaist, zaehlt auch nicht
     db = SessionLocal()
-    d = db.query(models.DeviceToken).filter_by(token=uhr["X-Device-Token"]).one()
+    d = db.query(models.DeviceToken).filter_by(token=_th(uhr["X-Device-Token"])).one()
     d.pos_spot_id = wid
     db.commit(); db.close()
     assert _zustand(uid) == (False, None)

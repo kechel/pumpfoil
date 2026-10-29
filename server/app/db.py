@@ -64,6 +64,8 @@ def init_db() -> None:
         Base.metadata.create_all(bind=engine)
         _migrate_add_columns()
         _migrate_add_indexes()
+        _tokens_hashen()
+        _tokens_verschluesseln()
         _seed_foils()
         _seed_stabs()
         _seed_news()
@@ -260,6 +262,106 @@ def _migrate_add_indexes() -> None:
                 conn.execute(text(s))
             except Exception:  # noqa: BLE001 — bereits vorhanden/nicht anwendbar/Sperre nicht bekommen; idempotent gemeint
                 pass
+
+
+def _tokens_hashen() -> None:
+    """Geraete- und Reset-Tokens einmalig auf SHA-256 umstellen (S-016, 29.10.2026; security.token_hash).
+
+    Bewusst NICHT in der allgemeinen Liste oben: die verschluckt Fehler je Anweisung, und ein
+    halber Lauf (Spalte da, Hashen gescheitert, oder umgekehrt) waere hier gefaehrlich. Also je
+    Tabelle EINE Transaktion — ganz oder gar nicht. Der Merker `token_gehasht` verhindert, dass ein
+    Hash je ein zweites Mal gehasht wird (das sperrte jede Uhr aus). Reihenfolge: Spalte ohne
+    Vorgabe (Altbestand = NULL), Altbestand hashen, erst dann Vorgabe true fuer neue Zeilen.
+
+    Im Normalfall (schon umgestellt) laeuft nur eine Katalogabfrage, kein ALTER. Scheitert es,
+    bleibt alles beim Alten und die Suche findet rohe Tokens weiter (security-Helfer in deps).
+    """
+    import logging
+
+    from sqlalchemy import text
+
+    log = logging.getLogger(__name__)
+    for tabelle in ("device_tokens", "password_resets"):
+        with engine.connect() as conn:
+            da = conn.execute(text(
+                "SELECT 1 FROM information_schema.columns WHERE table_name = :t AND column_name = 'token_gehasht'"),
+                {"t": tabelle}).first() is not None
+            if da and conn.execute(text(
+                    f"SELECT 1 FROM {tabelle} WHERE token_gehasht IS NOT TRUE LIMIT 1")).first() is None:
+                continue
+            conn.rollback()   # die Pruefabfragen haben eine Transaktion begonnen
+            try:
+                with conn.begin():
+                    conn.execute(text("SET LOCAL lock_timeout = '10s'"))
+                    conn.execute(text(f"ALTER TABLE {tabelle} ADD COLUMN IF NOT EXISTS token_gehasht BOOLEAN"))
+                    n = conn.execute(text(
+                        f"UPDATE {tabelle} SET token = encode(sha256(convert_to(token, 'UTF8')), 'hex'), "
+                        "token_gehasht = true WHERE token_gehasht IS NOT TRUE")).rowcount
+                    conn.execute(text(f"ALTER TABLE {tabelle} ALTER COLUMN token_gehasht SET DEFAULT true"))
+                    if tabelle == "device_tokens":
+                        # Abgelaufene Kopplungen hielten das rohe Geraete-Token (pair-poll) und das alte.
+                        conn.execute(text(
+                            "UPDATE device_pairings SET device_token = NULL, old_token = NULL "
+                            "WHERE expires_at < now() AND (device_token IS NOT NULL OR old_token IS NOT NULL)"))
+                log.warning("Tokens gehasht: %s, %d Zeilen", tabelle, n)
+            except Exception:  # noqa: BLE001 — dann bleibt es roh; die Suche kann beides
+                log.exception("Tokens hashen fehlgeschlagen: %s (bleibt unveraendert)", tabelle)
+
+
+# Spalten mit Anbieter-Tokens (geheim.Verschluesselt). Erst auf TEXT, weil die verschluesselte Form
+# laenger ist als das Token (COROS-KI-Tokens fuellten 2048 Zeichen fast aus).
+_VERSCHLUESSELT = {
+    "polar_links": ("access_token",),
+    "coros_mcp_links": ("access_token", "refresh_token"),
+    "coros_links": ("access_token", "refresh_token"),
+    "suunto_links": ("access_token", "refresh_token"),
+    "strava_links": ("access_token", "refresh_token"),
+}
+
+
+def _tokens_verschluesseln() -> None:
+    """Anbieter-Tokens im Altbestand einmalig verschluesseln (S-016, 29.10.2026; app/geheim.py).
+
+    Je Tabelle eine Transaktion: Spalten auf TEXT, dann jede Klartext-Zeile (ohne `enc1:`) neu
+    geschrieben. Ohne Schluessel passiert nichts. Im Normalfall (alles verschluesselt, schon TEXT)
+    laufen nur Lese-Abfragen. Scheitert etwas, bleibt die Tabelle wie sie war — Klartext wird
+    weiter gelesen."""
+    import logging
+
+    from sqlalchemy import text
+
+    from . import geheim
+
+    log = logging.getLogger(__name__)
+    if geheim._f() is None:
+        log.error("FOIL_TOKEN_KEY fehlt — Anbieter-Tokens bleiben unverschluesselt")
+        return
+    for tabelle, spalten in _VERSCHLUESSELT.items():
+        with engine.connect() as conn:
+            if conn.execute(text("SELECT 1 FROM information_schema.tables WHERE table_name = :t"),
+                            {"t": tabelle}).first() is None:
+                continue
+            typen = dict(conn.execute(text(
+                "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = :t"),
+                {"t": tabelle}).all())
+            offen = " OR ".join(f"({c} IS NOT NULL AND {c} <> '' AND {c} NOT LIKE 'enc1:%')" for c in spalten)
+            zeilen = conn.execute(text(f"SELECT id, {', '.join(spalten)} FROM {tabelle} WHERE {offen}")).all()
+            if not zeilen and all(typen.get(c) == "text" for c in spalten):
+                continue
+            conn.rollback()
+            try:
+                with conn.begin():
+                    conn.execute(text("SET LOCAL lock_timeout = '10s'"))
+                    for c in spalten:
+                        if typen.get(c) != "text":
+                            conn.execute(text(f"ALTER TABLE {tabelle} ALTER COLUMN {c} TYPE TEXT"))
+                    for z in zeilen:
+                        werte = {c: geheim.verschluesseln(getattr(z, c)) for c in spalten}
+                        conn.execute(text(f"UPDATE {tabelle} SET {', '.join(f'{c} = :{c}' for c in spalten)} "
+                                          "WHERE id = :id"), {**werte, "id": z.id})
+                log.warning("Anbieter-Tokens verschluesselt: %s, %d Zeilen", tabelle, len(zeilen))
+            except Exception:  # noqa: BLE001 — dann bleibt es Klartext; gelesen wird beides
+                log.exception("Verschluesseln fehlgeschlagen: %s (bleibt unveraendert)", tabelle)
 
 
 def _schema_stand(conn) -> dict:

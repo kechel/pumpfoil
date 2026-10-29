@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import get_db
-from ..security import create_access_token, decode_access_token, token_exp, token_iat
+from ..security import (create_access_token, decode_access_token, token_exp, token_iat,
+                        token_kandidaten)
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -148,7 +149,8 @@ def current_device(
     if not x_device_token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing X-Device-Token")
     device = (
-        db.query(models.DeviceToken).filter_by(token=x_device_token).first()
+        db.query(models.DeviceToken)
+        .filter(models.DeviceToken.token.in_(token_kandidaten(x_device_token))).first()
     )
     if device is None or device.revoked_at is not None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid device token")

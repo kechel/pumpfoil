@@ -17,6 +17,7 @@ dependencies = [
     "pywebpush>=2.0",
     "shapely>=2.0",
     "defusedxml>=0.7",
+    "cryptography>=42",   # Fernet fuer gespeicherte Anbieter-Tokens (app/geheim.py)
 ]
 
 [project.optional-dependencies]

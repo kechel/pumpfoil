@@ -37,6 +37,7 @@ const nl: Record<string, string> = {
   "mcp.consentGrantTitle": "Het programma mag",
   "mcp.consentIntro": "Een programma wil je pumpfoil-opnames lezen. Lees even wat dat betekent — en wat niet.",
   "mcp.consentProgram": "De gegevens gaan naar",
+  "mcp.consentUnknownHost": "{host} is geen bekende AI-aanbieder. Geef alleen toestemming als je de toegang net zelf in je AI-programma hebt ingesteld en dit adres daarbij hoort.",
   "mcp.consentRevoke": "Je kunt de toegang altijd beëindigen onder „Gekoppelde accounts”.",
   "mcp.consentTitle": "Toegang tot je opnames",
   "mcp.copied": "Gekopieerd",

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field, computed_field
+from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator
 
 
 # --- Auth ---
@@ -169,6 +169,10 @@ class SessionStartOut(BaseModel):
     received_chunks: list[int]
 
 
+CHUNK_MAX_ZEICHEN = 8_000_000   # base64 von ~6 MB Rohdaten
+CHUNK_MAX_PUNKTE = 200_000      # GPS-Punkte je Block (1 Hz: > 2 Tage)
+
+
 class ChunkIn(BaseModel):
     index: int
     kind: str  # "gps" | "accel" | "gyro" | "mag" | "hr"
@@ -184,6 +188,16 @@ class ChunkIn(BaseModel):
     t1_ms: int | None = None
     count: int = 0
     data: object  # list (gps) oder str (accel-base64)
+
+    @field_validator("data")
+    @classmethod
+    def _groesse(cls, v):
+        # S-026: echte Bloecke sind hoechstens ~1,5 MB; das hier ist das Fuenffache.
+        if isinstance(v, str) and len(v) > CHUNK_MAX_ZEICHEN:
+            raise ValueError("Chunk zu gross")
+        if isinstance(v, list) and len(v) > CHUNK_MAX_PUNKTE:
+            raise ValueError("Chunk zu gross")
+        return v
 
 
 class ChunkOut(BaseModel):

@@ -2,6 +2,8 @@
 Standard an, je Uhr in „Meine Uhren" abschaltbar; die Uhr bekommt den Wert ueber /config."""
 from __future__ import annotations
 
+from app.security import token_hash as _th   # Geraete-Tokens stehen gehasht in der DB (S-016)
+
 
 def _paar(client, kennung: str):
     r = client.post("/api/auth/register", json={"email": f"{kennung}@test.de", "password": "supersecret"})
@@ -47,9 +49,9 @@ def test_voreinstellung_nach_gemessener_ablage(client):
     auth_b, dev_b = _paar(client, "gs-5")
     db = SessionLocal()
     try:
-        for d in db.query(models.DeviceToken).filter(models.DeviceToken.token.in_([dev_a["X-Device-Token"], dev_b["X-Device-Token"]])):
+        for d in db.query(models.DeviceToken).filter(models.DeviceToken.token.in_([_th(dev_a["X-Device-Token"]), _th(dev_b["X-Device-Token"])])):
             d.platform = "garmin"; d.part_number = "006-TEST-5X"
-        db.query(models.DeviceToken).filter_by(token=dev_a["X-Device-Token"]).one().storage_full_kb = 180
+        db.query(models.DeviceToken).filter_by(token=_th(dev_a["X-Device-Token"])).one().storage_full_kb = 180
         db.commit()
     finally:
         db.close()

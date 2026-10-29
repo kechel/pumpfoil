@@ -35,6 +35,7 @@ const ja: Record<string, string> = {
   "mcp.consentGrantTitle": "このプログラムができること",
   "mcp.consentIntro": "あるプログラムがあなたのパンプフォイルの記録を読もうとしています。何ができて、何ができないのかを確認してください。",
   "mcp.consentProgram": "データの送り先",
+  "mcp.consentUnknownHost": "{host} は既知の AI サービスではありません。AI プログラムで自分でアクセスを設定したばかりで、このアドレスがそのプログラムのものである場合にのみ許可してください。",
   "mcp.consentRevoke": "アクセスは「連携アカウント」からいつでも終了できます。",
   "mcp.consentTitle": "あなたの記録へのアクセス",
   "mcp.copied": "コピーしました",

@@ -35,6 +35,7 @@ const id: Record<string, string> = {
   "mcp.consentGrantTitle": "Program boleh",
   "mcp.consentIntro": "Sebuah program ingin membaca rekaman pumpfoil-mu. Baca sebentar apa artinya — dan apa yang bukan.",
   "mcp.consentProgram": "Data pergi ke",
+  "mcp.consentUnknownHost": "{host} bukan penyedia AI yang dikenal. Izinkan hanya jika kamu baru saja menyiapkan akses ini sendiri di program AI-mu dan alamat ini miliknya.",
   "mcp.consentRevoke": "Kamu bisa mengakhiri akses kapan saja di „Akun tertaut”.",
   "mcp.consentTitle": "Akses ke rekamanmu",
   "mcp.copied": "Tersalin",

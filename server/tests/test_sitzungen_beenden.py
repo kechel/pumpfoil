@@ -5,6 +5,7 @@ ueberlebte jedes neue Passwort.
 """
 from __future__ import annotations
 
+import secrets
 import time
 
 
@@ -151,3 +152,14 @@ def test_login_fehlversuche_je_konto_begrenzt(client):
         assert codes[:30] == [401] * 30 and codes[30] == 429, codes
     finally:
         db.close()
+
+
+def test_register_vergeben_global_gebremst(client, monkeypatch):
+    """S-017 (29.10.2026): „schon vergeben" bleibt, aber ueber alle IPs gedeckelt."""
+    from app.api import auth
+    monkeypatch.setattr(auth, "REGISTER_VERGEBEN_MAX", 2)
+    mail = f"vergeben-{secrets.token_hex(3)}@b.de"
+    assert client.post("/api/auth/register", json={"email": mail, "password": "supersecret"}).status_code == 200
+    codes = [client.post("/api/auth/register", json={"email": mail, "password": "supersecret"},
+                         headers={"X-Forwarded-For": f"10.0.0.{i}"}).status_code for i in range(3)]
+    assert codes == [409, 409, 429]

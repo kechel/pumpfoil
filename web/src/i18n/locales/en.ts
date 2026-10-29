@@ -155,6 +155,7 @@ const en: Record<string, string> = {
   "mcp.consentTitle": "Access to your recordings",
   "mcp.consentIntro": "A program wants to read your pumpfoil recordings. Have a quick look at what that means — and what it does not.",
   "mcp.consentProgram": "The data goes to",
+  "mcp.consentUnknownHost": "{host} is not a known AI provider. Only allow this if you just set up the access yourself in your AI program and this address belongs to it.",
   "mcp.consentGrantTitle": "The program may",
   "mcp.consentGrant1": "read your own recordings: runs, speed, pumps, heart rate, distance, board attitude, equipment",
   "mcp.consentGrant2": "read your own totals and best figures",

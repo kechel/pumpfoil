@@ -139,6 +139,25 @@ _CANON_HOST = settings.base_url.split("://", 1)[-1].rstrip("/")
 _REDIRECT_HOSTS = set(settings.redirect_hosts) | {f"www.{_CANON_HOST}"}
 
 
+# Grenze fuer Aufnahme-Uploads (S-026, 29.10.2026): ohne sie las der Server jede noch so grosse
+# Anfrage ganz in den Speicher. Echte Bloecke von Uhren und Handys sind hoechstens ~1,5 MB (gemessen
+# am Bestand, 29.10.), ein Sammel-Upload ein Vielfaches davon — 32 MB laesst reichlich Luft. Die
+# Grenze je Block steht in schemas.ChunkIn. Ohne Content-Length (chunked) greift die Proxy-Grenze.
+INGEST_MAX_BYTES = 32 * 1024 * 1024
+
+
+@app.middleware("http")
+async def ingest_groesse(request: Request, call_next):
+    if request.url.path.startswith("/api/ingest/"):
+        try:
+            laenge = int(request.headers.get("content-length") or 0)
+        except ValueError:
+            laenge = 0
+        if laenge > INGEST_MAX_BYTES:
+            return JSONResponse({"detail": "Upload zu gross"}, status_code=413)
+    return await call_next(request)
+
+
 @app.middleware("http")
 async def canonical_domain(request: Request, call_next):
     host = (request.headers.get("host") or "").split(":")[0].lower()

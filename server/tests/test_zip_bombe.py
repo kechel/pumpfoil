@@ -49,3 +49,17 @@ def test_video_link_tricks_abgelehnt(url):
 
 def test_video_link_normal():
     assert sessions._clean_youtube("youtu.be/abc") == "https://youtu.be/abc"
+
+
+def test_ingest_zu_gross_wird_abgelehnt(client):
+    """S-026 (29.10.2026): riesige Aufnahme-Anfragen werden vor dem Lesen abgewiesen, riesige Bloecke
+    bei der Pruefung."""
+    from app import schemas
+    import pytest as _pt
+    from pydantic import ValidationError
+    r = client.post("/api/ingest/session/x/chunks", content=b"{}",
+                    headers={"Content-Length": str(64 * 1024 * 1024), "Content-Type": "application/json"})
+    assert r.status_code == 413
+    with _pt.raises(ValidationError):
+        schemas.ChunkIn(index=0, kind="accel", encoding="int16-b64", data="A" * (schemas.CHUNK_MAX_ZEICHEN + 1))
+    assert schemas.ChunkIn(index=0, kind="accel", encoding="int16-b64", data="A" * 1000).data

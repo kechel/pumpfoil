@@ -8,6 +8,8 @@ am Ergebnis in der DB, nicht am Bildschirm: jeder Chunk genau einmal, Mengen, Pa
 """
 from __future__ import annotations
 
+from app.security import token_hash as _th   # Geraete-Tokens stehen gehasht in der DB (S-016)
+
 import json
 from datetime import timedelta
 from pathlib import Path
@@ -129,7 +131,7 @@ def test_direkt_gekoppelt_ohne_handy(client):
     try:
         s = db.query(models.Session).filter_by(session_uuid=meta["session_uuid"]).one()
         assert sorted(c.index for c in db.query(models.IngestChunk).filter_by(session_id=s.id)) == list(range(len(chunks)))
-        d = db.query(models.DeviceToken).filter_by(token=tok).one()
+        d = db.query(models.DeviceToken).filter_by(token=_th(tok)).one()
         assert d.platform == "huawei" and d.label == meta["device_model"]
     finally:
         db.close()

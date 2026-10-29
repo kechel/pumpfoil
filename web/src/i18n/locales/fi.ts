@@ -35,6 +35,7 @@ const fi: Record<string, string> = {
   "mcp.consentGrantTitle": "Ohjelma saa",
   "mcp.consentIntro": "Ohjelma haluaa lukea pumpfoil-tallennuksesi. Katso lyhyesti, mitä se tarkoittaa — ja mitä ei.",
   "mcp.consentProgram": "Tiedot menevät kohteeseen",
+  "mcp.consentUnknownHost": "{host} ei ole tunnettu tekoälypalvelu. Salli vain, jos olet juuri itse asettanut käyttöoikeuden tekoälyohjelmassasi ja tämä osoite kuuluu siihen.",
   "mcp.consentRevoke": "Voit päättää pääsyn milloin tahansa kohdassa ”Liitetyt tilit”.",
   "mcp.consentTitle": "Pääsy tallennuksiisi",
   "mcp.copied": "Kopioitu",

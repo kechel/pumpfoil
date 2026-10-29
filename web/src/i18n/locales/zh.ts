@@ -35,6 +35,7 @@ const zh: Record<string, string> = {
   "mcp.consentGrantTitle": "这个程序可以",
   "mcp.consentIntro": "有个程序想读取你的 pumpfoil 记录。先看一下这意味着什么 — 以及不意味着什么。",
   "mcp.consentProgram": "数据发往",
+  "mcp.consentUnknownHost": "{host} 不是已知的 AI 服务商。只有在你刚刚亲自在 AI 程序中设置了此访问、并且该地址属于该程序时，才可以允许。",
   "mcp.consentRevoke": "你随时可以在「关联账号」里结束访问。",
   "mcp.consentTitle": "访问你的记录",
   "mcp.copied": "已复制",

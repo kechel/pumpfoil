@@ -53,6 +53,7 @@ from .. import models
 from ..config import get_settings
 from ..db import get_db
 from . import verknuepfung
+from .. import geheim
 from .deps import current_user
 
 log = logging.getLogger(__name__)
@@ -87,9 +88,13 @@ def _redirect_uri() -> str:
 
 
 def _state_for(uid: int, verifier: str) -> str:
+    # Der PKCE-Verifier ist das Geheimnis dieses Ablaufs; ein JWT ist nur signiert, nicht
+    # verschluesselt — jeder, der den state sieht (Browser-Verlauf, Logs), haette ihn lesen
+    # koennen (S-022, 29.10.2026). Darum verschluesselt mit dem Token-Schluessel (app/geheim.py).
     s = get_settings()
     return pyjwt.encode(
-        {"uid": uid, "v": verifier, "scope": "coros-mcp-link", "exp": int(time.time()) + 600},
+        {"uid": uid, "v": geheim.verschluesseln(verifier), "scope": "coros-mcp-link",
+         "exp": int(time.time()) + 600},
         s.jwt_secret, algorithm=s.jwt_algorithm,
     )
 
@@ -102,7 +107,10 @@ def _state_lesen(state: str) -> tuple[int | None, str | None]:
         return None, None
     if d.get("scope") != "coros-mcp-link":
         return None, None
-    return d.get("uid"), d.get("v")
+    try:
+        return d.get("uid"), geheim.entschluesseln(d.get("v"))
+    except Exception:  # noqa: BLE001 — nicht entschluesselbar = ungueltig
+        return None, None
 
 
 def _pkce() -> tuple[str, str]:

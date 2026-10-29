@@ -26,7 +26,7 @@ from ..schemas import (
     PairInitOut,
     PairPollOut,
 )
-from ..security import new_pairing_code, new_token
+from ..security import new_pairing_code, new_token, token_hash, token_kandidaten
 from .deps import current_device, current_user
 
 log = logging.getLogger(__name__)
@@ -1589,8 +1589,9 @@ def pair(
     if pc is None or pc.used_at is not None or _aware(pc.expires_at) < now:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid or expired code")
 
+    roh = new_token()
     device = models.DeviceToken(
-        token=new_token(), user_id=pc.user_id, label=body.label
+        token=token_hash(roh), user_id=pc.user_id, label=body.label
     )
     pc.used_at = now
     db.add(device)
@@ -1598,7 +1599,7 @@ def pair(
     _gps_only_wenn_speicherarm(db, device)
     db.commit()
     db.refresh(device)
-    return DeviceTokenOut(device_token=device.token, user_id=device.user_id)
+    return DeviceTokenOut(device_token=roh, user_id=device.user_id)
 
 
 # --- Reverse-Pairing: Uhr zeigt Code, Web löst ihn ein, Uhr pollt auf den Token ---
@@ -1620,7 +1621,8 @@ async def pair_init(
             label = (str(data["label"])[:120] if data.get("label") else None)
             platform = (str(data["platform"])[:16] if data.get("platform") else None)
             # Bisheriges Token einer schon verbundenen Uhr (Konto-Wechsel) -> s. pair_poll.
-            old_token = (str(data["old_token"])[:64] if data.get("old_token") else None)
+            # Nur als Hash ablegen (S-016): es ist ein gueltiges Geraete-Token.
+            old_token = (token_hash(str(data["old_token"])[:64]) if data.get("old_token") else None)
     except Exception:  # noqa: BLE001
         pass
     for _ in range(10):
@@ -1661,20 +1663,24 @@ def pair_claim(
         # an einem fremden Konto hing. Gleiche Meldung wie ein falscher Code: nichts verraten.
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger oder abgelaufener Code")
     if p.device_token is not None:
-        vorhanden = db.query(models.DeviceToken).filter_by(token=p.device_token).first()
+        vorhanden = (db.query(models.DeviceToken)
+                     .filter(models.DeviceToken.token.in_(token_kandidaten(p.device_token))).first())
         return {"ok": True, "already": True, "platform": p.platform,
                 "device_id": vorhanden.id if vorhanden and vorhanden.user_id == user.id else None}
     # Label/Plattform bevorzugt von der Uhr (pair-init), sonst vom Web-Body, sonst Default „Garmin"
     # (historisch: einzige Reverse-Pairing-Uhr war Garmin).
+    roh = new_token()
     device = models.DeviceToken(
-        token=new_token(), user_id=user.id,
+        token=token_hash(roh), user_id=user.id,
         label=p.label or body.label or "Garmin",
         platform=p.platform,
     )
     db.add(device)
     db.flush()
     _gps_only_wenn_speicherarm(db, device)
-    p.device_token = device.token
+    # Roh, weil die Uhr es per pair-poll abholen muss; die Zeile gilt PAIRING_TTL_MIN, danach
+    # leert pair_poll/aufraeumen das Feld (S-016).
+    p.device_token = roh
     p.user_id = user.id
     db.commit()
     # `platform` mitgeben, damit die Weboberflaeche direkt unter der Erfolgsmeldung sagen kann, was
@@ -2167,7 +2173,8 @@ def mint_device(
     """Companion-App (eingeloggt) mintet direkt ein Device-Token für die gekoppelte Uhr.
     Apple: per WatchConnectivity auf die Uhr geschoben; Wear: per Wearable Data Layer.
     So entfällt das Code-Tippen ganz (plattform-gerechtes Pairing)."""
-    device = models.DeviceToken(token=new_token(), user_id=user.id, label=label[:40])
+    roh = new_token()
+    device = models.DeviceToken(token=token_hash(roh), user_id=user.id, label=label[:40])
     db.add(device)
     db.flush()
     # Entdoppeln: Companion-Apps minten teils mehrfach (Race beim App-Start / spontane
@@ -2195,7 +2202,7 @@ def mint_device(
     for t in stale:
         t.revoked_at = now
     db.commit()
-    return DeviceTokenOut(device_token=device.token, user_id=device.user_id)
+    return DeviceTokenOut(device_token=roh, user_id=device.user_id)
 
 
 @router.get("/pair-poll", response_model=PairPollOut)
@@ -2213,15 +2220,16 @@ def pair_poll(
     if p.device_token is not None:
         # Abholen = die Uhr hat sich gemeldet: Bestaetigung fuer die Website (pair_confirmed).
         # Nur beim ersten Mal setzen; danach pflegt current_device den Zeitstempel.
-        d = db.query(models.DeviceToken).filter_by(token=p.device_token).first()
+        d = (db.query(models.DeviceToken)
+             .filter(models.DeviceToken.token.in_(token_kandidaten(p.device_token))).first())
         if d is not None and d.last_seen_at is None:
             d.last_seen_at = now
             db.add(models.DeviceContact(device_id=d.id, user_id=d.user_id, kind="pair"))
             # Konto-/Token-Wechsel: das alte Token dieser Uhr ist ab jetzt tot. Erst HIER, nicht beim
             # Einloesen — haette die Uhr das neue nie abgeholt, liefe sie sonst ohne gueltiges Token.
             # Wer old_token schickt, kennt das Geheimnis; fremde Tokens lassen sich so nicht raten.
-            if p.old_token and p.old_token != p.device_token:
-                alt = db.query(models.DeviceToken).filter_by(token=p.old_token).first()
+            if p.old_token and p.old_token != token_hash(p.device_token):
+                alt = db.query(models.DeviceToken).filter_by(token=p.old_token).first()   # schon Hash
                 if alt is not None and alt.revoked_at is None:
                     alt.revoked_at = now
                     log.info("pair: altes Token #%s (Nutzer %s) widerrufen, Uhr jetzt #%s (Nutzer %s)",

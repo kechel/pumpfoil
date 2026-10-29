@@ -35,6 +35,7 @@ const it: Record<string, string> = {
   "mcp.consentGrantTitle": "Il programma può",
   "mcp.consentIntro": "Un programma vuole leggere le tue registrazioni di pumpfoil. Guarda un attimo cosa significa — e cosa non significa.",
   "mcp.consentProgram": "I dati vanno a",
+  "mcp.consentUnknownHost": "{host} non è un fornitore di IA noto. Acconsenti solo se hai appena configurato tu l'accesso nel tuo programma di IA e questo indirizzo gli appartiene.",
   "mcp.consentRevoke": "Puoi revocare l'accesso in qualsiasi momento sotto « Account collegati ».",
   "mcp.consentTitle": "Accesso alle tue registrazioni",
   "mcp.copied": "Copiato",

@@ -23,6 +23,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
+from .geheim import Verschluesselt   # Anbieter-Tokens verschluesselt (S-016)
 
 
 def _utcnow() -> datetime:
@@ -1088,7 +1089,7 @@ class PolarLink(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
     polar_user_id: Mapped[str] = mapped_column(String(40), index=True)  # x_user_id von Polar
-    access_token: Mapped[str] = mapped_column(String(255))             # langlebiges AccessLink-Token
+    access_token: Mapped[str] = mapped_column(Verschluesselt())             # langlebiges AccessLink-Token
     member_id: Mapped[str] = mapped_column(String(64))                 # von uns vergebene member-id
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -1186,8 +1187,8 @@ class CorosMcpLink(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
-    access_token: Mapped[str] = mapped_column(String(2048))
-    refresh_token: Mapped[str] = mapped_column(String(2048))
+    access_token: Mapped[str] = mapped_column(Verschluesselt())
+    refresh_token: Mapped[str] = mapped_column(Verschluesselt())
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -1220,8 +1221,8 @@ class CorosLink(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
     open_id: Mapped[str] = mapped_column(String(64), index=True)        # COROS openId
-    access_token: Mapped[str] = mapped_column(String(255))             # gültig 30 Tage
-    refresh_token: Mapped[str] = mapped_column(String(255))            # läuft nie ab
+    access_token: Mapped[str] = mapped_column(Verschluesselt())             # gültig 30 Tage
+    refresh_token: Mapped[str] = mapped_column(Verschluesselt())            # läuft nie ab
     token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -1236,8 +1237,8 @@ class SuuntoLink(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
-    access_token: Mapped[str] = mapped_column(Text)                    # JWT
-    refresh_token: Mapped[str] = mapped_column(Text)                   # JWT (>255 Zeichen!)
+    access_token: Mapped[str] = mapped_column(Verschluesselt())                    # JWT
+    refresh_token: Mapped[str] = mapped_column(Verschluesselt())                   # JWT (>255 Zeichen!)
     token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Suunto-Username (aus dem Token-Response, Feld "user") — für die Webhook-Zuordnung
     # (Notification enthält den Username, nicht unsere user_id).
@@ -1284,8 +1285,8 @@ class StravaLink(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
-    access_token: Mapped[str] = mapped_column(Text)
-    refresh_token: Mapped[str] = mapped_column(String(255))
+    access_token: Mapped[str] = mapped_column(Verschluesselt())
+    refresh_token: Mapped[str] = mapped_column(Verschluesselt())
     token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     athlete_id: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

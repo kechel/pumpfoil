@@ -42,6 +42,10 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
   `vapid_private.pem` + Garmin-`developer_key.der` **GPG-verschlüsselt an Jans Key**
   (Fingerprint im Skript gepinnt; nur Public-Key auf der VM) → `latest-backup/secrets.tar.gz.gpg`,
   wandert durch die Pull-Kette mit. Entschlüsselungs-Test 2026-08-02 durch Jan bestätigt.
+  **Seit 29.10.2026 steht darin auch `FOIL_TOKEN_KEY`** — der Schlüssel, mit dem die Polar-/Suunto-/
+  COROS-Zugänge in der DB verschlüsselt sind (`server/app/geheim.py`). Ohne ihn sind sie wertlos und
+  alle müssten neu verbinden: nie ändern oder löschen, ohne vorher umzuschlüsseln. Geräte- und
+  Reset-Tokens stehen nur als SHA-256 in der DB (`security.token_hash`).
 
 ## Netz / Deployment (WICHTIG für Tests)
 
@@ -107,6 +111,9 @@ dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
   und in der CI. Sie sperrt tmp/- und Sicherungsordner, Archive/Abzuege/Rohdaten, Tabellenabzuege mit `user_id`,
   grosse Dateien und Geheimnisse aus `server/.env`. Das Repo ist oeffentlich; was einmal gepusht ist, laesst sich
   nicht zurueckholen. **Nie mit `--no-verify` umgehen**; echte Ausnahmen mit Grund in `.datenleck-ausnahmen`.
+- **systemd-Sandbox:** `foil-server` läuft mit `deploy/foil-server.service.d/sandbox.conf` (Drop-in):
+  Dateisystem schreibgeschützt bis auf `server/data`, `server/media` und zwei Caches. Schreibt der Server
+  künftig woanders hin, dort `ReadWritePaths` ergänzen — sonst „Read-only file system".
 - **Server neu starten** darf Claude jederzeit (Dev-Stadium): `sudo systemctl restart foil-server`.
   Nach `server/`-Code-Änderungen nötig; Web/Watch-Builds brauchen **keinen** Restart (frisch gelesen).
 - **Detektor-/Analyse-Pipeline** (`server/app/analysis/`): Änderungen erst mit Jans OK; Befund +

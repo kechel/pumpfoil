@@ -156,6 +156,7 @@ const de: Record<string, string> = {
   "mcp.consentTitle": "Zugriff auf deine Aufnahmen",
   "mcp.consentIntro": "Ein Programm möchte deine Pumpfoil-Aufnahmen lesen. Lies kurz, was das heißt — und was es nicht heißt.",
   "mcp.consentProgram": "Die Daten gehen an",
+  "mcp.consentUnknownHost": "{host} ist kein bekannter KI-Anbieter. Stimme nur zu, wenn du den Zugang gerade selbst in deinem KI-Programm eingerichtet hast und diese Adresse dazu gehört.",
   "mcp.consentGrantTitle": "Das Programm darf",
   "mcp.consentGrant1": "deine eigenen Aufnahmen lesen: Läufe, Geschwindigkeit, Pumps, Puls, Strecke, Lage des Bretts, Ausrüstung",
   "mcp.consentGrant2": "deine eigenen Summen und Bestwerte lesen",

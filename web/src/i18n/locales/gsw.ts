@@ -36,6 +36,7 @@ const gsw: Record<string, string> = {
   "mcp.consentGrantTitle": "S Programm darf",
   "mcp.consentIntro": "Es Programm wott dini Pumpfoil-Ufnahme lese. Lis churz, was das heisst — und was nid.",
   "mcp.consentProgram": "D Date gönd a",
+  "mcp.consentUnknownHost": "{host} isch kein bekannte KI-Aabieter. Stimm nume zue, wenn du dä Zuegang grad sälber i dim KI-Programm iigrichtet häsch und die Adrässe drzue ghört.",
   "mcp.consentRevoke": "Du chasch de Zuegriff jederziit under „Verknuepfti Konte\" wieder beände.",
   "mcp.consentTitle": "Zuegriff uf dini Ufnahme",
   "mcp.copied": "Kopiert",

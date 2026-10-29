@@ -35,6 +35,7 @@ const pl: Record<string, string> = {
   "mcp.consentGrantTitle": "Program może",
   "mcp.consentIntro": "Program chce czytać twoje nagrania pumpfoil. Przeczytaj krótko, co to znaczy — i czego nie.",
   "mcp.consentProgram": "Dane trafiają do",
+  "mcp.consentUnknownHost": "{host} nie jest znanym dostawcą AI. Zgódź się tylko wtedy, gdy właśnie sam skonfigurowałeś dostęp w swoim programie AI i ten adres do niego należy.",
   "mcp.consentRevoke": "Dostęp możesz zakończyć w każdej chwili w „Połączone konta”.",
   "mcp.consentTitle": "Dostęp do twoich nagrań",
   "mcp.copied": "Skopiowano",

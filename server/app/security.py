@@ -90,6 +90,23 @@ def new_token(nbytes: int = 24) -> str:
     return secrets.token_urlsafe(nbytes)
 
 
+def token_hash(roh: str) -> str:
+    """Wie Geraete- und Reset-Tokens in der DB stehen (S-016, 29.10.2026): nur als SHA-256.
+
+    Die Uhr schickt weiter ihr Token; verglichen wird der Hash. Ein DB- oder Backup-Leck gibt damit
+    keine benutzbaren Tokens mehr preis. Ohne Salz, weil die Tokens selbst zufaellig und lang sind
+    (kein Woerterbuch, das man vorrechnen koennte) — und weil sonst kein Index-Lookup ginge."""
+    import hashlib
+    return hashlib.sha256(roh.encode()).hexdigest()
+
+
+def token_kandidaten(roh: str) -> list[str]:
+    """Wonach in der DB gesucht wird: der Hash — und, nur falls die einmalige Umstellung
+    (db._tokens_hashen) nicht gelaufen ist, der rohe Wert. Nach der Umstellung steht nirgends
+    mehr ein roher Wert; ein geschickter Hash passt nur, wer die DB ohnehin schon hat."""
+    return [token_hash(roh), roh]
+
+
 def new_pairing_code() -> str:
     """6-stelliger, leicht eintippbarer Code (keine verwechselbaren Zeichen)."""
     alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"

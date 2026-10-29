@@ -20,6 +20,21 @@ import { useT } from "../i18n";
  * Wer nicht angemeldet ist, wird zum Login geschickt und kommt hierher zurueck; die Anfrage steht
  * vollstaendig in der Adresse, es geht also nichts verloren.
  */
+// Bekannte Empfaenger des KI-Zugangs. Lokal = Desktop-Programme auf dem eigenen Rechner.
+const BEKANNTE_HOSTS = ["claude.ai", "claude.com", "anthropic.com", "chatgpt.com", "openai.com"];
+
+function empfaenger(uri: string): { host: string; bekannt: boolean } {
+  try {
+    const u = new URL(uri);
+    const host = u.hostname.toLowerCase();
+    const lokal = host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+    const bekannt = lokal || BEKANNTE_HOSTS.some((h) => host === h || host.endsWith("." + h));
+    return { host, bekannt };
+  } catch {
+    return { host: uri, bekannt: false };
+  }
+}
+
 export default function OAuthConsent() {
   const t = useT();
   const [sp] = useSearchParams();
@@ -47,6 +62,8 @@ export default function OAuthConsent() {
       </Card>
     );
   }
+
+  const ziel = empfaenger(redirectUri);
 
   const zurueck = (params: Record<string, string>) => {
     const u = new URL(redirectUri);
@@ -95,8 +112,17 @@ export default function OAuthConsent() {
         {/* Der Name kommt aus der Selbstauskunft des Programms und ist ungeprueft — deshalb steht
             die Rueckkehr-Adresse daneben. Die ist der einzige verlaessliche Anhaltspunkt dafuer,
             wohin die Daten wirklich gehen. */}
-        <p className="break-all font-mono text-sm text-slate-200">{redirectUri}</p>
+        <p className="break-all text-xl font-bold text-slate-100">{ziel.host}</p>
+        <p className="break-all font-mono text-xs text-slate-400">{redirectUri}</p>
       </div>
+      {/* S-021 (29.10.2026): Rueckkehr-Adressen darf jedes Programm selbst anmelden. Statt nur
+          bekannte zuzulassen (das braeche andere KI-Programme), steht der Empfaenger gross da, und
+          bei einer unbekannten Domain warnen wir ausdruecklich (Jan: „Adresse gross zeigen"). */}
+      {!ziel.bekannt && (
+        <div className="mb-4 rounded-xl border border-amber-400 bg-amber-500/15 px-4 py-3 text-sm font-medium text-amber-700 dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300">
+          {t("mcp.consentUnknownHost", { host: ziel.host })}
+        </div>
+      )}
 
       <p className="mb-1 font-semibold">{t("mcp.consentGrantTitle")}</p>
       <ul className="mb-4 list-disc space-y-1 pl-5 text-slate-300">

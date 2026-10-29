@@ -35,6 +35,7 @@ const nb: Record<string, string> = {
   "mcp.consentGrantTitle": "Programmet kan",
   "mcp.consentIntro": "Et program vil lese pumpfoil-opptakene dine. Se raskt hva det betyr — og hva det ikke betyr.",
   "mcp.consentProgram": "Dataene går til",
+  "mcp.consentUnknownHost": "{host} er ikke en kjent KI-leverandør. Godta bare hvis du nettopp har satt opp tilgangen selv i KI-programmet ditt og adressen hører til det.",
   "mcp.consentRevoke": "Du kan avslutte tilgangen når som helst under «Tilkoblede kontoer».",
   "mcp.consentTitle": "Tilgang til opptakene dine",
   "mcp.copied": "Kopiert",
