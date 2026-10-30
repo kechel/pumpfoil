@@ -1501,6 +1501,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **30.10. — Garmin: Feld „Pairing-Code“ in den App-Einstellungen (niedrige Prio, Jan: „viel arbeit mit kaum nutzen“).**
+  Der Weg „Code auf der Website erzeugen“ ist im Web aus (`FORWARD_PAIRING_SICHTBAR = false`), das Feld in
+  Garmin Express/Connect steht aber noch da -> Nutzer suchen den Code (Olek u963, Feedback 222; war laengst ueber den
+  Uhr-Code gekoppelt). Ein veralteter Wert im Feld laesst eine ungekoppelte Uhr bei jedem Upload `/api/devices/pair`
+  versuchen (26.–29.10.: 7× 422, 1× 400). Falls angefasst, in zwei Schritten: (1) App leert `pairingCode` nach
+  erfolgreicher Kopplung und bei 400/422; (2) erst danach das Feld aus `settings.xml` nehmen. **Den Eintrag in
+  `properties.xml` nie entfernen** — `Config.getString` liest ohne try, unbekannter Schluessel = Absturz. Die Kopplung
+  selbst steht in `deviceToken` und ist davon nicht betroffen.
+
 - **29.10. — Naechstes Android-/iOS-Release: Konten verknuepfen ohne Zwischenseite — GEBAUT, kommt mit dem Release.**
   Server live (`connect?app=1` -> Rueckweg `pumpfoil://konten?…`), Android `KontoRuecksprung` (Manifest-Host `konten`),
   iOS `KontoVerbinden` (ASWebAuthenticationSession). Vor der Einreichung testen: Polar/Suunto/COROS je einmal aus der
