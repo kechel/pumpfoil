@@ -76,6 +76,8 @@ Ablauf nach neuen Daten: Wahrheit ergänzen (oder Marker-Session in `marker_sess
   des tanzes auf der uhr, gestern musste ich da zig mal weiterscrollen bis ich den aktuellen tanz gefunden hatte“ (am
   25.10. lief noch 0.6.0 mit fester Liste — Session ab 17:19, Top 3 erst 17:27 committet) → **heute schon bestätigte
   Tänze** in der Auswahl nach vorn, s. „Auswahl-Reihenfolge" unten. Tanz-App **0.6.1**.
+- **31.10.** #19572 (30.10. abends, 2:46 h): „in meiner session heute war nur salsa und bachata“ → in
+  `tanz_wahrheit.json` unter `nur_auswahl`; Messung s. „#19572" unten.
 - Menü/Startbildschirm: nur Verbinden + Upload; keine Foils, kein Auto-Start, keine eigenen Layouts
   „bis wir vielleicht irgendwann Custom Layouts haben fürs Tanzen“.
 
@@ -307,3 +309,17 @@ Auswahl vor „Kein Tanz" (HOCH = Kein Tanz, noch einmal HOCH = Üben), zaehlt n
 `tanz.TAENZE` + `tanz.OHNE_TANZ = {kein, ueben}`, Muster-Ableitung und Schnittmengen-Skript lassen beide weg.
 Web-Tabelle: „Üben" vor „Kein Tanz". Welcher Tanz geuebt wurde, steht nicht dabei (Variante 1, Jans OK) — meist
 folgt der Block dieses Tanzes direkt danach.
+
+## #19572 (30.10., „nur Salsa und Bachata") — Uhr und Server lagen fast überall daneben (31.10.2026)
+
+Vier Marker, alle Bachata (17', 46', 84', 166'), kein Salsa-Marker. Die Uhr (0.6.2) schlug 27 Abschnitte vor: 10× Boogie,
+7× Jive, 6× Samba, je 1–2× Bachata/Cha-Cha/Tango/Quickstep/LW — **Salsa nie als Platz 1**. Server s1 (kennt kein
+Bachata) nennt Salsa nur dreimal vorn (22,9' 6,8 min 57 %, 50,0' 11 min 59 %, 95,3' 0,5 min 86 %). Die langen
+Blöcke (4,7', 7,5', 74,0' 9,3 min, 123,2' 15,2 min) hält s1 für **Boogie mit 66–98 %** — bei #16875 war es
+umgekehrt (Disco-Fox als Salsa). Die schnelle Paar-Salsa dieses Abends sieht für beide Muster also wie Boogie aus;
+die bisherigen Salsa-Muster stammen aus Kurs/Üben (#16863, #18834, langsamer).
+
+Offen: welche Abschnitte Bachata waren. Marker kommen meist NACH dem Tanz, die Uhr-Abschnitte davor sind aber
+schnell (Tempo 121–155) — passt nicht zu „Bachata ist viel ruhiger" (s. #16875). Erst mit Jans Zuordnung oder
+Web-Korrekturen als Wahrheit nutzbar; Muster NICHT neu abgeleitet.
+
