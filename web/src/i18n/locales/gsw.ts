@@ -2488,6 +2488,23 @@ const gsw: Record<string, string> = {
   "team.err.tafel": "Die Bestelischte lat sich so nöd aalege.",
   "team.err.not found": "Nöd gfunde.",
   "team.err.unbekannt": "Das hät nöd klappt. Bitte spöter nomal probiere.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.stat.pumps": "Pumps",
+  "team.stat.strecke": "On-Foil-Strecki",
+  "team.stat.zeit": "On-Foil-Ziit",
+  "team.stat.sessions": "Sessions",
+  "team.stat.laeufe": "Läuf",
+  "team.stat.aktiv": "aktiv",
+  "team.logbuch": "Logbuech",
+  "team.logbuchHinweis": "Wer wänn welle Teamrekord broche het. Wird jedi Nacht nachgfüehrt.",
+  "team.logbuchLeer": "No kei Iiträg. De erscht Stand chunnt i de Nacht nach em Aalege vo de Bestelischte.",
+  "team.logbuch.start": "{name} hät „{was}“ mit {wert}",
+  "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
+  "team.chat": "Team-Chat",
+  "team.chatTitel": "Team {name}",
+  "team.bild.titel": "Als Bild teile",
+  "team.bild.speichern": "Spichere",
+  "team.bild.hinweisIntern": "D Bestelischte vo dem Team sind nöd öffentlich. S Bild zeigt d Näme trotzdem allne, wo's überchömed.",
 };
 
 export default gsw

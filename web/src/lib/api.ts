@@ -2082,6 +2082,9 @@ export const api = {
     req<TeamOeffentlich>(`/api/public/teams/${encodeURIComponent(slug)}?period=${period}`),
   teamBestenlisten: (slug: string, period: string) =>
     req<{ period: string; tafeln: TeamTafelMitZeilen[] }>(`/api/teams/${encodeURIComponent(slug)}/bestenlisten?period=${period}`),
+  teamStatistik: (slug: string, period: string) =>
+    req<TeamStatistik>(`/api/teams/${encodeURIComponent(slug)}/statistik?period=${period}`),
+  teamLogbuch: (slug: string) => req<TeamLogbuchEintrag[]>(`/api/teams/${encodeURIComponent(slug)}/logbuch`),
   teamMitglieder: (slug: string) =>
     req<{ mitglieder: TeamMitglied[]; anfragen: TeamMitglied[] }>(`/api/teams/${encodeURIComponent(slug)}/mitglieder`),
   teamBeitreten: (slug: string) =>
@@ -2131,6 +2134,7 @@ export interface TeamInfo extends TeamAuftritt {
   anmeldungen_zulassen: boolean; automatisch_akzeptieren: boolean; mitglieder_sichtbar: "mitglieder" | "angemeldete";
   meine_rolle: TeamRolle | null; mein_status: "aktiv" | "angefragt" | null;
   darf_bestenlisten: boolean; darf_mitglieder: boolean;
+  chat_scope?: string | null;   // nur fuer aktive Mitglieder
   spots?: { id: number; name: string | null }[];
   // nur fuer den Leiter:
   freigabe?: "keine" | "wartet" | "frei" | "abgelehnt"; freigabe_notiz?: string | null;
@@ -2143,6 +2147,15 @@ export interface TeamTafel {
 export interface TeamZeile {
   rang: number; name: string | null; initialen: string; value: number;
   user_id?: number; avatar_url?: string | null; session_id?: number; started_at?: string | null; spot?: string | null;
+}
+export interface TeamStatistik {
+  sessions: number; runs: number; pumps: number; distance_m: number; time_s: number; spots: number;
+  aktive: number; mitglieder: number;
+}
+export interface TeamLogbuchEintrag {
+  kennzahl: string; sportart: string; user_id: number | null; name: string | null; avatar_url: string | null;
+  session_id: number | null; wert: number; vorher_user_id: number | null; vorher_name: string | null;
+  vorher_wert: number | null; gefahren_am: string | null; erfasst_am: string | null;
 }
 export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[] }
 export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_anzahl: number; period: string; tafeln: TeamTafelMitZeilen[] }

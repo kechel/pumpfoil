@@ -2702,6 +2702,23 @@ const en: Record<string, string> = {
   "team.err.not found": "Not found.",
   "team.err.unbekannt": "That didn't work. Please try again later.",
   "adm.tab.teams": "Teams",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.stat.pumps": "Pumps",
+  "team.stat.strecke": "On-foil distance",
+  "team.stat.zeit": "On-foil time",
+  "team.stat.sessions": "Sessions",
+  "team.stat.laeufe": "Runs",
+  "team.stat.aktiv": "active",
+  "team.logbuch": "Logbook",
+  "team.logbuchHinweis": "Who broke which team record, and when. Updated every night.",
+  "team.logbuchLeer": "No entries yet. The first standings appear the night after the leaderboards are set up.",
+  "team.logbuch.start": "{name} holds “{was}” with {wert}",
+  "team.logbuch.gebrochen": "{name} breaks “{was}” with {wert} (before: {vorher}, {vorherWert})",
+  "team.chat": "Team chat",
+  "team.chatTitel": "Team {name}",
+  "team.bild.titel": "Share as image",
+  "team.bild.speichern": "Save",
+  "team.bild.hinweisIntern": "This team's leaderboards aren't public. The image still shows the names to anyone who gets to see it.",
 };
 
 export default en;

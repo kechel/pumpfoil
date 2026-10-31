@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 # (auch neue). Kein Push per Default; verlassen/wieder beitreten möglich (ChatRoomState.left).
 GLOBAL_SCOPE = "global:main"
 
-_SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120}|dm:\d+-\d+|global:[a-z0-9_-]{1,40})$")
+_SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120}|dm:\d+-\d+|global:[a-z0-9_-]{1,40}|team:\d+)$")
 
 
 def _dm_parts(scope: str) -> tuple[int, int] | None:
@@ -43,11 +43,32 @@ def _dm_parts(scope: str) -> tuple[int, int] | None:
         return None
 
 
-def _require_access(scope: str, user_id: int) -> None:
-    """DM-Scopes sind privat: nur die beiden Beteiligten dürfen lesen/schreiben."""
+def _team_id(scope: str) -> int | None:
+    """Team-ID eines team:-Scopes (Team-Chat, 31.10.2026, docs/TEAMS.md), sonst None."""
+    if not scope or not scope.startswith("team:"):
+        return None
+    try:
+        return int(scope[5:])
+    except ValueError:
+        return None
+
+
+def privater_raum(scope: str) -> bool:
+    """Raeume, die NIE in Entdeckungs-/Uebersichtslisten fuer Fremde auftauchen duerfen."""
+    return scope.startswith("dm:") or scope.startswith("team:")
+
+
+def _require_access(scope: str, user_id: int, db: Session) -> None:
+    """DM-Scopes sind privat: nur die beiden Beteiligten dürfen lesen/schreiben.
+    Team-Chats: nur AKTIVE Mitglieder des Teams (eine offene Anfrage reicht nicht)."""
     parts = _dm_parts(scope)
     if parts is not None and user_id not in parts:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Kein Zugriff auf diesen Chat")
+    tid = _team_id(scope)
+    if tid is not None:
+        from .. import teams as T
+        if not T.aktiv(T.mitglied(db, tid, user_id)):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Kein Zugriff auf diesen Chat")
 
 
 def _blocked_between(db: Session, a: int, b: int) -> bool:
@@ -87,6 +108,9 @@ def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> st
     kind, _, rest = scope.partition(":")
     if kind == "global":
         return "Community-Chat"
+    if kind == "team":
+        t = db.get(models.Team, _team_id(scope) or 0)
+        return f"Team {t.name}" if t is not None else "Team"
     if kind == "spot":
         return rest
     if kind == "dm":
@@ -257,7 +281,7 @@ def list_messages(
       500 — zum Springen auf ein zitiertes Original (Jan, 13.10.2026: „inkl. ggf. nachladen bis dahin")."""
     _check_scope(scope)
     scope = _canon_scope(db, scope)
-    _require_access(scope, user.id)
+    _require_access(scope, user.id, db)
     lim = min(max(limit, 1), 100)
     q = (
         db.query(models.ChatMessage, owner_label_sql(models.User), models.User.avatar_url,
@@ -333,7 +357,7 @@ def post_message(
 ) -> dict:
     _check_scope(scope)
     scope = _canon_scope(db, scope)
-    _require_access(scope, user.id)
+    _require_access(scope, user.id, db)
     # 1:1 mit dem Bot-Account -> die Nachricht geht an Jan (s. `_weiter_an`). Betrifft nur
     # aeltere Apps; die neuen zeigen dort gar kein Eingabefeld mehr.
     _k = _weiter_an(db, scope, user)
@@ -484,6 +508,12 @@ def _notify_subscribers(db: Session, m: models.ChatMessage, author: models.User)
                 models.ChatRoomState.user_id != author.id)
         .all()
     )
+    tid = _team_id(m.scope)
+    if tid is not None:
+        # Team-Chat: nur an aktive Mitglieder — wer ausgetreten ist, bekommt nichts mehr.
+        from .. import teams as T
+        aktive = set(T.mitglieder_ids(db, tid))
+        subs = [st for st in subs if st.user_id in aktive]
     if not subs:
         return
     title = f"💬 {_scope_label_db(db, m.scope)}"
@@ -504,7 +534,7 @@ def report_message(
     # DMs: nur die Beteiligten (Security-Review 29.10.2026) — sonst konnten drei fremde Konten eine
     # 1:1-Nachricht per Meldung ausblenden lassen. Gleiche Antwort wie „gibt es nicht".
     try:
-        _require_access(m.scope, user.id)
+        _require_access(m.scope, user.id, db)
     except HTTPException:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden") from None
     if db.query(models.ChatReport).filter_by(message_id=message_id, user_id=user.id).first() is None:
@@ -528,7 +558,7 @@ def like_message(
     # DMs: nur die Beteiligten (Security-Review 29.10.2026) — sonst konnten drei fremde Konten eine
     # 1:1-Nachricht per Meldung ausblenden lassen. Gleiche Antwort wie „gibt es nicht".
     try:
-        _require_access(m.scope, user.id)
+        _require_access(m.scope, user.id, db)
     except HTTPException:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden") from None
     existing = db.query(models.ChatLike).filter_by(message_id=message_id, user_id=user.id).first()
@@ -729,7 +759,7 @@ def mark_read(
     """Lesestand setzen (Chat-Komponente meldet die höchste gesehene id)."""
     _check_scope(body.scope)
     body.scope = _canon_scope(db, body.scope)
-    _require_access(body.scope, user.id)
+    _require_access(body.scope, user.id, db)
     st = _state(db, user.id, body.scope)
     if st.last_read_id is None or body.up_to > st.last_read_id:
         st.last_read_id = body.up_to
@@ -746,7 +776,7 @@ def leave_room(
     """Chatraum verlassen — taucht nicht mehr in „meine Chats"/Unread auf."""
     _check_scope(scope)
     scope = _canon_scope(db, scope)
-    _require_access(scope, user.id)
+    _require_access(scope, user.id, db)
     st = _state(db, user.id, scope)
     st.left = True
     st.push = False
@@ -767,7 +797,7 @@ def subscribe_room(
     """Push-Benachrichtigung für neue Nachrichten in diesem Raum an/aus."""
     _check_scope(body.scope)
     body.scope = _canon_scope(db, body.scope)
-    _require_access(body.scope, user.id)
+    _require_access(body.scope, user.id, db)
     st = _state(db, user.id, body.scope)
     st.push = bool(body.on)
     if body.on:
@@ -784,7 +814,7 @@ def room_state(
     """Status des aktuellen Raums für den Nutzer (Abo/verlassen/Lesestand)."""
     _check_scope(scope)
     scope = _canon_scope(db, scope)
-    _require_access(scope, user.id)
+    _require_access(scope, user.id, db)
     st = db.query(models.ChatRoomState).filter_by(user_id=user.id, scope=scope).first()
     k = _weiter_an(db, scope, user)
     # LESEBESTAETIGUNG, nur im 1:1 (Jan, 01.10.2026: „lesebestaetigungs-doppel-haken wie in WhatsApp,
@@ -829,6 +859,11 @@ def my_rooms(
         # Session-Chats vorerst ausgeblendet; globalen Raum unten separat (immer oben) behandeln.
         if st.scope.startswith("session:") or st.scope.startswith("global:"):
             continue
+        # Team-Chat nur, solange man aktives Mitglied ist (sonst stuende die letzte Nachricht hier).
+        if _team_id(st.scope) is not None:
+            from .. import teams as T
+            if not T.aktiv(T.mitglied(db, _team_id(st.scope), user.id)):
+                continue
         last = (
             db.query(models.ChatMessage)
             .join(models.User, models.ChatMessage.user_id == models.User.id)
@@ -1095,8 +1130,8 @@ def active_rooms(
     )
     out = []
     for scope, n in rows:
-        # Private DMs + Session- + globaler Chat nie in der Spot-Entdeckung zeigen.
-        if (scope in mine or scope.startswith("session:") or scope.startswith("dm:")
+        # Private DMs, Team-Chats + Session- + globaler Chat nie in der Spot-Entdeckung zeigen.
+        if (scope in mine or scope.startswith("session:") or privater_raum(scope)
                 or scope.startswith("global:")):
             continue
         last = (

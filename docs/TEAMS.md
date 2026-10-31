@@ -3,7 +3,12 @@
 **Stufe 1 LIVE seit 31.10.2026 (Web).** Server `server/app/teams.py` + `server/app/api/teams.py` (Tests
 `server/tests/test_teams.py`), Web `web/src/pages/Team*.tsx`, Admin-Reiter „Teams“. Uebersetzt: de, en, gsw, de-AT;
 die uebrigen Sprachen fallen auf Englisch zurueck und kommen in einem Durchgang, wenn die deutschen Texte stehen.
-Noch nicht in Stufe 1: Teamsummen/-statistik, Logbuch, Bild teilen, Team-Chat (Stufe 2).
+**Stufe 2 LIVE seit 31.10.2026:** Teamsummen (`/api/teams/<slug>/statistik`), Team-Logbuch (Tabellen
+`team_rekorde` + `team_logbuch`, naechtlich in `server/record_snapshot.py` nach dem Community-Snapshot; Summen nur
+bei Wechsel an der Spitze, Bestwerte bei jeder Steigerung, sinkende Werte still nachgezogen), Bestenliste als Bild
+(`web/src/components/TeamTafelBild.tsx`, Canvas im Browser) und Team-Chat (Scope `team:<id>`; Zugriff nur fuer aktive
+Mitglieder in `chat._require_access`, nie in der Entdeckungsliste, Push nur an aktive Mitglieder, Austritt raeumt den
+Raum-Zustand ab, Loeschen des Teams loescht den Chat mit).
 
 Anlass: Telefonat Jan mit einem Nutzer, der Teams mit eigenen Bestenlisten haben moechte; als Vorbild
 schickte er eine schlichte Kite-Big-Air-Rangliste (Rang, Flagge, Name, Wert — eine Zeile je Person).

@@ -238,9 +238,40 @@ def team_loeschen(db: Session, t: models.Team) -> list[str]:
         slug_merken(db, slug, t.id)
     db.flush()
     db.query(models.TeamSlugAlt).filter_by(team_id=t.id).update({"team_id": None})
-    for M in (models.TeamMitglied, models.TeamEinladung, models.TeamSpot, models.TeamTafel):
+    for M in (models.TeamMitglied, models.TeamEinladung, models.TeamSpot, models.TeamTafel,
+              models.TeamRekord, models.TeamLogbuch):
         db.query(M).filter_by(team_id=t.id).delete()
+    medien += chat_loeschen(db, t.id)
     db.delete(t)
+    return medien
+
+
+def chat_scope(team_id: int) -> str:
+    return f"team:{team_id}"
+
+
+def chat_raus(db: Session, team_id: int, uid: int) -> None:
+    """Nach Austritt/Entfernen: Raum-Zustand weg — kein Push mehr, kein Eintrag in „Meine Chats".
+    (Lesen und Schreiben sperrt ohnehin `chat._require_access` ueber die Mitgliedschaft.)"""
+    db.query(models.ChatRoomState).filter_by(scope=chat_scope(team_id), user_id=uid).delete()
+
+
+def chat_loeschen(db: Session, team_id: int) -> list[str]:
+    """Team geloescht -> Team-Chat mit allen Nachrichten, Bildern, Likes, Meldungen weg. Gibt Bild-URLs zurueck."""
+    sc = chat_scope(team_id)
+    ids = [i for (i,) in db.query(models.ChatMessage.id).filter_by(scope=sc).all()]
+    medien: list[str] = []
+    if ids:
+        for p in db.query(models.ChatPhoto).filter(models.ChatPhoto.message_id.in_(ids)).all():
+            medien.append(p.url)
+            db.delete(p)
+        db.query(models.ChatLike).filter(models.ChatLike.message_id.in_(ids)).delete(synchronize_session=False)
+        db.query(models.ChatReport).filter(models.ChatReport.message_id.in_(ids)).delete(synchronize_session=False)
+        db.query(models.ChatMessage).filter(models.ChatMessage.reply_to_id.in_(ids)).update(
+            {"reply_to_id": None}, synchronize_session=False)
+        db.flush()
+        db.query(models.ChatMessage).filter(models.ChatMessage.id.in_(ids)).delete(synchronize_session=False)
+    db.query(models.ChatRoomState).filter_by(scope=sc).delete()
     return medien
 
 
@@ -378,3 +409,114 @@ def tafeln(db: Session, team_id: int) -> list[models.TeamTafel]:
 
 
 STANDARD_TAFELN = ("session_pumps", "distance", "speed", "sum_pumps")
+
+
+# -------------------------------------------------------------------------- Teamstatistik ----
+
+def statistik(db: Session, team: models.Team, period: str, sportart: str = "pumpfoil") -> dict:
+    """Teamsummen im Zeitraum (Jan, 31.10.2026: „teamsumme und stats sind super"): Sessions, Laeufe,
+    Pumps, On-Foil-Strecke/-Zeit, Spots und wie viele Mitglieder aktiv waren. Gleiche Filter wie die
+    Bestenlisten (Standard: nur mit Bewegungsdaten); keine Rangliste Team gegen Team."""
+    from .api import community as C
+    from . import pumpgleit_anzeige as PA
+
+    ids = mitglieder_ids(db, team.id)
+    leer = {"sessions": 0, "runs": 0, "pumps": 0, "distance_m": 0.0, "time_s": 0.0, "spots": 0, "aktive": 0,
+            "mitglieder": len(ids)}
+    if not ids:
+        return leer
+    key = ("statistik", team.id, period, sportart, tuple(sorted(ids)))
+    hit = _cache_holen(key)
+    if hit is not None:
+        return hit
+    S, U, AR = C.S, C.U, C.AR
+    q = C._community(db.query(
+        func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0), func.coalesce(func.sum(PA.col_pump_count()), 0),
+        func.coalesce(func.sum(AR.foiling_distance_m), 0), func.coalesce(func.sum(AR.foiling_time_s), 0),
+        func.count(func.distinct(S.spot_id)), func.count(func.distinct(S.user_id)),
+    ), None, True, sportart).filter(S.user_id.in_(ids))
+    cut = C._cutoff(period)
+    if cut is not None:
+        q = q.filter(S.started_at >= cut)
+    n, runs, pumps, dist, zeit, spots, aktive = q.one()
+    out = {"sessions": int(n or 0), "runs": int(runs or 0), "pumps": int(pumps or 0),
+           "distance_m": round(float(dist or 0), 1), "time_s": round(float(zeit or 0), 1),
+           "spots": int(spots or 0), "aktive": int(aktive or 0), "mitglieder": len(ids)}
+    _cache_setzen(key, out)
+    return out
+
+
+# ------------------------------------------------------------------------------ Logbuch ----
+
+def schluessel(tf: models.TeamTafel) -> str:
+    return "|".join([tf.kennzahl, tf.sportart, "a" if tf.accel_only else "g", "b" if tf.nur_brett else "-",
+                     tf.foil_band or "all", "s" if tf.nur_teamspots else "-"])
+
+
+def logbuch_snapshot(db: Session) -> int:
+    """Naechtlich (record_snapshot.py): je Team und Bestenliste den Allzeit-Ersten mit dem gespeicherten
+    Stand vergleichen. Neuer HOEHERER Wert -> Logbuch-Eintrag. Sinkt der Wert (Session geloescht,
+    Mitglied ausgetreten), wird der Stand still nachgezogen — das ist kein gebrochener Rekord.
+    Der erste Lauf je Art haelt den Stand fest (Eintrag ohne Vorgaenger). Bei Summen (Pumps gesamt …)
+    zaehlt nur ein Wechsel an der Spitze."""
+    neu = 0
+    for t in db.query(models.Team).all():
+        ids = mitglieder_ids(db, t.id)
+        gesehen: set[str] = set()
+        for tf in tafeln(db, t.id):
+            k = schluessel(tf)
+            if k in gesehen:
+                continue
+            gesehen.add(k)
+            zeilen = tafel_berechnen(db, t, tf, "all", ids)
+            stand = db.query(models.TeamRekord).filter_by(team_id=t.id, schluessel=k).first()
+            if not zeilen:
+                continue
+            erster = zeilen[0]
+            gefahren = erster.get("started_at")
+            gefahren_dt = datetime.fromisoformat(gefahren) if gefahren else None
+            if stand is None:
+                db.add(models.TeamRekord(team_id=t.id, schluessel=k, user_id=erster["user_id"],
+                                         session_id=erster.get("session_id"), wert=erster["value"]))
+                db.add(models.TeamLogbuch(team_id=t.id, kennzahl=tf.kennzahl, sportart=tf.sportart, schluessel=k,
+                                          user_id=erster["user_id"], session_id=erster.get("session_id"),
+                                          wert=erster["value"], gefahren_am=gefahren_dt))
+                neu += 1
+            elif erster["value"] > stand.wert and (tf.kennzahl in BEST or erster["user_id"] != stand.user_id):
+                # Summen wachsen jede Nacht — dort zaehlt nur ein Ueberholen, nicht das eigene Weiterwachsen.
+                db.add(models.TeamLogbuch(team_id=t.id, kennzahl=tf.kennzahl, sportart=tf.sportart, schluessel=k,
+                                          user_id=erster["user_id"], session_id=erster.get("session_id"),
+                                          wert=erster["value"], vorher_user_id=stand.user_id,
+                                          vorher_wert=stand.wert, gefahren_am=gefahren_dt))
+                stand.user_id, stand.session_id, stand.wert, stand.stand = (
+                    erster["user_id"], erster.get("session_id"), erster["value"], _jetzt())
+                neu += 1
+            elif erster["value"] < stand.wert or erster["user_id"] != stand.user_id:
+                stand.user_id, stand.session_id, stand.wert, stand.stand = (
+                    erster["user_id"], erster.get("session_id"), erster["value"], _jetzt())
+        db.commit()
+    return neu
+
+
+def logbuch(db: Session, team_id: int, limit: int = 50) -> list[dict]:
+    L, U = models.TeamLogbuch, models.User
+    namen: dict[int, tuple[str | None, str | None]] = {}
+
+    def name(uid: int | None):
+        if uid is None:
+            return None, None
+        if uid not in namen:
+            u = db.get(U, uid)
+            namen[uid] = ((u.display_name or f"User #{u.id}"), u.avatar_url) if u else (None, None)
+        return namen[uid]
+
+    out = []
+    for e in db.query(L).filter_by(team_id=team_id).order_by(L.erfasst_am.desc(), L.id.desc()).limit(limit).all():
+        n, av = name(e.user_id)
+        vn, _ = name(e.vorher_user_id)
+        out.append({"kennzahl": e.kennzahl, "sportart": e.sportart, "user_id": e.user_id, "name": n,
+                    "avatar_url": av, "session_id": e.session_id, "wert": e.wert,
+                    "vorher_user_id": e.vorher_user_id, "vorher_name": vn, "vorher_wert": e.vorher_wert,
+                    "gefahren_am": e.gefahren_am.isoformat() if e.gefahren_am else None,
+                    "erfasst_am": e.erfasst_am.isoformat() if e.erfasst_am else None})
+    return out

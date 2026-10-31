@@ -2756,6 +2756,23 @@ const de: Record<string, string> = {
   "team.err.not found": "Nicht gefunden.",
   "team.err.unbekannt": "Das hat nicht geklappt. Bitte später noch einmal versuchen.",
   "adm.tab.teams": "Teams",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.stat.pumps": "Pumps",
+  "team.stat.strecke": "On-Foil-Strecke",
+  "team.stat.zeit": "On-Foil-Zeit",
+  "team.stat.sessions": "Sessions",
+  "team.stat.laeufe": "Läufe",
+  "team.stat.aktiv": "aktiv",
+  "team.logbuch": "Logbuch",
+  "team.logbuchHinweis": "Wer wann welchen Teamrekord gebrochen hat. Wird jede Nacht nachgeführt.",
+  "team.logbuchLeer": "Noch keine Einträge. Der erste Stand kommt in der Nacht nach dem Anlegen der Bestenlisten.",
+  "team.logbuch.start": "{name} hält „{was}“ mit {wert}",
+  "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
+  "team.chat": "Team-Chat",
+  "team.chatTitel": "Team {name}",
+  "team.bild.titel": "Als Bild teilen",
+  "team.bild.speichern": "Speichern",
+  "team.bild.hinweisIntern": "Die Bestenlisten dieses Teams sind nicht öffentlich. Das Bild zeigt die Namen trotzdem allen, die es zu sehen bekommen.",
 };
 
 export default de;

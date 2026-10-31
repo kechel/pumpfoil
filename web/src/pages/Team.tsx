@@ -6,9 +6,11 @@
 // Die Regeln setzt der Server (server/app/teams.py); hier wird nur gezeigt, was er liefert.
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api, getToken, TeamInfo, TeamMitglied, TeamTafelMitZeilen } from "../lib/api";
+import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatistik, TeamTafelMitZeilen } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
-import { ChevronIcon, SettingsIcon } from "../components/Icons";
+import { ChatBubbleIcon, ChevronIcon, SettingsIcon, ShareIcon } from "../components/Icons";
+import TeamTafelBild from "../components/TeamTafelBild";
+import { openChatOverlay } from "../components/DmWidget";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { fehlerCode, kennzahl } from "../lib/teamKennzahlen";
@@ -45,7 +47,60 @@ export function BeitrittDialog({ name, oeffentlich, freigabeNoetig, busy, onJa, 
   );
 }
 
-function Tafel({ tf, gast, t }: { tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string }) {
+function Statistik({ s, t }: { s: TeamStatistik; t: (k: string, p?: Record<string, string>) => string }) {
+  const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
+  const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
+  const kacheln: [string, string][] = [
+    [t("team.stat.pumps"), s.pumps.toLocaleString()],
+    [t("team.stat.strecke"), km(s.distance_m)],
+    [t("team.stat.zeit"), zeit(s.time_s)],
+    [t("team.stat.sessions"), s.sessions.toLocaleString()],
+    [t("team.stat.laeufe"), s.runs.toLocaleString()],
+    [t("team.stat.aktiv"), `${s.aktive} / ${s.mitglieder}`],
+  ];
+  return (
+    <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+      {kacheln.map(([l, v]) => (
+        <div key={l} className="rounded-xl border border-slate-800 bg-slate-900/60 p-2 text-center">
+          <div className="team-akzent text-lg font-bold leading-tight">{v}</div>
+          <div className="text-xs text-slate-400">{l}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: string, p?: Record<string, string>) => string }) {
+  return (
+    <Card className="mt-4 p-4">
+      <h3 className="mb-1 font-semibold text-slate-100">{t("team.logbuch")}</h3>
+      <p className="mb-2 text-xs text-slate-400">{t("team.logbuchHinweis")}</p>
+      {eintraege.length === 0 ? <p className="text-sm text-slate-400">{t("team.logbuchLeer")}</p> : (
+        <ul>
+          {eintraege.map((e, i) => {
+            const k = kennzahl(e.kennzahl);
+            const p = { name: e.name ?? "—", was: t(k.labelKey), wert: k.fmt(e.wert),
+                        vorher: e.vorher_name ?? "—", vorherWert: e.vorher_wert != null ? k.fmt(e.vorher_wert) : "" };
+            const text = e.vorher_wert == null ? t("team.logbuch.start", p) : t("team.logbuch.gebrochen", p);
+            const datum = e.gefahren_am ?? e.erfasst_am;
+            return (
+              <li key={i} className="flex items-start gap-2 border-t border-slate-800 py-2 text-sm first:border-t-0">
+                <span className="w-20 shrink-0 text-xs text-slate-400">{datum ? new Date(datum).toLocaleDateString() : ""}</span>
+                <span className="min-w-0 flex-1 text-slate-200">
+                  {e.session_id ? <Link to={`/sessions/${e.session_id}`} className="hover:underline">{text}</Link> : text}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function Tafel({ tf, gast, t, onBild }: {
+  tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
+}) {
   const k = kennzahl(tf.kennzahl);
   const filter = [
     tf.sportart !== "pumpfoil" ? t(`cls.sport.${tf.sportart}`) : null,
@@ -55,7 +110,15 @@ function Tafel({ tf, gast, t }: { tf: TeamTafelMitZeilen; gast: boolean; t: (k: 
   ].filter(Boolean).join(" · ");
   return (
     <Card className="p-4">
-      <h3 className="team-akzent font-semibold">{t(k.labelKey)}</h3>
+      <div className="flex items-start gap-2">
+        <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t(k.labelKey)}</h3>
+        {onBild && tf.zeilen.length > 0 && (
+          <button onClick={onBild} title={t("team.bild.titel")} aria-label={t("team.bild.titel")}
+            className="shrink-0 rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+            <ShareIcon className="h-4 w-4" />
+          </button>
+        )}
+      </div>
       {filter && <p className="text-xs text-slate-400">{filter}</p>}
       {tf.zeilen.length === 0 ? <p className="mt-2 text-sm text-slate-400">{t("team.tafel.leer")}</p> : (
         <ol className="mt-2">
@@ -101,6 +164,9 @@ export default function Team() {
   const [dialog, setDialog] = useState(false);
   const [busy, setBusy] = useState(false);
   const [meldung, setMeldung] = useState<string | null>(null);
+  const [stat, setStat] = useState<TeamStatistik | null>(null);
+  const [logbuch, setLogbuch] = useState<TeamLogbuchEintrag[] | null>(null);
+  const [bild, setBild] = useState<TeamTafelMitZeilen | null>(null);
 
   const laden = () => {
     if (gast) return;
@@ -117,8 +183,13 @@ export default function Team() {
       api.teamOeffentlich(slug, period).then((d) => { setKopf(d); setTafeln(d.tafeln); }).catch(() => setFehlt(true));
     } else if (kopf?.darf_bestenlisten) {
       api.teamBestenlisten(slug, period).then((d) => setTafeln(d.tafeln)).catch(() => setTafeln([]));
+      api.teamStatistik(slug, period).then(setStat).catch(() => setStat(null));
     }
   }, [slug, period, gast, kopf?.darf_bestenlisten]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!gast && kopf?.darf_bestenlisten) api.teamLogbuch(slug).then(setLogbuch).catch(() => setLogbuch(null));
+  }, [slug, gast, kopf?.darf_bestenlisten]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   if (fehlt) return <p className="text-sm text-slate-400">{t("team.nichtGefunden")}</p>;
   if (!kopf) return <p className="text-sm text-slate-400">{t("common.loading")}</p>;
@@ -176,6 +247,13 @@ export default function Team() {
         </p>
       )}
 
+      {kopf.chat_scope && (
+        <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
+          className="mb-4 inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+          <ChatBubbleIcon className="team-akzent h-4 w-4" /> {t("team.chat")}
+        </button>
+      )}
+
       {(gast || kopf.darf_bestenlisten) && (
         <>
           <div className="mb-3 flex flex-wrap gap-2">
@@ -186,9 +264,13 @@ export default function Team() {
               </button>
             ))}
           </div>
+          {stat && <Statistik s={stat} t={t} />}
           {!tafeln ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : tafeln.length === 0
             ? <p className="text-sm text-slate-400">{t("team.keineTafeln")}</p>
-            : <div className="grid gap-3 sm:grid-cols-2">{tafeln.map((tf) => <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} />)}</div>}
+            : <div className="grid gap-3 sm:grid-cols-2">{tafeln.map((tf) => (
+                <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} onBild={gast ? undefined : () => setBild(tf)} />
+              ))}</div>}
+          {logbuch && <Logbuch eintraege={logbuch} t={t} />}
         </>
       )}
       {!gast && !kopf.darf_bestenlisten && kopf.mein_status !== "angefragt" && (
@@ -216,6 +298,11 @@ export default function Team() {
 
       {gast && (
         <p className="mt-6 text-sm text-slate-400">{t("team.gastHinweis")}</p>
+      )}
+
+      {bild && (
+        <TeamTafelBild team={kopf} tafel={bild} onClose={() => setBild(null)}
+          zeitraum={t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d")} />
       )}
 
       {dialog && (

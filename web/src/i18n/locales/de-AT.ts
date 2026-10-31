@@ -2493,6 +2493,23 @@ const deAT: Record<string, string> = {
   "team.err.tafel": "Die Bestenliste lasst si so ned anlegen.",
   "team.err.not found": "Ned g'funden.",
   "team.err.unbekannt": "Des hat ned klappt. Bitte später nochamal probieren.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.stat.pumps": "Pumps",
+  "team.stat.strecke": "On-Foil-Strecke",
+  "team.stat.zeit": "On-Foil-Zeit",
+  "team.stat.sessions": "Sessions",
+  "team.stat.laeufe": "Läufe",
+  "team.stat.aktiv": "aktiv",
+  "team.logbuch": "Logbuch",
+  "team.logbuchHinweis": "Wer wann welchen Teamrekord brochen hat. Wird jede Nacht nachtragen.",
+  "team.logbuchLeer": "No ka Einträge. Der erste Stand kommt in der Nacht nachm Anlegen der Bestenlisten.",
+  "team.logbuch.start": "{name} hält „{was}“ mit {wert}",
+  "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
+  "team.chat": "Team-Chat",
+  "team.chatTitel": "Team {name}",
+  "team.bild.titel": "Als Bild teilen",
+  "team.bild.speichern": "Speichern",
+  "team.bild.hinweisIntern": "Die Bestenlisten von dem Team san ned öffentlich. Des Bild zeigt die Namen trotzdem allen, die's zum Sehn kriegen.",
 };
 
 export default deAT

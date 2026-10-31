@@ -82,6 +82,8 @@ def _team_out(db: Session, t: models.Team, m: models.TeamMitglied | None) -> dic
         "mein_status": m.status if m is not None else None,
         "darf_bestenlisten": mitglied_aktiv or T.bestenlisten_oeffentlich(t),
         "darf_mitglieder": mitglied_aktiv or (T.oeffentlich_sichtbar(t) and t.mitglieder_sichtbar == "angemeldete"),
+        # Team-Chat nur fuer aktive Mitglieder (Zugriff prueft chat._require_access).
+        "chat_scope": T.chat_scope(t.id) if mitglied_aktiv else None,
     }
     if T.ist_leiter(m):
         spots = (db.query(models.Spot.id, models.Spot.name)
@@ -255,6 +257,7 @@ def austreten(slug: str, user: models.User = Depends(current_user), db: Session 
     if m.rolle == "leiter":
         raise HTTPException(status.HTTP_409_CONFLICT, "leiter_erst_uebergeben")
     db.delete(m)
+    T.chat_raus(db, t.id, user.id)
     db.commit()
     return {"ok": True}
 
@@ -270,6 +273,29 @@ def bestenlisten(slug: str, period: str = "30d", user: models.User = Depends(cur
     ids = T.mitglieder_ids(db, t.id)
     return {"period": period, "tafeln": [{**T.tafel_out(tf), "zeilen": T.tafel_berechnen(db, t, tf, period, ids)}
                                          for tf in T.tafeln(db, t.id)]}
+
+
+def _darf_tafeln(t: models.Team, m: models.TeamMitglied | None) -> None:
+    if not (T.aktiv(m) or T.bestenlisten_oeffentlich(t)):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "nur_mitglieder")
+
+
+@router.get("/{slug}/statistik")
+def statistik(slug: str, period: str = "30d", user: models.User = Depends(current_user),
+              db: Session = Depends(get_db)) -> dict:
+    """Teamsummen im Zeitraum — wer die Bestenlisten sehen darf, sieht auch die Summen."""
+    from .community import PERIODS
+    t, m = _team_fuer(db, slug, user)
+    _darf_tafeln(t, m)
+    return T.statistik(db, t, period if period in PERIODS else "30d")
+
+
+@router.get("/{slug}/logbuch")
+def logbuch(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Wer wann welchen Teamrekord gebrochen hat (naechtlich nachgefuehrt)."""
+    t, m = _team_fuer(db, slug, user)
+    _darf_tafeln(t, m)
+    return T.logbuch(db, t.id)
 
 
 @router.get("/{slug}/mitglieder")
@@ -315,6 +341,7 @@ def entfernen(slug: str, uid: int, user: models.User = Depends(current_user), db
     if z.rolle == "leiter" or (z.rolle == "moderator" and m.rolle != "leiter"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "nicht_erlaubt")
     db.delete(z)
+    T.chat_raus(db, t.id, uid)
     db.commit()
     return {"ok": True}
 

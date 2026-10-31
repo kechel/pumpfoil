@@ -2052,3 +2052,39 @@ class TeamSlugAlt(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     slug: Mapped[str] = mapped_column(String(40), unique=True, index=True)
     team_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True)
+
+
+class TeamRekord(Base):
+    """Aktueller Rekordstand je Team und Bestenlisten-Art (Schluessel aus Kennzahl + Filtern, NICHT die
+    Tafel-ID: eine Tafel wird beim Speichern neu angelegt, der Rekord soll das ueberstehen)."""
+
+    __tablename__ = "team_rekorde"
+    __table_args__ = (UniqueConstraint("team_id", "schluessel", name="uq_team_rekord"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    schluessel: Mapped[str] = mapped_column(String(120))
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    session_id: Mapped[int | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
+    wert: Mapped[float] = mapped_column(Float)
+    stand: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class TeamLogbuch(Base):
+    """Team-Logbuch (Jan, 31.10.2026): wer wann welchen Teamrekord gebrochen hat. Eintraege entstehen im
+    naechtlichen Snapshot (record_snapshot.py), erster Eintrag je Art = Stand beim ersten Lauf."""
+
+    __tablename__ = "team_logbuch"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    kennzahl: Mapped[str] = mapped_column(String(30))
+    sportart: Mapped[str] = mapped_column(String(30))
+    schluessel: Mapped[str] = mapped_column(String(120))
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    session_id: Mapped[int | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
+    wert: Mapped[float] = mapped_column(Float)
+    vorher_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    vorher_wert: Mapped[float | None] = mapped_column(Float)
+    gefahren_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    erfasst_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

@@ -52,7 +52,8 @@ export default function TeamQr({ url, dateiname }: { url: string; dateiname: str
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
   const teilen = () => {
-    if (datei) navigator.share({ files: [datei], url }).catch(() => {});
+    // Nur die Datei, ohne Text/Titel: sonst routen WhatsApp & Co. falsch (s. ShareDialog.tsx).
+    if (datei) navigator.share({ files: [datei] }).catch(() => {});
   };
 
   return (

@@ -65,7 +65,7 @@ def main() -> int:
         for r in c.execute(text(
                 "SELECT m.scope, u.display_name, m.text, m.created_at FROM chat_messages m "
                 "JOIN users u ON u.id = m.user_id WHERE m.created_at > now() - interval '14 days' "
-                "AND m.user_id <> :me AND m.scope NOT LIKE 'dm:%' "
+                "AND m.user_id <> :me AND m.scope NOT LIKE 'dm:%' AND m.scope NOT LIKE 'team:%' "
                 "AND (m.text ILIKE '%claude%' OR m.text ILIKE '%assistent%') "
                 "ORDER BY m.id DESC LIMIT 10"), {"me": ASSISTENT}):
             leer = False

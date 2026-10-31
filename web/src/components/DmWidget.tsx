@@ -3,7 +3,7 @@ import { passtZu } from "../lib/suche";
 import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
 import { istSelbstPop } from "../lib/selfPop";
 import { Avatar } from "./ui";
-import { BellIcon, CameraIcon, ChatBubbleIcon, CloseIcon, LocationIcon, MaximizeIcon, MinimizeIcon } from "./Icons";
+import { BellIcon, CameraIcon, ChatBubbleIcon, CloseIcon, FlagIcon, LocationIcon, MaximizeIcon, MinimizeIcon } from "./Icons";
 import { FotoStapel } from "./FotoStapel";
 import { Chat } from "./Chat";
 import { useT } from "../i18n";
@@ -410,6 +410,8 @@ export function DmWidget() {
                           ? <Avatar name={r.other?.name} url={r.other?.avatar_url} userId={r.other?.id} link={false} size={36} />
                           : r.kind === "global"
                           ? <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/20"><ChatBubbleIcon className="h-5 w-5 text-brand-400" /></span>
+                          : r.kind === "team"   // Team-Chat (31.10.2026)
+                          ? <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/20"><FlagIcon className="h-5 w-5 text-brand-400" /></span>
                           : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

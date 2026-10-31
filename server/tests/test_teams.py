@@ -237,3 +237,103 @@ def test_unter_13_keine_teams(client):
     finally:
         db.close()
     assert client.get("/api/teams/mine", headers=ka).status_code == 403
+
+
+# ------------------------------------------------------------------ Stufe 2 (31.10.2026) ----
+
+def _team_mit(client, ka, kb, name):
+    slug = _team(client, ka, name)
+    links = client.get(f"/api/teams/{slug}/einladungen", headers=ka).json()
+    client.post(f"/api/teams/einladung/{links['join']}", headers=kb)
+    return slug, links
+
+
+def test_team_chat_nur_fuer_aktive_mitglieder(client):
+    (_, ka), (ib, kb), (_, kc), (_, kd) = (_konto(client, "tc-a1@t.de"), _konto(client, "tc-b1@t.de"),
+                                           _konto(client, "tc-c1@t.de"), _konto(client, "tc-d1@t.de"))
+    slug, links = _team_mit(client, ka, kb, "Chatteam Eins")
+    scope = client.get(f"/api/teams/{slug}", headers=kb).json()["chat_scope"]
+    assert scope and scope.startswith("team:")
+    r = client.post(f"/api/chat?scope={scope}", headers=kb, json={"text": "Hallo Team"})
+    assert r.status_code == 200, r.text
+    assert [m["text"] for m in client.get(f"/api/chat?scope={scope}", headers=ka).json()] == ["Hallo Team"]
+    # Fremde und offene Anfragen: kein Zugriff.
+    assert client.get(f"/api/chat?scope={scope}", headers=kc).status_code == 403
+    client.post(f"/api/teams/einladung/{links['apply']}", headers=kd)
+    assert client.post(f"/api/chat?scope={scope}", headers=kd, json={"text": "rein?"}).status_code == 403
+    assert client.get(f"/api/teams/{slug}", headers=kd).json()["chat_scope"] is None
+    # Nie in der Entdeckungsliste fuer Fremde.
+    assert scope not in {r["scope"] for r in client.get("/api/chat/active?limit=20", headers=kc).json()}
+    # Ausgetreten: weg aus „Meine Chats", kein Lesen mehr.
+    assert scope in {r["scope"] for r in client.get("/api/chat/rooms", headers=kb).json()}
+    client.post(f"/api/teams/{slug}/austreten", headers=kb)
+    assert scope not in {r["scope"] for r in client.get("/api/chat/rooms", headers=kb).json()}
+    assert client.get(f"/api/chat?scope={scope}", headers=kb).status_code == 403
+
+
+def test_team_loeschen_nimmt_chat_mit(client):
+    from app import models
+    from app.db import SessionLocal
+    (_, ka), (_, kb) = _konto(client, "tc-a2@t.de"), _konto(client, "tc-b2@t.de")
+    slug, _l = _team_mit(client, ka, kb, "Chatteam Zwei")
+    scope = client.get(f"/api/teams/{slug}", headers=ka).json()["chat_scope"]
+    client.post(f"/api/chat?scope={scope}", headers=ka, json={"text": "eins"})
+    client.post(f"/api/teams/{slug}/loeschen", headers=ka, json={"name": "Chatteam Zwei"})
+    db = SessionLocal()
+    try:
+        assert db.query(models.ChatMessage).filter_by(scope=scope).count() == 0
+        assert db.query(models.ChatRoomState).filter_by(scope=scope).count() == 0
+    finally:
+        db.close()
+
+
+def test_statistik_summen(client):
+    (ia, ka), (ib, kb) = _konto(client, "tc-a3@t.de"), _konto(client, "tc-b3@t.de")
+    slug, _l = _team_mit(client, ka, kb, "Statteam Drei")
+    _session(ia, 100)
+    _session(ib, 50)
+    d = client.get(f"/api/teams/{slug}/statistik?period=30d", headers=kb).json()
+    assert d["sessions"] == 2 and d["pumps"] == 150 and d["runs"] == 6 and d["aktive"] == 2 and d["mitglieder"] == 2
+    _ix, kx = _konto(client, "tc-x3@t.de")
+    assert client.get(f"/api/teams/{slug}/statistik", headers=kx).status_code == 404
+
+
+def test_logbuch_nur_bei_echtem_rekord(client):
+    from app import models, teams as T
+    from app.db import SessionLocal
+    (ia, ka), (ib, kb) = _konto(client, "tc-a4@t.de", "Alma"), _konto(client, "tc-b4@t.de", "Ben")
+    slug, _l = _team_mit(client, ka, kb, "Logteam Vier")
+    client.put(f"/api/teams/{slug}/tafeln", headers=ka, json=[{"kennzahl": "session_pumps"}, {"kennzahl": "sum_pumps"}])
+    _session(ia, 100)
+
+    def lauf():
+        db = SessionLocal()
+        try:
+            T._cache.clear()
+            T.logbuch_snapshot(db)
+        finally:
+            db.close()
+
+    lauf()
+    lb = client.get(f"/api/teams/{slug}/logbuch", headers=kb).json()
+    assert {(e["kennzahl"], e["user_id"], e["vorher_user_id"]) for e in lb} == {("session_pumps", ia, None), ("sum_pumps", ia, None)}
+    # Nichts Neues -> kein Eintrag.
+    lauf()
+    assert len(client.get(f"/api/teams/{slug}/logbuch", headers=kb).json()) == 2
+    # Alma waechst in der Summe allein weiter: kein Eintrag. Ben bricht den Session-Rekord: Eintrag.
+    _session(ia, 20)
+    _session(ib, 110)          # Bestwert 110 > 100, Summe 110 < 120
+    lauf()
+    lb = client.get(f"/api/teams/{slug}/logbuch", headers=kb).json()
+    assert len(lb) == 3 and lb[0]["kennzahl"] == "session_pumps" and lb[0]["user_id"] == ib
+    assert lb[0]["vorher_user_id"] == ia and lb[0]["vorher_wert"] == 100 and lb[0]["wert"] == 110
+    # Ben ueberholt in der Summe (110 + 100 > 120): Eintrag fuer sum_pumps.
+    _session(ib, 100)
+    lauf()
+    lb = client.get(f"/api/teams/{slug}/logbuch", headers=kb).json()
+    assert lb[0]["kennzahl"] == "sum_pumps" and lb[0]["user_id"] == ib and lb[0]["vorher_user_id"] == ia
+    db = SessionLocal()
+    try:
+        assert db.query(models.TeamRekord).filter_by(team_id=client.get(f"/api/teams/{slug}", headers=ka).json()["id"]).count() == 2
+    finally:
+        db.close()

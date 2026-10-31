@@ -17,11 +17,19 @@ for _l in open(os.path.join(os.path.dirname(__file__), ".env")):
 
 from app.db import SessionLocal  # noqa: E402  (nach dem .env-Parse importieren)
 from app.records import run_record_snapshot  # noqa: E402
+from app.teams import logbuch_snapshot  # noqa: E402
 
 if __name__ == "__main__":
     db = SessionLocal()
     try:
         n = run_record_snapshot(db)
         print(f"record snapshot ok: {n} neue Events")
+    finally:
+        db.close()
+    # Team-Logbuch (31.10.2026, docs/TEAMS.md): eigener Lauf, damit ein Fehler dort die Community-
+    # Rekorde nicht mitreisst (und umgekehrt).
+    db = SessionLocal()
+    try:
+        print(f"team logbuch ok: {logbuch_snapshot(db)} neue Eintraege")
     finally:
         db.close()
