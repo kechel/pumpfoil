@@ -32,10 +32,21 @@ alte, freigegebene Fassung stehen, intern gilt sofort die neue.
 - Alte Adressen leiten dauerhaft weiter (Tabelle `team_slugs_alt`), damit geteilte Links nicht brechen;
   ein alter Slug wird nie an ein anderes Team vergeben.
 - Die Seite ist die Team-Ansicht (ohne Login nur die oeffentliche Bestenliste, falls eingeschaltet und
-  freigegeben, sonst „nicht gefunden“). Beitreten bleibt beim Einladungslink `/t/<token>` — die
-  sprechende Adresse ist zum Ansehen, nicht zum Beitreten (bei Beitrittsart `offen` zeigt sie
-  Angemeldeten aber den Beitreten-Knopf).
+  freigegeben, sonst „nicht gefunden“). Angemeldete sehen dort „Beitreten“, wenn das Team Anmeldungen
+  zulaesst (s. Beitreten).
 - Neue Server-Route → Service-Worker-Ausnahme mitpflegen.
+
+## Beitreten (Jan, 31.10.2026)
+
+Zwei Schalter je Team:
+- **„Anmeldungen zulassen“** — Angemeldete koennen auf der Teamseite selbst „Beitreten“ druecken.
+  Aus: kein Knopf, Beitritt nur per Einladungslink.
+- **„Anmeldungen automatisch akzeptieren“** — an: sofort Mitglied; aus: Anfrage, die der Leiter oder ein
+  Moderator annimmt oder ablehnt.
+
+Der Einladungslink `/t/<token>` macht direkt zum Mitglied, auch wenn Anmeldungen aus sind — wer den Link
+vom Team bekommen hat, ist eingeladen. (Vorschlag; alternativ laeuft auch er durch die Freigabe.)
+Jeder Beitritts-Dialog nennt, falls das Team oeffentlich ist, dass Anzeigename und Platz oeffentlich sind.
 
 ## Grenzen, die aus bestehenden Regeln folgen
 
@@ -50,8 +61,8 @@ alte, freigegebene Fassung stehen, intern gilt sofort die neue.
 
 ## Datenmodell
 
-- `teams`: id, name, slug (s. Adresse), beschreibung, logo, farbe (Palette-Schluessel), beitritt
-  (`offen`/`anfrage`/`einladung`), oeffentlich (bool), mitglieder_sichtbar (`mitglieder`/`angemeldete`),
+- `teams`: id, name, slug (s. Adresse), beschreibung, logo, farbe (Palette-Schluessel),
+  anmeldungen_zulassen (bool), automatisch_akzeptieren (bool), oeffentlich (bool), mitglieder_sichtbar (`mitglieder`/`angemeldete`),
   freigabe (`keine`/`wartet`/`frei`/`abgelehnt`) + die zuletzt freigegebene Fassung der vier
   oeffentlichen Felder, angelegt_von, angelegt_am.
 - `team_mitglieder`: team_id, user_id, rolle (`leiter`/`moderator`/`mitglied`), status
@@ -85,7 +96,7 @@ Gegenprobe).
 - **Community:** neuer Abschnitt „Teams“ (nur freigegebene).
 - **Admin:** Warteschlange „Teams freigeben“ (alte gegen neue Fassung).
 - **Beitreten per Link** `/t/<token>`: ohne Konto erst registrieren, dann direkt beigetreten (Token
-  wartet in `localStorage`, kein Cookie). Beitritts-Dialog nennt Beitrittsart und, falls oeffentlich, die
+  wartet in `localStorage`, kein Cookie). Beitritts-Dialog nennt, ob eine Freigabe noetig ist, und, falls oeffentlich, die
   Sichtbarkeit von Name und Platz.
 - **Teamfarbe:** Palette aus ~12 vorgepruefter Farben (je eine Hell-/Dunkel-Variante, bestehen den
   Kontrast-Waechter), gesetzt als CSS-Variable `--team-akzent` nur auf Teamseiten.
@@ -107,7 +118,7 @@ aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
 ## Stufen
 
-1. Teams, Rollen, Beitrittsarten, Einladungslink inkl. Registrierung, Mitgliederliste einstellbar,
+1. Teams, Rollen, Beitritt (zwei Schalter), Einladungslink inkl. Registrierung, Mitgliederliste einstellbar,
    Bestenlisten aus vorhandenen Kennzahlen, Home-Karte, Profil-Seite. Logo + Farbpalette. Freigabe-
    Warteschlange, Community-Abschnitt, oeffentliche Bestenliste ohne Login. Nur Web.
 2. Events.
