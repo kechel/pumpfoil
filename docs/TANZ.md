@@ -312,14 +312,21 @@ folgt der Block dieses Tanzes direkt danach.
 
 ## #19572 (30.10., „nur Salsa und Bachata") — Uhr und Server lagen fast überall daneben (31.10.2026)
 
-Vier Marker, alle Bachata (17', 46', 84', 166'), kein Salsa-Marker. Die Uhr (0.6.2) schlug 27 Abschnitte vor: 10× Boogie,
-7× Jive, 6× Samba, je 1–2× Bachata/Cha-Cha/Tango/Quickstep/LW — **Salsa nie als Platz 1**. Server s1 (kennt kein
-Bachata) nennt Salsa nur dreimal vorn (22,9' 6,8 min 57 %, 50,0' 11 min 59 %, 95,3' 0,5 min 86 %). Die langen
-Blöcke (4,7', 7,5', 74,0' 9,3 min, 123,2' 15,2 min) hält s1 für **Boogie mit 66–98 %** — bei #16875 war es
-umgekehrt (Disco-Fox als Salsa). Die schnelle Paar-Salsa dieses Abends sieht für beide Muster also wie Boogie aus;
-die bisherigen Salsa-Muster stammen aus Kurs/Üben (#16863, #18834, langsamer).
+Vier Marker, alle Bachata (17', 46', 84', 166'), kein Salsa-Marker; Jan: Marker teils erst ~2 min nach dem Tanz und
+nicht nach jedem Bachata, sonst zu ~95 % nur diese zwei Rhythmen. Die Uhr (0.6.2) schlug 27 Abschnitte vor: 10× Boogie,
+7× Jive, 6× Samba, Rest verstreut — **Salsa nie als Platz 1**. Server s1 (kennt kein Bachata) hielt die langen Blöcke
+(4,7', 7,5', 74,0', 123,2') für **Boogie mit 66–98 %**.
 
-Offen: welche Abschnitte Bachata waren. Marker kommen meist NACH dem Tanz, die Uhr-Abschnitte davor sind aber
-schnell (Tempo 121–155) — passt nicht zu „Bachata ist viel ruhiger" (s. #16875). Erst mit Jans Zuordnung oder
-Web-Korrekturen als Wahrheit nutzbar; Muster NICHT neu abgeleitet.
+**Zwei Gruppen nach Armbewegung/Drehung (akt, umdr, b1, b2, quer; k-means) taugen NICHT:** sie trennen lebhaft von
+ruhig, und Jans eigene Korrektur (163' = Bachata) landete in der lebhaften Gruppe.
 
+**Das Tempo trennt** (Fenster mit `klar` ≥ 0,15 und `akt` ≥ 0,04, Tempo auf eine Oktave 100–200 /min gefaltet, weil die
+Rechnung halbe/doppelte Werte findet): klar zweigipflig, ein Berg bei **120–135** (Bachata-Musik), einer bei **175–195**
+(Salsa). Regel als Versuch: 112–150 = Bachata, ≥ 155 oder < 108 = Salsa, dann 2-min-Mehrheit. Ergebnis: ~52 min
+Bachata, ~47 min Salsa, und **alle vier Marker folgen auf einen Bachata-Block** (12,7' → 17'; ~44' → 46'; 73,8–84,3' →
+84,5'; 163,3–166,0' → 166', dort auch Jans Korrektur). Die Boogie-Verwechslung von s1 war also **Bachata**, nicht Salsa
+(74–84' und 122–135' Bachata, 4–13' ebenso). Skript-Stand: Scratch, nicht im Repo.
+
+Das widerspricht nicht Jans Hinweis vom 21.10. (Tempo nicht entscheidend): es gilt nur für diesen Abend mit genau zwei
+Tänzen, deren Musik in getrennten Tempo-Bereichen liegt. Als Wahrheit erst nach Jans OK zur Blockliste; Muster NICHT
+neu abgeleitet.
