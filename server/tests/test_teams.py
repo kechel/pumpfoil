@@ -1,0 +1,239 @@
+"""Teams (31.10.2026, docs/TEAMS.md): Sichtbarkeit, Beitritt, Rechte, Freigabe, Bestenlisten, Loeschen."""
+from __future__ import annotations
+
+import secrets
+from datetime import datetime, timedelta, timezone
+
+
+def _konto(client, mail: str, name: str | None = None) -> tuple[int, dict]:
+    r = client.post("/api/auth/register", json={"email": mail, "password": "supersecret"})
+    kopf = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    if name:
+        client.put("/api/auth/me", headers=kopf, json={"display_name": name})
+    me = client.get("/api/auth/me", headers=kopf).json()
+    return me["id"], kopf
+
+
+def _session(uid: int, pumps: int, tage: int = 1, dist: float = 100.0) -> int:
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        t = datetime.now(timezone.utc) - timedelta(days=tage)
+        s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid, started_at=t,
+                           ended_at=t + timedelta(minutes=40), sport="pumpfoil", sport_class="pumpfoil",
+                           is_pumpfoil=True, status="analyzed", data_quality="ok")
+        db.add(s)
+        db.commit()
+        db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model", num_runs=3,
+                                     pump_count=pumps, foiling_distance_m=300.0, best_distance_m=dist))
+        db.commit()
+        return s.id
+    finally:
+        db.close()
+
+
+def _team(client, kopf, name: str) -> str:
+    r = client.post("/api/teams", headers=kopf, json={"name": name})
+    assert r.status_code == 200, r.text
+    return r.json()["slug"]
+
+
+def _admin(client, mail: str) -> dict:
+    from app import models
+    from app.db import SessionLocal
+    uid, kopf = _konto(client, mail)
+    db = SessionLocal()
+    try:
+        db.get(models.User, uid).is_admin = True
+        db.commit()
+    finally:
+        db.close()
+    return kopf
+
+
+def test_slug_aus_namen():
+    from app import teams as T
+    assert T.slug_aus("Illmensee Pumper") == "illmensee-pumper"
+    assert T.slug_aus("Jäns Größte Crew!") == "jaens-groesste-crew"
+    assert T.slug_aus("Lanškroun Dlouhý rybník") == "lanskroun-dlouhy-rybnik"
+    assert T.slug_fehler("ab") == "slug_laenge"
+    assert T.slug_fehler("admin") == "slug_reserviert"
+    assert T.slug_fehler("a_b") == "slug_zeichen"
+    assert T.slug_fehler("-abc") == "slug_zeichen"
+    assert T.slug_fehler("illmeseepumper") is None
+    assert T.initialen("Jan Kechel") == "JK" and T.initialen("olek") == "OL" and T.initialen("") == "?"
+
+
+def test_unbestaetigtes_team_fuer_fremde_unsichtbar(client):
+    (_, ka), (_, kb) = _konto(client, "tm-a1@t.de"), _konto(client, "tm-b1@t.de")
+    slug = _team(client, ka, "Geheimteam Eins")
+    assert client.get(f"/api/teams/{slug}", headers=ka).json()["meine_rolle"] == "leiter"
+    assert client.get(f"/api/teams/{slug}", headers=kb).status_code == 404
+    assert client.post(f"/api/teams/{slug}/beitreten", headers=kb).status_code == 404
+    assert slug not in {t["slug"] for t in client.get("/api/teams/liste", headers=kb).json()}
+    assert client.get(f"/api/public/teams/{slug}").status_code == 404
+
+
+def test_einladungslinks_join_und_apply(client):
+    (_, ka), (ib, kb), (ic, kc) = (_konto(client, "tm-a2@t.de"), _konto(client, "tm-b2@t.de"),
+                                   _konto(client, "tm-c2@t.de"))
+    slug = _team(client, ka, "Linkteam Zwei")
+    links = client.get(f"/api/teams/{slug}/einladungen", headers=ka).json()
+    assert set(links) == {"join", "apply"} and links["join"] != links["apply"]
+    # Derselbe Link bei erneutem Abruf (anzeigbar), auch nach Neustart der Abfrage.
+    assert client.get(f"/api/teams/{slug}/einladungen", headers=ka).json() == links
+    d = client.get(f"/api/teams/einladung/{links['join']}", headers=kb).json()
+    assert d["art"] == "join" and d["slug"] == slug
+    assert client.post(f"/api/teams/einladung/{links['join']}", headers=kb).json()["status"] == "aktiv"
+    assert client.post(f"/api/teams/einladung/{links['apply']}", headers=kc).json()["status"] == "angefragt"
+    # Anfrage: sieht das Team, aber keine Bestenlisten.
+    assert client.get(f"/api/teams/{slug}", headers=kc).json()["mein_status"] == "angefragt"
+    assert client.get(f"/api/teams/{slug}/bestenlisten", headers=kc).status_code == 403
+    m = client.get(f"/api/teams/{slug}/mitglieder", headers=ka).json()
+    assert [x["user_id"] for x in m["anfragen"]] == [ic]
+    assert ib in {x["user_id"] for x in m["mitglieder"]}
+    # Neu erzeugter Link: der alte gilt nicht mehr.
+    neu = client.post(f"/api/teams/{slug}/einladungen/join/neu", headers=ka).json()["join"]
+    assert neu != links["join"]
+    assert client.get(f"/api/teams/einladung/{links['join']}", headers=kc).status_code == 404
+
+
+def test_rechte_moderator(client):
+    (_, ka), (ib, kb), (ic, kc), (idd, kd) = (_konto(client, "tm-a3@t.de"), _konto(client, "tm-b3@t.de"),
+                                              _konto(client, "tm-c3@t.de"), _konto(client, "tm-d3@t.de"))
+    slug = _team(client, ka, "Rechteteam Drei")
+    links = client.get(f"/api/teams/{slug}/einladungen", headers=ka).json()
+    for k in (kb, kc):
+        client.post(f"/api/teams/einladung/{links['join']}", headers=k)
+    client.post(f"/api/teams/einladung/{links['apply']}", headers=kd)
+    assert client.put(f"/api/teams/{slug}/mitglieder/{ib}/rolle", headers=ka, json={"rolle": "moderator"}).status_code == 200
+    # Moderator: annehmen ja, Einstellungen nein, Moderatoren/Leiter entfernen nein.
+    assert client.post(f"/api/teams/{slug}/mitglieder/{idd}/annehmen", headers=kb).status_code == 200
+    assert client.put(f"/api/teams/{slug}", headers=kb, json={"name": "Gekapert"}).status_code == 403
+    assert client.post(f"/api/teams/{slug}/einladungen/join/neu", headers=kb).status_code == 403
+    assert client.delete(f"/api/teams/{slug}/mitglieder/{idd}", headers=kb).status_code == 200
+    # Einfaches Mitglied darf gar nichts verwalten.
+    assert client.get(f"/api/teams/{slug}/einladungen", headers=kc).status_code == 403
+    assert client.delete(f"/api/teams/{slug}/mitglieder/{ib}", headers=kc).status_code == 403
+    # Leiter kann nicht austreten, ohne zu uebergeben.
+    assert client.post(f"/api/teams/{slug}/austreten", headers=ka).status_code == 409
+    assert client.put(f"/api/teams/{slug}/mitglieder/{ic}/rolle", headers=ka, json={"rolle": "leiter"}).status_code == 200
+    assert client.get(f"/api/teams/{slug}", headers=kc).json()["meine_rolle"] == "leiter"
+    assert client.get(f"/api/teams/{slug}", headers=ka).json()["meine_rolle"] == "moderator"
+
+
+def test_freigabe_nur_fuer_den_auftritt(client):
+    (_, ka), (_, kb) = _konto(client, "tm-a4@t.de"), _konto(client, "tm-b4@t.de")
+    adm = _admin(client, "tm-adm4@t.de")
+    slug = _team(client, ka, "Freigabeteam Vier")
+    client.put(f"/api/teams/{slug}", headers=ka, json={"beschreibung": "Wir pumpen.", "oeffentlich": True})
+    assert client.post(f"/api/teams/{slug}/freigabe", headers=ka).json()["freigabe"] == "wartet"
+    assert client.get("/api/admin/pending", headers=adm).json()["teams"] >= 1
+    q = client.get("/api/admin/teams", headers=adm).json()
+    tid = next(x["id"] for x in q if x["neu"]["slug"] == slug)
+    assert client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True}).json()["freigabe"] == "frei"
+    # Jetzt sichtbar fuer Fremde, in der Liste und ohne Login.
+    assert client.get(f"/api/teams/{slug}", headers=kb).json()["name"] == "Freigabeteam Vier"
+    assert slug in {t["slug"] for t in client.get("/api/teams/liste", headers=kb).json()}
+    assert client.get(f"/api/public/teams/{slug}").status_code == 200
+    # Umbenennen: intern sofort, aussen erst nach neuer Freigabe; alte Adresse fuehrt weiter hin.
+    r = client.put(f"/api/teams/{slug}", headers=ka, json={"name": "Neuer Name Vier", "slug": "neuer-name-vier"})
+    assert r.json()["freigabe"] == "wartet" and r.json()["name"] == "Neuer Name Vier"
+    aussen = client.get(f"/api/teams/{slug}", headers=kb).json()
+    assert aussen["name"] == "Freigabeteam Vier" and aussen["slug"] == slug
+    assert client.get("/api/teams/neuer-name-vier", headers=kb).json()["name"] == "Freigabeteam Vier"
+    client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
+    assert client.get(f"/api/teams/{slug}", headers=kb).json()["slug"] == "neuer-name-vier"
+    # Alte Adresse bleibt gesperrt, auch fuer andere.
+    assert client.post("/api/teams", headers=kb, json={"name": "Dieb", "slug": slug}).status_code == 409
+
+
+def test_bestenliste_bester_je_person_und_gastform(client):
+    (ia, ka), (ib, kb) = _konto(client, "tm-a5@t.de", "Anna Alpha"), _konto(client, "tm-b5@t.de", "Bert")
+    (ic, _kc) = _konto(client, "tm-c5@t.de")
+    adm = _admin(client, "tm-adm5@t.de")
+    slug = _team(client, ka, "Tafelteam Fuenf")
+    links = client.get(f"/api/teams/{slug}/einladungen", headers=ka).json()
+    client.post(f"/api/teams/einladung/{links['join']}", headers=kb)
+    sa1, _sa2 = _session(ia, 500, tage=2), _session(ia, 200, tage=1)
+    _session(ib, 300)
+    _session(ic, 9999)                      # kein Mitglied -> zaehlt nicht
+    client.put(f"/api/teams/{slug}/tafeln", headers=ka, json=[{"kennzahl": "session_pumps"}, {"kennzahl": "sum_pumps"}])
+    d = client.get(f"/api/teams/{slug}/bestenlisten?period=30d", headers=kb).json()
+    best, summe = d["tafeln"]
+    assert [(z["user_id"], z["value"]) for z in best["zeilen"]] == [(ia, 500), (ib, 300)]
+    assert best["zeilen"][0]["session_id"] == sa1 and best["zeilen"][0]["rang"] == 1
+    assert [(z["user_id"], z["value"]) for z in summe["zeilen"]] == [(ia, 700), (ib, 300)]
+    # Oeffentlich + freigegeben -> Gastform ohne Session/Spot/Avatar/Datum.
+    client.put(f"/api/teams/{slug}", headers=ka, json={"oeffentlich": True})
+    client.post(f"/api/teams/{slug}/freigabe", headers=ka)
+    tid = next(x["id"] for x in client.get("/api/admin/teams", headers=adm).json() if x["neu"]["slug"] == slug)
+    client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
+    g = client.get(f"/api/public/teams/{slug}?period=30d").json()
+    z = g["tafeln"][0]["zeilen"][0]
+    assert set(z) == {"rang", "name", "initialen", "value"} and z["initialen"] == "AA"
+    # Nicht oeffentlich -> ohne Login weg, und Fremde sehen die Bestenlisten nicht.
+    client.put(f"/api/teams/{slug}", headers=ka, json={"oeffentlich": False})
+    assert client.get(f"/api/public/teams/{slug}").status_code == 404
+    _ix, kx = _konto(client, "tm-x5@t.de")
+    assert client.get(f"/api/teams/{slug}/bestenlisten", headers=kx).status_code == 403
+
+
+def test_beitreten_knopf_zwei_schalter(client):
+    (_, ka), (_, kb), (_, kc) = (_konto(client, "tm-a6@t.de"), _konto(client, "tm-b6@t.de"),
+                                 _konto(client, "tm-c6@t.de"))
+    adm = _admin(client, "tm-adm6@t.de")
+    slug = _team(client, ka, "Knopfteam Sechs")
+    client.post(f"/api/teams/{slug}/freigabe", headers=ka)
+    tid = next(x["id"] for x in client.get("/api/admin/teams", headers=adm).json() if x["neu"]["slug"] == slug)
+    client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
+    assert client.post(f"/api/teams/{slug}/beitreten", headers=kb).json()["status"] == "angefragt"
+    client.put(f"/api/teams/{slug}", headers=ka, json={"automatisch_akzeptieren": True})
+    assert client.post(f"/api/teams/{slug}/beitreten", headers=kc).json()["status"] == "aktiv"
+    client.put(f"/api/teams/{slug}", headers=ka, json={"anmeldungen_zulassen": False})
+    _i, kd = _konto(client, "tm-d6@t.de")
+    assert client.post(f"/api/teams/{slug}/beitreten", headers=kd).status_code == 403
+
+
+def test_loeschen_nur_mit_namen(client):
+    (_, ka), (_, kb) = _konto(client, "tm-a7@t.de"), _konto(client, "tm-b7@t.de")
+    slug = _team(client, ka, "Loeschteam Sieben")
+    assert client.post(f"/api/teams/{slug}/loeschen", headers=ka, json={"name": "falsch"}).status_code == 422
+    assert client.post(f"/api/teams/{slug}/loeschen", headers=ka, json={"name": "loeschteam  sieben"}).status_code == 200
+    assert client.get(f"/api/teams/{slug}", headers=ka).status_code == 404
+    assert client.post("/api/teams", headers=kb, json={"name": "Nachfolger", "slug": slug}).status_code == 409
+
+
+def test_konto_loeschen_uebergibt_leitung(client):
+    from app import loeschung, models
+    from app.db import SessionLocal
+    (ia, ka), (ib, kb) = _konto(client, "tm-a8@t.de"), _konto(client, "tm-b8@t.de")
+    slug = _team(client, ka, "Erbteam Acht")
+    solo = _team(client, ka, "Soloteam Acht")
+    links = client.get(f"/api/teams/{slug}/einladungen", headers=ka).json()
+    client.post(f"/api/teams/einladung/{links['join']}", headers=kb)
+    db = SessionLocal()
+    try:
+        loeschung.konto_loeschen(db, db.get(models.User, ia))
+    finally:
+        db.close()
+    assert client.get(f"/api/teams/{slug}", headers=kb).json()["meine_rolle"] == "leiter"
+    db = SessionLocal()
+    try:
+        assert db.query(models.Team).filter_by(slug=solo).first() is None
+    finally:
+        db.close()
+
+
+def test_unter_13_keine_teams(client):
+    from app import models
+    from app.db import SessionLocal
+    ia, ka = _konto(client, "tm-a9@t.de")
+    db = SessionLocal()
+    try:
+        db.get(models.User, ia).social_allowed = False
+        db.commit()
+    finally:
+        db.close()
+    assert client.get("/api/teams/mine", headers=ka).status_code == 403

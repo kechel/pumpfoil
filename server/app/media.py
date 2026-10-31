@@ -95,7 +95,7 @@ def reencode_image(raw: bytes, max_dim: int = 1600) -> bytes:
 
 
 def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
-               thumb_dim: int | None = None) -> str:
+               thumb_dim: int | None = None, transparenz: bool = False) -> str:
     """Speichert ein Bild unter media_dir/<subdir>/<uuid>.webp und gibt die /media-URL zurück.
 
     max_dim: längste Kante (px). square=True: mittig quadratisch zuschneiden (Avatare).
@@ -111,7 +111,12 @@ def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
     except Exception as exc:  # noqa: BLE001
         raise ImageError("Kein gültiges Bild") from exc
 
-    if img.mode not in ("RGB", "L"):
+    # transparenz=True (Team-Wappen, 31.10.2026): Alphakanal behalten — ein freigestelltes Wappen
+    # bekaeme sonst schwarze Ecken, weil RGBA->RGB die durchsichtigen Pixel auf Schwarz setzt.
+    hat_alpha = img.mode in ("RGBA", "LA", "PA") or (img.mode == "P" and "transparency" in img.info)
+    if transparenz and hat_alpha:
+        img = img.convert("RGBA")
+    elif img.mode not in ("RGB", "L"):
         img = img.convert("RGB")
     elif img.mode == "L":
         img = img.convert("RGB")

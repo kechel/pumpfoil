@@ -838,6 +838,7 @@ export interface AdminPending {
   // nichts ab. `social` = wartende Kanaele + gemeldete Videos. `spots` = ausgeblendete
   // Spot-Beschreibungen, die auf eine Entscheidung warten.
   social?: number; feedback?: number; spots?: number;
+  teams?: number;   // Teams, die auf Freigabe ihres Auftritts warten (31.10.2026)
   total: number;
 }
 
@@ -2067,7 +2068,90 @@ export const api = {
   feedbackAttachment: (feedbackId: number, file: File) =>
     uploadFile<{ id: number; kind: string; filename: string; bytes: number }>(
       `/api/feedback/${feedbackId}/attachment`, file),
+
+  // ---- Teams (31.10.2026, docs/TEAMS.md; Server: server/app/api/teams.py) ----
+  teamsMine: () => req<TeamKurz[]>("/api/teams/mine"),
+  teamsListe: () => req<TeamListenEintrag[]>("/api/teams/liste"),
+  teamSlug: (q: { name?: string; slug?: string; team_id?: number }) =>
+    req<{ slug: string; frei: boolean; fehler: string | null }>(`/api/teams/slug?${new URLSearchParams(
+      Object.entries(q).filter(([, v]) => v != null && v !== "").map(([k, v]) => [k, String(v)])).toString()}`),
+  teamAnlegen: (name: string, slug?: string) =>
+    req<{ slug: string; id: number }>("/api/teams", { method: "POST", body: JSON.stringify({ name, slug: slug || null }) }),
+  team: (slug: string) => req<TeamInfo>(`/api/teams/${encodeURIComponent(slug)}`),
+  teamOeffentlich: (slug: string, period: string) =>
+    req<TeamOeffentlich>(`/api/public/teams/${encodeURIComponent(slug)}?period=${period}`),
+  teamBestenlisten: (slug: string, period: string) =>
+    req<{ period: string; tafeln: TeamTafelMitZeilen[] }>(`/api/teams/${encodeURIComponent(slug)}/bestenlisten?period=${period}`),
+  teamMitglieder: (slug: string) =>
+    req<{ mitglieder: TeamMitglied[]; anfragen: TeamMitglied[] }>(`/api/teams/${encodeURIComponent(slug)}/mitglieder`),
+  teamBeitreten: (slug: string) =>
+    req<{ status: "aktiv" | "angefragt"; slug: string }>(`/api/teams/${encodeURIComponent(slug)}/beitreten`, { method: "POST" }),
+  teamAustreten: (slug: string) => req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/austreten`, { method: "POST" }),
+  teamEinladungAnsehen: (token: string) => req<TeamEinladungInfo>(`/api/teams/einladung/${encodeURIComponent(token)}`),
+  teamEinladungAnnehmen: (token: string) =>
+    req<{ status: "aktiv" | "angefragt"; slug: string }>(`/api/teams/einladung/${encodeURIComponent(token)}`, { method: "POST" }),
+  teamEinstellen: (slug: string, body: Partial<TeamEinstellungen>) =>
+    req<TeamInfo>(`/api/teams/${encodeURIComponent(slug)}`, { method: "PUT", body: JSON.stringify(body) }),
+  teamLogo: async (slug: string, file: File) =>
+    uploadFile<{ logo_url: string }>(`/api/teams/${encodeURIComponent(slug)}/logo`, file),
+  teamFreigabe: (slug: string) =>
+    req<{ freigabe: string }>(`/api/teams/${encodeURIComponent(slug)}/freigabe`, { method: "POST" }),
+  teamTafelnSetzen: (slug: string, tafeln: TeamTafel[]) =>
+    req<{ tafeln: TeamTafel[] }>(`/api/teams/${encodeURIComponent(slug)}/tafeln`, { method: "PUT", body: JSON.stringify(tafeln) }),
+  teamSpotsSetzen: (slug: string, ids: number[]) =>
+    req<{ spots: number[] }>(`/api/teams/${encodeURIComponent(slug)}/spots`, { method: "PUT", body: JSON.stringify(ids) }),
+  teamEinladungen: (slug: string) => req<{ join: string; apply: string }>(`/api/teams/${encodeURIComponent(slug)}/einladungen`),
+  teamEinladungNeu: (slug: string, art: "join" | "apply") =>
+    req<Partial<{ join: string; apply: string }>>(`/api/teams/${encodeURIComponent(slug)}/einladungen/${art}/neu`, { method: "POST" }),
+  teamAnnehmen: (slug: string, uid: number) =>
+    req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/mitglieder/${uid}/annehmen`, { method: "POST" }),
+  teamEntfernen: (slug: string, uid: number) =>
+    req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/mitglieder/${uid}`, { method: "DELETE" }),
+  teamRolle: (slug: string, uid: number, rolle: TeamRolle) =>
+    req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/mitglieder/${uid}/rolle`, { method: "PUT", body: JSON.stringify({ rolle }) }),
+  teamLoeschen: (slug: string, name: string) =>
+    req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/loeschen`, { method: "POST", body: JSON.stringify({ name }) }),
+  adminTeams: () => req<AdminTeamFreigabe[]>("/api/admin/teams"),
+  adminTeamEntscheiden: (id: number, ok: boolean, notiz?: string) =>
+    req<{ freigabe: string }>(`/api/admin/teams/${id}`, { method: "POST", body: JSON.stringify({ ok, notiz: notiz || null }) }),
 };
+
+// ---- Teams ----
+export type TeamRolle = "leiter" | "moderator" | "mitglied";
+export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null }
+export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null }
+export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean }
+export interface TeamEinstellungen {
+  name: string; slug: string; beschreibung: string; farbe: string;
+  anmeldungen_zulassen: boolean; automatisch_akzeptieren: boolean; oeffentlich: boolean;
+  mitglieder_sichtbar: "mitglieder" | "angemeldete";
+}
+export interface TeamInfo extends TeamAuftritt {
+  id: number; mitglieder_anzahl: number; oeffentlich: boolean; bestenlisten_oeffentlich: boolean;
+  anmeldungen_zulassen: boolean; automatisch_akzeptieren: boolean; mitglieder_sichtbar: "mitglieder" | "angemeldete";
+  meine_rolle: TeamRolle | null; mein_status: "aktiv" | "angefragt" | null;
+  darf_bestenlisten: boolean; darf_mitglieder: boolean;
+  spots?: { id: number; name: string | null }[];
+  // nur fuer den Leiter:
+  freigabe?: "keine" | "wartet" | "frei" | "abgelehnt"; freigabe_notiz?: string | null;
+  auftritt_geaendert?: boolean; frei?: TeamAuftritt | null;
+}
+export interface TeamTafel {
+  id?: number; kennzahl: string; sportart: string; accel_only: boolean; nur_brett: boolean;
+  foil_band: string; nur_teamspots: boolean;
+}
+export interface TeamZeile {
+  rang: number; name: string | null; initialen: string; value: number;
+  user_id?: number; avatar_url?: string | null; session_id?: number; started_at?: string | null; spot?: string | null;
+}
+export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[] }
+export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_anzahl: number; period: string; tafeln: TeamTafelMitZeilen[] }
+export interface TeamMitglied { user_id: number; name: string; avatar_url: string | null; rolle: TeamRolle; seit: string | null }
+export interface TeamEinladungInfo extends TeamAuftritt { id: number; art: "join" | "apply"; oeffentlich: boolean; mein_status: string | null }
+export interface AdminTeamFreigabe {
+  id: number; neu: TeamAuftritt; alt: TeamAuftritt | null; oeffentlich: boolean;
+  leiter: { user_id: number; name: string | null } | null;
+}
 
 export interface AdminFeedback {
   id: number;

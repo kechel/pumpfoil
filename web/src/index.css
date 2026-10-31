@@ -224,3 +224,14 @@ html.theme-light .pf-million {
   z-index: 10000 !important;
   border-radius: 0 !important;
 }
+
+/* TEAMFARBE (31.10.2026, lib/teamFarben.ts): der Rahmen `.team-farbe` bekommt --ta-d/--ta-h per
+ * Inline-Stil; hier wird daraus die Farbe des aktuellen Modus. Dunkel ist der Standard (wie Tailwind
+ * hier), html.theme-light schaltet auf den dunklen Ton fuer hellen Grund. */
+.team-farbe { --ta: var(--ta-d, #22d3ee); --ta-auf: #020617; }
+html.theme-light .team-farbe { --ta: var(--ta-h, #0e7490); --ta-auf: #ffffff; }
+.team-akzent { color: var(--ta); }
+.team-knopf { background-color: var(--ta); color: var(--ta-auf); }
+.team-knopf:hover { filter: brightness(1.08); }
+.team-rand { border-color: var(--ta); }
+.team-flaeche { background-color: color-mix(in srgb, var(--ta) 14%, transparent); }

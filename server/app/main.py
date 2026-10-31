@@ -18,6 +18,7 @@ from .api.deps import require_social
 from .api import tanz as tanz_api
 from .api import bewertung as bewertung_api
 from .api import supporter as supporter_api
+from .api import teams as teams_api
 from .config import get_settings
 from .db import init_db
 
@@ -525,6 +526,10 @@ app.include_router(supporter_api.router)   # Supporter-Beitraege (23.10.2026), A
 app.include_router(chat.router, dependencies=[Depends(require_social)])
 app.include_router(transfers.router, dependencies=[Depends(require_social)])
 app.include_router(friends.router, dependencies=[Depends(require_social)])
+# Teams (31.10.2026, docs/TEAMS.md): angemeldet hinter dem Social-Gate; die oeffentliche Bestenliste ohne Login.
+app.include_router(teams_api.router, dependencies=[Depends(require_social)])
+app.include_router(teams_api.public_router)
+app.include_router(teams_api.admin_router)
 app.include_router(appmeta.router)
 
 # --- Öffentliche Medien (Fotos, Profilbilder). Unraffbare UUID-Dateinamen. ---
@@ -610,7 +615,9 @@ if settings.web_dist.exists():
     # Person geschickt, nicht der Suchmaschine.
     _PRIVAT = ("login", "reset", "home", "community", "chat", "verlauf", "sessions", "import",
                "alle-sessions", "spots", "foils", "foil-stats", "foil-rechner", "account",
-               "einstellungen", "konten", "vergleich", "admin", "s", "oauth")
+               "einstellungen", "konten", "vergleich", "admin", "s", "oauth",
+               # Teamseiten (31.10.2026): auch die oeffentliche Bestenliste soll nicht in Suchmaschinen.
+               "teams")
 
     def _privat(pfad: str) -> bool:
         erstes = pfad.strip("/").split("/", 1)[0].lower()

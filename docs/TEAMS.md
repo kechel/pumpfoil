@@ -1,4 +1,9 @@
-# Teams — Plan (Stand 31.10.2026, noch nicht gebaut)
+# Teams — Plan und Stand (31.10.2026)
+
+**Stufe 1 LIVE seit 31.10.2026 (Web).** Server `server/app/teams.py` + `server/app/api/teams.py` (Tests
+`server/tests/test_teams.py`), Web `web/src/pages/Team*.tsx`, Admin-Reiter „Teams“. Uebersetzt: de, en, gsw, de-AT;
+die uebrigen Sprachen fallen auf Englisch zurueck und kommen in einem Durchgang, wenn die deutschen Texte stehen.
+Noch nicht in Stufe 1: Teamsummen/-statistik, Logbuch, Bild teilen, Team-Chat (Stufe 2).
 
 Anlass: Telefonat Jan mit einem Nutzer, der Teams mit eigenen Bestenlisten haben moechte; als Vorbild
 schickte er eine schlichte Kite-Big-Air-Rangliste (Rang, Flagge, Name, Wert — eine Zeile je Person).

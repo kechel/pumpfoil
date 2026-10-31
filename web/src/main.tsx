@@ -94,6 +94,11 @@ const FoilStats = seite(() => import("./pages/FoilStats"));
 const FoilDetail = seite(() => import("./pages/FoilDetail"));
 const WatchStats = seite(() => import("./pages/WatchStats"));
 const Friends = seite(() => import("./pages/Friends"));
+// Teams (31.10.2026, docs/TEAMS.md)
+const Teams = seite(() => import("./pages/Teams"));
+const Team = seite(() => import("./pages/Team"));
+const TeamEinstellungen = seite(() => import("./pages/TeamEinstellungen"));
+const TeamEinladung = seite(() => import("./pages/TeamEinladung"));
 const FoilCalculator = seite(() => import("./pages/FoilCalculator"));
 const PersonalHome = seite(() => import("./pages/PersonalHome"));
 const Admin = seite(() => import("./pages/Admin"));
@@ -141,8 +146,13 @@ const VERKNUEPFEN_RUECKWEG = window.location.pathname === "/konten"
   && new URLSearchParams(window.location.search).has("verknuepfen");
 
 function Rahmen() {
-  const textSeite = useMatches().some((m) => (m.handle as { text?: boolean } | undefined)?.text);
+  const treffer = useMatches();
+  const textSeite = treffer.some((m) => (m.handle as { text?: boolean } | undefined)?.text);
+  const gastSeite = treffer.some((m) => (m.handle as { gast?: boolean } | undefined)?.gast);
   if (getToken()) return <App />;
+  // Teamseite und Einladungslink fuer Gaeste (31.10.2026): eigene schmale Kopfzeile wie /s/<token>.
+  // Die Seite selbst zeigt Gaesten nur die oeffentliche Bestenliste bzw. den Weg zur Anmeldung.
+  if (gastSeite) return <GastRahmen />;
   // Rueckweg vom Hersteller ohne Anmeldung in diesem Browser (aus den Apps): Bestaetigung statt Startseite.
   if (VERKNUEPFEN_RUECKWEG) return <VerknuepfenOhneLogin />;
   if (!textSeite) return <Landing />;
@@ -157,6 +167,28 @@ function Rahmen() {
 }
 
 const TEXT = { text: true };
+const GAST = { gast: true };
+
+function GastRahmen() {
+  const alt = "pumpfoil.org — track every pump";
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-950">
+      <header className="flex items-center justify-between gap-3 border-b border-slate-800/60 px-4 pb-3"
+        style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}>
+        <a href="/" aria-label="pumpfoil.org" className="shrink-0">
+          <img src="/wordmark-h-dark.png" alt={alt} className="logo-dark h-7 max-w-none" />
+          <img src="/wordmark-h-light.png" alt={alt} className="logo-light h-7 max-w-none" />
+        </a>
+      </header>
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6"><Outlet /></main>
+      <footer className="border-t border-slate-800/60 px-4 py-5 text-center text-xs text-slate-400">
+        <a href="/" className="hover:text-slate-200">pumpfoil.org</a>
+        <span className="mx-2">·</span>
+        <a href="/impressum" className="hover:text-slate-200">Impressum</a>
+      </footer>
+    </div>
+  );
+}
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -223,6 +255,11 @@ const router = createBrowserRouter([
           { path: "einstellungen", element: <Settings /> },
           // Freunde verwalten (15.10.2026), Einstieg ueber den Knopf auf der Profilseite.
           { path: "friends", element: <Friends /> },
+          // Teams (31.10.2026). Teamseite und Einladungslink auch fuer Gaeste (GAST-Rahmen).
+          { path: "teams", element: <Teams /> },
+          { path: "teams/:slug", element: <Team />, handle: GAST },
+          { path: "teams/:slug/einstellungen", element: <TeamEinstellungen /> },
+          { path: "teams/:slug/:einladung", element: <TeamEinladung />, handle: GAST },
           { path: "konten", element: <LinkedAccounts /> },
           // Zustimmungsseite des eigenen OAuth-Servers. IM App-Rahmen, damit sie aussieht wie der
           // Rest und der Nutzer sieht, wo er ist — wer aus einem fremden Programm hierher springt,

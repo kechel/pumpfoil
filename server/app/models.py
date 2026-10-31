@@ -1952,3 +1952,103 @@ class FeedbackBeitrag(Base):
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     notiz: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+# ---------------------------------------------------------------- Teams (31.10.2026) ----
+# Plan und Jans Entscheidungen: docs/TEAMS.md. Regeln: app/teams.py.
+
+class Team(Base):
+    """Ein Team mit eigenen Bestenlisten. Intern darf es sofort alles; nach AUSSEN (Community-
+    Abschnitt, oeffentliche Bestenliste, Adresse) erscheint nur die von einem Admin freigegebene
+    Fassung `frei_*` — eine spaetere Aenderung gilt intern sofort, aussen erst nach neuer Freigabe."""
+
+    __tablename__ = "teams"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(60))
+    slug: Mapped[str] = mapped_column(String(40), unique=True, index=True)
+    beschreibung: Mapped[str | None] = mapped_column(Text)
+    logo_url: Mapped[str | None] = mapped_column(String(300))
+    farbe: Mapped[str | None] = mapped_column(String(20))
+    anmeldungen_zulassen: Mapped[bool] = mapped_column(Boolean, default=True)
+    automatisch_akzeptieren: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Bestenlisten auch ohne Anmeldung sichtbar (nur mit freigegebener Fassung wirksam).
+    oeffentlich: Mapped[bool] = mapped_column(Boolean, default=False)
+    mitglieder_sichtbar: Mapped[str] = mapped_column(String(12), default="mitglieder")   # mitglieder|angemeldete
+    # keine (nie beantragt) | wartet | frei | abgelehnt
+    freigabe: Mapped[str] = mapped_column(String(10), default="keine")
+    freigabe_notiz: Mapped[str | None] = mapped_column(Text)
+    frei_name: Mapped[str | None] = mapped_column(String(60))
+    frei_slug: Mapped[str | None] = mapped_column(String(40))
+    frei_beschreibung: Mapped[str | None] = mapped_column(Text)
+    frei_logo_url: Mapped[str | None] = mapped_column(String(300))
+    frei_farbe: Mapped[str | None] = mapped_column(String(20))
+    frei_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    angelegt_von: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    angelegt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class TeamMitglied(Base):
+    __tablename__ = "team_mitglieder"
+    __table_args__ = (UniqueConstraint("team_id", "user_id", name="uq_team_mitglied"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    rolle: Mapped[str] = mapped_column(String(10), default="mitglied")     # leiter|moderator|mitglied
+    status: Mapped[str] = mapped_column(String(10), default="aktiv")       # aktiv|angefragt
+    seit: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # Zustimmung zur moeglichen Oeffentlichkeit der Bestenlisten (Jan, 31.10.2026: bei JEDEM Beitritt).
+    zustimmung_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class TeamEinladung(Base):
+    """Je Team genau ein join- und ein apply-Link. Der Token muss in den Einstellungen wieder
+    anzeigbar sein -> verschluesselt; gesucht wird ueber `token_hash`."""
+
+    __tablename__ = "team_einladungen"
+    __table_args__ = (UniqueConstraint("team_id", "art", name="uq_team_einladung_art"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    art: Mapped[str] = mapped_column(String(6))                 # join|apply
+    token: Mapped[str] = mapped_column(Verschluesselt)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    erzeugt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    genutzt: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class TeamSpot(Base):
+    __tablename__ = "team_spots"
+    __table_args__ = (UniqueConstraint("team_id", "spot_id", name="uq_team_spot"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    spot_id: Mapped[int] = mapped_column(ForeignKey("spots.id"))
+
+
+class TeamTafel(Base):
+    """Eine Bestenliste des Teams: Kennzahl + Filter."""
+
+    __tablename__ = "team_tafeln"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    kennzahl: Mapped[str] = mapped_column(String(30))
+    sportart: Mapped[str] = mapped_column(String(30), default="pumpfoil")
+    accel_only: Mapped[bool] = mapped_column(Boolean, default=True)
+    nur_brett: Mapped[bool] = mapped_column(Boolean, default=False)
+    foil_band: Mapped[str] = mapped_column(String(30), default="all")
+    nur_teamspots: Mapped[bool] = mapped_column(Boolean, default=False)
+    reihenfolge: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class TeamSlugAlt(Base):
+    """Fruehere Adressen: leiten weiter und werden nie neu vergeben (auch nach dem Loeschen des Teams,
+    dann mit team_id NULL)."""
+
+    __tablename__ = "team_slugs_alt"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    slug: Mapped[str] = mapped_column(String(40), unique=True, index=True)
+    team_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True)

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, clearToken, SocialChannelState } from "../lib/api";
 import { Card, Button, Avatar, NewBadge } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon, CommunityIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon, CommunityIcon, FlagIcon } from "../components/Icons";
 import { useI18n, useT } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { fmtDate } from "../lib/time";
@@ -176,6 +176,7 @@ export default function Settings() {
       </Link>
 
       <FreundeKarte />
+      <TeamKarte />
 
       <Link
         to="/foils"
@@ -812,6 +813,34 @@ function GewichtExtras() {
         </p>
       )}
     </>
+  );
+}
+
+
+// Einstieg in die Teams (Jan, 31.10.2026: „im profil oben als neuer button 'Team'"). Die Zahl zaehlt
+// offene Beitrittsanfragen in Teams, die ich leite oder moderiere.
+function TeamKarte() {
+  const t = useT();
+  const [n, setN] = useState(0);
+  useEffect(() => { api.teamsMine().then((l) => setN(l.reduce((a, x) => a + (x.anfragen || 0), 0))).catch(() => {}); }, []);
+  return (
+    <Link
+      to="/teams"
+      className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
+    >
+      <span className="flex items-center gap-3">
+        <FlagIcon className="h-6 w-6 text-brand-400" />
+        <span className="min-w-0">
+          <span className="flex flex-wrap items-center gap-2 font-medium text-slate-100">
+            {t("team.profilKnopf")}
+            <NewBadge />
+            {n > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{n}</span>}
+          </span>
+          <span className="block text-sm text-slate-400">{t("team.profilHinweis")}</span>
+        </span>
+      </span>
+      <ChevronIcon className="h-5 w-5 text-slate-400" />
+    </Link>
   );
 }
 

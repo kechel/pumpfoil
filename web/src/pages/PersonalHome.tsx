@@ -6,7 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, FoilStatsGroup, OverallStats, Profile, SessionSummary } from "../lib/api";
+import { api, FoilStatsGroup, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
+import TeamWappen from "../components/TeamWappen";
+import { teamFarbStil } from "../lib/teamFarben";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { ListenAnsicht } from "../components/ListenAnsicht";
@@ -301,6 +303,8 @@ export default function PersonalHome() {
   const [latestFehler, setLatestFehler] = useState(false);
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
+  const [meineTeams, setMeineTeams] = useState<TeamKurz[]>([]);
+  useEffect(() => { api.teamsMine().then((l) => setMeineTeams(l.filter((x) => x.status === "aktiv"))).catch(() => {}); }, []);
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
   // VORERST Default "alle" (zu wenige Nutzer, um einzuschränken); smarter Default vorbereitet.
   const [accelOnly, setAccelOnly] = useState(false);
@@ -456,6 +460,14 @@ export default function PersonalHome() {
               <span className="max-w-[7rem] truncate sm:max-w-[16rem]">{homespot}</span>
             </Link>
           )}
+          {/* Teams als kleine Links neben dem Homespot, mit Wappen und Teamfarbe (Jan, 31.10.2026) */}
+          {meineTeams.map((tm) => (
+            <Link key={tm.id} to={`/teams/${tm.slug}`} title={tm.name}
+              className="team-farbe team-akzent flex shrink-0 items-center gap-1 text-xs hover:underline" style={teamFarbStil(tm.farbe)}>
+              <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={16} />
+              <span className="max-w-[6rem] truncate sm:max-w-[12rem]">{tm.name}</span>
+            </Link>
+          ))}
           <ListenAnsicht />
           <Link to="/sessions" className="whitespace-nowrap text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
         </div>

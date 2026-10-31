@@ -42,6 +42,10 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 | `/vergleich` | `Compare.tsx` | Mehr-Fahrer-/Session-Vergleich mit Farb-Legende je Fahrer. |
 | `/account` | `Account.tsx` | **Uhr einrichten**: Tabs Guide/Connect/Ansichten/Alarm/App/Kompatibilität (Watch-Matrix, Connect-IQ-Download). Von Einstellungen aus verlinkt. |
 | `/friends` | `Friends.tsx` | **Freunde verwalten** (15.10.2026, Einstieg: Knopf auf der Profilseite): Freunde, wer davon gerade pumpt (mit Spot), Anfragen an mich, eigene offene Anfragen. Angefragt wird auf `/foiler/:id`. Regeln: `server/app/freunde.py`. |
+| `/teams` | `Teams.tsx` | **Meine Teams + Team gruenden** (31.10.2026, Einstieg: Knopf „Team“ auf der Profilseite). Plan/Regeln: `docs/TEAMS.md`, `server/app/teams.py`. |
+| `/teams/:slug` | `Team.tsx` | **Teamseite**: Wappen, Bestenlisten mit Zeitraum, Mitglieder (wenn erlaubt), Beitreten-Knopf mit Kleingedrucktem zur Oeffentlichkeit. **Auch fuer Gaeste** (eigener Rahmen in `main.tsx`), dann nur oeffentliche, freigegebene Bestenliste: Rang, Name, Initialen, Wert. Nicht fuer Suchmaschinen. Links auch auf Home neben dem Homespot. |
+| `/teams/:slug/einstellungen` | `TeamEinstellungen.tsx` | Leitung: Freigabe, Auftritt (Name, Adresse, Beschreibung, Wappen, Farbpalette), Beitritt (zwei Schalter), Sichtbarkeit, Bestenlisten-Editor, Teamspots, Mitglieder, sicheres Loeschen. Moderatoren: Mitglieder + Einladungslinks. |
+| `/teams/:slug/join-<token>`, `/apply-<token>` | `TeamEinladung.tsx` | **Einladungslinks** (direkt Mitglied bzw. Anfrage), mit QR-Code in den Einstellungen. Ohne Konto: Link im localStorage gemerkt, nach Login/Registrierung zurueck (`App.tsx`). |
 | `/einstellungen` | `Settings.tsx` | Zentrale Einstellungen: Profil (Name/E-Mail/Avatar), Sprache, Theme, Schriftgröße, PWA-Install, Push-Benachrichtigungen; Einstiege zu Uhr/Foils/Rechner/Konten; App-Build-Info. |
 | `/konten` | `LinkedAccounts.tsx` | „Verknüpfte Konten": Import-Integrationen (Polar/COROS/Suunto/…) je als eigene Karte; blendet sich aus, wenn serverseitig nicht konfiguriert. |
 

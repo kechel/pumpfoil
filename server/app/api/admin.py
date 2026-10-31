@@ -691,13 +691,16 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     # entscheidet endgueltig — bis dahin ist es eine offene Aufgabe.
     spots = int(db.query(func.count()).select_from(models.SpotNote)
                 .filter(models.SpotNote.hidden.is_(True)).scalar() or 0)
+    # Teams, die auf Freigabe ihres Auftritts nach aussen warten (docs/TEAMS.md).
+    teams = int(db.query(func.count()).select_from(models.Team)
+                .filter(models.Team.freigabe == "wartet").scalar() or 0)
     return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat,
-            "social": social, "feedback": feedback, "spots": spots,
+            "social": social, "feedback": feedback, "spots": spots, "teams": teams,
             # `suspect` zaehlt NICHT mehr mit (Jan, 12.10.2026): das Physik-Gate nimmt die Laeufe ueber
             # 40 km/h ohnehin aus Rekorden und Statistik, und ob eine Session ueberhaupt Pumpfoil
             # ist, klaert der Knopf „sieht nicht nach Pumpfoil aus" beim Besitzer. Der Reiter bleibt
             # (falls wir ihn wieder brauchen), die Zahl wird weiter geliefert, nur nicht gemeldet.
-            "total": flagged + fake + chat + social + feedback + spots}
+            "total": flagged + fake + chat + social + feedback + spots + teams}
 
 
 @router.get("/overview")

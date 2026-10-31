@@ -1,7 +1,9 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { SupporterBadge } from "../components/SupporterBadge";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe } from "../lib/api";
+import TeamWappen from "../components/TeamWappen";
+import { teamFarbStil } from "../lib/teamFarben";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon, StarIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -9,7 +11,7 @@ import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS, sortiereSports } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
-type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "blocks" | "social" | "system";
+type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "teams" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
@@ -21,6 +23,7 @@ const TABS: [Tab, string][] = [
   ["photos", "adm.tab.photos"],
   ["chat", "adm.tab.chat"],
   ["spots", "adm.tab.spots"],
+  ["teams", "adm.tab.teams"],
   ["sessions", "adm.tab.sessions"],
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
@@ -53,6 +56,7 @@ export default function Admin() {
     chat: pending?.chat ?? 0,
     social: pending?.social ?? 0, feedback: pending?.feedback ?? 0,
     spots: pending?.spots ?? 0,
+    teams: pending?.teams ?? 0,
   };
   return (
     <div>
@@ -87,6 +91,7 @@ export default function Admin() {
       {tab === "photos" && <PhotosTab />}
       {tab === "chat" && <ChatModTab />}
       {tab === "spots" && <SpotsTab />}
+      {tab === "teams" && <TeamsFreigabeTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "bewertungen" && <BewertungenTab />}
       {tab === "supporter" && <SupporterTab />}
@@ -95,6 +100,61 @@ export default function Admin() {
       {tab === "social" && <SocialTab />}
       {tab === "blocks" && <BlocksTab />}
       {tab === "audit" && <AuditTab />}
+    </div>
+  );
+}
+
+// Teams: Freigabe des Auftritts nach aussen (31.10.2026, docs/TEAMS.md). Intern duerfen Teams alles;
+// geprueft werden nur Name, Adresse, Beschreibung, Wappen und Farbe, so wie sie oeffentlich erscheinen.
+// Links die bisher freigegebene Fassung (falls es eine gibt), rechts die neue. Wie die Demo-Zeile ohne
+// Uebersetzung der Inhalte — nur Jan und Admins sehen das.
+function TeamsFreigabeTab() {
+  const [rows, setRows] = useState<AdminTeamFreigabe[] | null>(null);
+  const [notiz, setNotiz] = useState<Record<number, string>>({});
+  const laden = () => api.adminTeams().then(setRows).catch(() => setRows([]));
+  useEffect(() => { laden(); }, []);
+  if (!rows) return <p className="text-sm text-slate-400">…</p>;
+  if (!rows.length) return <p className="text-sm text-slate-400">Keine Teams warten auf Freigabe.</p>;
+  const Fassung = ({ f, titel }: { f: AdminTeamFreigabe["neu"] | null; titel: string }) => (
+    <div className="min-w-0 flex-1 rounded-xl border border-slate-800 p-3" style={teamFarbStil(f?.farbe)}>
+      <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">{titel}</p>
+      {!f ? <p className="text-sm text-slate-400">— (noch nie freigegeben)</p> : (
+        <div className="team-farbe" style={teamFarbStil(f.farbe)}>
+          <div className="mb-2 flex items-center gap-2">
+            <TeamWappen name={f.name} logo={f.logo_url} farbe={f.farbe} size={48} />
+            <div className="min-w-0">
+              <p className="team-akzent truncate font-semibold">{f.name}</p>
+              <p className="truncate text-xs text-slate-400">/teams/{f.slug} · {f.farbe}</p>
+            </div>
+          </div>
+          <p className="whitespace-pre-line text-sm text-slate-300">{f.beschreibung || "—"}</p>
+        </div>
+      )}
+    </div>
+  );
+  return (
+    <div className="space-y-4">
+      {rows.map((r) => (
+        <Card key={r.id} className="p-4">
+          <p className="mb-2 text-sm text-slate-300">
+            Team #{r.id} · Leitung: {r.leiter ? <Link to={`/foiler/${r.leiter.user_id}`} className="underline">{r.leiter.name ?? r.leiter.user_id}</Link> : "—"}
+            {r.oeffentlich && " · Bestenlisten sollen öffentlich sein"}
+          </p>
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row">
+            <Fassung f={r.alt} titel="Bisher freigegeben" />
+            <Fassung f={r.neu} titel="Neu" />
+          </div>
+          <input value={notiz[r.id] ?? ""} onChange={(e) => setNotiz({ ...notiz, [r.id]: e.target.value })}
+            placeholder="Grund bei Ablehnung (sieht die Teamleitung)"
+            className="mb-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+          <div className="flex gap-2">
+            <button onClick={() => api.adminTeamEntscheiden(r.id, true).then(laden)}
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">Freigeben</button>
+            <button onClick={() => api.adminTeamEntscheiden(r.id, false, notiz[r.id]).then(laden)}
+              className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">Ablehnen</button>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }

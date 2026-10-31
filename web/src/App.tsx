@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type React from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -176,9 +176,27 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
   //      die Sitzung neu und der Assistent wird wieder angeboten, genau wie beschriftet.
   //   3. Laesst sich sessionStorage nicht lesen (privates Fenster), wird NICHT geleitet: ohne
   //      Gedaechtnis waere die Schleife aus 2. nicht zu verhindern.
+  // Einladungslink eines Teams, geoeffnet OHNE Anmeldung (pages/TeamEinladung.tsx merkt ihn): nach dem
+  // Login bzw. der Registrierung genau dorthin zurueck, dann ist man direkt im Team (31.10.2026).
+  const einladungOffen = useRef(false);
+  useEffect(() => {
+    if (!profile) return;
+    let ziel: string | null = null;
+    try {
+      ziel = localStorage.getItem("foil_team_einladung");
+      if (ziel) localStorage.removeItem("foil_team_einladung");
+    } catch { return; }
+    if (ziel && ziel.startsWith("/teams/") && ort.pathname !== ziel) {
+      einladungOffen.current = true;
+      nav(ziel, { replace: true });
+    }
+  }, [profile]);   // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!profile?.onboarding_due) return;
     if (ort.pathname !== "/" && ort.pathname !== "/home") return;
+    // Wartet eine Team-Einladung, hat sie Vorrang (Effekt oben) — der Assistent kommt beim naechsten Mal.
+    if (einladungOffen.current) return;
     try {
       if (sessionStorage.getItem("foil_onb_angeboten") === "1") return;
       sessionStorage.setItem("foil_onb_angeboten", "1");

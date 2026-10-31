@@ -141,6 +141,10 @@ def konto_loeschen(db: Session, user: models.User) -> dict:
 
     if user.avatar_url:
         medien.append(user.avatar_url)
+
+    # 2c) Geleitete Teams uebergeben (oder, ohne weitere Mitglieder, loeschen) — docs/TEAMS.md.
+    from .teams import vor_konto_loeschen
+    medien += vor_konto_loeschen(db, uid)
     db.flush()
 
     # 3) Alles Uebrige, abgeleitet statt aufgezaehlt.

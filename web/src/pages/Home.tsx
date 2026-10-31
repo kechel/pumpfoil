@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { passtZu } from "../lib/suche";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
-import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand } from "../lib/api";
+import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamListenEintrag } from "../lib/api";
+import TeamWappen from "../components/TeamWappen";
+import { teamFarbStil } from "../lib/teamFarben";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
@@ -11,7 +13,7 @@ import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
-import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, MapIcon } from "../components/Icons";
+import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, MapIcon, FlagIcon } from "../components/Icons";
 import { gemerktKurz, mitEigenen, type Gemerkt } from "../components/SpotHeatmap";
 import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
@@ -661,6 +663,7 @@ function CommunitySection() {
       <LatestMedia key={`m${freunde}`} />
       <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} />
       <TopLiked key={`t${freunde}`} period={period} />
+      <TeamsSection />
       {/* Reihenfolge unter „Best bewertet" (Jan, 11.09.2026): erst die Uhr-Layouts, dann der
           Social-Feed, dann die Spots.
           Die LAYOUTS standen ganz unten und duerfen prominenter werden — daran beteiligen sich
@@ -673,6 +676,39 @@ function CommunitySection() {
       <SocialFeed />
       <SpotSection key={`s${freunde}`} period={period} accelOnly={accelOnly} sport={sport} />
       <RoutenSection />
+    </div>
+  );
+}
+
+// Teams der Community (Jan, 31.10.2026: „in der generellen community seite soll dann nur ein neuer
+// abschnitt rein mit den teams"). Nur freigegebene Teams, in ihrer freigegebenen Fassung. Solange es
+// keins gibt, erscheint der Abschnitt gar nicht — gegruendet wird ueber den Knopf „Team" im Profil.
+function TeamsSection() {
+  const t = useT();
+  const [rows, setRows] = useState<TeamListenEintrag[] | null>(null);
+  useEffect(() => { api.teamsListe().then(setRows).catch(() => setRows([])); }, []);
+  if (!rows || rows.length === 0) return null;
+  return (
+    <div className="mt-6">
+      <div className="mb-1.5 flex items-center gap-2">
+        <FlagIcon className="h-5 w-5 text-brand-400" />
+        <h3 className="text-lg font-bold">{t("team.community")}</h3>
+        <Link to="/teams" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>
+      </div>
+      {(
+        <div className="grid gap-2 sm:grid-cols-2">
+          {rows.map((tm) => (
+            <Link key={tm.id} to={`/teams/${tm.slug}`} style={teamFarbStil(tm.farbe)}
+              className="team-farbe flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700">
+              <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={40} />
+              <span className="min-w-0 flex-1">
+                <span className="team-akzent block truncate font-semibold">{tm.name}</span>
+                <span className="block text-xs text-slate-400">{t("team.mitgliederAnzahl", { n: String(tm.mitglieder_anzahl) })}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
