@@ -8,6 +8,7 @@ import { Avatar, Card } from "../components/ui";
 import { ChevronIcon, TrashIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
 import TeamQr from "../components/TeamQr";
+import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { TEAM_FARBEN, teamFarbStil } from "../lib/teamFarben";
 import { TEAM_KENNZAHLEN, fehlerCode, teamUrl } from "../lib/teamKennzahlen";
 import { sortiereNachSport } from "../lib/sportClass";
@@ -265,6 +266,8 @@ export default function TeamEinstellungen() {
           </div>
         </Card>
       )}
+
+      {leiter && <TeamEventsVerwalten slug={slug} sports={sports} bands={bands} alleSpots={alleSpots} onMeldung={setMeldung} />}
 
       {leiter && (
         <Card className="mb-4 p-4">

@@ -11,6 +11,8 @@ import { Avatar, Card } from "../components/ui";
 import { ChatBubbleIcon, ChevronIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { openChatOverlay } from "../components/DmWidget";
+import { eventZeit } from "../lib/teamEvents";
+import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { fehlerCode, kennzahl } from "../lib/teamKennzahlen";
@@ -98,7 +100,7 @@ function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: str
   );
 }
 
-function Tafel({ tf, gast, t, onBild }: {
+export function Tafel({ tf, gast, t, onBild }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
 }) {
   const k = kennzahl(tf.kennzahl);
@@ -153,7 +155,7 @@ function Tafel({ tf, gast, t, onBild }: {
 
 export default function Team() {
   const { slug = "" } = useParams();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const nav = useNavigate();
   const gast = !getToken();
   const [kopf, setKopf] = useState<Kopf | null>(null);
@@ -166,7 +168,8 @@ export default function Team() {
   const [meldung, setMeldung] = useState<string | null>(null);
   const [stat, setStat] = useState<TeamStatistik | null>(null);
   const [logbuch, setLogbuch] = useState<TeamLogbuchEintrag[] | null>(null);
-  const [bild, setBild] = useState<TeamTafelMitZeilen | null>(null);
+  const [bild, setBild] = useState<{ tf: TeamTafelMitZeilen; zeile: string } | null>(null);
+  const [events, setEvents] = useState<TeamEvent[] | null>(null);
 
   const laden = () => {
     if (gast) return;
@@ -180,7 +183,7 @@ export default function Team() {
 
   useEffect(() => {
     if (gast) {
-      api.teamOeffentlich(slug, period).then((d) => { setKopf(d); setTafeln(d.tafeln); }).catch(() => setFehlt(true));
+      api.teamOeffentlich(slug, period).then((d) => { setKopf(d); setTafeln(d.tafeln); setEvents(d.events ?? []); }).catch(() => setFehlt(true));
     } else if (kopf?.darf_bestenlisten) {
       api.teamBestenlisten(slug, period).then((d) => setTafeln(d.tafeln)).catch(() => setTafeln([]));
       api.teamStatistik(slug, period).then(setStat).catch(() => setStat(null));
@@ -188,7 +191,10 @@ export default function Team() {
   }, [slug, period, gast, kopf?.darf_bestenlisten]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!gast && kopf?.darf_bestenlisten) api.teamLogbuch(slug).then(setLogbuch).catch(() => setLogbuch(null));
+    if (!gast && kopf?.darf_bestenlisten) {
+      api.teamLogbuch(slug).then(setLogbuch).catch(() => setLogbuch(null));
+      api.teamEvents(slug).then(setEvents).catch(() => setEvents(null));
+    }
   }, [slug, gast, kopf?.darf_bestenlisten]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   if (fehlt) return <p className="text-sm text-slate-400">{t("team.nichtGefunden")}</p>;
@@ -254,6 +260,35 @@ export default function Team() {
         </button>
       )}
 
+      {events && events.length > 0 && (
+        <div className="mb-5 space-y-3">
+          {events.map((e) => (
+            <Card key={e.id} className={`p-4 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <h3 className="team-akzent text-lg font-bold">{e.titel}</h3>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.status === "laeuft" ? "team-knopf" : "bg-slate-800 text-slate-300"}`}>
+                  {t(`team.event.status.${e.status}`)}
+                </span>
+              </div>
+              <p className="text-sm text-slate-400">
+                {eventZeit(e.start, e.zeitzone, lang)} – {eventZeit(e.ende, e.zeitzone, lang)}
+                {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
+              </p>
+              {e.status === "auswertung" && <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(e.einfrieren_am, e.zeitzone, lang) })}</p>}
+              {e.beschreibung && <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{e.beschreibung}</p>}
+              {e.status !== "kommend" && (
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {e.tafeln.map((tf, i) => (
+                    <Tafel key={i} tf={tf} gast={gast} t={t}
+                      onBild={gast ? undefined : () => setBild({ tf, zeile: e.titel })} />
+                  ))}
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+
       {(gast || kopf.darf_bestenlisten) && (
         <>
           <div className="mb-3 flex flex-wrap gap-2">
@@ -268,7 +303,7 @@ export default function Team() {
           {!tafeln ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : tafeln.length === 0
             ? <p className="text-sm text-slate-400">{t("team.keineTafeln")}</p>
             : <div className="grid gap-3 sm:grid-cols-2">{tafeln.map((tf) => (
-                <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} onBild={gast ? undefined : () => setBild(tf)} />
+                <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} onBild={gast ? undefined : () => setBild({ tf, zeile: t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d") })} />
               ))}</div>}
           {logbuch && <Logbuch eintraege={logbuch} t={t} />}
         </>
@@ -301,8 +336,7 @@ export default function Team() {
       )}
 
       {bild && (
-        <TeamTafelBild team={kopf} tafel={bild} onClose={() => setBild(null)}
-          zeitraum={t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d")} />
+        <TeamTafelBild team={kopf} tafel={bild.tf} onClose={() => setBild(null)} zeitraum={bild.zeile} />
       )}
 
       {dialog && (

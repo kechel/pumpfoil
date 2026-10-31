@@ -1113,6 +1113,7 @@ export const api = {
    *  der Server nach den Schaltern des Nutzers (`public_profile` in den Einstellungen). */
   foilerProfil: (id: number) => req<{
     supporter?: { stufe: number; tage_jahr: number };   // Supporter-Badge (23.10.2026)
+    team_abzeichen?: TeamAbzeichen[];   // Event-Abzeichen, Plaetze 1–3 (Teams Stufe 3)
     id: number; name: string | null; avatar_url: string | null;
     ich: boolean; aus: boolean;
     // Aus Sicht des Betrachters (Freunde, 15.10.2026) + Gewicht nur fuer Freunde und einen selbst.
@@ -2085,6 +2086,13 @@ export const api = {
   teamStatistik: (slug: string, period: string) =>
     req<TeamStatistik>(`/api/teams/${encodeURIComponent(slug)}/statistik?period=${period}`),
   teamLogbuch: (slug: string) => req<TeamLogbuchEintrag[]>(`/api/teams/${encodeURIComponent(slug)}/logbuch`),
+  teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events`),
+  teamEventAnlegen: (slug: string, body: TeamEventIn) =>
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events`, { method: "POST", body: JSON.stringify(body) }),
+  teamEventAendern: (slug: string, id: number, body: TeamEventIn) =>
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  teamEventLoeschen: (slug: string, id: number) =>
+    req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`, { method: "DELETE" }),
   teamMitglieder: (slug: string) =>
     req<{ mitglieder: TeamMitglied[]; anfragen: TeamMitglied[] }>(`/api/teams/${encodeURIComponent(slug)}/mitglieder`),
   teamBeitreten: (slug: string) =>
@@ -2158,7 +2166,21 @@ export interface TeamLogbuchEintrag {
   vorher_wert: number | null; gefahren_am: string | null; erfasst_am: string | null;
 }
 export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[] }
-export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_anzahl: number; period: string; tafeln: TeamTafelMitZeilen[] }
+export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_anzahl: number; period: string; tafeln: TeamTafelMitZeilen[]; events?: TeamEvent[] }
+export type TeamEventTafel = Pick<TeamTafel, "kennzahl" | "sportart" | "accel_only" | "nur_brett" | "foil_band">;
+export interface TeamEventIn {
+  titel: string; beschreibung?: string | null; start: string; ende: string; zeitzone?: string | null;
+  tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage?: string | null;
+}
+export interface TeamEvent {
+  id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
+  vorlage: string | null; status: "kommend" | "laeuft" | "auswertung" | "beendet";
+  spots: { id: number; name: string | null }[]; spot_ids: number[]; einfrieren_am: string;
+  tafeln: TeamTafelMitZeilen[];
+}
+export interface TeamAbzeichen {
+  rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;
+}
 export interface TeamMitglied { user_id: number; name: string; avatar_url: string | null; rolle: TeamRolle; seit: string | null }
 export interface TeamEinladungInfo extends TeamAuftritt { id: number; art: "join" | "apply"; oeffentlich: boolean; mein_status: string | null }
 export interface AdminTeamFreigabe {

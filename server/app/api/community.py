@@ -2183,6 +2183,9 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
     _st = _sup.uebersicht(db, [u.id]).get(u.id) or {}
     if _st.get("sichtbar") and _st.get("stufe"):
         raus["supporter"] = {"stufe": _st["stufe"], "tage_jahr": _st["tage_jahr"]}
+    # Event-Abzeichen (Teams Stufe 3, docs/TEAMS.md): Plaetze 1–3, nur aus freigegebenen Teams.
+    from ..teams import abzeichen as _abz
+    raus["team_abzeichen"] = _abz(db, u.id)
     # Gewicht nur fuer Freunde (und einen selbst), auch wenn „Gewicht verbergen" an ist.
     if freund or u.id == user.id:
         try:

@@ -10,6 +10,15 @@ bei Wechsel an der Spitze, Bestwerte bei jeder Steigerung, sinkende Werte still 
 Mitglieder in `chat._require_access`, nie in der Entdeckungsliste, Push nur an aktive Mitglieder, Austritt raeumt den
 Raum-Zustand ab, Loeschen des Teams loescht den Chat mit).
 
+**Stufe 3 LIVE seit 31.10.2026:** Events (Tabelle `team_events`): Zeitfenster [Beginn, Ende) mit Zeitzone, bis zu
+6 Bestenlisten, optional nur an bestimmten Spots, Vorlagen (`web/src/lib/teamEvents.ts`). Gewertet wird, was im
+Fenster startet; 24 h nach dem Ende friert das Ergebnis ein (nachts in `record_snapshot.py` und beim Abruf).
+Abzeichen fuer Platz 1–3 auf der Foiler-Seite, nur aus Teams mit freigegebenem Auftritt (sonst wuerde ein internes
+Team ueber die Foiler-Seite bekannt). Eine Kontoloeschung entfernt die Person auch aus eingefrorenen Ergebnissen.
+Option „keine FIT-Importe" NICHT gebaut: `device_id` trennt Uhr- nicht sicher von Handy-Aufnahmen.
+
+Nicht noetig (Jan, 31.10.2026): Fruehaufsteher, Nachteule, Carves > 180° und Hoechstpuls als Team-Kennzahlen.
+
 Anlass: Telefonat Jan mit einem Nutzer, der Teams mit eigenen Bestenlisten haben moechte; als Vorbild
 schickte er eine schlichte Kite-Big-Air-Rangliste (Rang, Flagge, Name, Wert — eine Zeile je Person).
 

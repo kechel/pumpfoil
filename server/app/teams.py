@@ -239,7 +239,7 @@ def team_loeschen(db: Session, t: models.Team) -> list[str]:
     db.flush()
     db.query(models.TeamSlugAlt).filter_by(team_id=t.id).update({"team_id": None})
     for M in (models.TeamMitglied, models.TeamEinladung, models.TeamSpot, models.TeamTafel,
-              models.TeamRekord, models.TeamLogbuch):
+              models.TeamRekord, models.TeamLogbuch, models.TeamEvent):
         db.query(M).filter_by(team_id=t.id).delete()
     medien += chat_loeschen(db, t.id)
     db.delete(t)
@@ -290,6 +290,21 @@ def vor_konto_loeschen(db: Session, uid: int) -> list[str]:
                 medien += team_loeschen(db, t)
         else:
             rest.rolle = "leiter"
+    # Eingefrorene Event-Ergebnisse tragen Namen/Profilbilder: die Zeilen dieser Person entfernen
+    # (DSGVO-Loeschung ist absolut), die Plaetze darunter ruecken auf.
+    import json as _json
+    for e in db.query(models.TeamEvent).filter(models.TeamEvent.ergebnis_json.isnot(None)).all():
+        tafeln_ = _json.loads(e.ergebnis_json)
+        geaendert = False
+        for tf in tafeln_:
+            vorher = len(tf.get("zeilen", []))
+            tf["zeilen"] = [z for z in tf.get("zeilen", []) if z.get("user_id") != uid]
+            if len(tf["zeilen"]) != vorher:
+                geaendert = True
+                for i, z in enumerate(tf["zeilen"]):
+                    z["rang"] = i + 1
+        if geaendert:
+            e.ergebnis_json = _json.dumps(tafeln_)
     db.flush()
     return medien
 
@@ -315,8 +330,12 @@ def _cache_setzen(key, wert):
 
 
 def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period: str,
-                    member_ids: list[int] | None = None) -> list[dict]:
+                    member_ids: list[int] | None = None, fenster: tuple[datetime, datetime] | None = None,
+                    event_spots: list[int] | None = None) -> list[dict]:
     """Rangliste einer Tafel: je Person der beste Wert bzw. die Summe, absteigend.
+
+    Events: `fenster` = [von, bis) statt des Zeitraums (Startzeit der Session zaehlt), `event_spots` = nur
+    diese Spots (leer/None = alle).
 
     Liefert die VOLLE Zeile (mit Session, Datum, Spot) — was davon wer sehen darf, entscheidet der Aufrufer
     (`fuer_gast` streicht alles ausser Rang, Name, Initialen, Wert)."""
@@ -325,10 +344,14 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
     ids = member_ids if member_ids is not None else mitglieder_ids(db, team.id)
     if not ids or tf.kennzahl not in KENNZAHLEN:
         return []
-    spot_ids = ([s for (s,) in db.query(models.TeamSpot.spot_id).filter_by(team_id=team.id).all()]
-                if tf.nur_teamspots else [])
+    if event_spots:
+        spot_ids, nur_spots = list(event_spots), True
+    else:
+        nur_spots = bool(tf.nur_teamspots)
+        spot_ids = ([s for (s,) in db.query(models.TeamSpot.spot_id).filter_by(team_id=team.id).all()]
+                    if nur_spots else [])
     key = (team.id, tf.id, tf.kennzahl, tf.sportart, tf.accel_only, tf.nur_brett, tf.foil_band,
-           tf.nur_teamspots, tuple(sorted(spot_ids)), period, tuple(sorted(ids)))
+           nur_spots, tuple(sorted(spot_ids)), period, fenster, tuple(sorted(ids)))
     hit = _cache_holen(key)
     if hit is not None:
         return hit
@@ -339,11 +362,13 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
     def filtern(q):
         q = C._band_filter(db, q, tf.foil_band, 0)
         q = q.filter(S.user_id.in_(ids))
-        if cut is not None:
+        if fenster is not None:
+            q = q.filter(S.started_at >= fenster[0], S.started_at < fenster[1])
+        elif cut is not None:
             q = q.filter(S.started_at >= cut)
         if tf.nur_brett:
             q = q.filter(S.placement == "board")
-        if tf.nur_teamspots:
+        if nur_spots:
             if not spot_ids:
                 return None
             q = q.filter(or_(*[C._spot_cond(str(s), db) for s in spot_ids]))
@@ -520,3 +545,130 @@ def logbuch(db: Session, team_id: int, limit: int = 50) -> list[dict]:
                     "gefahren_am": e.gefahren_am.isoformat() if e.gefahren_am else None,
                     "erfasst_am": e.erfasst_am.isoformat() if e.erfasst_am else None})
     return out
+
+
+# ------------------------------------------------------------------------------- Events ----
+# Stufe 3 (docs/TEAMS.md). Gewertet wird, was im Fenster [start, ende) GESTARTET ist; hochladen darf man
+# bis ende + EINFRIEREN_NACH, dann steht das Ergebnis fest (sonst verschoebe ein spaeteres Zuschneiden
+# den Sieger). Je Person zaehlt wie ueberall der beste Wert bzw. die Summe.
+
+from datetime import timedelta  # noqa: E402
+import json  # noqa: E402
+
+EINFRIEREN_NACH = timedelta(hours=24)
+EVENT_MAX_DAUER = timedelta(days=62)
+EVENT_MAX_OFFEN = 20             # kommende + laufende Events je Team
+EVENT_MAX_TAFELN = 6
+ABZEICHEN_PLAETZE = 3
+
+
+def _aware(t: datetime) -> datetime:
+    return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+
+
+def event_status(e: models.TeamEvent, jetzt: datetime | None = None) -> str:
+    """kommend | laeuft | auswertung (vorbei, Uploads noch offen) | beendet (eingefroren)."""
+    j = jetzt or _jetzt()
+    if e.eingefroren_am is not None:
+        return "beendet"
+    if j < _aware(e.start):
+        return "kommend"
+    if j < _aware(e.ende):
+        return "laeuft"
+    return "auswertung"
+
+
+def event_tafeln(e: models.TeamEvent) -> list[models.TeamTafel]:
+    """Die Bestenlisten eines Events als (nicht gespeicherte) Tafel-Objekte — dieselbe Rechnung wie sonst."""
+    out = []
+    for i, x in enumerate(json.loads(e.tafeln_json or "[]")):
+        out.append(models.TeamTafel(id=-(e.id * 100 + i), team_id=e.team_id, kennzahl=x["kennzahl"],
+                                    sportart=x.get("sportart", "pumpfoil"), accel_only=x.get("accel_only", True),
+                                    nur_brett=x.get("nur_brett", False), foil_band=x.get("foil_band", "all"),
+                                    nur_teamspots=False, reihenfolge=i))
+    return out
+
+
+def event_spots(e: models.TeamEvent) -> list[int]:
+    return [int(i) for i in json.loads(e.spots_json or "[]")]
+
+
+def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
+    """Bestenlisten des Events — eingefroren aus `ergebnis_json`, sonst live."""
+    if e.ergebnis_json:
+        return json.loads(e.ergebnis_json)
+    ids = mitglieder_ids(db, t.id)
+    fenster = (_aware(e.start), _aware(e.ende))
+    return [{**tafel_out(tf), "zeilen": tafel_berechnen(db, t, tf, "all", ids, fenster=fenster,
+                                                         event_spots=event_spots(e))}
+            for tf in event_tafeln(e)]
+
+
+def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = None) -> bool:
+    """Ergebnis festschreiben, sobald ende + EINFRIEREN_NACH vorbei ist. True = gerade eingefroren."""
+    j = jetzt or _jetzt()
+    if e.eingefroren_am is not None or j < _aware(e.ende) + EINFRIEREN_NACH:
+        return False
+    t = db.get(models.Team, e.team_id)
+    if t is None:
+        return False
+    # Frisch rechnen, nicht aus dem 2-Minuten-Cache.
+    for k in [k for k in _cache if k and k[0] == t.id]:
+        _cache.pop(k, None)
+    e.ergebnis_json = json.dumps(event_berechnen(db, t, e))
+    e.eingefroren_am = j
+    return True
+
+
+def events_einfrieren(db: Session) -> int:
+    """Naechtlich (record_snapshot.py) und beim Abruf: alle faelligen Events festschreiben."""
+    n = 0
+    grenze = _jetzt() - EINFRIEREN_NACH
+    for e in db.query(models.TeamEvent).filter(models.TeamEvent.eingefroren_am.is_(None),
+                                               models.TeamEvent.ende <= grenze).all():
+        n += event_einfrieren(db, e)
+    db.commit()
+    return n
+
+
+def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = False) -> dict:
+    tafeln_ = event_berechnen(db, t, e)
+    if gast:
+        tafeln_ = [{**tf, "zeilen": fuer_gast(tf["zeilen"])} for tf in tafeln_]
+    spots = []
+    if not gast:
+        ids = event_spots(e)
+        if ids:
+            spots = [{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
+                     .filter(models.Spot.id.in_(ids)).all()]
+    return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": _aware(e.start).isoformat(),
+            "ende": _aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "vorlage": e.vorlage,
+            "status": event_status(e), "spots": spots, "spot_ids": [] if gast else event_spots(e),
+            "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_}
+
+
+def events_liste(db: Session, team_id: int, beendete: int = 10) -> list[models.TeamEvent]:
+    """Laufende, in Auswertung und kommende Events, dazu die letzten `beendete` eingefrorenen."""
+    E = models.TeamEvent
+    offen = db.query(E).filter(E.team_id == team_id, E.eingefroren_am.is_(None)).order_by(E.start).all()
+    alt = (db.query(E).filter(E.team_id == team_id, E.eingefroren_am.isnot(None))
+           .order_by(E.ende.desc()).limit(beendete).all())
+    return offen + alt
+
+
+def abzeichen(db: Session, uid: int) -> list[dict]:
+    """Event-Abzeichen fuer die Foiler-Seite: Plaetze 1–3 eingefrorener Events. NUR Teams mit freigegebenem
+    Auftritt und dann deren freigegebener Name — ein internes Team wuerde sonst ueber die Foiler-Seite
+    bekannt (Name und Mitgliedschaft)."""
+    out = []
+    E, Tm = models.TeamEvent, models.Team
+    for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
+                 .filter(E.eingefroren_am.isnot(None), Tm.frei_am.isnot(None))
+                 .order_by(E.ende.desc()).limit(500).all()):
+        for tf in json.loads(e.ergebnis_json or "[]"):
+            for z in tf.get("zeilen", [])[:ABZEICHEN_PLAETZE]:
+                if z.get("user_id") == uid:
+                    out.append({"rang": z["rang"], "event": e.titel, "team": t.frei_name, "team_slug": t.frei_slug,
+                                "farbe": t.frei_farbe, "kennzahl": tf["kennzahl"], "wert": z["value"],
+                                "datum": _aware(e.ende).date().isoformat()})
+    return out[:30]

@@ -2088,3 +2088,25 @@ class TeamLogbuch(Base):
     vorher_wert: Mapped[float | None] = mapped_column(Float)
     gefahren_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     erfasst_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class TeamEvent(Base):
+    """Team-Event (Stufe 3, docs/TEAMS.md): Zeitfenster [start, ende) mit eigenen Bestenlisten, optional
+    auf Spots begrenzt. Gewertet werden Sessions, die im Fenster GESTARTET sind. 24 h nach dem Ende wird
+    das Ergebnis eingefroren (`ergebnis_json`), damit nachtraegliches Zuschneiden nichts mehr verschiebt."""
+
+    __tablename__ = "team_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    titel: Mapped[str] = mapped_column(String(80))
+    beschreibung: Mapped[str | None] = mapped_column(Text)
+    start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    ende: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    zeitzone: Mapped[str | None] = mapped_column(String(64))
+    tafeln_json: Mapped[str] = mapped_column(Text)            # [{kennzahl, sportart, accel_only, nur_brett, foil_band}]
+    spots_json: Mapped[str | None] = mapped_column(Text)      # [spot_id, ...] oder NULL = alle Spots
+    vorlage: Mapped[str | None] = mapped_column(String(40))
+    ergebnis_json: Mapped[str | None] = mapped_column(Text)
+    eingefroren_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    angelegt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

@@ -19,7 +19,7 @@ import { SessionCard } from "../components/SessionCard";
 import { openDmOverlay } from "../components/DmWidget";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon } from "../components/Icons";
+import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon, StarIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
@@ -230,6 +230,19 @@ export default function Foiler() {
           <>
             <span className="flex items-center gap-1.5 text-slate-400"><SupporterBadge stufe={d.supporter.stufe} size={16} />{t("sup.label")}:</span>
             <span className="font-semibold text-slate-200">{t(`sup.profile${d.supporter.stufe}`)}</span>
+          </>
+        )}
+        {/* Event-Abzeichen (Teams Stufe 3): Plaetze 1–3 aus Events freigegebener Teams. */}
+        {d.team_abzeichen && d.team_abzeichen.length > 0 && (
+          <>
+            <span className="flex items-center gap-1.5 text-slate-400"><StarIcon className="h-4 w-4" />{t("team.abzeichen")}:</span>
+            <span className="flex flex-col gap-0.5">
+              {d.team_abzeichen.map((a, i) => (
+                <Link key={i} to={`/teams/${a.team_slug}`} className="font-semibold text-slate-200 hover:underline">
+                  {t(`team.platz${a.rang}`)} · {a.event} · {a.team}
+                </Link>
+              ))}
+            </span>
           </>
         )}
         {d.kanal && (

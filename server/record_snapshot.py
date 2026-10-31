@@ -17,7 +17,7 @@ for _l in open(os.path.join(os.path.dirname(__file__), ".env")):
 
 from app.db import SessionLocal  # noqa: E402  (nach dem .env-Parse importieren)
 from app.records import run_record_snapshot  # noqa: E402
-from app.teams import logbuch_snapshot  # noqa: E402
+from app.teams import events_einfrieren, logbuch_snapshot  # noqa: E402
 
 if __name__ == "__main__":
     db = SessionLocal()
@@ -30,6 +30,7 @@ if __name__ == "__main__":
     # Rekorde nicht mitreisst (und umgekehrt).
     db = SessionLocal()
     try:
+        print(f"team events ok: {events_einfrieren(db)} eingefroren")
         print(f"team logbuch ok: {logbuch_snapshot(db)} neue Eintraege")
     finally:
         db.close()

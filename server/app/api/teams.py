@@ -12,6 +12,9 @@ nicht gibt.
 """
 from __future__ import annotations
 
+import json
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func
@@ -298,6 +301,101 @@ def logbuch(slug: str, user: models.User = Depends(current_user), db: Session = 
     return T.logbuch(db, t.id)
 
 
+# --------------------------------------------------------------------------------- Events ----
+
+class EventTafelIn(BaseModel):
+    kennzahl: str
+    sportart: str = "pumpfoil"
+    accel_only: bool = True
+    nur_brett: bool = False
+    foil_band: str = Field(default="all", max_length=30)
+
+
+class EventIn(BaseModel):
+    titel: str = Field(min_length=2, max_length=80)
+    beschreibung: str | None = Field(default=None, max_length=1000)
+    start: datetime
+    ende: datetime
+    zeitzone: str | None = Field(default=None, max_length=64)
+    tafeln: list[EventTafelIn] = Field(min_length=1, max_length=T.EVENT_MAX_TAFELN)
+    spot_ids: list[int] = Field(default_factory=list, max_length=T.MAX_TEAMSPOTS)
+    vorlage: str | None = Field(default=None, max_length=40)
+
+
+def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
+    if body.start.tzinfo is None or body.ende.tzinfo is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "event_zeitzone")
+    if body.ende <= body.start or body.ende - body.start > T.EVENT_MAX_DAUER:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "event_zeitraum")
+    sporte = _sportarten()
+    for x in body.tafeln:
+        if x.kennzahl not in T.KENNZAHLEN or x.sportart not in sporte:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "tafel")
+    ids = list(dict.fromkeys(body.spot_ids))
+    if ids:
+        gueltig = {i for (i,) in db.query(models.Spot.id).filter(models.Spot.id.in_(ids)).all()}
+        ids = [i for i in ids if i in gueltig]
+    return json.dumps([x.model_dump() for x in body.tafeln]), (json.dumps(ids) if ids else None)
+
+
+def _event(db: Session, t: models.Team, event_id: int) -> models.TeamEvent:
+    e = db.get(models.TeamEvent, event_id)
+    if e is None or e.team_id != t.id:
+        raise _404()
+    return e
+
+
+@router.get("/{slug}/events")
+def events(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    t, m = _team_fuer(db, slug, user)
+    _darf_tafeln(t, m)
+    liste = T.events_liste(db, t.id)
+    if any(T.event_einfrieren(db, e) for e in liste):
+        db.commit()
+    return [T.event_out(db, t, e) for e in liste]
+
+
+@router.post("/{slug}/events")
+def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    t = _leiter(db, slug, user)
+    offen = int(db.query(func.count(models.TeamEvent.id))
+                .filter(models.TeamEvent.team_id == t.id, models.TeamEvent.eingefroren_am.is_(None)).scalar() or 0)
+    if offen >= T.EVENT_MAX_OFFEN:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "zu_viele_events")
+    tafeln_json, spots_json = _event_pruefen(db, body)
+    e = models.TeamEvent(team_id=t.id, titel=body.titel.strip(), beschreibung=(body.beschreibung or "").strip() or None,
+                         start=body.start, ende=body.ende, zeitzone=body.zeitzone, tafeln_json=tafeln_json,
+                         spots_json=spots_json, vorlage=body.vorlage)
+    db.add(e)
+    db.commit()
+    return T.event_out(db, t, e)
+
+
+@router.put("/{slug}/events/{event_id}")
+def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    """Aenderbar bis zum Einfrieren — danach steht das Ergebnis."""
+    t = _leiter(db, slug, user)
+    e = _event(db, t, event_id)
+    if e.eingefroren_am is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "event_eingefroren")
+    e.tafeln_json, e.spots_json = _event_pruefen(db, body)
+    e.titel, e.beschreibung = body.titel.strip(), (body.beschreibung or "").strip() or None
+    e.start, e.ende, e.zeitzone, e.vorlage = body.start, body.ende, body.zeitzone, body.vorlage
+    db.commit()
+    return T.event_out(db, t, e)
+
+
+@router.delete("/{slug}/events/{event_id}")
+def event_loeschen(slug: str, event_id: int, user: models.User = Depends(current_user),
+                   db: Session = Depends(get_db)) -> dict:
+    t = _leiter(db, slug, user)
+    db.delete(_event(db, t, event_id))
+    db.commit()
+    return {"ok": True}
+
+
 @router.get("/{slug}/mitglieder")
 def mitglieder(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     t, m = _team_fuer(db, slug, user)
@@ -537,7 +635,9 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", db: Session 
     ids = T.mitglieder_ids(db, t.id)
     return {**_kurz(t, False), "mitglieder_anzahl": len(ids), "period": period,
             "tafeln": [{**T.tafel_out(tf), "zeilen": T.fuer_gast(T.tafel_berechnen(db, t, tf, period, ids))}
-                       for tf in T.tafeln(db, t.id)]}
+                       for tf in T.tafeln(db, t.id)],
+            # Events sind Bestenlisten mit Zeitfenster -> in derselben Gastform (ohne Spots).
+            "events": [T.event_out(db, t, e, gast=True) for e in T.events_liste(db, t.id, beendete=3)]}
 
 
 # ---------------------------------------------------------------------------------- Admin ----

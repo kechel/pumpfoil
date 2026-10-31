@@ -337,3 +337,94 @@ def test_logbuch_nur_bei_echtem_rekord(client):
         assert db.query(models.TeamRekord).filter_by(team_id=client.get(f"/api/teams/{slug}", headers=ka).json()["id"]).count() == 2
     finally:
         db.close()
+
+
+# ------------------------------------------------------------------ Stufe 3: Events ----
+
+def test_event_fenster_einfrieren_abzeichen(client):
+    from app import loeschung, models, teams as T
+    from app.db import SessionLocal
+    (ia, ka), (ib, kb) = _konto(client, "te-a1@t.de", "Eva"), _konto(client, "te-b1@t.de", "Finn")
+    (_ix, kx) = _konto(client, "te-x1@t.de")
+    adm = _admin(client, "te-adm1@t.de")
+    slug, _l = _team_mit(client, ka, kb, "Eventteam Eins")
+    jetzt = datetime.now(timezone.utc)
+    start, ende = jetzt - timedelta(days=3), jetzt - timedelta(hours=2)
+    _session(ia, 300, tage=5)                 # vor dem Fenster -> zaehlt nicht
+    _session(ia, 120, tage=2)
+    _session(ib, 200, tage=2)
+    body = {"titel": "Pump-Wochenende", "start": start.isoformat(), "ende": ende.isoformat(),
+            "zeitzone": "Europe/Berlin", "tafeln": [{"kennzahl": "session_pumps"}]}
+    assert client.post(f"/api/teams/{slug}/events", headers=kb, json=body).status_code == 403
+    r = client.post(f"/api/teams/{slug}/events", headers=ka, json=body)
+    assert r.status_code == 200, r.text
+    eid = r.json()["id"]
+    # Ende vorbei, aber < 24 h: noch Auswertung (live gerechnet).
+    ev = next(e for e in client.get(f"/api/teams/{slug}/events", headers=kb).json() if e["id"] == eid)
+    assert ev["status"] == "auswertung"
+    assert [(z["user_id"], z["value"]) for z in ev["tafeln"][0]["zeilen"]] == [(ib, 200), (ia, 120)]
+    assert client.get(f"/api/teams/{slug}/events", headers=kx).status_code == 404
+    # 24 h nach dem Ende einfrieren -> spaetere Sessions im Fenster aendern nichts mehr.
+    db = SessionLocal()
+    try:
+        e = db.get(models.TeamEvent, eid)
+        assert T.event_einfrieren(db, e, jetzt=ende + timedelta(hours=25)) is True
+        db.commit()
+    finally:
+        db.close()
+    _session(ia, 999, tage=2)
+    ev = next(e for e in client.get(f"/api/teams/{slug}/events", headers=kb).json() if e["id"] == eid)
+    assert ev["status"] == "beendet" and ev["tafeln"][0]["zeilen"][0]["user_id"] == ib
+    assert client.put(f"/api/teams/{slug}/events/{eid}", headers=ka, json=body).status_code == 409
+    # Abzeichen erst, wenn das Team freigegeben ist.
+    assert client.get(f"/api/community/foiler/{ib}", headers=ka).json()["team_abzeichen"] == []
+    client.post(f"/api/teams/{slug}/freigabe", headers=ka)
+    tid = next(x["id"] for x in client.get("/api/admin/teams", headers=adm).json() if x["neu"]["slug"] == slug)
+    client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
+    abz = client.get(f"/api/community/foiler/{ib}", headers=ka).json()["team_abzeichen"]
+    assert [(a["rang"], a["event"], a["team"]) for a in abz] == [(1, "Pump-Wochenende", "Eventteam Eins")]
+    # Kontoloeschung entfernt die Zeile aus dem eingefrorenen Ergebnis, Eva rueckt auf.
+    db = SessionLocal()
+    try:
+        loeschung.konto_loeschen(db, db.get(models.User, ib))
+    finally:
+        db.close()
+    ev = next(e for e in client.get(f"/api/teams/{slug}/events", headers=ka).json() if e["id"] == eid)
+    assert [(z["user_id"], z["rang"]) for z in ev["tafeln"][0]["zeilen"]] == [(ia, 1)]
+
+
+def test_event_nur_an_spots_und_pruefungen(client):
+    from app import models
+    from app.db import SessionLocal
+    (ia, ka), (ib, kb) = _konto(client, "te-a2@t.de"), _konto(client, "te-b2@t.de")
+    slug, _l = _team_mit(client, ka, kb, "Eventteam Zwei")
+    db = SessionLocal()
+    try:
+        sp = models.Spot(name="Eventsee Zwei", name_source="manual")
+        db.add(sp)
+        db.commit()
+        spot_id = sp.id
+    finally:
+        db.close()
+    s_am_spot = _session(ia, 50, tage=1)
+    _session(ib, 500, tage=1)
+    db = SessionLocal()
+    try:
+        db.get(models.Session, s_am_spot).spot_id = spot_id
+        db.commit()
+    finally:
+        db.close()
+    jetzt = datetime.now(timezone.utc)
+    body = {"titel": "Nur am See", "start": (jetzt - timedelta(days=2)).isoformat(),
+            "ende": (jetzt + timedelta(days=1)).isoformat(), "tafeln": [{"kennzahl": "session_pumps"}],
+            "spot_ids": [spot_id]}
+    eid = client.post(f"/api/teams/{slug}/events", headers=ka, json=body).json()["id"]
+    ev = next(e for e in client.get(f"/api/teams/{slug}/events", headers=kb).json() if e["id"] == eid)
+    assert ev["status"] == "laeuft" and [z["user_id"] for z in ev["tafeln"][0]["zeilen"]] == [ia]
+    # Ende vor Start, ohne Zeitzone, unbekannte Kennzahl: abgelehnt.
+    schlecht = dict(body, ende=(jetzt - timedelta(days=3)).isoformat())
+    assert client.post(f"/api/teams/{slug}/events", headers=ka, json=schlecht).status_code == 422
+    ohne_tz = dict(body, start="2026-11-12T10:00:00", ende="2026-11-13T18:00:00")
+    assert client.post(f"/api/teams/{slug}/events", headers=ka, json=ohne_tz).status_code == 422
+    assert client.post(f"/api/teams/{slug}/events", headers=ka, json=dict(body, tafeln=[{"kennzahl": "x"}])).status_code == 422
+    assert client.delete(f"/api/teams/{slug}/events/{eid}", headers=ka).status_code == 200
