@@ -49,6 +49,117 @@
         ]
       ],
       "quelle": "Beschreibung „Samba“ (Kurs, Paar)"
+    },
+    {
+      "id": 19572,
+      "abschnitte": [
+        [
+          220000,
+          760000,
+          "bachata"
+        ],
+        [
+          1450000,
+          1810000,
+          "salsa"
+        ],
+        [
+          2130000,
+          2270000,
+          "bachata"
+        ],
+        [
+          2340000,
+          2490000,
+          "salsa"
+        ],
+        [
+          2840000,
+          3090000,
+          "bachata"
+        ],
+        [
+          3090000,
+          3720000,
+          "salsa"
+        ],
+        [
+          3760000,
+          3980000,
+          "salsa"
+        ],
+        [
+          4000000,
+          4220000,
+          "salsa"
+        ],
+        [
+          4430000,
+          4780000,
+          "bachata"
+        ],
+        [
+          4800000,
+          5060000,
+          "bachata"
+        ],
+        [
+          5100000,
+          5200000,
+          "salsa"
+        ],
+        [
+          5490000,
+          6030000,
+          "salsa"
+        ],
+        [
+          6040000,
+          6270000,
+          "salsa"
+        ],
+        [
+          6320000,
+          6530000,
+          "bachata"
+        ],
+        [
+          6740000,
+          6900000,
+          "bachata"
+        ],
+        [
+          7340000,
+          8090000,
+          "bachata"
+        ],
+        [
+          8120000,
+          8390000,
+          "salsa"
+        ],
+        [
+          8640000,
+          8880000,
+          "bachata"
+        ],
+        [
+          9420000,
+          9510000,
+          "bachata"
+        ],
+        [
+          9540000,
+          9640000,
+          "salsa"
+        ],
+        [
+          9800000,
+          9960000,
+          "bachata"
+        ]
+      ],
+      "quelle": "Jan 31.10.2026: nur Salsa und Bachata; Bloecke nach Tempo zugeordnet (gefaltet 112-150 = Bachata, sonst Salsa, 2-min-Mehrheit), alle 4 Bachata-Marker passen, Jan: „na sicher passt das wenn das am tempo zuzuordnen ist“. Luecken = Pause, unbeschriftet."
     }
   ],
   "nur_auswahl": [
@@ -70,14 +181,6 @@
         "ww"
       ],
       "quelle": "Beschreibung „chacha, lgs. wlz, tango, w wlz“, Reihenfolge/Zeiten unbekannt"
-    },
-    {
-      "id": 19572,
-      "taenze": [
-        "salsa",
-        "bachata"
-      ],
-      "quelle": "Jan 31.10.2026: „in meiner session heute war nur salsa und bachata“ (30.10. abends), Zeiten nur ueber die vier Bachata-Marker"
     }
   ],
   "marker_sessions": [

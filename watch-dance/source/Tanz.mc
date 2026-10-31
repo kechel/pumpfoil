@@ -51,10 +51,10 @@ module Tanz {
     const ALPHA = [11, 13, 6, 12, 9, 0, 8, 4, 7, 10, 5, 3, 1, 2];
     const SICHER_TEILER = 2.0;   // Sicherheit = exp(-d/2), wie tanz_analyse.SICHER_TEILER
     // MUSTER-BEGINN (erzeugt: scripts/tanz_muster_ableiten.py --uhr; nicht von Hand aendern)
-    const M_TEMPO = [113, 65, 60, 58, 107, 97, 63, 48, 60, 123, 79, 66, 125, 131];
-    const M_QUER = [871, 739, 666, -1, 702, 789, 848, 796, -1, 831, 667, -1, -1, 722];     // x1000, -1 = keine Daten
-    const M_UMDR = [-1, 420, 495, -1, 423, 174, 218, 364, -1, 272, 422, -1, -1, 204];     // Umdrehungen je 10 s x1000, -1 = keine Daten
-    const M_GESCH = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0];   // 1 = geschaetzt (ohne eigene Daten)
+    const M_TEMPO = [113, 65, 59, 58, 107, 97, 64, 48, 60, 123, 89, 128, 78, 130];
+    const M_QUER = [871, 739, 807, -1, 702, 789, 867, 796, -1, 831, 672, 642, 716, 718];     // x1000, -1 = keine Daten
+    const M_UMDR = [-1, 420, 622, -1, 423, 174, 221, 364, -1, 272, 205, 189, -1, 204];     // Umdrehungen je 10 s x1000, -1 = keine Daten
+    const M_GESCH = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];   // 1 = geschaetzt (ohne eigene Daten)
     // MUSTER-ENDE
     const S_TEMPO = 0.15; const S_QUER = 0.15; const S_UMDR = 0.2;   // wie tanz_analyse.py
 

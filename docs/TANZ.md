@@ -328,5 +328,12 @@ Bachata, ~47 min Salsa, und **alle vier Marker folgen auf einen Bachata-Block** 
 (74–84' und 122–135' Bachata, 4–13' ebenso). Skript-Stand: Scratch, nicht im Repo.
 
 Das widerspricht nicht Jans Hinweis vom 21.10. (Tempo nicht entscheidend): es gilt nur für diesen Abend mit genau zwei
-Tänzen, deren Musik in getrennten Tempo-Bereichen liegt. Als Wahrheit erst nach Jans OK zur Blockliste; Muster NICHT
-neu abgeleitet.
+Tänzen, deren Musik in getrennten Tempo-Bereichen liegt.
+
+**Eingetragen (31.10., Jans OK „na sicher passt das wenn das am tempo zuzuordnen ist"):** 21 Blöcke in
+`tanz_wahrheit.json` (`sessions`), Muster neu abgeleitet, MUSTER-Block in `Tanz.mc` ersetzt (Tanz-App noch nicht
+gebaut). Bachata hat damit erstmals echte Daten (n = 154 Fenster statt geschätzt): Tempo 128, quer 0,64, umdr 0,19 —
+**fast deckungsgleich mit Boogie** (130 / 0,72 / 0,20). Die Uhr-Merkmale trennen die beiden kaum. Prüfung „ohne eigene
+Quelle" auf den übrigen Sessions unverändert 9 von 44/45 richtig (16875-Disco-Fox jetzt öfter richtig, 18834-Salsa und
+16976-Boogie öfter als Bachata). Die 19572-eigenen Zahlen (10/21) sind nicht unabhängig: Blöcke kommen aus dem Tempo.
+Server s1 unverändert (kennt weiter kein Bachata); `tanz_nachanalyse.py --schreiben` nicht gelaufen.
