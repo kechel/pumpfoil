@@ -2563,6 +2563,11 @@ const it: Record<string, string> = {
   "team.regeln.loeschen.text": "Solo il responsabile può eliminare un team, e solo digitando il nome del team per conferma.\nA quel punto sparisce tutto: adesioni, classifiche, diario di bordo, eventi e la chat del team.\nL'indirizzo del team resta bloccato e non viene mai assegnato a un altro team.",
   "team.regeln.konto.titel": "Quando un account viene eliminato",
   "team.regeln.konto.text": "La persona scompare da tutti i team e da tutte le classifiche, anche dai risultati degli eventi congelati. Chi sta sotto sale di posizione.\nSe guidava un team, subentra il moderatore con più anzianità, altrimenti il membro con più anzianità. Se non resta nessuno, il team viene eliminato.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Indirizzo del team da condividere",
+  "team.adresseTeilen.oeffentlich": "Puoi condividere e pubblicare questo indirizzo ovunque, anche con chi non ha un account pumpfoil.org: vedrà le classifiche (posizione, nome, valore).",
+  "team.adresseTeilen.wartet": "Le classifiche sono impostate come pubbliche, ma l'aspetto non è ancora approvato. Fino ad allora chi non ha un account non vede nulla a questo indirizzo.",
+  "team.adresseTeilen.intern": "Le classifiche non sono pubbliche. A questo indirizzo vedono qualcosa solo i membri. Puoi renderle pubbliche nelle impostazioni del team.",
 };
 
 export default it;

@@ -2680,6 +2680,11 @@ const pt: Record<string, string> = {
   "team.regeln.loeschen.text": "Só o líder pode excluir uma equipe, e só digitando o nome da equipe para confirmar.\nAí tudo some: participações, rankings, diário de bordo, eventos e o chat da equipe.\nO endereço da equipe fica bloqueado e nunca é passado para outra equipe.",
   "team.regeln.konto.titel": "Quando uma conta é excluída",
   "team.regeln.konto.text": "A pessoa some de todas as equipes e rankings, e também dos resultados congelados de eventos. Quem está abaixo sobe.\nSe ela liderava uma equipe, assume o moderador mais antigo, senão o membro mais antigo. Se não sobrar ninguém, a equipe é excluída.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Endereço da equipe para compartilhar",
+  "team.adresseTeilen.oeffentlich": "Você pode compartilhar e publicar este endereço em qualquer lugar, inclusive com pessoas sem conta no pumpfoil.org: elas vão ver os rankings (posição, nome, valor).",
+  "team.adresseTeilen.wartet": "Os rankings estão definidos como públicos, mas a aparência ainda não foi aprovada. Até lá, quem não tem conta não vê nada neste endereço.",
+  "team.adresseTeilen.intern": "Os rankings não são públicos. Neste endereço só os membros veem algo. Você pode torná-los públicos nas configurações da equipe.",
 };
 
 export default pt;

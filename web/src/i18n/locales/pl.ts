@@ -2663,6 +2663,11 @@ const pl: Record<string, string> = {
   "team.regeln.loeschen.text": "Drużynę może usunąć tylko lider i tylko po wpisaniu nazwy drużyny dla potwierdzenia.\nWtedy znika wszystko: członkostwa, rankingi, dziennik, wydarzenia i czat drużyny.\nAdres drużyny pozostaje zablokowany i nigdy nie zostanie przydzielony innej drużynie.",
   "team.regeln.konto.titel": "Gdy konto zostaje usunięte",
   "team.regeln.konto.text": "Osoba znika ze wszystkich drużyn i rankingów, a także z zamrożonych wyników wydarzeń. Osoby poniżej przesuwają się w górę.\nJeśli prowadziła drużynę, przejmuje ją najdłużej działający moderator, a jeśli go nie ma, najdłużej należący członek. Jeśli nikt nie zostanie, drużyna jest usuwana.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Adres drużyny do udostępnienia",
+  "team.adresseTeilen.oeffentlich": "Ten adres możesz udostępniać i publikować wszędzie, także osobom bez konta w pumpfoil.org: zobaczą tam rankingi (miejsce, nazwę, wynik).",
+  "team.adresseTeilen.wartet": "Rankingi są ustawione jako publiczne, ale wygląd drużyny nie został jeszcze zatwierdzony. Do tego czasu osoby bez konta nic pod tym adresem nie zobaczą.",
+  "team.adresseTeilen.intern": "Rankingi nie są publiczne. Pod tym adresem coś widzą tylko członkowie. Publiczne ustawisz je w ustawieniach drużyny.",
 };
 
 export default pl;

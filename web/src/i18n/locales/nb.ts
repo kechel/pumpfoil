@@ -2655,6 +2655,11 @@ const nb: Record<string, string> = {
   "team.regeln.loeschen.text": "Bare lederen kan slette laget, og bare ved å skrive inn lagnavnet som bekreftelse.\nDa er alt borte: medlemskap, topplister, loggbok, arrangementer og lagchatten.\nAdressen til laget forblir sperret og gis aldri til et annet lag.",
   "team.regeln.konto.titel": "Når en konto slettes",
   "team.regeln.konto.text": "Personen forsvinner fra alle lag og topplister, også fra frosne arrangementsresultater. De nedenfor rykker opp.\nLedet personen et lag, tar moderatoren med lengst fartstid over, ellers medlemmet med lengst fartstid. Er det ingen igjen, slettes laget.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Lagadresse til deling",
+  "team.adresseTeilen.oeffentlich": "Denne adressen kan du dele og publisere hvor som helst, også med folk uten konto på pumpfoil.org: de ser resultatlistene der (plass, navn, verdi).",
+  "team.adresseTeilen.wartet": "Resultatlistene er satt til offentlige, men profilen til laget er ikke godkjent ennå. Til da ser folk uten konto ingenting på denne adressen.",
+  "team.adresseTeilen.intern": "Resultatlistene er ikke offentlige. På denne adressen ser bare medlemmer noe. Du gjør dem offentlige i lagets innstillinger.",
 };
 
 export default nb;

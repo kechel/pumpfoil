@@ -2570,6 +2570,11 @@ const deAT: Record<string, string> = {
   "team.regeln.loeschen.text": "Löschen kann nur die Teamleitung, und nur wenn s' den Teamnam zum Bestätigen eintippt.\nDann is alles weg: Mitgliedschaften, Bestenlisten, Logbuch, Events und der Team-Chat.\nDie Adresse vom Team bleibt g'sperrt und wird nie an a anderes Team vergeben.",
   "team.regeln.konto.titel": "Wenn a Konto g'löscht wird",
   "team.regeln.konto.text": "Die Person verschwindet aus allen Teams, Bestenlisten und a aus eing'frorenen Event-Ergebnissen. Die Plätze drunter rücken auf.\nHat s' a Team g'leitet, übernimmt der dienstälteste Moderator, sonst des dienstälteste Mitglied. Is niemand mehr da, wird des Team g'löscht.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Teamadresse zum Teilen",
+  "team.adresseTeilen.oeffentlich": "Die Adresse kannst überall teilen und veröffentlichen, a mit Leut ohne Konto bei pumpfoil.org: Die sehn dort die Bestenlisten (Platz, Nam, Wert).",
+  "team.adresseTeilen.wartet": "Die Bestenlisten san auf öffentlich g'stellt, aber der Auftritt is no ned freigeben. Bis dahin sehn Leut ohne Konto unter der Adresse nix.",
+  "team.adresseTeilen.intern": "Die Bestenlisten san ned öffentlich. Unter der Adresse sehn nur Mitglieder was. Öffentlich schaltest es in die Team-Einstellungen.",
 };
 
 export default deAT

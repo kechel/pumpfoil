@@ -151,7 +151,8 @@ export default function TeamEinstellungen() {
             <input value={neuSlug} maxLength={40} onChange={(e) => setNeuSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
               className="min-w-0 flex-1 bg-transparent text-slate-100 outline-none" />
           </div>
-          <p className="mb-3 text-xs text-slate-400">{t("team.adresseAendernHinweis")}</p>
+          <p className="mb-1 break-all font-mono text-xs text-slate-300">{window.location.origin}/teams/{team.slug}</p>
+          <p className="mb-3 text-xs text-slate-400">{t("team.adresseAendernHinweis")} {t(`team.adresseTeilen.${team.bestenlisten_oeffentlich ? "oeffentlich" : team.oeffentlich ? "wartet" : "intern"}`)}</p>
           <label className="mb-1 block text-sm text-slate-300">{t("team.beschreibung")}</label>
           <textarea value={beschreibung} onChange={(e) => setBeschreibung(e.target.value)} maxLength={1000} rows={3} className={`${eingabe} mb-3`} />
           <p className="mb-1 text-sm text-slate-300">{t("team.farbe")}</p>

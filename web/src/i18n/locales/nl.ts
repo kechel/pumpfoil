@@ -2734,6 +2734,11 @@ const nl: Record<string, string> = {
   "team.regeln.loeschen.text": "Alleen de leiding kan een team verwijderen, en alleen door ter bevestiging de teamnaam in te typen.\nDan is alles weg: lidmaatschappen, ranglijsten, logboek, events en de teamchat.\nHet adres van het team blijft geblokkeerd en wordt nooit aan een ander team gegeven.",
   "team.regeln.konto.titel": "Als een account wordt verwijderd",
   "team.regeln.konto.text": "De persoon verdwijnt uit alle teams en ranglijsten, en ook uit bevroren event-uitslagen. De plaatsen eronder schuiven op.\nLeidde die persoon een team, dan neemt de moderator die het langst lid is het over, anders het lid dat het langst lid is. Is er niemand meer, dan wordt het team verwijderd.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Teamadres om te delen",
+  "team.adresseTeilen.oeffentlich": "Dit adres kun je overal delen en publiceren, ook met mensen zonder account bij pumpfoil.org: zij zien daar de ranglijsten (plaats, naam, waarde).",
+  "team.adresseTeilen.wartet": "De ranglijsten staan op openbaar, maar de presentatie is nog niet goedgekeurd. Tot dan zien mensen zonder account niets op dit adres.",
+  "team.adresseTeilen.intern": "De ranglijsten zijn niet openbaar. Op dit adres zien alleen leden iets. Je zet ze openbaar in de teaminstellingen.",
 };
 
 export default nl;

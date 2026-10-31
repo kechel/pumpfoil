@@ -2563,6 +2563,11 @@ const es: Record<string, string> = {
   "team.regeln.loeschen.text": "Solo el líder puede eliminar un equipo, y solo escribiendo el nombre del equipo para confirmar.\nEntonces todo desaparece: membresías, clasificaciones, bitácora, eventos y el chat del equipo.\nLa dirección del equipo queda bloqueada y nunca se asigna a otro equipo.",
   "team.regeln.konto.titel": "Cuando se elimina una cuenta",
   "team.regeln.konto.text": "La persona desaparece de todos los equipos y clasificaciones, y también de los resultados de eventos congelados. Los puestos de debajo suben.\nSi lideraba un equipo, toma el relevo el moderador más antiguo y, si no hay, el miembro más antiguo. Si no queda nadie, el equipo se elimina.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Dirección del equipo para compartir",
+  "team.adresseTeilen.oeffentlich": "Puedes compartir y publicar esta dirección en cualquier sitio, también con personas sin cuenta en pumpfoil.org: verán las clasificaciones (puesto, nombre, valor).",
+  "team.adresseTeilen.wartet": "Las clasificaciones están configuradas como públicas, pero la apariencia aún no está aprobada. Hasta entonces, quien no tenga cuenta no ve nada en esta dirección.",
+  "team.adresseTeilen.intern": "Las clasificaciones no son públicas. En esta dirección solo los miembros ven algo. Puedes hacerlas públicas en los ajustes del equipo.",
 };
 
 export default es;

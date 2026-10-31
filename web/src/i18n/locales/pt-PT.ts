@@ -2674,6 +2674,11 @@ const ptPT: Record<string, string> = {
   "team.regeln.loeschen.text": "Só o líder pode eliminar uma equipa, e só escrevendo o nome da equipa para confirmar.\nAí desaparece tudo: adesões, rankings, diário de bordo, eventos e o chat da equipa.\nO endereço da equipa fica bloqueado e nunca é atribuído a outra equipa.",
   "team.regeln.konto.titel": "Quando uma conta é eliminada",
   "team.regeln.konto.text": "A pessoa desaparece de todas as equipas e rankings, e também dos resultados congelados de eventos. Quem está abaixo sobe.\nSe liderava uma equipa, assume o moderador mais antigo, caso contrário o membro mais antigo. Se não restar ninguém, a equipa é eliminada.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Endereço da equipa para partilhar",
+  "team.adresseTeilen.oeffentlich": "Podes partilhar e publicar este endereço em qualquer lado, também com pessoas sem conta no pumpfoil.org: vão ver os rankings (posição, nome, valor).",
+  "team.adresseTeilen.wartet": "Os rankings estão definidos como públicos, mas a apresentação ainda não foi aprovada. Até lá, quem não tem conta não vê nada neste endereço.",
+  "team.adresseTeilen.intern": "Os rankings não são públicos. Neste endereço só os membros veem algo. Podes torná-los públicos nas definições da equipa.",
 };
 
 export default ptPT;

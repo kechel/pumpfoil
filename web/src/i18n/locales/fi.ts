@@ -2715,6 +2715,11 @@ const fi: Record<string, string> = {
   "team.regeln.loeschen.text": "Tiimin voi poistaa vain vetäjä, ja vain kirjoittamalla vahvistukseksi tiimin nimen.\nSilloin kaikki häviää: jäsenyydet, tulostaulukot, lokikirja, tapahtumat ja tiimichat.\nTiimin osoite pysyy varattuna eikä sitä koskaan anneta toiselle tiimille.",
   "team.regeln.konto.titel": "Kun tili poistetaan",
   "team.regeln.konto.text": "Henkilö katoaa kaikista tiimeistä ja tulostaulukoista, myös jäädytetyistä tapahtumatuloksista. Alempana olevat nousevat sijan ylöspäin.\nJos hän veti tiimiä, vetovastuun ottaa pisimpään toiminut moderaattori, muuten pisimpään mukana ollut jäsen. Jos ketään ei ole jäljellä, tiimi poistetaan.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Tiimin osoite jaettavaksi",
+  "team.adresseTeilen.oeffentlich": "Voit jakaa ja julkaista tämän osoitteen missä tahansa, myös ihmisille, joilla ei ole pumpfoil.org-tiliä: he näkevät siellä tulostaulut (sija, nimi, arvo).",
+  "team.adresseTeilen.wartet": "Tulostaulut on asetettu julkisiksi, mutta tiimin ulkoasua ei ole vielä hyväksytty. Siihen asti ilman tiliä tässä osoitteessa ei näe mitään.",
+  "team.adresseTeilen.intern": "Tulostaulut eivät ole julkisia. Tässä osoitteessa näkevät jotain vain jäsenet. Voit tehdä ne julkisiksi tiimin asetuksissa.",
 };
 
 export default fi;

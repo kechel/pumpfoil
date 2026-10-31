@@ -2733,6 +2733,11 @@ const cs: Record<string, string> = {
   "team.regeln.loeschen.text": "Smazat tým může jen vedoucí, a jen když pro potvrzení napíše název týmu.\nPak je všechno pryč: členství, žebříčky, deník, akce i týmový chat.\nAdresa týmu zůstane zablokovaná a nikdy se nepřidělí jinému týmu.",
   "team.regeln.konto.titel": "Když se smaže účet",
   "team.regeln.konto.text": "Člověk zmizí ze všech týmů a žebříčků a také ze zmrazených výsledků akcí. Ti pod ním se posunou nahoru.\nPokud vedl tým, převezme ho nejdéle sloužící moderátor, jinak nejdéle sloužící člen. Pokud už nikdo nezbyl, tým se smaže.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Adresa týmu ke sdílení",
+  "team.adresseTeilen.oeffentlich": "Tuto adresu můžeš sdílet a zveřejnit kdekoli, i lidem bez účtu na pumpfoil.org: uvidí tam žebříčky (pořadí, jméno, hodnotu).",
+  "team.adresseTeilen.wartet": "Žebříčky jsou nastavené jako veřejné, ale vzhled týmu zatím není schválený. Do té doby lidé bez účtu na této adrese nic neuvidí.",
+  "team.adresseTeilen.intern": "Žebříčky nejsou veřejné. Na této adrese něco vidí jen členové. Veřejné je nastavíš v nastavení týmu.",
 };
 
 export default cs;

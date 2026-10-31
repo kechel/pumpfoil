@@ -2779,6 +2779,11 @@ const en: Record<string, string> = {
   "team.regeln.loeschen.text": "Only the team lead can delete a team, and only by typing the team name to confirm.\nThen everything is gone: memberships, leaderboards, logbook, events and the team chat.\nThe team's address stays blocked and is never given to another team.",
   "team.regeln.konto.titel": "When an account is deleted",
   "team.regeln.konto.text": "The person disappears from all teams and leaderboards, and from frozen event results too. Those below move up.\nIf they led a team, the longest-serving moderator takes over, otherwise the longest-serving member. If nobody is left, the team is deleted.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Team address to share",
+  "team.adresseTeilen.oeffentlich": "You can share and publish this address anywhere, including with people who don't have a pumpfoil.org account: they'll see the leaderboards (rank, name, value).",
+  "team.adresseTeilen.wartet": "The leaderboards are set to public, but the appearance isn't approved yet. Until then, people without an account see nothing at this address.",
+  "team.adresseTeilen.intern": "The leaderboards aren't public. Only members see something at this address. You can make them public in the team settings.",
 };
 
 export default en;

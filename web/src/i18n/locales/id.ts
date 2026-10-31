@@ -2680,6 +2680,11 @@ const id: Record<string, string> = {
   "team.regeln.loeschen.text": "Hanya ketua tim yang bisa menghapus tim, dan hanya dengan mengetik nama tim sebagai konfirmasi.\nSetelah itu semuanya hilang: keanggotaan, papan peringkat, buku log, event, dan chat tim.\nAlamat tim tetap diblokir dan tidak pernah diberikan ke tim lain.",
   "team.regeln.konto.titel": "Saat akun dihapus",
   "team.regeln.konto.text": "Orang itu hilang dari semua tim dan papan peringkat, juga dari hasil event yang sudah dibekukan. Yang di bawahnya naik peringkat.\nJika ia memimpin tim, moderator paling lama mengambil alih, jika tidak ada maka anggota paling lama. Jika tidak ada siapa pun lagi, tim dihapus.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Alamat tim untuk dibagikan",
+  "team.adresseTeilen.oeffentlich": "Alamat ini bisa kamu bagikan dan publikasikan di mana saja, juga ke orang yang tidak punya akun pumpfoil.org: mereka akan melihat papan peringkat (peringkat, nama, nilai).",
+  "team.adresseTeilen.wartet": "Papan peringkat sudah diatur publik, tetapi tampilan tim belum disetujui. Sampai saat itu, orang tanpa akun tidak melihat apa pun di alamat ini.",
+  "team.adresseTeilen.intern": "Papan peringkat tidak publik. Di alamat ini hanya anggota yang melihat sesuatu. Kamu bisa membuatnya publik di pengaturan tim.",
 };
 
 export default id;

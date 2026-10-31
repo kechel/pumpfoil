@@ -50,6 +50,35 @@ export function BeitrittDialog({ name, oeffentlich, freigabeNoetig, busy, onJa, 
   );
 }
 
+/** Volle Teamadresse zum Teilen (Jan, 31.10.2026: „das muss klar und einfach kommuniziert werden, dass das eine
+ *  adresse ist, die man veroeffentlichen / teilen kann, auch an menschen ohne login"). Der Satz darunter sagt,
+ *  was Gaeste dort gerade WIRKLICH sehen — haengt an Freigabe und Schalter „Bestenlisten oeffentlich". */
+function TeamAdresse({ kopf, t }: { kopf: Kopf; t: (k: string, p?: Record<string, string>) => string }) {
+  const url = `${window.location.origin}/teams/${kopf.slug}`;
+  const [kopiert, setKopiert] = useState(false);
+  const zustand = kopf.bestenlisten_oeffentlich ? "oeffentlich" : kopf.oeffentlich ? "wartet" : "intern";
+  return (
+    <Card className="mb-4 p-4">
+      <p className="mb-1 text-sm font-semibold text-slate-100">{t("team.adresseTeilen.titel")}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <input readOnly value={url} onFocus={(e) => e.currentTarget.select()}
+          className="min-w-0 flex-1 rounded-lg bg-slate-950 px-3 py-2 font-mono text-sm text-slate-100" />
+        <button className="team-knopf rounded-xl px-3 py-2 text-sm font-semibold"
+          onClick={() => navigator.clipboard?.writeText(url).then(() => { setKopiert(true); setTimeout(() => setKopiert(false), 2000); }).catch(() => {})}>
+          {kopiert ? t("team.kopiert") : t("team.kopieren")}
+        </button>
+        {typeof navigator.share === "function" && (
+          <button className="rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800"
+            onClick={() => navigator.share({ url, title: kopf.name }).catch(() => {})}>{t("team.teilen")}</button>
+        )}
+      </div>
+      <p className={`mt-2 text-sm ${zustand === "oeffentlich" ? "text-slate-300" : "text-amber-700 dark:text-amber-300"}`}>
+        {t(`team.adresseTeilen.${zustand}`)}
+      </p>
+    </Card>
+  );
+}
+
 function Statistik({ s, t }: { s: TeamStatistik; t: (k: string, p?: Record<string, string>) => string }) {
   const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
   const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
@@ -253,6 +282,8 @@ export default function Team() {
           <button onClick={austreten} className="underline hover:text-slate-100">{t("team.zurueckziehen")}</button>
         </p>
       )}
+
+      {kopf.mein_status === "aktiv" && <TeamAdresse kopf={kopf} t={t} />}
 
       {kopf.chat_scope && (
         <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}

@@ -2565,6 +2565,11 @@ const gsw: Record<string, string> = {
   "team.regeln.loeschen.text": "Lösche cha nume d Teamleitig, und nume wenn sie de Teamname zum Bestätige iitippt.\nDenn isch alles weg: Mitgliedschafte, Bestelischte, Logbuech, Events und de Team-Chat.\nD Adrässe vom Team blibt gsperrt und wird nie amne andere Team vergä.",
   "team.regeln.konto.titel": "Wenn es Konto glöscht wird",
   "team.regeln.konto.text": "D Person verschwindet us allne Teams, Bestelischte und au us iigfrorene Event-Resultat. D Plätz drunder rucked uf.\nHet sie es Team gleitet, übernimmt de dienschtältischt Moderator, susch s dienschtältischt Mitglied. Isch niemer meh da, wird s Team glöscht.",
+  // Teams (31.10.2026, docs/TEAMS.md)
+  "team.adresseTeilen.titel": "Teamadrässe zum Teile",
+  "team.adresseTeilen.oeffentlich": "Die Adrässe chasch überall teile und veröffentliche, au mit Lüüt ohni Konto bi pumpfoil.org: Sie gsehnd det d Bestelischte (Platz, Name, Wert).",
+  "team.adresseTeilen.wartet": "D Bestelischte sind uf öffentlich gstellt, aber de Uftritt isch no nöd freigä. Bis denn gsehnd Lüüt ohni Konto under dere Adrässe nüt.",
+  "team.adresseTeilen.intern": "D Bestelischte sind nöd öffentlich. Under dere Adrässe gsehnd nume Mitglieder öppis. Öffentlich schaltisch sie i de Team-Iistellige.",
 };
 
 export default gsw
