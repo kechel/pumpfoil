@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, CommunityStatsData, NewsBanner } from "../lib/api";
 import { useI18n, formatNumber } from "../i18n";
-import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, imMeilensteinFenster, mitPumptGerade } from "../lib/pumpPulse";
+import { FENSTER_PUMPS, MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, imMeilensteinFenster, mitPumptGerade } from "../lib/pumpPulse";
 import { CloseIcon, MailIcon } from "./Icons";
 
 // Willkommens-/News-Banner oben im Start-Bereich. Inhalt + Version kommen aus der DB
@@ -45,7 +45,7 @@ export function WelcomeBanner() {
     : [];
 
   // Wie in CommunityStats: drei Zahlen mit eigener Stufe, Sessions bewusst nicht.
-  const pulsPumps = imMeilensteinFenster(stats?.pumps, MEILENSTEIN_PUMPS);
+  const pulsPumps = imMeilensteinFenster(stats?.pumps, MEILENSTEIN_PUMPS, FENSTER_PUMPS);
   const pulsFoiler = imMeilensteinFenster(stats?.foilers, MEILENSTEIN_LEUTE);
   const pulsSpots = imMeilensteinFenster(stats?.spots, MEILENSTEIN_LEUTE);
   const pulst = (teil: string) => !!stats && (

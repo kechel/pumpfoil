@@ -16,7 +16,11 @@
  * weiter gewachsen ist.
  *
  * JEDE STUFE ZAEHLT: das Fenster liegt ueber der jeweils erreichten Stufe, nicht nur ueber der
- * ersten. Die zweite Million pulst also wieder, von 2.000.000 bis 2.200.000.
+ * ersten. Bei Foilern und Spots wachsen die zehn Prozent mit (2.000 bis 2.200).
+ *
+ * PUMPS: FESTE 100.000 je Million (Jan, 31.10.2026). Mit den mitwachsenden zehn Prozent pulste die
+ * zweite Million bis 2.200.000, doppelt so lange wie die erste: „bei pumps immer nur fuer 100.000
+ * je millionen".
  *
  * KEIN ADMIN-SONDERFALL MEHR. Es gab einen, damit Jan den Effekt vor dem grossen Moment
  * ansehen konnte; nachdem er das getan hatte: „fuer Admins jetzt wieder ausschalten, sehe ich
@@ -25,13 +29,14 @@
  */
 export const MEILENSTEIN_PUMPS = 1_000_000;
 export const MEILENSTEIN_LEUTE = 1_000;      // Foiler und Spots
+export const FENSTER_PUMPS = 100_000;         // fest, nicht mitwachsend
 const FENSTER = 0.1;                          // zehn Prozent ueber der Stufe
 
-/** Liegt der Wert im Feier-Fenster ueber einer erreichten Stufe? */
-export function imMeilensteinFenster(wert: number | null | undefined, stufe: number): boolean {
+/** Liegt der Wert im Feier-Fenster ueber einer erreichten Stufe? `breite` fest, sonst zehn Prozent der erreichten Stufe. */
+export function imMeilensteinFenster(wert: number | null | undefined, stufe: number, breite?: number): boolean {
   if (wert == null || wert < stufe) return false;
   const erreicht = Math.floor(wert / stufe) * stufe;
-  return wert < erreicht * (1 + FENSTER);
+  return wert < erreicht + (breite ?? erreicht * FENSTER);
 }
 
 
