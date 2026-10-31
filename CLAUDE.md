@@ -187,6 +187,7 @@ dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
 **Produkt & Planung**
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — Ziel: alle gängigen Sportuhren; welche unterstützt/geplant.
 - [`docs/UX-IA.md`](docs/UX-IA.md) — Informationsarchitektur über bestehende + geplante Features.
+- [`docs/TEAMS.md`](docs/TEAMS.md) — Teams/Gruppen mit Bestenlisten: Plan + Jans Entscheidungen (31.10.2026).
 - [`docs/TODO.md`](docs/TODO.md) — **einzige Quelle für offene Arbeit** (TODOs + Backlog-Ideen + R&D,
   git-abgeglichen). Neue spontane TODOs dort in die 📥 Inbox. (`docs/IDEAS.md` ist nur noch ein Pointer.)
 - [`server/app/data/sportarten_stand.json`](server/app/data/sportarten_stand.json) — **Stand-Buch je Sportart**: was die

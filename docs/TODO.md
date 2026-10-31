@@ -1501,6 +1501,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **31.10. — Teams (Jan, nach Telefonat mit einem Nutzer).** Plan + Jans fuenf Entscheidungen in [`docs/TEAMS.md`](TEAMS.md); Stufe 1 (Web) als Naechstes.
 - **30.10. — Garmin: Feld „Pairing-Code“ in den App-Einstellungen (niedrige Prio, Jan: „viel arbeit mit kaum nutzen“).**
   Der Weg „Code auf der Website erzeugen“ ist im Web aus (`FORWARD_PAIRING_SICHTBAR = false`), das Feld in
   Garmin Express/Connect steht aber noch da -> Nutzer suchen den Code (Olek u963, Feedback 222; war laengst ueber den
