@@ -8,9 +8,11 @@ schickte er eine schlichte Kite-Big-Air-Rangliste (Rang, Flagge, Name, Wert — 
 1. **Name: „Team“.** Abgegrenzt von „Freunde“ (individuell, gegenseitig) — ein Team ist eine feste Gruppe.
 2. **Oeffentlich nur auf Einstellung, und nur die Bestenlisten.** Ohne Login: Rang, Anzeigename, Wert
    (plus Teamname/-logo/-farbe). Links zu Session-Details NUR mit Login. Ist das Team oeffentlich, steht
-   das **beim Beitreten ausdruecklich da**: „Dein Anzeigename und dein Platz sind oeffentlich sichtbar,
-   auch ohne Anmeldung.“ Schaltet ein Team spaeter auf oeffentlich, muessen die Mitglieder das ebenso
-   erfahren (Hinweis + Austrittsmoeglichkeit, s. offene Punkte).
+   das beim Beitreten da. **Jeder Beitritt stimmt zu, dass die Bestenlisten oeffentlich sein KOENNEN**
+   (Jan, 31.10.2026) — im Kleingedruckten des Beitritts-Dialogs: „Die Bestenlisten dieses Teams sind
+   derzeit oeffentlich / nicht oeffentlich. Die Teamleitung kann das jederzeit aendern; dann sind dein
+   Anzeigename und dein Platz auch ohne Anmeldung sichtbar.“ Kein eigenes Zustimmen beim spaeteren
+   Umschalten, kein Ausblenden einzelner Mitglieder.
 3. **Intern darf ein Team machen, was es will.** Freigabe durch Jan/Admin nur fuer den OEFFENTLICHEN Teil
    (Name, Beschreibung, Logo, Farbe — so wie sie nach aussen erscheinen).
 4. **Mitgliederliste: einstellbar je Team** (nur Mitglieder / alle Angemeldeten).
@@ -53,8 +55,8 @@ verteilen kann:
 Ohne Konto: erst registrieren, dann direkt beigetreten bzw. angefragt (Token wartet in `localStorage`,
 kein Cookie). Jeder Link laesst sich einzeln neu erzeugen; der alte gilt dann nicht mehr. Ausschlaggebend
 ist der Token, nicht der Slug — nach einer Umbenennung funktioniert der Link weiter (alter Slug leitet um).
-Jeder Beitritts-Dialog nennt, ob eine Freigabe noetig ist, und, falls das Team oeffentlich ist, dass
-Anzeigename und Platz oeffentlich sind.
+Jeder Beitritts-Dialog nennt, ob eine Freigabe noetig ist, und im Kleingedruckten den Satz zur
+Oeffentlichkeit der Bestenlisten (s. Entscheidung 2) — immer, auch wenn das Team derzeit nicht oeffentlich ist.
 
 ## Grenzen, die aus bestehenden Regeln folgen
 
@@ -135,6 +137,4 @@ aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
 ## Offene Punkte
 
-- Team schaltet NACH Beitritten auf oeffentlich: Vorschlag — bestehende Mitglieder bekommen einen Hinweis
-  und erscheinen erst nach eigenem OK oeffentlich (bis dahin intern sichtbar, oeffentlich ausgelassen).
 - Push bei Beitrittsanfrage / Event-Start — spaeter, optional.
