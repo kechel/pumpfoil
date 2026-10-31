@@ -353,3 +353,12 @@ Bändern, Autokorrelation, Streuungen, Kreisel), Entscheidungsbäume (HistGradie
 
 Schluss: Fensterzahl ist nicht der Engpass, sondern **unabhängige markierte Abende je Tanz**. Erst neu messen, wenn
 mehrere Tänze ≥ 3–5 Abende mit Markern haben.
+
+## #19046 nachgetragen (31.10.2026)
+
+Der Abend vom 25.10. (Rumba, Wiener Walzer, Samba, Tango, Jive, Quickstep; 8 Marker + Web-Korrekturen) stand in keiner
+Liste von `tanz_wahrheit.json` und floss deshalb nie in die Muster. Jetzt unter `marker_sessions`; Muster neu
+abgeleitet, Uhr-Block in `Tanz.mc` ersetzt. Damit hat **jeder Tanz mit Daten mindestens zwei Quellen** (vorher nur eine:
+Quickstep, Rumba, Samba, Tango). Abgeglichen gegen alle `tanz_sessions`: die übrigen nicht eingetragenen (#16884, #17685,
+#17688, #17695, #19057–19059) sind Schreibtisch-Tests bzw. gelöschte Versuche, kein Trainingsmaterial.
+Merke: neue beschriftete Abende IMMER in eine der drei Listen, sonst zählen ihre Marker/Korrekturen nicht.
