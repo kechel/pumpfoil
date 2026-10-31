@@ -18,6 +18,23 @@ schickte er eine schlichte Kite-Big-Air-Rangliste (Rang, Flagge, Name, Wert — 
 4. **Mitgliederliste: einstellbar je Team** (nur Mitglieder / alle Angemeldeten).
 5. **Wertung: je Person nur der beste Eintrag.**
 
+Zweite Runde (Jan, 31.10.2026):
+
+6. **Alle Sessions eines Mitglieds zaehlen**, auch von vor dem Beitritt. Bei Events nur die im Zeitraum.
+   Wer austritt, verschwindet sofort aus den Listen.
+7. **Ohne Login keine Avatare, nur Initialen.** Spaeter evtl. im Profil einstellbar.
+8. **Filter je Tafel konfigurierbar** (Sportart, nur mit Bewegungsdaten, Handy am Brett, Foil-Band).
+9. **Teamspots: mehrere erlaubt.** Tafeln wahlweise nur an den Teamspots.
+10. **Home: kleiner Link** neben dem Homespot-Link, mit Wappen und Teamfarbe; mehrere passen nebeneinander.
+11. **Team loeschen nur „sicher“** — nicht aus Versehen moeglich (Teamname eintippen).
+12. **Freigabe im Admin-Bereich wie alles andere** (Zaehler am Tab).
+13. **Ja zu:** Bestenliste als Bild teilen, QR-Code zu den Einladungslinks (auch teilbar), Team-Chat,
+    Teamsummen/-statistik, Event-Vorlagen (im Event-Anlegen), Event-Abzeichen, Events auf Spots begrenzbar.
+14. **Teamrekord-Meldungen erstmal nicht.** Stattdessen ein **Team-Logbuch** (wer wann welchen Teamrekord
+    gebrochen hat). Benachrichtigungen hoechstens spaeter, je Team ein-/ausschaltbar.
+15. **Spaeter:** Geisterrennen und alle neuen Kennzahlen, die die Analyse-Pipeline beruehren. Angefangen
+    wird mit dem, was wir schon koennen.
+
 Auslegung zu 3 (von mir, bei Bedarf korrigieren): „oeffentlich“ heisst hier zweierlei — die Bestenliste
 ohne Login UND die Auflistung im Community-Abschnitt „Teams“ (alle Angemeldeten sehen Name/Logo). Beides
 erst nach Freigabe. Bis dahin funktioniert das Team ueber den Einladungslink voll, ist aber nirgends gelistet.
@@ -61,7 +78,8 @@ Oeffentlichkeit der Bestenlisten (s. Entscheidung 2) — immer, auch wenn das Te
 ## Grenzen, die aus bestehenden Regeln folgen
 
 - **„Oeffentlich heisst eingeloggt“** (25.09.) — die Team-Bestenliste ohne Login ist die zweite Ausnahme
-  neben `/s/<token>`, bewusst und schmal: kein Spot, kein Datum, keine Karte, keine Session-Links.
+  neben `/s/<token>`, bewusst und schmal: kein Spot, kein Datum, keine Karte, keine Session-Links,
+  keine Avatare (Initialen).
   `noindex` + `robots.txt`-Sperre.
 - **Keine Sessionlisten je Person** — die Mitgliederliste fuehrt hoechstens auf die Foiler-Seite (5 Sessions).
 - **Social-Gate** — alle Team-Routen hinter `require_social`.
@@ -81,8 +99,13 @@ Oeffentlichkeit der Bestenlisten (s. Entscheidung 2) — immer, auch wenn das Te
   gueltiger. Der Token muss in den Einstellungen wieder ANZEIGBAR sein, ein reiner SHA-256 wie bei
   Geraete-Tokens reicht also nicht: verschluesselt ueber `geheim.py` speichern, Suche ueber einen
   zusaetzlichen Hash.
-- `team_tafeln`: team_id, sportart, kennzahl, reihenfolge.
-- `team_events` (Stufe 2): team_id, titel, start, ende, zeitzone, sportart, kennzahlen, eingefroren_am.
+- `team_spots`: team_id, spot_id (mehrere).
+- `team_tafeln`: team_id, kennzahl, sportart, filter (Bewegungsdaten, Handy am Brett, Foil-Band),
+  nur_teamspots, reihenfolge.
+- `team_logbuch`: team_id, zeit, tafel, user_id, session_id, wert, vorheriger Rekordhalter/-wert.
+- `team_events` (Stufe 3): team_id, titel, start, ende, zeitzone, kennzahl(en), sportart, spot_ids
+  (optional), vorlage, eingefroren_am, Ergebnis (eingefroren).
+- Team-Chat: eigener Kanal `team:<id>` im vorhandenen Chat, nur fuer Mitglieder.
 
 Rechte: Leiter = alles inkl. Moderatoren benennen und Leitung uebergeben; Moderator = nur Mitglieder
 annehmen/entfernen; Mitglied = ansehen, austreten. Hoechstens 3 Teams je Person im Status `wartet`;
@@ -96,45 +119,66 @@ Freunde-Ansicht ueber `_community`):
   -Pumps, Carves > 180°) — je Person nur die beste Session.
 - **Summen je Person** wie `/leaders` (Sessions, Runs, Pumps, Spots).
 - Zeitraeume wie `PERIODS` (heute, 10/30/365 Tage, alles); bei Events das Event-Fenster.
+- Alle Sessions der Mitglieder, auch von vor dem Beitritt. Filter je Tafel, optional nur an den Teamspots.
+- **Teamsummen/-statistik** als Kopf der Teamseite (z. B. Pumps, km, Sessions des Teams im Zeitraum).
+  Keine Rangliste Team gegen Team (grosse Teams gewinnen immer).
+- **Team-Logbuch:** jeder neue Erste einer Tafel wird mit Zeit, Session und Vorgaenger eingetragen.
+  Ermittelt beim Session-Eingang bzw. nach der Analyse, nicht rueckwirkend erfunden: beim Anlegen einer
+  Tafel steht der aktuelle Stand als erster Eintrag.
 
-Neue Kennzahlen (Stufe 3): „Runs ueber 100 m“ (leicht, Distanz je Lauf liegt vor) und „schnellster km“
-(neu aus dem GPS-Track, nur innerhalb von Laeufen — Analyse-Pipeline, braucht Jans OK mit Befund und
-Gegenprobe).
+Neue Kennzahlen (SPAETER): „Runs ueber 100 m“ und „schnellster km“ (neu aus dem GPS-Track, nur
+innerhalb von Laeufen — Analyse-Pipeline, braucht Jans OK mit Befund und Gegenprobe).
 
 ## Oberflaeche
 
 - **Profil:** Knopf „Team“ → eigene Seite: Teams verwalten / gruenden, alle Einstellungen.
-- **Home:** Team-Karte wie Homespot → Team-Bestenlisten, Zeitraum umschaltbar; mehrere Teams → Auswahl.
+- **Home:** kleiner Link neben dem Homespot-Link, mit Wappen und Teamfarbe, je Team einer → Teamseite
+  (Bestenlisten, Zeitraum umschaltbar).
 - **Community:** neuer Abschnitt „Teams“ (nur freigegebene).
-- **Admin:** Warteschlange „Teams freigeben“ (alte gegen neue Fassung).
+- **Admin:** Warteschlange „Teams freigeben“ (alte gegen neue Fassung), Zaehler am Tab wie bei den
+  anderen Warteschlangen.
+- **Team loeschen:** nur Leiter, Teamname zur Bestaetigung eintippen. Loescht Mitgliedschaften, Tafeln,
+  Logbuch, Events, Chat-Kanal; alter Slug bleibt gesperrt.
+- **Bestenliste als Bild teilen:** der Server rendert eine Tafel als PNG (Logo, Teamfarbe, Rang/Name/Wert,
+  Initialen statt Avatar, „pumpfoil.org/teams/<slug>“ als Fusszeile) — Vorbild ist genau das Bild aus
+  dem Telefonat. Nur fuer Mitglieder; bei nicht oeffentlichen Teams mit Hinweis, dass das Bild Namen
+  nach aussen traegt.
+- **QR-Code** zu beiden Einladungslinks, anzeigbar, herunterladbar und ueber das Teilen-Menue teilbar.
+  Erzeugung im Browser (keine Dritt-Dienste).
 - **Beitreten per Link:** s. Abschnitt Beitreten.
 - **Teamfarbe:** Palette aus ~12 vorgepruefter Farben (je eine Hell-/Dunkel-Variante, bestehen den
   Kontrast-Waechter), gesetzt als CSS-Variable `--team-akzent` nur auf Teamseiten.
 - **Logo:** Upload wie Avatar (neu kodiert, EXIF weg, quadratisch, Groessengrenze), unter `server/media`.
 
-## „Top 5 zusammen abspielen“ — Falle
+## „Top 5 zusammen abspielen“ — Falle (SPAETER)
 
 `web/src/lib/syncPlayback.ts` legt Sessions auf eine gemeinsame UHRZEIT (mehrere Fahrer im selben Video).
 Bestwerte stammen von verschiedenen Tagen und meist verschiedenen Spots. Noetig ist ein neuer Modus
 „Geisterrennen“: Laeufe ab ihrem Start uebereinander. Auf EINER Karte nur am selben Spot sinnvoll; sonst
 nebeneinander oder ohne Karte (Tempo/Strecke ueber die Zeit). Start: nur fuer Sessions am selben Spot.
 
-## Events (Stufe 2)
+## Events (Stufe 3)
 
-Zeitfenster mit Zeitzone, Kennzahl(en). Gewertet nur Aufnahmen, die im Fenster gestartet sind; Upload bis
+Zeitfenster mit Zeitzone, Kennzahl(en), optional auf einen oder mehrere Spots begrenzt. **Vorlagen** im
+Event-Anlegen („Meiste Runs am Wochenende“, „Laengster Lauf“, „Meiste Pumps“ … aus den vorhandenen
+Kennzahlen; neue wie „schnellster km“ kommen spaeter dazu). **Event-Abzeichen** fuer die Ersten, sichtbar
+auf der Foiler-Seite (wie der Supporter-Badge). Gewertet nur Aufnahmen, die im Fenster gestartet sind; Upload bis
 Ende + 24 h, dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das Ergebnis). Optional nur
 Uhr-/App-Aufnahmen, keine FIT-Importe. Vorhandene Waechter (Fake-Meldungen, Autofahrt-Grenzen,
 aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
 ## Stufen
 
-1. Teams, Rollen, Beitritt (zwei Schalter), Einladungslink inkl. Registrierung, Mitgliederliste einstellbar,
-   Bestenlisten aus vorhandenen Kennzahlen, Home-Karte, Profil-Seite. Logo + Farbpalette. Freigabe-
-   Warteschlange, Community-Abschnitt, oeffentliche Bestenliste ohne Login. Nur Web.
-2. Events.
-3. Geisterrennen Top 5, neue Kennzahlen.
-4. Native Apps (Home-Karte, Bestenliste, Deep Links `/teams/…/join-…` und `…/apply-…`).
+1. **Kern (Web):** Teams, Rollen, Beitritt (zwei Schalter + join/apply-Links mit QR-Code), Registrierung
+   mit Beitritt, Mitgliederliste einstellbar, Teamspots, Tafeln mit Filtern aus vorhandenen Kennzahlen,
+   Teamseite `/teams/<slug>`, Home-Links, Profil-Seite, Logo + Farbpalette, Freigabe im Admin,
+   Community-Abschnitt, oeffentliche Bestenliste ohne Login, sicheres Loeschen.
+2. **Leben ins Team:** Teamsummen/-statistik, Team-Logbuch, Bestenliste als Bild, Team-Chat.
+3. **Events:** Zeitfenster, Spots, Vorlagen, Einfrieren, Abzeichen.
+4. **Native Apps:** Home-Links, Teamseite, Deep Links `/teams/…/join-…` und `…/apply-…`.
+5. **Spaeter:** Geisterrennen Top 5, neue Kennzahlen (Pipeline), Rekord-Benachrichtigungen je Team.
 
 ## Offene Punkte
 
 - Push bei Beitrittsanfrage / Event-Start — spaeter, optional.
+- Avatar auf der oeffentlichen Seite im Profil einstellbar — spaeter.
