@@ -2036,7 +2036,7 @@ class TeamTafel(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
     kennzahl: Mapped[str] = mapped_column(String(30))
     sportart: Mapped[str] = mapped_column(String(30), default="pumpfoil")
-    accel_only: Mapped[bool] = mapped_column(Boolean, default=True)
+    accel_only: Mapped[bool] = mapped_column(Boolean, default=False)   # Standard: auch GPS-only (Jan, 31.10.2026)
     nur_brett: Mapped[bool] = mapped_column(Boolean, default=False)
     foil_band: Mapped[str] = mapped_column(String(30), default="all")
     nur_teamspots: Mapped[bool] = mapped_column(Boolean, default=False)

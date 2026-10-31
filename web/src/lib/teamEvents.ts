@@ -2,7 +2,7 @@
 // Vorlagen nutzen nur Kennzahlen, die es schon gibt (Jan: neue wie „schnellster km" kommen spaeter).
 import type { TeamEventTafel } from "./api";
 
-const tafel = (kennzahl: string): TeamEventTafel => ({ kennzahl, sportart: "pumpfoil", accel_only: true, nur_brett: false, foil_band: "all" });
+const tafel = (kennzahl: string): TeamEventTafel => ({ kennzahl, sportart: "pumpfoil", accel_only: false, nur_brett: false, foil_band: "all" });
 
 /** Naechster Samstag 00:00 bis Montag 00:00 (lokal) bzw. dieser Monat. */
 function wochenende(): [Date, Date] {

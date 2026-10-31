@@ -306,7 +306,7 @@ def logbuch(slug: str, user: models.User = Depends(current_user), db: Session = 
 class EventTafelIn(BaseModel):
     kennzahl: str
     sportart: str = "pumpfoil"
-    accel_only: bool = True
+    accel_only: bool = False   # Standard: auch Laeufe ohne Bewegungsdaten (Jan, 31.10.2026)
     nur_brett: bool = False
     foil_band: str = Field(default="all", max_length=30)
 
@@ -545,7 +545,7 @@ def freigabe_beantragen(slug: str, user: models.User = Depends(current_user), db
 class TafelIn(BaseModel):
     kennzahl: str
     sportart: str = "pumpfoil"
-    accel_only: bool = True
+    accel_only: bool = False
     nur_brett: bool = False
     foil_band: str = Field(default="all", max_length=30)
     nur_teamspots: bool = False

@@ -261,7 +261,7 @@ export default function TeamEinstellungen() {
           ))}
           <div className="flex flex-wrap gap-2">
             <button className={knopf} disabled={tafeln.length >= 20} onClick={() => setTafeln((l) => [...l, {
-              kennzahl: "session_pumps", sportart: "pumpfoil", accel_only: true, nur_brett: false, foil_band: "all", nur_teamspots: false,
+              kennzahl: "session_pumps", sportart: "pumpfoil", accel_only: false, nur_brett: false, foil_band: "all", nur_teamspots: false,
             }])}>+ {t("team.tafel.neu")}</button>
             <button className="team-knopf rounded-xl px-4 py-1.5 text-sm font-semibold"
               onClick={() => api.teamTafelnSetzen(slug, tafeln).then((r) => { setTafeln(r.tafeln); gespeichert(); }).catch(fehlerZeigen)}>
