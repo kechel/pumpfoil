@@ -337,3 +337,19 @@ gebaut). Bachata hat damit erstmals echte Daten (n = 154 Fenster statt geschätz
 Quelle" auf den übrigen Sessions unverändert 9 von 44/45 richtig (16875-Disco-Fox jetzt öfter richtig, 18834-Salsa und
 16976-Boogie öfter als Bachata). Die 19572-eigenen Zahlen (10/21) sind nicht unabhängig: Blöcke kommen aus dem Tempo.
 Server s1 unverändert (kennt weiter kein Bachata); `tanz_nachanalyse.py --schreiben` nicht gelaufen.
+
+## Experiment: kleines Modell auf überlappenden Fenstern (31.10.2026, nur gelesen, Skript nicht im Repo)
+
+Jans Frage: ergeben überlappende 10-s-Fenster (alle 1 s) nicht genug Trainingsdaten für ein Netz, mit Mehrheit je
+Minute bei der Erkennung? Gemessen mit 27 514 Fenstern aus 9 Abenden (Merkmale: Spektrum senkrecht/waagerecht in 20
+Bändern, Autokorrelation, Streuungen, Kreisel), Entscheidungsbäume (HistGradientBoosting) und kleines Netz (MLP 64/32).
+
+- **A) einen Abend weglassen** (nur Tänze mit ≥ 2 Abenden, 7 Klassen): Bäume 8 % je Fenster / 9 % je Minute, Netz 15 % /
+  17 %. Zufall 14 %, „immer Salsa" 36 %. Richtig erkannt fast nur Salsa (4 Abende); Bachata, Boogie, Jive, LW 0 %.
+  → Das Modell lernt den Abend, nicht den Tanz. Die meisten Tänze haben effektiv EINEN Abend (Bachata: #19572 +
+  1,3 min aus #16875).
+- **B) #19572, ganze Blöcke abwechselnd Lernen/Prüfen** (2 Klassen, Zufall 50 %): 67–68 % je Fenster, 70–72 % je
+  Minute — trotz gleichem Abend und Etiketten aus dem Tempo nur mäßig.
+
+Schluss: Fensterzahl ist nicht der Engpass, sondern **unabhängige markierte Abende je Tanz**. Erst neu messen, wenn
+mehrere Tänze ≥ 3–5 Abende mit Markern haben.
