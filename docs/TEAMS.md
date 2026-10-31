@@ -27,7 +27,7 @@ alte, freigegebene Fassung stehen, intern gilt sofort die neue.
 „im prinzip der teamname … in der url ohne sonderzeichen etc., also z.b. pumpfoil.org/teams/illmenseepumper“
 - Vorschlag automatisch aus dem Namen, frei anpassbar.
 - Erlaubt: `a-z`, `0-9`, `-`; 3–40 Zeichen; eindeutig. Umlaute/Akzente umgeschrieben (ä→ae, ß→ss, š→s),
-  alles andere entfaellt. Reservierte Woerter gesperrt (`neu`, `admin`, `einladung`, …).
+  alles andere entfaellt. Reservierte Woerter gesperrt (`neu`, `admin`, `join`, `apply`, …).
 - Gehoert zum oeffentlichen Teil: Aenderung bei freigegebenen Teams braucht Freigabe.
 - Alte Adressen leiten dauerhaft weiter (Tabelle `team_slugs_alt`), damit geteilte Links nicht brechen;
   ein alter Slug wird nie an ein anderes Team vergeben.
@@ -38,15 +38,23 @@ alte, freigegebene Fassung stehen, intern gilt sofort die neue.
 
 ## Beitreten (Jan, 31.10.2026)
 
-Zwei Schalter je Team:
-- **„Anmeldungen zulassen“** — Angemeldete koennen auf der Teamseite selbst „Beitreten“ druecken.
-  Aus: kein Knopf, Beitritt nur per Einladungslink.
+Zwei Schalter je Team fuer den Beitritt auf der Teamseite (angemeldet):
+- **„Anmeldungen zulassen“** — zeigt „Beitreten“ auf der Teamseite.
 - **„Anmeldungen automatisch akzeptieren“** — an: sofort Mitglied; aus: Anfrage, die der Leiter oder ein
   Moderator annimmt oder ablehnt.
 
-Der Einladungslink `/t/<token>` macht direkt zum Mitglied, auch wenn Anmeldungen aus sind — wer den Link
-vom Team bekommen hat, ist eingeladen. (Vorschlag; alternativ laeuft auch er durch die Freigabe.)
-Jeder Beitritts-Dialog nennt, falls das Team oeffentlich ist, dass Anzeigename und Platz oeffentlich sind.
+Eine eigene Beitrittsart „nur per Einladung“ gibt es nicht („sehe da keinen sinn drin“).
+
+**Zwei Einladungslinks je Team**, beide in den Einstellungen sichtbar, damit man sie unterschiedlich
+verteilen kann:
+- `pumpfoil.org/teams/<slug>/join-<token>` — direkt Mitglied.
+- `pumpfoil.org/teams/<slug>/apply-<token>` — Anfrage, Leiter/Moderator entscheidet.
+
+Ohne Konto: erst registrieren, dann direkt beigetreten bzw. angefragt (Token wartet in `localStorage`,
+kein Cookie). Jeder Link laesst sich einzeln neu erzeugen; der alte gilt dann nicht mehr. Ausschlaggebend
+ist der Token, nicht der Slug — nach einer Umbenennung funktioniert der Link weiter (alter Slug leitet um).
+Jeder Beitritts-Dialog nennt, ob eine Freigabe noetig ist, und, falls das Team oeffentlich ist, dass
+Anzeigename und Platz oeffentlich sind.
 
 ## Grenzen, die aus bestehenden Regeln folgen
 
@@ -67,8 +75,10 @@ Jeder Beitritts-Dialog nennt, falls das Team oeffentlich ist, dass Anzeigename u
   oeffentlichen Felder, angelegt_von, angelegt_am.
 - `team_mitglieder`: team_id, user_id, rolle (`leiter`/`moderator`/`mitglied`), status
   (`angefragt`/`aktiv`), seit.
-- `team_einladungen`: token (nur als SHA-256 gespeichert, wie Geraete-Tokens), team_id, ablauf,
-  max_nutzungen, genutzt, widerrufen.
+- `team_einladungen`: team_id, art (`join`/`apply`), token, erzeugt_am, genutzt. Je Team und Art genau ein
+  gueltiger. Der Token muss in den Einstellungen wieder ANZEIGBAR sein, ein reiner SHA-256 wie bei
+  Geraete-Tokens reicht also nicht: verschluesselt ueber `geheim.py` speichern, Suche ueber einen
+  zusaetzlichen Hash.
 - `team_tafeln`: team_id, sportart, kennzahl, reihenfolge.
 - `team_events` (Stufe 2): team_id, titel, start, ende, zeitzone, sportart, kennzahlen, eingefroren_am.
 
@@ -95,9 +105,7 @@ Gegenprobe).
 - **Home:** Team-Karte wie Homespot → Team-Bestenlisten, Zeitraum umschaltbar; mehrere Teams → Auswahl.
 - **Community:** neuer Abschnitt „Teams“ (nur freigegebene).
 - **Admin:** Warteschlange „Teams freigeben“ (alte gegen neue Fassung).
-- **Beitreten per Link** `/t/<token>`: ohne Konto erst registrieren, dann direkt beigetreten (Token
-  wartet in `localStorage`, kein Cookie). Beitritts-Dialog nennt, ob eine Freigabe noetig ist, und, falls oeffentlich, die
-  Sichtbarkeit von Name und Platz.
+- **Beitreten per Link:** s. Abschnitt Beitreten.
 - **Teamfarbe:** Palette aus ~12 vorgepruefter Farben (je eine Hell-/Dunkel-Variante, bestehen den
   Kontrast-Waechter), gesetzt als CSS-Variable `--team-akzent` nur auf Teamseiten.
 - **Logo:** Upload wie Avatar (neu kodiert, EXIF weg, quadratisch, Groessengrenze), unter `server/media`.
@@ -123,7 +131,7 @@ aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
    Warteschlange, Community-Abschnitt, oeffentliche Bestenliste ohne Login. Nur Web.
 2. Events.
 3. Geisterrennen Top 5, neue Kennzahlen.
-4. Native Apps (Home-Karte, Bestenliste, Deep Link `/t/<token>`).
+4. Native Apps (Home-Karte, Bestenliste, Deep Links `/teams/…/join-…` und `…/apply-…`).
 
 ## Offene Punkte
 
