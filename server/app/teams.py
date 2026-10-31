@@ -440,8 +440,9 @@ STANDARD_TAFELN = ("session_pumps", "distance", "speed", "sum_pumps")
 
 def statistik(db: Session, team: models.Team, period: str, sportart: str = "pumpfoil") -> dict:
     """Teamsummen im Zeitraum (Jan, 31.10.2026: „teamsumme und stats sind super"): Sessions, Laeufe,
-    Pumps, On-Foil-Strecke/-Zeit, Spots und wie viele Mitglieder aktiv waren. Gleiche Filter wie die
-    Bestenlisten (Standard: nur mit Bewegungsdaten); keine Rangliste Team gegen Team."""
+    Pumps, On-Foil-Strecke/-Zeit, Spots und wie viele Mitglieder aktiv waren; keine Rangliste Team gegen Team.
+    Bewegungsdaten: „so wie eingestellt im Team" (Jan, 31.10.2026) — nur mit Bewegungsdaten, wenn ALLE
+    Bestenlisten des Teams das verlangen, sonst auch Laeufe ohne (der Standard fuer neue Bestenlisten)."""
     from .api import community as C
     from . import pumpgleit_anzeige as PA
 
@@ -450,7 +451,9 @@ def statistik(db: Session, team: models.Team, period: str, sportart: str = "pump
             "mitglieder": len(ids)}
     if not ids:
         return leer
-    key = ("statistik", team.id, period, sportart, tuple(sorted(ids)))
+    tf_ = tafeln(db, team.id)
+    accel_only = bool(tf_) and all(tf.accel_only for tf in tf_)
+    key = ("statistik", team.id, period, sportart, accel_only, tuple(sorted(ids)))
     hit = _cache_holen(key)
     if hit is not None:
         return hit
@@ -459,7 +462,7 @@ def statistik(db: Session, team: models.Team, period: str, sportart: str = "pump
         func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0), func.coalesce(func.sum(PA.col_pump_count()), 0),
         func.coalesce(func.sum(AR.foiling_distance_m), 0), func.coalesce(func.sum(AR.foiling_time_s), 0),
         func.count(func.distinct(S.spot_id)), func.count(func.distinct(S.user_id)),
-    ), None, True, sportart).filter(S.user_id.in_(ids))
+    ), None, accel_only, sportart).filter(S.user_id.in_(ids))
     cut = C._cutoff(period)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
