@@ -22,6 +22,21 @@ erst nach Freigabe. Bis dahin funktioniert das Team ueber den Einladungslink vol
 Eine Aenderung an Name/Beschreibung/Logo/Farbe braucht erneut Freigabe; nach aussen bleibt bis dahin die
 alte, freigegebene Fassung stehen, intern gilt sofort die neue.
 
+## Adresse `pumpfoil.org/teams/<slug>` (Jan, 31.10.2026)
+
+„im prinzip der teamname … in der url ohne sonderzeichen etc., also z.b. pumpfoil.org/teams/illmenseepumper“
+- Vorschlag automatisch aus dem Namen, frei anpassbar.
+- Erlaubt: `a-z`, `0-9`, `-`; 3–40 Zeichen; eindeutig. Umlaute/Akzente umgeschrieben (ä→ae, ß→ss, š→s),
+  alles andere entfaellt. Reservierte Woerter gesperrt (`neu`, `admin`, `einladung`, …).
+- Gehoert zum oeffentlichen Teil: Aenderung bei freigegebenen Teams braucht Freigabe.
+- Alte Adressen leiten dauerhaft weiter (Tabelle `team_slugs_alt`), damit geteilte Links nicht brechen;
+  ein alter Slug wird nie an ein anderes Team vergeben.
+- Die Seite ist die Team-Ansicht (ohne Login nur die oeffentliche Bestenliste, falls eingeschaltet und
+  freigegeben, sonst „nicht gefunden“). Beitreten bleibt beim Einladungslink `/t/<token>` — die
+  sprechende Adresse ist zum Ansehen, nicht zum Beitreten (bei Beitrittsart `offen` zeigt sie
+  Angemeldeten aber den Beitreten-Knopf).
+- Neue Server-Route → Service-Worker-Ausnahme mitpflegen.
+
 ## Grenzen, die aus bestehenden Regeln folgen
 
 - **„Oeffentlich heisst eingeloggt“** (25.09.) — die Team-Bestenliste ohne Login ist die zweite Ausnahme
@@ -35,7 +50,7 @@ alte, freigegebene Fassung stehen, intern gilt sofort die neue.
 
 ## Datenmodell
 
-- `teams`: id, name, slug, beschreibung, logo, farbe (Palette-Schluessel), beitritt
+- `teams`: id, name, slug (s. Adresse), beschreibung, logo, farbe (Palette-Schluessel), beitritt
   (`offen`/`anfrage`/`einladung`), oeffentlich (bool), mitglieder_sichtbar (`mitglieder`/`angemeldete`),
   freigabe (`keine`/`wartet`/`frei`/`abgelehnt`) + die zuletzt freigegebene Fassung der vier
   oeffentlichen Felder, angelegt_von, angelegt_am.
