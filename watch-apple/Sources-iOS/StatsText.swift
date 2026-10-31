@@ -25,7 +25,7 @@ struct CommunityStatsText: View {
 
     private var pulsend: Set<String> {
         var s = Set<String>()
-        if Meilenstein.imFenster(stats.pumps, Meilenstein.pumps) { s.insert(stats.pumps.formatted()) }
+        if Meilenstein.imFenster(stats.pumps, Meilenstein.pumps, breite: Meilenstein.fensterPumps) { s.insert(stats.pumps.formatted()) }
         if Meilenstein.imFenster(stats.foilers, Meilenstein.leute) { s.insert("\(stats.foilers)") }
         if Meilenstein.imFenster(stats.spots, Meilenstein.leute) { s.insert("\(stats.spots)") }
         // „N gerade am Pumpen" pulsiert immer, solange die Zahl da ist (Jan, 14.10.2026, wie die PWA)

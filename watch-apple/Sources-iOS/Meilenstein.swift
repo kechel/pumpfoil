@@ -9,7 +9,9 @@ import Foundation
 /// Stufe. Kein Merker, kein Zeitrechnen: die Regel steht in der Zahl selbst, jeder sieht
 /// denselben Zustand, und sie erlischt, wenn die Gemeinschaft zehn Prozent weiter gewachsen ist.
 ///
-/// JEDE STUFE ZAEHLT: die zweite Million pulst wieder, von 2.000.000 bis 2.200.000.
+/// JEDE STUFE ZAEHLT. Bei Foilern und Spots wachsen die zehn Prozent mit (2.000 bis 2.200).
+/// PUMPS: FESTE 100.000 je Million (Jan, 31.10.2026: „bei pumps immer nur fuer 100.000 je
+/// millionen"), die zweite Million pulst also von 2.000.000 bis 2.100.000.
 ///
 /// WENN SICH DIE REGEL AENDERT, aendert sie sich an DREI Stellen — Web, Android und hier. Eine
 /// gemeinsame Quelle gibt es fuer diese drei Zeilen nicht; dafuer steht in jeder derselbe
@@ -17,12 +19,13 @@ import Foundation
 enum Meilenstein {
     static let pumps = 1_000_000
     static let leute = 1_000          // Foiler und Spots
+    static let fensterPumps = 100_000 // fest, nicht mitwachsend
     private static let fenster = 0.1
 
-    /// Liegt der Wert im Feier-Fenster ueber einer erreichten Stufe?
-    static func imFenster(_ wert: Int, _ stufe: Int) -> Bool {
+    /// Liegt der Wert im Feier-Fenster ueber einer erreichten Stufe? `breite` fest, sonst zehn Prozent der erreichten Stufe.
+    static func imFenster(_ wert: Int, _ stufe: Int, breite: Int? = nil) -> Bool {
         guard wert >= stufe else { return false }
         let erreicht = (wert / stufe) * stufe
-        return Double(wert) < Double(erreicht) * (1 + fenster)
+        return Double(wert) < Double(erreicht) + Double(breite ?? Int(Double(erreicht) * fenster))
     }
 }

@@ -886,7 +886,7 @@ internal fun pumpPulsFarbe(laeuft: Boolean): Color {
 internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
     val primary = MaterialTheme.colorScheme.primary
     val pulsend = buildList {
-        if (Meilenstein.imFenster(s.pumps.toLong(), Meilenstein.PUMPS)) add("%,d".format(s.pumps))
+        if (Meilenstein.imFenster(s.pumps.toLong(), Meilenstein.PUMPS, Meilenstein.FENSTER_PUMPS)) add("%,d".format(s.pumps))
         if (Meilenstein.imFenster(s.foilers.toLong(), Meilenstein.LEUTE)) add(s.foilers.toString())
         if (Meilenstein.imFenster(s.spots.toLong(), Meilenstein.LEUTE)) add(s.spots.toString())
         // „N gerade am Pumpen" pulsiert immer, solange die Zahl da ist (Jan, 14.10.2026, wie die PWA)

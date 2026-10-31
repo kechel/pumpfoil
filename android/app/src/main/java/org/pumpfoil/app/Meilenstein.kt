@@ -10,7 +10,9 @@ package org.pumpfoil.app
  * Stufe. Kein Merker, kein Zeitrechnen: die Regel steht in der Zahl selbst, jeder sieht
  * denselben Zustand, und sie erlischt, wenn die Gemeinschaft zehn Prozent weiter gewachsen ist.
  *
- * JEDE STUFE ZAEHLT: die zweite Million pulst wieder, von 2.000.000 bis 2.200.000.
+ * JEDE STUFE ZAEHLT. Bei Foilern und Spots wachsen die zehn Prozent mit (2.000 bis 2.200).
+ * PUMPS: FESTE 100.000 je Million (Jan, 31.10.2026: „bei pumps immer nur fuer 100.000 je
+ * millionen"), die zweite Million pulst also von 2.000.000 bis 2.100.000.
  *
  * WENN SICH DIE REGEL AENDERT, aendert sie sich an DREI Stellen — Web, hier und
  * `watch-apple/Sources-iOS/Meilenstein.swift`. Eine gemeinsame Quelle gibt es fuer diese drei
@@ -20,12 +22,13 @@ package org.pumpfoil.app
 object Meilenstein {
     const val PUMPS = 1_000_000L
     const val LEUTE = 1_000L          // Foiler und Spots
+    const val FENSTER_PUMPS = 100_000L  // fest, nicht mitwachsend
     private const val FENSTER = 0.1
 
-    /** Liegt der Wert im Feier-Fenster ueber einer erreichten Stufe? */
-    fun imFenster(wert: Long, stufe: Long): Boolean {
+    /** Liegt der Wert im Feier-Fenster ueber einer erreichten Stufe? `breite` fest, sonst zehn Prozent der erreichten Stufe. */
+    fun imFenster(wert: Long, stufe: Long, breite: Long? = null): Boolean {
         if (wert < stufe) return false
         val erreicht = (wert / stufe) * stufe
-        return wert < erreicht * (1 + FENSTER)
+        return wert < erreicht + (breite ?: (erreicht * FENSTER).toLong())
     }
 }
