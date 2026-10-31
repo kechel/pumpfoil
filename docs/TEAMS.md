@@ -1,8 +1,9 @@
 # Teams — Plan und Stand (31.10.2026)
 
 **Stufe 1 LIVE seit 31.10.2026 (Web).** Server `server/app/teams.py` + `server/app/api/teams.py` (Tests
-`server/tests/test_teams.py`), Web `web/src/pages/Team*.tsx`, Admin-Reiter „Teams“. Uebersetzt: de, en, gsw, de-AT;
-die uebrigen Sprachen fallen auf Englisch zurueck und kommen in einem Durchgang, wenn die deutschen Texte stehen.
+`server/tests/test_teams.py`), Web `web/src/pages/Team*.tsx`, Admin-Reiter „Teams“. Uebersetzt in alle 18 Sprachen
+(31.10.2026). Regeln fuer Nutzer: `/teams/regeln` (`web/src/pages/TeamRegeln.tsx`, auch ohne Login) — bei jeder
+Regel-Aenderung mitziehen.
 **Stufe 2 LIVE seit 31.10.2026:** Teamsummen (`/api/teams/<slug>/statistik`), Team-Logbuch (Tabellen
 `team_rekorde` + `team_logbuch`, naechtlich in `server/record_snapshot.py` nach dem Community-Snapshot; Summen nur
 bei Wechsel an der Spitze, Bestwerte bei jeder Steigerung, sinkende Werte still nachgezogen), Bestenliste als Bild

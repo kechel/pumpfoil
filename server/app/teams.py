@@ -44,7 +44,7 @@ MAX_TEAMS_JE_PERSON = 10         # Teams, die jemand leitet
 MAX_TAFELN = 20
 MAX_TEAMSPOTS = 20
 TAFEL_LAENGE = 50                # so viele Plaetze je Bestenliste
-RESERVIERT = {"neu", "new", "admin", "join", "apply", "einladung", "teams", "team", "api", "mine",
+RESERVIERT = {"neu", "new", "admin", "join", "apply", "einladung", "teams", "team", "api", "mine", "regeln", "rules",
               "liste", "list", "settings", "einstellungen", "pumpfoil", "official", "offiziell"}
 
 # Kennzahlen. „best_*": je Person die beste Session (Spalten wie die Rekorde). „sum_*": je Person die Summe.

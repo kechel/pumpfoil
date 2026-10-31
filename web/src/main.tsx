@@ -99,6 +99,7 @@ const Teams = seite(() => import("./pages/Teams"));
 const Team = seite(() => import("./pages/Team"));
 const TeamEinstellungen = seite(() => import("./pages/TeamEinstellungen"));
 const TeamEinladung = seite(() => import("./pages/TeamEinladung"));
+const TeamRegeln = seite(() => import("./pages/TeamRegeln"));
 const FoilCalculator = seite(() => import("./pages/FoilCalculator"));
 const PersonalHome = seite(() => import("./pages/PersonalHome"));
 const Admin = seite(() => import("./pages/Admin"));
@@ -257,6 +258,8 @@ const router = createBrowserRouter([
           { path: "friends", element: <Friends /> },
           // Teams (31.10.2026). Teamseite und Einladungslink auch fuer Gaeste (GAST-Rahmen).
           { path: "teams", element: <Teams /> },
+          // Regeln als Text-Seite: auch fuer Gaeste (die oeffentliche Teamseite verweist darauf).
+          { path: "teams/regeln", element: <TeamRegeln />, handle: TEXT },
           { path: "teams/:slug", element: <Team />, handle: GAST },
           { path: "teams/:slug/einstellungen", element: <TeamEinstellungen /> },
           { path: "teams/:slug/:einladung", element: <TeamEinladung />, handle: GAST },

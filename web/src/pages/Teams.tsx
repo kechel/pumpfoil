@@ -8,6 +8,7 @@ import { Card } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
 import { fehlerCode } from "../lib/teamKennzahlen";
+import { RegelnLink } from "./TeamRegeln";
 import { useI18n } from "../i18n";
 
 export default function Teams() {
@@ -49,7 +50,10 @@ export default function Teams() {
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
       </Link>
-      <h2 className="mb-3 text-xl font-bold">{t("team.meine")}</h2>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-xl font-bold">{t("team.meine")}</h2>
+        <RegelnLink />
+      </div>
 
       {!meine ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : meine.length === 0 ? (
         <p className="mb-4 text-sm text-slate-400">{t("team.keineTeams")}</p>

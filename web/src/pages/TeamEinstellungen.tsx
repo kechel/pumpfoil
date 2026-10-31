@@ -9,6 +9,7 @@ import { ChevronIcon, TrashIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
 import TeamQr from "../components/TeamQr";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
+import { RegelnLink } from "./TeamRegeln";
 import { TEAM_FARBEN, teamFarbStil } from "../lib/teamFarben";
 import { TEAM_KENNZAHLEN, fehlerCode, teamUrl } from "../lib/teamKennzahlen";
 import { sortiereNachSport } from "../lib/sportClass";
@@ -106,7 +107,10 @@ export default function TeamEinstellungen() {
       <Link to={`/teams/${team.slug}`} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {team.name}
       </Link>
-      <h2 className="mb-3 text-xl font-bold">{t("team.einstellungen")}</h2>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-xl font-bold">{t("team.einstellungen")}</h2>
+        <RegelnLink />
+      </div>
       {meldung && <p className="sticky top-2 z-10 mb-3 rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm text-slate-200">{meldung}</p>}
 
       {leiter && (

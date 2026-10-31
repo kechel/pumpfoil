@@ -12,6 +12,7 @@ import { ChatBubbleIcon, ChevronIcon, SettingsIcon, ShareIcon } from "../compone
 import TeamTafelBild from "../components/TeamTafelBild";
 import { openChatOverlay } from "../components/DmWidget";
 import { eventZeit } from "../lib/teamEvents";
+import { RegelnLink } from "./TeamRegeln";
 import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
@@ -76,7 +77,7 @@ function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: str
   return (
     <Card className="mt-4 p-4">
       <h3 className="mb-1 font-semibold text-slate-100">{t("team.logbuch")}</h3>
-      <p className="mb-2 text-xs text-slate-400">{t("team.logbuchHinweis")}</p>
+      <p className="mb-2 text-xs text-slate-400">{t("team.logbuchHinweis")} <RegelnLink abschnitt="logbuch" className="text-xs" /></p>
       {eintraege.length === 0 ? <p className="text-sm text-slate-400">{t("team.logbuchLeer")}</p> : (
         <ul>
           {eintraege.map((e, i) => {
@@ -275,6 +276,7 @@ export default function Team() {
                 {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
               </p>
               {e.status === "auswertung" && <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(e.einfrieren_am, e.zeitzone, lang) })}</p>}
+              {e.status !== "beendet" && <RegelnLink abschnitt="events" className="text-xs" />}
               {e.beschreibung && <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{e.beschreibung}</p>}
               {e.status !== "kommend" && (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -334,6 +336,7 @@ export default function Team() {
       {gast && (
         <p className="mt-6 text-sm text-slate-400">{t("team.gastHinweis")}</p>
       )}
+      <div className="mt-6"><RegelnLink /></div>
 
       {bild && (
         <TeamTafelBild team={kopf} tafel={bild.tf} onClose={() => setBild(null)} zeitraum={bild.zeile} />
