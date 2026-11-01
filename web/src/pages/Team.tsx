@@ -296,9 +296,8 @@ export default function Team() {
         </p>
       )}
 
-      {/* Mitglieder sehen die Adresse immer, mit Hinweis, ob Gaeste dort schon etwas sehen; Fremde nur kompakt neben
-          „Beitreten“, wenn das Team oeffentlich UND freigegeben ist (Jan, 01.11.2026). */}
-      {kopf.mein_status === "aktiv" && <TeamAdresse kopf={kopf} t={t} />}
+      {/* Fremde sehen die Teamadresse nur kompakt neben „Beitreten“, wenn das Team oeffentlich UND freigegeben ist;
+          Mitglieder sehen sie immer, als Karte weiter unten (Jan, 01.11.2026). */}
 
       {kopf.chat_scope && (
         <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
@@ -358,7 +357,6 @@ export default function Team() {
             : <div className="grid gap-3 sm:grid-cols-2">{tafeln.map((tf) => (
                 <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} onBild={gast ? undefined : () => setBild({ tf, zeile: t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d") })} />
               ))}</div>}
-          {logbuch && <Logbuch eintraege={logbuch} t={t} />}
         </>
       )}
       {!gast && !kopf.darf_bestenlisten && kopf.mein_status !== "angefragt" && (
@@ -379,6 +377,10 @@ export default function Team() {
           </div>
         </Card>
       )}
+
+      {/* Reihenfolge unten (Jan, 01.11.2026): Teamadresse vorletzt, Logbuch ganz unten. */}
+      {kopf.mein_status === "aktiv" && <div className="mt-4"><TeamAdresse kopf={kopf} t={t} /></div>}
+      {(gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} />}
 
       {kopf.mein_status === "aktiv" && kopf.meine_rolle !== "leiter" && (
         <button onClick={austreten} className="mt-6 text-sm text-slate-400 underline hover:text-slate-200">{t("team.austreten")}</button>
