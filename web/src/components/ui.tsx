@@ -157,6 +157,8 @@ export function Avatar(props: {
   className?: string;
   userId?: number | null;
   link?: boolean;
+  /** Router-State fuers Profil, z. B. der Zurueck-Link ({zurueck, zurueckText}) aus einer Event-Bestenliste */
+  linkState?: unknown;
 }) {
   const t = useT();
   const navigate = useNavigate();
@@ -174,7 +176,7 @@ export function Avatar(props: {
   const supTitel = stufe ? t("sup.badge") + (stufe >= 3 ? ` · ${t("sup.level3")}` : stufe === 2 ? ` · ${t("sup.level2")}` : "") : "";
   const oeffnen = (e: React.SyntheticEvent) => {
     e.preventDefault(); e.stopPropagation();
-    navigate(ziel!);
+    navigate(ziel!, props.linkState ? { state: props.linkState } : undefined);
   };
   return (
     <span

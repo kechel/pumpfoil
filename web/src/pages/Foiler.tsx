@@ -10,7 +10,7 @@
 // Welche Bloecke erscheinen, entscheidet der SERVER anhand der Schalter des Nutzers. Diese Seite
 // prueft nichts nachtraeglich: fehlt ein Feld, wird es nicht gezeigt.
 import { Fragment, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
 import { SupporterBadge } from "../components/SupporterBadge";
@@ -19,7 +19,7 @@ import { SessionCard } from "../components/SessionCard";
 import { openDmOverlay } from "../components/DmWidget";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon, StarIcon } from "../components/Icons";
+import { ChevronIcon, PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon, StarIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
@@ -68,6 +68,10 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 export default function Foiler() {
   const { id } = useParams();
   const { t, lang } = useI18n();
+  // Aus einer Event-/Team-Bestenliste geoeffnet: Zurueck-Link dorthin (Jan, 01.11.2026; wie in SessionDetail).
+  const ort = useLocation();
+  const st = ort.state as { zurueck?: string; zurueckText?: string } | null;
+  const zurueckZu = st?.zurueck?.startsWith("/") ? { zurueck: st.zurueck, zurueckText: st.zurueckText ?? "" } : null;
   const nf = useNumberFormat();
   const kompakt = useKompakteListe();   // Kacheln oder Zeilen, derselbe Umschalter wie auf Home/Sessions
   // Datumsangaben in der PROFILSPRACHE, nicht in der des Browsers (Jan, 08.09.2026): sonst
@@ -146,6 +150,11 @@ export default function Foiler() {
   return (
     <div>
       <ScrollToTop />
+      {zurueckZu && (
+        <Link to={zurueckZu.zurueck} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+          <ChevronIcon className="h-4 w-4 rotate-180" /> {zurueckZu.zurueckText}
+        </Link>
+      )}
       {/* Nur der Besitzer sieht diesen Hinweis — sonst waere „ist abgeschaltet" selbst eine
           Auskunft ueber ein fremdes Konto. Der Server liefert `aus` deshalb auch nur ihm. */}
       {d.ich && d.aus && (

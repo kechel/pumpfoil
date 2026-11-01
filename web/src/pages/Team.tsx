@@ -176,7 +176,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
   /** Filterzeile („auch nur GPS" …) weglassen — auf der Event-Seite (Jan, 01.11.2026). */
   ohneFilter?: boolean;
-  /** Zurueck-Link der Session-Seite („‹ Eventname" statt „‹ Sessions", Jan 01.11.2026), wie in LaengsteLaeufe. */
+  /** Zurueck-Link der Session- und Profilseite („‹ Eventname" statt „‹ Sessions", Jan 01.11.2026), wie in LaengsteLaeufe. */
   zurueck?: { zurueck: string; zurueckText: string };
 }) {
   const k = kennzahl(tf.kennzahl);
@@ -207,10 +207,10 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck }: {
                 <span className={`w-6 shrink-0 text-right text-sm font-bold ${z.rang <= 3 ? "team-akzent" : "text-slate-400"}`}>{z.rang}</span>
                 {gast || !z.user_id ? (
                   <span className="team-farbe team-flaeche inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-slate-200">{z.initialen}</span>
-                ) : <Avatar name={z.name} url={z.avatar_url} seed={z.user_id} userId={z.user_id} size={28} />}
+                ) : <Avatar name={z.name} url={z.avatar_url} seed={z.user_id} userId={z.user_id} size={28} linkState={zurueck} />}
                 <span className="min-w-0 flex-1">
                   {gast || !z.user_id ? <span className="block truncate text-sm text-slate-100">{z.name ?? "—"}</span>
-                    : <Link to={`/foiler/${z.user_id}`} className="pf-name block truncate text-sm text-slate-100 hover:text-brand-400">{z.name ?? "—"}</Link>}
+                    : <Link to={`/foiler/${z.user_id}`} state={zurueck} className="pf-name block truncate text-sm text-slate-100 hover:text-brand-400">{z.name ?? "—"}</Link>}
                   {!gast && z.started_at && (
                     <span className="block truncate text-xs text-slate-400">
                       {new Date(z.started_at).toLocaleDateString()}{z.spot ? ` · ${z.spot}` : ""}
