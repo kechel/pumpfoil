@@ -380,11 +380,8 @@ export default function Team() {
                   <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
                     {t(`team.event.status.${e.status}`)}
                   </span>
-                </div>
-                <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
-                {/* Nur Titel, Zeitraum, Sportart, Spots und eigener Text (Jan, 01.11.2026) — Kennzahlen und Stand stehen auf
-                    der Event-Seite. Sportart und Spots als Abzeichen wie in den Session-Kacheln. */}
-                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {/* Sportart und Spots als Abzeichen wie in den Session-Kacheln, neben dem Status (Platz sparen, Jan 01.11.2026).
+                      Sonst nur Titel, Zeitraum und eigener Text — Kennzahlen und Stand stehen auf der Event-Seite. */}
                   {eventSportarten(e).map((sp) => (
                     <span key={sp} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</span>
                   ))}
@@ -394,6 +391,7 @@ export default function Team() {
                     </span>
                   ))}
                 </div>
+                <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
                 {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
                 <p className="team-akzent mt-2 text-right text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
               </Card>
