@@ -1055,7 +1055,7 @@ NAECHSTES: list[dict] = [
      "items": [
          "Teams come to the app: team pages with their picture, crest, leaderboards, team totals and logbook, and your teams in your profile.",
          "Event pages with countdown, live leaderboards and totals for all participants, the current events on the Community tab, and lists of all teams and all events.",
-         "The average heart rate of a session counts only your time on the foil, not the swimming and waiting in between.",
+         "The average heart rate of a session counts only your time on the foil, with the average over the whole recording shown beneath it.",
          "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
          "The changelog shows our security reviews, folded away like on the website.",
          "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
@@ -1064,7 +1064,7 @@ NAECHSTES: list[dict] = [
      "items": [
          "Teams come to the app: team pages with their picture, crest, leaderboards, team totals and logbook, and your teams in your profile.",
          "Event pages with countdown, live leaderboards and totals for all participants, the current events on the Community tab, and lists of all teams and all events.",
-         "The average heart rate of a session counts only your time on the foil, not the swimming and waiting in between.",
+         "The average heart rate of a session counts only your time on the foil, with the average over the whole recording shown beneath it.",
          "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
          "The changelog shows our security reviews, folded away like on the website.",
          "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
