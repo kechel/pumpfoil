@@ -38,7 +38,7 @@ function Uhr({ ziel, klein = false, t }: { ziel: string; klein?: boolean; t: (k:
       {teile.map(([n, k]) => (
         <div key={k} className={`rounded-xl border border-slate-800 bg-slate-900/60 ${klein ? "min-w-[3.5rem] px-2 py-1" : "min-w-[4.5rem] px-3 py-2"}`}>
           <div className={`team-akzent font-bold tabular-nums ${klein ? "text-xl" : "text-3xl sm:text-4xl"}`}>{String(n).padStart(k === "team.event.tage" ? 1 : 2, "0")}</div>
-          <div className="text-xs text-slate-400">{t(k)}</div>
+          <div className="text-xs text-slate-400">{t(n === 1 && k === "team.event.tage" ? "team.event.tag" : k)}</div>
         </div>
       ))}
     </div>
@@ -72,7 +72,7 @@ function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
         {auswahl.map((k) => (
           <div key={k.key} className="team-rand rounded-xl border-2 bg-slate-900/60 p-3 text-center">
             <div className="team-akzent text-2xl font-bold leading-tight">{k.fmt(ev.summen?.[k.key] ?? 0)}</div>
-            <div className="text-xs text-slate-400">{t(k.labelKey)}</div>
+            <div className="text-xs text-slate-400">{t(ev.summen?.[k.key] === 1 && k.labelKey1 ? k.labelKey1 : k.labelKey)}</div>
           </div>
         ))}
       </div>

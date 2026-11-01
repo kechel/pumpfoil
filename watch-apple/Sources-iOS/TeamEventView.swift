@@ -223,7 +223,7 @@ private struct EventUhr: View {
         let zielDatum: Date = teamDatum(ziel) ?? jetzt
         let rest: Int = max(0, Int(zielDatum.timeIntervalSince(jetzt)))
         return [
-            (String(rest / 86400), "team.event.tage"),
+            (String(rest / 86400), rest / 86400 == 1 ? "team.event.tag" : "team.event.tage"),
             (String(format: "%02d", (rest / 3600) % 24), "team.event.stunden"),
             (String(format: "%02d", (rest / 60) % 60), "team.event.minuten"),
             (String(format: "%02d", rest % 60), "team.event.sekunden"),

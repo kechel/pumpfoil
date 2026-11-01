@@ -60,6 +60,15 @@ function WatchCarousel({ images, rounded, caption, sub, badge, delay = 2800, pla
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
+/** Teams & Events auf der Startseite: Schritt -> Bilder [Pfad, Breite, Hoehe] (web/public, Namen unkenntlich). Das
+ *  Event-Bild ist ein Handy-Ausschnitt mit grosser Schrift — schmaler gezeigt, damit es zum Massstab der anderen passt. */
+const TEAMS_SCHRITTE: { k: string; bilder: [string, number, number][] }[] = [
+  { k: "S1", bilder: [["/teams-profil.webp", 1302, 1018], ["/teams-gruenden.webp", 1400, 1083]] },
+  { k: "S2", bilder: [["/teams-teamseite.webp", 1400, 919]] },
+  { k: "S3", bilder: [["/teams-bestenlisten.webp", 1400, 917]] },
+  { k: "S4", bilder: [["/teams-event.webp", 1212, 1254], ["/teams-alle-events.webp", 1400, 402]] },
+];
+
 export default function Landing() {
   const t = useT();
   // Titel, Beschreibung und Canonical in der Sprache DIESER Adresse. Ohne das truege `/fr/`
@@ -453,6 +462,32 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Teams & Events (Jan, 01.11.2026): vier Schritte mit Screenshots aus dem Pumpfoil Development Team (englische
+            Oberflaeche). Alle Namen und Profilbilder unkenntlich gemacht (Bestenlisten/Mitglieder), sonst niemand zu sehen. */}
+        <section className="pb-12">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.teamsTitle")}</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.teamsBody")}</p>
+          <ol className="mx-auto max-w-3xl space-y-8">
+            {TEAMS_SCHRITTE.map((sch, i) => (
+              <li key={sch.k}>
+                <div className="mb-3 flex items-start gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-slate-950">{i + 1}</span>
+                  <div>
+                    <h3 className="font-semibold">{t(`land.teams${sch.k}Title`)}</h3>
+                    <p className="mt-1 text-sm text-slate-400">{t(`land.teams${sch.k}Body`)}</p>
+                  </div>
+                </div>
+                <div className={`grid gap-3 ${sch.k === "S1" ? "sm:grid-cols-2" : ""}`}>
+                  {sch.bilder.map(([src, w, h]) => (
+                    <img key={src} src={src} alt={t(`land.teams${sch.k}Title`)} loading="lazy" width={w} height={h}
+                      className={`w-full rounded-2xl border border-slate-800 shadow-lg ${src === "/teams-event.webp" ? "mx-auto max-w-lg" : ""}`} />
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ol>
         </section>
 
         {/* Routenplanung aus den Startplaetzen der Heatmap (Jan, 16.10.2026). Bild: Spot-Seite Illmensee

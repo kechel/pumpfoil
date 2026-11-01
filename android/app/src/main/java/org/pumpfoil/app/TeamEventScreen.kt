@@ -182,7 +182,11 @@ fun TeamEventScreen(
                         if (summen.isNotEmpty()) {
                             Text(I18n.t("team.event.teamGesamt").uppercase(), style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 6.dp))
-                            TeamZahlRaster(summen.map { (key, label, fmt) -> fmt(e.summen[key] ?: 0.0) to I18n.t(label) }, f,
+                            TeamZahlRaster(summen.map { (key, label, fmt) ->
+                                val v = e.summen[key] ?: 0.0
+                                // Einzahl bei 1 („1 Teilnehmer“, 01.11.2026)
+                                fmt(v) to I18n.t(if (v == 1.0 && key == "aktive") "team.event.teilnehmer1" else label)
+                            }, f,
                                 spalten = 2, rand = true)
                             Spacer(Modifier.height(12.dp))
                         }
@@ -276,7 +280,7 @@ private fun EventUhr(ziel: String, f: TeamFarbe, klein: Boolean) {
                 Column(Modifier.padding(horizontal = 8.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(n.toString().padStart(if (k == "team.event.tage") 1 else 2, '0'), color = f.akzent, fontWeight = FontWeight.Bold,
                         style = if (klein) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium)
-                    Text(I18n.t(k), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(I18n.t(if (n == 1L && k == "team.event.tage") "team.event.tag" else k), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

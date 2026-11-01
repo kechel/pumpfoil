@@ -154,7 +154,10 @@ func teamStatistikKacheln(_ s: TeamStatistik, _ lang: String) -> [TeamZahlKachel
 func eventSummenKacheln(_ e: TeamEvent, _ lang: String) -> [TeamZahlKachel] {
     let auswahl: [String] = e.summen_auswahl ?? []
     return EVENT_SUMMEN.filter { auswahl.contains($0.key) }.map { k in
-        TeamZahlKachel(label: Loc.t(k.labelKey, lang), wert: eventSummeFormat(k.key, e.summe(k.key), lang))
+        // Einzahl bei 1 („1 Teilnehmer“, 01.11.2026)
+        let eins: Bool = k.key == "aktive" && e.summe(k.key) == 1
+        let schluessel: String = eins ? "team.event.teilnehmer1" : k.labelKey
+        return TeamZahlKachel(label: Loc.t(schluessel, lang), wert: eventSummeFormat(k.key, e.summe(k.key), lang))
     }
 }
 
