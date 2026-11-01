@@ -88,9 +88,11 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}) {
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var homespotLink by remember { mutableStateOf<String?>(null) }
+    // Eigene Teams als kleine Links bei „Letzte Sessions" (01.11.2026, wie PersonalHome im Web: nur aktive Mitgliedschaften)
+    var meineTeams by remember { mutableStateOf<List<TeamKurz>>(emptyList()) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     // Dieselben Kacheln zusaetzlich je Foil (PWA 30.08.). Eigene Abfrage, eigener Fehlerfall:
     // faellt sie aus, fehlt nur der Block — die Startseite bleibt vollstaendig.
@@ -218,6 +220,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         // homespot_effective — ohne Profilwert der Spot der letzten Session.
         homespotLink = einst?.get("homespot_effective")?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: hs
         weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs) } catch (_: Exception) { null } else null
+        meineTeams = try { Api.teamsMine().filter { it.status == "aktiv" } } catch (_: Exception) { meineTeams }
         loading = false
     }
     // Stats separat: reagiert zusätzlich auf den Accel/alle-Umschalter.
@@ -411,6 +414,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                     Text("${I18n.t("phome.allMine")} →", style = MaterialTheme.typography.labelMedium)
                 }
             }
+            // Teams neben dem Homespot (Web PersonalHome): auf dem Handy eine eigene Zeile, die Kopfzeile ist schon voll.
+            MeineTeamsLinks(meineTeams, onOpenTeam)
             Spacer(Modifier.height(8.dp))
             if (latest.isEmpty()) {
                 Card(Modifier.fillMaxWidth()) {

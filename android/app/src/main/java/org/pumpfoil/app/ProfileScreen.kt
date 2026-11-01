@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
@@ -82,7 +83,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}, onFriends: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}, onFriends: () -> Unit = {}, onTeams: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -259,6 +260,29 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 },
                 supportingContent = { Text(I18n.t("friends.profileHint")) },
                 leadingContent = { Icon(Icons.Filled.Groups, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            // Teams (01.11.2026, wie der Knopf „Team" auf der Profilseite im Web): eigene Teams, Alle Teams, Gruenden.
+            // Offene Beitrittsanfragen (nur Leitung/Moderatoren) als Zahl wie bei den Freunden.
+            var teamAnfragen by remember { mutableStateOf(0) }
+            LaunchedEffect(Unit) { teamAnfragen = try { Api.teamsMine().sumOf { it.anfragen } } catch (_: Exception) { 0 } }
+            ListItem(
+                modifier = Modifier.clickable { onTeams() },
+                headlineContent = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(I18n.t("team.meine"))
+                        if (teamAnfragen > 0) {
+                            Spacer(Modifier.width(8.dp))
+                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
+                                Text("$teamAnfragen", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp))
+                            }
+                        }
+                    }
+                },
+                supportingContent = { Text(I18n.t("team.profilHinweis")) },
+                leadingContent = { Icon(Icons.Filled.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(

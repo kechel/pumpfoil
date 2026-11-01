@@ -92,6 +92,7 @@ object I18n {
         // erzeugt. Zuerst gefragt, damit die grossen Tabellen dafuer nicht angefasst werden.
         if (key.startsWith("onb.")) OnbI18n.get(key, lang)?.let { return it }
         NEU[key]?.let { m -> (m[lang] ?: (if (lang == "pt-PT") m["pt"] else null) ?: m["en"])?.let { return it } }
+        teamsText(key, lang)?.let { return it }   // Teams & Events (I18nTeams.kt, aus den Web-Sprachdateien)
         if (lang == "fi") FI[key]?.let { return it }   // fi-Overlay (aus web fi.ts); sonst Englisch
         if (lang == "nl") NL[key]?.let { return it }   // nl-Overlay (aus web nl.ts); sonst Englisch
         if (lang == "cs") CS[key]?.let { return it }   // cs-Overlay (aus web cs.ts); sonst Englisch

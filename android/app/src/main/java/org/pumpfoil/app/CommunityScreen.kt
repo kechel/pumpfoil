@@ -94,7 +94,8 @@ private val PERIODS = listOf("today" to "period.today", "10d" to "period.10d", "
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}, onLayouts: () -> Unit = {},
-                    onOpenRoute: (String, Int) -> Unit = { _, _ -> }) {
+                    onOpenRoute: (String, Int) -> Unit = { _, _ -> },
+                    onOpenEvent: (String, Int) -> Unit = { _, _ -> }, onAlleEvents: () -> Unit = {}, onAlleTeams: () -> Unit = {}) {
     var records by remember { mutableStateOf<Map<String, PeriodRecords>?>(null) }
     var leaders by remember { mutableStateOf<Leaders?>(null) }
     var media by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
@@ -378,6 +379,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             item { SectionHeader("${I18n.t("community.topRated")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}") }
                             items(topLiked) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) } }
                         }
+
+                        // Laufende & kommende Team-Events (01.11.2026, Web Home.tsx TeamsSection): unter „Best bewertet",
+                        // ueber den Uhr-Layouts — dieselbe Stelle wie im Web. Keine Teamliste hier, die hat ihre eigene Seite.
+                        item { CommunityEventsAbschnitt(onOpenEvent, onAlleEvents, onAlleTeams) }
 
                         // Uhr-Layouts der Community — im Web unter „Best bewertet" (Home.tsx LayoutTeaser),
                         // in den Apps fehlte der Abschnitt; die Galerie war nur ueber Profil -> Datenfelder zu finden.

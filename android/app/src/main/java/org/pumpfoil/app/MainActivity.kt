@@ -302,10 +302,13 @@ fun MainScaffold(onLogout: () -> Unit) {
         androidx.compose.runtime.CompositionLocalProvider(LocalFeedbackUrl provides feedbackUrl(backEntry)) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social,
-                                                onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") }) }
+                                                onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
+                                                onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") }) }
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }, onLayouts = { nav.navigate("layoutgallery") },
-                onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") }) }
+                onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") },
+                onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") },
+                onAlleEvents = { nav.navigate("events") }, onAlleTeams = { nav.navigate("teams") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             // Marker/Treffer auf der Spot-Karte reichen die dort gewaehlte Sportart mit (wie die PWA).
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") },
@@ -356,6 +359,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onOnboarding = { nav.navigate("onboarding") },
                     onChangelog = { nav.navigate("changelog") },
                     onFriends = { nav.navigate("friends") },
+                    onTeams = { nav.navigate("meineteams") },
                 )
             }
             composable("watch") {
@@ -447,6 +451,43 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onSettings = { nav.navigate("settings") },
                     social = social,
                 )
+            }
+            // Teams & Events (01.11.2026, docs/TEAMS.md „Native-Port"): Teamseite, Event-Seite, Alle Teams, Alle Events.
+            composable("team/{slug}", arguments = listOf(navArgument("slug") { type = NavType.StringType })) { entry ->
+                TeamScreen(
+                    slug = entry.arguments?.getString("slug").orEmpty(),
+                    onBack = { nav.popBackStack() },
+                    onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") },
+                    onOpenSession = { sid -> nav.navigate("session/$sid") },
+                    onChat = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") },
+                    social = social,
+                )
+            }
+            composable(
+                "teamevent/{slug}/{id}",
+                arguments = listOf(navArgument("slug") { type = NavType.StringType }, navArgument("id") { type = NavType.IntType }),
+            ) { entry ->
+                val sl = entry.arguments?.getString("slug").orEmpty()
+                TeamEventScreen(
+                    slug = sl,
+                    eventId = entry.arguments?.getInt("id") ?: 0,
+                    onBack = { nav.popBackStack() },
+                    // Kam man von der Teamseite, fuehrt der Teamname dorthin zurueck statt eine zweite Teamseite zu stapeln.
+                    onOpenTeam = { s ->
+                        val vorher = nav.previousBackStackEntry
+                        if (vorher?.destination?.route == "team/{slug}" && vorher.arguments?.getString("slug") == s) nav.popBackStack()
+                        else nav.navigate("team/${Uri.encode(s)}")
+                    },
+                    onOpenSession = { sid -> nav.navigate("session/$sid") },
+                )
+            }
+            composable("meineteams") {
+                MeineTeamsScreen(onBack = { nav.popBackStack() }, onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
+                    onAlleTeams = { nav.navigate("teams") })
+            }
+            composable("teams") { TeamsAlleScreen(onBack = { nav.popBackStack() }, onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") }) }
+            composable("events") {
+                EventsAlleScreen(onBack = { nav.popBackStack() }, onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") })
             }
             // 1:1-Chat ueber die User-ID (Knopf „Nachricht" auf der Profilseite).
             composable(

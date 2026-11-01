@@ -1170,7 +1170,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     if (pc > 0 && a.foilingDistanceM != null) add(StatItem(I18n.t("sd.avgDistPerPump"), "%.1f m".format(a.foilingDistanceM / pc)))
                 }
                 if (pumpzahlen) (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(StatItem(I18n.t("sd.avgPump"), PumpUnit.fmt(it))) }
-                (m?.avgHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.avgHr"), "$it")) }
+                // Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter (wie Web,
+                // 01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert.
+                val hrFoil = m?.avgHrFoil?.takeIf { it > 0 }
+                if (hrFoil != null) add(StatItem(I18n.t("sd.avgHrFoil"), "$hrFoil",
+                    sub = m.avgHr?.takeIf { it > 0 }?.let { I18n.t("sd.avgHrGesamt").replace("{n}", it.toString()) }))
+                else (m?.avgHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.avgHr"), "$it")) }
                 (m?.maxHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.maxHr"), "$it")) }
                 longestRunIdx?.let { add(StatItem(I18n.t("home.longestRun"), mmssD(segList[it].durationS), it)) }
                 farthestRunIdx?.let { add(StatItem(I18n.t("home.farthestRun"), dist(segList[it].distanceM), it)) }
@@ -2213,7 +2218,9 @@ private fun clockAt(startedAt: String, tz: String?, offsetMs: Long): String {
 // Eine Kennzahl-Kachel; runIdx != null => an einen Lauf gebunden (anklickbar -> Lauf auswählen).
 private data class StatItem(val label: String, val value: String, val runIdx: Int? = null,
                             /** Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt. */
-                            val info: String? = null)
+                            val info: String? = null,
+                            /** Kleine Zeile unter der Beschriftung — z. B. „gesamt 142" beim Foil-Puls. */
+                            val sub: String? = null)
 
 // Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
 /** Eine Spalte der Sportart-Tabellen: Sortierwert (null = nicht sortierbar) und Zelltext je Zeile. */
@@ -2445,6 +2452,7 @@ private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (In
                             Column(Modifier.padding(12.dp)) {
                                 Text(st.value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                                 Text(st.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                st.sub?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                             st.info?.let { text ->
                                 var zeigen by remember { mutableStateOf(false) }

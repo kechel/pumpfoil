@@ -880,7 +880,8 @@ internal fun sessionStatsTeile(a: Analysis, m: Metrics?): List<String> {
         m?.numSegments?.let { if (it > 0) add("$it " + I18n.t(if (it == 1) "unit.run" else "unit.runs")) }
         m?.avgSpeedMps?.let { add("Ø %.1f km/h".format(it * 3.6)) }
         a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · " + PumpUnit.fmt(it) } ?: "")) }
-        m?.avgHr?.let { if (it > 0) add("$it" + (m.maxHr?.let { mx -> "/$mx" } ?: "") + " bpm") }
+        // Ø Puls auf dem Foil, sonst gesamt (wie Web Sessions.tsx, 01.11.2026)
+        m?.avgHr?.let { if (it > 0) add("${m.avgHrFoil ?: it}" + (m.maxHr?.let { mx -> "/$mx" } ?: "") + " bpm") }
     }
 }
 

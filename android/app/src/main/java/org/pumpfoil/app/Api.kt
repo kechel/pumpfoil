@@ -1664,6 +1664,67 @@ object Api {
     fun oauthStartUrl(id: String, lang: String): String =
         "$BASE/api/auth/oauth/$id/start?app=1&lang=" + Uri.encode(lang)
 
+    // ---- Teams & Events (01.11.2026, docs/TEAMS.md „Native-Port"; Server: server/app/api/teams.py) ----
+    // Die App zeigt nur, was der Server liefert — Regeln (wer was sieht, Einfrieren, Teilnehmer) rechnet sie nicht nach.
+    // Fehler kommen als ApiFehler mit `detail` (z. B. anmeldungen_aus), Text dazu: teamFehlerText (Teams.kt).
+    private fun slugPfad(slug: String) = "/api/teams/" + Uri.encode(slug)
+
+    /** Eigene Teams (aktiv + angefragt) mit offenen Anfragen fuer Leitung/Moderatoren. */
+    suspend fun teamsMine(): List<TeamKurz> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(TeamKurz.serializer()), http("GET", "/api/teams/mine", null, auth = true))
+    }
+    /** Alle freigegebenen Teams (Seite „Alle Teams"). */
+    suspend fun teamsListe(): List<TeamListenEintrag> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(TeamListenEintrag.serializer()), http("GET", "/api/teams/liste", null, auth = true))
+    }
+    /** Laufende und in den naechsten Tagen beginnende Events (Community-Abschnitt). */
+    suspend fun teamsEventsAktuell(): List<TeamEventKurz> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(TeamEventKurz.serializer()), http("GET", "/api/teams/liste/events", null, auth = true))
+    }
+    /** Alle sichtbaren Events seitenweise: laufend, kommend, vergangen (n hoechstens 50, prueft der Server). */
+    suspend fun teamsEventsAlle(offset: Int, n: Int): List<TeamEventKurz> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(TeamEventKurz.serializer()),
+            http("GET", "/api/teams/liste/events/alle?offset=$offset&n=$n", null, auth = true))
+    }
+    suspend fun team(slug: String): TeamInfo = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamInfo.serializer(), http("GET", slugPfad(slug), null, auth = true))
+    }
+    suspend fun teamBestenlisten(slug: String, period: String): List<TeamTafel> = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamBestenlisten.serializer(),
+            http("GET", slugPfad(slug) + "/bestenlisten?period=$period", null, auth = true)).tafeln
+    }
+    suspend fun teamStatistik(slug: String, period: String): TeamStatistik = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamStatistik.serializer(), http("GET", slugPfad(slug) + "/statistik?period=$period", null, auth = true))
+    }
+    suspend fun teamLogbuch(slug: String): List<TeamLogbuchEintrag> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(TeamLogbuchEintrag.serializer()), http("GET", slugPfad(slug) + "/logbuch", null, auth = true))
+    }
+    /** Mitgliederliste — nur wenn `darf_mitglieder` (sonst 403). */
+    suspend fun teamMitglieder(slug: String): List<TeamMitglied> = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamMitgliederAntwort.serializer(), http("GET", slugPfad(slug) + "/mitglieder", null, auth = true)).mitglieder
+    }
+    suspend fun teamEvents(slug: String): List<TeamEvent> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(TeamEvent.serializer()), http("GET", slugPfad(slug) + "/events", null, auth = true))
+    }
+    suspend fun teamEvent(slug: String, id: Int): TeamEvent = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamEvent.serializer(), http("GET", slugPfad(slug) + "/events/$id", null, auth = true))
+    }
+    /** Beitreten → `status` aktiv | angefragt (entscheidet „automatisch akzeptieren" am Server). */
+    suspend fun teamBeitreten(slug: String): TeamBeitritt = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamBeitritt.serializer(), http("POST", slugPfad(slug) + "/beitreten", null, auth = true))
+    }
+    /** Austreten bzw. Anfrage zurueckziehen (Leitung: 409 leiter_erst_uebergeben). */
+    suspend fun teamAustreten(slug: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", slugPfad(slug) + "/austreten", null, auth = true); Unit
+    }
+    /** Einladungslink ansehen (Pfad /teams/<slug>/join-<token> bzw. apply-<token>). */
+    suspend fun teamEinladungAnsehen(token: String): TeamEinladungInfo = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamEinladungInfo.serializer(), http("GET", "/api/teams/einladung/" + Uri.encode(token), null, auth = true))
+    }
+    suspend fun teamEinladungAnnehmen(token: String): TeamBeitritt = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamBeitritt.serializer(), http("POST", "/api/teams/einladung/" + Uri.encode(token), null, auth = true))
+    }
+
     // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.
     // `label` = die im Assistenten gewaehlte Marke. Stand bis 11.09.2026 fest auf "Garmin" —
     // dadurch trugen fremde Uhren den Namen "Garmin" in der Geraeteliste und unter jeder ihrer
@@ -1779,7 +1840,10 @@ object Api {
                 appContext?.let { logout(it) }
                 onUnauthorized?.invoke()
             }
-            throw RuntimeException(
+            // `detail` mitgeben (Teams: Fehlercodes wie `anmeldungen_aus`, Texte unter team.err.<code>). Die Meldung
+            // bleibt dieselbe wie vorher — wer nur `message` liest (pairClaim prueft „(400)"), merkt nichts.
+            val detail = runCatching { json.parseToJsonElement(text).jsonObject["detail"]?.jsonPrimitive?.contentOrNull }.getOrNull()
+            throw ApiFehler(code, detail,
                 when {
                     code == 401 && auth -> I18n.t("err.sessionExpired")
                     code == 401 -> I18n.t("login.badCreds")
@@ -1790,3 +1854,6 @@ object Api {
         return text
     }
 }
+
+/** Fehlerantwort der API: Meldung wie bisher, dazu HTTP-Status und der `detail`-Code des Servers (falls Text). */
+class ApiFehler(val status: Int, val detail: String?, meldung: String) : RuntimeException(meldung)

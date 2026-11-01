@@ -36,6 +36,10 @@ fun feedbackUrl(entry: NavBackStackEntry?): String {
         route == "sessions" -> "/sessions"
         route == "community" -> "/community"
         route == "changelog" -> "/changelog"
+        route.startsWith("team/") -> "/teams/" + (args?.getString("slug") ?: "")
+        route.startsWith("teamevent/") -> "/teams/" + (args?.getString("slug") ?: "") + "/events/" + (args?.getInt("id") ?: 0)
+        route == "teams" -> "/teams/liste"
+        route == "events" -> "/events"
         else -> "android:" + route.substringBefore('/').substringBefore('?')
     }
 }

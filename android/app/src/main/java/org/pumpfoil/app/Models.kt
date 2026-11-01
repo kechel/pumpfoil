@@ -364,6 +364,8 @@ data class Metrics(
     // Das Geraet hat immer wieder dieselbe gespeicherte Position gemeldet statt neu zu messen.
     @SerialName("gps_frozen") val gpsFrozen: Boolean = false,
     @SerialName("avg_hr") val avgHr: Int? = null,
+    // Ø Puls nur ueber die Laeufe (01.11.2026, Server-Cache hr_foil_json) — fehlt ohne Puls oder ohne Laeufe.
+    @SerialName("avg_hr_foil") val avgHrFoil: Int? = null,
     @SerialName("max_hr") val maxHr: Int? = null,
     @SerialName("farthest_segment_m") val farthestSegmentM: Double? = null,
     @SerialName("longest_segment_s") val longestSegmentS: Double? = null,

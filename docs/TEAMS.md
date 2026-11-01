@@ -310,7 +310,14 @@ und Anfragen, aber keine Rollen; Event ohne Bestenliste nur mit mind. einer Summ
 `hr_foil_json`) — als Hauptzahl anzeigen, `avg_hr` klein als „gesamt"; Sessionliste: `avg_hr_foil ?? avg_hr`.
 Der Login-`next`-Merker (`foil_nach_login`) betrifft nur das Web.
 
-**Apps: was es dort noch gar nicht gibt** — Teams-Einstieg (Profil/Home-Links), Teamseite, Event-Seite, Community-Abschnitt
+**Stand Port 01.11.2026:** Android (`Teams.kt`, `TeamScreen.kt`, `TeamEventScreen.kt`, `TeamsListen.kt`, `I18nTeams.kt`)
+und iOS (`Team*.swift`, `TeamsListen.swift`, `LocTeams.swift`, Generator `scripts/gen-loc-teams-ios.py`) haben Teamseite,
+Event-Seite, Community-Events, „Alle Teams"/„Alle Events", Einstieg Home/Profil und den Foil-Puls. Android kompiliert,
+iOS nur Syntax geprueft (noch nicht in Xcode gebaut); beide noch nicht auf einem Geraet getestet. OFFEN: Deep/Universal
+Links (keine der Apps oeffnet bisher https://pumpfoil.org-Links; iOS braucht Associated Domains + apple-app-site-association),
+Einladungslinks in der App, Event-Abzeichen auf der Foiler-Seite; Verwaltung bleibt im Browser.
+
+**Apps: was es dort vor dem Port noch gar nicht gab** — Teams-Einstieg (Profil/Home-Links), Teamseite, Event-Seite, Community-Abschnitt
 „Laufende & kommende Events", Seiten „Alle Teams"/„Alle Events", Deep Links `/teams/<slug>`, `/teams/<slug>/events/<id>`,
 `/teams/<slug>/join-…|apply-…`, Team-Chat (`chat_scope`, vorhandener Chat-Baustein), Abzeichen auf der Foiler-Seite
 (`team_abzeichen` kommt schon mit `GET /api/community/foiler/{id}`). Verwaltung/Einstellungen koennen vorerst im Web
