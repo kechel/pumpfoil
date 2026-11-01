@@ -2569,6 +2569,7 @@ const it: Record<string, string> = {
   "team.eventbild.entfernen": "Rimuovi immagine dell'evento",
   "team.event.teilen": "Condividi:",
   "team.event.regelnTitel": "Regole dell'evento",
+  "team.event.disclaimer": "Gli eventi sono organizzati dai team stessi. pumpfoil.org non ha alcuna influenza sugli eventi né sulle promesse fatte al loro interno, economiche o di altro tipo, e non se ne assume alcuna responsabilità. È escluso il ricorso alle vie legali. Pagamenti e ogni altro accordo si regolano tra organizzatori e partecipanti, indipendentemente da pumpfoil.org.",
   "team.event.endetIn": "Termina tra",
   "team.event.tage": "giorni",
   "team.event.stunden": "ore",

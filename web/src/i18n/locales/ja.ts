@@ -2682,6 +2682,7 @@ const ja: Record<string, string> = {
   "team.eventbild.entfernen": "イベントバナーを削除",
   "team.event.teilen": "共有：",
   "team.event.regelnTitel": "イベントのルール",
+  "team.event.disclaimer": "イベントは各チームが自ら主催します。pumpfoil.org はイベントや、その中でなされる金銭的その他の約束に一切関与せず、責任を負いません。法的手段による請求はできません。支払いやその他の取り決めは、pumpfoil.org とは無関係に主催者と参加者の間で行ってください。",
   "team.event.endetIn": "終了まで",
   "team.event.tage": "日",
   "team.event.stunden": "時間",

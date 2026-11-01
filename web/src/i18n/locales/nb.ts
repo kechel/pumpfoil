@@ -2661,6 +2661,7 @@ const nb: Record<string, string> = {
   "team.eventbild.entfernen": "Fjern arrangementsbanner",
   "team.event.teilen": "Del:",
   "team.event.regelnTitel": "Regler for arrangementet",
+  "team.event.disclaimer": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org.",
   "team.event.endetIn": "Slutter om",
   "team.event.tage": "dager",
   "team.event.stunden": "t",

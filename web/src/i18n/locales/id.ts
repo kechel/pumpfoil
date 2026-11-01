@@ -2686,6 +2686,7 @@ const id: Record<string, string> = {
   "team.eventbild.entfernen": "Hapus banner event",
   "team.event.teilen": "Bagikan:",
   "team.event.regelnTitel": "Aturan event",
+  "team.event.disclaimer": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org.",
   "team.event.endetIn": "Berakhir dalam",
   "team.event.tage": "hari",
   "team.event.stunden": "jam",

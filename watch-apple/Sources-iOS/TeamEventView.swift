@@ -309,11 +309,22 @@ private struct EventRegelnBox: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(Loc.t("team.event.regelnTitel", lang)).font(.subheadline.weight(.semibold))
             ForEach(Array(punkte.enumerated()), id: \.offset) { _, z in punkt(z) }
+            haftung
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
         .padding(.top, 8)
+    }
+
+    /// Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams, nicht von pumpfoil.org.
+    private var haftung: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider()
+            Text(Loc.t("team.event.disclaimer", lang)).font(.subheadline).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.top, 4)
     }
 
     private func punkt(_ z: String) -> some View {

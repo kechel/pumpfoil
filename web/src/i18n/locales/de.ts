@@ -2840,6 +2840,7 @@ const de: Record<string, string> = {
   "team.eventbild.entfernen": "Eventbild entfernen",
   "team.event.teilen": "Teilen:",
   "team.event.regelnTitel": "Event-Regeln",
+  "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.",
   "team.event.endetIn": "Endet in",
   "team.event.tage": "Tage",
   "team.event.stunden": "Std.",

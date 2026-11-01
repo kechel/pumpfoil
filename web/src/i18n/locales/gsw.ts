@@ -2572,6 +2572,7 @@ const gsw: Record<string, string> = {
   "team.eventbild.entfernen": "Eventbild useneh",
   "team.event.teilen": "Teile:",
   "team.event.regelnTitel": "Event-Regle",
+  "team.event.disclaimer": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org.",
   "team.event.endetIn": "Hört uf in",
   "team.event.tage": "Täg",
   "team.event.stunden": "Std.",

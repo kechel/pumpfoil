@@ -248,6 +248,8 @@ export default function TeamEventSeite() {
           {ev.status === "auswertung" && <li>{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</li>}
           {t("team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
         </ul>
+        {/* Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams, nicht von pumpfoil.org. */}
+        <p className="mt-3 border-t border-slate-800 pt-3 text-sm text-slate-400">{t("team.event.disclaimer")}</p>
       </div>
 
       {popup && (

@@ -96,6 +96,7 @@ enum LocTeam {
     ]
 
     private static let _de1: [String: String] = [
+        "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.",
         "team.event.endetIn": "Endet in",
         "team.event.ergebnis": "Ergebnis",
         "team.event.gemessen": "Gemessen",
@@ -140,10 +141,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-Foil-Zeit gesamt",
-        "team.k.summe": "Summe",
     ]
 
     private static let _de2: [String: String] = [
+        "team.k.summe": "Summe",
         "team.keineTafeln": "Noch keine Bestenlisten eingerichtet.",
         "team.kopieren": "Kopieren",
         "team.kopiert": "Link kopiert.",
@@ -228,6 +229,7 @@ enum LocTeam {
     ]
 
     private static let _gsw1: [String: String] = [
+        "team.event.disclaimer": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org.",
         "team.event.endetIn": "Hört uf in",
         "team.event.ergebnis": "Ergebnis",
         "team.event.gemessen": "Gmässe",
@@ -272,10 +274,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-Foil-Ziit total",
-        "team.k.summe": "Summe",
     ]
 
     private static let _gsw2: [String: String] = [
+        "team.k.summe": "Summe",
         "team.keineTafeln": "No kei Bestelischte iigrichtet.",
         "team.kopieren": "Kopiere",
         "team.kopiert": "Link kopiert.",
@@ -360,6 +362,7 @@ enum LocTeam {
     ]
 
     private static let _de_AT1: [String: String] = [
+        "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.",
         "team.event.endetIn": "Endet in",
         "team.event.ergebnis": "Ergebnis",
         "team.event.gemessen": "Gemessen",
@@ -404,10 +407,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-Foil-Zeit insgesamt",
-        "team.k.summe": "Summe",
     ]
 
     private static let _de_AT2: [String: String] = [
+        "team.k.summe": "Summe",
         "team.keineTafeln": "No ka Bestenlisten eing'richtet.",
         "team.kopieren": "Kopieren",
         "team.kopiert": "Link kopiert.",
@@ -492,6 +495,7 @@ enum LocTeam {
     ]
 
     private static let _en1: [String: String] = [
+        "team.event.disclaimer": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org.",
         "team.event.endetIn": "Ends in",
         "team.event.ergebnis": "Results",
         "team.event.gemessen": "Measured",
@@ -536,10 +540,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Total on-foil time",
-        "team.k.summe": "Total",
     ]
 
     private static let _en2: [String: String] = [
+        "team.k.summe": "Total",
         "team.keineTafeln": "No leaderboards set up yet.",
         "team.kopieren": "Copy",
         "team.kopiert": "Link copied.",
@@ -624,6 +628,7 @@ enum LocTeam {
     ]
 
     private static let _fr1: [String: String] = [
+        "team.event.disclaimer": "Les événements sont organisés par les équipes elles-mêmes. pumpfoil.org n'a aucune influence sur les événements ni sur les promesses qui y sont faites, financières ou autres, et décline toute responsabilité. Tout recours juridique est exclu. Les paiements et tous les autres accords se règlent entre organisateurs et participants, indépendamment de pumpfoil.org.",
         "team.event.endetIn": "Se termine dans",
         "team.event.ergebnis": "Résultats",
         "team.event.gemessen": "Mesuré",
@@ -668,10 +673,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Temps on-foil total",
-        "team.k.summe": "Total",
     ]
 
     private static let _fr2: [String: String] = [
+        "team.k.summe": "Total",
         "team.keineTafeln": "Aucun classement configuré pour l'instant.",
         "team.kopieren": "Copier",
         "team.kopiert": "Lien copié.",
@@ -756,6 +761,7 @@ enum LocTeam {
     ]
 
     private static let _it1: [String: String] = [
+        "team.event.disclaimer": "Gli eventi sono organizzati dai team stessi. pumpfoil.org non ha alcuna influenza sugli eventi né sulle promesse fatte al loro interno, economiche o di altro tipo, e non se ne assume alcuna responsabilità. È escluso il ricorso alle vie legali. Pagamenti e ogni altro accordo si regolano tra organizzatori e partecipanti, indipendentemente da pumpfoil.org.",
         "team.event.endetIn": "Termina tra",
         "team.event.ergebnis": "Risultati",
         "team.event.gemessen": "Misurato",
@@ -800,10 +806,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessioni",
         "team.k.sum_spots": "Spot",
         "team.k.sum_time": "Tempo on-foil totale",
-        "team.k.summe": "Totale",
     ]
 
     private static let _it2: [String: String] = [
+        "team.k.summe": "Totale",
         "team.keineTafeln": "Ancora nessuna classifica impostata.",
         "team.kopieren": "Copia",
         "team.kopiert": "Link copiato.",
@@ -888,6 +894,7 @@ enum LocTeam {
     ]
 
     private static let _es1: [String: String] = [
+        "team.event.disclaimer": "Los eventos los organizan los propios equipos. pumpfoil.org no tiene ninguna influencia sobre los eventos ni sobre las promesas que se hagan en ellos, económicas o de otro tipo, y no asume ninguna responsabilidad. Queda excluida la vía judicial. Los pagos y cualquier otro acuerdo los resuelven organizadores y participantes, independientemente de pumpfoil.org.",
         "team.event.endetIn": "Termina en",
         "team.event.ergebnis": "Resultados",
         "team.event.gemessen": "Se mide",
@@ -932,10 +939,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sesiones",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tiempo on-foil total",
-        "team.k.summe": "Total",
     ]
 
     private static let _es2: [String: String] = [
+        "team.k.summe": "Total",
         "team.keineTafeln": "Aún no hay clasificaciones configuradas.",
         "team.kopieren": "Copiar",
         "team.kopiert": "Enlace copiado.",
@@ -1020,6 +1027,7 @@ enum LocTeam {
     ]
 
     private static let _fi1: [String: String] = [
+        "team.event.disclaimer": "Tapahtumat järjestävät tiimit itse. pumpfoil.orgilla ei ole vaikutusvaltaa tapahtumiin eikä niissä annettuihin taloudellisiin tai muihin lupauksiin, eikä se ota niistä vastuuta. Oikeustie on suljettu pois. Maksut ja kaikki muut sopimukset järjestäjät ja osallistujat hoitavat keskenään, pumpfoil.orgista riippumatta.",
         "team.event.endetIn": "Päättyy",
         "team.event.ergebnis": "Tulokset",
         "team.event.gemessen": "Mitataan",
@@ -1064,10 +1072,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessiot",
         "team.k.sum_spots": "Spotit",
         "team.k.sum_time": "Foil-aika yhteensä",
-        "team.k.summe": "Summa",
     ]
 
     private static let _fi2: [String: String] = [
+        "team.k.summe": "Summa",
         "team.keineTafeln": "Tulostaulukoita ei ole vielä luotu.",
         "team.kopieren": "Kopioi",
         "team.kopiert": "Linkki kopioitu.",
@@ -1152,6 +1160,7 @@ enum LocTeam {
     ]
 
     private static let _nl1: [String: String] = [
+        "team.event.disclaimer": "Events worden door de teams zelf georganiseerd. pumpfoil.org heeft geen invloed op events of op toezeggingen die daarin worden gedaan, financieel of anderszins, en aanvaardt daarvoor geen verantwoordelijkheid. De gang naar de rechter is uitgesloten. Betalingen en alle andere afspraken regelen organisatoren en deelnemers onafhankelijk van pumpfoil.org.",
         "team.event.endetIn": "Eindigt over",
         "team.event.ergebnis": "Uitslag",
         "team.event.gemessen": "Gemeten",
@@ -1196,10 +1205,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessies",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-foil-tijd totaal",
-        "team.k.summe": "Totaal",
     ]
 
     private static let _nl2: [String: String] = [
+        "team.k.summe": "Totaal",
         "team.keineTafeln": "Nog geen ranglijsten ingesteld.",
         "team.kopieren": "Kopiëren",
         "team.kopiert": "Link gekopieerd.",
@@ -1284,6 +1293,7 @@ enum LocTeam {
     ]
 
     private static let _cs1: [String: String] = [
+        "team.event.disclaimer": "Akce pořádají samy týmy. pumpfoil.org nemá žádný vliv na akce ani na sliby v nich dané, finanční či jiné, a nepřebírá za ně žádnou odpovědnost. Právní cesta je vyloučena. Platby a všechny další dohody si pořadatelé a účastníci řeší sami, nezávisle na pumpfoil.org.",
         "team.event.endetIn": "Končí za",
         "team.event.ergebnis": "Výsledky",
         "team.event.gemessen": "Měří se",
@@ -1328,10 +1338,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Vyjížďky",
         "team.k.sum_spots": "Spoty",
         "team.k.sum_time": "Čas na foilu celkem",
-        "team.k.summe": "Součet",
     ]
 
     private static let _cs2: [String: String] = [
+        "team.k.summe": "Součet",
         "team.keineTafeln": "Zatím nejsou nastavené žádné žebříčky.",
         "team.kopieren": "Kopírovat",
         "team.kopiert": "Odkaz zkopírován.",
@@ -1416,6 +1426,7 @@ enum LocTeam {
     ]
 
     private static let _pl1: [String: String] = [
+        "team.event.disclaimer": "Wydarzenia organizują same drużyny. pumpfoil.org nie ma żadnego wpływu na wydarzenia ani na składane w nich obietnice, finansowe lub inne, i nie ponosi za nie odpowiedzialności. Droga sądowa jest wykluczona. Płatności i wszelkie inne ustalenia organizatorzy i uczestnicy załatwiają między sobą, niezależnie od pumpfoil.org.",
         "team.event.endetIn": "Koniec za",
         "team.event.ergebnis": "Wyniki",
         "team.event.gemessen": "Mierzone",
@@ -1460,10 +1471,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sesje",
         "team.k.sum_spots": "Spoty",
         "team.k.sum_time": "Czas na foilu łącznie",
-        "team.k.summe": "Suma",
     ]
 
     private static let _pl2: [String: String] = [
+        "team.k.summe": "Suma",
         "team.keineTafeln": "Nie ma jeszcze żadnych rankingów.",
         "team.kopieren": "Kopiuj",
         "team.kopiert": "Link skopiowany.",
@@ -1548,6 +1559,7 @@ enum LocTeam {
     ]
 
     private static let _pt1: [String: String] = [
+        "team.event.disclaimer": "Os eventos são organizados pelas próprias equipes. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas feitas neles, financeiras ou de outro tipo, e não assume nenhuma responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org.",
         "team.event.endetIn": "Termina em",
         "team.event.ergebnis": "Resultado",
         "team.event.gemessen": "Medido",
@@ -1592,10 +1604,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessões",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tempo on-foil total",
-        "team.k.summe": "Total",
     ]
 
     private static let _pt2: [String: String] = [
+        "team.k.summe": "Total",
         "team.keineTafeln": "Nenhum ranking criado ainda.",
         "team.kopieren": "Copiar",
         "team.kopiert": "Link copiado.",
@@ -1680,6 +1692,7 @@ enum LocTeam {
     ]
 
     private static let _pt_PT1: [String: String] = [
+        "team.event.disclaimer": "Os eventos são organizados pelas próprias equipas. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas neles feitas, financeiras ou de outro tipo, e não assume qualquer responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org.",
         "team.event.endetIn": "Termina daqui a",
         "team.event.ergebnis": "Resultado",
         "team.event.gemessen": "Medido",
@@ -1724,10 +1737,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sessões",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tempo on-foil total",
-        "team.k.summe": "Total",
     ]
 
     private static let _pt_PT2: [String: String] = [
+        "team.k.summe": "Total",
         "team.keineTafeln": "Ainda não há rankings criados.",
         "team.kopieren": "Copiar",
         "team.kopiert": "Link copiado.",
@@ -1812,6 +1825,7 @@ enum LocTeam {
     ]
 
     private static let _ja1: [String: String] = [
+        "team.event.disclaimer": "イベントは各チームが自ら主催します。pumpfoil.org はイベントや、その中でなされる金銭的その他の約束に一切関与せず、責任を負いません。法的手段による請求はできません。支払いやその他の取り決めは、pumpfoil.org とは無関係に主催者と参加者の間で行ってください。",
         "team.event.endetIn": "終了まで",
         "team.event.ergebnis": "結果",
         "team.event.gemessen": "計測項目",
@@ -1856,10 +1870,10 @@ enum LocTeam {
         "team.k.sum_sessions": "セッション",
         "team.k.sum_spots": "スポット",
         "team.k.sum_time": "オンフォイル時間の合計",
-        "team.k.summe": "合計",
     ]
 
     private static let _ja2: [String: String] = [
+        "team.k.summe": "合計",
         "team.keineTafeln": "ランキングはまだ設定されていません。",
         "team.kopieren": "コピー",
         "team.kopiert": "リンクをコピーしました。",
@@ -1944,6 +1958,7 @@ enum LocTeam {
     ]
 
     private static let _zh1: [String: String] = [
+        "team.event.disclaimer": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。",
         "team.event.endetIn": "距离结束",
         "team.event.ergebnis": "结果",
         "team.event.gemessen": "计量项目",
@@ -1988,10 +2003,10 @@ enum LocTeam {
         "team.k.sum_sessions": "记录数",
         "team.k.sum_spots": "地点",
         "team.k.sum_time": "上翼总时长",
-        "team.k.summe": "总和",
     ]
 
     private static let _zh2: [String: String] = [
+        "team.k.summe": "总和",
         "team.keineTafeln": "尚未设置排行榜。",
         "team.kopieren": "复制",
         "team.kopiert": "链接已复制。",
@@ -2076,6 +2091,7 @@ enum LocTeam {
     ]
 
     private static let _ru1: [String: String] = [
+        "team.event.disclaimer": "События проводят сами команды. pumpfoil.org не влияет на события и на данные в них обещания, финансовые или иные, и не несёт за них ответственности. Обращение в суд исключено. Платежи и все прочие договорённости организаторы и участники решают между собой, независимо от pumpfoil.org.",
         "team.event.endetIn": "До конца",
         "team.event.ergebnis": "Итоги",
         "team.event.gemessen": "Измеряется",
@@ -2120,10 +2136,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Сессии",
         "team.k.sum_spots": "Споты",
         "team.k.sum_time": "Время на фойле всего",
-        "team.k.summe": "Сумма",
     ]
 
     private static let _ru2: [String: String] = [
+        "team.k.summe": "Сумма",
         "team.keineTafeln": "Таблицы лидеров пока не настроены.",
         "team.kopieren": "Копировать",
         "team.kopiert": "Ссылка скопирована.",
@@ -2208,6 +2224,7 @@ enum LocTeam {
     ]
 
     private static let _id1: [String: String] = [
+        "team.event.disclaimer": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org.",
         "team.event.endetIn": "Berakhir dalam",
         "team.event.ergebnis": "Hasil",
         "team.event.gemessen": "Diukur",
@@ -2252,10 +2269,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Sesi",
         "team.k.sum_spots": "Spot",
         "team.k.sum_time": "Total waktu on-foil",
-        "team.k.summe": "Total",
     ]
 
     private static let _id2: [String: String] = [
+        "team.k.summe": "Total",
         "team.keineTafeln": "Belum ada papan peringkat.",
         "team.kopieren": "Salin",
         "team.kopiert": "Tautan disalin.",
@@ -2340,6 +2357,7 @@ enum LocTeam {
     ]
 
     private static let _nb1: [String: String] = [
+        "team.event.disclaimer": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org.",
         "team.event.endetIn": "Slutter om",
         "team.event.ergebnis": "Resultat",
         "team.event.gemessen": "Måles",
@@ -2384,10 +2402,10 @@ enum LocTeam {
         "team.k.sum_sessions": "Økter",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tid på foil totalt",
-        "team.k.summe": "Sum",
     ]
 
     private static let _nb2: [String: String] = [
+        "team.k.summe": "Sum",
         "team.keineTafeln": "Ingen topplister satt opp ennå.",
         "team.kopieren": "Kopier",
         "team.kopiert": "Lenken er kopiert.",

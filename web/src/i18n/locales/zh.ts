@@ -2683,6 +2683,7 @@ const zh: Record<string, string> = {
   "team.eventbild.entfernen": "移除活动横幅",
   "team.event.teilen": "分享：",
   "team.event.regelnTitel": "活动规则",
+  "team.event.disclaimer": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。",
   "team.event.endetIn": "距离结束",
   "team.event.tage": "天",
   "team.event.stunden": "小时",

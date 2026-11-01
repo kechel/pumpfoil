@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -210,6 +211,10 @@ fun TeamEventScreen(
                                     Text(p, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
+                            // Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams.
+                            HorizontalDivider(Modifier.padding(vertical = 10.dp))
+                            Text(I18n.t("team.event.disclaimer"), style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Spacer(Modifier.height(24.dp))

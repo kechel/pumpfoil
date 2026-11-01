@@ -2686,6 +2686,7 @@ const pt: Record<string, string> = {
   "team.eventbild.entfernen": "Remover banner do evento",
   "team.event.teilen": "Compartilhar:",
   "team.event.regelnTitel": "Regras do evento",
+  "team.event.disclaimer": "Os eventos são organizados pelas próprias equipes. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas feitas neles, financeiras ou de outro tipo, e não assume nenhuma responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org.",
   "team.event.endetIn": "Termina em",
   "team.event.tage": "dias",
   "team.event.stunden": "h",
