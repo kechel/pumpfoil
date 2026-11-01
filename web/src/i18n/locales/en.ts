@@ -2707,6 +2707,8 @@ const en: Record<string, string> = {
   "team.einladungAnmelden": "Sign in or register",
   "team.community": "Teams",
   "team.communityLeer": "No public teams yet. Start the first one!",
+  "team.alleEvents": "All events",
+  "team.alleEventsLeer": "No events yet.",
   "team.eventsAktuell": "Current & upcoming events",
   "team.alle": "All teams",
   "team.alleSuche": "Search teams",

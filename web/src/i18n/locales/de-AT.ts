@@ -2499,6 +2499,8 @@ const deAT: Record<string, string> = {
   "team.einladungAnmelden": "Anmelden oder registrieren",
   "team.community": "Teams",
   "team.communityLeer": "No ka öffentlichen Teams. Gründ des erste!",
+  "team.alleEvents": "Alle Events",
+  "team.alleEventsLeer": "Noch keine Events.",
   "team.eventsAktuell": "Laufende & kommende Events",
   "team.alle": "Alle Teams",
   "team.alleSuche": "Team suchen",

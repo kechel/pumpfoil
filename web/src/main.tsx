@@ -97,6 +97,7 @@ const Friends = seite(() => import("./pages/Friends"));
 // Teams (31.10.2026, docs/TEAMS.md)
 const Teams = seite(() => import("./pages/Teams"));
 const TeamsAlle = seite(() => import("./pages/TeamsAlle"));
+const EventsAlle = seite(() => import("./pages/EventsAlle"));
 const Team = seite(() => import("./pages/Team"));
 const TeamEinstellungen = seite(() => import("./pages/TeamEinstellungen"));
 const TeamEinladung = seite(() => import("./pages/TeamEinladung"));
@@ -265,6 +266,7 @@ const router = createBrowserRouter([
           { path: "teams", element: <Teams /> },
           // Alle freigegebenen Teams (01.11.2026); „liste" ist als Team-Adresse gesperrt (teams.RESERVIERT).
           { path: "teams/liste", element: <TeamsAlle /> },
+          { path: "events", element: <EventsAlle /> },   // alle Team-Events, endlos scrollend (01.11.2026)
           // Regeln als Text-Seite: auch fuer Gaeste (die oeffentliche Teamseite verweist darauf).
           { path: "teams/regeln", element: <TeamRegeln />, handle: TEXT },
           { path: "teams/:slug", element: <Team />, handle: GAST },

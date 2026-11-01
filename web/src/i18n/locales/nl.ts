@@ -2664,6 +2664,8 @@ const nl: Record<string, string> = {
   "team.einladungAnmelden": "Inloggen of registreren",
   "team.community": "Teams",
   "team.communityLeer": "Nog geen openbare teams. Richt het eerste op!",
+  "team.alleEvents": "Alle events",
+  "team.alleEventsLeer": "Nog geen events.",
   "team.eventsAktuell": "Lopende & komende events",
   "team.alle": "Alle teams",
   "team.alleSuche": "Team zoeken",

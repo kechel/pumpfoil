@@ -2593,6 +2593,8 @@ const pl: Record<string, string> = {
   "team.einladungAnmelden": "Zaloguj się lub zarejestruj",
   "team.community": "Drużyny",
   "team.communityLeer": "Nie ma jeszcze publicznych drużyn. Załóż pierwszą!",
+  "team.alleEvents": "Wszystkie wydarzenia",
+  "team.alleEventsLeer": "Jeszcze brak wydarzeń.",
   "team.eventsAktuell": "Trwające i nadchodzące wydarzenia",
   "team.alle": "Wszystkie drużyny",
   "team.alleSuche": "Szukaj drużyny",

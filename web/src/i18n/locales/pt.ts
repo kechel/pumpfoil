@@ -2610,6 +2610,8 @@ const pt: Record<string, string> = {
   "team.einladungAnmelden": "Entrar ou cadastrar",
   "team.community": "Equipes",
   "team.communityLeer": "Ainda não há equipes públicas. Crie a primeira!",
+  "team.alleEvents": "Todos os eventos",
+  "team.alleEventsLeer": "Ainda não há eventos.",
   "team.eventsAktuell": "Eventos em andamento e próximos",
   "team.alle": "Todas as equipes",
   "team.alleSuche": "Buscar equipe",

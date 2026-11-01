@@ -2585,6 +2585,8 @@ const nb: Record<string, string> = {
   "team.einladungAnmelden": "Logg inn eller registrer deg",
   "team.community": "Lag",
   "team.communityLeer": "Ingen offentlige lag ennå. Start det første!",
+  "team.alleEvents": "Alle arrangementer",
+  "team.alleEventsLeer": "Ingen arrangementer ennå.",
   "team.eventsAktuell": "Pågående og kommende arrangementer",
   "team.alle": "Alle lag",
   "team.alleSuche": "Søk etter lag",

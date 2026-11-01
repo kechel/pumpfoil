@@ -2604,6 +2604,8 @@ const ptPT: Record<string, string> = {
   "team.einladungAnmelden": "Iniciar sessão ou registar",
   "team.community": "Equipas",
   "team.communityLeer": "Ainda não há equipas públicas. Cria a primeira!",
+  "team.alleEvents": "Todos os eventos",
+  "team.alleEventsLeer": "Ainda não há eventos.",
   "team.eventsAktuell": "Eventos a decorrer e próximos",
   "team.alle": "Todas as equipas",
   "team.alleSuche": "Procurar equipa",

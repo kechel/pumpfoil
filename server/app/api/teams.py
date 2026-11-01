@@ -17,7 +17,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from pydantic import BaseModel, Field
-from sqlalchemy import func
+from sqlalchemy import and_, case, func, or_
 from sqlalchemy.orm import Session
 
 from .. import models, teams as T
@@ -204,34 +204,58 @@ def liste(_u: models.User = Depends(current_user), db: Session = Depends(get_db)
     return out
 
 
+def _event_kurz(db: Session, e: models.TeamEvent, t: models.Team, intern: bool, jetzt) -> dict:
+    """Event ohne Bestenlisten, fuer Community-Seite und Event-Uebersicht."""
+    tafeln_ = T.event_tafeln(e)
+    sportarten = list(dict.fromkeys(tf.sportart for tf in tafeln_)) or [e.summen_sportart or "pumpfoil"]
+    ids = T.event_spots(e)
+    spots = ([{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
+              .filter(models.Spot.id.in_(ids)).all()] if ids else [])
+    a = T.auftritt(t, intern)
+    return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": T._aware(e.start).isoformat(),
+            "ende": T._aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "status": T.event_status(e, jetzt),
+            "sportarten": sportarten, "spots": spots,
+            "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}}
+
+
+def _events_sichtbar(db: Session, uid: int):
+    """Events, die der Betrachter oeffnen darf: aus freigegebenen Teams mit oeffentlichen Bestenlisten
+    (T.bestenlisten_oeffentlich) oder aus eigenen Teams. Liefert (Abfrage, eigene Team-IDs)."""
+    E, Tm = models.TeamEvent, models.Team
+    eigene = set(T.mitglieder_team_ids(db, uid))
+    sichtbar = and_(Tm.oeffentlich.is_(True), Tm.frei_am.isnot(None))
+    q = (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
+         .filter(E.geloescht_am.is_(None), Tm.geloescht_am.is_(None),
+                 or_(sichtbar, Tm.id.in_(eigene)) if eigene else sichtbar))
+    return q, eigene
+
+
 @router.get("/liste/events")
 def liste_events(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Community-Abschnitt (Jan, 01.11.2026): laufende Events und solche, die in den naechsten Tagen beginnen
-    (T.EVENT_VORSCHAU). Nur aus Teams, deren Events der Betrachter auch oeffnen darf: freigegeben mit
-    oeffentlichen Bestenlisten (freigegebene Fassung) oder eigene Teams (interne Fassung). Ohne Bestenlisten —
-    die stehen auf der Event-Seite."""
+    (T.EVENT_VORSCHAU), alle. Ohne Bestenlisten — die stehen auf der Event-Seite."""
     jetzt = T._jetzt()
-    E, Tm = models.TeamEvent, models.Team
-    eigene = set(T.mitglieder_team_ids(db, user.id))
-    out = []
-    for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
-                 .filter(E.geloescht_am.is_(None), E.eingefroren_am.is_(None), Tm.geloescht_am.is_(None),
-                         E.ende > jetzt, E.start <= jetzt + T.EVENT_VORSCHAU)
-                 .order_by(E.start).limit(200).all()):   # alle zeigen (Jan); die Grenze ist nur ein Notanker
-        intern = t.id in eigene
-        if not intern and not T.bestenlisten_oeffentlich(t):
-            continue
-        tafeln_ = T.event_tafeln(e)
-        sportarten = list(dict.fromkeys(tf.sportart for tf in tafeln_)) or [e.summen_sportart or "pumpfoil"]
-        ids = T.event_spots(e)
-        spots = ([{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
-                  .filter(models.Spot.id.in_(ids)).all()] if ids else [])
-        a = T.auftritt(t, intern)
-        out.append({"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": T._aware(e.start).isoformat(),
-                    "ende": T._aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "status": T.event_status(e, jetzt),
-                    "sportarten": sportarten, "spots": spots,
-                    "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}})
-    return out
+    E = models.TeamEvent
+    q, eigene = _events_sichtbar(db, user.id)
+    rows = (q.filter(E.eingefroren_am.is_(None), E.ende > jetzt, E.start <= jetzt + T.EVENT_VORSCHAU)
+            .order_by(E.start).limit(200).all())   # alle zeigen (Jan); die Grenze ist nur ein Notanker
+    return [_event_kurz(db, e, t, t.id in eigene, jetzt) for e, t in rows]
+
+
+@router.get("/liste/events/alle")
+def liste_events_alle(offset: int = 0, n: int = 20, user: models.User = Depends(current_user),
+                      db: Session = Depends(get_db)) -> list[dict]:
+    """Event-Uebersicht, seitenweise (Endlos-Scrollen, Jan 01.11.2026): erst laufende (frueheste zuerst), dann
+    kommende (naechste zuerst), dann vergangene (zuletzt beendete zuerst)."""
+    jetzt = T._jetzt()
+    E = models.TeamEvent
+    n = max(1, min(n, 50))
+    q, eigene = _events_sichtbar(db, user.id)
+    gruppe = case((and_(E.start <= jetzt, E.ende > jetzt), 0), (E.start > jetzt, 1), else_=2)
+    # Innerhalb der Gruppen: 0/1 nach Start aufsteigend, 2 nach Ende absteigend (Epoch-Sekunden, Vorzeichen).
+    sek = case((E.ende <= jetzt, -func.extract("epoch", E.ende)), else_=func.extract("epoch", E.start))
+    rows = q.order_by(gruppe, sek, E.id).offset(max(0, offset)).limit(n).all()
+    return [_event_kurz(db, e, t, t.id in eigene, jetzt) for e, t in rows]
 
 
 # ------------------------------------------------------------------------------ Teamseite ----
