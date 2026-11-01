@@ -3,9 +3,10 @@
 // Ergebnis (eingefroren 24 h nach dem Ende). Gaeste sehen das Event nur bei oeffentlichem Team, in Gastform
 // (Rang, Name, Initialen, Wert) — dieselben Daten, die die oeffentliche Teamseite ohnehin liefert.
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { api, getToken, TeamAuftritt, TeamEvent, TeamTafelMitZeilen } from "../lib/api";
-import { ChevronIcon } from "../components/Icons";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
+import { ChevronIcon, SettingsIcon } from "../components/Icons";
+import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild from "../components/TeamTafelBild";
@@ -82,10 +83,16 @@ export default function TeamEventSeite() {
   const { slug = "", id = "" } = useParams();
   const { t, lang } = useI18n();
   const gast = !getToken();
-  const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean }) | null>(null);
+  const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean; meine_rolle?: TeamRolle | null }) | null>(null);
   const [ev, setEv] = useState<TeamEvent | null>(null);
   const [fehlt, setFehlt] = useState(false);
   const [bild, setBild] = useState<TeamTafelMitZeilen | null>(null);
+  const [popup, setPopup] = useState(false);
+  const [meldung, setMeldung] = useState<string | null>(null);
+  const [sports, setSports] = useState<string[]>(["pumpfoil"]);
+  const [bands, setBands] = useState<FoilBand[]>([]);
+  const [alleSpots, setAlleSpots] = useState<{ id: number; name: string }[]>([]);
+  const nav = useNavigate();
 
   useEffect(() => {
     // Direkt das eine Event (01.11.2026) — auch aeltere, die in keiner Liste mehr stehen; Gaeste ueber den
@@ -98,6 +105,20 @@ export default function TeamEventSeite() {
     }
   }, [slug, id, gast]);
 
+  // Zahnrad fuer Leitung/Moderatoren (Jan, 01.11.2026): dasselbe Popup wie in der Verwaltung.
+  const verwalter = !gast && (team?.meine_rolle === "leiter" || team?.meine_rolle === "moderator");
+  const popupAuf = () => {
+    api.communitySports().then((x) => setSports(Array.from(new Set(["pumpfoil", ...x.map((y) => y.sport)])))).catch(() => {});
+    api.foilBands(true, "pumpfoil").then(setBands).catch(() => {});
+    api.spotMap(false, "all").then((m) => setAlleSpots(m.filter((x) => x.spot_id != null)
+      .map((x) => ({ id: x.spot_id as number, name: x.spot })).sort((a, b) => a.name.localeCompare(b.name)))).catch(() => {});
+    setPopup(true);
+  };
+  const popupZu = () => {
+    setPopup(false);
+    api.teamEvent(slug, id).then(setEv).catch(() => nav(`/teams/${slug}`, { replace: true }));   // geloescht -> zurueck zum Team
+  };
+
   if (fehlt) return <p className="text-sm text-slate-400">{t("team.nichtGefunden")}</p>;
   if (!team || !ev) return <p className="text-sm text-slate-400">{t("common.loading")}</p>;
 
@@ -108,9 +129,16 @@ export default function TeamEventSeite() {
         <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
         {team.name}
       </Link>
+      {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
       {ev.banner_url && <TeamBanner url={ev.banner_url} fokus={ev.banner_fokus} className="mb-4" />}
       <div className="team-rand mb-4 border-b-2 pb-4">
         <div className="mb-1 flex flex-wrap items-center gap-2">
+          {verwalter && (
+            <button onClick={popupAuf} title={t("team.event.bearbeiten")} aria-label={t("team.event.bearbeiten")}
+              className="order-last ml-auto shrink-0 rounded-xl border border-slate-700 p-2 text-slate-300 hover:bg-slate-800">
+              <SettingsIcon className="h-5 w-5" />
+            </button>
+          )}
           <h2 className={`team-akzent text-2xl font-bold leading-tight ${ev.status === "laeuft" ? "animate-pulse" : ""}`}>{ev.titel}</h2>
           <span className={`rounded-full px-2 py-0.5 text-xs ${ev.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
             {t(`team.event.status.${ev.status}`)}
@@ -127,7 +155,6 @@ export default function TeamEventSeite() {
           <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</p>
         )}
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm text-slate-300">{ev.beschreibung}</p>}
-        {team.bestenlisten_oeffentlich && <EventTeilen url={`${window.location.origin}/teams/${team.slug}/events/${ev.id}`} titel={ev.titel} t={t} />}
       </div>
 
       <h3 className="mb-2 text-lg font-bold text-slate-100">{t(eventStandKey(ev.status))}</h3>
@@ -150,6 +177,9 @@ export default function TeamEventSeite() {
         </>
       )}
 
+      {/* Teilen-Zeile unter den Bestenlisten, ueber den Regeln (Jan, 01.11.2026). */}
+      {team.bestenlisten_oeffentlich && <EventTeilen url={`${window.location.origin}/teams/${team.slug}/events/${ev.id}`} titel={ev.titel} t={t} />}
+
       {/* Event-Regeln als kleine Box statt Link auf die ganze Regelseite (Jan, 01.11.2026): nur was fuers Event gilt. */}
       <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
         <p className="mb-1 text-sm font-semibold text-slate-200">{t("team.event.regelnTitel")}</p>
@@ -157,6 +187,11 @@ export default function TeamEventSeite() {
           {t("team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
         </ul>
       </div>
+
+      {popup && (
+        <TeamEventsVerwalten slug={team.slug} farbe={team.farbe} sports={sports} bands={bands} alleSpots={alleSpots}
+          onMeldung={setMeldung} nurEvent={ev} onZu={popupZu} />
+      )}
 
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} />}
     </div>

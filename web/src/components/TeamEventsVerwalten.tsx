@@ -27,8 +27,10 @@ function leer(): Entwurf {
   return { titel: "", beschreibung: "", start: alsEingabe(a), ende: alsEingabe(b), tafeln: [neueEventTafel()], spot_ids: [], vorlage: null };
 }
 
-export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSpots, onMeldung }: {
+export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSpots, onMeldung, nurEvent, onZu }: {
   slug: string; farbe: string | null; sports: string[]; bands: FoilBand[]; alleSpots: { id: number; name: string }[]; onMeldung: (s: string) => void;
+  /** Nur das Popup fuer dieses eine Event (Zahnrad auf der Event-Seite, Jan 01.11.2026); `onZu` nach Schliessen/Speichern. */
+  nurEvent?: TeamEvent; onZu?: () => void;
 }) {
   const { t, lang } = useI18n();
   const [liste, setListe] = useState<TeamEvent[]>([]);
@@ -54,7 +56,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage,
     };
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
-      .then(() => { setE(null); laden(); onMeldung(t("team.gespeichert")); })
+      .then(() => { schliessen(); laden(); onMeldung(t("team.gespeichert")); })
       .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
@@ -62,31 +64,11 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
+  const schliessen = () => { setE(null); onZu?.(); };
+  useEffect(() => { if (nurEvent) bearbeiten(nurEvent); }, [nurEvent?.id]);   // eslint-disable-line react-hooks/exhaustive-deps
   const spotName = (id: number) => alleSpots.find((s) => s.id === id)?.name ?? `#${id}`;
 
-  return (
-    <Card className="mb-4 p-4">
-      <h3 className="mb-2 font-semibold text-slate-100">{t("team.events")}</h3>
-
-      {liste.map((ev) => (
-        <div key={ev.id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 first:border-t-0">
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium text-slate-100">{ev.titel}</span>
-            <span className="block text-xs text-slate-400">
-              {t(`team.event.status.${ev.status}`)} · {eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}
-            </span>
-          </span>
-          {/* Loeschen nur im Popup (Jan, 01.11.2026); eingefrorene Events oeffnen es nur noch zum Loeschen. */}
-          <button className={knopf} onClick={() => bearbeiten(ev)}>{t("team.event.bearbeiten")}</button>
-        </div>
-      ))}
-
-      <button className="team-knopf mt-3 rounded-xl px-4 py-2 text-sm font-semibold" onClick={() => setE(leer())}>+ {t("team.event.neu")}</button>
-      {/* Anlegen/Bearbeiten im Popup statt inline (Jan, 01.11.2026). Ein Klick daneben schliesst NICHT — sonst
-          waeren halb eingegebene Events weg; zu geht es nur ueber Speichern oder Abbrechen. */}
-      {/* Per Portal an <body>: die Karte darum (Unschaerfe-Hintergrund) macht sonst `fixed` zu „relativ zur Karte" —
-          das Popup sass im falschen Element und wurde unscrollbar abgeschnitten. Teamfarbe deshalb hier neu setzen. */}
-      {e && createPortal(
+  const popup = (e && createPortal(
         <div className="team-farbe fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" style={teamFarbStil(farbe)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-700 bg-white p-5 dark:bg-slate-900">
           <h3 className="mb-3 text-lg font-bold text-slate-100">{e.id ? t("team.event.bearbeiten") : t("team.event.neu")}</h3>
@@ -178,11 +160,11 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
                 {e.id ? t("common.save") : t("team.event.anlegen")}
               </button>
             )}
-            <button className={knopf} onClick={() => setE(null)}>{t("common.cancel")}</button>
+            <button className={knopf} onClick={() => schliessen()}>{t("common.cancel")}</button>
             {e.id && (
               <button className={`${knopf} ml-auto inline-flex items-center gap-1.5 text-red-700 dark:text-red-300`} onClick={() => {
                 if (!e.id || !window.confirm(t("team.event.loeschenFrage", { titel: e.titel }))) return;
-                api.teamEventLoeschen(slug, e.id).then(() => { setE(null); laden(); })
+                api.teamEventLoeschen(slug, e.id).then(() => { schliessen(); laden(); })
                   .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
               }}><TrashIcon className="h-4 w-4" /> {t("common.delete")}</button>
             )}
@@ -190,7 +172,32 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
         </div>
         </div>,
         document.body,
-      )}
+      ));
+  if (nurEvent) return popup || null;
+
+  return (
+    <Card className="mb-4 p-4">
+      <h3 className="mb-2 font-semibold text-slate-100">{t("team.events")}</h3>
+
+      {liste.map((ev) => (
+        <div key={ev.id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 first:border-t-0">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-slate-100">{ev.titel}</span>
+            <span className="block text-xs text-slate-400">
+              {t(`team.event.status.${ev.status}`)} · {eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}
+            </span>
+          </span>
+          {/* Loeschen nur im Popup (Jan, 01.11.2026); eingefrorene Events oeffnen es nur noch zum Loeschen. */}
+          <button className={knopf} onClick={() => bearbeiten(ev)}>{t("team.event.bearbeiten")}</button>
+        </div>
+      ))}
+
+      <button className="team-knopf mt-3 rounded-xl px-4 py-2 text-sm font-semibold" onClick={() => setE(leer())}>+ {t("team.event.neu")}</button>
+      {/* Anlegen/Bearbeiten im Popup statt inline (Jan, 01.11.2026). Ein Klick daneben schliesst NICHT — sonst
+          waeren halb eingegebene Events weg; zu geht es nur ueber Speichern oder Abbrechen. */}
+      {/* Per Portal an <body>: die Karte darum (Unschaerfe-Hintergrund) macht sonst `fixed` zu „relativ zur Karte" —
+          das Popup sass im falschen Element und wurde unscrollbar abgeschnitten. Teamfarbe deshalb hier neu setzen. */}
+      {popup}
     </Card>
   );
 }
