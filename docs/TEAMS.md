@@ -187,6 +187,28 @@ Ende + 24 h, dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das 
 Uhr-/App-Aufnahmen, keine FIT-Importe. Vorhandene Waechter (Fake-Meldungen, Autofahrt-Grenzen,
 aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
+## Freigabe-Pruefliste (Admin, ab 01.11.2026)
+
+Geprueft wird nur, was Gaeste ohne Login sehen: Name, Adresse, Beschreibung, Logo, Farbe. Intern darf
+ein Team machen, was es will. Beim ersten Team (01.11.) entstanden; je Antrag einmal durchgehen.
+
+1. **Name:** lesbar, kein Tippfehler, keine Beleidigung, keine fremde Marke/Firma, die das Team nicht
+   ist. Passt er zur Beschreibung (gleicher Teamname dort)? Was bedeutet er in der Landessprache?
+2. **Adresse (Slug):** passt zum Namen; Sonderzeichen sinnvoll umgeschrieben (z. B. Ł -> l); kein
+   Name einer Person, keine Verwechslung mit einem bestehenden Team oder einer Seite von uns.
+3. **Beschreibung:** Sprache(n) erkennen und lesen (notfalls uebersetzen), Tippfehler, keine Kontaktdaten
+   Privater, keine Werbung/Links als Hauptinhalt, keine Versprechen in unserem Namen. Zeilenumbrueche
+   bleiben auf der Seite stehen.
+4. **Logo:** Inhalt unbedenklich (Nacktheit, Gewalt, Symbole), erkennbar auch klein (Wappen ~40 px),
+   Freisteller/Hintergrund ok. **Rechte:** sieht es nach einem fremden Werk aus (Kunst, Foto, Markenlogo
+   aus dem Netz), beim Teamleiter nachfragen, bevor es oeffentlich wird.
+5. **Farbe:** aus der Palette, reicht in hell und dunkel.
+6. **Umfeld (nur zur Kenntnis):** Mitglieder sind selbst beigetreten (`zustimmung_am` je Mitglied
+   gesetzt), Mitgliederliste-Einstellung, Bestenlisten sinnvoll. Kein Freigabegrund, aber auffaellig,
+   wenn z. B. ein Gewerbe dahintersteht.
+7. **Ergebnis:** freigeben oder ablehnen; bei Ablehnung/Rueckfrage dem Teamleiter per DM schreiben, was
+   fehlt (Entwurf an Jan).
+
 ## Stufen
 
 1. **Kern (Web):** Teams, Rollen, Beitritt (zwei Schalter + join/apply-Links mit QR-Code), Registrierung
