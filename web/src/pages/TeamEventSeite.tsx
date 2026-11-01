@@ -195,11 +195,6 @@ export default function TeamEventSeite() {
           <span className="font-semibold text-slate-200">{eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}</span>
           {ev.spots.length > 0 && <> · {ev.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
         </p>
-        {eventGemessen(ev, t) && <p className="text-sm text-slate-300">{t("team.event.gemessen")}: {eventGemessen(ev, t)}</p>}
-        {ev.ohne_dateien && <p className="text-sm text-slate-400">{t("team.event.ohneDateienKurz")}</p>}
-        {ev.status === "auswertung" && (
-          <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</p>
-        )}
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm font-semibold text-slate-200">{ev.beschreibung}</p>}
       </div>
 
@@ -246,6 +241,11 @@ export default function TeamEventSeite() {
       <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
         <p className="mb-1 text-sm font-semibold text-slate-200">{t("team.event.regelnTitel")}</p>
         <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {/* Was dieses Event misst und wie lange noch hochgeladen werden darf — als erste Punkte der Regeln statt oben
+              im Kopf (Jan, 01.11.2026). */}
+          {eventGemessen(ev, t) && <li>{t("team.event.gemessen")}: {eventGemessen(ev, t)}</li>}
+          {ev.ohne_dateien && <li>{t("team.event.ohneDateienKurz")}</li>}
+          {ev.status === "auswertung" && <li>{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</li>}
           {t("team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
         </ul>
       </div>
