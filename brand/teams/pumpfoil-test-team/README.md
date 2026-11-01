@@ -10,3 +10,12 @@ Teambild und Wappen fuer `pumpfoil.org/teams/pumpfoil-development` (01.11.2026).
 Farben: Navy #020617, Cyan #22d3ee, Teamfarbe Violett (#4c1d95 / #6d28d9 / #a78bfa), keine Verlaeufe.
 Schrift DejaVu Sans Mono. Das Wappen nutzt die Pumpfoil-Wellen aus `brand/master/base/waves.svg`.
 PNG neu erzeugen: `rsvg-convert teambild-1600x500.svg -o teambild-1600x500.png` (ebenso fuer das Wappen).
+
+## Eventbilder (01.11.2026)
+
+| Datei | Event |
+|---|---|
+| `events/event1-strecke-1600x500.png` (+ `.svg`) | „First Test-Event next Weekend“ (Total on-foil distance, 7.–8.11.) |
+| `events/event2-pumps-1600x500.png` (+ `.svg`) | „Most pumps in one session“ (Oktober 2026) |
+
+Gleiche Farben, Schrift und Fokuspunkt (Mitte) wie das Teambild; keine Verlaeufe, auch keine Transparenz-Stufen.
