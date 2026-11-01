@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { teamFarbStil } from "../lib/teamFarben";
+import { BannerBearbeiten } from "./TeamBanner";
 import { api, FoilBand, TeamEvent, TeamEventTafel } from "../lib/api";
 import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
@@ -18,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { id?: number; eingefroren?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -57,7 +58,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
-    id: ev.id, eingefroren: ev.status === "beendet", titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
+    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
@@ -103,6 +104,14 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
                 {EVENT_VORLAGEN.map((v) => <option key={v.key} value={v.key}>{t(v.titelKey)}</option>)}
               </select>
             </>
+          )}
+          {/* Eventbild (01.11.2026): erst bei einem gespeicherten Event — der Upload braucht dessen id. */}
+          {e.id && (
+            <BannerBearbeiten url={e.banner_url ?? null} fokus={e.banner_fokus ?? null} t={t} texte="team.eventbild"
+              onFehler={(x) => onMeldung(t(`team.err.${fehlerCode(x)}`))}
+              hochladen={(f) => api.teamEventBanner(slug, e.id!, f).then((r) => { setE((d) => d && { ...d, ...r }); laden(); })}
+              fokusSetzen={(f) => api.teamEventBannerFokus(slug, e.id!, f).then((r) => { setE((d) => d && { ...d, ...r }); laden(); })}
+              entfernen={() => api.teamEventBannerEntfernen(slug, e.id!).then(() => { setE((d) => d && { ...d, banner_url: null }); laden(); })} />
           )}
           <label className="mb-1 block text-sm text-slate-300">{t("team.event.titel")}</label>
           <input value={e.titel} maxLength={80} onChange={(x) => setE({ ...e, titel: x.target.value })} className={`${eingabe} mb-3`} />

@@ -2127,3 +2127,7 @@ class TeamEvent(Base):
     geloescht_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     geloescht_von: Mapped[int | None] = mapped_column(Integer)
     angelegt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # Eventbild wie das Teambild (01.11.2026): nie zugeschnitten, Fokus "x,y" in Prozent. Gaeste sehen es NICHT —
+    # anders als das Teambild laeuft es durch keine Freigabe (s. teams.event_out).
+    banner_url: Mapped[str | None] = mapped_column(String(300))
+    banner_fokus: Mapped[str | None] = mapped_column(String(12))

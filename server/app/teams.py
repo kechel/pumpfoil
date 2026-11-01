@@ -696,7 +696,9 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": _aware(e.start).isoformat(),
             "ende": _aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "vorlage": e.vorlage,
             "status": event_status(e), "spots": spots, "spot_ids": [] if gast else event_spots(e),
-            "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_}
+            "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_,
+            # Eventbild nur fuer Angemeldete: es laeuft durch keine Freigabe (Teambild schon), also nicht nach aussen.
+            "banner_url": None if gast else e.banner_url, "banner_fokus": e.banner_fokus}
 
 
 def events_liste(db: Session, team_id: int, beendete: int = 10) -> list[models.TeamEvent]:

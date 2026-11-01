@@ -7,6 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import { api, getToken, TeamAuftritt, TeamEvent, TeamTafelMitZeilen } from "../lib/api";
 import { ChevronIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
+import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
 import { tafelKurz } from "../lib/teamKennzahlen";
@@ -56,25 +57,44 @@ function Countdown({ ev, lang, t }: { ev: TeamEvent; lang: string; t: (k: string
   );
 }
 
+/** Oeffentliche Event-Adresse zum Teilen (Jan, 01.11.2026) — nur bei oeffentlichem, freigegebenem Team; Gaeste sehen
+ *  dort die Bestenlisten in Gastform. */
+function EventTeilen({ url, titel, t }: { url: string; titel: string; t: (k: string) => string }) {
+  const [kopiert, setKopiert] = useState(false);
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <span className="text-sm text-slate-400">{t("team.event.teilen")}</span>
+      <input readOnly value={url} onFocus={(e) => e.currentTarget.select()}
+        className="min-w-[14rem] flex-1 rounded-lg bg-slate-950 px-3 py-1.5 font-mono text-sm text-slate-100" />
+      <button className="team-knopf rounded-xl px-3 py-1.5 text-sm font-semibold"
+        onClick={() => navigator.clipboard?.writeText(url).then(() => { setKopiert(true); setTimeout(() => setKopiert(false), 2000); }).catch(() => {})}>
+        {kopiert ? t("team.kopiert") : t("team.kopieren")}
+      </button>
+      {typeof navigator.share === "function" && (
+        <button className="rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
+          onClick={() => navigator.share({ url, title: titel }).catch(() => {})}>{t("team.teilen")}</button>
+      )}
+    </div>
+  );
+}
+
 export default function TeamEventSeite() {
   const { slug = "", id = "" } = useParams();
   const { t, lang } = useI18n();
   const gast = !getToken();
-  const [team, setTeam] = useState<(TeamAuftritt & { id: number }) | null>(null);
+  const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean }) | null>(null);
   const [ev, setEv] = useState<TeamEvent | null>(null);
   const [fehlt, setFehlt] = useState(false);
   const [bild, setBild] = useState<TeamTafelMitZeilen | null>(null);
 
   useEffect(() => {
-    const finden = (l: TeamEvent[] | undefined) => {
-      const e = (l ?? []).find((x) => String(x.id) === id);
-      if (e) setEv(e); else setFehlt(true);
-    };
+    // Direkt das eine Event (01.11.2026) — auch aeltere, die in keiner Liste mehr stehen; Gaeste ueber den
+    // oeffentlichen Weg (nur oeffentliche, freigegebene Teams).
     if (gast) {
-      api.teamOeffentlich(slug, "30d").then((d) => { setTeam(d); finden(d.events); }).catch(() => setFehlt(true));
+      api.teamEventOeffentlich(slug, id).then((d) => { setTeam(d.team); setEv(d.event); }).catch(() => setFehlt(true));
     } else {
       api.team(slug).then(setTeam).catch(() => setFehlt(true));
-      api.teamEvents(slug).then(finden).catch(() => setFehlt(true));
+      api.teamEvent(slug, id).then(setEv).catch(() => setFehlt(true));
     }
   }, [slug, id, gast]);
 
@@ -88,6 +108,7 @@ export default function TeamEventSeite() {
         <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
         {team.name}
       </Link>
+      {ev.banner_url && <TeamBanner url={ev.banner_url} fokus={ev.banner_fokus} className="mb-4" />}
       <div className="team-rand mb-4 border-b-2 pb-4">
         <div className="mb-1 flex flex-wrap items-center gap-2">
           <h2 className={`team-akzent text-2xl font-bold leading-tight ${ev.status === "laeuft" ? "animate-pulse" : ""}`}>{ev.titel}</h2>
@@ -106,6 +127,7 @@ export default function TeamEventSeite() {
           <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</p>
         )}
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm text-slate-300">{ev.beschreibung}</p>}
+        {team.bestenlisten_oeffentlich && <EventTeilen url={`${window.location.origin}/teams/${team.slug}/events/${ev.id}`} titel={ev.titel} t={t} />}
       </div>
 
       <h3 className="mb-2 text-lg font-bold text-slate-100">{t(eventStandKey(ev.status))}</h3>

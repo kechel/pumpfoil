@@ -385,6 +385,64 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
     return T.event_out(db, t, e)
 
 
+@router.get("/{slug}/events/{event_id}")
+def event_einzeln(slug: str, event_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Ein Event direkt (Event-Seite), unabhaengig davon, wie weit es in der Liste zurueckliegt."""
+    t, m = _team_fuer(db, slug, user)
+    _darf_tafeln(t, m)
+    e = _event(db, t, event_id)
+    if T.event_einfrieren(db, e):
+        db.commit()
+    return T.event_out(db, t, e)
+
+
+class FokusIn(BaseModel):
+    fokus: str = Field(pattern=r"^\d{1,3},\d{1,3}$")
+
+
+@router.post("/{slug}/events/{event_id}/banner")
+async def event_banner(slug: str, event_id: int, file: UploadFile = File(...), user: models.User = Depends(current_user),
+                       db: Session = Depends(get_db)) -> dict:
+    """Eventbild, gleiche Regeln wie das Teambild (01.11.2026). Leitung und Moderatoren."""
+    from ..media import MAX_UPLOAD_BYTES, ImageError, delete_media, save_image
+    t, _m = _verwalter(db, slug, user)
+    e = _event(db, t, event_id)
+    raw = await file.read(MAX_UPLOAD_BYTES + 1)
+    try:
+        url = save_image(raw, subdir="teams", max_dim=1600, min_breite=800, min_verhaeltnis=1.5)
+    except ImageError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    alt, e.banner_url, e.banner_fokus = e.banner_url, url, "50,50"
+    db.commit()
+    if alt:
+        delete_media(alt)
+    return {"banner_url": url, "banner_fokus": e.banner_fokus}
+
+
+@router.put("/{slug}/events/{event_id}/banner")
+def event_banner_fokus(slug: str, event_id: int, body: FokusIn, user: models.User = Depends(current_user),
+                       db: Session = Depends(get_db)) -> dict:
+    t, _m = _verwalter(db, slug, user)
+    e = _event(db, t, event_id)
+    x, y = (min(100, int(v)) for v in body.fokus.split(","))
+    e.banner_fokus = f"{x},{y}"
+    db.commit()
+    return {"banner_fokus": e.banner_fokus}
+
+
+@router.delete("/{slug}/events/{event_id}/banner")
+def event_banner_entfernen(slug: str, event_id: int, user: models.User = Depends(current_user),
+                           db: Session = Depends(get_db)) -> dict:
+    from ..media import delete_media
+    t, _m = _verwalter(db, slug, user)
+    e = _event(db, t, event_id)
+    alt, e.banner_url = e.banner_url, None
+    db.commit()
+    if alt:
+        delete_media(alt)
+    return {"banner_url": None}
+
+
 @router.put("/{slug}/events/{event_id}")
 def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
@@ -692,6 +750,20 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", db: Session 
                        for tf in T.tafeln(db, t.id)],
             # Events sind Bestenlisten mit Zeitfenster -> in derselben Gastform (ohne Spots).
             "events": [T.event_out(db, t, e, gast=True) for e in T.events_liste(db, t.id, beendete=10)]}
+
+
+@public_router.get("/{slug}/events/{event_id}")
+def oeffentliches_event(slug: str, event_id: int, response: Response, db: Session = Depends(get_db),
+                        _rl: None = Depends(rate_limit(120, 900, "team-oeffentlich"))) -> dict:
+    """Ein Event ohne Login (Teilen-Link, 01.11.2026): nur bei oeffentlichem, freigegebenem Team, in Gastform."""
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    t, _um = T.finde(db, slug)
+    if t is None or not T.bestenlisten_oeffentlich(t):
+        raise _404()
+    e = _event(db, t, event_id)
+    if T.event_einfrieren(db, e):
+        db.commit()
+    return {"team": {**_kurz(t, False, db), "bestenlisten_oeffentlich": True}, "event": T.event_out(db, t, e, gast=True)}
 
 
 # ---------------------------------------------------------------------------------- Admin ----

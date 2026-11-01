@@ -2087,6 +2087,15 @@ export const api = {
     req<TeamStatistik>(`/api/teams/${encodeURIComponent(slug)}/statistik?period=${period}`),
   teamLogbuch: (slug: string) => req<TeamLogbuchEintrag[]>(`/api/teams/${encodeURIComponent(slug)}/logbuch`),
   teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events`),
+  teamEvent: (slug: string, id: number | string) => req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`),
+  teamEventOeffentlich: (slug: string, id: number | string) =>
+    req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}`),
+  teamEventBanner: async (slug: string, id: number, file: File) =>
+    uploadFile<{ banner_url: string; banner_fokus: string }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/banner`, file),
+  teamEventBannerFokus: (slug: string, id: number, fokus: string) =>
+    req<{ banner_fokus: string }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/banner`, { method: "PUT", body: JSON.stringify({ fokus }) }),
+  teamEventBannerEntfernen: (slug: string, id: number) =>
+    req<{ banner_url: null }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/banner`, { method: "DELETE" }),
   teamEventAnlegen: (slug: string, body: TeamEventIn) =>
     req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events`, { method: "POST", body: JSON.stringify(body) }),
   teamEventAendern: (slug: string, id: number, body: TeamEventIn) =>
@@ -2181,6 +2190,8 @@ export interface TeamEvent {
   vorlage: string | null; status: "kommend" | "laeuft" | "auswertung" | "beendet";
   spots: { id: number; name: string | null }[]; spot_ids: number[]; einfrieren_am: string;
   tafeln: TeamTafelMitZeilen[];
+  /** nur fuer Angemeldete; Gaeste bekommen null (Eventbild laeuft durch keine Freigabe) */
+  banner_url?: string | null; banner_fokus?: string | null;
 }
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;

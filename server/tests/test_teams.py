@@ -502,3 +502,27 @@ def test_teambild_pruefung_freigabe_und_entfernen(client):
     # Entfernen wirkt sofort auch aussen.
     client.delete(f"/api/teams/{slug}/banner", headers=ka)
     assert client.get(f"/api/public/teams/{slug}").json()["banner_url"] is None
+
+
+def test_eventbild_einzeln_und_oeffentlich(client):
+    from datetime import datetime, timedelta, timezone
+    (_, ka), (_, kb) = _konto(client, "te-a-bn@t.de"), _konto(client, "te-b-bn@t.de")
+    adm = _admin(client, "te-adm-bn@t.de")
+    slug = _team(client, ka, "Eventbildteam")
+    jetzt = datetime.now(timezone.utc)
+    ev = client.post(f"/api/teams/{slug}/events", headers=ka, json={
+        "titel": "Bild-Event", "start": (jetzt + timedelta(days=1)).isoformat(), "ende": (jetzt + timedelta(days=2)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "sportart": "pumpfoil"}]}).json()
+    r = client.post(f"/api/teams/{slug}/events/{ev['id']}/banner", headers=ka, files={"file": ("b.png", _png(1600, 500), "image/png")})
+    assert r.status_code == 200 and r.json()["banner_url"]
+    assert client.put(f"/api/teams/{slug}/events/{ev['id']}/banner", headers=ka, json={"fokus": "20,80"}).json()["banner_fokus"] == "20,80"
+    assert client.get(f"/api/teams/{slug}/events/{ev['id']}", headers=ka).json()["banner_url"] == r.json()["banner_url"]
+    # Ohne oeffentliches, freigegebenes Team: kein oeffentliches Event.
+    assert client.get(f"/api/public/teams/{slug}/events/{ev['id']}").status_code == 404
+    client.put(f"/api/teams/{slug}", headers=ka, json={"oeffentlich": True})
+    client.post(f"/api/teams/{slug}/freigabe", headers=ka)
+    tid = next(x["id"] for x in client.get("/api/admin/teams", headers=adm).json() if x["neu"]["slug"] == slug)
+    client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
+    pub = client.get(f"/api/public/teams/{slug}/events/{ev['id']}").json()
+    assert pub["event"]["titel"] == "Bild-Event" and pub["event"]["banner_url"] is None   # Gaeste ohne Eventbild
+    assert client.delete(f"/api/teams/{slug}/events/{ev['id']}/banner", headers=ka).json()["banner_url"] is None
