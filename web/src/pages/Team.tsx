@@ -136,6 +136,26 @@ function VergangeneEvents({ events, slug, lang, t }: {
   );
 }
 
+/** Countdown in einer Zeile fuer die Event-Kachel (Jan, 01.11.2026): „Startet in 5 T 12:03:45“ bzw. „Endet in …“.
+ *  Tage ueber Intl (narrow) — kurz und in jeder Sprache richtig, ohne eigene Pluralformen. */
+function KachelUhr({ ziel, text, lang }: { ziel: string; text: string; lang: string }) {
+  const [jetzt, setJetzt] = useState(Date.now());
+  useEffect(() => { const h = setInterval(() => setJetzt(Date.now()), 1000); return () => clearInterval(h); }, []);
+  const rest = Math.max(0, Math.floor((new Date(ziel).getTime() - jetzt) / 1000));
+  const d = Math.floor(rest / 86400);
+  const zz = (n: number) => String(n).padStart(2, "0");
+  let tage = "";
+  if (d > 0) {
+    try { tage = new Intl.NumberFormat(lang, { style: "unit", unit: "day", unitDisplay: "narrow" }).format(d) + " "; }
+    catch { tage = `${d}d `; }
+  }
+  return (
+    <span className="team-akzent font-semibold tabular-nums">
+      {text} {tage}{zz(Math.floor(rest / 3600) % 24)}:{zz(Math.floor(rest / 60) % 60)}:{zz(rest % 60)}
+    </span>
+  );
+}
+
 /** Sportarten eines Events: die seiner Bestenlisten, ohne Bestenliste die der Gesamtsummen. */
 function eventSportarten(e: TeamEvent): string[] {
   const aus = e.tafeln.length ? e.tafeln.map((tf) => tf.sportart) : [e.summen_sportart ?? "pumpfoil"];
@@ -394,7 +414,12 @@ export default function Team() {
                 {/* Link rechts unten auf Hoehe der letzten Zeile, keine eigene Zeile (Jan, 01.11.2026). */}
                 <div className="flex items-end gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
+                    <p className="text-sm text-slate-400">
+                      {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
+                      {(e.status === "kommend" || e.status === "laeuft") && (
+                        <> · <KachelUhr ziel={e.status === "kommend" ? e.start : e.ende} text={t(e.status === "kommend" ? "team.event.startIn" : "team.event.endetIn")} lang={lang} /></>
+                      )}
+                    </p>
                     {/* Nur die erste Zeile der Beschreibung, hoechstens zwei Zeilen hoch (Jan, 01.11.2026): so steuert die Leitung
                         mit dem ersten Umbruch, was in der Kachel steht. */}
                     {e.beschreibung?.trim() && (
