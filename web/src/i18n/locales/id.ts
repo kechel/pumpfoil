@@ -1523,6 +1523,9 @@ const id: Record<string, string> = {
   "foilStats.colTopSpeed": "Kecepatan tertinggi",
   "foilStats.colBestDist": "Run terjauh",
   "foilStats.colAvgPump": "Ø pump",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: kecepatan paling lambat (rata-rata 10 dtk) yang masih bisa dipulihkan rider dengan foil ini — akhir run tidak dihitung. Ditampilkan nilai di bawahnya 10 % run berada, dikonversi ke 75 kg. Hanya sesi dengan berat rider; nilai muncul mulai 3 rider dan 20 run.",
+  "foilStats.lowEndWenig": "Data terlalu sedikit: {fahrer} rider, {laeufe} run dengan berat (perlu 3 rider dan 20 run).",
 
   "land.f7Title": "Basis data foil & statistik",
   "land.f7Body": "Pilih foil-mu per sesi dan bandingkan apa yang dicapai komunitas di perangkat mana.",
@@ -2653,6 +2656,8 @@ const id: Record<string, string> = {
   "team.event.ergebnis": "Hasil",
   "team.event.nochNichts": "Papan peringkat muncul begitu event berlangsung.",
   "team.event.startIn": "Mulai dalam",
+  "team.event.regelnTitel": "Aturan event",
+  "team.event.endetIn": "Berakhir dalam",
   "team.event.tage": "hari",
   "team.event.stunden": "jam",
   "team.event.minuten": "mnt",

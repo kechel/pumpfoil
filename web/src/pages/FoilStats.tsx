@@ -48,7 +48,9 @@ export default function FoilStats() {
           <WatchIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
         </Link>
       </div>
-      <p className="mb-4 text-sm text-slate-300">{t("foilStats.hint")} {t("foilStats.clickHint")}</p>
+      <p className="mb-2 text-sm text-slate-300">{t("foilStats.hint")} {t("foilStats.clickHint")}</p>
+      {/* Low End (01.11.2026, Feedback foiling_fabs): was die Spalte misst, steht hier — nicht nur im Tooltip. */}
+      <p className="mb-4 text-sm text-slate-400">{t("foilStats.lowEndHint")}</p>
 
       {!rows ? (
         <Spinner />
@@ -58,7 +60,7 @@ export default function FoilStats() {
         </Card>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-slate-800">
-          <table className="w-full min-w-[720px] border-collapse text-sm">
+          <table className="w-full min-w-[800px] border-collapse text-sm">
             <thead>
               <tr className="bg-slate-900/70 text-left text-slate-300">
                 <SortHead label={t("foilStats.colFoil")} sortKey="foil" sort={sort} align="left" defaultDir="asc" />
@@ -69,6 +71,7 @@ export default function FoilStats() {
                 <SortHead label={t("foilStats.colBestDist")} sortKey="best_distance_m" sort={sort} />
                 <SortHead label={t("rec.longestRun")} sortKey="best_duration_s" sort={sort} />
                 <SortHead label={t("foilStats.colAvgPump")} sortKey="avg_pump_hz" sort={sort} />
+                <SortHead label={t("foilStats.colLowEnd")} sortKey="low_end_kmh" sort={sort} />
               </tr>
             </thead>
             <tbody>
@@ -94,6 +97,11 @@ export default function FoilStats() {
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_duration_s != null ? fmtDur(r.best_duration_s) : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{pf.fmt(r.avg_pump_hz)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">
+                    {r.low_end_kmh != null ? `${r.low_end_kmh.toFixed(1)} km/h` : (
+                      <span className="cursor-help text-slate-400" title={t("foilStats.lowEndWenig", { fahrer: String(r.low_end_fahrer), laeufe: String(r.low_end_laeufe) })}>–</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

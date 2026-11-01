@@ -522,6 +522,7 @@ def _brett_regeln_schreiben(db: DbSession, session, result, sens: str) -> None:
         return
     segs = erg["segments"]
     result.segments_json = json.dumps(segs)
+    result.low_end_json = None   # Laeufe koennen sich geaendert haben -> Low End neu rechnen lassen
     result.foiling_time_s = erg["foiling_time_s"]
     if result.pump_count is not None:
         result.pump_count = erg["pump_count"]
@@ -1090,6 +1091,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         result.start_attempts_json = json.dumps([])
     # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
     result.carve_s = result.carve_m = result.carve_l = None
+    result.low_end_json = None   # Low End ebenso (analysis/lowend.py, die Foil-Stats rechnen nach)
     # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).
     result.hr_by_min_json = None
     # Preset-Cache: die kanonischen Spalten oben sind MIT dem Preset des Besitzers gerechnet (es

@@ -1479,7 +1479,7 @@ export const api = {
   layoutCopy: (id: number) => req<WatchLayout>(`/api/layouts/${id}/copy`, { method: "POST" }),
   layoutDelete: (id: number) => req<void>(`/api/layouts/${id}`, { method: "DELETE" }),
   // nurBrett: nur Aufnahmen mit dem Handy am Brett (genauer als die Uhr am Handgelenk).
-  foilStats: (nurBrett = false) => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null }[]>(`/api/community/foil-stats${nurBrett ? "?only_board=1" : ""}`),
+  foilStats: (nurBrett = false) => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null; low_end_kmh: number | null; low_end_laeufe: number; low_end_fahrer: number }[]>(`/api/community/foil-stats${nurBrett ? "?only_board=1" : ""}`),
   // Die laengsten eigenen Laeufe ueber alle Sessions (Seite /laeufe, vorerst nur Admins).
   longestRuns: (n = 5, nurBrett = false) => req<{ session_id: number; run_idx: number; started_at: string | null; tz: string | null;
     spot: string | null; placement: string | null; duration_s: number | null; distance_m: number | null;

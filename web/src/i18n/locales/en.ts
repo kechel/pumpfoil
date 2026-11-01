@@ -1770,6 +1770,9 @@ const en: Record<string, string> = {
   "foilStats.colTopSpeed": "Top speed",
   "foilStats.colBestDist": "Farthest run",
   "foilStats.colAvgPump": "Ø pump",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: the slowest speed (10-s average) riders on this foil recovered from — the end of a run doesn't count. Shown is the value 10% of runs fall below, scaled to 75 kg. Only sessions with a rider weight entered; a value appears from 3 riders and 20 runs.",
+  "foilStats.lowEndWenig": "Not enough data: {fahrer} riders, {laeufe} runs with a weight entered (3 riders and 20 runs needed).",
 
   "land.f7Title": "Foil database & stats",
   "land.f7Body": "Pick your foil per session and compare what the community achieves on which gear.",
@@ -2753,6 +2756,8 @@ const en: Record<string, string> = {
   "team.event.ergebnis": "Results",
   "team.event.nochNichts": "The leaderboards appear once the event is running.",
   "team.event.startIn": "Starts in",
+  "team.event.regelnTitel": "Event rules",
+  "team.event.endetIn": "Ends in",
   "team.event.tage": "days",
   "team.event.stunden": "hrs",
   "team.event.minuten": "min",

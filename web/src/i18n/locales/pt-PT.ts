@@ -1521,6 +1521,9 @@ const ptPT: Record<string, string> = {
   "foilStats.colTopSpeed": "Vel. máxima",
   "foilStats.colBestDist": "Volta mais longa",
   "foilStats.colAvgPump": "Ø pump",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: a velocidade mais baixa (média de 10 s) da qual os riders recuperaram com este foil — o fim de uma volta não conta. Mostra o valor abaixo do qual ficam 10 % das voltas, convertido para 75 kg. Só sessões com peso indicado; um valor aparece a partir de 3 riders e 20 voltas.",
+  "foilStats.lowEndWenig": "Poucos dados: {fahrer} riders, {laeufe} voltas com peso (são precisos 3 riders e 20 voltas).",
 
   "land.f7Title": "Banco de dados e estatísticas de foil",
   "land.f7Body": "Escolhe o teu foil por sessão e compara o que a comunidade alcança com que equipamento.",
@@ -2647,6 +2650,8 @@ const ptPT: Record<string, string> = {
   "team.event.ergebnis": "Resultado",
   "team.event.nochNichts": "As classificações aparecem assim que o evento começar.",
   "team.event.startIn": "Começa daqui a",
+  "team.event.regelnTitel": "Regras do evento",
+  "team.event.endetIn": "Termina daqui a",
   "team.event.tage": "dias",
   "team.event.stunden": "h",
   "team.event.minuten": "min",

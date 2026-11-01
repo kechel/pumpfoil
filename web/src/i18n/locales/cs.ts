@@ -1651,6 +1651,9 @@ const cs: Record<string, string> = {
   "foilStats.colTopSpeed": "Nejvyšší rychlost",
   "foilStats.colBestDist": "Nejdelší jízda",
   "foilStats.colAvgPump": "Ø pumpnutí",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: nejnižší rychlost (průměr za 10 s), ze které se jezdci s tímto foilem dokázali vzpamatovat — konec jízdy se nepočítá. Uvedena je hodnota, pod kterou leží 10 % jízd, přepočtená na 75 kg. Jen sessions se zadanou hmotností; hodnota se objeví od 3 jezdců a 20 jízd.",
+  "foilStats.lowEndWenig": "Málo dat: {fahrer} jezdců, {laeufe} jízd se zadanou hmotností (potřeba 3 jezdci a 20 jízd).",
 
   "land.f7Title": "Databáze foilů a statistiky",
   "land.f7Body": "Vyber svůj foil u každé vyjížďky a porovnej, které hodnoty komunita s kterým materiálem jezdí.",
@@ -2706,6 +2709,8 @@ const cs: Record<string, string> = {
   "team.event.ergebnis": "Výsledky",
   "team.event.nochNichts": "Žebříčky se objeví, jakmile akce začne.",
   "team.event.startIn": "Začíná za",
+  "team.event.regelnTitel": "Pravidla akce",
+  "team.event.endetIn": "Končí za",
   "team.event.tage": "dní",
   "team.event.stunden": "hod.",
   "team.event.minuten": "min",

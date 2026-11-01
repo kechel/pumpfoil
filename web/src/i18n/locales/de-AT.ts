@@ -1118,6 +1118,9 @@ const deAT: Record<string, string> = {
   "foilStats.colTopSpeed": "Top-Speed",
   "foilStats.colBestDist": "Weitester Lauf",
   "foilStats.colAvgPump": "Ø Pump",
+  "foilStats.colLowEnd": "Low End",
+  "foilStats.lowEndHint": "Low End: das langsamste Tempo (10-s-Mittel), aus dem Fahrer mit diesem Foil wieder rausgekommen sind — das Ende eines Laufs zählt nicht. Angegeben ist der Wert, unter dem 10 % der Läufe liegen, umgerechnet auf 75 kg. Nur Sessions mit eingetragenem Fahrergewicht; ein Wert erscheint ab 3 Fahrern und 20 Läufen.",
+  "foilStats.lowEndWenig": "Zu wenig Daten: {fahrer} Fahrer, {laeufe} Läufe mit eingetragenem Gewicht (nötig sind 3 Fahrer und 20 Läufe).",
 
   "land.f7Title": "Foil-Datenbank & Stats",
   "land.f7Body": "Wähl dei Foil je Session und vergleich, wöche Werte d Community mit wöchem Material fahrt.",
@@ -2544,6 +2547,8 @@ const deAT: Record<string, string> = {
   "team.event.ergebnis": "Ergebnis",
   "team.event.nochNichts": "Die Bestenlisten tauchen auf, sobald das Event läuft.",
   "team.event.startIn": "Startet in",
+  "team.event.regelnTitel": "Event-Regeln",
+  "team.event.endetIn": "Endet in",
   "team.event.tage": "Tage",
   "team.event.stunden": "Std.",
   "team.event.minuten": "Min.",

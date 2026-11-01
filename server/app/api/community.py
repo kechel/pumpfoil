@@ -1769,6 +1769,60 @@ def _pumpt_gerade(db: Session) -> int:
         return 0
 
 
+# Low End je Foil (01.11.2026, Feedback foiling_fabs): unteres 10-%-Quantil der Lauf-Low-Ends (analysis/lowend.py),
+# auf 75 kg umgerechnet (noetiges Tempo ~ Wurzel aus dem Gewicht bei gleicher Flaeche). NUR Sessions mit eingetragenem
+# Fahrergewicht (Jan: „nur da wo ein gewicht eingetragen ist, die anderen ignorieren wir"). Erst ab LOW_END_MIN_FAHRER
+# Fahrern und LOW_END_MIN_LAEUFE Laeufen, sonst bleibt die Spalte leer (mit Hinweis), damit ein Einzelner nicht das
+# Foil bestimmt. Die Lauf-Werte sind in analysis_results.low_end_json gecacht; fehlende werden hier nachgerechnet,
+# hoechstens LOW_END_JE_ABRUF je Aufruf, damit der erste Abruf nach einer Neuanalyse nicht haengt.
+LOW_END_MIN_FAHRER = 3
+LOW_END_MIN_LAEUFE = 20
+LOW_END_JE_ABRUF = 300
+LOW_END_BEZUG_KG = 75.0
+_low_end_cache: dict = {}
+
+
+def _low_end_je_foil(db: Session, viewer_id: int, only_board: bool) -> dict[int, dict]:
+    import math
+    import time as _time
+    import numpy as np
+    from ..analysis.lowend import aus_ergebnis
+    hit = _low_end_cache.get(only_board)
+    if hit and _time.monotonic() - hit[0] < 600:
+        return hit[1]
+    q = (_community(db.query(S.foil_id, S.user_id, S.rider_weight_kg, AR.id, AR.low_end_json), viewer_id,
+                    accel_only=not only_board)
+         .filter(S.foil_id.isnot(None), S.rider_weight_kg.between(30, 200))
+         .filter(S.placement == "board" if only_board else true()))
+    rows = q.all()
+    fehlt = [r[3] for r in rows if r[4] is None][:LOW_END_JE_ABRUF]
+    neu: dict[int, str] = {}
+    for ar_id in fehlt:
+        segs, track = db.query(AR.segments_json, AR.track_geojson).filter(AR.id == ar_id).one()
+        neu[ar_id] = json.dumps(aus_ergebnis(segs, track))
+        db.query(AR).filter(AR.id == ar_id).update({AR.low_end_json: neu[ar_id]}, synchronize_session=False)
+    if neu:
+        db.commit()
+    werte: dict[int, list[float]] = {}
+    fahrer: dict[int, set] = {}
+    for fid, uid, kg, ar_id, lj in rows:
+        lj = neu.get(ar_id, lj)
+        if lj is None:
+            continue
+        for v in json.loads(lj):
+            werte.setdefault(fid, []).append(v * math.sqrt(LOW_END_BEZUG_KG / kg) * 3.6)
+            fahrer.setdefault(fid, set()).add(uid)
+    out = {}
+    for fid, vs in werte.items():
+        genug = len(fahrer[fid]) >= LOW_END_MIN_FAHRER and len(vs) >= LOW_END_MIN_LAEUFE
+        vs.sort()
+        out[fid] = {"low_end_kmh": round(float(np.percentile(vs, 10)), 1) if genug else None,
+                    "low_end_laeufe": len(vs), "low_end_fahrer": len(fahrer[fid])}
+    if not fehlt or len(fehlt) < LOW_END_JE_ABRUF:   # nur vollstaendige Rechnungen cachen
+        _low_end_cache[only_board] = (_time.monotonic(), out)
+    return out
+
+
 @router.get("/foil-stats")
 def foil_stats(only_board: bool = False, _user: models.User = Depends(current_user),
                db: Session = Depends(get_db)) -> list[dict]:
@@ -1800,6 +1854,7 @@ def foil_stats(only_board: bool = False, _user: models.User = Depends(current_us
     if not rows:
         return []
     fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_([r[0] for r in rows])).all()}
+    low_end = _low_end_je_foil(db, _user.id, only_board)
     out = []
     for fid, n_sess, n_users, sum_dist, sum_time, sum_pumps, best_dist, best_dur, avg_hz in rows:
         f = fmap.get(fid)
@@ -1820,6 +1875,7 @@ def foil_stats(only_board: bool = False, _user: models.User = Depends(current_us
             # best_distance_m, angeregt von einem Nutzer (30.08.): "best time and distance per foil".
             "best_duration_s": round(float(best_dur)) if best_dur else None,
             "avg_pump_hz": round(float(avg_hz), 2) if avg_hz else None,
+            **low_end.get(fid, {"low_end_kmh": None, "low_end_laeufe": 0, "low_end_fahrer": 0}),
         })
     out.sort(key=lambda x: x["sessions"], reverse=True)
     return out

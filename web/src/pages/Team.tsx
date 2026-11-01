@@ -432,7 +432,8 @@ export default function Team() {
       {gast && (
         <p className="mt-6 text-sm text-slate-400">{t("team.gastHinweis")}</p>
       )}
-      <div className="mt-6"><RegelnLink /></div>
+      {/* Gaeste brauchen die ganze Regelseite nicht (Jan, 01.11.2026); die Event-Seite hat ihre eigene Regel-Box. */}
+      {!gast && <div className="mt-6"><RegelnLink /></div>}
 
       {bild && (
         <TeamTafelBild team={kopf} tafel={bild.tf} onClose={() => setBild(null)} zeitraum={bild.zeile} />

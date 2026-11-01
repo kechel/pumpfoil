@@ -1651,6 +1651,9 @@ const nl: Record<string, string> = {
   "foilStats.colTopSpeed": "Topsnelheid",
   "foilStats.colBestDist": "Verste run",
   "foilStats.colAvgPump": "Ø pomp",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: de laagste snelheid (10-s-gemiddelde) waarvan riders met dit foil herstelden — het einde van een run telt niet. Getoond wordt de waarde waar 10 % van de runs onder ligt, omgerekend naar 75 kg. Alleen sessies met een ingevuld gewicht; een waarde verschijnt vanaf 3 riders en 20 runs.",
+  "foilStats.lowEndWenig": "Te weinig gegevens: {fahrer} riders, {laeufe} runs met gewicht (nodig: 3 riders en 20 runs).",
 
   "land.f7Title": "Foil-database & stats",
   "land.f7Body": "Kies je foil per sessie en vergelijk welke waarden de community met welk materiaal rijdt.",
@@ -2707,6 +2710,8 @@ const nl: Record<string, string> = {
   "team.event.ergebnis": "Uitslag",
   "team.event.nochNichts": "De ranglijsten verschijnen zodra het event loopt.",
   "team.event.startIn": "Begint over",
+  "team.event.regelnTitel": "Eventregels",
+  "team.event.endetIn": "Eindigt over",
   "team.event.tage": "dagen",
   "team.event.stunden": "uur",
   "team.event.minuten": "min",

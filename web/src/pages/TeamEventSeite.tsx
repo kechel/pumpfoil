@@ -20,26 +20,33 @@ export function eventStandKey(status: TeamEvent["status"]): string {
 }
 
 /** Vor dem Start (Jan, 01.11.2026): Countdown, gross das genaue Zeitfenster und bis wann Uploads zaehlen. */
-function Countdown({ ev, lang, t }: { ev: TeamEvent; lang: string; t: (k: string, p?: Record<string, string>) => string }) {
+/** Tage/Std./Min./Sek. bis `ziel`, sekundengenau. `klein` fuer die Zeile ueber den Bestenlisten eines laufenden Events. */
+function Uhr({ ziel, klein = false, t }: { ziel: string; klein?: boolean; t: (k: string) => string }) {
   const [jetzt, setJetzt] = useState(Date.now());
   useEffect(() => { const h = setInterval(() => setJetzt(Date.now()), 1000); return () => clearInterval(h); }, []);
-  const rest = Math.max(0, Math.floor((new Date(ev.start).getTime() - jetzt) / 1000));
+  const rest = Math.max(0, Math.floor((new Date(ziel).getTime() - jetzt) / 1000));
   const teile: [number, string][] = [
     [Math.floor(rest / 86400), "team.event.tage"], [Math.floor(rest / 3600) % 24, "team.event.stunden"],
     [Math.floor(rest / 60) % 60, "team.event.minuten"], [rest % 60, "team.event.sekunden"],
   ];
+  return (
+    <div className={`flex justify-center ${klein ? "gap-2" : "mb-5 gap-3"}`}>
+      {teile.map(([n, k]) => (
+        <div key={k} className={`rounded-xl border border-slate-800 bg-slate-900/60 ${klein ? "min-w-[3.5rem] px-2 py-1" : "min-w-[4.5rem] px-3 py-2"}`}>
+          <div className={`team-akzent font-bold tabular-nums ${klein ? "text-xl" : "text-3xl sm:text-4xl"}`}>{String(n).padStart(k === "team.event.tage" ? 1 : 2, "0")}</div>
+          <div className="text-xs text-slate-400">{t(k)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Countdown({ ev, lang, t }: { ev: TeamEvent; lang: string; t: (k: string, p?: Record<string, string>) => string }) {
   const [von, bis] = eventZeitraumGenau(ev.start, ev.ende, ev.zeitzone, lang);
   return (
     <div className="team-rand rounded-2xl border-2 p-5 text-center">
       <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("team.event.startIn")}</p>
-      <div className="mb-5 flex justify-center gap-3">
-        {teile.map(([n, k]) => (
-          <div key={k} className="min-w-[4.5rem] rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
-            <div className="team-akzent text-3xl font-bold tabular-nums sm:text-4xl">{String(n).padStart(k === "team.event.tage" ? 1 : 2, "0")}</div>
-            <div className="text-xs text-slate-400">{t(k)}</div>
-          </div>
-        ))}
-      </div>
+      <Uhr ziel={ev.start} t={t} />
       <p className="text-xl font-bold text-slate-100 sm:text-2xl">{von}</p>
       <p className="text-sm text-slate-400">–</p>
       <p className="mb-4 text-xl font-bold text-slate-100 sm:text-2xl">{bis}</p>
@@ -105,12 +112,29 @@ export default function TeamEventSeite() {
       {ev.status === "kommend" ? (
         <Countdown ev={ev} lang={lang} t={t} />
       ) : (
+        <>
+        {/* Waehrend das Event laeuft (Jan, 01.11.2026): wie lange noch. */}
+        {ev.status === "laeuft" && (
+          <div className="team-rand mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl border-2 p-3">
+            <span className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("team.event.endetIn")}</span>
+            <Uhr ziel={ev.ende} klein t={t} />
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-2">
           {ev.tafeln.map((tf, i) => (
             <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter onBild={gast ? undefined : () => setBild(tf)} />
           ))}
         </div>
+        </>
       )}
+
+      {/* Event-Regeln als kleine Box statt Link auf die ganze Regelseite (Jan, 01.11.2026): nur was fuers Event gilt. */}
+      <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+        <p className="mb-1 text-sm font-semibold text-slate-200">{t("team.event.regelnTitel")}</p>
+        <ul className="list-disc space-y-0.5 pl-5 text-xs text-slate-400">
+          {t("team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
+        </ul>
+      </div>
 
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} />}
     </div>

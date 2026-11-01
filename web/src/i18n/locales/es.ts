@@ -1256,6 +1256,9 @@ const es: Record<string, string> = {
   "foilStats.colTopSpeed": "Vel. máx",
   "foilStats.colBestDist": "Run más largo",
   "foilStats.colAvgPump": "Ø bombeo",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: la velocidad más lenta (media de 10 s) de la que los riders se recuperaron con este foil; el final de un run no cuenta. Se muestra el valor por debajo del cual queda el 10 % de los runs, escalado a 75 kg. Solo sesiones con peso del rider; aparece un valor a partir de 3 riders y 20 runs.",
+  "foilStats.lowEndWenig": "Pocos datos: {fahrer} riders, {laeufe} runs con peso (hacen falta 3 riders y 20 runs).",
 
   "land.f7Title": "Base de foils y stats",
   "land.f7Body": "Elige tu foil por sesión y compara qué valores logra la comunidad con cada material.",
@@ -2536,6 +2539,8 @@ const es: Record<string, string> = {
   "team.event.ergebnis": "Resultados",
   "team.event.nochNichts": "Las clasificaciones aparecen en cuanto empieza el evento.",
   "team.event.startIn": "Empieza en",
+  "team.event.regelnTitel": "Reglas del evento",
+  "team.event.endetIn": "Termina en",
   "team.event.tage": "días",
   "team.event.stunden": "h",
   "team.event.minuten": "min",

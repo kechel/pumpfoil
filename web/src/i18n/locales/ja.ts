@@ -1523,6 +1523,9 @@ const ja: Record<string, string> = {
   "foilStats.colTopSpeed": "最高速度",
   "foilStats.colBestDist": "最遠ラン",
   "foilStats.colAvgPump": "Ø ポンプ",
+  "foilStats.colLowEnd": "ローエンド",
+  "foilStats.lowEndHint": "ローエンド：このフォイルのライダーが持ち直せた最も遅い速度（10秒平均）。ランの終わりは含みません。ランの10%がこれを下回る値を、75kg換算で表示します。体重が入力されたセッションのみ。ライダー3人・ラン20本から値が表示されます。",
+  "foilStats.lowEndWenig": "データ不足：ライダー{fahrer}人、体重入力ありのラン{laeufe}本（ライダー3人・ラン20本が必要）。",
 
   "land.f7Title": "フォイルデータベースと統計",
   "land.f7Body": "セッションごとにフォイルを選び、どのギアでコミュニティが何を達成しているか比較しましょう。",
@@ -2649,6 +2652,8 @@ const ja: Record<string, string> = {
   "team.event.ergebnis": "結果",
   "team.event.nochNichts": "イベントが始まるとランキングが表示されます。",
   "team.event.startIn": "開始まで",
+  "team.event.regelnTitel": "イベントのルール",
+  "team.event.endetIn": "終了まで",
   "team.event.tage": "日",
   "team.event.stunden": "時間",
   "team.event.minuten": "分",

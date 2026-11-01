@@ -1172,6 +1172,9 @@ const gsw: Record<string, string> = {
   "foilStats.colTopSpeed": "Top-Speed",
   "foilStats.colBestDist": "Wiitischte Lauf",
   "foilStats.colAvgPump": "Ø Pump",
+  "foilStats.colLowEnd": "Low End",
+  "foilStats.lowEndHint": "Low End: s langsamschte Tempo (10-s-Mittel), us dem Fahrer mit dem Foil wieder usecho sind — s Änd vo me Lauf zellt nöd. Aagä isch de Wert, wo 10 % vo de Läuf drunder ligged, umgrechnet uf 75 kg. Nur Sessions mit iitreitem Fahrergwicht; en Wert gits ab 3 Fahrer und 20 Läuf.",
+  "foilStats.lowEndWenig": "Z wenig Date: {fahrer} Fahrer, {laeufe} Läuf mit iitreitem Gwicht (es bruucht 3 Fahrer und 20 Läuf).",
 
   "land.f7Title": "Foil-Datebank & Stats",
   "land.f7Body": "Wähl din Foil je Session und vergliich, weli Wärt d Community mit welem Material fahrt.",
@@ -2539,6 +2542,8 @@ const gsw: Record<string, string> = {
   "team.event.ergebnis": "Ergebnis",
   "team.event.nochNichts": "D Bestelischte chömed, sobald s Event lauft.",
   "team.event.startIn": "Startet in",
+  "team.event.regelnTitel": "Event-Regle",
+  "team.event.endetIn": "Hört uf in",
   "team.event.tage": "Täg",
   "team.event.stunden": "Std.",
   "team.event.minuten": "Min.",

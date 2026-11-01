@@ -1523,6 +1523,9 @@ const zh: Record<string, string> = {
   "foilStats.colTopSpeed": "最高速度",
   "foilStats.colBestDist": "最远航段",
   "foilStats.colAvgPump": "Ø 泵动",
+  "foilStats.colLowEnd": "低速极限",
+  "foilStats.lowEndHint": "低速极限：使用该水翼的骑手还能恢复过来的最低速度（10 秒平均），滑行结束时的减速不算。显示的是 10% 滑行低于该值的速度，按 75 kg 换算。仅统计填写了体重的记录；至少 3 位骑手、20 次滑行才显示数值。",
+  "foilStats.lowEndWenig": "数据不足：{fahrer} 位骑手，{laeufe} 次填写了体重的滑行（需要 3 位骑手和 20 次滑行）。",
 
   "land.f7Title": "水翼数据库与统计",
   "land.f7Body": "为每次记录选择你的水翼，对比社区在哪款装备上取得的成绩。",
@@ -2650,6 +2653,8 @@ const zh: Record<string, string> = {
   "team.event.ergebnis": "结果",
   "team.event.nochNichts": "活动开始后将显示排行榜。",
   "team.event.startIn": "距离开始",
+  "team.event.regelnTitel": "活动规则",
+  "team.event.endetIn": "距离结束",
   "team.event.tage": "天",
   "team.event.stunden": "小时",
   "team.event.minuten": "分",

@@ -754,6 +754,8 @@ class AnalysisResult(Base):
     carve_s: Mapped[int | None] = mapped_column(Integer)
     carve_m: Mapped[int | None] = mapped_column(Integer)
     carve_l: Mapped[int | None] = mapped_column(Integer)
+    # Low End je Lauf (m/s, JSON-Liste; analysis/lowend.py) — Cache wie carve_*: NULL = noch nicht gerechnet.
+    low_end_json: Mapped[str | None] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 

@@ -1523,6 +1523,9 @@ const ru: Record<string, string> = {
   "foilStats.colTopSpeed": "Макс. скорость",
   "foilStats.colBestDist": "Самый дальний заезд",
   "foilStats.colAvgPump": "Ø помпинг",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: самая низкая скорость (среднее за 10 с), из которой райдеры на этом фойле смогли выйти — конец заезда не считается. Показано значение, ниже которого лежат 10 % заездов, пересчитанное на 75 кг. Только сессии с указанным весом; значение появляется от 3 райдеров и 20 заездов.",
+  "foilStats.lowEndWenig": "Мало данных: {fahrer} райдеров, {laeufe} заездов с весом (нужно 3 райдера и 20 заездов).",
 
   "land.f7Title": "База фойлов и статистика",
   "land.f7Body": "Выбирайте свой фойл для каждой сессии и сравнивайте, чего добивается сообщество на каком снаряжении.",
@@ -2653,6 +2656,8 @@ const ru: Record<string, string> = {
   "team.event.ergebnis": "Итоги",
   "team.event.nochNichts": "Таблицы появятся, как только событие начнётся.",
   "team.event.startIn": "Начало через",
+  "team.event.regelnTitel": "Правила события",
+  "team.event.endetIn": "До конца",
   "team.event.tage": "дн.",
   "team.event.stunden": "ч",
   "team.event.minuten": "мин",

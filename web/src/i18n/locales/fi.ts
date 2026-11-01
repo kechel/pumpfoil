@@ -1616,6 +1616,9 @@ const fi: Record<string, string> = {
   "foilStats.colTopSpeed": "Huippunopeus",
   "foilStats.colBestDist": "Pisin lenkki",
   "foilStats.colAvgPump": "Ø pump",
+  "foilStats.colLowEnd": "Low end",
+  "foilStats.lowEndHint": "Low end: hitain vauhti (10 s:n keskiarvo), josta tämän foilin ajajat palautuivat — lenkin loppua ei lasketa. Näytetään arvo, jonka alle jää 10 % lenkeistä, muunnettuna 75 kg:aan. Vain sessiot, joihin on merkitty paino; arvo näkyy, kun ajajia on 3 ja lenkkejä 20.",
+  "foilStats.lowEndWenig": "Liian vähän tietoa: {fahrer} ajajaa, {laeufe} lenkkiä painon kanssa (tarvitaan 3 ajajaa ja 20 lenkkiä).",
 
   "land.f7Title": "Foil-tietokanta ja tilastot",
   "land.f7Body": "Valitse foilisi sessiokohtaisesti ja vertaa, mitä arvoja yhteisö millläkin materiaalilla ajaa.",
@@ -2688,6 +2691,8 @@ const fi: Record<string, string> = {
   "team.event.ergebnis": "Tulokset",
   "team.event.nochNichts": "Tulostaulukot näkyvät, kun tapahtuma on käynnissä.",
   "team.event.startIn": "Alkaa",
+  "team.event.regelnTitel": "Tapahtuman säännöt",
+  "team.event.endetIn": "Päättyy",
   "team.event.tage": "päivää",
   "team.event.stunden": "t",
   "team.event.minuten": "min",
