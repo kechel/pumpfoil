@@ -18,7 +18,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { id?: number; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { id?: number; eingefroren?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -57,7 +57,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
-    id: ev.id, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
+    id: ev.id, eingefroren: ev.status === "beendet", titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
@@ -75,11 +75,8 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               {t(`team.event.status.${ev.status}`)} · {eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}
             </span>
           </span>
-          {ev.status !== "beendet" && <button className={knopf} onClick={() => bearbeiten(ev)}>{t("team.event.bearbeiten")}</button>}
-          <button className={knopf} aria-label={t("common.delete")} onClick={() => {
-            if (window.confirm(t("team.event.loeschenFrage", { titel: ev.titel })))
-              api.teamEventLoeschen(slug, ev.id).then(laden).catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
-          }}><TrashIcon className="h-4 w-4" /></button>
+          {/* Loeschen nur im Popup (Jan, 01.11.2026); eingefrorene Events oeffnen es nur noch zum Loeschen. */}
+          <button className={knopf} onClick={() => bearbeiten(ev)}>{t("team.event.bearbeiten")}</button>
         </div>
       ))}
 
@@ -92,6 +89,12 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
         <div className="team-farbe fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" style={teamFarbStil(farbe)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-700 bg-white p-5 dark:bg-slate-900">
           <h3 className="mb-3 text-lg font-bold text-slate-100">{e.id ? t("team.event.bearbeiten") : t("team.event.neu")}</h3>
+          {e.eingefroren ? (
+            <>
+              <p className="mb-1 font-medium text-slate-100">{e.titel}</p>
+              <p className="mb-4 text-sm text-slate-400">{t("team.err.event_eingefroren")}</p>
+            </>
+          ) : (<>
           {!e.id && (
             <>
               <label className="mb-1 block text-sm text-slate-300">{t("team.event.vorlage")}</label>
@@ -159,11 +162,21 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
             </button>
           </div>
 
-          <div className="flex gap-2">
-            <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2} onClick={speichern}>
-              {e.id ? t("common.save") : t("team.event.anlegen")}
-            </button>
+          </>)}
+          <div className="flex flex-wrap gap-2">
+            {!e.eingefroren && (
+              <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2} onClick={speichern}>
+                {e.id ? t("common.save") : t("team.event.anlegen")}
+              </button>
+            )}
             <button className={knopf} onClick={() => setE(null)}>{t("common.cancel")}</button>
+            {e.id && (
+              <button className={`${knopf} ml-auto inline-flex items-center gap-1.5 text-red-700 dark:text-red-300`} onClick={() => {
+                if (!e.id || !window.confirm(t("team.event.loeschenFrage", { titel: e.titel }))) return;
+                api.teamEventLoeschen(slug, e.id).then(() => { setE(null); laden(); })
+                  .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
+              }}><TrashIcon className="h-4 w-4" /> {t("common.delete")}</button>
+            )}
           </div>
         </div>
         </div>,
