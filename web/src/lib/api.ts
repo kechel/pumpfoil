@@ -694,6 +694,7 @@ export interface LeaderRow {
   time_s?: number;
   run_distance_m?: number;   // bester einzelner Lauf
   run_time_s?: number;
+  session_id?: number | null;   // nur bei Einzellauf-Listen: die Session des besten Laufs
 }
 export interface Leaders {
   sessions: LeaderRow[];

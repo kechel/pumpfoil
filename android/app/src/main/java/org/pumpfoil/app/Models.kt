@@ -495,6 +495,8 @@ data class LeaderEntry(
     @SerialName("distance_m") val distanceM: Double = 0.0, @SerialName("time_s") val timeS: Double = 0.0,
     // bester einzelner Lauf (Server additiv seit 01.11.2026)
     @SerialName("run_distance_m") val runDistanceM: Double = 0.0, @SerialName("run_time_s") val runTimeS: Double = 0.0,
+    // nur bei Einzellauf-Listen: Session des besten Laufs (Tippen oeffnet sie)
+    @SerialName("session_id") val sessionId: Int? = null,
 )
 
 @Serializable

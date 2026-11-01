@@ -364,7 +364,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                                 "spots" -> I18n.t("unit.spots"); "distance", "run_distance" -> "km"
                                                 "time" -> if (e.timeS >= 3600) "h" else "min"; "run_time" -> if (e.runTimeS >= 3600) "h" else "min"
                                                 else -> I18n.t("unit.sessions") }
-                                            Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            // Einzellauf-Listen: Tippen oeffnet die Session (01.11.2026, wie das Web)
+                                            val sid = e.sessionId
+                                            Row(Modifier.fillMaxWidth().then(if (sid != null) Modifier.clickable { onOpen(sid) } else Modifier)
+                                                .padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                                                 Text("${i + 1}", Modifier.width(20.dp), style = MaterialTheme.typography.titleSmall,
                                                     color = MaterialTheme.colorScheme.primary)
                                                 Api.mediaUrl(e.avatarUrl)?.let { av ->

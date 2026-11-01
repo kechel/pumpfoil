@@ -1245,9 +1245,23 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
              "run_distance_m": round(float(rd or 0), 1), "run_time_s": round(float(rt or 0), 1)}
             for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt in rows]
     top = lambda key: [x for x in sorted(flat, key=lambda y: y[key], reverse=True) if x[key] > 0][:10]  # noqa: E731
+
+    def mit_session(zeilen: list[dict], col) -> list[dict]:
+        """Bester EINZELNER Lauf: die Session dazu, damit die Zeile direkt dorthin fuehrt (Jan, 01.11.2026). Dieselben
+        Filter wie oben; je Zeile eine kleine Abfrage (hoechstens 10)."""
+        aus = []
+        for x in zeilen:
+            qq = _band_filter(db, _community(db.query(S.id), _user.id, accel_only, sport), foil_band, _user.id)
+            if cut is not None:
+                qq = qq.filter(S.started_at >= cut)
+            r = qq.filter(S.user_id == x["user_id"]).order_by(col.desc(), S.id.desc()).first()
+            aus.append({**x, "session_id": r[0] if r else None})
+        return aus
+
     return {"sessions": top("sessions"), "runs": top("runs"), "spots": top("spots"), "pumps": top("pumps"),
             "distance": top("distance_m"), "time": top("time_s"),
-            "run_distance": top("run_distance_m"), "run_time": top("run_time_s")}
+            "run_distance": mit_session(top("run_distance_m"), REC_COL["distance"][0]),
+            "run_time": mit_session(top("run_time_s"), REC_COL["duration"][0])}
 
 
 # ----------------------------------------------------------- Neueste Medien ----

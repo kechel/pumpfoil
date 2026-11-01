@@ -589,6 +589,7 @@ struct LeaderEntry: Codable, Identifiable {
     let user_id: Int?   // Online-Punkt + Tipp aufs Profilbild (Server additiv seit 01.10.2026)
     var distance_m: Double? = nil; var time_s: Double? = nil   // On-Foil-Strecke/-Zeit (Server additiv seit 01.11.2026)
     var run_distance_m: Double? = nil; var run_time_s: Double? = nil   // bester einzelner Lauf
+    var session_id: Int? = nil   // nur bei Einzellauf-Listen: Session des besten Laufs (Tippen oeffnet sie)
     var id: String { (name ?? "") + (avatar_url ?? "") }
 }
 struct Leaders: Codable {

@@ -303,9 +303,20 @@ function LeaderList({ rows, field, unit, fmt }: { rows: LeaderRow[]; field: keyo
         <div key={r.name} className="flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5">
           <span className="w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
           <Avatar name={r.name} url={r.avatar_url} userId={r.user_id} size={30} />
-          <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
-          <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{fmt ? fmt(r[field] as number) : r[field] as number}</span>
-          <span className="shrink-0 text-[10px] uppercase text-slate-400">{typeof unit === "function" ? unit(r[field] as number) : unit}</span>
+          {(() => {
+            const inhalt = (
+              <>
+                <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{fmt ? fmt(r[field] as number) : r[field] as number}</span>
+                <span className="shrink-0 text-[10px] uppercase text-slate-400">{typeof unit === "function" ? unit(r[field] as number) : unit}</span>
+              </>
+            );
+            // Einzellauf-Listen fuehren direkt zur Session (Jan, 01.11.2026). Das Profilbild bleibt eigener Link aufs
+            // Profil, deshalb ist nur der Rest der Zeile der Link (kein <a> im <a>).
+            return r.session_id
+              ? <Link to={`/sessions/${r.session_id}`} className="flex min-w-0 flex-1 items-center gap-2 hover:underline">{inhalt}</Link>
+              : <div className="flex min-w-0 flex-1 items-center gap-2">{inhalt}</div>;
+          })()}
         </div>
       ))}
     </div>

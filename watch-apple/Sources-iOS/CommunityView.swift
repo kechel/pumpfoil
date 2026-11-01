@@ -303,7 +303,7 @@ struct CommunityView: View {
         }
     }
 
-    @ViewBuilder private func leaderAvatar(_ e: LeaderEntry) -> some View {
+    @ViewBuilder private func leaderAvatar(_ e: LeaderEntry, link: Bool = true) -> some View {
         if let url = Api.mediaURL(e.avatar_url) {
             NetzBild(url: url) { stand in
                     switch stand {
@@ -312,7 +312,7 @@ struct CommunityView: View {
                     }
                 }
             .frame(width: 28, height: 28).clipShape(Circle())
-            .profilbild(userId: e.user_id, size: 28)
+            .profilbild(userId: e.user_id, size: 28, link: link)
         }
     }
 
@@ -408,17 +408,24 @@ struct CommunityView: View {
                     Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary)
                 } else {
                     ForEach(Array(list.enumerated()), id: \.offset) { i, e in
-                        leaderRow(i, e)
+                        // Einzellauf-Listen: die ganze Zeile oeffnet die Session (01.11.2026, wie das Web); das
+                        // Profilbild ist dann kein eigener Link, sonst teilten sich zwei Tippziele eine Zeile.
+                        if let sid = e.session_id {
+                            Button { navPath.append(SessionDest(id: sid)) } label: { leaderRow(i, e, avatarLink: false).contentShape(Rectangle()) }
+                                .buttonStyle(.plain)
+                        } else {
+                            leaderRow(i, e)
+                        }
                     }
                 }
             }
         }
     }
 
-    @ViewBuilder private func leaderRow(_ i: Int, _ e: LeaderEntry) -> some View {
+    @ViewBuilder private func leaderRow(_ i: Int, _ e: LeaderEntry, avatarLink: Bool = true) -> some View {
         HStack(spacing: 8) {
             Text("\(i + 1)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(width: 20)
-            leaderAvatar(e)
+            leaderAvatar(e, link: avatarLink)
             Text(e.name ?? "—").lineLimit(1)
             Spacer()
             Text(lbValue(e)).fontWeight(.semibold)

@@ -98,4 +98,6 @@ def test_bester_einzellauf_getrennt_von_summe(client):
     d = client.get("/api/community/leaders?period=all&accel_only=false&sport=pumpfoil", headers=kopf).json()
     lauf = next(x for x in d["run_distance"] if x["user_id"] == uid)
     assert abs(lauf["run_distance_m"] - basis) < 1 and abs(lauf["distance_m"] - basis * 3) < 3
+    assert lauf["session_id"] == _ANGELEGT[-1]                 # Zeile fuehrt zur Session des besten Laufs
+    assert "session_id" not in next(x for x in d["distance"] if x["user_id"] == uid)   # Summe: keine einzelne
     assert any(x["user_id"] == uid for x in d["run_time"])
