@@ -288,6 +288,8 @@ const LEADER_KINDS: { key: keyof Leaders; labelKey: string; field: keyof LeaderR
   { key: "runs", labelKey: "leader.mostRuns", field: "runs", unitKey: "unit.runs" },
   { key: "pumps", labelKey: "leader.mostPumps", field: "pumps", unitKey: "unit.pumps" },
   { key: "spots", labelKey: "leader.mostSpots", field: "spots", unitKey: "unit.spots" },
+  // Nur Wind/Paddeln (Filter in Leaderboards): die ganze Fahrt, wie die erste Rekord-Kachel dort.
+  { key: "ride_total", labelKey: "rec.sessionTotal", field: "ride_total_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(1) },
   { key: "run_distance", labelKey: "rec.farthestRun", field: "run_distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(2) },
   { key: "run_time", labelKey: "rec.longestRun", field: "run_time_s", unit: (v) => (v >= 3600 ? "h" : "min"), fmt: dauerText },
   { key: "distance", labelKey: "leader.totalDistance", field: "distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(1) },
@@ -446,7 +448,7 @@ export function bandInfo(b: FoilBand, t: (k: string, p?: Record<string, string>)
   return grenzen ? t("cr.bandRange", { grenzen }) : null;
 }
 
-function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand }) {
+function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
   // Nur EINE Bestenliste sichtbar, umschaltbar ueber Reiter (Jan, 01.11.2026: mit acht Listen nebeneinander war die
@@ -457,8 +459,8 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period:
     api.leaders(period, accelOnly, sport, band?.key ?? "all").then(setData).catch(() => {});
   }, [period, accelOnly, sport, band?.key]);
   if (!data) return null;
+  // Leer: Ueberschrift und Filter bleiben stehen — man soll den Zeitraum hier auch wieder weiter stellen koennen.
   const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;
-  if (empty) return null;
   const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
     <div className="mt-8">
@@ -471,12 +473,15 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period:
           <span className="ml-2 text-sm font-normal text-brand-600 dark:text-brand-300">· {bandLabel(band, t)}</span>
         )}
       </h3>
+      {kopf}
+      {empty ? <p className="text-xs text-slate-400">—</p> : <>
       {/* Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
           dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher. */}
       {(() => {
         const arten = LEADER_KINDS.filter((k) => !(
           ((WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)) && (k.key === "pumps" || k.key === "runs"))
-          || (MOTOR_SPORTS.includes(sport) && k.key === "pumps")));
+          || (MOTOR_SPORTS.includes(sport) && k.key === "pumps")
+          || (k.key === "ride_total" && !(WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)))));
         const k = arten.find((a) => a.key === wahl) ?? arten[0];
         return (
           <>
@@ -494,6 +499,7 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period:
           </>
         );
       })()}
+      </>}
     </div>
   );
 }
@@ -637,6 +643,51 @@ function CommunitySection() {
   // teuersten Aufruf der Seite, obwohl ihre eigenen Daten in 2–10 ms da sind (nachgemessen).
   // `RecordGrid` kommt ohne Daten aus und zeichnet „–"-Kacheln derselben Groesse, die sich
   // fuellen, sobald die Rekorde eintreffen — es springt also nichts nach.
+  // Filterzeile (Zeitraum, accel/alle/Freunde, Sportart, Foil-Band) — EINMAL gebaut, zweimal gezeigt: oben ueber den
+  // Rekorden und nochmal ueber der Bestenliste (Jan, 01.11.2026). Beide haengen am selben Zustand, aendern also
+  // immer beides.
+  const filterZeile = (
+      <div className="mb-3 flex flex-wrap items-center gap-1">
+      {PERIODS.map(([k, labelKey]) => (
+        <button
+          key={k}
+          onClick={() => setPeriod(k)}
+          className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
+        >
+          {t(labelKey)}
+        </button>
+      ))}
+      <AccelToggle value={accelWahl} onChange={(v) => { setFreunde(false); setAccelOnly(v); }} className="ml-auto"
+                   freunde={freunde} onFreunde={() => setFreunde(true)} />
+      {/* Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
+          (Jan: „nur die mit mind. einem lauf all time"). Betrifft Rekorde, Rangliste und Spots —
+          NICHT „Neueste Medien", „Am besten bewertet" und die Uhr-Layouts: die kommen absichtlich
+          immer aus allen Sportarten. */}
+      {sports.length > 1 && (
+        <select value={sport} onChange={(e) => setSport(e.target.value)}
+          className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+          {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+        </select>
+      )}
+      {/* Foil-Band. Reihenfolge kommt vom Server (Nützlichstes oben). Die Sessionzahl steht
+          dabei, weil jede Auswahl außer „Alle Foils" den Topf verkleinert — 36 % der Sessions
+          haben gar kein Foil hinterlegt und fallen dann heraus. */}
+      {bands.length > 1 && (
+        <select value={bandKey} onChange={(e) => setBandKey(e.target.value)}
+          title={t("cr.foilAll")}
+          className={`${SELECT_SCHRUMPFT} rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100`}>
+          {bands
+            .filter((b) => b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER)
+            .map((b) => (
+              <option key={b.key} value={b.key}>
+                {bandLabel(b, t)}{b.art === "alle" ? "" : ` (${b.sessions})`}
+              </option>
+            ))}
+        </select>
+      )}
+    </div>
+  );
+
   return (
     <div>
       <div className="mb-2 flex items-center gap-2">
@@ -654,45 +705,7 @@ function CommunitySection() {
         </div>
       </div>
       <CommunityStats className="mb-3" />
-      <div className="mb-3 flex flex-wrap items-center gap-1">
-        {PERIODS.map(([k, labelKey]) => (
-          <button
-            key={k}
-            onClick={() => setPeriod(k)}
-            className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
-          >
-            {t(labelKey)}
-          </button>
-        ))}
-        <AccelToggle value={accelWahl} onChange={(v) => { setFreunde(false); setAccelOnly(v); }} className="ml-auto"
-                     freunde={freunde} onFreunde={() => setFreunde(true)} />
-        {/* Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
-            (Jan: „nur die mit mind. einem lauf all time"). Betrifft Rekorde, Rangliste und Spots —
-            NICHT „Neueste Medien", „Am besten bewertet" und die Uhr-Layouts: die kommen absichtlich
-            immer aus allen Sportarten. */}
-        {sports.length > 1 && (
-          <select value={sport} onChange={(e) => setSport(e.target.value)}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
-            {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
-          </select>
-        )}
-        {/* Foil-Band. Reihenfolge kommt vom Server (Nützlichstes oben). Die Sessionzahl steht
-            dabei, weil jede Auswahl außer „Alle Foils" den Topf verkleinert — 36 % der Sessions
-            haben gar kein Foil hinterlegt und fallen dann heraus. */}
-        {bands.length > 1 && (
-          <select value={bandKey} onChange={(e) => setBandKey(e.target.value)}
-            title={t("cr.foilAll")}
-            className={`${SELECT_SCHRUMPFT} rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100`}>
-            {bands
-              .filter((b) => b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER)
-              .map((b) => (
-                <option key={b.key} value={b.key}>
-                  {bandLabel(b, t)}{b.art === "alle" ? "" : ` (${b.sessions})`}
-                </option>
-              ))}
-          </select>
-        )}
-      </div>
+      {filterZeile}
       {/* Grenzen des gewaehlten Bandes im Klartext — sonst raet man, was „Wie mein Foil" heisst. */}
       {band && bandInfo(band, t) && (
         <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
@@ -701,7 +714,7 @@ function CommunitySection() {
       {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern
           sich dabei nicht immer (accel war schon aus). */}
       <LatestMedia key={`m${freunde}`} />
-      <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} />
+      <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} kopf={filterZeile} />
       <TopLiked key={`t${freunde}`} period={period} />
       <TeamsSection />
       {/* Reihenfolge unter „Best bewertet" (Jan, 11.09.2026): erst die Uhr-Layouts, dann der

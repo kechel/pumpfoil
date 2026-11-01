@@ -1234,6 +1234,8 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         # zweimal: der beste EINZELNE Lauf (dieselben Spalten wie die Rekorde) und die Summe ueber den Zeitraum.
         func.coalesce(func.sum(AR.foiling_distance_m), 0), func.coalesce(func.sum(AR.foiling_time_s), 0),
         func.coalesce(func.max(REC_COL["distance"][0]), 0), func.coalesce(func.max(REC_COL["duration"][0]), 0),
+        # Laengste ganze Fahrt (Gesamtstrecke) — bei Wind/Paddeln die Hauptzahl, wie der erste Rekord dort.
+        func.coalesce(func.max(REC_COL["session_total"][0]), 0),
     ), _user.id, accel_only, sport)
     q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
@@ -1242,8 +1244,9 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
     flat = [{"name": name or "—", "avatar_url": av, "user_id": uid, "sessions": int(ns), "runs": int(nr or 0),
              "spots": int(nsp or 0), "pumps": int(np or 0),
              "distance_m": round(float(dm or 0), 1), "time_s": round(float(ts or 0), 1),
-             "run_distance_m": round(float(rd or 0), 1), "run_time_s": round(float(rt or 0), 1)}
-            for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt in rows]
+             "run_distance_m": round(float(rd or 0), 1), "run_time_s": round(float(rt or 0), 1),
+             "ride_total_m": round(float(gt or 0), 1)}
+            for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt, gt in rows]
     top = lambda key: [x for x in sorted(flat, key=lambda y: y[key], reverse=True) if x[key] > 0][:10]  # noqa: E731
 
     def mit_session(zeilen: list[dict], col) -> list[dict]:
@@ -1261,7 +1264,8 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
     return {"sessions": top("sessions"), "runs": top("runs"), "spots": top("spots"), "pumps": top("pumps"),
             "distance": top("distance_m"), "time": top("time_s"),
             "run_distance": mit_session(top("run_distance_m"), REC_COL["distance"][0]),
-            "run_time": mit_session(top("run_time_s"), REC_COL["duration"][0])}
+            "run_time": mit_session(top("run_time_s"), REC_COL["duration"][0]),
+            "ride_total": mit_session(top("ride_total_m"), REC_COL["session_total"][0])}
 
 
 # ----------------------------------------------------------- Neueste Medien ----

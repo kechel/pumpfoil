@@ -694,6 +694,7 @@ export interface LeaderRow {
   time_s?: number;
   run_distance_m?: number;   // bester einzelner Lauf
   run_time_s?: number;
+  ride_total_m?: number;   // laengste ganze Fahrt (Gesamtstrecke), Reiter nur bei Wind/Paddeln
   session_id?: number | null;   // nur bei Einzellauf-Listen: die Session des besten Laufs
 }
 export interface Leaders {
@@ -705,6 +706,7 @@ export interface Leaders {
   time?: LeaderRow[];
   run_distance?: LeaderRow[];
   run_time?: LeaderRow[];
+  ride_total?: LeaderRow[];
 }
 
 export interface Profile {
