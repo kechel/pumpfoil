@@ -2548,6 +2548,8 @@ const ru: Record<string, string> = {
   "team.tafel.nurBrett": "только телефон на доске",
   "team.tafel.nurTeamspots": "только споты команды",
   "team.tafel.mitGps": "и только GPS",
+  "team.tafel.gpsAlle": "Таблицы учитывают и заезды, записанные только с GPS (без данных движения).",
+  "team.tafel.gpsEinige": "Некоторые таблицы учитывают и заезды, записанные только с GPS (без данных движения).",
   "team.tafel.alleFoils": "Все фойлы",
   "team.tafel.leer": "За этот период пока нет записей.",
   "team.keineTafeln": "Таблицы лидеров пока не настроены.",

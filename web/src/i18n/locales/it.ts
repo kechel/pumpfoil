@@ -2431,6 +2431,8 @@ const it: Record<string, string> = {
   "team.tafel.nurBrett": "solo telefono sulla tavola",
   "team.tafel.nurTeamspots": "solo spot del team",
   "team.tafel.mitGps": "anche solo GPS",
+  "team.tafel.gpsAlle": "Le classifiche contano anche le corse registrate solo con GPS (senza dati di movimento).",
+  "team.tafel.gpsEinige": "Alcune classifiche contano anche le corse registrate solo con GPS (senza dati di movimento).",
   "team.tafel.alleFoils": "Tutti i foil",
   "team.tafel.leer": "Ancora nessuna voce in questo periodo.",
   "team.keineTafeln": "Ancora nessuna classifica impostata.",

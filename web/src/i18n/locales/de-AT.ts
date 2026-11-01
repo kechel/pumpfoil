@@ -2437,6 +2437,8 @@ const deAT: Record<string, string> = {
   "team.tafel.nurBrett": "nur Handy am Brett",
   "team.tafel.nurTeamspots": "nur Teamspots",
   "team.tafel.mitGps": "a nur GPS",
+  "team.tafel.gpsAlle": "Die Bestenlisten zählen auch Läufe, die nur mit GPS aufgezeichnet wurden (ohne Bewegungsdaten).",
+  "team.tafel.gpsEinige": "Einige Bestenlisten zählen auch Läufe, die nur mit GPS aufgezeichnet wurden (ohne Bewegungsdaten).",
   "team.tafel.alleFoils": "Alle Foils",
   "team.tafel.leer": "No ka Einträge in dem Zeitraum.",
   "team.keineTafeln": "No ka Bestenlisten eing'richtet.",

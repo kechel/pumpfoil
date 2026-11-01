@@ -2545,6 +2545,8 @@ const zh: Record<string, string> = {
   "team.tafel.nurBrett": "仅手机放在板上",
   "team.tafel.nurTeamspots": "仅团队地点",
   "team.tafel.mitGps": "也含仅 GPS",
+  "team.tafel.gpsAlle": "排行榜也统计仅用 GPS 记录的滑行（无运动数据）。",
+  "team.tafel.gpsEinige": "部分排行榜也统计仅用 GPS 记录的滑行（无运动数据）。",
   "team.tafel.alleFoils": "全部前翼",
   "team.tafel.leer": "此时间段内暂无记录。",
   "team.keineTafeln": "尚未设置排行榜。",

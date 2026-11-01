@@ -2602,6 +2602,8 @@ const nl: Record<string, string> = {
   "team.tafel.nurBrett": "alleen telefoon op de plank",
   "team.tafel.nurTeamspots": "alleen teamspots",
   "team.tafel.mitGps": "ook alleen gps",
+  "team.tafel.gpsAlle": "De ranglijsten tellen ook runs die alleen met gps zijn opgenomen (zonder bewegingsdata).",
+  "team.tafel.gpsEinige": "Sommige ranglijsten tellen ook runs die alleen met gps zijn opgenomen (zonder bewegingsdata).",
   "team.tafel.alleFoils": "Alle foils",
   "team.tafel.leer": "Nog geen resultaten in deze periode.",
   "team.keineTafeln": "Nog geen ranglijsten ingesteld.",

@@ -2523,6 +2523,8 @@ const nb: Record<string, string> = {
   "team.tafel.nurBrett": "bare telefon på brettet",
   "team.tafel.nurTeamspots": "bare lagspots",
   "team.tafel.mitGps": "også bare GPS",
+  "team.tafel.gpsAlle": "Listene teller også turer som bare er tatt opp med GPS (uten bevegelsesdata).",
+  "team.tafel.gpsEinige": "Noen lister teller også turer som bare er tatt opp med GPS (uten bevegelsesdata).",
   "team.tafel.alleFoils": "Alle foiler",
   "team.tafel.leer": "Ingen oppføringer i denne perioden ennå.",
   "team.keineTafeln": "Ingen topplister satt opp ennå.",

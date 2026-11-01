@@ -2548,6 +2548,8 @@ const pt: Record<string, string> = {
   "team.tafel.nurBrett": "só telefone na prancha",
   "team.tafel.nurTeamspots": "só spots da equipe",
   "team.tafel.mitGps": "também só GPS",
+  "team.tafel.gpsAlle": "As classificações também contam voltas gravadas só com GPS (sem dados de movimento).",
+  "team.tafel.gpsEinige": "Algumas classificações também contam voltas gravadas só com GPS (sem dados de movimento).",
   "team.tafel.alleFoils": "Todos os foils",
   "team.tafel.leer": "Ainda sem registros neste período.",
   "team.keineTafeln": "Nenhum ranking criado ainda.",

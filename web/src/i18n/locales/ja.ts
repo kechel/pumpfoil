@@ -2544,6 +2544,8 @@ const ja: Record<string, string> = {
   "team.tafel.nurBrett": "スマホをボードに装着したもののみ",
   "team.tafel.nurTeamspots": "チームスポットのみ",
   "team.tafel.mitGps": "GPSのみも含む",
+  "team.tafel.gpsAlle": "ランキングには GPS のみで記録されたラン（モーションデータなし）も含まれます。",
+  "team.tafel.gpsEinige": "一部のランキングには GPS のみで記録されたラン（モーションデータなし）も含まれます。",
   "team.tafel.alleFoils": "すべてのフォイル",
   "team.tafel.leer": "この期間の記録はまだありません。",
   "team.keineTafeln": "ランキングはまだ設定されていません。",

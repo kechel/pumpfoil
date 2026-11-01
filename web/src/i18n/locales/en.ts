@@ -2645,6 +2645,8 @@ const en: Record<string, string> = {
   "team.tafel.nurBrett": "phone on board only",
   "team.tafel.nurTeamspots": "team spots only",
   "team.tafel.mitGps": "GPS-only too",
+  "team.tafel.gpsAlle": "The leaderboards also count runs recorded with GPS only (no motion data).",
+  "team.tafel.gpsEinige": "Some leaderboards also count runs recorded with GPS only (no motion data).",
   "team.tafel.alleFoils": "All foils",
   "team.tafel.leer": "No entries in this period yet.",
   "team.keineTafeln": "No leaderboards set up yet.",

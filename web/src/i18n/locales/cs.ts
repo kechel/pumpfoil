@@ -2601,6 +2601,8 @@ const cs: Record<string, string> = {
   "team.tafel.nurBrett": "jen telefon na desce",
   "team.tafel.nurTeamspots": "jen týmové spoty",
   "team.tafel.mitGps": "i jen GPS",
+  "team.tafel.gpsAlle": "Žebříčky počítají i jízdy zaznamenané jen s GPS (bez pohybových dat).",
+  "team.tafel.gpsEinige": "Některé žebříčky počítají i jízdy zaznamenané jen s GPS (bez pohybových dat).",
   "team.tafel.alleFoils": "Všechny foily",
   "team.tafel.leer": "V tomto období zatím žádné záznamy.",
   "team.keineTafeln": "Zatím nejsou nastavené žádné žebříčky.",

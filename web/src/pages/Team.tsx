@@ -439,6 +439,12 @@ export default function Team() {
       {gast && (
         <p className="mt-6 text-sm text-slate-400">{t("team.gastHinweis")}</p>
       )}
+      {/* „Auch nur GPS" einmal unten statt an jeder Bestenliste (Jan, 01.11.2026). */}
+      {tafeln && tafeln.some((tf) => !tf.accel_only) && (
+        <p className="mt-6 text-sm text-slate-400">
+          {t(tafeln.every((tf) => !tf.accel_only) ? "team.tafel.gpsAlle" : "team.tafel.gpsEinige")}
+        </p>
+      )}
       {/* Gaeste brauchen die ganze Regelseite nicht (Jan, 01.11.2026); die Event-Seite hat ihre eigene Regel-Box. */}
       {!gast && <div className="mt-6"><RegelnLink /></div>}
 

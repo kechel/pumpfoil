@@ -2583,6 +2583,8 @@ const fi: Record<string, string> = {
   "team.tafel.nurBrett": "vain puhelin laudalla",
   "team.tafel.nurTeamspots": "vain tiimin spotit",
   "team.tafel.mitGps": "myös pelkkä GPS",
+  "team.tafel.gpsAlle": "Tulostaulukot laskevat myös pelkällä GPS:llä tallennetut lenkit (ilman liiketietoja).",
+  "team.tafel.gpsEinige": "Osa tulostaulukoista laskee myös pelkällä GPS:llä tallennetut lenkit (ilman liiketietoja).",
   "team.tafel.alleFoils": "Kaikki siivet",
   "team.tafel.leer": "Tällä aikavälillä ei vielä tuloksia.",
   "team.keineTafeln": "Tulostaulukoita ei ole vielä luotu.",

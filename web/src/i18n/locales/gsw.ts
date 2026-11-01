@@ -2432,6 +2432,8 @@ const gsw: Record<string, string> = {
   "team.tafel.nurBrett": "nume Handy am Brätt",
   "team.tafel.nurTeamspots": "nume Teamspots",
   "team.tafel.mitGps": "au nume GPS",
+  "team.tafel.gpsAlle": "D Bestelischte zelled au Läuf, wo nur mit GPS ufgnoh worde sind (ohni Bewegigsdate).",
+  "team.tafel.gpsEinige": "Es paar Bestelischte zelled au Läuf, wo nur mit GPS ufgnoh worde sind (ohni Bewegigsdate).",
   "team.tafel.alleFoils": "Alli Foils",
   "team.tafel.leer": "No kei Iiträg i dem Ziitruum.",
   "team.keineTafeln": "No kei Bestelischte iigrichtet.",

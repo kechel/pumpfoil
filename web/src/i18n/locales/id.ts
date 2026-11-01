@@ -2548,6 +2548,8 @@ const id: Record<string, string> = {
   "team.tafel.nurBrett": "hanya ponsel di papan",
   "team.tafel.nurTeamspots": "hanya spot tim",
   "team.tafel.mitGps": "termasuk hanya GPS",
+  "team.tafel.gpsAlle": "Papan peringkat juga menghitung run yang direkam hanya dengan GPS (tanpa data gerak).",
+  "team.tafel.gpsEinige": "Beberapa papan peringkat juga menghitung run yang direkam hanya dengan GPS (tanpa data gerak).",
   "team.tafel.alleFoils": "Semua foil",
   "team.tafel.leer": "Belum ada entri dalam periode ini.",
   "team.keineTafeln": "Belum ada papan peringkat.",
