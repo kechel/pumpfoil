@@ -1047,6 +1047,28 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 01.11.2026 (Jan: „im changelog fehlt noch das ganze coming next fuer android und ios seit dem letzten release"):
+    # alles, was seit dem Build von Android 1.1.46 (fdd2b189, liegt im Review) bzw. iOS 1.1.58 (live) in die Apps kam —
+    # Teams/Events (2eba784b, c31591cc), Puls auf dem Foil, Konten-Rueckweg (1b62edb5), Security-Reviews (94ce6809),
+    # Pump-Puls (e1a54d7d), Haftungshinweis + Einzahl. Nicht gebumpt (Memory versionen-erst-bei-release).
+    {"name": "Android phone + Wear OS", "version": "1.1.47 / 1.2.47",
+     "items": [
+         "Teams come to the app: team pages with their picture, crest, leaderboards, team totals and logbook, and your teams in your profile.",
+         "Event pages with countdown, live leaderboards and totals for all participants, the current events on the Community tab, and lists of all teams and all events.",
+         "The average heart rate of a session counts only your time on the foil, not the swimming and waiting in between.",
+         "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
+         "The changelog shows our security reviews, folded away like on the website.",
+         "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.59",
+     "items": [
+         "Teams come to the app: team pages with their picture, crest, leaderboards, team totals and logbook, and your teams in your profile.",
+         "Event pages with countdown, live leaderboards and totals for all participants, the current events on the Community tab, and lists of all teams and all events.",
+         "The average heart rate of a session counts only your time on the foil, not the swimming and waiting in between.",
+         "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
+         "The changelog shows our security reviews, folded away like on the website.",
+         "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
+     ]},
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
     # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
