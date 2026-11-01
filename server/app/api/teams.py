@@ -217,7 +217,7 @@ def liste_events(user: models.User = Depends(current_user), db: Session = Depend
     for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
                  .filter(E.geloescht_am.is_(None), E.eingefroren_am.is_(None), Tm.geloescht_am.is_(None),
                          E.ende > jetzt, E.start <= jetzt + T.EVENT_VORSCHAU)
-                 .order_by(E.start).limit(50).all()):
+                 .order_by(E.start).limit(200).all()):   # alle zeigen (Jan); die Grenze ist nur ein Notanker
         intern = t.id in eigene
         if not intern and not T.bestenlisten_oeffentlich(t):
             continue

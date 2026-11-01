@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { passtZu } from "../lib/suche";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
-import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamListenEintrag, TeamEventKurz } from "../lib/api";
+import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
-import { sportartenText } from "../lib/teamKennzahlen";
 import { eventZeitraum } from "../lib/teamEvents";
 import KachelUhr from "../components/KachelUhr";
 import { LayoutPreview } from "../components/LayoutPreview";
@@ -684,45 +683,25 @@ function CommunitySection() {
 }
 
 // Teams der Community (Jan, 31.10.2026: „in der generellen community seite soll dann nur ein neuer
-// abschnitt rein mit den teams"). Nur freigegebene Teams, in ihrer freigegebenen Fassung. Solange es
-// keins gibt, erscheint der Abschnitt gar nicht — gegruendet wird ueber den Knopf „Team" im Profil.
+// abschnitt rein mit den teams"). Seit 01.11.2026 ohne Teamliste (die steht auf /teams/liste), nur mit den
+// aktuellen Events und den Links „Alle Teams" / „Team gruenden".
 function TeamsSection() {
   const { t, lang } = useI18n();
-  const [rows, setRows] = useState<TeamListenEintrag[] | null>(null);
-  const [events, setEvents] = useState<TeamEventKurz[]>([]);
-  useEffect(() => {
-    api.teamsListe().then(setRows).catch(() => setRows([]));
-    api.teamsEventsAktuell().then(setEvents).catch(() => setEvents([]));
-  }, []);
-  if ((!rows || rows.length === 0) && events.length === 0) return null;
+  const [events, setEvents] = useState<TeamEventKurz[] | null>(null);
+  useEffect(() => { api.teamsEventsAktuell().then(setEvents).catch(() => setEvents([])); }, []);
   return (
     <div className="mt-6">
-      <div className="mb-1.5 flex items-center gap-2">
+      <div className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <FlagIcon className="h-5 w-5 text-brand-400" />
         <h3 className="text-lg font-bold">{t("team.community")}</h3>
-        <Link to="/teams" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>
+        <Link to="/teams/liste" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.alle")} →</Link>
+        <Link to="/teams" className="text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>
       </div>
-      {!!rows?.length && (
+      {/* Keine Teams mehr direkt hier (eigene Seite /teams/liste, Jan 01.11.2026) — nur laufende und in den naechsten
+          3 Tagen beginnende Events, alle (vorerst ohne Grenze). Kachel wie auf der Teamseite. */}
+      {events && events.length === 0 && <p className="text-sm text-slate-400">{t("team.event.keineAktuellen")}</p>}
+      {!!events?.length && (
         <div className="grid gap-2 sm:grid-cols-2">
-          {rows.map((tm) => (
-            <Link key={tm.id} to={`/teams/${tm.slug}`} style={teamFarbStil(tm.farbe)}
-              className="team-farbe flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700">
-              <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={40} />
-              <span className="min-w-0 flex-1">
-                <span className="team-akzent block truncate font-semibold">{tm.name}</span>
-                <span className="block truncate text-xs text-slate-400">
-                  {t("team.mitgliederAnzahl", { n: String(tm.mitglieder_anzahl) })}
-                  {!!tm.sportarten?.length && <> · {sportartenText(tm.sportarten, t)}</>}
-                </span>
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
-      {/* Laufende und in den naechsten 3 Tagen beginnende Events (Jan, 01.11.2026) — wie die Event-Kacheln der
-          Teamseite: Titel, Status, Sportart/Spots, Zeitraum mit Countdown, erste Zeile der Beschreibung. */}
-      {events.length > 0 && (
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {events.map((e) => (
             <Link key={`${e.team.slug}-${e.id}`} to={`/teams/${e.team.slug}/events/${e.id}`} style={teamFarbStil(e.team.farbe)}
               className={`team-farbe block rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : "border-slate-800"}`}>
