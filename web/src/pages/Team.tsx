@@ -19,7 +19,7 @@ import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
 import { teamFarbStil } from "../lib/teamFarben";
-import { eventSummenText, fehlerCode, kennzahl, sportartenText, tafelKurz } from "../lib/teamKennzahlen";
+import { fehlerCode, kennzahl, sportartenText } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
 
 const ZEITRAEUME: [string, string][] = [
@@ -112,28 +112,63 @@ function Statistik({ s, t }: { s: TeamStatistik; t: (k: string, p?: Record<strin
 
 /** Vergangene Events, kompakt wie das Logbuch: je Event eine Zeile mit den Siegern; aufklappen zeigt die Bestenlisten. */
 /** Vergangene Events, kompakt wie das Logbuch: je Event eine Zeile mit den Siegern; ein Klick oeffnet das Event. */
+/** Event-Kachel der Teamseite (Jan, 01.11.2026) — dieselbe fuer kommende, laufende und vergangene Events: Titel, Status,
+ *  Sportart/Spots, Zeitraum (mit Countdown), erste Zeile der Beschreibung. Kennzahlen und Sieger stehen auf der Event-Seite. */
+function TeamEventKachel({ e, slug, lang, t }: {
+  e: TeamEvent; slug: string; lang: string; t: (k: string, p?: Record<string, string>) => string;
+}) {
+  return (
+    <Link to={`/teams/${slug}/events/${e.id}`} className="block">
+      <Card className={`p-4 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
+        <div className="mb-1 flex flex-wrap items-center gap-2">
+          <h3 className="team-akzent text-lg font-bold">{e.titel}</h3>
+          <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
+            {t(`team.event.status.${e.status}`)}
+          </span>
+          {/* Sportart und Spots als Abzeichen wie in den Session-Kacheln, neben dem Status (Platz sparen, Jan 01.11.2026).
+              Sonst nur Titel, Zeitraum und eigener Text — Kennzahlen und Stand stehen auf der Event-Seite. */}
+          {eventSportarten(e).map((sp) => (
+            <span key={sp} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</span>
+          ))}
+          {e.spots.map((sp) => (
+            <span key={sp.id} className="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">
+              <LocationIcon className="h-3.5 w-3.5" /> {sp.name ?? `#${sp.id}`}
+            </span>
+          ))}
+        </div>
+        {/* Link rechts unten auf Hoehe der letzten Zeile, keine eigene Zeile (Jan, 01.11.2026). */}
+        <div className="flex items-end gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-slate-400">
+              {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
+              {(e.status === "kommend" || e.status === "laeuft") && (
+                <> · <KachelUhr ziel={e.status === "kommend" ? e.start : e.ende} text={t(e.status === "kommend" ? "team.event.startIn" : "team.event.endetIn")} lang={lang} /></>
+              )}
+            </p>
+            {/* Nur die erste Zeile der Beschreibung, hoechstens zwei Zeilen hoch (Jan, 01.11.2026): so steuert die Leitung
+                mit dem ersten Umbruch, was in der Kachel steht. */}
+            {e.beschreibung?.trim() && (
+              <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.trim().split("\n")[0]}</p>
+            )}
+          </div>
+          <span className="team-akzent shrink-0 text-sm font-semibold">{t(eventStandKey(e.status))} →</span>
+        </div>
+      </Card>
+    </Link>
+  );
+}
+
+/** Vergangene Events (aelter als eine Woche) unten — mit derselben Kachel wie oben, ohne Sieger (Jan, 01.11.2026). */
 function VergangeneEvents({ events, slug, lang, t }: {
   events: TeamEvent[]; slug: string; lang: string; t: (k: string, p?: Record<string, string>) => string;
 }) {
   return (
-    <Card className="mt-4 p-4">
-      <h3 className="mb-1 font-semibold text-slate-100">{t("team.event.vergangen")}</h3>
-      <ul>
-        {events.map((e) => (
-          <li key={e.id} className="border-t border-slate-800 py-2 text-sm first:border-t-0">
-            <Link to={`/teams/${slug}/events/${e.id}`} className="flex items-start gap-2 hover:underline">
-              <span className="min-w-0 flex-1">
-                <span className="team-akzent block font-semibold">{e.titel}</span>
-                <span className="block text-xs text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</span>
-                {siegerText(e, t) && <span className="block text-slate-300">{siegerText(e, t)}</span>}
-                {!e.tafeln.length && eventSummenText(e, t) && <span className="block text-slate-300">{eventSummenText(e, t)}</span>}
-              </span>
-              <ChevronIcon className="mt-1 h-4 w-4 shrink-0 text-slate-400" />
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
+    <div className="mt-4">
+      <h3 className="mb-2 font-semibold text-slate-100">{t("team.event.vergangen")}</h3>
+      <div className="space-y-3">
+        {events.map((e) => <TeamEventKachel key={e.id} e={e} slug={slug} lang={lang} t={t} />)}
+      </div>
+    </div>
   );
 }
 
@@ -141,14 +176,6 @@ function VergangeneEvents({ events, slug, lang, t }: {
 function eventSportarten(e: TeamEvent): string[] {
   const aus = e.tafeln.length ? e.tafeln.map((tf) => tf.sportart) : [e.summen_sportart ?? "pumpfoil"];
   return Array.from(new Set(aus));
-}
-
-/** Wer je Bestenliste vorn liegt, in einer Zeile: „Längster Lauf: Jan 1:42 · Höchstgeschwindigkeit: Olek 21 km/h“. */
-function siegerText(e: TeamEvent, t: (k: string) => string): string {
-  return e.tafeln.map((tf) => {
-    const z = tf.zeilen[0];
-    return z ? `${tafelKurz(tf, t)}: ${z.name ?? z.initialen} ${kennzahl(tf.kennzahl).fmt(z.value)}` : null;
-  }).filter(Boolean).join(" · ");
 }
 
 function Logbuch({ eintraege, t, zurueck }: { eintraege: TeamLogbuchEintrag[]; t: (k: string, p?: Record<string, string>) => string; zurueck: { zurueck: string; zurueckText: string } }) {
@@ -374,43 +401,7 @@ export default function Team() {
         <div className="mb-5 space-y-3">
           {eventsOben.map((e) => (
             // Kompakte Kachel; ein Klick oeffnet das Event mit allen Bestenlisten (Jan, 01.11.2026).
-            <Link key={e.id} to={`/teams/${kopf.slug}/events/${e.id}`} className="block">
-              <Card className={`p-4 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
-                <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <h3 className={`team-akzent text-lg font-bold`}>{e.titel}</h3>
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
-                    {t(`team.event.status.${e.status}`)}
-                  </span>
-                  {/* Sportart und Spots als Abzeichen wie in den Session-Kacheln, neben dem Status (Platz sparen, Jan 01.11.2026).
-                      Sonst nur Titel, Zeitraum und eigener Text — Kennzahlen und Stand stehen auf der Event-Seite. */}
-                  {eventSportarten(e).map((sp) => (
-                    <span key={sp} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</span>
-                  ))}
-                  {e.spots.map((sp) => (
-                    <span key={sp.id} className="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">
-                      <LocationIcon className="h-3.5 w-3.5" /> {sp.name ?? `#${sp.id}`}
-                    </span>
-                  ))}
-                </div>
-                {/* Link rechts unten auf Hoehe der letzten Zeile, keine eigene Zeile (Jan, 01.11.2026). */}
-                <div className="flex items-end gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-slate-400">
-                      {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
-                      {(e.status === "kommend" || e.status === "laeuft") && (
-                        <> · <KachelUhr ziel={e.status === "kommend" ? e.start : e.ende} text={t(e.status === "kommend" ? "team.event.startIn" : "team.event.endetIn")} lang={lang} /></>
-                      )}
-                    </p>
-                    {/* Nur die erste Zeile der Beschreibung, hoechstens zwei Zeilen hoch (Jan, 01.11.2026): so steuert die Leitung
-                        mit dem ersten Umbruch, was in der Kachel steht. */}
-                    {e.beschreibung?.trim() && (
-                      <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.trim().split("\n")[0]}</p>
-                    )}
-                  </div>
-                  <span className="team-akzent shrink-0 text-sm font-semibold">{t(eventStandKey(e.status))} →</span>
-                </div>
-              </Card>
-            </Link>
+            <TeamEventKachel key={e.id} e={e} slug={kopf.slug} lang={lang} t={t} />
           ))}
         </div>
       )}
