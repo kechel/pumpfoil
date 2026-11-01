@@ -202,7 +202,7 @@ durch die Freigabe (`frei_banner_url`), der Fokus nicht. Entfernen wirkt sofort 
 Session-Zahlen; darauf weist der Beitritts-Dialog hin), Mitglieder, Events (Moderatoren duerfen Events anlegen,
 aendern, loeschen), Einladungslinks. `/teams/<slug>/einstellungen` nur Leitung: Freigabe, Auftritt mit Teambild,
 Beitritt, Sichtbarkeit, Bestenlisten, Teamspots, Loeschen. Offene Anfragen erscheinen als Zahl am Team-Link auf
-der Startseite und in „Meine Teams"; der Link fuehrt dann direkt zur Verwaltung.
+der Startseite und in „Meine Teams"; der Link fuehrt immer auf die Teamseite.
 
 ## Loeschen ist weich (01.11.2026)
 

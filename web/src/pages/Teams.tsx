@@ -60,7 +60,7 @@ export default function Teams() {
       ) : (
         <Card className="mb-4 p-2">
           {meine.map((m) => (
-            <Link key={m.id} to={m.anfragen > 0 ? `/teams/${m.slug}/verwalten` : `/teams/${m.slug}`} className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800/60">
+            <Link key={m.id} to={`/teams/${m.slug}`} className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800/60">
               <TeamWappen name={m.name} logo={m.logo_url} farbe={m.farbe} size={40} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium text-slate-100">{m.name}</span>
