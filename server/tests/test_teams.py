@@ -113,6 +113,9 @@ def test_rechte_moderator(client):
     assert anfrage["user_id"] == idd and anfrage["profil"]["sessions"] == 0   # Spots/Sportarten fuer die Pruefung
     assert client.post(f"/api/teams/{slug}/mitglieder/{idd}/annehmen", headers=kb).status_code == 200
     assert client.put(f"/api/teams/{slug}", headers=kb, json={"name": "Gekapert"}).status_code == 403
+    # Rollen aendern darf nur die Leitung, auch nicht der Moderator (Jan, 01.11.2026).
+    assert client.put(f"/api/teams/{slug}/mitglieder/{ic}/rolle", headers=kb, json={"rolle": "moderator"}).status_code == 403
+    assert client.put(f"/api/teams/{slug}/mitglieder/{ib}/rolle", headers=kb, json={"rolle": "leiter"}).status_code == 403
     assert client.post(f"/api/teams/{slug}/einladungen/join/neu", headers=kb).status_code == 403
     assert client.delete(f"/api/teams/{slug}/mitglieder/{idd}", headers=kb).status_code == 200
     # Events darf der Moderator anlegen und loeschen, ein einfaches Mitglied nicht (01.11.2026).
