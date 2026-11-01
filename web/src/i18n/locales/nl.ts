@@ -2641,6 +2641,8 @@ const nl: Record<string, string> = {
   "team.zurueckziehenFrage": "Je verzoek intrekken?",
   "team.gastHinweis": "Op pumpfoil.org neem je je pumpfoil-sessies op en vergelijk je jezelf met je team.",
   "team.join.knopf": "Lid worden",
+  "team.join.anmeldenKnopf": "Inloggen en lid worden",
+  "team.join.eventHinweis": "Meedoen? Word lid van „{name}” en je sessies tellen hier mee.",
   "team.join.title": "Lid worden van „{name}”",
   "team.join.direkt": "Je wordt meteen lid.",
   "team.join.anfrage": "Je verzoek gaat naar de teamleiding, die beslist.",

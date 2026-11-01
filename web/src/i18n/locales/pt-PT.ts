@@ -2581,6 +2581,8 @@ const ptPT: Record<string, string> = {
   "team.zurueckziehenFrage": "Retirar o teu pedido?",
   "team.gastHinweis": "No pumpfoil.org gravas as tuas sessões de pump foil e comparas-te com a tua equipa.",
   "team.join.knopf": "Aderir",
+  "team.join.anmeldenKnopf": "Iniciar sessão e aderir",
+  "team.join.eventHinweis": "Queres participar? Adere a «{name}» e as tuas sessões contam aqui.",
   "team.join.title": "Aderir a «{name}»",
   "team.join.direkt": "Passas logo a ser membro.",
   "team.join.anfrage": "O teu pedido vai para a liderança da equipa, que decide.",

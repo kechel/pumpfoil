@@ -2640,6 +2640,8 @@ const cs: Record<string, string> = {
   "team.zurueckziehenFrage": "Stáhnout žádost?",
   "team.gastHinweis": "Na pumpfoil.org si nahráváš svoje pumpfoilové vyjížďky a porovnáváš se se svým týmem.",
   "team.join.knopf": "Přidat se",
+  "team.join.anmeldenKnopf": "Přihlásit se a přidat se",
+  "team.join.eventHinweis": "Chceš se zapojit? Přidej se k „{name}“ a tvoje vyjížďky se tu započítají.",
   "team.join.title": "Přidat se k „{name}“",
   "team.join.direkt": "Hned se staneš členem.",
   "team.join.anfrage": "Tvoje žádost půjde vedení týmu, které rozhodne.",

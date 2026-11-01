@@ -2587,6 +2587,8 @@ const ru: Record<string, string> = {
   "team.zurueckziehenFrage": "Отозвать заявку?",
   "team.gastHinweis": "На pumpfoil.org ты записываешь свои сессии на памп-фойле и сравниваешь себя со своей командой.",
   "team.join.knopf": "Вступить",
+  "team.join.anmeldenKnopf": "Войти и вступить",
+  "team.join.eventHinweis": "Хочешь участвовать? Вступи в «{name}», и твои сессии будут засчитаны здесь.",
   "team.join.title": "Вступить в «{name}»",
   "team.join.direkt": "Ты сразу станешь участником.",
   "team.join.anfrage": "Твоя заявка уйдёт руководителю команды, он и решит.",

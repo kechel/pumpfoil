@@ -2622,6 +2622,8 @@ const fi: Record<string, string> = {
   "team.zurueckziehenFrage": "Perutaanko pyyntösi?",
   "team.gastHinweis": "Palvelussa pumpfoil.org tallennat pumpfoil-sessiosi ja vertaat itseäsi tiimiisi.",
   "team.join.knopf": "Liity",
+  "team.join.anmeldenKnopf": "Kirjaudu ja liity",
+  "team.join.eventHinweis": "Haluatko mukaan? Liity tiimiin ”{name}”, niin sessiosi lasketaan mukaan.",
   "team.join.title": "Liity tiimiin ”{name}”",
   "team.join.direkt": "Sinusta tulee heti jäsen.",
   "team.join.anfrage": "Pyyntösi menee tiimin vetäjälle, joka päättää.",

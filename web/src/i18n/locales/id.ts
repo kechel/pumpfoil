@@ -2587,6 +2587,8 @@ const id: Record<string, string> = {
   "team.zurueckziehenFrage": "Tarik permintaanmu?",
   "team.gastHinweis": "Di pumpfoil.org kamu merekam sesi pump foil-mu dan membandingkan diri dengan timmu.",
   "team.join.knopf": "Gabung",
+  "team.join.anmeldenKnopf": "Masuk dan gabung",
+  "team.join.eventHinweis": "Mau ikut? Gabung ke “{name}” dan sesimu ikut dihitung di sini.",
   "team.join.title": "Gabung ke “{name}”",
   "team.join.direkt": "Kamu langsung menjadi anggota.",
   "team.join.anfrage": "Permintaanmu dikirim ke ketua tim, yang akan memutuskan.",

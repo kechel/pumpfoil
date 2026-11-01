@@ -2562,6 +2562,8 @@ const nb: Record<string, string> = {
   "team.zurueckziehenFrage": "Trekke tilbake forespørselen din?",
   "team.gastHinweis": "På pumpfoil.org tar du opp pumpfoil-øktene dine og sammenligner deg med laget ditt.",
   "team.join.knopf": "Bli med",
+  "team.join.anmeldenKnopf": "Logg inn og bli med",
+  "team.join.eventHinweis": "Vil du være med? Bli med i «{name}», så teller øktene dine her.",
   "team.join.title": "Bli med i «{name}»",
   "team.join.direkt": "Du blir medlem med en gang.",
   "team.join.anfrage": "Forespørselen din går til lagets leder, som bestemmer.",

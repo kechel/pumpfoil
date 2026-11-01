@@ -794,7 +794,10 @@ def oeffentliches_event(slug: str, event_id: int, response: Response, db: Sessio
     e = _event(db, t, event_id)
     if T.event_einfrieren(db, e):
         db.commit()
-    return {"team": {**_kurz(t, False, db), "bestenlisten_oeffentlich": True}, "event": T.event_out(db, t, e, gast=True)}
+    # anmeldungen_zulassen: fuer den Knopf „Anmelden und beitreten" auf der Event-Seite (01.11.2026).
+    return {"team": {**_kurz(t, False, db), "bestenlisten_oeffentlich": True,
+                     "anmeldungen_zulassen": bool(t.anmeldungen_zulassen)},
+            "event": T.event_out(db, t, e, gast=True)}
 
 
 # ---------------------------------------------------------------------------------- Admin ----

@@ -2471,6 +2471,8 @@ const gsw: Record<string, string> = {
   "team.zurueckziehenFrage": "Aafrog zruggzieh?",
   "team.gastHinweis": "Uf pumpfoil.org zeichnisch dini Pumpfoil-Sessions uf und vergliichsch di mit dim Team.",
   "team.join.knopf": "Biitrete",
+  "team.join.anmeldenKnopf": "Aamälde und biitrete",
+  "team.join.eventHinweis": "Mitmache? Tritt „{name}“ bii, denn zelled dini Sessions do mit.",
   "team.join.title": "„{name}“ biitrete",
   "team.join.direkt": "Du wirsch sofort Mitglied.",
   "team.join.anfrage": "Dini Aafrog gaht a d Teamleitig, die entscheidet.",

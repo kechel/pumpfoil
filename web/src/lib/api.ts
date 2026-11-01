@@ -2089,7 +2089,7 @@ export const api = {
   teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events`),
   teamEvent: (slug: string, id: number | string) => req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`),
   teamEventOeffentlich: (slug: string, id: number | string) =>
-    req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}`),
+    req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean; anmeldungen_zulassen?: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}`),
   teamEventBanner: async (slug: string, id: number, file: File) =>
     uploadFile<{ banner_url: string; banner_fokus: string }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/banner`, file),
   teamEventBannerFokus: (slug: string, id: number, fokus: string) =>

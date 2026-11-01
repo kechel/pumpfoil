@@ -2476,6 +2476,8 @@ const deAT: Record<string, string> = {
   "team.zurueckziehenFrage": "Anfrage zurückziehen?",
   "team.gastHinweis": "Auf pumpfoil.org zeichnest deine Pumpfoil-Sessions auf und vergleichst di mit deinem Team.",
   "team.join.knopf": "Beitreten",
+  "team.join.anmeldenKnopf": "Anmelden und beitreten",
+  "team.join.eventHinweis": "Mitmachen? Tritt „{name}“ bei, dann zählen deine Sessions hier mit.",
   "team.join.title": "„{name}“ beitreten",
   "team.join.direkt": "Du bist sofort Mitglied.",
   "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, die entscheidet.",

@@ -2584,6 +2584,8 @@ const zh: Record<string, string> = {
   "team.zurueckziehenFrage": "撤回你的申请？",
   "team.gastHinweis": "在 pumpfoil.org 上，你可以记录自己的 Pumpfoil 训练，并与团队成员比较。",
   "team.join.knopf": "加入",
+  "team.join.anmeldenKnopf": "登录并加入",
+  "team.join.eventHinweis": "想参加吗？加入“{name}”，你的记录就会计入这里。",
   "team.join.title": "加入“{name}”",
   "team.join.direkt": "你将立即成为成员。",
   "team.join.anfrage": "你的申请将发送给团队负责人，由其决定。",

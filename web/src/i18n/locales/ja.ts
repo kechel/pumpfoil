@@ -2583,6 +2583,8 @@ const ja: Record<string, string> = {
   "team.zurueckziehenFrage": "申請を取り消しますか？",
   "team.gastHinweis": "pumpfoil.org では、パンプフォイルのセッションを記録して、チームの仲間と比べられます。",
   "team.join.knopf": "参加",
+  "team.join.anmeldenKnopf": "ログインして参加",
+  "team.join.eventHinweis": "参加しませんか？「{name}」に参加すると、あなたのセッションもここで集計されます。",
   "team.join.title": "「{name}」に参加",
   "team.join.direkt": "すぐにメンバーになります。",
   "team.join.anfrage": "申請はチームリーダーに届き、リーダーが判断します。",

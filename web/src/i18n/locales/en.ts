@@ -2684,6 +2684,8 @@ const en: Record<string, string> = {
   "team.zurueckziehenFrage": "Withdraw your request?",
   "team.gastHinweis": "On pumpfoil.org you record your pump foil sessions and compare yourself with your team.",
   "team.join.knopf": "Join",
+  "team.join.anmeldenKnopf": "Log in and join",
+  "team.join.eventHinweis": "Want to take part? Join “{name}” and your sessions count here.",
   "team.join.title": "Join “{name}”",
   "team.join.direkt": "You'll become a member right away.",
   "team.join.anfrage": "Your request goes to the team lead, who decides.",

@@ -13,7 +13,8 @@ import TeamTafelBild from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
 import { EVENT_SUMMEN, eventGemessen } from "../lib/teamKennzahlen";
 import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
-import { Tafel } from "./Team";
+import { BeitrittDialog, Tafel } from "./Team";
+import { fehlerCode } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
 
 /** Wie die Ergebnisse heissen: vorher Details, waehrenddessen aktueller Stand, danach Ergebnis. */
@@ -101,7 +102,10 @@ export default function TeamEventSeite() {
   const { slug = "", id = "" } = useParams();
   const { t, lang } = useI18n();
   const gast = !getToken();
-  const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean; meine_rolle?: TeamRolle | null }) | null>(null);
+  const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean; meine_rolle?: TeamRolle | null;
+    anmeldungen_zulassen?: boolean; automatisch_akzeptieren?: boolean; oeffentlich?: boolean; mein_status?: string | null }) | null>(null);
+  const [dialog, setDialog] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [ev, setEv] = useState<TeamEvent | null>(null);
   const [fehlt, setFehlt] = useState(false);
   const [bild, setBild] = useState<TeamTafelMitZeilen | null>(null);
@@ -135,6 +139,17 @@ export default function TeamEventSeite() {
   const popupZu = () => {
     setPopup(false);
     api.teamEvent(slug, id).then(setEv).catch(() => nav(`/teams/${slug}`, { replace: true }));   // geloescht -> zurueck zum Team
+  };
+
+  // Beitreten direkt vom Event aus (Jan, 01.11.2026) — wer ueber einen geteilten Event-Link kommt, soll nicht erst
+  // die Teamseite suchen muessen. Gaeste melden sich an und landen danach wieder hier.
+  const beitreten = () => {
+    setBusy(true);
+    api.teamBeitreten(slug).then((r) => {
+      setDialog(false);
+      setMeldung(r.status === "aktiv" ? t("team.join.erfolg") : t("team.join.angefragt"));
+      api.team(slug).then(setTeam).catch(() => {});
+    }).catch((e) => setMeldung(t(`team.err.${fehlerCode(e)}`))).finally(() => setBusy(false));
   };
 
   if (fehlt) return <p className="text-sm text-slate-400">{t("team.nichtGefunden")}</p>;
@@ -175,6 +190,20 @@ export default function TeamEventSeite() {
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm font-semibold text-slate-200">{ev.beschreibung}</p>}
       </div>
 
+      {team.anmeldungen_zulassen && (gast || !team.mein_status) && (
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          {gast ? (
+            <Link to={`/login?next=${encodeURIComponent(`/teams/${team.slug}/events/${ev.id}`)}`} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">
+              {t("team.join.anmeldenKnopf")}
+            </Link>
+          ) : (
+            <button onClick={() => setDialog(true)} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">{t("team.join.knopf")}</button>
+          )}
+          <span className="text-sm text-slate-400">{t("team.join.eventHinweis", { name: team.name })}</span>
+        </div>
+      )}
+      {!gast && team.mein_status === "angefragt" && <p className="mb-4 text-sm text-slate-300">{t("team.join.wartet")}</p>}
+
       <h3 className="mb-2 text-lg font-bold text-slate-100">{t(eventStandKey(ev.status))}</h3>
       {ev.status === "kommend" ? (
         <Countdown ev={ev} lang={lang} t={t} />
@@ -210,6 +239,11 @@ export default function TeamEventSeite() {
       {popup && (
         <TeamEventsVerwalten slug={team.slug} farbe={team.farbe} sports={sports} bands={bands} alleSpots={alleSpots}
           onMeldung={setMeldung} nurEvent={ev} onZu={popupZu} />
+      )}
+
+      {dialog && (
+        <BeitrittDialog name={team.name} oeffentlich={!!team.oeffentlich} freigabeNoetig={!team.automatisch_akzeptieren}
+          busy={busy} onJa={beitreten} onNein={() => setDialog(false)} />
       )}
 
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} />}
