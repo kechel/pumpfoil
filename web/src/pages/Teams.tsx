@@ -7,7 +7,7 @@ import { api, TeamKurz } from "../lib/api";
 import { Card } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
-import { fehlerCode } from "../lib/teamKennzahlen";
+import { fehlerCode, sportartenText } from "../lib/teamKennzahlen";
 import { RegelnLink } from "./TeamRegeln";
 import { useI18n } from "../i18n";
 
@@ -68,6 +68,7 @@ export default function Teams() {
                   {m.status === "angefragt" ? t("team.join.wartet") : t(`team.rolle.${m.rolle}`)}
                   {m.freigabe && m.freigabe !== "frei" && <> · {t(`team.freigabe.${m.freigabe}`)}</>}
                 </span>
+                {!!m.sportarten?.length && <span className="block truncate text-xs text-slate-400">{sportartenText(m.sportarten, t)}</span>}
               </span>
               {m.anfragen > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{m.anfragen}</span>}
               <ChevronIcon className="h-5 w-5 text-slate-400" />

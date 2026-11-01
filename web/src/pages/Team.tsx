@@ -16,7 +16,7 @@ import { RegelnLink } from "./TeamRegeln";
 import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
-import { fehlerCode, kennzahl } from "../lib/teamKennzahlen";
+import { fehlerCode, kennzahl, sportartenText, tafelKurz } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
 
 const ZEITRAEUME: [string, string][] = [
@@ -260,6 +260,7 @@ export default function Team() {
             {t("team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
             {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
           </p>
+          {!!kopf.sportarten?.length && <p className="text-sm text-slate-400">{sportartenText(kopf.sportarten, t)}</p>}
           {kopf.beschreibung && <p className="mt-2 whitespace-pre-line text-sm text-slate-300">{kopf.beschreibung}</p>}
         </div>
         {(kopf.meine_rolle === "leiter" || kopf.meine_rolle === "moderator") && (
@@ -306,6 +307,11 @@ export default function Team() {
                 {eventZeit(e.start, e.zeitzone, lang)} – {eventZeit(e.ende, e.zeitzone, lang)}
                 {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
               </p>
+              {e.tafeln.length > 0 && (
+                <p className="text-sm text-slate-300">
+                  {t("team.event.gemessen")}: {e.tafeln.map((tf) => tafelKurz(tf, t)).join(" · ")}
+                </p>
+              )}
               {e.status === "auswertung" && <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(e.einfrieren_am, e.zeitzone, lang) })}</p>}
               {e.status !== "beendet" && <RegelnLink abschnitt="events" className="text-xs" />}
               {e.beschreibung && <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{e.beschreibung}</p>}

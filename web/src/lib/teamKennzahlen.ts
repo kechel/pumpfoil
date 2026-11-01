@@ -28,6 +28,17 @@ export function kennzahl(key: string) {
   return TEAM_KENNZAHLEN.find((k) => k.key === key) ?? { key, labelKey: key, fmt: (v: number) => String(v) };
 }
 
+/** Sportarten eines Teams kurz und knapp („Pumpfoil · Wingfoil"), in der Reihenfolge seiner Bestenlisten. */
+export function sportartenText(sp: string[] | undefined, t: (k: string) => string): string {
+  return (sp ?? []).map((s) => t(`cls.sport.${s}`)).join(" · ");
+}
+
+/** Was eine Bestenliste misst, in einem Stueck: Kennzahl, dahinter die Sportart, wenn es nicht Pumpfoil ist. */
+export function tafelKurz(tf: { kennzahl: string; sportart: string }, t: (k: string) => string): string {
+  const name = t(kennzahl(tf.kennzahl).labelKey);
+  return tf.sportart !== "pumpfoil" ? `${name} (${t(`cls.sport.${tf.sportart}`)})` : name;
+}
+
 /** Einladungs- bzw. Teamadresse fuer Links und QR-Codes. */
 export function teamUrl(pfad: string): string {
   return `${window.location.origin}${pfad}`;

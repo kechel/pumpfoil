@@ -2628,6 +2628,7 @@ const ja: Record<string, string> = {
   "team.event.ende": "終了",
   "team.event.spots": "スポット",
   "team.event.alleSpots": "すべてのスポット",
+  "team.event.gemessen": "計測項目",
   "team.event.loeschenFrage": "イベント「{titel}」を削除しますか？",
   "team.event.status.kommend": "開催予定",
   "team.event.status.laeuft": "開催中",

@@ -64,8 +64,10 @@ def _verwalter(db: Session, slug: str, user: models.User) -> tuple[models.Team, 
     return t, m
 
 
-def _kurz(t: models.Team, intern: bool) -> dict:
-    return {"id": t.id, **T.auftritt(t, intern)}
+def _kurz(t: models.Team, intern: bool, db: Session, sportarten: list[str] | None = None) -> dict:
+    if sportarten is None:
+        sportarten = T.sportarten(db, [t.id])[t.id]
+    return {"id": t.id, **T.auftritt(t, intern), "sportarten": sportarten}
 
 
 def _team_out(db: Session, t: models.Team, m: models.TeamMitglied | None) -> dict:
@@ -74,7 +76,7 @@ def _team_out(db: Session, t: models.Team, m: models.TeamMitglied | None) -> dic
     anzahl = int(db.query(func.count(models.TeamMitglied.id))
                  .filter_by(team_id=t.id, status="aktiv").scalar() or 0)
     out = {
-        **_kurz(t, intern),
+        **_kurz(t, intern, db),
         "mitglieder_anzahl": anzahl,
         "oeffentlich": bool(t.oeffentlich),
         "bestenlisten_oeffentlich": T.bestenlisten_oeffentlich(t),
@@ -170,12 +172,14 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
     """Meine Teams (aktiv + angefragt) — fuer Home-Links und die Profilseite."""
     M = models.TeamMitglied
     out = []
-    for m, t in (db.query(M, models.Team).join(models.Team, models.Team.id == M.team_id)
-                 .filter(M.user_id == user.id).order_by(M.seit.asc()).all()):
+    zeilen = (db.query(M, models.Team).join(models.Team, models.Team.id == M.team_id)
+              .filter(M.user_id == user.id).order_by(M.seit.asc()).all())
+    sp = T.sportarten(db, [t.id for _m, t in zeilen])
+    for m, t in zeilen:
         offen = 0
         if T.darf_verwalten(m):
             offen = int(db.query(func.count(M.id)).filter_by(team_id=t.id, status="angefragt").scalar() or 0)
-        out.append({**_kurz(t, True), "rolle": m.rolle, "status": m.status, "anfragen": offen,
+        out.append({**_kurz(t, True, db, sp[t.id]), "rolle": m.rolle, "status": m.status, "anfragen": offen,
                     "freigabe": t.freigabe if T.ist_leiter(m) else None})
     return out
 
@@ -186,7 +190,8 @@ def liste(_u: models.User = Depends(current_user), db: Session = Depends(get_db)
     M = models.TeamMitglied
     zahl = dict(db.query(M.team_id, func.count(M.id)).filter(M.status == "aktiv").group_by(M.team_id).all())
     teams = db.query(models.Team).filter(models.Team.frei_am.isnot(None)).all()
-    out = [{**_kurz(t, False), "mitglieder_anzahl": int(zahl.get(t.id, 0)),
+    sp = T.sportarten(db, [t.id for t in teams])
+    out = [{**_kurz(t, False, db, sp[t.id]), "mitglieder_anzahl": int(zahl.get(t.id, 0)),
             "anmeldungen_zulassen": bool(t.anmeldungen_zulassen),
             "bestenlisten_oeffentlich": T.bestenlisten_oeffentlich(t)} for t in teams]
     out.sort(key=lambda x: (-x["mitglieder_anzahl"], (x["name"] or "").lower()))
@@ -205,7 +210,7 @@ def einladung_ansehen(token: str, user: models.User = Depends(current_user), db:
         raise _404()
     t = db.get(models.Team, e.team_id)
     m = T.mitglied(db, t.id, user.id)
-    return {**_kurz(t, True), "art": e.art, "oeffentlich": bool(t.oeffentlich),
+    return {**_kurz(t, True, db), "art": e.art, "oeffentlich": bool(t.oeffentlich),
             "mein_status": m.status if m else None}
 
 
@@ -633,7 +638,7 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", db: Session 
         raise _404()
     period = period if period in PERIODS else "30d"
     ids = T.mitglieder_ids(db, t.id)
-    return {**_kurz(t, False), "mitglieder_anzahl": len(ids), "period": period,
+    return {**_kurz(t, False, db), "mitglieder_anzahl": len(ids), "period": period,
             "tafeln": [{**T.tafel_out(tf), "zeilen": T.fuer_gast(T.tafel_berechnen(db, t, tf, period, ids))}
                        for tf in T.tafeln(db, t.id)],
             # Events sind Bestenlisten mit Zeitfenster -> in derselben Gastform (ohne Spots).

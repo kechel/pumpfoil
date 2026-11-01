@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamListenEintrag } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
+import { sportartenText } from "../lib/teamKennzahlen";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
@@ -703,7 +704,10 @@ function TeamsSection() {
               <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={40} />
               <span className="min-w-0 flex-1">
                 <span className="team-akzent block truncate font-semibold">{tm.name}</span>
-                <span className="block text-xs text-slate-400">{t("team.mitgliederAnzahl", { n: String(tm.mitglieder_anzahl) })}</span>
+                <span className="block truncate text-xs text-slate-400">
+                  {t("team.mitgliederAnzahl", { n: String(tm.mitglieder_anzahl) })}
+                  {!!tm.sportarten?.length && <> · {sportartenText(tm.sportarten, t)}</>}
+                </span>
               </span>
             </Link>
           ))}

@@ -135,7 +135,8 @@ def test_freigabe_nur_fuer_den_auftritt(client):
     assert client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True}).json()["freigabe"] == "frei"
     # Jetzt sichtbar fuer Fremde, in der Liste und ohne Login.
     assert client.get(f"/api/teams/{slug}", headers=kb).json()["name"] == "Freigabeteam Vier"
-    assert slug in {t["slug"] for t in client.get("/api/teams/liste", headers=kb).json()}
+    eintrag = next(t for t in client.get("/api/teams/liste", headers=kb).json() if t["slug"] == slug)
+    assert eintrag["sportarten"] == ["pumpfoil"]   # aus den Standard-Bestenlisten, ohne Doppelte
     assert client.get(f"/api/public/teams/{slug}").status_code == 200
     # Umbenennen: intern sofort, aussen erst nach neuer Freigabe; alte Adresse fuehrt weiter hin.
     r = client.put(f"/api/teams/{slug}", headers=ka, json={"name": "Neuer Name Vier", "slug": "neuer-name-vier"})

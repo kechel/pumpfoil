@@ -2518,6 +2518,7 @@ const gsw: Record<string, string> = {
   "team.event.ende": "Änd",
   "team.event.spots": "Spots",
   "team.event.alleSpots": "Alli Spots",
+  "team.event.gemessen": "Gmässe",
   "team.event.loeschenFrage": "Event „{titel}“ lösche?",
   "team.event.status.kommend": "chunnt",
   "team.event.status.laeuft": "lauft",

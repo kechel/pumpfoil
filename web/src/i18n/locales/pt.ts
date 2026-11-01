@@ -2632,6 +2632,7 @@ const pt: Record<string, string> = {
   "team.event.ende": "Fim",
   "team.event.spots": "Spots",
   "team.event.alleSpots": "Todos os spots",
+  "team.event.gemessen": "Medido",
   "team.event.loeschenFrage": "Excluir o evento “{titel}”?",
   "team.event.status.kommend": "em breve",
   "team.event.status.laeuft": "ao vivo",

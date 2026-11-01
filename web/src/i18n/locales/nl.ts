@@ -2686,6 +2686,7 @@ const nl: Record<string, string> = {
   "team.event.ende": "Einde",
   "team.event.spots": "Spots",
   "team.event.alleSpots": "Alle spots",
+  "team.event.gemessen": "Gemeten",
   "team.event.loeschenFrage": "Event „{titel}” verwijderen?",
   "team.event.status.kommend": "komt eraan",
   "team.event.status.laeuft": "loopt",

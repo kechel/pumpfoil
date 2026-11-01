@@ -436,6 +436,20 @@ def tafeln(db: Session, team_id: int) -> list[models.TeamTafel]:
 STANDARD_TAFELN = ("session_pumps", "distance", "speed", "sum_pumps")
 
 
+def sportarten(db: Session, team_ids: list[int]) -> dict[int, list[str]]:
+    """Welche Sportarten ein Team misst (Jan, 01.11.2026: Uebersicht und Community-Karte sollen „ganz kurz
+    und knapp auflisten welche sportarten darin vorkommen"): die Sportarten seiner Bestenlisten, ohne Doppelte."""
+    T = models.TeamTafel
+    out: dict[int, list[str]] = {i: [] for i in team_ids}
+    if not team_ids:
+        return out
+    for tid, sp in (db.query(T.team_id, T.sportart).filter(T.team_id.in_(team_ids))
+                    .order_by(T.team_id, T.reihenfolge, T.id).all()):
+        if sp not in out[tid]:
+            out[tid].append(sp)
+    return out
+
+
 # -------------------------------------------------------------------------- Teamstatistik ----
 
 def statistik(db: Session, team: models.Team, period: str, sportart: str = "pumpfoil") -> dict:

@@ -2632,6 +2632,7 @@ const ru: Record<string, string> = {
   "team.event.ende": "Конец",
   "team.event.spots": "Споты",
   "team.event.alleSpots": "Все споты",
+  "team.event.gemessen": "Измеряется",
   "team.event.loeschenFrage": "Удалить событие «{titel}»?",
   "team.event.status.kommend": "скоро",
   "team.event.status.laeuft": "идёт",

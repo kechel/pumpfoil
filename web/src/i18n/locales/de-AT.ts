@@ -2523,6 +2523,7 @@ const deAT: Record<string, string> = {
   "team.event.ende": "Ende",
   "team.event.spots": "Spots",
   "team.event.alleSpots": "Alle Spots",
+  "team.event.gemessen": "Gemessen",
   "team.event.loeschenFrage": "Event „{titel}“ löschen?",
   "team.event.status.kommend": "kommt",
   "team.event.status.laeuft": "rennt",

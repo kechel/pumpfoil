@@ -2667,6 +2667,7 @@ const fi: Record<string, string> = {
   "team.event.ende": "Loppu",
   "team.event.spots": "Spotit",
   "team.event.alleSpots": "Kaikki spotit",
+  "team.event.gemessen": "Mitataan",
   "team.event.loeschenFrage": "Poistetaanko tapahtuma ”{titel}”?",
   "team.event.status.kommend": "tulossa",
   "team.event.status.laeuft": "käynnissä",
