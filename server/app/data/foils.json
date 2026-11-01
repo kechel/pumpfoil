@@ -367,6 +367,33 @@
   {
     "brand": "TAKOON",
     "model": "PUMP PRO",
+    "size": "950",
+    "span_cm": 112,
+    "area_cm2": 950,
+    "thickness_mm": 15.6,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
+    "size": "1150",
+    "span_cm": 122,
+    "area_cm2": 1150,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
+    "size": "1250",
+    "span_cm": 128,
+    "area_cm2": 1250,
+    "thickness_mm": 17.6,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
     "size": "1350",
     "span_cm": 133,
     "area_cm2": 1350,
