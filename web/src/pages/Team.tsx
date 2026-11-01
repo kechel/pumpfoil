@@ -53,16 +53,14 @@ export function BeitrittDialog({ name, oeffentlich, freigabeNoetig, busy, onJa, 
 /** Volle Teamadresse zum Teilen (Jan, 31.10.2026: „das muss klar und einfach kommuniziert werden, dass das eine
  *  adresse ist, die man veroeffentlichen / teilen kann, auch an menschen ohne login"). Der Satz darunter sagt,
  *  was Gaeste dort gerade WIRKLICH sehen — haengt an Freigabe und Schalter „Bestenlisten oeffentlich". */
-function TeamAdresse({ kopf, t }: { kopf: Kopf; t: (k: string, p?: Record<string, string>) => string }) {
+function TeamAdresse({ kopf, t, kompakt = false }: { kopf: Kopf; t: (k: string, p?: Record<string, string>) => string; kompakt?: boolean }) {
   const url = `${window.location.origin}/teams/${kopf.slug}`;
   const [kopiert, setKopiert] = useState(false);
   const zustand = kopf.bestenlisten_oeffentlich ? "oeffentlich" : kopf.oeffentlich ? "wartet" : "intern";
-  return (
-    <Card className="mb-4 p-4">
-      <p className="mb-1 text-sm font-semibold text-slate-100">{t("team.adresseTeilen.titel")}</p>
-      <div className="flex flex-wrap items-center gap-2">
+  const zeile = (
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
         <input readOnly value={url} onFocus={(e) => e.currentTarget.select()}
-          className="min-w-0 flex-1 rounded-lg bg-slate-950 px-3 py-2 font-mono text-sm text-slate-100" />
+          className="min-w-[14rem] flex-1 rounded-lg bg-slate-950 px-3 py-2 font-mono text-sm text-slate-100" />
         <button className="team-knopf rounded-xl px-3 py-2 text-sm font-semibold"
           onClick={() => navigator.clipboard?.writeText(url).then(() => { setKopiert(true); setTimeout(() => setKopiert(false), 2000); }).catch(() => {})}>
           {kopiert ? t("team.kopiert") : t("team.kopieren")}
@@ -72,6 +70,13 @@ function TeamAdresse({ kopf, t }: { kopf: Kopf; t: (k: string, p?: Record<string
             onClick={() => navigator.share({ url, title: kopf.name }).catch(() => {})}>{t("team.teilen")}</button>
         )}
       </div>
+  );
+  // Fremde (Jan, 01.11.2026): nur die Zeile neben „Beitreten“, ohne Karte und ohne Erklaerung.
+  if (kompakt) return zeile;
+  return (
+    <Card className="mb-4 p-4">
+      <p className="mb-1 text-sm font-semibold text-slate-100">{t("team.adresseTeilen.titel")}</p>
+      {zeile}
       <p className={`mt-2 text-sm ${zustand === "oeffentlich" ? "text-slate-300" : "text-amber-700 dark:text-amber-300"}`}>
         {t(`team.adresseTeilen.${zustand}`)}
       </p>
@@ -273,10 +278,15 @@ export default function Team() {
 
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
 
-      {!gast && !kopf.mein_status && kopf.anmeldungen_zulassen && (
-        <button onClick={() => setDialog(true)} className="team-knopf mb-4 rounded-xl px-4 py-2.5 font-semibold">
-          {t("team.join.knopf")}
-        </button>
+      {!gast && kopf.mein_status !== "aktiv" && ((!kopf.mein_status && kopf.anmeldungen_zulassen) || kopf.bestenlisten_oeffentlich) && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {!kopf.mein_status && kopf.anmeldungen_zulassen && (
+            <button onClick={() => setDialog(true)} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">
+              {t("team.join.knopf")}
+            </button>
+          )}
+          {kopf.bestenlisten_oeffentlich && <TeamAdresse kopf={kopf} t={t} kompakt />}
+        </div>
       )}
       {kopf.mein_status === "angefragt" && (
         <p className="mb-4 text-sm text-slate-300">{t("team.join.wartet")}{" "}
@@ -284,9 +294,9 @@ export default function Team() {
         </p>
       )}
 
-      {/* Mitglieder sehen die Adresse immer (mit Hinweis, ob Gaeste dort schon etwas sehen); Fremde nur, wenn das
-          Team oeffentlich UND freigegeben ist (Jan, 01.11.2026) — dann zeigt sie die freigegebene Fassung. */}
-      {!gast && (kopf.mein_status === "aktiv" || kopf.bestenlisten_oeffentlich) && <TeamAdresse kopf={kopf} t={t} />}
+      {/* Mitglieder sehen die Adresse immer, mit Hinweis, ob Gaeste dort schon etwas sehen; Fremde nur kompakt neben
+          „Beitreten“, wenn das Team oeffentlich UND freigegeben ist (Jan, 01.11.2026). */}
+      {kopf.mein_status === "aktiv" && <TeamAdresse kopf={kopf} t={t} />}
 
       {kopf.chat_scope && (
         <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
