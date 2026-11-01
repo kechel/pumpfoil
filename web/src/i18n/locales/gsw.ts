@@ -2543,7 +2543,7 @@ const gsw: Record<string, string> = {
   "team.event.nochNichts": "D Bestelischte chömed, sobald s Event lauft.",
   "team.event.startIn": "Startet in",
   "team.eventbild.titel": "Eventbild",
-  "team.eventbild.hinweis": "Breits Bild obe uf de Event-Siite, am beschte 1600 × 500 px (mindeschtens 800 px breit). Tipp is Bild uf d Stell, wo immer sichtbar blibe söll. Nur für Aagmäldeti sichtbar, nöd uf de öffentliche Siite.",
+  "team.eventbild.hinweis": "Breits Bild obe uf de Event-Siite, am beschte 1600 × 500 px (mindeschtens 800 px breit). Tipp is Bild uf d Stell, wo immer sichtbar blibe söll.",
   "team.eventbild.hochladen": "Eventbild ufelade",
   "team.eventbild.entfernen": "Eventbild useneh",
   "team.event.teilen": "Teile:",

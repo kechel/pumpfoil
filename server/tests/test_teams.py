@@ -524,5 +524,5 @@ def test_eventbild_einzeln_und_oeffentlich(client):
     tid = next(x["id"] for x in client.get("/api/admin/teams", headers=adm).json() if x["neu"]["slug"] == slug)
     client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
     pub = client.get(f"/api/public/teams/{slug}/events/{ev['id']}").json()
-    assert pub["event"]["titel"] == "Bild-Event" and pub["event"]["banner_url"] is None   # Gaeste ohne Eventbild
+    assert pub["event"]["titel"] == "Bild-Event" and pub["event"]["banner_url"] == r.json()["banner_url"]   # ohne Freigabe (Jan)
     assert client.delete(f"/api/teams/{slug}/events/{ev['id']}/banner", headers=ka).json()["banner_url"] is None

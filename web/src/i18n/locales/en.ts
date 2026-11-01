@@ -2757,7 +2757,7 @@ const en: Record<string, string> = {
   "team.event.nochNichts": "The leaderboards appear once the event is running.",
   "team.event.startIn": "Starts in",
   "team.eventbild.titel": "Event banner",
-  "team.eventbild.hinweis": "Wide image at the top of the event page, ideally 1600 × 500 px (at least 800 px wide). Tap the spot that should always stay visible. Only signed-in users see it, not the public page.",
+  "team.eventbild.hinweis": "Wide image at the top of the event page, ideally 1600 × 500 px (at least 800 px wide). Tap the spot that should always stay visible.",
   "team.eventbild.hochladen": "Upload event banner",
   "team.eventbild.entfernen": "Remove event banner",
   "team.event.teilen": "Share:",

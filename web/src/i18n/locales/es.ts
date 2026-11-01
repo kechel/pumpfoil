@@ -2540,7 +2540,7 @@ const es: Record<string, string> = {
   "team.event.nochNichts": "Las clasificaciones aparecen en cuanto empieza el evento.",
   "team.event.startIn": "Empieza en",
   "team.eventbild.titel": "Imagen del evento",
-  "team.eventbild.hinweis": "Imagen ancha arriba en la página del evento, idealmente 1600 × 500 px (al menos 800 px de ancho). Toca el punto que siempre debe quedar visible. Solo la ven usuarios con sesión iniciada, no la página pública.",
+  "team.eventbild.hinweis": "Imagen ancha arriba en la página del evento, idealmente 1600 × 500 px (al menos 800 px de ancho). Toca el punto que siempre debe quedar visible.",
   "team.eventbild.hochladen": "Subir imagen del evento",
   "team.eventbild.entfernen": "Quitar imagen del evento",
   "team.event.teilen": "Compartir:",

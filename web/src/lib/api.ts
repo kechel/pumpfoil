@@ -2190,7 +2190,7 @@ export interface TeamEvent {
   vorlage: string | null; status: "kommend" | "laeuft" | "auswertung" | "beendet";
   spots: { id: number; name: string | null }[]; spot_ids: number[]; einfrieren_am: string;
   tafeln: TeamTafelMitZeilen[];
-  /** nur fuer Angemeldete; Gaeste bekommen null (Eventbild laeuft durch keine Freigabe) */
+  /** Eventbild, auch fuer Gaeste (ohne Freigabe, Jans Entscheidung 01.11.2026) */
   banner_url?: string | null; banner_fokus?: string | null;
 }
 export interface TeamAbzeichen {

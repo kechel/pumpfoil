@@ -2651,7 +2651,7 @@ const ptPT: Record<string, string> = {
   "team.event.nochNichts": "As classificações aparecem assim que o evento começar.",
   "team.event.startIn": "Começa daqui a",
   "team.eventbild.titel": "Banner do evento",
-  "team.eventbild.hinweis": "Imagem larga no topo da página do evento, de preferência 1600 × 500 px (pelo menos 800 px de largura). Toca no ponto que deve ficar sempre visível. Só quem tem sessão iniciada o vê, não a página pública.",
+  "team.eventbild.hinweis": "Imagem larga no topo da página do evento, de preferência 1600 × 500 px (pelo menos 800 px de largura). Toca no ponto que deve ficar sempre visível.",
   "team.eventbild.hochladen": "Carregar banner do evento",
   "team.eventbild.entfernen": "Remover banner do evento",
   "team.event.teilen": "Partilhar:",

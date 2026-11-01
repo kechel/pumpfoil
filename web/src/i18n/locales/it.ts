@@ -2540,7 +2540,7 @@ const it: Record<string, string> = {
   "team.event.nochNichts": "Le classifiche compaiono non appena l'evento è in corso.",
   "team.event.startIn": "Inizia tra",
   "team.eventbild.titel": "Immagine dell'evento",
-  "team.eventbild.hinweis": "Immagine larga in cima alla pagina dell'evento, ideale 1600 × 500 px (almeno 800 px di larghezza). Tocca il punto che deve restare sempre visibile. La vedono solo gli utenti connessi, non la pagina pubblica.",
+  "team.eventbild.hinweis": "Immagine larga in cima alla pagina dell'evento, ideale 1600 × 500 px (almeno 800 px di larghezza). Tocca il punto che deve restare sempre visibile.",
   "team.eventbild.hochladen": "Carica immagine dell'evento",
   "team.eventbild.entfernen": "Rimuovi immagine dell'evento",
   "team.event.teilen": "Condividi:",

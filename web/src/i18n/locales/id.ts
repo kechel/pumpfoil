@@ -2657,7 +2657,7 @@ const id: Record<string, string> = {
   "team.event.nochNichts": "Papan peringkat muncul begitu event berlangsung.",
   "team.event.startIn": "Mulai dalam",
   "team.eventbild.titel": "Banner event",
-  "team.eventbild.hinweis": "Gambar lebar di bagian atas halaman event, idealnya 1600 × 500 px (minimal lebar 800 px). Ketuk titik yang harus selalu terlihat. Hanya terlihat oleh pengguna yang masuk, tidak di halaman publik.",
+  "team.eventbild.hinweis": "Gambar lebar di bagian atas halaman event, idealnya 1600 × 500 px (minimal lebar 800 px). Ketuk titik yang harus selalu terlihat.",
   "team.eventbild.hochladen": "Unggah banner event",
   "team.eventbild.entfernen": "Hapus banner event",
   "team.event.teilen": "Bagikan:",

@@ -2548,7 +2548,7 @@ const deAT: Record<string, string> = {
   "team.event.nochNichts": "Die Bestenlisten tauchen auf, sobald das Event läuft.",
   "team.event.startIn": "Startet in",
   "team.eventbild.titel": "Eventbild",
-  "team.eventbild.hinweis": "Breites Bild oben auf der Event-Seite, am besten 1600 × 500 px (mindestens 800 px breit). Tipp ins Bild auf die Stelle, die immer sichtbar bleiben soll. Sichtbar nur für Angemeldete, nicht auf der öffentlichen Seite.",
+  "team.eventbild.hinweis": "Breites Bild oben auf der Event-Seite, am besten 1600 × 500 px (mindestens 800 px breit). Tipp ins Bild auf die Stelle, die immer sichtbar bleiben soll.",
   "team.eventbild.hochladen": "Eventbild hochladen",
   "team.eventbild.entfernen": "Eventbild entfernen",
   "team.event.teilen": "Teilen:",

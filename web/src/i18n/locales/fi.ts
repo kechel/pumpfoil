@@ -2692,7 +2692,7 @@ const fi: Record<string, string> = {
   "team.event.nochNichts": "Tulostaulukot näkyvät, kun tapahtuma on käynnissä.",
   "team.event.startIn": "Alkaa",
   "team.eventbild.titel": "Tapahtuman banneri",
-  "team.eventbild.hinweis": "Leveä kuva tapahtumasivun yläosassa, mieluiten 1600 × 500 px (vähintään 800 px leveä). Napauta kohtaa, jonka pitää aina näkyä. Näkyy vain kirjautuneille, ei julkisella sivulla.",
+  "team.eventbild.hinweis": "Leveä kuva tapahtumasivun yläosassa, mieluiten 1600 × 500 px (vähintään 800 px leveä). Napauta kohtaa, jonka pitää aina näkyä.",
   "team.eventbild.hochladen": "Lataa tapahtuman banneri",
   "team.eventbild.entfernen": "Poista tapahtuman banneri",
   "team.event.teilen": "Jaa:",

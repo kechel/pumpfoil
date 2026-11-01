@@ -2640,7 +2640,7 @@ const pl: Record<string, string> = {
   "team.event.nochNichts": "Rankingi pojawią się, gdy wydarzenie się rozpocznie.",
   "team.event.startIn": "Start za",
   "team.eventbild.titel": "Baner wydarzenia",
-  "team.eventbild.hinweis": "Szeroki obraz na górze strony wydarzenia, najlepiej 1600 × 500 px (co najmniej 800 px szerokości). Dotknij miejsca, które ma być zawsze widoczne. Widoczny tylko dla zalogowanych, nie na stronie publicznej.",
+  "team.eventbild.hinweis": "Szeroki obraz na górze strony wydarzenia, najlepiej 1600 × 500 px (co najmniej 800 px szerokości). Dotknij miejsca, które ma być zawsze widoczne.",
   "team.eventbild.hochladen": "Prześlij baner wydarzenia",
   "team.eventbild.entfernen": "Usuń baner wydarzenia",
   "team.event.teilen": "Udostępnij:",

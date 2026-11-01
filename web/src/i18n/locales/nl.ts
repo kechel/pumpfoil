@@ -2711,7 +2711,7 @@ const nl: Record<string, string> = {
   "team.event.nochNichts": "De ranglijsten verschijnen zodra het event loopt.",
   "team.event.startIn": "Begint over",
   "team.eventbild.titel": "Eventbanner",
-  "team.eventbild.hinweis": "Brede afbeelding bovenaan de eventpagina, het liefst 1600 × 500 px (minstens 800 px breed). Tik op de plek die altijd zichtbaar moet blijven. Alleen zichtbaar voor ingelogde gebruikers, niet op de openbare pagina.",
+  "team.eventbild.hinweis": "Brede afbeelding bovenaan de eventpagina, het liefst 1600 × 500 px (minstens 800 px breed). Tik op de plek die altijd zichtbaar moet blijven.",
   "team.eventbild.hochladen": "Eventbanner uploaden",
   "team.eventbild.entfernen": "Eventbanner verwijderen",
   "team.event.teilen": "Delen:",

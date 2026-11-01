@@ -2710,7 +2710,7 @@ const cs: Record<string, string> = {
   "team.event.nochNichts": "Žebříčky se objeví, jakmile akce začne.",
   "team.event.startIn": "Začíná za",
   "team.eventbild.titel": "Banner akce",
-  "team.eventbild.hinweis": "Široký obrázek nahoře na stránce akce, ideálně 1600 × 500 px (aspoň 800 px na šířku). Klepni na místo, které má být vždy vidět. Vidí ho jen přihlášení, ne veřejná stránka.",
+  "team.eventbild.hinweis": "Široký obrázek nahoře na stránce akce, ideálně 1600 × 500 px (aspoň 800 px na šířku). Klepni na místo, které má být vždy vidět.",
   "team.eventbild.hochladen": "Nahrát banner akce",
   "team.eventbild.entfernen": "Odebrat banner akce",
   "team.event.teilen": "Sdílet:",

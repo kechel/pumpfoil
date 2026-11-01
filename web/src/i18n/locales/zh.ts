@@ -2654,7 +2654,7 @@ const zh: Record<string, string> = {
   "team.event.nochNichts": "活动开始后将显示排行榜。",
   "team.event.startIn": "距离开始",
   "team.eventbild.titel": "活动横幅",
-  "team.eventbild.hinweis": "活动页面顶部的宽幅图片，最好是 1600 × 500 px（宽度至少 800 px）。点一下始终要保持可见的位置。仅登录用户可见，公开页面不显示。",
+  "team.eventbild.hinweis": "活动页面顶部的宽幅图片，最好是 1600 × 500 px（宽度至少 800 px）。点一下始终要保持可见的位置。",
   "team.eventbild.hochladen": "上传活动横幅",
   "team.eventbild.entfernen": "移除活动横幅",
   "team.event.teilen": "分享：",

@@ -2653,7 +2653,7 @@ const ja: Record<string, string> = {
   "team.event.nochNichts": "イベントが始まるとランキングが表示されます。",
   "team.event.startIn": "開始まで",
   "team.eventbild.titel": "イベントバナー",
-  "team.eventbild.hinweis": "イベントページ上部の横長画像。1600 × 500 px が理想です（幅 800 px 以上）。常に見えていてほしい場所をタップしてください。ログインしているユーザーのみ表示され、公開ページには表示されません。",
+  "team.eventbild.hinweis": "イベントページ上部の横長画像。1600 × 500 px が理想です（幅 800 px 以上）。常に見えていてほしい場所をタップしてください。",
   "team.eventbild.hochladen": "イベントバナーをアップロード",
   "team.eventbild.entfernen": "イベントバナーを削除",
   "team.event.teilen": "共有：",

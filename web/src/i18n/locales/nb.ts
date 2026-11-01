@@ -2632,7 +2632,7 @@ const nb: Record<string, string> = {
   "team.event.nochNichts": "Listene vises når arrangementet er i gang.",
   "team.event.startIn": "Starter om",
   "team.eventbild.titel": "Arrangementsbanner",
-  "team.eventbild.hinweis": "Bredt bilde øverst på arrangementssiden, helst 1600 × 500 px (minst 800 px bredt). Trykk på stedet som alltid skal være synlig. Bare innloggede ser det, ikke den offentlige siden.",
+  "team.eventbild.hinweis": "Bredt bilde øverst på arrangementssiden, helst 1600 × 500 px (minst 800 px bredt). Trykk på stedet som alltid skal være synlig.",
   "team.eventbild.hochladen": "Last opp arrangementsbanner",
   "team.eventbild.entfernen": "Fjern arrangementsbanner",
   "team.event.teilen": "Del:",
