@@ -1508,6 +1508,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Pumpfoil-Laeufen reichen 54 % fuer 100 m (365 Fahrer), 25 % fuer 200 m (287), 5,8 % fuer 500 m (113), 2 % fuer
   1 km (55). Offen: wo anzeigen (Team-Tafeln/Events sicher; Community-Rekorde?), GPS-Spruenge abfangen (Strecke
   aus Positionen, Glitch-Waechter aus gps.clean_speed_series beachten).
+  Geplant als GLEITENDES Fenster (jeder Startpunkt im Lauf, zwei Zeiger ueber die kumulierte Strecke, Zielzeit
+  zwischen zwei 1-s-Punkten interpoliert), nicht nur ab dem Lauf-Start. Jan, 01.11.: „laeufe mit zuvielen
+  gps-spruengen ganz rauslassen in dieser bewertung" — Lauf faellt raus, wenn die Glitch-Bereinigung zu oft
+  eingreift oder ein Sprung im Bestfenster liegt; Schwelle erst am Bestand messen (Anteil betroffener Laeufe, ob
+  die Rekordwerte danach plausibel sind), dann festlegen.
 
 - **31.10. — Teams (Jan, nach Telefonat mit einem Nutzer).** Plan + Jans fuenf Entscheidungen in [`docs/TEAMS.md`](TEAMS.md); Stufe 1 (Web) als Naechstes.
 - **30.10. — Garmin: Feld „Pairing-Code“ in den App-Einstellungen (niedrige Prio, Jan: „viel arbeit mit kaum nutzen“).**
