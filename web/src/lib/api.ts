@@ -1777,8 +1777,9 @@ export const api = {
   },
   spotSessions: (spot: string, accelOnly = true) =>
     req<CommunitySession[]>(`/api/community/spot-sessions?spot=${encodeURIComponent(spot)}&accel_only=${accelOnly}`),
-  leaders: (period = "all", accelOnly = true, sport = "pumpfoil", foilBand = "all") =>
-    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}`),
+  // `fresh` geht am Service-Worker-Cache vorbei (s. communityRecords).
+  leaders: (period = "all", accelOnly = true, sport = "pumpfoil", foilBand = "all", fresh = false) =>
+    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}${fresh ? "&fresh=1" : ""}`),
   communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
   toggleLike: (id: number) =>

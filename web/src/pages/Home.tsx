@@ -463,8 +463,23 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
   // Seite unuebersichtlich). Die Wahl merkt sich der Browser (nur Komfort; ohne Speicher gilt „Sessions").
   const [wahl, setWahl] = useState<string>(() => { try { return localStorage.getItem("foil_leader_wahl") || "sessions"; } catch { return "sessions"; } });
   const waehlen = (k: string) => { setWahl(k); try { localStorage.setItem("foil_leader_wahl", k); } catch { /* egal */ } };
+  // Wie bei den Rekorden: der erste Aufruf darf aus dem Service-Worker-Cache kommen, kam er von dort (schnell), holt
+  // ein zweiter mit `fresh` den echten Stand nach. Ohne das sah man beim ersten Aufruf den alten Stand, Jan
+  // 01.11.2026: die eigene Zeile unter Platz 10 erschien erst nach einem Wechsel hin und zurueck.
   useEffect(() => {
-    api.leaders(period, accelOnly, sport, band?.key ?? "all").then(setData).catch(() => {});
+    let aktiv = true;
+    const bk = band?.key ?? "all";
+    const begonnen = performance.now();
+    api.leaders(period, accelOnly, sport, bk).then((d) => {
+      if (!aktiv) return;
+      setData(d);
+      if (performance.now() - begonnen > CACHE_SCHWELLE_MS) return;   // kam vom Netz, also frisch
+      const gezeigt = JSON.stringify(d);
+      return api.leaders(period, accelOnly, sport, bk, true).then((frisch) => {
+        if (aktiv && JSON.stringify(frisch) !== gezeigt) setData(frisch);
+      });
+    }).catch(() => {});
+    return () => { aktiv = false; };
   }, [period, accelOnly, sport, band?.key]);
   if (!data) return null;
   // Leer: Ueberschrift und Filter bleiben stehen — man soll den Zeitraum hier auch wieder weiter stellen koennen.
