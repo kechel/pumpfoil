@@ -2626,6 +2626,8 @@ const gsw: Record<string, string> = {
   "team.regeln.loeschen.text": "Lösche cha nume d Teamleitig, und nume wenn sie de Teamname zum Bestätige iitippt.\nDenn isch s Team für alli wäg: Mitgliedschafte, Bestelischte, Logbuech, Events und de Team-Chat. D Date bhalted mir vorläufig, demit mer es us Versehe glöschts Team wieder härestelle chönd.\nD Adrässe vom Team blibt gsperrt und wird nie amne andere Team vergä.",
   "team.regeln.konto.titel": "Wenn es Konto glöscht wird",
   "team.regeln.konto.text": "D Person verschwindet us allne Teams, Bestelischte und au us iigfrorene Event-Resultat. D Plätz drunder rucked uf.\nHet sie es Team gleitet, übernimmt de dienschtältischt Moderator, susch s dienschtältischt Mitglied. Isch niemer meh da, wird s Team glöscht.",
+  "team.regeln.haftung.titel": "Haftig",
+  "team.regeln.haftung.text": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org.\nGnau so übernimmt pumpfoil.org kei Verantwortig defür, dass gmässni Wärt und Date stimmed oder nöd manipuliert worde sind. Azeigt wird, was de öffentlich Quellcode uf GitHub us de ufeglade Date usrächnet; wiiteri Zuesage gits kei.",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "Teamadrässe zum Teile",
   "team.adresseTeilen.oeffentlich": "Die Adrässe chasch überall teile und veröffentliche, au mit Lüüt ohni Konto bi pumpfoil.org: Sie gsehnd det d Bestelischte (Platz, Name, Wert).",

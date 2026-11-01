@@ -2894,6 +2894,8 @@ const de: Record<string, string> = {
   "team.regeln.loeschen.text": "Löschen kann nur die Teamleitung, und nur wenn sie den Teamnamen zur Bestätigung eintippt.\nDann ist das Team für alle verschwunden: Mitgliedschaften, Bestenlisten, Logbuch, Events und der Team-Chat. Die Daten heben wir vorerst auf, damit sich ein versehentlich gelöschtes Team wiederherstellen lässt.\nDie Adresse des Teams bleibt gesperrt und wird nie an ein anderes Team vergeben.",
   "team.regeln.konto.titel": "Wenn ein Konto gelöscht wird",
   "team.regeln.konto.text": "Die Person verschwindet aus allen Teams, Bestenlisten und auch aus eingefrorenen Event-Ergebnissen. Die Plätze darunter rücken auf.\nLeitete sie ein Team, übernimmt der dienstälteste Moderator, sonst das dienstälteste Mitglied. Ist niemand mehr da, wird das Team gelöscht.",
+  "team.regeln.haftung.titel": "Haftung",
+  "team.regeln.haftung.text": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.\nEbenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "Teamadresse zum Teilen",
   "team.adresseTeilen.oeffentlich": "Diese Adresse kannst du überall teilen und veröffentlichen, auch mit Leuten ohne Konto bei pumpfoil.org: Sie sehen dort die Bestenlisten (Platz, Name, Wert).",

@@ -2738,6 +2738,8 @@ const zh: Record<string, string> = {
   "team.regeln.loeschen.text": "只有负责人可以删除团队，而且必须输入团队名称进行确认。\n之后团队对所有人消失：成员、排行榜、日志、活动和团队聊天。我们暂时保留数据，以便恢复误删的团队。\n团队的地址会保持锁定，永远不会分配给其他团队。",
   "team.regeln.konto.titel": "账号被删除时",
   "team.regeln.konto.text": "此人会从所有团队和排行榜中消失，也会从已冻结的活动结果中消失。排在其后的人依次上移。\n如果此人是某个团队的负责人，由资历最久的管理员接任，否则由资历最久的成员接任。如果已经没有人了，团队就会被删除。",
+  "team.regeln.haftung.titel": "免责声明",
+  "team.regeln.haftung.text": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。\n同样，pumpfoil.org 不对测得的数值和数据是否正确或是否被篡改承担任何责任。显示的内容即 GitHub 上的公开源代码根据上传的数据计算出的结果，除此之外不作任何承诺。",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "可分享的团队链接",
   "team.adresseTeilen.oeffentlich": "这个链接可以在任何地方分享和公开，没有 pumpfoil.org 账号的人也能打开：他们会看到排行榜（名次、名字、成绩）。",

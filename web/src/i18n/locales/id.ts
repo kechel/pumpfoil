@@ -2741,6 +2741,8 @@ const id: Record<string, string> = {
   "team.regeln.loeschen.text": "Hanya ketua tim yang bisa menghapus tim, dan hanya dengan mengetik nama tim sebagai konfirmasi.\nSetelah itu tim hilang untuk semua orang: keanggotaan, papan peringkat, buku log, event, dan chat tim. Untuk sementara kami menyimpan datanya agar tim yang terhapus tanpa sengaja bisa dipulihkan.\nAlamat tim tetap diblokir dan tidak pernah diberikan ke tim lain.",
   "team.regeln.konto.titel": "Saat akun dihapus",
   "team.regeln.konto.text": "Orang itu hilang dari semua tim dan papan peringkat, juga dari hasil event yang sudah dibekukan. Yang di bawahnya naik peringkat.\nJika ia memimpin tim, moderator paling lama mengambil alih, jika tidak ada maka anggota paling lama. Jika tidak ada siapa pun lagi, tim dihapus.",
+  "team.regeln.haftung.titel": "Tanggung jawab",
+  "team.regeln.haftung.text": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org.\nBegitu pula, pumpfoil.org tidak bertanggung jawab atas benar tidaknya nilai dan data yang diukur atau apakah data tersebut dimanipulasi. Yang ditampilkan adalah hasil perhitungan kode sumber publik di GitHub dari data yang diunggah; tidak ada janji lain.",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "Alamat tim untuk dibagikan",
   "team.adresseTeilen.oeffentlich": "Alamat ini bisa kamu bagikan dan publikasikan di mana saja, juga ke orang yang tidak punya akun pumpfoil.org: mereka akan melihat papan peringkat (peringkat, nama, nilai).",

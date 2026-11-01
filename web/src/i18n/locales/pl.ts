@@ -2724,6 +2724,8 @@ const pl: Record<string, string> = {
   "team.regeln.loeschen.text": "Drużynę może usunąć tylko lider i tylko po wpisaniu nazwy drużyny dla potwierdzenia.\nWtedy drużyna znika dla wszystkich: członkostwa, rankingi, dziennik, wydarzenia i czat drużyny. Na razie przechowujemy dane, aby dało się przywrócić drużynę usuniętą przez pomyłkę.\nAdres drużyny pozostaje zablokowany i nigdy nie zostanie przydzielony innej drużynie.",
   "team.regeln.konto.titel": "Gdy konto zostaje usunięte",
   "team.regeln.konto.text": "Osoba znika ze wszystkich drużyn i rankingów, a także z zamrożonych wyników wydarzeń. Osoby poniżej przesuwają się w górę.\nJeśli prowadziła drużynę, przejmuje ją najdłużej działający moderator, a jeśli go nie ma, najdłużej należący członek. Jeśli nikt nie zostanie, drużyna jest usuwana.",
+  "team.regeln.haftung.titel": "Odpowiedzialność",
+  "team.regeln.haftung.text": "Wydarzenia organizują same drużyny. pumpfoil.org nie ma żadnego wpływu na wydarzenia ani na składane w nich obietnice, finansowe lub inne, i nie ponosi za nie odpowiedzialności. Droga sądowa jest wykluczona. Płatności i wszelkie inne ustalenia organizatorzy i uczestnicy załatwiają między sobą, niezależnie od pumpfoil.org.\nTak samo pumpfoil.org nie ponosi odpowiedzialności za to, czy zmierzone wartości i dane są poprawne lub czy nie zostały zmanipulowane. Wyświetlane jest to, co publiczny kod źródłowy na GitHubie oblicza z przesłanych danych; innych obietnic nie ma.",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "Adres drużyny do udostępnienia",
   "team.adresseTeilen.oeffentlich": "Ten adres możesz udostępniać i publikować wszędzie, także osobom bez konta w pumpfoil.org: zobaczą tam rankingi (miejsce, nazwę, wynik).",

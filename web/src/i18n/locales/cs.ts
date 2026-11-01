@@ -2794,6 +2794,8 @@ const cs: Record<string, string> = {
   "team.regeln.loeschen.text": "Smazat tým může jen vedoucí, a jen když pro potvrzení napíše název týmu.\nTým pak zmizí pro všechny: členství, žebříčky, deník, akce i týmový chat. Data zatím uchováváme, aby šel omylem smazaný tým obnovit.\nAdresa týmu zůstane zablokovaná a nikdy se nepřidělí jinému týmu.",
   "team.regeln.konto.titel": "Když se smaže účet",
   "team.regeln.konto.text": "Člověk zmizí ze všech týmů a žebříčků a také ze zmrazených výsledků akcí. Ti pod ním se posunou nahoru.\nPokud vedl tým, převezme ho nejdéle sloužící moderátor, jinak nejdéle sloužící člen. Pokud už nikdo nezbyl, tým se smaže.",
+  "team.regeln.haftung.titel": "Odpovědnost",
+  "team.regeln.haftung.text": "Akce pořádají samy týmy. pumpfoil.org nemá žádný vliv na akce ani na sliby v nich dané, finanční či jiné, a nepřebírá za ně žádnou odpovědnost. Právní cesta je vyloučena. Platby a všechny další dohody si pořadatelé a účastníci řeší sami, nezávisle na pumpfoil.org.\nStejně tak pumpfoil.org nepřebírá žádnou odpovědnost za to, zda jsou naměřené hodnoty a data správné nebo zda nebyly zmanipulovány. Zobrazuje se to, co z nahraných dat spočítá veřejný zdrojový kód na GitHubu; žádné další záruky neexistují.",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "Adresa týmu ke sdílení",
   "team.adresseTeilen.oeffentlich": "Tuto adresu můžeš sdílet a zveřejnit kdekoli, i lidem bez účtu na pumpfoil.org: uvidí tam žebříčky (pořadí, jméno, hodnotu).",

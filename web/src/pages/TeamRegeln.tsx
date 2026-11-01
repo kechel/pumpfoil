@@ -10,7 +10,7 @@ import { useT } from "../i18n";
 import { ScrollToTop } from "../components/ScrollToTop";
 
 const ABSCHNITTE = ["was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik", "logbuch",
-  "events", "chat", "loeschen", "konto"];
+  "events", "chat", "loeschen", "konto", "haftung"];
 
 export default function TeamRegeln() {
   const t = useT();

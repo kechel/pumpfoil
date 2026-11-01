@@ -2716,6 +2716,8 @@ const nb: Record<string, string> = {
   "team.regeln.loeschen.text": "Bare lederen kan slette laget, og bare ved å skrive inn lagnavnet som bekreftelse.\nDa er laget borte for alle: medlemskap, lister, loggbok, arrangementer og lagchatten. Vi tar vare på dataene inntil videre, så et lag som er slettet ved en feil kan gjenopprettes.\nAdressen til laget forblir sperret og gis aldri til et annet lag.",
   "team.regeln.konto.titel": "Når en konto slettes",
   "team.regeln.konto.text": "Personen forsvinner fra alle lag og topplister, også fra frosne arrangementsresultater. De nedenfor rykker opp.\nLedet personen et lag, tar moderatoren med lengst fartstid over, ellers medlemmet med lengst fartstid. Er det ingen igjen, slettes laget.",
+  "team.regeln.haftung.titel": "Ansvar",
+  "team.regeln.haftung.text": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org.\nLikeledes tar pumpfoil.org intet ansvar for om målte verdier og data er riktige eller har blitt manipulert. Det som vises, er det den offentlige kildekoden på GitHub beregner ut fra de opplastede dataene; det gis ingen andre løfter.",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "Lagadresse til deling",
   "team.adresseTeilen.oeffentlich": "Denne adressen kan du dele og publisere hvor som helst, også med folk uten konto på pumpfoil.org: de ser resultatlistene der (plass, navn, verdi).",

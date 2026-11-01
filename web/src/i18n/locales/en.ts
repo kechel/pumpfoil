@@ -2840,6 +2840,8 @@ const en: Record<string, string> = {
   "team.regeln.loeschen.text": "Only the team lead can delete a team, and only by typing the team name to confirm.\nThe team is then gone for everyone: memberships, leaderboards, logbook, events and the team chat. We keep the data for now so a team deleted by mistake can be restored.\nThe team's address stays blocked and is never given to another team.",
   "team.regeln.konto.titel": "When an account is deleted",
   "team.regeln.konto.text": "The person disappears from all teams and leaderboards, and from frozen event results too. Those below move up.\nIf they led a team, the longest-serving moderator takes over, otherwise the longest-serving member. If nobody is left, the team is deleted.",
+  "team.regeln.haftung.titel": "Liability",
+  "team.regeln.haftung.text": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org.\nLikewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises.",
   // Teams (31.10.2026, docs/TEAMS.md)
   "team.adresseTeilen.titel": "Team address to share",
   "team.adresseTeilen.oeffentlich": "You can share and publish this address anywhere, including with people who don't have a pumpfoil.org account: they'll see the leaderboards (rank, name, value).",
