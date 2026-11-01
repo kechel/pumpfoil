@@ -101,6 +101,40 @@ function ChangelogLink() {
   );
 }
 
+// Nur fuer Admins, IMMER sichtbar (Jan, 01.11.2026: „das dauert mir zu lange bis ich updates sehe"): sofort nach
+// einer neuen Fassung fragen und sie anwenden — auch wenn noch keins bekannt ist (die PWA fragt sonst nur alle 5 min
+// bzw. beim Zurueckwechseln). Liegt eine wartende Fassung vor: aktivieren und neu laden; sonst einfach neu laden,
+// damit eine eben gefundene Fassung bzw. frische Seitendaten greifen. Ohne Uebersetzung wie der Rest des Admin-Bereichs.
+function AppAktualisieren() {
+  const [busy, setBusy] = useState(false);
+  async function los() {
+    setBusy(true);
+    let neuGeladen = false;
+    const laden = () => { if (!neuGeladen) { neuGeladen = true; window.location.reload(); } };
+    try {
+      const r = await navigator.serviceWorker?.getRegistration();
+      if (r) {
+        await r.update().catch(() => {});
+        // Kurz warten, falls die neue Fassung gerade installiert wird.
+        for (let i = 0; i < 20 && r.installing; i++) await new Promise((ok) => setTimeout(ok, 250));
+        if (r.waiting) {
+          navigator.serviceWorker.addEventListener("controllerchange", laden, { once: true });
+          r.waiting.postMessage({ type: "SKIP_WAITING" });
+          setTimeout(laden, 4000);   // falls controllerchange nie kommt
+          return;
+        }
+      }
+    } catch { /* ohne Service Worker: einfach neu laden */ }
+    laden();
+  }
+  return (
+    <button onClick={los} disabled={busy}
+      className="mt-2 flex items-center gap-1.5 px-3 text-left text-xs text-slate-400 hover:text-slate-400 disabled:opacity-60 dark:hover:text-slate-300">
+      {busy ? "Aktualisiere …" : "App aktualisieren (Admin)"}
+    </button>
+  );
+}
+
 // Brand-Logo = horizontales Lockup (assets-master, 3 versetzte Wellen). dark-Bild
 // (weisser Text) auf dunklem UI, light-Bild (navy Text) im Light-Mode — CSS-Swap
 // via .logo-dark/.logo-light (index.css). Ersetzt das alte 2-Wellen-<Wordmark>.
@@ -291,6 +325,7 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
             ganz unten zwischen den Social-Links und dem Impressum, also dort, wo niemand
             hinsieht. Es ist die Seite, die sagt, was sich geaendert hat; das gehoert nach
             oben zu den Inhalten, nicht in die Fussleiste. */}
+        {isAdmin && <AppAktualisieren />}
         <ChangelogLink />
         {/* Die Reihe der Nerd-Analysen. BESCHRIFTUNGEN AUS DEN SPRACHDATEIEN (Jan, 22.09.2026:
             „ich habe mal japanisch probiert, die menuepunkte selber sind noch nicht uebersetzt
