@@ -659,11 +659,38 @@ def event_spots(e: models.TeamEvent) -> list[int]:
     return [int(i) for i in json.loads(e.spots_json or "[]")]
 
 
+def event_teilnehmer(db: Session, t: models.Team, e: models.TeamEvent) -> list[int]:
+    """Wer im Event zaehlt: bis zum Ende die aktuellen Mitglieder, danach die beim Ende festgehaltenen
+    (`teilnehmer_json`, s. `events_teilnehmer_sichern`) — gesperrte Konten fallen trotzdem raus."""
+    if e.teilnehmer_json is None:
+        return mitglieder_ids(db, t.id)
+    ids = [int(i) for i in json.loads(e.teilnehmer_json)]
+    if not ids:
+        return []
+    gesperrt = {u for (u,) in db.query(models.User.id).filter(models.User.id.in_(ids), models.User.blocked.is_(True))}
+    return [i for i in ids if i not in gesperrt]
+
+
+def events_teilnehmer_sichern(db: Session, team_id: int, jetzt: datetime | None = None) -> None:
+    """VOR jeder Mitgliederaenderung aufrufen (Austritt, Entfernen, Beitritt, Annehmen): bei beendeten, noch nicht
+    eingefrorenen Events die Teilnehmer festhalten. Jan, 01.11.2026: wer nach dem Event austritt, darf die
+    Bestenlisten nicht mehr aendern — und wer danach beitritt, kommt nicht mehr hinein. Eingefrorene Events
+    stehen ohnehin fest; nur die DSGVO-Loeschung nimmt dort noch Zeilen heraus."""
+    j = jetzt or _jetzt()
+    E = models.TeamEvent
+    offen = (db.query(E).filter(E.team_id == team_id, E.ende <= j, E.eingefroren_am.is_(None),
+                                E.geloescht_am.is_(None), E.teilnehmer_json.is_(None)).all())
+    if offen:
+        ids = json.dumps(sorted(mitglieder_ids(db, team_id)))
+        for e in offen:
+            e.teilnehmer_json = ids
+
+
 def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
     """Bestenlisten des Events — eingefroren aus `ergebnis_json`, sonst live."""
     if e.ergebnis_json:
         return json.loads(e.ergebnis_json)
-    ids = mitglieder_ids(db, t.id)
+    ids = event_teilnehmer(db, t, e)
     fenster = (_aware(e.start), _aware(e.ende))
     return [{**tafel_out(tf), "zeilen": tafel_berechnen(db, t, tf, "all", ids, fenster=fenster,
                                                          event_spots=event_spots(e), ohne_dateien=bool(e.ohne_dateien))}
@@ -688,7 +715,7 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     from .api import community as C
     from . import pumpgleit_anzeige as PA
 
-    ids = mitglieder_ids(db, t.id)
+    ids = event_teilnehmer(db, t, e)
     tf_ = event_tafeln(e)
     sportart = tf_[0].sportart if tf_ else "pumpfoil"
     accel_only = bool(tf_) and all(tf.accel_only for tf in tf_)

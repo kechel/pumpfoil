@@ -237,6 +237,8 @@ def einladung_annehmen(token: str, user: models.User = Depends(current_user), db
 def _beitreten(db: Session, t: models.Team, user: models.User, ziel: str,
                e: models.TeamEinladung | None = None) -> dict:
     m = T.mitglied(db, t.id, user.id)
+    if ziel == "aktiv":
+        T.events_teilnehmer_sichern(db, t.id)
     if m is not None:
         if m.status == "angefragt" and ziel == "aktiv":
             m.status, m.seit, m.zustimmung_am = "aktiv", T._jetzt(), T._jetzt()
@@ -274,6 +276,7 @@ def austreten(slug: str, user: models.User = Depends(current_user), db: Session 
         raise _404()
     if m.rolle == "leiter":
         raise HTTPException(status.HTTP_409_CONFLICT, "leiter_erst_uebergeben")
+    T.events_teilnehmer_sichern(db, t.id)
     db.delete(m)
     T.chat_raus(db, t.id, user.id)
     db.commit()
@@ -513,6 +516,7 @@ def annehmen(slug: str, uid: int, user: models.User = Depends(current_user), db:
     if z is None:
         raise _404()
     if z.status == "angefragt":
+        T.events_teilnehmer_sichern(db, t.id)
         z.status, z.seit = "aktiv", T._jetzt()
         db.commit()
     return {"ok": True}
@@ -527,6 +531,7 @@ def entfernen(slug: str, uid: int, user: models.User = Depends(current_user), db
         raise _404()
     if z.rolle == "leiter" or (z.rolle == "moderator" and m.rolle != "leiter"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "nicht_erlaubt")
+    T.events_teilnehmer_sichern(db, t.id)
     db.delete(z)
     T.chat_raus(db, t.id, uid)
     db.commit()

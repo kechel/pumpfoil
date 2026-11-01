@@ -194,6 +194,12 @@ Dieselben Filter wie die Bestenlisten (Fenster, Spots, ohne Dateien); Sportart d
 nur Pflicht, wenn alle Bestenlisten sie verlangen. Keine Namen, darum auch fuer Gaeste. Beim Einfrieren nach
 `summen_ergebnis_json` festgeschrieben.
 
+**Teilnehmer nach dem Ende fest** (01.11.2026, `teilnehmer_json`): bis zum Ende zaehlt die aktuelle Mitgliederliste.
+Bei der ersten Mitgliederaenderung danach (Austritt, Entfernen, Beitritt, Annehmen) werden die Teilnehmer aller
+beendeten, noch nicht eingefrorenen Events festgehalten (`teams.events_teilnehmer_sichern`): wer nach dem Event
+austritt, bleibt drin, wer danach beitritt, kommt nicht hinein. Eingefrorene Ergebnisse aendert nur noch die
+DSGVO-Loeschung; gesperrte Konten fallen auch aus festgehaltenen Teilnehmern.
+
 ## Teambild (01.11.2026)
 
 Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;

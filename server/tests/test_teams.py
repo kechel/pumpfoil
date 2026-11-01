@@ -589,3 +589,31 @@ def test_event_gesamtsummen(client):
     _session(ib, 50, tage=2)
     fest = client.get(f"/api/teams/{slug}/events/{ev['id']}", headers=kb).json()
     assert fest["status"] == "beendet" and fest["summen"] == {"runs": 6}
+
+
+def test_event_austritt_nach_ende_aendert_nichts(client):
+    """Jan, 01.11.2026: wer nach dem Event austritt, bleibt in den Bestenlisten; wer danach beitritt, kommt nicht hinein.
+    Waehrend das Event laeuft, zaehlt die aktuelle Mitgliederliste."""
+    (ia, ka), (ib, kb), (ic, kc) = (_konto(client, "te-a-aus@t.de", "Aus Anna"), _konto(client, "te-b-aus@t.de", "Aus Ben"),
+                                    _konto(client, "te-c-aus@t.de", "Aus Cem"))
+    slug, links = _team_mit(client, ka, kb, "Austrittteam")
+    _session(ia, 120, tage=2)
+    _session(ib, 200, tage=2)
+    _session(ic, 500, tage=2)
+    jetzt = datetime.now(timezone.utc)
+    tafel = [{"kennzahl": "session_pumps", "accel_only": False}]
+    vorbei = client.post(f"/api/teams/{slug}/events", headers=ka, json={
+        "titel": "Vorbei", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt - timedelta(hours=1)).isoformat(),
+        "tafeln": tafel, "summen": ["pumps", "aktive"]}).json()
+    laeuft = client.post(f"/api/teams/{slug}/events", headers=ka, json={
+        "titel": "Laeuft", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": tafel}).json()
+    assert client.post(f"/api/teams/{slug}/austreten", headers=kb).status_code == 200
+    client.post(f"/api/teams/einladung/{links['join']}", headers=kc)
+
+    def zeilen(eid):
+        ev = client.get(f"/api/teams/{slug}/events/{eid}", headers=ka).json()
+        return [z["user_id"] for z in ev["tafeln"][0]["zeilen"]], ev
+    ids, ev = zeilen(vorbei["id"])
+    assert ids == [ib, ia] and ev["summen"] == {"pumps": 320, "aktive": 2}
+    assert zeilen(laeuft["id"])[0] == [ic, ia]

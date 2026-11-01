@@ -2139,3 +2139,6 @@ class TeamEvent(Base):
     # teams.EVENT_SUMMEN, und beim Einfrieren das Ergebnis dazu (ergebnis_json bleibt die Liste der Bestenlisten).
     summen_json: Mapped[str | None] = mapped_column(Text)
     summen_ergebnis_json: Mapped[str | None] = mapped_column(Text)
+    # Teilnehmer, festgehalten bei der ersten Mitgliederaenderung nach dem Ende (Jan, 01.11.2026: Austritte nach dem
+    # Event duerfen die Bestenlisten nicht mehr aendern) — gilt dann statt der aktuellen Mitgliederliste.
+    teilnehmer_json: Mapped[str | None] = mapped_column(Text)
