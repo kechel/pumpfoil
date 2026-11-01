@@ -323,6 +323,64 @@ Einladungslinks in der App, Event-Abzeichen auf der Foiler-Seite; Verwaltung ble
 (`team_abzeichen` kommt schon mit `GET /api/community/foiler/{id}`). Verwaltung/Einstellungen koennen vorerst im Web
 bleiben (Link „im Browser oeffnen").
 
+## Ideen: Team gegen Team und Abzeichen (Plan, 01.11.2026)
+
+Zwei Vorschlaege eines Nutzers (u963, 1:1-Chat mit Jan, 01.11.2026). Beide stehen als Satz unter „Ideas for future
+development" auf /changelog (`appmeta.IDEEN`). **Nichts davon ist gebaut; vor dem Bau Jans Entscheidungen einholen.**
+
+### Team gegen Team
+
+Vorschlag: wie bei WOO Sports darf ein Team beliebig gross sein, in den Vergleich gehen aber nur die besten 3 oder 5
+Ergebnisse je Team. Jeder kann mitmachen und versuchen, unter die besten N zu kommen; ein grosses Team gewinnt nicht
+allein durch seine Groesse. Jan: „wir machen auch ein team illmensee, und dann pumpen wir gegeneinander, meiste pumps
+des gesamten teams gegen ein anderes team".
+
+Plan, baut auf den Events auf (Zeitfenster, Spots, Vorlagen, Einfrieren, Ergebnis-Schnappschuss):
+- **Herausforderung:** Leitung/Moderation von Team A legt ein Event an und waehlt ein Gegnerteam; die Leitung von B
+  nimmt an oder lehnt ab. Erst nach der Annahme ist es sichtbar und zaehlt. Datenmodell: `team_events` um
+  `gegner_team_id`, `gegner_status` (offen/angenommen/abgelehnt) und `wertung_n` erweitern (Migration ueber `want` in
+  db.py), oder eine eigene Tabelle `team_duelle`, falls mehr als zwei Teams kommen.
+- **Wertung je Kennzahl:** Teamwert = Summe (oder Durchschnitt) der besten N Einzelwerte der Mitglieder;
+  `wertung_n` leer = alle (dann gewinnt die Teamgroesse, z. B. „meiste Pumps des ganzen Teams"). Beide Arten anbieten,
+  Standard N = 5. Einzel-Bestenlisten darunter wie bisher, mit Teamfarbe je Zeile.
+- **Einfrieren:** wie heute (24 h nach Ende, `teilnehmer_json`/`summen_ergebnis_json`), dazu der Teamwert beider Seiten.
+- **Sichtbarkeit:** auf beiden Teamseiten; oeffentlicher Link nur, wenn beide Teams oeffentlich und freigegeben sind.
+- **Offen fuer Jan:** Wer in beiden Teams ist — zaehlt fuer keins, oder waehlt beim Start? Nur zwei Teams oder auch
+  mehrere (Liga)? Abzeichen fuer das Siegerteam? Darf das Gegnerteam Regeln (Spots, Dateien) mitbestimmen?
+
+### Abzeichen (Achievements)
+
+Vorschlag: ein Abzeichen bzw. Zaehler, wenn man als Erster an einem Spot pumpt („den Spot pumpbar macht"), und ein
+Zaehler fuer die befahrenen Spots als eigene Kategorie. Jan dazu: Spot-Rekorde (wer wann wen ueberboten hat) sollen
+ebenfalls zaehlen.
+
+**Was heute wirklich geloggt wird (DB geprueft 01.11.2026, nur lesend):**
+- `record_events` (seit 17.07.2026, 10 488 Eintraege, 275 Fahrer): jede Verbesserung einer Community-Bestmarke mit
+  Vorhalter und Vorwert. Metriken distance, duration, speed, glide, runs; Scope global oder Spot; Fenster 10d/30d/365d/all.
+  **Grenzen:** nur Pumpfoil und nur Sessions mit Bewegungsdaten (`_community` mit `accel_only=True`), also keine
+  GPS-only-Rekorde und keine anderen Sportarten — obwohl die Spot-Seite Rekorde inzwischen je Sportart zeigt. Pumps fehlen
+  als Rekord-Metrik. Erfasst 1x taeglich als Schnappschuss (records.py), was innerhalb eines Tages zweimal ueberboten
+  wird, steht nur einmal drin (gewollt).
+- `team_logbuch` (10 Eintraege): Team-Rekorde je Kennzahl und Sportart, mit Vorhalter.
+- `feedback_beitraege`: Grundlage des Supporter-Badges.
+- Event-Ergebnisse: eingefroren in `team_events` (Top 3 haben schon ein Abzeichen im Profil).
+- **Nicht geloggt:** wer als Erster an einem Spot gefahren ist und wie viele Spots jemand befahren hat. Beides laesst
+  sich aber aus `sessions` ableiten (frueheste Session je `spot_id` bzw. `count(distinct spot_id)` je Fahrer; 740 Spots
+  mit Sessions). Vorsicht: Spots werden zusammengelegt (139 mit `merged_into`) und getrennt (`spot_trennungen`) —
+  deshalb rechnen statt speichern, sonst stimmt ein gespeicherter Erstfahrer nach einem Merge nicht mehr.
+  Meilensteine (Pump-Millionen usw.) sind ebenfalls nicht geloggt, aber aus den Summen ableitbar.
+
+**Plan:**
+1. **Stufe 1, nur abgeleitet, keine neue Tabelle:** Abzeichen im Profil fuer „Erster am Spot" (Anzahl Spots),
+   „Spots befahren" (Stufen 1/5/10/25), „Rekorde gebrochen" (1/5/10/100 aus `record_events`), Event-Podien, Supporter.
+   Rechnen per Abfrage mit Cache wie die Teamsummen.
+2. **Stufe 2, Log erweitern:** `record_events` um Sportart und GPS-only ergaenzen (records.py, eigene Scopes), Pumps als
+   Metrik. Aendert die Rekord-Pushes mit — vorher pruefen, dass es keine Push-Welle fuer alte Rekorde gibt
+   (Memory „nie nachtraeglich pushen", `PUSH_FRISCH_TAGE`).
+3. **Offen fuer Jan:** Zaehlt „Erster am Spot" schon, wenn nur eine Person dort je gefahren ist (dann ist jeder Heimpool
+   ein Erstfahrer-Abzeichen), oder erst ab zwei Fahrern? Nur Pumpfoil oder je Sportart? Fahrer mit verborgenem Ort
+   (Freunde-Funktion) ausnehmen? Sessions vor dem eigenen Konto (FIT-Import alter Fahrten) mitzaehlen?
+
 ## Stufen
 
 1. **Kern (Web):** Teams, Rollen, Beitritt (zwei Schalter + join/apply-Links mit QR-Code), Registrierung

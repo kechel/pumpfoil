@@ -1172,6 +1172,11 @@ NAECHSTES: list[dict] = [
 # Dieselbe Kuerze wie im Changelog: ein Satz, nur WAS, kein Fachjargon (s. Memory
 # `changelog-ein-satz`). Englisch wie die ganze Seite.
 IDEEN: list[str] = [
+    # Vorschlag u963 (1:1-Chat mit Jan, 01.11.2026); Plan in docs/TEAMS.md „Ideen: Team gegen Team und Abzeichen".
+    "Team against team: challenge another team to an event, where the best three or five results of each team count, "
+    "so every member can join in and a big team does not win by size alone.",
+    "Badges for your profile, such as being the first to pump at a spot, how many spots you have ridden, and how often "
+    "you broke a record.",
     "A forum, with threads per spot and per topic, so questions do not scroll away in the chat.",
     "Turns and wide carves as their own numbers and records, separate from the tight ones "
     "already drawn on the map.",
