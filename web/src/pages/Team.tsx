@@ -11,8 +11,9 @@ import { Avatar, Card } from "../components/ui";
 import { ChatBubbleIcon, ChevronIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { openChatOverlay } from "../components/DmWidget";
-import { eventZeit, eventZeitraum } from "../lib/teamEvents";
+import { eventZeitraum } from "../lib/teamEvents";
 import { RegelnLink } from "./TeamRegeln";
+import { eventStandKey } from "./TeamEventSeite";
 import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
@@ -109,40 +110,37 @@ function Statistik({ s, t }: { s: TeamStatistik; t: (k: string, p?: Record<strin
 }
 
 /** Vergangene Events, kompakt wie das Logbuch: je Event eine Zeile mit den Siegern; aufklappen zeigt die Bestenlisten. */
-function VergangeneEvents({ events, gast, lang, t }: {
-  events: TeamEvent[]; gast: boolean; lang: string; t: (k: string, p?: Record<string, string>) => string;
+/** Vergangene Events, kompakt wie das Logbuch: je Event eine Zeile mit den Siegern; ein Klick oeffnet das Event. */
+function VergangeneEvents({ events, slug, lang, t }: {
+  events: TeamEvent[]; slug: string; lang: string; t: (k: string, p?: Record<string, string>) => string;
 }) {
-  const [offen, setOffen] = useState<number | null>(null);
   return (
     <Card className="mt-4 p-4">
       <h3 className="mb-1 font-semibold text-slate-100">{t("team.event.vergangen")}</h3>
       <ul>
-        {events.map((e) => {
-          const sieger = e.tafeln.map((tf) => {
-            const z = tf.zeilen[0];
-            return z ? `${tafelKurz(tf, t)}: ${z.name ?? z.initialen} ${kennzahl(tf.kennzahl).fmt(z.value)}` : null;
-          }).filter(Boolean).join(" · ");
-          return (
-            <li key={e.id} className="border-t border-slate-800 py-2 text-sm first:border-t-0">
-              <button className="flex w-full items-start gap-2 text-left" onClick={() => setOffen(offen === e.id ? null : e.id)}>
-                <span className="min-w-0 flex-1">
-                  <span className="team-akzent block font-semibold">{e.titel}</span>
-                  <span className="block text-xs text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</span>
-                  {sieger && <span className="block text-slate-300">{sieger}</span>}
-                </span>
-                <ChevronIcon className={`mt-1 h-4 w-4 shrink-0 text-slate-400 transition-transform ${offen === e.id ? "-rotate-90" : "rotate-90"}`} />
-              </button>
-              {offen === e.id && (
-                <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  {e.tafeln.map((tf, i) => <Tafel key={i} tf={tf} gast={gast} t={t} />)}
-                </div>
-              )}
-            </li>
-          );
-        })}
+        {events.map((e) => (
+          <li key={e.id} className="border-t border-slate-800 py-2 text-sm first:border-t-0">
+            <Link to={`/teams/${slug}/events/${e.id}`} className="flex items-start gap-2 hover:underline">
+              <span className="min-w-0 flex-1">
+                <span className="team-akzent block font-semibold">{e.titel}</span>
+                <span className="block text-xs text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</span>
+                {siegerText(e, t) && <span className="block text-slate-300">{siegerText(e, t)}</span>}
+              </span>
+              <ChevronIcon className="mt-1 h-4 w-4 shrink-0 text-slate-400" />
+            </Link>
+          </li>
+        ))}
       </ul>
     </Card>
   );
+}
+
+/** Wer je Bestenliste vorn liegt, in einer Zeile: „Längster Lauf: Jan 1:42 · Höchstgeschwindigkeit: Olek 21 km/h“. */
+function siegerText(e: TeamEvent, t: (k: string) => string): string {
+  return e.tafeln.map((tf) => {
+    const z = tf.zeilen[0];
+    return z ? `${tafelKurz(tf, t)}: ${z.name ?? z.initialen} ${kennzahl(tf.kennzahl).fmt(z.value)}` : null;
+  }).filter(Boolean).join(" · ");
 }
 
 function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: string, p?: Record<string, string>) => string }) {
@@ -356,34 +354,29 @@ export default function Team() {
       {eventsOben.length > 0 && (
         <div className="mb-5 space-y-3">
           {eventsOben.map((e) => (
-            <Card key={e.id} className={`p-4 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
-              <div className="mb-1 flex flex-wrap items-center gap-2">
-                <h3 className={`team-akzent text-lg font-bold ${e.status === "laeuft" ? "animate-pulse" : ""}`}>{e.titel}</h3>
-                <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
-                  {t(`team.event.status.${e.status}`)}
-                </span>
-              </div>
-              <p className="text-sm text-slate-400">
-                {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
-                {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
-              </p>
-              {e.tafeln.length > 0 && (
-                <p className="text-sm text-slate-300">
-                  {t("team.event.gemessen")}: {e.tafeln.map((tf) => tafelKurz(tf, t)).join(" · ")}
-                </p>
-              )}
-              {e.status === "auswertung" && <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(e.einfrieren_am, e.zeitzone, lang) })}</p>}
-              {e.status !== "beendet" && <RegelnLink abschnitt="events" className="text-xs" />}
-              {e.beschreibung && <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{e.beschreibung}</p>}
-              {e.status !== "kommend" && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {e.tafeln.map((tf, i) => (
-                    <Tafel key={i} tf={tf} gast={gast} t={t}
-                      onBild={gast ? undefined : () => setBild({ tf, zeile: e.titel })} />
-                  ))}
+            // Kompakte Kachel; ein Klick oeffnet das Event mit allen Bestenlisten (Jan, 01.11.2026).
+            <Link key={e.id} to={`/teams/${kopf.slug}/events/${e.id}`} className="block">
+              <Card className={`p-4 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <h3 className={`team-akzent text-lg font-bold ${e.status === "laeuft" ? "animate-pulse" : ""}`}>{e.titel}</h3>
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
+                    {t(`team.event.status.${e.status}`)}
+                  </span>
                 </div>
-              )}
-            </Card>
+                <p className="text-sm text-slate-400">
+                  {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
+                  {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
+                </p>
+                {e.tafeln.length > 0 && (
+                  <p className="text-sm text-slate-300">
+                    {t("team.event.gemessen")}: {e.tafeln.map((tf) => tafelKurz(tf, t)).join(" · ")}
+                  </p>
+                )}
+                {e.status !== "kommend" && siegerText(e, t) && <p className="mt-1 text-sm text-slate-200">{siegerText(e, t)}</p>}
+                {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
+                <p className="team-akzent mt-2 text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
@@ -426,7 +419,7 @@ export default function Team() {
       )}
 
       {/* Reihenfolge unten (Jan, 01.11.2026): Teamadresse vorletzt, Logbuch ganz unten. */}
-      {eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} gast={gast} lang={lang} t={t} />}
+      {eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} slug={kopf.slug} lang={lang} t={t} />}
       {kopf.mein_status === "aktiv" && <div className="mt-4"><TeamAdresse kopf={kopf} t={t} /></div>}
       {(gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} />}
 
