@@ -2185,6 +2185,7 @@ export type TeamEventTafel = Pick<TeamTafel, "kennzahl" | "sportart" | "accel_on
 export interface TeamEventIn {
   titel: string; beschreibung?: string | null; start: string; ende: string; zeitzone?: string | null;
   tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage?: string | null;
+  ohne_dateien?: boolean;
 }
 export interface TeamEvent {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
@@ -2193,6 +2194,8 @@ export interface TeamEvent {
   tafeln: TeamTafelMitZeilen[];
   /** Eventbild, auch fuer Gaeste (ohne Freigabe, Jans Entscheidung 01.11.2026) */
   banner_url?: string | null; banner_fokus?: string | null;
+  /** keine von Hand hochgeladenen Dateien (FIT/GPX/TCX); Uhr, App, Kontoverknuepfungen zaehlen */
+  ohne_dateien?: boolean;
 }
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;

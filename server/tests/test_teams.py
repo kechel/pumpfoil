@@ -528,3 +528,27 @@ def test_eventbild_einzeln_und_oeffentlich(client):
     pub = client.get(f"/api/public/teams/{slug}/events/{ev['id']}").json()
     assert pub["event"]["titel"] == "Bild-Event" and pub["event"]["banner_url"] == r.json()["banner_url"]   # ohne Freigabe (Jan)
     assert client.delete(f"/api/teams/{slug}/events/{ev['id']}/banner", headers=ka).json()["banner_url"] is None
+
+
+def test_event_ohne_datei_uploads(client):
+    """Je Event einstellbar: von Hand hochgeladene Dateien (fit-/imp-) zaehlen nicht, Kontoverknuepfungen schon."""
+    from datetime import datetime, timedelta, timezone
+    from app import models
+    from app.db import SessionLocal
+    (ia, ka), (ib, kb) = _konto(client, "te-a-of@t.de", "Uhr Ute"), _konto(client, "te-b-of@t.de", "Datei Dirk")
+    slug, _l = _team_mit(client, ka, kb, "Dateiteam")
+    sa, sb = _session(ia, 100, tage=1, dist=150.0), _session(ib, 100, tage=1, dist=300.0)
+    db = SessionLocal()
+    try:
+        db.get(models.Session, sa).session_uuid = "suunto-" + secrets.token_hex(8)   # Kontoverknuepfung
+        db.get(models.Session, sb).session_uuid = "fit-" + secrets.token_hex(8)      # Datei von Hand
+        db.commit()
+    finally:
+        db.close()
+    jetzt = datetime.now(timezone.utc)
+    body = {"titel": "Ohne Dateien", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt - timedelta(hours=1)).isoformat(),
+            "tafeln": [{"kennzahl": "distance", "sportart": "pumpfoil", "accel_only": False}]}
+    mit = client.post(f"/api/teams/{slug}/events", headers=ka, json=body).json()
+    ohne = client.post(f"/api/teams/{slug}/events", headers=ka, json={**body, "ohne_dateien": True}).json()
+    assert {z["user_id"] for z in mit["tafeln"][0]["zeilen"]} == {ia, ib}
+    assert [z["user_id"] for z in ohne["tafeln"][0]["zeilen"]] == [ia] and ohne["ohne_dateien"] is True

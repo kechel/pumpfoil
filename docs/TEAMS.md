@@ -183,8 +183,9 @@ Zeitfenster mit Zeitzone, Kennzahl(en), optional auf einen oder mehrere Spots be
 Event-Anlegen („Meiste Runs am Wochenende“, „Laengster Lauf“, „Meiste Pumps“ … aus den vorhandenen
 Kennzahlen; neue wie „schnellster km“ kommen spaeter dazu). **Event-Abzeichen** fuer die Ersten, sichtbar
 auf der Foiler-Seite (wie der Supporter-Badge). Gewertet nur Aufnahmen, die im Fenster gestartet sind; Upload bis
-Ende + 24 h, dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das Ergebnis). Optional nur
-Uhr-/App-Aufnahmen, keine FIT-Importe. Vorhandene Waechter (Fake-Meldungen, Autofahrt-Grenzen,
+Ende + 24 h, dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das Ergebnis). Je Event einstellbar
+(01.11.2026, `ohne_dateien`): keine von Hand hochgeladenen Dateien (`fit-`/`imp-`), Uhr, App und
+Kontoverknuepfungen zaehlen weiter. Vorhandene Waechter (Fake-Meldungen, Autofahrt-Grenzen,
 aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
 ## Teambild (01.11.2026)

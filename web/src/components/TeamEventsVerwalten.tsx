@@ -19,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -53,14 +53,14 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       titel: e.titel.trim(), beschreibung: e.beschreibung.trim() || null,
       start: new Date(e.start).toISOString(), ende: new Date(e.ende).toISOString(),
       zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-      tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage,
+      tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage, ohne_dateien: !!e.ohne_dateien,
     };
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
       .then(() => { schliessen(); laden(); onMeldung(t("team.gespeichert")); })
       .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
-    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
+    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
@@ -154,6 +154,12 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
           </div>
 
           </>)}
+          {!e.eingefroren && (
+            <label className="mb-3 flex cursor-pointer items-start gap-2 text-sm text-slate-300">
+              <input type="checkbox" className="mt-1" checked={!!e.ohne_dateien} onChange={(x) => setE({ ...e, ohne_dateien: x.target.checked })} />
+              <span>{t("team.event.ohneDateien")}</span>
+            </label>
+          )}
           <div className="flex flex-wrap gap-2">
             {!e.eingefroren && (
               <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2} onClick={speichern}>

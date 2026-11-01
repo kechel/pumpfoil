@@ -345,10 +345,19 @@ def _cache_setzen(key, wert):
     _cache[key] = (time.monotonic(), wert)
 
 
+# Von Hand hochgeladene Dateien (api/sessions.py: „fit-" fuer FIT, „imp-" fuer GPX/TCX). Kontoverknuepfungen
+# (suunto-/polar-/coros-/strava-) und Uhr-/App-Aufnahmen (Geraete-Token) sind KEINE Dateien in diesem Sinn: die kommen
+# direkt vom Anbieter bzw. Geraet, der Nutzer kann sie nicht nachbauen. Jan, 01.11.2026: Events koennen Dateien
+# ausschliessen, „aber einstellbar je event" — und Kontoverknuepfungen sollen weiter zaehlen.
+DATEI_PRAEFIXE = ("fit-", "imp-")
+
+
 def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period: str,
                     member_ids: list[int] | None = None, fenster: tuple[datetime, datetime] | None = None,
-                    event_spots: list[int] | None = None) -> list[dict]:
+                    event_spots: list[int] | None = None, ohne_dateien: bool = False) -> list[dict]:
     """Rangliste einer Tafel: je Person der beste Wert bzw. die Summe, absteigend.
+
+    `ohne_dateien` (Events, 01.11.2026): keine von Hand hochgeladenen Dateien (FIT/GPX/TCX, s. DATEI_PRAEFIXE).
 
     Events: `fenster` = [von, bis) statt des Zeitraums (Startzeit der Session zaehlt), `event_spots` = nur
     diese Spots (leer/None = alle).
@@ -367,7 +376,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         spot_ids = ([s for (s,) in db.query(models.TeamSpot.spot_id).filter_by(team_id=team.id).all()]
                     if nur_spots else [])
     key = (team.id, tf.id, tf.kennzahl, tf.sportart, tf.accel_only, tf.nur_brett, tf.foil_band,
-           nur_spots, tuple(sorted(spot_ids)), period, fenster, tuple(sorted(ids)))
+           nur_spots, tuple(sorted(spot_ids)), period, fenster, tuple(sorted(ids)), ohne_dateien)
     hit = _cache_holen(key)
     if hit is not None:
         return hit
@@ -384,6 +393,8 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
             q = q.filter(S.started_at >= cut)
         if tf.nur_brett:
             q = q.filter(S.placement == "board")
+        if ohne_dateien:
+            q = q.filter(*[~S.session_uuid.like(f"{p}%") for p in DATEI_PRAEFIXE])
         if nur_spots:
             if not spot_ids:
                 return None
@@ -653,7 +664,7 @@ def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent) -> list[di
     ids = mitglieder_ids(db, t.id)
     fenster = (_aware(e.start), _aware(e.ende))
     return [{**tafel_out(tf), "zeilen": tafel_berechnen(db, t, tf, "all", ids, fenster=fenster,
-                                                         event_spots=event_spots(e))}
+                                                         event_spots=event_spots(e), ohne_dateien=bool(e.ohne_dateien))}
             for tf in event_tafeln(e)]
 
 
@@ -697,7 +708,7 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
                      .filter(models.Spot.id.in_(ids)).all()]
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": _aware(e.start).isoformat(),
             "ende": _aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "vorlage": e.vorlage,
-            "status": event_status(e), "spots": spots, "spot_ids": [] if gast else event_spots(e),
+            "status": event_status(e), "spots": spots, "ohne_dateien": bool(e.ohne_dateien), "spot_ids": [] if gast else event_spots(e),
             "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_,
             # Eventbild auch fuer Gaeste, OHNE Freigabe (anders als das Teambild) — Jan, 01.11.2026: „das risiko gehe
             # ich erstmal ein". Titel und Beschreibung von Events sind ebenso ohne Freigabe oeffentlich.

@@ -2131,3 +2131,5 @@ class TeamEvent(Base):
     # ohne Freigabe, auch fuer Gaeste sichtbar (Jan nimmt das Risiko in Kauf, s. teams.event_out).
     banner_url: Mapped[str | None] = mapped_column(String(300))
     banner_fokus: Mapped[str | None] = mapped_column(String(12))
+    # Keine von Hand hochgeladenen Dateien werten (teams.DATEI_PRAEFIXE); Uhr, App und Kontoverknuepfungen zaehlen.
+    ohne_dateien: Mapped[bool] = mapped_column(Boolean, default=False)

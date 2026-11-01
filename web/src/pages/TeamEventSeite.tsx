@@ -151,6 +151,7 @@ export default function TeamEventSeite() {
         {ev.tafeln.length > 0 && (
           <p className="text-sm text-slate-300">{t("team.event.gemessen")}: {ev.tafeln.map((tf) => tafelKurz(tf, t)).join(" · ")}</p>
         )}
+        {ev.ohne_dateien && <p className="text-sm text-slate-400">{t("team.event.ohneDateienKurz")}</p>}
         {ev.status === "auswertung" && (
           <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</p>
         )}
