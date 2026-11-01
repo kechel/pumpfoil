@@ -61,7 +61,7 @@ function TeamAdresse({ kopf, t, kompakt = false }: { kopf: Kopf; t: (k: string, 
   const zeile = (
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
         <input readOnly value={url} onFocus={(e) => e.currentTarget.select()}
-          className="min-w-[14rem] flex-1 rounded-lg bg-slate-950 px-3 py-2 font-mono text-sm text-slate-100" />
+          className={`min-w-[14rem] flex-1 rounded-lg bg-slate-950 px-3 py-2 font-mono text-sm text-slate-100 ${kompakt ? "text-right" : ""}`} />
         <button className="team-knopf rounded-xl px-3 py-2 text-sm font-semibold"
           onClick={() => navigator.clipboard?.writeText(url).then(() => { setKopiert(true); setTimeout(() => setKopiert(false), 2000); }).catch(() => {})}>
           {kopiert ? t("team.kopiert") : t("team.kopieren")}
