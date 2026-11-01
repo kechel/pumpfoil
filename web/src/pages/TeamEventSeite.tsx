@@ -153,7 +153,7 @@ export default function TeamEventSeite() {
       {/* Event-Regeln als kleine Box statt Link auf die ganze Regelseite (Jan, 01.11.2026): nur was fuers Event gilt. */}
       <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
         <p className="mb-1 text-sm font-semibold text-slate-200">{t("team.event.regelnTitel")}</p>
-        <ul className="list-disc space-y-0.5 pl-5 text-xs text-slate-400">
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
           {t("team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
         </ul>
       </div>
