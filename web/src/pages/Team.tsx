@@ -303,32 +303,33 @@ export default function Team() {
         </Link>
       )}
       {kopf.banner_url && <TeamBanner url={kopf.banner_url} fokus={kopf.banner_fokus} className="mb-4" />}
-      <div className="team-rand mb-4 flex items-start gap-4 border-b-2 pb-4">
-        <TeamWappen name={kopf.name} logo={kopf.logo_url} farbe={kopf.farbe} size={64} />
-        <div className="min-w-0 flex-1">
-          <h2 className="team-akzent text-2xl font-bold leading-tight">{kopf.name}</h2>
-          {/* Mitglieder · oeffentlich · Sportarten, rechts daneben der Team-Chat (Jan, 01.11.2026). */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="text-sm text-slate-400">
-              {t("team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
-              {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
-              {!!kopf.sportarten?.length && <> · {sportartenText(kopf.sportarten, t)}</>}
-            </p>
-            {kopf.chat_scope && (
-              <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800">
-                <ChatBubbleIcon className="team-akzent h-4 w-4" /> {t("team.chat")}
-              </button>
-            )}
-          </div>
-          {kopf.beschreibung && <p className="mt-2 whitespace-pre-line text-sm text-slate-300">{kopf.beschreibung}</p>}
+      {/* Kopf als Raster: Wappen links ueber alle Zeilen; Name + Zahnrad oben; darunter Mitglieder · oeffentlich ·
+          Sportarten, und der Team-Chat rechtsbuendig in derselben Spalte wie das Zahnrad (Jan, 01.11.2026). */}
+      <div className="team-rand mb-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b-2 pb-4">
+        <div className="row-span-3"><TeamWappen name={kopf.name} logo={kopf.logo_url} farbe={kopf.farbe} size={64} /></div>
+        <h2 className="team-akzent text-2xl font-bold leading-tight">{kopf.name}</h2>
+        <div className="justify-self-end">
+          {(kopf.meine_rolle === "leiter" || kopf.meine_rolle === "moderator") && (
+            <Link to={`/teams/${kopf.slug}/einstellungen`} title={t("team.einstellungen")}
+              className="block rounded-xl border border-slate-700 p-2 text-slate-300 hover:bg-slate-800">
+              <SettingsIcon className="h-5 w-5" />
+            </Link>
+          )}
         </div>
-        {(kopf.meine_rolle === "leiter" || kopf.meine_rolle === "moderator") && (
-          <Link to={`/teams/${kopf.slug}/einstellungen`} title={t("team.einstellungen")}
-            className="shrink-0 rounded-xl border border-slate-700 p-2 text-slate-300 hover:bg-slate-800">
-            <SettingsIcon className="h-5 w-5" />
-          </Link>
-        )}
+        <div className="col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <p className="text-sm text-slate-400">
+            {t("team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
+            {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
+            {!!kopf.sportarten?.length && <> · {sportartenText(kopf.sportarten, t)}</>}
+          </p>
+          {kopf.chat_scope && (
+            <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800">
+              <ChatBubbleIcon className="team-akzent h-4 w-4" /> {t("team.chat")}
+            </button>
+          )}
+        </div>
+        {kopf.beschreibung && <p className="col-span-2 mt-1 whitespace-pre-line text-sm text-slate-300">{kopf.beschreibung}</p>}
       </div>
 
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
