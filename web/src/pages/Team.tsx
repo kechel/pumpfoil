@@ -395,8 +395,11 @@ export default function Team() {
                 <div className="flex items-end gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
-                    {/* Zeilenumbrueche zu Leerzeichen: sonst stand nach einer Leerzeile nur „…“ in Zeile 2 (Jan, 01.11.2026). */}
-                    {e.beschreibung && <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.replace(/\s*\n\s*/g, " ")}</p>}
+                    {/* Nur die erste Zeile der Beschreibung, hoechstens zwei Zeilen hoch (Jan, 01.11.2026): so steuert die Leitung
+                        mit dem ersten Umbruch, was in der Kachel steht. */}
+                    {e.beschreibung?.trim() && (
+                      <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.trim().split("\n")[0]}</p>
+                    )}
                   </div>
                   <span className="team-akzent shrink-0 text-sm font-semibold">{t(eventStandKey(e.status))} →</span>
                 </div>
