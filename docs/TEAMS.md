@@ -250,6 +250,72 @@ ein Team machen, was es will. Beim ersten Team (01.11.) entstanden; je Antrag ei
 7. **Ergebnis:** freigeben oder ablehnen; bei Ablehnung/Rueckfrage dem Teamleiter per DM schreiben, was
    fehlt (Entwurf an Jan).
 
+## Native-Port (Stufe 4): technische Checkliste (Stand 01.11.2026)
+
+Alles unten ist im Web fertig und laeuft ueber die API; die Apps muessen nur anzeigen und aufrufen. Quelle der Wahrheit
+fuer Regeln bleibt der Server (`server/app/teams.py`, `server/app/api/teams.py`) — in den Apps nichts nachrechnen.
+
+**Endpunkte** (`/api/teams`, mit Login; `/api/public/teams` ohne):
+
+| Zweck | Aufruf |
+|---|---|
+| Eigene Teams (Home-Links, Badge offene Anfragen `anfragen`) | `GET /mine` |
+| Alle freigegebenen Teams (Seite „Alle Teams") | `GET /liste` |
+| Laufende + in 3 Tagen beginnende Events (Community) | `GET /liste/events` |
+| Alle Events, seitenweise (laufend → kommend → vergangen) | `GET /liste/events/alle?offset=&n=` (n ≤ 50) |
+| Teamseite | `GET /{slug}` (`meine_rolle`, `mein_status`, `anfragen_offen`, `anmeldungen_zulassen`, `automatisch_akzeptieren`, `bestenlisten_oeffentlich`, `chat_scope`) |
+| Bestenlisten / Teamstatistik / Logbuch | `GET /{slug}/bestenlisten?period=` · `/{slug}/statistik?period=` · `/{slug}/logbuch` |
+| Beitreten / Austreten | `POST /{slug}/beitreten` → `status` aktiv\|angefragt · `POST /{slug}/austreten` |
+| Einladungslink ansehen / annehmen | `GET`/`POST /einladung/{token}` (Pfad `/teams/<slug>/join-<token>` bzw. `apply-<token>`) |
+| Events des Teams / ein Event | `GET /{slug}/events` · `GET /{slug}/events/{id}` |
+| Gast-Varianten | `GET /api/public/teams/{slug}` · `/api/public/teams/{slug}/events/{id}` (Gastform: nur Rang, Name, Initialen, Wert) |
+| Verwaltung (Leitung+Mods) | Events `POST/PUT/DELETE /{slug}/events[/{id}]`, Eventbild `POST/PUT/DELETE /{slug}/events/{id}/banner`, Anfragen `GET /{slug}/mitglieder`, `POST …/mitglieder/{uid}/annehmen`, `DELETE …/mitglieder/{uid}` |
+| Nur Leitung | `PUT /{slug}`, Logo/Teambild, `PUT /{slug}/tafeln`, `PUT /{slug}/spots`, Rollen `PUT …/rolle`, Einladungen, `POST /{slug}/freigabe`, `POST /{slug}/loeschen` (Name zur Bestaetigung) |
+
+Fehler kommen als `detail`-Code (z. B. `event_leer`, `leiter_erst_uebergeben`, `nur_mitglieder`, `zu_viele_events`);
+die Texte stehen im Web unter `team.err.<code>` und koennen 1:1 uebernommen werden.
+
+**Event-Objekt** (`teams.event_out`) — Felder, die die Apps kennen muessen:
+`status` (kommend | laeuft | auswertung | beendet), `start`/`ende` (ISO mit Zone) + `zeitzone`, `einfrieren_am`
+(Upload-Frist = Ende + 24 h), `tafeln[]` (darf LEER sein), `summen_auswahl[]` + `summen{}` (Schluessel
+`teams.EVENT_SUMMEN`: pumps, distance_m, time_s, sessions, runs, spots, aktive), `summen_sportart`/`summen_accel_only`
+(nur ohne Bestenliste relevant), `ohne_dateien`, `teambild_zeigen`, `banner_url`/`banner_fokus`, `spots[]` (fuer Gaeste
+leer). Kurzform fuer Listen (`_event_kurz`): zusaetzlich `sportarten[]` und `team{slug,name,logo_url,farbe}`, ohne Tafeln.
+
+**Darstellung, die schon entschieden ist** (Web als Vorlage):
+- Event-Kachel ueberall gleich (Teamseite oben/unten, Community, Alle Events): Titel, Status-Abzeichen (laeuft: Teamfarbe,
+  sanft pulsierend 1→0,7, bei „Bewegung reduzieren" still), Sportart-Abzeichen (gelb, IMMER, auch Pumpfoil), Spot-
+  Abzeichen, Zeitraum + Countdown in derselben Zeile (kommend: „Startet in", laeuft: „Endet in", Tage kurz ueber die
+  Plattform-Formatierung), NUR die erste Zeile der Beschreibung (max. 2 Zeilen, fett), Link rechts auf Hoehe der letzten
+  Zeile. Keine Sieger, keine Kennzahlen in der Kachel.
+- Teamseite: kommende/laufende/bis 7 Tage alte Events oben, aeltere unten mit derselben Kachel.
+- Event-Seite: Bild (eigenes, sonst Teambild wenn `teambild_zeigen`), Titel+Status, Zeitraum fett, Beschreibung fett mit
+  Absaetzen; vor dem Start grosser Countdown, waehrenddessen „Endet in"; „Event gesamt"-Kacheln (nur angehakte Summen)
+  ueber den Bestenlisten; Teilen-Leiste; Box „Event-Regeln" mit zuerst „Gemessen: …", „nur Uhr/App/Konto" (wenn
+  `ohne_dateien`) und Upload-Frist (Status auswertung), dann die allgemeinen Regeln (`team.regeln.events.text`).
+- Beitreten von der Event-Seite: Gast → Login und zurueck (Web: `?beitreten=1` oeffnet den Dialog); eingeloggt ohne
+  Mitgliedschaft → Beitritts-Dialog mit Kleingedrucktem (`BeitrittDialog`), bei `angefragt` „Anfrage laeuft".
+- Zurueck-Navigation: aus Event-/Team-Bestenliste in Session oder Profil muss „zurueck" dorthin fuehren (Web: Router-State
+  `zurueck`/`zurueckText`).
+- Teamfarben: 36 Schluessel (`{farbton}-hell|''|-dunkel`), Text/Rahmen und Flaeche getrennt (`web/src/lib/teamFarben.ts`:
+  Text kontrastsicher, Flaeche hell = Tailwind 200/300 mit dunkler Schrift, dunkel = 700/900 mit weisser).
+- Teambild/Eventbild: nie zugeschnitten gespeichert; Anzeige 2,5:1 (Handy) mit `object-position` aus `banner_fokus`
+  („x,y" in Prozent).
+
+**Regeln, die der Server erzwingt** (Apps nur Zustand anzeigen): Einfrieren 24 h nach Ende; Teilnehmer nach dem Ende
+festgehalten (`teilnehmer_json`, Austritt/Beitritt danach aendert nichts); Loeschen weich; Moderatoren duerfen Events
+und Anfragen, aber keine Rollen; Event ohne Bestenliste nur mit mind. einer Summe.
+
+**Nicht Teams, aber im selben Zug fuer die Apps:** `metrics.avg_hr_foil` (Ø Puls nur ueber die Laeufe, Server-Cache
+`hr_foil_json`) — als Hauptzahl anzeigen, `avg_hr` klein als „gesamt"; Sessionliste: `avg_hr_foil ?? avg_hr`.
+Der Login-`next`-Merker (`foil_nach_login`) betrifft nur das Web.
+
+**Apps: was es dort noch gar nicht gibt** — Teams-Einstieg (Profil/Home-Links), Teamseite, Event-Seite, Community-Abschnitt
+„Laufende & kommende Events", Seiten „Alle Teams"/„Alle Events", Deep Links `/teams/<slug>`, `/teams/<slug>/events/<id>`,
+`/teams/<slug>/join-…|apply-…`, Team-Chat (`chat_scope`, vorhandener Chat-Baustein), Abzeichen auf der Foiler-Seite
+(`team_abzeichen` kommt schon mit `GET /api/community/foiler/{id}`). Verwaltung/Einstellungen koennen vorerst im Web
+bleiben (Link „im Browser oeffnen").
+
 ## Stufen
 
 1. **Kern (Web):** Teams, Rollen, Beitritt (zwei Schalter + join/apply-Links mit QR-Code), Registrierung
