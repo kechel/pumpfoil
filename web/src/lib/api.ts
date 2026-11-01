@@ -2185,7 +2185,11 @@ export interface TeamEvent {
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;
 }
-export interface TeamMitglied { user_id: number; name: string; avatar_url: string | null; rolle: TeamRolle; seit: string | null }
+export interface TeamMitglied {
+  user_id: number; name: string; avatar_url: string | null; rolle: TeamRolle; seit: string | null;
+  /** nur bei Anfragen, fuer Leitung/Moderatoren: Sessions je Sportart und je Spot (meistgefahrene zuerst) */
+  profil?: { sessions: number; sportarten: { sport: string; n: number }[]; spots: { name: string; n: number }[] };
+}
 export interface TeamEinladungInfo extends TeamAuftritt { id: number; art: "join" | "apply"; oeffentlich: boolean; mein_status: string | null }
 export interface AdminTeamFreigabe {
   id: number; neu: TeamAuftritt; alt: TeamAuftritt | null; oeffentlich: boolean;

@@ -462,10 +462,12 @@ export default function PersonalHome() {
           )}
           {/* Teams als kleine Links neben dem Homespot, mit Wappen und Teamfarbe (Jan, 31.10.2026) */}
           {meineTeams.map((tm) => (
-            <Link key={tm.id} to={`/teams/${tm.slug}`} title={tm.name}
+            // Offene Anfragen (nur Leitung/Moderatoren bekommen sie > 0) als Zahl daneben; dann direkt zur Verwaltung (Jan, 01.11.2026).
+            <Link key={tm.id} to={tm.anfragen > 0 ? `/teams/${tm.slug}/verwalten` : `/teams/${tm.slug}`} title={tm.name}
               className="team-farbe team-akzent flex shrink-0 items-center gap-1 text-xs hover:underline" style={teamFarbStil(tm.farbe)}>
               <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={16} />
               <span className="max-w-[6rem] truncate sm:max-w-[12rem]">{tm.name}</span>
+              {tm.anfragen > 0 && <span className="rounded-full bg-brand-500 px-1.5 text-[10px] font-bold leading-4 text-slate-950">{tm.anfragen}</span>}
             </Link>
           ))}
           <ListenAnsicht />

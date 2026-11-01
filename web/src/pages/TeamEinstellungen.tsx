@@ -2,7 +2,7 @@
 // Leiter: alles. Moderatoren: nur Mitglieder annehmen/entfernen und die Einladungslinks ansehen
 // (der Server prueft jede Aenderung selbst, s. server/app/api/teams.py).
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api, FoilBand, TeamInfo, TeamMitglied, TeamTafel } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
 import { ChevronIcon, TrashIcon } from "../components/Icons";
@@ -70,6 +70,17 @@ function BannerBearbeiten({ team, slug, t, onGeaendert, onFehler }: {
     </div>
   );
 }
+/** Wo und was jemand bisher gefahren ist, beim Pruefen einer Anfrage (Jan, 01.11.2026). */
+function AnfrageProfil({ p, t }: { p: NonNullable<TeamMitglied["profil"]>; t: (k: string, x?: Record<string, string>) => string }) {
+  if (!p.sessions) return <span className="block text-xs text-slate-400">{t("team.anfrage.keine")}</span>;
+  return (
+    <span className="block text-xs text-slate-400">
+      {t("team.anfrage.sessions", { n: String(p.sessions) })} · {p.sportarten.map((s) => `${t(`cls.sport.${s.sport}`)} ${s.n}`).join(", ")}
+      {p.spots.length > 0 && <span className="block">{t("team.anfrage.spots")}: {p.spots.map((s) => `${s.name} (${s.n})`).join(", ")}</span>}
+    </span>
+  );
+}
+
 function Schalter({ an, onChange, titel, text }: { an: boolean; onChange: (v: boolean) => void; titel: string; text?: string }) {
   return (
     <label className="flex cursor-pointer items-start gap-3 py-2">
@@ -80,7 +91,11 @@ function Schalter({ an, onChange, titel, text }: { an: boolean; onChange: (v: bo
   );
 }
 
+// Zwei Ansichten (Jan, 01.11.2026): „Verwaltung" fuer Leitung UND Moderatoren (Anfragen, Mitglieder, Events,
+// Einladungslinks) und „Grundeinstellungen" nur fuer die Leitung (Auftritt mit Teambild, Beitritt, Sichtbarkeit,
+// Bestenlisten, Teamspots, Loeschen). Routen /teams/:slug/verwalten und /teams/:slug/einstellungen.
 export default function TeamEinstellungen() {
+  const grund = useLocation().pathname.endsWith("/einstellungen");   // sonst /verwalten
   const { slug = "" } = useParams();
   const { t } = useI18n();
   const nav = useNavigate();
@@ -107,6 +122,7 @@ export default function TeamEinstellungen() {
 
   const laden = () => api.team(slug).then((d) => {
     if (d.meine_rolle !== "leiter" && d.meine_rolle !== "moderator") { nav(`/teams/${d.slug}`, { replace: true }); return; }
+    if (grund && d.meine_rolle !== "leiter") { nav(`/teams/${d.slug}/verwalten`, { replace: true }); return; }
     setTeam(d);
     setName(d.name);
     setNeuSlug(d.slug);
@@ -120,13 +136,13 @@ export default function TeamEinstellungen() {
     api.teamEinladungen(slug).then(setLinks).catch(() => {});
   }, [slug]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!leiter) return;
-    api.teamBestenlisten(slug, "30d").then((d) => setTafeln(d.tafeln.map(({ zeilen: _z, ...rest }) => rest))).catch(() => {});
+    if (!team) return;
+    if (leiter) api.teamBestenlisten(slug, "30d").then((d) => setTafeln(d.tafeln.map(({ zeilen: _z, ...rest }) => rest))).catch(() => {});
     api.communitySports().then((s) => setSports(Array.from(new Set(["pumpfoil", ...s.map((x) => x.sport)])))).catch(() => {});
     api.foilBands(true, "pumpfoil").then(setBands).catch(() => {});
     api.spotMap(false, "all").then((m) => setAlleSpots(m.filter((x) => x.spot_id != null)
       .map((x) => ({ id: x.spot_id as number, name: x.spot })).sort((a, b) => a.name.localeCompare(b.name)))).catch(() => {});
-  }, [leiter, slug]);
+  }, [leiter, slug, !!team]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   if (fehlt) return <p className="text-sm text-slate-400">{t("team.nichtGefunden")}</p>;
   if (!team) return <p className="text-sm text-slate-400">{t("common.loading")}</p>;
@@ -135,7 +151,7 @@ export default function TeamEinstellungen() {
     api.teamEinstellen(slug, body).then((d) => {
       setTeam(d);
       gespeichert();
-      if (d.slug !== slug) nav(`/teams/${d.slug}/einstellungen`, { replace: true });
+      if (d.slug !== slug) nav(`/teams/${d.slug}/${grund ? "einstellungen" : "verwalten"}`, { replace: true });
     }).catch(fehlerZeigen);
 
   const linkUrl = (art: "join" | "apply") => links ? teamUrl(`/teams/${team.slug}/${art}-${links[art]}`) : "";
@@ -159,12 +175,96 @@ export default function TeamEinstellungen() {
         <ChevronIcon className="h-4 w-4 rotate-180" /> {team.name}
       </Link>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-xl font-bold">{t("team.einstellungen")}</h2>
+        <h2 className="text-xl font-bold">{t(grund ? "team.tab.grunddaten" : "team.tab.verwalten")}</h2>
         <RegelnLink />
       </div>
+      {leiter && (
+        <div className="mb-4 flex gap-2">
+          {([["verwalten", "team.tab.verwalten"], ["einstellungen", "team.tab.grunddaten"]] as const).map(([pfad, key]) => (
+            <Link key={pfad} to={`/teams/${team.slug}/${pfad}`} replace
+              className={`rounded-full px-3 py-1 text-sm ${(pfad === "einstellungen") === grund ? "team-knopf font-semibold" : "border border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
+              {t(key)}
+            </Link>
+          ))}
+        </div>
+      )}
       {meldung && <p className="sticky top-2 z-10 mb-3 rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm text-slate-200">{meldung}</p>}
 
-      {leiter && (
+      {!grund && mitglieder && (
+        <Card className="mb-4 p-4">
+          <h3 className="mb-2 font-semibold text-slate-100">{t("team.mitglieder")}</h3>
+          {mitglieder.anfragen.length > 0 && (
+            <>
+              <p className="mb-1 text-sm font-medium text-slate-300">{t("team.anfragen")}</p>
+              {mitglieder.anfragen.map((m) => (
+                <div key={m.user_id} className="flex flex-wrap items-center gap-3 border-t border-slate-800 py-2 first:border-t-0">
+                  <Avatar name={m.name} url={m.avatar_url} seed={m.user_id} userId={m.user_id} size={32} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm text-slate-100">{m.name}</span>
+                    {m.profil && <AnfrageProfil p={m.profil} t={t} />}
+                  </span>
+                  <button className="team-knopf rounded-xl px-3 py-1.5 text-sm font-semibold"
+                    onClick={() => api.teamAnnehmen(slug, m.user_id).then(mitgliederLaden).catch(fehlerZeigen)}>{t("team.annehmen")}</button>
+                  <button className={knopf} onClick={() => api.teamEntfernen(slug, m.user_id).then(mitgliederLaden).catch(fehlerZeigen)}>{t("team.ablehnen")}</button>
+                </div>
+              ))}
+              <div className="mb-3" />
+            </>
+          )}
+          {mitglieder.mitglieder.map((m) => (
+            <div key={m.user_id} className="flex flex-wrap items-center gap-3 border-t border-slate-800 py-2 first:border-t-0">
+              <Avatar name={m.name} url={m.avatar_url} seed={m.user_id} userId={m.user_id} size={32} />
+              <span className="min-w-0 flex-1 truncate text-sm text-slate-100">{m.name}</span>
+              {leiter && m.rolle !== "leiter" ? (
+                <select value={m.rolle} onChange={(e) => {
+                  const r = e.target.value as "moderator" | "mitglied" | "leiter";
+                  if (r === "leiter" && !window.confirm(t("team.uebergebenFrage", { name: m.name }))) return;
+                  api.teamRolle(slug, m.user_id, r).then(() => { mitgliederLaden(); if (r === "leiter") laden(); }).catch(fehlerZeigen);
+                }} className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
+                  <option value="mitglied">{t("team.rolle.mitglied")}</option>
+                  <option value="moderator">{t("team.rolle.moderator")}</option>
+                  <option value="leiter">{t("team.rolleUebergeben")}</option>
+                </select>
+              ) : <span className="team-akzent text-xs">{t(`team.rolle.${m.rolle}`)}</span>}
+              {m.rolle !== "leiter" && (leiter || m.rolle === "mitglied") && (
+                <button className={knopf} aria-label={t("team.entfernen")} onClick={() => {
+                  if (window.confirm(t("team.entfernenFrage", { name: m.name }))) api.teamEntfernen(slug, m.user_id).then(mitgliederLaden).catch(fehlerZeigen);
+                }}><TrashIcon className="h-4 w-4" /></button>
+              )}
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {!grund && <TeamEventsVerwalten slug={slug} sports={sports} bands={bands} alleSpots={alleSpots} onMeldung={setMeldung} />}
+
+      {!grund && links && (
+        <Card className="mb-4 p-4">
+          <h3 className="mb-1 font-semibold text-slate-100">{t("team.links")}</h3>
+          <p className="mb-3 text-sm text-slate-400">{t("team.linksHinweis")}</p>
+          {(["join", "apply"] as const).map((art) => (
+            <div key={art} className="mb-4 border-t border-slate-800 pt-3 first:border-t-0 first:pt-0">
+              <p className="text-sm font-medium text-slate-100">{t(`team.link.${art}`)}</p>
+              <p className="mb-2 text-sm text-slate-400">{t(`team.link.${art}Text`)}</p>
+              <p className="mb-2 break-all rounded-lg bg-slate-950 px-3 py-2 font-mono text-xs text-slate-200">{linkUrl(art)}</p>
+              <div className="mb-3 flex flex-wrap gap-2">
+                <button onClick={() => kopieren(linkUrl(art))} className={knopf}>{t("team.kopieren")}</button>
+                <button onClick={() => teilen(linkUrl(art))} className={knopf}>{t("team.teilen")}</button>
+                {leiter && (
+                  <button className={knopf} onClick={() => {
+                    if (!window.confirm(t("team.linkNeuFrage"))) return;
+                    api.teamEinladungNeu(slug, art).then((r) => setLinks((l) => (l ? { ...l, ...r } : l))).catch(fehlerZeigen);
+                  }}>{t("team.linkNeu")}</button>
+                )}
+              </div>
+              <TeamQr url={linkUrl(art)} dateiname={`${team.slug}-${art}`} />
+            </div>
+          ))}
+        </Card>
+      )}
+
+
+      {leiter && grund && (
         <Card className="mb-4 p-4">
           <h3 className="mb-1 font-semibold text-slate-100">{t("team.freigabe.titel")}</h3>
           <p className="text-sm text-slate-300">{t(`team.freigabe.text.${team.freigabe ?? "keine"}`)}</p>
@@ -180,7 +280,7 @@ export default function TeamEinstellungen() {
         </Card>
       )}
 
-      {leiter && (
+      {leiter && grund && (
         <Card className="mb-4 p-4">
           <h3 className="mb-1 font-semibold text-slate-100">{t("team.auftritt")}</h3>
           <p className="mb-3 text-sm text-slate-400">{t("team.auftrittHinweis")}</p>
@@ -221,7 +321,7 @@ export default function TeamEinstellungen() {
         </Card>
       )}
 
-      {leiter && (
+      {leiter && grund && (
         <Card className="mb-4 p-4">
           <h3 className="mb-1 font-semibold text-slate-100">{t("team.beitritt")}</h3>
           <Schalter an={team.anmeldungen_zulassen} onChange={(v) => einstellen({ anmeldungen_zulassen: v })}
@@ -231,32 +331,7 @@ export default function TeamEinstellungen() {
         </Card>
       )}
 
-      {links && (
-        <Card className="mb-4 p-4">
-          <h3 className="mb-1 font-semibold text-slate-100">{t("team.links")}</h3>
-          <p className="mb-3 text-sm text-slate-400">{t("team.linksHinweis")}</p>
-          {(["join", "apply"] as const).map((art) => (
-            <div key={art} className="mb-4 border-t border-slate-800 pt-3 first:border-t-0 first:pt-0">
-              <p className="text-sm font-medium text-slate-100">{t(`team.link.${art}`)}</p>
-              <p className="mb-2 text-sm text-slate-400">{t(`team.link.${art}Text`)}</p>
-              <p className="mb-2 break-all rounded-lg bg-slate-950 px-3 py-2 font-mono text-xs text-slate-200">{linkUrl(art)}</p>
-              <div className="mb-3 flex flex-wrap gap-2">
-                <button onClick={() => kopieren(linkUrl(art))} className={knopf}>{t("team.kopieren")}</button>
-                <button onClick={() => teilen(linkUrl(art))} className={knopf}>{t("team.teilen")}</button>
-                {leiter && (
-                  <button className={knopf} onClick={() => {
-                    if (!window.confirm(t("team.linkNeuFrage"))) return;
-                    api.teamEinladungNeu(slug, art).then((r) => setLinks((l) => (l ? { ...l, ...r } : l))).catch(fehlerZeigen);
-                  }}>{t("team.linkNeu")}</button>
-                )}
-              </div>
-              <TeamQr url={linkUrl(art)} dateiname={`${team.slug}-${art}`} />
-            </div>
-          ))}
-        </Card>
-      )}
-
-      {leiter && (
+      {leiter && grund && (
         <Card className="mb-4 p-4">
           <h3 className="mb-1 font-semibold text-slate-100">{t("team.sichtbarkeit")}</h3>
           <Schalter an={team.oeffentlich} onChange={(v) => einstellen({ oeffentlich: v })}
@@ -271,7 +346,7 @@ export default function TeamEinstellungen() {
         </Card>
       )}
 
-      {leiter && (
+      {leiter && grund && (
         <Card className="mb-4 p-4">
           <h3 className="mb-1 font-semibold text-slate-100">{t("team.bestenlisten")}</h3>
           <p className="mb-3 text-sm text-slate-400">{t("team.bestenlistenHinweis")}</p>
@@ -324,9 +399,7 @@ export default function TeamEinstellungen() {
         </Card>
       )}
 
-      {leiter && <TeamEventsVerwalten slug={slug} sports={sports} bands={bands} alleSpots={alleSpots} onMeldung={setMeldung} />}
-
-      {leiter && (
+      {leiter && grund && (
         <Card className="mb-4 p-4">
           <h3 className="mb-1 font-semibold text-slate-100">{t("team.spots")}</h3>
           <p className="mb-3 text-sm text-slate-400">{t("team.spotsHinweis")}</p>
@@ -354,50 +427,7 @@ export default function TeamEinstellungen() {
         </Card>
       )}
 
-      {mitglieder && (
-        <Card className="mb-4 p-4">
-          <h3 className="mb-2 font-semibold text-slate-100">{t("team.mitglieder")}</h3>
-          {mitglieder.anfragen.length > 0 && (
-            <>
-              <p className="mb-1 text-sm font-medium text-slate-300">{t("team.anfragen")}</p>
-              {mitglieder.anfragen.map((m) => (
-                <div key={m.user_id} className="flex items-center gap-3 border-t border-slate-800 py-2 first:border-t-0">
-                  <Avatar name={m.name} url={m.avatar_url} seed={m.user_id} userId={m.user_id} size={32} />
-                  <span className="min-w-0 flex-1 truncate text-sm text-slate-100">{m.name}</span>
-                  <button className="team-knopf rounded-xl px-3 py-1.5 text-sm font-semibold"
-                    onClick={() => api.teamAnnehmen(slug, m.user_id).then(mitgliederLaden).catch(fehlerZeigen)}>{t("team.annehmen")}</button>
-                  <button className={knopf} onClick={() => api.teamEntfernen(slug, m.user_id).then(mitgliederLaden).catch(fehlerZeigen)}>{t("team.ablehnen")}</button>
-                </div>
-              ))}
-              <div className="mb-3" />
-            </>
-          )}
-          {mitglieder.mitglieder.map((m) => (
-            <div key={m.user_id} className="flex flex-wrap items-center gap-3 border-t border-slate-800 py-2 first:border-t-0">
-              <Avatar name={m.name} url={m.avatar_url} seed={m.user_id} userId={m.user_id} size={32} />
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-100">{m.name}</span>
-              {leiter && m.rolle !== "leiter" ? (
-                <select value={m.rolle} onChange={(e) => {
-                  const r = e.target.value as "moderator" | "mitglied" | "leiter";
-                  if (r === "leiter" && !window.confirm(t("team.uebergebenFrage", { name: m.name }))) return;
-                  api.teamRolle(slug, m.user_id, r).then(() => { mitgliederLaden(); if (r === "leiter") laden(); }).catch(fehlerZeigen);
-                }} className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
-                  <option value="mitglied">{t("team.rolle.mitglied")}</option>
-                  <option value="moderator">{t("team.rolle.moderator")}</option>
-                  <option value="leiter">{t("team.rolleUebergeben")}</option>
-                </select>
-              ) : <span className="team-akzent text-xs">{t(`team.rolle.${m.rolle}`)}</span>}
-              {m.rolle !== "leiter" && (leiter || m.rolle === "mitglied") && (
-                <button className={knopf} aria-label={t("team.entfernen")} onClick={() => {
-                  if (window.confirm(t("team.entfernenFrage", { name: m.name }))) api.teamEntfernen(slug, m.user_id).then(mitgliederLaden).catch(fehlerZeigen);
-                }}><TrashIcon className="h-4 w-4" /></button>
-              )}
-            </div>
-          ))}
-        </Card>
-      )}
-
-      {leiter && (
+      {leiter && grund && (
         <Card className="mb-4 border-red-700/40 p-4">
           <h3 className="mb-1 font-semibold text-red-700 dark:text-red-300">{t("team.loeschen")}</h3>
           <p className="mb-2 text-sm text-slate-300">{t("team.loeschenText", { name: team.name })}</p>

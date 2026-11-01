@@ -439,6 +439,26 @@ def tafeln(db: Session, team_id: int) -> list[models.TeamTafel]:
 STANDARD_TAFELN = ("session_pumps", "distance", "speed", "sum_pumps")
 
 
+def anfrage_profil(db: Session, uid: int, spots_max: int = 10) -> dict:
+    """Wo und was jemand bisher gefahren ist — fuer die Teamleitung beim Pruefen einer Beitrittsanfrage (Jan,
+    01.11.2026). Nur Zaehlungen je Spot und Sportart aus den eigenen fertigen Sessions (dieselben Filter wie die
+    Community: nicht geloescht/gemeldet/unklassifiziert/Datenmuell), keine Daten, keine Sessionliste. Wer anfragt,
+    wird im Beitritts-Dialog darauf hingewiesen."""
+    from sqlalchemy import func, or_
+    S, Sp = models.Session, models.Spot
+    basis = (db.query(S).filter(S.user_id == uid, S.deleted.isnot(True), S.flagged.isnot(True),
+                                S.status.notin_(("recording", "live")), S.needs_classification.isnot(True),
+                                or_(S.data_quality.is_(None), S.data_quality == "ok")))
+    sport = func.coalesce(S.sport_class, "pumpfoil")
+    sportarten = [{"sport": sp, "n": int(n)} for sp, n in
+                  basis.with_entities(sport, func.count(S.id)).group_by(sport).order_by(func.count(S.id).desc()).all()]
+    name = func.coalesce(Sp.name, S.place_name)
+    spots = [{"name": nm, "n": int(n)} for nm, n in
+             basis.outerjoin(Sp, Sp.id == S.spot_id).with_entities(name, func.count(S.id))
+             .filter(name.isnot(None)).group_by(name).order_by(func.count(S.id).desc()).limit(spots_max).all()]
+    return {"sessions": sum(x["n"] for x in sportarten), "sportarten": sportarten, "spots": spots}
+
+
 def sportarten(db: Session, team_ids: list[int]) -> dict[int, list[str]]:
     """Welche Sportarten ein Team misst (Jan, 01.11.2026: Uebersicht und Community-Karte sollen „ganz kurz
     und knapp auflisten welche sportarten darin vorkommen"): die Sportarten seiner Bestenlisten, ohne Doppelte."""

@@ -262,6 +262,7 @@ const router = createBrowserRouter([
           { path: "teams/regeln", element: <TeamRegeln />, handle: TEXT },
           { path: "teams/:slug", element: <Team />, handle: GAST },
           { path: "teams/:slug/einstellungen", element: <TeamEinstellungen /> },
+          { path: "teams/:slug/verwalten", element: <TeamEinstellungen /> },
           { path: "teams/:slug/:einladung", element: <TeamEinladung />, handle: GAST },
           { path: "konten", element: <LinkedAccounts /> },
           // Zustimmungsseite des eigenen OAuth-Servers. IM App-Rahmen, damit sie aussieht wie der

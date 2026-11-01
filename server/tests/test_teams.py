@@ -109,10 +109,21 @@ def test_rechte_moderator(client):
     client.post(f"/api/teams/einladung/{links['apply']}", headers=kd)
     assert client.put(f"/api/teams/{slug}/mitglieder/{ib}/rolle", headers=ka, json={"rolle": "moderator"}).status_code == 200
     # Moderator: annehmen ja, Einstellungen nein, Moderatoren/Leiter entfernen nein.
+    anfrage = client.get(f"/api/teams/{slug}/mitglieder", headers=kb).json()["anfragen"][0]
+    assert anfrage["user_id"] == idd and anfrage["profil"]["sessions"] == 0   # Spots/Sportarten fuer die Pruefung
     assert client.post(f"/api/teams/{slug}/mitglieder/{idd}/annehmen", headers=kb).status_code == 200
     assert client.put(f"/api/teams/{slug}", headers=kb, json={"name": "Gekapert"}).status_code == 403
     assert client.post(f"/api/teams/{slug}/einladungen/join/neu", headers=kb).status_code == 403
     assert client.delete(f"/api/teams/{slug}/mitglieder/{idd}", headers=kb).status_code == 200
+    # Events darf der Moderator anlegen und loeschen, ein einfaches Mitglied nicht (01.11.2026).
+    from datetime import datetime, timedelta, timezone
+    jetzt = datetime.now(timezone.utc)
+    ev = {"titel": "Mod-Event", "start": (jetzt + timedelta(days=1)).isoformat(), "ende": (jetzt + timedelta(days=2)).isoformat(),
+          "tafeln": [{"kennzahl": "distance", "sportart": "pumpfoil"}]}
+    r = client.post(f"/api/teams/{slug}/events", headers=kb, json=ev)
+    assert r.status_code == 200, r.text
+    assert client.post(f"/api/teams/{slug}/events", headers=kc, json=ev).status_code == 403
+    assert client.delete(f"/api/teams/{slug}/events/{r.json()['id']}", headers=kb).status_code == 200
     # Einfaches Mitglied darf gar nichts verwalten.
     assert client.get(f"/api/teams/{slug}/einladungen", headers=kc).status_code == 403
     assert client.delete(f"/api/teams/{slug}/mitglieder/{ib}", headers=kc).status_code == 403

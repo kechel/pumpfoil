@@ -363,7 +363,7 @@ def events(slug: str, user: models.User = Depends(current_user), db: Session = D
 @router.post("/{slug}/events")
 def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
-    t = _leiter(db, slug, user)
+    t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
     offen = int(db.query(func.count(models.TeamEvent.id))
                 .filter(models.TeamEvent.team_id == t.id, models.TeamEvent.eingefroren_am.is_(None)).scalar() or 0)
     if offen >= T.EVENT_MAX_OFFEN:
@@ -381,7 +381,7 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
 def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
     """Aenderbar bis zum Einfrieren — danach steht das Ergebnis."""
-    t = _leiter(db, slug, user)
+    t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
     e = _event(db, t, event_id)
     if e.eingefroren_am is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "event_eingefroren")
@@ -395,7 +395,7 @@ def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = D
 @router.delete("/{slug}/events/{event_id}")
 def event_loeschen(slug: str, event_id: int, user: models.User = Depends(current_user),
                    db: Session = Depends(get_db)) -> dict:
-    t = _leiter(db, slug, user)
+    t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
     db.delete(_event(db, t, event_id))
     db.commit()
     return {"ok": True}
@@ -417,7 +417,7 @@ def mitglieder(slug: str, user: models.User = Depends(current_user), db: Session
         if mm.status == "aktiv":
             aktive.append(z)
         elif T.darf_verwalten(m):
-            anfragen.append(z)
+            anfragen.append({**z, "profil": T.anfrage_profil(db, u.id)})
     aktive.sort(key=lambda z: rang.get(z["rolle"], 9))
     return {"mitglieder": aktive, "anfragen": anfragen}
 

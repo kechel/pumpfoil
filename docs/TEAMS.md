@@ -196,6 +196,14 @@ den Einstellungen per Antippen gesetzt, mit Vorschau 2,5:1 und 4:1) bleibt immer
 durch die Freigabe (`frei_banner_url`), der Fokus nicht. Entfernen wirkt sofort auch aussen. Kein Verlauf darueber
 (Markenregel).
 
+## Verwaltung und Grundeinstellungen (01.11.2026)
+
+`/teams/<slug>/verwalten` fuer Leitung UND Moderatoren: Anfragen (mit Spots und Sportarten der Anfragenden, nur
+Session-Zahlen; darauf weist der Beitritts-Dialog hin), Mitglieder, Events (Moderatoren duerfen Events anlegen,
+aendern, loeschen), Einladungslinks. `/teams/<slug>/einstellungen` nur Leitung: Freigabe, Auftritt mit Teambild,
+Beitritt, Sichtbarkeit, Bestenlisten, Teamspots, Loeschen. Offene Anfragen erscheinen als Zahl am Team-Link auf
+der Startseite und in „Meine Teams"; der Link fuehrt dann direkt zur Verwaltung.
+
 ## Freigabe-Pruefliste (Admin, ab 01.11.2026)
 
 Geprueft wird nur, was Gaeste ohne Login sehen: Name, Adresse, Beschreibung, Logo, Teambild, Farbe. Intern darf

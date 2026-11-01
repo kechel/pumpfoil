@@ -36,7 +36,7 @@ export function BeitrittDialog({ name, oeffentlich, freigabeNoetig, busy, onJa, 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onNein}>
       <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-white p-5 dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
         <h3 className="mb-2 text-lg font-bold text-slate-100">{t("team.join.title", { name })}</h3>
-        <p className="mb-3 text-sm text-slate-300">{freigabeNoetig ? t("team.join.anfrage") : t("team.join.direkt")}</p>
+        <p className="mb-3 text-sm text-slate-300">{freigabeNoetig ? `${t("team.join.anfrage")} ${t("team.join.anfrageProfil")}` : t("team.join.direkt")}</p>
         <p className="mb-4 text-xs leading-relaxed text-slate-400">
           {oeffentlich ? t("team.join.kleinOeffentlich") : t("team.join.kleinIntern")} {t("team.join.kleinAenderbar")}
         </p>
@@ -310,7 +310,7 @@ export default function Team() {
         <h2 className="team-akzent text-2xl font-bold leading-tight">{kopf.name}</h2>
         <div className="justify-self-end">
           {(kopf.meine_rolle === "leiter" || kopf.meine_rolle === "moderator") && (
-            <Link to={`/teams/${kopf.slug}/einstellungen`} title={t("team.einstellungen")}
+            <Link to={`/teams/${kopf.slug}/verwalten`} title={t("team.tab.verwalten")}
               className="block rounded-xl border border-slate-700 p-2 text-slate-300 hover:bg-slate-800">
               <SettingsIcon className="h-5 w-5" />
             </Link>
