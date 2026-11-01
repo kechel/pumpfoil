@@ -2654,6 +2654,7 @@ const ja: Record<string, string> = {
   "team.event.ergebnis": "結果",
   "team.event.nochNichts": "イベントが始まるとランキングが表示されます。",
   "team.event.startIn": "開始まで",
+  "team.event.teambildZeigen": "イベントバナーがない間はチームバナーを表示する",
   "team.event.ohneDateien": "ウォッチ、アプリ、連携アカウントの記録のみを集計（手動でアップロードした FIT・GPX・TCX ファイルは除外）",
   "team.event.ohneDateienKurz": "ウォッチ、アプリ、連携アカウントの記録のみ集計され、アップロードしたファイルは含まれません。",
   "team.eventbild.titel": "イベントバナー",

@@ -2658,6 +2658,7 @@ const ru: Record<string, string> = {
   "team.event.ergebnis": "Итоги",
   "team.event.nochNichts": "Таблицы появятся, как только событие начнётся.",
   "team.event.startIn": "Начало через",
+  "team.event.teambildZeigen": "Показывать баннер команды, пока нет баннера события",
   "team.event.ohneDateien": "Учитывать только записи с часов, из приложения или привязанного аккаунта (без вручную загруженных файлов FIT, GPX, TCX)",
   "team.event.ohneDateienKurz": "Учитываются только записи с часов, из приложения или привязанного аккаунта, без загруженных файлов.",
   "team.eventbild.titel": "Баннер события",

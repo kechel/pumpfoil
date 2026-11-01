@@ -2544,6 +2544,7 @@ const gsw: Record<string, string> = {
   "team.event.ergebnis": "Ergebnis",
   "team.event.nochNichts": "D Bestelischte chömed, sobald s Event lauft.",
   "team.event.startIn": "Startet in",
+  "team.event.teambildZeigen": "Teambild zeige, solang kei eigets Eventbild uegladet isch",
   "team.event.ohneDateien": "Nur Ufnahme vo Uhr, App oder Kontoverchnüpfig werte (kei vo Hand uegladeni FIT-, GPX- oder TCX-Dateie)",
   "team.event.ohneDateienKurz": "Es zelled nur Ufnahme vo Uhr, App oder Kontoverchnüpfig, kei uegladeni Dateie.",
   "team.eventbild.titel": "Eventbild",

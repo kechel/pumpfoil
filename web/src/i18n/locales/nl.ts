@@ -2712,6 +2712,7 @@ const nl: Record<string, string> = {
   "team.event.ergebnis": "Uitslag",
   "team.event.nochNichts": "De ranglijsten verschijnen zodra het event loopt.",
   "team.event.startIn": "Begint over",
+  "team.event.teambildZeigen": "Teambanner tonen zolang er geen eventbanner is geüpload",
   "team.event.ohneDateien": "Alleen opnames van horloge, app of gekoppeld account tellen (geen handmatig geüploade FIT-, GPX- of TCX-bestanden)",
   "team.event.ohneDateienKurz": "Alleen opnames van horloge, app of gekoppeld account tellen, geen geüploade bestanden.",
   "team.eventbild.titel": "Eventbanner",

@@ -2541,6 +2541,7 @@ const fr: Record<string, string> = {
   "team.event.ergebnis": "Résultats",
   "team.event.nochNichts": "Les classements apparaissent dès que l'événement a commencé.",
   "team.event.startIn": "Commence dans",
+  "team.event.teambildZeigen": "Afficher la bannière de l'équipe tant qu'aucune bannière d'événement n'est importée",
   "team.event.ohneDateien": "Ne compter que les enregistrements de montre, de l'app ou d'un compte lié (pas de fichiers FIT, GPX ou TCX importés à la main)",
   "team.event.ohneDateienKurz": "Seuls comptent les enregistrements de montre, de l'app ou d'un compte lié, pas les fichiers importés.",
   "team.eventbild.titel": "Bannière de l'événement",

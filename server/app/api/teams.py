@@ -336,6 +336,7 @@ class EventIn(BaseModel):
     spot_ids: list[int] = Field(default_factory=list, max_length=T.MAX_TEAMSPOTS)
     vorlage: str | None = Field(default=None, max_length=40)
     ohne_dateien: bool = False
+    teambild_zeigen: bool = True
 
 
 def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
@@ -383,7 +384,8 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
     tafeln_json, spots_json = _event_pruefen(db, body)
     e = models.TeamEvent(team_id=t.id, titel=body.titel.strip(), beschreibung=(body.beschreibung or "").strip() or None,
                          start=body.start, ende=body.ende, zeitzone=body.zeitzone, tafeln_json=tafeln_json,
-                         spots_json=spots_json, vorlage=body.vorlage, ohne_dateien=body.ohne_dateien)
+                         spots_json=spots_json, vorlage=body.vorlage, ohne_dateien=body.ohne_dateien,
+                         teambild_zeigen=body.teambild_zeigen)
     db.add(e)
     db.commit()
     return T.event_out(db, t, e)
@@ -458,7 +460,7 @@ def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = D
     e.tafeln_json, e.spots_json = _event_pruefen(db, body)
     e.titel, e.beschreibung = body.titel.strip(), (body.beschreibung or "").strip() or None
     e.start, e.ende, e.zeitzone, e.vorlage = body.start, body.ende, body.zeitzone, body.vorlage
-    e.ohne_dateien = body.ohne_dateien
+    e.ohne_dateien, e.teambild_zeigen = body.ohne_dateien, body.teambild_zeigen
     db.commit()
     return T.event_out(db, t, e)
 

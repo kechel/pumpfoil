@@ -2655,6 +2655,7 @@ const zh: Record<string, string> = {
   "team.event.ergebnis": "结果",
   "team.event.nochNichts": "活动开始后将显示排行榜。",
   "team.event.startIn": "距离开始",
+  "team.event.teambildZeigen": "在未上传活动横幅前显示团队横幅",
   "team.event.ohneDateien": "仅统计手表、App 或已关联账户的记录（不含手动上传的 FIT、GPX 或 TCX 文件）",
   "team.event.ohneDateienKurz": "仅统计手表、App 或已关联账户的记录，不含上传的文件。",
   "team.eventbild.titel": "活动横幅",

@@ -2711,6 +2711,7 @@ const cs: Record<string, string> = {
   "team.event.ergebnis": "Výsledky",
   "team.event.nochNichts": "Žebříčky se objeví, jakmile akce začne.",
   "team.event.startIn": "Začíná za",
+  "team.event.teambildZeigen": "Zobrazit banner týmu, dokud není nahraný banner akce",
   "team.event.ohneDateien": "Počítat jen záznamy z hodinek, aplikace nebo propojeného účtu (žádné ručně nahrané soubory FIT, GPX, TCX)",
   "team.event.ohneDateienKurz": "Počítají se jen záznamy z hodinek, aplikace nebo propojeného účtu, žádné nahrané soubory.",
   "team.eventbild.titel": "Banner akce",

@@ -2133,3 +2133,5 @@ class TeamEvent(Base):
     banner_fokus: Mapped[str | None] = mapped_column(String(12))
     # Keine von Hand hochgeladenen Dateien werten (teams.DATEI_PRAEFIXE); Uhr, App und Kontoverknuepfungen zaehlen.
     ohne_dateien: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Ohne eigenes Eventbild das Teambild zeigen (Jan, 01.11.2026) — beim Anlegen an, abschaltbar.
+    teambild_zeigen: Mapped[bool] = mapped_column(Boolean, default=True)

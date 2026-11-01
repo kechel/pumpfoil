@@ -2658,6 +2658,7 @@ const id: Record<string, string> = {
   "team.event.ergebnis": "Hasil",
   "team.event.nochNichts": "Papan peringkat muncul begitu event berlangsung.",
   "team.event.startIn": "Mulai dalam",
+  "team.event.teambildZeigen": "Tampilkan banner tim selama belum ada banner event",
   "team.event.ohneDateien": "Hanya hitung rekaman dari jam, aplikasi, atau akun tertaut (tanpa file FIT, GPX, atau TCX yang diunggah manual)",
   "team.event.ohneDateienKurz": "Hanya rekaman dari jam, aplikasi, atau akun tertaut yang dihitung, tanpa file unggahan.",
   "team.eventbild.titel": "Banner event",

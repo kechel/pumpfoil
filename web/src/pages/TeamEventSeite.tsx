@@ -130,7 +130,8 @@ export default function TeamEventSeite() {
         {team.name}
       </Link>
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
-      {ev.banner_url && <TeamBanner url={ev.banner_url} fokus={ev.banner_fokus} className="mb-4" />}
+      {ev.banner_url ? <TeamBanner url={ev.banner_url} fokus={ev.banner_fokus} className="mb-4" />
+        : ev.teambild_zeigen !== false && team.banner_url ? <TeamBanner url={team.banner_url} fokus={team.banner_fokus} className="mb-4" /> : null}
       <div className="team-rand mb-4 border-b-2 pb-4">
         <div className="mb-1 flex flex-wrap items-center gap-2">
           {verwalter && (

@@ -2812,6 +2812,7 @@ const de: Record<string, string> = {
   "team.event.ergebnis": "Ergebnis",
   "team.event.nochNichts": "Die Bestenlisten erscheinen, sobald das Event läuft.",
   "team.event.startIn": "Startet in",
+  "team.event.teambildZeigen": "Teambild zeigen, solange kein eigenes Eventbild hochgeladen ist",
   "team.event.ohneDateien": "Nur Aufnahmen von Uhr, App oder Kontoverknüpfung werten (keine von Hand hochgeladenen FIT-, GPX- oder TCX-Dateien)",
   "team.event.ohneDateienKurz": "Es zählen nur Aufnahmen von Uhr, App oder Kontoverknüpfung, keine hochgeladenen Dateien.",
   "team.eventbild.titel": "Eventbild",

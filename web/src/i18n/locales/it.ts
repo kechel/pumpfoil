@@ -2541,6 +2541,7 @@ const it: Record<string, string> = {
   "team.event.ergebnis": "Risultati",
   "team.event.nochNichts": "Le classifiche compaiono non appena l'evento è in corso.",
   "team.event.startIn": "Inizia tra",
+  "team.event.teambildZeigen": "Mostra l'immagine del team finché non c'è un'immagine dell'evento",
   "team.event.ohneDateien": "Conta solo registrazioni da orologio, app o account collegato (niente file FIT, GPX o TCX caricati a mano)",
   "team.event.ohneDateienKurz": "Contano solo registrazioni da orologio, app o account collegato, nessun file caricato.",
   "team.eventbild.titel": "Immagine dell'evento",

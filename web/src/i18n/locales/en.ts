@@ -2758,6 +2758,7 @@ const en: Record<string, string> = {
   "team.event.ergebnis": "Results",
   "team.event.nochNichts": "The leaderboards appear once the event is running.",
   "team.event.startIn": "Starts in",
+  "team.event.teambildZeigen": "Show the team banner as long as no event banner is uploaded",
   "team.event.ohneDateien": "Only count recordings from a watch, the app or a linked account (no manually uploaded FIT, GPX or TCX files)",
   "team.event.ohneDateienKurz": "Only recordings from a watch, the app or a linked account count, no uploaded files.",
   "team.eventbild.titel": "Event banner",

@@ -2633,6 +2633,7 @@ const nb: Record<string, string> = {
   "team.event.ergebnis": "Resultat",
   "team.event.nochNichts": "Listene vises når arrangementet er i gang.",
   "team.event.startIn": "Starter om",
+  "team.event.teambildZeigen": "Vis lagbanneret så lenge det ikke er lastet opp et arrangementsbanner",
   "team.event.ohneDateien": "Tell bare opptak fra klokke, app eller koblet konto (ingen manuelt opplastede FIT-, GPX- eller TCX-filer)",
   "team.event.ohneDateienKurz": "Bare opptak fra klokke, app eller koblet konto teller, ingen opplastede filer.",
   "team.eventbild.titel": "Arrangementsbanner",

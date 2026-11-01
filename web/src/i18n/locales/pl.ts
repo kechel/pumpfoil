@@ -2641,6 +2641,7 @@ const pl: Record<string, string> = {
   "team.event.ergebnis": "Wyniki",
   "team.event.nochNichts": "Rankingi pojawią się, gdy wydarzenie się rozpocznie.",
   "team.event.startIn": "Start za",
+  "team.event.teambildZeigen": "Pokaż baner drużyny, dopóki nie ma banera wydarzenia",
   "team.event.ohneDateien": "Licz tylko nagrania z zegarka, aplikacji lub połączonego konta (bez ręcznie przesłanych plików FIT, GPX, TCX)",
   "team.event.ohneDateienKurz": "Liczą się tylko nagrania z zegarka, aplikacji lub połączonego konta, bez przesłanych plików.",
   "team.eventbild.titel": "Baner wydarzenia",

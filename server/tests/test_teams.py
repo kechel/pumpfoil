@@ -552,3 +552,5 @@ def test_event_ohne_datei_uploads(client):
     ohne = client.post(f"/api/teams/{slug}/events", headers=ka, json={**body, "ohne_dateien": True}).json()
     assert {z["user_id"] for z in mit["tafeln"][0]["zeilen"]} == {ia, ib}
     assert [z["user_id"] for z in ohne["tafeln"][0]["zeilen"]] == [ia] and ohne["ohne_dateien"] is True
+    assert mit["teambild_zeigen"] is True                       # Standard: Teambild als Rueckfall
+    assert client.post(f"/api/teams/{slug}/events", headers=ka, json={**body, "teambild_zeigen": False}).json()["teambild_zeigen"] is False

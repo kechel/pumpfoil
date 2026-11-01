@@ -19,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -54,13 +54,14 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       start: new Date(e.start).toISOString(), ende: new Date(e.ende).toISOString(),
       zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
       tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage, ohne_dateien: !!e.ohne_dateien,
+      teambild_zeigen: e.teambild_zeigen !== false,
     };
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
       .then(() => { schliessen(); laden(); onMeldung(t("team.gespeichert")); })
       .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
-    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
+    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
@@ -94,6 +95,13 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               hochladen={(f) => api.teamEventBanner(slug, e.id!, f).then((r) => { setE((d) => d && { ...d, ...r }); laden(); })}
               fokusSetzen={(f) => api.teamEventBannerFokus(slug, e.id!, f).then((r) => { setE((d) => d && { ...d, ...r }); laden(); })}
               entfernen={() => api.teamEventBannerEntfernen(slug, e.id!).then(() => { setE((d) => d && { ...d, banner_url: null }); laden(); })} />
+          )}
+          {/* Ohne eigenes Eventbild: Teambild zeigen (Jan, 01.11.2026) — Standard an, nur sinnvoll ohne Eventbild. */}
+          {!e.banner_url && (
+            <label className="mb-3 flex cursor-pointer items-start gap-2 text-sm text-slate-300">
+              <input type="checkbox" className="mt-1" checked={e.teambild_zeigen !== false} onChange={(x) => setE({ ...e, teambild_zeigen: x.target.checked })} />
+              <span>{t("team.event.teambildZeigen")}</span>
+            </label>
           )}
           <label className="mb-1 block text-sm text-slate-300">{t("team.event.titel")}</label>
           <input value={e.titel} maxLength={80} onChange={(x) => setE({ ...e, titel: x.target.value })} className={`${eingabe} mb-3`} />

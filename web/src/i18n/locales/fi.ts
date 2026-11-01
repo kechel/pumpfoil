@@ -2693,6 +2693,7 @@ const fi: Record<string, string> = {
   "team.event.ergebnis": "Tulokset",
   "team.event.nochNichts": "Tulostaulukot näkyvät, kun tapahtuma on käynnissä.",
   "team.event.startIn": "Alkaa",
+  "team.event.teambildZeigen": "Näytä tiimin banneri, kunnes tapahtumalle on ladattu oma banneri",
   "team.event.ohneDateien": "Laske vain kellon, sovelluksen tai yhdistetyn tilin tallenteet (ei käsin ladattuja FIT-, GPX- tai TCX-tiedostoja)",
   "team.event.ohneDateienKurz": "Vain kellon, sovelluksen tai yhdistetyn tilin tallenteet lasketaan, ei ladattuja tiedostoja.",
   "team.eventbild.titel": "Tapahtuman banneri",

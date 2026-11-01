@@ -708,7 +708,8 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
                      .filter(models.Spot.id.in_(ids)).all()]
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": _aware(e.start).isoformat(),
             "ende": _aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "vorlage": e.vorlage,
-            "status": event_status(e), "spots": spots, "ohne_dateien": bool(e.ohne_dateien), "spot_ids": [] if gast else event_spots(e),
+            "status": event_status(e), "spots": spots, "ohne_dateien": bool(e.ohne_dateien),
+            "teambild_zeigen": e.teambild_zeigen is not False, "spot_ids": [] if gast else event_spots(e),
             "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_,
             # Eventbild auch fuer Gaeste, OHNE Freigabe (anders als das Teambild) — Jan, 01.11.2026: „das risiko gehe
             # ich erstmal ein". Titel und Beschreibung von Events sind ebenso ohne Freigabe oeffentlich.
