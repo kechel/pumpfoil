@@ -181,7 +181,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false }: {
     tf.sportart !== "pumpfoil" ? t(`cls.sport.${tf.sportart}`) : null,
     tf.nur_teamspots ? t("team.tafel.nurTeamspots") : null,
     tf.nur_brett ? t("team.tafel.nurBrett") : null,
-    !tf.accel_only ? t("team.tafel.mitGps") : null,
+    // „auch nur GPS" steht nicht mehr an jeder Bestenliste (Jan, 01.11.2026) — das erklaert das Team, wenn es will.
   ].filter(Boolean).join(" · ");
   return (
     <Card className="p-4">
