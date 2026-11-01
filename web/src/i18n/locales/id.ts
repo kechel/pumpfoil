@@ -2610,6 +2610,7 @@ const id: Record<string, string> = {
   "team.einladungAnmelden": "Masuk atau daftar",
   "team.community": "Tim",
   "team.communityLeer": "Belum ada tim publik. Buat yang pertama!",
+  "team.eventsAktuell": "Event berlangsung & mendatang",
   "team.alle": "Semua tim",
   "team.alleSuche": "Cari tim",
   "team.alleLeer": "Tim tidak ditemukan.",

@@ -2606,6 +2606,7 @@ const ja: Record<string, string> = {
   "team.einladungAnmelden": "ログインまたは登録",
   "team.community": "チーム",
   "team.communityLeer": "公開チームはまだありません。最初のチームを作りましょう！",
+  "team.eventsAktuell": "開催中・まもなく始まるイベント",
   "team.alle": "すべてのチーム",
   "team.alleSuche": "チームを検索",
   "team.alleLeer": "チームが見つかりません。",

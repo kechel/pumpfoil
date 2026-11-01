@@ -2494,6 +2494,7 @@ const gsw: Record<string, string> = {
   "team.einladungAnmelden": "Aamälde oder registriere",
   "team.community": "Teams",
   "team.communityLeer": "No kei öffentlichi Teams. Gründ s erschte!",
+  "team.eventsAktuell": "Laufendi & chömendi Events",
   "team.alle": "Alli Teams",
   "team.alleSuche": "Team sueche",
   "team.alleLeer": "Kei Team gfunde.",

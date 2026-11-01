@@ -2610,6 +2610,7 @@ const ru: Record<string, string> = {
   "team.einladungAnmelden": "Войти или зарегистрироваться",
   "team.community": "Команды",
   "team.communityLeer": "Публичных команд пока нет. Создай первую!",
+  "team.eventsAktuell": "Текущие и предстоящие события",
   "team.alle": "Все команды",
   "team.alleSuche": "Найти команду",
   "team.alleLeer": "Команда не найдена.",

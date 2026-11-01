@@ -2607,6 +2607,7 @@ const zh: Record<string, string> = {
   "team.einladungAnmelden": "登录或注册",
   "team.community": "团队",
   "team.communityLeer": "暂无公开团队。来创建第一个吧！",
+  "team.eventsAktuell": "进行中和即将开始的活动",
   "team.alle": "所有团队",
   "team.alleSuche": "搜索团队",
   "team.alleLeer": "未找到团队。",

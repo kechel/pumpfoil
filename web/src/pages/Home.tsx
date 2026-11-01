@@ -693,7 +693,7 @@ function TeamsSection() {
     <div className="mt-6">
       <div className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <FlagIcon className="h-5 w-5 text-brand-400" />
-        <h3 className="text-lg font-bold">{t("team.community")}</h3>
+        <h3 className="text-lg font-bold">{t("team.eventsAktuell")}</h3>
         <Link to="/teams/liste" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.alle")} →</Link>
         <Link to="/teams" className="text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>
       </div>

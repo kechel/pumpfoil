@@ -2645,6 +2645,7 @@ const fi: Record<string, string> = {
   "team.einladungAnmelden": "Kirjaudu tai rekisteröidy",
   "team.community": "Tiimit",
   "team.communityLeer": "Julkisia tiimejä ei vielä ole. Perusta ensimmäinen!",
+  "team.eventsAktuell": "Käynnissä olevat ja tulevat tapahtumat",
   "team.alle": "Kaikki tiimit",
   "team.alleSuche": "Hae tiimiä",
   "team.alleLeer": "Tiimiä ei löytynyt.",

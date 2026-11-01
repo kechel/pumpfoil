@@ -2761,6 +2761,7 @@ const de: Record<string, string> = {
   "team.einladungAnmelden": "Anmelden oder registrieren",
   "team.community": "Teams",
   "team.communityLeer": "Noch keine öffentlichen Teams. Gründe das erste!",
+  "team.eventsAktuell": "Laufende & kommende Events",
   "team.alle": "Alle Teams",
   "team.alleSuche": "Team suchen",
   "team.alleLeer": "Kein Team gefunden.",

@@ -2663,6 +2663,7 @@ const cs: Record<string, string> = {
   "team.einladungAnmelden": "Přihlásit se nebo registrovat",
   "team.community": "Týmy",
   "team.communityLeer": "Zatím žádné veřejné týmy. Založ ten první!",
+  "team.eventsAktuell": "Probíhající a nadcházející akce",
   "team.alle": "Všechny týmy",
   "team.alleSuche": "Hledat tým",
   "team.alleLeer": "Žádný tým nenalezen.",
