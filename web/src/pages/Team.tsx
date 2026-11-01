@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatistik, TeamTafelMitZeilen } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
-import { ChatBubbleIcon, ChevronIcon, SettingsIcon, ShareIcon } from "../components/Icons";
+import { ChatBubbleIcon, ChevronIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { openChatOverlay } from "../components/DmWidget";
 import { eventZeitraum } from "../lib/teamEvents";
@@ -134,6 +134,12 @@ function VergangeneEvents({ events, slug, lang, t }: {
       </ul>
     </Card>
   );
+}
+
+/** Sportarten eines Events: die seiner Bestenlisten, ohne Bestenliste die der Gesamtsummen. */
+function eventSportarten(e: TeamEvent): string[] {
+  const aus = e.tafeln.length ? e.tafeln.map((tf) => tf.sportart) : [e.summen_sportart ?? "pumpfoil"];
+  return Array.from(new Set(aus));
 }
 
 /** Wer je Bestenliste vorn liegt, in einer Zeile: „Längster Lauf: Jan 1:42 · Höchstgeschwindigkeit: Olek 21 km/h“. */
@@ -375,11 +381,19 @@ export default function Team() {
                     {t(`team.event.status.${e.status}`)}
                   </span>
                 </div>
-                <p className="text-sm text-slate-400">
-                  {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
-                  {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
-                </p>
-                {/* Nur Titel, Zeitraum und eigener Text (Jan, 01.11.2026) — Kennzahlen und Stand stehen auf der Event-Seite. */}
+                <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
+                {/* Nur Titel, Zeitraum, Sportart, Spots und eigener Text (Jan, 01.11.2026) — Kennzahlen und Stand stehen auf
+                    der Event-Seite. Sportart und Spots als Abzeichen wie in den Session-Kacheln. */}
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {eventSportarten(e).map((sp) => (
+                    <span key={sp} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</span>
+                  ))}
+                  {e.spots.map((sp) => (
+                    <span key={sp.id} className="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">
+                      <LocationIcon className="h-3.5 w-3.5" /> {sp.name ?? `#${sp.id}`}
+                    </span>
+                  ))}
+                </div>
                 {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
                 <p className="team-akzent mt-2 text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
               </Card>
