@@ -170,7 +170,7 @@ export default function TeamEinstellungen() {
   });
 
   return (
-    <div className="team-farbe w-full max-w-2xl" style={teamFarbStil(team.farbe)}>
+    <div className="team-farbe w-full" style={teamFarbStil(team.farbe)}>
       <Link to={`/teams/${team.slug}`} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {team.name}
       </Link>
