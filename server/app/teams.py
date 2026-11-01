@@ -35,7 +35,9 @@ from . import models
 ROLLEN = ("leiter", "moderator", "mitglied")
 EINLADUNGS_ARTEN = ("join", "apply")
 # Teamfarben: Schluessel einer vorgegebenen Palette (Werte je Hell/Dunkel im Web, `web/src/lib/teamFarben.ts`).
-FARBEN = ("cyan", "blau", "indigo", "violett", "pink", "rot", "orange", "amber", "gelb", "limette", "gruen", "petrol")
+# Je Farbton drei Stufen (01.11.2026), Werte in web/src/lib/teamFarben.ts.
+FARBEN = tuple(f"{h}{s}" for h in ("cyan", "blau", "indigo", "violett", "pink", "rot", "orange", "amber", "gelb",
+                                    "limette", "gruen", "petrol") for s in ("-hell", "", "-dunkel"))
 SLUG_MIN, SLUG_MAX = 3, 40
 NAME_MIN, NAME_MAX = 3, 60
 BESCHREIBUNG_MAX = 1000

@@ -261,12 +261,15 @@ export default function TeamEinstellungen() {
           <label className="mb-1 block text-sm text-slate-300">{t("team.beschreibung")}</label>
           <textarea value={beschreibung} onChange={(e) => setBeschreibung(e.target.value)} maxLength={1000} rows={3} className={`${eingabe} mb-3`} />
           <p className="mb-1 text-sm text-slate-300">{t("team.farbe")}</p>
-          <div className="mb-3 flex flex-wrap gap-2">
-            {Object.keys(TEAM_FARBEN).map((f) => (
-              <button key={f} title={f} onClick={() => einstellen({ farbe: f })}
-                className={`team-farbe team-knopf h-8 w-8 rounded-full ${team.farbe === f ? "ring-2 ring-slate-100 ring-offset-2 ring-offset-slate-950" : ""}`}
-                style={teamFarbStil(f)} aria-label={f} />
-            ))}
+          {/* Je Farbton eine Spalte: oben hell, Mitte wie bisher, unten dunkel (Jan, 01.11.2026). Schmal: seitlich wischen. */}
+          <div className="mb-3 overflow-x-auto pb-1">
+            <div className="grid w-max grid-flow-col grid-rows-3 gap-2 p-1">
+              {Object.keys(TEAM_FARBEN).map((f) => (
+                <button key={f} title={f} onClick={() => einstellen({ farbe: f })}
+                  className={`team-farbe team-knopf h-8 w-8 rounded-full ${team.farbe === f ? "ring-2 ring-slate-100 ring-offset-2 ring-offset-slate-950" : ""}`}
+                  style={teamFarbStil(f)} aria-label={f} />
+              ))}
+            </div>
           </div>
           <button onClick={() => einstellen({ name, slug: neuSlug, beschreibung })} className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold">
             {t("common.save")}
