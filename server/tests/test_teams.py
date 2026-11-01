@@ -286,16 +286,26 @@ def test_team_chat_nur_fuer_aktive_mitglieder(client):
     assert client.get(f"/api/chat?scope={scope}", headers=kb).status_code == 403
 
 
-def test_team_loeschen_nimmt_chat_mit(client):
+def test_team_loeschen_ist_weich_und_endgueltig_nimmt_chat_mit(client):
     from app import models
+    from app import teams as T
     from app.db import SessionLocal
     (_, ka), (_, kb) = _konto(client, "tc-a2@t.de"), _konto(client, "tc-b2@t.de")
     slug, _l = _team_mit(client, ka, kb, "Chatteam Zwei")
     scope = client.get(f"/api/teams/{slug}", headers=ka).json()["chat_scope"]
     client.post(f"/api/chat?scope={scope}", headers=ka, json={"text": "eins"})
     client.post(f"/api/teams/{slug}/loeschen", headers=ka, json={"name": "Chatteam Zwei"})
+    # Weich (01.11.2026): ueberall weg, Chat zu, aber noch in der DB.
+    assert slug not in {t["slug"] for t in client.get("/api/teams/mine", headers=kb).json()}
+    assert client.get(f"/api/chat?scope={scope}", headers=kb).status_code == 403
     db = SessionLocal()
     try:
+        t = db.query(models.Team).filter_by(slug=slug).one()
+        assert t.geloescht_am is not None
+        assert db.query(models.ChatMessage).filter_by(scope=scope).count() == 1
+        # Endgueltig (spaeterer Papierkorb) nimmt den Chat mit.
+        T.team_loeschen(db, t)
+        db.commit()
         assert db.query(models.ChatMessage).filter_by(scope=scope).count() == 0
         assert db.query(models.ChatRoomState).filter_by(scope=scope).count() == 0
     finally:
@@ -406,6 +416,19 @@ def test_event_fenster_einfrieren_abzeichen(client):
         db.close()
     ev = next(e for e in client.get(f"/api/teams/{slug}/events", headers=ka).json() if e["id"] == eid)
     assert [(z["user_id"], z["rang"]) for z in ev["tafeln"][0]["zeilen"]] == [(ia, 1)]
+    # Weich loeschen (01.11.2026): aus Liste und Abzeichen weg, in der DB noch da; ebenso das ganze Team.
+    assert client.get(f"/api/community/foiler/{ia}", headers=ka).json()["team_abzeichen"]
+    assert client.delete(f"/api/teams/{slug}/events/{eid}", headers=ka).status_code == 200
+    assert eid not in {e["id"] for e in client.get(f"/api/teams/{slug}/events", headers=ka).json()}
+    assert client.get(f"/api/community/foiler/{ia}", headers=ka).json()["team_abzeichen"] == []
+    db = SessionLocal()
+    try:
+        assert db.get(models.TeamEvent, eid).geloescht_am is not None
+    finally:
+        db.close()
+    client.post(f"/api/teams/{slug}/loeschen", headers=ka, json={"name": "Eventteam Eins"})
+    assert client.get(f"/api/public/teams/{slug}").status_code == 404
+    assert slug not in {t["slug"] for t in client.get("/api/teams/liste", headers=ka).json()}
 
 
 def test_event_nur_an_spots_und_pruefungen(client):

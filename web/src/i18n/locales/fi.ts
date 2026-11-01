@@ -2598,7 +2598,7 @@ const fi: Record<string, string> = {
   "team.rolleUebergeben": "Luovuta vetovastuu",
   "team.uebergebenFrage": "Luovutetaanko vetovastuu käyttäjälle {name}? Sinusta tulee moderaattori.",
   "team.loeschen": "Poista tiimi",
-  "team.loeschenText": "Poistaa tiimin ja kaikki sen tulostaulukot ja jäsenyydet pysyvästi. Vahvista kirjoittamalla tiimin nimi ”{name}”.",
+  "team.loeschenText": "Tiimi katoaa heti kaikilta, tulostaulukoineen, tapahtumineen ja tiimichatteineen. Säilytämme tiedot toistaiseksi, jotta vahingossa poistettu tiimi voidaan palauttaa. Vahvista kirjoittamalla tiimin nimi ”{name}”.",
   "team.loeschenKnopf": "Poista pysyvästi",
   "team.einstellungen": "Tiimin asetukset",
   "team.tab.verwalten": "Hallinta",
@@ -2732,7 +2732,7 @@ const fi: Record<string, string> = {
   "team.regeln.chat.titel": "Tiimichat",
   "team.regeln.chat.text": "Tiimichattia lukevat ja siihen kirjoittavat vain aktiiviset jäsenet. Pelkän pyynnön lähettänyt ei näe sitä.\nMuille se ei näy missään, ei edes aktiivisten chattien joukossa.\nTiimistä eroava tai poistettu menettää pääsyn heti eikä saa enää ilmoituksia.",
   "team.regeln.loeschen.titel": "Tiimin poistaminen",
-  "team.regeln.loeschen.text": "Tiimin voi poistaa vain vetäjä, ja vain kirjoittamalla vahvistukseksi tiimin nimen.\nSilloin kaikki häviää: jäsenyydet, tulostaulukot, lokikirja, tapahtumat ja tiimichat.\nTiimin osoite pysyy varattuna eikä sitä koskaan anneta toiselle tiimille.",
+  "team.regeln.loeschen.text": "Tiimin voi poistaa vain vetäjä, ja vain kirjoittamalla vahvistukseksi tiimin nimen.\nSilloin tiimi katoaa kaikilta: jäsenyydet, tulostaulukot, lokikirja, tapahtumat ja tiimichat. Säilytämme tiedot toistaiseksi, jotta vahingossa poistettu tiimi voidaan palauttaa.\nTiimin osoite pysyy varattuna eikä sitä koskaan anneta toiselle tiimille.",
   "team.regeln.konto.titel": "Kun tili poistetaan",
   "team.regeln.konto.text": "Henkilö katoaa kaikista tiimeistä ja tulostaulukoista, myös jäädytetyistä tapahtumatuloksista. Alempana olevat nousevat sijan ylöspäin.\nJos hän veti tiimiä, vetovastuun ottaa pisimpään toiminut moderaattori, muuten pisimpään mukana ollut jäsen. Jos ketään ei ole jäljellä, tiimi poistetaan.",
   // Teams (31.10.2026, docs/TEAMS.md)

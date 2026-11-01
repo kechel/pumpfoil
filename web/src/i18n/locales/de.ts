@@ -2714,7 +2714,7 @@ const de: Record<string, string> = {
   "team.rolleUebergeben": "Leitung übergeben",
   "team.uebergebenFrage": "Die Leitung an {name} übergeben? Du wirst dann Moderator.",
   "team.loeschen": "Team löschen",
-  "team.loeschenText": "Löscht das Team mit allen Bestenlisten und Mitgliedschaften endgültig. Zur Bestätigung den Teamnamen „{name}“ eintippen.",
+  "team.loeschenText": "Das Team verschwindet sofort für alle, mit Bestenlisten, Events und Team-Chat. Wir heben die Daten vorerst auf, damit sich ein versehentlich gelöschtes Team wiederherstellen lässt. Zur Bestätigung den Teamnamen „{name}“ eintippen.",
   "team.loeschenKnopf": "Endgültig löschen",
   "team.einstellungen": "Team-Einstellungen",
   "team.tab.verwalten": "Verwaltung",
@@ -2850,7 +2850,7 @@ const de: Record<string, string> = {
   "team.regeln.chat.titel": "Team-Chat",
   "team.regeln.chat.text": "Den Team-Chat lesen und schreiben nur aktive Mitglieder. Wer nur angefragt hat, sieht ihn nicht.\nEr taucht für andere nirgends auf, auch nicht unter den aktiven Chats.\nWer austritt oder entfernt wird, verliert den Zugang sofort und bekommt keine Benachrichtigungen mehr.",
   "team.regeln.loeschen.titel": "Team löschen",
-  "team.regeln.loeschen.text": "Löschen kann nur die Teamleitung, und nur wenn sie den Teamnamen zur Bestätigung eintippt.\nDann ist alles weg: Mitgliedschaften, Bestenlisten, Logbuch, Events und der Team-Chat.\nDie Adresse des Teams bleibt gesperrt und wird nie an ein anderes Team vergeben.",
+  "team.regeln.loeschen.text": "Löschen kann nur die Teamleitung, und nur wenn sie den Teamnamen zur Bestätigung eintippt.\nDann ist das Team für alle verschwunden: Mitgliedschaften, Bestenlisten, Logbuch, Events und der Team-Chat. Die Daten heben wir vorerst auf, damit sich ein versehentlich gelöschtes Team wiederherstellen lässt.\nDie Adresse des Teams bleibt gesperrt und wird nie an ein anderes Team vergeben.",
   "team.regeln.konto.titel": "Wenn ein Konto gelöscht wird",
   "team.regeln.konto.text": "Die Person verschwindet aus allen Teams, Bestenlisten und auch aus eingefrorenen Event-Ergebnissen. Die Plätze darunter rücken auf.\nLeitete sie ein Team, übernimmt der dienstälteste Moderator, sonst das dienstälteste Mitglied. Ist niemand mehr da, wird das Team gelöscht.",
   // Teams (31.10.2026, docs/TEAMS.md)

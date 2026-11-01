@@ -693,7 +693,7 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
                 .filter(models.SpotNote.hidden.is_(True)).scalar() or 0)
     # Teams, die auf Freigabe ihres Auftritts nach aussen warten (docs/TEAMS.md).
     teams = int(db.query(func.count()).select_from(models.Team)
-                .filter(models.Team.freigabe == "wartet").scalar() or 0)
+                .filter(models.Team.freigabe == "wartet", models.Team.geloescht_am.is_(None)).scalar() or 0)
     return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat,
             "social": social, "feedback": feedback, "spots": spots, "teams": teams,
             # `suspect` zaehlt NICHT mehr mit (Jan, 12.10.2026): das Physik-Gate nimmt die Laeufe ueber

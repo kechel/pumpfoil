@@ -1992,6 +1992,11 @@ class Team(Base):
     frei_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     angelegt_von: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     angelegt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # Weich geloescht (Jan, 01.11.2026, wie bei Events): ueberall weg — Adresse, Listen, Chat, Abzeichen,
+    # Mitgliedschaften zaehlen nicht mehr —, aber alles bleibt in der DB fuer einen spaeteren Papierkorb.
+    # Name und Adresse bleiben belegt (die Adresse ohnehin, s. TeamSlugAlt); der Name wird wieder frei.
+    geloescht_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    geloescht_von: Mapped[int | None] = mapped_column(Integer)
 
 
 class TeamMitglied(Base):
@@ -2115,4 +2120,8 @@ class TeamEvent(Base):
     vorlage: Mapped[str | None] = mapped_column(String(40))
     ergebnis_json: Mapped[str | None] = mapped_column(Text)
     eingefroren_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Geloescht wird nur weich (Jan, 01.11.2026: „nur soft-delete, ggf. spaeter dann papierkorb-funktion"):
+    # ausgeblendet ueberall (Liste, Abzeichen, Einfrieren), aber noch da. Erst das Loeschen des Teams entfernt es.
+    geloescht_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    geloescht_von: Mapped[int | None] = mapped_column(Integer)
     angelegt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

@@ -2446,7 +2446,7 @@ const es: Record<string, string> = {
   "team.rolleUebergeben": "Ceder el liderazgo",
   "team.uebergebenFrage": "¿Ceder el liderazgo a {name}? Tú pasarás a ser moderador.",
   "team.loeschen": "Eliminar equipo",
-  "team.loeschenText": "Elimina el equipo de forma definitiva, con todas sus clasificaciones y membresías. Para confirmar, escribe el nombre del equipo «{name}».",
+  "team.loeschenText": "El equipo desaparece al instante para todos, con sus clasificaciones, eventos y chat del equipo. De momento guardamos los datos para poder restaurar un equipo borrado por error. Para confirmar, escribe el nombre del equipo «{name}».",
   "team.loeschenKnopf": "Eliminar definitivamente",
   "team.einstellungen": "Ajustes del equipo",
   "team.tab.verwalten": "Gestión",
@@ -2580,7 +2580,7 @@ const es: Record<string, string> = {
   "team.regeln.chat.titel": "Chat del equipo",
   "team.regeln.chat.text": "Solo los miembros activos pueden leer y escribir en el chat del equipo. Quien solo ha enviado una solicitud no lo ve.\nNo aparece en ningún sitio para los demás, ni siquiera entre los chats activos.\nQuien sale o es quitado pierde el acceso al instante y ya no recibe notificaciones.",
   "team.regeln.loeschen.titel": "Eliminar un equipo",
-  "team.regeln.loeschen.text": "Solo el líder puede eliminar un equipo, y solo escribiendo el nombre del equipo para confirmar.\nEntonces todo desaparece: membresías, clasificaciones, bitácora, eventos y el chat del equipo.\nLa dirección del equipo queda bloqueada y nunca se asigna a otro equipo.",
+  "team.regeln.loeschen.text": "Solo el líder puede eliminar un equipo, y solo escribiendo el nombre del equipo para confirmar.\nEntonces el equipo desaparece para todos: membresías, clasificaciones, bitácora, eventos y chat del equipo. De momento guardamos los datos para poder restaurar un equipo borrado por error.\nLa dirección del equipo queda bloqueada y nunca se asigna a otro equipo.",
   "team.regeln.konto.titel": "Cuando se elimina una cuenta",
   "team.regeln.konto.text": "La persona desaparece de todos los equipos y clasificaciones, y también de los resultados de eventos congelados. Los puestos de debajo suben.\nSi lideraba un equipo, toma el relevo el moderador más antiguo y, si no hay, el miembro más antiguo. Si no queda nadie, el equipo se elimina.",
   // Teams (31.10.2026, docs/TEAMS.md)

@@ -2557,7 +2557,7 @@ const ptPT: Record<string, string> = {
   "team.rolleUebergeben": "Passar a liderança",
   "team.uebergebenFrage": "Passar a liderança a {name}? Passas a ser moderador.",
   "team.loeschen": "Eliminar equipa",
-  "team.loeschenText": "Elimina a equipa definitivamente, com todos os rankings e membros. Para confirmar, escreve o nome da equipa «{name}».",
+  "team.loeschenText": "A equipa desaparece de imediato para todos, com classificações, eventos e chat da equipa. Por agora guardamos os dados para se poder restaurar uma equipa apagada por engano. Para confirmar, escreve o nome da equipa “{name}”.",
   "team.loeschenKnopf": "Eliminar definitivamente",
   "team.einstellungen": "Definições da equipa",
   "team.tab.verwalten": "Gestão",
@@ -2691,7 +2691,7 @@ const ptPT: Record<string, string> = {
   "team.regeln.chat.titel": "Chat da equipa",
   "team.regeln.chat.text": "Só os membros ativos leem e escrevem no chat da equipa. Quem só enviou um pedido não o vê.\nNão aparece em lado nenhum para os outros, nem sequer entre os chats ativos.\nQuem sai ou é removido perde logo o acesso e deixa de receber notificações.",
   "team.regeln.loeschen.titel": "Eliminar uma equipa",
-  "team.regeln.loeschen.text": "Só o líder pode eliminar uma equipa, e só escrevendo o nome da equipa para confirmar.\nAí desaparece tudo: adesões, rankings, diário de bordo, eventos e o chat da equipa.\nO endereço da equipa fica bloqueado e nunca é atribuído a outra equipa.",
+  "team.regeln.loeschen.text": "Só o líder pode eliminar uma equipa, e só escrevendo o nome da equipa para confirmar.\nA equipa desaparece então para todos: inscrições, classificações, diário de bordo, eventos e o chat da equipa. Por agora guardamos os dados para se poder restaurar uma equipa apagada por engano.\nO endereço da equipa fica bloqueado e nunca é atribuído a outra equipa.",
   "team.regeln.konto.titel": "Quando uma conta é eliminada",
   "team.regeln.konto.text": "A pessoa desaparece de todas as equipas e rankings, e também dos resultados congelados de eventos. Quem está abaixo sobe.\nSe liderava uma equipa, assume o moderador mais antigo, caso contrário o membro mais antigo. Se não restar ninguém, a equipa é eliminada.",
   // Teams (31.10.2026, docs/TEAMS.md)

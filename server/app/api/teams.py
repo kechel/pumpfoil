@@ -120,7 +120,8 @@ def _name_pruefen(db: Session, name: str, team_id: int | None = None) -> str:
     if not T.NAME_MIN <= len(name) <= T.NAME_MAX:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "name_laenge")
     belegt = (db.query(models.Team.id)
-              .filter(func.lower(models.Team.name) == name.lower(), models.Team.id != (team_id or 0)).first())
+              .filter(func.lower(models.Team.name) == name.lower(), models.Team.id != (team_id or 0),
+                      models.Team.geloescht_am.is_(None)).first())
     if belegt is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "name_belegt")
     return name
@@ -151,7 +152,9 @@ def slug_vorschlag(name: str = "", slug: str = "", team_id: int | None = None,
 def anlegen(body: NeuIn, user: models.User = Depends(current_user), db: Session = Depends(get_db),
             _rl: None = Depends(rate_limit(10, 3600, "team-neu"))) -> dict:
     geleitet = int(db.query(func.count(models.TeamMitglied.id))
-                   .filter_by(user_id=user.id, rolle="leiter").scalar() or 0)
+                   .join(models.Team, models.Team.id == models.TeamMitglied.team_id)
+                   .filter(models.TeamMitglied.user_id == user.id, models.TeamMitglied.rolle == "leiter",
+                           models.Team.geloescht_am.is_(None)).scalar() or 0)
     if geleitet >= T.MAX_TEAMS_JE_PERSON:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "zu_viele_teams")
     name = _name_pruefen(db, body.name)
@@ -173,7 +176,7 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
     M = models.TeamMitglied
     out = []
     zeilen = (db.query(M, models.Team).join(models.Team, models.Team.id == M.team_id)
-              .filter(M.user_id == user.id).order_by(M.seit.asc()).all())
+              .filter(M.user_id == user.id, models.Team.geloescht_am.is_(None)).order_by(M.seit.asc()).all())
     sp = T.sportarten(db, [t.id for _m, t in zeilen])
     for m, t in zeilen:
         offen = 0
@@ -189,7 +192,7 @@ def liste(_u: models.User = Depends(current_user), db: Session = Depends(get_db)
     """Community-Abschnitt: nur freigegebene Teams, in ihrer freigegebenen Fassung."""
     M = models.TeamMitglied
     zahl = dict(db.query(M.team_id, func.count(M.id)).filter(M.status == "aktiv").group_by(M.team_id).all())
-    teams = db.query(models.Team).filter(models.Team.frei_am.isnot(None)).all()
+    teams = db.query(models.Team).filter(models.Team.frei_am.isnot(None), models.Team.geloescht_am.is_(None)).all()
     sp = T.sportarten(db, [t.id for t in teams])
     out = [{**_kurz(t, False, db, sp[t.id]), "mitglieder_anzahl": int(zahl.get(t.id, 0)),
             "anmeldungen_zulassen": bool(t.anmeldungen_zulassen),
@@ -209,6 +212,8 @@ def einladung_ansehen(token: str, user: models.User = Depends(current_user), db:
     if e is None:
         raise _404()
     t = db.get(models.Team, e.team_id)
+    if t is None or t.geloescht_am is not None:
+        raise _404()
     m = T.mitglied(db, t.id, user.id)
     return {**_kurz(t, True, db), "art": e.art, "oeffentlich": bool(t.oeffentlich),
             "mein_status": m.status if m else None}
@@ -221,6 +226,8 @@ def einladung_annehmen(token: str, user: models.User = Depends(current_user), db
     if e is None:
         raise _404()
     t = db.get(models.Team, e.team_id)
+    if t is None or t.geloescht_am is not None:
+        raise _404()
     return _beitreten(db, t, user, "aktiv" if e.art == "join" else "angefragt", e)
 
 
@@ -345,7 +352,7 @@ def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
 
 def _event(db: Session, t: models.Team, event_id: int) -> models.TeamEvent:
     e = db.get(models.TeamEvent, event_id)
-    if e is None or e.team_id != t.id:
+    if e is None or e.team_id != t.id or e.geloescht_am is not None:
         raise _404()
     return e
 
@@ -365,7 +372,8 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
                   db: Session = Depends(get_db)) -> dict:
     t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
     offen = int(db.query(func.count(models.TeamEvent.id))
-                .filter(models.TeamEvent.team_id == t.id, models.TeamEvent.eingefroren_am.is_(None)).scalar() or 0)
+                .filter(models.TeamEvent.team_id == t.id, models.TeamEvent.eingefroren_am.is_(None),
+                        models.TeamEvent.geloescht_am.is_(None)).scalar() or 0)
     if offen >= T.EVENT_MAX_OFFEN:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "zu_viele_events")
     tafeln_json, spots_json = _event_pruefen(db, body)
@@ -395,8 +403,10 @@ def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = D
 @router.delete("/{slug}/events/{event_id}")
 def event_loeschen(slug: str, event_id: int, user: models.User = Depends(current_user),
                    db: Session = Depends(get_db)) -> dict:
+    """Weich loeschen: ausgeblendet, aber noch in der DB (spaeter Papierkorb). Abzeichen daraus verschwinden."""
     t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
-    db.delete(_event(db, t, event_id))
+    e = _event(db, t, event_id)
+    e.geloescht_am, e.geloescht_von = T._jetzt(), user.id
     db.commit()
     return {"ok": True}
 
@@ -579,7 +589,8 @@ def freigabe_beantragen(slug: str, user: models.User = Depends(current_user), db
         wartend = int(db.query(func.count(models.Team.id))
                       .join(models.TeamMitglied, models.TeamMitglied.team_id == models.Team.id)
                       .filter(models.TeamMitglied.user_id == user.id, models.TeamMitglied.rolle == "leiter",
-                              models.Team.freigabe == "wartet", models.Team.id != t.id).scalar() or 0)
+                              models.Team.freigabe == "wartet", models.Team.id != t.id,
+                              models.Team.geloescht_am.is_(None)).scalar() or 0)
         if wartend >= T.MAX_WARTEND_JE_PERSON:
             raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "zu_viele_wartend")
         t.freigabe, t.freigabe_notiz = "wartet", None
@@ -653,15 +664,13 @@ class LoeschenIn(BaseModel):
 
 @router.post("/{slug}/loeschen")
 def loeschen(slug: str, body: LoeschenIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Nur der Leiter, und nur mit dem eingetippten Teamnamen (Jan: „sicher, nicht aus Versehen")."""
-    from ..media import delete_media
+    """Nur der Leiter, und nur mit dem eingetippten Teamnamen (Jan: „sicher, nicht aus Versehen"). Seit 01.11.2026
+    nur weich (`T.team_weich_loeschen`): ueberall weg, aber noch in der DB fuer einen spaeteren Papierkorb."""
     t = _leiter(db, slug, user)
     if " ".join(body.name.split()).lower() != t.name.lower():
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "name_falsch")
-    medien = T.team_loeschen(db, t)
+    T.team_weich_loeschen(t, user.id)
     db.commit()
-    for u in medien:
-        delete_media(u)
     return {"ok": True}
 
 
@@ -691,7 +700,8 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", db: Session 
 def admin_liste(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> list[dict]:
     """Warteschlange: wartende Teams mit alter (freigegebener) und neuer Fassung."""
     out = []
-    for t in db.query(models.Team).filter(models.Team.freigabe == "wartet").order_by(models.Team.id).all():
+    for t in (db.query(models.Team).filter(models.Team.freigabe == "wartet", models.Team.geloescht_am.is_(None))
+              .order_by(models.Team.id).all()):
         leiter = (db.query(models.User).join(models.TeamMitglied, models.TeamMitglied.user_id == models.User.id)
                   .filter(models.TeamMitglied.team_id == t.id, models.TeamMitglied.rolle == "leiter").first())
         out.append({"id": t.id, "neu": T.auftritt(t, True), "alt": T.auftritt(t, False) if t.frei_am else None,
@@ -710,7 +720,7 @@ def admin_entscheiden(team_id: int, body: FreigabeIn, _a: models.User = Depends(
                       db: Session = Depends(get_db)) -> dict:
     from ..media import delete_media
     t = db.get(models.Team, team_id)
-    if t is None:
+    if t is None or t.geloescht_am is not None:
         raise _404()
     weg: list[str] = []
     if body.ok:

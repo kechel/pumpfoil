@@ -103,16 +103,25 @@ def freier_slug(db: Session, wunsch: str) -> str:
 
 
 def finde(db: Session, slug: str) -> tuple[models.Team | None, bool]:
-    """(Team, umgeleitet). Alte Adressen fuehren zum Team (umgeleitet=True)."""
-    t = db.query(models.Team).filter(models.Team.slug == slug).first()
+    """(Team, umgeleitet). Alte Adressen fuehren zum Team (umgeleitet=True). Geloeschte Teams gibt es nicht."""
+    Tm = models.Team
+    t = db.query(Tm).filter(Tm.slug == slug, Tm.geloescht_am.is_(None)).first()
     if t is not None:
         return t, False
     alt = db.query(models.TeamSlugAlt).filter(models.TeamSlugAlt.slug == slug).first()
     if alt is not None and alt.team_id is not None:
-        return db.get(models.Team, alt.team_id), True
+        t = db.get(Tm, alt.team_id)
+        return (t, True) if t is not None and t.geloescht_am is None else (None, False)
     # Freigegebene Adresse, waehrend intern schon eine neue gilt: aussen gilt die alte weiter.
-    t = db.query(models.Team).filter(models.Team.frei_slug == slug).first()
+    t = db.query(Tm).filter(Tm.frei_slug == slug, Tm.geloescht_am.is_(None)).first()
     return (t, True) if t is not None else (None, False)
+
+
+def team_weich_loeschen(t: models.Team, uid: int) -> None:
+    """Team ausblenden (Jan, 01.11.2026: „das gleiche auch fuer gesamte teams" — wie bei Events nur weich).
+    Ab jetzt zaehlt keine Mitgliedschaft mehr (`mitglied`/`mitglieder_ids`), der Chat ist zu, Abzeichen
+    verschwinden. `team_loeschen` (endgueltig, mit Medien und Chat) bleibt fuer einen spaeteren Papierkorb."""
+    t.geloescht_am, t.geloescht_von = _jetzt(), uid
 
 
 def slug_merken(db: Session, slug: str | None, team_id: int) -> None:
@@ -125,7 +134,9 @@ def slug_merken(db: Session, slug: str | None, team_id: int) -> None:
 def mitglied(db: Session, team_id: int, uid: int | None) -> models.TeamMitglied | None:
     if not uid:
         return None
-    return db.query(models.TeamMitglied).filter_by(team_id=team_id, user_id=uid).first()
+    M, Tm = models.TeamMitglied, models.Team
+    return (db.query(M).join(Tm, Tm.id == M.team_id)
+            .filter(M.team_id == team_id, M.user_id == uid, Tm.geloescht_am.is_(None)).first())
 
 
 def aktiv(m: models.TeamMitglied | None) -> bool:
@@ -142,9 +153,9 @@ def ist_leiter(m: models.TeamMitglied | None) -> bool:
 
 
 def mitglieder_ids(db: Session, team_id: int) -> list[int]:
-    M, U = models.TeamMitglied, models.User
-    return [uid for (uid,) in db.query(M.user_id).join(U, U.id == M.user_id)
-            .filter(M.team_id == team_id, M.status == "aktiv", U.blocked.isnot(True)).all()]
+    M, U, Tm = models.TeamMitglied, models.User, models.Team
+    return [uid for (uid,) in db.query(M.user_id).join(U, U.id == M.user_id).join(Tm, Tm.id == M.team_id)
+            .filter(M.team_id == team_id, M.status == "aktiv", U.blocked.isnot(True), Tm.geloescht_am.is_(None)).all()]
 
 
 def oeffentlich_sichtbar(t: models.Team) -> bool:
@@ -525,7 +536,7 @@ def logbuch_snapshot(db: Session) -> int:
     Der erste Lauf je Art haelt den Stand fest (Eintrag ohne Vorgaenger). Bei Summen (Pumps gesamt …)
     zaehlt nur ein Wechsel an der Spitze."""
     neu = 0
-    for t in db.query(models.Team).all():
+    for t in db.query(models.Team).filter(models.Team.geloescht_am.is_(None)).all():
         ids = mitglieder_ids(db, t.id)
         gesehen: set[str] = set()
         for tf in tafeln(db, t.id):
@@ -650,7 +661,7 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
     if e.eingefroren_am is not None or j < _aware(e.ende) + EINFRIEREN_NACH:
         return False
     t = db.get(models.Team, e.team_id)
-    if t is None:
+    if t is None or t.geloescht_am is not None:
         return False
     # Frisch rechnen, nicht aus dem 2-Minuten-Cache.
     for k in [k for k in _cache if k and k[0] == t.id]:
@@ -665,6 +676,7 @@ def events_einfrieren(db: Session) -> int:
     n = 0
     grenze = _jetzt() - EINFRIEREN_NACH
     for e in db.query(models.TeamEvent).filter(models.TeamEvent.eingefroren_am.is_(None),
+                                               models.TeamEvent.geloescht_am.is_(None),
                                                models.TeamEvent.ende <= grenze).all():
         n += event_einfrieren(db, e)
     db.commit()
@@ -690,8 +702,9 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
 def events_liste(db: Session, team_id: int, beendete: int = 10) -> list[models.TeamEvent]:
     """Laufende, in Auswertung und kommende Events, dazu die letzten `beendete` eingefrorenen."""
     E = models.TeamEvent
-    offen = db.query(E).filter(E.team_id == team_id, E.eingefroren_am.is_(None)).order_by(E.start).all()
-    alt = (db.query(E).filter(E.team_id == team_id, E.eingefroren_am.isnot(None))
+    offen = (db.query(E).filter(E.team_id == team_id, E.eingefroren_am.is_(None), E.geloescht_am.is_(None))
+             .order_by(E.start).all())
+    alt = (db.query(E).filter(E.team_id == team_id, E.eingefroren_am.isnot(None), E.geloescht_am.is_(None))
            .order_by(E.ende.desc()).limit(beendete).all())
     return offen + alt
 
@@ -703,7 +716,8 @@ def abzeichen(db: Session, uid: int) -> list[dict]:
     out = []
     E, Tm = models.TeamEvent, models.Team
     for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
-                 .filter(E.eingefroren_am.isnot(None), Tm.frei_am.isnot(None))
+                 .filter(E.eingefroren_am.isnot(None), E.geloescht_am.is_(None), Tm.frei_am.isnot(None),
+                         Tm.geloescht_am.is_(None))
                  .order_by(E.ende.desc()).limit(500).all()):
         for tf in json.loads(e.ergebnis_json or "[]"):
             for z in tf.get("zeilen", [])[:ABZEICHEN_PLAETZE]:

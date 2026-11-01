@@ -2446,7 +2446,7 @@ const fr: Record<string, string> = {
   "team.rolleUebergeben": "Transmettre la responsabilité",
   "team.uebergebenFrage": "Transmettre la responsabilité à {name} ? Tu deviendras modérateur.",
   "team.loeschen": "Supprimer l'équipe",
-  "team.loeschenText": "Supprime définitivement l'équipe avec tous ses classements et adhésions. Pour confirmer, tape le nom de l'équipe « {name} ».",
+  "team.loeschenText": "L'équipe disparaît aussitôt pour tout le monde, avec ses classements, ses événements et son chat. Nous gardons les données pour l'instant afin de pouvoir restaurer une équipe supprimée par erreur. Pour confirmer, tape le nom de l'équipe « {name} ».",
   "team.loeschenKnopf": "Supprimer définitivement",
   "team.einstellungen": "Réglages de l'équipe",
   "team.tab.verwalten": "Gestion",
@@ -2580,7 +2580,7 @@ const fr: Record<string, string> = {
   "team.regeln.chat.titel": "Chat d'équipe",
   "team.regeln.chat.text": "Seuls les membres actifs peuvent lire et écrire dans le chat d'équipe. Qui a seulement envoyé une demande ne le voit pas.\nIl n'apparaît nulle part pour les autres, pas même parmi les chats actifs.\nQui quitte l'équipe ou en est retiré perd l'accès aussitôt et ne reçoit plus de notifications.",
   "team.regeln.loeschen.titel": "Supprimer une équipe",
-  "team.regeln.loeschen.text": "Seul le responsable peut supprimer une équipe, et seulement en tapant le nom de l'équipe pour confirmer.\nAlors tout disparaît : adhésions, classements, journal, événements et chat d'équipe.\nL'adresse de l'équipe reste bloquée et n'est jamais attribuée à une autre équipe.",
+  "team.regeln.loeschen.text": "Seul le responsable peut supprimer une équipe, et seulement en tapant le nom de l'équipe pour confirmer.\nL'équipe disparaît alors pour tout le monde : adhésions, classements, journal, événements et chat d'équipe. Nous gardons les données pour l'instant afin de pouvoir restaurer une équipe supprimée par erreur.\nL'adresse de l'équipe reste bloquée et n'est jamais attribuée à une autre équipe.",
   "team.regeln.konto.titel": "Quand un compte est supprimé",
   "team.regeln.konto.text": "La personne disparaît de toutes les équipes et de tous les classements, y compris des résultats d'événements figés. Les suivants remontent d'une place.\nSi elle dirigeait une équipe, le modérateur le plus ancien prend le relais, sinon le membre le plus ancien. S'il ne reste plus personne, l'équipe est supprimée.",
   // Teams (31.10.2026, docs/TEAMS.md)

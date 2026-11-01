@@ -2563,7 +2563,7 @@ const id: Record<string, string> = {
   "team.rolleUebergeben": "Serahkan posisi ketua",
   "team.uebergebenFrage": "Serahkan posisi ketua kepada {name}? Kamu akan menjadi moderator.",
   "team.loeschen": "Hapus tim",
-  "team.loeschenText": "Menghapus tim beserta semua papan peringkat dan keanggotaannya secara permanen. Untuk konfirmasi, ketik nama tim “{name}”.",
+  "team.loeschenText": "Tim langsung hilang untuk semua orang, beserta papan peringkat, event, dan chat tim. Untuk sementara kami menyimpan datanya agar tim yang terhapus tanpa sengaja bisa dipulihkan. Untuk konfirmasi, ketik nama tim “{name}”.",
   "team.loeschenKnopf": "Hapus permanen",
   "team.einstellungen": "Pengaturan tim",
   "team.tab.verwalten": "Kelola",
@@ -2697,7 +2697,7 @@ const id: Record<string, string> = {
   "team.regeln.chat.titel": "Chat tim",
   "team.regeln.chat.text": "Hanya anggota aktif yang bisa membaca dan menulis di chat tim. Yang baru mengirim permintaan tidak bisa melihatnya.\nChat ini tidak muncul di mana pun bagi orang lain, bahkan tidak di daftar chat aktif.\nYang keluar atau dikeluarkan langsung kehilangan akses dan tidak lagi menerima notifikasi.",
   "team.regeln.loeschen.titel": "Menghapus tim",
-  "team.regeln.loeschen.text": "Hanya ketua tim yang bisa menghapus tim, dan hanya dengan mengetik nama tim sebagai konfirmasi.\nSetelah itu semuanya hilang: keanggotaan, papan peringkat, buku log, event, dan chat tim.\nAlamat tim tetap diblokir dan tidak pernah diberikan ke tim lain.",
+  "team.regeln.loeschen.text": "Hanya ketua tim yang bisa menghapus tim, dan hanya dengan mengetik nama tim sebagai konfirmasi.\nSetelah itu tim hilang untuk semua orang: keanggotaan, papan peringkat, buku log, event, dan chat tim. Untuk sementara kami menyimpan datanya agar tim yang terhapus tanpa sengaja bisa dipulihkan.\nAlamat tim tetap diblokir dan tidak pernah diberikan ke tim lain.",
   "team.regeln.konto.titel": "Saat akun dihapus",
   "team.regeln.konto.text": "Orang itu hilang dari semua tim dan papan peringkat, juga dari hasil event yang sudah dibekukan. Yang di bawahnya naik peringkat.\nJika ia memimpin tim, moderator paling lama mengambil alih, jika tidak ada maka anggota paling lama. Jika tidak ada siapa pun lagi, tim dihapus.",
   // Teams (31.10.2026, docs/TEAMS.md)

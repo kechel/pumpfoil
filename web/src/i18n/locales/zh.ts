@@ -2560,7 +2560,7 @@ const zh: Record<string, string> = {
   "team.rolleUebergeben": "移交负责人",
   "team.uebergebenFrage": "将负责人移交给 {name}？你将成为管理员。",
   "team.loeschen": "删除团队",
-  "team.loeschenText": "永久删除团队及其所有排行榜和成员关系。请输入团队名称“{name}”以确认。",
+  "team.loeschenText": "团队会立即对所有人消失，包括排行榜、活动和团队聊天。我们暂时保留数据，以便恢复误删的团队。请输入团队名称“{name}”以确认。",
   "team.loeschenKnopf": "永久删除",
   "team.einstellungen": "团队设置",
   "team.tab.verwalten": "管理",
@@ -2694,7 +2694,7 @@ const zh: Record<string, string> = {
   "team.regeln.chat.titel": "团队聊天",
   "team.regeln.chat.text": "只有活跃成员才能阅读和发送团队聊天消息。只发出申请的人看不到它。\n它不会在任何地方向其他人显示，在活跃聊天中也不会出现。\n退出或被移除的人会立即失去访问权限，也不会再收到通知。",
   "team.regeln.loeschen.titel": "删除团队",
-  "team.regeln.loeschen.text": "只有负责人可以删除团队，而且必须输入团队名称进行确认。\n删除后一切都会消失：成员关系、排行榜、日志、活动和团队聊天。\n团队的地址会保持锁定，永远不会分配给其他团队。",
+  "team.regeln.loeschen.text": "只有负责人可以删除团队，而且必须输入团队名称进行确认。\n之后团队对所有人消失：成员、排行榜、日志、活动和团队聊天。我们暂时保留数据，以便恢复误删的团队。\n团队的地址会保持锁定，永远不会分配给其他团队。",
   "team.regeln.konto.titel": "账号被删除时",
   "team.regeln.konto.text": "此人会从所有团队和排行榜中消失，也会从已冻结的活动结果中消失。排在其后的人依次上移。\n如果此人是某个团队的负责人，由资历最久的管理员接任，否则由资历最久的成员接任。如果已经没有人了，团队就会被删除。",
   // Teams (31.10.2026, docs/TEAMS.md)

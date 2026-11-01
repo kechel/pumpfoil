@@ -204,6 +204,13 @@ aendern, loeschen), Einladungslinks. `/teams/<slug>/einstellungen` nur Leitung: 
 Beitritt, Sichtbarkeit, Bestenlisten, Teamspots, Loeschen. Offene Anfragen erscheinen als Zahl am Team-Link auf
 der Startseite und in „Meine Teams"; der Link fuehrt dann direkt zur Verwaltung.
 
+## Loeschen ist weich (01.11.2026)
+
+Events und ganze Teams werden nur weich geloescht (`geloescht_am`, `geloescht_von`): ueberall ausgeblendet
+(Adresse, Listen, Abzeichen, Chat, Einfrieren, Logbuch; Mitgliedschaften zaehlen nicht mehr, `T.mitglied` und
+`T.mitglieder_ids` filtern), aber noch in der DB. Ein Papierkorb (wiederherstellen / endgueltig mit
+`T.team_loeschen`) kommt spaeter. Kontoloeschung bereinigt auch geloeschte Teams und Events (DSGVO).
+
 ## Freigabe-Pruefliste (Admin, ab 01.11.2026)
 
 Geprueft wird nur, was Gaeste ohne Login sehen: Name, Adresse, Beschreibung, Logo, Teambild, Farbe. Intern darf

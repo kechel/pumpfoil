@@ -2660,7 +2660,7 @@ const en: Record<string, string> = {
   "team.rolleUebergeben": "Hand over lead",
   "team.uebergebenFrage": "Hand the lead over to {name}? You'll become a moderator.",
   "team.loeschen": "Delete team",
-  "team.loeschenText": "Permanently deletes the team with all its leaderboards and memberships. To confirm, type the team name “{name}”.",
+  "team.loeschenText": "The team disappears for everyone right away, with its leaderboards, events and team chat. We keep the data for now so a team deleted by mistake can be restored. To confirm, type the team name “{name}”.",
   "team.loeschenKnopf": "Delete permanently",
   "team.einstellungen": "Team settings",
   "team.tab.verwalten": "Management",
@@ -2796,7 +2796,7 @@ const en: Record<string, string> = {
   "team.regeln.chat.titel": "Team chat",
   "team.regeln.chat.text": "Only active members can read and write in the team chat. Anyone who has only sent a request can't see it.\nIt never shows up for others, not even among the active chats.\nAnyone who leaves or is removed loses access right away and gets no more notifications.",
   "team.regeln.loeschen.titel": "Deleting a team",
-  "team.regeln.loeschen.text": "Only the team lead can delete a team, and only by typing the team name to confirm.\nThen everything is gone: memberships, leaderboards, logbook, events and the team chat.\nThe team's address stays blocked and is never given to another team.",
+  "team.regeln.loeschen.text": "Only the team lead can delete a team, and only by typing the team name to confirm.\nThe team is then gone for everyone: memberships, leaderboards, logbook, events and the team chat. We keep the data for now so a team deleted by mistake can be restored.\nThe team's address stays blocked and is never given to another team.",
   "team.regeln.konto.titel": "When an account is deleted",
   "team.regeln.konto.text": "The person disappears from all teams and leaderboards, and from frozen event results too. Those below move up.\nIf they led a team, the longest-serving moderator takes over, otherwise the longest-serving member. If nobody is left, the team is deleted.",
   // Teams (31.10.2026, docs/TEAMS.md)

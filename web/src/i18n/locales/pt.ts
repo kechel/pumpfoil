@@ -2563,7 +2563,7 @@ const pt: Record<string, string> = {
   "team.rolleUebergeben": "Passar a liderança",
   "team.uebergebenFrage": "Passar a liderança para {name}? Você vira moderador.",
   "team.loeschen": "Excluir equipe",
-  "team.loeschenText": "Exclui a equipe definitivamente, com todos os rankings e membros. Para confirmar, digite o nome da equipe “{name}”.",
+  "team.loeschenText": "A equipe some na hora para todos, com classificações, eventos e chat da equipe. Por enquanto guardamos os dados para poder restaurar uma equipe excluída por engano. Para confirmar, digite o nome da equipe “{name}”.",
   "team.loeschenKnopf": "Excluir definitivamente",
   "team.einstellungen": "Configurações da equipe",
   "team.tab.verwalten": "Gerenciamento",
@@ -2697,7 +2697,7 @@ const pt: Record<string, string> = {
   "team.regeln.chat.titel": "Chat da equipe",
   "team.regeln.chat.text": "Só membros ativos leem e escrevem no chat da equipe. Quem só enviou um pedido não o vê.\nEle não aparece em lugar nenhum para os outros, nem entre os chats ativos.\nQuem sai ou é removido perde o acesso na hora e não recebe mais notificações.",
   "team.regeln.loeschen.titel": "Excluir uma equipe",
-  "team.regeln.loeschen.text": "Só o líder pode excluir uma equipe, e só digitando o nome da equipe para confirmar.\nAí tudo some: participações, rankings, diário de bordo, eventos e o chat da equipe.\nO endereço da equipe fica bloqueado e nunca é passado para outra equipe.",
+  "team.regeln.loeschen.text": "Só o líder pode excluir uma equipe, e só digitando o nome da equipe para confirmar.\nAí a equipe some para todos: participações, classificações, diário de bordo, eventos e o chat da equipe. Por enquanto guardamos os dados para poder restaurar uma equipe excluída por engano.\nO endereço da equipe fica bloqueado e nunca é passado para outra equipe.",
   "team.regeln.konto.titel": "Quando uma conta é excluída",
   "team.regeln.konto.text": "A pessoa some de todas as equipes e rankings, e também dos resultados congelados de eventos. Quem está abaixo sobe.\nSe ela liderava uma equipe, assume o moderador mais antigo, senão o membro mais antigo. Se não sobrar ninguém, a equipe é excluída.",
   // Teams (31.10.2026, docs/TEAMS.md)

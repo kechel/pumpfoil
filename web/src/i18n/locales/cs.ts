@@ -2616,7 +2616,7 @@ const cs: Record<string, string> = {
   "team.rolleUebergeben": "Předat vedení",
   "team.uebergebenFrage": "Předat vedení týmu {name}? Ty se pak staneš moderátorem.",
   "team.loeschen": "Smazat tým",
-  "team.loeschenText": "Natrvalo smaže tým se všemi žebříčky a členstvími. Pro potvrzení napiš název týmu „{name}“.",
+  "team.loeschenText": "Tým hned zmizí pro všechny, i se žebříčky, akcemi a týmovým chatem. Data zatím uchováváme, aby šel omylem smazaný tým obnovit. Pro potvrzení napiš název týmu „{name}“.",
   "team.loeschenKnopf": "Smazat natrvalo",
   "team.einstellungen": "Nastavení týmu",
   "team.tab.verwalten": "Správa",
@@ -2750,7 +2750,7 @@ const cs: Record<string, string> = {
   "team.regeln.chat.titel": "Týmový chat",
   "team.regeln.chat.text": "Týmový chat čtou a píšou do něj jen aktivní členové. Kdo jen poslal žádost, nevidí ho.\nPro ostatní se nikde neobjeví, ani mezi aktivními chaty.\nKdo odejde nebo je odebrán, hned ztratí přístup a nedostává už žádná upozornění.",
   "team.regeln.loeschen.titel": "Smazání týmu",
-  "team.regeln.loeschen.text": "Smazat tým může jen vedoucí, a jen když pro potvrzení napíše název týmu.\nPak je všechno pryč: členství, žebříčky, deník, akce i týmový chat.\nAdresa týmu zůstane zablokovaná a nikdy se nepřidělí jinému týmu.",
+  "team.regeln.loeschen.text": "Smazat tým může jen vedoucí, a jen když pro potvrzení napíše název týmu.\nTým pak zmizí pro všechny: členství, žebříčky, deník, akce i týmový chat. Data zatím uchováváme, aby šel omylem smazaný tým obnovit.\nAdresa týmu zůstane zablokovaná a nikdy se nepřidělí jinému týmu.",
   "team.regeln.konto.titel": "Když se smaže účet",
   "team.regeln.konto.text": "Člověk zmizí ze všech týmů a žebříčků a také ze zmrazených výsledků akcí. Ti pod ním se posunou nahoru.\nPokud vedl tým, převezme ho nejdéle sloužící moderátor, jinak nejdéle sloužící člen. Pokud už nikdo nezbyl, tým se smaže.",
   // Teams (31.10.2026, docs/TEAMS.md)

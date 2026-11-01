@@ -2446,7 +2446,7 @@ const it: Record<string, string> = {
   "team.rolleUebergeben": "Cedi la guida",
   "team.uebergebenFrage": "Cedere la guida a {name}? Diventerai moderatore.",
   "team.loeschen": "Elimina team",
-  "team.loeschenText": "Elimina definitivamente il team con tutte le classifiche e le adesioni. Per confermare, digita il nome del team «{name}».",
+  "team.loeschenText": "Il team scompare subito per tutti, con classifiche, eventi e chat del team. Per ora conserviamo i dati, così un team cancellato per errore si può ripristinare. Per confermare, digita il nome del team «{name}».",
   "team.loeschenKnopf": "Elimina definitivamente",
   "team.einstellungen": "Impostazioni del team",
   "team.tab.verwalten": "Gestione",
@@ -2580,7 +2580,7 @@ const it: Record<string, string> = {
   "team.regeln.chat.titel": "Chat del team",
   "team.regeln.chat.text": "Solo i membri attivi possono leggere e scrivere nella chat del team. Chi ha solo inviato una richiesta non la vede.\nNon compare da nessuna parte per gli altri, nemmeno tra le chat attive.\nChi esce o viene rimosso perde subito l'accesso e non riceve più notifiche.",
   "team.regeln.loeschen.titel": "Eliminare un team",
-  "team.regeln.loeschen.text": "Solo il responsabile può eliminare un team, e solo digitando il nome del team per conferma.\nA quel punto sparisce tutto: adesioni, classifiche, diario di bordo, eventi e la chat del team.\nL'indirizzo del team resta bloccato e non viene mai assegnato a un altro team.",
+  "team.regeln.loeschen.text": "Solo il responsabile può eliminare un team, e solo digitando il nome del team per conferma.\nIl team sparisce allora per tutti: iscrizioni, classifiche, diario di bordo, eventi e chat del team. Per ora conserviamo i dati, così un team cancellato per errore si può ripristinare.\nL'indirizzo del team resta bloccato e non viene mai assegnato a un altro team.",
   "team.regeln.konto.titel": "Quando un account viene eliminato",
   "team.regeln.konto.text": "La persona scompare da tutti i team e da tutte le classifiche, anche dai risultati degli eventi congelati. Chi sta sotto sale di posizione.\nSe guidava un team, subentra il moderatore con più anzianità, altrimenti il membro con più anzianità. Se non resta nessuno, il team viene eliminato.",
   // Teams (31.10.2026, docs/TEAMS.md)

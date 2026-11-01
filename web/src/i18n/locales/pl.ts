@@ -2546,7 +2546,7 @@ const pl: Record<string, string> = {
   "team.rolleUebergeben": "Przekaż rolę lidera",
   "team.uebergebenFrage": "Przekazać rolę lidera {name}? Zostaniesz wtedy moderatorem.",
   "team.loeschen": "Usuń drużynę",
-  "team.loeschenText": "Trwale usuwa drużynę ze wszystkimi rankingami i członkostwami. Aby potwierdzić, wpisz nazwę drużyny „{name}”.",
+  "team.loeschenText": "Drużyna od razu znika dla wszystkich, razem z rankingami, wydarzeniami i czatem. Na razie przechowujemy dane, aby dało się przywrócić drużynę usuniętą przez pomyłkę. Aby potwierdzić, wpisz nazwę drużyny „{name}”.",
   "team.loeschenKnopf": "Usuń trwale",
   "team.einstellungen": "Ustawienia drużyny",
   "team.tab.verwalten": "Zarządzanie",
@@ -2680,7 +2680,7 @@ const pl: Record<string, string> = {
   "team.regeln.chat.titel": "Czat drużyny",
   "team.regeln.chat.text": "Czat drużyny czytają i piszą w nim tylko aktywni członkowie. Kto tylko wysłał prośbę, nie widzi go.\nDla innych nie pojawia się nigdzie, także wśród aktywnych czatów.\nKto opuści drużynę albo zostanie usunięty, od razu traci dostęp i nie dostaje już powiadomień.",
   "team.regeln.loeschen.titel": "Usuwanie drużyny",
-  "team.regeln.loeschen.text": "Drużynę może usunąć tylko lider i tylko po wpisaniu nazwy drużyny dla potwierdzenia.\nWtedy znika wszystko: członkostwa, rankingi, dziennik, wydarzenia i czat drużyny.\nAdres drużyny pozostaje zablokowany i nigdy nie zostanie przydzielony innej drużynie.",
+  "team.regeln.loeschen.text": "Drużynę może usunąć tylko lider i tylko po wpisaniu nazwy drużyny dla potwierdzenia.\nWtedy drużyna znika dla wszystkich: członkostwa, rankingi, dziennik, wydarzenia i czat drużyny. Na razie przechowujemy dane, aby dało się przywrócić drużynę usuniętą przez pomyłkę.\nAdres drużyny pozostaje zablokowany i nigdy nie zostanie przydzielony innej drużynie.",
   "team.regeln.konto.titel": "Gdy konto zostaje usunięte",
   "team.regeln.konto.text": "Osoba znika ze wszystkich drużyn i rankingów, a także z zamrożonych wyników wydarzeń. Osoby poniżej przesuwają się w górę.\nJeśli prowadziła drużynę, przejmuje ją najdłużej działający moderator, a jeśli go nie ma, najdłużej należący członek. Jeśli nikt nie zostanie, drużyna jest usuwana.",
   // Teams (31.10.2026, docs/TEAMS.md)

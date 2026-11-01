@@ -2617,7 +2617,7 @@ const nl: Record<string, string> = {
   "team.rolleUebergeben": "Leiding overdragen",
   "team.uebergebenFrage": "De leiding aan {name} overdragen? Je wordt dan moderator.",
   "team.loeschen": "Team verwijderen",
-  "team.loeschenText": "Verwijdert het team met alle ranglijsten en lidmaatschappen definitief. Typ ter bevestiging de teamnaam „{name}”.",
+  "team.loeschenText": "Het team verdwijnt meteen voor iedereen, met ranglijsten, events en teamchat. We bewaren de gegevens voorlopig, zodat een per ongeluk verwijderd team terug te halen is. Typ ter bevestiging de teamnaam „{name}”.",
   "team.loeschenKnopf": "Definitief verwijderen",
   "team.einstellungen": "Teaminstellingen",
   "team.tab.verwalten": "Beheer",
@@ -2751,7 +2751,7 @@ const nl: Record<string, string> = {
   "team.regeln.chat.titel": "Teamchat",
   "team.regeln.chat.text": "Alleen actieve leden kunnen de teamchat lezen en erin schrijven. Wie alleen een verzoek heeft gestuurd, ziet hem niet.\nHij verschijnt voor anderen nergens, ook niet tussen de actieve chats.\nWie vertrekt of wordt verwijderd, verliest meteen de toegang en krijgt geen meldingen meer.",
   "team.regeln.loeschen.titel": "Team verwijderen",
-  "team.regeln.loeschen.text": "Alleen de leiding kan een team verwijderen, en alleen door ter bevestiging de teamnaam in te typen.\nDan is alles weg: lidmaatschappen, ranglijsten, logboek, events en de teamchat.\nHet adres van het team blijft geblokkeerd en wordt nooit aan een ander team gegeven.",
+  "team.regeln.loeschen.text": "Alleen de leiding kan een team verwijderen, en alleen door ter bevestiging de teamnaam in te typen.\nDan is het team voor iedereen weg: lidmaatschappen, ranglijsten, logboek, events en de teamchat. We bewaren de gegevens voorlopig, zodat een per ongeluk verwijderd team terug te halen is.\nHet adres van het team blijft geblokkeerd en wordt nooit aan een ander team gegeven.",
   "team.regeln.konto.titel": "Als een account wordt verwijderd",
   "team.regeln.konto.text": "De persoon verdwijnt uit alle teams en ranglijsten, en ook uit bevroren event-uitslagen. De plaatsen eronder schuiven op.\nLeidde die persoon een team, dan neemt de moderator die het langst lid is het over, anders het lid dat het langst lid is. Is er niemand meer, dan wordt het team verwijderd.",
   // Teams (31.10.2026, docs/TEAMS.md)

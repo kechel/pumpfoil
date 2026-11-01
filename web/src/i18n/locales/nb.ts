@@ -2538,7 +2538,7 @@ const nb: Record<string, string> = {
   "team.rolleUebergeben": "Overlat lederrollen",
   "team.uebergebenFrage": "Overlate lederrollen til {name}? Du blir da moderator.",
   "team.loeschen": "Slett lag",
-  "team.loeschenText": "Sletter laget med alle topplister og medlemskap for godt. Skriv inn lagnavnet «{name}» for å bekrefte.",
+  "team.loeschenText": "Laget forsvinner straks for alle, med lister, arrangementer og lagchat. Vi tar vare på dataene inntil videre, så et lag som er slettet ved en feil kan gjenopprettes. Skriv lagnavnet «{name}» for å bekrefte.",
   "team.loeschenKnopf": "Slett for godt",
   "team.einstellungen": "Laginnstillinger",
   "team.tab.verwalten": "Administrasjon",
@@ -2672,7 +2672,7 @@ const nb: Record<string, string> = {
   "team.regeln.chat.titel": "Lagchat",
   "team.regeln.chat.text": "Bare aktive medlemmer kan lese og skrive i lagchatten. Den som bare har sendt en forespørsel, ser den ikke.\nDen dukker ikke opp noe sted for andre, heller ikke blant de aktive chattene.\nDen som melder seg ut eller blir fjernet, mister tilgangen med en gang og får ingen flere varsler.",
   "team.regeln.loeschen.titel": "Slette laget",
-  "team.regeln.loeschen.text": "Bare lederen kan slette laget, og bare ved å skrive inn lagnavnet som bekreftelse.\nDa er alt borte: medlemskap, topplister, loggbok, arrangementer og lagchatten.\nAdressen til laget forblir sperret og gis aldri til et annet lag.",
+  "team.regeln.loeschen.text": "Bare lederen kan slette laget, og bare ved å skrive inn lagnavnet som bekreftelse.\nDa er laget borte for alle: medlemskap, lister, loggbok, arrangementer og lagchatten. Vi tar vare på dataene inntil videre, så et lag som er slettet ved en feil kan gjenopprettes.\nAdressen til laget forblir sperret og gis aldri til et annet lag.",
   "team.regeln.konto.titel": "Når en konto slettes",
   "team.regeln.konto.text": "Personen forsvinner fra alle lag og topplister, også fra frosne arrangementsresultater. De nedenfor rykker opp.\nLedet personen et lag, tar moderatoren med lengst fartstid over, ellers medlemmet med lengst fartstid. Er det ingen igjen, slettes laget.",
   // Teams (31.10.2026, docs/TEAMS.md)

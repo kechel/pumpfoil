@@ -2447,7 +2447,7 @@ const gsw: Record<string, string> = {
   "team.rolleUebergeben": "Leitig übergä",
   "team.uebergebenFrage": "D Leitig a {name} übergä? Du wirsch denn Moderator.",
   "team.loeschen": "Team lösche",
-  "team.loeschenText": "Löscht s Team mit allne Bestelischte und Mitgliedschafte für immer. Zum Bestätige de Teamname „{name}“ iitippe.",
+  "team.loeschenText": "S Team isch sofort für alli wäg, mit Bestelischte, Events und Team-Chat. Mir bhalted d Date vorläufig, demit mer es us Versehe glöschts Team wieder härestelle chönd. Zur Bestätigung de Teamname „{name}“ iitippe.",
   "team.loeschenKnopf": "Für immer lösche",
   "team.einstellungen": "Team-Iistellige",
   "team.tab.verwalten": "Verwaltig",
@@ -2582,7 +2582,7 @@ const gsw: Record<string, string> = {
   "team.regeln.chat.titel": "Team-Chat",
   "team.regeln.chat.text": "De Team-Chat läsed und schriibed nume aktivi Mitglieder. Wer nume aagfrogt het, gseht ne nöd.\nEr taucht für anderi niene uf, au nöd under de aktive Chats.\nWer uustritt oder usegno wird, verlüürt de Zuegang sofort und überchunnt kei Benachrichtigunge meh.",
   "team.regeln.loeschen.titel": "Team lösche",
-  "team.regeln.loeschen.text": "Lösche cha nume d Teamleitig, und nume wenn sie de Teamname zum Bestätige iitippt.\nDenn isch alles weg: Mitgliedschafte, Bestelischte, Logbuech, Events und de Team-Chat.\nD Adrässe vom Team blibt gsperrt und wird nie amne andere Team vergä.",
+  "team.regeln.loeschen.text": "Lösche cha nume d Teamleitig, und nume wenn sie de Teamname zum Bestätige iitippt.\nDenn isch s Team für alli wäg: Mitgliedschafte, Bestelischte, Logbuech, Events und de Team-Chat. D Date bhalted mir vorläufig, demit mer es us Versehe glöschts Team wieder härestelle chönd.\nD Adrässe vom Team blibt gsperrt und wird nie amne andere Team vergä.",
   "team.regeln.konto.titel": "Wenn es Konto glöscht wird",
   "team.regeln.konto.text": "D Person verschwindet us allne Teams, Bestelischte und au us iigfrorene Event-Resultat. D Plätz drunder rucked uf.\nHet sie es Team gleitet, übernimmt de dienschtältischt Moderator, susch s dienschtältischt Mitglied. Isch niemer meh da, wird s Team glöscht.",
   // Teams (31.10.2026, docs/TEAMS.md)
