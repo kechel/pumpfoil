@@ -2786,7 +2786,7 @@ const en: Record<string, string> = {
   "team.eventbild.entfernen": "Remove event banner",
   "team.event.teilen": "Share:",
   "team.event.regelnTitel": "Event rules",
-  "team.event.disclaimer": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org.",
+  "team.event.disclaimer": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org. Likewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises.",
   "team.event.endetIn": "Ends in",
   "team.event.tage": "days",
   "team.event.stunden": "hrs",
