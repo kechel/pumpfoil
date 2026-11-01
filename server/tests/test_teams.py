@@ -109,6 +109,8 @@ def test_rechte_moderator(client):
     client.post(f"/api/teams/einladung/{links['apply']}", headers=kd)
     assert client.put(f"/api/teams/{slug}/mitglieder/{ib}/rolle", headers=ka, json={"rolle": "moderator"}).status_code == 200
     # Moderator: annehmen ja, Einstellungen nein, Moderatoren/Leiter entfernen nein.
+    assert client.get(f"/api/teams/{slug}", headers=kb).json()["anfragen_offen"] == 1    # Badge fuer Moderatoren
+    assert client.get(f"/api/teams/{slug}", headers=kc).json()["anfragen_offen"] == 0    # Mitglieder sehen nichts
     anfrage = client.get(f"/api/teams/{slug}/mitglieder", headers=kb).json()["anfragen"][0]
     assert anfrage["user_id"] == idd and anfrage["profil"]["sessions"] == 0   # Spots/Sportarten fuer die Pruefung
     assert client.post(f"/api/teams/{slug}/mitglieder/{idd}/annehmen", headers=kb).status_code == 200

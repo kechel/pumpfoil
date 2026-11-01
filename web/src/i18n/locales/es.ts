@@ -2439,6 +2439,8 @@ const es: Record<string, string> = {
   "team.spotHinzu": "Añadir",
   "team.mitglieder": "Miembros",
   "team.anfragen": "Solicitudes",
+  "team.anfragenEins": "1 solicitud nueva",
+  "team.anfragenViele": "{n} solicitudes nuevas",
   "team.annehmen": "Aceptar",
   "team.ablehnen": "Rechazar",
   "team.entfernen": "Quitar",

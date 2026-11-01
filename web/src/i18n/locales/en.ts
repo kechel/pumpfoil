@@ -2653,6 +2653,8 @@ const en: Record<string, string> = {
   "team.spotHinzu": "Add",
   "team.mitglieder": "Members",
   "team.anfragen": "Requests",
+  "team.anfragenEins": "1 new request",
+  "team.anfragenViele": "{n} new requests",
   "team.annehmen": "Accept",
   "team.ablehnen": "Decline",
   "team.entfernen": "Remove",

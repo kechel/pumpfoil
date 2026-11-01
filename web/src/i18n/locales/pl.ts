@@ -2539,6 +2539,8 @@ const pl: Record<string, string> = {
   "team.spotHinzu": "Dodaj",
   "team.mitglieder": "Członkowie",
   "team.anfragen": "Prośby",
+  "team.anfragenEins": "Nowe prośby: 1",
+  "team.anfragenViele": "Nowe prośby: {n}",
   "team.annehmen": "Akceptuj",
   "team.ablehnen": "Odrzuć",
   "team.entfernen": "Usuń",

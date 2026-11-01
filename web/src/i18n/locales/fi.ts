@@ -2591,6 +2591,8 @@ const fi: Record<string, string> = {
   "team.spotHinzu": "Lisää",
   "team.mitglieder": "Jäsenet",
   "team.anfragen": "Pyynnöt",
+  "team.anfragenEins": "1 uusi pyyntö",
+  "team.anfragenViele": "{n} uutta pyyntöä",
   "team.annehmen": "Hyväksy",
   "team.ablehnen": "Hylkää",
   "team.entfernen": "Poista",

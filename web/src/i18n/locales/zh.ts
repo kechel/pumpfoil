@@ -2553,6 +2553,8 @@ const zh: Record<string, string> = {
   "team.spotHinzu": "添加",
   "team.mitglieder": "成员",
   "team.anfragen": "申请",
+  "team.anfragenEins": "1 个新申请",
+  "team.anfragenViele": "{n} 个新申请",
   "team.annehmen": "接受",
   "team.ablehnen": "拒绝",
   "team.entfernen": "移除",

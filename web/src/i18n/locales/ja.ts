@@ -2552,6 +2552,8 @@ const ja: Record<string, string> = {
   "team.spotHinzu": "追加",
   "team.mitglieder": "メンバー",
   "team.anfragen": "申請",
+  "team.anfragenEins": "新しい申請 1 件",
+  "team.anfragenViele": "新しい申請 {n} 件",
   "team.annehmen": "承認",
   "team.ablehnen": "拒否",
   "team.entfernen": "削除",

@@ -2156,6 +2156,7 @@ export interface TeamInfo extends TeamAuftritt {
   meine_rolle: TeamRolle | null; mein_status: "aktiv" | "angefragt" | null;
   darf_bestenlisten: boolean; darf_mitglieder: boolean;
   chat_scope?: string | null;   // nur fuer aktive Mitglieder
+  anfragen_offen?: number;      // offene Beitrittsanfragen, nur fuer Leitung/Moderatoren > 0
   spots?: { id: number; name: string | null }[];
   // nur fuer den Leiter:
   freigabe?: "keine" | "wartet" | "frei" | "abgelehnt"; freigabe_notiz?: string | null;

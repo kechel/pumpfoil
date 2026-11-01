@@ -322,9 +322,16 @@ export default function Team() {
             {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
             {!!kopf.sportarten?.length && <> · {sportartenText(kopf.sportarten, t)}</>}
           </p>
+          {/* Offene Anfragen fuer Leitung/Moderatoren, anklickbar zur Verwaltung (Jan, 01.11.2026). */}
+          {!!kopf.anfragen_offen && (
+            <Link to={`/teams/${kopf.slug}/verwalten`}
+              className="ml-auto inline-flex items-center rounded-xl bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+              {t(kopf.anfragen_offen === 1 ? "team.anfragenEins" : "team.anfragenViele", { n: String(kopf.anfragen_offen) })}
+            </Link>
+          )}
           {kopf.chat_scope && (
             <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800">
+              className={`${kopf.anfragen_offen ? "" : "ml-auto "}inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800`}>
               <ChatBubbleIcon className="team-akzent h-4 w-4" /> {t("team.chat")}
             </button>
           )}

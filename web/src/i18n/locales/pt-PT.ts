@@ -2550,6 +2550,8 @@ const ptPT: Record<string, string> = {
   "team.spotHinzu": "Adicionar",
   "team.mitglieder": "Membros",
   "team.anfragen": "Pedidos",
+  "team.anfragenEins": "1 pedido novo",
+  "team.anfragenViele": "{n} pedidos novos",
   "team.annehmen": "Aceitar",
   "team.ablehnen": "Recusar",
   "team.entfernen": "Remover",

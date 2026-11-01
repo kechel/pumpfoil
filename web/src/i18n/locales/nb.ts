@@ -2531,6 +2531,8 @@ const nb: Record<string, string> = {
   "team.spotHinzu": "Legg til",
   "team.mitglieder": "Medlemmer",
   "team.anfragen": "Forespørsler",
+  "team.anfragenEins": "1 ny forespørsel",
+  "team.anfragenViele": "{n} nye forespørsler",
   "team.annehmen": "Godta",
   "team.ablehnen": "Avslå",
   "team.entfernen": "Fjern",

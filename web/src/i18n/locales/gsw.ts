@@ -2440,6 +2440,8 @@ const gsw: Record<string, string> = {
   "team.spotHinzu": "Dezuefüege",
   "team.mitglieder": "Mitglieder",
   "team.anfragen": "Aafroge",
+  "team.anfragenEins": "1 neui Aafrog",
+  "team.anfragenViele": "{n} neui Aafroge",
   "team.annehmen": "Aanäh",
   "team.ablehnen": "Ablehne",
   "team.entfernen": "Usenäh",

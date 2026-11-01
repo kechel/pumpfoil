@@ -2556,6 +2556,8 @@ const id: Record<string, string> = {
   "team.spotHinzu": "Tambah",
   "team.mitglieder": "Anggota",
   "team.anfragen": "Permintaan",
+  "team.anfragenEins": "1 permintaan baru",
+  "team.anfragenViele": "{n} permintaan baru",
   "team.annehmen": "Terima",
   "team.ablehnen": "Tolak",
   "team.entfernen": "Keluarkan",

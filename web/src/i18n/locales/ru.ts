@@ -2556,6 +2556,8 @@ const ru: Record<string, string> = {
   "team.spotHinzu": "Добавить",
   "team.mitglieder": "Участники",
   "team.anfragen": "Заявки",
+  "team.anfragenEins": "Новые заявки: 1",
+  "team.anfragenViele": "Новые заявки: {n}",
   "team.annehmen": "Принять",
   "team.ablehnen": "Отклонить",
   "team.entfernen": "Убрать",

@@ -2609,6 +2609,8 @@ const cs: Record<string, string> = {
   "team.spotHinzu": "Přidat",
   "team.mitglieder": "Členové",
   "team.anfragen": "Žádosti",
+  "team.anfragenEins": "Nové žádosti: 1",
+  "team.anfragenViele": "Nové žádosti: {n}",
   "team.annehmen": "Přijmout",
   "team.ablehnen": "Odmítnout",
   "team.entfernen": "Odebrat",

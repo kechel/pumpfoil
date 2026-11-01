@@ -89,6 +89,9 @@ def _team_out(db: Session, t: models.Team, m: models.TeamMitglied | None) -> dic
         "darf_mitglieder": mitglied_aktiv or (T.oeffentlich_sichtbar(t) and t.mitglieder_sichtbar == "angemeldete"),
         # Team-Chat nur fuer aktive Mitglieder (Zugriff prueft chat._require_access).
         "chat_scope": T.chat_scope(t.id) if mitglied_aktiv else None,
+        # Offene Beitrittsanfragen — nur fuer Leitung/Moderatoren (Badge auf der Teamseite, Jan 01.11.2026).
+        "anfragen_offen": int(db.query(func.count(models.TeamMitglied.id))
+                              .filter_by(team_id=t.id, status="angefragt").scalar() or 0) if T.darf_verwalten(m) else 0,
     }
     if T.ist_leiter(m):
         spots = (db.query(models.Spot.id, models.Spot.name)

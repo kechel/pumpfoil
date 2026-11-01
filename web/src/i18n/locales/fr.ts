@@ -2439,6 +2439,8 @@ const fr: Record<string, string> = {
   "team.spotHinzu": "Ajouter",
   "team.mitglieder": "Membres",
   "team.anfragen": "Demandes",
+  "team.anfragenEins": "1 nouvelle demande",
+  "team.anfragenViele": "{n} nouvelles demandes",
   "team.annehmen": "Accepter",
   "team.ablehnen": "Refuser",
   "team.entfernen": "Retirer",

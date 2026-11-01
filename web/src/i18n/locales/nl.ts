@@ -2610,6 +2610,8 @@ const nl: Record<string, string> = {
   "team.spotHinzu": "Toevoegen",
   "team.mitglieder": "Leden",
   "team.anfragen": "Verzoeken",
+  "team.anfragenEins": "1 nieuw verzoek",
+  "team.anfragenViele": "{n} nieuwe verzoeken",
   "team.annehmen": "Accepteren",
   "team.ablehnen": "Afwijzen",
   "team.entfernen": "Verwijderen",

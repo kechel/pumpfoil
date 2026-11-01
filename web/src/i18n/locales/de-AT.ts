@@ -2445,6 +2445,8 @@ const deAT: Record<string, string> = {
   "team.spotHinzu": "Dazugeben",
   "team.mitglieder": "Mitglieder",
   "team.anfragen": "Anfragen",
+  "team.anfragenEins": "1 neue Anfrage",
+  "team.anfragenViele": "{n} neue Anfragen",
   "team.annehmen": "Annehmen",
   "team.ablehnen": "Ablehnen",
   "team.entfernen": "Rausnehmen",
