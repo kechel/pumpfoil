@@ -18,7 +18,7 @@ import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
 import { teamFarbStil } from "../lib/teamFarben";
-import { eventGemessen, eventSummenText, fehlerCode, kennzahl, sportartenText, tafelKurz } from "../lib/teamKennzahlen";
+import { eventSummenText, fehlerCode, kennzahl, sportartenText, tafelKurz } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
 
 const ZEITRAEUME: [string, string][] = [
@@ -379,11 +379,7 @@ export default function Team() {
                   {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
                   {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
                 </p>
-                {eventGemessen(e, t) && <p className="text-sm text-slate-300">{t("team.event.gemessen")}: {eventGemessen(e, t)}</p>}
-                {e.status !== "kommend" && siegerText(e, t) && <p className="mt-1 text-sm text-slate-200">{siegerText(e, t)}</p>}
-                {e.status !== "kommend" && eventSummenText(e, t) && (
-                  <p className="mt-1 text-sm text-slate-200">{t("team.event.teamGesamt")}: {eventSummenText(e, t)}</p>
-                )}
+                {/* Nur Titel, Zeitraum und eigener Text (Jan, 01.11.2026) — Kennzahlen und Stand stehen auf der Event-Seite. */}
                 {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
                 <p className="team-akzent mt-2 text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
               </Card>
