@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 // Teambild ueber dem Teamkopf (01.11.2026). Das Bild wird nie zugeschnitten gespeichert; angezeigt wird es mit
-// fester Hoehe ueber die volle Breite, und der Fokuspunkt ("x,y" in Prozent, von der Teamleitung gewaehlt)
+// festem Seitenverhaeltnis ueber die volle Breite, und der Fokuspunkt ("x,y" in Prozent, von der Teamleitung gewaehlt)
 // bleibt dabei immer sichtbar — so passt dasselbe Bild auf Handy (breit ~2,5:1) wie Rechner (~4:1).
 // Kein Verlauf darueber (Markenregel: keine Verlaeufe); Wappen und Name stehen darunter, nicht darauf.
 
@@ -9,8 +9,9 @@ export function fokusPosition(fokus: string | null | undefined): string {
   return `${x}% ${y}%`;
 }
 
-/** Hoehen der Anzeige: auf dem Handy 140 px, ab sm 220 px. Die Vorschau in den Einstellungen nutzt dieselben. */
-export const BANNER_HOEHE = "h-[140px] sm:h-[220px]";
+/** Seitenverhaeltnis der Anzeige: Handy 2,5:1, ab sm 4:1 — genau wie die Vorschau in den Einstellungen. Vorher eine
+ *  feste Hoehe (140/220 px): auf breiten Seiten wurde das Bild dadurch 8:1 und oben/unten abgeschnitten (Jan, 01.11.2026). */
+export const BANNER_HOEHE = "aspect-[5/2] sm:aspect-[4/1]";
 
 export default function TeamBanner({ url, fokus, className = "" }: { url: string; fokus: string | null | undefined; className?: string }) {
   return (

@@ -191,7 +191,7 @@ aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
 Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;
 abgelehnt unter 800 px Breite oder wenn es nicht mindestens 1,5-mal so breit wie hoch ist. Angezeigt mit fester
-Hoehe (140 px Handy, 220 px ab sm) ueber die volle Breite; der Fokuspunkt `banner_fokus` ("x,y" in Prozent, in
+Seitenverhaeltnis (2,5:1 Handy, 4:1 ab sm) ueber die volle Breite; der Fokuspunkt `banner_fokus` ("x,y" in Prozent, in
 den Einstellungen per Antippen gesetzt, mit Vorschau 2,5:1 und 4:1) bleibt immer sichtbar. Das Bild selbst laeuft
 durch die Freigabe (`frei_banner_url`), der Fokus nicht. Entfernen wirkt sofort auch aussen. Kein Verlauf darueber
 (Markenregel).
