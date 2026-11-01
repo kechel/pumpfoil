@@ -164,7 +164,7 @@ export default function TeamEventSeite() {
           </span>
         </div>
         <p className="text-sm text-slate-400">
-          {eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}
+          <span className="font-semibold text-slate-200">{eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}</span>
           {ev.spots.length > 0 && <> · {ev.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
         </p>
         {eventGemessen(ev, t) && <p className="text-sm text-slate-300">{t("team.event.gemessen")}: {eventGemessen(ev, t)}</p>}
