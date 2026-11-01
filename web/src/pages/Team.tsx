@@ -396,7 +396,7 @@ export default function Team() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
                     {/* Zeilenumbrueche zu Leerzeichen: sonst stand nach einer Leerzeile nur „…“ in Zeile 2 (Jan, 01.11.2026). */}
-                    {e.beschreibung && <p className="mt-1 line-clamp-2 text-sm text-slate-400">{e.beschreibung.replace(/\s*\n\s*/g, " ")}</p>}
+                    {e.beschreibung && <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.replace(/\s*\n\s*/g, " ")}</p>}
                   </div>
                   <span className="team-akzent shrink-0 text-sm font-semibold">{t(eventStandKey(e.status))} →</span>
                 </div>
