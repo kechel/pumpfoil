@@ -1501,6 +1501,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 01.11. (Jan) — Schnellste 100 m / 200 m / 500 m / 1 km als Kennzahlen (Teams, Events, evtl. Rekorde).** Jan: „wenn
+  wir danach 'schnellster km' bauen, dann aber … direkt 'schnellster 100m und 200m und 500m' gleich mitziehen". Machbar
+  wie das Low End (analysis/lowend.py): je Lauf die kuerzeste Zeit ueber die Strecke aus dem gespeicherten Track
+  (Koordinaten + 1-s-Takt), gecacht in analysis_results, keine Detektor-Aenderung. Bestand 01.11.: von 57 232
+  Pumpfoil-Laeufen reichen 54 % fuer 100 m (365 Fahrer), 25 % fuer 200 m (287), 5,8 % fuer 500 m (113), 2 % fuer
+  1 km (55). Offen: wo anzeigen (Team-Tafeln/Events sicher; Community-Rekorde?), GPS-Spruenge abfangen (Strecke
+  aus Positionen, Glitch-Waechter aus gps.clean_speed_series beachten).
+
 - **31.10. — Teams (Jan, nach Telefonat mit einem Nutzer).** Plan + Jans fuenf Entscheidungen in [`docs/TEAMS.md`](TEAMS.md); Stufe 1 (Web) als Naechstes.
 - **30.10. — Garmin: Feld „Pairing-Code“ in den App-Einstellungen (niedrige Prio, Jan: „viel arbeit mit kaum nutzen“).**
   Der Weg „Code auf der Website erzeugen“ ist im Web aus (`FORWARD_PAIRING_SICHTBAR = false`), das Feld in
