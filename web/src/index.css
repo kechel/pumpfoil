@@ -236,3 +236,14 @@ html.theme-light .team-farbe { --ta: var(--ta-h, #0e7490); --ta-f: var(--ta-hf, 
 .team-knopf:hover { filter: brightness(1.08); }
 .team-rand { border-color: var(--ta); }
 .team-flaeche { background-color: color-mix(in srgb, var(--ta) 14%, transparent); }
+
+/* Laufendes Event: nur das Status-Abzeichen pulsiert, sanft (Jan, 01.11.2026). animate-pulse ging bis 50 % Deckkraft —
+   im Light-Mode wirkte das ausgewaschen, und der Titel pulsierte mit und war zeitweise schlecht lesbar. */
+@keyframes event-puls {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.event-puls { animation: event-puls 2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .event-puls { animation: none; }
+}

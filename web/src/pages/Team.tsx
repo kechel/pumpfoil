@@ -377,8 +377,8 @@ export default function Team() {
             <Link key={e.id} to={`/teams/${kopf.slug}/events/${e.id}`} className="block">
               <Card className={`p-4 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
                 <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <h3 className={`team-akzent text-lg font-bold ${e.status === "laeuft" ? "animate-pulse" : ""}`}>{e.titel}</h3>
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
+                  <h3 className={`team-akzent text-lg font-bold`}>{e.titel}</h3>
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
                     {t(`team.event.status.${e.status}`)}
                   </span>
                   {/* Sportart und Spots als Abzeichen wie in den Session-Kacheln, neben dem Status (Platz sparen, Jan 01.11.2026).

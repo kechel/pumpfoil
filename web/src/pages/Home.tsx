@@ -728,8 +728,8 @@ function TeamsSection() {
               className={`team-farbe block rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : "border-slate-800"}`}>
               <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
                 <TeamWappen name={e.team.name} logo={e.team.logo_url} farbe={e.team.farbe} size={20} />
-                <span className={`team-akzent font-semibold ${e.status === "laeuft" ? "animate-pulse" : ""}`}>{e.titel}</span>
-                <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
+                <span className={`team-akzent font-semibold`}>{e.titel}</span>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
                   {t(`team.event.status.${e.status}`)}
                 </span>
                 {e.sportarten.map((sp) => (

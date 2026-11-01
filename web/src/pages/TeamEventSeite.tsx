@@ -186,8 +186,8 @@ export default function TeamEventSeite() {
               <SettingsIcon className="h-5 w-5" />
             </button>
           )}
-          <h2 className={`team-akzent text-2xl font-bold leading-tight ${ev.status === "laeuft" ? "animate-pulse" : ""}`}>{ev.titel}</h2>
-          <span className={`rounded-full px-2 py-0.5 text-xs ${ev.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
+          <h2 className={`team-akzent text-2xl font-bold leading-tight`}>{ev.titel}</h2>
+          <span className={`rounded-full px-2 py-0.5 text-xs ${ev.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
             {t(`team.event.status.${ev.status}`)}
           </span>
         </div>
