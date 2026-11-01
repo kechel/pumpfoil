@@ -263,11 +263,20 @@ export default function Team() {
         <TeamWappen name={kopf.name} logo={kopf.logo_url} farbe={kopf.farbe} size={64} />
         <div className="min-w-0 flex-1">
           <h2 className="team-akzent text-2xl font-bold leading-tight">{kopf.name}</h2>
-          <p className="text-sm text-slate-400">
-            {t("team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
-            {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
-          </p>
-          {!!kopf.sportarten?.length && <p className="text-sm text-slate-400">{sportartenText(kopf.sportarten, t)}</p>}
+          {/* Mitglieder · oeffentlich · Sportarten, rechts daneben der Team-Chat (Jan, 01.11.2026). */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-sm text-slate-400">
+              {t("team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
+              {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
+              {!!kopf.sportarten?.length && <> · {sportartenText(kopf.sportarten, t)}</>}
+            </p>
+            {kopf.chat_scope && (
+              <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800">
+                <ChatBubbleIcon className="team-akzent h-4 w-4" /> {t("team.chat")}
+              </button>
+            )}
+          </div>
           {kopf.beschreibung && <p className="mt-2 whitespace-pre-line text-sm text-slate-300">{kopf.beschreibung}</p>}
         </div>
         {(kopf.meine_rolle === "leiter" || kopf.meine_rolle === "moderator") && (
@@ -280,6 +289,8 @@ export default function Team() {
 
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
 
+      {/* Fremde sehen die Teamadresse nur kompakt neben „Beitreten“, wenn das Team oeffentlich UND freigegeben ist;
+          Mitglieder sehen sie immer, als Karte weiter unten (Jan, 01.11.2026). */}
       {!gast && kopf.mein_status !== "aktiv" && ((!kopf.mein_status && kopf.anmeldungen_zulassen) || kopf.bestenlisten_oeffentlich) && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {!kopf.mein_status && kopf.anmeldungen_zulassen && (
@@ -296,15 +307,6 @@ export default function Team() {
         </p>
       )}
 
-      {/* Fremde sehen die Teamadresse nur kompakt neben „Beitreten“, wenn das Team oeffentlich UND freigegeben ist;
-          Mitglieder sehen sie immer, als Karte weiter unten (Jan, 01.11.2026). */}
-
-      {kopf.chat_scope && (
-        <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
-          className="mb-4 inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
-          <ChatBubbleIcon className="team-akzent h-4 w-4" /> {t("team.chat")}
-        </button>
-      )}
 
       {events && events.length > 0 && (
         <div className="mb-5 space-y-3">
