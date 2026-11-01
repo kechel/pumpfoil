@@ -403,34 +403,44 @@ struct CommunityView: View {
                         ForEach(lbMetrics, id: \.0) { id, label in chip(label, lbMetric == id) { lbMetric = id } }
                     }
                 }
-                let list = Array(lbList(lb).prefix(5))
+                // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur, wenn man nicht
+                // unter den ersten 10 steht — bei prefix(5) fehlten sonst die Plaetze 6 bis 10.
+                let list = Array(lbList(lb).prefix(10))
                 if list.isEmpty {
                     Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary)
                 } else {
-                    ForEach(Array(list.enumerated()), id: \.offset) { i, e in
-                        // Einzellauf-Listen: die ganze Zeile oeffnet die Session (01.11.2026, wie das Web); das
-                        // Profilbild ist dann kein eigener Link, sonst teilten sich zwei Tippziele eine Zeile.
-                        if let sid = e.session_id {
-                            Button { navPath.append(SessionDest(id: sid)) } label: { leaderRow(i, e, avatarLink: false).contentShape(Rectangle()) }
-                                .buttonStyle(.plain)
-                        } else {
-                            leaderRow(i, e)
-                        }
+                    ForEach(Array(list.enumerated()), id: \.offset) { i, e in leaderTap(i + 1, e) }
+                    if let ich = lb.me?[lbMetric] ?? nil, let r = ich.rank {
+                        Text("⋮").frame(maxWidth: .infinity).foregroundStyle(.secondary)
+                        leaderTap(r, ich, ich: true)
                     }
                 }
             }
         }
     }
 
-    @ViewBuilder private func leaderRow(_ i: Int, _ e: LeaderEntry, avatarLink: Bool = true) -> some View {
+    /// Einzellauf-Listen: die ganze Zeile oeffnet die Session (01.11.2026, wie das Web); das Profilbild ist dann kein
+    /// eigener Link, sonst teilten sich zwei Tippziele eine Zeile.
+    @ViewBuilder private func leaderTap(_ platz: Int, _ e: LeaderEntry, ich: Bool = false) -> some View {
+        if let sid = e.session_id {
+            Button { navPath.append(SessionDest(id: sid)) } label: { leaderRow(platz, e, avatarLink: false, ich: ich).contentShape(Rectangle()) }
+                .buttonStyle(.plain)
+        } else {
+            leaderRow(platz, e, ich: ich)
+        }
+    }
+
+    @ViewBuilder private func leaderRow(_ platz: Int, _ e: LeaderEntry, avatarLink: Bool = true, ich: Bool = false) -> some View {
         HStack(spacing: 8) {
-            Text("\(i + 1)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(width: 20)
+            Text("\(platz)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(minWidth: 20)
             leaderAvatar(e, link: avatarLink)
             Text(e.name ?? "—").lineLimit(1)
             Spacer()
             Text(lbValue(e)).fontWeight(.semibold)
             Text(lbUnit(e)).font(.caption2).foregroundStyle(.secondary)
         }
+        .padding(.horizontal, ich ? 4 : 0)
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(ich ? 0.6 : 0), lineWidth: 1))
     }
 
     @ViewBuilder private var topLikedSection: some View {

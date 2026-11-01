@@ -282,7 +282,7 @@ const dauerText = (s: number) => {
 // On-Foil-Strecke und -Zeit (Jan, 01.11.2026): zaehlen auch GPS-only-Fahrten, die bei den Pumps nie auftauchen. Je
 // zweimal, die zweite Reihe des Rasters: weitester/laengster EINZELNER Lauf (Beschriftung wie bei den Rekorden) und
 // die Summe im Zeitraum. Einheit fest („km", „h" bzw. „min" — international lesbar).
-const LEADER_KINDS: { key: keyof Leaders; labelKey: string; field: keyof LeaderRow; unitKey?: string;
+const LEADER_KINDS: { key: Exclude<keyof Leaders, "me">; labelKey: string; field: keyof LeaderRow; unitKey?: string;
                       unit?: (v: number) => string; fmt?: (v: number) => string }[] = [
   { key: "sessions", labelKey: "leader.mostSessions", field: "sessions", unitKey: "unit.sessions" },
   { key: "runs", labelKey: "leader.mostRuns", field: "runs", unitKey: "unit.runs" },
@@ -296,31 +296,39 @@ const LEADER_KINDS: { key: keyof Leaders; labelKey: string; field: keyof LeaderR
   { key: "time", labelKey: "leader.totalTime", field: "time_s", unit: (v) => (v >= 3600 ? "h" : "min"), fmt: dauerText },
 ];
 
-function LeaderList({ rows, field, unit, fmt }: { rows: LeaderRow[]; field: keyof LeaderRow; unit: string | ((v: number) => string);
-                      fmt?: (v: number) => string }) {
+function LeaderList({ rows, field, unit, fmt, me }: { rows: LeaderRow[]; field: keyof LeaderRow; unit: string | ((v: number) => string);
+                      fmt?: (v: number) => string; me?: LeaderRow | null }) {
   if (rows.length === 0) return <p className="text-xs text-slate-400">—</p>;
+  const zeile = (r: LeaderRow, platz: number, ich = false) => {
+    const inhalt = (
+      <>
+        <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
+        <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{fmt ? fmt(r[field] as number) : r[field] as number}</span>
+        <span className="shrink-0 text-[10px] uppercase text-slate-400">{typeof unit === "function" ? unit(r[field] as number) : unit}</span>
+      </>
+    );
+    return (
+      <div key={ich ? "ich" : r.name} className={`flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5 ${ich ? "ring-1 ring-cyan-400/60" : ""}`}>
+        <span className="min-w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{platz}</span>
+        <Avatar name={r.name} url={r.avatar_url} userId={r.user_id} size={30} />
+        {/* Einzellauf-Listen fuehren direkt zur Session (Jan, 01.11.2026). Das Profilbild bleibt eigener Link aufs
+            Profil, deshalb ist nur der Rest der Zeile der Link (kein <a> im <a>). */}
+        {r.session_id
+          ? <Link to={`/sessions/${r.session_id}`} className="flex min-w-0 flex-1 items-center gap-2 hover:underline">{inhalt}</Link>
+          : <div className="flex min-w-0 flex-1 items-center gap-2">{inhalt}</div>}
+      </div>
+    );
+  };
   return (
     <div className="space-y-1.5">
-      {rows.map((r, i) => (
-        <div key={r.name} className="flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5">
-          <span className="w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
-          <Avatar name={r.name} url={r.avatar_url} userId={r.user_id} size={30} />
-          {(() => {
-            const inhalt = (
-              <>
-                <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{fmt ? fmt(r[field] as number) : r[field] as number}</span>
-                <span className="shrink-0 text-[10px] uppercase text-slate-400">{typeof unit === "function" ? unit(r[field] as number) : unit}</span>
-              </>
-            );
-            // Einzellauf-Listen fuehren direkt zur Session (Jan, 01.11.2026). Das Profilbild bleibt eigener Link aufs
-            // Profil, deshalb ist nur der Rest der Zeile der Link (kein <a> im <a>).
-            return r.session_id
-              ? <Link to={`/sessions/${r.session_id}`} className="flex min-w-0 flex-1 items-center gap-2 hover:underline">{inhalt}</Link>
-              : <div className="flex min-w-0 flex-1 items-center gap-2">{inhalt}</div>;
-          })()}
-        </div>
-      ))}
+      {rows.map((r, i) => zeile(r, i + 1))}
+      {/* Die eigene Stelle unter Platz 10 (Olek, 01.11.2026) — der Server liefert sie nur, wenn man nicht schon oben steht. */}
+      {me && me.rank != null && (
+        <>
+          <div className="text-center text-xs leading-none text-slate-400" aria-hidden>⋮</div>
+          {zeile(me, me.rank, true)}
+        </>
+      )}
     </div>
   );
 }
@@ -494,7 +502,7 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
               ))}
             </div>
             <div className="max-w-xl">
-              <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} />
+              <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
             </div>
           </>
         );

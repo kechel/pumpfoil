@@ -696,6 +696,7 @@ export interface LeaderRow {
   run_time_s?: number;
   ride_total_m?: number;   // laengste ganze Fahrt (Gesamtstrecke), Reiter nur bei Wind/Paddeln
   session_id?: number | null;   // nur bei Einzellauf-Listen: die Session des besten Laufs
+  rank?: number;   // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist
 }
 export interface Leaders {
   sessions: LeaderRow[];
@@ -707,6 +708,7 @@ export interface Leaders {
   run_distance?: LeaderRow[];
   run_time?: LeaderRow[];
   ride_total?: LeaderRow[];
+  me?: Record<string, LeaderRow | null>;   // eigene Zeile unter Platz 10 je Liste (01.11.2026)
 }
 
 export interface Profile {

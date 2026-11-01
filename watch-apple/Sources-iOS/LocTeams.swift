@@ -20,24 +20,24 @@ enum LocTeam {
 
     static let sprachen: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        d["de"] = zusammen([_de0, _de1, _de2])
-        d["gsw"] = zusammen([_gsw0, _gsw1, _gsw2])
-        d["de-AT"] = zusammen([_de_AT0, _de_AT1, _de_AT2])
-        d["en"] = zusammen([_en0, _en1, _en2])
-        d["fr"] = zusammen([_fr0, _fr1, _fr2])
-        d["it"] = zusammen([_it0, _it1, _it2])
-        d["es"] = zusammen([_es0, _es1, _es2])
-        d["fi"] = zusammen([_fi0, _fi1, _fi2])
-        d["nl"] = zusammen([_nl0, _nl1, _nl2])
-        d["cs"] = zusammen([_cs0, _cs1, _cs2])
-        d["pl"] = zusammen([_pl0, _pl1, _pl2])
-        d["pt"] = zusammen([_pt0, _pt1, _pt2])
-        d["pt-PT"] = zusammen([_pt_PT0, _pt_PT1, _pt_PT2])
-        d["ja"] = zusammen([_ja0, _ja1, _ja2])
-        d["zh"] = zusammen([_zh0, _zh1, _zh2])
-        d["ru"] = zusammen([_ru0, _ru1, _ru2])
-        d["id"] = zusammen([_id0, _id1, _id2])
-        d["nb"] = zusammen([_nb0, _nb1, _nb2])
+        d["de"] = zusammen([_de0, _de1, _de2, _de3])
+        d["gsw"] = zusammen([_gsw0, _gsw1, _gsw2, _gsw3])
+        d["de-AT"] = zusammen([_de_AT0, _de_AT1, _de_AT2, _de_AT3])
+        d["en"] = zusammen([_en0, _en1, _en2, _en3])
+        d["fr"] = zusammen([_fr0, _fr1, _fr2, _fr3])
+        d["it"] = zusammen([_it0, _it1, _it2, _it3])
+        d["es"] = zusammen([_es0, _es1, _es2, _es3])
+        d["fi"] = zusammen([_fi0, _fi1, _fi2, _fi3])
+        d["nl"] = zusammen([_nl0, _nl1, _nl2, _nl3])
+        d["cs"] = zusammen([_cs0, _cs1, _cs2, _cs3])
+        d["pl"] = zusammen([_pl0, _pl1, _pl2, _pl3])
+        d["pt"] = zusammen([_pt0, _pt1, _pt2, _pt3])
+        d["pt-PT"] = zusammen([_pt_PT0, _pt_PT1, _pt_PT2, _pt_PT3])
+        d["ja"] = zusammen([_ja0, _ja1, _ja2, _ja3])
+        d["zh"] = zusammen([_zh0, _zh1, _zh2, _zh3])
+        d["ru"] = zusammen([_ru0, _ru1, _ru2, _ru3])
+        d["id"] = zusammen([_id0, _id1, _id2, _id3])
+        d["nb"] = zusammen([_nb0, _nb1, _nb2, _nb3])
         return d
     }()
 
@@ -48,6 +48,29 @@ enum LocTeam {
     }
 
     private static let _de0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m Höhe",
+        "fw.11": "°C",
+        "fw.12": "Uhr",
+        "fw.13": "m ↑",
+        "fw.14": "Lauf",
+        "fw.15": "km Lauf",
+        "fw.16": "letzter Lauf",
+        "fw.17": "km letzter",
+        "fw.18": "km/h Ø letzt.",
+        "fw.19": "km/h max letzt.",
+        "fw.2": "bpm",
+        "fw.20": "Läufe",
+        "fw.21": "bpm max letzt.",
+        "fw.22": "km alle Läufe",
+        "fw.23": "alle Läufe",
+        "fw.3": "Zeit",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h Ø",
+        "fw.7": "km/h max",
+        "fw.8": "bpm Ø",
+        "fw.9": "bpm max",
         "leader.totalDistance": "On-Foil-Strecke gesamt",
         "leader.totalTime": "On-Foil-Zeit gesamt",
         "sd.avgHrFoil": "Ø Puls auf dem Foil",
@@ -70,6 +93,9 @@ enum LocTeam {
         "team.communityLeer": "Noch keine öffentlichen Teams. Gründe das erste!",
         "team.err.anmeldungen_aus": "Dieses Team nimmt gerade keine Anmeldungen an.",
         "team.err.bild_zu_hoch": "Das Bild ist zu hoch: es muss mindestens anderthalbmal so breit wie hoch sein.",
+    ]
+
+    private static let _de1: [String: String] = [
         "team.err.bild_zu_klein": "Das Bild ist zu klein: mindestens 800 px breit.",
         "team.err.event_eingefroren": "Das Ergebnis steht schon fest, das Event lässt sich nicht mehr ändern.",
         "team.err.event_leer": "Wähle mindestens eine Bestenliste oder eine Gesamtsumme.",
@@ -93,9 +119,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Höchstens 20 Bestenlisten.",
         "team.err.zu_viele_teams": "Du leitest schon die Höchstzahl an Teams.",
         "team.err.zu_viele_wartend": "Es warten schon drei deiner Teams auf Freigabe.",
-    ]
-
-    private static let _de1: [String: String] = [
         "team.event.auswertungHinweis": "Vorbei. Sessions aus dem Zeitfenster können noch bis {bis} hochgeladen werden, dann steht das Ergebnis fest.",
         "team.event.details": "Details",
         "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org. Ebenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
@@ -118,6 +141,9 @@ enum LocTeam {
         "team.event.tag": "Tag",
         "team.event.tage": "Tage",
         "team.event.teamGesamt": "Event gesamt",
+    ]
+
+    private static let _de2: [String: String] = [
         "team.event.teilen": "Teilen:",
         "team.event.teilnehmer": "Teilnehmer",
         "team.event.teilnehmer1": "Teilnehmer",
@@ -141,9 +167,6 @@ enum LocTeam {
         "team.k.best": "Bester Wert",
         "team.k.sum_distance": "On-Foil-Strecke gesamt",
         "team.k.sum_pumps": "Pumps gesamt",
-    ]
-
-    private static let _de2: [String: String] = [
         "team.k.sum_runs": "Läufe gesamt",
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
@@ -166,6 +189,9 @@ enum LocTeam {
         "team.regeln.events.text": "Ein Event hat ein Zeitfenster und eigene Bestenlisten, auf Wunsch nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster starten.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNach dem Ende kann man noch 24 Stunden hochladen, die Teamseite zeigt dann „Auswertung“. Danach ist das Ergebnis eingefroren, späteres Zuschneiden oder Löschen ändert nichts mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEingefroren wird nachts und zusätzlich, sobald jemand die Teamseite aufruft.\nDie Zeiten gelten in der Zeitzone, in der das Event angelegt wurde, und werden für alle so angezeigt.\nPlatz 1 bis 3 bekommen ein Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigegeben ist.",
         "team.rolle.leiter": "Leitung",
         "team.rolle.mitglied": "Mitglied",
+    ]
+
+    private static let _de3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "aktiv",
         "team.stat.laeufe": "Läufe",
@@ -185,6 +211,29 @@ enum LocTeam {
     ]
 
     private static let _gsw0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m Höchi",
+        "fw.11": "°C",
+        "fw.12": "Uhr",
+        "fw.13": "m ↑",
+        "fw.14": "Lauf",
+        "fw.15": "km Lauf",
+        "fw.16": "letschte Lauf",
+        "fw.17": "km letschte",
+        "fw.18": "km/h Ø letscht.",
+        "fw.19": "km/h max letscht.",
+        "fw.2": "bpm",
+        "fw.20": "Läuf",
+        "fw.21": "bpm max letscht.",
+        "fw.22": "km alli Läuf",
+        "fw.23": "alli Läuf",
+        "fw.3": "Ziit",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h Ø",
+        "fw.7": "km/h max",
+        "fw.8": "bpm Ø",
+        "fw.9": "bpm max",
         "leader.totalDistance": "On-Foil-Strecki total",
         "leader.totalTime": "On-Foil-Ziit total",
         "sd.avgHrFoil": "Ø Puls uf em Foil",
@@ -207,6 +256,9 @@ enum LocTeam {
         "team.communityLeer": "No kei öffentlichi Teams. Gründ s erschte!",
         "team.err.anmeldungen_aus": "Das Team nimmt grad kei Aamäldige aa.",
         "team.err.bild_zu_hoch": "S Bild isch z höch: es mues mindeschtens anderthalbmal so breit wie höch sii.",
+    ]
+
+    private static let _gsw1: [String: String] = [
         "team.err.bild_zu_klein": "S Bild isch z chli: mindeschtens 800 px breit.",
         "team.err.event_eingefroren": "S Resultat staht scho fescht, s Event lat sich nüm ändere.",
         "team.err.event_leer": "Wähl mindestens e Bestelischte oder e Gsamtsumme.",
@@ -230,9 +282,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Höchschtens 20 Bestelischte.",
         "team.err.zu_viele_teams": "Du leitisch scho d Höchschtzahl a Teams.",
         "team.err.zu_viele_wartend": "Es warted scho drü vo dine Teams uf d Freigab.",
-    ]
-
-    private static let _gsw1: [String: String] = [
         "team.event.auswertungHinweis": "Verbii. Sessions us em Ziitfänschter chönd no bis {bis} uegladet werde, denn staht s Resultat fescht.",
         "team.event.details": "Details",
         "team.event.disclaimer": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org. Gnau so übernimmt pumpfoil.org kei Verantwortig defür, dass gmässni Wärt und Date stimmed oder nöd manipuliert worde sind. Azeigt wird, was de öffentlich Quellcode uf GitHub us de ufeglade Date usrächnet; wiiteri Zuesage gits kei.",
@@ -255,6 +304,9 @@ enum LocTeam {
         "team.event.tag": "Tag",
         "team.event.tage": "Täg",
         "team.event.teamGesamt": "Event total",
+    ]
+
+    private static let _gsw2: [String: String] = [
         "team.event.teilen": "Teile:",
         "team.event.teilnehmer": "Teilnähmer",
         "team.event.teilnehmer1": "Teilnähmer",
@@ -278,9 +330,6 @@ enum LocTeam {
         "team.k.best": "Beschte Wert",
         "team.k.sum_distance": "On-Foil-Strecki total",
         "team.k.sum_pumps": "Pumps total",
-    ]
-
-    private static let _gsw2: [String: String] = [
         "team.k.sum_runs": "Läuf total",
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
@@ -303,6 +352,9 @@ enum LocTeam {
         "team.regeln.events.text": "Es Event het es Ziitfänschter und eigeni Bestelischte, wenn mer will nume a bestimmte Spots.\nZuesätzlich oder statt Bestelischte cha en Event Gsamtsumme über alli Teilnähmer zeige, öppe d Pumps oder d Strecki vom ganze Team. Jede Event bruucht mindestens e Bestelischte oder e Summe.\nEs zähled nume Sessions, wo im Ziitfänschter aafanged.\nD Leitig cha pro Event feschtlege, dass vo Hand uegladeni Dateie (FIT, GPX, TCX) nöd zelled; Ufnahme vo Uhr, App und Kontoverchnüpfige zelled denn wiiter.\nNach em Änd cha mer no 24 Stund uelade, d Teamsiite zeigt denn „Uswärtig“. Drnoch isch s Resultat iigfrore, spöters Zueschniide oder Lösche ändered nüt meh.\nWer nach em Änd ustritt, blibt im Ergebnis; wer dänn biitritt, chunnt nüme drii.\nIigfrore wird znacht und zuesätzlich, sobald öpper d Teamsiite uftuet.\nD Ziite gälted i de Ziitzone, i dere s Event aagleit worde isch, und werded für alli so aazeigt.\nPlatz 1 bis 3 überchömed es Event-Abzeiche uf ihrere Foiler-Siite, aber nume bi Teams, wo de Uftritt freigä isch.",
         "team.rolle.leiter": "Leitig",
         "team.rolle.mitglied": "Mitglied",
+    ]
+
+    private static let _gsw3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "aktiv",
         "team.stat.laeufe": "Läuf",
@@ -322,6 +374,29 @@ enum LocTeam {
     ]
 
     private static let _de_AT0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m Höhe",
+        "fw.11": "°C",
+        "fw.12": "Uhr",
+        "fw.13": "m ↑",
+        "fw.14": "Lauf",
+        "fw.15": "km Lauf",
+        "fw.16": "letzter Lauf",
+        "fw.17": "km letzter",
+        "fw.18": "km/h Ø letzt.",
+        "fw.19": "km/h max letzt.",
+        "fw.2": "bpm",
+        "fw.20": "Läufe",
+        "fw.21": "bpm max letzt.",
+        "fw.22": "km olle Läufe",
+        "fw.23": "olle Läufe",
+        "fw.3": "Zeit",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h Ø",
+        "fw.7": "km/h max",
+        "fw.8": "bpm Ø",
+        "fw.9": "bpm max",
         "leader.totalDistance": "On-Foil-Strecke gesamt",
         "leader.totalTime": "On-Foil-Zeit gesamt",
         "sd.avgHrFoil": "Ø Puls auf dem Foil",
@@ -344,6 +419,9 @@ enum LocTeam {
         "team.communityLeer": "No ka öffentlichen Teams. Gründ des erste!",
         "team.err.anmeldungen_aus": "Des Team nimmt grad ka Anmeldungen an.",
         "team.err.bild_zu_hoch": "Das Bild ist zu hoch: es muss mindestens eineinhalbmal so breit wie hoch sein.",
+    ]
+
+    private static let _de_AT1: [String: String] = [
         "team.err.bild_zu_klein": "Das Bild ist zu klein: mindestens 800 px breit.",
         "team.err.event_eingefroren": "Des Ergebnis steht schon fest, des Event lasst si nimma ändern.",
         "team.err.event_leer": "Wähl mindestens eine Bestenliste oder eine Gesamtsumme.",
@@ -367,9 +445,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Höchstens 20 Bestenlisten.",
         "team.err.zu_viele_teams": "Du leitest schon die Höchstzahl an Teams.",
         "team.err.zu_viele_wartend": "Es warten schon drei von deine Teams auf die Freigabe.",
-    ]
-
-    private static let _de_AT1: [String: String] = [
         "team.event.auswertungHinweis": "Vorbei. Sessions ausm Zeitfenster kann ma no bis {bis} raufladen, dann steht des Ergebnis fest.",
         "team.event.details": "Details",
         "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org. Ebenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
@@ -392,6 +467,9 @@ enum LocTeam {
         "team.event.tag": "Tag",
         "team.event.tage": "Tage",
         "team.event.teamGesamt": "Event gesamt",
+    ]
+
+    private static let _de_AT2: [String: String] = [
         "team.event.teilen": "Teilen:",
         "team.event.teilnehmer": "Teilnehmer",
         "team.event.teilnehmer1": "Teilnehmer",
@@ -415,9 +493,6 @@ enum LocTeam {
         "team.k.best": "Bester Wert",
         "team.k.sum_distance": "On-Foil-Strecke insgesamt",
         "team.k.sum_pumps": "Pumps insgesamt",
-    ]
-
-    private static let _de_AT2: [String: String] = [
         "team.k.sum_runs": "Läufe insgesamt",
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
@@ -440,6 +515,9 @@ enum LocTeam {
         "team.regeln.events.text": "A Event hat a Zeitfenster und eigene Bestenlisten, wenn ma will nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster anfangen.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNachm Ende kann ma no 24 Stunden raufladen, die Teamseite zeigt dann „Auswertung“. Danach is des Ergebnis eing'froren, späteres Zuschneiden oder Löschen ändert nix mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEing'froren wird in der Nacht und zusätzlich, sobald wer die Teamseite aufmacht.\nDie Zeiten gelten in der Zeitzone, in der des Event ang'legt worden is, und werden für alle so anzeigt.\nPlatz 1 bis 3 kriegen a Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigeben is.",
         "team.rolle.leiter": "Leitung",
         "team.rolle.mitglied": "Mitglied",
+    ]
+
+    private static let _de_AT3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "aktiv",
         "team.stat.laeufe": "Läufe",
@@ -459,6 +537,29 @@ enum LocTeam {
     ]
 
     private static let _en0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m alt",
+        "fw.11": "°C",
+        "fw.12": "Clock",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km Run",
+        "fw.16": "last run",
+        "fw.17": "km last",
+        "fw.18": "km/h avg last",
+        "fw.19": "km/h max last",
+        "fw.2": "bpm",
+        "fw.20": "Runs",
+        "fw.21": "bpm max last",
+        "fw.22": "km all runs",
+        "fw.23": "all runs",
+        "fw.3": "Time",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h avg",
+        "fw.7": "km/h max",
+        "fw.8": "bpm avg",
+        "fw.9": "bpm max",
         "leader.totalDistance": "Total on-foil distance",
         "leader.totalTime": "Total on-foil time",
         "sd.avgHrFoil": "Ø heart rate on foil",
@@ -481,6 +582,9 @@ enum LocTeam {
         "team.communityLeer": "No public teams yet. Start the first one!",
         "team.err.anmeldungen_aus": "This team isn't accepting sign-ups right now.",
         "team.err.bild_zu_hoch": "The image is too tall: it must be at least one and a half times as wide as it is tall.",
+    ]
+
+    private static let _en1: [String: String] = [
         "team.err.bild_zu_klein": "The image is too small: at least 800 px wide.",
         "team.err.event_eingefroren": "The result is already final; the event can no longer be changed.",
         "team.err.event_leer": "Pick at least one leaderboard or one total.",
@@ -504,9 +608,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "20 leaderboards at most.",
         "team.err.zu_viele_teams": "You already lead the maximum number of teams.",
         "team.err.zu_viele_wartend": "Three of your teams are already awaiting approval.",
-    ]
-
-    private static let _en1: [String: String] = [
         "team.event.auswertungHinweis": "It's over. Sessions from the window can still be uploaded until {bis}, then the result is final.",
         "team.event.details": "Details",
         "team.event.disclaimer": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org. Likewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises.",
@@ -529,6 +630,9 @@ enum LocTeam {
         "team.event.tag": "day",
         "team.event.tage": "days",
         "team.event.teamGesamt": "Event total",
+    ]
+
+    private static let _en2: [String: String] = [
         "team.event.teilen": "Share:",
         "team.event.teilnehmer": "Participants",
         "team.event.teilnehmer1": "Participant",
@@ -552,9 +656,6 @@ enum LocTeam {
         "team.k.best": "Best value",
         "team.k.sum_distance": "Total on-foil distance",
         "team.k.sum_pumps": "Total pumps",
-    ]
-
-    private static let _en2: [String: String] = [
         "team.k.sum_runs": "Total runs",
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
@@ -577,6 +678,9 @@ enum LocTeam {
         "team.regeln.events.text": "An event has a time window and its own leaderboards, optionally only at certain spots.\nIn addition to or instead of leaderboards, an event can show totals across all participants, such as the whole team's pumps or distance. Every event needs at least one leaderboard or one total.\nOnly sessions that start within the window count.\nFor each event the team lead can decide that manually uploaded files (FIT, GPX, TCX) don't count; recordings from watches, the app and linked accounts still count.\nAfter the end you can still upload for 24 hours; the team page then shows “results pending”. After that the result is frozen, and later trimming or deleting no longer changes anything.\nAnyone who leaves after the end stays in the result; anyone who joins afterwards is not added.\nResults are frozen at night and also as soon as someone opens the team page.\nTimes are in the time zone the event was created in and are shown that way to everyone.\nPlaces 1 to 3 get an event badge on their foiler page, but only for teams whose appearance is approved.",
         "team.rolle.leiter": "Lead",
         "team.rolle.mitglied": "Member",
+    ]
+
+    private static let _en3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "active",
         "team.stat.laeufe": "Runs",
@@ -596,6 +700,29 @@ enum LocTeam {
     ]
 
     private static let _fr0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m alt",
+        "fw.11": "°C",
+        "fw.12": "Heure",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km Run",
+        "fw.16": "dernier run",
+        "fw.17": "km dernier",
+        "fw.18": "km/h moy dern.",
+        "fw.19": "km/h max dern.",
+        "fw.2": "bpm",
+        "fw.20": "Runs",
+        "fw.21": "bpm max dern.",
+        "fw.22": "km tous les runs",
+        "fw.23": "tous les runs",
+        "fw.3": "Temps",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h moy",
+        "fw.7": "km/h max",
+        "fw.8": "bpm moy",
+        "fw.9": "bpm max",
         "leader.totalDistance": "Distance on-foil totale",
         "leader.totalTime": "Temps on-foil total",
         "sd.avgHrFoil": "Ø fréq. card. sur le foil",
@@ -618,6 +745,9 @@ enum LocTeam {
         "team.communityLeer": "Pas encore d'équipes publiques. Crée la première !",
         "team.err.anmeldungen_aus": "Cette équipe n'accepte pas d'inscriptions pour le moment.",
         "team.err.bild_zu_hoch": "L'image est trop haute : elle doit être au moins une fois et demie plus large que haute.",
+    ]
+
+    private static let _fr1: [String: String] = [
         "team.err.bild_zu_klein": "L'image est trop petite : au moins 800 px de large.",
         "team.err.event_eingefroren": "Le résultat est déjà définitif, l'événement ne peut plus être modifié.",
         "team.err.event_leer": "Choisis au moins un classement ou un total.",
@@ -641,9 +771,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "20 classements maximum.",
         "team.err.zu_viele_teams": "Tu diriges déjà le nombre maximal d'équipes.",
         "team.err.zu_viele_wartend": "Trois de tes équipes attendent déjà une validation.",
-    ]
-
-    private static let _fr1: [String: String] = [
         "team.event.auswertungHinweis": "C'est fini. Les sessions de la fenêtre peuvent encore être envoyées, limite : {bis}. Ensuite le résultat est définitif.",
         "team.event.details": "Détails",
         "team.event.disclaimer": "Les événements sont organisés par les équipes elles-mêmes. pumpfoil.org n'a aucune influence sur les événements ni sur les promesses qui y sont faites, financières ou autres, et décline toute responsabilité. Tout recours juridique est exclu. Les paiements et tous les autres accords se règlent entre organisateurs et participants, indépendamment de pumpfoil.org. De même, pumpfoil.org décline toute responsabilité quant à l'exactitude des valeurs et données mesurées ou à leur éventuelle manipulation. Ce qui s'affiche est ce que le code source public sur GitHub calcule à partir des données envoyées ; il n'y a aucune autre garantie.",
@@ -666,6 +793,9 @@ enum LocTeam {
         "team.event.tag": "jour",
         "team.event.tage": "jours",
         "team.event.teamGesamt": "Total de l'événement",
+    ]
+
+    private static let _fr2: [String: String] = [
         "team.event.teilen": "Partager :",
         "team.event.teilnehmer": "Participants",
         "team.event.teilnehmer1": "Participant",
@@ -689,9 +819,6 @@ enum LocTeam {
         "team.k.best": "Meilleure valeur",
         "team.k.sum_distance": "Distance on-foil totale",
         "team.k.sum_pumps": "Pumps au total",
-    ]
-
-    private static let _fr2: [String: String] = [
         "team.k.sum_runs": "Runs au total",
         "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
@@ -714,6 +841,9 @@ enum LocTeam {
         "team.regeln.events.text": "Un événement a une fenêtre de temps et ses propres classements, si on le souhaite uniquement sur certains spots.\nEn plus des classements, ou à leur place, un événement peut afficher des totaux sur tous les participants, par exemple les pumps ou la distance de toute l'équipe. Chaque événement a besoin d'au moins un classement ou un total.\nSeules les sessions qui commencent dans la fenêtre comptent.\nPour chaque événement, les responsables peuvent décider que les fichiers importés à la main (FIT, GPX, TCX) ne comptent pas ; les enregistrements de montres, de l'app et des comptes liés comptent toujours.\nAprès la fin, on peut encore envoyer des sessions pendant 24 heures ; la page de l'équipe affiche alors « résultats en attente ». Ensuite le résultat est figé, et un découpage ou une suppression ultérieurs ne changent plus rien.\nQui quitte l'équipe après la fin reste dans le résultat ; qui la rejoint ensuite n'y est plus ajouté.\nLes résultats sont figés la nuit, et aussi dès que quelqu'un ouvre la page de l'équipe.\nLes heures sont celles du fuseau horaire dans lequel l'événement a été créé et s'affichent ainsi pour tout le monde.\nLes places 1 à 3 reçoivent un badge d'événement sur leur page foiler, mais seulement pour les équipes dont l'apparence est validée.",
         "team.rolle.leiter": "Responsable",
         "team.rolle.mitglied": "Membre",
+    ]
+
+    private static let _fr3: [String: String] = [
         "team.rolle.moderator": "Modérateur",
         "team.stat.aktiv": "actifs",
         "team.stat.laeufe": "Runs",
@@ -733,6 +863,29 @@ enum LocTeam {
     ]
 
     private static let _it0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m alt",
+        "fw.11": "°C",
+        "fw.12": "Ora",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km Run",
+        "fw.16": "ultimo run",
+        "fw.17": "km ultimo",
+        "fw.18": "km/h media ult.",
+        "fw.19": "km/h max ult.",
+        "fw.2": "bpm",
+        "fw.20": "Run",
+        "fw.21": "bpm max ult.",
+        "fw.22": "km tutti i run",
+        "fw.23": "tutti i run",
+        "fw.3": "Tempo",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h media",
+        "fw.7": "km/h max",
+        "fw.8": "bpm media",
+        "fw.9": "bpm max",
         "leader.totalDistance": "Distanza on-foil totale",
         "leader.totalTime": "Tempo on-foil totale",
         "sd.avgHrFoil": "Ø battito sul foil",
@@ -755,6 +908,9 @@ enum LocTeam {
         "team.communityLeer": "Ancora nessun team pubblico. Crea il primo!",
         "team.err.anmeldungen_aus": "Questo team al momento non accetta iscrizioni.",
         "team.err.bild_zu_hoch": "L'immagine è troppo alta: deve essere larga almeno una volta e mezza l'altezza.",
+    ]
+
+    private static let _it1: [String: String] = [
         "team.err.bild_zu_klein": "L'immagine è troppo piccola: almeno 800 px di larghezza.",
         "team.err.event_eingefroren": "Il risultato è già definitivo, l'evento non si può più modificare.",
         "team.err.event_leer": "Scegli almeno una classifica o un totale.",
@@ -778,9 +934,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Al massimo 20 classifiche.",
         "team.err.zu_viele_teams": "Guidi già il numero massimo di team.",
         "team.err.zu_viele_wartend": "Tre dei tuoi team sono già in attesa di approvazione.",
-    ]
-
-    private static let _it1: [String: String] = [
         "team.event.auswertungHinweis": "È finito. Le sessioni della finestra si possono ancora caricare, scadenza: {bis}. Poi il risultato è definitivo.",
         "team.event.details": "Dettagli",
         "team.event.disclaimer": "Gli eventi sono organizzati dai team stessi. pumpfoil.org non ha alcuna influenza sugli eventi né sulle promesse fatte al loro interno, economiche o di altro tipo, e non se ne assume alcuna responsabilità. È escluso il ricorso alle vie legali. Pagamenti e ogni altro accordo si regolano tra organizzatori e partecipanti, indipendentemente da pumpfoil.org. Allo stesso modo, pumpfoil.org non si assume alcuna responsabilità sulla correttezza dei valori e dei dati misurati o sulla loro eventuale manipolazione. Viene mostrato ciò che il codice sorgente pubblico su GitHub calcola dai dati caricati; non ci sono altre garanzie.",
@@ -803,6 +956,9 @@ enum LocTeam {
         "team.event.tag": "giorno",
         "team.event.tage": "giorni",
         "team.event.teamGesamt": "Totale evento",
+    ]
+
+    private static let _it2: [String: String] = [
         "team.event.teilen": "Condividi:",
         "team.event.teilnehmer": "Partecipanti",
         "team.event.teilnehmer1": "Partecipante",
@@ -826,9 +982,6 @@ enum LocTeam {
         "team.k.best": "Miglior valore",
         "team.k.sum_distance": "Distanza on-foil totale",
         "team.k.sum_pumps": "Pump totali",
-    ]
-
-    private static let _it2: [String: String] = [
         "team.k.sum_runs": "Run totali",
         "team.k.sum_sessions": "Sessioni",
         "team.k.sum_spots": "Spot",
@@ -851,6 +1004,9 @@ enum LocTeam {
         "team.regeln.events.text": "Un evento ha una finestra di tempo e classifiche proprie, se si vuole solo in certi spot.\nOltre alle classifiche, o al loro posto, un evento può mostrare totali su tutti i partecipanti, come i pump o la distanza dell'intero team. Ogni evento richiede almeno una classifica o un totale.\nContano solo le sessioni che iniziano nella finestra.\nPer ogni evento il responsabile può decidere che i file caricati a mano (FIT, GPX, TCX) non contino; le registrazioni da orologi, app e account collegati contano comunque.\nDopo la fine si può ancora caricare per 24 ore; la pagina del team mostra allora «risultati in attesa». Poi il risultato è congelato, e ritagli o eliminazioni successivi non cambiano più nulla.\nChi esce dopo la fine resta nel risultato; chi entra dopo non viene più aggiunto.\nI risultati vengono congelati di notte e inoltre appena qualcuno apre la pagina del team.\nGli orari valgono nel fuso orario in cui è stato creato l'evento e vengono mostrati così a tutti.\nI posti da 1 a 3 ricevono un badge dell'evento sulla loro pagina foiler, ma solo nei team il cui aspetto è approvato.",
         "team.rolle.leiter": "Responsabile",
         "team.rolle.mitglied": "Membro",
+    ]
+
+    private static let _it3: [String: String] = [
         "team.rolle.moderator": "Moderatore",
         "team.stat.aktiv": "attivi",
         "team.stat.laeufe": "Run",
@@ -870,6 +1026,29 @@ enum LocTeam {
     ]
 
     private static let _es0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m alt",
+        "fw.11": "°C",
+        "fw.12": "Hora",
+        "fw.13": "m ↑",
+        "fw.14": "Tramo",
+        "fw.15": "km Tramo",
+        "fw.16": "último tramo",
+        "fw.17": "km último",
+        "fw.18": "km/h med últ.",
+        "fw.19": "km/h máx últ.",
+        "fw.2": "bpm",
+        "fw.20": "Tramos",
+        "fw.21": "bpm máx últ.",
+        "fw.22": "km todos los runs",
+        "fw.23": "todos los runs",
+        "fw.3": "Tiempo",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h med",
+        "fw.7": "km/h máx",
+        "fw.8": "bpm med",
+        "fw.9": "bpm máx",
         "leader.totalDistance": "Distancia on-foil total",
         "leader.totalTime": "Tiempo on-foil total",
         "sd.avgHrFoil": "Ø pulso en el foil",
@@ -892,6 +1071,9 @@ enum LocTeam {
         "team.communityLeer": "Aún no hay equipos públicos. ¡Crea el primero!",
         "team.err.anmeldungen_aus": "Este equipo no acepta solicitudes de ingreso en este momento.",
         "team.err.bild_zu_hoch": "La imagen es demasiado alta: debe ser al menos una vez y media más ancha que alta.",
+    ]
+
+    private static let _es1: [String: String] = [
         "team.err.bild_zu_klein": "La imagen es demasiado pequeña: al menos 800 px de ancho.",
         "team.err.event_eingefroren": "El resultado ya es definitivo; el evento ya no se puede cambiar.",
         "team.err.event_leer": "Elige al menos una clasificación o un total.",
@@ -915,9 +1097,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Como máximo 20 clasificaciones.",
         "team.err.zu_viele_teams": "Ya lideras el número máximo de equipos.",
         "team.err.zu_viele_wartend": "Ya hay tres de tus equipos pendientes de aprobación.",
-    ]
-
-    private static let _es1: [String: String] = [
         "team.event.auswertungHinweis": "Ha terminado. Las sesiones de la franja aún se pueden subir, plazo: {bis}. Luego el resultado es definitivo.",
         "team.event.details": "Detalles",
         "team.event.disclaimer": "Los eventos los organizan los propios equipos. pumpfoil.org no tiene ninguna influencia sobre los eventos ni sobre las promesas que se hagan en ellos, económicas o de otro tipo, y no asume ninguna responsabilidad. Queda excluida la vía judicial. Los pagos y cualquier otro acuerdo los resuelven organizadores y participantes, independientemente de pumpfoil.org. Del mismo modo, pumpfoil.org no asume ninguna responsabilidad sobre si los valores y datos medidos son correctos o han sido manipulados. Se muestra lo que el código fuente público en GitHub calcula a partir de los datos subidos; no hay más promesas.",
@@ -940,6 +1119,9 @@ enum LocTeam {
         "team.event.tag": "día",
         "team.event.tage": "días",
         "team.event.teamGesamt": "Total del evento",
+    ]
+
+    private static let _es2: [String: String] = [
         "team.event.teilen": "Compartir:",
         "team.event.teilnehmer": "Participantes",
         "team.event.teilnehmer1": "Participante",
@@ -963,9 +1145,6 @@ enum LocTeam {
         "team.k.best": "Mejor valor",
         "team.k.sum_distance": "Distancia on-foil total",
         "team.k.sum_pumps": "Pumps en total",
-    ]
-
-    private static let _es2: [String: String] = [
         "team.k.sum_runs": "Runs en total",
         "team.k.sum_sessions": "Sesiones",
         "team.k.sum_spots": "Spots",
@@ -988,6 +1167,9 @@ enum LocTeam {
         "team.regeln.events.text": "Un evento tiene una franja de tiempo y sus propias clasificaciones, si se quiere solo en ciertos spots.\nAdemás de las clasificaciones, o en su lugar, un evento puede mostrar totales de todos los participantes, como los pumps o la distancia de todo el equipo. Cada evento necesita al menos una clasificación o un total.\nSolo cuentan las sesiones que empiezan dentro de la franja.\nEn cada evento, el líder puede decidir que no cuenten los archivos subidos a mano (FIT, GPX, TCX); las grabaciones de relojes, la app y cuentas vinculadas siguen contando.\nTras el final aún se puede subir durante 24 horas; la página del equipo muestra entonces «resultados pendientes». Después el resultado queda congelado, y recortar o eliminar más tarde ya no cambia nada.\nQuien sale después del final sigue en el resultado; quien se une después ya no entra.\nLos resultados se congelan por la noche y además en cuanto alguien abre la página del equipo.\nLas horas valen en la zona horaria en la que se creó el evento y se muestran así a todos.\nLos puestos 1 a 3 reciben una insignia del evento en su página de foiler, pero solo en equipos cuya apariencia está aprobada.",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Miembro",
+    ]
+
+    private static let _es3: [String: String] = [
         "team.rolle.moderator": "Moderador",
         "team.stat.aktiv": "activos",
         "team.stat.laeufe": "Runs",
@@ -1007,6 +1189,29 @@ enum LocTeam {
     ]
 
     private static let _fi0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m kork",
+        "fw.11": "°C",
+        "fw.12": "Kello",
+        "fw.13": "m ↑",
+        "fw.14": "Veto",
+        "fw.15": "km Veto",
+        "fw.16": "viime veto",
+        "fw.17": "km viime",
+        "fw.18": "km/h ka viim",
+        "fw.19": "km/h maks viim",
+        "fw.2": "bpm",
+        "fw.20": "Vedot",
+        "fw.21": "bpm maks viim",
+        "fw.22": "km kaikki lenkit",
+        "fw.23": "kaikki lenkit",
+        "fw.3": "Aika",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h ka",
+        "fw.7": "km/h maks",
+        "fw.8": "bpm ka",
+        "fw.9": "bpm maks",
         "leader.totalDistance": "Foil-matka yhteensä",
         "leader.totalTime": "Foil-aika yhteensä",
         "sd.avgHrFoil": "Ø syke foililla",
@@ -1029,6 +1234,9 @@ enum LocTeam {
         "team.communityLeer": "Julkisia tiimejä ei vielä ole. Perusta ensimmäinen!",
         "team.err.anmeldungen_aus": "Tämä tiimi ei ota juuri nyt vastaan liittymispyyntöjä.",
         "team.err.bild_zu_hoch": "Kuva on liian korkea: sen on oltava vähintään puolitoista kertaa niin leveä kuin korkea.",
+    ]
+
+    private static let _fi1: [String: String] = [
         "team.err.bild_zu_klein": "Kuva on liian pieni: vähintään 800 px leveä.",
         "team.err.event_eingefroren": "Tulos on jo lopullinen, tapahtumaa ei voi enää muuttaa.",
         "team.err.event_leer": "Valitse vähintään yksi tulostaulukko tai yksi yhteissumma.",
@@ -1052,9 +1260,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Enintään 20 tulostaulukkoa.",
         "team.err.zu_viele_teams": "Vedät jo enimmäismäärän tiimejä.",
         "team.err.zu_viele_wartend": "Kolme tiimiäsi odottaa jo hyväksyntää.",
-    ]
-
-    private static let _fi1: [String: String] = [
         "team.event.auswertungHinweis": "Päättyi. Aikaikkunan sessioita voi vielä ladata {bis} asti, sitten tulos on lopullinen.",
         "team.event.details": "Tiedot",
         "team.event.disclaimer": "Tapahtumat järjestävät tiimit itse. pumpfoil.orgilla ei ole vaikutusvaltaa tapahtumiin eikä niissä annettuihin taloudellisiin tai muihin lupauksiin, eikä se ota niistä vastuuta. Oikeustie on suljettu pois. Maksut ja kaikki muut sopimukset järjestäjät ja osallistujat hoitavat keskenään, pumpfoil.orgista riippumatta. Samoin pumpfoil.org ei vastaa siitä, ovatko mitatut arvot ja tiedot oikeita tai onko niitä manipuloitu. Näytetään se, minkä GitHubissa oleva julkinen lähdekoodi laskee ladatuista tiedoista; muita lupauksia ei ole.",
@@ -1077,6 +1282,9 @@ enum LocTeam {
         "team.event.tag": "päivä",
         "team.event.tage": "päivää",
         "team.event.teamGesamt": "Tapahtuma yhteensä",
+    ]
+
+    private static let _fi2: [String: String] = [
         "team.event.teilen": "Jaa:",
         "team.event.teilnehmer": "Osallistujat",
         "team.event.teilnehmer1": "Osallistuja",
@@ -1100,9 +1308,6 @@ enum LocTeam {
         "team.k.best": "Paras tulos",
         "team.k.sum_distance": "Foil-matka yhteensä",
         "team.k.sum_pumps": "Pumppauksia yhteensä",
-    ]
-
-    private static let _fi2: [String: String] = [
         "team.k.sum_runs": "Lenkkejä yhteensä",
         "team.k.sum_sessions": "Sessiot",
         "team.k.sum_spots": "Spotit",
@@ -1125,6 +1330,9 @@ enum LocTeam {
         "team.regeln.events.text": "Tapahtumalla on aikaikkuna ja omat tulostaulukot, halutessa vain tietyillä spoteilla.\nTulostaulukoiden lisäksi tai sijaan tapahtuma voi näyttää kaikkien osallistujien yhteissummia, esimerkiksi koko tiimin pumppaukset tai matkan. Jokainen tapahtuma tarvitsee vähintään yhden tulostaulukon tai yhteissumman.\nMukaan lasketaan vain sessiot, jotka alkavat aikaikkunan sisällä.\nVetäjä voi päättää tapahtumakohtaisesti, ettei käsin ladattuja tiedostoja (FIT, GPX, TCX) lasketa; kellojen, sovelluksen ja yhdistettyjen tilien tallenteet lasketaan edelleen.\nLopun jälkeen voi vielä 24 tuntia ladata sessioita, ja tiimisivulla näkyy silloin ”tulokset tulossa”. Sen jälkeen tulos jäädytetään, eikä myöhempi rajaus tai poisto enää muuta mitään.\nLopun jälkeen eroava pysyy tuloksissa; myöhemmin liittyvä ei enää tule mukaan.\nJäädytys tehdään öisin ja lisäksi heti, kun joku avaa tiimisivun.\nAjat ovat sen aikavyöhykkeen mukaisia, jossa tapahtuma luotiin, ja ne näytetään kaikille samoin.\nSijat 1–3 saavat tapahtumamerkin foilaajasivulleen, mutta vain tiimeissä, joiden ulkoasu on hyväksytty.",
         "team.rolle.leiter": "Vetäjä",
         "team.rolle.mitglied": "Jäsen",
+    ]
+
+    private static let _fi3: [String: String] = [
         "team.rolle.moderator": "Moderaattori",
         "team.stat.aktiv": "aktiivisia",
         "team.stat.laeufe": "Lenkit",
@@ -1144,6 +1352,29 @@ enum LocTeam {
     ]
 
     private static let _nl0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m hgt",
+        "fw.11": "°C",
+        "fw.12": "Klok",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km Run",
+        "fw.16": "laatste run",
+        "fw.17": "km laatste",
+        "fw.18": "km/h gem laatst",
+        "fw.19": "km/h max laatst",
+        "fw.2": "bpm",
+        "fw.20": "Runs",
+        "fw.21": "bpm max laatst",
+        "fw.22": "km alle runs",
+        "fw.23": "alle runs",
+        "fw.3": "Tijd",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h gem",
+        "fw.7": "km/h max",
+        "fw.8": "bpm gem",
+        "fw.9": "bpm max",
         "leader.totalDistance": "Totale on-foil-afstand",
         "leader.totalTime": "Totale on-foil-tijd",
         "sd.avgHrFoil": "Ø hartslag op de foil",
@@ -1166,6 +1397,9 @@ enum LocTeam {
         "team.communityLeer": "Nog geen openbare teams. Richt het eerste op!",
         "team.err.anmeldungen_aus": "Dit team neemt op dit moment geen aanmeldingen aan.",
         "team.err.bild_zu_hoch": "De afbeelding is te hoog: hij moet minstens anderhalf keer zo breed als hoog zijn.",
+    ]
+
+    private static let _nl1: [String: String] = [
         "team.err.bild_zu_klein": "De afbeelding is te klein: minstens 800 px breed.",
         "team.err.event_eingefroren": "De uitslag staat al vast, het event kan niet meer worden gewijzigd.",
         "team.err.event_leer": "Kies minstens één ranglijst of één totaal.",
@@ -1189,9 +1423,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maximaal 20 ranglijsten.",
         "team.err.zu_viele_teams": "Je leidt al het maximale aantal teams.",
         "team.err.zu_viele_wartend": "Er wachten al drie van je teams op vrijgave.",
-    ]
-
-    private static let _nl1: [String: String] = [
         "team.event.auswertungHinweis": "Afgelopen. Sessies uit het tijdvak kunnen nog tot {bis} worden geüpload, daarna staat de uitslag vast.",
         "team.event.details": "Details",
         "team.event.disclaimer": "Events worden door de teams zelf georganiseerd. pumpfoil.org heeft geen invloed op events of op toezeggingen die daarin worden gedaan, financieel of anderszins, en aanvaardt daarvoor geen verantwoordelijkheid. De gang naar de rechter is uitgesloten. Betalingen en alle andere afspraken regelen organisatoren en deelnemers onafhankelijk van pumpfoil.org. Evenmin is pumpfoil.org verantwoordelijk voor de juistheid van gemeten waarden en gegevens of voor eventuele manipulatie ervan. Getoond wordt wat de openbare broncode op GitHub uit de geüploade gegevens berekent; verdere toezeggingen zijn er niet.",
@@ -1214,6 +1445,9 @@ enum LocTeam {
         "team.event.tag": "dag",
         "team.event.tage": "dagen",
         "team.event.teamGesamt": "Event totaal",
+    ]
+
+    private static let _nl2: [String: String] = [
         "team.event.teilen": "Delen:",
         "team.event.teilnehmer": "Deelnemers",
         "team.event.teilnehmer1": "Deelnemer",
@@ -1237,9 +1471,6 @@ enum LocTeam {
         "team.k.best": "Beste waarde",
         "team.k.sum_distance": "On-foil-afstand totaal",
         "team.k.sum_pumps": "Pumps totaal",
-    ]
-
-    private static let _nl2: [String: String] = [
         "team.k.sum_runs": "Runs totaal",
         "team.k.sum_sessions": "Sessies",
         "team.k.sum_spots": "Spots",
@@ -1262,6 +1493,9 @@ enum LocTeam {
         "team.regeln.events.text": "Een event heeft een tijdvak en eigen ranglijsten, desgewenst alleen op bepaalde spots.\nNaast of in plaats van ranglijsten kan een event totalen over alle deelnemers tonen, zoals de pumps of de afstand van het hele team. Elk event heeft minstens één ranglijst of één totaal nodig.\nAlleen sessies die binnen het tijdvak starten tellen mee.\nPer event kan de leiding bepalen dat handmatig geüploade bestanden (FIT, GPX, TCX) niet tellen; opnames van horloges, de app en gekoppelde accounts tellen dan nog wel.\nNa het einde kun je nog 24 uur uploaden; de teampagina toont dan „uitslag volgt”. Daarna is de uitslag bevroren en verandert later bijsnijden of verwijderen niets meer.\nWie na het einde vertrekt, blijft in de uitslag; wie daarna lid wordt, komt er niet meer bij.\nUitslagen worden 's nachts bevroren en ook zodra iemand de teampagina opent.\nDe tijden gelden in de tijdzone waarin het event is aangemaakt en worden voor iedereen zo getoond.\nPlaats 1 tot 3 krijgen een event-badge op hun foilerpagina, maar alleen bij teams waarvan het uiterlijk is vrijgegeven.",
         "team.rolle.leiter": "Leiding",
         "team.rolle.mitglied": "Lid",
+    ]
+
+    private static let _nl3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "actief",
         "team.stat.laeufe": "Runs",
@@ -1281,6 +1515,29 @@ enum LocTeam {
     ]
 
     private static let _cs0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m výš",
+        "fw.11": "°C",
+        "fw.12": "Hodiny",
+        "fw.13": "m ↑",
+        "fw.14": "Jízda",
+        "fw.15": "km Jízda",
+        "fw.16": "posl. jízda",
+        "fw.17": "km posl.",
+        "fw.18": "km/h prům posl.",
+        "fw.19": "km/h max posl.",
+        "fw.2": "bpm",
+        "fw.20": "Jízdy",
+        "fw.21": "bpm max posl.",
+        "fw.22": "km všechny jízdy",
+        "fw.23": "všechny jízdy",
+        "fw.3": "Čas",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h prům",
+        "fw.7": "km/h max",
+        "fw.8": "bpm prům",
+        "fw.9": "bpm max",
         "leader.totalDistance": "Celková vzdálenost na foilu",
         "leader.totalTime": "Celkový čas na foilu",
         "sd.avgHrFoil": "Ø tep na foilu",
@@ -1303,6 +1560,9 @@ enum LocTeam {
         "team.communityLeer": "Zatím žádné veřejné týmy. Založ ten první!",
         "team.err.anmeldungen_aus": "Tento tým teď nepřijímá přihlášky.",
         "team.err.bild_zu_hoch": "Obrázek je moc vysoký: musí být aspoň jedenapůlkrát širší než vyšší.",
+    ]
+
+    private static let _cs1: [String: String] = [
         "team.err.bild_zu_klein": "Obrázek je moc malý: aspoň 800 px na šířku.",
         "team.err.event_eingefroren": "Výsledek je už konečný, akci už nelze změnit.",
         "team.err.event_leer": "Vyber aspoň jeden žebříček nebo jeden součet.",
@@ -1326,9 +1586,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Nejvýše 20 žebříčků.",
         "team.err.zu_viele_teams": "Už vedeš maximální počet týmů.",
         "team.err.zu_viele_wartend": "Už tři tvoje týmy čekají na schválení.",
-    ]
-
-    private static let _cs1: [String: String] = [
         "team.event.auswertungHinweis": "Skončeno. Vyjížďky z časového okna lze ještě nahrát do {bis}, pak je výsledek konečný.",
         "team.event.details": "Podrobnosti",
         "team.event.disclaimer": "Akce pořádají samy týmy. pumpfoil.org nemá žádný vliv na akce ani na sliby v nich dané, finanční či jiné, a nepřebírá za ně žádnou odpovědnost. Právní cesta je vyloučena. Platby a všechny další dohody si pořadatelé a účastníci řeší sami, nezávisle na pumpfoil.org. Stejně tak pumpfoil.org nepřebírá žádnou odpovědnost za to, zda jsou naměřené hodnoty a data správné nebo zda nebyly zmanipulovány. Zobrazuje se to, co z nahraných dat spočítá veřejný zdrojový kód na GitHubu; žádné další záruky neexistují.",
@@ -1351,6 +1608,9 @@ enum LocTeam {
         "team.event.tag": "den",
         "team.event.tage": "dní",
         "team.event.teamGesamt": "Akce celkem",
+    ]
+
+    private static let _cs2: [String: String] = [
         "team.event.teilen": "Sdílet:",
         "team.event.teilnehmer": "Účastníci",
         "team.event.teilnehmer1": "Účastník",
@@ -1374,9 +1634,6 @@ enum LocTeam {
         "team.k.best": "Nejlepší hodnota",
         "team.k.sum_distance": "Vzdálenost na foilu celkem",
         "team.k.sum_pumps": "Pumpnutí celkem",
-    ]
-
-    private static let _cs2: [String: String] = [
         "team.k.sum_runs": "Jízdy celkem",
         "team.k.sum_sessions": "Vyjížďky",
         "team.k.sum_spots": "Spoty",
@@ -1399,6 +1656,9 @@ enum LocTeam {
         "team.regeln.events.text": "Akce má časové okno a vlastní žebříčky, volitelně jen na vybraných spotech.\nNavíc nebo místo žebříčků může akce ukazovat součty za všechny účastníky, třeba pumpy nebo vzdálenost celého týmu. Každá akce potřebuje aspoň jeden žebříček nebo jeden součet.\nPočítají se jen vyjížďky, které v časovém okně začnou.\nU každé akce může vedoucí určit, že ručně nahrané soubory (FIT, GPX, TCX) se nepočítají; záznamy z hodinek, aplikace a propojených účtů se počítají dál.\nPo konci lze ještě 24 hodin nahrávat, stránka týmu pak ukazuje „vyhodnocování“. Potom je výsledek zmrazený a pozdější ořezání nebo smazání už nic nezmění.\nKdo odejde po konci, zůstává ve výsledku; kdo se přidá potom, už se nezapočítá.\nZmrazuje se v noci a navíc hned, jakmile někdo otevře stránku týmu.\nČasy platí v časovém pásmu, ve kterém byla akce vytvořena, a tak se zobrazují všem.\nMísta 1 až 3 dostanou odznak z akce na své stránce foilera, ale jen u týmů, jejichž vzhled je schválený.",
         "team.rolle.leiter": "Vedoucí",
         "team.rolle.mitglied": "Člen",
+    ]
+
+    private static let _cs3: [String: String] = [
         "team.rolle.moderator": "Moderátor",
         "team.stat.aktiv": "aktivní",
         "team.stat.laeufe": "Jízdy",
@@ -1418,6 +1678,29 @@ enum LocTeam {
     ]
 
     private static let _pl0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m wys.",
+        "fw.11": "°C",
+        "fw.12": "Godzina",
+        "fw.13": "m ↑",
+        "fw.14": "Przejazd",
+        "fw.15": "km przejazd",
+        "fw.16": "ost. przejazd",
+        "fw.17": "km ost.",
+        "fw.18": "km/h śr. ost.",
+        "fw.19": "km/h maks. ost.",
+        "fw.2": "bpm",
+        "fw.20": "Przejazdy",
+        "fw.21": "bpm maks. ost.",
+        "fw.22": "km wsz. przejazdy",
+        "fw.23": "wsz. przejazdy",
+        "fw.3": "Czas",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h śr.",
+        "fw.7": "km/h maks.",
+        "fw.8": "bpm śr.",
+        "fw.9": "bpm maks.",
         "leader.totalDistance": "Łączny dystans na foilu",
         "leader.totalTime": "Łączny czas na foilu",
         "sd.avgHrFoil": "Ø tętno na foilu",
@@ -1440,6 +1723,9 @@ enum LocTeam {
         "team.communityLeer": "Nie ma jeszcze publicznych drużyn. Załóż pierwszą!",
         "team.err.anmeldungen_aus": "Ta drużyna nie przyjmuje teraz zgłoszeń.",
         "team.err.bild_zu_hoch": "Obraz jest za wysoki: musi być co najmniej półtora raza szerszy niż wyższy.",
+    ]
+
+    private static let _pl1: [String: String] = [
         "team.err.bild_zu_klein": "Obraz jest za mały: co najmniej 800 px szerokości.",
         "team.err.event_eingefroren": "Wynik jest już ostateczny, wydarzenia nie można już zmienić.",
         "team.err.event_leer": "Wybierz co najmniej jeden ranking lub jedną sumę.",
@@ -1463,9 +1749,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maksymalnie 20 rankingów.",
         "team.err.zu_viele_teams": "Prowadzisz już maksymalną liczbę drużyn.",
         "team.err.zu_viele_wartend": "Trzy twoje drużyny czekają już na zatwierdzenie.",
-    ]
-
-    private static let _pl1: [String: String] = [
         "team.event.auswertungHinweis": "Zakończone. Sesje z tego okna czasowego można jeszcze wgrać do {bis}, potem wynik jest ostateczny.",
         "team.event.details": "Szczegóły",
         "team.event.disclaimer": "Wydarzenia organizują same drużyny. pumpfoil.org nie ma żadnego wpływu na wydarzenia ani na składane w nich obietnice, finansowe lub inne, i nie ponosi za nie odpowiedzialności. Droga sądowa jest wykluczona. Płatności i wszelkie inne ustalenia organizatorzy i uczestnicy załatwiają między sobą, niezależnie od pumpfoil.org. Tak samo pumpfoil.org nie ponosi odpowiedzialności za to, czy zmierzone wartości i dane są poprawne lub czy nie zostały zmanipulowane. Wyświetlane jest to, co publiczny kod źródłowy na GitHubie oblicza z przesłanych danych; innych obietnic nie ma.",
@@ -1488,6 +1771,9 @@ enum LocTeam {
         "team.event.tag": "dzień",
         "team.event.tage": "dni",
         "team.event.teamGesamt": "Wydarzenie łącznie",
+    ]
+
+    private static let _pl2: [String: String] = [
         "team.event.teilen": "Udostępnij:",
         "team.event.teilnehmer": "Uczestnicy",
         "team.event.teilnehmer1": "Uczestnik",
@@ -1511,9 +1797,6 @@ enum LocTeam {
         "team.k.best": "Najlepsza wartość",
         "team.k.sum_distance": "Dystans na foilu łącznie",
         "team.k.sum_pumps": "Pompy łącznie",
-    ]
-
-    private static let _pl2: [String: String] = [
         "team.k.sum_runs": "Przejazdy łącznie",
         "team.k.sum_sessions": "Sesje",
         "team.k.sum_spots": "Spoty",
@@ -1536,6 +1819,9 @@ enum LocTeam {
         "team.regeln.events.text": "Wydarzenie ma okno czasowe i własne rankingi, w razie potrzeby tylko na wybranych spotach.\nOprócz rankingów lub zamiast nich wydarzenie może pokazywać sumy wszystkich uczestników, np. pumpy lub dystans całej drużyny. Każde wydarzenie potrzebuje co najmniej jednego rankingu lub jednej sumy.\nLiczą się tylko sesje rozpoczęte w tym oknie czasowym.\nDla każdego wydarzenia lider może ustalić, że ręcznie przesłane pliki (FIT, GPX, TCX) się nie liczą; nagrania z zegarków, aplikacji i połączonych kont nadal się liczą.\nPo zakończeniu można jeszcze przez 24 godziny wgrywać sesje, strona drużyny pokazuje wtedy „liczenie wyników”. Potem wynik zostaje zamrożony i późniejsze przycinanie czy usuwanie niczego już nie zmienia.\nKto odejdzie po zakończeniu, zostaje w wyniku; kto dołączy później, nie zostanie już dodany.\nWyniki są zamrażane w nocy, a dodatkowo, gdy tylko ktoś otworzy stronę drużyny.\nGodziny obowiązują w strefie czasowej, w której utworzono wydarzenie, i wszyscy widzą je właśnie tak.\nMiejsca od 1 do 3 dostają odznakę z wydarzenia na swojej stronie foilera, ale tylko w drużynach, których wygląd jest zatwierdzony.",
         "team.rolle.leiter": "Lider",
         "team.rolle.mitglied": "Członek",
+    ]
+
+    private static let _pl3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "aktywni",
         "team.stat.laeufe": "Przejazdy",
@@ -1555,6 +1841,29 @@ enum LocTeam {
     ]
 
     private static let _pt0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m alt",
+        "fw.11": "°C",
+        "fw.12": "Hora",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km Run",
+        "fw.16": "último run",
+        "fw.17": "km último",
+        "fw.18": "km/h méd últ.",
+        "fw.19": "km/h máx últ.",
+        "fw.2": "bpm",
+        "fw.20": "Runs",
+        "fw.21": "bpm máx últ.",
+        "fw.22": "km todas voltas",
+        "fw.23": "todas voltas",
+        "fw.3": "Tempo",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h méd",
+        "fw.7": "km/h máx",
+        "fw.8": "bpm méd",
+        "fw.9": "bpm máx",
         "leader.totalDistance": "Distância on-foil total",
         "leader.totalTime": "Tempo on-foil total",
         "sd.avgHrFoil": "FC Ø no foil",
@@ -1577,6 +1886,9 @@ enum LocTeam {
         "team.communityLeer": "Ainda não há equipes públicas. Crie a primeira!",
         "team.err.anmeldungen_aus": "Esta equipe não está aceitando inscrições agora.",
         "team.err.bild_zu_hoch": "A imagem é alta demais: precisa ser pelo menos uma vez e meia mais larga do que alta.",
+    ]
+
+    private static let _pt1: [String: String] = [
         "team.err.bild_zu_klein": "A imagem é pequena demais: pelo menos 800 px de largura.",
         "team.err.event_eingefroren": "O resultado já é definitivo; o evento não pode mais ser alterado.",
         "team.err.event_leer": "Escolha pelo menos um ranking ou um total.",
@@ -1600,9 +1912,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "No máximo 20 rankings.",
         "team.err.zu_viele_teams": "Você já lidera o número máximo de equipes.",
         "team.err.zu_viele_wartend": "Três das suas equipes já estão aguardando aprovação.",
-    ]
-
-    private static let _pt1: [String: String] = [
         "team.event.auswertungHinweis": "Acabou. Sessões do período ainda podem ser enviadas até {bis}; aí o resultado fica definitivo.",
         "team.event.details": "Detalhes",
         "team.event.disclaimer": "Os eventos são organizados pelas próprias equipes. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas feitas neles, financeiras ou de outro tipo, e não assume nenhuma responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org. Da mesma forma, o pumpfoil.org não assume nenhuma responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É exibido o que o código-fonte público no GitHub calcula a partir dos dados enviados; não há outras promessas.",
@@ -1625,6 +1934,9 @@ enum LocTeam {
         "team.event.tag": "dia",
         "team.event.tage": "dias",
         "team.event.teamGesamt": "Total do evento",
+    ]
+
+    private static let _pt2: [String: String] = [
         "team.event.teilen": "Compartilhar:",
         "team.event.teilnehmer": "Participantes",
         "team.event.teilnehmer1": "Participante",
@@ -1648,9 +1960,6 @@ enum LocTeam {
         "team.k.best": "Melhor valor",
         "team.k.sum_distance": "Distância on-foil total",
         "team.k.sum_pumps": "Total de pumps",
-    ]
-
-    private static let _pt2: [String: String] = [
         "team.k.sum_runs": "Total de voltas",
         "team.k.sum_sessions": "Sessões",
         "team.k.sum_spots": "Spots",
@@ -1673,6 +1982,9 @@ enum LocTeam {
         "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiser só em certos spots.\nAlém dos rankings, ou no lugar deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipe inteira. Todo evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que arquivos enviados à mão (FIT, GPX, TCX) não contam; gravações de relógios, do app e de contas vinculadas continuam contando.\nDepois do fim ainda dá para enviar por 24 horas; a página da equipe mostra então “apurando”. Depois disso o resultado fica congelado, e cortar ou excluir depois não muda mais nada.\nQuem sair depois do fim continua no resultado; quem entrar depois não é mais incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipe.\nOs horários valem no fuso horário em que o evento foi criado e aparecem assim para todo mundo.\nOs lugares 1 a 3 ganham uma medalha do evento na página de foiler, mas só em equipes com aparência aprovada.",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Membro",
+    ]
+
+    private static let _pt3: [String: String] = [
         "team.rolle.moderator": "Moderador",
         "team.stat.aktiv": "ativos",
         "team.stat.laeufe": "Voltas",
@@ -1692,6 +2004,29 @@ enum LocTeam {
     ]
 
     private static let _pt_PT0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m alt",
+        "fw.11": "°C",
+        "fw.12": "Hora",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km Run",
+        "fw.16": "último run",
+        "fw.17": "km último",
+        "fw.18": "km/h méd últ.",
+        "fw.19": "km/h máx últ.",
+        "fw.2": "bpm",
+        "fw.20": "Runs",
+        "fw.21": "bpm máx últ.",
+        "fw.22": "km todas voltas",
+        "fw.23": "todas voltas",
+        "fw.3": "Tempo",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h méd",
+        "fw.7": "km/h máx",
+        "fw.8": "bpm méd",
+        "fw.9": "bpm máx",
         "leader.totalDistance": "Distância on-foil total",
         "leader.totalTime": "Tempo on-foil total",
         "sd.avgHrFoil": "FC Ø no foil",
@@ -1714,6 +2049,9 @@ enum LocTeam {
         "team.communityLeer": "Ainda não há equipas públicas. Cria a primeira!",
         "team.err.anmeldungen_aus": "Esta equipa não está a aceitar inscrições neste momento.",
         "team.err.bild_zu_hoch": "A imagem é demasiado alta: tem de ser pelo menos uma vez e meia mais larga do que alta.",
+    ]
+
+    private static let _pt_PT1: [String: String] = [
         "team.err.bild_zu_klein": "A imagem é demasiado pequena: pelo menos 800 px de largura.",
         "team.err.event_eingefroren": "O resultado já é definitivo; o evento já não pode ser alterado.",
         "team.err.event_leer": "Escolhe pelo menos um ranking ou um total.",
@@ -1737,9 +2075,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "No máximo 20 rankings.",
         "team.err.zu_viele_teams": "Já lideras o número máximo de equipas.",
         "team.err.zu_viele_wartend": "Três das tuas equipas já estão a aguardar aprovação.",
-    ]
-
-    private static let _pt_PT1: [String: String] = [
         "team.event.auswertungHinweis": "Terminou. As sessões do período ainda podem ser enviadas até {bis}; a partir daí o resultado é definitivo.",
         "team.event.details": "Detalhes",
         "team.event.disclaimer": "Os eventos são organizados pelas próprias equipas. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas neles feitas, financeiras ou de outro tipo, e não assume qualquer responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org. Da mesma forma, o pumpfoil.org não assume qualquer responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É mostrado o que o código-fonte público no GitHub calcula a partir dos dados carregados; não há outras promessas.",
@@ -1762,6 +2097,9 @@ enum LocTeam {
         "team.event.tag": "dia",
         "team.event.tage": "dias",
         "team.event.teamGesamt": "Total do evento",
+    ]
+
+    private static let _pt_PT2: [String: String] = [
         "team.event.teilen": "Partilhar:",
         "team.event.teilnehmer": "Participantes",
         "team.event.teilnehmer1": "Participante",
@@ -1785,9 +2123,6 @@ enum LocTeam {
         "team.k.best": "Melhor valor",
         "team.k.sum_distance": "Distância on-foil total",
         "team.k.sum_pumps": "Total de pumps",
-    ]
-
-    private static let _pt_PT2: [String: String] = [
         "team.k.sum_runs": "Total de voltas",
         "team.k.sum_sessions": "Sessões",
         "team.k.sum_spots": "Spots",
@@ -1810,6 +2145,9 @@ enum LocTeam {
         "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiseres só em certos spots.\nAlém dos rankings, ou em vez deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipa inteira. Cada evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que ficheiros carregados à mão (FIT, GPX, TCX) não contam; gravações de relógios, da app e de contas ligadas continuam a contar.\nDepois do fim ainda é possível enviar durante 24 horas; a página da equipa mostra então «a apurar». A partir daí o resultado fica congelado, e cortar ou eliminar mais tarde já não muda nada.\nQuem sair depois do fim continua no resultado; quem aderir depois já não é incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipa.\nAs horas valem no fuso horário em que o evento foi criado e são mostradas assim a todos.\nOs lugares 1 a 3 recebem uma medalha do evento na sua página de foiler, mas só em equipas cuja aparência está aprovada.",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Membro",
+    ]
+
+    private static let _pt_PT3: [String: String] = [
         "team.rolle.moderator": "Moderador",
         "team.stat.aktiv": "ativos",
         "team.stat.laeufe": "Voltas",
@@ -1829,6 +2167,29 @@ enum LocTeam {
     ]
 
     private static let _ja0: [String: String] = [
+        "fw.1": "km/h (3秒)",
+        "fw.10": "m 標高",
+        "fw.11": "°C",
+        "fw.12": "時刻",
+        "fw.13": "m ↑",
+        "fw.14": "ラン",
+        "fw.15": "km ラン",
+        "fw.16": "前回のラン",
+        "fw.17": "km 前回",
+        "fw.18": "km/h 平均 前回",
+        "fw.19": "km/h 最大 前回",
+        "fw.2": "bpm",
+        "fw.20": "ラン数",
+        "fw.21": "bpm 最大 前回",
+        "fw.22": "km 全ラン",
+        "fw.23": "全ラン",
+        "fw.3": "時間",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h 平均",
+        "fw.7": "km/h 最大",
+        "fw.8": "bpm 平均",
+        "fw.9": "bpm 最大",
         "leader.totalDistance": "オンフォイル距離（合計）",
         "leader.totalTime": "オンフォイル時間（合計）",
         "sd.avgHrFoil": "Ø 心拍数（フォイル上）",
@@ -1851,6 +2212,9 @@ enum LocTeam {
         "team.communityLeer": "公開チームはまだありません。最初のチームを作りましょう！",
         "team.err.anmeldungen_aus": "このチームは現在、参加申し込みを受け付けていません。",
         "team.err.bild_zu_hoch": "画像が縦に長すぎます：幅は高さの 1.5 倍以上が必要です。",
+    ]
+
+    private static let _ja1: [String: String] = [
         "team.err.bild_zu_klein": "画像が小さすぎます：幅 800 px 以上が必要です。",
         "team.err.event_eingefroren": "結果はすでに確定しているため、このイベントは変更できません。",
         "team.err.event_leer": "ランキングか合計を少なくとも1つ選んでください。",
@@ -1874,9 +2238,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "ランキングは最大20個までです。",
         "team.err.zu_viele_teams": "リーダーを務められるチーム数の上限に達しています。",
         "team.err.zu_viele_wartend": "あなたのチームのうち3つがすでに承認待ちです。",
-    ]
-
-    private static let _ja1: [String: String] = [
         "team.event.auswertungHinweis": "終了しました。期間内のセッションは {bis} までアップロードでき、その後に結果が確定します。",
         "team.event.details": "詳細",
         "team.event.disclaimer": "イベントは各チームが自ら主催します。pumpfoil.org はイベントや、その中でなされる金銭的その他の約束に一切関与せず、責任を負いません。法的手段による請求はできません。支払いやその他の取り決めは、pumpfoil.org とは無関係に主催者と参加者の間で行ってください。 同様に、pumpfoil.org は計測された数値やデータが正しいかどうか、改ざんされていないかについて一切責任を負いません。表示されるのは、GitHub で公開されているソースコードがアップロードされたデータから計算した結果であり、それ以上の保証はありません。",
@@ -1899,6 +2260,9 @@ enum LocTeam {
         "team.event.tag": "日",
         "team.event.tage": "日",
         "team.event.teamGesamt": "イベント合計",
+    ]
+
+    private static let _ja2: [String: String] = [
         "team.event.teilen": "共有：",
         "team.event.teilnehmer": "参加者",
         "team.event.teilnehmer1": "参加者",
@@ -1922,9 +2286,6 @@ enum LocTeam {
         "team.k.best": "ベスト値",
         "team.k.sum_distance": "オンフォイル距離の合計",
         "team.k.sum_pumps": "ポンプ合計",
-    ]
-
-    private static let _ja2: [String: String] = [
         "team.k.sum_runs": "ラン合計",
         "team.k.sum_sessions": "セッション",
         "team.k.sum_spots": "スポット",
@@ -1947,6 +2308,9 @@ enum LocTeam {
         "team.regeln.events.text": "イベントには期間と独自のランキングがあり、特定のスポットに限定することもできます。\nランキングに加えて、またはその代わりに、イベントでは参加者全員の合計（チーム全体のパンプ数や距離など）を表示できます。各イベントにはランキングか合計が少なくとも1つ必要です。\n期間内に開始したセッションだけが集計されます。\nリーダーはイベントごとに、手動でアップロードしたファイル（FIT・GPX・TCX）を集計しないよう設定できます。ウォッチ、アプリ、連携アカウントの記録は引き続き集計されます。\n終了後も24時間はアップロードでき、その間チームページには「集計中」と表示されます。その後、結果は確定され、後からトリミングや削除をしても何も変わりません。\n終了後に退出した人は結果に残り、その後に参加した人は加わりません。\n結果は毎晩確定されるほか、誰かがチームページを開いた時点でも確定されます。\n時刻はイベントを作成したタイムゾーンのもので、全員にそのまま表示されます。\n1位から3位にはフォイラーページにイベントバッジが付きますが、外観が承認されたチームに限ります。",
         "team.rolle.leiter": "リーダー",
         "team.rolle.mitglied": "メンバー",
+    ]
+
+    private static let _ja3: [String: String] = [
         "team.rolle.moderator": "モデレーター",
         "team.stat.aktiv": "アクティブ",
         "team.stat.laeufe": "ラン",
@@ -1966,6 +2330,29 @@ enum LocTeam {
     ]
 
     private static let _zh0: [String: String] = [
+        "fw.1": "km/h（3秒）",
+        "fw.10": "m 海拔",
+        "fw.11": "°C",
+        "fw.12": "时钟",
+        "fw.13": "m ↑",
+        "fw.14": "单次",
+        "fw.15": "km 单次",
+        "fw.16": "上一次",
+        "fw.17": "km 上次",
+        "fw.18": "km/h 平均 上次",
+        "fw.19": "km/h 最高 上次",
+        "fw.2": "bpm",
+        "fw.20": "次数",
+        "fw.21": "bpm 最高 上次",
+        "fw.22": "km 全部航段",
+        "fw.23": "全部航段",
+        "fw.3": "时间",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h 平均",
+        "fw.7": "km/h 最高",
+        "fw.8": "bpm 平均",
+        "fw.9": "bpm 最高",
         "leader.totalDistance": "上翼总距离",
         "leader.totalTime": "上翼总时长",
         "sd.avgHrFoil": "Ø 心率（水翼上）",
@@ -1988,6 +2375,9 @@ enum LocTeam {
         "team.communityLeer": "暂无公开团队。来创建第一个吧！",
         "team.err.anmeldungen_aus": "该团队目前不接受加入申请。",
         "team.err.bild_zu_hoch": "图片太高：宽度至少要是高度的 1.5 倍。",
+    ]
+
+    private static let _zh1: [String: String] = [
         "team.err.bild_zu_klein": "图片太小：宽度至少 800 px。",
         "team.err.event_eingefroren": "结果已确定，活动无法再修改。",
         "team.err.event_leer": "请至少选择一个排行榜或一项总计。",
@@ -2011,9 +2401,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "最多 20 个排行榜。",
         "team.err.zu_viele_teams": "你负责的团队数量已达上限。",
         "team.err.zu_viele_wartend": "你已有三个团队在等待审核。",
-    ]
-
-    private static let _zh1: [String: String] = [
         "team.event.auswertungHinweis": "已结束。时间段内的记录仍可上传至 {bis}，之后结果确定。",
         "team.event.details": "详情",
         "team.event.disclaimer": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。 同样，pumpfoil.org 不对测得的数值和数据是否正确或是否被篡改承担任何责任。显示的内容即 GitHub 上的公开源代码根据上传的数据计算出的结果，除此之外不作任何承诺。",
@@ -2036,6 +2423,9 @@ enum LocTeam {
         "team.event.tag": "天",
         "team.event.tage": "天",
         "team.event.teamGesamt": "活动总计",
+    ]
+
+    private static let _zh2: [String: String] = [
         "team.event.teilen": "分享：",
         "team.event.teilnehmer": "参与者",
         "team.event.teilnehmer1": "参与者",
@@ -2059,9 +2449,6 @@ enum LocTeam {
         "team.k.best": "最佳数值",
         "team.k.sum_distance": "上翼总距离",
         "team.k.sum_pumps": "泵动总数",
-    ]
-
-    private static let _zh2: [String: String] = [
         "team.k.sum_runs": "航段总数",
         "team.k.sum_sessions": "记录数",
         "team.k.sum_spots": "地点",
@@ -2084,6 +2471,9 @@ enum LocTeam {
         "team.regeln.events.text": "活动有一个时间窗口和自己的排行榜，也可以只限某些地点。\n除排行榜之外或代替排行榜，活动可以显示所有参与者的总计，例如整个团队的 pump 次数或距离。每个活动至少需要一个排行榜或一项总计。\n只有在时间窗口内开始的记录才计入。\n负责人可以为每个活动设定不统计手动上传的文件（FIT、GPX、TCX）；手表、App 和已关联账户的记录仍然计入。\n结束后仍可在 24 小时内上传，此时团队页面显示“结果统计中”。之后结果被冻结，之后再裁剪或删除都不会改变任何内容。\n结束后退出的人仍保留在结果中；之后加入的人不会再被计入。\n冻结在夜间进行，此外只要有人打开团队页面也会立即冻结。\n时间以创建活动时所在的时区为准，并以此向所有人显示。\n第 1 至 3 名会在自己的玩家主页上获得活动徽章，但仅限外观已获批准的团队。",
         "team.rolle.leiter": "负责人",
         "team.rolle.mitglied": "成员",
+    ]
+
+    private static let _zh3: [String: String] = [
         "team.rolle.moderator": "管理员",
         "team.stat.aktiv": "活跃",
         "team.stat.laeufe": "航段",
@@ -2103,6 +2493,29 @@ enum LocTeam {
     ]
 
     private static let _ru0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m выс",
+        "fw.11": "°C",
+        "fw.12": "Часы",
+        "fw.13": "m ↑",
+        "fw.14": "Заезд",
+        "fw.15": "km Заезд",
+        "fw.16": "посл. заезд",
+        "fw.17": "km посл.",
+        "fw.18": "km/h ср посл.",
+        "fw.19": "km/h макс посл.",
+        "fw.2": "bpm",
+        "fw.20": "Заезды",
+        "fw.21": "bpm макс посл.",
+        "fw.22": "km все заезды",
+        "fw.23": "все заезды",
+        "fw.3": "Время",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h ср",
+        "fw.7": "km/h макс",
+        "fw.8": "bpm ср",
+        "fw.9": "bpm макс",
         "leader.totalDistance": "Общая дистанция на фойле",
         "leader.totalTime": "Общее время на фойле",
         "sd.avgHrFoil": "Ø пульс на фойле",
@@ -2125,6 +2538,9 @@ enum LocTeam {
         "team.communityLeer": "Публичных команд пока нет. Создай первую!",
         "team.err.anmeldungen_aus": "Эта команда сейчас не принимает заявки.",
         "team.err.bild_zu_hoch": "Изображение слишком высокое: ширина должна быть хотя бы в полтора раза больше высоты.",
+    ]
+
+    private static let _ru1: [String: String] = [
         "team.err.bild_zu_klein": "Изображение слишком маленькое: нужно не меньше 800 px в ширину.",
         "team.err.event_eingefroren": "Результат уже окончательный, событие больше нельзя изменить.",
         "team.err.event_leer": "Выбери хотя бы одну таблицу или одну сумму.",
@@ -2148,9 +2564,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Не больше 20 таблиц лидеров.",
         "team.err.zu_viele_teams": "Ты уже руководишь максимальным числом команд.",
         "team.err.zu_viele_wartend": "Три твои команды уже ждут одобрения.",
-    ]
-
-    private static let _ru1: [String: String] = [
         "team.event.auswertungHinweis": "Завершено. Сессии из этого окна ещё можно загрузить до {bis}, затем результат окончательный.",
         "team.event.details": "Подробности",
         "team.event.disclaimer": "События проводят сами команды. pumpfoil.org не влияет на события и на данные в них обещания, финансовые или иные, и не несёт за них ответственности. Обращение в суд исключено. Платежи и все прочие договорённости организаторы и участники решают между собой, независимо от pumpfoil.org. Точно так же pumpfoil.org не несёт ответственности за то, верны ли измеренные значения и данные и не были ли они подделаны. Показывается то, что публичный исходный код на GitHub рассчитывает из загруженных данных; других обещаний нет.",
@@ -2173,6 +2586,9 @@ enum LocTeam {
         "team.event.tag": "дн.",
         "team.event.tage": "дн.",
         "team.event.teamGesamt": "Событие всего",
+    ]
+
+    private static let _ru2: [String: String] = [
         "team.event.teilen": "Поделиться:",
         "team.event.teilnehmer": "Участники",
         "team.event.teilnehmer1": "Участник",
@@ -2196,9 +2612,6 @@ enum LocTeam {
         "team.k.best": "Лучшее значение",
         "team.k.sum_distance": "Дистанция на фойле всего",
         "team.k.sum_pumps": "Помпинг всего",
-    ]
-
-    private static let _ru2: [String: String] = [
         "team.k.sum_runs": "Заезды всего",
         "team.k.sum_sessions": "Сессии",
         "team.k.sum_spots": "Споты",
@@ -2221,6 +2634,9 @@ enum LocTeam {
         "team.regeln.events.text": "У события есть временное окно и свои таблицы лидеров, по желанию только на определённых спотах.\nПомимо таблиц лидеров или вместо них событие может показывать суммы по всем участникам, например пампы или дистанцию всей команды. Каждому событию нужна хотя бы одна таблица или одна сумма.\nУчитываются только сессии, начатые в этом окне.\nДля каждого события руководитель может решить, что вручную загруженные файлы (FIT, GPX, TCX) не учитываются; записи с часов, из приложения и привязанных аккаунтов по-прежнему учитываются.\nПосле окончания можно ещё 24 часа загружать записи, страница команды тогда показывает «подведение итогов». Затем результат замораживается, и последующая обрезка или удаление уже ничего не меняют.\nКто выходит после окончания, остаётся в результате; кто вступает позже, уже не добавляется.\nРезультаты замораживаются ночью, а также сразу, как только кто-то откроет страницу команды.\nВремя указано в часовом поясе, в котором создано событие, и так же показывается всем.\nМеста с 1 по 3 получают значок события на своей странице фойлера, но только в командах с одобренным оформлением.",
         "team.rolle.leiter": "Руководитель",
         "team.rolle.mitglied": "Участник",
+    ]
+
+    private static let _ru3: [String: String] = [
         "team.rolle.moderator": "Модератор",
         "team.stat.aktiv": "активны",
         "team.stat.laeufe": "Заезды",
@@ -2240,6 +2656,29 @@ enum LocTeam {
     ]
 
     private static let _id0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m ket",
+        "fw.11": "°C",
+        "fw.12": "Jam",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km Run",
+        "fw.16": "run terakhir",
+        "fw.17": "km terakhir",
+        "fw.18": "km/h rata akhir",
+        "fw.19": "km/h maks akhir",
+        "fw.2": "bpm",
+        "fw.20": "Run",
+        "fw.21": "bpm maks akhir",
+        "fw.22": "km semua run",
+        "fw.23": "semua run",
+        "fw.3": "Waktu",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h rata",
+        "fw.7": "km/h maks",
+        "fw.8": "bpm rata",
+        "fw.9": "bpm maks",
         "leader.totalDistance": "Total jarak on-foil",
         "leader.totalTime": "Total waktu on-foil",
         "sd.avgHrFoil": "Ø detak jantung di foil",
@@ -2262,6 +2701,9 @@ enum LocTeam {
         "team.communityLeer": "Belum ada tim publik. Buat yang pertama!",
         "team.err.anmeldungen_aus": "Tim ini sedang tidak menerima pendaftaran.",
         "team.err.bild_zu_hoch": "Gambar terlalu tinggi: lebarnya harus minimal satu setengah kali tingginya.",
+    ]
+
+    private static let _id1: [String: String] = [
         "team.err.bild_zu_klein": "Gambar terlalu kecil: minimal lebar 800 px.",
         "team.err.event_eingefroren": "Hasilnya sudah final, event tidak bisa diubah lagi.",
         "team.err.event_leer": "Pilih minimal satu papan peringkat atau satu total.",
@@ -2285,9 +2727,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maksimal 20 papan peringkat.",
         "team.err.zu_viele_teams": "Kamu sudah memimpin jumlah tim maksimum.",
         "team.err.zu_viele_wartend": "Tiga timmu sudah menunggu persetujuan.",
-    ]
-
-    private static let _id1: [String: String] = [
         "team.event.auswertungHinweis": "Sudah berakhir. Sesi dari rentang waktu ini masih bisa diunggah hingga {bis}, lalu hasilnya final.",
         "team.event.details": "Detail",
         "team.event.disclaimer": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org. Begitu pula, pumpfoil.org tidak bertanggung jawab atas benar tidaknya nilai dan data yang diukur atau apakah data tersebut dimanipulasi. Yang ditampilkan adalah hasil perhitungan kode sumber publik di GitHub dari data yang diunggah; tidak ada janji lain.",
@@ -2310,6 +2749,9 @@ enum LocTeam {
         "team.event.tag": "hari",
         "team.event.tage": "hari",
         "team.event.teamGesamt": "Total event",
+    ]
+
+    private static let _id2: [String: String] = [
         "team.event.teilen": "Bagikan:",
         "team.event.teilnehmer": "Peserta",
         "team.event.teilnehmer1": "Peserta",
@@ -2333,9 +2775,6 @@ enum LocTeam {
         "team.k.best": "Nilai terbaik",
         "team.k.sum_distance": "Total jarak on-foil",
         "team.k.sum_pumps": "Total pump",
-    ]
-
-    private static let _id2: [String: String] = [
         "team.k.sum_runs": "Total run",
         "team.k.sum_sessions": "Sesi",
         "team.k.sum_spots": "Spot",
@@ -2358,6 +2797,9 @@ enum LocTeam {
         "team.regeln.events.text": "Event punya rentang waktu dan papan peringkat sendiri, kalau mau hanya di spot tertentu.\nSelain papan peringkat, atau sebagai gantinya, event dapat menampilkan total dari semua peserta, misalnya pump atau jarak seluruh tim. Setiap event memerlukan minimal satu papan peringkat atau satu total.\nHanya sesi yang dimulai dalam rentang waktu itu yang dihitung.\nUntuk setiap event, ketua dapat menetapkan bahwa file yang diunggah manual (FIT, GPX, TCX) tidak dihitung; rekaman dari jam, aplikasi, dan akun tertaut tetap dihitung.\nSetelah selesai, kamu masih bisa mengunggah selama 24 jam; halaman tim lalu menampilkan “menunggu hasil”. Setelah itu hasilnya dibekukan, dan memotong atau menghapus belakangan tidak mengubah apa pun lagi.\nYang keluar setelah selesai tetap ada di hasil; yang bergabung sesudahnya tidak ikut lagi.\nHasil dibekukan pada malam hari dan juga begitu seseorang membuka halaman tim.\nWaktunya mengikuti zona waktu tempat event dibuat dan ditampilkan begitu untuk semua orang.\nPeringkat 1 sampai 3 mendapat lencana event di halaman foiler mereka, tapi hanya untuk tim yang tampilannya sudah disetujui.",
         "team.rolle.leiter": "Ketua",
         "team.rolle.mitglied": "Anggota",
+    ]
+
+    private static let _id3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "aktif",
         "team.stat.laeufe": "Run",
@@ -2377,6 +2819,29 @@ enum LocTeam {
     ]
 
     private static let _nb0: [String: String] = [
+        "fw.1": "km/h (3s)",
+        "fw.10": "m høyde",
+        "fw.11": "°C",
+        "fw.12": "Klokke",
+        "fw.13": "m ↑",
+        "fw.14": "Run",
+        "fw.15": "km run",
+        "fw.16": "siste run",
+        "fw.17": "km siste",
+        "fw.18": "km/h snitt siste",
+        "fw.19": "km/h maks siste",
+        "fw.2": "bpm",
+        "fw.20": "Runs",
+        "fw.21": "bpm maks siste",
+        "fw.22": "km alle runs",
+        "fw.23": "alle runs",
+        "fw.3": "Tid",
+        "fw.4": "km",
+        "fw.5": "km/h",
+        "fw.6": "km/h snitt",
+        "fw.7": "km/h maks",
+        "fw.8": "bpm snitt",
+        "fw.9": "bpm maks",
         "leader.totalDistance": "Total distanse på foil",
         "leader.totalTime": "Total tid på foil",
         "sd.avgHrFoil": "Ø puls på foilen",
@@ -2399,6 +2864,9 @@ enum LocTeam {
         "team.communityLeer": "Ingen offentlige lag ennå. Start det første!",
         "team.err.anmeldungen_aus": "Dette laget tar ikke imot innmeldinger akkurat nå.",
         "team.err.bild_zu_hoch": "Bildet er for høyt: det må være minst halvannen gang så bredt som høyt.",
+    ]
+
+    private static let _nb1: [String: String] = [
         "team.err.bild_zu_klein": "Bildet er for lite: minst 800 px bredt.",
         "team.err.event_eingefroren": "Resultatet er allerede endelig; arrangementet kan ikke endres lenger.",
         "team.err.event_leer": "Velg minst én toppliste eller én total.",
@@ -2422,9 +2890,6 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maks 20 topplister.",
         "team.err.zu_viele_teams": "Du leder allerede maksimalt antall lag.",
         "team.err.zu_viele_wartend": "Tre av lagene dine venter allerede på godkjenning.",
-    ]
-
-    private static let _nb1: [String: String] = [
         "team.event.auswertungHinweis": "Over. Økter fra tidsvinduet kan fortsatt lastes opp til {bis}, så er resultatet endelig.",
         "team.event.details": "Detaljer",
         "team.event.disclaimer": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org. Likeledes tar pumpfoil.org intet ansvar for om målte verdier og data er riktige eller har blitt manipulert. Det som vises, er det den offentlige kildekoden på GitHub beregner ut fra de opplastede dataene; det gis ingen andre løfter.",
@@ -2447,6 +2912,9 @@ enum LocTeam {
         "team.event.tag": "dag",
         "team.event.tage": "dager",
         "team.event.teamGesamt": "Arrangementet totalt",
+    ]
+
+    private static let _nb2: [String: String] = [
         "team.event.teilen": "Del:",
         "team.event.teilnehmer": "Deltakere",
         "team.event.teilnehmer1": "Deltaker",
@@ -2470,9 +2938,6 @@ enum LocTeam {
         "team.k.best": "Beste verdi",
         "team.k.sum_distance": "Distanse på foil totalt",
         "team.k.sum_pumps": "Pumper totalt",
-    ]
-
-    private static let _nb2: [String: String] = [
         "team.k.sum_runs": "Runs totalt",
         "team.k.sum_sessions": "Økter",
         "team.k.sum_spots": "Spots",
@@ -2495,6 +2960,9 @@ enum LocTeam {
         "team.regeln.events.text": "Et arrangement har et tidsvindu og egne topplister, om ønskelig bare på bestemte spots.\nI tillegg til eller i stedet for topplister kan et arrangement vise totaler for alle deltakere, for eksempel pumpene eller distansen til hele laget. Hvert arrangement trenger minst én toppliste eller én total.\nBare økter som starter i tidsvinduet, teller.\nFor hvert arrangement kan lederen bestemme at manuelt opplastede filer (FIT, GPX, TCX) ikke teller; opptak fra klokker, appen og koblede kontoer teller fortsatt.\nEtter slutt kan du laste opp i 24 timer til, og lagsiden viser da «resultat ventes». Deretter er resultatet fryst, og senere trimming eller sletting endrer ingenting lenger.\nDen som melder seg ut etter slutten, blir stående i resultatet; den som blir med etterpå, kommer ikke med.\nResultatene fryses om natten og i tillegg så snart noen åpner lagsiden.\nTidene gjelder i tidssonen arrangementet ble opprettet i, og vises slik for alle.\nPlass 1 til 3 får et arrangementsmerke på foilersiden sin, men bare i lag der utseendet er godkjent.",
         "team.rolle.leiter": "Leder",
         "team.rolle.mitglied": "Medlem",
+    ]
+
+    private static let _nb3: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.stat.aktiv": "aktive",
         "team.stat.laeufe": "Runs",

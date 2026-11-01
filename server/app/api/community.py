@@ -1261,11 +1261,30 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
             aus.append({**x, "session_id": r[0] if r else None})
         return aus
 
-    return {"sessions": top("sessions"), "runs": top("runs"), "spots": top("spots"), "pumps": top("pumps"),
-            "distance": top("distance_m"), "time": top("time_s"),
-            "run_distance": mit_session(top("run_distance_m"), REC_COL["distance"][0]),
-            "run_time": mit_session(top("run_time_s"), REC_COL["duration"][0]),
-            "ride_total": mit_session(top("ride_total_m"), REC_COL["session_total"][0])}
+    listen = {"sessions": ("sessions", None), "runs": ("runs", None), "spots": ("spots", None),
+              "pumps": ("pumps", None), "distance": ("distance_m", None), "time": ("time_s", None),
+              "run_distance": ("run_distance_m", REC_COL["distance"][0]),
+              "run_time": ("run_time_s", REC_COL["duration"][0]),
+              "ride_total": ("ride_total_m", REC_COL["session_total"][0])}
+    out: dict = {}
+    for name, (key, col) in listen.items():
+        zeilen = top(key)
+        out[name] = mit_session(zeilen, col) if col is not None else zeilen
+    # Die eigene Zeile unter Platz 10 (Olek, 01.11.2026): wer nicht unter den ersten 10 steht, sieht trotzdem
+    # Rang und Wert. Rang = 1 + Zahl derer mit MEHR, damit Gleichstand ehrlich gezaehlt wird (heute 1 Session haben
+    # oft Dutzende; die Stelle in der Sortierung waere dann Zufall, etwa 39). Steht man gleichauf mit der Liste,
+    # zeigt die Zeile 11 statt eines kleinen Platzes, der unter Platz 10 wie ein Fehler aussaehe. Getrennter
+    # Schluessel, damit aeltere Apps die Listen unveraendert lesen.
+    ich = next((x for x in flat if x["user_id"] == _user.id), None)
+    me: dict = {}
+    for name, (key, col) in listen.items():
+        if ich is None or ich[key] <= 0 or any(x["user_id"] == _user.id for x in out[name]):
+            me[name] = None
+            continue
+        zeile = {**ich, "rank": max(11, 1 + sum(1 for x in flat if x[key] > ich[key]))}
+        me[name] = mit_session([zeile], col)[0] if col is not None else zeile
+    out["me"] = me
+    return out
 
 
 # ----------------------------------------------------------- Neueste Medien ----

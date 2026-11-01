@@ -40,7 +40,7 @@ def _konto(client):
     return kopf, client.get("/api/auth/me", headers=kopf).json()["id"]
 
 
-def _gps_session(uid, dist, zeit):
+def _gps_session(uid, dist, zeit, lauf=None):
     db = SessionLocal()
     try:
         t0 = datetime.now(timezone.utc) - timedelta(hours=2)
@@ -49,7 +49,7 @@ def _gps_session(uid, dist, zeit):
                            status="done", gps_hz=1)
         db.add(s); db.flush()
         db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="gps_only", num_runs=1,
-                                     foiling_distance_m=dist, foiling_time_s=zeit))
+                                     foiling_distance_m=dist, foiling_time_s=zeit, best_distance_m=lauf))
         db.commit()
         _ANGELEGT.append(s.id)
     finally:
@@ -69,6 +69,7 @@ def test_gps_fahrer_steht_bei_strecke_und_zeit(client):
     assert abs(strecke["distance_m"] - basis) < 1 and abs(zeit["time_s"] - basis / 100) < 1
     assert all(x["user_id"] != uid for x in d["pumps"])        # ohne Bewegungsdaten keine Pumps
     assert len(d["distance"]) <= 10 and len(d["time"]) <= 10
+    assert d["me"]["distance"] is None                         # steht schon in der Liste
 
 
 def test_nur_bewegungsdaten_blendet_gps_aus(client):
@@ -101,3 +102,27 @@ def test_bester_einzellauf_getrennt_von_summe(client):
     assert lauf["session_id"] == _ANGELEGT[-1]                 # Zeile fuehrt zur Session des besten Laufs
     assert "session_id" not in next(x for x in d["distance"] if x["user_id"] == uid)   # Summe: keine einzelne
     assert any(x["user_id"] == uid for x in d["run_time"])
+
+
+def test_eigene_zeile_unter_platz_zehn(client):
+    # Olek, 01.11.2026: wer nicht unter den ersten 10 steht, bekommt darunter Rang und Wert.
+    basis = 1.0e13 + time.time() * 1000
+    db = SessionLocal()
+    try:                                                       # zehn, die sicher vorne stehen (direkt, ohne
+        andere = []                                            # Registrierung — die bremst nach ein paar Konten)
+        for i in range(10):
+            u = models.User(email=f"leaders-vorn-{secrets.token_hex(4)}@test.de", password_hash="x")
+            db.add(u); db.flush(); andere.append(u.id)
+        db.commit()
+    finally:
+        db.close()
+    for i, a in enumerate(andere):
+        _gps_session(a, basis + i, 1.0, basis + i)
+    kopf, uid = _konto(client)
+    _gps_session(uid, 0.5, 1.0, 0.5)
+    d = client.get("/api/community/leaders?period=all&accel_only=false&sport=pumpfoil", headers=kopf).json()
+    assert all(x["user_id"] != uid for x in d["distance"])
+    ich = d["me"]["distance"]
+    assert ich["user_id"] == uid and ich["distance_m"] == 0.5 and ich["rank"] > 10
+    assert d["me"]["run_distance"]["session_id"] == _ANGELEGT[-1]   # Einzel-Lauf fuehrt zur Session
+    assert d["me"]["pumps"] is None                            # keine Pumps, also keine Zeile

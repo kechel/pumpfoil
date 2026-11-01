@@ -7,7 +7,9 @@ IOS = ROOT / "watch-apple/Sources-iOS"
 LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb"]
 DATEIEN = ["TeamModels.swift", "TeamsApi.swift", "TeamFarben.swift", "TeamEventKachel.swift", "TeamKennzahlen.swift",
            "TeamView.swift", "TeamEventView.swift", "TeamsListen.swift"]
-PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen."]
+# fw.* = die kurzen Uhr-Texte unter den Werten (Layout-Vorschau, 01.11.2026) — vorher zeigte iOS dort die langen
+# Feldnamen, die ueberlappten und vom Web abwichen.
+PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen.", "fw."]
 EXTRA = ["sd.avgHrFoil", "sd.avgHrGesamt", "leader.totalDistance", "leader.totalTime"]
 
 def lies(code):

@@ -183,9 +183,8 @@ private func wertFarbe(_ fieldId: Int, _ werte: [Int: String]?) -> Color? {
 
 /// Zeichnet ein Layout so, wie die Uhr es zeichnen würde.
 ///
-/// ABWEICHUNG, bewusst: Labels zeigen `field.<id>` statt der KURZEN Uhr-Texte (`fw.<id>` im Web).
-/// Die Kurzformen liegen nur in den Uhr-Sprachdateien; sie hier nachzuziehen wären 20 Keys × 16
-/// Sprachen für einen Breitenunterschied. Zum Wiedererkennen genügt der lange Name.
+/// Labels zeigen die KURZEN Uhr-Texte `fw.<id>` wie das Web (aus LocTeams.swift, erzeugt aus den Web-Sprachdateien).
+/// Bis 01.11.2026 standen hier die langen Feldnamen — sie überlappten auf der Fläche und wichen vom Web ab.
 struct WatchLayoutPreview: View {
     let elements: [[LayoutValue]]
     let bgColor: Int
@@ -249,7 +248,7 @@ struct WatchLayoutPreview: View {
                 let c = (flags & 4 != 0 ? wertFarbe(fid, werte) : nil) ?? farbe(int(e, 4), "value")
                 text(&ctx, wertText(fid, werte), x, y, stufe(e), c, flags, size.width, true)
             case EL_LABEL:
-                text(&ctx, Loc.t("field.\(int(e, 6))", lang), x, y, stufe(e),
+                text(&ctx, Loc.t("fw.\(int(e, 6))", lang), x, y, stufe(e),
                      farbe(int(e, 4), "label"), flags, size.width, false)
             case EL_TEXT:
                 text(&ctx, str(e, 6), x, y, stufe(e), farbe(int(e, 4), "label"), flags, size.width, false)

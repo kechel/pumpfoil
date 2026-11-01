@@ -4959,7 +4959,7 @@ static let nlOverlay: [String: String] = {
         // erzeugt. Zuerst gefragt, damit die grossen Tabellen dafuer nicht angefasst werden.
         if key.hasPrefix("onb."), let v = LocOnb.t(key, lang) { return v }
         // Teams & Events (01.11.2026): eigene, aus den Web-Sprachdateien erzeugte Tabelle in LocTeams.swift.
-        if key.hasPrefix("team.") || key.hasPrefix("sd.avgHr") || key.hasPrefix("leader.total"), let v = LocTeam.t(key, lang) { return v }
+        if key.hasPrefix("team.") || key.hasPrefix("sd.avgHr") || key.hasPrefix("leader.total") || key.hasPrefix("fw."), let v = LocTeam.t(key, lang) { return v }
         if let row = neuTexte[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte2[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte3[key], let v = row[lang] ?? row["en"] { return v }

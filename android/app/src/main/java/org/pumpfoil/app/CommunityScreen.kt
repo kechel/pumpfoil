@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.border
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -60,6 +62,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -354,7 +357,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                     "run_time" -> lb.runTime; else -> lb.sessions }
                                 Card(Modifier.fillMaxWidth().padding(12.dp)) {
                                     Column(Modifier.padding(8.dp)) {
-                                        list.take(5).forEachIndexed { i, e ->
+                                        val zeile: @Composable (LeaderEntry, Int, Boolean) -> Unit = { e, platz, ich ->
                                             val v = when (lbMetric) { "runs" -> "${e.runs}"; "pumps" -> "${e.pumps}"; "spots" -> "${e.spots}"
                                                 "distance" -> String.format(java.util.Locale.ROOT, "%.1f", e.distanceM / 1000)
                                                 "time" -> leaderDauer(e.timeS)
@@ -367,8 +370,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                             // Einzellauf-Listen: Tippen oeffnet die Session (01.11.2026, wie das Web)
                                             val sid = e.sessionId
                                             Row(Modifier.fillMaxWidth().then(if (sid != null) Modifier.clickable { onOpen(sid) } else Modifier)
+                                                .then(if (ich) Modifier.border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 4.dp) else Modifier)
                                                 .padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Text("${i + 1}", Modifier.width(20.dp), style = MaterialTheme.typography.titleSmall,
+                                                Text("$platz", Modifier.widthIn(min = 20.dp).padding(end = 4.dp), style = MaterialTheme.typography.titleSmall,
                                                     color = MaterialTheme.colorScheme.primary)
                                                 Api.mediaUrl(e.avatarUrl)?.let { av ->
                                                     ProfilbildRahmen(e.userId, 28.dp) {
@@ -381,6 +385,16 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                                 Text(v, fontWeight = FontWeight.SemiBold)
                                                 Spacer(Modifier.width(4.dp))
                                                 Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            }
+                                        }
+                                        // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur,
+                                        // wenn man nicht unter den ersten 10 steht — bei take(5) fehlten sonst die Plaetze 6 bis 10.
+                                        list.take(10).forEachIndexed { i, e -> zeile(e, i + 1, false) }
+                                        lb.me[lbMetric]?.let { ich ->
+                                            ich.rank?.let { r ->
+                                                Text("⋮", Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                zeile(ich, r, true)
                                             }
                                         }
                                         if (list.isEmpty()) Text(I18n.t("records.empty"), style = MaterialTheme.typography.bodySmall,

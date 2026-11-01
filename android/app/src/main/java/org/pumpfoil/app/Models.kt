@@ -497,6 +497,8 @@ data class LeaderEntry(
     @SerialName("run_distance_m") val runDistanceM: Double = 0.0, @SerialName("run_time_s") val runTimeS: Double = 0.0,
     // nur bei Einzellauf-Listen: Session des besten Laufs (Tippen oeffnet sie)
     @SerialName("session_id") val sessionId: Int? = null,
+    // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist (Server additiv seit 01.11.2026)
+    val rank: Int? = null,
 )
 
 @Serializable
@@ -509,6 +511,8 @@ data class Leaders(
     val time: List<LeaderEntry> = emptyList(),
     @SerialName("run_distance") val runDistance: List<LeaderEntry> = emptyList(),
     @SerialName("run_time") val runTime: List<LeaderEntry> = emptyList(),
+    // eigene Zeile unter Platz 10 je Liste; null, wenn man schon drinsteht oder keinen Wert hat
+    val me: Map<String, LeaderEntry?> = emptyMap(),
 )
 
 // Neueste Medien (GET /api/community/latest-photos) — Fotos + YouTube je Session.
