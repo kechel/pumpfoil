@@ -1059,6 +1059,7 @@ NAECHSTES: list[dict] = [
          "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
          "The changelog shows our security reviews, folded away like on the website.",
          "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
+         "The community leaderboard adds farthest run, longest run, total on-foil distance and total on-foil time, and a tap on a run entry opens that session.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.59",
      "items": [
@@ -1068,6 +1069,7 @@ NAECHSTES: list[dict] = [
          "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
          "The changelog shows our security reviews, folded away like on the website.",
          "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
+         "The community leaderboard adds farthest run, longest run, total on-foil distance and total on-foil time, and a tap on a run entry opens that session.",
      ]},
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
