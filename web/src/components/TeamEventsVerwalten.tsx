@@ -11,7 +11,6 @@ import { EVENT_VORLAGEN, alsEingabe, eventZeitraum, neueEventTafel } from "../li
 import { sortiereNachSport } from "../lib/sportClass";
 import { bandLabel } from "../pages/Home";
 import { useI18n } from "../i18n";
-import { RegelnLink } from "../pages/TeamRegeln";
 
 const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100";
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
@@ -64,8 +63,7 @@ export default function TeamEventsVerwalten({ slug, sports, bands, alleSpots, on
 
   return (
     <Card className="mb-4 p-4">
-      <h3 className="mb-1 font-semibold text-slate-100">{t("team.events")}</h3>
-      <p className="mb-3 text-sm text-slate-400">{t("team.eventsHinweis")} <RegelnLink abschnitt="events" /></p>
+      <h3 className="mb-2 font-semibold text-slate-100">{t("team.events")}</h3>
 
       {liste.map((ev) => (
         <div key={ev.id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 first:border-t-0">
