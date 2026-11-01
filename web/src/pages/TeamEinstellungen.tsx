@@ -236,7 +236,7 @@ export default function TeamEinstellungen() {
         </Card>
       )}
 
-      {!grund && <TeamEventsVerwalten slug={slug} sports={sports} bands={bands} alleSpots={alleSpots} onMeldung={setMeldung} />}
+      {!grund && <TeamEventsVerwalten slug={slug} farbe={team.farbe} sports={sports} bands={bands} alleSpots={alleSpots} onMeldung={setMeldung} />}
 
       {!grund && links && (
         <Card className="mb-4 p-4">

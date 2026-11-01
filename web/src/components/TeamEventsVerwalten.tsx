@@ -3,6 +3,8 @@
 // aenderbar. Zeiten gelten in der Zeitzone des Browsers; die wird mitgespeichert und auf der Teamseite so
 // angezeigt, damit „Samstag 0 Uhr" fuer alle derselbe Zeitpunkt bleibt.
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { teamFarbStil } from "../lib/teamFarben";
 import { api, FoilBand, TeamEvent, TeamEventTafel } from "../lib/api";
 import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
@@ -24,8 +26,8 @@ function leer(): Entwurf {
   return { titel: "", beschreibung: "", start: alsEingabe(a), ende: alsEingabe(b), tafeln: [neueEventTafel()], spot_ids: [], vorlage: null };
 }
 
-export default function TeamEventsVerwalten({ slug, sports, bands, alleSpots, onMeldung }: {
-  slug: string; sports: string[]; bands: FoilBand[]; alleSpots: { id: number; name: string }[]; onMeldung: (s: string) => void;
+export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSpots, onMeldung }: {
+  slug: string; farbe: string | null; sports: string[]; bands: FoilBand[]; alleSpots: { id: number; name: string }[]; onMeldung: (s: string) => void;
 }) {
   const { t, lang } = useI18n();
   const [liste, setListe] = useState<TeamEvent[]>([]);
@@ -84,8 +86,10 @@ export default function TeamEventsVerwalten({ slug, sports, bands, alleSpots, on
       <button className="team-knopf mt-3 rounded-xl px-4 py-2 text-sm font-semibold" onClick={() => setE(leer())}>+ {t("team.event.neu")}</button>
       {/* Anlegen/Bearbeiten im Popup statt inline (Jan, 01.11.2026). Ein Klick daneben schliesst NICHT — sonst
           waeren halb eingegebene Events weg; zu geht es nur ueber Speichern oder Abbrechen. */}
-      {e && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      {/* Per Portal an <body>: die Karte darum (Unschaerfe-Hintergrund) macht sonst `fixed` zu „relativ zur Karte" —
+          das Popup sass im falschen Element und wurde unscrollbar abgeschnitten. Teamfarbe deshalb hier neu setzen. */}
+      {e && createPortal(
+        <div className="team-farbe fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" style={teamFarbStil(farbe)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-700 bg-white p-5 dark:bg-slate-900">
           <h3 className="mb-3 text-lg font-bold text-slate-100">{e.id ? t("team.event.bearbeiten") : t("team.event.neu")}</h3>
           {!e.id && (
@@ -162,7 +166,8 @@ export default function TeamEventsVerwalten({ slug, sports, bands, alleSpots, on
             <button className={knopf} onClick={() => setE(null)}>{t("common.cancel")}</button>
           </div>
         </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </Card>
   );
