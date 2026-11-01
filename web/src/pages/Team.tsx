@@ -284,7 +284,9 @@ export default function Team() {
         </p>
       )}
 
-      {kopf.mein_status === "aktiv" && <TeamAdresse kopf={kopf} t={t} />}
+      {/* Mitglieder sehen die Adresse immer (mit Hinweis, ob Gaeste dort schon etwas sehen); Fremde nur, wenn das
+          Team oeffentlich UND freigegeben ist (Jan, 01.11.2026) — dann zeigt sie die freigegebene Fassung. */}
+      {!gast && (kopf.mein_status === "aktiv" || kopf.bestenlisten_oeffentlich) && <TeamAdresse kopf={kopf} t={t} />}
 
       {kopf.chat_scope && (
         <button onClick={() => openChatOverlay(kopf.chat_scope as string, t("team.chatTitel", { name: kopf.name }))}
