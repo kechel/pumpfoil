@@ -617,3 +617,32 @@ def test_event_austritt_nach_ende_aendert_nichts(client):
     ids, ev = zeilen(vorbei["id"])
     assert ids == [ib, ia] and ev["summen"] == {"pumps": 320, "aktive": 2}
     assert zeilen(laeuft["id"])[0] == [ic, ia]
+
+
+def test_event_nur_gesamtsummen(client):
+    """Ein Event darf ganz ohne Bestenliste sein, wenn Gesamtsummen gewaehlt sind; dann eigene Sportart/Bewegungsdaten."""
+    (ia, ka), (ib, kb) = _konto(client, "te-a-nur@t.de", "Nur Nora"), _konto(client, "te-b-nur@t.de", "Nur Nils")
+    slug, _l = _team_mit(client, ka, kb, "Nur-Summen-Team")
+    from app import models
+    from app.db import SessionLocal
+    _session(ia, 120, tage=2)
+    sb = _session(ib, 200, tage=2)
+    db = SessionLocal()
+    try:
+        db.query(models.AnalysisResult).filter_by(session_id=sb).one().detection = "gps_only"
+        db.commit()
+    finally:
+        db.close()
+    jetzt = datetime.now(timezone.utc)
+    body = {"titel": "Gemeinsam pumpen", "start": (jetzt - timedelta(days=3)).isoformat(),
+            "ende": (jetzt + timedelta(days=1)).isoformat(), "tafeln": []}
+    r = client.post(f"/api/teams/{slug}/events", headers=ka, json=body)
+    assert r.status_code == 422 and r.json()["detail"] == "event_leer"
+    assert client.post(f"/api/teams/{slug}/events", headers=ka,
+                       json={**body, "summen": ["pumps"], "summen_sportart": "quatsch"}).status_code == 422
+    ev = client.post(f"/api/teams/{slug}/events", headers=ka, json={**body, "summen": ["pumps", "aktive"]}).json()
+    assert ev["tafeln"] == [] and ev["summen"] == {"pumps": 320, "aktive": 2} and ev["summen_sportart"] == "pumpfoil"
+    # Nur mit Bewegungsdaten: Nils' GPS-only-Session faellt raus
+    r = client.put(f"/api/teams/{slug}/events/{ev['id']}", headers=ka,
+                   json={**body, "summen": ["pumps"], "summen_accel_only": True}).json()
+    assert r["summen_accel_only"] is True and r["summen"] == {"pumps": 120}

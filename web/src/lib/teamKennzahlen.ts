@@ -62,3 +62,19 @@ export const EVENT_SUMMEN: { key: string; labelKey: string; fmt: (v: number) => 
   { key: "spots", labelKey: "team.k.sum_spots", fmt: (v) => v.toLocaleString() },
   { key: "aktive", labelKey: "team.event.teilnehmer", fmt: (v) => v.toLocaleString() },
 ];
+
+type EventKurz = { tafeln: { kennzahl: string; sportart: string }[]; summen_auswahl?: string[]; summen?: Partial<Record<string, number>> };
+
+/** „Gemessen: Längster Lauf · Event gesamt: Pumps, On-Foil-Strecke“ — Bestenlisten und gewaehlte Gesamtsummen. */
+export function eventGemessen(e: EventKurz, t: (k: string) => string): string {
+  const teile = e.tafeln.map((tf) => tafelKurz(tf, t));
+  const summen = EVENT_SUMMEN.filter((k) => (e.summen_auswahl ?? []).includes(k.key));
+  if (summen.length) teile.push(`${t("team.event.teamGesamt")}: ${summen.map((k) => t(k.labelKey)).join(", ")}`);
+  return teile.join(" · ");
+}
+
+/** Stand der Gesamtsummen in einer Zeile: „12.400 Pumps · 87,3 km On-Foil-Strecke“. */
+export function eventSummenText(e: EventKurz, t: (k: string) => string): string {
+  return EVENT_SUMMEN.filter((k) => (e.summen_auswahl ?? []).includes(k.key))
+    .map((k) => `${k.fmt(e.summen?.[k.key] ?? 0)} ${t(k.labelKey)}`).join(" · ");
+}

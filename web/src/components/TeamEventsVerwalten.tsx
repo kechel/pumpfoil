@@ -19,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; summen_sportart?: string; summen_accel_only?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -55,13 +55,14 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
       tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage, ohne_dateien: !!e.ohne_dateien,
       teambild_zeigen: e.teambild_zeigen !== false, summen: e.summen ?? [],
+      summen_sportart: e.summen_sportart ?? "pumpfoil", summen_accel_only: !!e.summen_accel_only,
     };
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
       .then(() => { schliessen(); laden(); onMeldung(t("team.gespeichert")); })
       .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
-    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
+    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], summen_sportart: ev.summen_sportart, summen_accel_only: ev.summen_accel_only, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
@@ -131,7 +132,8 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               </select>
               <label className="flex items-center gap-1"><input type="checkbox" checked={tf.accel_only} onChange={(x) => tafel(i, { accel_only: x.target.checked })} /> {t("team.tafel.nurBewegung")}</label>
               <label className="flex items-center gap-1"><input type="checkbox" checked={tf.nur_brett} onChange={(x) => tafel(i, { nur_brett: x.target.checked })} /> {t("team.tafel.nurBrett")}</label>
-              {e.tafeln.length > 1 && (
+              {/* Auch die letzte darf weg, wenn Gesamtsummen gewaehlt sind (Event nur mit Summen, 01.11.2026). */}
+              {(e.tafeln.length > 1 || (e.summen ?? []).length > 0) && (
                 <button className={knopf} aria-label={t("common.delete")} onClick={() => setE({ ...e, tafeln: e.tafeln.filter((_, j) => j !== i) })}>
                   <TrashIcon className="h-4 w-4" />
                 </button>
@@ -147,11 +149,21 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
             {EVENT_SUMMEN.map((k) => (
               <label key={k.key} className="flex cursor-pointer items-center gap-1.5 text-sm text-slate-300">
                 <input type="checkbox" checked={(e.summen ?? []).includes(k.key)}
+                  disabled={!e.tafeln.length && (e.summen ?? []).length === 1 && (e.summen ?? []).includes(k.key)}
                   onChange={(x) => setE({ ...e, summen: x.target.checked ? [...(e.summen ?? []), k.key] : (e.summen ?? []).filter((y) => y !== k.key) })} />
                 {t(k.labelKey)}
               </label>
             ))}
           </div>
+          {e.tafeln.length === 0 && (
+            // Ohne Bestenliste fehlen Sportart und Bewegungsdaten fuer die Summen — darum hier einstellbar.
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+              <select value={e.summen_sportart ?? "pumpfoil"} onChange={(x) => setE({ ...e, summen_sportart: x.target.value })} className={auswahl}>
+                {sortiereNachSport(sports, (x) => x, t).map((s) => <option key={s} value={s}>{t(`cls.sport.${s}`)}</option>)}
+              </select>
+              <label className="flex items-center gap-1"><input type="checkbox" checked={!!e.summen_accel_only} onChange={(x) => setE({ ...e, summen_accel_only: x.target.checked })} /> {t("team.tafel.nurBewegung")}</label>
+            </div>
+          )}
 
           <p className="mb-1 text-sm text-slate-300">{t("team.event.spots")}</p>
           <div className="mb-2 flex flex-wrap gap-2">
@@ -183,7 +195,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
           )}
           <div className="flex flex-wrap gap-2">
             {!e.eingefroren && (
-              <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2} onClick={speichern}>
+              <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2 || (!e.tafeln.length && !(e.summen ?? []).length)} onClick={speichern}>
                 {e.id ? t("common.save") : t("team.event.anlegen")}
               </button>
             )}

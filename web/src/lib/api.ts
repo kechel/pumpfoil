@@ -2186,6 +2186,8 @@ export interface TeamEventIn {
   titel: string; beschreibung?: string | null; start: string; ende: string; zeitzone?: string | null;
   tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage?: string | null;
   ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[];
+  /** nur fuer Events ohne Bestenliste */
+  summen_sportart?: string; summen_accel_only?: boolean;
 }
 export interface TeamEvent {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
@@ -2200,6 +2202,8 @@ export interface TeamEvent {
   teambild_zeigen?: boolean;
   /** Gesamtsummen ueber alle Teilnehmer: angeklickte Schluessel (teams.EVENT_SUMMEN) und ihre Werte */
   summen_auswahl?: string[]; summen?: Partial<Record<string, number>>;
+  /** Sportart/Bewegungsdaten der Summen, wenn das Event keine Bestenliste hat */
+  summen_sportart?: string; summen_accel_only?: boolean;
 }
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;

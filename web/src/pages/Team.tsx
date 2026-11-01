@@ -18,7 +18,7 @@ import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
 import { teamFarbStil } from "../lib/teamFarben";
-import { fehlerCode, kennzahl, sportartenText, tafelKurz } from "../lib/teamKennzahlen";
+import { eventGemessen, eventSummenText, fehlerCode, kennzahl, sportartenText, tafelKurz } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
 
 const ZEITRAEUME: [string, string][] = [
@@ -125,6 +125,7 @@ function VergangeneEvents({ events, slug, lang, t }: {
                 <span className="team-akzent block font-semibold">{e.titel}</span>
                 <span className="block text-xs text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</span>
                 {siegerText(e, t) && <span className="block text-slate-300">{siegerText(e, t)}</span>}
+                {!e.tafeln.length && eventSummenText(e, t) && <span className="block text-slate-300">{eventSummenText(e, t)}</span>}
               </span>
               <ChevronIcon className="mt-1 h-4 w-4 shrink-0 text-slate-400" />
             </Link>
@@ -143,7 +144,7 @@ function siegerText(e: TeamEvent, t: (k: string) => string): string {
   }).filter(Boolean).join(" · ");
 }
 
-function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: string, p?: Record<string, string>) => string }) {
+function Logbuch({ eintraege, t, zurueck }: { eintraege: TeamLogbuchEintrag[]; t: (k: string, p?: Record<string, string>) => string; zurueck: { zurueck: string; zurueckText: string } }) {
   return (
     <Card className="mt-4 p-4">
       <h3 className="mb-1 font-semibold text-slate-100">{t("team.logbuch")}</h3>
@@ -160,7 +161,7 @@ function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: str
               <li key={i} className="flex items-start gap-2 border-t border-slate-800 py-2 text-sm first:border-t-0">
                 <span className="w-20 shrink-0 text-xs text-slate-400">{datum ? new Date(datum).toLocaleDateString() : ""}</span>
                 <span className="min-w-0 flex-1 text-slate-200">
-                  {e.session_id ? <Link to={`/sessions/${e.session_id}`} className="hover:underline">{text}</Link> : text}
+                  {e.session_id ? <Link to={`/sessions/${e.session_id}`} state={zurueck} className="hover:underline">{text}</Link> : text}
                 </span>
               </li>
             );
@@ -171,10 +172,12 @@ function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: str
   );
 }
 
-export function Tafel({ tf, gast, t, onBild, ohneFilter = false }: {
+export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
   /** Filterzeile („auch nur GPS" …) weglassen — auf der Event-Seite (Jan, 01.11.2026). */
   ohneFilter?: boolean;
+  /** Zurueck-Link der Session-Seite („‹ Eventname" statt „‹ Sessions", Jan 01.11.2026), wie in LaengsteLaeufe. */
+  zurueck?: { zurueck: string; zurueckText: string };
 }) {
   const k = kennzahl(tf.kennzahl);
   const filter = [
@@ -215,7 +218,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false }: {
                   )}
                 </span>
                 {!gast && z.session_id
-                  ? <Link to={`/sessions/${z.session_id}`} className="shrink-0 text-sm font-semibold text-slate-100 hover:underline">{wert}</Link>
+                  ? <Link to={`/sessions/${z.session_id}`} state={zurueck} className="shrink-0 text-sm font-semibold text-slate-100 hover:underline">{wert}</Link>
                   : <span className="shrink-0 text-sm font-semibold text-slate-100">{wert}</span>}
               </li>
             );
@@ -376,12 +379,11 @@ export default function Team() {
                   {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
                   {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
                 </p>
-                {e.tafeln.length > 0 && (
-                  <p className="text-sm text-slate-300">
-                    {t("team.event.gemessen")}: {e.tafeln.map((tf) => tafelKurz(tf, t)).join(" · ")}
-                  </p>
-                )}
+                {eventGemessen(e, t) && <p className="text-sm text-slate-300">{t("team.event.gemessen")}: {eventGemessen(e, t)}</p>}
                 {e.status !== "kommend" && siegerText(e, t) && <p className="mt-1 text-sm text-slate-200">{siegerText(e, t)}</p>}
+                {e.status !== "kommend" && eventSummenText(e, t) && (
+                  <p className="mt-1 text-sm text-slate-200">{t("team.event.teamGesamt")}: {eventSummenText(e, t)}</p>
+                )}
                 {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
                 <p className="team-akzent mt-2 text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
               </Card>
@@ -404,7 +406,7 @@ export default function Team() {
           {!tafeln ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : tafeln.length === 0
             ? <p className="text-sm text-slate-400">{t("team.keineTafeln")}</p>
             : <div className="grid gap-3 sm:grid-cols-2">{tafeln.map((tf) => (
-                <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} onBild={gast ? undefined : () => setBild({ tf, zeile: t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d") })} />
+                <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} onBild={gast ? undefined : () => setBild({ tf, zeile: t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d") })} />
               ))}</div>}
         </>
       )}
@@ -430,7 +432,7 @@ export default function Team() {
       {/* Reihenfolge unten (Jan, 01.11.2026): Teamadresse vorletzt, Logbuch ganz unten. */}
       {eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} slug={kopf.slug} lang={lang} t={t} />}
       {kopf.mein_status === "aktiv" && <div className="mt-4"><TeamAdresse kopf={kopf} t={t} /></div>}
-      {(gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} />}
+      {(gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} />}
 
       {kopf.mein_status === "aktiv" && kopf.meine_rolle !== "leiter" && (
         <button onClick={austreten} className="mt-6 text-sm text-slate-400 underline hover:text-slate-200">{t("team.austreten")}</button>

@@ -335,12 +335,16 @@ class EventIn(BaseModel):
     start: datetime
     ende: datetime
     zeitzone: str | None = Field(default=None, max_length=64)
-    tafeln: list[EventTafelIn] = Field(min_length=1, max_length=T.EVENT_MAX_TAFELN)
+    # Auch ganz ohne Bestenliste, wenn Gesamtsummen gewaehlt sind (Jan, 01.11.2026) — s. _event_pruefen.
+    tafeln: list[EventTafelIn] = Field(default_factory=list, max_length=T.EVENT_MAX_TAFELN)
     spot_ids: list[int] = Field(default_factory=list, max_length=T.MAX_TEAMSPOTS)
     vorlage: str | None = Field(default=None, max_length=40)
     ohne_dateien: bool = False
     teambild_zeigen: bool = True
     summen: list[str] = Field(default_factory=list, max_length=len(T.EVENT_SUMMEN))
+    # Nur fuer Events ohne Bestenliste: Sportart und Bewegungsdaten der Gesamtsummen (sonst aus den Bestenlisten).
+    summen_sportart: str = "pumpfoil"
+    summen_accel_only: bool = False
 
 
 def _event_summen(body: EventIn) -> str | None:
@@ -356,6 +360,10 @@ def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
     if body.ende <= body.start or body.ende - body.start > T.EVENT_MAX_DAUER:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "event_zeitraum")
     sporte = _sportarten()
+    if not body.tafeln and not body.summen:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "event_leer")
+    if body.summen_sportart not in sporte:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "tafel")
     for x in body.tafeln:
         if x.kennzahl not in T.KENNZAHLEN or x.sportart not in sporte:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "tafel")
@@ -396,7 +404,8 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
     e = models.TeamEvent(team_id=t.id, titel=body.titel.strip(), beschreibung=(body.beschreibung or "").strip() or None,
                          start=body.start, ende=body.ende, zeitzone=body.zeitzone, tafeln_json=tafeln_json,
                          spots_json=spots_json, vorlage=body.vorlage, ohne_dateien=body.ohne_dateien,
-                         teambild_zeigen=body.teambild_zeigen, summen_json=_event_summen(body))
+                         teambild_zeigen=body.teambild_zeigen, summen_json=_event_summen(body),
+                         summen_sportart=body.summen_sportart, summen_accel_only=body.summen_accel_only)
     db.add(e)
     db.commit()
     return T.event_out(db, t, e)
@@ -473,6 +482,7 @@ def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = D
     e.start, e.ende, e.zeitzone, e.vorlage = body.start, body.ende, body.zeitzone, body.vorlage
     e.ohne_dateien, e.teambild_zeigen = body.ohne_dateien, body.teambild_zeigen
     e.summen_json = _event_summen(body)
+    e.summen_sportart, e.summen_accel_only = body.summen_sportart, body.summen_accel_only
     db.commit()
     return T.event_out(db, t, e)
 

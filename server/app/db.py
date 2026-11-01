@@ -633,7 +633,8 @@ def _migrate_add_columns() -> None:
                                                "ohne_dateien": "BOOLEAN DEFAULT FALSE",
                                                "teambild_zeigen": "BOOLEAN DEFAULT TRUE",
                                                "summen_json": "TEXT", "summen_ergebnis_json": "TEXT",
-                                               "teilnehmer_json": "TEXT"})
+                                               "teilnehmer_json": "TEXT", "summen_sportart": "VARCHAR(40)",
+                                               "summen_accel_only": "BOOLEAN"})
     want.setdefault("device_tokens", {})["app_closed_at"] = "TIMESTAMP WITH TIME ZONE"
     insp = inspect(engine)
     with engine.begin() as conn:

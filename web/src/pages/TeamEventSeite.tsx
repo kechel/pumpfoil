@@ -11,7 +11,7 @@ import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
-import { EVENT_SUMMEN, tafelKurz } from "../lib/teamKennzahlen";
+import { EVENT_SUMMEN, eventGemessen } from "../lib/teamKennzahlen";
 import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
 import { Tafel } from "./Team";
 import { useI18n } from "../i18n";
@@ -167,9 +167,7 @@ export default function TeamEventSeite() {
           {eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}
           {ev.spots.length > 0 && <> · {ev.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
         </p>
-        {ev.tafeln.length > 0 && (
-          <p className="text-sm text-slate-300">{t("team.event.gemessen")}: {ev.tafeln.map((tf) => tafelKurz(tf, t)).join(" · ")}</p>
-        )}
+        {eventGemessen(ev, t) && <p className="text-sm text-slate-300">{t("team.event.gemessen")}: {eventGemessen(ev, t)}</p>}
         {ev.ohne_dateien && <p className="text-sm text-slate-400">{t("team.event.ohneDateienKurz")}</p>}
         {ev.status === "auswertung" && (
           <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</p>
@@ -192,7 +190,7 @@ export default function TeamEventSeite() {
         {(ev.summen_auswahl ?? []).length > 0 && <EventSummen ev={ev} t={t} />}
         <div className="grid gap-3 sm:grid-cols-2">
           {ev.tafeln.map((tf, i) => (
-            <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter onBild={gast ? undefined : () => setBild(tf)} />
+            <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
           ))}
         </div>
         </>

@@ -705,7 +705,8 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     """Gesamtsummen ueber alle Teilnehmer — nur die angeklickten. Eingefroren aus `summen_ergebnis_json`.
 
     Dieselben Filter wie die Bestenlisten des Events (Zeitfenster, Spots, ohne Dateien); Sportart = die der
-    ersten Bestenliste, Bewegungsdaten nur Pflicht, wenn ALLE Bestenlisten sie verlangen (wie `statistik`)."""
+    ersten Bestenliste, Bewegungsdaten nur Pflicht, wenn ALLE Bestenlisten sie verlangen (wie `statistik`); ohne
+    Bestenliste aus `summen_sportart`/`summen_accel_only`."""
     auswahl = event_summen_auswahl(e)
     if not auswahl:
         return {}
@@ -717,8 +718,10 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
 
     ids = event_teilnehmer(db, t, e)
     tf_ = event_tafeln(e)
-    sportart = tf_[0].sportart if tf_ else "pumpfoil"
-    accel_only = bool(tf_) and all(tf.accel_only for tf in tf_)
+    if tf_:
+        sportart, accel_only = tf_[0].sportart, all(tf.accel_only for tf in tf_)
+    else:   # Event nur mit Gesamtsummen: eigene Einstellung
+        sportart, accel_only = e.summen_sportart or "pumpfoil", bool(e.summen_accel_only)
     spots = event_spots(e)
     fenster = (_aware(e.start), _aware(e.ende))
     leer = {k: 0 for k in auswahl}
@@ -793,6 +796,7 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
             "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_,
             # Nur Summen, keine Namen — darum auch fuer Gaeste.
             "summen_auswahl": event_summen_auswahl(e), "summen": event_summen(db, t, e),
+            "summen_sportart": e.summen_sportart or "pumpfoil", "summen_accel_only": bool(e.summen_accel_only),
             # Eventbild auch fuer Gaeste, OHNE Freigabe (anders als das Teambild) — Jan, 01.11.2026: „das risiko gehe
             # ich erstmal ein". Titel und Beschreibung von Events sind ebenso ohne Freigabe oeffentlich.
             "banner_url": e.banner_url, "banner_fokus": e.banner_fokus}

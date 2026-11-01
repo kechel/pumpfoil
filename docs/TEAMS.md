@@ -192,7 +192,9 @@ aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 der Event-Seite stehen (Pumps, On-Foil-Strecke/-Zeit, Sessions, Laeufe, Spots, Teilnehmer; `teams.EVENT_SUMMEN`).
 Dieselben Filter wie die Bestenlisten (Fenster, Spots, ohne Dateien); Sportart der ersten Bestenliste, Bewegungsdaten
 nur Pflicht, wenn alle Bestenlisten sie verlangen. Keine Namen, darum auch fuer Gaeste. Beim Einfrieren nach
-`summen_ergebnis_json` festgeschrieben.
+`summen_ergebnis_json` festgeschrieben. Ein Event darf auch **nur** Gesamtsummen haben (keine Bestenliste); dann
+stellt man Sportart und Bewegungsdaten bei den Summen ein (`summen_sportart`, `summen_accel_only`). Ganz leer
+lehnt der Server ab (`event_leer`).
 
 **Teilnehmer nach dem Ende fest** (01.11.2026, `teilnehmer_json`): bis zum Ende zaehlt die aktuelle Mitgliederliste.
 Bei der ersten Mitgliederaenderung danach (Austritt, Entfernen, Beitritt, Annehmen) werden die Teilnehmer aller
