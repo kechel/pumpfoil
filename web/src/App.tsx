@@ -216,11 +216,17 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
   useEffect(() => {
     if (!profile) return;
     let ziel: string | null = null;
+    let weiter: string | null = null;
     try {
       ziel = localStorage.getItem("foil_team_einladung");
       if (ziel) localStorage.removeItem("foil_team_einladung");
+      // `?next=` der Anmeldung ueber Google/Apple/… (Login.tsx NACH_LOGIN_MERKER; als Text, damit Login lazy bleibt)
+      weiter = localStorage.getItem("foil_nach_login");
+      if (weiter) localStorage.removeItem("foil_nach_login");
     } catch { return; }
-    if (ziel && ziel.startsWith("/teams/") && ort.pathname !== ziel) {
+    ziel = ziel || weiter;
+    // Nur eigene Pfade (offene Weiterleitung sonst), wie in Login.tsx
+    if (ziel && ziel.startsWith("/") && !ziel.startsWith("//") && !ziel.includes("\\") && ort.pathname + ort.search !== ziel) {
       einladungOffen.current = true;
       nav(ziel, { replace: true });
     }

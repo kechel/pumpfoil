@@ -3,7 +3,7 @@
 // Ergebnis (eingefroren 24 h nach dem Ende). Gaeste sehen das Event nur bei oeffentlichem Team, in Gastform
 // (Rang, Name, Initialen, Wert) — dieselben Daten, die die oeffentliche Teamseite ohnehin liefert.
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
 import { ChevronIcon, SettingsIcon } from "../components/Icons";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
@@ -127,6 +127,15 @@ export default function TeamEventSeite() {
     }
   }, [slug, id, gast]);
 
+  // Zurueck von „Anmelden und beitreten" (?beitreten=1): den Beitritts-Dialog gleich oeffnen — bestaetigen muss man
+  // trotzdem, wegen des Kleingedruckten. Der Parameter wird danach entfernt (kein zweites Oeffnen beim Neuladen).
+  const [such, setSuch] = useSearchParams();
+  useEffect(() => {
+    if (gast || !team || such.get("beitreten") !== "1") return;
+    if (team.anmeldungen_zulassen && !team.mein_status) setDialog(true);
+    setSuch({}, { replace: true });
+  }, [team, gast]);   // eslint-disable-line react-hooks/exhaustive-deps
+
   // Zahnrad fuer Leitung/Moderatoren (Jan, 01.11.2026): dasselbe Popup wie in der Verwaltung.
   const verwalter = !gast && (team?.meine_rolle === "leiter" || team?.meine_rolle === "moderator");
   const popupAuf = () => {
@@ -193,7 +202,7 @@ export default function TeamEventSeite() {
       {team.anmeldungen_zulassen && (gast || !team.mein_status) && (
         <div className="mb-4 flex flex-wrap items-center gap-3">
           {gast ? (
-            <Link to={`/login?next=${encodeURIComponent(`/teams/${team.slug}/events/${ev.id}`)}`} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">
+            <Link to={`/login?next=${encodeURIComponent(`/teams/${team.slug}/events/${ev.id}?beitreten=1`)}`} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">
               {t("team.join.anmeldenKnopf")}
             </Link>
           ) : (

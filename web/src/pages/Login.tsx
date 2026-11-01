@@ -46,6 +46,19 @@ const PROVIDER_STYLE: Record<string, string> = {
 const PROVIDER_STYLE_STD =
   "border-slate-700 bg-slate-800/60 text-slate-100 hover:bg-slate-700";
 
+/** `?next=` auch ueber Google/Apple/… halten: deren Ruecksprung landet immer auf `/` (#token=…) und kennt das Ziel
+ *  nicht. Darum merken wir es hier; App.tsx fuehrt nach dem Laden des Profils dorthin (Jan, 01.11.2026: „Anmelden und
+ *  beitreten" auf einer Event-Seite endete mit neuem Konto im Einrichtungs-Assistenten statt im Team). */
+export const NACH_LOGIN_MERKER = "foil_nach_login";
+export function sichererPfad(ziel: string | null | undefined): string | null {
+  // Nur eigene Pfade, kein Backslash (s. unten bei nav): sonst offene Weiterleitung.
+  return ziel && ziel.startsWith("/") && !ziel.startsWith("//") && !ziel.includes("\\") ? ziel : null;
+}
+function nachLoginMerken() {
+  const ziel = sichererPfad(new URLSearchParams(window.location.search).get("next"));
+  try { if (ziel) localStorage.setItem(NACH_LOGIN_MERKER, ziel); } catch { /* privates Fenster: dann eben ohne */ }
+}
+
 export default function Login() {
   const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
@@ -81,6 +94,7 @@ export default function Login() {
         ? await api.register(email, password, displayName, lang)
         : await api.login(email, password);
       setToken(res.access_token);
+      try { localStorage.removeItem(NACH_LOGIN_MERKER); } catch { /* egal */ }   // Ziel kommt hier aus ?next=
       // `?next=` fuehrt nach der Anmeldung dorthin zurueck, wo man hinwollte — gebraucht seit
       // 25.09.2026 von der OAuth-Zustimmungsseite, die man aus einem fremden Programm heraus
       // aufruft. NUR eigene Pfade: ein „next" mit Gegenstelle waere eine offene Weiterleitung,
@@ -194,6 +208,7 @@ export default function Login() {
                     )}
                     <a
                       href={`/api/auth/oauth/${p.id}/start?lang=${encodeURIComponent(lang)}`}
+                      onClick={nachLoginMerken}
                       className={`flex items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${PROVIDER_STYLE[p.id] ?? PROVIDER_STYLE_STD}`}
                     >
                       {Icon && <Icon className="h-5 w-5" />}
