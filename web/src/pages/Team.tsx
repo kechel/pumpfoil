@@ -395,7 +395,7 @@ export default function Team() {
                   ))}
                 </div>
                 {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
-                <p className="team-akzent mt-2 text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
+                <p className="team-akzent mt-2 text-right text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
               </Card>
             </Link>
           ))}
