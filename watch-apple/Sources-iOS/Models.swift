@@ -587,10 +587,14 @@ struct LeaderEntry: Codable, Identifiable {
     let name: String?; let avatar_url: String?
     let sessions: Int?; let runs: Int?; let spots: Int?; let pumps: Int?
     let user_id: Int?   // Online-Punkt + Tipp aufs Profilbild (Server additiv seit 01.10.2026)
+    var distance_m: Double? = nil; var time_s: Double? = nil   // On-Foil-Strecke/-Zeit (Server additiv seit 01.11.2026)
+    var run_distance_m: Double? = nil; var run_time_s: Double? = nil   // bester einzelner Lauf
     var id: String { (name ?? "") + (avatar_url ?? "") }
 }
 struct Leaders: Codable {
     let sessions: [LeaderEntry]?; let runs: [LeaderEntry]?; let spots: [LeaderEntry]?; let pumps: [LeaderEntry]?
+    var distance: [LeaderEntry]? = nil; var time: [LeaderEntry]? = nil
+    var run_distance: [LeaderEntry]? = nil; var run_time: [LeaderEntry]? = nil
 }
 
 // Neueste Medien (GET /api/community/latest-photos) — Fotos + YouTube je Session.

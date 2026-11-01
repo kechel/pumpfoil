@@ -440,6 +440,8 @@ const es: Record<string, string> = {
   "leader.mostRuns": "Más runs",
   "leader.mostPumps": "Más pumps",
   "leader.mostSpots": "Más spots",
+  "leader.totalDistance": "Distancia on-foil total",
+  "leader.totalTime": "Tiempo on-foil total",
   "unit.sessions": "Sesiones",
   "unit.run": "run",
   "unit.runs": "Runs",

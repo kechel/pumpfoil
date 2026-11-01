@@ -486,6 +486,8 @@ const nl: Record<string, string> = {
   "leader.mostRuns": "Meeste runs",
   "leader.mostPumps": "Meeste pumps",
   "leader.mostSpots": "Meeste spots",
+  "leader.totalDistance": "Totale on-foil-afstand",
+  "leader.totalTime": "Totale on-foil-tijd",
   "unit.sessions": "sessies",
   "unit.run": "run",
   "unit.runs": "runs",

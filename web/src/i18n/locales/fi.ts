@@ -472,6 +472,8 @@ const fi: Record<string, string> = {
   "leader.mostRuns": "Eniten lenkkejä",
   "leader.mostPumps": "Eniten pumppauksia",
   "leader.mostSpots": "Eniten spotteja",
+  "leader.totalDistance": "Foil-matka yhteensä",
+  "leader.totalTime": "Foil-aika yhteensä",
   "unit.sessions": "sessiota",
   "unit.run": "lenkki",
   "unit.runs": "lenkkiä",

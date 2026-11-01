@@ -490,6 +490,8 @@ const pl: Record<string, string> = {
   "leader.mostRuns": "Najwięcej przejazdów",
   "leader.mostPumps": "Najwięcej pomp",
   "leader.mostSpots": "Najwięcej spotów",
+  "leader.totalDistance": "Łączny dystans na foilu",
+  "leader.totalTime": "Łączny czas na foilu",
   "unit.sessions": "Sesje",
   "unit.run": "Przejazd",
   "unit.runs": "Przejazdy",

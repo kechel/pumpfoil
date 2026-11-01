@@ -512,6 +512,8 @@ const de: Record<string, string> = {
   "leader.mostRuns": "Meiste Läufe",
   "leader.mostPumps": "Meiste Pumps",
   "leader.mostSpots": "Meiste Spots",
+  "leader.totalDistance": "On-Foil-Strecke gesamt",
+  "leader.totalTime": "On-Foil-Zeit gesamt",
   "unit.sessions": "Sessions",
   "unit.run": "Lauf",
   "unit.runs": "Läufe",

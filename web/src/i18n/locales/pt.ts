@@ -473,6 +473,8 @@ const pt: Record<string, string> = {
   "leader.mostRuns": "Mais voltas",
   "leader.mostPumps": "Mais pumps",
   "leader.mostSpots": "Mais spots",
+  "leader.totalDistance": "Distância on-foil total",
+  "leader.totalTime": "Tempo on-foil total",
   "unit.sessions": "Sessões",
   "unit.run": "Volta",
   "unit.runs": "Voltas",

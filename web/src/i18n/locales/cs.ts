@@ -486,6 +486,8 @@ const cs: Record<string, string> = {
   "leader.mostRuns": "Nejvíce jízd",
   "leader.mostPumps": "Nejvíce pumpnutí",
   "leader.mostSpots": "Nejvíce spotů",
+  "leader.totalDistance": "Celková vzdálenost na foilu",
+  "leader.totalTime": "Celkový čas na foilu",
   "unit.sessions": "Vyjížďky",
   "unit.run": "Jízda",
   "unit.runs": "Jízdy",

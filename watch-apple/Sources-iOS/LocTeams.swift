@@ -48,6 +48,8 @@ enum LocTeam {
     }
 
     private static let _de0: [String: String] = [
+        "leader.totalDistance": "On-Foil-Strecke gesamt",
+        "leader.totalTime": "On-Foil-Zeit gesamt",
         "sd.avgHrFoil": "Ø Puls auf dem Foil",
         "sd.avgHrGesamt": "gesamt {n}",
         "team.adresseTeilen.intern": "Die Bestenlisten sind nicht öffentlich. Unter dieser Adresse sehen nur Mitglieder etwas. Öffentlich schaltest du sie in den Team-Einstellungen.",
@@ -91,11 +93,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Höchstens 20 Bestenlisten.",
         "team.err.zu_viele_teams": "Du leitest schon die Höchstzahl an Teams.",
         "team.err.zu_viele_wartend": "Es warten schon drei deiner Teams auf Freigabe.",
-        "team.event.auswertungHinweis": "Vorbei. Sessions aus dem Zeitfenster können noch bis {bis} hochgeladen werden, dann steht das Ergebnis fest.",
-        "team.event.details": "Details",
     ]
 
     private static let _de1: [String: String] = [
+        "team.event.auswertungHinweis": "Vorbei. Sessions aus dem Zeitfenster können noch bis {bis} hochgeladen werden, dann steht das Ergebnis fest.",
+        "team.event.details": "Details",
         "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org. Ebenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
         "team.event.endetIn": "Endet in",
         "team.event.ergebnis": "Ergebnis",
@@ -139,11 +141,11 @@ enum LocTeam {
         "team.k.best": "Bester Wert",
         "team.k.sum_distance": "On-Foil-Strecke gesamt",
         "team.k.sum_pumps": "Pumps gesamt",
-        "team.k.sum_runs": "Läufe gesamt",
-        "team.k.sum_sessions": "Sessions",
     ]
 
     private static let _de2: [String: String] = [
+        "team.k.sum_runs": "Läufe gesamt",
+        "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-Foil-Zeit gesamt",
         "team.k.summe": "Summe",
@@ -183,6 +185,8 @@ enum LocTeam {
     ]
 
     private static let _gsw0: [String: String] = [
+        "leader.totalDistance": "On-Foil-Strecki total",
+        "leader.totalTime": "On-Foil-Ziit total",
         "sd.avgHrFoil": "Ø Puls uf em Foil",
         "sd.avgHrGesamt": "total {n}",
         "team.adresseTeilen.intern": "D Bestelischte sind nöd öffentlich. Under dere Adrässe gsehnd nume Mitglieder öppis. Öffentlich schaltisch sie i de Team-Iistellige.",
@@ -226,11 +230,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Höchschtens 20 Bestelischte.",
         "team.err.zu_viele_teams": "Du leitisch scho d Höchschtzahl a Teams.",
         "team.err.zu_viele_wartend": "Es warted scho drü vo dine Teams uf d Freigab.",
-        "team.event.auswertungHinweis": "Verbii. Sessions us em Ziitfänschter chönd no bis {bis} uegladet werde, denn staht s Resultat fescht.",
-        "team.event.details": "Details",
     ]
 
     private static let _gsw1: [String: String] = [
+        "team.event.auswertungHinweis": "Verbii. Sessions us em Ziitfänschter chönd no bis {bis} uegladet werde, denn staht s Resultat fescht.",
+        "team.event.details": "Details",
         "team.event.disclaimer": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org. Gnau so übernimmt pumpfoil.org kei Verantwortig defür, dass gmässni Wärt und Date stimmed oder nöd manipuliert worde sind. Azeigt wird, was de öffentlich Quellcode uf GitHub us de ufeglade Date usrächnet; wiiteri Zuesage gits kei.",
         "team.event.endetIn": "Hört uf in",
         "team.event.ergebnis": "Ergebnis",
@@ -274,11 +278,11 @@ enum LocTeam {
         "team.k.best": "Beschte Wert",
         "team.k.sum_distance": "On-Foil-Strecki total",
         "team.k.sum_pumps": "Pumps total",
-        "team.k.sum_runs": "Läuf total",
-        "team.k.sum_sessions": "Sessions",
     ]
 
     private static let _gsw2: [String: String] = [
+        "team.k.sum_runs": "Läuf total",
+        "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-Foil-Ziit total",
         "team.k.summe": "Summe",
@@ -318,6 +322,8 @@ enum LocTeam {
     ]
 
     private static let _de_AT0: [String: String] = [
+        "leader.totalDistance": "On-Foil-Strecke gesamt",
+        "leader.totalTime": "On-Foil-Zeit gesamt",
         "sd.avgHrFoil": "Ø Puls auf dem Foil",
         "sd.avgHrGesamt": "gesamt {n}",
         "team.adresseTeilen.intern": "Die Bestenlisten san ned öffentlich. Unter der Adresse sehn nur Mitglieder was. Öffentlich schaltest es in die Team-Einstellungen.",
@@ -361,11 +367,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Höchstens 20 Bestenlisten.",
         "team.err.zu_viele_teams": "Du leitest schon die Höchstzahl an Teams.",
         "team.err.zu_viele_wartend": "Es warten schon drei von deine Teams auf die Freigabe.",
-        "team.event.auswertungHinweis": "Vorbei. Sessions ausm Zeitfenster kann ma no bis {bis} raufladen, dann steht des Ergebnis fest.",
-        "team.event.details": "Details",
     ]
 
     private static let _de_AT1: [String: String] = [
+        "team.event.auswertungHinweis": "Vorbei. Sessions ausm Zeitfenster kann ma no bis {bis} raufladen, dann steht des Ergebnis fest.",
+        "team.event.details": "Details",
         "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org. Ebenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
         "team.event.endetIn": "Endet in",
         "team.event.ergebnis": "Ergebnis",
@@ -409,11 +415,11 @@ enum LocTeam {
         "team.k.best": "Bester Wert",
         "team.k.sum_distance": "On-Foil-Strecke insgesamt",
         "team.k.sum_pumps": "Pumps insgesamt",
-        "team.k.sum_runs": "Läufe insgesamt",
-        "team.k.sum_sessions": "Sessions",
     ]
 
     private static let _de_AT2: [String: String] = [
+        "team.k.sum_runs": "Läufe insgesamt",
+        "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-Foil-Zeit insgesamt",
         "team.k.summe": "Summe",
@@ -453,6 +459,8 @@ enum LocTeam {
     ]
 
     private static let _en0: [String: String] = [
+        "leader.totalDistance": "Total on-foil distance",
+        "leader.totalTime": "Total on-foil time",
         "sd.avgHrFoil": "Ø heart rate on foil",
         "sd.avgHrGesamt": "overall {n}",
         "team.adresseTeilen.intern": "The leaderboards aren't public. Only members see something at this address. You can make them public in the team settings.",
@@ -496,11 +504,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "20 leaderboards at most.",
         "team.err.zu_viele_teams": "You already lead the maximum number of teams.",
         "team.err.zu_viele_wartend": "Three of your teams are already awaiting approval.",
-        "team.event.auswertungHinweis": "It's over. Sessions from the window can still be uploaded until {bis}, then the result is final.",
-        "team.event.details": "Details",
     ]
 
     private static let _en1: [String: String] = [
+        "team.event.auswertungHinweis": "It's over. Sessions from the window can still be uploaded until {bis}, then the result is final.",
+        "team.event.details": "Details",
         "team.event.disclaimer": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org. Likewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises.",
         "team.event.endetIn": "Ends in",
         "team.event.ergebnis": "Results",
@@ -544,11 +552,11 @@ enum LocTeam {
         "team.k.best": "Best value",
         "team.k.sum_distance": "Total on-foil distance",
         "team.k.sum_pumps": "Total pumps",
-        "team.k.sum_runs": "Total runs",
-        "team.k.sum_sessions": "Sessions",
     ]
 
     private static let _en2: [String: String] = [
+        "team.k.sum_runs": "Total runs",
+        "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Total on-foil time",
         "team.k.summe": "Total",
@@ -588,6 +596,8 @@ enum LocTeam {
     ]
 
     private static let _fr0: [String: String] = [
+        "leader.totalDistance": "Distance on-foil totale",
+        "leader.totalTime": "Temps on-foil total",
         "sd.avgHrFoil": "Ø fréq. card. sur le foil",
         "sd.avgHrGesamt": "total {n}",
         "team.adresseTeilen.intern": "Les classements ne sont pas publics. Seuls les membres voient quelque chose à cette adresse. Tu peux les rendre publics dans les paramètres de l'équipe.",
@@ -631,11 +641,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "20 classements maximum.",
         "team.err.zu_viele_teams": "Tu diriges déjà le nombre maximal d'équipes.",
         "team.err.zu_viele_wartend": "Trois de tes équipes attendent déjà une validation.",
-        "team.event.auswertungHinweis": "C'est fini. Les sessions de la fenêtre peuvent encore être envoyées, limite : {bis}. Ensuite le résultat est définitif.",
-        "team.event.details": "Détails",
     ]
 
     private static let _fr1: [String: String] = [
+        "team.event.auswertungHinweis": "C'est fini. Les sessions de la fenêtre peuvent encore être envoyées, limite : {bis}. Ensuite le résultat est définitif.",
+        "team.event.details": "Détails",
         "team.event.disclaimer": "Les événements sont organisés par les équipes elles-mêmes. pumpfoil.org n'a aucune influence sur les événements ni sur les promesses qui y sont faites, financières ou autres, et décline toute responsabilité. Tout recours juridique est exclu. Les paiements et tous les autres accords se règlent entre organisateurs et participants, indépendamment de pumpfoil.org. De même, pumpfoil.org décline toute responsabilité quant à l'exactitude des valeurs et données mesurées ou à leur éventuelle manipulation. Ce qui s'affiche est ce que le code source public sur GitHub calcule à partir des données envoyées ; il n'y a aucune autre garantie.",
         "team.event.endetIn": "Se termine dans",
         "team.event.ergebnis": "Résultats",
@@ -679,11 +689,11 @@ enum LocTeam {
         "team.k.best": "Meilleure valeur",
         "team.k.sum_distance": "Distance on-foil totale",
         "team.k.sum_pumps": "Pumps au total",
-        "team.k.sum_runs": "Runs au total",
-        "team.k.sum_sessions": "Sessions",
     ]
 
     private static let _fr2: [String: String] = [
+        "team.k.sum_runs": "Runs au total",
+        "team.k.sum_sessions": "Sessions",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Temps on-foil total",
         "team.k.summe": "Total",
@@ -723,6 +733,8 @@ enum LocTeam {
     ]
 
     private static let _it0: [String: String] = [
+        "leader.totalDistance": "Distanza on-foil totale",
+        "leader.totalTime": "Tempo on-foil totale",
         "sd.avgHrFoil": "Ø battito sul foil",
         "sd.avgHrGesamt": "totale {n}",
         "team.adresseTeilen.intern": "Le classifiche non sono pubbliche. A questo indirizzo vedono qualcosa solo i membri. Puoi renderle pubbliche nelle impostazioni del team.",
@@ -766,11 +778,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Al massimo 20 classifiche.",
         "team.err.zu_viele_teams": "Guidi già il numero massimo di team.",
         "team.err.zu_viele_wartend": "Tre dei tuoi team sono già in attesa di approvazione.",
-        "team.event.auswertungHinweis": "È finito. Le sessioni della finestra si possono ancora caricare, scadenza: {bis}. Poi il risultato è definitivo.",
-        "team.event.details": "Dettagli",
     ]
 
     private static let _it1: [String: String] = [
+        "team.event.auswertungHinweis": "È finito. Le sessioni della finestra si possono ancora caricare, scadenza: {bis}. Poi il risultato è definitivo.",
+        "team.event.details": "Dettagli",
         "team.event.disclaimer": "Gli eventi sono organizzati dai team stessi. pumpfoil.org non ha alcuna influenza sugli eventi né sulle promesse fatte al loro interno, economiche o di altro tipo, e non se ne assume alcuna responsabilità. È escluso il ricorso alle vie legali. Pagamenti e ogni altro accordo si regolano tra organizzatori e partecipanti, indipendentemente da pumpfoil.org. Allo stesso modo, pumpfoil.org non si assume alcuna responsabilità sulla correttezza dei valori e dei dati misurati o sulla loro eventuale manipolazione. Viene mostrato ciò che il codice sorgente pubblico su GitHub calcola dai dati caricati; non ci sono altre garanzie.",
         "team.event.endetIn": "Termina tra",
         "team.event.ergebnis": "Risultati",
@@ -814,11 +826,11 @@ enum LocTeam {
         "team.k.best": "Miglior valore",
         "team.k.sum_distance": "Distanza on-foil totale",
         "team.k.sum_pumps": "Pump totali",
-        "team.k.sum_runs": "Run totali",
-        "team.k.sum_sessions": "Sessioni",
     ]
 
     private static let _it2: [String: String] = [
+        "team.k.sum_runs": "Run totali",
+        "team.k.sum_sessions": "Sessioni",
         "team.k.sum_spots": "Spot",
         "team.k.sum_time": "Tempo on-foil totale",
         "team.k.summe": "Totale",
@@ -858,6 +870,8 @@ enum LocTeam {
     ]
 
     private static let _es0: [String: String] = [
+        "leader.totalDistance": "Distancia on-foil total",
+        "leader.totalTime": "Tiempo on-foil total",
         "sd.avgHrFoil": "Ø pulso en el foil",
         "sd.avgHrGesamt": "total {n}",
         "team.adresseTeilen.intern": "Las clasificaciones no son públicas. En esta dirección solo los miembros ven algo. Puedes hacerlas públicas en los ajustes del equipo.",
@@ -901,11 +915,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Como máximo 20 clasificaciones.",
         "team.err.zu_viele_teams": "Ya lideras el número máximo de equipos.",
         "team.err.zu_viele_wartend": "Ya hay tres de tus equipos pendientes de aprobación.",
-        "team.event.auswertungHinweis": "Ha terminado. Las sesiones de la franja aún se pueden subir, plazo: {bis}. Luego el resultado es definitivo.",
-        "team.event.details": "Detalles",
     ]
 
     private static let _es1: [String: String] = [
+        "team.event.auswertungHinweis": "Ha terminado. Las sesiones de la franja aún se pueden subir, plazo: {bis}. Luego el resultado es definitivo.",
+        "team.event.details": "Detalles",
         "team.event.disclaimer": "Los eventos los organizan los propios equipos. pumpfoil.org no tiene ninguna influencia sobre los eventos ni sobre las promesas que se hagan en ellos, económicas o de otro tipo, y no asume ninguna responsabilidad. Queda excluida la vía judicial. Los pagos y cualquier otro acuerdo los resuelven organizadores y participantes, independientemente de pumpfoil.org. Del mismo modo, pumpfoil.org no asume ninguna responsabilidad sobre si los valores y datos medidos son correctos o han sido manipulados. Se muestra lo que el código fuente público en GitHub calcula a partir de los datos subidos; no hay más promesas.",
         "team.event.endetIn": "Termina en",
         "team.event.ergebnis": "Resultados",
@@ -949,11 +963,11 @@ enum LocTeam {
         "team.k.best": "Mejor valor",
         "team.k.sum_distance": "Distancia on-foil total",
         "team.k.sum_pumps": "Pumps en total",
-        "team.k.sum_runs": "Runs en total",
-        "team.k.sum_sessions": "Sesiones",
     ]
 
     private static let _es2: [String: String] = [
+        "team.k.sum_runs": "Runs en total",
+        "team.k.sum_sessions": "Sesiones",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tiempo on-foil total",
         "team.k.summe": "Total",
@@ -993,6 +1007,8 @@ enum LocTeam {
     ]
 
     private static let _fi0: [String: String] = [
+        "leader.totalDistance": "Foil-matka yhteensä",
+        "leader.totalTime": "Foil-aika yhteensä",
         "sd.avgHrFoil": "Ø syke foililla",
         "sd.avgHrGesamt": "koko {n}",
         "team.adresseTeilen.intern": "Tulostaulut eivät ole julkisia. Tässä osoitteessa näkevät jotain vain jäsenet. Voit tehdä ne julkisiksi tiimin asetuksissa.",
@@ -1036,11 +1052,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Enintään 20 tulostaulukkoa.",
         "team.err.zu_viele_teams": "Vedät jo enimmäismäärän tiimejä.",
         "team.err.zu_viele_wartend": "Kolme tiimiäsi odottaa jo hyväksyntää.",
-        "team.event.auswertungHinweis": "Päättyi. Aikaikkunan sessioita voi vielä ladata {bis} asti, sitten tulos on lopullinen.",
-        "team.event.details": "Tiedot",
     ]
 
     private static let _fi1: [String: String] = [
+        "team.event.auswertungHinweis": "Päättyi. Aikaikkunan sessioita voi vielä ladata {bis} asti, sitten tulos on lopullinen.",
+        "team.event.details": "Tiedot",
         "team.event.disclaimer": "Tapahtumat järjestävät tiimit itse. pumpfoil.orgilla ei ole vaikutusvaltaa tapahtumiin eikä niissä annettuihin taloudellisiin tai muihin lupauksiin, eikä se ota niistä vastuuta. Oikeustie on suljettu pois. Maksut ja kaikki muut sopimukset järjestäjät ja osallistujat hoitavat keskenään, pumpfoil.orgista riippumatta. Samoin pumpfoil.org ei vastaa siitä, ovatko mitatut arvot ja tiedot oikeita tai onko niitä manipuloitu. Näytetään se, minkä GitHubissa oleva julkinen lähdekoodi laskee ladatuista tiedoista; muita lupauksia ei ole.",
         "team.event.endetIn": "Päättyy",
         "team.event.ergebnis": "Tulokset",
@@ -1084,11 +1100,11 @@ enum LocTeam {
         "team.k.best": "Paras tulos",
         "team.k.sum_distance": "Foil-matka yhteensä",
         "team.k.sum_pumps": "Pumppauksia yhteensä",
-        "team.k.sum_runs": "Lenkkejä yhteensä",
-        "team.k.sum_sessions": "Sessiot",
     ]
 
     private static let _fi2: [String: String] = [
+        "team.k.sum_runs": "Lenkkejä yhteensä",
+        "team.k.sum_sessions": "Sessiot",
         "team.k.sum_spots": "Spotit",
         "team.k.sum_time": "Foil-aika yhteensä",
         "team.k.summe": "Summa",
@@ -1128,6 +1144,8 @@ enum LocTeam {
     ]
 
     private static let _nl0: [String: String] = [
+        "leader.totalDistance": "Totale on-foil-afstand",
+        "leader.totalTime": "Totale on-foil-tijd",
         "sd.avgHrFoil": "Ø hartslag op de foil",
         "sd.avgHrGesamt": "totaal {n}",
         "team.adresseTeilen.intern": "De ranglijsten zijn niet openbaar. Op dit adres zien alleen leden iets. Je zet ze openbaar in de teaminstellingen.",
@@ -1171,11 +1189,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maximaal 20 ranglijsten.",
         "team.err.zu_viele_teams": "Je leidt al het maximale aantal teams.",
         "team.err.zu_viele_wartend": "Er wachten al drie van je teams op vrijgave.",
-        "team.event.auswertungHinweis": "Afgelopen. Sessies uit het tijdvak kunnen nog tot {bis} worden geüpload, daarna staat de uitslag vast.",
-        "team.event.details": "Details",
     ]
 
     private static let _nl1: [String: String] = [
+        "team.event.auswertungHinweis": "Afgelopen. Sessies uit het tijdvak kunnen nog tot {bis} worden geüpload, daarna staat de uitslag vast.",
+        "team.event.details": "Details",
         "team.event.disclaimer": "Events worden door de teams zelf georganiseerd. pumpfoil.org heeft geen invloed op events of op toezeggingen die daarin worden gedaan, financieel of anderszins, en aanvaardt daarvoor geen verantwoordelijkheid. De gang naar de rechter is uitgesloten. Betalingen en alle andere afspraken regelen organisatoren en deelnemers onafhankelijk van pumpfoil.org. Evenmin is pumpfoil.org verantwoordelijk voor de juistheid van gemeten waarden en gegevens of voor eventuele manipulatie ervan. Getoond wordt wat de openbare broncode op GitHub uit de geüploade gegevens berekent; verdere toezeggingen zijn er niet.",
         "team.event.endetIn": "Eindigt over",
         "team.event.ergebnis": "Uitslag",
@@ -1219,11 +1237,11 @@ enum LocTeam {
         "team.k.best": "Beste waarde",
         "team.k.sum_distance": "On-foil-afstand totaal",
         "team.k.sum_pumps": "Pumps totaal",
-        "team.k.sum_runs": "Runs totaal",
-        "team.k.sum_sessions": "Sessies",
     ]
 
     private static let _nl2: [String: String] = [
+        "team.k.sum_runs": "Runs totaal",
+        "team.k.sum_sessions": "Sessies",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "On-foil-tijd totaal",
         "team.k.summe": "Totaal",
@@ -1263,6 +1281,8 @@ enum LocTeam {
     ]
 
     private static let _cs0: [String: String] = [
+        "leader.totalDistance": "Celková vzdálenost na foilu",
+        "leader.totalTime": "Celkový čas na foilu",
         "sd.avgHrFoil": "Ø tep na foilu",
         "sd.avgHrGesamt": "celkem {n}",
         "team.adresseTeilen.intern": "Žebříčky nejsou veřejné. Na této adrese něco vidí jen členové. Veřejné je nastavíš v nastavení týmu.",
@@ -1306,11 +1326,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Nejvýše 20 žebříčků.",
         "team.err.zu_viele_teams": "Už vedeš maximální počet týmů.",
         "team.err.zu_viele_wartend": "Už tři tvoje týmy čekají na schválení.",
-        "team.event.auswertungHinweis": "Skončeno. Vyjížďky z časového okna lze ještě nahrát do {bis}, pak je výsledek konečný.",
-        "team.event.details": "Podrobnosti",
     ]
 
     private static let _cs1: [String: String] = [
+        "team.event.auswertungHinweis": "Skončeno. Vyjížďky z časového okna lze ještě nahrát do {bis}, pak je výsledek konečný.",
+        "team.event.details": "Podrobnosti",
         "team.event.disclaimer": "Akce pořádají samy týmy. pumpfoil.org nemá žádný vliv na akce ani na sliby v nich dané, finanční či jiné, a nepřebírá za ně žádnou odpovědnost. Právní cesta je vyloučena. Platby a všechny další dohody si pořadatelé a účastníci řeší sami, nezávisle na pumpfoil.org. Stejně tak pumpfoil.org nepřebírá žádnou odpovědnost za to, zda jsou naměřené hodnoty a data správné nebo zda nebyly zmanipulovány. Zobrazuje se to, co z nahraných dat spočítá veřejný zdrojový kód na GitHubu; žádné další záruky neexistují.",
         "team.event.endetIn": "Končí za",
         "team.event.ergebnis": "Výsledky",
@@ -1354,11 +1374,11 @@ enum LocTeam {
         "team.k.best": "Nejlepší hodnota",
         "team.k.sum_distance": "Vzdálenost na foilu celkem",
         "team.k.sum_pumps": "Pumpnutí celkem",
-        "team.k.sum_runs": "Jízdy celkem",
-        "team.k.sum_sessions": "Vyjížďky",
     ]
 
     private static let _cs2: [String: String] = [
+        "team.k.sum_runs": "Jízdy celkem",
+        "team.k.sum_sessions": "Vyjížďky",
         "team.k.sum_spots": "Spoty",
         "team.k.sum_time": "Čas na foilu celkem",
         "team.k.summe": "Součet",
@@ -1398,6 +1418,8 @@ enum LocTeam {
     ]
 
     private static let _pl0: [String: String] = [
+        "leader.totalDistance": "Łączny dystans na foilu",
+        "leader.totalTime": "Łączny czas na foilu",
         "sd.avgHrFoil": "Ø tętno na foilu",
         "sd.avgHrGesamt": "łącznie {n}",
         "team.adresseTeilen.intern": "Rankingi nie są publiczne. Pod tym adresem coś widzą tylko członkowie. Publiczne ustawisz je w ustawieniach drużyny.",
@@ -1441,11 +1463,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maksymalnie 20 rankingów.",
         "team.err.zu_viele_teams": "Prowadzisz już maksymalną liczbę drużyn.",
         "team.err.zu_viele_wartend": "Trzy twoje drużyny czekają już na zatwierdzenie.",
-        "team.event.auswertungHinweis": "Zakończone. Sesje z tego okna czasowego można jeszcze wgrać do {bis}, potem wynik jest ostateczny.",
-        "team.event.details": "Szczegóły",
     ]
 
     private static let _pl1: [String: String] = [
+        "team.event.auswertungHinweis": "Zakończone. Sesje z tego okna czasowego można jeszcze wgrać do {bis}, potem wynik jest ostateczny.",
+        "team.event.details": "Szczegóły",
         "team.event.disclaimer": "Wydarzenia organizują same drużyny. pumpfoil.org nie ma żadnego wpływu na wydarzenia ani na składane w nich obietnice, finansowe lub inne, i nie ponosi za nie odpowiedzialności. Droga sądowa jest wykluczona. Płatności i wszelkie inne ustalenia organizatorzy i uczestnicy załatwiają między sobą, niezależnie od pumpfoil.org. Tak samo pumpfoil.org nie ponosi odpowiedzialności za to, czy zmierzone wartości i dane są poprawne lub czy nie zostały zmanipulowane. Wyświetlane jest to, co publiczny kod źródłowy na GitHubie oblicza z przesłanych danych; innych obietnic nie ma.",
         "team.event.endetIn": "Koniec za",
         "team.event.ergebnis": "Wyniki",
@@ -1489,11 +1511,11 @@ enum LocTeam {
         "team.k.best": "Najlepsza wartość",
         "team.k.sum_distance": "Dystans na foilu łącznie",
         "team.k.sum_pumps": "Pompy łącznie",
-        "team.k.sum_runs": "Przejazdy łącznie",
-        "team.k.sum_sessions": "Sesje",
     ]
 
     private static let _pl2: [String: String] = [
+        "team.k.sum_runs": "Przejazdy łącznie",
+        "team.k.sum_sessions": "Sesje",
         "team.k.sum_spots": "Spoty",
         "team.k.sum_time": "Czas na foilu łącznie",
         "team.k.summe": "Suma",
@@ -1533,6 +1555,8 @@ enum LocTeam {
     ]
 
     private static let _pt0: [String: String] = [
+        "leader.totalDistance": "Distância on-foil total",
+        "leader.totalTime": "Tempo on-foil total",
         "sd.avgHrFoil": "FC Ø no foil",
         "sd.avgHrGesamt": "total {n}",
         "team.adresseTeilen.intern": "Os rankings não são públicos. Neste endereço só os membros veem algo. Você pode torná-los públicos nas configurações da equipe.",
@@ -1576,11 +1600,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "No máximo 20 rankings.",
         "team.err.zu_viele_teams": "Você já lidera o número máximo de equipes.",
         "team.err.zu_viele_wartend": "Três das suas equipes já estão aguardando aprovação.",
-        "team.event.auswertungHinweis": "Acabou. Sessões do período ainda podem ser enviadas até {bis}; aí o resultado fica definitivo.",
-        "team.event.details": "Detalhes",
     ]
 
     private static let _pt1: [String: String] = [
+        "team.event.auswertungHinweis": "Acabou. Sessões do período ainda podem ser enviadas até {bis}; aí o resultado fica definitivo.",
+        "team.event.details": "Detalhes",
         "team.event.disclaimer": "Os eventos são organizados pelas próprias equipes. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas feitas neles, financeiras ou de outro tipo, e não assume nenhuma responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org. Da mesma forma, o pumpfoil.org não assume nenhuma responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É exibido o que o código-fonte público no GitHub calcula a partir dos dados enviados; não há outras promessas.",
         "team.event.endetIn": "Termina em",
         "team.event.ergebnis": "Resultado",
@@ -1624,11 +1648,11 @@ enum LocTeam {
         "team.k.best": "Melhor valor",
         "team.k.sum_distance": "Distância on-foil total",
         "team.k.sum_pumps": "Total de pumps",
-        "team.k.sum_runs": "Total de voltas",
-        "team.k.sum_sessions": "Sessões",
     ]
 
     private static let _pt2: [String: String] = [
+        "team.k.sum_runs": "Total de voltas",
+        "team.k.sum_sessions": "Sessões",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tempo on-foil total",
         "team.k.summe": "Total",
@@ -1668,6 +1692,8 @@ enum LocTeam {
     ]
 
     private static let _pt_PT0: [String: String] = [
+        "leader.totalDistance": "Distância on-foil total",
+        "leader.totalTime": "Tempo on-foil total",
         "sd.avgHrFoil": "FC Ø no foil",
         "sd.avgHrGesamt": "total {n}",
         "team.adresseTeilen.intern": "Os rankings não são públicos. Neste endereço só os membros veem algo. Podes torná-los públicos nas definições da equipa.",
@@ -1711,11 +1737,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "No máximo 20 rankings.",
         "team.err.zu_viele_teams": "Já lideras o número máximo de equipas.",
         "team.err.zu_viele_wartend": "Três das tuas equipas já estão a aguardar aprovação.",
-        "team.event.auswertungHinweis": "Terminou. As sessões do período ainda podem ser enviadas até {bis}; a partir daí o resultado é definitivo.",
-        "team.event.details": "Detalhes",
     ]
 
     private static let _pt_PT1: [String: String] = [
+        "team.event.auswertungHinweis": "Terminou. As sessões do período ainda podem ser enviadas até {bis}; a partir daí o resultado é definitivo.",
+        "team.event.details": "Detalhes",
         "team.event.disclaimer": "Os eventos são organizados pelas próprias equipas. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas neles feitas, financeiras ou de outro tipo, e não assume qualquer responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org. Da mesma forma, o pumpfoil.org não assume qualquer responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É mostrado o que o código-fonte público no GitHub calcula a partir dos dados carregados; não há outras promessas.",
         "team.event.endetIn": "Termina daqui a",
         "team.event.ergebnis": "Resultado",
@@ -1759,11 +1785,11 @@ enum LocTeam {
         "team.k.best": "Melhor valor",
         "team.k.sum_distance": "Distância on-foil total",
         "team.k.sum_pumps": "Total de pumps",
-        "team.k.sum_runs": "Total de voltas",
-        "team.k.sum_sessions": "Sessões",
     ]
 
     private static let _pt_PT2: [String: String] = [
+        "team.k.sum_runs": "Total de voltas",
+        "team.k.sum_sessions": "Sessões",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tempo on-foil total",
         "team.k.summe": "Total",
@@ -1803,6 +1829,8 @@ enum LocTeam {
     ]
 
     private static let _ja0: [String: String] = [
+        "leader.totalDistance": "オンフォイル距離（合計）",
+        "leader.totalTime": "オンフォイル時間（合計）",
         "sd.avgHrFoil": "Ø 心拍数（フォイル上）",
         "sd.avgHrGesamt": "全体 {n}",
         "team.adresseTeilen.intern": "ランキングは公開されていません。このURLで内容を見られるのはメンバーだけです。チーム設定で公開にできます。",
@@ -1846,11 +1874,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "ランキングは最大20個までです。",
         "team.err.zu_viele_teams": "リーダーを務められるチーム数の上限に達しています。",
         "team.err.zu_viele_wartend": "あなたのチームのうち3つがすでに承認待ちです。",
-        "team.event.auswertungHinweis": "終了しました。期間内のセッションは {bis} までアップロードでき、その後に結果が確定します。",
-        "team.event.details": "詳細",
     ]
 
     private static let _ja1: [String: String] = [
+        "team.event.auswertungHinweis": "終了しました。期間内のセッションは {bis} までアップロードでき、その後に結果が確定します。",
+        "team.event.details": "詳細",
         "team.event.disclaimer": "イベントは各チームが自ら主催します。pumpfoil.org はイベントや、その中でなされる金銭的その他の約束に一切関与せず、責任を負いません。法的手段による請求はできません。支払いやその他の取り決めは、pumpfoil.org とは無関係に主催者と参加者の間で行ってください。 同様に、pumpfoil.org は計測された数値やデータが正しいかどうか、改ざんされていないかについて一切責任を負いません。表示されるのは、GitHub で公開されているソースコードがアップロードされたデータから計算した結果であり、それ以上の保証はありません。",
         "team.event.endetIn": "終了まで",
         "team.event.ergebnis": "結果",
@@ -1894,11 +1922,11 @@ enum LocTeam {
         "team.k.best": "ベスト値",
         "team.k.sum_distance": "オンフォイル距離の合計",
         "team.k.sum_pumps": "ポンプ合計",
-        "team.k.sum_runs": "ラン合計",
-        "team.k.sum_sessions": "セッション",
     ]
 
     private static let _ja2: [String: String] = [
+        "team.k.sum_runs": "ラン合計",
+        "team.k.sum_sessions": "セッション",
         "team.k.sum_spots": "スポット",
         "team.k.sum_time": "オンフォイル時間の合計",
         "team.k.summe": "合計",
@@ -1938,6 +1966,8 @@ enum LocTeam {
     ]
 
     private static let _zh0: [String: String] = [
+        "leader.totalDistance": "上翼总距离",
+        "leader.totalTime": "上翼总时长",
         "sd.avgHrFoil": "Ø 心率（水翼上）",
         "sd.avgHrGesamt": "全程 {n}",
         "team.adresseTeilen.intern": "排行榜未公开。打开这个链接只有成员能看到内容。可以在团队设置中把它设为公开。",
@@ -1981,11 +2011,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "最多 20 个排行榜。",
         "team.err.zu_viele_teams": "你负责的团队数量已达上限。",
         "team.err.zu_viele_wartend": "你已有三个团队在等待审核。",
-        "team.event.auswertungHinweis": "已结束。时间段内的记录仍可上传至 {bis}，之后结果确定。",
-        "team.event.details": "详情",
     ]
 
     private static let _zh1: [String: String] = [
+        "team.event.auswertungHinweis": "已结束。时间段内的记录仍可上传至 {bis}，之后结果确定。",
+        "team.event.details": "详情",
         "team.event.disclaimer": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。 同样，pumpfoil.org 不对测得的数值和数据是否正确或是否被篡改承担任何责任。显示的内容即 GitHub 上的公开源代码根据上传的数据计算出的结果，除此之外不作任何承诺。",
         "team.event.endetIn": "距离结束",
         "team.event.ergebnis": "结果",
@@ -2029,11 +2059,11 @@ enum LocTeam {
         "team.k.best": "最佳数值",
         "team.k.sum_distance": "上翼总距离",
         "team.k.sum_pumps": "泵动总数",
-        "team.k.sum_runs": "航段总数",
-        "team.k.sum_sessions": "记录数",
     ]
 
     private static let _zh2: [String: String] = [
+        "team.k.sum_runs": "航段总数",
+        "team.k.sum_sessions": "记录数",
         "team.k.sum_spots": "地点",
         "team.k.sum_time": "上翼总时长",
         "team.k.summe": "总和",
@@ -2073,6 +2103,8 @@ enum LocTeam {
     ]
 
     private static let _ru0: [String: String] = [
+        "leader.totalDistance": "Общая дистанция на фойле",
+        "leader.totalTime": "Общее время на фойле",
         "sd.avgHrFoil": "Ø пульс на фойле",
         "sd.avgHrGesamt": "всего {n}",
         "team.adresseTeilen.intern": "Рейтинги не публичны. По этому адресу что-то видят только участники. Сделать их публичными можно в настройках команды.",
@@ -2116,11 +2148,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Не больше 20 таблиц лидеров.",
         "team.err.zu_viele_teams": "Ты уже руководишь максимальным числом команд.",
         "team.err.zu_viele_wartend": "Три твои команды уже ждут одобрения.",
-        "team.event.auswertungHinweis": "Завершено. Сессии из этого окна ещё можно загрузить до {bis}, затем результат окончательный.",
-        "team.event.details": "Подробности",
     ]
 
     private static let _ru1: [String: String] = [
+        "team.event.auswertungHinweis": "Завершено. Сессии из этого окна ещё можно загрузить до {bis}, затем результат окончательный.",
+        "team.event.details": "Подробности",
         "team.event.disclaimer": "События проводят сами команды. pumpfoil.org не влияет на события и на данные в них обещания, финансовые или иные, и не несёт за них ответственности. Обращение в суд исключено. Платежи и все прочие договорённости организаторы и участники решают между собой, независимо от pumpfoil.org. Точно так же pumpfoil.org не несёт ответственности за то, верны ли измеренные значения и данные и не были ли они подделаны. Показывается то, что публичный исходный код на GitHub рассчитывает из загруженных данных; других обещаний нет.",
         "team.event.endetIn": "До конца",
         "team.event.ergebnis": "Итоги",
@@ -2164,11 +2196,11 @@ enum LocTeam {
         "team.k.best": "Лучшее значение",
         "team.k.sum_distance": "Дистанция на фойле всего",
         "team.k.sum_pumps": "Помпинг всего",
-        "team.k.sum_runs": "Заезды всего",
-        "team.k.sum_sessions": "Сессии",
     ]
 
     private static let _ru2: [String: String] = [
+        "team.k.sum_runs": "Заезды всего",
+        "team.k.sum_sessions": "Сессии",
         "team.k.sum_spots": "Споты",
         "team.k.sum_time": "Время на фойле всего",
         "team.k.summe": "Сумма",
@@ -2208,6 +2240,8 @@ enum LocTeam {
     ]
 
     private static let _id0: [String: String] = [
+        "leader.totalDistance": "Total jarak on-foil",
+        "leader.totalTime": "Total waktu on-foil",
         "sd.avgHrFoil": "Ø detak jantung di foil",
         "sd.avgHrGesamt": "total {n}",
         "team.adresseTeilen.intern": "Papan peringkat tidak publik. Di alamat ini hanya anggota yang melihat sesuatu. Kamu bisa membuatnya publik di pengaturan tim.",
@@ -2251,11 +2285,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maksimal 20 papan peringkat.",
         "team.err.zu_viele_teams": "Kamu sudah memimpin jumlah tim maksimum.",
         "team.err.zu_viele_wartend": "Tiga timmu sudah menunggu persetujuan.",
-        "team.event.auswertungHinweis": "Sudah berakhir. Sesi dari rentang waktu ini masih bisa diunggah hingga {bis}, lalu hasilnya final.",
-        "team.event.details": "Detail",
     ]
 
     private static let _id1: [String: String] = [
+        "team.event.auswertungHinweis": "Sudah berakhir. Sesi dari rentang waktu ini masih bisa diunggah hingga {bis}, lalu hasilnya final.",
+        "team.event.details": "Detail",
         "team.event.disclaimer": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org. Begitu pula, pumpfoil.org tidak bertanggung jawab atas benar tidaknya nilai dan data yang diukur atau apakah data tersebut dimanipulasi. Yang ditampilkan adalah hasil perhitungan kode sumber publik di GitHub dari data yang diunggah; tidak ada janji lain.",
         "team.event.endetIn": "Berakhir dalam",
         "team.event.ergebnis": "Hasil",
@@ -2299,11 +2333,11 @@ enum LocTeam {
         "team.k.best": "Nilai terbaik",
         "team.k.sum_distance": "Total jarak on-foil",
         "team.k.sum_pumps": "Total pump",
-        "team.k.sum_runs": "Total run",
-        "team.k.sum_sessions": "Sesi",
     ]
 
     private static let _id2: [String: String] = [
+        "team.k.sum_runs": "Total run",
+        "team.k.sum_sessions": "Sesi",
         "team.k.sum_spots": "Spot",
         "team.k.sum_time": "Total waktu on-foil",
         "team.k.summe": "Total",
@@ -2343,6 +2377,8 @@ enum LocTeam {
     ]
 
     private static let _nb0: [String: String] = [
+        "leader.totalDistance": "Total distanse på foil",
+        "leader.totalTime": "Total tid på foil",
         "sd.avgHrFoil": "Ø puls på foilen",
         "sd.avgHrGesamt": "totalt {n}",
         "team.adresseTeilen.intern": "Resultatlistene er ikke offentlige. På denne adressen ser bare medlemmer noe. Du gjør dem offentlige i lagets innstillinger.",
@@ -2386,11 +2422,11 @@ enum LocTeam {
         "team.err.zu_viele_tafeln": "Maks 20 topplister.",
         "team.err.zu_viele_teams": "Du leder allerede maksimalt antall lag.",
         "team.err.zu_viele_wartend": "Tre av lagene dine venter allerede på godkjenning.",
-        "team.event.auswertungHinweis": "Over. Økter fra tidsvinduet kan fortsatt lastes opp til {bis}, så er resultatet endelig.",
-        "team.event.details": "Detaljer",
     ]
 
     private static let _nb1: [String: String] = [
+        "team.event.auswertungHinweis": "Over. Økter fra tidsvinduet kan fortsatt lastes opp til {bis}, så er resultatet endelig.",
+        "team.event.details": "Detaljer",
         "team.event.disclaimer": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org. Likeledes tar pumpfoil.org intet ansvar for om målte verdier og data er riktige eller har blitt manipulert. Det som vises, er det den offentlige kildekoden på GitHub beregner ut fra de opplastede dataene; det gis ingen andre løfter.",
         "team.event.endetIn": "Slutter om",
         "team.event.ergebnis": "Resultat",
@@ -2434,11 +2470,11 @@ enum LocTeam {
         "team.k.best": "Beste verdi",
         "team.k.sum_distance": "Distanse på foil totalt",
         "team.k.sum_pumps": "Pumper totalt",
-        "team.k.sum_runs": "Runs totalt",
-        "team.k.sum_sessions": "Økter",
     ]
 
     private static let _nb2: [String: String] = [
+        "team.k.sum_runs": "Runs totalt",
+        "team.k.sum_sessions": "Økter",
         "team.k.sum_spots": "Spots",
         "team.k.sum_time": "Tid på foil totalt",
         "team.k.summe": "Sum",

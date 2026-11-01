@@ -58,21 +58,39 @@ struct CommunityView: View {
     }
     private var lbMetrics: [(String, String)] {
         let alle: [(String, String)] = [("sessions", Loc.t("leader.mostSessions", lang)), ("runs", Loc.t("leader.mostRuns", lang)),
-         ("pumps", Loc.t("leader.mostPumps", lang)), ("spots", Loc.t("leader.mostSpots", lang))]
+         ("pumps", Loc.t("leader.mostPumps", lang)), ("spots", Loc.t("leader.mostSpots", lang)),
+         // On-Foil-Strecke/-Zeit (01.11.2026, wie das Web): bester Einzellauf und Summe im Zeitraum; zaehlen auch GPS-only
+         ("run_distance", Loc.t("rec.farthestRun", lang)), ("run_time", Loc.t("rec.longestRun", lang)),
+         ("distance", Loc.t("leader.totalDistance", lang)), ("time", Loc.t("leader.totalTime", lang))]
         // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
         return alle.filter { !((istWind && ($0.0 == "pumps" || $0.0 == "runs")) || (istMotor && $0.0 == "pumps")) }
     }
     private func lbList(_ lb: Leaders) -> [LeaderEntry] {
         switch lbMetric { case "runs": return lb.runs ?? []; case "pumps": return lb.pumps ?? []
-        case "spots": return lb.spots ?? []; default: return lb.sessions ?? [] }
+        case "spots": return lb.spots ?? []; case "distance": return lb.distance ?? []
+        case "time": return lb.time ?? []; case "run_distance": return lb.run_distance ?? []
+        case "run_time": return lb.run_time ?? []; default: return lb.sessions ?? [] }
     }
-    private func lbValue(_ e: LeaderEntry) -> Int {
-        switch lbMetric { case "runs": return e.runs ?? 0; case "pumps": return e.pumps ?? 0
-        case "spots": return e.spots ?? 0; default: return e.sessions ?? 0 }
+    private func lbValue(_ e: LeaderEntry) -> String {
+        switch lbMetric { case "runs": return "\(e.runs ?? 0)"; case "pumps": return "\(e.pumps ?? 0)"
+        case "spots": return "\(e.spots ?? 0)"
+        case "distance": return String(format: "%.1f", (e.distance_m ?? 0) / 1000)
+        case "time": return leaderDauer(e.time_s ?? 0)
+        case "run_distance": return String(format: "%.2f", (e.run_distance_m ?? 0) / 1000)
+        case "run_time": return leaderDauer(e.run_time_s ?? 0)
+        default: return "\(e.sessions ?? 0)" }
     }
-    private var lbUnit: String {
+    private func lbUnit(_ e: LeaderEntry) -> String {
         switch lbMetric { case "runs": return Loc.t("unit.runs", lang); case "pumps": return Loc.t("unit.pumps", lang)
-        case "spots": return Loc.t("unit.spots", lang); default: return Loc.t("unit.sessions", lang) }
+        case "spots": return Loc.t("unit.spots", lang); case "distance", "run_distance": return "km"
+        case "time": return (e.time_s ?? 0) >= 3600 ? "h" : "min"
+        case "run_time": return (e.run_time_s ?? 0) >= 3600 ? "h" : "min"
+        default: return Loc.t("unit.sessions", lang) }
+    }
+    /// Zeit auf dem Foil wie im Web: h:mm, unter einer Stunde m:ss.
+    private func leaderDauer(_ s: Double) -> String {
+        let t = Int(s), h = t / 3600, m = (t % 3600) / 60
+        return h > 0 ? String(format: "%d:%02d", h, m) : String(format: "%d:%02d", m, t % 60)
     }
     private var spotMatches: [String] {
         let q = spotQuery.trimmingCharacters(in: .whitespaces).lowercased()
@@ -403,8 +421,8 @@ struct CommunityView: View {
             leaderAvatar(e)
             Text(e.name ?? "—").lineLimit(1)
             Spacer()
-            Text("\(lbValue(e))").fontWeight(.semibold)
-            Text(lbUnit).font(.caption2).foregroundStyle(.secondary)
+            Text(lbValue(e)).fontWeight(.semibold)
+            Text(lbUnit(e)).font(.caption2).foregroundStyle(.secondary)
         }
     }
 

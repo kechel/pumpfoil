@@ -690,12 +690,20 @@ export interface LeaderRow {
   runs: number;
   spots: number;
   pumps: number;
+  distance_m?: number;   // On-Foil-Strecke/-Zeit gesamt im Zeitraum (01.11.2026)
+  time_s?: number;
+  run_distance_m?: number;   // bester einzelner Lauf
+  run_time_s?: number;
 }
 export interface Leaders {
   sessions: LeaderRow[];
   runs: LeaderRow[];
   spots: LeaderRow[];
   pumps: LeaderRow[];
+  distance?: LeaderRow[];
+  time?: LeaderRow[];
+  run_distance?: LeaderRow[];
+  run_time?: LeaderRow[];
 }
 
 export interface Profile {

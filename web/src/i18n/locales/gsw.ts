@@ -440,6 +440,8 @@ const gsw: Record<string, string> = {
   "leader.mostRuns": "Meischti Läuf",
   "leader.mostPumps": "Meischti Pumps",
   "leader.mostSpots": "Meischti Spots",
+  "leader.totalDistance": "On-Foil-Strecki total",
+  "leader.totalTime": "On-Foil-Ziit total",
   "unit.sessions": "Sessions",
   "unit.runs": "Läuf",
   "unit.pumps": "Pumps",

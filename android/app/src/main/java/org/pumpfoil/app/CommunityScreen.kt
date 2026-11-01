@@ -337,6 +337,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                     listOf(
                                         "sessions" to "leader.mostSessions", "runs" to "leader.mostRuns",
                                         "pumps" to "leader.mostPumps", "spots" to "leader.mostSpots",
+                                        // On-Foil-Strecke/-Zeit (01.11.2026, wie das Web): bester Einzellauf und Summe im
+                                        // Zeitraum; zaehlen auch GPS-only-Fahrten
+                                        "run_distance" to "rec.farthestRun", "run_time" to "rec.longestRun",
+                                        "distance" to "leader.totalDistance", "time" to "leader.totalTime",
                                     ).filter { (id, _) ->
                                         // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
                                         !((Sportarten.windArtig(sportart) && (id == "pumps" || id == "runs")) ||
@@ -345,12 +349,21 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                         FilterChip(selected = lbMetric == id, onClick = { lbMetric = id }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
                                     }
                                 }
-                                val list = when (lbMetric) { "runs" -> lb.runs; "pumps" -> lb.pumps; "spots" -> lb.spots; else -> lb.sessions }
-                                val unit = when (lbMetric) { "runs" -> I18n.t("unit.runs"); "pumps" -> I18n.t("unit.pumps"); "spots" -> I18n.t("unit.spots"); else -> I18n.t("unit.sessions") }
+                                val list = when (lbMetric) { "runs" -> lb.runs; "pumps" -> lb.pumps; "spots" -> lb.spots
+                                    "distance" -> lb.distance; "time" -> lb.time; "run_distance" -> lb.runDistance
+                                    "run_time" -> lb.runTime; else -> lb.sessions }
                                 Card(Modifier.fillMaxWidth().padding(12.dp)) {
                                     Column(Modifier.padding(8.dp)) {
                                         list.take(5).forEachIndexed { i, e ->
-                                            val v = when (lbMetric) { "runs" -> e.runs; "pumps" -> e.pumps; "spots" -> e.spots; else -> e.sessions }
+                                            val v = when (lbMetric) { "runs" -> "${e.runs}"; "pumps" -> "${e.pumps}"; "spots" -> "${e.spots}"
+                                                "distance" -> String.format(java.util.Locale.ROOT, "%.1f", e.distanceM / 1000)
+                                                "time" -> leaderDauer(e.timeS)
+                                                "run_distance" -> String.format(java.util.Locale.ROOT, "%.2f", e.runDistanceM / 1000)
+                                                "run_time" -> leaderDauer(e.runTimeS); else -> "${e.sessions}" }
+                                            val unit = when (lbMetric) { "runs" -> I18n.t("unit.runs"); "pumps" -> I18n.t("unit.pumps")
+                                                "spots" -> I18n.t("unit.spots"); "distance", "run_distance" -> "km"
+                                                "time" -> if (e.timeS >= 3600) "h" else "min"; "run_time" -> if (e.runTimeS >= 3600) "h" else "min"
+                                                else -> I18n.t("unit.sessions") }
                                             Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                                                 Text("${i + 1}", Modifier.width(20.dp), style = MaterialTheme.typography.titleSmall,
                                                     color = MaterialTheme.colorScheme.primary)
@@ -362,7 +375,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                                     Spacer(Modifier.width(8.dp))
                                                 }
                                                 Text(e.name ?: "—", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                                Text("$v", fontWeight = FontWeight.SemiBold)
+                                                Text(v, fontWeight = FontWeight.SemiBold)
                                                 Spacer(Modifier.width(4.dp))
                                                 Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                             }
@@ -754,3 +767,9 @@ private fun RoutenAbschnitt(onOpenRoute: (String, Int) -> Unit) {
 }
 
 private const val ROUTEN_KM_MAX = 50f
+
+/** Zeit auf dem Foil wie im Web: h:mm, unter einer Stunde m:ss. */
+private fun leaderDauer(s: Double): String {
+    val t = s.toLong(); val h = t / 3600; val m = (t % 3600) / 60
+    return if (h > 0) "%d:%02d".format(h, m) else "%d:%02d".format(m, t % 60)
+}

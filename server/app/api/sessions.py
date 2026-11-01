@@ -253,8 +253,13 @@ def _hr_foil_gecacht(result: models.AnalysisResult, uuid: str) -> int | None:
     wert = _hr_foil(uuid, result.segments_json)
     roh = json.dumps({"v": HR_FOIL_V, "avg": wert})
     try:
+        from sqlalchemy import text as _text
         from ..db import engine
         with engine.begin() as conn:
+            # Kurze Wartegrenze: haelt die ANFRAGE selbst die Zeile noch (geaendert, nicht committet), wartete die
+            # zweite Verbindung sonst ewig auf sie — ein Selbst-Deadlock, den Postgres nicht erkennt (Testlauf
+            # 01.11.2026 hing so). Dann bleibt der Cache eben leer und wird beim naechsten Aufruf geschrieben.
+            conn.execute(_text("SET LOCAL lock_timeout = '500ms'"))
             conn.execute(models.AnalysisResult.__table__.update()
                          .where(models.AnalysisResult.__table__.c.id == result.id).values(hr_foil_json=roh))
         set_committed_value(result, "hr_foil_json", roh)

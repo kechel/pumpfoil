@@ -473,6 +473,8 @@ const ja: Record<string, string> = {
   "leader.mostRuns": "最多ラン",
   "leader.mostPumps": "最多ポンプ",
   "leader.mostSpots": "最多スポット",
+  "leader.totalDistance": "オンフォイル距離（合計）",
+  "leader.totalTime": "オンフォイル時間（合計）",
   "unit.sessions": "セッション",
   "unit.run": "ラン",
   "unit.runs": "ラン",

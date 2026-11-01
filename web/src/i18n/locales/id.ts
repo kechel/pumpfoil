@@ -473,6 +473,8 @@ const id: Record<string, string> = {
   "leader.mostRuns": "Run terbanyak",
   "leader.mostPumps": "Pump terbanyak",
   "leader.mostSpots": "Spot terbanyak",
+  "leader.totalDistance": "Total jarak on-foil",
+  "leader.totalTime": "Total waktu on-foil",
   "unit.sessions": "Sesi",
   "unit.run": "Run",
   "unit.runs": "Run",

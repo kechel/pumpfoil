@@ -434,6 +434,8 @@ const deAT: Record<string, string> = {
   "leader.mostRuns": "Die meisten Läufe",
   "leader.mostPumps": "Die meisten Pumps",
   "leader.mostSpots": "Die meisten Spots",
+  "leader.totalDistance": "On-Foil-Strecke gesamt",
+  "leader.totalTime": "On-Foil-Zeit gesamt",
   "unit.sessions": "Sessions",
   "unit.runs": "Läuf",
   "unit.pumps": "Pumps",

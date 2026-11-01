@@ -473,6 +473,8 @@ const zh: Record<string, string> = {
   "leader.mostRuns": "最多航段",
   "leader.mostPumps": "最多泵动",
   "leader.mostSpots": "最多地点",
+  "leader.totalDistance": "上翼总距离",
+  "leader.totalTime": "上翼总时长",
   "unit.sessions": "记录数",
   "unit.run": "航段",
   "unit.runs": "航段",

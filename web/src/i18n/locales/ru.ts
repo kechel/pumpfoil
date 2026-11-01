@@ -473,6 +473,8 @@ const ru: Record<string, string> = {
   "leader.mostRuns": "Больше всего заездов",
   "leader.mostPumps": "Больше всего помпинга",
   "leader.mostSpots": "Больше всего спотов",
+  "leader.totalDistance": "Общая дистанция на фойле",
+  "leader.totalTime": "Общее время на фойле",
   "unit.sessions": "Сессии",
   "unit.run": "Заезд",
   "unit.runs": "Заезды",

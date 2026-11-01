@@ -1230,16 +1230,24 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0),
         func.count(func.distinct(func.nullif(S.place_name, ""))),
         func.coalesce(func.sum(PA.col_pump_count()), 0),
+        # On-Foil-Strecke und -Zeit (Jan, 01.11.2026) — zaehlen auch GPS-only-Fahrten, die keine Pumps haben. Je
+        # zweimal: der beste EINZELNE Lauf (dieselben Spalten wie die Rekorde) und die Summe ueber den Zeitraum.
+        func.coalesce(func.sum(AR.foiling_distance_m), 0), func.coalesce(func.sum(AR.foiling_time_s), 0),
+        func.coalesce(func.max(REC_COL["distance"][0]), 0), func.coalesce(func.max(REC_COL["duration"][0]), 0),
     ), _user.id, accel_only, sport)
     q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     rows = q.group_by(U.id, U.display_name, U.avatar_url).all()
     flat = [{"name": name or "—", "avatar_url": av, "user_id": uid, "sessions": int(ns), "runs": int(nr or 0),
-             "spots": int(nsp or 0), "pumps": int(np or 0)}
-            for name, av, uid, ns, nr, nsp, np in rows]
+             "spots": int(nsp or 0), "pumps": int(np or 0),
+             "distance_m": round(float(dm or 0), 1), "time_s": round(float(ts or 0), 1),
+             "run_distance_m": round(float(rd or 0), 1), "run_time_s": round(float(rt or 0), 1)}
+            for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt in rows]
     top = lambda key: [x for x in sorted(flat, key=lambda y: y[key], reverse=True) if x[key] > 0][:10]  # noqa: E731
-    return {"sessions": top("sessions"), "runs": top("runs"), "spots": top("spots"), "pumps": top("pumps")}
+    return {"sessions": top("sessions"), "runs": top("runs"), "spots": top("spots"), "pumps": top("pumps"),
+            "distance": top("distance_m"), "time": top("time_s"),
+            "run_distance": top("run_distance_m"), "run_time": top("run_time_s")}
 
 
 # ----------------------------------------------------------- Neueste Medien ----

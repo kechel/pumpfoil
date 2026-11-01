@@ -490,6 +490,8 @@ const nb: Record<string, string> = {
   "leader.mostRuns": "Flest runs",
   "leader.mostPumps": "Flest pumper",
   "leader.mostSpots": "Flest spots",
+  "leader.totalDistance": "Total distanse på foil",
+  "leader.totalTime": "Total tid på foil",
   "unit.sessions": "Økter",
   "unit.run": "Run",
   "unit.runs": "Runs",

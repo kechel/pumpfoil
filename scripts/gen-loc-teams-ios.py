@@ -8,7 +8,7 @@ LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "
 DATEIEN = ["TeamModels.swift", "TeamsApi.swift", "TeamFarben.swift", "TeamEventKachel.swift", "TeamKennzahlen.swift",
            "TeamView.swift", "TeamEventView.swift", "TeamsListen.swift"]
 PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen."]
-EXTRA = ["sd.avgHrFoil", "sd.avgHrGesamt"]
+EXTRA = ["sd.avgHrFoil", "sd.avgHrGesamt", "leader.totalDistance", "leader.totalTime"]
 
 def lies(code):
     s = io.open(WEB / f"{code}.ts", encoding="utf-8").read()

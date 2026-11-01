@@ -273,14 +273,29 @@ export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?
   );
 }
 
-const LEADER_KINDS: { key: keyof Leaders; labelKey: string; field: keyof LeaderRow; unitKey: string }[] = [
+/** Zeit auf dem Foil als h:mm (unter einer Stunde m:ss), Strecke in km mit einer Nachkommastelle. */
+const dauerText = (s: number) => {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}` : `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+};
+
+// On-Foil-Strecke und -Zeit (Jan, 01.11.2026): zaehlen auch GPS-only-Fahrten, die bei den Pumps nie auftauchen. Je
+// zweimal, die zweite Reihe des Rasters: weitester/laengster EINZELNER Lauf (Beschriftung wie bei den Rekorden) und
+// die Summe im Zeitraum. Einheit fest („km", „h" bzw. „min" — international lesbar).
+const LEADER_KINDS: { key: keyof Leaders; labelKey: string; field: keyof LeaderRow; unitKey?: string;
+                      unit?: (v: number) => string; fmt?: (v: number) => string }[] = [
   { key: "sessions", labelKey: "leader.mostSessions", field: "sessions", unitKey: "unit.sessions" },
   { key: "runs", labelKey: "leader.mostRuns", field: "runs", unitKey: "unit.runs" },
   { key: "pumps", labelKey: "leader.mostPumps", field: "pumps", unitKey: "unit.pumps" },
   { key: "spots", labelKey: "leader.mostSpots", field: "spots", unitKey: "unit.spots" },
+  { key: "run_distance", labelKey: "rec.farthestRun", field: "run_distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(2) },
+  { key: "run_time", labelKey: "rec.longestRun", field: "run_time_s", unit: (v) => (v >= 3600 ? "h" : "min"), fmt: dauerText },
+  { key: "distance", labelKey: "leader.totalDistance", field: "distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(1) },
+  { key: "time", labelKey: "leader.totalTime", field: "time_s", unit: (v) => (v >= 3600 ? "h" : "min"), fmt: dauerText },
 ];
 
-function LeaderList({ rows, field, unit }: { rows: LeaderRow[]; field: keyof LeaderRow; unit: string }) {
+function LeaderList({ rows, field, unit, fmt }: { rows: LeaderRow[]; field: keyof LeaderRow; unit: string | ((v: number) => string);
+                      fmt?: (v: number) => string }) {
   if (rows.length === 0) return <p className="text-xs text-slate-400">—</p>;
   return (
     <div className="space-y-1.5">
@@ -289,8 +304,8 @@ function LeaderList({ rows, field, unit }: { rows: LeaderRow[]; field: keyof Lea
           <span className="w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
           <Avatar name={r.name} url={r.avatar_url} userId={r.user_id} size={30} />
           <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
-          <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{r[field] as number}</span>
-          <span className="shrink-0 text-[10px] uppercase text-slate-400">{unit}</span>
+          <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{fmt ? fmt(r[field] as number) : r[field] as number}</span>
+          <span className="shrink-0 text-[10px] uppercase text-slate-400">{typeof unit === "function" ? unit(r[field] as number) : unit}</span>
         </div>
       ))}
     </div>
@@ -423,6 +438,10 @@ export function bandInfo(b: FoilBand, t: (k: string, p?: Record<string, string>)
 function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
+  // Nur EINE Bestenliste sichtbar, umschaltbar ueber Reiter (Jan, 01.11.2026: mit acht Listen nebeneinander war die
+  // Seite unuebersichtlich). Die Wahl merkt sich der Browser (nur Komfort; ohne Speicher gilt „Sessions").
+  const [wahl, setWahl] = useState<string>(() => { try { return localStorage.getItem("foil_leader_wahl") || "sessions"; } catch { return "sessions"; } });
+  const waehlen = (k: string) => { setWahl(k); try { localStorage.setItem("foil_leader_wahl", k); } catch { /* egal */ } };
   useEffect(() => {
     api.leaders(period, accelOnly, sport, band?.key ?? "all").then(setData).catch(() => {});
   }, [period, accelOnly, sport, band?.key]);
@@ -441,18 +460,29 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period:
           <span className="ml-2 text-sm font-normal text-brand-600 dark:text-brand-300">· {bandLabel(band, t)}</span>
         )}
       </h3>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
-            dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher. */}
-        {LEADER_KINDS.filter((k) => !(
+      {/* Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
+          dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher. */}
+      {(() => {
+        const arten = LEADER_KINDS.filter((k) => !(
           ((WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)) && (k.key === "pumps" || k.key === "runs"))
-          || (MOTOR_SPORTS.includes(sport) && k.key === "pumps"))).map((k) => (
-          <div key={k.key}>
-            <div className="mb-1.5 text-[11px] uppercase tracking-wide text-slate-300">{t(k.labelKey)}</div>
-            <LeaderList rows={data[k.key]} field={k.field} unit={t(k.unitKey)} />
-          </div>
-        ))}
-      </div>
+          || (MOTOR_SPORTS.includes(sport) && k.key === "pumps")));
+        const k = arten.find((a) => a.key === wahl) ?? arten[0];
+        return (
+          <>
+            <div className="mb-3 flex flex-wrap gap-1" role="tablist">
+              {arten.map((a) => (
+                <button key={a.key} role="tab" aria-selected={a.key === k.key} onClick={() => waehlen(a.key)}
+                  className={`rounded-lg px-2.5 py-1 text-xs ${a.key === k.key ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>
+                  {t(a.labelKey)}
+                </button>
+              ))}
+            </div>
+            <div className="max-w-xl">
+              <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} />
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

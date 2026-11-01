@@ -491,6 +491,10 @@ data class LeaderEntry(
     val name: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val sessions: Int = 0, val runs: Int = 0, val spots: Int = 0, val pumps: Int = 0,
+    // On-Foil-Strecke/-Zeit (Server additiv seit 01.11.2026)
+    @SerialName("distance_m") val distanceM: Double = 0.0, @SerialName("time_s") val timeS: Double = 0.0,
+    // bester einzelner Lauf (Server additiv seit 01.11.2026)
+    @SerialName("run_distance_m") val runDistanceM: Double = 0.0, @SerialName("run_time_s") val runTimeS: Double = 0.0,
 )
 
 @Serializable
@@ -499,6 +503,10 @@ data class Leaders(
     val runs: List<LeaderEntry> = emptyList(),
     val spots: List<LeaderEntry> = emptyList(),
     val pumps: List<LeaderEntry> = emptyList(),
+    val distance: List<LeaderEntry> = emptyList(),
+    val time: List<LeaderEntry> = emptyList(),
+    @SerialName("run_distance") val runDistance: List<LeaderEntry> = emptyList(),
+    @SerialName("run_time") val runTime: List<LeaderEntry> = emptyList(),
 )
 
 // Neueste Medien (GET /api/community/latest-photos) — Fotos + YouTube je Session.
