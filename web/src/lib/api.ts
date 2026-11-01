@@ -2105,6 +2105,10 @@ export const api = {
     req<TeamInfo>(`/api/teams/${encodeURIComponent(slug)}`, { method: "PUT", body: JSON.stringify(body) }),
   teamLogo: async (slug: string, file: File) =>
     uploadFile<{ logo_url: string }>(`/api/teams/${encodeURIComponent(slug)}/logo`, file),
+  teamBanner: async (slug: string, file: File) =>
+    uploadFile<{ banner_url: string; banner_fokus: string }>(`/api/teams/${encodeURIComponent(slug)}/banner`, file),
+  teamBannerEntfernen: (slug: string) =>
+    req<{ banner_url: null }>(`/api/teams/${encodeURIComponent(slug)}/banner`, { method: "DELETE" }),
   teamFreigabe: (slug: string) =>
     req<{ freigabe: string }>(`/api/teams/${encodeURIComponent(slug)}/freigabe`, { method: "POST" }),
   teamTafelnSetzen: (slug: string, tafeln: TeamTafel[]) =>
@@ -2129,13 +2133,13 @@ export const api = {
 
 // ---- Teams ----
 export type TeamRolle = "leiter" | "moderator" | "mitglied";
-export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; sportarten?: string[] }
+export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; banner_url?: string | null; banner_fokus?: string | null; sportarten?: string[] }
 export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null }
 export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean }
 export interface TeamEinstellungen {
   name: string; slug: string; beschreibung: string; farbe: string;
   anmeldungen_zulassen: boolean; automatisch_akzeptieren: boolean; oeffentlich: boolean;
-  mitglieder_sichtbar: "mitglieder" | "angemeldete";
+  mitglieder_sichtbar: "mitglieder" | "angemeldete"; banner_fokus: string;
 }
 export interface TeamInfo extends TeamAuftritt {
   id: number; mitglieder_anzahl: number; oeffentlich: boolean; bestenlisten_oeffentlich: boolean;

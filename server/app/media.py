@@ -95,7 +95,8 @@ def reencode_image(raw: bytes, max_dim: int = 1600) -> bytes:
 
 
 def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
-               thumb_dim: int | None = None, transparenz: bool = False) -> str:
+               thumb_dim: int | None = None, transparenz: bool = False,
+               min_breite: int | None = None, min_verhaeltnis: float | None = None) -> str:
     """Speichert ein Bild unter media_dir/<subdir>/<uuid>.webp und gibt die /media-URL zurück.
 
     max_dim: längste Kante (px). square=True: mittig quadratisch zuschneiden (Avatare).
@@ -110,6 +111,12 @@ def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
         img = _oeffnen(raw, max_dim)   # inkl. Aufnahme-Orientierung
     except Exception as exc:  # noqa: BLE001
         raise ImageError("Kein gültiges Bild") from exc
+
+    # Teambild (01.11.2026): zu schmal wird auf grossen Bildschirmen matschig, zu hoch laesst vom Bild kaum etwas uebrig.
+    if min_breite and img.width < min_breite:
+        raise ImageError("bild_zu_klein")
+    if min_verhaeltnis and img.width < img.height * min_verhaeltnis:
+        raise ImageError("bild_zu_hoch")
 
     # transparenz=True (Team-Wappen, 31.10.2026): Alphakanal behalten — ein freigestelltes Wappen
     # bekaeme sonst schwarze Ecken, weil RGBA->RGB die durchsichtigen Pixel auf Schwarz setzt.

@@ -157,15 +157,17 @@ def bestenlisten_oeffentlich(t: models.Team) -> bool:
 
 
 def auftritt(t: models.Team, intern: bool) -> dict:
-    """Name/Adresse/Beschreibung/Logo/Farbe — intern die aktuelle, aussen die freigegebene Fassung."""
+    """Name/Adresse/Beschreibung/Logo/Teambild/Farbe — intern die aktuelle, aussen die freigegebene Fassung."""
     if intern:
         return {"name": t.name, "slug": t.slug, "beschreibung": t.beschreibung,
-                "logo_url": t.logo_url, "farbe": t.farbe}
+                "logo_url": t.logo_url, "banner_url": t.banner_url, "banner_fokus": t.banner_fokus, "farbe": t.farbe}
     return {"name": t.frei_name, "slug": t.frei_slug, "beschreibung": t.frei_beschreibung,
-            "logo_url": t.frei_logo_url, "farbe": t.frei_farbe}
+            "logo_url": t.frei_logo_url, "banner_url": t.frei_banner_url, "banner_fokus": t.banner_fokus,
+            "farbe": t.frei_farbe}
 
 
-AUFTRITT_FELDER = ("name", "slug", "beschreibung", "logo_url", "farbe")
+AUFTRITT_FELDER = ("name", "slug", "beschreibung", "logo_url", "banner_url", "farbe")
+BILD_FELDER = ("logo_url", "banner_url")
 
 
 def auftritt_geaendert(t: models.Team) -> bool:
@@ -180,8 +182,8 @@ def nach_aenderung(t: models.Team) -> None:
 
 
 def freigeben(db: Session, t: models.Team) -> list[str]:
-    """Aktuelle Fassung nach aussen uebernehmen. Gibt nicht mehr benutzte Logo-URLs zurueck (zum Aufraeumen)."""
-    alt_logo = t.frei_logo_url
+    """Aktuelle Fassung nach aussen uebernehmen. Gibt nicht mehr benutzte Bild-URLs zurueck (zum Aufraeumen)."""
+    alte_bilder = [getattr(t, "frei_" + f) for f in BILD_FELDER]
     alt_slug = t.frei_slug
     for f in AUFTRITT_FELDER:
         setattr(t, "frei_" + f, getattr(t, f))
@@ -190,7 +192,8 @@ def freigeben(db: Session, t: models.Team) -> list[str]:
     t.freigabe_notiz = None
     if alt_slug and alt_slug != t.slug:
         slug_merken(db, alt_slug, t.id)
-    return [alt_logo] if alt_logo and alt_logo not in (t.logo_url, t.frei_logo_url) else []
+    noch = {getattr(t, f) for f in BILD_FELDER} | {getattr(t, "frei_" + f) for f in BILD_FELDER}
+    return [u for u in alte_bilder if u and u not in noch]
 
 
 def initialen(name: str | None) -> str:
@@ -233,7 +236,7 @@ def einladung_finden(db: Session, token: str) -> models.TeamEinladung | None:
 
 def team_loeschen(db: Session, t: models.Team) -> list[str]:
     """Team mit allem entfernen. Adressen bleiben gesperrt (team_id NULL). Gibt Medien-URLs zurueck."""
-    medien = [u for u in {t.logo_url, t.frei_logo_url} if u]
+    medien = [u for u in {getattr(t, f) for f in BILD_FELDER} | {getattr(t, "frei_" + f) for f in BILD_FELDER} if u]
     for slug in {t.slug, t.frei_slug} - {None}:
         slug_merken(db, slug, t.id)
     db.flush()

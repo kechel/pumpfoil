@@ -479,6 +479,7 @@ class EinstellungenIn(BaseModel):
     automatisch_akzeptieren: bool | None = None
     oeffentlich: bool | None = None
     mitglieder_sichtbar: str | None = None
+    banner_fokus: str | None = Field(default=None, pattern=r"^\d{1,3},\d{1,3}$")
 
 
 @router.put("/{slug}")
@@ -504,6 +505,9 @@ def einstellen(slug: str, body: EinstellungenIn, user: models.User = Depends(cur
         v = getattr(body, f)
         if v is not None:
             setattr(t, f, v)
+    if body.banner_fokus is not None:
+        x, y = (min(100, int(v)) for v in body.banner_fokus.split(","))
+        t.banner_fokus = f"{x},{y}"
     if body.mitglieder_sichtbar is not None:
         if body.mitglieder_sichtbar not in ("mitglieder", "angemeldete"):
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "mitglieder_sichtbar")
@@ -530,6 +534,42 @@ async def logo(slug: str, file: UploadFile = File(...), user: models.User = Depe
     if alt and alt != t.frei_logo_url:
         delete_media(alt)       # das freigegebene Logo bleibt, bis eine neue Fassung freigegeben ist
     return {"logo_url": url}
+
+
+@router.post("/{slug}/banner")
+async def banner(slug: str, file: UploadFile = File(...), user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    """Teambild ueber dem Kopf (01.11.2026): nie zugeschnitten, hoechstens 1600 px breit; mindestens 800 px breit und
+    1,5-mal so breit wie hoch. Welcher Ausschnitt sichtbar bleibt, sagt `banner_fokus` (Einstellungen)."""
+    from ..media import MAX_UPLOAD_BYTES, ImageError, delete_media, save_image
+    t = _leiter(db, slug, user)
+    raw = await file.read(MAX_UPLOAD_BYTES + 1)
+    try:
+        url = save_image(raw, subdir="teams", max_dim=1600, min_breite=800, min_verhaeltnis=1.5)
+    except ImageError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    alt = t.banner_url
+    t.banner_url, t.banner_fokus = url, "50,50"
+    T.nach_aenderung(t)
+    db.commit()
+    if alt and alt != t.frei_banner_url:
+        delete_media(alt)       # das freigegebene Bild bleibt, bis eine neue Fassung freigegeben ist
+    return {"banner_url": url, "banner_fokus": t.banner_fokus}
+
+
+@router.delete("/{slug}/banner")
+def banner_entfernen(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Teambild weg — innen UND aussen sofort: Entfernen braucht keine Freigabe, und wer ein Bild zurueckzieht,
+    soll nicht warten muessen, bis es auch oeffentlich verschwindet."""
+    from ..media import delete_media
+    t = _leiter(db, slug, user)
+    weg = [u for u in {t.banner_url, t.frei_banner_url} if u]
+    t.banner_url = t.frei_banner_url = None
+    T.nach_aenderung(t)
+    db.commit()
+    for u in weg:
+        delete_media(u)
+    return {"banner_url": None}
 
 
 @router.post("/{slug}/freigabe")

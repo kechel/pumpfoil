@@ -622,6 +622,9 @@ def _migrate_add_columns() -> None:
         },
     }
     want.setdefault("device_pairings", {})["old_token"] = "VARCHAR(64)"
+    # Teambild (01.11.2026)
+    want.setdefault("teams", {}).update({"banner_url": "VARCHAR(300)", "banner_fokus": "VARCHAR(12)",
+                                         "frei_banner_url": "VARCHAR(300)"})
     want.setdefault("device_tokens", {})["app_closed_at"] = "TIMESTAMP WITH TIME ZONE"
     insp = inspect(engine)
     with engine.begin() as conn:

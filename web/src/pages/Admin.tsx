@@ -105,7 +105,8 @@ export default function Admin() {
 }
 
 // Teams: Freigabe des Auftritts nach aussen (31.10.2026, docs/TEAMS.md). Intern duerfen Teams alles;
-// geprueft werden nur Name, Adresse, Beschreibung, Wappen und Farbe, so wie sie oeffentlich erscheinen.
+// geprueft werden nur Name, Adresse, Beschreibung, Wappen, Teambild und Farbe, so wie sie oeffentlich erscheinen.
+// Das Teambild hier GANZ (nicht im Ausschnitt): der Fokus ist frei waehlbar, also muss das ganze Bild passen.
 // Links die bisher freigegebene Fassung (falls es eine gibt), rechts die neue. Wie die Demo-Zeile ohne
 // Uebersetzung der Inhalte — nur Jan und Admins sehen das.
 function TeamsFreigabeTab() {
@@ -120,6 +121,7 @@ function TeamsFreigabeTab() {
       <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">{titel}</p>
       {!f ? <p className="text-sm text-slate-400">— (noch nie freigegeben)</p> : (
         <div className="team-farbe" style={teamFarbStil(f.farbe)}>
+          {f.banner_url && <img src={f.banner_url} alt="" className="mb-2 w-full rounded-lg" />}
           <div className="mb-2 flex items-center gap-2">
             <TeamWappen name={f.name} logo={f.logo_url} farbe={f.farbe} size={48} />
             <div className="min-w-0">

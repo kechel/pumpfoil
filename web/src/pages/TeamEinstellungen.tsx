@@ -7,6 +7,7 @@ import { api, FoilBand, TeamInfo, TeamMitglied, TeamTafel } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
 import { ChevronIcon, TrashIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
+import { BannerVorschau } from "../components/TeamBanner";
 import TeamQr from "../components/TeamQr";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { RegelnLink } from "./TeamRegeln";
@@ -19,6 +20,56 @@ import { useI18n } from "../i18n";
 const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100";
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 
+/** Teambild: hochladen, Fokuspunkt antippen, Vorschau fuer Handy und Rechner, entfernen. */
+function BannerBearbeiten({ team, slug, t, onGeaendert, onFehler }: {
+  team: TeamInfo; slug: string; t: (k: string) => string; onGeaendert: () => void; onFehler: (e: unknown) => void;
+}) {
+  const [fokus, setFokus] = useState(team.banner_fokus || "50,50");
+  useEffect(() => setFokus(team.banner_fokus || "50,50"), [team.banner_fokus]);
+  const setzen = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * 100);
+    const y = Math.round(Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)) * 100);
+    const f = `${x},${y}`;
+    setFokus(f);
+    api.teamEinstellen(slug, { banner_fokus: f }).then(onGeaendert).catch(onFehler);
+  };
+  const [fx, fy] = fokus.split(",");
+  return (
+    <div className="mb-3">
+      <p className="mb-1 text-sm text-slate-300">{t("team.banner.titel")}</p>
+      <p className="mb-2 text-xs text-slate-400">{t("team.banner.hinweis")}</p>
+      {team.banner_url && (
+        <>
+          <div className="relative mb-2 cursor-crosshair overflow-hidden rounded-lg" onClick={setzen}>
+            <img src={team.banner_url} alt="" className="block w-full select-none" draggable={false} />
+            <span className="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-black/40 shadow"
+              style={{ left: `${fx}%`, top: `${fy}%` }} />
+          </div>
+          <div className="mb-2 flex gap-3">
+            <BannerVorschau url={team.banner_url} fokus={fokus} verhaeltnis={2.5} titel={t("team.banner.handy")} />
+            <BannerVorschau url={team.banner_url} fokus={fokus} verhaeltnis={4} titel={t("team.banner.rechner")} />
+          </div>
+        </>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <label className={`${knopf} cursor-pointer`}>
+          {t("team.banner.hochladen")}
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (f) api.teamBanner(slug, f).then(onGeaendert).catch(onFehler);
+          }} />
+        </label>
+        {team.banner_url && (
+          <button className={knopf} onClick={() => api.teamBannerEntfernen(slug).then(onGeaendert).catch(onFehler)}>
+            {t("team.banner.entfernen")}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 function Schalter({ an, onChange, titel, text }: { an: boolean; onChange: (v: boolean) => void; titel: string; text?: string }) {
   return (
     <label className="flex cursor-pointer items-start gap-3 py-2">
@@ -143,6 +194,7 @@ export default function TeamEinstellungen() {
               }} />
             </label>
           </div>
+          <BannerBearbeiten team={team} slug={slug} t={t} onGeaendert={() => { laden(); gespeichert(); }} onFehler={fehlerZeigen} />
           <label className="mb-1 block text-sm text-slate-300">{t("team.name")}</label>
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} className={`${eingabe} mb-3`} />
           <label className="mb-1 block text-sm text-slate-300">{t("team.adresse")}</label>

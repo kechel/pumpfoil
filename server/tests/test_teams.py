@@ -429,3 +429,39 @@ def test_event_nur_an_spots_und_pruefungen(client):
     assert client.post(f"/api/teams/{slug}/events", headers=ka, json=ohne_tz).status_code == 422
     assert client.post(f"/api/teams/{slug}/events", headers=ka, json=dict(body, tafeln=[{"kennzahl": "x"}])).status_code == 422
     assert client.delete(f"/api/teams/{slug}/events/{eid}", headers=ka).status_code == 200
+
+
+def _png(w: int, h: int) -> bytes:
+    import io
+    from PIL import Image
+    b = io.BytesIO()
+    Image.new("RGB", (w, h), (30, 80, 160)).save(b, format="PNG")
+    return b.getvalue()
+
+
+def test_teambild_pruefung_freigabe_und_entfernen(client):
+    (_, ka), (_, kb) = _konto(client, "tm-a-bn@t.de"), _konto(client, "tm-b-bn@t.de")
+    adm = _admin(client, "tm-adm-bn@t.de")
+    slug = _team(client, ka, "Bannerteam")
+    hoch = lambda w, h: client.post(f"/api/teams/{slug}/banner", headers=ka,   # noqa: E731
+                                    files={"file": ("b.png", _png(w, h), "image/png")})
+    assert hoch(600, 200).json()["detail"] == "bild_zu_klein"
+    assert hoch(1000, 800).json()["detail"] == "bild_zu_hoch"
+    assert client.post(f"/api/teams/{slug}/banner", headers=kb,
+                       files={"file": ("b.png", _png(1600, 500), "image/png")}).status_code in (403, 404)
+    r = hoch(2400, 750).json()
+    assert r["banner_url"] and r["banner_fokus"] == "50,50"
+    client.put(f"/api/teams/{slug}", headers=ka, json={"oeffentlich": True, "banner_fokus": "30,70"})
+    client.post(f"/api/teams/{slug}/freigabe", headers=ka)
+    tid = next(x["id"] for x in client.get("/api/admin/teams", headers=adm).json() if x["neu"]["slug"] == slug)
+    client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
+    aussen = client.get(f"/api/public/teams/{slug}").json()
+    assert aussen["banner_url"] == r["banner_url"] and aussen["banner_fokus"] == "30,70"
+    # Fokus aendern braucht keine neue Freigabe; ein neues Bild schon.
+    assert client.put(f"/api/teams/{slug}", headers=ka, json={"banner_fokus": "50,20"}).json()["freigabe"] == "frei"
+    neu = hoch(1600, 500).json()["banner_url"]
+    assert client.get(f"/api/public/teams/{slug}").json()["banner_url"] == r["banner_url"]
+    assert client.get(f"/api/teams/{slug}", headers=ka).json()["banner_url"] == neu
+    # Entfernen wirkt sofort auch aussen.
+    client.delete(f"/api/teams/{slug}/banner", headers=ka)
+    assert client.get(f"/api/public/teams/{slug}").json()["banner_url"] is None

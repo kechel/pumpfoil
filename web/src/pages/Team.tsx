@@ -15,6 +15,7 @@ import { eventZeit } from "../lib/teamEvents";
 import { RegelnLink } from "./TeamRegeln";
 import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
+import TeamBanner from "../components/TeamBanner";
 import { teamFarbStil } from "../lib/teamFarben";
 import { fehlerCode, kennzahl, sportartenText, tafelKurz } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
@@ -257,6 +258,7 @@ export default function Team() {
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("team.meine")}
         </Link>
       )}
+      {kopf.banner_url && <TeamBanner url={kopf.banner_url} fokus={kopf.banner_fokus} className="mb-4" />}
       <div className="team-rand mb-4 flex items-start gap-4 border-b-2 pb-4">
         <TeamWappen name={kopf.name} logo={kopf.logo_url} farbe={kopf.farbe} size={64} />
         <div className="min-w-0 flex-1">

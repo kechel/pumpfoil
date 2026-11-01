@@ -187,9 +187,18 @@ Ende + 24 h, dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das 
 Uhr-/App-Aufnahmen, keine FIT-Importe. Vorhandene Waechter (Fake-Meldungen, Autofahrt-Grenzen,
 aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
+## Teambild (01.11.2026)
+
+Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;
+abgelehnt unter 800 px Breite oder wenn es nicht mindestens 1,5-mal so breit wie hoch ist. Angezeigt mit fester
+Hoehe (140 px Handy, 220 px ab sm) ueber die volle Breite; der Fokuspunkt `banner_fokus` ("x,y" in Prozent, in
+den Einstellungen per Antippen gesetzt, mit Vorschau 2,5:1 und 4:1) bleibt immer sichtbar. Das Bild selbst laeuft
+durch die Freigabe (`frei_banner_url`), der Fokus nicht. Entfernen wirkt sofort auch aussen. Kein Verlauf darueber
+(Markenregel).
+
 ## Freigabe-Pruefliste (Admin, ab 01.11.2026)
 
-Geprueft wird nur, was Gaeste ohne Login sehen: Name, Adresse, Beschreibung, Logo, Farbe. Intern darf
+Geprueft wird nur, was Gaeste ohne Login sehen: Name, Adresse, Beschreibung, Logo, Teambild, Farbe. Intern darf
 ein Team machen, was es will. Beim ersten Team (01.11.) entstanden; je Antrag einmal durchgehen.
 
 1. **Name:** lesbar, kein Tippfehler, keine Beleidigung, keine fremde Marke/Firma, die das Team nicht
@@ -199,9 +208,11 @@ ein Team machen, was es will. Beim ersten Team (01.11.) entstanden; je Antrag ei
 3. **Beschreibung:** Sprache(n) erkennen und lesen (notfalls uebersetzen), Tippfehler, keine Kontaktdaten
    Privater, keine Werbung/Links als Hauptinhalt, keine Versprechen in unserem Namen. Zeilenumbrueche
    bleiben auf der Seite stehen.
-4. **Logo:** Inhalt unbedenklich (Nacktheit, Gewalt, Symbole), erkennbar auch klein (Wappen ~40 px),
+4. **Logo und Teambild:** Inhalt unbedenklich (Nacktheit, Gewalt, Symbole), erkennbar auch klein (Wappen ~40 px),
    Freisteller/Hintergrund ok. **Rechte:** sieht es nach einem fremden Werk aus (Kunst, Foto, Markenlogo
    aus dem Netz), beim Teamleiter nachfragen, bevor es oeffentlich wird.
+   Teambild immer GANZ ansehen (der Admin-Tab zeigt es so): den sichtbaren Ausschnitt waehlt die Leitung
+   spaeter ohne neue Freigabe.
 5. **Farbe:** aus der Palette, reicht in hell und dunkel.
 6. **Umfeld (nur zur Kenntnis):** Mitglieder sind selbst beigetreten (`zustimmung_am` je Mitglied
    gesetzt), Mitgliederliste-Einstellung, Bestenlisten sinnvoll. Kein Freigabegrund, aber auffaellig,

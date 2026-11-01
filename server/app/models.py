@@ -1969,6 +1969,11 @@ class Team(Base):
     slug: Mapped[str] = mapped_column(String(40), unique=True, index=True)
     beschreibung: Mapped[str | None] = mapped_column(Text)
     logo_url: Mapped[str | None] = mapped_column(String(300))
+    # Teambild ueber dem Kopf (01.11.2026): hoechstens 1600 px breit, nie zugeschnitten. `banner_fokus` = "x,y" in
+    # Prozent — die Stelle, die bei jeder Bildschirmbreite sichtbar bleibt; gilt innen wie aussen ohne Freigabe,
+    # weil sie nur den Ausschnitt eines (freigegebenen) Bildes waehlt.
+    banner_url: Mapped[str | None] = mapped_column(String(300))
+    banner_fokus: Mapped[str | None] = mapped_column(String(12))
     farbe: Mapped[str | None] = mapped_column(String(20))
     anmeldungen_zulassen: Mapped[bool] = mapped_column(Boolean, default=True)
     automatisch_akzeptieren: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -1982,6 +1987,7 @@ class Team(Base):
     frei_slug: Mapped[str | None] = mapped_column(String(40))
     frei_beschreibung: Mapped[str | None] = mapped_column(Text)
     frei_logo_url: Mapped[str | None] = mapped_column(String(300))
+    frei_banner_url: Mapped[str | None] = mapped_column(String(300))
     frei_farbe: Mapped[str | None] = mapped_column(String(20))
     frei_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     angelegt_von: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
