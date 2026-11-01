@@ -1501,6 +1501,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 01.11. (Jan) — Garmin: Upload direkt per WLAN, ohne Handy?** Nur gemerkt, nichts gebaut. Anlass: ein Nutzer mit
+  Forerunner 245 ohne brauchbares Handy wollte per Kabel/Garmin Express hochladen (geht nicht: Connect-IQ-Apps kommen nur
+  ueber Garmin Connect Mobile ins Netz). Jans fēnix 7X Pro hat WLAN. Stand heute: `Uploader.phoneConnected()`
+  (watch/source/Uploader.mc) prueft nur `phoneConnected`, ohne Handy startet der Upload gar nicht. Zu klaeren (Doku/SDK
+  9.2.0): darf eine normale Aktivitaets-App den WLAN-Sync-Modus (`Communications.startSync`/`SyncDelegate`, eingefuehrt
+  fuer Musik-Apps) nutzen, ab welcher API, auf welchen Geraeten — Vermutung, ungeprueft. Danach den irrefuehrenden Text
+  „Upload via Wi-Fi/phone" (watch/source/Strings.mc, StringsLite.mc) und „Upload (WLAN)" (watch/README.md) anpassen,
+  je nach Ergebnis. Aufnahme-Pfad bleibt unberuehrt; vor Store nur nach Test auf echter Uhr.
+
 - **🔲 01.11. (Jan) — Schnellste 100 m / 200 m / 500 m / 1 km als Kennzahlen (Teams, Events, evtl. Rekorde).** Jan: „wenn
   wir danach 'schnellster km' bauen, dann aber … direkt 'schnellster 100m und 200m und 500m' gleich mitziehen". Machbar
   wie das Low End (analysis/lowend.py): je Lauf die kuerzeste Zeit ueber die Strecke aus dem gespeicherten Track
