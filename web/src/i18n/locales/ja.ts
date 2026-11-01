@@ -711,6 +711,8 @@ const ja: Record<string, string> = {
   "sd.maxPump": "最大ポンプ (5s)",
   "sd.minPump": "最小ポンプ (5s)",
   "sd.avgHr": "Ø 心拍数",
+  "sd.avgHrFoil": "Ø 心拍数（フォイル上）",
+  "sd.avgHrGesamt": "全体 {n}",
   "sd.maxHr": "最大心拍数",
   "sd.coloring": "色分け：",
   "sd.colorSpeed": "速度",

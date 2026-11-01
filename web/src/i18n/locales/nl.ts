@@ -735,6 +735,8 @@ const nl: Record<string, string> = {
   "sd.maxPump": "Max pump (5s)",
   "sd.minPump": "Min pump (5s)",
   "sd.avgHr": "Ø hartslag",
+  "sd.avgHrFoil": "Ø hartslag op de foil",
+  "sd.avgHrGesamt": "totaal {n}",
   "sd.maxHr": "Max hartslag",
   "sd.coloring": "Kleuring:",
   "sd.colorSpeed": "Snelheid",

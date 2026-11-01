@@ -750,6 +750,9 @@ class AnalysisResult(Base):
     # NULL = noch nicht gerechnet; "{}" = geprueft, aber nichts zu holen (kein Puls / keine Laeufe)
     # -> wird nicht bei jedem Aufruf neu versucht. run_analysis setzt auf NULL zurueck.
     hr_by_min_json: Mapped[str | None] = mapped_column(Text)
+    # Ø Puls nur ueber die Laeufe (Feedback u904, 01.11.2026): Cache {"v": 1, "avg": int|None}, api/sessions.py
+    # _hr_foil; run_analysis setzt ihn zurueck.
+    hr_foil_json: Mapped[str | None] = mapped_column(Text)
 
     carve_s: Mapped[int | None] = mapped_column(Integer)
     carve_m: Mapped[int | None] = mapped_column(Integer)

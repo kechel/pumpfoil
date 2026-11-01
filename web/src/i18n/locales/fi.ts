@@ -717,6 +717,8 @@ const fi: Record<string, string> = {
   "sd.maxPump": "Maks. pump (5s)",
   "sd.minPump": "Min. pump (5s)",
   "sd.avgHr": "Ø syke",
+  "sd.avgHrFoil": "Ø syke foililla",
+  "sd.avgHrGesamt": "koko {n}",
   "sd.maxHr": "Maks. syke",
   "sd.coloring": "Väritys:",
   "sd.colorSpeed": "Nopeus",

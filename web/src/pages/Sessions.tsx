@@ -1381,7 +1381,8 @@ export function SessionStats({ a, profil }: { a: NonNullable<SessionSummary["ana
       {m?.num_segments != null && <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {m.num_segments} {m.num_segments === 1 ? t("unit.run") : t("unit.runs")}</span>}
       {m?.avg_speed_mps != null && <span>Ø {kmh(m.avg_speed_mps)} km/h</span>}
       {profil?.pumpzahlen !== false && a.pump_count != null && <span>↕ {a.pump_count}{m?.avg_pump_hz ? ` · ${pf.fmt(m.avg_pump_hz)}` : ""}</span>}
-      {m?.avg_hr != null && <span className="inline-flex items-center gap-1"><HeartPulseIcon className="h-4 w-4 text-slate-400" /> {m.avg_hr}{m?.max_hr ? `/${m.max_hr}` : ""}</span>}
+      {/* Ø auf dem Foil, wenn vorhanden (01.11.2026) */}
+      {m?.avg_hr != null && <span className="inline-flex items-center gap-1"><HeartPulseIcon className="h-4 w-4 text-slate-400" /> {m.avg_hr_foil ?? m.avg_hr}{m?.max_hr ? `/${m.max_hr}` : ""}</span>}
       {m?.farthest_segment_m != null && m.farthest_segment_m > 0 && <span>{t("sessions.farAbbr")} {Math.round(m.farthest_segment_m)} m</span>}
       {m?.longest_segment_s != null && m.longest_segment_s > 0 && <span>{t("sessions.longAbbr")} {dur(m.longest_segment_s)}</span>}
     </div>

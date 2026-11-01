@@ -625,6 +625,8 @@ const it: Record<string, string> = {
   "sd.maxPump": "Pump max (5s)",
   "sd.minPump": "Pump min (5s)",
   "sd.avgHr": "Ø battito",
+  "sd.avgHrFoil": "Ø battito sul foil",
+  "sd.avgHrGesamt": "totale {n}",
   "sd.maxHr": "Battito max",
   "sd.coloring": "Colorazione:",
   "sd.colorSpeed": "Velocità",

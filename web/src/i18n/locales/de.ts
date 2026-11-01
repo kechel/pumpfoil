@@ -775,6 +775,8 @@ const de: Record<string, string> = {
   "sd.maxPump": "Max Pump (5s)",
   "sd.minPump": "Min Pump (5s)",
   "sd.avgHr": "Ø Puls",
+  "sd.avgHrFoil": "Ø Puls auf dem Foil",
+  "sd.avgHrGesamt": "gesamt {n}",
   "sd.maxHr": "Max Puls",
   "sd.coloring": "Färbung:",
   "sd.colorSpeed": "Speed",

@@ -726,6 +726,8 @@ const nb: Record<string, string> = {
   "sd.maxPump": "Maks pumping (5s)",
   "sd.minPump": "Min pumping (5s)",
   "sd.avgHr": "Ø puls",
+  "sd.avgHrFoil": "Ø puls på foilen",
+  "sd.avgHrGesamt": "totalt {n}",
   "sd.maxHr": "Maks puls",
   "sd.coloring": "Farge:",
   "sd.colorSpeed": "Fart",

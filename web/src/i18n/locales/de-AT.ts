@@ -1691,6 +1691,8 @@ const deAT: Record<string, string> = {
   "reset.linkInvalid": "Link ungültig oder abgelaufen.",
   "sd.autoScaleTitle": "Skala automatisch an die Session anpassen",
   "sd.avgHr": "Ø Puls",
+  "sd.avgHrFoil": "Ø Puls auf dem Foil",
+  "sd.avgHrGesamt": "gesamt {n}",
   "sd.clearSelection": "Auswahl aufheben (alle Läufe)",
   "sd.colAvg": "Ø km/h",
   "sd.colAvgPump": "Ø Pump {unit}",

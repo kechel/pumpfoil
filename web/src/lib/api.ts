@@ -308,6 +308,8 @@ export interface Analysis {
 export interface Metrics {
   num_segments?: number;
   avg_hr?: number | null;
+  /** Ø Puls nur ueber die Laeufe (Server rechnet aus der GPS-Spur, 01.11.2026); fehlt ohne Puls oder ohne Laeufe */
+  avg_hr_foil?: number | null;
   max_hr?: number | null;
   avg_speed_mps?: number | null;
   max_speed_5s_mps?: number | null;

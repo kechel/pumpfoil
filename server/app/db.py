@@ -124,6 +124,7 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE spots ADD COLUMN IF NOT EXISTS area_name VARCHAR(120)",
         # Puls-Anstieg je Session (Median des Hoechstpulses bis Minute 1/2/5), lazy gefuellt.
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS hr_by_min_json TEXT",
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS hr_foil_json TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_allowed BOOLEAN DEFAULT true",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS age_bracket VARCHAR(16)",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS online_at TIMESTAMPTZ",

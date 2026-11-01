@@ -1724,6 +1724,8 @@ const gsw: Record<string, string> = {
   "reset.linkInvalid": "Link ungültig oder abglaufe.",
   "sd.autoScaleTitle": "Skala automatisch a d Session aapasse",
   "sd.avgHr": "Ø Puls",
+  "sd.avgHrFoil": "Ø Puls uf em Foil",
+  "sd.avgHrGesamt": "total {n}",
   "sd.clearSelection": "Uswahl ufhebe (alli Läuf)",
   "sd.colAvg": "Ø km/h",
   "sd.colAvgPump": "Ø Pump {unit}",

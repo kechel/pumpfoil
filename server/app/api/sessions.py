@@ -203,6 +203,66 @@ def _wie_spur_versetzen(s: models.Session, zeilen: list[list]) -> list[list]:
     return [[round(a, 6), round(b, 6), *z[2:]] for (a, b), z in zip(neu, zeilen)]
 
 
+HR_FOIL_V = 1
+
+
+def _hr_foil(uuid: str, segs_json: str | None) -> int | None:
+    """Ø Puls nur ueber die Zeit auf dem Foil (Feedback u904, 01.11.2026: „average heart rate should be on foil heart
+    rate"). `metrics.avg_hr` laeuft ueber die ganze Aufnahme, also mit Pausen am Ufer und Zuruecklaufen.
+
+    Dieselbe Quelle wie `avg_hr`: Puls je GPS-Punkt (load_gps Index 4), eingefrorene Strecken heraus wie in der
+    Erkennung; ausgewaehlt ueber `t_*_session_ms` der Laeufe. Keine Detektor-Aenderung."""
+    import numpy as np
+    from .. import storage
+    from ..analysis.detect_v2 import puls_ohne_eingefrorene
+    try:
+        segs = json.loads(segs_json) if segs_json else []
+        gps = storage.load_gps(uuid) if segs else None
+    except Exception:
+        return None
+    if not segs or not gps:
+        return None
+    t = np.array([float(r[0]) for r in gps], dtype=float)
+    hr = np.array([(float(r[4]) if len(r) > 4 and r[4] else np.nan) for r in gps], dtype=float)
+    if not np.any(~np.isnan(hr)):
+        return None
+    hr[hr <= 0] = np.nan
+    hr = puls_ohne_eingefrorene(t, hr)
+    # Ueber die SESSION-Zeit der Laeufe auswaehlen, nicht ueber i_start/i_end: die Indizes zaehlen auf der
+    # aufbereiteten (zugeschnittenen) Liste der Erkennung, nicht auf der rohen GPS-Liste (#19682: 7 Punkte versetzt).
+    drin = np.zeros(t.size, dtype=bool)
+    for sg in segs:
+        a, b = sg.get("t_start_session_ms"), sg.get("t_end_session_ms")
+        if a is not None and b is not None:
+            drin |= (t >= float(a)) & (t <= float(b))
+    alle = hr[drin]
+    alle = alle[~np.isnan(alle)]
+    return int(round(float(alle.mean()))) if alle.size else None
+
+
+def _hr_foil_gecacht(result: models.AnalysisResult, uuid: str) -> int | None:
+    """Aus `hr_foil_json`, sonst einmal rechnen und speichern (eigene kurze Transaktion, damit die Anfrage selbst
+    nichts committen muss; run_analysis setzt den Cache bei Reanalyse/Trim zurueck)."""
+    from sqlalchemy.orm.attributes import set_committed_value
+    try:
+        c = json.loads(result.hr_foil_json) if result.hr_foil_json else None
+    except ValueError:
+        c = None
+    if isinstance(c, dict) and c.get("v") == HR_FOIL_V:
+        return c.get("avg")
+    wert = _hr_foil(uuid, result.segments_json)
+    roh = json.dumps({"v": HR_FOIL_V, "avg": wert})
+    try:
+        from ..db import engine
+        with engine.begin() as conn:
+            conn.execute(models.AnalysisResult.__table__.update()
+                         .where(models.AnalysisResult.__table__.c.id == result.id).values(hr_foil_json=roh))
+        set_committed_value(result, "hr_foil_json", roh)
+    except Exception:
+        pass   # Cache ist Kuer: dann eben beim naechsten Mal
+    return wert
+
+
 def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal",
                   session: models.Session | None = None,
                   ort_verbergen: bool = False) -> AnalysisOut | None:
@@ -227,6 +287,11 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         metrics = {**metrics, "avg_pump_hz": metrics["pumpgleit"]["avg_pump_hz"]}
     if PA.an() and metrics is not None and p and p.get("pg_version"):
         metrics = {**metrics, "avg_pump_hz": p.get("pg_avg_cadence_hz")}
+    # Ø Puls auf dem Foil neben dem Gesamtwert (01.11.2026); nur wo die Aufnahme ueberhaupt Puls hat.
+    if metrics is not None and session is not None and metrics.get("avg_hr") is not None:
+        hf = _hr_foil_gecacht(result, session.session_uuid)
+        if hf is not None:
+            metrics = {**metrics, "avg_hr_foil": hf}
     segments = None
     if not slim:
         segments = p["segments"] if p else (json.loads(result.segments_json) if result.segments_json else None)

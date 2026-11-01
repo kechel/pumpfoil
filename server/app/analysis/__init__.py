@@ -523,6 +523,7 @@ def _brett_regeln_schreiben(db: DbSession, session, result, sens: str) -> None:
     segs = erg["segments"]
     result.segments_json = json.dumps(segs)
     result.low_end_json = None   # Laeufe koennen sich geaendert haben -> Low End neu rechnen lassen
+    result.hr_foil_json = None   # Ø Puls auf dem Foil ebenso (api/sessions.py _hr_foil)
     result.foiling_time_s = erg["foiling_time_s"]
     if result.pump_count is not None:
         result.pump_count = erg["pump_count"]
@@ -1094,6 +1095,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.low_end_json = None   # Low End ebenso (analysis/lowend.py, die Foil-Stats rechnen nach)
     # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).
     result.hr_by_min_json = None
+    result.hr_foil_json = None   # Ø Puls auf dem Foil (api/sessions.py _hr_foil)
     # Preset-Cache: die kanonischen Spalten oben sind MIT dem Preset des Besitzers gerechnet (es
     # gibt nur diesen einen Lauf, s. `_preset_kw`) — hier wird dasselbe Ergebnis zusätzlich unter
     # seinem Stufen-Schlüssel abgelegt. Bereits gecachte ANDERE Stufen bleiben erhalten, damit ein

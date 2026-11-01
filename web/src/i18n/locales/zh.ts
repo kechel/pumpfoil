@@ -711,6 +711,8 @@ const zh: Record<string, string> = {
   "sd.maxPump": "最高泵动 (5秒)",
   "sd.minPump": "最低泵动 (5秒)",
   "sd.avgHr": "Ø 心率",
+  "sd.avgHrFoil": "Ø 心率（水翼上）",
+  "sd.avgHrGesamt": "全程 {n}",
   "sd.maxHr": "最高心率",
   "sd.coloring": "着色：",
   "sd.colorSpeed": "速度",

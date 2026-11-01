@@ -752,6 +752,8 @@ const en: Record<string, string> = {
   "sd.maxPump": "Max pump (5s)",
   "sd.minPump": "Min pump (5s)",
   "sd.avgHr": "Ø heart rate",
+  "sd.avgHrFoil": "Ø heart rate on foil",
+  "sd.avgHrGesamt": "overall {n}",
   "sd.maxHr": "Max heart rate",
   "sd.coloring": "Coloring:",
   "sd.colorSpeed": "Speed",
