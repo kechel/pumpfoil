@@ -38,6 +38,35 @@ export function alsEingabe(d: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+/** Laeuft der Zeitpunkt in der Event-Zeitzone genau um 0:00? */
+function mitternacht(d: Date, zeitzone: string | null): boolean {
+  try {
+    const p = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: zeitzone || undefined }).formatToParts(d);
+    return p.find((x) => x.type === "hour")?.value === "00" && p.find((x) => x.type === "minute")?.value === "00";
+  } catch {
+    return false;
+  }
+}
+
+/** Zeitfenster eines Events mit Wochentag. Das Ende zaehlt nicht mehr dazu ([start, ende)); liegen beide Grenzen auf
+ *  Mitternacht (Wochenende, Monat …), stehen nur die Tage da und das Ende ist der LETZTE Tag — „Sa 07.11. – So 08.11.“
+ *  statt „07.11. 0:00 – 09.11. 0:00“, das nach drei Tagen aussah (Jan, 01.11.2026). */
+export function eventZeitraum(start: string, ende: string, zeitzone: string | null, lang: string): string {
+  const a = new Date(start), b = new Date(ende);
+  const tz = zeitzone || undefined;
+  try {
+    if (mitternacht(a, zeitzone) && mitternacht(b, zeitzone)) {
+      const f = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: tz });
+      const letzter = new Date(b.getTime() - 12 * 3600 * 1000);   // sicher im Vortag, auch bei Zeitumstellung
+      return `${f.format(a)} – ${f.format(letzter)}`;
+    }
+    const f = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: tz });
+    return `${f.format(a)} – ${f.format(b)}`;
+  } catch {
+    return `${a.toLocaleString()} – ${b.toLocaleString()}`;
+  }
+}
+
 export function eventZeit(iso: string, zeitzone: string | null, lang: string): string {
   try {
     return new Intl.DateTimeFormat(lang, { dateStyle: "medium", timeStyle: "short", timeZone: zeitzone || undefined }).format(new Date(iso));

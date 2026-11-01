@@ -7,7 +7,7 @@ import { api, FoilBand, TeamEvent, TeamEventTafel } from "../lib/api";
 import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
 import { TEAM_KENNZAHLEN, fehlerCode } from "../lib/teamKennzahlen";
-import { EVENT_VORLAGEN, alsEingabe, eventZeit, neueEventTafel } from "../lib/teamEvents";
+import { EVENT_VORLAGEN, alsEingabe, eventZeitraum, neueEventTafel } from "../lib/teamEvents";
 import { sortiereNachSport } from "../lib/sportClass";
 import { bandLabel } from "../pages/Home";
 import { useI18n } from "../i18n";
@@ -72,7 +72,7 @@ export default function TeamEventsVerwalten({ slug, sports, bands, alleSpots, on
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium text-slate-100">{ev.titel}</span>
             <span className="block text-xs text-slate-400">
-              {t(`team.event.status.${ev.status}`)} · {eventZeit(ev.start, ev.zeitzone, lang)} – {eventZeit(ev.ende, ev.zeitzone, lang)}
+              {t(`team.event.status.${ev.status}`)} · {eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}
             </span>
           </span>
           {ev.status !== "beendet" && <button className={knopf} onClick={() => bearbeiten(ev)}>{t("team.event.bearbeiten")}</button>}

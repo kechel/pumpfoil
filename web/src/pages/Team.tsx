@@ -11,7 +11,7 @@ import { Avatar, Card } from "../components/ui";
 import { ChatBubbleIcon, ChevronIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { openChatOverlay } from "../components/DmWidget";
-import { eventZeit } from "../lib/teamEvents";
+import { eventZeit, eventZeitraum } from "../lib/teamEvents";
 import { RegelnLink } from "./TeamRegeln";
 import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
@@ -318,7 +318,7 @@ export default function Team() {
                 </span>
               </div>
               <p className="text-sm text-slate-400">
-                {eventZeit(e.start, e.zeitzone, lang)} – {eventZeit(e.ende, e.zeitzone, lang)}
+                {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
                 {e.spots.length > 0 && <> · {e.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
               </p>
               {e.tafeln.length > 0 && (
