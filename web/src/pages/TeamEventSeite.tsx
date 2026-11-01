@@ -77,7 +77,7 @@ export default function TeamEventSeite() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {ev.tafeln.map((tf, i) => (
-            <Tafel key={i} tf={tf} gast={gast} t={t} onBild={gast ? undefined : () => setBild(tf)} />
+            <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter onBild={gast ? undefined : () => setBild(tf)} />
           ))}
         </div>
       )}

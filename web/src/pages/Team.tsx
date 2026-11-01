@@ -171,8 +171,10 @@ function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: str
   );
 }
 
-export function Tafel({ tf, gast, t, onBild }: {
+export function Tafel({ tf, gast, t, onBild, ohneFilter = false }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
+  /** Filterzeile („auch nur GPS" …) weglassen — auf der Event-Seite (Jan, 01.11.2026). */
+  ohneFilter?: boolean;
 }) {
   const k = kennzahl(tf.kennzahl);
   const filter = [
@@ -192,7 +194,7 @@ export function Tafel({ tf, gast, t, onBild }: {
           </button>
         )}
       </div>
-      {filter && <p className="text-xs text-slate-400">{filter}</p>}
+      {filter && !ohneFilter && <p className="text-xs text-slate-400">{filter}</p>}
       {tf.zeilen.length === 0 ? <p className="mt-2 text-sm text-slate-400">{t("team.tafel.leer")}</p> : (
         <ol className="mt-2">
           {tf.zeilen.map((z) => {
