@@ -67,6 +67,24 @@ export function eventZeitraum(start: string, ende: string, zeitzone: string | nu
   }
 }
 
+/** Das Zeitfenster IMMER mit Uhrzeit, fuer die grosse Anzeige vor dem Start. Ein Ende um Mitternacht steht als
+ *  „24:00" am Vortag — „bis So 24:00" statt „bis Mo 0:00", das wie ein Tag mehr aussah. */
+export function eventZeitraumGenau(start: string, ende: string, zeitzone: string | null, lang: string): [string, string] {
+  const tz = zeitzone || undefined;
+  try {
+    const f = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: tz });
+    const b = new Date(ende);
+    if (mitternacht(b, zeitzone)) {
+      const tag = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: tz })
+        .format(new Date(b.getTime() - 12 * 3600 * 1000));
+      return [f.format(new Date(start)), `${tag}, 24:00`];
+    }
+    return [f.format(new Date(start)), f.format(b)];
+  } catch {
+    return [new Date(start).toLocaleString(), new Date(ende).toLocaleString()];
+  }
+}
+
 export function eventZeit(iso: string, zeitzone: string | null, lang: string): string {
   try {
     return new Intl.DateTimeFormat(lang, { dateStyle: "medium", timeStyle: "short", timeZone: zeitzone || undefined }).format(new Date(iso));
