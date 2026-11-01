@@ -17,6 +17,7 @@ brand/
 ├─ stores/        Store-Listing-Grafiken + Screenshots (pro Store)
 ├─ social/        YouTube-Banner, …
 ├─ badges/        Abzeichen am Profilbild (supporter.svg „Welle + Herz“, 23.10.2026)
+├─ teams/         Teambild + Wappen fuer eigene Teams (pumpfoil-test-team/, 01.11.2026)
 └─ _old/          abgelöste/duplizierte Dateien (Sicherheitsnetz, nicht gelöscht)
 ```
 
