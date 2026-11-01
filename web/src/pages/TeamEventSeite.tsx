@@ -172,7 +172,7 @@ export default function TeamEventSeite() {
         {ev.status === "auswertung" && (
           <p className="text-xs text-slate-400">{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</p>
         )}
-        {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm text-slate-300">{ev.beschreibung}</p>}
+        {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm font-semibold text-slate-200">{ev.beschreibung}</p>}
       </div>
 
       <h3 className="mb-2 text-lg font-bold text-slate-100">{t(eventStandKey(ev.status))}</h3>
