@@ -72,7 +72,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
   const popup = (e && createPortal(
         <div className="team-farbe fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" style={teamFarbStil(farbe)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-700 bg-white p-5 dark:bg-slate-900">
-          <h3 className="mb-3 text-lg font-bold text-slate-100">{e.id ? t("team.event.bearbeiten") : t("team.event.neu")}</h3>
+          <h3 className="mb-3 text-lg font-bold text-slate-100">{e.id ? `${t("team.event.bearbeiten")}: ${e.titel}` : t("team.event.neu")}</h3>
           {e.eingefroren ? (
             <>
               <p className="mb-1 font-medium text-slate-100">{e.titel}</p>

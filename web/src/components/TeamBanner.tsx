@@ -57,6 +57,8 @@ export function BannerBearbeiten({ url, fokus: fokusIn, t, hochladen, fokusSetze
       <p className="mb-2 text-xs text-slate-400">{t(`${texte}.hinweis`)}</p>
       {url && (
         <>
+          {/* Der Satz zum Antippen steht nur, wenn es ein Bild gibt (Jan, 01.11.2026: ohne Bild war er raetselhaft). */}
+          <p className="mb-1 text-xs text-slate-400">{t("team.banner.fokusHinweis")}</p>
           <div className="relative mb-2 cursor-crosshair overflow-hidden rounded-lg" onClick={setzen}>
             <img src={url} alt="" className="block w-full select-none" draggable={false} />
             <span className="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-black/40 shadow"
