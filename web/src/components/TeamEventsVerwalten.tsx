@@ -9,7 +9,7 @@ import { BannerBearbeiten } from "./TeamBanner";
 import { api, FoilBand, TeamEvent, TeamEventTafel } from "../lib/api";
 import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
-import { TEAM_KENNZAHLEN, fehlerCode } from "../lib/teamKennzahlen";
+import { EVENT_SUMMEN, TEAM_KENNZAHLEN, fehlerCode } from "../lib/teamKennzahlen";
 import { EVENT_VORLAGEN, alsEingabe, eventZeitraum, neueEventTafel } from "../lib/teamEvents";
 import { sortiereNachSport } from "../lib/sportClass";
 import { bandLabel } from "../pages/Home";
@@ -19,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -54,14 +54,14 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       start: new Date(e.start).toISOString(), ende: new Date(e.ende).toISOString(),
       zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
       tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage, ohne_dateien: !!e.ohne_dateien,
-      teambild_zeigen: e.teambild_zeigen !== false,
+      teambild_zeigen: e.teambild_zeigen !== false, summen: e.summen ?? [],
     };
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
       .then(() => { schliessen(); laden(); onMeldung(t("team.gespeichert")); })
       .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
-    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
+    id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
@@ -139,6 +139,19 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
             </div>
           ))}
           {e.tafeln.length < 6 && <button className={`${knopf} mb-3`} onClick={() => setE({ ...e, tafeln: [...e.tafeln, neueEventTafel()] })}>+ {t("team.tafel.neu")}</button>}
+
+          {/* Gesamtsummen ueber alle Teilnehmer, einzeln anklickbar (Jan, 01.11.2026). */}
+          <p className="mb-1 text-sm text-slate-300">{t("team.event.summen")}</p>
+          <p className="mb-2 text-xs text-slate-400">{t("team.event.summenHinweis")}</p>
+          <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1">
+            {EVENT_SUMMEN.map((k) => (
+              <label key={k.key} className="flex cursor-pointer items-center gap-1.5 text-sm text-slate-300">
+                <input type="checkbox" checked={(e.summen ?? []).includes(k.key)}
+                  onChange={(x) => setE({ ...e, summen: x.target.checked ? [...(e.summen ?? []), k.key] : (e.summen ?? []).filter((y) => y !== k.key) })} />
+                {t(k.labelKey)}
+              </label>
+            ))}
+          </div>
 
           <p className="mb-1 text-sm text-slate-300">{t("team.event.spots")}</p>
           <div className="mb-2 flex flex-wrap gap-2">

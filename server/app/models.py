@@ -2135,3 +2135,7 @@ class TeamEvent(Base):
     ohne_dateien: Mapped[bool] = mapped_column(Boolean, default=False)
     # Ohne eigenes Eventbild das Teambild zeigen (Jan, 01.11.2026) — beim Anlegen an, abschaltbar.
     teambild_zeigen: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Gesamtsummen ueber alle Teilnehmer (Jan, 01.11.2026), je Event einzeln anklickbar: Schluessel aus
+    # teams.EVENT_SUMMEN, und beim Einfrieren das Ergebnis dazu (ergebnis_json bleibt die Liste der Bestenlisten).
+    summen_json: Mapped[str | None] = mapped_column(Text)
+    summen_ergebnis_json: Mapped[str | None] = mapped_column(Text)

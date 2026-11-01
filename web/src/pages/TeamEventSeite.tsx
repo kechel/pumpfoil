@@ -11,7 +11,7 @@ import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
-import { tafelKurz } from "../lib/teamKennzahlen";
+import { EVENT_SUMMEN, tafelKurz } from "../lib/teamKennzahlen";
 import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
 import { Tafel } from "./Team";
 import { useI18n } from "../i18n";
@@ -60,6 +60,24 @@ function Countdown({ ev, lang, t }: { ev: TeamEvent; lang: string; t: (k: string
 
 /** Oeffentliche Event-Adresse zum Teilen (Jan, 01.11.2026) — nur bei oeffentlichem, freigegebenem Team; Gaeste sehen
  *  dort die Bestenlisten in Gastform. */
+/** Gesamtsummen ueber alle Teilnehmer (Jan, 01.11.2026) — nur die angeklickten, Kacheln wie die Teamstatistik. */
+function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
+  const auswahl = EVENT_SUMMEN.filter((k) => (ev.summen_auswahl ?? []).includes(k.key));
+  return (
+    <div className="mb-4">
+      <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("team.event.teamGesamt")}</p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {auswahl.map((k) => (
+          <div key={k.key} className="team-rand rounded-xl border-2 bg-slate-900/60 p-3 text-center">
+            <div className="team-akzent text-2xl font-bold leading-tight">{k.fmt(ev.summen?.[k.key] ?? 0)}</div>
+            <div className="text-xs text-slate-400">{t(k.labelKey)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function EventTeilen({ url, titel, t }: { url: string; titel: string; t: (k: string) => string }) {
   const [kopiert, setKopiert] = useState(false);
   return (
@@ -171,6 +189,7 @@ export default function TeamEventSeite() {
             <Uhr ziel={ev.ende} klein t={t} />
           </div>
         )}
+        {(ev.summen_auswahl ?? []).length > 0 && <EventSummen ev={ev} t={t} />}
         <div className="grid gap-3 sm:grid-cols-2">
           {ev.tafeln.map((tf, i) => (
             <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter onBild={gast ? undefined : () => setBild(tf)} />

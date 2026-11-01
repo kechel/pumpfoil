@@ -554,3 +554,38 @@ def test_event_ohne_datei_uploads(client):
     assert [z["user_id"] for z in ohne["tafeln"][0]["zeilen"]] == [ia] and ohne["ohne_dateien"] is True
     assert mit["teambild_zeigen"] is True                       # Standard: Teambild als Rueckfall
     assert client.post(f"/api/teams/{slug}/events", headers=ka, json={**body, "teambild_zeigen": False}).json()["teambild_zeigen"] is False
+
+
+def test_event_gesamtsummen(client):
+    """Gesamtsummen ueber alle Teilnehmer (01.11.2026): nur die angeklickten, auch fuer Gaeste, beim Einfrieren fest."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    (ia, ka), (ib, kb) = _konto(client, "te-a-sum@t.de", "Summen Sara"), _konto(client, "te-b-sum@t.de", "Summen Sven")
+    slug, _l = _team_mit(client, ka, kb, "Summenteam")
+    _session(ia, 300, tage=6)                 # vor dem Fenster
+    _session(ia, 120, tage=2)
+    _session(ib, 200, tage=2)
+    jetzt = datetime.now(timezone.utc)
+    ende = jetzt - timedelta(hours=2)
+    body = {"titel": "Summen", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": ende.isoformat(),
+            "tafeln": [{"kennzahl": "session_pumps", "accel_only": False}]}
+    assert client.post(f"/api/teams/{slug}/events", headers=ka, json={**body, "summen": ["quatsch"]}).status_code == 422
+    leer = client.post(f"/api/teams/{slug}/events", headers=ka, json=body).json()
+    assert leer["summen_auswahl"] == [] and leer["summen"] == {}
+    ev = client.post(f"/api/teams/{slug}/events", headers=ka,
+                     json={**body, "summen": ["aktive", "pumps", "distance_m"]}).json()
+    assert ev["summen_auswahl"] == ["pumps", "distance_m", "aktive"]
+    assert ev["summen"] == {"pumps": 320, "distance_m": 600.0, "aktive": 2}
+    # Abwaehlen per PUT
+    r = client.put(f"/api/teams/{slug}/events/{ev['id']}", headers=ka, json={**body, "summen": ["runs"]})
+    assert r.json()["summen"] == {"runs": 6}
+    db = SessionLocal()
+    try:
+        e = db.get(models.TeamEvent, ev["id"])
+        assert T.event_einfrieren(db, e, jetzt=ende + timedelta(hours=25)) is True
+        db.commit()
+    finally:
+        db.close()
+    _session(ib, 50, tage=2)
+    fest = client.get(f"/api/teams/{slug}/events/{ev['id']}", headers=kb).json()
+    assert fest["status"] == "beendet" and fest["summen"] == {"runs": 6}

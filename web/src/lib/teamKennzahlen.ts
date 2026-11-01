@@ -49,3 +49,16 @@ export function fehlerCode(e: unknown): string {
   const m = String((e as Error)?.message ?? e).match(/"detail"\s*:\s*"([^"]+)"/);
   return m ? m[1] : "unbekannt";
 }
+
+/** Gesamtsummen eines Events ueber alle Teilnehmer — Schluessel = server/app/teams.py EVENT_SUMMEN, in dieser Reihenfolge. */
+const kmGesamt = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
+const zeitGesamt = (s: number) => (s < 3600 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
+export const EVENT_SUMMEN: { key: string; labelKey: string; fmt: (v: number) => string }[] = [
+  { key: "pumps", labelKey: "team.stat.pumps", fmt: (v) => v.toLocaleString() },
+  { key: "distance_m", labelKey: "team.stat.strecke", fmt: kmGesamt },
+  { key: "time_s", labelKey: "team.stat.zeit", fmt: zeitGesamt },
+  { key: "sessions", labelKey: "team.stat.sessions", fmt: (v) => v.toLocaleString() },
+  { key: "runs", labelKey: "team.stat.laeufe", fmt: (v) => v.toLocaleString() },
+  { key: "spots", labelKey: "team.k.sum_spots", fmt: (v) => v.toLocaleString() },
+  { key: "aktive", labelKey: "team.event.teilnehmer", fmt: (v) => v.toLocaleString() },
+];

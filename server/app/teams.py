@@ -53,6 +53,8 @@ RESERVIERT = {"neu", "new", "admin", "join", "apply", "einladung", "teams", "tea
 BEST = ("distance", "duration", "speed", "glide", "runs", "session_distance", "session_time", "session_pumps")
 SUMME = ("sum_sessions", "sum_runs", "sum_pumps", "sum_distance", "sum_time", "sum_spots")
 KENNZAHLEN = BEST + SUMME
+# Gesamtsummen eines Events ueber alle Teilnehmer (Jan, 01.11.2026) — dieselben Groessen wie die Teamstatistik.
+EVENT_SUMMEN = ("sessions", "runs", "pumps", "distance_m", "time_s", "spots", "aktive")
 
 
 def _jetzt() -> datetime:
@@ -668,6 +670,55 @@ def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent) -> list[di
             for tf in event_tafeln(e)]
 
 
+def event_summen_auswahl(e: models.TeamEvent) -> list[str]:
+    return [k for k in json.loads(e.summen_json or "[]") if k in EVENT_SUMMEN]
+
+
+def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
+    """Gesamtsummen ueber alle Teilnehmer — nur die angeklickten. Eingefroren aus `summen_ergebnis_json`.
+
+    Dieselben Filter wie die Bestenlisten des Events (Zeitfenster, Spots, ohne Dateien); Sportart = die der
+    ersten Bestenliste, Bewegungsdaten nur Pflicht, wenn ALLE Bestenlisten sie verlangen (wie `statistik`)."""
+    auswahl = event_summen_auswahl(e)
+    if not auswahl:
+        return {}
+    if e.summen_ergebnis_json:
+        fest = json.loads(e.summen_ergebnis_json)
+        return {k: fest[k] for k in auswahl if k in fest}
+    from .api import community as C
+    from . import pumpgleit_anzeige as PA
+
+    ids = mitglieder_ids(db, t.id)
+    tf_ = event_tafeln(e)
+    sportart = tf_[0].sportart if tf_ else "pumpfoil"
+    accel_only = bool(tf_) and all(tf.accel_only for tf in tf_)
+    spots = event_spots(e)
+    fenster = (_aware(e.start), _aware(e.ende))
+    leer = {k: 0 for k in auswahl}
+    if not ids:
+        return leer
+    key = (t.id, "event_summen", e.id, sportart, accel_only, fenster, tuple(sorted(spots)), bool(e.ohne_dateien),
+           tuple(sorted(ids)))
+    hit = _cache_holen(key)
+    if hit is None:
+        S, AR = C.S, C.AR
+        q = C._community(db.query(
+            func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0), func.coalesce(func.sum(PA.col_pump_count()), 0),
+            func.coalesce(func.sum(AR.foiling_distance_m), 0), func.coalesce(func.sum(AR.foiling_time_s), 0),
+            func.count(func.distinct(S.spot_id)), func.count(func.distinct(S.user_id)),
+        ), None, accel_only, sportart).filter(S.user_id.in_(ids), S.started_at >= fenster[0], S.started_at < fenster[1])
+        if e.ohne_dateien:
+            q = q.filter(*[~S.session_uuid.like(f"{p}%") for p in DATEI_PRAEFIXE])
+        if spots:
+            q = q.filter(or_(*[C._spot_cond(str(s), db) for s in spots]))
+        n, runs, pumps, dist, zeit, nspots, aktive = q.one()
+        hit = {"sessions": int(n or 0), "runs": int(runs or 0), "pumps": int(pumps or 0),
+               "distance_m": round(float(dist or 0), 1), "time_s": round(float(zeit or 0), 1),
+               "spots": int(nspots or 0), "aktive": int(aktive or 0)}
+        _cache_setzen(key, hit)
+    return {k: hit[k] for k in auswahl}
+
+
 def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = None) -> bool:
     """Ergebnis festschreiben, sobald ende + EINFRIEREN_NACH vorbei ist. True = gerade eingefroren."""
     j = jetzt or _jetzt()
@@ -680,6 +731,8 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
     for k in [k for k in _cache if k and k[0] == t.id]:
         _cache.pop(k, None)
     e.ergebnis_json = json.dumps(event_berechnen(db, t, e))
+    if event_summen_auswahl(e):
+        e.summen_ergebnis_json = json.dumps(event_summen(db, t, e))
     e.eingefroren_am = j
     return True
 
@@ -711,6 +764,8 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
             "status": event_status(e), "spots": spots, "ohne_dateien": bool(e.ohne_dateien),
             "teambild_zeigen": e.teambild_zeigen is not False, "spot_ids": [] if gast else event_spots(e),
             "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_,
+            # Nur Summen, keine Namen — darum auch fuer Gaeste.
+            "summen_auswahl": event_summen_auswahl(e), "summen": event_summen(db, t, e),
             # Eventbild auch fuer Gaeste, OHNE Freigabe (anders als das Teambild) — Jan, 01.11.2026: „das risiko gehe
             # ich erstmal ein". Titel und Beschreibung von Events sind ebenso ohne Freigabe oeffentlich.
             "banner_url": e.banner_url, "banner_fokus": e.banner_fokus}

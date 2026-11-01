@@ -188,6 +188,12 @@ Ende + 24 h, dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das 
 Kontoverknuepfungen zaehlen weiter. Vorhandene Waechter (Fake-Meldungen, Autofahrt-Grenzen,
 aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
 
+**Gesamtsummen** (01.11.2026, `summen_json`): je Event anklickbar, welche Teamsummen ueber alle Teilnehmer oben auf
+der Event-Seite stehen (Pumps, On-Foil-Strecke/-Zeit, Sessions, Laeufe, Spots, Teilnehmer; `teams.EVENT_SUMMEN`).
+Dieselben Filter wie die Bestenlisten (Fenster, Spots, ohne Dateien); Sportart der ersten Bestenliste, Bewegungsdaten
+nur Pflicht, wenn alle Bestenlisten sie verlangen. Keine Namen, darum auch fuer Gaeste. Beim Einfrieren nach
+`summen_ergebnis_json` festgeschrieben.
+
 ## Teambild (01.11.2026)
 
 Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;

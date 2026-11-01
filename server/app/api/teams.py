@@ -337,6 +337,14 @@ class EventIn(BaseModel):
     vorlage: str | None = Field(default=None, max_length=40)
     ohne_dateien: bool = False
     teambild_zeigen: bool = True
+    summen: list[str] = Field(default_factory=list, max_length=len(T.EVENT_SUMMEN))
+
+
+def _event_summen(body: EventIn) -> str | None:
+    if any(k not in T.EVENT_SUMMEN for k in body.summen):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "summe")
+    # In der festen Reihenfolge speichern, dann steht es auf der Seite immer gleich.
+    return json.dumps([k for k in T.EVENT_SUMMEN if k in body.summen]) if body.summen else None
 
 
 def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
@@ -385,7 +393,7 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
     e = models.TeamEvent(team_id=t.id, titel=body.titel.strip(), beschreibung=(body.beschreibung or "").strip() or None,
                          start=body.start, ende=body.ende, zeitzone=body.zeitzone, tafeln_json=tafeln_json,
                          spots_json=spots_json, vorlage=body.vorlage, ohne_dateien=body.ohne_dateien,
-                         teambild_zeigen=body.teambild_zeigen)
+                         teambild_zeigen=body.teambild_zeigen, summen_json=_event_summen(body))
     db.add(e)
     db.commit()
     return T.event_out(db, t, e)
@@ -461,6 +469,7 @@ def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = D
     e.titel, e.beschreibung = body.titel.strip(), (body.beschreibung or "").strip() or None
     e.start, e.ende, e.zeitzone, e.vorlage = body.start, body.ende, body.zeitzone, body.vorlage
     e.ohne_dateien, e.teambild_zeigen = body.ohne_dateien, body.teambild_zeigen
+    e.summen_json = _event_summen(body)
     db.commit()
     return T.event_out(db, t, e)
 
