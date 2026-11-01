@@ -3,6 +3,7 @@
 // Ergebnis (eingefroren 24 h nach dem Ende). Gaeste sehen das Event nur bei oeffentlichem Team, in Gastform
 // (Rang, Name, Initialen, Wert) — dieselben Daten, die die oeffentliche Teamseite ohnehin liefert.
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
 import { ChevronIcon, SettingsIcon } from "../components/Icons";
@@ -105,6 +106,9 @@ export default function TeamEventSeite() {
   const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean; meine_rolle?: TeamRolle | null;
     anmeldungen_zulassen?: boolean; automatisch_akzeptieren?: boolean; oeffentlich?: boolean; mein_status?: string | null }) | null>(null);
   const [dialog, setDialog] = useState(false);
+  // Ziel in der Gast-Kopfzeile (main.tsx GastRahmen); erst nach dem Einhaengen im DOM.
+  const [kopfAktion, setKopfAktion] = useState<HTMLElement | null>(null);
+  useEffect(() => { setKopfAktion(document.getElementById("gast-kopf-aktion")); }, []);
   const [busy, setBusy] = useState(false);
   const [ev, setEv] = useState<TeamEvent | null>(null);
   const [fehlt, setFehlt] = useState(false);
@@ -199,15 +203,16 @@ export default function TeamEventSeite() {
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm font-semibold text-slate-200">{ev.beschreibung}</p>}
       </div>
 
-      {team.anmeldungen_zulassen && (gast || !team.mein_status) && (
+      {/* Gaeste: „Anmelden und beitreten" oben in der Kopfzeile, in Pumpfoil-Farbe — man tritt zuerst pumpfoil.org bei
+          (Jan, 01.11.2026). Angemeldete Nicht-Mitglieder: Beitreten in Teamfarbe hier auf der Seite. */}
+      {team.anmeldungen_zulassen && gast && kopfAktion && createPortal(
+        <Link to={`/login?next=${encodeURIComponent(`/teams/${team.slug}/events/${ev.id}?beitreten=1`)}`}
+          className="shrink-0 rounded-xl bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 sm:px-4 sm:py-2">
+          {t("team.join.anmeldenKnopf")}
+        </Link>, kopfAktion)}
+      {team.anmeldungen_zulassen && !gast && !team.mein_status && (
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          {gast ? (
-            <Link to={`/login?next=${encodeURIComponent(`/teams/${team.slug}/events/${ev.id}?beitreten=1`)}`} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">
-              {t("team.join.anmeldenKnopf")}
-            </Link>
-          ) : (
-            <button onClick={() => setDialog(true)} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">{t("team.join.knopf")}</button>
-          )}
+          <button onClick={() => setDialog(true)} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">{t("team.join.knopf")}</button>
           <span className="text-sm text-slate-400">{t("team.join.eventHinweis", { name: team.name })}</span>
         </div>
       )}

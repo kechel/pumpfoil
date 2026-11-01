@@ -181,6 +181,9 @@ function GastRahmen() {
           <img src="/wordmark-h-dark.png" alt={alt} className="logo-dark h-7 max-w-none" />
           <img src="/wordmark-h-light.png" alt={alt} className="logo-light h-7 max-w-none" />
         </a>
+        {/* Platz fuer eine Seitenaktion in der Kopfzeile, z. B. „Anmelden und beitreten" auf der Event-Seite
+            (per createPortal, Jan 01.11.2026) — in Pumpfoil-Farbe, weil man hier pumpfoil.org beitritt. */}
+        <div id="gast-kopf-aktion" className="flex min-w-0 items-center" />
       </header>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6"><Outlet /></main>
       <footer className="border-t border-slate-800/60 px-4 py-5 text-center text-xs text-slate-400">
