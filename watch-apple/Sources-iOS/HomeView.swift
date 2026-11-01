@@ -149,6 +149,8 @@ struct HomeView: View {
                 FreundePumpenZeile()
                 FreundesAnfragenKarte()
             }
+            // Eigene Teams als kleine Links mit Wappen (PWA PersonalHome, 31.10.2026); offene Anfragen als Zahl.
+            MeineTeamsZeile(lang: lang, neuLadenTick: sync.tick)
         }
         .padding(.top, 12)
     }

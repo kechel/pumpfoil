@@ -28,6 +28,8 @@ struct ProfileView: View {
             List {
                 headerSection
                 navSection
+                // Eigene Teams + „Alle Teams"/„Alle Events" (01.11.2026); Verwaltung bleibt im Web.
+                MeineTeamsSection(lang: lang)
                 socialSection
                 phoneRecSection
                 logoutSection

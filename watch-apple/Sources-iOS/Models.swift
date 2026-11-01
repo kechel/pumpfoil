@@ -1242,6 +1242,9 @@ struct Metrics: Codable {
     let max_speed_mps: Double?
     let avg_pump_hz: Double?
     let avg_hr: Double?
+    /// Ø Puls nur ueber die Laeufe (Server-Cache hr_foil_json, 01.11.2026) — Hauptzahl in Detail und Liste,
+    /// `avg_hr` (mit den Pausen am Ufer) steht daneben klein als „gesamt". Fehlt ohne Laeufe/Puls.
+    var avg_hr_foil: Double? = nil
     let max_hr: Double?
     let farthest_segment_m: Double?
     let longest_segment_s: Double?

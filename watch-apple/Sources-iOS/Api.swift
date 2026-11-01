@@ -1719,7 +1719,9 @@ enum Api {
         guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
     }
 
-    private static func request<T: Decodable>(
+    // Nicht `private`: die Team-Aufrufe stehen als `extension Api` in TeamsApi.swift (01.11.2026),
+    // und `private` reicht nur bis zum Dateiende.
+    static func request<T: Decodable>(
         _ path: String, method: String, body: [String: Any]?, auth: Bool
     ) async throws -> T {
         guard let url = URL(string: baseURL + path) else { throw ApiError.badURL }

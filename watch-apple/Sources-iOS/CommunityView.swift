@@ -97,6 +97,8 @@ struct CommunityView: View {
                 mediaFeedSection
                 leaderboardSection
                 topLikedSection
+                // Laufende & kommende Team-Events unter „Best bewertet", wie die PWA (01.11.2026).
+                TeamEventsAbschnitt(lang: lang, pfad: $navPath)
                 layoutsSection
                 spotsSection
                 RoutenAbschnitt(lang: lang)
@@ -124,6 +126,8 @@ struct CommunityView: View {
             .navigationDestination(for: SessionDest.self) { d in
                 SessionDetailView(id: d.id, dataVersion: d.dataVersion)
             }
+            // Team-Events, „Alle Events", „Alle Teams" (TeamsListen.swift)
+            .navigationDestination(for: TeamsZiel.self) { z in TeamsZielView(ziel: z) }
             .navigationTitle(Loc.t("nav.community", lang))
             .brandToolbar(Loc.t("nav.community", lang), feedbackUrl: "/community")
             .toolbar { communityToolbar }

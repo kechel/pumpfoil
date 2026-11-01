@@ -1759,7 +1759,12 @@ struct SessionDetailView: View {
             if pc > 0, let fd = a.foiling_distance_m { out.append(StatItem(Loc.t("sd.avgDistPerPump", lang), String(format: "%.1f m", fd / Double(pc)))) }
         }
         if pumpzahlen, let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), PumpUnit.fmt(v, lang))) }
-        if let v = m?.avg_hr, v > 0 { out.append(StatItem(Loc.t("sd.avgHr", lang), String(format: "%.0f", v))) }
+        // Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter — wie die PWA
+        // (01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert.
+        if let hf = m?.avg_hr_foil, hf > 0 {
+            let gesamt: String? = m?.avg_hr.map { Loc.t("sd.avgHrGesamt", lang).replacingOccurrences(of: "{n}", with: String(format: "%.0f", $0)) }
+            out.append(StatItem(Loc.t("sd.avgHrFoil", lang), String(format: "%.0f", hf), sub: gesamt))
+        } else if let v = m?.avg_hr, v > 0 { out.append(StatItem(Loc.t("sd.avgHr", lang), String(format: "%.0f", v))) }
         if let v = m?.max_hr, v > 0 { out.append(StatItem(Loc.t("sd.maxHr", lang), String(format: "%.0f", v))) }
         if let i = longestRunIdx, let v = segs[i].duration_s { out.append(StatItem(Loc.t("home.longestRun", lang), mmssD(v), runIdx: i)) }
         if let i = farthestRunIdx, let v = segs[i].distance_m { out.append(StatItem(Loc.t("home.farthestRun", lang), dist(v), runIdx: i)) }
@@ -3305,9 +3310,11 @@ struct StatItem: Identifiable {
     // innerhalb einer Session eindeutig.
     /// Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt.
     let info: String?
+    /// Kleine Zusatzzeile unter dem Label (z. B. „gesamt 128" am Ø Puls auf dem Foil).
+    let sub: String?
     var id: String { label }
-    init(_ label: String, _ value: String, runIdx: Int? = nil, info: String? = nil) {
-        self.label = label; self.value = value; self.runIdx = runIdx; self.info = info
+    init(_ label: String, _ value: String, runIdx: Int? = nil, info: String? = nil, sub: String? = nil) {
+        self.label = label; self.value = value; self.runIdx = runIdx; self.info = info; self.sub = sub
     }
 }
 
@@ -3331,6 +3338,9 @@ private struct StatTile: View {
                 }
             }
             Text(item.label).font(.caption).foregroundStyle(.secondary)
+            if let sub = item.sub {
+                Text(sub).font(.caption2).foregroundStyle(.secondary)
+            }
         }
         .alert(Loc.t("stat.runsStartsInfo", lang), isPresented: $zeigeInfo) {
             Button(Loc.t("common.close", lang), role: .cancel) { }

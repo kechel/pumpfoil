@@ -4958,6 +4958,8 @@ static let nlOverlay: [String: String] = {
         // Einrichtungs-Assistent: eigene Tabelle in LocOnboarding.swift, aus den Web-Sprachdateien
         // erzeugt. Zuerst gefragt, damit die grossen Tabellen dafuer nicht angefasst werden.
         if key.hasPrefix("onb."), let v = LocOnb.t(key, lang) { return v }
+        // Teams & Events (01.11.2026): eigene, aus den Web-Sprachdateien erzeugte Tabelle in LocTeams.swift.
+        if key.hasPrefix("team.") || key.hasPrefix("sd.avgHr"), let v = LocTeam.t(key, lang) { return v }
         if let row = neuTexte[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte2[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte3[key], let v = row[lang] ?? row["en"] { return v }

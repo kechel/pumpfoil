@@ -923,7 +923,8 @@ struct SessionRow: View {
             if let hz = m?.avg_pump_hz { s += " · " + PumpUnit.fmt(hz, lang) }
             parts.append(s)
         }
-        if let hr = m?.avg_hr, hr > 0 {
+        // Ø Puls auf dem Foil, sonst der Gesamtwert (PWA Sessions.tsx, 01.11.2026).
+        if let hr = m?.avg_hr_foil ?? m?.avg_hr, hr > 0 {
             var s = "\(Int(hr.rounded()))"
             if let mx = m?.max_hr { s += "/\(Int(mx.rounded()))" }
             parts.append(s + " bpm")
