@@ -391,9 +391,14 @@ export default function Team() {
                     </span>
                   ))}
                 </div>
-                <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
-                {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
-                <p className="team-akzent mt-2 text-right text-sm font-semibold">{t(eventStandKey(e.status))} →</p>
+                {/* Link rechts unten auf Hoehe der letzten Zeile, keine eigene Zeile (Jan, 01.11.2026). */}
+                <div className="flex items-end gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</p>
+                    {e.beschreibung && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-400">{e.beschreibung}</p>}
+                  </div>
+                  <span className="team-akzent shrink-0 text-sm font-semibold">{t(eventStandKey(e.status))} →</span>
+                </div>
               </Card>
             </Link>
           ))}
