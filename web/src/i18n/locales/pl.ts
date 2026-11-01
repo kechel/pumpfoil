@@ -2624,6 +2624,7 @@ const pl: Record<string, string> = {
   "team.event.spots": "Spoty",
   "team.event.alleSpots": "Wszystkie spoty",
   "team.event.gemessen": "Mierzone",
+  "team.event.vergangen": "Minione wydarzenia",
   "team.event.loeschenFrage": "Usunąć wydarzenie „{titel}”?",
   "team.event.status.kommend": "wkrótce",
   "team.event.status.laeuft": "trwa",

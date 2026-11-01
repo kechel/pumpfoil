@@ -2638,6 +2638,7 @@ const zh: Record<string, string> = {
   "team.event.spots": "地点",
   "team.event.alleSpots": "全部地点",
   "team.event.gemessen": "计量项目",
+  "team.event.vergangen": "往期活动",
   "team.event.loeschenFrage": "删除活动“{titel}”？",
   "team.event.status.kommend": "即将开始",
   "team.event.status.laeuft": "进行中",

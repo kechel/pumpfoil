@@ -2694,6 +2694,7 @@ const cs: Record<string, string> = {
   "team.event.spots": "Spoty",
   "team.event.alleSpots": "Všechny spoty",
   "team.event.gemessen": "Měří se",
+  "team.event.vergangen": "Minulé akce",
   "team.event.loeschenFrage": "Smazat akci „{titel}“?",
   "team.event.status.kommend": "brzy",
   "team.event.status.laeuft": "probíhá",

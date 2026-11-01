@@ -354,7 +354,7 @@ def _event(db: Session, t: models.Team, event_id: int) -> models.TeamEvent:
 def events(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     t, m = _team_fuer(db, slug, user)
     _darf_tafeln(t, m)
-    liste = T.events_liste(db, t.id)
+    liste = T.events_liste(db, t.id, beendete=20)
     if any(T.event_einfrieren(db, e) for e in liste):
         db.commit()
     return [T.event_out(db, t, e) for e in liste]
@@ -682,7 +682,7 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", db: Session 
             "tafeln": [{**T.tafel_out(tf), "zeilen": T.fuer_gast(T.tafel_berechnen(db, t, tf, period, ids))}
                        for tf in T.tafeln(db, t.id)],
             # Events sind Bestenlisten mit Zeitfenster -> in derselben Gastform (ohne Spots).
-            "events": [T.event_out(db, t, e, gast=True) for e in T.events_liste(db, t.id, beendete=3)]}
+            "events": [T.event_out(db, t, e, gast=True) for e in T.events_liste(db, t.id, beendete=10)]}
 
 
 # ---------------------------------------------------------------------------------- Admin ----

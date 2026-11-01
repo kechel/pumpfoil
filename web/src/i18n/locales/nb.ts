@@ -2616,6 +2616,7 @@ const nb: Record<string, string> = {
   "team.event.spots": "Spots",
   "team.event.alleSpots": "Alle spots",
   "team.event.gemessen": "Måles",
+  "team.event.vergangen": "Tidligere arrangementer",
   "team.event.loeschenFrage": "Slette arrangementet «{titel}»?",
   "team.event.status.kommend": "kommer",
   "team.event.status.laeuft": "pågår",

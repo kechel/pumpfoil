@@ -2524,6 +2524,7 @@ const it: Record<string, string> = {
   "team.event.spots": "Spot",
   "team.event.alleSpots": "Tutti gli spot",
   "team.event.gemessen": "Misurato",
+  "team.event.vergangen": "Eventi passati",
   "team.event.loeschenFrage": "Eliminare l'evento «{titel}»?",
   "team.event.status.kommend": "in arrivo",
   "team.event.status.laeuft": "in corso",

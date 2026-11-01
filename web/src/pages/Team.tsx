@@ -108,6 +108,43 @@ function Statistik({ s, t }: { s: TeamStatistik; t: (k: string, p?: Record<strin
   );
 }
 
+/** Vergangene Events, kompakt wie das Logbuch: je Event eine Zeile mit den Siegern; aufklappen zeigt die Bestenlisten. */
+function VergangeneEvents({ events, gast, lang, t }: {
+  events: TeamEvent[]; gast: boolean; lang: string; t: (k: string, p?: Record<string, string>) => string;
+}) {
+  const [offen, setOffen] = useState<number | null>(null);
+  return (
+    <Card className="mt-4 p-4">
+      <h3 className="mb-1 font-semibold text-slate-100">{t("team.event.vergangen")}</h3>
+      <ul>
+        {events.map((e) => {
+          const sieger = e.tafeln.map((tf) => {
+            const z = tf.zeilen[0];
+            return z ? `${tafelKurz(tf, t)}: ${z.name ?? z.initialen} ${kennzahl(tf.kennzahl).fmt(z.value)}` : null;
+          }).filter(Boolean).join(" · ");
+          return (
+            <li key={e.id} className="border-t border-slate-800 py-2 text-sm first:border-t-0">
+              <button className="flex w-full items-start gap-2 text-left" onClick={() => setOffen(offen === e.id ? null : e.id)}>
+                <span className="min-w-0 flex-1">
+                  <span className="team-akzent block font-semibold">{e.titel}</span>
+                  <span className="block text-xs text-slate-400">{eventZeitraum(e.start, e.ende, e.zeitzone, lang)}</span>
+                  {sieger && <span className="block text-slate-300">{sieger}</span>}
+                </span>
+                <ChevronIcon className={`mt-1 h-4 w-4 shrink-0 text-slate-400 transition-transform ${offen === e.id ? "-rotate-90" : "rotate-90"}`} />
+              </button>
+              {offen === e.id && (
+                <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                  {e.tafeln.map((tf, i) => <Tafel key={i} tf={tf} gast={gast} t={t} />)}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}
+
 function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: string, p?: Record<string, string>) => string }) {
   return (
     <Card className="mt-4 p-4">
@@ -245,6 +282,13 @@ export default function Team() {
       laden();
     }).catch((e) => setMeldung(t(`team.err.${fehlerCode(e)}`))).finally(() => setBusy(false));
   };
+  // Oben: kommende, laufende und bis eine Woche nach dem Ende auch beendete Events; aeltere unten kompakt
+  // (Jan, 01.11.2026). Reihenfolge oben: laeuft, kommend (naechstes zuerst), dann die gerade vorbei sind.
+  const RANG = { laeuft: 0, kommend: 1, auswertung: 2, beendet: 3 } as const;
+  const grenze = Date.now() - 7 * 24 * 3600 * 1000;
+  const eventsOben = (events ?? []).filter((e) => e.status !== "beendet" || new Date(e.ende).getTime() > grenze)
+    .sort((a, b) => RANG[a.status] - RANG[b.status] || (a.status === "kommend" ? a.start.localeCompare(b.start) : b.ende.localeCompare(a.ende)));
+  const eventsUnten = (events ?? []).filter((e) => !eventsOben.includes(e)).sort((a, b) => b.ende.localeCompare(a.ende));
   const austreten = () => {
     if (!window.confirm(kopf.mein_status === "angefragt" ? t("team.zurueckziehenFrage") : t("team.austretenFrage", { name: kopf.name }))) return;
     api.teamAustreten(slug).then(() => { setMitglieder(null); setTafeln(null); laden(); })
@@ -308,13 +352,13 @@ export default function Team() {
       )}
 
 
-      {events && events.length > 0 && (
+      {eventsOben.length > 0 && (
         <div className="mb-5 space-y-3">
-          {events.map((e) => (
+          {eventsOben.map((e) => (
             <Card key={e.id} className={`p-4 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
               <div className="mb-1 flex flex-wrap items-center gap-2">
-                <h3 className="team-akzent text-lg font-bold">{e.titel}</h3>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.status === "laeuft" ? "team-knopf" : "bg-slate-800 text-slate-300"}`}>
+                <h3 className={`team-akzent text-lg font-bold ${e.status === "laeuft" ? "animate-pulse" : ""}`}>{e.titel}</h3>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
                   {t(`team.event.status.${e.status}`)}
                 </span>
               </div>
@@ -381,6 +425,7 @@ export default function Team() {
       )}
 
       {/* Reihenfolge unten (Jan, 01.11.2026): Teamadresse vorletzt, Logbuch ganz unten. */}
+      {eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} gast={gast} lang={lang} t={t} />}
       {kopf.mein_status === "aktiv" && <div className="mt-4"><TeamAdresse kopf={kopf} t={t} /></div>}
       {(gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} />}
 

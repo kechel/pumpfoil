@@ -2635,6 +2635,7 @@ const ptPT: Record<string, string> = {
   "team.event.spots": "Spots",
   "team.event.alleSpots": "Todos os spots",
   "team.event.gemessen": "Medido",
+  "team.event.vergangen": "Eventos anteriores",
   "team.event.loeschenFrage": "Eliminar o evento «{titel}»?",
   "team.event.status.kommend": "em breve",
   "team.event.status.laeuft": "a decorrer",

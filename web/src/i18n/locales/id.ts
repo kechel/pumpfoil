@@ -2641,6 +2641,7 @@ const id: Record<string, string> = {
   "team.event.spots": "Spot",
   "team.event.alleSpots": "Semua spot",
   "team.event.gemessen": "Diukur",
+  "team.event.vergangen": "Event sebelumnya",
   "team.event.loeschenFrage": "Hapus event “{titel}”?",
   "team.event.status.kommend": "akan datang",
   "team.event.status.laeuft": "berlangsung",
