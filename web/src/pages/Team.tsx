@@ -147,7 +147,7 @@ function Logbuch({ eintraege, t }: { eintraege: TeamLogbuchEintrag[]; t: (k: str
   return (
     <Card className="mt-4 p-4">
       <h3 className="mb-1 font-semibold text-slate-100">{t("team.logbuch")}</h3>
-      <p className="mb-2 text-xs text-slate-400">{t("team.logbuchHinweis")} <RegelnLink abschnitt="logbuch" className="text-xs" /></p>
+      <p className="mb-2 text-xs text-slate-400">{t("team.logbuchHinweis")}</p>
       {eintraege.length === 0 ? <p className="text-sm text-slate-400">{t("team.logbuchLeer")}</p> : (
         <ul>
           {eintraege.map((e, i) => {
