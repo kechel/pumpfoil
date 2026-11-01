@@ -2132,6 +2132,7 @@ const it: Record<string, string> = {
   "sessions.otherSpots": "Altri spot",
   "sessions.uploadSkipped": "{skipped} di {total} file saltati — non sono attività (per es. il monitoraggio quotidiano dell'orologio). Tutto il resto è stato importato.",
   "sessions.uploadSkippedOne": "Non importato: {reason}.",
+  "sessions.uploadReplaceAsk": "Questa uscita c’è già (sessione #{id}), ma il file è diverso. Eliminare la vecchia sessione e sostituirla con questo file?\n\nPer accorciarla basta «{trim}» nella sessione, senza un nuovo file.",
   "settings.suunto.broken": "⚠ Il collegamento con Suunto al momento non funziona: l'accesso presso Suunto riesce (Suunto ti manda perfino un'email di conferma), ma poi Suunto nega alla nostra app l'accesso al tuo account. Non è colpa tua e non c'entra nulla con la tua password — lo stiamo chiarendo con Suunto. Nel frattempo puoi importare le attività Suunto come file.",
   "setup.addValue": "Aggiungi",
   "setup.boardDelConfirm": "Eliminare questa tavola? Le sessioni che la usano tornano al tuo valore predefinito.",

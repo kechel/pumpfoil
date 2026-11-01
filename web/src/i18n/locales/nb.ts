@@ -516,6 +516,7 @@ const nb: Record<string, string> = {
   "sessions.uploadHint": "Last opp en FIT-fil, eller koble til klokka og dra ut og kjør.",
   "sessions.uploadSkipped": "{skipped} av {total} filer hoppet over — de er ikke aktiviteter (f.eks. klokkas daglige måling). Alt annet ble importert.",
   "sessions.uploadSkippedOne": "Ikke importert: {reason}.",
+  "sessions.uploadReplaceAsk": "Denne turen finnes allerede (økt #{id}), men filen er en annen. Slette den gamle økten og erstatte den med denne filen?\n\nVil du bare kutte den, trenger du ingen ny fil: bruk «{trim}» i økten.",
   "sessions.uploadFail": "{fail} av {total} fil(er) feilet (ingen FIT / ingen GPS-data?).",
   "sessions.timeTo": "til",
   "sessions.listEnd": "— Slutt —",

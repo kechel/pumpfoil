@@ -528,6 +528,7 @@ const en: Record<string, string> = {
   "sessions.uploadHint": "Upload a FIT file or connect the watch and go ride.",
   "sessions.uploadSkipped": "{skipped} of {total} files skipped — they aren’t activities (e.g. the watch’s daily monitoring). Everything else was imported.",
   "sessions.uploadSkippedOne": "Not imported: {reason}.",
+  "sessions.uploadReplaceAsk": "This ride is already here (session #{id}), but the file is a different one. Delete the old session and replace it with this file?\n\nTo just trim it, you don't need a new file: use “{trim}” in the session.",
   "sessions.uploadFail": "{fail} of {total} file(s) failed (no FIT / no GPS data?).",
   "sessions.timeTo": "to",
   "sessions.listEnd": "— End —",

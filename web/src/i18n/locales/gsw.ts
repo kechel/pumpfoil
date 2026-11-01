@@ -2133,6 +2133,7 @@ const gsw: Record<string, string> = {
   "sessions.otherSpots": "Wiiteri Spots",
   "sessions.uploadSkipped": "{skipped} vo {total} Dateie übersprunge — das sind kei Aktivitäte (z. B. Tagesufzeichnige vo de Uhr). Alles andere isch importiert worde.",
   "sessions.uploadSkippedOne": "Nöd importiert: {reason}.",
+  "sessions.uploadReplaceAsk": "Die Fahrt isch scho da (Session #{id}), aber d Datei isch e anderi. Alti Session lösche und dur die Datei ersetze?\n\nNur zueschnide gaht au ohni neui Datei: i de Session unter „{trim}“.",
   "settings.suunto.broken": "⚠ D Verknüpfig mit Suunto funktioniert im Moment nöd: d Aamäldig bi Suunto lauft dure (du überchunnsch vo Suunto sogar es Bestätigungs-Mail), aber Suunto verweigeret üsere App denn de Zuegriff uf dis Konto. De Fehler lit nöd bi dir und nöd a dim Passwort — mir kläred das mit Suunto. Bis denn chasch Suunto-Aktivitäte als Datei importiere.",
   "setup.addValue": "Hinzuefüege",
   "setup.boardDelConfirm": "Das Board lösche? Sessions, wo s bruuched, fallet zrugg uf din Standard.",

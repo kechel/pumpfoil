@@ -2280,6 +2280,7 @@ const id: Record<string, string> = {
   "sessions.otherSpots": "Spot lain",
   "sessions.uploadSkipped": "{skipped} dari {total} berkas dilewati — itu bukan aktivitas (mis. pemantauan harian jam). Semua sisanya diimpor.",
   "sessions.uploadSkippedOne": "Tidak diimpor: {reason}.",
+  "sessions.uploadReplaceAsk": "Sesi ini sudah ada (sesi #{id}), tetapi filenya berbeda. Hapus sesi lama dan ganti dengan file ini?\n\nUntuk sekadar memotong tidak perlu file baru: gunakan “{trim}” di sesi.",
   "settings.suunto.broken": "⚠ Penautan dengan Suunto saat ini tidak berfungsi: masuk di Suunto berhasil (Suunto bahkan mengirimimu email konfirmasi), tapi setelah itu Suunto menolak akses aplikasi kami ke akunmu. Ini bukan salahmu dan tidak ada hubungannya dengan kata sandimu — kami sedang mengurusnya bersama Suunto. Sampai saat itu kamu bisa mengimpor aktivitas Suunto sebagai berkas.",
   "setup.addValue": "Tambah",
   "setup.boardDelConfirm": "Hapus papan ini? Sesi yang memakainya kembali ke bawaanmu.",

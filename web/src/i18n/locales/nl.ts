@@ -2337,6 +2337,7 @@ const nl: Record<string, string> = {
   "sessions.otherSpots": "Andere spots",
   "sessions.uploadSkipped": "{skipped} van {total} bestanden overgeslagen — het zijn geen activiteiten (bv. de dagelijkse monitoring van het horloge). Al het andere is geïmporteerd.",
   "sessions.uploadSkippedOne": "Niet geïmporteerd: {reason}.",
+  "sessions.uploadReplaceAsk": "Deze rit staat er al (sessie #{id}), maar het bestand is anders. De oude sessie verwijderen en vervangen door dit bestand?\n\nAlleen inkorten kan ook zonder nieuw bestand: via „{trim}” in de sessie.",
   "settings.suunto.broken": "⚠ Koppelen met Suunto werkt momenteel niet: inloggen bij Suunto lukt (Suunto stuurt je zelfs een bevestigingsmail), maar daarna weigert Suunto onze app toegang tot je account. Dat ligt niet aan jou en heeft niets met je wachtwoord te maken — we zoeken het uit met Suunto. Tot die tijd kun je Suunto-activiteiten als bestand importeren.",
   "setup.addValue": "Toevoegen",
   "setup.boardDelConfirm": "Dit board verwijderen? Sessies die het gebruiken vallen terug op je standaard.",

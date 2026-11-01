@@ -930,6 +930,8 @@ async def upload_fit(
     db: Session = Depends(get_db),
     min_start: str | None = None,
     water_only: bool = False,
+    rueckfrage: bool = False,
+    ersetzen: int | None = None,
 ):
     """Vorhandene Garmin-FIT-Datei importieren: GPS+Puss parsen, als Session anlegen,
     Rohdaten speichern und analysieren. (Beschleunigung ist in Standard-FITs nicht enthalten.)
@@ -1005,6 +1007,30 @@ async def upload_fit(
             return {"skipped": "before_cutoff", "sport": sport, "started_at": started_at.isoformat()}
     if water_only and sport not in _WATER_SPORTS:
         return {"skipped": "not_water", "sport": sport, "started_at": started_at.isoformat()}
+
+    # Andere Datei zu einer Fahrt, die noch da ist (gleiche Startzeit, anderer Inhalt — z. B. zugeschnitten)?
+    # Bis 01.11.2026 landete sie STILL auf der vorhandenen Session: „200 OK", nichts geaendert. Ein Nutzer
+    # loeschte daraufhin seine Session, um die neue Datei hineinzubekommen. Jetzt fragt die Seite nach
+    # (`rueckfrage=1`, Web) und ersetzt mit `ersetzen=<id>`. Ohne `rueckfrage` bleibt es beim alten
+    # Verhalten — die Apps rufen denselben Endpunkt und kennen die Rueckfrage (noch) nicht.
+    import hashlib
+    neu_hash = hashlib.sha256(raw).hexdigest()
+    vorhanden = (
+        db.query(models.Session)
+        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                models.Session.started_at == started_at,
+                or_(models.Session.content_hash.is_(None), models.Session.content_hash != neu_hash))
+        .order_by(models.Session.id)
+        .first()
+    )
+    if vorhanden is not None and not db.query(models.Session.id).filter(
+            models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+            models.Session.content_hash == neu_hash).first():
+        if ersetzen == vorhanden.id:
+            _loeschen(db, vorhanden)
+        elif rueckfrage:
+            return {"skipped": "exists_different", "existing_id": vorhanden.id,
+                    "sport": sport, "started_at": started_at.isoformat()}
 
     s = import_parsed_session(db, user, raw, parsed, src_label=src_label, uuid_prefix=uuid_prefix,
                               filename=dateiname, von_hand=True)
@@ -2950,7 +2976,12 @@ def delete_session(
     """Soft-Delete der eigenen Session: überall ausgeblendet, aber der Tombstone
     (content_hash/started_at) bleibt -> ein erneuter Import aus einer Kontoverknuepfung legt sie nicht
     wieder an. Eine von Hand hochgeladene Datei holt sie zurueck bzw. legt sie neu an (s. import_parsed_session)."""
-    s = _owned(db, user, session_id)
+    _loeschen(db, _owned(db, user, session_id))
+    return {"ok": True, "deleted": True}
+
+
+def _loeschen(db: Session, s: models.Session) -> None:
+    """Weiches Loeschen einer eigenen Session (Loesch-Knopf und „Ersetzen" beim Datei-Upload)."""
     alter_spot = s.spot_id
     s.deleted = True
     # Den Teilen-Link mit abraeumen (Jan, 25.09.2026). Der Link war schon vorher tot — der
@@ -2963,7 +2994,6 @@ def delete_session(
     db.commit()
     # War das die letzte gueltige Session an dem Spot? Dann faellt der Spot mit (s. _spot_aufraeumen).
     _spot_aufraeumen(db, alter_spot)
-    return {"ok": True, "deleted": True}
 
 
 @router.post("/{session_id}/reanalyze", response_model=SessionOut)

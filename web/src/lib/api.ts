@@ -1596,13 +1596,18 @@ export const api = {
   liveStatus: () => req<{ sessions: unknown[]; watches: LiveWatch[] }>("/api/devices/live"),
   pairConfirmed: (deviceId: number) =>
     req<{ confirmed: boolean }>(`/api/devices/pair-confirmed/${deviceId}`),
-  uploadFit: async (file: File) => {
+  // rueckfrage: Server meldet „andere Datei zu vorhandener Fahrt“ (skipped exists_different) statt sie still zu
+  // ignorieren; ersetzen: diese Session-ID loeschen und die Datei neu anlegen (01.11.2026).
+  uploadFit: async (file: File, opts?: { rueckfrage?: boolean; ersetzen?: number }) => {
     const fd = new FormData();
     fd.append("file", file);
     const token = getToken();
+    const qs = new URLSearchParams();
+    if (opts?.rueckfrage) qs.set("rueckfrage", "1");
+    if (opts?.ersetzen != null) qs.set("ersetzen", String(opts.ersetzen));
     _activeUploads++;
     try {
-      const res = await fetch("/api/sessions/upload-fit", {
+      const res = await fetch(`/api/sessions/upload-fit${qs.toString() ? `?${qs}` : ""}`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: fd,

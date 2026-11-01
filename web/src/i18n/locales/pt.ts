@@ -2280,6 +2280,7 @@ const pt: Record<string, string> = {
   "sessions.otherSpots": "Outros spots",
   "sessions.uploadSkipped": "{skipped} de {total} arquivos ignorados — não são atividades (por ex. o monitoramento diário do relógio). Todo o resto foi importado.",
   "sessions.uploadSkippedOne": "Não importado: {reason}.",
+  "sessions.uploadReplaceAsk": "Esta sessão já está aqui (sessão #{id}), mas o arquivo é outro. Apagar a sessão antiga e substituí-la por este arquivo?\n\nPara só cortar não precisa de arquivo novo: use “{trim}” na sessão.",
   "settings.suunto.broken": "⚠ A ligação com a Suunto não está funcionando no momento: o login na Suunto dá certo (a Suunto até te manda um e-mail de confirmação), mas depois a Suunto nega ao nosso app o acesso à sua conta. Não é culpa sua e não tem nada a ver com sua senha — estamos resolvendo isso com a Suunto. Até lá você pode importar as atividades da Suunto como arquivo.",
   "setup.addValue": "Adicionar",
   "setup.boardDelConfirm": "Excluir esta prancha? As sessões que a usam voltam ao seu padrão.",

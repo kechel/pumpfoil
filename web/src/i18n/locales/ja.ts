@@ -2274,6 +2274,7 @@ const ja: Record<string, string> = {
   "sessions.otherSpots": "その他のスポット",
   "sessions.uploadSkipped": "{total} 件中 {skipped} 件のファイルをスキップしました — アクティビティではありません（例：時計の日常モニタリング）。それ以外はすべて取り込みました。",
   "sessions.uploadSkippedOne": "取り込めませんでした：{reason}。",
+  "sessions.uploadReplaceAsk": "このセッションはすでにあります（セッション #{id}）が、ファイルが異なります。古いセッションを削除してこのファイルに置き換えますか？\n\n切り詰めるだけなら新しいファイルは不要です。セッションの「{trim}」を使ってください。",
   "settings.suunto.broken": "⚠ Suunto との連携は現在機能していません：Suunto でのログイン自体は成功し（Suunto から確認メールも届きます）、その後 Suunto が当アプリのアカウントへのアクセスを拒否します。あなたの問題ではなく、パスワードとも関係ありません — Suunto と調整中です。それまでは Suunto のアクティビティをファイルとして取り込めます。",
   "setup.addValue": "追加",
   "setup.boardDelConfirm": "このボードを削除しますか？ 使用中のセッションは既定値に戻ります。",

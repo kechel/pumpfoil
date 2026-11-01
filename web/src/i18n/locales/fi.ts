@@ -2307,6 +2307,7 @@ const fi: Record<string, string> = {
   "sessions.otherSpots": "Muut spotit",
   "sessions.uploadSkipped": "{skipped}/{total} tiedostoa ohitettu — ne eivät ole aktiviteetteja (esim. kellon päivittäinen seuranta). Kaikki muu tuotiin.",
   "sessions.uploadSkippedOne": "Ei tuotu: {reason}.",
+  "sessions.uploadReplaceAsk": "Tämä ajo on jo täällä (sessio #{id}), mutta tiedosto on eri. Poistetaanko vanha sessio ja korvataan se tällä tiedostolla?\n\nPelkkään lyhentämiseen ei tarvita uutta tiedostoa: käytä sessiossa kohtaa ”{trim}”.",
   "settings.suunto.broken": "⚠ Suunto-yhteys ei tällä hetkellä toimi: kirjautuminen Suuntoon onnistuu (Suunto lähettää sinulle jopa vahvistussähköpostin), mutta sen jälkeen Suunto estää sovellukseltamme pääsyn tiliisi. Tämä ei ole sinun vikasi eikä liity salasanaasi — selvitämme asiaa Suunnon kanssa. Siihen asti voit tuoda Suunto-aktiviteetit tiedostona.",
   "setup.addValue": "Lisää",
   "setup.boardDelConfirm": "Poistetaanko tämä lauta? Sitä käyttävät sessiot palaavat oletukseesi.",

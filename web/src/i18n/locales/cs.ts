@@ -2336,6 +2336,7 @@ const cs: Record<string, string> = {
   "sessions.otherSpots": "Ostatní spoty",
   "sessions.uploadSkipped": "{skipped} z {total} souborů přeskočeno — nejsou to aktivity (např. denní monitoring hodinek). Všechno ostatní bylo importováno.",
   "sessions.uploadSkippedOne": "Neimportováno: {reason}.",
+  "sessions.uploadReplaceAsk": "Tahle jízda už tu je (session #{id}), ale soubor je jiný. Smazat starou session a nahradit ji tímto souborem?\n\nJen zkrátit jde i bez nového souboru: v session přes „{trim}“.",
   "settings.suunto.broken": "⚠ Propojení se Suunto momentálně nefunguje: přihlášení u Suunto proběhne (Suunto ti dokonce pošle potvrzovací e-mail), ale pak Suunto naší aplikaci odepře přístup k tvému účtu. Není to tvoje chyba a s tvým heslem to nemá nic společného — řešíme to se Suunto. Do té doby můžeš aktivity ze Suunto importovat jako soubor.",
   "setup.addValue": "Přidat",
   "setup.boardDelConfirm": "Smazat tento board? Vyjížďky, které ho používají, se vrátí k tvému výchozímu.",

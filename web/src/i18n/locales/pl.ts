@@ -517,6 +517,7 @@ const pl: Record<string, string> = {
   "sessions.uploadHint": "Wyślij plik FIT albo połącz zegarek i jedź pojeździć.",
   "sessions.uploadSkipped": "Pominięto {skipped} z {total} plików — to nie są aktywności (np. codzienny monitoring zegarka). Cała reszta została zaimportowana.",
   "sessions.uploadSkippedOne": "Nie zaimportowano: {reason}.",
+  "sessions.uploadReplaceAsk": "Ta sesja już tu jest (sesja #{id}), ale plik jest inny. Usunąć starą sesję i zastąpić ją tym plikiem?\n\nSamo przycięcie nie wymaga nowego pliku: użyj „{trim}” w sesji.",
   "sessions.uploadFail": "{fail} z {total} plików nie powiodło się (brak FIT / brak danych GPS?).",
   "sessions.timeTo": "do",
   "sessions.listEnd": "— Koniec —",

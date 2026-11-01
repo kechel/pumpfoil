@@ -2138,6 +2138,7 @@ const deAT: Record<string, string> = {
   "sessions.otherSpots": "Weitere Spots",
   "sessions.uploadSkipped": "{skipped} von {total} Dateien übersprungen — das san keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.",
   "sessions.uploadSkippedOne": "Nicht importiert: {reason}.",
+  "sessions.uploadReplaceAsk": "Diese Fahrt ist schon da (Session #{id}), aber die Datei ist eine andere. Alte Session löschen und durch diese Datei ersetzen?\n\nNur zuschneiden geht auch ohne neue Datei: in der Session unter „{trim}“.",
   "settings.suunto.broken": "⚠ Die Verknüpfung mit Suunto geht momentan nicht: die Anmeldung bei Suunto lauft durch (du kriegst von Suunto sogar a Bestätigungs-Mail), aber Suunto verweigert unserer App danach den Zugriff auf dein Konto. Der Fehler liegt nicht bei dir und nicht an deinem Passwort — wir klären das mit Suunto. Bis dahin kannst du Suunto-Aktivitäten als Datei importieren.",
   "setup.addValue": "Hinzufügen",
   "setup.boardDelConfirm": "Das Board löschen? Sessions, die's nutzen, fallen zurück auf deinen Standard.",

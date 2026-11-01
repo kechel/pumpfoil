@@ -541,6 +541,7 @@ const de: Record<string, string> = {
   "sessions.uploadHint": "FIT-Datei hochladen oder die Uhr verbinden und fahren.",
   "sessions.uploadSkipped": "{skipped} von {total} Dateien übersprungen — das sind keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.",
   "sessions.uploadSkippedOne": "Nicht importiert: {reason}.",
+  "sessions.uploadReplaceAsk": "Diese Fahrt ist schon da (Session #{id}), aber die Datei ist eine andere. Alte Session löschen und durch diese Datei ersetzen?\n\nNur zuschneiden geht auch ohne neue Datei: in der Session unter „{trim}“.",
   "sessions.uploadFail": "{fail} von {total} Datei(en) fehlgeschlagen (kein FIT/keine GPS-Daten?).",
   "sessions.timeTo": "bis",
   "sessions.listEnd": "— Ende —",

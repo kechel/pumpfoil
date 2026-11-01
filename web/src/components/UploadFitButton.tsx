@@ -41,7 +41,22 @@ export function UploadFitButton({
     for (let i = 0; i < files.length; i++) {
       if (files.length > 1) setProgress(`${i + 1}/${files.length}`);
       try {
-        const r = await api.uploadFit(files[i]) as SessionSummary & { skipped?: string; detail?: string };
+        // Nur bei EINER Datei nachfragen, ob eine geaenderte Datei die vorhandene Fahrt ersetzen soll — bei einem
+        // ganzen Ordner waeren das Dutzende Dialoge; dort bleibt es beim Ueberspringen.
+        const einzeln = files.length === 1;
+        type Antwort = SessionSummary & { skipped?: string; detail?: string; existing_id?: number };
+        let r = await api.uploadFit(files[i], { rueckfrage: einzeln }) as Antwort;
+        if (einzeln && r?.skipped === "exists_different" && r.existing_id != null) {
+          if (window.confirm(t("sessions.uploadReplaceAsk", { id: r.existing_id, trim: t("sd.trim") }))) {
+            r = await api.uploadFit(files[i], { rueckfrage: true, ersetzen: r.existing_id }) as Antwort;
+          } else {
+            // Abgelehnt: zur vorhandenen Fahrt (dort kann man zuschneiden), nichts geaendert.
+            setProgress(null); setUploading(false);
+            if (onDone) onDone(null); else nav(`/sessions/${r.existing_id}`);
+            if (fileRef.current) fileRef.current.value = "";
+            return;
+          }
+        }
         if (r && r.skipped) { skipped++; if (!skipDetail && r.detail) skipDetail = r.detail; }
         else last = r;
       } catch { fail++; }

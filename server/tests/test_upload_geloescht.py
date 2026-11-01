@@ -84,3 +84,48 @@ def test_kontoverknuepfung_behaelt_die_sperre(client):
         assert db.get(models.Session, sid).deleted is True
     finally:
         db.close()
+
+
+def _hoch_mit(client, auth, daten, **params):
+    q = "&".join(f"{k}={v}" for k, v in params.items())
+    return client.post(f"/api/sessions/upload-fit?{q}", headers=auth,
+                       files={"file": ("lauf.gpx", daten, "application/gpx+xml")})
+
+
+def test_andere_datei_zu_vorhandener_fahrt_fragt_nach_und_ersetzt(client):
+    # Bis 01.11.2026 landete eine zugeschnittene Datei STILL auf der vorhandenen Session.
+    auth = _auth(client, "ersetzen@test.de")
+    alt = _hoch(client, auth, _gpx(30)).json()["id"]
+
+    r = _hoch_mit(client, auth, _gpx(20), rueckfrage=1)
+    assert r.json()["skipped"] == "exists_different"
+    assert r.json()["existing_id"] == alt
+
+    r = _hoch_mit(client, auth, _gpx(20), rueckfrage=1, ersetzen=alt)
+    assert r.status_code == 200, r.text
+    neu = r.json()["id"]
+    assert neu != alt
+    assert client.get(f"/api/sessions/{alt}", headers=auth).status_code == 404
+    assert client.get(f"/api/sessions/{neu}", headers=auth).status_code == 200
+
+
+def test_gleiche_datei_fragt_nicht(client):
+    auth = _auth(client, "ersetzen-gleich@test.de")
+    a = _hoch(client, auth, _gpx()).json()["id"]
+    r = _hoch_mit(client, auth, _gpx(), rueckfrage=1)
+    assert r.json()["id"] == a and "skipped" not in r.json()
+
+
+def test_ohne_rueckfrage_altes_verhalten(client):
+    # Die Apps kennen die Rueckfrage nicht: dort bleibt es bei der vorhandenen Session.
+    auth = _auth(client, "ersetzen-app@test.de")
+    a = _hoch(client, auth, _gpx(30)).json()["id"]
+    assert _hoch(client, auth, _gpx(20)).json()["id"] == a
+
+
+def test_fremde_id_ersetzt_nichts(client):
+    auth = _auth(client, "ersetzen-fremd@test.de")
+    a = _hoch(client, auth, _gpx(30)).json()["id"]
+    r = _hoch_mit(client, auth, _gpx(20), rueckfrage=1, ersetzen=a + 999)
+    assert r.json()["skipped"] == "exists_different"
+    assert client.get(f"/api/sessions/{a}", headers=auth).status_code == 200

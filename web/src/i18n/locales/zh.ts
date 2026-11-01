@@ -2277,6 +2277,7 @@ const zh: Record<string, string> = {
   "sessions.otherSpots": "其他点位",
   "sessions.uploadSkipped": "{total} 个文件中跳过了 {skipped} 个——它们不是活动记录（例如手表的日常监测）。其余全部已导入。",
   "sessions.uploadSkippedOne": "未导入：{reason}。",
+  "sessions.uploadReplaceAsk": "这次滑行已经存在（会话 #{id}），但文件不同。要删除旧会话并用此文件替换吗？\n\n只想裁剪的话不需要新文件：在会话中使用“{trim}”。",
   "settings.suunto.broken": "⚠ 与 Suunto 的关联目前无法使用：在 Suunto 登录是成功的（Suunto 甚至会给你发确认邮件），但随后 Suunto 拒绝我们的应用访问你的账号。这不是你的问题，也与密码无关——我们正在与 Suunto 处理。在此之前，你可以把 Suunto 的活动以文件方式导入。",
   "setup.addValue": "添加",
   "setup.boardDelConfirm": "删除这块板？使用它的会话会回到你的默认设置。",
