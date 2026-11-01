@@ -1104,7 +1104,14 @@ struct SessionDetailView: View {
                 .pickerStyle(.segmented).frame(maxWidth: 160)
             }
             Spacer(minLength: 0)
-            kartenSchalter(s)
+            // Passen die Schalter nicht nebeneinander, untereinander (Nutzermeldung 01.11.2026, Apple Watch SE-Fahrer
+            // mit iPhone): mit drei `.fixedSize()`-Schaltern (Marker, Gleiten, Startversuche) war die Zeile breiter als
+            // der Bildschirm, und SwiftUI verbreiterte damit die GANZE Seite — Kopf und Legenden liefen links und
+            // rechts ueber den Rand.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) { kartenSchalter(s) }
+                VStack(alignment: .trailing, spacing: 6) { kartenSchalter(s) }
+            }
         }
     }
 

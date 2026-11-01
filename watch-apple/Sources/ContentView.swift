@@ -140,6 +140,7 @@ struct RecordView: View {
     @State private var colorBy = false
     @State private var alarm = WatchAlarm()
     @State private var page = 2   // Start auf der ersten Datenseite (0=Verwerfen, 1=Stop davor)
+    @State private var letzteDatenSeite = 2   // zuletzt gezeigte Datenseite (Ziel der Wassersperre, s. wassersperreButton)
     @State private var wasHigh = false
     @State private var wasLow = false
     @State private var syncing = false
@@ -260,6 +261,7 @@ struct RecordView: View {
                 if wassersperre == "on" { WKInterfaceDevice.current().enableWaterLock() }
             }
         }
+        .onChange(of: page) { p in if p >= 2 && p < Self.STOP_HINTEN { letzteDatenSeite = p } }
         .onChange(of: rec.isFoiling) { _ in onFoilingChanged() }
         .onChange(of: rec.isPaused) { _ in onPausedChanged() }
         .onChange(of: rec.pauseMahnung) { _ in onPauseMahnung() }
@@ -731,9 +733,18 @@ struct RecordView: View {
     ///
     /// Der Knopf sitzt auf der Stopp-Seite, wo die Aktionen ohnehin liegen: einen Wischer von
     /// den Daten entfernt, aber nicht dort, wo man ihn versehentlich trifft.
+    ///
+    /// Vor dem Sperren zurueck auf die zuletzt gezeigte Datenseite (Nutzermeldung 01.11.2026): die Sperre nimmt jede
+    /// Beruehrung weg, bis man die Krone dreht — wer sie hier einschaltete, blieb auf der Stopp-Seite stehen und sah
+    /// waehrend der Fahrt keine Daten, und auf der Datenseite selbst gibt es keinen Knopf.
     @ViewBuilder private var wassersperreButton: some View {
         if wassersperre != "off" {
-            Button(WLoc.t("rec.waterLock", lang)) { WKInterfaceDevice.current().enableWaterLock() }
+            Button(WLoc.t("rec.waterLock", lang)) {
+                let ziel = min(max(letzteDatenSeite, 2), ringPages.count + 1)
+                withAnimation { page = ziel }
+                // Erst nach dem Seitenwechsel sperren, sonst friert die Sperre die Stopp-Seite ein.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { WKInterfaceDevice.current().enableWaterLock() }
+            }
                 .font(.caption2)
                 .buttonStyle(.bordered)
         }
