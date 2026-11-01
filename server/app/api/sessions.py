@@ -773,10 +773,19 @@ _WATER_SPORTS = {
 
 
 def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str, uuid_prefix: str,
-                          filename: str | None = None, sport_override: str | None = None):
+                          filename: str | None = None, sport_override: str | None = None,
+                          von_hand: bool = False):
     """Geparsten Track (aus FIT/TCX/GPX) als Session anlegen: Dup-Check (Hash ODER Startzeit,
     pro Nutzer, idempotent) -> Session + Rohdaten -> analysieren. Wiederverwendet von /upload-fit
-    UND vom Polar-Import. Rückgabe: Session (neu oder bestehend) oder None (bewusst gelöscht)."""
+    UND vom Polar-Import. Rückgabe: Session (neu oder bestehend) oder None (bewusst gelöscht).
+
+    von_hand=True (nur /upload-fit): eine geloeschte Session sperrt den Import NICHT. Jan, 01.11.2026,
+    nach einem Nutzer, der seine Datei hochlud, die Session loeschte und sie dann nicht wieder hochladen
+    konnte: „wer eine fit hochlaedt die schon da war soll die geloeschte ignorieren / ueberschreiben /
+    automatisch restoren wenn die wirklich identisch ist ohne rueckfrage". Gleiche Datei (Hash) -> die
+    geloeschte wird zurueckgeholt; andere Datei mit derselben Startzeit (z. B. zugeschnitten) -> neu
+    angelegt, die geloeschte bleibt geloescht. Die Kontoverknuepfungen behalten die Sperre: dort holt
+    jeder Abgleich alles erneut, und eine geloeschte Fahrt soll nicht bei jedem Lauf wiederkommen."""
     import hashlib
     import logging
 
@@ -790,17 +799,29 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
             "Import %s (user %s): Datei nur teilweise lesbar, %d Punkte uebernommen — %s",
             src_label, user.id, len(samples), parsed["abbruch"])
     content_hash = hashlib.sha256(raw).hexdigest()
-    existing = (
+    treffer = (
         db.query(models.Session)
         .filter(
             models.Session.user_id == user.id,
             (models.Session.content_hash == content_hash)
             | (models.Session.started_at == started_at),
         )
-        .first()
+        .order_by(models.Session.id)
+        .all()
     )
-    if existing is not None:
-        return None if existing.deleted else existing
+    lebend = next((t for t in treffer if not t.deleted), None)
+    if lebend is not None:
+        return lebend
+    if treffer and not von_hand:
+        return None
+    gleich = next((t for t in treffer if t.content_hash == content_hash), None)
+    if gleich is not None:
+        gleich.deleted = False
+        db.commit()
+        logging.getLogger(__name__).info("Import %s (user %s): geloeschte Session #%s per gleicher Datei zurueckgeholt",
+                                         src_label, user.id, gleich.id)
+        _spot_nachziehen(db, gleich)
+        return gleich
 
     accel_bytes = parsed["accel_bytes"]
     accel_hz = parsed["accel_hz"] or 25
@@ -986,8 +1007,8 @@ async def upload_fit(
         return {"skipped": "not_water", "sport": sport, "started_at": started_at.isoformat()}
 
     s = import_parsed_session(db, user, raw, parsed, src_label=src_label, uuid_prefix=uuid_prefix,
-                              filename=dateiname)
-    if s is None:  # bewusst gelöschte Aktivität nicht wieder importieren
+                              filename=dateiname, von_hand=True)
+    if s is None:  # bewusst gelöschte Aktivität nicht wieder importieren (mit von_hand=True nicht mehr erreichbar)
         return {"skipped": "deleted", "sport": sport, "started_at": started_at.isoformat()}
     return _session_out(s, with_analysis=True)
 
@@ -2927,7 +2948,8 @@ def delete_session(
     db: Session = Depends(get_db),
 ) -> dict:
     """Soft-Delete der eigenen Session: überall ausgeblendet, aber der Tombstone
-    (content_hash/started_at) bleibt -> ein erneuter FIT-Import legt sie nicht wieder an."""
+    (content_hash/started_at) bleibt -> ein erneuter Import aus einer Kontoverknuepfung legt sie nicht
+    wieder an. Eine von Hand hochgeladene Datei holt sie zurueck bzw. legt sie neu an (s. import_parsed_session)."""
     s = _owned(db, user, session_id)
     alter_spot = s.spot_id
     s.deleted = True
