@@ -162,6 +162,13 @@ def mitglieder_ids(db: Session, team_id: int) -> list[int]:
             .filter(M.team_id == team_id, M.status == "aktiv", U.blocked.isnot(True), Tm.geloescht_am.is_(None)).all()]
 
 
+def mitglieder_team_ids(db: Session, uid: int) -> list[int]:
+    """Teams, in denen jemand aktives Mitglied ist (geloeschte Teams nicht)."""
+    M, Tm = models.TeamMitglied, models.Team
+    return [i for (i,) in db.query(M.team_id).join(Tm, Tm.id == M.team_id)
+            .filter(M.user_id == uid, M.status == "aktiv", Tm.geloescht_am.is_(None)).all()]
+
+
 def oeffentlich_sichtbar(t: models.Team) -> bool:
     """Steht das Team nach aussen (Community-Abschnitt, Adresse fuer Nichtmitglieder)?"""
     return t.frei_am is not None
@@ -624,6 +631,7 @@ import json  # noqa: E402
 EINFRIEREN_NACH = timedelta(hours=24)
 EVENT_MAX_DAUER = timedelta(days=62)
 EVENT_MAX_OFFEN = 20             # kommende + laufende Events je Team
+EVENT_VORSCHAU = timedelta(days=3)  # Community-Seite: kommende Events, die so bald beginnen (Jan, 01.11.2026)
 EVENT_MAX_TAFELN = 6
 ABZEICHEN_PLAETZE = 3
 

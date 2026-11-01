@@ -2073,6 +2073,7 @@ export const api = {
   // ---- Teams (31.10.2026, docs/TEAMS.md; Server: server/app/api/teams.py) ----
   teamsMine: () => req<TeamKurz[]>("/api/teams/mine"),
   teamsListe: () => req<TeamListenEintrag[]>("/api/teams/liste"),
+  teamsEventsAktuell: () => req<TeamEventKurz[]>("/api/teams/liste/events"),
   teamSlug: (q: { name?: string; slug?: string; team_id?: number }) =>
     req<{ slug: string; frei: boolean; fehler: string | null }>(`/api/teams/slug?${new URLSearchParams(
       Object.entries(q).filter(([, v]) => v != null && v !== "").map(([k, v]) => [k, String(v)])).toString()}`),
@@ -2144,6 +2145,12 @@ export const api = {
 export type TeamRolle = "leiter" | "moderator" | "mitglied";
 export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; banner_url?: string | null; banner_fokus?: string | null; sportarten?: string[] }
 export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null }
+/** Community-Seite: laufende und bald beginnende Events (ohne Bestenlisten) */
+export interface TeamEventKurz {
+  id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
+  status: "kommend" | "laeuft" | "auswertung" | "beendet"; sportarten: string[]; spots: { id: number; name: string | null }[];
+  team: { slug: string; name: string; logo_url: string | null; farbe: string | null };
+}
 export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean }
 export interface TeamEinstellungen {
   name: string; slug: string; beschreibung: string; farbe: string;

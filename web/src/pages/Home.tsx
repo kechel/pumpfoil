@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { passtZu } from "../lib/suche";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
-import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamListenEintrag } from "../lib/api";
+import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamListenEintrag, TeamEventKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { sportartenText } from "../lib/teamKennzahlen";
+import { eventZeitraum } from "../lib/teamEvents";
+import KachelUhr from "../components/KachelUhr";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
@@ -19,7 +21,7 @@ import { gemerktKurz, mitEigenen, type Gemerkt } from "../components/SpotHeatmap
 import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { useT } from "../i18n";
+import { useI18n, useT } from "../i18n";
 import { MOTOR_SPORTS, PADDEL_SPORTS, WIND_SPORTS, sortiereNachSport } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
 
@@ -685,10 +687,14 @@ function CommunitySection() {
 // abschnitt rein mit den teams"). Nur freigegebene Teams, in ihrer freigegebenen Fassung. Solange es
 // keins gibt, erscheint der Abschnitt gar nicht — gegruendet wird ueber den Knopf „Team" im Profil.
 function TeamsSection() {
-  const t = useT();
+  const { t, lang } = useI18n();
   const [rows, setRows] = useState<TeamListenEintrag[] | null>(null);
-  useEffect(() => { api.teamsListe().then(setRows).catch(() => setRows([])); }, []);
-  if (!rows || rows.length === 0) return null;
+  const [events, setEvents] = useState<TeamEventKurz[]>([]);
+  useEffect(() => {
+    api.teamsListe().then(setRows).catch(() => setRows([]));
+    api.teamsEventsAktuell().then(setEvents).catch(() => setEvents([]));
+  }, []);
+  if ((!rows || rows.length === 0) && events.length === 0) return null;
   return (
     <div className="mt-6">
       <div className="mb-1.5 flex items-center gap-2">
@@ -696,7 +702,7 @@ function TeamsSection() {
         <h3 className="text-lg font-bold">{t("team.community")}</h3>
         <Link to="/teams" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>
       </div>
-      {(
+      {!!rows?.length && (
         <div className="grid gap-2 sm:grid-cols-2">
           {rows.map((tm) => (
             <Link key={tm.id} to={`/teams/${tm.slug}`} style={teamFarbStil(tm.farbe)}
@@ -709,6 +715,39 @@ function TeamsSection() {
                   {!!tm.sportarten?.length && <> · {sportartenText(tm.sportarten, t)}</>}
                 </span>
               </span>
+            </Link>
+          ))}
+        </div>
+      )}
+      {/* Laufende und in den naechsten 3 Tagen beginnende Events (Jan, 01.11.2026) — wie die Event-Kacheln der
+          Teamseite: Titel, Status, Sportart/Spots, Zeitraum mit Countdown, erste Zeile der Beschreibung. */}
+      {events.length > 0 && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {events.map((e) => (
+            <Link key={`${e.team.slug}-${e.id}`} to={`/teams/${e.team.slug}/events/${e.id}`} style={teamFarbStil(e.team.farbe)}
+              className={`team-farbe block rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : "border-slate-800"}`}>
+              <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
+                <TeamWappen name={e.team.name} logo={e.team.logo_url} farbe={e.team.farbe} size={20} />
+                <span className={`team-akzent font-semibold ${e.status === "laeuft" ? "animate-pulse" : ""}`}>{e.titel}</span>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf animate-pulse font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
+                  {t(`team.event.status.${e.status}`)}
+                </span>
+                {e.sportarten.map((sp) => (
+                  <span key={sp} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</span>
+                ))}
+                {e.spots.map((sp) => (
+                  <span key={sp.id} className="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">
+                    <LocationIcon className="h-3.5 w-3.5" /> {sp.name ?? `#${sp.id}`}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400">
+                {e.team.name} · {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
+                {(e.status === "kommend" || e.status === "laeuft") && (
+                  <> · <KachelUhr ziel={e.status === "kommend" ? e.start : e.ende} text={t(e.status === "kommend" ? "team.event.startIn" : "team.event.endetIn")} lang={lang} /></>
+                )}
+              </p>
+              {e.beschreibung?.trim() && <p className="mt-0.5 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.trim().split("\n")[0]}</p>}
             </Link>
           ))}
         </div>

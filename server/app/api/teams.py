@@ -204,6 +204,36 @@ def liste(_u: models.User = Depends(current_user), db: Session = Depends(get_db)
     return out
 
 
+@router.get("/liste/events")
+def liste_events(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Community-Abschnitt (Jan, 01.11.2026): laufende Events und solche, die in den naechsten Tagen beginnen
+    (T.EVENT_VORSCHAU). Nur aus Teams, deren Events der Betrachter auch oeffnen darf: freigegeben mit
+    oeffentlichen Bestenlisten (freigegebene Fassung) oder eigene Teams (interne Fassung). Ohne Bestenlisten —
+    die stehen auf der Event-Seite."""
+    jetzt = T._jetzt()
+    E, Tm = models.TeamEvent, models.Team
+    eigene = set(T.mitglieder_team_ids(db, user.id))
+    out = []
+    for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
+                 .filter(E.geloescht_am.is_(None), E.eingefroren_am.is_(None), Tm.geloescht_am.is_(None),
+                         E.ende > jetzt, E.start <= jetzt + T.EVENT_VORSCHAU)
+                 .order_by(E.start).limit(50).all()):
+        intern = t.id in eigene
+        if not intern and not T.bestenlisten_oeffentlich(t):
+            continue
+        tafeln_ = T.event_tafeln(e)
+        sportarten = list(dict.fromkeys(tf.sportart for tf in tafeln_)) or [e.summen_sportart or "pumpfoil"]
+        ids = T.event_spots(e)
+        spots = ([{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
+                  .filter(models.Spot.id.in_(ids)).all()] if ids else [])
+        a = T.auftritt(t, intern)
+        out.append({"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": T._aware(e.start).isoformat(),
+                    "ende": T._aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "status": T.event_status(e, jetzt),
+                    "sportarten": sportarten, "spots": spots,
+                    "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}})
+    return out
+
+
 # ------------------------------------------------------------------------------ Teamseite ----
 
 @router.get("/einladung/{token}")

@@ -646,3 +646,24 @@ def test_event_nur_gesamtsummen(client):
     r = client.put(f"/api/teams/{slug}/events/{ev['id']}", headers=ka,
                    json={**body, "summen": ["pumps"], "summen_accel_only": True}).json()
     assert r["summen_accel_only"] is True and r["summen"] == {"pumps": 120}
+
+
+def test_community_aktuelle_events(client):
+    """Community-Seite: laufende und bald beginnende Events, nur aus Teams, deren Events man oeffnen darf."""
+    (_ia, ka), (_ib, kb), (_ic, kc) = (_konto(client, "te-a-com@t.de"), _konto(client, "te-b-com@t.de"),
+                                       _konto(client, "te-c-com@t.de"))
+    slug, _l = _team_mit(client, ka, kb, "Communityteam")
+    jetzt = datetime.now(timezone.utc)
+    tafel = [{"kennzahl": "sum_pumps"}]
+
+    def ev(titel, start, ende):
+        return client.post(f"/api/teams/{slug}/events", headers=ka, json={
+            "titel": titel, "start": (jetzt + start).isoformat(), "ende": (jetzt + ende).isoformat(), "tafeln": tafel}).json()["id"]
+    laeuft = ev("Laeuft", timedelta(hours=-1), timedelta(days=1))
+    bald = ev("Bald", timedelta(days=2), timedelta(days=3))
+    ev("Spaeter", timedelta(days=5), timedelta(days=6))
+    ev("Vorbei", timedelta(days=-3), timedelta(hours=-1))
+    titel = [(e["titel"], e["status"]) for e in client.get("/api/teams/liste/events", headers=kb).json() if e["team"]["slug"] == slug]
+    assert titel == [("Laeuft", "laeuft"), ("Bald", "kommend")] and {laeuft, bald}
+    # Fremde sehen Events nicht freigegebener Teams nicht
+    assert all(e["team"]["slug"] != slug for e in client.get("/api/teams/liste/events", headers=kc).json())
