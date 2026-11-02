@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sortiereNachSport } from "../lib/sportClass";
 import { passtZu, suchform } from "../lib/suche";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import { RoutenListe } from "../components/RoutenListe";
 import L from "leaflet";
@@ -51,19 +51,40 @@ export default function Spots() {
   );
 }
 
-/** Reiter „Liste": alle Spots zum Durchsuchen, meistbefahrene zuerst; ein Tippen oeffnet die Spot-Seite. */
+/** Sportart der Spots-Seite aus der Adresse (`sport`, Standard „all"); Wechsel ersetzt den Verlaufseintrag. */
+function useSportParam(): [string, (v: string) => void] {
+  const [sp, setSp] = useSearchParams();
+  const sport = sp.get("sport") || "all";
+  const setze = (v: string) => setSp((alt) => { const n = new URLSearchParams(alt); v === "all" ? n.delete("sport") : n.set("sport", v); return n; }, { replace: true });
+  return [sport, setze];
+}
+
+/** Reiter „Liste": alle Spots zum Durchsuchen, meistbefahrene zuerst; ein Tippen oeffnet die Spot-Seite. Mit derselben
+ * Sportart-Auswahl wie die Karte (Jan, 02.11.2026). */
 function SpotListe() {
   const t = useT();
   const [alle, setAlle] = useState<Spot[] | null>(null);
   const [q, setQ] = useState("");
-  useEffect(() => { api.spotMap(false).then(setAlle).catch(() => setAlle([])); }, []);
+  const [sport, setSport] = useSportParam();
+  const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
+  useEffect(() => { api.communitySports().then(setSports).catch(() => {}); }, []);
+  useEffect(() => { setAlle(null); api.spotMap(false, sport).then(setAlle).catch(() => setAlle([])); }, [sport]);
   if (!alle) return <Spinner />;
   const liste = alle.filter((s) => s.spot_id != null && (!q.trim() || passtZu(`${s.spot} ${s.water ?? ""}`, q)))
     .sort((a, b) => b.sessions - a.sessions);
   return (
     <>
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("home.spotSearch")}
-        className="mb-3 w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+      <div className="mb-3 flex flex-wrap gap-2">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("home.spotSearch")}
+          className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+        {(sports.length > 1 || sport !== "all") && (
+          <select value={sport} onChange={(e) => setSport(e.target.value)}
+            className="min-w-0 max-w-full truncate rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
+            <option value="all">{t("all.allSports")}</option>
+            {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+          </select>
+        )}
+      </div>
       <div className="max-w-xl space-y-1.5">
         {liste.slice(0, 200).map((s) => (
           <Link key={s.spot_id} to={`/sessions?spot=${s.spot_id}`}
@@ -121,7 +142,8 @@ function SpotKarte({ reiter }: { reiter: React.ReactNode }) {
   const heatLayer = useRef<L.LayerGroup | null>(null);
   // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing"). Default „all" wie
   // bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
-  const [sport, setSport] = useState("all");
+  // Sportart in der Adresse (02.11.2026): Karte und Liste teilen sie, ein Reiterwechsel behaelt sie.
+  const [sport, setSport] = useSportParam();
   const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
   useEffect(() => { api.communitySports().then(setSports).catch(() => {}); }, []);
   // „Gerade aktiv" zeigt die einzeln gruenen Spots UND die kleinen aus aktiven Kacheln — sonst
