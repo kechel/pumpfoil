@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { classLabelKey, sortiereNachSport } from "../lib/sportClass";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
@@ -326,6 +327,7 @@ export default function Sessions() {
   }, [sp, scope, spot, sport, accelOnly]);
 
   const isMine = scope === "mine" && !spot;
+  const [filterPlatz, setFilterPlatz] = useState<HTMLDivElement | null>(null);
   const isFreunde = scope === "friends" && !spot;
   const isTeam = scope === "team" && !spot && !!meineTeams?.length;
   // Ansicht „Freunde": schon beim RENDERN setzen, nicht im Effekt — die Kinder laden in IHREN
@@ -425,6 +427,9 @@ export default function Sessions() {
             rechtsbuendiger Block (Jan, 07.09. und 14.10.2026). Der Hinweis „heute neu" steht seit
             14.10. oben neben der Ueberschrift — in dieser Zeile schob er die Knoepfe herum. Import nur als Link (nicht der Datei-Knopf — der
             Upload gehoert auf die Import-Seite mit der Garmin-Anleitung) und nur in „Meine". */}
+        {/* Platz fuer Gueltig/Aussortiert + Monat aus MySessionsList (per Portal), damit bei breitem Fenster alles in
+            EINER Zeile steht (Jan, 02.11.2026). Schmal bricht es wie bisher um. */}
+        {isMine && <div ref={setFilterPlatz} className="flex flex-wrap items-center gap-2" />}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {isMine && (
             <Link to="/import"
@@ -432,10 +437,10 @@ export default function Sessions() {
               <UploadIcon className="h-4 w-4" /> {t("import.title")}
             </Link>
           )}
-          {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. */}
-          <ListenAnsicht />
           <AccelToggle value={accelOnly} onChange={(v) => { setBrett(false); setAccelOnly(v); }}
                        brett={brett} onBrett={() => { setBrett(true); setAccelOnly(false); }} />
+          {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. Ganz rechts (Jan, 02.11.2026). */}
+          <ListenAnsicht />
         </div>
       </div>
 
@@ -477,7 +482,7 @@ export default function Sessions() {
       ) : isTeam ? <CommunityList key={`team|${teamWahl}|${brett}`} name="" spot="" accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                   team={teamWahl} onShowAll={() => setAccelAuto(false)} />
       : isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
-                                   board={brett} onShowAll={() => setAccelAuto(false)} />
+                                   board={brett} filterPlatz={filterPlatz} onShowAll={() => setAccelAuto(false)} />
               : <CommunityList key={`${brett}|${isFreunde}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                onShowAll={() => setAccelAuto(false)} />}
     </div>
@@ -567,8 +572,9 @@ function HeuteNeu({ mine, freunde = false, spot, accelOnly, sport, board = false
   );
 }
 
-function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
-    { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean }) {
+function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, filterPlatz = null }:
+    { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean;
+      filterPlatz?: HTMLElement | null }) {
   const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const t = useT();
   const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
@@ -777,7 +783,9 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-center gap-3">
+      {(() => {
+        const filterKnoepfe = (
+          <>
         <div className="flex gap-1">
           <button onClick={() => changeFilter("pump")} className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "pump" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>{t("sessions.filterValid")}</button>
           {/* Aussortiert: Anzahl direkt am Tab, und amber hervorgehoben, solange etwas FRISCHES
@@ -796,6 +804,12 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false }:
           <option value="">{t("sessions.allMonths")}</option>
           {months.map((m) => <option key={m.month} value={m.month}>{monthLabel(m.month)} ({m.count})</option>)}
         </select>
+          </>
+        );
+        return filterPlatz ? createPortal(filterKnoepfe, filterPlatz)
+          : <div className="mb-5 flex flex-wrap items-center gap-3">{filterKnoepfe}</div>;
+      })()}
+      <div className={filter === "other" && items.length > 0 ? "mb-5 flex flex-wrap items-center gap-3" : "hidden"}>
         {/* Alle Aussortierten löschen — Server erzwingt owner+other; hier nur Komfort + Confirm. */}
         {filter === "other" && items.length > 0 && (
           <button
