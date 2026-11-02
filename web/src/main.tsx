@@ -67,7 +67,6 @@ const Login = seite(() => import("./pages/Login"));
 const Account = seite(() => import("./pages/Account"));
 const Onboarding = seite(() => import("./pages/Onboarding"));
 const Home = seite(() => import("./pages/Home"));
-const History = seite(() => import("./pages/History"));
 const Settings = seite(() => import("./pages/Settings"));
 const LinkedAccounts = seite(() => import("./pages/LinkedAccounts"));
 const OAuthConsent = seite(() => import("./pages/OAuthConsent"));
@@ -233,7 +232,8 @@ const router = createBrowserRouter([
           { index: true, element: <PersonalHome /> },
           { path: "home", element: <PersonalHome /> },   // Alias (Alt-Links/Bookmarks)
           { path: "community", element: <Home /> },
-          { path: "verlauf", element: <History /> },
+          // Verlauf ist seit 02.11.2026 ein Reiter in Home; alte Links und Lesezeichen fuehren dorthin.
+          { path: "verlauf", element: <Navigate to="/?tab=verlauf" replace /> },
           { path: "sessions", element: <Sessions /> },
           { path: "current-feedback-request", element: <CurrentFeedbackRequest /> },
           { path: "import", element: <Import /> },

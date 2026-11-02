@@ -2760,6 +2760,17 @@ const zh: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "这个链接可以在任何地方分享和公开，没有 pumpfoil.org 账号的人也能打开：他们会看到排行榜（名次、名字、成绩）。",
   "team.adresseTeilen.wartet": "排行榜已设为公开，但团队展示信息尚未通过审核。在此之前，没有账号的人打开这个链接什么也看不到。",
   "team.adresseTeilen.intern": "排行榜未公开。打开这个链接只有成员能看到内容。可以在团队设置中把它设为公开。",
+  "tab.overview": "概览",
+  "tab.team": "团队",
+  "tab.media": "媒体",
+  "tab.map": "地图",
+  "tab.list": "列表",
+  "tab.routes": "路线",
+  "tab.weather": "天气",
+  "tab.descriptions": "介绍",
+  "tab.leaderboard": "排行榜",
+  "tab.noRecords": "这里还没有记录。",
+  "tab.spotPage": "地点页面",
 };
 
 export default zh;

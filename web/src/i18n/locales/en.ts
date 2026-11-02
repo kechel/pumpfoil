@@ -2862,6 +2862,17 @@ const en: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "You can share and publish this address anywhere, including with people who don't have a pumpfoil.org account: they'll see the leaderboards (rank, name, value).",
   "team.adresseTeilen.wartet": "The leaderboards are set to public, but the appearance isn't approved yet. Until then, people without an account see nothing at this address.",
   "team.adresseTeilen.intern": "The leaderboards aren't public. Only members see something at this address. You can make them public in the team settings.",
+  "tab.overview": "Overview",
+  "tab.team": "Team",
+  "tab.media": "Media",
+  "tab.map": "Map",
+  "tab.list": "List",
+  "tab.routes": "Routes",
+  "tab.weather": "Weather",
+  "tab.descriptions": "Descriptions",
+  "tab.leaderboard": "Leaderboard",
+  "tab.noRecords": "No records here yet.",
+  "tab.spotPage": "Spot page",
 };
 
 export default en;

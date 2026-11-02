@@ -179,7 +179,8 @@ function SportErfolgSection({ mode, onPick }: { mode: Mode; onPick: (p: Pt) => v
   );
 }
 
-export default function History() {
+/** `eingebettet`: als Reiter „Verlauf" auf Home (02.11.2026) — ohne eigene Ueberschrift. */
+export default function History({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const t = useT();
   const [data, setData] = useState<HistoryPoint[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -204,10 +205,12 @@ export default function History() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-2">
-        <ChartIcon className="h-7 w-7 text-brand-400" />
-        <h2 className="text-2xl font-bold">{t("history.title")}{name ? ` · ${name}` : ""}</h2>
-      </div>
+      {!eingebettet && (
+        <div className="mb-4 flex items-center gap-2">
+          <ChartIcon className="h-7 w-7 text-brand-400" />
+          <h2 className="text-2xl font-bold">{t("history.title")}{name ? ` · ${name}` : ""}</h2>
+        </div>
+      )}
 
       <div className="mb-5 flex gap-1">
         <ModeBtn active={mode === "cumulative"} onClick={() => setMode("cumulative")}>{t("history.cumulative")}</ModeBtn>

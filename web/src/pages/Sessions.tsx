@@ -24,6 +24,7 @@ import { SpotWeather } from "../components/SpotWeather";
 import SpotWindfenster from "../components/SpotWindfenster";
 import { SpotHeatmap } from "../components/SpotHeatmap";
 import { SpotNotes } from "../components/SpotNotes";
+import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import { getLastSession, setLastSessionsSearch, setLastSessionsFilter, getLastListToggle, setLastListToggle } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
@@ -197,7 +198,7 @@ function monthLabel(m: string) {
   return new Date(m + "-01T00:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
-// Vereinheitlichte Sessions-Seite: Umschalter Meine / <Homespot> / Alle + Spotsuche.
+// Vereinheitlichte Sessions-Seite: Umschalter Meine / Freunde / Alle; mit ?spot= die Spot-Seite (Reiter in SpotBereich).
 // scope=mine -> eigene Sessions; sonst Community-Sessions (optional je Spot gefiltert).
 // Scroll-to-top-FAB: erscheint nach längerem Scrollen rechts unten NEBEN dem Chat-FAB (right-4);
 // ist der Vergleichs-Button (compare-bar, right-20) sichtbar, rückt er links davor.
@@ -261,8 +262,6 @@ export default function Sessions() {
   // Sportart von Rekorden und Heatmap: der Filter, bei „Alle" Pumpfoil, sonst die erste des Spots.
   const rekordSport: string | null = sport !== "all" ? sport
     : (spotSports.includes("pumpfoil") ? "pumpfoil" : (spotSports[0] ?? null));
-  const [homespot, setHomespot] = useState("");
-  const [homespotId, setHomespotId] = useState<number | null>(null);
   const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
   const nameById = useMemo(() => Object.fromEntries(spots.map((s) => [String(s.id), s.name])), [spots]);
   const spotName = spot ? (nameById[spot] ?? spot) : "";
@@ -278,7 +277,6 @@ export default function Sessions() {
     n.set("spot", String(treffer[0].id));
     setSp(n, { replace: true });
   }, [spot, spots]);   // eslint-disable-line react-hooks/exhaustive-deps
-  const hsRef = homespotId != null ? String(homespotId) : homespot;   // Homespot als id, Fallback Name
   const [myName, setMyName] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);   // bump nach angenommener Übertragung → Liste neu laden
   // accel|alle-Umschalter für beide Tabs; smarter Default (accel wenn Accel-Daten vorhanden).
@@ -296,12 +294,6 @@ export default function Sessions() {
   useEffect(() => { resetAccelAuto(); }, [spot]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Wie auf der Startseite der ABGELEITETE Wert (s. settings.py): ohne ihn fehlte der
-    // Reiter „Homespot" allen, die ihn nie im Profil gesetzt haben — also fast allen.
-    api.getSettings().then((s) => {
-      setHomespot((s.homespot_effective as string) ?? (s.homespot as string) ?? "");
-      setHomespotId((s.homespot_effective_id as number | null) ?? (s.homespot_id as number | null) ?? null);
-    }).catch(() => {});
     api.spotMap(false).then((m) => setSpots(   // alle Spots (auch GPS) als {id,name}
       // Gewaesser mitnehmen: „Berlin 3" und „Berlin 4" sind sonst im Auswahlfeld nicht
       // auseinanderzuhalten (Jan, 24.08.).
@@ -384,9 +376,7 @@ export default function Sessions() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
           <button className={tabCls(isMine)} onClick={() => setScope("mine")}>{t("nav.mySessions.short")}</button>
-          {homespot && (
-            <button className={`inline-flex items-center gap-1 ${tabCls(spot === hsRef)}`} onClick={() => setScope("all", hsRef)}><LocationIcon className="h-4 w-4" /> {homespot}</button>
-          )}
+          {/* Homespot-Knopf ist seit 02.11.2026 ein Reiter auf Home (docs/UX-IA.md). */}
           <button className={tabCls(isFreunde)} onClick={() => setScope("friends")}>{t("friends.title")}</button>
           <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
         </div>
@@ -464,18 +454,13 @@ export default function Sessions() {
           </div>
         );
       })()}
-      {spot && rekordSport && <SpotRecords spot={spot} accelOnly={accelOnly} sport={rekordSport} />}
-      {/* Heatmap des Spots zwischen Rekorden und Wetter (Jan, 16.10.2026) — nur bei echter Spot-id.
-          Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle". */}
-      {spot && /^\d+$/.test(spot) && <SpotHeatmap spotId={Number(spot)} sport={rekordSport ?? "all"} />}
-      {spot && <SpotWeather spot={spot} />}
-      {spot && /^\d+$/.test(spot) && <SpotWindfenster spotId={Number(spot)} />}
-      {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
-          Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
-          keine Spot-Zeile, an der eine Beschreibung haengen koennte. */}
-      {spot && /^\d+$/.test(spot) && <SpotNotes spotId={Number(spot)} />}
-      {isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
-                                board={brett} onShowAll={() => setAccelAuto(false)} />
+      {/* Spot-Seite mit Reitern (Plan docs/UX-IA.md, 02.11.2026): Rekorde | Sessions | Heatmap | Wetter | Beschreibungen. */}
+      {spot ? (
+        <SpotBereich spot={spot} sport={rekordSport} accelOnly={accelOnly} sessions={
+          <CommunityList key={`${brett}|${isFreunde}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
+                         onShowAll={() => setAccelAuto(false)} />} />
+      ) : isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
+                                   board={brett} onShowAll={() => setAccelAuto(false)} />
               : <CommunityList key={`${brett}|${isFreunde}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                onShowAll={() => setAccelAuto(false)} />}
     </div>
@@ -1469,12 +1454,46 @@ function hatRekorde(satz: unknown): boolean {
     .some((r) => r && r.session_id != null);
 }
 
+/** Inhalt der Spot-Seite als Reiter (02.11.2026). Auch der Reiter „Homespot" auf Home zeigt ihn, dort mit eigenem
+ * Adress-Parameter (`stab`) und ohne Session-Liste — die gibt es auf der Spot-Seite. Namens-Gruppen aus dem Altbestand
+ * (keine numerische id) haben keine Heatmap und keine Beschreibungen. */
+export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab" }:
+  { spot: string; sport: string | null; accelOnly: boolean; sessions?: React.ReactNode; param?: string }) {
+  const t = useT();
+  const echt = /^\d+$/.test(spot);
+  const reiter: ReiterDef[] = [
+    { id: "rekorde", label: t("side.records") },
+    ...(sessions ? [{ id: "sessions", label: t("sessions.title") }] : []),
+    ...(echt ? [{ id: "heatmap", label: t("spots.heatmap") }] : []),
+    { id: "wetter", label: t("tab.weather") },
+    ...(echt ? [{ id: "beschreibungen", label: t("tab.descriptions") }] : []),
+  ];
+  const [tab, setTab] = useReiter("spot", reiter.map((r) => r.id), "rekorde", { param });
+  return (
+    <>
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
+      {tab === "rekorde" && (sport
+        ? <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} leerText={t("tab.noRecords")} />
+        : <p className="text-sm text-slate-400">{t("tab.noRecords")}</p>)}
+      {tab === "sessions" && sessions}
+      {tab === "heatmap" && echt && <SpotHeatmap spotId={Number(spot)} sport={sport ?? "all"} />}
+      {tab === "wetter" && (
+        <>
+          <SpotWeather spot={spot} />
+          {echt && <SpotWindfenster spotId={Number(spot)} />}
+        </>
+      )}
+      {tab === "beschreibungen" && echt && <SpotNotes spotId={Number(spot)} />}
+    </>
+  );
+}
+
 type SpotRecSatz = Awaited<ReturnType<typeof api.communityRecords>>;
 
 /** Rekorde am Spot fuer EINE Sportart. Je Sportart getrennt (29.09.2026, Anlass ThermikDreher: ein
  * Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord). Welche Sportart, bestimmen die
  * Filter-Knoepfe der Spot-Seite darueber (Jan, 28.10.2026). */
-function SpotRecords({ spot, accelOnly, sport }: { spot: string; accelOnly: boolean; sport: string }) {
+function SpotRecords({ spot, accelOnly, sport, leerText }: { spot: string; accelOnly: boolean; sport: string; leerText?: string }) {
   const t = useT();
   const [data, setData] = useState<SpotRecSatz | null>(null);
   useEffect(() => {
@@ -1486,7 +1505,9 @@ function SpotRecords({ spot, accelOnly, sport }: { spot: string; accelOnly: bool
   }, [spot, accelOnly, sport]);
   // Gar kein Rekord in dieser Sportart? Dann auch keinen Kasten — sonst stuenden zwoelf leere
   // Kacheln ueber dem Wetter (an Gourvieille gesehen).
-  if (!data || !SPOT_FENSTER.some((k) => hatRekorde((data as Record<string, unknown>)[k]))) return null;
+  if (!data || !SPOT_FENSTER.some((k) => hatRekorde((data as Record<string, unknown>)[k]))) {
+    return data && leerText ? <p className="text-sm text-slate-400">{leerText}</p> : null;
+  }
   return (
     <Card className="mb-3 p-4">
       <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${sport}`)}</h3>

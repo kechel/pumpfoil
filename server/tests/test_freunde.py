@@ -254,3 +254,14 @@ def test_namenssuche_ohne_vollstaendige_sessionliste(client):
                       headers=kopf).json() == []
     # Ohne Namen bleibt das normale Blaettern im Feed.
     assert len(client.get("/api/community/sessions?accel_only=false&limit=3&offset=3", headers=kopf).json()) == 3
+
+
+def test_liste_traegt_letzte_session_je_freund(client):
+    # Home-Uebersicht (02.11.2026): je Freund genau die letzte Session, nicht mehr.
+    tag = secrets.token_hex(3)
+    a, b = _konto(client, f"fr-letzte-a-{tag}@t.de"), _konto(client, f"fr-letzte-b-{tag}@t.de")
+    _session(b[0], tage=3)
+    neu = _session(b[0], tage=1)
+    _befreunden(client, a, b)
+    f = next(x for x in client.get("/api/friends", headers=a[1]).json()["freunde"] if x["user_id"] == b[0])
+    assert f["letzte"]["session_id"] == neu and f["letzte"]["foiling_distance_m"] == 300.0

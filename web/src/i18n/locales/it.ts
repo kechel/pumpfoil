@@ -2646,6 +2646,17 @@ const it: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Puoi condividere e pubblicare questo indirizzo ovunque, anche con chi non ha un account pumpfoil.org: vedrà le classifiche (posizione, nome, valore).",
   "team.adresseTeilen.wartet": "Le classifiche sono impostate come pubbliche, ma l'aspetto non è ancora approvato. Fino ad allora chi non ha un account non vede nulla a questo indirizzo.",
   "team.adresseTeilen.intern": "Le classifiche non sono pubbliche. A questo indirizzo vedono qualcosa solo i membri. Puoi renderle pubbliche nelle impostazioni del team.",
+  "tab.overview": "Panoramica",
+  "tab.team": "Team",
+  "tab.media": "Media",
+  "tab.map": "Mappa",
+  "tab.list": "Elenco",
+  "tab.routes": "Percorsi",
+  "tab.weather": "Meteo",
+  "tab.descriptions": "Descrizioni",
+  "tab.leaderboard": "Classifica",
+  "tab.noRecords": "Ancora nessun record qui.",
+  "tab.spotPage": "Pagina dello spot",
 };
 
 export default it;

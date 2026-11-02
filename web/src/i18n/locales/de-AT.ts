@@ -2653,6 +2653,17 @@ const deAT: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Die Adresse kannst überall teilen und veröffentlichen, a mit Leut ohne Konto bei pumpfoil.org: Die sehn dort die Bestenlisten (Platz, Nam, Wert).",
   "team.adresseTeilen.wartet": "Die Bestenlisten san auf öffentlich g'stellt, aber der Auftritt is no ned freigeben. Bis dahin sehn Leut ohne Konto unter der Adresse nix.",
   "team.adresseTeilen.intern": "Die Bestenlisten san ned öffentlich. Unter der Adresse sehn nur Mitglieder was. Öffentlich schaltest es in die Team-Einstellungen.",
+  "tab.overview": "Übersicht",
+  "tab.team": "Team",
+  "tab.media": "Medien",
+  "tab.map": "Karte",
+  "tab.list": "Liste",
+  "tab.routes": "Routen",
+  "tab.weather": "Wetter",
+  "tab.descriptions": "Beschreibungen",
+  "tab.leaderboard": "Bestenliste",
+  "tab.noRecords": "Hier gibt es noch keine Rekorde.",
+  "tab.spotPage": "Spot-Seite",
 };
 
 export default deAT

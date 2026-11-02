@@ -2816,6 +2816,17 @@ const cs: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Tuto adresu můžeš sdílet a zveřejnit kdekoli, i lidem bez účtu na pumpfoil.org: uvidí tam žebříčky (pořadí, jméno, hodnotu).",
   "team.adresseTeilen.wartet": "Žebříčky jsou nastavené jako veřejné, ale vzhled týmu zatím není schválený. Do té doby lidé bez účtu na této adrese nic neuvidí.",
   "team.adresseTeilen.intern": "Žebříčky nejsou veřejné. Na této adrese něco vidí jen členové. Veřejné je nastavíš v nastavení týmu.",
+  "tab.overview": "Přehled",
+  "tab.team": "Tým",
+  "tab.media": "Média",
+  "tab.map": "Mapa",
+  "tab.list": "Seznam",
+  "tab.routes": "Trasy",
+  "tab.weather": "Počasí",
+  "tab.descriptions": "Popisy",
+  "tab.leaderboard": "Žebříček",
+  "tab.noRecords": "Zatím tu nejsou žádné rekordy.",
+  "tab.spotPage": "Stránka spotu",
 };
 
 export default cs;

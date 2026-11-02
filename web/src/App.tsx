@@ -7,7 +7,7 @@ import { api, clearToken, Profile } from "./lib/api";
 import { applyPumpUnit } from "./lib/pumpRate";
 import { clearLastSession } from "./lib/lastSession";
 import { Avatar } from "./components/ui";
-import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon, ChevronIcon } from "./components/Icons";
+import { SessionsIcon, LogoutIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon, ChevronIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n, useT } from "./i18n";
 // Die Untertitel der vier Artikel dienen als Titel fuer den Mauszeiger — sie sind
@@ -27,13 +27,14 @@ import { warmMySessions, warmMedia, raeumeAlteCaches, leerePersoenlicheCaches } 
 import { demoStart } from "./lib/demoNames";
 import { istOffen } from "./pages/Onboarding";
 
-type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
+// `start`: Startansicht des Bereichs — dorthin fuehrt ein Tippen auf den Knopf des Bereichs, in dem man schon ist
+// (Plan docs/UX-IA.md, 02.11.2026). „Verlauf" ist seit dann ein Reiter in Home, die Leiste hat damit 5 Knoepfe.
+type NavItem = { to: string; start?: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
   { to: "/", labelKey: "nav.home", icon: HomeIcon, end: true },
-  { to: "/community", labelKey: "home.community", icon: CommunityIcon, end: false },
-  { to: "/sessions?scope=all", labelKey: "nav.sessions", icon: SessionsIcon, end: false },
-  { to: "/verlauf", labelKey: "nav.history", icon: ChartIcon, end: false },
-  { to: "/spots", labelKey: "nav.spots", icon: SpotsIcon, end: false },
+  { to: "/community", start: "/community?tab=bestenliste", labelKey: "home.community", icon: CommunityIcon, end: false },
+  { to: "/sessions", labelKey: "nav.sessions", icon: SessionsIcon, end: false },
+  { to: "/spots", start: "/spots?tab=karte", labelKey: "nav.spots", icon: SpotsIcon, end: false },
   { to: "/einstellungen", labelKey: "nav.profile", icon: SettingsIcon, end: false },
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };
@@ -164,6 +165,24 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
   const ort = useLocation();
   const nav = useNavigate();
   const onSessions = ort.pathname.startsWith("/sessions");
+  // Jeder Hauptbereich kehrt dorthin zurueck, wo man war (Reiter, Filter in der Adresse) — wie die Tab-Leisten der
+  // Apps. Gemerkt nur fuer diese Sitzung; beim neuen Start entscheiden die Seiten selbst (s. components/Reiter.tsx).
+  // Die Spot-Seite (/sessions?spot=) gehoert NICHT zu „Sessions": sonst landete man mit dem Sessions-Knopf auf ihr.
+  const zuletzt = useRef<Record<string, string>>({});
+  const bereich = ort.pathname === "/" || ort.pathname === "/home" ? "/"
+    : ort.pathname === "/sessions" ? (new URLSearchParams(ort.search).has("spot") ? null : "/sessions")
+    : ["/community", "/spots"].includes(ort.pathname) ? ort.pathname : null;
+  if (bereich) zuletzt.current[bereich] = ort.pathname + ort.search;
+  const navZiel = (it: NavItem) => zuletzt.current[it.to] ?? it.to;
+  const navKlick = (it: NavItem) => (e: React.MouseEvent) => {
+    if (it.to.startsWith("/sessions")) clearLastSession();
+    if (bereich !== it.to) return;
+    // Schon in diesem Bereich: zur Startansicht und nach oben.
+    e.preventDefault();
+    delete zuletzt.current[it.to];
+    nav(it.start ?? it.to);
+    window.scrollTo({ top: 0 });
+  };
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [pending, setPending] = useState(0);   // offene Moderation (gemeldet + unecht) fürs Admin-Badge
@@ -291,9 +310,9 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
         {items.map((it) => (
           <NavLink
             key={it.to}
-            to={it.to}
+            to={navZiel(it)}
             end={it.end}
-            onClick={it.to.startsWith("/sessions") ? clearLastSession : undefined}
+            onClick={navKlick(it)}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                 isActive ? "bg-slate-800 nav-active" : "text-slate-300 hover:bg-slate-900 hover:text-slate-200"
@@ -495,9 +514,9 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
         {navItems.map((it) => (
           <NavLink
             key={it.to}
-            to={it.to}
+            to={navZiel(it)}
             end={it.end}
-            onClick={it.to.startsWith("/sessions") ? clearLastSession : undefined}
+            onClick={navKlick(it)}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-1 py-3 text-xs ${
                 isActive ? "nav-active" : "text-slate-200"

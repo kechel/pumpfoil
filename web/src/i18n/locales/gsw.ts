@@ -2648,6 +2648,17 @@ const gsw: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Die Adrässe chasch überall teile und veröffentliche, au mit Lüüt ohni Konto bi pumpfoil.org: Sie gsehnd det d Bestelischte (Platz, Name, Wert).",
   "team.adresseTeilen.wartet": "D Bestelischte sind uf öffentlich gstellt, aber de Uftritt isch no nöd freigä. Bis denn gsehnd Lüüt ohni Konto under dere Adrässe nüt.",
   "team.adresseTeilen.intern": "D Bestelischte sind nöd öffentlich. Under dere Adrässe gsehnd nume Mitglieder öppis. Öffentlich schaltisch sie i de Team-Iistellige.",
+  "tab.overview": "Übersicht",
+  "tab.team": "Team",
+  "tab.media": "Medie",
+  "tab.map": "Charte",
+  "tab.list": "Lischte",
+  "tab.routes": "Route",
+  "tab.weather": "Wätter",
+  "tab.descriptions": "Bschriibige",
+  "tab.leaderboard": "Bestelischte",
+  "tab.noRecords": "Do häts no kei Rekord.",
+  "tab.spotPage": "Spot-Siite",
 };
 
 export default gsw

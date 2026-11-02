@@ -2759,6 +2759,17 @@ const ja: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "このURLはどこでも共有・公開できます。pumpfoil.orgのアカウントがない人も、ランキング（順位・名前・記録）を見られます。",
   "team.adresseTeilen.wartet": "ランキングは公開に設定されていますが、チームの表示内容はまだ承認されていません。承認されるまで、アカウントのない人はこのURLで何も見られません。",
   "team.adresseTeilen.intern": "ランキングは公開されていません。このURLで内容を見られるのはメンバーだけです。チーム設定で公開にできます。",
+  "tab.overview": "概要",
+  "tab.team": "チーム",
+  "tab.media": "メディア",
+  "tab.map": "地図",
+  "tab.list": "リスト",
+  "tab.routes": "ルート",
+  "tab.weather": "天気",
+  "tab.descriptions": "説明",
+  "tab.leaderboard": "ランキング",
+  "tab.noRecords": "まだ記録はありません。",
+  "tab.spotPage": "スポットのページ",
 };
 
 export default ja;

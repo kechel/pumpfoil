@@ -2817,6 +2817,17 @@ const nl: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Dit adres kun je overal delen en publiceren, ook met mensen zonder account bij pumpfoil.org: zij zien daar de ranglijsten (plaats, naam, waarde).",
   "team.adresseTeilen.wartet": "De ranglijsten staan op openbaar, maar de presentatie is nog niet goedgekeurd. Tot dan zien mensen zonder account niets op dit adres.",
   "team.adresseTeilen.intern": "De ranglijsten zijn niet openbaar. Op dit adres zien alleen leden iets. Je zet ze openbaar in de teaminstellingen.",
+  "tab.overview": "Overzicht",
+  "tab.team": "Team",
+  "tab.media": "Media",
+  "tab.map": "Kaart",
+  "tab.list": "Lijst",
+  "tab.routes": "Routes",
+  "tab.weather": "Weer",
+  "tab.descriptions": "Beschrijvingen",
+  "tab.leaderboard": "Ranglijst",
+  "tab.noRecords": "Hier zijn nog geen records.",
+  "tab.spotPage": "Spotpagina",
 };
 
 export default nl;

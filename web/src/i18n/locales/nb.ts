@@ -2738,6 +2738,17 @@ const nb: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Denne adressen kan du dele og publisere hvor som helst, også med folk uten konto på pumpfoil.org: de ser resultatlistene der (plass, navn, verdi).",
   "team.adresseTeilen.wartet": "Resultatlistene er satt til offentlige, men profilen til laget er ikke godkjent ennå. Til da ser folk uten konto ingenting på denne adressen.",
   "team.adresseTeilen.intern": "Resultatlistene er ikke offentlige. På denne adressen ser bare medlemmer noe. Du gjør dem offentlige i lagets innstillinger.",
+  "tab.overview": "Oversikt",
+  "tab.team": "Lag",
+  "tab.media": "Media",
+  "tab.map": "Kart",
+  "tab.list": "Liste",
+  "tab.routes": "Ruter",
+  "tab.weather": "Vær",
+  "tab.descriptions": "Beskrivelser",
+  "tab.leaderboard": "Toppliste",
+  "tab.noRecords": "Ingen rekorder her ennå.",
+  "tab.spotPage": "Spotside",
 };
 
 export default nb;

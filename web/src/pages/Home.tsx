@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { passtZu } from "../lib/suche";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz } from "../lib/api";
@@ -8,12 +7,12 @@ import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
 import { SocialFeed } from "../components/SocialFeed";
+import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
-import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, MapIcon, FlagIcon } from "../components/Icons";
-import { gemerktKurz, mitEigenen, type Gemerkt } from "../components/SpotHeatmap";
+import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, FlagIcon } from "../components/Icons";
 import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
@@ -357,7 +356,7 @@ function LatestMedia() {
   const photoItems = media.filter((m) => m.kind !== "video" && m.url);
 
   return (
-    <div className="mt-8">
+    <div>
       <h3 className="mb-2 text-lg font-bold">{t("home.latestMedia")}</h3>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {media.map((p) => {
@@ -486,7 +485,7 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
   const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;
   const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
-    <div className="mt-8">
+    <div>
       <h3 className="mb-2 text-lg font-bold">
         {t("home.leaderboards")}
         {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
@@ -550,39 +549,16 @@ function TopLiked({ period }: { period: string }) {
   );
 }
 
-function SpotSessions({ spot, accelOnly }: { spot: string; accelOnly: boolean }) {
-  const t = useT();
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<CommunitySession[] | null>(null);
-
-  // Umschalten Accel/GPS -> neu laden.
-  useEffect(() => { setItems(null); }, [accelOnly]);
-  useEffect(() => {
-    if (open && items === null) {
-      api.spotSessions(spot, accelOnly).then(setItems).catch(() => setItems([]));
-    }
-  }, [open, spot, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return (
-    <div className="mt-2">
-      <button onClick={() => setOpen((v) => !v)} className="text-xs text-slate-300 hover:text-slate-200">
-        {open ? t("home.hideSessions") : t("home.showSpotSessions")}
-      </button>
-      {open && items && (
-        <div className="mt-2 space-y-1.5">
-          {items.length === 0 ? (
-            <p className="text-xs text-slate-400">{t("home.noSessionsShort")}</p>
-          ) : (
-            items.map((s) => <SessionRow key={s.session_id} s={s} showSpot={false} />)
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function CommunitySection() {
   const t = useT();
+  const reiter: ReiterDef[] = [
+    { id: "bestenliste", label: t("tab.leaderboard") },
+    { id: "rekorde", label: t("side.records") },
+    { id: "medien", label: t("tab.media") },
+    { id: "teams", label: t("land.teamsTitle") },
+  ];
+  const [tab, setTab] = useReiter("community", reiter.map((r) => r.id), "bestenliste", { merken: true });
   const [data, setData] = useState<CommunityRecords | null>(null);
   // Sportart-Filter (docs/sport-classification.md). Nur Sportarten mit mindestens EINEM Lauf
   // all time stehen zur Wahl (Jans Vorgabe) — sonst neun Kategorien, acht davon leer.
@@ -730,31 +706,28 @@ function CommunitySection() {
         </div>
       </div>
       <CommunityStats className="mb-3" />
-      {filterZeile}
-      {/* Grenzen des gewaehlten Bandes im Klartext — sonst raet man, was „Wie mein Foil" heisst. */}
-      {band && bandInfo(band, t) && (
-        <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
+      {/* Reiter (Plan docs/UX-IA.md, 02.11.2026). Die letzte Wahl merkt sich der Browser. Spots und Routen stehen jetzt
+          unter der Hauptnavigation „Spots", die Uhr-Layouts unter Medien. */}
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
+      {tab === "bestenliste" && (
+        // `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern sich dabei nicht immer.
+        <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} kopf={filterZeile} />
       )}
-      <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot sport={sport} />
-      {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern
-          sich dabei nicht immer (accel war schon aus). */}
-      {/* Bestenliste ueber den Medien, unter den Rekord-Kacheln (Jan, 02.11.2026). */}
-      <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} kopf={filterZeile} />
-      <LatestMedia key={`m${freunde}`} />
-      <TopLiked key={`t${freunde}`} period={period} />
-      <TeamsSection />
-      {/* Reihenfolge unter „Best bewertet" (Jan, 11.09.2026): erst die Uhr-Layouts, dann der
-          Social-Feed, dann die Spots.
-          Die LAYOUTS standen ganz unten und duerfen prominenter werden — daran beteiligen sich
-          Leute wirklich. Der SOCIAL-FEED stand seit dem 30.08. ganz oben ueber „Medien", damals
-          mit der Begruendung, die Videos der Community seien das Lebendigste auf der Seite. Das
-          gilt erst, wenn sich Leute eintragen: bis heute hat es ausser Jan niemand getan, und ein
-          Block dieser Groesse so weit oben verspricht mehr, als da ist. Kommt der Feed in Gang,
-          gehoert er wieder nach oben. */}
-      <LayoutTeaser />
-      <SocialFeed />
-      <SpotSection key={`s${freunde}`} period={period} accelOnly={accelOnly} sport={sport} />
-      <RoutenSection />
+      {tab === "rekorde" && <>
+        {filterZeile}
+        {/* Grenzen des gewaehlten Bandes im Klartext — sonst raet man, was „Wie mein Foil" heisst. */}
+        {band && bandInfo(band, t) && (
+          <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
+        )}
+        <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot sport={sport} />
+      </>}
+      {tab === "medien" && <>
+        <LatestMedia key={`m${freunde}`} />
+        <TopLiked key={`t${freunde}`} period={period} />
+        <SocialFeed />
+        <LayoutTeaser />
+      </>}
+      {tab === "teams" && <TeamsSection />}
     </div>
   );
 }
@@ -843,141 +816,4 @@ function LayoutTeaser() {
   );
 }
 
-function SpotSection({ period, accelOnly, sport = "pumpfoil" }: { period: string; accelOnly: boolean; sport?: string }) {
-  const t = useT();
-  const [spots, setSpots] = useState<{ mine: string[]; all: string[] } | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [recs, setRecs] = useState<Record<string, RecordSet>>({});
-  const [q, setQ] = useState("");
 
-  // Spot-Liste immer vollständig (auch GPS-only) laden, damit man ALLE Spots findet;
-  // die Rekorde/Sessions je Spot respektieren weiterhin den accel|alle-Umschalter.
-  // Default: der eigene Homespot (aus den Einstellungen) — sonst nichts.
-  useEffect(() => {
-    api.communitySpots(false, sport).then(setSpots).catch(() => {});   // Sportart wechselt -> andere Spots
-    api.getSettings().then((s) => {
-      const hs = typeof s.homespot === "string" ? s.homespot : "";
-      setSelected(hs || null);
-    }).catch(() => {});
-  }, [sport]);
-
-  // Rekorde des gewählten Spots für Zeitraum + Accel/GPS laden (Key = accelOnly:period:spot).
-  useEffect(() => {
-    if (!selected) return;
-    const key = `${sport}:${accelOnly}:${period}:${selected}`;
-    if (!(key in recs)) {
-      api.spotRecords(selected, period, accelOnly, sport).then((r) => setRecs((prev) => ({ ...prev, [key]: r }))).catch(() => {});
-    }
-  }, [selected, period, accelOnly, sport]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!spots) return null;
-
-  const pick = (sp: string) => { setSelected(sp); setQ(""); };   // ersetzt (immer nur EIN Spot)
-  const matches = q.trim()
-    ? spots.all.filter((s) => passtZu(s, q) && s !== selected).slice(0, 6)
-    : [];
-
-  const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
-  return (
-    <div className="mt-8">
-      <h3 className="mb-2 text-lg font-bold">
-        {t("home.spots")}
-        {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
-      </h3>
-      {/* Ein Suchfeld mit Trefferliste darunter (haengt am Feld, `relative`). */}
-      <div className="mb-4 flex max-w-sm flex-wrap items-start gap-2">
-        <div className="relative min-w-0 flex-1 basis-40">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("home.spotSearch")}
-            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
-          />
-          {matches.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
-              {matches.map((m) => (
-                <button key={m} onClick={() => pick(m)} className="flex w-full items-center gap-1 px-3 py-2 text-left text-sm hover:bg-slate-800">
-                  <LocationIcon className="h-4 w-4 text-slate-400" /> {m}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        {/* Die Auswahlliste „Spot waehlen …" daneben ist am 16.10.2026 raus, wie am 14.10. auf der
-            Spots-Seite (Jan: doppelte Spot-Suche) — sie tat dasselbe wie das Suchfeld, und durch
-            Hunderte Spots blaettert niemand. */}
-      </div>
-
-      {selected && (
-        <div>
-          <div className="mb-1.5 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-300"><LocationIcon className="h-4 w-4" /> {selected}</span>
-          </div>
-          <RecordGrid rec={recs[`${sport}:${accelOnly}:${period}:${selected}`]} sport={sport} />
-          <SpotSessions spot={selected} accelOnly={accelOnly} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Alle gemerkten Routen, ganz unten unter den Spots (Jan, 16.10.2026): dieselben Kaertchen wie unter
-// der Spot-Karte, dazu der Spotname; filterbar nach Gesamtlaenge. Klick -> Spot-Seite, dort wird die
-// Route in der Planung aufgerufen (?route=<id>, SpotHeatmap). Wie dort: nur Datum, nie wer.
-type RouteMitSpot = Gemerkt & { id: number; spot_id: number; spot_name: string };
-const ROUTEN_KM_MAX = 50;
-function RoutenSection() {
-  const t = useT();
-  const [routen, setRouten] = useState<RouteMitSpot[] | null>(null);
-  const [minKm, setMinKm] = useState(0);
-  const [maxKm, setMaxKm] = useState(ROUTEN_KM_MAX);
-  useEffect(() => {
-    api.alleRouten().then((r) => setRouten(r as RouteMitSpot[])).catch(() => setRouten([]));
-  }, []);
-  if (!routen || routen.length === 0) return null;        // noch keine gemerkt -> kein leerer Abschnitt
-  const datum = (iso: string) => new Date(iso).toLocaleDateString(document.documentElement.lang || undefined,
-    { day: "2-digit", month: "2-digit", year: "numeric" });
-  // „max" am Anschlag heisst: ohne Obergrenze
-  const passend = routen.filter((r) => r.meter >= minKm * 1000 && (maxKm >= ROUTEN_KM_MAX || r.meter <= maxKm * 1000));
-  const regler = (label: string, wert: number, setz: (v: number) => void) => (
-    <label className="flex min-w-0 flex-1 basis-48 flex-col gap-1 text-xs text-slate-400">
-      <span>{label}: <span className="font-semibold text-slate-100">
-        {wert >= ROUTEN_KM_MAX ? t("home.routesNoLimit") : `${wert} km`}</span></span>
-      <input type="range" min={0} max={ROUTEN_KM_MAX} step={wert < 5 ? 0.5 : 1} value={wert}
-        onChange={(e) => setz(Number(e.target.value))} className="accent-brand-500" />
-    </label>
-  );
-  return (
-    <div className="mt-8">
-      <h3 className="mb-2 flex items-center gap-2 text-lg font-bold">
-        <MapIcon className="h-5 w-5 text-brand-400" />
-        {t("home.routes")}
-      </h3>
-      <div className="mb-3 flex max-w-xl flex-wrap gap-x-4 gap-y-2">
-        {regler(t("home.routesMin"), minKm, (v) => setMinKm(Math.min(v, maxKm)))}
-        {regler(t("home.routesMax"), maxKm, (v) => setMaxKm(Math.max(v, minKm)))}
-      </div>
-      {passend.length === 0 ? (
-        <p className="text-sm text-slate-400">{t("home.routesNone")}</p>
-      ) : (
-        <div className="flex flex-wrap gap-2 text-xs">
-          {passend.map((r) => {
-            const k = gemerktKurz(r);
-            return (
-              <Link key={r.id} to={`/sessions?spot=${r.spot_id}&route=${r.id}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-2.5 py-1 text-slate-200 hover:bg-slate-800">
-                {r.eigene_id != null && (
-                  <span className="h-2 w-2 rounded-full bg-brand-500" title={t("routes.mine")} aria-label={t("routes.mine")} />
-                )}
-                <LocationIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                <span className="font-semibold">{r.spot_name}</span>
-                <span className="tabular-nums">· {t("routes.savedChip", { n: k.starts, max: k.maxM, total: r.meter, datum: datum(r.gemerkt_am) })}</span>
-                {mitEigenen(r) && <span className="rounded bg-slate-700/60 px-1">{t("routes.manualTag")}</span>}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}

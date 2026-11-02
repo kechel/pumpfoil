@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sortiereNachSport } from "../lib/sportClass";
 import { passtZu, suchform } from "../lib/suche";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
+import { RoutenListe } from "../components/RoutenListe";
 import L from "leaflet";
 import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { heatZeichnen } from "../lib/heatmap";
@@ -24,6 +26,58 @@ function esc(x: string) {
 
 // Kartenansicht aller Spot-Locations. Marker -> Sessions an dem Spot.
 export default function Spots() {
+  const t = useT();
+  // Reiter (Plan docs/UX-IA.md, 02.11.2026): Karte | Liste | Routen. Liste und Routen standen vorher als Abschnitte
+  // auf der Community-Seite. Die letzte Wahl merkt sich der Browser.
+  const reiter: ReiterDef[] = [
+    { id: "karte", label: t("tab.map") },
+    { id: "liste", label: t("tab.list") },
+    { id: "routen", label: t("tab.routes") },
+  ];
+  const [tab, setTab] = useReiter("spots", reiter.map((r) => r.id), "karte", { merken: true });
+  const leiste = <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />;
+  if (tab === "karte") return <SpotKarte reiter={leiste} />;
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <SpotsIcon className="h-7 w-7 text-brand-400" />
+        <h2 className="text-2xl font-bold">{t("nav.spots")}</h2>
+      </div>
+      {leiste}
+      {tab === "liste" ? <SpotListe /> : <RoutenListe />}
+    </div>
+  );
+}
+
+/** Reiter „Liste": alle Spots zum Durchsuchen, meistbefahrene zuerst; ein Tippen oeffnet die Spot-Seite. */
+function SpotListe() {
+  const t = useT();
+  const [alle, setAlle] = useState<Spot[] | null>(null);
+  const [q, setQ] = useState("");
+  useEffect(() => { api.spotMap(false).then(setAlle).catch(() => setAlle([])); }, []);
+  if (!alle) return <Spinner />;
+  const liste = alle.filter((s) => s.spot_id != null && (!q.trim() || passtZu(`${s.spot} ${s.water ?? ""}`, q)))
+    .sort((a, b) => b.sessions - a.sessions);
+  return (
+    <>
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("home.spotSearch")}
+        className="mb-3 w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+      <div className="max-w-xl space-y-1.5">
+        {liste.slice(0, 200).map((s) => (
+          <Link key={s.spot_id} to={`/sessions?spot=${s.spot_id}`}
+            className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 hover:bg-slate-800">
+            <span className="min-w-0 flex-1 truncate text-sm text-slate-200">
+              {s.spot}{s.water && s.water !== s.spot && <span className="text-slate-400"> · {s.water}</span>}
+            </span>
+            <span className="shrink-0 text-xs tabular-nums text-slate-400">{s.sessions} {t("side.sessions")}</span>
+          </Link>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function SpotKarte({ reiter }: { reiter: React.ReactNode }) {
   const t = useT();
   const nav = useNavigate();
   const spotsLabel = t("nav.spots");   // Wort fuer die Buendel-Beschriftung (uebersetzt)
@@ -354,6 +408,7 @@ export default function Spots() {
           )}
         </div>
       </div>
+      {reiter}
       {/* Dritter Nutzer in Folge suchte einen "Spot anlegen"-Knopf — den es bewusst nicht
           gibt. Einmal erklaeren, wie Spots entstehen (und warum ein Name kurz fehlen kann). */}
       <p className="mb-4 text-slate-400">{t("spots.autoHint")}</p>

@@ -2757,6 +2757,17 @@ const ptPT: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Podes partilhar e publicar este endereço em qualquer lado, também com pessoas sem conta no pumpfoil.org: vão ver os rankings (posição, nome, valor).",
   "team.adresseTeilen.wartet": "Os rankings estão definidos como públicos, mas a apresentação ainda não foi aprovada. Até lá, quem não tem conta não vê nada neste endereço.",
   "team.adresseTeilen.intern": "Os rankings não são públicos. Neste endereço só os membros veem algo. Podes torná-los públicos nas definições da equipa.",
+  "tab.overview": "Visão geral",
+  "tab.team": "Equipa",
+  "tab.media": "Multimédia",
+  "tab.map": "Mapa",
+  "tab.list": "Lista",
+  "tab.routes": "Rotas",
+  "tab.weather": "Meteorologia",
+  "tab.descriptions": "Descrições",
+  "tab.leaderboard": "Classificação",
+  "tab.noRecords": "Ainda não há recordes aqui.",
+  "tab.spotPage": "Página do spot",
 };
 
 export default ptPT;

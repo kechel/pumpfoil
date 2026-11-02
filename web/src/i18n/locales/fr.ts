@@ -2646,6 +2646,17 @@ const fr: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Tu peux partager et publier cette adresse partout, y compris avec des personnes sans compte pumpfoil.org : elles y verront les classements (rang, nom, valeur).",
   "team.adresseTeilen.wartet": "Les classements sont réglés sur public, mais l'apparence n'est pas encore validée. D'ici là, les personnes sans compte ne voient rien à cette adresse.",
   "team.adresseTeilen.intern": "Les classements ne sont pas publics. Seuls les membres voient quelque chose à cette adresse. Tu peux les rendre publics dans les paramètres de l'équipe.",
+  "tab.overview": "Aperçu",
+  "tab.team": "Équipe",
+  "tab.media": "Médias",
+  "tab.map": "Carte",
+  "tab.list": "Liste",
+  "tab.routes": "Itinéraires",
+  "tab.weather": "Météo",
+  "tab.descriptions": "Descriptions",
+  "tab.leaderboard": "Classement",
+  "tab.noRecords": "Pas encore de records ici.",
+  "tab.spotPage": "Page du spot",
 };
 
 export default fr;

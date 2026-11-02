@@ -2763,6 +2763,17 @@ const pt: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Você pode compartilhar e publicar este endereço em qualquer lugar, inclusive com pessoas sem conta no pumpfoil.org: elas vão ver os rankings (posição, nome, valor).",
   "team.adresseTeilen.wartet": "Os rankings estão definidos como públicos, mas a aparência ainda não foi aprovada. Até lá, quem não tem conta não vê nada neste endereço.",
   "team.adresseTeilen.intern": "Os rankings não são públicos. Neste endereço só os membros veem algo. Você pode torná-los públicos nas configurações da equipe.",
+  "tab.overview": "Visão geral",
+  "tab.team": "Equipe",
+  "tab.media": "Mídia",
+  "tab.map": "Mapa",
+  "tab.list": "Lista",
+  "tab.routes": "Rotas",
+  "tab.weather": "Clima",
+  "tab.descriptions": "Descrições",
+  "tab.leaderboard": "Classificação",
+  "tab.noRecords": "Ainda não há recordes aqui.",
+  "tab.spotPage": "Página do spot",
 };
 
 export default pt;

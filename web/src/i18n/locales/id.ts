@@ -2763,6 +2763,17 @@ const id: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Alamat ini bisa kamu bagikan dan publikasikan di mana saja, juga ke orang yang tidak punya akun pumpfoil.org: mereka akan melihat papan peringkat (peringkat, nama, nilai).",
   "team.adresseTeilen.wartet": "Papan peringkat sudah diatur publik, tetapi tampilan tim belum disetujui. Sampai saat itu, orang tanpa akun tidak melihat apa pun di alamat ini.",
   "team.adresseTeilen.intern": "Papan peringkat tidak publik. Di alamat ini hanya anggota yang melihat sesuatu. Kamu bisa membuatnya publik di pengaturan tim.",
+  "tab.overview": "Ringkasan",
+  "tab.team": "Tim",
+  "tab.media": "Media",
+  "tab.map": "Peta",
+  "tab.list": "Daftar",
+  "tab.routes": "Rute",
+  "tab.weather": "Cuaca",
+  "tab.descriptions": "Deskripsi",
+  "tab.leaderboard": "Peringkat",
+  "tab.noRecords": "Belum ada rekor di sini.",
+  "tab.spotPage": "Halaman spot",
 };
 
 export default id;

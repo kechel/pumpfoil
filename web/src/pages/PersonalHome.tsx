@@ -6,15 +6,16 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, FoilStatsGroup, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
+import { api, FoilStatsGroup, FreundMitLetzter, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
-import { Card, Spinner } from "../components/ui";
+import { Avatar, Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { EigeneAbzeichen, SessionStats } from "./Sessions";
-import { SpotWeather } from "../components/SpotWeather";
+import { EigeneAbzeichen, SessionStats, SpotBereich } from "./Sessions";
+import History from "./History";
+import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
@@ -423,12 +424,25 @@ export default function PersonalHome() {
   );
 
 
+  // Reiter (Plan docs/UX-IA.md, 02.11.2026). Home startet immer mit der Uebersicht — dort schaut man nach dem Pumpen
+  // zuerst hin —, deshalb ohne `merken`.
+  const reiter: ReiterDef[] = [
+    { id: "uebersicht", label: t("tab.overview") },
+    { id: "rekorde", label: t("side.records") },
+    { id: "team", label: t("tab.team") },
+    ...(homespotId != null ? [{ id: "homespot", label: t("foiler.homespot") }] : []),
+    { id: "verlauf", label: t("nav.history") },
+  ];
+  const [tab, setTab] = useReiter("home", reiter.map((r) => r.id), "uebersicht");
+  const [foilWahl, setFoilWahl] = useState<string>("alle");
+  const foilGruppe = byFoil.find((g) => String(g.foil_id ?? "keins") === foilWahl);
+
   return (
     <div className="w-full">
       <WelcomeBanner />
       {/* flex-wrap: auf dem Handy rutscht der NEU-Hinweis unter die Begruessung, statt sie auf
           null Breite zu quetschen (Jan, 05.10.2026). */}
-      <div className="mb-5 flex flex-wrap items-center gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <HomeIcon className="h-7 w-7 shrink-0 text-brand-400" />
         <h2 className="min-w-0 truncate text-2xl font-bold">
           {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
@@ -437,202 +451,264 @@ export default function PersonalHome() {
         <FreundePumpen />
       </div>
 
-      <FreundesAnfragen />
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
 
-      {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
-      <UploadProgressCard />
-      <UhrenLiveStatus />
+      {tab === "uebersicht" && <>
+        <FreundesAnfragen />
 
-      <TransferHint />
+        {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
+        <UploadProgressCard />
+        <UhrenLiveStatus />
 
-      {/* App installieren (mobil, nur wenn installierbar) */}
-      <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
+        <TransferHint />
 
-      {/* Letzte Sessions ganz oben (direkt nach der Begrüßung) */}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
-        <div className="ml-auto flex min-w-0 items-center gap-3">
-          {/* Homespot direkt verlinkt, links neben den Ansichts-Knoepfen (Jan) */}
-          {homespot && homespotId != null && (
-            <Link to={`/sessions?spot=${homespotId}`} title={t("foiler.homespot")}
-              className="flex shrink-0 items-center gap-1 text-xs text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
-              <LocationIcon className="h-4 w-4 shrink-0" />
-              <span className="max-w-[7rem] truncate sm:max-w-[16rem]">{homespot}</span>
-            </Link>
-          )}
-          {/* Teams als kleine Links neben dem Homespot, mit Wappen und Teamfarbe (Jan, 31.10.2026) */}
-          {meineTeams.map((tm) => (
-            // Offene Anfragen (nur Leitung/Moderatoren bekommen sie > 0) als Zahl daneben; der Link fuehrt trotzdem
-            // immer auf die Teamseite (Jan, 01.11.2026: „nicht direkt ins management").
-            <Link key={tm.id} to={`/teams/${tm.slug}`} title={tm.name}
-              className="team-farbe team-akzent flex shrink-0 items-center gap-1 text-xs hover:underline" style={teamFarbStil(tm.farbe)}>
-              <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={16} />
-              <span className="max-w-[6rem] truncate sm:max-w-[12rem]">{tm.name}</span>
-              {tm.anfragen > 0 && <span className="rounded-full bg-brand-500 px-1.5 text-[10px] font-bold leading-4 text-slate-950">{tm.anfragen}</span>}
-            </Link>
-          ))}
-          <ListenAnsicht />
-          <Link to="/sessions" className="whitespace-nowrap text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
+        {/* App installieren (mobil, nur wenn installierbar) */}
+        <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
+
+        {/* Letzte Sessions ganz oben. Homespot und Teams standen hier als Links; seit 02.11.2026 sind es Reiter. */}
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
+          <div className="ml-auto flex min-w-0 items-center gap-3">
+            <ListenAnsicht />
+            <Link to="/sessions" className="whitespace-nowrap text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
+          </div>
         </div>
-      </div>
-      {/* Wartet eine eigene Session auf Zuordnung, MUSS es hier stehen: ein Push allein genügt nicht
-          (wer Push aus hat, erfährt nie, dass seine Session aus den Auswertungen gefallen ist) und die
-          drei Karten unten zeigen ältere Sessions nicht. Jan: „der andere sollte schon eine meldung
-          sehen in seinem homebereich … oder einen marker an seiner session". Beides jetzt. */}
-      {(profile?.needs_classification ?? 0) > 0 && (
-        <Link
-          /* Bei EINER offenen Session direkt dorthin, bei mehreren in die Liste — dort trägt jede
-             betroffene Karte das Badge „Bitte zuordnen". Acht einzelne Hinweise wären Lärm, und ein
-             Link auf nur eine von acht würde die anderen sieben verstecken. */
-          to={(profile?.needs_classification ?? 0) === 1 && profile?.needs_classification_id
-                ? `/sessions/${profile.needs_classification_id}` : "/sessions"}
-          className="mb-4 block rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 hover:bg-amber-500/15 dark:text-amber-200">
-          {(profile?.needs_classification ?? 0) === 1
-            ? t("home.needsClassification")
-            : t("home.needsClassificationN", { n: profile?.needs_classification ?? 0 })} →
-        </Link>
-      )}
-      {/* Aussortierte: nur ein Einzeiler, und nur solange etwas FRISCHES dabei ist (letzte 7 Tage,
-          Server: sorted_out_new) -> verfaellt von selbst, kein Wegklicken. Die Erklaerung steht
-          absichtlich erst in der Aussortiert-Ansicht, hier soll kein Absatz stehen. */}
-      {(profile?.sorted_out_new ?? 0) > 0 && (
-        <Link to="/sessions?filter=other"
-          className="mb-4 block rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 hover:bg-amber-500/15 dark:text-amber-200">
-          {(profile?.sorted_out_new ?? 0) === 1
-            ? t("home.sortedOut")
-            : t("home.sortedOutN", { n: profile?.sorted_out_new ?? 0 })} →
-        </Link>
-      )}
-      {!latest ? <Spinner /> : latest.length === 0 ? (
-        latestFehler ? null : <StartHelp />
-      ) : (
-        <div className={`mb-6 ${kompakt ? "space-y-1.5" : "space-y-3"}`}>
-          {latest.map((s) => (
-            <SessionCard
-              key={s.id}
-              sessionId={s.id}
-              startedAt={s.started_at}
-              tz={s.tz}
-              endedAt={s.ended_at}
-              spot={s.place_name}
-              foil={s.foil ? foilLabel(s.foil) : null}
-              ohneFoil={s.sport_profil?.foil === false}
-              sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(classLabelKey({ sport_class: s.sport_class })) : null}
-              {...setupLabels(s)}
-              deviceLabel={s.device_label}
-              placement={s.placement}
-              caption={s.caption}
-              avatarName={profile?.display_name}
-              avatarUrl={profile?.avatar_url}
-              thumbUrl={s.thumb_url}
-              photoCount={s.photo_count}
-              youtubeUrl={s.youtube_url}
-              videoUrl={s.video_url}
-              likeCount0={s.like_count ?? 0}
-              liked0={!!s.liked}
-              trackPreview={s.track_preview}
-              stats={s.analysis && <SessionStats a={s.analysis} profil={s.sport_profil} />}
-              statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} neuBewerten={s.neu_bewerten} />}
-              sportClass={s.sport_class}
-              dataQuality={s.data_quality}
-              needsClassification={!!s.needs_classification}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Wetter & Pegel für den eigenen Homespot — direkt unter den letzten Sessions und ÜBER den
-          eigenen Rekorden (Jan, 25.09.2026: „weiter nach oben unter die ersten drei sessions").
-          Wer die Startseite öffnet, will meist wissen, ob es heute geht. */}
-      {homespot && <div className="mb-6"><SpotWeather spot={homespot} showSpot /></div>}
-
-      {/* Rekorde-Kopf mit Accel/alle-Auswahl (zwei Buttons, aktiver markiert) */}
-      <div className="mb-2 flex flex-wrap items-center gap-2">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("side.records")}</h3>
-        <div className="inline-flex overflow-hidden rounded-lg border border-slate-700 text-[11px] font-medium" title={t("side.recordsHint")}>
-          <button onClick={() => setAccelOnly(true)}
-            className={`px-2.5 py-0.5 ${accelOnly ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-            {t("side.onlyAccel")}
-          </button>
-          <button onClick={() => setAccelOnly(false)}
-            className={`px-2.5 py-0.5 ${!accelOnly ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-            {t("side.all")}
-          </button>
-        </div>
-        {/* Sportart — nur zeigen, wenn es ueberhaupt mehr als eine gibt. Gleiches Feld wie bei den
-            Community-Rekorden, damit „meine Rekorde" und „Community-Rekorde" gleich bedient werden. */}
-        {sports.length > 1 && (
-          <select value={sport} onChange={(e) => setSport(e.target.value)}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
-            {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
-          </select>
+        {/* Wartet eine eigene Session auf Zuordnung, MUSS es hier stehen: ein Push allein genügt nicht
+            (wer Push aus hat, erfährt nie, dass seine Session aus den Auswertungen gefallen ist) und die
+            drei Karten unten zeigen ältere Sessions nicht. Jan: „der andere sollte schon eine meldung
+            sehen in seinem homebereich … oder einen marker an seiner session". Beides jetzt. */}
+        {(profile?.needs_classification ?? 0) > 0 && (
+          <Link
+            /* Bei EINER offenen Session direkt dorthin, bei mehreren in die Liste — dort trägt jede
+               betroffene Karte das Badge „Bitte zuordnen". */
+            to={(profile?.needs_classification ?? 0) === 1 && profile?.needs_classification_id
+                  ? `/sessions/${profile.needs_classification_id}` : "/sessions"}
+            className="mb-4 block rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 hover:bg-amber-500/15 dark:text-amber-200">
+            {(profile?.needs_classification ?? 0) === 1
+              ? t("home.needsClassification")
+              : t("home.needsClassificationN", { n: profile?.needs_classification ?? 0 })} →
+          </Link>
         )}
-      </div>
+        {/* Aussortierte: nur ein Einzeiler, und nur solange etwas FRISCHES dabei ist (letzte 7 Tage,
+            Server: sorted_out_new) -> verfaellt von selbst, kein Wegklicken. */}
+        {(profile?.sorted_out_new ?? 0) > 0 && (
+          <Link to="/sessions?filter=other"
+            className="mb-4 block rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 hover:bg-amber-500/15 dark:text-amber-200">
+            {(profile?.sorted_out_new ?? 0) === 1
+              ? t("home.sortedOut")
+              : t("home.sortedOutN", { n: profile?.sorted_out_new ?? 0 })} →
+          </Link>
+        )}
+        {!latest ? <Spinner /> : latest.length === 0 ? (
+          latestFehler ? null : <StartHelp />
+        ) : (
+          <div className={`mb-6 ${kompakt ? "space-y-1.5" : "space-y-3"}`}>
+            {latest.map((s) => (
+              <SessionCard
+                key={s.id}
+                sessionId={s.id}
+                startedAt={s.started_at}
+                tz={s.tz}
+                endedAt={s.ended_at}
+                spot={s.place_name}
+                foil={s.foil ? foilLabel(s.foil) : null}
+                ohneFoil={s.sport_profil?.foil === false}
+                sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(classLabelKey({ sport_class: s.sport_class })) : null}
+                {...setupLabels(s)}
+                deviceLabel={s.device_label}
+                placement={s.placement}
+                caption={s.caption}
+                avatarName={profile?.display_name}
+                avatarUrl={profile?.avatar_url}
+                thumbUrl={s.thumb_url}
+                photoCount={s.photo_count}
+                youtubeUrl={s.youtube_url}
+                videoUrl={s.video_url}
+                likeCount0={s.like_count ?? 0}
+                liked0={!!s.liked}
+                trackPreview={s.track_preview}
+                stats={s.analysis && <SessionStats a={s.analysis} profil={s.sport_profil} />}
+                statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} neuBewerten={s.neu_bewerten} />}
+                sportClass={s.sport_class}
+                dataQuality={s.data_quality}
+                needsClassification={!!s.needs_classification}
+              />
+            ))}
+          </div>
+        )}
 
-      {/* Zeitraum — dieselben Fenster wie in der Community (PERIODS, ein Ort fuer beides).
-          Wirkt auf die Rekorde UND die Gesamt-Kacheln darunter, weil beides aus derselben
-          Abfrage kommt: „30 Tage" heisst dann auch Foiling/Pumps der letzten 30 Tage. */}
-      <div className="mb-2 flex flex-wrap items-center gap-1">
-        {PERIODS.map(([k, labelKey]) => (
-          <button
-            key={k}
-            onClick={() => { autoRef.current = false; setPeriod(k); }}
-            className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-          >
-            {t(labelKey)}
-          </button>
-        ))}
-      </div>
+        <FreundeLetzte />
 
-      {/* Alle Kacheln: Rekorde + Gesamt-Stats */}
-      {!stats ? <Spinner /> : kachelGitter(stats)}
+        <div className="mt-6">
+          <Link to="/community" className="inline-flex items-center gap-1 text-sm text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">
+            <CommunityIcon className="h-4 w-4" /> {t("home.community")} →
+          </Link>
+        </div>
+      </>}
 
-      {/* Dieselben Kacheln je Foil. Nur ab ZWEI Gruppen — bei einem einzigen Foil waere der Block
-          eine wortgleiche Wiederholung der Zahlen darueber. Welche Foils erscheinen, entscheidet
-          das gewaehlte Zeitfenster: bei „Heute" bleibt die Liste kurz, bei „Allzeit" steht alles da. */}
-      {stats && byFoil.length > 1 && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.byFoil")}</h3>
-          {byFoil.map((g) => (
-            <div key={g.foil_id ?? "keins"}>
-              <div className="mb-1 flex items-baseline gap-2">
-                <span className="text-sm font-semibold text-slate-200">
-                  {/* brand/model/size sind nur in der Gruppe „ohne Foil" leer — dort greift der Text daneben. */}
+      {tab === "rekorde" && <>
+        {/* Rekorde-Kopf mit Accel/alle-Auswahl (zwei Buttons, aktiver markiert) */}
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <div className="inline-flex overflow-hidden rounded-lg border border-slate-700 text-[11px] font-medium" title={t("side.recordsHint")}>
+            <button onClick={() => setAccelOnly(true)}
+              className={`px-2.5 py-0.5 ${accelOnly ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+              {t("side.onlyAccel")}
+            </button>
+            <button onClick={() => setAccelOnly(false)}
+              className={`px-2.5 py-0.5 ${!accelOnly ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+              {t("side.all")}
+            </button>
+          </div>
+          {/* Sportart — nur zeigen, wenn es ueberhaupt mehr als eine gibt. */}
+          {sports.length > 1 && (
+            <select value={sport} onChange={(e) => setSport(e.target.value)}
+              className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+              {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+            </select>
+          )}
+          {/* Foil statt eines zweiten Kachelblocks je Foil (02.11.2026: die Wiederholung las sich doppelt und
+              dreifach). Nur ab ZWEI Gruppen — bei einem einzigen Foil gaebe es nichts zu waehlen. */}
+          {byFoil.length > 1 && (
+            <select value={foilGruppe ? foilWahl : "alle"} onChange={(e) => setFoilWahl(e.target.value)}
+              className="max-w-[14rem] rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+              <option value="alle">{t("cr.foilAll")}</option>
+              {byFoil.map((g) => (
+                <option key={g.foil_id ?? "keins"} value={String(g.foil_id ?? "keins")}>
                   {g.foil_id
                     ? foilLabel({ brand: g.brand ?? "", model: g.model ?? "", size: g.size ?? "", aspect_ratio: g.aspect_ratio })
-                    : t("phome.noFoil")}
-                </span>
-                <span className="text-xs text-slate-500">
-                  {g.sessions} {t("side.sessions")}
-                </span>
-              </div>
-              {kachelGitter(g.stats)}
-            </div>
+                    : t("phome.noFoil")} ({g.sessions})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {/* Zeitraum — dieselben Fenster wie in der Community (PERIODS). Wirkt auf Rekorde UND Gesamt-Kacheln. */}
+        <div className="mb-2 flex flex-wrap items-center gap-1">
+          {PERIODS.map(([k, labelKey]) => (
+            <button
+              key={k}
+              onClick={() => { autoRef.current = false; setPeriod(k); }}
+              className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+            >
+              {t(labelKey)}
+            </button>
           ))}
         </div>
+
+        {!stats ? <Spinner /> : kachelGitter(foilGruppe ? foilGruppe.stats : stats)}
+
+        <EigeneSportRekorde />
+
+        {/* Laengste eigene Laeufe im Vergleich (fuer alle seit 02.10.2026, cyan hervorgehoben). */}
+        <div className="mt-6">
+          <Link id="laengste-laeufe-knopf" to="/laeufe"
+            className="inline-flex items-center gap-1 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-brand-400">
+            {t("longest.link")} →
+          </Link>
+        </div>
+      </>}
+
+      {tab === "team" && <MeineTeams teams={meineTeams} />}
+
+      {tab === "homespot" && homespotId != null && <>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <LocationIcon className="h-5 w-5 shrink-0 text-brand-400" />
+          <h3 className="min-w-0 truncate text-lg font-semibold">{homespot}</h3>
+          <Link to={`/sessions?spot=${homespotId}`} className="ml-auto whitespace-nowrap text-xs text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+            {t("tab.spotPage")} →
+          </Link>
+        </div>
+        <HomespotBereich spotId={homespotId} />
+      </>}
+
+      {tab === "verlauf" && <>
+        <History eingebettet />
+        <JahresbilanzSection />
+        <StartSuccessSection />
+        <CarveStatsSection />
+        <ManoeverVerlaufSection />
+        <BoardAttitudeSection />
+      </>}
+    </div>
+  );
+}
+
+/** Reiter „Team": die eigenen Teams (ersetzt die kleinen Links neben den letzten Sessions, 02.11.2026). */
+function MeineTeams({ teams }: { teams: TeamKurz[] }) {
+  const t = useT();
+  return (
+    <>
+      {teams.length === 0 ? (
+        <p className="mb-4 text-sm text-slate-400">{t("team.keineTeams")}</p>
+      ) : (
+        <Card className="mb-4 p-2">
+          {teams.map((m) => (
+            // Offene Anfragen (nur Leitung/Moderatoren bekommen sie > 0) als Zahl daneben; der Link fuehrt immer auf
+            // die Teamseite (Jan, 01.11.2026: „nicht direkt ins management").
+            <Link key={m.id} to={`/teams/${m.slug}`} className="team-farbe flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800/60"
+              style={teamFarbStil(m.farbe)}>
+              <TeamWappen name={m.name} logo={m.logo_url} farbe={m.farbe} size={40} />
+              <span className="min-w-0 flex-1">
+                <span className="team-akzent block truncate font-medium">{m.name}</span>
+                <span className="block text-xs text-slate-400">{t(`team.rolle.${m.rolle}`)}</span>
+              </span>
+              {m.anfragen > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{m.anfragen}</span>}
+            </Link>
+          ))}
+        </Card>
       )}
+      <Link to="/teams" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+        {t("team.meine")} · {t("team.gruenden")} →
+      </Link>
+    </>
+  );
+}
 
-      <div className="mt-6">
-        <Link to="/community" className="inline-flex items-center gap-1 text-sm text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">
-          <CommunityIcon className="h-4 w-4" /> {t("home.community")} →
-        </Link>
-      </div>
+/** Reiter „Homespot": derselbe Inhalt wie die Spot-Seite, ohne Session-Liste (die hat die Spot-Seite). Sportart wie
+ * dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
+function HomespotBereich({ spotId }: { spotId: number }) {
+  const [sports, setSports] = useState<string[] | null>(null);
+  useEffect(() => {
+    let aktuell = true;
+    api.communitySports(String(spotId)).then((l) => { if (aktuell) setSports(l.map((x) => x.sport)); }).catch(() => { if (aktuell) setSports([]); });
+    return () => { aktuell = false; };
+  }, [spotId]);
+  if (!sports) return <Spinner />;
+  const sport = sports.includes("pumpfoil") ? "pumpfoil" : (sports[0] ?? null);
+  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" />;
+}
 
-      <StartSuccessSection />
-      <CarveStatsSection />
-      <EigeneSportRekorde />
-      <JahresbilanzSection />
-      <ManoeverVerlaufSection />
-      <BoardAttitudeSection />
-
-      {/* Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026: „ganz unten einen Button … erstmal
-          wieder nur fuer Admins"). */}
-      {/* Fuer alle seit 02.10.2026 (vorher nur Admins), cyan hervorgehoben (Jan). */}
-      <div className="mt-6">
-        <Link id="laengste-laeufe-knopf" to="/laeufe"
-          className="inline-flex items-center gap-1 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-brand-400">
-          {t("longest.link")} →
-        </Link>
+/** Freunde mit ihrer letzten Session (02.11.2026): je Freund eine Zeile, Name -> Profil, Session -> Session. Zuletzt
+ * aktive zuerst, nach 10 ist Schluss (alle weiteren ueber die Profile). Kein eigener Reiter — eine Kurzfassung mit
+ * Link auf eine fast leere Liste waere doppelt. */
+function FreundeLetzte() {
+  const t = useT();
+  const [liste, setListe] = useState<FreundMitLetzter[] | null>(null);
+  useEffect(() => { api.friends().then((r) => setListe(r.freunde)).catch(() => setListe([])); }, []);
+  if (!liste || liste.length === 0) return null;
+  const sortiert = [...liste].sort((a, b) => (b.letzte?.started_at ?? "").localeCompare(a.letzte?.started_at ?? "")).slice(0, 10);
+  return (
+    <div className="mb-6">
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("friends.title")}</h3>
+      <div className="space-y-1.5">
+        {sortiert.map((f) => (
+          <div key={f.user_id} className="flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5">
+            <Avatar name={f.name ?? "—"} url={f.avatar_url} userId={f.user_id} size={30} />
+            <Link to={`/foiler/${f.user_id}`} className="pf-name min-w-0 shrink truncate text-sm text-slate-200 hover:underline">{f.name ?? "—"}</Link>
+            {f.letzte ? (
+              <Link to={`/sessions/${f.letzte.session_id}`} className="ml-auto flex min-w-0 items-center gap-1.5 text-xs text-slate-400 hover:underline">
+                {f.letzte.spot && <span className="truncate">{f.letzte.spot}</span>}
+                <span className="shrink-0 tabular-nums">
+                  {f.letzte.started_at ? fmtDate(f.letzte.started_at, f.letzte.tz, { day: "2-digit", month: "2-digit" }) : ""}
+                </span>
+                {f.letzte.foiling_distance_m > 0 && (
+                  <span className="shrink-0 font-semibold tabular-nums text-slate-200">{(f.letzte.foiling_distance_m / 1000).toFixed(1)} km</span>
+                )}
+              </Link>
+            ) : <span className="ml-auto text-xs text-slate-500">—</span>}
+          </div>
+        ))}
       </div>
     </div>
   );

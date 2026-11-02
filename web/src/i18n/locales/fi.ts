@@ -2798,6 +2798,17 @@ const fi: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Voit jakaa ja julkaista tämän osoitteen missä tahansa, myös ihmisille, joilla ei ole pumpfoil.org-tiliä: he näkevät siellä tulostaulut (sija, nimi, arvo).",
   "team.adresseTeilen.wartet": "Tulostaulut on asetettu julkisiksi, mutta tiimin ulkoasua ei ole vielä hyväksytty. Siihen asti ilman tiliä tässä osoitteessa ei näe mitään.",
   "team.adresseTeilen.intern": "Tulostaulut eivät ole julkisia. Tässä osoitteessa näkevät jotain vain jäsenet. Voit tehdä ne julkisiksi tiimin asetuksissa.",
+  "tab.overview": "Yleiskatsaus",
+  "tab.team": "Tiimi",
+  "tab.media": "Media",
+  "tab.map": "Kartta",
+  "tab.list": "Lista",
+  "tab.routes": "Reitit",
+  "tab.weather": "Sää",
+  "tab.descriptions": "Kuvaukset",
+  "tab.leaderboard": "Tulostaulu",
+  "tab.noRecords": "Täällä ei ole vielä ennätyksiä.",
+  "tab.spotPage": "Spotin sivu",
 };
 
 export default fi;

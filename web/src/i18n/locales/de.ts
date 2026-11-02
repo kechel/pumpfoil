@@ -2916,6 +2916,17 @@ const de: Record<string, string> = {
   "team.adresseTeilen.oeffentlich": "Diese Adresse kannst du überall teilen und veröffentlichen, auch mit Leuten ohne Konto bei pumpfoil.org: Sie sehen dort die Bestenlisten (Platz, Name, Wert).",
   "team.adresseTeilen.wartet": "Die Bestenlisten sind auf öffentlich gestellt, aber der Auftritt ist noch nicht freigegeben. Bis dahin sehen Leute ohne Konto unter dieser Adresse nichts.",
   "team.adresseTeilen.intern": "Die Bestenlisten sind nicht öffentlich. Unter dieser Adresse sehen nur Mitglieder etwas. Öffentlich schaltest du sie in den Team-Einstellungen.",
+  "tab.overview": "Übersicht",
+  "tab.team": "Team",
+  "tab.media": "Medien",
+  "tab.map": "Karte",
+  "tab.list": "Liste",
+  "tab.routes": "Routen",
+  "tab.weather": "Wetter",
+  "tab.descriptions": "Beschreibungen",
+  "tab.leaderboard": "Bestenliste",
+  "tab.noRecords": "Hier gibt es noch keine Rekorde.",
+  "tab.spotPage": "Spot-Seite",
 };
 
 export default de;
