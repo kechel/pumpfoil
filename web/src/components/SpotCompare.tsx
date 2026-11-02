@@ -34,6 +34,7 @@ export function SpotCompare({ ohneKopf = false }: { ohneKopf?: boolean } = {}) {
   const [period, setPeriod] = useState("10d");
   const [data, setData] = useState<SpotAgg[] | null>(null);
   const [sel, setSel] = useState("");   // Vergleichsspot (place_name)
+  const [homespot, setHomespot] = useState("");
 
   // Beim Zeitfenster-Wechsel die alten Daten NICHT leeren (sonst klappt das Grid kurz auf „…"
   // zusammen -> Layout-Sprung/Flackern). Nur ersetzen, sobald die neuen da sind; späte Antworten
@@ -44,9 +45,14 @@ export function SpotCompare({ ohneKopf = false }: { ohneKopf?: boolean } = {}) {
     return () => { alive = false; };
   }, [period]);
 
-  // Default-Vergleichsspot = Homespot (einmalig, sobald bekannt).
+  // Default-Vergleichsspot = Homespot (einmalig, sobald bekannt). Der ABGELEITETE Wert (homespot_effective, s.
+  // settings.py): fast niemand setzt ihn von Hand, dann ist es der Spot der letzten Session (Jan, 02.11.2026: „sollte meinen
+  // homespot als erste auswahl anbieten").
   useEffect(() => {
-    api.getSettings().then((s) => { if (s.homespot) setSel(s.homespot); }).catch(() => {});
+    api.getSettings().then((s) => {
+      const hs = (s.homespot_effective as string) || (s.homespot as string) || "";
+      if (hs) { setHomespot(hs); setSel(hs); }
+    }).catch(() => {});
   }, []);
 
   const metrics: Metric[] = [
@@ -94,8 +100,9 @@ export function SpotCompare({ ohneKopf = false }: { ohneKopf?: boolean } = {}) {
           className="mb-3 w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         >
           <option value="">{t("spotcmp.pick")}</option>
-          {[...data].sort((a, b) => a.spot.localeCompare(b.spot)).map((s) => (
-            <option key={s.spot} value={s.spot}>{s.spot}</option>
+          {/* Homespot ganz oben, darunter alphabetisch. */}
+          {[...data].sort((a, b) => Number(b.spot === homespot) - Number(a.spot === homespot) || a.spot.localeCompare(b.spot)).map((s) => (
+            <option key={s.spot} value={s.spot}>{s.spot === homespot ? `${s.spot} · ${t("foiler.homespot")}` : s.spot}</option>
           ))}
         </select>
       )}
