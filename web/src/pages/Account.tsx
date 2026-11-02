@@ -764,12 +764,13 @@ function ViewsEditor({ teil }: { teil: "einstellungen" | "seiten" }) {
           </div>
         );
       })()}
+      </>}
+      {/* Schalter fuer Farben, eigene Layouts und Blaettern stehen bei den Einstellungen (Jan, 02.11.2026). */}
+      {teil === "einstellungen" && <>
       <label className="mb-2 flex items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" checked={colorByValue} onChange={(e) => { setColorByValue(e.target.checked); setSaved(false); }} />
         {t("account.colorByValue")}
       </label>
-      </>}
-      {teil === "einstellungen" && <>
       <label className="mb-2 flex items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
         {t("account.autoStart")}
@@ -803,9 +804,6 @@ function ViewsEditor({ teil }: { teil: "einstellungen" | "seiten" }) {
         ))}
         <p className="mt-1 text-sm text-slate-400">{t("account.stopModeHint")}</p>
       </fieldset>
-      <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
-      </>}
-      {teil === "seiten" && <>
 
       {/* Not-Aus für die eigenen Layouts auf der Uhr. Wirkt nur für DICH — Layouts anderer
           Nutzer sind davon unberührt. Aus = die Uhr fährt die klassischen 3-Feld-Ansichten. */}
@@ -823,6 +821,9 @@ function ViewsEditor({ teil }: { teil: "einstellungen" | "seiten" }) {
         {t("account.browseAll")}
       </label>
       <p className="mb-4 text-sm text-slate-400">{t("account.browseAllHint")}</p>
+      <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
+      </>}
+      {teil === "seiten" && <>
 
       <PageList title={t("account.onFoilTitle")} desc={t("account.onFoilDesc")}
         pages={pages} setPages={(v) => { setPages(v); setSaved(false); }}
