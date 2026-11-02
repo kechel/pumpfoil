@@ -1,4 +1,71 @@
-# UI-/Informationsarchitektur — Vorschlag
+# UI-/Informationsarchitektur
+
+## Stand 02.11.2026 — Reiter je Bereich (entschieden, Web zuerst)
+
+Anlass: ein langer Vorschlagskatalog eines Nutzers (s. docs/TODO.md, Inbox 02.11.) — die Seiten zeigen zu viel auf
+einmal. In der Leiste unten ist kein Platz mehr (die Knoepfe muessen auf dem Handy nebeneinander passen), also teilen
+wir die grossen Seiten mit **Reitern oben** auf. **Reihenfolge:** erst das Web fertig, dann Feedback des Nutzers,
+erst danach Android/iOS.
+
+```
+Home                          (nur meine Sachen)
+├─ Uebersicht                 letzte Session, Upload/Uhren-Status, Hinweise, Freunde (je Zeile: Profil | letzte Session)
+├─ Rekorde                    meine Rekorde je Zeitraum (mit/ohne Foil zusammengefasst)
+├─ Team                       meine Teams (ersetzt die Links im Kopf)
+├─ Homespot                   ersetzt den Homespot-Abschnitt/-Link
+└─ Verlauf                    die bisherige /verlauf-Seite + Jahresbilanz, Start-Erfolgsquote, Carves
+
+Community
+├─ Bestenliste                Filterzeile + Reiter je Kennzahl + eigene Zeile unter Platz 10
+├─ Rekorde                    Kachelwand (Filterzeile gemeinsam mit Bestenliste)
+├─ Medien                     Fotos/Videos + Social-Feed + Uhr-Layouts
+└─ Teams & Events
+
+Sessions
+├─ Meine                      (Vorauswahl)
+├─ Freunde
+└─ Alle
+
+Spots
+├─ Karte
+├─ Liste                      (bisher Spot-Abschnitt der Community)
+└─ Routen                     (bisher Routen-Abschnitt der Community)
+
+Profil                        unveraendert
+
+Spot-Seite                    kein eigener Knopf; erreichbar ueber Homespot, Session -> Spot, Karte/Suche
+├─ Rekorde                    als Tabelle statt Kacheln
+├─ Sessions
+├─ Heatmap
+├─ Wetter                     Wetter + Pegel
+└─ Beschreibungen             Spot-Beschreibungen (spotnote.*)
+```
+
+**Leiste unten:** Web Home · Community · Sessions · Spots · Profil (5; „Verlauf" wird Reiter in Home).
+Apps spaeter: Home · Community · Sessions · Spots · Chat · Profil (Chat bleibt vorerst unten).
+
+**Reiterleiste:** ueberall dieselbe; wischbar, wenn sie nicht passt (etwa 4 passen fest, mehr als 6 je Seite nicht).
+
+**Zustand:**
+- Innerhalb einer Sitzung kehrt jeder Hauptbereich dorthin zurueck, wo man war (Reiter, Filter). Erneutes Tippen auf
+  den aktiven Hauptknopf -> Startansicht des Bereichs.
+- Neuer Start: Home immer Uebersicht; Community und Spots letzter Reiter (localStorage, try/catch); Sessions Meine;
+  Spot-Seite Rekorde.
+- Reiter steht in der Adresse (`?tab=`), ein Link geht vor allem Gemerkten. Reiterwechsel ERSETZT den Verlaufseintrag
+  (Zurueck springt nicht durch die Reiter). `/verlauf` leitet auf `/?tab=verlauf`.
+
+**Inhaltliche Aenderungen dabei:**
+- Bestenliste: Reiter-Reihenfolge laengster Lauf, Strecke gesamt, meiste Laeufe, Pumps, Sessions, Spots, weitester Lauf;
+  Vorauswahl „Heute", sobald heute mehr als 10 Plaetze besetzt sind; Zeitraum „Gestern"; Teilen als Link (spaeter Bild).
+- Rekord-Kacheln: Streckenverlauf nicht mehr hinter jeder Kachel.
+- Session-Seite: Inhaber sieht, wer geliked hat.
+
+**Entschieden 02.11.:** Filter „nur mit Beschleunigungsdaten" bleibt. Laengste Gleitphase NICHT in die Bestenliste,
+bis die Erkennung besser ist. Kommentare an Sessions: geplant, aber erst nach diesem Umbau. Foilscoot bleibt getrennt.
+
+---
+
+## Frueherer Vorschlag (Stand vor dem 02.11.2026, nur noch Hintergrund)
 
 Ziel: alle bestehenden **und geplanten** Features ([`IDEAS.md`](IDEAS.md)) sinnvoll
 unterbringen, **ohne** die mobile Symbolleiste mit Buttons zu überladen.
