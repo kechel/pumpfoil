@@ -460,7 +460,7 @@ export function bandInfo(b: FoilBand, t: (k: string, p?: Record<string, string>)
   return grenzen ? t("cr.bandRange", { grenzen }) : null;
 }
 
-function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode }) {
+export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf, spot }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode; spot?: string }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
   // Nur EINE Bestenliste sichtbar, umschaltbar ueber Reiter (Jan, 01.11.2026: mit acht Listen nebeneinander war die
@@ -479,17 +479,17 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
     let aktiv = true;
     const bk = band?.key ?? "all";
     const begonnen = performance.now();
-    api.leaders(period, accelOnly, sport, bk).then((d) => {
+    api.leaders(period, accelOnly, sport, bk, false, spot).then((d) => {
       if (!aktiv) return;
       setData(d);
       if (performance.now() - begonnen > CACHE_SCHWELLE_MS) return;   // kam vom Netz, also frisch
       const gezeigt = JSON.stringify(d);
-      return api.leaders(period, accelOnly, sport, bk, true).then((frisch) => {
+      return api.leaders(period, accelOnly, sport, bk, true, spot).then((frisch) => {
         if (aktiv && JSON.stringify(frisch) !== gezeigt) setData(frisch);
       });
     }).catch(() => {});
     return () => { aktiv = false; };
-  }, [period, accelOnly, sport, band?.key]);
+  }, [period, accelOnly, sport, band?.key, spot]);
   if (!data) return null;
   // Leer: Ueberschrift und Filter bleiben stehen — man soll den Zeitraum hier auch wieder weiter stellen koennen.
   const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;

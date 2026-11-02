@@ -13,7 +13,7 @@ import { fmtTime } from "../lib/time";
 import { usePumpFmt } from "../lib/pumpRate";
 // Rekord-Kacheln und Zeitfenster kommen aus der Community-Seite — eine Quelle, damit
 // die Spot-Rekorde nicht anders aussehen als dieselben Rekorde eine Seite weiter.
-import { RecordGrid, PERIODS } from "./Home";
+import { Leaderboards, RecordGrid, PERIODS } from "./Home";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe, ZEILEN_RASTER } from "../lib/kompakteListe";
 import { fmtDate } from "../lib/time";
@@ -1511,12 +1511,12 @@ function SpotRecords({ spot, accelOnly, sport, leerText }: { spot: string; accel
   return (
     <Card className="mb-3 p-4">
       <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${sport}`)}</h3>
-      <SpotRecordsSport key={sport} sport={sport} data={data} />
+      <SpotRecordsSport key={sport} sport={sport} data={data} spot={spot} accelOnly={accelOnly} />
     </Card>
   );
 }
 
-function SpotRecordsSport({ sport, data }: { sport: string; data: SpotRecSatz }) {
+function SpotRecordsSport({ sport, data, spot, accelOnly }: { sport: string; data: SpotRecSatz; spot: string; accelOnly: boolean }) {
   const t = useT();
   // Erstes Fenster, in dem es etwas zu sehen gibt. Ohne das steht an ruhigeren Spots eine Wand
   // aus leeren Kacheln, obwohl es Rekorde gibt — nur aeltere. Eigene Wahl gilt, bis die Sportart
@@ -1540,6 +1540,11 @@ function SpotRecordsSport({ sport, data }: { sport: string; data: SpotRecSatz })
       {/* Kacheln wie vorher (Jan, 02.11.2026: die Tabelle war ein Missverstaendnis — gemeint sind ZUSAETZLICHE
           Bestenlisten je Kennzahl, s. docs/TODO.md). */}
       <RecordGrid rec={data[period]} sport={sport} nurBelegt />
+      {/* Darunter dieselben Bestenlisten wie in der Community, nur an diesem Spot (Jan, 02.11.2026). Zeitraum wie die
+          Kacheln darueber. */}
+      <div className="mt-6">
+        <Leaderboards period={period} accelOnly={accelOnly} sport={sport} spot={spot} />
+      </div>
     </>
   );
 }

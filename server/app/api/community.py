@@ -1268,7 +1268,10 @@ def spot_records(
 
 # ------------------------------------------------------------------- Leaders ----
 @router.get("/leaders")
-def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all",
+            spot: str | None = Query(None),
+            _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """`spot`: dieselben Bestenlisten nur an einem Spot (Spot-Seite, Jan 02.11.2026)."""
     cut = _cutoff(period)
     q = _community(db.query(
         NAME, U.avatar_url, U.id,
@@ -1285,6 +1288,8 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
     q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
+    if spot:
+        q = q.filter(_spot_cond(spot, db))
     rows = q.group_by(U.id, U.display_name, U.avatar_url).all()
     flat = [{"name": name or "—", "avatar_url": av, "user_id": uid, "sessions": int(ns), "runs": int(nr or 0),
              "spots": int(nsp or 0), "pumps": int(np or 0),
@@ -1302,6 +1307,8 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
             qq = _band_filter(db, _community(db.query(S.id), _user.id, accel_only, sport), foil_band, _user.id)
             if cut is not None:
                 qq = qq.filter(S.started_at >= cut)
+            if spot:
+                qq = qq.filter(_spot_cond(spot, db))
             r = qq.filter(S.user_id == x["user_id"]).order_by(col.desc(), S.id.desc()).first()
             aus.append({**x, "session_id": r[0] if r else None})
         return aus

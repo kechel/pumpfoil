@@ -34,7 +34,7 @@ Spots
 Profil                        unveraendert
 
 Spot-Seite                    kein eigener Knopf; erreichbar ueber Homespot, Session -> Spot, Karte/Suche
-├─ Rekorde                    Kacheln (spaeter: je Kachel eine Bestenliste dieser Kennzahl)
+├─ Rekorde                    Kacheln + darunter dieselben Bestenlisten wie in der Community, nur an diesem Spot
 ├─ Sessions
 ├─ Heatmap
 ├─ Wetter                     Wetter + Pegel

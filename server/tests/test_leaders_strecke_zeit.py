@@ -40,13 +40,13 @@ def _konto(client):
     return kopf, client.get("/api/auth/me", headers=kopf).json()["id"]
 
 
-def _gps_session(uid, dist, zeit, lauf=None):
+def _gps_session(uid, dist, zeit, lauf=None, spot_id=None):
     db = SessionLocal()
     try:
         t0 = datetime.now(timezone.utc) - timedelta(hours=2)
         s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid, started_at=t0,
                            ended_at=t0 + timedelta(minutes=30), sport="pumpfoil", is_pumpfoil=True,
-                           status="done", gps_hz=1)
+                           status="done", gps_hz=1, spot_id=spot_id)
         db.add(s); db.flush()
         db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="gps_only", num_runs=1,
                                      foiling_distance_m=dist, foiling_time_s=zeit, best_distance_m=lauf))
@@ -126,3 +126,25 @@ def test_eigene_zeile_unter_platz_zehn(client):
     assert ich["user_id"] == uid and ich["distance_m"] == 0.5 and ich["rank"] > 10
     assert d["me"]["run_distance"]["session_id"] == _ANGELEGT[-1]   # Einzel-Lauf fuehrt zur Session
     assert d["me"]["pumps"] is None                            # keine Pumps, also keine Zeile
+
+
+def test_bestenliste_je_spot(client):
+    # Spot-Seite (02.11.2026): dieselben Listen, nur an einem Spot.
+    db = SessionLocal()
+    try:
+        sp = models.Spot(name=f"Leader-See {secrets.token_hex(3)}", lat=47.5, lon=9.5)
+        db.add(sp); db.commit(); spid = sp.id
+    finally:
+        db.close()
+    kopf, uid = _konto(client)
+    _, anderer = _konto(client)
+    _gps_session(uid, 300.0, 60.0, spot_id=spid)
+    _gps_session(anderer, 900.0, 90.0)                          # woanders
+    d = client.get(f"/api/community/leaders?period=all&accel_only=false&sport=pumpfoil&spot={spid}", headers=kopf).json()
+    assert [x["user_id"] for x in d["distance"]] == [uid]
+    db = SessionLocal()
+    try:
+        db.query(models.Session).filter(models.Session.id.in_(_ANGELEGT)).update({models.Session.spot_id: None}, synchronize_session=False)
+        db.query(models.Spot).filter_by(id=spid).delete(); db.commit()
+    finally:
+        db.close()
