@@ -2853,6 +2853,8 @@ const cs: Record<string, string> = {
   "team.aktivste": "Nejaktivnější týmy",
   "team.sessions30": "vyjížděk za 30 dní",
   "tab.rules": "Pravidla",
+  "team.alleMeine": "Všechny moje týmy",
+  "team.feed30": "Vyjížďky členů týmu za posledních 30 dní.",
 };
 
 export default cs;

@@ -2775,6 +2775,8 @@ const nb: Record<string, string> = {
   "team.aktivste": "Mest aktive lag",
   "team.sessions30": "økter på 30 dager",
   "tab.rules": "Regler",
+  "team.alleMeine": "Alle lagene mine",
+  "team.feed30": "Økter fra lagmedlemmer de siste 30 dagene.",
 };
 
 export default nb;

@@ -2835,6 +2835,8 @@ const fi: Record<string, string> = {
   "team.aktivste": "Aktiivisimmat tiimit",
   "team.sessions30": "sessiota 30 päivässä",
   "tab.rules": "Säännöt",
+  "team.alleMeine": "Kaikki tiimini",
+  "team.feed30": "Tiimin jäsenten sessiot viimeiseltä 30 päivältä.",
 };
 
 export default fi;

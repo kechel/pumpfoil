@@ -48,9 +48,9 @@ def test_team_letzte_nur_fuer_mitglieder(client):
     finally:
         db.close()
     ids = [_session(b, i) for i in range(1, 6)]
-    l = client.get(f"/api/community/team-latest?team_id={tid}", headers=ka).json()
+    l = client.get(f"/api/community/team-latest?team={tid}", headers=ka).json()
     assert [x["session_id"] for x in l] == ids[:3]               # je Mitglied hoechstens drei, neueste zuerst
-    assert client.get(f"/api/community/team-latest?team_id={tid}", headers=kc).status_code == 404
+    assert client.get(f"/api/community/team-latest?team={tid}", headers=kc).status_code == 404
 
 
 def test_teamliste_traegt_aktivitaet(client):
@@ -68,3 +68,37 @@ def test_teamliste_traegt_aktivitaet(client):
     _session(a, 2); _session(a, 40)                              # nur eine in den letzten 30 Tagen
     zeile = next(x for x in client.get("/api/teams/liste", headers=ka).json() if x["id"] == tid)
     assert zeile["sessions_30d"] == 1
+
+
+def test_sessions_reiter_team_30_tage_nur_mitglieder(client):
+    # Sessions › Team (02.11.2026): Sessions der Mitglieder der letzten 30 Tage, nur fuer Mitglieder.
+    from app import models
+    from app.db import SessionLocal
+    (a, ka), (b, kb), (c, kc) = _konto(client, "st-a"), _konto(client, "st-b"), _konto(client, "st-c")
+    slug = client.post("/api/teams", headers=ka, json={"name": f"Feed Team {secrets.token_hex(2)}"}).json()["slug"]
+    links = client.get(f"/api/teams/{slug}/einladungen", headers=ka).json()
+    client.post(f"/api/teams/einladung/{links['join']}", headers=kb)
+    db = SessionLocal()
+    try:
+        tid = db.query(models.Team.id).filter(models.Team.slug == slug).scalar()
+    finally:
+        db.close()
+    neu = _session(b, 3); _session(b, 45); _session(c, 2)        # alt (45 Tage) und Fremder fallen raus
+    gruppen = client.get(f"/api/community/sessions-grouped?team={tid}&sport=all&accel_only=false", headers=ka).json()
+    ids = [s["session_id"] for g in gruppen for s in g["sessions"]]
+    assert ids == [neu]
+    assert client.get(f"/api/community/sessions-grouped?team={tid}&sport=all", headers=kc).status_code == 404
+
+
+
+def test_team_auswahl_alle(client):
+    # „Alle meine Teams" (02.11.2026): Mitglieder aller eigenen Teams zusammen, ohne Doppelte.
+    (a, ka), (b, kb), (c, kc) = _konto(client, "ta-a"), _konto(client, "ta-b"), _konto(client, "ta-c")
+    s1 = client.post("/api/teams", headers=ka, json={"name": f"Alle Eins {secrets.token_hex(2)}"}).json()["slug"]
+    s2 = client.post("/api/teams", headers=ka, json={"name": f"Alle Zwei {secrets.token_hex(2)}"}).json()["slug"]
+    client.post(f"/api/teams/einladung/{client.get(f'/api/teams/{s1}/einladungen', headers=ka).json()['join']}", headers=kb)
+    client.post(f"/api/teams/einladung/{client.get(f'/api/teams/{s2}/einladungen', headers=ka).json()['join']}", headers=kc)
+    sb, sc = _session(b, 1), _session(c, 2)
+    ids = [x["session_id"] for x in client.get("/api/community/team-latest?team=alle", headers=ka).json()]
+    assert sb in ids and sc in ids
+    assert client.get("/api/community/team-latest?team=quatsch", headers=ka).status_code == 404

@@ -2797,6 +2797,8 @@ const zh: Record<string, string> = {
   "team.aktivste": "最活跃的团队",
   "team.sessions30": "30天内的次数",
   "tab.rules": "规则",
+  "team.alleMeine": "我的所有团队",
+  "team.feed30": "团队成员最近 30 天的记录。",
 };
 
 export default zh;

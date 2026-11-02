@@ -2800,6 +2800,8 @@ const ru: Record<string, string> = {
   "team.aktivste": "Самые активные команды",
   "team.sessions30": "сессий за 30 дней",
   "tab.rules": "Правила",
+  "team.alleMeine": "Все мои команды",
+  "team.feed30": "Сессии участников команды за последние 30 дней.",
 };
 
 export default ru;

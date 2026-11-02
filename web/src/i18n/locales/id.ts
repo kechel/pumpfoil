@@ -2800,6 +2800,8 @@ const id: Record<string, string> = {
   "team.aktivste": "Tim paling aktif",
   "team.sessions30": "sesi dalam 30 hari",
   "tab.rules": "Aturan",
+  "team.alleMeine": "Semua tim saya",
+  "team.feed30": "Sesi anggota tim dari 30 hari terakhir.",
 };
 
 export default id;

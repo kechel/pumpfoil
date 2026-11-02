@@ -2899,6 +2899,8 @@ const en: Record<string, string> = {
   "team.aktivste": "Most active teams",
   "team.sessions30": "sessions in 30 days",
   "tab.rules": "Rules",
+  "team.alleMeine": "All my teams",
+  "team.feed30": "Sessions of team members from the last 30 days.",
 };
 
 export default en;

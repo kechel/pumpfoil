@@ -428,14 +428,11 @@ def friends_latest(request: Request, user: models.User = Depends(current_user), 
 
 
 @router.get("/team-latest")
-def team_latest(team_id: int, request: Request, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
-    """Die letzten 10 Sessions der Mitglieder eines Teams (Home › Team, Jan 02.11.2026). Nur fuer aktive Mitglieder;
-    alle Sportarten, auch GPS-only, Sichtbarkeit und „Ort verbergen" wie im Feed. Gebuendelt nach Team, nicht nach
-    Person — und je Mitglied hoechstens drei, damit niemandes Liste daraus wird."""
-    from .. import teams as _teams
-    if not _teams.aktiv(_teams.mitglied(db, team_id, user.id)):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
-    ids = _teams.mitglieder_ids(db, team_id)
+def team_latest(team: str, request: Request, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Die letzten 10 Sessions der Mitglieder (Home › Team, Jan 02.11.2026); `team` = „alle" (alle eigenen Teams) oder
+    eine Team-ID. Nur fuer aktive Mitglieder; alle Sportarten, auch GPS-only, Sichtbarkeit und „Ort verbergen" wie im
+    Feed. Je Mitglied hoechstens drei, damit niemandes Liste daraus wird."""
+    ids = _team_mitglieder(db, team, user)
     if not ids:
         return []
     je: dict[int, int] = {}
@@ -520,12 +517,41 @@ def _local_date(ts, lat, lon) -> str:
     return ts.astimezone(tz_of(lat, lon)).date().isoformat()
 
 
+TEAM_FEED_TAGE = 30
+
+
+def _team_mitglieder(db: Session, team: str, user: models.User) -> list[int]:
+    """Mitglieder fuer die Team-Auswahl (Jan, 02.11.2026): „alle" = alle eigenen aktiven Teams zusammen, sonst eine
+    Team-ID, in der man aktives Mitglied sein muss (sonst 404 — wie ein Team, das es nicht gibt)."""
+    from .. import teams as _teams
+    if team == "alle":
+        ids: set[int] = set()
+        for tid in _teams.mitglieder_team_ids(db, user.id):
+            ids |= set(_teams.mitglieder_ids(db, tid))
+        return sorted(ids)
+    try:
+        tid = int(team)
+    except (TypeError, ValueError):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found") from None
+    if not _teams.aktiv(_teams.mitglied(db, tid, user.id)):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    return _teams.mitglieder_ids(db, tid)
+
+
+def _team_filter(db: Session, q, team: str, user: models.User):
+    """Reiter „Team" der Sessions-Seite (Jan, 02.11.2026): Sessions der Mitglieder, nur fuer Mitglieder und nur die
+    letzten 30 Tage („im team ist das auch in ordnung, letzte 30 tage reicht aber") — eine kurze Spanne statt eines
+    Archivs je Person (Memory „keine Sessionliste je Nutzer")."""
+    seit = datetime.now(timezone.utc) - timedelta(days=TEAM_FEED_TAGE)
+    return q.filter(S.user_id.in_(_team_mitglieder(db, team, user)), S.started_at >= seit)
+
+
 @router.get("/sessions-grouped")
 def sessions_grouped(
     request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
-    sport: str = "pumpfoil", board: bool = False,
+    sport: str = "pumpfoil", board: bool = False, team: str | None = None,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Feed/Spot mit TAGES-GRUPPIERUNG (rein anzeige-seitig, ändert keine Daten/Rekorde):
@@ -537,6 +563,8 @@ def sessions_grouped(
     Einfüge-Reihenfolge bereits genau diese). Einzel-Session-Gruppen (count=1) rendert der Client
     als normale Kachel mit Direkt-Link; ab count≥2 als aufklappbares Akkordeon."""
     q = _brett(_community(db.query(*BRIEF_COLS, *_group_extra()), user.id, accel_only, sport), board)
+    if team is not None:
+        q = _team_filter(db, q, team, user)
     if name:
         q = q.filter(_such_alles(name, [U.display_name]))
     if spot:

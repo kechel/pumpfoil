@@ -2683,6 +2683,8 @@ const fr: Record<string, string> = {
   "team.aktivste": "Équipes les plus actives",
   "team.sessions30": "sessions en 30 jours",
   "tab.rules": "Règles",
+  "team.alleMeine": "Toutes mes équipes",
+  "team.feed30": "Sessions des membres de l'équipe des 30 derniers jours.",
 };
 
 export default fr;

@@ -2796,6 +2796,8 @@ const ja: Record<string, string> = {
   "team.aktivste": "最もアクティブなチーム",
   "team.sessions30": "30日間のセッション",
   "tab.rules": "ルール",
+  "team.alleMeine": "自分のすべてのチーム",
+  "team.feed30": "チームメンバーの過去30日間のセッション。",
 };
 
 export default ja;

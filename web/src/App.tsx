@@ -48,7 +48,7 @@ const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIc
 // jetzt") — Teil 5 ist erschienen und traegt jetzt die Markierung.
 const NEU_BIS = Date.UTC(2026, 8, 30);   // 30. September 2026
 const NEU_BIS_5 = Date.UTC(2026, 9, 14); // Teil 5, erschienen 30.09.2026 — zwei Wochen „neu" wie Teil 4
-const NEU_BIS_6 = Date.UTC(2026, 10, 7); // Teil 6, erschienen 24.10.2026 — zwei Wochen „neu" wie Teil 4/5
+const NEU_BIS_6 = Date.UTC(2026, 10, 2); // Teil 6, erschienen 24.10.2026 — Hervorhebung am 02.11.2026 beendet (Jan: „ist jetzt lang genug gewesen")
 
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
 // fürs Menü-Badge (die Changelog-Seite selbst bleibt englisch). Fällt bei Fehler auf EN zurück.

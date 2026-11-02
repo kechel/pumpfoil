@@ -1365,7 +1365,8 @@ export const api = {
       `/api/community/schutzgebiete?w=${w}&s=${s}&e=${e}&n=${n}`),
   // Home (02.11.2026): je Freund die letzte Session, und die letzten Sessions eines eigenen Teams — als Feed-Karten.
   friendsLatest: () => req<CommunitySession[]>("/api/community/friends-latest"),
-  teamLatest: (teamId: number) => req<CommunitySession[]>(`/api/community/team-latest?team_id=${teamId}`),
+  // `team` = „alle" (alle eigenen Teams) oder eine Team-ID (02.11.2026, components/TeamWahl).
+  teamLatest: (team: string) => req<CommunitySession[]>(`/api/community/team-latest?team=${encodeURIComponent(team)}`),
   // Wer hat meine Session geliked (nur Inhaber, 02.11.2026)
   sessionLikers: (id: number) => req<{ user_id: number; name: string | null; avatar_url: string | null; am: string | null }[]>(`/api/community/sessions/${id}/likes`),
   friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
@@ -1771,8 +1772,9 @@ export const api = {
   },
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
-      sport?: string; fresh?: boolean; board?: boolean } = {}) => {
+      sport?: string; fresh?: boolean; board?: boolean; team?: string } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (opts.team) p.set("team", opts.team);   // Sessions › Team: „alle" oder Team-ID, letzte 30 Tage
     if (opts.board) p.set("board", "true");
     if (opts.name) p.set("name", opts.name);
     if (opts.spot) p.set("spot", opts.spot);

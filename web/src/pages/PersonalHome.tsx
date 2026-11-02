@@ -19,6 +19,7 @@ import LinkedAccounts from "./LinkedAccounts";
 import { PairedDevices } from "./Account";
 import { PlatformSubline } from "../components/SupportedPlatforms";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
+import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
@@ -755,7 +756,7 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
       <Link to="/teams" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
         {t("team.meine")} · {t("team.gruenden")} →
       </Link>
-      {teams.map((m) => <TeamLetzte key={m.id} team={m} />)}
+      {teams.length > 0 && <TeamLetzteMitWahl teams={teams} />}
     </>
   );
 }
@@ -791,17 +792,20 @@ function FreundeLetzte() {
   );
 }
 
-/** Die letzten Sessions eines eigenen Teams (Jan, 02.11.2026), unter der Teamliste. */
-function TeamLetzte({ team }: { team: TeamKurz }) {
+/** Die letzten Sessions der eigenen Teams (Jan, 02.11.2026), unter der Teamliste — mit der gemeinsamen Team-Auswahl
+ * (components/TeamWahl): Standard alle Teams zusammen, bei mehreren eingrenzbar. */
+function TeamLetzteMitWahl({ teams }: { teams: TeamKurz[] }) {
   const t = useT();
   const kompakt = useKompakteListe();
+  const [wahl, setWahl] = useTeamWahl(teams);
   const [liste, setListe] = useState<CommunitySession[] | null>(null);
-  useEffect(() => { api.teamLatest(team.id).then(setListe).catch(() => setListe([])); }, [team.id]);
-  if (!liste || liste.length === 0) return null;
+  useEffect(() => { setListe(null); api.teamLatest(wahl).then(setListe).catch(() => setListe([])); }, [wahl]);
   return (
     <div className="mt-6">
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{team.name} · {t("phome.latest")}</h3>
-      <div className={kompakt ? "space-y-1.5" : "space-y-3"}>{liste.map((s) => renderCommunitySession(s, t, null))}</div>
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
+      <TeamWahl teams={teams} wahl={wahl} onWahl={setWahl} />
+      {!liste ? <Spinner /> : liste.length === 0 ? <p className="text-sm text-slate-400">—</p>
+        : <div className={kompakt ? "space-y-1.5" : "space-y-3"}>{liste.map((x) => renderCommunitySession(x, t, null))}</div>}
     </div>
   );
 }
