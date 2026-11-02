@@ -1,18 +1,20 @@
 // „Warum pumpfoil.org?" (Jan, 02.11.2026) — oeffentlich wie das Impressum, in allen Sprachen (Keys why.*). Nicht die
 // Funktionen (Laeufe, Pumps koennen andere auch), sondern was das Projekt ausmacht: Community, freie Software,
 // Transparenz, offene Auswertungen. Verlinkt im Menue ueber dem Impressum, auf der Startseite und im Gast-Fuss.
+// Adressen: /why-pumpfoil (Deutsch) und /<code>/why-pumpfoil, s. warumPfad in lib/seo.ts.
 import { Link } from "react-router-dom";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { ScrollToTop } from "../components/ScrollToTop";
-import { useT } from "../i18n";
-import { useSeo } from "../lib/seo";
+import { useI18n } from "../i18n";
+import { useSeo, useHreflang, warumPfad } from "../lib/seo";
 import { getToken } from "../lib/api";
 
 const PUNKTE = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default function Warum() {
-  const t = useT();
-  useSeo(t("why.title"), t("why.intro"), "/warum");
+  const { t, lang } = useI18n();
+  useSeo(t("why.title"), t("why.intro"), warumPfad(lang));
+  useHreflang(warumPfad);
   return (
     <div className="mx-auto max-w-2xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />

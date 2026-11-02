@@ -9,7 +9,7 @@ import {
 import { useT, useI18n } from "../i18n";
 import { SPORTS, sortiereSports } from "../lib/sportClass";
 import { LanguageFlags } from "../components/LanguageSelect";
-import { useSeo } from "../lib/seo";
+import { useSeo, warumPfad } from "../lib/seo";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { ConnectIqButton } from "../components/ConnectIqButton";
@@ -77,7 +77,7 @@ export default function Landing() {
   // Canonical folgt der ADRESSE, nicht der eingestellten Sprache: ein wiederkehrender Besucher
   // mit englischer Voreinstellung sieht auf `/` englischen Text, die Seite bleibt aber `/`.
   // Ein Crawler hat keinen localStorage und sieht dort ohnehin Deutsch.
-  useI18n();   // Neu-Rendern bei Sprachwechsel
+  const { lang } = useI18n();   // Neu-Rendern bei Sprachwechsel; Sprache fuer den Warum-Link
   useSeo(t("seo.landTitle"), t("seo.landDesc"), window.location.pathname);
   // Kompakter Lieblings-Short ganz oben (Click-to-Load-Fassade, datensparsam).
   const [heroVideoOn, setHeroVideoOn] = useState(false);
@@ -252,6 +252,12 @@ export default function Landing() {
                 GLEICHE Schrift wie der Satz darueber: kleiner und blasser sah unruhig aus und
                 stufte die Zeile herab, sie ist nicht unwichtiger. */}
             <p className="mx-auto mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroPlatforms")}</p>
+            {/* Was das Projekt ausmacht, gleich oben verlinkt (Jan, 02.11.2026). */}
+            <p className="mt-3">
+              <Link to={warumPfad(lang)} className="inline-flex items-center rounded-xl border border-brand-500/60 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-500/10 dark:text-brand-300">
+                {t("nav.why")} →
+              </Link>
+            </p>
 
             {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam);
                 rechts daneben der Titel (größer) + Social-Links darunter. */}
@@ -706,7 +712,7 @@ export default function Landing() {
         <section className="rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-10 text-center">
           <h2 className="text-xl font-bold sm:text-2xl">{t("land.ctaTitle")}</h2>
           <p className="mx-auto mt-2 max-w-xl text-slate-300">{t("land.ctaBody")}</p>
-          <Link to="/warum" className="mt-3 inline-block text-brand-700 hover:underline dark:text-brand-300">{t("nav.why")} →</Link>
+          <Link to={warumPfad(lang)} className="mt-3 inline-block text-brand-700 hover:underline dark:text-brand-300">{t("nav.why")} →</Link>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               to="/login"
@@ -720,7 +726,7 @@ export default function Landing() {
       </main>
 
       <footer className="mx-auto mt-10 max-w-5xl px-5 py-8 text-center text-xs text-slate-500">
-        <Link to="/warum" className="hover:text-slate-300">{t("nav.why")}</Link>
+        <Link to={warumPfad(lang)} className="hover:text-slate-300">{t("nav.why")}</Link>
         <span className="mx-2">·</span>
         <Link to="/impressum" className="hover:text-slate-300">{t("nav.imprint")}</Link>
         <span className="mx-2">·</span>

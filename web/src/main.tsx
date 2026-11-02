@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { warumPfad } from "./lib/seo";
 import ReactDOM from "react-dom/client";
 import { Navigate, useParams, createBrowserRouter, RouterProvider, Outlet, useMatches } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
@@ -10,7 +11,7 @@ import { api, getToken, setToken } from "./lib/api";
 import { APP_BUILD } from "./buildInfo";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { applyFontScale, getFontScale } from "./lib/fontscale";
-import { I18nProvider, langAusPfad, ladeSprache, detectInitialLang, useT } from "./i18n";
+import { I18nProvider, langAusPfad, ladeSprache, detectInitialLang, useI18n } from "./i18n";
 
 // Chunk-/Modul-Ladefehler nach einem Deploy (alte Chunk-URL nach PWA-Update) -> harter Neustart statt
 // Blank-Screen: Service Worker + Caches weg, dann neu laden (public/app-watchdog.js, hoechstens 2 Versuche
@@ -128,6 +129,17 @@ import { PwaStatus } from "./components/PwaStatus";
  * Sprache, geht es auf `/` — sonst waere jede Tippfehler-Adresse eine Kopie der Startseite,
  * und genau das meldet Google als „Duplikat ohne Canonical".
  */
+/** /en/why-pumpfoil, /fr/why-pumpfoil … — die Sprache kommt aus der Adresse (wie bei der Startseite); unbekannter Code
+ * -> /why-pumpfoil. */
+function SprachWarum() {
+  const { lang } = useParams();
+  const { lang: aktiv, setLang } = useI18n();
+  const code = langAusPfad("/" + (lang ?? ""));
+  useEffect(() => { if (code && code !== aktiv) setLang(code, { persist: false }); }, [code, aktiv, setLang]);
+  if (!code || code === "de") return <Navigate to="/why-pumpfoil" replace />;
+  return <Warum />;
+}
+
 function SprachStartseite() {
   const { lang } = useParams();
   if (!langAusPfad("/" + (lang ?? ""))) return <Navigate to="/" replace />;
@@ -174,7 +186,7 @@ const TEXT = { text: true };
 const GAST = { gast: true };
 
 function GastRahmen() {
-  const t = useT();
+  const { t, lang } = useI18n();
   const alt = "pumpfoil.org — track every pump";
   return (
     <div className="flex min-h-screen flex-col bg-slate-950">
@@ -192,7 +204,7 @@ function GastRahmen() {
       <footer className="border-t border-slate-800/60 px-4 py-5 text-center text-xs text-slate-400">
         <a href="/" className="hover:text-slate-200">pumpfoil.org</a>
         <span className="mx-2">·</span>
-        <a href="/warum" className="hover:text-slate-200">{t("nav.why")}</a>
+        <a href={warumPfad(lang)} className="hover:text-slate-200">{t("nav.why")}</a>
         <span className="mx-2">·</span>
         <a href="/impressum" className="hover:text-slate-200">Impressum</a>
       </footer>
@@ -220,7 +232,8 @@ const router = createBrowserRouter([
       //   zurueck (Jan, 07.09.), und der Feedback-Knopf im Changelog tat nichts, weil das
       //   Feedback-Fenster im App-Rahmen haengt (Jan, 24.09.).
       // - /datenloeschung: Statusseite fuer Facebook-Loeschanfragen, Meta prueft sie vor der Freigabe.
-      { path: "/warum", element: <Warum />, handle: TEXT },
+      { path: "/why-pumpfoil", element: <Warum />, handle: TEXT },
+      { path: "/:lang/why-pumpfoil", element: <SprachWarum />, handle: TEXT },
       { path: "/impressum", element: <Impressum />, handle: TEXT },
       { path: "/datenloeschung", element: <Datenloeschung />, handle: TEXT },
       { path: "/changelog", element: <Changelog />, handle: TEXT },

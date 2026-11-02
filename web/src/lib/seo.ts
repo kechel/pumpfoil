@@ -27,6 +27,32 @@ export function sprachPfad(code: string): string {
   return code === "de" ? "/" : `/${code}/`;
 }
 
+/** Adresse von „Warum pumpfoil.org?" in einer Sprache (02.11.2026): Deutsch auf /why-pumpfoil, sonst /<code>/why-pumpfoil —
+ * wie die Startseite, damit jede Sprache eine eigene, indexierbare Adresse hat. Englischer Name in der Adresse (Jan). */
+export function warumPfad(code: string): string {
+  return code === "de" ? "/why-pumpfoil" : `/${code}/why-pumpfoil`;
+}
+
+/** Sprachen mit eigener Adresse, wie in index.html und sitemap.xml (ohne pt-PT, das dort ebenfalls fehlt). */
+export const SEO_SPRACHEN = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "ja", "zh", "ru", "id", "nb"];
+
+/** hreflang-Verweise fuer eine Seite, die es in allen Sprachen gibt; beim Verlassen wieder entfernt. */
+export function useHreflang(pfad: (code: string) => string): void {
+  useEffect(() => {
+    const links = [...SEO_SPRACHEN.map((c) => [c, pfad(c)]), ["x-default", pfad("de")]].map(([c, p]) => {
+      const l = document.createElement("link");
+      l.rel = "alternate"; l.hreflang = c; l.href = "https://pumpfoil.org" + p;
+      l.dataset.seite = "1";
+      document.head.appendChild(l);
+      return l;
+    });
+    // Die festen Verweise der Startseite (index.html) gelten hier nicht.
+    const fest = [...document.querySelectorAll<HTMLLinkElement>('link[rel="alternate"][hreflang]:not([data-seite])')];
+    fest.forEach((l) => l.remove());
+    return () => { links.forEach((l) => l.remove()); fest.forEach((l) => document.head.appendChild(l)); };
+  }, [pfad]);
+}
+
 export function useSeo(titel: string, beschreibung?: string, pfad?: string): void {
   useEffect(() => {
     // Marke nur anhaengen, wenn sie nicht schon drinsteht — sonst „Pumpfoil … — Pumpfoil".

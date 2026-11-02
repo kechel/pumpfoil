@@ -26,6 +26,7 @@ import { CompareBar } from "./components/CompareBar";
 import { InstallPwa } from "./components/InstallPwa";
 import { warmMySessions, warmMedia, raeumeAlteCaches, leerePersoenlicheCaches } from "./lib/pwaCache";
 import { demoStart } from "./lib/demoNames";
+import { warumPfad } from "./lib/seo";
 import { istOffen } from "./pages/Onboarding";
 
 // `start`: Startansicht des Bereichs — dorthin fuehrt ein Tippen auf den Knopf des Bereichs, in dem man schon ist
@@ -471,7 +472,7 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           </svg>
           RedNote
         </a>
-        <Link to="/warum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
+        <Link to={warumPfad(lang)} className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.why")}
         </Link>
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
