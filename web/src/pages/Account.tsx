@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
+import { Reiterleiste } from "../components/Reiter";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
 import { Button, Card, ErrorBox, SELECT_SCHRUMPFT } from "../components/ui";
@@ -30,7 +31,7 @@ function sparMinuten(d: import("../lib/api").PairedDevice): { kb: number; modusK
 
 export default function Account() {
   const t = useT();
-  const [sp] = useSearchParams();
+  const [sp, setSp] = useSearchParams();
   const TABS = ["guide", "connect", "views", "alarm", "app", "compat"] as const;
   const paramTab = sp.get("tab");
   const initialTab = (TABS as readonly string[]).includes(paramTab ?? "") ? (paramTab as typeof TABS[number]) : "guide";
@@ -50,7 +51,10 @@ export default function Account() {
       })
       .catch(() => {});
   }, [paramTab, tabTouched]);
-  const pickTab = (v: typeof TABS[number]) => { setTabTouched(true); setTab(v); };
+  const pickTab = (v: typeof TABS[number]) => {
+    setTabTouched(true); setTab(v);
+    setSp((alt) => { const n = new URLSearchParams(alt); n.set("tab", v); return n; }, { replace: true });
+  };
 
   return (
     <div className="w-full">
@@ -60,13 +64,14 @@ export default function Account() {
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
       </div>
 
-      <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:grid-cols-5">
-        <TabBtn active={tab === "guide"} onClick={() => pickTab("guide")}>{t("account.tabGuide")}</TabBtn>
-        <TabBtn active={tab === "views"} onClick={() => pickTab("views")}>{t("account.tabViews")}</TabBtn>
-        <TabBtn active={tab === "alarm"} onClick={() => pickTab("alarm")}>{t("account.tabAlarm")}</TabBtn>
-        <TabBtn active={tab === "connect"} onClick={() => pickTab("connect")}>{t("account.tabConnect")}</TabBtn>
-        <TabBtn active={tab === "compat"} onClick={() => pickTab("compat")}>{t("account.tabCompat")}</TabBtn>
-      </div>
+      {/* Dieselben Reiter wie ueberall (02.11.2026). „App" (Downloads) hat keinen eigenen Reiter, sie wird angesprungen. */}
+      <Reiterleiste reiter={[
+        { id: "guide", label: t("account.tabGuide") },
+        { id: "views", label: t("account.tabViews") },
+        { id: "alarm", label: t("account.tabAlarm") },
+        { id: "connect", label: t("account.tabConnect") },
+        { id: "compat", label: t("account.tabCompat") },
+      ]} aktiv={tab} onWahl={(id) => pickTab(id as typeof TABS[number])} />
 
       {tab === "guide" && <WatchGuide onOpenApp={() => setTab("app")} onOpenConnect={() => setTab("connect")} />}
 
@@ -514,18 +519,6 @@ export function PairedDevices({ onDownload }: { onDownload?: () => void }) {
   );
 }
 
-function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full rounded-lg px-2 py-2 text-center text-xs font-medium transition-colors sm:text-sm ${
-        active ? "bg-brand-500 text-slate-950" : "text-slate-200 hover:bg-slate-800"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 function AppDownloads({ initialQuery = "" }: { initialQuery?: string }) {
   const t = useT();
