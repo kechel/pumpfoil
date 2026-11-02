@@ -338,6 +338,19 @@ export default function Settings() {
       </Card>
       </div>}
       {ptab === "fahren" && <div className="[&>*:first-child]:mt-0">
+      {/* Reihenfolge (Jan, 02.11.2026): zuerst Erkennungs-Empfindlichkeit, dann Pump-Kadenz. */}
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("foilsens.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("foilsens.hint")}</p>
+        <FoilSensitivitySelect onSaved={flashSaved} />
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("pumpunit.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("pumpunit.hint")}</p>
+        <PumpUnitSelect />
+      </Card>
+
       {/* Handgelenk + Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen = Uhr an der vorderen
           oder hinteren Hand, der Haupt-Stoerfaktor der Pump-Erkennung. Privat, aendert nichts. */}
       <Card className="mt-4 p-5">
@@ -375,17 +388,7 @@ export default function Settings() {
       <ZonesCard art="hr" />
       <ZonesCard art="speed" />
 
-      <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("pumpunit.label")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("pumpunit.hint")}</p>
-        <PumpUnitSelect />
-      </Card>
 
-      <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("foilsens.label")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("foilsens.hint")}</p>
-        <FoilSensitivitySelect onSaved={flashSaved} />
-      </Card>
 
       {/* Handy-Recorder: kein Beta mehr (funktioniert, erste echte Sessions laufen) — Karte
           für alle sichtbar; sie erklärt nur den Weg über die nativen Apps. */}
