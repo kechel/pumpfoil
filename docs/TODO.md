@@ -1566,14 +1566,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Bestenlisten wie die Community · eigene Platzierung unter der Top 10.
   **Nicht machen (Jan, 02.11. abends):** Gleitphasen-Bestenliste, Feed + Medien zusammenlegen, Kacheln zur Session des
   Erstplatzierten (die sieht man per Klick auf die Session), „Link kopieren" an der Bestenliste (/community ist nur fuer
-  Angemeldete; nach aussen teilt man das Bild). Leere Abschnitte: von Jan
+  Angemeldete; nach aussen teilt man das Bild), sortierbare Sessionliste (erledigt durch die Bestenlisten, die Liste ist
+  endlos). Leere Abschnitte: von Jan
   geprueft, erledigt. Gestaltungsvorschlaege fuers Teilen-Bild: nicht vormerken, kommen sie, kommen sie. „Warum
   pumpfoil.org?": erledigt als Seite /why-pumpfoil (18 Sprachen).
   **Bewusst anders entschieden (Jan):** Bestenliste NICHT ganz an den Anfang · Streckenverlauf bleibt auf ALLEN Kacheln ·
   Spot-Rekorde bleiben Kacheln (dazu Bestenlisten statt Tabelle) · „nur mit Beschleunigungsdaten" bleibt in der Filterzeile ·
   Wetter fliegt nicht raus, sondern ist ein eigener Reiter der Spot-Seite.
-  **Offen, mittel:**
-  - Sessionliste sortierbar.
   **Offen, gross (spaeter):**
   - Kommentare zu Sessions + Likes auf Kommentare (Modell, Melden/Ausblenden, Sperren, DSGVO-Loeschung, Altersgrenze
     Social, Benachrichtigungen, Web + Android + iOS).
