@@ -2689,6 +2689,7 @@ const deAT: Record<string, string> = {
   "profile.landNone": "Keine Angabe",
   "team.aktivste": "Aktivste Teams",
   "team.sessions30": "Sessions in 30 Tagen",
+  "tab.rules": "Regeln",
 };
 
 export default deAT

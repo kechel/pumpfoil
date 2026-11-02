@@ -2799,6 +2799,7 @@ const ru: Record<string, string> = {
   "profile.landNone": "Не указано",
   "team.aktivste": "Самые активные команды",
   "team.sessions30": "сессий за 30 дней",
+  "tab.rules": "Правила",
 };
 
 export default ru;

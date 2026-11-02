@@ -2795,6 +2795,7 @@ const ja: Record<string, string> = {
   "profile.landNone": "未設定",
   "team.aktivste": "最もアクティブなチーム",
   "team.sessions30": "30日間のセッション",
+  "tab.rules": "ルール",
 };
 
 export default ja;

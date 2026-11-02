@@ -2799,6 +2799,7 @@ const pt: Record<string, string> = {
   "profile.landNone": "Não informada",
   "team.aktivste": "Equipes mais ativas",
   "team.sessions30": "sessões em 30 dias",
+  "tab.rules": "Regras",
 };
 
 export default pt;

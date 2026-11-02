@@ -2793,6 +2793,7 @@ const ptPT: Record<string, string> = {
   "profile.landNone": "Não indicada",
   "team.aktivste": "Equipas mais ativas",
   "team.sessions30": "sessões em 30 dias",
+  "tab.rules": "Regras",
 };
 
 export default ptPT;

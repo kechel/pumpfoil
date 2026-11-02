@@ -16,7 +16,7 @@ import TeamQr from "../components/TeamQr";
 import { Reiterleiste, useReiter } from "../components/Reiter";
 import { openChatOverlay } from "../components/DmWidget";
 import { eventZeitraum } from "../lib/teamEvents";
-import { RegelnLink } from "./TeamRegeln";
+import TeamRegeln from "./TeamRegeln";
 import { eventStandKey } from "./TeamEventSeite";
 import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
@@ -281,7 +281,7 @@ export default function Team() {
   const { t, lang } = useI18n();
   const nav = useNavigate();
   const gast = !getToken();
-  const [tteil, setTteil] = useReiter("team", ["rekorde", "events", "logbuch", "mitglieder", "teilen"], "rekorde");
+  const [tteil, setTteil] = useReiter("team", ["rekorde", "events", "logbuch", "mitglieder", "teilen", "regeln"], "rekorde");
   const [kopf, setKopf] = useState<Kopf | null>(null);
   const [fehlt, setFehlt] = useState(false);
   const [period, setPeriod] = useState("30d");
@@ -395,7 +395,10 @@ export default function Team() {
         // Mitglieder und Teilen als eigene Reiter (Jan, 02.11.2026); Teilen mit QR-Code fuer jedes Mitglied.
         ...(mitglieder ? [{ id: "mitglieder", label: t("team.mitglieder") }] : []),
         ...(kopf.mein_status === "aktiv" ? [{ id: "teilen", label: t("team.teilen") }] : []),
+        // Regeln als eigener Reiter statt Link unten (Jan, 02.11.2026). Gaeste brauchen sie nicht (s. unten, 01.11.).
+        ...(!gast ? [{ id: "regeln", label: t("tab.rules") }] : []),
       ]} aktiv={tteil} onWahl={setTteil} />
+      {tteil === "regeln" && !gast && <TeamRegeln eingebettet />}
 
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
 
@@ -491,7 +494,6 @@ export default function Team() {
         </p>
       )}
       {/* Gaeste brauchen die ganze Regelseite nicht (Jan, 01.11.2026); die Event-Seite hat ihre eigene Regel-Box. */}
-      {!gast && <div className="mt-6"><RegelnLink /></div>}
 
       {bild && (
         <TeamTafelBild team={kopf} tafel={bild.tf} onClose={() => setBild(null)} zeitraum={bild.zeile} />

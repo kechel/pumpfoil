@@ -2834,6 +2834,7 @@ const fi: Record<string, string> = {
   "profile.landNone": "Ei ilmoitettu",
   "team.aktivste": "Aktiivisimmat tiimit",
   "team.sessions30": "sessiota 30 päivässä",
+  "tab.rules": "Säännöt",
 };
 
 export default fi;

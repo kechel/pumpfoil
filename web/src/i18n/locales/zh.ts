@@ -2796,6 +2796,7 @@ const zh: Record<string, string> = {
   "profile.landNone": "未填写",
   "team.aktivste": "最活跃的团队",
   "team.sessions30": "30天内的次数",
+  "tab.rules": "规则",
 };
 
 export default zh;

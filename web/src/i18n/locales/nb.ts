@@ -2774,6 +2774,7 @@ const nb: Record<string, string> = {
   "profile.landNone": "Ikke oppgitt",
   "team.aktivste": "Mest aktive lag",
   "team.sessions30": "økter på 30 dager",
+  "tab.rules": "Regler",
 };
 
 export default nb;

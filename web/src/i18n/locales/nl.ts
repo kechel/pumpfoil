@@ -2853,6 +2853,7 @@ const nl: Record<string, string> = {
   "profile.landNone": "Niet opgegeven",
   "team.aktivste": "Actiefste teams",
   "team.sessions30": "sessies in 30 dagen",
+  "tab.rules": "Regels",
 };
 
 export default nl;

@@ -13,7 +13,8 @@ import { ScrollToTop } from "../components/ScrollToTop";
 const ABSCHNITTE = ["was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik", "logbuch",
   "events", "chat", "loeschen", "konto", "haftung"];
 
-export default function TeamRegeln() {
+/** `eingebettet`: als Reiter „Regeln" auf der Team-Seite (Jan, 02.11.2026) — ohne eigene Titelzeile und ohne Sprung nach oben. */
+export default function TeamRegeln({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const t = useT();
   const { hash } = useLocation();
   // Verweis auf einen Abschnitt (#events …): nach dem Zeichnen dorthin, sonst nach oben.
@@ -24,8 +25,8 @@ export default function TeamRegeln() {
   }, [hash]);
   return (
     <div className="w-full">
-      {!hash && <ScrollToTop />}
-      <h1 className="mb-2 flex items-center gap-2 text-xl font-bold text-slate-100"><ZurueckPfeil fallback={getToken() ? "/teams" : "/"} />{t("team.regeln.titel")}</h1>
+      {!hash && !eingebettet && <ScrollToTop />}
+      {!eingebettet && <h1 className="mb-2 flex items-center gap-2 text-xl font-bold text-slate-100"><ZurueckPfeil fallback={getToken() ? "/teams" : "/"} />{t("team.regeln.titel")}</h1>}
       <p className="mb-5 text-sm text-slate-300">{t("team.regeln.intro")}</p>
       <div className="space-y-4">
         {ABSCHNITTE.map((a) => (

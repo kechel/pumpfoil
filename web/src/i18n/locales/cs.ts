@@ -2852,6 +2852,7 @@ const cs: Record<string, string> = {
   "profile.landNone": "Neuvedeno",
   "team.aktivste": "Nejaktivnější týmy",
   "team.sessions30": "vyjížděk za 30 dní",
+  "tab.rules": "Pravidla",
 };
 
 export default cs;

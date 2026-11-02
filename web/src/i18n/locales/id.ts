@@ -2799,6 +2799,7 @@ const id: Record<string, string> = {
   "profile.landNone": "Tidak diisi",
   "team.aktivste": "Tim paling aktif",
   "team.sessions30": "sesi dalam 30 hari",
+  "tab.rules": "Aturan",
 };
 
 export default id;

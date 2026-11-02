@@ -2684,6 +2684,7 @@ const gsw: Record<string, string> = {
   "profile.landNone": "Kei Aagab",
   "team.aktivste": "Aktivschti Teams",
   "team.sessions30": "Sessions i 30 Täg",
+  "tab.rules": "Regle",
 };
 
 export default gsw
