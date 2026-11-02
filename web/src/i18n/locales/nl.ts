@@ -2841,6 +2841,7 @@ const nl: Record<string, string> = {
   "tab.noData": "Hier zijn nog geen gegevens.",
   "tab.watchAccounts": "Horloge & accounts",
   "tab.watchSettings": "Instellingen",
+  "tab.watchSettingsUhr": "Horloge-instellingen",
   "ptab.me": "Ik",
   "ptab.riding": "Varen & analyse",
   "ptab.privacy": "Privacy",

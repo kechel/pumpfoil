@@ -2787,6 +2787,7 @@ const ru: Record<string, string> = {
   "tab.noData": "Здесь пока нет данных.",
   "tab.watchAccounts": "Часы и аккаунты",
   "tab.watchSettings": "Настройки",
+  "tab.watchSettingsUhr": "Настройки часов",
   "ptab.me": "Я",
   "ptab.riding": "Катание и анализ",
   "ptab.privacy": "Конфиденциальность",

@@ -2670,6 +2670,7 @@ const it: Record<string, string> = {
   "tab.noData": "Ancora nessun dato qui.",
   "tab.watchAccounts": "Orologio e account",
   "tab.watchSettings": "Impostazioni",
+  "tab.watchSettingsUhr": "Impostazioni orologio",
   "ptab.me": "Io",
   "ptab.riding": "Uscite e analisi",
   "ptab.privacy": "Privacy",

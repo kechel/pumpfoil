@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
-import { Reiterleiste } from "../components/Reiter";
+import { Reiterleiste, useReiter } from "../components/Reiter";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
 import { Button, Card, ErrorBox, SELECT_SCHRUMPFT } from "../components/ui";
@@ -13,6 +13,8 @@ import { WatchGuide } from "../components/WatchGuide";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { useT } from "../i18n";
 import { PairWarten } from "../components/PairWarten";
+import Layouts from "./Layouts";
+import LayoutGallery from "./LayoutGallery";
 
 // Aufnahmezeit bis „Speicher voll" fuer den Hinweis bei „Speicher sparen" — dieselbe Rechnung wie die
 // Uhr (SessionRecorder.kbPerMin / storageMinutesLeft): 90 % der gemessenen Grenze, 11,5 KB/min bei
@@ -72,7 +74,7 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
       {/* Dieselben Reiter wie ueberall (02.11.2026). „App" (Downloads) hat keinen eigenen Reiter, sie wird angesprungen. */}
       <Reiterleiste reiter={[
         { id: "guide", label: t("account.tabGuide") },
-        { id: "views", label: t("account.tabViews") },
+        { id: "views", label: t("tab.watchSettings") },
         { id: "alarm", label: t("account.tabAlarm") },
         { id: "connect", label: t("account.tabConnect") },
         { id: "compat", label: t("account.tabCompat") },
@@ -88,7 +90,7 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
       </>
       )}
 
-      {tab === "views" && <ViewsEditor />}
+      {tab === "views" && <EinstellungenReiter param={eingebettet ? "ltab" : "sub"} />}
       {tab === "alarm" && <AlarmEditor />}
       {tab === "app" && <AppDownloads initialQuery={dlQuery} />}
       {tab === "compat" && (
@@ -620,6 +622,25 @@ type Page = number[] | number;
 // damit nichts stillschweigend beim Speichern verschwindet.
 const MAX_PAGES = 12;
 
+/** Uhr › Einstellungen mit dritter Reiterzeile Uhr-Einstellungen | Community-Layouts | Eigene Layouts (Jan, 02.11.2026).
+ * Die beiden Layout-Seiten gibt es weiter einzeln unter /layouts und /layouts/community (Links aus dem Feed u. a.). */
+function EinstellungenReiter({ param }: { param: string }) {
+  const t = useT();
+  const [wahl, setWahl] = useReiter("uhreinst", ["uhr", "community", "eigene"], "uhr", { param });
+  return (
+    <>
+      <Reiterleiste aktiv={wahl} onWahl={setWahl} reiter={[
+        { id: "uhr", label: t("tab.watchSettingsUhr") },
+        { id: "community", label: t("lay.galleryTitle") },
+        { id: "eigene", label: t("account.toLayouts") },
+      ]} />
+      {wahl === "uhr" && <ViewsEditor />}
+      {wahl === "community" && <LayoutGallery eingebettet />}
+      {wahl === "eigene" && <Layouts eingebettet />}
+    </>
+  );
+}
+
 function ViewsEditor() {
   const t = useT();
   const [pages, setPages] = useState<Page[] | null>(null);
@@ -728,20 +749,9 @@ function ViewsEditor() {
 
   if (!pages) return null;
   return (
-    <Card className="mt-5 p-5">
+    <Card className="p-5">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold">{t("account.viewsTitle")}</h3>
-        {/* Einstieg in die frei positionierbaren Layouts — BEIDE Wege sichtbar: eigene bauen und
-            fertige von anderen holen. Jan suchte die Galerie hier und fand nur „eigenen Screen
-            hinzufügen", also war sie faktisch versteckt. */}
-        <div className="flex flex-wrap gap-2">
-          <Link to="/layouts/community" className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm text-slate-950 hover:bg-brand-400">
-            {t("lay.toCommunity")} →
-          </Link>
-          <Link to="/layouts" className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm text-slate-950 hover:bg-brand-400">
-            {t("account.toLayouts")} →
-          </Link>
-        </div>
       </div>
       <p className="mb-3 text-sm text-slate-300">{t("account.viewsDesc")}</p>
       {/* WAS DIE KLEINEN UHREN DAVON ZEIGEN — nur, wenn so eine verbunden ist, und mit Namen.

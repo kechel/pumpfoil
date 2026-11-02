@@ -2940,6 +2940,7 @@ const de: Record<string, string> = {
   "tab.noData": "Hier gibt es noch keine Daten.",
   "tab.watchAccounts": "Uhr & Konten",
   "tab.watchSettings": "Einstellungen",
+  "tab.watchSettingsUhr": "Uhr-Einstellungen",
   "ptab.me": "Ich",
   "ptab.riding": "Fahren & Auswertung",
   "ptab.privacy": "Privatsphäre",

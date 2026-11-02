@@ -12,7 +12,9 @@ import { useT } from "../i18n";
 // sie gilt. Siehe docs/setup-and-watch-layouts.md.
 const CATS = ["on_foil", "off_foil", "pause"] as const;
 
-export default function Layouts() {
+/** `eingebettet`: als Reiter „Eigene Layouts" unter Uhr › Einstellungen (02.11.2026) — ohne Titelzeile und ohne den
+ * Knopf zur Community-Galerie, die dort ihr eigener Reiter ist. */
+export default function Layouts({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const t = useT();
   const [rows, setRows] = useState<WatchLayout[] | null>(null);
   const [showData, setShowData] = useState(true);
@@ -92,7 +94,7 @@ export default function Layouts() {
 
   return (
     <div className="w-full">
-      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+      {!eingebettet && <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-xl font-bold">
           <ZurueckPfeil fallback="/account?tab=views" />
           <WatchIcon className="h-5 w-5 text-brand-400" /> {t("lay.title")}
@@ -104,7 +106,7 @@ export default function Layouts() {
           className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-1.5 text-sm text-slate-950 hover:bg-brand-400">
           <CommunityIcon className="h-4 w-4" /> {t("lay.toCommunity")} →
         </Link>
-      </div>
+      </div>}
       <p className="mb-4 text-sm text-slate-300">{t("lay.hint")}</p>
       <label className="mb-5 inline-flex items-center gap-2 text-sm text-slate-300">
         <input type="checkbox" checked={showData} onChange={(e) => setShowData(e.target.checked)}

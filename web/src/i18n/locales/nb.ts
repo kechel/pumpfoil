@@ -2762,6 +2762,7 @@ const nb: Record<string, string> = {
   "tab.noData": "Ingen data her ennå.",
   "tab.watchAccounts": "Klokke og kontoer",
   "tab.watchSettings": "Innstillinger",
+  "tab.watchSettingsUhr": "Klokkeinnstillinger",
   "ptab.me": "Meg",
   "ptab.riding": "Kjøring og analyse",
   "ptab.privacy": "Personvern",

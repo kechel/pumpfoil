@@ -2822,6 +2822,7 @@ const fi: Record<string, string> = {
   "tab.noData": "Täällä ei ole vielä tietoja.",
   "tab.watchAccounts": "Kello ja tilit",
   "tab.watchSettings": "Asetukset",
+  "tab.watchSettingsUhr": "Kellon asetukset",
   "ptab.me": "Minä",
   "ptab.riding": "Ajo ja analyysi",
   "ptab.privacy": "Yksityisyys",

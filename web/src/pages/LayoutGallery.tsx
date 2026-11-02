@@ -15,7 +15,8 @@ import { useT } from "../i18n";
 // anderer Größe/Form (die Koordinaten sind relativ). Siehe docs/setup-and-watch-layouts.md.
 const CATS = ["", "on_foil", "off_foil", "pause"] as const;
 
-export default function LayoutGallery() {
+/** `eingebettet`: als Reiter „Community-Layouts" unter Uhr › Einstellungen (02.11.2026) — ohne Titelzeile. */
+export default function LayoutGallery({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const t = useT();
   const [rows, setRows] = useState<WatchLayout[] | null>(null);
   const [cat, setCat] = useState("");
@@ -99,10 +100,10 @@ export default function LayoutGallery() {
 
   return (
     <div className="w-full">
-      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold">
+      {!eingebettet && <h2 className="mb-1 flex items-center gap-2 text-xl font-bold">
         <ZurueckPfeil fallback="/layouts" />
         <CommunityIcon className="h-5 w-5 text-brand-400" /> {t("lay.galleryTitle")}
-      </h2>
+      </h2>}
       <p className="mb-4 text-sm text-slate-300">{t("lay.galleryHint")}</p>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">

@@ -2787,6 +2787,7 @@ const pt: Record<string, string> = {
   "tab.noData": "Ainda não há dados aqui.",
   "tab.watchAccounts": "Relógio e contas",
   "tab.watchSettings": "Configurações",
+  "tab.watchSettingsUhr": "Configurações do relógio",
   "ptab.me": "Eu",
   "ptab.riding": "Sessões e análise",
   "ptab.privacy": "Privacidade",

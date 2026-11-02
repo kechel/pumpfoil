@@ -2672,6 +2672,7 @@ const gsw: Record<string, string> = {
   "tab.noData": "Do häts no kei Date.",
   "tab.watchAccounts": "Uhr & Konte",
   "tab.watchSettings": "Iistellige",
+  "tab.watchSettingsUhr": "Uhr-Iistellige",
   "ptab.me": "Ich",
   "ptab.riding": "Fahre & Uswärtig",
   "ptab.privacy": "Privatsphäre",

@@ -2787,6 +2787,7 @@ const id: Record<string, string> = {
   "tab.noData": "Belum ada data di sini.",
   "tab.watchAccounts": "Jam & akun",
   "tab.watchSettings": "Pengaturan",
+  "tab.watchSettingsUhr": "Pengaturan jam",
   "ptab.me": "Saya",
   "ptab.riding": "Berkendara & analisis",
   "ptab.privacy": "Privasi",
