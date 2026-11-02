@@ -1522,7 +1522,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - Doppelte Rekordanzeige auf Home (mit/ohne Foil je Zeitraum) zusammenfassen — erst ansehen, was er genau sieht.
   - Bestenliste teilen: Direktlink mit Filtern (leicht) und als Bild mit Datum (Canvas im Browser, kein Dritt-Dienst).
   - Neben der Bestenliste Kacheln zur Session des Erstplatzierten statt der Rekord-Kachelwand (Umbau Community-Kopf).
-  - Spot-Rekorde als Tabelle statt Kacheln mit Strecken.
+  - ~~Spot-Rekorde als Tabelle~~ — Jan 02.11.: Kacheln bleiben; gemeint sind ZUSAETZLICHE Bestenlisten je Kennzahl
+    (Tipp auf eine Rekord-Kachel -> Top 10 dieser Kennzahl, am Spot und in der Community).
   - Social-Feed und Neueste Medien zusammenlegen (wirken doppelt).
   **Gross:**
   - Kommentare zu Sessions + Likes auf Kommentare (Modell, Melden/Ausblenden, Sperren, DSGVO-Loeschung, Altersgrenze

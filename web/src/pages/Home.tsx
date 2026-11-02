@@ -213,37 +213,6 @@ function recItemsBasis(sport?: string) {
 }
 
 // Auch von der Foil-Detailseite benutzt — dieselben Kacheln, damit Rekorde ueberall gleich aussehen.
-/** Rekorde als Tabelle (Spot-Seite, 02.11.2026): eine Zeile je Rekord — Kennzahl, Wert, Fahrer, Datum. Die Kacheln mit
- * Streckenbild waren dort zu viel auf einen Blick. Nur belegte Rekorde; ein Tippen auf die Zeile oeffnet die Session. */
-export function RecordTable({ rec, sport }: { rec?: RecordSet | null; sport?: string }) {
-  const t = useT();
-  const zeilen = recItemsFuer(sport).filter((it) => { const r = rec?.[it.key]; return !!(r && r.value && (r.session_id || it.key === "carves180")); });
-  if (zeilen.length === 0) return <p className="text-sm text-slate-400">{t("tab.noRecords")}</p>;
-  return (
-    <div className="max-w-2xl divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800">
-      {zeilen.map((it) => {
-        const r = rec![it.key]!;
-        const inhalt = (
-          <>
-            <span className="min-w-0 flex-1 truncate text-sm text-slate-300">{t(it.labelKey)}</span>
-            <span className="shrink-0 text-sm font-semibold tabular-nums text-brand-400">
-              {(r as any).anzahl ? t("rec.ofN", { p: it.fmt(r.value), n: String((r as any).anzahl) }) : it.fmt(r.value)}
-            </span>
-            <span className="hidden w-32 shrink-0 truncate text-xs text-slate-300 sm:inline">{r.name ? <span className="pf-name">{r.name}</span> : ""}</span>
-            <span className="w-16 shrink-0 text-right text-xs tabular-nums text-slate-400">
-              {r.started_at ? fmtDate(r.started_at, r.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : ""}
-            </span>
-          </>
-        );
-        return r.session_id
-          ? <Link key={it.key} to={`/sessions/${r.session_id}${r.run_idx != null ? `?run=${r.run_idx}` : ""}`}
-              className="flex items-center gap-3 bg-slate-900 px-3 py-2 hover:bg-slate-800">{inhalt}</Link>
-          : <div key={it.key} className="flex items-center gap-3 bg-slate-900 px-3 py-2">{inhalt}</div>;
-      })}
-    </div>
-  );
-}
-
 export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?: RecordSet | null; showSpot?: boolean; sport?: string; nurSport?: boolean; nurBelegt?: boolean }) {
   const t = useT();
   // `nurSport`: nur die Rekorde je Sportart (eigene Zeile je Sportart auf Home/Profil, 20.10.2026).

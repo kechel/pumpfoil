@@ -13,7 +13,7 @@ import { fmtTime } from "../lib/time";
 import { usePumpFmt } from "../lib/pumpRate";
 // Rekord-Kacheln und Zeitfenster kommen aus der Community-Seite — eine Quelle, damit
 // die Spot-Rekorde nicht anders aussehen als dieselben Rekorde eine Seite weiter.
-import { RecordTable, PERIODS } from "./Home";
+import { RecordGrid, PERIODS } from "./Home";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe, ZEILEN_RASTER } from "../lib/kompakteListe";
 import { fmtDate } from "../lib/time";
@@ -1537,7 +1537,9 @@ function SpotRecordsSport({ sport, data }: { sport: string; data: SpotRecSatz })
           </button>
         ))}
       </div>
-      <RecordTable rec={data[period]} sport={sport} />
+      {/* Kacheln wie vorher (Jan, 02.11.2026: die Tabelle war ein Missverstaendnis — gemeint sind ZUSAETZLICHE
+          Bestenlisten je Kennzahl, s. docs/TODO.md). */}
+      <RecordGrid rec={data[period]} sport={sport} nurBelegt />
     </>
   );
 }
