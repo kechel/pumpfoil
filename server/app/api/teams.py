@@ -13,7 +13,7 @@ nicht gibt.
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from pydantic import BaseModel, Field
@@ -200,6 +200,18 @@ def liste(_u: models.User = Depends(current_user), db: Session = Depends(get_db)
     out = [{**_kurz(t, False, db, sp[t.id]), "mitglieder_anzahl": int(zahl.get(t.id, 0)),
             "anmeldungen_zulassen": bool(t.anmeldungen_zulassen),
             "bestenlisten_oeffentlich": T.bestenlisten_oeffentlich(t)} for t in teams]
+    # Aktivitaet (Jan, 02.11.2026: „die 10 most active teams"): Sessions der aktiven Mitglieder in den letzten 30 Tagen.
+    # Gezaehlt wie die Team-Summen sonst auch nur sichtbare (nicht geloeschte, nicht gemeldete, fertige) Aufnahmen.
+    S = models.Session
+    seit = datetime.now(timezone.utc) - timedelta(days=30)
+    aktiv = dict(db.query(M.team_id, func.count(func.distinct(S.id)))
+                 .join(S, S.user_id == M.user_id)
+                 .filter(M.status == "aktiv", M.team_id.in_([t.id for t in teams]),
+                         S.started_at >= seit, S.deleted.isnot(True), S.flagged.isnot(True),
+                         S.status.notin_(("recording", "live")))
+                 .group_by(M.team_id).all()) if teams else {}
+    for x, t in zip(out, teams):
+        x["sessions_30d"] = int(aktiv.get(t.id, 0))
     out.sort(key=lambda x: (-x["mitglieder_anzahl"], (x["name"] or "").lower()))
     return out
 

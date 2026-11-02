@@ -2794,6 +2794,11 @@ const ru: Record<string, string> = {
   "ptab.account": "Аккаунт",
   "tab.events": "События",
   "tab.logbook": "Журнал",
+  "profile.land": "Гражданство",
+  "profile.landHint": "Необязательно. Если укажешь, твой флаг появится в рейтингах и их картинках для публикации.",
+  "profile.landNone": "Не указано",
+  "team.aktivste": "Самые активные команды",
+  "team.sessions30": "сессий за 30 дней",
 };
 
 export default ru;

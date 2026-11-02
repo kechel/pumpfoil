@@ -697,6 +697,7 @@ export interface LeaderRow {
   ride_total_m?: number;   // laengste ganze Fahrt (Gesamtstrecke), Reiter nur bei Wind/Paddeln
   session_id?: number | null;   // nur bei Einzellauf-Listen: die Session des besten Laufs
   rank?: number;   // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist
+  land?: string | null;   // Nationalitaet (ISO-Code), nur wenn selbst eingestellt (02.11.2026)
 }
 export interface Leaders {
   sessions: LeaderRow[];
@@ -2179,7 +2180,8 @@ export interface TeamEventKurz {
   status: "kommend" | "laeuft" | "auswertung" | "beendet"; sportarten: string[]; spots: { id: number; name: string | null }[];
   team: { slug: string; name: string; logo_url: string | null; farbe: string | null };
 }
-export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean }
+export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean;
+  sessions_30d?: number }   // Sessions der Mitglieder in 30 Tagen (02.11.2026, „aktivste Teams")
 export interface TeamEinstellungen {
   name: string; slug: string; beschreibung: string; farbe: string;
   anmeldungen_zulassen: boolean; automatisch_akzeptieren: boolean; oeffentlich: boolean;

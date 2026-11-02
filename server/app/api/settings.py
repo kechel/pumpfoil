@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
@@ -156,6 +157,9 @@ DEFAULTS = {
     "board_id": None,
     # Homespot (Spot-Name). "" -> automatisch Spot der letzten Session.
     "homespot": "",
+    # Nationalitaet (ISO 3166-1 alpha-2, z. B. "DE"), freiwillig (Jan, 02.11.2026). "" = nicht angegeben. Erscheint als
+    # Flagge in den Bestenlisten und ihren Teilen-Bildern — nur bei denen, die es selbst eingestellt haben.
+    "land": "",
     # Körpergewicht (kg) — optional. 0 = nicht angegeben. NICHT nur "für später": es bestimmt
     # heute schon die Alarmgrenzen je Foil (`foil_physics.alarm_speeds`), und wer nichts angibt,
     # bekommt stillschweigend 95 kg vorgesetzt (s. `devices._foil_alarm_list`).
@@ -582,6 +586,9 @@ def update_settings(
         current["stop_mode"] = patch["stop_mode"]
     if "activity_type" in patch and patch["activity_type"] in ("surfing", "openwater", "pumpfoil"):
         current["activity_type"] = patch["activity_type"]
+    if "land" in patch:
+        v = str(patch["land"] or "").strip().upper()
+        current["land"] = v if re.fullmatch(r"[A-Z]{2}", v) else ""
     if "homespot" in patch:
         v = patch["homespot"]
         # id ODER Name akzeptieren -> kanonisch als Name speichern (mit Apps geteilt).

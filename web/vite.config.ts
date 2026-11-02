@@ -46,6 +46,8 @@ export default defineConfig({
         // verzögerte die SW-Installation/-Aktivierung bei jedem Update (langes „Laden"). Bilder
         // kommen bei Bedarf über runtimeCaching (static-img, unten).
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // Flaggen (02.11.2026, ~250 SVG, 2,8 MB) nicht vorab cachen — nur beim Teilen und im Profil gebraucht.
+        globIgnores: ["flags/**"],
         // Das App-Bundle hat 2026-07-26 die Workbox-Standardgrenze von 2 MiB überschritten →
         // Build brach ab und der SW wäre ohne App-Shell ausgeliefert worden (kein Offline).
         // Grenze hochgezogen; TODO bleibt: das Bundle per Code-Splitting kleiner machen.

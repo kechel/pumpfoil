@@ -2679,6 +2679,11 @@ const gsw: Record<string, string> = {
   "ptab.account": "Konto",
   "tab.events": "Events",
   "tab.logbook": "Logbuech",
+  "profile.land": "Nationalität",
+  "profile.landHint": "Freiwillig. Wer sie aagit, überchunnt sini Flagge i de Bestelischte und ihre Bilder zum Teile.",
+  "profile.landNone": "Kei Aagab",
+  "team.aktivste": "Aktivschti Teams",
+  "team.sessions30": "Sessions i 30 Täg",
 };
 
 export default gsw

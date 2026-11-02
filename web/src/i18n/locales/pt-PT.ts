@@ -2788,6 +2788,11 @@ const ptPT: Record<string, string> = {
   "ptab.account": "Conta",
   "tab.events": "Eventos",
   "tab.logbook": "Diário",
+  "profile.land": "Nacionalidade",
+  "profile.landHint": "Opcional. Se a indicares, a tua bandeira aparece nas classificações e nas imagens para partilhar.",
+  "profile.landNone": "Não indicada",
+  "team.aktivste": "Equipas mais ativas",
+  "team.sessions30": "sessões em 30 dias",
 };
 
 export default ptPT;

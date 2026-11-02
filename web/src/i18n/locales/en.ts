@@ -2893,6 +2893,11 @@ const en: Record<string, string> = {
   "ptab.account": "Account",
   "tab.events": "Events",
   "tab.logbook": "Logbook",
+  "profile.land": "Nationality",
+  "profile.landHint": "Optional. If you set it, your flag appears in the leaderboards and their share images.",
+  "profile.landNone": "Not specified",
+  "team.aktivste": "Most active teams",
+  "team.sessions30": "sessions in 30 days",
 };
 
 export default en;

@@ -2684,6 +2684,11 @@ const deAT: Record<string, string> = {
   "ptab.account": "Konto",
   "tab.events": "Events",
   "tab.logbook": "Logbuch",
+  "profile.land": "Nationalität",
+  "profile.landHint": "Freiwillig. Wer sie angibt, bekommt seine Flagge in den Bestenlisten und ihren Bildern zum Teilen.",
+  "profile.landNone": "Keine Angabe",
+  "team.aktivste": "Aktivste Teams",
+  "team.sessions30": "Sessions in 30 Tagen",
 };
 
 export default deAT

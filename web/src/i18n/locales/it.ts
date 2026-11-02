@@ -2677,6 +2677,11 @@ const it: Record<string, string> = {
   "ptab.account": "Account",
   "tab.events": "Eventi",
   "tab.logbook": "Diario",
+  "profile.land": "Nazionalità",
+  "profile.landHint": "Facoltativo. Se la indichi, la tua bandiera compare nelle classifiche e nelle loro immagini da condividere.",
+  "profile.landNone": "Non indicata",
+  "team.aktivste": "Team più attivi",
+  "team.sessions30": "sessioni in 30 giorni",
 };
 
 export default it;

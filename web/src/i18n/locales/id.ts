@@ -2794,6 +2794,11 @@ const id: Record<string, string> = {
   "ptab.account": "Akun",
   "tab.events": "Acara",
   "tab.logbook": "Log",
+  "profile.land": "Kewarganegaraan",
+  "profile.landHint": "Opsional. Jika diisi, benderamu muncul di papan peringkat dan gambar untuk dibagikan.",
+  "profile.landNone": "Tidak diisi",
+  "team.aktivste": "Tim paling aktif",
+  "team.sessions30": "sesi dalam 30 hari",
 };
 
 export default id;

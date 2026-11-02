@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, TeamListenEintrag } from "../lib/api";
-import TeamWappen from "../components/TeamWappen";
-import { teamFarbStil } from "../lib/teamFarben";
-import { sportartenText } from "../lib/teamKennzahlen";
+import TeamListenKachel from "../components/TeamListenKachel";
 import { passtZu } from "../lib/suche";
 import { useI18n } from "../i18n";
 
@@ -28,17 +26,7 @@ export default function TeamsAlle() {
         : treffer.length === 0 ? <p className="text-sm text-slate-400">{t("team.alleLeer")}</p> : (
           <div className="grid gap-2 sm:grid-cols-2">
             {treffer.map((tm) => (
-              <Link key={tm.id} to={`/teams/${tm.slug}`} style={teamFarbStil(tm.farbe)}
-                className="team-farbe flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700">
-                <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={40} />
-                <span className="min-w-0 flex-1">
-                  <span className="team-akzent block truncate font-semibold">{tm.name}</span>
-                  <span className="block truncate text-xs text-slate-400">
-                    {t("team.mitgliederAnzahl", { n: String(tm.mitglieder_anzahl) })}
-                    {!!tm.sportarten?.length && <> · {sportartenText(tm.sportarten, t)}</>}
-                  </span>
-                </span>
-              </Link>
+              <TeamListenKachel key={tm.id} tm={tm} />
             ))}
           </div>
         )}

@@ -2777,6 +2777,11 @@ const pl: Record<string, string> = {
   "ptab.account": "Konto",
   "tab.events": "Wydarzenia",
   "tab.logbook": "Dziennik",
+  "profile.land": "Narodowość",
+  "profile.landHint": "Opcjonalnie. Jeśli ją podasz, twoja flaga pojawi się w rankingach i ich obrazach do udostępnienia.",
+  "profile.landNone": "Nie podano",
+  "team.aktivste": "Najaktywniejsze drużyny",
+  "team.sessions30": "sesji w 30 dni",
 };
 
 export default pl;

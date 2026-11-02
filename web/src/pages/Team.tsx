@@ -12,6 +12,7 @@ import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatisti
 import { Avatar, Card } from "../components/ui";
 import { ChatBubbleIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
+import TeamQr from "../components/TeamQr";
 import { Reiterleiste, useReiter } from "../components/Reiter";
 import { openChatOverlay } from "../components/DmWidget";
 import { eventZeitraum } from "../lib/teamEvents";
@@ -270,7 +271,7 @@ export default function Team() {
   const { t, lang } = useI18n();
   const nav = useNavigate();
   const gast = !getToken();
-  const [tteil, setTteil] = useReiter("team", ["rekorde", "events", "logbuch"], "rekorde");
+  const [tteil, setTteil] = useReiter("team", ["rekorde", "events", "logbuch", "mitglieder", "teilen"], "rekorde");
   const [kopf, setKopf] = useState<Kopf | null>(null);
   const [fehlt, setFehlt] = useState(false);
   const [period, setPeriod] = useState("30d");
@@ -375,12 +376,15 @@ export default function Team() {
         {kopf.beschreibung && <p className="col-span-2 mt-1 whitespace-pre-line text-sm text-slate-300">{kopf.beschreibung}</p>}
       </div>
 
-      {/* Reiter wie ueberall (Jan, 02.11.2026): Rekorde | Events | Logbuch, direkt unter dem Trennstrich des Kopfs. Mitglieder, Teamadresse und Austreten bleiben
-          darunter fuer alle Reiter sichtbar. */}
+      {/* Reiter wie ueberall (Jan, 02.11.2026): Rekorde | Events | Logbuch | Mitglieder | Teilen, direkt unter dem Trennstrich
+          des Kopfs. Austreten und Regeln bleiben darunter fuer alle Reiter sichtbar. */}
       <Reiterleiste reiter={[
         { id: "rekorde", label: t("side.records") },
         { id: "events", label: t("tab.events") },
         { id: "logbuch", label: t("tab.logbook") },
+        // Mitglieder und Teilen als eigene Reiter (Jan, 02.11.2026); Teilen mit QR-Code fuer jedes Mitglied.
+        ...(mitglieder ? [{ id: "mitglieder", label: t("team.mitglieder") }] : []),
+        ...(kopf.mein_status === "aktiv" ? [{ id: "teilen", label: t("team.teilen") }] : []),
       ]} aktiv={tteil} onWahl={setTteil} />
 
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
@@ -438,8 +442,8 @@ export default function Team() {
         <p className="text-sm text-slate-400">{t("team.nurFuerMitglieder")}</p>
       )}
 
-      {mitglieder && (
-        <Card className="mt-4 p-4">
+      {tteil === "mitglieder" && mitglieder && (
+        <Card className="p-4">
           <h3 className="mb-2 font-semibold text-slate-100">{t("team.mitglieder")}</h3>
           <div className="flex flex-wrap gap-3">
             {mitglieder.map((m) => (
@@ -456,7 +460,12 @@ export default function Team() {
       {/* Reihenfolge unten (Jan, 01.11.2026): Teamadresse vorletzt, Logbuch ganz unten. */}
       {tteil === "events" && eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} slug={kopf.slug} lang={lang} t={t} />}
       {tteil === "logbuch" && (gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} />}
-      {kopf.mein_status === "aktiv" && <div className="mt-4"><TeamAdresse kopf={kopf} t={t} /></div>}
+      {tteil === "teilen" && kopf.mein_status === "aktiv" && <>
+        <TeamAdresse kopf={kopf} t={t} />
+        <Card className="mb-4 p-4">
+          <TeamQr url={`${window.location.origin}/teams/${kopf.slug}`} dateiname={kopf.slug} />
+        </Card>
+      </>}
 
       {kopf.mein_status === "aktiv" && kopf.meine_rolle !== "leiter" && (
         <button onClick={austreten} className="mt-6 text-sm text-slate-400 underline hover:text-slate-200">{t("team.austreten")}</button>

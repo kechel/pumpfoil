@@ -148,3 +148,16 @@ def test_bestenliste_je_spot(client):
         db.query(models.Spot).filter_by(id=spid).delete(); db.commit()
     finally:
         db.close()
+
+
+def test_flagge_nur_wenn_gesetzt(client):
+    # Nationalitaet im Profil (02.11.2026): erscheint als `land` in der Bestenliste, ungueltige Werte werden verworfen.
+    kopf, uid = _konto(client)
+    assert client.put("/api/settings", headers=kopf, json={"land": "pl"}).status_code == 200
+    assert client.get("/api/settings", headers=kopf).json()["land"] == "PL"
+    basis = 3.0e13 + time.time() * 1000
+    _gps_session(uid, basis, basis / 100)
+    d = client.get("/api/community/leaders?period=all&accel_only=false&sport=pumpfoil", headers=kopf).json()
+    assert next(x for x in d["distance"] if x["user_id"] == uid)["land"] == "PL"
+    client.put("/api/settings", headers=kopf, json={"land": "<script>"})
+    assert client.get("/api/settings", headers=kopf).json()["land"] == ""

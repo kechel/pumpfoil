@@ -51,3 +51,20 @@ def test_team_letzte_nur_fuer_mitglieder(client):
     l = client.get(f"/api/community/team-latest?team_id={tid}", headers=ka).json()
     assert [x["session_id"] for x in l] == ids[:3]               # je Mitglied hoechstens drei, neueste zuerst
     assert client.get(f"/api/community/team-latest?team_id={tid}", headers=kc).status_code == 404
+
+
+def test_teamliste_traegt_aktivitaet(client):
+    # Community › Teams & Events (02.11.2026): die aktivsten Teams nach Sessions der Mitglieder in 30 Tagen.
+    from app import models
+    from app.db import SessionLocal
+    (a, ka) = _konto(client, "akt")
+    slug = client.post("/api/teams", headers=ka, json={"name": f"Aktiv Team {secrets.token_hex(2)}"}).json()["slug"]
+    db = SessionLocal()
+    try:
+        tm = db.query(models.Team).filter(models.Team.slug == slug).one()
+        tm.frei_am = datetime.now(timezone.utc); db.commit(); tid = tm.id
+    finally:
+        db.close()
+    _session(a, 2); _session(a, 40)                              # nur eine in den letzten 30 Tagen
+    zeile = next(x for x in client.get("/api/teams/liste", headers=ka).json() if x["id"] == tid)
+    assert zeile["sessions_30d"] == 1

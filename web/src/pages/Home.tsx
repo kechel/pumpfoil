@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz } from "../lib/api";
+import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz, TeamListenEintrag } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
@@ -9,6 +9,7 @@ import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
 import { SocialFeed } from "../components/SocialFeed";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
+import TeamListenKachel from "../components/TeamListenKachel";
 import { initialenAus } from "../lib/bestenlisteBild";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
@@ -540,7 +541,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
                 const u = typeof k.unit === "function" ? k.unit(v) : t(k.unitKey ?? "");
                 return `${k.fmt ? k.fmt(v) : v} ${u}`;
               };
-              const zeile = (r: LeaderRow, rang: number) => ({ rang, name: r.name, initialen: initialenAus(r.name), wert: fmtWert(r) });
+              const zeile = (r: LeaderRow, rang: number) => ({ rang, name: r.name, initialen: initialenAus(r.name), wert: fmtWert(r), land: r.land });
               const eigene = data.me?.[k.key];
               return (
                 <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-${k.key}.jpg`}
@@ -812,6 +813,23 @@ function TeamsSection() {
           {events.map((e) => <EventKurzKachel key={`${e.team.slug}-${e.id}`} e={e} />)}
         </div>
       )}
+      <AktivsteTeams />
+    </div>
+  );
+}
+
+/** Die 10 aktivsten Teams (Jan, 02.11.2026): Sessions der Mitglieder in den letzten 30 Tagen, Kacheln untereinander. */
+function AktivsteTeams() {
+  const t = useT();
+  const [teams, setTeams] = useState<TeamListenEintrag[] | null>(null);
+  useEffect(() => { api.teamsListe().then(setTeams).catch(() => setTeams([])); }, []);
+  const top = (teams ?? []).filter((x) => (x.sessions_30d ?? 0) > 0)
+    .sort((a, b) => (b.sessions_30d ?? 0) - (a.sessions_30d ?? 0)).slice(0, 10);
+  if (!top.length) return null;
+  return (
+    <div className="mt-8">
+      <h3 className="mb-2 text-lg font-bold">{t("team.aktivste")}</h3>
+      <div className="max-w-2xl space-y-2">{top.map((tm) => <TeamListenKachel key={tm.id} tm={tm} aktivitaet />)}</div>
     </div>
   );
 }

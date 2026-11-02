@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { BILD_B, BILD_H, bildDatei, bildLaden, bildSpeichern, zeichneBestenliste, type BildDaten } from "../lib/bestenlisteBild";
 import { useT } from "../i18n";
+import { flaggeUrl } from "../lib/laender";
 import { DownloadIcon, ShareIcon } from "./Icons";
 
 export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel, hinweis, onClose }: {
@@ -26,8 +27,12 @@ export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel
       if (logoUrl) { try { logo = await bildLaden(logoUrl); } catch { logo = null; } }
       let marke: HTMLImageElement | null = null;
       try { marke = await bildLaden(hell ? "/wordmark-h-light.png" : "/wordmark-h-dark.png"); } catch { marke = null; }
+      // Flaggen der Fahrer, die ihre Nationalitaet eingestellt haben (02.11.2026); eine fehlende Flagge laesst nur sie weg.
+      const flaggen: Record<string, HTMLImageElement> = {};
+      const codes = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.land).filter(Boolean) as string[]);
+      await Promise.all([...codes].map((c) => bildLaden(flaggeUrl(c)).then((im) => { flaggen[c] = im; }).catch(() => {})));
       if (weg) return;
-      zeichneBestenliste(g, { ...daten, logo, marke, hell });
+      zeichneBestenliste(g, { ...daten, logo, marke, hell, flaggen });
       setFertig(true);
     })().catch(() => setFehler(t("share.errImage")));
     return () => { weg = true; };

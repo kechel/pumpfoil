@@ -2848,6 +2848,11 @@ const nl: Record<string, string> = {
   "ptab.account": "Account",
   "tab.events": "Evenementen",
   "tab.logbook": "Logboek",
+  "profile.land": "Nationaliteit",
+  "profile.landHint": "Optioneel. Als je die invult, staat je vlag in de ranglijsten en hun deelafbeeldingen.",
+  "profile.landNone": "Niet opgegeven",
+  "team.aktivste": "Actiefste teams",
+  "team.sessions30": "sessies in 30 dagen",
 };
 
 export default nl;

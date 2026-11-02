@@ -1266,6 +1266,21 @@ def spot_records(
     return tmp[period]
 
 
+def _laender(db: Session, uids: set[int]) -> dict[int, str]:
+    """Nationalitaet (ISO-Code aus den Einstellungen) je Nutzer — nur gesetzte."""
+    if not uids:
+        return {}
+    aus: dict[int, str] = {}
+    for uid, sj in db.query(U.id, U.settings_json).filter(U.id.in_(uids)).all():
+        try:
+            land = (json.loads(sj) if sj else {}).get("land") or ""
+        except (ValueError, TypeError):
+            land = ""
+        if land:
+            aus[uid] = land
+    return aus
+
+
 # ------------------------------------------------------------------- Leaders ----
 @router.get("/leaders")
 def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all",
@@ -1336,6 +1351,15 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         zeile = {**ich, "rank": max(11, 1 + sum(1 for x in flat if x[key] > ich[key]))}
         me[name] = mit_session([zeile], col)[0] if col is not None else zeile
     out["me"] = me
+    # Flagge je Eintrag (Nationalitaet im Profil, Jan 02.11.2026) — nur wer sie selbst eingestellt hat.
+    uids = {x["user_id"] for liste in out.values() if isinstance(liste, list) for x in liste}
+    uids |= {x["user_id"] for x in me.values() if x}
+    laender = _laender(db, uids)
+    for liste in list(out.values()) + [list(me.values())]:
+        if isinstance(liste, list):
+            for x in liste:
+                if x:
+                    x["land"] = laender.get(x["user_id"])
     return out
 
 

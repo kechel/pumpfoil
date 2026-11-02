@@ -8,6 +8,7 @@ import { APP_BUILD } from "../buildInfo";
 import { fmtDate } from "../lib/time";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { Reiterleiste, useReiter } from "../components/Reiter";
+import { LAENDER, flaggeUrl, landName } from "../lib/laender";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { FontScaleSelect } from "../components/FontScaleSelect";
 import { PumpUnitSelect } from "../components/PumpUnitSelect";
@@ -19,7 +20,7 @@ import { ZonesCard } from "../components/ZonesCard";
 import { PublicProfileCard } from "../components/PublicProfileCard";
 
 export default function Settings() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [ptab, setPtab] = useReiter("profil", ["ich", "fahren", "privat", "darstellung", "konto"], "ich");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,6 +35,7 @@ export default function Settings() {
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pwBusy, setPwBusy] = useState(false);
   const [homespot, setHomespot] = useState("");
+  const [land, setLand] = useState("");
   const [spots, setSpots] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
   const [wrist, setWrist] = useState("");
@@ -44,6 +46,7 @@ export default function Settings() {
   useEffect(() => {
     api.getSettings().then((s) => {
       setHomespot((s.homespot as string) ?? "");
+      setLand((s.land as string) ?? "");
       setWeight(s.weight_kg ? String(s.weight_kg) : "");
       setWrist((s.watch_wrist as string) ?? "");
       setStance((s.stance as string) ?? "");
@@ -76,6 +79,10 @@ export default function Settings() {
     setSavedToast(true);
     if (savedTimer.current) clearTimeout(savedTimer.current);
     savedTimer.current = window.setTimeout(() => setSavedToast(false), 1600);
+  }
+  function saveLand(v: string) {
+    setLand(v);
+    api.saveSettings({ land: v }).then(flashSaved).catch(() => {});
   }
   function saveHomespot(v: string) {
     setHomespot(v);
@@ -144,6 +151,8 @@ export default function Settings() {
         <h2 className="text-xl font-bold">{t("profile.title")}</h2>
       </div>
 
+      {/* Kacheln zweispaltig, sobald der Platz reicht (Jan, 02.11.2026). */}
+      <div className="grid gap-x-4 lg:grid-cols-2">
       <Link
         to={watchUpdate ? `/account?tab=app${watchModelQuery(watchUpdate.model || watchUpdate.label, watchUpdate.platform)}` : "/account"}
         className={`mb-4 flex items-center justify-between rounded-2xl border bg-slate-900/60 p-4 hover:bg-slate-900 ${watchUpdate ? "border-amber-500/50 hover:border-amber-500" : "border-slate-800 hover:border-slate-700"}`}
@@ -216,6 +225,7 @@ export default function Settings() {
         </span>
         <ChevronIcon className="h-5 w-5 text-slate-400" />
       </Link>
+      </div>
 
       <InstallPwa className="mb-4 md:hidden" />
 
@@ -278,6 +288,22 @@ export default function Settings() {
         {saved && <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-400">{t("profile.saved")}</p>}
         {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
         {email && <p className="mt-4 text-xs text-slate-400">{t("profile.loggedInAs", { email })}</p>}
+      </Card>
+
+      {/* Nationalitaet (Jan, 02.11.2026): freiwillig, als Flagge in Bestenlisten und ihren Teilen-Bildern. Laendernamen in der
+          Sprache der Oberflaeche (Intl.DisplayNames), Flaggen als eigene SVG (lib/laender.ts). */}
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("profile.land")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("profile.landHint")}</p>
+        <div className="flex items-center gap-3">
+          <select value={land} onChange={(e) => saveLand(e.target.value)}
+            className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
+            <option value="">{t("profile.landNone")}</option>
+            {LAENDER.map((c) => ({ c, n: landName(c, lang) })).sort((a, b) => a.n.localeCompare(b.n, lang))
+              .map(({ c, n }) => <option key={c} value={c}>{n}</option>)}
+          </select>
+          {land && <img src={flaggeUrl(land)} alt="" className="h-6 w-8 shrink-0 rounded-sm border border-slate-700 object-cover" />}
+        </div>
       </Card>
 
       {/* Direkt unter dem Anzeigenamen (Jan, 30.08.) — beides ist "wer bin ich hier". */}

@@ -2769,6 +2769,11 @@ const nb: Record<string, string> = {
   "ptab.account": "Konto",
   "tab.events": "Arrangementer",
   "tab.logbook": "Loggbok",
+  "profile.land": "Nasjonalitet",
+  "profile.landHint": "Valgfritt. Hvis du fyller det inn, vises flagget ditt i topplistene og bildene som kan deles.",
+  "profile.landNone": "Ikke oppgitt",
+  "team.aktivste": "Mest aktive lag",
+  "team.sessions30": "økter på 30 dager",
 };
 
 export default nb;

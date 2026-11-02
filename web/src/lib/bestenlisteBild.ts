@@ -7,7 +7,8 @@
 export const BILD_B = 1080, BILD_H = 1080;
 const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
-export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean };
+export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean;
+  land?: string | null };   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
@@ -19,6 +20,7 @@ export type BildDaten = {
   akzentHell?: string;      // Teamfarbe fuer die helle Fassung
   logo?: HTMLImageElement | null;   // Teamwappen links neben der Ueberschrift
   marke?: HTMLImageElement | null;  // unser Schriftzug unten rechts (zur Fassung passend: weiss auf dunkel, navy auf hell)
+  flaggen?: Record<string, HTMLImageElement>;   // geladene Flaggen je ISO-Code (s. BestenlisteBildDialog)
   hell?: boolean;           // helle Fassung (Jan, 02.11.2026: Umschalter wie beim Teilen einer Session)
 };
 
@@ -91,7 +93,15 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "right"; g.fillStyle = akzent;
     g.fillText(z.wert, BILD_B - X, mitte);
     const wb = g.measureText(z.wert).width;
-    const nx = X + 70 + 2 * r + 24;
+    let nx = X + 70 + 2 * r + 24;
+    const fl = z.land ? d.flaggen?.[z.land] : undefined;
+    if (fl) {
+      // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund).
+      const fh = Math.round(gross * 0.8), fw = Math.round(fh * 4 / 3);
+      g.drawImage(fl, nx, mitte - fh / 2, fw, fh);
+      g.strokeStyle = F.linie; g.lineWidth = 2; g.strokeRect(nx, mitte - fh / 2, fw, fh);
+      nx += fw + 16;
+    }
     g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = F.text;
     g.fillText(kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx), nx, mitte);
   };

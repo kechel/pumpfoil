@@ -2829,6 +2829,11 @@ const fi: Record<string, string> = {
   "ptab.account": "Tili",
   "tab.events": "Tapahtumat",
   "tab.logbook": "Lokikirja",
+  "profile.land": "Kansallisuus",
+  "profile.landHint": "Vapaaehtoinen. Jos asetat sen, lippusi näkyy tulostauluissa ja niiden jaettavissa kuvissa.",
+  "profile.landNone": "Ei ilmoitettu",
+  "team.aktivste": "Aktiivisimmat tiimit",
+  "team.sessions30": "sessiota 30 päivässä",
 };
 
 export default fi;
