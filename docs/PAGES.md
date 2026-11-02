@@ -24,16 +24,16 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 
 | Route | Komponente | Was drauf ist |
 |---|---|---|
-| `/` (eingeloggt), `/home` | `PersonalHome.tsx` | Persönliche Startseite/Dashboard; u. a. Hinweis auf eingehende Session-Übertragungen. |
-| `/community` | `Home.tsx` | Community-Feed: neueste Sessions/Medien, Bestwerte/Leaderboards, Community-Stats, PWA-Install-Button. |
-| `/verlauf` | `History.tsx` | Persönliche Aggregat-Metriken (Summen/Mittel je Zeitfenster + kumuliert) und Bestwerte. |
-| `/sessions` | `Sessions.tsx` | „Meine Sessions": Liste, Merge-Vorschläge (heutige Sessions ≤1 h), Session-Transfer annehmen. Mit gewähltem Spot ganz oben **„Rekorde an diesem Spot"** (dieselben Kacheln und Zeitfenster wie auf der Community-Seite, `/api/community/records?spot=…`), darunter Wetter und Spot-Beschreibungen. |
+| `/` (eingeloggt), `/home` | `PersonalHome.tsx` | Persönliche Startseite mit Reitern (`?tab=`, seit 02.11.2026): Übersicht (letzte Sessions, Hinweise, Freunde mit letzter Session) · Rekorde · Team · Homespot (Spot-Seite ohne Liste, `?stab=`) · Verlauf. Startet immer mit der Übersicht. |
+| `/community` | `Home.tsx` | Community mit Reitern (`?tab=`, seit 02.11.2026): **Rekorde & Bestenliste** (Kacheln + Bestenliste, eigene Zeile unter Platz 10, als Bild teilen), **Medien** (Fotos/Videos, Best bewertet, Social-Feed, Uhr-Layouts), **Teams & Events**. Zeitraum/Sportart/Foil/Liste stehen in der Adresse (`period`, `sport`, `band`, `lb`). |
+| `/verlauf` | — | Leitet seit 02.11.2026 auf `/?tab=verlauf` um (Reiter „Verlauf" in Home, `History.tsx` eingebettet). |
+| `/sessions` | `Sessions.tsx` | „Meine Sessions": Liste, Merge-Vorschläge (heutige Sessions ≤1 h), Session-Transfer annehmen. Reiter Meine · Freunde · Alle. Mit `?spot=` die **Spot-Seite** mit Reitern Rekorde (Tabelle) · Sessions · Heatmap · Wetter · Beschreibungen (seit 02.11.2026, `SpotBereich`; auch Reiter „Homespot" auf Home). |
 | `/sessions/:id` | `SessionDetail.tsx` | Einzel-Session: Karte, Analyse (Runs/Gleit/Pumps), Video, Teilen-Link, Bearbeiten. |
 | `/sessions/:id/label` | `Labeling.tsx` | Pump-**Tap-to-Label** synchron zum Video (Ground Truth fürs Pump-Modell). |
 | `/import` | `Import.tsx` | Erklärt den Garmin-Export und bietet den FIT/ZIP-Upload. |
 | `/alle-sessions` | `AllSessionsRedirect.tsx` | Redirect für Alt-Links/Bookmarks. |
 | `/foiler/:id` | `Foiler.tsx` | **Oeffentliche Profilseite eines Foilers** (Login noetig, nicht fuer Suchmaschinen): Anzeigename, Dabei-seit, Homespot, bis zu drei benutzte Uhren, drei meistgenutzte Foils, Rekorde der letzten 12 Monate. Was erscheint, entscheidet der Server aus `settings.public_profile` (`/api/community/foiler/<id>`); 404 bei hidden/blocked/unter 13/abgeschaltet. **Freunde** (seit 15.10.2026) sehen alles, auch eine abgeschaltete Seite, dazu das Gewicht; Knopf „Freundschaft anfragen“ oben rechts. **Bewusst ohne Sessionliste** (Bewegungsprofil, 04.09.2026). Stand 08.09.2026 **nirgends verlinkt** — Einstieg noch offen. |
-| `/spots` | `Spots.tsx` | Kartenansicht aller Spot-Locations; Marker → Sessions am Spot. Heatmap (30 Tage / 1 Jahr) = Sessions je Rasterzelle, nur die Läufe, für alle gleich, nachts vorgerechnet (`app/heatmap.py`, Timer `foil-heatmap`). |
+| `/spots` | `Spots.tsx` | Reiter Karte · Liste · Routen (seit 02.11.2026; Liste/Routen kamen aus der Community). Karte: Kartenansicht aller Spot-Locations; Marker → Sessions am Spot. Heatmap (30 Tage / 1 Jahr) = Sessions je Rasterzelle, nur die Läufe, für alle gleich, nachts vorgerechnet (`app/heatmap.py`, Timer `foil-heatmap`). |
 | `/foils` | `Foils.tsx` | Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern). |
 | `/foil-stats` | `FoilStats.tsx` | Community-Vergleich je Foil: welche Werte mit welchem Material gefahren werden. |
 | `/foil-stats/:foilId` | `FoilDetail.tsx` | Ein Foil im Einzelnen: Community-Rekord-Kacheln mit genau diesem Fluegel, darunter die eigenen Sessions damit (laedt beim Scrollen nach). Erreichbar per Klick auf den Foil-Namen in der Tabelle. |
