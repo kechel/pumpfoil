@@ -2208,6 +2208,8 @@ export interface TeamTafel {
 export interface TeamZeile {
   rang: number; name: string | null; initialen: string; value: number;
   user_id?: number; avatar_url?: string | null; session_id?: number; started_at?: string | null; spot?: string | null;
+  /** Nationalitaet (ISO), nur fuer Eingeloggte */
+  land?: string | null;
 }
 export interface TeamStatistik {
   sessions: number; runs: number; pumps: number; distance_m: number; time_s: number; spots: number;

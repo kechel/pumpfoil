@@ -446,9 +446,12 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
                                 "value": round(float(val), 2)})
     out.sort(key=lambda r: (-r["value"], r.get("started_at") or "", r["user_id"]))
     out = out[:TAFEL_LAENGE]
+    # Nationalitaet -> Flagge im geteilten Bild (02.11.2026); Gaeste bekommen sie nicht (fuer_gast).
+    laender = C._laender(db, {r["user_id"] for r in out})
     for i, r in enumerate(out):
         r["rang"] = i + 1
         r["initialen"] = initialen(r["name"])
+        r["land"] = laender.get(r["user_id"])
     _cache_setzen(key, out)
     return out
 
