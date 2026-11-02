@@ -2828,6 +2828,8 @@ const nl: Record<string, string> = {
   "tab.leaderboard": "Ranglijst",
   "tab.noRecords": "Hier zijn nog geen records.",
   "tab.spotPage": "Spotpagina",
+  "tab.rankings": "Records & ranglijst",
+  "sd.whoLiked": "Wie?",
 };
 
 export default nl;

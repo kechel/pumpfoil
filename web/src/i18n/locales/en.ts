@@ -2873,6 +2873,8 @@ const en: Record<string, string> = {
   "tab.leaderboard": "Leaderboard",
   "tab.noRecords": "No records here yet.",
   "tab.spotPage": "Spot page",
+  "tab.rankings": "Records & leaderboard",
+  "sd.whoLiked": "Who?",
 };
 
 export default en;

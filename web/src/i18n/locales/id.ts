@@ -2774,6 +2774,8 @@ const id: Record<string, string> = {
   "tab.leaderboard": "Peringkat",
   "tab.noRecords": "Belum ada rekor di sini.",
   "tab.spotPage": "Halaman spot",
+  "tab.rankings": "Rekor & peringkat",
+  "sd.whoLiked": "Siapa?",
 };
 
 export default id;

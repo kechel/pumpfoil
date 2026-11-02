@@ -2827,6 +2827,8 @@ const cs: Record<string, string> = {
   "tab.leaderboard": "Žebříček",
   "tab.noRecords": "Zatím tu nejsou žádné rekordy.",
   "tab.spotPage": "Stránka spotu",
+  "tab.rankings": "Rekordy a žebříček",
+  "sd.whoLiked": "Kdo?",
 };
 
 export default cs;

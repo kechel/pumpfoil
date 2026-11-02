@@ -2927,6 +2927,8 @@ const de: Record<string, string> = {
   "tab.leaderboard": "Bestenliste",
   "tab.noRecords": "Hier gibt es noch keine Rekorde.",
   "tab.spotPage": "Spot-Seite",
+  "tab.rankings": "Rekorde & Bestenliste",
+  "sd.whoLiked": "Wer?",
 };
 
 export default de;

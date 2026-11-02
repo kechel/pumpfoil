@@ -2848,6 +2848,23 @@ def toggle_like(session_id: int, user: models.User = Depends(require_social), db
     return _like_state(db, session_id, user)
 
 
+@router.get("/sessions/{session_id}/likes")
+def wer_hat_geliked(session_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Wer hat meine Session geliked (Vorschlag eines Team-Kapitaens, 02.11.2026). NUR fuer den Inhaber — fuer alle
+    anderen bleibt es bei der Zahl. Gesperrte und versteckte Konten fehlen, ebenso wer und wen der Inhaber blockiert
+    hat. Neueste zuerst."""
+    sess = db.get(models.Session, session_id)
+    if sess is None or sess.deleted or sess.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
+    from .. import freunde as _freunde
+    L = models.SessionLike
+    zeilen = (db.query(U.id, NAME, U.avatar_url, L.created_at).select_from(L).join(U, L.user_id == U.id)
+              .filter(L.session_id == session_id, U.blocked.isnot(True), U.hidden.isnot(True))
+              .order_by(L.created_at.desc()).all())
+    return [{"user_id": uid, "name": name, "avatar_url": av, "am": am.isoformat() if am else None}
+            for uid, name, av, am in zeilen if uid == user.id or not _freunde.gesperrt(db, user.id, uid)]
+
+
 def _admin_hat_verborgen(db: Session, session_id: int) -> bool:
     """Hat zuletzt ein ADMIN die Session verborgen (session_hide nach dem letzten session_ok)?"""
     letzte = (db.query(models.AdminAudit.action)

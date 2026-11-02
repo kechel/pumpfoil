@@ -1365,6 +1365,8 @@ export const api = {
   schutzgebiete: (w: number, s: number, e: number, n: number) =>
     req<{ zu_weit: boolean; unvollstaendig: boolean; flaechen: unknown[] }>(
       `/api/community/schutzgebiete?w=${w}&s=${s}&e=${e}&n=${n}`),
+  // Wer hat meine Session geliked (nur Inhaber, 02.11.2026)
+  sessionLikers: (id: number) => req<{ user_id: number; name: string | null; avatar_url: string | null; am: string | null }[]>(`/api/community/sessions/${id}/likes`),
   friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
   // Nur „wer von meinen Freunden pumpt gerade wo" — Startseite (FreundePumpen.tsx).
   friendsActive: () => req<AktiverFreund[]>("/api/friends/active"),

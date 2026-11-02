@@ -95,6 +95,34 @@ function videoPlatform(url: string | null | undefined): VideoPlatform {
   return null;
 }
 
+/** Kleiner Knopf neben dem Herz: klappt die Liste der Liker auf (Name -> Profil). Laedt erst beim Oeffnen. */
+function WerHatGeliked({ sessionId, anzahl }: { sessionId: number; anzahl: number }) {
+  const t = useT();
+  const [offen, setOffen] = useState(false);
+  const [liste, setListe] = useState<{ user_id: number; name: string | null; avatar_url: string | null }[] | null>(null);
+  useEffect(() => { if (offen) api.sessionLikers(sessionId).then(setListe).catch(() => setListe([])); }, [offen, sessionId, anzahl]);
+  return (
+    <div className="relative">
+      <button onClick={() => setOffen((o) => !o)} aria-expanded={offen}
+        className="rounded-lg px-2 py-1.5 text-xs text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+        {t("sd.whoLiked")}
+      </button>
+      {offen && (
+        <div className="absolute left-0 z-20 mt-1 max-h-64 w-56 overflow-y-auto rounded-xl border border-slate-700 bg-white p-1 shadow-lg dark:bg-slate-900">
+          {!liste ? <p className="p-2 text-xs text-slate-400">{t("common.loading")}</p>
+            : liste.length === 0 ? <p className="p-2 text-xs text-slate-400">—</p>
+            : liste.map((l) => (
+              <Link key={l.user_id} to={`/foiler/${l.user_id}`} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-800">
+                <Avatar name={l.name ?? "—"} url={l.avatar_url} size={24} />
+                <span className="pf-name truncate text-sm text-slate-200">{l.name ?? "—"}</span>
+              </Link>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publicVideos = [], ownerName, ownerAvatar, analysis, selectedRun = null }: {
   sessionId: number; owned: boolean; isPublic?: boolean;
   publicPhotos?: { id: number; url: string; thumb_url?: string | null }[];
@@ -290,6 +318,8 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
         >
           <HeartIcon className={`h-4 w-4 ${s.liked ? "" : "text-rose-500"}`} filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
+        {/* Wer hat geliked — nur fuer den Inhaber (02.11.2026); alle anderen sehen weiter nur die Zahl. */}
+        {owned && s.like_count > 0 && <WerHatGeliked sessionId={sessionId} anzahl={s.like_count} />}
         {owned && (
           <button
             onClick={() => setShareOpen(true)}

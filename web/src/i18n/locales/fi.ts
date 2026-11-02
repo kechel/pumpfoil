@@ -2809,6 +2809,8 @@ const fi: Record<string, string> = {
   "tab.leaderboard": "Tulostaulu",
   "tab.noRecords": "Täällä ei ole vielä ennätyksiä.",
   "tab.spotPage": "Spotin sivu",
+  "tab.rankings": "Ennätykset ja tulostaulu",
+  "sd.whoLiked": "Kuka?",
 };
 
 export default fi;

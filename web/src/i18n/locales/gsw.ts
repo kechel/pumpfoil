@@ -2659,6 +2659,8 @@ const gsw: Record<string, string> = {
   "tab.leaderboard": "Bestelischte",
   "tab.noRecords": "Do häts no kei Rekord.",
   "tab.spotPage": "Spot-Siite",
+  "tab.rankings": "Rekord & Bestelischte",
+  "sd.whoLiked": "Wer?",
 };
 
 export default gsw

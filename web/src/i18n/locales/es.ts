@@ -2657,6 +2657,8 @@ const es: Record<string, string> = {
   "tab.leaderboard": "Clasificación",
   "tab.noRecords": "Todavía no hay récords aquí.",
   "tab.spotPage": "Página del spot",
+  "tab.rankings": "Récords y clasificación",
+  "sd.whoLiked": "¿Quién?",
 };
 
 export default es;

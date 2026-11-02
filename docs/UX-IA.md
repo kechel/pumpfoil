@@ -16,10 +16,10 @@ Home                          (nur meine Sachen)
 └─ Verlauf                    die bisherige /verlauf-Seite + Jahresbilanz, Start-Erfolgsquote, Carves
 
 Community
-├─ Bestenliste                Filterzeile + Reiter je Kennzahl + eigene Zeile unter Platz 10
-├─ Rekorde                    Kachelwand (Filterzeile gemeinsam mit Bestenliste)
+├─ Rekorde & Bestenliste      Kacheln oben, Bestenliste darunter (Jan 02.11.: in EINER Ansicht, sonst zu kleine Seiten)
 ├─ Medien                     Fotos/Videos + Social-Feed + Uhr-Layouts
-└─ Teams & Events
+└─ Teams & Events             spaeter dazu (Jan 02.11.): die 10 aktivsten Teams, Team-Bestenlisten ueber Gesamtsummen
+                              je Team, Team-Rekorde
 
 Sessions
 ├─ Meine                      (Vorauswahl)

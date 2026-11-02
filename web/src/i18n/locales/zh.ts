@@ -2771,6 +2771,8 @@ const zh: Record<string, string> = {
   "tab.leaderboard": "排行榜",
   "tab.noRecords": "这里还没有记录。",
   "tab.spotPage": "地点页面",
+  "tab.rankings": "记录与排行榜",
+  "sd.whoLiked": "谁？",
 };
 
 export default zh;

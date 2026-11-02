@@ -2770,6 +2770,8 @@ const ja: Record<string, string> = {
   "tab.leaderboard": "ランキング",
   "tab.noRecords": "まだ記録はありません。",
   "tab.spotPage": "スポットのページ",
+  "tab.rankings": "記録とランキング",
+  "sd.whoLiked": "誰？",
 };
 
 export default ja;

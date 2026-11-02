@@ -8,11 +8,13 @@ import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
 import { SocialFeed } from "../components/SocialFeed";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
+import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
+import { initialenAus } from "../lib/bestenlisteBild";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
-import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, FlagIcon } from "../components/Icons";
+import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, FlagIcon, ShareIcon } from "../components/Icons";
 import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
@@ -502,15 +504,8 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
     try { localStorage.setItem("foil_leader_wahl", k); } catch { /* egal */ }
     setSp((alt) => { const n = new URLSearchParams(alt); n.set("lb", k); return n; }, { replace: true });
   };
-  const [kopiert, setKopiert] = useState(false);
-  // Teilen: die Adresse traegt Reiter, Zeitraum, Sportart, Foil und Liste. Der Text nennt den Stand (Datum), weil die
-  // Liste beim Oeffnen schon anders aussehen kann.
-  const teilen = () => {
-    const url = window.location.href;
-    const text = `${t("home.leaderboards")} · ${new Date().toLocaleDateString(document.documentElement.lang || undefined)}`;
-    if (navigator.share) { navigator.share({ title: text, text, url }).catch(() => {}); return; }
-    navigator.clipboard?.writeText(`${text}\n${url}`).then(() => { setKopiert(true); window.setTimeout(() => setKopiert(false), 2000); }).catch(() => {});
-  };
+  // Als Bild teilen (Vorschlag eines Team-Kapitaens, 02.11.2026) — derselbe Dialog wie bei den Team-Bestenlisten.
+  const [bild, setBild] = useState(false);
   useEffect(() => {
     let aktiv = true;
     const bk = band?.key ?? "all";
@@ -563,10 +558,35 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
             </div>
             <div className="max-w-xl">
               <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
-              <button onClick={teilen} className="mt-3 text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
-                {kopiert ? t("mcp.copied") : t("share.linkBtn")}
-              </button>
+              {(data[k.key] ?? []).length > 0 && (
+                <button onClick={() => setBild(true)}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-brand-600 hover:bg-slate-700 dark:text-brand-300">
+                  <ShareIcon className="h-4 w-4" /> {t("team.bild.titel")}
+                </button>
+              )}
             </div>
+            {bild && (() => {
+              const fmtWert = (r: LeaderRow) => {
+                const v = r[k.field] as number;
+                const u = typeof k.unit === "function" ? k.unit(v) : t(k.unitKey ?? "");
+                return `${k.fmt ? k.fmt(v) : v} ${u}`;
+              };
+              const zeile = (r: LeaderRow, rang: number) => ({ rang, name: r.name, initialen: initialenAus(r.name), wert: fmtWert(r) });
+              const eigene = data.me?.[k.key];
+              return (
+                <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-${k.key}.jpg`}
+                  daten={{
+                    titel: t(`cls.sport.${sport}`),
+                    kennzahl: t(k.labelKey),
+                    unterzeile: [t(periodLabelKey), band && band.art !== "alle" ? bandLabel(band, t) : null,
+                      new Date().toLocaleDateString(document.documentElement.lang || undefined)].filter(Boolean).join(" · "),
+                    zeilen: (data[k.key] ?? []).slice(0, 10).map((r, i) => zeile(r, i + 1)),
+                    eigene: eigene && eigene.rank != null ? zeile(eigene, eigene.rank) : null,
+                    leer: "—",
+                    fussLinks: "pumpfoil.org",
+                  }} />
+              );
+            })()}
           </>
         );
       })()}
@@ -602,8 +622,9 @@ function TopLiked({ period }: { period: string }) {
 function CommunitySection() {
   const t = useT();
   const reiter: ReiterDef[] = [
-    { id: "bestenliste", label: t("tab.leaderboard") },
-    { id: "rekorde", label: t("side.records") },
+    // Rekorde und Bestenliste in EINER Ansicht (Jan, 02.11.2026: „die kacheln passen gut ueber die leaderboards, sonst
+    // werden die seiten zuuu klein"). Alte Links mit ?tab=rekorde landen ueber den Rueckfall ebenfalls hier.
+    { id: "bestenliste", label: t("tab.rankings") },
     { id: "medien", label: t("tab.media") },
     { id: "teams", label: t("land.teamsTitle") },
   ];
@@ -775,17 +796,19 @@ function CommunitySection() {
       {/* Reiter (Plan docs/UX-IA.md, 02.11.2026). Die letzte Wahl merkt sich der Browser. Spots und Routen stehen jetzt
           unter der Hauptnavigation „Spots", die Uhr-Layouts unter Medien. */}
       <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
-      {tab === "bestenliste" && (
-        // `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern sich dabei nicht immer.
-        <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} kopf={filterZeile} />
-      )}
-      {tab === "rekorde" && <>
+      {tab === "bestenliste" && <>
         {filterZeile}
         {/* Grenzen des gewaehlten Bandes im Klartext — sonst raet man, was „Wie mein Foil" heisst. */}
         {band && bandInfo(band, t) && (
           <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
         )}
         <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot sport={sport} />
+        {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern sich dabei nicht immer.
+            Die Filterzeile steht unter der Ueberschrift noch einmal (Jan, 01.11.2026): auf dem Handy liegen zwoelf Kacheln
+            dazwischen. */}
+        <div className="mt-8">
+          <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} kopf={filterZeile} />
+        </div>
       </>}
       {tab === "medien" && <>
         <LatestMedia key={`m${freunde}`} />

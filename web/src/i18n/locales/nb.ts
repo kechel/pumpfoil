@@ -2749,6 +2749,8 @@ const nb: Record<string, string> = {
   "tab.leaderboard": "Toppliste",
   "tab.noRecords": "Ingen rekorder her ennå.",
   "tab.spotPage": "Spotside",
+  "tab.rankings": "Rekorder og toppliste",
+  "sd.whoLiked": "Hvem?",
 };
 
 export default nb;
