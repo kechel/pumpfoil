@@ -360,6 +360,7 @@ def _brett(q, board: bool):
 NAMENSSUCHE_PRO_NUTZER = 5     # wie die Foiler-Seite (Memory no-per-user-session-lists)
 NAMENSSUCHE_VORRAT = 300       # so viele neueste Treffer werden fuer die Kappung gelesen
 S_USER_ID_IDX = next(i for i, c in enumerate(BRIEF_COLS) if c is S.user_id)   # Besitzer in einer Zeile
+S_STARTED_IDX = next(i for i, c in enumerate(BRIEF_COLS) if c is S.started_at)
 
 
 @router.get("/sessions")
@@ -405,6 +406,50 @@ def community_sessions(
     else:
         rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(limit).all()
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=_verbergende_nutzer(db)) for r in rows]), request)
+
+
+@router.get("/friends-latest")
+def friends_latest(request: Request, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Je bestaetigtem Freund GENAU die letzte Session, als Feed-Karte (Home-Uebersicht, Jan 02.11.2026). Eine je Person
+    ist kein Archiv (s. Memory „keine Sessionliste je Nutzer"); alle Sportarten, auch GPS-only. Zuletzt aktive zuerst,
+    hoechstens 10. Sichtbarkeit und „Ort verbergen" wie im Feed."""
+    from ..freunde import darf_freunde_haben
+    if not darf_freunde_haben(user):
+        return []
+    rows = []
+    for fid in list(freund_ids(db, user.id))[:200]:
+        r = (_community(db.query(*BRIEF_COLS), user.id, accel_only=False, sport="all")
+             .filter(S.user_id == fid).order_by(S.started_at.desc()).first())
+        if r is not None:
+            rows.append(r)
+    rows.sort(key=lambda r: r[S_STARTED_IDX] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    verb = _verbergende_nutzer(db)
+    return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=verb) for r in rows[:10]]), request)
+
+
+@router.get("/team-latest")
+def team_latest(team_id: int, request: Request, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Die letzten 10 Sessions der Mitglieder eines Teams (Home › Team, Jan 02.11.2026). Nur fuer aktive Mitglieder;
+    alle Sportarten, auch GPS-only, Sichtbarkeit und „Ort verbergen" wie im Feed. Gebuendelt nach Team, nicht nach
+    Person — und je Mitglied hoechstens drei, damit niemandes Liste daraus wird."""
+    from .. import teams as _teams
+    if not _teams.aktiv(_teams.mitglied(db, team_id, user.id)):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    ids = _teams.mitglieder_ids(db, team_id)
+    if not ids:
+        return []
+    je: dict[int, int] = {}
+    rows = []
+    for r in (_community(db.query(*BRIEF_COLS), user.id, accel_only=False, sport="all")
+              .filter(S.user_id.in_(ids)).order_by(S.started_at.desc()).limit(60).all()):
+        je[r[S_USER_ID_IDX]] = je.get(r[S_USER_ID_IDX], 0) + 1
+        if je[r[S_USER_ID_IDX]] > 3:
+            continue
+        rows.append(r)
+        if len(rows) >= 10:
+            break
+    verb = _verbergende_nutzer(db)
+    return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=verb) for r in rows]), request)
 
 
 @router.get("/sessions-today")

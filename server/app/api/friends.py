@@ -61,23 +61,7 @@ def liste(user: models.User = Depends(current_user), db: Session = Depends(get_d
             ausgehend.append({**_kurz(anderer), "am": _aware(z.created_at).isoformat()})
         elif z.status == "pending":
             eingehend.append({**_kurz(anderer), "am": _aware(z.created_at).isoformat()})
-    # Je Freund die LETZTE Session (Home-Uebersicht, 02.11.2026): genau eine, kein Archiv — sie steht ohnehin im Feed
-    # und auf seiner Foiler-Seite. Sichtbarkeit wie in der Community, „Ort verbergen" gilt weiter.
-    if freund:
-        from .community import AR, S, _community, _ort
-        for f in freund:
-            r = (_community(db.query(S.id, S.started_at, S.place_name, S.place_lat, S.place_lon, S.ort_sichtbarkeit,
-                                     S.sport_class, AR.foiling_distance_m),
-                            user.id, sport="all", nur_foiling=False)
-                 .filter(S.user_id == f["user_id"]).order_by(S.started_at.desc()).first())
-            if r is None:
-                f["letzte"] = None
-                continue
-            sid, ts, place, lat, lon, sicht, sport, dist = r
-            spot, tz = _ort(db, sicht, f["user_id"], place, lat, lon)
-            f["letzte"] = {"session_id": sid, "started_at": _aware(ts).isoformat() if ts else None, "spot": spot,
-                           "tz": tz, "sport": sport, "foiling_distance_m": round(float(dist or 0), 1)}
-    freund.sort(key=lambda x: (x["name"] or "").lower())   # Home sortiert selbst nach der letzten Session
+    freund.sort(key=lambda x: (x["name"] or "").lower())
     eingehend.sort(key=lambda x: x["am"], reverse=True)
     ausgehend.sort(key=lambda x: x["am"], reverse=True)
     return {"freunde": freund, "eingehend": eingehend, "ausgehend": ausgehend,

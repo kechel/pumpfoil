@@ -6,14 +6,14 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, FoilStatsGroup, FreundMitLetzter, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
+import { api, CommunitySession, FoilStatsGroup, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
-import { Avatar, Card, Spinner } from "../components/ui";
+import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { EigeneAbzeichen, SessionStats, SpotBereich } from "./Sessions";
+import { CommunityList, EigeneAbzeichen, SessionStats, SpotBereich, renderCommunitySession } from "./Sessions";
 import History from "./History";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import { InstallPwa } from "../components/InstallPwa";
@@ -685,12 +685,13 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
       <Link to="/teams" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
         {t("team.meine")} · {t("team.gruenden")} →
       </Link>
+      {teams.map((m) => <TeamLetzte key={m.id} team={m} />)}
     </>
   );
 }
 
-/** Reiter „Homespot": derselbe Inhalt wie die Spot-Seite, ohne Session-Liste (die hat die Spot-Seite). Sportart wie
- * dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
+/** Reiter „Homespot": DERSELBE Inhalt wie die Spot-Seite (SpotBereich, samt Session-Liste) — nur die Kopfzeile ist
+ * eine andere (Jan, 02.11.2026). Sportart wie dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
 function HomespotBereich({ spotId }: { spotId: number }) {
   const [sports, setSports] = useState<string[] | null>(null);
   useEffect(() => {
@@ -700,40 +701,37 @@ function HomespotBereich({ spotId }: { spotId: number }) {
   }, [spotId]);
   if (!sports) return <Spinner />;
   const sport = sports.includes("pumpfoil") ? "pumpfoil" : (sports[0] ?? null);
-  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" />;
+  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab"
+    sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />} />;
 }
 
-/** Freunde mit ihrer letzten Session (02.11.2026): je Freund eine Zeile, Name -> Profil, Session -> Session. Zuletzt
- * aktive zuerst, nach 10 ist Schluss (alle weiteren ueber die Profile). Kein eigener Reiter — eine Kurzfassung mit
- * Link auf eine fast leere Liste waere doppelt. */
+/** Freunde mit ihrer letzten Session als Session-Kachel (Jan, 02.11.2026) — je Freund genau eine, zuletzt aktive zuerst,
+ * hoechstens 10 (Server). Dieselbe Karte wie im Feed. */
 function FreundeLetzte() {
   const t = useT();
-  const [liste, setListe] = useState<FreundMitLetzter[] | null>(null);
-  useEffect(() => { api.friends().then((r) => setListe(r.freunde)).catch(() => setListe([])); }, []);
+  const kompakt = useKompakteListe();
+  const [liste, setListe] = useState<CommunitySession[] | null>(null);
+  useEffect(() => { api.friendsLatest().then(setListe).catch(() => setListe([])); }, []);
   if (!liste || liste.length === 0) return null;
-  const sortiert = [...liste].sort((a, b) => (b.letzte?.started_at ?? "").localeCompare(a.letzte?.started_at ?? "")).slice(0, 10);
   return (
     <div className="mb-6">
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("friends.title")}</h3>
-      <div className="space-y-1.5">
-        {sortiert.map((f) => (
-          <div key={f.user_id} className="flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5">
-            <Avatar name={f.name ?? "—"} url={f.avatar_url} userId={f.user_id} size={30} />
-            <Link to={`/foiler/${f.user_id}`} className="pf-name min-w-0 shrink truncate text-sm text-slate-200 hover:underline">{f.name ?? "—"}</Link>
-            {f.letzte ? (
-              <Link to={`/sessions/${f.letzte.session_id}`} className="ml-auto flex min-w-0 items-center gap-1.5 text-xs text-slate-400 hover:underline">
-                {f.letzte.spot && <span className="truncate">{f.letzte.spot}</span>}
-                <span className="shrink-0 tabular-nums">
-                  {f.letzte.started_at ? fmtDate(f.letzte.started_at, f.letzte.tz, { day: "2-digit", month: "2-digit" }) : ""}
-                </span>
-                {f.letzte.foiling_distance_m > 0 && (
-                  <span className="shrink-0 font-semibold tabular-nums text-slate-200">{(f.letzte.foiling_distance_m / 1000).toFixed(1)} km</span>
-                )}
-              </Link>
-            ) : <span className="ml-auto text-xs text-slate-500">—</span>}
-          </div>
-        ))}
-      </div>
+      <div className={kompakt ? "space-y-1.5" : "space-y-3"}>{liste.map((s) => renderCommunitySession(s, t, null))}</div>
+    </div>
+  );
+}
+
+/** Die letzten Sessions eines eigenen Teams (Jan, 02.11.2026), unter der Teamliste. */
+function TeamLetzte({ team }: { team: TeamKurz }) {
+  const t = useT();
+  const kompakt = useKompakteListe();
+  const [liste, setListe] = useState<CommunitySession[] | null>(null);
+  useEffect(() => { api.teamLatest(team.id).then(setListe).catch(() => setListe([])); }, [team.id]);
+  if (!liste || liste.length === 0) return null;
+  return (
+    <div className="mt-6">
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{team.name} · {t("phome.latest")}</h3>
+      <div className={kompakt ? "space-y-1.5" : "space-y-3"}>{liste.map((s) => renderCommunitySession(s, t, null))}</div>
     </div>
   );
 }

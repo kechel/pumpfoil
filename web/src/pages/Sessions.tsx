@@ -1177,7 +1177,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
   );
 }
 
-function CommunityList({ name, spot, accelOnly, sport, onShowAll, board = false }:
+export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board = false }:
     { name: string; spot: string; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean }) {
   const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const t = useT();

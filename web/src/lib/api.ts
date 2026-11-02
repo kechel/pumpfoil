@@ -29,9 +29,6 @@ let freundeAnsicht = false;
 export type Freundschaft = "freund" | "angefragt" | "eingehend" | null;
 export type FreundKurz = { user_id: number; name: string | null; avatar_url: string | null };
 export type AktiverFreund = FreundKurz & { spot_id: number | null; spot: string | null };
-// Letzte Session je Freund (02.11.2026, Home-Uebersicht) — genau eine, Ort wie im Feed (verborgen = null).
-export type FreundMitLetzter = FreundKurz & { seit: string; letzte?: { session_id: number; started_at: string | null; spot: string | null;
-  tz: string | null; sport: string | null; foiling_distance_m: number } | null };
 export function setFreundeAnsicht(an: boolean) { freundeAnsicht = an; }
 function mitFreunden(path: string): string {
   if (!freundeAnsicht || !path.startsWith("/api/community/")
@@ -1335,7 +1332,7 @@ export const api = {
   spotActive: () => req<{ spots: number[]; area: number[]; friends?: AktiverFreund[] }>(`/api/community/spot-active`),
 
   // Freunde (15.10.2026): Liste + Anfragen, Regeln in server/app/freunde.py.
-  friends: () => req<{ freunde: FreundMitLetzter[]; eingehend: (FreundKurz & { am: string })[];
+  friends: () => req<{ freunde: (FreundKurz & { seit: string })[]; eingehend: (FreundKurz & { am: string })[];
                        ausgehend: (FreundKurz & { am: string })[]; aktiv: AktiverFreund[] }>("/api/friends"),
   // Heatmap der Spot-Karte (app/heatmap.py): Kachel-Zellen (x, y, Sessions) auf Stufe `z`.
   /** `art`: „foil" = wo gefahren wird (die Laeufe), „start" = wo die Laeufe beginnen. */
@@ -1365,6 +1362,9 @@ export const api = {
   schutzgebiete: (w: number, s: number, e: number, n: number) =>
     req<{ zu_weit: boolean; unvollstaendig: boolean; flaechen: unknown[] }>(
       `/api/community/schutzgebiete?w=${w}&s=${s}&e=${e}&n=${n}`),
+  // Home (02.11.2026): je Freund die letzte Session, und die letzten Sessions eines eigenen Teams — als Feed-Karten.
+  friendsLatest: () => req<CommunitySession[]>("/api/community/friends-latest"),
+  teamLatest: (teamId: number) => req<CommunitySession[]>(`/api/community/team-latest?team_id=${teamId}`),
   // Wer hat meine Session geliked (nur Inhaber, 02.11.2026)
   sessionLikers: (id: number) => req<{ user_id: number; name: string | null; avatar_url: string | null; am: string | null }[]>(`/api/community/sessions/${id}/likes`),
   friendsCount: () => req<{ incoming: number }>("/api/friends/count"),
