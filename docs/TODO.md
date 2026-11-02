@@ -1510,8 +1510,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     noch, Server-Aggregat wie bei den anderen; Vorsicht: Gleiterkennung pg-1 nur ~50 % treffsicher), meiste Laeufe,
     [schnellster km], meiste Pumps, meiste Sessions, meiste Spots, weitester Lauf.
   - Vorauswahl „Heute", sobald heute mehr als 10 Plaetze besetzt sind, sonst wie bisher.
-  - Leere Abschnitte (Spots, Routen) ausblenden; Foil-Band-Auswahl ausblenden, wenn es nur „Alle Foils" gibt (Baender
-    brauchen >= 3 Fahrer, daher bei kleinen Sportarten leer — er hielt das fuer kaputt).
+  - Leere Abschnitte (Spots, Routen) ausblenden. Foil-Band-Auswahl: ✅ 02.11. im Web nur noch, wenn es ausser „Alle
+    Foils" ein Band mit >= 3 Fahrern gibt (die Apps filterten schon so).
   - Home: Start-Erfolgsquote, Carves, Jahresbilanz hinter „mehr anzeigen"; Wetter-Kachel raus (Jans Entscheidung).
   - Sessions-Menue: „Meine Sessions" als Vorauswahl; Wetter/Pegel am Spot raus (Entscheidung).
   - Kachel-Hintergruende: Streckenverlauf nur noch auf einer Kachel, nicht hinter jeder Zahl (Lesbarkeit).
