@@ -2841,6 +2841,7 @@ const cs: Record<string, string> = {
   "tab.watchAccounts": "Hodinky a účty",
   "tab.watchSettings": "Nastavení",
   "tab.watchSettingsUhr": "Nastavení hodinek",
+  "account.tabFaces": "Ciferníky / Datová pole",
   "ptab.me": "Já",
   "ptab.riding": "Jízda a vyhodnocení",
   "ptab.privacy": "Soukromí",

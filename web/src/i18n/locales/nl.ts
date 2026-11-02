@@ -2842,6 +2842,7 @@ const nl: Record<string, string> = {
   "tab.watchAccounts": "Horloge & accounts",
   "tab.watchSettings": "Instellingen",
   "tab.watchSettingsUhr": "Horloge-instellingen",
+  "account.tabFaces": "Wijzerplaten / Gegevensvelden",
   "ptab.me": "Ik",
   "ptab.riding": "Varen & analyse",
   "ptab.privacy": "Privacy",

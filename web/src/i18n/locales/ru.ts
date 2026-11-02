@@ -2788,6 +2788,7 @@ const ru: Record<string, string> = {
   "tab.watchAccounts": "Часы и аккаунты",
   "tab.watchSettings": "Настройки",
   "tab.watchSettingsUhr": "Настройки часов",
+  "account.tabFaces": "Циферблаты / Поля данных",
   "ptab.me": "Я",
   "ptab.riding": "Катание и анализ",
   "ptab.privacy": "Конфиденциальность",

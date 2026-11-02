@@ -2784,6 +2784,7 @@ const ja: Record<string, string> = {
   "tab.watchAccounts": "時計とアカウント",
   "tab.watchSettings": "設定",
   "tab.watchSettingsUhr": "ウォッチ設定",
+  "account.tabFaces": "文字盤 / データ項目",
   "ptab.me": "自分",
   "ptab.riding": "ライドと解析",
   "ptab.privacy": "プライバシー",

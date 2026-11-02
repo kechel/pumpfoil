@@ -2763,6 +2763,7 @@ const nb: Record<string, string> = {
   "tab.watchAccounts": "Klokke og kontoer",
   "tab.watchSettings": "Innstillinger",
   "tab.watchSettingsUhr": "Klokkeinnstillinger",
+  "account.tabFaces": "Urskiver / Datafelt",
   "ptab.me": "Meg",
   "ptab.riding": "Kjøring og analyse",
   "ptab.privacy": "Personvern",

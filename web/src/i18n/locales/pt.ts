@@ -2788,6 +2788,7 @@ const pt: Record<string, string> = {
   "tab.watchAccounts": "Relógio e contas",
   "tab.watchSettings": "Configurações",
   "tab.watchSettingsUhr": "Configurações do relógio",
+  "account.tabFaces": "Mostradores / Campos de dados",
   "ptab.me": "Eu",
   "ptab.riding": "Sessões e análise",
   "ptab.privacy": "Privacidade",

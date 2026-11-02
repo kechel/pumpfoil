@@ -616,16 +616,18 @@ const MAX_PAGES = 12;
  * Die beiden Layout-Seiten gibt es weiter einzeln unter /layouts und /layouts/community (Links aus dem Feed u. a.). */
 function EinstellungenReiter({ param }: { param: string }) {
   const t = useT();
-  const [wahl, setWahl] = useReiter("uhreinst", ["uhr", "community", "eigene", "alarm"], "uhr", { param });
+  const [wahl, setWahl] = useReiter("uhreinst", ["uhr", "seiten", "community", "eigene", "alarm"], "uhr", { param });
   return (
     <>
       <Reiterleiste aktiv={wahl} onWahl={setWahl} reiter={[
         { id: "uhr", label: t("tab.watchSettingsUhr") },
+        { id: "seiten", label: t("account.tabFaces") },
         { id: "community", label: t("lay.galleryTitle") },
         { id: "eigene", label: t("account.toLayouts") },
         { id: "alarm", label: t("account.tabAlarm") },
       ]} />
-      {wahl === "uhr" && <ViewsEditor />}
+      {wahl === "uhr" && <ViewsEditor teil="einstellungen" />}
+      {wahl === "seiten" && <ViewsEditor teil="seiten" />}
       {wahl === "community" && <LayoutGallery eingebettet />}
       {wahl === "eigene" && <Layouts eingebettet />}
       {wahl === "alarm" && <AlarmEditor />}
@@ -633,7 +635,9 @@ function EinstellungenReiter({ param }: { param: string }) {
   );
 }
 
-function ViewsEditor() {
+/** `teil`: „einstellungen" = Auto-Start, Aktivitaetstyp, Beenden-Modus; „seiten" = eigene Datenseiten je Zustand mit
+ * Farben, Layout-Schalter und Blaettern (Jan, 02.11.2026: eigene Reiter). Beide laden und speichern dasselbe Profil. */
+function ViewsEditor({ teil }: { teil: "einstellungen" | "seiten" }) {
   const t = useT();
   const [pages, setPages] = useState<Page[] | null>(null);
   const [offPages, setOffPages] = useState<Page[]>([]);
@@ -743,8 +747,9 @@ function ViewsEditor() {
   return (
     <Card className="p-5">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-semibold">{t("account.viewsTitle")}</h3>
+        <h3 className="font-semibold">{teil === "seiten" ? t("account.viewsTitle") : t("tab.watchSettingsUhr")}</h3>
       </div>
+      {teil === "seiten" && <>
       <p className="mb-3 text-sm text-slate-300">{t("account.viewsDesc")}</p>
       {/* WAS DIE KLEINEN UHREN DAVON ZEIGEN — nur, wenn so eine verbunden ist, und mit Namen.
           Ohne den Satz sucht man auf einer Instinct die eigenen Layouts und findet andere Zahlen. */}
@@ -763,6 +768,8 @@ function ViewsEditor() {
         <input type="checkbox" checked={colorByValue} onChange={(e) => { setColorByValue(e.target.checked); setSaved(false); }} />
         {t("account.colorByValue")}
       </label>
+      </>}
+      {teil === "einstellungen" && <>
       <label className="mb-2 flex items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
         {t("account.autoStart")}
@@ -796,6 +803,9 @@ function ViewsEditor() {
         ))}
         <p className="mt-1 text-sm text-slate-400">{t("account.stopModeHint")}</p>
       </fieldset>
+      <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
+      </>}
+      {teil === "seiten" && <>
 
       {/* Not-Aus für die eigenen Layouts auf der Uhr. Wirkt nur für DICH — Layouts anderer
           Nutzer sind davon unberührt. Aus = die Uhr fährt die klassischen 3-Feld-Ansichten. */}
@@ -813,7 +823,6 @@ function ViewsEditor() {
         {t("account.browseAll")}
       </label>
       <p className="mb-4 text-sm text-slate-400">{t("account.browseAllHint")}</p>
-      <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
 
       <PageList title={t("account.onFoilTitle")} desc={t("account.onFoilDesc")}
         pages={pages} setPages={(v) => { setPages(v); setSaved(false); }}
@@ -824,6 +833,7 @@ function ViewsEditor() {
       <PageList title={t("account.pauseTitle")} desc={t("account.pauseDesc")}
         pages={pausePages} setPages={(v) => { setPausePages(v); setSaved(false); }}
         layouts={layouts} category="pause" colorByValue={colorByValue} scales={scales} />
+      </>}
 
       <div className="mt-4 flex items-center gap-3">
         <Button onClick={save} className="text-sm">{t("common.save")}</Button>

@@ -2673,6 +2673,7 @@ const gsw: Record<string, string> = {
   "tab.watchAccounts": "Uhr & Konte",
   "tab.watchSettings": "Iistellige",
   "tab.watchSettingsUhr": "Uhr-Iistellige",
+  "account.tabFaces": "Ziiferblätter / Datefälder",
   "ptab.me": "Ich",
   "ptab.riding": "Fahre & Uswärtig",
   "ptab.privacy": "Privatsphäre",

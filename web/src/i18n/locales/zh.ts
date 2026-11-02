@@ -2785,6 +2785,7 @@ const zh: Record<string, string> = {
   "tab.watchAccounts": "手表与账户",
   "tab.watchSettings": "设置",
   "tab.watchSettingsUhr": "手表设置",
+  "account.tabFaces": "表盘 / 数据字段",
   "ptab.me": "我",
   "ptab.riding": "滑行与分析",
   "ptab.privacy": "隐私",

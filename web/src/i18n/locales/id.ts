@@ -2788,6 +2788,7 @@ const id: Record<string, string> = {
   "tab.watchAccounts": "Jam & akun",
   "tab.watchSettings": "Pengaturan",
   "tab.watchSettingsUhr": "Pengaturan jam",
+  "account.tabFaces": "Tampilan jam / Kolom data",
   "ptab.me": "Saya",
   "ptab.riding": "Berkendara & analisis",
   "ptab.privacy": "Privasi",

@@ -2823,6 +2823,7 @@ const fi: Record<string, string> = {
   "tab.watchAccounts": "Kello ja tilit",
   "tab.watchSettings": "Asetukset",
   "tab.watchSettingsUhr": "Kellon asetukset",
+  "account.tabFaces": "Kellotaulut / Tietokentät",
   "ptab.me": "Minä",
   "ptab.riding": "Ajo ja analyysi",
   "ptab.privacy": "Yksityisyys",
