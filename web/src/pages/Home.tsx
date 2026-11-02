@@ -669,6 +669,7 @@ function CommunitySection() {
   // Filterzeile (Zeitraum, accel/alle/Freunde, Sportart, Foil-Band) — EINMAL gebaut, zweimal gezeigt: oben ueber den
   // Rekorden und nochmal ueber der Bestenliste (Jan, 01.11.2026). Beide haengen am selben Zustand, aendern also
   // immer beides.
+  const waehlbareBaender = bands.filter((b) => b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER);
   const filterZeile = (
       <div className="mb-3 flex flex-wrap items-center gap-1">
       {PERIODS.map(([k, labelKey]) => (
@@ -695,12 +696,13 @@ function CommunitySection() {
       {/* Foil-Band. Reihenfolge kommt vom Server (Nützlichstes oben). Die Sessionzahl steht
           dabei, weil jede Auswahl außer „Alle Foils" den Topf verkleinert — 36 % der Sessions
           haben gar kein Foil hinterlegt und fallen dann heraus. */}
-      {bands.length > 1 && (
+      {/* Erst filtern, dann zaehlen (02.11.2026): bisher stand die Auswahl schon da, wenn es nur zu duenne Baender gab —
+          dann enthielt sie allein „Alle Foils" und sah kaputt aus. */}
+      {waehlbareBaender.length > 1 && (
         <select value={bandKey} onChange={(e) => setBandKey(e.target.value)}
           title={t("cr.foilAll")}
           className={`${SELECT_SCHRUMPFT} rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100`}>
-          {bands
-            .filter((b) => b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER)
+          {waehlbareBaender
             .map((b) => (
               <option key={b.key} value={b.key}>
                 {bandLabel(b, t)}{b.art === "alle" ? "" : ` (${b.sessions})`}
