@@ -911,8 +911,28 @@ IN_REVIEW: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.46 / 1.2.46",
      "eingereicht": "2026-10-28",
      "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list.", "You can pick the new sports without a foil: kitesurfing, windsurfing, snowkiting, kite mountainboarding, kite buggy and SUP.", "Sessions of sports without a foil show rides instead of on-foil figures and count tacks and jibes, and SUP sessions show your paddle strokes on the map.", "Sport lists start with your default sport and are otherwise sorted alphabetically.", "The heatmap can show all time instead of only the last year.", "Runs that were left out because they were too fast or a car drive now say why.", "Wear OS watches and the Android phone recorder show when the GPS signal is lost and keep the time running.", "The phone recorder shows your on-foil distance, the sum of all runs, instead of the total distance, shows your watch data pages live above the map and lets you page through the runs of the current session.", "Sessions of sports without a foil, such as kitesurfing, no longer show foil, stabilizer and mast; watch and board stay.", "The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list.", "A spot page no longer freezes when you scroll down to its heatmap map.", "The feedback form shows how many of the 2000 characters you have used, and says so if sending fails, instead of doing nothing.", "The records on a spot page show only the records that exist, without rows of empty tiles.", "Spot records show one sport at a time with a switch between the sports that have records there, and follow the sport filter of the page.", "The heatmap on a spot page switches to the sport you pick for the records.", "On a spot page the sport buttons above the records filter the whole page (sessions, records and heatmap) and replace the sport menu there; they show only the sports ridden at that spot, and on Android they stay at the top while the page scrolls.", "The session list no longer has a spot menu; you get to a spot through the spot map and its search, your homespot tab or the spot link of a session.", "Searching for a spot shows the matches right below the map instead of at the bottom of the page.", "The session list puts the sport menu and the tiles/rows switch into the row with accel, all and POB, so the filters take one line less."]},
-    # Huawei Watch 5 1.0.3: am 02.11.2026 ABGELEHNT (Krone falsch herum, Rechtswischen beendet nicht, s. ABGELEHNT) ->
-    # raus; die Punkte wandern nach NAECHSTES.
+    # NEU EINGEREICHT 02.11.2026 13:02 (Jans Meldung, „Confirm release information": 1.0.3 (1000003), gleiche Nummer
+    # wie die abgelehnte, Laender wie am 28.10.), Under pre-review. Aus b2012923: Krone umgedreht, Rechtswischen beendet
+    # die App im Ruhezustand. Jan im Emulator: Wischen beendet auf dem Startbildschirm, Upload geht. Krone erst beim Pruefer.
+    {"name": "Huawei Watch 5", "version": "1.0.3",
+     "eingereicht": "2026-11-02",
+     "items": [
+         # aus der abgelehnten 1.0.2 (28.10.2026) uebernommen
+         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
+         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
+         # 28.10.2026: Huawei-Pruefung (Krone, Datenschutz beim ersten Start)
+         "Turn the crown to move between the data screens and to scroll through the settings.",
+         "Swiping right on the start screen closes the app.",
+         "On first start the watch shows a short privacy notice, which you can open again from the settings.",
+         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
+         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
+         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
+         # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
+         "You can pick the sport before you start, in the settings or by tapping it on the start screen, and the start screen shows your foil below the sport.",
+         # 22.10.2026: Pause-Erinnerung + STOPP-Seite zeigt Pausiert (5ed3fe82)
+         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
+         "The stop screen also shows when the recording is paused.",
+     ]},
     # iPhone + Apple Watch 1.1.57 am 26.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 751/752/754/757/759/765 + 774/775 tragen ios/apple 1.1.57.
     # iPhone + Apple Watch 1.1.56 am 24.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt 737 traegt ios/apple 1.1.56.
     # iPhone + Apple Watch 1.1.55 am 23.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 728/729 tragen ios/apple 1.1.55,
@@ -1025,26 +1045,6 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # Huawei Watch 5: 1.0.3 am 02.11.2026 abgelehnt; Krone umgedreht + Rechtswischen beendet die App (Index.ets).
-    # Version erst beim Einreichen festlegen (Memory versionen-erst-bei-release).
-    {"name": "Huawei Watch 5", "version": "1.0.3",
-     "items": [
-         # aus der abgelehnten 1.0.2 (28.10.2026) uebernommen
-         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
-         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
-         # 28.10.2026: Huawei-Pruefung (Krone, Datenschutz beim ersten Start)
-         "Turn the crown to move between the data screens and to scroll through the settings.",
-         "Swiping right on the start screen closes the app.",
-         "On first start the watch shows a short privacy notice, which you can open again from the settings.",
-         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
-         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-         # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
-         "You can pick the sport before you start, in the settings or by tapping it on the start screen, and the start screen shows your foil below the sport.",
-         # 22.10.2026: Pause-Erinnerung + STOPP-Seite zeigt Pausiert (5ed3fe82)
-         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
-         "The stop screen also shows when the recording is paused.",
-     ]},
     # 01.11.2026 (Jan: „im changelog fehlt noch das ganze coming next fuer android und ios seit dem letzten release"):
     # alles, was seit dem Build von Android 1.1.46 (fdd2b189, liegt im Review) bzw. iOS 1.1.58 (live) in die Apps kam —
     # Teams/Events (2eba784b, c31591cc), Puls auf dem Foil, Konten-Rueckweg (1b62edb5), Security-Reviews (94ce6809),
