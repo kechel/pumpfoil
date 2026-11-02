@@ -163,6 +163,19 @@ export default function Settings() {
         { id: "konto", label: t("ptab.account") },
       ]} aktiv={ptab} onWahl={setPtab} />
       {ptab === "uebersicht" && <>
+      {/* Sprache GANZ OBEN, als Allererstes im Reiter Uebersicht, noch vor den Kacheln (Jan, 02.11.2026; davor seit
+          13.09.2026 unter den Knoepfen). Sie stand vorher weit unten zwischen Homespot und Pump-Einheit — wer die
+          Seite in einer Sprache vor sich hat, die er nicht liest, muss aber genau hier als
+          Erstes fuendig werden und nicht erst scrollen. Dieselbe Ueberlegung wie im
+          Einrichtungs-Assistenten, wo die Sprache Schritt 1 ist. */}
+      <Card className="mb-4 p-5">
+        {/* Kein Erklaersatz darunter (Vorgabe Jan, 13.09.2026): „Sprache der Oberflaeche."
+            sagte nichts, was die Ueberschrift „Sprache" ueber einer Liste von Sprachen nicht
+            schon sagt. `mb-3` wandert deshalb an die Ueberschrift. */}
+        <h3 className="mb-3 font-semibold">{t("lang.label")}</h3>
+        <LanguageSelect />
+      </Card>
+
       {/* Kacheln zweispaltig, sobald der Platz reicht (Jan, 02.11.2026). */}
       <div className="grid gap-x-4 lg:grid-cols-2">
       <Link
@@ -241,18 +254,6 @@ export default function Settings() {
 
       <InstallPwa className="mb-4 md:hidden" />
 
-      {/* Sprache GANZ OBEN, unter den Knoepfen und ueber dem Profilbild (Vorgabe Jan,
-          13.09.2026). Sie stand vorher weit unten zwischen Homespot und Pump-Einheit — wer die
-          Seite in einer Sprache vor sich hat, die er nicht liest, muss aber genau hier als
-          Erstes fuendig werden und nicht erst scrollen. Dieselbe Ueberlegung wie im
-          Einrichtungs-Assistenten, wo die Sprache Schritt 1 ist. */}
-      <Card className="mb-4 p-5">
-        {/* Kein Erklaersatz darunter (Vorgabe Jan, 13.09.2026): „Sprache der Oberflaeche."
-            sagte nichts, was die Ueberschrift „Sprache" ueber einer Liste von Sprachen nicht
-            schon sagt. `mb-3` wandert deshalb an die Ueberschrift. */}
-        <h3 className="mb-3 font-semibold">{t("lang.label")}</h3>
-        <LanguageSelect />
-      </Card>
 
       </>}
       {ptab === "ich" && <div className="[&>*:first-child]:mt-0">
