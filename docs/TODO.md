@@ -1529,7 +1529,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Social, Benachrichtigungen, Web + Android + iOS).
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md.
   - Schnellster km bzw. Tempo (min/km) — schon geplant, s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.
-  **Entscheidung/Telefonat mit ihm:** „nur mit Beschleunigungsdaten" aus der Filterzeile nehmen (nur Alle/Freunde)?;
+  **Entschieden 02.11. (Jan):** „nur mit Beschleunigungsdaten" BLEIBT in der Filterzeile.
+  **Entscheidung/Telefonat mit ihm:**
   Sportart-Dropdown; Foil-Band-Auswahl. **Kein Code:** kurzer Text „Warum pumpfoil.org?" fuer Freunde/Kritiker.
 
 - **🔲 01.11. (Jan) — Garmin: Upload direkt per WLAN, ohne Handy?** Nur gemerkt, nichts gebaut. Anlass: ein Nutzer mit
