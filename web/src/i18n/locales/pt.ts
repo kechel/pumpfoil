@@ -2785,6 +2785,8 @@ const pt: Record<string, string> = {
   "brett.erkl.daten": "Os dados que você recebe: arfagem e rolagem por pump, inclinação, cadência, curvas contra retas e o movimento vertical (quando o ritmo de pump é detectado com segurança) – por volta e aqui como visão geral de todas as voltas e por foil.",
   "brett.erkl.mehr": "Saiba mais",
   "tab.noData": "Ainda não há dados aqui.",
+  "tab.watchAccounts": "Relógio e contas",
+  "tab.watchSettings": "Configurações",
 };
 
 export default pt;

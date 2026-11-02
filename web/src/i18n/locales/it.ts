@@ -2668,6 +2668,8 @@ const it: Record<string, string> = {
   "brett.erkl.daten": "I dati che ottieni: beccheggio e rollio per pump, inclinazione, cadenza, curve contro rettilinei e il movimento verticale (quando il ritmo dei pump è riconosciuto con sicurezza) – per run e qui come panoramica di tutti i run e per foil.",
   "brett.erkl.mehr": "Scopri di più",
   "tab.noData": "Ancora nessun dato qui.",
+  "tab.watchAccounts": "Orologio e account",
+  "tab.watchSettings": "Impostazioni",
 };
 
 export default it;

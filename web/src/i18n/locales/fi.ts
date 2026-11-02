@@ -2820,6 +2820,8 @@ const fi: Record<string, string> = {
   "brett.erkl.daten": "Saamasi tiedot: nyökkäys ja kallistus pumppua kohden, kallistuma, tahti, kaarteet vastaan suorat ja pystyliike (kun pumpputahti tunnistetaan varmasti) – lenkeittäin ja tässä yhteenvetona kaikista lenkeistä ja foileittain.",
   "brett.erkl.mehr": "Lue lisää",
   "tab.noData": "Täällä ei ole vielä tietoja.",
+  "tab.watchAccounts": "Kello ja tilit",
+  "tab.watchSettings": "Asetukset",
 };
 
 export default fi;

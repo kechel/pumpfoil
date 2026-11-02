@@ -2781,6 +2781,8 @@ const ja: Record<string, string> = {
   "brett.erkl.daten": "得られるデータ：パンプごとのピッチとロール、傾き、ケイデンス、カーブと直線の比較、上下動（パンプのリズムが確実に検出された場合）。ランごとに、ここでは全ランとフォイル別の概要として表示します。",
   "brett.erkl.mehr": "詳しく見る",
   "tab.noData": "まだデータがありません。",
+  "tab.watchAccounts": "時計とアカウント",
+  "tab.watchSettings": "設定",
 };
 
 export default ja;

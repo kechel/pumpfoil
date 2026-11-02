@@ -27,7 +27,8 @@ const GRUND_KEYS: Record<string, string> = {
 // Generische „Verknüpfte Konten"-Seite: hostet Import-Integrationen (Polar; später
 // Coros/Suunto/… und FIT/TCX-Upload). Jede Integration ist eine eigenständige Karte,
 // die sich selbst ausblendet, wenn serverseitig nicht konfiguriert.
-export default function LinkedAccounts() {
+/** `eingebettet`: als Teil des Reiters „Uhr & Konten" auf Home (02.11.2026) — ohne eigene Titelzeile. */
+export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const { t } = useI18n();
   // Ergebnis der OAuth-Verknüpfung. JEDER Dienst leitet auf /konten?<dienst>=connected|cancelled|
   // error zurück — bisher wurde aber nur `suunto` gelesen. Wer COROS verband, bekam deshalb gar
@@ -88,8 +89,10 @@ export default function LinkedAccounts() {
     : "border-amber-400 bg-amber-500/15 text-amber-700 font-medium dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300";
   return (
     <div className="w-full">
-      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><LinkIcon className="h-5 w-5 text-brand-400" /> {t("linked.title")}</h2>
-      <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>
+      {eingebettet
+        ? <h3 className="mb-3 flex items-center gap-2 text-lg font-bold"><LinkIcon className="h-5 w-5 text-brand-400" /> {t("linked.title")}</h3>
+        : <h2 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><LinkIcon className="h-5 w-5 text-brand-400" /> {t("linked.title")}</h2>}
+      {!eingebettet && <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>}
       {banner && (
         <div className={`mb-4 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-sm ${bannerCls}`}>
           <span>{banner === "ok" ? t("linked.connectOk") : banner === "cancelled" ? t("linked.connectCancelled")

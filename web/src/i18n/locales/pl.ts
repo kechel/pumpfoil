@@ -2768,6 +2768,8 @@ const pl: Record<string, string> = {
   "brett.erkl.daten": "Jakie dane dostajesz: kiwanie i przechył na pump, pochylenie, kadencję, zakręty kontra proste oraz ruch góra-dół (gdy rytm pompowania zostanie pewnie rozpoznany) – dla każdego przejazdu i tutaj jako przegląd wszystkich przejazdów i według foila.",
   "brett.erkl.mehr": "Więcej informacji",
   "tab.noData": "Nie ma tu jeszcze danych.",
+  "tab.watchAccounts": "Zegarek i konta",
+  "tab.watchSettings": "Ustawienia",
 };
 
 export default pl;

@@ -2938,6 +2938,8 @@ const de: Record<string, string> = {
   "brett.erkl.daten": "Welche Daten du bekommst: Nicken und Rollen je Pump, Schräglage, Takt, Kurve gegen Gerade und den Hub (die Auf- und Abbewegung, sobald der Pumptakt sicher erkannt ist) – je Lauf und hier als Übersicht über alle Läufe und je Foil.",
   "brett.erkl.mehr": "Mehr dazu",
   "tab.noData": "Hier gibt es noch keine Daten.",
+  "tab.watchAccounts": "Uhr & Konten",
+  "tab.watchSettings": "Einstellungen",
 };
 
 export default de;

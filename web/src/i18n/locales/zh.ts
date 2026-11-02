@@ -2782,6 +2782,8 @@ const zh: Record<string, string> = {
   "brett.erkl.daten": "你会得到的数据：每次泵动的俯仰和横滚、倾斜、节奏、转弯与直线对比，以及上下起伏（在可靠识别泵动节奏后）——按每段显示，这里汇总所有段并按水翼显示。",
   "brett.erkl.mehr": "了解更多",
   "tab.noData": "这里还没有数据。",
+  "tab.watchAccounts": "手表与账户",
+  "tab.watchSettings": "设置",
 };
 
 export default zh;

@@ -2760,6 +2760,8 @@ const nb: Record<string, string> = {
   "brett.erkl.daten": "Dataene du får: nikk og rull per pump, krengning, takt, svinger mot rettstrekninger og opp-og-ned-bevegelsen (når pumperytmen er sikkert gjenkjent) – per runde, og her som oversikt over alle runder og per foil.",
   "brett.erkl.mehr": "Les mer",
   "tab.noData": "Ingen data her ennå.",
+  "tab.watchAccounts": "Klokke og kontoer",
+  "tab.watchSettings": "Innstillinger",
 };
 
 export default nb;

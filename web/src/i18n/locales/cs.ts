@@ -2838,6 +2838,8 @@ const cs: Record<string, string> = {
   "brett.erkl.daten": "Jaká data dostaneš: kývání a náklon na pump, náklon, kadenci, zatáčky proti rovinkám a vertikální pohyb (jakmile je rytmus pumpování spolehlivě rozpoznán) – pro každou jízdu a tady jako přehled všech jízd a podle foilu.",
   "brett.erkl.mehr": "Více informací",
   "tab.noData": "Zatím tu nejsou žádná data.",
+  "tab.watchAccounts": "Hodinky a účty",
+  "tab.watchSettings": "Nastavení",
 };
 
 export default cs;

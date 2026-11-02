@@ -15,12 +15,15 @@ import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
 import { CommunityList, EigeneAbzeichen, SessionStats, SpotBereich, renderCommunitySession } from "./Sessions";
 import History from "./History";
+import LinkedAccounts from "./LinkedAccounts";
+import { PairedDevices } from "./Account";
+import { PlatformSubline } from "../components/SupportedPlatforms";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
-import { CommunityIcon, FoilIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
+import { CommunityIcon, FoilIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
 import { FreundesAnfragen } from "../components/Freundschaft";
@@ -433,6 +436,8 @@ export default function PersonalHome() {
     ...(homespotId != null ? [{ id: "homespot", label: t("foiler.homespot") }] : []),
     // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
     { id: "stats", label: t("tab.stats") },
+    // Uhr & Konten (Jan, 02.11.2026): die eigenen Uhren und verknuepften Konten, sonst die beiden Einstiege.
+    { id: "uhr", label: t("tab.watchAccounts") },
   ];
   const [tab, setTab] = useReiter("home", reiter.map((r) => r.id), "uebersicht");
   const [foilWahl, setFoilWahl] = useState<string>("alle");
@@ -452,7 +457,7 @@ export default function PersonalHome() {
         <FreundePumpen />
       </div>
 
-      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} unter={tab === "stats" || tab === "homespot"} />
 
       {tab === "uebersicht" && <>
         <FreundesAnfragen />
@@ -612,18 +617,63 @@ export default function PersonalHome() {
 
       {tab === "team" && <MeineTeams teams={meineTeams} />}
 
-      {tab === "homespot" && homespotId != null && <>
+      {/* Kopf (Spotname + Link) UNTER der zweiten Reiterzeile, sonst risse er die Zeile vom Reiter darueber ab. */}
+      {tab === "homespot" && homespotId != null && <HomespotBereich spotId={homespotId} kopf={
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <LocationIcon className="h-5 w-5 shrink-0 text-brand-400" />
           <h3 className="min-w-0 truncate text-lg font-semibold">{homespot}</h3>
           <Link to={`/sessions?spot=${homespotId}`} className="ml-auto whitespace-nowrap text-xs text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
             {t("tab.spotPage")} →
           </Link>
-        </div>
-        <HomespotBereich spotId={homespotId} />
-      </>}
+        </div>} />}
 
       {tab === "stats" && <StatsBereich />}
+
+      {tab === "uhr" && <UhrUndKonten />}
+    </div>
+  );
+}
+
+/** Reiter „Uhr & Konten": verbundene Uhren wie im Profil (Uhr › Verbinden), verknuepfte Konten wie auf /konten. Ist noch
+ * nichts verbunden, die beiden Einstiege aus dem Profil — Uhr einrichten (Anleitung) und Konto verknuepfen. */
+function UhrUndKonten() {
+  const t = useT();
+  const [stand, setStand] = useState<{ uhren: boolean; konten: boolean } | null>(null);
+  useEffect(() => {
+    const verknuepft = (p: Promise<{ linked: boolean }>) => p.then((x) => !!x.linked).catch(() => false);
+    Promise.all([
+      api.myDevices().then((ds) => ds.some((d) => !d.revoked_at)).catch(() => false),
+      verknuepft(api.polarStatus()), verknuepft(api.corosStatus()), verknuepft(api.suuntoStatus()),
+    ]).then(([uhren, ...konten]) => setStand({ uhren, konten: konten.some(Boolean) }));
+  }, []);
+  if (!stand) return <Spinner />;
+  const karte = (to: string, icon: React.ReactNode, titel: string, unter: React.ReactNode) => (
+    <Link to={to} className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900">
+      <span className="flex items-center gap-3">{icon}<span className="min-w-0"><span className="block font-medium text-slate-100">{titel}</span>{unter}</span></span>
+      <ChevronIcon className="h-5 w-5 text-slate-400" />
+    </Link>
+  );
+  if (!stand.uhren && !stand.konten) {
+    return (
+      <div className="max-w-2xl">
+        {karte("/account", <WatchIcon className="h-6 w-6 text-brand-400" />, t("nav.watch"), <PlatformSubline kind="watch" />)}
+        {karte("/konten", <DownloadIcon className="h-6 w-6 text-brand-400" />, t("linked.title"), <PlatformSubline kind="account" />)}
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-8">
+      {stand.uhren && (
+        <div>
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold"><WatchIcon className="h-5 w-5 text-brand-400" /> {t("nav.watch")}
+            <Link to="/account" className="ml-auto text-sm font-normal text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">{t("tab.watchSettings")} →</Link>
+          </h3>
+          <PairedDevices />
+        </div>
+      )}
+      {stand.konten ? <LinkedAccounts eingebettet />
+        : karte("/konten", <DownloadIcon className="h-6 w-6 text-brand-400" />, t("linked.title"), <PlatformSubline kind="account" />)}
+      {!stand.uhren && karte("/account", <WatchIcon className="h-6 w-6 text-brand-400" />, t("nav.watch"), <PlatformSubline kind="watch" />)}
     </div>
   );
 }
@@ -641,7 +691,7 @@ function StatsBereich() {
   const [sub, setSub] = useReiter("homestats", reiter.map((r) => r.id), "verlauf", { param: "sub" });
   return (
     <>
-      <Reiterleiste reiter={reiter} aktiv={sub} onWahl={setSub} className="-mt-2 border-b-0 [&>button]:text-xs" />
+      <Reiterleiste reiter={reiter} aktiv={sub} onWahl={setSub} stufe={2} />
       {/* Die Abschnitte tragen ihren eigenen oberen Abstand (mt-8) von frueher, als sie untereinander standen. */}
       <div className="peer -mt-8">
         {sub === "verlauf" && <div className="mt-8"><History eingebettet /></div>}
@@ -712,7 +762,7 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
 
 /** Reiter „Homespot": DERSELBE Inhalt wie die Spot-Seite (SpotBereich, samt Session-Liste) — nur die Kopfzeile ist
  * eine andere (Jan, 02.11.2026). Sportart wie dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
-function HomespotBereich({ spotId }: { spotId: number }) {
+function HomespotBereich({ spotId, kopf }: { spotId: number; kopf?: React.ReactNode }) {
   const [sports, setSports] = useState<string[] | null>(null);
   useEffect(() => {
     let aktuell = true;
@@ -721,7 +771,7 @@ function HomespotBereich({ spotId }: { spotId: number }) {
   }, [spotId]);
   if (!sports) return <Spinner />;
   const sport = sports.includes("pumpfoil") ? "pumpfoil" : (sports[0] ?? null);
-  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab"
+  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" stufe={2} kopf={kopf}
     sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />} />;
 }
 

@@ -33,24 +33,49 @@ export function useReiter(bereich: string, ids: string[], start: string,
   return [tab ?? start, wahl];
 }
 
-export function Reiterleiste({ reiter, aktiv, onWahl, className = "" }:
-  { reiter: ReiterDef[]; aktiv: string; onWahl: (id: string) => void; className?: string }) {
+/**
+ * `unter`: der aktive Reiter hat eine zweite Reiterzeile — er wird dann in derselben Farbe hinterlegt wie die Zeile
+ * darunter, damit man sieht, was zusammengehoert (Jan, 02.11.2026). `stufe={2}` ist diese zweite Zeile selbst:
+ * gleiche Schriftgroesse, als Flaeche direkt unter der ersten. Ueberall identisch.
+ */
+export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = false, stufe = 1 }:
+  { reiter: ReiterDef[]; aktiv: string; onWahl: (id: string) => void; className?: string; unter?: boolean; stufe?: 1 | 2 }) {
   const leiste = useRef<HTMLDivElement>(null);
   // Der gewaehlte Reiter rollt ins Bild, auch wenn die Leiste gewischt werden muss (lange Sprachen, schmale Handys).
   useEffect(() => {
     const el = leiste.current?.querySelector<HTMLElement>('[aria-selected="true"]');
     el?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [aktiv]);
+  if (stufe === 2) {
+    return (
+      <div ref={leiste} role="tablist"
+        className={`-mt-4 mb-6 flex gap-1 overflow-x-auto rounded-b-xl bg-slate-800/70 p-1.5 [scrollbar-width:none] ${className}`}>
+        {reiter.map((r) => (
+          <button key={r.id} role="tab" aria-selected={r.id === aktiv} onClick={() => onWahl(r.id)}
+            className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm ${
+              r.id === aktiv ? "bg-slate-950 font-semibold text-slate-100 shadow-sm" : "text-slate-300 hover:text-slate-100"}`}>
+            {r.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
   return (
     <div ref={leiste} role="tablist"
       className={`-mx-4 mb-4 flex gap-1 overflow-x-auto border-b border-slate-800 px-4 [scrollbar-width:none] md:mx-0 md:px-0 ${className}`}>
-      {reiter.map((r) => (
-        <button key={r.id} role="tab" aria-selected={r.id === aktiv} onClick={() => onWahl(r.id)}
-          className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-sm ${
-            r.id === aktiv ? "border-brand-400 font-semibold text-slate-100" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
-          {r.label}
-        </button>
-      ))}
+      {reiter.map((r) => {
+        const an = r.id === aktiv;
+        const flaeche = an && unter;
+        return (
+          <button key={r.id} role="tab" aria-selected={an} onClick={() => onWahl(r.id)}
+            className={`-mb-px shrink-0 whitespace-nowrap px-3 py-2 text-sm ${
+              flaeche ? "rounded-t-xl border-b-2 border-transparent bg-slate-800/70 font-semibold text-slate-100"
+              : an ? "border-b-2 border-brand-400 font-semibold text-slate-100"
+              : "border-b-2 border-transparent text-slate-400 hover:text-slate-200"}`}>
+            {r.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

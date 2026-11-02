@@ -2668,6 +2668,8 @@ const fr: Record<string, string> = {
   "brett.erkl.daten": "Les données obtenues : tangage et roulis par pump, inclinaison, cadence, virages contre lignes droites et le mouvement vertical (dès que le rythme de pump est détecté de façon fiable) – par run, et ici en vue d'ensemble de tous les runs et par foil.",
   "brett.erkl.mehr": "En savoir plus",
   "tab.noData": "Pas encore de données ici.",
+  "tab.watchAccounts": "Montre et comptes",
+  "tab.watchSettings": "Réglages",
 };
 
 export default fr;

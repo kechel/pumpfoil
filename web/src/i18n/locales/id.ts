@@ -2785,6 +2785,8 @@ const id: Record<string, string> = {
   "brett.erkl.daten": "Data yang kamu dapat: anggukan dan gulingan per pump, kemiringan, irama, tikungan dibanding lurus, dan gerakan naik-turun (setelah irama pump terdeteksi dengan pasti) – per putaran, dan di sini sebagai ringkasan semua putaran dan per foil.",
   "brett.erkl.mehr": "Selengkapnya",
   "tab.noData": "Belum ada data di sini.",
+  "tab.watchAccounts": "Jam & akun",
+  "tab.watchSettings": "Pengaturan",
 };
 
 export default id;

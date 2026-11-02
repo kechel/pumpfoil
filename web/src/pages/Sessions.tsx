@@ -332,7 +332,7 @@ export default function Sessions() {
     if (next !== "mine") n.set("scope", next);
     if (nextSpot) n.set("spot", nextSpot);
     if (sport !== "all") n.set("sport", sport);   // die Sportart bleibt beim Wechsel Meine/Spot/Alle
-    setSp(n);
+    setSp(n, { replace: !nextSpot });   // Reiterwechsel ersetzt den Verlaufseintrag (wie alle Reiter)
   };
   const setSport = (next: string) => {
     const n = new URLSearchParams(sp);
@@ -352,8 +352,6 @@ export default function Sessions() {
   // ruhiger gesetzt als der Name — der Titel soll nicht zur Zeile werden.
   const spotZusatz = spot ? (spots.find((x) => String(x.id) === spot)?.water ?? "") : "";
 
-  const tabCls = (active: boolean) =>
-    `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${active ? "bg-brand-500 text-slate-950" : "text-slate-200 hover:bg-slate-800"}`;
 
   return (
     <div>
@@ -374,14 +372,16 @@ export default function Sessions() {
 
       <UploadProgressCard />
 
-      {/* Scope-Umschalter + Spotsuche */}
+      {/* Meine | Freunde | Alle als Reiter wie ueberall (02.11.2026). Auf der Spot-Seite nicht — dort waere keiner aktiv;
+          der Homespot-Knopf ist seit dann ein Reiter auf Home (docs/UX-IA.md). */}
+      {!spot && (
+        <Reiterleiste reiter={[
+          { id: "mine", label: t("nav.mySessions.short") },
+          { id: "friends", label: t("friends.title") },
+          { id: "all", label: t("nav.allSessions.short") },
+        ]} aktiv={scope} onWahl={(id) => setScope(id as "mine" | "friends" | "all")} />
+      )}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
-          <button className={tabCls(isMine)} onClick={() => setScope("mine")}>{t("nav.mySessions.short")}</button>
-          {/* Homespot-Knopf ist seit 02.11.2026 ein Reiter auf Home (docs/UX-IA.md). */}
-          <button className={tabCls(isFreunde)} onClick={() => setScope("friends")}>{t("friends.title")}</button>
-          <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
-        </div>
         {/* Kein Spot-Auswahlfeld mehr (Jan, 28.10.2026: „das drop-down mit allen spotnamen eigentlich
             auch"). Einen Spot findet man ueber die Spot-Karte mit Suche, den Homespot-Reiter oder den
             Spot-Link einer Session. */}
@@ -1459,8 +1459,8 @@ function hatRekorde(satz: unknown): boolean {
 /** Inhalt der Spot-Seite als Reiter (02.11.2026). Auch der Reiter „Homespot" auf Home zeigt ihn, dort mit eigenem
  * Adress-Parameter (`stab`) und ohne Session-Liste — die gibt es auf der Spot-Seite. Namens-Gruppen aus dem Altbestand
  * (keine numerische id) haben keine Heatmap und keine Beschreibungen. */
-export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab" }:
-  { spot: string; sport: string | null; accelOnly: boolean; sessions?: React.ReactNode; param?: string }) {
+export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab", stufe = 1, kopf }:
+  { spot: string; sport: string | null; accelOnly: boolean; sessions?: React.ReactNode; param?: string; stufe?: 1 | 2; kopf?: React.ReactNode }) {
   const t = useT();
   const echt = /^\d+$/.test(spot);
   const reiter: ReiterDef[] = [
@@ -1473,7 +1473,8 @@ export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab" }:
   const [tab, setTab] = useReiter("spot", reiter.map((r) => r.id), "rekorde", { param });
   return (
     <>
-      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} stufe={stufe} />
+      {kopf}
       {tab === "rekorde" && (sport
         ? <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} leerText={t("tab.noRecords")} />
         : <p className="text-sm text-slate-400">{t("tab.noRecords")}</p>)}

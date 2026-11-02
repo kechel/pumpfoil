@@ -2839,6 +2839,8 @@ const nl: Record<string, string> = {
   "brett.erkl.daten": "De gegevens die je krijgt: knikken en rollen per pump, helling, cadans, bochten tegenover rechte stukken en de op-en-neerbeweging (zodra het pompritme betrouwbaar herkend is) – per run en hier als overzicht van alle runs en per foil.",
   "brett.erkl.mehr": "Meer weten",
   "tab.noData": "Hier zijn nog geen gegevens.",
+  "tab.watchAccounts": "Horloge & accounts",
+  "tab.watchSettings": "Instellingen",
 };
 
 export default nl;

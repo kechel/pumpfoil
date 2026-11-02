@@ -2668,6 +2668,8 @@ const es: Record<string, string> = {
   "brett.erkl.daten": "Los datos que obtienes: cabeceo y alabeo por pump, inclinación, cadencia, curvas frente a rectas y el movimiento vertical (cuando el ritmo de pump se detecta con seguridad), por tramo y aquí como resumen de todos los tramos y por foil.",
   "brett.erkl.mehr": "Más información",
   "tab.noData": "Todavía no hay datos aquí.",
+  "tab.watchAccounts": "Reloj y cuentas",
+  "tab.watchSettings": "Ajustes",
 };
 
 export default es;

@@ -2884,6 +2884,8 @@ const en: Record<string, string> = {
   "brett.erkl.daten": "The data you get: pitch and roll per pump, lean, cadence, turns versus straights and the heave (the up-and-down movement, once the pump rhythm is detected reliably) – per run, and here as an overview of all runs and per foil.",
   "brett.erkl.mehr": "Learn more",
   "tab.noData": "No data here yet.",
+  "tab.watchAccounts": "Watch & accounts",
+  "tab.watchSettings": "Settings",
 };
 
 export default en;

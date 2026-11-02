@@ -2670,6 +2670,8 @@ const gsw: Record<string, string> = {
   "brett.erkl.daten": "Was für Date du überchunsch: Nicke und Rolle pro Pump, Schräglag, Takt, Kurve gäge Grad und de Hub (d Uf- und Abbewegig, sobald de Pumptakt sicher erkännt isch) – pro Lauf und do als Übersicht über alli Läuf und pro Foil.",
   "brett.erkl.mehr": "Meh dezue",
   "tab.noData": "Do häts no kei Date.",
+  "tab.watchAccounts": "Uhr & Konte",
+  "tab.watchSettings": "Iistellige",
 };
 
 export default gsw

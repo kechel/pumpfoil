@@ -212,7 +212,7 @@ function GenerateCode() {
   );
 }
 
-function PairedDevices({ onDownload }: { onDownload?: () => void }) {
+export function PairedDevices({ onDownload }: { onDownload?: () => void }) {
   const t = useT();
   const [devices, setDevices] = useState<import("../lib/api").PairedDevice[] | null>(null);
   // Ausgeblendete Uhren: erneutes Pairing legt jedes Mal eine neue Zeile an, und Zeilen mit
