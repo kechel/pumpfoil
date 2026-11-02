@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
 import { LayoutPreview } from "../components/LayoutPreview";
@@ -211,6 +211,37 @@ function recItemsBasis(sport?: string) {
 }
 
 // Auch von der Foil-Detailseite benutzt — dieselben Kacheln, damit Rekorde ueberall gleich aussehen.
+/** Rekorde als Tabelle (Spot-Seite, 02.11.2026): eine Zeile je Rekord — Kennzahl, Wert, Fahrer, Datum. Die Kacheln mit
+ * Streckenbild waren dort zu viel auf einen Blick. Nur belegte Rekorde; ein Tippen auf die Zeile oeffnet die Session. */
+export function RecordTable({ rec, sport }: { rec?: RecordSet | null; sport?: string }) {
+  const t = useT();
+  const zeilen = recItemsFuer(sport).filter((it) => { const r = rec?.[it.key]; return !!(r && r.value && (r.session_id || it.key === "carves180")); });
+  if (zeilen.length === 0) return <p className="text-sm text-slate-400">{t("tab.noRecords")}</p>;
+  return (
+    <div className="max-w-2xl divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800">
+      {zeilen.map((it) => {
+        const r = rec![it.key]!;
+        const inhalt = (
+          <>
+            <span className="min-w-0 flex-1 truncate text-sm text-slate-300">{t(it.labelKey)}</span>
+            <span className="shrink-0 text-sm font-semibold tabular-nums text-brand-400">
+              {(r as any).anzahl ? t("rec.ofN", { p: it.fmt(r.value), n: String((r as any).anzahl) }) : it.fmt(r.value)}
+            </span>
+            <span className="hidden w-32 shrink-0 truncate text-xs text-slate-300 sm:inline">{r.name ? <span className="pf-name">{r.name}</span> : ""}</span>
+            <span className="w-16 shrink-0 text-right text-xs tabular-nums text-slate-400">
+              {r.started_at ? fmtDate(r.started_at, r.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : ""}
+            </span>
+          </>
+        );
+        return r.session_id
+          ? <Link key={it.key} to={`/sessions/${r.session_id}${r.run_idx != null ? `?run=${r.run_idx}` : ""}`}
+              className="flex items-center gap-3 bg-slate-900 px-3 py-2 hover:bg-slate-800">{inhalt}</Link>
+          : <div key={it.key} className="flex items-center gap-3 bg-slate-900 px-3 py-2">{inhalt}</div>;
+      })}
+    </div>
+  );
+}
+
 export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?: RecordSet | null; showSpot?: boolean; sport?: string; nurSport?: boolean; nurBelegt?: boolean }) {
   const t = useT();
   // `nurSport`: nur die Rekorde je Sportart (eigene Zeile je Sportart auf Home/Profil, 20.10.2026).
@@ -223,13 +254,15 @@ export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?
   const items = belegt.length ? belegt : alleItems;
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-      {items.map((it) => {
+      {items.map((it, i) => {
         const r = rec?.[it.key];
         // Der Carve-Rekord hängt an keiner Session (session_id ist null) — für ihn reicht ein Wert.
         const has = !!(r && r.value && (r.session_id || it.key === "carves180"));
         const inner = (
           <Card className="relative h-full overflow-hidden p-3">
-            {has && r!.track_preview && (
+            {/* Streckenverlauf nur noch auf der ersten Kachel (02.11.2026): hinter jeder Zahl lag er ueber der Schrift, und
+                zwoelf Strecken auf einen Blick waren zu viel. */}
+            {i === 0 && has && r!.track_preview && (
               <TrackPreview data={r!.track_preview} className="pointer-events-none absolute right-2 top-1/2 h-3/4 w-20 -translate-y-1/2 text-brand-400/70" />
             )}
             {/* Quoten mit Anzahl („100 % von 146", 20.10.2026): sonst sagt 100 % allein wenig. */}
@@ -283,16 +316,17 @@ const dauerText = (s: number) => {
 // die Summe im Zeitraum. Einheit fest („km", „h" bzw. „min" — international lesbar).
 const LEADER_KINDS: { key: Exclude<keyof Leaders, "me">; labelKey: string; field: keyof LeaderRow; unitKey?: string;
                       unit?: (v: number) => string; fmt?: (v: number) => string }[] = [
-  { key: "sessions", labelKey: "leader.mostSessions", field: "sessions", unitKey: "unit.sessions" },
-  { key: "runs", labelKey: "leader.mostRuns", field: "runs", unitKey: "unit.runs" },
-  { key: "pumps", labelKey: "leader.mostPumps", field: "pumps", unitKey: "unit.pumps" },
-  { key: "spots", labelKey: "leader.mostSpots", field: "spots", unitKey: "unit.spots" },
-  // Nur Wind/Paddeln (Filter in Leaderboards): die ganze Fahrt, wie die erste Rekord-Kachel dort.
+  // Reihenfolge nach dem Vorschlag eines Team-Kapitaens (02.11.2026): zuerst die Laufdauer — weltweit DIE Kennzahl —,
+  // dann die Summen, zuletzt der weiteste Lauf (fast dieselbe Reihung wie die Dauer). Bei Wind/Paddeln vorne die ganze Fahrt.
   { key: "ride_total", labelKey: "rec.sessionTotal", field: "ride_total_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(1) },
-  { key: "run_distance", labelKey: "rec.farthestRun", field: "run_distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(2) },
   { key: "run_time", labelKey: "rec.longestRun", field: "run_time_s", unit: (v) => (v >= 3600 ? "h" : "min"), fmt: dauerText },
   { key: "distance", labelKey: "leader.totalDistance", field: "distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(1) },
   { key: "time", labelKey: "leader.totalTime", field: "time_s", unit: (v) => (v >= 3600 ? "h" : "min"), fmt: dauerText },
+  { key: "runs", labelKey: "leader.mostRuns", field: "runs", unitKey: "unit.runs" },
+  { key: "pumps", labelKey: "leader.mostPumps", field: "pumps", unitKey: "unit.pumps" },
+  { key: "sessions", labelKey: "leader.mostSessions", field: "sessions", unitKey: "unit.sessions" },
+  { key: "spots", labelKey: "leader.mostSpots", field: "spots", unitKey: "unit.spots" },
+  { key: "run_distance", labelKey: "rec.farthestRun", field: "run_distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(2) },
 ];
 
 function LeaderList({ rows, field, unit, fmt, me }: { rows: LeaderRow[]; field: keyof LeaderRow; unit: string | ((v: number) => string);
@@ -460,11 +494,23 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
   const [data, setData] = useState<Leaders | null>(null);
   // Nur EINE Bestenliste sichtbar, umschaltbar ueber Reiter (Jan, 01.11.2026: mit acht Listen nebeneinander war die
   // Seite unuebersichtlich). Die Wahl merkt sich der Browser (nur Komfort; ohne Speicher gilt „Sessions").
-  const [wahl, setWahl] = useState<string>(() => { try { return localStorage.getItem("foil_leader_wahl") || "sessions"; } catch { return "sessions"; } });
-  const waehlen = (k: string) => { setWahl(k); try { localStorage.setItem("foil_leader_wahl", k); } catch { /* egal */ } };
-  // Wie bei den Rekorden: der erste Aufruf darf aus dem Service-Worker-Cache kommen, kam er von dort (schnell), holt
-  // ein zweiter mit `fresh` den echten Stand nach. Ohne das sah man beim ersten Aufruf den alten Stand, Jan
-  // 01.11.2026: die eigene Zeile unter Platz 10 erschien erst nach einem Wechsel hin und zurueck.
+  // Die Wahl steht in der Adresse (`lb`), damit ein geteilter Link genau diese Liste zeigt und man beim Zurueckkommen
+  // dort landet (02.11.2026); ohne Adresse gilt die zuletzt gewaehlte (nur Komfort), sonst die laengste Laufdauer.
+  const [sp, setSp] = useSearchParams();
+  const wahl = sp.get("lb") || (() => { try { return localStorage.getItem("foil_leader_wahl"); } catch { return null; } })() || "run_time";
+  const waehlen = (k: string) => {
+    try { localStorage.setItem("foil_leader_wahl", k); } catch { /* egal */ }
+    setSp((alt) => { const n = new URLSearchParams(alt); n.set("lb", k); return n; }, { replace: true });
+  };
+  const [kopiert, setKopiert] = useState(false);
+  // Teilen: die Adresse traegt Reiter, Zeitraum, Sportart, Foil und Liste. Der Text nennt den Stand (Datum), weil die
+  // Liste beim Oeffnen schon anders aussehen kann.
+  const teilen = () => {
+    const url = window.location.href;
+    const text = `${t("home.leaderboards")} · ${new Date().toLocaleDateString(document.documentElement.lang || undefined)}`;
+    if (navigator.share) { navigator.share({ title: text, text, url }).catch(() => {}); return; }
+    navigator.clipboard?.writeText(`${text}\n${url}`).then(() => { setKopiert(true); window.setTimeout(() => setKopiert(false), 2000); }).catch(() => {});
+  };
   useEffect(() => {
     let aktiv = true;
     const bk = band?.key ?? "all";
@@ -517,6 +563,9 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf }: { p
             </div>
             <div className="max-w-xl">
               <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
+              <button onClick={teilen} className="mt-3 text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+                {kopiert ? t("mcp.copied") : t("share.linkBtn")}
+              </button>
             </div>
           </>
         );
@@ -562,9 +611,19 @@ function CommunitySection() {
   const [data, setData] = useState<CommunityRecords | null>(null);
   // Sportart-Filter (docs/sport-classification.md). Nur Sportarten mit mindestens EINEM Lauf
   // all time stehen zur Wahl (Jans Vorgabe) — sonst neun Kategorien, acht davon leer.
-  const [sport, setSport] = useState("pumpfoil");
+  // Zeitraum, Sportart und Foil stehen in der Adresse (02.11.2026): beim Zurueckkommen ist die Auswahl noch da, und ein
+  // geteilter Link zeigt genau diese Ansicht. Wechsel ersetzen den Verlaufseintrag, wie die Reiter.
+  const [sp, setSp] = useSearchParams();
+  const setzeParam = (k: string, v: string, standard: string) =>
+    setSp((alt) => { const n = new URLSearchParams(alt); v === standard ? n.delete(k) : n.set(k, v); return n; }, { replace: true });
+  const sport = sp.get("sport") || "pumpfoil";
+  const setSport = (v: string) => setzeParam("sport", v, "pumpfoil");
   const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
-  const [period, setPeriod] = useState("10d");
+  // Ohne Wahl in der Adresse: „Heute", sobald heute alle 10 Plaetze der Bestenliste besetzt sind (Vorschlag eines
+  // Team-Kapitaens, 02.11.2026 — „wenn heute mit heute uebereinstimmt, wirkt die Seite gepflegt"), sonst 10 Tage.
+  const [autoPeriod, setAutoPeriod] = useState("10d");
+  const period = sp.get("period") || autoPeriod;
+  const setPeriod = (v: string) => setSp((alt) => { const n = new URLSearchParams(alt); n.set("period", v); return n; }, { replace: true });
   // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil). Default smart:
   // accel, wenn der Nutzer Accel-Daten hat, sonst alle.
   const [accelWahl, setAccelOnly] = useAccelDefault();
@@ -576,12 +635,19 @@ function CommunitySection() {
   const accelOnly = accelWahl && !freunde;
   setFreundeAnsicht(freunde);
   useEffect(() => () => setFreundeAnsicht(false), []);
+  useEffect(() => {
+    if (sp.get("period")) return;
+    let aktuell = true;
+    api.leaders("today", accelOnly, sport).then((d) => { if (aktuell && d.sessions.length >= 10) setAutoPeriod("today"); }).catch(() => {});
+    return () => { aktuell = false; };
+  }, [sport]);   // eslint-disable-line react-hooks/exhaustive-deps
   // Foil-Band („vergleichbare Foils") für Rekorde UND Bestenlisten — NICHT für Spots und
   // „Am besten bewertet" (Jans Vorgabe): dort geht es nicht um Vergleichbarkeit der Ausrüstung.
   // Die Bänder samt Session- und Fahrerzahl kommen vom Server (s. /api/community/foil-bands),
   // damit hier keine Grenzen fest verdrahtet sind und die Oberfläche dünne Gruppen ausblenden kann.
   const [bands, setBands] = useState<FoilBand[]>([]);
-  const [bandKey, setBandKey] = useState("all");
+  const bandKey = sp.get("band") || "all";
+  const setBandKey = (v: string) => setzeParam("band", v, "all");
   const band = bands.find((b) => b.key === bandKey);
   // Alles, was den Inhalt der Rekorde aendert — wechselt eines davon, sind die gemerkten
   // Zeitraeume wertlos. Die Sportart gehoert ausdruecklich dazu (Jan, 16.09.2026).
