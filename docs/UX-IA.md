@@ -58,7 +58,7 @@ Apps spaeter: Home · Community · Sessions · Spots · Chat · Profil (Chat ble
 **Inhaltliche Aenderungen dabei:**
 - Bestenliste: Reiter-Reihenfolge laengster Lauf, Strecke gesamt, meiste Laeufe, Pumps, Sessions, Spots, weitester Lauf;
   Vorauswahl „Heute", sobald heute mehr als 10 Plaetze besetzt sind; Zeitraum „Gestern"; Teilen als Link (spaeter Bild).
-- Rekord-Kacheln: Streckenverlauf nicht mehr hinter jeder Kachel.
+- Rekord-Kacheln: Streckenverlauf bleibt hinter JEDER Kachel (Versuch „nur die erste" am 02.11. zurueckgenommen).
 - Session-Seite: Inhaber sieht, wer geliked hat.
 
 **Entschieden 02.11.:** Filter „nur mit Beschleunigungsdaten" bleibt. Laengste Gleitphase NICHT in die Bestenliste,
