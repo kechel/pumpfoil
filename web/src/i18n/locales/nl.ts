@@ -2830,6 +2830,7 @@ const nl: Record<string, string> = {
   "tab.spotPage": "Spotpagina",
   "tab.rankings": "Records & ranglijst",
   "sd.whoLiked": "Wie?",
+  "tab.stats": "Statistieken",
 };
 
 export default nl;

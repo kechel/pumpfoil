@@ -2875,6 +2875,7 @@ const en: Record<string, string> = {
   "tab.spotPage": "Spot page",
   "tab.rankings": "Records & leaderboard",
   "sd.whoLiked": "Who?",
+  "tab.stats": "Stats",
 };
 
 export default en;

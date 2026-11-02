@@ -2659,6 +2659,7 @@ const es: Record<string, string> = {
   "tab.spotPage": "Página del spot",
   "tab.rankings": "Récords y clasificación",
   "sd.whoLiked": "¿Quién?",
+  "tab.stats": "Estadísticas",
 };
 
 export default es;

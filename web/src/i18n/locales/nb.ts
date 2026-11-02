@@ -2751,6 +2751,7 @@ const nb: Record<string, string> = {
   "tab.spotPage": "Spotside",
   "tab.rankings": "Rekorder og toppliste",
   "sd.whoLiked": "Hvem?",
+  "tab.stats": "Statistikk",
 };
 
 export default nb;

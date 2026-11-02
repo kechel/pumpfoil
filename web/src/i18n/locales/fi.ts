@@ -2811,6 +2811,7 @@ const fi: Record<string, string> = {
   "tab.spotPage": "Spotin sivu",
   "tab.rankings": "Ennätykset ja tulostaulu",
   "sd.whoLiked": "Kuka?",
+  "tab.stats": "Tilastot",
 };
 
 export default fi;

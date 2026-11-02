@@ -2776,6 +2776,7 @@ const ru: Record<string, string> = {
   "tab.spotPage": "Страница спота",
   "tab.rankings": "Рекорды и рейтинг",
   "sd.whoLiked": "Кто?",
+  "tab.stats": "Статистика",
 };
 
 export default ru;

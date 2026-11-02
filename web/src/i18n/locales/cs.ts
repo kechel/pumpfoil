@@ -2829,6 +2829,7 @@ const cs: Record<string, string> = {
   "tab.spotPage": "Stránka spotu",
   "tab.rankings": "Rekordy a žebříček",
   "sd.whoLiked": "Kdo?",
+  "tab.stats": "Statistiky",
 };
 
 export default cs;

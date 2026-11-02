@@ -2666,6 +2666,7 @@ const deAT: Record<string, string> = {
   "tab.spotPage": "Spot-Seite",
   "tab.rankings": "Rekorde & Bestenliste",
   "sd.whoLiked": "Wer?",
+  "tab.stats": "Stats",
 };
 
 export default deAT

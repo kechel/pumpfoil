@@ -233,7 +233,7 @@ const router = createBrowserRouter([
           { path: "home", element: <PersonalHome /> },   // Alias (Alt-Links/Bookmarks)
           { path: "community", element: <Home /> },
           // Verlauf ist seit 02.11.2026 ein Reiter in Home; alte Links und Lesezeichen fuehren dorthin.
-          { path: "verlauf", element: <Navigate to="/?tab=verlauf" replace /> },
+          { path: "verlauf", element: <Navigate to="/?tab=stats" replace /> },
           { path: "sessions", element: <Sessions /> },
           { path: "current-feedback-request", element: <CurrentFeedbackRequest /> },
           { path: "import", element: <Import /> },

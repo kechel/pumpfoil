@@ -431,7 +431,8 @@ export default function PersonalHome() {
     { id: "rekorde", label: t("side.records") },
     { id: "team", label: t("tab.team") },
     ...(homespotId != null ? [{ id: "homespot", label: t("foiler.homespot") }] : []),
-    { id: "verlauf", label: t("nav.history") },
+    // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
+    { id: "stats", label: t("tab.stats") },
   ];
   const [tab, setTab] = useReiter("home", reiter.map((r) => r.id), "uebersicht");
   const [foilWahl, setFoilWahl] = useState<string>("alle");
@@ -622,15 +623,38 @@ export default function PersonalHome() {
         <HomespotBereich spotId={homespotId} />
       </>}
 
-      {tab === "verlauf" && <>
-        <History eingebettet />
-        <JahresbilanzSection />
-        <StartSuccessSection />
-        <CarveStatsSection />
-        <ManoeverVerlaufSection />
-        <BoardAttitudeSection />
-      </>}
+      {tab === "stats" && <StatsBereich />}
     </div>
+  );
+}
+
+/** Reiter „Stats" (02.11.2026): die Auswertungen, die vorher untereinander auf Home standen, als zweite Reiterzeile.
+ * Eigener Adress-Parameter (`sub`). Hat eine Auswertung keine Daten, zeichnet sie nichts — dann steht „—" da. */
+function StatsBereich() {
+  const t = useT();
+  const reiter: ReiterDef[] = [
+    { id: "verlauf", label: t("nav.history") },
+    { id: "jahr", label: t("phome.ybTitle") },
+    { id: "starts", label: t("home.startSuccess") },
+    { id: "carves", label: "Carves" },
+    { id: "manoever", label: t("phome.manTitle") },
+    { id: "brett", label: t("home.boardAttitude") },
+  ];
+  const [sub, setSub] = useReiter("homestats", reiter.map((r) => r.id), "verlauf", { param: "sub" });
+  return (
+    <>
+      <Reiterleiste reiter={reiter} aktiv={sub} onWahl={setSub} className="-mt-2 border-b-0 [&>button]:text-xs" />
+      {/* Die Abschnitte tragen ihren eigenen oberen Abstand (mt-8) von frueher, als sie untereinander standen. */}
+      <div className="peer -mt-8">
+        {sub === "verlauf" && <div className="mt-8"><History eingebettet /></div>}
+        {sub === "jahr" && <JahresbilanzSection />}
+        {sub === "starts" && <StartSuccessSection />}
+        {sub === "carves" && <CarveStatsSection />}
+        {sub === "manoever" && <ManoeverVerlaufSection />}
+        {sub === "brett" && <BoardAttitudeSection />}
+      </div>
+      <p className="mt-8 hidden text-sm text-slate-400 peer-empty:block">—</p>
+    </>
   );
 }
 

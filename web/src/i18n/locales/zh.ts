@@ -2773,6 +2773,7 @@ const zh: Record<string, string> = {
   "tab.spotPage": "地点页面",
   "tab.rankings": "记录与排行榜",
   "sd.whoLiked": "谁？",
+  "tab.stats": "统计",
 };
 
 export default zh;

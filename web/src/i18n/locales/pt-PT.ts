@@ -2770,6 +2770,7 @@ const ptPT: Record<string, string> = {
   "tab.spotPage": "Página do spot",
   "tab.rankings": "Recordes e classificação",
   "sd.whoLiked": "Quem?",
+  "tab.stats": "Estatísticas",
 };
 
 export default ptPT;

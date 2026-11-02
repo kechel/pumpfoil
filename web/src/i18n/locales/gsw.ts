@@ -2661,6 +2661,7 @@ const gsw: Record<string, string> = {
   "tab.spotPage": "Spot-Siite",
   "tab.rankings": "Rekord & Bestelischte",
   "sd.whoLiked": "Wer?",
+  "tab.stats": "Stats",
 };
 
 export default gsw
