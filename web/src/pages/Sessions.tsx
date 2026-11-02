@@ -391,10 +391,7 @@ export default function Sessions() {
         ]} aktiv={scope} onWahl={(id) => setScope(id as "mine" | "friends" | "all" | "team")} />
       )}
       {isTeam && meineTeams && (
-        <>
-          <TeamWahl teams={meineTeams} wahl={teamWahl} onWahl={setTeamWahl} />
-          <p className="mb-3 text-sm text-slate-400">{t("team.feed30")}</p>
-        </>
+        <TeamWahl teams={meineTeams} wahl={teamWahl} onWahl={setTeamWahl} />
       )}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {/* Kein Spot-Auswahlfeld mehr (Jan, 28.10.2026: „das drop-down mit allen spotnamen eigentlich
@@ -485,6 +482,8 @@ export default function Sessions() {
                                    board={brett} filterPlatz={filterPlatz} onShowAll={() => setAccelAuto(false)} />
               : <CommunityList key={`${brett}|${isFreunde}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                onShowAll={() => setAccelAuto(false)} />}
+      {/* Hinweis auf die 30 Tage UNTER der Liste statt darueber (Jan, 02.11.2026). */}
+      {isTeam && meineTeams && <p className="mt-4 text-sm text-slate-400">{t("team.feed30")}</p>}
     </div>
   );
 }
