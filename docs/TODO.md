@@ -1501,6 +1501,36 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 02.11. (Nutzer-Feedback, Team-Kapitaen PL, 1:1-Chat mit Jan) — langer Vorschlagskatalog Community/Home/Bestenliste.**
+  Sortiert nach Aufwand. Er betont: alles nicht Genannte findet er gut; die Liste ist bewusst nur Aenderungswunsch.
+  **Schnell (Web, Stunden):**
+  - Bestenliste ganz an den Anfang der Community-Seite (heute unter Rekord-Kacheln und Medien).
+  - Reiter-Reihenfolge nach seinem Vorschlag: laengster Lauf, On-Foil-Strecke gesamt, laengste Gleitphase (Reiter fehlt
+    noch, Server-Aggregat wie bei den anderen; Vorsicht: Gleiterkennung pg-1 nur ~50 % treffsicher), meiste Laeufe,
+    [schnellster km], meiste Pumps, meiste Sessions, meiste Spots, weitester Lauf.
+  - Vorauswahl „Heute", sobald heute mehr als 10 Plaetze besetzt sind, sonst wie bisher.
+  - Leere Abschnitte (Spots, Routen) ausblenden; Foil-Band-Auswahl ausblenden, wenn es nur „Alle Foils" gibt (Baender
+    brauchen >= 3 Fahrer, daher bei kleinen Sportarten leer — er hielt das fuer kaputt).
+  - Home: Start-Erfolgsquote, Carves, Jahresbilanz hinter „mehr anzeigen"; Wetter-Kachel raus (Jans Entscheidung).
+  - Sessions-Menue: „Meine Sessions" als Vorauswahl; Wetter/Pegel am Spot raus (Entscheidung).
+  - Kachel-Hintergruende: Streckenverlauf nur noch auf einer Kachel, nicht hinter jeder Zahl (Lesbarkeit).
+  **Mittel (Tag(e), Server + Web + Apps):**
+  - Sessioninhaber sieht, WER geliked hat (Likes gibt es, eine Liste nicht).
+  - Zeitraum „Gestern" (alle Zeitraeume haben heute nur eine Untergrenze; braucht Obergrenze in Rekorden/Bestenliste/Stats).
+  - Home neu sortieren: eigene Teams statt im Kopf als Abschnitt, darunter Freunde mit ihrer letzten Session, dann Rekorde.
+  - Doppelte Rekordanzeige auf Home (mit/ohne Foil je Zeitraum) zusammenfassen — erst ansehen, was er genau sieht.
+  - Bestenliste teilen: Direktlink mit Filtern (leicht) und als Bild mit Datum (Canvas im Browser, kein Dritt-Dienst).
+  - Neben der Bestenliste Kacheln zur Session des Erstplatzierten statt der Rekord-Kachelwand (Umbau Community-Kopf).
+  - Spot-Rekorde als Tabelle statt Kacheln mit Strecken.
+  - Social-Feed und Neueste Medien zusammenlegen (wirken doppelt).
+  **Gross:**
+  - Kommentare zu Sessions + Likes auf Kommentare (Modell, Melden/Ausblenden, Sperren, DSGVO-Loeschung, Altersgrenze
+    Social, Benachrichtigungen, Web + Android + iOS).
+  - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md.
+  - Schnellster km bzw. Tempo (min/km) — schon geplant, s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.
+  **Entscheidung/Telefonat mit ihm:** „nur mit Beschleunigungsdaten" aus der Filterzeile nehmen (nur Alle/Freunde)?;
+  Sportart-Dropdown; Foil-Band-Auswahl. **Kein Code:** kurzer Text „Warum pumpfoil.org?" fuer Freunde/Kritiker.
+
 - **🔲 01.11. (Jan) — Garmin: Upload direkt per WLAN, ohne Handy?** Nur gemerkt, nichts gebaut. Anlass: ein Nutzer mit
   Forerunner 245 ohne brauchbares Handy wollte per Kabel/Garmin Express hochladen (geht nicht: Connect-IQ-Apps kommen nur
   ueber Garmin Connect Mobile ins Netz). Jans fēnix 7X Pro hat WLAN. Stand heute: `Uploader.phoneConnected()`
