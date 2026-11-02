@@ -2856,6 +2856,7 @@ const nl: Record<string, string> = {
   "tab.rules": "Regels",
   "team.alleMeine": "Al mijn teams",
   "team.feed30": "Sessies van teamleden van de afgelopen 30 dagen.",
+  "period.yesterday": "Gisteren",
 };
 
 export default nl;

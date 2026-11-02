@@ -2796,6 +2796,7 @@ const ptPT: Record<string, string> = {
   "tab.rules": "Regras",
   "team.alleMeine": "Todas as minhas equipas",
   "team.feed30": "Sessões dos membros da equipa nos últimos 30 dias.",
+  "period.yesterday": "Ontem",
 };
 
 export default ptPT;

@@ -2777,6 +2777,7 @@ const nb: Record<string, string> = {
   "tab.rules": "Regler",
   "team.alleMeine": "Alle lagene mine",
   "team.feed30": "Økter fra lagmedlemmer de siste 30 dagene.",
+  "period.yesterday": "I går",
 };
 
 export default nb;

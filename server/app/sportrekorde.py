@@ -164,8 +164,8 @@ def persoenlich(db, user_id: int, cut=None) -> list[dict]:
          .filter(S.user_id == user_id, S.deleted.isnot(True), S.flagged.isnot(True),
                  S.status.notin_(("recording", "live")), S.sport_class.in_(list(JE_SPORT)),
                  or_(S.data_quality.is_(None), S.data_quality == "ok")))
-    if cut is not None:
-        q = q.filter(S.started_at >= cut)
+    from .api.community import _ab
+    q = _ab(q, cut, S.started_at)   # auch „Gestern" (Zeitraum mit Obergrenze, 02.11.2026)
     je: dict[str, list] = {}
     for z in q.all():
         je.setdefault(z[5], []).append(z)

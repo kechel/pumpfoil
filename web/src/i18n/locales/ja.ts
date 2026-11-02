@@ -2798,6 +2798,7 @@ const ja: Record<string, string> = {
   "tab.rules": "ルール",
   "team.alleMeine": "自分のすべてのチーム",
   "team.feed30": "チームメンバーの過去30日間のセッション。",
+  "period.yesterday": "昨日",
 };
 
 export default ja;

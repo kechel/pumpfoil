@@ -8,7 +8,7 @@ import { fmtDate } from "../lib/time";
 
 // Zeitfenster wie bei den Community-Rekorden.
 const PERIODS: [string, string][] = [
-  ["today", "period.today"], ["10d", "period.10d"], ["30d", "period.30d"],
+  ["yesterday", "period.yesterday"], ["today", "period.today"], ["10d", "period.10d"], ["30d", "period.30d"],
   ["365d", "period.365d"], ["all", "period.all"],
 ];
 

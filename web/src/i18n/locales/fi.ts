@@ -2837,6 +2837,7 @@ const fi: Record<string, string> = {
   "tab.rules": "Säännöt",
   "team.alleMeine": "Kaikki tiimini",
   "team.feed30": "Tiimin jäsenten sessiot viimeiseltä 30 päivältä.",
+  "period.yesterday": "Eilen",
 };
 
 export default fi;

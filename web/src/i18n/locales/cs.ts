@@ -2855,6 +2855,7 @@ const cs: Record<string, string> = {
   "tab.rules": "Pravidla",
   "team.alleMeine": "Všechny moje týmy",
   "team.feed30": "Vyjížďky členů týmu za posledních 30 dní.",
+  "period.yesterday": "Včera",
 };
 
 export default cs;

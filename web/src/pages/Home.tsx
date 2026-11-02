@@ -103,7 +103,9 @@ const CACHE_SCHWELLE_MS = 400;
 
 const MIN_BAND_FAHRER = 3;
 
+// „Gestern" vor „Heute" (Jan, 02.11.2026: „gestern | heute | 10 Tage"); der Server begrenzt es auch nach oben.
 export const PERIODS: [string, string][] = [
+  ["yesterday", "period.yesterday"],
   ["today", "period.today"],
   ["10d", "period.10d"],
   ["30d", "period.30d"],

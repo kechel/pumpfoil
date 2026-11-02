@@ -161,3 +161,29 @@ def test_flagge_nur_wenn_gesetzt(client):
     assert next(x for x in d["distance"] if x["user_id"] == uid)["land"] == "PL"
     client.put("/api/settings", headers=kopf, json={"land": "<script>"})
     assert client.get("/api/settings", headers=kopf).json()["land"] == ""
+
+
+def test_zeitraum_gestern_hat_obergrenze(client):
+    # Zeitraum „Gestern" (02.11.2026): nur Sessions vom Vortag (UTC wie „Heute"), keine von heute.
+    from app.api.community import _cutoff, _drin
+    c = _cutoff("yesterday")
+    heute0 = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    assert c == heute0 - timedelta(days=1) and c.bis == heute0
+    assert _drin(heute0 - timedelta(hours=3), c) and not _drin(heute0 + timedelta(minutes=1), c)
+    kopf, uid = _konto(client)
+    db = SessionLocal()
+    try:
+        basis = 4.0e13 + time.time() * 1000
+        for start, dist in ((heute0 - timedelta(hours=5), basis), (heute0 + timedelta(minutes=5), basis * 2)):
+            s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid, started_at=start,
+                               ended_at=start + timedelta(minutes=30), sport="pumpfoil", is_pumpfoil=True, status="done", gps_hz=1)
+            db.add(s); db.flush()
+            db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="gps_only", num_runs=1,
+                                         foiling_distance_m=dist, foiling_time_s=60.0))
+            _ANGELEGT.append(s.id)
+        db.commit()
+    finally:
+        db.close()
+    d = client.get("/api/community/leaders?period=yesterday&accel_only=false&sport=pumpfoil", headers=kopf).json()
+    ich = next(x for x in d["distance"] if x["user_id"] == uid)
+    assert abs(ich["distance_m"] - basis) < 1                    # nur die Session von gestern

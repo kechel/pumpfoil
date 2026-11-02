@@ -2802,6 +2802,7 @@ const pt: Record<string, string> = {
   "tab.rules": "Regras",
   "team.alleMeine": "Todas as minhas equipes",
   "team.feed30": "Sessões dos membros da equipe nos últimos 30 dias.",
+  "period.yesterday": "Ontem",
 };
 
 export default pt;

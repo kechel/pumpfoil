@@ -2687,6 +2687,7 @@ const gsw: Record<string, string> = {
   "tab.rules": "Regle",
   "team.alleMeine": "Alli mini Teams",
   "team.feed30": "Sessions vo de Team-Mitglieder us de letschte 30 Täg.",
+  "period.yesterday": "Geschter",
 };
 
 export default gsw

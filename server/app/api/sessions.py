@@ -38,7 +38,7 @@ from .. import ortverbergen, sportprofil, teilen
 from .. import pumpgleit_anzeige as PA
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
-from .community import _community, _spot_cond
+from .community import _ab, _community, _spot_cond
 from .deps import current_user, require_social
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -1429,7 +1429,7 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
         q = q.filter(or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil")
                      if sport == "pumpfoil" else models.Session.sport_class == sport)
     if grenze is not None:
-        q = q.filter(models.Session.started_at >= grenze)
+        q = _ab(q, grenze, models.Session.started_at)
     # `foil`: None = alle (bisheriges Verhalten) · "none" = nur Sessions OHNE Foil-Eintrag ·
     # int = genau dieses Foil. Fuer die Aufschluesselung je Foil auf der Startseite.
     if foil == "none":
@@ -1920,7 +1920,7 @@ def stats_by_foil(
         q = q.filter(or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil")
                      if gewaehlt == "pumpfoil" else models.Session.sport_class == gewaehlt)
     if grenze is not None:
-        q = q.filter(models.Session.started_at >= grenze)
+        q = _ab(q, grenze, models.Session.started_at)
     gruppen = q.group_by(models.Session.foil_id).all()
     if not gruppen:
         return []

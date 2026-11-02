@@ -399,7 +399,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         if fenster is not None:
             q = q.filter(S.started_at >= fenster[0], S.started_at < fenster[1])
         elif cut is not None:
-            q = q.filter(S.started_at >= cut)
+            q = C._ab(q, cut, S.started_at)
         if tf.nur_brett:
             q = q.filter(S.placement == "board")
         if ohne_dateien:
@@ -533,9 +533,7 @@ def statistik(db: Session, team: models.Team, period: str, sportart: str = "pump
         func.coalesce(func.sum(AR.foiling_distance_m), 0), func.coalesce(func.sum(AR.foiling_time_s), 0),
         func.count(func.distinct(S.spot_id)), func.count(func.distinct(S.user_id)),
     ), None, accel_only, sportart).filter(S.user_id.in_(ids))
-    cut = C._cutoff(period)
-    if cut is not None:
-        q = q.filter(S.started_at >= cut)
+    q = C._ab(q, C._cutoff(period), S.started_at)
     n, runs, pumps, dist, zeit, spots, aktive = q.one()
     out = {"sessions": int(n or 0), "runs": int(runs or 0), "pumps": int(pumps or 0),
            "distance_m": round(float(dist or 0), 1), "time_s": round(float(zeit or 0), 1),

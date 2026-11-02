@@ -2802,6 +2802,7 @@ const id: Record<string, string> = {
   "tab.rules": "Aturan",
   "team.alleMeine": "Semua tim saya",
   "team.feed30": "Sesi anggota tim dari 30 hari terakhir.",
+  "period.yesterday": "Kemarin",
 };
 
 export default id;

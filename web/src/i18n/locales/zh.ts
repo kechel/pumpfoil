@@ -2799,6 +2799,7 @@ const zh: Record<string, string> = {
   "tab.rules": "规则",
   "team.alleMeine": "我的所有团队",
   "team.feed30": "团队成员最近 30 天的记录。",
+  "period.yesterday": "昨天",
 };
 
 export default zh;

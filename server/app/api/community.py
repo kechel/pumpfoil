@@ -40,7 +40,7 @@ router = APIRouter(prefix="/api/community", tags=["community"])
 # nur Chat + Schreiben (Like/Vote via require_social an den POSTs). Bleibt als eigener Router bestehen.
 spot_router = APIRouter(prefix="/api/community", tags=["community"])
 
-PERIODS = {"today": 1, "10d": 10, "30d": 30, "365d": 365, "all": None}
+PERIODS = {"yesterday": 1, "today": 1, "10d": 10, "30d": 30, "365d": 365, "all": None}
 METRICS = ("distance", "duration", "speed", "runs", "glide",
            "session_distance", "session_time", "session_pumps", "max_hr", "early_bird", "night_owl",
            # Einziger Rekord, der einem NUTZER gehört statt einer Session: Summe der Carves > 180°
@@ -207,14 +207,52 @@ def _ort(db: Session, ort_sichtbarkeit, owner_id, place, lat, lon) -> tuple[str 
         _ist_verborgen(ort_sichtbarkeit, owner_id, _verbergende_nutzer(db)), place, lat, lon)
 
 
+class Zeitfenster(datetime):
+    """Untergrenze eines Zeitraums MIT Obergrenze `bis` (Jan, 02.11.2026: Zeitraum „Gestern"). Alle anderen Zeitraeume
+    reichen bis jetzt und sind einfache datetimes; wer einen Zeitraum filtert, nimmt `_ab` bzw. `_drin`, dann gilt die
+    Obergrenze automatisch mit."""
+    bis: datetime | None = None
+
+
 def _cutoff(period: str) -> datetime | None:
     days = PERIODS.get(period)
     if days is None:
         return None
     now = datetime.now(timezone.utc)
+    mitternacht = now.replace(hour=0, minute=0, second=0, microsecond=0)
     if period == "today":
-        return now.replace(hour=0, minute=0, second=0, microsecond=0)
+        return mitternacht
+    if period == "yesterday":
+        v = mitternacht - timedelta(days=1)
+        f = Zeitfenster(v.year, v.month, v.day, tzinfo=v.tzinfo)
+        f.bis = mitternacht
+        return f
     return now - timedelta(days=days)
+
+
+def _rein(cut: datetime) -> datetime:
+    """Als einfaches datetime fuer die Datenbank (der Treiber muss die Unterklasse nicht kennen)."""
+    return datetime(cut.year, cut.month, cut.day, cut.hour, cut.minute, cut.second, cut.microsecond, cut.tzinfo)
+
+
+def _ab(q, cut: datetime | None, spalte=None):
+    """Zeitraum-Filter: ab `cut`, bei einem Zeitfenster („Gestern") auch vor dessen Ende."""
+    if cut is None:
+        return q
+    sp = S.started_at if spalte is None else spalte
+    q = q.filter(sp >= _rein(cut))
+    bis = getattr(cut, "bis", None)
+    return q.filter(sp < bis) if bis is not None else q
+
+
+def _drin(t: datetime | None, cut: datetime | None) -> bool:
+    """Dasselbe in Python: liegt `t` im Zeitraum?"""
+    if cut is None:
+        return True
+    if t is None:
+        return False
+    bis = getattr(cut, "bis", None)
+    return t >= cut and (bis is None or t < bis)
 
 
 def _community(query, viewer_id: int | None = None, accel_only: bool = True,
@@ -683,7 +721,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(valcol > 0)
     if cut is not None:
-        q = q.filter(S.started_at >= cut)
+        q = _ab(q, cut, S.started_at)
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
     # Gleichstand: wer den Wert ZUERST gefahren ist, haelt den Rekord. Ohne zweites Sortierkriterium
@@ -842,7 +880,7 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(AR.carve_m.isnot(None))
     if cut is not None:
-        q = q.filter(S.started_at >= cut)
+        q = _ab(q, cut, S.started_at)
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
     row = q.group_by(U.id, U.display_name, U.avatar_url).order_by(total.desc()).first()
@@ -1123,7 +1161,7 @@ def _sport_rekorde_dazu(db: Session, out: dict, sport: str, spot: str | None, vi
     merk: dict = {}
     for p in out:
         cut = (perioden or {}).get(p, _cutoff(p)) if perioden else _cutoff(p)
-        auswahl = [z for z in zeilen if cut is None or (z[1] is not None and z[1] >= cut)]
+        auswahl = [z for z in zeilen if _drin(z[1], cut)]
         for m in metriken:
             b = sportrekorde.bestes(db, m, auswahl, merk)
             if b is None:
@@ -1176,7 +1214,7 @@ def start_success(user: models.User = Depends(current_user), db: Session = Depen
         if sa is not None and sa.tzinfo is None:
             sa = sa.replace(tzinfo=timezone.utc)
         for p, cut in cuts.items():
-            if cut is None or (sa is not None and sa >= cut):
+            if _drin(sa, cut):
                 agg[p][0] += n_att
                 agg[p][1] += n_succ
     windows = {}
@@ -1272,7 +1310,7 @@ def carve_stats(user: models.User = Depends(current_user), db: Session = Depends
         if sa is not None and sa.tzinfo is None:
             sa = sa.replace(tzinfo=timezone.utc)
         for p, cut in cuts.items():
-            if cut is None or (sa is not None and sa >= cut):
+            if _drin(sa, cut):
                 agg[p][0] += sc; agg[p][1] += mc; agg[p][2] += lc
     if dirty:
         db.commit()
@@ -1330,7 +1368,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
     ), _user.id, accel_only, sport)
     q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
-        q = q.filter(S.started_at >= cut)
+        q = _ab(q, cut, S.started_at)
     if spot:
         q = q.filter(_spot_cond(spot, db))
     rows = q.group_by(U.id, U.display_name, U.avatar_url).all()
@@ -1349,7 +1387,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         for x in zeilen:
             qq = _band_filter(db, _community(db.query(S.id), _user.id, accel_only, sport), foil_band, _user.id)
             if cut is not None:
-                qq = qq.filter(S.started_at >= cut)
+                qq = _ab(qq, cut, S.started_at)
             if spot:
                 qq = qq.filter(_spot_cond(spot, db))
             r = qq.filter(S.user_id == x["user_id"]).order_by(col.desc(), S.id.desc()).first()
@@ -1754,7 +1792,7 @@ def spot_compare(period: str = "all", accel_only: bool = False,
                                     # „Ort verbergen": gehoert zu keinem echten Spot (wie _spot_cond).
                                     not_(_verborgen_cond(db)))
     if cut is not None:
-        aq = aq.filter(S.started_at >= cut)
+        aq = _ab(aq, cut, S.started_at)
     agg = {
         name: {
             "spot": name, "spot_id": sid,
@@ -1773,7 +1811,7 @@ def spot_compare(period: str = "all", accel_only: bool = False,
         ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "", valcol > 0,
                                         not_(_verborgen_cond(db)))
         if cut is not None:
-            hq = hq.filter(S.started_at >= cut)
+            hq = _ab(hq, cut, S.started_at)
         hq = hq.distinct(S.place_name).order_by(S.place_name, valcol.desc(), S.started_at.asc(), S.id.asc())
         return {r[0]: r for r in hq.all()}
 
@@ -2457,7 +2495,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                       models.Session.deleted == False)  # noqa: E712
               .group_by(models.Foil.brand, models.Foil.model, models.Foil.size))
         if foil_cut is not None:
-            fq = fq.filter(models.Session.started_at >= foil_cut)
+            fq = _ab(fq, foil_cut, models.Session.started_at)
         reihen = fq.order_by(func.max(models.Session.started_at).desc()).all()
         raus["foils"] = [{"brand": b, "model": m, "size": g} for b, m, g, _ in reihen]
     if sicht.get("channel"):
@@ -2614,7 +2652,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
             # Spot-Titel mit Link den echten Ort (Security-Review 29.10.2026).
             sub = sub.filter(valcol > 0, S.spot_id.isnot(None), not_(_verborgen_cond(db)))
             if cut is not None:
-                sub = sub.filter(S.started_at >= cut)
+                sub = _ab(sub, cut, S.started_at)
             sub = sub.subquery()
             for sid, val, st, ses_id in (db.query(sub.c.sid, sub.c.val, sub.c.st, sub.c.session_id)
                                          .filter(sub.c.rn == 1, sub.c.uid == u.id).all()):
@@ -2656,7 +2694,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                           user.id, basis_accel, "pumpfoil")
         csub = csub.filter(AR.carve_m.isnot(None), S.spot_id.isnot(None), not_(_verborgen_cond(db)))
         if cut is not None:
-            csub = csub.filter(S.started_at >= cut)
+            csub = _ab(csub, cut, S.started_at)
         csub = csub.group_by(S.spot_id, S.user_id).subquery()
         for sid, val in (db.query(csub.c.sid, csub.c.val)
                          .filter(csub.c.rn == 1, csub.c.uid == u.id, csub.c.val > 0).all()):
@@ -2679,7 +2717,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                                 user.id, False, "pumpfoil")
             fahrer = fahrer.filter(S.spot_id.in_({x["spot_id"] for x in spot_titel}))
             if cut is not None:
-                fahrer = fahrer.filter(S.started_at >= cut)
+                fahrer = _ab(fahrer, cut, S.started_at)
             genug = {sid for sid, n in fahrer.group_by(S.spot_id).all() if (n or 0) >= 2}
             for x in spot_titel:
                 x["allein"] = x["spot_id"] not in genug
@@ -2835,7 +2873,7 @@ def top_liked(
     q = _community(db.query(*BRIEF_COLS, likes_sq.c.n), user.id).join(likes_sq, likes_sq.c.session_id == S.id)
     cut = _cutoff(period)
     if cut is not None:
-        q = q.filter(S.started_at >= cut)
+        q = _ab(q, cut, S.started_at)
     rows = q.order_by(likes_sq.c.n.desc(), S.started_at.desc()).limit(min(max(limit, 1), 20)).all()
     return _attach_social(db, user, [_brief(*r[:len(BRIEF_COLS)], verbergende=_verbergende_nutzer(db)) for r in rows])
 
