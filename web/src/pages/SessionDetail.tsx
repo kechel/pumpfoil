@@ -1891,7 +1891,7 @@ export default function SessionDetail() {
         <div className="ml-auto inline-flex shrink-0 overflow-hidden rounded-lg sm:order-last sm:ml-0">
           <button
             disabled={neighbors.older == null}
-            onClick={() => neighbors.older != null && nav(`/sessions/${neighbors.older}`, { state: ort.state })}
+            onClick={() => neighbors.older != null && nav(`/sessions/${neighbors.older}`, { state: ort.state, replace: true })}
             className="bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
             title={t("sd.olderTitle")}
           >
@@ -1899,7 +1899,7 @@ export default function SessionDetail() {
           </button>
           <button
             disabled={neighbors.newer == null}
-            onClick={() => neighbors.newer != null && nav(`/sessions/${neighbors.newer}`, { state: ort.state })}
+            onClick={() => neighbors.newer != null && nav(`/sessions/${neighbors.newer}`, { state: ort.state, replace: true })}
             className="border-l border-slate-900/60 bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
             title={t("sd.newerTitle")}
           >
