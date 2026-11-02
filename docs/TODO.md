@@ -1564,16 +1564,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Session) · doppelte Rekordanzeige auf Home -> eine Foil-Auswahl · Inhaber sieht, wer geliked hat · Zeitraum „Gestern"
   ueberall (Server-Obergrenze) · Bestenliste als Bild teilen (hell/dunkel, Logo, Flaggen) · Spot-Seite mit denselben
   Bestenlisten wie die Community · eigene Platzierung unter der Top 10.
-  **Nicht machen (Jan, 02.11. abends):** Gleitphasen-Bestenliste, Feed + Medien zusammenlegen. Leere Abschnitte: von Jan
+  **Nicht machen (Jan, 02.11. abends):** Gleitphasen-Bestenliste, Feed + Medien zusammenlegen, Kacheln zur Session des
+  Erstplatzierten (die sieht man per Klick auf die Session), „Link kopieren" an der Bestenliste (/community ist nur fuer
+  Angemeldete; nach aussen teilt man das Bild). Leere Abschnitte: von Jan
   geprueft, erledigt. Gestaltungsvorschlaege fuers Teilen-Bild: nicht vormerken, kommen sie, kommen sie. „Warum
   pumpfoil.org?": erledigt als Seite /why-pumpfoil (18 Sprachen).
   **Bewusst anders entschieden (Jan):** Bestenliste NICHT ganz an den Anfang · Streckenverlauf bleibt auf ALLEN Kacheln ·
   Spot-Rekorde bleiben Kacheln (dazu Bestenlisten statt Tabelle) · „nur mit Beschleunigungsdaten" bleibt in der Filterzeile ·
   Wetter fliegt nicht raus, sondern ist ein eigener Reiter der Spot-Seite.
-  **Offen, klein:**
-  - Bestenliste als Direktlink mit Filtern: die Filter stehen schon in der URL, es fehlt nur ein Knopf „Link kopieren".
   **Offen, mittel:**
-  - Neben der Bestenliste Kacheln zur Session des Erstplatzierten statt der Rekord-Kachelwand (Umbau Community-Kopf).
   - Sessionliste sortierbar.
   - Zaehler „freigeschaltete Sportarten".
   **Offen, gross (spaeter):**
