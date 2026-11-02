@@ -17,6 +17,7 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 | `/` (Gast) | `Landing.tsx` | Öffentliche Startseite: erklärt, wofür Pumpfoil da ist. Nötig für die Google-OAuth-Prüfung (Homepage muss den App-Zweck ohne Anmeldung zeigen). |
 | `/login` | `Login.tsx` | Login + Registrierung, OAuth (Google/Apple). Link zum Impressum. |
 | `/reset` | `Reset.tsx` | Passwort-Reset. |
+| `/warum` | `Warum.tsx` | **Warum pumpfoil.org?** — was das Projekt ausmacht (Community, freie Software, Transparenz, offene Auswertungen), öffentlich, 18 Sprachen (`why.*`). Verlinkt im Menü über dem Impressum, auf der Startseite (Abschluss + Fuß) und im Gast-Fuß. |
 | `/impressum` | `Impressum.tsx` | **Impressum + Datenschutzerklärung** (rechtl. Kontakt/Anbieterkennung) — dient auch als Support-/Kontakt-Anlaufstelle. |
 | `/s/:token` | `PublicSession.tsx` | Öffentlicher **Teilen-Link** einer Session, read-only, ohne Login (eigene Kopf-/Fußzeile; rendert `SessionDetail` im Public-Modus). |
 

@@ -706,6 +706,7 @@ export default function Landing() {
         <section className="rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-10 text-center">
           <h2 className="text-xl font-bold sm:text-2xl">{t("land.ctaTitle")}</h2>
           <p className="mx-auto mt-2 max-w-xl text-slate-300">{t("land.ctaBody")}</p>
+          <Link to="/warum" className="mt-3 inline-block text-brand-700 hover:underline dark:text-brand-300">{t("nav.why")} →</Link>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               to="/login"
@@ -719,6 +720,8 @@ export default function Landing() {
       </main>
 
       <footer className="mx-auto mt-10 max-w-5xl px-5 py-8 text-center text-xs text-slate-500">
+        <Link to="/warum" className="hover:text-slate-300">{t("nav.why")}</Link>
+        <span className="mx-2">·</span>
         <Link to="/impressum" className="hover:text-slate-300">{t("nav.imprint")}</Link>
         <span className="mx-2">·</span>
         <span>{t("land.footerLicense")}</span>

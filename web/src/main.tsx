@@ -10,7 +10,7 @@ import { api, getToken, setToken } from "./lib/api";
 import { APP_BUILD } from "./buildInfo";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { applyFontScale, getFontScale } from "./lib/fontscale";
-import { I18nProvider, langAusPfad, ladeSprache, detectInitialLang } from "./i18n";
+import { I18nProvider, langAusPfad, ladeSprache, detectInitialLang, useT } from "./i18n";
 
 // Chunk-/Modul-Ladefehler nach einem Deploy (alte Chunk-URL nach PWA-Update) -> harter Neustart statt
 // Blank-Screen: Service Worker + Caches weg, dann neu laden (public/app-watchdog.js, hoechstens 2 Versuche
@@ -78,6 +78,7 @@ const PublicSession = seite(() => import("./pages/PublicSession"));
 const Compare = seite(() => import("./pages/Compare"));
 const Labeling = seite(() => import("./pages/Labeling"));
 const Impressum = seite(() => import("./pages/Impressum"));
+const Warum = seite(() => import("./pages/Warum"));
 const Datenloeschung = seite(() => import("./pages/Datenloeschung"));
 const Changelog = seite(() => import("./pages/Changelog"));
 const Import = seite(() => import("./pages/Import"));
@@ -173,6 +174,7 @@ const TEXT = { text: true };
 const GAST = { gast: true };
 
 function GastRahmen() {
+  const t = useT();
   const alt = "pumpfoil.org — track every pump";
   return (
     <div className="flex min-h-screen flex-col bg-slate-950">
@@ -189,6 +191,8 @@ function GastRahmen() {
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6"><Outlet /></main>
       <footer className="border-t border-slate-800/60 px-4 py-5 text-center text-xs text-slate-400">
         <a href="/" className="hover:text-slate-200">pumpfoil.org</a>
+        <span className="mx-2">·</span>
+        <a href="/warum" className="hover:text-slate-200">{t("nav.why")}</a>
         <span className="mx-2">·</span>
         <a href="/impressum" className="hover:text-slate-200">Impressum</a>
       </footer>
@@ -216,6 +220,7 @@ const router = createBrowserRouter([
       //   zurueck (Jan, 07.09.), und der Feedback-Knopf im Changelog tat nichts, weil das
       //   Feedback-Fenster im App-Rahmen haengt (Jan, 24.09.).
       // - /datenloeschung: Statusseite fuer Facebook-Loeschanfragen, Meta prueft sie vor der Freigabe.
+      { path: "/warum", element: <Warum />, handle: TEXT },
       { path: "/impressum", element: <Impressum />, handle: TEXT },
       { path: "/datenloeschung", element: <Datenloeschung />, handle: TEXT },
       { path: "/changelog", element: <Changelog />, handle: TEXT },

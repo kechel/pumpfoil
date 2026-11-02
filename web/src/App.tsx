@@ -471,6 +471,9 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           </svg>
           RedNote
         </a>
+        <Link to="/warum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
+          {t("nav.why")}
+        </Link>
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
         </Link>
