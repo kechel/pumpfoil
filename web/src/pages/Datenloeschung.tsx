@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useT } from "../i18n";
 import { ScrollToTop } from "../components/ScrollToTop";
 
@@ -19,8 +20,7 @@ export default function Datenloeschung() {
     <div className="mx-auto max-w-2xl p-6"
          style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
-      <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
-      <h1 className="mb-4 mt-4 text-xl font-bold">{t("del.title")}</h1>
+      <h1 className="mb-4 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />{t("del.title")}</h1>
 
       <p className="mb-4 text-slate-200">{t("del.done")}</p>
       {code && (

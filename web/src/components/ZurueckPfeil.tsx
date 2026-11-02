@@ -18,9 +18,15 @@ export function useSeitenPfeil(): boolean {
   return useSyncExternalStore((h) => { hoerer.add(h); return () => { hoerer.delete(h); }; }, () => anzahl > 0);
 }
 
-export function ZurueckPfeil({ fallback = "/", className = "" }: { fallback?: string; className?: string }) {
+/** `rahmen`: der Rueckfall-Pfeil des App-Rahmens. Er darf sich NICHT mitzaehlen — sonst blendet er sich selbst aus,
+ * zaehlt wieder 0, blendet sich ein … (Endlosschleife, React #185, 02.11.2026 kurz live). */
+export function ZurueckPfeil({ fallback = "/", className = "", rahmen = false }: { fallback?: string; className?: string; rahmen?: boolean }) {
   const nav = useNavigate();
-  useEffect(() => { anzahl += 1; melden(); return () => { anzahl -= 1; melden(); }; }, []);
+  useEffect(() => {
+    if (rahmen) return;
+    anzahl += 1; melden();
+    return () => { anzahl -= 1; melden(); };
+  }, [rahmen]);
   const t = useT();
   const text = t("common.back").replace(/^←\s*/, "");
   return (

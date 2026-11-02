@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Link } from "react-router-dom";
 import { useT } from "../i18n";
 import { api } from "../lib/api";
@@ -399,8 +400,7 @@ export default function Changelog() {
     <div className="mx-auto max-w-2xl p-6"
          style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
-      <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
-      <h1 className="mb-4 mt-4 text-xl font-bold">{t("nav.changelog")}</h1>
+      <h1 className="mb-4 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />{t("nav.changelog")}</h1>
 
       <ReleaseStatus />
       <SportStand />

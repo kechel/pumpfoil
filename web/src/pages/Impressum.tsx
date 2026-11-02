@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useT } from "../i18n";
 import { ScrollToTop } from "../components/ScrollToTop";
 
@@ -10,8 +10,7 @@ export default function Impressum() {
     <div className="mx-auto max-w-2xl p-6"
          style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
-      <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
-      <h1 className="mb-4 mt-4 text-xl font-bold">{t("imp.title")}</h1>
+      <h1 className="mb-4 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />{t("imp.title")}</h1>
       <div className="space-y-1 text-slate-200">
         {/* Betreiberangaben aus Env (VITE_IMPRINT_*, in web/.env.local) – nicht im Repo. */}
         {(import.meta.env.VITE_IMPRINT_NAME ?? "") && <p>{import.meta.env.VITE_IMPRINT_NAME}</p>}

@@ -510,7 +510,7 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
         <AssistentBand />
         <FeedbackRequestBanner />
         {/* Rueckfall fuer Seiten ohne eigenen Pfeil in der Titelzeile (s. components/ZurueckPfeil.tsx). */}
-        {!hauptseite && !seitenPfeil && <div className="mb-2"><ZurueckPfeil /></div>}
+        {!hauptseite && !seitenPfeil && <div className="mb-2"><ZurueckPfeil rahmen /></div>}
         {children ?? <Outlet />}
       </main>
 

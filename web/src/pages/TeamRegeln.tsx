@@ -3,6 +3,7 @@
 // oeffentliche Teamseite darauf verweisen kann. Jeder Abschnitt ist ein Titel + Punkte; die Punkte stehen in
 // EINEM Text je Abschnitt, getrennt durch Zeilenumbrueche (so bleibt es je Sprache ein Schluessel).
 // Was hier steht, muss zu server/app/teams.py passen — bei jeder Regel-Aenderung mitziehen.
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getToken } from "../lib/api";
@@ -24,10 +25,7 @@ export default function TeamRegeln() {
   return (
     <div className="mx-auto max-w-2xl">
       {!hash && <ScrollToTop />}
-      <Link to={getToken() ? "/teams" : "/"} className="text-sm text-brand-600 hover:underline dark:text-brand-300">
-        {getToken() ? `← ${t("team.meine")}` : t("common.back")}
-      </Link>
-      <h1 className="mb-2 mt-3 text-xl font-bold text-slate-100">{t("team.regeln.titel")}</h1>
+      <h1 className="mb-2 flex items-center gap-2 text-xl font-bold text-slate-100"><ZurueckPfeil fallback={getToken() ? "/teams" : "/"} />{t("team.regeln.titel")}</h1>
       <p className="mb-5 text-sm text-slate-300">{t("team.regeln.intro")}</p>
       <div className="space-y-4">
         {ABSCHNITTE.map((a) => (
