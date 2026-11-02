@@ -347,7 +347,7 @@ export default function Team() {
   };
 
   return (
-    <div className="team-farbe w-full max-w-4xl" style={teamFarbStil(kopf.farbe)}>
+    <div className="team-farbe w-full" style={teamFarbStil(kopf.farbe)}>
       {kopf.banner_url && <TeamBanner url={kopf.banner_url} fokus={kopf.banner_fokus} className="mb-4" />}
       {/* Kopf als Raster: Wappen links ueber alle Zeilen; Name + Zahnrad oben; darunter Mitglieder · oeffentlich ·
           Sportarten, und der Team-Chat rechtsbuendig in derselben Spalte wie das Zahnrad (Jan, 01.11.2026). */}

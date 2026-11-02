@@ -170,7 +170,7 @@ export default function TeamEventSeite() {
   if (!team || !ev) return <p className="text-sm text-slate-400">{t("common.loading")}</p>;
 
   return (
-    <div className="team-farbe w-full max-w-4xl" style={teamFarbStil(team.farbe)}>
+    <div className="team-farbe w-full" style={teamFarbStil(team.farbe)}>
       {/* Zum Team: Wappen + Name als Link (der Zurueck-Pfeil steht in der Titelzeile darunter). */}
       <Link to={`/teams/${team.slug}`} className="mb-3 inline-flex items-center gap-2 text-sm text-slate-300 hover:text-slate-200">
         <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
