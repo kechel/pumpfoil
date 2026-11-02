@@ -15,13 +15,18 @@ export type BildDaten = {
   zeilen: BildZeile[];      // hoechstens 10
   eigene?: BildZeile | null; // eigene Zeile unter Platz 10
   leer: string;             // Text, wenn es keine Zeilen gibt
-  akzent?: string;          // Teamfarbe; sonst Marken-Cyan
+  akzent?: string;          // Teamfarbe fuer die dunkle Fassung; sonst Marken-Cyan
+  akzentHell?: string;      // Teamfarbe fuer die helle Fassung
   logo?: HTMLImageElement | null;   // Teamwappen links neben der Ueberschrift
-  marke?: HTMLImageElement | null;  // unser Schriftzug unten rechts
+  marke?: HTMLImageElement | null;  // unser Schriftzug unten rechts (zur Fassung passend: weiss auf dunkel, navy auf hell)
+  hell?: boolean;           // helle Fassung (Jan, 02.11.2026: Umschalter wie beim Teilen einer Session)
 };
 
-// Dieselben Farben wie die Session-Karte (sharecard.py: NAVY, WATER, CYAN, Sekundaer).
-const NAVY = "#020617", WASSER = "#0c1426", CYAN = "#22d3ee", SEK = "#cbd5e1", LEISE = "#94a3b8", WEISS = "#ffffff";
+// Dieselben Farben wie die Session-Karte (sharecard.py: NAVY, WATER, CYAN/DCYAN, Sekundaer), je Fassung.
+const DUNKEL = { grund: "#020617", flaeche: "#0c1426", linie: "#1e293b", akzent: "#22d3ee", text: "#ffffff", sek: "#cbd5e1",
+  leise: "#94a3b8", kreis: "#334155", kreisText: "#ffffff", topText: "#020617" };
+const HELL = { grund: "#f8fafc", flaeche: "#e0f2fe", linie: "#e2e8f0", akzent: "#0e7490", text: "#0f172a", sek: "#475569",
+  leise: "#64748b", kreis: "#cbd5e1", kreisText: "#0f172a", topText: "#ffffff" };
 
 export function initialenAus(name: string | null): string {
   const teile = (name ?? "").trim().split(/\s+/).filter(Boolean);
@@ -44,9 +49,10 @@ export async function bildLaden(url: string): Promise<HTMLImageElement> {
 }
 
 export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
-  const akzent = d.akzent || CYAN;
+  const F = d.hell ? HELL : DUNKEL;
+  const akzent = (d.hell ? d.akzentHell : d.akzent) || F.akzent;
   const X = 90;
-  g.fillStyle = NAVY;
+  g.fillStyle = F.grund;
   g.fillRect(0, 0, BILD_B, BILD_H);
 
   // Kopf wie bei der Session-Karte: Ueberschrift + Unterzeile oben links, optional mit Wappen davor.
@@ -72,34 +78,34 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
 
   const zeile = (z: BildZeile, y: number) => {
     const mitte = y + zh / 2;
-    if (z.ich) { g.fillStyle = WASSER; g.beginPath(); g.roundRect(X - 24, y + 4, BILD_B - 2 * X + 48, zh - 8, 16); g.fill(); }
+    if (z.ich) { g.fillStyle = F.flaeche; g.beginPath(); g.roundRect(X - 24, y + 4, BILD_B - 2 * X + 48, zh - 8, 16); g.fill(); }
     g.textBaseline = "middle";
-    g.fillStyle = z.rang <= 3 ? akzent : LEISE;
+    g.fillStyle = z.rang <= 3 ? akzent : F.leise;
     g.font = `800 ${gross}px ${SCHRIFT}`;
     g.textAlign = "right"; g.fillText(String(z.rang), X + 50, mitte);
     const r = Math.round(zh * 0.36);
-    g.fillStyle = z.rang <= 3 ? akzent : "#334155";
+    g.fillStyle = z.rang <= 3 ? akzent : F.kreis;
     g.beginPath(); g.arc(X + 70 + r, mitte, r, 0, Math.PI * 2); g.fill();
-    g.fillStyle = z.rang <= 3 ? NAVY : WEISS; g.font = `700 ${Math.round(r * 0.8)}px ${SCHRIFT}`; g.textAlign = "center";
+    g.fillStyle = z.rang <= 3 ? F.topText : F.kreisText; g.font = `700 ${Math.round(r * 0.8)}px ${SCHRIFT}`; g.textAlign = "center";
     g.fillText(z.initialen, X + 70 + r, mitte + 1);
     g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "right"; g.fillStyle = akzent;
     g.fillText(z.wert, BILD_B - X, mitte);
     const wb = g.measureText(z.wert).width;
     const nx = X + 70 + 2 * r + 24;
-    g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = WEISS;
+    g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = F.text;
     g.fillText(kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx), nx, mitte);
   };
   zeilen.forEach((z, i) => {
-    if (i > 0) { g.fillStyle = "#1e293b"; g.fillRect(X, oben + i * zh, BILD_B - 2 * X, 2); }
+    if (i > 0) { g.fillStyle = F.linie; g.fillRect(X, oben + i * zh, BILD_B - 2 * X, 2); }
     zeile(z, oben + i * zh);
   });
   if (!zeilen.length) {
-    g.fillStyle = SEK; g.font = `400 34px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillStyle = F.sek; g.font = `400 34px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText(d.leer, BILD_B / 2, (oben + unten) / 2);
   }
   if (d.eigene && zeilen.length) {
     const ye = oben + zeilen.length * zh + Math.round(zh * 0.4);
-    g.fillStyle = LEISE; g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillStyle = F.leise; g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText("⋮", X + 30, ye - Math.round(zh * 0.2));
     zeile({ ...d.eigene, ich: true }, ye);
   }
@@ -110,7 +116,7 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     const lh = 54, lw = d.marke.width * lh / d.marke.height;
     g.drawImage(d.marke, BILD_B - X - lw, BILD_H - X, lw, lh);
   }
-  g.fillStyle = LEISE; g.font = `400 26px ${SCHRIFT}`; g.textAlign = "left";
+  g.fillStyle = F.leise; g.font = `400 26px ${SCHRIFT}`; g.textAlign = "left";
   g.fillText("Have fun, keep pumping!", X, BILD_H - X + 38);
 }
 

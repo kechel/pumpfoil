@@ -20,6 +20,7 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose }: {
     leer: t("team.tafel.leer"),
     // `dunkel` = Textfarbe fuer den DUNKLEN Modus (helle Stufe, s. lib/teamFarben.ts) — auf Navy muss sie leuchten.
     akzent: (TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan).dunkel,
+    akzentHell: (TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan).hell,
   }), [team, tafel, zeitraum]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <BestenlisteBildDialog daten={daten} logoUrl={team.logo_url} dateiname={`${team.slug}-${tafel.kennzahl}.jpg`}
