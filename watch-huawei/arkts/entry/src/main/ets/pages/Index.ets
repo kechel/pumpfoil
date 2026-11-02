@@ -24,7 +24,9 @@ const CYAN_DUNKEL: string = '#0e7490';
 const ROT: string = '#b91c1c';
 // Krone (AppGallery-Pruefung 28.10.2026, Regel 3.1: „does not support the watch crown rotation"):
 // so viele Grad Drehung sind ein Seitenwechsel, und so viele vp scrollt ein Grad in den Listen.
-// Annahme ohne Hardware: degree ist die Drehung SEIT DEM LETZTEN Ereignis, im Uhrzeigersinn positiv.
+// degree ist die Drehung SEIT DEM LETZTEN Ereignis. Das Vorzeichen war bis 1.0.3 geraten und falsch herum
+// (AppGallery-Pruefung 02.11.2026 auf echter Watch 5: „rotation … is opposite to the actual rotation", auf der
+// Startseite und im Datenschutz-Text) -> krone() dreht es um.
 const KRONE_SCHRITT_GRAD: number = 24;
 const KRONE_VP_JE_GRAD: number = 3;
 
@@ -131,7 +133,8 @@ struct Index {
 
   /**
    * Zurueck/rechts wischen: waehrend der Aufnahme zur STOPP-Seite (wie Zepp BACK), nie beenden; steht die
-   * Zusammenfassung, schliesst es diese; sonst darf die App zu.
+   * Zusammenfassung, schliesst es diese; sonst schliesst sich die App. Selbst beenden statt `false` zurueckgeben:
+   * so blieb die App auf echter Uhr einfach stehen (AppGallery-Pruefung 02.11.2026: „Swiping right … cannot exit").
    */
   onBackPress(): boolean {
     if (Recorder.get().modus !== 'bereit') {
@@ -161,7 +164,8 @@ struct Index {
       this.zeigen();
       return true;
     }
-    return false;
+    this.beenden();
+    return true;
   }
 
   private t(res: Resource): string {
@@ -418,19 +422,20 @@ struct Index {
    */
   private krone(e: CrownEvent): void {
     if (deviceInfo.sdkApiVersion >= 18) {   // nur dort haengt build() die Krone an
+      const grad: number = -e.degree;   // s. KRONE_SCHRITT_GRAD
       console.info('Pumpfoil krone ' + e.action + ' ' + e.degree.toFixed(1) + ' ' + this.ansicht);
       if (this.ansicht === 'auswahl' || this.ansicht === 'datenschutz') {
-        if (this.ansicht === 'auswahl' && e.degree < 0 && this.scroller.currentOffset().yOffset <= 0) {
-          this.kroneSumme += e.degree;
+        if (this.ansicht === 'auswahl' && grad < 0 && this.scroller.currentOffset().yOffset <= 0) {
+          this.kroneSumme += grad;
           if (this.kroneSumme <= -KRONE_SCHRITT_GRAD) {
             this.kroneSumme = 0;
             this.blaettern(false);
           }
         } else {
-          this.scroller.scrollBy(0, e.degree * KRONE_VP_JE_GRAD);
+          this.scroller.scrollBy(0, grad * KRONE_VP_JE_GRAD);
         }
       } else {
-        this.kroneSumme += e.degree;
+        this.kroneSumme += grad;
         while (Math.abs(this.kroneSumme) >= KRONE_SCHRITT_GRAD) {
           const hoch: boolean = this.kroneSumme > 0;
           this.kroneSumme -= hoch ? KRONE_SCHRITT_GRAD : -KRONE_SCHRITT_GRAD;
@@ -456,6 +461,10 @@ struct Index {
 
   /** Abgelehnt: die App schliesst sich, beim naechsten Start kommt der Hinweis wieder. */
   private datenschutzNein(): void {
+    this.beenden();
+  }
+
+  private beenden(): void {
     const ctx: Context | undefined = this.getUIContext().getHostContext();
     if (ctx !== undefined) {
       try {
