@@ -36,11 +36,11 @@ function sparMinuten(d: import("../lib/api").PairedDevice): { kb: number; modusK
 export default function Account({ eingebettet = false, stufe = 1 }: { eingebettet?: boolean; stufe?: 1 | 2 } = {}) {
   const t = useT();
   const [sp, setSp] = useSearchParams();
-  const TABS = ["guide", "connect", "views", "alarm", "app", "compat"] as const;
+  const TABS = ["guide", "connect", "views", "app", "compat"] as const;
   const tabParam = eingebettet ? "utab" : "tab";
   const paramTab = sp.get(tabParam);
   const initialTab = (TABS as readonly string[]).includes(paramTab ?? "") ? (paramTab as typeof TABS[number]) : "guide";
-  const [tab, setTab] = useState<"guide" | "connect" | "views" | "alarm" | "app" | "compat">(initialTab);
+  const [tab, setTab] = useState<"guide" | "connect" | "views" | "app" | "compat">(initialTab);
   const dlQuery = sp.get("dl") ?? "";
 
   // Wer schon eine Uhr verbunden hat, kommt nicht wegen der Anleitung — der will einstellen, was sie
@@ -75,7 +75,6 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
       <Reiterleiste reiter={[
         { id: "guide", label: t("account.tabGuide") },
         { id: "views", label: t("tab.watchSettings") },
-        { id: "alarm", label: t("account.tabAlarm") },
         { id: "connect", label: t("account.tabConnect") },
         { id: "compat", label: t("account.tabCompat") },
       ]} aktiv={tab} onWahl={(id) => pickTab(id as typeof TABS[number])} stufe={stufe} />
@@ -91,7 +90,6 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
       )}
 
       {tab === "views" && <EinstellungenReiter param={eingebettet ? "ltab" : "sub"} />}
-      {tab === "alarm" && <AlarmEditor />}
       {tab === "app" && <AppDownloads initialQuery={dlQuery} />}
       {tab === "compat" && (
         <Card className="mt-5 p-5">
@@ -622,21 +620,24 @@ type Page = number[] | number;
 // damit nichts stillschweigend beim Speichern verschwindet.
 const MAX_PAGES = 12;
 
-/** Uhr › Einstellungen mit dritter Reiterzeile Uhr-Einstellungen | Community-Layouts | Eigene Layouts (Jan, 02.11.2026).
+/** Uhr › Einstellungen mit dritter Reiterzeile Uhr-Einstellungen | Community-Layouts | Eigene Layouts | On-Foil-Alarm
+ * (Jan, 02.11.2026; der Alarm war vorher ein eigener Reiter eine Ebene hoeher).
  * Die beiden Layout-Seiten gibt es weiter einzeln unter /layouts und /layouts/community (Links aus dem Feed u. a.). */
 function EinstellungenReiter({ param }: { param: string }) {
   const t = useT();
-  const [wahl, setWahl] = useReiter("uhreinst", ["uhr", "community", "eigene"], "uhr", { param });
+  const [wahl, setWahl] = useReiter("uhreinst", ["uhr", "community", "eigene", "alarm"], "uhr", { param });
   return (
     <>
       <Reiterleiste aktiv={wahl} onWahl={setWahl} reiter={[
         { id: "uhr", label: t("tab.watchSettingsUhr") },
         { id: "community", label: t("lay.galleryTitle") },
         { id: "eigene", label: t("account.toLayouts") },
+        { id: "alarm", label: t("account.tabAlarm") },
       ]} />
       {wahl === "uhr" && <ViewsEditor />}
       {wahl === "community" && <LayoutGallery eingebettet />}
       {wahl === "eigene" && <Layouts eingebettet />}
+      {wahl === "alarm" && <AlarmEditor />}
     </>
   );
 }
