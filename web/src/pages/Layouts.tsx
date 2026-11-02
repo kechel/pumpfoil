@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Link } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
 import { Button, Card, Spinner } from "../components/ui";
 import { LayoutPreview } from "../components/LayoutPreview";
-import { ChevronIcon, WatchIcon, CommunityIcon } from "../components/Icons";
+import { WatchIcon, CommunityIcon } from "../components/Icons";
 import { PREVIEW_SIZES, defaultElements } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -91,11 +92,9 @@ export default function Layouts() {
 
   return (
     <div className="w-full">
-      <Link to="/account?tab=views" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("lay.toSimple")}
-      </Link>
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-xl font-bold">
+          <ZurueckPfeil fallback="/account?tab=views" />
           <WatchIcon className="h-5 w-5 text-brand-400" /> {t("lay.title")}
         </h2>
         {/* Als Knopf, nicht als Textlink: Jan hat die Galerie nicht gefunden („wo ich layouts von

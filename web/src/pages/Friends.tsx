@@ -1,11 +1,12 @@
 // Freunde verwalten (Jan, 15.10.2026: „auf eine eigene Seite hinter einem neuen Button auf der
 // Profilseite"). Freunde, wer davon gerade pumpt, Anfragen an mich und meine offenen Anfragen.
 // Angefragt wird auf der Foiler-Seite des anderen, nicht hier.
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Freundschaft } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
-import { ChevronIcon, LocationIcon } from "../components/Icons";
+import { LocationIcon } from "../components/Icons";
 import { FreundeBedingungen, FreundschaftDialog } from "../components/Freundschaft";
 import { useI18n } from "../i18n";
 
@@ -45,10 +46,7 @@ export default function Friends() {
 
   return (
     <div className="w-full max-w-2xl">
-      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
-      </Link>
-      <h2 className="mb-3 text-xl font-bold">{t("friends.title")}</h2>
+      <h2 className="mb-3 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" />{t("friends.title")}</h2>
       <Card className="mb-4 p-4">
         <p className="mb-1 text-sm font-semibold text-slate-200">{t("friends.termsTitle")}</p>
         <FreundeBedingungen />

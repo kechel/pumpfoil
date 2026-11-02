@@ -1,29 +1,27 @@
-// Bestenliste als Bild (Community und Teams, 02.11.2026). Vorher zeichnete nur das Team ein Bild, auf fast schwarzem
-// Grund — Jan: „besser layouted, nicht so schwarz". Jetzt EIN Aufbau fuer beide, hell und ruhig: Marken-Cyan als
-// Akzent (ohne Verlaeufe, s. brand/README.md), Rang, Initialen, Name, Wert; die eigene Zeile abgesetzt darunter.
-// 4:5 (1080x1350) passt fuer Instagram und WhatsApp. Initialen statt Profilbildern: fremde Bilder koennten das Canvas
+// Bestenliste als Bild (Community und Teams, 02.11.2026). Gestaltet wie die Session-Karte (server/app/sharecard.py),
+// Jan: „schau mal wie wir das beim teilen von sessions gemacht haben mit dem logo" — quadratisch 1080, Navy-Grund,
+// Ueberschrift und Werte in Marken-Cyan, das weisse Logo unten rechts ohne Kasten. Die Zeilen fuellen die Flaeche,
+// auch wenn nur wenige Fahrer in der Liste stehen. Initialen statt Profilbildern: fremde Bilder koennten das Canvas
 // „verunreinigen" (dann liefert toDataURL nichts), und sie sollen nicht ungefragt in geteilten Bildern landen.
 
-export const BILD_B = 1080, BILD_H = 1350;
+export const BILD_B = 1080, BILD_H = 1080;
 const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
 export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean };
 
 export type BildDaten = {
-  titel: string;            // Kopfzeile gross, z. B. Teamname oder „Pumpfoil-Community"
-  kennzahl: string;         // z. B. „Längster Lauf"
-  unterzeile: string;       // Zeitraum, Sportart, Stand (Datum)
+  titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
+  unterzeile: string;       // Sportart/Kennzahl, Zeitraum, Stand (Datum)
   zeilen: BildZeile[];      // hoechstens 10
   eigene?: BildZeile | null; // eigene Zeile unter Platz 10
   leer: string;             // Text, wenn es keine Zeilen gibt
-  fussLinks: string;        // z. B. „pumpfoil.org/teams/slug"
   akzent?: string;          // Teamfarbe; sonst Marken-Cyan
-  logo?: HTMLImageElement | null;
-  logoText?: string;        // Initialen im Kopf, wenn es kein Logo gibt; ohne beides kein Kasten links (Community)
-  marke?: HTMLImageElement | null;  // unser Schriftzug oben rechts (Jan, 02.11.2026)
+  logo?: HTMLImageElement | null;   // Teamwappen links neben der Ueberschrift
+  marke?: HTMLImageElement | null;  // unser Schriftzug unten rechts
 };
 
-const GRUND = "#f8fafc", KARTE = "#ffffff", LINIE = "#e2e8f0", TEXT = "#0f172a", LEISE = "#64748b", CYAN = "#0891b2";
+// Dieselben Farben wie die Session-Karte (sharecard.py: NAVY, WATER, CYAN, Sekundaer).
+const NAVY = "#020617", WASSER = "#0c1426", CYAN = "#22d3ee", SEK = "#cbd5e1", LEISE = "#94a3b8", WEISS = "#ffffff";
 
 export function initialenAus(name: string | null): string {
   const teile = (name ?? "").trim().split(/\s+/).filter(Boolean);
@@ -47,94 +45,73 @@ export async function bildLaden(url: string): Promise<HTMLImageElement> {
 
 export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   const akzent = d.akzent || CYAN;
-  g.fillStyle = GRUND;
+  const X = 90;
+  g.fillStyle = NAVY;
   g.fillRect(0, 0, BILD_B, BILD_H);
 
-  // Kopf: farbiges Band mit Logo/Initialen, Titel und Kennzahl
-  g.fillStyle = akzent;
-  g.fillRect(0, 0, BILD_B, 250);
-  const W = 140, X = 64, Y = 55;
-  const mitKasten = !!(d.logo || d.logoText);
+  // Kopf wie bei der Session-Karte: Ueberschrift + Unterzeile oben links, optional mit Wappen davor.
+  let tx = X;
   if (d.logo) {
-    g.fillStyle = KARTE;
-    g.beginPath(); g.roundRect(X - 6, Y - 6, W + 12, W + 12, 28); g.fill();
-    g.drawImage(d.logo, X, Y, W, W);
-  } else if (d.logoText) {
-    g.fillStyle = KARTE;
-    g.beginPath(); g.roundRect(X, Y, W, W, 28); g.fill();
-    g.fillStyle = akzent;
-    g.font = `800 60px ${SCHRIFT}`;
-    g.textAlign = "center"; g.textBaseline = "middle";
-    g.fillText(d.logoText, X + W / 2, Y + W / 2 + 2);
-  }
-  // Schriftzug oben rechts auf weissem Feld — direkt auf dem Cyan verschwaende das „.org".
-  let rechts = BILD_B - 64;
-  if (d.marke) {
-    const mw = 280, mh = mw * d.marke.height / d.marke.width, pad = 18;
-    const px = BILD_B - 48 - mw - 2 * pad, py = 40;
-    g.fillStyle = KARTE;
-    g.beginPath(); g.roundRect(px, py, mw + 2 * pad, mh + 2 * pad, 20); g.fill();
-    g.drawImage(d.marke, px + pad, py + pad, mw, mh);
-    rechts = px - 30;
+    g.save(); g.beginPath(); g.roundRect(X, 58, 110, 110, 22); g.clip();
+    g.drawImage(d.logo, X, 58, 110, 110); g.restore();
+    tx = X + 110 + 32;
   }
   g.textAlign = "left"; g.textBaseline = "alphabetic";
-  const tx = mitKasten ? X + W + 40 : X;
-  g.fillStyle = "#ffffff";
-  g.font = `800 58px ${SCHRIFT}`;
-  g.fillText(kuerzen(g, d.titel, rechts - tx), tx, Y + 62);
-  g.font = `600 40px ${SCHRIFT}`;
-  g.fillText(kuerzen(g, d.kennzahl, (d.marke ? BILD_B - 64 : rechts) - tx), tx, Y + 125);
+  g.fillStyle = akzent;
+  g.font = `700 58px ${SCHRIFT}`;
+  g.fillText(kuerzen(g, d.titel, BILD_B - tx - X), tx, 64 + 54);
+  g.font = `700 30px ${SCHRIFT}`;
+  g.fillText(kuerzen(g, d.unterzeile, BILD_B - tx - X), tx, 128 + 28);
 
-  g.fillStyle = LEISE;
-  g.font = `500 32px ${SCHRIFT}`;
-  g.fillText(kuerzen(g, d.unterzeile, BILD_B - 128), 64, 310);
-
-  // Zeilen als Karte
-  const y0 = 345, zh = 70;
+  // Zeilen: verfuegbare Hoehe zwischen Kopf und Logo gleichmaessig nutzen (hoechstens 80 px je Zeile).
   const zeilen = d.zeilen.slice(0, 10);
-  const hoehe = Math.max(zeilen.length, 1) * zh + 24;
-  g.fillStyle = KARTE;
-  g.beginPath(); g.roundRect(40, y0, BILD_B - 80, hoehe, 28); g.fill();
-  g.strokeStyle = LINIE; g.lineWidth = 2; g.stroke();
+  const oben = 215, unten = BILD_H - 150;
+  const n = Math.max(zeilen.length, 1) + (d.eigene && zeilen.length ? 1.4 : 0);
+  const zh = Math.min(110, Math.floor((unten - oben) / n));
+  const gross = Math.round(zh * 0.5);
 
-  const zeile = (z: BildZeile, y: number, trenner: boolean) => {
+  const zeile = (z: BildZeile, y: number) => {
     const mitte = y + zh / 2;
-    if (z.ich) { g.fillStyle = akzent; g.globalAlpha = 0.12; g.beginPath(); g.roundRect(52, y + 4, BILD_B - 104, zh - 8, 18); g.fill(); g.globalAlpha = 1; }
-    else if (trenner) { g.fillStyle = LINIE; g.fillRect(84, y, BILD_B - 168, 2); }
+    if (z.ich) { g.fillStyle = WASSER; g.beginPath(); g.roundRect(X - 24, y + 4, BILD_B - 2 * X + 48, zh - 8, 16); g.fill(); }
     g.textBaseline = "middle";
     g.fillStyle = z.rang <= 3 ? akzent : LEISE;
-    g.font = `800 38px ${SCHRIFT}`;
-    g.textAlign = "right"; g.fillText(String(z.rang), 140, mitte);
-    g.fillStyle = z.rang <= 3 ? akzent : "#94a3b8";
-    g.beginPath(); g.arc(200, mitte, 28, 0, Math.PI * 2); g.fill();
-    g.fillStyle = "#ffffff"; g.font = `700 22px ${SCHRIFT}`; g.textAlign = "center";
-    g.fillText(z.initialen, 200, mitte + 1);
-    g.font = `700 38px ${SCHRIFT}`; g.textAlign = "right"; g.fillStyle = TEXT;
-    g.fillText(z.wert, BILD_B - 84, mitte);
+    g.font = `800 ${gross}px ${SCHRIFT}`;
+    g.textAlign = "right"; g.fillText(String(z.rang), X + 50, mitte);
+    const r = Math.round(zh * 0.36);
+    g.fillStyle = z.rang <= 3 ? akzent : "#334155";
+    g.beginPath(); g.arc(X + 70 + r, mitte, r, 0, Math.PI * 2); g.fill();
+    g.fillStyle = z.rang <= 3 ? NAVY : WEISS; g.font = `700 ${Math.round(r * 0.8)}px ${SCHRIFT}`; g.textAlign = "center";
+    g.fillText(z.initialen, X + 70 + r, mitte + 1);
+    g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "right"; g.fillStyle = akzent;
+    g.fillText(z.wert, BILD_B - X, mitte);
     const wb = g.measureText(z.wert).width;
-    g.font = `${z.rang === 1 || z.ich ? 700 : 500} 36px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = TEXT;
-    g.fillText(kuerzen(g, z.name ?? "—", BILD_B - 84 - wb - 40 - 250), 250, mitte);
+    const nx = X + 70 + 2 * r + 24;
+    g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = WEISS;
+    g.fillText(kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx), nx, mitte);
   };
-  zeilen.forEach((z, i) => zeile(z, y0 + 12 + i * zh, i > 0));
+  zeilen.forEach((z, i) => {
+    if (i > 0) { g.fillStyle = "#1e293b"; g.fillRect(X, oben + i * zh, BILD_B - 2 * X, 2); }
+    zeile(z, oben + i * zh);
+  });
   if (!zeilen.length) {
-    g.fillStyle = LEISE; g.font = `400 34px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
-    g.fillText(d.leer, BILD_B / 2, y0 + hoehe / 2);
+    g.fillStyle = SEK; g.font = `400 34px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(d.leer, BILD_B / 2, (oben + unten) / 2);
   }
   if (d.eigene && zeilen.length) {
-    const ye = y0 + hoehe + 22;
-    g.fillStyle = KARTE;
-    g.beginPath(); g.roundRect(40, ye, BILD_B - 80, zh + 24, 28); g.fill();
-    g.strokeStyle = LINIE; g.lineWidth = 2; g.stroke();
-    zeile({ ...d.eigene, ich: true }, ye + 12, false);
+    const ye = oben + zeilen.length * zh + Math.round(zh * 0.4);
+    g.fillStyle = LEISE; g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText("⋮", X + 30, ye - Math.round(zh * 0.2));
+    zeile({ ...d.eigene, ich: true }, ye);
   }
 
-  // Fuss
+  // Fuss wie bei der Session-Karte: Logo unten rechts (Hoehe 54, 90 vom Rand), Motto links.
   g.textBaseline = "alphabetic";
-  g.fillStyle = akzent; g.fillRect(64, BILD_H - 110, BILD_B - 128, 4);
-  g.fillStyle = TEXT; g.font = `700 34px ${SCHRIFT}`; g.textAlign = "left";
-  g.fillText(d.fussLinks, 64, BILD_H - 52);
-  g.fillStyle = LEISE; g.font = `400 28px ${SCHRIFT}`; g.textAlign = "right";
-  g.fillText("Have fun, keep pumping!", BILD_B - 64, BILD_H - 52);
+  if (d.marke) {
+    const lh = 54, lw = d.marke.width * lh / d.marke.height;
+    g.drawImage(d.marke, BILD_B - X - lw, BILD_H - X, lw, lh);
+  }
+  g.fillStyle = LEISE; g.font = `400 26px ${SCHRIFT}`; g.textAlign = "left";
+  g.fillText("Have fun, keep pumping!", X, BILD_H - X + 38);
 }
 
 /** Bild als Datei — SYNCHRON in der Klick-Geste (toDataURL statt toBlob), sonst lehnt iOS das Teilen ab. */

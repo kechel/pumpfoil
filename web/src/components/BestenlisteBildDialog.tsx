@@ -21,7 +21,7 @@ export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel
       let logo: HTMLImageElement | null = null;
       if (logoUrl) { try { logo = await bildLaden(logoUrl); } catch { logo = null; } }
       let marke: HTMLImageElement | null = null;
-      try { marke = await bildLaden("/wordmark-h-light.png"); } catch { marke = null; }
+      try { marke = await bildLaden("/wordmark-h-dark.png"); } catch { marke = null; }
       if (weg) return;
       zeichneBestenliste(g, { ...daten, logo, marke });
       setFertig(true);

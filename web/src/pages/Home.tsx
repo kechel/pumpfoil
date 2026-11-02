@@ -545,14 +545,12 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
               return (
                 <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-${k.key}.jpg`}
                   daten={{
-                    titel: t(`cls.sport.${sport}`),
-                    kennzahl: t(k.labelKey),
-                    unterzeile: [t(periodLabelKey), band && band.art !== "alle" ? bandLabel(band, t) : null,
+                    titel: t(k.labelKey),
+                    unterzeile: [t(`cls.sport.${sport}`), t(periodLabelKey), band && band.art !== "alle" ? bandLabel(band, t) : null,
                       new Date().toLocaleDateString(document.documentElement.lang || undefined)].filter(Boolean).join(" · "),
                     zeilen: (data[k.key] ?? []).slice(0, 10).map((r, i) => zeile(r, i + 1)),
                     eigene: eigene && eigene.rank != null ? zeile(eigene, eigene.rank) : null,
                     leer: "—",
-                    fussLinks: "pumpfoil.org",
                   }} />
               );
             })()}

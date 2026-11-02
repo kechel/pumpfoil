@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ZurueckPfeil, useSeitenPfeil } from "./components/ZurueckPfeil";
 import type React from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -178,8 +179,7 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
   // dann wieder dahin zurueck wo ich vorher war"). Echter Verlauf statt fester Ziele; auf den fuenf Hauptseiten nicht
   // (dort fuehrt die Leiste unten). Ohne Verlauf in der App (direkt geoeffneter Link) geht er auf Home.
   const hauptseite = bereich !== null || ort.pathname === "/einstellungen";
-  const zurueck = () => ((window.history.state?.idx ?? 0) > 0 ? nav(-1) : nav("/"));
-  const zurueckText = t("common.back").replace(/^←\s*/, "");
+  const seitenPfeil = useSeitenPfeil();
   const navKlick = (it: NavItem) => (e: React.MouseEvent) => {
     if (it.to.startsWith("/sessions")) clearLastSession();
     if (bereich !== it.to) return;
@@ -481,17 +481,9 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
         className="flex items-center justify-between border-b border-slate-800/60 px-4 pb-3 md:hidden"
         style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}
       >
-        <div className="flex min-w-0 items-center gap-1">
-          {!hauptseite && (
-            <button onClick={zurueck} aria-label={zurueckText} title={zurueckText}
-              className="-ml-2 rounded-lg p-1.5 text-slate-300 hover:bg-slate-800 hover:text-slate-100">
-              <ChevronIcon className="h-6 w-6 rotate-180" />
-            </button>
-          )}
-          <Link to="/">
-            <BrandLogo className="h-7" />
-          </Link>
-        </div>
+        <Link to="/">
+          <BrandLogo className="h-7" />
+        </Link>
         <div className="flex items-center gap-2">
           {/* Import/Upload nur auf der Sessions-Seite (nur Icon); im Profil gibt es einen eigenen Einstieg. */}
           {onSessions && (
@@ -517,11 +509,8 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
       <main className="min-w-0 flex-1 overflow-x-clip px-4 py-5 pb-32 md:px-8 md:pb-20">
         <AssistentBand />
         <FeedbackRequestBanner />
-        {!hauptseite && (
-          <button onClick={zurueck} className="mb-3 hidden items-center gap-1 text-sm text-slate-300 hover:text-slate-100 md:inline-flex">
-            <ChevronIcon className="h-4 w-4 rotate-180" /> {zurueckText}
-          </button>
-        )}
+        {/* Rueckfall fuer Seiten ohne eigenen Pfeil in der Titelzeile (s. components/ZurueckPfeil.tsx). */}
+        {!hauptseite && !seitenPfeil && <div className="mb-2"><ZurueckPfeil /></div>}
         {children ?? <Outlet />}
       </main>
 

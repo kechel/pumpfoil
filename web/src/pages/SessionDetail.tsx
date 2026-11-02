@@ -1,4 +1,5 @@
 import { SessionBewertungKachel } from "../components/SessionBewertung";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { LaufKuerzen } from "../components/LaufKuerzen";
 import { createPortal } from "react-dom";
 import { KorrekturUmschalter, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
@@ -11,7 +12,7 @@ import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData
 import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf, SELECT_SCHRUMPFT } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
+import { HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -1879,15 +1880,7 @@ export default function SessionDetail() {
         {/* Zurueck: kam man von einer Seite, die sich mitgegeben hat (z. B. „Laengste Laeufe", Jan
             02.10.2026: „einen Zurueck-Button, der mich wieder genau in die gleiche Ansicht
             zurueckbringt"), dorthin — sonst wie bisher in die Sessionliste. */}
-        {zurueckZu ? (
-          <Link to={zurueckZu.zurueck} className="inline-flex shrink-0 items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-            <ChevronIcon className="h-4 w-4 rotate-180" /> {zurueckZu.zurueckText}
-          </Link>
-        ) : (
-        <Link to={`/sessions${getLastSessionsSearch()}`} className="inline-flex shrink-0 items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-          <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
-        </Link>
-        )}
+        <ZurueckPfeil fallback={zurueckZu?.zurueck ?? `/sessions${getLastSessionsSearch()}`} />
         <div className="ml-auto inline-flex shrink-0 overflow-hidden rounded-lg sm:order-last sm:ml-0">
           <button
             disabled={neighbors.older == null}

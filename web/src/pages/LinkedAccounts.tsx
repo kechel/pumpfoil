@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { api, type ImportSport, type SyncStand } from "../lib/api";
 import { Card, Button } from "../components/ui";
 import { ChevronIcon, CheckIcon, LinkIcon } from "../components/Icons";
@@ -88,10 +88,7 @@ export default function LinkedAccounts() {
     : "border-amber-400 bg-amber-500/15 text-amber-700 font-medium dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300";
   return (
     <div className="w-full">
-      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
-      </Link>
-      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold"><LinkIcon className="h-5 w-5 text-brand-400" /> {t("linked.title")}</h2>
+      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><LinkIcon className="h-5 w-5 text-brand-400" /> {t("linked.title")}</h2>
       <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>
       {banner && (
         <div className={`mb-4 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-sm ${bannerCls}`}>

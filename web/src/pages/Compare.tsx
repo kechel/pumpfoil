@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { fmtDate } from "../lib/time";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
-import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon, WatchIcon } from "../components/Icons";
+import { CompareIcon, CloseIcon, FoilIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey, setCompare } from "../lib/compare";
@@ -279,10 +280,8 @@ export default function Compare() {
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-4 flex items-center gap-2">
-        <Link to="/sessions" className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-          <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
-        </Link>
-        <h2 className="ml-1 flex items-center gap-2 text-xl font-bold">
+        <ZurueckPfeil fallback="/sessions" />
+        <h2 className="flex items-center gap-2 text-xl font-bold">
           <CompareIcon className="h-6 w-6 text-brand-400" /> {t("compare.title")}
         </h2>
         {!empty && (

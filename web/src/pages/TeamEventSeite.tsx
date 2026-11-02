@@ -2,11 +2,12 @@
 // team-mitglieder mit den ergebnissen bei klick auf die event-kachel"). Laufend = aktueller Stand, danach das
 // Ergebnis (eingefroren 24 h nach dem Ende). Gaeste sehen das Event nur bei oeffentlichem Team, in Gastform
 // (Rang, Name, Initialen, Wert) — dieselben Daten, die die oeffentliche Teamseite ohnehin liefert.
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
-import { ChevronIcon, SettingsIcon } from "../components/Icons";
+import { SettingsIcon } from "../components/Icons";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import TeamWappen from "../components/TeamWappen";
 import TeamBanner from "../components/TeamBanner";
@@ -170,8 +171,8 @@ export default function TeamEventSeite() {
 
   return (
     <div className="team-farbe w-full max-w-4xl" style={teamFarbStil(team.farbe)}>
+      {/* Zum Team: Wappen + Name als Link (der Zurueck-Pfeil steht in der Titelzeile darunter). */}
       <Link to={`/teams/${team.slug}`} className="mb-3 inline-flex items-center gap-2 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" />
         <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
         {team.name}
       </Link>
@@ -186,6 +187,7 @@ export default function TeamEventSeite() {
               <SettingsIcon className="h-5 w-5" />
             </button>
           )}
+          <ZurueckPfeil fallback={`/teams/${team.slug}`} />
           <h2 className={`team-akzent text-2xl font-bold leading-tight`}>{ev.titel}</h2>
           <span className={`rounded-full px-2 py-0.5 text-xs ${ev.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
             {t(`team.event.status.${ev.status}`)}

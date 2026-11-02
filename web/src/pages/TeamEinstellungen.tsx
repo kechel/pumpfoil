@@ -1,11 +1,12 @@
 // Team-Einstellungen /teams/:slug/einstellungen (31.10.2026, docs/TEAMS.md).
 // Leiter: alles. Moderatoren: nur Mitglieder annehmen/entfernen und die Einladungslinks ansehen
 // (der Server prueft jede Aenderung selbst, s. server/app/api/teams.py).
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api, FoilBand, TeamInfo, TeamMitglied, TeamTafel } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
-import { ChevronIcon, TrashIcon } from "../components/Icons";
+import { TrashIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
 import { BannerBearbeiten } from "../components/TeamBanner";
 import TeamQr from "../components/TeamQr";
@@ -121,11 +122,8 @@ export default function TeamEinstellungen() {
 
   return (
     <div className="team-farbe w-full" style={teamFarbStil(team.farbe)}>
-      <Link to={`/teams/${team.slug}`} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {team.name}
-      </Link>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-xl font-bold">{t(grund ? "team.tab.grunddaten" : "team.tab.verwalten")}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback={`/teams/${team.slug}`} />{t(grund ? "team.tab.grunddaten" : "team.tab.verwalten")}</h2>
         <RegelnLink />
       </div>
       {leiter && (

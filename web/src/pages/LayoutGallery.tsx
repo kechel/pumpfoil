@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Link } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { LayoutPreview } from "../components/LayoutPreview";
-import { ChevronIcon, CommunityIcon } from "../components/Icons";
+import { CommunityIcon } from "../components/Icons";
 import { PREVIEW_SIZES, WatchShape } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -98,10 +99,8 @@ export default function LayoutGallery() {
 
   return (
     <div className="w-full">
-      <Link to="/layouts" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("lay.title")}
-      </Link>
       <h2 className="mb-1 flex items-center gap-2 text-xl font-bold">
+        <ZurueckPfeil fallback="/layouts" />
         <CommunityIcon className="h-5 w-5 text-brand-400" /> {t("lay.galleryTitle")}
       </h2>
       <p className="mb-4 text-sm text-slate-300">{t("lay.galleryHint")}</p>

@@ -9,6 +9,7 @@
 //
 // Welche Bloecke erscheinen, entscheidet der SERVER anhand der Schalter des Nutzers. Diese Seite
 // prueft nichts nachtraeglich: fehlt ein Feld, wird es nicht gezeigt.
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Fragment, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { api, OverallStats } from "../lib/api";
@@ -19,7 +20,7 @@ import { SessionCard } from "../components/SessionCard";
 import { openDmOverlay } from "../components/DmWidget";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { ChevronIcon, PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon, StarIcon } from "../components/Icons";
+import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon, StarIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
@@ -150,11 +151,6 @@ export default function Foiler() {
   return (
     <div>
       <ScrollToTop />
-      {zurueckZu && (
-        <Link to={zurueckZu.zurueck} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-          <ChevronIcon className="h-4 w-4 rotate-180" /> {zurueckZu.zurueckText}
-        </Link>
-      )}
       {/* Nur der Besitzer sieht diesen Hinweis — sonst waere „ist abgeschaltet" selbst eine
           Auskunft ueber ein fremdes Konto. Der Server liefert `aus` deshalb auch nur ihm. */}
       {d.ich && d.aus && (
@@ -164,6 +160,7 @@ export default function Foiler() {
       )}
 
       <div className="mb-5 flex items-center gap-3">
+        <ZurueckPfeil fallback={zurueckZu?.zurueck ?? "/community"} />
         <Avatar name={d.name} url={d.avatar_url} seed={d.id} userId={d.id} size={56} />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">{d.name ?? "—"}</h1>

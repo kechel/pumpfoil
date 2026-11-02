@@ -25,6 +25,7 @@ import SpotWindfenster from "../components/SpotWindfenster";
 import { SpotHeatmap } from "../components/SpotHeatmap";
 import { SpotNotes } from "../components/SpotNotes";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { getLastSession, setLastSessionsSearch, setLastSessionsFilter, getLastListToggle, setLastListToggle } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
@@ -359,6 +360,7 @@ export default function Sessions() {
       <ScrollTopFab />
       {/* Überschrift ganz oben (wie auf allen Seiten) */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
+        {spot && <ZurueckPfeil fallback="/spots" />}
         <SessionsIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">
           {title}

@@ -4,12 +4,13 @@
 //    Bestenlisten nur bei oeffentlichem Team.
 //  * Gaeste (ohne Login): nur die oeffentliche Bestenliste — Rang, Name, Initialen, Wert. Keine Links.
 // Die Regeln setzt der Server (server/app/teams.py); hier wird nur gezeigt, was er liefert.
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useEffect, useState } from "react";
 import KachelUhr from "../components/KachelUhr";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatistik, TeamTafelMitZeilen } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
-import { ChatBubbleIcon, ChevronIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
+import { ChatBubbleIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { openChatOverlay } from "../components/DmWidget";
 import { eventZeitraum } from "../lib/teamEvents";
@@ -334,15 +335,11 @@ export default function Team() {
 
   return (
     <div className="team-farbe w-full max-w-4xl" style={teamFarbStil(kopf.farbe)}>
-      {!gast && (
-        <Link to="/teams" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-          <ChevronIcon className="h-4 w-4 rotate-180" /> {t("team.meine")}
-        </Link>
-      )}
       {kopf.banner_url && <TeamBanner url={kopf.banner_url} fokus={kopf.banner_fokus} className="mb-4" />}
       {/* Kopf als Raster: Wappen links ueber alle Zeilen; Name + Zahnrad oben; darunter Mitglieder · oeffentlich ·
           Sportarten, und der Team-Chat rechtsbuendig in derselben Spalte wie das Zahnrad (Jan, 01.11.2026). */}
-      <div className="team-rand mb-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b-2 pb-4">
+      <div className="team-rand mb-4 grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b-2 pb-4">
+        <div className="row-span-3 self-center"><ZurueckPfeil fallback="/teams" /></div>
         <div className="row-span-3"><TeamWappen name={kopf.name} logo={kopf.logo_url} farbe={kopf.farbe} size={64} /></div>
         <h2 className="team-akzent text-2xl font-bold leading-tight">{kopf.name}</h2>
         <div className="justify-self-end">

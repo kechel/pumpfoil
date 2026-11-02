@@ -1,6 +1,7 @@
 // Meine Teams + Team gruenden (31.10.2026, docs/TEAMS.md). Einstieg ueber den Knopf „Team" auf der
 // Profilseite. Ein neues Team funktioniert sofort intern (Einladungslinks); nach aussen erscheint es
 // erst, wenn ein Admin seinen Auftritt freigegeben hat.
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, TeamKurz } from "../lib/api";
@@ -47,11 +48,8 @@ export default function Teams() {
 
   return (
     <div className="w-full max-w-2xl">
-      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
-      </Link>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-xl font-bold">{t("team.meine")}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" />{t("team.meine")}</h2>
         <RegelnLink />
       </div>
 

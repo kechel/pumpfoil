@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Link } from "react-router-dom";
 import { api, Foil } from "../lib/api";
 import { gearMatches } from "../lib/gearSearch";
 import { Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
-import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
+import { StarIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { SPORTS, sortiereSports } from "../lib/sportClass";
 
@@ -107,12 +108,9 @@ export default function Foils() {
 
   return (
     <div className="w-full">
-      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
-      </Link>
       {/* Überschrift + rechtsbündig der Weg ins Detailed Setup (Stab/Mast/Shim/Board). */}
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-xl font-bold"><FoilIcon className="h-5 w-5 text-brand-400" /> {t("foils.title")}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><FoilIcon className="h-5 w-5 text-brand-400" /> {t("foils.title")}</h2>
         <Link to="/setup" className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:bg-slate-700">
           {t("foils.toSetup")} →
         </Link>

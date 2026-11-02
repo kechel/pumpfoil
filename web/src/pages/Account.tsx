@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
 import { Button, Card, ErrorBox, SELECT_SCHRUMPFT } from "../components/ui";
-import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
+import { WatchIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { DEFAULT_SCALES, MOCK_VALUE, ValueScales, valueColor } from "../lib/watchLayout";
 import { LayoutPreview } from "../components/LayoutPreview";
@@ -53,10 +54,8 @@ export default function Account() {
 
   return (
     <div className="w-full">
-      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
-      </Link>
       <div className="mb-4 flex items-center gap-2">
+        <ZurueckPfeil fallback="/einstellungen" />
         <WatchIcon className="h-6 w-6 text-brand-400" />
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
       </div>

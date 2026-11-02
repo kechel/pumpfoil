@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { passtZu } from "../lib/suche";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
@@ -161,11 +162,8 @@ export default function WatchStats() {
 
   return (
     <div className="w-full">
-      <Link to="/community" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("home.community")}
-      </Link>
       <div className="mb-1 flex items-center gap-2">
-        <h2 className="flex items-center gap-2 text-xl font-bold"><WatchIcon className="h-6 w-6 text-brand-400" /> {t("watchStats.title")}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/community" /><WatchIcon className="h-6 w-6 text-brand-400" /> {t("watchStats.title")}</h2>
         <Link to="/foil-stats" title={t("foilStats.title")} aria-label={t("foilStats.title")}
           className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-600 dark:text-brand-300 hover:bg-slate-700">
           <FoilIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>

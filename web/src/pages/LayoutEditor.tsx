@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, LayoutElement, WatchLayout } from "../lib/api";
 import { Button, Card, Spinner } from "../components/ui";
 import { LayoutPreview } from "../components/LayoutPreview";
-import { ChevronIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import {
   DEFAULT_SCALES, EL_ARC, EL_BAR, EL_DOTS, EL_LABEL, EL_LINE, EL_PAUSED, EL_REC, EL_TEXT, EL_VALUE,
@@ -260,11 +260,8 @@ export default function LayoutEditor() {
 
   return (
     <div className="w-full">
-      <Link to="/layouts" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("lay.title")}
-      </Link>
-
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        <ZurueckPfeil fallback="/layouts" />
         <input value={l.name} onChange={(ev) => { setL({ ...l, name: ev.target.value }); setSaved(false); }}
           className="min-w-[10rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
         <select value={l.category}

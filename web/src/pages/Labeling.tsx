@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { ZurueckPfeil } from "../components/ZurueckPfeil";
+import { useParams } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { api, LabelItem, RawData } from "../lib/api";
 import { Card, Button, Spinner, ErrorBox } from "../components/ui";
-import { ChevronIcon } from "../components/Icons";
 import { TimeChart, LABEL_COLORS } from "../components/TimeChart";
 import { useT } from "../i18n";
 
@@ -87,10 +87,7 @@ export default function Labeling() {
 
   return (
     <div>
-      <Link to={`/sessions/${sid}`} className="mb-4 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("row.session")}
-      </Link>
-      <h2 className="mb-1 text-xl font-bold">{t("lab.title")}</h2>
+      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback={`/sessions/${sid}`} />{t("lab.title")}</h2>
       <p className="mb-5 text-sm text-slate-300">{t("lab.intro")}</p>
 
       <LabelMap raw={raw} selection={selection} />
