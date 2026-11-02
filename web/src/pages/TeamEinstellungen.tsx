@@ -2,8 +2,9 @@
 // Leiter: alles. Moderatoren: nur Mitglieder annehmen/entfernen und die Einladungslinks ansehen
 // (der Server prueft jede Aenderung selbst, s. server/app/api/teams.py).
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
+import { Reiterleiste } from "../components/Reiter";
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { api, FoilBand, TeamInfo, TeamMitglied, TeamTafel } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
 import { TrashIcon } from "../components/Icons";
@@ -123,18 +124,15 @@ export default function TeamEinstellungen() {
   return (
     <div className="team-farbe w-full" style={teamFarbStil(team.farbe)}>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback={`/teams/${team.slug}`} />{t(grund ? "team.tab.grunddaten" : "team.tab.verwalten")}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback={`/teams/${team.slug}`} />{leiter ? team.name : t(grund ? "team.tab.grunddaten" : "team.tab.verwalten")}</h2>
         <RegelnLink />
       </div>
+      {/* Dieselben Reiter wie ueberall (02.11.2026); beide Ansichten haben eigene Adressen (/verwalten, /einstellungen). */}
       {leiter && (
-        <div className="mb-4 flex gap-2">
-          {([["verwalten", "team.tab.verwalten"], ["einstellungen", "team.tab.grunddaten"]] as const).map(([pfad, key]) => (
-            <Link key={pfad} to={`/teams/${team.slug}/${pfad}`} replace
-              className={`rounded-full px-3 py-1 text-sm ${(pfad === "einstellungen") === grund ? "team-knopf font-semibold" : "border border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
-              {t(key)}
-            </Link>
-          ))}
-        </div>
+        <Reiterleiste reiter={[
+          { id: "verwalten", label: t("team.tab.verwalten") },
+          { id: "einstellungen", label: t("team.tab.grunddaten") },
+        ]} aktiv={grund ? "einstellungen" : "verwalten"} onWahl={(id) => nav(`/teams/${team.slug}/${id}`, { replace: true })} />
       )}
       {meldung && <p className="sticky top-2 z-10 mb-3 rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm text-slate-200">{meldung}</p>}
 
