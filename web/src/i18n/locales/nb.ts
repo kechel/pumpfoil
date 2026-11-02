@@ -1235,7 +1235,7 @@ const nb: Record<string, string> = {
   "imp.owner1": "<b>Rådata</b> fra øktene dine (enkelte GPS-punkter, 25 Hz akselerasjon) — f.eks. til merking.",
   "imp.owner2": "Merking, trimming, ny analyse, opplasting/sletting av bilder.",
   "imp.owner3": "<b>E-postadressen</b> din og kontoinnstillinger — aldri synlig for andre brukere.",
-  "imp.owner4": "Hvem som konkret har stemt eller likt en økt, vises ikke for andre brukere.",
+  "imp.owner4": "Bare du ser hvem som likte økten din; andre ser bare antallet. Hvem som meldte «ser falsk ut» eller «upassende», vises ikke for noen.",
   "imp.owner5": "<b>Pågående opptak</b>: laster telefonopptakeren opp direkte (bryteren «Last opp direkte» i profilen, kan slås av), går GPS- og bevegelsesdata til serveren vår allerede mens du tar opp. Bare du ser at og siden når det tas opp, på de andre enhetene og klokkene dine. For klokker utleder vi «tar sannsynligvis opp» bare fra når klokkeappen sist meldte seg. Andre brukere ser økten først når den er ferdig.",
   "imp.owner6": "<b>Aktive spots</b>: spotkartet farger spots grønne der noen trolig pumper akkurat nå. Vi bruker spotet innen 1 km fra telefonopptaket ditt som pågår eller fra posisjonen klokka di sender én gang når du starter den (bare spotet lagres, ikke posisjonen), og etter opplastingen spotet til økta di. Er det ikke noe spot i nærheten, har økta ingen gjenkjente runs eller sletter du den, teller du ikke som aktiv. Et enkelt spot blir bare grønt med minst 4 ryttere de siste 180 dagene; mindre spots farger bare en gruppe, og bare hvis spotene i området hadde mer enn 5 ryttere de siste 90 dagene. Ingen navn vises. Du kan slå det av i profilen («Vis meg på spotkartet»).",
   "imp.operatorTitle": "🛠 Bare operatøren (Jan)",
