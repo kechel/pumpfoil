@@ -14,7 +14,7 @@ export default function TeamsAlle() {
   useEffect(() => { api.teamsListe().then(setRows).catch(() => setRows([])); }, []);
   const treffer = (rows ?? []).filter((tm) => passtZu(`${tm.name} ${tm.slug} ${tm.beschreibung ?? ""}`, q));
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h2 className="text-xl font-bold text-slate-100">{t("team.alle")}</h2>
         <Link to="/teams" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>

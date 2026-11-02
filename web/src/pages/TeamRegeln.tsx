@@ -23,7 +23,7 @@ export default function TeamRegeln() {
     return () => clearTimeout(h);
   }, [hash]);
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       {!hash && <ScrollToTop />}
       <h1 className="mb-2 flex items-center gap-2 text-xl font-bold text-slate-100"><ZurueckPfeil fallback={getToken() ? "/teams" : "/"} />{t("team.regeln.titel")}</h1>
       <p className="mb-5 text-sm text-slate-300">{t("team.regeln.intro")}</p>

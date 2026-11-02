@@ -42,7 +42,7 @@ export default function EventsAlle() {
   }, []);
 
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full">
       <h2 className="mb-3 text-xl font-bold text-slate-100">{t("team.alleEvents")}</h2>
       {events === null ? <p className="text-sm text-slate-400">{t("common.loading")}</p>
         : events.length === 0 ? <p className="text-sm text-slate-400">{t("team.alleEventsLeer")}</p> : (
