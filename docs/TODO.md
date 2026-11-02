@@ -1504,7 +1504,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 - **🔲 02.11. (Nutzer-Feedback, Team-Kapitaen PL, 1:1-Chat mit Jan) — langer Vorschlagskatalog Community/Home/Bestenliste.**
   Sortiert nach Aufwand. Er betont: alles nicht Genannte findet er gut; die Liste ist bewusst nur Aenderungswunsch.
   **Schnell (Web, Stunden):**
-  - Bestenliste ganz an den Anfang der Community-Seite (heute unter Rekord-Kacheln und Medien).
+  - ~~Bestenliste ganz an den Anfang~~ — Jan 02.11.: nein, Rekord-Kacheln bleiben oben; Bestenliste steht jetzt direkt
+    darunter, ueber den Medien (Web live, Apps mit dem naechsten Update).
   - Reiter-Reihenfolge nach seinem Vorschlag: laengster Lauf, On-Foil-Strecke gesamt, laengste Gleitphase (Reiter fehlt
     noch, Server-Aggregat wie bei den anderen; Vorsicht: Gleiterkennung pg-1 nur ~50 % treffsicher), meiste Laeufe,
     [schnellster km], meiste Pumps, meiste Sessions, meiste Spots, weitester Lauf.

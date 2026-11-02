@@ -736,8 +736,9 @@ function CommunitySection() {
       <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot sport={sport} />
       {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern
           sich dabei nicht immer (accel war schon aus). */}
-      <LatestMedia key={`m${freunde}`} />
+      {/* Bestenliste ueber den Medien, unter den Rekord-Kacheln (Jan, 02.11.2026). */}
       <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} kopf={filterZeile} />
+      <LatestMedia key={`m${freunde}`} />
       <TopLiked key={`t${freunde}`} period={period} />
       <TeamsSection />
       {/* Reihenfolge unter „Best bewertet" (Jan, 11.09.2026): erst die Uhr-Layouts, dann der

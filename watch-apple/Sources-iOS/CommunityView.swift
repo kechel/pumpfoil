@@ -108,12 +108,13 @@ struct CommunityView: View {
                 statsHeader
                 periodSection
                 recordsSection
+                // Bestenliste unter den Rekorden, ueber Feed und Medien (Jan, 02.11.2026, wie die PWA).
+                leaderboardSection
                 // Social-Feed bewusst UEBER "Neueste Medien" (Jan, 31.08., dieselbe
                 // Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts freigegeben oder
                 // der Nutzer unter 13, zeichnet er gar nichts.
                 SocialFeedSection(lang: lang, modell: social)
                 mediaFeedSection
-                leaderboardSection
                 topLikedSection
                 // Laufende & kommende Team-Events unter „Best bewertet", wie die PWA (01.11.2026).
                 TeamEventsAbschnitt(lang: lang, pfad: $navPath)
