@@ -8,7 +8,6 @@ import { WatchIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { DEFAULT_SCALES, MOCK_VALUE, ValueScales, valueColor } from "../lib/watchLayout";
 import { LayoutPreview } from "../components/LayoutPreview";
-import { WatchMatrix } from "../components/WatchMatrix";
 import { WatchGuide } from "../components/WatchGuide";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { useT } from "../i18n";
@@ -36,11 +35,11 @@ function sparMinuten(d: import("../lib/api").PairedDevice): { kb: number; modusK
 export default function Account({ eingebettet = false, stufe = 1 }: { eingebettet?: boolean; stufe?: 1 | 2 } = {}) {
   const t = useT();
   const [sp, setSp] = useSearchParams();
-  const TABS = ["guide", "connect", "views", "app", "compat"] as const;
+  const TABS = ["guide", "connect", "views", "app"] as const;
   const tabParam = eingebettet ? "utab" : "tab";
   const paramTab = sp.get(tabParam);
   const initialTab = (TABS as readonly string[]).includes(paramTab ?? "") ? (paramTab as typeof TABS[number]) : "guide";
-  const [tab, setTab] = useState<"guide" | "connect" | "views" | "app" | "compat">(initialTab);
+  const [tab, setTab] = useState<"guide" | "connect" | "views" | "app">(initialTab);
   const dlQuery = sp.get("dl") ?? "";
 
   // Wer schon eine Uhr verbunden hat, kommt nicht wegen der Anleitung — der will einstellen, was sie
@@ -76,7 +75,6 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
         { id: "guide", label: t("account.tabGuide") },
         { id: "views", label: t("tab.watchSettings") },
         { id: "connect", label: t("account.tabConnect") },
-        { id: "compat", label: t("account.tabCompat") },
       ]} aktiv={tab} onWahl={(id) => pickTab(id as typeof TABS[number])} stufe={stufe} />
 
       {tab === "guide" && <WatchGuide onOpenApp={() => setTab("app")} onOpenConnect={() => setTab("connect")} />}
@@ -91,13 +89,6 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
 
       {tab === "views" && <EinstellungenReiter param={eingebettet ? "ltab" : "sub"} />}
       {tab === "app" && <AppDownloads initialQuery={dlQuery} />}
-      {tab === "compat" && (
-        <Card className="mt-5 p-5">
-          <h3 className="mb-1 font-semibold">{t("watches.title")}</h3>
-          <p className="mb-4 text-sm text-slate-300">{t("watches.intro")}</p>
-          <WatchMatrix />
-        </Card>
-      )}
     </div>
   );
 }

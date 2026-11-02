@@ -1,4 +1,5 @@
 import { Reiterleiste, useReiter } from "./Reiter";
+import { WatchMatrix } from "./WatchMatrix";
 import { Card } from "./ui";
 import { useT } from "../i18n";
 import { WatchDemoVideo } from "./WatchDemoVideo";
@@ -53,7 +54,8 @@ const appleShots = [
 
 export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => void; onOpenConnect?: () => void }) {
   const t = useT();
-  const [sel, setSel] = useReiter("uhrguide", platforms.map((p) => p.id), platforms[0].id, { param: "plattform" });
+  // Hinter den Plattformen die Kompatibilitaetsliste (Jan, 02.11.2026; vorher ein Reiter eine Ebene hoeher).
+  const [sel, setSel] = useReiter("uhrguide", [...platforms.map((p) => p.id), "compat"], platforms[0].id, { param: "plattform" });
   const connectLink = (
     <button type="button" onClick={onOpenConnect} className="mx-1 text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300"><b>{t("guide.connect")}</b></button>
   );
@@ -61,8 +63,16 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
     <div className="space-y-5">
       {/* Plattform als einfache Reiter (Jan, 02.11.2026), vorher Knoepfe in einer Karte. Gewaehlt bleibt sie in der Adresse. */}
       <div>
-        <Reiterleiste aktiv={sel} onWahl={setSel} reiter={platforms.map((p) => ({ id: p.id, label: p.label }))} className="!mb-0" />
+        <Reiterleiste aktiv={sel} onWahl={setSel} reiter={[...platforms.map((p) => ({ id: p.id, label: p.label })), { id: "compat", label: t("account.tabCompat") }]} className="!mb-0" />
       </div>
+
+      {sel === "compat" && (
+        <Card className="p-5">
+          <h3 className="mb-1 font-semibold">{t("watches.title")}</h3>
+          <p className="mb-4 text-sm text-slate-300">{t("watches.intro")}</p>
+          <WatchMatrix />
+        </Card>
+      )}
 
       {/* Garmin */}
       {sel === "garmin" && (
@@ -185,6 +195,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       </Card>
       )}
 
+      {sel !== "compat" && <>
       {/* Verbindung & Konto — plattformübergreifend, daher immer sichtbar. */}
       <Card id="guide-pairing" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">{t("guide.pair.title")}</h3>
@@ -234,6 +245,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       <Card className="p-5">
         <WatchDemoVideo title={t("watch.demoTitle")} round />
       </Card>
+      </>}
     </div>
   );
 }
