@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Reiterleiste, useReiter } from "../components/Reiter";
-import { PairedDevices } from "./Account";
+import Account from "./Account";
 import { api, type ImportSport, type SyncStand } from "../lib/api";
 import { Card, Button } from "../components/ui";
 import { ChevronIcon, CheckIcon, LinkIcon, WatchIcon } from "../components/Icons";
-import { PlatformSubline } from "../components/SupportedPlatforms";
 import { useI18n } from "../i18n";
 import { SPORTS, sortiereSports } from "../lib/sportClass";
 
@@ -102,7 +101,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
       {!eingebettet && (
         <h2 className="mb-4 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><WatchIcon className="h-5 w-5 text-brand-400" /> {t("tab.watchAccounts")}</h2>
       )}
-      <Reiterleiste stufe={eingebettet ? 2 : 1} aktiv={reiter} onWahl={setReiter} reiter={[
+      <Reiterleiste stufe={eingebettet ? 2 : 1} unter={!eingebettet && reiter === "uhr"} aktiv={reiter} onWahl={setReiter} reiter={[
         { id: "uhr", label: t("nav.watch") },
         { id: "polar", label: "Polar" },
         { id: "coros", label: "COROS" },
@@ -119,17 +118,9 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
         </div>
       )}
       <div key={runde} className="space-y-4">
-        {reiter === "uhr" && <>
-          <div className="flex justify-end">
-            <Link to="/account" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">{t("tab.watchSettings")} →</Link>
-          </div>
-          <PairedDevices />
-          <div>
-            <p className="mb-1.5 text-xs font-medium text-slate-400">{t("linked.platformsTitle")}</p>
-            <PlatformSubline kind="watch" className="mb-0.5" />
-            <PlatformSubline kind="account" />
-          </div>
-        </>}
+        {/* Uhr = die komplette Uhr-Seite mit Anleitung, Datenfeldern, Alarm, Verbinden, Uhren (Jan, 02.11.2026). Auf /konten
+            als zweite Reiterzeile; auf Home ist die Konten-Zeile schon die zweite, dann darunter als einfache Zeile. */}
+        {reiter === "uhr" && <Account eingebettet stufe={eingebettet ? 1 : 2} />}
         {reiter !== "uhr" && reiter !== "mcp" && <p className="text-sm text-slate-300">{t("linked.hint")}</p>}
         {reiter === "polar" && <PolarCard />}
         {reiter === "coros" && <CorosCard />}

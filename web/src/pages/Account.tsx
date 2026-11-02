@@ -29,11 +29,14 @@ function sparMinuten(d: import("../lib/api").PairedDevice): { kb: number; modusK
   return { kb, modusKey, ohne, von: ohne * 2, bis: ohne * 3 };
 }
 
-export default function Account() {
+/** `eingebettet`: als Reiter „Uhr" in Uhr & Konten (/konten und Home, 02.11.2026) — ohne Titelzeile, eigener
+ * Adress-Parameter `utab`, weil `tab` dort schon belegt ist; `stufe` wie die Reiterzeile darueber es braucht. */
+export default function Account({ eingebettet = false, stufe = 1 }: { eingebettet?: boolean; stufe?: 1 | 2 } = {}) {
   const t = useT();
   const [sp, setSp] = useSearchParams();
   const TABS = ["guide", "connect", "views", "alarm", "app", "compat"] as const;
-  const paramTab = sp.get("tab");
+  const tabParam = eingebettet ? "utab" : "tab";
+  const paramTab = sp.get(tabParam);
   const initialTab = (TABS as readonly string[]).includes(paramTab ?? "") ? (paramTab as typeof TABS[number]) : "guide";
   const [tab, setTab] = useState<"guide" | "connect" | "views" | "alarm" | "app" | "compat">(initialTab);
   const dlQuery = sp.get("dl") ?? "";
@@ -53,16 +56,18 @@ export default function Account() {
   }, [paramTab, tabTouched]);
   const pickTab = (v: typeof TABS[number]) => {
     setTabTouched(true); setTab(v);
-    setSp((alt) => { const n = new URLSearchParams(alt); n.set("tab", v); return n; }, { replace: true });
+    setSp((alt) => { const n = new URLSearchParams(alt); n.set(tabParam, v); return n; }, { replace: true });
   };
 
   return (
     <div className="w-full">
-      <div className="mb-4 flex items-center gap-2">
-        <ZurueckPfeil fallback="/einstellungen" />
-        <WatchIcon className="h-6 w-6 text-brand-400" />
-        <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
-      </div>
+      {!eingebettet && (
+        <div className="mb-4 flex items-center gap-2">
+          <ZurueckPfeil fallback="/einstellungen" />
+          <WatchIcon className="h-6 w-6 text-brand-400" />
+          <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
+        </div>
+      )}
 
       {/* Dieselben Reiter wie ueberall (02.11.2026). „App" (Downloads) hat keinen eigenen Reiter, sie wird angesprungen. */}
       <Reiterleiste reiter={[
@@ -71,7 +76,7 @@ export default function Account() {
         { id: "alarm", label: t("account.tabAlarm") },
         { id: "connect", label: t("account.tabConnect") },
         { id: "compat", label: t("account.tabCompat") },
-      ]} aktiv={tab} onWahl={(id) => pickTab(id as typeof TABS[number])} />
+      ]} aktiv={tab} onWahl={(id) => pickTab(id as typeof TABS[number])} stufe={stufe} />
 
       {tab === "guide" && <WatchGuide onOpenApp={() => setTab("app")} onOpenConnect={() => setTab("connect")} />}
 
