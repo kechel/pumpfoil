@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Reiterleiste, useReiter } from "./Reiter";
 import { Card } from "./ui";
 import { useT } from "../i18n";
 import { WatchDemoVideo } from "./WatchDemoVideo";
@@ -53,36 +53,16 @@ const appleShots = [
 
 export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => void; onOpenConnect?: () => void }) {
   const t = useT();
-  const [sel, setSel] = useState<string | null>(null);
+  const [sel, setSel] = useReiter("uhrguide", platforms.map((p) => p.id), platforms[0].id, { param: "plattform" });
   const connectLink = (
     <button type="button" onClick={onOpenConnect} className="mx-1 text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300"><b>{t("guide.connect")}</b></button>
   );
   return (
     <div className="space-y-5">
-      {/* Plattform-Auswahl: nur der gewählte Abschnitt wird eingeblendet. */}
-      <Card className="p-5">
-        <h3 className="font-semibold">{t("guide.howto")}</h3>
-        <p className="mt-1 text-sm text-slate-300">{t("guide.pick")}</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {platforms.map((p) => {
-            const active = sel === p.id;
-            return (
-              <button
-                key={p.id}
-                onClick={() => setSel(active ? null : p.id)}
-                className={
-                  "rounded-lg border px-3 py-1.5 text-sm " +
-                  (active
-                    ? "border-brand-500 bg-brand-500 text-slate-950 font-semibold"
-                    : "border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700")
-                }
-              >
-                {p.label}
-              </button>
-            );
-          })}
-        </div>
-      </Card>
+      {/* Plattform als einfache Reiter (Jan, 02.11.2026), vorher Knoepfe in einer Karte. Gewaehlt bleibt sie in der Adresse. */}
+      <div>
+        <Reiterleiste aktiv={sel} onWahl={setSel} reiter={platforms.map((p) => ({ id: p.id, label: p.label }))} className="!mb-0" />
+      </div>
 
       {/* Garmin */}
       {sel === "garmin" && (
