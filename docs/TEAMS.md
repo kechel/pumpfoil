@@ -353,6 +353,8 @@ Plan, baut auf den Events auf (Zeitfenster, Spots, Vorlagen, Einfrieren, Ergebni
 Vorschlag: ein Abzeichen bzw. Zaehler, wenn man als Erster an einem Spot pumpt („den Spot pumpbar macht"), und ein
 Zaehler fuer die befahrenen Spots als eigene Kategorie. Jan dazu: Spot-Rekorde (wer wann wen ueberboten hat) sollen
 ebenfalls zaehlen.
+Weitere Idee (Nutzer-Feedback 02.11.2026, Jan: gehoert hierher, erstmal nicht): ein Zaehler „freigeschaltete Sportarten",
+also wie viele der Sportarten man schon gefahren ist.
 
 **Was heute wirklich geloggt wird (DB geprueft 01.11.2026, nur lesend):**
 - `record_events` (seit 17.07.2026, 10 488 Eintraege, 275 Fahrer): jede Verbesserung einer Community-Bestmarke mit

@@ -1574,11 +1574,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Wetter fliegt nicht raus, sondern ist ein eigener Reiter der Spot-Seite.
   **Offen, mittel:**
   - Sessionliste sortierbar.
-  - Zaehler „freigeschaltete Sportarten".
   **Offen, gross (spaeter):**
   - Kommentare zu Sessions + Likes auf Kommentare (Modell, Melden/Ausblenden, Sperren, DSGVO-Loeschung, Altersgrenze
     Social, Benachrichtigungen, Web + Android + iOS).
-  - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md.
+  - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
+    gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.
   - Danach: alles Erledigte nach iOS/Android portieren (Reiter, Gestern, Likes-Liste, Bild teilen, Platzierung …).
 
