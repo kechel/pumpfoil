@@ -29,7 +29,7 @@ type Metric = {
 // Spot-Vergleich unter der Karte: je Kennzahl der führende Spot + der eigene/gewählte Spot
 // im Vergleich (Wert + Rang). Layout wie die Community-Rekorde, aber ohne Track; Name/Zeit
 // nur bei Einzel-Rekorden. Zeitfenster wie in der Community.
-export function SpotCompare() {
+export function SpotCompare({ ohneKopf = false }: { ohneKopf?: boolean } = {}) {
   const t = useT();
   const [period, setPeriod] = useState("10d");
   const [data, setData] = useState<SpotAgg[] | null>(null);
@@ -69,8 +69,9 @@ export function SpotCompare() {
   const selAgg = data?.find((x) => x.spot === sel) || null;
 
   return (
-    <div className="mt-6">
-      <h3 className="mb-2 text-lg font-bold">{t("spotcmp.title")}</h3>
+    <div className={ohneKopf ? "" : "mt-6"}>
+      {/* Als eigener Reiter der Spots-Seite ohne Ueberschrift — die steht schon im Reiter (02.11.2026). */}
+      {!ohneKopf && <h3 className="mb-2 text-lg font-bold">{t("spotcmp.title")}</h3>}
 
       {/* Zeitfenster */}
       <div className="mb-3 flex flex-wrap gap-1.5">

@@ -32,6 +32,8 @@ export default function Spots() {
   const reiter: ReiterDef[] = [
     { id: "karte", label: t("tab.map") },
     { id: "liste", label: t("tab.list") },
+    // Spot-Rekorde als eigener Reiter (Jan, 02.11.2026) — standen bisher unter der Karte.
+    { id: "rekorde", label: t("spotcmp.title") },
     { id: "routen", label: t("tab.routes") },
   ];
   const [tab, setTab] = useReiter("spots", reiter.map((r) => r.id), "karte", { merken: true });
@@ -44,7 +46,7 @@ export default function Spots() {
         <h2 className="text-2xl font-bold">{t("nav.spots")}</h2>
       </div>
       {leiste}
-      {tab === "liste" ? <SpotListe /> : <RoutenListe />}
+      {tab === "liste" ? <SpotListe /> : tab === "rekorde" ? <SpotCompare ohneKopf /> : <RoutenListe />}
     </div>
   );
 }
@@ -458,7 +460,6 @@ function SpotKarte({ reiter }: { reiter: React.ReactNode }) {
               <span>{t("spots.activeLegend")}</span>
             </p>
           )}
-          <SpotCompare />
         </>
       )}
     </div>
