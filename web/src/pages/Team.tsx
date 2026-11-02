@@ -209,8 +209,11 @@ function Logbuch({ eintraege, t, zurueck }: { eintraege: TeamLogbuchEintrag[]; t
   );
 }
 
-export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck }: {
+export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZeigen = false }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
+  /** Sportart als Marke neben der Ueberschrift — wenn die Bestenlisten verschiedene Sportarten haben (Jan, 02.11.2026:
+   * „in den kacheln fehlt die anzeige welche sportart jeweils gemeint ist"). */
+  sportZeigen?: boolean;
   /** Filterzeile („auch nur GPS" …) weglassen — auf der Event-Seite (Jan, 01.11.2026). */
   ohneFilter?: boolean;
   /** Zurueck-Link der Session- und Profilseite („‹ Eventname" statt „‹ Sessions", Jan 01.11.2026), wie in LaengsteLaeufe. */
@@ -218,7 +221,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck }: {
 }) {
   const k = kennzahl(tf.kennzahl);
   const filter = [
-    tf.sportart !== "pumpfoil" ? t(`cls.sport.${tf.sportart}`) : null,
+    tf.sportart !== "pumpfoil" && !sportZeigen ? t(`cls.sport.${tf.sportart}`) : null,
     tf.nur_teamspots ? t("team.tafel.nurTeamspots") : null,
     tf.nur_brett ? t("team.tafel.nurBrett") : null,
     // „auch nur GPS" steht nicht mehr an jeder Bestenliste (Jan, 01.11.2026) — das erklaert das Team, wenn es will.
@@ -226,7 +229,14 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck }: {
   return (
     <Card className="p-4">
       <div className="flex items-start gap-2">
-        <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t(k.labelKey)}</h3>
+        <h3 className="team-akzent min-w-0 flex-1 font-semibold">
+          {t(k.labelKey)}
+          {sportZeigen && (
+            <span className="ml-2 inline-block rounded-full bg-slate-800 px-2 py-0.5 align-middle text-xs font-medium text-slate-300">
+              {t(`cls.sport.${tf.sportart}`)}
+            </span>
+          )}
+        </h3>
         {onBild && tf.zeilen.length > 0 && (
           <button onClick={onBild} title={t("team.bild.titel")} aria-label={t("team.bild.titel")}
             className="shrink-0 rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
@@ -434,7 +444,7 @@ export default function Team() {
           {!tafeln ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : tafeln.length === 0
             ? <p className="text-sm text-slate-400">{t("team.keineTafeln")}</p>
             : <div className="grid gap-3 sm:grid-cols-2">{tafeln.map((tf) => (
-                <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} onBild={gast ? undefined : () => setBild({ tf, zeile: t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d") })} />
+                <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} sportZeigen={new Set(tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} onBild={gast ? undefined : () => setBild({ tf, zeile: t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d") })} />
               ))}</div>}
         </>
       )}

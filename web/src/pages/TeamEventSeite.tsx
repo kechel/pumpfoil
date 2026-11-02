@@ -230,7 +230,7 @@ export default function TeamEventSeite() {
         {(ev.summen_auswahl ?? []).length > 0 && <EventSummen ev={ev} t={t} />}
         <div className="grid gap-3 sm:grid-cols-2">
           {ev.tafeln.map((tf, i) => (
-            <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
+            <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
           ))}
         </div>
         </>

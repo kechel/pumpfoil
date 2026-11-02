@@ -15,7 +15,9 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose }: {
   const k = kennzahl(tafel.kennzahl);
   const daten = useMemo(() => ({
     titel: team.name,
-    unterzeile: `${t(k.labelKey)} · ${zeitraum}`,
+    // Sportart dazu, sobald es nicht Pumpfoil ist — sonst weiss im geteilten Bild niemand, welche gemeint ist (02.11.2026).
+    unterzeile: [t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null, zeitraum]
+      .filter(Boolean).join(" · "),
     zeilen: tafel.zeilen.slice(0, 10).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, wert: k.fmt(z.value) })),
     leer: t("team.tafel.leer"),
     // `dunkel` = Textfarbe fuer den DUNKLEN Modus (helle Stufe, s. lib/teamFarben.ts) — auf Navy muss sie leuchten.
