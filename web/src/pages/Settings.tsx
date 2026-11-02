@@ -21,7 +21,7 @@ import { PublicProfileCard } from "../components/PublicProfileCard";
 
 export default function Settings() {
   const { t, lang } = useI18n();
-  const [ptab, setPtab] = useReiter("profil", ["ich", "fahren", "privat", "darstellung", "konto"], "ich");
+  const [ptab, setPtab] = useReiter("profil", ["uebersicht", "ich", "fahren", "privat", "darstellung", "konto"], "uebersicht");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -151,6 +151,18 @@ export default function Settings() {
         <h2 className="text-xl font-bold">{t("profile.title")}</h2>
       </div>
 
+      {/* Reiter ganz oben (Jan, 02.11.2026); Kacheln und Sprache sind der erste Reiter „Übersicht". Gruppen danach: wer ich
+          bin, wie ich fahre/ausgewertet werde, was andere sehen, wie die Seite aussieht und meldet, Konto. Der Reiter wird
+          nicht gemerkt: wer die Seite oeffnet, landet immer bei der Sprache (s. unten). */}
+      <Reiterleiste reiter={[
+        { id: "uebersicht", label: t("tab.overview") },
+        { id: "ich", label: t("ptab.me") },
+        { id: "fahren", label: t("ptab.riding") },
+        { id: "privat", label: t("ptab.privacy") },
+        { id: "darstellung", label: t("ptab.display") },
+        { id: "konto", label: t("ptab.account") },
+      ]} aktiv={ptab} onWahl={setPtab} />
+      {ptab === "uebersicht" && <>
       {/* Kacheln zweispaltig, sobald der Platz reicht (Jan, 02.11.2026). */}
       <div className="grid gap-x-4 lg:grid-cols-2">
       <Link
@@ -242,16 +254,7 @@ export default function Settings() {
         <LanguageSelect />
       </Card>
 
-      {/* Einstellungen in Reitern UNTER der Sprache (Jan, 02.11.2026: „die vielen einstellungen auch in eigene tabs, aber
-          diesmal erst unter Language"). Gruppen: wer ich bin, wie ich fahre/ausgewertet werde, was andere sehen,
-          wie die Seite aussieht und meldet, Konto. */}
-      <Reiterleiste reiter={[
-        { id: "ich", label: t("ptab.me") },
-        { id: "fahren", label: t("ptab.riding") },
-        { id: "privat", label: t("ptab.privacy") },
-        { id: "darstellung", label: t("ptab.display") },
-        { id: "konto", label: t("ptab.account") },
-      ]} aktiv={ptab} onWahl={setPtab} />
+      </>}
       {ptab === "ich" && <div className="[&>*:first-child]:mt-0">
       <Card className="mb-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.avatar")}</h3>
