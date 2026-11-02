@@ -2789,6 +2789,8 @@ const zh: Record<string, string> = {
   "ptab.privacy": "隐私",
   "ptab.display": "显示与通知",
   "ptab.account": "账户",
+  "tab.events": "活动",
+  "tab.logbook": "日志",
 };
 
 export default zh;

@@ -2788,6 +2788,8 @@ const ja: Record<string, string> = {
   "ptab.privacy": "プライバシー",
   "ptab.display": "表示と通知",
   "ptab.account": "アカウント",
+  "tab.events": "イベント",
+  "tab.logbook": "ログ",
 };
 
 export default ja;

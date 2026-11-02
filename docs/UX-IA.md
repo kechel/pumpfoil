@@ -31,7 +31,8 @@ Spots
 ├─ Liste                      (bisher Spot-Abschnitt der Community)
 └─ Routen                     (bisher Routen-Abschnitt der Community)
 
-Profil                        unveraendert
+Profil                        Reiter unter der Sprache: Ich | Fahren & Auswertung | Privatsphaere | Darstellung & Hinweise | Konto
+Team-Seite                    Reiter unter dem Kopf: Rekorde | Events | Logbuch
 
 Spot-Seite                    kein eigener Knopf; erreichbar ueber Homespot, Session -> Spot, Karte/Suche
 ├─ Rekorde                    Kacheln + darunter dieselben Bestenlisten wie in der Community, nur an diesem Spot

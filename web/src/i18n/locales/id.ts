@@ -2792,6 +2792,8 @@ const id: Record<string, string> = {
   "ptab.privacy": "Privasi",
   "ptab.display": "Tampilan & notifikasi",
   "ptab.account": "Akun",
+  "tab.events": "Acara",
+  "tab.logbook": "Log",
 };
 
 export default id;

@@ -2845,6 +2845,8 @@ const cs: Record<string, string> = {
   "ptab.privacy": "Soukromí",
   "ptab.display": "Zobrazení a upozornění",
   "ptab.account": "Účet",
+  "tab.events": "Akce",
+  "tab.logbook": "Deník",
 };
 
 export default cs;

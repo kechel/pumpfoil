@@ -12,6 +12,7 @@ import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatisti
 import { Avatar, Card } from "../components/ui";
 import { ChatBubbleIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
+import { Reiterleiste, useReiter } from "../components/Reiter";
 import { openChatOverlay } from "../components/DmWidget";
 import { eventZeitraum } from "../lib/teamEvents";
 import { RegelnLink } from "./TeamRegeln";
@@ -269,6 +270,7 @@ export default function Team() {
   const { t, lang } = useI18n();
   const nav = useNavigate();
   const gast = !getToken();
+  const [tteil, setTteil] = useReiter("team", ["rekorde", "events", "logbuch"], "rekorde");
   const [kopf, setKopf] = useState<Kopf | null>(null);
   const [fehlt, setFehlt] = useState(false);
   const [period, setPeriod] = useState("30d");
@@ -373,6 +375,14 @@ export default function Team() {
         {kopf.beschreibung && <p className="col-span-2 mt-1 whitespace-pre-line text-sm text-slate-300">{kopf.beschreibung}</p>}
       </div>
 
+      {/* Reiter wie ueberall (Jan, 02.11.2026): Rekorde | Events | Logbuch, direkt unter dem Trennstrich des Kopfs. Mitglieder, Teamadresse und Austreten bleiben
+          darunter fuer alle Reiter sichtbar. */}
+      <Reiterleiste reiter={[
+        { id: "rekorde", label: t("side.records") },
+        { id: "events", label: t("tab.events") },
+        { id: "logbuch", label: t("tab.logbook") },
+      ]} aktiv={tteil} onWahl={setTteil} />
+
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
 
       {/* Fremde sehen die Teamadresse nur kompakt neben „Beitreten“, wenn das Team oeffentlich UND freigegeben ist;
@@ -394,7 +404,10 @@ export default function Team() {
       )}
 
 
-      {eventsOben.length > 0 && (
+      {tteil === "events" && eventsOben.length === 0 && eventsUnten.length === 0 && (
+        <p className="text-sm text-slate-400">{t("team.event.keineAktuellen")}</p>
+      )}
+      {tteil === "events" && eventsOben.length > 0 && (
         <div className="mb-5 space-y-3">
           {eventsOben.map((e) => (
             // Kompakte Kachel; ein Klick oeffnet das Event mit allen Bestenlisten (Jan, 01.11.2026).
@@ -403,7 +416,7 @@ export default function Team() {
         </div>
       )}
 
-      {(gast || kopf.darf_bestenlisten) && (
+      {tteil === "rekorde" && (gast || kopf.darf_bestenlisten) && (
         <>
           <div className="mb-3 flex flex-wrap gap-2">
             {ZEITRAEUME.map(([k, lk]) => (
@@ -421,7 +434,7 @@ export default function Team() {
               ))}</div>}
         </>
       )}
-      {!gast && !kopf.darf_bestenlisten && kopf.mein_status !== "angefragt" && (
+      {tteil !== "events" && !gast && !kopf.darf_bestenlisten && kopf.mein_status !== "angefragt" && (
         <p className="text-sm text-slate-400">{t("team.nurFuerMitglieder")}</p>
       )}
 
@@ -441,9 +454,9 @@ export default function Team() {
       )}
 
       {/* Reihenfolge unten (Jan, 01.11.2026): Teamadresse vorletzt, Logbuch ganz unten. */}
-      {eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} slug={kopf.slug} lang={lang} t={t} />}
+      {tteil === "events" && eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} slug={kopf.slug} lang={lang} t={t} />}
+      {tteil === "logbuch" && (gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} />}
       {kopf.mein_status === "aktiv" && <div className="mt-4"><TeamAdresse kopf={kopf} t={t} /></div>}
-      {(gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} />}
 
       {kopf.mein_status === "aktiv" && kopf.meine_rolle !== "leiter" && (
         <button onClick={austreten} className="mt-6 text-sm text-slate-400 underline hover:text-slate-200">{t("team.austreten")}</button>
@@ -453,7 +466,7 @@ export default function Team() {
         <p className="mt-6 text-sm text-slate-400">{t("team.gastHinweis")}</p>
       )}
       {/* „Auch nur GPS" einmal unten statt an jeder Bestenliste (Jan, 01.11.2026). */}
-      {tafeln && tafeln.some((tf) => !tf.accel_only) && (
+      {tteil === "rekorde" && tafeln && tafeln.some((tf) => !tf.accel_only) && (
         <p className="mt-6 text-sm text-slate-400">
           {t(tafeln.every((tf) => !tf.accel_only) ? "team.tafel.gpsAlle" : "team.tafel.gpsEinige")}
         </p>

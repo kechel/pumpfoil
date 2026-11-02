@@ -2846,6 +2846,8 @@ const nl: Record<string, string> = {
   "ptab.privacy": "Privacy",
   "ptab.display": "Weergave & meldingen",
   "ptab.account": "Account",
+  "tab.events": "Evenementen",
+  "tab.logbook": "Logboek",
 };
 
 export default nl;

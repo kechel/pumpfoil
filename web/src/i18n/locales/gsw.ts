@@ -2677,6 +2677,8 @@ const gsw: Record<string, string> = {
   "ptab.privacy": "Privatsphäre",
   "ptab.display": "Darstellig & Hiiwiis",
   "ptab.account": "Konto",
+  "tab.events": "Events",
+  "tab.logbook": "Logbuech",
 };
 
 export default gsw

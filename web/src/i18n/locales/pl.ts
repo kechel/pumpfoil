@@ -2775,6 +2775,8 @@ const pl: Record<string, string> = {
   "ptab.privacy": "Prywatność",
   "ptab.display": "Wygląd i powiadomienia",
   "ptab.account": "Konto",
+  "tab.events": "Wydarzenia",
+  "tab.logbook": "Dziennik",
 };
 
 export default pl;

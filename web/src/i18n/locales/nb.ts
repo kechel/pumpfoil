@@ -2767,6 +2767,8 @@ const nb: Record<string, string> = {
   "ptab.privacy": "Personvern",
   "ptab.display": "Visning og varsler",
   "ptab.account": "Konto",
+  "tab.events": "Arrangementer",
+  "tab.logbook": "Loggbok",
 };
 
 export default nb;

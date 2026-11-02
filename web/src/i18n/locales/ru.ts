@@ -2792,6 +2792,8 @@ const ru: Record<string, string> = {
   "ptab.privacy": "Конфиденциальность",
   "ptab.display": "Вид и уведомления",
   "ptab.account": "Аккаунт",
+  "tab.events": "События",
+  "tab.logbook": "Журнал",
 };
 
 export default ru;

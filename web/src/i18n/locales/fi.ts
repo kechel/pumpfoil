@@ -2827,6 +2827,8 @@ const fi: Record<string, string> = {
   "ptab.privacy": "Yksityisyys",
   "ptab.display": "Ulkoasu ja ilmoitukset",
   "ptab.account": "Tili",
+  "tab.events": "Tapahtumat",
+  "tab.logbook": "Lokikirja",
 };
 
 export default fi;
