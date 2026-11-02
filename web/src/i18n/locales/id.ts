@@ -2778,6 +2778,13 @@ const id: Record<string, string> = {
   "sd.whoLiked": "Siapa?",
   "tab.stats": "Statistik",
   "tab.insights": "Wawasan",
+  "brett.erkl.titel": "Apa itu posisi papan?",
+  "brett.erkl.was": "Jika ponselmu terpasang di papan selama sesi, giroskopnya mengukur bagaimana papan mengangguk dan berguling – langsung di sumbernya, bukan di pergelangan tangan.",
+  "brett.erkl.wie": "Caranya: masukkan ponsel ke wadah tahan air, pasang rata di dek, lalu mulai merekam di aplikasi Pumpfoil pada ponsel. Jam tangan bisa merekam bersamaan. Analisis biasanya mengenali sendiri bahwa ponsel ada di papan.",
+  "brett.erkl.bringt": "Manfaatnya: kamu melihat seberapa stabil papanmu saat memompa, seberapa besar papan mengangguk dan berguling per pump, dan apakah berbeda antara foil, tikungan, dan lintasan lurus. Setiap rekaman seperti ini juga membantu memperbaiki deteksi pump untuk jam tangan.",
+  "brett.erkl.daten": "Data yang kamu dapat: anggukan dan gulingan per pump, kemiringan, irama, tikungan dibanding lurus, dan gerakan naik-turun (setelah irama pump terdeteksi dengan pasti) – per putaran, dan di sini sebagai ringkasan semua putaran dan per foil.",
+  "brett.erkl.mehr": "Selengkapnya",
+  "tab.noData": "Belum ada data di sini.",
 };
 
 export default id;

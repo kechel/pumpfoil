@@ -2831,6 +2831,13 @@ const cs: Record<string, string> = {
   "sd.whoLiked": "Kdo?",
   "tab.stats": "Statistiky",
   "tab.insights": "Ukazatele",
+  "brett.erkl.titel": "Co je poloha prkna?",
+  "brett.erkl.was": "Když máš telefon během vyjížďky pevně na prkně, jeho gyroskop měří, jak prkno kývá a naklání se – přímo u zdroje, ne na zápěstí.",
+  "brett.erkl.wie": "Jak na to: dej telefon do vodotěsného obalu, připevni ho naplocho na palubu a spusť záznam v aplikaci Pumpfoil v telefonu. Hodinky můžou nahrávat současně. Že byl telefon na prkně, pozná vyhodnocení většinou samo.",
+  "brett.erkl.bringt": "Co ti to dá: uvidíš, jak klidně prkno při pumpování leží, jak moc při každém pumpu kývá a naklání se a jestli se to liší mezi foily, zatáčkami a rovinkami. Každý takový záznam navíc pomáhá zlepšit rozpoznávání pumpů pro hodinky.",
+  "brett.erkl.daten": "Jaká data dostaneš: kývání a náklon na pump, náklon, kadenci, zatáčky proti rovinkám a vertikální pohyb (jakmile je rytmus pumpování spolehlivě rozpoznán) – pro každou jízdu a tady jako přehled všech jízd a podle foilu.",
+  "brett.erkl.mehr": "Více informací",
+  "tab.noData": "Zatím tu nejsou žádná data.",
 };
 
 export default cs;

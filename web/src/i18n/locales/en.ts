@@ -2877,6 +2877,13 @@ const en: Record<string, string> = {
   "sd.whoLiked": "Who?",
   "tab.stats": "Stats",
   "tab.insights": "Insights",
+  "brett.erkl.titel": "What is board attitude?",
+  "brett.erkl.was": "If your phone is fixed to the board during the session, its gyroscope measures how the board pitches and rolls – right at the source instead of at your wrist.",
+  "brett.erkl.wie": "How it works: put your phone in a waterproof case, fix it flat on the deck and start recording in the Pumpfoil app on the phone. Your watch can record at the same time. The analysis usually notices by itself that the phone was on the board.",
+  "brett.erkl.bringt": "What you get out of it: you see how steady your board is while pumping, how much it pitches and rolls per pump, and whether that differs between foils, turns and straights. Every such recording also helps improve pump detection for the watch.",
+  "brett.erkl.daten": "The data you get: pitch and roll per pump, lean, cadence, turns versus straights and the heave (the up-and-down movement, once the pump rhythm is detected reliably) – per run, and here as an overview of all runs and per foil.",
+  "brett.erkl.mehr": "Learn more",
+  "tab.noData": "No data here yet.",
 };
 
 export default en;

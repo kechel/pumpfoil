@@ -2761,6 +2761,13 @@ const pl: Record<string, string> = {
   "sd.whoLiked": "Kto?",
   "tab.stats": "Statystyki",
   "tab.insights": "Wskaźniki",
+  "brett.erkl.titel": "Czym jest ustawienie deski?",
+  "brett.erkl.was": "Jeśli telefon jest przymocowany do deski podczas sesji, jego żyroskop mierzy, jak deska kiwa się i przechyla – bezpośrednio u źródła, a nie na nadgarstku.",
+  "brett.erkl.wie": "Jak to zrobić: włóż telefon do wodoszczelnego etui, przymocuj go płasko na pokładzie i uruchom nagrywanie w aplikacji Pumpfoil na telefonie. Zegarek może nagrywać jednocześnie. Analiza zwykle sama rozpozna, że telefon był na desce.",
+  "brett.erkl.bringt": "Co ci to daje: widzisz, jak stabilnie deska leży podczas pompowania, jak mocno kiwa się i przechyla przy każdym pumpie i czy różni się to między foilami, zakrętami i prostymi. Każde takie nagranie pomaga też ulepszać rozpoznawanie pumpów dla zegarka.",
+  "brett.erkl.daten": "Jakie dane dostajesz: kiwanie i przechył na pump, pochylenie, kadencję, zakręty kontra proste oraz ruch góra-dół (gdy rytm pompowania zostanie pewnie rozpoznany) – dla każdego przejazdu i tutaj jako przegląd wszystkich przejazdów i według foila.",
+  "brett.erkl.mehr": "Więcej informacji",
+  "tab.noData": "Nie ma tu jeszcze danych.",
 };
 
 export default pl;

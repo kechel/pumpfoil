@@ -2661,6 +2661,13 @@ const it: Record<string, string> = {
   "sd.whoLiked": "Chi?",
   "tab.stats": "Statistiche",
   "tab.insights": "Indicatori",
+  "brett.erkl.titel": "Cos'è l'assetto della tavola?",
+  "brett.erkl.was": "Se il telefono è fissato alla tavola durante la session, il suo giroscopio misura come la tavola beccheggia e rolla – direttamente alla fonte invece che al polso.",
+  "brett.erkl.wie": "Come funziona: metti il telefono in una custodia impermeabile, fissalo piatto sul deck e avvia la registrazione nell'app Pumpfoil sul telefono. L'orologio può registrare in contemporanea. Di solito l'analisi riconosce da sola che il telefono era sulla tavola.",
+  "brett.erkl.bringt": "A cosa serve: vedi quanto è stabile la tavola mentre pompi, quanto beccheggia e rolla a ogni pump e se cambia tra foil, curve e rettilinei. Ogni registrazione così aiuta anche a migliorare il riconoscimento dei pump per l'orologio.",
+  "brett.erkl.daten": "I dati che ottieni: beccheggio e rollio per pump, inclinazione, cadenza, curve contro rettilinei e il movimento verticale (quando il ritmo dei pump è riconosciuto con sicurezza) – per run e qui come panoramica di tutti i run e per foil.",
+  "brett.erkl.mehr": "Scopri di più",
+  "tab.noData": "Ancora nessun dato qui.",
 };
 
 export default it;

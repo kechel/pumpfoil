@@ -2668,6 +2668,13 @@ const deAT: Record<string, string> = {
   "sd.whoLiked": "Wer?",
   "tab.stats": "Stats",
   "tab.insights": "Kennzahlen",
+  "brett.erkl.titel": "Was ist die Lage des Bretts?",
+  "brett.erkl.was": "Liegt dein Handy während der Session fest auf dem Brett, misst sein Kreisel, wie das Brett nickt und rollt – direkt an der Quelle statt am Handgelenk.",
+  "brett.erkl.wie": "So geht's: Handy wasserdicht verpackt flach auf dem Deck befestigen und die Aufnahme in der Pumpfoil-App auf dem Handy starten. Die Uhr kann gleichzeitig mitlaufen. Dass das Handy am Brett lag, erkennt die Auswertung meist von selbst.",
+  "brett.erkl.bringt": "Was es bringt: Du siehst, wie ruhig dein Brett beim Pumpen liegt, wie stark es je Pump nickt und rollt und ob sich das zwischen Foils, Kurven und Geraden unterscheidet. Jede solche Aufnahme hilft außerdem, die Pump-Erkennung für die Uhr zu verbessern.",
+  "brett.erkl.daten": "Welche Daten du bekommst: Nicken und Rollen je Pump, Schräglage, Takt, Kurve gegen Gerade und den Hub (die Auf- und Abbewegung, sobald der Pumptakt sicher erkannt ist) – je Lauf und hier als Übersicht über alle Läufe und je Foil.",
+  "brett.erkl.mehr": "Mehr dazu",
+  "tab.noData": "Hier gibt es noch keine Daten.",
 };
 
 export default deAT

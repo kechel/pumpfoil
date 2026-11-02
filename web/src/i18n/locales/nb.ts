@@ -2753,6 +2753,13 @@ const nb: Record<string, string> = {
   "sd.whoLiked": "Hvem?",
   "tab.stats": "Statistikk",
   "tab.insights": "Nøkkeltall",
+  "brett.erkl.titel": "Hva er brettets stilling?",
+  "brett.erkl.was": "Hvis telefonen er festet til brettet under økten, måler gyroskopet hvordan brettet nikker og ruller – rett ved kilden i stedet for på håndleddet.",
+  "brett.erkl.wie": "Slik gjør du det: legg telefonen i et vanntett etui, fest den flatt på dekket og start opptaket i Pumpfoil-appen på telefonen. Klokka kan ta opp samtidig. At telefonen lå på brettet, oppdager analysen som regel selv.",
+  "brett.erkl.bringt": "Hva du får ut av det: du ser hvor stødig brettet ligger når du pumper, hvor mye det nikker og ruller per pump, og om det er forskjell mellom foiler, svinger og rettstrekninger. Hvert slikt opptak hjelper også med å forbedre pumpgjenkjenningen for klokka.",
+  "brett.erkl.daten": "Dataene du får: nikk og rull per pump, krengning, takt, svinger mot rettstrekninger og opp-og-ned-bevegelsen (når pumperytmen er sikkert gjenkjent) – per runde, og her som oversikt over alle runder og per foil.",
+  "brett.erkl.mehr": "Les mer",
+  "tab.noData": "Ingen data her ennå.",
 };
 
 export default nb;

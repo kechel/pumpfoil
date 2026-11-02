@@ -2778,6 +2778,13 @@ const pt: Record<string, string> = {
   "sd.whoLiked": "Quem?",
   "tab.stats": "Estatísticas",
   "tab.insights": "Indicadores",
+  "brett.erkl.titel": "O que é a atitude da prancha?",
+  "brett.erkl.was": "Se o seu celular estiver preso à prancha durante a sessão, o giroscópio mede como a prancha arfa e rola – direto na fonte, em vez de no pulso.",
+  "brett.erkl.wie": "Como funciona: coloque o celular numa capa à prova d'água, prenda-o deitado no deck e inicie a gravação no app Pumpfoil do celular. O relógio pode gravar ao mesmo tempo. A análise normalmente percebe sozinha que o celular estava na prancha.",
+  "brett.erkl.bringt": "O que você ganha: vê quão estável a prancha fica enquanto você bombeia, quanto ela arfa e rola a cada pump e se isso muda entre foils, curvas e retas. Cada gravação assim também ajuda a melhorar a detecção de pumps do relógio.",
+  "brett.erkl.daten": "Os dados que você recebe: arfagem e rolagem por pump, inclinação, cadência, curvas contra retas e o movimento vertical (quando o ritmo de pump é detectado com segurança) – por volta e aqui como visão geral de todas as voltas e por foil.",
+  "brett.erkl.mehr": "Saiba mais",
+  "tab.noData": "Ainda não há dados aqui.",
 };
 
 export default pt;

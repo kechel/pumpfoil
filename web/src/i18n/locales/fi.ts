@@ -2813,6 +2813,13 @@ const fi: Record<string, string> = {
   "sd.whoLiked": "Kuka?",
   "tab.stats": "Tilastot",
   "tab.insights": "Tunnusluvut",
+  "brett.erkl.titel": "Mikä on laudan asento?",
+  "brett.erkl.was": "Kun puhelin on kiinnitetty lautaan session ajaksi, sen gyroskooppi mittaa, miten lauta nyökkää ja kallistuu – suoraan lähteellä eikä ranteessa.",
+  "brett.erkl.wie": "Näin se toimii: laita puhelin vesitiiviiseen koteloon, kiinnitä se tasaisesti kanteen ja aloita tallennus puhelimen Pumpfoil-sovelluksessa. Kello voi tallentaa samaan aikaan. Analyysi huomaa yleensä itse, että puhelin oli laudalla.",
+  "brett.erkl.bringt": "Mitä siitä saat: näet, kuinka vakaasti lauta kulkee pumpatessa, kuinka paljon se nyökkää ja kallistuu jokaisella pumpulla ja eroaako se foilien, kaarteiden ja suorien välillä. Jokainen tällainen tallennus auttaa myös parantamaan kellon pumppujen tunnistusta.",
+  "brett.erkl.daten": "Saamasi tiedot: nyökkäys ja kallistus pumppua kohden, kallistuma, tahti, kaarteet vastaan suorat ja pystyliike (kun pumpputahti tunnistetaan varmasti) – lenkeittäin ja tässä yhteenvetona kaikista lenkeistä ja foileittain.",
+  "brett.erkl.mehr": "Lue lisää",
+  "tab.noData": "Täällä ei ole vielä tietoja.",
 };
 
 export default fi;

@@ -2832,6 +2832,13 @@ const nl: Record<string, string> = {
   "sd.whoLiked": "Wie?",
   "tab.stats": "Statistieken",
   "tab.insights": "Kerncijfers",
+  "brett.erkl.titel": "Wat is de stand van het board?",
+  "brett.erkl.was": "Zit je telefoon tijdens de sessie vast op het board, dan meet de gyroscoop hoe het board knikt en rolt – direct aan de bron in plaats van aan je pols.",
+  "brett.erkl.wie": "Zo werkt het: doe je telefoon in een waterdichte hoes, maak hem plat vast op het deck en start de opname in de Pumpfoil-app op je telefoon. Je horloge kan tegelijk opnemen. De analyse herkent meestal zelf dat de telefoon op het board zat.",
+  "brett.erkl.bringt": "Wat het je oplevert: je ziet hoe rustig je board ligt tijdens het pompen, hoeveel het per pump knikt en rolt en of dat verschilt tussen foils, bochten en rechte stukken. Elke zo'n opname helpt ook om de pumpherkenning voor het horloge te verbeteren.",
+  "brett.erkl.daten": "De gegevens die je krijgt: knikken en rollen per pump, helling, cadans, bochten tegenover rechte stukken en de op-en-neerbeweging (zodra het pompritme betrouwbaar herkend is) – per run en hier als overzicht van alle runs en per foil.",
+  "brett.erkl.mehr": "Meer weten",
+  "tab.noData": "Hier zijn nog geen gegevens.",
 };
 
 export default nl;

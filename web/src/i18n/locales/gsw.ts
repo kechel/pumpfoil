@@ -2663,6 +2663,13 @@ const gsw: Record<string, string> = {
   "sd.whoLiked": "Wer?",
   "tab.stats": "Stats",
   "tab.insights": "Kennzahle",
+  "brett.erkl.titel": "Was isch d Lag vom Brätt?",
+  "brett.erkl.was": "Isch dis Handy während de Session fescht ufem Brätt, misst sin Chreisel, wie s Brätt nickt und rollt – diräkt a de Quelle statt am Handglänk.",
+  "brett.erkl.wie": "So gaht's: Handy wasserdicht ipackt flach ufem Deck befestige und d Ufnahm i de Pumpfoil-App ufem Handy starte. D Uhr cha gliichzitig mitlaufe. Dass s Handy am Brätt gsi isch, merkt d Uswärtig meischtens sälber.",
+  "brett.erkl.bringt": "Was es bringt: Du gsehsch, wie ruhig dis Brätt bim Pumpe liit, wie fescht es pro Pump nickt und rollt und öb sich das zwüsche Foils, Kurve und Grade unterscheidet. Jedi söttigi Ufnahm hilft usserdem, d Pump-Erkännig für d Uhr z verbessere.",
+  "brett.erkl.daten": "Was für Date du überchunsch: Nicke und Rolle pro Pump, Schräglag, Takt, Kurve gäge Grad und de Hub (d Uf- und Abbewegig, sobald de Pumptakt sicher erkännt isch) – pro Lauf und do als Übersicht über alli Läuf und pro Foil.",
+  "brett.erkl.mehr": "Meh dezue",
+  "tab.noData": "Do häts no kei Date.",
 };
 
 export default gsw

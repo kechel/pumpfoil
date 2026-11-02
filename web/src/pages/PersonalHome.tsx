@@ -653,8 +653,28 @@ function StatsBereich() {
         </>}
         {sub === "brett" && <BoardAttitudeSection />}
       </div>
-      <p className="mt-8 hidden text-sm text-slate-400 peer-empty:block">—</p>
+      {/* Leer: bei der Lage des Bretts eine Erklaerung (die wenigsten haben Brett-Aufnahmen, Jan 02.11.2026), sonst ein Satz. */}
+      <div className="mt-8 hidden peer-empty:block">
+        {sub === "brett" ? <BrettErklaerung /> : <p className="text-sm text-slate-400">{t("tab.noData")}</p>}
+      </div>
     </>
+  );
+}
+
+/** Was die Lage des Bretts ist, wie man sie bekommt und was sie zeigt — fuer alle ohne Brett-Aufnahme. */
+function BrettErklaerung() {
+  const t = useT();
+  return (
+    <Card className="max-w-2xl space-y-2 p-4 text-sm text-slate-300">
+      <h3 className="text-base font-semibold text-slate-100">{t("brett.erkl.titel")}</h3>
+      <p>{t("brett.erkl.was")}</p>
+      <p>{t("brett.erkl.wie")}</p>
+      <p>{t("brett.erkl.bringt")}</p>
+      <p>{t("brett.erkl.daten")}</p>
+      <Link to="/nerd-analysen-4" className="inline-block text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+        {t("brett.erkl.mehr")} →
+      </Link>
+    </Card>
   );
 }
 

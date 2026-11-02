@@ -2661,6 +2661,13 @@ const fr: Record<string, string> = {
   "sd.whoLiked": "Qui ?",
   "tab.stats": "Stats",
   "tab.insights": "Indicateurs",
+  "brett.erkl.titel": "Qu'est-ce que l'assiette de la planche ?",
+  "brett.erkl.was": "Si ton téléphone est fixé sur la planche pendant la session, son gyroscope mesure comment la planche tangue et roule – directement à la source plutôt qu'au poignet.",
+  "brett.erkl.wie": "Comment faire : mets ton téléphone dans une pochette étanche, fixe-le à plat sur le pont et lance l'enregistrement dans l'app Pumpfoil sur le téléphone. Ta montre peut enregistrer en même temps. L'analyse détecte en général toute seule que le téléphone était sur la planche.",
+  "brett.erkl.bringt": "Ce que ça t'apporte : tu vois à quel point ta planche reste stable en pumpant, combien elle tangue et roule à chaque pump, et si cela change selon le foil, dans les virages ou en ligne droite. Chaque enregistrement de ce type aide aussi à améliorer la détection des pumps pour la montre.",
+  "brett.erkl.daten": "Les données obtenues : tangage et roulis par pump, inclinaison, cadence, virages contre lignes droites et le mouvement vertical (dès que le rythme de pump est détecté de façon fiable) – par run, et ici en vue d'ensemble de tous les runs et par foil.",
+  "brett.erkl.mehr": "En savoir plus",
+  "tab.noData": "Pas encore de données ici.",
 };
 
 export default fr;

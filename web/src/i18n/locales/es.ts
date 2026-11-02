@@ -2661,6 +2661,13 @@ const es: Record<string, string> = {
   "sd.whoLiked": "¿Quién?",
   "tab.stats": "Estadísticas",
   "tab.insights": "Indicadores",
+  "brett.erkl.titel": "¿Qué es la actitud de la tabla?",
+  "brett.erkl.was": "Si tu móvil va fijado a la tabla durante la sesión, su giroscopio mide cómo cabecea y alabea la tabla, directamente en la fuente en lugar de en la muñeca.",
+  "brett.erkl.wie": "Cómo funciona: mete el móvil en una funda estanca, fíjalo plano sobre la cubierta e inicia la grabación en la app Pumpfoil del móvil. El reloj puede grabar a la vez. Normalmente el análisis detecta solo que el móvil iba en la tabla.",
+  "brett.erkl.bringt": "Qué te aporta: ves lo estable que va tu tabla al bombear, cuánto cabecea y alabea en cada pump y si cambia entre foils, curvas y rectas. Cada grabación así también ayuda a mejorar la detección de pumps para el reloj.",
+  "brett.erkl.daten": "Los datos que obtienes: cabeceo y alabeo por pump, inclinación, cadencia, curvas frente a rectas y el movimiento vertical (cuando el ritmo de pump se detecta con seguridad), por tramo y aquí como resumen de todos los tramos y por foil.",
+  "brett.erkl.mehr": "Más información",
+  "tab.noData": "Todavía no hay datos aquí.",
 };
 
 export default es;
