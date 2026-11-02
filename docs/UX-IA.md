@@ -13,7 +13,7 @@ Home                          (nur meine Sachen)
 ├─ Rekorde                    meine Rekorde je Zeitraum (mit/ohne Foil zusammengefasst)
 ├─ Team                       meine Teams (ersetzt die Links im Kopf)
 ├─ Homespot                   ersetzt den Homespot-Abschnitt/-Link
-└─ Stats                      zweite Reiterzeile: Verlauf | Jahresbilanz | Start-Erfolgsquote | Carves | Wenden & Halsen | Lage des Bretts
+└─ Stats                      zweite Reiterzeile: Verlauf | Kennzahlen (Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen) | Lage des Bretts
 
 Community
 ├─ Rekorde & Bestenliste      Kacheln oben, Bestenliste darunter (Jan 02.11.: in EINER Ansicht, sonst zu kleine Seiten)

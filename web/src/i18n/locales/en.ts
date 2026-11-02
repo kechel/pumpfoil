@@ -2876,6 +2876,7 @@ const en: Record<string, string> = {
   "tab.rankings": "Records & leaderboard",
   "sd.whoLiked": "Who?",
   "tab.stats": "Stats",
+  "tab.insights": "Insights",
 };
 
 export default en;

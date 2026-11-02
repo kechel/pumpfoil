@@ -2660,6 +2660,7 @@ const fr: Record<string, string> = {
   "tab.rankings": "Records et classement",
   "sd.whoLiked": "Qui ?",
   "tab.stats": "Stats",
+  "tab.insights": "Indicateurs",
 };
 
 export default fr;

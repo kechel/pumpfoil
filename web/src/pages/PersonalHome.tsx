@@ -634,10 +634,8 @@ function StatsBereich() {
   const t = useT();
   const reiter: ReiterDef[] = [
     { id: "verlauf", label: t("nav.history") },
-    { id: "jahr", label: t("phome.ybTitle") },
-    { id: "starts", label: t("home.startSuccess") },
-    { id: "carves", label: "Carves" },
-    { id: "manoever", label: t("phome.manTitle") },
+    // Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen untereinander in EINEM Reiter (Jan, 02.11.2026).
+    { id: "kennzahlen", label: t("tab.insights") },
     { id: "brett", label: t("home.boardAttitude") },
   ];
   const [sub, setSub] = useReiter("homestats", reiter.map((r) => r.id), "verlauf", { param: "sub" });
@@ -647,10 +645,12 @@ function StatsBereich() {
       {/* Die Abschnitte tragen ihren eigenen oberen Abstand (mt-8) von frueher, als sie untereinander standen. */}
       <div className="peer -mt-8">
         {sub === "verlauf" && <div className="mt-8"><History eingebettet /></div>}
-        {sub === "jahr" && <JahresbilanzSection />}
-        {sub === "starts" && <StartSuccessSection />}
-        {sub === "carves" && <CarveStatsSection />}
-        {sub === "manoever" && <ManoeverVerlaufSection />}
+        {sub === "kennzahlen" && <>
+          <JahresbilanzSection />
+          <StartSuccessSection />
+          <CarveStatsSection />
+          <ManoeverVerlaufSection />
+        </>}
         {sub === "brett" && <BoardAttitudeSection />}
       </div>
       <p className="mt-8 hidden text-sm text-slate-400 peer-empty:block">—</p>

@@ -2660,6 +2660,7 @@ const it: Record<string, string> = {
   "tab.rankings": "Record e classifica",
   "sd.whoLiked": "Chi?",
   "tab.stats": "Statistiche",
+  "tab.insights": "Indicatori",
 };
 
 export default it;

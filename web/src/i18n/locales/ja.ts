@@ -2773,6 +2773,7 @@ const ja: Record<string, string> = {
   "tab.rankings": "記録とランキング",
   "sd.whoLiked": "誰？",
   "tab.stats": "統計",
+  "tab.insights": "指標",
 };
 
 export default ja;

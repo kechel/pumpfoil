@@ -2831,6 +2831,7 @@ const nl: Record<string, string> = {
   "tab.rankings": "Records & ranglijst",
   "sd.whoLiked": "Wie?",
   "tab.stats": "Statistieken",
+  "tab.insights": "Kerncijfers",
 };
 
 export default nl;

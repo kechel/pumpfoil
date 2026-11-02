@@ -2830,6 +2830,7 @@ const cs: Record<string, string> = {
   "tab.rankings": "Rekordy a žebříček",
   "sd.whoLiked": "Kdo?",
   "tab.stats": "Statistiky",
+  "tab.insights": "Ukazatele",
 };
 
 export default cs;

@@ -2774,6 +2774,7 @@ const zh: Record<string, string> = {
   "tab.rankings": "记录与排行榜",
   "sd.whoLiked": "谁？",
   "tab.stats": "统计",
+  "tab.insights": "指标",
 };
 
 export default zh;

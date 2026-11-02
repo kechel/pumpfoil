@@ -2812,6 +2812,7 @@ const fi: Record<string, string> = {
   "tab.rankings": "Ennätykset ja tulostaulu",
   "sd.whoLiked": "Kuka?",
   "tab.stats": "Tilastot",
+  "tab.insights": "Tunnusluvut",
 };
 
 export default fi;

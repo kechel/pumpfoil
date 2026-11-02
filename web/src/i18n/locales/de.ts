@@ -2930,6 +2930,7 @@ const de: Record<string, string> = {
   "tab.rankings": "Rekorde & Bestenliste",
   "sd.whoLiked": "Wer?",
   "tab.stats": "Stats",
+  "tab.insights": "Kennzahlen",
 };
 
 export default de;

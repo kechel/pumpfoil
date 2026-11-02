@@ -2777,6 +2777,7 @@ const id: Record<string, string> = {
   "tab.rankings": "Rekor & peringkat",
   "sd.whoLiked": "Siapa?",
   "tab.stats": "Statistik",
+  "tab.insights": "Wawasan",
 };
 
 export default id;

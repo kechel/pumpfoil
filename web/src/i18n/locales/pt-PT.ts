@@ -2771,6 +2771,7 @@ const ptPT: Record<string, string> = {
   "tab.rankings": "Recordes e classificação",
   "sd.whoLiked": "Quem?",
   "tab.stats": "Estatísticas",
+  "tab.insights": "Indicadores",
 };
 
 export default ptPT;

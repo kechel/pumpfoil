@@ -2752,6 +2752,7 @@ const nb: Record<string, string> = {
   "tab.rankings": "Rekorder og toppliste",
   "sd.whoLiked": "Hvem?",
   "tab.stats": "Statistikk",
+  "tab.insights": "Nøkkeltall",
 };
 
 export default nb;

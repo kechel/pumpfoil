@@ -24,7 +24,7 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 
 | Route | Komponente | Was drauf ist |
 |---|---|---|
-| `/` (eingeloggt), `/home` | `PersonalHome.tsx` | Persönliche Startseite mit Reitern (`?tab=`, seit 02.11.2026): Übersicht (letzte Sessions, Hinweise, Freunde mit letzter Session) · Rekorde · Team · Homespot (Spot-Seite ohne Liste, `?stab=`) · Stats (zweite Reiterzeile `?sub=`: Verlauf, Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen, Lage des Bretts). Startet immer mit der Übersicht. |
+| `/` (eingeloggt), `/home` | `PersonalHome.tsx` | Persönliche Startseite mit Reitern (`?tab=`, seit 02.11.2026): Übersicht (letzte Sessions, Hinweise, Freunde mit letzter Session) · Rekorde · Team · Homespot (Spot-Seite ohne Liste, `?stab=`) · Stats (zweite Reiterzeile `?sub=`: Verlauf, Kennzahlen = Jahresbilanz/Start-Erfolgsquote/Carves/Wenden & Halsen, Lage des Bretts). Startet immer mit der Übersicht. |
 | `/community` | `Home.tsx` | Community mit Reitern (`?tab=`, seit 02.11.2026): **Rekorde & Bestenliste** (Kacheln + Bestenliste, eigene Zeile unter Platz 10, als Bild teilen), **Medien** (Fotos/Videos, Best bewertet, Social-Feed, Uhr-Layouts), **Teams & Events**. Zeitraum/Sportart/Foil/Liste stehen in der Adresse (`period`, `sport`, `band`, `lb`). |
 | `/verlauf` | — | Leitet seit 02.11.2026 auf `/?tab=stats` um (Reiter „Stats" › „Verlauf" in Home, `History.tsx` eingebettet). |
 | `/sessions` | `Sessions.tsx` | „Meine Sessions": Liste, Merge-Vorschläge (heutige Sessions ≤1 h), Session-Transfer annehmen. Reiter Meine · Freunde · Alle. Mit `?spot=` die **Spot-Seite** mit Reitern Rekorde (Tabelle) · Sessions · Heatmap · Wetter · Beschreibungen (seit 02.11.2026, `SpotBereich`; auch Reiter „Homespot" auf Home). |

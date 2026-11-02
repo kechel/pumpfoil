@@ -2662,6 +2662,7 @@ const gsw: Record<string, string> = {
   "tab.rankings": "Rekord & Bestelischte",
   "sd.whoLiked": "Wer?",
   "tab.stats": "Stats",
+  "tab.insights": "Kennzahle",
 };
 
 export default gsw
