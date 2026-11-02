@@ -35,6 +35,9 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
   const { t, lang } = useI18n();
   const [liste, setListe] = useState<TeamEvent[]>([]);
   const [e, setE] = useState<Entwurf | null>(null);
+  // Fehler beim Speichern IM Popup zeigen (Jan, 02.11.2026: „popup schliesst auch nicht bei save") — `onMeldung` schreibt
+  // auf die Seite dahinter, die das offene Popup verdeckt; man sah also gar nichts.
+  const [popupFehler, setPopupFehler] = useState<string | null>(null);
   const [spotWahl, setSpotWahl] = useState("");
   const laden = () => api.teamEvents(slug).then(setListe).catch(() => {});
   useEffect(() => { laden(); }, [slug]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -57,16 +60,17 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       teambild_zeigen: e.teambild_zeigen !== false, summen: e.summen ?? [],
       summen_sportart: e.summen_sportart ?? "pumpfoil", summen_accel_only: !!e.summen_accel_only,
     };
+    setPopupFehler(null);
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
       .then(() => { schliessen(); laden(); onMeldung(t("team.gespeichert")); })
-      .catch((x) => onMeldung(t(`team.err.${fehlerCode(x)}`)));
+      .catch((x) => setPopupFehler(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
     id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], summen_sportart: ev.summen_sportart, summen_accel_only: ev.summen_accel_only, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
-  const schliessen = () => { setE(null); onZu?.(); };
+  const schliessen = () => { setE(null); setPopupFehler(null); onZu?.(); };
   useEffect(() => { if (nurEvent) bearbeiten(nurEvent); }, [nurEvent?.id]);   // eslint-disable-line react-hooks/exhaustive-deps
   const spotName = (id: number) => alleSpots.find((s) => s.id === id)?.name ?? `#${id}`;
 
@@ -193,6 +197,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               <span>{t("team.event.ohneDateien")}</span>
             </label>
           )}
+          {popupFehler && <p className="mb-3 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">{popupFehler}</p>}
           <div className="flex flex-wrap gap-2">
             {!e.eingefroren && (
               <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2 || (!e.tafeln.length && !(e.summen ?? []).length)} onClick={speichern}>
