@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, clearToken, SocialChannelState } from "../lib/api";
 import { Card, Button, Avatar, NewBadge } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon, CommunityIcon, FlagIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, UploadIcon, CheckIcon, CommunityIcon, FlagIcon } from "../components/Icons";
 import { useI18n, useT } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { fmtDate } from "../lib/time";
@@ -178,33 +178,22 @@ export default function Settings() {
 
       {/* Kacheln zweispaltig, sobald der Platz reicht (Jan, 02.11.2026). */}
       <div className="grid gap-x-4 lg:grid-cols-2">
+      {/* Uhr und verknuepfte Konten als EIN Knopf zur gemeinsamen Ansicht /konten (Jan, 02.11.2026). Steht ein Uhr-Update an,
+          fuehrt er direkt zum Download. */}
       <Link
-        to={watchUpdate ? `/account?tab=app${watchModelQuery(watchUpdate.model || watchUpdate.label, watchUpdate.platform)}` : "/account"}
+        to={watchUpdate ? `/account?tab=app${watchModelQuery(watchUpdate.model || watchUpdate.label, watchUpdate.platform)}` : "/konten"}
         className={`mb-4 flex items-center justify-between rounded-2xl border bg-slate-900/60 p-4 hover:bg-slate-900 ${watchUpdate ? "border-amber-500/50 hover:border-amber-500" : "border-slate-800 hover:border-slate-700"}`}
       >
         <span className="flex items-center gap-3">
           <WatchIcon className="h-6 w-6 text-brand-400" />
           <span className="min-w-0">
-            <span className="block font-medium text-slate-100">{t("nav.watch")}</span>
+            <span className="block font-medium text-slate-100">{t("tab.watchAccounts")}</span>
             {watchUpdate && (
               <span className="block text-xs font-semibold text-amber-400">
                 {t("settings.watchUpdate", { platform: platformLabel(watchUpdate.platform), version: watchUpdate.version })}
               </span>
             )}
             <PlatformSubline kind="watch" />
-          </span>
-        </span>
-        <ChevronIcon className="h-5 w-5 text-slate-400" />
-      </Link>
-
-      <Link
-        to="/konten"
-        className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
-      >
-        <span className="flex items-center gap-3">
-          <DownloadIcon className="h-6 w-6 text-brand-400" />
-          <span className="min-w-0">
-            <span className="block font-medium text-slate-100">{t("linked.title")}</span>
             <PlatformSubline kind="account" />
           </span>
         </span>

@@ -16,15 +16,13 @@ import { useKompakteListe } from "../lib/kompakteListe";
 import { CommunityList, EigeneAbzeichen, SessionStats, SpotBereich, renderCommunitySession } from "./Sessions";
 import History from "./History";
 import LinkedAccounts from "./LinkedAccounts";
-import { PairedDevices } from "./Account";
-import { PlatformSubline } from "../components/SupportedPlatforms";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
-import { CommunityIcon, FoilIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
+import { CommunityIcon, FoilIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
 import { FreundesAnfragen } from "../components/Freundschaft";
@@ -630,51 +628,8 @@ export default function PersonalHome() {
 
       {tab === "stats" && <StatsBereich />}
 
-      {tab === "uhr" && <UhrUndKonten />}
-    </div>
-  );
-}
-
-/** Reiter „Uhr & Konten": verbundene Uhren wie im Profil (Uhr › Verbinden), verknuepfte Konten wie auf /konten. Ist noch
- * nichts verbunden, die beiden Einstiege aus dem Profil — Uhr einrichten (Anleitung) und Konto verknuepfen. */
-function UhrUndKonten() {
-  const t = useT();
-  const [stand, setStand] = useState<{ uhren: boolean; konten: boolean } | null>(null);
-  useEffect(() => {
-    const verknuepft = (p: Promise<{ linked: boolean }>) => p.then((x) => !!x.linked).catch(() => false);
-    Promise.all([
-      api.myDevices().then((ds) => ds.some((d) => !d.revoked_at)).catch(() => false),
-      verknuepft(api.polarStatus()), verknuepft(api.corosStatus()), verknuepft(api.suuntoStatus()),
-    ]).then(([uhren, ...konten]) => setStand({ uhren, konten: konten.some(Boolean) }));
-  }, []);
-  if (!stand) return <Spinner />;
-  const karte = (to: string, icon: React.ReactNode, titel: string, unter: React.ReactNode) => (
-    <Link to={to} className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900">
-      <span className="flex items-center gap-3">{icon}<span className="min-w-0"><span className="block font-medium text-slate-100">{titel}</span>{unter}</span></span>
-      <ChevronIcon className="h-5 w-5 text-slate-400" />
-    </Link>
-  );
-  if (!stand.uhren && !stand.konten) {
-    return (
-      <div className="max-w-2xl">
-        {karte("/account", <WatchIcon className="h-6 w-6 text-brand-400" />, t("nav.watch"), <PlatformSubline kind="watch" />)}
-        {karte("/konten", <DownloadIcon className="h-6 w-6 text-brand-400" />, t("linked.title"), <PlatformSubline kind="account" />)}
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-8">
-      {stand.uhren && (
-        <div>
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold"><WatchIcon className="h-5 w-5 text-brand-400" /> {t("nav.watch")}
-            <Link to="/account" className="ml-auto text-sm font-normal text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">{t("tab.watchSettings")} →</Link>
-          </h3>
-          <PairedDevices />
-        </div>
-      )}
-      {stand.konten ? <LinkedAccounts eingebettet />
-        : karte("/konten", <DownloadIcon className="h-6 w-6 text-brand-400" />, t("linked.title"), <PlatformSubline kind="account" />)}
-      {!stand.uhren && karte("/account", <WatchIcon className="h-6 w-6 text-brand-400" />, t("nav.watch"), <PlatformSubline kind="watch" />)}
+      {/* Uhren und Konten in einer Ansicht mit eigenen Reitern, dieselbe wie /konten (02.11.2026). */}
+      {tab === "uhr" && <LinkedAccounts eingebettet />}
     </div>
   );
 }

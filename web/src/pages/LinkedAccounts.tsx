@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
+import { Reiterleiste, useReiter } from "../components/Reiter";
+import { PairedDevices } from "./Account";
 import { api, type ImportSport, type SyncStand } from "../lib/api";
 import { Card, Button } from "../components/ui";
-import { ChevronIcon, CheckIcon, LinkIcon } from "../components/Icons";
+import { ChevronIcon, CheckIcon, LinkIcon, WatchIcon } from "../components/Icons";
 import { PlatformSubline } from "../components/SupportedPlatforms";
 import { useI18n } from "../i18n";
 import { SPORTS, sortiereSports } from "../lib/sportClass";
@@ -27,9 +30,20 @@ const GRUND_KEYS: Record<string, string> = {
 // Generische „Verknüpfte Konten"-Seite: hostet Import-Integrationen (Polar; später
 // Coros/Suunto/… und FIT/TCX-Upload). Jede Integration ist eine eigenständige Karte,
 // die sich selbst ausblendet, wenn serverseitig nicht konfiguriert.
-/** `eingebettet`: als Teil des Reiters „Uhr & Konten" auf Home (02.11.2026) — ohne eigene Titelzeile. */
+/** Uhren und verknuepfte Konten in EINER Ansicht mit Reitern Uhr | Polar | COROS | Suunto | Xiaomi | MCP (Jan, 02.11.2026) —
+ * als Seite /konten (ein Knopf im Profil) und als Reiter „Uhr & Konten" auf Home (`eingebettet`: ohne Titelzeile, die
+ * Reiter als zweite Zeile, eigener Adress-Parameter, weil Home `tab` schon selbst nutzt). */
+const KONTO_REITER = ["uhr", "polar", "coros", "suunto", "xiaomi", "strava", "mcp"] as const;
 export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const { t } = useI18n();
+  const reiterParam = eingebettet ? "ktab" : "tab";
+  const [reiter, setReiter] = useReiter("konten", [...KONTO_REITER], "uhr", { param: reiterParam });
+  // Adresse ueber den Router saeubern (nicht history.replaceState): sonst kennt er die alte Adresse noch und setzt
+  // `?polar=connected` beim naechsten Reiterwechsel wieder ein.
+  const [, setSp] = useSearchParams();
+  // Strava ist zurueckgestellt; der Reiter erscheint nur, wenn der Server es anbietet (wie die Karte selbst).
+  const [strava, setStrava] = useState(false);
+  useEffect(() => { api.stravaStatus().then((s) => setStrava(!!s.available)).catch(() => {}); }, []);
   // Ergebnis der OAuth-Verknüpfung. JEDER Dienst leitet auf /konten?<dienst>=connected|cancelled|
   // error zurück — bisher wurde aber nur `suunto` gelesen. Wer COROS verband, bekam deshalb gar
   // keine Rückmeldung, und `?coros=connected` blieb in der Adresszeile stehen: ein späterer
@@ -46,7 +60,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
       let s: string | null = null;
       for (const dienst of ["suunto", "coros", "polar", "strava"]) {
         const v = p.get(dienst);
-        if (v) { s = v; p.delete(dienst); }
+        if (v) { s = v; p.delete(dienst); setSp((alt) => { const n = new URLSearchParams(alt); n.delete(dienst); n.set(reiterParam, dienst); return n; }, { replace: true }); }
       }
       if (s === "connected") setBanner("ok");
       else if (s === "cancelled") setBanner("cancelled");
@@ -61,7 +75,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
     if (anbieter) {
       const pfad = { polar: "polar", suunto: "suunto", strava: "strava", coros: "coros", "coros-mcp": "coros/mcp" }[anbieter];
       const body = { code: p.get("code"), state: p.get("state"), error: p.get("error") };
-      window.history.replaceState(null, "", window.location.pathname);
+      setSp(new URLSearchParams(), { replace: true });
       if (!pfad) { setBanner("error"); return; }
       api.verknuepfungAbschliessen(pfad, body)
         .then((r) => {
@@ -76,11 +90,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
         .catch((e: Error) => setBanner(e.message.startsWith("403") ? "fremd" : "error"));
       return;
     }
-    if (ergebnisZeigen(window.location.search)) {
-      ["suunto", "coros", "polar", "strava"].forEach((d) => p.delete(d));
-      const q = p.toString();
-      window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
-    }
+    ergebnisZeigen(window.location.search);   // saeubert die Adresse selbst
   }, []);
   const bannerCls = banner === "ok"
     ? "border-emerald-300 bg-emerald-500/10 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-300"
@@ -89,10 +99,18 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
     : "border-amber-400 bg-amber-500/15 text-amber-700 font-medium dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300";
   return (
     <div className="w-full">
-      {eingebettet
-        ? <h3 className="mb-3 flex items-center gap-2 text-lg font-bold"><LinkIcon className="h-5 w-5 text-brand-400" /> {t("linked.title")}</h3>
-        : <h2 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><LinkIcon className="h-5 w-5 text-brand-400" /> {t("linked.title")}</h2>}
-      {!eingebettet && <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>}
+      {!eingebettet && (
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><WatchIcon className="h-5 w-5 text-brand-400" /> {t("tab.watchAccounts")}</h2>
+      )}
+      <Reiterleiste stufe={eingebettet ? 2 : 1} aktiv={reiter} onWahl={setReiter} reiter={[
+        { id: "uhr", label: t("nav.watch") },
+        { id: "polar", label: "Polar" },
+        { id: "coros", label: "COROS" },
+        { id: "suunto", label: "Suunto" },
+        { id: "xiaomi", label: "Xiaomi" },
+        ...(strava ? [{ id: "strava", label: "Strava" }] : []),
+        { id: "mcp", label: "MCP" },
+      ]} />
       {banner && (
         <div className={`mb-4 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-sm ${bannerCls}`}>
           <span>{banner === "ok" ? t("linked.connectOk") : banner === "cancelled" ? t("linked.connectCancelled")
@@ -101,17 +119,24 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
         </div>
       )}
       <div key={runde} className="space-y-4">
-        <PolarCard />
-        <CorosCard />
-        <SuuntoCard />
-        <XiaomiHinweis />
-        <StravaCard />
-        <McpCard />
-      </div>
-      <div className="mt-6">
-        <p className="mb-1.5 text-xs font-medium text-slate-400">{t("linked.platformsTitle")}</p>
-        <PlatformSubline kind="watch" className="mb-0.5" />
-        <PlatformSubline kind="account" />
+        {reiter === "uhr" && <>
+          <div className="flex justify-end">
+            <Link to="/account" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">{t("tab.watchSettings")} →</Link>
+          </div>
+          <PairedDevices />
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-slate-400">{t("linked.platformsTitle")}</p>
+            <PlatformSubline kind="watch" className="mb-0.5" />
+            <PlatformSubline kind="account" />
+          </div>
+        </>}
+        {reiter !== "uhr" && reiter !== "mcp" && <p className="text-sm text-slate-300">{t("linked.hint")}</p>}
+        {reiter === "polar" && <PolarCard />}
+        {reiter === "coros" && <CorosCard />}
+        {reiter === "suunto" && <SuuntoCard />}
+        {reiter === "xiaomi" && <XiaomiHinweis />}
+        {reiter === "strava" && <StravaCard />}
+        {reiter === "mcp" && <McpCard />}
       </div>
     </div>
   );
