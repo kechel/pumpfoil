@@ -619,6 +619,25 @@ def test_event_austritt_nach_ende_aendert_nichts(client):
     assert zeilen(laeuft["id"])[0] == [ic, ia]
 
 
+def test_event_verlaengert_zaehlt_wieder_aktuelle_mitglieder(client):
+    """Jan, 02.11.2026: Ende eines vorbeigegangenen Events verlaengert — wer nach dem alten Ende beigetreten war, fehlte."""
+    (ia, ka), (ib, kb) = _konto(client, "te-a-verl@t.de", "Verl Anna"), _konto(client, "te-b-verl@t.de", "Verl Ben")
+    slug = _team(client, ka, "Verlaengerteam")
+    links = client.get(f"/api/teams/{slug}/einladungen", headers=ka).json()
+    _session(ia, 120, tage=2)
+    _session(ib, 300, tage=2)
+    jetzt = datetime.now(timezone.utc)
+    body = {"titel": "Verlaengert", "start": (jetzt - timedelta(days=3)).isoformat(),
+            "ende": (jetzt - timedelta(hours=1)).isoformat(), "tafeln": [{"kennzahl": "session_pumps", "accel_only": False}]}
+    ev = client.post(f"/api/teams/{slug}/events", headers=ka, json=body).json()
+    client.post(f"/api/teams/einladung/{links['join']}", headers=kb)      # Beitritt NACH dem Ende -> Teilnehmer festgehalten
+    zeilen = lambda: [z["user_id"] for z in client.get(f"/api/teams/{slug}/events/{ev['id']}", headers=ka).json()["tafeln"][0]["zeilen"]]
+    assert zeilen() == [ia]
+    body["ende"] = (jetzt + timedelta(days=1)).isoformat()
+    assert client.put(f"/api/teams/{slug}/events/{ev['id']}", headers=ka, json=body).status_code == 200
+    assert zeilen() == [ib, ia]
+
+
 def test_event_nur_gesamtsummen(client):
     """Ein Event darf ganz ohne Bestenliste sein, wenn Gesamtsummen gewaehlt sind; dann eigene Sportart/Bewegungsdaten."""
     (ia, ka), (ib, kb) = _konto(client, "te-a-nur@t.de", "Nur Nora"), _konto(client, "te-b-nur@t.de", "Nur Nils")

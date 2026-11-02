@@ -549,6 +549,11 @@ def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = D
     e.ohne_dateien, e.teambild_zeigen = body.ohne_dateien, body.teambild_zeigen
     e.summen_json = _event_summen(body)
     e.summen_sportart, e.summen_accel_only = body.summen_sportart, body.summen_accel_only
+    # Wieder laufend (Ende in die Zukunft verlegt): die beim frueheren Ende festgehaltenen Teilnehmer gelten nicht mehr,
+    # es zaehlen wieder die aktuellen Mitglieder. Sonst fehlte jeder, der nach dem ALTEN Ende beigetreten ist (Jan,
+    # 02.11.2026: Foil Scoot im Event leer, in der Team-Ansicht nicht — das Ende war verlaengert worden).
+    if T._aware(e.ende) > T._jetzt():
+        e.teilnehmer_json = None
     db.commit()
     return T.event_out(db, t, e)
 
