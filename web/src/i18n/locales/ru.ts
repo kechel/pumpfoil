@@ -2787,6 +2787,11 @@ const ru: Record<string, string> = {
   "tab.noData": "Здесь пока нет данных.",
   "tab.watchAccounts": "Часы и аккаунты",
   "tab.watchSettings": "Настройки",
+  "ptab.me": "Я",
+  "ptab.riding": "Катание и анализ",
+  "ptab.privacy": "Конфиденциальность",
+  "ptab.display": "Вид и уведомления",
+  "ptab.account": "Аккаунт",
 };
 
 export default ru;

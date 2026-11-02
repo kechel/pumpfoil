@@ -2840,6 +2840,11 @@ const cs: Record<string, string> = {
   "tab.noData": "Zatím tu nejsou žádná data.",
   "tab.watchAccounts": "Hodinky a účty",
   "tab.watchSettings": "Nastavení",
+  "ptab.me": "Já",
+  "ptab.riding": "Jízda a vyhodnocení",
+  "ptab.privacy": "Soukromí",
+  "ptab.display": "Zobrazení a upozornění",
+  "ptab.account": "Účet",
 };
 
 export default cs;

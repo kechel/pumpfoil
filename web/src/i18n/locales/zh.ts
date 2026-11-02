@@ -2784,6 +2784,11 @@ const zh: Record<string, string> = {
   "tab.noData": "这里还没有数据。",
   "tab.watchAccounts": "手表与账户",
   "tab.watchSettings": "设置",
+  "ptab.me": "我",
+  "ptab.riding": "滑行与分析",
+  "ptab.privacy": "隐私",
+  "ptab.display": "显示与通知",
+  "ptab.account": "账户",
 };
 
 export default zh;

@@ -2783,6 +2783,11 @@ const ja: Record<string, string> = {
   "tab.noData": "まだデータがありません。",
   "tab.watchAccounts": "時計とアカウント",
   "tab.watchSettings": "設定",
+  "ptab.me": "自分",
+  "ptab.riding": "ライドと解析",
+  "ptab.privacy": "プライバシー",
+  "ptab.display": "表示と通知",
+  "ptab.account": "アカウント",
 };
 
 export default ja;

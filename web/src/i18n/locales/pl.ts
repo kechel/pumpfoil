@@ -2770,6 +2770,11 @@ const pl: Record<string, string> = {
   "tab.noData": "Nie ma tu jeszcze danych.",
   "tab.watchAccounts": "Zegarek i konta",
   "tab.watchSettings": "Ustawienia",
+  "ptab.me": "Ja",
+  "ptab.riding": "Pływanie i analiza",
+  "ptab.privacy": "Prywatność",
+  "ptab.display": "Wygląd i powiadomienia",
+  "ptab.account": "Konto",
 };
 
 export default pl;

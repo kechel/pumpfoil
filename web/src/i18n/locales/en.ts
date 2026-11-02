@@ -2886,6 +2886,11 @@ const en: Record<string, string> = {
   "tab.noData": "No data here yet.",
   "tab.watchAccounts": "Watch & accounts",
   "tab.watchSettings": "Settings",
+  "ptab.me": "Me",
+  "ptab.riding": "Riding & analysis",
+  "ptab.privacy": "Privacy",
+  "ptab.display": "Display & alerts",
+  "ptab.account": "Account",
 };
 
 export default en;

@@ -2787,6 +2787,11 @@ const id: Record<string, string> = {
   "tab.noData": "Belum ada data di sini.",
   "tab.watchAccounts": "Jam & akun",
   "tab.watchSettings": "Pengaturan",
+  "ptab.me": "Saya",
+  "ptab.riding": "Berkendara & analisis",
+  "ptab.privacy": "Privasi",
+  "ptab.display": "Tampilan & notifikasi",
+  "ptab.account": "Akun",
 };
 
 export default id;

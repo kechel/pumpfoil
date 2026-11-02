@@ -7,6 +7,7 @@ import { useI18n, useT } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { fmtDate } from "../lib/time";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { Reiterleiste, useReiter } from "../components/Reiter";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { FontScaleSelect } from "../components/FontScaleSelect";
 import { PumpUnitSelect } from "../components/PumpUnitSelect";
@@ -19,6 +20,7 @@ import { PublicProfileCard } from "../components/PublicProfileCard";
 
 export default function Settings() {
   const { t } = useI18n();
+  const [ptab, setPtab] = useReiter("profil", ["ich", "fahren", "privat", "darstellung", "konto"], "ich");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -230,6 +232,17 @@ export default function Settings() {
         <LanguageSelect />
       </Card>
 
+      {/* Einstellungen in Reitern UNTER der Sprache (Jan, 02.11.2026: „die vielen einstellungen auch in eigene tabs, aber
+          diesmal erst unter Language"). Gruppen: wer ich bin, wie ich fahre/ausgewertet werde, was andere sehen,
+          wie die Seite aussieht und meldet, Konto. */}
+      <Reiterleiste reiter={[
+        { id: "ich", label: t("ptab.me") },
+        { id: "fahren", label: t("ptab.riding") },
+        { id: "privat", label: t("ptab.privacy") },
+        { id: "darstellung", label: t("ptab.display") },
+        { id: "konto", label: t("ptab.account") },
+      ]} aktiv={ptab} onWahl={setPtab} />
+      {ptab === "ich" && <div className="[&>*:first-child]:mt-0">
       <Card className="mb-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.avatar")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.avatarHint")}</p>
@@ -285,6 +298,20 @@ export default function Settings() {
         <GewichtExtras />
       </Card>
 
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("profile.homespot")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("profile.homespotHint")}</p>
+        <select
+          value={homespot}
+          onChange={(e) => saveHomespot(e.target.value)}
+          className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+        >
+          <option value="">{t("profile.homespotAuto")}</option>
+          {spots.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </Card>
+      </div>}
+      {ptab === "fahren" && <div className="[&>*:first-child]:mt-0">
       {/* Handgelenk + Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen = Uhr an der vorderen
           oder hinteren Hand, der Haupt-Stoerfaktor der Pump-Erkennung. Privat, aendert nichts. */}
       <Card className="mt-4 p-5">
@@ -323,31 +350,6 @@ export default function Settings() {
       <ZonesCard art="speed" />
 
       <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("profile.homespot")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("profile.homespotHint")}</p>
-        <select
-          value={homespot}
-          onChange={(e) => saveHomespot(e.target.value)}
-          className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
-        >
-          <option value="">{t("profile.homespotAuto")}</option>
-          {spots.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </Card>
-
-      <PublicProfileCard onSaved={flashSaved} />
-
-      {/* ORT VERBERGEN, Voreinstellung fuer ALLE eigenen Aufnahmen (Jan, 25.09.2026: „das wuerde
-          unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
-          Art Entscheidung — was sehen andere von mir. */}
-      <OrtVerbergenCard onSaved={flashSaved} />
-      <AktivAufKarteCard onSaved={flashSaved} />
-
-      {/* Online-Punkt (Jan, 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal
-          default an fuer alle"). Dieselbe Art Entscheidung wie oben — was sehen andere von mir. */}
-      <OnlinePunktCard onSaved={flashSaved} />
-
-      <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("pumpunit.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("pumpunit.hint")}</p>
         <PumpUnitSelect />
@@ -357,18 +359,6 @@ export default function Settings() {
         <h3 className="mb-1 font-semibold">{t("foilsens.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("foilsens.hint")}</p>
         <FoilSensitivitySelect onSaved={flashSaved} />
-      </Card>
-
-      <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("theme.label")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("theme.hint")}</p>
-        <ThemeSelect />
-      </Card>
-
-      <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("fontscale.label")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("fontscale.hint")}</p>
-        <FontScaleSelect />
       </Card>
 
       {/* Handy-Recorder: kein Beta mehr (funktioniert, erste echte Sessions laufen) — Karte
@@ -391,7 +381,46 @@ export default function Settings() {
             </a>
           </div>
       </Card>
+      </div>}
+      {ptab === "privat" && <div className="[&>*:first-child]:mt-0">
+      <PublicProfileCard onSaved={flashSaved} />
 
+      {/* ORT VERBERGEN, Voreinstellung fuer ALLE eigenen Aufnahmen (Jan, 25.09.2026: „das wuerde
+          unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
+          Art Entscheidung — was sehen andere von mir. */}
+      <OrtVerbergenCard onSaved={flashSaved} />
+      <AktivAufKarteCard onSaved={flashSaved} />
+
+      {/* Online-Punkt (Jan, 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal
+          default an fuer alle"). Dieselbe Art Entscheidung wie oben — was sehen andere von mir. */}
+      <OnlinePunktCard onSaved={flashSaved} />
+
+      {/* GETEILTE AUFNAHMEN, direkt ueber dem Einrichtungs-Assistenten (Jan, 25.09.2026:
+          „gaaanz unten ueber dem setup assistant abschnitt"). Der Knopf nimmt den Link HIER
+          zurueck, ohne das Profil zu verlassen — man soll nicht erst jede Session einzeln
+          aufmachen muessen, um zu sehen, was noch offen ist. */}
+      <GeteilteAufnahmen />
+      </div>}
+      {ptab === "darstellung" && <div className="[&>*:first-child]:mt-0">
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("theme.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("theme.hint")}</p>
+        <ThemeSelect />
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("fontscale.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("fontscale.hint")}</p>
+        <FontScaleSelect />
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("notif.title")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("notif.hint")}</p>
+        <NotificationsToggle />
+      </Card>
+      </div>}
+      {ptab === "konto" && <div className="[&>*:first-child]:mt-0">
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.changePw")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.changePwHint")}</p>
@@ -427,18 +456,6 @@ export default function Settings() {
         {pwMsg && <p className={`mt-2 text-xs ${pwMsg.ok ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>{pwMsg.text}</p>}
       </Card>
 
-      <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("notif.title")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("notif.hint")}</p>
-        <NotificationsToggle />
-      </Card>
-
-      {/* GETEILTE AUFNAHMEN, direkt ueber dem Einrichtungs-Assistenten (Jan, 25.09.2026:
-          „gaaanz unten ueber dem setup assistant abschnitt"). Der Knopf nimmt den Link HIER
-          zurueck, ohne das Profil zu verlassen — man soll nicht erst jede Session einzeln
-          aufmachen muessen, um zu sehen, was noch offen ist. */}
-      <GeteilteAufnahmen />
-
       {/* Einstieg in den Einrichtungs-Assistenten — fuer ALLE und jederzeit (Vorgabe Jan,
           11.09.2026). Damit ist /onboarding ab jetzt verlinkt: bisher kam man nur ueber die
           Adresse hin. Die automatische WEICHE fuer neue Konten ist davon unberuehrt und weiter
@@ -464,6 +481,7 @@ export default function Settings() {
           </button>
         </div>
       </Card>
+      </div>}
       <p className="mt-6 text-center text-xs text-slate-500">Pumpfoil · Build {APP_BUILD}</p>
     </div>
   );
