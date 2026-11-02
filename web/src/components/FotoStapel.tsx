@@ -28,11 +28,13 @@ export function FotoStapel({ photos, name, avatarUrl }: { photos: StapelFoto[]; 
       </>
     );
   }
+  // Die hinteren Bilder ragen gedreht nach oben hinaus (bis ~12 px + Drehung) — daher mt-6, sonst lagen sie ueber dem
+  // Nachrichtentext (Jan, 02.11.2026).
   const hinten = photos.slice(1, 3);
   return (
     <>
       <button type="button" onClick={() => setOffen(0)} aria-label={t("chat.photosOpen", { n: photos.length })}
-        className="relative mt-3 mb-1 ml-1 block h-40 w-52">
+        className="relative mt-6 mb-1 ml-1 block h-40 w-52">
         {hinten.map((p, i) => (
           <img key={p.url} src={klein(p)} alt="" loading="lazy" aria-hidden
             className={`absolute inset-0 h-full w-full rounded-xl border border-slate-700 object-cover shadow-sm ${
