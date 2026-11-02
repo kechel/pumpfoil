@@ -109,6 +109,16 @@ struct DataFieldsView: View {
                 if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.callout) }
             }
         }
+        // EIN Sheet fuer alle drei Seiten-Saetze (02.11.2026). Vorher hing an jedem Knopf ein eigenes `.sheet` innerhalb
+        // der Form — SwiftUI wertet davon in einer Liste nur das letzte zuverlaessig aus: Layouts liessen sich nur bei
+        // „Pausiert" einfuegen, bei „Waehrend der Fahrt" und „Nicht auf dem Foil" kamen sie nicht an (Nutzermeldung).
+        .sheet(isPresented: Binding(get: { waehleFuer != nil }, set: { if !$0 { waehleFuer = nil } })) {
+            switch waehleFuer {
+            case "off": layoutAuswahl(pages: $offFoil, kategorie: "off_foil")
+            case "pause": layoutAuswahl(pages: $pause, kategorie: "pause")
+            default: layoutAuswahl(pages: $onFoil, kategorie: "on_foil")
+            }
+        }
         .brandToolbar(Loc.t("profile.datafields", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
@@ -234,11 +244,13 @@ struct DataFieldsView: View {
     /// Vorschau-Auswahl als Sheet. Auf dem Handy bewusst ein Sheet (nicht aufklappend wie in der
     /// PWA): Platz ist knapp, und es laesst sich wegwischen. Scrollt, damit auch viele Layouts
     /// erreichbar sind, und respektiert die Safe Area, weil NavigationStack sie mitbringt.
-    @ViewBuilder private func layoutAuswahl(pages: Binding<[WatchPage]>) -> some View {
+    @ViewBuilder private func layoutAuswahl(pages: Binding<[WatchPage]>, kategorie: String) -> some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 14) {
-                    ForEach(layouts) { l in
+                    // Nur Layouts DIESES Zustands — wie in der PWA (Account.tsx, `options`). Ein Fahr-Layout in der Pause
+                    // verwirft der Server beim Speichern (settings._clean_pages), dann war die Seite einfach weg.
+                    ForEach(layouts.filter { ($0.category ?? "on_foil") == kategorie }) { l in
                         Button {
                             pages.wrappedValue.append(.layout(l.id))
                             saved = false
@@ -281,10 +293,6 @@ struct DataFieldsView: View {
                 // nicht, wenn eine Community-Kopie den Originalnamen behaelt und mehrere Kopien
                 // gleich heissen. Gleiche Aenderung wie PWA (c21159d) und Android (5d842c7).
                 Button(Loc.t("account.addLayoutPage", lang)) { waehleFuer = kennung }
-                    .sheet(isPresented: Binding(get: { waehleFuer == kennung },
-                                                set: { if !$0 { waehleFuer = nil } })) {
-                        layoutAuswahl(pages: pages)
-                    }
             }
         }
     }

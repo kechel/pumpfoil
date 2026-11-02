@@ -283,21 +283,23 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             OutlinedButton(onClick = onGallery) { Text(I18n.t("lay.toCommunity")) }
             Spacer(Modifier.height(12.dp))
 
+            // Je Seiten-Satz nur Layouts dieses Zustands (02.11.2026, wie die PWA): ein Layout der falschen Kategorie
+            // verwirft der Server beim Speichern stillschweigend — die eingefuegte Seite war danach weg.
             PageSetEditor(
-                title = null, pages = onFoil, layouts = layouts, max = 8,
+                title = null, pages = onFoil, layouts = layouts.filter { it.category == "on_foil" }, max = 8,
                 onChange = { onFoil = it; saved = false },
             )
             Spacer(Modifier.height(16.dp))
             SectionCard(I18n.t("account.offFoilTitle"), I18n.t("account.offFoilDesc")) {
                 PageSetEditor(
-                    title = null, pages = offFoil, layouts = layouts, max = 8,
+                    title = null, pages = offFoil, layouts = layouts.filter { it.category == "off_foil" }, max = 8,
                     onChange = { offFoil = it; saved = false },
                 )
             }
             Spacer(Modifier.height(12.dp))
             SectionCard(I18n.t("account.pauseTitle"), I18n.t("account.pauseDesc")) {
                 PageSetEditor(
-                    title = null, pages = pause, layouts = layouts, max = 8,
+                    title = null, pages = pause, layouts = layouts.filter { it.category == "pause" }, max = 8,
                     onChange = { pause = it; saved = false },
                 )
             }

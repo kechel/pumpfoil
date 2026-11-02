@@ -364,14 +364,15 @@ function LatestMedia() {
   return (
     <div>
       <h3 className="mb-2 text-lg font-bold">{t("home.latestMedia")}</h3>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {/* Eine Zeile, seitlich wischbar (Jan, 02.11.2026) — die Medien sollen den Reiter nicht fuellen. */}
+      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
         {media.map((p) => {
           const st = soc[p.session_id] ?? { liked: false, like_count: 0, my_inappropriate: false };
           const isVideo = p.kind === "video";
           const thumb = isVideo ? `/api/public/video-thumb/${ytId(p.youtube_url)}` : (p.thumb_url || p.url) || "";
           const openMedia = () => isVideo ? setVid(p.youtube_url || null) : setLb(photoItems.findIndex((x) => x.session_id === p.session_id && x.url === p.url));
           return (
-            <div key={`${p.kind}-${p.session_id}`} className="group">
+            <div key={`${p.kind}-${p.session_id}`} className="group w-44 shrink-0 snap-start sm:w-52">
               <button onClick={openMedia} className="relative block w-full">
                 <img src={thumb} alt="" className="aspect-square w-full rounded-xl object-cover transition-opacity group-hover:opacity-90" />
                 {isVideo && (
