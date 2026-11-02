@@ -1501,6 +1501,57 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 02.11. — Port des Web-Umbaus vom 01./02.11. nach iOS und Android (Jan: ERST nach dem Feedback des Team-Kapitaens
+  zur Web-Fassung, Nachricht ging am 02.11. raus).** Server-Endpunkte stehen alle schon; es ist reine App-Arbeit (Compose /
+  SwiftUI, 18 Sprachen, iOS-Tabellen <= 50 Eintraege, Session-Cache-Schema bei neuen Feldern hochzaehlen). Bauplan fuer die
+  Navigation: docs/UX-IA.md, Seiten: docs/PAGES.md. Bezug im Web je Punkt in Klammern.
+  **Schon in den Apps (nicht nochmal):** Bestenliste mit Reitern + direkt zur Session (ec7f21a4, 42d80dcc), eigene Zeile
+  unter Platz 10 und alle 10 Plaetze (812e63df), Bestenliste ueber Feed/Medien (ea5fbd19), Datenschutztext Likes
+  (f1dcbbf3), Datenfeld-Editor-Fix (4280b097), Teams/Events-Grundausbau (2eba784b, c31591cc).
+  **Navigation (gross, zuerst — alles andere haengt daran):**
+  - [ ] Leiste unten mit 5 Knoepfen: Home, Community, Sessions, Spots, Profil; zuletzt besuchte Unterseite je Bereich
+        merken, erneuter Tipp auf den aktiven Knopf -> Startseite des Bereichs (App.tsx `zuletzt`).
+  - [ ] Reiter oben je Bereich, gewaehlter Reiter bleibt beim Zurueckkommen (Reiter.tsx; zweite Reiterzeile `stufe={2}`).
+  - [ ] Zurueck-Pfeil einheitlich in der Titelzeile (auf iOS/Android meist schon Plattform-Standard — nur pruefen).
+  **Home (PersonalHome.tsx):**
+  - [ ] Reiter Uebersicht | Rekorde | Team | Homespot | Stats | Uhr & Konten.
+  - [ ] Uebersicht: letzte eigene Sessions + je Freund die letzte Session als Karte (`/api/community/friends-latest`).
+  - [ ] Rekorde: EINE Foil-Auswahl statt Block je Foil.
+  - [ ] Team: Meine Teams + letzte Team-Sessions mit Team-Auswahl (`/api/community/team-latest?team=alle|<id>`, max. 3 je Mitglied).
+  - [ ] Homespot: dieselbe Ansicht wie die Spot-Seite (Reiter Rekorde/Sessions/Heatmap/Wetter/Beschreibungen) samt Liste.
+  - [ ] Stats mit zweiter Reiterzeile Verlauf | Kennzahlen (Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen) |
+        Brett; leere Reiter mit Erklaerung statt leerer Flaeche (da62cb9b).
+  - [ ] Uhr & Konten: gekoppelte Uhren + verknuepfte Konten eingebettet.
+  **Community (Home.tsx):**
+  - [ ] Reiter Bestenliste | Medien | Teams & Events.
+  - [ ] Bestenliste: Rekord-Kacheln + Bestenlisten in einem Reiter, Reihenfolge wie LEADER_KINDS im Web, Vorauswahl
+        „Heute" ab 10 Plaetzen heute, Foil-Band-Auswahl nur bei Bedarf (Android/iOS filterten schon), ⋮ an der eigenen Zeile.
+  - [ ] Bestenliste als Bild teilen: hell/dunkel, Logo, Flaggen (lib/bestenlisteBild.ts, BestenlisteBildDialog.tsx) —
+        nativ mit Canvas/ImageRenderer und System-Teilen; Flaggen-SVGs muessten in die Apps (flag-icons, MIT) oder als PNG.
+  - [ ] Medien: Neueste Medien in EINER waagrechten Zeile.
+  - [ ] Teams & Events: zehn aktivste Teams (`/api/teams/liste` mit `sessions_30d`), Knoepfe unter dem Abschnitt (d0ff4620).
+  **Sessions / Spot-Seite (Sessions.tsx):**
+  - [ ] Reiter Meine | Freunde | Team (nur Mitglieder, 30 Tage, Team-Auswahl) | Alle.
+  - [ ] Spot-Seite mit Reitern Rekorde | Sessions | Heatmap | Wetter | Beschreibungen; Rekorde = Kacheln + Bestenlisten
+        des Spots (`/api/community/leaders?spot=`).
+  - [ ] Session-Inhaber sieht, wer geliked hat (`GET /api/community/sessions/{id}/likes`).
+  **Spots (Spots.tsx):**
+  - [ ] Reiter Karte | Liste | Spot-Rekorde | Routen; Sportart-Auswahl gilt fuer Karte UND Liste.
+  - [ ] Spot-Rekorde: Vergleichsspot vorausgewaehlt = Homespot (auch der automatische), in der Auswahl ganz oben.
+  **Profil (Settings.tsx):**
+  - [ ] Reiter ganz oben: Uebersicht (Sprache ZUERST, dann die Kacheln) | Ich | Fahren & Auswertung (Empfindlichkeit vor
+        Pump-Kadenz) | Privatsphaere | Darstellung & Hinweise | Konto.
+  - [ ] Nationalitaet mit Flagge (`land`, ISO-2, Namen ueber die System-Laendernamen).
+  **Teams (Team.tsx, TeamEinstellungen.tsx, TeamEventSeite.tsx):**
+  - [ ] Team-Seite mit Reitern Rekorde | Events | Logbuch | Mitglieder | Teilen (Adresse + QR) | Regeln.
+  - [ ] Team-Verwaltung als Reiter Verwaltung | Grunddaten, Teamname als Ueberschrift.
+  - [ ] Sportart als Marke an Team-/Event-Bestenlisten, wenn die Listen verschiedene Sportarten haben (831f6406).
+  - [ ] Fehler beim Speichern eines Events im Dialog selbst zeigen (eebc2e7e) — pruefen, ob die Apps das Problem haben.
+  - [ ] Team-Auswahl ueberall gleich: „Alle meine Teams" / ein Team, gemerkt (TeamWahl.tsx).
+  **Zeitraeume:**
+  - [ ] „Gestern" vor „Heute" in allen Zeitraum-Auswahlen (Server kennt `period=yesterday` schon), 18 Sprachen `period.yesterday`.
+  **Danach:** Changelog-Punkte je App bei der Einreichung, `NAECHSTES` in appmeta.py, PARITY-AUDIT nachziehen.
+
 - **🔲 02.11. (Nutzer-Feedback, Team-Kapitaen PL, 1:1-Chat mit Jan) — langer Vorschlagskatalog Community/Home/Bestenliste.**
   Er betont: alles nicht Genannte findet er gut; die Liste ist bewusst nur Aenderungswunsch. Am 02.11. wurde das Web in
   Reiter umgebaut (Plan docs/UX-IA.md) und der groesste Teil umgesetzt. **Plan (Jan): erst Web fertig, dann sein Feedback
