@@ -5,7 +5,7 @@ import { FoilIcon } from "../components/Icons";
 import { ShortModal } from "../components/ShortModal";
 import { useI18n } from "../i18n";
 import { NERD3 } from "./nerd3.i18n";
-import { useSeo } from "../lib/seo";
+import { useSprachSeite, ohneMarkup } from "../lib/seo";
 
 // Nerd-Analysen — Teil 3: Bericht zur zweiten Doppeluhr-Messung (wo wir aktuell stehen).
 // Datengetrieben aus nerd3.i18n.ts (alle 8 Sprachen). Anders als Teil 1/2 mit echten
@@ -55,9 +55,12 @@ const VIDEO_ID = "S85hOgmajb4";   // Doppeluhr + Board-Handy (YouTube-Short)
 export default function NerdAnalysen3() {
   // Eigener Titel und eigene Beschreibung — sonst teilen sich alle
   // oeffentlichen Seiten die Angaben aus `index.html`.
-  useSeo("Zweite Doppeluhr-Messung mit Fotos und Messkurven", "Pump-Foiling nachgemessen: zwei Uhren am selben Lauf, echte Fotos und Messkurven zu Pumps, Puls und Geschwindigkeit.");
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const c = NERD3[lang] ?? NERD3.de!;
+  // Eigene Adresse je Sprache (/en/nerd-analysen-3 …, 02.11.2026). Der von Hand gesetzte Titel gilt fuer die Sprache, in der er
+  // geschrieben ist; sonst der Link-Text der Startseite und der Untertitel der Seite.
+  useSprachSeite("/nerd-analysen-3", lang, lang === "de" ? "Zweite Doppeluhr-Messung mit Fotos und Messkurven" : t("land.deep3"),
+    lang === "de" ? "Pump-Foiling nachgemessen: zwei Uhren am selben Lauf, echte Fotos und Messkurven zu Pumps, Puls und Geschwindigkeit." : ohneMarkup(c.subtitle ?? ""));
   const [vidOpen, setVidOpen] = useState(false);
   return (
     <div className="w-full">

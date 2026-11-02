@@ -18,6 +18,7 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 | `/login` | `Login.tsx` | Login + Registrierung, OAuth (Google/Apple). Link zum Impressum. |
 | `/reset` | `Reset.tsx` | Passwort-Reset. |
 | `/why-pumpfoil`, `/<code>/why-pumpfoil` | `Warum.tsx` | **Warum pumpfoil.org?** — was das Projekt ausmacht (Community, freie Software, Transparenz, offene Auswertungen), öffentlich, 18 Sprachen (`why.*`). Verlinkt im Menü über dem Impressum, auf der Startseite (oben unter den Plattformen, Abschluss, Fuß) und im Gast-Fuß; hreflang + sitemap.xml je Sprache. |
+| `/<code>/nerd-analysen[-2…6]`, `/<code>/impressum` | dieselben Seiten | **Sprach-Adressen** (02.11.2026): Startseite, Warum, Nerd 1–6 und Impressum gibt es je Sprache unter `/<code>/…` (Deutsch ohne Präfix), mit Canonical + hreflang (`useSprachSeite`, `SPRACH_SEITEN` in `lib/seo.ts`) und je einem Eintrag in `public/sitemap.xml`. Die Startseite verlinkt in ihrer Sprache. Systemarchitektur nur Deutsch, eine Adresse. |
 | `/impressum` | `Impressum.tsx` | **Impressum + Datenschutzerklärung** (rechtl. Kontakt/Anbieterkennung) — dient auch als Support-/Kontakt-Anlaufstelle. |
 | `/s/:token` | `PublicSession.tsx` | Öffentlicher **Teilen-Link** einer Session, read-only, ohne Login (eigene Kopf-/Fußzeile; rendert `SessionDetail` im Public-Modus). |
 

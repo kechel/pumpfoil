@@ -3,7 +3,7 @@ import { NerdNav } from "../components/NerdNav";
 import { NerdIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { NERD1 } from "./nerd1.i18n";
-import { useSeo } from "../lib/seo";
+import { useSprachSeite, ohneMarkup } from "../lib/seo";
 
 // Nerd-Analysen — Teil 1: das Dual-Watch-Pumpfoil-Experiment (2026-06-27).
 // Vollständig übersetzt (alle 7 Sprachen, Inhalte in nerd1.i18n.ts).
@@ -59,9 +59,12 @@ function Pr({ children }: { children: string }) {
 export default function NerdAnalysen() {
   // Eigener Titel und eigene Beschreibung — sonst teilen sich alle
   // oeffentlichen Seiten die Angaben aus `index.html`.
-  useSeo("Doppeluhr-Experiment: was beim Pumpfoilen wirklich passiert", "Zwei Uhren, ein Lauf: wie genau Pumps, Gleitphasen und Foiling-Distanz beim Pump-Foiling messbar sind — mit Messdaten und Diagrammen.");
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const c = NERD1[lang] ?? NERD1.de!;
+  // Eigene Adresse je Sprache (/en/nerd-analysen …, 02.11.2026). Der von Hand gesetzte Titel gilt fuer die Sprache, in der er
+  // geschrieben ist; sonst der Link-Text der Startseite und der Untertitel der Seite.
+  useSprachSeite("/nerd-analysen", lang, lang === "de" ? "Doppeluhr-Experiment: was beim Pumpfoilen wirklich passiert" : t("land.deep1"),
+    lang === "de" ? "Zwei Uhren, ein Lauf: wie genau Pumps, Gleitphasen und Foiling-Distanz beim Pump-Foiling messbar sind — mit Messdaten und Diagrammen." : ohneMarkup(c.subtitle ?? ""));
   const photo = (h: string) => `/media/photos/${h}.webp`;
   return (
     <div className="w-full">

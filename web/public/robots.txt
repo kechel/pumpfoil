@@ -1,5 +1,5 @@
-# Öffentlich indexierbar: Landing-Page (/), /impressum, /changelog, /support, /feedback und die
-# vier Textseiten (Nerd-Analysen 1–3, Systemarchitektur) — in allen Sprachen unter /<code>/.
+# Öffentlich indexierbar: Landing-Page (/), /impressum, /changelog, /support, /feedback, /why-pumpfoil und die
+# Textseiten (Nerd-Analysen 1–6, Systemarchitektur) — Startseite, Warum, Nerd 1–6 und Impressum je Sprache unter /<code>/.
 #
 # WARUM HIER (fast) NICHTS MEHR GESPERRT IST (06.09.2026):
 # Bis dahin standen alle App-Routen auf `Disallow`, weil sie Gästen nur die Landing-Page zeigen.

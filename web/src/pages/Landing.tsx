@@ -9,7 +9,7 @@ import {
 import { useT, useI18n } from "../i18n";
 import { SPORTS, sortiereSports } from "../lib/sportClass";
 import { LanguageFlags } from "../components/LanguageSelect";
-import { useSeo, warumPfad } from "../lib/seo";
+import { useSeo, warumPfad, seitenPfad, SPRACH_SEITEN } from "../lib/seo";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { ConnectIqButton } from "../components/ConnectIqButton";
@@ -700,7 +700,7 @@ export default function Landing() {
               ["/nerd-analysen-5", "land.deep6"], ["/nerd-analysen-6", "land.deep7"],
               ["/systemarchitektur", "land.deep4"]].map(([zu, k]) => (
               <li key={zu}>
-                <Link to={zu} className="text-brand-700 hover:underline dark:text-brand-300">
+                <Link to={SPRACH_SEITEN.includes(zu) ? seitenPfad(lang, zu) : zu} className="text-brand-700 hover:underline dark:text-brand-300">
                   {t(k)}
                 </Link>
               </li>
@@ -728,7 +728,7 @@ export default function Landing() {
       <footer className="mx-auto mt-10 max-w-5xl px-5 py-8 text-center text-xs text-slate-500">
         <Link to={warumPfad(lang)} className="hover:text-slate-300">{t("nav.why")}</Link>
         <span className="mx-2">·</span>
-        <Link to="/impressum" className="hover:text-slate-300">{t("nav.imprint")}</Link>
+        <Link to={seitenPfad(lang, "/impressum")} className="hover:text-slate-300">{t("nav.imprint")}</Link>
         <span className="mx-2">·</span>
         <span>{t("land.footerLicense")}</span>
         <span className="mx-2">·</span>

@@ -1,9 +1,11 @@
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
-import { useT } from "../i18n";
+import { useI18n } from "../i18n";
+import { useSprachSeite } from "../lib/seo";
 import { ScrollToTop } from "../components/ScrollToTop";
 
 export default function Impressum() {
-  const t = useT();
+  const { t, lang } = useI18n();
+  useSprachSeite("/impressum", lang, t("imp.title"));
   // Hilfs-Render für Listenpunkte mit Inline-Markup (<b>/<u>) aus den Übersetzungen.
   const li = (key: string) => <li dangerouslySetInnerHTML={{ __html: t(key) }} />;
   return (

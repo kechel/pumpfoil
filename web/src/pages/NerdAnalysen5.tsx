@@ -3,7 +3,7 @@ import { FoilIcon } from "../components/Icons";
 import { NerdNav } from "../components/NerdNav";
 import { useI18n } from "../i18n";
 import { NERD5 } from "./nerd5.i18n";
-import { useSeo } from "../lib/seo";
+import { useSprachSeite, ohneMarkup } from "../lib/seo";
 
 // Nerd-Analysen — Teil 5: die neue On-Foil-Erkennung (Erkennung v3, docs/DETECTION-V3.md).
 // Aufbau wie Teil 4. Nur Englisch (Jan, 30.09.2026: „erstmal nur in einer sprache"); die
@@ -53,10 +53,12 @@ function Fig({ src, caption }: { src: string; caption: string }) {
 }
 
 export default function NerdAnalysen5() {
-  useSeo("Detection model — a new on-foil detection for pump foiling",
-         "How pumpfoil.org rebuilt its on-foil detection against every truth it has: a phone on the board, map checks, riders’ own corrections — and why watch-plus-phone sessions help most.");
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const c = NERD5[lang] ?? NERD5.en!;
+  // Eigene Adresse je Sprache (/en/nerd-analysen-5 …, 02.11.2026). Der von Hand gesetzte Titel gilt fuer die Sprache, in der er
+  // geschrieben ist; sonst der Link-Text der Startseite und der Untertitel der Seite.
+  useSprachSeite("/nerd-analysen-5", lang, lang === "en" ? "Detection model — a new on-foil detection for pump foiling" : t("land.deep6"),
+    lang === "en" ? "How pumpfoil.org rebuilt its on-foil detection against every truth it has: a phone on the board, map checks, riders’ own corrections — and why watch-plus-phone sessions help most." : ohneMarkup(c.subtitle ?? ""));
   return (
     <div className="w-full">
       <Link to="/nerd-analysen-4" className="text-sm text-brand-400 hover:underline">{c.back}</Link>

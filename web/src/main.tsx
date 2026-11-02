@@ -129,15 +129,15 @@ import { PwaStatus } from "./components/PwaStatus";
  * Sprache, geht es auf `/` — sonst waere jede Tippfehler-Adresse eine Kopie der Startseite,
  * und genau das meldet Google als „Duplikat ohne Canonical".
  */
-/** /en/why-pumpfoil, /fr/why-pumpfoil … — die Sprache kommt aus der Adresse (wie bei der Startseite); unbekannter Code
- * -> /why-pumpfoil. */
-function SprachWarum() {
+/** /en/why-pumpfoil, /fr/nerd-analysen … — die Sprache kommt aus der Adresse (wie bei der Startseite); Deutsch und
+ * unbekannte Codes landen auf der Adresse ohne Praefix. Seiten: SPRACH_SEITEN in lib/seo.ts. */
+function SprachSeite({ slug, children }: { slug: string; children: React.ReactNode }) {
   const { lang } = useParams();
   const { lang: aktiv, setLang } = useI18n();
   const code = langAusPfad("/" + (lang ?? ""));
   useEffect(() => { if (code && code !== aktiv) setLang(code, { persist: false }); }, [code, aktiv, setLang]);
-  if (!code || code === "de") return <Navigate to="/why-pumpfoil" replace />;
-  return <Warum />;
+  if (!code || code === "de") return <Navigate to={slug} replace />;
+  return <>{children}</>;
 }
 
 function SprachStartseite() {
@@ -233,7 +233,6 @@ const router = createBrowserRouter([
       //   Feedback-Fenster im App-Rahmen haengt (Jan, 24.09.).
       // - /datenloeschung: Statusseite fuer Facebook-Loeschanfragen, Meta prueft sie vor der Freigabe.
       { path: "/why-pumpfoil", element: <Warum />, handle: TEXT },
-      { path: "/:lang/why-pumpfoil", element: <SprachWarum />, handle: TEXT },
       { path: "/impressum", element: <Impressum />, handle: TEXT },
       { path: "/datenloeschung", element: <Datenloeschung />, handle: TEXT },
       { path: "/changelog", element: <Changelog />, handle: TEXT },
@@ -244,6 +243,15 @@ const router = createBrowserRouter([
       { path: "/nerd-analysen-5", element: <NerdAnalysen5 />, handle: TEXT },
       { path: "/nerd-analysen-6", element: <NerdAnalysen6 />, handle: TEXT },
       { path: "/systemarchitektur", element: <Systemarchitektur />, handle: TEXT },
+      // Dieselben Seiten unter /<code>/… (02.11.2026), s. SprachSeite.
+      { path: "/:lang/why-pumpfoil", element: <SprachSeite slug="/why-pumpfoil"><Warum /></SprachSeite>, handle: TEXT },
+      { path: "/:lang/nerd-analysen", element: <SprachSeite slug="/nerd-analysen"><NerdAnalysen /></SprachSeite>, handle: TEXT },
+      { path: "/:lang/nerd-analysen-2", element: <SprachSeite slug="/nerd-analysen-2"><NerdAnalysen2 /></SprachSeite>, handle: TEXT },
+      { path: "/:lang/nerd-analysen-3", element: <SprachSeite slug="/nerd-analysen-3"><NerdAnalysen3 /></SprachSeite>, handle: TEXT },
+      { path: "/:lang/nerd-analysen-4", element: <SprachSeite slug="/nerd-analysen-4"><NerdAnalysen4 /></SprachSeite>, handle: TEXT },
+      { path: "/:lang/nerd-analysen-5", element: <SprachSeite slug="/nerd-analysen-5"><NerdAnalysen5 /></SprachSeite>, handle: TEXT },
+      { path: "/:lang/nerd-analysen-6", element: <SprachSeite slug="/nerd-analysen-6"><NerdAnalysen6 /></SprachSeite>, handle: TEXT },
+      { path: "/:lang/impressum", element: <SprachSeite slug="/impressum"><Impressum /></SprachSeite>, handle: TEXT },
       {
         path: "/",
         children: [

@@ -5,7 +5,7 @@ import { ShortModal } from "../components/ShortModal";
 import { NerdNav } from "../components/NerdNav";
 import { useI18n } from "../i18n";
 import { NERD4 } from "./nerd4.i18n";
-import { useSeo } from "../lib/seo";
+import { useSprachSeite, ohneMarkup } from "../lib/seo";
 
 // Nerd-Analysen — Teil 4: Handy am Brett (was sich messen laesst, wenn der Sensor nicht mehr
 // am Handgelenk mitfaehrt). Aufbau wie Teil 3.
@@ -69,10 +69,12 @@ const VIDEO_ID = "5xt-yCcw0rA";   // Jans Erklaervideo, haengt an Session #9535
 const BEISPIEL_TOKEN = "oKi6PIjxyFL2k9VN";
 
 export default function NerdAnalysen4() {
-  useSeo("A phone taped to the board — measuring pump foiling at the source",
-         "What a phone on the board measures that a watch on the wrist cannot: pitch, roll, yaw and heave, with real data from the first rides.");
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const c = NERD4[lang] ?? NERD4.en!;
+  // Eigene Adresse je Sprache (/en/nerd-analysen-4 …, 02.11.2026). Der von Hand gesetzte Titel gilt fuer die Sprache, in der er
+  // geschrieben ist; sonst der Link-Text der Startseite und der Untertitel der Seite.
+  useSprachSeite("/nerd-analysen-4", lang, lang === "en" ? "A phone taped to the board — measuring pump foiling at the source" : t("land.deep5"),
+    lang === "en" ? "What a phone on the board measures that a watch on the wrist cannot: pitch, roll, yaw and heave, with real data from the first rides." : ohneMarkup(c.subtitle ?? ""));
   const [vidOpen, setVidOpen] = useState(false);
   return (
     <div className="w-full">

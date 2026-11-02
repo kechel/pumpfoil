@@ -3,7 +3,7 @@ import { NerdNav } from "../components/NerdNav";
 import { NerdIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { NERD2 } from "./nerd2.i18n";
-import { useSeo } from "../lib/seo";
+import { useSprachSeite, ohneMarkup } from "../lib/seo";
 
 // Nerd-Analysen — Teil 2: Wie die Erkennung wirklich funktioniert.
 // Der IT-/Signalverarbeitungs-/ML-Teil hinter Pump-, On-Foil-, Start/Ende- und
@@ -97,9 +97,12 @@ function Box({ x, y, w, h, title, sub, accent }: { x: number; y: number; w: numb
 export default function NerdAnalysen2() {
   // Eigener Titel und eigene Beschreibung — sonst teilen sich alle
   // oeffentlichen Seiten die Angaben aus `index.html`.
-  useSeo("Wie die Pump-Erkennung funktioniert", "Signalverarbeitung und maschinelles Lernen hinter der Pumpfoil-Auswertung: Pump-Erkennung, On-Foil-Erkennung, Start und Ende eines Laufs, Gleitphasen.");
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const c = NERD2[lang] ?? NERD2.de!;
+  // Eigene Adresse je Sprache (/en/nerd-analysen-2 …, 02.11.2026). Der von Hand gesetzte Titel gilt fuer die Sprache, in der er
+  // geschrieben ist; sonst der Link-Text der Startseite und der Untertitel der Seite.
+  useSprachSeite("/nerd-analysen-2", lang, lang === "de" ? "Wie die Pump-Erkennung funktioniert" : t("land.deep2"),
+    lang === "de" ? "Signalverarbeitung und maschinelles Lernen hinter der Pumpfoil-Auswertung: Pump-Erkennung, On-Foil-Erkennung, Start und Ende eines Laufs, Gleitphasen." : ohneMarkup(c.subtitle ?? ""));
   return (
     <div className="w-full">
       <Link to="/nerd-analysen" className="text-sm text-brand-400 hover:underline">{c.back}</Link>

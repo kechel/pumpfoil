@@ -3,7 +3,7 @@ import { FoilIcon } from "../components/Icons";
 import { NerdNav } from "../components/NerdNav";
 import { useI18n } from "../i18n";
 import { NERD6 } from "./nerd6.i18n";
-import { useSeo } from "../lib/seo";
+import { useSprachSeite, ohneMarkup } from "../lib/seo";
 
 // Nerd-Analysen — Teil 6: Pump- und Gleit-Erkennung pg-1 (docs/PUMP-GLEIT.md). Von Jan am 24.10.2026 freigegeben,
 // verlinkt wie Teil 1-5 (Sidebar, NerdNav, Startseite, llms.txt). 18 Sprachen, Rueckfall Englisch.
@@ -51,10 +51,12 @@ function Fig({ src, caption }: { src: string; caption: string }) {
 }
 
 export default function NerdAnalysen6() {
-  useSeo("Pumps and glides — teaching the watch to count every pump once",
-         "How pumpfoil.org rebuilt pump counting and glide detection against a phone on the board: rhythm physics, a deliberately small model, honest numbers.");
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const c = NERD6[lang] ?? NERD6.en!;
+  // Eigene Adresse je Sprache (/en/nerd-analysen-6 …, 02.11.2026). Der von Hand gesetzte Titel gilt fuer die Sprache, in der er
+  // geschrieben ist; sonst der Link-Text der Startseite und der Untertitel der Seite.
+  useSprachSeite("/nerd-analysen-6", lang, lang === "en" ? "Pumps and glides — teaching the watch to count every pump once" : t("land.deep7"),
+    lang === "en" ? "How pumpfoil.org rebuilt pump counting and glide detection against a phone on the board: rhythm physics, a deliberately small model, honest numbers." : ohneMarkup(c.subtitle ?? ""));
   return (
     <div className="w-full">
       <Link to="/nerd-analysen-5" className="text-sm text-brand-400 hover:underline">{c.back}</Link>

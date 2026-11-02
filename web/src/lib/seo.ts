@@ -27,19 +27,27 @@ export function sprachPfad(code: string): string {
   return code === "de" ? "/" : `/${code}/`;
 }
 
-/** Adresse von „Warum pumpfoil.org?" in einer Sprache (02.11.2026): Deutsch auf /why-pumpfoil, sonst /<code>/why-pumpfoil —
- * wie die Startseite, damit jede Sprache eine eigene, indexierbare Adresse hat. Englischer Name in der Adresse (Jan). */
-export function warumPfad(code: string): string {
-  return code === "de" ? "/why-pumpfoil" : `/${code}/why-pumpfoil`;
+/** Adresse einer oeffentlichen Seite in einer Sprache (02.11.2026): Deutsch ohne Praefix, sonst /<code>/<seite> — wie die
+ * Startseite, damit jede Sprache eine eigene, indexierbare Adresse hat (hreflang, sitemap.xml). Gilt fuer die Seiten in
+ * `SPRACH_SEITEN`; die Systemarchitektur gibt es nur auf Deutsch und bleibt bei einer Adresse. */
+export function seitenPfad(code: string, slug: string): string {
+  return code === "de" ? slug : `/${code}${slug}`;
 }
+export const SPRACH_SEITEN = ["/why-pumpfoil", "/nerd-analysen", "/nerd-analysen-2", "/nerd-analysen-3", "/nerd-analysen-4",
+  "/nerd-analysen-5", "/nerd-analysen-6", "/impressum"];
+/** „Warum pumpfoil.org?" — englischer Name in der Adresse (Jan). */
+export const warumPfad = (code: string) => seitenPfad(code, "/why-pumpfoil");
 
 /** Sprachen mit eigener Adresse, wie in index.html und sitemap.xml (ohne pt-PT, das dort ebenfalls fehlt). */
 export const SEO_SPRACHEN = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "ja", "zh", "ru", "id", "nb"];
 
+/** Markdown-Reste (**fett**, `code`, [text](pfad)) fuer Titel/Beschreibung entfernen. */
+export const ohneMarkup = (s: string) => s.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*`]/g, "").trim();
+
 /** hreflang-Verweise fuer eine Seite, die es in allen Sprachen gibt; beim Verlassen wieder entfernt. */
-export function useHreflang(pfad: (code: string) => string): void {
+export function useHreflang(slug: string): void {
   useEffect(() => {
-    const links = [...SEO_SPRACHEN.map((c) => [c, pfad(c)]), ["x-default", pfad("de")]].map(([c, p]) => {
+    const links = [...SEO_SPRACHEN.map((c) => [c, seitenPfad(c, slug)]), ["x-default", seitenPfad("de", slug)]].map(([c, p]) => {
       const l = document.createElement("link");
       l.rel = "alternate"; l.hreflang = c; l.href = "https://pumpfoil.org" + p;
       l.dataset.seite = "1";
@@ -50,7 +58,13 @@ export function useHreflang(pfad: (code: string) => string): void {
     const fest = [...document.querySelectorAll<HTMLLinkElement>('link[rel="alternate"][hreflang]:not([data-seite])')];
     fest.forEach((l) => l.remove());
     return () => { links.forEach((l) => l.remove()); fest.forEach((l) => document.head.appendChild(l)); };
-  }, [pfad]);
+  }, [slug]);
+}
+
+/** Titel, Beschreibung, Canonical und hreflang einer Seite mit Sprach-Adressen. */
+export function useSprachSeite(slug: string, lang: string, titel: string, beschreibung?: string): void {
+  useSeo(titel, beschreibung, seitenPfad(lang, slug));
+  useHreflang(slug);
 }
 
 export function useSeo(titel: string, beschreibung?: string, pfad?: string): void {

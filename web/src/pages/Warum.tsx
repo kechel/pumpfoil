@@ -6,15 +6,14 @@ import { Link } from "react-router-dom";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { useI18n } from "../i18n";
-import { useSeo, useHreflang, warumPfad } from "../lib/seo";
+import { useSprachSeite } from "../lib/seo";
 import { getToken } from "../lib/api";
 
 const PUNKTE = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default function Warum() {
   const { t, lang } = useI18n();
-  useSeo(t("why.title"), t("why.intro"), warumPfad(lang));
-  useHreflang(warumPfad);
+  useSprachSeite("/why-pumpfoil", lang, t("why.title"), t("why.intro"));
   return (
     <div className="mx-auto max-w-2xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
