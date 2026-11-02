@@ -801,9 +801,6 @@ function TeamsSection() {
       <div className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <FlagIcon className="h-5 w-5 text-brand-400" />
         <h3 className="text-lg font-bold">{t("team.eventsAktuell")}</h3>
-        <Link to="/events" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.alleEvents")} →</Link>
-        <Link to="/teams/liste" className="text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.alle")} →</Link>
-        <Link to="/teams" className="text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>
       </div>
       {/* Keine Teams mehr direkt hier (eigene Seite /teams/liste, Jan 01.11.2026) — nur laufende und in den naechsten
           3 Tagen beginnende Events, alle (vorerst ohne Grenze). Kachel wie auf der Teamseite. */}
@@ -813,10 +810,20 @@ function TeamsSection() {
           {events.map((e) => <EventKurzKachel key={`${e.team.slug}-${e.id}`} e={e} />)}
         </div>
       )}
+      {/* Die Wege weiter als Knoepfe unter dem jeweiligen Abschnitt (Jan, 02.11.2026), nicht mehr als Links im Kopf. */}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link to="/events" className={KNOPF_WEITER}>{t("team.alleEvents")} →</Link>
+      </div>
       <AktivsteTeams />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link to="/teams/liste" className={KNOPF_WEITER}>{t("team.alle")} →</Link>
+        <Link to="/teams" className={KNOPF_WEITER}>{t("team.gruenden")} →</Link>
+      </div>
     </div>
   );
 }
+
+const KNOPF_WEITER = "inline-flex items-center rounded-xl bg-slate-800 px-4 py-2 text-sm font-medium text-brand-700 hover:bg-slate-700 dark:text-brand-300";
 
 /** Die 10 aktivsten Teams (Jan, 02.11.2026): Sessions der Mitglieder in den letzten 30 Tagen, Kacheln untereinander. */
 function AktivsteTeams() {
