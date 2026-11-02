@@ -827,7 +827,7 @@ ABGELEHNT: list[dict] = [
      # Datenschutz-Hinweis beim ersten Start) -> beides in 1.0.3 eingebaut.
      "abgelehnt": "2026-11-02",
      "grund": "turning the crown moved the screens the wrong way and swiping right did not close the app; "
-              "both are fixed for the next submission"},
+              "both are fixed and the same version is under review again"},
     {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
      # Google, 09.10.2026 (Jans Meldung): „Wear app functionality not working as described …
      # Your app crashed when testing", Version code 1050. Im Wear-Emulator mit dem R8-Release-Build
