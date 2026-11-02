@@ -1013,7 +1013,7 @@ private let _ptOverlayP6s2: [String: String] = [
 
 private let _ptOverlayP7: [String: String] = [
     "imp.owner3": "Seu endereço de e-mail e configurações da conta — nunca visíveis para outros usuários.",
-    "imp.owner4": "Quem especificamente votou/curtiu uma sessão não é mostrado a outros usuários.",
+    "imp.owner4": "Só você vê quem curtiu sua sessão; os outros veem apenas o número. Quem marcou “parece falso” ou “impróprio” não é mostrado a ninguém.",
     "imp.operatorTitle": "🛠 Apenas o operador (Jan)",
     "imp.operator1": "Endereços de e-mail, todos os dados brutos, vínculos de dispositivos e logs técnicos do servidor.",
     "imp.operator2": "As senhas são armazenadas apenas como hash com salt (PBKDF2) — nem eu consigo vê-las em texto puro.",
@@ -2269,7 +2269,7 @@ private let _jaOverlayP6s2: [String: String] = [
 
 private let _jaOverlayP7: [String: String] = [
     "imp.owner3": "あなたのメールアドレスとアカウント設定—他のユーザーには決して見えません。",
-    "imp.owner4": "誰が具体的にセッションに投票/いいねしたかは、他のユーザーには表示されません。",
+    "imp.owner4": "あなたのセッションに「いいね」した人はあなたにだけ表示され、他の人には数だけが表示されます。「偽物っぽい」「不適切」と報告した人は誰にも表示されません。",
     "imp.operatorTitle": "🛠 運営者(Jan)だけ",
     "imp.operator1": "メールアドレス、すべての生データ、デバイス連携、技術的なサーバーログ。",
     "imp.operator2": "パスワードはソルト付きハッシュ(PBKDF2)としてのみ保存されます—私でも平文では見られません。",
@@ -3525,7 +3525,7 @@ private let _zhOverlayP6s2: [String: String] = [
 
 private let _zhOverlayP7: [String: String] = [
     "imp.owner3": "你的邮箱地址和账号设置 — 其他用户永远看不到。",
-    "imp.owner4": "具体是谁给某条记录投票/点赞不会展示给其他用户。",
+    "imp.owner4": "只有你能看到谁赞了你的记录；其他人只能看到数量。谁举报了“看起来是假的”或“不当”，不会向任何人显示。",
     "imp.operatorTitle": "🛠 仅运营者（Jan）",
     "imp.operator1": "邮箱地址、所有原始数据、设备连接以及技术服务器日志。",
     "imp.operator2": "密码仅以加盐哈希（PBKDF2）形式存储 — 连我也看不到明文。",
@@ -4781,7 +4781,7 @@ private let _ruOverlayP6s2: [String: String] = [
 
 private let _ruOverlayP7: [String: String] = [
     "imp.owner3": "Ваш email и настройки аккаунта — никогда не видны другим пользователям.",
-    "imp.owner4": "Кто именно голосовал/лайкал сессию, другим пользователям не показывается.",
+    "imp.owner4": "Кто лайкнул твою сессию, видишь только ты; другие видят только число. Кто отметил «выглядит поддельным» или «неуместно», не показывается никому.",
     "imp.operatorTitle": "🛠 Только оператор (Jan)",
     "imp.operator1": "Email-адреса, все сырые данные, привязки устройств и технические логи сервера.",
     "imp.operator2": "Пароли хранятся только как хеш с солью (PBKDF2) — даже я не вижу их в открытом виде.",
@@ -6037,7 +6037,7 @@ private let _idOverlayP6s2: [String: String] = [
 
 private let _idOverlayP7: [String: String] = [
     "imp.owner3": "Alamat email dan pengaturan akun Anda — tidak pernah terlihat oleh pengguna lain.",
-    "imp.owner4": "Siapa persisnya yang memberi suara/suka pada suatu sesi tidak ditampilkan ke pengguna lain.",
+    "imp.owner4": "Hanya kamu yang melihat siapa yang menyukai sesimu; orang lain hanya melihat jumlahnya. Siapa yang melaporkan “tampak palsu” atau “tidak pantas” tidak ditampilkan kepada siapa pun.",
     "imp.operatorTitle": "🛠 Hanya operator (Jan)",
     "imp.operator1": "Alamat email, semua data mentah, tautan perangkat, dan log server teknis.",
     "imp.operator2": "Kata sandi hanya disimpan sebagai hash yang di-salt (PBKDF2) — bahkan saya tidak bisa melihatnya dalam teks biasa.",
@@ -7308,7 +7308,7 @@ private let _nbOverlayP7: [String: String] = [
     "imp.owner1": "<b>Rådata</b> fra øktene dine (enkelte GPS-punkter, 25 Hz akselerasjon) — f.eks. til merking.",
     "imp.owner2": "Merking, trimming, ny analyse, opplasting/sletting av bilder.",
     "imp.owner3": "<b>E-postadressen</b> din og kontoinnstillinger — aldri synlig for andre brukere.",
-    "imp.owner4": "Hvem som konkret har stemt eller likt en økt, vises ikke for andre brukere.",
+    "imp.owner4": "Bare du ser hvem som likte økten din; andre ser bare antallet. Hvem som meldte «ser falsk ut» eller «upassende», vises ikke for noen.",
     "imp.operatorTitle": "🛠 Bare operatøren (Jan)",
     "imp.operator1": "E-postadresser, alle rådata, enhetskoblinger og tekniske serverlogger.",
     "imp.operator2": "Passord lagres bare som en saltet hash (PBKDF2) — selv jeg kan ikke se dem i klartekst.",
@@ -8552,7 +8552,7 @@ private let _plOverlayP4s2: [String: String] = [
     "imp.owner1": "<b>Surowe dane</b> Twoich sesji (pojedyncze punkty GPS, przyspieszenie 25 Hz) — np. do etykietowania.",
     "imp.owner2": "Etykiety, przycinanie, ponowna analiza, wysyłanie/usuwanie zdjęć.",
     "imp.owner3": "Twój <b>adres e-mail</b> i ustawienia konta — nigdy widoczne dla innych użytkowników.",
-    "imp.owner4": "Kto konkretnie zagłosował/polubił sesję, nie jest pokazywane innym użytkownikom.",
+    "imp.owner4": "Tylko ty widzisz, kto polubił twoją sesję; inni widzą tylko liczbę. Kto zgłosił „wygląda na fałszywe” lub „nieodpowiednie”, nie jest nikomu pokazywane.",
     "imp.operatorTitle": "🛠 Tylko operator (Jan)",
     "imp.operator1": "Adresy e-mail, wszystkie surowe dane, powiązania urządzeń i techniczne logi serwera.",
     "imp.operator2": "Hasła są przechowywane wyłącznie jako solony skrót (PBKDF2) — nawet ja nie widzę ich w postaci jawnej.",
@@ -9092,7 +9092,7 @@ private let _ptptOverlayP2: [String: String] = [
 ]
 
 private let _ptptOverlayP3: [String: String] = [
-    "imp.owner4": "Quem exatamente votou/gostou de uma sessão não é mostrado a outros utilizadores.",
+    "imp.owner4": "Só tu vês quem gostou da tua sessão; os outros veem apenas o número. Quem assinalou “parece falso” ou “impróprio” não é mostrado a ninguém.",
     "imp.ownerTitle": "🔒 Só tu (o dono da sessão)",
     "imp.privacyText": "Todos os dados enviados são armazenados permanentemente. Para os eliminares, usa o botão “Eliminar conta” no teu perfil (web app ou app iOS/Android) — remove permanentemente a tua conta com todas as sessões, dados em bruto e fotos. A transmissão é encriptada (HTTPS).",
     "imp.public1": "<b>Fotos enviadas</b> e <b>fotos de perfil</b>: os ficheiros de imagem ficam sob uma ligação aleatória e imprevisível. Qualquer pessoa que conheça essa ligação (ex.: reencaminhada) pode abrir a imagem sem conta. Dados EXIF/GPS nas fotos são removidos no envio.",
