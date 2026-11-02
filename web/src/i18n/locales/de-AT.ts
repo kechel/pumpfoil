@@ -1591,6 +1591,7 @@ const deAT: Record<string, string> = {
   "imp.community3": "<b>Rekorde &amp; Bestenlisten</b> (Name, Wert, Spot, Anzahl Sessions/Läufe/Spots).",
   "imp.community4": "<b>Likes</b> (Anzahl) und die <b>Anzahl</b> der „wirkt unecht“/„unangemessen“-Stimmen.",
   "imp.community5": "<b>Online-Status</b>: ein grüner Punkt am Profilbild, solange du die App oder die Seite offen hast. Gespeichert wird nur der Zeitpunkt deiner letzten Aktivität (auf die Minute). Im Profil abschaltbar.",
+  "imp.community6": "<b>Kommentare</b> unter Sessions mit Anzeigename, Profilbild und Zeitpunkt. Der Inhaber einer Session kann Kommentare im Profil ausschalten und fremde Kommentare unter seiner Session löschen; eigene Kommentare kannst du eine Stunde lang bearbeiten oder löschen. Mit deinem Konto werden sie vollständig gelöscht.",
   "imp.communityIntro": "Ein Konto kann jeder anlegen. Eingeloggt sieht man von <b>allen</b> Nutzern:",
   "imp.communityNote": "Sessions sind <b>nicht anonym</b> — sie sind der Person über ihren Anzeigenamen zugeordnet. Du kannst jede Session jederzeit einzeln löschen; nur von dir <b>ausgeblendete</b> Sessions scheinen nicht in den Community-Listen auf (auch reine GPS-Sessions werden angezeigt).",
   "imp.communityTitle": "👥 Für jede registrierte Person sichtbar (Community)",
@@ -2717,6 +2718,14 @@ const deAT: Record<string, string> = {
   "why.k9": "Inklusive Schweizerdeutsch und Österreichisch.",
   "why.outro": "Probier's aus und sag uns, was fehlt – vielleicht siehst es schon nächste Woch'. Have fun, keep pumping!",
   "nav.why": "Warum pumpfoil.org?",
+  "comments.title": "Kommentare",
+  "comments.empty": "Noch keine Kommentare. Schreib den ersten!",
+  "comments.placeholder": "Kommentar schreiben …",
+  "comments.offOwner": "Kommentare sind für deine Sessions ausg'schaltet.",
+  "comments.offLink": "Im Profil einschalten",
+  "comments.settingHint": "Andere können unter deinen Sessions kommentieren. Du kannst fremde Kommentare unter deinen Sessions löschen. Ausg'schaltet sind Kommentare für alle ausgeblendet, a schon geschriebene.",
+  "comments.settingSwitch": "Kommentare unter meinen Sessions erlauben",
+  "notif.typeComment": "Kommentare zu meinen Sessions",
 };
 
 export default deAT

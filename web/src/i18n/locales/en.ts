@@ -1383,6 +1383,7 @@ const en: Record<string, string> = {
   "imp.community3": "<b>Records &amp; leaderboards</b> (name, value, spot, number of sessions/runs/spots).",
   "imp.community4": "<b>Likes</b> (count) and the <b>number</b> of “looks fake”/“inappropriate” votes.",
   "imp.community5": "<b>Online status</b>: a green dot on your profile picture while you have the app or the website open. Only the time of your last activity is stored (to the minute). You can turn it off in your profile.",
+  "imp.community6": "<b>Comments</b> on sessions, with display name, profile picture and time. The owner of a session can switch comments off in their profile and delete other people's comments on their session; you can edit or delete your own comments for one hour. They are deleted completely together with your account.",
   "imp.communityNote": "Sessions are <b>not anonymous</b> — they are linked to the person via their display name. You can delete any session individually at any time; only sessions you <b>hide</b> don't appear in the community lists (GPS-only sessions are shown too).",
   "imp.ownerTitle": "🔒 Only you (the session owner)",
   "imp.owner1": "<b>Raw data</b> of your sessions (individual GPS points, 25 Hz acceleration) — e.g. for labeling.",
@@ -2926,6 +2927,14 @@ const en: Record<string, string> = {
   "why.k9": "Including Swiss German and Austrian German.",
   "why.outro": "Give it a try and tell us what's missing – you might see it as soon as next week. Have fun, keep pumping!",
   "nav.why": "Why pumpfoil.org?",
+  "comments.title": "Comments",
+  "comments.empty": "No comments yet. Write the first one!",
+  "comments.placeholder": "Write a comment …",
+  "comments.offOwner": "Comments are switched off for your sessions.",
+  "comments.offLink": "Switch them on in your profile",
+  "comments.settingHint": "Others can comment on your sessions. You can delete other people's comments on your sessions. When switched off, comments are hidden for everyone, including those already written.",
+  "comments.settingSwitch": "Allow comments on my sessions",
+  "notif.typeComment": "Comments on my sessions",
 };
 
 export default en;

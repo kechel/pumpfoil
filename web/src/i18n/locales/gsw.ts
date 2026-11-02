@@ -1629,6 +1629,7 @@ const gsw: Record<string, string> = {
   "imp.community3": "<b>Rekord &amp; Beschtelischte</b> (Name, Wärt, Spot, Aazahl Sessions/Läuf/Spots).",
   "imp.community4": "<b>Likes</b> (Aazahl) und d <b>Aazahl</b> vo de „wirkt unecht“/„unaagmässe“-Stimme.",
   "imp.community5": "<b>Online-Status</b>: es grüens Pünktli am Profilbild, solang du d App oder d Siite offe hesch. Gspeicheret wird nur de Zitpunkt vo dinere letschte Aktivität (uf d Minute). Im Profil abschaltbar.",
+  "imp.community6": "<b>Kommentär</b> under Sessions mit Aazeigname, Profilbild und Ziitpunkt. De Inhaber vonere Session cha Kommentär im Profil abschalte und frömdi Kommentär under sinere Session lösche; eigeni Kommentär chasch e Stund lang bearbeite oder lösche. Mit dim Konto wärded si vollständig glöscht.",
   "imp.communityIntro": "Es Konto cha jede aalege. Iiglogged gseht mer vo <b>allne</b> Nutzer:",
   "imp.communityNote": "Sessions sind <b>nöd anonym</b> — si sind de Person über ihre Aazeigename zuegordnet. Du chasch jedi Session jederziit einzeln lösche; nu vo dir <b>usgblendeti</b> Sessions erschiined nöd i de Community-Lischte (au reini GPS-Sessions wärded aazeigt).",
   "imp.communityTitle": "👥 Für jedi registrierti Person sichtbar (Community)",
@@ -2712,6 +2713,14 @@ const gsw: Record<string, string> = {
   "why.k9": "Inklusiv Schwiizerdütsch und Öschtriichisch.",
   "why.outro": "Probier's us und säg eus, was fählt – vilicht gsehsch es scho nächscht Wuche. Have fun, keep pumping!",
   "nav.why": "Wieso pumpfoil.org?",
+  "comments.title": "Kommentär",
+  "comments.empty": "No kei Kommentär. Schriib de erscht!",
+  "comments.placeholder": "Kommentar schriibe …",
+  "comments.offOwner": "Kommentär sind für dini Sessions abgschaltet.",
+  "comments.offLink": "Im Profil iischalte",
+  "comments.settingHint": "Anderi chönd under dine Sessions kommentiere. Du chasch frömdi Kommentär under dine Sessions lösche. Abgschaltet sind Kommentär für alli usbländet, au die, wo scho gschribe sind.",
+  "comments.settingSwitch": "Kommentär under mine Sessions erlaube",
+  "notif.typeComment": "Kommentär zu mine Sessions",
 };
 
 export default gsw

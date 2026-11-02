@@ -3,7 +3,7 @@ import { geraeteText } from "../lib/deviceLabel";
 import { Link } from "react-router-dom";
 import { api, CommunitySession } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { HeartIcon, LocationIcon, CompareIcon, WatchIcon } from "./Icons";
+import { ChatBubbleIcon, HeartIcon, LocationIcon, CompareIcon, WatchIcon } from "./Icons";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 import { fmtDate, fmtTime } from "../lib/time";
@@ -126,6 +126,7 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
       </Link>
       <div className="flex items-center pr-1">
         <LikeButton id={s.session_id} liked0={!!s.liked} count0={s.like_count ?? 0} />
+        {(s.comment_count ?? 0) > 0 && <span className="ml-2 flex items-center gap-1 text-slate-400"><ChatBubbleIcon className="h-4 w-4" /><span className="text-xs tabular-nums">{s.comment_count}</span></span>}
       </div>
     </div>
   );

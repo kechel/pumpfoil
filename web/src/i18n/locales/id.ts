@@ -1163,6 +1163,7 @@ const id: Record<string, string> = {
   "imp.community3": "<b>Rekor &amp; papan peringkat</b> (nama, nilai, spot, jumlah sesi/run/spot).",
   "imp.community4": "<b>Suka</b> (jumlah) dan <b>jumlah</b> suara “tampak palsu”/“tidak pantas”.",
   "imp.community5": "<b>Status online</b>: titik hijau di foto profilmu selama aplikasi atau situs terbuka. Hanya waktu aktivitas terakhirmu yang disimpan (per menit). Bisa dimatikan di profil.",
+  "imp.community6": "<b>Komentar</b> di sesi, dengan nama tampilan, foto profil, dan waktu. Pemilik sesi bisa mematikan komentar di profil dan menghapus komentar orang lain di sesinya; komentarmu sendiri bisa diedit atau dihapus selama satu jam. Komentar dihapus sepenuhnya bersama akunmu.",
   "imp.communityNote": "Sesi <b>tidak anonim</b> — terhubung ke orangnya lewat nama tampilan mereka. Kamu bisa menghapus sesi mana pun secara individual kapan saja; hanya sesi yang kamu <b>sembunyikan</b> yang tidak muncul di daftar komunitas (sesi hanya-GPS juga ditampilkan).",
   "imp.ownerTitle": "🔒 Hanya kamu (pemilik sesi)",
   "imp.owner1": "<b>Data mentah</b> sesimu (titik GPS individual, akselerasi 25 Hz) — mis. untuk pelabelan.",
@@ -2827,6 +2828,14 @@ const id: Record<string, string> = {
   "why.k9": "Termasuk bahasa Jerman Swiss dan Jerman Austria.",
   "why.outro": "Coba saja dan beri tahu kami apa yang kurang – mungkin kamu sudah melihatnya minggu depan. Have fun, keep pumping!",
   "nav.why": "Mengapa pumpfoil.org?",
+  "comments.title": "Komentar",
+  "comments.empty": "Belum ada komentar. Tulis yang pertama!",
+  "comments.placeholder": "Tulis komentar …",
+  "comments.offOwner": "Komentar dimatikan untuk sesimu.",
+  "comments.offLink": "Nyalakan di profil",
+  "comments.settingHint": "Orang lain bisa mengomentari sesimu. Kamu bisa menghapus komentar orang lain di sesimu. Jika dimatikan, komentar disembunyikan untuk semua orang, termasuk yang sudah ditulis.",
+  "comments.settingSwitch": "Izinkan komentar di sesiku",
+  "notif.typeComment": "Komentar di sesiku",
 };
 
 export default id;

@@ -1573,6 +1573,7 @@ const es: Record<string, string> = {
   "imp.googleIntro": "Cuando inicias sesión con tu cuenta de Google (Google Sign-In / OAuth), tratamos exclusivamente los siguientes datos de usuario de Google:",
   "imp.community4": "<b>Me gusta</b> (número) y el <b>número</b> de votos « parece falso »/« inapropiado ».",
   "imp.community5": "<b>Estado en línea</b>: un punto verde en tu foto de perfil mientras tengas la app o la web abiertas. Solo se guarda la hora de tu última actividad (al minuto). Se puede desactivar en el perfil.",
+  "imp.community6": "Los <b>comentarios</b> en las sesiones, con nombre visible, foto de perfil y hora. El propietario de una sesión puede desactivar los comentarios en su perfil y borrar los de otros en su sesión; puedes editar o borrar tus propios comentarios durante una hora. Se eliminan por completo junto con tu cuenta.",
   "imp.conn2": "Estos datos se importan exclusivamente como tus propias sesiones y se tratan como tus demás sesiones.",
   "imp.conn1": "Al vincular se te redirige al proveedor correspondiente y accedes allí (OAuth). Recibimos un token de acceso y los datos de entrenamiento/workout que compartes (entre otros traza GPS, tiempo, frecuencia cardíaca).",
   "compare.colRider": "Rider",
@@ -2710,6 +2711,14 @@ const es: Record<string, string> = {
   "why.k9": "Incluidos el alemán suizo y el alemán austriaco.",
   "why.outro": "Pruébalo y dinos qué falta: quizá lo veas ya la semana que viene. Have fun, keep pumping!",
   "nav.why": "¿Por qué pumpfoil.org?",
+  "comments.title": "Comentarios",
+  "comments.empty": "Aún no hay comentarios. ¡Escribe el primero!",
+  "comments.placeholder": "Escribe un comentario …",
+  "comments.offOwner": "Los comentarios están desactivados para tus sesiones.",
+  "comments.offLink": "Activarlos en tu perfil",
+  "comments.settingHint": "Otros pueden comentar tus sesiones. Puedes borrar los comentarios de otros en tus sesiones. Si los desactivas, los comentarios se ocultan para todos, también los ya escritos.",
+  "comments.settingSwitch": "Permitir comentarios en mis sesiones",
+  "notif.typeComment": "Comentarios en mis sesiones",
 };
 
 export default es;

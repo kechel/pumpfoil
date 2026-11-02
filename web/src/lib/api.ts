@@ -433,6 +433,10 @@ export interface SessionSummary {
   videos?: SessionVideo[];  // im öffentlichen Payload (/s/<token>)
   photo_count?: number;
   like_count?: number;
+  /** sichtbare Kommentare (02.11.2026) */
+  comment_count?: number;
+  /** Inhaber hat Kommentare abgeschaltet (nur Detailansicht) */
+  comments_off?: boolean;
   liked?: boolean;
   track_preview?: string | null;
   foil_id?: number | null;
@@ -617,6 +621,8 @@ export interface CommunitySession {
   max_speed_mps: number | null;
   detection: string | null;
   like_count?: number;
+  /** sichtbare Kommentare (02.11.2026) */
+  comment_count?: number;
   liked?: boolean;
   photo_count?: number;
   thumb_url?: string | null;

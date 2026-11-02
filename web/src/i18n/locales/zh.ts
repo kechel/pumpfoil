@@ -1163,6 +1163,7 @@ const zh: Record<string, string> = {
   "imp.community3": "<b>纪录与排行榜</b>（名称、数值、地点、记录/航段/地点的数量）。",
   "imp.community4": "<b>点赞</b>（数量）以及“看起来是假的”/“不当内容”投票的<b>数量</b>。",
   "imp.community5": "<b>在线状态</b>：当你打开应用或网站时，头像上会显示一个绿点。我们只保存你最后一次活动的时间（精确到分钟）。可在个人资料中关闭。",
+  "imp.community6": "训练记录下的<b>评论</b>,含显示名称、头像和时间。记录的所有者可以在个人资料中关闭评论,并删除他人在其记录下的评论;你可以在一小时内编辑或删除自己的评论。删除账户时评论会被完全删除。",
   "imp.communityNote": "记录<b>并非匿名</b> —— 它们通过显示名称与个人关联。你可以随时单独删除任意记录；只有你<b>隐藏</b>的记录才不会出现在社区列表中（仅 GPS 的记录同样会显示）。",
   "imp.ownerTitle": "🔒 仅你本人（记录所有者）",
   "imp.owner1": "你记录的<b>原始数据</b>（单个 GPS 点、25 Hz 加速度）—— 例如用于标注。",
@@ -2824,6 +2825,14 @@ const zh: Record<string, string> = {
   "why.k9": "包括瑞士德语和奥地利德语。",
   "why.outro": "来试试吧,告诉我们还缺什么——也许下周你就能看到。Have fun, keep pumping!",
   "nav.why": "为什么选择 pumpfoil.org?",
+  "comments.title": "评论",
+  "comments.empty": "还没有评论。来写第一条吧!",
+  "comments.placeholder": "写评论 …",
+  "comments.offOwner": "你的训练记录已关闭评论。",
+  "comments.offLink": "在个人资料中开启",
+  "comments.settingHint": "其他人可以评论你的训练记录。你可以删除他人在你记录下的评论。关闭后,所有评论(包括已写的)对所有人隐藏。",
+  "comments.settingSwitch": "允许评论我的训练记录",
+  "notif.typeComment": "对我训练记录的评论",
 };
 
 export default zh;

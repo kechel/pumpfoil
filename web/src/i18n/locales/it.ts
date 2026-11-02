@@ -1580,6 +1580,7 @@ const it: Record<string, string> = {
   "wx.gust": "R",
   "imp.community4": "<b>Like</b> (numero) e il <b>numero</b> di voti « sembra falso »/« inappropriato ».",
   "imp.community5": "<b>Stato online</b>: un punto verde sulla foto profilo finché hai l'app o il sito aperti. Viene salvato solo l'orario della tua ultima attività (al minuto). Disattivabile nel profilo.",
+  "imp.community6": "I <b>commenti</b> sotto le sessioni, con nome visualizzato, immagine del profilo e ora. Il proprietario di una sessione può disattivare i commenti nel profilo ed eliminare quelli altrui sotto la sua sessione; puoi modificare o eliminare i tuoi commenti per un'ora. Vengono eliminati completamente insieme al tuo account.",
   "imp.connIntro": "In via facoltativa e solo su tua azione esplicita puoi collegare un account di terzi per importare attività:",
   "imp.google3": "<b>Non</b> viene effettuato <b>alcun accesso</b> ad altri servizi o dati Google (niente Google Drive, Gmail, Calendar ecc.).",
   "compare.subtitle": "{n} contrassegnati",
@@ -2710,6 +2711,14 @@ const it: Record<string, string> = {
   "why.k9": "Compresi lo svizzero tedesco e il tedesco austriaco.",
   "why.outro": "Provalo e dicci cosa manca – magari lo vedi già la settimana prossima. Have fun, keep pumping!",
   "nav.why": "Perché pumpfoil.org?",
+  "comments.title": "Commenti",
+  "comments.empty": "Ancora nessun commento. Scrivi il primo!",
+  "comments.placeholder": "Scrivi un commento …",
+  "comments.offOwner": "I commenti sono disattivati per le tue sessioni.",
+  "comments.offLink": "Attivali nel profilo",
+  "comments.settingHint": "Gli altri possono commentare le tue sessioni. Puoi eliminare i commenti altrui sotto le tue sessioni. Se disattivati, i commenti sono nascosti a tutti, anche quelli già scritti.",
+  "comments.settingSwitch": "Consenti commenti sotto le mie sessioni",
+  "notif.typeComment": "Commenti alle mie sessioni",
 };
 
 export default it;

@@ -3,7 +3,7 @@ import { geraeteText } from "../lib/deviceLabel";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
-import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon, PlayIcon, InstagramIcon, TikTokIcon, StabIcon, MastIcon, BoardIcon } from "./Icons";
+import { ChevronIcon, ChatBubbleIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon, PlayIcon, InstagramIcon, TikTokIcon, StabIcon, MastIcon, BoardIcon } from "./Icons";
 import { TrackPreview } from "./TrackPreview";
 import { VideoModal, ytId, videoPlatform } from "./VideoModal";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
@@ -24,7 +24,7 @@ function fmtSpan(start: string, end: string) {
 export function SessionCard({
   sessionId, startedAt, endedAt, tz, spot, foil, sportLabel, stab, mast, board, deviceLabel, placement, caption,
   avatarName, avatarUrl, avatarUserId, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
-  likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
+  likeCount0 = 0, liked0 = false, kommentare = 0, statusBadge, trackPreview, highlight = false, owned = false,
   sportClass, dataQuality, needsClassification = false, ohneFoil = false,
 }: {
   sessionId: number;
@@ -57,6 +57,8 @@ export function SessionCard({
   youtubeUrl?: string | null;   // verlinktes YouTube-Video -> Vorschau-Thumbnail mit Play
   videoUrl?: string | null;     // erstes Video jeder Plattform (IG/TikTok -> Marken-Kachel, extern)
   likeCount0?: number;
+  /** Anzahl Kommentare (02.11.2026), nur angezeigt, wenn > 0 */
+  kommentare?: number;
   liked0?: boolean;
   statusBadge?: ReactNode;
   trackPreview?: string | null;
@@ -177,6 +179,7 @@ export function SessionCard({
         >
           <HeartIcon className="h-4 w-4" filled={liked} />{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
         </button>
+        {kommentare > 0 && <span className="flex items-center gap-1 text-slate-400" title={t("comments.title")}><ChatBubbleIcon className="h-4 w-4" /><span className="text-xs tabular-nums">{kommentare}</span></span>}
         <ChevronIcon className="h-4 w-4 shrink-0 text-slate-400" />
       </span>
     );
@@ -292,6 +295,7 @@ export function SessionCard({
             >
               <HeartIcon className="h-4 w-4" filled={liked} />{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
             </button>
+            {kommentare > 0 && <span className="flex items-center gap-1 text-slate-400" title={t("comments.title")}><ChatBubbleIcon className="h-4 w-4" /><span className="text-xs tabular-nums">{kommentare}</span></span>}
             {/* Mobil: Thumbnail + Video + Track linksbündig unter dem Profilbild */}
             {(thumbEl || videoEl || trackEl) && (
               <div className="mt-1 flex flex-col items-center gap-1.5 sm:hidden">

@@ -216,6 +216,8 @@ DEFAULTS = {
     # fuer genau diesen Menschen wertlos. Moeglich ist das, weil nicht die Daten geaendert
     # werden, sondern nur ihre Ausgabe (s. app/ortverbergen.py).
     "hide_location": False,
+    # Kommentare unter den eigenen Sessions abschalten (02.11.2026, app/kommentare.py). Aus = fuer alle ausgeblendet.
+    "comments_off": False,
 }
 
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
@@ -642,6 +644,8 @@ def update_settings(
         current["equipment_je_sport"] = {sp: e for sp, e in eq.items() if e}
     if "hide_location" in patch:
         current["hide_location"] = bool(patch["hide_location"])
+    if "comments_off" in patch:
+        current["comments_off"] = bool(patch["comments_off"])
     if "weight_hidden" in patch:
         current["weight_hidden"] = bool(patch["weight_hidden"])
     if "watch_wrist" in patch and patch["watch_wrist"] in ("", "left", "right"):

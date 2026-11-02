@@ -1175,6 +1175,7 @@ const fi: Record<string, string> = {
   "imp.community3": "<b>Ennätykset &amp; tulostaulukot</b> (nimi, arvo, spotti, sessioiden/lenkkien/spottien määrä).",
   "imp.community4": "<b>Tykkäykset</b> (määrä) ja „vaikuttaa epäaidolta“/„sopimaton“-äänten <b>määrä</b>.",
   "imp.community5": "<b>Paikalla-tila</b>: vihreä piste profiilikuvassasi, kun sovellus tai sivusto on auki. Tallennetaan vain viimeisimmän toimintasi aika (minuutin tarkkuudella). Voit poistaa sen käytöstä profiilissa.",
+  "imp.community6": "<b>Kommentit</b> sessioiden alla näyttönimen, profiilikuvan ja ajan kanssa. Session omistaja voi poistaa kommentit käytöstä profiilissaan ja poistaa muiden kommentteja sessionsa alta; omia kommenttejasi voit muokata tai poistaa tunnin ajan. Ne poistetaan kokonaan tilisi mukana.",
   "imp.communityNote": "Sessiot <b>eivät ole anonyymejä</b> — ne on liitetty henkilöön näyttönimen kautta. Voit poistaa minkä tahansa session milloin tahansa yksitellen; vain itse <b>piilottamasi</b> sessiot eivät näy yhteisölistoissa (myös pelkät GPS-sessiot näytetään).",
   "imp.ownerTitle": "🔒 Vain sinä itse (session omistaja)",
   "imp.owner1": "Sessioidesi <b>raakadata</b> (yksittäiset GPS-pisteet, 25 Hz kiihtyvyys) — esim. merkitsemistä varten.",
@@ -2862,6 +2863,14 @@ const fi: Record<string, string> = {
   "why.k9": "Mukaan lukien sveitsinsaksa ja itävallansaksa.",
   "why.outro": "Kokeile ja kerro meille, mitä puuttuu – saatat nähdä sen jo ensi viikolla. Have fun, keep pumping!",
   "nav.why": "Miksi pumpfoil.org?",
+  "comments.title": "Kommentit",
+  "comments.empty": "Ei vielä kommentteja. Kirjoita ensimmäinen!",
+  "comments.placeholder": "Kirjoita kommentti …",
+  "comments.offOwner": "Kommentit on poistettu käytöstä sessioillasi.",
+  "comments.offLink": "Ota käyttöön profiilissa",
+  "comments.settingHint": "Muut voivat kommentoida sessioitasi. Voit poistaa muiden kommentteja sessioidesi alta. Kun ne ovat pois päältä, kommentit on piilotettu kaikilta, myös jo kirjoitetut.",
+  "comments.settingSwitch": "Salli kommentit sessioihini",
+  "notif.typeComment": "Kommentit sessioihini",
 };
 
 export default fi;

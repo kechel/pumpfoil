@@ -12,6 +12,7 @@ import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData
 import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf, SELECT_SCHRUMPFT } from "../components/ui";
+import { Chat } from "../components/Chat";
 import { HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
@@ -124,8 +125,37 @@ function WerHatGeliked({ sessionId, anzahl }: { sessionId: number; anzahl: numbe
   );
 }
 
-function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publicVideos = [], ownerName, ownerAvatar, analysis, selectedRun = null }: {
+/** Kommentare unter einer Session (Jan, 02.11.2026; Regeln in server/app/kommentare.py): alle Angemeldeten duerfen
+ * kommentieren, der Inhaber kann es im Profil abschalten und fremde Kommentare loeschen. Unter 13 (social_allowed)
+ * gar nicht. Abgeschaltet sieht nur der Inhaber einen Hinweis, wo er es wieder einschaltet. */
+function SessionKommentare({ session, owned }: { session: SessionSummary; owned: boolean }) {
+  const t = useT();
+  const [sozial, setSozial] = useState<boolean | null>(null);
+  useEffect(() => { api.getProfile().then((p) => setSozial(p.social_allowed !== false)).catch(() => setSozial(false)); }, []);
+  if (!sozial) return null;
+  if (session.comments_off) {
+    if (!owned) return null;
+    return (
+      <p id="kommentare" className="mt-8 text-sm text-slate-400">
+        {t("comments.offOwner")}{" "}
+        <Link to="/einstellungen?tab=privat" className="text-brand-700 underline hover:no-underline dark:text-brand-300">{t("comments.offLink")}</Link>
+      </p>
+    );
+  }
+  return (
+    <Card id="kommentare" className="mt-8 scroll-mt-20 p-4">
+      <h3 className="mb-3 flex items-center gap-2 font-semibold">
+        <ChatBubbleIcon className="h-5 w-5 text-brand-400" /> {t("comments.title")}
+      </h3>
+      <Chat scope={`session:${session.id}`} kommentare inhaber={owned} />
+    </Card>
+  );
+}
+
+function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publicVideos = [], ownerName, ownerAvatar, analysis, selectedRun = null, kommentare = null }: {
   sessionId: number; owned: boolean; isPublic?: boolean;
+  /** Anzahl der Kommentare; null = abgeschaltet bzw. nicht anzeigen */
+  kommentare?: number | null;
   publicPhotos?: { id: number; url: string; thumb_url?: string | null }[];
   publicVideos?: SessionVideo[];
   ownerName: string | null; ownerAvatar: string | null;
@@ -319,6 +349,15 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
         >
           <HeartIcon className={`h-4 w-4 ${s.liked ? "" : "text-rose-500"}`} filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
+        {/* Kommentare: Zahl mit Sprung zum Abschnitt unten (02.11.2026). */}
+        {kommentare != null && (
+          <button
+            onClick={() => document.getElementById("kommentare")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
+          >
+            <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> <span className="tabular-nums">{kommentare}</span> <span className="text-xs">{t("comments.title")}</span>
+          </button>
+        )}
         {/* Wer hat geliked — nur fuer den Inhaber (02.11.2026); alle anderen sehen weiter nur die Zahl. */}
         {owned && s.like_count > 0 && <WerHatGeliked sessionId={sessionId} anzahl={s.like_count} />}
         {owned && (
@@ -2052,6 +2091,7 @@ export default function SessionDetail() {
           ownerAvatar={session.owner_avatar_url ?? null}
           analysis={session.analysis}
           selectedRun={selectedRun}
+          kommentare={session.comments_off ? null : (session.comment_count ?? 0)}
         />
       </div>
 
@@ -2958,7 +2998,8 @@ export default function SessionDetail() {
         </div>
       )}
 
-      {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
+      {/* Kommentare (02.11.2026) — auf der Chat-Technik, Raum session:<id>; nicht im geteilten Link. */}
+      {!isPublic && <SessionKommentare session={session} owned={owned} />}
 
       {owned && session.split_from != null && (
         <div className="mt-8 flex flex-wrap items-center gap-2 text-sm text-slate-400">

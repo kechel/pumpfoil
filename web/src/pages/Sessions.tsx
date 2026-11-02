@@ -888,6 +888,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
               youtubeUrl={s.youtube_url}
               videoUrl={s.video_url}
               likeCount0={s.like_count ?? 0}
+              kommentare={s.comment_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}
               highlight={s.id === lastViewed}
@@ -943,6 +944,7 @@ export function renderCommunitySession(s: CommunitySession, t: (k: string) => st
       youtubeUrl={s.youtube_url}
       videoUrl={s.video_url}
       likeCount0={s.like_count ?? 0}
+      kommentare={s.comment_count ?? 0}
       liked0={!!s.liked}
       trackPreview={s.track_preview}
       highlight={s.session_id === lastViewed}

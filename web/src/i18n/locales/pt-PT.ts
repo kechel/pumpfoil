@@ -1169,6 +1169,7 @@ const ptPT: Record<string, string> = {
   "imp.community3": "<b>Recordes e rankings</b> (nome, valor, spot, número de sessões/voltas/spots).",
   "imp.community4": "<b>Gostos</b> (contagem) e o <b>número</b> de votos “parece falsa”/“inadequada”.",
   "imp.community5": "<b>Estado online</b>: um ponto verde na tua foto de perfil enquanto tiveres a app ou o site aberto. Só é guardada a hora da tua última atividade (ao minuto). Pode ser desativado no perfil.",
+  "imp.community6": "<b>Comentários</b> nas sessões, com nome apresentado, fotografia de perfil e hora. O dono de uma sessão pode desativar os comentários no perfil e apagar comentários de outros na sua sessão; podes editar ou apagar os teus próprios comentários durante uma hora. São apagados por completo juntamente com a tua conta.",
   "imp.communityNote": "As sessões <b>não são anónimas</b> — estão ligadas à pessoa pelo nome de apresentação. Podes eliminar qualquer sessão individualmente a qualquer momento; só as sessões que <b>ocultas</b> não aparecem nas listas da comunidade (sessões só com GPS também são apresentadas).",
   "imp.ownerTitle": "🔒 Só tu (o dono da sessão)",
   "imp.owner1": "<b>Dados em bruto</b> das tuas sessões (pontos GPS individuais, aceleração a 25 Hz) — ex.: para rotulagem.",
@@ -2821,6 +2822,14 @@ const ptPT: Record<string, string> = {
   "why.k9": "Incluindo alemão suíço e alemão austríaco.",
   "why.outro": "Experimenta e diz-nos o que falta – talvez o vejas já na próxima semana. Have fun, keep pumping!",
   "nav.why": "Porquê pumpfoil.org?",
+  "comments.title": "Comentários",
+  "comments.empty": "Ainda sem comentários. Escreve o primeiro!",
+  "comments.placeholder": "Escreve um comentário …",
+  "comments.offOwner": "Os comentários estão desativados nas tuas sessões.",
+  "comments.offLink": "Ativar no perfil",
+  "comments.settingHint": "Outras pessoas podem comentar as tuas sessões. Podes apagar comentários de outros nas tuas sessões. Desativados, os comentários ficam ocultos para todos, incluindo os já escritos.",
+  "comments.settingSwitch": "Permitir comentários nas minhas sessões",
+  "notif.typeComment": "Comentários nas minhas sessões",
 };
 
 export default ptPT;

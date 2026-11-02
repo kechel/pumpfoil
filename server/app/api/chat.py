@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from .. import models
+from .. import kommentare, models
 from ..suche import wort_bedingung as _such
 from ..schalter import darf_chat_fotos
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
@@ -282,6 +282,11 @@ def list_messages(
     _check_scope(scope)
     scope = _canon_scope(db, scope)
     _require_access(scope, user.id, db)
+    if kommentare.session_id(scope) is not None and not user.is_admin:
+        # Kommentare (app/kommentare.py): geloeschte Session oder vom Inhaber abgeschaltet -> nichts zeigen.
+        s = kommentare.session_fuer(db, scope)
+        if s is None or kommentare.aus(s.user):
+            return []
     lim = min(max(limit, 1), 100)
     q = (
         db.query(models.ChatMessage, owner_label_sql(models.User), models.User.avatar_url,
@@ -372,6 +377,18 @@ def post_message(
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Blockiert — keine Nachrichten möglich")
     if user.chat_readonly:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Im Chat schreibgesperrt")
+    _kommentar_session = None
+    if kommentare.session_id(scope) is not None:
+        # Kommentar zu einer Session (app/kommentare.py): es muss sie geben, der Inhaber darf sie nicht
+        # abgeschaltet haben, und zwischen Inhaber und Schreibendem darf keine Sperre bestehen.
+        _kommentar_session = kommentare.session_fuer(db, scope)
+        if _kommentar_session is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Session nicht gefunden")
+        if kommentare.aus(_kommentar_session.user):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Kommentare sind für diese Session abgeschaltet")
+        if (_kommentar_session.user_id != user.id
+                and _blocked_between(db, user.id, _kommentar_session.user_id)):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Blockiert — keine Kommentare möglich")
     text = (body.text or "").strip()
     # Bilder: vorerst NUR Admins (Jan, 30.09.2026), fuer alle per Schalter `CHAT_PHOTOS_ALL` (schalter.py). Nur eigene, noch nicht versandte Uploads.
     fotos: list[models.ChatPhoto] = []
@@ -460,7 +477,10 @@ def post_message(
             rst.left = False
     db.commit()
     db.refresh(m)
-    _notify_subscribers(db, m, user)
+    if _kommentar_session is not None:
+        _kommentar_push(db, m, user, _kommentar_session)
+    else:
+        _notify_subscribers(db, m, user)
     return _msg_out(m, user.display_name, user.avatar_url, user.id, is_new,
                     photos=_photos_for(db, [m.id]).get(m.id), reply=_zitate(db, [m], user).get(m.id))
 
@@ -496,6 +516,14 @@ def _fotos_weg(db: Session, message_id: int) -> list[str]:
         db.delete(p)
     db.flush()
     return urls
+
+
+def _kommentar_push(db: Session, m: models.ChatMessage, author: models.User, s: models.Session) -> None:
+    """Kommentar: Push nur an den Inhaber der Session (nicht an sich selbst), abschaltbar als Typ „comment"."""
+    if s.user_id == author.id or not wants(db, s.user_id, "comment") or m.hidden:
+        return
+    send_push(db, s.user_id, f"💬 {_scope_label_db(db, m.scope)}",
+              f"{author.display_name or 'Jemand'}: {m.text[:120] or '📷'}", f"/sessions/{s.id}#kommentare")
 
 
 def _notify_subscribers(db: Session, m: models.ChatMessage, author: models.User) -> None:
@@ -651,8 +679,12 @@ def edit_message_put(
 def delete_message(
     message_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
-    """Eigene Nachricht löschen (nur innerhalb 1 h)."""
-    m = _own_editable(message_id, user, db)
+    """Eigene Nachricht löschen (nur innerhalb 1 h). Unter der EIGENEN Session darf der Inhaber jeden Kommentar
+    loeschen, ohne Zeitgrenze (Hausrecht, app/kommentare.py)."""
+    m = db.get(models.ChatMessage, message_id)
+    s = kommentare.session_fuer(db, m.scope) if m is not None else None
+    if not (m is not None and s is not None and s.user_id == user.id and m.user_id != user.id):
+        m = _own_editable(message_id, user, db)
     urls = _fotos_weg(db, m.id)
     db.delete(m)
     db.commit()

@@ -1207,6 +1207,7 @@ const cs: Record<string, string> = {
   "imp.community3": "<b>Rekordy a žebříčky</b> (jméno, hodnota, spot, počet vyjížděk/jízd/spotů).",
   "imp.community4": "<b>To se mi líbí</b> (počet) a <b>počet</b> hlasů „působí neuvěřitelně“/„nevhodné“.",
   "imp.community5": "<b>Stav online</b>: zelená tečka u profilového obrázku, dokud máš otevřenou aplikaci nebo web. Ukládá se jen čas tvé poslední aktivity (na minutu). Lze vypnout v profilu.",
+  "imp.community6": "<b>Komentáře</b> pod sessions se zobrazovaným jménem, profilovým obrázkem a časem. Vlastník session může komentáře v profilu vypnout a mazat cizí komentáře pod svou session; vlastní komentáře můžeš hodinu upravovat nebo smazat. Se zrušením účtu se úplně smažou.",
   "imp.communityNote": "Vyjížďky <b>nejsou anonymní</b> — jsou přiřazeny osobě přes její zobrazované jméno. Každou vyjížďku můžeš kdykoli jednotlivě smazat; jen vyjížďky, které jsi <b>skryl(a)</b>, se v komunitních seznamech neobjeví (zobrazují se i čistě GPS vyjížďky).",
   "imp.ownerTitle": "🔒 Jen ty sám (vlastník vyjížďky)",
   "imp.owner1": "<b>Surová data</b> tvých vyjížděk (jednotlivé GPS body, zrychlení 25 Hz) — např. pro označování.",
@@ -2880,6 +2881,14 @@ const cs: Record<string, string> = {
   "why.k9": "Včetně švýcarské a rakouské němčiny.",
   "why.outro": "Vyzkoušej to a řekni nám, co chybí – možná to uvidíš už příští týden. Have fun, keep pumping!",
   "nav.why": "Proč pumpfoil.org?",
+  "comments.title": "Komentáře",
+  "comments.empty": "Zatím žádné komentáře. Napiš první!",
+  "comments.placeholder": "Napsat komentář …",
+  "comments.offOwner": "Komentáře jsou u tvých sessions vypnuté.",
+  "comments.offLink": "Zapnout v profilu",
+  "comments.settingHint": "Ostatní mohou komentovat tvé sessions. Cizí komentáře pod svými sessions můžeš smazat. Když je vypneš, komentáře jsou skryté pro všechny, i ty už napsané.",
+  "comments.settingSwitch": "Povolit komentáře pod mými sessions",
+  "notif.typeComment": "Komentáře k mým sessions",
 };
 
 export default cs;

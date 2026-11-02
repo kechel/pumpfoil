@@ -358,6 +358,8 @@ class SessionOut(BaseModel):
     photo_count: int = 0
     like_count: int = 0
     liked: bool = False
+    comment_count: int = 0  # sichtbare Kommentare (app/kommentare.py, 02.11.2026)
+    comments_off: bool = False  # Inhaber hat Kommentare abgeschaltet (nur in der Detailansicht gesetzt)
     track_preview: str | None = None  # Mini-Track (normalisierte Polylinien als JSON)
     foil_id: int | None = None  # explizit gesetztes Foil dieser Session
     foil: dict | None = None  # aufgelöstes Foil (Session-Foil oder Nutzer-Standard) für Anzeige

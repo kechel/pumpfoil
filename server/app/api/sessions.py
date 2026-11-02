@@ -1215,11 +1215,14 @@ def list_sessions(
                     models.SessionTransfer.status == "pending").all()
         ):
             xfer[sid] = name or "?"
+        from .. import kommentare
+        kanz = kommentare.anzahl(db, ids, user)
         for o in outs:
             o.thumb_url = thumb.get(o.id)
             o.photo_count = count.get(o.id, 0)
             o.like_count = int(likes.get(o.id, 0))
             o.liked = o.id in mine
+            o.comment_count = kanz.get(o.id, 0)
             o.transfer_to = xfer.get(o.id)
     return outs
 
@@ -2627,6 +2630,8 @@ def get_session(
     like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
     liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
+    from .. import kommentare
+    comment_count = kommentare.anzahl(db, [s.id], user).get(s.id, 0)
     dv = int((s.updated_at or s.created_at).timestamp()) if (s.updated_at or s.created_at) else 0
     # `_OUT_VERSION` MUSS mit ins ETag: es beschreibt die FORM der Antwort, nicht die Daten.
     # Ohne das bekommt ein Client, dessen Session sich nicht geaendert hat, ewig 304 und behaelt
@@ -2640,7 +2645,7 @@ def get_session(
     import zlib as _zlib
     _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id)],
                        sort_keys=True, default=str)
-    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}{PA.etag_teil()}"'
+    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-c{comment_count}{"k" if kommentare.aus(s.user) else ""}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}{PA.etag_teil()}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
@@ -2681,6 +2686,8 @@ def get_session(
     # Like-Zustand (oben schon berechnet, in den ETag eingeflossen).
     out.like_count = like_count
     out.liked = liked
+    out.comment_count = comment_count
+    out.comments_off = kommentare.aus(s.user)
     out.merged_count = int(db.query(func.count()).select_from(models.Session)
                            .filter(models.Session.merged_into == s.id).scalar() or 0)
     out.split_from = s.split_from

@@ -22,7 +22,10 @@ function hhmm(s: string | null) {
 
 // Gemeinsame Chat-/Diskussions-Komponente. scope = "session:<id>" | "spot:<name>".
 // fill=true: füllt die volle Höhe des Elternelements (für die /chat-Fullscreen-Ansicht).
-export function Chat({ scope, fill = false }: { scope: string; fill?: boolean }) {
+// kommentare=true: als Kommentare unter einer Session (02.11.2026) — ohne Abo/Verlassen, ohne feste Fensterhoehe;
+// `inhaber` darf dort fremde Kommentare loeschen (Server prueft es, s. app/kommentare.py).
+export function Chat({ scope, fill = false, kommentare = false, inhaber = false }:
+  { scope: string; fill?: boolean; kommentare?: boolean; inhaber?: boolean }) {
   const t = useT();
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [text, setText] = useState("");
@@ -183,10 +186,11 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // Eigene Nachricht bearbeiten/löschen — nur innerhalb 1 h (Server prüft ebenfalls).
   const canEdit = (m: ChatMsg) =>
     m.mine && !!m.created_at && Date.now() - new Date(m.created_at).getTime() < 3600_000;
+  const kannLoeschen = (m: ChatMsg) => canEdit(m) || (kommentare && inhaber && !m.mine);
 
-  function openMenu(m: ChatMsg) { if (canEdit(m)) setMenuFor((cur) => (cur === m.id ? null : m.id)); }
+  function openMenu(m: ChatMsg) { if (kannLoeschen(m)) setMenuFor((cur) => (cur === m.id ? null : m.id)); }
   function pressStart(m: ChatMsg) {
-    if (!canEdit(m)) return;
+    if (!kannLoeschen(m)) return;
     if (pressTimer.current) clearTimeout(pressTimer.current);
     pressTimer.current = setTimeout(() => setMenuFor(m.id), 500);   // Long-Press ~0,5 s
   }
@@ -316,21 +320,21 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
 
   return (
     <div className={fill ? "flex h-full flex-col" : ""}>
-      <div className="mb-2 flex items-center justify-end gap-3 text-xs">
+      {!kommentare && <div className="mb-2 flex items-center justify-end gap-3 text-xs">
         <button onClick={toggleSub} className={`flex items-center gap-1 ${push ? "text-brand-300" : "text-slate-500 hover:text-slate-300"}`} title={t("chat.subscribe")}>
           {push ? <BellIcon className="h-3.5 w-3.5" /> : <BellOffIcon className="h-3.5 w-3.5" />} {push ? t("chat.subscribed") : t("chat.subscribe")}
         </button>
         <button onClick={leave} className="text-slate-500 hover:text-red-400" title={t("chat.leave")}>{t("chat.leave")}</button>
-      </div>
-      <div ref={scrollRef} onScroll={onScroll} className={`mb-3 space-y-3 overflow-y-auto overscroll-contain ${fill ? "min-h-0 flex-1" : "h-96"}`}>
+      </div>}
+      <div ref={scrollRef} onScroll={onScroll} className={`mb-3 space-y-3 overflow-y-auto overscroll-contain ${fill ? "min-h-0 flex-1" : kommentare ? "max-h-[32rem]" : "h-96"}`}>
         {loadingMore && <p className="py-1 text-center text-xs text-slate-500">…</p>}
         {capped && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.capped")}</p>}
         {!capped && !hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
-        {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}
+        {msgs.length === 0 && <p className="text-sm text-slate-400">{t(kommentare ? "comments.empty" : "chat.empty")}</p>}
         {msgs.map((m) => (
           <div key={m.id} id={`chat-msg-${m.id}`}
             className={`group flex items-start gap-2 rounded-xl transition-colors duration-700 ${m.hidden ? "opacity-50" : ""} ${glow === m.id ? "bg-brand-500/15 ring-1 ring-brand-500/40" : ""}`}
-            onContextMenu={(e) => { if (!isDesktop && canEdit(m)) { e.preventDefault(); openMenu(m); } }}
+            onContextMenu={(e) => { if (!isDesktop && kannLoeschen(m)) { e.preventDefault(); openMenu(m); } }}
             onTouchStart={() => pressStart(m)} onTouchEnd={pressCancel} onTouchMove={pressCancel}>
             {!isDesktop && menuFor === m.id && canEdit(m) && (
               <button onClick={() => startEdit(m)} title={t("chat.edit")} aria-label={t("chat.edit")}
@@ -361,10 +365,10 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                     : <span role="img" aria-label={t("chat.sent")} title={t("chat.sent")} className="self-center text-slate-500"><CheckIcon className="h-[18px] w-[18px] [stroke-width:2.5]" /></span>
                 )}
                 <span className="ml-auto flex items-center gap-2">
-                  {isDesktop && canEdit(m) && (
+                  {isDesktop && kannLoeschen(m) && (
                     <>
-                      <button onClick={() => startEdit(m)} title={t("chat.edit")} aria-label={t("chat.edit")}
-                        className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-brand-600 dark:hover:text-brand-300 group-hover:opacity-100"><EditIcon className="h-5 w-5" /></button>
+                      {canEdit(m) && <button onClick={() => startEdit(m)} title={t("chat.edit")} aria-label={t("chat.edit")}
+                        className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-brand-600 dark:hover:text-brand-300 group-hover:opacity-100"><EditIcon className="h-5 w-5" /></button>}
                       <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}
                         className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-red-400 group-hover:opacity-100"><TrashIcon className="h-5 w-5" /></button>
                     </>
@@ -403,7 +407,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
               {m.text && <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>}
               {m.photos && m.photos.length > 0 && <FotoStapel photos={m.photos} name={m.name} avatarUrl={m.avatar_url} />}
             </div>
-            {!isDesktop && menuFor === m.id && canEdit(m) && (
+            {!isDesktop && menuFor === m.id && kannLoeschen(m) && (
               <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}
                 className="flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-xl bg-slate-800 text-red-400 hover:bg-slate-700">
                 <TrashIcon className="h-5 w-5" />
@@ -480,7 +484,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
             if (e.key === "Escape" && editing != null) cancelEdit();
             else if (e.key === "Escape" && replyTo) setReplyTo(null);
           }}
-          placeholder={t("chat.placeholder")}
+          placeholder={t(kommentare ? "comments.placeholder" : "chat.placeholder")}
           maxLength={2000}
           className="max-h-[50vh] min-w-0 flex-1 resize-none overflow-y-auto overscroll-contain rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         />

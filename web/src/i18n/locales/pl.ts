@@ -1339,6 +1339,7 @@ const pl: Record<string, string> = {
   "imp.community3": "<b>Rekordy i rankingi</b> (nazwa, wartość, spot, liczba sesji/przejazdów/spotów).",
   "imp.community4": "<b>Polubienia</b> (liczba) oraz <b>liczbę</b> głosów „wygląda na fejk”/„nieodpowiednie”.",
   "imp.community5": "<b>Status online</b>: zielona kropka przy zdjęciu profilowym, gdy masz otwartą aplikację lub stronę. Zapisujemy tylko czas twojej ostatniej aktywności (z dokładnością do minuty). Można to wyłączyć w profilu.",
+  "imp.community6": "<b>Komentarze</b> pod sesjami, z nazwą, zdjęciem profilowym i czasem. Właściciel sesji może wyłączyć komentarze w profilu i usuwać cudze komentarze pod swoją sesją; własne komentarze możesz edytować lub usunąć przez godzinę. Są całkowicie usuwane razem z kontem.",
   "imp.communityNote": "Sesje <b>nie są anonimowe</b> — są powiązane z osobą przez jej nazwę wyświetlaną. Każdą sesję możesz w każdej chwili pojedynczo usunąć; tylko sesje, które <b>ukryjesz</b>, nie pojawiają się na listach społeczności (sesje tylko z GPS też są pokazywane).",
   "imp.ownerTitle": "🔒 Tylko Ty (właściciel sesji)",
   "imp.owner1": "<b>Surowe dane</b> Twoich sesji (pojedyncze punkty GPS, przyspieszenie 25 Hz) — np. do etykietowania.",
@@ -2810,6 +2811,14 @@ const pl: Record<string, string> = {
   "why.k9": "W tym szwajcarski niemiecki i austriacki niemiecki.",
   "why.outro": "Wypróbuj i powiedz nam, czego brakuje – może zobaczysz to już w przyszłym tygodniu. Have fun, keep pumping!",
   "nav.why": "Dlaczego pumpfoil.org?",
+  "comments.title": "Komentarze",
+  "comments.empty": "Jeszcze brak komentarzy. Napisz pierwszy!",
+  "comments.placeholder": "Napisz komentarz …",
+  "comments.offOwner": "Komentarze do twoich sesji są wyłączone.",
+  "comments.offLink": "Włącz je w profilu",
+  "comments.settingHint": "Inni mogą komentować twoje sesje. Możesz usuwać cudze komentarze pod swoimi sesjami. Po wyłączeniu komentarze są ukryte dla wszystkich, także te już napisane.",
+  "comments.settingSwitch": "Zezwalaj na komentarze pod moimi sesjami",
+  "notif.typeComment": "Komentarze do moich sesji",
 };
 
 export default pl;

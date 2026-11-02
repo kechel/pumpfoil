@@ -1574,8 +1574,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Spot-Rekorde bleiben Kacheln (dazu Bestenlisten statt Tabelle) · „nur mit Beschleunigungsdaten" bleibt in der Filterzeile ·
   Wetter fliegt nicht raus, sondern ist ein eigener Reiter der Spot-Seite.
   **Offen, gross (spaeter):**
-  - Kommentare zu Sessions + Likes auf Kommentare (Modell, Melden/Ausblenden, Sperren, DSGVO-Loeschung, Altersgrenze
-    Social, Benachrichtigungen, Web + Android + iOS).
+  - ✅ 02.11. Kommentare zu Sessions im Web (server/app/kommentare.py auf der Chat-Technik, Raum `session:<id>`: Antworten,
+    Likes, Melden, Sperren; Inhaber kann im Profil abschalten und fremde Kommentare loeschen; Push nur an den Inhaber,
+    Typ „comment"; mit hartem Session-/Kontoloeschen weg). **Offen:** Apps (Session-Detail, Zahl auf den Karten, Schalter
+    in der Privatsphaere, Push-Typ) — mit dem grossen Port.
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
     gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.

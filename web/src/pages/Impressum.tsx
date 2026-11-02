@@ -42,6 +42,7 @@ export default function Impressum() {
             {li("imp.community3")}
             {li("imp.community4")}
             {li("imp.community5")}
+            {li("imp.community6")}
           </ul>
           <p className="mt-2 text-xs text-slate-400" dangerouslySetInnerHTML={{ __html: t("imp.communityNote") }} />
         </section>

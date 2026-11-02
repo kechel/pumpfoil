@@ -1207,6 +1207,7 @@ const nl: Record<string, string> = {
   "imp.community3": "<b>Records &amp; ranglijsten</b> (naam, waarde, spot, aantal sessies/runs/spots).",
   "imp.community4": "<b>Likes</b> (aantal) en het <b>aantal</b> stemmen ‘lijkt nep'/‘ongepast'.",
   "imp.community5": "<b>Online-status</b>: een groen stipje bij je profielfoto zolang je de app of de website open hebt. Alleen het tijdstip van je laatste activiteit wordt opgeslagen (op de minuut). Uit te zetten in je profiel.",
+  "imp.community6": "<b>Reacties</b> onder sessies, met weergavenaam, profielfoto en tijdstip. De eigenaar van een sessie kan reacties in zijn profiel uitzetten en reacties van anderen onder zijn sessie verwijderen; je eigen reacties kun je een uur lang bewerken of verwijderen. Ze worden volledig verwijderd met je account.",
   "imp.communityNote": "Sessies zijn <b>niet anoniem</b> — ze zijn via de weergavenaam aan de persoon gekoppeld. Je kunt elke sessie op elk moment afzonderlijk verwijderen; alleen door jou <b>verborgen</b> sessies verschijnen niet in de community-lijsten (ook pure GPS-sessies worden getoond).",
   "imp.ownerTitle": "🔒 Alleen jijzelf (eigenaar van de sessie)",
   "imp.owner1": "<b>Ruwe data</b> van je sessies (afzonderlijke GPS-punten, 25 Hz-versnelling) — bijv. voor het labelen.",
@@ -2881,6 +2882,14 @@ const nl: Record<string, string> = {
   "why.k9": "Inclusief Zwitserduits en Oostenrijks Duits.",
   "why.outro": "Probeer het en vertel ons wat er ontbreekt – misschien zie je het volgende week al. Have fun, keep pumping!",
   "nav.why": "Waarom pumpfoil.org?",
+  "comments.title": "Reacties",
+  "comments.empty": "Nog geen reacties. Schrijf de eerste!",
+  "comments.placeholder": "Schrijf een reactie …",
+  "comments.offOwner": "Reacties staan uit voor je sessies.",
+  "comments.offLink": "Zet ze aan in je profiel",
+  "comments.settingHint": "Anderen kunnen op je sessies reageren. Je kunt reacties van anderen onder je sessies verwijderen. Uitgeschakeld zijn reacties voor iedereen verborgen, ook de al geschreven.",
+  "comments.settingSwitch": "Reacties op mijn sessies toestaan",
+  "notif.typeComment": "Reacties op mijn sessies",
 };
 
 export default nl;

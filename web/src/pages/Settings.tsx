@@ -416,6 +416,7 @@ export default function Settings() {
       {/* Online-Punkt (Jan, 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal
           default an fuer alle"). Dieselbe Art Entscheidung wie oben — was sehen andere von mir. */}
       <OnlinePunktCard onSaved={flashSaved} />
+      <KommentareCard onSaved={flashSaved} />
 
       {/* GETEILTE AUFNAHMEN, direkt ueber dem Einrichtungs-Assistenten (Jan, 25.09.2026:
           „gaaanz unten ueber dem setup assistant abschnitt"). Der Knopf nimmt den Link HIER
@@ -718,6 +719,38 @@ function GeteilteAufnahmen() {
  * wie weit er reicht, ist schlimmer als keiner — und hier reicht er bewusst nicht sehr weit:
  * die Strecke, die Zahlen und der Name bleiben sichtbar.
  */
+// Kommentare unter den eigenen Sessions an/aus (02.11.2026, server/app/kommentare.py). Aus = fuer alle ausgeblendet.
+function KommentareCard({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const [an, setAn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.getSettings().then((s) => setAn(!s.comments_off)).catch(() => setAn(true));
+  }, []);
+  if (an === null) return null;
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("comments.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("comments.settingHint")}</p>
+      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+        <input
+          type="checkbox" checked={an} disabled={busy}
+          onChange={(e) => {
+            const wert = e.target.checked;
+            setBusy(true);
+            api.saveSettings({ comments_off: !wert })
+              .then(() => { setAn(wert); onSaved?.(); })
+              .catch(() => {})
+              .finally(() => setBusy(false));
+          }}
+          className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+        />
+        {t("comments.settingSwitch")}
+      </label>
+    </Card>
+  );
+}
+
 function OnlinePunktCard({ onSaved }: { onSaved?: () => void }) {
   const t = useT();
   const [an, setAn] = useState<boolean | null>(null);

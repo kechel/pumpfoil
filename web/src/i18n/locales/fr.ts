@@ -1678,6 +1678,7 @@ const fr: Record<string, string> = {
   "imp.community3": "<b>Records &amp; classements</b> (nom, valeur, spot, nombre de sessions/runs/spots).",
   "imp.community4": "<b>Likes</b> (nombre) et le <b>nombre</b> de votes « semble faux »/« inapproprié ».",
   "imp.community5": "<b>Statut en ligne</b> : un point vert sur ta photo de profil tant que l'appli ou le site est ouvert. Seule l'heure de ta dernière activité est enregistrée (à la minute). Désactivable dans ton profil.",
+  "imp.community6": "Les <b>commentaires</b> sous les sessions, avec nom affiché, photo de profil et heure. Le propriétaire d'une session peut désactiver les commentaires dans son profil et supprimer ceux des autres sous sa session ; tu peux modifier ou supprimer tes propres commentaires pendant une heure. Ils sont entièrement supprimés avec ton compte.",
   "imp.communityIntro": "Tout le monde peut créer un compte. Une fois connecté, on voit de <b>tous</b> les utilisateurs :",
   "imp.communityNote": "Les sessions ne sont <b>pas anonymes</b> — elles sont associées à la personne via son nom d'affichage. Tu peux supprimer chaque session individuellement à tout moment ; seules les sessions que tu <b>masques</b> n'apparaissent pas dans les listes de la communauté (les sessions GPS seules sont aussi affichées).",
   "imp.communityTitle": "👥 Visible par toute personne inscrite (communauté)",
@@ -2710,6 +2711,14 @@ const fr: Record<string, string> = {
   "why.k9": "Y compris le suisse allemand et l'allemand d'Autriche.",
   "why.outro": "Essaie et dis-nous ce qui manque – tu le verras peut-être dès la semaine prochaine. Have fun, keep pumping!",
   "nav.why": "Pourquoi pumpfoil.org ?",
+  "comments.title": "Commentaires",
+  "comments.empty": "Pas encore de commentaires. Écris le premier !",
+  "comments.placeholder": "Écrire un commentaire …",
+  "comments.offOwner": "Les commentaires sont désactivés pour tes sessions.",
+  "comments.offLink": "Les activer dans ton profil",
+  "comments.settingHint": "Les autres peuvent commenter tes sessions. Tu peux supprimer les commentaires des autres sous tes sessions. Désactivés, les commentaires sont masqués pour tout le monde, y compris ceux déjà écrits.",
+  "comments.settingSwitch": "Autoriser les commentaires sous mes sessions",
+  "notif.typeComment": "Commentaires sur mes sessions",
 };
 
 export default fr;

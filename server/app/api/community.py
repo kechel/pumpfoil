@@ -1508,8 +1508,11 @@ def latest_photos(
         myrep = {sid for (sid,) in db.query(models.SessionVote.session_id)
                  .filter(models.SessionVote.session_id.in_(ids), models.SessionVote.kind == "inappropriate",
                          models.SessionVote.user_id == user.id).all()}
+        from .. import kommentare
+        kanz = kommentare.anzahl(db, ids, user)
         for o in out:
             sid = o["session_id"]
+            o["comment_count"] = kanz.get(sid, 0)
             o["like_count"] = int(likes.get(sid, 0))
             o["liked"] = sid in mine
             o["my_inappropriate"] = sid in myrep
@@ -2779,11 +2782,14 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
             foils = {f.id: f for f in db.query(models.Foil)
                      .filter(models.Foil.id.in_({r.foil_id for r in rows if r.foil_id})).all()} \
                 if any(r.foil_id for r in rows) else {}
+            from .. import kommentare
+            kanz = kommentare.anzahl(db, ids, user)
             for o, r in zip(outs, rows):
                 o.thumb_url = thumb.get(o.id)
                 o.photo_count = anzahl.get(o.id, 0)
                 o.video_url = videos.get(o.id)
                 o.like_count = int(likes.get(o.id, 0))
+                o.comment_count = kanz.get(o.id, 0)
                 o.liked = o.id in meine
                 lbl = geraete.get(r.device_id) if r.device_id else None
                 if lbl:
@@ -2942,9 +2948,12 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
     dmap = dict((i, geraete_label(l, pl)) for i, l, pl in
                 db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform)
                 .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
+    from .. import kommentare
+    kanz = kommentare.anzahl(db, ids, user)
     for b in briefs:
         sid = b["session_id"]
         b["like_count"] = int(likes.get(sid, 0))
+        b["comment_count"] = kanz.get(sid, 0)
         b["liked"] = sid in mine
         b["photo_count"] = pc.get(sid, 0)
         b["thumb_url"] = thumb.get(sid)

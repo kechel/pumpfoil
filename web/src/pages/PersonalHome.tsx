@@ -530,6 +530,7 @@ export default function PersonalHome() {
                 youtubeUrl={s.youtube_url}
                 videoUrl={s.video_url}
                 likeCount0={s.like_count ?? 0}
+                kommentare={s.comment_count ?? 0}
                 liked0={!!s.liked}
                 trackPreview={s.track_preview}
                 stats={s.analysis && <SessionStats a={s.analysis} profil={s.sport_profil} />}

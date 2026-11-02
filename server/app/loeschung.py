@@ -95,6 +95,10 @@ def session_verweise_weg(db: Session, session_id: int) -> None:
             db.execute(update(tabelle).where(spalte == session_id).values({spalte.name: None}))
         else:
             db.execute(delete(tabelle).where(spalte == session_id))
+    # Kommentare (Chat-Raum `session:<id>`, app/kommentare.py) haengen nicht per Fremdschluessel an der Session und
+    # fielen sonst als Waisen liegen. Ihre Bilder (Kommentar-Fotos sind nur Admins erlaubt) bleiben als Datei liegen.
+    from . import kommentare
+    kommentare.raum_loeschen(db, kommentare.scope(session_id))
 
 
 def konto_loeschen(db: Session, user: models.User) -> dict:

@@ -1230,6 +1230,7 @@ const nb: Record<string, string> = {
   "imp.community3": "<b>Rekorder &amp; topplister</b> (navn, verdi, spot, antall økter/runs/spots).",
   "imp.community4": "<b>Likes</b> (antall) og <b>antallet</b> «ser falskt ut»/«upassende»-stemmer.",
   "imp.community5": "<b>Pålogget-status</b>: en grønn prikk på profilbildet så lenge du har appen eller nettsiden åpen. Bare tidspunktet for din siste aktivitet lagres (på minuttet). Kan slås av i profilen.",
+  "imp.community6": "<b>Kommentarer</b> under økter, med visningsnavn, profilbilde og tidspunkt. Eieren av en økt kan slå av kommentarer i profilen og slette andres kommentarer under økten sin; dine egne kommentarer kan du redigere eller slette i én time. De slettes helt sammen med kontoen din.",
   "imp.communityNote": "Økter er <b>ikke anonyme</b> — de er knyttet til personen via visningsnavnet. Du kan slette hver enkelt økt når som helst; bare økter du <b>skjuler</b> vises ikke i fellesskapslistene (GPS-only-økter vises også).",
   "imp.ownerTitle": "🔒 Bare du (eieren av økten)",
   "imp.owner1": "<b>Rådata</b> fra øktene dine (enkelte GPS-punkter, 25 Hz akselerasjon) — f.eks. til merking.",
@@ -2802,6 +2803,14 @@ const nb: Record<string, string> = {
   "why.k9": "Inkludert sveitsertysk og østerriksk tysk.",
   "why.outro": "Prøv det og si fra hva som mangler – kanskje ser du det allerede neste uke. Have fun, keep pumping!",
   "nav.why": "Hvorfor pumpfoil.org?",
+  "comments.title": "Kommentarer",
+  "comments.empty": "Ingen kommentarer ennå. Skriv den første!",
+  "comments.placeholder": "Skriv en kommentar …",
+  "comments.offOwner": "Kommentarer er slått av for øktene dine.",
+  "comments.offLink": "Slå dem på i profilen",
+  "comments.settingHint": "Andre kan kommentere øktene dine. Du kan slette andres kommentarer under øktene dine. Når de er slått av, er kommentarer skjult for alle, også de som allerede er skrevet.",
+  "comments.settingSwitch": "Tillat kommentarer på øktene mine",
+  "notif.typeComment": "Kommentarer på øktene mine",
 };
 
 export default nb;

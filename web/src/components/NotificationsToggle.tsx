@@ -30,6 +30,7 @@ export function NotificationsToggle() {
     { key: "analyzed", label: t("notif.typeAnalyzed") },
     { key: "record", label: t("notif.typeRecord") },
     { key: "chat", label: t("notif.typeChat") },
+    { key: "comment", label: t("notif.typeComment") },
     // Freunde (15.10.2026): Anfragen und „X pumpt gerade am Spot Y".
     { key: "friend", label: t("notif.typeFriend") },
   ];
