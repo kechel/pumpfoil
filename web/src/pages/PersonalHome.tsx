@@ -693,9 +693,11 @@ function StatsBereich() {
   return (
     <>
       <Reiterleiste reiter={reiter} aktiv={sub} onWahl={setSub} stufe={2} />
-      {/* Die Abschnitte tragen ihren eigenen oberen Abstand (mt-8) von frueher, als sie untereinander standen. */}
-      <div className="peer -mt-8">
-        {sub === "verlauf" && <div className="mt-8"><History eingebettet /></div>}
+      {/* Die Abschnitte tragen ihren eigenen oberen Abstand (mt-8) von frueher, als sie untereinander standen; beim ersten
+          wird er abgeschaltet. Vorher glich ein -mt-8 hier ihn aus — das hob durch Randverschmelzung auch den Abstand unter
+          der Reiterzeile auf (Jan, 02.11.2026). */}
+      <div className="peer [&>*:first-child]:!mt-0">
+        {sub === "verlauf" && <History eingebettet />}
         {sub === "kennzahlen" && <>
           <JahresbilanzSection />
           <StartSuccessSection />
