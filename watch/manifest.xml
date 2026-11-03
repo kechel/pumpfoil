@@ -42,6 +42,7 @@
       <iq:product id="descentmk351mm"/>
       <iq:product id="enduro"/>
       <iq:product id="enduro3"/>
+      <iq:product id="enduro4"/>
       <iq:product id="epix2"/>
       <iq:product id="epix2pro42mm"/>
       <iq:product id="epix2pro47mm"/>
@@ -97,6 +98,7 @@
       <iq:product id="instincte45mm"/>
       <iq:product id="marq2"/>
       <iq:product id="marq2aviator"/>
+      <iq:product id="marq3"/>
       <iq:product id="marqadventurer"/>
       <iq:product id="marqathlete"/>
       <iq:product id="marqaviator"/>
@@ -109,6 +111,8 @@
       <iq:product id="approachs62"/>
       <iq:product id="approachs7042mm"/>
       <iq:product id="approachs7047mm"/>
+      <iq:product id="approachs7243mm"/>
+      <iq:product id="approachs7247mm"/>
       <iq:product id="d2air"/>
       <iq:product id="d2airx10"/>
       <iq:product id="d2delta"/>

@@ -1045,6 +1045,11 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 03.11.2026: Enduro 4, MARQ (Gen 3), Approach S72 43/47 mm neu im Manifest (Nutzermail: Enduro 4 nicht installierbar),
+    # SDK 9.3.0 statt 9.2.0 (Vergleich aller 129 Geraete: Warnungen gleich, +48 B bzw. -1,5 KB). .iq aus dem Bump-Commit,
+    # 222 Varianten, /home/jan/release-staging/garmin-1.0.99/. Sonst keine Aenderung seit 1.0.98.
+    {"name": "Garmin", "version": "1.0.99",
+     "items": ["The app is now available for the Enduro 4, the MARQ (Gen 3) and the Approach S72."]},
     # 01.11.2026 (Jan: „im changelog fehlt noch das ganze coming next fuer android und ios seit dem letzten release"):
     # alles, was seit dem Build von Android 1.1.46 (fdd2b189, liegt im Review) bzw. iOS 1.1.58 (live) in die Apps kam —
     # Teams/Events (2eba784b, c31591cc), Puls auf dem Foil, Konten-Rueckweg (1b62edb5), Security-Reviews (94ce6809),
