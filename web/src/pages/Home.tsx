@@ -817,6 +817,8 @@ function TeamsSection() {
   useEffect(() => { api.teamsEventsAktuell().then(setEvents).catch(() => setEvents([])); }, []);
   return (
     <div className="mt-6">
+      {/* Team-Bestenlisten ganz oben, ueber den Events (Jan, 03.11.2026). */}
+      <TeamBestenlisten />
       <div className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <FlagIcon className="h-5 w-5 text-brand-400" />
         <h3 className="text-lg font-bold">{t("team.eventsAktuell")}</h3>
@@ -838,7 +840,6 @@ function TeamsSection() {
         <Link to="/teams/liste" className={KNOPF_WEITER}>{t("team.alle")} →</Link>
         <Link to="/teams" className={KNOPF_WEITER}>{t("team.gruenden")} →</Link>
       </div>
-      <TeamBestenlisten />
     </div>
   );
 }
@@ -887,7 +888,7 @@ function TeamBestenlisten() {
   const zeilen = (d?.teams ?? []).filter((z) => z[art] > 0).sort((a, b) => b[art] - a[art] || a.name.localeCompare(b.name));
   const knopf = (an: boolean) => `rounded-lg px-2.5 py-1 text-xs ${an ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`;
   return (
-    <div className="mt-8">
+    <div className="mb-8">
       <h3 className="mb-1 text-lg font-bold">{t("team.vergleich.titel")}</h3>
       <p className="mb-2 text-sm text-slate-400">{t("team.vergleich.hinweis", { n: String(top) })}</p>
       <div className="mb-2 flex flex-wrap items-center gap-1">
