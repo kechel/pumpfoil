@@ -36,8 +36,17 @@ function mitFreunden(path: string): string {
   return path + (path.includes("?") ? "&" : "?") + "friends=1";
 }
 
+// Geteilte Antworten fuer Abfragen, die mehrere Teile einer Seite gleichzeitig stellen (03.11.2026). Kurz, damit nach
+// einer Aenderung anderswo (Uhr gekoppelt, anderes Geraet) nichts Altes haengen bleibt.
+const GETEILT_MS = 2000;
+let einstellungenGeteilt: { at: number; p: Promise<Record<string, any>> } | null = null;
+const geraeteGeteilt: Record<string, { at: number; p: Promise<PairedDevice[]> }> = {};
+
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   path = mitFreunden(path);
+  // Jede Aenderung verwirft die geteilten Antworten (s. GETEILT_MS) — sonst saehe eine Liste direkt nach Abmelden einer
+  // Uhr oder Speichern noch den alten Stand.
+  if (opts.method && opts.method !== "GET") { einstellungenGeteilt = null; for (const k in geraeteGeteilt) delete geraeteGeteilt[k]; }
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     // Client-Kennung: Web kann alle Video-Plattformen (IG/TikTok) anzeigen -> Server liefert sie.
@@ -1438,10 +1447,11 @@ export const api = {
   transferDecline: (id: number) => req<{ ok: boolean }>(`/api/transfers/${id}/decline`, { method: "POST" }),
   transferCancel: (id: number) => req<{ ok: boolean }>(`/api/transfers/${id}`, { method: "DELETE" }),
   transferFriends: () => req<DmUser[]>(`/api/transfers/friends`),
-  foils: (params?: { q?: string; brand?: string }) => {
+  foils: (params?: { q?: string; brand?: string; ids?: number[] }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set("q", params.q);
     if (params?.brand) qs.set("brand", params.brand);
+    if (params?.ids) qs.set("ids", params.ids.join(","));
     const s = qs.toString();
     return req<Foil[]>(`/api/foils${s ? "?" + s : ""}`);
   },
@@ -1592,8 +1602,15 @@ export const api = {
     req<{ code: string; expires_at: string }>("/api/devices/pairing-code", {
       method: "POST",
     }),
-  myDevices: (includeHidden = false) =>
-    req<PairedDevice[]>(`/api/devices/list?include_hidden=${includeHidden}`),
+  // Wie getSettings: gleichzeitige Abfragen derselben Liste teilen sich eine Antwort (Profil-Kachel + Update-Hinweis).
+  myDevices: (includeHidden = false) => {
+    const k = String(includeHidden), jetzt = Date.now(), alt = geraeteGeteilt[k];
+    if (alt && jetzt - alt.at <= GETEILT_MS) return alt.p;
+    const p = req<PairedDevice[]>(`/api/devices/list?include_hidden=${includeHidden}`);
+    geraeteGeteilt[k] = { at: jetzt, p };
+    p.catch(() => { delete geraeteGeteilt[k]; });
+    return p;
+  },
   // Ausblenden ist rein kosmetisch — die Uhr laedt weiter hoch (s. devices.py /hide).
   hideDevice: (id: number, hidden = true) =>
     req<{ ok: boolean; hidden: boolean }>(`/api/devices/${id}/hide?hidden=${hidden}`, { method: "POST" }),
@@ -1953,7 +1970,17 @@ export const api = {
     req<{ id: number }>(`/api/sessions/${id}/unsplit`, { method: "POST" }),
   // Ganze Spur ohne Zuschnitt, ausgeduennt (nur Besitzer) — fuer die Skizze beim Zuschneiden/Trennen.
   rawTrack: (id: number) => req<{ punkte: [number, number, number][] }>(`/api/sessions/${id}/raw-track`),
-  getSettings: () => req<Record<string, any>>("/api/settings").then((r) => { setzeStandardSport(r?.default_sport_class); return r; }),
+  // Mehrere Teile einer Seite fragen die Einstellungen gleichzeitig ab (Profil: drei Mal beim Oeffnen, 03.11.2026) —
+  // laufende und gerade erst geholte Antworten werden geteilt; jedes Speichern verwirft sie.
+  getSettings: () => {
+    const jetzt = Date.now();
+    if (!einstellungenGeteilt || jetzt - einstellungenGeteilt.at > GETEILT_MS) {
+      const p = req<Record<string, any>>("/api/settings").then((r) => { setzeStandardSport(r?.default_sport_class); return r; });
+      einstellungenGeteilt = { at: jetzt, p };
+      p.catch(() => { einstellungenGeteilt = null; });
+    }
+    return einstellungenGeteilt.p;
+  },
   // --- Sportart-Klassifikation (docs/sport-classification.md) ---
   flagNotPumpfoil: (id: number, note?: string) =>
     req<{ ok: boolean; flags?: number; needs_classification?: boolean }>(

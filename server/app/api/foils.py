@@ -34,11 +34,15 @@ def _out(f: models.Foil) -> dict:
 
 @router.get("")
 def list_foils(
-    q: str | None = Query(None), brand: str | None = Query(None),
+    q: str | None = Query(None), brand: str | None = Query(None), ids: str | None = Query(None),
     _user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
-    """Katalog (optional gefiltert nach Freitext q und/oder Marke)."""
+    """Katalog (optional gefiltert nach Freitext q und/oder Marke). `ids` = Komma-Liste: nur diese Eintraege — fuer
+    die Unterzeile „Meine Foils" im Profil, die sonst den ganzen Katalog (270 KB) fuer drei Namen lud (03.11.2026)."""
     query = db.query(models.Foil)
+    if ids is not None:
+        wahl = [int(x) for x in ids.split(",") if x.strip().isdigit()][:50]
+        query = query.filter(models.Foil.id.in_(wahl or [-1]))
     if brand:
         query = query.filter(models.Foil.brand == brand)
     if q:

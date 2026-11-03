@@ -51,7 +51,6 @@ export default function Settings() {
       setWrist((s.watch_wrist as string) ?? "");
       setStance((s.stance as string) ?? "");
     }).catch(() => {});
-    api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
     // Uhr-Update-Hinweis direkt am Button, ohne erst in die Geräteliste zu klicken.
     // Nur für Garmin (Sideload-.prg). Zeigen NUR, wenn KEINE der verbundenen Garmin-Uhren
     // bereits die neueste Version hat — sobald eine aktuell ist, war das Update erfolgreich
@@ -65,6 +64,11 @@ export default function Settings() {
       }
     }).catch(() => {});
   }, []);
+  // Spotliste (Homespot-Auswahl) erst, wenn der Reiter „Ich" offen ist (03.11.2026) — die Uebersicht braucht sie nicht.
+  useEffect(() => {
+    if (ptab !== "ich" || spots.length) return;
+    api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
+  }, [ptab]);   // eslint-disable-line react-hooks/exhaustive-deps
   const platformLabel = (p: string) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : "");
   // Suchfeld nur vorbelegen, wenn das Label ein echtes Modell ist (nicht das
   // generische „Garmin"/„Wear"/„Apple", das die Uhr beim Pairing meldet).

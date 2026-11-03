@@ -809,6 +809,27 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     }
 
 
+# Erster Lauf-Start / letztes Lauf-Ende je Session, aus `segments_json` (03.11.2026). Die Foiler-Seite rechnet fuer
+# „haelt diese Rekorde" alle Community-Rekorde, und Early Bird/Nachteule dekodierten dabei JEDES Mal die Laeufe aller
+# Sessions: 10 614 `json.loads` = 0,7 s von 1,2 s (Jans Messung: 1,32 s fuer /foiler/2). Gemerkt je Session und
+# Fingerabdruck (gespeicherte Groesse von segments_json + Laufzahl + On-Foil-Zeit + Trim — billig, ohne den Text zu
+# entpacken; eine Reanalyse oder ein neuer Zuschnitt aendert ihn); je Worker, ohne Ablauf,
+# bei zu vielen Eintraegen einmal geleert.
+_SPANNEN: dict[tuple[int, str], tuple[float, float] | None] = {}
+_SPANNEN_MAX = 200_000
+
+
+def _spanne_merken(sid: int, pruef: str, segs_json: str) -> None:
+    try:
+        segs = json.loads(segs_json)
+    except (ValueError, TypeError):
+        segs = None
+    if len(_SPANNEN) >= _SPANNEN_MAX:
+        _SPANNEN.clear()
+    _SPANNEN[(sid, pruef)] = ((min(float(x.get("t_start_ms") or 0) for x in segs),
+                               max(float(x.get("t_end_ms") or 0) for x in segs)) if segs else None)
+
+
 def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only: bool, sport: str,
                cache: dict | None, foil_band: str = "all", nur_gps: bool = False) -> list[tuple]:
     """Basisdaten fuer Early Bird / Night Owl: je Community-Session EINE Zeile mit den beiden
@@ -827,9 +848,13 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     key = ("time_rows", spot, viewer_id, accel_only, sport, foil_band, nur_gps)
     if cache is not None and key in cache:
         return cache[key]
+    # Nur einen Fingerabdruck der Laeufe holen; den Text selbst nur fuer Sessions, deren Spanne noch nicht gemerkt ist
+    # (`_SPANNEN`) — die Uebertragung aller segments_json war nach dem Merken der groesste Rest (03.11.2026).
     q = _community(db.query(S.id, S.started_at, S.trim_start_ms, S.place_lat, S.place_lon,
                             NAME, S.place_name, U.avatar_url, AR.track_preview,
-                            AR.segments_json), viewer_id, accel_only, sport, nur_gps=nur_gps)
+                            func.concat_ws(":", func.pg_column_size(AR.segments_json), AR.num_runs,
+                                           AR.foiling_time_s, S.trim_start_ms)),
+                   viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     # „Ort verbergen" (Security-Review 29.10.2026): Early Bird/Night Owl SIND Ortszeit — der Wert neben
     # der UTC-Startzeit verraet den Laengengrad. Verborgene Aufnahmen halten deshalb keinen Zeit-Rekord.
@@ -837,19 +862,23 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
     rows: list[tuple] = []
-    for sid, st, trim0, lat, lon, name, place, avatar, preview, segs_json in q.all():
-        if st is None or not segs_json:
+    alle = q.all()
+    pruef_je = {r[0]: r[9] for r in alle if r[9]}
+    fehlt = [sid for sid, p in pruef_je.items() if (sid, p) not in _SPANNEN]
+    for i in range(0, len(fehlt), 1000):
+        for sid, segs_json in (db.query(AR.session_id, AR.segments_json)
+                               .filter(AR.session_id.in_(fehlt[i:i + 1000])).all()):
+            if segs_json:
+                _spanne_merken(sid, pruef_je[sid], segs_json)
+    for sid, st, trim0, lat, lon, name, place, avatar, preview, pruef in alle:
+        if st is None or not pruef:
             continue
-        try:
-            segs = json.loads(segs_json)
-        except (ValueError, TypeError):
-            continue
-        if not segs:
+        spanne = _SPANNEN.get((sid, pruef))
+        if spanne is None:
             continue
         # Segment-Zeiten sind auf den Trim-Beginn re-based -> Offset zurueckrechnen.
         off_ms = (trim0 or 0)
-        first_ms = min(float(x.get("t_start_ms") or 0) for x in segs)
-        last_ms = max(float(x.get("t_end_ms") or 0) for x in segs)
+        first_ms, last_ms = spanne
         tz = tz_of(lat, lon)
         start_loc = (st + timedelta(milliseconds=off_ms + first_ms)).astimezone(tz)
         mitternacht = start_loc.replace(hour=0, minute=0, second=0, microsecond=0)

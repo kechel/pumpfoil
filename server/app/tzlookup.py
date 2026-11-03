@@ -37,5 +37,12 @@ def tz_name(lat: float | None, lon: float | None) -> str:
     return _lookup(round(lat, 2), round(lon, 2))
 
 
+@lru_cache(maxsize=512)
+def _zone(name: str) -> ZoneInfo:
+    return ZoneInfo(name)
+
+
 def tz_of(lat: float | None, lon: float | None) -> ZoneInfo:
-    return ZoneInfo(tz_name(lat, lon))
+    # ZoneInfo-Objekte gemerkt (03.11.2026): die Rekord-Abfragen rufen das zehntausendfach auf, und jedes ZoneInfo(...)
+    # las die Zonendatei neu (cProfile: 1834 load_data je Foiler-Seite).
+    return _zone(tz_name(lat, lon))

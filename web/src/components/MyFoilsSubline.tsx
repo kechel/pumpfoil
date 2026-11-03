@@ -9,10 +9,12 @@ import { useT } from "../i18n";
 export function MyFoilsSubline({ className = "" }: { className?: string }) {
   const [rows, setRows] = useState<{ text: string; def: boolean }[] | null>(null);
   useEffect(() => {
-    Promise.all([api.getSettings(), api.foils()])
-      .then(([s, foils]) => {
+    // Nur die eigenen Foils holen, nicht den ganzen Katalog (270 KB fuer drei Namen, 03.11.2026).
+    api.getSettings()
+      .then(async (s) => {
         const mine = (s.my_foils as number[]) ?? [];
         const def = (s.foil_id as number) ?? null;
+        const foils = mine.length ? await api.foils({ ids: mine }) : [];
         const byId = new Map(foils.map((f) => [f.id, f]));
         const out = mine
           .map((id) => byId.get(id))
