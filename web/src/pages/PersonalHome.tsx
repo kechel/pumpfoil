@@ -770,7 +770,7 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
                 <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-slate-950">{t("foiler.homespot")}</span>
               )}
               {sp.water && sp.water !== sp.name && <span className="truncate text-sm text-slate-400">{sp.water}</span>}
-              <span className="ml-auto whitespace-nowrap text-sm text-slate-400">{t("mySpots.last", { d: tag(sp.last) })}</span>
+              <span className="ml-auto whitespace-nowrap text-sm text-slate-400">{t("mySpots.last", { d: tag(sp.last) })} · {t("mySpots.since", { d: tag(sp.first) })}</span>
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
               {zahlen.map(([l, v]) => (
@@ -780,7 +780,6 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
                 </div>
               ))}
             </div>
-            <div className="mt-1.5 text-xs text-slate-400">{t("mySpots.since", { d: tag(sp.first) })}</div>
           </Link>
         );
       })}
