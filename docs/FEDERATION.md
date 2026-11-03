@@ -1,9 +1,12 @@
-# Föderation — Konzept-Entwurf (Diskussionsgrundlage)
+# Pumpfoil Federation — Konzept-Entwurf (Diskussionsgrundlage)
 
 > Stand 03.11.2026, zusammengeführt aus zwei Gesprächen Jan ↔ Claude am selben Tag. Nichts hier
 > ist beschlossen; die offenen Fragen unten sind der wichtigste Teil. Auslöser: Busfaktor Jan —
 > der Code ist AGPL und damit unsterblich, aber Server, Schlüssel und Daten hängen an einer
 > Person. Lösung: aus „der Plattform" wird „die erste Instanz".
+>
+> Name (Jan, 03.11.2026): **Pumpfoil Federation**, auch nach außen. Im deutschen Text heißt das
+> Prinzip weiter Föderation.
 
 ## Ziel
 
