@@ -6,10 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, CommunitySession, FoilStatsGroup, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
+import { api, Aktivitaet, CommunitySession, FoilStatsGroup, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
-import { Card, Spinner } from "../components/ui";
+import { Avatar, Card, Spinner } from "../components/ui";
+import { ChatBubbleIcon, HeartIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
@@ -543,6 +544,7 @@ export default function PersonalHome() {
           </div>
         )}
 
+        <NeuBeiMir />
         <FreundeLetzte />
 
         <div className="mt-6">
@@ -732,6 +734,49 @@ function HomespotBereich({ spotId, kopf }: { spotId: number; kopf?: React.ReactN
   const sport = sports.includes("pumpfoil") ? "pumpfoil" : (sports[0] ?? null);
   return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" stufe={2} kopf={kopf}
     sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />} />;
+}
+
+/** „Neu bei deinen Sessions" (Olek/Jan, 03.11.2026): die letzten Kommentare und Likes anderer an den eigenen
+ * Sessions, hoechstens 5 aus 14 Tagen (Server). Likes je Session zusammengefasst. Leer -> gar nicht da. */
+function NeuBeiMir() {
+  const t = useT();
+  const [liste, setListe] = useState<Aktivitaet[] | null>(null);
+  useEffect(() => { api.myActivity().then(setListe).catch(() => setListe([])); }, []);
+  if (!liste || liste.length === 0) return null;
+  const wann = (iso: string) => new Date(iso).toLocaleString(undefined, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return (
+    <div className="mb-6">
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("act.title")}</h3>
+      <div className="space-y-1.5">
+        {liste.map((e) => {
+          const ziel = e.typ === "comment" ? `/sessions/${e.session_id}#kommentare` : `/sessions/${e.session_id}`;
+          const session = [e.started_at ? t("act.session", { d: new Date(e.started_at).toLocaleDateString() }) : null, e.spot]
+            .filter(Boolean).join(" · ");
+          return (
+            <div key={`${e.typ}-${e.message_id ?? e.session_id}`} className="flex items-start gap-2.5 rounded-lg bg-slate-900 px-2.5 py-2">
+              <Avatar name={e.user.name} url={e.user.avatar_url} userId={e.user.id} size={32} />
+              {/* Das Profilbild fuehrt aufs Profil, der Rest der Zeile zur Session (kein <a> im <a>). */}
+              <Link to={ziel} className="min-w-0 flex-1 hover:underline">
+                <div className="flex items-start gap-1.5 text-sm text-slate-200">
+                  {e.typ === "comment"
+                    ? <ChatBubbleIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+                    : <HeartIcon className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" filled />}
+                  <span className="min-w-0">
+                    <span className="pf-name font-semibold">{e.user.name}</span>{" "}
+                    {e.typ === "comment" ? t("act.comment")
+                      : (e.anzahl ?? 1) > 1 ? t("act.likeMany", { n: (e.anzahl ?? 1) - 1 }) : t("act.like")}
+                  </span>
+                  <span className="ml-auto shrink-0 pt-0.5 text-xs tabular-nums text-slate-400">{wann(e.at)}</span>
+                </div>
+                {e.typ === "comment" && e.text && <div className="mt-0.5 line-clamp-2 text-sm italic text-slate-300">{e.text}</div>}
+                {session && <div className="mt-0.5 truncate text-xs text-slate-400">{session}</div>}
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 /** Freunde mit ihrer letzten Session als Session-Kachel (Jan, 02.11.2026) — je Freund genau eine, zuletzt aktive zuerst,

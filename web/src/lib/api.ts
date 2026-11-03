@@ -594,6 +594,19 @@ export interface SpotAgg {
   top_speed: SpotRecHolder | null;     // Topspeed (km/h) + Halter
 }
 
+/** „Neu bei deinen Sessions" (03.11.2026): Kommentar oder Likes (je Session zusammengefasst) anderer. */
+export interface Aktivitaet {
+  typ: "comment" | "like";
+  at: string;
+  session_id: number;
+  started_at: string | null;
+  spot: string | null;
+  user: { id: number; name: string; avatar_url: string | null };
+  anzahl?: number;        // like: Likes im Zeitraum (der genannte ist der neueste)
+  message_id?: number;    // comment
+  text?: string;          // comment, gekuerzt
+}
+
 export interface CommunitySession {
   user_id?: number | null;   // fuer den Online-Punkt am Profilbild (Server additiv seit 01.10.2026)
   // "board" = Handy war am Brett (Feed + „alle"-Tab haengen das an die
@@ -1371,6 +1384,7 @@ export const api = {
       `/api/community/schutzgebiete?w=${w}&s=${s}&e=${e}&n=${n}`),
   // Home (02.11.2026): je Freund die letzte Session, und die letzten Sessions eines eigenen Teams — als Feed-Karten.
   friendsLatest: () => req<CommunitySession[]>("/api/community/friends-latest"),
+  myActivity: () => req<Aktivitaet[]>("/api/community/my-activity"),
   // `team` = „alle" (alle eigenen Teams) oder eine Team-ID (02.11.2026, components/TeamWahl).
   teamLatest: (team: string) => req<CommunitySession[]>(`/api/community/team-latest?team=${encodeURIComponent(team)}`),
   // Wer hat meine Session geliked (nur Inhaber, 02.11.2026)

@@ -465,6 +465,75 @@ def friends_latest(request: Request, user: models.User = Depends(current_user), 
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=verb) for r in rows[:10]]), request)
 
 
+AKTIVITAET_TAGE = 14
+AKTIVITAET_ANZAHL = 5
+
+
+@router.get("/my-activity")
+def my_activity(user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> list[dict]:
+    """„Neu bei deinen Sessions" (Home-Uebersicht, Olek/Jan 03.11.2026): die letzten Kommentare und Likes ANDERER an
+    den eigenen Sessions, neueste zuerst, hoechstens 5 aus den letzten 14 Tagen. Likes je Session zusammengefasst
+    (der neueste Liker + Anzahl), Kommentare einzeln. Nicht dabei: eigene Aktionen, gesperrte/versteckte Konten,
+    Sperren in beide Richtungen, ausgeblendete Kommentare, geloeschte Sessions, Kommentare bei abgeschalteten
+    Kommentaren (`comments_off`)."""
+    from .. import kommentare
+    cut = datetime.now(timezone.utc) - timedelta(days=AKTIVITAET_TAGE)
+    gesperrt = {b for (a, b) in db.query(models.UserBlock.blocker_id, models.UserBlock.blocked_id)
+                .filter(models.UserBlock.blocker_id == user.id).all()}
+    gesperrt |= {a for (a, b) in db.query(models.UserBlock.blocker_id, models.UserBlock.blocked_id)
+                 .filter(models.UserBlock.blocked_id == user.id).all()}
+    sichtbar = (U.id != user.id, U.blocked.isnot(True), U.hidden.isnot(True))
+    ereignisse: list[dict] = []
+    sessions: dict[int, models.Session] = {}
+
+    # Likes: je Session der neueste Liker und die Zahl der Likes im Zeitraum.
+    likes: dict[int, list] = {}
+    for sid, uid, name, av, at in (db.query(models.SessionLike.session_id, U.id, NAME, U.avatar_url,
+                                            models.SessionLike.created_at)
+                                   .join(U, U.id == models.SessionLike.user_id)
+                                   .join(S, S.id == models.SessionLike.session_id)
+                                   .filter(S.user_id == user.id, S.deleted.isnot(True),
+                                           models.SessionLike.created_at >= cut, *sichtbar)
+                                   .order_by(models.SessionLike.created_at.desc()).all()):
+        if uid in gesperrt:
+            continue
+        likes.setdefault(sid, []).append((uid, name, av, at))
+    for sid, ls in likes.items():
+        uid, name, av, at = ls[0]
+        ereignisse.append({"typ": "like", "at": at, "session_id": sid, "anzahl": len(ls),
+                           "user": {"id": uid, "name": name, "avatar_url": av}})
+
+    # Kommentare: erst die juengsten in Session-Raeumen, dann auf eigene Sessions eingrenzen (wenige Zeilen).
+    if not kommentare.aus(user):
+        M = models.ChatMessage
+        for mid, sc, text, uid, name, av, at in (db.query(M.id, M.scope, M.text, U.id, NAME, U.avatar_url, M.created_at)
+                                                 .join(U, U.id == M.user_id)
+                                                 .filter(M.scope.like(kommentare.PRAEFIX + "%"), M.created_at >= cut,
+                                                         M.hidden.isnot(True), *sichtbar)
+                                                 .order_by(M.created_at.desc()).limit(500).all()):
+            if uid in gesperrt:
+                continue
+            sid = kommentare.session_id(sc)
+            if sid is None:
+                continue
+            if sid not in sessions:
+                sessions[sid] = db.get(S, sid)
+            s = sessions[sid]
+            if s is None or s.user_id != user.id or s.deleted:
+                continue
+            ereignisse.append({"typ": "comment", "at": at, "session_id": sid, "message_id": mid,
+                               "text": (text or "")[:140], "user": {"id": uid, "name": name, "avatar_url": av}})
+
+    ereignisse.sort(key=lambda e: e["at"], reverse=True)
+    ereignisse = ereignisse[:AKTIVITAET_ANZAHL]
+    for e in ereignisse:
+        s = sessions.get(e["session_id"]) or db.get(S, e["session_id"])
+        e["started_at"] = s.started_at.isoformat() if s and s.started_at else None
+        e["spot"] = (s.place_name or None) if s else None
+        e["at"] = e["at"].isoformat()
+    return ereignisse
+
+
 @router.get("/team-latest")
 def team_latest(team: str, request: Request, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Die letzten 10 Sessions der Mitglieder (Home › Team, Jan 02.11.2026); `team` = „alle" (alle eigenen Teams) oder

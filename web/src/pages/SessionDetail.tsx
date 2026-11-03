@@ -132,6 +132,17 @@ function SessionKommentare({ session, owned }: { session: SessionSummary; owned:
   const t = useT();
   const [sozial, setSozial] = useState<boolean | null>(null);
   useEffect(() => { api.getProfile().then((p) => setSozial(p.social_allowed !== false)).catch(() => setSozial(false)); }, []);
+  // Link mit #kommentare (Push, „Neu bei deinen Sessions"): erst springen, wenn der Abschnitt steht — die Seite
+  // darueber (Karte, Diagramme) baut sich noch auf, deshalb kurz nachziehen.
+  useEffect(() => {
+    if (!sozial || window.location.hash !== "#kommentare") return;
+    const hin = () => document.getElementById("kommentare")?.scrollIntoView({ block: "start" });
+    const ts = [100, 800, 2000].map((ms) => window.setTimeout(hin, ms));
+    const stopp = () => ts.forEach(clearTimeout);            // wer selbst scrollt, wird nicht mehr zurueckgerissen
+    window.addEventListener("wheel", stopp, { once: true, passive: true });
+    window.addEventListener("touchstart", stopp, { once: true, passive: true });
+    return () => { stopp(); window.removeEventListener("wheel", stopp); window.removeEventListener("touchstart", stopp); };
+  }, [sozial]);
   if (!sozial) return null;
   if (session.comments_off) {
     if (!owned) return null;

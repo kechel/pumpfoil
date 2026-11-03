@@ -1578,6 +1578,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Likes, Melden, Sperren; Inhaber kann im Profil abschalten und fremde Kommentare loeschen; Push nur an den Inhaber,
     Typ „comment"; mit hartem Session-/Kontoloeschen weg). **Offen:** Apps (Session-Detail, Zahl auf den Karten, Schalter
     in der Privatsphaere, Push-Typ) — mit dem grossen Port.
+  - ✅ 03.11. „Neu bei deinen Sessions" auf Home › Uebersicht vor den Freunden (GET /api/community/my-activity: die
+    letzten 5 Kommentare/Likes anderer an eigenen Sessions aus 14 Tagen, Likes je Session zusammengefasst), Flagge in den
+    Bestenlisten nach dem Profilbild (Platz bleibt frei, auch im geteilten Bild; dort keine Initialen mehr), Puls-Kachel
+    per Tippen Foil/gesamt. **Offen:** Apps — mit dem grossen Port.
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
     gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.
