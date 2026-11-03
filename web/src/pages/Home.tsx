@@ -567,26 +567,31 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
   );
 }
 
-/** „Best bewertet" und „Meist kommentiert" (Jan, 03.11.2026) — dieselbe Liste, nur anders sortiert. */
-function TopLiked({ period, nach = "likes", oben = "mt-8" }: { period: string; nach?: "likes" | "kommentare"; oben?: string }) {
+/** „Best bewertet" und „Meist kommentiert" (Jan, 03.11.2026) — dieselbe Liste, nur anders sortiert. Unter jeder
+ *  Ueberschrift stehen die Zeitknoepfe (`zeit`, derselbe Zeitraum wie die Bestenliste); mit ihnen bleibt der Block auch
+ *  leer stehen, damit man den Zeitraum zurueckstellen kann. */
+function TopLiked({ period, nach = "likes", zeit }: { period: string; nach?: "likes" | "kommentare"; zeit?: React.ReactNode }) {
   const t = useT();
   const [items, setItems] = useState<CommunitySession[] | null>(null);
   useEffect(() => {
     (nach === "kommentare" ? api.topCommented(period) : api.topLiked(period)).then(setItems).catch(() => {});
   }, [period, nach]);
-  if (!items || items.length === 0) return null;
+  if (!items || (items.length === 0 && !zeit)) return null;
   const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
-    <div className={oben}>
+    <div className="mt-8">
       <h3 className="mb-2 text-lg font-bold">
         {t(nach === "kommentare" ? "home.topCommented" : "home.topRated")}
-        {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
+        {!zeit && periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
       </h3>
-      <div className="space-y-1.5">
-        {items.map((s) => (
-          <SessionRow key={s.session_id} s={s} />
-        ))}
-      </div>
+      {zeit && <div className="mb-3 flex flex-wrap items-center gap-1">{zeit}</div>}
+      {items.length === 0 ? <p className="text-sm text-slate-400">—</p> : (
+        <div className="space-y-1.5">
+          {items.map((s) => (
+            <SessionRow key={s.session_id} s={s} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -788,11 +793,9 @@ function CommunitySection() {
       </>}
       {tab === "medien" && <>
         <LatestMedia key={`m${freunde}`} />
-        {/* Dieselbe Zeitwahl wie bei der Bestenliste (Jan, 03.11.2026) — hier noch einmal, weil sie im Reiter Medien
-            sonst nicht zu sehen ist. */}
-        <div className="mt-6 flex flex-wrap items-center gap-1">{zeitKnoepfe}</div>
-        <TopLiked key={`t${freunde}`} period={period} oben="mt-3" />
-        <TopLiked key={`k${freunde}`} period={period} nach="kommentare" />
+        {/* Dieselbe Zeitwahl wie bei der Bestenliste (Jan, 03.11.2026), unter beiden Ueberschriften. */}
+        <TopLiked key={`t${freunde}`} period={period} zeit={zeitKnoepfe} />
+        <TopLiked key={`k${freunde}`} period={period} nach="kommentare" zeit={zeitKnoepfe} />
         <SocialFeed />
         <LayoutTeaser />
       </>}
