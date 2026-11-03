@@ -199,6 +199,30 @@ mit einer VM) und von jedem Root ausgeliefert. Wie beim Event-Disclaimer gilt: k
 aber nachprüfbare Behauptungen mit Namen darunter. „EU-only" als Nutzerwahl stützt sich auf
 diese Selbstauskünfte.
 
+## Globale Bestenlisten (Hauptzweck)
+
+Jan, 03.11.2026: „es geht vor allem um gemeinsame bestenlisten global". Alles andere (Stufe 2,
+Backup, Failover) ist Ausbau; die erste nutzbare Fassung (v2) liefert genau das.
+
+- **Keine zentrale Bestenlisten-Instanz.** Jede Instanz rechnet die globale Liste selbst aus den
+  eigenen und den empfangenen Stufe-1-Einträgen. Gleicher Code und gleiche Regeln ergeben überall
+  dieselbe Liste, solange alle Instanzen aus der Serverliste miteinander abgleichen (Vollvernetzung,
+  bei einer Handvoll Servern kein Problem). Ein zentraler Rechner brächte den Busfaktor zurück.
+- **Eintrag je Session, nicht nur Summen.** Zeiträume (Woche, Monat, Saison) und Sportarten brauchen
+  Datum und Sportart je Session: `{nutzer@heim, session_uuid, datum, sportart, kennzahlen,
+  algo_version, detection}`. Summen und Bestwerte rechnet der Empfänger daraus.
+- **Herkunft sichtbar:** jede Zeile trägt die Heimat-Instanz (Kürzel oder Flagge).
+- **Aktualität:** neue Session → Echtzeit-Anstoß an die Partner, die Liste ist nach Sekunden da;
+  fällt der Anstoß aus, kommt der Eintrag mit dem nächsten Abruf (s. Protokoll).
+- **Nur wer zustimmt:** in der globalen Liste stehen nur Nutzer mit Stufe ≥ 1. Die lokale Liste
+  einer Instanz bleibt, wie sie ist.
+- **Fairness:** verglichen wird nur Vergleichbares (s. „Vergleichbarkeit"); GPS-Werte zuerst.
+  Die empfangende Instanz prüft jeden Eintrag gegen dieselben Plausibilitätsgrenzen wie eigene
+  Sessions (Grenzen je Sportart, Autofahrt-Erkennung) und zeigt Ausreißer nicht an. Damit wird
+  offene Frage 3 (Anti-Cheat) mit v2 dringend.
+- **Spots kommen später:** Bestenlisten je Spot brauchen eine gemeinsame Spot-Identität (offene
+  Frage 1). v2 vergleicht nach Sportart und Zeitraum, ohne Spot.
+
 ## Vergleichbarkeit der Zahlen
 
 Jede Instanz wertet selbst aus. Laufen zwei Instanzen auf verschiedenem Stand der Analyse, sind
@@ -221,6 +245,10 @@ analog `ingest-contract.md`):
 - Abgleich per Abruf-Feed: `GET /fed/v1/changes?since=<cursor>` liefert Einträge und Löschmarken
   für den anfragenden Partner, gefiltert nach den Freigaben der Nutzer. Abruf statt Push, damit
   eine ausgefallene Instanz nichts verpasst — sie holt beim nächsten Mal nach.
+- **Echtzeit ist ein Anstoß, der Abruf ist die Wahrheit.** Neue Sessions, Löschmarken und später
+  Chat gehen zusätzlich sofort per Push an die Partner. Geht ein Push verloren, holt ihn der nächste
+  Abruf nach. Kein Kanal braucht deshalb eine Zustellgarantie, und ein Ausfall kostet höchstens ein
+  paar Minuten Verzögerung.
 - Stufe 3 getrennt: `PUT /fed/v1/backup/<nutzer>/<block>` mit verschlüsselten Blöcken.
 
 ## Fallen
@@ -240,8 +268,8 @@ analog `ingest-contract.md`):
 - **v1:** Instanz-Konfiguration (auch für pumpfoil.org allein nützlich), Test-Instanz auf der VM
   mit eigener DB.
 - **v2:** zwei Server (pumpfoil.org + Partner-/Test-Instanz), Instanz-Schlüssel, signierte
-  Serverliste (erst nur serverseitig), **nur Stufe 1**, Austausch-Vertrag, zusammengeführte
-  Bestenliste. **Damit ist der Busfaktor für die Community-Ebene bereits gelöst.**
+  Serverliste (erst nur serverseitig), **nur Stufe 1**, Austausch-Vertrag, **globale
+  Bestenlisten** (Hauptzweck). **Damit ist der Busfaktor für die Community-Ebene bereits gelöst.**
 - **v3:** Stufe 2, Manifest + Verzeichnis im Git-Repo, Teams/Events über Instanzen.
 - **v4:** Apps: Heimat aus der eingebauten Liste beim Pairing, Nachträge/Sperren, echte
   128-bit-UUIDs — ein Release je Plattform.
@@ -263,8 +291,9 @@ analog `ingest-contract.md`):
    knüpfen (Manifest, Mindest-Datenschutz)?
 6. **Wurzelschlüssel:** von Anfang an „2 von 3" oder erst einer (Jan) und später teilen?
 7. **Stufe-3-Schlüsselverlust:** Wiederherstellungspfad oder bewusst „weg ist weg"?
-8. **Bestenlisten:** eine globale über alle Instanzen, oder jede Instanz ihre eigene und die
-   globale als Zusatz?
+8. ~~**Bestenlisten:** global oder je Instanz?~~ **Entschieden (Jan, 03.11.): gemeinsame globale
+   Bestenlisten sind der Hauptzweck**, s. eigener Abschnitt. Offen bleibt nur, ob eine Instanz
+   die globale oder die lokale Liste als Standardansicht zeigt.
 9. **Sportfilter:** lässt eine Instanz nur Pumpfoil zu — andere Sportarten ablehnen oder nur
    ausblenden?
 10. **Wer deployt bei Partnern:** wir (Versionssprünge einfach) oder der Verein selbst (strenge
