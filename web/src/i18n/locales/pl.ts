@@ -736,7 +736,7 @@ const pl: Record<string, string> = {
   "sd.minPump": "Min. pompa (5s)",
   "sd.avgHr": "Ø tętno",
   "sd.avgHrFoil": "Ø tętno na foilu",
-  "sd.avgHrGesamt": "łącznie {n}",
+  "sd.avgHrTotal": "Ø tętno ogółem",
   "sd.maxHr": "Tętno maks.",
   "sd.coloring": "Kolorowanie:",
   "sd.colorSpeed": "Prędkość",

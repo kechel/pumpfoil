@@ -714,7 +714,7 @@ const id: Record<string, string> = {
   "sd.minPump": "Pump min (5d)",
   "sd.avgHr": "Ø detak jantung",
   "sd.avgHrFoil": "Ø detak jantung di foil",
-  "sd.avgHrGesamt": "total {n}",
+  "sd.avgHrTotal": "Ø detak jantung keseluruhan",
   "sd.maxHr": "Detak jantung maks",
   "sd.coloring": "Pewarnaan:",
   "sd.colorSpeed": "Kecepatan",

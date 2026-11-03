@@ -628,7 +628,7 @@ const fr: Record<string, string> = {
   "sd.minPump": "Pump min (5s)",
   "sd.avgHr": "Ø fréq. card.",
   "sd.avgHrFoil": "Ø fréq. card. sur le foil",
-  "sd.avgHrGesamt": "total {n}",
+  "sd.avgHrTotal": "Ø fréq. card. totale",
   "sd.maxHr": "Fréq. card. max",
   "sd.coloring": "Couleur :",
   "sd.colorSpeed": "Vitesse",

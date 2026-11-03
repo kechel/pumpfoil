@@ -721,7 +721,7 @@ const ptPT: Record<string, string> = {
   "sd.minPump": "Pump mín. (5s)",
   "sd.avgHr": "FC Ø",
   "sd.avgHrFoil": "FC Ø no foil",
-  "sd.avgHrGesamt": "total {n}",
+  "sd.avgHrTotal": "FC Ø total",
   "sd.maxHr": "FC máxima",
   "sd.coloring": "Coloração:",
   "sd.colorSpeed": "Velocidade",

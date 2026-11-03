@@ -628,7 +628,7 @@ const es: Record<string, string> = {
   "sd.minPump": "Pump mín. (5s)",
   "sd.avgHr": "Ø pulso",
   "sd.avgHrFoil": "Ø pulso en el foil",
-  "sd.avgHrGesamt": "total {n}",
+  "sd.avgHrTotal": "Ø pulso total",
   "sd.maxHr": "Pulso máx.",
   "sd.coloring": "Coloración:",
   "sd.colorSpeed": "Velocidad",

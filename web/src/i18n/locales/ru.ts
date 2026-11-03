@@ -714,7 +714,7 @@ const ru: Record<string, string> = {
   "sd.minPump": "Мин. помпинг (5с)",
   "sd.avgHr": "Ø пульс",
   "sd.avgHrFoil": "Ø пульс на фойле",
-  "sd.avgHrGesamt": "всего {n}",
+  "sd.avgHrTotal": "Ø пульс за всю сессию",
   "sd.maxHr": "Макс. пульс",
   "sd.coloring": "Раскраска:",
   "sd.colorSpeed": "Скорость",

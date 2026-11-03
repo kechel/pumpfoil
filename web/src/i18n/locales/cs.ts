@@ -738,7 +738,7 @@ const cs: Record<string, string> = {
   "sd.minPump": "Min pumpnutí (5s)",
   "sd.avgHr": "Ø tep",
   "sd.avgHrFoil": "Ø tep na foilu",
-  "sd.avgHrGesamt": "celkem {n}",
+  "sd.avgHrTotal": "Ø tep celkem",
   "sd.maxHr": "Max tep",
   "sd.coloring": "Obarvení:",
   "sd.colorSpeed": "Rychlost",

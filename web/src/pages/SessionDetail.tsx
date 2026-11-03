@@ -2237,12 +2237,14 @@ export default function SessionDetail() {
           </>
         )}
 
-        {/* Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter (Feedback u904,
-            01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert. */}
-        {m?.avg_hr_foil != null
-          ? <Stat label={t("sd.avgHrFoil")} value={String(m.avg_hr_foil)}
-              sub="bpm" note={m.avg_hr != null ? t("sd.avgHrGesamt", { n: String(m.avg_hr) }) : undefined} />
-          : <Stat label={t("sd.avgHr")} value={m?.avg_hr != null ? String(m.avg_hr) : "–"} sub="bpm" />}
+        {/* Ø Puls auf dem Foil als Hauptzahl (Feedback u904, 01.11.2026); Tippen schaltet auf den Gesamtwert mit Pausen
+            am Ufer um (Jan, 03.11.2026: wie die Pumpfrequenz, aber ohne Merken — Standard immer On-Foil). Ohne Laeufe
+            gibt es keinen Foil-Wert, dann nur der Gesamtwert. */}
+        {m?.avg_hr_foil != null && m.avg_hr != null
+          ? <PulsStat foil={m.avg_hr_foil} gesamt={m.avg_hr} />
+          : m?.avg_hr_foil != null
+            ? <Stat label={t("sd.avgHrFoil")} value={String(m.avg_hr_foil)} sub="bpm" />
+            : <Stat label={t("sd.avgHr")} value={m?.avg_hr != null ? String(m.avg_hr) : "–"} sub="bpm" />}
         <Stat label={t("sd.maxHr")} value={m?.max_hr != null ? String(m.max_hr) : "–"} sub="bpm" />
         <ClickStat label={t("rec.longestRun")} value={longSeg.v != null ? fmtMMSS(longSeg.v) : "–"} sub="min:s"
           runIdx={longSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
@@ -3178,6 +3180,27 @@ function PumpRateStat({ hz }: { hz: number }) {
         <span className="truncate text-[11px] font-normal text-slate-400">{sub}</span>
       </div>
       <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{t("sd.avgPump")}</div>
+    </button>
+  );
+}
+
+// Puls-Kachel: Tippen wechselt zwischen Ø auf dem Foil und Ø gesamt. Das Badge oben rechts zeigt den jeweils
+// ANDEREN Wert (wie bei der Pumpfrequenz die andere Einheit). Bewusst nicht gemerkt — jede Session startet On-Foil.
+function PulsStat({ foil, gesamt }: { foil: number; gesamt: number }) {
+  const t = useT();
+  const [alle, setAlle] = useState(false);
+  return (
+    <button
+      onClick={() => setAlle((v) => !v)}
+      title={t(alle ? "sd.avgHrFoil" : "sd.avgHrTotal")}
+      className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-1.5 text-left hover:border-slate-600"
+    >
+      <span className="absolute right-1 top-1 rounded bg-slate-800 px-1 text-[9px] font-medium leading-none text-slate-400">{alle ? foil : gesamt}</span>
+      <div className="flex items-baseline gap-1 leading-none">
+        <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{alle ? gesamt : foil}</span>
+        <span className="truncate text-[11px] font-normal text-slate-400">bpm</span>
+      </div>
+      <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{t(alle ? "sd.avgHrTotal" : "sd.avgHrFoil")}</div>
     </button>
   );
 }
