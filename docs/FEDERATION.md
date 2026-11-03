@@ -31,8 +31,9 @@ Nebeneffekte, die fast wichtiger sind als der Busfaktor:
    Instanz. Über die Leitung gehen abgeleitete, freigegebene Dinge: Bestenlisten-Einträge,
    Summen, Display-Name, Flagge. Ausnahme ist einzig die vom Nutzer gewählte Backup-Stufe 3, und
    die nur Ende-zu-Ende-verschlüsselt.
-3. **Der Nutzer wählt, nicht der Server.** Jede Weitergabe ist eine ausdrückliche Einwilligung je
-   Stufe und je Ziel (einzelne Server oder Region, z. B. „nur EU"). Standard ist Stufe 0.
+3. **Stufe 1 ist der Grundaustausch, alles darüber wählt der Nutzer.** Bestenlisten-Stats und
+   Anzeigename gehen immer an alle Instanzen der Serverliste (Jan, 03.11.2026). Stufe 2 und 3 sind
+   eine ausdrückliche Wahl je Stufe und je Ziel (einzelne Server oder Region, z. B. „nur EU").
 4. **Jede Instanz ist eigener Verantwortlicher** (DSGVO). Kein gemeinsames Nutzerkonto-Backend,
    keine zentrale Datenbank.
 5. **Instanzen vertrauen sich auf Instanz-Ebene, nicht pro Nutzer.** Eine Instanz signiert, was
@@ -43,14 +44,30 @@ Nebeneffekte, die fast wichtiger sind als der Busfaktor:
 7. **Protokoll aus der Praxis destillieren, nicht auf Vorrat entwerfen** (Gall's Law): v1 besteht
    aus genau zwei real existierenden Servern.
 
-## Die Freigabe-Stufen (je Nutzer, je Ziel-Server/-Region)
+## Die Stufen
 
-| Stufe | Inhalt | Zweck |
-|---|---|---|
-| 0 | nichts (Standard) | – |
-| 1 | Stats + Display-Name (+ Flagge, Profilbild optional) | globale/fremde Bestenlisten, Teams und Events über Instanzen hinweg |
-| 2 | zusätzlich Session-Details (Läufe, Kennzahlen, Karte sofern freigegeben) — keine Rohdaten, keine Medien | volles Community-Erlebnis auf Partner-Instanzen |
-| 3 | Full Backup inkl. Raw Chunks, Medien, Ausrüstung, **Ende-zu-Ende-verschlüsselt** | persönliche Replikation: jeder Nutzer löst seinen eigenen Busfaktor per Checkbox |
+Jan, 03.11.2026: „die basis-stats die fuer bestenlisten relevant sind sollten zu stufe 1 gehoeren
+und immer zwischen den servern ausgetauscht werden, displayname auch, nur sessiondetails dann halt
+nicht oder mit hinweis 'nur auf server x'". Die Feinheiten sind noch auszuarbeiten.
+
+| Stufe | Inhalt | Zweck | Wer entscheidet |
+|---|---|---|---|
+| 1 | Bestenlisten-Stats je Session + Anzeigename (+ Flagge, Profilbild optional) | globale Bestenlisten, Teams und Events über Instanzen hinweg | **immer**, Grundaustausch |
+| 2 | zusätzlich Session-Details (Läufe, Kennzahlen, Karte sofern freigegeben) — keine Rohdaten, keine Medien | volles Community-Erlebnis auf Partner-Instanzen | Nutzer, je Ziel |
+| 3 | Full Backup inkl. Raw Chunks, Medien, Ausrüstung, **Ende-zu-Ende-verschlüsselt** | persönliche Replikation: jeder Nutzer löst seinen eigenen Busfaktor per Checkbox | Nutzer, je Ziel |
+
+**Stufe 1 im Detail (auszuarbeiten):**
+- **Umfang = genau das, was heute die Community-Bestenlisten zeigen.** Dieselben Regeln: nur
+  community-fähige Sessions (`server/app/api/community.py`), ein verborgener Ort bleibt verborgen.
+  Was hier nicht in der Bestenliste steht, geht auch nicht hinaus. Damit entsteht keine neue
+  Privatsphäre-Entscheidung, nur ein größerer Kreis von Lesern.
+- **Ohne Stufe 2 zeigt eine Partner-Instanz die Zeile mit dem Hinweis „Details nur auf
+  pumpfoil.org"** und verlinkt dorthin. Wie viel man dort sieht, regelt die Heimat wie bisher
+  (Sessions sind für Angemeldete sichtbar — ein Konto auf der Heimat wäre also nötig; offene Frage).
+- **Rechtlich:** „immer" heißt Weitergabe an andere Verantwortliche ohne Einzelwahl. Das braucht
+  eine Grundlage und einen Hinweis bei der Registrierung, für Bestandsnutzer eine Ankündigung
+  vorab, und es bleibt das Widerspruchsrecht: wer widerspricht, fällt aus den globalen Listen
+  (Löschmarke an alle). **Vor dem Start juristisch prüfen.**
 
 Die bestehenden Privatsphäre-Schalter gelten weiter **innerhalb** einer Stufe: wer die Karte auf
 der eigenen Instanz verbirgt, verbirgt sie auch bei Stufe 2 auf Partner-Instanzen. Eine
