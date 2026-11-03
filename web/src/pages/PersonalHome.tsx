@@ -1,5 +1,5 @@
 import { TechnikUebersicht } from "../components/TechnikTabelle";
-import { sortiereNachSport, classLabelKey } from "../lib/sportClass";
+import { sortiereNachSport, sortiereSports, standardSportart, classLabelKey } from "../lib/sportClass";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
@@ -761,6 +761,9 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
           [t("team.stat.laeufe"), sp.runs.toLocaleString()],
           ...(sp.pumps > 0 ? [[t("team.stat.pumps"), sp.pumps.toLocaleString()] as [string, string]] : []),
         ];
+        // Sportarten als letztes Feld, nur wenn sie vom eigenen Standard abweichen (Jan, 03.11.2026).
+        const sportText = sp.sports.some((x) => x !== standardSportart())
+          ? sortiereSports(sp.sports, t).map((x) => t(`cls.sport.${x}`)).join(", ") : null;
         return (
           <Link key={sp.spot_id} to={`/sessions?spot=${sp.spot_id}`}
             className={`flex flex-col rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-600 ${sp.spot_id === homespotId ? "border-brand-500" : "border-slate-800"}`}>
@@ -782,6 +785,12 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
                   <div className="truncate text-xs text-slate-400">{l}</div>
                 </div>
               ))}
+              {sportText && (
+                <div className={`min-w-0 ${zahlen.length === 4 ? "col-span-2" : ""}`} title={sportText}>
+                  <div className="truncate text-sm font-bold leading-tight text-brand-700 dark:text-brand-300">{sportText}</div>
+                  <div className="truncate text-xs text-slate-400">{t("mySpots.sports")}</div>
+                </div>
+              )}
             </div>
           </Link>
         );

@@ -2817,6 +2817,7 @@ const zh: Record<string, string> = {
   "mySpots.empty": "还没有任何地点的记录。",
   "mySpots.last": "最近 {d}",
   "mySpots.since": "自 {d}",
+  "mySpots.sports": "运动",
   "team.vergleich.titel": "团队排行榜",
   "team.vergleich.hinweis": "每个团队按其最佳 {n} 名骑手的总和计算。Pumpfoil，也包括没有运动数据的滑行；仅限排行榜公开的团队。",
   "team.vergleich.top": "前 {n} 名",

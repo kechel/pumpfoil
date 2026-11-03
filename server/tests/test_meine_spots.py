@@ -36,7 +36,7 @@ def test_meine_spots_mit_summen(client):
 
     sess(ich, a.id, 10, 100.0)
     sess(ich, a.id, 5, 200.0)
-    sess(ich, b.id, 1, 50.0)
+    sess(ich, b.id, 1, 50.0, sport_class="wingfoil")
     sess(ich, b.id, 0, 999.0, pf=False)          # aussortiert
     sess(ich, a.id, 0, 999.0, deleted=True)      # geloescht
     sess(fremd, a.id, 0, 999.0)                  # fremd
@@ -50,4 +50,5 @@ def test_meine_spots_mit_summen(client):
     sa = d[1]
     assert sa["name"] == "See A" and sa["water"] == "Wasser A" and sa["sessions"] == 2
     assert sa["time_s"] == 300.0 and sa["distance_m"] == 1200.0 and sa["runs"] == 4 and sa["pumps"] == 20
-    assert d[0]["sessions"] == 1 and d[0]["time_s"] == 50.0
+    assert d[0]["sessions"] == 1 and d[0]["time_s"] == 50.0 and d[0]["sports"] == ["wingfoil"]
+    assert sa["sports"] == ["pumpfoil"]

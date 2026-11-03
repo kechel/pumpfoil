@@ -2973,6 +2973,7 @@ const de: Record<string, string> = {
   "mySpots.empty": "Noch keine Sessions an einem Spot.",
   "mySpots.last": "zuletzt {d}",
   "mySpots.since": "seit {d}",
+  "mySpots.sports": "Sportarten",
   "team.vergleich.titel": "Team-Bestenlisten",
   "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. Pumpfoil, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
   "team.vergleich.top": "Beste {n}",

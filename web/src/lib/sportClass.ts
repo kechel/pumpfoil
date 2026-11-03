@@ -49,6 +49,7 @@ export function setzeStandardSport(s?: string | null) {
   standardSport = s;
   try { localStorage.setItem("foil_std_sport", s); } catch { /* privat: nur fuer diese Sitzung */ }
 }
+export const standardSportart = () => standardSport;
 export function sortiereSports<T extends string>(ids: readonly T[], t: (k: string) => string): T[] {
   const rang = (id: string) => (id === standardSport ? 0 : id === "other" ? 2 : 1);
   return [...ids].sort((a, b) => rang(a) - rang(b) || t(`cls.sport.${a}`).localeCompare(t(`cls.sport.${b}`)));

@@ -2820,6 +2820,7 @@ const id: Record<string, string> = {
   "mySpots.empty": "Belum ada sesi di spot mana pun.",
   "mySpots.last": "terakhir {d}",
   "mySpots.since": "sejak {d}",
+  "mySpots.sports": "Olahraga",
   "team.vergleich.titel": "Papan peringkat tim",
   "team.vergleich.hinweis": "Setiap tim dihitung dari jumlah {n} rider terbaiknya. Pumpfoil, termasuk run tanpa data gerak; hanya tim dengan papan peringkat publik.",
   "team.vergleich.top": "{n} terbaik",

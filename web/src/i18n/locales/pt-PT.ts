@@ -2814,6 +2814,7 @@ const ptPT: Record<string, string> = {
   "mySpots.empty": "Ainda não há sessões em nenhum spot.",
   "mySpots.last": "última {d}",
   "mySpots.since": "desde {d}",
+  "mySpots.sports": "Desportos",
   "team.vergleich.titel": "Classificações de equipas",
   "team.vergleich.hinweis": "Cada equipa soma os seus {n} melhores riders. Pumpfoil, incluindo voltas sem dados de movimento; só equipas com classificações públicas.",
   "team.vergleich.top": "Melhores {n}",

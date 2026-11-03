@@ -2816,6 +2816,7 @@ const ja: Record<string, string> = {
   "mySpots.empty": "まだどのスポットにもセッションがありません。",
   "mySpots.last": "最終 {d}",
   "mySpots.since": "{d} から",
+  "mySpots.sports": "スポーツ",
   "team.vergleich.titel": "チームランキング",
   "team.vergleich.hinweis": "各チームの上位{n}人のライダーの合計で比べます。パンプフォイル、モーションデータのない走行も含みます。ランキングを公開しているチームのみ。",
   "team.vergleich.top": "上位{n}人",

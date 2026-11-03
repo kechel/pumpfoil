@@ -2820,6 +2820,7 @@ const ru: Record<string, string> = {
   "mySpots.empty": "Пока нет сессий ни на одном споте.",
   "mySpots.last": "последняя {d}",
   "mySpots.since": "с {d}",
+  "mySpots.sports": "Виды спорта",
   "team.vergleich.titel": "Рейтинги команд",
   "team.vergleich.hinweis": "Для каждой команды считается сумма её {n} лучших райдеров. Пампфойл, включая заезды без данных движения; только команды с публичными рейтингами.",
   "team.vergleich.top": "Лучшие {n}",

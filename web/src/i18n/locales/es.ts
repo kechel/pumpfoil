@@ -2703,6 +2703,7 @@ const es: Record<string, string> = {
   "mySpots.empty": "Aún no hay sesiones en ningún spot.",
   "mySpots.last": "última {d}",
   "mySpots.since": "desde {d}",
+  "mySpots.sports": "Deportes",
   "team.vergleich.titel": "Clasificaciones de equipos",
   "team.vergleich.hinweis": "Cada equipo suma a sus {n} mejores riders. Pumpfoil, también tandas sin datos de movimiento; solo equipos con clasificaciones públicas.",
   "team.vergleich.top": "Mejores {n}",

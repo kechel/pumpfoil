@@ -2162,9 +2162,17 @@ def my_spots_stats(user: models.User = Depends(current_user), db: Session = Depe
         .group_by(S.spot_id, Sp.name, Sp.water_name).all()
     )
     rows.sort(key=lambda r: r[5] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    # Sportarten je Spot, meiste Sessions zuerst — die Seite zeigt sie, wenn sie vom eigenen Standard abweichen.
+    sports: dict[int, list[str]] = {}
+    for sid, sp, _n in (db.query(S.spot_id, S.sport_class, func.count(S.id))
+                        .filter(S.user_id == user.id, S.spot_id.isnot(None), S.deleted.isnot(True),
+                                S.is_pumpfoil.isnot(False), S.status.notin_(("recording", "live")))
+                        .group_by(S.spot_id, S.sport_class).order_by(func.count(S.id).desc()).all()):
+        sports.setdefault(sid, []).append(sp)
     return [{"spot_id": sid, "name": name, "water": water, "sessions": int(n), "first": a.isoformat() if a else None,
              "last": b.isoformat() if b else None, "time_s": round(float(zeit or 0), 1),
-             "distance_m": round(float(dist or 0), 1), "runs": int(runs or 0), "pumps": int(pumps or 0)}
+             "distance_m": round(float(dist or 0), 1), "runs": int(runs or 0), "pumps": int(pumps or 0),
+             "sports": sports.get(sid, [])}
             for sid, name, water, n, a, b, zeit, dist, runs, pumps in rows]
 
 

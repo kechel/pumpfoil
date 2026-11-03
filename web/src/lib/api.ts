@@ -2478,4 +2478,4 @@ export interface AppDevice {
 
 /** Home › Homespot › „Meine Spots" (03.11.2026): je eigenem Spot ein paar Zahlen, zuletzt besuchte zuerst. */
 export interface MeinSpot { spot_id: number; name: string | null; water: string | null; sessions: number; first: string | null;
-  last: string | null; time_s: number; distance_m: number; runs: number; pumps: number }
+  last: string | null; time_s: number; distance_m: number; runs: number; pumps: number; sports: string[] }

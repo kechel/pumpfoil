@@ -2874,6 +2874,7 @@ const nl: Record<string, string> = {
   "mySpots.empty": "Nog geen sessies op een spot.",
   "mySpots.last": "laatst {d}",
   "mySpots.since": "sinds {d}",
+  "mySpots.sports": "Sporten",
   "team.vergleich.titel": "Teamranglijsten",
   "team.vergleich.hinweis": "Elk team telt de som van zijn beste {n} riders. Pumpfoil, ook runs zonder bewegingsdata; alleen teams met openbare ranglijsten.",
   "team.vergleich.top": "Beste {n}",

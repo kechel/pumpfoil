@@ -2873,6 +2873,7 @@ const cs: Record<string, string> = {
   "mySpots.empty": "Zatím žádné session na spotu.",
   "mySpots.last": "naposledy {d}",
   "mySpots.since": "od {d}",
+  "mySpots.sports": "Sporty",
   "team.vergleich.titel": "Žebříčky týmů",
   "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. Pumpfoil, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
   "team.vergleich.top": "Nejlepších {n}",
