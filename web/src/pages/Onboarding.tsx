@@ -4,6 +4,7 @@ import { api, type Foil, type PairedDevice } from "../lib/api";
 import { Button, Card, ErrorBox, Spinner } from "../components/ui";
 import { ChatBubbleIcon, CheckIcon, ChevronIcon, FoilIcon, MailIcon, StarIcon, TrashIcon, WatchIcon } from "../components/Icons";
 import { LanguageGrid } from "../components/LanguageSelect";
+import { LandKarte } from "../components/LandWahl";
 import { AppleIcon, GoogleIcon, PLATTFORM_LOGOS } from "../components/BrandIcons";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "../components/StoreBadge";
@@ -351,6 +352,7 @@ function SprachSchritt({ name, setName }: { name: string; setName: (v: string) =
       <Card className="p-5">
         <h3 className="mb-3 font-semibold">{t("lang.label")}</h3>
         <LanguageGrid />
+        <LandKarte />
       </Card>
       <NameKarte name={name} setName={setName} />
     </>

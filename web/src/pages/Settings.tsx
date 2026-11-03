@@ -8,7 +8,7 @@ import { APP_BUILD } from "../buildInfo";
 import { fmtDate } from "../lib/time";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { Reiterleiste, useReiter } from "../components/Reiter";
-import { LAENDER, flaggeUrl, landName } from "../lib/laender";
+import { LandWahl } from "../components/LandWahl";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { FontScaleSelect } from "../components/FontScaleSelect";
 import { PumpUnitSelect } from "../components/PumpUnitSelect";
@@ -20,7 +20,7 @@ import { ZonesCard } from "../components/ZonesCard";
 import { PublicProfileCard } from "../components/PublicProfileCard";
 
 export default function Settings() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const [ptab, setPtab] = useReiter("profil", ["uebersicht", "ich", "fahren", "privat", "darstellung", "konto"], "uebersicht");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -288,15 +288,7 @@ export default function Settings() {
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.land")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.landHint")}</p>
-        <div className="flex items-center gap-3">
-          <select value={land} onChange={(e) => saveLand(e.target.value)}
-            className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
-            <option value="">{t("profile.landNone")}</option>
-            {LAENDER.map((c) => ({ c, n: landName(c, lang) })).sort((a, b) => a.n.localeCompare(b.n, lang))
-              .map(({ c, n }) => <option key={c} value={c}>{n}</option>)}
-          </select>
-          {land && <img src={flaggeUrl(land)} alt="" className="h-6 w-8 shrink-0 rounded-sm border border-slate-700 object-cover" />}
-        </div>
+        <LandWahl land={land} onChange={saveLand} />
       </Card>
 
       {/* Direkt unter dem Anzeigenamen (Jan, 30.08.) — beides ist "wer bin ich hier". */}

@@ -160,6 +160,9 @@ DEFAULTS = {
     # Nationalitaet (ISO 3166-1 alpha-2, z. B. "DE"), freiwillig (Jan, 02.11.2026). "" = nicht angegeben. Erscheint als
     # Flagge in den Bestenlisten und ihren Teilen-Bildern — nur bei denen, die es selbst eingestellt haben.
     "land": "",
+    # Wurde die Nationalitaet je bewusst gesetzt (auch „nicht angeben")? Der Einrichtungs-Assistent schlaegt sonst das
+    # Land zur Sprache vor (Jan, 03.11.2026) — ohne diese Marke kaeme der Vorschlag nach „nicht angeben" wieder.
+    "land_gewaehlt": False,
     # Körpergewicht (kg) — optional. 0 = nicht angegeben. NICHT nur "für später": es bestimmt
     # heute schon die Alarmgrenzen je Foil (`foil_physics.alarm_speeds`), und wer nichts angibt,
     # bekommt stillschweigend 95 kg vorgesetzt (s. `devices._foil_alarm_list`).
@@ -591,6 +594,7 @@ def update_settings(
     if "land" in patch:
         v = str(patch["land"] or "").strip().upper()
         current["land"] = v if re.fullmatch(r"[A-Z]{2}", v) else ""
+        current["land_gewaehlt"] = True
     if "homespot" in patch:
         v = patch["homespot"]
         # id ODER Name akzeptieren -> kanonisch als Name speichern (mit Apps geteilt).
