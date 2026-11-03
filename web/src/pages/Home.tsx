@@ -706,17 +706,20 @@ function CommunitySection() {
   // Rekorden und nochmal ueber der Bestenliste (Jan, 01.11.2026). Beide haengen am selben Zustand, aendern also
   // immer beides.
   const waehlbareBaender = bands.filter((b) => b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER);
+  // Nur die Zeitknoepfe gibt es auch einzeln: im Reiter Medien ueber „Best bewertet"/„Meist kommentiert", die sich
+  // nur nach dem Zeitraum richten (Sportart, Foil und accel gelten dort nicht).
+  const zeitKnoepfe = PERIODS.map(([k, labelKey]) => (
+    <button
+      key={k}
+      onClick={() => setPeriod(k)}
+      className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
+    >
+      {t(labelKey)}
+    </button>
+  ));
   const filterZeile = (
       <div className="mb-3 flex flex-wrap items-center gap-1">
-      {PERIODS.map(([k, labelKey]) => (
-        <button
-          key={k}
-          onClick={() => setPeriod(k)}
-          className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
-        >
-          {t(labelKey)}
-        </button>
-      ))}
+      {zeitKnoepfe}
       <AccelToggle value={accelWahl} onChange={(v) => { setFreunde(false); setAccelOnly(v); }} className="ml-auto"
                    freunde={freunde} onFreunde={() => setFreunde(true)} />
       {/* Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
@@ -785,6 +788,9 @@ function CommunitySection() {
       </>}
       {tab === "medien" && <>
         <LatestMedia key={`m${freunde}`} />
+        {/* Dieselbe Zeitwahl wie bei der Bestenliste (Jan, 03.11.2026) — hier noch einmal, weil sie im Reiter Medien
+            sonst nicht zu sehen ist. */}
+        <div className="mt-8 flex flex-wrap items-center gap-1">{zeitKnoepfe}</div>
         <TopLiked key={`t${freunde}`} period={period} />
         <TopLiked key={`k${freunde}`} period={period} nach="kommentare" />
         <SocialFeed />
