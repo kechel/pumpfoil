@@ -27,7 +27,19 @@ from ..analysis import lage
 from ..db import SessionLocal, get_db
 from ..fitimport import parse_fit_bytes
 from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
-from ..naming import geraete_label, owner_label
+from ..naming import geraete_label, ist_gattung, owner_label
+
+
+def _geraet_name(label: str | None, platform: str | None, part_number: str | None) -> str | None:
+    """Uhr-Bezeichnung einer Aufnahme. Steht beim Geraet nur die Gattung („Garmin"), weil es sich zuletzt meldete,
+    bevor `build-all.sh` seine Part-Number kannte (neue Modelle, 03.11.2026), kommt der Name frisch aus der
+    partmap — wie im Profil (`devices/list`). Sonst das gespeicherte Label."""
+    if platform == "garmin" and part_number and ist_gattung(label):
+        from .devices import _partmap
+        m = _partmap().get(part_number)
+        if m:
+            return m["name"]
+    return geraete_label(label, platform)
 from ..setup_snapshot import standard_setup
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import (
@@ -1160,8 +1172,9 @@ def list_sessions(
     # Uhr-/Geräte-Bezeichnung je Session im Batch (kein N+1); nur erster Teil vor "/".
     dids = {s.device_id for s in rows if s.device_id}
     if dids:
-        dmap = dict((i, geraete_label(l, pl)) for i, l, pl in
-                    db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform)
+        dmap = dict((i, _geraet_name(l, pl, pn)) for i, l, pl, pn in
+                    db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform,
+                             models.DeviceToken.part_number)
                     .filter(models.DeviceToken.id.in_(dids)).all())
         for o, s in zip(outs, rows):
             lbl = dmap.get(s.device_id) if s.device_id else None
@@ -1301,8 +1314,9 @@ def list_in_progress(
         .scalar()
     )
     dids = {s.device_id for s in rows if s.device_id}
-    dmap = dict((i, geraete_label(l, pl)) for i, l, pl in
-                db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform)
+    dmap = dict((i, _geraet_name(l, pl, pn)) for i, l, pl, pn in
+                db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform,
+                         models.DeviceToken.part_number)
                 .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
     out = []
     for s in rows:
@@ -2665,7 +2679,8 @@ def get_session(
         dev = db.get(models.DeviceToken, s.device_id)
         # label kann eine lange partNumber-Gruppe sein (z. B. "fēnix® 6X Pro / 6X Sapphire / …").
         # Fürs Badge nur den ersten (repräsentativen) Teil vor dem "/".
-        out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
+        lbl = _geraet_name(dev.label, dev.platform, dev.part_number) if dev else None
+        out.device_label = lbl.split("/")[0].strip() if lbl else None
     out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
     out.app_version = s.app_version    # App-Version DIESER Aufnahme (Fehlersuche, s. models.py)
     # Kreisel vorhanden? Ein gezielter Treffer, kein Zählen — die Oberfläche will nur wissen, ob
@@ -2761,7 +2776,8 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
     out.setup = _resolve_setup(db, s, False)   # Teilen-Link: nie der Besitzer
     if s.device_id:
         dev = db.get(models.DeviceToken, s.device_id)
-        out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
+        lbl = _geraet_name(dev.label, dev.platform, dev.part_number) if dev else None
+        out.device_label = lbl.split("/")[0].strip() if lbl else None
     out.device_model = s.device_model
     out.app_version = s.app_version
     if out.ended_at is None and s.started_at is not None:
