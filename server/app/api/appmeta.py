@@ -330,7 +330,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.98",   # LIVE 2026-10-27: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
+        "latest": "1.0.99",   # LIVE 2026-11-03: am Tag der Einreichung freigegeben (Jans Meldung ~16:20, echte fenix 7X Pro
+        # Token 1577 meldet v=1.0.99, Testsession #19851; Store-Seite zeigte um 16:22 noch 1.0.98). Inhalt: Enduro 4, MARQ (Gen 3),
+        # Approach S72 43/47 mm neu, erster Build mit SDK 9.3.0. .iq aus 38bcd559, 222 Varianten.
+        # ALT: "latest": "1.0.98",   # LIVE 2026-10-27: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
         # fenix 7X Pro Token 1577 + Testsession #19286 melden v=1.0.98; Store-Seite zeigte um 20:58 noch 1.0.97). Inhalt: Lite
         # (96 KB) = Minimal-Recorder mit festen Seiten, GPS-Fix nicht mehr klebrig, Absturzmeldung bis zur Bestaetigung. .iq aus aea5cb58, 218 Varianten.
         # ALT: "latest": "1.0.97",   # LIVE 2026-10-24: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
@@ -902,11 +905,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 03.11.2026 16:00 (Jans Meldung). 03.11.2026: Enduro 4, MARQ (Gen 3), Approach S72 43/47 mm neu im Manifest (Nutzermail: Enduro 4 nicht installierbar),
-    # SDK 9.3.0 statt 9.2.0 (Vergleich aller 129 Geraete: Warnungen gleich, +48 B bzw. -1,5 KB). .iq aus dem Bump-Commit,
-    # 222 Varianten, /home/jan/release-staging/garmin-1.0.99/. Sonst keine Aenderung seit 1.0.98.
-    {"name": "Garmin", "version": "1.0.99", "eingereicht": "2026-11-03",
-     "items": ["The app is now available for the Enduro 4, the MARQ (Gen 3) and the Approach S72."]},
+    # Garmin 1.0.99 am 03.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.99.
     # iPhone + Apple Watch 1.1.58 am 29.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 771/772/789/790/794/795/796 tragen ios 1.1.58, vier neue am 29.10.
     # EINGEREICHT 28.10.2026 spaet abends (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14
     # Minuten", Produktion 61 (1.1.46), Produktion (Wear OS) 1057 (1.2.46)). ERSETZT die am selben Abend eingereichte,
