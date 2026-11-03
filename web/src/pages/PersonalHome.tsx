@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, Aktivitaet, CommunitySession, FoilStatsGroup, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
+import { api, Aktivitaet, CommunitySession, FoilStatsGroup, MeinSpot, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import { teamFarbStil } from "../lib/teamFarben";
@@ -725,6 +725,7 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
 /** Reiter „Homespot": DERSELBE Inhalt wie die Spot-Seite (SpotBereich, samt Session-Liste) — nur die Kopfzeile ist
  * eine andere (Jan, 02.11.2026). Sportart wie dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
 function HomespotBereich({ spotId, kopf }: { spotId: number; kopf?: React.ReactNode }) {
+  const t = useT();
   const [sports, setSports] = useState<string[] | null>(null);
   useEffect(() => {
     let aktuell = true;
@@ -734,7 +735,57 @@ function HomespotBereich({ spotId, kopf }: { spotId: number; kopf?: React.ReactN
   if (!sports) return <Spinner />;
   const sport = sports.includes("pumpfoil") ? "pumpfoil" : (sports[0] ?? null);
   return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" stufe={2} kopf={kopf}
-    sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />} />;
+    sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />}
+    extra={{ id: "meine", label: t("mySpots.title"), inhalt: <MeineSpots homespotId={spotId} /> }} />;
+}
+
+/** „Meine Spots" (Jan, 03.11.2026): alle Spots mit eigenen Sessions, zuletzt besuchte zuerst, mit Sessions, letztem
+ * Besuch, On-Foil-Zeit/-Strecke, Laeufen und Pumps. Gezaehlt am Server wie die Spot-Liste des Verlaufs (my-spots). */
+function MeineSpots({ homespotId }: { homespotId: number }) {
+  const t = useT();
+  const [liste, setListe] = useState<MeinSpot[] | null>(null);
+  useEffect(() => { api.mySpotsStats().then(setListe).catch(() => setListe([])); }, []);
+  if (!liste) return <Spinner />;
+  if (!liste.length) return <p className="text-sm text-slate-400">{t("mySpots.empty")}</p>;
+  const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
+  const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
+  const tag = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : "—");
+  return (
+    <div className="space-y-2">
+      {liste.map((sp) => {
+        const zahlen: [string, string][] = [
+          [t("team.stat.sessions"), sp.sessions.toLocaleString()],
+          [t("team.stat.zeit"), zeit(sp.time_s)],
+          [t("team.stat.strecke"), km(sp.distance_m)],
+          [t("team.stat.laeufe"), sp.runs.toLocaleString()],
+          ...(sp.pumps > 0 ? [[t("team.stat.pumps"), sp.pumps.toLocaleString()] as [string, string]] : []),
+        ];
+        return (
+          <Link key={sp.spot_id} to={`/sessions?spot=${sp.spot_id}`}
+            className="block rounded-2xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700">
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <LocationIcon className="h-4 w-4 shrink-0 self-center text-brand-400" />
+              <span className="min-w-0 truncate font-semibold">{sp.name ?? "—"}</span>
+              {sp.spot_id === homespotId && (
+                <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-slate-950">{t("foiler.homespot")}</span>
+              )}
+              {sp.water && sp.water !== sp.name && <span className="truncate text-sm text-slate-400">{sp.water}</span>}
+              <span className="ml-auto whitespace-nowrap text-sm text-slate-400">{t("mySpots.last", { d: tag(sp.last) })}</span>
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
+              {zahlen.map(([l, v]) => (
+                <div key={l} className="rounded-xl bg-slate-800/60 p-1.5 text-center">
+                  <div className="font-bold leading-tight text-brand-700 dark:text-brand-300">{v}</div>
+                  <div className="text-xs text-slate-400">{l}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-1.5 text-xs text-slate-400">{t("mySpots.since", { d: tag(sp.first) })}</div>
+          </Link>
+        );
+      })}
+    </div>
+  );
 }
 
 /** „Neu bei deinen Sessions" (Olek/Jan, 03.11.2026): die letzten Kommentare und Likes anderer an den eigenen

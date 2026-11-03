@@ -1290,6 +1290,7 @@ export const api = {
   publicVideos: () => req<{ videos: { id: string; title: string; published: string }[]; channel: string }>("/api/public/videos"),
 
   mySpots: () => req<{ spot: string; count: number }[]>("/api/sessions/my-spots"),
+  mySpotsStats: () => req<MeinSpot[]>("/api/sessions/my-spots-stats"),
   // Habe ICH an diesem Spot schon aufgenommen? Zaehlt bewusst JEDE eigene Aufnahme dort, auch
   // aussortierte und solche ohne erkannten Lauf (die haengen an gar keinem Spot und werden
   // serverseitig geometrisch gefunden). Gate fuer „Namen vorschlagen".
@@ -2474,3 +2475,7 @@ export interface AppDevice {
   bytes: number;
   version?: string;
 }
+
+/** Home › Homespot › „Meine Spots" (03.11.2026): je eigenem Spot ein paar Zahlen, zuletzt besuchte zuerst. */
+export interface MeinSpot { spot_id: number; name: string | null; water: string | null; sessions: number; first: string | null;
+  last: string | null; time_s: number; distance_m: number; runs: number; pumps: number }

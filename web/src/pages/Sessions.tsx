@@ -1491,13 +1491,15 @@ function hatRekorde(satz: unknown): boolean {
 /** Inhalt der Spot-Seite als Reiter (02.11.2026). Auch der Reiter „Homespot" auf Home zeigt ihn, dort mit eigenem
  * Adress-Parameter (`stab`) und ohne Session-Liste — die gibt es auf der Spot-Seite. Namens-Gruppen aus dem Altbestand
  * (keine numerische id) haben keine Heatmap und keine Beschreibungen. */
-export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab", stufe = 1, kopf }:
-  { spot: string; sport: string | null; accelOnly: boolean; sessions?: React.ReactNode; param?: string; stufe?: 1 | 2; kopf?: React.ReactNode }) {
+export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab", stufe = 1, kopf, extra }:
+  { spot: string; sport: string | null; accelOnly: boolean; sessions?: React.ReactNode; param?: string; stufe?: 1 | 2; kopf?: React.ReactNode;
+    extra?: { id: string; label: string; inhalt: React.ReactNode } }) {   // weiterer Reiter nach „Sessions" (Home: „Meine Spots")
   const t = useT();
   const echt = /^\d+$/.test(spot);
   const reiter: ReiterDef[] = [
     { id: "rekorde", label: t("side.records") },
     ...(sessions ? [{ id: "sessions", label: t("sessions.title") }] : []),
+    ...(extra ? [{ id: extra.id, label: extra.label }] : []),
     ...(echt ? [{ id: "heatmap", label: t("spots.heatmap") }] : []),
     { id: "wetter", label: t("tab.weather") },
     ...(echt ? [{ id: "beschreibungen", label: t("tab.descriptions") }] : []),
@@ -1506,7 +1508,9 @@ export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab", s
   return (
     <>
       <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} stufe={stufe} />
-      {kopf}
+      {/* Der Kopf nennt DIESEN Spot — ueber einer Liste aller Spots waere er falsch. */}
+      {tab !== extra?.id && kopf}
+      {extra && tab === extra.id && extra.inhalt}
       {tab === "rekorde" && (sport
         ? <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} leerText={t("tab.noRecords")} />
         : <p className="text-sm text-slate-400">{t("tab.noRecords")}</p>)}
