@@ -1614,7 +1614,7 @@ const ja: Record<string, string> = {
   "watchQuality.since": "アプリ {v} 以降",
   "watchQuality.oldApp": "古いアプリのみ",
   "friends.title": "友だち",
-  "act.title": "あなたのセッションの新着",
+  "act.title": "新着コメントといいね",
   "act.comment": "がコメントしました",
   "act.like": "があなたのセッションにいいね",
   "act.likeMany": "ほか{n}人があなたのセッションにいいね",

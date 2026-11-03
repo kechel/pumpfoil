@@ -1333,7 +1333,7 @@ const es: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "solo app antigua",
   "friends.title": "Amigos",
-  "act.title": "Novedades en tus sesiones",
+  "act.title": "Nuevos comentarios y me gusta",
   "act.comment": "ha comentado",
   "act.like": "le gusta tu sesión",
   "act.likeMany": "y {n} más han dado me gusta a tu sesión",

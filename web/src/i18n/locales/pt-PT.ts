@@ -1611,7 +1611,7 @@ const ptPT: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "só app antiga",
   "friends.title": "Amigos",
-  "act.title": "Novidades nas tuas sessões",
+  "act.title": "Novos comentários e gostos",
   "act.comment": "comentou",
   "act.like": "gostou da tua sessão",
   "act.likeMany": "e mais {n} gostaram da tua sessão",

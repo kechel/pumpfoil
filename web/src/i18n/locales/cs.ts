@@ -1742,7 +1742,7 @@ const cs: Record<string, string> = {
   "watchQuality.since": "aplikace {v}+",
   "watchQuality.oldApp": "jen starší aplikace",
   "friends.title": "Přátelé",
-  "act.title": "Novinky u tvých sessions",
+  "act.title": "Nové komentáře & lajky",
   "act.comment": "okomentoval(a)",
   "act.like": "se líbí tvoje session",
   "act.likeMany": "a {n} další lajkují tvoji session",

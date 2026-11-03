@@ -1614,7 +1614,7 @@ const ru: Record<string, string> = {
   "watchQuality.since": "приложение {v}+",
   "watchQuality.oldApp": "только старое приложение",
   "friends.title": "Друзья",
-  "act.title": "Новое в твоих сессиях",
+  "act.title": "Новые комментарии и лайки",
   "act.comment": "прокомментировал(а)",
   "act.like": "нравится твоя сессия",
   "act.likeMany": "и ещё {n} отметили твою сессию",

@@ -1247,7 +1247,7 @@ const gsw: Record<string, string> = {
   "watchQuality.since": "ab App {v}",
   "watchQuality.oldApp": "nume älteri App",
   "friends.title": "Fründe",
-  "act.title": "Nöis bi dine Sessions",
+  "act.title": "Nöii Kommentär & Likes",
   "act.comment": "het kommentiert",
   "act.like": "gfallt dini Session",
   "act.likeMany": "und {n} wiiteri finded dini Session guet",

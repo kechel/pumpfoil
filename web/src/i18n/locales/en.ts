@@ -1862,7 +1862,7 @@ const en: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "older app only",
   "friends.title": "Friends",
-  "act.title": "New on your sessions",
+  "act.title": "New comments & likes",
   "act.comment": "commented",
   "act.like": "likes your session",
   "act.likeMany": "and {n} more like your session",

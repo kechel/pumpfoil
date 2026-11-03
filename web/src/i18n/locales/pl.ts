@@ -1773,7 +1773,7 @@ const pl: Record<string, string> = {
   "watchQuality.since": "aplikacja {v}+",
   "watchQuality.oldApp": "tylko starsza aplikacja",
   "friends.title": "Znajomi",
-  "act.title": "Nowości przy twoich sesjach",
+  "act.title": "Nowe komentarze i polubienia",
   "act.comment": "skomentował(a)",
   "act.like": "lubi twoją sesję",
   "act.likeMany": "i {n} innych lubi twoją sesję",

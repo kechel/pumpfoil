@@ -1742,7 +1742,7 @@ const nl: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "alleen oudere app",
   "friends.title": "Vrienden",
-  "act.title": "Nieuw bij je sessies",
+  "act.title": "Nieuwe reacties & likes",
   "act.comment": "heeft gereageerd",
   "act.like": "vindt je sessie leuk",
   "act.likeMany": "en {n} anderen vinden je sessie leuk",

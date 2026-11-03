@@ -1664,7 +1664,7 @@ const nb: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "bare eldre app",
   "friends.title": "Venner",
-  "act.title": "Nytt på øktene dine",
+  "act.title": "Nye kommentarer og likes",
   "act.comment": "kommenterte",
   "act.like": "liker økten din",
   "act.likeMany": "og {n} til liker økten din",

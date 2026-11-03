@@ -1614,7 +1614,7 @@ const id: Record<string, string> = {
   "watchQuality.since": "aplikasi {v}+",
   "watchQuality.oldApp": "hanya aplikasi lama",
   "friends.title": "Teman",
-  "act.title": "Baru di sesimu",
+  "act.title": "Komentar & suka baru",
   "act.comment": "berkomentar",
   "act.like": "menyukai sesimu",
   "act.likeMany": "dan {n} lainnya menyukai sesimu",

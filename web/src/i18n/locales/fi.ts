@@ -1694,7 +1694,7 @@ const fi: Record<string, string> = {
   "watchQuality.since": "sovellus {v}+",
   "watchQuality.oldApp": "vain vanha sovellus",
   "friends.title": "Kaverit",
-  "act.title": "Uutta sessioissasi",
+  "act.title": "Uudet kommentit & tykkäykset",
   "act.comment": "kommentoi",
   "act.like": "tykkää sessiostasi",
   "act.likeMany": "ja {n} muuta tykkäävät sessiostasi",

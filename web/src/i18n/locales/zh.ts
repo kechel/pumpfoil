@@ -1614,7 +1614,7 @@ const zh: Record<string, string> = {
   "watchQuality.since": "应用 {v} 起",
   "watchQuality.oldApp": "仅旧版应用",
   "friends.title": "好友",
-  "act.title": "你的训练新动态",
+  "act.title": "新评论和点赞",
   "act.comment": "评论了",
   "act.like": "赞了你的训练",
   "act.likeMany": "等另外 {n} 人赞了你的训练",
