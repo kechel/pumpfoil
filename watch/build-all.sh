@@ -4,15 +4,17 @@
 # Download-Auswahl auf der Website.
 #
 # Voraussetzungen:
-#   - SDK unter $SDK_HOME (z. B. $HOME/connectiq-sdk-9.2.0)
+#   - SDK unter $SDK_HOME (Standard ~/connectiq-sdk = Symlink aufs aktuelle SDK, s. setup-sdk.sh)
+#   - Signierschluessel unter $KEY (Standard ~/.connectiq/developer_key.der, gehoert NICHT ins SDK)
 #   - Device-Files unter ~/.Garmin/ConnectIQ/Devices/<id>/  (per SDK-Manager
 #     oder aus dem bereitgestellten Tarball; AppleDouble-._*-Dateien vorher
 #     entfernen: find ... -name '._*' -delete)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-SDK_HOME="${SDK_HOME:?SDK_HOME setzen}"
-KEY="${KEY:-$SDK_HOME/developer_key.der}"
+SDK_HOME="${SDK_HOME:-$HOME/connectiq-sdk}"
+KEY="${KEY:-$HOME/.connectiq/developer_key.der}"
+[ -f "$KEY" ] || { echo "Signierschluessel fehlt: $KEY (s. setup-sdk.sh)" >&2; exit 1; }
 DEVDIR="${DEVDIR:-$HOME/.Garmin/ConnectIQ/Devices}"
 mkdir -p "$HERE/bin"
 

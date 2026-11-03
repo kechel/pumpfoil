@@ -4,12 +4,13 @@
 #   - Device-Files via SDK-Manager geladen (~/.Garmin/ConnectIQ/Devices/<device>)
 #
 # Beispiel:
-#   SDK_HOME=$HOME/connectiq-sdk-9.2.0 ./build.sh fenix7xpro
+#   ./build.sh fenix7xpro            (SDK aus ~/connectiq-sdk, Key aus ~/.connectiq, s. setup-sdk.sh)
 set -euo pipefail
 
 DEVICE="${1:-fenix7xpro}"
-SDK_HOME="${SDK_HOME:?SDK_HOME setzen (z. B. \$HOME/connectiq-sdk-9.2.0)}"
-KEY="${KEY:-$SDK_HOME/developer_key.der}"
+SDK_HOME="${SDK_HOME:-$HOME/connectiq-sdk}"
+KEY="${KEY:-$HOME/.connectiq/developer_key.der}"
+[ -f "$KEY" ] || { echo "Signierschluessel fehlt: $KEY (s. setup-sdk.sh)" >&2; exit 1; }
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 mkdir -p "$HERE/bin"

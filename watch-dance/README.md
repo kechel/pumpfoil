@@ -21,5 +21,5 @@ Unterschiede zu Pumpfoil (im Code mit `DANCE` markiert):
 
 Bauen (Testbuild, immer `-r`):
 
-    cd watch-dance && /home/jan/connectiq-sdk-9.2.0/bin/monkeyc -f monkey.jungle -d fenix7xpro \
-        -o /tmp/dance-fenix7xpro.prg -y /home/jan/connectiq-sdk-9.2.0/developer_key.der -r
+    cd watch-dance && ~/connectiq-sdk/bin/monkeyc -f monkey.jungle -d fenix7xpro \
+        -o /tmp/dance-fenix7xpro.prg -y ~/.connectiq/developer_key.der -r

@@ -31,7 +31,7 @@ RECIPIENT="65DCECE032416CB89041EAEF37715E8551259100"
 FILES=(
     "$REPO/server/.env"
     "$REPO/server/vapid_private.pem"
-    "/home/jan/connectiq-sdk-9.2.0/developer_key.der"
+    "/home/jan/.connectiq/developer_key.der"   # seit 03.11.2026 ausserhalb des SDK (vorher im 9.2.0-Ordner)
 )
 # Optionale Kandidaten: nur mitnehmen, was existiert (Shorts-Tool-Tokens liegen je nach
 # Maschine auch woanders).

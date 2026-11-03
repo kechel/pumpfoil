@@ -20,7 +20,7 @@ Web-PWA + native Mobile-Apps als Frontend. Repo öffentlich (AGPL).
 | Ziel | Claude baut? | Live/Deploy |
 |---|---|---|
 | **Web** (`web/`) | ✅ bauen **und** deployen | `cd web && npm run build` → `web/dist`, von FastAPI live ausgeliefert. **Sofort online, kein Restart.** |
-| **Garmin-Uhr** (alle 78 Geräte) | ✅ bauen | Version in `watch/source/Config.mc` bumpen, dann `cd watch && SDK_HOME=/home/jan/connectiq-sdk-9.2.0 ./build-all.sh` → `watch/bin/` (gitignored). Server liest frisch pro Request → **sofort live** unter `/api/app/devices` + `/api/app/download/<id>`. |
+| **Garmin-Uhr** (alle 78 Geräte) | ✅ bauen | Version in `watch/source/Config.mc` bumpen, dann `cd watch && ./build-all.sh` (SDK = Symlink `~/connectiq-sdk` aufs aktuelle, Signierschlüssel `~/.connectiq/developer_key.der` außerhalb des SDK — ein SDK-Wechsel ist nur der Link, s. `watch/setup-sdk.sh`) → `watch/bin/` (gitignored). Server liest frisch pro Request → **sofort live** unter `/api/app/devices` + `/api/app/download/<id>`. |
 | **Android Phone** (`:app`) | ✅ bauen + verifizieren | `cd android && JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew :app:compileDebugKotlin --no-daemon`. Signiertes Release-AAB + Play-Upload: **nur Jan.** |
 | **Wear OS** (`:wear`) | ✅ bauen + verifizieren | `./gradlew :wear:compileDebugKotlin --no-daemon`. Signiertes Release + Upload: **nur Jan.** |
 | **iOS App** (`Sources-iOS/`) | ❌ nur Code | Build/Verify/Sign/Upload **nur Jan** (Xcode/macOS, `project.yml` via xcodegen). |

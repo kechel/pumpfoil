@@ -28,17 +28,31 @@ if [ ! -d "$DEST/bin" ]; then
 fi
 echo "    SDK: $DEST"
 
-if [ ! -f "$DEST/developer_key.der" ]; then
-  echo "==> Developer-Key erzeugen"
+# Aktuelles SDK verlinken: Skripte nehmen ~/connectiq-sdk, ein SDK-Wechsel ist nur dieser Link.
+ln -sfn "$(basename "$DEST")" "$SDK_ROOT"
+echo "    $SDK_ROOT -> $(basename "$DEST")"
+
+# Signierschluessel liegt AUSSERHALB des SDK (03.11.2026), damit ein altes SDK geloescht werden kann.
+# Nie still einen neuen erzeugen: mit einem anderen Schluessel nimmt der Store kein Update der bestehenden App
+# an. Den echten gibt es verschluesselt in secrets.tar.gz.gpg (deploy/backup-secrets.sh).
+KEY="${KEY:-$HOME/.connectiq/developer_key.der}"
+if [ ! -f "$KEY" ]; then
+  if [ "${NEUER_SCHLUESSEL:-0}" != 1 ]; then
+    echo "Signierschluessel fehlt: $KEY" >&2
+    echo "  aus der Sicherung zurueckholen; nur fuer eine NEUE App: NEUER_SCHLUESSEL=1 $0" >&2
+    exit 1
+  fi
+  echo "==> Developer-Key erzeugen (NEUE App-Identitaet)"
+  install -d -m 700 "$(dirname "$KEY")"
   openssl genrsa -out "$TMP/key.pem" 4096
-  openssl pkcs8 -topk8 -inform PEM -outform DER -in "$TMP/key.pem" \
-    -out "$DEST/developer_key.der" -nocrypt
+  openssl pkcs8 -topk8 -inform PEM -outform DER -in "$TMP/key.pem" -out "$KEY" -nocrypt
+  chmod 600 "$KEY"
 fi
-echo "    Key: $DEST/developer_key.der"
+echo "    Key: $KEY"
 
 rm -rf "$TMP"
 echo
 echo "Fertig. Nächster Schritt (einmalig, mit Garmin-Login am GUI-Rechner):"
 echo "  SDK-Manager starten -> einloggen -> Gerät 'fenix 7X Pro' herunterladen."
 echo "  (Device-Files landen in ~/.Garmin/ConnectIQ/Devices/)"
-echo "Dann:  SDK_HOME=$DEST ./build.sh"
+echo "Dann:  ./build.sh"

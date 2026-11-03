@@ -30,8 +30,8 @@ eingerichteten Rechner herüberkopieren.)
 
 ## Bauen & testen
 ```bash
-SDK_HOME=$HOME/connectiq-sdk-9.2.0 ./build.sh fenix7xpro   # -> bin/foil-fenix7xpro.prg
-$SDK_HOME/bin/monkeydo bin/foil-fenix7xpro.prg fenix7xpro  # Simulator
+./build.sh fenix7xpro   # -> bin/foil-fenix7xpro.prg (SDK ~/connectiq-sdk, Key ~/.connectiq)
+~/connectiq-sdk/bin/monkeydo bin/foil-fenix7xpro.prg fenix7xpro  # Simulator
 ```
 
 ## Auf die echte Uhr (Sideload, ohne Store)
