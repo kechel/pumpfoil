@@ -232,6 +232,19 @@ export default function TeamEinstellungen() {
         <Card className="mb-4 p-4">
           <h3 className="mb-1 font-semibold text-slate-100">{t("team.auftritt")}</h3>
           <p className="mb-3 text-sm text-slate-400">{t("team.auftrittHinweis")}</p>
+          {/* Herkunft (Jan, 03.11.2026): Land, Kontinent oder die ganze Erde — erscheint neben dem Team-Namen. Gilt sofort,
+              ohne Freigabe (nur Auswahl aus einer festen Liste); deshalb ganz oben und nicht ueber dem Speichern-Knopf. */}
+          <p className="mb-1 text-sm text-slate-300">{t("team.herkunft")}</p>
+          <div className="mb-3 flex items-center gap-3">
+            <select value={team.land ?? ""} onChange={(e) => einstellen({ land: e.target.value })} className={`${eingabe} max-w-sm`}>
+              <option value="">{t("profile.landNone")}</option>
+              {KONTINENTE.map((k) => <option key={k} value={k}>{herkunftName(k, lang, t)}</option>)}
+              <option disabled>──────────</option>
+              {LAENDER.map((c) => ({ c, n: landName(c, lang) })).sort((a, b) => a.n.localeCompare(b.n, lang))
+                .map(({ c, n }) => <option key={c} value={c}>{n}</option>)}
+            </select>
+            <TeamHerkunft land={team.land} gross />
+          </div>
           <div className="mb-3 flex items-center gap-3">
             <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={64} />
             <label className={`${knopf} cursor-pointer`}>
@@ -268,19 +281,6 @@ export default function TeamEinstellungen() {
                   style={teamFarbStil(f)} aria-label={f} />
               ))}
             </div>
-          </div>
-          {/* Herkunft (Jan, 03.11.2026): Land, Kontinent oder die ganze Erde — erscheint neben dem Team-Namen. Gilt sofort,
-              ohne Freigabe (nur Auswahl aus einer festen Liste). */}
-          <p className="mb-1 text-sm text-slate-300">{t("team.herkunft")}</p>
-          <div className="mb-3 flex items-center gap-3">
-            <select value={team.land ?? ""} onChange={(e) => einstellen({ land: e.target.value })} className={`${eingabe} max-w-sm`}>
-              <option value="">{t("profile.landNone")}</option>
-              {KONTINENTE.map((k) => <option key={k} value={k}>{herkunftName(k, lang, t)}</option>)}
-              <option disabled>──────────</option>
-              {LAENDER.map((c) => ({ c, n: landName(c, lang) })).sort((a, b) => a.n.localeCompare(b.n, lang))
-                .map(({ c, n }) => <option key={c} value={c}>{n}</option>)}
-            </select>
-            <TeamHerkunft land={team.land} gross />
           </div>
           <button onClick={() => einstellen({ name, slug: neuSlug, beschreibung })} className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold">
             {t("common.save")}
