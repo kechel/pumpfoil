@@ -750,8 +750,9 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
   const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
   const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
   const tag = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : "—");
+  // Kacheln je Spot, ab sm zwei-, ab xl dreispaltig (Jan, 03.11.2026: die Zeilen ueber volle Breite waren zu gross).
   return (
-    <div className="space-y-2">
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {liste.map((sp) => {
         const zahlen: [string, string][] = [
           [t("team.stat.sessions"), sp.sessions.toLocaleString()],
@@ -762,21 +763,23 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
         ];
         return (
           <Link key={sp.spot_id} to={`/sessions?spot=${sp.spot_id}`}
-            className="block rounded-2xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700">
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <LocationIcon className="h-4 w-4 shrink-0 self-center text-brand-400" />
+            className={`flex flex-col rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-600 ${sp.spot_id === homespotId ? "border-brand-500" : "border-slate-800"}`}>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <LocationIcon className="h-4 w-4 shrink-0 text-brand-400" />
               <span className="min-w-0 truncate font-semibold">{sp.name ?? "—"}</span>
               {sp.spot_id === homespotId && (
-                <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-slate-950">{t("foiler.homespot")}</span>
+                <span className="shrink-0 rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-slate-950">{t("foiler.homespot")}</span>
               )}
-              {sp.water && sp.water !== sp.name && <span className="truncate text-sm text-slate-400">{sp.water}</span>}
-              <span className="ml-auto whitespace-nowrap text-sm text-slate-400">{t("mySpots.last", { d: tag(sp.last) })} · {t("mySpots.since", { d: tag(sp.first) })}</span>
             </div>
-            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <div className="mt-0.5 truncate text-xs text-slate-400">
+              {sp.water && sp.water !== sp.name && <>{sp.water} · </>}
+              {t("mySpots.last", { d: tag(sp.last) })} · {t("mySpots.since", { d: tag(sp.first) })}
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-x-2 gap-y-1.5">
               {zahlen.map(([l, v]) => (
-                <div key={l} className="rounded-xl bg-slate-800/60 p-1.5 text-center">
-                  <div className="font-bold leading-tight text-brand-700 dark:text-brand-300">{v}</div>
-                  <div className="text-xs text-slate-400">{l}</div>
+                <div key={l} className="min-w-0">
+                  <div className="text-sm font-bold leading-tight text-brand-700 dark:text-brand-300">{v}</div>
+                  <div className="truncate text-xs text-slate-400">{l}</div>
                 </div>
               ))}
             </div>
