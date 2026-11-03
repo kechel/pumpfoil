@@ -8,7 +8,7 @@ export const BILD_B = 1080, BILD_H = 1080;
 const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
 export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean;
-  land?: string | null };   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
+  land?: string | null };   // Nationalitaet (ISO-Code) -> Flagge nach dem Profilkreis
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
@@ -94,14 +94,15 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.fillText(z.wert, BILD_B - X, mitte);
     const wb = g.measureText(z.wert).width;
     let nx = X + 70 + 2 * r + 24;
+    // Flagge 4:3 nach dem Profilkreis, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund). Der
+    // Platz bleibt auch ohne Flagge frei, damit die Namen buendig stehen (Jan, 03.11.2026).
     const fl = z.land ? d.flaggen?.[z.land] : undefined;
+    const fh = Math.round(gross * 0.8), fw = Math.round(fh * 4 / 3);
     if (fl) {
-      // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund).
-      const fh = Math.round(gross * 0.8), fw = Math.round(fh * 4 / 3);
       g.drawImage(fl, nx, mitte - fh / 2, fw, fh);
       g.strokeStyle = F.linie; g.lineWidth = 2; g.strokeRect(nx, mitte - fh / 2, fw, fh);
-      nx += fw + 16;
     }
+    nx += fw + 16;
     g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = F.text;
     g.fillText(kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx), nx, mitte);
   };

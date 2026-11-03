@@ -253,10 +253,10 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
             return (
               <li key={`${z.rang}-${z.user_id ?? z.name}`} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0">
                 <span className={`w-6 shrink-0 text-right text-sm font-bold ${z.rang <= 3 ? "team-akzent" : "text-slate-400"}`}>{z.rang}</span>
-                <Flagge land={z.land} />
                 {gast || !z.user_id ? (
                   <span className="team-farbe team-flaeche inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-slate-200">{z.initialen}</span>
                 ) : <Avatar name={z.name} url={z.avatar_url} seed={z.user_id} userId={z.user_id} size={28} linkState={zurueck} />}
+                <Flagge land={z.land} />
                 <span className="min-w-0 flex-1">
                   {gast || !z.user_id ? <span className="block truncate text-sm text-slate-100">{z.name ?? "—"}</span>
                     : <Link to={`/foiler/${z.user_id}`} state={zurueck} className="pf-name block truncate text-sm text-slate-100 hover:text-brand-400">{z.name ?? "—"}</Link>}
