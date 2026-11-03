@@ -568,7 +568,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
 }
 
 /** „Best bewertet" und „Meist kommentiert" (Jan, 03.11.2026) — dieselbe Liste, nur anders sortiert. */
-function TopLiked({ period, nach = "likes" }: { period: string; nach?: "likes" | "kommentare" }) {
+function TopLiked({ period, nach = "likes", oben = "mt-8" }: { period: string; nach?: "likes" | "kommentare"; oben?: string }) {
   const t = useT();
   const [items, setItems] = useState<CommunitySession[] | null>(null);
   useEffect(() => {
@@ -577,7 +577,7 @@ function TopLiked({ period, nach = "likes" }: { period: string; nach?: "likes" |
   if (!items || items.length === 0) return null;
   const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
-    <div className="mt-8">
+    <div className={oben}>
       <h3 className="mb-2 text-lg font-bold">
         {t(nach === "kommentare" ? "home.topCommented" : "home.topRated")}
         {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
@@ -790,8 +790,8 @@ function CommunitySection() {
         <LatestMedia key={`m${freunde}`} />
         {/* Dieselbe Zeitwahl wie bei der Bestenliste (Jan, 03.11.2026) — hier noch einmal, weil sie im Reiter Medien
             sonst nicht zu sehen ist. */}
-        <div className="mt-8 flex flex-wrap items-center gap-1">{zeitKnoepfe}</div>
-        <TopLiked key={`t${freunde}`} period={period} />
+        <div className="mt-6 flex flex-wrap items-center gap-1">{zeitKnoepfe}</div>
+        <TopLiked key={`t${freunde}`} period={period} oben="mt-3" />
         <TopLiked key={`k${freunde}`} period={period} nach="kommentare" />
         <SocialFeed />
         <LayoutTeaser />
