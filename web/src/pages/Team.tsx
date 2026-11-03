@@ -28,7 +28,7 @@ import { fehlerCode, kennzahl, sportartenText } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
 
 const ZEITRAEUME: [string, string][] = [
-  ["yesterday", "period.yesterday"], ["today", "period.today"], ["10d", "period.10d"], ["30d", "period.30d"], ["365d", "period.365d"], ["all", "period.all"],
+  ["today", "period.today"], ["yesterday", "period.yesterday"], ["10d", "period.10d"], ["30d", "period.30d"], ["365d", "period.365d"], ["all", "period.all"],
 ];
 
 type Kopf = Pick<TeamInfo, "name" | "slug" | "beschreibung" | "logo_url" | "farbe" | "mitglieder_anzahl"> & Partial<TeamInfo>;
