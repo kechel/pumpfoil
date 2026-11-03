@@ -6,6 +6,7 @@ import EventKurzKachel from "../components/EventKurzKachel";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
+import { Flagge } from "../components/Flagge";
 import { SocialFeed } from "../components/SocialFeed";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
@@ -316,6 +317,7 @@ function LeaderList({ rows, field, unit, fmt, me }: { rows: LeaderRow[]; field: 
     return (
       <div key={ich ? "ich" : r.name} className={`flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5 ${ich ? "ring-1 ring-cyan-400/60" : ""}`}>
         <span className="min-w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{platz}</span>
+        <Flagge land={r.land} />
         <Avatar name={r.name} url={r.avatar_url} userId={r.user_id} size={30} />
         {/* Einzellauf-Listen fuehren direkt zur Session (Jan, 01.11.2026). Das Profilbild bleibt eigener Link aufs
             Profil, deshalb ist nur der Rest der Zeile der Link (kein <a> im <a>). */}

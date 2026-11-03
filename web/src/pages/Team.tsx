@@ -10,6 +10,7 @@ import KachelUhr from "../components/KachelUhr";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatistik, TeamTafelMitZeilen } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
+import { Flagge } from "../components/Flagge";
 import { ChatBubbleIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import TeamQr from "../components/TeamQr";
@@ -252,6 +253,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
             return (
               <li key={`${z.rang}-${z.user_id ?? z.name}`} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0">
                 <span className={`w-6 shrink-0 text-right text-sm font-bold ${z.rang <= 3 ? "team-akzent" : "text-slate-400"}`}>{z.rang}</span>
+                <Flagge land={z.land} />
                 {gast || !z.user_id ? (
                   <span className="team-farbe team-flaeche inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-slate-200">{z.initialen}</span>
                 ) : <Avatar name={z.name} url={z.avatar_url} seed={z.user_id} userId={z.user_id} size={28} linkState={zurueck} />}
