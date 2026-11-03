@@ -853,7 +853,8 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     q = _community(db.query(S.id, S.started_at, S.trim_start_ms, S.place_lat, S.place_lon,
                             NAME, S.place_name, U.avatar_url, AR.track_preview,
                             func.concat_ws(":", func.pg_column_size(AR.segments_json), AR.num_runs,
-                                           AR.foiling_time_s, S.trim_start_ms)),
+                                           AR.foiling_time_s, S.trim_start_ms),
+                            AR.lauf_start_at, AR.lauf_ende_at),
                    viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     # „Ort verbergen" (Security-Review 29.10.2026): Early Bird/Night Owl SIND Ortszeit — der Wert neben
@@ -863,26 +864,32 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
         q = q.filter(_spot_cond(spot, db))
     rows: list[tuple] = []
     alle = q.all()
-    pruef_je = {r[0]: r[9] for r in alle if r[9]}
+    # Seit 03.11.2026 stehen die Lauf-Zeitpunkte in analysis_results (app/laufzeiten.py, von run_analysis gesetzt).
+    # Nur wo sie fehlen (noch nicht nachgetragen), wird wie bisher aus segments_json gerechnet.
+    pruef_je = {r[0]: r[9] for r in alle if r[9] and r[10] is None}
     fehlt = [sid for sid, p in pruef_je.items() if (sid, p) not in _SPANNEN]
     for i in range(0, len(fehlt), 1000):
         for sid, segs_json in (db.query(AR.session_id, AR.segments_json)
                                .filter(AR.session_id.in_(fehlt[i:i + 1000])).all()):
             if segs_json:
                 _spanne_merken(sid, pruef_je[sid], segs_json)
-    for sid, st, trim0, lat, lon, name, place, avatar, preview, pruef in alle:
-        if st is None or not pruef:
+    for sid, st, trim0, lat, lon, name, place, avatar, preview, pruef, lauf_a, lauf_e in alle:
+        if st is None:
             continue
-        spanne = _SPANNEN.get((sid, pruef))
-        if spanne is None:
-            continue
-        # Segment-Zeiten sind auf den Trim-Beginn re-based -> Offset zurueckrechnen.
-        off_ms = (trim0 or 0)
-        first_ms, last_ms = spanne
+        if lauf_a is not None and lauf_e is not None:
+            a_utc, e_utc = lauf_a, lauf_e
+        else:
+            spanne = _SPANNEN.get((sid, pruef)) if pruef else None
+            if spanne is None:
+                continue
+            # Segment-Zeiten sind auf den Trim-Beginn re-based -> Offset zurueckrechnen.
+            off_ms = (trim0 or 0)
+            a_utc = st + timedelta(milliseconds=off_ms + spanne[0])
+            e_utc = st + timedelta(milliseconds=off_ms + spanne[1])
         tz = tz_of(lat, lon)
-        start_loc = (st + timedelta(milliseconds=off_ms + first_ms)).astimezone(tz)
+        start_loc = a_utc.astimezone(tz)
         mitternacht = start_loc.replace(hour=0, minute=0, second=0, microsecond=0)
-        end_loc = (st + timedelta(milliseconds=off_ms + last_ms)).astimezone(tz)
+        end_loc = e_utc.astimezone(tz)
         rows.append((
             st, sid, name, place, avatar, preview, tz_name(lat, lon),
             (start_loc - mitternacht).total_seconds(),

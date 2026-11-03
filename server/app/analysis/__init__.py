@@ -1237,6 +1237,15 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         except Exception:  # noqa: BLE001
             db.rollback()
             logging.getLogger(__name__).exception("Brett-Lage vorrechnen fuer Session %s", session.id)
+    # Lauf-Zeitpunkte fuer Early Bird / Nachteule (03.11.2026, app/laufzeiten.py) — NACH den Brett-Regeln, die die
+    # Laeufe noch aendern koennen; pg-1 danach haengt nur Felder an. Darf die Analyse nie brechen.
+    try:
+        from ..laufzeiten import setzen as _lz_setzen
+        if _lz_setzen(session, result):
+            db.commit()
+    except Exception:  # noqa: BLE001
+        db.rollback()
+        logging.getLogger(__name__).exception("Lauf-Zeitpunkte fuer Session %s", session.id)
     # PUMP-/GLEIT-ERKENNUNG pg-1 (Weg B, Jans Entscheidung 23.10.2026): ZUSAETZLICH gespeichert (pg_*-Spalten,
     # pg_*-Schluessel je Lauf, metrics.pumpgleit); alle bisherigen Felder bleiben, wie sie oben geschrieben
     # wurden. Nur in der finalen Analyse gerechnet (Zwischenanalyse: pg-Felder leer). Welche Zahlen die

@@ -76,6 +76,9 @@ def test_bisherige_felder_bitgenau_und_pg_gesetzt(sitzung, monkeypatch):
     mit = (json.loads(r.segments_json), r.pump_count, r.best_glide_s, r.avg_cadence_hz, r.num_runs,
            {k: v for k, v in json.loads(r.metrics_json).items() if k != "pumpgleit"})
     assert _ohne_pg(mit[0]) == _ohne_pg(ohne[0]) and mit[1:] == ohne[1:]
+    # run_analysis setzt die Lauf-Zeitpunkte passend zu den gespeicherten Laeufen (app/laufzeiten.py, 03.11.2026).
+    from app.laufzeiten import zeitpunkte
+    assert (r.lauf_start_at, r.lauf_ende_at) == zeitpunkte(s.started_at, s.trim_start_ms, json.loads(r.segments_json))
     db.close()
 
 

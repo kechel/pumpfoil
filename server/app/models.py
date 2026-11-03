@@ -754,6 +754,10 @@ class AnalysisResult(Base):
     # _hr_foil; run_analysis setzt ihn zurueck.
     hr_foil_json: Mapped[str | None] = mapped_column(Text)
 
+    # Erster Lauf-Start / letztes Lauf-Ende (UTC), von run_analysis gesetzt (app/laufzeiten.py, 03.11.2026) — fuer
+    # Early Bird / Nachteule, ohne segments_json zu dekodieren. NULL = keine Laeufe oder noch nicht nachgetragen.
+    lauf_start_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lauf_ende_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     carve_s: Mapped[int | None] = mapped_column(Integer)
     carve_m: Mapped[int | None] = mapped_column(Integer)
     carve_l: Mapped[int | None] = mapped_column(Integer)
