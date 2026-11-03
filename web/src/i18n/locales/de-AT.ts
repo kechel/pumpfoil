@@ -2394,6 +2394,7 @@ const deAT: Record<string, string> = {
   "team.adresseAendernHinweis": "Alte Adressen leiten weiter, teilte Links bleiben gültig.",
   "team.beschreibung": "Beschreibung",
   "team.farbe": "Teamfarb",
+  "team.herkunft": "Land / Region",
   "team.logoHochladen": "Wappen raufladen",
   "team.banner.titel": "Teambild",
   "team.banner.hinweis": "Breites Bild über dem Teamkopf, am besten 1600 × 500 px (mindestens 800 px breit, deutlich breiter als hoch).",

@@ -2388,6 +2388,7 @@ const fr: Record<string, string> = {
   "team.adresseAendernHinweis": "Les anciennes adresses redirigent, les liens partagés restent valables.",
   "team.beschreibung": "Description",
   "team.farbe": "Couleur de l'équipe",
+  "team.herkunft": "Pays / région",
   "team.logoHochladen": "Importer un blason",
   "team.banner.titel": "Bannière de l'équipe",
   "team.banner.hinweis": "Image large au-dessus de l'en-tête de l'équipe, idéalement 1600 × 500 px (au moins 800 px de large, nettement plus large que haute).",

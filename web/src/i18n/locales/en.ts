@@ -2602,6 +2602,7 @@ const en: Record<string, string> = {
   "team.adresseAendernHinweis": "Old addresses redirect, so shared links keep working.",
   "team.beschreibung": "Description",
   "team.farbe": "Team colour",
+  "team.herkunft": "Country / region",
   "team.logoHochladen": "Upload crest",
   "team.banner.titel": "Team banner",
   "team.banner.hinweis": "Wide image above the team header, ideally 1600 × 500 px (at least 800 px wide, clearly wider than tall).",

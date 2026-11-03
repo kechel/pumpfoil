@@ -169,6 +169,23 @@ def mitglieder_team_ids(db: Session, uid: int) -> list[int]:
             .filter(M.user_id == uid, M.status == "aktiv", Tm.geloescht_am.is_(None)).all()]
 
 
+# Team-Herkunft (03.11.2026): ein Land (ISO 3166-1 alpha-2, gross) oder ein Kontinent bzw. die ganze Erde mit Praefix
+# „k:" — die Kontinent-Kuerzel AF/AS/NA/SA sind sonst auch Laendercodes (Afghanistan, Am.-Samoa, Namibia, Saudi-Arabien).
+KONTINENTE = ("k:earth", "k:eu", "k:af", "k:as", "k:na", "k:sa", "k:oc")
+
+
+def land_pruefen(v: str) -> str | None:
+    """"" -> keine Angabe (None); sonst Land oder Kontinent, alles andere ValueError."""
+    v = (v or "").strip()
+    if not v:
+        return None
+    if v.lower() in KONTINENTE:
+        return v.lower()
+    if re.fullmatch(r"[A-Za-z]{2}", v):
+        return v.upper()
+    raise ValueError(v)
+
+
 def oeffentlich_sichtbar(t: models.Team) -> bool:
     """Steht das Team nach aussen (Community-Abschnitt, Adresse fuer Nichtmitglieder)?"""
     return t.frei_am is not None
@@ -182,10 +199,11 @@ def auftritt(t: models.Team, intern: bool) -> dict:
     """Name/Adresse/Beschreibung/Logo/Teambild/Farbe — intern die aktuelle, aussen die freigegebene Fassung."""
     if intern:
         return {"name": t.name, "slug": t.slug, "beschreibung": t.beschreibung,
-                "logo_url": t.logo_url, "banner_url": t.banner_url, "banner_fokus": t.banner_fokus, "farbe": t.farbe}
+                "logo_url": t.logo_url, "banner_url": t.banner_url, "banner_fokus": t.banner_fokus, "farbe": t.farbe,
+                "land": t.land}
     return {"name": t.frei_name, "slug": t.frei_slug, "beschreibung": t.frei_beschreibung,
             "logo_url": t.frei_logo_url, "banner_url": t.frei_banner_url, "banner_fokus": t.banner_fokus,
-            "farbe": t.frei_farbe}
+            "farbe": t.frei_farbe, "land": t.land}
 
 
 AUFTRITT_FELDER = ("name", "slug", "beschreibung", "logo_url", "banner_url", "farbe")

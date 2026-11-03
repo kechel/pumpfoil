@@ -708,3 +708,15 @@ def test_event_uebersicht_seitenweise(client):
         return [e["titel"] for e in client.get(f"/api/teams/liste/events/alle?offset={offset}&n={n}", headers=kb).json()
                 if e["team"]["slug"] == slug]
     assert titel(0, 50) == ["Laeuft", "Bald", "Spaet", "Neu vorbei", "Alt"]
+
+
+def test_team_herkunft_land_kontinent_erde(client):
+    """Herkunft je Team (03.11.2026): Land, Kontinent mit k:-Praefix oder die ganze Erde; ohne Freigabe sofort sichtbar."""
+    _, kopf = _konto(client, "herkunft@t.de")
+    slug = _team(client, kopf, "Herkunft Test")
+    for rein, raus in (("pl", "PL"), ("k:EU", "k:eu"), ("k:earth", "k:earth"), ("", None)):
+        r = client.put(f"/api/teams/{slug}", headers=kopf, json={"land": rein})
+        assert r.status_code == 200, r.text
+        assert client.get(f"/api/teams/{slug}", headers=kopf).json()["land"] == raus
+    assert client.put(f"/api/teams/{slug}", headers=kopf, json={"land": "k:mars"}).status_code == 422
+    assert client.put(f"/api/teams/{slug}", headers=kopf, json={"land": "POL"}).status_code == 422

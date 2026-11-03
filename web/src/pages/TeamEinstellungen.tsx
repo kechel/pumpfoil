@@ -9,6 +9,8 @@ import { api, FoilBand, TeamInfo, TeamMitglied, TeamTafel } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
 import { TrashIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
+import { KONTINENTE, TeamHerkunft, herkunftName } from "../components/TeamHerkunft";
+import { LAENDER, landName } from "../lib/laender";
 import { BannerBearbeiten } from "../components/TeamBanner";
 import TeamQr from "../components/TeamQr";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
@@ -49,7 +51,7 @@ function Schalter({ an, onChange, titel, text }: { an: boolean; onChange: (v: bo
 export default function TeamEinstellungen() {
   const grund = useLocation().pathname.endsWith("/einstellungen");   // sonst /verwalten
   const { slug = "" } = useParams();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const nav = useNavigate();
   const [team, setTeam] = useState<TeamInfo | null>(null);
   const [fehlt, setFehlt] = useState(false);
@@ -266,6 +268,19 @@ export default function TeamEinstellungen() {
                   style={teamFarbStil(f)} aria-label={f} />
               ))}
             </div>
+          </div>
+          {/* Herkunft (Jan, 03.11.2026): Land, Kontinent oder die ganze Erde — erscheint neben dem Team-Namen. Gilt sofort,
+              ohne Freigabe (nur Auswahl aus einer festen Liste). */}
+          <p className="mb-1 text-sm text-slate-300">{t("team.herkunft")}</p>
+          <div className="mb-3 flex items-center gap-3">
+            <select value={team.land ?? ""} onChange={(e) => einstellen({ land: e.target.value })} className={`${eingabe} max-w-sm`}>
+              <option value="">{t("profile.landNone")}</option>
+              {KONTINENTE.map((k) => <option key={k} value={k}>{herkunftName(k, lang)}</option>)}
+              <option disabled>──────────</option>
+              {LAENDER.map((c) => ({ c, n: landName(c, lang) })).sort((a, b) => a.n.localeCompare(b.n, lang))
+                .map(({ c, n }) => <option key={c} value={c}>{n}</option>)}
+            </select>
+            <TeamHerkunft land={team.land} gross />
           </div>
           <button onClick={() => einstellen({ name, slug: neuSlug, beschreibung })} className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold">
             {t("common.save")}

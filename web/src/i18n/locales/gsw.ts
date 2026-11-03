@@ -2389,6 +2389,7 @@ const gsw: Record<string, string> = {
   "team.adresseAendernHinweis": "Alti Adrässe leited wiiter, teilti Links blibed gültig.",
   "team.beschreibung": "Beschriibig",
   "team.farbe": "Teamfarb",
+  "team.herkunft": "Land / Region",
   "team.logoHochladen": "Wappe uelade",
   "team.banner.titel": "Teambild",
   "team.banner.hinweis": "Breits Bild überem Teamchopf, am beschte 1600 × 500 px (mindeschtens 800 px breit, viel breiter als höch).",

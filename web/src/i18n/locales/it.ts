@@ -2388,6 +2388,7 @@ const it: Record<string, string> = {
   "team.adresseAendernHinweis": "I vecchi indirizzi reindirizzano, i link condivisi restano validi.",
   "team.beschreibung": "Descrizione",
   "team.farbe": "Colore del team",
+  "team.herkunft": "Paese / regione",
   "team.logoHochladen": "Carica stemma",
   "team.banner.titel": "Immagine del team",
   "team.banner.hinweis": "Immagine larga sopra l'intestazione del team, ideale 1600 × 500 px (almeno 800 px di larghezza, molto più larga che alta).",

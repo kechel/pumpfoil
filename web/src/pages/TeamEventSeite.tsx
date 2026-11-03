@@ -10,6 +10,7 @@ import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelM
 import { SettingsIcon } from "../components/Icons";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import TeamWappen from "../components/TeamWappen";
+import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
@@ -175,6 +176,7 @@ export default function TeamEventSeite() {
       <Link to={`/teams/${team.slug}`} className="mb-3 inline-flex items-center gap-2 text-sm text-slate-300 hover:text-slate-200">
         <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
         {team.name}
+        <TeamHerkunft land={team.land} />
       </Link>
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
       {ev.banner_url ? <TeamBanner url={ev.banner_url} fokus={ev.banner_fokus} className="mb-4" />

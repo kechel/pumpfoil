@@ -2930,6 +2930,10 @@ export default function SessionDetail() {
         <CompareHrStrips items={[{ key: `s${session.id}`, label: "", session, runIdx: null }]} />
       </div>
 
+      {/* Kommentare (02.11.2026) — auf der Chat-Technik, Raum session:<id>; nicht im geteilten Link. Direkt nach den
+          Auswertungen; Melde-Knoepfe, Einstellungen und Werkzeuge stehen alle darunter (Jan, 03.11.2026). */}
+      {!isPublic && <SessionKommentare session={session} owned={owned} />}
+
       {/* In der oeffentlichen Teilen-Ansicht KEINES von beiden: dort ist man evtl. nicht angemeldet,
           und beide Aktionen brauchen ein Konto (der Not-Pumpfoil-Knopf war schon vorher so gegated). */}
       {!owned && !isPublic && <ReportButtons sessionId={session.id} />}
@@ -3011,8 +3015,6 @@ export default function SessionDetail() {
         </div>
       )}
 
-      {/* Kommentare (02.11.2026) — auf der Chat-Technik, Raum session:<id>; nicht im geteilten Link. */}
-      {!isPublic && <SessionKommentare session={session} owned={owned} />}
 
       {owned && session.split_from != null && (
         <div className="mt-8 flex flex-wrap items-center gap-2 text-sm text-slate-400">

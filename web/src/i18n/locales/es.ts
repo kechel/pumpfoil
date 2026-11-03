@@ -2388,6 +2388,7 @@ const es: Record<string, string> = {
   "team.adresseAendernHinweis": "Las direcciones antiguas redirigen, así que los enlaces compartidos siguen funcionando.",
   "team.beschreibung": "Descripción",
   "team.farbe": "Color del equipo",
+  "team.herkunft": "País / región",
   "team.logoHochladen": "Subir escudo",
   "team.banner.titel": "Imagen del equipo",
   "team.banner.hinweis": "Imagen ancha sobre la cabecera del equipo, idealmente 1600 × 500 px (al menos 800 px de ancho, bastante más ancha que alta).",

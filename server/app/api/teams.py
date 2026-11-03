@@ -227,7 +227,7 @@ def _event_kurz(db: Session, e: models.TeamEvent, t: models.Team, intern: bool, 
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": T._aware(e.start).isoformat(),
             "ende": T._aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "status": T.event_status(e, jetzt),
             "sportarten": sportarten, "spots": spots,
-            "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}}
+            "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "land": a["land"]}}
 
 
 def _events_sichtbar(db: Session, uid: int):
@@ -650,6 +650,7 @@ class EinstellungenIn(BaseModel):
     oeffentlich: bool | None = None
     mitglieder_sichtbar: str | None = None
     banner_fokus: str | None = Field(default=None, pattern=r"^\d{1,3},\d{1,3}$")
+    land: str | None = Field(default=None, max_length=10)     # "" = keine Angabe
 
 
 @router.put("/{slug}")
@@ -678,6 +679,11 @@ def einstellen(slug: str, body: EinstellungenIn, user: models.User = Depends(cur
     if body.banner_fokus is not None:
         x, y = (min(100, int(v)) for v in body.banner_fokus.split(","))
         t.banner_fokus = f"{x},{y}"
+    if body.land is not None:
+        try:
+            t.land = T.land_pruefen(body.land)
+        except ValueError:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "land") from None
     if body.mitglieder_sichtbar is not None:
         if body.mitglieder_sichtbar not in ("mitglieder", "angemeldete"):
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "mitglieder_sichtbar")

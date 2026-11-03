@@ -2540,6 +2540,7 @@ const fi: Record<string, string> = {
   "team.adresseAendernHinweis": "Vanhat osoitteet ohjautuvat uuteen, joten jaetut linkit toimivat edelleen.",
   "team.beschreibung": "Kuvaus",
   "team.farbe": "Tiimin väri",
+  "team.herkunft": "Maa / alue",
   "team.logoHochladen": "Lataa tunnus",
   "team.banner.titel": "Tiimin banneri",
   "team.banner.hinweis": "Leveä kuva tiimin otsikon yläpuolella, mieluiten 1600 × 500 px (vähintään 800 px leveä, selvästi leveämpi kuin korkea).",

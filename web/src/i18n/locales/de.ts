@@ -2656,6 +2656,7 @@ const de: Record<string, string> = {
   "team.adresseAendernHinweis": "Alte Adressen leiten weiter, geteilte Links bleiben gültig.",
   "team.beschreibung": "Beschreibung",
   "team.farbe": "Teamfarbe",
+  "team.herkunft": "Land / Region",
   "team.logoHochladen": "Wappen hochladen",
   "team.banner.titel": "Teambild",
   "team.banner.hinweis": "Breites Bild über dem Teamkopf, am besten 1600 × 500 px (mindestens 800 px breit, deutlich breiter als hoch).",

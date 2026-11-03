@@ -2505,6 +2505,7 @@ const pt: Record<string, string> = {
   "team.adresseAendernHinweis": "Endereços antigos redirecionam, então links compartilhados continuam funcionando.",
   "team.beschreibung": "Descrição",
   "team.farbe": "Cor da equipe",
+  "team.herkunft": "País / região",
   "team.logoHochladen": "Enviar emblema",
   "team.banner.titel": "Banner da equipe",
   "team.banner.hinweis": "Imagem larga acima do cabeçalho da equipe, de preferência 1600 × 500 px (pelo menos 800 px de largura, bem mais larga do que alta).",

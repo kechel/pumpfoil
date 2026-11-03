@@ -2488,6 +2488,7 @@ const pl: Record<string, string> = {
   "team.adresseAendernHinweis": "Stare adresy przekierowują, udostępnione linki dalej działają.",
   "team.beschreibung": "Opis",
   "team.farbe": "Kolor drużyny",
+  "team.herkunft": "Kraj / region",
   "team.logoHochladen": "Wgraj herb",
   "team.banner.titel": "Baner drużyny",
   "team.banner.hinweis": "Szeroki obraz nad nagłówkiem drużyny, najlepiej 1600 × 500 px (co najmniej 800 px szerokości, wyraźnie szerszy niż wyższy).",

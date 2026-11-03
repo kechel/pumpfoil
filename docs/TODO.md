@@ -1582,6 +1582,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     letzten 5 Kommentare/Likes anderer an eigenen Sessions aus 14 Tagen, Likes je Session zusammengefasst), Flagge in den
     Bestenlisten nach dem Profilbild (Platz bleibt frei, auch im geteilten Bild; dort keine Initialen mehr), Puls-Kachel
     per Tippen Foil/gesamt. **Offen:** Apps — mit dem grossen Port.
+  - ✅ 03.11. Team-Herkunft: Land, Kontinent oder Erde (`teams.land`, „k:eu" … „k:earth"), in den Team-Einstellungen,
+    ohne Freigabe; neben dem Team-Namen als Flagge bzw. Kontinent-Umriss + Kuerzel (web/src/lib/kontinente.ts aus Natural
+    Earth, scripts/kontinente-erzeugen.py). Nationalitaet im Einrichtungs-Assistenten. **Offen:** Apps.
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
     gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.

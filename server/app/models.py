@@ -1979,6 +1979,9 @@ class Team(Base):
     # weil sie nur den Ausschnitt eines (freigegebenen) Bildes waehlt.
     banner_url: Mapped[str | None] = mapped_column(String(300))
     banner_fokus: Mapped[str | None] = mapped_column(String(12))
+    # Herkunft (03.11.2026): ISO-Land ("PL") oder Kontinent/Erde ("k:eu", "k:earth", s. teams.KONTINENTE). Wie
+    # `banner_fokus` ohne Freigabe — sie waehlt nur aus einer festen Liste, nichts Freies.
+    land: Mapped[str | None] = mapped_column(String(10))
     farbe: Mapped[str | None] = mapped_column(String(20))
     anmeldungen_zulassen: Mapped[bool] = mapped_column(Boolean, default=True)
     automatisch_akzeptieren: Mapped[bool] = mapped_column(Boolean, default=False)

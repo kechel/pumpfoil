@@ -2480,6 +2480,7 @@ const nb: Record<string, string> = {
   "team.adresseAendernHinweis": "Gamle adresser videresendes, så delte lenker fortsetter å virke.",
   "team.beschreibung": "Beskrivelse",
   "team.farbe": "Lagfarge",
+  "team.herkunft": "Land / region",
   "team.logoHochladen": "Last opp våpenskjold",
   "team.banner.titel": "Lagbanner",
   "team.banner.hinweis": "Bredt bilde over laghodet, helst 1600 × 500 px (minst 800 px bredt, tydelig bredere enn høyt).",

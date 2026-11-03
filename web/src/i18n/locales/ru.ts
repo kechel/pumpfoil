@@ -2505,6 +2505,7 @@ const ru: Record<string, string> = {
   "team.adresseAendernHinweis": "Старые адреса перенаправляют, отправленные ссылки продолжают работать.",
   "team.beschreibung": "Описание",
   "team.farbe": "Цвет команды",
+  "team.herkunft": "Страна / регион",
   "team.logoHochladen": "Загрузить эмблему",
   "team.banner.titel": "Баннер команды",
   "team.banner.hinweis": "Широкое изображение над шапкой команды, лучше всего 1600 × 500 px (не меньше 800 px в ширину, заметно шире, чем в высоту).",

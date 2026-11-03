@@ -2501,6 +2501,7 @@ const ja: Record<string, string> = {
   "team.adresseAendernHinweis": "古いアドレスは転送されるので、共有済みのリンクも引き続き使えます。",
   "team.beschreibung": "説明",
   "team.farbe": "チームカラー",
+  "team.herkunft": "国・地域",
   "team.logoHochladen": "エンブレムをアップロード",
   "team.banner.titel": "チームバナー",
   "team.banner.hinweis": "チームの見出しの上に表示する横長の画像。1600 × 500 px が理想です（幅 800 px 以上、高さより十分に横長）。",

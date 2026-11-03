@@ -2194,20 +2194,20 @@ export const api = {
 
 // ---- Teams ----
 export type TeamRolle = "leiter" | "moderator" | "mitglied";
-export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; banner_url?: string | null; banner_fokus?: string | null; sportarten?: string[] }
+export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; banner_url?: string | null; banner_fokus?: string | null; sportarten?: string[]; land?: string | null }
 export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null }
 /** Community-Seite: laufende und bald beginnende Events (ohne Bestenlisten) */
 export interface TeamEventKurz {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
   status: "kommend" | "laeuft" | "auswertung" | "beendet"; sportarten: string[]; spots: { id: number; name: string | null }[];
-  team: { slug: string; name: string; logo_url: string | null; farbe: string | null };
+  team: { slug: string; name: string; logo_url: string | null; farbe: string | null; land?: string | null };
 }
 export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean;
   sessions_30d?: number }   // Sessions der Mitglieder in 30 Tagen (02.11.2026, „aktivste Teams")
 export interface TeamEinstellungen {
   name: string; slug: string; beschreibung: string; farbe: string;
   anmeldungen_zulassen: boolean; automatisch_akzeptieren: boolean; oeffentlich: boolean;
-  mitglieder_sichtbar: "mitglieder" | "angemeldete"; banner_fokus: string;
+  mitglieder_sichtbar: "mitglieder" | "angemeldete"; banner_fokus: string; land: string;
 }
 export interface TeamInfo extends TeamAuftritt {
   id: number; mitglieder_anzahl: number; oeffentlich: boolean; bestenlisten_oeffentlich: boolean;

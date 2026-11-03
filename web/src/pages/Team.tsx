@@ -21,6 +21,7 @@ import TeamRegeln from "./TeamRegeln";
 import { eventStandKey } from "./TeamEventSeite";
 import type { TeamEvent } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
+import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
 import { teamFarbStil } from "../lib/teamFarben";
 import { fehlerCode, kennzahl, sportartenText } from "../lib/teamKennzahlen";
@@ -356,7 +357,7 @@ export default function Team() {
       <div className="team-rand mb-4 grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b-2 pb-4">
         <div className="row-span-3 self-center"><ZurueckPfeil fallback="/teams" /></div>
         <div className="row-span-3"><TeamWappen name={kopf.name} logo={kopf.logo_url} farbe={kopf.farbe} size={64} /></div>
-        <h2 className="team-akzent text-2xl font-bold leading-tight">{kopf.name}</h2>
+        <h2 className="team-akzent flex flex-wrap items-center gap-x-2 text-2xl font-bold leading-tight">{kopf.name}<TeamHerkunft land={kopf.land} gross /></h2>
         <div className="justify-self-end">
           {(kopf.meine_rolle === "leiter" || kopf.meine_rolle === "moderator") && (
             <Link to={`/teams/${kopf.slug}/verwalten`} title={t("team.tab.verwalten")}

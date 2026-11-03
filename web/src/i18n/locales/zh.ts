@@ -2502,6 +2502,7 @@ const zh: Record<string, string> = {
   "team.adresseAendernHinweis": "旧地址会自动跳转，已分享的链接仍然有效。",
   "team.beschreibung": "简介",
   "team.farbe": "团队颜色",
+  "team.herkunft": "国家/地区",
   "team.logoHochladen": "上传队徽",
   "team.banner.titel": "团队横幅",
   "team.banner.hinweis": "显示在团队标题上方的宽幅图片，最好是 1600 × 500 px（宽度至少 800 px，明显宽于高）。",

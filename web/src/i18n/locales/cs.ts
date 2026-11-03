@@ -2558,6 +2558,7 @@ const cs: Record<string, string> = {
   "team.adresseAendernHinweis": "Staré adresy přesměrují, sdílené odkazy dál fungují.",
   "team.beschreibung": "Popis",
   "team.farbe": "Barva týmu",
+  "team.herkunft": "Země / region",
   "team.logoHochladen": "Nahrát znak",
   "team.banner.titel": "Banner týmu",
   "team.banner.hinweis": "Široký obrázek nad hlavičkou týmu, ideálně 1600 × 500 px (aspoň 800 px na šířku, výrazně širší než vyšší).",

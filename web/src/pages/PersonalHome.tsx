@@ -8,6 +8,7 @@ import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
 import { api, Aktivitaet, CommunitySession, FoilStatsGroup, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
+import { TeamHerkunft } from "../components/TeamHerkunft";
 import { teamFarbStil } from "../lib/teamFarben";
 import { Avatar, Card, Spinner } from "../components/ui";
 import { ChatBubbleIcon, HeartIcon } from "../components/Icons";
@@ -705,7 +706,7 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
               style={teamFarbStil(m.farbe)}>
               <TeamWappen name={m.name} logo={m.logo_url} farbe={m.farbe} size={40} />
               <span className="min-w-0 flex-1">
-                <span className="team-akzent block truncate font-medium">{m.name}</span>
+                <span className="flex min-w-0 items-center gap-1.5"><span className="team-akzent truncate font-medium">{m.name}</span><TeamHerkunft land={m.land} /></span>
                 <span className="block text-xs text-slate-400">{t(`team.rolle.${m.rolle}`)}</span>
               </span>
               {m.anfragen > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{m.anfragen}</span>}

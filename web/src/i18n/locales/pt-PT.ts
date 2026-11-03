@@ -2499,6 +2499,7 @@ const ptPT: Record<string, string> = {
   "team.adresseAendernHinweis": "Os endereços antigos redirecionam, por isso os links partilhados continuam a funcionar.",
   "team.beschreibung": "Descrição",
   "team.farbe": "Cor da equipa",
+  "team.herkunft": "País / região",
   "team.logoHochladen": "Enviar emblema",
   "team.banner.titel": "Banner da equipa",
   "team.banner.hinweis": "Imagem larga por cima do cabeçalho da equipa, de preferência 1600 × 500 px (pelo menos 800 px de largura, bem mais larga do que alta).",

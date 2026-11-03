@@ -8,6 +8,7 @@ import { api, TeamKurz } from "../lib/api";
 import { Card } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
+import { TeamHerkunft } from "../components/TeamHerkunft";
 import { fehlerCode, sportartenText } from "../lib/teamKennzahlen";
 import { RegelnLink } from "./TeamRegeln";
 import { useI18n } from "../i18n";
@@ -61,7 +62,7 @@ export default function Teams() {
             <Link key={m.id} to={`/teams/${m.slug}`} className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800/60">
               <TeamWappen name={m.name} logo={m.logo_url} farbe={m.farbe} size={40} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium text-slate-100">{m.name}</span>
+                <span className="flex min-w-0 items-center gap-1.5"><span className="truncate font-medium text-slate-100">{m.name}</span><TeamHerkunft land={m.land} /></span>
                 <span className="block text-xs text-slate-400">
                   {m.status === "angefragt" ? t("team.join.wartet") : t(`team.rolle.${m.rolle}`)}
                   {m.freigabe && m.freigabe !== "frei" && <> · {t(`team.freigabe.${m.freigabe}`)}</>}

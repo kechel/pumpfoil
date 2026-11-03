@@ -2559,6 +2559,7 @@ const nl: Record<string, string> = {
   "team.adresseAendernHinweis": "Oude adressen sturen door, gedeelde links blijven werken.",
   "team.beschreibung": "Beschrijving",
   "team.farbe": "Teamkleur",
+  "team.herkunft": "Land / regio",
   "team.logoHochladen": "Embleem uploaden",
   "team.banner.titel": "Teambanner",
   "team.banner.hinweis": "Brede afbeelding boven de teamkop, het liefst 1600 × 500 px (minstens 800 px breed, duidelijk breder dan hoog).",

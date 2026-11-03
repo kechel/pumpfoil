@@ -2505,6 +2505,7 @@ const id: Record<string, string> = {
   "team.adresseAendernHinweis": "Alamat lama dialihkan, jadi tautan yang sudah dibagikan tetap berfungsi.",
   "team.beschreibung": "Deskripsi",
   "team.farbe": "Warna tim",
+  "team.herkunft": "Negara / wilayah",
   "team.logoHochladen": "Unggah lambang",
   "team.banner.titel": "Banner tim",
   "team.banner.hinweis": "Gambar lebar di atas kepala halaman tim, idealnya 1600 × 500 px (minimal lebar 800 px, jelas lebih lebar daripada tinggi).",
