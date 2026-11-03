@@ -100,10 +100,19 @@ export default function Foiler() {
   const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
 
+  // Erst die Seite ohne die Rekord-Titel, dann die Titel hinterher (03.11.2026): die Titel rechnen alle Community-
+  // Rekorde durch und hielten sonst die ganze Seite eine halbe Sekunde auf.
+  const laden = (uid: number) =>
+    api.foilerProfil(uid, false).then((x) => {
+      setD(x);
+      if (x.zeigt.titles) {
+        api.foilerTitel(uid).then((ti) => setD((alt) => (alt && alt.id === uid ? { ...alt, ...ti } : alt))).catch(() => {});
+      }
+    }).catch(() => setFehler(true));
   useEffect(() => {
     setD(null); setFehler(false); setGezeigt(24); setGalerie(null); setVideo(null);
-    api.foilerProfil(Number(id)).then(setD).catch(() => setFehler(true));
-  }, [id]);
+    laden(Number(id));
+  }, [id]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   if (fehler) {
     return (
@@ -181,7 +190,7 @@ export default function Foiler() {
                 onChange={(s) => {
                   // Bestaetigt oder beendet: die Seite neu laden — jetzt sieht man mehr bzw. weniger.
                   if (s === "freund" || d.freundschaft === "freund") {
-                    api.foilerProfil(d.id).then(setD).catch(() => setFehler(true));
+                    laden(d.id);
                   } else {
                     setD({ ...d, freundschaft: s });
                   }

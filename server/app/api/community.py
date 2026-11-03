@@ -2462,9 +2462,200 @@ def schutzgebiete(w: float = Query(...), s: float = Query(...), e: float = Query
     return im_ausschnitt(w, s, e, n)
 
 
+def _foiler_sicht(db: Session, user: models.User, user_id: int):
+    """Wer darf welche Teile der Foiler-Seite sehen — gemeinsam fuer die Seite und ihre Titel (Regeln s. foiler_profil)."""
+    from .settings import DEFAULTS, PUBLIC_PROFILE_KEYS
+    from ..freunde import ist_freund
+    u = db.get(models.User, user_id)
+    if u is None or u.hidden or u.blocked or not u.social_allowed:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    try:
+        einst = json.loads(u.settings_json or "{}") or {}
+    except ValueError:
+        einst = {}
+    sicht = dict(DEFAULTS["public_profile"])
+    sicht.update(einst.get("public_profile") or {})
+    # FREUNDE sehen die GANZE Seite (Jan, 15.10.2026): jeden Abschnitt, auch eine ganz abgeschaltete
+    # Seite. So steht es im Bestaetigungsdialog, einen Schalter dafuer gibt es bewusst nicht.
+    freund = ist_freund(db, user.id, u.id)
+    if freund:
+        sicht = {k: True for k in ("enabled",) + PUBLIC_PROFILE_KEYS}
+    # Der Nutzer selbst darf seine Seite immer sehen — sonst kann er nicht pruefen, was andere
+    # sehen, und genau das ist der Sinn der Schalter.
+    if not sicht.get("enabled") and u.id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    return u, einst, sicht, freund
+
+
+def _foiler_titel(db: Session, user: models.User, u: models.User) -> dict:
+    """„Haelt aktuell diese Rekorde" fuer die Foiler-Seite — der teure Teil (rechnet alle Community-Rekorde). Seit
+    03.11.2026 auch einzeln abrufbar (`/foiler/{id}/titel`), damit die Seite schon steht, bevor die Titel fertig sind."""
+    raus: dict = {}
+    # „Haelt aktuell diese Rekorde" — community-weit und je Spot, Fenster fest 12 Monate
+    # (Jan, 08.09.2026). Verglichen wird ueber den Anzeigenamen: `owner_label` ist
+    # deterministisch und Anzeigenamen sind eindeutig (ix_users_display_name).
+    #
+    # ALLE Kennzahlen, auch Early Bird / Nachteule / Carves (Jan: „es fehlen noch allerlei
+    # rekorde" — an seinem Spot hielt er genau die vier, die zuerst fehlten). Das kostet die
+    # eine schwere Abfrage von `_time_rows` (alle segments_json des Jahres, gemessen 200 ms
+    # fuer 1787 Sessions); sie laeuft dank `cache` genau EINMAL je Request und deckt beide
+    # Durchgaenge (community-weit + je Spot) ab.
+    #
+    # `carve_cache` steht absichtlich VORAB im Cache: `_carve_record` wuerde sonst
+    # `_fill_carve_cache` aufrufen und dabei fehlende Carve-Zahlen SCHREIBEN. Eine
+    # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
+    # 1787 community-sichtbaren Sessions haben den Cache, es fehlt nichts).
+    #
+    # ZWEI BASEN, zwei Zeilen (Jan, 08.09.2026). Vorgeschichte in einem Satz: erst rechnete
+    # die Seite ueber ALLE Aufnahmen, dann sah Jan, dass Markus in den Community-Rekorden
+    # viermal steht und auf seiner Profilseite einmal — die Bestenliste zeigt per Vorbelegung
+    # nur die praezisen Accel-Aufnahmen. Statt eine Basis zu waehlen und die andere Haelfte
+    # der Wahrheit zu verschweigen, liefert die Seite jetzt BEIDE: genau die zwei Zustaende,
+    # die der Umschalter auf der Community-Seite hat („nur Accel" / „alle"). Jeder Titel
+    # bleibt damit dort nachpruefbar — und Fahrer ohne Beschleunigungsdaten (Suunto/COROS/
+    # FIT-Importe, FR55) tauchen in der Zeile „alle" auf, statt titellos zu bleiben.
+    #
+    # Die zweite Zeile ist BEWUSST „nur GPS" und nicht „alle": `accel_only=False` ist nicht
+    # das Gegenteil von `True`, sondern die Summe aus beidem — dann stuende derselbe
+    # Accel-Rekord in beiden Zeilen und die zweite waere nichts als eine Wiederholung.
+    # Mit der disjunkten Haelfte vergleicht jede Zeile Gleiches mit Gleichem: eine Uhr ohne
+    # Bewegungssensor misst Strecke und Tempo, nur eben keine Pumps.
+    #
+    # `carve_cache` steht absichtlich vorab im Cache: `_carve_record` wuerde sonst
+    # `_fill_carve_cache` aufrufen und dabei fehlende Carve-Zahlen SCHREIBEN. Eine
+    # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
+    # 1787 community-sichtbaren Sessions haben den Cache).
+    mein = owner_label(u.display_name, u.id)
+    cut = _cutoff("365d")
+    cache: dict = {"carve_cache": True}
+    titel: list[dict] = []
+    for basis, nur_accel, nur_gps in (("accel", True, False), ("gps", False, True)):
+        for m in METRICS:
+            e = _record_entry(db, m, cut, viewer_id=user.id, accel_only=nur_accel,
+                              sport="pumpfoil", cache=cache, nur_gps=nur_gps)
+            if e.get("name") and e["name"] == mein:
+                titel.append({"metric": m, "value": e["value"], "basis": basis,
+                              "started_at": e.get("started_at"), "spot": e.get("spot"),
+                              "session_id": e.get("session_id")})
+    raus["titel"] = titel
+
+    # Die Spot-Zeilen bleiben EINE Basis, sonst waeren es zwei Zeilen je Spot (bei Markus
+    # acht statt vier). Genommen wird die, die der Fahrer selbst auf der Community-Seite
+    # vorgesetzt bekaeme — dieselbe Regel wie in der PWA (`useAccelDefault` ->
+    # `loadHasAccel`): mit eigenen Accel-Aufnahmen der Filter, ohne sie ohne ihn.
+    hat_accel = (_community(db.query(S.id), user.id, True, "pumpfoil")
+                 .filter(S.user_id == u.id).first() is not None)
+    basis_accel = bool(hat_accel)
+    raus["titel_accel"] = basis_accel     # damit die Seite sagen kann, worauf sie sich beruft
+
+    # Spot-Rekorde: EINE Abfrage je Kennzahl fuer ALLE Spots (Fensterfunktion), nicht eine
+    # je Spot — sonst waeren es bei einem Vielreisenden hundert Abfragen. Sessions ohne
+    # `spot_id` bleiben draussen, die haetten keinen Link.
+    spot_titel: list[dict] = []
+    for m in REC_COL:
+        valcol, _ = REC_COL[m]
+        rn = func.row_number().over(partition_by=S.spot_id, order_by=(valcol.desc(), S.started_at.asc(), S.id.asc())).label("rn")
+        sub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
+                                  valcol.label("val"), S.started_at.label("st"),
+                                  S.id.label("session_id"), rn),
+                         user.id, basis_accel, "pumpfoil")
+        # Verborgene Aufnahmen gehoeren zu keinem echten Spot (wie _spot_cond) — sonst verriete der
+        # Spot-Titel mit Link den echten Ort (Security-Review 29.10.2026).
+        sub = sub.filter(valcol > 0, S.spot_id.isnot(None), not_(_verborgen_cond(db)))
+        if cut is not None:
+            sub = _ab(sub, cut, S.started_at)
+        sub = sub.subquery()
+        for sid, val, st, ses_id in (db.query(sub.c.sid, sub.c.val, sub.c.st, sub.c.session_id)
+                                     .filter(sub.c.rn == 1, sub.c.uid == u.id).all()):
+            spot_titel.append({"metric": m, "value": round(float(val), 2), "spot_id": int(sid),
+                               "started_at": st.isoformat() if st else None,
+                               "session_id": ses_id})
+
+    # Early Bird / Nachteule je Spot: dieselben Zeilen wie community-weit, in Python nach
+    # Ortsnamen gruppiert (die Sekundenwerte haengen an der Spot-Zeitzone, nicht an SQL).
+    # Gleichstand behaelt die erste Zeile — genau wie in `_time_record`.
+    bestzeit: dict[tuple[str, str], tuple] = {}
+    for st, sid, name, place, _av, _pv, _tz, eb_val, no_val in _time_rows(
+            db, None, user.id, basis_accel, "pumpfoil", cache):
+        if not place or (cut is not None and st < cut):
+            continue
+        for m, val in (("early_bird", eb_val), ("night_owl", no_val)):
+            alt = bestzeit.get((m, place))
+            besser = alt is None or (val < alt[0] if m == "early_bird" else val > alt[0])
+            if besser:
+                bestzeit[(m, place)] = (val, sid, st, name)
+    zeit_sieger = [(m, w) for (m, _place), w in bestzeit.items() if w[3] == mein]
+    if zeit_sieger:
+        # Spot-ID der Sieger-Session nachziehen (die Zeilen kennen nur den Ortsnamen).
+        sids = dict(db.query(S.id, S.spot_id).filter(S.id.in_([w[1] for _m, w in zeit_sieger])).all())
+        for m, (val, sid, st, _n) in zeit_sieger:
+            if sids.get(sid):
+                spot_titel.append({"metric": m, "value": round(val, 2),
+                                   "spot_id": int(sids[sid]),
+                                   "started_at": st.isoformat() if st else None,
+                                   "session_id": sid})
+
+    # Carves >180° je Spot: Summe je (Spot, Nutzer), Sieger per Fensterfunktion UEBER der
+    # Gruppierung. Ohne `session_id`/Datum — der Rekord gehoert einem Zeitraum, nicht einer
+    # Session (s. `_carve_record`).
+    carve_summe = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
+    crn = func.row_number().over(partition_by=S.spot_id, order_by=carve_summe.desc()).label("rn")
+    csub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
+                               carve_summe.label("val"), crn),
+                      user.id, basis_accel, "pumpfoil")
+    csub = csub.filter(AR.carve_m.isnot(None), S.spot_id.isnot(None), not_(_verborgen_cond(db)))
+    if cut is not None:
+        csub = _ab(csub, cut, S.started_at)
+    csub = csub.group_by(S.spot_id, S.user_id).subquery()
+    for sid, val in (db.query(csub.c.sid, csub.c.val)
+                     .filter(csub.c.rn == 1, csub.c.uid == u.id, csub.c.val > 0).all()):
+        spot_titel.append({"metric": "carves180", "value": float(int(val)),
+                           "spot_id": int(sid), "started_at": None, "session_id": None})
+
+    # Ein Spot-Rekord ist nur etwas wert, wenn dort ueberhaupt jemand anderes faehrt
+    # (Jan, 08.09.2026): am eigenen Hausteich ohne Mitbewerber haelt man zwangslaeufig
+    # jeden Rekord. Statt sie zu verschweigen, wird der Spot als `allein` markiert — die
+    # Oberflaeche schreibt dort „Einzelkaempfer an diesem Spot" statt der Liste, das ist
+    # ehrlicher und liest sich besser als zehn Titel ohne Gegner.
+    # Gezaehlt wird im GLEICHEN Fenster wie die Rekorde selbst — wer vor drei Jahren
+    # einmal dort war, macht den Spot heute nicht umkaempft.
+    if spot_titel:
+        # Diese Zaehlung laeuft bewusst OHNE Accel-Filter (also nicht auf `basis_accel`):
+        # „Faehrt hier noch jemand?" ist eine Aussage ueber MENSCHEN, nicht ueber die
+        # Aufnahmequalitaet. Sonst waere jemand „einziger Foiler am Spot", nur weil die
+        # anderen dort mit einer GPS-Uhr oder per Konto-Import aufgezeichnet haben.
+        fahrer = _community(db.query(S.spot_id, func.count(func.distinct(S.user_id))),
+                            user.id, False, "pumpfoil")
+        fahrer = fahrer.filter(S.spot_id.in_({x["spot_id"] for x in spot_titel}))
+        if cut is not None:
+            fahrer = _ab(fahrer, cut, S.started_at)
+        genug = {sid for sid, n in fahrer.group_by(S.spot_id).all() if (n or 0) >= 2}
+        for x in spot_titel:
+            x["allein"] = x["spot_id"] not in genug
+    if spot_titel:
+        namen = dict(db.query(models.Spot.id, models.Spot.name)
+                     .filter(models.Spot.id.in_({x["spot_id"] for x in spot_titel})).all())
+        for x in spot_titel:
+            x["spot"] = namen.get(x["spot_id"]) or "—"
+        # Nach Spot gruppiert, innerhalb des Spots in der Reihenfolge der Rekord-Kacheln:
+        # sonst steht „Max. Puls" vor „Weitester Lauf" und die Seite liest sich zufaellig.
+        reihung = {m: i for i, m in enumerate(METRICS)}
+        spot_titel.sort(key=lambda x: (x["spot"], reihung.get(x["metric"], 99)))
+    raus["spot_titel"] = spot_titel
+    return raus
+
+
+@router.get("/foiler/{user_id}/titel")
+def foiler_titel(user_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Nur die Rekord-Titel der Foiler-Seite (03.11.2026) — das Web laedt die Seite mit `titel=false` und holt sie
+    hiernach, damit die Seite nicht auf den teuren Teil wartet. Dieselben Sichtbarkeitsregeln wie die Seite."""
+    u, _einst, sicht, _freund = _foiler_sicht(db, user, user_id)
+    return _foiler_titel(db, user, u) if sicht.get("titles") else {}
+
+
 @router.get("/foiler/{user_id}")
 def foiler_profil(user_id: int, user: models.User = Depends(current_user),
-                  db: Session = Depends(get_db)) -> dict:
+                  db: Session = Depends(get_db), titel: bool = Query(True)) -> dict:
     """Oeffentliche Foiler-Seite EINES Nutzers — nur was er selbst freigegeben hat.
 
     Anmeldung noetig, wie im ganzen Community-Bereich: die Seite ist fuer andere FOILER
@@ -2490,25 +2681,8 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
     from .settings import DEFAULTS, PUBLIC_PROFILE_KEYS
     from .sessions import compute_overall_stats
 
-    u = db.get(models.User, user_id)
-    if u is None or u.hidden or u.blocked or not u.social_allowed:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
-    try:
-        einst = json.loads(u.settings_json or "{}") or {}
-    except ValueError:
-        einst = {}
-    sicht = dict(DEFAULTS["public_profile"])
-    sicht.update(einst.get("public_profile") or {})
-    # FREUNDE sehen die GANZE Seite (Jan, 15.10.2026): jeden Abschnitt, auch eine ganz abgeschaltete
-    # Seite. So steht es im Bestaetigungsdialog, einen Schalter dafuer gibt es bewusst nicht.
-    from ..freunde import beziehung, ist_freund
-    freund = ist_freund(db, user.id, u.id)
-    if freund:
-        sicht = {k: True for k in ("enabled",) + PUBLIC_PROFILE_KEYS}
-    # Der Nutzer selbst darf seine Seite immer sehen — sonst kann er nicht pruefen, was andere
-    # sehen, und genau das ist der Sinn der Schalter.
-    if not sicht.get("enabled") and u.id != user.id:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    from ..freunde import beziehung
+    u, einst, sicht, freund = _foiler_sicht(db, user, user_id)
 
     raus: dict = {
         "id": u.id,
@@ -2680,158 +2854,8 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                                     .order_by(SN.updated_at.desc()).limit(50).all())
         ]
 
-    if sicht.get("titles"):
-        # „Haelt aktuell diese Rekorde" — community-weit und je Spot, Fenster fest 12 Monate
-        # (Jan, 08.09.2026). Verglichen wird ueber den Anzeigenamen: `owner_label` ist
-        # deterministisch und Anzeigenamen sind eindeutig (ix_users_display_name).
-        #
-        # ALLE Kennzahlen, auch Early Bird / Nachteule / Carves (Jan: „es fehlen noch allerlei
-        # rekorde" — an seinem Spot hielt er genau die vier, die zuerst fehlten). Das kostet die
-        # eine schwere Abfrage von `_time_rows` (alle segments_json des Jahres, gemessen 200 ms
-        # fuer 1787 Sessions); sie laeuft dank `cache` genau EINMAL je Request und deckt beide
-        # Durchgaenge (community-weit + je Spot) ab.
-        #
-        # `carve_cache` steht absichtlich VORAB im Cache: `_carve_record` wuerde sonst
-        # `_fill_carve_cache` aufrufen und dabei fehlende Carve-Zahlen SCHREIBEN. Eine
-        # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
-        # 1787 community-sichtbaren Sessions haben den Cache, es fehlt nichts).
-        #
-        # ZWEI BASEN, zwei Zeilen (Jan, 08.09.2026). Vorgeschichte in einem Satz: erst rechnete
-        # die Seite ueber ALLE Aufnahmen, dann sah Jan, dass Markus in den Community-Rekorden
-        # viermal steht und auf seiner Profilseite einmal — die Bestenliste zeigt per Vorbelegung
-        # nur die praezisen Accel-Aufnahmen. Statt eine Basis zu waehlen und die andere Haelfte
-        # der Wahrheit zu verschweigen, liefert die Seite jetzt BEIDE: genau die zwei Zustaende,
-        # die der Umschalter auf der Community-Seite hat („nur Accel" / „alle"). Jeder Titel
-        # bleibt damit dort nachpruefbar — und Fahrer ohne Beschleunigungsdaten (Suunto/COROS/
-        # FIT-Importe, FR55) tauchen in der Zeile „alle" auf, statt titellos zu bleiben.
-        #
-        # Die zweite Zeile ist BEWUSST „nur GPS" und nicht „alle": `accel_only=False` ist nicht
-        # das Gegenteil von `True`, sondern die Summe aus beidem — dann stuende derselbe
-        # Accel-Rekord in beiden Zeilen und die zweite waere nichts als eine Wiederholung.
-        # Mit der disjunkten Haelfte vergleicht jede Zeile Gleiches mit Gleichem: eine Uhr ohne
-        # Bewegungssensor misst Strecke und Tempo, nur eben keine Pumps.
-        #
-        # `carve_cache` steht absichtlich vorab im Cache: `_carve_record` wuerde sonst
-        # `_fill_carve_cache` aufrufen und dabei fehlende Carve-Zahlen SCHREIBEN. Eine
-        # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
-        # 1787 community-sichtbaren Sessions haben den Cache).
-        mein = owner_label(u.display_name, u.id)
-        cut = _cutoff("365d")
-        cache: dict = {"carve_cache": True}
-        titel: list[dict] = []
-        for basis, nur_accel, nur_gps in (("accel", True, False), ("gps", False, True)):
-            for m in METRICS:
-                e = _record_entry(db, m, cut, viewer_id=user.id, accel_only=nur_accel,
-                                  sport="pumpfoil", cache=cache, nur_gps=nur_gps)
-                if e.get("name") and e["name"] == mein:
-                    titel.append({"metric": m, "value": e["value"], "basis": basis,
-                                  "started_at": e.get("started_at"), "spot": e.get("spot"),
-                                  "session_id": e.get("session_id")})
-        raus["titel"] = titel
-
-        # Die Spot-Zeilen bleiben EINE Basis, sonst waeren es zwei Zeilen je Spot (bei Markus
-        # acht statt vier). Genommen wird die, die der Fahrer selbst auf der Community-Seite
-        # vorgesetzt bekaeme — dieselbe Regel wie in der PWA (`useAccelDefault` ->
-        # `loadHasAccel`): mit eigenen Accel-Aufnahmen der Filter, ohne sie ohne ihn.
-        hat_accel = (_community(db.query(S.id), user.id, True, "pumpfoil")
-                     .filter(S.user_id == u.id).first() is not None)
-        basis_accel = bool(hat_accel)
-        raus["titel_accel"] = basis_accel     # damit die Seite sagen kann, worauf sie sich beruft
-
-        # Spot-Rekorde: EINE Abfrage je Kennzahl fuer ALLE Spots (Fensterfunktion), nicht eine
-        # je Spot — sonst waeren es bei einem Vielreisenden hundert Abfragen. Sessions ohne
-        # `spot_id` bleiben draussen, die haetten keinen Link.
-        spot_titel: list[dict] = []
-        for m in REC_COL:
-            valcol, _ = REC_COL[m]
-            rn = func.row_number().over(partition_by=S.spot_id, order_by=(valcol.desc(), S.started_at.asc(), S.id.asc())).label("rn")
-            sub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
-                                      valcol.label("val"), S.started_at.label("st"),
-                                      S.id.label("session_id"), rn),
-                             user.id, basis_accel, "pumpfoil")
-            # Verborgene Aufnahmen gehoeren zu keinem echten Spot (wie _spot_cond) — sonst verriete der
-            # Spot-Titel mit Link den echten Ort (Security-Review 29.10.2026).
-            sub = sub.filter(valcol > 0, S.spot_id.isnot(None), not_(_verborgen_cond(db)))
-            if cut is not None:
-                sub = _ab(sub, cut, S.started_at)
-            sub = sub.subquery()
-            for sid, val, st, ses_id in (db.query(sub.c.sid, sub.c.val, sub.c.st, sub.c.session_id)
-                                         .filter(sub.c.rn == 1, sub.c.uid == u.id).all()):
-                spot_titel.append({"metric": m, "value": round(float(val), 2), "spot_id": int(sid),
-                                   "started_at": st.isoformat() if st else None,
-                                   "session_id": ses_id})
-
-        # Early Bird / Nachteule je Spot: dieselben Zeilen wie community-weit, in Python nach
-        # Ortsnamen gruppiert (die Sekundenwerte haengen an der Spot-Zeitzone, nicht an SQL).
-        # Gleichstand behaelt die erste Zeile — genau wie in `_time_record`.
-        bestzeit: dict[tuple[str, str], tuple] = {}
-        for st, sid, name, place, _av, _pv, _tz, eb_val, no_val in _time_rows(
-                db, None, user.id, basis_accel, "pumpfoil", cache):
-            if not place or (cut is not None and st < cut):
-                continue
-            for m, val in (("early_bird", eb_val), ("night_owl", no_val)):
-                alt = bestzeit.get((m, place))
-                besser = alt is None or (val < alt[0] if m == "early_bird" else val > alt[0])
-                if besser:
-                    bestzeit[(m, place)] = (val, sid, st, name)
-        zeit_sieger = [(m, w) for (m, _place), w in bestzeit.items() if w[3] == mein]
-        if zeit_sieger:
-            # Spot-ID der Sieger-Session nachziehen (die Zeilen kennen nur den Ortsnamen).
-            sids = dict(db.query(S.id, S.spot_id).filter(S.id.in_([w[1] for _m, w in zeit_sieger])).all())
-            for m, (val, sid, st, _n) in zeit_sieger:
-                if sids.get(sid):
-                    spot_titel.append({"metric": m, "value": round(val, 2),
-                                       "spot_id": int(sids[sid]),
-                                       "started_at": st.isoformat() if st else None,
-                                       "session_id": sid})
-
-        # Carves >180° je Spot: Summe je (Spot, Nutzer), Sieger per Fensterfunktion UEBER der
-        # Gruppierung. Ohne `session_id`/Datum — der Rekord gehoert einem Zeitraum, nicht einer
-        # Session (s. `_carve_record`).
-        carve_summe = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
-        crn = func.row_number().over(partition_by=S.spot_id, order_by=carve_summe.desc()).label("rn")
-        csub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
-                                   carve_summe.label("val"), crn),
-                          user.id, basis_accel, "pumpfoil")
-        csub = csub.filter(AR.carve_m.isnot(None), S.spot_id.isnot(None), not_(_verborgen_cond(db)))
-        if cut is not None:
-            csub = _ab(csub, cut, S.started_at)
-        csub = csub.group_by(S.spot_id, S.user_id).subquery()
-        for sid, val in (db.query(csub.c.sid, csub.c.val)
-                         .filter(csub.c.rn == 1, csub.c.uid == u.id, csub.c.val > 0).all()):
-            spot_titel.append({"metric": "carves180", "value": float(int(val)),
-                               "spot_id": int(sid), "started_at": None, "session_id": None})
-
-        # Ein Spot-Rekord ist nur etwas wert, wenn dort ueberhaupt jemand anderes faehrt
-        # (Jan, 08.09.2026): am eigenen Hausteich ohne Mitbewerber haelt man zwangslaeufig
-        # jeden Rekord. Statt sie zu verschweigen, wird der Spot als `allein` markiert — die
-        # Oberflaeche schreibt dort „Einzelkaempfer an diesem Spot" statt der Liste, das ist
-        # ehrlicher und liest sich besser als zehn Titel ohne Gegner.
-        # Gezaehlt wird im GLEICHEN Fenster wie die Rekorde selbst — wer vor drei Jahren
-        # einmal dort war, macht den Spot heute nicht umkaempft.
-        if spot_titel:
-            # Diese Zaehlung laeuft bewusst OHNE Accel-Filter (also nicht auf `basis_accel`):
-            # „Faehrt hier noch jemand?" ist eine Aussage ueber MENSCHEN, nicht ueber die
-            # Aufnahmequalitaet. Sonst waere jemand „einziger Foiler am Spot", nur weil die
-            # anderen dort mit einer GPS-Uhr oder per Konto-Import aufgezeichnet haben.
-            fahrer = _community(db.query(S.spot_id, func.count(func.distinct(S.user_id))),
-                                user.id, False, "pumpfoil")
-            fahrer = fahrer.filter(S.spot_id.in_({x["spot_id"] for x in spot_titel}))
-            if cut is not None:
-                fahrer = _ab(fahrer, cut, S.started_at)
-            genug = {sid for sid, n in fahrer.group_by(S.spot_id).all() if (n or 0) >= 2}
-            for x in spot_titel:
-                x["allein"] = x["spot_id"] not in genug
-        if spot_titel:
-            namen = dict(db.query(models.Spot.id, models.Spot.name)
-                         .filter(models.Spot.id.in_({x["spot_id"] for x in spot_titel})).all())
-            for x in spot_titel:
-                x["spot"] = namen.get(x["spot_id"]) or "—"
-            # Nach Spot gruppiert, innerhalb des Spots in der Reihenfolge der Rekord-Kacheln:
-            # sonst steht „Max. Puls" vor „Weitester Lauf" und die Seite liest sich zufaellig.
-            reihung = {m: i for i, m in enumerate(METRICS)}
-            spot_titel.sort(key=lambda x: (x["spot"], reihung.get(x["metric"], 99)))
-        raus["spot_titel"] = spot_titel
+    if sicht.get("titles") and titel:
+        raus.update(_foiler_titel(db, user, u))
 
     if sicht.get("sessions"):
         # Die letzten FUENF, in derselben Form wie die eigene Sessionliste (dieselbe Karte im

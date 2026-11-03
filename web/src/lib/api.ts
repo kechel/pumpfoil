@@ -1155,7 +1155,7 @@ export const api = {
 
   /** Oeffentliche Foiler-Seite eines Nutzers. Anmeldung noetig; was drin steht, entscheidet
    *  der Server nach den Schaltern des Nutzers (`public_profile` in den Einstellungen). */
-  foilerProfil: (id: number) => req<{
+  foilerProfil: (id: number, titel = true) => req<{
     supporter?: { stufe: number; tage_jahr: number };   // Supporter-Badge (23.10.2026)
     team_abzeichen?: TeamAbzeichen[];   // Event-Abzeichen, Plaetze 1–3 (Teams Stufe 3)
     id: number; name: string | null; avatar_url: string | null;
@@ -1185,7 +1185,9 @@ export const api = {
                    allein?: boolean }[];
     // Die letzten fuenf Sessions — dieselbe Form wie die eigene Liste, ohne Besitzer-Felder.
     sessions?: SessionSummary[];
-  }>(`/api/community/foiler/${id}`),
+  }>(`/api/community/foiler/${id}${titel ? "" : "?titel=false"}`),
+  // Nur die Rekord-Titel (03.11.2026): die Seite laedt ohne sie und holt sie danach.
+  foilerTitel: (id: number) => req<Pick<Awaited<ReturnType<typeof api.foilerProfil>>, "titel" | "spot_titel">>(`/api/community/foiler/${id}/titel`),
 
   // Der Changelog selbst — seit 07.09.2026 aus der Datenbank, nicht mehr fest im Code.
   // `plattform`/`version` sind fuer die nativen Apps gedacht (der Server markiert dann, was
