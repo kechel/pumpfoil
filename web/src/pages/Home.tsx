@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz, TeamListenEintrag } from "../lib/api";
+import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz, TeamListenEintrag, TeamVergleich, TeamVergleichKennzahl, TeamVergleichZeile } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
@@ -11,6 +11,9 @@ import { SocialFeed } from "../components/SocialFeed";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
 import TeamListenKachel from "../components/TeamListenKachel";
+import TeamWappen from "../components/TeamWappen";
+import { TeamHerkunft } from "../components/TeamHerkunft";
+import { teamFarbStil } from "../lib/teamFarben";
 import { initialenAus } from "../lib/bestenlisteBild";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
@@ -835,6 +838,7 @@ function TeamsSection() {
         <Link to="/teams/liste" className={KNOPF_WEITER}>{t("team.alle")} →</Link>
         <Link to="/teams" className={KNOPF_WEITER}>{t("team.gruenden")} →</Link>
       </div>
+      <TeamBestenlisten />
     </div>
   );
 }
@@ -853,6 +857,68 @@ function AktivsteTeams() {
     <div className="mt-8">
       <h3 className="mb-2 text-lg font-bold">{t("team.aktivste")}</h3>
       <div className="max-w-2xl space-y-2">{top.map((tm) => <TeamListenKachel key={tm.id} tm={tm} aktivitaet />)}</div>
+    </div>
+  );
+}
+
+/** Team-Bestenlisten (Jan, 03.11.2026: „leaderboards, aber eben nicht mit einzelpersonen sondern mit teams"): je Kennzahl
+ *  die Summe der besten 3/5/10 Fahrer eines Teams, damit ein grosses Team nicht allein durch seine Groesse gewinnt.
+ *  Gerechnet am Server fuer alle Teams gleich (T.vergleich), hier nur sortiert. */
+const VERGLEICH_ARTEN: [TeamVergleichKennzahl, string][] = [
+  ["pumps", "team.stat.pumps"], ["distance_m", "team.stat.strecke"], ["time_s", "team.stat.zeit"],
+  ["sessions", "team.stat.sessions"], ["runs", "team.stat.laeufe"],
+];
+
+function TeamBestenlisten() {
+  const t = useT();
+  const [period, setPeriod] = useState("30d");
+  const [top, setTop] = useState(5);
+  const [art, setArt] = useState<TeamVergleichKennzahl>("pumps");
+  const [d, setD] = useState<TeamVergleich | null>(null);
+  useEffect(() => {
+    let aktiv = true;
+    api.teamsVergleich(period, top).then((x) => { if (aktiv) setD(x); }).catch(() => {});
+    return () => { aktiv = false; };
+  }, [period, top]);
+  const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
+  const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
+  const wert = (z: TeamVergleichZeile) => (art === "distance_m" ? km(z[art]) : art === "time_s" ? zeit(z[art]) : z[art].toLocaleString());
+  const zeilen = (d?.teams ?? []).filter((z) => z[art] > 0).sort((a, b) => b[art] - a[art] || a.name.localeCompare(b.name));
+  const knopf = (an: boolean) => `rounded-lg px-2.5 py-1 text-xs ${an ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`;
+  return (
+    <div className="mt-8">
+      <h3 className="mb-1 text-lg font-bold">{t("team.vergleich.titel")}</h3>
+      <p className="mb-2 text-sm text-slate-400">{t("team.vergleich.hinweis", { n: String(top) })}</p>
+      <div className="mb-2 flex flex-wrap items-center gap-1">
+        {PERIODS.map(([k, lk]) => <button key={k} onClick={() => setPeriod(k)} className={knopf(period === k)}>{t(lk)}</button>)}
+        <span className="ml-auto flex gap-1">
+          {[3, 5, 10].map((n) => <button key={n} onClick={() => setTop(n)} className={knopf(top === n)}>{t("team.vergleich.top", { n: String(n) })}</button>)}
+        </span>
+      </div>
+      <div className="mb-3 flex flex-wrap gap-1" role="tablist">
+        {VERGLEICH_ARTEN.map(([k, lk]) => (
+          <button key={k} role="tab" aria-selected={art === k} onClick={() => setArt(k)} className={knopf(art === k)}>{t(lk)}</button>
+        ))}
+      </div>
+      {!d ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : zeilen.length === 0
+        ? <p className="text-sm text-slate-400">{t("team.vergleich.leer")}</p> : (
+        <div className="max-w-2xl space-y-2">
+          {zeilen.map((z, i) => (
+            <Link key={z.slug} to={`/teams/${z.slug}`} style={teamFarbStil(z.farbe)}
+              className="team-farbe flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700">
+              <span className="w-6 shrink-0 text-center text-lg font-bold tabular-nums text-slate-400">{i + 1}</span>
+              <TeamWappen name={z.name} logo={z.logo_url} farbe={z.farbe} size={40} />
+              <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                <span className="team-akzent truncate font-semibold">{z.name}</span><TeamHerkunft land={z.land} />
+              </span>
+              <span className="shrink-0 text-right text-xs text-slate-400">
+                <span className="team-akzent block text-base font-bold tabular-nums">{wert(z)}</span>
+                {t("team.vergleich.ausFahrern", { n: String(z[`${art}_fahrer`]) })}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

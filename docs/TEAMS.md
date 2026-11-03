@@ -323,6 +323,19 @@ Einladungslinks in der App, Event-Abzeichen auf der Foiler-Seite; Verwaltung ble
 (`team_abzeichen` kommt schon mit `GET /api/community/foiler/{id}`). Verwaltung/Einstellungen koennen vorerst im Web
 bleiben (Link „im Browser oeffnen").
 
+## Team-Bestenlisten auf Community › Teams & Events (gebaut 03.11.2026, nur Web)
+
+Jan: „leaderboards, aber eben nicht mit einzelpersonen sondern mit teams“, mit Umschalter beste 3 / 5 / 10 Fahrer neben
+den ueblichen Zeitraeumen. `GET /api/teams/liste/vergleich?period=&top=` (`T.vergleich`), Abschnitt `TeamBestenlisten`
+in `web/src/pages/Home.tsx`, Test `test_team_vergleich_beste_n`.
+- **Kennzahlen:** Pumps, On-Foil-Strecke, On-Foil-Zeit, Sessions, Laeufe. Je Kennzahl die Summe der besten N Fahrer
+  (je Kennzahl eigene Auswahl), daneben „aus N Fahrern“. Standard N = 5, Zeitraum 30 Tage.
+- **Fuer alle Teams gleich gemessen:** Pumpfoil, Laeufe ohne Bewegungsdaten zaehlen mit, alle Spots; die eigenen
+  Filter der Team-Tafeln gelten hier nicht (sonst nicht vergleichbar). Pumps gibt es naturgemaess nur mit Bewegungsdaten.
+- **Welche Teams:** nur freigegebene mit oeffentlichen Bestenlisten. Mitglied in zwei Teams zaehlt fuer beide,
+  Sessions vor dem Beitritt zaehlen mit (wie in den Team-Tafeln). Sichtbar fuer Eingeloggte.
+- **Offen:** Apps (mit dem grossen Port); spaeter Filter nach Land/Region, Chronik „hat die Fuehrung uebernommen“.
+
 ## Ideen: Team gegen Team und Abzeichen (Plan, 01.11.2026)
 
 Zwei Vorschlaege eines Nutzers (u963, 1:1-Chat mit Jan, 01.11.2026). Beide stehen als Satz unter „Ideas for future

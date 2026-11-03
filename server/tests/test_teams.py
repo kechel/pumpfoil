@@ -720,3 +720,48 @@ def test_team_herkunft_land_kontinent_erde(client):
         assert client.get(f"/api/teams/{slug}", headers=kopf).json()["land"] == raus
     assert client.put(f"/api/teams/{slug}", headers=kopf, json={"land": "k:mars"}).status_code == 422
     assert client.put(f"/api/teams/{slug}", headers=kopf, json={"land": "POL"}).status_code == 422
+
+
+def _freigeben(client, adm, ka, slug):
+    client.put(f"/api/teams/{slug}", headers=ka, json={"oeffentlich": True})
+    client.post(f"/api/teams/{slug}/freigabe", headers=ka)
+    tid = next(x["id"] for x in client.get("/api/admin/teams", headers=adm).json() if x["neu"]["slug"] == slug)
+    client.post(f"/api/admin/teams/{tid}", headers=adm, json={"ok": True})
+
+
+def test_team_vergleich_beste_n(client):
+    """Team-Bestenlisten (03.11.2026): je Kennzahl Summe der besten N Fahrer; nur freigegebene, oeffentliche Teams."""
+    from app import models
+    from app.db import SessionLocal
+    adm = _admin(client, "tv-adm@t.de")
+    konten = [_konto(client, f"tv-{i}@t.de") for i in range(3)]
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()                       # Registrieren ist auf 5 je Stunde begrenzt
+    db.commit()
+    db.close()
+    konten += [_konto(client, f"tv-{i}@t.de") for i in range(3, 6)]
+    (ia, ka), (ib, kb), (ic, kc), (id_, kd), (ie, ke), (ig, kg) = konten
+    gross = _team(client, ka, "Vergleich Gross")
+    links = client.get(f"/api/teams/{gross}/einladungen", headers=ka).json()
+    for k in (kb, kc, kd):
+        client.post(f"/api/teams/einladung/{links['join']}", headers=k)
+    klein = _team(client, ke, "Vergleich Klein")
+    privat = _team(client, kg, "Vergleich Privat")          # nie freigegeben -> taucht nicht auf
+    _freigeben(client, adm, ka, gross)
+    _freigeben(client, adm, ke, klein)
+    for uid, p in ((ia, 400), (ib, 300), (ic, 200), (id_, 100), (ie, 600), (ig, 5000)):
+        _session(uid, p)
+    _session(ia, 50, tage=40)                                 # ausserhalb von 30 Tagen
+
+    def stand(top):
+        d = client.get(f"/api/teams/liste/vergleich?period=30d&top={top}", headers=kb).json()
+        assert d["top"] == top
+        return {x["slug"]: x for x in d["teams"]}
+
+    s3 = stand(3)
+    assert privat not in s3
+    assert s3[gross]["pumps"] == 900 and s3[gross]["pumps_fahrer"] == 3 and s3[gross]["aktive"] == 4
+    assert s3[klein]["pumps"] == 600 and s3[klein]["sessions"] == 1 and s3[klein]["runs"] == 3
+    s5 = stand(5)
+    assert s5[gross]["pumps"] == 1000 and s5[gross]["sessions"] == 4 and s5[gross]["distance_m"] == 1200.0
+    assert client.get("/api/teams/liste/vergleich?top=7", headers=kb).json()["top"] == 5   # nur 3/5/10

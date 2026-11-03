@@ -2154,6 +2154,7 @@ export const api = {
   teamsMine: () => req<TeamKurz[]>("/api/teams/mine"),
   teamsListe: () => req<TeamListenEintrag[]>("/api/teams/liste"),
   teamsEventsAktuell: () => req<TeamEventKurz[]>("/api/teams/liste/events"),
+  teamsVergleich: (period: string, top: number) => req<TeamVergleich>(`/api/teams/liste/vergleich?period=${period}&top=${top}`),
   teamsEventsAlle: (offset: number, n: number) => req<TeamEventKurz[]>(`/api/teams/liste/events/alle?offset=${offset}&n=${n}`),
   teamSlug: (q: { name?: string; slug?: string; team_id?: number }) =>
     req<{ slug: string; frei: boolean; fehler: string | null }>(`/api/teams/slug?${new URLSearchParams(
@@ -2226,6 +2227,11 @@ export const api = {
 export type TeamRolle = "leiter" | "moderator" | "mitglied";
 export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; banner_url?: string | null; banner_fokus?: string | null; sportarten?: string[]; land?: string | null }
 export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null }
+/** Team-Bestenlisten der Community (03.11.2026): je Kennzahl Summe der besten `top` Fahrer, `<k>_fahrer` = wie viele davon. */
+export type TeamVergleichKennzahl = "pumps" | "distance_m" | "time_s" | "sessions" | "runs";
+export type TeamVergleichZeile = Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> & { mitglieder: number; aktive: number }
+  & Record<TeamVergleichKennzahl | `${TeamVergleichKennzahl}_fahrer`, number>;
+export interface TeamVergleich { period: string; top: number; teams: TeamVergleichZeile[] }
 /** Community-Seite: laufende und bald beginnende Events (ohne Bestenlisten) */
 export interface TeamEventKurz {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;

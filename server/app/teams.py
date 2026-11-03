@@ -563,6 +563,58 @@ def statistik(db: Session, team: models.Team, period: str, sportart: str = "pump
     return out
 
 
+VERGLEICH_KENNZAHLEN = ("pumps", "distance_m", "time_s", "sessions", "runs")
+VERGLEICH_TOP = (3, 5, 10)
+
+
+def vergleich(db: Session, period: str, top: int, sportart: str = "pumpfoil") -> list[dict]:
+    """Team-Bestenlisten (Jan, 03.11.2026: „leaderboards, aber eben nicht mit einzelpersonen sondern mit teams"):
+    je Kennzahl die Summe der besten `top` Fahrer eines Teams — so gewinnt ein grosses Team nicht allein durch seine
+    Groesse (Vorschlag u963, WOO Sports). Je Kennzahl zaehlen die jeweils besten N, nicht ueber alle dieselben.
+    Nur freigegebene Teams mit oeffentlichen Bestenlisten (wer nur Mitgliedern zeigt, zeigt auch hier nichts) und fuer
+    alle gleich gemessen: die eigenen Filter der Teams gelten nicht, Laeufe ohne Bewegungsdaten zaehlen mit.
+    Mitglied in zwei Teams zaehlt fuer beide; Sessions vor dem Beitritt zaehlen wie in den Team-Tafeln."""
+    from .api import community as C
+    from . import pumpgleit_anzeige as PA
+
+    key = ("vergleich", period, top, sportart)
+    hit = _cache_holen(key)
+    if hit is not None:
+        return hit
+    teams = [t for t in db.query(models.Team).filter(models.Team.frei_am.isnot(None),
+                                                     models.Team.geloescht_am.is_(None)).all()
+             if bestenlisten_oeffentlich(t)]
+    mitglieder = {t.id: mitglieder_ids(db, t.id) for t in teams}
+    alle = sorted({u for ids in mitglieder.values() for u in ids})
+    je_person: dict[int, dict] = {}
+    if alle:
+        S, AR = C.S, C.AR
+        q = C._community(db.query(
+            S.user_id, func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0),
+            func.coalesce(func.sum(PA.col_pump_count()), 0), func.coalesce(func.sum(AR.foiling_distance_m), 0),
+            func.coalesce(func.sum(AR.foiling_time_s), 0),
+        ), None, False, sportart).filter(S.user_id.in_(alle))
+        q = C._ab(q, C._cutoff(period), S.started_at).group_by(S.user_id)
+        for uid, n, runs, pumps, dist, zeit in q.all():
+            je_person[uid] = {"sessions": int(n or 0), "runs": int(runs or 0), "pumps": int(pumps or 0),
+                              "distance_m": float(dist or 0), "time_s": float(zeit or 0)}
+    out = []
+    for t in teams:
+        werte = [je_person[u] for u in mitglieder[t.id] if u in je_person]
+        if not werte:
+            continue
+        summe = {}
+        for k in VERGLEICH_KENNZAHLEN:
+            beste = sorted((w[k] for w in werte if w[k] > 0), reverse=True)[:top]
+            summe[k] = round(sum(beste), 1) if k in ("distance_m", "time_s") else int(sum(beste))
+            summe[f"{k}_fahrer"] = len(beste)
+        a = auftritt(t, False)
+        out.append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"],
+                    "land": a["land"], "mitglieder": len(mitglieder[t.id]), "aktive": len(werte), **summe})
+    _cache_setzen(key, out)
+    return out
+
+
 # ------------------------------------------------------------------------------ Logbuch ----
 
 def schluessel(tf: models.TeamTafel) -> str:

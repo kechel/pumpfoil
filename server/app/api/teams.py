@@ -242,6 +242,16 @@ def _events_sichtbar(db: Session, uid: int):
     return q, eigene
 
 
+@router.get("/liste/vergleich")
+def vergleich(period: str = "30d", top: int = 5, _u: models.User = Depends(current_user),
+              db: Session = Depends(get_db)) -> dict:
+    """Team-Bestenlisten der Community: je Kennzahl die Summe der besten 3/5/10 Fahrer eines Teams (T.vergleich)."""
+    from .community import PERIODS
+    period = period if period in PERIODS else "30d"
+    top = top if top in T.VERGLEICH_TOP else 5
+    return {"period": period, "top": top, "teams": T.vergleich(db, period, top)}
+
+
 @router.get("/liste/events")
 def liste_events(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Community-Abschnitt (Jan, 01.11.2026): laufende Events und solche, die in den naechsten Tagen beginnen
