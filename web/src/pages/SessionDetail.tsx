@@ -2241,7 +2241,7 @@ export default function SessionDetail() {
             01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert. */}
         {m?.avg_hr_foil != null
           ? <Stat label={t("sd.avgHrFoil")} value={String(m.avg_hr_foil)}
-              sub={m.avg_hr != null ? `bpm · ${t("sd.avgHrGesamt", { n: String(m.avg_hr) })}` : "bpm"} />
+              sub="bpm" note={m.avg_hr != null ? t("sd.avgHrGesamt", { n: String(m.avg_hr) }) : undefined} />
           : <Stat label={t("sd.avgHr")} value={m?.avg_hr != null ? String(m.avg_hr) : "–"} sub="bpm" />}
         <Stat label={t("sd.maxHr")} value={m?.max_hr != null ? String(m.max_hr) : "–"} sub="bpm" />
         <ClickStat label={t("rec.longestRun")} value={longSeg.v != null ? fmtMMSS(longSeg.v) : "–"} sub="min:s"

@@ -115,7 +115,7 @@ export function InfoKnopf({ label, onClick }: { label: string; onClick: () => vo
   );
 }
 
-export function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+export function Stat({ label, value, sub, note }: { label: string; value: string; sub?: string; note?: string }) {
   return (
     <Card className="overflow-hidden p-1.5">
       <div className="flex items-baseline gap-1 leading-none">
@@ -123,6 +123,8 @@ export function Stat({ label, value, sub }: { label: string; value: string; sub?
         {sub && <span className="truncate text-[11px] font-normal text-slate-400">{sub}</span>}
       </div>
       <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{label}</div>
+      {/* Zweitwert in eigener Zeile — neben der Hauptzahl wurde er auf schmalen Kacheln abgeschnitten (03.11.2026). */}
+      {note && <div className="mt-0.5 truncate text-[11px] leading-tight text-slate-400">{note}</div>}
     </Card>
   );
 }
