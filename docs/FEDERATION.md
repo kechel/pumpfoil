@@ -231,8 +231,9 @@ Backup, Failover) ist Ausbau; die erste nutzbare Fassung (v2) liefert genau das.
 - **Herkunft sichtbar:** jede Zeile trägt die Heimat-Instanz (Kürzel oder Flagge).
 - **Aktualität:** neue Session → Echtzeit-Anstoß an die Partner, die Liste ist nach Sekunden da;
   fällt der Anstoß aus, kommt der Eintrag mit dem nächsten Abruf (s. Protokoll).
-- **Nur wer zustimmt:** in der globalen Liste stehen nur Nutzer mit Stufe ≥ 1. Die lokale Liste
-  einer Instanz bleibt, wie sie ist.
+- **Alle sind drin:** Stufe 1 ist der Grundaustausch, also steht jeder in der globalen Liste, der
+  auch in der lokalen steht (raus nur per Widerspruch). Session-Details sieht eine Partner-Instanz
+  erst mit Stufe 2, die jeder Nutzer selbst wählt.
 - **Fairness:** verglichen wird nur Vergleichbares (s. „Vergleichbarkeit"); GPS-Werte zuerst.
   Die empfangende Instanz prüft jeden Eintrag gegen dieselben Plausibilitätsgrenzen wie eigene
   Sessions (Grenzen je Sportart, Autofahrt-Erkennung) und zeigt Ausreißer nicht an. Damit wird
