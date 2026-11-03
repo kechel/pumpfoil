@@ -89,3 +89,25 @@ def test_meist_kommentiert(client):
     assert client.put("/api/settings", headers=ka, json={"comments_off": True}).status_code == 200
     r = client.get("/api/community/top-commented", params={"limit": 20}, headers=kb).json()
     assert s1 not in [x["session_id"] for x in r] and s2 not in [x["session_id"] for x in r]
+
+
+def test_zeitraum_gilt_fuer_kommentar_und_like_nicht_fuer_fahrt(client):
+    """„Heute" zeigt, was heute kommentiert/geliked wurde — auch an einer aelteren Session (Jan, 03.11.2026)."""
+    from app import models
+    from app.db import SessionLocal
+    (a, ka), (b, kb) = _konto(client, "a"), _konto(client, "b")
+    sid = _session(a)
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, sid)
+        s.started_at = s.started_at - timedelta(days=20); s.ended_at = s.ended_at - timedelta(days=20)
+        db.commit()
+    finally:
+        db.close()
+    _kommentar(client, kb, sid, "spaet, aber gern")
+    _like(client, kb, sid)
+    for pfad in ("top-commented", "top-liked"):
+        r = client.get(f"/api/community/{pfad}", params={"period": "today", "limit": 20}, headers=kb).json()
+        assert sid in [x["session_id"] for x in r], pfad
+        r = client.get(f"/api/community/{pfad}", params={"period": "yesterday", "limit": 20}, headers=kb).json()
+        assert sid not in [x["session_id"] for x in r], pfad

@@ -2941,14 +2941,11 @@ def top_liked(
     period: str = "all", limit: int = 3,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
-    likes_sq = (
-        db.query(models.SessionLike.session_id, func.count().label("n"))
-        .group_by(models.SessionLike.session_id).subquery()
-    )
+    # Der Zeitraum gilt fuer die LIKES, nicht fuers Fahrtdatum (Jan, 03.11.2026: „Heute" soll zeigen, was heute geliked
+    # wurde — auch an einer Session von letzter Woche).
+    likes_q = db.query(models.SessionLike.session_id, func.count().label("n"))
+    likes_sq = _ab(likes_q, _cutoff(period), models.SessionLike.created_at).group_by(models.SessionLike.session_id).subquery()
     q = _community(db.query(*BRIEF_COLS, likes_sq.c.n), user.id).join(likes_sq, likes_sq.c.session_id == S.id)
-    cut = _cutoff(period)
-    if cut is not None:
-        q = _ab(q, cut, S.started_at)
     rows = q.order_by(likes_sq.c.n.desc(), S.started_at.desc()).limit(min(max(limit, 1), 20)).all()
     return _attach_social(db, user, [_brief(*r[:len(BRIEF_COLS)], verbergende=_verbergende_nutzer(db)) for r in rows])
 
@@ -2959,22 +2956,18 @@ def top_commented(
     period: str = "all", limit: int = 3,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
-    """Wie top-liked, nach der Zahl sichtbarer Kommentare (Jan, 03.11.2026). Gezaehlt wie die Zahl auf den Karten
+    """Wie top-liked, nach der Zahl sichtbarer Kommentare im Zeitraum (Jan, 03.11.2026). Gezaehlt wie die Zahl auf den Karten
     (kommentare.anzahl): ohne ausgeblendete Kommentare und ohne die versteckter Konten; Inhaber mit abgeschalteten
     Kommentaren fallen raus."""
     from .. import kommentare
     M = models.ChatMessage
     sid_expr = cast(func.substr(M.scope, len(kommentare.PRAEFIX) + 1), Integer)
-    komm_sq = (
-        db.query(sid_expr.label("sid"), func.count().label("n"))
-        .join(U, U.id == M.user_id)
-        .filter(M.scope.like(kommentare.PRAEFIX + "%"), M.hidden.isnot(True), U.hidden.isnot(True))
-        .group_by(M.scope).subquery()
-    )
+    # Zeitraum = wann kommentiert wurde, nicht wann gefahren (wie top-liked, Jan 03.11.2026).
+    komm_q = (db.query(sid_expr.label("sid"), func.count().label("n"))
+              .join(U, U.id == M.user_id)
+              .filter(M.scope.like(kommentare.PRAEFIX + "%"), M.hidden.isnot(True), U.hidden.isnot(True)))
+    komm_sq = _ab(komm_q, _cutoff(period), M.created_at).group_by(M.scope).subquery()
     q = _community(db.query(*BRIEF_COLS, komm_sq.c.n), user.id).join(komm_sq, komm_sq.c.sid == S.id)
-    cut = _cutoff(period)
-    if cut is not None:
-        q = _ab(q, cut, S.started_at)
     lim = min(max(limit, 1), 20)
     rows = q.order_by(komm_sq.c.n.desc(), S.started_at.desc()).limit(lim * 3).all()
     besitzer = {r[S_USER_ID_IDX] for r in rows}
