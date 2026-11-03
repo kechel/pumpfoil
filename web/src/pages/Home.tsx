@@ -875,6 +875,7 @@ function TeamBestenlisten() {
   const [top, setTop] = useState(5);
   const [art, setArt] = useState<TeamVergleichKennzahl>("pumps");
   const [d, setD] = useState<TeamVergleich | null>(null);
+  const [bild, setBild] = useState(false);
   useEffect(() => {
     let aktiv = true;
     api.teamsVergleich(period, top).then((x) => { if (aktiv) setD(x); }).catch(() => {});
@@ -917,7 +918,25 @@ function TeamBestenlisten() {
               </span>
             </Link>
           ))}
+          {/* Als Bild teilen wie die Bestenliste der Fahrer (Jan, 03.11.2026). Flaggen nur fuer Laender; Kontinent/Erde
+              („k:…") haben kein Flaggenbild und bleiben im Bild ohne Zeichen. */}
+          <button onClick={() => setBild(true)}
+            className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-brand-600 hover:bg-slate-700 dark:text-brand-300">
+            <ShareIcon className="h-4 w-4" /> {t("team.bild.titel")}
+          </button>
         </div>
+      )}
+      {bild && (
+        <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-teams-${art}.jpg`}
+          daten={{
+            titel: t(VERGLEICH_ARTEN.find(([k]) => k === art)?.[1] ?? ""),
+            unterzeile: [t("team.vergleich.titel"), t("team.vergleich.top", { n: String(top) }),
+              t(PERIODS.find(([k]) => k === period)?.[1] ?? ""),
+              new Date().toLocaleDateString(document.documentElement.lang || undefined)].join(" · "),
+            zeilen: zeilen.slice(0, 10).map((z, i) => ({ rang: i + 1, name: z.name, initialen: initialenAus(z.name), wert: wert(z),
+              land: z.land && !z.land.startsWith("k:") ? z.land : null })),
+            leer: "—",
+          }} />
       )}
     </div>
   );
