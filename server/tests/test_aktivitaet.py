@@ -20,6 +20,8 @@ def _session(uid):
         s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid, started_at=t, ended_at=t + timedelta(minutes=30),
                            sport="pumpfoil", sport_class="pumpfoil", is_pumpfoil=True, status="analyzed", place_name="Testsee")
         db.add(s); db.commit()
+        # Mit Analyse, damit die Session in den Community-Listen (top-commented) zaehlt.
+        db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model", num_runs=2)); db.commit()
         return s.id
     finally:
         db.close()
@@ -71,3 +73,19 @@ def test_geloeschte_session_faellt_raus(client):
     _like(client, kb, sid)
     assert client.delete(f"/api/sessions/{sid}", headers=ka).status_code == 200
     assert _aktivitaet(client, ka) == []
+
+
+def test_meist_kommentiert(client):
+    (a, ka), (b, kb), (c, kc) = _konto(client, "a"), _konto(client, "b"), _konto(client, "c")
+    s1, s2 = _session(a), _session(a)
+    _kommentar(client, kb, s1, "eins")       # je Konto hoechstens zwei, sonst greift der Flood-Schutz neuer Konten
+    _kommentar(client, kb, s2, "zwei")
+    _kommentar(client, kc, s2, "drei")
+    r = client.get("/api/community/top-commented", params={"limit": 20}, headers=kb).json()
+    ids = [x["session_id"] for x in r]
+    assert ids.index(s2) < ids.index(s1)
+    assert next(x for x in r if x["session_id"] == s2)["comment_count"] == 2
+    # Abgeschaltete Kommentare: die Session faellt raus.
+    assert client.put("/api/settings", headers=ka, json={"comments_off": True}).status_code == 200
+    r = client.get("/api/community/top-commented", params={"limit": 20}, headers=kb).json()
+    assert s1 not in [x["session_id"] for x in r] and s2 not in [x["session_id"] for x in r]

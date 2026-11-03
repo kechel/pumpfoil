@@ -349,7 +349,7 @@ function LatestMedia() {
   // Lokaler Like-/Melde-Status je session_id (initial aus der API).
   const [soc, setSoc] = useState<Record<number, { liked: boolean; like_count: number; my_inappropriate: boolean }>>({});
   useEffect(() => {
-    api.communityLatestPhotos(8).then((ps) => {
+    api.communityLatestPhotos(30).then((ps) => {
       setMedia(ps);
       const init: Record<number, { liked: boolean; like_count: number; my_inappropriate: boolean }> = {};
       ps.forEach((p) => { init[p.session_id] = { liked: !!p.liked, like_count: p.like_count ?? 0, my_inappropriate: !!p.my_inappropriate }; });
@@ -567,18 +567,19 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
   );
 }
 
-function TopLiked({ period }: { period: string }) {
+/** „Best bewertet" und „Meist kommentiert" (Jan, 03.11.2026) — dieselbe Liste, nur anders sortiert. */
+function TopLiked({ period, nach = "likes" }: { period: string; nach?: "likes" | "kommentare" }) {
   const t = useT();
   const [items, setItems] = useState<CommunitySession[] | null>(null);
   useEffect(() => {
-    api.topLiked(period).then(setItems).catch(() => {});
-  }, [period]);
+    (nach === "kommentare" ? api.topCommented(period) : api.topLiked(period)).then(setItems).catch(() => {});
+  }, [period, nach]);
   if (!items || items.length === 0) return null;
   const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
     <div className="mt-8">
       <h3 className="mb-2 text-lg font-bold">
-        {t("home.topRated")}
+        {t(nach === "kommentare" ? "home.topCommented" : "home.topRated")}
         {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
       </h3>
       <div className="space-y-1.5">
@@ -785,6 +786,7 @@ function CommunitySection() {
       {tab === "medien" && <>
         <LatestMedia key={`m${freunde}`} />
         <TopLiked key={`t${freunde}`} period={period} />
+        <TopLiked key={`k${freunde}`} period={period} nach="kommentare" />
         <SocialFeed />
         <LayoutTeaser />
       </>}

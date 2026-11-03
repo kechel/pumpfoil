@@ -275,7 +275,7 @@ export default function TeamEinstellungen() {
           <div className="mb-3 flex items-center gap-3">
             <select value={team.land ?? ""} onChange={(e) => einstellen({ land: e.target.value })} className={`${eingabe} max-w-sm`}>
               <option value="">{t("profile.landNone")}</option>
-              {KONTINENTE.map((k) => <option key={k} value={k}>{herkunftName(k, lang)}</option>)}
+              {KONTINENTE.map((k) => <option key={k} value={k}>{herkunftName(k, lang, t)}</option>)}
               <option disabled>──────────</option>
               {LAENDER.map((c) => ({ c, n: landName(c, lang) })).sort((a, b) => a.n.localeCompare(b.n, lang))
                 .map(({ c, n }) => <option key={c} value={c}>{n}</option>)}

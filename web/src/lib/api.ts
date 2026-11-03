@@ -1811,6 +1811,7 @@ export const api = {
     req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}${spot ? `&spot=${encodeURIComponent(spot)}` : ""}${fresh ? "&fresh=1" : ""}`),
   communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
+  topCommented: (period = "all") => req<CommunitySession[]>(`/api/community/top-commented?period=${period}`),
   toggleLike: (id: number) =>
     req<{ like_count: number; liked: boolean }>(`/api/community/sessions/${id}/like`, { method: "POST" }),
   toggleVote: (id: number, kind: "fake" | "inappropriate") =>

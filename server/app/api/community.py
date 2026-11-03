@@ -16,7 +16,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
-from sqlalchemy import Float, and_, cast, false, func, literal, not_, or_, true
+from sqlalchemy import Float, Integer, and_, cast, false, func, literal, not_, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
@@ -1507,7 +1507,7 @@ def latest_photos(
     Pro Session höchstens ein Foto- und ein Video-Eintrag; dasselbe Bild (gleicher Datei-Hash)
     an mehreren Sessions nur einmal. Inkl. Like-/Melde-Status."""
     P = models.SessionPhoto
-    lim = min(max(limit, 1), 20)
+    lim = min(max(limit, 1), 40)        # Home zeigt seit 03.11.2026 eine wischbare Zeile mit 30 (Jan)
     items: list[dict] = []
     _vis = (S.deleted.isnot(True), S.flagged.isnot(True), U.blocked.isnot(True),
             or_(U.hidden.isnot(True), U.id == user.id), S.is_pumpfoil.is_(True))
@@ -2950,6 +2950,37 @@ def top_liked(
     if cut is not None:
         q = _ab(q, cut, S.started_at)
     rows = q.order_by(likes_sq.c.n.desc(), S.started_at.desc()).limit(min(max(limit, 1), 20)).all()
+    return _attach_social(db, user, [_brief(*r[:len(BRIEF_COLS)], verbergende=_verbergende_nutzer(db)) for r in rows])
+
+
+# ------------------------------------------------------------ Meist kommentiert ----
+@router.get("/top-commented")
+def top_commented(
+    period: str = "all", limit: int = 3,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Wie top-liked, nach der Zahl sichtbarer Kommentare (Jan, 03.11.2026). Gezaehlt wie die Zahl auf den Karten
+    (kommentare.anzahl): ohne ausgeblendete Kommentare und ohne die versteckter Konten; Inhaber mit abgeschalteten
+    Kommentaren fallen raus."""
+    from .. import kommentare
+    M = models.ChatMessage
+    sid_expr = cast(func.substr(M.scope, len(kommentare.PRAEFIX) + 1), Integer)
+    komm_sq = (
+        db.query(sid_expr.label("sid"), func.count().label("n"))
+        .join(U, U.id == M.user_id)
+        .filter(M.scope.like(kommentare.PRAEFIX + "%"), M.hidden.isnot(True), U.hidden.isnot(True))
+        .group_by(M.scope).subquery()
+    )
+    q = _community(db.query(*BRIEF_COLS, komm_sq.c.n), user.id).join(komm_sq, komm_sq.c.sid == S.id)
+    cut = _cutoff(period)
+    if cut is not None:
+        q = _ab(q, cut, S.started_at)
+    lim = min(max(limit, 1), 20)
+    rows = q.order_by(komm_sq.c.n.desc(), S.started_at.desc()).limit(lim * 3).all()
+    besitzer = {r[S_USER_ID_IDX] for r in rows}
+    aus = {u.id for u in db.query(U).filter(U.id.in_(besitzer)).all() if kommentare.aus(u)} if besitzer else set()
+    rows = [r for r in rows if r[S_USER_ID_IDX] not in aus][:lim]
+    # comment_count setzt _attach_social (kommentare.anzahl), dieselbe Zahl wie auf allen Karten.
     return _attach_social(db, user, [_brief(*r[:len(BRIEF_COLS)], verbergende=_verbergende_nutzer(db)) for r in rows])
 
 
