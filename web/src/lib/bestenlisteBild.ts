@@ -1,14 +1,15 @@
 // Bestenliste als Bild (Community und Teams, 02.11.2026). Gestaltet wie die Session-Karte (server/app/sharecard.py),
 // Jan: „schau mal wie wir das beim teilen von sessions gemacht haben mit dem logo" — quadratisch 1080, Navy-Grund,
 // Ueberschrift und Werte in Marken-Cyan, das weisse Logo unten rechts ohne Kasten. Die Zeilen fuellen die Flaeche,
-// auch wenn nur wenige Fahrer in der Liste stehen. Initialen statt Profilbildern: fremde Bilder koennten das Canvas
-// „verunreinigen" (dann liefert toDataURL nichts), und sie sollen nicht ungefragt in geteilten Bildern landen.
+// auch wenn nur wenige Fahrer in der Liste stehen. Keine Profilbilder: sie sollen nicht ungefragt in geteilten
+// Bildern landen (wie die Gast-Ansicht, teams.fuer_gast). Die Initialen-Kreise stattdessen sind seit 03.11.2026 auch
+// weg (Jan: „unsinnig wenn es garkeine bilder gibt") — Rang, Flagge, Name, Wert.
 
 export const BILD_B = 1080, BILD_H = 1080;
 const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
 export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean;
-  land?: string | null };   // Nationalitaet (ISO-Code) -> Flagge nach dem Profilkreis
+  land?: string | null };   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
@@ -85,16 +86,11 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.fillStyle = z.rang <= 3 ? akzent : F.leise;
     g.font = `800 ${gross}px ${SCHRIFT}`;
     g.textAlign = "right"; g.fillText(String(z.rang), X + 50, mitte);
-    const r = Math.round(zh * 0.36);
-    g.fillStyle = z.rang <= 3 ? akzent : F.kreis;
-    g.beginPath(); g.arc(X + 70 + r, mitte, r, 0, Math.PI * 2); g.fill();
-    g.fillStyle = z.rang <= 3 ? F.topText : F.kreisText; g.font = `700 ${Math.round(r * 0.8)}px ${SCHRIFT}`; g.textAlign = "center";
-    g.fillText(z.initialen, X + 70 + r, mitte + 1);
     g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "right"; g.fillStyle = akzent;
     g.fillText(z.wert, BILD_B - X, mitte);
     const wb = g.measureText(z.wert).width;
-    let nx = X + 70 + 2 * r + 24;
-    // Flagge 4:3 nach dem Profilkreis, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund). Der
+    let nx = X + 74;
+    // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund). Der
     // Platz bleibt auch ohne Flagge frei, damit die Namen buendig stehen (Jan, 03.11.2026).
     const fl = z.land ? d.flaggen?.[z.land] : undefined;
     const fh = Math.round(gross * 0.8), fw = Math.round(fh * 4 / 3);
