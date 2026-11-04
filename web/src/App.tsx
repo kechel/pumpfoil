@@ -37,7 +37,9 @@ const navItems: NavItem[] = [
   { to: "/community", start: "/community?tab=bestenliste", labelKey: "home.community", icon: CommunityIcon, end: false },
   { to: "/sessions", labelKey: "nav.sessions", icon: SessionsIcon, end: false },
   { to: "/spots", start: "/spots?tab=karte", labelKey: "nav.spots", icon: SpotsIcon, end: false },
-  { to: "/einstellungen", labelKey: "nav.profile", icon: SettingsIcon, end: false },
+  // „Einstellungen" statt „Profil" (Jan, 04.11.2026); in der Leiste unten kurz „Setup". Am Desktop steht der Punkt nicht
+  // in der Seitenleiste — dorthin fuehrt das eigene Profilbild oben.
+  { to: "/einstellungen", labelKey: "nav.settings", shortKey: "nav.settingsShort", icon: SettingsIcon, end: false },
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };
 
@@ -49,6 +51,8 @@ const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIc
 // jetzt") — Teil 5 ist erschienen und traegt jetzt die Markierung.
 const NEU_BIS = Date.UTC(2026, 8, 30);   // 30. September 2026
 const NEU_BIS_5 = Date.UTC(2026, 9, 14); // Teil 5, erschienen 30.09.2026 — zwei Wochen „neu" wie Teil 4
+// Hinweis „Einstellungen: oben auf dein Bild" an der Stelle des alten Menuepunkts, eine Woche ab dem Umbau 04.11.2026.
+const EINSTELLUNGEN_HINWEIS_BIS = Date.UTC(2026, 10, 11);
 const NEU_BIS_6 = Date.UTC(2026, 10, 2); // Teil 6, erschienen 24.10.2026 — Hervorhebung am 02.11.2026 beendet (Jan: „ist jetzt lang genug gewesen")
 
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
@@ -165,6 +169,13 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
   // Import-Button (Sidebar + Mobile-Topbar) nur auf der Sessions-Seite zeigen —
   // dort gehört der FIT-Upload hin; im Profil gibt es einen eigenen Einstieg.
   const ort = useLocation();
+  const [blinken, setBlinken] = useState(false);
+  const blinkUhr = useRef<number | undefined>(undefined);
+  const aufleuchten = () => {
+    setBlinken(true);
+    window.clearTimeout(blinkUhr.current);
+    blinkUhr.current = window.setTimeout(() => setBlinken(false), 1800);
+  };
   const nav = useNavigate();
   const onSessions = ort.pathname.startsWith("/sessions");
   // Jeder Hauptbereich kehrt dorthin zurueck, wo man war (Reiter, Filter in der Adresse) — wie die Tab-Leisten der
@@ -302,19 +313,22 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
         <Link to="/" className="mb-3 block px-1"><BrandLogo className="w-full h-auto" /></Link>
-        {/* Bild/Name/Mail fuehren auf die EIGENE Profilseite (Jan, 08.09.2026) — vorher lag
-            hier ein zweiter Link auf die Startseite, die daneben schon als „Home" steht. */}
+        {/* Bild/Name/Mail fuehren in die Einstellungen (Jan, 04.11.2026; vom 08.09. an war es die eigene Profilseite,
+            die steht jetzt als Reiter „Profil" in Home). Das Zahnrad zeigt, wohin es geht. */}
         {profile && (
-          <Link to={profile.id ? `/foiler/${profile.id}` : "/"}
-                className="mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-900">
+          <Link to="/einstellungen"
+                className={`mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 transition-shadow ${
+                  ort.pathname === "/einstellungen" ? "bg-slate-800 nav-active" : "hover:bg-slate-900"} ${
+                  blinken ? "animate-pulse ring-2 ring-brand-400" : ""}`}>
             <Avatar name={profile.display_name} url={profile.avatar_url} size={40} />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold text-slate-100">{profile.display_name || "—"}</div>
               <div className="truncate text-[11px] text-slate-400">{profile.email}</div>
             </div>
+            <SettingsIcon className="h-4 w-4 shrink-0 text-slate-400" />
           </Link>
         )}
-        {items.map((it) => (
+        {items.filter((it) => it.to !== "/einstellungen").map((it) => (
           <NavLink
             key={it.to}
             to={navZiel(it)}
@@ -332,6 +346,14 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
             )}
           </NavLink>
         ))}
+        {/* An der Stelle des alten Menuepunkts, eine Woche lang. Bewusst kein Link: Hover/Klick laesst das Profilbild oben
+            kurz aufleuchten, damit man den neuen Weg lernt (Jan, 04.11.2026). */}
+        {Date.now() < EINSTELLUNGEN_HINWEIS_BIS && (
+          <div onMouseEnter={aufleuchten} onClick={aufleuchten}
+               className="flex cursor-default items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-slate-400">
+            <SettingsIcon className="h-4 w-4 shrink-0" /> <span className="flex-1">{t("nav.settingsHint")}</span>
+          </div>
+        )}
 
         {onSessions && (
           <Link

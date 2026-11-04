@@ -66,8 +66,11 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
   board: s.setup?.board?.name || null,
 });
 
-export default function Foiler() {
-  const { id } = useParams();
+/** `userId` + `eingebettet`: die eigene Profilseite als Reiter „Profil" in Home (Jan, 04.11.2026) — ohne Zurueck-Pfeil
+ * und ohne Sprung nach oben. */
+export default function Foiler({ userId, eingebettet = false }: { userId?: number; eingebettet?: boolean } = {}) {
+  const params = useParams();
+  const id = userId != null ? String(userId) : params.id;
   const { t, lang } = useI18n();
   // Aus einer Event-/Team-Bestenliste geoeffnet: Zurueck-Link dorthin (Jan, 01.11.2026; wie in SessionDetail).
   const ort = useLocation();
@@ -159,17 +162,17 @@ export default function Foiler() {
 
   return (
     <div>
-      <ScrollToTop />
+      {!eingebettet && <ScrollToTop />}
       {/* Nur der Besitzer sieht diesen Hinweis — sonst waere „ist abgeschaltet" selbst eine
           Auskunft ueber ein fremdes Konto. Der Server liefert `aus` deshalb auch nur ihm. */}
       {d.ich && d.aus && (
         <Card className="mb-4 p-3 text-sm text-amber-700 dark:text-amber-300">
-          {t("foiler.offHint")} <Link to="/einstellungen" className="underline">{t("nav.profile")}</Link>
+          {t("foiler.offHint")} <Link to="/einstellungen" className="underline">{t("nav.settings")}</Link>
         </Card>
       )}
 
       <div className="mb-5 flex items-center gap-3">
-        <ZurueckPfeil fallback={zurueckZu?.zurueck ?? "/community"} />
+        {!eingebettet && <ZurueckPfeil fallback={zurueckZu?.zurueck ?? "/community"} />}
         <Avatar name={d.name} url={d.avatar_url} seed={d.id} userId={d.id} size={56} />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">{d.name ?? "—"}</h1>

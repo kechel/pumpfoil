@@ -31,7 +31,7 @@ Spots
 ├─ Liste                      (bisher Spot-Abschnitt der Community)
 └─ Routen                     (bisher Routen-Abschnitt der Community)
 
-Profil                        Reiter unter der Sprache: Ich | Fahren & Auswertung | Privatsphaere | Darstellung & Hinweise | Konto
+Einstellungen                 (Menue „Einstellungen", unten „Setup"; am Desktop ueber das eigene Profilbild oben links, 04.11.2026) Reiter unter der Sprache: Ich | Fahren & Auswertung | Privatsphaere | Darstellung & Hinweise | Konto
 Team-Seite                    Reiter unter dem Kopf: Rekorde | Events | Logbuch
 
 Spot-Seite                    kein eigener Knopf; erreichbar ueber Home › Spots, Session -> Spot, Karte/Suche
@@ -42,7 +42,7 @@ Spot-Seite                    kein eigener Knopf; erreichbar ueber Home › Spot
 └─ Beschreibungen             Spot-Beschreibungen (spotnote.*)
 ```
 
-**Leiste unten:** Web Home · Community · Sessions · Spots · Profil (5; „Verlauf" wird Reiter in Home).
+**Leiste unten:** Web Home · Community · Sessions · Spots · Setup (5; „Verlauf" wird Reiter in Home). Seit 04.11.2026: die eigene Profilseite ist der letzte Reiter „Profil" in Home.
 Apps spaeter: Home · Community · Sessions · Spots · Chat · Profil (Chat bleibt vorerst unten).
 
 **Reiterleiste:** ueberall dieselbe; wischbar, wenn sie nicht passt (etwa 4 passen fest, mehr als 6 je Seite nicht).

@@ -17,6 +17,7 @@ import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
 import { CommunityList, EigeneAbzeichen, SessionStats, SpotBereich, renderCommunitySession } from "./Sessions";
 import History from "./History";
+import Foiler from "./Foiler";
 import LinkedAccounts from "./LinkedAccounts";
 import { Reiterleiste, useReiter, useWischleiste, type ReiterDef } from "../components/Reiter";
 import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
@@ -443,6 +444,8 @@ export default function PersonalHome() {
     { id: "stats", label: t("tab.stats") },
     // Uhr & Konten (Jan, 02.11.2026): die eigenen Uhren und verknuepften Konten, sonst die beiden Einstiege.
     { id: "uhr", label: t("tab.watchAccounts") },
+    // Die eigene Profilseite, so wie andere sie sehen (Jan, 04.11.2026) — vorher fuehrte das Profilbild links oben dorthin.
+    ...(profile?.id ? [{ id: "profil", label: t("nav.profile") }] : []),
   ];
   const [tab, setTab] = useReiter("home", reiter.map((r) => r.id), "uebersicht");
   const [foilWahl, setFoilWahl] = useState<string>("alle");
@@ -630,6 +633,8 @@ export default function PersonalHome() {
 
       {/* Uhren und Konten in einer Ansicht mit eigenen Reitern, dieselbe wie /konten (02.11.2026). */}
       {tab === "uhr" && <LinkedAccounts eingebettet />}
+
+      {tab === "profil" && profile?.id && <Foiler userId={profile.id} eingebettet />}
     </div>
   );
 }
