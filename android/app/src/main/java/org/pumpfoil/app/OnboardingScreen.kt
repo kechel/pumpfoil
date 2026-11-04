@@ -397,7 +397,7 @@ private fun FoilKarte(
         // Der Katalog fuehrt Zweitbezeichnungen; das Android-Modell traegt sie nicht,
         // also suchen wir hier ueber Marke, Modell und Groesse.
         passtZu(suche, it.brand, it.model, it.size)   // wie die Katalogsuche des Servers, s. Suche.kt
-    }.take(8)
+    }.take(30)   // vorher 8: bei „takoon pump" fehlte die PUMP 1900 (Feedback 04.11.2026)
 
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -513,9 +513,9 @@ function FoilSchritt({ foils, setFoils, meine, standard, onWahl, onEntfernen }: 
     const ql = q.trim().toLowerCase();
     if (!ql || !foils) return [];
     // Zweitbezeichnungen mitsuchen wie auf der Foil-Seite: Nutzer tippen den Produktcode ein.
-    return foils
-      .filter((f) => gearMatches(`${f.brand} ${f.model} ${f.size} ${f.aliases ?? ""}`, ql))
-      .slice(0, 8);
+    // Alle Treffer; gezeigt werden die ersten 30 mit Hinweis auf den Rest. Vorher stumm die ersten 8 — bei „takoon pump"
+    // waren das nur PUMP-PRO-Groessen, die PUMP 1900 fand ein neuer Nutzer nie (Feedback 04.11.2026).
+    return foils.filter((f) => gearMatches(`${f.brand} ${f.model} ${f.size} ${f.aliases ?? ""}`, ql));
   }, [foils, q]);
 
   return (
@@ -570,7 +570,7 @@ function FoilSchritt({ foils, setFoils, meine, standard, onWahl, onEntfernen }: 
       {q.trim() !== "" && foils !== null && (
         <div className="mt-3 grid gap-2">
           {treffer.length === 0 && <p className="text-slate-400">{t("onb.foil.none")}</p>}
-          {treffer.map((f) => (
+          {treffer.slice(0, 30).map((f) => (
             <button key={f.id} type="button" onClick={() => onWahl(f.id)}
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-left hover:border-slate-600">
               <span className="min-w-0">
@@ -580,6 +580,7 @@ function FoilSchritt({ foils, setFoils, meine, standard, onWahl, onEntfernen }: 
               <span className="shrink-0 text-sm font-medium text-brand-400">{t("foils.add")}</span>
             </button>
           ))}
+          {treffer.length > 30 && <p className="text-sm text-slate-400">{t("calc.moreHits", { n: String(treffer.length - 30) })}</p>}
         </div>
       )}
 
