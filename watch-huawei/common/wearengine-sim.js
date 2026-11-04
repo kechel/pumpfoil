@@ -10,7 +10,7 @@
 // Seiten-Konfiguration, die ./sim.sh an <datei.json> hier unten anhaengt (SIM_KONFIG = …): kommt kurz nach
 // dem Start wie vom Handy an, in Teilen wie die Android-Bruecke sie schickt (HuaweiBruecke.konfigTeile).
 var SIM_KONFIG = null;
-// true (./sim.sh an-ok): jedes Teil gilt nach 400 ms als angekommen (Code 207), sonst Code -2.
+// true (./sim.sh an-ok): jedes Teil gilt nach 100 ms als angekommen (Code 207), sonst Code -2.
 var SIM_SENDEN_OK = false;
 
 export function P2pClient() {}
@@ -44,7 +44,7 @@ P2pClient.prototype.registerReceiver = function (cb) {
 P2pClient.prototype.send = function (m, cb) {
   var code = SIM_SENDEN_OK ? 207 : -2;
   console.info("Pumpfoil SIM: senden -> Code " + code);
-  setTimeout(function () { if (cb && cb.onSendResult) cb.onSendResult({ code: code }); }, SIM_SENDEN_OK ? 400 : 200);
+  setTimeout(function () { if (cb && cb.onSendResult) cb.onSendResult({ code: code }); }, SIM_SENDEN_OK ? 100 : 200);
 };
 export function Message() {}
 export function Builder() {}
