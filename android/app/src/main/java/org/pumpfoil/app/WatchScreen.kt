@@ -54,10 +54,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun WatchScreen(
     onBack: () -> Unit,
-    onGallery: () -> Unit = {},
     eingebettet: Boolean = false,   // als Reiter: ohne Titelzeile, die umgebende Seite scrollt
 ) {
-    if (eingebettet) { UhrBereich(onGallery); return }
+    if (eingebettet) { UhrBereich(); return }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -70,7 +69,7 @@ fun WatchScreen(
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            UhrBereich(onGallery)
+            UhrBereich()
         }
     }
 }
@@ -85,7 +84,7 @@ private object UhrStartWahl { var fest = false }
  * garminpair) gibt es weiter einzeln. Ohne eigenes Scrollen — die umgebende Seite scrollt.
  */
 @Composable
-private fun UhrBereich(onGallery: () -> Unit) {
+private fun UhrBereich() {
     val ctx = LocalContext.current
     val reiter = listOf(
         ReiterDef("anleitung", I18n.t("account.tabGuide")),
@@ -106,8 +105,8 @@ private fun UhrBereich(onGallery: () -> Unit) {
         Reiterleiste(reiter, tab, { UhrStartWahl.fest = true; tab = it })
         Spacer(Modifier.height(12.dp))
         when (tab) {
-            "anleitung" -> GuideInhalt()
-            "einstellungen" -> UhrEinstellungen(onGallery)
+            "anleitung" -> UhrAnleitung(onConnect = { UhrStartWahl.fest = true; tab = "uhren" })
+            "einstellungen" -> UhrEinstellungen()
             "uhren" -> {
                 // Verbinden (Code eingeben/erzeugen), dann die Uhren je Plattform, zuletzt die Liste der verbundenen Uhren.
                 // Rueckmeldung „gespeichert" steht seit 28.09.2026 direkt unter dem jeweiligen Regler (wie die PWA).
@@ -123,20 +122,38 @@ private fun UhrBereich(onGallery: () -> Unit) {
     }
 }
 
-/** Uhr › Einstellungen mit eigener Reiterzeile Datenseiten | On-Foil-Alarm (Web: EinstellungenReiter; dort stehen noch
- * die Layout-Galerien als Reiter, die App erreicht die Galerie ueber den Knopf in den Datenseiten). */
+/** Uhr › Einstellungen mit eigener Reiterzeile wie im Web (Account.tsx EinstellungenReiter, 02.11.2026):
+ * Uhr-Einstellungen | Zifferblaetter / Datenfelder | Community-Layouts | Eigene Layouts | On-Foil-Alarm.
+ * Die ersten beiden laden und speichern dasselbe Profil (DataFieldsScreen mit `teil`). */
 @Composable
-private fun UhrEinstellungen(onGallery: () -> Unit) {
+private fun UhrEinstellungen() {
+    val ctx = LocalContext.current
     val reiter = listOf(
+        ReiterDef("uhr", I18n.t("tab.watchSettingsUhr")),
         ReiterDef("seiten", I18n.t("account.tabFaces")),
+        ReiterDef("community", I18n.t("lay.galleryTitle")),
+        ReiterDef("eigene", I18n.t("account.toLayouts")),
         ReiterDef("alarm", I18n.t("account.tabAlarm")),
     )
-    var tab by rememberReiter("uhreinst", reiter.map { it.id }, "seiten")
+    var tab by rememberReiter("uhreinst", reiter.map { it.id }, "uhr")
     Column {
         Reiterleiste(reiter, tab, { tab = it })
         Spacer(Modifier.height(12.dp))
         when (tab) {
-            "seiten" -> DataFieldsScreen(onBack = {}, onGallery = onGallery, eingebettet = true)
+            "uhr" -> DataFieldsScreen(onBack = {}, eingebettet = true, teil = "einstellungen")
+            // Der Galerie-Knopf in den Datenseiten springt hier auf den Nachbar-Reiter statt auf eine eigene Seite.
+            "seiten" -> DataFieldsScreen(onBack = {}, onGallery = { tab = "community" }, eingebettet = true, teil = "seiten")
+            "community" -> LayoutGalleryScreen(onBack = {}, eingebettet = true)
+            "eigene" -> {
+                // Eigene Layouts baut man im Browser (Editor bewusst nur im Web, Jan 17.08.) — die App hat keine eigene
+                // Liste dafuer, also der Weg zur Web-Seite.
+                Text(I18n.t("datafields.editorInBrowser"), style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(onClick = {
+                    try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse(Api.BASE + "/layouts"))) } catch (_: Exception) {}
+                }) { Text(I18n.t("account.toLayouts") + " · pumpfoil.org") }
+            }
             "alarm" -> AlarmScreen(onBack = {}, eingebettet = true)
         }
     }
@@ -677,7 +694,7 @@ private fun sparUhrText(d: PairedDevice): String {
  * ein Reiter wie im Web (Strava zeigt die App nicht, es ist zurueckgestellt).
  */
 @Composable
-fun UhrenKontenBereich(onGallery: () -> Unit) {
+fun UhrenKontenBereich() {
     val reiter = listOf(
         ReiterDef("uhr", I18n.t("nav.watch")),
         ReiterDef("polar", "Polar"),
@@ -690,7 +707,7 @@ fun UhrenKontenBereich(onGallery: () -> Unit) {
     Column {
         Reiterleiste(reiter, tab, { tab = it }, stufe = 2)
         Spacer(Modifier.height(10.dp))
-        if (tab == "uhr") UhrBereich(onGallery)
+        if (tab == "uhr") UhrBereich()
         // key: je Anbieter eine eigene Instanz, damit Stand und Lade-Effekte beim Reiterwechsel neu anlaufen.
         else androidx.compose.runtime.key(tab) { LinkedAccountsScreen(onBack = {}, eingebettet = true, nur = tab) }
         Spacer(Modifier.height(16.dp))

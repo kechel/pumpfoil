@@ -56,6 +56,21 @@ SCHLUESSEL = [
     "account.tabGuide", "tab.watchSettings", "account.tabConnect",
     # iOS: Uhr-Reiter wie web Account.tsx (Anleitung | Einstellungen | Meine Uhr(en), Datenseiten | Alarm)
     "account.tabFaces", "account.tabAlarm",
+    # iOS: Uhr › Anleitung je Plattform + Kompatibilitaet (web WatchGuide/WatchMatrix), Uhr › Einstellungen (5 Reiter)
+    "account.tabCompat", "account.toLayouts", "tab.watchSettingsUhr", "guide.appleSub", "guide.a.s1Title", "guide.a.s1", "guide.a.s2Title", "guide.a.s2a",
+    "guide.a.s2b", "guide.a.s3Title", "guide.a.s3", "guide.a.s4Title", "guide.a.s4", "guide.wearSub", "guide.w.s1Title", "guide.w.s1",
+    "guide.w.s1Note", "guide.w.s2Title", "guide.w.s2a", "guide.w.s2b", "guide.w.s3Title", "guide.w.s3", "guide.w.s4Title", "guide.w.s4",
+    "guide.amazfitSub", "guide.z.store", "guide.z.s1", "guide.z.s2", "guide.z.s3", "guide.z.s4", "guide.huaweiSub", "guide.h.s1",
+    "guide.h.s2", "guide.h.s3", "guide.h.s4", "guide.preview", "guide.previewVer", "guide.cap.gStart", "guide.cap.gSettings", "guide.cap.gPairCode",
+    "guide.cap.gPairOk", "guide.cap.gAlarm1", "guide.cap.gAlarm2", "guide.cap.gAlarm3", "guide.cap.onFoil", "guide.cap.wConnect", "guide.cap.wStart", "guide.cap.wAlarm",
+    "guide.cap.wStats", "guide.cap.wRun", "guide.cap.wStop", "guide.cap.aConnect", "guide.cap.aCode", "guide.cap.aStart", "guide.cap.aAlarm", "guide.cap.aStop",
+    "guide.cap.aUpload", "guide.settings.title", "guide.settings.intro", "guide.settings.intro2", "guide.settings.recordTitle", "guide.settings.record", "guide.settings.gnssTitle", "guide.settings.gnss",
+    "guide.settings.gpsWarn", "guide.settings.zepp", "watches.title", "watches.intro", "watches.colDevice", "watches.colGps", "watches.colHr", "watches.colPump",
+    "watches.colStatus", "watches.foot", "watches.legYes", "watches.legPartial", "watches.legNo", "watches.linkAccount", "watches.linkViaSuunto", "watches.nGarmin",
+    "watches.nApple", "watches.nWear", "watches.nAmazfit", "watches.nHuaweiW5", "watches.nHuawei", "watches.nPolar", "watches.nSuunto", "watches.nXiaomi",
+    "watches.nFitbit", "watches.nStrava", "watches.subStrava", "watches.st.avail", "watches.st.planned", "watches.st.import", "watches.st.no", "watches.st.nope",
+    # Android: Uhr › Einstellungen › Uhr-Einstellungen, Hinweis wie im Web (04.11.2026)
+    "account.recordModeMoved",
 ]
 
 

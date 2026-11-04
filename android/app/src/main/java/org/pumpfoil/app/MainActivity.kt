@@ -319,8 +319,6 @@ fun MainScaffold(onLogout: () -> Unit) {
                                                 onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                                                 onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
                                                 onOpenTeams = { nav.navigate("teams") },
-                                                // Uhr-Bereich steht inline (Reiter); nach draussen fuehrt nur noch die Layout-Galerie.
-                                                onLayoutGallery = { nav.navigate("layoutgallery") },
                                                 // Zahnrad der Profil-Vorschau -> Einstellungen › Privatsphaere; „Team gruenden" -> Einstellungen › Team.
                                                 onPrivacy = { nav.zuEinstellungen("privat") },
                                                 onOpenKommentare = { sid -> nav.navigate("kommentare/$sid?inhaber=true") },
@@ -376,7 +374,6 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onImprint = { nav.navigate("impressum") },
                     onOnboarding = { nav.navigate("onboarding") },
                     onChangelog = { nav.navigate("changelog") },
-                    onLayoutGallery = { nav.navigate("layoutgallery") },
                     onOpenFoiler = { uid -> nav.navigate("foiler/$uid") },
                     onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                     onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },

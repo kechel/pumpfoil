@@ -47,7 +47,7 @@ import kotlinx.coroutines.launch
 // abgeschnitten wird.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LayoutGalleryScreen(onBack: () -> Unit) {
+fun LayoutGalleryScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   // eingebettet: Reiter unter Uhr › Einstellungen
     val scope = rememberCoroutineScope()
     var layouts by remember { mutableStateOf<List<WatchLayoutBrief>?>(null) }
     var kopiert by remember { mutableStateOf<Int?>(null) }
@@ -57,6 +57,35 @@ fun LayoutGalleryScreen(onBack: () -> Unit) {
     // (sort=used, rankt nach tatsaechlicher Nutzung). Paritaet heisst gleich, nicht mehr.
     LaunchedEffect(Unit) {
         layouts = try { Api.communityLayouts() } catch (_: Exception) { emptyList() }
+    }
+    fun kopieren(id: Int) {
+        scope.launch {
+            fehler = null
+            try { Api.copyLayout(id); kopiert = id }
+            catch (e: Exception) { fehler = e.message }
+        }
+    }
+
+    // Eingebettet scrollt die umgebende Seite — deshalb hier eine schlichte Spalte statt der LazyColumn (verschachteltes
+    // Scrollen in gleicher Richtung bricht in Compose ab).
+    if (eingebettet) {
+        val liste = layouts
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (liste == null) {
+                CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp))
+                return@Column
+            }
+            Text(I18n.t("lay.galleryHint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (liste.isEmpty()) Text(I18n.t("lay.galleryEmpty"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            liste.forEach { l -> LayoutGalerieKarte(l, kopiert == l.id) { kopieren(l.id) } }
+            fehler?.let { m ->
+                Text("${I18n.t("lay.saveErr")} $m", style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error)
+            }
+        }
+        return
     }
 
     Scaffold(
@@ -96,56 +125,7 @@ fun LayoutGalleryScreen(onBack: () -> Unit) {
                 }
             }
             items(liste, key = { it.id }) { l ->
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        WatchLayoutPreview(
-                            elements = l.elements, bgColor = l.bg_color, shape = l.shape,
-                            w = l.authored_w ?: 240, h = l.authored_h ?: 240, px = 110.dp)
-                        Column(Modifier.fillMaxWidth()) {
-                            Text(l.name, fontWeight = FontWeight.Medium,
-                                style = MaterialTheme.typography.bodyLarge)
-                            l.author?.let {
-                                Text(I18n.t("lay.byAuthor").replace("{name}", it),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            // Nutzung zuerst: sie sagt mehr als die Kopien-Zahl (eine bloss
-                            // gespeicherte Kopie liegt auf keiner Uhr).
-                            val zahlen = buildList {
-                                val genutzt = l.used_by ?: 0
-                                // Einzahl eigener Schluessel: „von 1 Foilern" ist falsches Deutsch.
-                                if (genutzt > 0) add(
-                                    I18n.t(if (genutzt == 1) "lay.usedBy1" else "lay.usedBy")
-                                        .replace("{n}", "$genutzt")
-                                )
-                                val kopien = l.copies ?: 0
-                                if (kopien > 0) add(I18n.t("lay.copies").replace("{n}", "$kopien"))
-                            }
-                            if (zahlen.isNotEmpty()) {
-                                Text(zahlen.joinToString(" · "), style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            if (l.has_freetext) {
-                                Text(I18n.t("lay.hasFreetext"), style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.tertiary)
-                            }
-                            Spacer(Modifier.height(6.dp))
-                            OutlinedButton(onClick = {
-                                scope.launch {
-                                    fehler = null
-                                    try { Api.copyLayout(l.id); kopiert = l.id }
-                                    catch (e: Exception) { fehler = e.message }
-                                }
-                            }) { Text(I18n.t("lay.copyToMine")) }
-                            if (kopiert == l.id) {
-                                Text(I18n.t("lay.copiedGoto"), style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(top = 4.dp))
-                            }
-                        }
-                    }
-                }
+                LayoutGalerieKarte(l, kopiert == l.id) { kopieren(l.id) }
             }
             fehler?.let { m ->
                 item {
@@ -154,6 +134,55 @@ fun LayoutGalleryScreen(onBack: () -> Unit) {
                 }
             }
             item { Spacer(Modifier.height(16.dp)) }
+        }
+    }
+}
+
+/** Eine Karte der Galerie (Vorschau, Name, Nutzung, Kopieren) — fuer die eigene Seite und den eingebetteten Reiter. */
+@Composable
+private fun LayoutGalerieKarte(l: WatchLayoutBrief, kopiert: Boolean, onKopieren: () -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            WatchLayoutPreview(
+                elements = l.elements, bgColor = l.bg_color, shape = l.shape,
+                w = l.authored_w ?: 240, h = l.authored_h ?: 240, px = 110.dp)
+            Column(Modifier.fillMaxWidth()) {
+                Text(l.name, fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.bodyLarge)
+                l.author?.let {
+                    Text(I18n.t("lay.byAuthor").replace("{name}", it),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                // Nutzung zuerst: sie sagt mehr als die Kopien-Zahl (eine bloss
+                // gespeicherte Kopie liegt auf keiner Uhr).
+                val zahlen = buildList {
+                    val genutzt = l.used_by ?: 0
+                    // Einzahl eigener Schluessel: „von 1 Foilern" ist falsches Deutsch.
+                    if (genutzt > 0) add(
+                        I18n.t(if (genutzt == 1) "lay.usedBy1" else "lay.usedBy")
+                            .replace("{n}", "$genutzt")
+                    )
+                    val kopien = l.copies ?: 0
+                    if (kopien > 0) add(I18n.t("lay.copies").replace("{n}", "$kopien"))
+                }
+                if (zahlen.isNotEmpty()) {
+                    Text(zahlen.joinToString(" · "), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (l.has_freetext) {
+                    Text(I18n.t("lay.hasFreetext"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary)
+                }
+                Spacer(Modifier.height(6.dp))
+                OutlinedButton(onClick = onKopieren) { Text(I18n.t("lay.copyToMine")) }
+                if (kopiert) {
+                    Text(I18n.t("lay.copiedGoto"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 4.dp))
+                }
+            }
         }
     }
 }

@@ -57,6 +57,10 @@ struct DataFieldsView: View {
     @AppStorage("appLang") private var lang = "de"
     /// Als Reiter in Uhr › Einstellungen › Datenseiten (wie web Account.tsx, 04.11.2026): ohne eigene Kopfleiste.
     var eingebettet: Bool = false
+    /// Wie web ViewsEditor `teil` (04.11.2026): "einstellungen" = die Schalter (Farben, Auto-Start, Aktivitaetstyp,
+    /// Beenden, eigene Layouts, Blaettern), "seiten" = die Datenseiten je Zustand; nil = beides wie bisher. Beide Teile
+    /// laden und speichern dasselbe Profil komplett — der jeweils andere Teil wird unveraendert mitgeschickt.
+    var teil: String? = nil
     @State private var onFoil: [WatchPage] = [.classic([1, 2, 0])]
     @State private var offFoil: [WatchPage] = [.classic([12, 17, 16])]
     @State private var pause: [WatchPage] = [.classic([12, 20, 2])]
@@ -79,35 +83,27 @@ struct DataFieldsView: View {
     @State private var liteNamen = ""
     @State private var layouts: [WatchLayoutBrief] = []
     @State private var saved = false
+    // Speichern erst, wenn das Profil wirklich geladen ist: es schickt IMMER beide Teile mit. Seit die Schalter und die
+    // Seiten eigene Reiter sind, saehe man sonst nicht, dass ein zu frueh getippter Knopf die Seiten mit den
+    // Standardwerten ueberschreibt (04.11.2026).
+    @State private var geladen = false
     // Welche der drei Seitenlisten hat die Vorschau-Auswahl geoeffnet ("on"|"off"|"pause")?
     // Eine Kennung statt drei Flags — sonst braeuchte jede Liste ihren eigenen Sheet-Zustand.
     @State private var waehleFuer: String?
 
+    private var zeigtSchalter: Bool { teil != "seiten" }
+    private var zeigtSeiten: Bool { teil != "einstellungen" }
+
     var body: some View {
         Form {
-            Section {
-                Text(Loc.t("datafields.intro", lang)).font(.callout).foregroundStyle(.secondary)
-                kleineUhrenHinweis
-                // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen — der
-                // Editor ist bewusst Web-only (Jan, 17.08.). Also sagen wir, wo er ist.
-                Text(Loc.t("datafields.editorInBrowser", lang))
-                    .font(.callout).foregroundStyle(Color.accentColor)
-                // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur
-                // Gestalten nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
-                NavigationLink(Loc.t("lay.toCommunity", lang)) {
-                    LayoutGalleryView(lang: lang)
-                }
-            }
+            if zeigtSeiten { kopfSection }
             // Die Einstellungen VOR den eigenen Screens (Jan, 02.09., Android genauso): die
             // Seiten-Saetze sind lang, wer nur einen Schalter umlegen wollte, scrollte vorbei.
-            switchSection
-            pageSet(title: nil, footer: nil, pages: $onFoil, kennung: "on")
-            pageSet(title: Loc.t("account.offFoilTitle", lang),
-                    footer: Loc.t("account.offFoilDesc", lang), pages: $offFoil, kennung: "off")
-            pageSet(title: Loc.t("account.pauseTitle", lang),
-                    footer: Loc.t("account.pauseDesc", lang), pages: $pause, kennung: "pause")
+            if zeigtSchalter { switchSection }
+            if zeigtSeiten { seitenSections }
             Section {
                 Button(Loc.t("common.save", lang)) { save() }
+                    .disabled(!geladen)
                 if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.callout) }
             }
         }
@@ -124,6 +120,33 @@ struct DataFieldsView: View {
         .brandToolbarWenn(!eingebettet, Loc.t("profile.datafields", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
+    }
+
+    @ViewBuilder private var seitenSections: some View {
+        pageSet(title: nil, footer: nil, pages: $onFoil, kennung: "on")
+        pageSet(title: Loc.t("account.offFoilTitle", lang),
+                footer: Loc.t("account.offFoilDesc", lang), pages: $offFoil, kennung: "off")
+        pageSet(title: Loc.t("account.pauseTitle", lang),
+                footer: Loc.t("account.pauseDesc", lang), pages: $pause, kennung: "pause")
+    }
+
+    private var kopfSection: some View {
+        Section {
+            Text(Loc.t("datafields.intro", lang)).font(.callout).foregroundStyle(.secondary)
+            kleineUhrenHinweis
+            // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen — der
+            // Editor ist bewusst Web-only (Jan, 17.08.). Also sagen wir, wo er ist.
+            Text(Loc.t("datafields.editorInBrowser", lang))
+                .font(.callout).foregroundStyle(Color.accentColor)
+            // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur
+            // Gestalten nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
+            // In Uhr › Einstellungen ist die Galerie ein eigener Reiter, dort kein Link.
+            if teil == nil {
+                NavigationLink(Loc.t("lay.toCommunity", lang)) {
+                    LayoutGalleryView(lang: lang)
+                }
+            }
+        }
     }
 
     @ViewBuilder private var switchSection: some View {
@@ -323,7 +346,7 @@ struct DataFieldsView: View {
     }
 
     private func load() async {
-        let s = (try? await Api.settings()) ?? [:]
+        guard let s = try? await Api.settings() else { return }
         let on = readWatchPages(s, key: "pages", legacyView: "views", legacyLayout: nil)
         if !on.isEmpty { onFoil = on }
         let off = readWatchPages(s, key: "off_foil_pages", legacyView: "off_foil_view", legacyLayout: "off_foil_layout_id")
@@ -347,6 +370,7 @@ struct DataFieldsView: View {
         let spZonen = (s["speed_zones"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue }
         LayoutScales.aus(hrZones: zonen, speedZones: spZonen)
         layouts = (try? await Api.watchLayouts()) ?? []
+        geladen = true
     }
 
     private func save() {

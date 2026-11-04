@@ -12,12 +12,25 @@ import SwiftUI
 // NavigationStack; `.navigationTitle` bleibt inline, damit oben kein halber Bildschirm draufgeht.
 struct LayoutGalleryView: View {
     let lang: String
+    /// Als Reiter in Uhr › Einstellungen (04.11.2026): ohne eigenen Titel, der wuerde den der umgebenden Seite ersetzen.
+    var eingebettet: Bool = false
 
     @State private var layouts: [WatchLayoutBrief]?
     @State private var kopiert: Int?
     @State private var fehler: String?
 
     var body: some View {
+        if eingebettet {
+            seite
+        } else {
+            seite
+                .navigationTitle(Loc.t("lay.galleryTitle", lang))
+                .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    // Ein ProgressView bzw. der Inhalt — nie leer, damit `.task` sicher laeuft.
+    private var seite: some View {
         Group {
             if let liste = layouts {
                 inhalt(liste)
@@ -25,8 +38,6 @@ struct LayoutGalleryView: View {
                 ProgressView().frame(maxWidth: .infinity, alignment: .center).padding(.top, 24)
             }
         }
-        .navigationTitle(Loc.t("lay.galleryTitle", lang))
-        .navigationBarTitleDisplayMode(.inline)
         .task { await laden() }
     }
 

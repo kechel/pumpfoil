@@ -470,7 +470,7 @@ struct UhrReiterView: View {
         switch aktiv {
         case "views": UhrEinstellungenReiter()
         case "connect": WatchView(eingebettet: true)
-        default: GuideView(eingebettet: true)
+        default: GuideView(eingebettet: true, zuVerbinden: { bindung.wrappedValue = "connect" })
         }
     }
 
@@ -480,15 +480,18 @@ struct UhrReiterView: View {
     }
 }
 
-/// Uhr › Einstellungen: vierte Reiterzeile Datenseiten | Alarm (web EinstellungenReiter; dort zusaetzlich die
-/// Community-/eigenen Layouts — in der App erreicht man die Community-Layouts aus den Datenseiten heraus).
+/// Uhr › Einstellungen: vierte Reiterzeile wie web EinstellungenReiter (Account.tsx): Uhr-Einstellungen |
+/// Zifferblaetter / Datenfelder | Layouts der Community | Eigene Layouts | On-Foil-Alarm.
 /// Einstellungen je Uhr (Aufnahmemodus, Wassersperre …) bleiben bei den Uhren unter „Meine Uhr(en)".
 struct UhrEinstellungenReiter: View {
     @AppStorage("appLang") private var lang = "de"
-    @State private var wahl: String = ReiterSpeicher.von("uhreinst", "seiten")
+    @State private var wahl: String = ReiterSpeicher.von("uhreinst", "uhr")
 
     private var reiter: [ReiterDef] {
-        [ReiterDef(id: "seiten", label: Loc.t("account.tabFaces", lang)),
+        [ReiterDef(id: "uhr", label: Loc.t("tab.watchSettingsUhr", lang)),
+         ReiterDef(id: "seiten", label: Loc.t("account.tabFaces", lang)),
+         ReiterDef(id: "community", label: Loc.t("lay.galleryTitle", lang)),
+         ReiterDef(id: "eigene", label: Loc.t("account.toLayouts", lang)),
          ReiterDef(id: "alarm", label: Loc.t("account.tabAlarm", lang))]
     }
 
@@ -496,11 +499,54 @@ struct UhrEinstellungenReiter: View {
         VStack(spacing: 0) {
             Reiterleiste(reiter: reiter, aktiv: Binding(get: { wahl }, set: { wahl = $0; ReiterSpeicher.setze("uhreinst", $0) }))
                 .padding(.horizontal)
-            if wahl == "alarm" {
-                AlarmView(eingebettet: true)
-            } else {
-                DataFieldsView(eingebettet: true)
+            inhalt
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    // `.id`: die beiden DataFieldsView-Teile sind eigene Ansichten mit eigenem Laden (sonst behielte SwiftUI den Zustand).
+    @ViewBuilder private var inhalt: some View {
+        switch wahl {
+        case "seiten": DataFieldsView(eingebettet: true, teil: "seiten").id("seiten")
+        case "community": LayoutGalleryView(lang: lang, eingebettet: true)
+        case "eigene": EigeneLayoutsView()
+        case "alarm": AlarmView(eingebettet: true)
+        default: DataFieldsView(eingebettet: true, teil: "einstellungen").id("uhr")
+        }
+    }
+}
+
+/// Uhr › Einstellungen › Eigene Layouts: gestaltet wird nur im Browser (Jan, 17.08.) — hier der Hinweis mit Link zur
+/// Web-Seite /layouts und die eigenen Layouts als Vorschau (nur ansehen, wie in den Datenseiten).
+struct EigeneLayoutsView: View {
+    @AppStorage("appLang") private var lang = "de"
+    @State private var layouts: [WatchLayoutBrief]? = nil
+
+    var body: some View {
+        Form {
+            Section {
+                Text(Loc.t("datafields.editorInBrowser", lang)).font(.callout)
+                Link(Loc.t("account.toLayouts", lang) + " · pumpfoil.org", destination: URL(string: "\(Api.baseURL)/layouts")!)
             }
+            liste
+        }
+        .task { layouts = (try? await Api.watchLayouts()) ?? layouts ?? [] }
+    }
+
+    @ViewBuilder private var liste: some View {
+        if let ls = layouts, !ls.isEmpty {
+            Section(Loc.t("account.toLayouts", lang)) {
+                ForEach(ls) { l in zeile(l) }
+            }
+        }
+    }
+
+    private func zeile(_ l: WatchLayoutBrief) -> some View {
+        HStack(spacing: 10) {
+            WatchLayoutPreview(elements: l.elements ?? [], bgColor: l.bg_color ?? 0, shape: l.shape ?? "round",
+                               w: l.authored_w ?? 240, h: l.authored_h ?? 240,
+                               px: 80, pageCount: 1, pageIndex: 0, lang: lang)
+            Text(l.name)
         }
     }
 }
