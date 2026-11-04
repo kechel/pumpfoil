@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api, clearToken, SocialChannelState } from "../lib/api";
 import { Card, Button, Avatar, NewBadge } from "../components/ui";
 import { Link } from "react-router-dom";
@@ -19,9 +19,16 @@ import { NotificationsToggle } from "../components/NotificationsToggle";
 import { ZonesCard } from "../components/ZonesCard";
 import { PublicProfileCard } from "../components/PublicProfileCard";
 
+// Die vier Kacheln der Uebersicht auch als Reiter (Jan, 04.11.2026), eingebettet. Nachgeladen, damit die Einstellungen
+// nicht das Gewicht aller vier Seiten mitschleppen.
+const KontenTeil = lazy(() => import("./LinkedAccounts"));
+const FreundeTeil = lazy(() => import("./Friends"));
+const TeamTeil = lazy(() => import("./Teams"));
+const AusruestungTeil = lazy(() => import("./Foils"));
+
 export default function Settings() {
   const { t } = useI18n();
-  const [ptab, setPtab] = useReiter("profil", ["uebersicht", "ich", "fahren", "privat", "darstellung", "konto"], "uebersicht");
+  const [ptab, setPtab] = useReiter("profil", ["uebersicht", "konten", "freunde", "team", "ausruestung", "ich", "fahren", "privat", "darstellung", "konto"], "uebersicht");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -160,12 +167,24 @@ export default function Settings() {
           nicht gemerkt: wer die Seite oeffnet, landet immer bei der Sprache (s. unten). */}
       <Reiterleiste reiter={[
         { id: "uebersicht", label: t("tab.overview") },
+        { id: "konten", label: t("ptab.watches") },
+        { id: "freunde", label: t("friends.title") },
+        { id: "team", label: t("tab.team") },
+        { id: "ausruestung", label: t("gear.title") },
         { id: "ich", label: t("ptab.me") },
         { id: "fahren", label: t("ptab.riding") },
         { id: "privat", label: t("ptab.privacy") },
         { id: "darstellung", label: t("ptab.display") },
         { id: "konto", label: t("ptab.account") },
-      ]} aktiv={ptab} onWahl={setPtab} />
+      ]} aktiv={ptab} onWahl={setPtab} unter={ptab === "konten" || ptab === "ausruestung"} />
+      {["konten", "freunde", "team", "ausruestung"].includes(ptab) && (
+        <Suspense fallback={<p className="text-sm text-slate-400">{t("common.loading")}</p>}>
+          {ptab === "konten" && <KontenTeil eingebettet />}
+          {ptab === "freunde" && <FreundeTeil eingebettet />}
+          {ptab === "team" && <TeamTeil eingebettet />}
+          {ptab === "ausruestung" && <AusruestungTeil eingebettet />}
+        </Suspense>
+      )}
       {ptab === "uebersicht" && <>
       {/* Sprache GANZ OBEN, als Allererstes im Reiter Uebersicht, noch vor den Kacheln (Jan, 02.11.2026; davor seit
           13.09.2026 unter den Knoepfen). Sie stand vorher weit unten zwischen Homespot und Pump-Einheit — wer die
@@ -185,7 +204,8 @@ export default function Settings() {
       {/* Uhr und verknuepfte Konten als EIN Knopf zur gemeinsamen Ansicht /konten (Jan, 02.11.2026). Steht ein Uhr-Update an,
           fuehrt er direkt zum Download. */}
       <Link
-        to={watchUpdate ? `/account?tab=app${watchModelQuery(watchUpdate.model || watchUpdate.label, watchUpdate.platform)}` : "/konten"}
+        to={watchUpdate ? `/account?tab=app${watchModelQuery(watchUpdate.model || watchUpdate.label, watchUpdate.platform)}` : "/einstellungen?tab=konten"}
+        replace={!watchUpdate}
         className={`mb-4 flex items-center justify-between rounded-2xl border bg-slate-900/60 p-4 hover:bg-slate-900 ${watchUpdate ? "border-amber-500/50 hover:border-amber-500" : "border-slate-800 hover:border-slate-700"}`}
       >
         <span className="flex items-center gap-3">
@@ -207,8 +227,8 @@ export default function Settings() {
       <FreundeKarte />
       <TeamKarte />
 
-      <Link
-        to="/foils"
+      <Link replace
+        to="/einstellungen?tab=ausruestung"
         className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
       >
         <span className="flex items-center gap-3">
@@ -893,8 +913,9 @@ function TeamKarte() {
   const [n, setN] = useState(0);
   useEffect(() => { api.teamsMine().then((l) => setN(l.reduce((a, x) => a + (x.anfragen || 0), 0))).catch(() => {}); }, []);
   return (
-    <Link
-      to="/teams"
+    // Kachel = Reiter (Jan, 04.11.2026): dieselbe Ansicht, das Einstellungs-Menue bleibt oben stehen.
+    <Link replace
+      to="/einstellungen?tab=team"
       className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
     >
       <span className="flex items-center gap-3">
@@ -921,8 +942,8 @@ function FreundeKarte() {
   const [n, setN] = useState(0);
   useEffect(() => { api.friendsCount().then((r) => setN(r.incoming)).catch(() => {}); }, []);
   return (
-    <Link
-      to="/friends"
+    <Link replace
+      to="/einstellungen?tab=freunde"
       className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
     >
       <span className="flex items-center gap-3">

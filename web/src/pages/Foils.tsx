@@ -12,7 +12,7 @@ import { SPORTS, sortiereSports } from "../lib/sportClass";
 
 /** „Ausrüstung" (Jan, 04.11.2026): vorher zwei lange Seiten („Meine Foils" + „Detailliertes Setup"), jetzt Reiter.
  * Foils zuerst — dafuer kommen die meisten. Kataloge (Foils, Stabs) nur noch ueber die Suche. */
-export default function Ausruestung() {
+export default function Ausruestung({ eingebettet = false }: { eingebettet?: boolean } = {}) {   // eingebettet: Reiter in den Einstellungen
   const t = useT();
   const reiter: ReiterDef[] = [
     { id: "foils", label: "Foils" },
@@ -21,13 +21,15 @@ export default function Ausruestung() {
     { id: "mast", label: t("gear.mastShim") },
     { id: "sport", label: t("mySpots.sports") },
   ];
-  const [tab, setTab] = useReiter("ausruestung", reiter.map((r) => r.id), "foils");
+  const [tab, setTab] = useReiter("ausruestung", reiter.map((r) => r.id), "foils", { param: eingebettet ? "atab" : "tab" });
   return (
     <div className="w-full">
-      <h2 className="mb-3 flex items-center gap-2 text-xl font-bold">
-        <ZurueckPfeil fallback="/einstellungen" /><FoilIcon className="h-5 w-5 text-brand-400" /> {t("gear.title")}
-      </h2>
-      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
+      {!eingebettet && (
+        <h2 className="mb-3 flex items-center gap-2 text-xl font-bold">
+          <ZurueckPfeil fallback="/einstellungen" /><FoilIcon className="h-5 w-5 text-brand-400" /> {t("gear.title")}
+        </h2>
+      )}
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} stufe={eingebettet ? 2 : 1} />
       {tab === "foils" && <Foils />}
       {tab === "stabs" && <Setup teil="stabs" />}
       {tab === "boards" && <Setup teil="boards" />}

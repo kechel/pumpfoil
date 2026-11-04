@@ -13,7 +13,7 @@ import { fehlerCode, sportartenText } from "../lib/teamKennzahlen";
 import { RegelnLink } from "./TeamRegeln";
 import { useI18n } from "../i18n";
 
-export default function Teams() {
+export default function Teams({ eingebettet = false }: { eingebettet?: boolean } = {}) {   // eingebettet: Reiter in den Einstellungen
   const { t } = useI18n();
   const nav = useNavigate();
   const [meine, setMeine] = useState<TeamKurz[] | null>(null);
@@ -50,7 +50,7 @@ export default function Teams() {
   return (
     <div className="w-full">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" />{t("team.meine")}</h2>
+        {eingebettet ? <span /> : <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" />{t("team.meine")}</h2>}
         <RegelnLink />
       </div>
 

@@ -13,7 +13,7 @@ import { useI18n } from "../i18n";
 type Liste = Awaited<ReturnType<typeof api.friends>>;
 type Offen = { art: "annehmen" | "beenden" | "zurueckziehen"; id: number; name: string };
 
-export default function Friends() {
+export default function Friends({ eingebettet = false }: { eingebettet?: boolean } = {}) {   // eingebettet: Reiter in den Einstellungen
   const { t, lang } = useI18n();
   const [d, setD] = useState<Liste | null>(null);
   const [offen, setOffen] = useState<Offen | null>(null);
@@ -46,7 +46,7 @@ export default function Friends() {
 
   return (
     <div className="w-full max-w-2xl">
-      <h2 className="mb-3 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" />{t("friends.title")}</h2>
+      {!eingebettet && <h2 className="mb-3 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" />{t("friends.title")}</h2>}
       <Card className="mb-4 p-4">
         <p className="mb-1 text-sm font-semibold text-slate-200">{t("friends.termsTitle")}</p>
         <FreundeBedingungen />
