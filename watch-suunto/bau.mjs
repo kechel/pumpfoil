@@ -111,7 +111,7 @@ export function mainJs(debug = false) {
   const seiten = variablen(seitenSrc, ["PALETTE", "ZONEN", "AUTO_WERT", "TINTE_280"]) + "\n" +
     alsVar(funktionen(seitenSrc, ["pad", "mmss", "distVal", "distUnit", "feldZahl", "feld", "klassisch", "satz", "ring",
       "farbe", "groesse", "zone", "istPuls", "wertFarbe", "fuellgrad", "mische", "zeichne", "klassik", "layout",
-      "grafik", "rahmen"]));
+      "grafik", "rahmen", "tq"]));
   const kopf = "// ERZEUGT von watch-suunto/bau.mjs — nicht von Hand aendern, Quellen in watch-suunto/quelle/.\n";
   return kopf + [
     "// ---- watch-huawei/common/lauf.js ----", lauf,

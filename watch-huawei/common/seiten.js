@@ -159,10 +159,10 @@ function klassik(e, c) {
   for (i = 0; i < ids.length; i++) {
     var f = feld(c.s, ids[i], c.el, c.t, c.jetzt), y = y0 + zeile * i;
     var col = c.k.colorByValue ? (wertFarbe(c.k, ids[i], feldZahl(c.s, ids[i], c.el)) || AUTO_WERT) : AUTO_WERT;
-    out.push(tx(dw / 2, Math.round(y + zeile * 0.42), groesse(ids.length === 1 ? 8 : 6, dw), col, "c", f[0], true));
-    out.push(tx(dw / 2, Math.round(y + zeile * 0.82), groesse(1, dw), AUTO_LABEL, "c", f[1], false));
+    out.push(tq(dw / 2, Math.round(y + zeile * 0.42), groesse(ids.length === 1 ? 8 : 6, dw), col, "c", f[0], true));
+    out.push(tq(dw / 2, Math.round(y + zeile * 0.82), groesse(1, dw), AUTO_LABEL, "c", f[1], false));
   }
-  if (c.pausiert) out.push(tx(dw / 2, Math.round(dh * 0.07), groesse(2, dw), CYAN, "c", c.t("paused"), true));
+  if (c.pausiert) out.push(tq(dw / 2, Math.round(dh * 0.07), groesse(2, dw), CYAN, "c", c.t("paused"), true));
   punkte(out, dw / 2, dh * 0.94, 0, c, AUTO_LABEL, "#000000");
   return out;
 }
@@ -180,7 +180,8 @@ function punkte(out, ax, ay, fl, c, col, bg) {
 }
 
 /** Freies Layout [1, bg, [[typ,x,y,size,color,flags,extra…], …]], Koordinaten in Promille. */
-function tx(x, y, s, c, a, txt, b) { return { k: "t", x: x, y: y, s: s, c: c, a: a, txt: txt, b: b }; }   // wie Seiten.ets text()
+// wie Seiten.ets text(); nicht „tx“ — so heisst in der Suunto-App die Texttabelle
+function tq(x, y, s, c, a, txt, b) { return { k: "t", x: x, y: y, s: s, c: c, a: a, txt: txt, b: b }; }
 
 function layout(e, c) {
   var dw = c.dw, dh = c.dh, els = e[2] || [], bg = farbe(e[1] | 0, "#000000");
@@ -204,12 +205,12 @@ function layout(e, c) {
       var gap = Math.round(d / 2), tw = Math.round(fs * 0.62 * 3), tot = d + gap + tw;
       var lx = a === "l" ? ax : (a === "r" ? ax - tot : ax - Math.round(tot / 2)), rc = farbe(ci, "#ff0000");
       vorne.push({ k: "r", x: lx, y: ay - Math.round(d / 2), w: d, h: d, c: rc });
-      vorne.push(tx(lx + d + gap, ay, fs, rc, "l", "REC", false));
+      vorne.push(tq(lx + d + gap, ay, fs, rc, "l", "REC", false));
     } else if (typ === 6) {
       punkte(vorne, ax, ay, fl, c, farbe(ci, AUTO_LABEL), bg);
     } else if (typ === 7) {   // „Pausiert" — nur, wenn wirklich pausiert
       hatPause = true;
-      if (c.pausiert) vorne.push(tx(ax, ay, groesse(st, dw), farbe(ci, CYAN), a, c.t("paused"), true));
+      if (c.pausiert) vorne.push(tq(ax, ay, groesse(st, dw), farbe(ci, CYAN), a, c.t("paused"), true));
     } else if (typ === 1 || typ === 2 || typ === 3) {
       var txt = typ === 1 ? feld(c.s, fid, c.el, c.t, c.jetzt)[0]
         : typ === 2 ? feld(c.s, fid, c.el, c.t, c.jetzt)[1]
@@ -218,14 +219,14 @@ function layout(e, c) {
       var col = farbe(ci, typ === 1 ? AUTO_WERT : AUTO_LABEL);
       if (typ === 1 && (fl & 4)) col = wertFarbe(c.k, fid, feldZahl(c.s, fid, c.el)) || col;
       if (ay <= dh * 0.2 && (ob < 0 || ay < vorne[ob].y)) ob = vorne.length;
-      vorne.push(tx(ax, ay, groesse(st, dw), col, a, txt, typ === 1));
+      vorne.push(tq(ax, ay, groesse(st, dw), col, a, txt, typ === 1));
     }
   }
   // Ohne Pause-Element ersetzt „Paused" den obersten Text der oberen 20 % (wie Seiten.ets pauseEinsetzen, 04.11.2026)
   if (c.pausiert && !hatPause) {
     var pt = c.t("paused"), q = vorne[ob];
-    if (q) vorne[ob] = tx(q.x, q.y, Math.max(7, Math.round(q.s * Math.min(1, q.txt.length / pt.length))), CYAN, q.a, pt, true);
-    else vorne.push(tx(Math.round(dw / 2), Math.round(dh * 0.07), groesse(2, dw), CYAN, "c", pt, true));
+    if (q) vorne[ob] = tq(q.x, q.y, Math.max(7, Math.round(q.s * Math.min(1, q.txt.length / pt.length))), CYAN, q.a, pt, true);
+    else vorne.push(tq(Math.round(dw / 2), Math.round(dh * 0.07), groesse(2, dw), CYAN, "c", pt, true));
   }
   return out.concat(vorne);
 }
