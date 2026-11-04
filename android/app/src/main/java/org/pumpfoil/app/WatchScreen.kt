@@ -114,7 +114,7 @@ private fun WatchInhalt(ctx: android.content.Context, onGarminPair: () -> Unit, 
         )
         ListItem(
             modifier = Modifier.clickable { onGarminPair() },
-            headlineContent = { Text(I18n.t("garmin.title")) },
+            headlineContent = { Text(I18n.t("onb.watch.title")) },
             supportingContent = { Text(I18n.t("garmin.sub")) },
             leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },

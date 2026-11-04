@@ -59,7 +59,7 @@ fun GarminPairScreen(onBack: () -> Unit) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text(I18n.t("garmin.title")) },
+            title = { Text(I18n.t("onb.watch.title")) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
             actions = { FeedbackKnopf() },
         )
