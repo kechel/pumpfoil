@@ -736,9 +736,13 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
           ))}
         </Card>
       )}
-      <Link to="/teams" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
-        {t("team.meine")} · {t("team.gruenden")} →
-      </Link>
+      {/* „Meine Teams · Team gruenden" ist raus (Jan, 04.11.2026) — das steht jetzt unter Einstellungen › Team. Nur ohne
+          eigenes Team bleibt ein Weg dorthin, sonst stuende hier ein Satz ohne naechsten Schritt. */}
+      {teams.length === 0 && (
+        <Link to="/einstellungen?tab=team" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+          {t("team.finden")} · {t("team.gruenden")} →
+        </Link>
+      )}
       {teams.length > 0 && <TeamLetzteMitWahl teams={teams} />}
     </>
   );
