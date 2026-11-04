@@ -593,7 +593,8 @@ _APP_META: dict[str, dict[str, str]] = {
     # Die Watch 5 schickt `p=huawei` (1.0.2 ist so eingereicht) -> devices._plat_fuer_hinweis
     # bildet das auf "huawei-watch5" ab. `latest` erst bei bestaetigter Freigabe setzen.
     "huawei-watch5": {      # watch-huawei/arkts, HarmonyOS 5/6, laedt selbst hoch (seit 1.0.2)
-        "latest": "",       # 1.0.2 zweimal abgelehnt (22.10., 28.10.), 1.0.3 in Arbeit
+        "latest": "1.0.3",  # FREIGEGEBEN 2026-11-04 (Jans Meldung, AppGallery-Mail: Einreichung 02.11. 20:03:25 approved
+        # and released). Erste Huawei-Fassung im Store. Davor 1.0.2 abgelehnt 22.10./28.10., 1.0.3 abgelehnt 02.11.
         "min_supported": "",
         "store_url": "",
     },
@@ -819,18 +820,7 @@ BEKANNTE_PROBLEME: list[dict] = []
 
 
 ABGELEHNT: list[dict] = [
-    {"name": "Huawei Watch 5", "version": "1.0.3",
-     # AppGallery, Bericht 02.11.2026 (Jans Meldung), getestet auf HUAWEI WATCH 5, HarmonyOS 6.1.0 (API 23). Regel 3.1,
-     # blockierend: (1) „The rotation of the watch crown on the home screen is opposite to the actual rotation. When
-     # the watch crown is rotated, the screen jumps to another page, which is inaccurate." (2) „Swiping right on the
-     # app cannot exit the app." Nur Empfehlung: Krone im Datenschutz-Text ebenfalls falsch herum. Ursache: das
-     # Vorzeichen von CrownEvent.degree war geraten (kein Emulator liefert Kronen-Ereignisse), und onBackPress gab im
-     # Ruhezustand `false` zurueck statt selbst zu beenden. Beides in Index.ets behoben.
-     # Davor 1.0.2: abgelehnt 22.10. (Festland-China fehlte) und 28.10. (keine Kronen-Bedienung, kein
-     # Datenschutz-Hinweis beim ersten Start) -> beides in 1.0.3 eingebaut.
-     "abgelehnt": "2026-11-02",
-     "grund": "turning the crown moved the screens the wrong way and swiping right did not close the app; "
-              "both are fixed and the same version is under review again"},
+    # Huawei Watch 5 1.0.3 (abgelehnt 02.11.: Krone falsch herum, Rechtswischen) am 04.11. FREIGEGEBEN -> raus.
     {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
      # Google, 09.10.2026 (Jans Meldung): „Wear app functionality not working as described …
      # Your app crashed when testing", Version code 1050. Im Wear-Emulator mit dem R8-Release-Build
@@ -915,28 +905,8 @@ IN_REVIEW: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.46 / 1.2.46",
      "eingereicht": "2026-10-28",
      "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list.", "You can pick the new sports without a foil: kitesurfing, windsurfing, snowkiting, kite mountainboarding, kite buggy and SUP.", "Sessions of sports without a foil show rides instead of on-foil figures and count tacks and jibes, and SUP sessions show your paddle strokes on the map.", "Sport lists start with your default sport and are otherwise sorted alphabetically.", "The heatmap can show all time instead of only the last year.", "Runs that were left out because they were too fast or a car drive now say why.", "Wear OS watches and the Android phone recorder show when the GPS signal is lost and keep the time running.", "The phone recorder shows your on-foil distance, the sum of all runs, instead of the total distance, shows your watch data pages live above the map and lets you page through the runs of the current session.", "Sessions of sports without a foil, such as kitesurfing, no longer show foil, stabilizer and mast; watch and board stay.", "The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list.", "A spot page no longer freezes when you scroll down to its heatmap map.", "The feedback form shows how many of the 2000 characters you have used, and says so if sending fails, instead of doing nothing.", "The records on a spot page show only the records that exist, without rows of empty tiles.", "Spot records show one sport at a time with a switch between the sports that have records there, and follow the sport filter of the page.", "The heatmap on a spot page switches to the sport you pick for the records.", "On a spot page the sport buttons above the records filter the whole page (sessions, records and heatmap) and replace the sport menu there; they show only the sports ridden at that spot, and on Android they stay at the top while the page scrolls.", "The session list no longer has a spot menu; you get to a spot through the spot map and its search, your homespot tab or the spot link of a session.", "Searching for a spot shows the matches right below the map instead of at the bottom of the page.", "The session list puts the sport menu and the tiles/rows switch into the row with accel, all and POB, so the filters take one line less."]},
-    # NEU EINGEREICHT 02.11.2026 13:02 (Jans Meldung, „Confirm release information": 1.0.3 (1000003), gleiche Nummer
-    # wie die abgelehnte, Laender wie am 28.10.), Under pre-review. Aus b2012923: Krone umgedreht, Rechtswischen beendet
-    # die App im Ruhezustand. Jan im Emulator: Wischen beendet auf dem Startbildschirm, Upload geht. Krone erst beim Pruefer.
-    {"name": "Huawei Watch 5", "version": "1.0.3",
-     "eingereicht": "2026-11-02",
-     "items": [
-         # aus der abgelehnten 1.0.2 (28.10.2026) uebernommen
-         "New: the Huawei Watch 5 records your sessions and uploads them on its own after you link it with a code at pumpfoil.org. Starting as a public beta.",
-         "Same controls as on the other watches: start, pause, stop and discard, your own data screens from your profile, auto-start and touch lock.",
-         # 28.10.2026: Huawei-Pruefung (Krone, Datenschutz beim ersten Start)
-         "Turn the crown to move between the data screens and to scroll through the settings.",
-         "Swiping right on the start screen closes the app.",
-         "On first start the watch shows a short privacy notice, which you can open again from the settings.",
-         "The watch start screen tells you when your phone recorder is running, closing the app lets the website know you are done, and moving the watch to another account works with a new code.",
-         # 15.10.2026: Spot-Meldung beim ersten GPS-Fix (Server 8b958905).
-         "Once the watch has a GPS fix on the start screen, it tells pumpfoil.org which spot you are at (within 1 km, only the spot is kept), so friends and the spot map show the right place, and at home you no longer count as pumping.",
-         # 19.10.2026: Sportart-Wahl (nur Watch 5/ArkTS; GT/Fit/D + Watch 3/4 brauchen Bruecke + Heap-Messung).
-         "You can pick the sport before you start, in the settings or by tapping it on the start screen, and the start screen shows your foil below the sport.",
-         # 22.10.2026: Pause-Erinnerung + STOPP-Seite zeigt Pausiert (5ed3fe82)
-         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
-         "The stop screen also shows when the recording is paused.",
-     ]},
+    # Huawei Watch 5 1.0.3 am 04.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); die 10 Punkte stehen im Changelog mit
+    # huawei-watch5 1.0.3, dazu ein Freigabe-Ereignis.
     # iPhone + Apple Watch 1.1.57 am 26.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 751/752/754/757/759/765 + 774/775 tragen ios/apple 1.1.57.
     # iPhone + Apple Watch 1.1.56 am 24.10. FREIGEGEBEN -> raus (s. _APP_META); Punkt 737 traegt ios/apple 1.1.56.
     # iPhone + Apple Watch 1.1.55 am 23.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 728/729 tragen ios/apple 1.1.55,
