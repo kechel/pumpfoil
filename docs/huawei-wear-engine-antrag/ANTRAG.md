@@ -103,4 +103,7 @@ parts)". Was aus dem Simulator stammt, wie beim ersten Mal als „simulator" ken
   Diagramm sagt deshalb nur „motion", nicht „pump detection".
 - **Lange Aufnahme bei dunklem Display:** nicht belegt.
 - **Android-Brücke:** `HuaweiBruecke.kt` ist geschrieben und kompiliert, aber nie gegen eine echte Uhr gelaufen.
+- **Rechtswischen beendet die App:** Im Lite-Simulator kommt das Wischen an (Log `wischen right`, 04.11.), und
+  `app.terminate()` wird aufgerufen, aber die App bleibt offen. Vermutlich kann der Simulator nicht beenden; auf
+  einer echten GT ungeprueft.
 - **Tester ohne Store:** wie Tester eine Lite-App vor der Store-Freigabe bekommen, ist ungeklärt.
