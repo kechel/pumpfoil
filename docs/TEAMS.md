@@ -317,6 +317,11 @@ iOS nur Syntax geprueft (noch nicht in Xcode gebaut); beide noch nicht auf einem
 Links (keine der Apps oeffnet bisher https://pumpfoil.org-Links; iOS braucht Associated Domains + apple-app-site-association),
 Einladungslinks in der App, Event-Abzeichen auf der Foiler-Seite; Verwaltung bleibt im Browser.
 
+**04.11.2026 (Jan): Gruenden und Verwaltung kommen nativ in beide Apps** („bitte die volle funktionalitaet auch nativ").
+Vorlage: `web/src/pages/Teams.tsx` (Gruenden), `TeamEinstellungen.tsx` (Mitglieder, Einladungslinks, Freigabe, Auftritt mit
+Logo/Banner, Beitritt, Sichtbarkeit, Tafeln, Spots, Loeschen), `components/TeamEventsVerwalten.tsx` (Events mit Eventbild).
+Die Browser-Links aus dem ersten Port entfallen damit. Stand je App in `docs/UX-IA.md` (App-Port).
+
 **Apps: was es dort vor dem Port noch gar nicht gab** — Teams-Einstieg (Profil/Home-Links), Teamseite, Event-Seite, Community-Abschnitt
 „Laufende & kommende Events", Seiten „Alle Teams"/„Alle Events", Deep Links `/teams/<slug>`, `/teams/<slug>/events/<id>`,
 `/teams/<slug>/join-…|apply-…`, Team-Chat (`chat_scope`, vorhandener Chat-Baustein), Abzeichen auf der Foiler-Seite
