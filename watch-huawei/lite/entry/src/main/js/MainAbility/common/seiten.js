@@ -159,10 +159,10 @@ function klassik(e, c) {
   for (i = 0; i < ids.length; i++) {
     var f = feld(c.s, ids[i], c.el, c.t, c.jetzt), y = y0 + zeile * i;
     var col = c.k.colorByValue ? (wertFarbe(c.k, ids[i], feldZahl(c.s, ids[i], c.el)) || AUTO_WERT) : AUTO_WERT;
-    out.push({ k: "t", x: dw / 2, y: Math.round(y + zeile * 0.42), s: groesse(ids.length === 1 ? 8 : 6, dw), c: col, a: "c", txt: f[0], b: true });
-    out.push({ k: "t", x: dw / 2, y: Math.round(y + zeile * 0.82), s: groesse(1, dw), c: AUTO_LABEL, a: "c", txt: f[1], b: false });
+    out.push(tx(dw / 2, Math.round(y + zeile * 0.42), groesse(ids.length === 1 ? 8 : 6, dw), col, "c", f[0], true));
+    out.push(tx(dw / 2, Math.round(y + zeile * 0.82), groesse(1, dw), AUTO_LABEL, "c", f[1], false));
   }
-  if (c.pausiert) out.push({ k: "t", x: dw / 2, y: Math.round(dh * 0.07), s: groesse(2, dw), c: CYAN, a: "c", txt: c.t("paused"), b: true });
+  if (c.pausiert) out.push(tx(dw / 2, Math.round(dh * 0.07), groesse(2, dw), CYAN, "c", c.t("paused"), true));
   punkte(out, dw / 2, dh * 0.94, 0, c, AUTO_LABEL, "#000000");
   return out;
 }
@@ -180,9 +180,11 @@ function punkte(out, ax, ay, fl, c, col, bg) {
 }
 
 /** Freies Layout [1, bg, [[typ,x,y,size,color,flags,extra…], …]], Koordinaten in Promille. */
+function tx(x, y, s, c, a, txt, b) { return { k: "t", x: x, y: y, s: s, c: c, a: a, txt: txt, b: b }; }   // wie Seiten.ets text()
+
 function layout(e, c) {
   var dw = c.dw, dh = c.dh, els = e[2] || [], bg = farbe(e[1] | 0, "#000000");
-  var out = [{ k: "r", x: 0, y: 0, w: dw, h: dh, c: bg }], vorne = [], hatPause = false, i;
+  var out = [{ k: "r", x: 0, y: 0, w: dw, h: dh, c: bg }], vorne = [], hatPause = false, i, ob = -1;
   for (i = 0; i < els.length; i++) {
     var x = els[i];
     if (!x || x.length < 6) continue;
@@ -202,12 +204,12 @@ function layout(e, c) {
       var gap = Math.round(d / 2), tw = Math.round(fs * 0.62 * 3), tot = d + gap + tw;
       var lx = a === "l" ? ax : (a === "r" ? ax - tot : ax - Math.round(tot / 2)), rc = farbe(ci, "#ff0000");
       vorne.push({ k: "r", x: lx, y: ay - Math.round(d / 2), w: d, h: d, c: rc });
-      vorne.push({ k: "t", x: lx + d + gap, y: ay, s: fs, c: rc, a: "l", txt: "REC", b: false });
+      vorne.push(tx(lx + d + gap, ay, fs, rc, "l", "REC", false));
     } else if (typ === 6) {
       punkte(vorne, ax, ay, fl, c, farbe(ci, AUTO_LABEL), bg);
     } else if (typ === 7) {   // „Pausiert" — nur, wenn wirklich pausiert
       hatPause = true;
-      if (c.pausiert) vorne.push({ k: "t", x: ax, y: ay, s: groesse(st, dw), c: farbe(ci, CYAN), a: a, txt: c.t("paused"), b: true });
+      if (c.pausiert) vorne.push(tx(ax, ay, groesse(st, dw), farbe(ci, CYAN), a, c.t("paused"), true));
     } else if (typ === 1 || typ === 2 || typ === 3) {
       var txt = typ === 1 ? feld(c.s, fid, c.el, c.t, c.jetzt)[0]
         : typ === 2 ? feld(c.s, fid, c.el, c.t, c.jetzt)[1]
@@ -215,14 +217,19 @@ function layout(e, c) {
       if (!txt) continue;
       var col = farbe(ci, typ === 1 ? AUTO_WERT : AUTO_LABEL);
       if (typ === 1 && (fl & 4)) col = wertFarbe(c.k, fid, feldZahl(c.s, fid, c.el)) || col;
-      vorne.push({ k: "t", x: ax, y: ay, s: groesse(st, dw), c: col, a: a, txt: txt, b: typ === 1 });
+      if (ay <= dh * 0.2 && (ob < 0 || ay < vorne[ob].y)) ob = vorne.length;
+      vorne.push(tx(ax, ay, groesse(st, dw), col, a, txt, typ === 1));
     }
   }
+  // Ohne Pause-Element ersetzt „Paused" den obersten Text der oberen 20 % (wie Seiten.ets pauseEinsetzen, 04.11.2026)
   if (c.pausiert && !hatPause) {
-    vorne.push({ k: "t", x: Math.round(dw / 2), y: Math.round(dh * 0.07), s: groesse(2, dw), c: CYAN, a: "c", txt: c.t("paused"), b: true });
+    var pt = c.t("paused"), q = vorne[ob];
+    if (q) vorne[ob] = tx(q.x, q.y, Math.max(7, Math.round(q.s * Math.min(1, q.txt.length / pt.length))), CYAN, q.a, pt, true);
+    else vorne.push(tx(Math.round(dw / 2), Math.round(dh * 0.07), groesse(2, dw), CYAN, "c", pt, true));
   }
   return out.concat(vorne);
 }
+
 
 /** Rand-Grafik (typ 8, auf runden Uhren als Bogen) und Balken (typ 9), je mit leerer Spur. */
 function grafik(out, x, typ, ax, ay, st, ci, fl, fid, c) {

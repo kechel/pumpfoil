@@ -957,9 +957,33 @@ function layout(e: Seite, c: ZeichenKontext): Befehl[] {
   // Ohne eigenes Pause-Element: klein und ganz oben wie Garmin (FONT_XTINY ganz oben). Mit
   // Stufe 2 auf 0,07 H lag es im Emulator-Test (13.10.2026) ueber Uhrzeit/Labels am oberen Rand.
   if (c.pausiert && !hatPause) {
-    vorne.push(text(Math.round(dw / 2), Math.round(dh * 0.05), groesse(0, dw), CYAN, 'c', c.t('paused'), true));
+    pauseEinsetzen(vorne, c.t('paused'), dw, dh, text(Math.round(dw / 2), Math.round(dh * 0.05), groesse(0, dw), CYAN, 'c', c.t('paused'), true));
   }
   return out.concat(vorne);
+}
+
+/**
+ * „Paused" auf einem Layout ohne eigenes Pause-Element: steht oben (obere 20 %) schon ein Text, nimmt „Paused" in der
+ * Pause dessen Platz ein — gleiche Stelle und Ausrichtung, hoechstens so breit wie der ersetzte Text. Vorher lag es fest
+ * ganz oben und damit ueber der Uhrzeit (AppGallery-Hinweis 04.11.2026 zu 1.0.3: „The UX display on the app pause screen
+ * is incomplete"; Jans Emulator-Bild: „Paused" auf „17:01"). Ohne Text oben bleibt `sonst`. Wie seiten.js.
+ */
+function pauseEinsetzen(vorne: Befehl[], txt: string, dw: number, dh: number, sonst: Befehl): void {
+  let oben: number = -1;
+  for (let i = 0; i < vorne.length; i++) {
+    const b: Befehl = vorne[i];
+    if (b.k === 't' && (b.y ?? dh) <= dh * 0.2 && (oben < 0 || (b.y ?? dh) < (vorne[oben].y ?? dh))) {
+      oben = i;
+    }
+  }
+  if (oben < 0) {
+    vorne.push(sonst);
+    return;
+  }
+  const alt: Befehl = vorne[oben];
+  const n: number = Math.max(1, (alt.txt ?? '').length);
+  const fs: number = Math.max(7, Math.round((alt.s ?? 12) * Math.min(1, n / Math.max(1, txt.length))));
+  vorne[oben] = text(alt.x ?? Math.round(dw / 2), alt.y ?? 0, fs, CYAN, alt.a ?? 'c', txt, true);
 }
 
 /** Rand-Grafik auf eckigen Uhren, Rahmen ab oberer Mitte im Uhrzeigersinn (wie seiten.js rahmen). */
