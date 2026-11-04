@@ -4,6 +4,10 @@
          der schmalen eckigen Uhr passte „Begriff: Wert" nicht in eine Zeile. Je Eintrag oben der Begriff,
          darunter der Wert (eine Zeile, zu lang endet mit …), zusammen in EINEM div (Watch 3/4: list-item hat nur ein Kind). Tippen schaltet weiter; rechts wischen = zurueck. -->
     <list class="liste">
+        <!-- Sportart vor dem Start (wie Watch 5): nur, wenn das Profil mindestens zwei liefert -->
+        <list-item class="eintrag" if="{{ sportDa }}" onclick="sport">
+            <div class="block"><text class="begriff">{{ bSport }}</text><text class="wert">{{ zSport }}</text></div>
+        </list-item>
         <list-item class="eintrag" onclick="alarm">
             <div class="block"><text class="begriff">{{ bAlarm }}</text><text class="wert">{{ zAlarm }}</text></div>
         </list-item>

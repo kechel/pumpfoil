@@ -4,6 +4,7 @@
  * R.auswahl) und wird dort gespeichert; diese Seite zeigt und schaltet nur.
  */
 import router from "@system.router";
+import file from "@system.file";
 
 var R = null;
 
@@ -13,13 +14,20 @@ function holeRecorder() {
 }
 
 export default {
-  data: { bAlarm: "", bQuelle: "", bLayouts: "", bSperre: "", bStart: "", zStart: "", direktDa: false, zDirekt: "", zAlarm: "", zQuelle: "", zFoil: "", zLayouts: "", zSperre: "" },
+  data: { sportDa: false, bSport: "", zSport: "", bAlarm: "", bQuelle: "", bLayouts: "", bSperre: "", bStart: "", zStart: "", direktDa: false, zDirekt: "", zAlarm: "", zQuelle: "", zFoil: "", zLayouts: "", zSperre: "" },
   onInit() {
     R = holeRecorder();
-    var keys = ["alarm", "thresholds", "autoFoil", "manual", "layoutsShort", "lock", "autoStart", "connect", "connected", "disconnect", "pairHint", "pairNoNet", "on", "off", "auto"];
+    var keys = ["alarm", "thresholds", "autoFoil", "manual", "layoutsShort", "lock", "autoStart", "connect", "connected", "disconnect", "pairHint", "pairNoNet", "on", "off", "auto", "sport"];
     this.tx = {};
     for (var i = 0; i < keys.length; i++) this.tx[keys[i]] = this.$t("strings." + keys[i]);
+    this.sports = [];
     this.zeigen();
+    // Sportarten (Server ?sp=1, Standard vorn) liest die Seite selbst aus der Konfiguration: im app.js-Buendel ist
+    // kein Platz mehr (s. recorder.js start). Eine Wahl gibt es erst ab zwei.
+    var that0 = this;
+    file.readText({ uri: "internal://app/konfig.json", success: function (d) {
+      try { var l = JSON.parse(d.text).sports; if (l && l.length > 1) { that0.sports = l; that0.zeigen(); } } catch (e) { /* ohne */ }
+    } });
     // Watch 3/4: waehrend die Seite offen ist, nachfragen, ob der Code eingeloest wurde
     if (R && R.direkt) {
       this.direktDa = true;
@@ -42,6 +50,15 @@ export default {
     this.zSperre = this.stufe(a.sperre, k.waterLock === "on");
     this.zStart = this.stufe(a.start, k.autoStart);
     if (R.direkt) this.zDirekt = R.direkt.text(this.tx);
+    var l = this.sports || [], i = this.sportNr(l);
+    this.sportDa = l.length > 1; this.bSport = this.tx.sport; this.zSport = this.sportDa ? l[i].name : "";
+  },
+  /** Stelle der gewaehlten Sportart; nicht (mehr) in der Liste = der Standard vorn. */
+  sportNr(l) { for (var i = 0; i < l.length; i++) if (l[i].id === R.auswahl.sport) return i; return 0; },
+  /** Weiterschalten im Kreis wie Watch 5; beim Standard wird die Wahl geloescht (gilt bis die App schliesst, nicht gespeichert). */
+  sport() {
+    var l = this.sports, n = (this.sportNr(l) + 1) % l.length;
+    R.auswahl.sport = n ? l[n].id : null; this.zeigen();
   },
   aendern(fn) { fn(R.auswahl); R.auswahlAnwenden(); this.zeigen(); },
   alarm() { this.aendern(function (a) { a.alarm = !a.alarm; }); },

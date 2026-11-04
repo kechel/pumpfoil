@@ -94,7 +94,9 @@ object HuaweiBruecke {
         // Foils + Alarme (Einstellungsseite und Vibrationsalarm auf der Uhr, 08.10.2026)
         "foils", "alarmEnabled", "alarmDefault", "speedLow", "speedHigh", "hrHigh", "alarmPatternHigh",
         "alarmPatternLow", "alarmPatternHr", "alarmRepeat", "alarmRepeatS", "runDistM", "runDistMode",
-        "alarmPatternDist", "runTimeS", "runTimeMode", "alarmPatternTime")
+        "alarmPatternDist", "runTimeS", "runTimeMode", "alarmPatternTime",
+        // Sportart-Wahl vor dem Start (04.11.2026, wie Watch 5; nur mit ?sp=1)
+        "sports")
     @Volatile private var hochladen = false
 
     /** HUAWEI_WATCH_FP, durch Komma getrennt (app/build.gradle.kts). */
@@ -288,7 +290,7 @@ object HuaweiBruecke {
             val label = h.optString("device_model", "HUAWEI").ifBlank { "HUAWEI" }
             val tok = token(app, label) ?: return
             val v = java.net.URLEncoder.encode(h.optString("app_version", ""), "UTF-8")
-            val c = URL(Api.BASE + "/api/devices/config?p=huawei&v=" + v).openConnection() as HttpURLConnection
+            val c = URL(Api.BASE + "/api/devices/config?p=huawei&sp=1&v=" + v).openConnection() as HttpURLConnection
             val roh = try {
                 c.connectTimeout = 15000; c.readTimeout = 30000
                 c.setRequestProperty("X-Device-Token", tok)

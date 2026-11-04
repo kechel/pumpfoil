@@ -230,7 +230,7 @@ function an(R) {
     if (!D.token || D.laeuft || jetzt < D.naechster) return;
     if (jetzt - D.konfigZuletzt > KONFIG_ALLE_MS) {
       D.laeuft = true;
-      anfrage("GET", "/api/devices/config?p=huawei&v=" + C.APP_VERSION, "", D.token, function (code, text) {
+      anfrage("GET", "/api/devices/config?p=huawei&sp=1&v=" + C.APP_VERSION, "", D.token, function (code, text) {
         if (code === 401) { abgelehnt("config"); return; }
         if (code !== 200) { fehlschlag("config", code, text); return; }
         D.laeuft = false; D.konfigZuletzt = Date.now();

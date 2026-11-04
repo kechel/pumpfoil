@@ -180,6 +180,10 @@ R.start = function () {
   };
   // gewaehltes Foil wie Zepp (meta.foil_id, nur wenn gewaehlt); sonst setzt der Server den Profil-Standard
   if (R.auswahl.foilId !== null) meta.foil_id = R.auswahl.foilId;
+  // Sportart (Einstellungsseite, nur wenn nicht der Standard gewaehlt ist); ohne setzt der Server den Profil-Standard,
+  // das ist der erste Eintrag der Liste — wie Watch 5. Mehr Code passt hier nicht: der Snapshot von app.js scheiterte
+  // am 04.11. schon an zwei Zeilen (rc 10, nicht der Heap).
+  if (R.auswahl.sport) meta.sport_class = R.auswahl.sport;
   schreibe(K.dateiMeta(R.id), meta, planSichern);
   R.alarm = new S.Alarm();
   R.modus = "laeuft";
@@ -203,7 +207,6 @@ R.pause = function () {
 
 R.weiter = function () {
   if (R.modus !== "pause") return;
-  log("Weiter");
   R.achse.weiter(Date.now());
   R.modus = "laeuft";
   laufSichern();
