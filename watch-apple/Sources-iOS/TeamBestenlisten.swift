@@ -466,7 +466,9 @@ struct TeamBestenlisteBild: View {
     }
 
     @ViewBuilder private func flagge(_ land: String?, _ fw: CGFloat, _ fh: CGFloat) -> some View {
-        if let l = land, let b = daten.flaggen[l] {
+        // Kontinent/Erde je nach Hell/Dunkel des Bildes (die vorab geladenen Flaggen kennen nur eine Fassung).
+        let kont: UIImage? = land.flatMap { $0.hasPrefix("k:") ? TeamFlaggenBild.kontinent(String($0.dropFirst(2)), hell: hell) : nil }
+        if let l = land, let b = kont ?? daten.flaggen[l] {
             Image(uiImage: b).resizable().scaledToFill()
                 .frame(width: fw, height: fh)
                 .clipped()

@@ -72,6 +72,7 @@ import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -157,7 +158,8 @@ internal fun TeamHerkunftZeichen(land: String?, gross: Boolean = false) {
         return
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        val umriss = remember(l) { kontinentBild(l.drop(2)) }
+        val hell = MaterialTheme.colorScheme.background.luminance() > 0.5f
+        val umriss = remember(l, hell) { kontinentBild(l.drop(2), hell) }
         if (umriss != null) {
             androidx.compose.foundation.Image(umriss.asImageBitmap(), contentDescription = herkunftName(l),
                 modifier = Modifier.size(if (gross) 24.dp else 18.dp, if (gross) 18.dp else 13.5.dp).clip(RoundedCornerShape(2.dp)))
@@ -173,19 +175,20 @@ internal fun TeamHerkunftZeichen(land: String?, gross: Boolean = false) {
 
 private val kontinentBilder = mutableMapOf<String, android.graphics.Bitmap>()
 
-/** Kontinent oder Erde als Umriss im Flaggen-Kaestchen wie im Web (TeamHerkunft.tsx): cyan auf dunklem Grund, 4:3.
- *  Fuer die Marke neben dem Namen und fuer das Teilen-Bild. */
-internal fun kontinentBild(k: String): android.graphics.Bitmap? {
-    kontinentBilder[k]?.let { return it }
+/** Kontinent oder Erde als Umriss im Flaggen-Kaestchen wie im Web (TeamHerkunft.tsx), 4:3: dunkel cyan auf slate-900,
+ *  hell dunkles Cyan (#0e7490, Akzent des hellen Bildes) auf slate-100. Fuer die Marke neben dem Namen und das Teilen-Bild. */
+internal fun kontinentBild(k: String, hell: Boolean = false): android.graphics.Bitmap? {
+    val schluessel = if (hell) "$k|hell" else k
+    kontinentBilder[schluessel]?.let { return it }
     val d = KONTINENT_PFADE[k] ?: return null
     val m = 4f
     val b = android.graphics.Bitmap.createBitmap((48 * m).toInt(), (36 * m).toInt(), android.graphics.Bitmap.Config.ARGB_8888)
     val g = android.graphics.Canvas(b)
-    g.drawColor(0xFF0F172A.toInt())   // slate-900
+    g.drawColor(if (hell) 0xFFF1F5F9.toInt() else 0xFF0F172A.toInt())   // slate-100 / slate-900
     val pfad = androidx.core.graphics.PathParser.createPathFromPathData(d)
     pfad.transform(android.graphics.Matrix().apply { setScale(m, m) })
-    g.drawPath(pfad, android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF22D3EE.toInt() })   // brand-400
-    kontinentBilder[k] = b
+    g.drawPath(pfad, android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = if (hell) 0xFF0E7490.toInt() else 0xFF22D3EE.toInt() })   // #0e7490 / brand-400
+    kontinentBilder[schluessel] = b
     return b
 }
 

@@ -293,7 +293,9 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         }
         // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund).
         val fh = Math.round(gross * 0.8f).toFloat(); val fw = Math.round(fh * 4 / 3).toFloat()
-        z.land?.let { flaggen[it.uppercase()] }?.let { fl ->
+        // Kontinent/Erde je nach Hell/Dunkel des Bildes (die vorab geladenen Flaggen kennen nur die dunkle Fassung).
+        val kont = z.land?.trim()?.lowercase()?.takeIf { it.startsWith("k:") }?.let { kontinentBild(it.drop(2), hell) }
+        (kont ?: z.land?.let { flaggen[it.uppercase()] })?.let { fl ->
             val ziel = android.graphics.RectF(nx, mitte - fh / 2, nx + fw, mitte + fh / 2)
             // Auf 4:3 zuschneiden (cover), falls das Emoji ein anderes Seitenverhaeltnis hat.
             val k = maxOf(fw / fl.width, fh / fl.height)

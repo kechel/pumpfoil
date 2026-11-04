@@ -223,7 +223,7 @@ enum TeamFlaggenBild {
     private static var cache: [String: UIImage] = [:]
 
     static func bild(_ land: String?) -> UIImage? {
-        if let l = land, l.hasPrefix("k:") { return kontinent(String(l.dropFirst(2))) }
+        if let l = land, l.hasPrefix("k:") { return kontinent(String(l.dropFirst(2)), hell: false) }
         guard let e = teamFlaggenEmoji(land), let code = land?.uppercased() else { return nil }
         if let b = cache[code] { return b }
         let seite: CGFloat = 160
@@ -242,9 +242,10 @@ enum TeamFlaggenBild {
         return b
     }
 
-    /// Kontinent oder Erde als Umriss im Flaggen-Kaestchen wie im Web (TeamHerkunft.tsx): cyan auf dunklem Grund, 4:3.
-    static func kontinent(_ k: String) -> UIImage? {
-        let schluessel: String = "k:" + k
+    /// Kontinent oder Erde als Umriss im Flaggen-Kaestchen wie im Web (TeamHerkunft.tsx), 4:3: dunkel cyan auf slate-900,
+    /// hell dunkles Cyan (#0e7490, Akzent des hellen Bildes) auf slate-100.
+    static func kontinent(_ k: String, hell: Bool) -> UIImage? {
+        let schluessel: String = "k:" + k + (hell ? "|hell" : "")
         if let b = cache[schluessel] { return b }
         guard let d = KontinentPfade.pfad(k) else { return nil }
         let fmt = UIGraphicsImageRendererFormat.default()
@@ -252,11 +253,13 @@ enum TeamFlaggenBild {
         let massstab: CGFloat = 4
         let b = UIGraphicsImageRenderer(size: CGSize(width: 48 * massstab, height: 36 * massstab), format: fmt).image { ctx in
             let g = ctx.cgContext
-            g.setFillColor(UIColor(red: 0.06, green: 0.09, blue: 0.16, alpha: 1).cgColor)   // slate-900
+            g.setFillColor(hell ? UIColor(red: 0.95, green: 0.96, blue: 0.98, alpha: 1).cgColor     // slate-100
+                                : UIColor(red: 0.06, green: 0.09, blue: 0.16, alpha: 1).cgColor)    // slate-900
             g.fill(CGRect(x: 0, y: 0, width: 48 * massstab, height: 36 * massstab))
             g.scaleBy(x: massstab, y: massstab)
             g.addPath(svgPfad(d))
-            g.setFillColor(UIColor(red: 0.13, green: 0.83, blue: 0.93, alpha: 1).cgColor)   // brand-400 #22d3ee
+            g.setFillColor(hell ? UIColor(red: 0.05, green: 0.45, blue: 0.56, alpha: 1).cgColor     // #0e7490
+                                : UIColor(red: 0.13, green: 0.83, blue: 0.93, alpha: 1).cgColor)    // brand-400 #22d3ee
             g.fillPath()
         }
         cache[schluessel] = b
@@ -315,13 +318,14 @@ enum TeamFlaggenBild {
 struct TeamHerkunftMarke: View {
     let land: String?
     var gross: Bool = false
+    @Environment(\.colorScheme) private var schema
 
     var body: some View {
         if let e = teamFlaggenEmoji(land) {
             Text(e).font(.system(size: gross ? 18 : 13))
         } else if let l = land, l.hasPrefix("k:") {
             HStack(spacing: 3) {
-                if let b = TeamFlaggenBild.kontinent(String(l.dropFirst(2))) {
+                if let b = TeamFlaggenBild.kontinent(String(l.dropFirst(2)), hell: schema == .light) {
                     Image(uiImage: b).resizable().frame(width: gross ? 24 : 18, height: gross ? 18 : 13.5)
                         .clipShape(RoundedRectangle(cornerRadius: 2))
                 } else {
