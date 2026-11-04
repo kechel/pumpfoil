@@ -9,7 +9,7 @@ Recherche, Risiken und Quellen: [`docs/HUAWEI.md`](../docs/HUAWEI.md).
 common/      Quelle fuer beide Projekte (in Node getestet: node --test test/)
   kern.js      Chunks, Binaerformat, Pausen-Zeitachse, Sendeplan, Warteschlange — ohne Geraete-APIs
   recorder.js  Sensoren, GPS, Dateien, Wear Engine (@system.* — auf beiden SDK-Linien vorhanden)
-  konfig.js    Paketname + Fingerabdruck der Android-App, App-Version
+  konfig.js    Paketname + Fingerabdruck der Android-App, App-Version (auch in pages/index/index.hml „PUMPFOIL x.y.z"; Test prueft)
 lite/        DevEco-Projekt fuer Lite Wearables: Watch GT 3/4/5/6 (+Pro), Fit 3/4, D2
 wearable/    DevEco-Projekt fuer Watch 3/4 (HarmonyOS 2-4, JS-FA) — Seite/Texte kommen per sync aus lite/
 arkts/       DevEco-Projekt fuer Watch 5 und jede Uhr mit HarmonyOS 5+ (ArkTS, Stage-Modell, API 20/21)

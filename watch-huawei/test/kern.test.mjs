@@ -216,6 +216,17 @@ test("Projekt-Kopien von common/ sind aktuell (sonst ./sync-common.sh)", async (
   }
 });
 
+test("Startbildschirm zeigt die Version aus common/konfig.js (Kopfzeile PUMPFOIL x.y.z)", async () => {
+  const fs = await import("node:fs");
+  const url = (p) => new URL(p, import.meta.url);
+  const v = fs.readFileSync(url("../common/konfig.js"), "utf8").match(/APP_VERSION = "([^"]+)"/)[1];
+  for (const proj of ["lite", "wearable"]) {
+    const hml = url(`../${proj}/entry/src/main/js/MainAbility/pages/index/index.hml`);
+    if (!fs.existsSync(hml)) continue;
+    assert.ok(fs.readFileSync(hml, "utf8").includes(`>PUMPFOIL ${v}<`), `${proj}: Version ${v} in index.hml nachziehen`);
+  }
+});
+
 test("Watch-3/4-Projekt hat dieselbe Seite und dieselben Texte wie lite (sonst ./sync-common.sh)", async () => {
   const fs = await import("node:fs");
   const url = (p) => new URL(p, import.meta.url);
