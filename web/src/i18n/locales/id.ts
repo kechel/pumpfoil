@@ -2622,6 +2622,8 @@ const id: Record<string, string> = {
   "team.tab.grunddaten": "Pengaturan dasar",
   "team.gespeichert": "Tersimpan.",
   "team.mitgliederAnzahl": "{n} anggota",
+  "team.finden": "Cari tim",
+  "team.findenPlatzhalter": "Cari nama tim …",
   "team.oeffentlichBadge": "Papan peringkat publik",
   "team.nichtGefunden": "Tim ini tidak ada atau tidak publik.",
   "team.nurFuerMitglieder": "Hanya anggota yang bisa melihat papan peringkat tim ini.",

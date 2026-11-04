@@ -2622,6 +2622,8 @@ const ru: Record<string, string> = {
   "team.tab.grunddaten": "Основные настройки",
   "team.gespeichert": "Сохранено.",
   "team.mitgliederAnzahl": "Участники: {n}",
+  "team.finden": "Найти команду",
+  "team.findenPlatzhalter": "Искать по названию …",
   "team.oeffentlichBadge": "Публичные таблицы лидеров",
   "team.nichtGefunden": "Такой команды нет, или она не публичная.",
   "team.nurFuerMitglieder": "Таблицы лидеров этой команды видят только участники.",

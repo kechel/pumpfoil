@@ -2676,6 +2676,8 @@ const nl: Record<string, string> = {
   "team.tab.grunddaten": "Basisinstellingen",
   "team.gespeichert": "Opgeslagen.",
   "team.mitgliederAnzahl": "{n} leden",
+  "team.finden": "Team zoeken",
+  "team.findenPlatzhalter": "Zoek teamnaam …",
   "team.oeffentlichBadge": "Openbare ranglijsten",
   "team.nichtGefunden": "Dit team bestaat niet of is niet openbaar.",
   "team.nurFuerMitglieder": "Alleen leden zien de ranglijsten van dit team.",

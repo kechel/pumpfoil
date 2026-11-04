@@ -2675,6 +2675,8 @@ const cs: Record<string, string> = {
   "team.tab.grunddaten": "Základní nastavení",
   "team.gespeichert": "Uloženo.",
   "team.mitgliederAnzahl": "Členové: {n}",
+  "team.finden": "Najít tým",
+  "team.findenPlatzhalter": "Hledat název týmu …",
   "team.oeffentlichBadge": "Veřejné žebříčky",
   "team.nichtGefunden": "Tento tým neexistuje nebo není veřejný.",
   "team.nurFuerMitglieder": "Žebříčky tohoto týmu vidí jen členové.",

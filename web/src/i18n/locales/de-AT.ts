@@ -2507,6 +2507,8 @@ const deAT: Record<string, string> = {
   "team.tab.grunddaten": "Grundeinstellungen",
   "team.gespeichert": "G'speichert.",
   "team.mitgliederAnzahl": "{n} Mitglieder",
+  "team.finden": "Team finden",
+  "team.findenPlatzhalter": "Teamname suchen …",
   "team.oeffentlichBadge": "Bestenlisten öffentlich",
   "team.nichtGefunden": "Des Team gibt's ned, oder es is ned öffentlich.",
   "team.nurFuerMitglieder": "Die Bestenlisten von dem Team sehn nur Mitglieder.",

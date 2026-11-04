@@ -2,9 +2,10 @@
 // Profilseite. Ein neues Team funktioniert sofort intern (Einladungslinks); nach aussen erscheint es
 // erst, wenn ein Admin seinen Auftritt freigegeben hat.
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api, TeamKurz } from "../lib/api";
+import { api, TeamKurz, TeamListenEintrag } from "../lib/api";
+import { passtZu } from "../lib/suche";
 import { Card } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
 import TeamWappen from "../components/TeamWappen";
@@ -76,6 +77,8 @@ export default function Teams({ eingebettet = false }: { eingebettet?: boolean }
         </Card>
       )}
 
+      <TeamSuche />
+
       <Card className="p-4">
         <h3 className="mb-1 font-semibold text-slate-100">{t("team.gruenden")}</h3>
         <p className="mb-3 text-sm text-slate-400">{t("team.gruendenHinweis")}</p>
@@ -97,5 +100,43 @@ export default function Teams({ eingebettet = false }: { eingebettet?: boolean }
         </button>
       </Card>
     </div>
+  );
+}
+
+/** Suche durch alle freigegebenen Teams (Jan, 04.11.2026). Gleiche Regel wie alle Suchen (lib/suche.ts): Wortstellung
+ * egal, Akzente/Bindestriche/Leerzeichen zaehlen nicht — „lodz" findet „Łódź". Ohne Suchbegriff keine Liste. */
+function TeamSuche() {
+  const { t } = useI18n();
+  const [q, setQ] = useState("");
+  const [alle, setAlle] = useState<TeamListenEintrag[] | null>(null);
+  useEffect(() => { api.teamsListe().then(setAlle).catch(() => setAlle([])); }, []);
+  const treffer = useMemo(() => {
+    const ql = q.trim();
+    if (!ql || !alle) return [];
+    return alle.filter((x) => passtZu(`${x.name} ${x.slug}`, ql)).sort((a, b) => b.mitglieder_anzahl - a.mitglieder_anzahl);
+  }, [q, alle]);
+  return (
+    <Card className="mb-4 p-4">
+      <h3 className="mb-2 font-semibold text-slate-100">{t("team.finden")}</h3>
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("team.findenPlatzhalter")}
+        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+      {q.trim() && alle && (treffer.length === 0
+        ? <p className="mt-2 text-sm text-slate-500">{t("gear.noHits")}</p>
+        : <div className="mt-2">
+            {treffer.map((x) => (
+              <Link key={x.id} to={`/teams/${x.slug}`} className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800/60">
+                <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={36} />
+                <span className="min-w-0 flex-1">
+                  <span className="flex min-w-0 items-center gap-1.5"><span className="truncate font-medium text-slate-100">{x.name}</span><TeamHerkunft land={x.land} /></span>
+                  <span className="block truncate text-xs text-slate-400">
+                    {t("team.mitgliederAnzahl", { n: x.mitglieder_anzahl })}
+                    {!!x.sportarten?.length && <> · {sportartenText(x.sportarten, t)}</>}
+                  </span>
+                </span>
+                <ChevronIcon className="h-5 w-5 text-slate-400" />
+              </Link>
+            ))}
+          </div>)}
+    </Card>
   );
 }

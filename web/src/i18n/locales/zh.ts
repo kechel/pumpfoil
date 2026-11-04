@@ -2619,6 +2619,8 @@ const zh: Record<string, string> = {
   "team.tab.grunddaten": "基本设置",
   "team.gespeichert": "已保存。",
   "team.mitgliederAnzahl": "{n} 名成员",
+  "team.finden": "查找团队",
+  "team.findenPlatzhalter": "搜索团队名称 …",
   "team.oeffentlichBadge": "公开排行榜",
   "team.nichtGefunden": "该团队不存在或未公开。",
   "team.nurFuerMitglieder": "只有成员能查看该团队的排行榜。",

@@ -2505,6 +2505,8 @@ const fr: Record<string, string> = {
   "team.tab.grunddaten": "Réglages de base",
   "team.gespeichert": "Enregistré.",
   "team.mitgliederAnzahl": "{n} membres",
+  "team.finden": "Trouver une équipe",
+  "team.findenPlatzhalter": "Chercher une équipe …",
   "team.oeffentlichBadge": "Classements publics",
   "team.nichtGefunden": "Cette équipe n'existe pas ou n'est pas publique.",
   "team.nurFuerMitglieder": "Seuls les membres voient les classements de cette équipe.",

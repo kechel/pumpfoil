@@ -2719,6 +2719,8 @@ const en: Record<string, string> = {
   "team.tab.grunddaten": "Basic settings",
   "team.gespeichert": "Saved.",
   "team.mitgliederAnzahl": "{n} members",
+  "team.finden": "Find a team",
+  "team.findenPlatzhalter": "Search team name …",
   "team.oeffentlichBadge": "Public leaderboards",
   "team.nichtGefunden": "This team doesn't exist or isn't public.",
   "team.nurFuerMitglieder": "Only members can see this team's leaderboards.",

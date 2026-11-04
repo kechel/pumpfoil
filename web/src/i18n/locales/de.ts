@@ -2773,6 +2773,8 @@ const de: Record<string, string> = {
   "team.tab.grunddaten": "Grundeinstellungen",
   "team.gespeichert": "Gespeichert.",
   "team.mitgliederAnzahl": "{n} Mitglieder",
+  "team.finden": "Team finden",
+  "team.findenPlatzhalter": "Teamname suchen …",
   "team.oeffentlichBadge": "Bestenlisten öffentlich",
   "team.nichtGefunden": "Dieses Team gibt es nicht, oder es ist nicht öffentlich.",
   "team.nurFuerMitglieder": "Die Bestenlisten dieses Teams sehen nur Mitglieder.",

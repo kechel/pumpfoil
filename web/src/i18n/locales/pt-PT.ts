@@ -2616,6 +2616,8 @@ const ptPT: Record<string, string> = {
   "team.tab.grunddaten": "Definições básicas",
   "team.gespeichert": "Guardado.",
   "team.mitgliederAnzahl": "{n} membros",
+  "team.finden": "Encontrar equipa",
+  "team.findenPlatzhalter": "Procurar nome da equipa …",
   "team.oeffentlichBadge": "Rankings públicos",
   "team.nichtGefunden": "Esta equipa não existe ou não é pública.",
   "team.nurFuerMitglieder": "Só os membros veem os rankings desta equipa.",

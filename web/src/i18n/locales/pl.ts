@@ -2601,6 +2601,8 @@ const pl: Record<string, string> = {
   "team.tab.grunddaten": "Ustawienia podstawowe",
   "team.gespeichert": "Zapisano.",
   "team.mitgliederAnzahl": "Członkowie: {n}",
+  "team.finden": "Znajdź drużynę",
+  "team.findenPlatzhalter": "Szukaj nazwy drużyny …",
   "team.oeffentlichBadge": "Publiczne rankingi",
   "team.nichtGefunden": "Ta drużyna nie istnieje albo nie jest publiczna.",
   "team.nurFuerMitglieder": "Rankingi tej drużyny widzą tylko członkowie.",

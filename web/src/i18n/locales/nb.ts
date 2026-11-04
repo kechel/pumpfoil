@@ -2593,6 +2593,8 @@ const nb: Record<string, string> = {
   "team.tab.grunddaten": "Grunninnstillinger",
   "team.gespeichert": "Lagret.",
   "team.mitgliederAnzahl": "{n} medlemmer",
+  "team.finden": "Finn et lag",
+  "team.findenPlatzhalter": "Søk etter lagnavn …",
   "team.oeffentlichBadge": "Offentlige topplister",
   "team.nichtGefunden": "Dette laget finnes ikke, eller det er ikke offentlig.",
   "team.nurFuerMitglieder": "Bare medlemmer ser topplistene til dette laget.",

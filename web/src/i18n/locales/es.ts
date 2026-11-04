@@ -2505,6 +2505,8 @@ const es: Record<string, string> = {
   "team.tab.grunddaten": "Ajustes básicos",
   "team.gespeichert": "Guardado.",
   "team.mitgliederAnzahl": "{n} miembros",
+  "team.finden": "Buscar equipo",
+  "team.findenPlatzhalter": "Buscar nombre del equipo …",
   "team.oeffentlichBadge": "Clasificaciones públicas",
   "team.nichtGefunden": "Este equipo no existe o no es público.",
   "team.nurFuerMitglieder": "Solo los miembros ven las clasificaciones de este equipo.",
