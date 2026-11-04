@@ -105,7 +105,7 @@ export default function Teams({ eingebettet = false }: { eingebettet?: boolean }
 
 /** Suche durch alle freigegebenen Teams (Jan, 04.11.2026). Gleiche Regel wie alle Suchen (lib/suche.ts): Wortstellung
  * egal, Akzente/Bindestriche/Leerzeichen zaehlen nicht — „lodz" findet „Łódź". Ohne Suchbegriff keine Liste. */
-function TeamSuche() {
+export function TeamSuche() {
   const { t } = useI18n();
   const [q, setQ] = useState("");
   const [alle, setAlle] = useState<TeamListenEintrag[] | null>(null);

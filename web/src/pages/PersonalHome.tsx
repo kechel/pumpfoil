@@ -18,6 +18,7 @@ import { useKompakteListe } from "../lib/kompakteListe";
 import { CommunityList, EigeneAbzeichen, SessionStats, SpotBereich, renderCommunitySession } from "./Sessions";
 import History from "./History";
 import Foiler from "./Foiler";
+import { TeamSuche } from "./Teams";
 import LinkedAccounts from "./LinkedAccounts";
 import { Reiterleiste, useReiter, useWischleiste, type ReiterDef } from "../components/Reiter";
 import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
@@ -736,13 +737,14 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
           ))}
         </Card>
       )}
-      {/* „Meine Teams · Team gruenden" ist raus (Jan, 04.11.2026) — das steht jetzt unter Einstellungen › Team. Nur ohne
-          eigenes Team bleibt ein Weg dorthin, sonst stuende hier ein Satz ohne naechsten Schritt. */}
-      {teams.length === 0 && (
+      {/* „Meine Teams · Team gruenden" ist raus (Jan, 04.11.2026) — das steht jetzt unter Einstellungen › Team. Ohne eigenes
+          Team steht hier gleich die Teamsuche, darunter der Weg zum Gruenden. */}
+      {teams.length === 0 && <>
+        <TeamSuche />
         <Link to="/einstellungen?tab=team" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
-          {t("team.finden")} · {t("team.gruenden")} →
+          {t("team.gruenden")} →
         </Link>
-      )}
+      </>}
       {teams.length > 0 && <TeamLetzteMitWahl teams={teams} />}
     </>
   );
