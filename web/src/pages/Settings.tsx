@@ -152,7 +152,7 @@ export default function Settings() {
       )}
       <div className="mb-5 flex items-center gap-2">
         <SettingsIcon className="h-6 w-6 text-brand-400" />
-        <h2 className="text-xl font-bold">{t("profile.title")}</h2>
+        <h2 className="text-xl font-bold">{t("nav.settings")}</h2>
       </div>
 
       {/* Reiter ganz oben (Jan, 02.11.2026); Kacheln und Sprache sind der erste Reiter „Übersicht". Gruppen danach: wer ich
