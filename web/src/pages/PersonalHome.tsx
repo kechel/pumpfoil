@@ -833,8 +833,8 @@ function MeineSpots({ liste, homespotId, onWahl }: { liste: MeinSpot[]; homespot
       {liste.map((sp) => {
         const zahlen: [string, string][] = [
           [t("team.stat.sessions"), sp.sessions.toLocaleString()],
-          [t("team.stat.zeit"), zeit(sp.time_s)],
-          [t("team.stat.strecke"), km(sp.distance_m)],
+          // On-Foil-Zahlen nur, wenn es am Spot Sessions MIT Foil gibt (04.11.2026; Pumps zaehlt der Server nur dort).
+          ...(sp.foil_sessions > 0 ? [[t("team.stat.zeit"), zeit(sp.time_s)], [t("team.stat.strecke"), km(sp.distance_m)]] as [string, string][] : []),
           [t("team.stat.laeufe"), sp.runs.toLocaleString()],
           ...(sp.pumps > 0 ? [[t("team.stat.pumps"), sp.pumps.toLocaleString()] as [string, string]] : []),
         ];
@@ -864,7 +864,7 @@ function MeineSpots({ liste, homespotId, onWahl }: { liste: MeinSpot[]; homespot
                 </div>
               ))}
               {sportText && (
-                <div className={`min-w-0 ${zahlen.length === 4 ? "col-span-2" : ""}`} title={sportText}>
+                <div className={`min-w-0 ${zahlen.length === 4 ? "col-span-2" : zahlen.length % 3 === 2 ? "col-span-3" : ""}`} title={sportText}>
                   <div className="truncate text-sm font-bold leading-tight text-brand-700 dark:text-brand-300">{sportText}</div>
                   <div className="truncate text-xs text-slate-400">{t("mySpots.sports")}</div>
                 </div>

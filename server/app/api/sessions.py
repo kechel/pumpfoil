@@ -2151,11 +2151,23 @@ def my_spots_stats(user: models.User = Depends(current_user), db: Session = Depe
     """Home › Homespot › „Meine Spots" (Jan, 03.11.2026): jeder Spot mit eigenen Sessions und ein paar Zahlen
     (Sessions, erste/letzte, On-Foil-Zeit/-Strecke, Laeufe, Pumps), zuletzt besuchte zuerst. Gezaehlt wie `my_spots`:
     aussortierte Aufnahmen (`is_pumpfoil = False`) nicht, GPS-only und jede Sportart schon; nur Spots mit id."""
+    from sqlalchemy import case, or_
+    from ..sportarten import FOIL, SPORTS
+    from ..sportprofil import profil
     S, AR, Sp = models.Session, models.AnalysisResult, models.Spot
+    # On-Foil-Zeit/-Strecke nur aus Sportarten MIT Foil, Pumps nur aus denen mit Pump-Zahlen (Jan, 04.11.2026: Burgweiler 3
+    # zeigte 466 Pumps aus einer Kite-ATB-Session). Ohne Sportart gilt Pumpfoil, wie ueberall.
+    mit_foil = [sp for sp in SPORTS if FOIL.get(sp, True)]
+    mit_pumps = [sp for sp in SPORTS if profil(sp).get("pumpzahlen") is not False]
+    ist_foil = or_(S.sport_class.is_(None), S.sport_class.in_(mit_foil))
+    ist_pump = or_(S.sport_class.is_(None), S.sport_class.in_(mit_pumps))
     rows = (
         db.query(S.spot_id, Sp.name, Sp.water_name, func.count(S.id), func.min(S.started_at), func.max(S.started_at),
-                 func.coalesce(func.sum(AR.foiling_time_s), 0), func.coalesce(func.sum(AR.foiling_distance_m), 0),
-                 func.coalesce(func.sum(AR.num_runs), 0), func.coalesce(func.sum(PA.col_pump_count()), 0))
+                 func.coalesce(func.sum(case((ist_foil, AR.foiling_time_s), else_=0)), 0),
+                 func.coalesce(func.sum(case((ist_foil, AR.foiling_distance_m), else_=0)), 0),
+                 func.coalesce(func.sum(AR.num_runs), 0),
+                 func.coalesce(func.sum(case((ist_pump, PA.col_pump_count()), else_=0)), 0),
+                 func.count(case((ist_foil, S.id))))
         .join(Sp, Sp.id == S.spot_id).outerjoin(AR, AR.session_id == S.id)
         .filter(S.user_id == user.id, S.deleted.isnot(True), S.is_pumpfoil.isnot(False),
                 S.status.notin_(("recording", "live")), Sp.merged_into.is_(None))
@@ -2172,8 +2184,8 @@ def my_spots_stats(user: models.User = Depends(current_user), db: Session = Depe
     return [{"spot_id": sid, "name": name, "water": water, "sessions": int(n), "first": a.isoformat() if a else None,
              "last": b.isoformat() if b else None, "time_s": round(float(zeit or 0), 1),
              "distance_m": round(float(dist or 0), 1), "runs": int(runs or 0), "pumps": int(pumps or 0),
-             "sports": sports.get(sid, [])}
-            for sid, name, water, n, a, b, zeit, dist, runs, pumps in rows]
+             "sports": sports.get(sid, []), "foil_sessions": int(nfoil or 0)}
+            for sid, name, water, n, a, b, zeit, dist, runs, pumps, nfoil in rows]
 
 
 @router.get("/spot-mine")

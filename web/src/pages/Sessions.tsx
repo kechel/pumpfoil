@@ -1393,10 +1393,13 @@ export function SessionStats({ a, profil }: { a: NonNullable<SessionSummary["ana
       {profil?.hauptzahl === "gesamt" && a.total_distance_m != null && (
         <span><b className="text-brand-400">{(a.total_distance_m / 1000).toFixed(2)}</b> km {t("sd.totalDistance").toLowerCase()}</span>
       )}
+      {/* Ohne Foil (Kitesurfen, Kite-ATB, Snowkite …) keine On-Foil-Strecke/-Zeit (Jan, 04.11.2026). */}
+      {profil?.foil !== false && <>
       <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> {profil?.hauptzahl === "gesamt"
         ? <>{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</>
         : <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b>} km</span>
       <span className="inline-flex items-center gap-1"><TimerIcon className="h-4 w-4 text-slate-400" /> {dur(a.foiling_time_s)}</span>
+      </>}
       {m?.num_segments != null && <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {m.num_segments} {m.num_segments === 1 ? t("unit.run") : t("unit.runs")}</span>}
       {m?.avg_speed_mps != null && <span>Ø {kmh(m.avg_speed_mps)} km/h</span>}
       {profil?.pumpzahlen !== false && a.pump_count != null && <span>↕ {a.pump_count}{m?.avg_pump_hz ? ` · ${pf.fmt(m.avg_pump_hz)}` : ""}</span>}

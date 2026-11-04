@@ -2207,10 +2207,13 @@ export default function SessionDetail() {
         {a?.sport_zahlen?.wellen && <Stat label={t("sd.waves")} value={String(a.sport_zahlen.wellen.anzahl)} />}
         {a?.sport_zahlen?.wellen && <Stat label={t("sd.longestWave")} value={fmtMMSS(a.sport_zahlen.wellen.laengste_s)} sub={`min:s · ${a.sport_zahlen.wellen.laengste_m} m`} />}
         {a?.sport_zahlen?.wellen?.paddeln_s != null && <Stat label={t("sd.paddleTime")} value={fmtMMSS(a.sport_zahlen.wellen.paddeln_s)} sub="min:s" />}
+        {/* Ohne Foil keine On-Foil-Strecke/-Zeit (Jan, 04.11.2026); Strecke, Fahrzeit und Tempo der Fahrt stehen oben. */}
+        {!ohneFoil && <>
         <Stat label={t("stat.foiling")}
           value={a?.foiling_distance_m == null ? "–" : a.foiling_distance_m < 1000 ? String(Math.round(a.foiling_distance_m)) : (a.foiling_distance_m / 1000).toFixed(2)}
           sub={a?.foiling_distance_m != null && a.foiling_distance_m < 1000 ? "m" : "km"} />
         <Stat label={t("stat.foilingTime")} value={fmtMMSS(a?.foiling_time_s)} sub="min:s" />
+        </>}
         <RunsStartsStat runs={segs.length} attempts={istPumpfoil ? (a?.start_attempts ?? null) : null} />
         <Stat label={t("sd.avgSpeed")} value={kmh(m?.avg_speed_mps)} sub="km/h" />
         {/* Theoretische Leistung rechnet die Pump-Physik (Kadenz, Tempo) — nur, wo gepumpt wird. */}
