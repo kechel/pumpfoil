@@ -743,7 +743,7 @@ struct SportErfolgView: View {
         return VStack(alignment: .leading, spacing: 8) {
             Text(Loc.t("cls.sport.\(sport)", lang)).font(.subheadline)
                 .padding(.horizontal, 8).padding(.vertical, 2)
-                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(sportMarkeFarbe)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
             ForEach(erfolgsQuoten(sport)) { q in karte(q, liste, domain) }
         }

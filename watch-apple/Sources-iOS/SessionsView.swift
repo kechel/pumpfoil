@@ -852,7 +852,7 @@ struct SessionRow: View {
         if session.needs_classification == true {
             Text(Loc.t("cls.needsBadge", lang)).font(.caption2)
                 .padding(.horizontal, 6).padding(.vertical, 2)
-                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(sportMarkeFarbe)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
         } else if let dq = session.data_quality, dq != "ok" {
             // Sportart steht als gelber Chip oben (Wunsch u244, 26.10.2026) — grau nur Datenqualitaet.
@@ -868,7 +868,7 @@ struct SessionRow: View {
         if session.neu_bewerten == true {
             Text(Loc.t("rate.recheckTile", lang)).font(.caption2)
                 .padding(.horizontal, 6).padding(.vertical, 2)
-                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(sportMarkeFarbe)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
         }
     }
@@ -877,7 +877,7 @@ struct SessionRow: View {
         if session.transfer_to != nil {
             Text(Loc.t("transfer.badge", lang)).font(.caption2)
                 .padding(.horizontal, 6).padding(.vertical, 2)
-                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(sportMarkeFarbe)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
         }
     }
@@ -1314,9 +1314,15 @@ struct TrackPreviewView: View {
 
 // Sportart-Kennzeichen: nur wenn die Session KEIN Pumpfoilen ist (die allgemeine Sessions-Liste
 // zeigt alle Sportarten). Amber in beiden Farbmodi — Color.orange ist eine dynamische Systemfarbe.
+/// Schrift der Sportart-Marken: hell ein dunkles Orange wie die PWA (text-orange-700 auf orange-100), dunkel das helle
+/// System-Orange — Orange auf blassem Orange war im hellen Modus kaum lesbar (Jan, 04.11.2026).
+let sportMarkeFarbe = Color(UIColor { t in
+    t.userInterfaceStyle == .dark ? UIColor.systemOrange : UIColor(red: 0.76, green: 0.25, blue: 0.05, alpha: 1)
+})
+
 @ViewBuilder func sportClassPill(_ text: String) -> some View {
     Text(text).font(.caption2).lineLimit(1)
-        .foregroundStyle(Color.orange)
+        .foregroundStyle(sportMarkeFarbe)
         .padding(.horizontal, 6).padding(.vertical, 2)
         .background(Color.orange.opacity(0.18), in: Capsule())
 }
