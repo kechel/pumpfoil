@@ -221,6 +221,7 @@ object Recorder {
     private var magT0 = 0
     private val gps = ArrayList<DoubleArray>(256)
     private var prevLat = Double.NaN
+    private var posGemeldet = false
     private var prevLon = Double.NaN
     private var prevT = 0L
     private var distM = 0.0
@@ -264,6 +265,7 @@ object Recorder {
         chunkIndex = 0
         synchronized(lock) { accel.clear(); gyro.clear(); mag.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN
+        posGemeldet = false
         distM = 0.0; maxMps = 0.0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -292,6 +294,25 @@ object Recorder {
         scope.launch { flushLoop() }
         val sid = uuid
         scope.launch { liveLoop(ctx.applicationContext, sid) }
+    }
+
+    /**
+     * Erster brauchbarer GPS-Fix der Aufnahme -> „gerade am Pumpen" (POST /devices/position, wie die Uhren;
+     * gespeichert wird nur Spot + Zeit). Unabhaengig vom Live-Upload: ist der abgeschaltet, ist das das einzige
+     * Signal waehrend der Aufnahme (Jan, 04.11.2026). Hoechstens 3 Versuche, Fehler werden geschluckt.
+     */
+    private fun positionMelden(lat: Double, lon: Double) {
+        val ctx = appCtx ?: return
+        val body = JSONObject().put("lat", lat).put("lon", lon).toString()
+        scope.launch {
+            repeat(3) {
+                try {
+                    val t = Ingest.ensureToken(ctx)
+                    if (t != null) { Ingest.post("/api/devices/position", body, t); return@launch }
+                } catch (e: Exception) { android.util.Log.w("Recorder", "position", e) }
+                delay(30_000)
+            }
+        }
     }
 
     // --- Live-Upload waehrend der Aufnahme (Jan, 14.10.2026) ---
@@ -519,6 +540,7 @@ object Recorder {
 
     fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double) {
         if (!running) return
+        if (!posGemeldet && accuracyM <= 50.0) { posGemeldet = true; positionMelden(lat, lon) }
         val tMs = elapsedMs()
         val sp = maxOf(0.0, speedMps)
         synchronized(lock) {

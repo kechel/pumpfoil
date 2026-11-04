@@ -166,6 +166,19 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     // MARK: Start / Stop
 
+    /// Erster brauchbarer GPS-Fix der Aufnahme -> POST /devices/position (wie die Uhren). Unabhaengig vom
+    /// Live-Upload: ist der abgeschaltet, ist das das einzige Signal waehrend der Aufnahme (Jan, 04.11.2026).
+    /// Hoechstens 3 Versuche, Fehler werden geschluckt.
+    private var posGemeldet = false
+    private func positionMelden(_ lat: Double, _ lon: Double) {
+        Task {
+            for _ in 0..<3 {
+                if await PhoneIngest.ensureToken() != nil, (try? await PhoneIngest.position(lat: lat, lon: lon)) != nil { return }
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+            }
+        }
+    }
+
     func start() {
         guard !recording else { return }
         idleMonitoring = false   // Idle-Monitor übergibt an die Aufnahme
@@ -175,6 +188,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         uploadSent = 0; uploadTotal = 0
         lock.lock(); accelBuf.removeAll(); gyroBuf.removeAll(); magBuf.removeAll(); gpsBuf.removeAll(); spWin.removeAll(); lock.unlock()
         prevLat = .nan; prevLon = .nan; distM = 0; maxMps = 0
+        posGemeldet = false
         foiling = false; foilEnter = 0; foilExit = 0; runEndedMs = -100000
         runCnt = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunMaxMps = 0
@@ -429,6 +443,9 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             return
         }
         guard let l = locs.last else { return }
+        if !posGemeldet && l.horizontalAccuracy >= 0 && l.horizontalAccuracy <= 50 {
+            posGemeldet = true; positionMelden(l.coordinate.latitude, l.coordinate.longitude)
+        }
         let tMs = elapsedMs()
         let sp = max(0, l.speed)   // m/s (-1 = ungültig -> 0)
         lock.lock()

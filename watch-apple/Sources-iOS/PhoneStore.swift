@@ -127,6 +127,10 @@ enum PhoneIngest {
     static func analyze(_ uuid: String) async throws {
         _ = try await post("/api/ingest/session/\(uuid)/analyze", [:])
     }
+    /// Erster brauchbarer GPS-Fix einer Aufnahme -> „gerade am Pumpen" (wie die Uhren; Server speichert nur Spot + Zeit).
+    static func position(lat: Double, lon: Double) async throws {
+        _ = try await post("/api/devices/position", ["lat": lat, "lon": lon])
+    }
     static func complete(_ uuid: String, endedAt: String, totalChunks: Int) async throws {
         _ = try await post("/api/ingest/session/\(uuid)/complete", ["ended_at": endedAt, "total_chunks": totalChunks])
     }
