@@ -62,8 +62,8 @@ import kotlinx.coroutines.launch
  * Teamseite (01.11.2026, docs/TEAMS.md „Native-Port"), nativ aus web/src/pages/Team.tsx. Mitglieder sehen Bestenlisten,
  * Teamsummen, Logbuch und Events; Angemeldete ohne Mitgliedschaft den freigegebenen Auftritt und — wenn zugelassen —
  * „Beitreten". Was wer sehen darf, entscheidet der Server (`darf_bestenlisten`, `darf_mitglieder`, `chat_scope`).
- * Verwaltung und Einstellungen bleiben im Web: Leitung und Moderatoren bekommen das Zahnrad, das die Verwaltung im
- * Browser oeffnet (auch der Knopf „N neue Anfragen").
+ * Leitung und Moderatoren bekommen das Zahnrad zur Verwaltung (auch der Knopf „N neue Anfragen"); die ist seit
+ * 04.11.2026 nativ (TeamVerwaltung.kt), vorher oeffnete sie im Browser.
  */
 
 internal val TEAM_ZEITRAEUME = listOf("today" to "period.today", "10d" to "period.10d", "30d" to "period.30d",
@@ -83,6 +83,7 @@ fun TeamScreen(
     onOpenEvent: (String, Int) -> Unit,
     onOpenSession: (Int) -> Unit,
     onChat: (scope: String, label: String) -> Unit,
+    onVerwalten: (String) -> Unit = {},
     social: Boolean = true,
 ) {
     var kopf by remember(slug) { mutableStateOf<TeamInfo?>(null) }
@@ -140,9 +141,9 @@ fun TeamScreen(
                             Icon(Icons.Filled.Share, contentDescription = I18n.t("team.teilen"))
                         }
                     }
-                    // Verwaltung bleibt im Web (Native-Port, docs/TEAMS.md): das Zahnrad oeffnet sie im Browser.
+                    // Zahnrad -> Verwaltung, nativ seit 04.11.2026 (TeamVerwaltung.kt).
                     if (k != null && k.verwalter) {
-                        IconButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams/${k.slug}/verwalten")) } }) {
+                        IconButton(onClick = { onVerwalten(k.slug) }) {
                             Icon(Icons.Filled.Settings, contentDescription = I18n.t("team.tab.verwalten"))
                         }
                     }
@@ -180,12 +181,12 @@ fun TeamScreen(
                     if (k.anfragenOffen > 0 || (k.chatScope != null && social)) {
                         FlowRow(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            // Offene Anfragen (nur Leitung/Moderatoren) -> Verwaltung im Browser.
+                            // Offene Anfragen (nur Leitung/Moderatoren) -> Verwaltung.
                             if (k.anfragenOffen > 0) {
                                 TeamKnopf(
                                     I18n.t(if (k.anfragenOffen == 1) "team.anfragenEins" else "team.anfragenViele")
                                         .replace("{n}", k.anfragenOffen.toString()),
-                                    f, onClick = { runCatching { uri.openUri(teamWebUrl("/teams/${k.slug}/verwalten")) } })
+                                    f, onClick = { onVerwalten(k.slug) })
                             }
                             // Team-Chat: vorhandener Chatraum nach Scope (nur aktive Mitglieder, nicht unter 13).
                             val cs = k.chatScope

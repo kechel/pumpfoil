@@ -38,6 +38,10 @@ SCHLUESSEL = [
     "team.keineTeams", "tab.watchAccounts", "team.profilKnopf", "team.profilHinweis", "period.yesterday",
     # Nachtrag aus dem Android-Port
     "tab.noRecords", "setup.stabSearch", "foils.hint", "profile.avatar", "profile.dataTitle", "profile.calculator",
+    # Team-Verwaltung nativ, Home › Stats, Windfenster (04.11.2026)
+    "brett.erkl.titel", "brett.erkl.was", "brett.erkl.wie", "brett.erkl.bringt", "brett.erkl.daten", "brett.erkl.mehr",
+    "region.earth", "region.eu", "region.af", "region.as", "region.na", "region.sa", "region.oc",
+    "profile.landNone", "team.herkunft", "share.errImage", "spot.windTitle", "spot.windText", "spot.windNote", "tab.noData",
 ]
 
 

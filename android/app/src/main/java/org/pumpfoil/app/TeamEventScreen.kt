@@ -57,7 +57,7 @@ import kotlinx.coroutines.launch
  * Event-Seite (01.11.2026, docs/TEAMS.md „Native-Port"), nativ aus web/src/pages/TeamEventSeite.tsx: Bild, Titel und
  * Status, Zeitraum und Beschreibung fett; vor dem Start ein grosser Countdown, waehrenddessen „Endet in"; die gewaehlten
  * Gesamtsummen ueber den Bestenlisten; zuletzt die Box „Event-Regeln". Wer nicht Mitglied ist, kann hier beitreten
- * (mit dem Kleingedruckten), Leitung/Moderatoren bearbeiten das Event im Browser (Zahnrad).
+ * (mit dem Kleingedruckten), Leitung/Moderatoren bearbeiten das Event ueber das Zahnrad (Popup, TeamVerwaltung.kt).
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -75,6 +75,8 @@ fun TeamEventScreen(
     var dialog by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var meldung by remember { mutableStateOf<String?>(null) }
+    var bearbeiten by remember { mutableStateOf(false) }
+    var evLaden by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val uri = LocalUriHandler.current
@@ -82,8 +84,11 @@ fun TeamEventScreen(
     LaunchedEffect(slug, neuLaden) {
         try { team = Api.team(slug) } catch (_: Exception) { if (team == null) fehlt = true }
     }
-    LaunchedEffect(slug, eventId) {
-        try { ev = Api.teamEvent(slug, eventId) } catch (_: Exception) { fehlt = true }
+    LaunchedEffect(slug, eventId, evLaden) {
+        try { ev = Api.teamEvent(slug, eventId) } catch (_: Exception) {
+            // Nach dem Loeschen im Popup gibt es das Event nicht mehr -> zurueck (Web: zur Teamseite).
+            if (evLaden > 0) onBack() else fehlt = true
+        }
     }
 
     val t = team
@@ -111,8 +116,9 @@ fun TeamEventScreen(
                             Icon(Icons.Filled.Share, contentDescription = I18n.t("team.teilen"))
                         }
                     }
+                    // Zahnrad fuer Leitung/Moderatoren: dasselbe Popup wie in der Verwaltung (nativ seit 04.11.2026).
                     if (t != null && e != null && t.verwalter) {
-                        IconButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams/${t.slug}/events/${e.id}")) } }) {
+                        IconButton(onClick = { bearbeiten = true }) {
                             Icon(Icons.Filled.Settings, contentDescription = I18n.t("team.event.bearbeiten"))
                         }
                     }
@@ -242,6 +248,10 @@ fun TeamEventScreen(
                 }
             },
             onNein = { dialog = false })
+    }
+    val evB = ev
+    if (bearbeiten && t != null && evB != null) {
+        TeamEventBearbeitenDialog(t.slug, t.farbe, evB, onZu = { bearbeiten = false; evLaden++ })
     }
 }
 

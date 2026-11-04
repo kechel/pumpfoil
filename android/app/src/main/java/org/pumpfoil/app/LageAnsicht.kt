@@ -467,12 +467,14 @@ private fun wertText(r: Reihe, idx: Int): String =
  * eine Zahl, steht dort „nicht erkannt", kein Strich.
  */
 @Composable
-fun BrettLageStartseite() {
+fun BrettLageStartseite(ohneDaten: (@Composable () -> Unit)? = null) {
     var daten by remember { mutableStateOf<BoardAttitudeStats?>(null) }
-    LaunchedEffect(Unit) { daten = try { Api.boardAttitudeStats() } catch (_: Exception) { null } }
-    val d = daten ?: return
-    if (d.gesamt.isEmpty()) return
-    Spacer(Modifier.height(16.dp))
+    var geladen by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { daten = try { Api.boardAttitudeStats() } catch (_: Exception) { null }; geladen = true }
+    // Ohne Brett-Aufnahmen (oder Fehler): `ohneDaten` (Home › Stats › Lage des Bretts zeigt dann die Erklaerung).
+    val d = daten
+    if (d == null || d.gesamt.isEmpty()) { if (geladen) ohneDaten?.invoke(); return }
+    if (ohneDaten == null) Spacer(Modifier.height(16.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(I18n.t("home.boardAttitude"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.width(8.dp))
@@ -534,6 +536,22 @@ private fun BrettKlassenTabelle(klassen: List<BoardKlasse>) {
                     Zelle(k.taktHz?.let { PumpUnit.fmtValue(it) }, false)
                 }
             }
+        }
+    }
+}
+
+/** Was die Lage des Bretts ist, wie man sie bekommt und was sie zeigt — fuer alle ohne Brett-Aufnahme
+ *  (Web PersonalHome `BrettErklaerung`, Home › Stats › Lage des Bretts). */
+@Composable
+fun BrettErklaerung(onNerd: () -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+            Text(I18n.t("brett.erkl.titel"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            listOf("brett.erkl.was", "brett.erkl.wie", "brett.erkl.bringt", "brett.erkl.daten").forEach {
+                Text(I18n.t(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(I18n.t("brett.erkl.mehr") + " →", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.clickable { onNerd() })
         }
     }
 }

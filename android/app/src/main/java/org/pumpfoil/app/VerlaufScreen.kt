@@ -156,9 +156,13 @@ private fun series(data: List<Pair<Long, HistoryPoint>>, m: HMetric, mode: Mode,
     out.add(at(domain.second)); return out
 }
 
+/**
+ * Verlauf. `eingebettet` (Home › Stats › Verlauf, wie Web `<History eingebettet />`, 04.11.2026): ohne eigene Titelzeile,
+ * ohne eigenes Scrollen und ohne Ziehen-zum-Aktualisieren — die Startseite scrollt selbst.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerlaufScreen(onOpen: (Int) -> Unit) {
+fun VerlaufScreen(onOpen: (Int) -> Unit, eingebettet: Boolean = false) {
     var items by remember { mutableStateOf<List<HistoryPoint>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -180,6 +184,57 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
         if (data.isEmpty()) 0L to 1L else data.first().first to data.last().first
     }
 
+    @Composable
+    fun Umschalter(mod: Modifier = Modifier) {
+        Row(mod, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) }, colors = cyanChipColors())
+            FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
+            FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
+        }
+    }
+
+    // Wer (fast) nur Wind/SUP/Wake faehrt, hat keine Pumpfoil-Kurven — den Erfolg auf dem Foil trotzdem zeigen
+    // (20.10.2026).
+    @Composable
+    fun Leer() {
+        Text(I18n.t("verlauf.empty"), Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Umschalter()
+        SportErfolgKarten(mode)
+    }
+
+    @Composable
+    fun Kurven() {
+        Umschalter(Modifier.padding(top = 8.dp))
+        METRICS.forEach { m -> MetricChartCard(data, m, mode, domain) }
+        run {
+            val suffix = when (mode) {
+                Mode.W7 -> " · 7 ${I18n.t("verlauf.daysAbbr")}"
+                Mode.W30 -> " · 30 ${I18n.t("verlauf.daysAbbr")}"
+                else -> ""
+            }
+            Text(I18n.t("verlauf.aggTitle") + suffix, style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 6.dp))
+        }
+        METRICS_SUM.forEach { m -> MetricChartCard(data, m, mode, domain) }
+        SportErfolgKarten(mode)
+        // Trainingskurve: eigene Abfrage (hr-progress), deshalb eine eigene
+        // Karte mit eigenem Ladezustand — sie haengt nicht am History-Zeitraum.
+        HrProgressCard()
+        SpotProgression()
+        Box(Modifier.height(8.dp))
+    }
+
+    if (eingebettet) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            when {
+                loading && items.isEmpty() -> Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+                data.size < 2 -> Leer()
+                else -> Kurven()
+            }
+        }
+        return
+    }
+
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.history")) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
@@ -187,17 +242,9 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                 if (loading && items.isEmpty()) {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 } else if (data.size < 2) {
-                    // Wer (fast) nur Wind/SUP/Wake faehrt, hat keine Pumpfoil-Kurven — den Erfolg auf dem Foil
-                    // trotzdem zeigen (20.10.2026).
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(I18n.t("verlauf.empty"), Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) }, colors = cyanChipColors())
-                            FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
-                            FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
-                        }
-                        SportErfolgKarten(mode)
+                        Leer()
                     }
                 } else {
                     // Bewusst KEINE LazyColumn, sondern eine scrollende Column.
@@ -219,28 +266,7 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                             .padding(horizontal = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) }, colors = cyanChipColors())
-                            FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
-                            FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
-                        }
-                        METRICS.forEach { m -> MetricChartCard(data, m, mode, domain) }
-                        run {
-                            val suffix = when (mode) {
-                                Mode.W7 -> " · 7 ${I18n.t("verlauf.daysAbbr")}"
-                                Mode.W30 -> " · 30 ${I18n.t("verlauf.daysAbbr")}"
-                                else -> ""
-                            }
-                            Text(I18n.t("verlauf.aggTitle") + suffix, style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(top = 6.dp))
-                        }
-                        METRICS_SUM.forEach { m -> MetricChartCard(data, m, mode, domain) }
-                        SportErfolgKarten(mode)
-                        // Trainingskurve: eigene Abfrage (hr-progress), deshalb eine eigene
-                        // Karte mit eigenem Ladezustand — sie haengt nicht am History-Zeitraum.
-                        HrProgressCard()
-                        SpotProgression()
-                        Box(Modifier.height(8.dp))
+                        Kurven()
                     }
                 }
             }

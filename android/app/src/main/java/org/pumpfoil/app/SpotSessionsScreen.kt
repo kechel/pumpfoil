@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.key
@@ -226,11 +227,76 @@ fun SpotReiterBereich(spot: String, onOpen: (Int) -> Unit, sport0: String = "all
                 if (sw != null) Box(Modifier.padding(horizontal = rand, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") }
                 else if (!wetterGeladen) Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
                 else Text("—", Modifier.padding(horizontal = rand, vertical = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Windfenster unter dem Wetter (wie Web Sessions.tsx Reiter „Wetter"), nur mit Spot-Nummer.
+                spotId?.let { sid -> Box(Modifier.padding(horizontal = rand, vertical = 4.dp)) { SpotWindfensterKarte(sid) } }
             }
             "beschreibungen" -> spotId?.let { sid ->
                 SpotNotesSection(sid)
                 // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist.
                 SpotNamensVorschlag(sid, spot)
+            }
+        }
+    }
+}
+
+/** GET /api/community/spot/{id}/windfenster (server community, Stand-Buch: windfenster). */
+@kotlinx.serialization.Serializable
+data class SpotWindfenster(
+    val sessions: Int = 0,
+    val fahrer: Int = 0,
+    @kotlinx.serialization.SerialName("kmh_p25") val kmhP25: Double? = null,
+    @kotlinx.serialization.SerialName("kmh_p75") val kmhP75: Double? = null,
+    val sektoren: List<WindSektor> = emptyList(),
+)
+
+@kotlinx.serialization.Serializable
+data class WindSektor(val richtung: Double = 0.0, val sessions: Int = 0, val kmh: Double? = null)
+
+/**
+ * Windfenster des Spots (Web components/SpotWindfenster.tsx): aus welcher Richtung der Wind bei den Wing-/Kite-/
+ * Parawing-Sessions hier kam. 8 Sektoren, Laenge = Zahl der Sessions, Norden oben, der Keil zeigt in die Richtung, AUS
+ * der der Wind kommt. Erst ab drei Sessions mit Winddaten — darunter waere es Zufall.
+ */
+@Composable
+private fun SpotWindfensterKarte(spotId: Int) {
+    var d by remember(spotId) { mutableStateOf<SpotWindfenster?>(null) }
+    LaunchedEffect(spotId) { d = try { Api.spotWindfenster(spotId) } catch (_: Exception) { null } }
+    val w = d ?: return
+    if (w.sessions < 3) return
+    val max = maxOf(w.sektoren.maxOfOrNull { it.sessions } ?: 1, 1)
+    val linie = MaterialTheme.colorScheme.outlineVariant
+    val akzent = MaterialTheme.colorScheme.primary
+    val leise = MaterialTheme.colorScheme.onSurfaceVariant
+    androidx.compose.material3.Card(Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(112.dp)) {
+                androidx.compose.foundation.Canvas(Modifier.size(112.dp)) {
+                    val u = size.minDimension / 100f
+                    val m = androidx.compose.ui.geometry.Offset(50 * u, 50 * u)
+                    val r0 = 46f
+                    drawCircle(linie, radius = r0 * u, center = m, style = androidx.compose.ui.graphics.drawscope.Stroke(0.8f * u))
+                    drawCircle(linie.copy(alpha = 0.6f), radius = r0 / 2 * u, center = m, style = androidx.compose.ui.graphics.drawscope.Stroke(0.6f * u))
+                    w.sektoren.filter { it.sessions > 0 }.forEach { s ->
+                        val r = (6 + (r0 - 6) * s.sessions / max.toFloat()) * u
+                        // Bogen von richtung-20 bis richtung+20 Grad, Norden oben (Canvas: 0 Grad = Osten).
+                        val start = (s.richtung - 20 - 90).toFloat()
+                        val rect = androidx.compose.ui.geometry.Rect(m.x - r, m.y - r, m.x + r, m.y + r)
+                        drawArc(akzent.copy(alpha = 0.7f), start, 40f, useCenter = true, topLeft = rect.topLeft, size = rect.size)
+                        drawArc(akzent, start, 40f, useCenter = true, topLeft = rect.topLeft, size = rect.size,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(0.6f * u))
+                    }
+                }
+                Text("N", style = MaterialTheme.typography.labelSmall, color = leise, modifier = Modifier.align(Alignment.TopCenter))
+            }
+            androidx.compose.foundation.layout.Spacer(Modifier.size(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(I18n.t("spot.windTitle"), fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                if (w.kmhP25 != null && w.kmhP75 != null) {
+                    Text(I18n.t("spot.windText").replace("{n}", w.sessions.toString())
+                            .replace("{a}", Math.round(w.kmhP25).toString()).replace("{b}", Math.round(w.kmhP75).toString()),
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+                Text(I18n.t("spot.windNote"), style = MaterialTheme.typography.bodySmall, color = leise, modifier = Modifier.padding(top = 4.dp))
             }
         }
     }

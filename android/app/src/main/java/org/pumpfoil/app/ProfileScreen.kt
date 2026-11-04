@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -87,7 +88,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                   // Eingebettete Teile (App-Port Phase 6, 04.11.2026): Uhren, Freunde, Team brauchen ihre Wege nach draussen.
                   onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
                   onOpenFoiler: (Int) -> Unit = {}, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {},
-                  onAlleTeams: () -> Unit = {}) {
+                  onAlleTeams: () -> Unit = {}, onTeamGegruendet: (String) -> Unit = {}, onOpenSession: (Int) -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -259,6 +260,17 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                     leadingContent = { FoilIcon(tint = MaterialTheme.colorScheme.primary) },
                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
                 )
+                // Aktivitaet importieren (Web: Kachel zur Seite /import) — hier gleich die Dateiauswahl des vorhandenen
+                // Imports (ImportFileButton); die neue Session oeffnet sich danach wie in „Meine Sessions".
+                ImportFileButton({ neueId -> if (neueId != null) onOpenSession(neueId) }, knopf = { start, busy, fortschritt ->
+                    ListItem(
+                        modifier = Modifier.clickable(enabled = !busy) { start() },
+                        headlineContent = { Text(I18n.t("import.title")) },
+                        supportingContent = if (busy) ({ Text(fortschritt.ifEmpty { "…" }) }) else null,
+                        leadingContent = { Icon(Icons.Filled.FileUpload, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                        trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                    )
+                })
                 ListItem(
                     modifier = Modifier.clickable { onFoilCalc() },
                     headlineContent = { Text(I18n.t("profile.calc")) },
@@ -308,8 +320,11 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             }
             "konten" -> UhrenKontenBereich(onGarminPair, onGuide, onAlarm, onDataFields)
             "freunde" -> FreundeScreen(onBack = {}, onOpenFoiler = onOpenFoiler, onOpenSpot = onOpenSpot, eingebettet = true)
-            "team" -> MeineTeamsInhalt(onOpenTeam, onAlleTeams)
+            "team" -> MeineTeamsInhalt(onOpenTeam, onAlleTeams, onTeamGegruendet)
             "ich" -> {
+                // Ueberschrift wie im Web (Settings.tsx, Karte „Profilbild").
+                Text(I18n.t("profile.avatar"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val avatar = Api.mediaUrl(profile?.avatarUrl)
                     val pickAvatar = { avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
@@ -427,6 +442,9 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 ) {
                     Text(I18n.t("profile.logout"))
                 }
+                // „Daten & Konto" als Ueberschrift wie im Web (Settings.tsx) ueber Datenauskunft und Konto-Loeschung.
+                Spacer(Modifier.height(20.dp))
+                Text(I18n.t("profile.dataTitle"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 // Datenauskunft (DSGVO-Gegenstueck zur Loeschung, wie in der PWA unter Einstellungen):
                 // JSON in den Cache schreiben und ans System-Teilen-Blatt geben — Android hat keinen
                 // Browser-Download. Derselbe Weg wie der GPX/FIT-Export der Session-Ansicht.

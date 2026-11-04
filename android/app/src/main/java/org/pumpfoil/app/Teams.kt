@@ -95,6 +95,8 @@ data class TeamKurz(
     val rolle: String = "mitglied",
     val status: String = "aktiv",   // aktiv | angefragt
     val anfragen: Int = 0,
+    val land: String? = null,       // Herkunft: ISO-Code oder "k:<kontinent>"
+    val freigabe: String? = null,   // keine | wartet | frei | abgelehnt (nur fuer die Leitung)
 )
 
 /** GET /api/teams/liste — freigegebene Teams in ihrer freigegebenen Fassung. */
@@ -108,6 +110,7 @@ data class TeamListenEintrag(
     val farbe: String? = null,
     val sportarten: List<String> = emptyList(),
     @SerialName("mitglieder_anzahl") val mitgliederAnzahl: Int = 0,
+    val land: String? = null,
     // Sessions der Mitglieder in 30 Tagen (fuer „Die aktivsten Teams", Community › Teams & Events)
     @SerialName("sessions_30d") val sessions30d: Int = 0,
 )
@@ -135,6 +138,14 @@ data class TeamInfo(
     @SerialName("darf_mitglieder") val darfMitglieder: Boolean = false,
     @SerialName("chat_scope") val chatScope: String? = null,     // nur fuer aktive Mitglieder
     @SerialName("anfragen_offen") val anfragenOffen: Int = 0,
+    val land: String? = null,
+    @SerialName("mitglieder_sichtbar") val mitgliederSichtbar: String = "mitglieder",   // mitglieder | angemeldete
+    val spots: List<TeamSpotKurz> = emptyList(),
+    // Nur fuer die Leitung (Verwaltung, 04.11.2026): Stand der Freigabe des Auftritts.
+    val freigabe: String? = null,   // keine | wartet | frei | abgelehnt
+    @SerialName("freigabe_notiz") val freigabeNotiz: String? = null,
+    @SerialName("auftritt_geaendert") val auftrittGeaendert: Boolean = false,
+    val frei: kotlinx.serialization.json.JsonObject? = null,   // freigegebene Fassung (nur ob es sie gibt, zaehlt)
 ) {
     val verwalter: Boolean get() = meineRolle == "leiter" || meineRolle == "moderator"
 }
@@ -161,6 +172,7 @@ data class TeamTafel(
     @SerialName("accel_only") val accelOnly: Boolean = false,
     @SerialName("nur_brett") val nurBrett: Boolean = false,
     @SerialName("nur_teamspots") val nurTeamspots: Boolean = false,
+    @SerialName("foil_band") val foilBand: String = "all",
     val zeilen: List<TeamZeile> = emptyList(),
 )
 
@@ -199,10 +211,31 @@ data class TeamMitglied(
     val name: String = "",
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val rolle: String = "mitglied",
+    val seit: String? = null,
+    val profil: TeamAnfrageProfil? = null,   // nur bei Anfragen, fuer Leitung/Moderatoren
+)
+
+/** Bei einer Beitrittsanfrage: Sessions je Sportart und je Spot (meistgefahrene zuerst), Web `AnfrageProfil`. */
+@Serializable
+data class TeamAnfrageProfil(
+    val sessions: Int = 0,
+    val sportarten: List<TeamAnfrageZahl> = emptyList(),
+    val spots: List<TeamAnfrageZahl> = emptyList(),
 )
 
 @Serializable
+data class TeamAnfrageZahl(val sport: String? = null, val name: String? = null, val n: Int = 0)
+
+@Serializable
 data class TeamMitgliederAntwort(val mitglieder: List<TeamMitglied> = emptyList())
+
+/** GET /api/teams/{slug}/mitglieder fuer die Verwaltung: Mitglieder und offene Anfragen. */
+@Serializable
+data class TeamMitgliederVoll(val mitglieder: List<TeamMitglied> = emptyList(), val anfragen: List<TeamMitglied> = emptyList())
+
+/** GET /api/teams/slug: Vorschlag bzw. Pruefung einer Adresse; `fehler` = team.err.<code>. */
+@Serializable
+data class TeamSlugAntwort(val slug: String = "", val frei: Boolean = true, val fehler: String? = null)
 
 /** Ein Event mit Bestenlisten (server teams.event_out). `tafeln` darf leer sein (dann nur Summen). */
 @Serializable
@@ -222,6 +255,9 @@ data class TeamEvent(
     @SerialName("summen_auswahl") val summenAuswahl: List<String> = emptyList(),
     val summen: Map<String, Double?> = emptyMap(),
     @SerialName("summen_sportart") val summenSportart: String = "pumpfoil",
+    @SerialName("summen_accel_only") val summenAccelOnly: Boolean = false,
+    @SerialName("spot_ids") val spotIds: List<Int> = emptyList(),
+    val vorlage: String? = null,
     @SerialName("banner_url") val bannerUrl: String? = null,
     @SerialName("banner_fokus") val bannerFokus: String? = null,
 ) {
@@ -343,11 +379,20 @@ fun teamFarbe(farbe: String?): TeamFarbe {
     else TeamFarbe(Color(f.hell), Color(f.hellFlaeche ?: f.hell), Color(f.hellAuf ?: 0xFFFFFFFF))
 }
 
-/** Teamfarbe der DUNKLEN Fassung, ohne Compose — fuer gezeichnete Bilder (Team-Bestenliste als Bild, immer dunkel). */
+/** Teamfarbe der DUNKLEN Fassung, ohne Compose — fuer gezeichnete Bilder (Team-Bestenliste als Bild, dunkle Fassung). */
 internal fun teamFarbeDunkel(farbe: String?): TeamFarbe {
     val f = TEAM_FARBEN[farbe ?: "cyan"] ?: TEAM_FARBEN.getValue("cyan")
     return TeamFarbe(Color(f.dunkel), Color(f.dunkelFlaeche ?: f.dunkel), Color(f.dunkelAuf ?: 0xFF020617))
 }
+
+/** Teamfarbe der HELLEN Fassung, ohne Compose — fuer die helle Fassung der Team-Bestenliste als Bild. */
+internal fun teamFarbeHell(farbe: String?): TeamFarbe {
+    val f = TEAM_FARBEN[farbe ?: "cyan"] ?: TEAM_FARBEN.getValue("cyan")
+    return TeamFarbe(Color(f.hell), Color(f.hellFlaeche ?: f.hell), Color(f.hellAuf ?: 0xFFFFFFFF))
+}
+
+/** Alle Schluessel der Teamfarben in der Reihenfolge des Webs (TEAM_FARBEN, je Farbton hell · mittel · dunkel). */
+internal val TEAM_FARB_SCHLUESSEL: List<String> get() = TEAM_FARBEN.keys.toList()
 
 // ---------------------------------------------------------------------------- Kennzahlen ----
 // Wie web/src/lib/teamKennzahlen.ts: Beschriftung und Format an EINER Stelle (Schluessel = server teams.KENNZAHLEN).

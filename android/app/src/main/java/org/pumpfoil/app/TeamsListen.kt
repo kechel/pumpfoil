@@ -86,20 +86,19 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
     }
 }
 
-/** „Alle Teams": freigegebene Teams mit Suche; „Team gruenden" fuehrt ins Web. */
+/** „Alle Teams": freigegebene Teams mit Suche; „Team gruenden" fuehrt zu „Meine Teams" (dort nativ, 04.11.2026). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeamsAlleScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit) {
+fun TeamsAlleScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onGruenden: () -> Unit = {}) {
     var rows by remember { mutableStateOf<List<TeamListenEintrag>?>(null) }
     var q by remember { mutableStateOf("") }
-    val uri = LocalUriHandler.current
     LaunchedEffect(Unit) { rows = try { Api.teamsListe() } catch (_: Exception) { emptyList() } }
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(I18n.t("team.alle")) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
             actions = {
-                TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams")) } }) { Text(I18n.t("team.gruenden") + " ↗") }
+                TextButton(onClick = onGruenden) { Text(I18n.t("team.gruenden")) }
                 FeedbackKnopf()
             },
         )
@@ -194,11 +193,11 @@ fun EventsAlleScreen(onBack: () -> Unit, onOpenEvent: (String, Int) -> Unit) {
 
 /**
  * „Meine Teams" (Web Teams.tsx, Einstieg ueber das Profil): eigene Teams mit Rolle bzw. „Anfrage laeuft", offene
- * Anfragen als Zahl. Gruenden bleibt im Web (Adresse, Freigabe, Einstellungen) — der Knopf oeffnet es im Browser.
+ * Anfragen als Zahl, darunter „Team gruenden" (nativ seit 04.11.2026, TeamVerwaltung.kt).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit) {
+fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTeamGegruendet: (String) -> Unit = {}) {
     var meine by remember { mutableStateOf<List<TeamKurz>?>(null) }
     val uri = LocalUriHandler.current
     LaunchedEffect(Unit) { meine = try { Api.teamsMine() } catch (_: Exception) { emptyList() } }
@@ -239,9 +238,7 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
             item {
                 Column(Modifier.padding(top = 8.dp)) {
                     TextButton(onClick = onAlleTeams) { Text(I18n.t("team.alle") + " →") }
-                    TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams")) } }) { Text(I18n.t("team.gruenden") + " ↗") }
-                    Text(I18n.t("team.gruendenHinweis"), style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp))
+                    TeamGruendenKarte(onTeamGegruendet)
                     TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams/regeln")) } }) { Text(I18n.t("team.regeln.link") + " ↗") }
                 }
             }
@@ -325,10 +322,10 @@ fun TeamSuche(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
 
 /**
  * Einstellungen › Team (Web Settings.tsx, Reiter „Team" = Teams.tsx eingebettet): eigene Teams mit Rolle bzw. „Anfrage
- * laeuft", darunter die Teamsuche und erst dann „Team gruenden" (bleibt im Web). Ohne LazyColumn, die Seite scrollt.
+ * laeuft", darunter die Teamsuche und erst dann „Team gruenden" (nativ). Ohne LazyColumn, die Seite scrollt.
  */
 @Composable
-fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit) {
+fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTeamGegruendet: (String) -> Unit = {}) {
     var meine by remember { mutableStateOf<List<TeamKurz>?>(null) }
     val uri = LocalUriHandler.current
     LaunchedEffect(Unit) { meine = try { Api.teamsMine() } catch (_: Exception) { emptyList() } }
@@ -360,10 +357,9 @@ fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit) {
         }
         Spacer(Modifier.height(4.dp))
         TeamSuche(onOpenTeam)
+        // Gruenden nativ unter der Teamsuche (Web Teams.tsx, 04.11.2026); danach in die Verwaltung (Grunddaten).
+        TeamGruendenKarte(onTeamGegruendet)
         TextButton(onClick = onAlleTeams) { Text(I18n.t("team.alle") + " →") }
-        TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams")) } }) { Text(I18n.t("team.gruenden") + " ↗") }
-        Text(I18n.t("team.gruendenHinweis"), style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp))
         TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams/regeln")) } }) { Text(I18n.t("team.regeln.link") + " ↗") }
     }
 }

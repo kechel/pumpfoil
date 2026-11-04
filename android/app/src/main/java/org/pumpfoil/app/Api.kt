@@ -1006,6 +1006,11 @@ object Api {
         json.decodeFromString(SchutzAntwort.serializer(), http("GET", "/api/community/schutzgebiete?w=$w&s=$s&e=$e&n=$n", null, auth = true))
     }
 
+    /** Windfenster eines Spots (Web api.spotWindfenster, 19.10.2026): Windrichtung der Wind-Sessions in 8 Sektoren. */
+    suspend fun spotWindfenster(spotId: Int): SpotWindfenster = withContext(Dispatchers.IO) {
+        json.decodeFromString(SpotWindfenster.serializer(), http("GET", "/api/community/spot/$spotId/windfenster", null, auth = true))
+    }
+
     suspend fun spotMap(accelOnly: Boolean = false, sport: String = "all"): List<SpotMapItem> = withContext(Dispatchers.IO) {
         val sp = java.net.URLEncoder.encode(sport, "UTF-8")
         json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map?accel_only=$accelOnly&sport=$sp", null, auth = true))
@@ -1734,6 +1739,124 @@ object Api {
     }
     suspend fun teamEinladungAnnehmen(token: String): TeamBeitritt = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamBeitritt.serializer(), http("POST", "/api/teams/einladung/" + Uri.encode(token), null, auth = true))
+    }
+
+    // ---- Team-Verwaltung (04.11.2026, nativ statt Browser; Web lib/api.ts team*, Server api/teams.py) ----
+    // Rechte prueft der Server (Leitung: alles, Moderatoren: Mitglieder, Einladungslinks, Events).
+
+    /** Adressvorschlag aus dem Namen (`name`) bzw. Pruefung einer Wunschadresse (`slug`). */
+    suspend fun teamSlug(name: String? = null, slug: String? = null): TeamSlugAntwort = withContext(Dispatchers.IO) {
+        val q = if (slug != null) "slug=" + Uri.encode(slug) else "name=" + Uri.encode(name ?: "")
+        json.decodeFromString(TeamSlugAntwort.serializer(), http("GET", "/api/teams/slug?$q", null, auth = true))
+    }
+    /** Team gruenden → slug des neuen Teams (Fehler: name_belegt, slug_belegt, name_laenge …). */
+    suspend fun teamAnlegen(name: String, slug: String?): String = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("name", name); if (slug.isNullOrBlank()) put("slug", JsonNull) else put("slug", slug) }.toString()
+        json.parseToJsonElement(http("POST", "/api/teams", body, auth = true)).jsonObject["slug"]?.jsonPrimitive?.contentOrNull ?: ""
+    }
+    /** Mitglieder UND offene Anfragen (Verwaltung; Anfragen mit Profil fuer Leitung/Moderatoren). */
+    suspend fun teamMitgliederVerwalten(slug: String): TeamMitgliederVoll = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamMitgliederVoll.serializer(), http("GET", slugPfad(slug) + "/mitglieder", null, auth = true))
+    }
+    suspend fun teamAnnehmen(slug: String, uid: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", slugPfad(slug) + "/mitglieder/$uid/annehmen", null, auth = true); Unit
+    }
+    /** Mitglied entfernen bzw. Anfrage ablehnen. */
+    suspend fun teamEntfernen(slug: String, uid: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", slugPfad(slug) + "/mitglieder/$uid", null, auth = true); Unit
+    }
+    /** Rolle setzen: mitglied | moderator | leiter (= Leitung uebergeben). */
+    suspend fun teamRolle(slug: String, uid: Int, rolle: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", slugPfad(slug) + "/mitglieder/$uid/rolle", buildJsonObject { put("rolle", rolle) }.toString(), auth = true); Unit
+    }
+    /** Einstellungen aendern (nur gesetzte Felder) → neue TeamInfo (slug kann sich geaendert haben). */
+    suspend fun teamEinstellen(slug: String, body: JsonObject): TeamInfo = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamInfo.serializer(), http("PUT", slugPfad(slug), body.toString(), auth = true))
+    }
+    suspend fun teamLogo(slug: String, bytes: ByteArray, mime: String): Unit = withContext(Dispatchers.IO) {
+        httpDatei(slugPfad(slug) + "/logo", bytes, "logo." + mime.substringAfter('/', "jpg"), mime); Unit
+    }
+    suspend fun teamBanner(slug: String, bytes: ByteArray, mime: String): Unit = withContext(Dispatchers.IO) {
+        httpDatei(slugPfad(slug) + "/banner", bytes, "banner." + mime.substringAfter('/', "jpg"), mime); Unit
+    }
+    suspend fun teamBannerEntfernen(slug: String): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", slugPfad(slug) + "/banner", null, auth = true); Unit
+    }
+    suspend fun teamFreigabe(slug: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", slugPfad(slug) + "/freigabe", null, auth = true); Unit
+    }
+    suspend fun teamTafelnSetzen(slug: String, tafeln: List<TeamTafel>): List<TeamTafel> = withContext(Dispatchers.IO) {
+        val body = buildJsonArray {
+            tafeln.forEach { t ->
+                add(buildJsonObject {
+                    put("kennzahl", t.kennzahl); put("sportart", t.sportart); put("accel_only", t.accelOnly)
+                    put("nur_brett", t.nurBrett); put("foil_band", t.foilBand); put("nur_teamspots", t.nurTeamspots)
+                })
+            }
+        }.toString()
+        json.decodeFromString(TeamBestenlisten.serializer(), http("PUT", slugPfad(slug) + "/tafeln", body, auth = true)).tafeln
+    }
+    suspend fun teamSpotsSetzen(slug: String, ids: List<Int>): Unit = withContext(Dispatchers.IO) {
+        http("PUT", slugPfad(slug) + "/spots", buildJsonArray { ids.forEach { add(it) } }.toString(), auth = true); Unit
+    }
+    /** Einladungs-Tokens: `join` (direkt Mitglied) und `apply` (Anfrage). */
+    suspend fun teamEinladungen(slug: String): Map<String, String> = withContext(Dispatchers.IO) {
+        json.decodeFromString(MapSerializer(String.serializer(), String.serializer()), http("GET", slugPfad(slug) + "/einladungen", null, auth = true))
+    }
+    /** Neuen Link erzeugen (der alte gilt dann nicht mehr), nur Leitung. */
+    suspend fun teamEinladungNeu(slug: String, art: String): Map<String, String> = withContext(Dispatchers.IO) {
+        json.decodeFromString(MapSerializer(String.serializer(), String.serializer()),
+            http("POST", slugPfad(slug) + "/einladungen/$art/neu", null, auth = true))
+    }
+    suspend fun teamLoeschen(slug: String, name: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", slugPfad(slug) + "/loeschen", buildJsonObject { put("name", name) }.toString(), auth = true); Unit
+    }
+    suspend fun teamEventAnlegen(slug: String, body: JsonObject): TeamEvent = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamEvent.serializer(), http("POST", slugPfad(slug) + "/events", body.toString(), auth = true))
+    }
+    suspend fun teamEventAendern(slug: String, id: Int, body: JsonObject): TeamEvent = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamEvent.serializer(), http("PUT", slugPfad(slug) + "/events/$id", body.toString(), auth = true))
+    }
+    suspend fun teamEventLoeschen(slug: String, id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", slugPfad(slug) + "/events/$id", null, auth = true); Unit
+    }
+    /** Eventbild hochladen → (banner_url, banner_fokus). */
+    suspend fun teamEventBanner(slug: String, id: Int, bytes: ByteArray, mime: String): Pair<String?, String?> = withContext(Dispatchers.IO) {
+        val o = json.parseToJsonElement(httpDatei(slugPfad(slug) + "/events/$id/banner", bytes, "event." + mime.substringAfter('/', "jpg"), mime)).jsonObject
+        o["banner_url"]?.jsonPrimitive?.contentOrNull to o["banner_fokus"]?.jsonPrimitive?.contentOrNull
+    }
+    suspend fun teamEventBannerFokus(slug: String, id: Int, fokus: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", slugPfad(slug) + "/events/$id/banner", buildJsonObject { put("fokus", fokus) }.toString(), auth = true); Unit
+    }
+    suspend fun teamEventBannerEntfernen(slug: String, id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", slugPfad(slug) + "/events/$id/banner", null, auth = true); Unit
+    }
+
+    /** Datei-Upload (multipart, Feldname "file") mit denselben Fehlern wie `http` (ApiFehler mit `detail`). */
+    private fun httpDatei(path: String, bytes: ByteArray, filename: String, mime: String): String {
+        val boundary = "----pumpfoil${System.nanoTime()}"
+        val conn = (URL(BASE + path).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            doOutput = true
+            setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+            setRequestProperty("X-Pumpfoil-Client", CLIENT_ID)
+            token?.let { setRequestProperty("Authorization", "Bearer $it") }
+            connectTimeout = 15000; readTimeout = 60000
+        }
+        conn.outputStream.use { out ->
+            out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\n" +
+                "Content-Type: $mime\r\n\r\n").toByteArray())
+            out.write(bytes)
+            out.write("\r\n--$boundary--\r\n".toByteArray())
+        }
+        val code = conn.responseCode
+        val text = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText() ?: ""
+        if (code !in 200..299) {
+            if (code == 401) { appContext?.let { logout(it) }; onUnauthorized?.invoke() }
+            val detail = runCatching { json.parseToJsonElement(text).jsonObject["detail"]?.jsonPrimitive?.contentOrNull }.getOrNull()
+            throw ApiFehler(code, detail, if (code == 401) I18n.t("err.sessionExpired") else "Serverfehler ($code)")
+        }
+        return text
     }
 
     // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.

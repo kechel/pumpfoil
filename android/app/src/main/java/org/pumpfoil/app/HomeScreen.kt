@@ -92,7 +92,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 @Composable
 fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenVerlauf: () -> Unit = {}, onOpenTeams: () -> Unit = {},
                onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
-               onPrivacy: () -> Unit = {}, onTeamGruenden: () -> Unit = {}) {
+               onPrivacy: () -> Unit = {}, onTeamGruenden: () -> Unit = {}, onTeamGegruendet: (String) -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var homespotLink by remember { mutableStateOf<String?>(null) }
     // Home › Spots (04.11.2026): Homespot als Nummer (homespot_effective_id) und alle Spots mit eigenen Sessions.
@@ -270,6 +270,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             return@Scaffold
         }
         val ctx = androidx.compose.ui.platform.LocalContext.current
+        val uriHome = androidx.compose.ui.platform.LocalUriHandler.current
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp)) {
             // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
             UploadProgressCard(onOpen = { onOpen(it, null) })
@@ -568,9 +569,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(10.dp))
                     TeamSuche(onOpenTeam)
-                    TextButton(onClick = onTeamGruenden, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                        Text("${I18n.t("team.gruenden")} →", style = MaterialTheme.typography.bodyMedium)
-                    }
+                    // Gruenden gleich hier, nativ (04.11.2026) — danach geht es in die Verwaltung.
+                    TeamGruendenKarte(onTeamGegruendet)
                 } else {
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(6.dp)) {
@@ -602,37 +602,43 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             }   // team
 
             if (tab == "stats") {
-            // Verlauf: auf dem Handy eine eigene Seite (der Knopf unten faellt mit Phase 2 weg), hier der Weg dorthin.
-            Card(Modifier.fillMaxWidth().clickable { onOpenVerlauf() }) {
-                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.ShowChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(10.dp))
-                    Text(I18n.t("nav.history"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                    Text("→", color = MaterialTheme.colorScheme.primary)
+            // Zweite Reiterzeile wie Web PersonalHome `StatsBereich` (04.11.2026): Verlauf (eingebettet) · Kennzahlen
+            // (Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen untereinander) · Lage des Bretts.
+            val statsReiter = listOf(ReiterDef("verlauf", I18n.t("nav.history")), ReiterDef("kennzahlen", I18n.t("tab.insights")),
+                ReiterDef("brett", I18n.t("home.boardAttitude")))
+            var sub by rememberReiter("homestats", statsReiter.map { it.id }, "verlauf")
+            Reiterleiste(statsReiter, sub, { sub = it }, stufe = 2, modifier = Modifier.padding(bottom = 10.dp))
+            when (sub) {
+                "verlauf" -> VerlaufScreen(onOpen = { onOpen(it, null) }, eingebettet = true)
+                "kennzahlen" -> {
+                    var etwas = false
+                    bilanz?.takeIf { it.jahre.isNotEmpty() }?.let { b ->
+                        etwas = true
+                        JahresbilanzSection(b)
+                        Spacer(Modifier.height(10.dp))
+                    }
+                    startSuccess?.let { ss ->
+                        etwas = true
+                        StartSuccessSection(ss)
+                        Spacer(Modifier.height(10.dp))
+                    }
+                    carveStats?.let { cs ->
+                        if (cs.windows.values.any { it.s + it.m + it.l > 0 }) {
+                            etwas = true
+                            CarveStatsSection(cs)
+                            Spacer(Modifier.height(10.dp))
+                        }
+                    }
+                    manVerlauf?.monate?.filter { it.wende + it.halse > 0 }?.takeIf { it.isNotEmpty() }?.let { m ->
+                        etwas = true
+                        ManoeverVerlaufSection(m.takeLast(12).reversed())
+                    }
+                    if (!etwas) Text(I18n.t("tab.noData"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                // Lage des Bretts je Lauflaenge; ohne Brett-Aufnahmen eine Erklaerung (Web BrettErklaerung).
+                "brett" -> BrettLageStartseite(ohneDaten = { BrettErklaerung(onNerd = { runCatching { uriHome.openUri(teamWebUrl("/nerd-analysen-4")) } }) })
             }
-            // Persönliche Home-Stats (wie PWA): Start-Erfolgsquote + Carve-Zähler je Zeitfenster.
-            // („Meine Chats" wurde entfernt — läuft im Chat-Tab, wie in der PWA.)
-            startSuccess?.let { ss ->
-                Spacer(Modifier.height(10.dp))
-                StartSuccessSection(ss)
-            }
-            carveStats?.let { cs ->
-                if (cs.windows.values.any { it.s + it.m + it.l > 0 }) {
-                    Spacer(Modifier.height(10.dp))
-                    CarveStatsSection(cs)
-                }
-            }
-            bilanz?.takeIf { it.jahre.isNotEmpty() }?.let { b ->
-                Spacer(Modifier.height(10.dp))
-                JahresbilanzSection(b)
-            }
-            manVerlauf?.monate?.filter { it.wende + it.halse > 0 }?.takeIf { it.isNotEmpty() }?.let { m ->
-                Spacer(Modifier.height(10.dp))
-                ManoeverVerlaufSection(m.takeLast(12).reversed())
-            }
-            // Lage des Bretts je Lauflaenge — nur, wenn es Aufnahmen mit dem Handy am Brett gibt.
-            BrettLageStartseite()
             }   // stats
             Spacer(Modifier.height(8.dp))
         }

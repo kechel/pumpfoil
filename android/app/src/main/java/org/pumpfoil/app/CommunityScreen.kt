@@ -79,7 +79,7 @@ private const val MIN_BAND_FAHRER = 3
  * Beschriftung eines Foil-Bandes — EINE Stelle, damit Auswahl und Bestenlisten-Ueberschrift nie
  * auseinanderlaufen. Reine Zahlenbereiche brauchen keinen Uebersetzungs-Schluessel.
  */
-private fun bandLabel(b: FoilBand): String = when {
+internal fun bandLabel(b: FoilBand): String = when {
     b.art == "alle" -> I18n.t("cr.foilAll")
     b.art == "eigenes" -> I18n.t("cr.foilMine")
     b.art == "ar" -> if (b.von != null) I18n.t("cr.foilHighAspect").replace("{n}", fmtBand(b.von))

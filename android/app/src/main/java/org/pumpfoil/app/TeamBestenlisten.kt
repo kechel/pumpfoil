@@ -23,6 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -105,9 +112,7 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
     var d by remember { mutableStateOf<TeamVergleich?>(null) }
     // Eigene (aktive) Teams fuer die Hervorhebung im Bild.
     var meine by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var bildLaeuft by remember { mutableStateOf(false) }
-    val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
+    var bild by remember { mutableStateOf<TeamBildDaten?>(null) }
     LaunchedEffect(Unit) { meine = try { Api.teamsMine().filter { it.status == "aktiv" }.map { it.slug }.toSet() } catch (_: Exception) { emptySet() } }
     LaunchedEffect(period, top) { d = try { Api.teamsVergleich(period, top) } catch (_: Exception) { d } }
     val zeilen = d?.teams.orEmpty().filter { it.wert(art) > 0 }
@@ -158,18 +163,14 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
                         }
                     }
                 }
-                TextButton(enabled = !bildLaeuft, onClick = {
-                    bildLaeuft = true
+                TextButton(onClick = {
                     val titel = I18n.t(VERGLEICH_ARTEN.first { it.first == art }.second)
                     val unter = listOf(I18n.t("team.vergleich.titel"), I18n.t("team.vergleich.top").replace("{n}", top.toString()),
                         I18n.t(VERGLEICH_ZEITRAUM.firstOrNull { it.first == period }?.second ?: "period.all"),
                         java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT, java.util.Locale.forLanguageTag(I18n.lang))
                             .format(java.util.Date())).joinToString(" · ")
                     val bildZeilen = zeilen.mapIndexed { i, z -> BildZeile(i + 1, z, vergleichWert(art, z.wert(art)), z.slug in meine) }
-                    scope.launch {
-                        try { teamBildTeilen(ctx, titel, unter, bildZeilen, "pumpfoil-teams-$art.png") } catch (_: Exception) {}
-                        bildLaeuft = false
-                    }
+                    bild = TeamBildDaten(titel, unter, bildZeilen, "pumpfoil-teams-$art.png")
                 }) {
                     Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
@@ -178,107 +179,270 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
             }
         }
     }
+    bild?.let { TeamBildDialog(it, onClose = { bild = null }) }
 }
 
 private class BildZeile(val rang: Int, val z: TeamVergleichZeile, val wert: String, val ich: Boolean)
 
-/**
- * Team-Bestenliste als Bild (Web lib/bestenlisteBild.ts, dunkle Fassung, 1080 × 1080): Titel, Unterzeile, bis zu zehn
- * Zeilen mit Rang, Wappen (Logo, sonst Initialen auf der Teamfarbe), Name und Wert; das eigene Team hinterlegt, liegt es
- * hinter Platz 10, steht es mit „⋮" darunter. Geteilt ueber das System-Teilen-Blatt wie das Session-Bild (ShareDialog).
- */
-private suspend fun teamBildTeilen(ctx: android.content.Context, titel: String, unter: String, alle: List<BildZeile>, datei: String) {
-    val zeilen = alle.take(10)
-    val eigene = alle.drop(10).firstOrNull { it.ich }
-    // Logos vorher laden (Coil, Software-Bitmap — auf eine Hardware-Bitmap kann der Canvas nicht zeichnen).
-    val loader = coil.ImageLoader(ctx)
-    val logos = mutableMapOf<String, android.graphics.Bitmap>()
-    (zeilen + listOfNotNull(eigene)).mapNotNull { Api.mediaUrl(it.z.logoUrl) }.distinct().forEach { url ->
-        val r = loader.execute(coil.request.ImageRequest.Builder(ctx).data(url).allowHardware(false).build())
-        ((r as? coil.request.SuccessResult)?.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap?.let { logos[url] = it }
-    }
-    val bmp = withContext(Dispatchers.Default) {
-        val B = 1080f; val X = 90f
-        val b = android.graphics.Bitmap.createBitmap(1080, 1080, android.graphics.Bitmap.Config.ARGB_8888)
-        val g = android.graphics.Canvas(b)
-        val grund = 0xFF020617.toInt(); val flaeche = 0xFF0C1426.toInt(); val linie = 0xFF1E293B.toInt()
-        val akzent = 0xFF22D3EE.toInt(); val text = 0xFFFFFFFF.toInt(); val leise = 0xFF94A3B8.toInt()
-        g.drawColor(grund)
-        val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-        fun schrift(px: Float, fett: Boolean) { p.textSize = px; p.typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, if (fett) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL) }
-        fun kuerzen(t: String, max: Float): String {
-            if (p.measureText(t) <= max) return t
-            var s = t
-            while (s.length > 1 && p.measureText("$s…") > max) s = s.dropLast(1)
-            return "$s…"
-        }
-        p.color = akzent; p.textAlign = android.graphics.Paint.Align.LEFT
-        schrift(58f, true); g.drawText(kuerzen(titel, B - 2 * X), X, 118f, p)
-        schrift(30f, true); g.drawText(kuerzen(unter, B - 2 * X), X, 156f, p)
+private class TeamBildDaten(val titel: String, val unter: String, val zeilen: List<BildZeile>, val datei: String)
 
-        val oben = 215f; val unten = B - 150f
-        val n = maxOf(zeilen.size, 1) + (if (eigene != null && zeilen.isNotEmpty()) 1.4f else 0f)
-        val zh = minOf(110f, kotlin.math.floor((unten - oben) / n))
-        val gross = Math.round(zh * 0.5f).toFloat()
-        fun mitteText(y: Float) = y - (p.descent() + p.ascent()) / 2f
-        fun zeile(z: BildZeile, y: Float, hinterlegt: Boolean) {
-            val mitte = y + zh / 2
-            if (hinterlegt) { p.color = flaeche; g.drawRoundRect(X - 24, y + 4, B - X + 24, y + zh - 4, 16f, 16f, p) }
-            p.color = if (z.rang <= 3) akzent else leise
-            schrift(gross, true); p.textAlign = android.graphics.Paint.Align.RIGHT
-            g.drawText(z.rang.toString(), X + 50, mitteText(mitte), p)
-            p.color = akzent; g.drawText(z.wert, B - X, mitteText(mitte), p)
-            val wb = p.measureText(z.wert)
-            var nx = X + 74
-            val ws = Math.round(gross * 1.25f).toFloat(); val wy = mitte - ws / 2
-            val rect = android.graphics.RectF(nx, wy, nx + ws, wy + ws)
-            val logo = Api.mediaUrl(z.z.logoUrl)?.let { logos[it] }
-            g.save()
-            g.clipPath(android.graphics.Path().apply { addRoundRect(rect, 10f, 10f, android.graphics.Path.Direction.CW) })
-            if (logo != null) {
-                val k = minOf(ws / logo.width, ws / logo.height); val bw = logo.width * k; val bh = logo.height * k
-                g.drawBitmap(logo, null, android.graphics.RectF(nx + (ws - bw) / 2, wy + (ws - bh) / 2, nx + (ws + bw) / 2, wy + (ws + bh) / 2), p)
-            } else {
-                val f = teamFarbeDunkel(z.z.farbe)
-                p.color = f.flaeche.toArgb(); g.drawRect(rect, p)
-                p.color = f.aufFlaeche.toArgb(); schrift(Math.round(ws * 0.38f).toFloat(), true); p.textAlign = android.graphics.Paint.Align.CENTER
-                g.drawText(teamInitialen(z.z.name), nx + ws / 2, mitteText(mitte), p)
-            }
-            g.restore()
-            nx += ws + 16
-            schrift(Math.round(gross * 0.92f).toFloat(), z.rang == 1 || hinterlegt)
-            p.textAlign = android.graphics.Paint.Align.LEFT; p.color = text
-            g.drawText(kuerzen(z.z.name, B - X - wb - 30 - nx), nx, mitteText(mitte), p)
+// Dieselben Farben wie web/src/lib/bestenlisteBild.ts (DUNKEL/HELL, wie die Session-Karte sharecard.py), je Fassung.
+private class BildFarben(val grund: Int, val flaeche: Int, val linie: Int, val akzent: Int, val text: Int, val leise: Int)
+private val BILD_DUNKEL = BildFarben(0xFF020617.toInt(), 0xFF0C1426.toInt(), 0xFF1E293B.toInt(), 0xFF22D3EE.toInt(), 0xFFFFFFFF.toInt(), 0xFF94A3B8.toInt())
+private val BILD_HELL = BildFarben(0xFFF8FAFC.toInt(), 0xFFE0F2FE.toInt(), 0xFFE2E8F0.toInt(), 0xFF0E7490.toInt(), 0xFF0F172A.toInt(), 0xFF64748B.toInt())
+
+/** Hell/Dunkel des Bildes merkt sich die App (wie der Browser `foil_bild_hell` im Web, nur Komfort). */
+private const val BILD_HELL_PREF = "foil_bild_hell"
+
+/**
+ * Flagge eines Landes (ISO-Code) als Bitmap fuer das Bild. Das Web zeichnet die SVGs aus /flags (flag-icons); Android kann
+ * SVG ohne Zusatzbibliothek nicht dekodieren — deshalb hier die Flaggen-Emoji des Systems (Noto Color Emoji), auf ihre
+ * sichtbare Flaeche zugeschnitten. Kennt die Schrift die Flagge nicht (zwei Buchstaben statt Flagge), bleibt der Platz leer
+ * wie im Web bei einer nicht ladbaren Flagge. „k:…" (Kontinent, Erde) hat keine Flagge.
+ */
+private fun flaggeBild(land: String?): android.graphics.Bitmap? {
+    val c = land?.trim()?.uppercase() ?: return null
+    if (c.length != 2 || !c.all { it in 'A'..'Z' }) return null
+    val emoji = String(Character.toChars(0x1F1E6 + (c[0] - 'A'))) + String(Character.toChars(0x1F1E6 + (c[1] - 'A')))
+    val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { textSize = 160f }
+    if (!p.hasGlyph(emoji)) return null
+    val roh = android.graphics.Bitmap.createBitmap(320, 260, android.graphics.Bitmap.Config.ARGB_8888)
+    android.graphics.Canvas(roh).drawText(emoji, 40f, 190f, p)
+    // Sichtbare Flaeche suchen (Alpha > 128), damit Rand und Schatten des Emoji nicht mitkommen.
+    var l = roh.width; var o = roh.height; var r = -1; var u = -1
+    val px = IntArray(roh.width * roh.height)
+    roh.getPixels(px, 0, roh.width, 0, 0, roh.width, roh.height)
+    for (y in 0 until roh.height) for (x in 0 until roh.width) {
+        if ((px[y * roh.width + x] ushr 24) > 128) { if (x < l) l = x; if (x > r) r = x; if (y < o) o = y; if (y > u) u = y }
+    }
+    if (r <= l || u <= o) return null
+    return android.graphics.Bitmap.createBitmap(roh, l, o, r - l + 1, u - o + 1)
+}
+
+/**
+ * Team-Bestenliste als Bild (Web lib/bestenlisteBild.ts `zeichneBestenliste`, 1080 × 1080), dunkle oder helle Fassung:
+ * Titel, Unterzeile, bis zu zehn Zeilen mit Rang, Wappen (Logo, sonst Initialen auf der Teamfarbe), Flagge 4:3 mit feinem
+ * Rand (Platz bleibt auch ohne Flagge frei, damit die Namen buendig stehen), Name und Wert; das eigene Team hinterlegt,
+ * liegt es hinter Platz 10, steht es mit „⋮" darunter. Unten links das Motto, rechts unser Schriftzug (zur Fassung passend).
+ */
+private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, android.graphics.Bitmap>,
+                            flaggen: Map<String, android.graphics.Bitmap>, marke: android.graphics.Bitmap?): android.graphics.Bitmap {
+    val F = if (hell) BILD_HELL else BILD_DUNKEL
+    val zeilen = d.zeilen.take(10)
+    val eigene = d.zeilen.drop(10).firstOrNull { it.ich }
+    val B = 1080f; val X = 90f
+    val b = android.graphics.Bitmap.createBitmap(1080, 1080, android.graphics.Bitmap.Config.ARGB_8888)
+    val g = android.graphics.Canvas(b)
+    g.drawColor(F.grund)
+    val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG)
+    fun schrift(px: Float, fett: Boolean) { p.textSize = px; p.typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, if (fett) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL) }
+    fun kuerzen(t: String, max: Float): String {
+        if (p.measureText(t) <= max) return t
+        var s = t
+        while (s.length > 1 && p.measureText("$s…") > max) s = s.dropLast(1)
+        return "$s…"
+    }
+    p.color = F.akzent; p.textAlign = android.graphics.Paint.Align.LEFT
+    schrift(58f, true); g.drawText(kuerzen(d.titel, B - 2 * X), X, 118f, p)
+    schrift(30f, true); g.drawText(kuerzen(d.unter, B - 2 * X), X, 156f, p)
+
+    val oben = 215f; val unten = B - 150f
+    val n = maxOf(zeilen.size, 1) + (if (eigene != null && zeilen.isNotEmpty()) 1.4f else 0f)
+    val zh = minOf(110f, kotlin.math.floor((unten - oben) / n))
+    val gross = Math.round(zh * 0.5f).toFloat()
+    fun mitteText(y: Float) = y - (p.descent() + p.ascent()) / 2f
+    fun zeile(z: BildZeile, y: Float, hinterlegt: Boolean) {
+        val mitte = y + zh / 2
+        if (hinterlegt) { p.color = F.flaeche; g.drawRoundRect(X - 24, y + 4, B - X + 24, y + zh - 4, 16f, 16f, p) }
+        p.color = if (z.rang <= 3) F.akzent else F.leise
+        schrift(gross, true); p.textAlign = android.graphics.Paint.Align.RIGHT
+        g.drawText(z.rang.toString(), X + 50, mitteText(mitte), p)
+        p.color = F.akzent; g.drawText(z.wert, B - X, mitteText(mitte), p)
+        val wb = p.measureText(z.wert)
+        var nx = X + 74
+        val ws = Math.round(gross * 1.25f).toFloat(); val wy = mitte - ws / 2
+        val rect = android.graphics.RectF(nx, wy, nx + ws, wy + ws)
+        val logo = Api.mediaUrl(z.z.logoUrl)?.let { logos[it] }
+        g.save()
+        g.clipPath(android.graphics.Path().apply { addRoundRect(rect, 10f, 10f, android.graphics.Path.Direction.CW) })
+        if (logo != null) {
+            val k = minOf(ws / logo.width, ws / logo.height); val bw = logo.width * k; val bh = logo.height * k
+            g.drawBitmap(logo, null, android.graphics.RectF(nx + (ws - bw) / 2, wy + (ws - bh) / 2, nx + (ws + bw) / 2, wy + (ws + bh) / 2), p)
+        } else {
+            val f = if (hell) teamFarbeHell(z.z.farbe) else teamFarbeDunkel(z.z.farbe)
+            p.color = f.flaeche.toArgb(); g.drawRect(rect, p)
+            p.color = f.aufFlaeche.toArgb(); schrift(Math.round(ws * 0.38f).toFloat(), true); p.textAlign = android.graphics.Paint.Align.CENTER
+            g.drawText(teamInitialen(z.z.name), nx + ws / 2, mitteText(mitte), p)
         }
-        zeilen.forEachIndexed { i, z ->
-            if (i > 0) { p.color = linie; g.drawRect(X, oben + i * zh, B - X, oben + i * zh + 2, p) }
-            zeile(z, oben + i * zh, z.ich)
+        g.restore()
+        nx += ws + 16
+        // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund).
+        val fh = Math.round(gross * 0.8f).toFloat(); val fw = Math.round(fh * 4 / 3).toFloat()
+        z.z.land?.let { flaggen[it.uppercase()] }?.let { fl ->
+            val ziel = android.graphics.RectF(nx, mitte - fh / 2, nx + fw, mitte + fh / 2)
+            // Auf 4:3 zuschneiden (cover), falls das Emoji ein anderes Seitenverhaeltnis hat.
+            val k = maxOf(fw / fl.width, fh / fl.height)
+            val sw = fw / k; val sh = fh / k
+            val sx = ((fl.width - sw) / 2).toInt(); val sy = ((fl.height - sh) / 2).toInt()
+            g.drawBitmap(fl, android.graphics.Rect(sx, sy, sx + sw.toInt(), sy + sh.toInt()), ziel, p)
+            p.style = android.graphics.Paint.Style.STROKE; p.strokeWidth = 2f; p.color = F.linie
+            g.drawRect(ziel, p)
+            p.style = android.graphics.Paint.Style.FILL
         }
-        if (eigene != null && zeilen.isNotEmpty()) {
-            val ye = oben + zeilen.size * zh + Math.round(zh * 0.4f)
-            p.color = leise; schrift(gross, true); p.textAlign = android.graphics.Paint.Align.CENTER
-            g.drawText("⋮", X + 30, mitteText(ye - Math.round(zh * 0.2f)), p)
-            zeile(eigene, ye, true)
-        }
-        p.color = leise; schrift(26f, false); p.textAlign = android.graphics.Paint.Align.LEFT
-        g.drawText("Have fun, keep pumping!", X, B - X + 38, p)
-        p.color = akzent; schrift(34f, true); p.textAlign = android.graphics.Paint.Align.RIGHT
+        nx += fw + 16
+        schrift(Math.round(gross * 0.92f).toFloat(), z.rang == 1 || hinterlegt)
+        p.textAlign = android.graphics.Paint.Align.LEFT; p.color = F.text
+        g.drawText(kuerzen(z.z.name, B - X - wb - 30 - nx), nx, mitteText(mitte), p)
+    }
+    zeilen.forEachIndexed { i, z ->
+        if (i > 0) { p.color = F.linie; g.drawRect(X, oben + i * zh, B - X, oben + i * zh + 2, p) }
+        zeile(z, oben + i * zh, z.ich)
+    }
+    if (eigene != null && zeilen.isNotEmpty()) {
+        val ye = oben + zeilen.size * zh + Math.round(zh * 0.4f)
+        p.color = F.leise; schrift(gross, true); p.textAlign = android.graphics.Paint.Align.CENTER
+        g.drawText("⋮", X + 30, mitteText(ye - Math.round(zh * 0.2f)), p)
+        zeile(eigene, ye, true)
+    }
+    // Fuss wie bei der Session-Karte: Schriftzug unten rechts (Hoehe 54, 90 vom Rand), Motto links.
+    if (marke != null) {
+        val lh = 54f; val lw = marke.width * lh / marke.height
+        g.drawBitmap(marke, null, android.graphics.RectF(B - X - lw, B - X, B - X, B - X + lh), p)
+    } else {
+        p.color = F.akzent; schrift(34f, true); p.textAlign = android.graphics.Paint.Align.RIGHT
         g.drawText("pumpfoil.org", B - X, B - X + 38, p)
-        b
     }
-    val uri = withContext(Dispatchers.IO) {
-        val dir = File(ctx.cacheDir, "shared").apply { mkdirs() }
-        val f = File(dir, datei)
-        f.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
-        FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", f)
+    p.color = F.leise; schrift(26f, false); p.textAlign = android.graphics.Paint.Align.LEFT
+    g.drawText("Have fun, keep pumping!", X, B - X + 38, p)
+    return b
+}
+
+/**
+ * Dialog „Als Bild teilen" (Web components/BestenlisteBildDialog.tsx): Vorschau, Hell/Dunkel (wie beim Teilen einer
+ * Session), Teilen ueber das System-Teilen-Blatt und Speichern in die Galerie (wie ShareDialog.doSave).
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
+    var hell by remember { mutableStateOf(runCatching { prefs.getBoolean(BILD_HELL_PREF, false) }.getOrDefault(false)) }
+    var logos by remember { mutableStateOf<Map<String, android.graphics.Bitmap>?>(null) }
+    var flaggen by remember { mutableStateOf<Map<String, android.graphics.Bitmap>>(emptyMap()) }
+    var bmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    // Logos (Coil, Software-Bitmap — auf eine Hardware-Bitmap kann der Canvas nicht zeichnen) und Flaggen einmal laden;
+    // ein nicht ladbares Logo faellt auf die Initialen zurueck, eine fehlende Flagge laesst nur sie weg.
+    LaunchedEffect(d) {
+        val loader = coil.ImageLoader(ctx)
+        val m = mutableMapOf<String, android.graphics.Bitmap>()
+        d.zeilen.mapNotNull { Api.mediaUrl(it.z.logoUrl) }.distinct().forEach { url ->
+            runCatching {
+                val r = loader.execute(coil.request.ImageRequest.Builder(ctx).data(url).allowHardware(false).build())
+                ((r as? coil.request.SuccessResult)?.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap?.let { m[url] = it }
+            }
+        }
+        flaggen = withContext(Dispatchers.Default) {
+            d.zeilen.mapNotNull { it.z.land?.uppercase() }.distinct().mapNotNull { c -> flaggeBild(c)?.let { c to it } }.toMap()
+        }
+        logos = m
     }
-    val send = Intent(Intent.ACTION_SEND).apply {
-        type = "image/png"
-        putExtra(Intent.EXTRA_STREAM, uri)
-        putExtra(Intent.EXTRA_TEXT, "pumpfoil.org")
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    LaunchedEffect(hell, logos) {
+        val l = logos ?: return@LaunchedEffect
+        bmp = withContext(Dispatchers.Default) {
+            val marke = runCatching {
+                android.graphics.BitmapFactory.decodeResource(ctx.resources, if (hell) R.drawable.wordmark_h_light else R.drawable.wordmark_h_dark)
+            }.getOrNull()
+            zeichneTeamBild(d, hell, l, flaggen, marke)
+        }
     }
-    ctx.startActivity(Intent.createChooser(send, I18n.t("team.bild.titel")))
+    fun meldung(t: String) = android.widget.Toast.makeText(ctx, t, android.widget.Toast.LENGTH_SHORT).show()
+    // Android 8/9: Datei-Speichern-Dialog statt MediaStore-Pfad (wie ShareDialog).
+    val alteSpeichern = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("image/png"),
+    ) { uri ->
+        val b = bmp
+        if (uri != null && b != null) {
+            val ok = runCatching { ctx.contentResolver.openOutputStream(uri)!!.use { b.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) } }.isSuccess
+            meldung(if (ok) I18n.t("share.saved") else I18n.t("profile.error"))
+        }
+    }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(I18n.t("team.bild.titel")) },
+        text = {
+            Column {
+                val b = bmp
+                if (b != null) {
+                    androidx.compose.foundation.Image(b.asImageBitmap(), contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)))
+                } else {
+                    Box(Modifier.fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                }
+                Spacer(Modifier.height(10.dp))
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    listOf(false, true).forEachIndexed { i, h ->
+                        SegmentedButton(selected = hell == h, onClick = {
+                            hell = h
+                            runCatching { prefs.edit().putBoolean(BILD_HELL_PREF, h).apply() }
+                        }, shape = SegmentedButtonDefaults.itemShape(i, 2)) { Text(I18n.t(if (h) "theme.light" else "theme.dark")) }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.Button(enabled = b != null && !busy, modifier = Modifier.weight(1f), onClick = {
+                        val bb = bmp ?: return@Button
+                        busy = true
+                        scope.launch {
+                            try {
+                                val uri = withContext(Dispatchers.IO) {
+                                    val dir = File(ctx.cacheDir, "shared").apply { mkdirs() }
+                                    val f = File(dir, d.datei)
+                                    f.outputStream().use { bb.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+                                    FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", f)
+                                }
+                                val send = Intent(Intent.ACTION_SEND).apply {
+                                    type = "image/png"
+                                    putExtra(Intent.EXTRA_STREAM, uri)
+                                    putExtra(Intent.EXTRA_TEXT, "pumpfoil.org")
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                ctx.startActivity(Intent.createChooser(send, I18n.t("team.bild.titel")))
+                            } catch (_: Exception) { meldung(I18n.t("share.errImage")) }
+                            busy = false
+                        }
+                    }) {
+                        Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(I18n.t("team.teilen"))
+                    }
+                    androidx.compose.material3.OutlinedButton(enabled = b != null && !busy, modifier = Modifier.weight(1f), onClick = {
+                        val bb = bmp ?: return@OutlinedButton
+                        if (android.os.Build.VERSION.SDK_INT < 29) { alteSpeichern.launch(d.datei); return@OutlinedButton }
+                        busy = true
+                        scope.launch {
+                            val ok = runCatching {
+                                withContext(Dispatchers.IO) {
+                                    val werte = android.content.ContentValues().apply {
+                                        put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, d.datei.removeSuffix(".png") + "-${System.currentTimeMillis() / 1000}.png")
+                                        put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
+                                        put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/Pumpfoil")
+                                    }
+                                    val uri = ctx.contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, werte) ?: error("kein Ziel")
+                                    ctx.contentResolver.openOutputStream(uri)!!.use { bb.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+                                }
+                            }.isSuccess
+                            busy = false
+                            meldung(if (ok) I18n.t("share.saved") else I18n.t("profile.error"))
+                        }
+                    }) { Text(I18n.t("team.bild.speichern")) }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onClose) { Text(I18n.t("common.cancel")) } },
+    )
 }
 
 /** Die 10 aktivsten Teams (Web Home.tsx `AktivsteTeams`): Sessions der Mitglieder in den letzten 30 Tagen. */

@@ -41,7 +41,10 @@ import kotlinx.coroutines.withContext
  * Aufrufer oeffnet sie bzw. laedt die Liste neu, genau wie die PWA es tut.
  */
 @Composable
-fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier) {
+fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier,
+                     // Eigene Darstellung statt des kleinen „FIT"-Knopfs (Kachel in Einstellungen › Uebersicht, 04.11.2026):
+                     // bekommt den Start der Dateiauswahl, ob gerade importiert wird, und den Fortschritt („3/12").
+                     knopf: (@Composable (start: () -> Unit, busy: Boolean, fortschritt: String) -> Unit)? = null) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
@@ -112,7 +115,8 @@ fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier) 
     // Beschriftung wandert in die `contentDescription` des Symbols, damit ein Screenreader
     // weiterhin „FIT/TCX/GPX importieren" vorliest (dieselbe Regel wie bei den achtzehn
     // Bezeichnungen, die am 13.09. nachgezogen wurden).
-    OutlinedButton(
+    if (knopf != null) knopf({ if (!busy) waehler.launch(arrayOf("*/*")) }, busy, fortschritt)
+    else OutlinedButton(
         onClick = { waehler.launch(arrayOf("*/*")) },
         enabled = !busy,
         modifier = modifier,

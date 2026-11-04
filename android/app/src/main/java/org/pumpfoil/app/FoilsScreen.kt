@@ -199,6 +199,9 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {},
                 return@LazyColumn
             }
             item {
+                // Hinweis oben im Foils-Teil wie im Web (Foils.tsx `foils.hint`).
+                Text(I18n.t("foils.hint"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp))
                 OutlinedTextField(value = query, onValueChange = { query = it },
                     label = { Text(I18n.t("foils.search")) }, singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp))

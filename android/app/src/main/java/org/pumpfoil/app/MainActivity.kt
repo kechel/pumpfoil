@@ -314,7 +314,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                                                 onAlarm = { nav.navigate("alarm") }, onDataFields = { nav.navigate("datafields") },
                                                 // Zahnrad der Profil-Vorschau -> Einstellungen › Privatsphaere; „Team gruenden" -> Einstellungen › Team.
                                                 onPrivacy = { nav.zuEinstellungen("privat") },
-                                                onTeamGruenden = { nav.zuEinstellungen("team") }) }
+                                                onTeamGruenden = { nav.zuEinstellungen("team") },
+                                                onTeamGegruendet = { sl -> nav.navigate("teamverwalten/${Uri.encode(sl)}?grund=true") }) }
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }, onLayouts = { nav.navigate("layoutgallery") },
                 onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") },
@@ -379,6 +380,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                     onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
                     onAlleTeams = { nav.navigate("teams") },
+                    onTeamGegruendet = { sl -> nav.navigate("teamverwalten/${Uri.encode(sl)}?grund=true") },
+                    onOpenSession = { sid -> nav.navigate("session/$sid") },
                 )
             }
             composable("watch") {
@@ -481,7 +484,31 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
                     onChat = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") },
+                    onVerwalten = { sl -> nav.navigate("teamverwalten/${Uri.encode(sl)}") },
                     social = social,
+                )
+            }
+            // Team-Verwaltung nativ (04.11.2026, TeamVerwaltung.kt): Zahnrad und „N neue Anfragen" der Teamseite, nach dem
+            // Gruenden mit `grund=true` (Reiter Grunddaten). Neue Adresse -> die Teamseite darunter durch die neue ersetzen.
+            composable(
+                "teamverwalten/{slug}?grund={grund}",
+                arguments = listOf(navArgument("slug") { type = NavType.StringType },
+                    navArgument("grund") { type = NavType.BoolType; defaultValue = false }),
+            ) { entry ->
+                TeamVerwaltungScreen(
+                    slug = entry.arguments?.getString("slug").orEmpty(),
+                    grund = entry.arguments?.getBoolean("grund") ?: false,
+                    onFertig = { neu ->
+                        nav.popBackStack()
+                        if (neu != null) {
+                            if (nav.currentBackStackEntry?.destination?.route == "team/{slug}") nav.popBackStack()
+                            nav.navigate("team/${Uri.encode(neu)}")
+                        }
+                    },
+                    onGeloescht = {
+                        nav.popBackStack()
+                        if (nav.currentBackStackEntry?.destination?.route == "team/{slug}") nav.popBackStack()
+                    },
                 )
             }
             composable(
@@ -504,9 +531,11 @@ fun MainScaffold(onLogout: () -> Unit) {
             }
             composable("meineteams") {
                 MeineTeamsScreen(onBack = { nav.popBackStack() }, onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
-                    onAlleTeams = { nav.navigate("teams") })
+                    onAlleTeams = { nav.navigate("teams") },
+                    onTeamGegruendet = { sl -> nav.navigate("teamverwalten/${Uri.encode(sl)}?grund=true") })
             }
-            composable("teams") { TeamsAlleScreen(onBack = { nav.popBackStack() }, onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") }) }
+            composable("teams") { TeamsAlleScreen(onBack = { nav.popBackStack() }, onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
+                onGruenden = { nav.navigate("meineteams") }) }
             composable("events") {
                 EventsAlleScreen(onBack = { nav.popBackStack() }, onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") })
             }
