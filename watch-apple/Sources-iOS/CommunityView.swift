@@ -546,7 +546,7 @@ struct CommunityView: View {
     }
 
     private func refreshMedia() async {
-        media = (try? await Api.latestPhotos(freunde: freunde)) ?? []
+        media = (try? await Api.latestPhotos(limit: 30, freunde: freunde)) ?? []
     }
 
     private func loadBase() async {
@@ -561,7 +561,7 @@ struct CommunityView: View {
                 bandKey = "all"
             }
             cstats = try? await Api.communityStats()
-            media = (try? await Api.latestPhotos(freunde: freunde)) ?? []
+            media = (try? await Api.latestPhotos(limit: 30, freunde: freunde)) ?? []
         } catch { self.error = error.localizedDescription }
     }
 
@@ -733,7 +733,7 @@ struct CommunityRow: View {
             let unit: String = Loc.t(r == 1 ? "unit.run" : "unit.runs", lang)
             parts.append("\(r) \(unit)")
         }
-        if let km = item.foiling_km, km > 0 { parts.append(String(format: "%.2f km", km)) }
+        if Sportarten.foil(item.sport_class), let km = item.foiling_km, km > 0 { parts.append(String(format: "%.2f km", km)) }  // ohne Foil keine On-Foil-Strecke
         if let mx = item.max_speed_mps { parts.append(String(format: "max %.1f km/h", mx * 3.6)) }
         return parts.isEmpty ? nil : parts.joined(separator: "  ·  ")
     }

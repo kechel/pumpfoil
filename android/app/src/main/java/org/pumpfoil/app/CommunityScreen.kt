@@ -156,7 +156,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         try {
             records = Api.communityRecords(accelOnly, bandKey, sport = sportart, freunde = freunde); error = null
             cstats = try { Api.communityStats() } catch (_: Exception) { cstats }
-            media = try { Api.latestPhotos(freunde = freunde) } catch (_: Exception) { emptyList() }
+            media = try { Api.latestPhotos(limit = 30, freunde = freunde) } catch (_: Exception) { emptyList() }
         } catch (e: Exception) { error = e.message }
         loading = false
     }
@@ -174,7 +174,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     val mediaOwner = LocalLifecycleOwner.current
     DisposableEffect(mediaOwner) {
         val obs = LifecycleEventObserver { _, e ->
-            if (e == Lifecycle.Event.ON_RESUME) scope.launch { media = try { Api.latestPhotos(freunde = freunde) } catch (_: Exception) { media } }
+            if (e == Lifecycle.Event.ON_RESUME) scope.launch { media = try { Api.latestPhotos(limit = 30, freunde = freunde) } catch (_: Exception) { media } }
         }
         mediaOwner.lifecycle.addObserver(obs)
         onDispose { mediaOwner.lifecycle.removeObserver(obs) }
