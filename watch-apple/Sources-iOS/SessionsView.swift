@@ -914,12 +914,18 @@ struct SessionRow: View {
         guard let a = session.analysis else { return nil }
         let m = a.metrics
         var parts: [String] = []
-        if let d = a.foiling_distance_m { parts.append(String(format: "%.2f km", d / 1000)) }
-        if let t = a.foiling_time_s { parts.append(fmtDur(t)) }
+        // Wie PWA SessionStats (04.11.2026): bei „gesamt" (Wind, Paddeln) die Gesamtstrecke zuerst; ohne Foil keine
+        // On-Foil-Strecke/-Zeit; ohne Pump-Zahlen keine Pumps. Wind MIT Foil behaelt On-Foil.
+        let p = session.sport_profil
+        if p?.hauptzahl == "gesamt", let d = a.total_distance_m { parts.append(String(format: "%.2f km", d / 1000)) }
+        if p?.foil != false {
+            if let d = a.foiling_distance_m { parts.append(String(format: "%.2f km", d / 1000)) }
+            if let t = a.foiling_time_s { parts.append(fmtDur(t)) }
+        }
         if let n = m?.num_segments, n > 0 { parts.append("\(n) " + Loc.t(n == 1 ? "unit.run" : "unit.runs", lang)) }
         if let s = m?.avg_speed_mps { parts.append(String(format: "Ø %.1f km/h", s * 3.6)) }
-        if let p = a.pump_count {
-            var s = "↕ \(p)"
+        if p?.pumpzahlen != false, let pc = a.pump_count {
+            var s = "↕ \(pc)"
             if let hz = m?.avg_pump_hz { s += " · " + PumpUnit.fmt(hz, lang) }
             parts.append(s)
         }

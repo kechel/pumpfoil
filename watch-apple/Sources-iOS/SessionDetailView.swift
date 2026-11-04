@@ -1743,8 +1743,11 @@ struct SessionDetailView: View {
                 if let p = w.paddeln_s { out.append(StatItem(Loc.t("sd.paddleTime", lang), mmssD(p))) }
             }
         }
-        if let v = a.foiling_distance_m { out.append(StatItem(Loc.t("home.foiling", lang), dist(v))) }
-        if let v = a.foiling_time_s { out.append(StatItem(Loc.t("compare.foilTime", lang), mmssD(v))) }
+        // Ohne Foil keine On-Foil-Strecke/-Zeit (04.11.2026, wie PWA); Strecke, Fahrzeit und Tempo stehen oben.
+        if !ohneFoil {
+            if let v = a.foiling_distance_m { out.append(StatItem(Loc.t("home.foiling", lang), dist(v))) }
+            if let v = a.foiling_time_s { out.append(StatItem(Loc.t("compare.foilTime", lang), mmssD(v))) }
+        }
         // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst sieht
         // „2 Laeufe" nach faulem Abend aus, wenn es 15 Anlaeufe waren. Zwei Zahlen aus ZWEI
         // Detektoren (Laeufe = Bewegungsmodell, Versuche = reines GPS), darum: ohne Versuchsdaten

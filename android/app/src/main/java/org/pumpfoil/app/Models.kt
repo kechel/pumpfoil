@@ -164,6 +164,9 @@ data class LiveStatusResponse(val watches: List<LiveWatch> = emptyList())
 data class SessionSummary(
     val id: Int,
     val sport: String = "",
+    // Anzeige-Profil der Sportart, auch in den Listen (04.11.2026): ohne Foil keine On-Foil-Zahlen, ohne Pump-Zahlen
+    // keine Pumps in der Karte — wie Web SessionStats.
+    @SerialName("sport_profil") val sportProfil: SportProfil? = null,
     @SerialName("started_at") val startedAt: String = "",
     @SerialName("ended_at") val endedAt: String? = null,
     @SerialName("data_version") val dataVersion: Long? = null,   // Cache-Schlüssel fürs Detail

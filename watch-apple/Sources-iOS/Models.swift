@@ -131,6 +131,9 @@ struct SessionSummary: Codable, Identifiable {
     let sport_class: String?
     let data_quality: String?
     let needs_classification: Bool?
+    // Anzeige-Profil der Sportart, auch in den Listen (04.11.2026): ohne Foil keine On-Foil-Zahlen, ohne Pump-Zahlen
+    // keine Pumps in der Karte — wie PWA SessionStats.
+    var sport_profil: SportProfil? = nil
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
     // Restliches Setup (Stab/Mastlänge/Board) — der Server löst es für die Liste im Batch auf
     // (sessions.py). Je Teil optional; fehlt eines, zeigt die Karte den Chip gar nicht.

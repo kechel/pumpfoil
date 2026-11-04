@@ -597,7 +597,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
             datum = zeilenDatum(s.startedAt, s.tz), uhrzeit = hhmm(s.startedAt, s.tz),
             name = null, spot = s.placeName,
             sportLabel = s.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t(classLabelKey(it, null)) },
-            kennzahlen = if (a != null) sessionStatsTeile(a, m) else emptyList(),
+            kennzahlen = if (a != null) sessionStatsTeile(a, m, s.sportProfil) else emptyList(),
             liked = s.liked, likeCount = s.likeCount, modifier = modifier,
             abzeichen = if (s.neuBewerten == true || s.transferTo != null || s.status != "analyzed") {
                 {
@@ -674,7 +674,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
                 Spacer(Modifier.height(8.dp))
                 // Stats linksbündig mit dem Info-Block (nicht ganz links unter dem Avatar):
                 // um Avatar-Breite (40) + Spacer (10) einrücken.
-                Box(Modifier.padding(start = 50.dp)) { SessionStatsRow(a, m) }
+                Box(Modifier.padding(start = 50.dp)) { SessionStatsRow(a, m, s.sportProfil) }
             }
             Box(Modifier.padding(start = 50.dp)) { VergleichKnopf(s.id, inCompare) }
             // Fußzeile für Transfer-/Status-/Klassifikations-Badge (Like ist unter dem Avatar).
@@ -863,8 +863,8 @@ fun GeraeteAbzeichen(label: String, placement: String?, schrift: androidx.compos
 }
 
 @Composable
-private fun SessionStatsRow(a: Analysis, m: Metrics?) {
-    val parts = sessionStatsTeile(a, m)
+private fun SessionStatsRow(a: Analysis, m: Metrics?, p: SportProfil?) {
+    val parts = sessionStatsTeile(a, m, p)
     if (parts.isEmpty()) return
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -873,13 +873,18 @@ private fun SessionStatsRow(a: Analysis, m: Metrics?) {
 }
 
 // Kennzahlen der eigenen Session — Kachel (scrollbar) und Zeile (abgeschnitten) zeigen dieselben.
-internal fun sessionStatsTeile(a: Analysis, m: Metrics?): List<String> {
+// Wie Web SessionStats (04.11.2026): bei „gesamt" (Wind, Paddeln) die Gesamtstrecke zuerst; ohne Foil (Kitesurfen,
+// Kite-ATB, Snowkite …) keine On-Foil-Strecke/-Zeit; ohne Pump-Zahlen keine Pumps. Wind MIT Foil behaelt On-Foil.
+internal fun sessionStatsTeile(a: Analysis, m: Metrics?, p: SportProfil? = null): List<String> {
     return buildList {
-        a.foilingDistanceM?.let { add("%.2f km".format(it / 1000.0)) }
-        a.foilingTimeS?.let { add(fmtDur(it)) }
+        if (p?.hauptzahl == "gesamt") a.totalDistanceM?.let { add("%.2f km".format(it / 1000.0)) }
+        if (p?.foil != false) {
+            a.foilingDistanceM?.let { add("%.2f km".format(it / 1000.0)) }
+            a.foilingTimeS?.let { add(fmtDur(it)) }
+        }
         m?.numSegments?.let { if (it > 0) add("$it " + I18n.t(if (it == 1) "unit.run" else "unit.runs")) }
         m?.avgSpeedMps?.let { add("Ø %.1f km/h".format(it * 3.6)) }
-        a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · " + PumpUnit.fmt(it) } ?: "")) }
+        if (p?.pumpzahlen != false) a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · " + PumpUnit.fmt(it) } ?: "")) }
         // Ø Puls auf dem Foil, sonst gesamt (wie Web Sessions.tsx, 01.11.2026)
         m?.avgHr?.let { if (it > 0) add("${m.avgHrFoil ?: it}" + (m.maxHr?.let { mx -> "/$mx" } ?: "") + " bpm") }
     }

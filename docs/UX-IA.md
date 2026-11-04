@@ -36,7 +36,7 @@ Foils und Setup als zwei lange Seiten. Teams und Events gibt es in beiden Apps s
 | # | Phase | Inhalt | Android | iOS |
 |---|---|---|---|---|
 | 0 | Bausteine | Reiterleiste wie im Web (wischbar, zweite Zeile als Flaeche), Zustand je Bereich | ☐ | ☐ |
-| 1 | Ohne Foil | On-Foil-Zahlen in Karte/Detail ausblenden (klein, sofort sichtbar) | ☐ | ☐ |
+| 1 | Ohne Foil | On-Foil-Zahlen in Karte/Detail ausblenden (klein, sofort sichtbar) | ✅ 04.11. | ✅ 04.11. (parse) |
 | 2 | Leiste unten | Home · Community · Sessions · Spots · Chat · Zahnrad; Verlauf -> Home › Stats; Profil -> Einstellungen | ☐ | ☐ |
 | 3 | Home-Reiter | Uebersicht · Rekorde · Team · Spots · Stats · Uhren · Profil (vorhandene Abschnitte umhaengen) | ☐ | ☐ |
 | 4 | Home › Spots | Spotzeile + Alle-Kacheln, Spot-Reiter aus der Spot-Seite wiederverwenden | ☐ | ☐ |

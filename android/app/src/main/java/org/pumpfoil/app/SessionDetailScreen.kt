@@ -1146,8 +1146,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         w.paddelnS?.let { add(StatItem(I18n.t("sd.paddleTime"), mmssD(it))) }
                     }
                 }
-                a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
-                a.foilingTimeS?.let { add(StatItem(I18n.t("compare.foilTime"), mmssD(it))) }
+                // Ohne Foil keine On-Foil-Strecke/-Zeit (04.11.2026, wie Web); Strecke, Fahrzeit und Tempo stehen oben.
+                if (!ohneFoil) {
+                    a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
+                    a.foilingTimeS?.let { add(StatItem(I18n.t("compare.foilTime"), mmssD(it))) }
+                }
                 // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst
                 // sieht „2 Laeufe" nach faulem Abend aus, wenn es 15 Anlaeufe waren. Zwei Zahlen
                 // aus ZWEI Detektoren (Laeufe = Bewegungsmodell, Versuche = reines GPS), darum:

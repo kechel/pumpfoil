@@ -1045,6 +1045,7 @@ NAECHSTES: list[dict] = [
          "The community leaderboard adds farthest run, longest run, total on-foil distance and total on-foil time, and a tap on a run entry opens that session.",
          "The leaderboards show the full top 10, and if you are not in it, your own place and value appear below.",
          "When adding a custom screen, the picker only offers screens that fit the chosen state.",
+         "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.59",
      "items": [
@@ -1061,6 +1062,7 @@ NAECHSTES: list[dict] = [
          "On the Apple Watch, Water Lock now jumps back to your data page before locking, instead of leaving you on the stop page.",
          "The watch layout previews use the same short labels as the watch and the website, so the texts no longer overlap.",
          "Custom screens can be added again for while riding and between runs, not only for the paused state; the picker only offers screens that fit.",
+         "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
      ]},
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
