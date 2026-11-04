@@ -59,11 +59,20 @@ gerade geoeffnete Verwaltung nach dem Gruenden zuklappen.
 **Stand 04.11.2026 abends:** alle Phasen gebaut, auf keinem Geraet gesehen. Zuerst pruefen: Android Spots › Karte
 (osmdroid bleibt auf anderen Reitern mit Hoehe 0 im Baum — Kacheln nach Reiterwechsel? faengt sie Beruehrungen ab?),
 iOS Home › Spots (eingebettete Spot-Seite im ScrollView), Reiterleiste als List-Zeile, doppelte Kopfleisten bei
-eingebetteten Ansichten, beide Teilen-Bilder. **Offen/abweichend:** Teilen-Bild nur dunkel, ohne Flaggen; Home › Stats
-ohne zweite Reiterzeile (verlinkt die Verlauf-Seite); Konten auf Android untereinander statt Reiter je Anbieter;
-Foiler-Vorschau holt Titel im selben Abruf; Homespot-Chip in Sessions entfaellt (wie Web); iOS ohne „Aktivste Teams"
-(Modell ohne `sessions_30d`), ohne Windfenster im Wetter-Reiter, ohne Import-Kachel und Schriftgroesse; Team gruenden
-oeffnet auf iOS das Web; nicht mehr benutzt, aber noch da: `MeineTeamsSection`, `FreundeZeile` (iOS), `Scope.SPOT` (Android).
+eingebetteten Ansichten, beide Teilen-Bilder. **Abweichend (Stand nach dem Nachtrag oben):** Flaggen als Emoji; Konten auf Android untereinander statt Reiter je Anbieter; Foiler-Vorschau holt Titel im selben Abruf; Homespot-Chip in Sessions entfaellt (wie Web); Android ohne QR-Code; Hell/Dunkel des Teilen-Bilds auf dem Geraet gemerkt.
+
+**Abgleich 04.11.2026 nachts (beide Apps gegen das Web, nur Code gelesen):** der Port-Plan ist drin. Es fehlen
+Web-Funktionen vom 01.–03.11., die VOR dem Plan entstanden und nie auf der Liste standen — in BEIDEN Apps:
+Kommentare zu Sessions (samt Zahl auf Karten und „Neue Kommentare & Likes" in Home) · Inhaber sieht, wer geliked hat
+(der Datenschutztext der Apps sagt es schon) · Zeitraum „Gestern" ausser bei den Team-Bestenlisten · Nationalitaet
+(Flagge in Bestenlisten, Auswahl in Einstellungen/Assistent) · Community-Bestenliste: Reiter-Reihenfolge, „Heute"
+vorgewaehlt, Teilen als Link/Bild · Spot-Seite: Bestenlisten unter den Rekord-Kacheln · Medien: „Meist kommentiert", 30
+statt 8 neueste · Team-Seite ohne Reiter (Rekorde/Events/Logbuch/Regeln/Mitglieder/Teilen) · Sessions-Reiter Team (30 Tage)
+· Datei-Upload ersetzt keine vorhandene Fahrt · Einladungslink wird in der App nicht angenommen (API da, nie gerufen) ·
+Puls-Kachel ohne Umschalten · Team-Bestenliste am Schirm ohne Flagge/eigenes Team · Uhr-Seite im alten Aufbau.
+Nur Android: Team-Land nur in der Verwaltung sichtbar. Nur iOS: Community-Zeilen (Freunde/Alle/Spot) zeigen On-Foil-km
+auch ohne Foil. Tot: Android `MeineTeamsLinks`, Routen settings/verlauf/watch/accounts/friends/foils/setup ohne Weg
+dorthin, `rooms` in Home geladen und nie gezeigt; iOS `FreundeZeile`, `MeineTeamsSection`, `MeineTeamsZeile`, Tab 3.
 
 ## Stand 02.11.2026 — Reiter je Bereich (entschieden, Web zuerst)
 
