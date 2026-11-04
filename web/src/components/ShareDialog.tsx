@@ -387,7 +387,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
         <div className="mb-3 flex gap-2">
           {(["light", "dark"] as const).map((s) => (
             <button key={s} onClick={() => setShade(s)} className={`${seg} ${shade === s ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
-              {t(`share.shade.${s}`)}
+              {t(s === "light" ? "theme.light" : "theme.dark")}
             </button>
           ))}
         </div>

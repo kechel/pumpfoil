@@ -501,7 +501,7 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                     SegmentedButton(
                         selected = shade == sh, onClick = { shade = sh },
                         shape = SegmentedButtonDefaults.itemShape(i, shades.size),
-                    ) { Text(I18n.t("share.shade.$sh")) }
+                    ) { Text(I18n.t(if (sh == "light") "theme.light" else "theme.dark")) }
                 }
             }
 

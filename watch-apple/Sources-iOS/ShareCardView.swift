@@ -270,8 +270,8 @@ struct ShareCardView: View {
 
     @ViewBuilder private var shadeAndStats: some View {
         Picker("", selection: $shade) {
-            Text(Loc.t("share.shade.light", lang)).tag("light")
-            Text(Loc.t("share.shade.dark", lang)).tag("dark")
+            Text(Loc.t("theme.light", lang)).tag("light")
+            Text(Loc.t("theme.dark", lang)).tag("dark")
         }.pickerStyle(.segmented)
         statChips
     }

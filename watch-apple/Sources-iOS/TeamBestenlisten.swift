@@ -331,8 +331,8 @@ struct TeamBildDialog: View {
                 VStack(spacing: 14) {
                     vorschau
                     Picker("", selection: $hell) {
-                        Text(Loc.t("share.shade.dark", lang)).tag(false)
-                        Text(Loc.t("share.shade.light", lang)).tag(true)
+                        Text(Loc.t("theme.dark", lang)).tag(false)
+                        Text(Loc.t("theme.light", lang)).tag(true)
                     }
                     .pickerStyle(.segmented)
                     Button { if let b = bild { teilen(b) } } label: {
