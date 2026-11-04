@@ -3,17 +3,19 @@
 #   ./sim.sh an [konfig.json]   Wear-Engine-Attrappe (common/wearengine-sim.js) in der Seite, GPS-Fahrt
 #                 (common/sim-gps.js) im Recorder; mit Datei kommt diese Seiten-Konfiguration „vom Handy"
 #                 (watch-huawei/sim-konfig.json = Jans Datenseiten als Beispiel; wirkt nur mit diesem Parameter)
+#   ./sim.sh an-ok [konfig.json]  wie „an", aber Senden gelingt (Code 207) — Screenshots „To phone: n/m" / „All sent"
 #   ./sim.sh aus  zurueck auf die echte Wear Engine (= ./sync-common.sh)
 # Im Simulator fehlt `@system.wearengine`; mit der echten Datei bleibt die Seite schwarz.
 # NIE im Zustand „an" committen oder fuer eine Uhr bauen: der Test „Projekt-Kopien" schlaegt dann
 # fehl, und build-all.sh synct ohnehin vorher.
 cd "$(dirname "$0")"
 case "$1" in
-  an)
+  an|an-ok)
     for p in lite wearable; do
       z="$p/entry/src/main/js/MainAbility"
       [ -d "$z" ] || continue
       cp common/wearengine-sim.js "$z/wearengine/sim.js"
+      [ "$1" = "an-ok" ] && printf '\nSIM_SENDEN_OK = true;\n' >> "$z/wearengine/sim.js"
       [ -n "$2" ] && { printf '\nSIM_KONFIG = ' >> "$z/wearengine/sim.js"; cat "$2" >> "$z/wearengine/sim.js"; printf ';\n' >> "$z/wearengine/sim.js"; }
       cp common/sim-gps.js "$z/wearengine/sim-gps.js"
       sed -i.bak 's|import geolocation from "@system.geolocation";|import geolocation from "../wearengine/sim-gps.js";|' "$z/common/recorder.js" && rm -f "$z/common/recorder.js.bak"
@@ -29,5 +31,5 @@ case "$1" in
     ./sync-common.sh
     for p in lite wearable; do rm -f "$p/entry/src/main/js/MainAbility/wearengine/sim.js" "$p/entry/src/main/js/MainAbility/wearengine/sim-gps.js"; done
     echo "Simulator AUS — echte Wear Engine" ;;
-  *) echo "Aufruf: ./sim.sh an|aus"; exit 1 ;;
+  *) echo "Aufruf: ./sim.sh an|an-ok|aus"; exit 1 ;;
 esac

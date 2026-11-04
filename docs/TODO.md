@@ -12020,6 +12020,10 @@ Offen daraus:
   (brand/stores/zepp/README.md). Bei der naechsten Simulator-Runde beide Formen aufnehmen: Startseite mit START,
   on foil, Puls/Tempo-Bogen, Datenseite Dst/Dur/Hr/Avg, Statistik pausiert, LAST RUN, Pause-Menue. Dann
   `scripts/zepp-store-previews.py` (raw/circle + raw/square).
+- **04.11.2026 — HUAWEI: zweiter Wear-Engine-Antrag (nur GT/Fit/D) VORBEREITET**, Unterlagen in
+  `docs/huawei-wear-engine-antrag/` (ANTRAG.md mit englischem Antworttext und Screenshot-Liste, ablauf.png/.html).
+  Neu `./sim.sh an-ok`: Attrappe meldet 207, damit „To phone: n/m" und „All sent" im Simulator erscheinen. Offen: Jan
+  macht die Screenshots in DevEco und reicht ein; Anlass Gab (u995, GT 6).
 - **13.10.2026 — HUAWEI: Wear-Engine-Antrag ABGELEHNT, neuer Plan (Jan).** Huawei verlangte (1) Screenshots/UX-Diagramm
   der Szenarien Uhr<->Handy, (2) Begruendung, warum nicht direkt uebers Internet, plus Loesung, wenn die Handy-App
   nicht laeuft, (3) Watch 3/4 seien zu alt. Entscheidung: ZUERST nur Watch 5 (ArkTS) OHNE Wear Engine — Direkt-Upload

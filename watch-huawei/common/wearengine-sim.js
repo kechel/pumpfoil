@@ -2,13 +2,16 @@
  * Attrappe der Wear Engine fuer den Simulator (Jan, 08.10.2026: Lite-Simulator blieb schwarz).
  * Im Simulator gibt es `@system.wearengine` nicht — schon der Import von wearengine.js scheitert,
  * bevor eine Zeile von uns laeuft. Mit `./sim.sh an` importiert die Seite diese Datei statt
- * der echten: Aufnahme und Datenseiten laufen, Senden scheitert sichtbar mit Code -2; Empfang geht ueber
+ * der echten: Aufnahme und Datenseiten laufen, Senden scheitert sichtbar mit Code -2 (mit `./sim.sh an-ok` gelingt
+ * es mit 207 wie bei der echten Wear Engine — fuer Screenshots von „To phone: n/m" und „All sent"); Empfang geht ueber
  * das Simulator-Feld „Distributed Capability" (s. registerReceiver).
  * NIE fuer eine echte Uhr bauen — build-all.sh synct vorher und stellt den echten Import her.
  */
 // Seiten-Konfiguration, die ./sim.sh an <datei.json> hier unten anhaengt (SIM_KONFIG = …): kommt kurz nach
 // dem Start wie vom Handy an, in Teilen wie die Android-Bruecke sie schickt (HuaweiBruecke.konfigTeile).
 var SIM_KONFIG = null;
+// true (./sim.sh an-ok): jedes Teil gilt nach 400 ms als angekommen (Code 207), sonst Code -2.
+var SIM_SENDEN_OK = false;
 
 export function P2pClient() {}
 P2pClient.prototype.setPeerPkgName = function () {};
@@ -39,8 +42,9 @@ P2pClient.prototype.registerReceiver = function (cb) {
   console.info("Pumpfoil SIM: Empfang ueber Distributed Capability");
 };
 P2pClient.prototype.send = function (m, cb) {
-  console.info("Pumpfoil SIM: senden -> Code -2");
-  setTimeout(function () { if (cb && cb.onSendResult) cb.onSendResult({ code: -2 }); }, 200);
+  var code = SIM_SENDEN_OK ? 207 : -2;
+  console.info("Pumpfoil SIM: senden -> Code " + code);
+  setTimeout(function () { if (cb && cb.onSendResult) cb.onSendResult({ code: code }); }, SIM_SENDEN_OK ? 400 : 200);
 };
 export function Message() {}
 export function Builder() {}

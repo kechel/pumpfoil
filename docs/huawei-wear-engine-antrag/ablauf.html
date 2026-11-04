@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Pumpfoil – Wear Engine data flow</title>
+<style>
+  body { margin: 0; background: #fff; font: 15px/1.35 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #0f172a; }
+  .seite { width: 1400px; padding: 36px 40px; box-sizing: border-box; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .unter { color: #475569; margin: 0 0 26px; }
+  .spalten { display: grid; grid-template-columns: 1fr 120px 1fr 120px 1fr; align-items: stretch; }
+  .kasten { border: 2px solid #0e7490; border-radius: 14px; padding: 16px 18px; background: #f0fdff; }
+  .kasten h2 { font-size: 19px; margin: 0 0 2px; color: #0e7490; }
+  .kasten .wer { color: #475569; font-size: 13px; margin-bottom: 10px; }
+  .kasten ol { margin: 0; padding-left: 20px; } .kasten li { margin: 0 0 7px; }
+  .pfeil { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 12.5px; color: #334155; padding: 0 6px; }
+  .pfeil .linie { font-size: 34px; color: #0e7490; line-height: 1; }
+  .pfeil .zurueck { color: #64748b; }
+  .fall { margin-top: 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .fall div { border: 2px dashed #b45309; border-radius: 14px; padding: 14px 18px; background: #fffbeb; }
+  .fall h3 { margin: 0 0 6px; font-size: 16px; color: #b45309; }
+  .fall p { margin: 0 0 6px; }
+  .fuss { margin-top: 18px; color: #64748b; font-size: 12.5px; }
+  b.k { font-family: ui-monospace, Menlo, monospace; font-weight: 600; font-size: 13px; background: #e2e8f0; padding: 0 4px; border-radius: 4px; }
+</style></head>
+<body><div class="seite">
+<h1>Pumpfoil – how a recording travels from the watch to the user's account</h1>
+<p class="unter">HUAWEI WATCH GT / Fit / D series (Lite Wearable). The watch app has no network access of its own; the paired phone carries the data.</p>
+
+<div class="spalten">
+  <div class="kasten">
+    <h2>1 · Watch app „Pumpfoil"</h2>
+    <div class="wer">HUAWEI WATCH GT 3/4/5/6, Fit, D2</div>
+    <ol>
+      <li>User starts a session (button or auto-start).</li>
+      <li>The watch records GPS position, heart rate and motion and stores everything <b>on the watch</b>.</li>
+      <li>After every block it sends the new data to the phone app in parts of ≤ 1 KB (Wear Engine P2P message). Screen shows <b>„To phone: 3/12"</b>.</li>
+      <li>A file is deleted on the watch only after Wear Engine has confirmed delivery (code 207) of every one of its parts. Screen shows <b>„All sent"</b>.</li>
+    </ol>
+  </div>
+  <div class="pfeil">
+    <div class="linie">⟶</div>
+    Wear Engine<br>P2P messages<br>(Bluetooth via<br>HUAWEI Health)
+    <div class="linie zurueck">⟵</div>
+    <span class="zurueck">data-page layout<br>and alarm settings</span>
+  </div>
+  <div class="kasten">
+    <h2>2 · Phone app „Pumpfoil"</h2>
+    <div class="wer">Android org.pumpfoil.app (iOS later)</div>
+    <ol>
+      <li>User links the watch once in the app (watch card, Wear Engine authorisation, only „Basic device information").</li>
+      <li>Receives the parts, puts each file back together and stores it in the app's private storage.</li>
+      <li>Uploads finished files to the user's account (HTTPS) and deletes the local copy after the server confirms.</li>
+      <li>Sends the user's chosen data pages and alarm thresholds back to the watch.</li>
+    </ol>
+  </div>
+  <div class="pfeil">
+    <div class="linie">⟶</div>
+    HTTPS<br>(user's own<br>account token)
+  </div>
+  <div class="kasten">
+    <h2>3 · pumpfoil.org</h2>
+    <div class="wer">server of SmartKomm GmbH, Germany</div>
+    <ol>
+      <li>Analyses the recording: runs, pumps, speed, distance.</li>
+      <li>The user sees the session in the app and on the website.</li>
+      <li>No data goes to third parties; no advertising, no analytics.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="fall">
+  <div>
+    <h3>If the phone app is not running or the phone is away</h3>
+    <p>The watch keeps every unsent part. Sending fails, the watch waits longer between retries and shows <b>„open app on phone"</b>.</p>
+    <p>As soon as the user opens Pumpfoil on the phone, the watch's next retry succeeds and the transfer continues where it stopped. Nothing is lost, nothing is sent twice (each part carries its file name and number).</p>
+  </div>
+  <div>
+    <h3>Why not directly over the internet?</h3>
+    <p>Lite Wearable watches (GT / Fit / D) offer third-party apps no HTTP or socket API; Wear Engine P2P to the paired phone is the only channel. Many GT models also have no Wi-Fi or mobile data at all.</p>
+    <p>Recording itself never depends on the phone: a whole session is recorded and kept on the watch even without the phone.</p>
+  </div>
+</div>
+<p class="fuss">Pumpfoil – SmartKomm GmbH · pumpfoil.org · Wear Engine permission requested: Basic device information only.</p>
+</div></body></html>
