@@ -11,6 +11,7 @@ struct HomeView: View {
     @AppStorage("appLang") private var lang = "de"
     // Programmatische Navigation fuer die Rekord-Kacheln (LazyVGrid) — s. CommunityView.
     @State private var navPath = NavigationPath()
+    @State private var homeTab: String = ReiterSpeicher.von("home", "uebersicht")   // App-Port Phase 3 (Reiter)
 
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
@@ -107,24 +108,58 @@ struct HomeView: View {
             updateBannerIfAny
             newsBannerIfAny
             greetingRow
-            if incomingXfer > 0 { transferHint }
-            if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
-            if let n = session.profile?.sorted_out_new, n > 0 { aussortiertHinweis(n) }
-            latestSection
-            // Wetter am Homespot direkt unter den letzten Sessions und UEBER den eigenen Rekorden
-            // (Jan, 25.09.2026: „weiter nach oben unter die ersten drei sessions").
-            if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
-            if let st = stats { recordsSection(st) }
-            if let ss = startSuccess { startSuccessSection(ss) }
-            if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
-            // Eigene Bestwerte je Sportart (20.10.2026), eine Zeile je Sportart.
-            if !sportRek.isEmpty { SportRekordeZeilenView(zeilen: sportRek, titel: Loc.t("phome.sportRec", lang), lang: lang) }
-            if let b = bilanz, !b.jahre.isEmpty { bilanzSection(b) }
-            if let mv = manVerlauf, mv.monate.contains(where: { $0.wende + $0.halse > 0 }) { manoeverSection(mv) }
-            // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
-            BrettLageStartseite(lang: lang)
+            // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3, 04.11.2026): Uebersicht · Rekorde · Team · Stats.
+            // Spots, Uhren und Profil kommen mit den naechsten Phasen dazu. Je Reiter ein eigener Ausdruck (Type-Checker).
+            Reiterleiste(reiter: homeReiter, aktiv: Binding(get: { homeTab }, set: { homeTab = $0; ReiterSpeicher.setze("home", $0) }))
+            switch homeTab {
+            case "rekorde": homeRekorde
+            case "team": HomeTeamsListe(lang: lang, neuLadenTick: sync.tick)
+            case "stats": homeStats
+            default: homeUebersicht
+            }
         }
         .padding(.horizontal).padding(.bottom).padding(.top, 2)
+    }
+
+    private var homeReiter: [ReiterDef] {
+        [ReiterDef(id: "uebersicht", label: Loc.t("tab.overview", lang)), ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)),
+         ReiterDef(id: "team", label: Loc.t("tab.team", lang)), ReiterDef(id: "stats", label: Loc.t("tab.stats", lang))]
+    }
+
+    @ViewBuilder private var homeUebersicht: some View {
+        if incomingXfer > 0 { transferHint }
+        if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
+        if let n = session.profile?.sorted_out_new, n > 0 { aussortiertHinweis(n) }
+        latestSection
+        // Wetter am Homespot direkt unter den letzten Sessions (Jan, 25.09.2026).
+        if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
+    }
+
+    @ViewBuilder private var homeRekorde: some View {
+        if let st = stats { recordsSection(st) }
+        // Eigene Bestwerte je Sportart (20.10.2026), eine Zeile je Sportart.
+        if !sportRek.isEmpty { SportRekordeZeilenView(zeilen: sportRek, titel: Loc.t("phome.sportRec", lang), lang: lang) }
+    }
+
+    @ViewBuilder private var homeStats: some View {
+        // Verlauf: eigene Seite (der Knopf unten ist mit Phase 2 weg), hier der Weg dorthin.
+        NavigationLink { VerlaufView() } label: {
+            HStack {
+                Image(systemName: "chart.xyaxis.line").foregroundStyle(Color.accentColor)
+                Text(Loc.t("nav.history", lang)).font(.subheadline.weight(.semibold))
+                Spacer()
+                Text("→").foregroundStyle(Color.accentColor)
+            }
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+        }
+        .buttonStyle(.plain)
+        if let ss = startSuccess { startSuccessSection(ss) }
+        if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
+        if let b = bilanz, !b.jahre.isEmpty { bilanzSection(b) }
+        if let mv = manVerlauf, mv.monate.contains(where: { $0.wende + $0.halse > 0 }) { manoeverSection(mv) }
+        // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
+        BrettLageStartseite(lang: lang)
     }
 
     @ViewBuilder private var updateBannerIfAny: some View {
@@ -149,8 +184,7 @@ struct HomeView: View {
                 FreundePumpenZeile()
                 FreundesAnfragenKarte()
             }
-            // Eigene Teams als kleine Links mit Wappen (PWA PersonalHome, 31.10.2026); offene Anfragen als Zahl.
-            MeineTeamsZeile(lang: lang, neuLadenTick: sync.tick)
+            // Die eigenen Teams stehen seit dem App-Port im Reiter „Team" (04.11.2026), nicht mehr hier als Links.
         }
         .padding(.top, 12)
     }

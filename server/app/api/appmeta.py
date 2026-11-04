@@ -1064,6 +1064,7 @@ NAECHSTES: list[dict] = [
          "The watch layout previews use the same short labels as the watch and the website, so the texts no longer overlap.",
          "Custom screens can be added again for while riding and between runs, not only for the paused state; the picker only offers screens that fit.",
          "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
+         "The app is organised like the website: the bar at the bottom has Home, Community, Sessions, Spots, Chat and a gear for the settings, and Home has tabs for overview, records, team and stats, which leads to your history.",
      ]},
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.

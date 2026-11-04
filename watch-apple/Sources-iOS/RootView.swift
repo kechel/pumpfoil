@@ -96,7 +96,9 @@ struct MainTabView: View {
     // Spots, Chat, Profil. Age-Gate blendet NUR den Chat (5) aus; Foilers (2) darf man ansehen.
     @State private var zeigeOnboarding = false
 
-    private var visibleTabs: [Int] { socialOK ? [0, 2, 1, 3, 4, 5, 6] : [0, 2, 1, 3, 4, 6] }
+    // Seit dem App-Port (docs/UX-IA.md, Phase 2, 04.11.2026) wie im Web: Home · Community · Sessions · Spots · Chat ·
+    // Zahnrad. „Verlauf" (3) ist ein Teil von Home › Stats und hat keinen Knopf mehr; die View bleibt fuer den Link dort.
+    private var visibleTabs: [Int] { socialOK ? [0, 2, 1, 4, 5, 6] : [0, 2, 1, 4, 6] }
 
     // Seiten-Stapel, Tab-Leiste und Vergleichs-Balken sind je ein eigener, explizit typisierter
     // Ausdruck: Swifts Type-Checker loest einen ViewBuilder als EINEN Ausdruck auf, und dieser Body
@@ -173,9 +175,16 @@ struct MainTabView: View {
         VStack(spacing: 2) {
             // Feste Icon-Höhe -> alle Labels auf identischer Höhe (SF-Symbole sind
             // unterschiedlich hoch, z. B. mappin höher als house).
-            Image(systemName: tabIcon(i)).font(.system(size: 17))
-                .frame(height: 20)
-            Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
+            if i == 6 {
+                // Einstellungen nur als Zahnrad (wie Web und Android), Text fuer VoiceOver.
+                Image(systemName: tabIcon(i)).font(.system(size: 22))
+                    .frame(height: 32)
+                    .accessibilityLabel(tabLabel(i))
+            } else {
+                Image(systemName: tabIcon(i)).font(.system(size: 17))
+                    .frame(height: 20)
+                Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
+            }
         }
         .frame(maxWidth: .infinity)
         .foregroundStyle(tab == i ? Color.accentColor : MainTabView.inaktiv)
@@ -230,7 +239,7 @@ struct MainTabView: View {
         case 3: return "chart.xyaxis.line"
         case 4: return "mappin.and.ellipse"
         case 5: return "bubble.left.and.bubble.right"
-        default: return "person.crop.circle"
+        default: return "gearshape"
         }
     }
 
@@ -238,11 +247,11 @@ struct MainTabView: View {
         switch i {
         case 0: return Loc.t("nav.home", lang)
         case 1: return Loc.t("nav.sessions", lang)
-        case 2: return "Foilers"
+        case 2: return Loc.t("home.community", lang)
         case 3: return Loc.t("nav.history", lang)
         case 4: return Loc.t("nav.spots", lang)
         case 5: return Loc.t("nav.chat", lang)
-        default: return Loc.t("nav.profile", lang)
+        default: return Loc.t("nav.settings", lang)
         }
     }
 }

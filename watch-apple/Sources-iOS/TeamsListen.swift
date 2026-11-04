@@ -294,3 +294,46 @@ struct MeineTeamsSection: View {
         teams = (try? await Api.teamsMine()) ?? teams
     }
 }
+
+/// Home › Team (App-Port Phase 3, 04.11.2026, wie Web): die eigenen Teams als Zeilen, darunter der Weg zu allen Teams
+/// (dort mit Suche). Ohne Team der Hinweis aus dem Web.
+struct HomeTeamsListe: View {
+    let lang: String
+    var neuLadenTick: Int = 0
+    @State private var teams: [TeamKurz]? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let t = teams, t.isEmpty {
+                Text(Loc.t("team.keineTeams", lang)).font(.subheadline).foregroundStyle(.secondary)
+            } else if let t = teams {
+                VStack(spacing: 0) {
+                    ForEach(t) { tm in zeile(tm) }
+                }
+                .padding(6)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+            }
+            NavigationLink { TeamsAlleView() } label: {
+                Text(Loc.t("team.alle", lang) + " →").font(.subheadline)
+            }
+        }
+        .task(id: neuLadenTick) { teams = ((try? await Api.teamsMine()) ?? teams ?? []).filter { $0.status == "aktiv" } }
+    }
+
+    private func zeile(_ tm: TeamKurz) -> some View {
+        NavigationLink { TeamView(slug: tm.slug) } label: {
+            HStack(spacing: 10) {
+                TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 40)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
+                    Text(Loc.t("team.rolle." + tm.rolle, lang)).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 4)
+                if tm.anfragen > 0 { TeamAnfragenZahl(n: tm.anfragen) }
+            }
+            .padding(8)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
