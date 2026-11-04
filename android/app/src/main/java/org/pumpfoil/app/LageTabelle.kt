@@ -75,6 +75,8 @@ class LageTabZeile(
     val hinten: List<@Composable () -> Unit> = emptyList(),
     val markiert: Boolean = false,
     val onClick: (() -> Unit)? = null,
+    /** Fertige Phasen statt aus `k` gerechnet (Startseite: alle Laeufe / je Foil, Web TechnikUebersicht). */
+    val phasen: List<PhaseZeile>? = null,
 )
 
 /** Umschalter korrigiert | unkorrigiert fuer eine ganze Lage-Tabelle (wie PWA KorrekturUmschalter). */
@@ -135,6 +137,8 @@ fun LagePhasenTabelle(
     sortKey: String? = null,
     sortAuf: Boolean = false,
     onSort: ((String) -> Unit)? = null,
+    /** Takt in der Profil-Einheit (Startseite wie im Web); null = Hz wie in „Lage je Lauf". */
+    taktFormat: ((Double) -> String)? = null,
 ) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
     val werte: List<Triple<String?, String, Int>> = listOf(
@@ -164,7 +168,7 @@ fun LagePhasenTabelle(
         }
         HorizontalDivider()
         zeilen.forEach { z ->
-            val phasen = z.k?.takeIf { it.ok }?.let { phasenDesLaufs(it, korr) }
+            val phasen = z.phasen ?: z.k?.takeIf { it.ok }?.let { phasenDesLaufs(it, korr) }
             Row(
                 Modifier
                     .then(if (z.markiert) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)) else Modifier)
@@ -190,7 +194,7 @@ fun LagePhasenTabelle(
                                     t?.pumpRollenDeg?.let { "±%.1f°".format(it) },
                                     t?.wackelnDeg?.let { "±%.1f°".format(it) },
                                     t?.kurvenlageDeg?.let { "%.1f°".format(it) },
-                                    t?.taktHz?.let { "%.2f Hz".format(it) },
+                                    t?.taktHz?.let { taktFormat?.invoke(it) ?: "%.2f Hz".format(it) },
                                     t?.hubCm?.let { "%.0f cm".format(it) },
                                     t?.gierDegS?.let { "%.0f°/s".format(it) },
                                 )

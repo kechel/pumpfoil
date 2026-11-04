@@ -1657,6 +1657,8 @@ struct Technik: Decodable {
     var hub_cm: Double? = nil
     var takt_hz: Double? = nil
     var gier_deg_s: Double? = nil
+    /// Zahl der Laeufe hinter dem Median (Startseite).
+    var laeufe: Int? = nil
 }
 
 /// Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`).
@@ -1719,12 +1721,24 @@ struct BoardFoilKlassen: Decodable, Identifiable {
     let foil: String
     let laeufe: Int
     let klassen: [BoardKlasse]
+    // Technik je Foil wie fuer alle Laeufe (web PersonalHome BoardAttitudeSection, 08.10.2026)
+    var technik: TechnikPaar? = nil
+    var kurve_gerade: KurveGerade? = nil
+    var kurve_gerade_ohne: KurveGerade? = nil
+    var technik_kurz: TechnikPaar? = nil
+    var technik_ganz: TechnikPaar? = nil
     var id: Int { foil_id }
 }
 
 struct BoardAttitudeStats: Decodable {
     let gesamt: [BoardKlasse]
     let je_foil: [BoardFoilKlassen]
+    /// Laeufe ab 30 s (ruhiger Mittelteil), dazu Kurve/gerade und der ganze Lauf; `technik_kurz` = Laeufe unter 30 s.
+    var technik: TechnikPaar? = nil
+    var kurve_gerade: KurveGerade? = nil
+    var kurve_gerade_ohne: KurveGerade? = nil
+    var technik_kurz: TechnikPaar? = nil
+    var technik_ganz: TechnikPaar? = nil
 }
 
 // MARK: - Suche ohne Akzente (01.10.2026)

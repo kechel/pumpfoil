@@ -218,6 +218,8 @@ struct LageTabZeile: Identifiable {
     var hinten: [AnyView] = []
     var markiert: Bool = false
     var onTap: (() -> Void)? = nil
+    /// Fertige Phasen statt aus `k` gerechnet (Startseite: alle Laeufe / je Foil, web TechnikUebersicht).
+    var phasen: [PhaseZeile]? = nil
 }
 
 /// Umschalter korrigiert | unkorrigiert (wie PWA KorrekturUmschalter).
@@ -283,6 +285,8 @@ struct LagePhasenTabelle: View {
     var sortKey: String? = nil
     var sortAuf: Bool = false
     var onSort: ((String) -> Void)? = nil
+    /// Takt in der Profil-Einheit (Startseite wie im Web); nil = Hz wie in „Lage je Lauf".
+    var taktFormat: ((Double) -> String)? = nil
 
     private let phaseBreite: CGFloat = 96
 
@@ -334,7 +338,7 @@ struct LagePhasenTabelle: View {
          t?.pump_rollen_deg.map { String(format: "±%.1f°", $0) },
          t?.wackeln_deg.map { String(format: "±%.1f°", $0) },
          t?.kurvenlage_deg.map { String(format: "%.1f°", $0) },
-         t?.takt_hz.map { String(format: "%.2f Hz", $0) },
+         t?.takt_hz.map { taktFormat?($0) ?? String(format: "%.2f Hz", $0) },
          t?.hub_cm.map { String(format: "%.0f cm", $0) },
          t?.gier_deg_s.map { String(format: "%.0f°/s", $0) }]
     }
@@ -355,7 +359,11 @@ struct LagePhasenTabelle: View {
     }
 
     @ViewBuilder private func phasenBlock(_ z: LageTabZeile) -> some View {
-        if let k = z.k, k.ok {
+        if let ph = z.phasen {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(ph.indices, id: \.self) { i in phasenZeile(ph[i]) }
+            }
+        } else if let k = z.k, k.ok {
             let ph: [PhaseZeile] = phasenDesLaufs(k, korr: korr, lang: lang)
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(ph.indices, id: \.self) { i in phasenZeile(ph[i]) }
@@ -737,9 +745,10 @@ struct LageKurvenView: View {
 
 // MARK: - Startseite
 
-/// Startseite ganz unten: Lage je LAUFLAENGE, gesamt und je Foil (Jan, 24.09.2026). Nur aus
-/// Aufnahmen mit dem Handy am Brett; ohne solche erscheint nichts. Mediane mit Laufzahl, „nicht
-/// erkannt" statt Strich, Takt in der Profil-Einheit, kein Gieren (die Route ist frei gewaehlt).
+/// Home › Stats › Lage des Bretts wie im Web (PersonalHome `BoardAttitudeSection` + TechnikTabelle `TechnikUebersicht`,
+/// Jan 08.10.2026: „noch die alte unuebersichtliche Darstellung"): ZWEI Tabellen, Laeufe ab 30 s (Mittelteil, Kurve,
+/// gerade, ganzer Lauf) und Laeufe unter 30 s (nur ganzer Lauf), nie vermischt. Zeilen = alle Laeufe und je Foil (nur
+/// bei mehr als einem), Umschalter korrigiert | unkorrigiert, Legende darunter. Nur aus Aufnahmen mit dem Handy am Brett.
 struct BrettLageStartseite: View {
     let lang: String
     /// Home › Stats › Lage des Bretts (04.11.2026, wie web `BrettErklaerung`): ohne Brett-Aufnahmen erklaeren, was das
@@ -748,16 +757,16 @@ struct BrettLageStartseite: View {
     @State private var daten: BoardAttitudeStats? = nil
     @State private var geladen = false
 
+    private func hat(_ p: TechnikPaar?) -> Bool { p?.mit != nil || p?.ohne != nil }
+
     var body: some View {
         Group {
-            if let d = daten, !d.gesamt.isEmpty {
+            if let d = daten, hat(d.technik) || hat(d.technik_kurz) {
                 VStack(alignment: .leading, spacing: 8) {
                     kopf
-                    BrettKlassenTabelle(klassen: d.gesamt, lang: lang)
-                    // Je Foil nur bei mehr als einem, sonst stuende dieselbe Tabelle zweimal da.
-                    if d.je_foil.count > 1 {
-                        ForEach(d.je_foil) { f in jeFoil(f) }
-                    }
+                    BrettTechnikUebersicht(titel: Loc.t("tech.hLong", lang), zeilen: langeZeilen(d), lang: lang)
+                    BrettTechnikUebersicht(titel: Loc.t("tech.hShort", lang), zeilen: kurzeZeilen(d), lang: lang,
+                                           mitteText: Loc.t("tech.lShort", lang))
                 }
             } else if erklaerungWennLeer && geladen {
                 BrettErklaerung(lang: lang)
@@ -779,72 +788,89 @@ struct BrettLageStartseite: View {
         }
     }
 
-    private func jeFoil(_ f: BoardFoilKlassen) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("\(f.foil) · \(Loc.t("home.baRuns", lang).replacingOccurrences(of: "{n}", with: "\(f.laeufe)"))")
-                .font(.subheadline.weight(.semibold))
-            BrettKlassenTabelle(klassen: f.klassen, lang: lang)
+    private func langeZeilen(_ d: BoardAttitudeStats) -> [BrettTechnikZeile] {
+        var r: [BrettTechnikZeile] = [BrettTechnikZeile(label: Loc.t("tech.allRuns", lang), technik: d.technik,
+            kg: d.kurve_gerade, kgOhne: d.kurve_gerade_ohne, ganz: d.technik_ganz)]
+        if d.je_foil.count > 1 {
+            r += d.je_foil.map { BrettTechnikZeile(label: $0.foil, technik: $0.technik, kg: $0.kurve_gerade,
+                                                   kgOhne: $0.kurve_gerade_ohne, ganz: $0.technik_ganz) }
         }
+        return r
+    }
+
+    private func kurzeZeilen(_ d: BoardAttitudeStats) -> [BrettTechnikZeile] {
+        var r: [BrettTechnikZeile] = [BrettTechnikZeile(label: Loc.t("tech.allRuns", lang), technik: d.technik_kurz, nurGanz: true)]
+        if d.je_foil.count > 1 {
+            r += d.je_foil.map { BrettTechnikZeile(label: $0.foil, technik: $0.technik_kurz, nurGanz: true) }
+        }
+        return r
     }
 }
 
-struct BrettKlassenTabelle: View {
-    let klassen: [BoardKlasse]
-    let lang: String
+/// Eine Zeile der Uebersicht: alle Laeufe oder ein Foil.
+struct BrettTechnikZeile {
+    let label: String
+    let technik: TechnikPaar?
+    var kg: KurveGerade? = nil
+    var kgOhne: KurveGerade? = nil
+    var ganz: TechnikPaar? = nil
+    var nurGanz: Bool = false
+}
 
-    private var labels: [String: String] {
-        ["bis30s": Loc.t("home.baUpTo30s", lang), "30bis60s": Loc.t("home.ba30to60s", lang),
-         "1bis5min": Loc.t("home.ba1to5min", lang), "ueber5min": Loc.t("home.baOver5min", lang)]
+/// web TechnikUebersicht: dieselbe Phasen-Tabelle wie „Lage je Lauf", Zeilen = alle Laeufe / je Foil.
+struct BrettTechnikUebersicht: View {
+    let titel: String
+    let zeilen: [BrettTechnikZeile]
+    let lang: String
+    var mitteText: String? = nil
+    @State private var korr = true
+
+    private var mitDaten: [BrettTechnikZeile] { zeilen.filter { $0.technik?.mit != nil || $0.technik?.ohne != nil } }
+
+    private func f(_ p: TechnikPaar?) -> Technik? { korr ? p?.mit : p?.ohne }
+
+    private func phasen(_ z: BrettTechnikZeile) -> [PhaseZeile] {
+        if z.nurGanz { return [PhaseZeile(phase: Loc.t("tech.sWhole", lang), werte: f(z.technik), haupt: true)] }
+        var r: [PhaseZeile] = [PhaseZeile(phase: Loc.t("tech.sStable", lang), werte: f(z.technik), haupt: true)]
+        if let kg = korr ? z.kg : z.kgOhne {
+            r.append(PhaseZeile(phase: Loc.t("tech.sTurn", lang), werte: kg.kurve?.alsTechnik, haupt: false))
+            r.append(PhaseZeile(phase: Loc.t("tech.sStraight", lang), werte: kg.gerade?.alsTechnik, haupt: false))
+        }
+        if let g = z.ganz, g.mit != nil || g.ohne != nil {
+            r.append(PhaseZeile(phase: Loc.t("tech.sWhole", lang), werte: f(g), haupt: false))
+        }
+        return r
+    }
+
+    private func laeufe(_ z: BrettTechnikZeile) -> Int {
+        z.technik?.mit?.laeufe ?? z.technik?.ohne?.laeufe ?? 0
+    }
+
+    private var tabZeilen: [LageTabZeile] {
+        mitDaten.map { (z: BrettTechnikZeile) -> LageTabZeile in
+            let n: String = Loc.t("home.baRuns", lang).replacingOccurrences(of: "{n}", with: "\(laeufe(z))")
+            let zelle: AnyView = AnyView(VStack(alignment: .leading, spacing: 1) {
+                Text(z.label).font(.caption.weight(.semibold)).lineLimit(2)
+                Text(n).font(.caption2).foregroundStyle(.secondary)
+            })
+            return LageTabZeile(id: z.label, k: nil, geladen: true, vorne: [zelle], phasen: phasen(z))
+        }
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            kopf
-            ForEach(klassen) { k in
-                Divider()
-                zeile(k)
+        if !mitDaten.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(titel).font(.subheadline.weight(.semibold))
+                    Spacer()
+                    KorrekturUmschalter(korr: $korr, lang: lang)
+                }
+                LagePhasenTabelle(vorneSpalten: [LageSpalte(kopf: "", breite: 110)], zeilen: tabZeilen, korr: korr, lang: lang,
+                                  taktFormat: { PumpUnit.fmt($0, lang) })
+                LaufLegende(lang: lang)
+                if let mitteText { Text(mitteText).font(.caption).foregroundStyle(.secondary) }
             }
         }
-        .padding(.vertical, 6)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-    }
-
-    private var kopf: some View {
-        let spalten: [String] = [Loc.t("home.baPitch", lang), Loc.t("home.baRoll", lang), Loc.t("home.baHeave", lang),
-                                 "\(Loc.t("home.baCadence", lang)) \(PumpUnit.unitLabel(lang))"]
-        return HStack {
-            Text(Loc.t("home.baRunLength", lang)).frame(maxWidth: .infinity, alignment: .leading)
-            ForEach(0..<spalten.count, id: \.self) { i in
-                Text(spalten[i]).frame(maxWidth: .infinity, alignment: .trailing)
-            }
-        }
-        .font(.caption).foregroundStyle(.secondary)
-        .padding(.horizontal, 12).padding(.vertical, 4)
-    }
-
-    private func zeile(_ k: BoardKlasse) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(labels[k.klasse] ?? k.klasse).font(.callout)
-                Text(Loc.t("home.baRuns", lang).replacingOccurrences(of: "{n}", with: "\(k.laeufe)"))
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            zelle(k.pitch_deg.map { "\(Int($0.rounded()))°" }, betont: true)
-            zelle(k.roll_deg.map { "\(Int($0.rounded()))°" }, betont: true)
-            zelle(k.hub_cm.map { "\(Int($0.rounded())) cm" }, betont: false)
-            // Der Takt folgt der eingestellten Einheit (Hz oder /min), wie jede Kadenz-Anzeige.
-            zelle(k.takt_hz.map { PumpUnit.fmtValue($0) }, betont: false)
-        }
-        .padding(.horizontal, 12).padding(.vertical, 6)
-    }
-
-    private func zelle(_ text: String?, betont: Bool) -> some View {
-        Text(text ?? Loc.t("home.baNotDetected", lang))
-            .font(text == nil ? .caption : (betont ? .callout.weight(.semibold) : .callout))
-            .foregroundStyle(text == nil ? Color.secondary : (betont ? Color.accentColor : Color.primary))
-            .monospacedDigit()
-            .frame(maxWidth: .infinity, alignment: .trailing)
     }
 }
 

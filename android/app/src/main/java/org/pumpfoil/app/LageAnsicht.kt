@@ -460,20 +460,20 @@ private fun wertText(r: Reihe, idx: Int): String =
 
 
 /**
- * Startseite ganz unten: Lage des Bretts je LAUFLAENGE, einmal gesamt und einmal je Foil (Jan,
- * 24.09.2026). Nur aus Aufnahmen mit dem Handy AM BRETT; ohne solche erscheint nichts. MEDIANE
- * mit der Zahl der Laeufe daneben — bei vier Laeufen ist ein Median keine Aussage.
- * KEIN Gieren: das ist die gewaehlte Route, keine Aussage ueber Technik (Jan, 24.09.). Fehlt
- * eine Zahl, steht dort „nicht erkannt", kein Strich.
+ * Home › Stats › Lage des Bretts wie im Web (PersonalHome `BoardAttitudeSection` + TechnikTabelle `TechnikUebersicht`,
+ * Jan 08.10.2026: „noch die alte unuebersichtliche Darstellung"): ZWEI Tabellen, Laeufe ab 30 s (Mittelteil, Kurve,
+ * gerade, ganzer Lauf) und Laeufe unter 30 s (nur ganzer Lauf), nie vermischt. Zeilen = alle Laeufe und je Foil (nur
+ * bei mehr als einem), Umschalter korrigiert | unkorrigiert, Legende darunter. Nur aus Aufnahmen mit dem Handy am Brett.
  */
 @Composable
 fun BrettLageStartseite(ohneDaten: (@Composable () -> Unit)? = null) {
     var daten by remember { mutableStateOf<BoardAttitudeStats?>(null) }
     var geladen by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { daten = try { Api.boardAttitudeStats() } catch (_: Exception) { null }; geladen = true }
+    fun hat(p: TechnikPaar?) = p?.mit != null || p?.ohne != null
     // Ohne Brett-Aufnahmen (oder Fehler): `ohneDaten` (Home › Stats › Lage des Bretts zeigt dann die Erklaerung).
     val d = daten
-    if (d == null || d.gesamt.isEmpty()) { if (geladen) ohneDaten?.invoke(); return }
+    if (d == null || (!hat(d.technik) && !hat(d.technikKurz))) { if (geladen) ohneDaten?.invoke(); return }
     if (ohneDaten == null) Spacer(Modifier.height(16.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(I18n.t("home.boardAttitude"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -484,59 +484,64 @@ fun BrettLageStartseite(ohneDaten: (@Composable () -> Unit)? = null) {
             modifier = Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                 androidx.compose.foundation.shape.RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
     }
-    Spacer(Modifier.height(6.dp))
-    BrettKlassenTabelle(d.gesamt)
-    // Je Foil nur bei mehr als einem — sonst stuende dieselbe Tabelle zweimal da.
-    if (d.jeFoil.size > 1) d.jeFoil.forEach { f ->
-        Spacer(Modifier.height(10.dp))
-        Text("${f.foil} · ${I18n.t("home.baRuns").replace("{n}", f.laeufe.toString())}",
-            style = MaterialTheme.typography.labelLarge)
-        BrettKlassenTabelle(f.klassen)
-    }
+    val mehrFoils = d.jeFoil.size > 1
+    BrettTechnikUebersicht(I18n.t("tech.hLong"),
+        listOf(BrettTechnikZeile(I18n.t("tech.allRuns"), d.technik, d.kurveGerade, d.kurveGeradeOhne, d.technikGanz)) +
+            (if (mehrFoils) d.jeFoil.map { BrettTechnikZeile(it.foil, it.technik, it.kurveGerade, it.kurveGeradeOhne, it.technikGanz) } else emptyList()))
+    BrettTechnikUebersicht(I18n.t("tech.hShort"),
+        listOf(BrettTechnikZeile(I18n.t("tech.allRuns"), d.technikKurz, nurGanz = true)) +
+            (if (mehrFoils) d.jeFoil.map { BrettTechnikZeile(it.foil, it.technikKurz, nurGanz = true) } else emptyList()),
+        mitteText = I18n.t("tech.lShort"))
 }
 
+/** Eine Zeile der Uebersicht: alle Laeufe oder ein Foil. */
+private class BrettTechnikZeile(val label: String, val technik: TechnikPaar?, val kg: KurveGerade? = null,
+                                val kgOhne: KurveGerade? = null, val ganz: TechnikPaar? = null, val nurGanz: Boolean = false)
+
+/** Web TechnikUebersicht: dieselbe Phasen-Tabelle wie „Lage je Lauf", Zeilen = alle Laeufe / je Foil. */
 @Composable
-private fun BrettKlassenTabelle(klassen: List<BoardKlasse>) {
-    val label = mapOf(
-        "bis30s" to I18n.t("home.baUpTo30s"), "30bis60s" to I18n.t("home.ba30to60s"),
-        "1bis5min" to I18n.t("home.ba1to5min"), "ueber5min" to I18n.t("home.baOver5min"),
-    )
-    val grau = MaterialTheme.colorScheme.onSurfaceVariant
-    val akzent = MaterialTheme.colorScheme.primary
-    val nichtErkannt = I18n.t("home.baNotDetected")
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(vertical = 6.dp)) {
-            Row(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                Text(I18n.t("home.baRunLength"), Modifier.weight(1.4f), style = MaterialTheme.typography.labelMedium, color = grau)
-                listOf(I18n.t("home.baPitch"), I18n.t("home.baRoll"), I18n.t("home.baHeave"),
-                    "${I18n.t("home.baCadence")} ${PumpUnit.unitLabel()}").forEach {
-                    Text(it, Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = grau,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.End)
-                }
+private fun BrettTechnikUebersicht(titel: String, zeilen: List<BrettTechnikZeile>, mitteText: String? = null) {
+    var korr by remember { mutableStateOf(true) }
+    val mitDaten = zeilen.filter { it.technik?.mit != null || it.technik?.ohne != null }
+    if (mitDaten.isEmpty()) return
+    fun f(p: TechnikPaar?) = if (korr) p?.mit else p?.ohne
+    fun phasen(z: BrettTechnikZeile): List<PhaseZeile> {
+        if (z.nurGanz) return listOf(PhaseZeile(I18n.t("tech.sWhole"), f(z.technik), true))
+        val kg = if (korr) z.kg else z.kgOhne
+        return buildList {
+            add(PhaseZeile(I18n.t("tech.sStable"), f(z.technik), true))
+            if (kg != null) {
+                add(PhaseZeile(I18n.t("tech.sTurn"), kg.kurve?.alsTechnik(), false))
+                add(PhaseZeile(I18n.t("tech.sStraight"), kg.gerade?.alsTechnik(), false))
             }
-            klassen.forEach { k ->
-                HorizontalDivider()
-                Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1.4f)) {
-                        Text(label[k.klasse] ?: k.klasse, style = MaterialTheme.typography.bodyMedium)
-                        Text(I18n.t("home.baRuns").replace("{n}", k.laeufe.toString()),
-                            style = MaterialTheme.typography.bodySmall, color = grau)
-                    }
-                    @Composable
-                    fun Zelle(text: String?, betont: Boolean) = Text(
-                        text ?: nichtErkannt, Modifier.weight(1f),
-                        style = if (text == null) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (betont && text != null) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (text == null) grau else if (betont) akzent else MaterialTheme.colorScheme.onSurface,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.End)
-                    Zelle(k.pitchDeg?.let { "${it.roundToInt()}°" }, true)
-                    Zelle(k.rollDeg?.let { "${it.roundToInt()}°" }, true)
-                    Zelle(k.hubCm?.let { "${it.roundToInt()} cm" }, false)
-                    // Der Takt folgt der eingestellten Einheit (Hz oder /min), wie jede Kadenz-Anzeige.
-                    Zelle(k.taktHz?.let { PumpUnit.fmtValue(it) }, false)
-                }
-            }
+            z.ganz?.takeIf { it.mit != null || it.ohne != null }?.let { add(PhaseZeile(I18n.t("tech.sWhole"), f(it), false)) }
         }
+    }
+    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    Spacer(Modifier.height(12.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(titel, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+        KorrekturUmschalter(korr) { korr = it }
+    }
+    Spacer(Modifier.height(4.dp))
+    Card(Modifier.fillMaxWidth()) {
+        LagePhasenTabelle(
+            vorneSpalten = listOf(LageSpalte("", 120)),
+            zeilen = mitDaten.map { z ->
+                val n = z.technik?.mit?.laeufe ?: z.technik?.ohne?.laeufe ?: 0
+                LageTabZeile(key = z.label, k = null, geladen = true, vorne = listOf({
+                    Column {
+                        Text(z.label, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, maxLines = 2)
+                        Text(I18n.t("home.baRuns").replace("{n}", n.toString()), style = MaterialTheme.typography.labelSmall, color = grau)
+                    }
+                }), phasen = phasen(z))
+            },
+            korr = korr,
+            taktFormat = { PumpUnit.fmt(it) },
+        )
+        LaufLegende()
+        if (mitteText != null) Text(mitteText, style = MaterialTheme.typography.bodySmall, color = grau,
+            modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp))
     }
 }
 

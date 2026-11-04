@@ -27,7 +27,7 @@ struct GarminPairView: View {
             claimSection
             genSection
         }
-        .brandToolbar(Loc.t("garmin.title", lang))
+        .brandToolbar(Loc.t("onb.watch.title", lang))
         .navigationBarTitleDisplayMode(.inline)
     }
 

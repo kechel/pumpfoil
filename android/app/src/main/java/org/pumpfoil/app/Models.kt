@@ -1457,6 +1457,8 @@ data class Technik(
     @SerialName("hub_cm") val hubCm: Double? = null,
     @SerialName("takt_hz") val taktHz: Double? = null,
     @SerialName("gier_deg_s") val gierDegS: Double? = null,
+    /** Zahl der Laeufe hinter dem Median (Startseite). */
+    val laeufe: Int? = null,
 )
 
 /** Pumpzuege in der Kurve bzw. geradeaus (lage.py `kurve_gerade`). */
@@ -1523,12 +1525,24 @@ data class BoardFoilKlassen(
     val foil: String = "",
     val laeufe: Int = 0,
     val klassen: List<BoardKlasse> = emptyList(),
+    // Technik je Foil wie fuer alle Laeufe (Web PersonalHome BoardAttitudeSection, 08.10.2026)
+    val technik: TechnikPaar? = null,
+    @SerialName("kurve_gerade") val kurveGerade: KurveGerade? = null,
+    @SerialName("kurve_gerade_ohne") val kurveGeradeOhne: KurveGerade? = null,
+    @SerialName("technik_kurz") val technikKurz: TechnikPaar? = null,
+    @SerialName("technik_ganz") val technikGanz: TechnikPaar? = null,
 )
 
 @Serializable
 data class BoardAttitudeStats(
     val gesamt: List<BoardKlasse> = emptyList(),
     @SerialName("je_foil") val jeFoil: List<BoardFoilKlassen> = emptyList(),
+    /** Laeufe ab 30 s (ruhiger Mittelteil) samt Kurve/gerade und ganzem Lauf; `technikKurz` = Laeufe unter 30 s. */
+    val technik: TechnikPaar? = null,
+    @SerialName("kurve_gerade") val kurveGerade: KurveGerade? = null,
+    @SerialName("kurve_gerade_ohne") val kurveGeradeOhne: KurveGerade? = null,
+    @SerialName("technik_kurz") val technikKurz: TechnikPaar? = null,
+    @SerialName("technik_ganz") val technikGanz: TechnikPaar? = null,
 )
 
 
