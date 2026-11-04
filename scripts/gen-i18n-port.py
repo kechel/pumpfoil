@@ -51,7 +51,7 @@ SCHLUESSEL = [
     "team.regeln.was.titel", "team.regeln.was.text", "team.regeln.rollen.titel", "team.regeln.rollen.text", "team.regeln.beitreten.titel", "team.regeln.beitreten.text",
     "team.regeln.oeffentlich.titel", "team.regeln.oeffentlich.text", "team.regeln.bestenlisten.titel", "team.regeln.bestenlisten.text", "team.regeln.statistik.titel", "team.regeln.statistik.text",
     "team.regeln.logbuch.titel", "team.regeln.logbuch.text", "team.regeln.chat.titel", "team.regeln.chat.text", "team.regeln.loeschen.titel", "team.regeln.loeschen.text",
-    "team.regeln.konto.titel", "team.regeln.konto.text", "team.regeln.haftung.titel", "team.regeln.haftung.text", "team.regeln.events.titel", "notif.typeComment", "onb.watch.title", "theme.dark", "theme.light", "tech.hLong", "tech.hShort", "tech.lShort", "tech.allRuns", "team.regeln.events.text",
+    "team.regeln.konto.titel", "team.regeln.konto.text", "team.regeln.haftung.titel", "team.regeln.haftung.text", "team.regeln.events.titel", "notif.typeComment", "onb.watch.title", "home.topCommented", "theme.dark", "theme.light", "tech.hLong", "tech.hShort", "tech.lShort", "tech.allRuns", "team.regeln.events.text",
 ]
 
 

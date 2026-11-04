@@ -727,6 +727,11 @@ enum Api {
         try await request("/api/community/top-liked?period=\(period)&limit=\(limit)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
     }
 
+    /// Meist kommentiert (PWA api.topCommented): Zeitraum gilt fuer die Kommentare, nicht fuers Fahrtdatum.
+    static func topCommented(period: String = "all", limit: Int = 5, freunde: Bool = false) async throws -> [CommunityItem] {
+        try await request("/api/community/top-commented?period=\(period)&limit=\(limit)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
+    }
+
     static func spotRecords(_ spot: String, period: String = "all", accelOnly: Bool = true, freunde: Bool = false) async throws -> PeriodRecords {
         let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
         return try await request("/api/community/spot-records?spot=\(s)&period=\(period)&accel_only=\(accelOnly)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)

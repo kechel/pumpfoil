@@ -19,6 +19,7 @@ struct CommunityView: View {
     @State private var leaders: Leaders?
     @State private var media: [MediaItem] = []
     @State private var topLiked: [CommunityItem] = []
+    @State private var topKommentiert: [CommunityItem] = []
     // Uhr-Layouts der Community (Top 5) — wie der Abschnitt auf der Community-Seite der PWA (Home.tsx).
     @State private var layoutsTop: [WatchLayoutBrief] = []
     @State private var cstats: Api.CommunityStats?
@@ -153,6 +154,7 @@ struct CommunityView: View {
         mediaFeedSection
         Section { zeitChips }
         topLikedSection
+        topKommentiertSection
         SocialFeedSection(lang: lang, modell: social)
         layoutsSection
     }
@@ -494,6 +496,17 @@ struct CommunityView: View {
         }
     }
 
+    // Meist kommentiert (PWA Home.tsx), derselbe Zeitraum wie Best bewertet.
+    @ViewBuilder private var topKommentiertSection: some View {
+        if !topKommentiert.isEmpty {
+            Section("\(Loc.t("home.topCommented", lang)) · \(periodLabel)") {
+                ForEach(topKommentiert) { s in
+                    NavigationLink(value: SessionDest(id: s.id)) { CommunityRow(item: s) }
+                }
+            }
+        }
+    }
+
     // Uhr-Layouts der Community: die fuenf meistgenutzten als Vorschau, darunter EIN Link in die ganze
     // Galerie (bisher nur ueber Profil → Datenfelder erreichbar). Zwei getrennte Zeilen, damit nicht
     // ein Tipp mehrere Ziele ausloest. Nichts veroeffentlicht -> kein leerer Abschnitt.
@@ -594,6 +607,7 @@ struct CommunityView: View {
     private func loadPeriod() async {
         leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart)
         topLiked = (try? await Api.topLiked(period: period, freunde: freunde)) ?? []
+        topKommentiert = (try? await Api.topCommented(period: period, freunde: freunde)) ?? []
     }
 }
 

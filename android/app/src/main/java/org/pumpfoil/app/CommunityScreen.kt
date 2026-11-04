@@ -125,6 +125,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var leaders by remember { mutableStateOf<Leaders?>(null) }
     var media by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
     var topLiked by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
+    var topKommentiert by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var cstats by remember { mutableStateOf<Api.CommunityStats?>(null) }
     // Uhr-Layouts aus der Community (wie im Web: die fuenf meistgenutzten, Link zur Galerie)
     var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
@@ -207,6 +208,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     LaunchedEffect(period, accelOnly, bandKey, freunde, sportart) {
         leaders = try { Api.leaders(period, accelOnly, bandKey, freunde, sport = sportart) } catch (_: Exception) { leaders }
         topLiked = try { Api.topLiked(period, freunde = freunde) } catch (_: Exception) { topLiked }
+        topKommentiert = try { Api.topCommented(period, freunde = freunde) } catch (_: Exception) { topKommentiert }
     }
 
     Scaffold(
@@ -363,6 +365,11 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         if (tab == "medien" && topLiked.isNotEmpty()) {
                             item { SectionHeader("${I18n.t("community.topRated")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}") }
                             items(topLiked) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) } }
+                        }
+                        // Meist kommentiert (Web Home.tsx), derselbe Zeitraum.
+                        if (tab == "medien" && topKommentiert.isNotEmpty()) {
+                            item { SectionHeader("${I18n.t("home.topCommented")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}") }
+                            items(topKommentiert, key = { "k${it.id}" }) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) } }
                         }
 
                         // Community-Social-Feed unter „Best bewertet", ueber den Uhr-Layouts (Web Home.tsx, Reiter Medien).

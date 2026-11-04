@@ -1071,6 +1071,11 @@ object Api {
         json.decodeFromString(ListSerializer(CommunityItem.serializer()), http("GET", "/api/community/top-liked?period=$period&limit=$limit" + (if (freunde) "&friends=1" else ""), null, auth = true))
     }
 
+    /** Meist kommentiert (Web api.topCommented): Zeitraum gilt fuer die Kommentare, nicht fuers Fahrtdatum. */
+    suspend fun topCommented(period: String = "all", limit: Int = 5, freunde: Boolean = false): List<CommunityItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(CommunityItem.serializer()), http("GET", "/api/community/top-commented?period=$period&limit=$limit" + (if (freunde) "&friends=1" else ""), null, auth = true))
+    }
+
     suspend fun spotRecords(spot: String, period: String = "all", accelOnly: Boolean = true, freunde: Boolean = false): PeriodRecords = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(spot, "UTF-8")
         json.decodeFromString(PeriodRecords.serializer(), http("GET", "/api/community/spot-records?spot=$s&period=$period&accel_only=$accelOnly" + (if (freunde) "&friends=1" else ""), null, auth = true))
