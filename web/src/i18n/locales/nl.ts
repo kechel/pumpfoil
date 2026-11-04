@@ -1642,6 +1642,14 @@ const nl: Record<string, string> = {
   "foils.title": "Mijn foils",
 
   "foils.cardTitle": "Mijn foils & sporten",
+
+  "gear.title": "Uitrusting",
+
+  "gear.mastShim": "Mast & shim",
+
+  "gear.searchHint": "Zoek op merk of model om iets toe te voegen.",
+
+  "gear.noHits": "Geen resultaten.",
   "foils.hint": "Bewaar je foils en kies er één als standaard (★). De standaard is per sessie te overschrijven.",
   "foils.search": "Foil zoeken…",
   "foils.none": "Geen resultaten.",

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
-import { Link } from "react-router-dom";
+import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
+import Setup from "./Setup";
 import { api, Foil } from "../lib/api";
 import { gearMatches } from "../lib/gearSearch";
 import { Card, Spinner } from "../components/ui";
@@ -9,8 +10,87 @@ import { StarIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { SPORTS, sortiereSports } from "../lib/sportClass";
 
+/** „Ausrüstung" (Jan, 04.11.2026): vorher zwei lange Seiten („Meine Foils" + „Detailliertes Setup"), jetzt Reiter.
+ * Foils zuerst — dafuer kommen die meisten. Kataloge (Foils, Stabs) nur noch ueber die Suche. */
+export default function Ausruestung() {
+  const t = useT();
+  const reiter: ReiterDef[] = [
+    { id: "foils", label: "Foils" },
+    { id: "stabs", label: t("setup.stabTitle") },
+    { id: "boards", label: t("setup.boardTitle") },
+    { id: "mast", label: t("gear.mastShim") },
+    { id: "sport", label: t("mySpots.sports") },
+  ];
+  const [tab, setTab] = useReiter("ausruestung", reiter.map((r) => r.id), "foils");
+  return (
+    <div className="w-full">
+      <h2 className="mb-3 flex items-center gap-2 text-xl font-bold">
+        <ZurueckPfeil fallback="/einstellungen" /><FoilIcon className="h-5 w-5 text-brand-400" /> {t("gear.title")}
+      </h2>
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
+      {tab === "foils" && <Foils />}
+      {tab === "stabs" && <Setup teil="stabs" />}
+      {tab === "boards" && <Setup teil="boards" />}
+      {tab === "mast" && <Setup teil="mast" />}
+      {tab === "sport" && <><Sportarten /><Setup teil="jeSport" /></>}
+    </div>
+  );
+}
+
+/** Standard-Sportart + Sportarten an der Uhr (Reiter „Sportarten"). */
+function Sportarten() {
+  const t = useT();
+  // Standard-Sportart für NEUE Sessions (docs/sport-classification.md) — derselbe Gedanke wie das Standard-Foil
+  // (Jan: „ist ja wie mein default-foil").
+  const [defSport, setDefSport] = useState("pumpfoil");
+  // Sportarten an der Uhr (19.10.2026): Standard-Sportart immer dabei, die uebrigen hier anwaehlen.
+  const [mySports, setMySports] = useState<string[]>([]);
+  useEffect(() => {
+    api.getSettings().then((s) => {
+      setDefSport((s.default_sport_class as string) ?? "pumpfoil");
+      setMySports((s.my_sports as string[]) ?? []);
+    }).catch(() => {});
+  }, []);
+  return <>
+      {/* Standard-Sportart: wirkt nur auf NEUE Sessions. Wer überwiegend Wingfoil oder Foildrive
+          aufzeichnet, muss dann nicht jede Session nachträglich zuordnen. */}
+      <label className="mb-4 block text-sm text-slate-200">
+        {t("foils.defaultSport")}
+        <select value={defSport}
+          onChange={(e) => { const v = e.target.value; setDefSport(v); api.saveSettings({ default_sport_class: v }).catch(() => {}); }}
+          className="mt-1 block rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
+          {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+        </select>
+        <span className="mt-1 block text-sm text-slate-400">{t("foils.defaultSportHint")}</span>
+      </label>
+
+      {/* Sportarten, die man an der Uhr vor dem Start waehlen kann (19.10.2026). */}
+      <div className="mb-4">
+        <div className="text-sm text-slate-200">{t("foils.mySports")}</div>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {sortiereSports(SPORTS.filter((k) => k !== "other"), t).map((k) => {
+            const an = k === defSport || mySports.includes(k);
+            return (
+              <button key={k} type="button" disabled={k === defSport}
+                onClick={() => {
+                  const neu = mySports.includes(k) ? mySports.filter((x) => x !== k) : [...mySports, k];
+                  setMySports(neu);
+                  api.saveSettings({ my_sports: neu }).catch(() => {});
+                }}
+                className={`rounded-full px-3 py-1 text-sm ${an ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"} ${k === defSport ? "opacity-80" : ""}`}>
+                {t(`cls.sport.${k}`)}
+              </button>
+            );
+          })}
+        </div>
+        <span className="mt-1 block text-sm text-slate-400">{t("foils.mySportsHint")}</span>
+      </div>
+
+  </>;
+}
+
 // Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern).
-export default function Foils() {
+function Foils() {
   const t = useT();
   const [foils, setFoils] = useState<Foil[] | null>(null);
   const [brands, setBrands] = useState<string[]>([]);
@@ -19,11 +99,6 @@ export default function Foils() {
   const [mine, setMine] = useState<number[]>([]);
   const [def, setDef] = useState<number | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // kurz hervorgehobenes Foil
-  // Standard-Sportart für NEUE Sessions (docs/sport-classification.md) — steht hier, weil es
-  // derselbe Gedanke wie das Standard-Foil ist (Jan: „ist ja wie mein default-foil").
-  const [defSport, setDefSport] = useState("pumpfoil");
-  // Sportarten an der Uhr (19.10.2026): Standard-Sportart immer dabei, die uebrigen hier anwaehlen.
-  const [mySports, setMySports] = useState<string[]>([]);
 
   useEffect(() => {
     api.foils().then(setFoils).catch(() => setFoils([]));
@@ -31,8 +106,6 @@ export default function Foils() {
     api.getSettings().then((s) => {
       setMine((s.my_foils as number[]) ?? []);
       setDef((s.foil_id as number) ?? null);
-      setDefSport((s.default_sport_class as string) ?? "pumpfoil");
-      setMySports((s.my_sports as string[]) ?? []);
     }).catch(() => {});
   }, []);
 
@@ -69,6 +142,7 @@ export default function Foils() {
     () => filtered.filter((f) => mine.includes(f.id)).sort((a, b) => (a.id === def ? -1 : b.id === def ? 1 : 0)),
     [filtered, mine, def]);
   const restList = useMemo(() => filtered.filter((f) => !mine.includes(f.id)), [filtered, mine]);
+  const sucht = q.trim() !== "" || brand !== "";
 
   if (!foils) return <Spinner />;
 
@@ -108,49 +182,7 @@ export default function Foils() {
 
   return (
     <div className="w-full">
-      {/* Überschrift + rechtsbündig der Weg ins Detailed Setup (Stab/Mast/Shim/Board). */}
-      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" /><FoilIcon className="h-5 w-5 text-brand-400" /> {t("foils.title")}</h2>
-        <Link to="/setup" className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:bg-slate-700">
-          {t("foils.toSetup")} →
-        </Link>
-      </div>
       <p className="mb-3 text-sm text-slate-300">{t("foils.hint")}</p>
-
-      {/* Standard-Sportart: wirkt nur auf NEUE Sessions. Wer überwiegend Wingfoil oder Foildrive
-          aufzeichnet, muss dann nicht jede Session nachträglich zuordnen. */}
-      <label className="mb-4 block text-sm text-slate-200">
-        {t("foils.defaultSport")}
-        <select value={defSport}
-          onChange={(e) => { const v = e.target.value; setDefSport(v); api.saveSettings({ default_sport_class: v }).catch(() => {}); }}
-          className="mt-1 block rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
-          {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
-        </select>
-        <span className="mt-1 block text-sm text-slate-400">{t("foils.defaultSportHint")}</span>
-      </label>
-
-      {/* Sportarten, die man an der Uhr vor dem Start waehlen kann (19.10.2026). */}
-      <div className="mb-4">
-        <div className="text-sm text-slate-200">{t("foils.mySports")}</div>
-        <div className="mt-1 flex flex-wrap gap-1.5">
-          {sortiereSports(SPORTS.filter((k) => k !== "other"), t).map((k) => {
-            const an = k === defSport || mySports.includes(k);
-            return (
-              <button key={k} type="button" disabled={k === defSport}
-                onClick={() => {
-                  const neu = mySports.includes(k) ? mySports.filter((x) => x !== k) : [...mySports, k];
-                  setMySports(neu);
-                  api.saveSettings({ my_sports: neu }).catch(() => {});
-                }}
-                className={`rounded-full px-3 py-1 text-sm ${an ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"} ${k === defSport ? "opacity-80" : ""}`}>
-                {t(`cls.sport.${k}`)}
-              </button>
-            );
-          })}
-        </div>
-        <span className="mt-1 block text-sm text-slate-400">{t("foils.mySportsHint")}</span>
-      </div>
-
       <div className="mb-4 flex flex-wrap gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("foils.search")}
           className="min-w-[12rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
@@ -167,12 +199,14 @@ export default function Foils() {
           <div className="space-y-2">{mineList.map(card)}</div>
         </div>
       )}
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("foils.catalog")}</p>
-      <div className="space-y-2">
-        {restList.map(card)}
-        <p className="pt-2 text-xs text-slate-500">{t("foils.count", { n: restList.length })}</p>
-        <MissingHint what={t("foils.missingFoil")} />
-      </div>
+      {/* Katalog nur ueber die Suche (Jan, 04.11.2026): ohne Suchbegriff stehen nur die eigenen da. */}
+      {sucht ? (
+        <div className="space-y-2">
+          {restList.map(card)}
+          {restList.length === 0 && <p className="text-sm text-slate-500">{t("gear.noHits")}</p>}
+          <MissingHint what={t("foils.missingFoil")} />
+        </div>
+      ) : <p className="text-sm text-slate-400">{t("gear.searchHint")}</p>}
     </div>
   );
 }

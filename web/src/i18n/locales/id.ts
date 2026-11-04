@@ -1514,6 +1514,14 @@ const id: Record<string, string> = {
   "foils.title": "Foil saya",
 
   "foils.cardTitle": "Foil & olahraga saya",
+
+  "gear.title": "Perlengkapan",
+
+  "gear.mastShim": "Mast & shim",
+
+  "gear.searchHint": "Cari berdasarkan merek atau model untuk menambahkan.",
+
+  "gear.noHits": "Tidak ada hasil.",
   "foils.hint": "Tandai foil-mu dan pilih satu sebagai bawaan (★). Bawaan bisa ditimpa per sesi.",
   "foils.search": "Cari foil…",
   "foils.none": "Tidak ada hasil.",

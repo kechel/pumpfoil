@@ -1642,6 +1642,14 @@ const cs: Record<string, string> = {
   "foils.title": "Moje foily",
 
   "foils.cardTitle": "Moje foily a sporty",
+
+  "gear.title": "Vybavení",
+
+  "gear.mastShim": "Stěžeň a shim",
+
+  "gear.searchHint": "Hledej podle značky nebo modelu a přidej.",
+
+  "gear.noHits": "Žádné výsledky.",
   "foils.hint": "Ulož si své foily a vyber jeden jako výchozí (★). Výchozí lze přepsat u každé vyjížďky.",
   "foils.search": "Hledat foil…",
   "foils.none": "Žádné výsledky.",

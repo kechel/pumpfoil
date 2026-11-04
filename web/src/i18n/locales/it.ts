@@ -1246,6 +1246,14 @@ const it: Record<string, string> = {
   "foils.title": "I miei foil",
 
   "foils.cardTitle": "I miei foil e sport",
+
+  "gear.title": "Attrezzatura",
+
+  "gear.mastShim": "Albero e shim",
+
+  "gear.searchHint": "Cerca per marca o modello per aggiungere qualcosa.",
+
+  "gear.noHits": "Nessun risultato.",
   "foils.hint": "Segna i tuoi foil e scegline uno come predefinito (★). Sovrascrivibile per sessione.",
   "foils.search": "Cerca foil…",
   "foils.none": "Nessun risultato.",

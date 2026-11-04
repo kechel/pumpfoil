@@ -1514,6 +1514,14 @@ const pt: Record<string, string> = {
   "foils.title": "Meus foils",
 
   "foils.cardTitle": "Meus foils e esportes",
+
+  "gear.title": "Equipamento",
+
+  "gear.mastShim": "Mastro e shim",
+
+  "gear.searchHint": "Pesquise por marca ou modelo para adicionar algo.",
+
+  "gear.noHits": "Nenhum resultado.",
   "foils.hint": "Marque seus foils e escolha um como padrão (★). O padrão pode ser trocado por sessão.",
   "foils.search": "Buscar foil…",
   "foils.none": "Sem resultados.",

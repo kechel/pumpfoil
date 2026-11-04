@@ -1514,6 +1514,14 @@ const zh: Record<string, string> = {
   "foils.title": "我的水翼",
 
   "foils.cardTitle": "我的水翼与运动",
+
+  "gear.title": "装备",
+
+  "gear.mastShim": "桅杆和垫片",
+
+  "gear.searchHint": "按品牌或型号搜索以添加。",
+
+  "gear.noHits": "没有结果。",
   "foils.hint": "标记你的水翼并选择一个作为默认 (★)。默认值可按每次记录覆盖。",
   "foils.search": "搜索水翼…",
   "foils.none": "没有匹配结果。",

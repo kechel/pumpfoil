@@ -1514,6 +1514,14 @@ const ja: Record<string, string> = {
   "foils.title": "マイフォイル",
 
   "foils.cardTitle": "マイフォイルとスポーツ",
+
+  "gear.title": "装備",
+
+  "gear.mastShim": "マスト＆シム",
+
+  "gear.searchHint": "ブランドかモデルで検索して追加します。",
+
+  "gear.noHits": "該当なし。",
   "foils.hint": "自分のフォイルをマークし、1つをデフォルト（★）に選びます。デフォルトはセッションごとに上書きできます。",
   "foils.search": "フォイルを検索…",
   "foils.none": "該当なし。",

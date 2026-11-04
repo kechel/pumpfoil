@@ -1876,6 +1876,14 @@ const de: Record<string, string> = {
   "foils.title": "Meine Foils",
 
   "foils.cardTitle": "Meine Foils & Sportarten",
+
+  "gear.title": "Ausrüstung",
+
+  "gear.mastShim": "Mast & Shim",
+
+  "gear.searchHint": "Such nach Marke oder Modell, um etwas hinzuzufügen.",
+
+  "gear.noHits": "Keine Treffer.",
   "foils.defaultSport": "Standard-Sportart für neue Sessions",
   "foils.defaultSportHint": "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.",
   "foils.mySports": "Sportarten an der Uhr",

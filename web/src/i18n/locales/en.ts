@@ -1754,6 +1754,14 @@ const en: Record<string, string> = {
   "foils.title": "My foils",
 
   "foils.cardTitle": "My foils & sports",
+
+  "gear.title": "Equipment",
+
+  "gear.mastShim": "Mast & shim",
+
+  "gear.searchHint": "Search by brand or model to add something.",
+
+  "gear.noHits": "No matches.",
   "foils.defaultSport": "Default sport for new sessions",
   "foils.defaultSportHint": "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.",
   "foils.mySports": "Sports on the watch",

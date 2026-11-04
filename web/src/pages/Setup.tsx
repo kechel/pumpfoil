@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { api, Board, Stab } from "../lib/api";
 import { gearMatches } from "../lib/gearSearch";
 import { Button, Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
-import { StarIcon, FoilIcon, EditIcon } from "../components/Icons";
+import { StarIcon, EditIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { EquipmentJeSport } from "../components/EquipmentJeSport";
 
-// Detailed Setup: Stab (Katalog), Mastlänge, Shim-Winkel und Boards — jede Komponente
-// verhält sich wie die Foils: „meine" markieren, eine als Standard (Stern), je Session
-// überschreibbar. Bewusst KEIN kombiniertes Setup-Objekt (man wechselt real meist nur
-// Stab oder Shim). Siehe docs/setup-and-watch-layouts.md.
-export default function Setup() {
+// Stab (Katalog), Mastlänge, Shim-Winkel und Boards — jede Komponente verhält sich wie die Foils: „meine" markieren,
+// eine als Standard (Stern), je Session überschreibbar. Bewusst KEIN kombiniertes Setup-Objekt (man wechselt real meist
+// nur Stab oder Shim). Siehe docs/setup-and-watch-layouts.md.
+// Seit 04.11.2026 keine eigene Seite mehr („Detailliertes Setup"), sondern Reiter auf „Ausrüstung" (Foils.tsx):
+// `teil` sagt, welcher Abschnitt hier steht.
+export type SetupTeil = "stabs" | "boards" | "mast" | "jeSport";
+export default function Setup({ teil }: { teil: SetupTeil }) {
   const t = useT();
   const [stabs, setStabs] = useState<Stab[] | null>(null);
   const [brands, setBrands] = useState<string[]>([]);
@@ -146,6 +147,7 @@ export default function Setup() {
     () => filtered.filter((s) => myStabs.includes(s.id)).sort((a, b) => (a.id === stabId ? -1 : b.id === stabId ? 1 : 0)),
     [filtered, myStabs, stabId]);
   const restList = useMemo(() => filtered.filter((s) => !myStabs.includes(s.id)), [filtered, myStabs]);
+  const sucht = q.trim() !== "" || brand !== "";
 
   if (!stabs) return <Spinner />;
 
@@ -195,13 +197,8 @@ export default function Setup() {
 
   return (
     <div className="w-full">
-      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold">
-        <ZurueckPfeil fallback="/foils" />
-        <FoilIcon className="h-5 w-5 text-brand-400" /> {t("setup.title")}
-      </h2>
-      <p className="mb-5 text-sm text-slate-300">{t("setup.hint")}</p>
-
       {/* Mastlänge */}
+      {teil === "mast" && <>
       <Card className="mb-4 p-4">
         <h3 className="mb-1 font-semibold">{t("setup.mastTitle")}</h3>
         <p className="mb-3 text-sm text-slate-400">{t("setup.mastDesc")}</p>
@@ -238,9 +235,10 @@ export default function Setup() {
           <Button onClick={addShim} className="text-sm">{t("setup.addValue")}</Button>
         </div>
       </Card>
+      </>}
 
       {/* Boards */}
-      <Card className="mb-4 p-4">
+      {teil === "boards" && <Card className="mb-4 p-4">
         <h3 className="mb-1 font-semibold">{t("setup.boardTitle")}</h3>
         <p className="mb-3 text-sm text-slate-400">{t("setup.boardDesc")}</p>
         <div className="mb-3 space-y-2">
@@ -303,13 +301,13 @@ export default function Setup() {
             className="w-24 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
           <Button onClick={addBoard} className="text-sm">{t("setup.addValue")}</Button>
         </div>
-      </Card>
+      </Card>}
 
-      {/* Ausruestung je Sportart (19.10.2026) */}
-      <EquipmentJeSport stabs={stabs} boards={boards} myStabs={myStabs} myMasts={myMasts} />
+      {/* Ausruestung je Sportart (19.10.2026) — steht seit 04.11.2026 im Reiter „Sportarten" */}
+      {teil === "jeSport" && <EquipmentJeSport stabs={stabs} boards={boards} myStabs={myStabs} myMasts={myMasts} />}
 
       {/* Stabs (Katalog + eigene Bezeichnungen) */}
-      <h3 className="mb-1 font-semibold">{t("setup.stabTitle")}</h3>
+      {teil === "stabs" && <>
       <p className="mb-3 text-sm text-slate-400">{t("setup.stabDesc")}</p>
 
       {/* ERST SUCHEN, DANN ANLEGEN (Jan, 22.09.2026). Vorher stand das Anlege-Feld oben und die
@@ -326,36 +324,38 @@ export default function Setup() {
         </select>
       </div>
 
-      {/* Nicht im Katalog? Selbst anlegen (privat). */}
-      <Card className="mb-4 p-4">
-        <p className="mb-2 text-sm text-slate-300">{t("setup.stabAddHint")}</p>
-        <div className="flex flex-wrap gap-2">
-          <input value={newStab.brand} onChange={(e) => setNewStab({ ...newStab, brand: e.target.value })}
-            placeholder={t("setup.stabBrandPlaceholder")}
-            className="w-32 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
-          <input value={newStab.model} onChange={(e) => setNewStab({ ...newStab, model: e.target.value })}
-            placeholder={t("setup.stabModelPlaceholder")}
-            className="min-w-[10rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
-          <input value={newStab.size} onChange={(e) => setNewStab({ ...newStab, size: e.target.value })}
-            placeholder={t("setup.stabSizePlaceholder")}
-            className="w-24 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
-          <Button onClick={addStab} className="text-sm">{t("setup.addValue")}</Button>
-        </div>
-        {stabErr && <p className="mt-2 text-sm text-red-700 dark:text-red-300">{stabErr}</p>}
-      </Card>
+      {/* Katalog nur ueber die Suche (Jan, 04.11.2026): ohne Suchbegriff stehen nur die eigenen da. */}
       {mineList.length > 0 && (
         <div className="mb-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("setup.myStabs")} ({mineList.length})</p>
           <div className="space-y-2">{mineList.map(stabCard)}</div>
         </div>
       )}
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("foils.catalog")}</p>
-      <div className="space-y-2">
-        {restList.map(stabCard)}
-        {restList.length === 0 && <p className="text-sm text-slate-500">{t("setup.stabCatalogEmpty")}</p>}
-        {restList.length > 0 && <p className="pt-2 text-xs text-slate-500">{t("foils.count", { n: restList.length })}</p>}
-        <MissingHint what={t("setup.missingStab")} />
-      </div>
+      {sucht ? (
+        <div className="space-y-2">
+          {restList.map(stabCard)}
+          {restList.length === 0 && <p className="text-sm text-slate-500">{t("gear.noHits")}</p>}
+          {/* Nicht im Katalog? Selbst anlegen (privat) — erst unter den Suchtreffern (04.11.2026). */}
+          <Card className="mt-2 p-4">
+            <p className="mb-2 text-sm text-slate-300">{t("setup.stabAddHint")}</p>
+            <div className="flex flex-wrap gap-2">
+              <input value={newStab.brand} onChange={(e) => setNewStab({ ...newStab, brand: e.target.value })}
+                placeholder={t("setup.stabBrandPlaceholder")}
+                className="w-32 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+              <input value={newStab.model} onChange={(e) => setNewStab({ ...newStab, model: e.target.value })}
+                placeholder={t("setup.stabModelPlaceholder")}
+                className="min-w-[10rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+              <input value={newStab.size} onChange={(e) => setNewStab({ ...newStab, size: e.target.value })}
+                placeholder={t("setup.stabSizePlaceholder")}
+                className="w-24 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+              <Button onClick={addStab} className="text-sm">{t("setup.addValue")}</Button>
+            </div>
+            {stabErr && <p className="mt-2 text-sm text-red-700 dark:text-red-300">{stabErr}</p>}
+          </Card>
+          <MissingHint what={t("setup.missingStab")} />
+        </div>
+      ) : <p className="text-sm text-slate-400">{t("gear.searchHint")}</p>}
+      </>}
     </div>
   );
 }

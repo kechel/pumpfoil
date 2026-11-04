@@ -1512,6 +1512,14 @@ const ptPT: Record<string, string> = {
   "foils.title": "Meus foils",
 
   "foils.cardTitle": "Meus foils e desportos",
+
+  "gear.title": "Equipamento",
+
+  "gear.mastShim": "Mastro e shim",
+
+  "gear.searchHint": "Pesquisa por marca ou modelo para adicionar algo.",
+
+  "gear.noHits": "Sem resultados.",
   "foils.hint": "Marca os teus foils e escolhe um como predefinição (★). A predefinição pode ser trocada por sessão.",
   "foils.search": "Buscar foil…",
   "foils.none": "Sem resultados.",

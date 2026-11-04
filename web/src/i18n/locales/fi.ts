@@ -1607,6 +1607,14 @@ const fi: Record<string, string> = {
   "foils.title": "Omat foilit",
 
   "foils.cardTitle": "Omat foilit ja lajit",
+
+  "gear.title": "Varusteet",
+
+  "gear.mastShim": "Masto & shim",
+
+  "gear.searchHint": "Hae merkin tai mallin mukaan lisätäksesi.",
+
+  "gear.noHits": "Ei osumia.",
   "foils.hint": "Merkitse foilisi ja valitse yksi oletukseksi (★). Oletus on ohitettavissa sessiokohtaisesti.",
   "foils.search": "Hae foil…",
   "foils.none": "Ei tuloksia.",

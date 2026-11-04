@@ -214,7 +214,7 @@ export default function Settings() {
         <span className="flex items-center gap-3">
           <FoilIcon className="h-6 w-6 text-brand-400" />
           <span className="min-w-0">
-            <span className="block font-medium text-slate-100">{t("foils.cardTitle")}</span>
+            <span className="block font-medium text-slate-100">{t("gear.title")}</span>
             <MySportsSubline />
             <MyFoilsSubline />
           </span>

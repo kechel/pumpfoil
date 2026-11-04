@@ -1160,6 +1160,14 @@ const gsw: Record<string, string> = {
   "foils.title": "Mini Foils",
 
   "foils.cardTitle": "Mini Foils & Sportarte",
+
+  "gear.title": "Usrüschtig",
+
+  "gear.mastShim": "Mascht & Shim",
+
+  "gear.searchHint": "Suech nach Marke oder Modell, zum öppis dezuefüege.",
+
+  "gear.noHits": "Kei Träffer.",
   "foils.hint": "Merk dini Foils und wähl eis als Standard (★). Je Session überschribbar.",
   "foils.search": "Foil sueche…",
   "foils.none": "Kei Träffer.",

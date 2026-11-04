@@ -87,7 +87,6 @@ const Foiler = seite(() => import("./pages/Foiler"));
 const LaengsteLaeufe = seite(() => import("./pages/LaengsteLaeufe"));
 const Spots = seite(() => import("./pages/Spots"));
 const Foils = seite(() => import("./pages/Foils"));
-const Setup = seite(() => import("./pages/Setup"));
 const Layouts = seite(() => import("./pages/Layouts"));
 const LayoutEditor = seite(() => import("./pages/LayoutEditor"));
 const LayoutGallery = seite(() => import("./pages/LayoutGallery"));
@@ -271,7 +270,8 @@ const router = createBrowserRouter([
           { path: "alle-sessions", element: <AllSessionsRedirect /> },
           { path: "spots", element: <Spots /> },
           { path: "foils", element: <Foils /> },
-          { path: "setup", element: <Setup /> },
+          // „Detailliertes Setup" ist seit 04.11.2026 Teil der Seite „Ausrüstung" (Reiter); alte Links landen bei den Stabs.
+          { path: "setup", element: <Navigate to="/foils?tab=stabs" replace /> },
           { path: "layouts", element: <Layouts /> },
           { path: "layouts/community", element: <LayoutGallery /> },
           { path: "layouts/:id", element: <LayoutEditor /> },
