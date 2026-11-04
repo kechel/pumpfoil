@@ -11,8 +11,11 @@ verlangte damals:
 Dieser Antrag deckt deshalb **nur die Lite-Wearable-Uhren** ab (GT 3/4/5/6, Fit, D2). Watch 3/4 kommen nicht mehr
 vor. Die Watch 5 braucht keine Wear Engine, weil sie direkt hochlädt; sie ist seit 04.11. im AppGallery.
 
-**Einreichen:** AppGallery Connect → App services → Development → Wear Engine → Apply. Antragsteller ist wie beim
-ersten Mal SmartKomm GmbH.
+**Einreichen (Weg gefunden 04.11.):** NICHT in AppGallery Connect (dort liegt nur die Store-Seite der Android-App,
+„Draft" — nicht auf Release klicken). Sondern Huawei-Entwicklerkonsole
+https://developer.huawei.com/consumer/en/console (Konto SmartKomm GmbH) → Startseite „Konsole", Abschnitt
+**Entwicklung** → Kachel **Wear Engine** (neben Health Service Kit). Dort haengt der Antrag am HUAWEI-ID-Produkt
+„Pumpfoil" (App-ID 119274989).
 
 ## Was du einträgst (wie beim ersten Mal, mit drei Änderungen)
 
