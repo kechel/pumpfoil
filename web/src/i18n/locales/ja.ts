@@ -306,7 +306,6 @@ const ja: Record<string, string> = {
   "nav.watch": "ウォッチ",
   "nav.profile": "プロフィール",
   "nav.settings": "設定",
-  "nav.settingsShort": "設定",
   "nav.settingsHint": "設定：上の自分の写真をクリック ↑",
   "nav.admin": "管理",
   "nav.logout": "ログアウト",

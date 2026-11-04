@@ -273,7 +273,6 @@ const deAT: Record<string, string> = {
   "nav.watch": "Uhr",
   "nav.profile": "Profil",
   "nav.settings": "Einstellungen",
-  "nav.settingsShort": "Setup",
   "nav.settingsHint": "Einstellungen: oben auf dein Bild ↑",
   "nav.admin": "Admin",
   "nav.logout": "Obmelden",

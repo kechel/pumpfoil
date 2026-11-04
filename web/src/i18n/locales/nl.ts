@@ -310,7 +310,6 @@ const nl: Record<string, string> = {
   "nav.watch": "Horloge",
   "nav.profile": "Profiel",
   "nav.settings": "Instellingen",
-  "nav.settingsShort": "Setup",
   "nav.settingsHint": "Instellingen: klik op je foto ↑",
   "nav.admin": "Admin",
   "nav.adminPending": "Openstaande moderatie (gemeld + vermoedelijk nep)",

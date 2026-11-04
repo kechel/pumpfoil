@@ -306,7 +306,6 @@ const zh: Record<string, string> = {
   "nav.watch": "手表",
   "nav.profile": "个人资料",
   "nav.settings": "设置",
-  "nav.settingsShort": "设置",
   "nav.settingsHint": "设置：点击上方你的头像 ↑",
   "nav.admin": "管理",
   "nav.logout": "退出登录",

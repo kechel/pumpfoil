@@ -318,7 +318,6 @@ const ptPT: Record<string, string> = {
   "nav.watch": "Relógio",
   "nav.profile": "Perfil",
   "nav.settings": "Definições",
-  "nav.settingsShort": "Definições",
   "nav.settingsHint": "Definições: clica na tua foto ↑",
   "nav.admin": "Admin",
   "nav.logout": "Sair",

@@ -31,15 +31,16 @@ import { istOffen } from "./pages/Onboarding";
 
 // `start`: Startansicht des Bereichs — dorthin fuehrt ein Tippen auf den Knopf des Bereichs, in dem man schon ist
 // (Plan docs/UX-IA.md, 02.11.2026). „Verlauf" ist seit dann ein Reiter in Home, die Leiste hat damit 5 Knoepfe.
-type NavItem = { to: string; start?: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
+type NavItem = { to: string; start?: string; labelKey: string; shortKey?: string; nurIcon?: boolean; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
   { to: "/", labelKey: "nav.home", icon: HomeIcon, end: true },
   { to: "/community", start: "/community?tab=bestenliste", labelKey: "home.community", icon: CommunityIcon, end: false },
   { to: "/sessions", labelKey: "nav.sessions", icon: SessionsIcon, end: false },
   { to: "/spots", start: "/spots?tab=karte", labelKey: "nav.spots", icon: SpotsIcon, end: false },
-  // „Einstellungen" statt „Profil" (Jan, 04.11.2026); in der Leiste unten kurz „Setup". Am Desktop steht der Punkt nicht
-  // in der Seitenleiste — dorthin fuehrt das eigene Profilbild oben.
-  { to: "/einstellungen", labelKey: "nav.settings", shortKey: "nav.settingsShort", icon: SettingsIcon, end: false },
+  // „Einstellungen" statt „Profil" (Jan, 04.11.2026); in der Leiste unten nur das Zahnrad (`nurIcon`, Jan: „selbsterklaerend",
+  // ein Wort passte nicht in jeder Sprache). Am Desktop steht der Punkt nicht in der Seitenleiste — dorthin fuehrt das
+  // eigene Profilbild oben.
+  { to: "/einstellungen", labelKey: "nav.settings", nurIcon: true, icon: SettingsIcon, end: false },
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };
 
@@ -551,13 +552,15 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
             to={navZiel(it)}
             end={it.end}
             onClick={navKlick(it)}
+            aria-label={it.nurIcon ? t(it.labelKey) : undefined}
+            title={it.nurIcon ? t(it.labelKey) : undefined}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center gap-1 py-3 text-xs ${
+              `flex flex-1 flex-col items-center gap-1 py-3 text-xs ${it.nurIcon ? "justify-center" : ""} ${
                 isActive ? "nav-active" : "text-slate-200"
               }`
             }
           >
-            <it.icon /> {it.shortKey ? t(it.shortKey) : t(it.labelKey)}
+            {it.nurIcon ? <SettingsIcon className="h-7 w-7" /> : <><it.icon /> {it.shortKey ? t(it.shortKey) : t(it.labelKey)}</>}
           </NavLink>
         ))}
       </nav>

@@ -296,7 +296,6 @@ const fi: Record<string, string> = {
   "nav.watch": "Kello",
   "nav.profile": "Profiili",
   "nav.settings": "Asetukset",
-  "nav.settingsShort": "Asetukset",
   "nav.settingsHint": "Asetukset: napsauta kuvaasi ↑",
   "nav.admin": "Admin",
   "nav.adminPending": "Avoin moderointi (ilmoitetut + epäaidon epäily)",

@@ -274,7 +274,6 @@ const gsw: Record<string, string> = {
   "nav.watch": "Uhr",
   "nav.profile": "Profil",
   "nav.settings": "Iistellige",
-  "nav.settingsShort": "Setup",
   "nav.settingsHint": "Iistellige: obe uf dis Bild ↑",
   "nav.admin": "Admin",
   "nav.logout": "Uselogge",

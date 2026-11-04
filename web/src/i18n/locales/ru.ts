@@ -306,7 +306,6 @@ const ru: Record<string, string> = {
   "nav.watch": "Часы",
   "nav.profile": "Профиль",
   "nav.settings": "Настройки",
-  "nav.settingsShort": "Настройки",
   "nav.settingsHint": "Настройки: нажми на своё фото ↑",
   "nav.admin": "Админ",
   "nav.logout": "Выйти",

@@ -306,7 +306,6 @@ const id: Record<string, string> = {
   "nav.watch": "Jam",
   "nav.profile": "Profil",
   "nav.settings": "Pengaturan",
-  "nav.settingsShort": "Setelan",
   "nav.settingsHint": "Pengaturan: klik fotomu ↑",
   "nav.admin": "Admin",
   "nav.logout": "Keluar",

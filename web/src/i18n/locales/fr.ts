@@ -273,7 +273,6 @@ const fr: Record<string, string> = {
   "nav.watch": "Montre",
   "nav.profile": "Profil",
   "nav.settings": "Réglages",
-  "nav.settingsShort": "Réglages",
   "nav.settingsHint": "Réglages : clique sur ta photo ↑",
   "nav.admin": "Admin",
   "nav.logout": "Déconnexion",

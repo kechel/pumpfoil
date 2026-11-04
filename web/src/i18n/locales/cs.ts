@@ -310,7 +310,6 @@ const cs: Record<string, string> = {
   "nav.watch": "Hodinky",
   "nav.profile": "Profil",
   "nav.settings": "Nastavení",
-  "nav.settingsShort": "Nastavení",
   "nav.settingsHint": "Nastavení: klikni na svou fotku ↑",
   "nav.admin": "Admin",
   "nav.adminPending": "Otevřená moderace (nahlášené + podezření na podvrh)",

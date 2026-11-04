@@ -270,7 +270,6 @@ const en: Record<string, string> = {
   "nav.watch": "Watch",
   "nav.profile": "Profile",
   "nav.settings": "Settings",
-  "nav.settingsShort": "Settings",
   "nav.settingsHint": "Settings: click your picture ↑",
   "nav.admin": "Admin",
   "nav.logout": "Logout",

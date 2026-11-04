@@ -306,7 +306,6 @@ const pt: Record<string, string> = {
   "nav.watch": "Relógio",
   "nav.profile": "Perfil",
   "nav.settings": "Configurações",
-  "nav.settingsShort": "Ajustes",
   "nav.settingsHint": "Configurações: clique na sua foto ↑",
   "nav.admin": "Admin",
   "nav.logout": "Sair",

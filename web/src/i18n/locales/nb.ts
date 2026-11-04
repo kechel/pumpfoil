@@ -328,7 +328,6 @@ const nb: Record<string, string> = {
   "nav.watch": "Klokke",
   "nav.profile": "Profil",
   "nav.settings": "Innstillinger",
-  "nav.settingsShort": "Oppsett",
   "nav.settingsHint": "Innstillinger: klikk på bildet ditt ↑",
   "nav.admin": "Admin",
   "nav.logout": "Logg ut",
