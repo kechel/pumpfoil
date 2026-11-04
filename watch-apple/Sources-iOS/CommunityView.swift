@@ -1,7 +1,7 @@
 import SwiftUI
 
-// Community/Foilers: Stats → Zeitraum+Accel → Community-Rekorde → Medien → Bestenliste →
-// Best bewertet → Spots (spiegelt web/pages/Home.tsx + Android CommunityScreen).
+// Community: Stats, darunter Reiter Rekorde & Bestenliste · Medien · Teams & Events (App-Port Phase 8, 04.11.2026;
+// spiegelt web/pages/Home.tsx + Android CommunityScreen). Spots und Routen stehen unter „Spots".
 struct CommunityView: View {
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
@@ -22,11 +22,10 @@ struct CommunityView: View {
     // Uhr-Layouts der Community (Top 5) — wie der Abschnitt auf der Community-Seite der PWA (Home.tsx).
     @State private var layoutsTop: [WatchLayoutBrief] = []
     @State private var cstats: Api.CommunityStats?
-    @State private var spots: SpotsList?
-    @State private var spotShown: [String] = []
-    @State private var spotRecs: [String: PeriodRecords] = [:]
-    @State private var spotQuery = ""
     @State private var loading = false
+    // Reiter (App-Port Phase 8, 04.11.2026, wie web Home.tsx): Rekorde & Bestenliste · Medien · Teams & Events. Die letzte
+    // Wahl gilt fuer die App-Sitzung. Spots und Routen stehen seitdem unter „Spots" (Reiter Liste/Routen).
+    @State private var tab: String = ReiterSpeicher.von("community", "bestenliste")
     @State private var error: String?
     @State private var period = "10d"
     // Foil-Band („vergleichbare Foils") fuer Rekorde UND Bestenlisten — NICHT fuer Spots und
@@ -92,11 +91,6 @@ struct CommunityView: View {
         let t = Int(s), h = t / 3600, m = (t % 3600) / 60
         return h > 0 ? String(format: "%d:%02d", h, m) : String(format: "%d:%02d", m, t % 60)
     }
-    private var spotMatches: [String] {
-        let q = spotQuery.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !q.isEmpty, let all = spots?.all else { return [] }
-        return all.filter { passtZu(q, $0) && !spotShown.contains($0) }   // ohne Akzente, s. Models.swift.prefix(6).map { $0 }
-    }
 
     // Kopfzeilen + Toolbar ebenfalls als eigene Teile, Ladefolgen als Methoden: der Body war EIN
     // Ausdruck aus acht Abschnitten, drei Toolbar-Items und fünf Closures mit je derselben
@@ -106,21 +100,14 @@ struct CommunityView: View {
             List {
                 errorRow
                 statsHeader
-                periodSection
-                recordsSection
-                // Bestenliste unter den Rekorden, ueber Feed und Medien (Jan, 02.11.2026, wie die PWA).
-                leaderboardSection
-                // Social-Feed bewusst UEBER "Neueste Medien" (Jan, 31.08., dieselbe
-                // Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts freigegeben oder
-                // der Nutzer unter 13, zeichnet er gar nichts.
-                SocialFeedSection(lang: lang, modell: social)
-                mediaFeedSection
-                topLikedSection
-                // Laufende & kommende Team-Events unter „Best bewertet", wie die PWA (01.11.2026).
-                TeamEventsAbschnitt(lang: lang, pfad: $navPath)
-                layoutsSection
-                spotsSection
-                RoutenAbschnitt(lang: lang)
+                Reiterleiste(reiter: communityReiter, aktiv: Binding(get: { tab }, set: { tab = $0; ReiterSpeicher.setze("community", $0) }))
+                    .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+                    .listRowSeparator(.hidden)
+                switch tab {
+                case "medien": medienTab
+                case "teams": teamsTab
+                default: bestenlisteTab
+                }
             }
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
             // Vollbild des Social-Feeds — an der LIST, nicht an der Zeile (s. oben).
@@ -170,7 +157,42 @@ struct CommunityView: View {
             }
             .task { sportListe = sortiereSports(((try? await Api.communitySports()) ?? []).map { $0.sport }.filter { !$0.isEmpty }, lang: lang)
                     if sportListe.isEmpty { sportListe = ["pumpfoil"] } }
-            .onChange(of: spotShown) { _ in Task { await loadSpotRecs() } }
+        }
+    }
+
+    private var communityReiter: [ReiterDef] {
+        [ReiterDef(id: "bestenliste", label: Loc.t("tab.rankings", lang)), ReiterDef(id: "medien", label: Loc.t("tab.media", lang)),
+         ReiterDef(id: "teams", label: Loc.t("land.teamsTitle", lang))]
+    }
+
+    // Rekorde und Bestenliste in EINER Ansicht (Jan, 02.11.2026: die Kacheln passen gut ueber die Bestenlisten).
+    @ViewBuilder private var bestenlisteTab: some View {
+        periodSection
+        recordsSection
+        leaderboardSection
+    }
+
+    // Medien: neueste Fotos/Videos, Best bewertet (mit derselben Zeitwahl), Social-Feed, Uhr-Layouts — wie im Web.
+    // Der Social-Feed laedt sich selbst; ist nichts freigegeben oder der Nutzer unter 13, zeichnet er gar nichts.
+    @ViewBuilder private var medienTab: some View {
+        mediaFeedSection
+        Section { zeitChips }
+        topLikedSection
+        SocialFeedSection(lang: lang, modell: social)
+        layoutsSection
+    }
+
+    // Teams & Events: oben die Team-Bestenlisten (Jan, 03.11.2026), darunter laufende & kommende Events.
+    @ViewBuilder private var teamsTab: some View {
+        TeamBestenlistenSection(lang: lang)
+        TeamEventsAbschnitt(lang: lang, pfad: $navPath)
+    }
+
+    private var zeitChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(periods, id: \.0) { id, key in chip(Loc.t(key, lang), period == id) { period = id } }
+            }
         }
     }
 
@@ -348,11 +370,7 @@ struct CommunityView: View {
     // In typisierte Teil-Views zerlegt (Type-Checker-Hänger beim Archivieren) — [[ios-swift-typecheck-hang]].
     @ViewBuilder private var periodSection: some View {
         Section {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(periods, id: \.0) { id, key in chip(Loc.t(key, lang), period == id) { period = id } }
-                }
-            }
+            zeitChips
             HStack {
                 // Foil-Band. Reihenfolge kommt vom Server (Nuetzlichstes oben). Die Sessionzahl
                 // steht dabei, weil jede Auswahl ausser „Alle Foils" den Topf verkleinert: 36 %
@@ -483,33 +501,6 @@ struct CommunityView: View {
         }
     }
 
-    @ViewBuilder private var spotsSection: some View {
-        Section(Loc.t("home.spots", lang)) {
-            TextField(Loc.t("home.spotSearch", lang), text: $spotQuery).textInputAutocapitalization(.never)
-            ForEach(spotMatches, id: \.self) { m in
-                Button {
-                    if !spotShown.contains(m) { spotShown.insert(m, at: 0) }
-                    spotQuery = ""
-                } label: {
-                    Label(m, systemImage: "mappin.and.ellipse").foregroundStyle(Color.accentColor)
-                }
-            }
-            if spotShown.isEmpty {
-                Text(Loc.t("home.noSpots", lang)).font(.caption).foregroundStyle(.secondary)
-            }
-            ForEach(spotShown, id: \.self) { sp in
-                HStack {
-                    Text("📍 \(sp)").font(.subheadline).bold().foregroundStyle(Color.accentColor)
-                    if spots?.mine?.contains(sp) != true {
-                        Button(Loc.t("home.remove", lang)) { spotShown.removeAll { $0 == sp } }
-                            .font(.caption).foregroundStyle(.secondary).buttonStyle(.plain)
-                    }
-                }
-                recordGrid(spotRecs["\(accelOnly):\(freunde):\(period):\(sp)"], showSpot: false)
-            }
-        }
-    }
-
     @ViewBuilder private func mediaThumb(_ m: MediaItem) -> some View {
         // Video-Thumb über den servereigenen Proxy (zuverlässig, wie Sessions/Detail) statt
         // img.youtube.com direkt — letzteres lieferte im Feed leere Kacheln.
@@ -545,12 +536,10 @@ struct CommunityView: View {
         layoutsTop = Array(((try? await Api.communityLayouts()) ?? []).prefix(5))
         await loadBase()
         await loadPeriod()
-        await loadSpotRecs()
     }
 
     private func reloadPeriod() async {
         await loadPeriod()
-        await loadSpotRecs()
     }
 
     private func refreshMedia() async {
@@ -570,11 +559,6 @@ struct CommunityView: View {
             }
             cstats = try? await Api.communityStats()
             media = (try? await Api.latestPhotos(freunde: freunde)) ?? []
-            if let sp = try? await Api.spots(accelOnly: false, freunde: freunde) {
-                spots = sp
-                spotShown = sp.mine ?? []
-                spotRecs = [:]
-            }
         } catch { self.error = error.localizedDescription }
     }
 
@@ -588,15 +572,6 @@ struct CommunityView: View {
     private func loadPeriod() async {
         leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart)
         topLiked = (try? await Api.topLiked(period: period, freunde: freunde)) ?? []
-    }
-
-    private func loadSpotRecs() async {
-        for sp in spotShown {
-            let key = "\(accelOnly):\(freunde):\(period):\(sp)"
-            if spotRecs[key] == nil, let r = try? await Api.spotRecords(sp, period: period, accelOnly: accelOnly, freunde: freunde) {
-                spotRecs[key] = r
-            }
-        }
     }
 }
 

@@ -1,6 +1,11 @@
 import SwiftUI
 
-// Sessions eines Spots (Tippen auf einen Pin/Eintrag in den Spots) — reiche Karten wie der Feed.
+// Spot-Seite (Tippen auf einen Pin/Eintrag in den Spots) — seit dem App-Port (docs/UX-IA.md, Phase 9, 04.11.2026) mit
+// Reitern wie im Web (`SpotBereich` in web/src/pages/Sessions.tsx): Rekorde · Sessions · Heatmap · Wetter · Beschreibungen.
+// Heatmap und Beschreibungen nur mit Spot-Zeile (spot_id), wie dort.
+//
+// `eingebettet`: derselbe Inhalt in Home › Spots (Phase 4) — ohne eigene Liste und Toolbar, die Reiter unter der Spotzeile,
+// darunter der Kopf mit Spotname und Link „Spot-Seite →". Der Reiter bleibt dort beim Spotwechsel stehen (eigener Bereich).
 //
 // ACHTUNG, DOPPELUNG: dasselbe zeigt `SessionsView` im Spot-Modus (dort ueber die Chips in der
 // Sessionliste erreichbar). Die PWA hat nur EINE Ansicht — ein Klick auf der Spot-Karte fuehrt
@@ -17,6 +22,7 @@ struct SpotSessionsView: View {
     var sport: String? = nil
     /// Gemerkte Route aus der Community-Liste: im Panel „Heatmap & Routen" direkt aufrufen.
     var routeId: Int? = nil
+    var eingebettet: Bool = false
     @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     @State private var items: [CommunityItem] = []
@@ -44,8 +50,57 @@ struct SpotSessionsView: View {
     // „Heatmap & Routen": Zustand hier (nicht in der Listenzeile), Lage des Spots fuer die Karte
     @State private var heatZustand: SpotPanelZustand? = nil
     @State private var spotOrt: (Double, Double)? = nil
+    // Gewaehlter Reiter. Seite: Bereich "spot" (neuer Start = Rekorde), Home › Spots: eigener Bereich "homeSpot".
+    // Kommt man ueber eine gemerkte Route, steht die Heatmap vorn (dort wird sie aufgerufen).
+    @State private var spotTab: String
+
+    init(spot: String, vorgegebeneSpotId: Int? = nil, sport: String? = nil, routeId: Int? = nil, eingebettet: Bool = false) {
+        self.spot = spot
+        self.vorgegebeneSpotId = vorgegebeneSpotId
+        self.sport = sport
+        self.routeId = routeId
+        self.eingebettet = eingebettet
+        let start: String = ReiterSpeicher.von(eingebettet ? "homeSpot" : "spot", "rekorde")
+        _spotTab = State(initialValue: routeId != nil ? "heatmap" : start)
+    }
+
+    private var echteId: Int? { spotId ?? vorgegebeneSpotId }
+
+    private var spotReiter: [ReiterDef] {
+        var r: [ReiterDef] = [ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)),
+                              ReiterDef(id: "sessions", label: Loc.t("sessions.title", lang))]
+        if echteId != nil { r.append(ReiterDef(id: "heatmap", label: Loc.t("spots.heatmap", lang))) }
+        r.append(ReiterDef(id: "wetter", label: Loc.t("tab.weather", lang)))
+        if echteId != nil { r.append(ReiterDef(id: "beschreibungen", label: Loc.t("tab.descriptions", lang))) }
+        return r
+    }
+
+    /// Ohne Spot-Zeile gibt es Heatmap und Beschreibungen nicht — dann zurueck auf Rekorde.
+    private var aktivTab: String { spotReiter.contains { $0.id == spotTab } ? spotTab : "rekorde" }
+
+    private var tabBindung: Binding<String> {
+        Binding(get: { aktivTab }, set: { neu in
+            spotTab = neu
+            ReiterSpeicher.setze(eingebettet ? "homeSpot" : "spot", neu)
+        })
+    }
 
     var body: some View {
+        Group {
+            if eingebettet { eingebettetInhalt } else { seite }
+        }
+        .overlay { if loading && items.isEmpty && aktivTab == "sessions" { ProgressView() } }
+        // EIN Task fuer alles. Vorher hingen drei `.task`-Blocke an derselben Liste — dass alle
+        // drei laufen, ist nicht garantiert genug, um sich darauf zu verlassen, und ein stumm
+        // ausgefallener Block ist von „keine Daten" nicht zu unterscheiden (Jan, 07.09.: Wetter
+        // da, Rekorde und Beschreibungen nicht). Nacheinander in einem Block, mit den
+        // Nebenlaeufen in einer Gruppe, damit nichts aufeinander wartet.
+        .task(id: spot) { await allesLaden() }
+    }
+
+    // MARK: - Spot-Seite (eigene Liste)
+
+    private var seite: some View {
         List {
             // Der Spotname MUSS in die Liste: `brandToolbar` belegt die Titelzeile mit der
             // Wortmarke und benutzt den uebergebenen Titel nur als Vorlesetext — sichtbar war
@@ -62,40 +117,11 @@ struct SpotSessionsView: View {
                         .padding(.top, 6)
                 }
             }
+            Reiterleiste(reiter: spotReiter, aktiv: tabBindung)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
             if let error { Text(error).foregroundStyle(.secondary) }
-            // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
-            // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
-            // Rekorde je Sportart wie die Liste darunter: ohne Vorgabe Pumpfoil (Endpunkt-Default
-            // der Liste), bei „alle" ein Kasten je Sportart (PWA a9725cb9).
-            // Rekorde ueber ALLE Sessions (wie Android SpotRecordsSection(accelOnly = false)): vorher nur die
-            // mit Bewegungsdaten — an Spots mit vielen GPS-Aufnahmen (Cléder) blieb so nur SUP uebrig.
-            if let rs = rekordSport {
-                SpotRecordsView(spot: spot, lang: lang, accelOnly: false, sport: rs, sports: [rs])
-            }
-            // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
-            if let hz = heatZustand, let ort = spotOrt {
-                Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: aktSport != "all" ? aktSport : (rekordSport ?? "all"), lang: lang, routeAusLink: routeId) }
-            }
-            if let sw = weather { Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") } }
-            // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst
-            // im Task uebernommen — nach dem Laden der Sessions — und bis dahin (oder wenn der
-            // Task nicht durchlief) stand hier nichts.
-            if let sid = spotId ?? vorgegebeneSpotId { SpotNotesView(spotId: sid, lang: lang) }
-            // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist (s. SpotNotesView.swift).
-            if let sid = spotId ?? vorgegebeneSpotId { SpotNamensVorschlag(spotId: sid, spotName: spot, lang: lang) }
-            // Kacheln / eine Zeile je Session (PWA 9160c6a2) — derselbe Merker wie alle Listen.
-            // Sportart links (nur wenn es etwas zu waehlen gibt), rechts Kacheln / Zeilen — eine
-            // Werkzeugzeile wie im Web und auf Android.
-            // Kein Sportart-Menue: die Knoepfe im Rekord-Kasten filtern die Seite (Jan, 28.10.2026).
-            if !items.isEmpty {
-                HStack { Spacer(); ListenAnsichtUmschalter(lang: lang) }
-            }
-            ForEach(items) { c in
-                NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
-            }
-            if items.isEmpty && !loading && error == nil {
-                Text(Loc.t("sessions.empty", lang)).foregroundStyle(.secondary)
-            }
+            reiterInhalt
         }
         .listStyle(.insetGrouped)
         .brandToolbar("📍 \(spot)" + (spotLabel.map { " · \($0)" } ?? ""),
@@ -110,30 +136,122 @@ struct SpotSessionsView: View {
                 }
             }
         }
-        .overlay { if loading && items.isEmpty { ProgressView() } }
         .refreshable { await load() }
-        // EIN Task fuer alles. Vorher hingen drei `.task`-Blocke an derselben Liste — dass alle
-        // drei laufen, ist nicht garantiert genug, um sich darauf zu verlassen, und ein stumm
-        // ausgefallener Block ist von „keine Daten" nicht zu unterscheiden (Jan, 07.09.: Wetter
-        // da, Rekorde und Beschreibungen nicht). Nacheinander in einem Block, mit den
-        // Nebenlaeufen in einer Gruppe, damit nichts aufeinander wartet.
-        .task {
-            if items.isEmpty { await load() }
-            if spotId == nil { spotId = vorgegebeneSpotId }
-            if spotSports.isEmpty {
-                spotSports = ((try? await Api.communitySports(spot: spot)) ?? []).map { $0.sport }
-            }
-            async let w = Api.spotWeather(spot)
-            async let karte = Api.spotMap(accelOnly: false)
-            weather = try? await w
-            if let m = (try? await karte)?.first(where: { $0.spot == spot }) {
-                spotId = m.spot_id
-                if let sid = m.spot_id, m.lat != 0 || m.lon != 0 {
-                    spotOrt = (m.lat, m.lon)
-                    if heatZustand?.spotId != sid { heatZustand = SpotPanelZustand(spotId: sid) }
+    }
+
+    // MARK: - Home › Spots (im Stapel der Startseite)
+
+    /// Kopf (Spotname + Link) UNTER der Reiterzeile, sonst risse er die Zeile von der Spotzeile darueber ab (wie im Web).
+    private var eingebettetInhalt: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Die zweite Zeile ist schon die Spotzeile darueber — die Spot-Reiter stehen darunter als normale Leiste (wie im Web).
+            Reiterleiste(reiter: spotReiter, aktiv: tabBindung)
+            HStack(spacing: 6) {
+                Image(systemName: "mappin.and.ellipse").foregroundStyle(Color.accentColor)
+                Text(spot).font(.headline).lineLimit(1)
+                Spacer(minLength: 4)
+                NavigationLink { SpotSessionsView(spot: spot, vorgegebeneSpotId: echteId) } label: {
+                    Text(Loc.t("tab.spotPage", lang) + " →").font(.caption).foregroundStyle(Color.accentColor)
                 }
-                if let wn = m.water, !wn.isEmpty, wn.lowercased() != spot.lowercased() { spotLabel = wn }
+                .buttonStyle(.plain)
             }
+            SpotSportKnoepfe(spotSports: spotSports, sport: aktSport, lang: lang) { sportWaehlen($0) }
+            if let error { Text(error).font(.caption).foregroundStyle(.secondary) }
+            reiterInhalt
+        }
+    }
+
+    // MARK: - Reiter-Inhalte (in der Liste als Sections, eingebettet untereinander)
+
+    @ViewBuilder private var reiterInhalt: some View {
+        switch aktivTab {
+        case "sessions": sessionsInhalt
+        case "heatmap": heatmapInhalt
+        case "wetter": wetterInhalt
+        case "beschreibungen": beschreibungenInhalt
+        default: rekordeInhalt
+        }
+    }
+
+    // Rekorde je Sportart wie die Liste: ohne Vorgabe Pumpfoil (Endpunkt-Default der Liste), bei „alle" ein Kasten je
+    // Sportart (PWA a9725cb9). Rekorde ueber ALLE Sessions (wie Android SpotRecordsSection(accelOnly = false)): vorher nur
+    // die mit Bewegungsdaten — an Spots mit vielen GPS-Aufnahmen (Cléder) blieb so nur SUP uebrig.
+    @ViewBuilder private var rekordeInhalt: some View {
+        if let rs = rekordSport {
+            SpotRecordsView(spot: spot, lang: lang, accelOnly: false, sport: rs, sports: [rs])
+        } else {
+            Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var heatmapInhalt: some View {
+        if let hz = heatZustand, let ort = spotOrt {
+            let hs: String = aktSport != "all" ? aktSport : (rekordSport ?? "all")
+            Section { SpotHeatmapPanel(z: hz, lat: ort.0, lon: ort.1, sport: hs, lang: lang, routeAusLink: routeId) }
+        } else {
+            Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var wetterInhalt: some View {
+        if let sw = weather {
+            Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") }
+        } else {
+            Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst im Task uebernommen — nach dem
+    // Laden der Sessions — und bis dahin (oder wenn der Task nicht durchlief) stand hier nichts.
+    @ViewBuilder private var beschreibungenInhalt: some View {
+        if let sid = echteId {
+            SpotNotesView(spotId: sid, lang: lang)
+            // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist (s. SpotNotesView.swift).
+            SpotNamensVorschlag(spotId: sid, spotName: spot, lang: lang)
+        }
+    }
+
+    // Kacheln / eine Zeile je Session (PWA 9160c6a2) — derselbe Merker wie alle Listen. Kein Sportart-Menue: die
+    // Knoepfe oben filtern die Seite (Jan, 28.10.2026).
+    @ViewBuilder private var sessionsInhalt: some View {
+        if !items.isEmpty {
+            HStack { Spacer(); ListenAnsichtUmschalter(lang: lang) }
+        }
+        ForEach(items) { c in sessionZeile(c) }
+        if items.isEmpty && !loading && error == nil {
+            Text(Loc.t("sessions.empty", lang)).foregroundStyle(.secondary)
+        }
+    }
+
+    /// In der Liste mit Pfeil wie bisher; eingebettet ohne Knopf-Optik (sonst faerbt SwiftUI die ganze Zeile ein).
+    @ViewBuilder private func sessionZeile(_ c: CommunityItem) -> some View {
+        if eingebettet {
+            NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+                .buttonStyle(.plain)
+            Divider()
+        } else {
+            NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+        }
+    }
+
+    // MARK: - Laden
+
+    private func allesLaden() async {
+        if items.isEmpty { await load() }
+        if spotId == nil { spotId = vorgegebeneSpotId }
+        if spotSports.isEmpty {
+            spotSports = ((try? await Api.communitySports(spot: spot)) ?? []).map { $0.sport }
+        }
+        async let w = Api.spotWeather(spot)
+        async let karte = Api.spotMap(accelOnly: false)
+        weather = try? await w
+        if let m = (try? await karte)?.first(where: { $0.spot == spot }) {
+            spotId = m.spot_id
+            if let sid = m.spot_id, m.lat != 0 || m.lon != 0 {
+                spotOrt = (m.lat, m.lon)
+                if heatZustand?.spotId != sid { heatZustand = SpotPanelZustand(spotId: sid) }
+            }
+            if let wn = m.water, !wn.isEmpty, wn.lowercased() != spot.lowercased() { spotLabel = wn }
         }
     }
 

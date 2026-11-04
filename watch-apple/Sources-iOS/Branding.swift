@@ -108,6 +108,12 @@ extension View {
             }
     }
 
+    /// `brandToolbar` nur, wenn die Seite fuer sich steht. Eingebettet als Reiter (App-Port, 04.11.2026) liefert die
+    /// umgebende Seite die Leiste — sonst staenden Wortmarke und Feedback-Knopf doppelt in der Kopfzeile.
+    @ViewBuilder func brandToolbarWenn(_ an: Bool, _ title: String, feedbackUrl: String? = nil) -> some View {
+        if an { self.brandToolbar(title, feedbackUrl: feedbackUrl) } else { self }
+    }
+
     /// Nur der Feedback-Knopf, fuer Seiten ohne brandToolbar (Session, Foiler, Changelog).
     func feedbackToolbar(_ url: String) -> some View {
         self.toolbar {

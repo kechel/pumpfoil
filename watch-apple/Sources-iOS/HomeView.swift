@@ -12,6 +12,10 @@ struct HomeView: View {
     // Programmatische Navigation fuer die Rekord-Kacheln (LazyVGrid) — s. CommunityView.
     @State private var navPath = NavigationPath()
     @State private var homeTab: String = ReiterSpeicher.von("home", "uebersicht")   // App-Port Phase 3 (Reiter)
+    // Home › Spots (Phase 4): alle Spots mit eigenen Sessions (nil = laedt noch).
+    @State private var meineSpots: [MeinSpot]? = nil
+    // Home › Profil (Phase 5): Vorschau der eigenen Foiler-Seite als Freunde | Alle, Standard Alle (wie im Web).
+    @State private var profilAls = "alle"
 
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
@@ -76,11 +80,18 @@ struct HomeView: View {
     // auf. Jeder Abschnitt ist jetzt ein eigener, typisierter Teil; Ablauflogik steckt in Methoden.
     var body: some View {
         NavigationStack(path: $navPath) {
-            ScrollView { homeStack }
+            seite
                 // Wert-basiertes Session-Ziel (s. SessionDest in Models.swift) — die
                 // Rekord-Kacheln unten sind ein LazyVGrid, closure-Links pushten dort doppelt.
                 .navigationDestination(for: SessionDest.self) { d in
                     SessionDetailView(id: d.id, dataVersion: d.dataVersion)
+                }
+                // Ziele der eingebetteten Foiler-Seite (Home › Profil), wie in FoilerSheet.
+                .navigationDestination(for: SpotDest.self) { d in
+                    SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId, sport: d.sport)
+                }
+                .navigationDestination(for: FoilerChatDest.self) { d in
+                    ChatRoomView(scope: d.scope, title: d.name, otherId: d.otherId)
                 }
                 .navigationTitle(Loc.t("nav.home", lang))
                 // Feedback-Knopf kommt jetzt aus brandToolbar (auf jeder Seite, mit Seiten-URL).
@@ -100,6 +111,26 @@ struct HomeView: View {
         }
     }
 
+    // Uhren und Profil sind eigene Listen (WatchView/LinkedAccountsView, FoilerView) und fuellen den Platz unter der
+    // Reiterzeile; eine Liste in einem ScrollView haette keine Hoehe. Alle anderen Reiter scrollen mit Begruessung und
+    // Hinweisen wie bisher.
+    @ViewBuilder private var seite: some View {
+        if homeTab == "uhren" || homeTab == "profil" {
+            VStack(spacing: 0) {
+                homeReiterleiste
+                    .padding(.horizontal).padding(.top, 8)
+                if homeTab == "uhren" { UhrenKontenView() } else { homeProfil }
+            }
+        } else {
+            ScrollView { homeStack }
+        }
+    }
+
+    private var homeReiterleiste: some View {
+        Reiterleiste(reiter: homeReiter, aktiv: Binding(get: { homeTab }, set: { homeTab = $0; ReiterSpeicher.setze("home", $0) }),
+                     unter: homeTab == "spots" || homeTab == "uhren")
+    }
+
     private var homeStack: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
@@ -108,12 +139,13 @@ struct HomeView: View {
             updateBannerIfAny
             newsBannerIfAny
             greetingRow
-            // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3, 04.11.2026): Uebersicht · Rekorde · Team · Stats.
-            // Spots, Uhren und Profil kommen mit den naechsten Phasen dazu. Je Reiter ein eigener Ausdruck (Type-Checker).
-            Reiterleiste(reiter: homeReiter, aktiv: Binding(get: { homeTab }, set: { homeTab = $0; ReiterSpeicher.setze("home", $0) }))
+            // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3–5, 04.11.2026): Uebersicht · Rekorde · Team · Spots · Stats ·
+            // Uhren · Profil. Je Reiter ein eigener Ausdruck (Type-Checker); Uhren und Profil s. `seite`.
+            homeReiterleiste
             switch homeTab {
             case "rekorde": homeRekorde
             case "team": HomeTeamsListe(lang: lang, neuLadenTick: sync.tick)
+            case "spots": HomeSpotsBereich(lang: lang, liste: meineSpots, homespotName: homespotName)
             case "stats": homeStats
             default: homeUebersicht
             }
@@ -122,8 +154,52 @@ struct HomeView: View {
     }
 
     private var homeReiter: [ReiterDef] {
-        [ReiterDef(id: "uebersicht", label: Loc.t("tab.overview", lang)), ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)),
-         ReiterDef(id: "team", label: Loc.t("tab.team", lang)), ReiterDef(id: "stats", label: Loc.t("tab.stats", lang))]
+        var r: [ReiterDef] = [ReiterDef(id: "uebersicht", label: Loc.t("tab.overview", lang)),
+                              ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)),
+                              ReiterDef(id: "team", label: Loc.t("tab.team", lang))]
+        // „Spots" nur mit Homespot oder eigenen Spots (wie im Web).
+        if homespotName != nil || !(meineSpots ?? []).isEmpty { r.append(ReiterDef(id: "spots", label: Loc.t("nav.spots", lang))) }
+        r.append(ReiterDef(id: "stats", label: Loc.t("tab.stats", lang)))
+        r.append(ReiterDef(id: "uhren", label: Loc.t("ptab.watches", lang)))
+        if session.profile?.id != nil { r.append(ReiterDef(id: "profil", label: Loc.t("nav.profile", lang))) }
+        return r
+    }
+
+    // Home › Profil: die eigene Foiler-Seite, so wie andere sie sehen koennen. Oben der Hinweis, die Vorschau Freunde |
+    // Alle („nur ich" waere dasselbe wie Freunde, die sehen alles) und das Zahnrad zur Privatsphaere, wo man festlegt,
+    // was andere sehen (Jan, 04.11.2026).
+    @ViewBuilder private var homeProfil: some View {
+        if let uid = session.profile?.id {
+            VStack(spacing: 0) {
+                profilKopf
+                    .padding(.horizontal).padding(.vertical, 8)
+                FoilerView(userId: uid, pfad: $navPath, als: profilAls, eingebettet: true)
+                    .id(profilAls)
+            }
+        }
+    }
+
+    private var profilKopf: some View {
+        HStack(spacing: 8) {
+            Text(Loc.t("phome.profileHint", lang)).font(.subheadline).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            Picker("", selection: $profilAls) {
+                Text(Loc.t("phome.asFriends", lang)).tag("freunde")
+                Text(Loc.t("phome.asAll", lang)).tag("alle")
+            }
+            .pickerStyle(.segmented)
+            .fixedSize()
+            NavigationLink {
+                EinstellungenView(start: "privat")
+                    .brandToolbar(Loc.t("nav.settings", lang), feedbackUrl: "/einstellungen")
+            } label: {
+                Image(systemName: "gearshape").font(.title3).foregroundStyle(Color.accentColor)
+            }
+            .accessibilityLabel(Loc.t("ptab.privacy", lang))
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
     }
 
     @ViewBuilder private var homeUebersicht: some View {
@@ -590,6 +666,7 @@ struct HomeView: View {
         let hs = (einst?["homespot_effective"] as? String) ?? (einst?["homespot"] as? String)
         if let hs, !hs.isEmpty { weather = try? await Api.spotWeather(hs) } else { weather = nil }
         homespotName = (hs?.isEmpty == false) ? hs : nil
+        meineSpots = (try? await Api.mySpotsStats()) ?? meineSpots ?? []
         incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
         startSuccess = try? await Api.startSuccess()
         carveStats = try? await Api.carveStats()

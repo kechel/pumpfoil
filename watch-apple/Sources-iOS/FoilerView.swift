@@ -52,6 +52,10 @@ struct FoilerSheet: View {
 struct FoilerView: View {
     let userId: Int
     @Binding var pfad: NavigationPath
+    /// Home › Profil (App-Port Phase 5, 04.11.2026): Vorschau der eigenen Seite als "freunde" | "alle".
+    var als: String? = nil
+    /// Eingebettet in Home › Profil: ohne Titel und Kopfleisten-Knoepfe (die Startseite hat ihre eigene Leiste).
+    var eingebettet: Bool = false
     @AppStorage("appLang") private var lang = "de"
     @State private var d: FoilerProfil?
     @State private var fehler: String?
@@ -62,14 +66,22 @@ struct FoilerView: View {
     // Drei Zustaende (laedt / Fehler / Daten) — ohne sichtbaren Ladezustand liefe `.task` nie
     // (Memory swiftui-leere-group-laedt-nicht).
     var body: some View {
+        if eingebettet {
+            kern
+        } else {
+            kern
+                .navigationTitle(titel)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { chatToolbar }
+                .feedbackToolbar("/foiler/\(userId)")
+        }
+    }
+
+    private var kern: some View {
         inhalt
-            .navigationTitle(titel)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { chatToolbar }
-            .feedbackToolbar("/foiler/\(userId)")
             // Auf dieser Seite fuehrt sein Profilbild nicht noch einmal hierher (PWA: pathname).
             .environment(\.foilerSeite, userId)
-            .task(id: userId) { await laden() }
+            .task(id: "\(userId)|\(als ?? "")") { await laden() }
             .fullScreenCover(item: $galerie) { g in
                 ChatBildGalerie(photos: g.photos, start: g.start) { galerie = nil }
             }
@@ -80,7 +92,14 @@ struct FoilerView: View {
     private var titel: String { d?.name ?? "" }
 
     @ViewBuilder private var inhalt: some View {
-        if let d {
+        if let d, d.vorschau_ausgeblendet == true {
+            // Vorschau „Alle" bei abgeschalteter Seite: sagen statt eine Seite zu zeigen, die es fuer andere nicht gibt.
+            Text(Loc.t("phome.previewHidden", lang))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let d {
             liste(d)
         } else if let fehler {
             Text(fehler)
@@ -653,7 +672,7 @@ struct FoilerView: View {
     // nicht, welcher Grund. Andere Fehler zeigen ihre Meldung; beim Nachladen bleibt der alte Stand.
     private func laden() async {
         do {
-            d = try await Api.foilerProfil(userId)
+            d = try await Api.foilerProfil(userId, als: als)
             fehler = nil
         } catch ApiError.http(let code, _) where code == 404 {
             d = nil

@@ -13,6 +13,8 @@ import AuthenticationServices
 //    MCP-Weg kann NICHT pushen (nur abholen), während Polar seit 07.09. wirklich pusht.
 struct LinkedAccountsView: View {
     @AppStorage("appLang") private var lang = "de"
+    /// Als Reiter in Home › Uhren / Einstellungen › Uhren (App-Port, 04.11.2026): ohne eigene Kopfleiste.
+    var eingebettet: Bool = false
 
     // `id` ist der Anzeige-/Zustandsschlüssel, `apiPath` der Pfad beim Server — die beiden
     // unterscheiden sich nur bei COROS (s. Kommentar oben).
@@ -105,7 +107,7 @@ struct LinkedAccountsView: View {
             // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten.
             McpSection(lang: lang)
         }
-        .brandToolbar(Loc.t("accounts.title", lang))
+        .brandToolbarWenn(!eingebettet, Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await refresh() }
         .alert(meldung ?? "", isPresented: Binding(get: { meldung != nil }, set: { if !$0 { meldung = nil } })) {

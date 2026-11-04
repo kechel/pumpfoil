@@ -1,61 +1,33 @@
 import SwiftUI
 import PhotosUI
 
-// Profil: Avatar (antippbar zum Ändern), Anzeigename, Navigationsziele, Abmelden.
+// Einstellungen (Zahnrad unten). Seit dem App-Port (docs/UX-IA.md, Phase 6, 04.11.2026) mit Reitern wie im Web
+// (`EinstellungenView` in EinstellungenView.swift); hier nur noch der Stapel und die Bausteine, die vorher als
+// Abschnitte dieser Seite untereinander standen und jetzt auf die Reiter verteilt sind (Kopf -> Ich,
+// Handy-Recorder -> Fahren, Abmelden/Daten/Loeschen -> Konto).
 struct ProfileView: View {
-    @EnvironmentObject var session: SessionStore
-    @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
-    @AppStorage("phone_rec_enabled") private var phoneRecEnabled = false
-    @AppStorage("phone_live_upload") private var phoneLiveUpload = true
+
+    // Der Reiter wird nicht gemerkt (wie im Web): wer die Einstellungen oeffnet, landet bei der Uebersicht mit der Sprache.
+    var body: some View {
+        NavigationStack {
+            EinstellungenView(start: "uebersicht")
+                .navigationTitle(Loc.t("nav.settings", lang))
+                .brandToolbar(Loc.t("nav.settings", lang), feedbackUrl: "/einstellungen")
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
+        }
+    }
+}
+
+/// Profilbild (antippbar zum Aendern), Anzeigename mit Stift, E-Mail — Reiter „Ich".
+struct ProfilKopfSection: View {
+    @EnvironmentObject var session: SessionStore
+    let lang: String
     @State private var editing = false
     @State private var draftName = ""
     @State private var avatarItem: PhotosPickerItem?
-    @State private var confirmingDelete = false
-    // Datenauskunft: fertige JSON-Datei fuer das System-Teilen-Blatt (iOS hat keinen Download).
-    @State private var exportURL: ExportItem?
-    @State private var exportBusy = false
-    // „Meine Foils & Sportarten" (Jan, 21.10.2026, wie im Web): Standard vorn und hervorgehoben.
-    @State private var meineSportarten: [ProfilEintrag] = []
-    @State private var meineFoils: [ProfilEintrag] = []
 
-    // Der Body ist bewusst KURZ: Swifts Type-Checker loest einen ViewBuilder als EINEN Ausdruck
-    // auf, und der Aufwand waechst ueberproportional mit Kindern + Modifiern. Dieser Body war
-    // ~150 Zeilen und stand mit >500 ms im Build-Log (Archive hing minutenlang). Jeder Abschnitt
-    // unten ist ein eigener, explizit typisierter Ausdruck und wird unabhaengig geprueft.
     var body: some View {
-        NavigationStack {
-            List {
-                headerSection
-                navSection
-                // Eigene Teams + „Alle Teams"/„Alle Events" (01.11.2026); Verwaltung bleibt im Web.
-                MeineTeamsSection(lang: lang)
-                socialSection
-                phoneRecSection
-                logoutSection
-                exportSection
-                deleteSection
-                debugSections
-            }
-            .listStyle(.insetGrouped)
-            .task { await ausruestungLaden() }
-            .navigationTitle(Loc.t("nav.profile", lang))
-            .brandToolbar(Loc.t("nav.profile", lang))
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
-            .alert(Loc.t("profile.editName", lang), isPresented: $editing) { nameAlertButtons }
-            .alert(Loc.t("profile.deleteAccount", lang), isPresented: $confirmingDelete) {
-                deleteAlertButtons
-            } message: {
-                Text(Loc.t("profile.deleteConfirm", lang))
-            }
-            .onChange(of: avatarItem) { item in uploadAvatar(item) }
-            .sheet(item: $exportURL) { item in ActivityView(items: [item.url]) }
-        }
-    }
-
-    // MARK: - Abschnitte
-
-    private var headerSection: some View {
         Section {
             HStack(spacing: 14) {
                 PhotosPicker(selection: $avatarItem, matching: .images) { avatar }
@@ -72,6 +44,8 @@ struct ProfileView: View {
             }
             .padding(.vertical, 4)
         }
+        .alert(Loc.t("profile.editName", lang), isPresented: $editing) { nameAlertButtons }
+        .onChange(of: avatarItem) { item in uploadAvatar(item) }
     }
 
     @ViewBuilder private var emailLine: some View {
@@ -80,90 +54,57 @@ struct ProfileView: View {
         }
     }
 
-    // Übersicht wie die PWA: nur EIN „Uhr"-Eintrag (Koppeln/Alarm/Datenseiten dahinter)
-    // + darunter „Verknüpfte Konten". Kein Uhr-Status/Garmin direkt in der Übersicht.
-    private var navSection: some View {
-        Section {
-            navRow("nav.watch", "applewatch") { WatchView() }
-            navRow("accounts.title", "link") { LinkedAccountsView() }
-            // Unter 13 keine Freunde (Server: 403), wie Chat und Community.
-            if session.profile?.social_allowed != false { FreundeZeile() }
-            foilsRow
-            navRow("profile.calc", "function") { FoilCalculatorView() }
-            navRow("profile.stats", "chart.bar") { FoilStatsView() }
-            navRow("profile.compare", "arrow.left.arrow.right") { CompareView() }
-            navRow("settings.title", "gearshape") { SettingsView() }
-            // Einrichtungs-Assistent: fuer ALLE und jederzeit, nicht nur fuer neue Konten
-            // (die erreicht zusaetzlich die Weiche beim ersten Start, s. RootView).
-            navRow("onb.startTitle", "checklist") { OnboardingView() }
-            // Changelog nativ (12.10.2026, Nutzer-Meldung) — wie der Menuepunkt im Web.
-            navRow("nav.changelog", "sparkles") { ChangelogView() }
-            Link(Loc.t("profile.web", lang), destination: URL(string: "https://pumpfoil.org")!)
+    @ViewBuilder private var nameAlertButtons: some View {
+        TextField("Name", text: $draftName)
+        Button(Loc.t("common.save", lang)) { saveName() }
+        Button(Loc.t("common.cancel", lang), role: .cancel) {}
+    }
+
+    private func startNameEdit() {
+        draftName = session.profile?.display_name ?? ""
+        editing = true
+    }
+
+    private func saveName() {
+        let n = draftName.trimmingCharacters(in: .whitespaces)
+        if !n.isEmpty {
+            Task { if let p = try? await Api.updateDisplayName(n) { session.profile = p } }
         }
     }
 
-    // Eigene Zeile, weil das Icon kein SF-Symbol ist (Marken-Foil-Icon).
-    private var foilsRow: some View {
-        NavigationLink {
-            FoilsView()
-        } label: {
-            Label { foilsRowText } icon: { FoilIcon(tint: .accentColor).frame(width: 22, height: 22) }
+    private func uploadAvatar(_ item: PhotosPickerItem?) {
+        Task {
+            if let data = try? await item?.loadTransferable(type: Data.self) {
+                try? await Api.uploadAvatar(data: data)
+                session.profile = try? await Api.getProfile()
+            }
         }
     }
 
-    private var foilsRowText: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(Loc.t("profile.foilsSports", lang))
-            if !meineSportarten.isEmpty { profilZeile(meineSportarten) }
-            if !meineFoils.isEmpty { profilZeile(meineFoils) }
+    @ViewBuilder private var avatar: some View {
+        let url = Api.mediaURL(session.profile?.avatar_url)
+        NetzBild(url: url) { stand in
+            switch stand {
+            case .da(let img): img.resizable().scaledToFill()
+            default:
+                Image(systemName: "person.crop.circle.fill")
+                    .resizable().scaledToFit().foregroundStyle(.secondary)
+            }
         }
+        .frame(width: 56, height: 56)
+        .clipShape(Circle())
     }
+}
 
-    private func profilZeile(_ eintraege: [ProfilEintrag]) -> some View {
-        var t: Text = Text("")
-        for (i, e) in eintraege.enumerated() {
-            if i > 0 { t = t + Text(" · ") }
-            let teil: Text = e.standard ? Text(e.text).foregroundColor(.accentColor) : Text(e.text)
-            t = t + teil
-        }
-        return t.font(.caption).foregroundColor(.secondary)
-    }
+/// „Record on Phone" — haengt NUR am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag wird fuer echte private
+/// Betas frei, siehe docs/TODO); steuert den Aufnahme-Button auf der Startseite (lokale Einstellung auf diesem Geraet).
+/// Reiter „Fahren" (im Web steht die Handy-Recorder-Karte dort).
+struct PhoneRecSection: View {
+    let lang: String
+    @AppStorage("phone_rec_enabled") private var phoneRecEnabled = false
+    @AppStorage("phone_live_upload") private var phoneLiveUpload = true
 
-    private func ausruestungLaden() async {
-        guard let s = try? await Api.settings() else { return }
-        let defRoh: String = (s["default_sport_class"] as? String) ?? ""
-        let def: String = defRoh.isEmpty ? "pumpfoil" : defRoh
-        standardSport = def
-        let mine: [String] = (s["my_sports"] as? [String]) ?? []
-        var sp: [ProfilEintrag] = [ProfilEintrag(text: Loc.t("cls.sport." + def, lang), standard: true)]
-        for k in sortiereSports(SPORTS, lang: lang) where k != def && mine.contains(k) {
-            sp.append(ProfilEintrag(text: Loc.t("cls.sport." + k, lang), standard: false))
-        }
-        meineSportarten = sp
-        let ids: [Int] = ((s["my_foils"] as? [NSNumber]) ?? []).map { $0.intValue }
-        let defFoil: Int? = (s["foil_id"] as? NSNumber)?.intValue
-        guard !ids.isEmpty, let katalog = try? await Api.foils() else { return }
-        var fs: [ProfilEintrag] = []
-        for id in ids {
-            guard let f = katalog.first(where: { $0.id == id }) else { continue }
-            fs.append(ProfilEintrag(text: foilLabel(f.brand, f.model, f.size, f.aspect_ratio), standard: f.id == defFoil))
-        }
-        meineFoils = fs.filter { $0.standard } + fs.filter { !$0.standard }
-    }
-
-    // Social-Kanäle (wie im Web-Menü): öffnen in Safari/der jeweiligen App.
-    private var socialSection: some View {
-        Section {
-            socialRow("YouTube", "https://www.youtube.com/@pumpfoil-org", "play.rectangle")
-            socialRow("Instagram", "https://www.instagram.com/pumpfoil_org/", "camera")
-            socialRow("TikTok", "https://www.tiktok.com/@pumpfoil.org", "music.note")
-        }
-    }
-
-    // „Record on Phone" — hängt NUR am lokalen Toggle, NICHT mehr an profile.beta
-    // (Server-Flag wird für echte private Betas frei, siehe docs/TODO); steuert den
-    // Aufnahme-Button auf der Startseite (lokale Einstellung auf diesem Gerät).
-    private var phoneRecSection: some View {
+    var body: some View {
         Section {
             Toggle(isOn: $phoneRecEnabled) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -187,6 +128,45 @@ struct ProfileView: View {
     @ViewBuilder private var waterproofHint: some View {
         if phoneRecEnabled {
             Text(Loc.t("rec.waterproof", lang)).font(.caption).bold().foregroundStyle(.red)
+        }
+    }
+}
+
+/// Reiter „Konto" (unter dem Passwort): Einrichtungs-Assistent, Datenauskunft, Abmelden, Impressum, Konto loeschen,
+/// Versionsnummer. Reihenfolge wie im Web (Assistent, dann „Daten & Konto").
+struct KontoSections: View {
+    @EnvironmentObject var session: SessionStore
+    let lang: String
+    @State private var confirmingDelete = false
+    // Datenauskunft: fertige JSON-Datei fuer das System-Teilen-Blatt (iOS hat keinen Download).
+    @State private var exportURL: ExportItem?
+    @State private var exportBusy = false
+
+    var body: some View {
+        Group {
+            onboardingSection
+            exportSection
+            logoutSection
+            deleteSection
+            debugSections
+        }
+        .alert(Loc.t("profile.deleteAccount", lang), isPresented: $confirmingDelete) {
+            deleteAlertButtons
+        } message: {
+            Text(Loc.t("profile.deleteConfirm", lang))
+        }
+        .sheet(item: $exportURL) { item in ActivityView(items: [item.url]) }
+    }
+
+    // Einrichtungs-Assistent: fuer ALLE und jederzeit, nicht nur fuer neue Konten
+    // (die erreicht zusaetzlich die Weiche beim ersten Start, s. RootView).
+    private var onboardingSection: some View {
+        Section {
+            NavigationLink {
+                OnboardingView()
+            } label: {
+                Label { Text(Loc.t("onb.startTitle", lang)) } icon: { Image(systemName: "checklist").foregroundStyle(Color.accentColor) }
+            }
         }
     }
 
@@ -227,6 +207,11 @@ struct ProfileView: View {
         }
     }
 
+    @ViewBuilder private var deleteAlertButtons: some View {
+        Button(Loc.t("profile.deleteConfirmBtn", lang), role: .destructive) { deleteAccount() }
+        Button(Loc.t("common.cancel", lang), role: .cancel) {}
+    }
+
     @ViewBuilder private var debugSections: some View {
         #if DEBUG
         // Nur Debug: App-Rating-Dialog neu triggerbar machen (Test-Flags löschen).
@@ -243,42 +228,14 @@ struct ProfileView: View {
         #endif
     }
 
-    // MARK: - Alert-Inhalte
-
-    @ViewBuilder private var nameAlertButtons: some View {
-        TextField("Name", text: $draftName)
-        Button(Loc.t("common.save", lang)) { saveName() }
-        Button("Abbrechen", role: .cancel) {}
-    }
-
-    @ViewBuilder private var deleteAlertButtons: some View {
-        Button(Loc.t("profile.deleteConfirmBtn", lang), role: .destructive) { deleteAccount() }
-        Button(Loc.t("common.cancel", lang), role: .cancel) {}
-    }
-
-    // MARK: - Bausteine
-
-    // NavigationLink + Label als typisierter Helfer: derselbe Ausdruck stand sechsmal im
-    // ViewBuilder und kostete den Checker jedes Mal die volle Auflösung von Label/Image/Color.
-    private func navRow<D: View>(_ key: String, _ symbol: String,
-                                @ViewBuilder destination: () -> D) -> some View {
-        NavigationLink {
-            destination()
-        } label: {
-            Label { Text(Loc.t(key, lang)) } icon: { Image(systemName: symbol).foregroundStyle(Color.accentColor) }
-        }
-    }
-
-    private func socialRow(_ title: String, _ url: String, _ symbol: String) -> some View {
-        Link(destination: URL(string: url)!) {
-            Label { Text(title) } icon: { Image(systemName: symbol).foregroundStyle(Color.accentColor) }
-        }
-    }
-
     // Interpolation mit Cast vorab als typisierter String — im ViewBuilder ist genau das teuer.
     private var versionFooterText: String {
         let v: String = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
         return "Pumpfoil v\(v)"
+    }
+
+    private func deleteAccount() {
+        Task { try? await Api.deleteAccount(); session.logout() }
     }
 
     #if DEBUG
@@ -286,36 +243,7 @@ struct ProfileView: View {
         let flag: String = String(describing: session.profile?.social_allowed)
         return "DEBUG · Age-Gate (social_allowed = \(flag))"
     }
-    #endif
 
-    // MARK: - Ablauflogik (raus aus den Closures, s. Kommentar am Body)
-
-    private func startNameEdit() {
-        draftName = session.profile?.display_name ?? ""
-        editing = true
-    }
-
-    private func saveName() {
-        let n = draftName.trimmingCharacters(in: .whitespaces)
-        if !n.isEmpty {
-            Task { if let p = try? await Api.updateDisplayName(n) { session.profile = p } }
-        }
-    }
-
-    private func deleteAccount() {
-        Task { try? await Api.deleteAccount(); session.logout() }
-    }
-
-    private func uploadAvatar(_ item: PhotosPickerItem?) {
-        Task {
-            if let data = try? await item?.loadTransferable(type: Data.self) {
-                try? await Api.uploadAvatar(data: data)
-                session.profile = try? await Api.getProfile()
-            }
-        }
-    }
-
-    #if DEBUG
     private func resetRatingFlags() {
         ["rating_done", "rating_snooze", "rating_min_count", "rating_fb_count"].forEach {
             UserDefaults.standard.removeObject(forKey: $0)
@@ -326,20 +254,6 @@ struct ProfileView: View {
         Task { if let p = try? await Api.setAgeRange(socialAllowed: allowed, ageBracket: bracket) { session.profile = p } }
     }
     #endif
-
-    @ViewBuilder private var avatar: some View {
-        let url = Api.mediaURL(session.profile?.avatar_url)
-        NetzBild(url: url) { stand in
-            switch stand {
-            case .da(let img): img.resizable().scaledToFill()
-            default:
-                Image(systemName: "person.crop.circle.fill")
-                    .resizable().scaledToFit().foregroundStyle(.secondary)
-            }
-        }
-        .frame(width: 56, height: 56)
-        .clipShape(Circle())
-    }
 }
 
 // Datei fuer das Teilen-Blatt. Gleichnamiger Typ steht auch in SessionDetailView — beide sind

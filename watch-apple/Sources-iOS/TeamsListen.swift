@@ -296,7 +296,7 @@ struct MeineTeamsSection: View {
 }
 
 /// Home › Team (App-Port Phase 3, 04.11.2026, wie Web): die eigenen Teams als Zeilen, darunter der Weg zu allen Teams
-/// (dort mit Suche). Ohne Team der Hinweis aus dem Web.
+/// (dort mit Suche). Ohne Team der Hinweis aus dem Web und gleich die Teamsuche + „Team gruenden" (Phase 6).
 struct HomeTeamsListe: View {
     let lang: String
     var neuLadenTick: Int = 0
@@ -306,6 +306,8 @@ struct HomeTeamsListe: View {
         VStack(alignment: .leading, spacing: 8) {
             if let t = teams, t.isEmpty {
                 Text(Loc.t("team.keineTeams", lang)).font(.subheadline).foregroundStyle(.secondary)
+                TeamSuche(lang: lang)
+                TeamGruendenKarte(lang: lang)
             } else if let t = teams {
                 VStack(spacing: 0) {
                     ForEach(t) { tm in zeile(tm) }

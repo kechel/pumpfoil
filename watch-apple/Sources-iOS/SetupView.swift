@@ -8,8 +8,13 @@ import SwiftUI
 // begrenzt, die Anzeige soll zeigen, was wirklich gespeichert ist.
 // Absichtlich viele kleine Teil-Views: große verschachtelte Ausdrücke lassen Xcodes
 // Type-Checker beim Archivieren hängen ([[ios-swift-typecheck-hang]]).
+// Seit dem App-Port (Phase 7, 04.11.2026) in Teilen als Reiter der Ausruestung (AusruestungView.swift): `teil` =
+// "stabs" | "boards" | "mast" | "jeSport" (dazu dort die Sportarten); nil = alles untereinander wie bisher.
 struct SetupView: View {
     @AppStorage("appLang") private var lang = "de"
+    var teil: String? = nil
+    var eingebettet: Bool = false
+    private func zeigt(_ t: String) -> Bool { teil == nil || teil == t }
 
     @State private var stabs: [StabBrief] = []
     @State private var brands: [String] = []
@@ -42,19 +47,16 @@ struct SetupView: View {
 
     var body: some View {
         Form {
-            Section { Text(Loc.t("setup.hint", lang)).font(.callout).foregroundStyle(.secondary) }
+            if teil == nil || teil == "mast" {
+                Section { Text(Loc.t("setup.hint", lang)).font(.callout).foregroundStyle(.secondary) }
+            }
             if loading {
                 Section { HStack { Spacer(); ProgressView(); Spacer() } }
             } else {
-                stabSections
-                mastSection
-                shimSection
-                boardSection
-                // Ausruestung je Sportart (19.10.2026), wie im Web
-                EquipmentJeSportSection(stabs: stabs, boards: boards, myStabs: myStabs, myMasts: myMasts, lang: lang)
+                teile
             }
         }
-        .navigationTitle(Loc.t("setup.title", lang))
+        .navigationTitle(Loc.t(eingebettet ? "gear.title" : "setup.title", lang))
         .task { await load() }
         .alert(Loc.t("setup.boardEdit", lang), isPresented: editBoardOffen) {
             TextField(Loc.t("setup.boardNamePlaceholder", lang), text: $ebName)
@@ -62,6 +64,21 @@ struct SetupView: View {
             TextField(Loc.t("setup.boardLenPlaceholder", lang), text: $ebLen).keyboardType(.decimalPad)
             Button(Loc.t("common.save", lang)) { Task { await updateBoard() } }
             Button(Loc.t("common.cancel", lang), role: .cancel) { editBoard = nil }
+        }
+    }
+
+    @ViewBuilder private var teile: some View {
+        if zeigt("stabs") { stabSections }
+        if zeigt("mast") {
+            mastSection
+            shimSection
+        }
+        if zeigt("boards") { boardSection }
+        if zeigt("jeSport") {
+            // Reiter „Sportarten": Standard-Sportart + Sportarten an der Uhr ueber der Ausruestung je Sportart (wie im Web).
+            if teil != nil { SportartenSection(lang: lang) }
+            // Ausruestung je Sportart (19.10.2026), wie im Web
+            EquipmentJeSportSection(stabs: stabs, boards: boards, myStabs: myStabs, myMasts: myMasts, lang: lang)
         }
     }
 
@@ -90,9 +107,22 @@ struct SetupView: View {
         if !mineList.isEmpty {
             Section(Loc.t("setup.myStabs", lang)) { ForEach(mineList) { stabRow($0, isMine: true) } }
         }
-        Section(mineList.isEmpty ? Loc.t("foils.catalog", lang) : Loc.t("foils.more", lang)) {
-            ForEach(restList) { stabRow($0, isMine: false) }
+        // Katalog nur ueber die Suche (Jan, 04.11.2026): ohne Suchbegriff stehen nur die eigenen da; „selbst anlegen"
+        // erst unter den Treffern — wer seinen Stab sucht, soll ihn zuerst im Katalog finden.
+        if stabSucht {
+            Section(mineList.isEmpty ? Loc.t("foils.catalog", lang) : Loc.t("foils.more", lang)) {
+                ForEach(restList) { stabRow($0, isMine: false) }
+                if restList.isEmpty { Text(Loc.t("gear.noHits", lang)).foregroundStyle(.secondary) }
+            }
+            stabAnlegen
+        } else {
+            Section { Text(Loc.t("gear.searchHint", lang)).foregroundStyle(.secondary) }
         }
+    }
+
+    private var stabSucht: Bool { !query.trimmingCharacters(in: .whitespaces).isEmpty || !brand.isEmpty }
+
+    @ViewBuilder private var stabAnlegen: some View {
         Section {
             Text(Loc.t("setup.stabAddHint", lang)).font(.callout).foregroundStyle(.secondary)
             TextField(Loc.t("setup.stabBrandPlaceholder", lang), text: $nsBrand)
@@ -404,8 +434,11 @@ struct EquipmentJeSportSection: View {
     @State private var myFoils: [Int] = []
     @State private var foilNamen: [Int: String] = [:]
     private static let felder: [String] = ["foil_id", "board_id", "stab_id", "mast_len_cm"]
-    // Nur Sportarten MIT Foil (Server-Liste, SportClass.swift `Sportarten`, 25.10.2026) — ohne Foil keine Foil-Ausruestung.
-    private static var sportarten: [String] { Sportarten.ids().filter { $0 != "other" && Sportarten.foil($0) } }
+    // Alle Sportarten (Server-Liste, SportClass.swift `Sportarten`); bei Sportarten ohne Foil (`foil: false`) nur das Board
+    // (App-Port Phase 7, 04.11.2026, wie web EquipmentJeSport) — vorher fehlten sie hier ganz.
+    private static var sportarten: [String] { Sportarten.ids().filter { $0 != "other" } }
+
+    private func felderFuer(_ sp: String) -> [String] { Sportarten.foil(sp) ? Self.felder : ["board_id"] }
 
     var body: some View {
         Section {
@@ -430,7 +463,7 @@ struct EquipmentJeSportSection: View {
             }
             .buttonStyle(.borderless)
         }
-        ForEach(Self.felder, id: \.self) { f in
+        ForEach(felderFuer(sp), id: \.self) { f in
             Picker(titel(f), selection: bindung(sp, f)) {
                 Text("— " + Loc.t("setup.perSportGeneral", lang)).tag(Int?.none)
                 ForEach(optionen(f), id: \.0) { o in Text(o.1).tag(Int?.some(o.0)) }
@@ -439,7 +472,7 @@ struct EquipmentJeSportSection: View {
     }
 
     private var neuMenu: some View {
-        let frei: [String] = Self.sportarten.filter { je[$0] == nil }
+        let frei: [String] = sortiereSports(Self.sportarten.filter { je[$0] == nil }, lang: lang)
         return Menu(Loc.t("setup.perSportAdd", lang) + " …") {
             ForEach(frei, id: \.self) { sp in
                 Button(Loc.t("cls.sport.\(sp)", lang)) { je[sp] = [:] }

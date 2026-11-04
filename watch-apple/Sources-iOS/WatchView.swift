@@ -5,6 +5,8 @@ import SwiftUI
 struct WatchView: View {
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
+    /// Als Reiter in Home › Uhren / Einstellungen › Uhren (App-Port, 04.11.2026): ohne eigene Kopfleiste.
+    var eingebettet: Bool = false
     @State private var devices: [PairedDevice] = []
     @State private var modes: [Int: String] = [:]     // record_mode je Uhr (id → full|lite|gps)
     // GNSS-Stufe je Uhr (id → best|l1|two|gps). NUR Garmin waehlt sie, ab Uhr 1.0.77.
@@ -72,7 +74,7 @@ struct WatchView: View {
             navSection
             devicesSection
         }
-        .brandToolbar(Loc.t("nav.watch", lang))
+        .brandToolbarWenn(!eingebettet, Loc.t("nav.watch", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await loadDevices() }
         .confirmationDialog(frageTitel, isPresented: zeigeFrage, titleVisibility: .visible) {

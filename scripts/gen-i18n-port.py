@@ -34,6 +34,8 @@ SCHLUESSEL = [
     "team.alle",
     # Phase 9: Spots-Reiter
     "tab.map", "tab.list", "tab.routes",
+    # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)
+    "team.keineTeams", "tab.watchAccounts", "team.profilKnopf", "team.profilHinweis", "period.yesterday",
 ]
 
 

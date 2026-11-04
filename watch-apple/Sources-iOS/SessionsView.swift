@@ -291,7 +291,9 @@ struct SessionsView: View {
                 HeuteNeu(mine: scope == .mine, spot: heuteSpot,
                          accelOnly: accelOnly && !brett, sport: sport, board: brett,
                          freunde: scope == .friends, lang: lang)
-                ScrollView(.horizontal, showsIndicators: false) { scopeChips }
+                // Meine | Freunde | Alle als Reiter wie ueberall (App-Port Phase 9, 04.11.2026, wie das Web). In der
+                // Spot-Ansicht keine — dort waere keiner aktiv.
+                if scope != .spot { scopeChips }
                 HStack {
                     // Kurz „accel" und „POB" in allen Sprachen (Jan, 13.10.2026): passt so auch auf
                     // schmalen Displays in eine Zeile.
@@ -478,14 +480,23 @@ struct SessionsView: View {
 
     private var isEmpty: Bool { scope == .mine ? own.isEmpty : groups.isEmpty }
 
+    // Der Homespot-Knopf ist seit dem App-Port ein Reiter auf Home (Home › Spots, docs/UX-IA.md), wie im Web.
+    private var scopeReiter: [ReiterDef] {
+        [ReiterDef(id: "mine", label: Loc.t("sessions.mine", lang)), ReiterDef(id: "friends", label: Loc.t("friends.title", lang)),
+         ReiterDef(id: "all", label: Loc.t("sessions.all", lang))]
+    }
+
+    private var scopeBindung: Binding<String> {
+        Binding(get: { scope == .friends ? "friends" : (scope == .all ? "all" : "mine") },
+                set: { neu in
+                    spot = ""
+                    scope = neu == "friends" ? .friends : (neu == "all" ? .all : .mine)
+                })
+    }
+
     @ViewBuilder private var scopeChips: some View {
         HStack(spacing: 8) {
-            chip(Loc.t("sessions.mine", lang), scope == .mine) { spot = ""; scope = .mine }
-            if !homespot.isEmpty {
-                chip("📍\(homespot)", scope == .spot && spot == homespot) { spot = homespot; scope = .spot }
-            }
-            chip(Loc.t("sessions.all", lang), scope == .all && spot.isEmpty) { spot = ""; scope = .all }
-            chip(Loc.t("friends.title", lang), scope == .friends) { spot = ""; scope = .friends }
+            Reiterleiste(reiter: scopeReiter, aktiv: scopeBindung)
             // Datei-Import RECHTS in derselben Zeile, schmal (Jan, 18.09.2026: „auf ios kann der
             // import fit button auch nur icon + fit und nach oben rechtsbuendig neben
             // mine|spot|all"). Vorher stand „Import FIT/TCX/GPX" in einer eigenen, fast

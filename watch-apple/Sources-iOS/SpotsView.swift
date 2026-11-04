@@ -92,6 +92,9 @@ struct SpotsView: View {
     @State private var letzteMitte = CLLocationCoordinate2D(latitude: 0, longitude: 0)
     /// Eigener Spot fuer die Startansicht (`homespot_effective`, s. settings.py).
     @State private var eigenerSpot = ""
+    // Reiter (App-Port Phase 9, 04.11.2026, wie web Spots.tsx): Karte · Liste · Spot-Rekorde · Routen. Liste und Routen
+    // standen vorher in der Community, die Spot-Rekorde unter der Karte. Letzte Wahl gilt fuer die App-Sitzung.
+    @State private var tab: String = ReiterSpeicher.von("spots", "karte")
     @State private var spotGeholt = false
 
     // Ein Abschnitt = eine eigene Teil-View: Swifts Type-Checker löst einen ViewBuilder als EINEN
@@ -111,19 +114,9 @@ struct SpotsView: View {
             // Preis: die Karte laesst sich nicht mehr wegscrollen. Auf Android ist das seit jeher
             // so, und eine Karte, die man nicht bedienen kann, ist der schlechtere Tausch.
             VStack(spacing: 0) {
-                karteOben
-                List {
-                    // Bei einer Suche NUR die Treffer, direkt unter der Karte. Vorher standen sie unter
-                    // Filterzeile, Erklaertext und dem ganzen Spot-Vergleich — beim Tippen nie zu sehen,
-                    // die Suche wirkte kaputt (Jan, 28.10.2026: „findet nichtmal illmensee").
-                    if suche.trimmingCharacters(in: .whitespaces).isEmpty {
-                        kopfSection
-                        // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
-                        SpotCompareView()
-                    }
-                    listSection
-                }
-                .listStyle(.insetGrouped)
+                Reiterleiste(reiter: spotsReiter, aktiv: Binding(get: { tab }, set: { tab = $0; ReiterSpeicher.setze("spots", $0) }))
+                    .padding(.horizontal)
+                reiterInhalt
             }
             // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
             .navigationDestination(for: SpotDest.self) { d in
@@ -144,6 +137,58 @@ struct SpotsView: View {
             .onChange(of: sport) { _ in Task { await sportLaden() } }
             .task { await aktivSchleife() }
         }
+    }
+
+    private var spotsReiter: [ReiterDef] {
+        [ReiterDef(id: "karte", label: Loc.t("tab.map", lang)), ReiterDef(id: "liste", label: Loc.t("tab.list", lang)),
+         ReiterDef(id: "rekorde", label: Loc.t("spotcmp.title", lang)), ReiterDef(id: "routen", label: Loc.t("tab.routes", lang))]
+    }
+
+    @ViewBuilder private var reiterInhalt: some View {
+        switch tab {
+        case "liste": spotListe
+        case "rekorde":
+            List { SpotCompareView() }.listStyle(.insetGrouped)
+        case "routen":
+            List { RoutenAbschnitt(lang: lang) }.listStyle(.insetGrouped)
+        default: karteReiter
+        }
+    }
+
+    private var karteReiter: some View {
+        VStack(spacing: 0) {
+            karteOben
+            List {
+                // Bei einer Suche NUR die Treffer, direkt unter der Karte. Vorher standen sie unter
+                // Filterzeile, Erklaertext und dem ganzen Spot-Vergleich — beim Tippen nie zu sehen,
+                // die Suche wirkte kaputt (Jan, 28.10.2026: „findet nichtmal illmensee").
+                if suche.trimmingCharacters(in: .whitespaces).isEmpty {
+                    kopfSection
+                }
+                listSection
+            }
+            .listStyle(.insetGrouped)
+        }
+    }
+
+    /// Reiter „Liste": alle Spots zum Durchsuchen, meistbefahrene zuerst (web `SpotListe`), mit derselben Sportart wie
+    /// die Karte. Die Suche ist dieselbe Suchleiste oben. Hoechstens 200 Zeilen, wie im Web.
+    private var spotListe: some View {
+        let q: String = suche.trimmingCharacters(in: .whitespaces)
+        let liste: [SpotMapItem] = items.filter { $0.spot_id != nil && (q.isEmpty || passtZu(q, $0.spot, $0.water)) }
+            .sorted { $0.sessions > $1.sessions }
+        return List {
+            if SportFilterMenu.zeigen(sport: sport, sports: sports) {
+                SportFilterMenu(sport: sport, sports: sports, lang: lang) { sport = $0 }
+            }
+            ForEach(Array(liste.prefix(200))) { s in
+                NavigationLink(value: ziel(s)) { spotRow(s) }
+            }
+            if liste.isEmpty && !loading {
+                Text(Loc.t("spots.empty", lang)).foregroundStyle(.secondary)
+            }
+        }
+        .listStyle(.insetGrouped)
     }
 
     /// Holt die aktiven Spots sofort und dann alle 120 s (wie die PWA). Endet mit der Ansicht —

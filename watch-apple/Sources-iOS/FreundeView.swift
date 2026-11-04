@@ -183,6 +183,12 @@ struct FreundeView: View {
 
     private func liste(_ l: FreundeListe) -> some View {
         List {
+            aktivSection(l)
+            eingehendSection(l)
+            freundeSection(l)
+            ausgehendSection(l)
+            // „Was Freunde sehen" unter den Listen (App-Port Phase 6, 04.11.2026, wie das Web): wer die Seite oeffnet,
+            // will meist eine Anfrage beantworten, nicht die Regeln lesen.
             Section {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(Loc.t("friends.termsTitle", lang)).font(.subheadline.weight(.semibold))
@@ -191,10 +197,6 @@ struct FreundeView: View {
                 }
                 .padding(.vertical, 4)
             }
-            aktivSection(l)
-            eingehendSection(l)
-            freundeSection(l)
-            ausgehendSection(l)
         }
         .listStyle(.insetGrouped)
     }

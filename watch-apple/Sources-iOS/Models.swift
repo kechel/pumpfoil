@@ -1029,6 +1029,8 @@ struct FoilerProfil: Decodable {
     var freundschaft: String? = nil
     var freundschaft_moeglich: Bool? = nil
     var gewicht_kg: Double? = nil
+    // Vorschau „alle" der eigenen, abgeschalteten Seite (als=alle): andere bekaemen ein 404, der Server sagt es nur.
+    var vorschau_ausgeblendet: Bool? = nil
 }
 
 // Freunde-Liste (GET /api/friends). `seit` nur bei Freunden, `am` nur bei Anfragen, `spot_id`/

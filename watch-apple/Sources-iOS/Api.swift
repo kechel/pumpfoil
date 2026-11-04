@@ -93,8 +93,10 @@ enum Api {
 
     /// Oeffentliche Foiler-Seite eines Nutzers. 404 = nicht verfuegbar (abgeschaltet, gesperrt,
     /// unter 13) — der Server verraet bewusst nicht, welcher Grund es ist.
-    static func foilerProfil(_ id: Int) async throws -> FoilerProfil {
-        try await request("/api/community/foiler/\(id)", method: "GET", body: nil, auth: true)
+    /// `als` = Vorschau der EIGENEN Seite (Home › Profil, 04.11.2026): "freunde" | "alle" — so, wie sie diese sehen.
+    static func foilerProfil(_ id: Int, als: String? = nil) async throws -> FoilerProfil {
+        let q: String = als.map { "?als=" + $0 } ?? ""
+        return try await request("/api/community/foiler/\(id)" + q, method: "GET", body: nil, auth: true)
     }
 
     // Freunde (15.10.2026, PWA Friends.tsx). Regeln und was eine Freundschaft freigibt: server

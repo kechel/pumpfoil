@@ -40,40 +40,30 @@ struct SettingsView: View {
     @State private var kanalFehler = ""
     @State private var kanalBusy = false
 
+    /// Reiter der Einstellungen (App-Port Phase 6, 04.11.2026, gruppiert wie web/src/pages/Settings.tsx): "ich" | "fahren"
+    /// | "privat" | "darstellung" | "konto". nil = alles untereinander (alter Einstieg, z. B. von der Foiler-Seite).
+    var teil: String? = nil
+    private func zeigt(_ t: String) -> Bool { teil == nil || teil == t }
+
     // Ein Abschnitt = eine eigene, explizit typisierte Property. Swifts Type-Checker loest einen
     // ViewBuilder als EINEN Ausdruck auf; elf Sections mit je eigenen header/footer-Closures
     // multiplizieren sich darin. Dieser Body war ~97 Zeilen und stand mit >500 ms im Build-Log
-    // (Archive hing minutenlang). Reihenfolge und Inhalte sind unveraendert.
+    // (Archive hing minutenlang). Je Reiter eine eigene Gruppe.
     var body: some View {
         Form {
             // Sprache GANZ OBEN (Vorgabe Jan, 13.09.2026, wie in der PWA): wer die Seite in
             // einer Sprache vor sich hat, die er nicht liest, muss hier als Erstes fuendig
-            // werden statt an sechs Abschnitten vorbeizuscrollen.
-            languageSection
-            weightSection
-            riderSection
-            zonenSection
-            spZonenSection
-            homespotSection
-            // Was sehen andere von mir — oeffentliche Foiler-Seite und „Ort verbergen" direkt
-            // untereinander, wie in der PWA. Beide speichern sofort, nicht ueber „Speichern".
-            OeffentlicheSeiteSection(lang: lang)
-            OrtVerbergenSection(lang: lang)
-            AktivAufKarteSection(lang: lang)
-            // Online-Punkt (Jan, 01.10.2026: „im profil zum ausstellen, aber erstmal default an").
-            // Dieselbe Art Entscheidung — was sehen andere von mir. Ohne diesen Schalter koennte ein
-            // Nutzer, der nur die App hat, den Punkt nicht abschalten.
-            OnlinePunktSection(lang: lang)
-            GeteilteAufnahmenSection(lang: lang)
-            designSection
-            pumpUnitSection
-            sensitivitySection
-            notificationsSection
-            socialKanalSection
-            passwordSection
-            saveSection
+            // werden statt an sechs Abschnitten vorbeizuscrollen. Mit Reitern steht sie in der Uebersicht.
+            if teil == nil { languageSection }
+            if zeigt("ich") { ichTeil }
+            if zeigt("fahren") { fahrenTeil }
+            if zeigt("privat") { privatTeil }
+            if zeigt("darstellung") { darstellungTeil }
+            if zeigt("konto") { kontoTeil }
+            // Speichern nur, wo es Felder dafuer gibt (Privatsphaere und Passwort speichern selbst).
+            if teil != "privat" && teil != "konto" { saveSection }
         }
-        .brandToolbar(Loc.t("settings.title", lang))
+        .brandToolbarWenn(teil == nil, Loc.t("settings.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .onChange(of: weight) { _ in saved = false }
@@ -88,6 +78,48 @@ struct SettingsView: View {
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
         .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
         .onChange(of: pumpUnit) { v in Task { _ = try? await Api.updatePumpUnit(v) } }
+    }
+
+    // MARK: - Reiter
+
+    // Wer ich bin: Profilbild + Name (nur mit Reitern, sonst steht der Kopf in der alten Profilseite), Gewicht,
+    // Homespot, eigener YouTube-Kanal.
+    @ViewBuilder private var ichTeil: some View {
+        if teil != nil { ProfilKopfSection(lang: lang) }
+        weightSection
+        homespotSection
+        socialKanalSection
+    }
+
+    // Wie ich fahre und ausgewertet werde (Reihenfolge wie im Web: Empfindlichkeit, Pump-Kadenz, Hand/Stance, Zonen).
+    @ViewBuilder private var fahrenTeil: some View {
+        sensitivitySection
+        pumpUnitSection
+        riderSection
+        zonenSection
+        spZonenSection
+        if teil != nil { PhoneRecSection(lang: lang) }
+    }
+
+    // Was sehen andere von mir — oeffentliche Foiler-Seite und „Ort verbergen" direkt untereinander, wie in der PWA.
+    // Alle speichern sofort, nicht ueber „Speichern".
+    @ViewBuilder private var privatTeil: some View {
+        OeffentlicheSeiteSection(lang: lang)
+        OrtVerbergenSection(lang: lang)
+        AktivAufKarteSection(lang: lang)
+        // Online-Punkt (Jan, 01.10.2026: „im profil zum ausstellen, aber erstmal default an").
+        OnlinePunktSection(lang: lang)
+        GeteilteAufnahmenSection(lang: lang)
+    }
+
+    @ViewBuilder private var darstellungTeil: some View {
+        designSection
+        notificationsSection
+    }
+
+    @ViewBuilder private var kontoTeil: some View {
+        passwordSection
+        if teil != nil { KontoSections(lang: lang) }
     }
 
     // MARK: - Abschnitte

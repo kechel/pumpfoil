@@ -52,6 +52,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Karte",
             "tab.list" to "Liste",
             "tab.routes" to "Routen",
+            "tab.watchAccounts" to "Uhr & Konten",
+            "period.yesterday" to "Gestern",
         ),
         "gsw" to mapOf(
             "tab.overview" to "Übersicht",
@@ -97,6 +99,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Charte",
             "tab.list" to "Lischte",
             "tab.routes" to "Route",
+            "tab.watchAccounts" to "Uhr & Konte",
+            "period.yesterday" to "Geschter",
         ),
         "de-AT" to mapOf(
             "tab.overview" to "Übersicht",
@@ -142,6 +146,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Karte",
             "tab.list" to "Liste",
             "tab.routes" to "Routen",
+            "tab.watchAccounts" to "Uhr & Konten",
+            "period.yesterday" to "Gestern",
         ),
         "en" to mapOf(
             "tab.overview" to "Overview",
@@ -187,6 +193,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Map",
             "tab.list" to "List",
             "tab.routes" to "Routes",
+            "tab.watchAccounts" to "Watch & accounts",
+            "period.yesterday" to "Yesterday",
         ),
         "fr" to mapOf(
             "tab.overview" to "Aperçu",
@@ -232,6 +240,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Carte",
             "tab.list" to "Liste",
             "tab.routes" to "Itinéraires",
+            "tab.watchAccounts" to "Montre et comptes",
+            "period.yesterday" to "Hier",
         ),
         "it" to mapOf(
             "tab.overview" to "Panoramica",
@@ -277,6 +287,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Mappa",
             "tab.list" to "Elenco",
             "tab.routes" to "Percorsi",
+            "tab.watchAccounts" to "Orologio e account",
+            "period.yesterday" to "Ieri",
         ),
         "es" to mapOf(
             "tab.overview" to "Resumen",
@@ -322,6 +334,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Mapa",
             "tab.list" to "Lista",
             "tab.routes" to "Rutas",
+            "tab.watchAccounts" to "Reloj y cuentas",
+            "period.yesterday" to "Ayer",
         ),
         "fi" to mapOf(
             "tab.overview" to "Yleiskatsaus",
@@ -367,6 +381,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Kartta",
             "tab.list" to "Lista",
             "tab.routes" to "Reitit",
+            "tab.watchAccounts" to "Kello ja tilit",
+            "period.yesterday" to "Eilen",
         ),
         "nl" to mapOf(
             "tab.overview" to "Overzicht",
@@ -412,6 +428,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Kaart",
             "tab.list" to "Lijst",
             "tab.routes" to "Routes",
+            "tab.watchAccounts" to "Horloge & accounts",
+            "period.yesterday" to "Gisteren",
         ),
         "cs" to mapOf(
             "tab.overview" to "Přehled",
@@ -457,6 +475,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Mapa",
             "tab.list" to "Seznam",
             "tab.routes" to "Trasy",
+            "tab.watchAccounts" to "Hodinky a účty",
+            "period.yesterday" to "Včera",
         ),
         "pl" to mapOf(
             "tab.overview" to "Przegląd",
@@ -502,6 +522,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Mapa",
             "tab.list" to "Lista",
             "tab.routes" to "Trasy",
+            "tab.watchAccounts" to "Zegarek i konta",
+            "period.yesterday" to "Wczoraj",
         ),
         "pt" to mapOf(
             "tab.overview" to "Visão geral",
@@ -547,6 +569,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Mapa",
             "tab.list" to "Lista",
             "tab.routes" to "Rotas",
+            "tab.watchAccounts" to "Relógio e contas",
+            "period.yesterday" to "Ontem",
         ),
         "pt-PT" to mapOf(
             "tab.overview" to "Visão geral",
@@ -592,6 +616,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Mapa",
             "tab.list" to "Lista",
             "tab.routes" to "Rotas",
+            "tab.watchAccounts" to "Relógio e contas",
+            "period.yesterday" to "Ontem",
         ),
         "ja" to mapOf(
             "tab.overview" to "概要",
@@ -637,6 +663,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "地図",
             "tab.list" to "リスト",
             "tab.routes" to "ルート",
+            "tab.watchAccounts" to "時計とアカウント",
+            "period.yesterday" to "昨日",
         ),
         "zh" to mapOf(
             "tab.overview" to "概览",
@@ -682,6 +710,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "地图",
             "tab.list" to "列表",
             "tab.routes" to "路线",
+            "tab.watchAccounts" to "手表与账户",
+            "period.yesterday" to "昨天",
         ),
         "ru" to mapOf(
             "tab.overview" to "Обзор",
@@ -727,6 +757,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Карта",
             "tab.list" to "Список",
             "tab.routes" to "Маршруты",
+            "tab.watchAccounts" to "Часы и аккаунты",
+            "period.yesterday" to "Вчера",
         ),
         "id" to mapOf(
             "tab.overview" to "Ringkasan",
@@ -772,6 +804,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Peta",
             "tab.list" to "Daftar",
             "tab.routes" to "Rute",
+            "tab.watchAccounts" to "Jam & akun",
+            "period.yesterday" to "Kemarin",
         ),
         "nb" to mapOf(
             "tab.overview" to "Oversikt",
@@ -817,6 +851,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "tab.map" to "Kart",
             "tab.list" to "Liste",
             "tab.routes" to "Ruter",
+            "tab.watchAccounts" to "Klokke og kontoer",
+            "period.yesterday" to "I går",
         ),
     )
 }
