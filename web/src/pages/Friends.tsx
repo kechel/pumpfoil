@@ -42,36 +42,34 @@ export default function Friends({ eingebettet = false }: { eingebettet?: boolean
       <div className="flex shrink-0 flex-wrap justify-end gap-2">{children}</div>
     </div>
   );
+  // Listen im Browser zweispaltig (Jan, 04.11.2026); die Trennlinie oben faellt dann auch beim ersten Eintrag der
+  // zweiten Spalte weg.
+  const liste = "grid gap-x-8 lg:grid-cols-2 lg:[&>*:nth-child(2)]:border-t-0";
   const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800";
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full">
       {!eingebettet && <h2 className="mb-3 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil fallback="/einstellungen" />{t("friends.title")}</h2>}
-      <Card className="mb-4 p-4">
-        <p className="mb-1 text-sm font-semibold text-slate-200">{t("friends.termsTitle")}</p>
-        <FreundeBedingungen />
-        <p className="mt-2 text-sm text-slate-400">{t("friends.howTo")}</p>
-      </Card>
 
       {!d ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : (
         <>
           {d.aktiv.length > 0 && (
             <Card className="mb-4 p-4">
               <h3 className="mb-1 font-semibold">{t("friends.pumpingNowTitle")}</h3>
-              {d.aktiv.map((f) => (
+              <div className={liste}>{d.aktiv.map((f) => (
                 <Zeile key={f.user_id} id={f.user_id} name={f.name} avatar={f.avatar_url}
                   unter={f.spot_id != null
                     ? <Link to={`/sessions?scope=all&spot=${f.spot_id}`} className="inline-flex items-center gap-1 text-emerald-700 hover:underline dark:text-emerald-400">
                         <LocationIcon className="h-3.5 w-3.5" /> {f.spot}</Link>
                     : <span className="text-emerald-700 dark:text-emerald-400">{t("friends.pumpingNow")}</span>} />
-              ))}
+              ))}</div>
             </Card>
           )}
 
           {d.eingehend.length > 0 && (
             <Card className="mb-4 p-4">
               <h3 className="mb-1 font-semibold">{t("friends.incoming")}</h3>
-              {d.eingehend.map((f) => (
+              <div className={liste}>{d.eingehend.map((f) => (
                 <Zeile key={f.user_id} id={f.user_id} name={f.name} avatar={f.avatar_url} unter={datum(f.am)}>
                   <button onClick={() => ausfuehren(api.friendDecline(f.user_id))} disabled={busy} className={knopf}>
                     {t("friends.decline")}
@@ -81,7 +79,7 @@ export default function Friends({ eingebettet = false }: { eingebettet?: boolean
                     {t("friends.accept")}
                   </button>
                 </Zeile>
-              ))}
+              ))}</div>
               <p className="mt-1 text-sm text-slate-400">{t("friends.declineSilent")}</p>
             </Card>
           )}
@@ -89,30 +87,37 @@ export default function Friends({ eingebettet = false }: { eingebettet?: boolean
           <Card className="mb-4 p-4">
             <h3 className="mb-1 font-semibold">{t("friends.list")} {d.freunde.length > 0 && <span className="text-slate-400">({d.freunde.length})</span>}</h3>
             {d.freunde.length === 0 ? <p className="text-sm text-slate-400">{t("friends.none")}</p>
-              : d.freunde.map((f) => (
+              : <div className={liste}>{d.freunde.map((f) => (
                 <Zeile key={f.user_id} id={f.user_id} name={f.name} avatar={f.avatar_url}
                   unter={t("friends.since", { date: datum(f.seit) })}>
                   <button onClick={() => setOffen({ art: "beenden", id: f.user_id, name: f.name ?? "—" })} className={knopf}>
                     {t("friends.remove")}
                   </button>
                 </Zeile>
-              ))}
+              ))}</div>}
           </Card>
 
           {d.ausgehend.length > 0 && (
             <Card className="mb-4 p-4">
               <h3 className="mb-1 font-semibold">{t("friends.outgoing")}</h3>
-              {d.ausgehend.map((f) => (
+              <div className={liste}>{d.ausgehend.map((f) => (
                 <Zeile key={f.user_id} id={f.user_id} name={f.name} avatar={f.avatar_url} unter={datum(f.am)}>
                   <button onClick={() => setOffen({ art: "zurueckziehen", id: f.user_id, name: f.name ?? "—" })} className={knopf}>
                     {t("friends.withdraw")}
                   </button>
                 </Zeile>
-              ))}
+              ))}</div>
             </Card>
           )}
         </>
       )}
+
+      {/* „Was Freunde sehen" unten (Jan, 04.11.2026): die Listen sind das, wofuer man herkommt. */}
+      <Card className="mb-4 p-4">
+        <p className="mb-1 text-sm font-semibold text-slate-200">{t("friends.termsTitle")}</p>
+        <FreundeBedingungen />
+        <p className="mt-2 text-sm text-slate-400">{t("friends.howTo")}</p>
+      </Card>
 
       {offen && (
         <FreundschaftDialog art={offen.art} name={offen.name} busy={busy} onClose={() => setOffen(null)}
