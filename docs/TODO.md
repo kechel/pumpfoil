@@ -1628,6 +1628,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   iOS `KontoVerbinden` (ASWebAuthenticationSession). Vor der Einreichung testen: Polar/Suunto/COROS je einmal aus der
   App verbinden (Erfolg, Abbruch beim Hersteller). Alte App-Versionen landen weiter auf der Bestaetigungsseite.
 - **29.10. — WIEDER ENTFERNEN, sobald Android 1.1.46 verbreitet ist: Server-Behelf gegen den Spot-Seiten-Hänger** (`_android_heatmap_haenger` in `server/app/api/community.py`). Android < 1.1.46 bekommt auf die erste Einpass-Anfrage der Spot-Heatmap (z=15, Spot ±0,03/±0,02°) leere Zellen -> „Heatmap & Routen“ ausgeblendet, kein `zoomToBoundingBox` auf der 0×0-Karte. Bestätigt: 1.1.44 hängt an Cléder (Jan, 29.10.). Prüfen über `client_seen`/Versionen der Android-Geräte, dann raus.
+- **04.11. — Huawei Watch 5: Hinweise aus dem Pruefbericht zu 1.0.3 (Regel 3.1, „in der naechsten Version beheben").**
+  (1) „The page turning effect is abrupt, and there is no transition or page turning animation." (2) „The UX display
+  on the app pause screen is incomplete." Gebaut (Index.ets): Seiten gleiten beim Blaettern (Wischen und Krone) 200 ms
+  aus der Blaetterrichtung herein; die Aufnahme-Seiten (Pause/Fortsetzen + Verwerfen, STOPP) sind kompakter
+  (Knoepfe 170 x 48 statt 200 x 56, Infozeile hoechstens zwei Zeilen und schmaler, in der Pause Zeit/Strecke eine Stufe
+  kleiner), weil die Spalte bei ~233 vp hoeher war als das runde Display. **Ursache (2) vermutet, nicht belegt** — kein
+  Screenshot im Bericht; „Paused" oben auf den Datenseiten passt rechnerisch schon (466 px). arkts baut, Node-Tests
+  66/66; auf Emulator/Uhr noch ungesehen — vor der naechsten Einreichung im DevEco-Emulator die Pause-Seiten ansehen.
 - **28.10. — Huawei Watch 5: App-geschlossen-Meldung beim Wegwischen (für irgendwann, Jan: „da muss erstmal eine erste version durch das review kommen“).** Die Meldung kommt nur aus `onDestroy`, beim Wegwischen also nicht. Vorschlag: im `onBackground` schicken, wenn keine Aufnahme läuft. Dazu die Diagnosezeile `Pumpfoil krone` in `Index.ets` wieder entfernen. Erst nach der ersten Freigabe (1.0.3 im Review).
 - **28.10. — Android: Spot-Seite friert beim Runterscrollen ein, auch in der LIVE-Fassung 1.1.44** (Jan auf seinem Handy bestaetigt, Illmensee). Ursache: osmdroid-Endlosschleife bei `zoomToBoundingBox` auf einer 0×0-Karte (Heatmap-Karte in der LazyColumn). Fix `a5ba1c61` (`MapView.einpassen`), kommt mit 1.1.45 -> **1.1.45 zuegig einreichen.** Jan informiert die Community im Chat. iOS nicht betroffen (MapKit, kein osmdroid).
 - **27.10. — ThermikDreher (u267, FR965 1.0.97): Scoot-Brett-Paar + Fehlermeldung.** Brett #19235 (Samsung, auto board) parallel zu

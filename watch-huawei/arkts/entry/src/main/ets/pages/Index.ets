@@ -18,6 +18,11 @@ const FELDTEXTE: string[] = ['kmh3s', 'kmhAvg', 'kmhMax', 'bpmAvg', 'bpmMax', 't
   'allRunsDist', 'allRunsTime'];
 
 const HALTEN_MS: number = 2000;
+// Knoepfe der Aufnahme-Seiten (Pause/Fortsetzen, Verwerfen, STOPP). Vorher 200 x 56 wie auf der Startseite: mit
+// „Paused", Zeit/Strecke und Infozeile wurde die Spalte hoeher als das runde Display, oben und unten fehlte etwas
+// (AppGallery-Hinweis 04.11.2026 zu 1.0.3: „The UX display on the app pause screen is incomplete").
+const KNOPF_B: number = 170;
+const KNOPF_H: number = 48;
 const SPERRE_NACH_MS: number = 10000;
 const CYAN: string = '#22d3ee';
 const CYAN_DUNKEL: string = '#0e7490';
@@ -95,6 +100,11 @@ struct Index {
   @State fLaeufe: string = '';
   @State gesperrt: boolean = false;
   @State sperrHinweis: boolean = false;
+  // Seitenwechsel mit kurzem Gleiten statt hartem Sprung (AppGallery-Hinweis 04.11.2026 zu 1.0.3: „The page turning
+  // effect is abrupt, and there is no transition or page turning animation"). Die neue Seite kommt aus der Richtung,
+  // in die geblaettert wurde, und gleitet in 200 ms an ihren Platz.
+  @State versatz: number = 0;
+  @State deckkraft: number = 1;
   private seite: number = 2;
   private mahnungVorher: number = 0;   // Recorder.pauseMahnung beim letzten Zeichnen
   private zustandVorher: string = '';
@@ -403,17 +413,32 @@ struct Index {
   private blaettern(hoch: boolean): void {
     if (Recorder.get().modus === 'bereit') {
       // Startbildschirm: hoch = Einstellungen (wie Zepp-Seite 4/4), runter = zurueck
-      if (!this.zeigeFertig && this.ansicht !== 'datenschutz') {
+      if (!this.zeigeFertig && this.ansicht !== 'datenschutz' && this.zeigeAuswahl !== hoch) {
         this.zeigeAuswahl = hoch;
         this.zeigen();
+        this.gleiten(hoch);
       }
       return;
     }
     if (this.sperre()) {
       return;
     }
+    const vorher: number = this.seite;
     this.seite += hoch ? 1 : -1;   // ohne Umlauf; seiten() begrenzt
     this.zeigen();
+    if (this.seite !== vorher) {
+      this.gleiten(hoch);
+    }
+  }
+
+  /** Die gerade gezeigte Seite aus der Blaetterrichtung hereingleiten lassen (s. versatz). */
+  private gleiten(hoch: boolean): void {
+    this.versatz = hoch ? 48 : -48;
+    this.deckkraft = 0.2;
+    this.getUIContext().animateTo({ duration: 200, curve: Curve.EaseOut }, () => {
+      this.versatz = 0;
+      this.deckkraft = 1;
+    });
   }
 
   /**
@@ -751,7 +776,7 @@ struct Index {
         // Zwei Wege zum selben Halten: onTouch (Finger) und eine LongPress-Geste mit 50 ms Anlauf.
         // Im Emulator kam mit der Maus kein onTouch an (Knopf blieb unveraendert, 08.10.2026); die
         // Geste laeuft ueber die Gestenerkennung und meldet Loslassen per onActionEnd/-Cancel.
-        Button(text).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(farbe)
+        Button(text).width(KNOPF_B).height(KNOPF_H).fontSize(18).fontColor('#ffffff').backgroundColor(farbe)
           .onTouch((e: TouchEvent) => {
             if (e.type === TouchType.Down) {
               console.info('Pumpfoil touch down ' + aktion);
@@ -773,19 +798,19 @@ struct Index {
             }))
         // Immer da (Breite 0 ohne Halten), damit nichts erst beim Druck entstehen muss.
         Row()
-          .width(this.haltAktion !== '' && (aktion === 'stopp') === (this.haltAktion === 'stopp') ? 200 * this.haltVoll : 0)
-          .height(56)
+          .width(this.haltAktion !== '' && (aktion === 'stopp') === (this.haltAktion === 'stopp') ? KNOPF_B * this.haltVoll : 0)
+          .height(KNOPF_H)
           .backgroundColor('rgba(255,255,255,0.35)')
           .hitTestBehavior(HitTestMode.None)
       }
-      .width(200)
-      .height(56)
-      .borderRadius(28)
+      .width(KNOPF_B)
+      .height(KNOPF_H)
+      .borderRadius(KNOPF_H / 2)
       .clip(true)
-      .margin({ top: 8 })
+      .margin({ top: 6 })
     } else {
-      Button(text).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(farbe)
-        .margin({ top: 8 })
+      Button(text).width(KNOPF_B).height(KNOPF_H).fontSize(18).fontColor('#ffffff').backgroundColor(farbe)
+        .margin({ top: 6 })
         .onClick(() => {
           if (!this.sperre()) {
             this.ausfuehren(aktion === 'pause' ? this.pauseAktion() : aktion);
@@ -796,9 +821,17 @@ struct Index {
 
   @Builder
   infoText() {
-    Text(this.info).fontSize(16).fontColor('#cbd5e1').textAlign(TextAlign.Center).width(260).maxLines(3)
+    // Auf den Aufnahme-Seiten (Aktion, STOPP) schmaler und hoechstens zwei Zeilen: sie stehen unten auf dem runden
+    // Display, wo es enger wird, und in der Pause kommt oben noch „Paused" dazu (AppGallery-Hinweis 04.11.2026).
+    Text(this.info).fontSize(this.aufnahmeSeite() ? 13 : 16).fontColor('#cbd5e1').textAlign(TextAlign.Center)
+      .width(this.aufnahmeSeite() ? 160 : 260).maxLines(this.aufnahmeSeite() ? 2 : 3)
+      .textOverflow({ overflow: TextOverflow.Ellipsis })
       .margin({ top: 8 })
       .onClick(() => this.infoTipp())
+  }
+
+  private aufnahmeSeite(): boolean {
+    return this.ansicht === 'aktion' || this.ansicht === 'stopp';
   }
 
   // onDigitalCrown gibt es erst ab API 18, die App laeuft ab API 12. Ein AttributeModifier ging
@@ -827,22 +860,29 @@ struct Index {
   @Builder
   inhalt() {
     Stack() {
-      if (this.ansicht === 'daten') {
-        Canvas(this.leinwand)
-          .width('100%')
-          .height('100%')
-          .backgroundColor('#000000')
-          .onReady(() => {
-            this.leinwandBereit = true;
-            this.seiten();
-          })
-      } else if (this.ansicht === 'auswahl') {
-        this.einstellungsListe()
-      } else if (this.ansicht === 'datenschutz') {
-        this.datenschutzSeite()
-      } else {
-        this.bedienung()
+      // Der Inhalt gleitet beim Blaettern (s. versatz); die Touch-Sperre darueber bleibt stehen.
+      Stack() {
+        if (this.ansicht === 'daten') {
+          Canvas(this.leinwand)
+            .width('100%')
+            .height('100%')
+            .backgroundColor('#000000')
+            .onReady(() => {
+              this.leinwandBereit = true;
+              this.seiten();
+            })
+        } else if (this.ansicht === 'auswahl') {
+          this.einstellungsListe()
+        } else if (this.ansicht === 'datenschutz') {
+          this.datenschutzSeite()
+        } else {
+          this.bedienung()
+        }
       }
+      .width('100%')
+      .height('100%')
+      .translate({ y: this.versatz })
+      .opacity(this.deckkraft)
       // Touch-Sperre: durchsichtige Flaeche ueber allem, schluckt Tippen (Hinweis), 2 s halten = frei.
       if (this.gesperrt) {
         Column()
@@ -913,20 +953,21 @@ struct Index {
           .onClick(() => this.fertig())
       } else if (this.ansicht === 'aktion') {
         if (this.pausiertKopf !== '') {
-          Text(this.pausiertKopf).fontSize(26).fontColor(CYAN).maxLines(1)
+          Text(this.pausiertKopf).fontSize(20).fontColor(CYAN).maxLines(1)
         } else {
-          Text(this.zeit).fontSize(28).fontColor('#ffffff')
+          Text(this.zeit).fontSize(26).fontColor('#ffffff')
         }
         this.knopf(this.tPause, CYAN_DUNKEL, 'pause')
-        Button(this.tWeg).width(200).height(56).fontSize(20).fontColor('#ffffff').backgroundColor(ROT)
-          .margin({ top: 8 })
+        Button(this.tWeg).width(KNOPF_B).height(KNOPF_H).fontSize(18).fontColor('#ffffff').backgroundColor(ROT)
+          .margin({ top: 6 })
           .onClick(() => this.verwerfenTipp())
       } else {
         if (this.pausiertKopf !== '') {   // STOPP-Seite in der Pause: wie auf allen anderen Uhren sichtbar
-          Text(this.pausiertKopf).fontSize(20).fontColor(CYAN).maxLines(1)
+          Text(this.pausiertKopf).fontSize(18).fontColor(CYAN).maxLines(1)
         }
-        Text(this.zeit).fontSize(28).fontColor('#ffffff')
-        Text(this.strecke).fontSize(24).fontColor('#ffffff')
+        // In der Pause eine Stufe kleiner: mit „Paused" darueber wurde die Seite zu hoch fuers runde Display.
+        Text(this.zeit).fontSize(this.pausiertKopf !== '' ? 24 : 28).fontColor('#ffffff')
+        Text(this.strecke).fontSize(this.pausiertKopf !== '' ? 20 : 24).fontColor('#ffffff')
         this.knopf(this.tStopp, ROT, 'stopp')
       }
       if (this.ansicht !== 'koppeln') {
