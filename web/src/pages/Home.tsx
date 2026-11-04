@@ -11,9 +11,9 @@ import { SocialFeed } from "../components/SocialFeed";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
 import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
 import TeamListenKachel from "../components/TeamListenKachel";
-import TeamWappen from "../components/TeamWappen";
+import TeamWappen, { teamInitialen } from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
-import { teamFarbStil } from "../lib/teamFarben";
+import { TEAM_FARBEN, teamFarbStil } from "../lib/teamFarben";
 import { initialenAus } from "../lib/bestenlisteBild";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
@@ -877,6 +877,9 @@ function TeamBestenlisten() {
   const [art, setArt] = useState<TeamVergleichKennzahl>("pumps");
   const [d, setD] = useState<TeamVergleich | null>(null);
   const [bild, setBild] = useState(false);
+  // Eigene Teams fuer die Hervorhebung im Bild (04.11.2026).
+  const [meine, setMeine] = useState<Set<string>>(new Set());
+  useEffect(() => { api.teamsMine().then((l) => setMeine(new Set(l.filter((x) => x.status === "aktiv").map((x) => x.slug)))).catch(() => {}); }, []);
   useEffect(() => {
     let aktiv = true;
     api.teamsVergleich(period, top).then((x) => { if (aktiv) setD(x); }).catch(() => {});
@@ -887,6 +890,15 @@ function TeamBestenlisten() {
   const wert = (z: TeamVergleichZeile) => (art === "distance_m" ? km(z[art]) : art === "time_s" ? zeit(z[art]) : z[art].toLocaleString());
   const zeilen = (d?.teams ?? []).filter((z) => z[art] > 0).sort((a, b) => b[art] - a[art] || a.name.localeCompare(b.name));
   const knopf = (an: boolean) => `rounded-lg px-2.5 py-1 text-xs ${an ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`;
+  const bildZeile = (z: TeamVergleichZeile, i: number) => {
+    const f = TEAM_FARBEN[z.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
+    return {
+      rang: i + 1, name: z.name, initialen: teamInitialen(z.name), wert: wert(z), ich: meine.has(z.slug),
+      land: z.land && !z.land.startsWith("k:") ? z.land : null,
+      wappen: { logo: z.logo_url, flaeche: f.dunkelFlaeche ?? f.dunkel, schrift: f.dunkelAuf ?? "#020617",
+                flaecheHell: f.hellFlaeche ?? f.hell, schriftHell: f.hellAuf ?? "#ffffff" },
+    };
+  };
   return (
     <div className="mb-8">
       <h3 className="mb-1 text-lg font-bold">{t("team.vergleich.titel")}</h3>
@@ -934,8 +946,9 @@ function TeamBestenlisten() {
             unterzeile: [t("team.vergleich.titel"), t("team.vergleich.top", { n: String(top) }),
               t(PERIODS.find(([k]) => k === period)?.[1] ?? ""),
               new Date().toLocaleDateString(document.documentElement.lang || undefined)].join(" · "),
-            zeilen: zeilen.slice(0, 10).map((z, i) => ({ rang: i + 1, name: z.name, initialen: initialenAus(z.name), wert: wert(z),
-              land: z.land && !z.land.startsWith("k:") ? z.land : null })),
+            // Wappen je Zeile und das eigene Team hervorgehoben; liegt es hinter Platz 10, steht es darunter (04.11.2026).
+            zeilen: zeilen.slice(0, 10).map((z, i) => bildZeile(z, i)),
+            eigene: (() => { const i = zeilen.findIndex((z, j) => j >= 10 && meine.has(z.slug)); return i >= 0 ? bildZeile(zeilen[i], i) : null; })(),
             leer: "—",
           }} />
       )}

@@ -31,8 +31,12 @@ export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel
       const flaggen: Record<string, HTMLImageElement> = {};
       const codes = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.land).filter(Boolean) as string[]);
       await Promise.all([...codes].map((c) => bildLaden(flaggeUrl(c)).then((im) => { flaggen[c] = im; }).catch(() => {})));
+      // Team-Wappen je Zeile (04.11.2026); ein nicht ladbares Logo faellt auf die Initialen zurueck.
+      const wappenBilder: Record<string, HTMLImageElement> = {};
+      const logos = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.wappen?.logo).filter(Boolean) as string[]);
+      await Promise.all([...logos].map((u) => bildLaden(u).then((im) => { wappenBilder[u] = im; }).catch(() => {})));
       if (weg) return;
-      zeichneBestenliste(g, { ...daten, logo, marke, hell, flaggen });
+      zeichneBestenliste(g, { ...daten, logo, marke, hell, flaggen, wappenBilder });
       setFertig(true);
     })().catch(() => setFehler(t("share.errImage")));
     return () => { weg = true; };

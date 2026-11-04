@@ -9,7 +9,9 @@ export const BILD_B = 1080, BILD_H = 1080;
 const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
 export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean;
-  land?: string | null };   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
+  land?: string | null;   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
+  // Team-Bestenliste (04.11.2026): Wappen vor dem Namen — Logo, sonst die Initialen auf der Teamfarbe (wie TeamWappen).
+  wappen?: { logo: string | null; flaeche: string; schrift: string; flaecheHell: string; schriftHell: string } };
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
@@ -22,6 +24,7 @@ export type BildDaten = {
   logo?: HTMLImageElement | null;   // Teamwappen links neben der Ueberschrift
   marke?: HTMLImageElement | null;  // unser Schriftzug unten rechts (zur Fassung passend: weiss auf dunkel, navy auf hell)
   flaggen?: Record<string, HTMLImageElement>;   // geladene Flaggen je ISO-Code (s. BestenlisteBildDialog)
+  wappenBilder?: Record<string, HTMLImageElement>;   // geladene Team-Logos je URL
   hell?: boolean;           // helle Fassung (Jan, 02.11.2026: Umschalter wie beim Teilen einer Session)
 };
 
@@ -90,6 +93,22 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.fillText(z.wert, BILD_B - X, mitte);
     const wb = g.measureText(z.wert).width;
     let nx = X + 74;
+    if (z.wappen) {
+      const ws = Math.round(gross * 1.25), wy = mitte - ws / 2;
+      const im = z.wappen.logo ? d.wappenBilder?.[z.wappen.logo] : undefined;
+      g.save(); g.beginPath(); g.roundRect(nx, wy, ws, ws, 10); g.clip();
+      if (im) {
+        // Seitenverhaeltnis halten (object-contain wie im Web)
+        const k = Math.min(ws / im.width, ws / im.height), bw = im.width * k, bh = im.height * k;
+        g.drawImage(im, nx + (ws - bw) / 2, wy + (ws - bh) / 2, bw, bh);
+      } else {
+        g.fillStyle = d.hell ? z.wappen.flaecheHell : z.wappen.flaeche; g.fillRect(nx, wy, ws, ws);
+        g.fillStyle = d.hell ? z.wappen.schriftHell : z.wappen.schrift; g.font = `700 ${Math.round(ws * 0.38)}px ${SCHRIFT}`; g.textAlign = "center";
+        g.fillText(z.initialen, nx + ws / 2, mitte);
+      }
+      g.restore();
+      nx += ws + 16;
+    }
     // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund). Der
     // Platz bleibt auch ohne Flagge frei, damit die Namen buendig stehen (Jan, 03.11.2026).
     const fl = z.land ? d.flaggen?.[z.land] : undefined;

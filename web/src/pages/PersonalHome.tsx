@@ -444,7 +444,7 @@ export default function PersonalHome() {
     // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
     { id: "stats", label: t("tab.stats") },
     // Uhr & Konten (Jan, 02.11.2026): die eigenen Uhren und verknuepften Konten, sonst die beiden Einstiege.
-    { id: "uhr", label: t("tab.watchAccounts") },
+    { id: "uhr", label: t("ptab.watches") },
     // Die eigene Profilseite, so wie andere sie sehen (Jan, 04.11.2026) — vorher fuehrte das Profilbild links oben dorthin.
     ...(profile?.id ? [{ id: "profil", label: t("nav.profile") }] : []),
   ];
