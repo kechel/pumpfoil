@@ -53,6 +53,20 @@ const appleShots = [
   { src: "/guide/apple/upload.webp", cap: "guide.cap.aUpload" },
 ];
 
+// Amazfit: Koppeln aus der Fassung 1.0.6 (eckig, aus der Zepp-Rueckmeldung — neuere gibt es noch nicht), der
+// Rest aus 1.0.13 (rund). Eckige Bilder bekommen abgerundete Ecken statt eines Kreises.
+const amazfitShots = [
+  { src: "/guide/amazfit/pair-code.webp", cap: "guide.cap.gPairCode", eckig: true },
+  { src: "/guide/amazfit/pair-ok.webp", cap: "guide.cap.gPairOk", eckig: true },
+  { src: "/watch-amazfit-v2-7.webp", cap: "guide.cap.wStart" },
+  { src: "/watch-amazfit-v2-1.webp", cap: "guide.cap.onFoil" },
+  { src: "/watch-amazfit-v2-2.webp", cap: "guide.cap.onFoil" },
+  { src: "/watch-amazfit-v2-3.webp", cap: "guide.cap.onFoil" },
+  { src: "/watch-amazfit-v2-6.webp", cap: "guide.cap.wRun" },
+  { src: "/watch-amazfit-v2-8.webp", cap: "guide.cap.wStats" },
+  { src: "/watch-amazfit-v2-4.webp", cap: "guide.cap.wStop" },
+];
+
 // HUAWEI WATCH 5 (rund, aus dem DevEco-Emulator 13.10.2026, Fassung 1.0.2). Bildunterschriften wie Wear OS,
 // der Ablauf ist derselbe: Code koppeln -> Start -> Daten -> Stopp -> Upload.
 const huaweiShots = [
@@ -199,11 +213,17 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
           <li>{t("guide.z.s3")}{connectLink}</li>
           <li>{t("guide.z.s4")}</li>
         </ol>
-        <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-          {["/watch-amazfit-v2-1.webp", "/watch-amazfit-v2-2.webp", "/watch-amazfit-v2-3.webp"].map((s) => (
-            <img key={s} src={s} alt="Amazfit" loading="lazy"
-              className="w-full rounded-full border border-slate-800 shadow" />
-          ))}
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-medium text-slate-400">{t("guide.preview")}</p>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+            {amazfitShots.map((s, i) => (
+              <figure key={`${s.src}-${i}`} className="flex flex-col items-center gap-1">
+                <img src={s.src} alt={t(s.cap)} loading="lazy"
+                  className={`w-full border border-slate-800 shadow ${s.eckig ? "rounded-2xl" : "rounded-full"}`} />
+                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{t(s.cap)}</figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
       </Card>
       )}
