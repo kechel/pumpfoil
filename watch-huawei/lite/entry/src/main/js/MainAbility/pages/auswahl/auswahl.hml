@@ -2,7 +2,7 @@
     <!-- Einstellungen auf der Uhr wie Zepp-Seite 4/4 (Jan, 08.10.2026). Eigene Seite = eigenes Buendel (die
          Startseite liegt an der 48-KB-Grenze). Als scrollbare Liste: Lite kennt nur 30/38 px Schrift, auf
          der schmalen eckigen Uhr passte „Begriff: Wert" nicht in eine Zeile. Je Eintrag oben der Begriff,
-         darunter der Wert (darf zweizeilig sein), zusammen in EINEM div (Watch 3/4: list-item hat nur ein Kind). Tippen schaltet weiter; rechts wischen = zurueck. -->
+         darunter der Wert (eine Zeile, zu lang endet mit …), zusammen in EINEM div (Watch 3/4: list-item hat nur ein Kind). Tippen schaltet weiter; rechts wischen = zurueck. -->
     <list class="liste">
         <list-item class="eintrag" onclick="alarm">
             <div class="block"><text class="begriff">{{ bAlarm }}</text><text class="wert">{{ zAlarm }}</text></div>

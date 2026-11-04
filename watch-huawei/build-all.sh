@@ -39,8 +39,11 @@ for m in release debug; do
     G=$(wc -c < "$f")
     echo "  lite $m $(basename "$f"): $G Byte (Grenze 49152), Heap-Spitze $H von 49144"
     # Zweite Grenze, vom Simulator gemeldet („app.js is bigger than 48 KB" = 49152): die Datei selbst.
-    # Release (geht auf die Uhr) mit Luft bei 46000; Debug (nur Simulator, unminifiziert) bei 48500.
-    GR=46000; [ "$m" = debug ] && GR=48500
+    # Release (geht auf die Uhr) mit Luft bei 46000; Debug (nur Simulator, unminifiziert) bei 48800 (04.11.2026 von 48500
+    # angehoben fuer das Gleiten der Datenseiten; die harte Grenze bleibt 49152).
+    # Heap: der Snapshot scheiterte am 04.11. schon bei ~39900 Heap-Spitze (app.js debug), nicht erst bei 44000 — die
+    # 44000 unten faengt also nicht alles; die eigentliche Pruefung ist jerry-snapshot oben.
+    GR=46000; [ "$m" = debug ] && GR=48800
     [ "$G" -le "$GR" ] || { echo "FEHLER: $f ($m) ist $G Byte — ueber 49152 laedt die Uhr die Datei nicht (Grenze hier $GR)"; rm -f "$BC"; exit 1; }
     [ "${H:-99999}" -le 44000 ] || { echo "FEHLER: $f braucht beim Uebersetzen zu viel Heap (Grenze 44000 = 90 %) — verkleinern oder aufteilen"; rm -f "$BC"; exit 1; }
   done

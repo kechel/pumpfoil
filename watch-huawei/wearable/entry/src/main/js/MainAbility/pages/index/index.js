@@ -44,7 +44,7 @@ function art(p, gesamt) {
 
 export default {
   data: {
-    ansicht: "bereit", zeit: "0:00", strecke: "0.00 km", info: "", balken: 0, balkenZeigen: false,
+    ansicht: "bereit", gl: 0, zeit: "0:00", strecke: "0.00 km", info: "", balken: 0, balkenZeigen: false,
     halten: true, tStart: "", tPause: "", tWeg: "", tStopp: "", tFertig: "", fZeit: "", fStrecke: "", fLaeufe: ""
   },
   onInit() {
@@ -152,8 +152,15 @@ export default {
   },
   /** Zeichenbefehle ausfuehren — der Zeichner liegt im app.js-Buendel (common/maler.js), die Seite ist knapp. */
   malen(befehle) {
-    var el = this.$refs.leinwand;
+    var el = this.$refs.leinwand, d = this.gl, i, b;
+    // Gleiten (wie Watch 5): Lite bindet keine Klassen, also beim Zeichnen um d px versetzt
+    if (d) { for (i = 0; i < befehle.length; i++) { b = befehle[i]; b.y += d; b.y1 += d; b.y2 += d; b.cy += d; }
+      befehle.unshift({ k: "r", x: 0, y: 0, w: this.dw, h: this.dh, c: "#000" }); }
     if (el) R.malen(el.getContext("2d"), befehle, this.lite);
+  },
+  gleiten() {
+    var t = this;
+    setTimeout(function () { t.gl = t.gl / 2 | 0; t.zeigen(); if (t.gl) t.gleiten(); }, 40);
   },
   // --- Bedienung -----------------------------------------------------------------------------
   /** Zusammenfassung schliessen (FERTIG tippen oder rechts wischen, wie Wear SavedScreen). */
@@ -256,6 +263,8 @@ export default {
     else if (d === "down") this.seite--;
     else if (d === "right") this.seite = 1;
     else return;
+    this.gl = d === "up" ? 90 : d === "down" ? -90 : 0;
     this.zeigen();
+    this.gleiten();
   }
 };
