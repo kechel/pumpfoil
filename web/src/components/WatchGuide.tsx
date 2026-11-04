@@ -234,6 +234,8 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       <Card id="guide-huawei" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">HUAWEI WATCH 5</h3>
         <p className="mt-1 text-sm text-slate-300">{t("guide.huaweiSub")}</p>
+        <a href="https://appgallery.huawei.com/app/C6917618548983879423" target="_blank" rel="noopener noreferrer"
+          className="mt-3 inline-block rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300">AppGallery → „Pumpfoil"</a>
         <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-200">
           <li>{t("guide.h.s1")}</li>
           <li>{t("guide.h.s2")}{connectLink}</li>

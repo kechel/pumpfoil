@@ -596,7 +596,8 @@ _APP_META: dict[str, dict[str, str]] = {
         "latest": "1.0.3",  # FREIGEGEBEN 2026-11-04 (Jans Meldung, AppGallery-Mail: Einreichung 02.11. 20:03:25 approved
         # and released). Erste Huawei-Fassung im Store. Davor 1.0.2 abgelehnt 22.10./28.10., 1.0.3 abgelehnt 02.11.
         "min_supported": "",
-        "store_url": "",
+        # App ID 6917618548983879423 (AppGallery Connect, Jan 04.11.) im ueblichen AppGallery-Schema C<App-ID>
+        "store_url": "https://appgallery.huawei.com/app/C6917618548983879423",
     },
     "huawei-gt": {          # watch-huawei/lite: Watch GT / Fit / D (LiteOS), braucht Wear Engine
         "latest": "",
