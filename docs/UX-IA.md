@@ -1,5 +1,53 @@
 # UI-/Informationsarchitektur
 
+## App-Port ab 04.11.2026 — Android und iOS auf den Web-Stand bringen
+
+Das Web ist seit dem 02.11. umgebaut (Reiter je Bereich, s. unten), die Apps stehen noch auf dem alten Aufbau: unten
+sieben Knoepfe (Home · Foilers · Sessions · Verlauf · Spots · Chat · Profil), Home ohne Reiter, „Profil" = Einstellungen,
+Foils und Setup als zwei lange Seiten. Teams und Events gibt es in beiden Apps schon (1.1.47 / 1.1.59, „coming next").
+
+**Web-Stand, auf den portiert wird (zusaetzlich zum Baum unten):**
+- **Leiste unten:** Home · Community · Sessions · Spots · Zahnrad (Einstellungen, nur Symbol). Apps: Chat bleibt als
+  eigener Knopf, also Home · Community · Sessions · Spots · Chat · Zahnrad.
+- **Home-Reiter:** Uebersicht · Rekorde · Team · Spots · Stats · Uhren · Profil.
+  - *Team:* eigene Teams; ohne Team gleich die Teamsuche + „Team gruenden".
+  - *Spots:* zweite Zeile = eigene Spots (Homespot zuerst, dann zuletzt besucht), wischbar, „Alle (n)" rechts fest;
+    darunter die Spot-Reiter (Rekorde · Sessions · Heatmap · Wetter · Beschreibungen); „Alle" = Kacheln je Spot
+    (`GET /api/sessions/my-spots-stats`: Sessions, zuletzt/seit, On-Foil-Zeit/-Strecke nur bei `foil_sessions > 0`,
+    Laeufe, Pumps, abweichende Sportarten). Kachel-Klick waehlt den Spot, bleibt in der Ansicht.
+  - *Profil:* die eigene Foiler-Seite eingebettet, oben Hinweis „so wie andere sie sehen koennen", Umschalter
+    Freunde | Alle (`/api/community/foiler/<id>?als=freunde|alle`), Zahnrad -> Einstellungen › Privatsphaere.
+- **Einstellungen-Reiter (je ein Wort):** Uebersicht · Uhren · Freunde · Team · Ausruestung · Ich · Fahren ·
+  Privatsphaere · Darstellung · Konto. Die Kacheln der Uebersicht fuehren auf dieselben Reiter (keine eigenen Seiten).
+  *Team* mit Teamsuche (alle freigegebenen Teams, `passtZu`-Regel: Akzente/Bindestriche egal) ueber „Team gruenden".
+  *Freunde:* Listen zuerst, „Was Freunde sehen" unten.
+- **Ausruestung** (frueher Foils + Detailliertes Setup): Reiter Foils · Stabilizer · Boards · Mast & Shim · Sportarten.
+  Foil- und Stab-Katalog nur ueber die Suche; „Stab selbst anlegen" erst unter den Treffern. Ausruestung je Sportart:
+  bei Sportarten ohne Foil (`/api/app/sports` -> `foil: false`) nur das Board.
+- **Community › Teams & Events:** oben Team-Bestenlisten (`GET /api/teams/liste/vergleich?period=&top=3|5|10`, Kennzahlen
+  Pumps/Strecke/Zeit/Sessions/Laeufe, Summe der besten N je Team), Teilen als Bild mit Wappen je Zeile und dem eigenen Team
+  hervorgehoben (hinter Platz 10 darunter).
+- **Ohne Foil** (`sport_profil.foil === false`): keine On-Foil-Strecke/-Zeit in Session-Karte und -Detail (Pumps sind
+  bei `pumpzahlen: false` schon aus). Wind MIT Foil (Wingfoil, Kitefoil, Parawing) behaelt sie.
+
+**Phasen** (je Phase: erst Android bauen + `:app:compileDebugKotlin`, dann iOS + `swiftc -parse`; Uebersetzungen in allen
+18 Sprachen beider Apps; Swift-Literale <= 50 Eintraege; Punkt in `NAECHSTES` (Android 1.1.47, iOS 1.1.59); nicht bumpen):
+
+| # | Phase | Inhalt | Android | iOS |
+|---|---|---|---|---|
+| 0 | Bausteine | Reiterleiste wie im Web (wischbar, zweite Zeile als Flaeche), Zustand je Bereich | ☐ | ☐ |
+| 1 | Ohne Foil | On-Foil-Zahlen in Karte/Detail ausblenden (klein, sofort sichtbar) | ☐ | ☐ |
+| 2 | Leiste unten | Home · Community · Sessions · Spots · Chat · Zahnrad; Verlauf -> Home › Stats; Profil -> Einstellungen | ☐ | ☐ |
+| 3 | Home-Reiter | Uebersicht · Rekorde · Team · Spots · Stats · Uhren · Profil (vorhandene Abschnitte umhaengen) | ☐ | ☐ |
+| 4 | Home › Spots | Spotzeile + Alle-Kacheln, Spot-Reiter aus der Spot-Seite wiederverwenden | ☐ | ☐ |
+| 5 | Home › Profil | Foiler-Seite eingebettet + Vorschau Freunde/Alle | ☐ | ☐ |
+| 6 | Einstellungen | 10 Reiter, Kacheln = Reiter, Freunde/Team(+Suche)/Uhren eingebettet | ☐ | ☐ |
+| 7 | Ausruestung | Reiter, Suche statt Katalog, Board-only ohne Foil | ☐ | ☐ |
+| 8 | Community | Reiter Rekorde & Bestenliste · Medien · Teams & Events; Team-Bestenlisten + Teilen-Bild | ☐ | ☐ |
+| 9 | Rest | Sessions-Reiter Meine/Freunde/Alle und Spots-Reiter Karte/Liste/Routen pruefen, Spot-Seite-Reiter | ☐ | ☐ |
+
+Jede Phase fuer sich auslieferbar; Jan testet Android im Emulator, iOS in Xcode. Stand hier nachziehen.
+
 ## Stand 02.11.2026 — Reiter je Bereich (entschieden, Web zuerst)
 
 Anlass: ein langer Vorschlagskatalog eines Nutzers (s. docs/TODO.md, Inbox 02.11.) — die Seiten zeigen zu viel auf
