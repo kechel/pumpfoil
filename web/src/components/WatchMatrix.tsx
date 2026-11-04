@@ -20,7 +20,10 @@ const ROWS: { name: string; sub?: string; subKey?: string; gps: Cap; hr: Cap; pu
   // Angekuendigt (Jan, 08.10.2026: „in der uhren-tabelle schonmal ankündigen"). Modelle nach der
   // Recherche in docs/HUAWEI.md „Welche Uhr gehoert zu welcher Linie". Pump „partial": ob der
   // Beschleunigungssensor auf den Lite-Uhren fuer Fremd-Apps laeuft, ist auf Hardware noch offen.
-  { name: "Huawei", sub: "Lite Wearable (GT 3–7, Fit 2–5, D2) · HarmonyOS 2–4 (Watch 3/4) · HarmonyOS 5/6 (Watch 5)", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nHuawei" },
+  // Seit 04.11.2026 zwei Zeilen: die Watch 5 ist in der AppGallery (laedt selbst hoch), GT/Fit/D wartet auf die
+  // Wear-Engine-Freigabe. Watch 3/4 nicht mehr aufgefuehrt — wird nicht eingereicht (docs/HUAWEI.md, Recherche 04.11.).
+  { name: "Huawei Watch 5", sub: "HarmonyOS 5/6 · AppGallery", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nHuaweiW5" },
+  { name: "Huawei", sub: "Lite Wearable (GT 3–7, Fit 2–5, D2)", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nHuawei" },
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar",
     account: { logo: "/polar-logo.jpg", alt: "Polar", labelKey: "watches.linkAccount" } },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",

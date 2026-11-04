@@ -13,6 +13,7 @@ const platforms = [
   { id: "apple", label: "Apple Watch" },
   { id: "wear", label: "Wear OS" },
   { id: "amazfit", label: "Amazfit" },
+  { id: "huawei", label: "Huawei" },
 ];
 
 // Garmin-Anleitungs-Screenshots (v1.0.24, rund) — Captions über i18n (guide.cap.*).
@@ -50,6 +51,18 @@ const appleShots = [
   { src: "/guide/apple/data-2.webp", cap: "guide.cap.onFoil" },
   { src: "/guide/apple/stop.webp", cap: "guide.cap.aStop" },
   { src: "/guide/apple/upload.webp", cap: "guide.cap.aUpload" },
+];
+
+// HUAWEI WATCH 5 (rund, aus dem DevEco-Emulator 13.10.2026, Fassung 1.0.2). Bildunterschriften wie Wear OS,
+// der Ablauf ist derselbe: Code koppeln -> Start -> Daten -> Stopp -> Upload.
+const huaweiShots = [
+  { src: "/guide/huawei/connect.webp", cap: "guide.cap.wConnect" },
+  { src: "/guide/huawei/start.webp", cap: "guide.cap.wStart" },
+  { src: "/guide/huawei/data-1.webp", cap: "guide.cap.onFoil" },
+  { src: "/guide/huawei/data-2.webp", cap: "guide.cap.onFoil" },
+  { src: "/guide/huawei/run.webp", cap: "guide.cap.wRun" },
+  { src: "/guide/huawei/stop.webp", cap: "guide.cap.wStop" },
+  { src: "/guide/huawei/upload.webp", cap: "guide.cap.aUpload" },
 ];
 
 export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => void; onOpenConnect?: () => void }) {
@@ -191,6 +204,33 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
             <img key={s} src={s} alt="Amazfit" loading="lazy"
               className="w-full rounded-full border border-slate-800 shadow" />
           ))}
+        </div>
+      </Card>
+      )}
+
+      {/* HUAWEI WATCH 5 (AppGallery seit 04.11.2026). GT/Fit/D und Watch 3/4 hier bewusst nicht: GT wartet auf
+          Huaweis Wear-Engine-Freigabe, Watch 3/4 wird nicht eingereicht (docs/HUAWEI.md). */}
+      {sel === "huawei" && (
+      <Card id="guide-huawei" className="scroll-mt-20 p-5">
+        <h3 className="text-lg font-bold text-brand-400">HUAWEI WATCH 5</h3>
+        <p className="mt-1 text-sm text-slate-300">{t("guide.huaweiSub")}</p>
+        <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-200">
+          <li>{t("guide.h.s1")}</li>
+          <li>{t("guide.h.s2")}{connectLink}</li>
+          <li>{t("guide.h.s3")}</li>
+          <li>{t("guide.h.s4")}</li>
+        </ol>
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-medium text-slate-400">{t("guide.preview")}</p>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+            {huaweiShots.map((s, i) => (
+              <figure key={`${s.src}-${i}`} className="flex flex-col items-center gap-1">
+                <img src={s.src} alt={t(s.cap)} loading="lazy"
+                  className="w-full rounded-full border border-slate-800 shadow" />
+                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{t(s.cap)}</figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
       </Card>
       )}
