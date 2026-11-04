@@ -2036,6 +2036,8 @@ export const api = {
   adminPending: () => req<AdminPending>("/api/admin/pending"),
   adminBlocks: () => req<AdminBlock[]>("/api/admin/blocks"),
   newsBanner: () => req<NewsBanner>("/api/app/news"),
+  // Die zentrale Sportarten-Liste (server/app/data/sportarten.json); hier nur, was das Web davon braucht.
+  appSports: () => req<{ sportarten: { id: string; foil?: boolean; land?: boolean }[] }>("/api/app/sports"),
   /** Einen Seitenaufruf melden. Zaehlt EINE Zahl je Tag, ohne jede Kennung — s. models.PageHit. */
   seitenAufruf: () => req<{ ok: boolean }>("/api/app/hit", { method: "POST" }),
   adminHealth: () => req<SystemHealth>("/api/admin/health"),

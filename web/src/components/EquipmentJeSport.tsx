@@ -20,12 +20,16 @@ export function EquipmentJeSport({ stabs, boards, myStabs, myMasts }: {
   const [myFoils, setMyFoils] = useState<number[]>([]);
   const [foils, setFoils] = useState<Foil[]>([]);
   const [neu, setNeu] = useState("");
+  // Sportarten OHNE Foil (Kitesurf, Snowkite, Kite-ATB …): dort nur das Board (Jan, 04.11.2026: Foil, Stab und Mast
+  // ergeben keinen Sinn, ein Board haben alle, auch an Land). Quelle ist die zentrale Liste des Servers.
+  const [ohneFoil, setOhneFoil] = useState<Set<string>>(new Set());
   useEffect(() => {
     api.getSettings().then((s) => {
       setJe((s.equipment_je_sport as Record<string, Eintrag>) ?? {});
       setMyFoils((s.my_foils as number[]) ?? []);
     }).catch(() => {});
     api.foils().then(setFoils).catch(() => {});
+    api.appSports().then((d) => setOhneFoil(new Set(d.sportarten.filter((x) => x.foil === false).map((x) => x.id)))).catch(() => {});
   }, []);
   const foilName = useMemo(() => new Map(foils.map((f) => [f.id, `${f.brand} ${f.model} ${f.size}`.trim()])), [foils]);
   const stabName = useMemo(() => new Map((stabs ?? []).map((s) => [s.id, `${s.brand} ${s.model} ${s.size}`.trim()])), [stabs]);
@@ -65,10 +69,10 @@ export function EquipmentJeSport({ stabs, boards, myStabs, myMasts }: {
                 onClick={() => { const n = { ...je }; delete n[sp]; speichern(n); }}><CloseIcon className="h-4 w-4" /></button>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {auswahl(sp, "foil_id", myFoils.map((id) => [id, foilName.get(id) ?? `#${id}`]))}
+              {!ohneFoil.has(sp) && auswahl(sp, "foil_id", myFoils.map((id) => [id, foilName.get(id) ?? `#${id}`]))}
               {auswahl(sp, "board_id", boards.map((b) => [b.id, b.name]))}
-              {auswahl(sp, "stab_id", myStabs.map((id) => [id, stabName.get(id) ?? `#${id}`]))}
-              {auswahl(sp, "mast_len_cm", myMasts.map((m) => [m, `${m} cm`]))}
+              {!ohneFoil.has(sp) && auswahl(sp, "stab_id", myStabs.map((id) => [id, stabName.get(id) ?? `#${id}`]))}
+              {!ohneFoil.has(sp) && auswahl(sp, "mast_len_cm", myMasts.map((m) => [m, `${m} cm`]))}
             </div>
           </div>
         ))}
