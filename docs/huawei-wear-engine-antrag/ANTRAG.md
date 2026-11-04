@@ -51,7 +51,7 @@ Die zwei Excel-Dateien vom ersten Antrag (Datennutzung, Autorisierungsweg) liege
 >    „Basic device information" only).
 > 2. The watch app records a session and stores it on the watch. Recording never depends on the phone.
 > 3. During and after the session the watch sends new data to the phone app as P2P messages of at most 1 KB. The
->    watch shows „To phone: 3/12".
+>    watch shows the progress as a bar and a part counter, e.g. „24/268".
 > 4. The phone app reassembles the files and uploads them over HTTPS to the user's account.
 > 5. A file is deleted on the watch only after Wear Engine has confirmed delivery (code 207) of every one of its
 >    parts. The watch then shows „All sent".
@@ -81,7 +81,7 @@ Jans Datenseiten wie vom Handy. **Hinterher `./sim.sh aus`, nie im Zustand „an
 |---|---|---|
 | 1 | Startbildschirm mit START | App öffnen |
 | 2 | Aufnahme läuft, Datenseite (Tempo, Puls, Zeit) | START, GPS-Fahrt aus `sim-fahrt.gpx` läuft |
-| 3 | „To phone: n/m" | mit `an-ok` während oder nach der Aufnahme, solange Teile laufen |
+| 3 | Zähler „n/m" mit Balken | mit `an-ok` während oder nach der Aufnahme, solange Teile laufen (die Uhr schreibt nur die Zahlen, kein „To phone") |
 | 4 | „All sent" | mit `an-ok` nach STOP, wenn alles durch ist |
 | 5 | „open app on phone" | `./sim.sh an` (ohne `-ok`), aufnehmen, STOP, ein paar Versuche abwarten |
 | 6 | Einstellungen mit „Connect" / Kopplung | Einstellungsseite |
