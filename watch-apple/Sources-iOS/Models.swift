@@ -115,6 +115,7 @@ struct SessionSummary: Codable, Identifiable {
     let owner_avatar_url: String?
     let thumb_url: String?
     let like_count: Int?
+    var comment_count: Int? = nil   // sichtbare Kommentare (02.11.2026) — Zaehler auf der Karte wie PWA SessionRow
     let foil_id: Int?
     let photo_count: Int?
     let liked: Bool?
@@ -167,6 +168,7 @@ struct CommunityItem: Codable, Identifiable {
     let photo_count: Int?      // Fotos der Session (Zaehler-Badge in der Tages-Gruppe)
     let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
     let like_count: Int?
+    var comment_count: Int? = nil   // sichtbare Kommentare (02.11.2026)
     let liked: Bool?
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
     let placement: String?     // "board" = Handy war am Brett -> Abzeichen hervorgehoben
@@ -593,13 +595,16 @@ struct LeaderEntry: Codable, Identifiable {
     var distance_m: Double? = nil; var time_s: Double? = nil   // On-Foil-Strecke/-Zeit (Server additiv seit 01.11.2026)
     var run_distance_m: Double? = nil; var run_time_s: Double? = nil   // bester einzelner Lauf
     var session_id: Int? = nil   // nur bei Einzellauf-Listen: Session des besten Laufs (Tippen oeffnet sie)
+    var ride_total_m: Double? = nil   // ganze Fahrt (Wind/Paddeln, „Session gesamt")
     var rank: Int? = nil   // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist (01.11.2026)
+    var land: String? = nil   // Nationalitaet (Flagge), nur wer sie selbst eingestellt hat (Server seit 02.11.2026)
     var id: String { (name ?? "") + (avatar_url ?? "") }
 }
 struct Leaders: Codable {
     let sessions: [LeaderEntry]?; let runs: [LeaderEntry]?; let spots: [LeaderEntry]?; let pumps: [LeaderEntry]?
     var distance: [LeaderEntry]? = nil; var time: [LeaderEntry]? = nil
     var run_distance: [LeaderEntry]? = nil; var run_time: [LeaderEntry]? = nil
+    var ride_total: [LeaderEntry]? = nil   // nur Wind/Paddeln vorne (web LEADER_KINDS)
     var me: [String: LeaderEntry?]? = nil   // eigene Zeile unter Platz 10 je Liste (Server additiv seit 01.11.2026)
 }
 
@@ -1386,6 +1391,9 @@ struct SessionDetail: Codable, Identifiable {
     let owner_avatar_url: String?
     let like_count: Int?
     let liked: Bool?
+    // Kommentare (02.11.2026): sichtbare Anzahl; `comments_off` = Inhaber hat sie abgeschaltet (nur Detailansicht).
+    var comment_count: Int? = nil
+    var comments_off: Bool? = nil
     let owned: Bool?
     let youtube_url: String?
     let place_water: String?   // Gewässer als Zusatz-Label

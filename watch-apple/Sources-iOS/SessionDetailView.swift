@@ -49,6 +49,7 @@ struct SessionDetailView: View {
     @State private var classErr: String?
     @State private var liked = false
     @State private var likeCount = 0
+    @State private var kommentareOffen = false   // Kommentar-Thread (ChatRoomView, scope "session:<id>")
     @State private var photos: [SessionPhoto] = []
     @State private var videos: [SessionVideo] = []
     @State private var videoDialog = false
@@ -151,6 +152,7 @@ struct SessionDetailView: View {
             // Versuche erst holen, wenn sie gebraucht werden — der Server rechnet sie frisch.
             .task(id: "\(sid)-\(showAttempts)") { await ladeVersuche() }
             .task(id: session?.status) { await pollWhileLive() }
+            .navigationDestination(isPresented: $kommentareOffen) { kommentarThread }
             .sheet(isPresented: $showSetupEdit) { setupSheet }
             .sheet(isPresented: $showLink) { linkSheet }
             .sheet(isPresented: $showTrim) { trimSheet }
@@ -589,6 +591,8 @@ struct SessionDetailView: View {
             statsSection(s)
             // Lage je Lauf — eigene kleine Tabelle unter der grossen (wie PWA).
             LageJeLaufTabelle(session: s, lang: lang, ausgewaehlt: $selectedRun)
+            // Kommentare (PWA SessionKommentare, 02.11.2026) — vor den Werkzeugen und Melde-Knoepfen.
+            if kommentareSichtbar { kommentareKarte(s) }
             unmergeRow(s)
             bottomActions(s)
             reportSection(s)
@@ -710,7 +714,7 @@ struct SessionDetailView: View {
                 AvatarView(name: s.owner_name, url: Api.mediaURL(s.owner_avatar_url), size: 44, userId: s.owner_id)
                 headerMeta(s)
                 Spacer()
-                likeButton(s)
+                likeSpalte(s)
             }
             zeitUndUhr(s)
             if !caption.isEmpty { Text(caption).font(.body).bold() }
@@ -782,6 +786,41 @@ struct SessionDetailView: View {
             // Dasselbe Abzeichen wie auf den Karten (SessionsView.geraeteAbzeichen).
             geraeteAbzeichen(amBrett ? "\(dl) · \(Loc.t("session.onBoard", lang))" : dl, amBrett: amBrett, schrift: .body)
         }
+    }
+
+    // Herz, darunter fuer den Inhaber „Wer hat geliked" (PWA WerHatGeliked, 02.11.2026) — alle anderen sehen nur die Zahl.
+    // Daneben die Zahl der Kommentare; ein Tipp oeffnet den Thread (im Web: Sprung zum Abschnitt).
+    private func likeSpalte(_ s: SessionDetail) -> some View {
+        VStack(alignment: .trailing, spacing: 2) {
+            HStack(spacing: 6) {
+                if kommentareSichtbar && s.comments_off != true { kommentarZahlKnopf(s) }
+                likeButton(s)
+            }
+            if s.owned == true && likeCount > 0 {
+                WerHatGeliktKnopf(sessionId: s.id, anzahl: likeCount)
+            }
+        }
+    }
+
+    // Kommentare sind sozial: unter 13 (social_allowed = false) gar nicht, und nicht auf geteilten Links ohne Anmeldung.
+    private var kommentareSichtbar: Bool { store.profile?.social_allowed != false && store.isLoggedIn }
+
+    private func kommentarZahlKnopf(_ s: SessionDetail) -> some View {
+        Button { kommentareOffen = true } label: {
+            Label("\(s.comment_count ?? 0)", systemImage: "bubble.left")
+        }
+        .buttonStyle(.bordered)
+        .accessibilityLabel(Loc.t("comments.title", lang))
+    }
+
+    private func kommentareKarte(_ s: SessionDetail) -> some View {
+        SessionKommentareKarte(sessionId: s.id, owned: s.owned == true, aus: s.comments_off == true,
+                               anzahlServer: s.comment_count ?? 0, threadOffen: $kommentareOffen)
+    }
+
+    private var kommentarThread: some View {
+        ChatRoomView(scope: SessionKommentareKarte.scope(sid), title: Loc.t("comments.title", lang),
+                     kommentare: true, inhaber: session?.owned == true)
     }
 
     private func likeButton(_ s: SessionDetail) -> some View {
@@ -1771,9 +1810,11 @@ struct SessionDetailView: View {
         if pumpzahlen, let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), PumpUnit.fmt(v, lang))) }
         // Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter — wie die PWA
         // (01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert.
+        // Tippen wechselt zwischen Ø auf dem Foil und Ø gesamt; das Kaestchen oben rechts zeigt den jeweils ANDEREN Wert
+        // (web PulsStat, 04.11.2026). Bewusst nicht gemerkt — jede Session startet On-Foil.
         if let hf = m?.avg_hr_foil, hf > 0 {
-            let gesamt: String? = m?.avg_hr.map { Loc.t("sd.avgHrTotal", lang) + " " + String(format: "%.0f", $0) }   // sd.avgHrGesamt gibt es im Web nicht mehr (04.11.2026)
-            out.append(StatItem(Loc.t("sd.avgHrFoil", lang), String(format: "%.0f", hf), sub: gesamt))
+            let gesamt: (String, String)? = m?.avg_hr.map { (Loc.t("sd.avgHrTotal", lang), String(format: "%.0f", $0)) }
+            out.append(StatItem(Loc.t("sd.avgHrFoil", lang), String(format: "%.0f", hf), wechsel: gesamt))
         } else if let v = m?.avg_hr, v > 0 { out.append(StatItem(Loc.t("sd.avgHr", lang), String(format: "%.0f", v))) }
         if let v = m?.max_hr, v > 0 { out.append(StatItem(Loc.t("sd.maxHr", lang), String(format: "%.0f", v))) }
         if let i = longestRunIdx, let v = segs[i].duration_s { out.append(StatItem(Loc.t("home.longestRun", lang), mmssD(v), runIdx: i)) }
@@ -3320,11 +3361,15 @@ struct StatItem: Identifiable {
     // innerhalb einer Session eindeutig.
     /// Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt.
     let info: String?
-    /// Kleine Zusatzzeile unter dem Label (z. B. „gesamt 128" am Ø Puls auf dem Foil).
+    /// Kleine Zusatzzeile unter dem Label.
     let sub: String?
+    /// Zweite Ansicht derselben Kachel (Beschriftung, Wert), umgeschaltet per Tipp — Ø Puls auf dem Foil / gesamt.
+    let wechsel: (String, String)?
     var id: String { label }
-    init(_ label: String, _ value: String, runIdx: Int? = nil, info: String? = nil, sub: String? = nil) {
+    init(_ label: String, _ value: String, runIdx: Int? = nil, info: String? = nil, sub: String? = nil,
+         wechsel: (String, String)? = nil) {
         self.label = label; self.value = value; self.runIdx = runIdx; self.info = info; self.sub = sub
+        self.wechsel = wechsel
     }
 }
 
@@ -3334,12 +3379,26 @@ private struct StatTile: View {
     let onTap: () -> Void
     @AppStorage("appLang") private var lang = "de"
     @State private var zeigeInfo = false
+    @State private var andere = false   // zweite Ansicht (StatItem.wechsel) gezeigt
+
+    private var wert: String { andere ? (item.wechsel?.1 ?? item.value) : item.value }
+    private var beschriftung: String { andere ? (item.wechsel?.0 ?? item.label) : item.label }
+    /// Kaestchen oben rechts: der jeweils andere Wert — zeigt, dass man hier tippen kann.
+    private var anderer: String? {
+        guard let w = item.wechsel else { return nil }
+        return andere ? item.value : w.1
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .top, spacing: 4) {
-                Text(item.value).font(.title3).bold().foregroundStyle(Color.accentColor)
+                Text(wert).font(.title3).bold().foregroundStyle(Color.accentColor)
                 Spacer(minLength: 0)
+                if let a = anderer {
+                    Text(a).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+                        .padding(.horizontal, 4).padding(.vertical, 1)
+                        .background(RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemBackground)))
+                }
                 if item.info != nil {
                     Button { zeigeInfo = true } label: {
                         Image(systemName: "info.circle").font(.caption).foregroundStyle(.secondary)
@@ -3347,7 +3406,7 @@ private struct StatTile: View {
                     .buttonStyle(.plain)
                 }
             }
-            Text(item.label).font(.caption).foregroundStyle(.secondary)
+            Text(beschriftung).font(.caption).foregroundStyle(.secondary)
             if let sub = item.sub {
                 Text(sub).font(.caption2).foregroundStyle(.secondary)
             }
@@ -3363,7 +3422,9 @@ private struct StatTile: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(item.runIdx != nil ? Color.accentColor.opacity(0.35) : .clear, lineWidth: 1))
         .contentShape(Rectangle())
-        .onTapGesture { if item.runIdx != nil { onTap() } }
+        .onTapGesture {
+            if item.wechsel != nil { andere.toggle() } else if item.runIdx != nil { onTap() }
+        }
     }
 }
 

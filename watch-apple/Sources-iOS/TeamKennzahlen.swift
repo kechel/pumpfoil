@@ -171,13 +171,16 @@ struct TeamTafelKarte: View {
     let lang: String
     /// Filterzeile weglassen — auf der Event-Seite.
     var ohneFilter: Bool = false
+    /// Sportart als Marke neben der Ueberschrift — wenn die Bestenlisten verschiedene Sportarten haben (web 831f6406,
+    /// Jan 02.11.2026: „in den kacheln fehlt die anzeige welche sportart jeweils gemeint ist").
+    var sportZeigen: Bool = false
 
     private var k: TeamKennzahl { teamKennzahl(tf.kennzahl) }
     private var tfarbe: TeamFarbe { TeamFarbe(farbe) }
     private var titel: String { Loc.t(k.labelKey, lang) }
     private var filter: String {
         var teile: [String] = []
-        if tf.sportart != "pumpfoil" { teile.append(Loc.t("cls.sport." + tf.sportart, lang)) }
+        if tf.sportart != "pumpfoil" && !sportZeigen { teile.append(Loc.t("cls.sport." + tf.sportart, lang)) }
         if tf.nur_teamspots == true { teile.append(Loc.t("team.tafel.nurTeamspots", lang)) }
         if tf.nur_brett == true { teile.append(Loc.t("team.tafel.nurBrett", lang)) }
         return teile.joined(separator: " · ")
@@ -185,7 +188,7 @@ struct TeamTafelKarte: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(titel).font(.headline).foregroundStyle(tfarbe.akzent)
+            titelZeile
             if !ohneFilter && !filter.isEmpty {
                 Text(filter).font(.caption).foregroundStyle(.secondary)
             }
@@ -194,6 +197,17 @@ struct TeamTafelKarte: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var titelZeile: some View {
+        HStack(spacing: 8) {
+            Text(titel).font(.headline).foregroundStyle(tfarbe.akzent)
+            if sportZeigen {
+                Text(Loc.t("cls.sport." + tf.sportart, lang)).font(.caption.weight(.medium)).foregroundStyle(.secondary)
+                    .padding(.horizontal, 8).padding(.vertical, 2)
+                    .background(Capsule().fill(Color(.tertiarySystemBackground)))
+            }
+        }
     }
 
     @ViewBuilder private var zeilenBereich: some View {
@@ -231,6 +245,7 @@ private struct TeamTafelZeile: View {
             Text("\(z.rang)").font(.subheadline.weight(.bold)).foregroundStyle(rangFarbe)
                 .frame(width: 24, alignment: .trailing)
             bild
+            LandFlagge(land: z.land)
             VStack(alignment: .leading, spacing: 1) {
                 Text(name).font(.subheadline).lineLimit(1)
                 if let u = unterzeile { Text(u).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }

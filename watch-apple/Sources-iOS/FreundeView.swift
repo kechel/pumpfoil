@@ -324,36 +324,6 @@ struct FreundeView: View {
     }
 }
 
-/// Eintrag „Freunde verwalten" im Profil (Jan, 15.10.2026: „zwischen verknuepfte Konten und meine
-/// foils und ein 'neu' Badge mit dran"). Die Zahl zaehlt offene Anfragen an mich; sie wird bei
-/// jedem Erscheinen neu geholt (nach Annehmen/Ablehnen stimmt sie sonst nicht mehr).
-struct FreundeZeile: View {
-    @AppStorage("appLang") private var lang = "de"
-    @State private var anfragen = 0
-
-    var body: some View {
-        NavigationLink { FreundeView() } label: { label }
-            .onAppear { Task { anfragen = (try? await Api.friendsCount()) ?? anfragen } }
-    }
-
-    private var label: some View {
-        Label {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(Loc.t("friends.manage", lang))
-                    NeuBadge()
-                    if anfragen > 0 {
-                        Text("\(anfragen)").font(.caption2.bold()).foregroundStyle(.white)
-                            .padding(.horizontal, 6).padding(.vertical, 1)
-                            .background(Capsule().fill(Color.accentColor))
-                    }
-                }
-                Text(Loc.t("friends.profileHint", lang)).font(.caption).foregroundStyle(.secondary)
-            }
-        } icon: { Image(systemName: "person.2").foregroundStyle(Color.accentColor) }
-    }
-}
-
 /// Unter der Begruessung auf der Startseite: welche meiner Freunde gerade wo pumpen (Jan,
 /// 15.10.2026: „wenn es mehr als 3 sind dann nur noch x Friends currently pumping und bei klick
 /// dann darunter oeffnen"). Nichts da -> nichts gezeigt (Hoehe 0). Alle zwei Minuten neu, wie die

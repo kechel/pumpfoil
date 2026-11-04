@@ -278,7 +278,7 @@ struct SpotRecordsView: View {
                 SpotRecordsKasten(sport: aktiv, alle: jeSportart[aktiv] ?? [:], lang: lang, ladeStand: ladeStand,
                                   // Keine Knoepfe mehr IM Kasten: sie stehen als Filter der Seite darueber (SpotSportKnoepfe).
                                   sportWahl: [],
-                                  gewaehlt: sport, onSport: onSport)
+                                  gewaehlt: sport, onSport: onSport, spot: spot, accelOnly: accelOnly)
                     .id(aktiv)
             }
         }
@@ -329,6 +329,9 @@ struct SpotRecordsKasten: View {
     /// Gewaehlter Filter der Seite (hervorgehobener Knopf).
     var gewaehlt: String = "all"
     var onSport: (String) -> Void = { _ in }
+    /// Gesetzt: darunter die Bestenlisten an diesem Spot (web 0fc2eba8), Zeitraum wie die Kacheln.
+    var spot: String? = nil
+    var accelOnly: Bool = false
 
     static let fenster = ["10d", "30d", "365d", "all"]
 
@@ -360,6 +363,15 @@ struct SpotRecordsKasten: View {
     }
 
     var body: some View {
+        Group {
+            kachelSection
+            if let sp = spot {
+                SpotBestenliste(spot: sp, sport: sport, period: fensterWahl, accelOnly: accelOnly, lang: lang)
+            }
+        }
+    }
+
+    private var kachelSection: some View {
         Section {
             if !sportWahl.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {

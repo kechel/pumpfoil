@@ -428,6 +428,8 @@ enum Api {
         let id: Int?
         let skipped: String?
         let detail: String?
+        /// skipped == "exists_different" (nur mit `rueckfrage`): dieselbe Fahrt liegt schon da, mit anderer Datei.
+        var existing_id: Int? = nil
     }
 
     /// Aufgezeichnete Aktivitaet importieren (FIT/TCX/GPX, auch als ZIP oder gepackt als `.gz` —
@@ -435,8 +437,14 @@ enum Api {
     /// den die PWA benutzt. Uebersprungen ist KEIN Fehler (der Garmin-Gesamtexport enthaelt
     /// Aktivitaeten und Tagesaufzeichnungen gemischt), deshalb kommt das Ergebnis zurueck,
     /// statt zu werfen. `timeoutInterval` hoch: der Server parst UND wertet gleich aus.
-    static func uploadFit(data: Data, filename: String) async throws -> FitUpload {
-        guard let url = URL(string: baseURL + "/api/sessions/upload-fit") else { throw ApiError.badURL }
+    /// `rueckfrage`: bei derselben Fahrt mit ANDERER Datei nicht still ueberspringen, sondern `exists_different` +
+    /// `existing_id` melden; `ersetzen`: diese Session loeschen und durch die Datei ersetzen (web uploadFit, 03.11.2026).
+    static func uploadFit(data: Data, filename: String, rueckfrage: Bool = false, ersetzen: Int? = nil) async throws -> FitUpload {
+        var q: [String] = []
+        if rueckfrage { q.append("rueckfrage=1") }
+        if let e = ersetzen { q.append("ersetzen=\(e)") }
+        let pfad: String = "/api/sessions/upload-fit" + (q.isEmpty ? "" : "?" + q.joined(separator: "&"))
+        guard let url = URL(string: baseURL + pfad) else { throw ApiError.badURL }
         let boundary = "----pumpfoil\(Int(Date().timeIntervalSince1970 * 1000))"
         var body = Data()
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
@@ -569,10 +577,12 @@ enum Api {
     // eine. Der Endpunkt-Default ist "pumpfoil"; Rekorde/Bestenlisten bleiben dabei.
     static func communitySessionsGrouped(spot: String? = nil, limit: Int = 20, offset: Int = 0,
                                          accelOnly: Bool = true, sport: String = "pumpfoil", board: Bool = false,
-                                         freunde: Bool = false) async throws -> [CommunityGroup] {
+                                         freunde: Bool = false, team: String? = nil) async throws -> [CommunityGroup] {
         let sp = (spot?.isEmpty == false) ? "&spot=\(spot!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot!)" : ""
         let b = board ? "&board=true" : ""
-        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)\(b)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
+        // Sessions › Team (02.11.2026): „alle" oder Team-ID, der Server liefert die letzten 30 Tage der Mitglieder.
+        let tm: String = team.map { "&team=" + $0 } ?? ""
+        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)\(b)\(freunde ? "&friends=1" : "")\(tm)", method: "GET", body: nil, auth: true)
     }
 
     // `period` (today|10d|30d|365d|all) wirkt auf Rekorde UND Gesamtwerte — beides kommt aus
@@ -695,9 +705,18 @@ enum Api {
         try await request("/api/auth/me/reanalysis", method: "GET", body: nil, auth: true)
     }
 
+    /// `spot`: Bestenlisten nur an diesem Spot (Spot-Seite, Server seit 02.11.2026).
     static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all", freunde: Bool = false,
-                        sport: String = "pumpfoil") async throws -> Leaders {
-        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)&sport=\(sport)\(freunde ? "&friends=1" : "")", method: "GET", body: nil, auth: true)
+                        sport: String = "pumpfoil", spot: String? = nil) async throws -> Leaders {
+        var pfad: String = "/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)&sport=\(sport)"
+        if freunde { pfad += "&friends=1" }
+        if let s = spot, !s.isEmpty {
+            // Spotnamen koennen „&" oder „+" enthalten — die duerfen im Wert nicht roh stehen.
+            var erlaubt: CharacterSet = .urlQueryAllowed
+            erlaubt.remove(charactersIn: "&+=?#")
+            pfad += "&spot=" + (s.addingPercentEncoding(withAllowedCharacters: erlaubt) ?? s)
+        }
+        return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
     static func latestPhotos(limit: Int = 8, freunde: Bool = false) async throws -> [MediaItem] {

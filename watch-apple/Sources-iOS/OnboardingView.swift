@@ -92,7 +92,7 @@ struct OnboardingView: View {
             Section { ProgressView() }
         } else {
             switch schritte[i] {
-            case "lang": sprachSection; nameSection
+            case "lang": sprachSection; LandSection(lang: lang, assistent: true); nameSection
             case "level": koennenSection; gewichtSection
             case "sport": sportSection
             case "foil": foilSection

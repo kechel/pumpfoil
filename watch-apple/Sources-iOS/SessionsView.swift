@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 // friends (Jan, 15.10.2026): meine + die meiner Freunde in EINER Liste (wie die PWA).
-private enum SessionScope { case mine, spot, all, friends }
+private enum SessionScope { case mine, spot, all, friends, team }
 
 // Sessions-Liste mit Scope-Umschalter (Meine / Homespot / Alle) + Spot-Suche.
 struct SessionsView: View {
@@ -15,6 +15,9 @@ struct SessionsView: View {
     @State private var scope: SessionScope = .mine
     @State private var homespot = ""
     @State private var spot = ""          // aktiver Spot (für .spot)
+    // Reiter „Team" (web Sessions.tsx, 02.11.2026): nur mit eigenen (aktiven) Teams; „alle" oder Team-ID (web TeamWahl).
+    @State private var meineTeams: [TeamKurz] = []
+    @State private var teamWahl = "alle"
     @State private var spotIds: [String: Int] = [:]   // Name -> spot_id (Spot-Beschreibungen)
     // Lage je Spot und Zustand der Panels „Heatmap & Routen" (ausserhalb der Listenzeile)
     @State private var spotOrte: [String: (Double, Double)] = [:]
@@ -61,6 +64,7 @@ struct SessionsView: View {
     @State private var importMeldung: String?
     @State private var importierteId: Int?
     @State private var oeffneImport = false
+    @StateObject private var ersetzenFrage = ErsetzenFrage()
 
     // Der Body war EIN Ausdruck (List mit 7 Kindern + 15 Modifier mit Closures) und stand mit
     // >500 ms im Build-Log. Listeninhalt, Toolbar und Startladen sind jetzt eigene typisierte Teile.
@@ -83,6 +87,9 @@ struct SessionsView: View {
                 .onAppear { Task { await load() } }
                 // Filterwechsel: die ALTE Liste sofort weg (PWA 8f9cc725), nicht erst mit der neuen.
                 .onChange(of: scope) { _ in listeLeeren(); Task { await load() } }
+                .onChange(of: teamWahl) { _ in listeLeeren(); Task { await load() } }
+                // Eigene Teams fuer den Reiter „Team" (nur aktive, wie web useMeineTeams).
+                .task { meineTeams = ((try? await Api.teamsMine()) ?? []).filter { $0.status == "aktiv" } }
                 // Spot gewechselt/verlassen: eine vorherige Automatik („Spot ohne Accel-Sessions")
                 // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
                 .onChange(of: spot) { _ in resetAccelAuto(); listeLeeren(); Task { await loadWeather(); await load() } }
@@ -124,6 +131,7 @@ struct SessionsView: View {
                     Text(importMeldung ?? "")
                 }
                 .navigationDestination(isPresented: $oeffneImport) { importZiel }
+                .ersetzenFrageAlert(ersetzenFrage, lang: lang)
         }
     }
 
@@ -288,12 +296,15 @@ struct SessionsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 // „N neue Sessions heute" ganz oben, direkt unter dem Titel (PWA 9131874f: neben die
                 // Ueberschrift). Auf dem iPhone ist neben dem grossen Titel kein Platz.
-                HeuteNeu(mine: scope == .mine, spot: heuteSpot,
-                         accelOnly: accelOnly && !brett, sport: sport, board: brett,
-                         freunde: scope == .friends, lang: lang)
+                if scope != .team {
+                    HeuteNeu(mine: scope == .mine, spot: heuteSpot,
+                             accelOnly: accelOnly && !brett, sport: sport, board: brett,
+                             freunde: scope == .friends, lang: lang)
+                }
                 // Meine | Freunde | Alle als Reiter wie ueberall (App-Port Phase 9, 04.11.2026, wie das Web). In der
                 // Spot-Ansicht keine — dort waere keiner aktiv.
                 if scope != .spot { scopeChips }
+                if scope == .team { teamWahlZeile }
                 HStack {
                     // Kurz „accel" und „POB" in allen Sprachen (Jan, 13.10.2026): passt so auch auf
                     // schmalen Displays in eine Zeile.
@@ -372,8 +383,10 @@ struct SessionsView: View {
     private func importiere(_ urls: [URL]) {
         guard !urls.isEmpty else { return }
         importLaeuft = true
-        Task {
-            let (text, letzte) = await dateienImportieren(urls, lang: lang) { importFortschritt = $0 }
+        // Auf dem Main-Actor: Fortschritt und Ergebnis setzen @State.
+        Task { @MainActor in
+            let (text, letzte) = await dateienImportieren(urls, lang: lang, fortschritt: { importFortschritt = $0 },
+                                                          frage: { await ersetzenFrage.fragen($0) })
             importFortschritt = ""
             importLaeuft = false
             importierteId = letzte
@@ -436,6 +449,7 @@ struct SessionsView: View {
         case .mine: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.mine", lang))"
         case .all: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.all", lang))"
         case .friends: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("friends.title", lang))"
+        case .team: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("tab.team", lang))"
         // Zusatz mit in den Titel (wie im Web): „Berlin 3" allein sagt nicht, welcher der
         // drei Berliner Spots gemeint ist.
         case .spot:
@@ -447,17 +461,63 @@ struct SessionsView: View {
     private var isEmpty: Bool { scope == .mine ? own.isEmpty : groups.isEmpty }
 
     // Der Homespot-Knopf ist seit dem App-Port ein Reiter auf Home (Home › Spots, docs/UX-IA.md), wie im Web.
+    // „Team" zwischen Freunde und Alle, nur mit eigenen Teams (web Sessions.tsx).
     private var scopeReiter: [ReiterDef] {
-        [ReiterDef(id: "mine", label: Loc.t("sessions.mine", lang)), ReiterDef(id: "friends", label: Loc.t("friends.title", lang)),
-         ReiterDef(id: "all", label: Loc.t("sessions.all", lang))]
+        var r: [ReiterDef] = [ReiterDef(id: "mine", label: Loc.t("sessions.mine", lang)),
+                              ReiterDef(id: "friends", label: Loc.t("friends.title", lang))]
+        if !meineTeams.isEmpty { r.append(ReiterDef(id: "team", label: Loc.t("tab.team", lang))) }
+        r.append(ReiterDef(id: "all", label: Loc.t("sessions.all", lang)))
+        return r
     }
 
     private var scopeBindung: Binding<String> {
-        Binding(get: { scope == .friends ? "friends" : (scope == .all ? "all" : "mine") },
+        Binding(get: { scopeId },
                 set: { neu in
                     spot = ""
-                    scope = neu == "friends" ? .friends : (neu == "all" ? .all : .mine)
+                    switch neu {
+                    case "friends": scope = .friends
+                    case "team": scope = .team
+                    case "all": scope = .all
+                    default: scope = .mine
+                    }
                 })
+    }
+
+    private var scopeId: String {
+        switch scope {
+        case .friends: return "friends"
+        case .team: return "team"
+        case .all: return "all"
+        default: return "mine"
+        }
+    }
+
+    /// Team-Auswahl (web TeamWahl): ab zwei Teams „Alle meine Teams" + je Team ein Knopf; darunter der Hinweis auf
+    /// die 30 Tage.
+    @ViewBuilder private var teamWahlZeile: some View {
+        if meineTeams.count > 1 {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    teamKnopf("alle", Loc.t("team.alleMeine", lang), nil)
+                    ForEach(meineTeams) { tm in teamKnopf(String(tm.id), tm.name, tm) }
+                }
+            }
+        }
+        Text(Loc.t("team.feed30", lang)).font(.caption).foregroundStyle(.secondary)
+    }
+
+    private func teamKnopf(_ id: String, _ text: String, _ tm: TeamKurz?) -> some View {
+        let an: Bool = teamWahl == id
+        return Button { teamWahl = id } label: {
+            HStack(spacing: 5) {
+                if let t = tm { TeamWappen(name: t.name, logo: t.logo_url, farbe: t.farbe, size: 16) }
+                Text(text).font(.subheadline).lineLimit(1)
+            }
+            .padding(.horizontal, 10).padding(.vertical, 5)
+            .foregroundStyle(an ? Color.black : Color.primary)
+            .background(Capsule().fill(an ? Color.accentColor : Color(.secondarySystemBackground)))
+        }
+        .buttonStyle(.borderless)
     }
 
     @ViewBuilder private var scopeChips: some View {
@@ -563,6 +623,11 @@ struct SessionsView: View {
                                                                freunde: scope == .friends)
                 guard meine == ladeGeneration else { return }
                 groups = r
+            case .team:
+                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly && !brett, sport: sport, board: brett,
+                                                               team: teamWahl)
+                guard meine == ladeGeneration else { return }
+                groups = r
             case .spot:
                 let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly && !brett, sport: sport, board: brett))
                 guard meine == ladeGeneration else { return }
@@ -577,7 +642,8 @@ struct SessionsView: View {
                 NachbarFilter.aktuell = NachbarFilter(scope: "mine", sport: sport == "all" ? nil : sport,
                                                       accelOnly: accelOnly,
                                                       filter: filter, month: month.isEmpty ? nil : month)
-            case .all:
+            case .all, .team:
+                // „älter/neuer" kennt keine Team-Liste -> durch alle (wie das Web).
                 NachbarFilter.aktuell = NachbarFilter(scope: "all", sport: sport, accelOnly: accelOnly)
             case .friends:
                 NachbarFilter.aktuell = NachbarFilter(scope: "friends", sport: sport, accelOnly: accelOnly)
@@ -679,7 +745,8 @@ struct SessionRow: View {
                      zeit: TimeFmt.timeOnly(session.started_at, session.tz) ?? "",
                      name: showOwner ? session.owner_name : nil, spot: session.place_name, abzeichen: sportLabel,
                      status: kompaktStatus, kennzahlen: statsText ?? "",
-                     likeId: session.id, liked: session.liked ?? false, likeCount: session.like_count ?? 0)
+                     likeId: session.id, liked: session.liked ?? false, likeCount: session.like_count ?? 0,
+                     kommentare: session.comment_count ?? 0)
     }
 
     // Wie `EigeneAbzeichen` der PWA: erst „wird uebertragen", sonst der Verarbeitungsstand.
@@ -774,6 +841,7 @@ struct SessionRow: View {
             statusText
             Spacer()
             LikeButton(sessionId: session.id, liked: session.liked ?? false, count: session.like_count ?? 0)
+            KommentarZahl(n: session.comment_count ?? 0)
         }
     }
 
@@ -1121,6 +1189,7 @@ struct KompaktZeile: View {
     var likeId: Int? = nil
     var liked: Bool = false
     var likeCount: Int = 0
+    var kommentare: Int = 0          // Kommentar-Zaehler neben dem Herz (PWA SessionRow, 02.11.2026)
     /// nur bei Tagesgruppen: Pfeil statt Herz, zeigt auf/zu
     var aufgeklappt: Bool? = nil
 
@@ -1188,7 +1257,24 @@ struct KompaktZeile: View {
             Image(systemName: offen ? "chevron.up" : "chevron.down")
                 .font(.caption).foregroundStyle(.secondary)
         } else if let id = likeId {
-            LikeButton(sessionId: id, liked: liked, count: likeCount).fixedSize()
+            HStack(spacing: 6) {
+                LikeButton(sessionId: id, liked: liked, count: likeCount).fixedSize()
+                KommentarZahl(n: kommentare)
+            }
+        }
+    }
+}
+
+/// Sprechblase mit der Zahl der Kommentare — nur, wenn es welche gibt (PWA SessionRow).
+struct KommentarZahl: View {
+    let n: Int
+
+    var body: some View {
+        if n > 0 {
+            Label("\(n)", systemImage: "bubble.left")
+                .labelStyle(.titleAndIcon).font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize()
         }
     }
 }
@@ -1531,17 +1617,31 @@ private struct HeuteNeu: View {
 /// angelegten Session. Uebersprungen ist KEIN Fehler: der Garmin-Gesamtexport enthaelt Aktivitaeten und
 /// Tagesaufzeichnungen gemischt (am Dateinamen nicht unterscheidbar) — wer den Ordner hochlaedt, soll „12 importiert,
 /// 87 uebersprungen" lesen und nicht „87 fehlgeschlagen".
-func dateienImportieren(_ urls: [URL], lang: String, fortschritt: (String) -> Void) async -> (String?, Int?) {
+/// `fortschritt` laeuft auf dem Main-Actor (setzt @State der Ansicht). `frage`: nur bei EINER Datei — liegt dieselbe
+/// Fahrt schon mit anderer Datei da, fragt sie, ob ersetzt werden soll (web UploadFitButton); bei einem ganzen Ordner
+/// waeren das Dutzende Dialoge, dort bleibt es beim Ueberspringen. Abgelehnt: die vorhandene Session als „letzte".
+func dateienImportieren(_ urls: [URL], lang: String, fortschritt: @MainActor (String) -> Void,
+                        frage: @MainActor (Int) async -> Bool) async -> (String?, Int?) {
     var fehler = 0
     var uebersprungen = 0
     var grund = ""
     var letzte: Int?
+    let einzeln: Bool = urls.count == 1
     for (i, u) in urls.enumerated() {
-        if urls.count > 1 { fortschritt("\(i + 1)/\(urls.count)") }
+        if urls.count > 1 { await fortschritt("\(i + 1)/\(urls.count)") }
         let zugriff = u.startAccessingSecurityScopedResource()
+        defer { if zugriff { u.stopAccessingSecurityScopedResource() } }
         do {
             let daten = try Data(contentsOf: u)
-            let r = try await Api.uploadFit(data: daten, filename: u.lastPathComponent)
+            var r = try await Api.uploadFit(data: daten, filename: u.lastPathComponent, rueckfrage: einzeln)
+            if einzeln, r.skipped == "exists_different", let alt = r.existing_id {
+                if await frage(alt) {
+                    r = try await Api.uploadFit(data: daten, filename: u.lastPathComponent, rueckfrage: true, ersetzen: alt)
+                } else {
+                    // Abgelehnt: zur vorhandenen Fahrt (dort kann man zuschneiden), nichts geaendert.
+                    return (nil, alt)
+                }
+            }
             if let s = r.skipped, !s.isEmpty {
                 uebersprungen += 1
                 if grund.isEmpty, let d = r.detail, !d.isEmpty { grund = d }
@@ -1551,7 +1651,6 @@ func dateienImportieren(_ urls: [URL], lang: String, fortschritt: (String) -> Vo
         } catch {
             fehler += 1
         }
-        if zugriff { u.stopAccessingSecurityScopedResource() }
     }
     var text: String?
     if fehler > 0 {
@@ -1567,4 +1666,58 @@ func dateienImportieren(_ urls: [URL], lang: String, fortschritt: (String) -> Vo
                 .replacingOccurrences(of: "{total}", with: "\(urls.count)")
     }
     return (text, letzte)
+}
+
+/// Rueckfrage „Diese Fahrt ist schon da … ersetzen?" beim Import einer EINZELNEN Datei (web UploadFitButton, window.confirm).
+/// `fragen` wartet, bis im Dialog entschieden ist; der Dialog haengt per `.ersetzenFrageAlert` an der Ansicht.
+@MainActor
+final class ErsetzenFrage: ObservableObject {
+    @Published var sessionId: Int?
+    private var antwort: CheckedContinuation<Bool, Never>?
+
+    func fragen(_ id: Int) async -> Bool {
+        await withCheckedContinuation { (c: CheckedContinuation<Bool, Never>) in
+            antwort = c
+            sessionId = id
+        }
+    }
+
+    /// Genau einmal fortsetzen — danach ist nichts mehr offen.
+    func beantworten(_ ja: Bool) {
+        let c = antwort
+        antwort = nil
+        sessionId = nil
+        c?.resume(returning: ja)
+    }
+}
+
+private struct ErsetzenFrageAlert: ViewModifier {
+    @ObservedObject var frage: ErsetzenFrage
+    let lang: String
+
+    private var offen: Binding<Bool> {
+        Binding(get: { frage.sessionId != nil }, set: { neu in if !neu && frage.sessionId != nil { frage.beantworten(false) } })
+    }
+
+    private var text: String {
+        Loc.t("sessions.uploadReplaceAsk", lang)
+            .replacingOccurrences(of: "{id}", with: String(frage.sessionId ?? 0))
+            .replacingOccurrences(of: "{trim}", with: Loc.t("sd.trim", lang))
+    }
+
+    func body(content: Content) -> some View {
+        content.alert(Loc.t("import.title", lang), isPresented: offen) {
+            Button(Loc.t("common.cancel", lang), role: .cancel) { frage.beantworten(false) }
+            // Das Web fragt mit window.confirm (OK/Abbrechen) — eine eigene Beschriftung gibt es dort nicht.
+            Button("OK", role: .destructive) { frage.beantworten(true) }
+        } message: {
+            Text(text)
+        }
+    }
+}
+
+extension View {
+    func ersetzenFrageAlert(_ frage: ErsetzenFrage, lang: String) -> some View {
+        modifier(ErsetzenFrageAlert(frage: frage, lang: lang))
+    }
 }

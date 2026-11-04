@@ -124,7 +124,9 @@ struct TeamBestenlistenSection: View {
             Text(Loc.t("team.vergleich.leer", lang)).font(.subheadline).foregroundStyle(.secondary)
         } else {
             ForEach(Array(zeilen.enumerated()), id: \.element.slug) { i, z in
+                // Das eigene Team hinterlegt, wie im Teilen-Bild (04.11.2026).
                 NavigationLink(value: TeamsZiel.team(z.slug)) { zeile(i + 1, z) }
+                    .listRowBackground(eigenHintergrund(z.slug))
             }
             Button { bildBauen() } label: {
                 Label(Loc.t("team.bild.titel", lang), systemImage: "square.and.arrow.up").font(.subheadline)
@@ -170,7 +172,11 @@ struct TeamBestenlistenSection: View {
         return HStack(spacing: 10) {
             Text(String(rang)).font(.headline.monospacedDigit()).foregroundStyle(.secondary).frame(minWidth: 22)
             TeamWappen(name: z.name, logo: z.logo_url, farbe: z.farbe, size: 36)
-            Text(z.name).font(.subheadline.weight(.semibold)).foregroundStyle(tf.akzent).lineLimit(1)
+            // Herkunft nach dem Namen wie web TeamHerkunft (Land als Flagge, Kontinent/Erde als Kuerzel).
+            HStack(spacing: 5) {
+                Text(z.name).font(.subheadline.weight(.semibold)).foregroundStyle(tf.akzent).lineLimit(1)
+                TeamHerkunftMarke(land: z.land)
+            }
             Spacer(minLength: 4)
             VStack(alignment: .trailing, spacing: 1) {
                 Text(teamVergleichWert(z.wert(art), art)).font(.headline.monospacedDigit()).foregroundStyle(tf.akzent)
@@ -178,6 +184,10 @@ struct TeamBestenlistenSection: View {
             }
         }
         .padding(.vertical, 2)
+    }
+
+    private func eigenHintergrund(_ slug: String) -> Color? {
+        meine.contains(slug) ? Color.accentColor.opacity(0.14) : nil
     }
 
     // MARK: - Laden

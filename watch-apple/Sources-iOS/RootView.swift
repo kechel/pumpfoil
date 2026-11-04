@@ -8,6 +8,9 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var showSplash = true
     @State private var wasBackground = false
+    // Team-Einladungslink (TeamEinladung.swift): offen als Sheet; kam er vor der Anmeldung, wartet er im Merker.
+    @State private var einladung: TeamEinladungLink?
+    @AppStorage(TeamEinladungLink.merkerKey) private var einladungGemerkt = ""
     var body: some View {
         content
             .preferredColorScheme(preferredScheme)
@@ -21,6 +24,10 @@ struct RootView: View {
             .task { await PhoneRecorder.shared.drain() }
             // Nur echte Rückkehr aus dem Hintergrund (nicht der Start — den macht bootstrap()).
             .onChange(of: scenePhase) { phase in handleScenePhase(phase) }
+            .onOpenURL { url in einladungEmpfangen(url) }
+            .onChange(of: session.isLoggedIn) { _ in gemerkteEinladungOeffnen() }
+            .onAppear { gemerkteEinladungOeffnen() }
+            .sheet(item: $einladung) { e in TeamEinladungSheet(link: e) }
             .overlay { splashOverlay }
     }
 
@@ -56,6 +63,19 @@ struct RootView: View {
             Task { await session.refreshDisplayPrefs() }
             Task { await PhoneRecorder.shared.drain() }
         }
+    }
+
+    // Wie die PWA: ohne Anmeldung wird der Link gemerkt (kein Cookie, nur lokal) und nach dem Login geoeffnet.
+    private func einladungEmpfangen(_ url: URL) {
+        guard let e = TeamEinladungLink.aus(url) else { return }
+        if session.isLoggedIn { einladung = e } else { einladungGemerkt = url.absoluteString }
+    }
+
+    private func gemerkteEinladungOeffnen() {
+        guard session.isLoggedIn, !einladungGemerkt.isEmpty else { return }
+        let gemerkt: String = einladungGemerkt
+        einladungGemerkt = ""
+        if let u = URL(string: gemerkt), let e = TeamEinladungLink.aus(u) { einladung = e }
     }
 
     @ViewBuilder private var splashOverlay: some View {
@@ -99,7 +119,7 @@ struct MainTabView: View {
     @State private var zeigeOnboarding = false
 
     // Seit dem App-Port (docs/UX-IA.md, Phase 2, 04.11.2026) wie im Web: Home · Community · Sessions · Spots · Chat ·
-    // Zahnrad. „Verlauf" (3) ist ein Teil von Home › Stats und hat keinen Knopf mehr; die View bleibt fuer den Link dort.
+    // Zahnrad. „Verlauf" (frueher Tab 3) ist ein Teil von Home › Stats (HomeView) und kein Tab mehr; die Nummer 3 bleibt frei.
     private var visibleTabs: [Int] { socialOK ? [0, 2, 1, 4, 5, 6] : [0, 2, 1, 4, 6] }
 
     // Seiten-Stapel, Tab-Leiste und Vergleichs-Balken sind je ein eigener, explizit typisierter
@@ -226,7 +246,6 @@ struct MainTabView: View {
         case 0: HomeView()
         case 1: SessionsView()
         case 2: CommunityView()
-        case 3: VerlaufView()
         case 4: SpotsView()
         case 5: ChatView()
         default: ProfileView()
@@ -238,7 +257,6 @@ struct MainTabView: View {
         case 0: return "house"
         case 1: return "list.bullet"
         case 2: return "person.2"
-        case 3: return "chart.xyaxis.line"
         case 4: return "mappin.and.ellipse"
         case 5: return "bubble.left.and.bubble.right"
         default: return "gearshape"
@@ -250,7 +268,6 @@ struct MainTabView: View {
         case 0: return Loc.t("nav.home", lang)
         case 1: return Loc.t("nav.sessions", lang)
         case 2: return Loc.t("home.community", lang)
-        case 3: return Loc.t("nav.history", lang)
         case 4: return Loc.t("nav.spots", lang)
         case 5: return Loc.t("nav.chat", lang)
         default: return Loc.t("nav.settings", lang)

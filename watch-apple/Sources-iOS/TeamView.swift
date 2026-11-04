@@ -9,7 +9,7 @@ import SwiftUI
 // ueber das Zahnrad und „N neue Anfragen" in die native Verwaltung (TeamVerwaltung.swift, seit 04.11.2026; vorher Browser).
 
 let TEAM_ZEITRAEUME: [(String, String)] = [
-    ("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all"),
+    ("today", "period.today"), ("yesterday", "period.yesterday"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all"),
 ]
 
 struct TeamView: View {
@@ -27,6 +27,8 @@ struct TeamView: View {
     @State private var busy = false
     @State private var meldung: String?
     @State private var austretenFragen = false
+    // Reiter der Teamseite (wie ReiterSpeicher ueberall: gilt fuer die App-Sitzung).
+    @State private var tteil: String = ReiterSpeicher.von("team", "rekorde")
     @Environment(\.dismiss) private var dismiss
 
     private var feedbackPfad: String { "/teams/" + slug }
@@ -55,11 +57,13 @@ struct TeamView: View {
         }
     }
 
+    /// Reiter direkt unter dem Kopf wie im Web (Jan, 02.11.2026): Rekorde | Events | Logbuch | Mitglieder | Teilen | Regeln.
+    /// Beitreten, Meldungen und Austreten stehen fuer alle Reiter sichtbar.
     private func seite(_ k: TeamInfo) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             oberteil(k)
-            bestenlistenBereich(k)
-            unterteil(k)
+            reiterInhalt(k)
+            unterBereich(k)
         }
     }
 
@@ -67,20 +71,56 @@ struct TeamView: View {
         VStack(alignment: .leading, spacing: 14) {
             if let u = Api.mediaURL(k.banner_url) { TeamBanner(url: u, fokus: k.banner_fokus).padding(.top, 8) }
             TeamKopf(k: k, lang: lang, geloescht: { teamGeloescht() })
+            Reiterleiste(reiter: reiter(k), aktiv: Binding(get: { aktiverReiter(k) }, set: { tteil = $0; ReiterSpeicher.setze("team", $0) }))
             if let m = meldung { meldungsBox(m) }
             beitrittBereich(k)
-            eventsObenBereich(k)
         }
     }
 
-    /// Reihenfolge unten wie im Web: Mitglieder, vergangene Events, Teamadresse, Logbuch ganz unten.
-    private func unterteil(_ k: TeamInfo) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            mitgliederBereich(k)
-            eventsUntenBereich(k)
-            if k.mein_status == "aktiv" { TeamAdresseKarte(k: k, lang: lang) }
-            logbuchBereich
-            unterBereich(k)
+    /// Mitglieder nur, wenn der Server sie zeigt; Teilen nur fuer Mitglieder (web Team.tsx).
+    private func reiter(_ k: TeamInfo) -> [ReiterDef] {
+        var r: [ReiterDef] = [ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)),
+                              ReiterDef(id: "events", label: Loc.t("tab.events", lang)),
+                              ReiterDef(id: "logbuch", label: Loc.t("tab.logbook", lang))]
+        if mitglieder != nil { r.append(ReiterDef(id: "mitglieder", label: Loc.t("team.mitglieder", lang))) }
+        if k.mein_status == "aktiv" { r.append(ReiterDef(id: "teilen", label: Loc.t("team.teilen", lang))) }
+        r.append(ReiterDef(id: "regeln", label: Loc.t("tab.rules", lang)))
+        return r
+    }
+
+    /// Gewaehlter Reiter, sonst „Rekorde" (z. B. nach dem Austreten verschwindet „Teilen").
+    private func aktiverReiter(_ k: TeamInfo) -> String {
+        reiter(k).contains { $0.id == tteil } ? tteil : "rekorde"
+    }
+
+    @ViewBuilder private func reiterInhalt(_ k: TeamInfo) -> some View {
+        switch aktiverReiter(k) {
+        case "events": eventsBereich(k)
+        case "logbuch": logbuchBereich; nurMitgliederHinweis(k)
+        case "mitglieder": mitgliederBereich(k)
+        case "teilen": teilenBereich(k)
+        case "regeln": TeamRegelnInhalt(lang: lang)
+        default: bestenlistenBereich(k)
+        }
+    }
+
+    /// Nicht freigegeben und nicht angefragt: „Nur fuer Mitglieder" (web: alle Reiter ausser Events).
+    @ViewBuilder private func nurMitgliederHinweis(_ k: TeamInfo) -> some View {
+        if k.darf_bestenlisten != true && k.mein_status != "angefragt" {
+            Text(Loc.t("team.nurFuerMitglieder", lang)).font(.subheadline).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Teilen: Teamadresse mit Kopieren/Teilen und der QR-Code dazu (web TeamQr, Jan 02.11.2026: fuer jedes Mitglied).
+    @ViewBuilder private func teilenBereich(_ k: TeamInfo) -> some View {
+        if k.mein_status == "aktiv" {
+            TeamAdresseKarte(k: k, lang: lang)
+            if let u = Api.teamWebURL("/teams/" + k.slug) {
+                TeamQrBild(url: u.absoluteString, lang: lang)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+            }
         }
     }
 
@@ -145,6 +185,15 @@ struct TeamView: View {
         return (events ?? []).filter { !obenIds.contains($0.id) }.sorted { $0.ende > $1.ende }
     }
 
+    /// Reiter „Events": oben die aktuellen, darunter die vergangenen; keine -> Hinweis (web team.event.keineAktuellen).
+    @ViewBuilder private func eventsBereich(_ k: TeamInfo) -> some View {
+        if eventsOben.isEmpty && eventsUnten.isEmpty {
+            Text(Loc.t("team.event.keineAktuellen", lang)).font(.subheadline).foregroundStyle(.secondary)
+        }
+        eventsObenBereich(k)
+        eventsUntenBereich(k)
+    }
+
     @ViewBuilder private func eventsObenBereich(_ k: TeamInfo) -> some View {
         if !eventsOben.isEmpty {
             VStack(spacing: 10) {
@@ -187,7 +236,7 @@ struct TeamView: View {
                 Text(Loc.t("team.keineTafeln", lang)).font(.subheadline).foregroundStyle(.secondary)
             } else {
                 ForEach(Array(tl.enumerated()), id: \.offset) { _, tf in
-                    TeamTafelKarte(tf: tf, farbe: k.farbe, lang: lang)
+                    TeamTafelKarte(tf: tf, farbe: k.farbe, lang: lang, sportZeigen: Set(tl.map { $0.sportart }).count > 1)
                 }
             }
         } else {
@@ -220,7 +269,7 @@ struct TeamView: View {
             Button(Loc.t("team.austreten", lang)) { austretenFragen = true }
                 .font(.subheadline).foregroundStyle(.secondary).padding(.top, 8)
         }
-        if let g = gpsHinweis { Text(g).font(.footnote).foregroundStyle(.secondary) }
+        if aktiverReiter(k) == "rekorde", let g = gpsHinweis { Text(g).font(.footnote).foregroundStyle(.secondary) }
     }
 
     // MARK: Laden
@@ -605,5 +654,40 @@ struct TeamBeitrittSheet: View {
         }
         .padding(20)
         .presentationDetents([.medium])
+    }
+}
+
+/// Reiter „Regeln" (web TeamRegeln eingebettet, Jan 02.11.2026): je Abschnitt ein Titel und Punkte; die Punkte stehen in
+/// EINEM Text je Abschnitt, getrennt durch Zeilenumbrueche. Muss zu server/app/teams.py passen.
+struct TeamRegelnInhalt: View {
+    let lang: String
+
+    private static let abschnitte: [String] = ["was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik",
+                                               "logbuch", "events", "chat", "loeschen", "konto", "haftung"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(Loc.t("team.regeln.intro", lang)).font(.subheadline).foregroundStyle(.secondary)
+            ForEach(Self.abschnitte, id: \.self) { a in abschnitt(a) }
+        }
+    }
+
+    private func punkte(_ a: String) -> [String] {
+        Loc.t("team.regeln." + a + ".text", lang).components(separatedBy: "\n").filter { !$0.isEmpty }
+    }
+
+    private func abschnitt(_ a: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(Loc.t("team.regeln." + a + ".titel", lang)).font(.subheadline.weight(.semibold))
+            ForEach(Array(punkte(a).enumerated()), id: \.offset) { _, z in
+                HStack(alignment: .top, spacing: 6) {
+                    Text("•").font(.subheadline).foregroundStyle(.secondary)
+                    Text(z).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
     }
 }

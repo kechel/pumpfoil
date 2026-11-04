@@ -302,6 +302,10 @@ struct ChatRoomView: View {
     let scope: String
     let title: String
     var otherId: Int = 0                       // > 0 nur bei DMs (für Blockieren)
+    // Kommentare unter einer Session (scope "session:<id>", PWA Chat kommentare, 02.11.2026): ohne Abo/Verlassen;
+    // `inhaber` darf dort fremde Kommentare loeschen (Server prueft es, server/app/kommentare.py).
+    var kommentare: Bool = false
+    var inhaber: Bool = false
     @AppStorage("appLang") private var lang = "de"
     @State private var msgs: [ChatMsg] = []
     @State private var draft = ""
@@ -402,11 +406,19 @@ struct ChatRoomView: View {
 
     private var messageList: some View {
         LazyVStack(alignment: .leading, spacing: 8) {
+            kommentareLeer
             ForEach(msgs) { m in bubble(m) }
             editHintRow
         }
         .padding()
         .id("bottom")
+    }
+
+    // Leerer Kommentar-Thread: „Noch keine Kommentare. Schreib den ersten!" wie die PWA.
+    @ViewBuilder private var kommentareLeer: some View {
+        if kommentare && msgs.isEmpty && error == nil {
+            Text(Loc.t("comments.empty", lang)).font(.subheadline).foregroundStyle(.secondary)
+        }
     }
 
     @ViewBuilder private var blockedNote: some View {
@@ -472,7 +484,7 @@ struct ChatRoomView: View {
     private var composerRow: some View {
         HStack(spacing: 8) {
             bildKnopf
-            TextField(Loc.t("chat.placeholder", lang), text: $draft, axis: .vertical)
+            TextField(Loc.t(kommentare ? "comments.placeholder" : "chat.placeholder", lang), text: $draft, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
                 .lineLimit(1...4)
             micKnopf
@@ -610,15 +622,18 @@ struct ChatRoomView: View {
     private var bildPlatz: Int { max(1, Self.maxBilder - anhaenge.count) }
 
     // Abonnieren (Push) + Verlassen — wie Web-Chat.
+    // Bei Kommentaren nicht: dort gibt es weder Abo noch Verlassen (wie die PWA).
     @ToolbarContentBuilder private var roomToolbar: some ToolbarContent {
         blockToolbarItem
-        ToolbarItem(placement: .topBarTrailing) {
-            Button { togglePush() } label: {
-                Image(systemName: pushIcon).foregroundStyle(pushTint)
+        if !kommentare {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { togglePush() } label: {
+                    Image(systemName: pushIcon).foregroundStyle(pushTint)
+                }
             }
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-            Button { confirmLeave = true } label: { Image(systemName: "rectangle.portrait.and.arrow.right") }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { confirmLeave = true } label: { Image(systemName: "rectangle.portrait.and.arrow.right") }
+            }
         }
     }
 
@@ -929,6 +944,11 @@ struct ChatRoomView: View {
         }
         if editable(m) {
             Button(Loc.t("chat.edit", lang)) { startEdit(m) }
+            Button(Loc.t("common.delete", lang), role: .destructive) {
+                Task { try? await Api.chatDelete(m.id); await load() }
+            }
+        } else if kommentare && inhaber && !m.mine {
+            // Inhaber der Session loescht fremde Kommentare (PWA kannLoeschen).
             Button(Loc.t("common.delete", lang), role: .destructive) {
                 Task { try? await Api.chatDelete(m.id); await load() }
             }

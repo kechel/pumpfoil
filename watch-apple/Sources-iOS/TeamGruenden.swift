@@ -6,6 +6,10 @@ import SwiftUI
 // die Karte nur das Web. Steht unter Einstellungen › Team (unter der Teamsuche) und auf Home › Team ohne eigenes Team.
 struct TeamGruendenKarte: View {
     let lang: String
+    /// Gesetzt: der Aufrufer oeffnet die Verwaltung des neuen Teams selbst. Noetig auf Home › Team — dort verschwindet
+    /// diese Karte, sobald die Teamliste neu laedt (man hat ja jetzt ein Team), und ein `navigationDestination` an ihr
+    /// risse die eben geoeffnete Verwaltung wieder zu.
+    var onGegruendet: ((String) -> Void)? = nil
     @State private var name = ""
     @State private var slug = ""
     @State private var slugAnders = false
@@ -67,8 +71,12 @@ struct TeamGruendenKarte: View {
         do {
             let r = try await Api.teamAnlegen(name: name.trimmingCharacters(in: .whitespaces), slug: slug.isEmpty ? nil : slug)
             name = ""; slug = ""; slugAnders = false; slugFehler = nil
-            neuSlug = r.slug
-            zeigeNeu = true
+            if let weiter = onGegruendet {
+                weiter(r.slug)
+            } else {
+                neuSlug = r.slug
+                zeigeNeu = true
+            }
         } catch {
             fehler = Api.teamFehlerText(error, lang)
         }

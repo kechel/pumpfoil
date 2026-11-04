@@ -96,6 +96,7 @@ struct TeamZeile: Codable, Identifiable {
     var session_id: Int? = nil
     var started_at: String? = nil
     var spot: String? = nil
+    var land: String? = nil   // Nationalitaet (Flagge nach dem Profilbild), nur wer sie selbst eingestellt hat
     var id: String { "\(rang)-\(user_id ?? 0)-\(name ?? "")" }
 }
 

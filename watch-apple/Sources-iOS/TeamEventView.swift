@@ -135,8 +135,9 @@ struct TeamEventView: View {
         } else {
             if e.status == "laeuft" { EventEndetInKarte(e: e, farbe: t.farbe, lang: lang) }
             if !(e.summen_auswahl ?? []).isEmpty { summenBereich(t, e) }
+            let mehrereSportarten: Bool = Set(e.tafeln.map { $0.sportart }).count > 1
             ForEach(Array(e.tafeln.enumerated()), id: \.offset) { _, tf in
-                TeamTafelKarte(tf: tf, farbe: t.farbe, lang: lang, ohneFilter: true)
+                TeamTafelKarte(tf: tf, farbe: t.farbe, lang: lang, ohneFilter: true, sportZeigen: mehrereSportarten)
             }
         }
     }

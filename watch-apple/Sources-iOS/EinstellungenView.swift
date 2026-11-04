@@ -78,6 +78,7 @@ struct EinstellungenUebersicht: View {
     @State private var importMeldung: String?
     @State private var importierteId: Int?
     @State private var oeffneImport = false
+    @StateObject private var ersetzenFrage = ErsetzenFrage()
 
     var body: some View {
         List {
@@ -102,6 +103,7 @@ struct EinstellungenUebersicht: View {
         .navigationDestination(isPresented: $oeffneImport) {
             if let id = importierteId { SessionDetailView(id: id) }
         }
+        .ersetzenFrageAlert(ersetzenFrage, lang: lang)
         // Sprache wirkt sofort (appLang) und geht ans Profil (synct zu Web/Uhr), wie bisher in SettingsView.
         .onChange(of: appLang) { l in Task { try? await Api.updateLanguage(l) } }
     }
@@ -152,8 +154,10 @@ struct EinstellungenUebersicht: View {
     private func importiere(_ urls: [URL]) {
         guard !urls.isEmpty else { return }
         importLaeuft = true
-        Task {
-            let (text, letzte) = await dateienImportieren(urls, lang: lang) { importFortschritt = $0 }
+        // Auf dem Main-Actor: der Fortschritt setzt @State (vorher aus einem beliebigen Task heraus).
+        Task { @MainActor in
+            let (text, letzte) = await dateienImportieren(urls, lang: lang, fortschritt: { importFortschritt = $0 },
+                                                          frage: { await ersetzenFrage.fragen($0) })
             importFortschritt = ""
             importLaeuft = false
             importierteId = letzte

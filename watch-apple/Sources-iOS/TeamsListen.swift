@@ -279,43 +279,6 @@ struct EventsAlleView: View {
 
 // MARK: - Eigene Teams
 
-/// Startseite: eigene (aktive) Teams als kleine Links mit Wappen und Teamfarbe; offene Anfragen (nur Leitung/
-/// Moderatoren) als Zahl daneben. Der Link fuehrt immer auf die Teamseite (Jan: „nicht direkt ins management").
-/// Ohne Teams zeichnet die Zeile nichts (eine leere Zeile ist trotzdem da, damit sie laedt).
-struct MeineTeamsZeile: View {
-    let lang: String
-    var neuLadenTick: Int = 0
-    @State private var teams: [TeamKurz] = []
-
-    private var hoehe: CGFloat { teams.isEmpty ? 0 : 24 }
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(teams) { tm in link(tm) }
-            }
-        }
-        .frame(height: hoehe)
-        .task(id: neuLadenTick) { await laden() }
-    }
-
-    private func link(_ tm: TeamKurz) -> some View {
-        NavigationLink { TeamView(slug: tm.slug) } label: {
-            HStack(spacing: 4) {
-                TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 16)
-                Text(tm.name).font(.caption).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
-                if tm.anfragen > 0 { TeamAnfragenZahl(n: tm.anfragen) }
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func laden() async {
-        guard let alle = try? await Api.teamsMine() else { return }
-        teams = alle.filter { $0.status == "aktiv" }
-    }
-}
-
 /// Offene Beitrittsanfragen als kleine Zahl in Marken-Cyan.
 struct TeamAnfragenZahl: View {
     let n: Int
@@ -328,60 +291,23 @@ struct TeamAnfragenZahl: View {
     }
 }
 
-/// Profil: „Meine Teams" (aktiv und angefragt) und der Link „Alle Teams". Je Zeile genau ein Link.
-struct MeineTeamsSection: View {
-    let lang: String
-    @State private var teams: [TeamKurz] = []
-
-    var body: some View {
-        Section {
-            ForEach(teams) { tm in zeile(tm) }
-            NavigationLink { TeamsAlleView() } label: {
-                Label { Text(Loc.t("team.alle", lang)) } icon: { Image(systemName: "person.3").foregroundStyle(Color.accentColor) }
-            }
-            NavigationLink { EventsAlleView() } label: {
-                Label { Text(Loc.t("team.alleEvents", lang)) } icon: { Image(systemName: "flag.checkered").foregroundStyle(Color.accentColor) }
-            }
-        } header: {
-            Text(Loc.t("team.meine", lang))
-        }
-        .task { await laden() }
-    }
-
-    private func rolleText(_ tm: TeamKurz) -> String {
-        Loc.t(tm.status == "angefragt" ? "team.join.wartet" : "team.rolle." + tm.rolle, lang)
-    }
-
-    private func zeile(_ tm: TeamKurz) -> some View {
-        NavigationLink { TeamView(slug: tm.slug) } label: {
-            HStack(spacing: 10) {
-                TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 24)
-                Text(tm.name).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
-                Spacer(minLength: 4)
-                Text(rolleText(tm)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                if tm.anfragen > 0 { TeamAnfragenZahl(n: tm.anfragen) }
-            }
-        }
-    }
-
-    private func laden() async {
-        teams = (try? await Api.teamsMine()) ?? teams
-    }
-}
-
 /// Home › Team (App-Port Phase 3, 04.11.2026, wie Web): die eigenen Teams als Zeilen, darunter der Weg zu allen Teams
 /// (dort mit Suche). Ohne Team der Hinweis aus dem Web und gleich die Teamsuche + „Team gruenden" (Phase 6).
 struct HomeTeamsListe: View {
     let lang: String
     var neuLadenTick: Int = 0
     @State private var teams: [TeamKurz]? = nil
+    // Neu gegruendetes Team: die Verwaltung haengt HIER (bleibt stehen), nicht an der Gruenden-Karte, die beim Neuladen
+    // der Teamliste verschwindet.
+    @State private var neuSlug: String?
+    @State private var zeigeNeu = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let t = teams, t.isEmpty {
                 Text(Loc.t("team.keineTeams", lang)).font(.subheadline).foregroundStyle(.secondary)
                 TeamSuche(lang: lang)
-                TeamGruendenKarte(lang: lang)
+                TeamGruendenKarte(lang: lang) { s in neuSlug = s; zeigeNeu = true }
             } else if let t = teams {
                 VStack(spacing: 0) {
                     ForEach(t) { tm in zeile(tm) }
@@ -394,6 +320,9 @@ struct HomeTeamsListe: View {
             }
         }
         .task(id: neuLadenTick) { teams = ((try? await Api.teamsMine()) ?? teams ?? []).filter { $0.status == "aktiv" } }
+        .navigationDestination(isPresented: $zeigeNeu) {
+            if let s = neuSlug { TeamVerwaltungView(slug: s, start: "einstellungen") }
+        }
     }
 
     private func zeile(_ tm: TeamKurz) -> some View {

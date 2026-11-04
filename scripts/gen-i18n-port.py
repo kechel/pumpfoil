@@ -43,6 +43,15 @@ SCHLUESSEL = [
     "region.earth", "region.eu", "region.af", "region.as", "region.na", "region.sa", "region.oc",
     "profile.landNone", "team.herkunft", "share.errImage", "spot.windTitle", "spot.windText", "spot.windNote", "tab.noData",
     "fontscale.label", "fontscale.hint", "sd.avgHrTotal",
+    # Nachtrag Abgleich 04.11.2026: Likes, Kommentare, Neu bei mir, Nationalitaet, Team-Seite, Einladung, Upload ersetzen
+    "sd.whoLiked", "sd.likes", "comments.title", "comments.empty", "comments.placeholder", "comments.offOwner",
+    "comments.offLink", "comments.settingHint", "comments.settingSwitch", "act.title", "act.comment", "act.like",
+    "act.likeMany", "act.session", "profile.land", "profile.landHint", "tab.events", "tab.logbook",
+    "tab.rules", "team.einladungUngueltig", "team.feed30", "team.alleMeine", "sessions.uploadReplaceAsk", "team.regeln.intro",
+    "team.regeln.was.titel", "team.regeln.was.text", "team.regeln.rollen.titel", "team.regeln.rollen.text", "team.regeln.beitreten.titel", "team.regeln.beitreten.text",
+    "team.regeln.oeffentlich.titel", "team.regeln.oeffentlich.text", "team.regeln.bestenlisten.titel", "team.regeln.bestenlisten.text", "team.regeln.statistik.titel", "team.regeln.statistik.text",
+    "team.regeln.logbuch.titel", "team.regeln.logbuch.text", "team.regeln.chat.titel", "team.regeln.chat.text", "team.regeln.loeschen.titel", "team.regeln.loeschen.text",
+    "team.regeln.konto.titel", "team.regeln.konto.text", "team.regeln.haftung.titel", "team.regeln.haftung.text", "team.regeln.events.titel", "team.regeln.events.text",
 ]
 
 

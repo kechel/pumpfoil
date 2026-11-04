@@ -87,6 +87,8 @@ struct SettingsView: View {
     // Homespot, eigener YouTube-Kanal.
     @ViewBuilder private var ichTeil: some View {
         if teil != nil { ProfilKopfSection(lang: lang) }
+        // Nationalitaet (web LandWahl, 02.11.2026) — Flagge in den Bestenlisten.
+        LandSection(lang: lang)
         weightSection
         homespotSection
         socialKanalSection
@@ -110,6 +112,8 @@ struct SettingsView: View {
         AktivAufKarteSection(lang: lang)
         // Online-Punkt (Jan, 01.10.2026: „im profil zum ausstellen, aber erstmal default an").
         OnlinePunktSection(lang: lang)
+        // Kommentare unter meinen Sessions erlauben (PWA KommentareCard, 02.11.2026).
+        KommentareSection(lang: lang)
         GeteilteAufnahmenSection(lang: lang)
     }
 

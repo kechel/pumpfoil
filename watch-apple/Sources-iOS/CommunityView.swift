@@ -40,14 +40,17 @@ struct CommunityView: View {
     // Ein reiner Filter, er gibt nichts frei (server app/freunde.py). Freunde zaehlen wie „alle".
     @State private var freunde = false
     private var accelOnly: Bool { accelWahl && !freunde }
-    @State private var lbMetric = "sessions"
+    // Standard wie im Web: die laengste Laufdauer (Vorschlag eines Team-Kapitaens, 02.11.2026).
+    @State private var lbMetric = "run_time"
+    // Zeitraum selbst gewaehlt? Sonst „Heute", sobald heute alle 10 Plaetze besetzt sind (web Home.tsx, 02.11.2026).
+    @State private var periodeGewaehlt = false
     // Sportart wie im Web (19.10.2026): Rekorde und Bestenliste je Sportart; Standard Pumpfoil.
     @State private var sportart = "pumpfoil"
     @State private var sportListe: [String] = ["pumpfoil"]
     private var istWind: Bool { Sportarten.windArtig(sportart) }   // Gruppe aus der Server-Liste (25.10.2026)
     private var istMotor: Bool { Sportarten.motor(sportart) }
 
-    private let periods: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
+    private let periods: [(String, String)] = [("today", "period.today"), ("yesterday", "period.yesterday"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     private let gridCols = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
     private var periodLabel: String { Loc.t(periods.first { $0.0 == period }?.1 ?? "period.all", lang) }
@@ -55,42 +58,11 @@ struct CommunityView: View {
         guard let b = band, b.art != "alle" else { return "" }
         return " · " + bandLabel(b)
     }
-    private var lbMetrics: [(String, String)] {
-        let alle: [(String, String)] = [("sessions", Loc.t("leader.mostSessions", lang)), ("runs", Loc.t("leader.mostRuns", lang)),
-         ("pumps", Loc.t("leader.mostPumps", lang)), ("spots", Loc.t("leader.mostSpots", lang)),
-         // On-Foil-Strecke/-Zeit (01.11.2026, wie das Web): bester Einzellauf und Summe im Zeitraum; zaehlen auch GPS-only
-         ("run_distance", Loc.t("rec.farthestRun", lang)), ("run_time", Loc.t("rec.longestRun", lang)),
-         ("distance", Loc.t("leader.totalDistance", lang)), ("time", Loc.t("leader.totalTime", lang))]
-        // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
-        return alle.filter { !((istWind && ($0.0 == "pumps" || $0.0 == "runs")) || (istMotor && $0.0 == "pumps")) }
-    }
-    private func lbList(_ lb: Leaders) -> [LeaderEntry] {
-        switch lbMetric { case "runs": return lb.runs ?? []; case "pumps": return lb.pumps ?? []
-        case "spots": return lb.spots ?? []; case "distance": return lb.distance ?? []
-        case "time": return lb.time ?? []; case "run_distance": return lb.run_distance ?? []
-        case "run_time": return lb.run_time ?? []; default: return lb.sessions ?? [] }
-    }
-    private func lbValue(_ e: LeaderEntry) -> String {
-        switch lbMetric { case "runs": return "\(e.runs ?? 0)"; case "pumps": return "\(e.pumps ?? 0)"
-        case "spots": return "\(e.spots ?? 0)"
-        case "distance": return String(format: "%.1f", (e.distance_m ?? 0) / 1000)
-        case "time": return leaderDauer(e.time_s ?? 0)
-        case "run_distance": return String(format: "%.2f", (e.run_distance_m ?? 0) / 1000)
-        case "run_time": return leaderDauer(e.run_time_s ?? 0)
-        default: return "\(e.sessions ?? 0)" }
-    }
-    private func lbUnit(_ e: LeaderEntry) -> String {
-        switch lbMetric { case "runs": return Loc.t("unit.runs", lang); case "pumps": return Loc.t("unit.pumps", lang)
-        case "spots": return Loc.t("unit.spots", lang); case "distance", "run_distance": return "km"
-        case "time": return (e.time_s ?? 0) >= 3600 ? "h" : "min"
-        case "run_time": return (e.run_time_s ?? 0) >= 3600 ? "h" : "min"
-        default: return Loc.t("unit.sessions", lang) }
-    }
-    /// Zeit auf dem Foil wie im Web: h:mm, unter einer Stunde m:ss.
-    private func leaderDauer(_ s: Double) -> String {
-        let t = Int(s), h = t / 3600, m = (t % 3600) / 60
-        return h > 0 ? String(format: "%d:%02d", h, m) : String(format: "%d:%02d", m, t % 60)
-    }
+    // Kennzahlen, Werte und Reihenfolge der Bestenliste: Bestenliste.swift (geteilt mit der Spot-Seite).
+    private var lbMetrics: [(String, String)] { Bestenliste.arten(lang, wind: istWind, motor: istMotor) }
+    private func lbList(_ lb: Leaders) -> [LeaderEntry] { Bestenliste.liste(lb, lbMetric) }
+    private func lbValue(_ e: LeaderEntry) -> String { Bestenliste.wert(e, lbMetric) }
+    private func lbUnit(_ e: LeaderEntry) -> String { Bestenliste.einheit(e, lbMetric, lang) }
 
     // Kopfzeilen + Toolbar ebenfalls als eigene Teile, Ladefolgen als Methoden: der Body war EIN
     // Ausdruck aus acht Abschnitten, drei Toolbar-Items und fünf Closures mit je derselben
@@ -140,6 +112,7 @@ struct CommunityView: View {
             .overlay { if loading && records == nil { ProgressView() } }
             .refreshable { await reloadAll() }
             .task { if records == nil { await reloadAll() } }
+            .task { await heuteVorwaehlen() }
             // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA).
             .onAppear { Task { await refreshMedia() } }
             .onChange(of: accelWahl) { _ in Task { await reloadAll() } }
@@ -152,8 +125,10 @@ struct CommunityView: View {
             .onChange(of: bandKey) { _ in Task { await reloadBand() } }
             // Sportart gewechselt: Rekorde + Bestenliste neu; ausgeblendete Kennzahl zuruecksetzen.
             .onChange(of: sportart) { _ in
-                if (istWind && (lbMetric == "pumps" || lbMetric == "runs")) || (istMotor && lbMetric == "pumps") { lbMetric = "sessions" }
+                // Nicht mehr angebotene Liste -> die erste der neuen Reihe (web: arten[0]).
+                if !lbMetrics.contains(where: { $0.0 == lbMetric }) { lbMetric = lbMetrics.first?.0 ?? "sessions" }
                 Task { await reloadBand() }
+                Task { await heuteVorwaehlen() }
             }
             .task { sportListe = sortiereSports(((try? await Api.communitySports()) ?? []).map { $0.sport }.filter { !$0.isEmpty }, lang: lang)
                     if sportListe.isEmpty { sportListe = ["pumpfoil"] } }
@@ -194,7 +169,7 @@ struct CommunityView: View {
     private var zeitChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                ForEach(periods, id: \.0) { id, key in chip(Loc.t(key, lang), period == id) { period = id } }
+                ForEach(periods, id: \.0) { id, key in chip(Loc.t(key, lang), period == id) { periodeGewaehlt = true; period = id } }
             }
         }
     }
@@ -436,9 +411,52 @@ struct CommunityView: View {
                         Text("⋮").frame(maxWidth: .infinity).foregroundStyle(.secondary)
                         leaderTap(r, ich, ich: true)
                     }
+                    teilenZeile(lb)
                 }
             }
         }
+    }
+
+    /// Teilen der Bestenliste: als Link (zeigt im Web genau diese Liste, Parameter wie web Home.tsx) und als Bild
+    /// (derselbe Dialog wie bei den Team-Bestenlisten, Vorschlag eines Team-Kapitaens 02.11.2026).
+    private func teilenZeile(_ lb: Leaders) -> some View {
+        HStack(spacing: 16) {
+            if let u = bestenlisteURL {
+                ShareLink(item: u) {
+                    Label(Loc.t("team.teilen", lang), systemImage: "link").font(.subheadline)
+                }
+                .buttonStyle(.borderless)
+            }
+            Button { bildBauen(lb) } label: {
+                Label(Loc.t("team.bild.titel", lang), systemImage: "square.and.arrow.up").font(.subheadline)
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+
+    private var bestenlisteURL: URL? {
+        var teile: [String] = ["period=" + period, "lb=" + lbMetric]
+        if sportart != "pumpfoil" { teile.append("sport=" + sportart) }
+        if bandKey != "all" { teile.append("band=" + bandKey) }
+        let q: String = teile.joined(separator: "&").addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return URL(string: Api.baseURL + "/community?" + q)
+    }
+
+    /// Wie web BestenlisteBildDialog: Titel = die Liste, darunter Sportart · Zeitraum · Foil-Band · Datum.
+    private func bildBauen(_ lb: Leaders) {
+        let titel: String = lbMetrics.first { $0.0 == lbMetric }?.1 ?? ""
+        var unter: [String] = [Loc.t("cls.sport." + sportart, lang), periodLabel]
+        if let b = band, b.art != "alle" { unter.append(bandLabel(b)) }
+        Bestenliste.bildZeigen(lb, key: lbMetric, titel: titel, unter: unter, lang: lang)
+    }
+
+    /// Ohne eigene Wahl: „Heute", sobald heute alle 10 Plaetze der Bestenliste besetzt sind (web Home.tsx, 02.11.2026 —
+    /// „wenn heute mit heute uebereinstimmt, wirkt die Seite gepflegt"), sonst bleibt es bei 10 Tagen.
+    private func heuteVorwaehlen() async {
+        guard !periodeGewaehlt else { return }
+        let sp: String = sportart
+        guard let d = try? await Api.leaders(period: "today", accelOnly: accelOnly, sport: sp) else { return }
+        if !periodeGewaehlt && sp == sportart && (d.sessions ?? []).count >= 10 { period = "today" }
     }
 
     /// Einzellauf-Listen: die ganze Zeile oeffnet die Session (01.11.2026, wie das Web); das Profilbild ist dann kein
@@ -456,6 +474,7 @@ struct CommunityView: View {
         HStack(spacing: 8) {
             Text("\(platz)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(minWidth: 20)
             leaderAvatar(e, link: avatarLink)
+            LandFlagge(land: e.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (web Flagge)
             Text(e.name ?? "—").lineLimit(1)
             Spacer()
             Text(lbValue(e)).fontWeight(.semibold)
@@ -616,7 +635,8 @@ struct CommunityRow: View {
                      zeit: TimeFmt.timeOnly(item.started_at, item.tz) ?? "",
                      name: item.name, spot: item.spot, abzeichen: sportLabel,
                      kennzahlen: statsText ?? "",
-                     likeId: item.id, liked: item.liked ?? false, likeCount: item.like_count ?? 0)
+                     likeId: item.id, liked: item.liked ?? false, likeCount: item.like_count ?? 0,
+                     kommentare: item.comment_count ?? 0)
     }
 
     // Zeile in Spalten zerlegt: die Zeile war EIN Ausdruck mit sieben Geschwistern, davon drei
@@ -644,6 +664,7 @@ struct CommunityRow: View {
         VStack(spacing: 6) {   // Like unter dem Avatar (wie PWA), nicht in eigener Zeile rechts
             avatar
             LikeButton(sessionId: item.id, liked: item.liked ?? false, count: item.like_count ?? 0)
+            KommentarZahl(n: item.comment_count ?? 0)
         }
     }
 

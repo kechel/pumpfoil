@@ -53,8 +53,8 @@ struct HomeView: View {
     @State private var sportRek: [SportRekordeZeile] = []
     @State private var bilanzJahr: Int?
     @State private var manVerlauf: ManoeverVerlauf?
-    // Zeitfenster wie PWA: heute / 10 T / 30 T / 1 J / gesamt.
-    private let statWindows: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
+    // Zeitfenster wie PWA: heute / gestern / 10 T / 30 T / 1 J / gesamt.
+    private let statWindows: [(String, String)] = [("today", "period.today"), ("yesterday", "period.yesterday"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     // Vorgabefenster und die Kette, auf die zurueckgefallen wird, solange der Nutzer nicht
     // selbst gewaehlt hat: 10 Tage -> 30 Tage -> 1 Jahr -> Allzeit (PWA 30.08.).
     static let standardZeitraum = "10d"
@@ -209,6 +209,8 @@ struct HomeView: View {
         if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
         if let n = session.profile?.sorted_out_new, n > 0 { aussortiertHinweis(n) }
         latestSection
+        // Neue Kommentare & Likes an den eigenen Sessions (PWA NeuBeiMir, 03.11.2026) — direkt unter den letzten Sessions.
+        NeuBeiMirAbschnitt(lang: lang, neuLadenTick: sync.tick)
         // Wetter am Homespot direkt unter den letzten Sessions (Jan, 25.09.2026).
         if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
     }
@@ -608,7 +610,6 @@ struct HomeView: View {
     private func dateText(_ s: SessionSummary) -> String {
         TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at
     }
-    private func fmtDist(_ m: Double) -> String { meterOderKm(m) }
     private func fmtDur(_ s: Double) -> String { fmtLaufDauer(s) }
     // Foiling-Zeit aus Minuten, Format wie Web-fmtDur: "X h Y min" bzw. "Y min".
     private func fmtMin(_ min: Double) -> String {
