@@ -210,9 +210,10 @@ private const val BILD_HELL_PREF = "foil_bild_hell"
  * Flagge eines Landes (ISO-Code) als Bitmap fuer das Bild. Das Web zeichnet die SVGs aus /flags (flag-icons); Android kann
  * SVG ohne Zusatzbibliothek nicht dekodieren — deshalb hier die Flaggen-Emoji des Systems (Noto Color Emoji), auf ihre
  * sichtbare Flaeche zugeschnitten. Kennt die Schrift die Flagge nicht (zwei Buchstaben statt Flagge), bleibt der Platz leer
- * wie im Web bei einer nicht ladbaren Flagge. „k:…" (Kontinent, Erde) hat keine Flagge.
+ * wie im Web bei einer nicht ladbaren Flagge. „k:…" (Kontinent, Erde) wird zum Umriss (kontinentBild).
  */
 private fun flaggeBild(land: String?): android.graphics.Bitmap? {
+    land?.trim()?.lowercase()?.takeIf { it.startsWith("k:") }?.let { return kontinentBild(it.drop(2)) }
     val c = land?.trim()?.uppercase() ?: return null
     if (c.length != 2 || !c.all { it in 'A'..'Z' }) return null
     val emoji = String(Character.toChars(0x1F1E6 + (c[0] - 'A'))) + String(Character.toChars(0x1F1E6 + (c[1] - 'A')))

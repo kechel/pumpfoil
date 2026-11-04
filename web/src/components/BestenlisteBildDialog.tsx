@@ -4,7 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { BILD_B, BILD_H, bildDatei, bildLaden, bildSpeichern, zeichneBestenliste, type BildDaten } from "../lib/bestenlisteBild";
 import { useT } from "../i18n";
 import { flaggeUrl } from "../lib/laender";
+import { KONTINENT_PFADE } from "../lib/kontinente";
 import { DownloadIcon, ShareIcon } from "./Icons";
+
+/** Team-Herkunft Kontinent/Erde als Umriss im Flaggen-Kaestchen wie TeamHerkunft.tsx (cyan auf slate-900), als data:-Bild
+ *  (verunreinigt das Canvas nicht; CSP img-src erlaubt data:). */
+function kontinentBild(k: string): Promise<HTMLImageElement> {
+  const pfad = KONTINENT_PFADE[k];
+  if (!pfad) return Promise.reject(new Error(k));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36" width="192" height="144"><rect width="48" height="36" fill="#0f172a"/><path d="${pfad}" fill="#22d3ee"/></svg>`;
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
+}
 
 export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel, hinweis, onClose }: {
   daten: BildDaten; logoUrl?: string | null; dateiname: string; titel: string; hinweis?: string | null; onClose: () => void;
@@ -30,7 +40,8 @@ export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel
       // Flaggen der Fahrer, die ihre Nationalitaet eingestellt haben (02.11.2026); eine fehlende Flagge laesst nur sie weg.
       const flaggen: Record<string, HTMLImageElement> = {};
       const codes = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.land).filter(Boolean) as string[]);
-      await Promise.all([...codes].map((c) => bildLaden(flaggeUrl(c)).then((im) => { flaggen[c] = im; }).catch(() => {})));
+      await Promise.all([...codes].map((c) => (c.startsWith("k:") ? kontinentBild(c.slice(2)) : bildLaden(flaggeUrl(c)))
+        .then((im) => { flaggen[c] = im; }).catch(() => {})));
       // Team-Wappen je Zeile (04.11.2026); ein nicht ladbares Logo faellt auf die Initialen zurueck.
       const wappenBilder: Record<string, HTMLImageElement> = {};
       const logos = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.wappen?.logo).filter(Boolean) as string[]);

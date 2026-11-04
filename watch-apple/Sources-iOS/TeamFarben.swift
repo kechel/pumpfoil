@@ -223,6 +223,7 @@ enum TeamFlaggenBild {
     private static var cache: [String: UIImage] = [:]
 
     static func bild(_ land: String?) -> UIImage? {
+        if let l = land, l.hasPrefix("k:") { return kontinent(String(l.dropFirst(2))) }
         guard let e = teamFlaggenEmoji(land), let code = land?.uppercased() else { return nil }
         if let b = cache[code] { return b }
         let seite: CGFloat = 160
@@ -239,6 +240,53 @@ enum TeamFlaggenBild {
         let b = UIImage(cgImage: teil)
         cache[code] = b
         return b
+    }
+
+    /// Kontinent oder Erde als Umriss im Flaggen-Kaestchen wie im Web (TeamHerkunft.tsx): cyan auf dunklem Grund, 4:3.
+    static func kontinent(_ k: String) -> UIImage? {
+        let schluessel: String = "k:" + k
+        if let b = cache[schluessel] { return b }
+        guard let d = KontinentPfade.pfad(k) else { return nil }
+        let fmt = UIGraphicsImageRendererFormat.default()
+        fmt.scale = 1
+        let massstab: CGFloat = 4
+        let b = UIGraphicsImageRenderer(size: CGSize(width: 48 * massstab, height: 36 * massstab), format: fmt).image { ctx in
+            let g = ctx.cgContext
+            g.setFillColor(UIColor(red: 0.06, green: 0.09, blue: 0.16, alpha: 1).cgColor)   // slate-900
+            g.fill(CGRect(x: 0, y: 0, width: 48 * massstab, height: 36 * massstab))
+            g.scaleBy(x: massstab, y: massstab)
+            g.addPath(svgPfad(d))
+            g.setFillColor(UIColor(red: 0.13, green: 0.83, blue: 0.93, alpha: 1).cgColor)   // brand-400 #22d3ee
+            g.fillPath()
+        }
+        cache[schluessel] = b
+        return b
+    }
+
+    /// SVG-Pfad aus M/L/Z mit absoluten Zahlen (so erzeugt scripts/kontinente-erzeugen.py ihn).
+    private static func svgPfad(_ d: String) -> CGPath {
+        let p = CGMutablePath()
+        var befehl: Character = "M"
+        var zahlen: [CGFloat] = []
+        var zahl = ""
+        func zahlFertig() {
+            if let v = Double(zahl) { zahlen.append(CGFloat(v)) }
+            zahl = ""
+            if zahlen.count == 2 {
+                let pt = CGPoint(x: zahlen[0], y: zahlen[1])
+                if befehl == "M" { p.move(to: pt); befehl = "L" } else { p.addLine(to: pt) }
+                zahlen = []
+            }
+        }
+        for c in d {
+            if c == "M" || c == "L" { zahlFertig(); befehl = c }
+            else if c == "Z" { zahlFertig(); p.closeSubpath() }
+            else if c == " " || c == "," { zahlFertig() }
+            else if c == "-" && !zahl.isEmpty { zahlFertig(); zahl.append(c) }
+            else { zahl.append(c) }
+        }
+        zahlFertig()
+        return p
     }
 
     /// Kleinstes Rechteck um alle nicht durchsichtigen Pixel.
@@ -273,7 +321,12 @@ struct TeamHerkunftMarke: View {
             Text(e).font(.system(size: gross ? 18 : 13))
         } else if let l = land, l.hasPrefix("k:") {
             HStack(spacing: 3) {
-                Image(systemName: "globe").font(.system(size: gross ? 13 : 10)).foregroundStyle(Color.accentColor)
+                if let b = TeamFlaggenBild.kontinent(String(l.dropFirst(2))) {
+                    Image(uiImage: b).resizable().frame(width: gross ? 24 : 18, height: gross ? 18 : 13.5)
+                        .clipShape(RoundedRectangle(cornerRadius: 2))
+                } else {
+                    Image(systemName: "globe").font(.system(size: gross ? 13 : 10)).foregroundStyle(Color.accentColor)
+                }
                 Text(String(l.dropFirst(2)).uppercased()).font(.system(size: gross ? 12 : 10, weight: .semibold))
                     .foregroundStyle(.secondary)
             }

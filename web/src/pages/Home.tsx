@@ -894,7 +894,7 @@ function TeamBestenlisten() {
     const f = TEAM_FARBEN[z.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
     return {
       rang: i + 1, name: z.name, initialen: teamInitialen(z.name), wert: wert(z), ich: meine.has(z.slug),
-      land: z.land && !z.land.startsWith("k:") ? z.land : null,
+      land: z.land || null,   // Kontinent/Erde als Umriss (BestenlisteBildDialog kontinentBild)
       wappen: { logo: z.logo_url, flaeche: f.dunkelFlaeche ?? f.dunkel, schrift: f.dunkelAuf ?? "#020617",
                 flaecheHell: f.hellFlaeche ?? f.hell, schriftHell: f.hellAuf ?? "#ffffff" },
     };
