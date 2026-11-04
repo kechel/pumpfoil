@@ -234,8 +234,16 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       <Card id="guide-huawei" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">HUAWEI WATCH 5</h3>
         <p className="mt-1 text-sm text-slate-300">{t("guide.huaweiSub")}</p>
+        {/* Store-Eintrag wie in der AppGallery (Icon, Name, Untertitel), verlinkt — Huaweis eigenes Badge haben wir nicht. */}
         <a href="https://appgallery.huawei.com/app/detail?id=org.pumpfoil.huawei" target="_blank" rel="noopener noreferrer"
-          className="mt-3 inline-block rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300">AppGallery → „Pumpfoil"</a>
+          className="mt-3 flex max-w-sm items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3 hover:border-brand-500/60">
+          <img src="/icon-192.png" alt="" className="h-14 w-14 shrink-0 rounded-2xl" />
+          <span className="min-w-0">
+            <span className="block text-base font-bold text-slate-100">Pumpfoil</span>
+            <span className="block text-xs text-slate-400">Record pump foiling · HUAWEI WATCH 5</span>
+            <span className="mt-0.5 block text-sm font-medium text-brand-400 underline">AppGallery → „Pumpfoil"</span>
+          </span>
+        </a>
         <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-200">
           <li>{t("guide.h.s1")}</li>
           <li>{t("guide.h.s2")}{connectLink}</li>
